@@ -25,6 +25,59 @@ export async function addGameToSession(sessionId: number, input: AddGameInput) {
   });
 }
 
+export async function getSessionDetails(
+  sessionId: number
+): Promise<SessionSummary | null> {
+  const session = await db.sessions.get(sessionId);
+
+  if (!session) {
+    return null;
+  }
+
+  const games = await db.games
+    .where("session_id")
+    .equals(sessionId)
+    .sortBy("game_number");
+
+  const gamesWithFrames = await Promise.all(
+    games.map(async (game) => {
+      if (!game.id) {
+        return { ...game, frames: [] };
+      }
+
+      const frames = await db.frames
+        .where("game_id")
+        .equals(game.id)
+        .sortBy("frame_number");
+
+      return { ...game, frames };
+    })
+  );
+
+  return {
+    session,
+    games: gamesWithFrames
+  };
+}
+
+export async function addNextGameToSession(
+  sessionId: number,
+  laneNumber?: string
+) {
+  const sessionDetails = await getSessionDetails(sessionId);
+
+  if (!sessionDetails) {
+    throw new Error(`Cannot add game. Session ${sessionId} was not found.`);
+  }
+
+  const nextGameNumber = sessionDetails.games.length + 1;
+
+  return addGameToSession(sessionId, {
+    game_number: nextGameNumber,
+    lane_number: laneNumber
+  });
+}
+
 export async function saveFrame(gameId: number, frame: SaveFrameInput) {
   const game = await db.games.get(gameId);
 
@@ -63,35 +116,10 @@ export async function getSessionHistory(): Promise<SessionSummary[]> {
   const sessions = await db.sessions.orderBy("date").reverse().toArray();
 
   return Promise.all(
-    sessions.map(async (session) => {
-      if (!session.id) {
-        return { session, games: [] };
-      }
-
-      const games = await db.games
-        .where("session_id")
-        .equals(session.id)
-        .sortBy("game_number");
-
-      const gamesWithFrames = await Promise.all(
-        games.map(async (game) => {
-          if (!game.id) {
-            return { ...game, frames: [] };
-          }
-
-          const frames = await db.frames
-            .where("game_id")
-            .equals(game.id)
-            .sortBy("frame_number");
-
-          return { ...game, frames };
-        })
-      );
-
-      return {
-        session,
-        games: gamesWithFrames
-      };
-    })
+    sessions.map(async (session) =>
+      session.id ? getSessionDetails(session.id) : { session, games: [] }
+    )
+  ).then((items) =>
+    items.filter((item): item is SessionSummary => Boolean(item))
   );
 }

@@ -1,8 +1,10 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { db } from "../db/bowlingDb";
 import {
+  addNextGameToSession,
   addGameToSession,
   createSession,
+  getSessionDetails,
   getSessionHistory,
   saveFrame
 } from "./bowlingRepository";
@@ -37,5 +39,27 @@ describe("bowlingRepository", () => {
     expect(history).toHaveLength(1);
     expect(history[0].session.alley_name).toBe("Test Lanes");
     expect(history[0].games[0].frames[0].is_strike).toBe(true);
+  });
+
+  it("loads session details and adds sequential games", async () => {
+    const sessionId = Number(
+      await createSession({
+        date: "2026-05-26",
+        alley_name: "Test Lanes"
+      })
+    );
+
+    await addGameToSession(sessionId, {
+      game_number: 1,
+      lane_number: "7"
+    });
+    await addNextGameToSession(sessionId, "8");
+
+    const details = await getSessionDetails(sessionId);
+
+    expect(details?.games).toHaveLength(2);
+    expect(details?.games[0].game_number).toBe(1);
+    expect(details?.games[1].game_number).toBe(2);
+    expect(details?.games[1].lane_number).toBe("8");
   });
 });

@@ -167,14 +167,14 @@ The spec will define service APIs:
 - [x] Visual checkpoint: pin grid is touch-friendly on mobile and scorecard is readable on desktop/mobile.
 
 ### Phase 3: Session Management & Entry UI
-- [ ] Create dashboard with "Start New Session".
-- [ ] Add session form fields: alley name, lane, date, optional oil pattern, notes.
-- [ ] Create active session view with sequential game creation.
-- [ ] Persist frames as the user scores.
-- [ ] Update game final score automatically when complete.
-- [ ] Create session history view with sessions, games, frames, and final scores.
-- [ ] Add loading, empty, and error states for Dexie reads.
-- [ ] Visual checkpoint: user can start a session, score a game, leave, return, and see saved history.
+- [x] Create dashboard with "Start New Session".
+- [x] Add session form fields: alley name, lane, date, optional oil pattern, notes.
+- [x] Create active session view with sequential game creation.
+- [x] Persist frames as the user scores.
+- [x] Update game final score automatically when complete.
+- [x] Create session history view with sessions, games, frames, and final scores.
+- [x] Add loading, empty, and error states for Dexie reads.
+- [x] Visual checkpoint: user can start a session, score a game, leave, return, and see saved history.
 
 ### Phase 4: Backup, Restore & Data Safety
 - [ ] Implement JSON export reading all Dexie tables.
