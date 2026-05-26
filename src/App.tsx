@@ -53,35 +53,35 @@ function App() {
   }
 
   return (
-    <main className="min-h-screen bg-lane-50 text-slate-950">
+    <main className="min-h-screen overflow-x-hidden bg-lane-50 text-slate-950">
       <header className="border-b border-slate-200 bg-white">
-        <div className="mx-auto flex w-full max-w-6xl flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
+        <div className="mx-auto flex w-full max-w-6xl flex-col gap-3 px-3 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
           <button
             type="button"
             onClick={() => setView("dashboard")}
-            className="text-left text-xl font-bold text-slate-950"
+            className="text-left text-xl font-bold leading-tight text-slate-950"
           >
             Bowling Companion
           </button>
 
-          <nav className="flex gap-2">
+          <nav className="grid w-full grid-cols-3 gap-2 sm:w-auto sm:flex">
             <button
               type="button"
               onClick={() => setView("dashboard")}
-              className={`inline-flex h-10 items-center gap-2 rounded-lg px-3 text-sm font-semibold ${
+              className={`inline-flex h-10 min-w-0 items-center justify-center gap-1 rounded-lg px-2 text-xs font-semibold sm:gap-2 sm:px-3 sm:text-sm ${
                 view === "dashboard"
                   ? "bg-felt-700 text-white"
                   : "border border-slate-300 bg-white text-slate-800"
               }`}
             >
               <Home aria-hidden="true" size={17} />
-              Dashboard
+              <span className="truncate">Dash</span>
             </button>
             <button
               type="button"
               onClick={() => activeSessionId && setView("active")}
               disabled={!activeSessionId}
-              className={`inline-flex h-10 items-center gap-2 rounded-lg px-3 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-50 ${
+              className={`inline-flex h-10 min-w-0 items-center justify-center gap-1 rounded-lg px-2 text-xs font-semibold disabled:cursor-not-allowed disabled:opacity-50 sm:gap-2 sm:px-3 sm:text-sm ${
                 view === "active"
                   ? "bg-felt-700 text-white"
                   : "border border-slate-300 bg-white text-slate-800"
@@ -93,7 +93,7 @@ function App() {
             <button
               type="button"
               onClick={() => setView("history")}
-              className={`inline-flex h-10 items-center gap-2 rounded-lg px-3 text-sm font-semibold ${
+              className={`inline-flex h-10 min-w-0 items-center justify-center gap-1 rounded-lg px-2 text-xs font-semibold sm:gap-2 sm:px-3 sm:text-sm ${
                 view === "history"
                   ? "bg-felt-700 text-white"
                   : "border border-slate-300 bg-white text-slate-800"

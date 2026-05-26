@@ -34,10 +34,10 @@ export function PinGrid({
   }
 
   return (
-    <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-      <div className="mx-auto flex max-w-72 flex-col items-center gap-3">
+    <div className="w-full overflow-hidden rounded-lg border border-slate-200 bg-white p-3 shadow-sm sm:p-5">
+      <div className="mx-auto flex w-full max-w-[17rem] flex-col items-center gap-2 sm:gap-3">
         {PIN_ROWS.map((row) => (
-          <div key={row.join("-")} className="flex justify-center gap-3">
+          <div key={row.join("-")} className="flex w-full justify-center gap-2 sm:gap-3">
             {row.map((pin) => {
               const isStanding = standingPinSet.has(pin);
               const isAvailable = availablePinSet.has(pin);
@@ -49,7 +49,7 @@ export function PinGrid({
                   aria-pressed={isStanding}
                   disabled={!isAvailable}
                   onClick={() => togglePin(pin)}
-                  className={`flex h-12 w-12 items-center justify-center rounded-full border text-sm font-bold transition ${
+                  className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full border text-sm font-bold transition sm:h-12 sm:w-12 ${
                     isStanding
                       ? "border-red-500 bg-white text-red-700 shadow-sm"
                       : "border-slate-300 bg-slate-900 text-white"
@@ -66,7 +66,7 @@ export function PinGrid({
           </div>
         ))}
       </div>
-      <div className="mt-5 grid grid-cols-2 gap-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
+      <div className="mt-4 grid grid-cols-2 gap-3 text-xs font-semibold uppercase tracking-wide text-slate-500 sm:mt-5">
         <div className="flex items-center gap-2">
           <span className="h-3 w-3 rounded-full border border-red-500 bg-white" />
           Standing

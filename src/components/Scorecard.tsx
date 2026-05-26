@@ -11,8 +11,8 @@ export function Scorecard({ frames, activeFrameNumber }: ScorecardProps) {
   const gameScore = calculateGameScore(frames);
 
   return (
-    <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white shadow-sm">
-      <div className="grid min-w-[760px] grid-cols-[repeat(9,minmax(64px,1fr))_minmax(96px,1.25fr)]">
+    <div className="w-full max-w-full overflow-x-auto rounded-lg border border-slate-200 bg-white shadow-sm">
+      <div className="grid min-w-[620px] grid-cols-[repeat(9,minmax(52px,1fr))_minmax(78px,1.2fr)] sm:min-w-[760px] sm:grid-cols-[repeat(9,minmax(64px,1fr))_minmax(96px,1.25fr)]">
         {Array.from({ length: 10 }, (_, index) => {
           const frameNumber = index + 1;
           const frame = frames.find((item) => item.frame_number === frameNumber);
@@ -33,20 +33,20 @@ export function Scorecard({ frames, activeFrameNumber }: ScorecardProps) {
                 {frameNumber}
               </div>
               <div
-                className={`grid h-12 ${
+                className={`grid h-10 sm:h-12 ${
                   frameNumber === 10 ? "grid-cols-3" : "grid-cols-2"
                 }`}
               >
                 {symbols.map((symbol, symbolIndex) => (
                   <div
                     key={`${frameNumber}-${symbolIndex}`}
-                    className="flex items-center justify-center border-b border-l border-slate-200 first:border-l-0 text-lg font-bold text-slate-900"
+                    className="flex items-center justify-center border-b border-l border-slate-200 text-base font-bold text-slate-900 first:border-l-0 sm:text-lg"
                   >
                     {symbol}
                   </div>
                 ))}
               </div>
-              <div className="flex h-14 items-center justify-center px-2 text-xl font-bold text-felt-700">
+              <div className="flex h-11 items-center justify-center px-2 text-lg font-bold text-felt-700 sm:h-14 sm:text-xl">
                 {frameScore?.rollingTotal ?? ""}
               </div>
             </div>

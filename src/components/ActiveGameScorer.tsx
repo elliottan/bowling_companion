@@ -83,16 +83,16 @@ export function ActiveGameScorer({
   }
 
   return (
-    <section className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
-      <div className="mb-6 flex flex-col gap-4 border-b border-slate-200 pb-5 lg:flex-row lg:items-end lg:justify-between">
-        <div>
-          <p className="mb-2 text-sm font-semibold uppercase tracking-wide text-felt-700">
+    <section className="mx-auto w-full max-w-6xl px-3 py-4 sm:px-6 lg:px-8">
+      <div className="mb-4 flex flex-col gap-3 border-b border-slate-200 pb-4 lg:flex-row lg:items-end lg:justify-between">
+        <div className="min-w-0">
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-felt-700 sm:text-sm">
             {eyebrow}
           </p>
-          <h1 className="text-3xl font-bold text-slate-950 sm:text-4xl">
+          <h1 className="text-2xl font-bold leading-tight text-slate-950 sm:text-4xl">
             {title}
           </h1>
-          <p className="mt-3 max-w-2xl text-base leading-7 text-slate-600">
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600 sm:text-base sm:leading-7">
             {description}
           </p>
         </div>
@@ -108,17 +108,17 @@ export function ActiveGameScorer({
         ) : null}
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(300px,380px)_1fr]">
+      <div className="grid min-w-0 gap-4 lg:grid-cols-[minmax(300px,380px)_1fr] lg:gap-6">
         <div className="space-y-4">
-          <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+          <div className="rounded-lg border border-slate-200 bg-white p-3 shadow-sm sm:p-4">
             <div className="flex items-center justify-between gap-3">
-              <div>
+              <div className="min-w-0">
                 <p className="text-sm font-semibold text-slate-500">Current shot</p>
-                <p className="text-2xl font-bold text-slate-950">
+                <p className="text-2xl font-bold leading-tight text-slate-950">
                   Frame {gameState.currentFrameNumber}, Shot {gameState.currentShot}
                 </p>
               </div>
-              <div className="flex h-14 w-14 items-center justify-center rounded-lg bg-felt-700 text-xl font-bold text-white">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-felt-700 text-xl font-bold text-white sm:h-14 sm:w-14">
                 {pinsDown}
               </div>
             </div>
@@ -130,12 +130,12 @@ export function ActiveGameScorer({
             onChange={updateStandingPins}
           />
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-2 sm:gap-3">
             <button
               type="button"
               onClick={resetShot}
               disabled={gameState.isComplete}
-              className="inline-flex h-12 items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-800 shadow-sm hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+              className="inline-flex h-12 min-w-0 items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-800 shadow-sm hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
             >
               <RotateCcw aria-hidden="true" size={18} />
               Reset shot
@@ -144,7 +144,7 @@ export function ActiveGameScorer({
               type="button"
               onClick={recordShot}
               disabled={gameState.isComplete}
-              className="inline-flex h-12 items-center justify-center gap-2 rounded-lg bg-felt-700 px-4 text-sm font-semibold text-white shadow-sm hover:bg-felt-500 disabled:cursor-not-allowed disabled:opacity-50"
+              className="inline-flex h-12 min-w-0 items-center justify-center gap-2 rounded-lg bg-felt-700 px-3 text-sm font-semibold text-white shadow-sm hover:bg-felt-500 disabled:cursor-not-allowed disabled:opacity-50"
             >
               <Send aria-hidden="true" size={18} />
               Record
@@ -152,13 +152,13 @@ export function ActiveGameScorer({
           </div>
         </div>
 
-        <div className="space-y-4">
+        <div className="min-w-0 space-y-4">
           <Scorecard
             frames={gameState.frames}
             activeFrameNumber={gameState.currentFrameNumber}
           />
 
-          <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+          <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
             <div className="flex items-center gap-3">
               <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-lane-100 text-felt-700">
                 <Sparkles aria-hidden="true" size={22} />

@@ -6,7 +6,8 @@ Create `bowling-spec.md` as the project source-of-truth for a fresh offline-firs
 Assumptions:
 - The repo is currently unscaffolded, so Phase 1 starts from a fresh Vite React TypeScript project.
 - Use `npm` because existing launch metadata expects `npm run dev`.
-- UI should be simple, touch-friendly, and score-entry-first.
+- UI should be simple, touch-friendly, score-entry-first, and mobile-first.
+- Mobile browser usability is the priority. Desktop layouts may be basic or ignored if needed.
 
 ## `bowling-spec.md` Structure
 The file will include:
@@ -25,6 +26,17 @@ The file will include:
 - The app must work offline after the initial browser load and must not rely on server APIs for scorekeeping data.
 - Domain logic such as scoring, frame interpretation, backup validation, and import merge decisions should live in pure, unit-testable modules.
 - React components should remain focused on input, rendering, and orchestration.
+
+## Mobile-First UI Requirements
+- Treat an iPhone-width viewport, especially 390 x 844, as the primary design target.
+- Fix mobile layout issues before adding new desktop polish. Desktop can remain plain if the mobile workflow is clean.
+- The active scoring screen must show the current frame/shot, pin grid, record controls, and useful score context without horizontal clipping.
+- Avoid wide desktop-first grids on mobile. Stack sections vertically, reduce padding, and keep action buttons within the visible viewport.
+- The 10-pin grid must always fit within the viewport width and remain centered; no pin should be partially off-screen.
+- The scorecard must have a mobile-safe presentation. It may use horizontal scroll, compact frame chips, or a collapsed current-frame-first view, but it must not force the entire page wider than the viewport.
+- Navigation should be compact on mobile. Prefer icon-sized or short-label controls when space is tight.
+- Session controls such as "Add game" and "Dashboard" should not dominate the top of the active scoring flow; scoring input is the primary task.
+- Before completing any UI phase, manually verify the app at 390 x 844 and ensure there is no accidental horizontal page overflow.
 
 ## Proposed File Layout
 ```txt
@@ -135,6 +147,7 @@ The spec will define service APIs:
 - `ActiveSession` coordinates scoring state, frame saves, and game progression.
 - `SessionHistory` reads summarized historical data from Dexie-backed repository functions.
 - `LaneVisualization` remains independent from core scorekeeping in its first version.
+- All visual components must be designed mobile-first, then optionally enhanced for larger screens.
 
 ## Backup And Restore Strategy
 - Export reads all Dexie tables into one JSON object with metadata and version.
@@ -144,6 +157,14 @@ The spec will define service APIs:
 - Backup files should be timestamped and human-identifiable.
 
 ## Phase Checklists
+
+### Mobile UI Correction Checkpoint
+- [x] Rework active session layout for a 390px-wide mobile viewport.
+- [x] Ensure the pin grid is fully visible and centered on mobile.
+- [x] Reduce top session-management chrome so scoring appears sooner.
+- [x] Make scorecard mobile-safe without forcing page-level horizontal overflow.
+- [ ] Verify dashboard, active scoring, and history at 390 x 844.
+- [ ] Desktop improvements are optional and lower priority than mobile usability.
 
 ### Phase 1: Project Scaffolding & Dexie DB Setup
 - [x] Scaffold Vite React TypeScript app.
@@ -198,7 +219,8 @@ The spec will define service APIs:
 ## Testing And Acceptance
 - Unit tests cover pure scoring and backup validation.
 - Component tests cover scorecard symbols, frame state transitions, and pin-grid selection.
-- Manual visual checks cover mobile score entry, desktop scorecard readability, and offline reload persistence.
+- Manual visual checks prioritize mobile score entry at 390 x 844, including no clipped pin grid, no page-level horizontal overflow, and reachable primary actions.
+- Desktop scorecard readability is secondary and must not drive layout decisions that harm mobile.
 - No backend routes, server APIs, or app data fetch calls are introduced.
 - Relational bowling data lives in IndexedDB through Dexie only.
 

@@ -135,14 +135,14 @@ export function ActiveSessionView({
 
   return (
     <div>
-      <section className="mx-auto w-full max-w-6xl px-4 pt-6 sm:px-6 lg:px-8">
-        <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <div>
+      <section className="mx-auto w-full max-w-6xl px-3 pt-4 sm:px-6 lg:px-8">
+        <div className="rounded-lg border border-slate-200 bg-white p-3 shadow-sm sm:p-4">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+            <div className="min-w-0">
               <p className="text-sm font-semibold text-felt-700">
                 {sessionDetails.session.date}
               </p>
-              <h1 className="text-2xl font-bold text-slate-950">
+              <h1 className="truncate text-2xl font-bold text-slate-950">
                 {sessionDetails.session.alley_name}
               </h1>
               <p className="mt-1 text-sm text-slate-600">
@@ -150,7 +150,7 @@ export function ActiveSessionView({
               </p>
             </div>
 
-            <div className="flex flex-col gap-3 sm:flex-row">
+            <div className="grid grid-cols-[1fr_auto] gap-2 sm:flex sm:flex-row">
               <label className="space-y-1">
                 <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
                   Next lane
@@ -166,16 +166,16 @@ export function ActiveSessionView({
                 type="button"
                 onClick={handleAddGame}
                 disabled={!canAddGame}
-                className="inline-flex h-10 items-center justify-center gap-2 self-end rounded-lg bg-felt-700 px-4 text-sm font-semibold text-white hover:bg-felt-500 disabled:cursor-not-allowed disabled:opacity-50"
+                className="inline-flex h-10 items-center justify-center gap-2 self-end rounded-lg bg-felt-700 px-3 text-sm font-semibold text-white hover:bg-felt-500 disabled:cursor-not-allowed disabled:opacity-50 sm:px-4"
               >
                 <Plus aria-hidden="true" size={18} />
-                Add game
+                <span className="hidden min-[360px]:inline">Add game</span>
               </button>
 
               <button
                 type="button"
                 onClick={onBackToDashboard}
-                className="inline-flex h-10 items-center justify-center self-end rounded-lg border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-800 hover:bg-slate-50"
+                className="col-span-2 inline-flex h-10 items-center justify-center self-end rounded-lg border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-800 hover:bg-slate-50 sm:col-span-1"
               >
                 Dashboard
               </button>
