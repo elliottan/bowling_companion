@@ -198,13 +198,13 @@ The spec will define service APIs:
 - [x] Visual checkpoint: user can start a session, score a game, leave, return, and see saved history.
 
 ### Phase 4: Backup, Restore & Data Safety
-- [ ] Implement JSON export reading all Dexie tables.
-- [ ] Trigger browser download with timestamped `.json` backup filename.
-- [ ] Implement JSON import from selected/dropped file.
-- [ ] Validate backup shape before writing.
-- [ ] Merge imported sessions/games/frames without blindly corrupting existing data.
-- [ ] Show import success/failure feedback.
-- [ ] Add tests for backup validation and import merge behavior.
+- [x] Implement JSON export reading all Dexie tables.
+- [x] Trigger browser download with timestamped `.json` backup filename.
+- [x] Implement JSON import from selected/dropped file.
+- [x] Validate backup shape before writing.
+- [x] Merge imported sessions/games/frames without blindly corrupting existing data.
+- [x] Show import success/failure feedback.
+- [x] Add tests for backup validation and import merge behavior.
 - [ ] Verification: export a backup, clear DB in dev tools, import backup, confirm history restores.
 
 ### Phase 5: Bowling Line Visualisation

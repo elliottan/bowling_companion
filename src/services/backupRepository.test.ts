@@ -1,0 +1,48 @@
+import { beforeEach, describe, expect, it } from "vitest";
+import { db } from "../db/bowlingDb";
+import { createBackup, importBackup } from "./backupRepository";
+import { addGameToSession, createSession, getSessionHistory, saveFrame } from "./bowlingRepository";
+
+describe("backupRepository", () => {
+  beforeEach(async () => {
+    await db.delete();
+    await db.open();
+  });
+
+  it("creates and imports a backup", async () => {
+    const sessionId = Number(
+      await createSession({
+        date: "2026-05-27",
+        alley_name: "Backup Lanes"
+      })
+    );
+    const gameId = Number(
+      await addGameToSession(sessionId, {
+        game_number: 1,
+        lane_number: "2"
+      })
+    );
+
+    await saveFrame(gameId, {
+      frame_number: 1,
+      shot_1_pins_standing: [],
+      is_strike: true,
+      is_spare: false
+    });
+
+    const backup = await createBackup();
+    await db.delete();
+    await db.open();
+
+    const result = await importBackup(backup);
+    const history = await getSessionHistory();
+
+    expect(result).toEqual({ sessions: 1, games: 1, frames: 1 });
+    expect(history[0].session.alley_name).toBe("Backup Lanes");
+    expect(history[0].games[0].frames[0].is_strike).toBe(true);
+  });
+
+  it("rejects invalid backup JSON", async () => {
+    await expect(importBackup("{bad json")).rejects.toThrow();
+  });
+});

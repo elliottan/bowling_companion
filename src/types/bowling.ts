@@ -33,3 +33,14 @@ export interface SessionSummary {
   session: Session;
   games: Array<Game & { frames: Frame[] }>;
 }
+
+export interface BowlingBackup {
+  app: "bowling-companion";
+  version: 1;
+  exported_at: string;
+  tables: {
+    sessions: Session[];
+    games: Game[];
+    frames: Frame[];
+  };
+}

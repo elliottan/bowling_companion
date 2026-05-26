@@ -1,15 +1,16 @@
-import { History, Home, PlayCircle } from "lucide-react";
+import { Archive, History, Home, PlayCircle } from "lucide-react";
 import { useState } from "react";
 import { DashboardView } from "./views/DashboardView";
 import { ActiveSessionView } from "./views/ActiveSessionView";
 import { HistoryView } from "./views/HistoryView";
+import { BackupRestoreView } from "./views/BackupRestoreView";
 import {
   addGameToSession,
   createSession
 } from "./services/bowlingRepository";
 import type { NewSessionFormValues } from "./components/SessionForm";
 
-type AppView = "dashboard" | "active" | "history";
+type AppView = "dashboard" | "active" | "history" | "backup";
 
 function App() {
   const [view, setView] = useState<AppView>("dashboard");
@@ -64,7 +65,7 @@ function App() {
             Bowling Companion
           </button>
 
-          <nav className="grid w-full grid-cols-3 gap-2 sm:w-auto sm:flex">
+          <nav className="grid w-full grid-cols-4 gap-2 sm:w-auto sm:flex">
             <button
               type="button"
               onClick={() => setView("dashboard")}
@@ -102,6 +103,18 @@ function App() {
               <History aria-hidden="true" size={17} />
               History
             </button>
+            <button
+              type="button"
+              onClick={() => setView("backup")}
+              className={`inline-flex h-10 min-w-0 items-center justify-center gap-1 rounded-lg px-2 text-xs font-semibold sm:gap-2 sm:px-3 sm:text-sm ${
+                view === "backup"
+                  ? "bg-felt-700 text-white"
+                  : "border border-slate-300 bg-white text-slate-800"
+              }`}
+            >
+              <Archive aria-hidden="true" size={17} />
+              Backup
+            </button>
           </nav>
         </div>
       </header>
@@ -122,6 +135,8 @@ function App() {
       ) : null}
 
       {view === "history" ? <HistoryView onOpenSession={openSession} /> : null}
+
+      {view === "backup" ? <BackupRestoreView /> : null}
     </main>
   );
 }
