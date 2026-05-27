@@ -112,42 +112,55 @@ async function readBackupInput(fileOrJson: File | string | unknown) {
   return fileOrJson;
 }
 
-async function upsertSession(session: Session) {
-  if (session.id && (await db.sessions.get(session.id))) {
-    await db.sessions.put(session);
-    return session.id;
+/**
+ * Match-by-content merge: never trust imported `id`s.
+ * Sessions match on (date + alley_name). Games on (session_id + game_number).
+ * Frames on (game_id + frame_number). See docs/DECISIONS.md ADR-003.
+ */
+async function upsertSession(session: Session): Promise<number> {
+  const candidates = await db.sessions
+    .where("date")
+    .equals(session.date)
+    .and((existing) => existing.alley_name === session.alley_name)
+    .toArray();
+  const match = candidates[0];
+
+  if (match?.id) {
+    await db.sessions.put({ ...session, id: match.id });
+    return match.id;
   }
 
-  return db.sessions.add(stripId(session));
+  const id = await db.sessions.add(stripId(session));
+  return Number(id);
 }
 
-async function upsertGame(game: Game) {
-  if (game.id && (await db.games.get(game.id))) {
-    await db.games.put(game);
-    return game.id;
+async function upsertGame(game: Game): Promise<number> {
+  const match = await db.games
+    .where("session_id")
+    .equals(game.session_id)
+    .and((existing) => existing.game_number === game.game_number)
+    .first();
+
+  if (match?.id) {
+    await db.games.put({ ...game, id: match.id });
+    return match.id;
   }
 
-  return db.games.add(stripId(game));
+  const id = await db.games.add(stripId(game));
+  return Number(id);
 }
 
-async function upsertFrame(frame: Frame) {
-  const existing =
-    frame.id && (await db.frames.get(frame.id))
-      ? await db.frames.get(frame.id)
-      : await db.frames
-          .where("[game_id+frame_number]")
-          .equals([frame.game_id, frame.frame_number])
-          .first()
-          .catch(() => undefined);
+async function upsertFrame(frame: Frame): Promise<void> {
+  const match = await db.frames
+    .where("[game_id+frame_number]")
+    .equals([frame.game_id, frame.frame_number])
+    .first()
+    .catch(() => undefined);
 
-  await db.frames.put({
-    ...frame,
-    id: existing?.id
-  });
+  await db.frames.put({ ...frame, id: match?.id });
 }
 
-function stripId<T extends { id?: number }>(value: T) {
+function stripId<T extends { id?: number }>(value: T): Omit<T, "id"> {
   const { id: _id, ...rest } = value;
-
   return rest as Omit<T, "id">;
 }

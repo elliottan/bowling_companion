@@ -1,6 +1,11 @@
-import type { Frame, PinNumber } from "../types/bowling";
+import type { Frame } from "../types/bowling";
+import {
+  ALL_PINS,
+  knockedDownCount,
+  pinsClearedBetween
+} from "./pins";
 
-export const ALL_PINS: PinNumber[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+export { ALL_PINS, knockedDownCount } from "./pins";
 
 export interface FrameScore {
   frame_number: number;
@@ -16,31 +21,21 @@ export interface GameScore {
   frames: FrameScore[];
 }
 
-export function knockedDownCount(pinsStanding: PinNumber[] = ALL_PINS) {
-  return 10 - uniquePins(pinsStanding).length;
-}
-
-export function isStrike(frame: Pick<Frame, "shot_1_pins_standing">) {
+export function isStrike(frame: Pick<Frame, "shot_1_pins_standing">): boolean {
   return knockedDownCount(frame.shot_1_pins_standing) === 10;
 }
 
 export function isSpare(
   frame: Pick<Frame, "shot_1_pins_standing" | "shot_2_pins_standing">
-) {
-  if (isStrike(frame)) {
-    return false;
-  }
-
-  if (!frame.shot_2_pins_standing) {
-    return false;
-  }
-
+): boolean {
+  if (isStrike(frame)) return false;
+  if (!frame.shot_2_pins_standing) return false;
   return knockedDownCount(frame.shot_2_pins_standing) === 10;
 }
 
 export function calculateGameScore(frames: Frame[]): GameScore {
   const orderedFrames = [...frames].sort(
-    (first, second) => first.frame_number - second.frame_number
+    (a, b) => a.frame_number - b.frame_number
   );
   const shots = flattenShots(orderedFrames);
   const scoredFrames: FrameScore[] = [];
@@ -51,55 +46,33 @@ export function calculateGameScore(frames: Frame[]): GameScore {
     const frame = orderedFrames.find((item) => item.frame_number === frameNumber);
 
     if (!frame) {
-      return {
-        total: rollingTotal,
-        isComplete: false,
-        frames: scoredFrames
-      };
+      return { total: rollingTotal, isComplete: false, frames: scoredFrames };
     }
 
     const strike = isStrike(frame);
     const spare = isSpare(frame);
     const bonusShotsNeeded = frameNumber < 10 ? (strike ? 2 : spare ? 1 : 0) : 0;
-    const frameShots = shots.slice(shotIndex, shotIndex + (strike && frameNumber < 10 ? 1 : 2));
-    const bonusShots = shots.slice(shotIndex + frameShots.length, shotIndex + frameShots.length + bonusShotsNeeded);
+    const frameShotCount = strike && frameNumber < 10 ? 1 : 2;
+    const frameShots = shots.slice(shotIndex, shotIndex + frameShotCount);
+    const bonusShots = shots.slice(
+      shotIndex + frameShots.length,
+      shotIndex + frameShots.length + bonusShotsNeeded
+    );
 
     if (frameNumber < 10 && bonusShots.length < bonusShotsNeeded) {
-      scoredFrames.push({
-        frame_number: frameNumber,
-        score: null,
-        rollingTotal: null,
-        isStrike: strike,
-        isSpare: spare
-      });
-
-      return {
-        total: rollingTotal,
-        isComplete: false,
-        frames: scoredFrames
-      };
+      scoredFrames.push(pending(frameNumber, strike, spare));
+      return { total: rollingTotal, isComplete: false, frames: scoredFrames };
     }
 
     const frameScore =
       frameNumber === 10
         ? calculateTenthFrameScore(frame)
-        : frameShots.reduce((total, shot) => total + shot, 0) +
-          bonusShots.reduce((total, shot) => total + shot, 0);
+        : frameShots.reduce((sum, n) => sum + n, 0) +
+          bonusShots.reduce((sum, n) => sum + n, 0);
 
     if (frameScore === null) {
-      scoredFrames.push({
-        frame_number: frameNumber,
-        score: null,
-        rollingTotal: null,
-        isStrike: strike,
-        isSpare: spare
-      });
-
-      return {
-        total: rollingTotal,
-        isComplete: false,
-        frames: scoredFrames
-      };
+      scoredFrames.push(pending(frameNumber, strike, spare));
+      return { total: rollingTotal, isComplete: false, frames: scoredFrames };
     }
 
     rollingTotal += frameScore;
@@ -111,17 +84,29 @@ export function calculateGameScore(frames: Frame[]): GameScore {
       isSpare: spare
     });
 
-    shotIndex += strike && frameNumber < 10 ? 1 : 2;
+    shotIndex += frameShotCount;
   }
 
   return {
     total: rollingTotal,
-    isComplete: scoredFrames.length === 10 && scoredFrames.every((frame) => frame.score !== null),
+    isComplete:
+      scoredFrames.length === 10 &&
+      scoredFrames.every((frame) => frame.score !== null),
     frames: scoredFrames
   };
 }
 
-function flattenShots(frames: Frame[]) {
+function pending(frameNumber: number, strike: boolean, spare: boolean): FrameScore {
+  return {
+    frame_number: frameNumber,
+    score: null,
+    rollingTotal: null,
+    isStrike: strike,
+    isSpare: spare
+  };
+}
+
+function flattenShots(frames: Frame[]): number[] {
   return frames.flatMap((frame) => {
     if (frame.frame_number === 10) {
       return [
@@ -135,9 +120,7 @@ function flattenShots(frames: Frame[]) {
       ].filter(isNumber);
     }
 
-    if (isStrike(frame)) {
-      return [10];
-    }
+    if (isStrike(frame)) return [10];
 
     return [
       knockedDownCount(frame.shot_1_pins_standing),
@@ -148,12 +131,10 @@ function flattenShots(frames: Frame[]) {
   });
 }
 
-function calculateTenthFrameScore(frame: Frame) {
+function calculateTenthFrameScore(frame: Frame): number | null {
   const shotOne = knockedDownCount(frame.shot_1_pins_standing);
 
-  if (!frame.shot_2_pins_standing) {
-    return null;
-  }
+  if (!frame.shot_2_pins_standing) return null;
 
   const shotTwo = tenthFrameFollowUpPinfall(
     frame.shot_1_pins_standing,
@@ -161,13 +142,8 @@ function calculateTenthFrameScore(frame: Frame) {
   );
   const needsThirdShot = shotOne === 10 || shotOne + shotTwo === 10;
 
-  if (!needsThirdShot) {
-    return shotOne + shotTwo;
-  }
-
-  if (!frame.shot_3_pins_standing) {
-    return null;
-  }
+  if (!needsThirdShot) return shotOne + shotTwo;
+  if (!frame.shot_3_pins_standing) return null;
 
   return (
     shotOne +
@@ -176,28 +152,14 @@ function calculateTenthFrameScore(frame: Frame) {
   );
 }
 
-function tenthFrameFollowUpPinfall(
-  previousStandingPins: PinNumber[],
-  currentStandingPins: PinNumber[]
-) {
+export function tenthFrameFollowUpPinfall(
+  previousStandingPins: import("../types/bowling").PinNumber[],
+  currentStandingPins: import("../types/bowling").PinNumber[]
+): number {
   if (previousStandingPins.length === 0) {
     return knockedDownCount(currentStandingPins);
   }
-
   return pinsClearedBetween(previousStandingPins, currentStandingPins);
-}
-
-function pinsClearedBetween(
-  previousStandingPins: PinNumber[],
-  currentStandingPins: PinNumber[]
-) {
-  const currentPins = new Set(uniquePins(currentStandingPins));
-
-  return uniquePins(previousStandingPins).filter((pin) => !currentPins.has(pin)).length;
-}
-
-function uniquePins(pins: PinNumber[]) {
-  return [...new Set(pins)].sort((first, second) => first - second);
 }
 
 function isNumber(value: number | undefined): value is number {

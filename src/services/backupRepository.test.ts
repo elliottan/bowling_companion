@@ -45,4 +45,31 @@ describe("backupRepository", () => {
   it("rejects invalid backup JSON", async () => {
     await expect(importBackup("{bad json")).rejects.toThrow();
   });
+
+  it("merges by content keys without overwriting unrelated local rows", async () => {
+    // Local row gets id=1 (different alley) before import.
+    await createSession({ date: "2026-05-27", alley_name: "Local Lanes" });
+
+    // Import a backup whose session.id=1 but with a different alley name.
+    // Old (buggy) merge would overwrite Local Lanes; new merge inserts new row.
+    const importedBackup = {
+      app: "bowling-companion" as const,
+      version: 1 as const,
+      exported_at: "2026-05-27T00:00:00.000Z",
+      tables: {
+        sessions: [{ id: 1, date: "2026-05-27", alley_name: "Imported Lanes" }],
+        games: [],
+        frames: []
+      }
+    };
+
+    await importBackup(importedBackup);
+    const history = await getSessionHistory();
+
+    expect(history).toHaveLength(2);
+    expect(history.map((h) => h.session.alley_name).sort()).toEqual([
+      "Imported Lanes",
+      "Local Lanes"
+    ]);
+  });
 });

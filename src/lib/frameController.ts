@@ -1,4 +1,5 @@
-import { ALL_PINS, isSpare, isStrike, knockedDownCount } from "./scoring";
+import { ALL_PINS, isSpare, isStrike } from "./scoring";
+import { knockedDownCount } from "./pins";
 import type { Frame, PinNumber } from "../types/bowling";
 
 export type ActiveShot = 1 | 2 | 3;
@@ -32,20 +33,18 @@ export function submitShot(
   state: FrameControllerState,
   pinsStanding: PinNumber[]
 ): ShotSubmissionResult {
-  if (state.isComplete) {
-    return { state, savedFrame: null };
-  }
+  if (state.isComplete) return { state, savedFrame: null };
 
-  const normalizedPins = normalizePins(pinsStanding);
-  const draftFrame = findFrame(state) ?? createDraftFrame(state.currentFrameNumber);
-  const updatedFrame = applyShotToFrame(draftFrame, state.currentShot, normalizedPins);
+  const normalized = normalizePins(pinsStanding);
+  const draft = findFrame(state) ?? createDraftFrame(state.currentFrameNumber);
+  const updated = applyShotToFrame(draft, state.currentShot, normalized);
 
   if (state.currentFrameNumber === 10) {
-    return advanceTenthFrame(state, updatedFrame, normalizedPins);
+    return advanceTenthFrame(state, updated, normalized);
   }
 
-  if (state.currentShot === 1 && isStrike(updatedFrame)) {
-    return completeFrame(state, finalizeFrame(updatedFrame), ALL_PINS);
+  if (state.currentShot === 1 && isStrike(updated)) {
+    return completeFrame(state, updated, ALL_PINS);
   }
 
   if (state.currentShot === 1) {
@@ -53,26 +52,20 @@ export function submitShot(
       savedFrame: null,
       state: {
         ...state,
-        frames: upsertFrame(state.frames, updatedFrame),
+        frames: upsertFrame(state.frames, updated),
         currentShot: 2,
-        availablePins: normalizedPins,
-        standingPins: normalizedPins
+        availablePins: normalized,
+        standingPins: normalized
       }
     };
   }
 
-  return completeFrame(state, finalizeFrame(updatedFrame), ALL_PINS);
+  return completeFrame(state, updated, ALL_PINS);
 }
 
-export function resetCurrentShotPins(state: FrameControllerState) {
-  if (state.isComplete) {
-    return state;
-  }
-
-  return {
-    ...state,
-    standingPins: getDefaultPinsForShot(state)
-  };
+export function resetCurrentShotPins(state: FrameControllerState): FrameControllerState {
+  if (state.isComplete) return state;
+  return { ...state, standingPins: getDefaultPinsForShot(state) };
 }
 
 function advanceTenthFrame(
@@ -81,51 +74,51 @@ function advanceTenthFrame(
   pinsStanding: PinNumber[]
 ): ShotSubmissionResult {
   if (state.currentShot === 1) {
+    const strike = isStrike(frame);
     return {
       savedFrame: null,
       state: {
         ...state,
         frames: upsertFrame(state.frames, frame),
         currentShot: 2,
-        availablePins: isStrike(frame) ? ALL_PINS : pinsStanding,
-        standingPins: isStrike(frame) ? ALL_PINS : pinsStanding
+        availablePins: strike ? ALL_PINS : pinsStanding,
+        standingPins: strike ? ALL_PINS : pinsStanding
       }
     };
   }
 
   if (state.currentShot === 2) {
-    const firstShotWasStrike = isStrike(frame);
-    const secondShotEarnedSpare = !firstShotWasStrike && isSpare(frame);
-    const earnsThirdShot = firstShotWasStrike || secondShotEarnedSpare;
+    const strike = isStrike(frame);
+    const spare = !strike && isSpare(frame);
+    const earnsThird = strike || spare;
 
-    if (earnsThirdShot) {
-      return {
-        savedFrame: null,
-        state: {
-          ...state,
-          frames: upsertFrame(state.frames, frame),
-          currentShot: 3,
-          availablePins: pinsStanding.length === 0 ? ALL_PINS : pinsStanding,
-          standingPins: pinsStanding.length === 0 ? ALL_PINS : pinsStanding
-        }
-      };
+    if (!earnsThird) {
+      return finishTenth(state, frame);
     }
 
+    const racked = pinsStanding.length === 0 ? ALL_PINS : pinsStanding;
     return {
-      savedFrame: finalizeFrame(frame),
+      savedFrame: null,
       state: {
         ...state,
-        frames: upsertFrame(state.frames, finalizeFrame(frame)),
-        isComplete: true
+        frames: upsertFrame(state.frames, frame),
+        currentShot: 3,
+        availablePins: racked,
+        standingPins: racked
       }
     };
   }
 
+  // shot 3
+  return finishTenth(state, frame);
+}
+
+function finishTenth(state: FrameControllerState, frame: Frame): ShotSubmissionResult {
   return {
-    savedFrame: finalizeFrame(frame),
+    savedFrame: frame,
     state: {
       ...state,
-      frames: upsertFrame(state.frames, finalizeFrame(frame)),
+      frames: upsertFrame(state.frames, frame),
       isComplete: true
     }
   };
@@ -137,7 +130,6 @@ function completeFrame(
   nextStandingPins: PinNumber[]
 ): ShotSubmissionResult {
   const nextFrameNumber = state.currentFrameNumber + 1;
-
   return {
     savedFrame: frame,
     state: {
@@ -151,8 +143,8 @@ function completeFrame(
   };
 }
 
-function findFrame(state: FrameControllerState) {
-  return state.frames.find((frame) => frame.frame_number === state.currentFrameNumber);
+function findFrame(state: FrameControllerState): Frame | undefined {
+  return state.frames.find((f) => f.frame_number === state.currentFrameNumber);
 }
 
 function createDraftFrame(frameNumber: number): Frame {
@@ -165,38 +157,30 @@ function createDraftFrame(frameNumber: number): Frame {
   };
 }
 
-function applyShotToFrame(frame: Frame, shot: ActiveShot, pinsStanding: PinNumber[]) {
-  const updatedFrame: Frame = {
+function applyShotToFrame(frame: Frame, shot: ActiveShot, pinsStanding: PinNumber[]): Frame {
+  const updated: Frame = {
     ...frame,
     ...(shot === 1 ? { shot_1_pins_standing: pinsStanding } : {}),
     ...(shot === 2 ? { shot_2_pins_standing: pinsStanding } : {}),
     ...(shot === 3 ? { shot_3_pins_standing: pinsStanding } : {})
   };
-
-  return finalizeFrame(updatedFrame);
+  return finalizeFrame(updated);
 }
 
 function finalizeFrame(frame: Frame): Frame {
-  return {
-    ...frame,
-    is_strike: isStrike(frame),
-    is_spare: isSpare(frame)
-  };
+  return { ...frame, is_strike: isStrike(frame), is_spare: isSpare(frame) };
 }
 
-function upsertFrame(frames: Frame[], frame: Frame) {
-  const nextFrames = frames.filter((item) => item.frame_number !== frame.frame_number);
-  nextFrames.push(frame);
-
-  return nextFrames.sort((first, second) => first.frame_number - second.frame_number);
+function upsertFrame(frames: Frame[], frame: Frame): Frame[] {
+  const next = frames.filter((f) => f.frame_number !== frame.frame_number);
+  next.push(frame);
+  return next.sort((a, b) => a.frame_number - b.frame_number);
 }
 
-function getDefaultPinsForShot(state: FrameControllerState) {
+function getDefaultPinsForShot(state: FrameControllerState): PinNumber[] {
   const frame = findFrame(state);
 
-  if (!frame || state.currentShot === 1) {
-    return ALL_PINS;
-  }
+  if (!frame || state.currentShot === 1) return ALL_PINS;
 
   if (state.currentShot === 2) {
     return isStrike(frame) ? ALL_PINS : frame.shot_1_pins_standing;
@@ -209,10 +193,76 @@ function getDefaultPinsForShot(state: FrameControllerState) {
   return frame.shot_2_pins_standing;
 }
 
-function normalizePins(pins: PinNumber[]) {
-  const allowedPins = new Set(ALL_PINS);
-
+function normalizePins(pins: PinNumber[]): PinNumber[] {
+  const allowed = new Set(ALL_PINS);
   return [...new Set(pins)]
-    .filter((pin) => allowedPins.has(pin))
-    .sort((first, second) => first - second);
+    .filter((p) => allowed.has(p))
+    .sort((a, b) => a - b);
+}
+
+/**
+ * Rebuild controller state from persisted frames (mid-game resume).
+ * Handles 10th-frame correctly: if shot 2 saved but third shot still required,
+ * keeps `currentShot=3` instead of marking complete.
+ */
+export function hydrateFrameController(frames: Frame[]): FrameControllerState {
+  if (frames.length === 0) return createInitialFrameControllerState();
+
+  const ordered = [...frames].sort((a, b) => a.frame_number - b.frame_number);
+  const last = ordered[ordered.length - 1];
+
+  // Non-10th: a saved frame is complete; move to next.
+  if (last.frame_number < 10) {
+    return {
+      ...createInitialFrameControllerState(),
+      frames: ordered,
+      currentFrameNumber: last.frame_number + 1,
+      currentShot: 1
+    };
+  }
+
+  // 10th frame logic
+  const shotOne = knockedDownCount(last.shot_1_pins_standing);
+
+  if (!last.shot_2_pins_standing) {
+    return {
+      ...createInitialFrameControllerState(),
+      frames: ordered,
+      currentFrameNumber: 10,
+      currentShot: 2,
+      availablePins: shotOne === 10 ? ALL_PINS : last.shot_1_pins_standing,
+      standingPins: shotOne === 10 ? ALL_PINS : last.shot_1_pins_standing
+    };
+  }
+
+  const shotTwo = last.shot_1_pins_standing.length === 0
+    ? knockedDownCount(last.shot_2_pins_standing)
+    : (() => {
+        const prev = new Set(last.shot_1_pins_standing);
+        const curr = new Set(last.shot_2_pins_standing);
+        return [...prev].filter((p) => !curr.has(p)).length;
+      })();
+  const needsThird = shotOne === 10 || shotOne + shotTwo === 10;
+
+  if (needsThird && !last.shot_3_pins_standing) {
+    const racked = last.shot_2_pins_standing.length === 0
+      ? ALL_PINS
+      : last.shot_2_pins_standing;
+    return {
+      ...createInitialFrameControllerState(),
+      frames: ordered,
+      currentFrameNumber: 10,
+      currentShot: 3,
+      availablePins: racked,
+      standingPins: racked
+    };
+  }
+
+  return {
+    ...createInitialFrameControllerState(),
+    frames: ordered,
+    currentFrameNumber: 10,
+    currentShot: 3,
+    isComplete: true
+  };
 }

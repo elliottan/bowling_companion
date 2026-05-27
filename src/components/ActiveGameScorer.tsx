@@ -1,8 +1,8 @@
 import { RotateCcw, Send, Sparkles } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import {
-  type FrameControllerState,
   createInitialFrameControllerState,
+  hydrateFrameController,
   resetCurrentShotPins,
   submitShot
 } from "../lib/frameController";
@@ -39,10 +39,13 @@ export function ActiveGameScorer({
   const gameScore = useMemo(() => calculateGameScore(gameState.frames), [gameState.frames]);
   const pinsDown = knockedDownCount(gameState.standingPins);
 
+  // Reset state only when the game id changes — not when parent passes a new
+  // `initialFrames` reference after each save. Status persists between shots.
   useEffect(() => {
     setGameState(hydrateFrameController(initialFrames));
     setStatusMessage("");
-  }, [gameKey, initialFrames]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [gameKey]);
 
   function updateStandingPins(pins: PinNumber[]) {
     setGameState((current) => ({
@@ -186,24 +189,3 @@ export function ActiveGameScorer({
   );
 }
 
-function hydrateFrameController(frames: Frame[]): FrameControllerState {
-  if (frames.length === 0) {
-    return createInitialFrameControllerState();
-  }
-
-  const orderedFrames = [...frames].sort(
-    (first, second) => first.frame_number - second.frame_number
-  );
-  const lastFrame = orderedFrames[orderedFrames.length - 1];
-  const isComplete = lastFrame.frame_number === 10 && Boolean(lastFrame.shot_2_pins_standing);
-
-  return {
-    ...createInitialFrameControllerState(),
-    frames: orderedFrames,
-    currentFrameNumber: isComplete
-      ? 10
-      : Math.min(lastFrame.frame_number + 1, 10),
-    currentShot: 1,
-    isComplete
-  };
-}

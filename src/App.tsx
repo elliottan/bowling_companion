@@ -23,14 +23,12 @@ function App() {
     setStartError("");
 
     try {
-      const sessionId = Number(
-        await createSession({
-          alley_name: values.alley_name,
-          date: values.date,
-          oil_pattern: values.oil_pattern,
-          general_notes: values.general_notes
-        })
-      );
+      const sessionId = await createSession({
+        alley_name: values.alley_name,
+        date: values.date,
+        oil_pattern: values.oil_pattern,
+        general_notes: values.general_notes
+      });
 
       await addGameToSession(sessionId, {
         game_number: 1,

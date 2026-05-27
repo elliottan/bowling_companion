@@ -81,17 +81,22 @@ function validateSession(value: unknown): value is Session {
 }
 
 function validateGame(value: unknown): value is Game {
-  if (!isRecord(value)) {
-    return false;
-  }
+  if (!isRecord(value)) return false;
+
+  const finalScoreOk =
+    value.final_score === undefined ||
+    (typeof value.final_score === "number" &&
+      value.final_score >= 0 &&
+      value.final_score <= 300);
 
   return (
     isOptionalNumber(value.id) &&
     typeof value.session_id === "number" &&
     typeof value.game_number === "number" &&
     value.game_number > 0 &&
+    value.game_number <= 99 &&
     isOptionalString(value.lane_number) &&
-    isOptionalNumber(value.final_score)
+    finalScoreOk
   );
 }
 

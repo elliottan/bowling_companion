@@ -21,6 +21,7 @@ export function ActiveSessionView({
   const [activeGameId, setActiveGameId] = useState<number | null>(null);
   const [laneNumber, setLaneNumber] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+  const [isAddingGame, setIsAddingGame] = useState(false);
   const [error, setError] = useState("");
 
   const activeGame = useMemo(
@@ -96,13 +97,16 @@ export function ActiveSessionView({
   }
 
   async function handleAddGame() {
+    if (isAddingGame) return;
     setError("");
-
+    setIsAddingGame(true);
     try {
-      const nextGameId = Number(await addNextGameToSession(sessionId, laneNumber));
+      const nextGameId = await addNextGameToSession(sessionId, laneNumber);
       await refreshSession(nextGameId);
     } catch (addError) {
       setError(addError instanceof Error ? addError.message : "Unable to add game.");
+    } finally {
+      setIsAddingGame(false);
     }
   }
 
@@ -131,7 +135,7 @@ export function ActiveSessionView({
     );
   }
 
-  const canAddGame = Boolean(activeGame.final_score);
+  const canAddGame = activeGame.final_score !== undefined && !isAddingGame;
 
   return (
     <div>
