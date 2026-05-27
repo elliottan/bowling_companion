@@ -1,37 +1,32 @@
 # Bowling Companion
 
-Bowling Companion is a lightweight, offline-first bowling score keeper built as a local-only browser app.
+Offline-first bowling score keeper. Runs in the browser, stores everything
+locally in IndexedDB, no backend.
 
-## Tech Stack
-
-- React 18
-- Vite
-- TypeScript
-- Tailwind CSS
-- Dexie.js / IndexedDB
-- Vitest
-
-## Current Status
-
-- Phase 1: project scaffolding, Dexie setup, repository helpers, scoring helpers, and tests.
-- Phase 2: interactive 10-pin input, frame controller, 10th-frame logic, and scorecard UI.
-
-## Getting Started
+## Quick start
 
 ```bash
 npm install
-npm run dev
+npm run dev      # vite dev server on http://127.0.0.1:5173
+npm test         # vitest run
+npm run build    # tsc -b && vite build
 ```
 
-The app runs locally at `http://127.0.0.1:5173/` by default.
+## Tech stack
 
-## Scripts
+React 18 · Vite · TypeScript · Tailwind CSS · Dexie.js (IndexedDB) · Vitest.
 
-```bash
-npm test
-npm run build
-```
+## Documentation
 
-## Project Notes
+| Doc | Purpose |
+|---|---|
+| [docs/README.md](./docs/README.md) | Documentation index |
+| [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md) | Module map and data flow |
+| [docs/DATA_MODEL.md](./docs/DATA_MODEL.md) | Types, Dexie schema, scoring rules |
+| [docs/DECISIONS.md](./docs/DECISIONS.md) | ADR-light log of load-bearing choices |
+| [docs/CHANGELOG.md](./docs/CHANGELOG.md) | User-visible changes |
+| [docs/ROADMAP.md](./docs/ROADMAP.md) | Future work |
 
-The app is designed to require no backend. Bowling sessions, games, and frames are stored locally in IndexedDB through Dexie.js.
+Maintenance rule: any change to **scoring**, **the data model**, or
+**import/merge rules** updates [DECISIONS.md](./docs/DECISIONS.md) **and**
+[CHANGELOG.md](./docs/CHANGELOG.md) in the same PR.

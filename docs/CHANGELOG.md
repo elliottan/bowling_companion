@@ -1,0 +1,77 @@
+# Changelog
+
+User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachangelog.com).
+
+## [Unreleased] — Thermo-nuclear review (2026-05)
+
+### Fixed
+
+- 10th-frame strike + shot 2 saved no longer marks the game complete and
+  silently blocks the required third shot. Mid-game reload now resumes the
+  correct shot (regression test: `frameController.test.ts` "hydrates a
+  partially-filled 10th frame requiring shot 3"). See ADR-001.
+- Double-tapping **Add game** no longer creates two games with the same
+  `game_number`. The read-then-add is wrapped in a Dexie `rw` transaction
+  and the button is disabled while in-flight.
+- Saving a frame no longer clears the status message or resets local scorer
+  state. `ActiveGameScorer` keys its hydrate effect on `gameKey` only.
+- All-gutter games (`final_score === 0`) can now advance to the next game.
+- Backup import will not overwrite an unrelated local row when ids happen to
+  collide. Merge now matches by content key (date + alley_name for sessions,
+  session_id + game_number for games, game_id + frame_number for frames). See
+  [DECISIONS.md ADR-003](./DECISIONS.md#adr-003--backup-import-merges-by-content-key-never-by-id).
+- Backup validation now bounds `game_number <= 99` and `final_score in [0, 300]`.
+
+### Changed (UI)
+
+- Mobile-first redesign across all views; no horizontal page overflow at
+  390×844. See [DECISIONS.md ADR-004](./DECISIONS.md#adr-004--mobile-first-at-iphone-390x844).
+- Bottom tab-bar navigation on mobile (icon + label), top bar on `sm+`.
+- Scorecard renders as a 5×2 grid of compact frame chips on `<sm`; falls back
+  to the traditional 10-cell row on `sm+`.
+- Pin grid drops the legend; "click pin to knock it down" is the model.
+  Standing = outlined white, down = filled felt.
+- `SessionForm` collapses oil pattern + notes behind a `<details>` disclosure.
+- `ActiveGameScorer` no longer accepts six display props. Single `mode` prop.
+- `ActiveSessionView` header compacts to back arrow + alley name + Add game.
+- `BackupRestoreView` collapses to one card with two buttons + drop zone.
+- `DashboardView` drops the marketing hero. Single H1 + form.
+- `SessionHistory` becomes a clickable card list with inline score chips.
+
+### Changed (internals)
+
+- Pin helpers (`ALL_PINS`, `knockedDownCount`, `uniquePins`,
+  `pinsClearedBetween`) moved to `src/lib/pins.ts`. `scoring.ts` and
+  `scoreDisplay.ts` no longer carry their own slightly-divergent copies.
+- Repository return types tightened to `Promise<number>`. `SaveFrameInput`
+  collapsed to `Omit<Frame, "game_id">`.
+- tsconfig now enforces `noUnusedLocals`, `noUnusedParameters`,
+  `noFallthroughCasesInSwitch`.
+
+### Added
+
+- `docs/` folder with ARCHITECTURE, DATA_MODEL, DECISIONS, CHANGELOG, ROADMAP.
+- Tests: 10th-frame strike chain (shot 3), 10th-frame hydrate-partial,
+  10th-frame hydrate-complete, content-matched import merge,
+  scorecard mobile-width regression. 21 → 26 tests.
+
+### Removed
+
+- `bowling-spec.md` — content split into `docs/ARCHITECTURE.md` and
+  `docs/ROADMAP.md`.
+- Unused `lane.700` and `lane.900` Tailwind shades.
+- Duplicate `overflow-x-hidden` on `<main>` (kept on `html`/`body` only).
+
+---
+
+## [0.1.0] — Phase 1–4 foundation (2026-05)
+
+- **Phase 1 — Project Scaffolding & Dexie DB Setup.** Vite + React + TS +
+  Tailwind + Dexie. Repository helpers, scoring helpers, unit tests.
+- **Phase 2 — Interactive 10-Pin Input & Scoring Engine.** `PinGrid` triangle,
+  frame controller state machine, traditional scorecard with X / `/` symbols
+  and rolling totals.
+- **Phase 3 — Session Management & Entry UI.** Dashboard with start-session
+  form, active session view, sequential game creation, session history.
+- **Phase 4 — Backup, Restore & Data Safety.** JSON export with download,
+  import-from-file with validation, merge with the local DB.
