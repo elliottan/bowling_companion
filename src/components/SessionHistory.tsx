@@ -1,4 +1,4 @@
-import { History, Trophy } from "lucide-react";
+import { History } from "lucide-react";
 import { calculateGameScore } from "../lib/scoring";
 import type { SessionSummary } from "../types/bowling";
 
@@ -15,79 +15,71 @@ export function SessionHistory({
 }: SessionHistoryProps) {
   if (isLoading) {
     return (
-      <div className="rounded-lg border border-slate-200 bg-white p-5 text-sm text-slate-600 shadow-sm">
-        Loading session history...
-      </div>
+      <p className="rounded-lg border border-slate-200 bg-white p-4 text-sm text-slate-600 shadow-sm">
+        Loading...
+      </p>
     );
   }
 
   if (sessions.length === 0) {
     return (
-      <div className="rounded-lg border border-dashed border-slate-300 bg-white p-8 text-center shadow-sm">
-        <History className="mx-auto mb-3 text-slate-400" aria-hidden="true" size={28} />
-        <h2 className="text-lg font-bold text-slate-950">No sessions yet</h2>
-        <p className="mt-2 text-sm text-slate-600">
-          Start a session and completed games will appear here.
+      <div className="rounded-lg border border-dashed border-slate-300 bg-white p-6 text-center">
+        <History className="mx-auto mb-2 text-slate-400" aria-hidden="true" size={24} />
+        <p className="text-sm text-slate-600">
+          No sessions yet. Start one from the home tab.
         </p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-3">
+    <ul className="space-y-2">
       {sessions.map(({ session, games }) => (
-        <article
-          key={session.id}
-          className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm"
-        >
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-            <div>
-              <p className="text-sm font-semibold text-felt-700">{session.date}</p>
-              <h2 className="text-xl font-bold text-slate-950">{session.alley_name}</h2>
-              <p className="mt-1 text-sm text-slate-600">
-                {session.oil_pattern ? `${session.oil_pattern} pattern` : "No oil pattern noted"}
-              </p>
+        <li key={session.id}>
+          <button
+            type="button"
+            onClick={() => session.id && onOpenSession(session.id)}
+            className="w-full rounded-lg border border-slate-200 bg-white p-4 text-left shadow-sm hover:border-felt-700/40 hover:bg-slate-50"
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0 flex-1">
+                <p className="truncate font-semibold text-slate-950">
+                  {session.alley_name}
+                </p>
+                <p className="text-xs text-slate-500">
+                  {session.date}
+                  {session.oil_pattern && ` · ${session.oil_pattern}`}
+                </p>
+              </div>
+              <div className="text-right">
+                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  {games.length} {games.length === 1 ? "game" : "games"}
+                </p>
+              </div>
             </div>
 
-            <button
-              type="button"
-              onClick={() => session.id && onOpenSession(session.id)}
-              className="inline-flex h-10 items-center justify-center rounded-lg border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-800 hover:bg-slate-50"
-            >
-              Open
-            </button>
-          </div>
-
-          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {games.map((game) => {
-              const score = calculateGameScore(game.frames);
-              const displayScore = game.final_score ?? (score.isComplete ? score.total : `${score.total}+`);
-
-              return (
-                <div
-                  key={game.id}
-                  className="rounded-lg border border-slate-200 bg-lane-50 p-4"
-                >
-                  <div className="flex items-center justify-between gap-3">
-                    <div>
-                      <p className="text-sm font-semibold text-slate-500">
-                        Game {game.game_number}
-                      </p>
-                      <p className="text-sm text-slate-600">
-                        Lane {game.lane_number || "not set"}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-2 text-felt-700">
-                      <Trophy aria-hidden="true" size={18} />
-                      <span className="text-2xl font-bold">{displayScore}</span>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </article>
+            {games.length > 0 && (
+              <div className="mt-3 flex flex-wrap gap-1.5">
+                {games.map((game) => {
+                  const score = calculateGameScore(game.frames);
+                  const display =
+                    game.final_score ??
+                    (score.isComplete ? score.total : `${score.total}+`);
+                  return (
+                    <span
+                      key={game.id}
+                      className="inline-flex items-center gap-1 rounded-md bg-lane-50 px-2 py-1 text-xs font-semibold text-slate-700"
+                    >
+                      <span className="text-slate-500">G{game.game_number}</span>
+                      <span className="text-felt-700">{display}</span>
+                    </span>
+                  );
+                })}
+              </div>
+            )}
+          </button>
+        </li>
       ))}
-    </div>
+    </ul>
   );
 }

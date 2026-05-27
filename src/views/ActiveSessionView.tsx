@@ -1,4 +1,4 @@
-import { Plus } from "lucide-react";
+import { ChevronLeft, Plus } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { ActiveGameScorer } from "../components/ActiveGameScorer";
 import {
@@ -25,73 +25,56 @@ export function ActiveSessionView({
   const [error, setError] = useState("");
 
   const activeGame = useMemo(
-    () => sessionDetails?.games.find((game) => game.id === activeGameId) ?? null,
+    () => sessionDetails?.games.find((g) => g.id === activeGameId) ?? null,
     [activeGameId, sessionDetails]
   );
 
   async function refreshSession(nextActiveGameId?: number) {
     const details = await getSessionDetails(sessionId);
-
-    if (!details) {
-      throw new Error("Session not found.");
-    }
+    if (!details) throw new Error("Session not found.");
 
     setSessionDetails(details);
 
-    const selectedGame =
-      details.games.find((game) => game.id === nextActiveGameId) ??
+    const selected =
+      details.games.find((g) => g.id === nextActiveGameId) ??
       details.games[details.games.length - 1] ??
       null;
 
-    setActiveGameId(selectedGame?.id ?? null);
-    setLaneNumber(selectedGame?.lane_number ?? "");
+    setActiveGameId(selected?.id ?? null);
+    setLaneNumber(selected?.lane_number ?? "");
   }
 
   useEffect(() => {
     let isMounted = true;
 
-    async function loadSession() {
+    async function load() {
       setIsLoading(true);
       setError("");
-
       try {
         const details = await getSessionDetails(sessionId);
-
-        if (!isMounted) {
-          return;
-        }
-
-        if (!details) {
-          throw new Error("Session not found.");
-        }
-
+        if (!isMounted) return;
+        if (!details) throw new Error("Session not found.");
         setSessionDetails(details);
-        const latestGame = details.games[details.games.length - 1] ?? null;
-        setActiveGameId(latestGame?.id ?? null);
-        setLaneNumber(latestGame?.lane_number ?? "");
-      } catch (loadError) {
-        setError(
-          loadError instanceof Error ? loadError.message : "Unable to load session."
-        );
-      } finally {
+        const latest = details.games[details.games.length - 1] ?? null;
+        setActiveGameId(latest?.id ?? null);
+        setLaneNumber(latest?.lane_number ?? "");
+      } catch (err) {
         if (isMounted) {
-          setIsLoading(false);
+          setError(err instanceof Error ? err.message : "Unable to load session.");
         }
+      } finally {
+        if (isMounted) setIsLoading(false);
       }
     }
 
-    loadSession();
-
+    load();
     return () => {
       isMounted = false;
     };
   }, [sessionId]);
 
   async function handleFrameComplete(frame: Frame) {
-    if (!activeGame?.id) {
-      throw new Error("No active game selected.");
-    }
-
+    if (!activeGame?.id) throw new Error("No active game selected.");
     await saveFrame(activeGame.id, frame);
     await refreshSession(activeGame.id);
   }
@@ -101,10 +84,10 @@ export function ActiveSessionView({
     setError("");
     setIsAddingGame(true);
     try {
-      const nextGameId = await addNextGameToSession(sessionId, laneNumber);
+      const nextGameId = await addNextGameToSession(sessionId, laneNumber || undefined);
       await refreshSession(nextGameId);
-    } catch (addError) {
-      setError(addError instanceof Error ? addError.message : "Unable to add game.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unable to add game.");
     } finally {
       setIsAddingGame(false);
     }
@@ -112,23 +95,24 @@ export function ActiveSessionView({
 
   if (isLoading) {
     return (
-      <section className="mx-auto w-full max-w-6xl px-4 py-8 text-sm text-slate-600 sm:px-6 lg:px-8">
-        Loading active session...
+      <section className="mx-auto w-full max-w-5xl px-4 py-6 text-sm text-slate-600">
+        Loading...
       </section>
     );
   }
 
   if (!sessionDetails || !activeGame) {
     return (
-      <section className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
-        <p className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm font-semibold text-red-700">
+      <section className="mx-auto w-full max-w-5xl px-4 py-6">
+        <p className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm font-semibold text-red-700">
           {error || "No active game was found for this session."}
         </p>
         <button
           type="button"
           onClick={onBackToDashboard}
-          className="mt-4 inline-flex h-10 items-center justify-center rounded-lg border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-800"
+          className="mt-3 inline-flex h-10 items-center gap-1 rounded-lg border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-700"
         >
+          <ChevronLeft size={16} aria-hidden="true" />
           Back
         </button>
       </section>
@@ -139,68 +123,69 @@ export function ActiveSessionView({
 
   return (
     <div>
-      <section className="mx-auto w-full max-w-6xl px-3 pt-4 sm:px-6 lg:px-8">
-        <div className="rounded-lg border border-slate-200 bg-white p-3 shadow-sm sm:p-4">
-          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-            <div className="min-w-0">
-              <p className="text-sm font-semibold text-felt-700">
-                {sessionDetails.session.date}
-              </p>
-              <h1 className="truncate text-2xl font-bold text-slate-950">
-                {sessionDetails.session.alley_name}
-              </h1>
-              <p className="mt-1 text-sm text-slate-600">
-                Game {activeGame.game_number} • Lane {activeGame.lane_number || "not set"}
-              </p>
-            </div>
-
-            <div className="grid grid-cols-[1fr_auto] gap-2 sm:flex sm:flex-row">
-              <label className="space-y-1">
-                <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                  Next lane
-                </span>
-                <input
-                  value={laneNumber}
-                  onChange={(event) => setLaneNumber(event.target.value)}
-                  className="h-10 w-full rounded-lg border border-slate-300 px-3 text-sm outline-none focus:border-felt-700 focus:ring-2 focus:ring-felt-700/20 sm:w-28"
-                />
-              </label>
-
-              <button
-                type="button"
-                onClick={handleAddGame}
-                disabled={!canAddGame}
-                className="inline-flex h-10 items-center justify-center gap-2 self-end rounded-lg bg-felt-700 px-3 text-sm font-semibold text-white hover:bg-felt-500 disabled:cursor-not-allowed disabled:opacity-50 sm:px-4"
-              >
-                <Plus aria-hidden="true" size={18} />
-                <span className="hidden min-[360px]:inline">Add game</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={onBackToDashboard}
-                className="col-span-2 inline-flex h-10 items-center justify-center self-end rounded-lg border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-800 hover:bg-slate-50 sm:col-span-1"
-              >
-                Dashboard
-              </button>
-            </div>
-          </div>
-
-          {error ? (
-            <p className="mt-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm font-semibold text-red-700">
-              {error}
+      <section className="mx-auto w-full max-w-5xl px-3 pt-3 sm:px-6">
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={onBackToDashboard}
+            aria-label="Back to dashboard"
+            className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-slate-300 bg-white text-slate-700 hover:bg-slate-50"
+          >
+            <ChevronLeft size={18} aria-hidden="true" />
+          </button>
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm font-semibold text-slate-900">
+              {sessionDetails.session.alley_name}
             </p>
-          ) : null}
+            <p className="truncate text-xs text-slate-500">
+              {sessionDetails.session.date} · Game {activeGame.game_number}
+              {activeGame.lane_number ? ` · Lane ${activeGame.lane_number}` : ""}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={handleAddGame}
+            disabled={!canAddGame}
+            className="inline-flex h-9 items-center gap-1 rounded-md bg-felt-700 px-3 text-sm font-semibold text-white hover:bg-felt-500 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <Plus size={16} aria-hidden="true" />
+            Add game
+          </button>
         </div>
+
+        {sessionDetails.games.length > 1 && (
+          <div className="mt-3 flex gap-1 overflow-x-auto pb-1">
+            {sessionDetails.games.map((g) => (
+              <button
+                key={g.id}
+                type="button"
+                onClick={() => g.id && setActiveGameId(g.id)}
+                className={`inline-flex h-8 shrink-0 items-center gap-1.5 rounded-md border px-3 text-xs font-semibold ${
+                  g.id === activeGameId
+                    ? "border-felt-700 bg-felt-700 text-white"
+                    : "border-slate-300 bg-white text-slate-700"
+                }`}
+              >
+                Game {g.game_number}
+                {g.final_score !== undefined && (
+                  <span className="opacity-80">· {g.final_score}</span>
+                )}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {error && (
+          <p className="mt-3 rounded-lg border border-red-200 bg-red-50 p-3 text-sm font-semibold text-red-700">
+            {error}
+          </p>
+        )}
       </section>
 
       <ActiveGameScorer
         gameKey={activeGame.id}
         initialFrames={(activeGame as Game & { frames: Frame[] }).frames}
-        eyebrow="Active session"
-        title={`Game ${activeGame.game_number}`}
-        description="Score this game frame by frame. Completed frames are saved locally to IndexedDB."
-        showNewGameButton={false}
+        mode="session"
         onFrameComplete={handleFrameComplete}
       />
     </div>

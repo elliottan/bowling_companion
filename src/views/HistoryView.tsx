@@ -15,55 +15,36 @@ export function HistoryView({ onOpenSession }: HistoryViewProps) {
   useEffect(() => {
     let isMounted = true;
 
-    async function loadHistory() {
+    async function load() {
       setIsLoading(true);
       setError("");
-
       try {
         const history = await getSessionHistory();
-
+        if (isMounted) setSessions(history);
+      } catch (err) {
         if (isMounted) {
-          setSessions(history);
-        }
-      } catch (historyError) {
-        if (isMounted) {
-          setError(
-            historyError instanceof Error
-              ? historyError.message
-              : "Unable to load session history."
-          );
+          setError(err instanceof Error ? err.message : "Unable to load history.");
         }
       } finally {
-        if (isMounted) {
-          setIsLoading(false);
-        }
+        if (isMounted) setIsLoading(false);
       }
     }
 
-    loadHistory();
-
+    load();
     return () => {
       isMounted = false;
     };
   }, []);
 
   return (
-    <section className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
-      <div className="mb-6">
-        <p className="mb-2 text-sm font-semibold uppercase tracking-wide text-felt-700">
-          Session history
-        </p>
-        <h1 className="text-3xl font-bold text-slate-950">Past sessions</h1>
-        <p className="mt-3 max-w-2xl text-base leading-7 text-slate-600">
-          Review locally saved sessions, games, frame counts, and final scores.
-        </p>
-      </div>
+    <section className="mx-auto w-full max-w-3xl px-3 py-5 sm:px-6 sm:py-8">
+      <h1 className="mb-4 text-xl font-bold text-slate-950">History</h1>
 
-      {error ? (
-        <p className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm font-semibold text-red-700">
+      {error && (
+        <p className="mb-3 rounded-lg border border-red-200 bg-red-50 p-3 text-sm font-semibold text-red-700">
           {error}
         </p>
-      ) : null}
+      )}
 
       <SessionHistory
         sessions={sessions}

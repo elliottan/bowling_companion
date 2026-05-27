@@ -6,9 +6,7 @@ export default {
       colors: {
         lane: {
           50: "#fff8ed",
-          100: "#f6e3c5",
-          700: "#8a5b23",
-          900: "#36220e"
+          100: "#f6e3c5"
         },
         felt: {
           500: "#256f61",

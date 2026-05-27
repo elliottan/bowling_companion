@@ -10,48 +10,76 @@ interface ScorecardProps {
 export function Scorecard({ frames, activeFrameNumber }: ScorecardProps) {
   const gameScore = calculateGameScore(frames);
 
-  return (
-    <div className="w-full max-w-full overflow-x-auto rounded-lg border border-slate-200 bg-white shadow-sm">
-      <div className="grid min-w-[620px] grid-cols-[repeat(9,minmax(52px,1fr))_minmax(78px,1.2fr)] sm:min-w-[760px] sm:grid-cols-[repeat(9,minmax(64px,1fr))_minmax(96px,1.25fr)]">
-        {Array.from({ length: 10 }, (_, index) => {
-          const frameNumber = index + 1;
-          const frame = frames.find((item) => item.frame_number === frameNumber);
-          const symbols = frame ? getFrameShotSymbols(frame) : frameNumber === 10 ? ["", "", ""] : ["", ""];
-          const frameScore = gameScore.frames.find(
-            (item) => item.frame_number === frameNumber
-          );
-          const isActive = activeFrameNumber === frameNumber;
+  const cells = Array.from({ length: 10 }, (_, index) => {
+    const frameNumber = index + 1;
+    const frame = frames.find((f) => f.frame_number === frameNumber);
+    const symbols = frame
+      ? getFrameShotSymbols(frame)
+      : frameNumber === 10
+      ? ["", "", ""]
+      : ["", ""];
+    const score = gameScore.frames.find((f) => f.frame_number === frameNumber);
+    return {
+      frameNumber,
+      symbols,
+      rollingTotal: score?.rollingTotal ?? null,
+      isActive: activeFrameNumber === frameNumber
+    };
+  });
 
-          return (
-            <div
-              key={frameNumber}
-              className={`border-r border-slate-200 last:border-r-0 ${
-                isActive ? "bg-lane-50" : "bg-white"
-              }`}
-            >
-              <div className="border-b border-slate-200 px-2 py-2 text-center text-xs font-bold uppercase text-slate-500">
-                {frameNumber}
-              </div>
-              <div
-                className={`grid h-10 sm:h-12 ${
-                  frameNumber === 10 ? "grid-cols-3" : "grid-cols-2"
-                }`}
-              >
-                {symbols.map((symbol, symbolIndex) => (
-                  <div
-                    key={`${frameNumber}-${symbolIndex}`}
-                    className="flex items-center justify-center border-b border-l border-slate-200 text-base font-bold text-slate-900 first:border-l-0 sm:text-lg"
-                  >
-                    {symbol}
-                  </div>
-                ))}
-              </div>
-              <div className="flex h-11 items-center justify-center px-2 text-lg font-bold text-felt-700 sm:h-14 sm:text-xl">
-                {frameScore?.rollingTotal ?? ""}
-              </div>
-            </div>
-          );
-        })}
+  return (
+    <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
+      {/* Mobile: 5×2 grid of compact frame chips. Fits 390px without overflow. */}
+      <div className="grid grid-cols-5 gap-px bg-slate-200 sm:hidden">
+        {cells.map((cell) => (
+          <FrameCell key={cell.frameNumber} {...cell} compact />
+        ))}
+      </div>
+
+      {/* sm+: traditional 10-cell horizontal row */}
+      <div className="hidden sm:grid sm:grid-cols-[repeat(9,minmax(0,1fr))_minmax(0,1.25fr)]">
+        {cells.map((cell) => (
+          <FrameCell key={cell.frameNumber} {...cell} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+interface FrameCellProps {
+  frameNumber: number;
+  symbols: string[];
+  rollingTotal: number | null;
+  isActive: boolean;
+  compact?: boolean;
+}
+
+function FrameCell({ frameNumber, symbols, rollingTotal, isActive, compact }: FrameCellProps) {
+  return (
+    <div
+      className={`${
+        compact ? "" : "border-r border-slate-200 last:border-r-0"
+      } ${isActive ? "bg-lane-50" : "bg-white"}`}
+    >
+      <div className="border-b border-slate-200 px-1 py-1 text-center text-[10px] font-bold uppercase text-slate-500 sm:text-xs">
+        {frameNumber}
+      </div>
+      <div
+        className={`grid h-9 ${
+          frameNumber === 10 ? "grid-cols-3" : "grid-cols-2"
+        } sm:h-11`}
+      >
+        {symbols.map((symbol, idx) => (
+          <div
+            key={idx}
+            className="flex items-center justify-center border-l border-slate-200 text-sm font-bold text-slate-900 first:border-l-0 sm:text-base"
+          >
+            {symbol}
+          </div>
+        ))}
+      </div>
+      <div className="flex h-9 items-center justify-center text-base font-bold text-felt-700 sm:h-12 sm:text-lg">
+        {rollingTotal ?? ""}
       </div>
     </div>
   );

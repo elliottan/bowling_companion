@@ -1,4 +1,5 @@
 import type { PinNumber } from "../types/bowling";
+import { ALL_PINS } from "../lib/pins";
 
 const PIN_ROWS: PinNumber[][] = [
   [7, 8, 9, 10],
@@ -15,49 +16,43 @@ interface PinGridProps {
 
 export function PinGrid({
   standingPins,
-  availablePins = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+  availablePins = ALL_PINS,
   onChange
 }: PinGridProps) {
-  const standingPinSet = new Set(standingPins);
-  const availablePinSet = new Set(availablePins);
+  const standingSet = new Set(standingPins);
+  const availableSet = new Set(availablePins);
 
   function togglePin(pin: PinNumber) {
-    if (!availablePinSet.has(pin)) {
-      return;
-    }
+    if (!availableSet.has(pin)) return;
 
-    const nextPins = standingPinSet.has(pin)
-      ? standingPins.filter((item) => item !== pin)
+    const next = standingSet.has(pin)
+      ? standingPins.filter((p) => p !== pin)
       : [...standingPins, pin];
 
-    onChange(nextPins.sort((first, second) => first - second));
+    onChange(next.sort((a, b) => a - b));
   }
 
   return (
-    <div className="w-full overflow-hidden rounded-lg border border-slate-200 bg-white p-3 shadow-sm sm:p-5">
-      <div className="mx-auto flex w-full max-w-[17rem] flex-col items-center gap-2 sm:gap-3">
+    <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+      <div className="mx-auto flex w-full max-w-[16rem] flex-col items-center gap-2 sm:gap-3">
         {PIN_ROWS.map((row) => (
           <div key={row.join("-")} className="flex w-full justify-center gap-2 sm:gap-3">
             {row.map((pin) => {
-              const isStanding = standingPinSet.has(pin);
-              const isAvailable = availablePinSet.has(pin);
-
+              const isStanding = standingSet.has(pin);
+              const isAvailable = availableSet.has(pin);
               return (
                 <button
                   key={pin}
                   type="button"
                   aria-pressed={isStanding}
+                  aria-label={`Pin ${pin}${isStanding ? " standing" : " down"}`}
                   disabled={!isAvailable}
                   onClick={() => togglePin(pin)}
-                  className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full border text-sm font-bold transition sm:h-12 sm:w-12 ${
+                  className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full border text-sm font-bold transition active:scale-95 sm:h-12 sm:w-12 ${
                     isStanding
-                      ? "border-red-500 bg-white text-red-700 shadow-sm"
-                      : "border-slate-300 bg-slate-900 text-white"
-                  } ${
-                    isAvailable
-                      ? "cursor-pointer hover:scale-105"
-                      : "cursor-not-allowed opacity-25"
-                  }`}
+                      ? "border-slate-300 bg-white text-slate-900"
+                      : "border-felt-700 bg-felt-700 text-white"
+                  } ${isAvailable ? "" : "cursor-not-allowed opacity-30"}`}
                 >
                   {pin}
                 </button>
@@ -65,16 +60,6 @@ export function PinGrid({
             })}
           </div>
         ))}
-      </div>
-      <div className="mt-4 grid grid-cols-2 gap-3 text-xs font-semibold uppercase tracking-wide text-slate-500 sm:mt-5">
-        <div className="flex items-center gap-2">
-          <span className="h-3 w-3 rounded-full border border-red-500 bg-white" />
-          Standing
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="h-3 w-3 rounded-full bg-slate-900" />
-          Down
-        </div>
       </div>
     </div>
   );

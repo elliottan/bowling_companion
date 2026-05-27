@@ -1,4 +1,4 @@
-import { Archive, History, Home, PlayCircle } from "lucide-react";
+import { Archive, History, Home, PlayCircle, type LucideIcon } from "lucide-react";
 import { useState } from "react";
 import { DashboardView } from "./views/DashboardView";
 import { ActiveSessionView } from "./views/ActiveSessionView";
@@ -11,6 +11,19 @@ import {
 import type { NewSessionFormValues } from "./components/SessionForm";
 
 type AppView = "dashboard" | "active" | "history" | "backup";
+
+type NavItem = {
+  view: AppView;
+  label: string;
+  icon: LucideIcon;
+};
+
+const NAV_ITEMS: ReadonlyArray<NavItem> = [
+  { view: "dashboard", label: "Home", icon: Home },
+  { view: "active", label: "Active", icon: PlayCircle },
+  { view: "history", label: "History", icon: History },
+  { view: "backup", label: "Backup", icon: Archive }
+];
 
 function App() {
   const [view, setView] = useState<AppView>("dashboard");
@@ -52,90 +65,103 @@ function App() {
   }
 
   return (
-    <main className="min-h-screen overflow-x-hidden bg-lane-50 text-slate-950">
+    <div className="flex min-h-screen flex-col bg-lane-50 text-slate-950">
       <header className="border-b border-slate-200 bg-white">
-        <div className="mx-auto flex w-full max-w-6xl flex-col gap-3 px-3 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
+        <div className="mx-auto flex w-full max-w-5xl items-center justify-between px-3 py-3 sm:px-6">
           <button
             type="button"
             onClick={() => setView("dashboard")}
-            className="text-left text-xl font-bold leading-tight text-slate-950"
+            className="text-base font-bold tracking-tight text-slate-950 sm:text-lg"
           >
             Bowling Companion
           </button>
-
-          <nav className="grid w-full grid-cols-4 gap-2 sm:w-auto sm:flex">
-            <button
-              type="button"
-              onClick={() => setView("dashboard")}
-              className={`inline-flex h-10 min-w-0 items-center justify-center gap-1 rounded-lg px-2 text-xs font-semibold sm:gap-2 sm:px-3 sm:text-sm ${
-                view === "dashboard"
-                  ? "bg-felt-700 text-white"
-                  : "border border-slate-300 bg-white text-slate-800"
-              }`}
-            >
-              <Home aria-hidden="true" size={17} />
-              <span className="truncate">Dash</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => activeSessionId && setView("active")}
-              disabled={!activeSessionId}
-              className={`inline-flex h-10 min-w-0 items-center justify-center gap-1 rounded-lg px-2 text-xs font-semibold disabled:cursor-not-allowed disabled:opacity-50 sm:gap-2 sm:px-3 sm:text-sm ${
-                view === "active"
-                  ? "bg-felt-700 text-white"
-                  : "border border-slate-300 bg-white text-slate-800"
-              }`}
-            >
-              <PlayCircle aria-hidden="true" size={17} />
-              Active
-            </button>
-            <button
-              type="button"
-              onClick={() => setView("history")}
-              className={`inline-flex h-10 min-w-0 items-center justify-center gap-1 rounded-lg px-2 text-xs font-semibold sm:gap-2 sm:px-3 sm:text-sm ${
-                view === "history"
-                  ? "bg-felt-700 text-white"
-                  : "border border-slate-300 bg-white text-slate-800"
-              }`}
-            >
-              <History aria-hidden="true" size={17} />
-              History
-            </button>
-            <button
-              type="button"
-              onClick={() => setView("backup")}
-              className={`inline-flex h-10 min-w-0 items-center justify-center gap-1 rounded-lg px-2 text-xs font-semibold sm:gap-2 sm:px-3 sm:text-sm ${
-                view === "backup"
-                  ? "bg-felt-700 text-white"
-                  : "border border-slate-300 bg-white text-slate-800"
-              }`}
-            >
-              <Archive aria-hidden="true" size={17} />
-              Backup
-            </button>
+          <nav className="hidden gap-1 sm:flex">
+            {NAV_ITEMS.map((item) => (
+              <NavLink
+                key={item.view}
+                item={item}
+                active={view === item.view}
+                disabled={item.view === "active" && !activeSessionId}
+                onClick={() => setView(item.view)}
+              />
+            ))}
           </nav>
         </div>
       </header>
 
-      {view === "dashboard" ? (
-        <DashboardView
-          onStartSession={handleStartSession}
-          isSubmitting={isStartingSession}
-          error={startError}
-        />
-      ) : null}
+      <main className="flex-1 pb-20 sm:pb-0">
+        {view === "dashboard" && (
+          <DashboardView
+            onStartSession={handleStartSession}
+            isSubmitting={isStartingSession}
+            error={startError}
+          />
+        )}
+        {view === "active" && activeSessionId && (
+          <ActiveSessionView
+            sessionId={activeSessionId}
+            onBackToDashboard={() => setView("dashboard")}
+          />
+        )}
+        {view === "history" && <HistoryView onOpenSession={openSession} />}
+        {view === "backup" && <BackupRestoreView />}
+      </main>
 
-      {view === "active" && activeSessionId ? (
-        <ActiveSessionView
-          sessionId={activeSessionId}
-          onBackToDashboard={() => setView("dashboard")}
-        />
-      ) : null}
+      <nav className="fixed inset-x-0 bottom-0 z-10 grid grid-cols-4 border-t border-slate-200 bg-white sm:hidden">
+        {NAV_ITEMS.map((item) => (
+          <TabBarButton
+            key={item.view}
+            item={item}
+            active={view === item.view}
+            disabled={item.view === "active" && !activeSessionId}
+            onClick={() => setView(item.view)}
+          />
+        ))}
+      </nav>
+    </div>
+  );
+}
 
-      {view === "history" ? <HistoryView onOpenSession={openSession} /> : null}
+interface NavItemProps {
+  item: NavItem;
+  active: boolean;
+  disabled?: boolean;
+  onClick: () => void;
+}
 
-      {view === "backup" ? <BackupRestoreView /> : null}
-    </main>
+function NavLink({ item, active, disabled, onClick }: NavItemProps) {
+  const Icon = item.icon;
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      className={`inline-flex h-9 items-center gap-1.5 rounded-md px-3 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-40 ${
+        active
+          ? "bg-felt-700 text-white"
+          : "text-slate-700 hover:bg-slate-100"
+      }`}
+    >
+      <Icon size={16} aria-hidden="true" />
+      {item.label}
+    </button>
+  );
+}
+
+function TabBarButton({ item, active, disabled, onClick }: NavItemProps) {
+  const Icon = item.icon;
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      className={`flex h-16 flex-col items-center justify-center gap-1 text-xs font-medium disabled:cursor-not-allowed disabled:opacity-40 ${
+        active ? "text-felt-700" : "text-slate-600"
+      }`}
+    >
+      <Icon size={20} aria-hidden="true" />
+      {item.label}
+    </button>
   );
 }
 

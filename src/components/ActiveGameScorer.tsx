@@ -1,4 +1,4 @@
-import { RotateCcw, Send, Sparkles } from "lucide-react";
+import { RotateCcw, Send } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import {
   createInitialFrameControllerState,
@@ -11,13 +11,12 @@ import type { Frame, PinNumber } from "../types/bowling";
 import { PinGrid } from "./PinGrid";
 import { Scorecard } from "./Scorecard";
 
+export type ScorerMode = "standalone" | "session";
+
 interface ActiveGameScorerProps {
   gameKey?: number | string;
   initialFrames?: Frame[];
-  eyebrow?: string;
-  title?: string;
-  description?: string;
-  showNewGameButton?: boolean;
+  mode?: ScorerMode;
   onFrameComplete?: (frame: Frame) => Promise<void> | void;
   onGameComplete?: (frames: Frame[]) => Promise<void> | void;
 }
@@ -25,10 +24,7 @@ interface ActiveGameScorerProps {
 export function ActiveGameScorer({
   gameKey = "local",
   initialFrames = [],
-  eyebrow = "Score entry",
-  title = "Tap the pins left standing",
-  description = "Record each shot from the standing pin pattern. Strikes, spares, 10th-frame bonus shots, and rolling totals update automatically.",
-  showNewGameButton = true,
+  mode = "standalone",
   onFrameComplete,
   onGameComplete
 }: ActiveGameScorerProps) {
@@ -39,8 +35,6 @@ export function ActiveGameScorer({
   const gameScore = useMemo(() => calculateGameScore(gameState.frames), [gameState.frames]);
   const pinsDown = knockedDownCount(gameState.standingPins);
 
-  // Reset state only when the game id changes — not when parent passes a new
-  // `initialFrames` reference after each save. Status persists between shots.
   useEffect(() => {
     setGameState(hydrateFrameController(initialFrames));
     setStatusMessage("");
@@ -48,19 +42,14 @@ export function ActiveGameScorer({
   }, [gameKey]);
 
   function updateStandingPins(pins: PinNumber[]) {
-    setGameState((current) => ({
-      ...current,
-      standingPins: pins
-    }));
+    setGameState((curr) => ({ ...curr, standingPins: pins }));
   }
 
   async function recordShot() {
     const result = submitShot(gameState, gameState.standingPins);
     setGameState(result.state);
 
-    if (!result.savedFrame) {
-      return;
-    }
+    if (!result.savedFrame) return;
 
     try {
       await onFrameComplete?.(result.savedFrame);
@@ -68,124 +57,96 @@ export function ActiveGameScorer({
 
       if (result.state.isComplete) {
         await onGameComplete?.(result.state.frames);
-        setStatusMessage("Game complete and saved.");
+        setStatusMessage("Game complete.");
       }
     } catch (error) {
-      setStatusMessage(
-        error instanceof Error ? error.message : "Unable to save this frame."
-      );
+      setStatusMessage(error instanceof Error ? error.message : "Save failed.");
     }
   }
 
   function resetShot() {
-    setGameState((current) => resetCurrentShotPins(current));
+    setGameState((curr) => resetCurrentShotPins(curr));
   }
 
   function newGame() {
     setGameState(createInitialFrameControllerState());
+    setStatusMessage("");
   }
 
   return (
-    <section className="mx-auto w-full max-w-6xl px-3 py-4 sm:px-6 lg:px-8">
-      <div className="mb-4 flex flex-col gap-3 border-b border-slate-200 pb-4 lg:flex-row lg:items-end lg:justify-between">
-        <div className="min-w-0">
-          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-felt-700 sm:text-sm">
-            {eyebrow}
-          </p>
-          <h1 className="text-2xl font-bold leading-tight text-slate-950 sm:text-4xl">
-            {title}
-          </h1>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600 sm:text-base sm:leading-7">
-            {description}
-          </p>
+    <section className="mx-auto w-full max-w-5xl px-3 py-4 sm:px-6">
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-felt-700 text-lg font-bold text-white">
+            {pinsDown}
+          </div>
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+              Frame {gameState.currentFrameNumber} · Shot {gameState.currentShot}
+            </p>
+            <p className="text-xl font-bold leading-tight text-slate-950">
+              Total {gameScore.total}
+              {gameState.isComplete ? "" : "+"}
+            </p>
+          </div>
         </div>
-        {showNewGameButton ? (
+        {mode === "standalone" && (
           <button
             type="button"
             onClick={newGame}
-            className="inline-flex h-11 items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-800 shadow-sm hover:bg-slate-50"
+            className="inline-flex h-9 items-center gap-1.5 rounded-md border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-700 hover:bg-slate-50"
           >
-            <RotateCcw aria-hidden="true" size={18} />
-            New game
+            <RotateCcw size={14} aria-hidden="true" />
+            New
           </button>
-        ) : null}
+        )}
       </div>
 
-      <div className="grid min-w-0 gap-4 lg:grid-cols-[minmax(300px,380px)_1fr] lg:gap-6">
-        <div className="space-y-4">
-          <div className="rounded-lg border border-slate-200 bg-white p-3 shadow-sm sm:p-4">
-            <div className="flex items-center justify-between gap-3">
-              <div className="min-w-0">
-                <p className="text-sm font-semibold text-slate-500">Current shot</p>
-                <p className="text-2xl font-bold leading-tight text-slate-950">
-                  Frame {gameState.currentFrameNumber}, Shot {gameState.currentShot}
-                </p>
-              </div>
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-felt-700 text-xl font-bold text-white sm:h-14 sm:w-14">
-                {pinsDown}
-              </div>
-            </div>
-          </div>
+      <Scorecard
+        frames={gameState.frames}
+        activeFrameNumber={gameState.currentFrameNumber}
+      />
 
+      <div className="mt-4 grid gap-4 lg:grid-cols-[minmax(280px,360px)_1fr] lg:items-start">
+        <div className="space-y-3">
           <PinGrid
             standingPins={gameState.standingPins}
             availablePins={gameState.availablePins}
             onChange={updateStandingPins}
           />
 
-          <div className="grid grid-cols-2 gap-2 sm:gap-3">
+          <div className="grid grid-cols-2 gap-2">
             <button
               type="button"
               onClick={resetShot}
               disabled={gameState.isComplete}
-              className="inline-flex h-12 min-w-0 items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-800 shadow-sm hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+              className="inline-flex h-12 items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              <RotateCcw aria-hidden="true" size={18} />
-              Reset shot
+              <RotateCcw aria-hidden="true" size={16} />
+              Reset
             </button>
             <button
               type="button"
               onClick={recordShot}
               disabled={gameState.isComplete}
-              className="inline-flex h-12 min-w-0 items-center justify-center gap-2 rounded-lg bg-felt-700 px-3 text-sm font-semibold text-white shadow-sm hover:bg-felt-500 disabled:cursor-not-allowed disabled:opacity-50"
+              className="inline-flex h-12 items-center justify-center gap-2 rounded-lg bg-felt-700 text-sm font-semibold text-white shadow-sm hover:bg-felt-500 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              <Send aria-hidden="true" size={18} />
+              <Send aria-hidden="true" size={16} />
               Record
             </button>
           </div>
+
+          {statusMessage && (
+            <p className="text-center text-sm font-semibold text-felt-700">
+              {statusMessage}
+            </p>
+          )}
         </div>
 
-        <div className="min-w-0 space-y-4">
-          <Scorecard
-            frames={gameState.frames}
-            activeFrameNumber={gameState.currentFrameNumber}
-          />
-
-          <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
-            <div className="flex items-center gap-3">
-              <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-lane-100 text-felt-700">
-                <Sparkles aria-hidden="true" size={22} />
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-slate-500">Game total</p>
-                <p className="text-3xl font-bold text-slate-950">
-                  {gameScore.total}
-                  {gameState.isComplete ? "" : "+"}
-                </p>
-              </div>
-            </div>
-            <p className="mt-4 text-sm leading-6 text-slate-600">
-              {gameState.isComplete
-                ? "Game complete. Add another game from this session when you are ready."
-                : "Incomplete strike and spare bonuses stay blank on the scorecard until the needed future shots are recorded."}
-            </p>
-            {statusMessage ? (
-              <p className="mt-3 text-sm font-semibold text-felt-700">{statusMessage}</p>
-            ) : null}
-          </div>
+        <div className="hidden lg:block">
+          {/* Reserved for desktop side panels in future (per-shot notes, stats). */}
         </div>
       </div>
     </section>
   );
 }
-
