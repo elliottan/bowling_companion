@@ -26,3 +26,7 @@ pnpm-debug.log*
 *.tsbuildinfo
 node_modules/.tmp/
 .vercel
+
+# Playwright
+test-results/
+playwright-report/

@@ -13,6 +13,11 @@ User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachan
   `scripts/generate-icons.mjs` (`npm run icons` to regenerate). IndexedDB data
   is untouched by the cache layer. Design:
   `docs/superpowers/specs/2026-06-07-pwa-offline-design.md`.
+- **Playwright smoke tests** (`e2e/`). Chromium-only, run against the dev
+  server at 390×844. Covers: strike/spare/open scoring with running-total
+  assertion, session persistence into history, and the export → wipe →
+  import backup round-trip. Run with `npm run test:e2e`. Unit tests
+  (`npm test`) remain Playwright-free via the vitest `e2e/` exclude.
 
 ## [Unreleased] — Thermo-nuclear review (2026-05)
 
