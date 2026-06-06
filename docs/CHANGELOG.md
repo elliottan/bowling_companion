@@ -18,6 +18,10 @@ User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachan
   assertion, session persistence into history, and the export → wipe →
   import backup round-trip. Run with `npm run test:e2e`. Unit tests
   (`npm test`) remain Playwright-free via the vitest `e2e/` exclude.
+- **GitHub Actions CI** (`.github/workflows/ci.yml`). Runs on push + PR to
+  `main`: `npm ci` → unit tests → build (typecheck + bundle + PWA) →
+  Playwright e2e. Uploads the Playwright report as an artifact on failure.
+  README shows a status badge.
 
 ## [Unreleased] — Thermo-nuclear review (2026-05)
 

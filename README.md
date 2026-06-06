@@ -1,5 +1,7 @@
 # Bowling Companion
 
+[![CI](https://github.com/elliottan/bowling_companion/actions/workflows/ci.yml/badge.svg)](https://github.com/elliottan/bowling_companion/actions/workflows/ci.yml)
+
 Offline-first bowling score keeper. Runs in the browser, stores everything
 locally in IndexedDB, no backend.
 
