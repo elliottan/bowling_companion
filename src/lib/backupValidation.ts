@@ -96,6 +96,7 @@ function validateGame(value: unknown): value is Game {
     value.game_number > 0 &&
     value.game_number <= 99 &&
     isOptionalString(value.lane_number) &&
+    isOptionalString(value.notes) &&
     finalScoreOk
   );
 }

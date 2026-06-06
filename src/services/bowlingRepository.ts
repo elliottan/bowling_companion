@@ -84,6 +84,11 @@ export async function addNextGameToSession(
   });
 }
 
+export async function updateGameNotes(gameId: number, notes: string): Promise<void> {
+  const trimmed = notes.trim();
+  await db.games.update(gameId, { notes: trimmed.length ? trimmed : undefined });
+}
+
 export async function saveFrame(gameId: number, frame: SaveFrameInput): Promise<number> {
   const game = await db.games.get(gameId);
   if (!game) {

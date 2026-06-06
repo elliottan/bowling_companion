@@ -22,6 +22,11 @@ User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachan
   `main`: `npm ci` → unit tests → build (typecheck + bundle + PWA) →
   Playwright e2e. Uploads the Playwright report as an artifact on failure.
   README shows a status badge.
+- **Per-game notes.** Each game gets an optional free-text note (ball, lane
+  move, what worked). Edited in a collapsible field on the active session
+  screen, saved on blur; shown under the game in History. New `notes?` field
+  on `Game` — non-indexed, so no Dexie migration (see DATA_MODEL). Backup
+  validation accepts it; old backups without it import unchanged.
 
 ## [Unreleased] — Thermo-nuclear review (2026-05)
 

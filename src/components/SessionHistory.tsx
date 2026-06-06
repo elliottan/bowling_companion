@@ -77,6 +77,19 @@ export function SessionHistory({
                 })}
               </div>
             )}
+
+            {games.some((game) => game.notes) && (
+              <dl className="mt-2 space-y-0.5">
+                {games
+                  .filter((game) => game.notes)
+                  .map((game) => (
+                    <div key={game.id} className="flex gap-1.5 text-xs text-slate-500">
+                      <dt className="shrink-0 font-semibold">G{game.game_number}</dt>
+                      <dd className="min-w-0 truncate">{game.notes}</dd>
+                    </div>
+                  ))}
+              </dl>
+            )}
           </button>
         </li>
       ))}

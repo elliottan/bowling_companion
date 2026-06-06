@@ -22,6 +22,7 @@ interface Game {
   game_number: number;     // 1..N, dense within a session
   lane_number?: string;    // free text; "12A", "12-13" both valid
   final_score?: number;    // 0..300, set once the 10th frame closes
+  notes?: string;          // free text, per game; trimmed, absent when empty
 }
 
 interface Frame {
@@ -50,6 +51,11 @@ frames    ++id, game_id, [game_id+frame_number], frame_number, is_strike, is_spa
 
 The compound index `[game_id+frame_number]` exists to support upsert-by-frame
 during score entry without scanning the whole table.
+
+Adding a **non-indexed** field (e.g. `Game.notes`) needs no Dexie version bump
+— stores hold arbitrary object shapes; only the index string above is the
+versioned schema. A version bump + migration is required only when an index
+is added, removed, or changed.
 
 ## Standing-pins convention (ADR-001)
 

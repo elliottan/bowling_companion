@@ -14,6 +14,7 @@ export interface Game {
   game_number: number;
   lane_number?: string;
   final_score?: number;
+  notes?: string;
 }
 
 export interface Frame {

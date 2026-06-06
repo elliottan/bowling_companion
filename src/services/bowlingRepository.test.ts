@@ -6,7 +6,8 @@ import {
   createSession,
   getSessionDetails,
   getSessionHistory,
-  saveFrame
+  saveFrame,
+  updateGameNotes
 } from "./bowlingRepository";
 
 describe("bowlingRepository", () => {
@@ -61,5 +62,22 @@ describe("bowlingRepository", () => {
     expect(details?.games[0].game_number).toBe(1);
     expect(details?.games[1].game_number).toBe(2);
     expect(details?.games[1].lane_number).toBe("8");
+  });
+
+  it("saves and clears per-game notes", async () => {
+    const sessionId = await createSession({
+      date: "2026-05-26",
+      alley_name: "Test Lanes"
+    });
+    const gameId = await addGameToSession(sessionId, { game_number: 1 });
+
+    await updateGameNotes(gameId, "  Switched to urethane  ");
+    let details = await getSessionDetails(sessionId);
+    expect(details?.games[0].notes).toBe("Switched to urethane");
+
+    // Empty string clears the note rather than storing whitespace.
+    await updateGameNotes(gameId, "   ");
+    details = await getSessionDetails(sessionId);
+    expect(details?.games[0].notes).toBeUndefined();
   });
 });

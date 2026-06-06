@@ -4,7 +4,8 @@ import { ActiveGameScorer } from "../components/ActiveGameScorer";
 import {
   addNextGameToSession,
   getSessionDetails,
-  saveFrame
+  saveFrame,
+  updateGameNotes
 } from "../services/bowlingRepository";
 import type { Frame, Game, SessionSummary } from "../types/bowling";
 
@@ -22,12 +23,25 @@ export function ActiveSessionView({
   const [laneNumber, setLaneNumber] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isAddingGame, setIsAddingGame] = useState(false);
+  const [note, setNote] = useState("");
   const [error, setError] = useState("");
 
   const activeGame = useMemo(
     () => sessionDetails?.games.find((g) => g.id === activeGameId) ?? null,
     [activeGameId, sessionDetails]
   );
+
+  // Seed the note field whenever the active game changes.
+  useEffect(() => {
+    setNote(activeGame?.notes ?? "");
+  }, [activeGame?.id, activeGame?.notes]);
+
+  async function saveNote() {
+    if (!activeGame?.id) return;
+    if ((activeGame.notes ?? "") === note.trim()) return;
+    await updateGameNotes(activeGame.id, note);
+    await refreshSession(activeGame.id);
+  }
 
   async function refreshSession(nextActiveGameId?: number) {
     const details = await getSessionDetails(sessionId);
@@ -174,6 +188,20 @@ export function ActiveSessionView({
             ))}
           </div>
         )}
+
+        <details className="group mt-3" open={Boolean(activeGame.notes)}>
+          <summary className="cursor-pointer list-none text-xs font-semibold uppercase tracking-wide text-slate-500 marker:hidden">
+            Note for this game
+            <span className="ml-1 text-slate-400 group-open:hidden">+</span>
+          </summary>
+          <textarea
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            onBlur={saveNote}
+            placeholder="Ball, lane move, what worked..."
+            className="mt-2 min-h-16 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-felt-700 focus:ring-2 focus:ring-felt-700/20"
+          />
+        </details>
 
         {error && (
           <p className="mt-3 rounded-lg border border-red-200 bg-red-50 p-3 text-sm font-semibold text-red-700">
