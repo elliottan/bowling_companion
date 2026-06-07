@@ -13,6 +13,10 @@ User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachan
   one stroke. The first pin sets the stroke's mode (select or deselect); the
   rest follow it, so a single drag never both adds and removes. Pure mode-lock
   logic in `src/lib/pinGesture.ts`.
+- **Edit previous frames.** Tap any frame on the scorecard to re-score it; the
+  frame highlights, the pin grid re-captures its shots, and totals + completion
+  recompute on save. Later frames keep their recorded shots. Cancel restores the
+  pre-edit state.
 
 ### Added
 

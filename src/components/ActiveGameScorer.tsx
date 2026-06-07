@@ -1,6 +1,8 @@
-import { RotateCcw, Send } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { RotateCcw, Send, X } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
+  beginEdit,
+  completeEdit,
   createInitialFrameControllerState,
   hydrateFrameController,
   resetCurrentShotPins,
@@ -32,12 +34,15 @@ export function ActiveGameScorer({
     hydrateFrameController(initialFrames)
   );
   const [statusMessage, setStatusMessage] = useState("");
+  const [editingFrame, setEditingFrame] = useState<number | null>(null);
+  const liveStateRef = useRef(gameState);
   const gameScore = useMemo(() => calculateGameScore(gameState.frames), [gameState.frames]);
   const pinsDown = knockedDownCount(gameState.standingPins);
 
   useEffect(() => {
     setGameState(hydrateFrameController(initialFrames));
     setStatusMessage("");
+    setEditingFrame(null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gameKey]);
 
@@ -45,18 +50,58 @@ export function ActiveGameScorer({
     setGameState((curr) => ({ ...curr, standingPins: pins }));
   }
 
-  async function recordShot() {
-    const result = submitShot(gameState, gameState.standingPins);
-    setGameState(result.state);
+  function startEdit(frameNumber: number) {
+    if (editingFrame !== null) return;
+    liveStateRef.current = gameState;
+    setEditingFrame(frameNumber);
+    setGameState(beginEdit(gameState, frameNumber));
+    setStatusMessage(`Editing frame ${frameNumber}`);
+  }
 
-    if (!result.savedFrame) return;
+  function cancelEdit() {
+    setGameState(liveStateRef.current);
+    setEditingFrame(null);
+    setStatusMessage("");
+  }
+
+  async function recordShot() {
+    const submission = submitShot(gameState, gameState.standingPins);
+
+    if (editingFrame !== null) {
+      const frameDone =
+        submission.savedFrame !== null ||
+        submission.state.currentFrameNumber !== editingFrame;
+
+      if (!frameDone) {
+        setGameState(submission.state);
+        return;
+      }
+
+      const merged = completeEdit(submission, liveStateRef.current);
+      setGameState(merged.state);
+      setEditingFrame(null);
+
+      try {
+        const editedFrame =
+          merged.state.frames.find((f) => f.frame_number === editingFrame) ?? null;
+        if (editedFrame) await onFrameComplete?.(editedFrame);
+        setStatusMessage(`Frame ${editingFrame} updated.`);
+      } catch (error) {
+        setStatusMessage(error instanceof Error ? error.message : "Save failed.");
+      }
+      return;
+    }
+
+    setGameState(submission.state);
+
+    if (!submission.savedFrame) return;
 
     try {
-      await onFrameComplete?.(result.savedFrame);
-      setStatusMessage(`Frame ${result.savedFrame.frame_number} saved.`);
+      await onFrameComplete?.(submission.savedFrame);
+      setStatusMessage(`Frame ${submission.savedFrame.frame_number} saved.`);
 
-      if (result.state.isComplete) {
-        await onGameComplete?.(result.state.frames);
+      if (submission.state.isComplete) {
+        await onGameComplete?.(submission.state.frames);
         setStatusMessage("Game complete.");
       }
     } catch (error) {
@@ -70,6 +115,7 @@ export function ActiveGameScorer({
 
   function newGame() {
     setGameState(createInitialFrameControllerState());
+    setEditingFrame(null);
     setStatusMessage("");
   }
 
@@ -105,6 +151,8 @@ export function ActiveGameScorer({
       <Scorecard
         frames={gameState.frames}
         activeFrameNumber={gameState.currentFrameNumber}
+        editingFrameNumber={editingFrame}
+        onEditFrame={startEdit}
       />
 
       <div className="mt-4 grid gap-4 lg:grid-cols-[minmax(280px,360px)_1fr] lg:items-start">
@@ -135,6 +183,17 @@ export function ActiveGameScorer({
               Record
             </button>
           </div>
+
+          {editingFrame !== null && (
+            <button
+              type="button"
+              onClick={cancelEdit}
+              className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white text-sm font-semibold text-slate-700 hover:bg-slate-50"
+            >
+              <X aria-hidden="true" size={16} />
+              Cancel edit
+            </button>
+          )}
 
           {statusMessage && (
             <p className="text-center text-sm font-semibold text-felt-700">

@@ -190,6 +190,56 @@ function normalizePins(pins: PinNumber[]): PinNumber[] {
 }
 
 /**
+ * Enter edit mode for one already-recorded frame: re-bowl it from shot 1.
+ * Frames keep their stored shots; only the chosen frame is re-captured. The
+ * caller passes the pre-edit state into `completeEdit` to restore the live
+ * position once the frame's shots are re-entered.
+ */
+export function beginEdit(
+  state: FrameControllerState,
+  frameNumber: number
+): FrameControllerState {
+  // Drop the edited frame so it is re-bowled fresh — otherwise stale shot 2/3
+  // data would survive a from-shot-1 re-entry.
+  return {
+    ...state,
+    frames: state.frames.filter((f) => f.frame_number !== frameNumber),
+    currentFrameNumber: frameNumber,
+    currentShot: 1,
+    availablePins: ALL_PINS,
+    standingPins: [],
+    isComplete: false
+  };
+}
+
+/**
+ * Finish an in-progress edit. `editResult` is the result of the final
+ * `submitShot` during editing; `liveState` is the controller state captured
+ * before the edit began. Returns the merged frames with the live position
+ * re-derived from the full frame set (reusing the hydrate rules).
+ */
+export function completeEdit(
+  editResult: ShotSubmissionResult,
+  liveState: FrameControllerState
+): ShotSubmissionResult {
+  const frames = editResult.state.frames;
+  const resumed = hydrateFrameController(frames);
+
+  return {
+    savedFrame: editResult.savedFrame,
+    state: {
+      ...liveState,
+      frames,
+      currentFrameNumber: resumed.currentFrameNumber,
+      currentShot: resumed.currentShot,
+      availablePins: ALL_PINS,
+      standingPins: [],
+      isComplete: resumed.isComplete
+    }
+  };
+}
+
+/**
  * Rebuild controller state from persisted frames (mid-game resume).
  * Handles 10th-frame correctly: if shot 2 saved but third shot still required,
  * keeps `currentShot=3` instead of marking complete.

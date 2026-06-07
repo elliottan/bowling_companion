@@ -34,3 +34,20 @@ test("persists the session and shows it in history", async ({ page }) => {
   await page.getByRole("button", { name: "History" }).click();
   await expect(page.getByText("History Lanes")).toBeVisible();
 });
+
+test("editing a past frame updates it", async ({ page }) => {
+  await startSession(page, "Edit Lanes");
+  await recordShot(page, []); // F1 strike
+  await recordShot(page, [10]); // F2 shot1 = 9
+  await recordShot(page, [10]); // F2 shot2 = open (9)
+  await expect(page.getByText(/Frame 3 . Shot 1/i)).toBeVisible();
+
+  // Re-open frame 1 from the scorecard.
+  await page.getByRole("button", { name: "Edit frame 1", exact: true }).click();
+  await expect(page.getByText(/Editing frame 1/i)).toBeVisible();
+
+  // Re-bowl frame 1 as an open 9 instead of a strike.
+  await recordShot(page, [10]); // shot1 = 9
+  await recordShot(page, [10]); // shot2 = open
+  await expect(page.getByText(/Frame 1 updated/i)).toBeVisible();
+});

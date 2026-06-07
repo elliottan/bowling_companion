@@ -5,9 +5,16 @@ import type { Frame } from "../types/bowling";
 interface ScorecardProps {
   frames: Frame[];
   activeFrameNumber: number;
+  editingFrameNumber?: number | null;
+  onEditFrame?: (frameNumber: number) => void;
 }
 
-export function Scorecard({ frames, activeFrameNumber }: ScorecardProps) {
+export function Scorecard({
+  frames,
+  activeFrameNumber,
+  editingFrameNumber = null,
+  onEditFrame
+}: ScorecardProps) {
   const gameScore = calculateGameScore(frames);
 
   const cells = Array.from({ length: 10 }, (_, index) => {
@@ -23,7 +30,9 @@ export function Scorecard({ frames, activeFrameNumber }: ScorecardProps) {
       frameNumber,
       symbols,
       rollingTotal: score?.rollingTotal ?? null,
-      isActive: activeFrameNumber === frameNumber
+      isActive: activeFrameNumber === frameNumber,
+      isEditing: editingFrameNumber === frameNumber,
+      onEdit: onEditFrame
     };
   });
 
@@ -51,16 +60,25 @@ interface FrameCellProps {
   symbols: string[];
   rollingTotal: number | null;
   isActive: boolean;
+  isEditing?: boolean;
   compact?: boolean;
+  onEdit?: (frameNumber: number) => void;
 }
 
-function FrameCell({ frameNumber, symbols, rollingTotal, isActive, compact }: FrameCellProps) {
-  return (
-    <div
-      className={`${
-        compact ? "" : "border-r border-slate-200 last:border-r-0"
-      } ${isActive ? "bg-lane-50" : "bg-white"}`}
-    >
+function FrameCell({
+  frameNumber,
+  symbols,
+  rollingTotal,
+  isActive,
+  isEditing = false,
+  compact,
+  onEdit
+}: FrameCellProps) {
+  const bg = isEditing ? "bg-lane-100 ring-2 ring-inset ring-felt-700" : isActive ? "bg-lane-50" : "bg-white";
+  const border = compact ? "" : "border-r border-slate-200 last:border-r-0";
+
+  const content = (
+    <>
       <div className="border-b border-slate-200 px-1 py-1 text-center text-[10px] font-bold uppercase text-slate-500 sm:text-xs">
         {frameNumber}
       </div>
@@ -81,6 +99,21 @@ function FrameCell({ frameNumber, symbols, rollingTotal, isActive, compact }: Fr
       <div className="flex h-9 items-center justify-center text-base font-bold text-felt-700 sm:h-12 sm:text-lg">
         {rollingTotal ?? ""}
       </div>
-    </div>
+    </>
   );
+
+  if (onEdit) {
+    return (
+      <button
+        type="button"
+        onClick={() => onEdit(frameNumber)}
+        aria-label={`Edit frame ${frameNumber}`}
+        className={`block w-full text-left ${border} ${bg}`}
+      >
+        {content}
+      </button>
+    );
+  }
+
+  return <div className={`${border} ${bg}`}>{content}</div>;
 }

@@ -16,6 +16,9 @@ features` for detail.
 - ✅ GitHub Actions CI (test + build + e2e).
 - ✅ Per-game notes.
 - ✅ Stats dashboard (avg, high, strike %, spare %, by-alley).
+- ✅ Inverted pin input (start down, tap to leave standing).
+- ✅ Slide-to-select on the pin deck.
+- ✅ Editing previously-entered frames.
 
 ---
 
@@ -26,23 +29,9 @@ features` for detail.
 CI relies on `tsc` + `noUnusedLocals` today. A standard React + TS ESLint
 preset would catch a11y and hooks-rules issues the type checker misses.
 
-### Editing previously-entered frames
-
-Tap a frame on the scorecard to re-open and re-score it; recalculate totals
-and persist. The frame controller is currently a forward-only state machine,
-so this needs design care (see the spec under `docs/superpowers/specs/`).
-
 ---
 
 ## Medium impact
-
-### Pin-input ergonomics
-
-- Invert the default: start with all pins down, tap the ones left standing.
-- Slide-to-select across the pin deck (single-mode per gesture).
-
-Both are UX refinements to `PinGrid` + the frame controller's initial pin
-state. Specs under `docs/superpowers/specs/`.
 
 ### Splits-left tracking
 

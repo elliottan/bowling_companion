@@ -1,8 +1,11 @@
 import { describe, expect, it } from "vitest";
 import {
+  beginEdit,
+  completeEdit,
   createInitialFrameControllerState,
   hydrateFrameController,
-  submitShot
+  submitShot,
+  type FrameControllerState
 } from "./frameController";
 import type { Frame, PinNumber } from "../types/bowling";
 
@@ -146,5 +149,47 @@ describe("frameController", () => {
 
     const hydrated = hydrateFrameController(frames);
     expect(hydrated.isComplete).toBe(true);
+  });
+});
+
+describe("frame editing", () => {
+  function playOpen(state: FrameControllerState, s1: PinNumber[], s2: PinNumber[]) {
+    state = submitShot(state, s1).state;
+    return submitShot(state, s2).state;
+  }
+
+  it("re-bowls one past frame without disturbing later frames", () => {
+    let state = createInitialFrameControllerState();
+    state = submitShot(state, []).state; // F1 strike
+    state = playOpen(state, [10], [10]); // F2 = 9 (open)
+    state = playOpen(state, [9, 10], [9, 10]); // F3 = 8 (open)
+    expect(state.currentFrameNumber).toBe(4);
+
+    const editing = beginEdit(state, 2);
+    expect(editing.currentFrameNumber).toBe(2);
+    expect(editing.currentShot).toBe(1);
+
+    const edited = submitShot(editing, [10]).state; // F2 shot1: 9
+    const result = completeEdit(submitShot(edited, []), state); // F2 shot2: spare
+
+    expect(result.state.currentFrameNumber).toBe(4); // live position restored
+    const f2 = result.state.frames.find((f) => f.frame_number === 2);
+    const f3 = result.state.frames.find((f) => f.frame_number === 3);
+    expect(f2?.is_spare).toBe(true);
+    expect(f3).toBeDefined();
+  });
+
+  it("editing the 10th re-derives completion", () => {
+    let state = createInitialFrameControllerState();
+    for (let n = 1; n < 10; n += 1) state = playOpen(state, [10], [10]);
+    state = submitShot(state, [10]).state; // 10th shot1 = 9
+    state = submitShot(state, [10]).state; // 10th shot2 = open
+    expect(state.isComplete).toBe(true);
+
+    const editing = beginEdit(state, 10);
+    const afterFirst = submitShot(editing, []); // 10th shot1 strike
+    const result = completeEdit(afterFirst, state);
+    expect(result.state.isComplete).toBe(false); // now needs bonus shots
+    expect(result.state.currentFrameNumber).toBe(10);
   });
 });
