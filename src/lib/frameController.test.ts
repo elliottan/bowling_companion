@@ -23,7 +23,20 @@ describe("frameController", () => {
     expect(result.savedFrame).toBeNull();
     expect(result.state.currentFrameNumber).toBe(1);
     expect(result.state.currentShot).toBe(2);
-    expect(result.state.standingPins).toEqual([7, 10]);
+    // Inverted: nothing marked standing yet for shot 2; only [7,10] tappable.
+    expect(result.state.standingPins).toEqual([]);
+    expect(result.state.availablePins).toEqual([7, 10]);
+  });
+
+  it("starts each shot with no pins marked standing (inverted input)", () => {
+    const init = createInitialFrameControllerState();
+    expect(init.standingPins).toEqual([]);
+    expect(init.availablePins).toEqual(ALL);
+
+    const result = submitShot(init, []);
+    expect(result.savedFrame?.is_strike).toBe(true);
+    expect(result.state.currentFrameNumber).toBe(2);
+    expect(result.state.standingPins).toEqual([]);
   });
 
   it("detects a spare and advances after shot two", () => {
@@ -45,7 +58,7 @@ describe("frameController", () => {
     state = submitShot(state, []).state;
     expect(state.currentFrameNumber).toBe(10);
     expect(state.currentShot).toBe(2);
-    expect(state.standingPins).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+    expect(state.standingPins).toEqual([]);
 
     state = submitShot(state, []).state;
     expect(state.currentShot).toBe(3);

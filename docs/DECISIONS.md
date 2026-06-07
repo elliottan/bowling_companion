@@ -126,3 +126,25 @@ written definition the numbers drift as the code changes.
   ever attempted), which matches how bowlers talk about a game.
 - The definitions live next to the code and are unit-tested in
   `stats.test.ts`; changing them requires updating this ADR (maintenance rule).
+
+---
+
+## ADR-006 — Inverted pin input (start down, tap to leave standing)
+
+**Status:** accepted (2026-06).
+
+**Context.** Most balls knock most pins down, so "tap the few left standing" is
+fewer taps than "knock down the many." The stored representation (pins left
+standing, ADR-001) is the same either way; only the input seed differs.
+
+**Decision.** Each shot starts with no pins marked standing (`standingPins =
+[]`); the bowler taps the pins that remain up. Recording with no taps is a
+strike (shot 1) or spare (shot 2). This replaces the previous "start standing,
+tap to knock down" model entirely — no settings toggle.
+
+**Consequences.**
+- `frameController` seeds `standingPins` to `[]` everywhere; `availablePins`
+  keeps gating which pins are tappable.
+- The persisted data and the scoring engine are unchanged (ADR-001 holds).
+- One-time muscle-memory change for the existing user; acceptable per the
+  replace-entirely decision.

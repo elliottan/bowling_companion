@@ -22,13 +22,14 @@ export async function startSession(page: Page, alley: string) {
 /**
  * Record one shot. `standingAfter` is the set of pin numbers LEFT STANDING
  * after the shot — [] means a strike/clear. Mirrors the data model.
+ *
+ * Inverted input (ADR-006): each shot starts with all pins down; tap the pins
+ * that remain standing. So we tap each pin in `standingAfter` that is currently
+ * down and tappable.
  */
 export async function recordShot(page: Page, standingAfter: number[]) {
-  const standing = new Set(standingAfter);
-  // Knock down every pin that should NOT remain standing.
-  for (let pin = 1; pin <= 10; pin += 1) {
-    if (standing.has(pin)) continue;
-    const down = page.locator(`button[aria-label="Pin ${pin} standing"]`);
+  for (const pin of standingAfter) {
+    const down = page.locator(`button[aria-label="Pin ${pin} down"]`);
     if (await down.count()) await down.click();
   }
   await page.getByRole("button", { name: "Record", exact: true }).click();

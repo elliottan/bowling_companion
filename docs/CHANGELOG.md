@@ -4,6 +4,12 @@ User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachan
 
 ## [Unreleased] — Roadmap features (2026-06)
 
+### Changed
+
+- **Inverted pin input.** Each shot now starts with all pins down; tap the pins
+  left standing. Recording with no taps is a strike/spare. Stored data and
+  scoring are unchanged (see ADR-006).
+
 ### Added
 
 - **PWA / installable offline app.** App is now installable to the home screen

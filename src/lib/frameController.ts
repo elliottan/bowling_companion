@@ -24,7 +24,7 @@ export function createInitialFrameControllerState(): FrameControllerState {
     currentFrameNumber: 1,
     currentShot: 1,
     availablePins: ALL_PINS,
-    standingPins: ALL_PINS,
+    standingPins: [],
     isComplete: false
   };
 }
@@ -55,7 +55,7 @@ export function submitShot(
         frames: upsertFrame(state.frames, updated),
         currentShot: 2,
         availablePins: normalized,
-        standingPins: normalized
+        standingPins: []
       }
     };
   }
@@ -82,7 +82,7 @@ function advanceTenthFrame(
         frames: upsertFrame(state.frames, frame),
         currentShot: 2,
         availablePins: strike ? ALL_PINS : pinsStanding,
-        standingPins: strike ? ALL_PINS : pinsStanding
+        standingPins: []
       }
     };
   }
@@ -104,7 +104,7 @@ function advanceTenthFrame(
         frames: upsertFrame(state.frames, frame),
         currentShot: 3,
         availablePins: racked,
-        standingPins: racked
+        standingPins: []
       }
     };
   }
@@ -127,7 +127,7 @@ function finishTenth(state: FrameControllerState, frame: Frame): ShotSubmissionR
 function completeFrame(
   state: FrameControllerState,
   frame: Frame,
-  nextStandingPins: PinNumber[]
+  nextAvailablePins: PinNumber[]
 ): ShotSubmissionResult {
   const nextFrameNumber = state.currentFrameNumber + 1;
   return {
@@ -136,8 +136,8 @@ function completeFrame(
       frames: upsertFrame(state.frames, frame),
       currentFrameNumber: nextFrameNumber,
       currentShot: 1,
-      availablePins: nextStandingPins,
-      standingPins: nextStandingPins,
+      availablePins: nextAvailablePins,
+      standingPins: [],
       isComplete: nextFrameNumber > 10
     }
   };
@@ -177,20 +177,9 @@ function upsertFrame(frames: Frame[], frame: Frame): Frame[] {
   return next.sort((a, b) => a.frame_number - b.frame_number);
 }
 
-function getDefaultPinsForShot(state: FrameControllerState): PinNumber[] {
-  const frame = findFrame(state);
-
-  if (!frame || state.currentShot === 1) return ALL_PINS;
-
-  if (state.currentShot === 2) {
-    return isStrike(frame) ? ALL_PINS : frame.shot_1_pins_standing;
-  }
-
-  if (!frame.shot_2_pins_standing || knockedDownCount(frame.shot_2_pins_standing) === 10) {
-    return ALL_PINS;
-  }
-
-  return frame.shot_2_pins_standing;
+function getDefaultPinsForShot(_state: FrameControllerState): PinNumber[] {
+  // Inverted input: a reset clears all marks (nothing standing yet).
+  return [];
 }
 
 function normalizePins(pins: PinNumber[]): PinNumber[] {
@@ -231,7 +220,7 @@ export function hydrateFrameController(frames: Frame[]): FrameControllerState {
       currentFrameNumber: 10,
       currentShot: 2,
       availablePins: shotOne === 10 ? ALL_PINS : last.shot_1_pins_standing,
-      standingPins: shotOne === 10 ? ALL_PINS : last.shot_1_pins_standing
+      standingPins: []
     };
   }
 
@@ -254,7 +243,7 @@ export function hydrateFrameController(frames: Frame[]): FrameControllerState {
       currentFrameNumber: 10,
       currentShot: 3,
       availablePins: racked,
-      standingPins: racked
+      standingPins: []
     };
   }
 
