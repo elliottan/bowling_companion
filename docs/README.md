@@ -11,6 +11,7 @@ Anything that isn't code lives here.
 | [DATA_MODEL.md](./DATA_MODEL.md) | Session/Game/Frame types, Dexie schema, scoring conventions |
 | [DECISIONS.md](./DECISIONS.md) | ADR-light log of load-bearing decisions |
 | [CHANGELOG.md](./CHANGELOG.md) | User-visible changes |
+| [DEPLOYMENT.md](./DEPLOYMENT.md) | Build + deploy to production (Vercel) |
 | [ROADMAP.md](./ROADMAP.md) | Future work that hasn't been built yet (Phase 5 lives here) |
 
 ## Maintenance rule

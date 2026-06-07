@@ -9,14 +9,25 @@ locally in IndexedDB, no backend.
 
 ```bash
 npm install
-npm run dev      # vite dev server on http://127.0.0.1:5173
-npm test         # vitest run
-npm run build    # tsc -b && vite build
+npm run dev       # vite dev server on http://127.0.0.1:5173
+npm test          # vitest run (unit)
+npm run test:e2e  # playwright smoke tests
+npm run build     # tsc -b && vite build (+ PWA)
 ```
+
+## Deploy
+
+```bash
+npm test && npm run build   # verify first
+vercel --prod               # ship dist/ to Vercel (zero config)
+```
+
+Full guide: [docs/DEPLOYMENT.md](./docs/DEPLOYMENT.md). There's also a `deploy`
+skill that runs the verify-then-ship flow.
 
 ## Tech stack
 
-React 18 · Vite · TypeScript · Tailwind CSS · Dexie.js (IndexedDB) · Vitest.
+React 18 · Vite · TypeScript · Tailwind CSS · Dexie.js (IndexedDB) · Vitest · Playwright.
 
 ## Documentation
 
@@ -27,6 +38,7 @@ React 18 · Vite · TypeScript · Tailwind CSS · Dexie.js (IndexedDB) · Vitest
 | [docs/DATA_MODEL.md](./docs/DATA_MODEL.md) | Types, Dexie schema, scoring rules |
 | [docs/DECISIONS.md](./docs/DECISIONS.md) | ADR-light log of load-bearing choices |
 | [docs/CHANGELOG.md](./docs/CHANGELOG.md) | User-visible changes |
+| [docs/DEPLOYMENT.md](./docs/DEPLOYMENT.md) | Build + deploy (Vercel) |
 | [docs/ROADMAP.md](./docs/ROADMAP.md) | Future work |
 
 Maintenance rule: any change to **scoring**, **the data model**, or

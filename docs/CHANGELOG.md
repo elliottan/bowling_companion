@@ -17,6 +17,9 @@ User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachan
   frame highlights, the pin grid re-captures its shots, and totals + completion
   recompute on save. Later frames keep their recorded shots. Cancel restores the
   pre-edit state.
+- **Deploy docs + skill.** `docs/DEPLOYMENT.md` documents the build + deploy
+  flow (`npm run build` → `vercel --prod`, zero config). A local `deploy` skill
+  (`.claude/skills/deploy/`) runs the verify-then-ship gate.
 
 ### Added
 
