@@ -9,6 +9,10 @@ User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachan
 - **Inverted pin input.** Each shot now starts with all pins down; tap the pins
   left standing. Recording with no taps is a strike/spare. Stored data and
   scoring are unchanged (see ADR-006).
+- **Slide-to-select pins.** Drag across the pin deck to toggle several pins in
+  one stroke. The first pin sets the stroke's mode (select or deselect); the
+  rest follow it, so a single drag never both adds and removes. Pure mode-lock
+  logic in `src/lib/pinGesture.ts`.
 
 ### Added
 

@@ -1,5 +1,8 @@
+import { useRef } from "react";
+import type { PointerEvent as ReactPointerEvent } from "react";
 import type { PinNumber } from "../types/bowling";
 import { ALL_PINS } from "../lib/pins";
+import { applyGesture, modeFor, type GestureMode } from "../lib/pinGesture";
 
 const PIN_ROWS: PinNumber[][] = [
   [7, 8, 9, 10],
@@ -21,19 +24,48 @@ export function PinGrid({
 }: PinGridProps) {
   const standingSet = new Set(standingPins);
   const availableSet = new Set(availablePins);
+  const modeRef = useRef<GestureMode | null>(null);
+  // Track the evolving standing set within one drag so successive
+  // elementFromPoint hits compose instead of clobbering each other.
+  const dragStandingRef = useRef<PinNumber[]>(standingPins);
 
-  function togglePin(pin: PinNumber) {
+  function pinFromPoint(x: number, y: number): PinNumber | null {
+    const el = document.elementFromPoint(x, y);
+    const attr = el?.closest<HTMLElement>("[data-pin]")?.dataset.pin;
+    if (!attr) return null;
+    const pin = Number(attr) as PinNumber;
+    return availableSet.has(pin) ? pin : null;
+  }
+
+  function startGesture(e: ReactPointerEvent<HTMLButtonElement>, pin: PinNumber) {
     if (!availableSet.has(pin)) return;
+    const mode = modeFor(standingPins, pin);
+    modeRef.current = mode;
+    const next = applyGesture(standingPins, mode, pin);
+    dragStandingRef.current = next;
+    onChange(next);
+    e.currentTarget.setPointerCapture(e.pointerId);
+  }
 
-    const next = standingSet.has(pin)
-      ? standingPins.filter((p) => p !== pin)
-      : [...standingPins, pin];
+  function moveGesture(e: ReactPointerEvent<HTMLButtonElement>) {
+    if (!modeRef.current) return;
+    const pin = pinFromPoint(e.clientX, e.clientY);
+    if (pin == null) return;
+    const next = applyGesture(dragStandingRef.current, modeRef.current, pin);
+    if (next === dragStandingRef.current) return; // no-op, skip render
+    dragStandingRef.current = next;
+    onChange(next);
+  }
 
-    onChange(next.sort((a, b) => a - b));
+  function endGesture() {
+    modeRef.current = null;
   }
 
   return (
-    <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+    <div
+      className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm"
+      style={{ touchAction: "none" }}
+    >
       <div className="mx-auto flex w-full max-w-[16rem] flex-col items-center gap-2 sm:gap-3">
         {PIN_ROWS.map((row) => (
           <div key={row.join("-")} className="flex w-full justify-center gap-2 sm:gap-3">
@@ -44,10 +76,14 @@ export function PinGrid({
                 <button
                   key={pin}
                   type="button"
+                  data-pin={pin}
                   aria-pressed={isStanding}
                   aria-label={`Pin ${pin}${isStanding ? " standing" : " down"}`}
                   disabled={!isAvailable}
-                  onClick={() => togglePin(pin)}
+                  onPointerDown={(e) => startGesture(e, pin)}
+                  onPointerMove={moveGesture}
+                  onPointerUp={endGesture}
+                  onPointerCancel={endGesture}
                   className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full border text-sm font-bold transition active:scale-95 sm:h-12 sm:w-12 ${
                     isStanding
                       ? "border-slate-300 bg-white text-slate-900"
