@@ -93,3 +93,36 @@ layout decision favors one or the other, mobile wins.
 - Navigation lives at the bottom of the viewport on mobile (thumb reach) and
   in the top bar on `sm+`.
 - New views must be tested at 390x844 (see verification section in the spec).
+
+---
+
+## ADR-005 — Stats metric definitions
+
+**Status:** accepted (2026-06).
+
+**Context.** "Strike %" and "spare %" are ambiguous — they can be measured per
+ball, per frame, or per opportunity, and the 10th frame carries up to three
+fresh-rack balls. Averages can include or exclude unfinished games. Without a
+written definition the numbers drift as the code changes.
+
+**Decision.** `src/lib/stats.ts` computes:
+
+- **Average score / high game** — over **completed** games only (`final_score`
+  set). Unfinished games are excluded from both.
+- **Strike %** = strike balls ÷ first-ball (fresh-rack) opportunities. Frames
+  1–9 contribute one opportunity each. The 10th frame contributes one for
+  ball 1, plus one for each later ball that lands on a fresh rack (i.e. after
+  the previous ball cleared the lane). A "strike" is any fresh-rack ball that
+  clears all ten.
+- **Spare %** = spares made ÷ spare opportunities. An opportunity is a
+  non-strike frame in which a second ball was thrown; it is "made" when that
+  second ball clears what the first ball left. The 10th frame contributes a
+  spare opportunity only when ball 1 was not a strike and ball 2 was thrown.
+- Rates return `null` (rendered "—") when there are zero opportunities, never
+  `0/0 → NaN`.
+
+**Consequences.**
+- A clean game of all strikes reads 100% strikes and `—` spares (no spare was
+  ever attempted), which matches how bowlers talk about a game.
+- The definitions live next to the code and are unit-tested in
+  `stats.test.ts`; changing them requires updating this ADR (maintenance rule).

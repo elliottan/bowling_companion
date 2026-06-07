@@ -27,6 +27,12 @@ User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachan
   screen, saved on blur; shown under the game in History. New `notes?` field
   on `Game` — non-indexed, so no Dexie migration (see DATA_MODEL). Backup
   validation accepts it; old backups without it import unchanged.
+- **Stats dashboard.** New "Stats" tab (5th) aggregating across all sessions:
+  average score, high game, completed-game count, strike %, spare %, and a
+  by-alley breakdown. Pure aggregation in `src/lib/stats.ts` (no schema
+  change) over the existing session history; UI in `StatsView` + `Stats`.
+  Metric definitions recorded in DECISIONS ADR-005. Bottom tab bar goes
+  4→5 columns on mobile.
 
 ## [Unreleased] — Thermo-nuclear review (2026-05)
 

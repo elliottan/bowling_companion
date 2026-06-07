@@ -1,8 +1,16 @@
-import { Archive, History, Home, PlayCircle, type LucideIcon } from "lucide-react";
+import {
+  Archive,
+  BarChart3,
+  History,
+  Home,
+  PlayCircle,
+  type LucideIcon
+} from "lucide-react";
 import { useState } from "react";
 import { DashboardView } from "./views/DashboardView";
 import { ActiveSessionView } from "./views/ActiveSessionView";
 import { HistoryView } from "./views/HistoryView";
+import { StatsView } from "./views/StatsView";
 import { BackupRestoreView } from "./views/BackupRestoreView";
 import {
   addGameToSession,
@@ -10,7 +18,7 @@ import {
 } from "./services/bowlingRepository";
 import type { NewSessionFormValues } from "./components/SessionForm";
 
-type AppView = "dashboard" | "active" | "history" | "backup";
+type AppView = "dashboard" | "active" | "history" | "stats" | "backup";
 
 type NavItem = {
   view: AppView;
@@ -22,6 +30,7 @@ const NAV_ITEMS: ReadonlyArray<NavItem> = [
   { view: "dashboard", label: "Home", icon: Home },
   { view: "active", label: "Active", icon: PlayCircle },
   { view: "history", label: "History", icon: History },
+  { view: "stats", label: "Stats", icon: BarChart3 },
   { view: "backup", label: "Backup", icon: Archive }
 ];
 
@@ -104,10 +113,11 @@ function App() {
           />
         )}
         {view === "history" && <HistoryView onOpenSession={openSession} />}
+        {view === "stats" && <StatsView />}
         {view === "backup" && <BackupRestoreView />}
       </main>
 
-      <nav className="fixed inset-x-0 bottom-0 z-10 grid grid-cols-4 border-t border-slate-200 bg-white sm:hidden">
+      <nav className="fixed inset-x-0 bottom-0 z-10 grid grid-cols-5 border-t border-slate-200 bg-white sm:hidden">
         {NAV_ITEMS.map((item) => (
           <TabBarButton
             key={item.view}

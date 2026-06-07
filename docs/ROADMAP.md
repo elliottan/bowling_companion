@@ -6,41 +6,48 @@ under `[Unreleased]`.
 
 ---
 
+## Shipped (2026-06)
+
+These were the prior roadmap top items; see CHANGELOG `[Unreleased] — Roadmap
+features` for detail.
+
+- ✅ PWA install + offline service worker.
+- ✅ Playwright smoke tests (scoring + backup round-trip).
+- ✅ GitHub Actions CI (test + build + e2e).
+- ✅ Per-game notes.
+- ✅ Stats dashboard (avg, high, strike %, spare %, by-alley).
+
+---
+
 ## High impact
 
-### Playwright smoke test for the core flow
+### Lint config (ESLint)
 
-End-to-end coverage of: start session → score frames 1-9 with mixed
-strike/spare/open → 10th-frame strike + bonus shots → export backup → wipe
-local DB → import → confirm history intact. Lives in `tests/e2e/`. CI gate.
+CI relies on `tsc` + `noUnusedLocals` today. A standard React + TS ESLint
+preset would catch a11y and hooks-rules issues the type checker misses.
 
-### GitHub Action: lint + test + build on PR
+### Editing previously-entered frames
 
-`npm ci && npm test && npm run build` on every PR. No lint config exists
-yet; either add ESLint with the standard React + TS preset or rely on `tsc`
-+ `noUnusedLocals` already configured.
-
-### PWA install + service worker
-
-Manifest, icons, offline service worker. Lets a user add the app to their
-home screen at the alley and run it with no network. The data model is
-already offline-only, so this is purely a delivery-channel upgrade.
+Tap a frame on the scorecard to re-open and re-score it; recalculate totals
+and persist. The frame controller is currently a forward-only state machine,
+so this needs design care (see the spec under `docs/superpowers/specs/`).
 
 ---
 
 ## Medium impact
 
-### Per-game notes
+### Pin-input ergonomics
 
-The `Game` row only carries `lane_number` and `final_score` today. Bowlers
-often want a short text note per game (which ball, lane condition shift,
-etc.). Single field, no migration risk, but updates DATA_MODEL.md.
+- Invert the default: start with all pins down, tap the ones left standing.
+- Slide-to-select across the pin deck (single-mode per gesture).
 
-### Score statistics dashboard
+Both are UX refinements to `PinGrid` + the frame controller's initial pin
+state. Specs under `docs/superpowers/specs/`.
 
-New view that aggregates across sessions: average game, high game, strike
-percentage, spare-conversion percentage, splits left, by-alley breakdowns.
-Pure computation over existing data; no schema change.
+### Splits-left tracking
+
+The stats dashboard could add common splits left / converted once the data
+model captures which pins remained (it already does, via standing-pin arrays).
 
 ---
 
