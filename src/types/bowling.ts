@@ -68,11 +68,14 @@ export interface SessionSummary {
 
 export interface BowlingBackup {
   app: "bowling-companion";
-  version: 1;
+  version: 1 | 2;
   exported_at: string;
   tables: {
     sessions: Session[];
     games: Game[];
     frames: Frame[];
+    balls?: Ball[];
+    oil_patterns?: OilPattern[];
+    spare_lines?: SpareLine[];
   };
 }

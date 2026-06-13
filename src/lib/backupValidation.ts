@@ -1,4 +1,4 @@
-import type { BowlingBackup, Frame, Game, PinNumber, Session } from "../types/bowling";
+import type { Ball, BowlingBackup, Frame, Game, OilPattern, PinNumber, Session, SpareLine } from "../types/bowling";
 
 const PIN_NUMBERS = new Set<PinNumber>([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
 
@@ -19,8 +19,8 @@ export function validateBackup(value: unknown): BackupValidationResult {
     errors.push("Backup app must be bowling-companion.");
   }
 
-  if (value.version !== 1) {
-    errors.push("Backup version must be 1.");
+  if (value.version !== 1 && value.version !== 2) {
+    errors.push("Backup version must be 1 or 2.");
   }
 
   if (typeof value.exported_at !== "string" || value.exported_at.length === 0) {
@@ -33,6 +33,9 @@ export function validateBackup(value: unknown): BackupValidationResult {
     validateArray(value.tables.sessions, "sessions", errors, validateSession);
     validateArray(value.tables.games, "games", errors, validateGame);
     validateArray(value.tables.frames, "frames", errors, validateFrame);
+    validateArray(value.tables.balls ?? [], "balls", errors, validateBall);
+    validateArray(value.tables.oil_patterns ?? [], "oil_patterns", errors, validateOilPattern);
+    validateArray(value.tables.spare_lines ?? [], "spare_lines", errors, validateSpareLine);
   }
 
   if (errors.length > 0) {
@@ -106,6 +109,9 @@ function validateFrame(value: unknown): value is Frame {
     return false;
   }
 
+  const hasV2Shots = Array.isArray(value.shots) && value.shots.length >= 1 && value.shots.every(validateShot);
+  const hasV1Flat = typeof value.shot_1_pins_standing !== "undefined"; // v1 format
+
   return (
     isOptionalNumber(value.id) &&
     typeof value.game_id === "number" &&
@@ -114,9 +120,7 @@ function validateFrame(value: unknown): value is Frame {
     value.frame_number <= 10 &&
     typeof value.is_strike === "boolean" &&
     typeof value.is_spare === "boolean" &&
-    Array.isArray(value.shots) &&
-    value.shots.length >= 1 &&
-    value.shots.every(validateShot)
+    (hasV2Shots || hasV1Flat)
   );
 }
 
@@ -130,6 +134,33 @@ function validatePins(value: unknown): value is PinNumber[] {
     Array.isArray(value) &&
     value.every((pin) => typeof pin === "number" && PIN_NUMBERS.has(pin as PinNumber)) &&
     new Set(value).size === value.length
+  );
+}
+
+function validateBall(value: unknown): value is Ball {
+  if (!isRecord(value)) return false;
+  return (
+    isOptionalNumber(value.id) &&
+    typeof value.name === "string" && value.name.length > 0 &&
+    typeof value.is_spare_ball === "boolean" &&
+    isOptionalString(value.layout) &&
+    isOptionalString(value.notes)
+  );
+}
+
+function validateOilPattern(value: unknown): value is OilPattern {
+  if (!isRecord(value)) return false;
+  return (
+    isOptionalNumber(value.id) &&
+    typeof value.name === "string" && value.name.length > 0
+  );
+}
+
+function validateSpareLine(value: unknown): value is SpareLine {
+  if (!isRecord(value)) return false;
+  return (
+    isOptionalNumber(value.id) &&
+    validatePins(value.pins)
   );
 }
 

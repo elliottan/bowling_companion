@@ -3,6 +3,7 @@ import { db } from "../db/bowlingDb";
 import { createBackup, importBackup } from "./backupRepository";
 import { addGameToSession, createSession, getSessionHistory, saveFrame } from "./bowlingRepository";
 
+
 describe("backupRepository", () => {
   beforeEach(async () => {
     await db.delete();
@@ -37,7 +38,7 @@ describe("backupRepository", () => {
     const result = await importBackup(backup);
     const history = await getSessionHistory();
 
-    expect(result).toEqual({ sessions: 1, games: 1, frames: 1 });
+    expect(result).toEqual({ sessions: 1, games: 1, frames: 1, balls: 0, oil_patterns: 0, spare_lines: 0 });
     expect(history[0].session.alley_name).toBe("Backup Lanes");
     expect(history[0].games[0].frames[0].is_strike).toBe(true);
   });
@@ -71,5 +72,54 @@ describe("backupRepository", () => {
       "Imported Lanes",
       "Local Lanes"
     ]);
+  });
+
+  it("imports a v1 backup with flat frame fields", async () => {
+    await createSession({ date: "2026-05-27", alley_name: "V1 Lanes" });
+    const v1Backup = {
+      app: "bowling-companion" as const,
+      version: 1 as const,
+      exported_at: new Date().toISOString(),
+      tables: {
+        sessions: [{ id: 1, date: "2026-05-27", alley_name: "V1 Lanes" }],
+        games: [{ id: 1, session_id: 1, game_number: 1 }],
+        frames: [{
+          id: 1, game_id: 1, frame_number: 1,
+          shot_1_pins_standing: [7, 10],
+          shot_2_pins_standing: [],
+          is_strike: false, is_spare: true
+        }]
+      }
+    };
+
+    const result = await importBackup(v1Backup);
+    const history = await getSessionHistory();
+
+    expect(result.frames).toBe(1);
+    const frame = history[0].games[0].frames[0];
+    expect(frame.shots).toHaveLength(2);
+    expect(frame.shots[0].pins_standing).toEqual([7, 10]);
+    expect(frame.shots[1].pins_standing).toEqual([]);
+    expect(frame.is_spare).toBe(true);
+  });
+
+  it("exports and reimports balls and oil patterns", async () => {
+    await db.balls.add({ name: "Storm Phaze II", is_spare_ball: false });
+    await db.oil_patterns.add({ name: "Kegel Main Street" });
+
+    const backup = await createBackup();
+    expect(backup.version).toBe(2);
+    expect(backup.tables.balls).toHaveLength(1);
+    expect(backup.tables.oil_patterns).toHaveLength(1);
+
+    await db.delete();
+    await db.open();
+
+    const result = await importBackup(backup);
+    expect(result.balls).toBe(1);
+    expect(result.oil_patterns).toBe(1);
+
+    const balls = await db.balls.toArray();
+    expect(balls[0].name).toBe("Storm Phaze II");
   });
 });

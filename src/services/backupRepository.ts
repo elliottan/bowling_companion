@@ -1,28 +1,37 @@
 import { db } from "../db/bowlingDb";
 import { validateBackup } from "../lib/backupValidation";
-import type { BowlingBackup, Frame, Game, Session } from "../types/bowling";
+import type { Ball, BowlingBackup, Frame, Game, OilPattern, PinNumber, Session, Shot, SpareLine } from "../types/bowling";
 
 export interface ImportBackupResult {
   sessions: number;
   games: number;
   frames: number;
+  balls: number;
+  oil_patterns: number;
+  spare_lines: number;
 }
 
 export async function createBackup(): Promise<BowlingBackup> {
-  const [sessions, games, frames] = await Promise.all([
+  const [sessions, games, frames, balls, oil_patterns, spare_lines] = await Promise.all([
     db.sessions.toArray(),
     db.games.toArray(),
-    db.frames.toArray()
+    db.frames.toArray(),
+    db.balls.toArray(),
+    db.oil_patterns.toArray(),
+    db.spare_lines.toArray()
   ]);
 
   return {
     app: "bowling-companion",
-    version: 1,
+    version: 2,
     exported_at: new Date().toISOString(),
     tables: {
       sessions,
       games,
-      frames
+      frames,
+      balls,
+      oil_patterns,
+      spare_lines
     }
   };
 }
@@ -53,49 +62,98 @@ export async function importBackup(fileOrJson: File | string | unknown) {
     throw new Error(validation.errors.join(" "));
   }
 
-  return mergeBackup(validation.backup);
+  const backup = normalizeBackup(validation.backup);
+  return mergeBackup(backup);
+}
+
+function normalizeBackup(backup: BowlingBackup): BowlingBackup {
+  if (backup.version === 2) return backup;
+
+  // Transform v1 flat frame fields → shots[]
+  const frames = backup.tables.frames.map((frame) => {
+    const raw = frame as unknown as Record<string, unknown>;
+    if (Array.isArray(raw.shots)) return frame;
+
+    const shots: Shot[] = [];
+    if (raw.shot_1_pins_standing !== undefined) {
+      shots.push({ pins_standing: raw.shot_1_pins_standing as PinNumber[], notes: raw.shot_1_notes as string | undefined });
+    }
+    if (raw.shot_2_pins_standing !== undefined) {
+      shots.push({ pins_standing: raw.shot_2_pins_standing as PinNumber[], notes: raw.shot_2_notes as string | undefined });
+    }
+    if (raw.shot_3_pins_standing !== undefined) {
+      shots.push({ pins_standing: raw.shot_3_pins_standing as PinNumber[] });
+    }
+    return { ...frame, shots };
+  });
+
+  return { ...backup, version: 2, tables: { ...backup.tables, frames, balls: [], oil_patterns: [], spare_lines: [] } };
 }
 
 export async function mergeBackup(backup: BowlingBackup): Promise<ImportBackupResult> {
-  return db.transaction("rw", db.sessions, db.games, db.frames, async () => {
+  return db.transaction("rw", [db.sessions, db.games, db.frames, db.balls, db.oil_patterns, db.spare_lines], async () => {
     const sessionIdMap = new Map<number, number>();
     const gameIdMap = new Map<number, number>();
+    const ballIdMap = new Map<number, number>();
+    const oilPatternIdMap = new Map<number, number>();
 
-    for (const session of backup.tables.sessions) {
-      const importedId = session.id;
-      const localId = await upsertSession(session);
-
-      if (typeof importedId === "number") {
-        sessionIdMap.set(importedId, Number(localId));
-      }
+    // Import balls first (shots reference ball_ids)
+    for (const ball of backup.tables.balls ?? []) {
+      const importedId = ball.id;
+      const localId = await upsertBall(ball);
+      if (typeof importedId === "number") ballIdMap.set(importedId, Number(localId));
     }
 
+    // Import oil patterns (sessions reference oil_pattern_ids)
+    for (const op of backup.tables.oil_patterns ?? []) {
+      const importedId = op.id;
+      const localId = await upsertOilPattern(op);
+      if (typeof importedId === "number") oilPatternIdMap.set(importedId, Number(localId));
+    }
+
+    // Sessions (with oil_pattern_id remap)
+    for (const session of backup.tables.sessions) {
+      const importedId = session.id;
+      const mappedSession = {
+        ...session,
+        oil_pattern_id: session.oil_pattern_id != null
+          ? (oilPatternIdMap.get(session.oil_pattern_id) ?? session.oil_pattern_id)
+          : undefined
+      };
+      const localId = await upsertSession(mappedSession);
+      if (typeof importedId === "number") sessionIdMap.set(importedId, Number(localId));
+    }
+
+    // Games
     for (const game of backup.tables.games) {
       const importedId = game.id;
       const sessionId = sessionIdMap.get(game.session_id) ?? game.session_id;
-      const localId = await upsertGame({
-        ...game,
-        session_id: sessionId
-      });
-
-      if (typeof importedId === "number") {
-        gameIdMap.set(importedId, Number(localId));
-      }
+      const localId = await upsertGame({ ...game, session_id: sessionId });
+      if (typeof importedId === "number") gameIdMap.set(importedId, Number(localId));
     }
 
+    // Frames (with game_id remap and ball_id remap in shots)
     for (const frame of backup.tables.frames) {
       const gameId = gameIdMap.get(frame.game_id) ?? frame.game_id;
+      const remappedShots = frame.shots.map((shot) => ({
+        ...shot,
+        ball_id: shot.ball_id != null ? (ballIdMap.get(shot.ball_id) ?? shot.ball_id) : undefined
+      }));
+      await upsertFrame({ ...frame, game_id: gameId, shots: remappedShots });
+    }
 
-      await upsertFrame({
-        ...frame,
-        game_id: gameId
-      });
+    // Spare lines (keyed by pins array)
+    for (const sl of backup.tables.spare_lines ?? []) {
+      await upsertSpareLine(sl);
     }
 
     return {
       sessions: backup.tables.sessions.length,
       games: backup.tables.games.length,
-      frames: backup.tables.frames.length
+      frames: backup.tables.frames.length,
+      balls: (backup.tables.balls ?? []).length,
+      oil_patterns: (backup.tables.oil_patterns ?? []).length,
+      spare_lines: (backup.tables.spare_lines ?? []).length
     };
   });
 }
@@ -158,6 +216,28 @@ async function upsertFrame(frame: Frame): Promise<void> {
     .catch(() => undefined);
 
   await db.frames.put({ ...frame, id: match?.id });
+}
+
+async function upsertBall(ball: Ball): Promise<number> {
+  const match = await db.balls.where("name").equals(ball.name).first();
+  if (match?.id) { await db.balls.put({ ...ball, id: match.id }); return match.id; }
+  return Number(await db.balls.add(stripId(ball)));
+}
+
+async function upsertOilPattern(op: OilPattern): Promise<number> {
+  const match = await db.oil_patterns.where("name").equals(op.name).first();
+  if (match?.id) { await db.oil_patterns.put({ ...op, id: match.id }); return match.id; }
+  return Number(await db.oil_patterns.add(stripId(op)));
+}
+
+async function upsertSpareLine(sl: SpareLine): Promise<void> {
+  const sortedPins = [...sl.pins].sort((a, b) => a - b);
+  const all = await db.spare_lines.toArray();
+  const match = all.find((existing) =>
+    existing.pins.length === sortedPins.length &&
+    existing.pins.every((p, i) => p === sortedPins[i])
+  );
+  await db.spare_lines.put({ ...sl, pins: sortedPins, id: match?.id });
 }
 
 function stripId<T extends { id?: number }>(value: T): Omit<T, "id"> {
