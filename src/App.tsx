@@ -5,6 +5,7 @@ import {
   History,
   Home,
   PlayCircle,
+  Target,
   type LucideIcon
 } from "lucide-react";
 import { useState } from "react";
@@ -14,13 +15,14 @@ import { HistoryView } from "./views/HistoryView";
 import { StatsView } from "./views/StatsView";
 import { BackupRestoreView } from "./views/BackupRestoreView";
 import { ArsenalView } from "./views/ArsenalView";
+import { SpareLinesView } from "./views/SpareLinesView";
 import {
   addGameToSession,
   createSession
 } from "./services/bowlingRepository";
 import type { NewSessionFormValues } from "./components/SessionForm";
 
-type AppView = "dashboard" | "active" | "history" | "stats" | "backup" | "arsenal";
+type AppView = "dashboard" | "active" | "history" | "stats" | "backup" | "arsenal" | "spares";
 
 type NavItem = {
   view: AppView;
@@ -33,9 +35,13 @@ const NAV_ITEMS: ReadonlyArray<NavItem> = [
   { view: "active", label: "Active", icon: PlayCircle },
   { view: "history", label: "History", icon: History },
   { view: "stats", label: "Stats", icon: BarChart3 },
+  { view: "spares", label: "Spares", icon: Target },
   { view: "arsenal", label: "Arsenal", icon: CircleDot },
   { view: "backup", label: "Backup", icon: Archive }
 ];
+
+// Mobile tab bar: exclude Backup (rare action) to keep 6 tabs
+const MOBILE_NAV_ITEMS = NAV_ITEMS.filter((item) => item.view !== "backup");
 
 function App() {
   const [view, setView] = useState<AppView>("dashboard");
@@ -118,12 +124,13 @@ function App() {
         )}
         {view === "history" && <HistoryView onOpenSession={openSession} />}
         {view === "stats" && <StatsView />}
+        {view === "spares" && <SpareLinesView />}
         {view === "arsenal" && <ArsenalView />}
         {view === "backup" && <BackupRestoreView />}
       </main>
 
       <nav className="fixed inset-x-0 bottom-0 z-10 grid grid-cols-6 border-t border-slate-200 bg-white sm:hidden">
-        {NAV_ITEMS.map((item) => (
+        {MOBILE_NAV_ITEMS.map((item) => (
           <TabBarButton
             key={item.view}
             item={item}
