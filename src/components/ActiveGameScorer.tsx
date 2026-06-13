@@ -6,12 +6,131 @@ import {
   createInitialFrameControllerState,
   hydrateFrameController,
   resetCurrentShotPins,
-  submitShot
+  submitShot,
+  updateShotMeta
 } from "../lib/frameController";
 import { calculateGameScore, knockedDownCount } from "../lib/scoring";
-import type { Frame, PinNumber } from "../types/bowling";
+import { getBalls } from "../services/ballRepository";
+import type { Ball, Frame, LineSpec, PinNumber, ShotMetadata } from "../types/bowling";
 import { PinGrid } from "./PinGrid";
 import { Scorecard } from "./Scorecard";
+
+interface LineInputProps {
+  label: string;
+  value: LineSpec | undefined;
+  onChange: (value: LineSpec | undefined) => void;
+}
+
+function LineInput({ label, value, onChange }: LineInputProps) {
+  function update(field: keyof LineSpec, raw: string) {
+    const n = parseInt(raw, 10);
+    const v = isNaN(n) ? undefined : Math.max(1, Math.min(39, n));
+    const next = { stance: value?.stance ?? 20, target: value?.target ?? 20, breakpoint: value?.breakpoint ?? 10 };
+    if (v === undefined) {
+      onChange(undefined);
+      return;
+    }
+    next[field] = v;
+    onChange(next);
+  }
+
+  return (
+    <div className="flex items-center gap-1">
+      <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">{label}</span>
+      {(["stance", "target", "breakpoint"] as const).map((field, i) => (
+        <input
+          key={field}
+          type="number"
+          min={1}
+          max={39}
+          value={value?.[field] ?? ""}
+          onChange={(e) => update(field, e.target.value)}
+          placeholder={["S", "T", "B"][i]}
+          className="h-8 w-12 rounded-md border border-slate-300 px-1 text-center text-xs focus:border-felt-700 focus:outline-none"
+          title={["Stance board", "Target board (arrows)", "Breakpoint board"][i]}
+        />
+      ))}
+    </div>
+  );
+}
+
+interface ShotDetailBarProps {
+  balls: Ball[];
+  selectedBallId: number | undefined;
+  onBallChange: (id: number | undefined) => void;
+  intendedLine: LineSpec | undefined;
+  onIntendedLineChange: (line: LineSpec | undefined) => void;
+  showActual: boolean;
+  onToggleActual: () => void;
+  actualLine: LineSpec | undefined;
+  onActualLineChange: (line: LineSpec | undefined) => void;
+}
+
+function ShotDetailBar({
+  balls,
+  selectedBallId,
+  onBallChange,
+  intendedLine,
+  onIntendedLineChange,
+  showActual,
+  onToggleActual,
+  actualLine,
+  onActualLineChange
+}: ShotDetailBarProps) {
+  return (
+    <div className="rounded-lg border border-slate-200 bg-white p-2.5">
+      {/* Row 1: Ball + Intended Line */}
+      <div className="flex flex-wrap items-center gap-2">
+        {/* Ball selector */}
+        {balls.length > 0 && (
+          <select
+            value={selectedBallId ?? ""}
+            onChange={(e) => onBallChange(e.target.value ? Number(e.target.value) : undefined)}
+            className="h-8 rounded-md border border-slate-300 bg-white px-2 text-xs font-medium text-slate-700 focus:border-felt-700 focus:outline-none"
+          >
+            <option value="">No ball</option>
+            {balls.map((b) => (
+              <option key={b.id} value={b.id}>
+                {b.name}{b.is_spare_ball ? " (spare)" : ""}
+              </option>
+            ))}
+          </select>
+        )}
+
+        {/* Intended line: 3 board steppers */}
+        <LineInput
+          label="Intended"
+          value={intendedLine}
+          onChange={onIntendedLineChange}
+        />
+
+        {/* Toggle actual */}
+        <button
+          type="button"
+          onClick={onToggleActual}
+          className={`h-8 rounded-md border px-2 text-xs font-medium transition-colors ${
+            showActual
+              ? "border-felt-700 bg-felt-700 text-white"
+              : "border-slate-300 bg-white text-slate-600 hover:bg-slate-50"
+          }`}
+        >
+          {showActual ? "Hide actual" : "+ Actual"}
+        </button>
+      </div>
+
+      {/* Row 2: Actual Line (if expanded) */}
+      {showActual && (
+        <div className="mt-2 flex flex-wrap items-center gap-2">
+          <LineInput
+            label="Actual"
+            value={actualLine}
+            onChange={onActualLineChange}
+          />
+        </div>
+      )}
+    </div>
+  );
+}
 
 export type ScorerMode = "standalone" | "session";
 
@@ -36,6 +155,11 @@ export function ActiveGameScorer({
   const [statusMessage, setStatusMessage] = useState("");
   const [editingFrame, setEditingFrame] = useState<number | null>(null);
   const liveStateRef = useRef(gameState);
+  const [balls, setBalls] = useState<Ball[]>([]);
+  const [selectedBallId, setSelectedBallId] = useState<number | undefined>(undefined);
+  const [intendedLine, setIntendedLine] = useState<LineSpec | undefined>(undefined);
+  const [showActual, setShowActual] = useState(false);
+  const [actualLine, setActualLine] = useState<LineSpec | undefined>(undefined);
   const gameScore = useMemo(() => calculateGameScore(gameState.frames), [gameState.frames]);
   const pinsDown = knockedDownCount(gameState.standingPins);
 
@@ -45,6 +169,28 @@ export function ActiveGameScorer({
     setEditingFrame(null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gameKey]);
+
+  useEffect(() => {
+    getBalls().then(setBalls).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    if (balls.length === 0) return;
+    const isSpareShot = gameState.currentShot > 1;
+    const spareBall = balls.find((b) => b.is_spare_ball);
+    const strikeBall = balls.find((b) => !b.is_spare_ball) ?? balls[0];
+    const auto = isSpareShot && spareBall ? spareBall : strikeBall;
+    setSelectedBallId(auto?.id);
+  }, [gameState.currentShot, balls]);
+
+  useEffect(() => {
+    const meta: ShotMetadata = {
+      ball_id: selectedBallId,
+      intended: intendedLine,
+      actual: showActual ? actualLine : undefined
+    };
+    setGameState((curr) => updateShotMeta(curr, meta));
+  }, [selectedBallId, intendedLine, showActual, actualLine]);
 
   function updateStandingPins(pins: PinNumber[]) {
     setGameState((curr) => ({ ...curr, standingPins: pins }));
@@ -95,6 +241,9 @@ export function ActiveGameScorer({
     setGameState(submission.state);
 
     if (!submission.savedFrame) return;
+
+    setShowActual(false);
+    setActualLine(undefined);
 
     try {
       await onFrameComplete?.(submission.savedFrame);
@@ -162,6 +311,20 @@ export function ActiveGameScorer({
             availablePins={gameState.availablePins}
             onChange={updateStandingPins}
           />
+
+          {!gameState.isComplete && (
+            <ShotDetailBar
+              balls={balls}
+              selectedBallId={selectedBallId}
+              onBallChange={setSelectedBallId}
+              intendedLine={intendedLine}
+              onIntendedLineChange={setIntendedLine}
+              showActual={showActual}
+              onToggleActual={() => setShowActual((v) => !v)}
+              actualLine={actualLine}
+              onActualLineChange={setActualLine}
+            />
+          )}
 
           <div className="grid grid-cols-2 gap-2">
             <button
