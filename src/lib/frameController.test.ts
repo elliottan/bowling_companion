@@ -125,6 +125,34 @@ describe("frameController", () => {
     expect(hydrated.currentShot).toBe(3);
   });
 
+  it("hydrates a 10th-frame single-strike (shot 2 not thrown) to currentShot 2", () => {
+    // shots[1] absent = ball 2 not thrown. Must not conflate with shots[1].pins_standing === []
+    // (which would mean a second consecutive strike).
+    const frames: Frame[] = [
+      ...Array.from<unknown, Frame>({ length: 9 }, (_, idx) => ({
+        game_id: 1,
+        frame_number: idx + 1,
+        shots: [{ pins_standing: ALL }, { pins_standing: ALL }],
+        is_strike: false,
+        is_spare: false
+      })),
+      {
+        game_id: 1,
+        frame_number: 10,
+        shots: [{ pins_standing: [] }], // strike on ball 1, ball 2 not thrown
+        is_strike: true,
+        is_spare: false
+      }
+    ];
+
+    const hydrated = hydrateFrameController(frames);
+
+    expect(hydrated.isComplete).toBe(false);
+    expect(hydrated.currentFrameNumber).toBe(10);
+    expect(hydrated.currentShot).toBe(2);
+    expect(hydrated.availablePins).toEqual(ALL); // fresh rack after a strike
+  });
+
   it("hydrates a finished 10th-frame open as complete", () => {
     const frames: Frame[] = [
       ...Array.from<unknown, Frame>({ length: 9 }, (_, idx) => ({

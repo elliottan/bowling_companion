@@ -99,4 +99,28 @@ describe("scoring helpers", () => {
     expect(result.isComplete).toBe(false);
     expect(result.frames[result.frames.length - 1].score).toBeNull();
   });
+
+  it("10th-frame strike with no follow-up shots scores null (not thrown ≠ cleared rack)", () => {
+    // Frame 10 has shots[0] = strike (pins_standing: []) but shots[1] is absent.
+    // shots[1] missing means "not thrown"; shots[1].pins_standing === [] means strike.
+    // calculateGameScore must return null for frame 10, not a number.
+    const tenthFrame: Frame = {
+      game_id: 1,
+      frame_number: 10,
+      shots: [{ pins_standing: [] }], // one shot only — ball 2 not yet thrown
+      is_strike: true,
+      is_spare: false
+    };
+    const frames = [
+      ...Array.from({ length: 9 }, (_, index) =>
+        frame(index + 1, allPinsStanding, allPinsStanding)
+      ),
+      tenthFrame
+    ];
+
+    const result = calculateGameScore(frames);
+
+    expect(result.isComplete).toBe(false);
+    expect(result.frames[9].score).toBeNull();
+  });
 });
