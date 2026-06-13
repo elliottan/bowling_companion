@@ -1,6 +1,7 @@
 import {
   Archive,
   BarChart3,
+  CircleDot,
   History,
   Home,
   PlayCircle,
@@ -12,13 +13,14 @@ import { ActiveSessionView } from "./views/ActiveSessionView";
 import { HistoryView } from "./views/HistoryView";
 import { StatsView } from "./views/StatsView";
 import { BackupRestoreView } from "./views/BackupRestoreView";
+import { ArsenalView } from "./views/ArsenalView";
 import {
   addGameToSession,
   createSession
 } from "./services/bowlingRepository";
 import type { NewSessionFormValues } from "./components/SessionForm";
 
-type AppView = "dashboard" | "active" | "history" | "stats" | "backup";
+type AppView = "dashboard" | "active" | "history" | "stats" | "backup" | "arsenal";
 
 type NavItem = {
   view: AppView;
@@ -31,6 +33,7 @@ const NAV_ITEMS: ReadonlyArray<NavItem> = [
   { view: "active", label: "Active", icon: PlayCircle },
   { view: "history", label: "History", icon: History },
   { view: "stats", label: "Stats", icon: BarChart3 },
+  { view: "arsenal", label: "Arsenal", icon: CircleDot },
   { view: "backup", label: "Backup", icon: Archive }
 ];
 
@@ -114,10 +117,11 @@ function App() {
         )}
         {view === "history" && <HistoryView onOpenSession={openSession} />}
         {view === "stats" && <StatsView />}
+        {view === "arsenal" && <ArsenalView />}
         {view === "backup" && <BackupRestoreView />}
       </main>
 
-      <nav className="fixed inset-x-0 bottom-0 z-10 grid grid-cols-5 border-t border-slate-200 bg-white sm:hidden">
+      <nav className="fixed inset-x-0 bottom-0 z-10 grid grid-cols-6 border-t border-slate-200 bg-white sm:hidden">
         {NAV_ITEMS.map((item) => (
           <TabBarButton
             key={item.view}
@@ -165,7 +169,7 @@ function TabBarButton({ item, active, disabled, onClick }: NavItemProps) {
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className={`flex h-16 flex-col items-center justify-center gap-1 text-xs font-medium disabled:cursor-not-allowed disabled:opacity-40 ${
+      className={`flex h-16 flex-col items-center justify-center gap-1 text-[10px] font-medium disabled:cursor-not-allowed disabled:opacity-40 ${
         active ? "text-felt-700" : "text-slate-600"
       }`}
     >
