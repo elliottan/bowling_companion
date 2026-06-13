@@ -1,6 +1,8 @@
 import type { FormEvent, ReactNode } from "react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { CreateSessionInput } from "../services/bowlingRepository";
+import type { OilPattern } from "../types/bowling";
+import { addOilPattern, getOilPatterns } from "../services/ballRepository";
 
 export interface NewSessionFormValues extends CreateSessionInput {
   lane_number: string;
@@ -14,20 +16,50 @@ interface SessionFormProps {
 const inputClass =
   "h-11 w-full rounded-lg border border-slate-300 px-3 text-sm outline-none focus:border-felt-700 focus:ring-2 focus:ring-felt-700/20";
 
+const selectClass =
+  "h-11 w-full rounded-lg border border-slate-300 px-3 text-sm outline-none focus:border-felt-700 focus:ring-2 focus:ring-felt-700/20 bg-white";
+
 export function SessionForm({ onSubmit, isSubmitting = false }: SessionFormProps) {
   const [alleyName, setAlleyName] = useState("");
   const [laneNumber, setLaneNumber] = useState("");
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
-  const [oilPattern, setOilPattern] = useState("");
   const [notes, setNotes] = useState("");
+
+  const [oilPatterns, setOilPatterns] = useState<OilPattern[]>([]);
+  const [selectedPatternId, setSelectedPatternId] = useState<number | undefined>(undefined);
+  const [isAddingPattern, setIsAddingPattern] = useState(false);
+  const [newPatternName, setNewPatternName] = useState("");
+  const [addPatternError, setAddPatternError] = useState("");
+
+  useEffect(() => {
+    getOilPatterns().then(setOilPatterns).catch(() => {});
+  }, []);
+
+  async function handleAddPattern() {
+    const name = newPatternName.trim();
+    if (!name) return;
+    try {
+      const id = await addOilPattern(name);
+      const updated = await getOilPatterns();
+      setOilPatterns(updated);
+      setSelectedPatternId(id);
+      setIsAddingPattern(false);
+      setNewPatternName("");
+      setAddPatternError("");
+    } catch (err) {
+      setAddPatternError(err instanceof Error ? err.message : "Failed to add pattern.");
+    }
+  }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    const selectedPattern = oilPatterns.find((op) => op.id === selectedPatternId);
     await onSubmit({
       alley_name: alleyName.trim(),
       lane_number: laneNumber.trim(),
       date,
-      oil_pattern: oilPattern.trim() || undefined,
+      oil_pattern: selectedPattern?.name,
+      oil_pattern_id: selectedPatternId,
       general_notes: notes.trim() || undefined
     });
   }
@@ -75,12 +107,55 @@ export function SessionForm({ onSubmit, isSubmitting = false }: SessionFormProps
         </summary>
         <div className="space-y-3 p-3">
           <Field label="Oil pattern">
-            <input
-              value={oilPattern}
-              onChange={(e) => setOilPattern(e.target.value)}
-              className={inputClass}
-              placeholder="House"
-            />
+            {!isAddingPattern ? (
+              <select
+                value={selectedPatternId ?? ""}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  if (val === "__add_new__") {
+                    setIsAddingPattern(true);
+                    setNewPatternName("");
+                  } else {
+                    setSelectedPatternId(val ? Number(val) : undefined);
+                  }
+                }}
+                className={selectClass}
+              >
+                <option value="">No pattern / unknown</option>
+                {oilPatterns.map((op) => (
+                  <option key={op.id} value={op.id}>{op.name}</option>
+                ))}
+                <option value="__add_new__">+ Add new pattern</option>
+              </select>
+            ) : (
+              <>
+                <div className="flex gap-2">
+                  <input
+                    autoFocus
+                    value={newPatternName}
+                    onChange={(e) => setNewPatternName(e.target.value)}
+                    className={inputClass + " flex-1"}
+                    placeholder="Pattern name"
+                    onKeyDown={(e) => { if (e.key === "Escape") setIsAddingPattern(false); }}
+                  />
+                  <button
+                    type="button"
+                    onClick={handleAddPattern}
+                    className="h-11 rounded-lg bg-felt-700 px-3 text-sm font-semibold text-white hover:bg-felt-500"
+                  >
+                    Add
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setIsAddingPattern(false)}
+                    className="h-11 rounded-lg border border-slate-300 px-3 text-sm font-semibold text-slate-700 hover:bg-slate-100"
+                  >
+                    Cancel
+                  </button>
+                </div>
+                {addPatternError && <p className="text-xs text-red-600">{addPatternError}</p>}
+              </>
+            )}
           </Field>
           <Field label="Notes">
             <textarea
