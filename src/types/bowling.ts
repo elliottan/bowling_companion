@@ -6,6 +6,12 @@ export interface LineSpec {
   breakpoint: number;
 }
 
+export interface ShotMetadata {
+  ball_id?: number;
+  intended?: LineSpec;
+  actual?: LineSpec;
+}
+
 export interface Shot {
   pins_standing: PinNumber[];
   ball_id?: number;

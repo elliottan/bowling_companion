@@ -5,6 +5,7 @@ import {
   createInitialFrameControllerState,
   hydrateFrameController,
   submitShot,
+  updateShotMeta,
   type FrameControllerState
 } from "./frameController";
 import type { Frame, PinNumber } from "../types/bowling";
@@ -201,6 +202,24 @@ describe("frame editing", () => {
     const f3 = result.state.frames.find((f) => f.frame_number === 3);
     expect(f2?.is_spare).toBe(true);
     expect(f3).toBeDefined();
+  });
+
+  it("submitShot records ball_id and intended line on the saved shot", () => {
+    let state = createInitialFrameControllerState();
+    const meta = { ball_id: 42, intended: { stance: 35, target: 20, breakpoint: 5 } };
+    state = updateShotMeta(state, meta);
+    const result = submitShot(state, []); // strike
+
+    expect(result.savedFrame?.shots[0].ball_id).toBe(42);
+    expect(result.savedFrame?.shots[0].intended).toEqual({ stance: 35, target: 20, breakpoint: 5 });
+  });
+
+  it("currentShotMeta resets after recording a shot", () => {
+    let state = createInitialFrameControllerState();
+    state = updateShotMeta(state, { ball_id: 42 });
+    const result = submitShot(state, []); // strike
+
+    expect(result.state.currentShotMeta).toEqual({});
   });
 
   it("editing the 10th re-derives completion", () => {

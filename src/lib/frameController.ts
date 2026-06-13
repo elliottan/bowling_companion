@@ -1,6 +1,6 @@
 import { ALL_PINS, isSpare, isStrike } from "./scoring";
 import { knockedDownCount } from "./pins";
-import type { Frame, PinNumber } from "../types/bowling";
+import type { Frame, PinNumber, ShotMetadata } from "../types/bowling";
 
 export type ActiveShot = 1 | 2 | 3;
 
@@ -11,6 +11,7 @@ export interface FrameControllerState {
   availablePins: PinNumber[];
   standingPins: PinNumber[];
   isComplete: boolean;
+  currentShotMeta: ShotMetadata;
 }
 
 export interface ShotSubmissionResult {
@@ -25,8 +26,16 @@ export function createInitialFrameControllerState(): FrameControllerState {
     currentShot: 1,
     availablePins: ALL_PINS,
     standingPins: [],
-    isComplete: false
+    isComplete: false,
+    currentShotMeta: {}
   };
+}
+
+export function updateShotMeta(
+  state: FrameControllerState,
+  meta: ShotMetadata
+): FrameControllerState {
+  return { ...state, currentShotMeta: meta };
 }
 
 export function submitShot(
@@ -37,7 +46,7 @@ export function submitShot(
 
   const normalized = normalizePins(pinsStanding);
   const draft = findFrame(state) ?? createDraftFrame(state.currentFrameNumber);
-  const updated = applyShotToFrame(draft, state.currentShot, normalized);
+  const updated = applyShotToFrame(draft, state.currentShot, normalized, state.currentShotMeta);
 
   if (state.currentFrameNumber === 10) {
     return advanceTenthFrame(state, updated, normalized);
@@ -55,7 +64,8 @@ export function submitShot(
         frames: upsertFrame(state.frames, updated),
         currentShot: 2,
         availablePins: normalized,
-        standingPins: []
+        standingPins: [],
+        currentShotMeta: {}
       }
     };
   }
@@ -82,7 +92,8 @@ function advanceTenthFrame(
         frames: upsertFrame(state.frames, frame),
         currentShot: 2,
         availablePins: strike ? ALL_PINS : pinsStanding,
-        standingPins: []
+        standingPins: [],
+        currentShotMeta: {}
       }
     };
   }
@@ -104,7 +115,8 @@ function advanceTenthFrame(
         frames: upsertFrame(state.frames, frame),
         currentShot: 3,
         availablePins: racked,
-        standingPins: []
+        standingPins: [],
+        currentShotMeta: {}
       }
     };
   }
@@ -119,7 +131,8 @@ function finishTenth(state: FrameControllerState, frame: Frame): ShotSubmissionR
     state: {
       ...state,
       frames: upsertFrame(state.frames, frame),
-      isComplete: true
+      isComplete: true,
+      currentShotMeta: {}
     }
   };
 }
@@ -138,7 +151,8 @@ function completeFrame(
       currentShot: 1,
       availablePins: nextAvailablePins,
       standingPins: [],
-      isComplete: nextFrameNumber > 10
+      isComplete: nextFrameNumber > 10,
+      currentShotMeta: {}
     }
   };
 }
@@ -157,9 +171,14 @@ function createDraftFrame(frameNumber: number): Frame {
   };
 }
 
-function applyShotToFrame(frame: Frame, shot: ActiveShot, pinsStanding: PinNumber[]): Frame {
+function applyShotToFrame(
+  frame: Frame,
+  shot: ActiveShot,
+  pinsStanding: PinNumber[],
+  meta: ShotMetadata
+): Frame {
   const shots = [...frame.shots];
-  shots[shot - 1] = { ...shots[shot - 1], pins_standing: pinsStanding };
+  shots[shot - 1] = { ...shots[shot - 1], pins_standing: pinsStanding, ...meta };
   return finalizeFrame({ ...frame, shots });
 }
 
@@ -204,7 +223,8 @@ export function beginEdit(
     currentShot: 1,
     availablePins: ALL_PINS,
     standingPins: [],
-    isComplete: false
+    isComplete: false,
+    currentShotMeta: {}
   };
 }
 
@@ -230,7 +250,8 @@ export function completeEdit(
       currentShot: resumed.currentShot,
       availablePins: ALL_PINS,
       standingPins: [],
-      isComplete: resumed.isComplete
+      isComplete: resumed.isComplete,
+      currentShotMeta: {}
     }
   };
 }
