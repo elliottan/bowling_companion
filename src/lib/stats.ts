@@ -160,3 +160,85 @@ function rate(made: number, opportunities: number): number | null {
   if (opportunities === 0) return null;
   return Math.round((made / opportunities) * 100);
 }
+
+// ---------------------------------------------------------------------------
+// Leave stats
+// ---------------------------------------------------------------------------
+
+export interface LeaveStats {
+  pins: PinNumber[];
+  attempts: number;
+  conversions: number;
+  conversionPct: number | null;
+}
+
+export function calculateCommonLeaves(sessions: SessionSummary[]): LeaveStats[] {
+  const leaveMap = new Map<string, LeaveStats>();
+
+  const allFrames = sessions.flatMap((s) =>
+    s.games.flatMap((g) => g.frames)
+  );
+
+  for (const frame of allFrames) {
+    if (frame.is_strike) continue;
+    if (!frame.shots[0] || frame.shots[0].pins_standing.length === 0) continue;
+
+    const leave = [...frame.shots[0].pins_standing].sort((a, b) => a - b) as PinNumber[];
+    const key = leave.join("-");
+
+    const converted = Boolean(frame.shots[1] && frame.shots[1].pins_standing.length === 0);
+
+    if (!leaveMap.has(key)) {
+      leaveMap.set(key, { pins: leave, attempts: 0, conversions: 0, conversionPct: null });
+    }
+    const entry = leaveMap.get(key)!;
+    entry.attempts++;
+    if (converted) entry.conversions++;
+  }
+
+  return [...leaveMap.values()]
+    .map((entry) => ({
+      ...entry,
+      conversionPct: entry.attempts > 0 ? Math.round((entry.conversions / entry.attempts) * 100) : null
+    }))
+    .sort((a, b) => b.attempts - a.attempts || a.pins.join("-").localeCompare(b.pins.join("-")));
+}
+
+// ---------------------------------------------------------------------------
+// Session filtering
+// ---------------------------------------------------------------------------
+
+export interface FilterOptions {
+  oilPattern?: string;
+  alleyName?: string;
+  laneNumber?: string;
+}
+
+export function filterSessionsBy(
+  sessions: SessionSummary[],
+  filter: FilterOptions
+): SessionSummary[] {
+  return sessions.reduce<SessionSummary[]>((acc, s) => {
+    if (filter.oilPattern) {
+      const pat = filter.oilPattern.toLowerCase();
+      const op = s.session.oil_pattern?.toLowerCase() ?? "";
+      if (!op.includes(pat)) return acc;
+    }
+
+    if (filter.alleyName) {
+      if (s.session.alley_name.toLowerCase() !== filter.alleyName.toLowerCase()) return acc;
+    }
+
+    if (filter.laneNumber) {
+      const filteredGames = s.games.filter(
+        (g) => g.lane_number?.toLowerCase() === filter.laneNumber!.toLowerCase()
+      );
+      if (filteredGames.length === 0) return acc;
+      acc.push({ session: s.session, games: filteredGames });
+      return acc;
+    }
+
+    acc.push(s);
+    return acc;
+  }, []);
+}

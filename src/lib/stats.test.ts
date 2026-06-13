@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { calculateStats } from "./stats";
+import { calculateCommonLeaves, calculateStats, filterSessionsBy } from "./stats";
 import type { Frame, Game, PinNumber, SessionSummary, Shot } from "../types/bowling";
 
 const NONE: PinNumber[] = [];
@@ -95,5 +95,125 @@ describe("calculateStats", () => {
       { alley: "Alley A", games: 1, average: 150, high: 150 },
       { alley: "Alley B", games: 1, average: 120, high: 120 }
     ]);
+  });
+});
+
+describe("calculateCommonLeaves", () => {
+  it("returns empty array for no sessions", () => {
+    expect(calculateCommonLeaves([])).toEqual([]);
+  });
+
+  it("counts leaves and conversions correctly", () => {
+    // Frame leaving the 10-pin, converted
+    const f1 = frame(1, [10 as PinNumber], NONE);
+    // Frame leaving the 10-pin, not converted
+    const f2 = frame(2, [10 as PinNumber], [10 as PinNumber]);
+    // Frame leaving pins 7 and 10
+    const f3 = frame(3, [7 as PinNumber, 10 as PinNumber], NONE);
+    const sessions: SessionSummary[] = [
+      session("Lanes", [game(undefined, [f1, f2, f3])])
+    ];
+    const result = calculateCommonLeaves(sessions);
+
+    // 10-pin leave appears twice — most frequent
+    expect(result[0].pins).toEqual([10]);
+    expect(result[0].attempts).toBe(2);
+    expect(result[0].conversions).toBe(1);
+    expect(result[0].conversionPct).toBe(50);
+
+    // 7-10 split appears once
+    expect(result[1].pins).toEqual([7, 10]);
+    expect(result[1].attempts).toBe(1);
+    expect(result[1].conversions).toBe(1);
+    expect(result[1].conversionPct).toBe(100);
+  });
+
+  it("ignores strikes", () => {
+    const strikeFrames = Array.from({ length: 9 }, (_, i) => frame(i + 1, NONE));
+    const sessions: SessionSummary[] = [
+      session("Lanes", [game(undefined, strikeFrames)])
+    ];
+    expect(calculateCommonLeaves(sessions)).toEqual([]);
+  });
+
+  it("sorts by frequency descending", () => {
+    // 7-pin leave once, 10-pin leave three times
+    const f1 = frame(1, [10 as PinNumber], NONE);
+    const f2 = frame(2, [10 as PinNumber], NONE);
+    const f3 = frame(3, [10 as PinNumber], NONE);
+    const f4 = frame(4, [7 as PinNumber], NONE);
+    const sessions: SessionSummary[] = [
+      session("Lanes", [game(undefined, [f1, f2, f3, f4])])
+    ];
+    const result = calculateCommonLeaves(sessions);
+
+    expect(result[0].pins).toEqual([10]);
+    expect(result[0].attempts).toBe(3);
+    expect(result[1].pins).toEqual([7]);
+    expect(result[1].attempts).toBe(1);
+  });
+});
+
+describe("filterSessionsBy", () => {
+  const makeSession = (
+    alley: string,
+    oilPattern: string | undefined,
+    gamesData: Array<{ lane?: string }>
+  ): SessionSummary => ({
+    session: { date: "2026-06-01", alley_name: alley, oil_pattern: oilPattern },
+    games: gamesData.map((g, i) => ({
+      id: i + 1,
+      session_id: 1,
+      game_number: i + 1,
+      lane_number: g.lane,
+      frames: []
+    }))
+  });
+
+  it("returns all sessions when no filter applied", () => {
+    const sessions = [
+      makeSession("Alley A", "Sport", [{ lane: "1" }]),
+      makeSession("Alley B", "House", [{ lane: "2" }])
+    ];
+    expect(filterSessionsBy(sessions, {})).toHaveLength(2);
+  });
+
+  it("filters by alley name (case-insensitive)", () => {
+    const sessions = [
+      makeSession("Bowlero", undefined, [{}]),
+      makeSession("AMF", undefined, [{}])
+    ];
+    const result = filterSessionsBy(sessions, { alleyName: "bowlero" });
+    expect(result).toHaveLength(1);
+    expect(result[0].session.alley_name).toBe("Bowlero");
+  });
+
+  it("filters by oil pattern (contains, case-insensitive)", () => {
+    const sessions = [
+      makeSession("Lanes A", "PBA Wolf", [{}]),
+      makeSession("Lanes B", "House Shot", [{}]),
+      makeSession("Lanes C", "PBA Bear", [{}])
+    ];
+    const result = filterSessionsBy(sessions, { oilPattern: "pba" });
+    expect(result).toHaveLength(2);
+    expect(result.map((s) => s.session.alley_name)).toEqual(["Lanes A", "Lanes C"]);
+  });
+
+  it("filters games by lane number within a session", () => {
+    const sessions = [
+      makeSession("Alley", undefined, [{ lane: "5" }, { lane: "6" }, { lane: "5" }])
+    ];
+    const result = filterSessionsBy(sessions, { laneNumber: "5" });
+    expect(result).toHaveLength(1);
+    expect(result[0].games).toHaveLength(2);
+  });
+
+  it("excludes sessions where no games match the lane filter", () => {
+    const sessions = [
+      makeSession("Alley A", undefined, [{ lane: "1" }]),
+      makeSession("Alley B", undefined, [{ lane: "2" }])
+    ];
+    const result = filterSessionsBy(sessions, { laneNumber: "3" });
+    expect(result).toHaveLength(0);
   });
 });
