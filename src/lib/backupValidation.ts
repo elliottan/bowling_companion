@@ -115,6 +115,7 @@ function validateFrame(value: unknown): value is Frame {
     typeof value.is_strike === "boolean" &&
     typeof value.is_spare === "boolean" &&
     Array.isArray(value.shots) &&
+    value.shots.length >= 1 &&
     value.shots.every(validateShot)
   );
 }
