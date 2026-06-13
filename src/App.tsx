@@ -40,8 +40,7 @@ const NAV_ITEMS: ReadonlyArray<NavItem> = [
   { view: "backup", label: "Backup", icon: Archive }
 ];
 
-// Mobile tab bar: exclude Backup (rare action) to keep 6 tabs
-const MOBILE_NAV_ITEMS = NAV_ITEMS.filter((item) => item.view !== "backup");
+const MOBILE_NAV_ITEMS = NAV_ITEMS;
 
 function App() {
   const [view, setView] = useState<AppView>("dashboard");
@@ -129,7 +128,7 @@ function App() {
         {view === "backup" && <BackupRestoreView />}
       </main>
 
-      <nav className="fixed inset-x-0 bottom-0 z-10 grid grid-cols-6 border-t border-slate-200 bg-white sm:hidden">
+      <nav className="fixed inset-x-0 bottom-0 z-10 grid grid-cols-7 border-t border-slate-200 bg-white sm:hidden">
         {MOBILE_NAV_ITEMS.map((item) => (
           <TabBarButton
             key={item.view}
