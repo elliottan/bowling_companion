@@ -1,4 +1,4 @@
-import { Pencil, Trash2 } from "lucide-react";
+import { Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { PinGrid } from "../components/PinGrid";
 import {
@@ -273,7 +273,7 @@ export function SpareLinesView() {
               />
             </div>
 
-            <div className="flex gap-2 pt-1">
+            <div className="flex items-center gap-2 pt-1">
               <button
                 type="submit"
                 disabled={isSaving}
@@ -289,6 +289,21 @@ export function SpareLinesView() {
               >
                 Cancel
               </button>
+              {editingId !== null && (
+                <button
+                  type="button"
+                  onClick={async () => {
+                    await handleDelete(editingId);
+                    cancelForm();
+                  }}
+                  disabled={isSaving}
+                  aria-label={`Delete spare line for pins ${lineLabel(formPins)}`}
+                  className="ml-auto inline-flex h-9 items-center gap-1.5 rounded-md border border-slate-300 bg-white px-3 text-sm font-medium text-slate-600 hover:border-red-200 hover:bg-red-50 hover:text-red-600 disabled:opacity-50"
+                >
+                  <Trash2 size={14} aria-hidden="true" />
+                  Delete
+                </button>
+              )}
             </div>
           </form>
         </div>
@@ -299,50 +314,27 @@ export function SpareLinesView() {
       ) : spareLines.length === 0 ? (
         <p className="text-sm text-slate-500">No spare lines yet.</p>
       ) : (
-        <ul className="space-y-2">
+        <ul className="grid grid-cols-2 gap-2 sm:grid-cols-3">
           {spareLines.map((sl) => (
-            <li
-              key={sl.id}
-              className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm"
-            >
-              <div className="flex items-start gap-4">
+            <li key={sl.id}>
+              <button
+                type="button"
+                onClick={() => openEditForm(sl)}
+                aria-label={`Edit spare line for pins ${lineLabel(sl.pins)}`}
+                className="flex w-full flex-col items-center gap-1.5 rounded-lg border border-slate-200 bg-white p-3 text-center shadow-sm hover:border-felt-700"
+              >
                 <SmallPinDiagram standing={sl.pins} />
-
-                <div className="min-w-0 flex-1">
-                  <p className="font-semibold text-slate-950">
-                    Pins {lineLabel(sl.pins)}
+                {sl.line ? (
+                  <p className="text-xs font-semibold text-slate-700">
+                    S{sl.line.stance} · T{sl.line.target} · B{sl.line.breakpoint}
                   </p>
-                  {sl.line ? (
-                    <p className="mt-0.5 text-sm text-slate-600">
-                      S: {sl.line.stance} &nbsp; T: {sl.line.target} &nbsp; B: {sl.line.breakpoint}
-                    </p>
-                  ) : (
-                    <p className="mt-0.5 text-sm text-slate-400">Not set</p>
-                  )}
-                  {sl.notes && (
-                    <p className="mt-1 text-sm text-slate-600">{sl.notes}</p>
-                  )}
-                </div>
-
-                <div className="flex shrink-0 gap-1">
-                  <button
-                    type="button"
-                    onClick={() => openEditForm(sl)}
-                    aria-label={`Edit spare line for pins ${lineLabel(sl.pins)}`}
-                    className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
-                  >
-                    <Pencil size={14} aria-hidden="true" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => void handleDelete(sl.id!)}
-                    aria-label={`Delete spare line for pins ${lineLabel(sl.pins)}`}
-                    className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-slate-200 bg-white text-slate-600 hover:bg-red-50 hover:text-red-600 hover:border-red-200"
-                  >
-                    <Trash2 size={14} aria-hidden="true" />
-                  </button>
-                </div>
-              </div>
+                ) : (
+                  <p className="text-xs text-slate-400">No line</p>
+                )}
+                {sl.notes && (
+                  <p className="line-clamp-2 text-[11px] text-slate-500">{sl.notes}</p>
+                )}
+              </button>
             </li>
           ))}
         </ul>

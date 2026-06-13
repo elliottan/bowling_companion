@@ -10,7 +10,8 @@ test("exports a backup, clears the database, and restores it via import", async 
   await recordShot(page, []); // one strike -> a frame is saved
 
   // Export and capture the downloaded JSON.
-  await page.getByRole("button", { name: "Backup" }).click();
+  await page.getByRole("button", { name: "Settings" }).click();
+  await page.getByRole("button", { name: "Backup & Restore" }).click();
   const downloadPromise = page.waitForEvent("download");
   await page.getByRole("button", { name: "Export JSON" }).click();
   const download = await downloadPromise;
@@ -29,7 +30,8 @@ test("exports a backup, clears the database, and restores it via import", async 
   await expect(page.getByText("No sessions yet.")).toBeVisible();
 
   // Import the captured backup, confirm the session is restored.
-  await page.getByRole("button", { name: "Backup" }).click();
+  await page.getByRole("button", { name: "Settings" }).click();
+  await page.getByRole("button", { name: "Backup & Restore" }).click();
   await page.locator('input[type="file"]').setInputFiles(filePath);
   await expect(page.getByText(/Imported 1 sessions/)).toBeVisible();
 

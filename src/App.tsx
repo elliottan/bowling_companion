@@ -1,10 +1,9 @@
 import {
-  Archive,
   BarChart3,
-  CircleDot,
   History,
   Home,
   PlayCircle,
+  Settings,
   Target,
   type LucideIcon
 } from "lucide-react";
@@ -13,8 +12,7 @@ import { DashboardView } from "./views/DashboardView";
 import { ActiveSessionView } from "./views/ActiveSessionView";
 import { HistoryView } from "./views/HistoryView";
 import { StatsView } from "./views/StatsView";
-import { BackupRestoreView } from "./views/BackupRestoreView";
-import { ArsenalView } from "./views/ArsenalView";
+import { SettingsView } from "./views/SettingsView";
 import { SpareLinesView } from "./views/SpareLinesView";
 import {
   addGameToSession,
@@ -22,7 +20,7 @@ import {
 } from "./services/bowlingRepository";
 import type { NewSessionFormValues } from "./components/SessionForm";
 
-type AppView = "dashboard" | "active" | "history" | "stats" | "backup" | "arsenal" | "spares";
+type AppView = "dashboard" | "active" | "history" | "stats" | "spares" | "settings";
 
 type NavItem = {
   view: AppView;
@@ -36,8 +34,7 @@ const NAV_ITEMS: ReadonlyArray<NavItem> = [
   { view: "history", label: "History", icon: History },
   { view: "stats", label: "Stats", icon: BarChart3 },
   { view: "spares", label: "Spares", icon: Target },
-  { view: "arsenal", label: "Arsenal", icon: CircleDot },
-  { view: "backup", label: "Backup", icon: Archive }
+  { view: "settings", label: "Settings", icon: Settings }
 ];
 
 const MOBILE_NAV_ITEMS = NAV_ITEMS;
@@ -107,7 +104,7 @@ function App() {
         </div>
       </header>
 
-      <main className="flex-1 pb-20 sm:pb-0">
+      <main className="flex-1 pb-[calc(4rem+env(safe-area-inset-bottom))] sm:pb-0">
         {view === "dashboard" && (
           <DashboardView
             onStartSession={handleStartSession}
@@ -124,11 +121,10 @@ function App() {
         {view === "history" && <HistoryView onOpenSession={openSession} />}
         {view === "stats" && <StatsView />}
         {view === "spares" && <SpareLinesView />}
-        {view === "arsenal" && <ArsenalView />}
-        {view === "backup" && <BackupRestoreView />}
+        {view === "settings" && <SettingsView />}
       </main>
 
-      <nav className="fixed inset-x-0 bottom-0 z-10 grid grid-cols-7 border-t border-slate-200 bg-white sm:hidden">
+      <nav className="fixed inset-x-0 bottom-0 z-10 grid grid-cols-6 border-t border-slate-200 bg-white pb-[env(safe-area-inset-bottom)] sm:hidden">
         {MOBILE_NAV_ITEMS.map((item) => (
           <TabBarButton
             key={item.view}

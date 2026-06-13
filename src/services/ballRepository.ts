@@ -100,19 +100,25 @@ export async function deleteSpareLine(id: number): Promise<void> {
 const DEFAULT_SPARE_LINES: PinNumber[][] = [
   [10],
   [7],
-  [4],
   [6],
-  [2, 4, 10],
-  [3, 6, 10],
-  [5, 7],
-  [4, 6, 7, 10]
+  [4],
+  [3],
+  [2],
+  [9],
+  [8],
+  [5]
 ];
 
 export async function ensureDefaultSpareLines(): Promise<void> {
-  const count = await db.spare_lines.count();
-  if (count > 0) return;
+  // Atomic check-then-seed: a transaction serializes concurrent callers
+  // (e.g. React StrictMode double-invoking the mount effect) so the table
+  // is seeded exactly once instead of duplicated.
+  await db.transaction("rw", db.spare_lines, async () => {
+    const count = await db.spare_lines.count();
+    if (count > 0) return;
 
-  await db.spare_lines.bulkAdd(
-    DEFAULT_SPARE_LINES.map((pins) => ({ pins: sortPins(pins) }))
-  );
+    await db.spare_lines.bulkAdd(
+      DEFAULT_SPARE_LINES.map((pins) => ({ pins: sortPins(pins) }))
+    );
+  });
 }

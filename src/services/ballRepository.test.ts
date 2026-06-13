@@ -141,17 +141,17 @@ describe("ballRepository", () => {
   // -------------------------------------------------------------------------
 
   describe("ensureDefaultSpareLines", () => {
-    it("seeds 8 default spare lines when table is empty", async () => {
+    it("seeds 9 default spare lines when table is empty", async () => {
       await ensureDefaultSpareLines();
       const lines = await getSpareLinesAll();
-      expect(lines).toHaveLength(8);
+      expect(lines).toHaveLength(9);
     });
 
-    it("is idempotent: calling twice still results in 8 lines", async () => {
+    it("is idempotent: calling twice still results in 9 lines", async () => {
       await ensureDefaultSpareLines();
       await ensureDefaultSpareLines();
       const lines = await getSpareLinesAll();
-      expect(lines).toHaveLength(8);
+      expect(lines).toHaveLength(9);
     });
 
     it("does not overwrite when lines already exist", async () => {
