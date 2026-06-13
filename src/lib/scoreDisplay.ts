@@ -7,28 +7,28 @@ export function getFrameShotSymbols(frame: Frame): string[] {
 
   if (isStrike(frame)) return ["", "X"];
 
-  const shotOne = knockedDownCount(frame.shot_1_pins_standing);
+  const shotOne = knockedDownCount(frame.shots[0].pins_standing);
 
-  if (!frame.shot_2_pins_standing) return [formatPinfall(shotOne), ""];
+  if (!frame.shots[1]) return [formatPinfall(shotOne), ""];
   if (isSpare(frame)) return [formatPinfall(shotOne), "/"];
 
   const shotTwo = pinsClearedBetween(
-    frame.shot_1_pins_standing,
-    frame.shot_2_pins_standing
+    frame.shots[0].pins_standing,
+    frame.shots[1].pins_standing
   );
 
   return [formatPinfall(shotOne), formatPinfall(shotTwo)];
 }
 
 function getTenthFrameSymbols(frame: Frame): string[] {
-  const shotOne = knockedDownCount(frame.shot_1_pins_standing);
+  const shotOne = knockedDownCount(frame.shots[0].pins_standing);
   const symbols = [shotOne === 10 ? "X" : formatPinfall(shotOne)];
 
-  if (!frame.shot_2_pins_standing) return [...symbols, "", ""];
+  if (!frame.shots[1]) return [...symbols, "", ""];
 
   const shotTwo = tenthFrameFollowUpPinfall(
-    frame.shot_1_pins_standing,
-    frame.shot_2_pins_standing
+    frame.shots[0].pins_standing,
+    frame.shots[1].pins_standing
   );
 
   symbols.push(
@@ -39,11 +39,11 @@ function getTenthFrameSymbols(frame: Frame): string[] {
       : formatPinfall(shotTwo)
   );
 
-  if (!frame.shot_3_pins_standing) return [...symbols, ""];
+  if (!frame.shots[2]) return [...symbols, ""];
 
   const shotThree = tenthFrameFollowUpPinfall(
-    frame.shot_2_pins_standing,
-    frame.shot_3_pins_standing
+    frame.shots[1].pins_standing,
+    frame.shots[2].pins_standing
   );
 
   symbols.push(

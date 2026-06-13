@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { calculateGameScore, isSpare, isStrike } from "./scoring";
-import type { Frame, PinNumber } from "../types/bowling";
+import type { Frame, PinNumber, Shot } from "../types/bowling";
 
 const noPinsStanding: PinNumber[] = [];
 const allPinsStanding: PinNumber[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
@@ -11,12 +11,13 @@ function frame(
   shot2Standing?: PinNumber[],
   shot3Standing?: PinNumber[]
 ): Frame {
+  const shots: Shot[] = [{ pins_standing: shot1Standing }];
+  if (shot2Standing !== undefined) shots.push({ pins_standing: shot2Standing });
+  if (shot3Standing !== undefined) shots.push({ pins_standing: shot3Standing });
   return {
     game_id: 1,
     frame_number: frameNumber,
-    shot_1_pins_standing: shot1Standing,
-    shot_2_pins_standing: shot2Standing,
-    shot_3_pins_standing: shot3Standing,
+    shots,
     is_strike: shot1Standing.length === 0,
     is_spare: shot1Standing.length !== 0 && shot2Standing?.length === 0
   };

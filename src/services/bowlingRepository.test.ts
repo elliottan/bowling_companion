@@ -30,7 +30,7 @@ describe("bowlingRepository", () => {
 
     await saveFrame(gameId, {
       frame_number: 1,
-      shot_1_pins_standing: [],
+      shots: [{ pins_standing: [] }],
       is_strike: true,
       is_spare: false
     });

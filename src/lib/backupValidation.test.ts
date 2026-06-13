@@ -14,7 +14,7 @@ const validBackup: BowlingBackup = {
         id: 1,
         game_id: 1,
         frame_number: 1,
-        shot_1_pins_standing: [],
+        shots: [{ pins_standing: [] }],
         is_strike: true,
         is_spare: false
       }
@@ -42,7 +42,7 @@ describe("validateBackup", () => {
         frames: [
           {
             ...validBackup.tables.frames[0],
-            shot_1_pins_standing: [1, 1, 12]
+            shots: [{ pins_standing: [1, 1, 12] }]
           }
         ]
       }

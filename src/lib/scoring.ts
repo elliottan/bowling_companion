@@ -21,16 +21,14 @@ export interface GameScore {
   frames: FrameScore[];
 }
 
-export function isStrike(frame: Pick<Frame, "shot_1_pins_standing">): boolean {
-  return knockedDownCount(frame.shot_1_pins_standing) === 10;
+export function isStrike(frame: Pick<Frame, "shots">): boolean {
+  return knockedDownCount(frame.shots[0]?.pins_standing ?? ALL_PINS) === 10;
 }
 
-export function isSpare(
-  frame: Pick<Frame, "shot_1_pins_standing" | "shot_2_pins_standing">
-): boolean {
+export function isSpare(frame: Pick<Frame, "shots">): boolean {
   if (isStrike(frame)) return false;
-  if (!frame.shot_2_pins_standing) return false;
-  return knockedDownCount(frame.shot_2_pins_standing) === 10;
+  if (!frame.shots[1]) return false;
+  return knockedDownCount(frame.shots[1].pins_standing) === 10;
 }
 
 export function calculateGameScore(frames: Frame[]): GameScore {
@@ -110,12 +108,12 @@ function flattenShots(frames: Frame[]): number[] {
   return frames.flatMap((frame) => {
     if (frame.frame_number === 10) {
       return [
-        knockedDownCount(frame.shot_1_pins_standing),
-        frame.shot_2_pins_standing
-          ? tenthFrameFollowUpPinfall(frame.shot_1_pins_standing, frame.shot_2_pins_standing)
+        knockedDownCount(frame.shots[0].pins_standing),
+        frame.shots[1]
+          ? tenthFrameFollowUpPinfall(frame.shots[0].pins_standing, frame.shots[1].pins_standing)
           : undefined,
-        frame.shot_3_pins_standing
-          ? tenthFrameFollowUpPinfall(frame.shot_2_pins_standing ?? ALL_PINS, frame.shot_3_pins_standing)
+        frame.shots[2]
+          ? tenthFrameFollowUpPinfall(frame.shots[1]?.pins_standing ?? ALL_PINS, frame.shots[2].pins_standing)
           : undefined
       ].filter(isNumber);
     }
@@ -123,32 +121,32 @@ function flattenShots(frames: Frame[]): number[] {
     if (isStrike(frame)) return [10];
 
     return [
-      knockedDownCount(frame.shot_1_pins_standing),
-      frame.shot_2_pins_standing
-        ? pinsClearedBetween(frame.shot_1_pins_standing, frame.shot_2_pins_standing)
+      knockedDownCount(frame.shots[0].pins_standing),
+      frame.shots[1]
+        ? pinsClearedBetween(frame.shots[0].pins_standing, frame.shots[1].pins_standing)
         : undefined
     ].filter(isNumber);
   });
 }
 
 function calculateTenthFrameScore(frame: Frame): number | null {
-  const shotOne = knockedDownCount(frame.shot_1_pins_standing);
+  const shotOne = knockedDownCount(frame.shots[0].pins_standing);
 
-  if (!frame.shot_2_pins_standing) return null;
+  if (!frame.shots[1]) return null;
 
   const shotTwo = tenthFrameFollowUpPinfall(
-    frame.shot_1_pins_standing,
-    frame.shot_2_pins_standing
+    frame.shots[0].pins_standing,
+    frame.shots[1].pins_standing
   );
   const needsThirdShot = shotOne === 10 || shotOne + shotTwo === 10;
 
   if (!needsThirdShot) return shotOne + shotTwo;
-  if (!frame.shot_3_pins_standing) return null;
+  if (!frame.shots[2]) return null;
 
   return (
     shotOne +
     shotTwo +
-    tenthFrameFollowUpPinfall(frame.shot_2_pins_standing, frame.shot_3_pins_standing)
+    tenthFrameFollowUpPinfall(frame.shots[1].pins_standing, frame.shots[2].pins_standing)
   );
 }
 

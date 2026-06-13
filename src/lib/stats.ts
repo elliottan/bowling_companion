@@ -1,5 +1,5 @@
 import { isSpare, isStrike } from "./scoring";
-import type { Frame, SessionSummary } from "../types/bowling";
+import type { Frame, PinNumber, SessionSummary } from "../types/bowling";
 
 export interface AlleyStats {
   alley: string;
@@ -93,7 +93,7 @@ function tallyFrame(frame: Frame): FrameTally {
   const strike = isStrike(frame);
   const t: FrameTally = { strikeOpps: 1, strikes: strike ? 1 : 0, spareOpps: 0, spares: 0 };
 
-  if (!strike && frame.shot_2_pins_standing) {
+  if (!strike && frame.shots[1]) {
     t.spareOpps = 1;
     if (isSpare(frame)) t.spares = 1;
   }
@@ -102,50 +102,52 @@ function tallyFrame(frame: Frame): FrameTally {
 
 function tallyTenthFrame(frame: Frame): FrameTally {
   const t: FrameTally = { strikeOpps: 0, strikes: 0, spareOpps: 0, spares: 0 };
-  const shot1Strike = clears(frame.shot_1_pins_standing);
+  const shot1Standing = frame.shots[0].pins_standing;
+  const shot1Strike = clears(shot1Standing);
 
   // Ball 1 is always a strike opportunity once thrown.
   t.strikeOpps += 1;
   if (shot1Strike) t.strikes += 1;
 
-  if (!frame.shot_2_pins_standing) return t;
+  if (!frame.shots[1]) return t;
+
+  const shot2Standing = frame.shots[1].pins_standing;
 
   if (shot1Strike) {
     // Fresh rack on ball 2 -> another strike opportunity.
     t.strikeOpps += 1;
-    if (clears(frame.shot_2_pins_standing)) t.strikes += 1;
+    if (clears(shot2Standing)) t.strikes += 1;
   } else {
     // Ball 2 completes a spare opportunity.
     t.spareOpps += 1;
-    if (clears2(frame.shot_1_pins_standing, frame.shot_2_pins_standing)) t.spares += 1;
+    if (clears2(shot1Standing, shot2Standing)) t.spares += 1;
   }
 
-  if (!frame.shot_3_pins_standing) return t;
+  if (!frame.shots[2]) return t;
+
+  const shot3Standing = frame.shots[2].pins_standing;
 
   // Ball 3 exists only after a strike or spare; it lands on a fresh rack iff
   // ball 2 cleared the lane. Treat a fresh-rack ball 3 as a strike opportunity.
   const ball2FreshRack = shot1Strike;
   const ball2Cleared = ball2FreshRack
-    ? clears(frame.shot_2_pins_standing)
-    : clears2(frame.shot_1_pins_standing, frame.shot_2_pins_standing);
+    ? clears(shot2Standing)
+    : clears2(shot1Standing, shot2Standing);
 
   if (ball2Cleared) {
     t.strikeOpps += 1;
-    if (clears(frame.shot_3_pins_standing)) t.strikes += 1;
+    if (clears(shot3Standing)) t.strikes += 1;
   }
   return t;
 }
 
 /** A ball that leaves no pins standing knocked them all down. */
-function clears(standing?: Frame["shot_1_pins_standing"]): boolean {
+function clears(standing?: PinNumber[]): boolean {
   return Array.isArray(standing) && standing.length === 0;
 }
 
 /** Second ball cleared whatever the first ball left. */
-function clears2(
-  prevStanding: Frame["shot_1_pins_standing"],
-  currStanding?: Frame["shot_2_pins_standing"]
-): boolean {
+function clears2(prevStanding: PinNumber[], currStanding?: PinNumber[]): boolean {
   return Array.isArray(currStanding) && currStanding.length === 0 && prevStanding.length > 0;
 }
 

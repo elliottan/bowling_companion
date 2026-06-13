@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { getFrameShotSymbols } from "./scoreDisplay";
-import type { Frame, PinNumber } from "../types/bowling";
+import type { Frame, PinNumber, Shot } from "../types/bowling";
 
 function frame(
   frameNumber: number,
@@ -8,12 +8,13 @@ function frame(
   shot2?: PinNumber[],
   shot3?: PinNumber[]
 ): Frame {
+  const shots: Shot[] = [{ pins_standing: shot1 }];
+  if (shot2 !== undefined) shots.push({ pins_standing: shot2 });
+  if (shot3 !== undefined) shots.push({ pins_standing: shot3 });
   return {
     game_id: 1,
     frame_number: frameNumber,
-    shot_1_pins_standing: shot1,
-    shot_2_pins_standing: shot2,
-    shot_3_pins_standing: shot3,
+    shots,
     is_strike: shot1.length === 0,
     is_spare: shot1.length > 0 && shot2?.length === 0
   };

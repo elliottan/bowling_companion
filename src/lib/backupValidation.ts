@@ -112,18 +112,16 @@ function validateFrame(value: unknown): value is Frame {
     typeof value.frame_number === "number" &&
     value.frame_number >= 1 &&
     value.frame_number <= 10 &&
-    validatePins(value.shot_1_pins_standing) &&
-    validateOptionalPins(value.shot_2_pins_standing) &&
-    validateOptionalPins(value.shot_3_pins_standing) &&
     typeof value.is_strike === "boolean" &&
     typeof value.is_spare === "boolean" &&
-    isOptionalString(value.shot_1_notes) &&
-    isOptionalString(value.shot_2_notes)
+    Array.isArray(value.shots) &&
+    value.shots.every(validateShot)
   );
 }
 
-function validateOptionalPins(value: unknown) {
-  return value === undefined || validatePins(value);
+function validateShot(value: unknown): boolean {
+  if (!isRecord(value)) return false;
+  return validatePins(value.pins_standing);
 }
 
 function validatePins(value: unknown): value is PinNumber[] {

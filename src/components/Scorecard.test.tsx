@@ -9,8 +9,7 @@ function openFrame(n: number): Frame {
   return {
     game_id: 1,
     frame_number: n,
-    shot_1_pins_standing: ALL,
-    shot_2_pins_standing: ALL,
+    shots: [{ pins_standing: ALL }, { pins_standing: ALL }],
     is_strike: false,
     is_spare: false
   };

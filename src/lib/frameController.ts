@@ -151,20 +151,16 @@ function createDraftFrame(frameNumber: number): Frame {
   return {
     game_id: 0,
     frame_number: frameNumber,
-    shot_1_pins_standing: ALL_PINS,
+    shots: [],
     is_strike: false,
     is_spare: false
   };
 }
 
 function applyShotToFrame(frame: Frame, shot: ActiveShot, pinsStanding: PinNumber[]): Frame {
-  const updated: Frame = {
-    ...frame,
-    ...(shot === 1 ? { shot_1_pins_standing: pinsStanding } : {}),
-    ...(shot === 2 ? { shot_2_pins_standing: pinsStanding } : {}),
-    ...(shot === 3 ? { shot_3_pins_standing: pinsStanding } : {})
-  };
-  return finalizeFrame(updated);
+  const shots = [...frame.shots];
+  shots[shot - 1] = { ...shots[shot - 1], pins_standing: pinsStanding };
+  return finalizeFrame({ ...frame, shots });
 }
 
 function finalizeFrame(frame: Frame): Frame {
@@ -261,32 +257,32 @@ export function hydrateFrameController(frames: Frame[]): FrameControllerState {
   }
 
   // 10th frame logic
-  const shotOne = knockedDownCount(last.shot_1_pins_standing);
+  const shotOne = knockedDownCount(last.shots[0]?.pins_standing ?? ALL_PINS);
 
-  if (!last.shot_2_pins_standing) {
+  if (!last.shots[1]) {
     return {
       ...createInitialFrameControllerState(),
       frames: ordered,
       currentFrameNumber: 10,
       currentShot: 2,
-      availablePins: shotOne === 10 ? ALL_PINS : last.shot_1_pins_standing,
+      availablePins: shotOne === 10 ? ALL_PINS : last.shots[0].pins_standing,
       standingPins: []
     };
   }
 
-  const shotTwo = last.shot_1_pins_standing.length === 0
-    ? knockedDownCount(last.shot_2_pins_standing)
+  const shotTwo = last.shots[0].pins_standing.length === 0
+    ? knockedDownCount(last.shots[1].pins_standing)
     : (() => {
-        const prev = new Set(last.shot_1_pins_standing);
-        const curr = new Set(last.shot_2_pins_standing);
+        const prev = new Set(last.shots[0].pins_standing);
+        const curr = new Set(last.shots[1].pins_standing);
         return [...prev].filter((p) => !curr.has(p)).length;
       })();
   const needsThird = shotOne === 10 || shotOne + shotTwo === 10;
 
-  if (needsThird && !last.shot_3_pins_standing) {
-    const racked = last.shot_2_pins_standing.length === 0
+  if (needsThird && !last.shots[2]) {
+    const racked = last.shots[1].pins_standing.length === 0
       ? ALL_PINS
-      : last.shot_2_pins_standing;
+      : last.shots[1].pins_standing;
     return {
       ...createInitialFrameControllerState(),
       frames: ordered,

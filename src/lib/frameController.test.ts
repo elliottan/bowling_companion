@@ -82,7 +82,7 @@ describe("frameController", () => {
     const result = submitShot(state, [10]);
 
     expect(result.state.isComplete).toBe(true);
-    expect(result.savedFrame?.shot_3_pins_standing).toBeUndefined();
+    expect(result.savedFrame?.shots[2]?.pins_standing).toBeUndefined();
   });
 
   it("saves the 10th-frame shot 3 after a strike chain", () => {
@@ -98,7 +98,7 @@ describe("frameController", () => {
     const result = submitShot(state, []); // shot 3 strike
 
     expect(result.state.isComplete).toBe(true);
-    expect(result.savedFrame?.shot_3_pins_standing).toEqual([]);
+    expect(result.savedFrame?.shots[2]?.pins_standing).toEqual([]);
   });
 
   it("hydrates a partially-filled 10th frame requiring shot 3", () => {
@@ -106,16 +106,14 @@ describe("frameController", () => {
     const ninthOpenFrames: Frame[] = Array.from({ length: 9 }, (_, idx) => ({
       game_id: 1,
       frame_number: idx + 1,
-      shot_1_pins_standing: ALL,
-      shot_2_pins_standing: ALL,
+      shots: [{ pins_standing: ALL }, { pins_standing: ALL }],
       is_strike: false,
       is_spare: false
     }));
     const tenthPartial: Frame = {
       game_id: 1,
       frame_number: 10,
-      shot_1_pins_standing: [],
-      shot_2_pins_standing: [],
+      shots: [{ pins_standing: [] }, { pins_standing: [] }],
       is_strike: true,
       is_spare: false
     };
@@ -132,16 +130,14 @@ describe("frameController", () => {
       ...Array.from<unknown, Frame>({ length: 9 }, (_, idx) => ({
         game_id: 1,
         frame_number: idx + 1,
-        shot_1_pins_standing: ALL,
-        shot_2_pins_standing: ALL,
+        shots: [{ pins_standing: ALL }, { pins_standing: ALL }],
         is_strike: false,
         is_spare: false
       })),
       {
         game_id: 1,
         frame_number: 10,
-        shot_1_pins_standing: [10] as PinNumber[],
-        shot_2_pins_standing: [10] as PinNumber[],
+        shots: [{ pins_standing: [10] as PinNumber[] }, { pins_standing: [10] as PinNumber[] }],
         is_strike: false,
         is_spare: false
       }
