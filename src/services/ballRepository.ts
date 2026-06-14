@@ -70,7 +70,21 @@ function pinsEqual(a: PinNumber[], b: PinNumber[]): boolean {
 
 export async function getSpareLinesAll(): Promise<SpareLine[]> {
   const all = await db.spare_lines.toArray();
-  return all.sort((a, b) => (a.pins[0] ?? 0) - (b.pins[0] ?? 0));
+  // Custom order via sort_order; rows without it (legacy) fall back to pin order.
+  return all.sort((a, b) => {
+    const ao = a.sort_order ?? Number.MAX_SAFE_INTEGER;
+    const bo = b.sort_order ?? Number.MAX_SAFE_INTEGER;
+    if (ao !== bo) return ao - bo;
+    return (a.pins[0] ?? 0) - (b.pins[0] ?? 0);
+  });
+}
+
+export async function reorderSpareLines(orderedIds: number[]): Promise<void> {
+  await db.transaction("rw", db.spare_lines, async () => {
+    await Promise.all(
+      orderedIds.map((id, index) => db.spare_lines.update(id, { sort_order: index }))
+    );
+  });
 }
 
 export async function getSpareLineByPins(pins: PinNumber[]): Promise<SpareLine | undefined> {
@@ -89,7 +103,10 @@ export async function upsertSpareLine(
   if (existing?.id !== undefined) {
     await db.spare_lines.update(existing.id, { pins: sorted, line, notes });
   } else {
-    await db.spare_lines.add({ pins: sorted, line, notes });
+    // New leaves go to the end of the custom order.
+    const all = await db.spare_lines.toArray();
+    const maxOrder = all.reduce((m, sl) => Math.max(m, sl.sort_order ?? -1), -1);
+    await db.spare_lines.add({ pins: sorted, line, notes, sort_order: maxOrder + 1 });
   }
 }
 
@@ -118,7 +135,7 @@ export async function ensureDefaultSpareLines(): Promise<void> {
     if (count > 0) return;
 
     await db.spare_lines.bulkAdd(
-      DEFAULT_SPARE_LINES.map((pins) => ({ pins: sortPins(pins) }))
+      DEFAULT_SPARE_LINES.map((pins, index) => ({ pins: sortPins(pins), sort_order: index }))
     );
   });
 }

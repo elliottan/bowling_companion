@@ -22,3 +22,17 @@ textarea,
 select {
   font: inherit;
 }
+
+/*
+ * iOS Safari auto-zooms when focusing any form control whose font-size is
+ * under 16px. Our compact inputs use text-sm/text-xs, which triggered that
+ * distracting zoom on every text entry. Force a 16px minimum on touch-sized
+ * viewports so focus never zooms; desktop keeps the smaller utility sizes.
+ */
+@media (max-width: 640px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}

@@ -38,6 +38,7 @@ export interface SpareLine {
   pins: PinNumber[];
   line?: LineSpec;
   notes?: string;
+  sort_order?: number;
 }
 
 export interface Session {

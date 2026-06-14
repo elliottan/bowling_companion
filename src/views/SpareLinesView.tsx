@@ -1,10 +1,26 @@
-import { Trash2 } from "lucide-react";
+import { GripVertical, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
+import {
+  DndContext,
+  PointerSensor,
+  closestCenter,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  arrayMove,
+  rectSortingStrategy,
+  useSortable,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import { PinGrid } from "../components/PinGrid";
 import {
   deleteSpareLine,
   ensureDefaultSpareLines,
   getSpareLinesAll,
+  reorderSpareLines,
   upsertSpareLine,
 } from "../services/ballRepository";
 import type { LineSpec, PinNumber, SpareLine } from "../types/bowling";
@@ -34,6 +50,58 @@ function SmallPinDiagram({ standing }: { standing: PinNumber[] }) {
   );
 }
 
+interface SortableSpareCardProps {
+  sl: SpareLine;
+  onEdit: (sl: SpareLine) => void;
+}
+
+function SortableSpareCard({ sl, onEdit }: SortableSpareCardProps) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
+    useSortable({ id: sl.id! });
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    zIndex: isDragging ? 10 : undefined,
+  };
+  return (
+    <li ref={setNodeRef} style={style}>
+      <div
+        className={`relative flex w-full select-none flex-col items-center gap-1.5 rounded-lg border bg-white p-3 text-center shadow-sm ${
+          isDragging ? "border-felt-700 opacity-90 shadow-md" : "border-slate-200"
+        }`}
+      >
+        <button
+          type="button"
+          {...attributes}
+          {...listeners}
+          aria-label={`Drag to reorder spare for pins ${sl.pins.join(", ")}`}
+          className="absolute right-1 top-1 touch-none rounded p-1 text-slate-300 hover:text-slate-500"
+        >
+          <GripVertical size={14} aria-hidden="true" />
+        </button>
+        <button
+          type="button"
+          onClick={() => onEdit(sl)}
+          aria-label={`Edit spare line for pins ${sl.pins.join(", ")}`}
+          className="flex w-full flex-col items-center gap-1.5 active:opacity-70"
+        >
+          <SmallPinDiagram standing={sl.pins} />
+          {sl.line ? (
+            <span className="block text-xs font-semibold text-slate-700">
+              S{sl.line.stance} · T{sl.line.target} · B{sl.line.breakpoint}
+            </span>
+          ) : (
+            <span className="block text-xs text-slate-400">No line</span>
+          )}
+          {sl.notes && (
+            <span className="line-clamp-2 block text-[11px] text-slate-500">{sl.notes}</span>
+          )}
+        </button>
+      </div>
+    </li>
+  );
+}
+
 const EMPTY_LINE: LineSpec = { stance: 0, target: 0, breakpoint: 0 };
 
 const ALL_PINS: PinNumber[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
@@ -53,6 +121,29 @@ export function SpareLinesView() {
   const [formNotes, setFormNotes] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [formError, setFormError] = useState("");
+
+  // Press-and-hold the grip handle to start a drag; a quick tap still edits.
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { delay: 180, tolerance: 6 } })
+  );
+
+  async function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    const oldIndex = spareLines.findIndex((s) => s.id === active.id);
+    const newIndex = spareLines.findIndex((s) => s.id === over.id);
+    if (oldIndex < 0 || newIndex < 0) return;
+
+    const next = arrayMove(spareLines, oldIndex, newIndex);
+    setSpareLines(next); // optimistic
+    try {
+      await reorderSpareLines(next.map((s) => s.id!));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to save new order.");
+      await load();
+    }
+  }
 
   async function load() {
     setIsLoading(true);
@@ -317,30 +408,22 @@ export function SpareLinesView() {
       ) : spareLines.length === 0 ? (
         <p className="text-sm text-slate-500">No spare lines yet.</p>
       ) : (
-        <ul className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-          {spareLines.map((sl) => (
-            <li key={sl.id}>
-              <button
-                type="button"
-                onClick={() => openEditForm(sl)}
-                aria-label={`Edit spare line for pins ${lineLabel(sl.pins)}`}
-                className="flex w-full flex-col items-center gap-1.5 rounded-lg border border-slate-200 bg-white p-3 text-center shadow-sm transition-colors active:bg-slate-50"
-              >
-                <SmallPinDiagram standing={sl.pins} />
-                {sl.line ? (
-                  <p className="text-xs font-semibold text-slate-700">
-                    S{sl.line.stance} · T{sl.line.target} · B{sl.line.breakpoint}
-                  </p>
-                ) : (
-                  <p className="text-xs text-slate-400">No line</p>
-                )}
-                {sl.notes && (
-                  <p className="line-clamp-2 text-[11px] text-slate-500">{sl.notes}</p>
-                )}
-              </button>
-            </li>
-          ))}
-        </ul>
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={(e) => void handleDragEnd(e)}
+        >
+          <SortableContext
+            items={spareLines.map((s) => s.id!)}
+            strategy={rectSortingStrategy}
+          >
+            <ul className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+              {spareLines.map((sl) => (
+                <SortableSpareCard key={sl.id} sl={sl} onEdit={openEditForm} />
+              ))}
+            </ul>
+          </SortableContext>
+        </DndContext>
       )}
     </section>
   );

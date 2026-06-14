@@ -11,6 +11,7 @@ import {
   getOilPatterns,
   getSpareLinesAll,
   getSpareLineByPins,
+  reorderSpareLines,
   updateBall,
   upsertSpareLine
 } from "./ballRepository";
@@ -192,13 +193,27 @@ describe("ballRepository", () => {
   });
 
   describe("getSpareLinesAll", () => {
-    it("returns spare lines sorted by first pin ascending", async () => {
+    it("returns spare lines in custom sort_order (new adds appended)", async () => {
       await upsertSpareLine([10]);
       await upsertSpareLine([4]);
       await upsertSpareLine([7]);
 
       const lines = await getSpareLinesAll();
-      expect(lines.map((l) => l.pins[0])).toEqual([4, 7, 10]);
+      expect(lines.map((l) => l.pins[0])).toEqual([10, 4, 7]);
+    });
+
+    it("reflects a reorder", async () => {
+      await upsertSpareLine([10]);
+      await upsertSpareLine([4]);
+      await upsertSpareLine([7]);
+      const before = await getSpareLinesAll();
+      const ids = before.map((l) => l.id!);
+
+      // Move the last item to the front.
+      await reorderSpareLines([ids[2], ids[0], ids[1]]);
+
+      const after = await getSpareLinesAll();
+      expect(after.map((l) => l.pins[0])).toEqual([7, 10, 4]);
     });
   });
 
