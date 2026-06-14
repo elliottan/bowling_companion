@@ -19,9 +19,10 @@ interface LineInputProps {
   label: string;
   value: LineSpec | undefined;
   onChange: (value: LineSpec | undefined) => void;
+  readOnly?: boolean;
 }
 
-function LineInput({ label, value, onChange }: LineInputProps) {
+function LineInput({ label, value, onChange, readOnly = false }: LineInputProps) {
   function update(field: keyof LineSpec, raw: string) {
     const n = parseInt(raw, 10);
     const v = isNaN(n) ? undefined : Math.max(1, Math.min(39, n));
@@ -47,8 +48,10 @@ function LineInput({ label, value, onChange }: LineInputProps) {
             max={39}
             value={value?.[field] ?? ""}
             onChange={(e) => update(field, e.target.value)}
+            readOnly={readOnly}
+            disabled={readOnly}
             placeholder={["S", "T", "B"][i]}
-            className="h-9 w-full min-w-0 rounded-md border border-slate-300 px-1 text-center text-xs focus:border-felt-700 focus:outline-none"
+            className="h-9 w-full min-w-0 rounded-md border border-slate-300 px-1 text-center text-xs focus:border-felt-700 focus:outline-none disabled:bg-slate-50 disabled:text-slate-500"
             title={["Stance board", "Target board (arrows)", "Breakpoint board"][i]}
           />
         ))}
@@ -69,6 +72,7 @@ interface ShotDetailBarProps {
   onActualLineChange: (line: LineSpec | undefined) => void;
   notes: string;
   onNotesChange: (notes: string) => void;
+  readOnly?: boolean;
 }
 
 function ShotDetailBar({
@@ -82,14 +86,18 @@ function ShotDetailBar({
   actualLine,
   onActualLineChange,
   notes,
-  onNotesChange
+  onNotesChange,
+  readOnly = false
 }: ShotDetailBarProps) {
+  const ballName = balls.find((b) => b.id === selectedBallId)?.name;
   return (
     <div className="flex flex-col gap-2.5 rounded-lg border border-slate-200 bg-white p-2.5">
       {/* Ball — always shown */}
       <div>
         <span className="mb-1 block text-[10px] font-semibold uppercase tracking-wide text-slate-400">Ball</span>
-        {balls.length > 0 ? (
+        {readOnly ? (
+          <p className="text-sm text-slate-700">{ballName ?? "—"}</p>
+        ) : balls.length > 0 ? (
           <select
             value={selectedBallId ?? ""}
             onChange={(e) => onBallChange(e.target.value ? Number(e.target.value) : undefined)}
@@ -107,105 +115,38 @@ function ShotDetailBar({
         )}
       </div>
 
-      <LineInput label="Intended" value={intendedLine} onChange={onIntendedLineChange} />
+      <LineInput label="Intended" value={intendedLine} onChange={onIntendedLineChange} readOnly={readOnly} />
 
-      <button
-        type="button"
-        onClick={onToggleActual}
-        className={`h-8 rounded-md border px-2 text-xs font-medium transition-colors ${
-          showActual
-            ? "border-felt-700 bg-felt-700 text-white"
-            : "border-slate-300 bg-white text-slate-600 hover:bg-slate-50"
-        }`}
-      >
-        {showActual ? "Hide actual" : "+ Actual line"}
-      </button>
+      {!readOnly && (
+        <button
+          type="button"
+          onClick={onToggleActual}
+          className={`h-8 rounded-md border px-2 text-xs font-medium transition-colors ${
+            showActual
+              ? "border-felt-700 bg-felt-700 text-white"
+              : "border-slate-300 bg-white text-slate-600 hover:bg-slate-50"
+          }`}
+        >
+          {showActual ? "Hide actual" : "+ Actual line"}
+        </button>
+      )}
 
-      {showActual && <LineInput label="Actual" value={actualLine} onChange={onActualLineChange} />}
+      {showActual && <LineInput label="Actual" value={actualLine} onChange={onActualLineChange} readOnly={readOnly} />}
 
       <div>
         <span className="mb-1 block text-[10px] font-semibold uppercase tracking-wide text-slate-400">Notes</span>
-        <textarea
-          value={notes}
-          onChange={(e) => onNotesChange(e.target.value)}
-          rows={2}
-          placeholder="This shot…"
-          className="w-full rounded-md border border-slate-300 px-2 py-1.5 text-xs focus:border-felt-700 focus:outline-none"
-        />
+        {readOnly ? (
+          <p className="whitespace-pre-wrap break-words text-sm text-slate-700">{notes.trim() || "—"}</p>
+        ) : (
+          <textarea
+            value={notes}
+            onChange={(e) => onNotesChange(e.target.value)}
+            rows={2}
+            placeholder="This shot…"
+            className="w-full rounded-md border border-slate-300 px-2 py-1.5 text-xs focus:border-felt-700 focus:outline-none"
+          />
+        )}
       </div>
-    </div>
-  );
-}
-
-interface ShotDetailModalProps {
-  frame: Frame;
-  shotIndex: number;
-  balls: Ball[];
-  lane?: string;
-  onEdit: () => void;
-  onClose: () => void;
-}
-
-function lineText(line: LineSpec | undefined): string {
-  return line ? `S${line.stance} · T${line.target} · B${line.breakpoint}` : "—";
-}
-
-function ShotDetailModal({ frame, shotIndex, balls, lane, onEdit, onClose }: ShotDetailModalProps) {
-  const shot = frame.shots[shotIndex];
-  if (!shot) return null;
-  const ballName = balls.find((b) => b.id === shot.ball_id)?.name ?? "—";
-
-  return (
-    <div
-      className="fixed inset-0 z-20 flex items-end justify-center bg-black/40 p-3 sm:items-center"
-      onClick={onClose}
-    >
-      <div
-        className="max-h-[85vh] w-full max-w-md overflow-y-auto rounded-lg border border-slate-200 bg-white p-4 shadow-xl"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <h2 className="mb-3 text-base font-semibold text-slate-950">
-          Frame {frame.frame_number} · Shot {shotIndex + 1}
-          {lane ? <span className="font-normal text-slate-500"> · Lane {lane}</span> : null}
-        </h2>
-
-        <div className="grid grid-cols-[auto_1fr] items-start gap-3">
-          <PinGrid standingPins={shot.pins_standing} onChange={() => {}} readOnly size="sm" />
-          <dl className="space-y-1.5 text-sm">
-            <Row label="Ball" value={ballName} />
-            <Row label="Intended" value={lineText(shot.intended)} />
-            <Row label="Actual" value={lineText(shot.actual)} />
-            <Row label="Notes" value={shot.notes?.trim() || "—"} />
-          </dl>
-        </div>
-
-        <div className="mt-4 flex gap-2">
-          <button
-            type="button"
-            onClick={onEdit}
-            className="inline-flex h-10 items-center gap-2 rounded-lg border border-felt-700 bg-felt-700 px-4 text-sm font-semibold text-white hover:bg-felt-600"
-          >
-            <Pencil size={14} aria-hidden="true" />
-            Edit frame
-          </button>
-          <button
-            type="button"
-            onClick={onClose}
-            className="inline-flex h-10 items-center rounded-lg border border-slate-300 bg-white px-4 text-sm font-medium text-slate-700 hover:bg-slate-50"
-          >
-            Close
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function Row({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex gap-2">
-      <dt className="w-16 shrink-0 text-[10px] font-semibold uppercase tracking-wide text-slate-400">{label}</dt>
-      <dd className="min-w-0 flex-1 break-words text-slate-700">{value}</dd>
     </div>
   );
 }
@@ -356,6 +297,18 @@ export function ActiveGameScorer({
   const detailFrame = selectedShot
     ? gameState.frames.find((f) => f.frame_number === selectedShot.frameNumber) ?? null
     : null;
+  // Inline view: a tapped past shot is shown read-only in place of live entry.
+  const viewingShot =
+    selectedShot && editingFrame === null ? detailFrame?.shots[selectedShot.shotIndex] ?? null : null;
+  const viewing = Boolean(viewingShot);
+  const viewedLane = selectedShot && game ? laneForFrame(game, selectedShot.frameNumber) : undefined;
+
+  function editViewedFrame() {
+    if (!selectedShot) return;
+    const fn = selectedShot.frameNumber;
+    setSelectedShot(null);
+    startEdit(fn);
+  }
 
   return (
     <section className="mx-auto w-full max-w-5xl px-3 py-4 sm:px-6">
@@ -366,8 +319,9 @@ export function ActiveGameScorer({
           </div>
           <div>
             <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-              Frame {gameState.currentFrameNumber} · Shot {gameState.currentShot}
-              {currentLane ? ` · Lane ${currentLane}` : ""}
+              {viewing && selectedShot
+                ? `Viewing · Frame ${selectedShot.frameNumber} · Shot ${selectedShot.shotIndex + 1}${viewedLane ? ` · Lane ${viewedLane}` : ""}`
+                : `Frame ${gameState.currentFrameNumber} · Shot ${gameState.currentShot}${currentLane ? ` · Lane ${currentLane}` : ""}`}
             </p>
             <p className="text-xl font-bold leading-tight text-slate-950">
               Total {gameScore.total}
@@ -398,45 +352,83 @@ export function ActiveGameScorer({
       <div className="mt-4 grid grid-cols-2 items-start gap-3 lg:grid-cols-[minmax(0,360px)_1fr]">
         <div className="space-y-2">
           <PinGrid
-            standingPins={gameState.standingPins}
-            availablePins={gameState.availablePins}
-            onChange={updateStandingPins}
+            standingPins={viewing && viewingShot ? viewingShot.pins_standing : gameState.standingPins}
+            availablePins={viewing ? undefined : gameState.availablePins}
+            onChange={viewing ? () => {} : updateStandingPins}
+            readOnly={viewing}
             size="sm"
           />
 
-          {!gameState.isComplete && (
+          {viewing ? (
             <>
               <button
                 type="button"
-                onClick={() => void recordShot([])}
-                className="inline-flex h-11 w-full items-center justify-center rounded-lg bg-felt-700 text-sm font-bold text-white shadow-sm hover:bg-felt-500"
+                onClick={editViewedFrame}
+                className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-felt-700 text-sm font-bold text-white shadow-sm hover:bg-felt-500"
               >
-                {isFreshRack ? "Strike" : "Spare"}
+                <Pencil aria-hidden="true" size={16} />
+                Edit frame
               </button>
               <button
                 type="button"
-                onClick={() => void recordShot()}
-                className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg border border-felt-700 bg-white text-sm font-semibold text-felt-700 hover:bg-felt-50"
+                onClick={() => setSelectedShot(null)}
+                className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white text-sm font-semibold text-slate-700 hover:bg-slate-50"
               >
-                <Send aria-hidden="true" size={16} />
-                Next
+                <X aria-hidden="true" size={16} />
+                Done
               </button>
             </>
-          )}
-
-          {editingFrame !== null && (
-            <button
-              type="button"
-              onClick={cancelEdit}
-              className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white text-sm font-semibold text-slate-700 hover:bg-slate-50"
-            >
-              <X aria-hidden="true" size={16} />
-              Cancel edit
-            </button>
+          ) : (
+            <>
+              {!gameState.isComplete && (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => void recordShot([])}
+                    className="inline-flex h-11 w-full items-center justify-center rounded-lg bg-felt-700 text-sm font-bold text-white shadow-sm hover:bg-felt-500"
+                  >
+                    {isFreshRack ? "Strike" : "Spare"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => void recordShot()}
+                    className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg border border-felt-700 bg-white text-sm font-semibold text-felt-700 hover:bg-felt-50"
+                  >
+                    <Send aria-hidden="true" size={16} />
+                    Next
+                  </button>
+                </>
+              )}
+              {editingFrame !== null && (
+                <button
+                  type="button"
+                  onClick={cancelEdit}
+                  className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white text-sm font-semibold text-slate-700 hover:bg-slate-50"
+                >
+                  <X aria-hidden="true" size={16} />
+                  Cancel edit
+                </button>
+              )}
+            </>
           )}
         </div>
 
-        {!gameState.isComplete ? (
+        {viewing && viewingShot ? (
+          <ShotDetailBar
+            balls={balls}
+            selectedBallId={viewingShot.ball_id}
+            onBallChange={() => {}}
+            intendedLine={viewingShot.intended}
+            onIntendedLineChange={() => {}}
+            showActual={Boolean(viewingShot.actual)}
+            onToggleActual={() => {}}
+            actualLine={viewingShot.actual}
+            onActualLineChange={() => {}}
+            notes={viewingShot.notes ?? ""}
+            onNotesChange={() => {}}
+            readOnly
+          />
+        ) : !gameState.isComplete ? (
           <ShotDetailBar
             balls={balls}
             selectedBallId={selectedBallId}
@@ -459,21 +451,6 @@ export function ActiveGameScorer({
 
       {statusMessage && (
         <p className="mt-3 text-center text-sm font-semibold text-felt-700">{statusMessage}</p>
-      )}
-
-      {selectedShot && detailFrame && (
-        <ShotDetailModal
-          frame={detailFrame}
-          shotIndex={selectedShot.shotIndex}
-          balls={balls}
-          lane={game ? laneForFrame(game, selectedShot.frameNumber) : undefined}
-          onEdit={() => {
-            const fn = selectedShot.frameNumber;
-            setSelectedShot(null);
-            startEdit(fn);
-          }}
-          onClose={() => setSelectedShot(null)}
-        />
       )}
     </section>
   );
