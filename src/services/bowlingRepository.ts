@@ -1,5 +1,6 @@
 import { db } from "../db/bowlingDb";
 import { calculateGameScore } from "../lib/scoring";
+import { nextGameStartLane } from "../lib/lanes";
 import type { Frame, Game, Session, SessionSummary } from "../types/bowling";
 
 export type CreateSessionInput = Omit<Session, "id">;
@@ -60,9 +61,14 @@ export async function getSessionDetails(
   };
 }
 
+export interface LaneConfig {
+  lanes?: string[];
+  start_lane?: string;
+}
+
 export async function addNextGameToSession(
   sessionId: number,
-  laneNumber?: string
+  override?: LaneConfig
 ): Promise<number> {
   // Atomic: read existing games + insert next in a single transaction
   // to prevent duplicate game_number on rapid double-tap.
@@ -74,14 +80,48 @@ export async function addNextGameToSession(
 
     const games = await db.games.where("session_id").equals(sessionId).toArray();
     const nextGameNumber = games.length + 1;
+    const previous = games.sort((a, b) => a.game_number - b.game_number)[games.length - 1];
+
+    // Carry the lane pair; flip the start lane (cross-lane) unless overridden.
+    const lanes = override?.lanes ?? previous?.lanes;
+    const start_lane =
+      override?.start_lane ?? (previous ? nextGameStartLane(previous) : undefined);
 
     const id = await db.games.add({
       session_id: sessionId,
       game_number: nextGameNumber,
-      lane_number: laneNumber
+      lanes,
+      start_lane,
+      lane_number: lanes?.[0]
     });
     return Number(id);
   });
+}
+
+export async function updateGameLanes(
+  gameId: number,
+  config: LaneConfig
+): Promise<void> {
+  await db.games.update(gameId, {
+    lanes: config.lanes,
+    start_lane: config.start_lane,
+    lane_number: config.lanes?.[0]
+  });
+}
+
+/** Distinct alley names from past sessions, most-recent first, for autocomplete. */
+export async function getDistinctAlleys(): Promise<string[]> {
+  const sessions = await db.sessions.orderBy("date").reverse().toArray();
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const s of sessions) {
+    const name = s.alley_name?.trim();
+    if (name && !seen.has(name.toLowerCase())) {
+      seen.add(name.toLowerCase());
+      out.push(name);
+    }
+  }
+  return out;
 }
 
 export async function updateGameNotes(gameId: number, notes: string): Promise<void> {

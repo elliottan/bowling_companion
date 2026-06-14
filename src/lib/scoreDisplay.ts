@@ -2,6 +2,34 @@ import { isSpare, isStrike, tenthFrameFollowUpPinfall } from "./scoring";
 import { knockedDownCount, pinsClearedBetween } from "./pins";
 import type { Frame } from "../types/bowling";
 
+export interface FrameShotCell {
+  symbol: string;
+  /** Index into frame.shots this display cell represents, or null if empty. */
+  shotIndex: number | null;
+}
+
+/**
+ * Pair each scorecard display cell with the shot it represents, so a UI can
+ * make individual shots tappable. Mirrors getFrameShotSymbols, but resolves
+ * the strike convention (frames 1-9 render the X in the *second* box while it
+ * is actually shot 0).
+ */
+export function getFrameShotCells(frame: Frame): FrameShotCell[] {
+  const symbols = getFrameShotSymbols(frame);
+
+  if (frame.frame_number !== 10 && isStrike(frame)) {
+    return [
+      { symbol: symbols[0], shotIndex: null },
+      { symbol: symbols[1], shotIndex: 0 }
+    ];
+  }
+
+  return symbols.map((symbol, i) => ({
+    symbol,
+    shotIndex: frame.shots[i] ? i : null
+  }));
+}
+
 export function getFrameShotSymbols(frame: Frame): string[] {
   if (frame.frame_number === 10) return getTenthFrameSymbols(frame);
 

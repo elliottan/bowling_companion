@@ -1,9 +1,10 @@
-import { Archive, ChevronLeft, ChevronRight, CircleDot, type LucideIcon } from "lucide-react";
+import { Archive, ChevronLeft, ChevronRight, CircleDot, MapPin, type LucideIcon } from "lucide-react";
 import { useState } from "react";
 import { ArsenalView } from "./ArsenalView";
 import { BackupRestoreView } from "./BackupRestoreView";
+import { LaneNotesView } from "./LaneNotesView";
 
-type Section = "menu" | "arsenal" | "backup";
+type Section = "menu" | "arsenal" | "lanes" | "backup";
 
 interface MenuRow {
   section: Exclude<Section, "menu">;
@@ -18,6 +19,12 @@ const MENU_ROWS: ReadonlyArray<MenuRow> = [
     label: "Arsenal",
     description: "Manage your bowling balls",
     icon: CircleDot
+  },
+  {
+    section: "lanes",
+    label: "Lane Notes",
+    description: "Notes per alley + lane",
+    icon: MapPin
   },
   {
     section: "backup",
@@ -43,7 +50,7 @@ export function SettingsView() {
             Settings
           </button>
         </div>
-        {section === "arsenal" ? <ArsenalView /> : <BackupRestoreView />}
+        {section === "arsenal" ? <ArsenalView /> : section === "lanes" ? <LaneNotesView /> : <BackupRestoreView />}
       </>
     );
   }

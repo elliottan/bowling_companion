@@ -5,6 +5,7 @@ import {
   addNextGameToSession,
   getSessionDetails,
   saveFrame,
+  updateGameLanes,
   updateGameNotes
 } from "../services/bowlingRepository";
 import type { Frame, Game, SessionSummary } from "../types/bowling";
@@ -14,27 +15,38 @@ interface ActiveSessionViewProps {
   onBackToDashboard: () => void;
 }
 
+const isPositiveInt = (s: string) => /^\d+$/.test(s.trim());
+
 export function ActiveSessionView({
   sessionId,
   onBackToDashboard
 }: ActiveSessionViewProps) {
   const [sessionDetails, setSessionDetails] = useState<SessionSummary | null>(null);
   const [activeGameId, setActiveGameId] = useState<number | null>(null);
-  const [laneNumber, setLaneNumber] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isAddingGame, setIsAddingGame] = useState(false);
   const [note, setNote] = useState("");
   const [error, setError] = useState("");
+
+  // Per-game lane editor
+  const [laneA, setLaneA] = useState("");
+  const [laneB, setLaneB] = useState("");
+  const [startSide, setStartSide] = useState<"A" | "B">("A");
+  const [laneError, setLaneError] = useState("");
 
   const activeGame = useMemo(
     () => sessionDetails?.games.find((g) => g.id === activeGameId) ?? null,
     [activeGameId, sessionDetails]
   );
 
-  // Seed the note field whenever the active game changes.
   useEffect(() => {
     setNote(activeGame?.notes ?? "");
-  }, [activeGame?.id, activeGame?.notes]);
+    const lanes = activeGame?.lanes ?? (activeGame?.lane_number ? [activeGame.lane_number] : []);
+    setLaneA(lanes[0] ?? "");
+    setLaneB(lanes[1] ?? "");
+    setStartSide(activeGame?.start_lane && activeGame.start_lane === lanes[1] ? "B" : "A");
+    setLaneError("");
+  }, [activeGame?.id, activeGame?.notes, activeGame?.lanes, activeGame?.lane_number, activeGame?.start_lane]);
 
   async function saveNote() {
     if (!activeGame?.id) return;
@@ -43,24 +55,34 @@ export function ActiveSessionView({
     await refreshSession(activeGame.id);
   }
 
+  async function saveLanes() {
+    if (!activeGame?.id) return;
+    const a = laneA.trim();
+    const b = laneB.trim();
+    if ((a && !isPositiveInt(a)) || (b && !isPositiveInt(b)) || (!a && b)) {
+      setLaneError("Lanes must be whole numbers (enter the first lane before the second).");
+      return;
+    }
+    setLaneError("");
+    const lanes = [a, b].filter(Boolean);
+    const start_lane = lanes.length === 2 ? (startSide === "A" ? a : b) : lanes[0];
+    await updateGameLanes(activeGame.id, { lanes, start_lane });
+    await refreshSession(activeGame.id);
+  }
+
   async function refreshSession(nextActiveGameId?: number) {
     const details = await getSessionDetails(sessionId);
     if (!details) throw new Error("Session not found.");
-
     setSessionDetails(details);
-
     const selected =
       details.games.find((g) => g.id === nextActiveGameId) ??
       details.games[details.games.length - 1] ??
       null;
-
     setActiveGameId(selected?.id ?? null);
-    setLaneNumber(selected?.lane_number ?? "");
   }
 
   useEffect(() => {
     let isMounted = true;
-
     async function load() {
       setIsLoading(true);
       setError("");
@@ -71,7 +93,6 @@ export function ActiveSessionView({
         setSessionDetails(details);
         const latest = details.games[details.games.length - 1] ?? null;
         setActiveGameId(latest?.id ?? null);
-        setLaneNumber(latest?.lane_number ?? "");
       } catch (err) {
         if (isMounted) {
           setError(err instanceof Error ? err.message : "Unable to load session.");
@@ -80,7 +101,6 @@ export function ActiveSessionView({
         if (isMounted) setIsLoading(false);
       }
     }
-
     load();
     return () => {
       isMounted = false;
@@ -98,7 +118,8 @@ export function ActiveSessionView({
     setError("");
     setIsAddingGame(true);
     try {
-      const nextGameId = await addNextGameToSession(sessionId, laneNumber || undefined);
+      // Carries the lane pair and flips the start lane (cross-lane) automatically.
+      const nextGameId = await addNextGameToSession(sessionId);
       await refreshSession(nextGameId);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to add game.");
@@ -134,6 +155,7 @@ export function ActiveSessionView({
   }
 
   const canAddGame = activeGame.final_score !== undefined && !isAddingGame;
+  const laneLabel = (activeGame.lanes ?? (activeGame.lane_number ? [activeGame.lane_number] : [])).join(" / ");
 
   return (
     <div>
@@ -153,7 +175,7 @@ export function ActiveSessionView({
             </p>
             <p className="truncate text-xs text-slate-500">
               {sessionDetails.session.date} · Game {activeGame.game_number}
-              {activeGame.lane_number ? ` · Lane ${activeGame.lane_number}` : ""}
+              {laneLabel ? ` · Lane ${laneLabel}` : ""}
             </p>
           </div>
           <button
@@ -189,6 +211,62 @@ export function ActiveSessionView({
           </div>
         )}
 
+        <details className="group mt-3">
+          <summary className="cursor-pointer list-none text-xs font-semibold uppercase tracking-wide text-slate-500 marker:hidden">
+            Lane(s) for this game
+            <span className="ml-1 text-slate-400 group-open:hidden">+</span>
+          </summary>
+          <div className="mt-2 space-y-2">
+            <div className="flex items-center gap-2">
+              <input
+                value={laneA}
+                onChange={(e) => setLaneA(e.target.value)}
+                onBlur={saveLanes}
+                inputMode="numeric"
+                aria-label="First lane"
+                placeholder="12"
+                className="h-10 w-24 rounded-lg border border-slate-300 px-3 text-sm outline-none focus:border-felt-700"
+              />
+              <span className="text-slate-400">/</span>
+              <input
+                value={laneB}
+                onChange={(e) => setLaneB(e.target.value)}
+                onBlur={saveLanes}
+                inputMode="numeric"
+                aria-label="Second lane"
+                placeholder="13"
+                className="h-10 w-24 rounded-lg border border-slate-300 px-3 text-sm outline-none focus:border-felt-700"
+              />
+              {laneA.trim() && laneB.trim() && (
+                <div className="flex items-center gap-1">
+                  <span className="text-xs text-slate-500">F1:</span>
+                  {(["A", "B"] as const).map((side) => {
+                    const lane = side === "A" ? laneA.trim() : laneB.trim();
+                    return (
+                      <button
+                        key={side}
+                        type="button"
+                        onClick={() => { setStartSide(side); setTimeout(saveLanes, 0); }}
+                        className={`h-8 rounded-md border px-2 text-xs font-semibold ${
+                          startSide === side
+                            ? "border-felt-700 bg-felt-700 text-white"
+                            : "border-slate-300 bg-white text-slate-700"
+                        }`}
+                      >
+                        {lane}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+            {laneError && <p className="text-xs text-red-600">{laneError}</p>}
+            <p className="text-[11px] text-slate-400">
+              Two lanes = cross-lane (frames alternate). New games auto-flip the starting lane.
+            </p>
+          </div>
+        </details>
+
         <details className="group mt-3" open={Boolean(activeGame.notes)}>
           <summary className="cursor-pointer list-none text-xs font-semibold uppercase tracking-wide text-slate-500 marker:hidden">
             Note for this game
@@ -214,6 +292,7 @@ export function ActiveSessionView({
         gameKey={activeGame.id}
         initialFrames={(activeGame as Game & { frames: Frame[] }).frames}
         mode="session"
+        game={activeGame}
         onFrameComplete={handleFrameComplete}
       />
     </div>

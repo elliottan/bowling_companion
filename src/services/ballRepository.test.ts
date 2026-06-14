@@ -13,7 +13,11 @@ import {
   getSpareLineByPins,
   reorderSpareLines,
   updateBall,
-  upsertSpareLine
+  upsertSpareLine,
+  getLaneNotes,
+  getLaneNote,
+  upsertLaneNote,
+  deleteLaneNote
 } from "./ballRepository";
 
 describe("ballRepository", () => {
@@ -226,6 +230,30 @@ describe("ballRepository", () => {
       await deleteSpareLine(line!.id!);
       const after = await getSpareLineByPins([6]);
       expect(after).toBeUndefined();
+    });
+  });
+
+  describe("lane notes", () => {
+    it("upserts by alley+lane (create then update)", async () => {
+      await upsertLaneNote("Orchid Bowl", "12", "hooks early");
+      let note = await getLaneNote("Orchid Bowl", "12");
+      expect(note?.notes).toBe("hooks early");
+
+      await upsertLaneNote("Orchid Bowl", "12", "drier now");
+      const all = await getLaneNotes();
+      expect(all.filter((n) => n.alley === "Orchid Bowl" && n.lane === "12")).toHaveLength(1);
+      note = await getLaneNote("Orchid Bowl", "12");
+      expect(note?.notes).toBe("drier now");
+    });
+
+    it("treats different lanes as separate notes and deletes", async () => {
+      await upsertLaneNote("Orchid Bowl", "11", "a");
+      await upsertLaneNote("Orchid Bowl", "12", "b");
+      expect(await getLaneNotes()).toHaveLength(2);
+
+      const n = await getLaneNote("Orchid Bowl", "11");
+      await deleteLaneNote(n!.id!);
+      expect(await getLaneNotes()).toHaveLength(1);
     });
   });
 });

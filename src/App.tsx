@@ -60,7 +60,9 @@ function App() {
 
       await addGameToSession(sessionId, {
         game_number: 1,
-        lane_number: values.lane_number
+        lanes: values.lanes,
+        start_lane: values.start_lane,
+        lane_number: values.lanes[0]
       });
 
       setActiveSessionId(sessionId);

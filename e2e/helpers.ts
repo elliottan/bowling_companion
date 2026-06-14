@@ -32,5 +32,6 @@ export async function recordShot(page: Page, standingAfter: number[]) {
     const down = page.locator(`button[aria-label="Pin ${pin} down"]`);
     if (await down.count()) await down.click();
   }
-  await page.getByRole("button", { name: "Record", exact: true }).click();
+  // "Next" commits the currently-marked standing pins (empty marks = strike/spare).
+  await page.getByRole("button", { name: "Next", exact: true }).click();
 }

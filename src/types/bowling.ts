@@ -10,6 +10,7 @@ export interface ShotMetadata {
   ball_id?: number;
   intended?: LineSpec;
   actual?: LineSpec;
+  notes?: string;
 }
 
 export interface Shot {
@@ -54,9 +55,18 @@ export interface Game {
   id?: number;
   session_id: number;
   game_number: number;
-  lane_number?: string;
+  lane_number?: string;       // legacy single-lane display (back-compat)
+  lanes?: string[];           // 1 or 2 lanes for this game
+  start_lane?: string;        // which of `lanes` frame 1 is bowled on
   final_score?: number;
   notes?: string;
+}
+
+export interface LaneNote {
+  id?: number;
+  alley: string;
+  lane: string;
+  notes: string;
 }
 
 export interface Frame {
@@ -84,5 +94,6 @@ export interface BowlingBackup {
     balls?: Ball[];
     oil_patterns?: OilPattern[];
     spare_lines?: SpareLine[];
+    lane_notes?: LaneNote[];
   };
 }

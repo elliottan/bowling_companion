@@ -1,6 +1,6 @@
 import { db } from "../db/bowlingDb";
 import { validateBackup } from "../lib/backupValidation";
-import type { Ball, BowlingBackup, Frame, Game, OilPattern, PinNumber, Session, Shot, SpareLine } from "../types/bowling";
+import type { Ball, BowlingBackup, Frame, Game, LaneNote, OilPattern, PinNumber, Session, Shot, SpareLine } from "../types/bowling";
 
 export interface ImportBackupResult {
   sessions: number;
@@ -9,16 +9,18 @@ export interface ImportBackupResult {
   balls: number;
   oil_patterns: number;
   spare_lines: number;
+  lane_notes: number;
 }
 
 export async function createBackup(): Promise<BowlingBackup> {
-  const [sessions, games, frames, balls, oil_patterns, spare_lines] = await Promise.all([
+  const [sessions, games, frames, balls, oil_patterns, spare_lines, lane_notes] = await Promise.all([
     db.sessions.toArray(),
     db.games.toArray(),
     db.frames.toArray(),
     db.balls.toArray(),
     db.oil_patterns.toArray(),
-    db.spare_lines.toArray()
+    db.spare_lines.toArray(),
+    db.lane_notes.toArray()
   ]);
 
   return {
@@ -31,7 +33,8 @@ export async function createBackup(): Promise<BowlingBackup> {
       frames,
       balls,
       oil_patterns,
-      spare_lines
+      spare_lines,
+      lane_notes
     }
   };
 }
@@ -87,11 +90,11 @@ function normalizeBackup(backup: BowlingBackup): BowlingBackup {
     return { ...frame, shots };
   });
 
-  return { ...backup, version: 2, tables: { ...backup.tables, frames, balls: [], oil_patterns: [], spare_lines: [] } };
+  return { ...backup, version: 2, tables: { ...backup.tables, frames, balls: [], oil_patterns: [], spare_lines: [], lane_notes: [] } };
 }
 
 export async function mergeBackup(backup: BowlingBackup): Promise<ImportBackupResult> {
-  return db.transaction("rw", [db.sessions, db.games, db.frames, db.balls, db.oil_patterns, db.spare_lines], async () => {
+  return db.transaction("rw", [db.sessions, db.games, db.frames, db.balls, db.oil_patterns, db.spare_lines, db.lane_notes], async () => {
     const sessionIdMap = new Map<number, number>();
     const gameIdMap = new Map<number, number>();
     const ballIdMap = new Map<number, number>();
@@ -147,13 +150,19 @@ export async function mergeBackup(backup: BowlingBackup): Promise<ImportBackupRe
       await upsertSpareLine(sl);
     }
 
+    // Lane notes (keyed by alley + lane)
+    for (const ln of backup.tables.lane_notes ?? []) {
+      await upsertLaneNote(ln);
+    }
+
     return {
       sessions: backup.tables.sessions.length,
       games: backup.tables.games.length,
       frames: backup.tables.frames.length,
       balls: (backup.tables.balls ?? []).length,
       oil_patterns: (backup.tables.oil_patterns ?? []).length,
-      spare_lines: (backup.tables.spare_lines ?? []).length
+      spare_lines: (backup.tables.spare_lines ?? []).length,
+      lane_notes: (backup.tables.lane_notes ?? []).length
     };
   });
 }
@@ -228,6 +237,12 @@ async function upsertOilPattern(op: OilPattern): Promise<number> {
   const match = await db.oil_patterns.where("name").equals(op.name).first();
   if (match?.id) { await db.oil_patterns.put({ ...op, id: match.id }); return match.id; }
   return Number(await db.oil_patterns.add(stripId(op)));
+}
+
+async function upsertLaneNote(ln: LaneNote): Promise<void> {
+  const all = await db.lane_notes.toArray();
+  const match = all.find((existing) => existing.alley === ln.alley && existing.lane === ln.lane);
+  await db.lane_notes.put({ ...ln, id: match?.id });
 }
 
 async function upsertSpareLine(sl: SpareLine): Promise<void> {

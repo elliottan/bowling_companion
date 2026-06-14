@@ -42,8 +42,9 @@ test("editing a past frame updates it", async ({ page }) => {
   await recordShot(page, [10]); // F2 shot2 = open (9)
   await expect(page.getByText(/Frame 3 . Shot 1/i)).toBeVisible();
 
-  // Re-open frame 1 from the scorecard.
-  await page.getByRole("button", { name: "Edit frame 1", exact: true }).click();
+  // Tap frame 1's recorded shot on the scorecard → shot detail → Edit frame.
+  await page.getByRole("button", { name: "View frame 1 shot 1" }).first().click();
+  await page.getByRole("button", { name: "Edit frame" }).click();
   await expect(page.getByText(/Editing frame 1/i)).toBeVisible();
 
   // Re-bowl frame 1 as an open 9 instead of a strike.

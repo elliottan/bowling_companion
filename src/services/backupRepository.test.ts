@@ -38,7 +38,7 @@ describe("backupRepository", () => {
     const result = await importBackup(backup);
     const history = await getSessionHistory();
 
-    expect(result).toEqual({ sessions: 1, games: 1, frames: 1, balls: 0, oil_patterns: 0, spare_lines: 0 });
+    expect(result).toEqual({ sessions: 1, games: 1, frames: 1, balls: 0, oil_patterns: 0, spare_lines: 0, lane_notes: 0 });
     expect(history[0].session.alley_name).toBe("Backup Lanes");
     expect(history[0].games[0].frames[0].is_strike).toBe(true);
   });
@@ -121,5 +121,21 @@ describe("backupRepository", () => {
 
     const balls = await db.balls.toArray();
     expect(balls[0].name).toBe("Storm Phaze II");
+  });
+
+  it("exports and reimports lane notes", async () => {
+    await db.lane_notes.add({ alley: "Orchid Bowl", lane: "12", notes: "hooks early" });
+
+    const backup = await createBackup();
+    expect(backup.tables.lane_notes).toHaveLength(1);
+
+    await db.delete();
+    await db.open();
+
+    const result = await importBackup(backup);
+    expect(result.lane_notes).toBe(1);
+
+    const notes = await db.lane_notes.toArray();
+    expect(notes[0].notes).toBe("hooks early");
   });
 });

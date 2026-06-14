@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { migrateFrameV1ToV2 } from "./bowlingDb";
+import { migrateFrameV1ToV2, migrateGameV2ToV3 } from "./bowlingDb";
 
 describe("migrateFrameV1ToV2", () => {
   it("upgrades v1 flat frame fields to shots[]", () => {
@@ -69,5 +69,28 @@ describe("migrateFrameV1ToV2", () => {
     migrateFrameV1ToV2(frame);
 
     expect(frame.shots).toBe(existingShots);
+  });
+});
+
+describe("migrateGameV2ToV3", () => {
+  it("backfills lanes + start_lane from a single lane_number", () => {
+    const game: Record<string, unknown> = { session_id: 1, game_number: 1, lane_number: "12" };
+    migrateGameV2ToV3(game);
+    expect(game.lanes).toEqual(["12"]);
+    expect(game.start_lane).toBe("12");
+  });
+
+  it("is a no-op when lanes already exists", () => {
+    const lanes = ["11", "12"];
+    const game: Record<string, unknown> = { session_id: 1, game_number: 1, lanes, start_lane: "11" };
+    migrateGameV2ToV3(game);
+    expect(game.lanes).toBe(lanes);
+    expect(game.start_lane).toBe("11");
+  });
+
+  it("leaves a game with no lane untouched", () => {
+    const game: Record<string, unknown> = { session_id: 1, game_number: 1 };
+    migrateGameV2ToV3(game);
+    expect(game.lanes).toBeUndefined();
   });
 });

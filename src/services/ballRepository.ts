@@ -1,5 +1,5 @@
 import { db } from "../db/bowlingDb";
-import type { Ball, LineSpec, OilPattern, PinNumber, SpareLine } from "../types/bowling";
+import type { Ball, LaneNote, LineSpec, OilPattern, PinNumber, SpareLine } from "../types/bowling";
 
 // ---------------------------------------------------------------------------
 // Balls
@@ -138,4 +138,41 @@ export async function ensureDefaultSpareLines(): Promise<void> {
       DEFAULT_SPARE_LINES.map((pins, index) => ({ pins: sortPins(pins), sort_order: index }))
     );
   });
+}
+
+// ---------------------------------------------------------------------------
+// Lane notes (keyed by alley + lane)
+// ---------------------------------------------------------------------------
+
+export async function getLaneNotes(): Promise<LaneNote[]> {
+  const all = await db.lane_notes.toArray();
+  return all.sort(
+    (a, b) =>
+      a.alley.localeCompare(b.alley) ||
+      a.lane.localeCompare(b.lane, undefined, { numeric: true })
+  );
+}
+
+export async function getLaneNote(alley: string, lane: string): Promise<LaneNote | undefined> {
+  const a = alley.trim();
+  const l = lane.trim();
+  if (!a || !l) return undefined;
+  const all = await db.lane_notes.toArray();
+  return all.find((n) => n.alley === a && n.lane === l);
+}
+
+export async function upsertLaneNote(alley: string, lane: string, notes: string): Promise<void> {
+  const a = alley.trim();
+  const l = lane.trim();
+  if (!a || !l) throw new Error("Alley and lane are required.");
+  const existing = await getLaneNote(a, l);
+  if (existing?.id !== undefined) {
+    await db.lane_notes.update(existing.id, { notes });
+  } else {
+    await db.lane_notes.add({ alley: a, lane: l, notes });
+  }
+}
+
+export async function deleteLaneNote(id: number): Promise<void> {
+  await db.lane_notes.delete(id);
 }

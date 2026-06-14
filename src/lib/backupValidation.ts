@@ -1,4 +1,4 @@
-import type { Ball, BowlingBackup, Frame, Game, OilPattern, PinNumber, Session, SpareLine } from "../types/bowling";
+import type { Ball, BowlingBackup, Frame, Game, LaneNote, OilPattern, PinNumber, Session, SpareLine } from "../types/bowling";
 
 const PIN_NUMBERS = new Set<PinNumber>([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
 
@@ -36,6 +36,7 @@ export function validateBackup(value: unknown): BackupValidationResult {
     validateArray(value.tables.balls ?? [], "balls", errors, validateBall);
     validateArray(value.tables.oil_patterns ?? [], "oil_patterns", errors, validateOilPattern);
     validateArray(value.tables.spare_lines ?? [], "spare_lines", errors, validateSpareLine);
+    validateArray(value.tables.lane_notes ?? [], "lane_notes", errors, validateLaneNote);
   }
 
   if (errors.length > 0) {
@@ -161,6 +162,16 @@ function validateSpareLine(value: unknown): value is SpareLine {
   return (
     isOptionalNumber(value.id) &&
     validatePins(value.pins)
+  );
+}
+
+function validateLaneNote(value: unknown): value is LaneNote {
+  if (!isRecord(value)) return false;
+  return (
+    isOptionalNumber(value.id) &&
+    typeof value.alley === "string" && value.alley.length > 0 &&
+    typeof value.lane === "string" && value.lane.length > 0 &&
+    typeof value.notes === "string"
   );
 }
 

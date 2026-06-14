@@ -54,7 +54,7 @@ describe("bowlingRepository", () => {
       game_number: 1,
       lane_number: "7"
     });
-    await addNextGameToSession(sessionId, "8");
+    await addNextGameToSession(sessionId, { lanes: ["8"], start_lane: "8" });
 
     const details = await getSessionDetails(sessionId);
 

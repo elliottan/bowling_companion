@@ -16,13 +16,15 @@ interface PinGridProps {
   availablePins?: PinNumber[];
   onChange: (standingPins: PinNumber[]) => void;
   readOnly?: boolean;
+  size?: "default" | "sm";
 }
 
 export function PinGrid({
   standingPins,
   availablePins = ALL_PINS,
   onChange,
-  readOnly = false
+  readOnly = false,
+  size = "default"
 }: PinGridProps) {
   const standingSet = new Set(standingPins);
   const availableSet = new Set(availablePins);
@@ -63,14 +65,20 @@ export function PinGrid({
     modeRef.current = null;
   }
 
+  const sm = size === "sm";
+  const pinSize = sm ? "h-8 w-8 text-xs" : "h-11 w-11 text-sm sm:h-12 sm:w-12";
+  const rowGap = sm ? "gap-1.5" : "gap-2 sm:gap-3";
+  const pad = sm ? "p-2" : "p-4";
+  const maxW = sm ? "max-w-[11rem]" : "max-w-[16rem]";
+
   return (
     <div
-      className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm"
+      className={`rounded-lg border border-slate-200 bg-white shadow-sm ${pad}`}
       style={{ touchAction: "none" }}
     >
-      <div className="mx-auto flex w-full max-w-[16rem] flex-col items-center gap-2 sm:gap-3">
+      <div className={`mx-auto flex w-full flex-col items-center ${rowGap} ${maxW}`}>
         {PIN_ROWS.map((row) => (
-          <div key={row.join("-")} className="flex w-full justify-center gap-2 sm:gap-3">
+          <div key={row.join("-")} className={`flex w-full justify-center ${rowGap}`}>
             {row.map((pin) => {
               const isStanding = standingSet.has(pin);
               const isAvailable = availableSet.has(pin);
@@ -86,7 +94,7 @@ export function PinGrid({
                   onPointerMove={readOnly ? undefined : moveGesture}
                   onPointerUp={readOnly ? undefined : endGesture}
                   onPointerCancel={readOnly ? undefined : endGesture}
-                  className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full border text-sm font-bold transition sm:h-12 sm:w-12 ${
+                  className={`flex ${pinSize} shrink-0 items-center justify-center rounded-full border font-bold transition ${
                     readOnly ? "cursor-default" : "active:scale-95"
                   } ${
                     isStanding
