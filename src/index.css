@@ -36,3 +36,19 @@ select {
     font-size: 16px !important;
   }
 }
+
+/*
+ * iOS Safari renders <input type="date"> as a native control with an intrinsic
+ * width that ignores width:100% and overflows its container off-screen. Strip
+ * the native appearance so it respects the box, and left-align the value.
+ */
+input[type="date"] {
+  -webkit-appearance: none;
+  appearance: none;
+  min-width: 0;
+  max-width: 100%;
+}
+
+input[type="date"]::-webkit-date-and-time-value {
+  text-align: left;
+}
