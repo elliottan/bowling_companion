@@ -165,7 +165,14 @@ export function SpareLinesView() {
       )}
 
       {showForm && (
-        <div className="mb-4 rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+        <div
+          className="fixed inset-0 z-20 flex items-end justify-center bg-black/40 p-3 sm:items-center"
+          onClick={cancelForm}
+        >
+        <div
+          className="max-h-[85vh] w-full max-w-lg overflow-y-auto rounded-lg border border-slate-200 bg-white p-4 shadow-xl"
+          onClick={(e) => e.stopPropagation()}
+        >
           <h2 className="mb-3 text-sm font-semibold text-slate-950">
             {editingId !== null ? `Edit spare line — pins ${lineLabel(formPins)}` : "Add spare line"}
           </h2>
@@ -307,6 +314,7 @@ export function SpareLinesView() {
             </div>
           </form>
         </div>
+        </div>
       )}
 
       {isLoading ? (
@@ -321,7 +329,7 @@ export function SpareLinesView() {
                 type="button"
                 onClick={() => openEditForm(sl)}
                 aria-label={`Edit spare line for pins ${lineLabel(sl.pins)}`}
-                className="flex w-full flex-col items-center gap-1.5 rounded-lg border border-slate-200 bg-white p-3 text-center shadow-sm hover:border-felt-700"
+                className="flex w-full flex-col items-center gap-1.5 rounded-lg border border-slate-200 bg-white p-3 text-center shadow-sm transition-colors active:bg-slate-50"
               >
                 <SmallPinDiagram standing={sl.pins} />
                 {sl.line ? (
