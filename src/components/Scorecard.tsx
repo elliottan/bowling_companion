@@ -6,6 +6,7 @@ interface ScorecardProps {
   frames: Frame[];
   activeFrameNumber: number;
   editingFrameNumber?: number | null;
+  gameComplete?: boolean;
   onEditFrame?: (frameNumber: number) => void;
 }
 
@@ -13,6 +14,7 @@ export function Scorecard({
   frames,
   activeFrameNumber,
   editingFrameNumber = null,
+  gameComplete = false,
   onEditFrame
 }: ScorecardProps) {
   const gameScore = calculateGameScore(frames);
@@ -26,13 +28,19 @@ export function Scorecard({
       ? ["", "", ""]
       : ["", ""];
     const score = gameScore.frames.find((f) => f.frame_number === frameNumber);
+    // Editable = a recorded frame that is not the one currently being bowled.
+    // The active frame stays in-progress (edit it via the pin grid); future
+    // frames have no data yet. Once the game is complete the last frame is
+    // recorded and editable too.
+    const isEditable =
+      !!frame && (frameNumber < activeFrameNumber || gameComplete);
     return {
       frameNumber,
       symbols,
       rollingTotal: score?.rollingTotal ?? null,
       isActive: activeFrameNumber === frameNumber,
       isEditing: editingFrameNumber === frameNumber,
-      onEdit: onEditFrame
+      onEdit: isEditable ? onEditFrame : undefined
     };
   });
 

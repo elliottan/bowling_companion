@@ -301,6 +301,7 @@ export function ActiveGameScorer({
         frames={gameState.frames}
         activeFrameNumber={gameState.currentFrameNumber}
         editingFrameNumber={editingFrame}
+        gameComplete={gameState.isComplete}
         onEditFrame={startEdit}
       />
 

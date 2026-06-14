@@ -41,4 +41,27 @@ describe("Scorecard", () => {
       expect(headers).toContain(String(n));
     }
   });
+
+  it("only offers edit on recorded frames before the active one", () => {
+    // Frames 1-2 recorded, currently bowling frame 3, game not complete.
+    const frames = [openFrame(1), openFrame(2)];
+    const { queryAllByRole } = render(
+      <Scorecard
+        frames={frames}
+        activeFrameNumber={3}
+        gameComplete={false}
+        onEditFrame={() => {}}
+      />
+    );
+
+    const editLabels = queryAllByRole("button").map((b) =>
+      b.getAttribute("aria-label")
+    );
+    // Past frames editable; active (3) and empty future frames are not buttons.
+    // Two layouts (mobile + desktop) each render the eligible frames.
+    expect(editLabels).toContain("Edit frame 1");
+    expect(editLabels).toContain("Edit frame 2");
+    expect(editLabels).not.toContain("Edit frame 3");
+    expect(editLabels).not.toContain("Edit frame 4");
+  });
 });
