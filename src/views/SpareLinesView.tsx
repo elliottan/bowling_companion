@@ -173,8 +173,10 @@ export function SpareLinesView() {
           className="max-h-[85vh] w-full max-w-lg overflow-y-auto rounded-lg border border-slate-200 bg-white p-4 shadow-xl"
           onClick={(e) => e.stopPropagation()}
         >
-          <h2 className="mb-3 text-sm font-semibold text-slate-950">
-            {editingId !== null ? `Edit spare line — pins ${lineLabel(formPins)}` : "Add spare line"}
+          <h2 className="mb-3 text-base font-semibold text-slate-950">
+            {formPins.length === 0
+              ? "Add spare line"
+              : `${formPins.length === 1 ? "Pin" : "Pins"} ${lineLabel(formPins)}`}
           </h2>
 
           {formError && (
@@ -184,26 +186,19 @@ export function SpareLinesView() {
           )}
 
           <form onSubmit={(e) => void handleSubmit(e)} className="space-y-4">
-            {editingId === null && (
-              <div>
-                <label className="mb-1 block text-sm font-medium text-slate-700">
-                  Pin leave <span className="text-red-500">*</span>
-                </label>
+            <div>
+              {editingId === null && (
                 <p className="mb-2 text-xs text-slate-500">
                   Tap pins to select which pins are left standing for this leave.
                 </p>
-                <PinGrid
-                  standingPins={formPins}
-                  availablePins={ALL_PINS}
-                  onChange={setFormPins}
-                />
-                {formPins.length > 0 && (
-                  <p className="mt-1 text-xs text-slate-500">
-                    Selected: {lineLabel(formPins)}
-                  </p>
-                )}
-              </div>
-            )}
+              )}
+              <PinGrid
+                standingPins={formPins}
+                availablePins={ALL_PINS}
+                onChange={setFormPins}
+                readOnly={editingId !== null}
+              />
+            </div>
 
             <div>
               <div className="mb-2 flex items-center gap-2">

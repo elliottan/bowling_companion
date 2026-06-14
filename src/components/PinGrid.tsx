@@ -15,12 +15,14 @@ interface PinGridProps {
   standingPins: PinNumber[];
   availablePins?: PinNumber[];
   onChange: (standingPins: PinNumber[]) => void;
+  readOnly?: boolean;
 }
 
 export function PinGrid({
   standingPins,
   availablePins = ALL_PINS,
-  onChange
+  onChange,
+  readOnly = false
 }: PinGridProps) {
   const standingSet = new Set(standingPins);
   const availableSet = new Set(availablePins);
@@ -79,16 +81,18 @@ export function PinGrid({
                   data-pin={pin}
                   aria-pressed={isStanding}
                   aria-label={`Pin ${pin}${isStanding ? " standing" : " down"}`}
-                  disabled={!isAvailable}
-                  onPointerDown={(e) => startGesture(e, pin)}
-                  onPointerMove={moveGesture}
-                  onPointerUp={endGesture}
-                  onPointerCancel={endGesture}
-                  className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full border text-sm font-bold transition active:scale-95 sm:h-12 sm:w-12 ${
+                  disabled={readOnly || !isAvailable}
+                  onPointerDown={readOnly ? undefined : (e) => startGesture(e, pin)}
+                  onPointerMove={readOnly ? undefined : moveGesture}
+                  onPointerUp={readOnly ? undefined : endGesture}
+                  onPointerCancel={readOnly ? undefined : endGesture}
+                  className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full border text-sm font-bold transition sm:h-12 sm:w-12 ${
+                    readOnly ? "cursor-default" : "active:scale-95"
+                  } ${
                     isStanding
                       ? "border-slate-300 bg-white text-slate-900"
                       : "border-felt-700 bg-felt-700 text-white"
-                  } ${isAvailable ? "" : "cursor-not-allowed opacity-30"}`}
+                  } ${isAvailable || readOnly ? "" : "cursor-not-allowed opacity-30"}`}
                 >
                   {pin}
                 </button>
