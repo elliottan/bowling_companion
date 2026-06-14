@@ -353,45 +353,43 @@ export function ActiveGameScorer({
           />
 
           {viewing ? (
-            <>
+            <div className="flex gap-2">
               <button
                 type="button"
                 onClick={editViewedFrame}
-                className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-felt-700 text-sm font-bold text-white shadow-sm hover:bg-felt-500"
+                className="inline-flex h-11 flex-1 items-center justify-center gap-1.5 rounded-lg bg-felt-700 text-sm font-bold text-white shadow-sm hover:bg-felt-500"
               >
                 <Pencil aria-hidden="true" size={16} />
-                Edit frame
+                Edit
               </button>
               <button
                 type="button"
                 onClick={() => setSelectedShot(null)}
-                className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white text-sm font-semibold text-slate-700 hover:bg-slate-50"
+                className="inline-flex h-11 flex-1 items-center justify-center gap-1.5 rounded-lg border border-slate-300 bg-white text-sm font-semibold text-slate-700 hover:bg-slate-50"
               >
                 <X aria-hidden="true" size={16} />
                 Done
               </button>
-            </>
-          ) : (
+            </div>
+          ) : !gameState.isComplete ? (
             <>
-              {!gameState.isComplete && (
-                <>
-                  <button
-                    type="button"
-                    onClick={() => void recordShot([])}
-                    className="inline-flex h-11 w-full items-center justify-center rounded-lg bg-felt-700 text-sm font-bold text-white shadow-sm hover:bg-felt-500"
-                  >
-                    {isFreshRack ? "Strike" : "Spare"}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => void recordShot()}
-                    className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg border border-felt-700 bg-white text-sm font-semibold text-felt-700 hover:bg-felt-50"
-                  >
-                    <Send aria-hidden="true" size={16} />
-                    Next
-                  </button>
-                </>
-              )}
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => void recordShot([])}
+                  className="inline-flex h-11 flex-1 items-center justify-center rounded-lg bg-felt-700 text-sm font-bold text-white shadow-sm hover:bg-felt-500"
+                >
+                  {isFreshRack ? "Strike" : "Spare"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => void recordShot()}
+                  className="inline-flex h-11 flex-1 items-center justify-center gap-1.5 rounded-lg border border-felt-700 bg-white text-sm font-semibold text-felt-700 hover:bg-felt-50"
+                >
+                  <Send aria-hidden="true" size={16} />
+                  Next
+                </button>
+              </div>
               {editingFrame !== null && (
                 <button
                   type="button"
@@ -403,7 +401,7 @@ export function ActiveGameScorer({
                 </button>
               )}
             </>
-          )}
+          ) : null}
         </div>
 
         {viewing && viewingShot ? (
