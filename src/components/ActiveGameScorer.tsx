@@ -8,7 +8,7 @@ import {
   submitShot,
   updateShotMeta
 } from "../lib/frameController";
-import { calculateGameScore, knockedDownCount } from "../lib/scoring";
+import { calculateGameScore } from "../lib/scoring";
 import { laneForFrame } from "../lib/lanes";
 import { getBalls } from "../services/ballRepository";
 import type { Ball, Frame, Game, LineSpec, PinNumber, ShotMetadata } from "../types/bowling";
@@ -182,7 +182,6 @@ export function ActiveGameScorer({
   const [shotNotes, setShotNotes] = useState("");
   const [selectedShot, setSelectedShot] = useState<{ frameNumber: number; shotIndex: number } | null>(null);
   const gameScore = useMemo(() => calculateGameScore(gameState.frames), [gameState.frames]);
-  const pinsDown = knockedDownCount(gameState.standingPins);
   const currentLane = game ? laneForFrame(game, gameState.currentFrameNumber) : undefined;
   const isFreshRack = gameState.availablePins.length === 10;
 
@@ -313,21 +312,15 @@ export function ActiveGameScorer({
   return (
     <section className="mx-auto w-full max-w-5xl px-3 py-4 sm:px-6">
       <div className="mb-3 flex items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-felt-700 text-lg font-bold text-white">
-            {pinsDown}
-          </div>
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-              {viewing && selectedShot
-                ? `Viewing · Frame ${selectedShot.frameNumber} · Shot ${selectedShot.shotIndex + 1}${viewedLane ? ` · Lane ${viewedLane}` : ""}`
-                : `Frame ${gameState.currentFrameNumber} · Shot ${gameState.currentShot}${currentLane ? ` · Lane ${currentLane}` : ""}`}
-            </p>
-            <p className="text-xl font-bold leading-tight text-slate-950">
-              Total {gameScore.total}
-              {gameState.isComplete ? "" : "+"}
-            </p>
-          </div>
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+            {viewing && selectedShot
+              ? `Viewing · Frame ${selectedShot.frameNumber} · Shot ${selectedShot.shotIndex + 1}${viewedLane ? ` · Lane ${viewedLane}` : ""}`
+              : `Frame ${gameState.currentFrameNumber} · Shot ${gameState.currentShot}${currentLane ? ` · Lane ${currentLane}` : ""}`}
+          </p>
+          <p className="text-xl font-bold leading-tight text-slate-950">
+            Total {gameScore.total}
+          </p>
         </div>
         {mode === "standalone" && (
           <button
