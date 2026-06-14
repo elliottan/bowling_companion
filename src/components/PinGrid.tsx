@@ -98,8 +98,8 @@ export function PinGrid({
                     readOnly ? "cursor-default" : "active:scale-95"
                   } ${
                     isStanding
-                      ? "border-slate-300 bg-white text-slate-900"
-                      : "border-felt-700 bg-felt-700 text-white"
+                      ? "border-slate-400 bg-white text-slate-900 shadow-sm"
+                      : "border-slate-200 bg-slate-100 text-slate-300"
                   } ${isAvailable || readOnly ? "" : "cursor-not-allowed opacity-30"}`}
                 >
                   {pin}
