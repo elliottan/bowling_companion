@@ -5,9 +5,10 @@ import type { SessionSummary } from "../types/bowling";
 
 interface HistoryViewProps {
   onOpenSession: (sessionId: number) => void;
+  activeSessionId: number | null;
 }
 
-export function HistoryView({ onOpenSession }: HistoryViewProps) {
+export function HistoryView({ onOpenSession, activeSessionId }: HistoryViewProps) {
   const [sessions, setSessions] = useState<SessionSummary[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
@@ -50,6 +51,7 @@ export function HistoryView({ onOpenSession }: HistoryViewProps) {
         sessions={sessions}
         isLoading={isLoading}
         onOpenSession={onOpenSession}
+        activeSessionId={activeSessionId}
       />
     </section>
   );

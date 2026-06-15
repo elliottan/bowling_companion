@@ -41,9 +41,17 @@ const MOBILE_NAV_ITEMS = NAV_ITEMS;
 
 function App() {
   const [view, setView] = useState<AppView>("dashboard");
+  // The view to return to when leaving the active session (set on entry).
+  const [previousView, setPreviousView] = useState<AppView>("dashboard");
   const [activeSessionId, setActiveSessionId] = useState<number | null>(null);
   const [isStartingSession, setIsStartingSession] = useState(false);
   const [startError, setStartError] = useState("");
+
+  // Navigate, remembering where we came from when entering the active view.
+  function goTo(target: AppView) {
+    if (target === "active" && view !== "active") setPreviousView(view);
+    setView(target);
+  }
 
   async function handleStartSession(values: NewSessionFormValues) {
     setIsStartingSession(true);
@@ -66,7 +74,7 @@ function App() {
       });
 
       setActiveSessionId(sessionId);
-      setView("active");
+      goTo("active");
     } catch (error) {
       setStartError(
         error instanceof Error ? error.message : "Unable to start session."
@@ -78,7 +86,7 @@ function App() {
 
   function openSession(sessionId: number) {
     setActiveSessionId(sessionId);
-    setView("active");
+    goTo("active");
   }
 
   return (
@@ -87,7 +95,7 @@ function App() {
         <div className="mx-auto flex w-full max-w-5xl items-center justify-between px-3 py-3 sm:px-6">
           <button
             type="button"
-            onClick={() => setView("dashboard")}
+            onClick={() => goTo("dashboard")}
             className="text-base font-bold tracking-tight text-slate-950 sm:text-lg"
           >
             Bowling Companion
@@ -99,7 +107,7 @@ function App() {
                 item={item}
                 active={view === item.view}
                 disabled={item.view === "active" && !activeSessionId}
-                onClick={() => setView(item.view)}
+                onClick={() => goTo(item.view)}
               />
             ))}
           </nav>
@@ -117,10 +125,12 @@ function App() {
         {view === "active" && activeSessionId && (
           <ActiveSessionView
             sessionId={activeSessionId}
-            onBackToDashboard={() => setView("dashboard")}
+            onBack={() => setView(previousView)}
           />
         )}
-        {view === "history" && <HistoryView onOpenSession={openSession} />}
+        {view === "history" && (
+          <HistoryView onOpenSession={openSession} activeSessionId={activeSessionId} />
+        )}
         {view === "stats" && <StatsView />}
         {view === "spares" && <SpareLinesView />}
         {view === "settings" && <SettingsView />}
@@ -133,7 +143,7 @@ function App() {
             item={item}
             active={view === item.view}
             disabled={item.view === "active" && !activeSessionId}
-            onClick={() => setView(item.view)}
+            onClick={() => goTo(item.view)}
           />
         ))}
       </nav>
@@ -174,10 +184,16 @@ function TabBarButton({ item, active, disabled, onClick }: NavItemProps) {
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className={`flex h-16 flex-col items-center justify-center gap-1 text-[10px] font-medium disabled:cursor-not-allowed disabled:opacity-40 ${
-        active ? "text-felt-700" : "text-slate-600"
+      className={`relative flex h-16 flex-col items-center justify-center gap-1 text-[10px] disabled:cursor-not-allowed disabled:opacity-40 ${
+        active ? "font-bold text-felt-700" : "font-medium text-slate-600"
       }`}
     >
+      {active && (
+        <span
+          aria-hidden="true"
+          className="absolute inset-x-3 top-0 h-[3px] rounded-b-full bg-felt-700"
+        />
+      )}
       <Icon size={20} aria-hidden="true" />
       {item.label}
     </button>

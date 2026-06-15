@@ -11,14 +11,14 @@ import type { Frame, Game, SessionSummary } from "../types/bowling";
 
 interface ActiveSessionViewProps {
   sessionId: number;
-  onBackToDashboard: () => void;
+  onBack: () => void;
 }
 
 const isPositiveInt = (s: string) => /^\d+$/.test(s.trim());
 
 export function ActiveSessionView({
   sessionId,
-  onBackToDashboard
+  onBack
 }: ActiveSessionViewProps) {
   const [sessionDetails, setSessionDetails] = useState<SessionSummary | null>(null);
   const [activeGameId, setActiveGameId] = useState<number | null>(null);
@@ -141,7 +141,7 @@ export function ActiveSessionView({
         </p>
         <button
           type="button"
-          onClick={onBackToDashboard}
+          onClick={onBack}
           className="mt-3 inline-flex h-10 items-center gap-1 rounded-lg border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-700"
         >
           <ChevronLeft size={16} aria-hidden="true" />
@@ -160,8 +160,8 @@ export function ActiveSessionView({
         <div className="flex items-center gap-2">
           <button
             type="button"
-            onClick={onBackToDashboard}
-            aria-label="Back to dashboard"
+            onClick={onBack}
+            aria-label="Back"
             className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-slate-300 bg-white text-slate-700 hover:bg-slate-50"
           >
             <ChevronLeft size={18} aria-hidden="true" />

@@ -6,12 +6,14 @@ interface SessionHistoryProps {
   sessions: SessionSummary[];
   isLoading?: boolean;
   onOpenSession: (sessionId: number) => void;
+  activeSessionId?: number | null;
 }
 
 export function SessionHistory({
   sessions,
   isLoading = false,
-  onOpenSession
+  onOpenSession,
+  activeSessionId
 }: SessionHistoryProps) {
   if (isLoading) {
     return (
@@ -34,12 +36,18 @@ export function SessionHistory({
 
   return (
     <ul className="space-y-2">
-      {sessions.map(({ session, games }) => (
+      {sessions.map(({ session, games }) => {
+        const isActive = session.id != null && session.id === activeSessionId;
+        return (
         <li key={session.id}>
           <button
             type="button"
             onClick={() => session.id && onOpenSession(session.id)}
-            className="w-full rounded-lg border border-slate-200 bg-white p-4 text-left shadow-sm hover:border-felt-700/40 hover:bg-slate-50"
+            className={`w-full rounded-lg border bg-white p-4 text-left shadow-sm hover:bg-slate-50 ${
+              isActive
+                ? "border-felt-700 ring-1 ring-felt-700"
+                : "border-slate-200 hover:border-felt-700/40"
+            }`}
           >
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0 flex-1">
@@ -51,7 +59,12 @@ export function SessionHistory({
                   {session.oil_pattern && ` · ${session.oil_pattern}`}
                 </p>
               </div>
-              <div className="text-right">
+              <div className="flex shrink-0 flex-col items-end gap-1 text-right">
+                {isActive && (
+                  <span className="inline-flex items-center rounded-full bg-felt-700 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">
+                    Active
+                  </span>
+                )}
                 <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
                   {games.length} {games.length === 1 ? "game" : "games"}
                 </p>
@@ -92,7 +105,8 @@ export function SessionHistory({
             )}
           </button>
         </li>
-      ))}
+        );
+      })}
     </ul>
   );
 }
