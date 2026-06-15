@@ -9,7 +9,7 @@ import {
   updateShotMeta
 } from "../lib/frameController";
 import { calculateGameScore } from "../lib/scoring";
-import { laneForFrame } from "../lib/lanes";
+import { laneForFrame, previousSameLaneFrame } from "../lib/lanes";
 import { getBalls } from "../services/ballRepository";
 import type { Ball, Frame, Game, LineSpec, PinNumber, ShotMetadata } from "../types/bowling";
 import { PinGrid } from "./PinGrid";
@@ -185,6 +185,8 @@ export function ActiveGameScorer({
   const [shotNotes, setShotNotes] = useState("");
   // Cursor for viewing a recorded past shot (null = live entry mode)
   const [selectedShot, setSelectedShot] = useState<{ frameNumber: number; shotIndex: number } | null>(null);
+  // Frame we last applied carry-forward defaults to (so we only default once per frame).
+  const lastDefaultedFrame = useRef<number | null>(null);
   const gameScore = useMemo(() => calculateGameScore(gameState.frames), [gameState.frames]);
   const currentLane = game ? laneForFrame(game, gameState.currentFrameNumber) : undefined;
   const isFreshRack = gameState.availablePins.length === 10;
@@ -194,6 +196,7 @@ export function ActiveGameScorer({
     setStatusMessage("");
     setEditingFrame(null);
     setSelectedShot(null);
+    lastDefaultedFrame.current = null;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gameKey]);
 
@@ -229,6 +232,30 @@ export function ActiveGameScorer({
       }
     }
   }, [gameState.isComplete, gameState.frames, selectedShot, editingFrame]);
+
+  // At the start of each new frame (live entry), carry the intended line from
+  // the previous same-lane frame and clear the per-shot actual line + notes.
+  useEffect(() => {
+    if (editingFrame !== null || selectedShot !== null || gameState.isComplete) return;
+    if (gameState.currentShot !== 1) return;
+    const fn = gameState.currentFrameNumber;
+    if (lastDefaultedFrame.current === fn) return;
+    lastDefaultedFrame.current = fn;
+
+    const prev = previousSameLaneFrame(game, fn, gameState.frames);
+    setIntendedLine(prev?.shots[0]?.intended);
+    setActualLine(undefined);
+    setShowActual(false);
+    setShotNotes("");
+  }, [
+    gameState.currentFrameNumber,
+    gameState.currentShot,
+    gameState.isComplete,
+    gameState.frames,
+    editingFrame,
+    selectedShot,
+    game
+  ]);
 
   function updateStandingPins(pins: PinNumber[]) {
     setGameState((curr) => ({ ...curr, standingPins: pins }));
@@ -288,9 +315,8 @@ export function ActiveGameScorer({
 
     if (!submission.savedFrame) return;
 
-    setShowActual(false);
-    setActualLine(undefined);
-    setShotNotes("");
+    // Per-frame field reset (intended carry-forward) is handled by the
+    // new-frame effect once the controller advances.
 
     try {
       await onFrameComplete?.(submission.savedFrame);

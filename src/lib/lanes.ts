@@ -1,4 +1,4 @@
-import type { Game } from "../types/bowling";
+import type { Frame, Game } from "../types/bowling";
 
 /**
  * Resolve which physical lane a given frame is bowled on.
@@ -32,6 +32,28 @@ export function endLane(game: Pick<Game, "lanes" | "start_lane" | "lane_number">
  */
 export function nextGameStartLane(previous: Pick<Game, "lanes" | "start_lane" | "lane_number">): string | undefined {
   return endLane(previous);
+}
+
+/**
+ * The most recent earlier frame bowled on the same lane as `frameNumber`.
+ * Used to carry forward a line. Single lane (or no game) → the immediately
+ * previous frame. Cross-lane → two frames back (1,3,5… and 2,4,6… pair up),
+ * so frames 1 and 2 have no same-lane predecessor.
+ */
+export function previousSameLaneFrame(
+  game: Pick<Game, "lanes" | "start_lane" | "lane_number"> | undefined,
+  frameNumber: number,
+  frames: Frame[]
+): Frame | undefined {
+  const earlier = frames.filter((f) => f.frame_number < frameNumber);
+  if (earlier.length === 0) return undefined;
+  const lane = game ? laneForFrame(game, frameNumber) : undefined;
+  const pool =
+    lane === undefined
+      ? earlier
+      : earlier.filter((f) => laneForFrame(game!, f.frame_number) === lane);
+  if (pool.length === 0) return undefined;
+  return pool.reduce((a, b) => (b.frame_number > a.frame_number ? b : a));
 }
 
 function normalizeLanes(game: Pick<Game, "lanes" | "start_lane" | "lane_number">): string[] {

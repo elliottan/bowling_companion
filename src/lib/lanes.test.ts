@@ -1,5 +1,15 @@
 import { describe, expect, it } from "vitest";
-import { endLane, laneForFrame, nextGameStartLane } from "./lanes";
+import { endLane, laneForFrame, nextGameStartLane, previousSameLaneFrame } from "./lanes";
+import type { Frame } from "../types/bowling";
+
+// Frame whose first-shot intended line encodes the frame number, for assertions.
+const frame = (n: number): Frame => ({
+  game_id: 1,
+  frame_number: n,
+  shots: [{ pins_standing: [], intended: { stance: n, target: n, breakpoint: n } }],
+  is_strike: false,
+  is_spare: false
+});
 
 describe("laneForFrame", () => {
   it("single lane: every frame is that lane", () => {
@@ -45,5 +55,28 @@ describe("nextGameStartLane (flip)", () => {
 
   it("single lane stays put", () => {
     expect(nextGameStartLane({ lanes: ["7"] })).toBe("7");
+  });
+});
+
+describe("previousSameLaneFrame", () => {
+  const frames = [1, 2, 3, 4, 5].map(frame);
+
+  it("single lane: takes the immediately previous frame", () => {
+    const g = { lanes: ["7"] };
+    expect(previousSameLaneFrame(g, 4, frames)?.frame_number).toBe(3);
+    expect(previousSameLaneFrame(g, 1, frames)?.frame_number).toBeUndefined();
+  });
+
+  it("no game / standalone: takes the immediately previous frame", () => {
+    expect(previousSameLaneFrame(undefined, 3, frames)?.frame_number).toBe(2);
+  });
+
+  it("cross-lane: frame N takes from N-2; frames 1 and 2 have none", () => {
+    const g = { lanes: ["11", "12"], start_lane: "11" };
+    expect(previousSameLaneFrame(g, 1, frames)).toBeUndefined();
+    expect(previousSameLaneFrame(g, 2, frames)).toBeUndefined();
+    expect(previousSameLaneFrame(g, 3, frames)?.frame_number).toBe(1);
+    expect(previousSameLaneFrame(g, 4, frames)?.frame_number).toBe(2);
+    expect(previousSameLaneFrame(g, 5, frames)?.frame_number).toBe(3);
   });
 });
