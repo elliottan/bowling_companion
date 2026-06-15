@@ -1,7 +1,7 @@
 import { Pencil, Send, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
-  beginEdit,
+  beginEditFromShot,
   completeEdit,
   createInitialFrameControllerState,
   hydrateFrameController,
@@ -180,6 +180,7 @@ export function ActiveGameScorer({
   const [showActual, setShowActual] = useState(false);
   const [actualLine, setActualLine] = useState<LineSpec | undefined>(undefined);
   const [shotNotes, setShotNotes] = useState("");
+  // Cursor for viewing a recorded past shot (null = live entry mode)
   const [selectedShot, setSelectedShot] = useState<{ frameNumber: number; shotIndex: number } | null>(null);
   const gameScore = useMemo(() => calculateGameScore(gameState.frames), [gameState.frames]);
   const currentLane = game ? laneForFrame(game, gameState.currentFrameNumber) : undefined;
@@ -189,6 +190,7 @@ export function ActiveGameScorer({
     setGameState(hydrateFrameController(initialFrames));
     setStatusMessage("");
     setEditingFrame(null);
+    setSelectedShot(null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gameKey]);
 
@@ -219,11 +221,11 @@ export function ActiveGameScorer({
     setGameState((curr) => ({ ...curr, standingPins: pins }));
   }
 
-  function startEdit(frameNumber: number) {
+  function startEditFromShot(frameNumber: number, shotIndex: number) {
     if (editingFrame !== null) return;
     liveStateRef.current = gameState;
     setEditingFrame(frameNumber);
-    setGameState(beginEdit(gameState, frameNumber));
+    setGameState(beginEditFromShot(gameState, frameNumber, shotIndex));
     setStatusMessage(`Editing frame ${frameNumber}`);
   }
 
@@ -231,6 +233,12 @@ export function ActiveGameScorer({
     setGameState(liveStateRef.current);
     setEditingFrame(null);
     setStatusMessage("");
+  }
+
+  // Clears any view/edit mode, returning to live entry.
+  function handleLiveTap() {
+    if (editingFrame !== null) cancelEdit();
+    setSelectedShot(null);
   }
 
   async function recordShot(standingOverride?: PinNumber[]) {
@@ -250,6 +258,7 @@ export function ActiveGameScorer({
       const merged = completeEdit(submission, liveStateRef.current);
       setGameState(merged.state);
       setEditingFrame(null);
+      setSelectedShot(null);
 
       try {
         const editedFrame =
@@ -286,6 +295,7 @@ export function ActiveGameScorer({
   function newGame() {
     setGameState(createInitialFrameControllerState());
     setEditingFrame(null);
+    setSelectedShot(null);
     setStatusMessage("");
   }
 
@@ -293,21 +303,27 @@ export function ActiveGameScorer({
     setSelectedShot({ frameNumber, shotIndex });
   }
 
+  function editViewedShot() {
+    if (!selectedShot) return;
+    const { frameNumber, shotIndex } = selectedShot;
+    setSelectedShot(null);
+    startEditFromShot(frameNumber, shotIndex);
+  }
+
   const detailFrame = selectedShot
     ? gameState.frames.find((f) => f.frame_number === selectedShot.frameNumber) ?? null
     : null;
-  // Inline view: a tapped past shot is shown read-only in place of live entry.
+
+  // A tapped past shot is shown read-only while not in edit mode.
   const viewingShot =
     selectedShot && editingFrame === null ? detailFrame?.shots[selectedShot.shotIndex] ?? null : null;
   const viewing = Boolean(viewingShot);
   const viewedLane = selectedShot && game ? laneForFrame(game, selectedShot.frameNumber) : undefined;
 
-  function editViewedFrame() {
-    if (!selectedShot) return;
-    const fn = selectedShot.frameNumber;
-    setSelectedShot(null);
-    startEdit(fn);
-  }
+  // The highlighted cell: cursor on selected past shot, or live entry position.
+  const highlightCell = selectedShot
+    ? { frameNumber: selectedShot.frameNumber, shotIndex: selectedShot.shotIndex }
+    : { frameNumber: gameState.currentFrameNumber, shotIndex: gameState.currentShot - 1 };
 
   return (
     <section className="mx-auto w-full max-w-5xl px-3 py-4 sm:px-6">
@@ -338,7 +354,9 @@ export function ActiveGameScorer({
         activeFrameNumber={gameState.currentFrameNumber}
         editingFrameNumber={editingFrame}
         gameComplete={gameState.isComplete}
+        highlightCell={highlightCell}
         onShotTap={openShotDetail}
+        onLiveTap={gameState.isComplete ? undefined : handleLiveTap}
       />
 
       {/* Pin deck (left) + shot details (right), side-by-side on every width. */}
@@ -353,24 +371,14 @@ export function ActiveGameScorer({
           />
 
           {viewing ? (
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={editViewedFrame}
-                className="inline-flex h-11 flex-1 items-center justify-center gap-1.5 rounded-lg bg-felt-700 text-sm font-bold text-white shadow-sm hover:bg-felt-500"
-              >
-                <Pencil aria-hidden="true" size={16} />
-                Edit
-              </button>
-              <button
-                type="button"
-                onClick={() => setSelectedShot(null)}
-                className="inline-flex h-11 flex-1 items-center justify-center gap-1.5 rounded-lg border border-slate-300 bg-white text-sm font-semibold text-slate-700 hover:bg-slate-50"
-              >
-                <X aria-hidden="true" size={16} />
-                Done
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={editViewedShot}
+              className="inline-flex h-11 w-full items-center justify-center gap-1.5 rounded-lg bg-felt-700 text-sm font-bold text-white shadow-sm hover:bg-felt-500"
+            >
+              <Pencil aria-hidden="true" size={16} />
+              Edit
+            </button>
           ) : !gameState.isComplete ? (
             <>
               <div className="flex gap-2">

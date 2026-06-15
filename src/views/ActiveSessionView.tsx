@@ -1,12 +1,11 @@
-import { ChevronLeft, Plus } from "lucide-react";
+import { ChevronLeft } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { ActiveGameScorer } from "../components/ActiveGameScorer";
 import {
   addNextGameToSession,
   getSessionDetails,
   saveFrame,
-  updateGameLanes,
-  updateGameNotes
+  updateGameLanes
 } from "../services/bowlingRepository";
 import type { Frame, Game, SessionSummary } from "../types/bowling";
 
@@ -25,14 +24,14 @@ export function ActiveSessionView({
   const [activeGameId, setActiveGameId] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isAddingGame, setIsAddingGame] = useState(false);
-  const [note, setNote] = useState("");
   const [error, setError] = useState("");
 
-  // Per-game lane editor
+  // Inline lane editor
   const [laneA, setLaneA] = useState("");
   const [laneB, setLaneB] = useState("");
   const [startSide, setStartSide] = useState<"A" | "B">("A");
   const [laneError, setLaneError] = useState("");
+  const [showLaneEditor, setShowLaneEditor] = useState(false);
 
   const activeGame = useMemo(
     () => sessionDetails?.games.find((g) => g.id === activeGameId) ?? null,
@@ -40,20 +39,13 @@ export function ActiveSessionView({
   );
 
   useEffect(() => {
-    setNote(activeGame?.notes ?? "");
     const lanes = activeGame?.lanes ?? (activeGame?.lane_number ? [activeGame.lane_number] : []);
     setLaneA(lanes[0] ?? "");
     setLaneB(lanes[1] ?? "");
     setStartSide(activeGame?.start_lane && activeGame.start_lane === lanes[1] ? "B" : "A");
     setLaneError("");
-  }, [activeGame?.id, activeGame?.notes, activeGame?.lanes, activeGame?.lane_number, activeGame?.start_lane]);
-
-  async function saveNote() {
-    if (!activeGame?.id) return;
-    if ((activeGame.notes ?? "") === note.trim()) return;
-    await updateGameNotes(activeGame.id, note);
-    await refreshSession(activeGame.id);
-  }
+    setShowLaneEditor(false);
+  }, [activeGame?.id, activeGame?.lanes, activeGame?.lane_number, activeGame?.start_lane]);
 
   async function saveLanes() {
     if (!activeGame?.id) return;
@@ -118,7 +110,6 @@ export function ActiveSessionView({
     setError("");
     setIsAddingGame(true);
     try {
-      // Carries the lane pair and flips the start lane (cross-lane) automatically.
       const nextGameId = await addNextGameToSession(sessionId);
       await refreshSession(nextGameId);
     } catch (err) {
@@ -154,7 +145,7 @@ export function ActiveSessionView({
     );
   }
 
-  const canAddGame = activeGame.final_score !== undefined && !isAddingGame;
+  const gameComplete = activeGame.final_score !== undefined;
   const laneLabel = (activeGame.lanes ?? (activeGame.lane_number ? [activeGame.lane_number] : [])).join(" / ");
 
   return (
@@ -175,19 +166,76 @@ export function ActiveSessionView({
             </p>
             <p className="truncate text-xs text-slate-500">
               {sessionDetails.session.date} · Game {activeGame.game_number}
-              {laneLabel ? ` · Lane ${laneLabel}` : ""}
             </p>
+            <button
+              type="button"
+              onClick={() => setShowLaneEditor((v) => !v)}
+              className="mt-0.5 inline-flex items-center rounded-full border border-slate-300 bg-white px-2 py-0.5 text-[11px] font-semibold text-slate-600 hover:bg-slate-50 active:bg-slate-100"
+            >
+              {laneLabel ? `Lane ${laneLabel}` : "+ Add lane"}
+            </button>
           </div>
-          <button
-            type="button"
-            onClick={handleAddGame}
-            disabled={!canAddGame}
-            className="inline-flex h-9 items-center gap-1 rounded-md bg-felt-700 px-3 text-sm font-semibold text-white hover:bg-felt-500 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            <Plus size={16} aria-hidden="true" />
-            Add game
-          </button>
+          {gameComplete && (
+            <button
+              type="button"
+              onClick={handleAddGame}
+              disabled={isAddingGame}
+              className="inline-flex h-9 items-center gap-1 rounded-md bg-felt-700 px-3 text-sm font-semibold text-white hover:bg-felt-500 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Next Game
+            </button>
+          )}
         </div>
+
+        {/* Inline lane editor */}
+        {showLaneEditor && (
+          <div className="mt-2 space-y-2">
+            <div className="flex items-center gap-2">
+              <input
+                value={laneA}
+                onChange={(e) => setLaneA(e.target.value.replace(/\D/g, ""))}
+                onBlur={saveLanes}
+                inputMode="numeric"
+                aria-label="First lane"
+                placeholder="12"
+                className="h-8 w-14 rounded-lg border border-slate-300 px-2 text-sm outline-none focus:border-felt-700"
+              />
+              <span className="text-slate-400">/</span>
+              <input
+                value={laneB}
+                onChange={(e) => setLaneB(e.target.value.replace(/\D/g, ""))}
+                onBlur={saveLanes}
+                inputMode="numeric"
+                aria-label="Second lane"
+                placeholder="13"
+                className="h-8 w-14 rounded-lg border border-slate-300 px-2 text-sm outline-none focus:border-felt-700"
+              />
+              {laneA.trim() && laneB.trim() && (
+                <div className="flex items-center gap-1">
+                  <span className="text-xs text-slate-500">Frame 1 on:</span>
+                  {(["A", "B"] as const).map((side) => {
+                    const lane = side === "A" ? laneA.trim() : laneB.trim();
+                    return (
+                      <button
+                        key={side}
+                        type="button"
+                        onClick={() => { setStartSide(side); setTimeout(saveLanes, 0); }}
+                        className={`h-7 rounded-md border px-2 text-xs font-semibold ${
+                          startSide === side
+                            ? "border-felt-700 bg-felt-700 text-white"
+                            : "border-slate-300 bg-white text-slate-700"
+                        }`}
+                      >
+                        {lane}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+            {laneError && <p className="text-xs text-red-600">{laneError}</p>}
+          </div>
+        )}
 
         {sessionDetails.games.length > 1 && (
           <div className="mt-3 flex gap-1 overflow-x-auto pb-1">
@@ -210,76 +258,6 @@ export function ActiveSessionView({
             ))}
           </div>
         )}
-
-        <details className="group mt-3">
-          <summary className="cursor-pointer list-none text-xs font-semibold uppercase tracking-wide text-slate-500 marker:hidden">
-            Lane(s) for this game
-            <span className="ml-1 text-slate-400 group-open:hidden">+</span>
-          </summary>
-          <div className="mt-2 space-y-2">
-            <div className="flex items-center gap-2">
-              <input
-                value={laneA}
-                onChange={(e) => setLaneA(e.target.value)}
-                onBlur={saveLanes}
-                inputMode="numeric"
-                aria-label="First lane"
-                placeholder="12"
-                className="h-10 w-24 rounded-lg border border-slate-300 px-3 text-sm outline-none focus:border-felt-700"
-              />
-              <span className="text-slate-400">/</span>
-              <input
-                value={laneB}
-                onChange={(e) => setLaneB(e.target.value)}
-                onBlur={saveLanes}
-                inputMode="numeric"
-                aria-label="Second lane"
-                placeholder="13"
-                className="h-10 w-24 rounded-lg border border-slate-300 px-3 text-sm outline-none focus:border-felt-700"
-              />
-              {laneA.trim() && laneB.trim() && (
-                <div className="flex items-center gap-1">
-                  <span className="text-xs text-slate-500">F1:</span>
-                  {(["A", "B"] as const).map((side) => {
-                    const lane = side === "A" ? laneA.trim() : laneB.trim();
-                    return (
-                      <button
-                        key={side}
-                        type="button"
-                        onClick={() => { setStartSide(side); setTimeout(saveLanes, 0); }}
-                        className={`h-8 rounded-md border px-2 text-xs font-semibold ${
-                          startSide === side
-                            ? "border-felt-700 bg-felt-700 text-white"
-                            : "border-slate-300 bg-white text-slate-700"
-                        }`}
-                      >
-                        {lane}
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-            {laneError && <p className="text-xs text-red-600">{laneError}</p>}
-            <p className="text-[11px] text-slate-400">
-              Two lanes = cross-lane (frames alternate). New games auto-flip the starting lane.
-            </p>
-          </div>
-        </details>
-
-        <details className="group mt-3" open={Boolean(activeGame.notes)}>
-          <summary className="cursor-pointer list-none text-xs font-semibold uppercase tracking-wide text-slate-500 marker:hidden">
-            Note for this game
-            <span className="ml-1 text-slate-400 group-open:hidden">+</span>
-          </summary>
-          <textarea
-            value={note}
-            onChange={(e) => setNote(e.target.value)}
-            onBlur={saveNote}
-            placeholder="Ball, lane move, what worked..."
-            className="mt-2 min-h-16 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-felt-700 focus:ring-2 focus:ring-felt-700/20"
-          />
-        </details>
 
         {error && (
           <p className="mt-3 rounded-lg border border-red-200 bg-red-50 p-3 text-sm font-semibold text-red-700">

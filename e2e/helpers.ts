@@ -23,15 +23,24 @@ export async function startSession(page: Page, alley: string) {
  * Record one shot. `standingAfter` is the set of pin numbers LEFT STANDING
  * after the shot — [] means a strike/clear. Mirrors the data model.
  *
- * Inverted input (ADR-006): each shot starts with all pins down; tap the pins
- * that remain standing. So we tap each pin in `standingAfter` that is currently
- * down and tappable.
+ * Works for both the inverted shot-1 model (pins start down, tap to stand)
+ * and the pins-up shot-2+ model (remaining pins start standing, tap to knock):
+ * - Pins in standingAfter that are currently "down" get clicked (to mark standing).
+ * - Pins NOT in standingAfter that are currently "standing" and enabled get clicked
+ *   (to knock them down).
  */
 export async function recordShot(page: Page, standingAfter: number[]) {
-  for (const pin of standingAfter) {
-    const down = page.locator(`button[aria-label="Pin ${pin} down"]`);
-    if (await down.count()) await down.click();
+  const standingSet = new Set(standingAfter);
+  for (let pin = 1; pin <= 10; pin++) {
+    if (standingSet.has(pin)) {
+      // Should be standing — click if currently "down" (and enabled).
+      const downBtn = page.locator(`button[aria-label="Pin ${pin} down"]:not([disabled])`);
+      if (await downBtn.count()) await downBtn.click();
+    } else {
+      // Should be knocked down — click if currently "standing" (and enabled).
+      const standingBtn = page.locator(`button[aria-label="Pin ${pin} standing"]:not([disabled])`);
+      if (await standingBtn.count()) await standingBtn.click();
+    }
   }
-  // "Next" commits the currently-marked standing pins (empty marks = strike/spare).
   await page.getByRole("button", { name: "Next", exact: true }).click();
 }

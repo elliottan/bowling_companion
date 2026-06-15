@@ -64,7 +64,7 @@ export function submitShot(
         frames: upsertFrame(state.frames, updated),
         currentShot: 2,
         availablePins: normalized,
-        standingPins: [],
+        standingPins: normalized, // shot 2 starts pins-up (remaining pins standing)
         currentShotMeta: {}
       }
     };
@@ -85,14 +85,15 @@ function advanceTenthFrame(
 ): ShotSubmissionResult {
   if (state.currentShot === 1) {
     const strike = isStrike(frame);
+    const ap = strike ? ALL_PINS : pinsStanding;
     return {
       savedFrame: null,
       state: {
         ...state,
         frames: upsertFrame(state.frames, frame),
         currentShot: 2,
-        availablePins: strike ? ALL_PINS : pinsStanding,
-        standingPins: [],
+        availablePins: ap,
+        standingPins: ap, // shot 2 starts pins-up
         currentShotMeta: {}
       }
     };
@@ -115,7 +116,7 @@ function advanceTenthFrame(
         frames: upsertFrame(state.frames, frame),
         currentShot: 3,
         availablePins: racked,
-        standingPins: [],
+        standingPins: racked, // shot 3 starts pins-up
         currentShotMeta: {}
       }
     };
@@ -150,7 +151,7 @@ function completeFrame(
       currentFrameNumber: nextFrameNumber,
       currentShot: 1,
       availablePins: nextAvailablePins,
-      standingPins: [],
+      standingPins: [], // shot 1 of a new frame starts empty (inverted input)
       isComplete: nextFrameNumber > 10,
       currentShotMeta: {}
     }
@@ -192,9 +193,10 @@ function upsertFrame(frames: Frame[], frame: Frame): Frame[] {
   return next.sort((a, b) => a.frame_number - b.frame_number);
 }
 
-function getDefaultPinsForShot(_state: FrameControllerState): PinNumber[] {
-  // Inverted input: a reset clears all marks (nothing standing yet).
-  return [];
+function getDefaultPinsForShot(state: FrameControllerState): PinNumber[] {
+  // Shot 1: inverted input (nothing marked standing yet).
+  // Shot 2+: pins-up (remaining available pins start as standing).
+  return state.currentShot === 1 ? [] : state.availablePins;
 }
 
 function normalizePins(pins: PinNumber[]): PinNumber[] {
@@ -206,16 +208,13 @@ function normalizePins(pins: PinNumber[]): PinNumber[] {
 
 /**
  * Enter edit mode for one already-recorded frame: re-bowl it from shot 1.
- * Frames keep their stored shots; only the chosen frame is re-captured. The
- * caller passes the pre-edit state into `completeEdit` to restore the live
+ * The caller passes the pre-edit state into `completeEdit` to restore the live
  * position once the frame's shots are re-entered.
  */
 export function beginEdit(
   state: FrameControllerState,
   frameNumber: number
 ): FrameControllerState {
-  // Drop the edited frame so it is re-bowled fresh — otherwise stale shot 2/3
-  // data would survive a from-shot-1 re-entry.
   return {
     ...state,
     frames: state.frames.filter((f) => f.frame_number !== frameNumber),
@@ -223,6 +222,57 @@ export function beginEdit(
     currentShot: 1,
     availablePins: ALL_PINS,
     standingPins: [],
+    isComplete: false,
+    currentShotMeta: {}
+  };
+}
+
+/**
+ * Enter edit mode starting from a specific shot within an already-recorded frame.
+ * Shots before shotIndex are preserved. The pin deck is pre-filled with the
+ * recorded shot's pins. Editing continues forward from that shot.
+ */
+export function beginEditFromShot(
+  state: FrameControllerState,
+  frameNumber: number,
+  shotIndex: number
+): FrameControllerState {
+  const frame = state.frames.find((f) => f.frame_number === frameNumber);
+  if (!frame || !frame.shots[shotIndex]) {
+    return beginEdit(state, frameNumber);
+  }
+
+  const shot = frame.shots[shotIndex];
+
+  // Compute available pins entering this shot
+  let availablePins: PinNumber[];
+  if (shotIndex === 0) {
+    availablePins = ALL_PINS;
+  } else {
+    const prevPins = frame.shots[shotIndex - 1].pins_standing;
+    availablePins = prevPins.length === 0 ? ALL_PINS : prevPins;
+  }
+
+  // Keep shots before shotIndex; drop from shotIndex onwards
+  const priorShots = frame.shots.slice(0, shotIndex);
+  let updatedFrames: Frame[];
+  if (priorShots.length > 0) {
+    const partialFrame = finalizeFrame({ ...frame, shots: priorShots });
+    updatedFrames = [
+      ...state.frames.filter((f) => f.frame_number !== frameNumber),
+      partialFrame
+    ].sort((a, b) => a.frame_number - b.frame_number);
+  } else {
+    updatedFrames = state.frames.filter((f) => f.frame_number !== frameNumber);
+  }
+
+  return {
+    ...state,
+    frames: updatedFrames,
+    currentFrameNumber: frameNumber,
+    currentShot: (shotIndex + 1) as ActiveShot,
+    availablePins,
+    standingPins: shot.pins_standing, // pre-fill with recorded pins
     isComplete: false,
     currentShotMeta: {}
   };
@@ -248,8 +298,8 @@ export function completeEdit(
       frames,
       currentFrameNumber: resumed.currentFrameNumber,
       currentShot: resumed.currentShot,
-      availablePins: ALL_PINS,
-      standingPins: [],
+      availablePins: resumed.availablePins,
+      standingPins: resumed.standingPins,
       isComplete: resumed.isComplete,
       currentShotMeta: {}
     }
@@ -281,13 +331,14 @@ export function hydrateFrameController(frames: Frame[]): FrameControllerState {
   const shotOne = knockedDownCount(last.shots[0]?.pins_standing ?? ALL_PINS);
 
   if (!last.shots[1]) {
+    const ap = shotOne === 10 ? ALL_PINS : last.shots[0].pins_standing;
     return {
       ...createInitialFrameControllerState(),
       frames: ordered,
       currentFrameNumber: 10,
       currentShot: 2,
-      availablePins: shotOne === 10 ? ALL_PINS : last.shots[0].pins_standing,
-      standingPins: []
+      availablePins: ap,
+      standingPins: ap // shot 2 resumes pins-up
     };
   }
 
@@ -310,7 +361,7 @@ export function hydrateFrameController(frames: Frame[]): FrameControllerState {
       currentFrameNumber: 10,
       currentShot: 3,
       availablePins: racked,
-      standingPins: []
+      standingPins: racked // shot 3 resumes pins-up
     };
   }
 

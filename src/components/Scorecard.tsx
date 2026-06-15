@@ -7,7 +7,9 @@ interface ScorecardProps {
   activeFrameNumber: number;
   editingFrameNumber?: number | null;
   gameComplete?: boolean;
+  highlightCell?: { frameNumber: number; shotIndex: number };
   onShotTap?: (frameNumber: number, shotIndex: number) => void;
+  onLiveTap?: () => void;
 }
 
 export function Scorecard({
@@ -15,7 +17,9 @@ export function Scorecard({
   activeFrameNumber,
   editingFrameNumber = null,
   gameComplete = false,
-  onShotTap
+  highlightCell,
+  onShotTap,
+  onLiveTap
 }: ScorecardProps) {
   const gameScore = calculateGameScore(frames);
 
@@ -28,16 +32,19 @@ export function Scorecard({
         : [{ symbol: "", shotIndex: null }, { symbol: "", shotIndex: null }];
     const shotCells = frame ? getFrameShotCells(frame) : emptyCells;
     const score = gameScore.frames.find((f) => f.frame_number === frameNumber);
-    // A recorded frame that is not the one currently being bowled is editable;
-    // the active frame is in-progress and future frames have no data yet.
     const isEditable = !!frame && (frameNumber < activeFrameNumber || gameComplete);
+    const highlightShotIndex =
+      highlightCell?.frameNumber === frameNumber ? highlightCell.shotIndex : undefined;
+    // Active and future frames are tappable to snap back to live entry.
+    const showLiveTap = !!onLiveTap && !gameComplete && frameNumber >= activeFrameNumber;
     return {
       frameNumber,
       shotCells,
       rollingTotal: score?.rollingTotal ?? null,
-      isActive: activeFrameNumber === frameNumber,
       isEditing: editingFrameNumber === frameNumber,
-      onShotTap: isEditable ? onShotTap : undefined
+      highlightShotIndex,
+      onShotTap: isEditable ? onShotTap : undefined,
+      onLiveTap: showLiveTap ? onLiveTap : undefined
     };
   });
 
@@ -64,22 +71,24 @@ interface FrameCellProps {
   frameNumber: number;
   shotCells: FrameShotCell[];
   rollingTotal: number | null;
-  isActive: boolean;
   isEditing?: boolean;
   compact?: boolean;
+  highlightShotIndex?: number;
   onShotTap?: (frameNumber: number, shotIndex: number) => void;
+  onLiveTap?: () => void;
 }
 
 function FrameCell({
   frameNumber,
   shotCells,
   rollingTotal,
-  isActive,
   isEditing = false,
   compact,
-  onShotTap
+  highlightShotIndex,
+  onShotTap,
+  onLiveTap
 }: FrameCellProps) {
-  const bg = isEditing ? "bg-lane-100 ring-2 ring-inset ring-felt-700" : isActive ? "bg-lane-50" : "bg-white";
+  const bg = isEditing ? "bg-lane-100 ring-2 ring-inset ring-felt-700" : "bg-white";
   const border = compact ? "" : "border-r border-slate-200 last:border-r-0";
 
   return (
@@ -90,8 +99,14 @@ function FrameCell({
       <div className={`grid h-9 ${frameNumber === 10 ? "grid-cols-3" : "grid-cols-2"} sm:h-11`}>
         {shotCells.map((cell, idx) => {
           const tappable = onShotTap && cell.shotIndex !== null;
-          const className =
+          const liveTappable = !tappable && !!onLiveTap;
+          const isHighlighted = highlightShotIndex === idx;
+          const highlightClass = isHighlighted
+            ? "bg-felt-700 text-white"
+            : "";
+          const baseClass =
             "flex h-full items-center justify-center border-l border-slate-200 text-sm font-bold text-slate-900 first:border-l-0 sm:text-base";
+
           if (tappable) {
             return (
               <button
@@ -99,14 +114,27 @@ function FrameCell({
                 type="button"
                 onClick={() => onShotTap!(frameNumber, cell.shotIndex!)}
                 aria-label={`View frame ${frameNumber} shot ${cell.shotIndex! + 1}`}
-                className={`${className} hover:bg-lane-50 active:bg-lane-100`}
+                className={`${baseClass} ${highlightClass} hover:bg-lane-50 active:bg-lane-100`}
+              >
+                {cell.symbol}
+              </button>
+            );
+          }
+          if (liveTappable) {
+            return (
+              <button
+                key={idx}
+                type="button"
+                onClick={onLiveTap}
+                aria-label={`Go to live entry frame ${frameNumber}`}
+                className={`${baseClass} ${highlightClass} hover:bg-lane-50 active:bg-lane-100`}
               >
                 {cell.symbol}
               </button>
             );
           }
           return (
-            <div key={idx} className={className}>
+            <div key={idx} className={`${baseClass} ${highlightClass}`}>
               {cell.symbol}
             </div>
           );

@@ -21,13 +21,8 @@ const inputClass =
 const selectClass =
   "h-11 w-full rounded-lg border border-slate-300 px-3 text-sm outline-none focus:border-felt-700 focus:ring-2 focus:ring-felt-700/20 bg-white";
 
-const isPositiveInt = (s: string) => /^\d+$/.test(s.trim());
-
 export function SessionForm({ onSubmit, isSubmitting = false }: SessionFormProps) {
   const [alleyName, setAlleyName] = useState("");
-  const [laneA, setLaneA] = useState("");
-  const [laneB, setLaneB] = useState("");
-  const [startLane, setStartLane] = useState<"A" | "B">("A");
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [notes, setNotes] = useState("");
 
@@ -39,8 +34,6 @@ export function SessionForm({ onSubmit, isSubmitting = false }: SessionFormProps
   const [isAddingPattern, setIsAddingPattern] = useState(false);
   const [newPatternName, setNewPatternName] = useState("");
   const [addPatternError, setAddPatternError] = useState("");
-
-  const [laneError, setLaneError] = useState("");
 
   useEffect(() => {
     getOilPatterns().then(setOilPatterns).catch(() => {});
@@ -69,31 +62,13 @@ export function SessionForm({ onSubmit, isSubmitting = false }: SessionFormProps
     }
   }
 
-  function validateLanes(): { lanes: string[]; start_lane?: string } | null {
-    const a = laneA.trim();
-    const b = laneB.trim();
-    if (a && !isPositiveInt(a)) return null;
-    if (b && !isPositiveInt(b)) return null;
-    if (!a && b) return null; // can't have only a second lane
-    const lanes = [a, b].filter(Boolean);
-    if (lanes.length === 0) return { lanes: [] };
-    const start_lane = lanes.length === 2 ? (startLane === "A" ? a : b) : a;
-    return { lanes, start_lane };
-  }
-
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const laneResult = validateLanes();
-    if (!laneResult) {
-      setLaneError("Lane numbers must be whole numbers (and enter the first lane before the second).");
-      return;
-    }
-    setLaneError("");
     const selectedPattern = oilPatterns.find((op) => op.id === selectedPatternId);
     await onSubmit({
       alley_name: alleyName.trim(),
-      lanes: laneResult.lanes,
-      start_lane: laneResult.start_lane,
+      lanes: [],
+      start_lane: undefined,
       date,
       oil_pattern: selectedPattern?.name,
       oil_pattern_id: selectedPatternId,
@@ -138,51 +113,6 @@ export function SessionForm({ onSubmit, isSubmitting = false }: SessionFormProps
               </ul>
             )}
           </div>
-        </Field>
-
-        <Field label="Lane(s)">
-          <div className="flex items-center gap-2">
-            <input
-              value={laneA}
-              onChange={(e) => setLaneA(e.target.value)}
-              inputMode="numeric"
-              className={inputClass}
-              placeholder="12"
-              aria-label="First lane"
-            />
-            <span className="text-slate-400">/</span>
-            <input
-              value={laneB}
-              onChange={(e) => setLaneB(e.target.value)}
-              inputMode="numeric"
-              className={inputClass}
-              placeholder="13 (optional)"
-              aria-label="Second lane (cross-lane)"
-            />
-          </div>
-          {laneA.trim() && laneB.trim() && (
-            <div className="mt-2 flex items-center gap-2">
-              <span className="text-xs text-slate-500">Frame 1 on:</span>
-              {(["A", "B"] as const).map((side) => {
-                const lane = side === "A" ? laneA.trim() : laneB.trim();
-                return (
-                  <button
-                    key={side}
-                    type="button"
-                    onClick={() => setStartLane(side)}
-                    className={`h-8 rounded-md border px-3 text-xs font-semibold ${
-                      startLane === side
-                        ? "border-felt-700 bg-felt-700 text-white"
-                        : "border-slate-300 bg-white text-slate-700"
-                    }`}
-                  >
-                    {lane}
-                  </button>
-                );
-              })}
-            </div>
-          )}
-          {laneError && <p className="mt-1 text-xs text-red-600">{laneError}</p>}
         </Field>
 
         <Field label="Date">
