@@ -1,9 +1,9 @@
 export type PinNumber = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
 
 export interface LineSpec {
-  stance: number;
-  target: number;
-  breakpoint: number;
+  stance?: number;
+  target?: number;
+  breakpoint?: number;
 }
 
 export interface ShotMetadata {
@@ -46,6 +46,7 @@ export interface Session {
   id?: number;
   date: string;
   alley_name: string;
+  description?: string;
   oil_pattern?: string;
   oil_pattern_id?: number;
   general_notes?: string;

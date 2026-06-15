@@ -16,7 +16,8 @@ export async function clearDatabase(page: Page) {
 export async function startSession(page: Page, alley: string) {
   await page.getByPlaceholder("Orchid Bowl").fill(alley);
   await page.getByRole("button", { name: "Start session" }).click();
-  await page.getByText(/Frame \d+ . Shot \d+/i).waitFor();
+  // The scorer is up once the live-entry action buttons render.
+  await page.getByRole("button", { name: "Next", exact: true }).waitFor();
 }
 
 /**

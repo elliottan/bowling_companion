@@ -93,7 +93,7 @@ function advanceTenthFrame(
         frames: upsertFrame(state.frames, frame),
         currentShot: 2,
         availablePins: ap,
-        standingPins: ap, // shot 2 starts pins-up
+        standingPins: freshRackStart(ap), // fresh rack (after strike) -> all down
         currentShotMeta: {}
       }
     };
@@ -116,7 +116,7 @@ function advanceTenthFrame(
         frames: upsertFrame(state.frames, frame),
         currentShot: 3,
         availablePins: racked,
-        standingPins: racked, // shot 3 starts pins-up
+        standingPins: freshRackStart(racked), // fresh rack (after strike/spare) -> all down
         currentShotMeta: {}
       }
     };
@@ -195,8 +195,17 @@ function upsertFrame(frames: Frame[], frame: Frame): Frame[] {
 
 function getDefaultPinsForShot(state: FrameControllerState): PinNumber[] {
   // Shot 1: inverted input (nothing marked standing yet).
-  // Shot 2+: pins-up (remaining available pins start as standing).
-  return state.currentShot === 1 ? [] : state.availablePins;
+  // Shot 2+: pins-up on a partial rack; a fresh rack (after a strike/spare) is
+  // a "first ball" and starts all-down.
+  return state.currentShot === 1 ? [] : freshRackStart(state.availablePins);
+}
+
+/**
+ * A ball thrown at a fresh rack (all 10 available) is a "first ball" and starts
+ * all-down (empty selection); a partial rack starts pins-up (remaining standing).
+ */
+function freshRackStart(available: PinNumber[]): PinNumber[] {
+  return available.length === 10 ? [] : available;
 }
 
 function normalizePins(pins: PinNumber[]): PinNumber[] {
@@ -204,6 +213,48 @@ function normalizePins(pins: PinNumber[]): PinNumber[] {
   return [...new Set(pins)]
     .filter((p) => allowed.has(p))
     .sort((a, b) => a - b);
+}
+
+/**
+ * Update a recorded shot's metadata (ball/line/notes) only. Pins are untouched,
+ * so strike/spare and every other shot stay exactly as they were.
+ */
+export function editFrameShotMeta(
+  frames: Frame[],
+  frameNumber: number,
+  shotIndex: number,
+  meta: ShotMetadata
+): Frame[] {
+  const frame = frames.find((f) => f.frame_number === frameNumber);
+  if (!frame || !frame.shots[shotIndex]) return frames;
+  const shots = frame.shots.map((s, i) =>
+    i === shotIndex ? { ...s, ...meta } : s
+  );
+  return upsertFrame(frames, { ...frame, shots });
+}
+
+/**
+ * Update a recorded shot's pins and re-derive the frame. A first-ball strike in
+ * a 1–9 frame drops the (now impossible) second shot. Game totals recompute
+ * downstream from the returned frames.
+ */
+export function editFrameShotPins(
+  frames: Frame[],
+  frameNumber: number,
+  shotIndex: number,
+  pinsStanding: PinNumber[]
+): Frame[] {
+  const frame = frames.find((f) => f.frame_number === frameNumber);
+  if (!frame || !frame.shots[shotIndex]) return frames;
+  const normalized = normalizePins(pinsStanding);
+  let shots = frame.shots.map((s, i) =>
+    i === shotIndex ? { ...s, pins_standing: normalized } : s
+  );
+  // Non-10th first-ball strike leaves no room for a second shot.
+  if (frameNumber !== 10 && shotIndex === 0 && normalized.length === 0) {
+    shots = shots.slice(0, 1);
+  }
+  return upsertFrame(frames, finalizeFrame({ ...frame, shots }));
 }
 
 /**
@@ -338,7 +389,7 @@ export function hydrateFrameController(frames: Frame[]): FrameControllerState {
       currentFrameNumber: 10,
       currentShot: 2,
       availablePins: ap,
-      standingPins: ap // shot 2 resumes pins-up
+      standingPins: freshRackStart(ap) // fresh rack resumes all-down
     };
   }
 
@@ -361,7 +412,7 @@ export function hydrateFrameController(frames: Frame[]): FrameControllerState {
       currentFrameNumber: 10,
       currentShot: 3,
       availablePins: racked,
-      standingPins: racked // shot 3 resumes pins-up
+      standingPins: freshRackStart(racked) // fresh rack resumes all-down
     };
   }
 

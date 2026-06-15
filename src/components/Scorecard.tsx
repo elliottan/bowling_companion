@@ -96,11 +96,22 @@ function FrameCell({
       <div className="border-b border-slate-200 px-1 py-1 text-center text-[10px] font-bold uppercase text-slate-500 sm:text-xs">
         {frameNumber}
       </div>
+      {/*
+       * Highlight by the shot the cell represents when a recorded shot matches
+       * (so a strike's X box — shot 0 rendered in the 2nd cell — highlights, not
+       * the empty first cell). Fall back to display index for the live/empty cell.
+       */}
       <div className={`grid h-9 ${frameNumber === 10 ? "grid-cols-3" : "grid-cols-2"} sm:h-11`}>
         {shotCells.map((cell, idx) => {
           const tappable = onShotTap && cell.shotIndex !== null;
           const liveTappable = !tappable && !!onLiveTap;
-          const isHighlighted = highlightShotIndex === idx;
+          const matchesByShot = shotCells.some((c) => c.shotIndex === highlightShotIndex);
+          const isHighlighted =
+            highlightShotIndex === undefined
+              ? false
+              : matchesByShot
+              ? cell.shotIndex === highlightShotIndex
+              : idx === highlightShotIndex;
           const highlightClass = isHighlighted
             ? "bg-felt-700 text-white"
             : "";

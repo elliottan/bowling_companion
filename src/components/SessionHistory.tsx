@@ -55,6 +55,16 @@ export function SessionHistory({
 
 const REVEAL = 88; // px the card slides left to expose the delete action
 
+/** Distinct lanes across a session's games, e.g. "Lane 9 / 10". */
+function laneSummary(games: SessionSummary["games"]): string {
+  const lanes = new Set<string>();
+  for (const g of games) {
+    const list = g.lanes ?? (g.lane_number ? [g.lane_number] : []);
+    for (const l of list) if (l) lanes.add(l);
+  }
+  return lanes.size ? `Lane ${[...lanes].join(" / ")}` : "";
+}
+
 interface SwipeRowProps {
   summary: SessionSummary;
   isActive: boolean;
@@ -64,6 +74,16 @@ interface SwipeRowProps {
 
 function SwipeRow({ summary, isActive, onOpen, onRequestDelete }: SwipeRowProps) {
   const { session, games } = summary;
+  // Series total = sum of every game's score (current total if unfinished);
+  // average = mean of completed games only.
+  const seriesTotal = games.reduce(
+    (sum, g) => sum + (g.final_score ?? calculateGameScore(g.frames).total),
+    0
+  );
+  const completed = games.flatMap((g) => (g.final_score !== undefined ? [g.final_score] : []));
+  const seriesAvg = completed.length
+    ? Math.round(completed.reduce((a, b) => a + b, 0) / completed.length)
+    : null;
   const [offset, setOffset] = useState(0); // 0 = closed, -REVEAL = open
   const startX = useRef(0);
   const dragging = useRef(false);
@@ -124,19 +144,27 @@ function SwipeRow({ summary, isActive, onOpen, onRequestDelete }: SwipeRowProps)
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
             <p className="truncate font-semibold text-slate-950">{session.alley_name}</p>
-            <p className="text-xs text-slate-500">
-              {session.date}
-              {session.oil_pattern && ` · ${session.oil_pattern}`}
+            {session.description && (
+              <p className="truncate text-xs font-medium text-slate-600">{session.description}</p>
+            )}
+            <p className="truncate text-xs text-slate-500">
+              {[session.date, laneSummary(games), session.oil_pattern]
+                .filter(Boolean)
+                .join(" · ")}
             </p>
           </div>
-          <div className="flex shrink-0 flex-col items-end gap-1 text-right">
+          <div className="flex shrink-0 flex-col items-end gap-0.5 text-right">
             {isActive && (
               <span className="inline-flex items-center rounded-full bg-felt-700 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">
                 Active
               </span>
             )}
-            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+            {seriesTotal > 0 && (
+              <p className="text-lg font-extrabold leading-none text-felt-700">{seriesTotal}</p>
+            )}
+            <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
               {games.length} {games.length === 1 ? "game" : "games"}
+              {seriesAvg !== null && ` · ${seriesAvg} avg`}
             </p>
           </div>
         </div>

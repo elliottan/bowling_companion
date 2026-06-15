@@ -12,7 +12,7 @@ import { DashboardView } from "./views/DashboardView";
 import { ActiveSessionView } from "./views/ActiveSessionView";
 import { HistoryView } from "./views/HistoryView";
 import { StatsView } from "./views/StatsView";
-import { SettingsView } from "./views/SettingsView";
+import { SettingsView, type SettingsSection } from "./views/SettingsView";
 import { SpareLinesView } from "./views/SpareLinesView";
 import {
   addGameToSession,
@@ -46,11 +46,20 @@ function App() {
   const [activeSessionId, setActiveSessionId] = useState<number | null>(null);
   const [isStartingSession, setIsStartingSession] = useState(false);
   const [startError, setStartError] = useState("");
+  const [settingsSection, setSettingsSection] = useState<SettingsSection>("menu");
 
   // Navigate, remembering where we came from when entering the active view.
   function goTo(target: AppView) {
     if (target === "active" && view !== "active") setPreviousView(view);
+    if (target === "settings") setSettingsSection("menu");
     setView(target);
+  }
+
+  // Deep-link into Settings → Arsenal (from the scorer's ball selector).
+  function openArsenal() {
+    if (view !== "active") setPreviousView(view);
+    setSettingsSection("arsenal");
+    setView("settings");
   }
 
   async function handleStartSession(values: NewSessionFormValues) {
@@ -60,6 +69,7 @@ function App() {
     try {
       const sessionId = await createSession({
         alley_name: values.alley_name,
+        description: values.description,
         date: values.date,
         oil_pattern: values.oil_pattern,
         oil_pattern_id: values.oil_pattern_id,
@@ -130,6 +140,7 @@ function App() {
               setActiveSessionId(null);
               setView(previousView);
             }}
+            onOpenArsenal={openArsenal}
           />
         )}
         {view === "history" && (
@@ -143,7 +154,9 @@ function App() {
         )}
         {view === "stats" && <StatsView />}
         {view === "spares" && <SpareLinesView />}
-        {view === "settings" && <SettingsView />}
+        {view === "settings" && (
+          <SettingsView section={settingsSection} onSectionChange={setSettingsSection} />
+        )}
       </main>
 
       <nav className="grid shrink-0 grid-cols-6 border-t border-slate-200 bg-white pb-[env(safe-area-inset-bottom)] sm:hidden">

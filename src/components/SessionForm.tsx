@@ -24,6 +24,7 @@ const selectClass =
 export function SessionForm({ onSubmit, isSubmitting = false }: SessionFormProps) {
   const [alleyName, setAlleyName] = useState("");
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [description, setDescription] = useState("");
   const [notes, setNotes] = useState("");
 
   const [alleys, setAlleys] = useState<string[]>([]);
@@ -67,6 +68,7 @@ export function SessionForm({ onSubmit, isSubmitting = false }: SessionFormProps
     const selectedPattern = oilPatterns.find((op) => op.id === selectedPatternId);
     await onSubmit({
       alley_name: alleyName.trim(),
+      description: description.trim() || undefined,
       lanes: [],
       start_lane: undefined,
       date,
@@ -122,6 +124,15 @@ export function SessionForm({ onSubmit, isSubmitting = false }: SessionFormProps
             value={date}
             onChange={(e) => setDate(e.target.value)}
             className={inputClass}
+          />
+        </Field>
+
+        <Field label="Description">
+          <input
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            className={inputClass}
+            placeholder="League night, practice, tournament..."
           />
         </Field>
       </div>

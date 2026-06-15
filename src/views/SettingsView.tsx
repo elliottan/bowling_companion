@@ -1,13 +1,17 @@
 import { Archive, ChevronLeft, ChevronRight, CircleDot, MapPin, type LucideIcon } from "lucide-react";
-import { useState } from "react";
 import { ArsenalView } from "./ArsenalView";
 import { BackupRestoreView } from "./BackupRestoreView";
 import { LaneNotesView } from "./LaneNotesView";
 
-type Section = "menu" | "arsenal" | "lanes" | "backup";
+export type SettingsSection = "menu" | "arsenal" | "lanes" | "backup";
+
+interface SettingsViewProps {
+  section: SettingsSection;
+  onSectionChange: (section: SettingsSection) => void;
+}
 
 interface MenuRow {
-  section: Exclude<Section, "menu">;
+  section: Exclude<SettingsSection, "menu">;
   label: string;
   description: string;
   icon: LucideIcon;
@@ -34,16 +38,14 @@ const MENU_ROWS: ReadonlyArray<MenuRow> = [
   }
 ];
 
-export function SettingsView() {
-  const [section, setSection] = useState<Section>("menu");
-
+export function SettingsView({ section, onSectionChange }: SettingsViewProps) {
   if (section !== "menu") {
     return (
       <>
         <div className="mx-auto w-full max-w-3xl px-3 pt-4 sm:px-6">
           <button
             type="button"
-            onClick={() => setSection("menu")}
+            onClick={() => onSectionChange("menu")}
             className="inline-flex h-9 items-center gap-1 rounded-md px-2 text-sm font-semibold text-slate-700 hover:bg-slate-100"
           >
             <ChevronLeft size={16} aria-hidden="true" />
@@ -65,7 +67,7 @@ export function SettingsView() {
             <li key={row.section}>
               <button
                 type="button"
-                onClick={() => setSection(row.section)}
+                onClick={() => onSectionChange(row.section)}
                 className="flex w-full items-center gap-3 rounded-lg border border-slate-200 bg-white p-4 text-left shadow-sm hover:border-felt-700"
               >
                 <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-felt-700/10 text-felt-700">

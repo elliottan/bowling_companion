@@ -230,9 +230,11 @@ export function filterSessionsBy(
     }
 
     if (filter.laneNumber) {
-      const filteredGames = s.games.filter(
-        (g) => g.lane_number?.toLowerCase() === filter.laneNumber!.toLowerCase()
-      );
+      const wanted = filter.laneNumber.toLowerCase();
+      const filteredGames = s.games.filter((g) => {
+        const lanes = g.lanes ?? (g.lane_number ? [g.lane_number] : []);
+        return lanes.some((l) => l.toLowerCase() === wanted);
+      });
       if (filteredGames.length === 0) return acc;
       acc.push({ session: s.session, games: filteredGames });
       return acc;

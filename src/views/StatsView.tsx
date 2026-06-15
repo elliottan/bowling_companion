@@ -80,9 +80,11 @@ export function StatsView() {
     () =>
       [
         ...new Set(
-          history.flatMap((s) => s.games.flatMap((g) => (g.lane_number ? [g.lane_number] : [])))
+          history.flatMap((s) =>
+            s.games.flatMap((g) => g.lanes ?? (g.lane_number ? [g.lane_number] : []))
+          )
         ),
-      ].sort(),
+      ].sort((a, b) => Number(a) - Number(b) || a.localeCompare(b)),
     [history]
   );
 
@@ -96,50 +98,45 @@ export function StatsView() {
         </p>
       )}
 
-      {(allAlleys.length > 1 || allPatterns.length > 0 || allLanes.length > 0) && (
+      {history.length > 0 && (
         <div className="mb-4 flex flex-wrap gap-2">
-          {allAlleys.length > 1 && (
-            <select
-              value={filterAlley}
-              onChange={(e) => setFilterAlley(e.target.value)}
-              className={selectClass}
-            >
-              <option value="">All alleys</option>
-              {allAlleys.map((a) => (
-                <option key={a} value={a}>
-                  {a}
-                </option>
-              ))}
-            </select>
-          )}
-          {allPatterns.length > 0 && (
-            <select
-              value={filterPattern}
-              onChange={(e) => setFilterPattern(e.target.value)}
-              className={selectClass}
-            >
-              <option value="">All patterns</option>
-              {allPatterns.map((p) => (
-                <option key={p} value={p}>
-                  {p}
-                </option>
-              ))}
-            </select>
-          )}
-          {allLanes.length > 0 && (
-            <select
-              value={filterLane}
-              onChange={(e) => setFilterLane(e.target.value)}
-              className={selectClass}
-            >
-              <option value="">All lanes</option>
-              {allLanes.map((l) => (
-                <option key={l} value={l}>
-                  Lane {l}
-                </option>
-              ))}
-            </select>
-          )}
+          {/* Location → Oil pattern → Lanes */}
+          <select
+            value={filterAlley}
+            onChange={(e) => setFilterAlley(e.target.value)}
+            className={selectClass}
+          >
+            <option value="">All locations</option>
+            {allAlleys.map((a) => (
+              <option key={a} value={a}>
+                {a}
+              </option>
+            ))}
+          </select>
+          <select
+            value={filterPattern}
+            onChange={(e) => setFilterPattern(e.target.value)}
+            className={selectClass}
+          >
+            <option value="">All patterns</option>
+            {allPatterns.map((p) => (
+              <option key={p} value={p}>
+                {p}
+              </option>
+            ))}
+          </select>
+          <select
+            value={filterLane}
+            onChange={(e) => setFilterLane(e.target.value)}
+            className={selectClass}
+          >
+            <option value="">All lanes</option>
+            {allLanes.map((l) => (
+              <option key={l} value={l}>
+                Lane {l}
+              </option>
+            ))}
+          </select>
         </div>
       )}
 

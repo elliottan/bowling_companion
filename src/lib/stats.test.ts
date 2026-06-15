@@ -216,4 +216,19 @@ describe("filterSessionsBy", () => {
     const result = filterSessionsBy(sessions, { laneNumber: "3" });
     expect(result).toHaveLength(0);
   });
+
+  it("matches either lane of a cross-lane game", () => {
+    const sessions: SessionSummary[] = [
+      {
+        session: { date: "2026-06-01", alley_name: "Cross", oil_pattern: undefined },
+        games: [
+          { id: 1, session_id: 1, game_number: 1, lanes: ["9", "10"], lane_number: "9", frames: [] }
+        ]
+      }
+    ];
+    // The second lane of the pair must still match (was the cross-lane bug).
+    expect(filterSessionsBy(sessions, { laneNumber: "10" })).toHaveLength(1);
+    expect(filterSessionsBy(sessions, { laneNumber: "9" })).toHaveLength(1);
+    expect(filterSessionsBy(sessions, { laneNumber: "11" })).toHaveLength(0);
+  });
 });

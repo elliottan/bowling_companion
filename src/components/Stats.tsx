@@ -78,7 +78,7 @@ export function Stats({ stats, isLoading = false, leaves }: StatsProps) {
                     {formatLeave(leave.pins)}
                   </p>
                   <p className="text-xs text-slate-500">
-                    {leave.attempts} {leave.attempts === 1 ? "time" : "times"}
+                    {leave.conversions}/{leave.attempts} spared
                   </p>
                 </div>
                 <div className="text-right">

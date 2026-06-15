@@ -1,7 +1,8 @@
-import { ChevronLeft, MoreVertical, Plus, Trash2 } from "lucide-react";
+import { ChevronLeft, ListChecks, MoreVertical, Plus, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { ActiveGameScorer } from "../components/ActiveGameScorer";
 import { ConfirmDialog } from "../components/ConfirmDialog";
+import { SessionSheet } from "../components/SessionSheet";
 import {
   addNextGameToSession,
   deleteGame,
@@ -16,6 +17,8 @@ interface ActiveSessionViewProps {
   onBack: () => void;
   /** Called when the last game is deleted and the session no longer exists. */
   onSessionDeleted: () => void;
+  /** Jump to Arsenal to manage balls. */
+  onOpenArsenal: () => void;
 }
 
 const isPositiveInt = (s: string) => /^\d+$/.test(s.trim());
@@ -23,7 +26,8 @@ const isPositiveInt = (s: string) => /^\d+$/.test(s.trim());
 export function ActiveSessionView({
   sessionId,
   onBack,
-  onSessionDeleted
+  onSessionDeleted,
+  onOpenArsenal
 }: ActiveSessionViewProps) {
   const [sessionDetails, setSessionDetails] = useState<SessionSummary | null>(null);
   const [activeGameId, setActiveGameId] = useState<number | null>(null);
@@ -32,6 +36,7 @@ export function ActiveSessionView({
   const [error, setError] = useState("");
   const [showMenu, setShowMenu] = useState(false);
   const [confirmDeleteGame, setConfirmDeleteGame] = useState(false);
+  const [showSheet, setShowSheet] = useState(false);
 
   // Inline lane editor
   const [laneA, setLaneA] = useState("");
@@ -179,7 +184,10 @@ export function ActiveSessionView({
   const latestGame = games[games.length - 1];
   const latestComplete = latestGame?.final_score !== undefined;
   const isLastGameActive = activeGame.id === latestGame?.id;
-  const canAddGame = latestComplete && !isAddingGame;
+  // The big "Next Game" CTA only when the active (last) game is fully complete.
+  const showNextGameCta = isLastGameActive && latestComplete;
+  // The +/menu can add a game at any time.
+  const canAddGame = !isAddingGame;
 
   return (
     <div>
@@ -229,6 +237,14 @@ export function ActiveSessionView({
                   >
                     <Plus size={16} aria-hidden="true" />
                     New game
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setShowMenu(false); setShowSheet(true); }}
+                    className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm font-medium text-slate-700 hover:bg-slate-50"
+                  >
+                    <ListChecks size={16} aria-hidden="true" />
+                    Session sheet
                   </button>
                   <button
                     type="button"
@@ -317,7 +333,7 @@ export function ActiveSessionView({
             onClick={() => void handleAddGame()}
             disabled={!canAddGame}
             aria-label="New game"
-            title={canAddGame ? "New game" : "Finish the current game first"}
+            title="New game"
             className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-slate-900 text-white hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-40"
           >
             <Plus size={16} aria-hidden="true" />
@@ -337,7 +353,8 @@ export function ActiveSessionView({
         mode="session"
         game={activeGame}
         onFrameComplete={handleFrameComplete}
-        onNextGame={isLastGameActive ? handleAddGame : undefined}
+        onNextGame={showNextGameCta ? handleAddGame : undefined}
+        onOpenArsenal={onOpenArsenal}
       />
 
       <ConfirmDialog
@@ -347,6 +364,14 @@ export function ActiveSessionView({
         onConfirm={handleDeleteGame}
         onCancel={() => setConfirmDeleteGame(false)}
       />
+
+      {showSheet && (
+        <SessionSheet
+          summary={sessionDetails}
+          currentGameId={activeGame.id}
+          onClose={() => setShowSheet(false)}
+        />
+      )}
     </div>
   );
 }

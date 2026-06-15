@@ -4,6 +4,8 @@ import {
   beginEditFromShot,
   completeEdit,
   createInitialFrameControllerState,
+  editFrameShotMeta,
+  editFrameShotPins,
   hydrateFrameController,
   submitShot,
   updateShotMeta,
@@ -64,13 +66,14 @@ describe("frameController", () => {
     state = submitShot(state, []).state; // 10th shot 1 strike
     expect(state.currentFrameNumber).toBe(10);
     expect(state.currentShot).toBe(2);
-    // Fresh rack after strike → shot 2 starts pins-up with all 10.
-    expect(state.standingPins).toEqual(ALL);
+    // Fresh rack after a strike is a "first ball" → starts all-down.
+    expect(state.availablePins).toEqual(ALL);
+    expect(state.standingPins).toEqual([]);
 
     state = submitShot(state, []).state; // shot 2 strike
     expect(state.currentShot).toBe(3);
-    // Fresh rack again → shot 3 starts pins-up with all 10.
-    expect(state.standingPins).toEqual(ALL);
+    // Fresh rack again → shot 3 starts all-down.
+    expect(state.standingPins).toEqual([]);
 
     const result = submitShot(state, []);
     expect(result.state.isComplete).toBe(true);
@@ -129,8 +132,8 @@ describe("frameController", () => {
     expect(hydrated.isComplete).toBe(false);
     expect(hydrated.currentFrameNumber).toBe(10);
     expect(hydrated.currentShot).toBe(3);
-    // Fresh rack (both strikes) → shot 3 resumes pins-up.
-    expect(hydrated.standingPins).toEqual(ALL);
+    // Fresh rack (both strikes) → shot 3 resumes all-down.
+    expect(hydrated.standingPins).toEqual([]);
   });
 
   it("hydrates a 10th-frame single-strike (shot 2 not thrown) to currentShot 2", () => {
@@ -157,7 +160,7 @@ describe("frameController", () => {
     expect(hydrated.currentFrameNumber).toBe(10);
     expect(hydrated.currentShot).toBe(2);
     expect(hydrated.availablePins).toEqual(ALL); // fresh rack after a strike
-    expect(hydrated.standingPins).toEqual(ALL); // shot 2 resumes pins-up
+    expect(hydrated.standingPins).toEqual([]); // shot 2 resumes all-down
   });
 
   it("hydrates a finished 10th-frame open as complete", () => {
@@ -309,5 +312,78 @@ describe("beginEditFromShot", () => {
     // No frame 5 in frames, so falls back: drops all, goes to frame 5 shot 1
     expect(editing.currentFrameNumber).toBe(5);
     expect(editing.currentShot).toBe(1);
+  });
+});
+
+describe("fresh-rack pin defaults (10th frame)", () => {
+  const tenthShot1: FrameControllerState = {
+    ...createInitialFrameControllerState(),
+    currentFrameNumber: 10,
+    currentShot: 1,
+    availablePins: ALL,
+    standingPins: []
+  };
+
+  it("ball 2 after a strike starts all-down (fresh rack)", () => {
+    const r = submitShot(tenthShot1, []); // strike
+    expect(r.state.currentShot).toBe(2);
+    expect(r.state.availablePins).toEqual(ALL);
+    expect(r.state.standingPins).toEqual([]);
+  });
+
+  it("ball 2 after an open shot starts pins-up (partial rack)", () => {
+    const r = submitShot(tenthShot1, [7]); // left the 7
+    expect(r.state.currentShot).toBe(2);
+    expect(r.state.standingPins).toEqual([7]);
+  });
+
+  it("ball 3 after a spare starts all-down (fresh rack)", () => {
+    const afterOpen = submitShot(tenthShot1, [7]); // shot 1 leaves the 7
+    const afterSpare = submitShot(afterOpen.state, []); // shot 2 spare
+    expect(afterSpare.state.currentShot).toBe(3);
+    expect(afterSpare.state.availablePins).toEqual(ALL);
+    expect(afterSpare.state.standingPins).toEqual([]);
+  });
+});
+
+describe("editFrameShot* helpers", () => {
+  const twoShotFrame: Frame = {
+    game_id: 0,
+    frame_number: 3,
+    shots: [
+      { pins_standing: [7], intended: { target: 10 }, notes: "first" },
+      { pins_standing: [7], notes: "second" }
+    ],
+    is_strike: false,
+    is_spare: false
+  };
+
+  it("editFrameShotMeta changes only that shot, leaves pins + other shots intact", () => {
+    const out = editFrameShotMeta([twoShotFrame], 3, 0, {
+      ball_id: 5,
+      intended: { target: 12 },
+      actual: undefined,
+      notes: "edited"
+    });
+    const f = out.find((x) => x.frame_number === 3)!;
+    expect(f.shots[0].notes).toBe("edited");
+    expect(f.shots[0].ball_id).toBe(5);
+    expect(f.shots[0].pins_standing).toEqual([7]); // pins untouched
+    expect(f.shots[1].notes).toBe("second"); // other shot untouched
+    expect(f.shots).toHaveLength(2);
+  });
+
+  it("editFrameShotPins turning shot 1 into a strike drops the second shot", () => {
+    const out = editFrameShotPins([twoShotFrame], 3, 0, []);
+    const f = out.find((x) => x.frame_number === 3)!;
+    expect(f.is_strike).toBe(true);
+    expect(f.shots).toHaveLength(1);
+  });
+
+  it("editFrameShotPins keeps both shots when the leave still stands", () => {
+    const out = editFrameShotPins([twoShotFrame], 3, 0, [7, 10]);
+    const f = out.find((x) => x.frame_number === 3)!;
+    expect(f.shots).toHaveLength(2);
+    expect(f.shots[0].pins_standing).toEqual([7, 10]);
   });
 });
