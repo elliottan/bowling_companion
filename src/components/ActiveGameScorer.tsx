@@ -22,16 +22,59 @@ interface LineInputProps {
   readOnly?: boolean;
 }
 
+const LINE_FIELDS = ["stance", "target", "breakpoint"] as const;
+
+// Keep only digits and a single dot, capped at one decimal place. A trailing
+// dot is preserved so "15." can be typed on the way to "15.5".
+function sanitizeLine(raw: string): string {
+  let s = raw.replace(/[^\d.]/g, "");
+  const dot = s.indexOf(".");
+  if (dot === -1) return s;
+  const intPart = s.slice(0, dot);
+  const dec = s.slice(dot + 1).replace(/\./g, "").slice(0, 1);
+  return `${intPart}.${dec}`;
+}
+
+function parseOneDp(s: string): number | undefined {
+  if (!/\d/.test(s)) return undefined;
+  const n = parseFloat(s);
+  return Number.isNaN(n) ? undefined : Math.round(n * 10) / 10;
+}
+
 function LineInput({ label, value, onChange, readOnly = false }: LineInputProps) {
+  const toText = (v: LineSpec | undefined) => ({
+    stance: v?.stance != null ? String(v.stance) : "",
+    target: v?.target != null ? String(v.target) : "",
+    breakpoint: v?.breakpoint != null ? String(v.breakpoint) : ""
+  });
+  const [text, setText] = useState(() => toText(value));
+
+  // Re-sync from the prop only on external changes (carry-forward, actual
+  // autofill, reset) — not when the prop merely echoes the user's own edit,
+  // so in-progress entries like "15." aren't wiped.
+  useEffect(() => {
+    setText((prev) => {
+      const next = { ...prev };
+      for (const f of LINE_FIELDS) {
+        if (parseOneDp(prev[f]) !== value?.[f]) {
+          next[f] = value?.[f] != null ? String(value[f]) : "";
+        }
+      }
+      return next;
+    });
+  }, [value?.stance, value?.target, value?.breakpoint]);
+
   function update(field: keyof LineSpec, raw: string) {
-    const n = parseInt(raw, 10);
-    const v = isNaN(n) ? undefined : Math.max(1, Math.min(39, n));
-    const next = { stance: value?.stance ?? 20, target: value?.target ?? 20, breakpoint: value?.breakpoint ?? 10 };
+    const s = sanitizeLine(raw);
+    setText((t) => ({ ...t, [field]: s }));
+
+    const v = parseOneDp(s);
     if (v === undefined) {
       onChange(undefined);
       return;
     }
-    next[field] = v;
+    const next = { stance: value?.stance ?? 20, target: value?.target ?? 20, breakpoint: value?.breakpoint ?? 10 };
+    next[field] = Math.max(1, Math.min(39, v));
     onChange(next);
   }
 
@@ -39,14 +82,12 @@ function LineInput({ label, value, onChange, readOnly = false }: LineInputProps)
     <div>
       <span className="mb-1 block text-[10px] font-semibold uppercase tracking-wide text-slate-400">{label}</span>
       <div className="flex gap-1">
-        {(["stance", "target", "breakpoint"] as const).map((field, i) => (
+        {LINE_FIELDS.map((field, i) => (
           <input
             key={field}
-            type="number"
-            inputMode="numeric"
-            min={1}
-            max={39}
-            value={value?.[field] ?? ""}
+            type="text"
+            inputMode="decimal"
+            value={text[field]}
             onChange={(e) => update(field, e.target.value)}
             readOnly={readOnly}
             disabled={readOnly}
@@ -486,7 +527,12 @@ export function ActiveGameScorer({
             intendedLine={intendedLine}
             onIntendedLineChange={setIntendedLine}
             showActual={showActual}
-            onToggleActual={() => setShowActual((v) => !v)}
+            onToggleActual={() => {
+              setShowActual((v) => !v);
+              // Seed the actual line with the intended line the first time it's
+              // opened this frame, so you only adjust where the ball went.
+              setActualLine((a) => a ?? (intendedLine ? { ...intendedLine } : undefined));
+            }}
             actualLine={actualLine}
             onActualLineChange={setActualLine}
             notes={shotNotes}
