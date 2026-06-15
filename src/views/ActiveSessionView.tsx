@@ -44,10 +44,16 @@ export function ActiveSessionView({
     setLaneB(lanes[1] ?? "");
     setStartSide(activeGame?.start_lane && activeGame.start_lane === lanes[1] ? "B" : "A");
     setLaneError("");
-    setShowLaneEditor(false);
   }, [activeGame?.id, activeGame?.lanes, activeGame?.lane_number, activeGame?.start_lane]);
 
-  async function saveLanes() {
+  // Collapse the editor only when switching games, not on every lane save.
+  useEffect(() => {
+    setShowLaneEditor(false);
+  }, [activeGame?.id]);
+
+  // `side` defaults to current state but the start-lane toggle passes it
+  // explicitly to avoid saving a stale value before the state update lands.
+  async function saveLanes(side: "A" | "B" = startSide) {
     if (!activeGame?.id) return;
     const a = laneA.trim();
     const b = laneB.trim();
@@ -57,7 +63,7 @@ export function ActiveSessionView({
     }
     setLaneError("");
     const lanes = [a, b].filter(Boolean);
-    const start_lane = lanes.length === 2 ? (startSide === "A" ? a : b) : lanes[0];
+    const start_lane = lanes.length === 2 ? (side === "A" ? a : b) : lanes[0];
     await updateGameLanes(activeGame.id, { lanes, start_lane });
     await refreshSession(activeGame.id);
   }
@@ -194,7 +200,7 @@ export function ActiveSessionView({
               <input
                 value={laneA}
                 onChange={(e) => setLaneA(e.target.value.replace(/\D/g, ""))}
-                onBlur={saveLanes}
+                onBlur={() => saveLanes()}
                 inputMode="numeric"
                 aria-label="First lane"
                 placeholder="12"
@@ -204,7 +210,7 @@ export function ActiveSessionView({
               <input
                 value={laneB}
                 onChange={(e) => setLaneB(e.target.value.replace(/\D/g, ""))}
-                onBlur={saveLanes}
+                onBlur={() => saveLanes()}
                 inputMode="numeric"
                 aria-label="Second lane"
                 placeholder="13"
@@ -219,7 +225,7 @@ export function ActiveSessionView({
                       <button
                         key={side}
                         type="button"
-                        onClick={() => { setStartSide(side); setTimeout(saveLanes, 0); }}
+                        onClick={() => { setStartSide(side); void saveLanes(side); }}
                         className={`h-7 rounded-md border px-2 text-xs font-semibold ${
                           startSide === side
                             ? "border-felt-700 bg-felt-700 text-white"

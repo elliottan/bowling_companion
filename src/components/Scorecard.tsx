@@ -114,7 +114,7 @@ function FrameCell({
                 type="button"
                 onClick={() => onShotTap!(frameNumber, cell.shotIndex!)}
                 aria-label={`View frame ${frameNumber} shot ${cell.shotIndex! + 1}`}
-                className={`${baseClass} ${highlightClass} hover:bg-lane-50 active:bg-lane-100`}
+                className={`${baseClass} ${highlightClass}`}
               >
                 {cell.symbol}
               </button>
@@ -127,7 +127,7 @@ function FrameCell({
                 type="button"
                 onClick={onLiveTap}
                 aria-label={`Go to live entry frame ${frameNumber}`}
-                className={`${baseClass} ${highlightClass} hover:bg-lane-50 active:bg-lane-100`}
+                className={`${baseClass} ${highlightClass}`}
               >
                 {cell.symbol}
               </button>
