@@ -162,6 +162,53 @@ export async function saveFrame(gameId: number, frame: SaveFrameInput): Promise<
   return Number(id);
 }
 
+/** Delete a session and all of its games + frames. */
+export async function deleteSession(sessionId: number): Promise<void> {
+  await db.transaction("rw", db.sessions, db.games, db.frames, async () => {
+    const games = await db.games.where("session_id").equals(sessionId).toArray();
+    for (const game of games) {
+      if (game.id) await db.frames.where("game_id").equals(game.id).delete();
+    }
+    await db.games.where("session_id").equals(sessionId).delete();
+    await db.sessions.delete(sessionId);
+  });
+}
+
+/**
+ * Delete a single game and its frames, then renumber the session's remaining
+ * games to stay 1..N contiguous. If it was the only game, the session is
+ * deleted too. Returns whether the parent session was removed.
+ */
+export async function deleteGame(
+  gameId: number
+): Promise<{ sessionDeleted: boolean; sessionId: number }> {
+  return db.transaction("rw", db.sessions, db.games, db.frames, async () => {
+    const game = await db.games.get(gameId);
+    if (!game) throw new Error(`Cannot delete game. Game ${gameId} was not found.`);
+    const sessionId = game.session_id;
+
+    await db.frames.where("game_id").equals(gameId).delete();
+    await db.games.delete(gameId);
+
+    const remaining = (await db.games.where("session_id").equals(sessionId).toArray()).sort(
+      (a, b) => a.game_number - b.game_number
+    );
+
+    if (remaining.length === 0) {
+      await db.sessions.delete(sessionId);
+      return { sessionDeleted: true, sessionId };
+    }
+
+    for (let i = 0; i < remaining.length; i++) {
+      const want = i + 1;
+      if (remaining[i].id && remaining[i].game_number !== want) {
+        await db.games.update(remaining[i].id!, { game_number: want });
+      }
+    }
+    return { sessionDeleted: false, sessionId };
+  });
+}
+
 export async function getSessionHistory(): Promise<SessionSummary[]> {
   const sessions = await db.sessions.orderBy("date").reverse().toArray();
 

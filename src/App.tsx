@@ -90,8 +90,8 @@ function App() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-lane-50 text-slate-950">
-      <header className="border-b border-slate-200 bg-white">
+    <div className="flex h-[100dvh] flex-col overflow-hidden bg-lane-50 text-slate-950">
+      <header className="shrink-0 border-b border-slate-200 bg-white">
         <div className="mx-auto flex w-full max-w-5xl items-center justify-between px-3 py-3 sm:px-6">
           <button
             type="button"
@@ -114,7 +114,7 @@ function App() {
         </div>
       </header>
 
-      <main className="flex-1 pb-[calc(4rem+env(safe-area-inset-bottom))] sm:pb-0">
+      <main className="min-h-0 flex-1 overflow-y-auto">
         {view === "dashboard" && (
           <DashboardView
             onStartSession={handleStartSession}
@@ -126,17 +126,27 @@ function App() {
           <ActiveSessionView
             sessionId={activeSessionId}
             onBack={() => setView(previousView)}
+            onSessionDeleted={() => {
+              setActiveSessionId(null);
+              setView(previousView);
+            }}
           />
         )}
         {view === "history" && (
-          <HistoryView onOpenSession={openSession} activeSessionId={activeSessionId} />
+          <HistoryView
+            onOpenSession={openSession}
+            activeSessionId={activeSessionId}
+            onSessionDeleted={(id) => {
+              if (id === activeSessionId) setActiveSessionId(null);
+            }}
+          />
         )}
         {view === "stats" && <StatsView />}
         {view === "spares" && <SpareLinesView />}
         {view === "settings" && <SettingsView />}
       </main>
 
-      <nav className="fixed inset-x-0 bottom-0 z-10 grid grid-cols-6 border-t border-slate-200 bg-white pb-[env(safe-area-inset-bottom)] sm:hidden">
+      <nav className="grid shrink-0 grid-cols-6 border-t border-slate-200 bg-white pb-[env(safe-area-inset-bottom)] sm:hidden">
         {MOBILE_NAV_ITEMS.map((item) => (
           <TabBarButton
             key={item.view}

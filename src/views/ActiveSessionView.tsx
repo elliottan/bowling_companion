@@ -1,8 +1,10 @@
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, MoreVertical, Plus, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { ActiveGameScorer } from "../components/ActiveGameScorer";
+import { ConfirmDialog } from "../components/ConfirmDialog";
 import {
   addNextGameToSession,
+  deleteGame,
   getSessionDetails,
   saveFrame,
   updateGameLanes
@@ -12,19 +14,24 @@ import type { Frame, Game, SessionSummary } from "../types/bowling";
 interface ActiveSessionViewProps {
   sessionId: number;
   onBack: () => void;
+  /** Called when the last game is deleted and the session no longer exists. */
+  onSessionDeleted: () => void;
 }
 
 const isPositiveInt = (s: string) => /^\d+$/.test(s.trim());
 
 export function ActiveSessionView({
   sessionId,
-  onBack
+  onBack,
+  onSessionDeleted
 }: ActiveSessionViewProps) {
   const [sessionDetails, setSessionDetails] = useState<SessionSummary | null>(null);
   const [activeGameId, setActiveGameId] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isAddingGame, setIsAddingGame] = useState(false);
   const [error, setError] = useState("");
+  const [showMenu, setShowMenu] = useState(false);
+  const [confirmDeleteGame, setConfirmDeleteGame] = useState(false);
 
   // Inline lane editor
   const [laneA, setLaneA] = useState("");
@@ -125,6 +132,22 @@ export function ActiveSessionView({
     }
   }
 
+  async function handleDeleteGame() {
+    if (!activeGame?.id) return;
+    setConfirmDeleteGame(false);
+    setShowMenu(false);
+    try {
+      const result = await deleteGame(activeGame.id);
+      if (result.sessionDeleted) {
+        onSessionDeleted();
+        return;
+      }
+      await refreshSession();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unable to delete game.");
+    }
+  }
+
   if (isLoading) {
     return (
       <section className="mx-auto w-full max-w-5xl px-4 py-6 text-sm text-slate-600">
@@ -151,8 +174,12 @@ export function ActiveSessionView({
     );
   }
 
-  const gameComplete = activeGame.final_score !== undefined;
   const laneLabel = (activeGame.lanes ?? (activeGame.lane_number ? [activeGame.lane_number] : [])).join(" / ");
+  const games = sessionDetails.games;
+  const latestGame = games[games.length - 1];
+  const latestComplete = latestGame?.final_score !== undefined;
+  const isLastGameActive = activeGame.id === latestGame?.id;
+  const canAddGame = latestComplete && !isAddingGame;
 
   return (
     <div>
@@ -181,16 +208,40 @@ export function ActiveSessionView({
               {laneLabel ? `Lane ${laneLabel}` : "+ Add lane"}
             </button>
           </div>
-          {gameComplete && (
+          <div className="relative shrink-0">
             <button
               type="button"
-              onClick={handleAddGame}
-              disabled={isAddingGame}
-              className="inline-flex h-9 items-center gap-1 rounded-md bg-felt-700 px-3 text-sm font-semibold text-white hover:bg-felt-500 disabled:cursor-not-allowed disabled:opacity-50"
+              onClick={() => setShowMenu((v) => !v)}
+              aria-label="Game options"
+              className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-slate-300 bg-white text-slate-700 hover:bg-slate-50"
             >
-              Next Game
+              <MoreVertical size={18} aria-hidden="true" />
             </button>
-          )}
+            {showMenu && (
+              <>
+                <div className="fixed inset-0 z-10" onClick={() => setShowMenu(false)} />
+                <div className="absolute right-0 z-20 mt-1 w-44 overflow-hidden rounded-lg border border-slate-200 bg-white py-1 shadow-lg">
+                  <button
+                    type="button"
+                    onClick={() => { setShowMenu(false); void handleAddGame(); }}
+                    disabled={!canAddGame}
+                    className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    <Plus size={16} aria-hidden="true" />
+                    New game
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setShowMenu(false); setConfirmDeleteGame(true); }}
+                    className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm font-medium text-red-600 hover:bg-red-50"
+                  >
+                    <Trash2 size={16} aria-hidden="true" />
+                    Delete game
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
         </div>
 
         {/* Inline lane editor */}
@@ -243,27 +294,35 @@ export function ActiveSessionView({
           </div>
         )}
 
-        {sessionDetails.games.length > 1 && (
-          <div className="mt-3 flex gap-1 overflow-x-auto pb-1">
-            {sessionDetails.games.map((g) => (
-              <button
-                key={g.id}
-                type="button"
-                onClick={() => g.id && setActiveGameId(g.id)}
-                className={`inline-flex h-8 shrink-0 items-center gap-1.5 rounded-md border px-3 text-xs font-semibold ${
-                  g.id === activeGameId
-                    ? "border-felt-700 bg-felt-700 text-white"
-                    : "border-slate-300 bg-white text-slate-700"
-                }`}
-              >
-                Game {g.game_number}
-                {g.final_score !== undefined && (
-                  <span className="opacity-80">· {g.final_score}</span>
-                )}
-              </button>
-            ))}
-          </div>
-        )}
+        <div className="mt-3 flex items-center gap-1 overflow-x-auto pb-1">
+          {games.map((g) => (
+            <button
+              key={g.id}
+              type="button"
+              onClick={() => g.id && setActiveGameId(g.id)}
+              className={`inline-flex h-8 shrink-0 items-center gap-1.5 rounded-md border px-3 text-xs font-semibold ${
+                g.id === activeGameId
+                  ? "border-felt-700 bg-felt-700 text-white"
+                  : "border-slate-300 bg-white text-slate-700"
+              }`}
+            >
+              Game {g.game_number}
+              {g.final_score !== undefined && (
+                <span className="opacity-80">· {g.final_score}</span>
+              )}
+            </button>
+          ))}
+          <button
+            type="button"
+            onClick={() => void handleAddGame()}
+            disabled={!canAddGame}
+            aria-label="New game"
+            title={canAddGame ? "New game" : "Finish the current game first"}
+            className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-slate-900 text-white hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            <Plus size={16} aria-hidden="true" />
+          </button>
+        </div>
 
         {error && (
           <p className="mt-3 rounded-lg border border-red-200 bg-red-50 p-3 text-sm font-semibold text-red-700">
@@ -278,6 +337,15 @@ export function ActiveSessionView({
         mode="session"
         game={activeGame}
         onFrameComplete={handleFrameComplete}
+        onNextGame={isLastGameActive ? handleAddGame : undefined}
+      />
+
+      <ConfirmDialog
+        open={confirmDeleteGame}
+        title="Delete this game?"
+        message={`Game ${activeGame.game_number} and its frames will be permanently deleted.`}
+        onConfirm={handleDeleteGame}
+        onCancel={() => setConfirmDeleteGame(false)}
       />
     </div>
   );

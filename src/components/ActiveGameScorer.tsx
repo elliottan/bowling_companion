@@ -1,4 +1,4 @@
-import { Pencil, Send, X } from "lucide-react";
+import { Pencil, Plus, Send, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   beginEditFromShot,
@@ -160,6 +160,8 @@ interface ActiveGameScorerProps {
   game?: Pick<Game, "lanes" | "start_lane" | "lane_number">;
   onFrameComplete?: (frame: Frame) => Promise<void> | void;
   onGameComplete?: (frames: Frame[]) => Promise<void> | void;
+  /** When provided, a "Next Game" CTA shows once the game is complete. */
+  onNextGame?: () => void;
 }
 
 export function ActiveGameScorer({
@@ -168,7 +170,8 @@ export function ActiveGameScorer({
   mode = "standalone",
   game,
   onFrameComplete,
-  onGameComplete
+  onGameComplete,
+  onNextGame
 }: ActiveGameScorerProps) {
   const [gameState, setGameState] = useState(() => hydrateFrameController(initialFrames));
   const [statusMessage, setStatusMessage] = useState("");
@@ -216,6 +219,16 @@ export function ActiveGameScorer({
     };
     setGameState((curr) => updateShotMeta(curr, meta));
   }, [selectedBallId, intendedLine, showActual, actualLine, shotNotes]);
+
+  // On completion, default to reviewing the final frame's last shot (read-only).
+  useEffect(() => {
+    if (gameState.isComplete && selectedShot === null && editingFrame === null) {
+      const tenth = gameState.frames.find((f) => f.frame_number === 10);
+      if (tenth && tenth.shots.length > 0) {
+        setSelectedShot({ frameNumber: 10, shotIndex: tenth.shots.length - 1 });
+      }
+    }
+  }, [gameState.isComplete, gameState.frames, selectedShot, editingFrame]);
 
   function updateStandingPins(pins: PinNumber[]) {
     setGameState((curr) => ({ ...curr, standingPins: pins }));
@@ -371,14 +384,26 @@ export function ActiveGameScorer({
           />
 
           {viewing ? (
-            <button
-              type="button"
-              onClick={editViewedShot}
-              className="inline-flex h-11 w-full items-center justify-center gap-1.5 rounded-lg bg-felt-700 text-sm font-bold text-white shadow-sm hover:bg-felt-500"
-            >
-              <Pencil aria-hidden="true" size={16} />
-              Edit
-            </button>
+            <div className="space-y-2">
+              <button
+                type="button"
+                onClick={editViewedShot}
+                className="inline-flex h-11 w-full items-center justify-center gap-1.5 rounded-lg border border-felt-700 bg-white text-sm font-semibold text-felt-700 hover:bg-felt-50"
+              >
+                <Pencil aria-hidden="true" size={16} />
+                Edit
+              </button>
+              {gameState.isComplete && onNextGame && (
+                <button
+                  type="button"
+                  onClick={onNextGame}
+                  className="inline-flex h-11 w-full items-center justify-center gap-1.5 rounded-lg bg-felt-700 text-sm font-bold text-white shadow-sm hover:bg-felt-500"
+                >
+                  <Plus aria-hidden="true" size={16} />
+                  Next Game
+                </button>
+              )}
+            </div>
           ) : !gameState.isComplete ? (
             <>
               <div className="flex gap-2">

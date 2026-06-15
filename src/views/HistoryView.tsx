@@ -1,41 +1,49 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { ConfirmDialog } from "../components/ConfirmDialog";
 import { SessionHistory } from "../components/SessionHistory";
-import { getSessionHistory } from "../services/bowlingRepository";
+import { deleteSession, getSessionHistory } from "../services/bowlingRepository";
 import type { SessionSummary } from "../types/bowling";
 
 interface HistoryViewProps {
   onOpenSession: (sessionId: number) => void;
   activeSessionId: number | null;
+  onSessionDeleted?: (sessionId: number) => void;
 }
 
-export function HistoryView({ onOpenSession, activeSessionId }: HistoryViewProps) {
+export function HistoryView({ onOpenSession, activeSessionId, onSessionDeleted }: HistoryViewProps) {
   const [sessions, setSessions] = useState<SessionSummary[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
+  const [pendingDelete, setPendingDelete] = useState<{ id: number; label: string } | null>(null);
+
+  const load = useCallback(async () => {
+    setIsLoading(true);
+    setError("");
+    try {
+      setSessions(await getSessionHistory());
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unable to load history.");
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    let isMounted = true;
-
-    async function load() {
-      setIsLoading(true);
-      setError("");
-      try {
-        const history = await getSessionHistory();
-        if (isMounted) setSessions(history);
-      } catch (err) {
-        if (isMounted) {
-          setError(err instanceof Error ? err.message : "Unable to load history.");
-        }
-      } finally {
-        if (isMounted) setIsLoading(false);
-      }
-    }
-
     load();
-    return () => {
-      isMounted = false;
-    };
-  }, []);
+  }, [load]);
+
+  async function confirmDelete() {
+    if (!pendingDelete) return;
+    const { id } = pendingDelete;
+    setPendingDelete(null);
+    try {
+      await deleteSession(id);
+      onSessionDeleted?.(id);
+      await load();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unable to delete session.");
+    }
+  }
 
   return (
     <section className="mx-auto w-full max-w-3xl px-3 py-5 sm:px-6 sm:py-8">
@@ -51,7 +59,20 @@ export function HistoryView({ onOpenSession, activeSessionId }: HistoryViewProps
         sessions={sessions}
         isLoading={isLoading}
         onOpenSession={onOpenSession}
+        onRequestDelete={(id, label) => setPendingDelete({ id, label })}
         activeSessionId={activeSessionId}
+      />
+
+      <ConfirmDialog
+        open={pendingDelete !== null}
+        title="Delete session?"
+        message={
+          pendingDelete
+            ? `"${pendingDelete.label}" and all its games will be permanently deleted.`
+            : undefined
+        }
+        onConfirm={confirmDelete}
+        onCancel={() => setPendingDelete(null)}
       />
     </section>
   );

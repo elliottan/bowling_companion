@@ -4,6 +4,8 @@ import {
   addNextGameToSession,
   addGameToSession,
   createSession,
+  deleteGame,
+  deleteSession,
   getSessionDetails,
   getSessionHistory,
   saveFrame,
@@ -79,5 +81,46 @@ describe("bowlingRepository", () => {
     await updateGameNotes(gameId, "   ");
     details = await getSessionDetails(sessionId);
     expect(details?.games[0].notes).toBeUndefined();
+  });
+
+  it("deletes a session with all its games and frames", async () => {
+    const sessionId = await createSession({ date: "2026-05-26", alley_name: "Test Lanes" });
+    const gameId = await addGameToSession(sessionId, { game_number: 1 });
+    await saveFrame(gameId, {
+      frame_number: 1,
+      shots: [{ pins_standing: [] }],
+      is_strike: true,
+      is_spare: false
+    });
+
+    await deleteSession(sessionId);
+
+    expect(await getSessionHistory()).toHaveLength(0);
+    expect(await db.games.where("session_id").equals(sessionId).count()).toBe(0);
+    expect(await db.frames.where("game_id").equals(gameId).count()).toBe(0);
+  });
+
+  it("deletes a middle game and renumbers the survivors contiguously", async () => {
+    const sessionId = await createSession({ date: "2026-05-26", alley_name: "Test Lanes" });
+    await addGameToSession(sessionId, { game_number: 1 });
+    const g2 = await addGameToSession(sessionId, { game_number: 2 });
+    await addGameToSession(sessionId, { game_number: 3 });
+
+    const result = await deleteGame(g2);
+
+    expect(result.sessionDeleted).toBe(false);
+    const details = await getSessionDetails(sessionId);
+    expect(details?.games).toHaveLength(2);
+    expect(details?.games.map((g) => g.game_number)).toEqual([1, 2]);
+  });
+
+  it("deletes the session when its only game is deleted", async () => {
+    const sessionId = await createSession({ date: "2026-05-26", alley_name: "Test Lanes" });
+    const gameId = await addGameToSession(sessionId, { game_number: 1 });
+
+    const result = await deleteGame(gameId);
+
+    expect(result.sessionDeleted).toBe(true);
+    expect(await getSessionHistory()).toHaveLength(0);
   });
 });
