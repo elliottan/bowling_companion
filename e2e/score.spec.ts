@@ -36,7 +36,7 @@ test("editing a past shot inline (no edit button) re-derives the frame", async (
   await recordShot(page, [10]); // F2 shot2 = open (left the 10)
 
   // The new model has no edit button — selecting a shot edits it directly.
-  await expect(page.getByRole("button", { name: "Edit" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Edit", exact: true })).toHaveCount(0);
 
   // Select frame 2's second shot and clear the remaining pin → it becomes a spare.
   await page.getByRole("button", { name: "View frame 2 shot 2" }).first().click();

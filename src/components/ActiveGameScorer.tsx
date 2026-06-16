@@ -202,7 +202,9 @@ interface ShotDetailBarProps {
   onActualChange: (line: LineSpec | undefined) => void;
   notes: string;
   onNotesChange: (notes: string) => void;
-  laneLabel?: string;
+  lanes: string[];
+  activeLane?: string;
+  onEditLanes?: () => void;
   onOpenArsenal?: () => void;
 }
 
@@ -218,17 +220,43 @@ function ShotDetailBar({
   onActualChange,
   notes,
   onNotesChange,
-  laneLabel,
+  lanes,
+  activeLane,
+  onEditLanes,
   onOpenArsenal
 }: ShotDetailBarProps) {
   const [showActual, setShowActual] = useState(Boolean(actual));
 
   return (
     <div className="flex flex-col gap-2.5 rounded-lg border border-slate-200 bg-white p-2.5">
-      {laneLabel && (
+      {(onEditLanes || lanes.length > 0) && (
         <div className="flex items-center justify-between border-b border-slate-100 pb-1.5">
           <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">Lane</span>
-          <span className="text-sm font-bold text-slate-900">{laneLabel}</span>
+          {onEditLanes ? (
+            <button
+              type="button"
+              onClick={onEditLanes}
+              aria-label="Edit game lanes"
+              className="inline-flex items-center gap-1"
+            >
+              {lanes.length > 0 ? (
+                lanes.map((l) => (
+                  <span
+                    key={l}
+                    className={`inline-flex h-6 min-w-[1.5rem] items-center justify-center rounded-md px-1.5 text-xs font-bold ${
+                      l === activeLane ? "bg-felt-700 text-white" : "bg-slate-100 text-slate-400"
+                    }`}
+                  >
+                    {l}
+                  </span>
+                ))
+              ) : (
+                <span className="text-xs font-semibold text-felt-700">+ Set lanes</span>
+              )}
+            </button>
+          ) : (
+            <span className="text-sm font-bold text-slate-900">{lanes.join(" / ")}</span>
+          )}
         </div>
       )}
 
@@ -315,6 +343,8 @@ interface ActiveGameScorerProps {
   game?: Pick<Game, "lanes" | "start_lane" | "lane_number">;
   onFrameComplete?: (frame: Frame) => Promise<void> | void;
   onGameComplete?: (frames: Frame[]) => Promise<void> | void;
+  /** Open the game-level lane editor (lane pair + starting lane). */
+  onEditLanes?: () => void;
   /** Jump to the Arsenal screen to manage balls. */
   onOpenArsenal?: () => void;
 }
@@ -333,6 +363,7 @@ export function ActiveGameScorer({
   game,
   onFrameComplete,
   onGameComplete,
+  onEditLanes,
   onOpenArsenal
 }: ActiveGameScorerProps) {
   const [gameState, setGameState] = useState(() => hydrateFrameController(initialFrames));
@@ -349,6 +380,7 @@ export function ActiveGameScorer({
   const lastDefaultedShot = useRef<string | null>(null);
 
   const gameScore = useMemo(() => calculateGameScore(gameState.frames), [gameState.frames]);
+  const lanesList = game?.lanes ?? (game?.lane_number ? [game.lane_number] : []);
   const currentLane = game ? laneForFrame(game, gameState.currentFrameNumber) : undefined;
   const isFreshRack = gameState.availablePins.length === 10;
 
@@ -591,7 +623,9 @@ export function ActiveGameScorer({
           onNotesChange={
             isEditing ? (n) => handleEditMeta({ notes: n.trim() || undefined }) : setShotNotes
           }
-          laneLabel={isEditing ? viewedLane : currentLane}
+          lanes={lanesList}
+          activeLane={isEditing ? viewedLane : currentLane}
+          onEditLanes={onEditLanes}
           onOpenArsenal={onOpenArsenal}
         />
       </div>

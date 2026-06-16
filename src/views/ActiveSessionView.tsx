@@ -194,7 +194,6 @@ export function ActiveSessionView({
     );
   }
 
-  const laneLabel = (activeGame.lanes ?? (activeGame.lane_number ? [activeGame.lane_number] : [])).join(" / ");
   const games = sessionDetails.games;
   // The +/menu can add a game at any time.
   const canAddGame = !isAddingGame;
@@ -212,70 +211,14 @@ export function ActiveSessionView({
             <p className="truncate text-sm font-semibold text-slate-900">
               {sessionDetails.session.alley_name}
             </p>
+            {sessionDetails.session.description && (
+              <p className="truncate text-xs font-medium text-slate-600">
+                {sessionDetails.session.description}
+              </p>
+            )}
             <p className="truncate text-xs text-slate-500">
               {sessionDetails.session.date} · {games.length} {games.length === 1 ? "game" : "games"}
             </p>
-            <div className="relative mt-0.5 inline-block">
-              <button
-                type="button"
-                onClick={() => setShowLaneEditor((v) => !v)}
-                className="inline-flex items-center rounded-full border border-slate-300 bg-white px-2 py-0.5 text-[11px] font-semibold text-slate-600 hover:bg-slate-50 active:bg-slate-100"
-              >
-                {laneLabel ? `Lane ${laneLabel}` : "+ Add lane"}
-              </button>
-              {showLaneEditor && (
-                <>
-                  <div className="fixed inset-0 z-10" onClick={() => setShowLaneEditor(false)} />
-                  <div className="absolute left-0 z-20 mt-1 w-64 rounded-lg border border-slate-200 bg-white p-3 shadow-lg">
-                    <span className="mb-2 block text-[10px] font-semibold uppercase tracking-wide text-slate-400">Lanes</span>
-                    <div className="flex items-center gap-2">
-                      <input
-                        value={laneA}
-                        onChange={(e) => setLaneA(e.target.value.replace(/\D/g, ""))}
-                        onBlur={() => saveLanes()}
-                        inputMode="numeric"
-                        aria-label="First lane"
-                        placeholder="12"
-                        className="h-8 w-14 rounded-lg border border-slate-300 px-2 text-sm outline-none focus:border-felt-700"
-                      />
-                      <span className="text-slate-400">/</span>
-                      <input
-                        value={laneB}
-                        onChange={(e) => setLaneB(e.target.value.replace(/\D/g, ""))}
-                        onBlur={() => saveLanes()}
-                        inputMode="numeric"
-                        aria-label="Second lane"
-                        placeholder="13"
-                        className="h-8 w-14 rounded-lg border border-slate-300 px-2 text-sm outline-none focus:border-felt-700"
-                      />
-                    </div>
-                    {laneA.trim() && laneB.trim() && (
-                      <div className="mt-2 flex items-center gap-1">
-                        <span className="text-xs text-slate-500">Frame 1 on:</span>
-                        {(["A", "B"] as const).map((side) => {
-                          const lane = side === "A" ? laneA.trim() : laneB.trim();
-                          return (
-                            <button
-                              key={side}
-                              type="button"
-                              onClick={() => { setStartSide(side); void saveLanes(side); }}
-                              className={`h-7 rounded-md border px-2 text-xs font-semibold ${
-                                startSide === side
-                                  ? "border-felt-700 bg-felt-700 text-white"
-                                  : "border-slate-300 bg-white text-slate-700"
-                              }`}
-                            >
-                              {lane}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    )}
-                    {laneError && <p className="mt-1 text-xs text-red-600">{laneError}</p>}
-                  </div>
-                </>
-              )}
-            </div>
           </div>
           <p className="shrink-0 text-2xl font-extrabold leading-none text-felt-700" aria-label="Series total">
             {seriesTotal}
@@ -375,6 +318,7 @@ export function ActiveSessionView({
         mode="session"
         game={activeGame}
         onFrameComplete={handleFrameComplete}
+        onEditLanes={() => setShowLaneEditor(true)}
         onOpenArsenal={onOpenArsenal}
       />
 
@@ -404,6 +348,82 @@ export function ActiveSessionView({
         onSave={handleSaveEdit}
         onCancel={() => setShowEdit(false)}
       />
+
+      {showLaneEditor && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+          role="dialog"
+          aria-modal="true"
+          onClick={() => setShowLaneEditor(false)}
+        >
+          <div className="w-full max-w-sm rounded-xl bg-white p-5 shadow-xl" onClick={(e) => e.stopPropagation()}>
+            <h2 className="text-base font-bold text-slate-950">Game lanes</h2>
+            <p className="mt-1 text-xs text-slate-500">
+              Applies to the whole game. Lanes alternate every frame — you can't set a lane per frame.
+            </p>
+
+            <span className="mt-4 block text-xs font-semibold uppercase tracking-wide text-slate-500">Lane pair</span>
+            <div className="mt-1.5 flex items-center gap-2">
+              <input
+                value={laneA}
+                onChange={(e) => setLaneA(e.target.value.replace(/\D/g, ""))}
+                onBlur={() => saveLanes()}
+                inputMode="numeric"
+                aria-label="First lane"
+                placeholder="12"
+                className="h-10 w-16 rounded-lg border border-slate-300 px-2 text-sm outline-none focus:border-felt-700"
+              />
+              <span className="text-slate-400">/</span>
+              <input
+                value={laneB}
+                onChange={(e) => setLaneB(e.target.value.replace(/\D/g, ""))}
+                onBlur={() => saveLanes()}
+                inputMode="numeric"
+                aria-label="Second lane"
+                placeholder="13"
+                className="h-10 w-16 rounded-lg border border-slate-300 px-2 text-sm outline-none focus:border-felt-700"
+              />
+            </div>
+
+            {laneA.trim() && laneB.trim() && (
+              <div className="mt-4">
+                <span className="block text-xs font-semibold uppercase tracking-wide text-slate-500">Starting lane (frame 1)</span>
+                <div className="mt-1.5 flex items-center gap-1.5">
+                  {(["A", "B"] as const).map((side) => {
+                    const lane = side === "A" ? laneA.trim() : laneB.trim();
+                    return (
+                      <button
+                        key={side}
+                        type="button"
+                        onClick={() => { setStartSide(side); void saveLanes(side); }}
+                        className={`h-9 rounded-md border px-3 text-sm font-semibold ${
+                          startSide === side
+                            ? "border-felt-700 bg-felt-700 text-white"
+                            : "border-slate-300 bg-white text-slate-700"
+                        }`}
+                      >
+                        {lane}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {laneError && <p className="mt-2 text-xs text-red-600">{laneError}</p>}
+
+            <div className="mt-5 flex justify-end">
+              <button
+                type="button"
+                onClick={() => setShowLaneEditor(false)}
+                className="inline-flex h-10 items-center rounded-lg bg-felt-700 px-4 text-sm font-bold text-white shadow-sm hover:bg-felt-500"
+              >
+                Done
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
