@@ -1,4 +1,4 @@
-import type { Ball, BowlingBackup, Frame, Game, LaneNote, OilPattern, PinNumber, Session, SpareLine } from "../types/bowling";
+import type { AppSetting, Ball, BowlingBackup, Frame, Game, LaneNote, OilPattern, PinNumber, Session, SpareLine } from "../types/bowling";
 
 const PIN_NUMBERS = new Set<PinNumber>([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
 
@@ -19,8 +19,8 @@ export function validateBackup(value: unknown): BackupValidationResult {
     errors.push("Backup app must be bowling-companion.");
   }
 
-  if (value.version !== 1 && value.version !== 2) {
-    errors.push("Backup version must be 1 or 2.");
+  if (value.version !== 1 && value.version !== 2 && value.version !== 3) {
+    errors.push("Backup version must be 1, 2, or 3.");
   }
 
   if (typeof value.exported_at !== "string" || value.exported_at.length === 0) {
@@ -37,6 +37,7 @@ export function validateBackup(value: unknown): BackupValidationResult {
     validateArray(value.tables.oil_patterns ?? [], "oil_patterns", errors, validateOilPattern);
     validateArray(value.tables.spare_lines ?? [], "spare_lines", errors, validateSpareLine);
     validateArray(value.tables.lane_notes ?? [], "lane_notes", errors, validateLaneNote);
+    validateArray(value.tables.settings ?? [], "settings", errors, validateSetting);
   }
 
   if (errors.length > 0) {
@@ -172,6 +173,14 @@ function validateLaneNote(value: unknown): value is LaneNote {
     typeof value.alley === "string" && value.alley.length > 0 &&
     typeof value.lane === "string" && value.lane.length > 0 &&
     typeof value.notes === "string"
+  );
+}
+
+function validateSetting(value: unknown): value is AppSetting {
+  if (!isRecord(value)) return false;
+  return (
+    typeof value.key === "string" && value.key.length > 0 &&
+    typeof value.value === "string"
   );
 }
 

@@ -16,9 +16,14 @@ import { SettingsView, type SettingsSection } from "./views/SettingsView";
 import { SpareLinesView } from "./views/SpareLinesView";
 import {
   addGameToSession,
-  createSession
+  createSession,
+  getHandedness,
+  setHandedness as persistHandedness
 } from "./services/bowlingRepository";
 import type { NewSessionFormValues } from "./components/SessionForm";
+import { HandednessContext } from "./lib/handednessContext";
+import { HandednessPicker } from "./components/HandednessPicker";
+import type { Handedness } from "./types/bowling";
 
 type AppView = "dashboard" | "active" | "history" | "stats" | "spares" | "settings";
 
@@ -47,6 +52,24 @@ function App() {
   const [isStartingSession, setIsStartingSession] = useState(false);
   const [startError, setStartError] = useState("");
   const [settingsSection, setSettingsSection] = useState<SettingsSection>("menu");
+  const [handedness, setHandednessState] = useState<Handedness | null>(null);
+  const [handednessLoaded, setHandednessLoaded] = useState(false);
+
+  useEffect(() => {
+    getHandedness()
+      .then(setHandednessState)
+      .catch(() => {})
+      .finally(() => setHandednessLoaded(true));
+  }, []);
+
+  async function chooseHandedness(value: Handedness) {
+    setHandednessState(value);
+    try {
+      await persistHandedness(value);
+    } catch {
+      // best-effort; UI already reflects the choice
+    }
+  }
 
   // Navigate, remembering where we came from when entering the active view.
   function goTo(target: AppView) {
@@ -113,6 +136,7 @@ function App() {
   }
 
   return (
+    <HandednessContext.Provider value={handedness ?? "right"}>
     <div className="flex h-[100dvh] flex-col overflow-hidden bg-lane-50 text-slate-950">
       <header className="shrink-0 border-b border-slate-200 bg-white">
         <div className="mx-auto flex w-full max-w-5xl items-center justify-between px-3 py-3 sm:px-6">
@@ -172,7 +196,12 @@ function App() {
         {view === "stats" && <StatsView />}
         {view === "spares" && <SpareLinesView />}
         {view === "settings" && (
-          <SettingsView section={settingsSection} onSectionChange={setSettingsSection} />
+          <SettingsView
+            section={settingsSection}
+            onSectionChange={setSettingsSection}
+            handedness={handedness ?? "right"}
+            onHandednessChange={chooseHandedness}
+          />
         )}
       </main>
 
@@ -187,7 +216,22 @@ function App() {
           />
         ))}
       </nav>
+
+      {handednessLoaded && handedness === null && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4" role="dialog" aria-modal="true">
+          <div className="w-full max-w-sm rounded-xl bg-white p-5 shadow-xl">
+            <h2 className="text-base font-bold text-slate-950">Which hand do you bowl with?</h2>
+            <p className="mt-1.5 text-sm text-slate-600">
+              This sets the direction of the board-adjust arrows when entering your line. You can change it later in Settings → Preferences.
+            </p>
+            <div className="mt-4">
+              <HandednessPicker value={handedness} onSelect={chooseHandedness} />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
+    </HandednessContext.Provider>
   );
 }
 

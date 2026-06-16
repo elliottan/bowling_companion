@@ -19,6 +19,15 @@ function formatLine(line?: LineSpec): string | null {
   return parts.join("/");
 }
 
+/** Distinct lanes across the session's games, e.g. "Lane 9 / 10". */
+function laneSummary(games: SessionSummary["games"]): string {
+  const lanes = new Set<string>();
+  for (const g of games) {
+    for (const l of g.lanes ?? (g.lane_number ? [g.lane_number] : [])) if (l) lanes.add(l);
+  }
+  return lanes.size ? `Lane ${[...lanes].join(" / ")}` : "";
+}
+
 /** Read-only "cheat sheet" of every shot in the session, current game first. */
 export function SessionSheet({ summary, currentGameId, onClose }: SessionSheetProps) {
   const [balls, setBalls] = useState<Ball[]>([]);
@@ -53,13 +62,28 @@ export function SessionSheet({ summary, currentGameId, onClose }: SessionSheetPr
         className="flex max-h-[85vh] w-full max-w-lg flex-col rounded-t-2xl bg-white shadow-xl sm:rounded-2xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3">
-          <h2 className="text-base font-bold text-slate-950">{summary.session.alley_name} · sheet</h2>
+        <div className="flex items-start justify-between gap-3 border-b border-slate-200 px-4 py-3">
+          <div className="min-w-0">
+            <h2 className="truncate text-base font-bold text-slate-950">{summary.session.alley_name}</h2>
+            {summary.session.description && (
+              <p className="truncate text-xs font-medium text-slate-600">{summary.session.description}</p>
+            )}
+            <p className="truncate text-xs text-slate-500">
+              {[
+                summary.session.date,
+                `${summary.games.length} ${summary.games.length === 1 ? "game" : "games"}`,
+                laneSummary(summary.games),
+                summary.session.oil_pattern
+              ]
+                .filter(Boolean)
+                .join(" · ")}
+            </p>
+          </div>
           <button
             type="button"
             onClick={onClose}
             aria-label="Close"
-            className="inline-flex h-8 w-8 items-center justify-center rounded-md text-slate-500 hover:bg-slate-100"
+            className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-slate-500 hover:bg-slate-100"
           >
             <X size={18} aria-hidden="true" />
           </button>
@@ -94,9 +118,14 @@ export function SessionSheet({ summary, currentGameId, onClose }: SessionSheetPr
   );
 }
 
-// Two columns = the two lanes (cross-lane). Odd frames (1,3,5,7,9) sit in the
-// start-lane column, even frames in the other; single-lane games head both
-// columns with the same lane.
+const emptyCell = (n: number) => (
+  <span className="text-[10px] font-bold uppercase text-slate-300">F{n}</span>
+);
+
+// Cross-lane: columns are FIXED by lane number (lower = left, higher = right),
+// so the physical left lane always sits on the left. Each frame lands in the
+// column matching its actual lane, so the frame cells alternate columns.
+// Single-lane: a single full-width column in frame order.
 function GameGrid({
   game,
   ballName
@@ -104,34 +133,58 @@ function GameGrid({
   game: SessionSummary["games"][number];
   ballName: (id?: number) => string | undefined;
 }) {
-  const col1Lane = laneForFrame(game, 1);
-  const col2Lane = laneForFrame(game, 2);
+  const lanes = game.lanes ?? (game.lane_number ? [game.lane_number] : []);
   const byNumber = new Map(game.frames.map((f) => [f.frame_number, f]));
-  const cells: number[] = [];
-  for (let n = 1; n <= 10; n++) cells.push(n);
+
+  if (lanes.length < 2) {
+    const laneLabel = lanes[0];
+    return (
+      <div className="overflow-hidden rounded-lg border border-slate-200">
+        <div className="border-b border-slate-200 bg-slate-50 py-1 text-center text-[10px] font-bold uppercase tracking-wide text-slate-500">
+          {laneLabel ? `Lane ${laneLabel}` : "Lane"}
+        </div>
+        {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => {
+          const frame = byNumber.get(n);
+          return (
+            <div key={n} className="border-b border-slate-100 p-2 last:border-b-0">
+              {frame ? <FrameCell frame={frame} ballName={ballName} /> : emptyCell(n)}
+            </div>
+          );
+        })}
+      </div>
+    );
+  }
+
+  const [leftLane, rightLane] = [...lanes].sort((a, b) => Number(a) - Number(b) || a.localeCompare(b));
+  const pairs = [
+    [1, 2],
+    [3, 4],
+    [5, 6],
+    [7, 8],
+    [9, 10]
+  ];
 
   return (
     <div className="overflow-hidden rounded-lg border border-slate-200">
       <div className="grid grid-cols-2 bg-slate-50 text-center text-[10px] font-bold uppercase tracking-wide text-slate-500">
-        <div className="border-b border-r border-slate-200 py-1">{col1Lane ? `Lane ${col1Lane}` : "Lane"}</div>
-        <div className="border-b border-slate-200 py-1">{col2Lane ? `Lane ${col2Lane}` : "Lane"}</div>
+        <div className="border-b border-r border-slate-200 py-1">Lane {leftLane}</div>
+        <div className="border-b border-slate-200 py-1">Lane {rightLane}</div>
       </div>
       <div className="grid grid-cols-2">
-        {cells.map((n, idx) => {
-          const frame = byNumber.get(n);
-          const isLeft = idx % 2 === 0;
+        {pairs.map((pair, rowIdx) => {
+          const leftN = pair.find((n) => laneForFrame(game, n) === leftLane) ?? pair[0];
+          const rightN = pair.find((n) => laneForFrame(game, n) === rightLane) ?? pair[1];
+          const lf = byNumber.get(leftN);
+          const rf = byNumber.get(rightN);
+          const last = rowIdx === pairs.length - 1;
           return (
-            <div
-              key={n}
-              className={`border-b border-slate-100 p-2 ${isLeft ? "border-r" : ""} ${
-                idx >= 8 ? "border-b-0" : ""
-              }`}
-            >
-              {frame ? (
-                <FrameCell frame={frame} ballName={ballName} />
-              ) : (
-                <span className="text-[10px] font-bold uppercase text-slate-300">F{n}</span>
-              )}
+            <div key={rowIdx} className="contents">
+              <div className={`border-r border-slate-100 p-2 ${last ? "" : "border-b"}`}>
+                {lf ? <FrameCell frame={lf} ballName={ballName} /> : emptyCell(leftN)}
+              </div>
+              <div className={`p-2 ${last ? "" : "border-b"}`}>
+                {rf ? <FrameCell frame={rf} ballName={ballName} /> : emptyCell(rightN)}
+              </div>
             </div>
           );
         })}

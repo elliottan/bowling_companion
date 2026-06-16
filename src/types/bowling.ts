@@ -70,6 +70,14 @@ export interface LaneNote {
   notes: string;
 }
 
+export type Handedness = "right" | "left";
+
+/** Key-value app preferences (e.g. handedness). One row per key. */
+export interface AppSetting {
+  key: string;
+  value: string;
+}
+
 export interface Frame {
   id?: number;
   game_id: number;
@@ -86,7 +94,7 @@ export interface SessionSummary {
 
 export interface BowlingBackup {
   app: "bowling-companion";
-  version: 1 | 2;
+  version: 1 | 2 | 3;
   exported_at: string;
   tables: {
     sessions: Session[];
@@ -96,5 +104,6 @@ export interface BowlingBackup {
     oil_patterns?: OilPattern[];
     spare_lines?: SpareLine[];
     lane_notes?: LaneNote[];
+    settings?: AppSetting[];
   };
 }

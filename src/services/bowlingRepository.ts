@@ -1,7 +1,29 @@
 import { db } from "../db/bowlingDb";
 import { calculateGameScore } from "../lib/scoring";
 import { nextGameStartLane } from "../lib/lanes";
-import type { Frame, Game, Session, SessionSummary } from "../types/bowling";
+import type { Frame, Game, Handedness, Session, SessionSummary } from "../types/bowling";
+
+const HANDEDNESS_KEY = "handedness";
+
+/** Read a key-value app setting (undefined if unset). */
+export async function getSetting(key: string): Promise<string | undefined> {
+  return (await db.settings.get(key))?.value;
+}
+
+/** Write a key-value app setting. */
+export async function setSetting(key: string, value: string): Promise<void> {
+  await db.settings.put({ key, value });
+}
+
+/** Stored handedness, or null if the user has never chosen one. */
+export async function getHandedness(): Promise<Handedness | null> {
+  const v = await getSetting(HANDEDNESS_KEY);
+  return v === "right" || v === "left" ? v : null;
+}
+
+export async function setHandedness(value: Handedness): Promise<void> {
+  await setSetting(HANDEDNESS_KEY, value);
+}
 
 export type CreateSessionInput = Omit<Session, "id">;
 export type AddGameInput = Omit<Game, "id" | "session_id" | "final_score">;

@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { clearDatabase, recordShot, startSession } from "./helpers";
+import { clearDatabase, dismissHandednessModal, recordShot, startSession } from "./helpers";
 
 test.beforeEach(async ({ page }) => {
   await clearDatabase(page);
@@ -26,6 +26,7 @@ test("exports a backup, clears the database, and restores it via import", async 
     });
   });
   await page.reload();
+  await dismissHandednessModal(page);
   await page.getByRole("button", { name: "History" }).click();
   await expect(page.getByText("No sessions yet.")).toBeVisible();
 

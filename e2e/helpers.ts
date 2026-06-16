@@ -1,5 +1,13 @@
 import type { Page } from "@playwright/test";
 
+/**
+ * First-run handedness modal blocks the UI when no choice is stored. After any
+ * DB wipe it reappears; dismiss it by choosing right-handed.
+ */
+export async function dismissHandednessModal(page: Page) {
+  await page.getByRole("button", { name: "right-handed" }).click();
+}
+
 /** Wipe IndexedDB so each test starts from an empty database. */
 export async function clearDatabase(page: Page) {
   await page.goto("/");
@@ -10,6 +18,7 @@ export async function clearDatabase(page: Page) {
     });
   });
   await page.reload();
+  await dismissHandednessModal(page);
 }
 
 /** Fill the start-session form and submit. Lands on the active scorer. */

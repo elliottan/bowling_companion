@@ -1,5 +1,5 @@
 import Dexie, { type EntityTable } from "dexie";
-import type { Ball, Frame, Game, LaneNote, OilPattern, Session, SpareLine } from "../types/bowling";
+import type { AppSetting, Ball, Frame, Game, LaneNote, OilPattern, Session, SpareLine } from "../types/bowling";
 import type { PinNumber, Shot } from "../types/bowling";
 
 export class BowlingDatabase extends Dexie {
@@ -10,6 +10,7 @@ export class BowlingDatabase extends Dexie {
   oil_patterns!: EntityTable<OilPattern, "id">;
   spare_lines!: EntityTable<SpareLine, "id">;
   lane_notes!: EntityTable<LaneNote, "id">;
+  settings!: EntityTable<AppSetting, "key">;
 
   constructor() {
     super("BowlingCompanionDB");
@@ -70,6 +71,18 @@ export class BowlingDatabase extends Dexie {
           game.start_lane = lane;
         }
       });
+    });
+
+    // Key-value preferences (handedness, etc.), keyed by `key`.
+    this.version(4).stores({
+      sessions: "++id, date, alley_name, oil_pattern_id",
+      games: "++id, session_id, game_number, lane_number, final_score",
+      frames: "++id, game_id, [game_id+frame_number], frame_number, is_strike, is_spare",
+      balls: "++id, name, is_spare_ball",
+      oil_patterns: "++id, name",
+      spare_lines: "++id",
+      lane_notes: "++id, [alley+lane]",
+      settings: "&key"
     });
   }
 }

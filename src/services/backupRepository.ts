@@ -10,22 +10,24 @@ export interface ImportBackupResult {
   oil_patterns: number;
   spare_lines: number;
   lane_notes: number;
+  settings: number;
 }
 
 export async function createBackup(): Promise<BowlingBackup> {
-  const [sessions, games, frames, balls, oil_patterns, spare_lines, lane_notes] = await Promise.all([
+  const [sessions, games, frames, balls, oil_patterns, spare_lines, lane_notes, settings] = await Promise.all([
     db.sessions.toArray(),
     db.games.toArray(),
     db.frames.toArray(),
     db.balls.toArray(),
     db.oil_patterns.toArray(),
     db.spare_lines.toArray(),
-    db.lane_notes.toArray()
+    db.lane_notes.toArray(),
+    db.settings.toArray()
   ]);
 
   return {
     app: "bowling-companion",
-    version: 2,
+    version: 3,
     exported_at: new Date().toISOString(),
     tables: {
       sessions,
@@ -34,7 +36,8 @@ export async function createBackup(): Promise<BowlingBackup> {
       balls,
       oil_patterns,
       spare_lines,
-      lane_notes
+      lane_notes,
+      settings
     }
   };
 }
@@ -70,7 +73,7 @@ export async function importBackup(fileOrJson: File | string | unknown) {
 }
 
 function normalizeBackup(backup: BowlingBackup): BowlingBackup {
-  if (backup.version === 2) return backup;
+  if (backup.version === 2 || backup.version === 3) return backup;
 
   // Transform v1 flat frame fields → shots[]
   const frames = backup.tables.frames.map((frame) => {
@@ -90,11 +93,11 @@ function normalizeBackup(backup: BowlingBackup): BowlingBackup {
     return { ...frame, shots };
   });
 
-  return { ...backup, version: 2, tables: { ...backup.tables, frames, balls: [], oil_patterns: [], spare_lines: [], lane_notes: [] } };
+  return { ...backup, version: 3, tables: { ...backup.tables, frames, balls: [], oil_patterns: [], spare_lines: [], lane_notes: [], settings: [] } };
 }
 
 export async function mergeBackup(backup: BowlingBackup): Promise<ImportBackupResult> {
-  return db.transaction("rw", [db.sessions, db.games, db.frames, db.balls, db.oil_patterns, db.spare_lines, db.lane_notes], async () => {
+  return db.transaction("rw", [db.sessions, db.games, db.frames, db.balls, db.oil_patterns, db.spare_lines, db.lane_notes, db.settings], async () => {
     const sessionIdMap = new Map<number, number>();
     const gameIdMap = new Map<number, number>();
     const ballIdMap = new Map<number, number>();
@@ -155,6 +158,11 @@ export async function mergeBackup(backup: BowlingBackup): Promise<ImportBackupRe
       await upsertLaneNote(ln);
     }
 
+    // Settings (keyed by `key`, last-write-wins)
+    for (const s of backup.tables.settings ?? []) {
+      await db.settings.put(s);
+    }
+
     return {
       sessions: backup.tables.sessions.length,
       games: backup.tables.games.length,
@@ -162,7 +170,8 @@ export async function mergeBackup(backup: BowlingBackup): Promise<ImportBackupRe
       balls: (backup.tables.balls ?? []).length,
       oil_patterns: (backup.tables.oil_patterns ?? []).length,
       spare_lines: (backup.tables.spare_lines ?? []).length,
-      lane_notes: (backup.tables.lane_notes ?? []).length
+      lane_notes: (backup.tables.lane_notes ?? []).length,
+      settings: (backup.tables.settings ?? []).length
     };
   });
 }

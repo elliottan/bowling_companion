@@ -38,7 +38,7 @@ describe("backupRepository", () => {
     const result = await importBackup(backup);
     const history = await getSessionHistory();
 
-    expect(result).toEqual({ sessions: 1, games: 1, frames: 1, balls: 0, oil_patterns: 0, spare_lines: 0, lane_notes: 0 });
+    expect(result).toEqual({ sessions: 1, games: 1, frames: 1, balls: 0, oil_patterns: 0, spare_lines: 0, lane_notes: 0, settings: 0 });
     expect(history[0].session.alley_name).toBe("Backup Lanes");
     expect(history[0].games[0].frames[0].is_strike).toBe(true);
   });
@@ -108,7 +108,7 @@ describe("backupRepository", () => {
     await db.oil_patterns.add({ name: "Kegel Main Street" });
 
     const backup = await createBackup();
-    expect(backup.version).toBe(2);
+    expect(backup.version).toBe(3);
     expect(backup.tables.balls).toHaveLength(1);
     expect(backup.tables.oil_patterns).toHaveLength(1);
 

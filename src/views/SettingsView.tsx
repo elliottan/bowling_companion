@@ -1,13 +1,17 @@
-import { Archive, ChevronLeft, ChevronRight, CircleDot, MapPin, type LucideIcon } from "lucide-react";
+import { Archive, ChevronLeft, ChevronRight, CircleDot, MapPin, SlidersHorizontal, type LucideIcon } from "lucide-react";
 import { ArsenalView } from "./ArsenalView";
 import { BackupRestoreView } from "./BackupRestoreView";
 import { LaneNotesView } from "./LaneNotesView";
+import { HandednessView } from "./HandednessView";
+import type { Handedness } from "../types/bowling";
 
-export type SettingsSection = "menu" | "arsenal" | "lanes" | "backup";
+export type SettingsSection = "menu" | "arsenal" | "lanes" | "backup" | "preferences";
 
 interface SettingsViewProps {
   section: SettingsSection;
   onSectionChange: (section: SettingsSection) => void;
+  handedness: Handedness;
+  onHandednessChange: (value: Handedness) => void;
 }
 
 interface MenuRow {
@@ -35,10 +39,16 @@ const MENU_ROWS: ReadonlyArray<MenuRow> = [
     label: "Backup & Restore",
     description: "Export or import your data",
     icon: Archive
+  },
+  {
+    section: "preferences",
+    label: "Preferences",
+    description: "Handedness & defaults",
+    icon: SlidersHorizontal
   }
 ];
 
-export function SettingsView({ section, onSectionChange }: SettingsViewProps) {
+export function SettingsView({ section, onSectionChange, handedness, onHandednessChange }: SettingsViewProps) {
   if (section !== "menu") {
     return (
       <>
@@ -52,7 +62,15 @@ export function SettingsView({ section, onSectionChange }: SettingsViewProps) {
             Settings
           </button>
         </div>
-        {section === "arsenal" ? <ArsenalView /> : section === "lanes" ? <LaneNotesView /> : <BackupRestoreView />}
+        {section === "arsenal" ? (
+          <ArsenalView />
+        ) : section === "lanes" ? (
+          <LaneNotesView />
+        ) : section === "preferences" ? (
+          <HandednessView value={handedness} onChange={onHandednessChange} />
+        ) : (
+          <BackupRestoreView />
+        )}
       </>
     );
   }

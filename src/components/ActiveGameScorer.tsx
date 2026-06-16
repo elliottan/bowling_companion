@@ -9,6 +9,7 @@ import {
   updateShotMeta
 } from "../lib/frameController";
 import { calculateGameScore } from "../lib/scoring";
+import { useHandedness } from "../lib/handednessContext";
 import { laneForFrame, previousSameLaneFrame } from "../lib/lanes";
 import { getBalls, getSpareLineByPins } from "../services/ballRepository";
 import type { Ball, Frame, Game, LineSpec, PinNumber, ShotMetadata } from "../types/bowling";
@@ -56,6 +57,10 @@ function parseOneDp(s: string): number | undefined {
 }
 
 function LineInput({ label, value, onChange, showPresets = false }: LineInputProps) {
+  const handedness = useHandedness();
+  // Board numbers rise to the left for a right-hander, to the right for a
+  // left-hander. dir = +1 means the LEFT arrow increases the board number.
+  const dir = handedness === "right" ? 1 : -1;
   const toText = (v: LineSpec | undefined) => ({
     stance: v?.stance != null ? String(v.stance) : "",
     target: v?.target != null ? String(v.target) : "",
@@ -123,8 +128,8 @@ function LineInput({ label, value, onChange, showPresets = false }: LineInputPro
     applyValues({ stance: clampBoard(s + stanceDelta), target: clampBoard(t + targetDelta) });
   }
 
-  const stepBtn =
-    "inline-flex h-7 items-center justify-center rounded-md border border-slate-300 bg-white px-2 text-xs font-semibold text-slate-700 hover:bg-slate-50";
+  const arrowBtn =
+    "inline-flex h-10 flex-1 items-center justify-center rounded-md border border-slate-300 bg-white text-base font-bold text-slate-700 hover:bg-slate-50 active:bg-slate-100";
 
   return (
     <div>
@@ -146,45 +151,66 @@ function LineInput({ label, value, onChange, showPresets = false }: LineInputPro
         ))}
       </div>
 
-      {/* Focus-reveal ±0.5 stepper for the focused field. The action runs on
-          pointerdown with preventDefault: this keeps the input focused (so the
-          stepper stays open) and fires reliably on touch, where a preventDefault
-          pointerdown otherwise suppresses the follow-up click. */}
+      {/* Focus-reveal board adjusters. Each arrow pair gets its own full-width
+          row with large tap targets. Actions run on pointerdown + preventDefault:
+          keeps the input focused (row stays open) and fires reliably on touch,
+          where a preventDefault pointerdown otherwise suppresses the click.
+          Direction respects handedness — for a right-hander the LEFT arrow
+          increases the board number. */}
       {focused && (
-        <div className="mt-1 flex items-center justify-center gap-1.5 text-[10px] text-slate-400">
-          <button type="button" className={stepBtn} aria-label={`${FIELD_LABEL[focused]} minus 0.5`} onPointerDown={(e) => { e.preventDefault(); nudge(focused, -0.5); }}>
-            ◀
-          </button>
-          <span className="whitespace-nowrap uppercase tracking-wide">{FIELD_LABEL[focused]} ±0.5</span>
-          <button type="button" className={stepBtn} aria-label={`${FIELD_LABEL[focused]} plus 0.5`} onPointerDown={(e) => { e.preventDefault(); nudge(focused, 0.5); }}>
-            ▶
-          </button>
+        <div className="mt-2">
+          <span className="mb-1 block text-center text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+            {FIELD_LABEL[focused]} ±0.5
+          </span>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              className={arrowBtn}
+              aria-label={`${FIELD_LABEL[focused]} ${dir > 0 ? "increase" : "decrease"} 0.5`}
+              onPointerDown={(e) => { e.preventDefault(); nudge(focused, 0.5 * dir); }}
+            >
+              ◀
+            </button>
+            <button
+              type="button"
+              className={arrowBtn}
+              aria-label={`${FIELD_LABEL[focused]} ${dir > 0 ? "decrease" : "increase"} 0.5`}
+              onPointerDown={(e) => { e.preventDefault(); nudge(focused, -0.5 * dir); }}
+            >
+              ▶
+            </button>
+          </div>
         </div>
       )}
 
-      {/* Move presets: only while the stance or target field is focused. */}
+      {/* Move presets: a captioned full-width arrow pair per preset, only while
+          the stance or target field is focused. */}
       {showPresets && (focused === "stance" || focused === "target") && (
-        <div className="mt-1.5 flex flex-wrap justify-center gap-1">
+        <div className="mt-2 space-y-2">
           {MOVE_PRESETS.map((p) => (
-            <span key={p.label} className="inline-flex overflow-hidden rounded-md border border-slate-300">
-              <button
-                type="button"
-                onPointerDown={(e) => { e.preventDefault(); move(-p.stance, -p.target); }}
-                className="bg-white px-1.5 py-1 text-[10px] font-semibold text-slate-700 hover:bg-slate-50"
-                title={`Move ${p.label} toward lower boards`}
-              >
-                ◀
-              </button>
-              <span className="bg-slate-50 px-1 py-1 text-[10px] font-semibold text-slate-600">{p.label}</span>
-              <button
-                type="button"
-                onPointerDown={(e) => { e.preventDefault(); move(p.stance, p.target); }}
-                className="bg-white px-1.5 py-1 text-[10px] font-semibold text-slate-700 hover:bg-slate-50"
-                title={`Move ${p.label} toward higher boards`}
-              >
-                ▶
-              </button>
-            </span>
+            <div key={p.label}>
+              <span className="mb-1 block text-center text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+                Move {p.label}
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  className={arrowBtn}
+                  aria-label={`Move ${p.label} ${dir > 0 ? "toward higher" : "toward lower"} boards`}
+                  onPointerDown={(e) => { e.preventDefault(); move(p.stance * dir, p.target * dir); }}
+                >
+                  ◀
+                </button>
+                <button
+                  type="button"
+                  className={arrowBtn}
+                  aria-label={`Move ${p.label} ${dir > 0 ? "toward lower" : "toward higher"} boards`}
+                  onPointerDown={(e) => { e.preventDefault(); move(-p.stance * dir, -p.target * dir); }}
+                >
+                  ▶
+                </button>
+              </div>
+            </div>
           ))}
         </div>
       )}
