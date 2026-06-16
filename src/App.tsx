@@ -169,7 +169,7 @@ function App() {
   return (
     <HandednessContext.Provider value={handedness ?? "right"}>
     <div className="flex h-[100dvh] flex-col overflow-hidden bg-lane-50 text-slate-950">
-      <header className="shrink-0 border-b border-slate-200 bg-white">
+      <header className="hidden shrink-0 border-b border-slate-200 bg-white sm:block">
         <div className="mx-auto flex w-full max-w-5xl items-center justify-between px-3 py-3 sm:px-6">
           {view === "dashboard" ? (
             <button
@@ -196,7 +196,7 @@ function App() {
         </div>
       </header>
 
-      <main className="min-h-0 flex-1 overflow-y-auto">
+      <main className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
         {view === "dashboard" && (
           <DashboardView
             onStartSession={handleStartSession}

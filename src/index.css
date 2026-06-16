@@ -3,10 +3,18 @@
 @tailwind utilities;
 
 html,
+body,
+#root {
+  height: 100%;
+}
+
+html,
 body {
   margin: 0;
   min-width: 320px;
-  overflow-x: hidden;
+  overflow: hidden;
+  /* Stop the whole-page rubber-band that dragged the fixed bottom nav up. */
+  overscroll-behavior: none;
 }
 
 :root {

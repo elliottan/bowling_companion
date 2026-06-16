@@ -97,7 +97,7 @@ export function SessionSheet({ summary, currentGameId, onClose }: SessionSheetPr
           </button>
         </div>
 
-        <div className="min-h-0 flex-1 overflow-y-auto px-4 py-3">
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-3" style={{ touchAction: "pan-y" }}>
           {games.map((game) => {
             const score = calculateGameScore(game.frames);
             const total = game.final_score ?? (score.isComplete ? score.total : `${score.total}+`);
