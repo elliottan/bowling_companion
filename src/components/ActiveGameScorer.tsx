@@ -19,9 +19,24 @@ interface LineInputProps {
   label: string;
   value: LineSpec | undefined;
   onChange: (value: LineSpec | undefined) => void;
+  /** Show the line-move preset chips (used for the intended line). */
+  showPresets?: boolean;
 }
 
 const LINE_FIELDS = ["stance", "target", "breakpoint"] as const;
+const FIELD_LABEL: Record<(typeof LINE_FIELDS)[number], string> = {
+  stance: "Stance",
+  target: "Target",
+  breakpoint: "Breakpoint"
+};
+// "X-Y" board move: X boards at the stance (feet), Y at the target (arrows).
+const MOVE_PRESETS = [
+  { label: "1-1", stance: 1, target: 1 },
+  { label: "1.5-1", stance: 1.5, target: 1 },
+  { label: "2-1", stance: 2, target: 1 }
+];
+
+const clampBoard = (n: number) => Math.max(1, Math.min(39, Math.round(n * 10) / 10));
 
 // Keep only digits and a single dot, capped at one decimal place. A trailing
 // dot is preserved so "15." can be typed on the way to "15.5".
@@ -40,13 +55,14 @@ function parseOneDp(s: string): number | undefined {
   return Number.isNaN(n) ? undefined : Math.round(n * 10) / 10;
 }
 
-function LineInput({ label, value, onChange }: LineInputProps) {
+function LineInput({ label, value, onChange, showPresets = false }: LineInputProps) {
   const toText = (v: LineSpec | undefined) => ({
     stance: v?.stance != null ? String(v.stance) : "",
     target: v?.target != null ? String(v.target) : "",
     breakpoint: v?.breakpoint != null ? String(v.breakpoint) : ""
   });
   const [text, setText] = useState(() => toText(value));
+  const [focused, setFocused] = useState<keyof LineSpec | null>(null);
 
   // Re-sync from the prop only on external changes (carry-forward, spare-line
   // prefill, reset) — not when the prop merely echoes the user's own edit, so
@@ -63,20 +79,52 @@ function LineInput({ label, value, onChange }: LineInputProps) {
     });
   }, [value?.stance, value?.target, value?.breakpoint]);
 
-  function update(field: keyof LineSpec, raw: string) {
-    const s = sanitizeLine(raw);
-    setText((t) => ({ ...t, [field]: s }));
-
-    // Each field is independent: edit/clear it without touching the others and
-    // without auto-filling defaults. Empty everywhere -> no line.
+  // Merge field overrides into the spec + local text, then emit.
+  // TODO(line-draw): future — given any two of stance/target/breakpoint (and a
+  // real breakpoint distance + arrow distance), derive the third by drawing the
+  // straight line, so the user can fix a breakpoint+target and read the laydown.
+  function applyValues(updates: Partial<Record<keyof LineSpec, number | undefined>>) {
     const next: LineSpec = { ...value };
-    const v = parseOneDp(s);
-    if (v === undefined) delete next[field];
-    else next[field] = Math.max(1, Math.min(39, v));
-
+    for (const k of Object.keys(updates) as (keyof LineSpec)[]) {
+      const v = updates[k];
+      if (v == null) delete next[k];
+      else next[k] = v;
+    }
+    setText((t) => {
+      const nt = { ...t };
+      for (const k of Object.keys(updates) as (keyof LineSpec)[]) {
+        nt[k] = updates[k] != null ? String(updates[k]) : "";
+      }
+      return nt;
+    });
     const hasAny = next.stance != null || next.target != null || next.breakpoint != null;
     onChange(hasAny ? next : undefined);
   }
+
+  function update(field: keyof LineSpec, raw: string) {
+    const s = sanitizeLine(raw);
+    setText((t) => ({ ...t, [field]: s }));
+    const v = parseOneDp(s);
+    const next: LineSpec = { ...value };
+    if (v === undefined) delete next[field];
+    else next[field] = Math.max(1, Math.min(39, v));
+    const hasAny = next.stance != null || next.target != null || next.breakpoint != null;
+    onChange(hasAny ? next : undefined);
+  }
+
+  function nudge(field: keyof LineSpec, delta: number) {
+    const base = parseOneDp(text[field]) ?? value?.[field] ?? 20;
+    applyValues({ [field]: clampBoard(base + delta) });
+  }
+
+  function move(stanceDelta: number, targetDelta: number) {
+    const s = parseOneDp(text.stance) ?? value?.stance ?? 20;
+    const t = parseOneDp(text.target) ?? value?.target ?? 20;
+    applyValues({ stance: clampBoard(s + stanceDelta), target: clampBoard(t + targetDelta) });
+  }
+
+  const stepBtn =
+    "inline-flex h-7 items-center justify-center rounded-md border border-slate-300 bg-white px-2 text-xs font-semibold text-slate-700 hover:bg-slate-50";
 
   return (
     <div>
@@ -89,12 +137,56 @@ function LineInput({ label, value, onChange }: LineInputProps) {
             inputMode="decimal"
             value={text[field]}
             onChange={(e) => update(field, e.target.value)}
+            onFocus={() => setFocused(field)}
+            onBlur={() => setFocused((f) => (f === field ? null : f))}
             placeholder={["S", "T", "B"][i]}
             className="h-9 w-full min-w-0 rounded-md border border-slate-300 px-1 text-center text-xs focus:border-felt-700 focus:outline-none"
             title={["Stance board", "Target board (arrows)", "Breakpoint board"][i]}
           />
         ))}
       </div>
+
+      {/* Focus-reveal ±0.5 stepper for the focused field. Buttons keep focus
+          (preventDefault) so the stepper stays open while tapping. */}
+      {focused && (
+        <div className="mt-1 flex items-center justify-center gap-1.5 text-[10px] text-slate-400">
+          <button type="button" className={stepBtn} aria-label={`${FIELD_LABEL[focused]} minus 0.5`} onPointerDown={(e) => e.preventDefault()} onClick={() => nudge(focused, -0.5)}>
+            ◀
+          </button>
+          <span className="whitespace-nowrap uppercase tracking-wide">{FIELD_LABEL[focused]} ±0.5</span>
+          <button type="button" className={stepBtn} aria-label={`${FIELD_LABEL[focused]} plus 0.5`} onPointerDown={(e) => e.preventDefault()} onClick={() => nudge(focused, 0.5)}>
+            ▶
+          </button>
+        </div>
+      )}
+
+      {showPresets && (
+        <div className="mt-1.5 flex flex-wrap gap-1">
+          {MOVE_PRESETS.map((p) => (
+            <span key={p.label} className="inline-flex overflow-hidden rounded-md border border-slate-300">
+              <button
+                type="button"
+                onPointerDown={(e) => e.preventDefault()}
+                onClick={() => move(-p.stance, -p.target)}
+                className="bg-white px-1.5 py-1 text-[10px] font-semibold text-slate-700 hover:bg-slate-50"
+                title={`Move ${p.label} toward lower boards`}
+              >
+                ◀
+              </button>
+              <span className="bg-slate-50 px-1 py-1 text-[10px] font-semibold text-slate-600">{p.label}</span>
+              <button
+                type="button"
+                onPointerDown={(e) => e.preventDefault()}
+                onClick={() => move(p.stance, p.target)}
+                className="bg-white px-1.5 py-1 text-[10px] font-semibold text-slate-700 hover:bg-slate-50"
+                title={`Move ${p.label} toward higher boards`}
+              >
+                ▶
+              </button>
+            </span>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -179,7 +271,7 @@ function ShotDetailBar({
         )}
       </div>
 
-      <LineInput label="Intended" value={intended} onChange={onIntendedChange} />
+      <LineInput label="Intended" value={intended} onChange={onIntendedChange} showPresets />
 
       <button
         type="button"
@@ -332,7 +424,16 @@ export function ActiveGameScorer({
       setIntendedLine(undefined);
       getSpareLineByPins(leave)
         .then((sl) => {
-          if (lastDefaultedShot.current === key) setIntendedLine(sl?.line);
+          if (lastDefaultedShot.current !== key) return;
+          // Spare defaults populate stance + target only; breakpoint stays
+          // blank (usable for a hook spare the user configures per shot).
+          const line = sl?.line
+            ? {
+                ...(sl.line.stance != null && { stance: sl.line.stance }),
+                ...(sl.line.target != null && { target: sl.line.target })
+              }
+            : undefined;
+          setIntendedLine(line && Object.keys(line).length ? line : undefined);
         })
         .catch(() => {});
     } else {

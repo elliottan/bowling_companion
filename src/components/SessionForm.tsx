@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { CreateSessionInput } from "../services/bowlingRepository";
 import type { OilPattern } from "../types/bowling";
 import { addOilPattern, getOilPatterns } from "../services/ballRepository";
-import { getDistinctAlleys } from "../services/bowlingRepository";
+import { getDistinctAlleys, getDistinctDescriptions } from "../services/bowlingRepository";
 
 export interface NewSessionFormValues extends CreateSessionInput {
   lanes: string[];
@@ -29,6 +29,8 @@ export function SessionForm({ onSubmit, isSubmitting = false }: SessionFormProps
 
   const [alleys, setAlleys] = useState<string[]>([]);
   const [showAlleyList, setShowAlleyList] = useState(false);
+  const [descriptions, setDescriptions] = useState<string[]>([]);
+  const [showDescList, setShowDescList] = useState(false);
 
   const [oilPatterns, setOilPatterns] = useState<OilPattern[]>([]);
   const [selectedPatternId, setSelectedPatternId] = useState<number | undefined>(undefined);
@@ -39,6 +41,7 @@ export function SessionForm({ onSubmit, isSubmitting = false }: SessionFormProps
   useEffect(() => {
     getOilPatterns().then(setOilPatterns).catch(() => {});
     getDistinctAlleys().then(setAlleys).catch(() => {});
+    getDistinctDescriptions().then(setDescriptions).catch(() => {});
   }, []);
 
   const alleyMatches = useMemo(() => {
@@ -46,6 +49,14 @@ export function SessionForm({ onSubmit, isSubmitting = false }: SessionFormProps
     const list = q ? alleys.filter((a) => a.toLowerCase().includes(q) && a.toLowerCase() !== q) : alleys;
     return list.slice(0, 6);
   }, [alleyName, alleys]);
+
+  const descMatches = useMemo(() => {
+    const q = description.trim().toLowerCase();
+    const list = q
+      ? descriptions.filter((d) => d.toLowerCase().includes(q) && d.toLowerCase() !== q)
+      : descriptions;
+    return list.slice(0, 6);
+  }, [description, descriptions]);
 
   async function handleAddPattern() {
     const name = newPatternName.trim();
@@ -128,12 +139,33 @@ export function SessionForm({ onSubmit, isSubmitting = false }: SessionFormProps
         </Field>
 
         <Field label="Description">
-          <input
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            className={inputClass}
-            placeholder="League night, practice, tournament..."
-          />
+          <div className="relative">
+            <input
+              value={description}
+              onChange={(e) => { setDescription(e.target.value); setShowDescList(true); }}
+              onFocus={() => setShowDescList(true)}
+              onBlur={() => setTimeout(() => setShowDescList(false), 120)}
+              className={inputClass}
+              placeholder="League night, practice, tournament..."
+              autoComplete="off"
+            />
+            {showDescList && descMatches.length > 0 && (
+              <ul className="absolute z-10 mt-1 max-h-48 w-full overflow-y-auto rounded-lg border border-slate-200 bg-white py-1 shadow-lg">
+                {descMatches.map((d) => (
+                  <li key={d}>
+                    <button
+                      type="button"
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => { setDescription(d); setShowDescList(false); }}
+                      className="block w-full px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-100"
+                    >
+                      {d}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
         </Field>
       </div>
 

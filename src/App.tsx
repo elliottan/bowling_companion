@@ -7,7 +7,7 @@ import {
   Target,
   type LucideIcon
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { DashboardView } from "./views/DashboardView";
 import { ActiveSessionView } from "./views/ActiveSessionView";
 import { HistoryView } from "./views/HistoryView";
@@ -54,6 +54,19 @@ function App() {
     if (target === "settings") setSettingsSection("menu");
     setView(target);
   }
+
+  // Keyboard overlays the nav (viewport interactive-widget=overlays-content);
+  // scroll a focused field into view so it isn't hidden behind the keyboard.
+  useEffect(() => {
+    function onFocusIn(e: FocusEvent) {
+      const t = e.target as HTMLElement | null;
+      if (t && t.matches("input, textarea, select")) {
+        setTimeout(() => t.scrollIntoView({ block: "center", behavior: "smooth" }), 250);
+      }
+    }
+    document.addEventListener("focusin", onFocusIn);
+    return () => document.removeEventListener("focusin", onFocusIn);
+  }, []);
 
   // Deep-link into Settings → Arsenal (from the scorer's ball selector).
   function openArsenal() {
@@ -103,13 +116,17 @@ function App() {
     <div className="flex h-[100dvh] flex-col overflow-hidden bg-lane-50 text-slate-950">
       <header className="shrink-0 border-b border-slate-200 bg-white">
         <div className="mx-auto flex w-full max-w-5xl items-center justify-between px-3 py-3 sm:px-6">
-          <button
-            type="button"
-            onClick={() => goTo("dashboard")}
-            className="text-base font-bold tracking-tight text-slate-950 sm:text-lg"
-          >
-            Bowling Companion
-          </button>
+          {view === "dashboard" ? (
+            <button
+              type="button"
+              onClick={() => goTo("dashboard")}
+              className="text-base font-bold tracking-tight text-slate-950 sm:text-lg"
+            >
+              Bowling Companion
+            </button>
+          ) : (
+            <span />
+          )}
           <nav className="hidden gap-1 sm:flex">
             {NAV_ITEMS.map((item) => (
               <NavLink

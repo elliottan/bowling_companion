@@ -111,14 +111,23 @@ export async function updateGameLanes(
 
 /** Distinct alley names from past sessions, most-recent first, for autocomplete. */
 export async function getDistinctAlleys(): Promise<string[]> {
+  return distinctSessionField((s) => s.alley_name);
+}
+
+/** Distinct session descriptions, most-recent first, for autocomplete. */
+export async function getDistinctDescriptions(): Promise<string[]> {
+  return distinctSessionField((s) => s.description);
+}
+
+async function distinctSessionField(pick: (s: Session) => string | undefined): Promise<string[]> {
   const sessions = await db.sessions.orderBy("date").reverse().toArray();
   const seen = new Set<string>();
   const out: string[] = [];
   for (const s of sessions) {
-    const name = s.alley_name?.trim();
-    if (name && !seen.has(name.toLowerCase())) {
-      seen.add(name.toLowerCase());
-      out.push(name);
+    const value = pick(s)?.trim();
+    if (value && !seen.has(value.toLowerCase())) {
+      seen.add(value.toLowerCase());
+      out.push(value);
     }
   }
   return out;

@@ -29,7 +29,13 @@ export function StatsView() {
   const [error, setError] = useState("");
   const [filterAlley, setFilterAlley] = useState("");
   const [filterPattern, setFilterPattern] = useState("");
-  const [filterLane, setFilterLane] = useState("");
+  const [selectedLanes, setSelectedLanes] = useState<string[]>([]);
+
+  function toggleLane(lane: string) {
+    setSelectedLanes((prev) =>
+      prev.includes(lane) ? prev.filter((l) => l !== lane) : [...prev, lane]
+    );
+  }
 
   useEffect(() => {
     let isMounted = true;
@@ -55,17 +61,24 @@ export function StatsView() {
     };
   }, []);
 
+  // Alley + pattern filter at the session level; lanes are applied at the
+  // frame level inside the stats calculators (correct for cross-lane games).
   const filteredHistory = useMemo(() => {
-    if (!filterAlley && !filterPattern && !filterLane) return history;
+    if (!filterAlley && !filterPattern) return history;
     return filterSessionsBy(history, {
       alleyName: filterAlley || undefined,
       oilPattern: filterPattern || undefined,
-      laneNumber: filterLane || undefined,
     });
-  }, [history, filterAlley, filterPattern, filterLane]);
+  }, [history, filterAlley, filterPattern]);
 
-  const stats = useMemo(() => calculateStats(filteredHistory), [filteredHistory]);
-  const leaves = useMemo(() => calculateCommonLeaves(filteredHistory), [filteredHistory]);
+  const stats = useMemo(
+    () => calculateStats(filteredHistory, selectedLanes),
+    [filteredHistory, selectedLanes]
+  );
+  const leaves = useMemo(
+    () => calculateCommonLeaves(filteredHistory, selectedLanes),
+    [filteredHistory, selectedLanes]
+  );
 
   const allAlleys = useMemo(
     () => [...new Set(history.map((s) => s.session.alley_name))].sort(),
@@ -125,18 +138,36 @@ export function StatsView() {
               </option>
             ))}
           </select>
-          <select
-            value={filterLane}
-            onChange={(e) => setFilterLane(e.target.value)}
-            className={selectClass}
-          >
-            <option value="">All lanes</option>
-            {allLanes.map((l) => (
-              <option key={l} value={l}>
-                Lane {l}
-              </option>
-            ))}
-          </select>
+        </div>
+      )}
+
+      {allLanes.length > 0 && (
+        <div className="mb-4 flex flex-wrap items-center gap-1.5">
+          <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">Lanes</span>
+          {allLanes.map((l) => {
+            const on = selectedLanes.includes(l);
+            return (
+              <button
+                key={l}
+                type="button"
+                onClick={() => toggleLane(l)}
+                className={`h-8 rounded-md border px-3 text-xs font-semibold ${
+                  on ? "border-felt-700 bg-felt-700 text-white" : "border-slate-300 bg-white text-slate-700"
+                }`}
+              >
+                {l}
+              </button>
+            );
+          })}
+          {selectedLanes.length > 0 && (
+            <button
+              type="button"
+              onClick={() => setSelectedLanes([])}
+              className="h-8 rounded-md px-2 text-xs font-medium text-slate-500 hover:bg-slate-100"
+            >
+              Clear
+            </button>
+          )}
         </div>
       )}
 

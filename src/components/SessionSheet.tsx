@@ -1,6 +1,7 @@
 import { X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { getFrameShotSymbols } from "../lib/scoreDisplay";
+import { laneForFrame } from "../lib/lanes";
 import { calculateGameScore } from "../lib/scoring";
 import { getBalls } from "../services/ballRepository";
 import type { Ball, Frame, LineSpec, SessionSummary } from "../types/bowling";
@@ -82,13 +83,7 @@ export function SessionSheet({ summary, currentGameId, onClose }: SessionSheetPr
                 {game.frames.length === 0 ? (
                   <p className="text-xs text-slate-400">No shots yet.</p>
                 ) : (
-                  <ul className="divide-y divide-slate-100 rounded-lg border border-slate-200">
-                    {[...game.frames]
-                      .sort((a, b) => a.frame_number - b.frame_number)
-                      .map((frame) => (
-                        <FrameRow key={frame.frame_number} frame={frame} ballName={ballName} />
-                      ))}
-                  </ul>
+                  <GameGrid game={game} ballName={ballName} />
                 )}
               </section>
             );
@@ -99,34 +94,78 @@ export function SessionSheet({ summary, currentGameId, onClose }: SessionSheetPr
   );
 }
 
-function FrameRow({ frame, ballName }: { frame: Frame; ballName: (id?: number) => string | undefined }) {
+// Two columns = the two lanes (cross-lane). Odd frames (1,3,5,7,9) sit in the
+// start-lane column, even frames in the other; single-lane games head both
+// columns with the same lane.
+function GameGrid({
+  game,
+  ballName
+}: {
+  game: SessionSummary["games"][number];
+  ballName: (id?: number) => string | undefined;
+}) {
+  const col1Lane = laneForFrame(game, 1);
+  const col2Lane = laneForFrame(game, 2);
+  const byNumber = new Map(game.frames.map((f) => [f.frame_number, f]));
+  const cells: number[] = [];
+  for (let n = 1; n <= 10; n++) cells.push(n);
+
+  return (
+    <div className="overflow-hidden rounded-lg border border-slate-200">
+      <div className="grid grid-cols-2 bg-slate-50 text-center text-[10px] font-bold uppercase tracking-wide text-slate-500">
+        <div className="border-b border-r border-slate-200 py-1">{col1Lane ? `Lane ${col1Lane}` : "Lane"}</div>
+        <div className="border-b border-slate-200 py-1">{col2Lane ? `Lane ${col2Lane}` : "Lane"}</div>
+      </div>
+      <div className="grid grid-cols-2">
+        {cells.map((n, idx) => {
+          const frame = byNumber.get(n);
+          const isLeft = idx % 2 === 0;
+          return (
+            <div
+              key={n}
+              className={`border-b border-slate-100 p-2 ${isLeft ? "border-r" : ""} ${
+                idx >= 8 ? "border-b-0" : ""
+              }`}
+            >
+              {frame ? (
+                <FrameCell frame={frame} ballName={ballName} />
+              ) : (
+                <span className="text-[10px] font-bold uppercase text-slate-300">F{n}</span>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function FrameCell({ frame, ballName }: { frame: Frame; ballName: (id?: number) => string | undefined }) {
   const symbols = getFrameShotSymbols(frame).filter(Boolean).join(" ");
   return (
-    <li className="flex gap-3 px-3 py-2">
-      <div className="flex w-8 shrink-0 flex-col items-center">
+    <div>
+      <div className="flex items-center gap-1.5">
         <span className="text-[10px] font-bold uppercase text-slate-400">F{frame.frame_number}</span>
         <span className="text-sm font-bold text-slate-900">{symbols}</span>
       </div>
-      <div className="min-w-0 flex-1 space-y-1.5">
+      <div className="mt-1 space-y-1">
         {frame.shots.map((shot, i) => {
           const intended = formatLine(shot.intended);
           const actual = formatLine(shot.actual);
           const name = ballName(shot.ball_id);
           return (
-            <div key={i} className="flex items-start gap-2">
+            <div key={i} className="flex items-start gap-1.5">
               <MiniPins standing={shot.pins_standing} />
-              <div className="min-w-0 flex-1 text-xs">
-                <div className="flex flex-wrap gap-x-2 gap-y-0.5 text-slate-600">
-                  {name && <span className="font-medium text-slate-800">{name}</span>}
-                  {intended && <span>line {intended}</span>}
-                  {actual && <span className="text-slate-400">→ {actual}</span>}
-                </div>
-                {shot.notes && <p className="mt-0.5 break-words text-slate-500">{shot.notes}</p>}
+              <div className="min-w-0 flex-1 text-[11px] leading-tight text-slate-600">
+                {name && <span className="font-medium text-slate-800">{name} </span>}
+                {intended && <span>{intended}</span>}
+                {actual && <span className="text-slate-400"> → {actual}</span>}
+                {shot.notes && <p className="break-words text-slate-500">{shot.notes}</p>}
               </div>
             </div>
           );
         })}
       </div>
-    </li>
+    </div>
   );
 }

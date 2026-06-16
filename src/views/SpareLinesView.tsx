@@ -16,6 +16,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { PinGrid } from "../components/PinGrid";
+import { derivePinBoard } from "../lib/pinGeometry";
 import {
   deleteSpareLine,
   ensureDefaultSpareLines,
@@ -88,7 +89,10 @@ function SortableSpareCard({ sl, onEdit }: SortableSpareCardProps) {
           <SmallPinDiagram standing={sl.pins} />
           {sl.line ? (
             <span className="block text-xs font-semibold text-slate-700">
-              S{sl.line.stance} · T{sl.line.target} · B{sl.line.breakpoint}
+              S{sl.line.stance ?? "·"} · T{sl.line.target ?? "·"}
+              {derivePinBoard(sl.line, sl.pins) != null && (
+                <span className="text-felt-700"> · pin {derivePinBoard(sl.line, sl.pins)}</span>
+              )}
             </span>
           ) : (
             <span className="block text-xs text-slate-400">No line</span>
@@ -102,7 +106,7 @@ function SortableSpareCard({ sl, onEdit }: SortableSpareCardProps) {
   );
 }
 
-const EMPTY_LINE: LineSpec = { stance: 0, target: 0, breakpoint: 0 };
+const EMPTY_LINE: LineSpec = {};
 
 const ALL_PINS: PinNumber[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
@@ -199,7 +203,10 @@ export function SpareLinesView() {
       return;
     }
 
-    const line = formHasLine ? formLine : undefined;
+    // Breakpoint is no longer entered for spares — keep only stance + target.
+    const line: LineSpec | undefined = formHasLine
+      ? { ...(formLine.stance != null && { stance: formLine.stance }), ...(formLine.target != null && { target: formLine.target }) }
+      : undefined;
 
     setIsSaving(true);
     setFormError("");
@@ -306,50 +313,56 @@ export function SpareLinesView() {
               </div>
 
               {formHasLine && (
-                <div className="grid grid-cols-3 gap-3">
-                  <div>
-                    <label className="mb-1 block text-xs font-medium text-slate-600">
-                      Stance
-                    </label>
-                    <input
-                      type="number"
-                      value={formLine.stance || ""}
-                      onChange={(e) =>
-                        setFormLine((l) => ({ ...l, stance: Number(e.target.value) }))
-                      }
-                      placeholder="e.g. 35"
-                      className="h-10 w-full rounded-lg border border-slate-300 px-3 text-sm outline-none focus:border-felt-700 focus:ring-2 focus:ring-felt-700/20"
-                    />
+                <>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="mb-1 block text-xs font-medium text-slate-600">
+                        Stance
+                      </label>
+                      <input
+                        type="number"
+                        inputMode="decimal"
+                        step="0.5"
+                        value={formLine.stance ?? ""}
+                        onChange={(e) =>
+                          setFormLine((l) => ({
+                            ...l,
+                            stance: e.target.value === "" ? undefined : Number(e.target.value)
+                          }))
+                        }
+                        placeholder="e.g. 35"
+                        className="h-10 w-full rounded-lg border border-slate-300 px-3 text-sm outline-none focus:border-felt-700 focus:ring-2 focus:ring-felt-700/20"
+                      />
+                    </div>
+                    <div>
+                      <label className="mb-1 block text-xs font-medium text-slate-600">
+                        Target
+                      </label>
+                      <input
+                        type="number"
+                        inputMode="decimal"
+                        step="0.5"
+                        value={formLine.target ?? ""}
+                        onChange={(e) =>
+                          setFormLine((l) => ({
+                            ...l,
+                            target: e.target.value === "" ? undefined : Number(e.target.value)
+                          }))
+                        }
+                        placeholder="e.g. 10"
+                        className="h-10 w-full rounded-lg border border-slate-300 px-3 text-sm outline-none focus:border-felt-700 focus:ring-2 focus:ring-felt-700/20"
+                      />
+                    </div>
                   </div>
-                  <div>
-                    <label className="mb-1 block text-xs font-medium text-slate-600">
-                      Target
-                    </label>
-                    <input
-                      type="number"
-                      value={formLine.target || ""}
-                      onChange={(e) =>
-                        setFormLine((l) => ({ ...l, target: Number(e.target.value) }))
-                      }
-                      placeholder="e.g. 10"
-                      className="h-10 w-full rounded-lg border border-slate-300 px-3 text-sm outline-none focus:border-felt-700 focus:ring-2 focus:ring-felt-700/20"
-                    />
-                  </div>
-                  <div>
-                    <label className="mb-1 block text-xs font-medium text-slate-600">
-                      Breakpoint
-                    </label>
-                    <input
-                      type="number"
-                      value={formLine.breakpoint || ""}
-                      onChange={(e) =>
-                        setFormLine((l) => ({ ...l, breakpoint: Number(e.target.value) }))
-                      }
-                      placeholder="e.g. 6"
-                      className="h-10 w-full rounded-lg border border-slate-300 px-3 text-sm outline-none focus:border-felt-700 focus:ring-2 focus:ring-felt-700/20"
-                    />
-                  </div>
-                </div>
+                  {derivePinBoard(formLine, formPins) != null && (
+                    <p className="mt-2 text-xs text-slate-500">
+                      Straight-line board at the front pin:{" "}
+                      <span className="font-semibold text-felt-700">
+                        {derivePinBoard(formLine, formPins)}
+                      </span>
+                    </p>
+                  )}
+                </>
               )}
             </div>
 

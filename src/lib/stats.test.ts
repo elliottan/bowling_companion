@@ -232,3 +232,36 @@ describe("filterSessionsBy", () => {
     expect(filterSessionsBy(sessions, { laneNumber: "11" })).toHaveLength(0);
   });
 });
+
+describe("frame-level lane filtering", () => {
+  // Cross-lane: frame 1 (lane 9, strike), frame 2 (lane 10, open).
+  const crossLane: SessionSummary[] = [
+    {
+      session: { date: "2026-06-07", alley_name: "Cross" },
+      games: [
+        {
+          id: 1,
+          session_id: 1,
+          game_number: 1,
+          lanes: ["9", "10"],
+          start_lane: "9",
+          frames: [frame(1, NONE), frame(2, [10] as PinNumber[], [10] as PinNumber[])]
+        }
+      ]
+    }
+  ];
+
+  it("strike% counts every frame when no lane filter", () => {
+    expect(calculateStats(crossLane).strikePct).toBe(50); // 1 strike of 2 frames
+  });
+
+  it("strike% counts only frames on the selected lane", () => {
+    expect(calculateStats(crossLane, ["9"]).strikePct).toBe(100); // odd frames
+    expect(calculateStats(crossLane, ["10"]).strikePct).toBe(0); // even frames
+  });
+
+  it("common leaves respect the lane filter", () => {
+    expect(calculateCommonLeaves(crossLane, ["9"])).toHaveLength(0);
+    expect(calculateCommonLeaves(crossLane, ["10"]).length).toBeGreaterThan(0);
+  });
+});

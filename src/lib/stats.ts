@@ -1,5 +1,26 @@
 import { isSpare, isStrike } from "./scoring";
-import type { Frame, PinNumber, SessionSummary } from "../types/bowling";
+import { laneForFrame } from "./lanes";
+import type { Frame, Game, PinNumber, SessionSummary } from "../types/bowling";
+
+type GameWithFrames = Game & { frames: Frame[] };
+
+/** Lanes a game was bowled on (for game-level Avg/High inclusion). */
+function gameLanes(game: Game): string[] {
+  return game.lanes ?? (game.lane_number ? [game.lane_number] : []);
+}
+
+/** Empty/undefined filter = all lanes. Game counts if it touches a selected lane. */
+function gameTouchesLanes(game: Game, filter?: Set<string>): boolean {
+  if (!filter || filter.size === 0) return true;
+  return gameLanes(game).some((l) => filter.has(l));
+}
+
+/** Whether a specific frame was bowled on one of the selected lanes. */
+function frameOnSelectedLane(game: Game, frameNumber: number, filter?: Set<string>): boolean {
+  if (!filter || filter.size === 0) return true;
+  const lane = laneForFrame(game, frameNumber);
+  return lane != null && filter.has(lane);
+}
 
 export interface AlleyStats {
   alley: string;
@@ -30,9 +51,10 @@ export interface BowlingStats {
  * Spare % = spares made / spare opportunities, where an opportunity is a
  * non-strike frame in which a second ball was thrown.
  */
-export function calculateStats(sessions: SessionSummary[]): BowlingStats {
+export function calculateStats(sessions: SessionSummary[], selectedLanes?: string[]): BowlingStats {
+  const filter = selectedLanes && selectedLanes.length ? new Set(selectedLanes) : undefined;
   const allGames = sessions.flatMap((s) =>
-    s.games.map((g) => ({ alley: s.session.alley_name, game: g }))
+    s.games.map((g) => ({ alley: s.session.alley_name, game: g as GameWithFrames }))
   );
 
   const completedScores: number[] = [];
@@ -43,13 +65,16 @@ export function calculateStats(sessions: SessionSummary[]): BowlingStats {
   let spares = 0;
 
   for (const { alley, game } of allGames) {
-    if (typeof game.final_score === "number") {
+    // Avg/High are whole-game scores: include a game if it touched a selected lane.
+    if (typeof game.final_score === "number" && gameTouchesLanes(game, filter)) {
       completedScores.push(game.final_score);
       if (!alleyMap.has(alley)) alleyMap.set(alley, []);
       alleyMap.get(alley)!.push(game.final_score);
     }
 
+    // Strike/spare rates are per-frame: count only frames on selected lanes.
     for (const frame of game.frames) {
+      if (!frameOnSelectedLane(game, frame.frame_number, filter)) continue;
       const tally = tallyFrame(frame);
       strikeOpps += tally.strikeOpps;
       strikes += tally.strikes;
@@ -172,11 +197,17 @@ export interface LeaveStats {
   conversionPct: number | null;
 }
 
-export function calculateCommonLeaves(sessions: SessionSummary[]): LeaveStats[] {
+export function calculateCommonLeaves(
+  sessions: SessionSummary[],
+  selectedLanes?: string[]
+): LeaveStats[] {
+  const filter = selectedLanes && selectedLanes.length ? new Set(selectedLanes) : undefined;
   const leaveMap = new Map<string, LeaveStats>();
 
   const allFrames = sessions.flatMap((s) =>
-    s.games.flatMap((g) => g.frames)
+    s.games.flatMap((g) =>
+      g.frames.filter((f) => frameOnSelectedLane(g, f.frame_number, filter))
+    )
   );
 
   for (const frame of allFrames) {
