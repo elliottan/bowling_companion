@@ -1,4 +1,4 @@
-import { History, Trash2 } from "lucide-react";
+import { History, Pencil, Trash2 } from "lucide-react";
 import { useRef, useState } from "react";
 import { calculateGameScore } from "../lib/scoring";
 import type { SessionSummary } from "../types/bowling";
@@ -8,6 +8,7 @@ interface SessionHistoryProps {
   isLoading?: boolean;
   onOpenSession: (sessionId: number) => void;
   onRequestDelete: (sessionId: number, label: string) => void;
+  onRequestEdit: (sessionId: number) => void;
   activeSessionId?: number | null;
 }
 
@@ -16,6 +17,7 @@ export function SessionHistory({
   isLoading = false,
   onOpenSession,
   onRequestDelete,
+  onRequestEdit,
   activeSessionId
 }: SessionHistoryProps) {
   if (isLoading) {
@@ -46,6 +48,7 @@ export function SessionHistory({
             isActive={summary.session.id != null && summary.session.id === activeSessionId}
             onOpen={onOpenSession}
             onRequestDelete={onRequestDelete}
+            onRequestEdit={onRequestEdit}
           />
         </li>
       ))}
@@ -70,9 +73,10 @@ interface SwipeRowProps {
   isActive: boolean;
   onOpen: (sessionId: number) => void;
   onRequestDelete: (sessionId: number, label: string) => void;
+  onRequestEdit: (sessionId: number) => void;
 }
 
-function SwipeRow({ summary, isActive, onOpen, onRequestDelete }: SwipeRowProps) {
+function SwipeRow({ summary, isActive, onOpen, onRequestDelete, onRequestEdit }: SwipeRowProps) {
   const { session, games } = summary;
   // Series total = sum of every game's score (current total if unfinished);
   // average = mean of completed games only.
@@ -84,26 +88,28 @@ function SwipeRow({ summary, isActive, onOpen, onRequestDelete }: SwipeRowProps)
   const seriesAvg = completed.length
     ? Math.round(completed.reduce((a, b) => a + b, 0) / completed.length)
     : null;
-  const [offset, setOffset] = useState(0); // 0 = closed, -REVEAL = open
+  const [offset, setOffset] = useState(0); // 0 = closed, -REVEAL = delete, +REVEAL = edit
   const startX = useRef(0);
+  const startOffset = useRef(0);
   const dragging = useRef(false);
   const moved = useRef(false);
 
   function onPointerDown(e: React.PointerEvent) {
     startX.current = e.clientX;
+    startOffset.current = offset;
     dragging.current = true;
     moved.current = false;
   }
   function onPointerMove(e: React.PointerEvent) {
     if (!dragging.current) return;
-    const dx = e.clientX - startX.current + (offset === -REVEAL ? -REVEAL : 0);
+    const dx = e.clientX - startX.current + startOffset.current;
     if (Math.abs(e.clientX - startX.current) > 8) moved.current = true;
-    setOffset(Math.max(-REVEAL, Math.min(0, dx)));
+    setOffset(Math.max(-REVEAL, Math.min(REVEAL, dx)));
   }
   function endDrag() {
     if (!dragging.current) return;
     dragging.current = false;
-    setOffset((o) => (o <= -REVEAL / 2 ? -REVEAL : 0));
+    setOffset((o) => (o <= -REVEAL / 2 ? -REVEAL : o >= REVEAL / 2 ? REVEAL : 0));
   }
   function handleClick() {
     // A swipe shouldn't also open the session; an open row closes on tap.
@@ -117,7 +123,16 @@ function SwipeRow({ summary, isActive, onOpen, onRequestDelete }: SwipeRowProps)
 
   return (
     <div className="relative overflow-hidden rounded-lg">
-      {/* Delete action revealed behind the card */}
+      {/* Edit action revealed behind the card (swipe right) */}
+      <button
+        type="button"
+        aria-label={`Edit ${session.alley_name} session`}
+        onClick={() => session.id && onRequestEdit(session.id)}
+        className="absolute inset-y-0 left-0 flex w-[88px] items-center justify-center bg-felt-700 text-white"
+      >
+        <Pencil size={20} aria-hidden="true" />
+      </button>
+      {/* Delete action revealed behind the card (swipe left) */}
       <button
         type="button"
         aria-label={`Delete ${session.alley_name} session`}

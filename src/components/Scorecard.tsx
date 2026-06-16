@@ -151,7 +151,13 @@ function FrameCell({
           );
         })}
       </div>
-      <div className="flex h-9 items-center justify-center text-base font-bold text-felt-700 sm:h-12 sm:text-lg">
+      <div
+        className={`flex h-9 items-center justify-center text-base font-bold sm:h-12 sm:text-lg ${
+          frameNumber === 10 && rollingTotal != null
+            ? "bg-felt-700 font-extrabold text-white"
+            : "text-felt-700"
+        }`}
+      >
         {rollingTotal ?? ""}
       </div>
     </div>

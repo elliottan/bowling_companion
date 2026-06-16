@@ -1,14 +1,18 @@
-import { ChevronLeft, ListChecks, MoreVertical, Plus, Trash2 } from "lucide-react";
+import { ChevronLeft, ListChecks, MoreVertical, Pencil, Plus, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { ActiveGameScorer } from "../components/ActiveGameScorer";
 import { ConfirmDialog } from "../components/ConfirmDialog";
+import { SessionEditDialog } from "../components/SessionEditDialog";
 import { SessionSheet } from "../components/SessionSheet";
+import { calculateGameScore } from "../lib/scoring";
 import {
   addNextGameToSession,
   deleteGame,
   getSessionDetails,
   saveFrame,
-  updateGameLanes
+  updateGameLanes,
+  updateSession,
+  type UpdateSessionInput
 } from "../services/bowlingRepository";
 import type { Frame, Game, SessionSummary } from "../types/bowling";
 
@@ -37,6 +41,7 @@ export function ActiveSessionView({
   const [showMenu, setShowMenu] = useState(false);
   const [confirmDeleteGame, setConfirmDeleteGame] = useState(false);
   const [showSheet, setShowSheet] = useState(false);
+  const [showEdit, setShowEdit] = useState(false);
 
   // Inline lane editor
   const [laneA, setLaneA] = useState("");
@@ -153,6 +158,16 @@ export function ActiveSessionView({
     }
   }
 
+  async function handleSaveEdit(values: UpdateSessionInput) {
+    try {
+      await updateSession(sessionId, values);
+      setShowEdit(false);
+      await refreshSession(activeGameId ?? undefined);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unable to update session.");
+    }
+  }
+
   if (isLoading) {
     return (
       <section className="mx-auto w-full max-w-5xl px-4 py-6 text-sm text-slate-600">
@@ -181,41 +196,90 @@ export function ActiveSessionView({
 
   const laneLabel = (activeGame.lanes ?? (activeGame.lane_number ? [activeGame.lane_number] : [])).join(" / ");
   const games = sessionDetails.games;
-  const latestGame = games[games.length - 1];
-  const latestComplete = latestGame?.final_score !== undefined;
-  const isLastGameActive = activeGame.id === latestGame?.id;
-  // The big "Next Game" CTA only when the active (last) game is fully complete.
-  const showNextGameCta = isLastGameActive && latestComplete;
   // The +/menu can add a game at any time.
   const canAddGame = !isAddingGame;
+  // Series total = sum of every game's score (final, or running if unfinished).
+  const seriesTotal = games.reduce(
+    (sum, g) => sum + (g.final_score ?? calculateGameScore((g as Game & { frames: Frame[] }).frames).total),
+    0
+  );
 
   return (
     <div>
       <section className="mx-auto w-full max-w-5xl px-3 pt-3 sm:px-6">
         <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={onBack}
-            aria-label="Back"
-            className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-slate-300 bg-white text-slate-700 hover:bg-slate-50"
-          >
-            <ChevronLeft size={18} aria-hidden="true" />
-          </button>
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-semibold text-slate-900">
               {sessionDetails.session.alley_name}
             </p>
             <p className="truncate text-xs text-slate-500">
-              {sessionDetails.session.date} · Game {activeGame.game_number}
+              {sessionDetails.session.date} · {games.length} {games.length === 1 ? "game" : "games"}
             </p>
-            <button
-              type="button"
-              onClick={() => setShowLaneEditor((v) => !v)}
-              className="mt-0.5 inline-flex items-center rounded-full border border-slate-300 bg-white px-2 py-0.5 text-[11px] font-semibold text-slate-600 hover:bg-slate-50 active:bg-slate-100"
-            >
-              {laneLabel ? `Lane ${laneLabel}` : "+ Add lane"}
-            </button>
+            <div className="relative mt-0.5 inline-block">
+              <button
+                type="button"
+                onClick={() => setShowLaneEditor((v) => !v)}
+                className="inline-flex items-center rounded-full border border-slate-300 bg-white px-2 py-0.5 text-[11px] font-semibold text-slate-600 hover:bg-slate-50 active:bg-slate-100"
+              >
+                {laneLabel ? `Lane ${laneLabel}` : "+ Add lane"}
+              </button>
+              {showLaneEditor && (
+                <>
+                  <div className="fixed inset-0 z-10" onClick={() => setShowLaneEditor(false)} />
+                  <div className="absolute left-0 z-20 mt-1 w-64 rounded-lg border border-slate-200 bg-white p-3 shadow-lg">
+                    <span className="mb-2 block text-[10px] font-semibold uppercase tracking-wide text-slate-400">Lanes</span>
+                    <div className="flex items-center gap-2">
+                      <input
+                        value={laneA}
+                        onChange={(e) => setLaneA(e.target.value.replace(/\D/g, ""))}
+                        onBlur={() => saveLanes()}
+                        inputMode="numeric"
+                        aria-label="First lane"
+                        placeholder="12"
+                        className="h-8 w-14 rounded-lg border border-slate-300 px-2 text-sm outline-none focus:border-felt-700"
+                      />
+                      <span className="text-slate-400">/</span>
+                      <input
+                        value={laneB}
+                        onChange={(e) => setLaneB(e.target.value.replace(/\D/g, ""))}
+                        onBlur={() => saveLanes()}
+                        inputMode="numeric"
+                        aria-label="Second lane"
+                        placeholder="13"
+                        className="h-8 w-14 rounded-lg border border-slate-300 px-2 text-sm outline-none focus:border-felt-700"
+                      />
+                    </div>
+                    {laneA.trim() && laneB.trim() && (
+                      <div className="mt-2 flex items-center gap-1">
+                        <span className="text-xs text-slate-500">Frame 1 on:</span>
+                        {(["A", "B"] as const).map((side) => {
+                          const lane = side === "A" ? laneA.trim() : laneB.trim();
+                          return (
+                            <button
+                              key={side}
+                              type="button"
+                              onClick={() => { setStartSide(side); void saveLanes(side); }}
+                              className={`h-7 rounded-md border px-2 text-xs font-semibold ${
+                                startSide === side
+                                  ? "border-felt-700 bg-felt-700 text-white"
+                                  : "border-slate-300 bg-white text-slate-700"
+                              }`}
+                            >
+                              {lane}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+                    {laneError && <p className="mt-1 text-xs text-red-600">{laneError}</p>}
+                  </div>
+                </>
+              )}
+            </div>
           </div>
+          <p className="shrink-0 text-2xl font-extrabold leading-none text-felt-700" aria-label="Series total">
+            {seriesTotal}
+          </p>
           <div className="relative shrink-0">
             <button
               type="button"
@@ -248,6 +312,14 @@ export function ActiveSessionView({
                   </button>
                   <button
                     type="button"
+                    onClick={() => { setShowMenu(false); setShowEdit(true); }}
+                    className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm font-medium text-slate-700 hover:bg-slate-50"
+                  >
+                    <Pencil size={16} aria-hidden="true" />
+                    Edit session
+                  </button>
+                  <button
+                    type="button"
                     onClick={() => { setShowMenu(false); setConfirmDeleteGame(true); }}
                     className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm font-medium text-red-600 hover:bg-red-50"
                   >
@@ -259,56 +331,6 @@ export function ActiveSessionView({
             )}
           </div>
         </div>
-
-        {/* Inline lane editor */}
-        {showLaneEditor && (
-          <div className="mt-2 space-y-2">
-            <div className="flex items-center gap-2">
-              <input
-                value={laneA}
-                onChange={(e) => setLaneA(e.target.value.replace(/\D/g, ""))}
-                onBlur={() => saveLanes()}
-                inputMode="numeric"
-                aria-label="First lane"
-                placeholder="12"
-                className="h-8 w-14 rounded-lg border border-slate-300 px-2 text-sm outline-none focus:border-felt-700"
-              />
-              <span className="text-slate-400">/</span>
-              <input
-                value={laneB}
-                onChange={(e) => setLaneB(e.target.value.replace(/\D/g, ""))}
-                onBlur={() => saveLanes()}
-                inputMode="numeric"
-                aria-label="Second lane"
-                placeholder="13"
-                className="h-8 w-14 rounded-lg border border-slate-300 px-2 text-sm outline-none focus:border-felt-700"
-              />
-              {laneA.trim() && laneB.trim() && (
-                <div className="flex items-center gap-1">
-                  <span className="text-xs text-slate-500">Frame 1 on:</span>
-                  {(["A", "B"] as const).map((side) => {
-                    const lane = side === "A" ? laneA.trim() : laneB.trim();
-                    return (
-                      <button
-                        key={side}
-                        type="button"
-                        onClick={() => { setStartSide(side); void saveLanes(side); }}
-                        className={`h-7 rounded-md border px-2 text-xs font-semibold ${
-                          startSide === side
-                            ? "border-felt-700 bg-felt-700 text-white"
-                            : "border-slate-300 bg-white text-slate-700"
-                        }`}
-                      >
-                        {lane}
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-            {laneError && <p className="text-xs text-red-600">{laneError}</p>}
-          </div>
-        )}
 
         <div className="mt-3 flex items-center gap-1 overflow-x-auto pb-1">
           {games.map((g) => (
@@ -322,7 +344,7 @@ export function ActiveSessionView({
                   : "border-slate-300 bg-white text-slate-700"
               }`}
             >
-              Game {g.game_number}
+              G{g.game_number}
               {g.final_score !== undefined && (
                 <span className="opacity-80">· {g.final_score}</span>
               )}
@@ -353,7 +375,6 @@ export function ActiveSessionView({
         mode="session"
         game={activeGame}
         onFrameComplete={handleFrameComplete}
-        onNextGame={showNextGameCta ? handleAddGame : undefined}
         onOpenArsenal={onOpenArsenal}
       />
 
@@ -372,6 +393,17 @@ export function ActiveSessionView({
           onClose={() => setShowSheet(false)}
         />
       )}
+
+      <SessionEditDialog
+        open={showEdit}
+        initial={{
+          alley_name: sessionDetails.session.alley_name,
+          date: sessionDetails.session.date,
+          description: sessionDetails.session.description
+        }}
+        onSave={handleSaveEdit}
+        onCancel={() => setShowEdit(false)}
+      />
     </div>
   );
 }

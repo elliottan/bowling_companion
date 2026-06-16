@@ -73,8 +73,13 @@ export function PinGrid({
 
   return (
     <div
-      className={`rounded-lg border border-slate-200 bg-white shadow-sm ${pad}`}
-      style={{ touchAction: "none" }}
+      className={`rounded-lg border border-[#caa066] shadow-sm ${pad}`}
+      style={{
+        touchAction: "none",
+        backgroundColor: "#e3b878",
+        backgroundImage:
+          "repeating-linear-gradient(90deg, rgba(120,72,20,0.18) 0 1px, transparent 1px 14px), linear-gradient(90deg, rgba(255,255,255,0.08), rgba(90,55,15,0.12))"
+      }}
     >
       <div className={`mx-auto flex w-full flex-col items-center ${rowGap} ${maxW}`}>
         {PIN_ROWS.map((row) => (
@@ -94,12 +99,12 @@ export function PinGrid({
                   onPointerMove={readOnly ? undefined : moveGesture}
                   onPointerUp={readOnly ? undefined : endGesture}
                   onPointerCancel={readOnly ? undefined : endGesture}
-                  className={`flex ${pinSize} shrink-0 items-center justify-center rounded-full border font-bold transition ${
-                    readOnly ? "cursor-default" : "active:scale-95"
+                  className={`flex ${pinSize} shrink-0 items-center justify-center rounded-full border font-bold ${
+                    readOnly ? "cursor-default" : ""
                   } ${
                     isStanding
-                      ? "border-slate-400 bg-white text-slate-900 shadow-sm"
-                      : "border-slate-200 bg-slate-100 text-slate-300"
+                      ? "border-slate-300 bg-white text-slate-900 shadow-md"
+                      : "border-[#9c7438] bg-[#c79b5e] text-[#7a5a2c]"
                   } ${isAvailable || readOnly ? "" : "cursor-not-allowed opacity-30"}`}
                 >
                   {pin}

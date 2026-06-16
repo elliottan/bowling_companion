@@ -12,6 +12,24 @@ export async function createSession(input: CreateSessionInput): Promise<number> 
   return Number(id);
 }
 
+export interface UpdateSessionInput {
+  alley_name: string;
+  date: string;
+  description?: string;
+}
+
+/** Edit a session's alley, date, and description. */
+export async function updateSession(
+  sessionId: number,
+  input: UpdateSessionInput
+): Promise<void> {
+  await db.sessions.update(sessionId, {
+    alley_name: input.alley_name,
+    date: input.date,
+    description: input.description?.trim() || undefined
+  });
+}
+
 export async function addGameToSession(
   sessionId: number,
   input: AddGameInput

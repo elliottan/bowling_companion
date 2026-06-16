@@ -60,19 +60,20 @@ test("10th frame: strike + spare + open third shot scores correctly", async ({ p
   await recordShot(page, [7]); // shot 2 leaves the 7
   await recordShot(page, [4, 8, 9, 10]); // shot 3 final ball
 
-  // Game complete → the "Next Game" CTA appears (this is the last game).
-  await expect(page.getByRole("button", { name: "Next Game" })).toBeVisible();
+  // Game complete → the live-entry "Next" control disappears.
+  await expect(page.getByRole("button", { name: "Next", exact: true })).toHaveCount(0);
 });
 
-test("Next Game button hidden until current game is complete", async ({ page }) => {
+test("completing a game removes the live-entry controls", async ({ page }) => {
   await startSession(page, "Next Game Lanes");
 
-  await expect(page.getByRole("button", { name: "Next Game" })).toHaveCount(0);
+  // Live entry is active while the game is in progress.
+  await expect(page.getByRole("button", { name: "Next", exact: true })).toBeVisible();
 
   // Bowl a perfect game to complete it.
   for (let i = 0; i < 12; i++) {
     await recordShot(page, []);
   }
 
-  await expect(page.getByRole("button", { name: "Next Game" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Next", exact: true })).toHaveCount(0);
 });

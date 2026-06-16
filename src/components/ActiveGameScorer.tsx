@@ -146,28 +146,30 @@ function LineInput({ label, value, onChange, showPresets = false }: LineInputPro
         ))}
       </div>
 
-      {/* Focus-reveal ±0.5 stepper for the focused field. Buttons keep focus
-          (preventDefault) so the stepper stays open while tapping. */}
+      {/* Focus-reveal ±0.5 stepper for the focused field. The action runs on
+          pointerdown with preventDefault: this keeps the input focused (so the
+          stepper stays open) and fires reliably on touch, where a preventDefault
+          pointerdown otherwise suppresses the follow-up click. */}
       {focused && (
         <div className="mt-1 flex items-center justify-center gap-1.5 text-[10px] text-slate-400">
-          <button type="button" className={stepBtn} aria-label={`${FIELD_LABEL[focused]} minus 0.5`} onPointerDown={(e) => e.preventDefault()} onClick={() => nudge(focused, -0.5)}>
+          <button type="button" className={stepBtn} aria-label={`${FIELD_LABEL[focused]} minus 0.5`} onPointerDown={(e) => { e.preventDefault(); nudge(focused, -0.5); }}>
             ◀
           </button>
           <span className="whitespace-nowrap uppercase tracking-wide">{FIELD_LABEL[focused]} ±0.5</span>
-          <button type="button" className={stepBtn} aria-label={`${FIELD_LABEL[focused]} plus 0.5`} onPointerDown={(e) => e.preventDefault()} onClick={() => nudge(focused, 0.5)}>
+          <button type="button" className={stepBtn} aria-label={`${FIELD_LABEL[focused]} plus 0.5`} onPointerDown={(e) => { e.preventDefault(); nudge(focused, 0.5); }}>
             ▶
           </button>
         </div>
       )}
 
-      {showPresets && (
-        <div className="mt-1.5 flex flex-wrap gap-1">
+      {/* Move presets: only while the stance or target field is focused. */}
+      {showPresets && (focused === "stance" || focused === "target") && (
+        <div className="mt-1.5 flex flex-wrap justify-center gap-1">
           {MOVE_PRESETS.map((p) => (
             <span key={p.label} className="inline-flex overflow-hidden rounded-md border border-slate-300">
               <button
                 type="button"
-                onPointerDown={(e) => e.preventDefault()}
-                onClick={() => move(-p.stance, -p.target)}
+                onPointerDown={(e) => { e.preventDefault(); move(-p.stance, -p.target); }}
                 className="bg-white px-1.5 py-1 text-[10px] font-semibold text-slate-700 hover:bg-slate-50"
                 title={`Move ${p.label} toward lower boards`}
               >
@@ -176,8 +178,7 @@ function LineInput({ label, value, onChange, showPresets = false }: LineInputPro
               <span className="bg-slate-50 px-1 py-1 text-[10px] font-semibold text-slate-600">{p.label}</span>
               <button
                 type="button"
-                onPointerDown={(e) => e.preventDefault()}
-                onClick={() => move(p.stance, p.target)}
+                onPointerDown={(e) => { e.preventDefault(); move(p.stance, p.target); }}
                 className="bg-white px-1.5 py-1 text-[10px] font-semibold text-slate-700 hover:bg-slate-50"
                 title={`Move ${p.label} toward higher boards`}
               >
@@ -266,7 +267,7 @@ function ShotDetailBar({
             className="inline-flex h-9 items-center gap-1.5 rounded-md border border-slate-300 bg-white px-3 text-xs font-semibold text-felt-700 hover:bg-slate-50"
           >
             <Plus size={14} aria-hidden="true" />
-            Add a ball in Arsenal
+            Add a ball
           </button>
         )}
       </div>
@@ -314,8 +315,6 @@ interface ActiveGameScorerProps {
   game?: Pick<Game, "lanes" | "start_lane" | "lane_number">;
   onFrameComplete?: (frame: Frame) => Promise<void> | void;
   onGameComplete?: (frames: Frame[]) => Promise<void> | void;
-  /** When provided, a "Next Game" CTA shows once the game is complete. */
-  onNextGame?: () => void;
   /** Jump to the Arsenal screen to manage balls. */
   onOpenArsenal?: () => void;
 }
@@ -334,7 +333,6 @@ export function ActiveGameScorer({
   game,
   onFrameComplete,
   onGameComplete,
-  onNextGame,
   onOpenArsenal
 }: ActiveGameScorerProps) {
   const [gameState, setGameState] = useState(() => hydrateFrameController(initialFrames));
@@ -523,8 +521,8 @@ export function ActiveGameScorer({
 
   return (
     <section className="mx-auto w-full max-w-5xl px-3 py-4 sm:px-6">
-      <div className="mb-3 flex items-center justify-between gap-3">
-        {mode === "standalone" ? (
+      {mode === "standalone" && (
+        <div className="mb-3 flex items-center justify-between gap-3">
           <button
             type="button"
             onClick={newGame}
@@ -532,11 +530,9 @@ export function ActiveGameScorer({
           >
             New
           </button>
-        ) : (
-          <span />
-        )}
-        <p className="text-2xl font-extrabold leading-none text-felt-700">{gameScore.total}</p>
-      </div>
+          <p className="text-2xl font-extrabold leading-none text-felt-700">{gameScore.total}</p>
+        </div>
+      )}
 
       <Scorecard
         frames={gameState.frames}
@@ -561,18 +557,7 @@ export function ActiveGameScorer({
             size="sm"
           />
 
-          {isEditing ? (
-            gameState.isComplete && onNextGame ? (
-              <button
-                type="button"
-                onClick={onNextGame}
-                className="inline-flex h-11 w-full items-center justify-center gap-1.5 rounded-lg bg-felt-700 text-sm font-bold text-white shadow-sm hover:bg-felt-500"
-              >
-                <Plus aria-hidden="true" size={16} />
-                Next Game
-              </button>
-            ) : null
-          ) : !gameState.isComplete ? (
+          {!isEditing && !gameState.isComplete ? (
             <div className="flex gap-2">
               <button
                 type="button"

@@ -1,8 +1,14 @@
 import { useCallback, useEffect, useState } from "react";
 import { ConfirmDialog } from "../components/ConfirmDialog";
+import { SessionEditDialog } from "../components/SessionEditDialog";
 import { SessionHistory } from "../components/SessionHistory";
-import { deleteSession, getSessionHistory } from "../services/bowlingRepository";
-import type { SessionSummary } from "../types/bowling";
+import {
+  deleteSession,
+  getSessionHistory,
+  updateSession,
+  type UpdateSessionInput
+} from "../services/bowlingRepository";
+import type { Session, SessionSummary } from "../types/bowling";
 
 interface HistoryViewProps {
   onOpenSession: (sessionId: number) => void;
@@ -15,6 +21,7 @@ export function HistoryView({ onOpenSession, activeSessionId, onSessionDeleted }
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
   const [pendingDelete, setPendingDelete] = useState<{ id: number; label: string } | null>(null);
+  const [editing, setEditing] = useState<Session | null>(null);
 
   const load = useCallback(async () => {
     setIsLoading(true);
@@ -45,6 +52,22 @@ export function HistoryView({ onOpenSession, activeSessionId, onSessionDeleted }
     }
   }
 
+  function requestEdit(sessionId: number) {
+    const found = sessions.find((s) => s.session.id === sessionId)?.session;
+    if (found) setEditing(found);
+  }
+
+  async function saveEdit(values: UpdateSessionInput) {
+    if (!editing?.id) return;
+    try {
+      await updateSession(editing.id, values);
+      setEditing(null);
+      await load();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unable to update session.");
+    }
+  }
+
   return (
     <section className="mx-auto w-full max-w-3xl px-3 py-5 sm:px-6 sm:py-8">
       <h1 className="mb-4 text-xl font-bold text-slate-950">History</h1>
@@ -60,6 +83,7 @@ export function HistoryView({ onOpenSession, activeSessionId, onSessionDeleted }
         isLoading={isLoading}
         onOpenSession={onOpenSession}
         onRequestDelete={(id, label) => setPendingDelete({ id, label })}
+        onRequestEdit={requestEdit}
         activeSessionId={activeSessionId}
       />
 
@@ -73,6 +97,17 @@ export function HistoryView({ onOpenSession, activeSessionId, onSessionDeleted }
         }
         onConfirm={confirmDelete}
         onCancel={() => setPendingDelete(null)}
+      />
+
+      <SessionEditDialog
+        open={editing !== null}
+        initial={{
+          alley_name: editing?.alley_name ?? "",
+          date: editing?.date ?? "",
+          description: editing?.description
+        }}
+        onSave={saveEdit}
+        onCancel={() => setEditing(null)}
       />
     </section>
   );
