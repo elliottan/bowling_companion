@@ -129,7 +129,9 @@ function LineInput({ label, value, onChange, showPresets = false }: LineInputPro
   }
 
   const arrowBtn =
-    "inline-flex h-10 flex-1 items-center justify-center rounded-md border border-slate-300 bg-white text-base font-bold text-slate-700 hover:bg-slate-50 active:bg-slate-100";
+    "inline-flex h-8 flex-1 items-center rounded-md border border-slate-300 bg-white text-base font-bold text-slate-700 hover:bg-slate-50 active:bg-slate-100";
+  const overlayLabel =
+    "pointer-events-none absolute inset-0 flex items-center justify-center text-[10px] font-semibold uppercase tracking-wide text-slate-500";
 
   return (
     <div>
@@ -158,58 +160,50 @@ function LineInput({ label, value, onChange, showPresets = false }: LineInputPro
           Direction respects handedness — for a right-hander the LEFT arrow
           increases the board number. */}
       {focused && (
-        <div className="mt-2">
-          <span className="mb-1 block text-center text-[10px] font-semibold uppercase tracking-wide text-slate-400">
-            {FIELD_LABEL[focused]} ±0.5
-          </span>
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              className={arrowBtn}
-              aria-label={`${FIELD_LABEL[focused]} ${dir > 0 ? "increase" : "decrease"} 0.5`}
-              onPointerDown={(e) => { e.preventDefault(); nudge(focused, 0.5 * dir); }}
-            >
-              ◀
-            </button>
-            <button
-              type="button"
-              className={arrowBtn}
-              aria-label={`${FIELD_LABEL[focused]} ${dir > 0 ? "decrease" : "increase"} 0.5`}
-              onPointerDown={(e) => { e.preventDefault(); nudge(focused, -0.5 * dir); }}
-            >
-              ▶
-            </button>
-          </div>
+        <div className="relative mt-2 flex items-center gap-2">
+          <button
+            type="button"
+            className={`${arrowBtn} justify-start pl-3`}
+            aria-label={`${FIELD_LABEL[focused]} ${dir > 0 ? "increase" : "decrease"} 0.5`}
+            onPointerDown={(e) => { e.preventDefault(); nudge(focused, 0.5 * dir); }}
+          >
+            ◀
+          </button>
+          <button
+            type="button"
+            className={`${arrowBtn} justify-end pr-3`}
+            aria-label={`${FIELD_LABEL[focused]} ${dir > 0 ? "decrease" : "increase"} 0.5`}
+            onPointerDown={(e) => { e.preventDefault(); nudge(focused, -0.5 * dir); }}
+          >
+            ▶
+          </button>
+          <span className={overlayLabel}>{FIELD_LABEL[focused]} ±0.5</span>
         </div>
       )}
 
-      {/* Move presets: a captioned full-width arrow pair per preset, only while
-          the stance or target field is focused. */}
+      {/* Move presets: a full-width arrow pair per preset with the label overlaid
+          on top, only while the stance or target field is focused. */}
       {showPresets && (focused === "stance" || focused === "target") && (
         <div className="mt-2 space-y-2">
           {MOVE_PRESETS.map((p) => (
-            <div key={p.label}>
-              <span className="mb-1 block text-center text-[10px] font-semibold uppercase tracking-wide text-slate-400">
-                Move {p.label}
-              </span>
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  className={arrowBtn}
-                  aria-label={`Move ${p.label} ${dir > 0 ? "toward higher" : "toward lower"} boards`}
-                  onPointerDown={(e) => { e.preventDefault(); move(p.stance * dir, p.target * dir); }}
-                >
-                  ◀
-                </button>
-                <button
-                  type="button"
-                  className={arrowBtn}
-                  aria-label={`Move ${p.label} ${dir > 0 ? "toward lower" : "toward higher"} boards`}
-                  onPointerDown={(e) => { e.preventDefault(); move(-p.stance * dir, -p.target * dir); }}
-                >
-                  ▶
-                </button>
-              </div>
+            <div key={p.label} className="relative flex items-center gap-2">
+              <button
+                type="button"
+                className={`${arrowBtn} justify-start pl-3`}
+                aria-label={`Move ${p.label} ${dir > 0 ? "toward higher" : "toward lower"} boards`}
+                onPointerDown={(e) => { e.preventDefault(); move(p.stance * dir, p.target * dir); }}
+              >
+                ◀
+              </button>
+              <button
+                type="button"
+                className={`${arrowBtn} justify-end pr-3`}
+                aria-label={`Move ${p.label} ${dir > 0 ? "toward lower" : "toward higher"} boards`}
+                onPointerDown={(e) => { e.preventDefault(); move(-p.stance * dir, -p.target * dir); }}
+              >
+                ▶
+              </button>
+              <span className={overlayLabel}>Move {p.label}</span>
             </div>
           ))}
         </div>
