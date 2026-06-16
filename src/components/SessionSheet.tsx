@@ -1,5 +1,5 @@
 import { X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { getFrameShotSymbols } from "../lib/scoreDisplay";
 import { laneForFrame } from "../lib/lanes";
 import { calculateGameScore } from "../lib/scoring";
@@ -19,13 +19,19 @@ function formatLine(line?: LineSpec): string | null {
   return parts.join("/");
 }
 
-/** Distinct lanes across the session's games, e.g. "Lane 9 / 10". */
+// Lanes are per-game, so show each distinct lane PAIR bowled this session,
+// e.g. "Lanes 9/10, 11/12" (or "Lane 5" for a single-lane game).
 function laneSummary(games: SessionSummary["games"]): string {
-  const lanes = new Set<string>();
+  const pairs: string[] = [];
   for (const g of games) {
-    for (const l of g.lanes ?? (g.lane_number ? [g.lane_number] : [])) if (l) lanes.add(l);
+    const lanes = (g.lanes ?? (g.lane_number ? [g.lane_number] : [])).filter(Boolean);
+    if (!lanes.length) continue;
+    const label = lanes.join("/");
+    if (!pairs.includes(label)) pairs.push(label);
   }
-  return lanes.size ? `Lane ${[...lanes].join(" / ")}` : "";
+  if (!pairs.length) return "";
+  const noun = pairs.length === 1 && pairs[0].includes("/") ? "Lanes" : pairs.length > 1 ? "Lanes" : "Lane";
+  return `${noun} ${pairs.join(", ")}`;
 }
 
 /** Read-only "cheat sheet" of every shot in the session, current game first. */
@@ -44,12 +50,14 @@ export function SessionSheet({ summary, currentGameId, onClose }: SessionSheetPr
 
   const ballName = (id?: number) => balls.find((b) => b.id === id)?.name;
 
-  // Current game first, then the rest in order.
-  const games = [...summary.games].sort((a, b) => {
-    if (a.id === currentGameId) return -1;
-    if (b.id === currentGameId) return 1;
-    return a.game_number - b.game_number;
-  });
+  // Chronological order — latest game at the bottom.
+  const games = [...summary.games].sort((a, b) => a.game_number - b.game_number);
+
+  // Auto-scroll to the game the sheet was opened from.
+  const currentRef = useRef<HTMLElement | null>(null);
+  useEffect(() => {
+    currentRef.current?.scrollIntoView({ block: "start" });
+  }, []);
 
   return (
     <div
@@ -94,7 +102,11 @@ export function SessionSheet({ summary, currentGameId, onClose }: SessionSheetPr
             const score = calculateGameScore(game.frames);
             const total = game.final_score ?? (score.isComplete ? score.total : `${score.total}+`);
             return (
-              <section key={game.id} className="mb-4 last:mb-0">
+              <section
+                key={game.id}
+                ref={game.id === currentGameId ? currentRef : undefined}
+                className="mb-4 scroll-mt-2 last:mb-0"
+              >
                 <div className="mb-1.5 flex items-center gap-2">
                   <h3 className="text-sm font-bold text-slate-900">Game {game.game_number}</h3>
                   <span className="text-sm font-semibold text-felt-700">{total}</span>
