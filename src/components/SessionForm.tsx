@@ -10,9 +10,25 @@ export interface NewSessionFormValues extends CreateSessionInput {
   start_lane?: string;
 }
 
+export interface SessionFormInitial {
+  alley_name?: string;
+  date?: string;
+  description?: string;
+  oil_pattern_id?: number;
+  general_notes?: string;
+}
+
 interface SessionFormProps {
   onSubmit: (values: NewSessionFormValues) => Promise<void> | void;
   isSubmitting?: boolean;
+  /** Prefill for the edit flow; blank for create. */
+  initial?: SessionFormInitial;
+  /** Heading shown above the fields. */
+  title?: string;
+  /** Submit-button label (and its in-flight label). */
+  submitLabel?: string;
+  /** When provided, a Cancel button is shown (used in the modal). */
+  onCancel?: () => void;
 }
 
 const inputClass =
@@ -21,11 +37,20 @@ const inputClass =
 const selectClass =
   "h-11 w-full rounded-lg border border-slate-300 px-3 text-sm outline-none focus:border-felt-700 focus:ring-2 focus:ring-felt-700/20 bg-white";
 
-export function SessionForm({ onSubmit, isSubmitting = false }: SessionFormProps) {
-  const [alleyName, setAlleyName] = useState("");
-  const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
-  const [description, setDescription] = useState("");
-  const [notes, setNotes] = useState("");
+const today = () => new Date().toISOString().slice(0, 10);
+
+export function SessionForm({
+  onSubmit,
+  isSubmitting = false,
+  initial,
+  title = "Start new session",
+  submitLabel = "Start session",
+  onCancel
+}: SessionFormProps) {
+  const [alleyName, setAlleyName] = useState(initial?.alley_name ?? "");
+  const [date, setDate] = useState(initial?.date ?? today());
+  const [description, setDescription] = useState(initial?.description ?? "");
+  const [notes, setNotes] = useState(initial?.general_notes ?? "");
 
   const [alleys, setAlleys] = useState<string[]>([]);
   const [showAlleyList, setShowAlleyList] = useState(false);
@@ -33,7 +58,7 @@ export function SessionForm({ onSubmit, isSubmitting = false }: SessionFormProps
   const [showDescList, setShowDescList] = useState(false);
 
   const [oilPatterns, setOilPatterns] = useState<OilPattern[]>([]);
-  const [selectedPatternId, setSelectedPatternId] = useState<number | undefined>(undefined);
+  const [selectedPatternId, setSelectedPatternId] = useState<number | undefined>(initial?.oil_pattern_id);
   const [isAddingPattern, setIsAddingPattern] = useState(false);
   const [newPatternName, setNewPatternName] = useState("");
   const [addPatternError, setAddPatternError] = useState("");
@@ -90,11 +115,8 @@ export function SessionForm({ onSubmit, isSubmitting = false }: SessionFormProps
   }
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:p-5"
-    >
-      <h2 className="text-lg font-bold text-slate-950">Start new session</h2>
+    <form onSubmit={handleSubmit}>
+      <h2 className="text-lg font-bold text-slate-950">{title}</h2>
 
       <div className="mt-4 space-y-3">
         <Field label="Alley">
@@ -167,83 +189,87 @@ export function SessionForm({ onSubmit, isSubmitting = false }: SessionFormProps
             )}
           </div>
         </Field>
+
+        <Field label="Oil pattern">
+          {!isAddingPattern ? (
+            <select
+              value={selectedPatternId ?? ""}
+              onChange={(e) => {
+                const val = e.target.value;
+                if (val === "__add_new__") {
+                  setIsAddingPattern(true);
+                  setNewPatternName("");
+                } else {
+                  setSelectedPatternId(val ? Number(val) : undefined);
+                }
+              }}
+              className={selectClass}
+            >
+              <option value="">No pattern / unknown</option>
+              {oilPatterns.map((op) => (
+                <option key={op.id} value={op.id}>{op.name}</option>
+              ))}
+              <option value="__add_new__">+ Add new pattern</option>
+            </select>
+          ) : (
+            <>
+              <div className="flex gap-2">
+                <input
+                  autoFocus
+                  value={newPatternName}
+                  onChange={(e) => setNewPatternName(e.target.value)}
+                  className={inputClass + " flex-1"}
+                  placeholder="Pattern name"
+                  onKeyDown={(e) => { if (e.key === "Escape") setIsAddingPattern(false); }}
+                />
+                <button
+                  type="button"
+                  onClick={handleAddPattern}
+                  className="h-11 rounded-lg bg-felt-700 px-3 text-sm font-semibold text-white hover:bg-felt-500"
+                >
+                  Add
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsAddingPattern(false)}
+                  className="h-11 rounded-lg border border-slate-300 px-3 text-sm font-semibold text-slate-700 hover:bg-slate-100"
+                >
+                  Cancel
+                </button>
+              </div>
+              {addPatternError && <p className="text-xs text-red-600">{addPatternError}</p>}
+            </>
+          )}
+        </Field>
+
+        <Field label="Notes">
+          <textarea
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            className="min-h-20 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-felt-700 focus:ring-2 focus:ring-felt-700/20"
+            placeholder="Ball choice, surface, carry..."
+          />
+        </Field>
       </div>
 
-      <details className="group mt-4 rounded-lg border border-slate-200 bg-slate-50/50">
-        <summary className="cursor-pointer list-none px-3 py-2 text-sm font-medium text-slate-700 marker:hidden group-open:border-b group-open:border-slate-200">
-          More details
-          <span className="float-right text-slate-400 group-open:rotate-180">▾</span>
-        </summary>
-        <div className="space-y-3 p-3">
-          <Field label="Oil pattern">
-            {!isAddingPattern ? (
-              <select
-                value={selectedPatternId ?? ""}
-                onChange={(e) => {
-                  const val = e.target.value;
-                  if (val === "__add_new__") {
-                    setIsAddingPattern(true);
-                    setNewPatternName("");
-                  } else {
-                    setSelectedPatternId(val ? Number(val) : undefined);
-                  }
-                }}
-                className={selectClass}
-              >
-                <option value="">No pattern / unknown</option>
-                {oilPatterns.map((op) => (
-                  <option key={op.id} value={op.id}>{op.name}</option>
-                ))}
-                <option value="__add_new__">+ Add new pattern</option>
-              </select>
-            ) : (
-              <>
-                <div className="flex gap-2">
-                  <input
-                    autoFocus
-                    value={newPatternName}
-                    onChange={(e) => setNewPatternName(e.target.value)}
-                    className={inputClass + " flex-1"}
-                    placeholder="Pattern name"
-                    onKeyDown={(e) => { if (e.key === "Escape") setIsAddingPattern(false); }}
-                  />
-                  <button
-                    type="button"
-                    onClick={handleAddPattern}
-                    className="h-11 rounded-lg bg-felt-700 px-3 text-sm font-semibold text-white hover:bg-felt-500"
-                  >
-                    Add
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setIsAddingPattern(false)}
-                    className="h-11 rounded-lg border border-slate-300 px-3 text-sm font-semibold text-slate-700 hover:bg-slate-100"
-                  >
-                    Cancel
-                  </button>
-                </div>
-                {addPatternError && <p className="text-xs text-red-600">{addPatternError}</p>}
-              </>
-            )}
-          </Field>
-          <Field label="Notes">
-            <textarea
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              className="min-h-20 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-felt-700 focus:ring-2 focus:ring-felt-700/20"
-              placeholder="Ball choice, surface, carry..."
-            />
-          </Field>
-        </div>
-      </details>
-
-      <button
-        type="submit"
-        disabled={isSubmitting || alleyName.trim().length === 0}
-        className="mt-4 inline-flex h-12 w-full items-center justify-center rounded-lg bg-felt-700 px-4 text-sm font-semibold text-white shadow-sm hover:bg-felt-500 disabled:cursor-not-allowed disabled:opacity-50"
-      >
-        {isSubmitting ? "Starting..." : "Start session"}
-      </button>
+      <div className="mt-4 flex gap-2">
+        {onCancel && (
+          <button
+            type="button"
+            onClick={onCancel}
+            className="inline-flex h-12 flex-1 items-center justify-center rounded-lg border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+          >
+            Cancel
+          </button>
+        )}
+        <button
+          type="submit"
+          disabled={isSubmitting || alleyName.trim().length === 0}
+          className="inline-flex h-12 flex-1 items-center justify-center rounded-lg bg-felt-700 px-4 text-sm font-semibold text-white shadow-sm hover:bg-felt-500 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {isSubmitting ? "Saving..." : submitLabel}
+        </button>
+      </div>
     </form>
   );
 }

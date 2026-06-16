@@ -37,5 +37,6 @@ test("exports a backup, clears the database, and restores it via import", async 
   await expect(page.getByText(/Imported 1 sessions/)).toBeVisible();
 
   await page.getByRole("button", { name: "History" }).click();
-  await expect(page.getByText("Backup Lanes")).toBeVisible();
+  // Target the session row button (a location-filter <option> shares the name).
+  await expect(page.getByRole("button", { name: /Backup Lanes/ })).toBeVisible();
 });

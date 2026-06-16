@@ -1,23 +1,24 @@
 import {
-  BarChart3,
   History,
   Home,
   PlayCircle,
   Settings,
   Target,
+  X,
   type LucideIcon
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { DashboardView } from "./views/DashboardView";
 import { ActiveSessionView } from "./views/ActiveSessionView";
+import { ArsenalView } from "./views/ArsenalView";
 import { HistoryView } from "./views/HistoryView";
-import { StatsView } from "./views/StatsView";
 import { SettingsView, type SettingsSection } from "./views/SettingsView";
 import { SpareLinesView } from "./views/SpareLinesView";
 import {
   addGameToSession,
   createSession,
   getHandedness,
+  getResumableForSession,
   getResumableToday,
   setHandedness as persistHandedness,
   type ResumableGame
@@ -27,7 +28,7 @@ import { HandednessContext } from "./lib/handednessContext";
 import { HandednessPicker } from "./components/HandednessPicker";
 import type { Handedness } from "./types/bowling";
 
-type AppView = "dashboard" | "active" | "history" | "stats" | "spares" | "settings";
+type AppView = "dashboard" | "active" | "history" | "spares" | "settings";
 
 type NavItem = {
   view: AppView;
@@ -39,7 +40,6 @@ const NAV_ITEMS: ReadonlyArray<NavItem> = [
   { view: "dashboard", label: "Home", icon: Home },
   { view: "active", label: "Active", icon: PlayCircle },
   { view: "history", label: "History", icon: History },
-  { view: "stats", label: "Stats", icon: BarChart3 },
   { view: "spares", label: "Spares", icon: Target },
   { view: "settings", label: "Settings", icon: Settings }
 ];
@@ -57,12 +57,12 @@ function App() {
   const [handedness, setHandednessState] = useState<Handedness | null>(null);
   const [handednessLoaded, setHandednessLoaded] = useState(false);
   const [resumable, setResumable] = useState<ResumableGame | null>(null);
+  const [arsenalOpen, setArsenalOpen] = useState(false);
 
   // On launch, if today has an unfinished game, jump straight into it.
   useEffect(() => {
     getResumableToday()
       .then((r) => {
-        setResumable(r);
         if (r) {
           setActiveSessionId(r.sessionId);
           setView("active");
@@ -72,11 +72,17 @@ function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Keep the home "resume" widget fresh whenever the dashboard is shown.
+  // The home "resume" widget reflects (and jumps to) the currently active
+  // session — whichever session is loaded in the Active tab. Falls back to
+  // today's unfinished game when nothing is active. Refreshes on view change so
+  // the game number stays current.
   useEffect(() => {
-    if (view !== "dashboard") return;
-    getResumableToday().then(setResumable).catch(() => {});
-  }, [view]);
+    if (activeSessionId != null) {
+      getResumableForSession(activeSessionId).then(setResumable).catch(() => {});
+    } else {
+      getResumableToday().then(setResumable).catch(() => {});
+    }
+  }, [activeSessionId, view]);
 
   useEffect(() => {
     getHandedness()
@@ -122,11 +128,9 @@ function App() {
     return () => document.removeEventListener("focusin", onFocusIn);
   }, []);
 
-  // Deep-link into Settings → Arsenal (from the scorer's ball selector).
+  // Arsenal opens as a modal overlay (from the scorer's ball selector or Settings).
   function openArsenal() {
-    if (view !== "active") setPreviousView(view);
-    setSettingsSection("arsenal");
-    setView("settings");
+    setArsenalOpen(true);
   }
 
   async function handleStartSession(values: NewSessionFormValues) {
@@ -204,6 +208,9 @@ function App() {
             error={startError}
             resumable={resumable}
             onResume={() => resumable && openSession(resumable.sessionId)}
+            onOpenSession={openSession}
+            onViewAll={() => goTo("history")}
+            activeSessionId={activeSessionId}
           />
         )}
         {view === "active" && activeSessionId && (
@@ -218,15 +225,8 @@ function App() {
           />
         )}
         {view === "history" && (
-          <HistoryView
-            onOpenSession={openSession}
-            activeSessionId={activeSessionId}
-            onSessionDeleted={(id) => {
-              if (id === activeSessionId) setActiveSessionId(null);
-            }}
-          />
+          <HistoryView onOpenSession={openSession} activeSessionId={activeSessionId} />
         )}
-        {view === "stats" && <StatsView />}
         {view === "spares" && <SpareLinesView />}
         {view === "settings" && (
           <SettingsView
@@ -234,11 +234,12 @@ function App() {
             onSectionChange={setSettingsSection}
             handedness={handedness ?? "right"}
             onHandednessChange={chooseHandedness}
+            onOpenArsenal={openArsenal}
           />
         )}
       </main>
 
-      <nav className="grid shrink-0 grid-cols-6 border-t border-slate-200 bg-white pb-[env(safe-area-inset-bottom)] sm:hidden">
+      <nav className="grid shrink-0 grid-cols-5 border-t border-slate-200 bg-white pb-[env(safe-area-inset-bottom)] sm:hidden">
         {MOBILE_NAV_ITEMS.map((item) => (
           <TabBarButton
             key={item.view}
@@ -249,6 +250,25 @@ function App() {
           />
         ))}
       </nav>
+
+      {arsenalOpen && (
+        <div className="fixed inset-0 z-[55] flex flex-col bg-lane-50" role="dialog" aria-modal="true">
+          <div className="flex shrink-0 items-center justify-between border-b border-slate-200 bg-white px-4 py-3">
+            <h2 className="text-base font-bold text-slate-950">Arsenal</h2>
+            <button
+              type="button"
+              onClick={() => setArsenalOpen(false)}
+              aria-label="Close arsenal"
+              className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-slate-300 bg-white text-slate-700 hover:bg-slate-50"
+            >
+              <X size={18} aria-hidden="true" />
+            </button>
+          </div>
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+            <ArsenalView />
+          </div>
+        </div>
+      )}
 
       {handednessLoaded && handedness === null && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4" role="dialog" aria-modal="true">

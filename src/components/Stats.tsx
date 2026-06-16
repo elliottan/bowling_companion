@@ -41,29 +41,6 @@ export function Stats({ stats, isLoading = false, leaves }: StatsProps) {
         <Bar label="Spares" pct={stats.sparePct} />
       </div>
 
-      {stats.byAlley.length > 0 && (
-        <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-          <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
-            By alley
-          </h2>
-          <ul className="divide-y divide-slate-100">
-            {stats.byAlley.map((a) => (
-              <li key={a.alley} className="flex items-center justify-between gap-3 py-2">
-                <span className="min-w-0 flex-1 truncate text-sm font-medium text-slate-900">
-                  {a.alley}
-                </span>
-                <span className="text-xs text-slate-500">
-                  {a.games} {a.games === 1 ? "game" : "games"}
-                </span>
-                <span className="w-16 text-right text-sm font-semibold text-felt-700">
-                  {fmt(a.average)} avg
-                </span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-
       {(leaves?.length ?? 0) > 0 && (
         <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
           <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">

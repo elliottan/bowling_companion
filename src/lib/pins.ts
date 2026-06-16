@@ -2,6 +2,47 @@ import type { PinNumber } from "../types/bowling";
 
 export const ALL_PINS: PinNumber[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
+const EDGES: [PinNumber, PinNumber][] = [
+  [1, 2], [1, 3],
+  [2, 3], [2, 4], [2, 5],
+  [3, 5], [3, 6],
+  [4, 5], [4, 7], [4, 8],
+  [5, 6], [5, 8], [5, 9],
+  [6, 9], [6, 10],
+  [7, 8],
+  [8, 9],
+  [9, 10],
+];
+
+const NEIGHBORS: Record<PinNumber, PinNumber[]> = (() => {
+  const map = {} as Record<PinNumber, PinNumber[]>;
+  for (let i = 1; i <= 10; i++) map[i as PinNumber] = [];
+  for (const [a, b] of EDGES) {
+    map[a].push(b);
+    map[b].push(a);
+  }
+  return map;
+})();
+
+export function isSplit(standing: PinNumber[]): boolean {
+  if (standing.includes(1)) return false;
+  if (standing.length < 2) return false;
+  const standingSet = new Set(standing);
+  const visited = new Set<PinNumber>();
+  const queue: PinNumber[] = [standing[0]];
+  visited.add(standing[0]);
+  while (queue.length) {
+    const pin = queue.shift()!;
+    for (const neighbor of NEIGHBORS[pin]) {
+      if (standingSet.has(neighbor) && !visited.has(neighbor)) {
+        visited.add(neighbor);
+        queue.push(neighbor);
+      }
+    }
+  }
+  return visited.size < standingSet.size;
+}
+
 export function uniquePins(pins: PinNumber[]): PinNumber[] {
   return [...new Set(pins)].sort((a, b) => a - b);
 }

@@ -1,5 +1,4 @@
 import { Archive, ChevronLeft, ChevronRight, CircleDot, MapPin, SlidersHorizontal, type LucideIcon } from "lucide-react";
-import { ArsenalView } from "./ArsenalView";
 import { BackupRestoreView } from "./BackupRestoreView";
 import { LaneNotesView } from "./LaneNotesView";
 import { HandednessView } from "./HandednessView";
@@ -12,6 +11,8 @@ interface SettingsViewProps {
   onSectionChange: (section: SettingsSection) => void;
   handedness: Handedness;
   onHandednessChange: (value: Handedness) => void;
+  /** Arsenal opens as a modal overlay rather than an inline section. */
+  onOpenArsenal: () => void;
 }
 
 interface MenuRow {
@@ -48,7 +49,7 @@ const MENU_ROWS: ReadonlyArray<MenuRow> = [
   }
 ];
 
-export function SettingsView({ section, onSectionChange, handedness, onHandednessChange }: SettingsViewProps) {
+export function SettingsView({ section, onSectionChange, handedness, onHandednessChange, onOpenArsenal }: SettingsViewProps) {
   if (section !== "menu") {
     return (
       <>
@@ -62,9 +63,7 @@ export function SettingsView({ section, onSectionChange, handedness, onHandednes
             Settings
           </button>
         </div>
-        {section === "arsenal" ? (
-          <ArsenalView />
-        ) : section === "lanes" ? (
+        {section === "lanes" ? (
           <LaneNotesView />
         ) : section === "preferences" ? (
           <HandednessView value={handedness} onChange={onHandednessChange} />
@@ -85,7 +84,7 @@ export function SettingsView({ section, onSectionChange, handedness, onHandednes
             <li key={row.section}>
               <button
                 type="button"
-                onClick={() => onSectionChange(row.section)}
+                onClick={() => (row.section === "arsenal" ? onOpenArsenal() : onSectionChange(row.section))}
                 className="flex w-full items-center gap-3 rounded-lg border border-slate-200 bg-white p-4 text-left shadow-sm hover:border-felt-700"
               >
                 <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-felt-700/10 text-felt-700">

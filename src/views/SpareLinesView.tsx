@@ -89,7 +89,7 @@ function SortableSpareCard({ sl, onEdit }: SortableSpareCardProps) {
           <SmallPinDiagram standing={sl.pins} />
           {sl.line ? (
             <span className="block text-xs font-semibold text-slate-700">
-              S{sl.line.stance ?? "·"} · T{sl.line.target ?? "·"}
+              S{sl.line.stance ?? "·"} · L{sl.line.laydown ?? "·"} · T{sl.line.target ?? "·"}
               {derivePinBoard(sl.line, sl.pins) != null && (
                 <span className="text-felt-700"> · pin {derivePinBoard(sl.line, sl.pins)}</span>
               )}
@@ -120,7 +120,6 @@ export function SpareLinesView() {
   const [editingId, setEditingId] = useState<number | null>(null);
   // For add: which pins are standing (the leave being shot at)
   const [formPins, setFormPins] = useState<PinNumber[]>([]);
-  const [formHasLine, setFormHasLine] = useState(false);
   const [formLine, setFormLine] = useState<LineSpec>(EMPTY_LINE);
   const [formNotes, setFormNotes] = useState("");
   const [isSaving, setIsSaving] = useState(false);
@@ -169,7 +168,6 @@ export function SpareLinesView() {
   function openAddForm() {
     setEditingId(null);
     setFormPins([]);
-    setFormHasLine(false);
     setFormLine(EMPTY_LINE);
     setFormNotes("");
     setFormError("");
@@ -179,7 +177,6 @@ export function SpareLinesView() {
   function openEditForm(sl: SpareLine) {
     setEditingId(sl.id ?? null);
     setFormPins(sl.pins);
-    setFormHasLine(sl.line !== undefined);
     setFormLine(sl.line ?? EMPTY_LINE);
     setFormNotes(sl.notes ?? "");
     setFormError("");
@@ -190,7 +187,6 @@ export function SpareLinesView() {
     setShowForm(false);
     setEditingId(null);
     setFormPins([]);
-    setFormHasLine(false);
     setFormLine(EMPTY_LINE);
     setFormNotes("");
     setFormError("");
@@ -203,10 +199,14 @@ export function SpareLinesView() {
       return;
     }
 
-    // Breakpoint is no longer entered for spares — keep only stance + target.
-    const line: LineSpec | undefined = formHasLine
-      ? { ...(formLine.stance != null && { stance: formLine.stance }), ...(formLine.target != null && { target: formLine.target }) }
-      : undefined;
+    const line: LineSpec | undefined =
+      (formLine.stance != null || formLine.laydown != null || formLine.target != null)
+        ? {
+            ...(formLine.stance   != null && { stance:   formLine.stance }),
+            ...(formLine.laydown  != null && { laydown:  formLine.laydown }),
+            ...(formLine.target   != null && { target:   formLine.target }),
+          }
+        : undefined;
 
     setIsSaving(true);
     setFormError("");
@@ -299,70 +299,75 @@ export function SpareLinesView() {
             </div>
 
             <div>
-              <div className="mb-2 flex items-center gap-2">
-                <input
-                  id="has_line"
-                  type="checkbox"
-                  checked={formHasLine}
-                  onChange={(e) => setFormHasLine(e.target.checked)}
-                  className="h-4 w-4 rounded border-slate-300 accent-felt-700"
-                />
-                <label htmlFor="has_line" className="text-sm font-medium text-slate-700">
-                  Set shooting line (board numbers)
-                </label>
+              <p className="mb-2 text-xs font-medium text-slate-600">
+                Shooting line (board numbers)
+              </p>
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-slate-600">
+                    Stance
+                  </label>
+                  <input
+                    type="number"
+                    inputMode="decimal"
+                    step="0.5"
+                    value={formLine.stance ?? ""}
+                    onChange={(e) =>
+                      setFormLine((l) => ({
+                        ...l,
+                        stance: e.target.value === "" ? undefined : Number(e.target.value)
+                      }))
+                    }
+                    placeholder="e.g. 35"
+                    className="h-10 w-full rounded-lg border border-slate-300 px-3 text-sm outline-none focus:border-felt-700 focus:ring-2 focus:ring-felt-700/20"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-slate-600">
+                    Laydown
+                  </label>
+                  <input
+                    type="number"
+                    inputMode="decimal"
+                    step="0.5"
+                    value={formLine.laydown ?? ""}
+                    onChange={(e) =>
+                      setFormLine((l) => ({
+                        ...l,
+                        laydown: e.target.value === "" ? undefined : Number(e.target.value)
+                      }))
+                    }
+                    placeholder="e.g. 18"
+                    className="h-10 w-full rounded-lg border border-slate-300 px-3 text-sm outline-none focus:border-felt-700 focus:ring-2 focus:ring-felt-700/20"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-slate-600">
+                    Target
+                  </label>
+                  <input
+                    type="number"
+                    inputMode="decimal"
+                    step="0.5"
+                    value={formLine.target ?? ""}
+                    onChange={(e) =>
+                      setFormLine((l) => ({
+                        ...l,
+                        target: e.target.value === "" ? undefined : Number(e.target.value)
+                      }))
+                    }
+                    placeholder="e.g. 10"
+                    className="h-10 w-full rounded-lg border border-slate-300 px-3 text-sm outline-none focus:border-felt-700 focus:ring-2 focus:ring-felt-700/20"
+                  />
+                </div>
               </div>
-
-              {formHasLine && (
-                <>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="mb-1 block text-xs font-medium text-slate-600">
-                        Stance
-                      </label>
-                      <input
-                        type="number"
-                        inputMode="decimal"
-                        step="0.5"
-                        value={formLine.stance ?? ""}
-                        onChange={(e) =>
-                          setFormLine((l) => ({
-                            ...l,
-                            stance: e.target.value === "" ? undefined : Number(e.target.value)
-                          }))
-                        }
-                        placeholder="e.g. 35"
-                        className="h-10 w-full rounded-lg border border-slate-300 px-3 text-sm outline-none focus:border-felt-700 focus:ring-2 focus:ring-felt-700/20"
-                      />
-                    </div>
-                    <div>
-                      <label className="mb-1 block text-xs font-medium text-slate-600">
-                        Target
-                      </label>
-                      <input
-                        type="number"
-                        inputMode="decimal"
-                        step="0.5"
-                        value={formLine.target ?? ""}
-                        onChange={(e) =>
-                          setFormLine((l) => ({
-                            ...l,
-                            target: e.target.value === "" ? undefined : Number(e.target.value)
-                          }))
-                        }
-                        placeholder="e.g. 10"
-                        className="h-10 w-full rounded-lg border border-slate-300 px-3 text-sm outline-none focus:border-felt-700 focus:ring-2 focus:ring-felt-700/20"
-                      />
-                    </div>
-                  </div>
-                  {derivePinBoard(formLine, formPins) != null && (
-                    <p className="mt-2 text-xs text-slate-500">
-                      Straight-line board at the front pin:{" "}
-                      <span className="font-semibold text-felt-700">
-                        {derivePinBoard(formLine, formPins)}
-                      </span>
-                    </p>
-                  )}
-                </>
+              {derivePinBoard(formLine, formPins) != null && (
+                <p className="mt-2 text-xs text-slate-500">
+                  Straight-line board at the front pin:{" "}
+                  <span className="font-semibold text-felt-700">
+                    {derivePinBoard(formLine, formPins)}
+                  </span>
+                </p>
               )}
             </div>
 

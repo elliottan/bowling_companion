@@ -32,7 +32,14 @@ export function Scorecard({
         : [{ symbol: "", shotIndex: null }, { symbol: "", shotIndex: null }];
     const shotCells = frame ? getFrameShotCells(frame) : emptyCells;
     const score = gameScore.frames.find((f) => f.frame_number === frameNumber);
-    const isEditable = !!frame && (frameNumber < activeFrameNumber || gameComplete);
+    // The 10th frame shows the game's running cumulative total even before it is
+    // mathematically resolvable, so an in-progress game always has a score in the
+    // last cell (no provisional "+"). Once complete it equals its own rolling total.
+    const rollingTotal =
+      frameNumber === 10 && !gameComplete ? gameScore.total : score?.rollingTotal ?? null;
+    // Recorded shots are editable in the active frame too (tap back to a recorded
+    // first shot while the live cursor is on the second).
+    const isEditable = !!frame && (frameNumber <= activeFrameNumber || gameComplete);
     const highlightShotIndex =
       highlightCell?.frameNumber === frameNumber ? highlightCell.shotIndex : undefined;
     // Active and future frames are tappable to snap back to live entry.
@@ -40,7 +47,7 @@ export function Scorecard({
     return {
       frameNumber,
       shotCells,
-      rollingTotal: score?.rollingTotal ?? null,
+      rollingTotal,
       isEditing: editingFrameNumber === frameNumber,
       highlightShotIndex,
       onShotTap: isEditable ? onShotTap : undefined,
@@ -152,10 +159,8 @@ function FrameCell({
         })}
       </div>
       <div
-        className={`flex h-9 items-center justify-center text-base font-bold sm:h-12 sm:text-lg ${
-          frameNumber === 10 && rollingTotal != null
-            ? "bg-felt-700 font-extrabold text-white"
-            : "text-felt-700"
+        className={`flex h-9 items-center justify-center text-base font-bold text-felt-700 sm:h-12 sm:text-lg ${
+          frameNumber === 10 ? "font-extrabold" : ""
         }`}
       >
         {rollingTotal ?? ""}

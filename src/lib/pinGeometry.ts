@@ -30,15 +30,16 @@ export function frontPin(pins: PinNumber[]): PinNumber | undefined {
 
 /**
  * Board the straight laydown→arrows line reaches at the front-most pin's depth.
- * Assumes a straight ball: laydown (stance) at the foul line, crossing the
- * target at the arrows, extrapolated to the pin's distance. Returns undefined
- * if stance/target or the leave are missing. Not clamped to 1–39.
+ * Uses laydown as the foul-line board; falls back to stance for older entries
+ * that predate the laydown field. Returns undefined if neither is set, or if
+ * target or pins are missing. Not clamped to 1–39.
  */
 export function derivePinBoard(line: LineSpec | undefined, pins: PinNumber[]): number | undefined {
-  if (line?.stance == null || line.target == null) return undefined;
+  const foul = line?.laydown ?? line?.stance;
+  if (foul == null || line?.target == null) return undefined;
   const pin = frontPin(pins);
   if (pin == null) return undefined;
   const { feet } = PIN_POSITIONS[pin];
-  const board = line.stance + (line.target - line.stance) * (feet / ARROWS_FEET);
+  const board = foul + (line.target - foul) * (feet / ARROWS_FEET);
   return Math.round(board * 10) / 10;
 }

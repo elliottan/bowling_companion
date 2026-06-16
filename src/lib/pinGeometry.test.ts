@@ -23,4 +23,18 @@ describe("pinGeometry", () => {
     expect(derivePinBoard({ target: 17.5 }, [1])).toBeUndefined();
     expect(derivePinBoard({ stance: 20, target: 17.5 }, [])).toBeUndefined();
   });
+
+  it("uses laydown as the foul-line board when provided", () => {
+    // laydown=20, target=17.5 → same result as stance=20 case
+    expect(derivePinBoard({ laydown: 20, target: 17.5 }, [1])).toBe(10);
+  });
+
+  it("laydown overrides stance when both present", () => {
+    // stance=25 would give 0, laydown=20 should give 10
+    expect(derivePinBoard({ stance: 25, laydown: 20, target: 17.5 }, [1])).toBe(10);
+  });
+
+  it("returns undefined when neither laydown nor stance is provided", () => {
+    expect(derivePinBoard({ target: 17.5 }, [1])).toBeUndefined();
+  });
 });

@@ -38,9 +38,12 @@ export interface UpdateSessionInput {
   alley_name: string;
   date: string;
   description?: string;
+  oil_pattern?: string;
+  oil_pattern_id?: number;
+  general_notes?: string;
 }
 
-/** Edit a session's alley, date, and description. */
+/** Edit a session's alley, date, description, oil pattern, and notes. */
 export async function updateSession(
   sessionId: number,
   input: UpdateSessionInput
@@ -48,7 +51,10 @@ export async function updateSession(
   await db.sessions.update(sessionId, {
     alley_name: input.alley_name,
     date: input.date,
-    description: input.description?.trim() || undefined
+    description: input.description?.trim() || undefined,
+    oil_pattern: input.oil_pattern,
+    oil_pattern_id: input.oil_pattern_id,
+    general_notes: input.general_notes?.trim() || undefined
   });
 }
 
@@ -282,6 +288,20 @@ export async function getResumableToday(): Promise<ResumableGame | null> {
     }
   }
   return null;
+}
+
+/**
+ * Resume info for a specific session — the most recent unfinished game, or the
+ * last game if all are finished. Used so the home widget always reflects and
+ * jumps to whichever session is currently active.
+ */
+export async function getResumableForSession(sessionId: number): Promise<ResumableGame | null> {
+  const session = await db.sessions.get(sessionId);
+  if (!session || session.id == null) return null;
+  const games = await db.games.where("session_id").equals(session.id).sortBy("game_number");
+  if (games.length === 0) return null;
+  const target = games.find((g) => g.final_score === undefined) ?? games[games.length - 1];
+  return { sessionId: session.id, alleyName: session.alley_name, gameNumber: target.game_number };
 }
 
 export async function getSessionHistory(): Promise<SessionSummary[]> {

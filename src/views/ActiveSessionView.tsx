@@ -2,17 +2,18 @@ import { ChevronLeft, ListChecks, MoreVertical, Pencil, Plus, Trash2 } from "luc
 import { useEffect, useMemo, useState } from "react";
 import { ActiveGameScorer } from "../components/ActiveGameScorer";
 import { ConfirmDialog } from "../components/ConfirmDialog";
-import { SessionEditDialog } from "../components/SessionEditDialog";
+import { SessionFormDialog } from "../components/SessionFormDialog";
 import { SessionSheet } from "../components/SessionSheet";
+import type { NewSessionFormValues } from "../components/SessionForm";
 import { calculateGameScore } from "../lib/scoring";
 import {
   addNextGameToSession,
   deleteGame,
+  deleteSession,
   getSessionDetails,
   saveFrame,
   updateGameLanes,
-  updateSession,
-  type UpdateSessionInput
+  updateSession
 } from "../services/bowlingRepository";
 import type { Frame, Game, SessionSummary } from "../types/bowling";
 
@@ -40,6 +41,7 @@ export function ActiveSessionView({
   const [error, setError] = useState("");
   const [showMenu, setShowMenu] = useState(false);
   const [confirmDeleteGame, setConfirmDeleteGame] = useState(false);
+  const [confirmDeleteSession, setConfirmDeleteSession] = useState(false);
   const [showSheet, setShowSheet] = useState(false);
   const [showEdit, setShowEdit] = useState(false);
 
@@ -63,9 +65,11 @@ export function ActiveSessionView({
     setLaneError("");
   }, [activeGame?.id, activeGame?.lanes, activeGame?.lane_number, activeGame?.start_lane]);
 
-  // Collapse the editor only when switching games, not on every lane save.
+  // On switching to a game, open the lane editor immediately if its lanes are
+  // not yet set; otherwise keep it collapsed (don't reopen on every lane save).
   useEffect(() => {
-    setShowLaneEditor(false);
+    const lanes = activeGame?.lanes ?? (activeGame?.lane_number ? [activeGame.lane_number] : []);
+    setShowLaneEditor(lanes.filter((l) => l && l.trim()).length === 0);
   }, [activeGame?.id]);
 
   // `side` defaults to current state but the start-lane toggle passes it
@@ -79,8 +83,19 @@ export function ActiveSessionView({
       return;
     }
     setLaneError("");
-    const lanes = [a, b].filter(Boolean);
-    const start_lane = lanes.length === 2 ? (side === "A" ? a : b) : lanes[0];
+    let lanes = [a, b].filter(Boolean);
+    // The starting lane is tracked by value so it survives the lower-on-left
+    // reorder below.
+    const startValue = lanes.length === 2 ? (side === "A" ? a : b) : lanes[0];
+    // Lower-numbered lane goes on the left. This runs on blur (not while typing),
+    // so digits aren't shuffled mid-entry.
+    if (lanes.length === 2 && Number(lanes[1]) < Number(lanes[0])) {
+      lanes = [lanes[1], lanes[0]];
+      setLaneA(lanes[0]);
+      setLaneB(lanes[1]);
+      setStartSide(startValue === lanes[0] ? "A" : "B");
+    }
+    const start_lane = lanes.length === 2 ? startValue : lanes[0];
     await updateGameLanes(activeGame.id, { lanes, start_lane });
     await refreshSession(activeGame.id);
   }
@@ -158,13 +173,24 @@ export function ActiveSessionView({
     }
   }
 
-  async function handleSaveEdit(values: UpdateSessionInput) {
+  async function handleSaveEdit(values: NewSessionFormValues) {
     try {
       await updateSession(sessionId, values);
       setShowEdit(false);
       await refreshSession(activeGameId ?? undefined);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to update session.");
+    }
+  }
+
+  async function handleDeleteSession() {
+    setConfirmDeleteSession(false);
+    setShowMenu(false);
+    try {
+      await deleteSession(sessionId);
+      onSessionDeleted();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unable to delete session.");
     }
   }
 
@@ -269,6 +295,14 @@ export function ActiveSessionView({
                     <Trash2 size={16} aria-hidden="true" />
                     Delete game
                   </button>
+                  <button
+                    type="button"
+                    onClick={() => { setShowMenu(false); setConfirmDeleteSession(true); }}
+                    className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm font-medium text-red-600 hover:bg-red-50"
+                  >
+                    <Trash2 size={16} aria-hidden="true" />
+                    Delete session
+                  </button>
                 </div>
               </>
             )}
@@ -315,6 +349,9 @@ export function ActiveSessionView({
       <ActiveGameScorer
         gameKey={activeGame.id}
         initialFrames={(activeGame as Game & { frames: Frame[] }).frames}
+        sessionFrames={games
+          .filter((g) => g.id !== activeGame.id)
+          .flatMap((g) => (g as Game & { frames: Frame[] }).frames)}
         mode="session"
         game={activeGame}
         onFrameComplete={handleFrameComplete}
@@ -338,15 +375,27 @@ export function ActiveSessionView({
         />
       )}
 
-      <SessionEditDialog
+      <SessionFormDialog
         open={showEdit}
+        title="Edit session"
+        submitLabel="Save"
         initial={{
           alley_name: sessionDetails.session.alley_name,
           date: sessionDetails.session.date,
-          description: sessionDetails.session.description
+          description: sessionDetails.session.description,
+          oil_pattern_id: sessionDetails.session.oil_pattern_id,
+          general_notes: sessionDetails.session.general_notes
         }}
-        onSave={handleSaveEdit}
+        onSubmit={handleSaveEdit}
         onCancel={() => setShowEdit(false)}
+      />
+
+      <ConfirmDialog
+        open={confirmDeleteSession}
+        title="Delete this session?"
+        message={`"${sessionDetails.session.alley_name}" and all its games will be permanently deleted.`}
+        onConfirm={handleDeleteSession}
+        onCancel={() => setConfirmDeleteSession(false)}
       />
 
       {showLaneEditor && (

@@ -1,4 +1,4 @@
-import { Plus, Send, SlidersHorizontal } from "lucide-react";
+import { Plus, SlidersHorizontal } from "lucide-react";
 import type { PointerEvent as ReactPointerEvent } from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -14,6 +14,7 @@ import { useHandedness } from "../lib/handednessContext";
 import { laneForFrame, previousSameLaneFrame } from "../lib/lanes";
 import { getBalls, getSpareLineByPins } from "../services/ballRepository";
 import type { Ball, Frame, Game, LineSpec, PinNumber, ShotMetadata } from "../types/bowling";
+import { isSplit } from "../lib/pins";
 import { PinGrid } from "./PinGrid";
 import { Scorecard } from "./Scorecard";
 
@@ -23,6 +24,8 @@ interface LineInputProps {
   onChange: (value: LineSpec | undefined) => void;
   /** Show the line-move preset chips (used for the intended line). */
   showPresets?: boolean;
+  /** Fired when any field gains focus — used by the Actual line to autofill. */
+  onFieldFocus?: () => void;
 }
 
 const LINE_FIELDS = ["stance", "target", "breakpoint"] as const;
@@ -31,6 +34,9 @@ const FIELD_LABEL: Record<(typeof LINE_FIELDS)[number], string> = {
   target: "Target",
   breakpoint: "Breakpoint"
 };
+// The board fields this input edits. Derived from LINE_FIELDS so it stays a
+// subset of LineSpec's keys even if other line dimensions are added elsewhere.
+type BoardField = (typeof LINE_FIELDS)[number];
 // "X-Y" board move: X boards at the stance (feet), Y at the target (arrows).
 const MOVE_PRESETS = [
   { label: "1-1", stance: 1, target: 1 },
@@ -38,7 +44,10 @@ const MOVE_PRESETS = [
   { label: "2-1", stance: 2, target: 1 }
 ];
 
-const clampBoard = (n: number) => Math.max(1, Math.min(39, Math.round(n * 10) / 10));
+// The stance ("standing") board allows a wider range than the target/breakpoint
+// arrows: a bowler can stand out to board 50, but targets cap at the 39 boards.
+const maxForField = (field: BoardField) => (field === "stance" ? 50 : 39);
+const clampBoard = (n: number, max = 39) => Math.max(1, Math.min(max, Math.round(n * 10) / 10));
 
 // Keep only digits and a single dot, capped at one decimal place. A trailing
 // dot is preserved so "15." can be typed on the way to "15.5".
@@ -57,7 +66,7 @@ function parseOneDp(s: string): number | undefined {
   return Number.isNaN(n) ? undefined : Math.round(n * 10) / 10;
 }
 
-function LineInput({ label, value, onChange, showPresets = false }: LineInputProps) {
+function LineInput({ label, value, onChange, showPresets = false, onFieldFocus }: LineInputProps) {
   const handedness = useHandedness();
   // Board numbers rise to the left for a right-hander, to the right for a
   // left-hander. dir = +1 means the LEFT arrow increases the board number.
@@ -68,7 +77,7 @@ function LineInput({ label, value, onChange, showPresets = false }: LineInputPro
     breakpoint: v?.breakpoint != null ? String(v.breakpoint) : ""
   });
   const [text, setText] = useState(() => toText(value));
-  const [focused, setFocused] = useState<keyof LineSpec | null>(null);
+  const [focused, setFocused] = useState<BoardField | null>(null);
 
   // Re-sync from the prop only on external changes (carry-forward, spare-line
   // prefill, reset) — not when the prop merely echoes the user's own edit, so
@@ -89,16 +98,16 @@ function LineInput({ label, value, onChange, showPresets = false }: LineInputPro
   // TODO(line-draw): future — given any two of stance/target/breakpoint (and a
   // real breakpoint distance + arrow distance), derive the third by drawing the
   // straight line, so the user can fix a breakpoint+target and read the laydown.
-  function applyValues(updates: Partial<Record<keyof LineSpec, number | undefined>>) {
+  function applyValues(updates: Partial<Record<BoardField, number | undefined>>) {
     const next: LineSpec = { ...value };
-    for (const k of Object.keys(updates) as (keyof LineSpec)[]) {
+    for (const k of Object.keys(updates) as (BoardField)[]) {
       const v = updates[k];
       if (v == null) delete next[k];
       else next[k] = v;
     }
     setText((t) => {
       const nt = { ...t };
-      for (const k of Object.keys(updates) as (keyof LineSpec)[]) {
+      for (const k of Object.keys(updates) as (BoardField)[]) {
         nt[k] = updates[k] != null ? String(updates[k]) : "";
       }
       return nt;
@@ -107,26 +116,26 @@ function LineInput({ label, value, onChange, showPresets = false }: LineInputPro
     onChange(hasAny ? next : undefined);
   }
 
-  function update(field: keyof LineSpec, raw: string) {
+  function update(field: BoardField, raw: string) {
     const s = sanitizeLine(raw);
     setText((t) => ({ ...t, [field]: s }));
     const v = parseOneDp(s);
     const next: LineSpec = { ...value };
     if (v === undefined) delete next[field];
-    else next[field] = Math.max(1, Math.min(39, v));
+    else next[field] = Math.max(1, Math.min(maxForField(field), v));
     const hasAny = next.stance != null || next.target != null || next.breakpoint != null;
     onChange(hasAny ? next : undefined);
   }
 
-  function nudge(field: keyof LineSpec, delta: number) {
+  function nudge(field: BoardField, delta: number) {
     const base = parseOneDp(text[field]) ?? value?.[field] ?? 20;
-    applyValues({ [field]: clampBoard(base + delta) });
+    applyValues({ [field]: clampBoard(base + delta, maxForField(field)) });
   }
 
   function move(stanceDelta: number, targetDelta: number) {
     const s = parseOneDp(text.stance) ?? value?.stance ?? 20;
     const t = parseOneDp(text.target) ?? value?.target ?? 20;
-    applyValues({ stance: clampBoard(s + stanceDelta), target: clampBoard(t + targetDelta) });
+    applyValues({ stance: clampBoard(s + stanceDelta, maxForField("stance")), target: clampBoard(t + targetDelta, maxForField("target")) });
   }
 
   // Single full-width button per adjuster: label centered, arrows at the edges,
@@ -152,7 +161,7 @@ function LineInput({ label, value, onChange, showPresets = false }: LineInputPro
             inputMode="decimal"
             value={text[field]}
             onChange={(e) => update(field, e.target.value)}
-            onFocus={() => setFocused(field)}
+            onFocus={() => { onFieldFocus?.(); setFocused(field); }}
             onBlur={() => setFocused((f) => (f === field ? null : f))}
             placeholder={["S", "T", "B"][i]}
             className="h-9 w-full min-w-0 rounded-md border border-slate-300 px-1 text-center text-xs focus:border-felt-700 focus:outline-none"
@@ -276,13 +285,26 @@ function ShotDetailBar({
 
       <LineInput label="Intended" value={intended} onChange={onIntendedChange} showPresets />
 
-      <LineInput label="Actual" value={actual} onChange={onActualChange} />
+      {/* Actual may stay blank, but focusing any field while all three are blank
+          autofills from the current Intended line (a quick "shot it as planned"). */}
+      <LineInput
+        label="Actual"
+        value={actual}
+        onChange={onActualChange}
+        onFieldFocus={() => {
+          if (!actual && intended) onActualChange({ ...intended });
+        }}
+      />
 
       <div>
         <span className="mb-1 block text-[10px] font-semibold uppercase tracking-wide text-slate-400">Notes</span>
         <textarea
           value={notes}
           onChange={(e) => onNotesChange(e.target.value)}
+          onBlur={() => {
+            const trimmed = notes.trim();
+            if (trimmed !== notes) onNotesChange(trimmed);
+          }}
           rows={6}
           placeholder="This shot…"
           className="w-full rounded-md border border-slate-300 px-2 py-1.5 text-xs focus:border-felt-700 focus:outline-none"
@@ -297,6 +319,9 @@ export type ScorerMode = "standalone" | "session";
 interface ActiveGameScorerProps {
   gameKey?: number | string;
   initialFrames?: Frame[];
+  /** Recorded frames from OTHER games in the same session, oldest first. Used to
+   *  reuse a per-session intended spare line for an identical leave. */
+  sessionFrames?: Frame[];
   mode?: ScorerMode;
   game?: Pick<Game, "lanes" | "start_lane" | "lane_number">;
   onFrameComplete?: (frame: Frame) => Promise<void> | void;
@@ -305,6 +330,29 @@ interface ActiveGameScorerProps {
   onEditLanes?: () => void;
   /** Jump to the Arsenal screen to manage balls. */
   onOpenArsenal?: () => void;
+}
+
+const pinsKey = (p: PinNumber[]) => [...p].sort((a, b) => a - b).join(",");
+const lineHasValue = (l: LineSpec | undefined) =>
+  !!l && (l.stance != null || l.target != null || l.breakpoint != null);
+
+/**
+ * The intended line of the most recent earlier spare attempt this session that
+ * faced the same leave. Scans non-10th frames (keyed by the leave standing pins);
+ * returns the last match's intended line, or undefined.
+ */
+function sessionSpareIntended(frames: Frame[], leave: PinNumber[]): LineSpec | undefined {
+  const key = pinsKey(leave);
+  let found: LineSpec | undefined;
+  for (const f of frames) {
+    if (f.frame_number === 10) continue;
+    const first = f.shots[0];
+    const second = f.shots[1];
+    if (!first || !second) continue;
+    if (pinsKey(first.pins_standing) !== key) continue;
+    if (lineHasValue(second.intended)) found = second.intended;
+  }
+  return found;
 }
 
 /** Pins available entering a given shot of a frame (for editing a past shot). */
@@ -317,6 +365,7 @@ function availableEnteringShot(frame: Frame, shotIndex: number): PinNumber[] | u
 export function ActiveGameScorer({
   gameKey = "local",
   initialFrames = [],
+  sessionFrames = [],
   mode = "standalone",
   game,
   onFrameComplete,
@@ -348,6 +397,17 @@ export function ActiveGameScorer({
   const recordedShot = recordedFrame && selectedShot ? recordedFrame.shots[selectedShot.shotIndex] ?? null : null;
   const isEditing = Boolean(recordedShot);
 
+  // Label for the primary button: "Strike" on a fresh rack (first ball or a
+  // 10th-frame bonus ball), "Spare" when shooting at a leave. While editing,
+  // derive from the pins available entering the selected shot.
+  const editStrikeOrSpareLabel = (() => {
+    if (isEditing && recordedFrame && selectedShot) {
+      const avail = availableEnteringShot(recordedFrame, selectedShot.shotIndex);
+      return (avail?.length ?? 10) === 10 ? "Strike" : "Spare";
+    }
+    return isFreshRack ? "Strike" : "Spare";
+  })();
+
   useEffect(() => {
     setGameState(hydrateFrameController(initialFrames));
     setErrorMessage("");
@@ -360,15 +420,17 @@ export function ActiveGameScorer({
     getBalls().then(setBalls).catch(() => {});
   }, []);
 
-  // Auto-pick a ball for the live shot (spare ball on 2nd+ balls).
+  // Auto-pick a ball for the live shot. The spare ball is used only on a true
+  // spare attempt (a partial leave); a fresh rack — including a 10th-frame bonus
+  // ball after a strike/spare — is a first ball and uses the normal ball.
   useEffect(() => {
     if (balls.length === 0) return;
-    const isSpareShot = gameState.currentShot > 1;
+    const isSpareShot = gameState.currentShot > 1 && gameState.availablePins.length < 10;
     const spareBall = balls.find((b) => b.is_spare_ball);
     const strikeBall = balls.find((b) => !b.is_spare_ball) ?? balls[0];
     const auto = isSpareShot && spareBall ? spareBall : strikeBall;
     setSelectedBallId(auto?.id);
-  }, [gameState.currentShot, balls]);
+  }, [gameState.currentShot, gameState.availablePins, balls]);
 
   // Push the live draft into the controller's currentShotMeta.
   useEffect(() => {
@@ -404,11 +466,25 @@ export function ActiveGameScorer({
     setActualLine(undefined);
 
     if (gameState.currentShot === 1) {
+      // First ball: carry intended line, selected ball, and notes from the
+      // previous same-lane frame. Actual is never carried (kept blank).
       const prev = previousSameLaneFrame(game, gameState.currentFrameNumber, gameState.frames);
-      setIntendedLine(prev?.shots[0]?.intended);
+      const prevShot = prev?.shots[0];
+      setIntendedLine(prevShot?.intended);
+      if (prevShot) {
+        setShotNotes(prevShot.notes ?? "");
+        if (prevShot.ball_id != null) setSelectedBallId(prevShot.ball_id);
+      }
     } else if (gameState.availablePins.length < 10) {
-      // True second ball (spare attempt): prefill from the saved spare line.
+      // True second ball (spare attempt). Prefer the intended line from an
+      // identical leave already shot this session (per-session conditions),
+      // else fall back to the saved global Spare Line.
       const leave = gameState.availablePins;
+      const sessionLine = sessionSpareIntended([...sessionFrames, ...gameState.frames], leave);
+      if (sessionLine) {
+        setIntendedLine({ ...sessionLine });
+        return;
+      }
       setIntendedLine(undefined);
       getSpareLineByPins(leave)
         .then((sl) => {
@@ -425,7 +501,11 @@ export function ActiveGameScorer({
         })
         .catch(() => {});
     } else {
-      setIntendedLine(undefined); // fresh-rack bonus ball
+      // Fresh-rack bonus ball (10th frame after a strike/spare): treat as a
+      // first ball — carry the intended line forward from the shot just thrown.
+      const frame = gameState.frames.find((f) => f.frame_number === gameState.currentFrameNumber);
+      const prevShot = frame?.shots[frame.shots.length - 1];
+      setIntendedLine(prevShot?.intended);
     }
   }, [
     gameState.currentFrameNumber,
@@ -434,6 +514,7 @@ export function ActiveGameScorer({
     gameState.isComplete,
     gameState.frames,
     selectedShot,
+    sessionFrames,
     game
   ]);
 
@@ -499,6 +580,21 @@ export function ActiveGameScorer({
     setSelectedShot(null);
   }
 
+  // "Next" while editing a recorded shot: move the cursor to the following shot,
+  // or back to live entry if there is none recorded after it.
+  function advanceSelection() {
+    if (!selectedShot || !recordedFrame) return goLive();
+    const { frameNumber, shotIndex } = selectedShot;
+    if (recordedFrame.shots[shotIndex + 1]) {
+      return selectShot(frameNumber, shotIndex + 1);
+    }
+    const nextFrame = gameState.frames.find((f) => f.frame_number === frameNumber + 1);
+    if (nextFrame && nextFrame.shots.length > 0) {
+      return selectShot(frameNumber + 1, 0);
+    }
+    goLive();
+  }
+
   const viewedLane = selectedShot && game ? laneForFrame(game, selectedShot.frameNumber) : undefined;
 
   const highlightCell = selectedShot
@@ -562,32 +658,40 @@ export function ActiveGameScorer({
             </div>
           )}
 
-          <PinGrid
-            standingPins={isEditing && recordedShot ? recordedShot.pins_standing : gameState.standingPins}
-            availablePins={
-              isEditing && recordedFrame && selectedShot
-                ? availableEnteringShot(recordedFrame, selectedShot.shotIndex)
-                : gameState.availablePins
-            }
-            onChange={isEditing ? handleEditPins : updateStandingPins}
-            size="sm"
-          />
+          {(() => {
+            const gridStanding = isEditing && recordedShot ? recordedShot.pins_standing : gameState.standingPins;
+            const gridAvailable = isEditing && recordedFrame && selectedShot
+              ? availableEnteringShot(recordedFrame, selectedShot.shotIndex)
+              : gameState.availablePins;
+            return (
+              <PinGrid
+                standingPins={gridStanding}
+                availablePins={gridAvailable}
+                onChange={isEditing ? handleEditPins : updateStandingPins}
+                size="sm"
+                splitActive={(gridAvailable?.length ?? 0) === 10 && isSplit(gridStanding)}
+              />
+            );
+          })()}
 
-          {!isEditing && !gameState.isComplete ? (
+          {/* Strike/Spare + Next stay visible and functional in both live and
+              editing states (every frame is editable). While editing a recorded
+              shot they act in place: Strike/Spare clears that shot's pins, Next
+              advances the cursor. */}
+          {!gameState.isComplete ? (
             <div className="flex gap-2">
               <button
                 type="button"
-                onClick={() => void recordShot([])}
+                onClick={() => (isEditing ? handleEditPins([]) : void recordShot([]))}
                 className="inline-flex h-11 flex-1 items-center justify-center rounded-lg bg-felt-700 text-sm font-bold text-white shadow-sm hover:bg-felt-500"
               >
-                {isFreshRack ? "Strike" : "Spare"}
+                {editStrikeOrSpareLabel}
               </button>
               <button
                 type="button"
-                onClick={() => void recordShot()}
+                onClick={() => (isEditing ? advanceSelection() : void recordShot())}
                 className="inline-flex h-11 flex-1 items-center justify-center gap-1.5 rounded-lg border border-felt-700 bg-white text-sm font-semibold text-felt-700 hover:bg-felt-50"
               >
-                <Send aria-hidden="true" size={16} />
                 Next
               </button>
             </div>
@@ -605,7 +709,10 @@ export function ActiveGameScorer({
           onActualChange={isEditing ? (l) => handleEditMeta({ actual: l }) : setActualLine}
           notes={isEditing && recordedShot ? recordedShot.notes ?? "" : shotNotes}
           onNotesChange={
-            isEditing ? (n) => handleEditMeta({ notes: n.trim() || undefined }) : setShotNotes
+            // Store raw while typing (keeps internal/trailing spaces); the
+            // textarea's onBlur trims on save. Trimming per-keystroke here made
+            // it impossible to type a space in a recorded shot's notes.
+            isEditing ? (n) => handleEditMeta({ notes: n }) : setShotNotes
           }
           onOpenArsenal={onOpenArsenal}
         />

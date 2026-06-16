@@ -26,7 +26,9 @@ test("persists the session and shows it in history", async ({ page }) => {
   await recordShot(page, []); // one strike so a frame is saved
 
   await page.getByRole("button", { name: "History" }).click();
-  await expect(page.getByText("History Lanes")).toBeVisible();
+  // The session row is a button; a location-filter <option> shares the alley
+  // name, so target the row specifically.
+  await expect(page.getByRole("button", { name: /History Lanes/ })).toBeVisible();
 });
 
 test("editing a past shot inline (no edit button) re-derives the frame", async ({ page }) => {

@@ -17,6 +17,7 @@ interface PinGridProps {
   onChange: (standingPins: PinNumber[]) => void;
   readOnly?: boolean;
   size?: "default" | "sm";
+  splitActive?: boolean;
 }
 
 export function PinGrid({
@@ -24,7 +25,8 @@ export function PinGrid({
   availablePins = ALL_PINS,
   onChange,
   readOnly = false,
-  size = "default"
+  size = "default",
+  splitActive = false,
 }: PinGridProps) {
   const standingSet = new Set(standingPins);
   const availableSet = new Set(availablePins);
@@ -103,7 +105,9 @@ export function PinGrid({
                     readOnly ? "cursor-default" : ""
                   } ${
                     isStanding
-                      ? "border-slate-300 bg-white text-slate-900 shadow-md"
+                      ? splitActive
+                        ? "border-red-500 bg-white text-slate-900 shadow-md ring-2 ring-red-500"
+                        : "border-slate-300 bg-white text-slate-900 shadow-md"
                       : "border-[#9c7438] bg-[#c79b5e] text-[#7a5a2c]"
                   } ${isAvailable || readOnly ? "" : "cursor-not-allowed opacity-30"}`}
                 >
