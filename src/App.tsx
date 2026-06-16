@@ -101,13 +101,21 @@ function App() {
     setView(target);
   }
 
-  // Keyboard overlays the nav (viewport interactive-widget=overlays-content);
-  // scroll a focused field into view so it isn't hidden behind the keyboard.
+  // Keyboard overlays the nav (viewport interactive-widget=overlays-content).
+  // Only nudge a focused field into view when it's actually hidden — off the top
+  // or below the keyboard-shrunk visual viewport — and then by the minimum amount
+  // (block: "nearest"). Scrolling already-visible fields caused a jarring jump.
   useEffect(() => {
     function onFocusIn(e: FocusEvent) {
       const t = e.target as HTMLElement | null;
       if (t && t.matches("input, textarea, select")) {
-        setTimeout(() => t.scrollIntoView({ block: "center", behavior: "smooth" }), 250);
+        setTimeout(() => {
+          const rect = t.getBoundingClientRect();
+          const bottomLimit = window.visualViewport?.height ?? window.innerHeight;
+          if (rect.top < 0 || rect.bottom > bottomLimit - 8) {
+            t.scrollIntoView({ block: "nearest", behavior: "smooth" });
+          }
+        }, 250);
       }
     }
     document.addEventListener("focusin", onFocusIn);

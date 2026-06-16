@@ -215,14 +215,11 @@ interface ShotDetailBarProps {
   onActualChange: (line: LineSpec | undefined) => void;
   notes: string;
   onNotesChange: (notes: string) => void;
-  lanes: string[];
-  activeLane?: string;
-  onEditLanes?: () => void;
   onOpenArsenal?: () => void;
 }
 
 // Every field is always editable; remounting (via `key`) per selected shot
-// resets local UI state (showActual, line text) to that shot's stored values.
+// resets local line text to that shot's stored values.
 function ShotDetailBar({
   balls,
   ballId,
@@ -233,46 +230,10 @@ function ShotDetailBar({
   onActualChange,
   notes,
   onNotesChange,
-  lanes,
-  activeLane,
-  onEditLanes,
   onOpenArsenal
 }: ShotDetailBarProps) {
-  const [showActual, setShowActual] = useState(Boolean(actual));
-
   return (
     <div className="flex flex-col gap-2.5 rounded-lg border border-slate-200 bg-white p-2.5">
-      {(onEditLanes || lanes.length > 0) && (
-        <div className="flex items-center justify-between border-b border-slate-100 pb-1.5">
-          <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">Lane</span>
-          {onEditLanes ? (
-            <button
-              type="button"
-              onClick={onEditLanes}
-              aria-label="Edit game lanes"
-              className="inline-flex items-center gap-1"
-            >
-              {lanes.length > 0 ? (
-                lanes.map((l) => (
-                  <span
-                    key={l}
-                    className={`inline-flex h-6 min-w-[1.5rem] items-center justify-center rounded-md px-1.5 text-xs font-bold ${
-                      l === activeLane ? "bg-felt-700 text-white" : "bg-slate-100 text-slate-400"
-                    }`}
-                  >
-                    {l}
-                  </span>
-                ))
-              ) : (
-                <span className="text-xs font-semibold text-felt-700">+ Set lanes</span>
-              )}
-            </button>
-          ) : (
-            <span className="text-sm font-bold text-slate-900">{lanes.join(" / ")}</span>
-          )}
-        </div>
-      )}
-
       <div>
         <span className="mb-1 block text-[10px] font-semibold uppercase tracking-wide text-slate-400">Ball</span>
         {balls.length > 0 ? (
@@ -315,30 +276,14 @@ function ShotDetailBar({
 
       <LineInput label="Intended" value={intended} onChange={onIntendedChange} showPresets />
 
-      <button
-        type="button"
-        onClick={() => {
-          setShowActual((v) => !v);
-          // Seed actual from intended the first time it's opened for this shot.
-          if (!actual && intended) onActualChange({ ...intended });
-        }}
-        className={`h-8 rounded-md border px-2 text-xs font-medium transition-colors ${
-          showActual
-            ? "border-felt-700 bg-felt-700 text-white"
-            : "border-slate-300 bg-white text-slate-600 hover:bg-slate-50"
-        }`}
-      >
-        {showActual ? "Hide actual" : "+ Actual line"}
-      </button>
-
-      {showActual && <LineInput label="Actual" value={actual} onChange={onActualChange} />}
+      <LineInput label="Actual" value={actual} onChange={onActualChange} />
 
       <div>
         <span className="mb-1 block text-[10px] font-semibold uppercase tracking-wide text-slate-400">Notes</span>
         <textarea
           value={notes}
           onChange={(e) => onNotesChange(e.target.value)}
-          rows={2}
+          rows={6}
           placeholder="This shot…"
           className="w-full rounded-md border border-slate-300 px-2 py-1.5 text-xs focus:border-felt-700 focus:outline-none"
         />
@@ -591,6 +536,32 @@ export function ActiveGameScorer({
       {/* Pin deck (left) + shot details (right), side-by-side on every width. */}
       <div className="mt-4 grid grid-cols-2 items-start gap-3 lg:grid-cols-[minmax(0,360px)_1fr]">
         <div className="space-y-2">
+          {(onEditLanes || lanesList.length > 0) && (
+            <div className="flex items-center justify-between rounded-lg border border-slate-200 bg-white px-2.5 py-1.5">
+              <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">Lane</span>
+              {onEditLanes ? (
+                <button type="button" onClick={onEditLanes} aria-label="Edit game lanes" className="inline-flex items-center gap-1">
+                  {lanesList.length > 0 ? (
+                    lanesList.map((l) => (
+                      <span
+                        key={l}
+                        className={`inline-flex h-6 min-w-[1.5rem] items-center justify-center rounded-md px-1.5 text-xs font-bold ${
+                          l === (isEditing ? viewedLane : currentLane) ? "bg-felt-700 text-white" : "bg-slate-100 text-slate-400"
+                        }`}
+                      >
+                        {l}
+                      </span>
+                    ))
+                  ) : (
+                    <span className="text-xs font-semibold text-felt-700">+ Set lanes</span>
+                  )}
+                </button>
+              ) : (
+                <span className="text-sm font-bold text-slate-900">{lanesList.join(" / ")}</span>
+              )}
+            </div>
+          )}
+
           <PinGrid
             standingPins={isEditing && recordedShot ? recordedShot.pins_standing : gameState.standingPins}
             availablePins={
@@ -636,9 +607,6 @@ export function ActiveGameScorer({
           onNotesChange={
             isEditing ? (n) => handleEditMeta({ notes: n.trim() || undefined }) : setShotNotes
           }
-          lanes={lanesList}
-          activeLane={isEditing ? viewedLane : currentLane}
-          onEditLanes={onEditLanes}
           onOpenArsenal={onOpenArsenal}
         />
       </div>
