@@ -1,4 +1,5 @@
 import { Plus, Send, SlidersHorizontal } from "lucide-react";
+import type { PointerEvent as ReactPointerEvent } from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   createInitialFrameControllerState,
@@ -128,10 +129,17 @@ function LineInput({ label, value, onChange, showPresets = false }: LineInputPro
     applyValues({ stance: clampBoard(s + stanceDelta), target: clampBoard(t + targetDelta) });
   }
 
-  const arrowBtn =
-    "inline-flex h-8 flex-1 items-center rounded-md border border-slate-300 bg-white text-base font-bold text-slate-700 hover:bg-slate-50 active:bg-slate-100";
-  const overlayLabel =
-    "pointer-events-none absolute inset-0 flex items-center justify-center text-[10px] font-semibold uppercase tracking-wide text-slate-500";
+  // Single full-width button per adjuster: label centered, arrows at the edges,
+  // and the tapped half (left vs right of centre) decides the direction. One
+  // border, no ugly split. preventDefault keeps the input focused (row open).
+  const adjBtn =
+    "relative flex h-8 w-full items-center justify-center rounded-md border border-slate-300 bg-white text-[10px] font-semibold uppercase tracking-wide text-slate-500 hover:bg-slate-50 active:bg-slate-100";
+  const halfTap =
+    (onLeft: () => void, onRight: () => void) => (e: ReactPointerEvent<HTMLButtonElement>) => {
+      e.preventDefault();
+      const r = e.currentTarget.getBoundingClientRect();
+      (e.clientX - r.left < r.width / 2 ? onLeft : onRight)();
+    };
 
   return (
     <div>
@@ -160,51 +168,36 @@ function LineInput({ label, value, onChange, showPresets = false }: LineInputPro
           Direction respects handedness — for a right-hander the LEFT arrow
           increases the board number. */}
       {focused && (
-        <div className="relative mt-2 flex items-center gap-2">
+        <div className="mt-2">
           <button
             type="button"
-            className={`${arrowBtn} justify-start pl-3`}
-            aria-label={`${FIELD_LABEL[focused]} ${dir > 0 ? "increase" : "decrease"} 0.5`}
-            onPointerDown={(e) => { e.preventDefault(); nudge(focused, 0.5 * dir); }}
+            className={adjBtn}
+            aria-label={`${FIELD_LABEL[focused]} ±0.5 — tap left to ${dir > 0 ? "increase" : "decrease"}, right to ${dir > 0 ? "decrease" : "increase"}`}
+            onPointerDown={halfTap(() => nudge(focused, 0.5 * dir), () => nudge(focused, -0.5 * dir))}
           >
-            ◀
+            <span aria-hidden="true" className="absolute left-3 text-base font-bold text-slate-700">◀</span>
+            {FIELD_LABEL[focused]} ±0.5
+            <span aria-hidden="true" className="absolute right-3 text-base font-bold text-slate-700">▶</span>
           </button>
-          <button
-            type="button"
-            className={`${arrowBtn} justify-end pr-3`}
-            aria-label={`${FIELD_LABEL[focused]} ${dir > 0 ? "decrease" : "increase"} 0.5`}
-            onPointerDown={(e) => { e.preventDefault(); nudge(focused, -0.5 * dir); }}
-          >
-            ▶
-          </button>
-          <span className={overlayLabel}>{FIELD_LABEL[focused]} ±0.5</span>
         </div>
       )}
 
-      {/* Move presets: a full-width arrow pair per preset with the label overlaid
-          on top, only while the stance or target field is focused. */}
+      {/* Move presets: one full-width button per preset; tapping its left/right
+          half moves toward higher/lower boards. Only while stance/target focused. */}
       {showPresets && (focused === "stance" || focused === "target") && (
         <div className="mt-2 space-y-2">
           {MOVE_PRESETS.map((p) => (
-            <div key={p.label} className="relative flex items-center gap-2">
-              <button
-                type="button"
-                className={`${arrowBtn} justify-start pl-3`}
-                aria-label={`Move ${p.label} ${dir > 0 ? "toward higher" : "toward lower"} boards`}
-                onPointerDown={(e) => { e.preventDefault(); move(p.stance * dir, p.target * dir); }}
-              >
-                ◀
-              </button>
-              <button
-                type="button"
-                className={`${arrowBtn} justify-end pr-3`}
-                aria-label={`Move ${p.label} ${dir > 0 ? "toward lower" : "toward higher"} boards`}
-                onPointerDown={(e) => { e.preventDefault(); move(-p.stance * dir, -p.target * dir); }}
-              >
-                ▶
-              </button>
-              <span className={overlayLabel}>Move {p.label}</span>
-            </div>
+            <button
+              key={p.label}
+              type="button"
+              className={adjBtn}
+              aria-label={`Move ${p.label} — tap left for ${dir > 0 ? "higher" : "lower"} boards, right for ${dir > 0 ? "lower" : "higher"}`}
+              onPointerDown={halfTap(() => move(p.stance * dir, p.target * dir), () => move(-p.stance * dir, -p.target * dir))}
+            >
+              <span aria-hidden="true" className="absolute left-3 text-base font-bold text-slate-700">◀</span>
+              Move {p.label}
+              <span aria-hidden="true" className="absolute right-3 text-base font-bold text-slate-700">▶</span>
+            </button>
           ))}
         </div>
       )}

@@ -258,6 +258,32 @@ export async function deleteGame(
   });
 }
 
+export interface ResumableGame {
+  sessionId: number;
+  alleyName: string;
+  gameNumber: number;
+}
+
+/**
+ * An unfinished game (no final score yet) from a session dated today, most
+ * recent session first — used to offer "jump back in" on launch.
+ */
+export async function getResumableToday(): Promise<ResumableGame | null> {
+  const today = new Date().toISOString().slice(0, 10);
+  const sessions = (await db.sessions.where("date").equals(today).toArray()).sort(
+    (a, b) => (b.id ?? 0) - (a.id ?? 0)
+  );
+  for (const s of sessions) {
+    if (s.id == null) continue;
+    const games = await db.games.where("session_id").equals(s.id).sortBy("game_number");
+    const unfinished = games.find((g) => g.final_score === undefined);
+    if (unfinished) {
+      return { sessionId: s.id, alleyName: s.alley_name, gameNumber: unfinished.game_number };
+    }
+  }
+  return null;
+}
+
 export async function getSessionHistory(): Promise<SessionSummary[]> {
   const sessions = await db.sessions.orderBy("date").reverse().toArray();
 

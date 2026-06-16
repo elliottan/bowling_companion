@@ -18,7 +18,9 @@ import {
   addGameToSession,
   createSession,
   getHandedness,
-  setHandedness as persistHandedness
+  getResumableToday,
+  setHandedness as persistHandedness,
+  type ResumableGame
 } from "./services/bowlingRepository";
 import type { NewSessionFormValues } from "./components/SessionForm";
 import { HandednessContext } from "./lib/handednessContext";
@@ -54,6 +56,27 @@ function App() {
   const [settingsSection, setSettingsSection] = useState<SettingsSection>("menu");
   const [handedness, setHandednessState] = useState<Handedness | null>(null);
   const [handednessLoaded, setHandednessLoaded] = useState(false);
+  const [resumable, setResumable] = useState<ResumableGame | null>(null);
+
+  // On launch, if today has an unfinished game, jump straight into it.
+  useEffect(() => {
+    getResumableToday()
+      .then((r) => {
+        setResumable(r);
+        if (r) {
+          setActiveSessionId(r.sessionId);
+          setView("active");
+        }
+      })
+      .catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Keep the home "resume" widget fresh whenever the dashboard is shown.
+  useEffect(() => {
+    if (view !== "dashboard") return;
+    getResumableToday().then(setResumable).catch(() => {});
+  }, [view]);
 
   useEffect(() => {
     getHandedness()
@@ -171,6 +194,8 @@ function App() {
             onStartSession={handleStartSession}
             isSubmitting={isStartingSession}
             error={startError}
+            resumable={resumable}
+            onResume={() => resumable && openSession(resumable.sessionId)}
           />
         )}
         {view === "active" && activeSessionId && (
