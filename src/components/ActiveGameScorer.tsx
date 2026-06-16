@@ -14,7 +14,6 @@ import { useHandedness } from "../lib/handednessContext";
 import { laneForFrame, previousSameLaneFrame } from "../lib/lanes";
 import { getBalls, getSpareLineByPins } from "../services/ballRepository";
 import type { Ball, Frame, Game, LineSpec, PinNumber, ShotMetadata } from "../types/bowling";
-import { isSplit } from "../lib/pins";
 import { PinGrid } from "./PinGrid";
 import { Scorecard } from "./Scorecard";
 
@@ -658,21 +657,16 @@ export function ActiveGameScorer({
             </div>
           )}
 
-          {(() => {
-            const gridStanding = isEditing && recordedShot ? recordedShot.pins_standing : gameState.standingPins;
-            const gridAvailable = isEditing && recordedFrame && selectedShot
-              ? availableEnteringShot(recordedFrame, selectedShot.shotIndex)
-              : gameState.availablePins;
-            return (
-              <PinGrid
-                standingPins={gridStanding}
-                availablePins={gridAvailable}
-                onChange={isEditing ? handleEditPins : updateStandingPins}
-                size="sm"
-                splitActive={(gridAvailable?.length ?? 0) === 10 && isSplit(gridStanding)}
-              />
-            );
-          })()}
+          <PinGrid
+            standingPins={isEditing && recordedShot ? recordedShot.pins_standing : gameState.standingPins}
+            availablePins={
+              isEditing && recordedFrame && selectedShot
+                ? availableEnteringShot(recordedFrame, selectedShot.shotIndex)
+                : gameState.availablePins
+            }
+            onChange={isEditing ? handleEditPins : updateStandingPins}
+            size="sm"
+          />
 
           {/* Strike/Spare + Next stay visible and functional in both live and
               editing states (every frame is editable). While editing a recorded

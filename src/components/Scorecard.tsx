@@ -1,5 +1,6 @@
 import { calculateGameScore } from "../lib/scoring";
 import { getFrameShotCells, type FrameShotCell } from "../lib/scoreDisplay";
+import { isSplit } from "../lib/pins";
 import type { Frame } from "../types/bowling";
 
 interface ScorecardProps {
@@ -31,6 +32,23 @@ export function Scorecard({
         ? [{ symbol: "", shotIndex: null }, { symbol: "", shotIndex: null }, { symbol: "", shotIndex: null }]
         : [{ symbol: "", shotIndex: null }, { symbol: "", shotIndex: null }];
     const shotCells = frame ? getFrameShotCells(frame) : emptyCells;
+
+    // Determine which shot indices had a split (fresh-rack ball leaving disconnected
+    // pins with headpin down). For frame 10, shots are only fresh-rack if the
+    // previous shot in the frame cleared all pins.
+    const splitShotIndices = new Set<number>();
+    if (frame) {
+      const shots = frame.shots;
+      const freshRack = (shotIdx: number) => {
+        if (frame.frame_number !== 10) return shotIdx === 0;
+        if (shotIdx === 0) return true;
+        return shots[shotIdx - 1]?.pins_standing.length === 0;
+      };
+      for (let i = 0; i < shots.length; i++) {
+        if (freshRack(i) && isSplit(shots[i].pins_standing)) splitShotIndices.add(i);
+      }
+    }
+
     const score = gameScore.frames.find((f) => f.frame_number === frameNumber);
     // The 10th frame shows the game's running cumulative total even before it is
     // mathematically resolvable, so an in-progress game always has a score in the
@@ -51,7 +69,8 @@ export function Scorecard({
       isEditing: editingFrameNumber === frameNumber,
       highlightShotIndex,
       onShotTap: isEditable ? onShotTap : undefined,
-      onLiveTap: showLiveTap ? onLiveTap : undefined
+      onLiveTap: showLiveTap ? onLiveTap : undefined,
+      splitShotIndices,
     };
   });
 
@@ -81,6 +100,7 @@ interface FrameCellProps {
   isEditing?: boolean;
   compact?: boolean;
   highlightShotIndex?: number;
+  splitShotIndices?: Set<number>;
   onShotTap?: (frameNumber: number, shotIndex: number) => void;
   onLiveTap?: () => void;
 }
@@ -92,6 +112,7 @@ function FrameCell({
   isEditing = false,
   compact,
   highlightShotIndex,
+  splitShotIndices,
   onShotTap,
   onLiveTap
 }: FrameCellProps) {
@@ -125,6 +146,13 @@ function FrameCell({
           const baseClass =
             "flex h-full items-center justify-center border-l border-slate-200 text-sm font-bold text-slate-900 first:border-l-0 sm:text-base";
 
+          const isSplitCell = cell.shotIndex !== null && splitShotIndices?.has(cell.shotIndex);
+          const content = isSplitCell ? (
+            <span className="flex h-5 w-5 items-center justify-center rounded-full border-2 border-red-500 leading-none sm:h-6 sm:w-6">
+              {cell.symbol}
+            </span>
+          ) : cell.symbol;
+
           if (tappable) {
             return (
               <button
@@ -134,7 +162,7 @@ function FrameCell({
                 aria-label={`View frame ${frameNumber} shot ${cell.shotIndex! + 1}`}
                 className={`${baseClass} ${highlightClass}`}
               >
-                {cell.symbol}
+                {content}
               </button>
             );
           }
@@ -147,13 +175,13 @@ function FrameCell({
                 aria-label={`Go to live entry frame ${frameNumber}`}
                 className={`${baseClass} ${highlightClass}`}
               >
-                {cell.symbol}
+                {content}
               </button>
             );
           }
           return (
             <div key={idx} className={`${baseClass} ${highlightClass}`}>
-              {cell.symbol}
+              {content}
             </div>
           );
         })}
