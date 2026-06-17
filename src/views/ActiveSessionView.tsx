@@ -1,9 +1,9 @@
-import { ChevronLeft, ListChecks, MoreVertical, Pencil, Plus, Trash2 } from "lucide-react";
+import { ChevronLeft, MoreVertical, Pencil, Plus, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { ActiveGameScorer } from "../components/ActiveGameScorer";
 import { ConfirmDialog } from "../components/ConfirmDialog";
 import { SessionFormDialog } from "../components/SessionFormDialog";
-import { SessionSheet } from "../components/SessionSheet";
+import { SessionLanePanel } from "../components/SessionLanePanel";
 import type { NewSessionFormValues } from "../components/SessionForm";
 import { calculateGameScore } from "../lib/scoring";
 import {
@@ -233,7 +233,12 @@ export function ActiveSessionView({
     <div>
       <section className="mx-auto w-full max-w-5xl px-3 pt-3 sm:px-6">
         <div className="flex items-center gap-2">
-          <div className="min-w-0 flex-1">
+          <button
+            type="button"
+            onClick={() => setShowSheet(true)}
+            className="min-w-0 flex-1 rounded-md text-left hover:bg-slate-50"
+            aria-label="Open session sheet and lane notes"
+          >
             <p className="truncate text-sm font-semibold text-slate-900">
               {sessionDetails.session.alley_name}
             </p>
@@ -245,7 +250,7 @@ export function ActiveSessionView({
             <p className="truncate text-xs text-slate-500">
               {sessionDetails.session.date} · {games.length} {games.length === 1 ? "game" : "games"}
             </p>
-          </div>
+          </button>
           <p className="shrink-0 text-2xl font-extrabold leading-none text-felt-700" aria-label="Series total">
             {seriesTotal}
           </p>
@@ -270,14 +275,6 @@ export function ActiveSessionView({
                   >
                     <Plus size={16} aria-hidden="true" />
                     New game
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => { setShowMenu(false); setShowSheet(true); }}
-                    className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm font-medium text-slate-700 hover:bg-slate-50"
-                  >
-                    <ListChecks size={16} aria-hidden="true" />
-                    Session sheet
                   </button>
                   <button
                     type="button"
@@ -368,9 +365,10 @@ export function ActiveSessionView({
       />
 
       {showSheet && (
-        <SessionSheet
+        <SessionLanePanel
           summary={sessionDetails}
           currentGameId={activeGame.id}
+          defaultTab="sheet"
           onClose={() => setShowSheet(false)}
         />
       )}

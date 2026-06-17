@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { SessionHistory } from "../components/SessionHistory";
 import { Stats } from "../components/Stats";
+import { SwipePanes } from "../components/SwipePanes";
 import {
   calculateCommonLeaves,
   calculateStats,
@@ -18,7 +19,7 @@ interface HistoryViewProps {
 type Pane = "sessions" | "stats";
 
 const PAGE = 15; // sessions loaded per infinite-scroll step
-const SWIPE_THRESHOLD = 50;
+const PANES: Pane[] = ["sessions", "stats"];
 
 const EMPTY: BowlingStats = {
   totalSessions: 0,
@@ -45,7 +46,6 @@ export function HistoryView({ onOpenSession, activeSessionId }: HistoryViewProps
   const [selectedLanes, setSelectedLanes] = useState<string[]>([]);
   const [visibleCount, setVisibleCount] = useState(PAGE);
 
-  const touchStartX = useRef<number | null>(null);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
 
   function toggleLane(lane: string) {
@@ -143,17 +143,6 @@ export function HistoryView({ onOpenSession, activeSessionId }: HistoryViewProps
     return () => obs.disconnect();
   }, [pane, sessionList.length]);
 
-  function onTouchStart(e: React.TouchEvent) {
-    touchStartX.current = e.touches[0].clientX;
-  }
-  function onTouchEnd(e: React.TouchEvent) {
-    if (touchStartX.current === null) return;
-    const dx = e.changedTouches[0].clientX - touchStartX.current;
-    touchStartX.current = null;
-    if (dx <= -SWIPE_THRESHOLD) setPane("stats");
-    else if (dx >= SWIPE_THRESHOLD) setPane("sessions");
-  }
-
   return (
     <section className="mx-auto w-full max-w-3xl px-3 py-5 sm:px-6 sm:py-8">
       <h1 className="mb-4 text-xl font-bold text-slate-950">History</h1>
@@ -227,9 +216,11 @@ export function HistoryView({ onOpenSession, activeSessionId }: HistoryViewProps
         ))}
       </div>
 
-      <div onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
-        {pane === "sessions" ? (
-          <>
+      <SwipePanes
+        index={PANES.indexOf(pane)}
+        onIndexChange={(i) => setPane(PANES[i])}
+        panes={[
+          <div key="sessions">
             <SessionHistory
               sessions={sessionList.slice(0, visibleCount)}
               isLoading={isLoading}
@@ -237,11 +228,10 @@ export function HistoryView({ onOpenSession, activeSessionId }: HistoryViewProps
               activeSessionId={activeSessionId}
             />
             <div ref={sentinelRef} className="h-6" aria-hidden="true" />
-          </>
-        ) : (
-          <Stats stats={isLoading ? EMPTY : stats} isLoading={isLoading} leaves={leaves} />
-        )}
-      </div>
+          </div>,
+          <Stats key="stats" stats={isLoading ? EMPTY : stats} isLoading={isLoading} leaves={leaves} />
+        ]}
+      />
     </section>
   );
 }

@@ -1,15 +1,20 @@
 import { X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { getFrameShotSymbols } from "../lib/scoreDisplay";
 import { laneForFrame } from "../lib/lanes";
+import { knockedDownCount } from "../lib/pins";
 import { calculateGameScore } from "../lib/scoring";
 import { getBalls } from "../services/ballRepository";
-import type { Ball, Frame, LineSpec, SessionSummary } from "../types/bowling";
+import type { Ball, Frame, LineSpec, SessionSummary, Shot } from "../types/bowling";
+import { LaneNotesTab } from "./LaneNotesTab";
 import { MiniPins } from "./MiniPins";
+import { SwipePanes } from "./SwipePanes";
 
-interface SessionSheetProps {
+type Tab = "sheet" | "lanes";
+
+interface SessionLanePanelProps {
   summary: SessionSummary;
   currentGameId?: number;
+  defaultTab?: Tab;
   onClose: () => void;
 }
 
@@ -34,13 +39,17 @@ function laneSummary(games: SessionSummary["games"]): string {
   return `${noun} ${pairs.join(", ")}`;
 }
 
-/** Read-only "cheat sheet" of every shot in the session, current game first. */
-export function SessionSheet({ summary, currentGameId, onClose }: SessionSheetProps) {
-  const [balls, setBalls] = useState<Ball[]>([]);
-
-  useEffect(() => {
-    getBalls().then(setBalls).catch(() => {});
-  }, []);
+/**
+ * Bottom-sheet "cheat sheet" with two swipeable tabs: the session sheet (every
+ * first-ball shot, current game first) and lane notes for this alley.
+ */
+export function SessionLanePanel({
+  summary,
+  currentGameId,
+  defaultTab = "sheet",
+  onClose
+}: SessionLanePanelProps) {
+  const [tab, setTab] = useState<Tab>(defaultTab);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
@@ -48,16 +57,13 @@ export function SessionSheet({ summary, currentGameId, onClose }: SessionSheetPr
     return () => document.removeEventListener("keydown", onKey);
   }, [onClose]);
 
-  const ballName = (id?: number) => balls.find((b) => b.id === id)?.name;
+  const currentGame = summary.games.find((g) => g.id === currentGameId);
+  const currentLanes = currentGame?.lanes ?? (currentGame?.lane_number ? [currentGame.lane_number] : []);
+  const sortedLanes = [...currentLanes]
+    .filter(Boolean)
+    .sort((a, b) => Number(a) - Number(b) || a.localeCompare(b));
 
-  // Chronological order — latest game at the bottom.
-  const games = [...summary.games].sort((a, b) => a.game_number - b.game_number);
-
-  // Auto-scroll to the game the sheet was opened from.
-  const currentRef = useRef<HTMLElement | null>(null);
-  useEffect(() => {
-    currentRef.current?.scrollIntoView({ block: "start" });
-  }, []);
+  const tabs: Tab[] = ["sheet", "lanes"];
 
   return (
     <div
@@ -97,36 +103,93 @@ export function SessionSheet({ summary, currentGameId, onClose }: SessionSheetPr
           </button>
         </div>
 
+        {/* Session sheet / Lane notes toggle */}
+        <div className="grid grid-cols-2 gap-1 border-b border-slate-200 px-4 py-2">
+          {([
+            ["sheet", "Session sheet"],
+            ["lanes", "Lane notes"]
+          ] as const).map(([key, label]) => (
+            <button
+              key={key}
+              type="button"
+              onClick={() => setTab(key)}
+              className={`h-9 rounded-md text-sm font-semibold ${
+                tab === key ? "bg-felt-700 text-white" : "bg-slate-100 text-slate-600"
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
         <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-3" style={{ touchAction: "pan-y" }}>
-          {games.map((game) => {
-            const score = calculateGameScore(game.frames);
-            const total = game.final_score ?? (score.isComplete ? score.total : `${score.total}+`);
-            return (
-              <section
-                key={game.id}
-                ref={game.id === currentGameId ? currentRef : undefined}
-                className="mb-4 scroll-mt-2 last:mb-0"
-              >
-                <div className="mb-1.5 flex items-center gap-2">
-                  <h3 className="text-sm font-bold text-slate-900">Game {game.game_number}</h3>
-                  <span className="text-sm font-semibold text-felt-700">{total}</span>
-                  {game.id === currentGameId && (
-                    <span className="rounded-full bg-felt-700 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-white">
-                      Current
-                    </span>
-                  )}
-                </div>
-                {game.frames.length === 0 ? (
-                  <p className="text-xs text-slate-400">No shots yet.</p>
-                ) : (
-                  <GameGrid game={game} ballName={ballName} />
-                )}
-              </section>
-            );
-          })}
+          <SwipePanes
+            index={tabs.indexOf(tab)}
+            onIndexChange={(i) => setTab(tabs[i])}
+            panes={[
+              <SessionSheetTab key="sheet" summary={summary} currentGameId={currentGameId} />,
+              <LaneNotesTab key="lanes" alley={summary.session.alley_name} currentLanes={sortedLanes} />
+            ]}
+          />
         </div>
       </div>
     </div>
+  );
+}
+
+function SessionSheetTab({
+  summary,
+  currentGameId
+}: {
+  summary: SessionSummary;
+  currentGameId?: number;
+}) {
+  const [balls, setBalls] = useState<Ball[]>([]);
+
+  useEffect(() => {
+    getBalls().then(setBalls).catch(() => {});
+  }, []);
+
+  const ballName = (id?: number) => balls.find((b) => b.id === id)?.name;
+
+  // Chronological order — latest game at the bottom.
+  const games = [...summary.games].sort((a, b) => a.game_number - b.game_number);
+
+  // Auto-scroll to the game the sheet was opened from.
+  const currentRef = useRef<HTMLElement | null>(null);
+  useEffect(() => {
+    currentRef.current?.scrollIntoView({ block: "start" });
+  }, []);
+
+  return (
+    <>
+      {games.map((game) => {
+        const score = calculateGameScore(game.frames);
+        const total = game.final_score ?? (score.isComplete ? score.total : `${score.total}+`);
+        return (
+          <section
+            key={game.id}
+            ref={game.id === currentGameId ? currentRef : undefined}
+            className="mb-4 scroll-mt-2 last:mb-0"
+          >
+            <div className="mb-1.5 flex items-center gap-2">
+              <h3 className="text-sm font-bold text-slate-900">Game {game.game_number}</h3>
+              {game.id === currentGameId && (
+                <span className="rounded-full bg-felt-700 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-white">
+                  Current
+                </span>
+              )}
+              <span className="ml-auto text-base font-extrabold text-felt-700">{total}</span>
+            </div>
+            {game.frames.length === 0 ? (
+              <p className="text-xs text-slate-400">No shots yet.</p>
+            ) : (
+              <GameGrid game={game} ballName={ballName} />
+            )}
+          </section>
+        );
+      })}
+    </>
   );
 }
 
@@ -205,26 +268,47 @@ function GameGrid({
   );
 }
 
+/**
+ * The shots thrown at a full rack ("first" / strike attempts). Frames 1–9 are
+ * just the first ball. The 10th frame can have several: any ball whose previous
+ * ball cleared the deck (a strike, or a spare that reset the pins) is fresh.
+ */
+function freshRackShots(frame: Frame): Shot[] {
+  if (frame.frame_number !== 10) {
+    return frame.shots[0] ? [frame.shots[0]] : [];
+  }
+  return frame.shots.filter((_, i) => i === 0 || frame.shots[i - 1].pins_standing.length === 0);
+}
+
+function shotSymbol(shot: Shot): string {
+  const down = knockedDownCount(shot.pins_standing);
+  if (down === 10) return "X";
+  return down === 0 ? "-" : String(down);
+}
+
 function FrameCell({ frame, ballName }: { frame: Frame; ballName: (id?: number) => string | undefined }) {
-  const symbols = getFrameShotSymbols(frame).filter(Boolean).join(" ");
+  const shots = freshRackShots(frame);
   return (
-    <div>
-      <div className="flex items-center gap-1.5">
-        <span className="text-[10px] font-bold uppercase text-slate-400">F{frame.frame_number}</span>
-        <span className="text-sm font-bold text-slate-900">{symbols}</span>
-      </div>
-      <div className="mt-1 space-y-1">
-        {frame.shots.map((shot, i) => {
+    <div className="flex flex-col items-center text-center">
+      <span className="text-[10px] font-bold uppercase text-slate-400">F{frame.frame_number}</span>
+      <div className="mt-1 flex flex-col items-center gap-2">
+        {shots.map((shot, i) => {
           const intended = formatLine(shot.intended);
           const actual = formatLine(shot.actual);
           const name = ballName(shot.ball_id);
+          const symbol = shotSymbol(shot);
           return (
-            <div key={i} className="flex items-start gap-1.5">
+            <div key={i} className="flex flex-col items-center gap-0.5">
+              <span
+                className={`text-sm font-bold ${symbol === "X" ? "text-felt-700" : "text-slate-900"}`}
+              >
+                {symbol}
+              </span>
               <MiniPins standing={shot.pins_standing} />
-              <div className="min-w-0 flex-1 text-[11px] leading-tight text-slate-600">
-                {name && <span className="font-medium text-slate-800">{name} </span>}
-                {intended && <span>{intended}</span>}
-                {actual && <span className="text-slate-400"> → {actual}</span>}
+              <div className="text-[11px] leading-tight">
+                {name && <p className="font-medium text-slate-800">{name}</p>}
+                {intended && <p className="text-slate-600">{intended}</p>}
+                {actual && <p className="text-slate-400">{actual}</p>}
                 {shot.notes && <p className="break-words text-slate-500">{shot.notes}</p>}
               </div>
             </div>
