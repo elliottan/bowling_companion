@@ -1,4 +1,4 @@
-import { calculateGameScore } from "../lib/scoring";
+import { calculateGameScore, isStrike } from "../lib/scoring";
 import { getFrameShotCells, type FrameShotCell } from "../lib/scoreDisplay";
 import { isSplit } from "../lib/pins";
 import type { Frame } from "../types/bowling";
@@ -56,9 +56,17 @@ export function Scorecard({
     const score = gameScore.frames.find((f) => f.frame_number === frameNumber);
     // The 10th frame shows the game's running cumulative total even before it is
     // mathematically resolvable, so an in-progress game always has a score in the
-    // last cell (no provisional "+"). Once complete it equals its own rolling total.
+    // last cell (no provisional "+"). Frames 1–9 only show a total once the frame
+    // is settled (both balls thrown, or a strike) and its rolling total resolves —
+    // no provisional partial-frame score mid-frame.
+    const frameSettled =
+      !!frame && (frame.shots.length >= 2 || (frame.shots.length === 1 && isStrike(frame)));
     const rollingTotal =
-      frameNumber === 10 && !gameComplete ? gameScore.total : score?.rollingTotal ?? null;
+      frameNumber === 10 && !gameComplete
+        ? gameScore.total
+        : frameSettled
+        ? score?.rollingTotal ?? null
+        : null;
     // Recorded shots are editable in the active frame too (tap back to a recorded
     // first shot while the live cursor is on the second).
     const isEditable = !!frame && (frameNumber <= activeFrameNumber || gameComplete);
