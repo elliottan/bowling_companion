@@ -217,6 +217,7 @@ export function HistoryView({ onOpenSession, activeSessionId }: HistoryViewProps
       </div>
 
       <SwipePanes
+        className="min-h-[70vh]"
         index={PANES.indexOf(pane)}
         onIndexChange={(i) => setPane(PANES[i])}
         panes={[

@@ -73,12 +73,12 @@ export function PinGrid({
 
   return (
     <div
-      className={`rounded-lg border border-[#caa066] shadow-sm ${pad}`}
+      className={`rounded-lg border border-[#d3ac74] shadow-sm ${pad}`}
       style={{
         touchAction: "none",
-        backgroundColor: "#e3b878",
+        backgroundColor: "#ecc78f",
         backgroundImage:
-          "repeating-linear-gradient(90deg, rgba(120,72,20,0.18) 0 1px, transparent 1px 14px), linear-gradient(90deg, rgba(255,255,255,0.08), rgba(90,55,15,0.12))"
+          "repeating-linear-gradient(90deg, rgba(120,72,20,0.14) 0 1px, transparent 1px 14px), linear-gradient(90deg, rgba(255,255,255,0.08), rgba(90,55,15,0.09))"
       }}
     >
       <div className={`mx-auto flex w-full flex-col items-center ${rowGap} ${maxW}`}>

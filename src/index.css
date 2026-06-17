@@ -63,12 +63,12 @@ input[type="date"]::-webkit-date-and-time-value {
 
 /* Slide-in used when switching swipeable panes (History tabs, session panel). */
 @keyframes paneInFromRight {
-  from { opacity: 0; transform: translateX(16px); }
+  from { opacity: 0; transform: translateX(36px); }
   to { opacity: 1; transform: translateX(0); }
 }
 @keyframes paneInFromLeft {
-  from { opacity: 0; transform: translateX(-16px); }
+  from { opacity: 0; transform: translateX(-36px); }
   to { opacity: 1; transform: translateX(0); }
 }
-.pane-in-right { animation: paneInFromRight 0.2s ease-out; }
-.pane-in-left { animation: paneInFromLeft 0.2s ease-out; }
+.pane-in-right { animation: paneInFromRight 0.26s ease-out; }
+.pane-in-left { animation: paneInFromLeft 0.26s ease-out; }

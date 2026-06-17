@@ -59,6 +59,30 @@ function App() {
   const [arsenalOpen, setArsenalOpen] = useState(false);
   const [sheetDrag, setSheetDrag] = useState(0);
   const sheetDragStartY = useRef<number | null>(null);
+  const rootRef = useRef<HTMLDivElement>(null);
+
+  // Keep the app sized to the *visible* viewport so the on-screen keyboard
+  // overlays content instead of shoving the bottom nav up. When the keyboard
+  // opens the visual viewport shrinks; we match the root height to it (and
+  // follow any offset) so the nav stays anchored at the visible bottom and the
+  // scrollable <main> is what moves to reveal a focused field. Works on both
+  // iOS Safari and Android Chrome, which don't honor interactive-widget yet.
+  useEffect(() => {
+    const vv = window.visualViewport;
+    if (!vv || !rootRef.current) return;
+    const el = rootRef.current;
+    const apply = () => {
+      el.style.height = `${vv.height}px`;
+      el.style.transform = `translateY(${vv.offsetTop}px)`;
+    };
+    apply();
+    vv.addEventListener("resize", apply);
+    vv.addEventListener("scroll", apply);
+    return () => {
+      vv.removeEventListener("resize", apply);
+      vv.removeEventListener("scroll", apply);
+    };
+  }, []);
 
   // On launch, if today has an unfinished game, jump straight into it.
   useEffect(() => {
@@ -173,7 +197,7 @@ function App() {
 
   return (
     <HandednessContext.Provider value={handedness ?? "right"}>
-    <div className="flex h-[100dvh] flex-col overflow-hidden bg-lane-50 text-slate-950">
+    <div ref={rootRef} className="flex h-[100dvh] flex-col overflow-hidden bg-lane-50 text-slate-950">
       <header className="hidden shrink-0 border-b border-slate-200 bg-white sm:block">
         <div className="mx-auto flex w-full max-w-5xl items-center justify-between px-3 py-3 sm:px-6">
           {view === "dashboard" ? (
@@ -240,7 +264,15 @@ function App() {
         )}
       </main>
 
-      <nav className="grid shrink-0 grid-cols-5 border-t border-slate-200 bg-white pb-[env(safe-area-inset-bottom)] sm:hidden">
+      <nav className="relative grid shrink-0 grid-cols-5 border-t border-slate-200 bg-white pb-[env(safe-area-inset-bottom)] sm:hidden">
+        {/* Single highlight that slides to the active tab. */}
+        <span
+          aria-hidden="true"
+          className="pointer-events-none absolute top-0 left-0 h-[3px] w-1/5 transition-transform duration-200 ease-out"
+          style={{ transform: `translateX(${Math.max(0, MOBILE_NAV_ITEMS.findIndex((i) => i.view === view)) * 100}%)` }}
+        >
+          <span className="mx-3 block h-full rounded-b-full bg-felt-700" />
+        </span>
         {MOBILE_NAV_ITEMS.map((item) => (
           <TabBarButton
             key={item.view}
@@ -356,12 +388,6 @@ function TabBarButton({ item, active, disabled, onClick }: NavItemProps) {
         active ? "font-bold text-felt-700" : "font-medium text-slate-600"
       }`}
     >
-      {active && (
-        <span
-          aria-hidden="true"
-          className="absolute inset-x-3 top-0 h-[3px] rounded-b-full bg-felt-700"
-        />
-      )}
       <Icon size={20} aria-hidden="true" />
       {item.label}
     </button>

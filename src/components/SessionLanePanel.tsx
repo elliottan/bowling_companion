@@ -73,7 +73,7 @@ export function SessionLanePanel({
       onClick={onClose}
     >
       <div
-        className="flex max-h-[85vh] w-full max-w-lg flex-col rounded-t-2xl bg-white shadow-xl sm:rounded-2xl"
+        className="flex h-[85vh] w-full max-w-lg flex-col rounded-t-2xl bg-white shadow-xl sm:rounded-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-start justify-between gap-3 border-b border-slate-200 px-4 py-3">
@@ -124,6 +124,7 @@ export function SessionLanePanel({
 
         <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-3" style={{ touchAction: "pan-y" }}>
           <SwipePanes
+            className="min-h-full"
             index={tabs.indexOf(tab)}
             onIndexChange={(i) => setTab(tabs[i])}
             panes={[
