@@ -55,7 +55,7 @@ export function DashboardView({
   }
 
   return (
-    <section className={`mx-auto w-full max-w-xl px-3 py-5 sm:px-6 sm:py-8 ${resumable ? "pb-32" : ""}`}>
+    <section className={`mx-auto w-full max-w-xl px-3 py-5 sm:px-6 sm:py-8 ${resumable ? "pb-44" : ""}`}>
       {error && (
         <p className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm font-semibold text-red-700">
           {error}
@@ -98,7 +98,7 @@ export function DashboardView({
         <button
           type="button"
           onClick={onResume}
-          className="fixed inset-x-3 bottom-20 z-40 mx-auto flex max-w-xl items-center gap-3 rounded-xl border border-felt-700 bg-felt-700 p-4 text-left text-white shadow-2xl hover:bg-felt-500 sm:bottom-6"
+          className="fixed inset-x-3 bottom-[calc(4rem+env(safe-area-inset-bottom)+0.5rem)] z-40 mx-auto flex max-w-xl items-center gap-3 rounded-xl border border-felt-700 bg-felt-700 p-4 text-left text-white shadow-2xl hover:bg-felt-500 sm:bottom-6"
         >
           <PlayCircle size={22} aria-hidden="true" className="shrink-0" />
           <span className="min-w-0 flex-1">
