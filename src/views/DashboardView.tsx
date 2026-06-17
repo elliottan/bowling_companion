@@ -55,28 +55,11 @@ export function DashboardView({
   }
 
   return (
-    <section className="mx-auto w-full max-w-xl px-3 py-5 sm:px-6 sm:py-8">
+    <section className={`mx-auto w-full max-w-xl px-3 py-5 sm:px-6 sm:py-8 ${resumable ? "pb-32" : ""}`}>
       {error && (
         <p className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm font-semibold text-red-700">
           {error}
         </p>
-      )}
-
-      {resumable && (
-        <button
-          type="button"
-          onClick={onResume}
-          className="mb-4 flex w-full items-center gap-3 rounded-lg border border-felt-700 bg-felt-700 p-4 text-left text-white shadow-sm hover:bg-felt-500"
-        >
-          <PlayCircle size={22} aria-hidden="true" className="shrink-0" />
-          <span className="min-w-0 flex-1">
-            <span className="block text-sm font-bold">Resume game</span>
-            <span className="block truncate text-xs text-white/80">
-              {resumable.alleyName} · Game {resumable.gameNumber}
-            </span>
-          </span>
-          <span className="shrink-0 text-xs font-semibold uppercase tracking-wide text-white/90">Resume →</span>
-        </button>
       )}
 
       <button
@@ -108,6 +91,25 @@ export function DashboardView({
           activeSessionId={activeSessionId}
         />
       </div>
+
+      {/* Floating "resume" pill — hovers above the page, just over the bottom
+          nav, so the currently active session is always one tap away. */}
+      {resumable && (
+        <button
+          type="button"
+          onClick={onResume}
+          className="fixed inset-x-3 bottom-20 z-40 mx-auto flex max-w-xl items-center gap-3 rounded-xl border border-felt-700 bg-felt-700 p-4 text-left text-white shadow-2xl hover:bg-felt-500 sm:bottom-6"
+        >
+          <PlayCircle size={22} aria-hidden="true" className="shrink-0" />
+          <span className="min-w-0 flex-1">
+            <span className="block text-sm font-bold">Resume game</span>
+            <span className="block truncate text-xs text-white/80">
+              {resumable.alleyName} · Game {resumable.gameNumber}
+            </span>
+          </span>
+          <span className="shrink-0 text-xs font-semibold uppercase tracking-wide text-white/90">Resume →</span>
+        </button>
+      )}
 
       <SessionFormDialog
         open={showForm}

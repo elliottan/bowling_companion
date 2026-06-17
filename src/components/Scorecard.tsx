@@ -9,6 +9,9 @@ interface ScorecardProps {
   editingFrameNumber?: number | null;
   gameComplete?: boolean;
   highlightCell?: { frameNumber: number; shotIndex: number };
+  /** Live pin count for the in-progress shot, shown in the highlighted cell
+   *  before the shot is recorded (updates as the user taps the pin deck). */
+  liveSymbol?: string;
   onShotTap?: (frameNumber: number, shotIndex: number) => void;
   onLiveTap?: () => void;
 }
@@ -19,6 +22,7 @@ export function Scorecard({
   editingFrameNumber = null,
   gameComplete = false,
   highlightCell,
+  liveSymbol,
   onShotTap,
   onLiveTap
 }: ScorecardProps) {
@@ -71,6 +75,7 @@ export function Scorecard({
       onShotTap: isEditable ? onShotTap : undefined,
       onLiveTap: showLiveTap ? onLiveTap : undefined,
       splitShotIndices,
+      liveSymbol: highlightCell?.frameNumber === frameNumber ? liveSymbol : undefined,
     };
   });
 
@@ -101,6 +106,7 @@ interface FrameCellProps {
   compact?: boolean;
   highlightShotIndex?: number;
   splitShotIndices?: Set<number>;
+  liveSymbol?: string;
   onShotTap?: (frameNumber: number, shotIndex: number) => void;
   onLiveTap?: () => void;
 }
@@ -113,6 +119,7 @@ function FrameCell({
   compact,
   highlightShotIndex,
   splitShotIndices,
+  liveSymbol,
   onShotTap,
   onLiveTap
 }: FrameCellProps) {
@@ -146,12 +153,20 @@ function FrameCell({
           const baseClass =
             "flex h-full items-center justify-center border-l border-slate-200 text-sm font-bold text-slate-900 first:border-l-0 sm:text-base";
 
+          // The live (in-progress) shot: an empty cell at the highlighted index
+          // shows the running pin count as the user taps the deck.
+          const isLiveCell =
+            liveSymbol !== undefined && cell.shotIndex === null && idx === highlightShotIndex;
           const isSplitCell = cell.shotIndex !== null && splitShotIndices?.has(cell.shotIndex);
-          const content = isSplitCell ? (
+          const content = isLiveCell ? (
+            liveSymbol
+          ) : isSplitCell ? (
             <span className="flex h-5 w-5 items-center justify-center rounded-full border-2 border-red-500 leading-none sm:h-6 sm:w-6">
               {cell.symbol}
             </span>
-          ) : cell.symbol;
+          ) : (
+            cell.symbol
+          );
 
           if (tappable) {
             return (

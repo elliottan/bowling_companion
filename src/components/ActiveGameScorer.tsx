@@ -579,26 +579,24 @@ export function ActiveGameScorer({
     setSelectedShot(null);
   }
 
-  // "Next" while editing a recorded shot: move the cursor to the following shot,
-  // or back to live entry if there is none recorded after it.
-  function advanceSelection() {
-    if (!selectedShot || !recordedFrame) return goLive();
-    const { frameNumber, shotIndex } = selectedShot;
-    if (recordedFrame.shots[shotIndex + 1]) {
-      return selectShot(frameNumber, shotIndex + 1);
-    }
-    const nextFrame = gameState.frames.find((f) => f.frame_number === frameNumber + 1);
-    if (nextFrame && nextFrame.shots.length > 0) {
-      return selectShot(frameNumber + 1, 0);
-    }
-    goLive();
-  }
-
   const viewedLane = selectedShot && game ? laneForFrame(game, selectedShot.frameNumber) : undefined;
 
   const highlightCell = selectedShot
     ? { frameNumber: selectedShot.frameNumber, shotIndex: selectedShot.shotIndex }
     : { frameNumber: gameState.currentFrameNumber, shotIndex: gameState.currentShot - 1 };
+
+  // Provisional symbol for the in-progress (live) shot, shown in the scorecard
+  // and updated as the user taps the pin deck. A fresh rack counts knocked-down
+  // pins (X on a clean sweep); a partial leave counts cleared pins (/ on a spare).
+  const liveSymbol = (() => {
+    if (isEditing || gameState.isComplete) return undefined;
+    const avail = gameState.availablePins;
+    const standing = gameState.standingPins;
+    const fresh = avail.length === 10;
+    const knocked = fresh ? 10 - standing.length : avail.length - standing.length;
+    if (fresh) return knocked === 10 ? "X" : knocked === 0 ? "-" : String(knocked);
+    return knocked === avail.length ? "/" : knocked === 0 ? "-" : String(knocked);
+  })();
 
   const detailKey = isEditing && selectedShot
     ? `r-${selectedShot.frameNumber}-${selectedShot.shotIndex}`
@@ -624,6 +622,7 @@ export function ActiveGameScorer({
         activeFrameNumber={gameState.currentFrameNumber}
         gameComplete={gameState.isComplete}
         highlightCell={highlightCell}
+        liveSymbol={liveSymbol}
         onShotTap={selectShot}
         onLiveTap={gameState.isComplete ? undefined : goLive}
       />
@@ -670,20 +669,27 @@ export function ActiveGameScorer({
 
           {/* Strike/Spare + Next stay visible and functional in both live and
               editing states (every frame is editable). While editing a recorded
-              shot they act in place: Strike/Spare clears that shot's pins, Next
-              advances the cursor. */}
+              shot, Strike/Spare applies that mark and Next leaves it untouched —
+              both then jump the cursor back to the latest incomplete frame. */}
           {!gameState.isComplete ? (
             <div className="flex gap-2">
               <button
                 type="button"
-                onClick={() => (isEditing ? handleEditPins([]) : void recordShot([]))}
+                onClick={() => {
+                  if (isEditing) {
+                    handleEditPins([]);
+                    goLive();
+                  } else {
+                    void recordShot([]);
+                  }
+                }}
                 className="inline-flex h-11 flex-1 items-center justify-center rounded-lg bg-felt-700 text-sm font-bold text-white shadow-sm hover:bg-felt-500"
               >
                 {editStrikeOrSpareLabel}
               </button>
               <button
                 type="button"
-                onClick={() => (isEditing ? advanceSelection() : void recordShot())}
+                onClick={() => (isEditing ? goLive() : void recordShot())}
                 className="inline-flex h-11 flex-1 items-center justify-center gap-1.5 rounded-lg border border-felt-700 bg-white text-sm font-semibold text-felt-700 hover:bg-felt-50"
               >
                 Next
