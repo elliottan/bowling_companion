@@ -593,8 +593,12 @@ export function ActiveGameScorer({
     const avail = gameState.availablePins;
     const standing = gameState.standingPins;
     const fresh = avail.length === 10;
+    // Stay blank until the user taps the deck for this shot. The default (no tap)
+    // is all pins standing-up on a fresh rack and all pins up on a partial leave.
+    const interacted = fresh ? standing.length > 0 : standing.length < avail.length;
+    if (!interacted) return undefined;
     const knocked = fresh ? 10 - standing.length : avail.length - standing.length;
-    if (fresh) return knocked === 10 ? "X" : knocked === 0 ? "-" : String(knocked);
+    if (fresh) return knocked === 0 ? "-" : String(knocked);
     return knocked === avail.length ? "/" : knocked === 0 ? "-" : String(knocked);
   })();
 
