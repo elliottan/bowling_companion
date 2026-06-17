@@ -250,9 +250,22 @@ export function editFrameShotPins(
   let shots = frame.shots.map((s, i) =>
     i === shotIndex ? { ...s, pins_standing: normalized } : s
   );
-  // Non-10th first-ball strike leaves no room for a second shot.
-  if (frameNumber !== 10 && shotIndex === 0 && normalized.length === 0) {
-    shots = shots.slice(0, 1);
+
+  if (frameNumber === 10) {
+    // Editing any 10th-frame shot clears every shot after it; the bonus balls
+    // are re-entered live from the edited shot forward.
+    shots = shots.slice(0, shotIndex + 1);
+  } else if (shotIndex === 0) {
+    if (normalized.length === 0) {
+      // First-ball strike: no second shot.
+      shots = shots.slice(0, 1);
+    } else {
+      // Editing the first ball of a 1–9 frame forces the second shot to a spare
+      // (all remaining pins cleared). This guarantees an editable second shot
+      // (e.g. after un-doing a strike) and avoids stale shot-2 pins that would
+      // conflict with the new first ball. Existing shot-2 metadata is kept.
+      shots = [shots[0], { ...(shots[1] ?? {}), pins_standing: [] }];
+    }
   }
   return upsertFrame(frames, finalizeFrame({ ...frame, shots }));
 }

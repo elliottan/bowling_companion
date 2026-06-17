@@ -380,10 +380,48 @@ describe("editFrameShot* helpers", () => {
     expect(f.shots).toHaveLength(1);
   });
 
-  it("editFrameShotPins keeps both shots when the leave still stands", () => {
+  it("editFrameShotPins marks the second shot as a spare when the first ball is edited", () => {
     const out = editFrameShotPins([twoShotFrame], 3, 0, [7, 10]);
     const f = out.find((x) => x.frame_number === 3)!;
     expect(f.shots).toHaveLength(2);
     expect(f.shots[0].pins_standing).toEqual([7, 10]);
+    expect(f.shots[1].pins_standing).toEqual([]); // forced to a spare
+    expect(f.shots[1].notes).toBe("second"); // existing shot-2 metadata preserved
+    expect(f.is_spare).toBe(true);
+  });
+
+  it("editFrameShotPins turning a recorded strike into a non-strike adds an editable spare second shot", () => {
+    const strikeFrame: Frame = {
+      game_id: 0,
+      frame_number: 3,
+      shots: [{ pins_standing: [] }],
+      is_strike: true,
+      is_spare: false
+    };
+    const out = editFrameShotPins([strikeFrame], 3, 0, [10]);
+    const f = out.find((x) => x.frame_number === 3)!;
+    expect(f.shots).toHaveLength(2);
+    expect(f.shots[0].pins_standing).toEqual([10]);
+    expect(f.shots[1].pins_standing).toEqual([]);
+    expect(f.is_strike).toBe(false);
+    expect(f.is_spare).toBe(true);
+  });
+
+  it("editFrameShotPins clears subsequent shots when a 10th-frame shot is edited", () => {
+    const tenth: Frame = {
+      game_id: 0,
+      frame_number: 10,
+      shots: [{ pins_standing: [] }, { pins_standing: [7] }, { pins_standing: [] }],
+      is_strike: true,
+      is_spare: false
+    };
+    // Editing shot 2 (index 1) drops shot 3 (index 2).
+    const out = editFrameShotPins([tenth], 10, 1, [3]);
+    const f = out.find((x) => x.frame_number === 10)!;
+    expect(f.shots).toHaveLength(2);
+    expect(f.shots[1].pins_standing).toEqual([3]);
+    // Editing shot 1 (index 0) drops every later shot.
+    const out2 = editFrameShotPins([tenth], 10, 0, [7]);
+    expect(out2.find((x) => x.frame_number === 10)!.shots).toHaveLength(1);
   });
 });
