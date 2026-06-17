@@ -59,28 +59,30 @@ function App() {
   const [arsenalOpen, setArsenalOpen] = useState(false);
   const [sheetDrag, setSheetDrag] = useState(0);
   const sheetDragStartY = useRef<number | null>(null);
-  const rootRef = useRef<HTMLDivElement>(null);
+  const [keyboardOpen, setKeyboardOpen] = useState(false);
 
-  // Keep the app sized to the *visible* viewport so the on-screen keyboard
-  // overlays content instead of shoving the bottom nav up. When the keyboard
-  // opens the visual viewport shrinks; we match the root height to it (and
-  // follow any offset) so the nav stays anchored at the visible bottom and the
-  // scrollable <main> is what moves to reveal a focused field. Works on both
-  // iOS Safari and Android Chrome, which don't honor interactive-widget yet.
+  // The on-screen keyboard resizes the (standalone) webview, which would shove
+  // the bottom nav up to float above the keyboard. Instead we hide the nav
+  // while a text field is focused, letting the scrollable <main> take the full
+  // height and reveal the field; the nav reappears on blur. Tracking focus (not
+  // viewport size) avoids the resize getting "stuck" after the keyboard closes.
   useEffect(() => {
-    const vv = window.visualViewport;
-    if (!vv || !rootRef.current) return;
-    const el = rootRef.current;
-    const apply = () => {
-      el.style.height = `${vv.height}px`;
-      el.style.transform = `translateY(${vv.offsetTop}px)`;
+    const isTextField = (el: Element | null) =>
+      !!el && (el.tagName === "TEXTAREA" || el.tagName === "INPUT");
+    const onFocusIn = (e: FocusEvent) => {
+      if (isTextField(e.target as Element)) setKeyboardOpen(true);
     };
-    apply();
-    vv.addEventListener("resize", apply);
-    vv.addEventListener("scroll", apply);
+    const onFocusOut = () => {
+      // Defer so focus moving between fields doesn't flicker the nav.
+      setTimeout(() => {
+        if (!isTextField(document.activeElement)) setKeyboardOpen(false);
+      }, 50);
+    };
+    document.addEventListener("focusin", onFocusIn);
+    document.addEventListener("focusout", onFocusOut);
     return () => {
-      vv.removeEventListener("resize", apply);
-      vv.removeEventListener("scroll", apply);
+      document.removeEventListener("focusin", onFocusIn);
+      document.removeEventListener("focusout", onFocusOut);
     };
   }, []);
 
@@ -197,7 +199,7 @@ function App() {
 
   return (
     <HandednessContext.Provider value={handedness ?? "right"}>
-    <div ref={rootRef} className="flex h-[100dvh] flex-col overflow-hidden bg-lane-50 text-slate-950">
+    <div className="flex h-[100dvh] flex-col overflow-hidden bg-lane-50 text-slate-950">
       <header className="hidden shrink-0 border-b border-slate-200 bg-white sm:block">
         <div className="mx-auto flex w-full max-w-5xl items-center justify-between px-3 py-3 sm:px-6">
           {view === "dashboard" ? (
@@ -264,7 +266,7 @@ function App() {
         )}
       </main>
 
-      <nav className="relative grid shrink-0 grid-cols-5 border-t border-slate-200 bg-white pb-[env(safe-area-inset-bottom)] sm:hidden">
+      <nav className={`relative grid shrink-0 grid-cols-5 border-t border-slate-200 bg-white pb-[env(safe-area-inset-bottom)] sm:hidden ${keyboardOpen ? "hidden" : ""}`}>
         {/* Single highlight that slides to the active tab. */}
         <span
           aria-hidden="true"

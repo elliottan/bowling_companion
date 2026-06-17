@@ -1,7 +1,7 @@
 import { useRef, useState, type ReactNode, type TouchEvent } from "react";
 
 const THRESHOLD = 50; // px of horizontal travel needed to commit a switch
-const AXIS_LOCK = 8; // px before we decide the gesture is horizontal vs vertical
+const AXIS_LOCK = 12; // px before we decide the gesture is horizontal vs vertical
 
 /**
  * Renders the active pane out of `panes` and lets the user swipe between them.
@@ -42,10 +42,15 @@ export function SwipePanes({
       axis.current = Math.abs(dx) > Math.abs(dy) ? "h" : "v";
     }
     if (axis.current !== "h") return;
-    // Rubber-band at the ends so an out-of-bounds swipe still gives feedback.
-    const atEnd = (index === 0 && dx > 0) || (index === panes.length - 1 && dx < 0);
+    // Only follow the finger when there's actually a pane to move to; at the
+    // ends the content stays put (no rubber-band jiggle).
+    const canGo = (dx < 0 && index < panes.length - 1) || (dx > 0 && index > 0);
+    if (!canGo) {
+      setDrag(0);
+      return;
+    }
     setDragging(true);
-    setDrag(atEnd ? dx * 0.3 : dx);
+    setDrag(dx);
   }
 
   function onTouchEnd() {
