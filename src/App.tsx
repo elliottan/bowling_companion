@@ -4,10 +4,9 @@ import {
   PlayCircle,
   Settings,
   Target,
-  X,
   type LucideIcon
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { DashboardView } from "./views/DashboardView";
 import { ActiveSessionView } from "./views/ActiveSessionView";
 import { ArsenalView } from "./views/ArsenalView";
@@ -58,6 +57,8 @@ function App() {
   const [handednessLoaded, setHandednessLoaded] = useState(false);
   const [resumable, setResumable] = useState<ResumableGame | null>(null);
   const [arsenalOpen, setArsenalOpen] = useState(false);
+  const [sheetDrag, setSheetDrag] = useState(0);
+  const sheetDragStartY = useRef<number | null>(null);
 
   // On launch, if today has an unfinished game, jump straight into it.
   useEffect(() => {
@@ -252,20 +253,50 @@ function App() {
       </nav>
 
       {arsenalOpen && (
-        <div className="fixed inset-0 z-[55] flex flex-col bg-lane-50" role="dialog" aria-modal="true">
-          <div className="flex shrink-0 items-center justify-between border-b border-slate-200 bg-white px-4 py-3">
-            <h2 className="text-base font-bold text-slate-950">Arsenal</h2>
-            <button
-              type="button"
-              onClick={() => setArsenalOpen(false)}
-              aria-label="Close arsenal"
-              className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-slate-300 bg-white text-slate-700 hover:bg-slate-50"
+        <div className="fixed inset-0 z-[55]" role="dialog" aria-modal="true">
+          {/* Backdrop – tap above sheet to dismiss */}
+          <div
+            className="absolute inset-0 bg-black/40"
+            onClick={() => { setSheetDrag(0); setArsenalOpen(false); }}
+          />
+          {/* Bottom sheet */}
+          <div
+            className="absolute bottom-0 left-0 right-0 flex flex-col rounded-t-2xl bg-lane-50 shadow-xl"
+            style={{
+              top: "72px",
+              transform: `translateY(${sheetDrag}px)`,
+              transition: sheetDrag === 0 ? "transform 0.25s ease-out" : "none",
+            }}
+          >
+            {/* Drag pill */}
+            <div
+              className="flex touch-none cursor-grab justify-center pb-1 pt-3 active:cursor-grabbing"
+              onPointerDown={(e) => {
+                sheetDragStartY.current = e.clientY;
+                (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+              }}
+              onPointerMove={(e) => {
+                if (sheetDragStartY.current === null) return;
+                const delta = e.clientY - sheetDragStartY.current;
+                if (delta > 0) setSheetDrag(delta);
+              }}
+              onPointerUp={() => {
+                if (sheetDrag > 80) {
+                  setArsenalOpen(false);
+                }
+                setSheetDrag(0);
+                sheetDragStartY.current = null;
+              }}
+              onPointerCancel={() => {
+                setSheetDrag(0);
+                sheetDragStartY.current = null;
+              }}
             >
-              <X size={18} aria-hidden="true" />
-            </button>
-          </div>
-          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
-            <ArsenalView />
+              <div className="h-1.5 w-10 rounded-full bg-slate-300" />
+            </div>
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+              <ArsenalView />
+            </div>
           </div>
         </div>
       )}

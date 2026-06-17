@@ -1,10 +1,26 @@
-import { Pencil, Trash2 } from "lucide-react";
+import {
+  DndContext,
+  PointerSensor,
+  closestCenter,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  arrayMove,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import { GripVertical, Pencil, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import {
   addBall,
   deleteBall,
   getBalls,
-  updateBall
+  reorderBalls,
+  updateBall,
 } from "../services/ballRepository";
 import type { Ball } from "../types/bowling";
 
@@ -17,17 +33,91 @@ const EMPTY_FORM = {
 
 type FormState = typeof EMPTY_FORM;
 
+interface SortableBallRowProps {
+  ball: Ball;
+  onEdit: (ball: Ball) => void;
+  onDelete: (id: number) => void;
+}
+
+function SortableBallRow({ ball, onEdit, onDelete }: SortableBallRowProps) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
+    useSortable({ id: ball.id! });
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    zIndex: isDragging ? 10 : undefined,
+  };
+  return (
+    <li ref={setNodeRef} style={style}>
+      <div
+        className={`flex items-start gap-2 rounded-lg border bg-white p-4 shadow-sm ${
+          isDragging ? "border-felt-700 opacity-90 shadow-md" : "border-slate-200"
+        }`}
+      >
+        <button
+          type="button"
+          {...attributes}
+          {...listeners}
+          aria-label={`Drag to reorder ${ball.name}`}
+          className="mt-0.5 touch-none shrink-0 text-slate-300 hover:text-slate-500"
+        >
+          <GripVertical size={16} aria-hidden="true" />
+        </button>
+
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="font-semibold text-slate-950">{ball.name}</span>
+            {ball.is_spare_ball && (
+              <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-700">
+                Spare ball
+              </span>
+            )}
+          </div>
+          {ball.layout && (
+            <p className="mt-0.5 text-xs text-slate-500">{ball.layout}</p>
+          )}
+          {ball.notes && (
+            <p className="mt-1 text-sm text-slate-600">{ball.notes}</p>
+          )}
+        </div>
+
+        <div className="flex shrink-0 gap-1">
+          <button
+            type="button"
+            onClick={() => onEdit(ball)}
+            aria-label={`Edit ${ball.name}`}
+            className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+          >
+            <Pencil size={14} aria-hidden="true" />
+          </button>
+          <button
+            type="button"
+            onClick={() => onDelete(ball.id!)}
+            aria-label={`Delete ${ball.name}`}
+            className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-slate-200 bg-white text-slate-600 hover:bg-red-50 hover:text-red-600 hover:border-red-200"
+          >
+            <Trash2 size={14} aria-hidden="true" />
+          </button>
+        </div>
+      </div>
+    </li>
+  );
+}
+
 export function ArsenalView() {
   const [balls, setBalls] = useState<Ball[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // Form state
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [isSaving, setIsSaving] = useState(false);
   const [formError, setFormError] = useState("");
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { delay: 180, tolerance: 6 } })
+  );
 
   async function load() {
     setIsLoading(true);
@@ -44,6 +134,24 @@ export function ArsenalView() {
   useEffect(() => {
     void load();
   }, []);
+
+  async function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    const oldIndex = balls.findIndex((b) => b.id === active.id);
+    const newIndex = balls.findIndex((b) => b.id === over.id);
+    if (oldIndex < 0 || newIndex < 0) return;
+
+    const next = arrayMove(balls, oldIndex, newIndex);
+    setBalls(next);
+    try {
+      await reorderBalls(next.map((b) => b.id!));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to save new order.");
+      await load();
+    }
+  }
 
   function openAddForm() {
     setEditingId(null);
@@ -124,9 +232,10 @@ export function ArsenalView() {
           <button
             type="button"
             onClick={openAddForm}
-            className="inline-flex h-10 items-center gap-2 rounded-lg border border-felt-700 bg-felt-700 px-4 text-sm font-semibold text-white hover:bg-felt-600 disabled:opacity-50"
+            aria-label="Add ball"
+            className="text-2xl leading-none text-slate-500 hover:text-slate-800 px-1"
           >
-            Add ball
+            +
           </button>
         )}
       </div>
@@ -240,52 +349,24 @@ export function ArsenalView() {
           No balls in your arsenal yet. Add your first ball.
         </p>
       ) : (
-        <ul className="space-y-2">
-          {balls.map((ball) => (
-            <li
-              key={ball.id}
-              className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm"
-            >
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="font-semibold text-slate-950">{ball.name}</span>
-                    {ball.is_spare_ball && (
-                      <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-700">
-                        Spare ball
-                      </span>
-                    )}
-                  </div>
-                  {ball.layout && (
-                    <p className="mt-0.5 text-xs text-slate-500">{ball.layout}</p>
-                  )}
-                  {ball.notes && (
-                    <p className="mt-1 text-sm text-slate-600">{ball.notes}</p>
-                  )}
-                </div>
-
-                <div className="flex shrink-0 gap-1">
-                  <button
-                    type="button"
-                    onClick={() => openEditForm(ball)}
-                    aria-label={`Edit ${ball.name}`}
-                    className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
-                  >
-                    <Pencil size={14} aria-hidden="true" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => void handleDelete(ball.id!)}
-                    aria-label={`Delete ${ball.name}`}
-                    className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-slate-200 bg-white text-slate-600 hover:bg-red-50 hover:text-red-600 hover:border-red-200"
-                  >
-                    <Trash2 size={14} aria-hidden="true" />
-                  </button>
-                </div>
-              </div>
-            </li>
-          ))}
-        </ul>
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={(e) => void handleDragEnd(e)}
+        >
+          <SortableContext items={balls.map((b) => b.id!)} strategy={verticalListSortingStrategy}>
+            <ul className="space-y-2">
+              {balls.map((ball) => (
+                <SortableBallRow
+                  key={ball.id}
+                  ball={ball}
+                  onEdit={openEditForm}
+                  onDelete={(id) => void handleDelete(id)}
+                />
+              ))}
+            </ul>
+          </SortableContext>
+        </DndContext>
       )}
     </section>
   );

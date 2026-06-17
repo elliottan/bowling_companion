@@ -6,7 +6,21 @@ import type { Ball, LaneNote, LineSpec, OilPattern, PinNumber, SpareLine } from 
 // ---------------------------------------------------------------------------
 
 export async function getBalls(): Promise<Ball[]> {
-  return db.balls.orderBy("name").toArray();
+  const all = await db.balls.toArray();
+  return all.sort((a, b) => {
+    const ao = a.sort_order ?? Number.MAX_SAFE_INTEGER;
+    const bo = b.sort_order ?? Number.MAX_SAFE_INTEGER;
+    if (ao !== bo) return ao - bo;
+    return a.name.localeCompare(b.name);
+  });
+}
+
+export async function reorderBalls(orderedIds: number[]): Promise<void> {
+  await db.transaction("rw", db.balls, async () => {
+    await Promise.all(
+      orderedIds.map((id, index) => db.balls.update(id, { sort_order: index }))
+    );
+  });
 }
 
 export async function addBall(input: Omit<Ball, "id">): Promise<number> {
@@ -16,7 +30,9 @@ export async function addBall(input: Omit<Ball, "id">): Promise<number> {
       const spares = existing.filter((b) => b.is_spare_ball && b.id !== undefined);
       await Promise.all(spares.map((b) => db.balls.update(b.id!, { is_spare_ball: false })));
     }
-    const id = await db.balls.add(input as Ball);
+    const all = await db.balls.toArray();
+    const maxOrder = all.reduce((m, b) => Math.max(m, b.sort_order ?? -1), -1);
+    const id = await db.balls.add({ ...input, sort_order: maxOrder + 1 } as Ball);
     return Number(id);
   });
 }

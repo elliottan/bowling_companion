@@ -28,6 +28,7 @@ export interface Ball {
   is_spare_ball: boolean;
   layout?: string;
   notes?: string;
+  sort_order?: number;
 }
 
 export interface OilPattern {

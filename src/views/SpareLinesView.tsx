@@ -249,9 +249,10 @@ export function SpareLinesView() {
           <button
             type="button"
             onClick={openAddForm}
-            className="inline-flex h-10 items-center gap-2 rounded-lg border border-felt-700 bg-felt-700 px-4 text-sm font-semibold text-white hover:bg-felt-600 disabled:opacity-50"
+            aria-label="Add spare"
+            className="text-2xl leading-none text-slate-500 hover:text-slate-800 px-1"
           >
-            + Add spare
+            +
           </button>
         )}
       </div>

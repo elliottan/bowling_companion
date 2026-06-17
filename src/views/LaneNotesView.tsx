@@ -1,5 +1,5 @@
 import { Trash2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   deleteLaneNote,
   getLaneNotes,
@@ -19,9 +19,16 @@ export function LaneNotesView() {
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [alley, setAlley] = useState("");
+  const [showAlleyList, setShowAlleyList] = useState(false);
   const [lane, setLane] = useState("");
   const [notes, setNotes] = useState("");
   const [formError, setFormError] = useState("");
+
+  const alleyMatches = useMemo(() => {
+    const q = alley.trim().toLowerCase();
+    const list = q ? alleys.filter((a) => a.toLowerCase().includes(q) && a.toLowerCase() !== q) : alleys;
+    return list.slice(0, 6);
+  }, [alley, alleys]);
 
   async function load() {
     setIsLoading(true);
@@ -98,9 +105,10 @@ export function LaneNotesView() {
           <button
             type="button"
             onClick={openAdd}
-            className="inline-flex h-10 items-center gap-2 rounded-lg border border-felt-700 bg-felt-700 px-4 text-sm font-semibold text-white hover:bg-felt-600"
+            aria-label="Add lane note"
+            className="text-2xl leading-none text-slate-500 hover:text-slate-800 px-1"
           >
-            + Add note
+            +
           </button>
         )}
       </div>
@@ -120,17 +128,34 @@ export function LaneNotesView() {
           <div className="space-y-3">
             <label className="block space-y-1.5">
               <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">Alley</span>
-              <input
-                list="lane-note-alleys"
-                value={alley}
-                onChange={(e) => setAlley(e.target.value)}
-                disabled={editingId !== null}
-                placeholder="Orchid Bowl"
-                className="h-11 w-full rounded-lg border border-slate-300 px-3 text-sm outline-none focus:border-felt-700 disabled:bg-slate-50"
-              />
-              <datalist id="lane-note-alleys">
-                {alleys.map((a) => <option key={a} value={a} />)}
-              </datalist>
+              <div className="relative">
+                <input
+                  value={alley}
+                  onChange={(e) => { setAlley(e.target.value); setShowAlleyList(true); }}
+                  onFocus={() => setShowAlleyList(true)}
+                  onBlur={() => setTimeout(() => setShowAlleyList(false), 120)}
+                  disabled={editingId !== null}
+                  placeholder="Orchid Bowl"
+                  autoComplete="off"
+                  className="h-11 w-full rounded-lg border border-slate-300 px-3 text-sm outline-none focus:border-felt-700 disabled:bg-slate-50"
+                />
+                {showAlleyList && alleyMatches.length > 0 && (
+                  <ul className="absolute z-10 mt-1 max-h-48 w-full overflow-y-auto rounded-lg border border-slate-200 bg-white py-1 shadow-lg">
+                    {alleyMatches.map((a) => (
+                      <li key={a}>
+                        <button
+                          type="button"
+                          onMouseDown={(e) => e.preventDefault()}
+                          onClick={() => { setAlley(a); setShowAlleyList(false); }}
+                          className="block w-full px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-100"
+                        >
+                          {a}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
             </label>
             <label className="block space-y-1.5">
               <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">Lane</span>
