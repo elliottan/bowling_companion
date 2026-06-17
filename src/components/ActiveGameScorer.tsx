@@ -602,6 +602,27 @@ export function ActiveGameScorer({
     return knocked === avail.length ? "/" : knocked === 0 ? "-" : String(knocked);
   })();
 
+  // Once the live shot has a value, fold it into the scoring frames so a prior
+  // pending strike/spare resolves and shows its total — even though the current
+  // frame itself stays blank until it is settled.
+  const scoreFrames = (() => {
+    if (liveSymbol === undefined) return gameState.frames;
+    const fn = gameState.currentFrameNumber;
+    const shotIdx = gameState.currentShot - 1;
+    const existing = gameState.frames.find((f) => f.frame_number === fn);
+    const baseShots = existing ? existing.shots.slice(0, shotIdx) : [];
+    const provisional: Frame = {
+      game_id: existing?.game_id ?? 0,
+      frame_number: fn,
+      shots: [...baseShots, { pins_standing: gameState.standingPins }],
+      is_strike: false,
+      is_spare: false
+    };
+    return [...gameState.frames.filter((f) => f.frame_number !== fn), provisional].sort(
+      (a, b) => a.frame_number - b.frame_number
+    );
+  })();
+
   const detailKey = isEditing && selectedShot
     ? `r-${selectedShot.frameNumber}-${selectedShot.shotIndex}`
     : `live-${gameState.currentFrameNumber}-${gameState.currentShot}`;
@@ -627,6 +648,7 @@ export function ActiveGameScorer({
         gameComplete={gameState.isComplete}
         highlightCell={highlightCell}
         liveSymbol={liveSymbol}
+        scoreFrames={scoreFrames}
         onShotTap={selectShot}
         onLiveTap={gameState.isComplete ? undefined : goLive}
       />

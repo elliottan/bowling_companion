@@ -12,6 +12,10 @@ interface ScorecardProps {
   /** Live pin count for the in-progress shot, shown in the highlighted cell
    *  before the shot is recorded (updates as the user taps the pin deck). */
   liveSymbol?: string;
+  /** Frames to score with — defaults to `frames`. May include the live shot so a
+   *  prior pending strike/spare resolves before the current shot is recorded.
+   *  Symbols and frame-settled checks still use the recorded `frames`. */
+  scoreFrames?: Frame[];
   onShotTap?: (frameNumber: number, shotIndex: number) => void;
   onLiveTap?: () => void;
 }
@@ -23,10 +27,11 @@ export function Scorecard({
   gameComplete = false,
   highlightCell,
   liveSymbol,
+  scoreFrames,
   onShotTap,
   onLiveTap
 }: ScorecardProps) {
-  const gameScore = calculateGameScore(frames);
+  const gameScore = calculateGameScore(scoreFrames ?? frames);
 
   const cells = Array.from({ length: 10 }, (_, index) => {
     const frameNumber = index + 1;
