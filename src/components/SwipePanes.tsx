@@ -4,11 +4,14 @@ const THRESHOLD = 50; // px of horizontal travel needed to commit a switch
 const AXIS_LOCK = 12; // px before we decide the gesture is horizontal vs vertical
 
 /**
- * Renders the active pane out of `panes` and lets the user swipe between them.
- * The pane tracks the finger during the drag (so it feels responsive, not just
- * snap-on-release) and slides the next pane in on commit. Vertical drags are
- * ignored so page scrolling still works. Only the active pane is mounted, so a
- * tall list never inflates the height of a shorter sibling pane.
+ * Horizontal carousel of panes. All panes are mounted side by side on one
+ * track; the active one is shown by translating the track. The finger drags the
+ * same track that animates on release, so there's no jump on commit, and each
+ * pane scrolls internally (so swapping never changes height or re-runs a pane's
+ * mount effects). Vertical drags are left to the pane's own scroll.
+ *
+ * The parent must give this a fixed height (e.g. flex-1 / h-full) since the
+ * panes scroll within it.
  */
 export function SwipePanes({
   index,
@@ -21,12 +24,12 @@ export function SwipePanes({
   panes: ReactNode[];
   className?: string;
 }) {
+  const n = panes.length;
   const startX = useRef<number | null>(null);
   const startY = useRef<number | null>(null);
   const axis = useRef<"h" | "v" | null>(null);
   const [drag, setDrag] = useState(0);
   const [dragging, setDragging] = useState(false);
-  const [dir, setDir] = useState<1 | -1>(1);
 
   function onTouchStart(e: TouchEvent) {
     startX.current = e.touches[0].clientX;
@@ -42,52 +45,53 @@ export function SwipePanes({
       axis.current = Math.abs(dx) > Math.abs(dy) ? "h" : "v";
     }
     if (axis.current !== "h") return;
-    // Only follow the finger when there's actually a pane to move to; at the
-    // ends the content stays put (no rubber-band jiggle).
-    const canGo = (dx < 0 && index < panes.length - 1) || (dx > 0 && index > 0);
-    if (!canGo) {
-      setDrag(0);
-      return;
-    }
+    // Stay put at the ends — no rubber-band.
+    const canGo = (dx < 0 && index < n - 1) || (dx > 0 && index > 0);
     setDragging(true);
-    setDrag(dx);
+    setDrag(canGo ? dx : 0);
   }
 
   function onTouchEnd() {
-    const committed = axis.current === "h" && Math.abs(drag) >= THRESHOLD;
-    const goNext = committed && drag < 0 && index < panes.length - 1;
-    const goPrev = committed && drag > 0 && index > 0;
+    const d = drag;
+    const horizontal = axis.current === "h";
     startX.current = null;
     startY.current = null;
     axis.current = null;
     setDragging(false);
-    setDrag(0); // snaps back via transition, or resets under the incoming pane
-    if (goNext) {
-      setDir(1);
-      onIndexChange(index + 1);
-    } else if (goPrev) {
-      setDir(-1);
-      onIndexChange(index - 1);
-    }
+    setDrag(0); // track eases to the (possibly new) index from where the finger left it
+    if (!horizontal || Math.abs(d) < THRESHOLD) return;
+    if (d < 0 && index < n - 1) onIndexChange(index + 1);
+    else if (d > 0 && index > 0) onIndexChange(index - 1);
   }
 
   return (
     <div
-      className={className}
+      // overflow-clip (not hidden): a pane's scrollIntoView must not be able to
+      // scroll this container sideways, which would knock the carousel off its
+      // translateX track.
+      className={`overflow-clip ${className ?? ""}`}
+      style={{ touchAction: "pan-y" }}
       onTouchStart={onTouchStart}
       onTouchMove={onTouchMove}
       onTouchEnd={onTouchEnd}
     >
-      {/* Keyed wrapper replays the slide-in animation each time the pane swaps. */}
-      <div key={index} className={dir === 1 ? "pane-in-right" : "pane-in-left"}>
-        <div
-          style={{
-            transform: `translateX(${drag}px)`,
-            transition: dragging ? "none" : "transform 0.26s ease-out"
-          }}
-        >
-          {panes[index]}
-        </div>
+      <div
+        className="flex h-full"
+        style={{
+          width: `${n * 100}%`,
+          transform: `translateX(calc(${-index * (100 / n)}% + ${drag}px))`,
+          transition: dragging ? "none" : "transform 0.26s ease-out"
+        }}
+      >
+        {panes.map((pane, i) => (
+          <div
+            key={i}
+            className="h-full min-h-0 overflow-y-auto overscroll-contain"
+            style={{ width: `${100 / n}%` }}
+          >
+            {pane}
+          </div>
+        ))}
       </div>
     </div>
   );

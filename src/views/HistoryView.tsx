@@ -144,7 +144,7 @@ export function HistoryView({ onOpenSession, activeSessionId }: HistoryViewProps
   }, [pane, sessionList.length]);
 
   return (
-    <section className="mx-auto w-full max-w-3xl px-3 py-5 sm:px-6 sm:py-8">
+    <section className="mx-auto flex h-full w-full max-w-3xl flex-col px-3 pt-5 sm:px-6 sm:pt-8">
       <h1 className="mb-4 text-xl font-bold text-slate-950">History</h1>
 
       {error && (
@@ -217,11 +217,11 @@ export function HistoryView({ onOpenSession, activeSessionId }: HistoryViewProps
       </div>
 
       <SwipePanes
-        className="min-h-[70vh]"
+        className="-mx-3 min-h-0 flex-1 sm:-mx-6"
         index={PANES.indexOf(pane)}
         onIndexChange={(i) => setPane(PANES[i])}
         panes={[
-          <div key="sessions">
+          <div key="sessions" className="px-3 pb-5 sm:px-6 sm:pb-8">
             <SessionHistory
               sessions={sessionList.slice(0, visibleCount)}
               isLoading={isLoading}
@@ -230,7 +230,9 @@ export function HistoryView({ onOpenSession, activeSessionId }: HistoryViewProps
             />
             <div ref={sentinelRef} className="h-6" aria-hidden="true" />
           </div>,
-          <Stats key="stats" stats={isLoading ? EMPTY : stats} isLoading={isLoading} leaves={leaves} />
+          <div key="stats" className="px-3 pb-5 sm:px-6 sm:pb-8">
+            <Stats stats={isLoading ? EMPTY : stats} isLoading={isLoading} leaves={leaves} />
+          </div>
         ]}
       />
     </section>

@@ -122,14 +122,18 @@ export function SessionLanePanel({
           ))}
         </div>
 
-        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-3" style={{ touchAction: "pan-y" }}>
+        <div className="min-h-0 flex-1 overflow-hidden">
           <SwipePanes
-            className="min-h-full"
+            className="h-full"
             index={tabs.indexOf(tab)}
             onIndexChange={(i) => setTab(tabs[i])}
             panes={[
-              <SessionSheetTab key="sheet" summary={summary} currentGameId={currentGameId} />,
-              <LaneNotesTab key="lanes" alley={summary.session.alley_name} currentLanes={sortedLanes} />
+              <div key="sheet" className="px-4 py-3">
+                <SessionSheetTab summary={summary} currentGameId={currentGameId} />
+              </div>,
+              <div key="lanes" className="px-4 py-3">
+                <LaneNotesTab alley={summary.session.alley_name} currentLanes={sortedLanes} />
+              </div>
             ]}
           />
         </div>
