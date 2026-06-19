@@ -1,4 +1,5 @@
 import { BarChart3 } from "lucide-react";
+import { isSplit } from "../lib/pins";
 import type { BowlingStats, LeaveStats } from "../lib/stats";
 import type { PinNumber } from "../types/bowling";
 
@@ -41,45 +42,66 @@ export function Stats({ stats, isLoading = false, leaves }: StatsProps) {
         <Bar label="Spares" pct={stats.sparePct} />
       </div>
 
-      {(leaves?.length ?? 0) > 0 && (
-        <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-          <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
-            Common leaves
-          </h2>
-          <ul className="divide-y divide-slate-100">
-            {leaves!.slice(0, 10).map((leave) => (
-              <li key={leave.pins.join("-")} className="flex items-center gap-3 py-2">
-                <MiniPinDisplay pins={leave.pins} />
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-slate-900">
-                    {formatLeave(leave.pins)}
-                  </p>
-                  <p className="text-xs text-slate-500">
-                    {leave.conversions}/{leave.attempts} spared
-                  </p>
+      {(() => {
+        const all = leaves ?? [];
+        const splits = all.filter((l) => isSplit(l.pins));
+        const spares = all.filter((l) => !isSplit(l.pins));
+        if (all.length === 0) return null;
+        return (
+          <>
+            {spares.length > 0 && (
+              <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+                <h2 className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  Spare rates
+                </h2>
+                <div className="grid grid-cols-3 gap-2">
+                  {spares.map((leave) => (
+                    <LeaveCell key={leave.pins.join("-")} leave={leave} />
+                  ))}
                 </div>
-                <div className="text-right">
-                  <p
-                    className={`text-sm font-semibold ${
-                      leave.conversionPct !== null && leave.conversionPct >= 70
-                        ? "text-felt-700"
-                        : "text-slate-900"
-                    }`}
-                  >
-                    {leave.conversionPct !== null ? `${leave.conversionPct}%` : "—"}
-                  </p>
-                  <p className="text-xs text-slate-500">conv.</p>
+              </div>
+            )}
+
+            {splits.length > 0 && (
+              <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+                <h2 className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400">
+                  Splits
+                </h2>
+                <div className="grid grid-cols-3 gap-2">
+                  {splits.map((leave) => (
+                    <LeaveCell key={leave.pins.join("-")} leave={leave} muted />
+                  ))}
                 </div>
-              </li>
-            ))}
-          </ul>
-          {leaves!.length > 10 && (
-            <p className="mt-2 text-center text-xs text-slate-400">
-              +{leaves!.length - 10} more
-            </p>
-          )}
-        </div>
-      )}
+              </div>
+            )}
+          </>
+        );
+      })()}
+    </div>
+  );
+}
+
+function LeaveCell({ leave, muted = false }: { leave: LeaveStats; muted?: boolean }) {
+  return (
+    <div
+      className={`flex flex-col items-center gap-1 rounded-lg border p-2 text-center ${
+        muted ? "border-slate-200 bg-white/60" : "border-slate-200 bg-white shadow-sm"
+      }`}
+    >
+      <MiniPinDisplay pins={leave.pins} />
+      <p className="text-xs font-medium text-slate-700">{formatLeave(leave.pins)}</p>
+      <p
+        className={`text-sm font-bold ${
+          leave.conversionPct !== null && leave.conversionPct >= 70
+            ? "text-felt-700"
+            : "text-slate-900"
+        }`}
+      >
+        {leave.conversionPct !== null ? `${leave.conversionPct}%` : "—"}
+      </p>
+      <p className="text-[10px] text-slate-500">
+        {leave.conversions}/{leave.attempts}
+      </p>
     </div>
   );
 }

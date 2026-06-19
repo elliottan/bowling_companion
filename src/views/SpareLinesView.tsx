@@ -1,4 +1,4 @@
-import { GripVertical, Trash2 } from "lucide-react";
+import { GripVertical } from "lucide-react";
 import { useEffect, useState } from "react";
 import {
   DndContext,
@@ -15,16 +15,15 @@ import {
   useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { PinGrid } from "../components/PinGrid";
+import { SpareLineFormDialog } from "../components/SpareLineFormDialog";
 import { derivePinBoard } from "../lib/pinGeometry";
 import {
   deleteSpareLine,
   ensureDefaultSpareLines,
   getSpareLinesAll,
   reorderSpareLines,
-  upsertSpareLine,
 } from "../services/ballRepository";
-import type { LineSpec, PinNumber, SpareLine } from "../types/bowling";
+import type { PinNumber, SpareLine } from "../types/bowling";
 
 function SmallPinDiagram({ standing }: { standing: PinNumber[] }) {
   const standingSet = new Set(standing);
@@ -106,24 +105,13 @@ function SortableSpareCard({ sl, onEdit }: SortableSpareCardProps) {
   );
 }
 
-const EMPTY_LINE: LineSpec = {};
-
-const ALL_PINS: PinNumber[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+type Editing = { mode: "add" } | { mode: "edit"; sl: SpareLine };
 
 export function SpareLinesView() {
   const [spareLines, setSpareLines] = useState<SpareLine[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
-
-  // Form state
-  const [showForm, setShowForm] = useState(false);
-  const [editingId, setEditingId] = useState<number | null>(null);
-  // For add: which pins are standing (the leave being shot at)
-  const [formPins, setFormPins] = useState<PinNumber[]>([]);
-  const [formLine, setFormLine] = useState<LineSpec>(EMPTY_LINE);
-  const [formNotes, setFormNotes] = useState("");
-  const [isSaving, setIsSaving] = useState(false);
-  const [formError, setFormError] = useState("");
+  const [editing, setEditing] = useState<Editing | null>(null);
 
   // Press-and-hold the grip handle to start a drag; a quick tap still edits.
   const sensors = useSensors(
@@ -165,96 +153,29 @@ export function SpareLinesView() {
     void load();
   }, []);
 
-  function openAddForm() {
-    setEditingId(null);
-    setFormPins([]);
-    setFormLine(EMPTY_LINE);
-    setFormNotes("");
-    setFormError("");
-    setShowForm(true);
-  }
-
-  function openEditForm(sl: SpareLine) {
-    setEditingId(sl.id ?? null);
-    setFormPins(sl.pins);
-    setFormLine(sl.line ?? EMPTY_LINE);
-    setFormNotes(sl.notes ?? "");
-    setFormError("");
-    setShowForm(true);
-  }
-
-  function cancelForm() {
-    setShowForm(false);
-    setEditingId(null);
-    setFormPins([]);
-    setFormLine(EMPTY_LINE);
-    setFormNotes("");
-    setFormError("");
-  }
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (formPins.length === 0) {
-      setFormError("Select at least one pin for this leave.");
-      return;
-    }
-
-    const line: LineSpec | undefined =
-      (formLine.stance != null || formLine.laydown != null || formLine.target != null)
-        ? {
-            ...(formLine.stance   != null && { stance:   formLine.stance }),
-            ...(formLine.laydown  != null && { laydown:  formLine.laydown }),
-            ...(formLine.target   != null && { target:   formLine.target }),
-          }
-        : undefined;
-
-    setIsSaving(true);
-    setFormError("");
-    try {
-      if (editingId !== null) {
-        // Update: pins are fixed, only line + notes change
-        await upsertSpareLine(formPins, line, formNotes.trim() || undefined);
-      } else {
-        await upsertSpareLine(formPins, line, formNotes.trim() || undefined);
-      }
-      setShowForm(false);
-      setEditingId(null);
-      await load();
-    } catch (err) {
-      setFormError(err instanceof Error ? err.message : "Failed to save spare line.");
-    } finally {
-      setIsSaving(false);
-    }
-  }
-
   async function handleDelete(id: number) {
     setError("");
     try {
       await deleteSpareLine(id);
+      setEditing(null);
       await load();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to delete spare line.");
     }
   }
 
-  function lineLabel(pins: PinNumber[]): string {
-    return pins.join(", ");
-  }
-
   return (
     <section className="mx-auto w-full max-w-3xl px-3 py-5 sm:px-6 sm:py-8">
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-xl font-bold text-slate-950">Spare Lines</h1>
-        {!showForm && (
-          <button
-            type="button"
-            onClick={openAddForm}
-            aria-label="Add spare"
-            className="text-2xl leading-none text-slate-500 hover:text-slate-800 px-1"
-          >
-            +
-          </button>
-        )}
+        <button
+          type="button"
+          onClick={() => setEditing({ mode: "add" })}
+          aria-label="Add spare"
+          className="text-2xl leading-none text-slate-500 hover:text-slate-800 px-1"
+        >
+          +
+        </button>
       </div>
 
       {error && (
@@ -263,163 +184,33 @@ export function SpareLinesView() {
         </p>
       )}
 
-      {showForm && (
-        <div
-          className="fixed inset-0 z-20 flex items-end justify-center bg-black/40 p-3 sm:items-center"
-          onClick={cancelForm}
-        >
-        <div
-          className="max-h-[85vh] w-full max-w-lg overflow-y-auto rounded-lg border border-slate-200 bg-white p-4 shadow-xl"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <h2 className="mb-3 text-base font-semibold text-slate-950">
-            {formPins.length === 0
-              ? "Add spare line"
-              : `${formPins.length === 1 ? "Pin" : "Pins"} ${lineLabel(formPins)}`}
-          </h2>
+      {editing?.mode === "add" && (
+        <SpareLineFormDialog
+          key="add"
+          initialPins={[]}
+          lockPins={false}
+          onSaved={() => {
+            setEditing(null);
+            void load();
+          }}
+          onCancel={() => setEditing(null)}
+        />
+      )}
 
-          {formError && (
-            <p className="mb-3 rounded-lg border border-red-200 bg-red-50 p-3 text-sm font-semibold text-red-700">
-              {formError}
-            </p>
-          )}
-
-          <form onSubmit={(e) => void handleSubmit(e)} className="space-y-4">
-            <div>
-              {editingId === null && (
-                <p className="mb-2 text-xs text-slate-500">
-                  Tap pins to select which pins are left standing for this leave.
-                </p>
-              )}
-              <PinGrid
-                standingPins={formPins}
-                availablePins={ALL_PINS}
-                onChange={setFormPins}
-                readOnly={editingId !== null}
-              />
-            </div>
-
-            <div>
-              <p className="mb-2 text-xs font-medium text-slate-600">
-                Shooting line (board numbers)
-              </p>
-              <div className="grid grid-cols-3 gap-3">
-                <div>
-                  <label className="mb-1 block text-xs font-medium text-slate-600">
-                    Stance
-                  </label>
-                  <input
-                    type="number"
-                    inputMode="decimal"
-                    step="0.5"
-                    value={formLine.stance ?? ""}
-                    onChange={(e) =>
-                      setFormLine((l) => ({
-                        ...l,
-                        stance: e.target.value === "" ? undefined : Number(e.target.value)
-                      }))
-                    }
-                    placeholder="e.g. 35"
-                    className="h-10 w-full rounded-lg border border-slate-300 px-3 text-sm outline-none focus:border-felt-700 focus:ring-2 focus:ring-felt-700/20"
-                  />
-                </div>
-                <div>
-                  <label className="mb-1 block text-xs font-medium text-slate-600">
-                    Laydown
-                  </label>
-                  <input
-                    type="number"
-                    inputMode="decimal"
-                    step="0.5"
-                    value={formLine.laydown ?? ""}
-                    onChange={(e) =>
-                      setFormLine((l) => ({
-                        ...l,
-                        laydown: e.target.value === "" ? undefined : Number(e.target.value)
-                      }))
-                    }
-                    placeholder="e.g. 18"
-                    className="h-10 w-full rounded-lg border border-slate-300 px-3 text-sm outline-none focus:border-felt-700 focus:ring-2 focus:ring-felt-700/20"
-                  />
-                </div>
-                <div>
-                  <label className="mb-1 block text-xs font-medium text-slate-600">
-                    Target
-                  </label>
-                  <input
-                    type="number"
-                    inputMode="decimal"
-                    step="0.5"
-                    value={formLine.target ?? ""}
-                    onChange={(e) =>
-                      setFormLine((l) => ({
-                        ...l,
-                        target: e.target.value === "" ? undefined : Number(e.target.value)
-                      }))
-                    }
-                    placeholder="e.g. 10"
-                    className="h-10 w-full rounded-lg border border-slate-300 px-3 text-sm outline-none focus:border-felt-700 focus:ring-2 focus:ring-felt-700/20"
-                  />
-                </div>
-              </div>
-              {derivePinBoard(formLine, formPins) != null && (
-                <p className="mt-2 text-xs text-slate-500">
-                  Straight-line board at the front pin:{" "}
-                  <span className="font-semibold text-felt-700">
-                    {derivePinBoard(formLine, formPins)}
-                  </span>
-                </p>
-              )}
-            </div>
-
-            <div>
-              <label className="mb-1 block text-sm font-medium text-slate-700">
-                Notes <span className="text-slate-400 font-normal">(optional)</span>
-              </label>
-              <textarea
-                value={formNotes}
-                onChange={(e) => setFormNotes(e.target.value)}
-                rows={2}
-                placeholder="Any notes about this spare…"
-                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-felt-700 focus:ring-2 focus:ring-felt-700/20"
-              />
-            </div>
-
-            <div className="flex items-center gap-2 pt-1">
-              <button
-                type="submit"
-                disabled={isSaving}
-                className="inline-flex h-10 items-center gap-2 rounded-lg border border-felt-700 bg-felt-700 px-4 text-sm font-semibold text-white hover:bg-felt-600 disabled:opacity-50"
-              >
-                {isSaving ? "Saving…" : editingId !== null ? "Save spare line" : "Add spare line"}
-              </button>
-              <button
-                type="button"
-                onClick={cancelForm}
-                disabled={isSaving}
-                className="inline-flex h-9 items-center gap-1.5 rounded-md border border-slate-300 bg-white px-3 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
-              >
-                Cancel
-              </button>
-              {editingId !== null && (
-                <button
-                  type="button"
-                  onClick={async () => {
-                    await handleDelete(editingId);
-                    cancelForm();
-                  }}
-                  disabled={isSaving}
-                  aria-label={`Delete spare line for pins ${lineLabel(formPins)}`}
-                  className="ml-auto inline-flex h-9 items-center gap-1.5 rounded-md border border-slate-300 bg-white px-3 text-sm font-medium text-slate-600 hover:border-red-200 hover:bg-red-50 hover:text-red-600 disabled:opacity-50"
-                >
-                  <Trash2 size={14} aria-hidden="true" />
-                  Delete
-                </button>
-              )}
-            </div>
-          </form>
-        </div>
-        </div>
+      {editing?.mode === "edit" && (
+        <SpareLineFormDialog
+          key={`edit-${editing.sl.id}`}
+          initialPins={editing.sl.pins}
+          lockPins
+          initialLine={editing.sl.line}
+          initialNotes={editing.sl.notes}
+          onSaved={() => {
+            setEditing(null);
+            void load();
+          }}
+          onCancel={() => setEditing(null)}
+          onDelete={editing.sl.id != null ? () => void handleDelete(editing.sl.id!) : undefined}
+        />
       )}
 
       {isLoading ? (
@@ -436,9 +227,9 @@ export function SpareLinesView() {
             items={spareLines.map((s) => s.id!)}
             strategy={rectSortingStrategy}
           >
-            <ul className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+            <ul className="grid grid-cols-3 gap-2">
               {spareLines.map((sl) => (
-                <SortableSpareCard key={sl.id} sl={sl} onEdit={openEditForm} />
+                <SortableSpareCard key={sl.id} sl={sl} onEdit={(s) => setEditing({ mode: "edit", sl: s })} />
               ))}
             </ul>
           </SortableContext>

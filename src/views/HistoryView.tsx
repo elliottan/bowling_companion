@@ -112,17 +112,26 @@ export function HistoryView({ onOpenSession, activeSessionId }: HistoryViewProps
       [...new Set(history.flatMap((s) => (s.session.oil_pattern ? [s.session.oil_pattern] : [])))].sort(),
     [history]
   );
-  const allLanes = useMemo(
-    () =>
-      [
-        ...new Set(
-          history.flatMap((s) =>
+  // Lanes are only meaningful within a location, so we offer them as a filter
+  // only once an alley is picked — and only the lanes seen at that alley.
+  const allLanes = useMemo(() => {
+    if (!filterAlley) return [];
+    return [
+      ...new Set(
+        history
+          .filter((s) => s.session.alley_name === filterAlley)
+          .flatMap((s) =>
             s.games.flatMap((g) => g.lanes ?? (g.lane_number ? [g.lane_number] : []))
           )
-        )
-      ].sort((a, b) => Number(a) - Number(b) || a.localeCompare(b)),
-    [history]
-  );
+      )
+    ].sort((a, b) => Number(a) - Number(b) || a.localeCompare(b));
+  }, [history, filterAlley]);
+
+  // Drop any selected lane when the location changes (a lane from another alley
+  // would otherwise stay selected and filter everything out).
+  useEffect(() => {
+    setSelectedLanes([]);
+  }, [filterAlley]);
 
   // Reset the window whenever the filtered list changes.
   useEffect(() => {

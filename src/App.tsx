@@ -86,6 +86,31 @@ function App() {
     };
   }, []);
 
+  // iOS standalone PWA keeps 100dvh at the pre-rotation height after a
+  // portrait→landscape→portrait round-trip, leaving the nav floating with blank
+  // space below. Normal render uses the 100dvh fallback; only after a rotation do
+  // we pin the root to the freshly-measured innerHeight (iOS reports a stale
+  // value synchronously on orientationchange, so we re-read on the next frames
+  // and once more after a short delay). The keyboard doesn't change innerHeight
+  // (interactive-widget=overlays-content), so this never fights the keyboard fix.
+  useEffect(() => {
+    const setAppHeight = () => {
+      if (window.innerHeight > 0) {
+        document.documentElement.style.setProperty("--app-height", `${window.innerHeight}px`);
+      }
+    };
+    const onOrientation = () => {
+      setKeyboardOpen(false);
+      // Fast path once the browser has painted the new orientation, plus a
+      // timer fallback (iOS reports a stale innerHeight synchronously, and the
+      // timer still fires if rAF is throttled).
+      requestAnimationFrame(() => requestAnimationFrame(setAppHeight));
+      setTimeout(setAppHeight, 300);
+    };
+    window.addEventListener("orientationchange", onOrientation);
+    return () => window.removeEventListener("orientationchange", onOrientation);
+  }, []);
+
   // On launch, if today has an unfinished game, jump straight into it.
   useEffect(() => {
     getResumableToday()
@@ -199,7 +224,7 @@ function App() {
 
   return (
     <HandednessContext.Provider value={handedness ?? "right"}>
-    <div className="flex h-[100dvh] flex-col overflow-hidden bg-lane-50 text-slate-950">
+    <div className="flex flex-col overflow-hidden bg-lane-50 text-slate-950" style={{ height: "var(--app-height, 100dvh)" }}>
       <header className="hidden shrink-0 border-b border-slate-200 bg-white sm:block">
         <div className="mx-auto flex w-full max-w-5xl items-center justify-between px-3 py-3 sm:px-6">
           {view === "dashboard" ? (

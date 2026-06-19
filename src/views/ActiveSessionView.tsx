@@ -1,9 +1,10 @@
-import { ChevronLeft, MoreVertical, Pencil, Plus, Trash2 } from "lucide-react";
+import { BarChart3, ChevronLeft, MoreVertical, Pencil, Plus, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { ActiveGameScorer } from "../components/ActiveGameScorer";
 import { ConfirmDialog } from "../components/ConfirmDialog";
 import { SessionFormDialog } from "../components/SessionFormDialog";
 import { SessionLanePanel } from "../components/SessionLanePanel";
+import { SessionStatsModal } from "../components/SessionStatsModal";
 import type { NewSessionFormValues } from "../components/SessionForm";
 import { calculateGameScore } from "../lib/scoring";
 import {
@@ -44,6 +45,7 @@ export function ActiveSessionView({
   const [confirmDeleteSession, setConfirmDeleteSession] = useState(false);
   const [showSheet, setShowSheet] = useState(false);
   const [showEdit, setShowEdit] = useState(false);
+  const [showStats, setShowStats] = useState(false);
 
   // Inline lane editor
   const [laneA, setLaneA] = useState("");
@@ -278,6 +280,14 @@ export function ActiveSessionView({
                   </button>
                   <button
                     type="button"
+                    onClick={() => { setShowMenu(false); setShowStats(true); }}
+                    className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm font-medium text-slate-700 hover:bg-slate-50"
+                  >
+                    <BarChart3 size={16} aria-hidden="true" />
+                    Session stats
+                  </button>
+                  <button
+                    type="button"
                     onClick={() => { setShowMenu(false); setShowEdit(true); }}
                     className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm font-medium text-slate-700 hover:bg-slate-50"
                   >
@@ -371,6 +381,10 @@ export function ActiveSessionView({
           defaultTab="sheet"
           onClose={() => setShowSheet(false)}
         />
+      )}
+
+      {showStats && (
+        <SessionStatsModal summary={sessionDetails} onClose={() => setShowStats(false)} />
       )}
 
       <SessionFormDialog

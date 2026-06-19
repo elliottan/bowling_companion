@@ -1,4 +1,4 @@
-import { Plus, SlidersHorizontal } from "lucide-react";
+import { Plus, SlidersHorizontal, X } from "lucide-react";
 import type { PointerEvent as ReactPointerEvent } from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -9,13 +9,19 @@ import {
   submitShot,
   updateShotMeta
 } from "../lib/frameController";
-import { calculateGameScore } from "../lib/scoring";
+import { calculateGameScore, isSpare } from "../lib/scoring";
 import { useHandedness } from "../lib/handednessContext";
 import { laneForFrame, previousSameLaneFrame } from "../lib/lanes";
 import { getBalls, getSpareLineByPins } from "../services/ballRepository";
 import type { Ball, Frame, Game, LineSpec, PinNumber, ShotMetadata } from "../types/bowling";
 import { PinGrid } from "./PinGrid";
 import { Scorecard } from "./Scorecard";
+import { SpareLineFormDialog } from "./SpareLineFormDialog";
+
+/** "10-pin" for a single, "3-10" for multi. */
+function formatLeavePins(pins: PinNumber[]): string {
+  return pins.length === 1 ? `${pins[0]}-pin` : pins.join("-");
+}
 
 interface LineInputProps {
   label: string;
@@ -384,6 +390,10 @@ export function ActiveGameScorer({
   const [selectedShot, setSelectedShot] = useState<{ frameNumber: number; shotIndex: number } | null>(null);
   // Shot we last applied carry-forward defaults to (once per live shot).
   const lastDefaultedShot = useRef<string | null>(null);
+  // A just-converted spare whose leave has no saved Spare Line — offered as a
+  // dismissible banner so the line can be captured in the moment.
+  const [pendingSpareLeave, setPendingSpareLeave] = useState<{ pins: PinNumber[]; notes?: string } | null>(null);
+  const [showSpareLineDialog, setShowSpareLineDialog] = useState(false);
 
   const gameScore = useMemo(() => calculateGameScore(gameState.frames), [gameState.frames]);
   const lanesList = game?.lanes ?? (game?.lane_number ? [game.lane_number] : []);
@@ -550,11 +560,30 @@ export function ActiveGameScorer({
     if (frame) void persistFrame(frame);
   }
 
+  // After a live spare conversion, offer to capture its line when the leave has
+  // no saved Spare Line (or only a bare row with no targeting data).
+  async function offerSpareLine(frame: Frame) {
+    if (!isSpare(frame)) return;
+    const leave = frame.shots[0]?.pins_standing;
+    if (!leave || leave.length === 0) return;
+    try {
+      const existing = await getSpareLineByPins(leave);
+      if (existing?.line) return;
+      setPendingSpareLeave({
+        pins: [...leave].sort((a, b) => a - b) as PinNumber[],
+        notes: existing?.notes
+      });
+    } catch {
+      // best-effort; skip the offer on lookup failure
+    }
+  }
+
   async function recordShot(standingOverride?: PinNumber[]) {
     const standing = standingOverride ?? gameState.standingPins;
     const submission = submitShot(gameState, standing);
     setGameState(submission.state);
     if (!submission.savedFrame) return;
+    void offerSpareLine(submission.savedFrame);
     try {
       await onFrameComplete?.(submission.savedFrame);
       if (submission.state.isComplete) await onGameComplete?.(submission.state.frames);
@@ -722,6 +751,26 @@ export function ActiveGameScorer({
               </button>
             </div>
           ) : null}
+
+          {pendingSpareLeave && (
+            <div className="flex items-center gap-2 rounded-lg border border-felt-700 bg-felt-50 px-3 py-2">
+              <button
+                type="button"
+                onClick={() => setShowSpareLineDialog(true)}
+                className="min-w-0 flex-1 text-left text-sm font-semibold text-felt-700"
+              >
+                + Save spare line for {formatLeavePins(pendingSpareLeave.pins)}
+              </button>
+              <button
+                type="button"
+                aria-label="Dismiss"
+                onClick={() => setPendingSpareLeave(null)}
+                className="shrink-0 text-slate-400 hover:text-slate-600"
+              >
+                <X size={16} aria-hidden="true" />
+              </button>
+            </div>
+          )}
         </div>
 
         <ShotDetailBar
@@ -746,6 +795,20 @@ export function ActiveGameScorer({
 
       {errorMessage && (
         <p className="mt-3 text-center text-sm font-semibold text-red-600">{errorMessage}</p>
+      )}
+
+      {showSpareLineDialog && pendingSpareLeave && (
+        <SpareLineFormDialog
+          key={pendingSpareLeave.pins.join("-")}
+          initialPins={pendingSpareLeave.pins}
+          lockPins
+          initialNotes={pendingSpareLeave.notes}
+          onSaved={() => {
+            setShowSpareLineDialog(false);
+            setPendingSpareLeave(null);
+          }}
+          onCancel={() => setShowSpareLineDialog(false)}
+        />
       )}
     </section>
   );

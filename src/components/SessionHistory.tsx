@@ -1,5 +1,7 @@
-import { History } from "lucide-react";
+import { BarChart3, History } from "lucide-react";
+import { useState } from "react";
 import { calculateGameScore } from "../lib/scoring";
+import { SessionStatsModal } from "./SessionStatsModal";
 import type { SessionSummary } from "../types/bowling";
 
 interface SessionHistoryProps {
@@ -68,6 +70,7 @@ interface SessionRowProps {
 /** Tap a row to open the session; edit/delete live in the session detail. */
 function SessionRow({ summary, isActive, onOpen }: SessionRowProps) {
   const { session, games } = summary;
+  const [showStats, setShowStats] = useState(false);
   // Series total = sum of every game's score (current total if unfinished);
   // average = mean of completed games only.
   const seriesTotal = games.reduce(
@@ -80,6 +83,7 @@ function SessionRow({ summary, isActive, onOpen }: SessionRowProps) {
     : null;
 
   return (
+    <div className="relative">
     <button
       type="button"
       onClick={() => session.id && onOpen(session.id)}
@@ -99,7 +103,7 @@ function SessionRow({ summary, isActive, onOpen }: SessionRowProps) {
               .join(" · ")}
           </p>
         </div>
-        <div className="flex shrink-0 flex-col items-end gap-0.5 text-right">
+        <div className="flex shrink-0 flex-col items-end gap-0.5 pt-7 text-right">
           {isActive && (
             <span className="inline-flex items-center rounded-full bg-felt-700 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">
               Active
@@ -147,5 +151,19 @@ function SessionRow({ summary, isActive, onOpen }: SessionRowProps) {
         </dl>
       )}
     </button>
+
+      <button
+        type="button"
+        onClick={() => setShowStats(true)}
+        aria-label="Session stats"
+        className="absolute right-2 top-2 inline-flex h-7 w-7 items-center justify-center rounded-md text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+      >
+        <BarChart3 size={16} aria-hidden="true" />
+      </button>
+
+      {showStats && (
+        <SessionStatsModal summary={summary} onClose={() => setShowStats(false)} />
+      )}
+    </div>
   );
 }
