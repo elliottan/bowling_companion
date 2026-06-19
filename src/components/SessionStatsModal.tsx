@@ -1,5 +1,6 @@
 import { X } from "lucide-react";
 import { useMemo } from "react";
+import { createPortal } from "react-dom";
 import { Stats } from "./Stats";
 import { calculateCommonLeaves, calculateStats } from "../lib/stats";
 import type { SessionSummary } from "../types/bowling";
@@ -14,7 +15,10 @@ export function SessionStatsModal({ summary, onClose }: SessionStatsModalProps) 
   const stats = useMemo(() => calculateStats([summary]), [summary]);
   const leaves = useMemo(() => calculateCommonLeaves([summary]), [summary]);
 
-  return (
+  // Portal to body: the History session row lives inside SwipePanes, whose
+  // translateX transform would otherwise become the containing block for this
+  // fixed overlay and shove it off-screen.
+  return createPortal(
     <div
       className="fixed inset-0 z-[60] flex items-end justify-center bg-black/40 p-3 sm:items-center"
       role="dialog"
@@ -46,6 +50,7 @@ export function SessionStatsModal({ summary, onClose }: SessionStatsModalProps) 
 
         <Stats stats={stats} leaves={leaves} />
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
