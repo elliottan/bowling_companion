@@ -1,6 +1,7 @@
 import Dexie, { type EntityTable } from "dexie";
 import type { AppSetting, Ball, Frame, Game, LaneNote, OilPattern, Session, SpareLine } from "../types/bowling";
 import type { PinNumber, Shot } from "../types/bowling";
+import type { CatalogBall } from "../types/catalog";
 
 export class BowlingDatabase extends Dexie {
   sessions!: EntityTable<Session, "id">;
@@ -11,6 +12,7 @@ export class BowlingDatabase extends Dexie {
   spare_lines!: EntityTable<SpareLine, "id">;
   lane_notes!: EntityTable<LaneNote, "id">;
   settings!: EntityTable<AppSetting, "key">;
+  ball_catalog!: EntityTable<CatalogBall, "id">;
 
   constructor() {
     super("BowlingCompanionDB");
@@ -83,6 +85,19 @@ export class BowlingDatabase extends Dexie {
       spare_lines: "++id",
       lane_notes: "++id, [alley+lane]",
       settings: "&key"
+    });
+
+    // Read-only ball catalog table (populated by syncCatalog, append-only).
+    this.version(5).stores({
+      sessions: "++id, date, alley_name, oil_pattern_id",
+      games: "++id, session_id, game_number, lane_number, final_score",
+      frames: "++id, game_id, [game_id+frame_number], frame_number, is_strike, is_spare",
+      balls: "++id, name, is_spare_ball",
+      oil_patterns: "++id, name",
+      spare_lines: "++id",
+      lane_notes: "++id, [alley+lane]",
+      settings: "&key",
+      ball_catalog: "&id, brand, coverstockCategory, coreType, rg, diff, releaseYear"
     });
   }
 }

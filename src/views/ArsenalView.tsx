@@ -13,7 +13,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { GripVertical, Pencil, Trash2 } from "lucide-react";
+import { BookOpen, GripVertical, Pencil, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import {
   addBall,
@@ -22,7 +22,13 @@ import {
   reorderBalls,
   updateBall,
 } from "../services/ballRepository";
+import {
+  getAllCatalog,
+  syncCatalog,
+} from "../services/ballCatalogRepository";
 import type { Ball } from "../types/bowling";
+import type { CatalogBall } from "../types/catalog";
+import { CatalogBallImage } from "../components/CatalogBallImage";
 
 const EMPTY_FORM = {
   name: "",
@@ -104,7 +110,11 @@ function SortableBallRow({ ball, onEdit, onDelete }: SortableBallRowProps) {
   );
 }
 
-export function ArsenalView() {
+interface ArsenalViewProps {
+  onOpenCatalog?: () => void;
+}
+
+export function ArsenalView({ onOpenCatalog }: ArsenalViewProps = {}) {
   const [balls, setBalls] = useState<Ball[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
@@ -114,6 +124,14 @@ export function ArsenalView() {
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [isSaving, setIsSaving] = useState(false);
   const [formError, setFormError] = useState("");
+
+  // Catalog picker state (inline within the arsenal add-ball flow)
+  const [showCatalogPicker, setShowCatalogPicker] = useState(false);
+  const [catalogBalls, setCatalogBalls] = useState<CatalogBall[]>([]);
+  const [catalogSearch, setCatalogSearch] = useState("");
+  const [catalogLoading, setCatalogLoading] = useState(false);
+  // When a catalog ball is chosen, store it here so handleSubmit can attach the snapshot.
+  const [formCatalogRef, setFormCatalogRef] = useState<CatalogBall | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { delay: 180, tolerance: 6 } })
@@ -157,6 +175,7 @@ export function ArsenalView() {
     setEditingId(null);
     setForm(EMPTY_FORM);
     setFormError("");
+    setFormCatalogRef(null);
     setShowForm(true);
   }
 
@@ -177,6 +196,36 @@ export function ArsenalView() {
     setEditingId(null);
     setForm(EMPTY_FORM);
     setFormError("");
+    setFormCatalogRef(null);
+  }
+
+  async function openCatalogPicker() {
+    setShowCatalogPicker(true);
+    setCatalogSearch("");
+    setCatalogLoading(true);
+    try {
+      // Trigger a sync (best-effort) then load from DB.
+      void syncCatalog();
+      const balls = await getAllCatalog();
+      setCatalogBalls(balls);
+    } finally {
+      setCatalogLoading(false);
+    }
+  }
+
+  function pickFromCatalog(catalogBall: CatalogBall) {
+    setShowCatalogPicker(false);
+    setEditingId(null);
+    setForm({
+      name: `${catalogBall.brand} ${catalogBall.name}`,
+      is_spare_ball: false,
+      layout: "",
+      notes: ""
+    });
+    setFormError("");
+    // Store catalog ref and snapshot for addBall call via formCatalogRef.
+    setFormCatalogRef(catalogBall);
+    setShowForm(true);
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -190,11 +239,26 @@ export function ArsenalView() {
     setIsSaving(true);
     setFormError("");
     try {
-      const payload = {
+      const payload: Omit<Ball, "id"> = {
         name,
         is_spare_ball: form.is_spare_ball,
         layout: form.layout.trim() || undefined,
-        notes: form.notes.trim() || undefined
+        notes: form.notes.trim() || undefined,
+        ...(formCatalogRef
+          ? {
+              catalog_ref_id: formCatalogRef.id,
+              catalog_snapshot: {
+                brand: formCatalogRef.brand,
+                name: formCatalogRef.name,
+                coverstockCategory: formCatalogRef.coverstockCategory,
+                coreName: formCatalogRef.coreName,
+                rg: formCatalogRef.rg,
+                diff: formCatalogRef.diff,
+                mbDiff: formCatalogRef.mbDiff,
+                imageThumb: formCatalogRef.imageThumb,
+              },
+            }
+          : {}),
       };
 
       if (editingId !== null) {
@@ -206,6 +270,7 @@ export function ArsenalView() {
       setShowForm(false);
       setEditingId(null);
       setForm(EMPTY_FORM);
+      setFormCatalogRef(null);
       await load();
     } catch (err) {
       setFormError(err instanceof Error ? err.message : "Failed to save ball.");
@@ -226,9 +291,19 @@ export function ArsenalView() {
 
   return (
     <section className="mx-auto w-full max-w-3xl px-3 py-5 sm:px-6 sm:py-8">
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-xl font-bold text-slate-950">Arsenal</h1>
-        {!showForm && (
+      <div className="mb-4 flex items-center gap-2">
+        <h1 className="flex-1 text-xl font-bold text-slate-950">Arsenal</h1>
+        {onOpenCatalog && !showForm && !showCatalogPicker && (
+          <button
+            type="button"
+            onClick={onOpenCatalog}
+            className="inline-flex h-9 items-center gap-1.5 rounded-md border border-slate-300 bg-white px-3 text-sm font-medium text-slate-700 hover:bg-slate-50"
+          >
+            <BookOpen size={14} aria-hidden="true" />
+            Browse catalog
+          </button>
+        )}
+        {!showForm && !showCatalogPicker && (
           <button
             type="button"
             onClick={openAddForm}
@@ -248,9 +323,26 @@ export function ArsenalView() {
 
       {showForm && (
         <div className="mb-4 rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-          <h2 className="mb-3 text-sm font-semibold text-slate-950">
-            {editingId !== null ? "Edit ball" : "Add ball"}
-          </h2>
+          <div className="mb-3 flex items-center gap-2">
+            <h2 className="flex-1 text-sm font-semibold text-slate-950">
+              {editingId !== null ? "Edit ball" : "Add ball"}
+            </h2>
+            {editingId === null && (
+              <button
+                type="button"
+                onClick={() => void openCatalogPicker()}
+                className="inline-flex h-7 items-center gap-1 rounded-md border border-slate-300 bg-white px-2 text-xs font-medium text-slate-700 hover:bg-slate-50"
+              >
+                <BookOpen size={12} aria-hidden="true" />
+                Add from catalog
+              </button>
+            )}
+          </div>
+          {formCatalogRef && (
+            <p className="mb-2 text-xs text-felt-700 font-semibold">
+              Prefilled from catalog: {formCatalogRef.brand} {formCatalogRef.name}
+            </p>
+          )}
 
           {formError && (
             <p className="mb-3 rounded-lg border border-red-200 bg-red-50 p-3 text-sm font-semibold text-red-700">
@@ -339,6 +431,65 @@ export function ArsenalView() {
               </button>
             </div>
           </form>
+        </div>
+      )}
+
+      {/* Catalog picker panel */}
+      {showCatalogPicker && (
+        <div className="mb-4 rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+          <div className="mb-3 flex items-center gap-2">
+            <h2 className="flex-1 text-sm font-semibold text-slate-950">Pick from catalog</h2>
+            <button
+              type="button"
+              onClick={() => setShowCatalogPicker(false)}
+              className="text-slate-400 hover:text-slate-600"
+              aria-label="Close catalog picker"
+            >
+              ✕
+            </button>
+          </div>
+          <input
+            type="search"
+            placeholder="Search name, brand…"
+            value={catalogSearch}
+            onChange={(e) => setCatalogSearch(e.target.value)}
+            className="mb-3 h-9 w-full rounded-lg border border-slate-300 px-3 text-sm outline-none focus:border-felt-700 focus:ring-2 focus:ring-felt-700/20"
+          />
+          {catalogLoading ? (
+            <p className="text-sm text-slate-500">Loading catalog…</p>
+          ) : catalogBalls.length === 0 ? (
+            <p className="text-sm text-slate-500">No catalog balls found. Try refreshing the catalog.</p>
+          ) : (
+            <ul className="max-h-64 space-y-1 overflow-y-auto">
+              {catalogBalls
+                .filter((b) => {
+                  const q = catalogSearch.toLowerCase().trim();
+                  if (!q) return true;
+                  return [b.name, b.brand, b.coverstockRaw].join(" ").toLowerCase().includes(q);
+                })
+                .map((catalogBall) => (
+                  <li key={catalogBall.id}>
+                    <button
+                      type="button"
+                      onClick={() => pickFromCatalog(catalogBall)}
+                      className="flex w-full items-center gap-3 rounded-lg border border-slate-100 bg-slate-50 p-2 text-left hover:border-felt-700 hover:bg-white"
+                    >
+                      <div className="h-10 w-10 shrink-0">
+                        <CatalogBallImage src={catalogBall.imageThumb} alt={catalogBall.name} brand={catalogBall.brand} size="thumb" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-xs font-semibold text-slate-500">{catalogBall.brand}</p>
+                        <p className="text-sm font-semibold text-slate-950">{catalogBall.name}</p>
+                        <p className="text-xs text-slate-500">
+                          {catalogBall.coverstockCategory ?? "—"} · {catalogBall.coreType ?? "—"}
+                          {catalogBall.rg !== null ? ` · RG ${catalogBall.rg.toFixed(2)}` : ""}
+                        </p>
+                      </div>
+                    </button>
+                  </li>
+                ))}
+            </ul>
+          )}
         </div>
       )}
 
