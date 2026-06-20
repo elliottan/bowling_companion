@@ -3,6 +3,10 @@
 Each entry: context, decision, consequences. New entries are appended at the
 bottom. Never edit an accepted ADR — supersede it with a new one and link.
 
+**Index:** ADR-001 standing-pins storage · ADR-002 snake_case wire format ·
+ADR-003 backup merge-by-content · ADR-004 mobile-first 390×844 ·
+ADR-005 stats definitions · ADR-006 inverted pin input
+
 ---
 
 ## ADR-001 — Standing pins are the source of truth

@@ -4,45 +4,22 @@ Bowling Companion is a zero-backend single-page app. React renders the UI,
 Dexie (IndexedDB) stores everything, and a small set of pure modules in
 `src/lib/` own all the bowling rules.
 
-```
-src/
-  main.tsx               React entry point. Mounts <App/>.
-  App.tsx                Shell: header + 4-tab navigation. Owns active view + session id.
-  index.css              Tailwind layer imports + 3 global resets.
+## Layers
 
-  views/                 Page-level screens. One per app tab. Hold view-local state and
-    DashboardView.tsx      orchestrate components + repositories. No bowling logic here.
-    ActiveSessionView.tsx
-    HistoryView.tsx
-    BackupRestoreView.tsx
+The map, not an inventory — source of truth for the file list is `src/` itself.
+Each layer's *role* and the *load-bearing* modules:
 
-  components/            Presentation + interaction primitives. Receive data via props.
-    ActiveGameScorer.tsx  Owns one game's scoring loop (frame controller state).
-    Scorecard.tsx         Renders 10 frames with rolling totals.
-    PinGrid.tsx           Triangle of pin buttons. Toggle standing/down.
-    SessionForm.tsx       Start-session form with collapsed "More details".
-    SessionHistory.tsx    Card list of past sessions with score chips.
-
-  services/              Async repository layer. Wrap Dexie calls in named functions.
-    bowlingRepository.ts   createSession, addGameToSession, saveFrame, getSessionDetails, ...
-    backupRepository.ts    createBackup, exportBackup, importBackup, mergeBackup.
-
-  lib/                   Pure functions. No React. No Dexie. Unit-tested.
-    scoring.ts             calculateGameScore, isStrike, isSpare.
-    scoreDisplay.ts        getFrameShotSymbols (X / / numbers for the scorecard).
-    frameController.ts     submitShot, hydrateFrameController — state machine.
-    backupValidation.ts    validateBackup — JSON-shape + range checks.
-    pins.ts                ALL_PINS, knockedDownCount, pinsClearedBetween, uniquePins.
-
-  db/
-    bowlingDb.ts         Dexie database class + version schema.
-
-  types/
-    bowling.ts           TypeScript interfaces shared everywhere.
-
-  test/
-    setup.ts             vitest setup: fake-indexeddb + jest-dom.
-```
+- `App.tsx` — shell + tab navigation; owns the active view + session id.
+- `views/` — one page-level screen per tab. View-local state; orchestrate
+  components + repositories. **No bowling logic here.**
+- `components/` — presentation + interaction primitives; data via props
+  (e.g. `PinGrid`, `Scorecard`, `ActiveGameScorer`).
+- `services/*Repository.ts` — async layer wrapping **all** Dexie calls in named
+  functions. The only place IndexedDB is touched.
+- `lib/` — pure, React-free, Dexie-free, unit-tested functions. Load-bearing:
+  `scoring.ts`, `frameController.ts` (shot state machine), `pins.ts`, `stats.ts`.
+- `db/bowlingDb.ts` — Dexie class + versioned schema.
+  `types/bowling.ts` — shared interfaces.
 
 ## Data flow
 
