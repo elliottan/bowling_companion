@@ -9,7 +9,11 @@
     "rg": 2.48,
     "diff": 0.054,
     "mbDiff": 0.018,
-    "sourceUrls": ["https://www.stormbowling.com/phaze-ii"]
+    "sourceUrls": ["https://www.stormbowling.com/phaze-ii"],
+    "weights": [
+      { "weight": 15, "rg": 2.48, "diff": 0.054, "mbDiff": 0.018 },
+      { "weight": 14, "rg": 2.50, "diff": 0.052, "mbDiff": 0.016 }
+    ]
   },
   {
     "brand": "Roto Grip",

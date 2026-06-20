@@ -2,6 +2,24 @@
 
 User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachangelog.com).
 
+## [Unreleased] — Catalog v2: multi-weight schema + USBC discovery (2026-06)
+
+### Added
+
+- **Multi-weight ball specs schema.** `CatalogBall` and `RawBall` gain an
+  optional `weights?: WeightSpec[]` array for per-weight RG/diff/mbDiff. The
+  existing top-level fields remain the 15 lb default; `weights` is omitted when
+  absent. Backward-compatible — no UI or sort/filter changes required.
+- **USBC discovery script** (`scripts/sync-catalog/usbc/parse-usbc.ts`).
+  Downloads the USBC approved-ball PDF, extracts all brand+name pairs
+  deterministically (text layer; no OCR), and diffs against `balls.json` using
+  `normalizeName`. Run with `npm run usbc-diff`. PDF cached in `tmp/` (gitignored).
+- **Gather-ball-specs skill** (`.claude/skills/gather-ball-specs/SKILL.md`).
+  Codifies the 2-source search protocol, field definitions, multi-weight rule,
+  and post-add verification steps for adding new balls to the catalog.
+- `DEFAULT_WEIGHT = 15` constant exported from `src/types/catalog.ts`.
+- ADR-008 (multi-weight schema + USBC discovery) in `docs/DECISIONS.md`.
+
 ## [Unreleased] — Roadmap features (2026-06)
 
 ### Added

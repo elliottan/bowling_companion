@@ -51,6 +51,7 @@ const KEY_ORDER: (keyof CatalogBall)[] = [
   "imageThumb",
   "imageFull",
   "sourceUrl",
+  "weights",
 ];
 
 function stableStringify(balls: CatalogBall[]): string {
@@ -133,6 +134,7 @@ function main(): void {
       imageThumb: null,
       imageFull: null,
       sourceUrl: raw.sourceUrls[0] ?? "",
+      ...(raw.weights !== undefined ? { weights: raw.weights } : {}),
     };
 
     catalogBalls.push(ball);

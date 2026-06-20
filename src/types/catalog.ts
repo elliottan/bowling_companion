@@ -2,6 +2,15 @@ export type CoverstockCategory = "Solid" | "Pearl" | "Hybrid" | "Urethane";
 export type CoreType = "Symmetric" | "Asymmetric";
 export type Manufacturer = "Storm" | "Roto Grip" | "900 Global" | "Motiv";
 
+export interface WeightSpec {
+  weight: number;       // pounds, e.g. 15
+  rg: number | null;
+  diff: number | null;
+  mbDiff: number | null;
+}
+
+export const DEFAULT_WEIGHT = 15;
+
 export interface CatalogBall {
   id: string;              // stable: slug(`${brand}-${name}-${releaseYear}`)
   brand: Manufacturer;
@@ -19,6 +28,7 @@ export interface CatalogBall {
   imageThumb: string | null;    // "/catalog/img/<hash>-thumb.webp"
   imageFull: string | null;     // "/catalog/img/<hash>-full.webp"
   sourceUrl: string;            // manufacturer product page
+  weights?: WeightSpec[];       // per-weight specs; top-level rg/diff/mbDiff = 15 lb default
 }
 
 export interface CatalogManifest {

@@ -1,4 +1,4 @@
-import type { Manufacturer } from "../../src/types/catalog.js";
+import type { Manufacturer, WeightSpec } from "../../src/types/catalog.js";
 
 /**
  * Hand-curated input shape for the catalog build pipeline.
@@ -26,4 +26,6 @@ export interface RawBall {
   mbDiff: number | null;
   /** Source URL citations — at least one required */
   sourceUrls: string[];
+  /** Optional per-weight specs. 15 lb must match top-level rg/diff/mbDiff when present. */
+  weights?: WeightSpec[];
 }

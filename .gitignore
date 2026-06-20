@@ -30,3 +30,6 @@ node_modules/.tmp/
 # Playwright
 test-results/
 playwright-report/
+
+# USBC PDF cache (downloaded by usbc-diff script)
+tmp/

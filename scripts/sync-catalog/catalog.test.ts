@@ -265,4 +265,27 @@ describe("build script smoke test (balls.sample.json)", () => {
     expect(typeof manifest.hash).toBe("string");
     expect(manifest.hash.length).toBeGreaterThan(0);
   });
+
+  it("passes weights[] through for Phaze II (round-trip)", () => {
+    const balls: CatalogBall[] = JSON.parse(readFileSync(CATALOG, "utf-8"));
+    const phaze = balls.find((b) => b.name === "Phaze II");
+    expect(phaze).toBeDefined();
+    expect(Array.isArray(phaze?.weights)).toBe(true);
+    expect(phaze?.weights?.length).toBe(2);
+    const w15 = phaze?.weights?.find((w) => w.weight === 15);
+    expect(w15).toBeDefined();
+    expect(w15?.rg).toBe(2.48);
+    expect(w15?.diff).toBe(0.054);
+    expect(w15?.mbDiff).toBe(0.018);
+    const w14 = phaze?.weights?.find((w) => w.weight === 14);
+    expect(w14).toBeDefined();
+    expect(w14?.rg).toBe(2.50);
+  });
+
+  it("omits weights key for Hustle Ink (no weights in input)", () => {
+    const balls: CatalogBall[] = JSON.parse(readFileSync(CATALOG, "utf-8"));
+    const hustle = balls.find((b) => b.name === "Hustle Ink");
+    expect(hustle).toBeDefined();
+    expect(hustle?.weights).toBeUndefined();
+  });
 });

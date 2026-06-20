@@ -6,7 +6,7 @@ bottom. Never edit an accepted ADR — supersede it with a new one and link.
 **Index:** ADR-001 standing-pins storage · ADR-002 snake_case wire format ·
 ADR-003 backup merge-by-content · ADR-004 mobile-first 390×844 ·
 ADR-005 stats definitions · ADR-006 inverted pin input ·
-ADR-007 catalog data source
+ADR-007 catalog data source · ADR-008 multi-weight + USBC discovery
 
 ---
 
@@ -183,3 +183,37 @@ search/filter offline. Client hydration is **append-only** (only new ids added).
 - New read-only `ball_catalog` Dexie table (schema v5) plus optional
   `catalog_ref_id` / `catalog_snapshot` on `Ball` for arsenal quick-fill
   (non-indexed → no further version bump).
+
+---
+
+## ADR-008 — Multi-weight-capable schema + USBC discovery tooling
+
+**Status:** accepted (2026-06).
+
+**Context.** Ball specs (RG, Diff, MB Diff) vary by ball weight, but the catalog
+initially stored only one set (the 15 lb numbers). Separately, deciding *which*
+balls to add was ad hoc; the USBC publishes an authoritative approved-ball list
+(a PDF) that can drive discovery deterministically.
+
+**Decision.**
+- Extend `CatalogBall` and the curated `RawBall` input with an optional
+  `weights?: WeightSpec[]` (`{ weight, rg, diff, mbDiff }`). The top-level
+  rg/diff/mbDiff stay as the 15 lb default (`DEFAULT_WEIGHT = 15`); `weights`
+  is additive and omitted when absent, so existing sort/filter/display are
+  unchanged. Per-weight rows are filled opportunistically, not backfilled.
+- Add a deterministic USBC discovery script
+  (`scripts/sync-catalog/usbc/parse-usbc.ts`, `npm run usbc-diff`): downloads
+  the approved-ball PDF, extracts brand+name pairs from its text layer (no OCR,
+  no LLM), whitelists the four brands, and diffs against `balls.json` to report
+  missing balls. The PDF is cached under `tmp/` (gitignored).
+- Codify the manual spec-gathering protocol as the `gather-ball-specs` skill
+  (field schema, 2-source cross-check, never-invent-a-number, flag-don't-guess
+  coverstock).
+
+**Consequences.**
+- The schema is multi-weight-ready with no data migration; UI can add a weight
+  selector that falls back to the 15 lb default.
+- USBC discovery is deterministic and token-free — it finds *candidates* but
+  does not gather specs; that stays the curated, cited process.
+- No Dexie change; the catalog is still rebuilt wholesale and client sync is
+  unchanged (ADR-007 holds).
