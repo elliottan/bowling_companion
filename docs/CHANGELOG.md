@@ -4,6 +4,16 @@ User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachan
 
 ## [Unreleased] — Roadmap features (2026-06)
 
+### Added
+
+- **Bowling ball catalog.** Searchable, filterable reference catalog of
+  manufacturer balls (Storm, Roto Grip, 900 Global, Motiv) with specs
+  (coverstock, core, RG, Diff, MB Diff). Served as a static JSON from the CDN,
+  hydrated into IndexedDB on first open, then searched/filtered 100% offline.
+  Reached from a Dashboard widget and Settings → Arsenal; "Add from catalog"
+  snapshots a catalog ball's specs into your arsenal. Data is hand-curated and
+  source-cited (`scripts/sync-catalog`, `npm run sync-catalog`); see ADR-007.
+
 ### Changed
 
 - **Inverted pin input.** Each shot now starts with all pins down; tap the pins

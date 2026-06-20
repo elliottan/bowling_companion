@@ -5,7 +5,8 @@ bottom. Never edit an accepted ADR — supersede it with a new one and link.
 
 **Index:** ADR-001 standing-pins storage · ADR-002 snake_case wire format ·
 ADR-003 backup merge-by-content · ADR-004 mobile-first 390×844 ·
-ADR-005 stats definitions · ADR-006 inverted pin input
+ADR-005 stats definitions · ADR-006 inverted pin input ·
+ADR-007 catalog data source
 
 ---
 
@@ -152,3 +153,33 @@ tap to knock down" model entirely — no settings toggle.
 - The persisted data and the scoring engine are unchanged (ADR-001 holds).
 - One-time muscle-memory change for the existing user; acceptable per the
   replace-entirely decision.
+
+---
+
+## ADR-007 — Ball catalog: curated data source, append-only client sync
+
+**Status:** accepted (2026-06).
+
+**Context.** The ball catalog needs manufacturer specs (RG, Diff, coverstock,
+core) for Storm, Roto Grip, 900 Global, and Motiv. The plan assumed scraping
+the manufacturer sites, but all are bot-walled (Roto Grip + 900 Global redirect
+into `stormbowling.com`, which sits behind reCAPTCHA; Motiv returns 403).
+Automated scraping is infeasible and legally fraught.
+
+**Decision.** Source the catalog from a hand-curated, source-cited data file
+(`scripts/sync-catalog/data/balls.json`). A deterministic, network-free build
+(`npm run sync-catalog`) normalizes/validates it into a static
+`public/catalog/catalog.json` + manifest served by the Vercel CDN. The client
+fetches it lazily on catalog-view open, hydrates IndexedDB, and runs all
+search/filter offline. Client hydration is **append-only** (only new ids added).
+
+**Consequences.**
+- No server, no scraping, free hosting; the dataset is small and slow-changing.
+- Coverstock strings lacking a solid/pearl/hybrid/urethane keyword are flagged
+  for human classification, never guessed (e.g. Motiv "Turmoil MFS Solid").
+- Updates are manual: edit the data file → `npm run sync-catalog` → open a PR.
+- Append-only client means a corrected spec won't update an already-synced
+  device until a future manual reconciliation/audit step exists.
+- New read-only `ball_catalog` Dexie table (schema v5) plus optional
+  `catalog_ref_id` / `catalog_snapshot` on `Ball` for arsenal quick-fill
+  (non-indexed → no further version bump).
