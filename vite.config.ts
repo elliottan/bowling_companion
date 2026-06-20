@@ -29,7 +29,26 @@ export default defineConfig({
         ]
       },
       workbox: {
-        globPatterns: ["**/*.{js,css,html,svg,png,ico,webmanifest}"]
+        // NOTE: webp and catalog JSON are intentionally excluded from precache
+        // to keep boot light. They are runtime-cached on first use instead.
+        globPatterns: ["**/*.{js,css,html,svg,png,ico,webmanifest}"],
+        runtimeCaching: [
+          {
+            urlPattern: /\/catalog\/catalog-manifest\.json$/,
+            handler: "StaleWhileRevalidate",
+            options: { cacheName: "catalog-manifest" }
+          },
+          {
+            urlPattern: /\/catalog\/catalog\.json$/,
+            handler: "StaleWhileRevalidate",
+            options: { cacheName: "catalog-data" }
+          },
+          {
+            urlPattern: /\/catalog\/img\/.*\.webp$/,
+            handler: "StaleWhileRevalidate",
+            options: { cacheName: "catalog-images" }
+          }
+        ]
       }
     })
   ],
