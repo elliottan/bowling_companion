@@ -1,4 +1,4 @@
-import { PlayCircle, Plus } from "lucide-react";
+import { BookOpen, PlayCircle, Plus } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { SessionFormDialog } from "../components/SessionFormDialog";
 import { SessionHistory } from "../components/SessionHistory";
@@ -15,6 +15,7 @@ interface DashboardViewProps {
   onOpenSession: (sessionId: number) => void;
   onViewAll: () => void;
   activeSessionId?: number | null;
+  onOpenCatalog: () => void;
 }
 
 const RECENT_LIMIT = 10;
@@ -27,7 +28,8 @@ export function DashboardView({
   onResume,
   onOpenSession,
   onViewAll,
-  activeSessionId
+  activeSessionId,
+  onOpenCatalog
 }: DashboardViewProps) {
   const [showForm, setShowForm] = useState(false);
   const [recent, setRecent] = useState<SessionSummary[]>([]);
@@ -70,6 +72,23 @@ export function DashboardView({
         <Plus size={18} aria-hidden="true" />
         Start new session
       </button>
+
+      {/* Widgets row */}
+      <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
+        <button
+          type="button"
+          onClick={onOpenCatalog}
+          className="flex flex-col items-start gap-2 rounded-lg border border-slate-200 bg-white p-4 shadow-sm hover:border-felt-700 text-left"
+        >
+          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-felt-700/10 text-felt-700">
+            <BookOpen size={18} aria-hidden="true" />
+          </span>
+          <span>
+            <span className="block text-sm font-semibold text-slate-950">Ball Catalog</span>
+            <span className="block text-xs text-slate-500">Browse all manufacturer balls</span>
+          </span>
+        </button>
+      </div>
 
       <div className="mt-6">
         <div className="mb-2 flex items-center justify-between">

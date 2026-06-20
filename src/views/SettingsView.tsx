@@ -1,4 +1,4 @@
-import { Archive, ChevronLeft, ChevronRight, CircleDot, MapPin, SlidersHorizontal, type LucideIcon } from "lucide-react";
+import { Archive, BookOpen, ChevronLeft, ChevronRight, CircleDot, MapPin, SlidersHorizontal, type LucideIcon } from "lucide-react";
 import { BackupRestoreView } from "./BackupRestoreView";
 import { LaneNotesView } from "./LaneNotesView";
 import { HandednessView } from "./HandednessView";
@@ -13,6 +13,8 @@ interface SettingsViewProps {
   onHandednessChange: (value: Handedness) => void;
   /** Arsenal opens as a modal overlay rather than an inline section. */
   onOpenArsenal: () => void;
+  /** Navigate to the ball catalog view. */
+  onOpenCatalog: () => void;
 }
 
 interface MenuRow {
@@ -49,7 +51,7 @@ const MENU_ROWS: ReadonlyArray<MenuRow> = [
   }
 ];
 
-export function SettingsView({ section, onSectionChange, handedness, onHandednessChange, onOpenArsenal }: SettingsViewProps) {
+export function SettingsView({ section, onSectionChange, handedness, onHandednessChange, onOpenArsenal, onOpenCatalog }: SettingsViewProps) {
   if (section !== "menu") {
     return (
       <>
@@ -80,11 +82,15 @@ export function SettingsView({ section, onSectionChange, handedness, onHandednes
       <ul className="space-y-2">
         {MENU_ROWS.map((row) => {
           const Icon = row.icon;
+          const onClick =
+            row.section === "arsenal"
+              ? onOpenArsenal
+              : () => onSectionChange(row.section);
           return (
             <li key={row.section}>
               <button
                 type="button"
-                onClick={() => (row.section === "arsenal" ? onOpenArsenal() : onSectionChange(row.section))}
+                onClick={onClick}
                 className="flex w-full items-center gap-3 rounded-lg border border-slate-200 bg-white p-4 text-left shadow-sm hover:border-felt-700"
               >
                 <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-felt-700/10 text-felt-700">
@@ -99,6 +105,23 @@ export function SettingsView({ section, onSectionChange, handedness, onHandednes
             </li>
           );
         })}
+        {/* Ball Catalog — navigates to CatalogView */}
+        <li>
+          <button
+            type="button"
+            onClick={onOpenCatalog}
+            className="flex w-full items-center gap-3 rounded-lg border border-slate-200 bg-white p-4 text-left shadow-sm hover:border-felt-700"
+          >
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-felt-700/10 text-felt-700">
+              <BookOpen size={20} aria-hidden="true" />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block font-semibold text-slate-950">Ball Catalog</span>
+              <span className="block text-sm text-slate-500">Browse manufacturer ball specs</span>
+            </span>
+            <ChevronRight size={18} aria-hidden="true" className="shrink-0 text-slate-400" />
+          </button>
+        </li>
       </ul>
     </section>
   );

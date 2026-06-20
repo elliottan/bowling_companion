@@ -22,6 +22,17 @@ export interface Shot {
   notes?: string;
 }
 
+export interface BallCatalogSnapshot {
+  brand: string;
+  name: string;
+  coverstockCategory: string | null;
+  coreName: string | null;
+  rg: number | null;
+  diff: number | null;
+  mbDiff: number | null;
+  imageThumb: string | null;
+}
+
 export interface Ball {
   id?: number;
   name: string;
@@ -29,6 +40,8 @@ export interface Ball {
   layout?: string;
   notes?: string;
   sort_order?: number;
+  catalog_ref_id?: string;
+  catalog_snapshot?: BallCatalogSnapshot;
 }
 
 export interface OilPattern {

@@ -1,0 +1,26 @@
+[
+  {
+    "brand": "Storm",
+    "name": "Phaze II",
+    "releaseDate": "2017-09-01",
+    "coverstockRaw": "ReX Pearl Reactive",
+    "factoryFinish": "500/1000 SiaAir / Royal Compound / Royal Shine",
+    "coreName": "RAD-X",
+    "rg": 2.48,
+    "diff": 0.054,
+    "mbDiff": 0.018,
+    "sourceUrls": ["https://www.stormbowling.com/phaze-ii"]
+  },
+  {
+    "brand": "Roto Grip",
+    "name": "Hustle Ink",
+    "releaseDate": "2022-05-20",
+    "coverstockRaw": "Hybrid Reactive",
+    "factoryFinish": "500 Siaair / Crown Factory Compound",
+    "coreName": "Gear Core",
+    "rg": 2.59,
+    "diff": 0.038,
+    "mbDiff": null,
+    "sourceUrls": ["https://www.rotogrip.com/hustle-ink"]
+  }
+]

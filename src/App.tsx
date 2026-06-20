@@ -10,6 +10,7 @@ import { useEffect, useRef, useState } from "react";
 import { DashboardView } from "./views/DashboardView";
 import { ActiveSessionView } from "./views/ActiveSessionView";
 import { ArsenalView } from "./views/ArsenalView";
+import { CatalogView } from "./views/CatalogView";
 import { HistoryView } from "./views/HistoryView";
 import { SettingsView, type SettingsSection } from "./views/SettingsView";
 import { SpareLinesView } from "./views/SpareLinesView";
@@ -27,7 +28,7 @@ import { HandednessContext } from "./lib/handednessContext";
 import { HandednessPicker } from "./components/HandednessPicker";
 import type { Handedness } from "./types/bowling";
 
-type AppView = "dashboard" | "active" | "history" | "spares" | "settings";
+type AppView = "dashboard" | "active" | "history" | "spares" | "settings" | "catalog";
 
 type NavItem = {
   view: AppView;
@@ -152,9 +153,10 @@ function App() {
     }
   }
 
-  // Navigate, remembering where we came from when entering the active view.
+  // Navigate, remembering where we came from when entering the active or catalog view.
   function goTo(target: AppView) {
     if (target === "active" && view !== "active") setPreviousView(view);
+    if (target === "catalog" && view !== "catalog") setPreviousView(view);
     if (target === "settings") setSettingsSection("menu");
     setView(target);
   }
@@ -263,6 +265,7 @@ function App() {
             onOpenSession={openSession}
             onViewAll={() => goTo("history")}
             activeSessionId={activeSessionId}
+            onOpenCatalog={() => goTo("catalog")}
           />
         )}
         {view === "active" && activeSessionId && (
@@ -287,7 +290,11 @@ function App() {
             handedness={handedness ?? "right"}
             onHandednessChange={chooseHandedness}
             onOpenArsenal={openArsenal}
+            onOpenCatalog={() => goTo("catalog")}
           />
+        )}
+        {view === "catalog" && (
+          <CatalogView onBack={() => goTo(previousView)} />
         )}
       </main>
 
@@ -354,7 +361,7 @@ function App() {
               <div className="h-1.5 w-10 rounded-full bg-slate-300" />
             </div>
             <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
-              <ArsenalView />
+              <ArsenalView onOpenCatalog={() => { setArsenalOpen(false); goTo("catalog"); }} />
             </div>
           </div>
         </div>

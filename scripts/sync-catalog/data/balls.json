@@ -1,0 +1,182 @@
+[
+  {
+    "brand": "Storm",
+    "name": "Phaze II",
+    "releaseDate": "2019-01-01",
+    "coverstockRaw": "TX-16 Solid Reactive",
+    "factoryFinish": "3000-grit Abralon",
+    "coreName": "Velocity",
+    "rg": 2.48,
+    "diff": 0.051,
+    "mbDiff": null,
+    "sourceUrls": [
+      "https://www.stormbowling.com/products/equipment/bowling-balls/bbmtza-phaze-ii",
+      "https://www.bowlingthismonth.com/bowling-ball-review/storm-phaze-ii/"
+    ]
+  },
+  {
+    "brand": "Storm",
+    "name": "Proton PhysiX",
+    "releaseDate": "2021-01-01",
+    "coverstockRaw": "NeX Solid Reactive",
+    "factoryFinish": "2000-grit Abralon",
+    "coreName": "Atomic",
+    "rg": 2.48,
+    "diff": 0.053,
+    "mbDiff": 0.017,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/storm/proton-physix",
+      "https://www.bowlingthismonth.com/bowling-ball-review/storm-proton-physix/"
+    ]
+  },
+  {
+    "brand": "Storm",
+    "name": "Hy-Road",
+    "releaseDate": "2009-01-01",
+    "coverstockRaw": "R2S Hybrid Reactive",
+    "factoryFinish": "1500-grit Polished",
+    "coreName": "Inverted Fe2",
+    "rg": 2.57,
+    "diff": 0.046,
+    "mbDiff": null,
+    "sourceUrls": [
+      "https://www.bowling.com/products/storm-hy-road.htm",
+      "https://gebhardtsbowling.com/storm-hy-road-bowling-ball/"
+    ]
+  },
+  {
+    "brand": "Roto Grip",
+    "name": "Idol",
+    "releaseDate": "2018-01-01",
+    "coverstockRaw": "MicroTrax-S18 Solid Reactive",
+    "factoryFinish": "2000-grit Sanded",
+    "coreName": "Ikon",
+    "rg": 2.49,
+    "diff": 0.052,
+    "mbDiff": null,
+    "sourceUrls": [
+      "https://www.bowlingthismonth.com/bowling-ball-review/roto-grip-idol/",
+      "https://123bowl.com/bowling-balls/roto-grip/roto-grip-idol-bowling-ball/"
+    ]
+  },
+  {
+    "brand": "Roto Grip",
+    "name": "Hustle Ink",
+    "releaseDate": "2020-01-01",
+    "coverstockRaw": "Thrilled Solid Reactive",
+    "factoryFinish": "1500-grit Polished",
+    "coreName": "Hustle",
+    "rg": 2.53,
+    "diff": 0.030,
+    "mbDiff": null,
+    "sourceUrls": [
+      "https://tamerbowling.com/roto-grip-hustle-ink-bowling-ball-review/",
+      "https://123bowl.com/bowling-balls/roto-grip/roto-grip-hustle-ink-bowling-ball/"
+    ]
+  },
+  {
+    "brand": "Roto Grip",
+    "name": "Halo",
+    "releaseDate": "2019-01-01",
+    "coverstockRaw": "MicroTrax-S18 Solid Reactive",
+    "factoryFinish": "2000-grit Pad",
+    "coreName": "Centrum",
+    "rg": 2.49,
+    "diff": 0.050,
+    "mbDiff": 0.018,
+    "sourceUrls": [
+      "https://tamerbowling.com/roto-grip-halo-bowling-ball-review/",
+      "https://www.11thframe.com/reviews/ball/155/Halo"
+    ]
+  },
+  {
+    "brand": "900 Global",
+    "name": "Zen",
+    "releaseDate": "2021-01-01",
+    "coverstockRaw": "S77 Response Pearl Reactive",
+    "factoryFinish": "1500-grit Polished",
+    "coreName": "Meditate",
+    "rg": 2.49,
+    "diff": 0.051,
+    "mbDiff": null,
+    "sourceUrls": [
+      "https://www.bowlingthismonth.com/bowling-ball-review/900-global-zen/",
+      "https://www.11thframe.com/reviews/ball/188/Zen"
+    ]
+  },
+  {
+    "brand": "900 Global",
+    "name": "Reality",
+    "releaseDate": "2021-01-01",
+    "coverstockRaw": "S84 Response Solid Reactive",
+    "factoryFinish": "2000-grit Abralon",
+    "coreName": "Disturbance",
+    "rg": 2.49,
+    "diff": 0.052,
+    "mbDiff": 0.018,
+    "sourceUrls": [
+      "https://www.bowlingthismonth.com/bowling-ball-review/900-global-reality/",
+      "https://www.bowlersparadise.com/products/900global-reality-bowling-ball"
+    ]
+  },
+  {
+    "brand": "900 Global",
+    "name": "Altered Reality",
+    "releaseDate": "2022-01-01",
+    "coverstockRaw": "S84 Response Pearl Reactive",
+    "factoryFinish": "1500-grit Polished",
+    "coreName": "Disturbance",
+    "rg": 2.49,
+    "diff": 0.052,
+    "mbDiff": 0.018,
+    "sourceUrls": [
+      "https://www.bowlingthismonth.com/bowling-ball-review/900-global-altered-reality/",
+      "https://www.bowwwl.com/bowling-ball-database/900-global/altered-reality"
+    ]
+  },
+  {
+    "brand": "Motiv",
+    "name": "Venom Shock",
+    "releaseDate": "2014-03-28",
+    "coverstockRaw": "Turmoil MFS Solid Reactive",
+    "factoryFinish": "4000-grit Sanded",
+    "coreName": "Gear",
+    "rg": 2.48,
+    "diff": 0.034,
+    "mbDiff": null,
+    "sourceUrls": [
+      "https://www.motivbowling.com/products/balls/light-medium-oil/venom-shock.html",
+      "https://www.bowling.com/products/motiv-venom-shock.htm"
+    ]
+  },
+  {
+    "brand": "Motiv",
+    "name": "Jackal Ghost",
+    "releaseDate": "2018-01-01",
+    "coverstockRaw": "Coercion HFS Solid Reactive",
+    "factoryFinish": "3000-grit LSS",
+    "coreName": "Predator V2",
+    "rg": 2.47,
+    "diff": 0.054,
+    "mbDiff": 0.015,
+    "sourceUrls": [
+      "https://www.bowlingthismonth.com/bowling-ball-review/motiv-jackal-ghost/",
+      "https://www.bowling.com/products/motiv-jackal-ghost.htm"
+    ]
+  },
+  {
+    "brand": "Motiv",
+    "name": "Forge",
+    "releaseDate": "2017-01-01",
+    "coverstockRaw": "Coercion HFS Solid Reactive",
+    "factoryFinish": "3000-grit Sanded",
+    "coreName": "Detonator",
+    "rg": 2.47,
+    "diff": 0.055,
+    "mbDiff": null,
+    "sourceUrls": [
+      "https://www.bowlingthismonth.com/bowling-ball-review/motiv-forge/",
+      "https://www.discountbowlingsupply.com/products/motiv-forge"
+    ]
+  }
+]
