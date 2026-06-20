@@ -2,6 +2,29 @@
 
 User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachangelog.com).
 
+## [Unreleased] — Catalog v2: UX overhaul (2026-06)
+
+### Changed
+
+- **Catalog as full-screen modal.** `CatalogView` now renders as a `fixed inset-0 z-50` overlay, covering the bottom nav bar on all screen sizes.
+- **Row/list view.** Catalog ball grid replaced with a compact single-column row list (thumbnail · brand · name · specs) for faster scanning and numeric comparison.
+- **Dual-range slider: single track with filled segment.** RG and Diff sliders now render one track with the selected range highlighted; values commit only on pointer/touch/key release to avoid excess re-renders.
+- **"Add to my arsenal" fix.** Fixed broken dialog from detail view — the confirm dialog is now always mounted at the overlay root, reachable from both list and detail view.
+- **Spec list styling.** `SpecItem` rows in the detail panel are now rendered as key/value rows with a subtle divider instead of bordered white boxes that looked like input fields.
+- **Arsenal: catalog specs line.** Arsenal ball rows now show a compact specs line (coverstock category, core, RG, Diff) when a catalog snapshot is present.
+- **Arsenal: icon-only "Browse catalog" button.** The text label is dropped; the `BookOpen` icon remains with an `aria-label`.
+- **Arsenal: weight field.** Add/edit form gains a weight selector (10–16 lb, default 15). Weight is saved on `Ball` and used to select per-weight specs from the catalog when the ball is catalog-linked.
+
+### Added
+
+- **"Owned" badge in catalog.** Catalog rows for balls already in the user's arsenal display a small "Owned" badge.
+- `weight?: number` optional field on `Ball` type (non-indexed; no Dexie schema bump).
+
+### Removed
+
+- Release Year filter facet removed from catalog filters.
+- "View on manufacturer site" link removed from catalog detail panel.
+
 ## [Unreleased] — Catalog v2: multi-weight schema + USBC discovery (2026-06)
 
 ### Added

@@ -24,20 +24,25 @@ import {
 } from "../services/ballRepository";
 import {
   getAllCatalog,
+  getCatalogBall,
   syncCatalog,
 } from "../services/ballCatalogRepository";
 import type { Ball } from "../types/bowling";
 import type { CatalogBall } from "../types/catalog";
+import { DEFAULT_WEIGHT } from "../types/catalog";
 import { CatalogBallImage } from "../components/CatalogBallImage";
 
 const EMPTY_FORM = {
   name: "",
   is_spare_ball: false,
   layout: "",
-  notes: ""
+  notes: "",
+  weight: DEFAULT_WEIGHT as number,
 };
 
 type FormState = typeof EMPTY_FORM;
+
+const WEIGHT_OPTIONS = [10, 11, 12, 13, 14, 15, 16];
 
 interface SortableBallRowProps {
   ball: Ball;
@@ -53,6 +58,9 @@ function SortableBallRow({ ball, onEdit, onDelete }: SortableBallRowProps) {
     transition,
     zIndex: isDragging ? 10 : undefined,
   };
+
+  const snap = ball.catalog_snapshot;
+
   return (
     <li ref={setNodeRef} style={style}>
       <div
@@ -79,6 +87,19 @@ function SortableBallRow({ ball, onEdit, onDelete }: SortableBallRowProps) {
               </span>
             )}
           </div>
+          {/* B9: catalog specs line */}
+          {snap && (
+            <p className="mt-0.5 text-xs text-slate-500">
+              {[
+                snap.coverstockCategory,
+                snap.coreName,
+                snap.rg !== null ? `RG ${snap.rg.toFixed(2)}` : null,
+                snap.diff !== null ? `Diff ${snap.diff.toFixed(3)}` : null,
+              ]
+                .filter(Boolean)
+                .join(" · ")}
+            </p>
+          )}
           {ball.layout && (
             <p className="mt-0.5 text-xs text-slate-500">{ball.layout}</p>
           )}
@@ -132,6 +153,8 @@ export function ArsenalView({ onOpenCatalog }: ArsenalViewProps = {}) {
   const [catalogLoading, setCatalogLoading] = useState(false);
   // When a catalog ball is chosen, store it here so handleSubmit can attach the snapshot.
   const [formCatalogRef, setFormCatalogRef] = useState<CatalogBall | null>(null);
+  // Specs for the currently selected weight (B11)
+  const [weightSpecs, setWeightSpecs] = useState<{ rg: number | null; diff: number | null; mbDiff: number | null } | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { delay: 180, tolerance: 6 } })
@@ -152,6 +175,28 @@ export function ArsenalView({ onOpenCatalog }: ArsenalViewProps = {}) {
   useEffect(() => {
     void load();
   }, []);
+
+  // B11: When catalog ref or weight changes, resolve specs for that weight.
+  useEffect(() => {
+    if (!formCatalogRef) {
+      setWeightSpecs(null);
+      return;
+    }
+    const w = form.weight;
+    void getCatalogBall(formCatalogRef.id).then((catalogBall) => {
+      if (!catalogBall) {
+        setWeightSpecs(null);
+        return;
+      }
+      const entry = catalogBall.weights?.find((ws) => ws.weight === w);
+      if (entry) {
+        setWeightSpecs({ rg: entry.rg, diff: entry.diff, mbDiff: entry.mbDiff });
+      } else {
+        // Fall back to top-level (15 lb default)
+        setWeightSpecs({ rg: catalogBall.rg, diff: catalogBall.diff, mbDiff: catalogBall.mbDiff });
+      }
+    });
+  }, [formCatalogRef, form.weight]);
 
   async function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;
@@ -176,6 +221,7 @@ export function ArsenalView({ onOpenCatalog }: ArsenalViewProps = {}) {
     setForm(EMPTY_FORM);
     setFormError("");
     setFormCatalogRef(null);
+    setWeightSpecs(null);
     setShowForm(true);
   }
 
@@ -185,9 +231,11 @@ export function ArsenalView({ onOpenCatalog }: ArsenalViewProps = {}) {
       name: ball.name,
       is_spare_ball: ball.is_spare_ball,
       layout: ball.layout ?? "",
-      notes: ball.notes ?? ""
+      notes: ball.notes ?? "",
+      weight: ball.weight ?? DEFAULT_WEIGHT,
     });
     setFormError("");
+    setWeightSpecs(null);
     setShowForm(true);
   }
 
@@ -197,6 +245,7 @@ export function ArsenalView({ onOpenCatalog }: ArsenalViewProps = {}) {
     setForm(EMPTY_FORM);
     setFormError("");
     setFormCatalogRef(null);
+    setWeightSpecs(null);
   }
 
   async function openCatalogPicker() {
@@ -220,7 +269,8 @@ export function ArsenalView({ onOpenCatalog }: ArsenalViewProps = {}) {
       name: `${catalogBall.brand} ${catalogBall.name}`,
       is_spare_ball: false,
       layout: "",
-      notes: ""
+      notes: "",
+      weight: DEFAULT_WEIGHT,
     });
     setFormError("");
     // Store catalog ref and snapshot for addBall call via formCatalogRef.
@@ -239,11 +289,19 @@ export function ArsenalView({ onOpenCatalog }: ArsenalViewProps = {}) {
     setIsSaving(true);
     setFormError("");
     try {
+      // Use weight-specific specs if available, else fall back to catalog top-level
+      const specOverride = weightSpecs && formCatalogRef ? {
+        rg: weightSpecs.rg,
+        diff: weightSpecs.diff,
+        mbDiff: weightSpecs.mbDiff,
+      } : null;
+
       const payload: Omit<Ball, "id"> = {
         name,
         is_spare_ball: form.is_spare_ball,
         layout: form.layout.trim() || undefined,
         notes: form.notes.trim() || undefined,
+        weight: form.weight,
         ...(formCatalogRef
           ? {
               catalog_ref_id: formCatalogRef.id,
@@ -252,9 +310,9 @@ export function ArsenalView({ onOpenCatalog }: ArsenalViewProps = {}) {
                 name: formCatalogRef.name,
                 coverstockCategory: formCatalogRef.coverstockCategory,
                 coreName: formCatalogRef.coreName,
-                rg: formCatalogRef.rg,
-                diff: formCatalogRef.diff,
-                mbDiff: formCatalogRef.mbDiff,
+                rg: specOverride?.rg ?? formCatalogRef.rg,
+                diff: specOverride?.diff ?? formCatalogRef.diff,
+                mbDiff: specOverride?.mbDiff ?? formCatalogRef.mbDiff,
                 imageThumb: formCatalogRef.imageThumb,
               },
             }
@@ -271,6 +329,7 @@ export function ArsenalView({ onOpenCatalog }: ArsenalViewProps = {}) {
       setEditingId(null);
       setForm(EMPTY_FORM);
       setFormCatalogRef(null);
+      setWeightSpecs(null);
       await load();
     } catch (err) {
       setFormError(err instanceof Error ? err.message : "Failed to save ball.");
@@ -293,14 +352,15 @@ export function ArsenalView({ onOpenCatalog }: ArsenalViewProps = {}) {
     <section className="mx-auto w-full max-w-3xl px-3 py-5 sm:px-6 sm:py-8">
       <div className="mb-4 flex items-center gap-2">
         <h1 className="flex-1 text-xl font-bold text-slate-950">Arsenal</h1>
+        {/* B10: icon-only browse catalog button */}
         {onOpenCatalog && !showForm && !showCatalogPicker && (
           <button
             type="button"
             onClick={onOpenCatalog}
-            className="inline-flex h-9 items-center gap-1.5 rounded-md border border-slate-300 bg-white px-3 text-sm font-medium text-slate-700 hover:bg-slate-50"
+            aria-label="Browse catalog"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-slate-300 bg-white text-slate-700 hover:bg-slate-50"
           >
             <BookOpen size={14} aria-hidden="true" />
-            Browse catalog
           </button>
         )}
         {!showForm && !showCatalogPicker && (
@@ -362,6 +422,32 @@ export function ArsenalView({ onOpenCatalog }: ArsenalViewProps = {}) {
                 placeholder="e.g. Storm Phaze II"
                 className="h-11 w-full rounded-lg border border-slate-300 px-3 text-sm outline-none focus:border-felt-700 focus:ring-2 focus:ring-felt-700/20"
               />
+            </div>
+
+            {/* B11: weight selector */}
+            <div>
+              <label className="mb-1 block text-sm font-medium text-slate-700">
+                Weight <span className="text-slate-400 font-normal">(lbs)</span>
+              </label>
+              <select
+                value={form.weight}
+                onChange={(e) => setForm((f) => ({ ...f, weight: Number(e.target.value) }))}
+                className="h-11 w-full rounded-lg border border-slate-300 px-3 text-sm outline-none focus:border-felt-700 focus:ring-2 focus:ring-felt-700/20"
+              >
+                {WEIGHT_OPTIONS.map((w) => (
+                  <option key={w} value={w}>{w} lb</option>
+                ))}
+              </select>
+              {/* Show weight-specific specs when catalog-linked */}
+              {formCatalogRef && weightSpecs && (
+                <p className="mt-1 text-xs text-slate-500">
+                  Specs for {form.weight} lb:
+                  {weightSpecs.rg !== null ? ` RG ${weightSpecs.rg.toFixed(2)}` : ""}
+                  {weightSpecs.diff !== null ? ` · Diff ${weightSpecs.diff.toFixed(3)}` : ""}
+                  {weightSpecs.mbDiff !== null ? ` · MB Diff ${weightSpecs.mbDiff.toFixed(3)}` : ""}
+                  {weightSpecs.rg === null && weightSpecs.diff === null ? " — (15 lb fallback)" : ""}
+                </p>
+              )}
             </div>
 
             <div className="flex items-start gap-3">

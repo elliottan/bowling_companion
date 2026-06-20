@@ -42,6 +42,7 @@ export interface Ball {
   sort_order?: number;
   catalog_ref_id?: string;
   catalog_snapshot?: BallCatalogSnapshot;
+  weight?: number;
 }
 
 export interface OilPattern {
