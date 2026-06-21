@@ -40,6 +40,7 @@ export interface SeedBall extends RawBall {
   colorways: Colorway[];
   _needsReview?: boolean;
   _candidateName?: string;
+  _reviewReason?: string;
 }
 export interface UsbcIndexEntry {
   brand: string;
@@ -354,9 +355,18 @@ export function buildSeedBall(body: string, weights: WeightRow[], opts: ParseOpt
     })),
     colorways,
   };
-  if (!rec || !rec.confident) {
+  const reasons: string[] = [];
+  if (!rec) {
+    reasons.push(candidates.length ? `no USBC match for parsed name(s)` : `no ball name extracted`);
+  } else if (!rec.confident) {
+    reasons.push(`fuzzy name match to "${rec.name}" — verify exact model`);
+  }
+  if (!coverstock) reasons.push("missing coverstock");
+  if (!ball.weights || ball.weights.length === 0) reasons.push("no weights parsed");
+  if (reasons.length > 0) {
     ball._needsReview = true;
     ball._candidateName = candidates.join(" | ");
+    ball._reviewReason = reasons.join("; ");
   }
   return ball;
 }

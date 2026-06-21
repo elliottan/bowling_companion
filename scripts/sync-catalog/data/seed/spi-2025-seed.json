@@ -263,7 +263,8 @@
     ],
     "colorways": [],
     "_needsReview": true,
-    "_candidateName": ""
+    "_candidateName": "",
+    "_reviewReason": "no ball name extracted; missing coverstock"
   },
   {
     "brand": "Storm",
@@ -480,7 +481,8 @@
     ],
     "colorways": [],
     "_needsReview": true,
-    "_candidateName": ""
+    "_candidateName": "",
+    "_reviewReason": "no ball name extracted; missing coverstock"
   },
   {
     "brand": "Storm",
@@ -775,7 +777,8 @@
       }
     ],
     "_needsReview": true,
-    "_candidateName": "BLACK/CHERRY TROPICAL SURGE | EMERALD/CHARCOAL | TROPICAL SURGE | PINK/PURPLE | TEAL/BLUE"
+    "_candidateName": "BLACK/CHERRY TROPICAL SURGE | BLACK/CHERRY TROPICAL | EMERALD/CHARCOAL | TROPICAL SURGE | BLACK/CHERRY | PINK/PURPLE | TEAL/BLUE | TROPICAL",
+    "_reviewReason": "fuzzy name match to \"Tropical Surge Onyx/Mercury/Graphite\" — verify exact model"
   },
   {
     "brand": "900 Global",
@@ -874,7 +877,8 @@
       }
     ],
     "_needsReview": true,
-    "_candidateName": "LIME/ROYAL/ CUSTARD | BLACK/PURPLE/ PINK | PURPLE/BLUE/ WHITE | PURPLE/JADE/ STEEL | RED/WHITE/PURPLE | BLACK/BLUE/PINK | RED/WHITE/NAVY | PURPLE/SILVER | BLACK/SILVER | CUSTARD | WHITE | STEEL | PINK"
+    "_candidateName": "LIME/ROYAL/ CUSTARD | BLACK/PURPLE/ PINK | PURPLE/BLUE/ WHITE | PURPLE/JADE/ STEEL | RED/WHITE/PURPLE | BLACK/BLUE/PINK | RED/WHITE/NAVY | PURPLE/SILVER | BLACK/PURPLE/ | PURPLE/BLUE/ | PURPLE/JADE/ | BLACK/SILVER | LIME/ROYAL/ | CUSTARD | WHITE | STEEL | PINK",
+    "_reviewReason": "fuzzy name match to \"White Hot Bager\" — verify exact model"
   },
   {
     "brand": "Storm",
@@ -945,7 +949,8 @@
       }
     ],
     "_needsReview": true,
-    "_candidateName": "TEAL/SILVER/GRAPHITE | OCEAN BLUE/WHITE | OCEAN"
+    "_candidateName": "TEAL/SILVER/GRAPHITE | OCEAN BLUE/WHITE | OCEAN",
+    "_reviewReason": "no USBC match for parsed name(s)"
   },
   {
     "brand": "Roto Grip",
@@ -1012,6 +1017,9 @@
         "sku": "RYV",
         "color": null
       }
-    ]
+    ],
+    "_needsReview": true,
+    "_candidateName": "ATTENTION STAR S2 | ATTENTION STAR | RST HYPERDRIVE | ATTENTION | RST",
+    "_reviewReason": "missing coverstock"
   }
 ]

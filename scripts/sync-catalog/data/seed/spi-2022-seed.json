@@ -46,7 +46,8 @@
       }
     ],
     "_needsReview": true,
-    "_candidateName": "ATOMIC"
+    "_candidateName": "ATOMIC",
+    "_reviewReason": "fuzzy name match to \"Atomic Charge\" — verify exact model"
   },
   {
     "brand": "Storm",
@@ -139,7 +140,8 @@
     ],
     "colorways": [],
     "_needsReview": true,
-    "_candidateName": ""
+    "_candidateName": "",
+    "_reviewReason": "no ball name extracted; missing coverstock"
   },
   {
     "brand": "Storm",
@@ -188,7 +190,8 @@
       }
     ],
     "_needsReview": true,
-    "_candidateName": "CLEAR STORM GOLD BELMO HEX | CLEAR STORM GOLD BELMO | CLEAR STORM GOLD | CLEAR STORM | CLEAR"
+    "_candidateName": "CLEAR STORM GOLD BELMO HEX | CLEAR STORM GOLD BELMO | CLEAR STORM GOLD | CLEAR STORM | CLEAR",
+    "_reviewReason": "fuzzy name match to \"Clear Storm Gold Belmo Belmo\" — verify exact model"
   },
   {
     "brand": "Storm",
@@ -335,7 +338,8 @@
       }
     ],
     "_needsReview": true,
-    "_candidateName": "INVERTED FE | TECHNOLOGY | INVERTED"
+    "_candidateName": "INVERTED FE | TECHNOLOGY | INVERTED",
+    "_reviewReason": "no USBC match for parsed name(s)"
   },
   {
     "brand": "Storm",
@@ -524,7 +528,8 @@
       }
     ],
     "_needsReview": true,
-    "_candidateName": "EMERALD/CHARCOAL TRADITIONAL 3-PIECE | EMERALD/CHARCOAL TRADITIONAL | TRADITIONAL 3-PIECE | EMERALD/CHARCOAL | TRADITIONAL"
+    "_candidateName": "EMERALD/CHARCOAL TRADITIONAL 3-PIECE | EMERALD/CHARCOAL TRADITIONAL | TRADITIONAL 3-PIECE | EMERALD/CHARCOAL | TRADITIONAL",
+    "_reviewReason": "no USBC match for parsed name(s)"
   },
   {
     "brand": "900 Global",
@@ -595,6 +600,7 @@
       }
     ],
     "_needsReview": true,
-    "_candidateName": "OFF-WHITE TRADITIONAL 3-PIECE | OFF-WHITE TRADITIONAL | PURPLE/BLUE/ WHITE | PURPLE/JADE/ STEEL | NOT AVAILABLE IN | NOT AVAILABLE | PURPLE/BLUE/ | PURPLE/JADE/ | BLACK/SILVER | PINK/BLACK | OFF-WHITE | WHITE | STEEL | NOT | U1S | MIX"
+    "_candidateName": "OFF-WHITE TRADITIONAL 3-PIECE | OFF-WHITE TRADITIONAL | PURPLE/BLUE/ WHITE | PURPLE/JADE/ STEEL | NOT AVAILABLE IN | NOT AVAILABLE | PURPLE/BLUE/ | PURPLE/JADE/ | BLACK/SILVER | PINK/BLACK | OFF-WHITE | WHITE | STEEL | NOT | U1S | MIX",
+    "_reviewReason": "fuzzy name match to \"White Hot Bager\" — verify exact model"
   }
 ]

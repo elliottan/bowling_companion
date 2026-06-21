@@ -151,7 +151,8 @@
       }
     ],
     "_needsReview": true,
-    "_candidateName": "HEX"
+    "_candidateName": "HEX",
+    "_reviewReason": "no USBC match for parsed name(s)"
   },
   {
     "brand": "Storm",
@@ -218,7 +219,8 @@
     ],
     "colorways": [],
     "_needsReview": true,
-    "_candidateName": ""
+    "_candidateName": "",
+    "_reviewReason": "no ball name extracted"
   },
   {
     "brand": "Storm",
@@ -297,7 +299,8 @@
     ],
     "colorways": [],
     "_needsReview": true,
-    "_candidateName": ""
+    "_candidateName": "",
+    "_reviewReason": "no ball name extracted"
   },
   {
     "brand": "Storm",
@@ -540,7 +543,8 @@
     ],
     "colorways": [],
     "_needsReview": true,
-    "_candidateName": ""
+    "_candidateName": "",
+    "_reviewReason": "no ball name extracted; missing coverstock"
   },
   {
     "brand": "Storm",
@@ -611,7 +615,8 @@
       }
     ],
     "_needsReview": true,
-    "_candidateName": "TROPICAL SURGE SURGE | EMERALD/CHARCOAL | ELECTRIFY B/S/Y | TROPICAL SURGE | ELECTRIFY G/O | BLACK/CHERRY | PINK/PURPLE | PURPLE/GOLD | ELECTRIFY | TEAL/BLUE | TROPICAL | PURPLE"
+    "_candidateName": "TROPICAL SURGE SURGE | EMERALD/CHARCOAL | ELECTRIFY B/S/Y | TROPICAL SURGE | ELECTRIFY G/O | BLACK/CHERRY | PINK/PURPLE | PURPLE/GOLD | ELECTRIFY | TEAL/BLUE | TROPICAL | PURPLE",
+    "_reviewReason": "fuzzy name match to \"Electrify (B/S/Y) Black/Silver/Yellow\" — verify exact model"
   },
   {
     "brand": "Storm",
@@ -649,7 +654,8 @@
     ],
     "colorways": [],
     "_needsReview": true,
-    "_candidateName": ""
+    "_candidateName": "",
+    "_reviewReason": "no ball name extracted"
   },
   {
     "brand": "Storm",
@@ -712,6 +718,7 @@
       }
     ],
     "_needsReview": true,
-    "_candidateName": "ICE STORM TRADITIONAL 3-PIECE | ICE STORM TRADITIONAL | LIME/ROYAL/CUSTARD | BLACK/PURPLE/PINK | PURPLE/BLUE/WHITE | PURPLE/JADE/STEEL | BLACK/SILVER | ICE STORM | ICE"
+    "_candidateName": "ICE STORM TRADITIONAL 3-PIECE | ICE STORM TRADITIONAL | LIME/ROYAL/CUSTARD | BLACK/PURPLE/PINK | PURPLE/BLUE/WHITE | PURPLE/JADE/STEEL | BLACK/SILVER | ICE STORM | ICE",
+    "_reviewReason": "fuzzy name match to \"Ice Storm - Ocean Blue/White\" — verify exact model"
   }
 ]
