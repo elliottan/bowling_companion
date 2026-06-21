@@ -24,6 +24,44 @@ export function LaneNotesView() {
   const [notes, setNotes] = useState("");
   const [formError, setFormError] = useState("");
 
+  // List filters (mirrors the History page): location dropdown, then lane chips.
+  const [filterAlley, setFilterAlley] = useState("");
+  const [selectedLanes, setSelectedLanes] = useState<string[]>([]);
+
+  const noteAlleys = useMemo(
+    () => [...new Set(laneNotes.map((n) => n.alley))].sort(),
+    [laneNotes]
+  );
+  // Lanes are only meaningful within a location, so offer them only once an
+  // alley is picked — and only the lanes that have notes at that alley.
+  const noteLanes = useMemo(() => {
+    if (!filterAlley) return [];
+    return [...new Set(laneNotes.filter((n) => n.alley === filterAlley).map((n) => n.lane))]
+      .sort((a, b) => Number(a) - Number(b) || a.localeCompare(b));
+  }, [laneNotes, filterAlley]);
+
+  // Drop selected lanes when the location changes — a lane from another alley
+  // would otherwise filter everything out.
+  useEffect(() => {
+    setSelectedLanes([]);
+  }, [filterAlley]);
+
+  const displayedNotes = useMemo(
+    () =>
+      laneNotes.filter((n) => {
+        if (filterAlley && n.alley !== filterAlley) return false;
+        if (selectedLanes.length > 0 && !selectedLanes.includes(n.lane)) return false;
+        return true;
+      }),
+    [laneNotes, filterAlley, selectedLanes]
+  );
+
+  function toggleLane(lane: string) {
+    setSelectedLanes((prev) =>
+      prev.includes(lane) ? prev.filter((l) => l !== lane) : [...prev, lane]
+    );
+  }
+
   const alleyMatches = useMemo(() => {
     const q = alley.trim().toLowerCase();
     const list = q ? alleys.filter((a) => a.toLowerCase().includes(q) && a.toLowerCase() !== q) : alleys;
@@ -208,13 +246,61 @@ export function LaneNotesView() {
         </div>
       )}
 
+      {!showForm && laneNotes.length > 0 && (
+        <>
+          <div className="mb-3">
+            <select
+              value={filterAlley}
+              onChange={(e) => setFilterAlley(e.target.value)}
+              className="h-9 rounded-lg border border-slate-300 bg-white px-2 text-sm outline-none focus:border-felt-700"
+            >
+              <option value="">All locations</option>
+              {noteAlleys.map((a) => (
+                <option key={a} value={a}>{a}</option>
+              ))}
+            </select>
+          </div>
+          {noteLanes.length > 0 && (
+            <div className="mb-4 flex flex-wrap items-center gap-1.5">
+              <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">Lanes</span>
+              {noteLanes.map((l) => {
+                const on = selectedLanes.includes(l);
+                return (
+                  <button
+                    key={l}
+                    type="button"
+                    onClick={() => toggleLane(l)}
+                    className={`h-8 rounded-md border px-3 text-xs font-semibold ${
+                      on ? "border-felt-700 bg-felt-700 text-white" : "border-slate-300 bg-white text-slate-700"
+                    }`}
+                  >
+                    {l}
+                  </button>
+                );
+              })}
+              {selectedLanes.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setSelectedLanes([])}
+                  className="h-8 rounded-md px-2 text-xs font-medium text-slate-500 hover:bg-slate-100"
+                >
+                  Clear
+                </button>
+              )}
+            </div>
+          )}
+        </>
+      )}
+
       {isLoading ? (
         <p className="text-sm text-slate-500">Loading…</p>
       ) : laneNotes.length === 0 ? (
         <p className="text-sm text-slate-500">No lane notes yet.</p>
+      ) : displayedNotes.length === 0 ? (
+        <p className="text-sm text-slate-500">No notes match the current filters.</p>
       ) : (
         <ul className="space-y-2">
-          {laneNotes.map((n) => (
+          {displayedNotes.map((n) => (
             <li key={n.id}>
               <button
                 type="button"
