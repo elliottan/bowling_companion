@@ -127,7 +127,18 @@ no console errors. tsc + 185 tests green.
 - Arsenal: pick colorway on add; show chosen image.
 - Verify: preview — swipe + dot highlight.
 
-### Phase 6 — Images  *(deferred)*
-- Storm CDN direct: derive per-colorway image URL from the `product_pages` path
-  pattern → download → webp thumb/full → `public/catalog/img/` → `build.ts`
-  populates fields. Nail the URL pattern when starting.
+### Phase 6 — Images  *(in progress — option B)*
+**Probe verdict (2026-06-21):** no deterministic per-colorway image source on the
+Storm CDN. Bucket listing denied; ~15 filename guesses 403 (calibrated: 200=hit,
+403=miss); search indexes only PDFs. Folder/file naming is inconsistent
+(`!Q_Tour_78U`, `Alpha_Crux`, `Gremlin_Tour-X`; `Concept Tech Data Final.pdf` vs
+`Storm_adsheet_Bionic-nobleed.pdf`). **No clean URL pattern.**
+- **Option A** (ship without images) — placeholder already works. Rejected by user.
+- **Option B** (chosen) — extract the **hero photo per ball** from its ad-sheet PDF
+  (confirmed: Bionic ad sheet has 8 image XObjects incl. JPEGs; Tropical Surge ad
+  sheet exists at `Storm_adsheet_TropicalSurge-nobleed.pdf`). One photo per ball,
+  reused across colorways (ad sheets are single-color). Plumbing: derive/guess the
+  ad-sheet URL per ball (fallback search), download, extract the largest JPEG
+  (`poppler` `pdfimages` or pdf render), resize → webp thumb/full →
+  `public/catalog/img/`, write `imageThumb`/`imageFull` back. Per-colorway photos
+  are **not feasible** from this source (option C).
