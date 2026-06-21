@@ -373,8 +373,8 @@
     "rg": 2.58,
     "diff": 0.024,
     "mbDiff": null,
-    "imageThumb": "/catalog/img/storm-tropical-surge-thumb.webp",
-    "imageFull": "/catalog/img/storm-tropical-surge-full.webp",
+    "imageThumb": null,
+    "imageFull": null,
     "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/storm/tropical-surge-pearl-various-colors",
     "colorways": [
       {
@@ -463,8 +463,8 @@
     "rg": 2.48,
     "diff": 0.054,
     "mbDiff": 0.018,
-    "imageThumb": "/catalog/img/storm-equinox-2025-thumb.webp",
-    "imageFull": "/catalog/img/storm-equinox-2025-full.webp",
+    "imageThumb": null,
+    "imageFull": null,
     "sourceUrl": "https://www.stormbowling.com",
     "weights": [
       {
@@ -915,8 +915,8 @@
     "rg": 2.55,
     "diff": 0.045,
     "mbDiff": null,
-    "imageThumb": "/catalog/img/storm-road-warrior-2025-thumb.webp",
-    "imageFull": "/catalog/img/storm-road-warrior-2025-full.webp",
+    "imageThumb": null,
+    "imageFull": null,
     "sourceUrl": "https://www.stormbowling.com",
     "weights": [
       {
