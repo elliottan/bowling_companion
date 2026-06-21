@@ -31,6 +31,7 @@ const __dirname = fileURLToPath(new URL(".", import.meta.url));
 const REPO_ROOT = resolve(__dirname, "../../../");
 const BALLS_JSON = resolve(REPO_ROOT, "scripts/sync-catalog/data/balls.json");
 const IMAGES_JSON = resolve(REPO_ROOT, "scripts/sync-catalog/data/images.json");
+const DENYLIST_JSON = resolve(REPO_ROOT, "scripts/sync-catalog/data/image-denylist.json");
 const IMG_DIR = resolve(REPO_ROOT, "public/catalog/img");
 
 const CDN = "https://stormproducts.nyc3.cdn.digitaloceanspaces.com/product_pages/Balls";
@@ -119,6 +120,12 @@ async function main(): Promise<void> {
   const images: Record<string, ImageEntry> = existsSync(IMAGES_JSON)
     ? JSON.parse(readFileSync(IMAGES_JSON, "utf-8"))
     : {};
+  // Ball ids whose ad-sheet carve was bad (wrong crop, dark/colored background,
+  // or not the ball). Never re-fetched — they keep the placeholder. Curated by
+  // hand after review; a direct clean image can still be set via add-ball-image.
+  const denylist: string[] = existsSync(DENYLIST_JSON)
+    ? JSON.parse(readFileSync(DENYLIST_JSON, "utf-8"))
+    : [];
 
   let hits = 0;
   const misses: string[] = [];
@@ -126,7 +133,7 @@ async function main(): Promise<void> {
   for (const ball of balls) {
     const releaseYear = ball.releaseDate ? parseInt(ball.releaseDate.slice(0, 4), 10) : null;
     const id = slug(ball.brand, ball.name, releaseYear);
-    if (images[id]) continue; // already fetched
+    if (images[id] || denylist.includes(id)) continue; // already fetched or denied
 
     let pdfUrl: string | null = null;
     for (const url of candidateUrls(ball.brand, ball.name)) {

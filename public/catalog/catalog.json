@@ -1016,5 +1016,589 @@
         "color": "Royal Purple/Steel"
       }
     ]
+  },
+  {
+    "id": "900-global-wolverine-2021",
+    "brand": "900 Global",
+    "name": "Wolverine",
+    "releaseDate": "2021-12-10",
+    "releaseYear": 2021,
+    "coverstockRaw": "S70 Pearl Reactive",
+    "coverstockCategory": "Pearl",
+    "factoryFinish": "1500 Grit",
+    "coreName": "Lacerate 2.0",
+    "coreType": "Symmetric",
+    "rg": 2.54,
+    "diff": 0.053,
+    "mbDiff": null,
+    "imageThumb": "/catalog/img/900-global-wolverine-2021-thumb.webp",
+    "imageFull": "/catalog/img/900-global-wolverine-2021-full.webp",
+    "sourceUrl": "https://www.900global.com",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.53,
+        "diff": 0.051,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.54,
+        "diff": 0.053,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.54,
+        "diff": 0.052,
+        "mbDiff": null
+      }
+    ],
+    "colorways": [
+      {
+        "sku": "BBMGWL",
+        "color": "Navy/Aqua"
+      }
+    ]
+  },
+  {
+    "id": "900-global-zen-master-2021",
+    "brand": "900 Global",
+    "name": "Zen Master",
+    "releaseDate": "2021-08-27",
+    "releaseYear": 2021,
+    "coverstockRaw": "S77 Response Pearl",
+    "coverstockCategory": "Pearl",
+    "factoryFinish": "3000 Grit",
+    "coreName": "Meditate",
+    "coreType": "Symmetric",
+    "rg": 2.49,
+    "diff": 0.051,
+    "mbDiff": null,
+    "imageThumb": "/catalog/img/900-global-zen-master-2021-thumb.webp",
+    "imageFull": "/catalog/img/900-global-zen-master-2021-full.webp",
+    "sourceUrl": "https://www.900global.com",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.48,
+        "diff": 0.051,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.49,
+        "diff": 0.051,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.5,
+        "diff": 0.051,
+        "mbDiff": null
+      }
+    ],
+    "colorways": [
+      {
+        "sku": "BBMGZM",
+        "color": "Magenta/Black/Green"
+      }
+    ]
+  },
+  {
+    "id": "storm-absolute-power-2024",
+    "brand": "Storm",
+    "name": "Absolute Power",
+    "releaseDate": "2024-01-01",
+    "releaseYear": 2024,
+    "coverstockRaw": "R2S DEEP Solid Reactive",
+    "coverstockCategory": "Solid",
+    "factoryFinish": "4000-grit Abralon",
+    "coreName": "POWER SENTINEL",
+    "coreType": "Asymmetric",
+    "rg": 2.48,
+    "diff": 0.05,
+    "mbDiff": 0.021,
+    "imageThumb": null,
+    "imageFull": null,
+    "sourceUrl": "https://www.stormbowling.com",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.48,
+        "diff": 0.048,
+        "mbDiff": 0.02
+      },
+      {
+        "weight": 15,
+        "rg": 2.48,
+        "diff": 0.05,
+        "mbDiff": 0.021
+      },
+      {
+        "weight": 14,
+        "rg": 2.54,
+        "diff": 0.045,
+        "mbDiff": 0.018
+      },
+      {
+        "weight": 13,
+        "rg": 2.57,
+        "diff": 0.032,
+        "mbDiff": 0.01
+      },
+      {
+        "weight": 12,
+        "rg": 2.59,
+        "diff": 0.029,
+        "mbDiff": 0.008
+      }
+    ],
+    "colorways": [
+      {
+        "sku": "VAW",
+        "color": "Scarlet/Persian Blue/Raven"
+      },
+      {
+        "sku": "VDC",
+        "color": null
+      }
+    ]
+  },
+  {
+    "id": "storm-summit-peak-2024",
+    "brand": "Storm",
+    "name": "Summit Peak",
+    "releaseDate": "2024-01-01",
+    "releaseYear": 2024,
+    "coverstockRaw": "TX-23 Pearl Reactive",
+    "coverstockCategory": "Pearl",
+    "factoryFinish": "Reacta Gloss",
+    "coreName": "HD-A.I.",
+    "coreType": "Asymmetric",
+    "rg": 2.59,
+    "diff": 0.056,
+    "mbDiff": 0.045,
+    "imageThumb": null,
+    "imageFull": null,
+    "sourceUrl": "https://www.stormbowling.com",
+    "weights": [
+      {
+        "weight": 12,
+        "rg": 2.59,
+        "diff": 0.056,
+        "mbDiff": 0.045
+      }
+    ],
+    "colorways": [
+      {
+        "sku": "VMP",
+        "color": "Goldenrod/Mint/Iridium"
+      }
+    ]
+  },
+  {
+    "id": "storm-summit-2024",
+    "brand": "Storm",
+    "name": "Summit",
+    "releaseDate": "2024-01-01",
+    "releaseYear": 2024,
+    "coverstockRaw": "TX-23 Hybrid Reactive",
+    "coverstockCategory": "Hybrid",
+    "factoryFinish": "3000-grit Abralon",
+    "coreName": "HD-A.I.",
+    "coreType": "Symmetric",
+    "rg": 2.49,
+    "diff": 0.035,
+    "mbDiff": null,
+    "imageThumb": null,
+    "imageFull": null,
+    "sourceUrl": "https://www.stormbowling.com",
+    "weights": [
+      {
+        "weight": 12,
+        "rg": 2.49,
+        "diff": 0.035,
+        "mbDiff": null
+      }
+    ],
+    "colorways": [
+      {
+        "sku": "VNF",
+        "color": "Blue/Gold/Silver"
+      }
+    ]
+  },
+  {
+    "id": "storm-the-road-2024",
+    "brand": "Storm",
+    "name": "The Road",
+    "releaseDate": "2024-01-01",
+    "releaseYear": 2024,
+    "coverstockRaw": "ReX Hybrid Reactive",
+    "coverstockCategory": "Hybrid",
+    "factoryFinish": "Reacta Gloss",
+    "coreName": "CENTRIPETAL CONTROL",
+    "coreType": "Symmetric",
+    "rg": 2.57,
+    "diff": 0.023,
+    "mbDiff": null,
+    "imageThumb": null,
+    "imageFull": null,
+    "sourceUrl": "https://www.stormbowling.com",
+    "weights": [
+      {
+        "weight": 12,
+        "rg": 2.57,
+        "diff": 0.023,
+        "mbDiff": null
+      }
+    ],
+    "colorways": [
+      {
+        "sku": "VTR",
+        "color": "Midnight/Carmine"
+      }
+    ]
+  },
+  {
+    "id": "storm-absolute-2023",
+    "brand": "Storm",
+    "name": "Absolute",
+    "releaseDate": "2023-01-01",
+    "releaseYear": 2023,
+    "coverstockRaw": "R2S DEEP Hybrid Reactive",
+    "coverstockCategory": "Hybrid",
+    "factoryFinish": "Reacta Gloss",
+    "coreName": "SENTINEL",
+    "coreType": "Asymmetric",
+    "rg": 2.54,
+    "diff": 0.05,
+    "mbDiff": 0.021,
+    "imageThumb": null,
+    "imageFull": null,
+    "sourceUrl": "https://www.stormbowling.com",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.48,
+        "diff": 0.048,
+        "mbDiff": 0.02
+      },
+      {
+        "weight": 15,
+        "rg": 2.54,
+        "diff": 0.05,
+        "mbDiff": 0.021
+      },
+      {
+        "weight": 14,
+        "rg": 2.57,
+        "diff": 0.045,
+        "mbDiff": 0.018
+      }
+    ],
+    "colorways": [
+      {
+        "sku": "VBS",
+        "color": "Copperhead/Jade/Phantom Black"
+      }
+    ]
+  },
+  {
+    "id": "storm-dna-2023",
+    "brand": "Storm",
+    "name": "DNA",
+    "releaseDate": "2023-01-01",
+    "releaseYear": 2023,
+    "coverstockRaw": "EXO Solid Reactive",
+    "coverstockCategory": "Solid",
+    "factoryFinish": "2000-grit Abralon",
+    "coreName": "SUPERCOIL",
+    "coreType": "Asymmetric",
+    "rg": 2.53,
+    "diff": 0.053,
+    "mbDiff": 0.023,
+    "imageThumb": null,
+    "imageFull": null,
+    "sourceUrl": "https://www.stormbowling.com",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.47,
+        "diff": 0.05,
+        "mbDiff": 0.021
+      },
+      {
+        "weight": 15,
+        "rg": 2.53,
+        "diff": 0.053,
+        "mbDiff": 0.023
+      },
+      {
+        "weight": 14,
+        "rg": 2.57,
+        "diff": 0.048,
+        "mbDiff": 0.02
+      }
+    ],
+    "colorways": [
+      {
+        "sku": "VNA",
+        "color": "Red/Black/Violet"
+      }
+    ]
+  },
+  {
+    "id": "storm-fate-2023",
+    "brand": "Storm",
+    "name": "Fate",
+    "releaseDate": "2023-01-01",
+    "releaseYear": 2023,
+    "coverstockRaw": "ReX Pearl Reactive",
+    "coverstockCategory": "Pearl",
+    "factoryFinish": "Reacta Gloss",
+    "coreName": null,
+    "coreType": "Symmetric",
+    "rg": 2.54,
+    "diff": 0.053,
+    "mbDiff": null,
+    "imageThumb": null,
+    "imageFull": null,
+    "sourceUrl": "https://www.stormbowling.com",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.52,
+        "diff": 0.052,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.54,
+        "diff": 0.053,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.59,
+        "diff": 0.052,
+        "mbDiff": null
+      }
+    ],
+    "colorways": [
+      {
+        "sku": "VFA",
+        "color": "Sapphire Pearl"
+      }
+    ]
+  },
+  {
+    "id": "storm-phaze-5-2023",
+    "brand": "Storm",
+    "name": "Phaze V",
+    "releaseDate": "2023-01-01",
+    "releaseYear": 2023,
+    "coverstockRaw": "R2S Pearl Reactive",
+    "coverstockCategory": "Pearl",
+    "factoryFinish": "Reacta Gloss",
+    "coreName": "CENTRIPETAL CONTROL",
+    "coreType": "Symmetric",
+    "rg": 2.53,
+    "diff": 0.051,
+    "mbDiff": null,
+    "imageThumb": null,
+    "imageFull": null,
+    "sourceUrl": "https://www.stormbowling.com",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.48,
+        "diff": 0.051,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.53,
+        "diff": 0.051,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.59,
+        "diff": 0.05,
+        "mbDiff": null
+      }
+    ],
+    "colorways": [
+      {
+        "sku": "VVV",
+        "color": "Arctic/Sapphire/Slate"
+      }
+    ]
+  },
+  {
+    "id": "storm-revenant-2023",
+    "brand": "Storm",
+    "name": "Revenant",
+    "releaseDate": "2023-01-01",
+    "releaseYear": 2023,
+    "coverstockRaw": "R3S Pearl Reactive",
+    "coverstockCategory": "Pearl",
+    "factoryFinish": "Reacta Gloss",
+    "coreName": "VECTOR",
+    "coreType": "Symmetric",
+    "rg": 2.55,
+    "diff": 0.05,
+    "mbDiff": null,
+    "imageThumb": null,
+    "imageFull": null,
+    "sourceUrl": "https://www.stormbowling.com",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.54,
+        "diff": 0.049,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.55,
+        "diff": 0.05,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.59,
+        "diff": 0.051,
+        "mbDiff": null
+      }
+    ],
+    "colorways": [
+      {
+        "sku": "VRV",
+        "color": "Amethyst/Black"
+      }
+    ]
+  },
+  {
+    "id": "storm-hy-road-pearl-2023",
+    "brand": "Storm",
+    "name": "Hy-Road Pearl",
+    "releaseDate": "2023-01-01",
+    "releaseYear": 2023,
+    "coverstockRaw": "R2S Pearl Reactive",
+    "coverstockCategory": "Pearl",
+    "factoryFinish": "Reacta Gloss",
+    "coreName": null,
+    "coreType": "Symmetric",
+    "rg": 2.58,
+    "diff": 0.046,
+    "mbDiff": null,
+    "imageThumb": null,
+    "imageFull": null,
+    "sourceUrl": "https://www.stormbowling.com",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.57,
+        "diff": 0.058,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.58,
+        "diff": 0.046,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.59,
+        "diff": 0.037,
+        "mbDiff": null
+      }
+    ],
+    "colorways": [
+      {
+        "sku": "THY",
+        "color": "Grape Punch"
+      }
+    ]
+  },
+  {
+    "id": "storm-electrify-pearl-2022",
+    "brand": "Storm",
+    "name": "Electrify Pearl",
+    "releaseDate": "2022-01-01",
+    "releaseYear": 2022,
+    "coverstockRaw": "Reactor Pearl Reactive",
+    "coverstockCategory": "Pearl",
+    "factoryFinish": "4K-Fast",
+    "coreName": "CHERRY SURGE",
+    "coreType": "Symmetric",
+    "rg": 2.58,
+    "diff": 0.024,
+    "mbDiff": null,
+    "imageThumb": null,
+    "imageFull": null,
+    "sourceUrl": "https://www.stormbowling.com",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.57,
+        "diff": 0.025,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.58,
+        "diff": 0.024,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.6,
+        "diff": 0.025,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.62,
+        "diff": 0.021,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.64,
+        "diff": 0.02,
+        "mbDiff": null
+      }
+    ],
+    "colorways": [
+      {
+        "sku": "TLF",
+        "color": null
+      },
+      {
+        "sku": "VPU",
+        "color": null
+      },
+      {
+        "sku": "VGB",
+        "color": "GOLD/BLACK"
+      },
+      {
+        "sku": "TQI",
+        "color": "PINK/PURPLE"
+      },
+      {
+        "sku": "TQZ",
+        "color": "TEAL/BLUE"
+      },
+      {
+        "sku": "TQY",
+        "color": "BLACK/CHERRY"
+      }
+    ]
   }
 ]

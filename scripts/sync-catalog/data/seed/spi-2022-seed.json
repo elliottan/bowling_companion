@@ -1,0 +1,600 @@
+[
+  {
+    "brand": "Storm",
+    "name": "Atomic Charge",
+    "releaseDate": "2022-01-01",
+    "coverstockRaw": "ReX Pearl Reactive",
+    "factoryFinish": "4000-grit Abralon",
+    "coreName": "VIX ATOMIC",
+    "rg": 2.48,
+    "diff": 0.053,
+    "mbDiff": 0.017,
+    "sourceUrls": [
+      "https://www.stormbowling.com",
+      "tmp/cat-2022.pdf"
+    ],
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.48,
+        "diff": 0.054,
+        "mbDiff": 0.017
+      },
+      {
+        "weight": 15,
+        "rg": 2.48,
+        "diff": 0.053,
+        "mbDiff": 0.017
+      },
+      {
+        "weight": 14,
+        "rg": 2.53,
+        "diff": 0.052,
+        "mbDiff": 0.015
+      },
+      {
+        "weight": 13,
+        "rg": 2.57,
+        "diff": 0.032,
+        "mbDiff": 0.01
+      }
+    ],
+    "colorways": [
+      {
+        "sku": "VIX",
+        "color": "Sapphire/Deep Purple/Onyx"
+      }
+    ],
+    "_needsReview": true,
+    "_candidateName": "ATOMIC"
+  },
+  {
+    "brand": "Storm",
+    "name": "Proton PhysiX",
+    "releaseDate": "2022-01-01",
+    "coverstockRaw": "R2X Hybrid Reactive",
+    "factoryFinish": "3000-grit Abralon",
+    "coreName": "IGNITION",
+    "rg": 2.53,
+    "diff": 0.052,
+    "mbDiff": 0.019,
+    "sourceUrls": [
+      "https://www.stormbowling.com",
+      "tmp/cat-2022.pdf"
+    ],
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.49,
+        "diff": 0.051,
+        "mbDiff": 0.018
+      },
+      {
+        "weight": 15,
+        "rg": 2.53,
+        "diff": 0.052,
+        "mbDiff": 0.019
+      },
+      {
+        "weight": 14,
+        "rg": 2.57,
+        "diff": 0.049,
+        "mbDiff": 0.018
+      }
+    ],
+    "colorways": [
+      {
+        "sku": "VNV",
+        "color": null
+      },
+      {
+        "sku": "VCB",
+        "color": "Magenta/Black/Violet"
+      },
+      {
+        "sku": "TNB",
+        "color": null
+      }
+    ]
+  },
+  {
+    "brand": "Storm",
+    "name": "UNKNOWN",
+    "releaseDate": "2022-01-01",
+    "coverstockRaw": "",
+    "factoryFinish": null,
+    "coreName": "RAD4",
+    "rg": 2.48,
+    "diff": 0.053,
+    "mbDiff": 0.017,
+    "sourceUrls": [
+      "https://www.stormbowling.com",
+      "tmp/cat-2022.pdf"
+    ],
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.48,
+        "diff": 0.054,
+        "mbDiff": 0.017
+      },
+      {
+        "weight": 15,
+        "rg": 2.48,
+        "diff": 0.053,
+        "mbDiff": 0.017
+      },
+      {
+        "weight": 14,
+        "rg": 2.53,
+        "diff": 0.052,
+        "mbDiff": 0.015
+      },
+      {
+        "weight": 13,
+        "rg": 2.57,
+        "diff": 0.032,
+        "mbDiff": 0.01
+      }
+    ],
+    "colorways": [],
+    "_needsReview": true,
+    "_candidateName": ""
+  },
+  {
+    "brand": "Storm",
+    "name": "Clear Storm Gold Belmo Belmo",
+    "releaseDate": "2022-01-01",
+    "coverstockRaw": "Ultra Clear Solid Polyester",
+    "factoryFinish": "3500-grit Polished",
+    "coreName": "VGJ CLEAR STORM GOLD BELMO HEX",
+    "rg": 2.48,
+    "diff": 0.051,
+    "mbDiff": null,
+    "sourceUrls": [
+      "https://www.stormbowling.com",
+      "tmp/cat-2022.pdf"
+    ],
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.48,
+        "diff": 0.051,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.48,
+        "diff": 0.051,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.53,
+        "diff": 0.05,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.59,
+        "diff": 0.045,
+        "mbDiff": null
+      }
+    ],
+    "colorways": [
+      {
+        "sku": "VGJ",
+        "color": null
+      }
+    ],
+    "_needsReview": true,
+    "_candidateName": "CLEAR STORM GOLD BELMO HEX | CLEAR STORM GOLD BELMO | CLEAR STORM GOLD | CLEAR STORM | CLEAR"
+  },
+  {
+    "brand": "Storm",
+    "name": "!Q Tour",
+    "releaseDate": "2022-01-01",
+    "coverstockRaw": "R3S Hybrid Reactive",
+    "factoryFinish": "4K-Fast",
+    "coreName": "CENTRIPETAL CONTROL",
+    "rg": 2.49,
+    "diff": 0.029,
+    "mbDiff": null,
+    "sourceUrls": [
+      "https://www.stormbowling.com",
+      "tmp/cat-2022.pdf"
+    ],
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.49,
+        "diff": 0.035,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.49,
+        "diff": 0.029,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.54,
+        "diff": 0.034,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.59,
+        "diff": 0.045,
+        "mbDiff": null
+      }
+    ],
+    "colorways": [
+      {
+        "sku": "TZF",
+        "color": null
+      },
+      {
+        "sku": "TQT",
+        "color": null
+      }
+    ]
+  },
+  {
+    "brand": "Storm",
+    "name": "Phaze II",
+    "releaseDate": "2022-01-01",
+    "coverstockRaw": "TX-16 Solid Reactive",
+    "factoryFinish": "3000-grit Abralon",
+    "coreName": "II VELOCITY",
+    "rg": 2.48,
+    "diff": 0.051,
+    "mbDiff": null,
+    "sourceUrls": [
+      "https://www.stormbowling.com",
+      "tmp/cat-2022.pdf"
+    ],
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.48,
+        "diff": 0.051,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.48,
+        "diff": 0.051,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.53,
+        "diff": 0.05,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.59,
+        "diff": 0.045,
+        "mbDiff": null
+      }
+    ],
+    "colorways": [
+      {
+        "sku": "TZA",
+        "color": "Red/Blue/Purple"
+      }
+    ]
+  },
+  {
+    "brand": "Storm",
+    "name": "INVERTED FE",
+    "releaseDate": "2022-01-01",
+    "coverstockRaw": "ReX Pearl Reactive",
+    "factoryFinish": "4K-Fast",
+    "coreName": null,
+    "rg": 2.57,
+    "diff": 0.046,
+    "mbDiff": null,
+    "sourceUrls": [
+      "https://www.stormbowling.com",
+      "tmp/cat-2022.pdf"
+    ],
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.52,
+        "diff": 0.058,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.57,
+        "diff": 0.046,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.58,
+        "diff": 0.037,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.59,
+        "diff": 0.045,
+        "mbDiff": null
+      }
+    ],
+    "colorways": [
+      {
+        "sku": "VDR",
+        "color": "Midnight Black"
+      }
+    ],
+    "_needsReview": true,
+    "_candidateName": "INVERTED FE | TECHNOLOGY | INVERTED"
+  },
+  {
+    "brand": "Storm",
+    "name": "Hy-Road Pearl",
+    "releaseDate": "2022-01-01",
+    "coverstockRaw": "Controll Solid Urethane",
+    "factoryFinish": "1000-grit Abralon",
+    "coreName": "CAPACITOR",
+    "rg": 2.51,
+    "diff": 0.03,
+    "mbDiff": null,
+    "sourceUrls": [
+      "https://www.stormbowling.com",
+      "tmp/cat-2022.pdf"
+    ],
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.5,
+        "diff": 0.031,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.51,
+        "diff": 0.03,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.53,
+        "diff": 0.031,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.59,
+        "diff": 0.045,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.65,
+        "diff": 0.035,
+        "mbDiff": null
+      }
+    ],
+    "colorways": [
+      {
+        "sku": "TUB",
+        "color": "Blue/Purple"
+      },
+      {
+        "sku": "THY",
+        "color": "Black/Ultramarine"
+      },
+      {
+        "sku": "TTY",
+        "color": null
+      }
+    ]
+  },
+  {
+    "brand": "Storm",
+    "name": "Electrify Pearl",
+    "releaseDate": "2022-01-01",
+    "coverstockRaw": "Reactor Pearl Reactive",
+    "factoryFinish": "4K-Fast",
+    "coreName": "CHERRY SURGE",
+    "rg": 2.58,
+    "diff": 0.024,
+    "mbDiff": null,
+    "sourceUrls": [
+      "https://www.stormbowling.com",
+      "tmp/cat-2022.pdf"
+    ],
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.57,
+        "diff": 0.025,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.58,
+        "diff": 0.024,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.6,
+        "diff": 0.025,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.62,
+        "diff": 0.021,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.64,
+        "diff": 0.02,
+        "mbDiff": null
+      }
+    ],
+    "colorways": [
+      {
+        "sku": "TLF",
+        "color": null
+      },
+      {
+        "sku": "VPU",
+        "color": null
+      },
+      {
+        "sku": "VGB",
+        "color": "GOLD/BLACK"
+      },
+      {
+        "sku": "TQI",
+        "color": "PINK/PURPLE"
+      },
+      {
+        "sku": "TQZ",
+        "color": "TEAL/BLUE"
+      },
+      {
+        "sku": "TQY",
+        "color": "BLACK/CHERRY"
+      }
+    ]
+  },
+  {
+    "brand": "Storm",
+    "name": "EMERALD/CHARCOAL TRADITIONAL 3-PIECE",
+    "releaseDate": "2022-01-01",
+    "coverstockRaw": "Reactor Pearl Reactive",
+    "factoryFinish": "1500-grit Polished",
+    "coreName": "CHARCOAL TRADITIONAL 3-PIECE",
+    "rg": 2.69,
+    "diff": 0.006,
+    "mbDiff": null,
+    "sourceUrls": [
+      "https://www.stormbowling.com",
+      "tmp/cat-2022.pdf"
+    ],
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.68,
+        "diff": 0.006,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.69,
+        "diff": 0.006,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.69,
+        "diff": 0.006,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.71,
+        "diff": 0.005,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.72,
+        "diff": 0.005,
+        "mbDiff": null
+      }
+    ],
+    "colorways": [
+      {
+        "sku": "VEC",
+        "color": "EMERALD/CHARCOAL"
+      }
+    ],
+    "_needsReview": true,
+    "_candidateName": "EMERALD/CHARCOAL TRADITIONAL 3-PIECE | EMERALD/CHARCOAL TRADITIONAL | TRADITIONAL 3-PIECE | EMERALD/CHARCOAL | TRADITIONAL"
+  },
+  {
+    "brand": "900 Global",
+    "name": "White Hot Bager",
+    "releaseDate": "2022-01-01",
+    "coverstockRaw": "U1S Pearl Urethane",
+    "factoryFinish": "3500-grit Polished",
+    "coreName": "TWZ OFF-WHITE PSA TRADITIONAL 3-PIECE",
+    "rg": 2.69,
+    "diff": 0.006,
+    "mbDiff": null,
+    "sourceUrls": [
+      "https://www.stormbowling.com",
+      "tmp/cat-2022.pdf"
+    ],
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.68,
+        "diff": 0.006,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.69,
+        "diff": 0.006,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.69,
+        "diff": 0.006,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.71,
+        "diff": 0.005,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.72,
+        "diff": 0.005,
+        "mbDiff": null
+      }
+    ],
+    "colorways": [
+      {
+        "sku": "VXP",
+        "color": "PURPLE/BLUE/"
+      },
+      {
+        "sku": "VXJ",
+        "color": "PURPLE/JADE/"
+      },
+      {
+        "sku": "TXI",
+        "color": "BLACK/SILVER"
+      },
+      {
+        "sku": "VXK",
+        "color": "PINK/BLACK N/A"
+      },
+      {
+        "sku": "TWZ",
+        "color": null
+      }
+    ],
+    "_needsReview": true,
+    "_candidateName": "OFF-WHITE TRADITIONAL 3-PIECE | OFF-WHITE TRADITIONAL | PURPLE/BLUE/ WHITE | PURPLE/JADE/ STEEL | NOT AVAILABLE IN | NOT AVAILABLE | PURPLE/BLUE/ | PURPLE/JADE/ | BLACK/SILVER | PINK/BLACK | OFF-WHITE | WHITE | STEEL | NOT | U1S | MIX"
+  }
+]

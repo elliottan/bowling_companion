@@ -212,13 +212,19 @@ function parseSkuClauses(body: string): SkuClause[] {
     let run: string[] = [];
     const flush = () => {
       if (run.length === 0) return;
-      const meaningful = run.filter((t) => !NAME_STOPWORDS.has(t.toUpperCase()));
-      const joined = meaningful.join(" ").trim();
-      if (joined.replace(/[^A-Za-z0-9]/g, "").length >= 2) {
-        names.push(joined);
-        // also a slash-stripped variant ("BLACK/CHERRY TROPICAL SURGE" → "TROPICAL SURGE")
-        const noSlash = meaningful.filter((t) => !t.includes("/")).join(" ").trim();
-        if (noSlash && noSlash !== joined) names.push(noSlash);
+      let meaningful = run.filter((t) => !NAME_STOPWORDS.has(t.toUpperCase()));
+      // Drop a trailing "<core> CORE" suffix: the ball name precedes the core
+      // name in older catalogs ("ABSOLUTE SENTINEL CORE"). Cut at "CORE".
+      const coreIdx = meaningful.findIndex((t) => t.toUpperCase() === "CORE");
+      if (coreIdx > 0) meaningful = meaningful.slice(0, coreIdx);
+      const noSlash = meaningful.filter((t) => !t.includes("/"));
+      // Emit the full run and every leading prefix, so the exact ball name
+      // (a prefix of "ABSOLUTE SENTINEL") can match the USBC index confidently.
+      for (const toks of [meaningful, noSlash]) {
+        for (let n = toks.length; n >= 1; n--) {
+          const cand = toks.slice(0, n).join(" ").trim();
+          if (cand.replace(/[^A-Za-z0-9]/g, "").length >= 2) names.push(cand);
+        }
       }
       run = [];
     };
@@ -290,17 +296,34 @@ export interface ParseOpts {
 
 /** Returns null if the segment has no weight table (not a ball). */
 export function parseBall(seg: Segment, opts: ParseOpts): SeedBall | null {
-  const weights = parseWeights(seg.body, seg.hasPsa);
+  return buildSeedBall(seg.body, parseWeights(seg.body, seg.hasPsa), opts);
+}
+
+export type { WeightRow };
+
+/**
+ * Assemble a SeedBall from a field-bearing text body + a pre-parsed weight
+ * table. Field extraction is tolerant across catalog years: labels are matched
+ * case-insensitively ("COVERSTOCK:" / "Coverstock:"), core name falls back to a
+ * "<Name>™ CORE" pattern when there is no WEIGHT BLOCK label. Year-specific
+ * parsers (parse-catalog-pdf, parse-catalog-columnar, parse-catalog-2024)
+ * supply their own `weights` and call this.
+ */
+export function buildSeedBall(body: string, weights: WeightRow[], opts: ParseOpts): SeedBall | null {
   if (weights.length === 0) return null;
 
-  const coverstock = parseLabel(seg.body, /COVERSTOCK:\s*([^]*?)(?=WEIGHT|FACTORY|BALL COLOR:|COLOR:|FRAGRANCE:|SKU:|$)/);
-  const coreName = parseLabel(seg.body, /WEIGHT\s*BLOCK:\s*([^]*?)(?=FACTORY|BALL COLOR:|COLOR:|FRAGRANCE:|SKU:|COVERSTOCK:|$)/);
-  const factoryFinish = parseLabel(seg.body, /FACTORY FINISH:\s*([^]*?)(?=BALL COLOR:|COLOR:|FLARE|FRAGRANCE:|SKU:|COVERSTOCK:|WEIGHT|$)/);
-  const labelColor = parseLabel(seg.body, /(?:BALL )?COLOR:\s*([^]*?)(?=FLARE|FRAGRANCE:|AVAILABLE|SKU:|COVERSTOCK:|WEIGHT|$)/);
+  const coverstock = parseLabel(body, /COVERSTOCK:\s*([^]*?)(?=WEIGHT|FACTORY|BALL COLOR:|COLOR:|FRAGRANCE:|MAINTENANCE:|WEIGHTS:|SKU:|$)/i);
+  let coreName = parseLabel(body, /WEIGHT\s*BLOCK:\s*([^]*?)(?=FACTORY|BALL COLOR:|COLOR:|FRAGRANCE:|SKU:|COVERSTOCK:|$)/i);
+  if (!coreName) {
+    // 2022–2024: core appears as "<NAME>™ CORE" near the SKU clause.
+    const m = body.match(/([A-Z][A-Za-z0-9][A-Za-z0-9 .\-]*?)\s*(?:™|®)?\s*CORE\b/);
+    if (m) coreName = cleanField(m[1]);
+  }
+  const factoryFinish = parseLabel(body, /FACTORY FINISH:\s*([^]*?)(?=BALL COLOR:|COLOR:|FLARE|FRAGRANCE:|MAINTENANCE:|WEIGHTS:|SKU:|COVERSTOCK:|WEIGHT|$)/i);
+  const labelColor = parseLabel(body, /(?:BALL )?COLOR:\s*([^]*?)(?=FLARE|FRAGRANCE:|MAINTENANCE:|AVAILABLE|WEIGHTS:|SKU:|COVERSTOCK:|WEIGHT|$)/i);
 
-  const clauses = parseSkuClauses(seg.body);
+  const clauses = parseSkuClauses(body);
   const colorways: Colorway[] = clauses.map((c) => ({ sku: c.sku, color: c.color }));
-  // Single-ball sheets carry color only in the COLOR: label — backfill it.
   if (colorways.length === 1 && colorways[0].color === null && labelColor) {
     colorways[0].color = labelColor;
   }

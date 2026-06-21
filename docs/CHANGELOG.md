@@ -9,6 +9,12 @@ User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachan
 - **Catalog stuck on a stale ball count.** Devices stayed on an old catalog (e.g. 12 balls) even after a larger catalog deployed, and refresh didn't help. Client sync now **upserts the full catalog** (updating existing balls and removing stale ids) instead of append-only, and `catalog.json`/manifest are fetched **NetworkFirst** so a new catalog syncs on the first refresh (ADR-010). Corrected specs, colorways, and images now propagate to already-synced devices.
 - **Ball detail opened as a broken inline panel.** Tapping a catalog ball now opens a proper full-screen modal (brand/name in a sticky header, dismissable with an X, no Back button) that always opens at the top, instead of an `absolute` panel that appeared above the scrolled list.
 
+### Added (more balls + tooling)
+
+- **2022–2024 SPI catalogs parsed.** Each catalog year uses a different weight-table layout, so there's a per-format parser: `parse-catalog-columnar` (2022 + 2023, transposed tables) and `parse-catalog-2024` (per-row, values-after-weight). 11 new Storm balls merged (Absolute, DNA, Fate, Phaze V, Revenant, Summit, Summit Peak, The Road, Absolute Power, Hy-Road Pearl, Electrify Pearl).
+- **Manual ball add (`add-ball-manual` skill + `add-ball-image`).** Paste a ball's spec text + a direct image URL → entry added with a clean webp image. Added Wolverine and Zen Master (900 Global) this way.
+- **Image denylist.** `fetch-images` skips ad-sheet carves known to be bad (wrong crop / dark background), so re-runs don't re-add them.
+
 ### Added (images)
 
 - **Ball hero images (Phase 6).** `npm run fetch-images` extracts each ball's photo from its Storm ad-sheet PDF (carves the embedded JPEG, resizes to webp) into `public/catalog/img/`; `build.ts` merges a sidecar `images.json`. One image per ball (Storm ad sheets are single-color), shown in the row thumbnail and detail carousel.

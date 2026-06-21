@@ -10,5 +10,13 @@
   "storm-concept-2026": {
     "imageThumb": "/catalog/img/storm-concept-2026-thumb.webp",
     "imageFull": "/catalog/img/storm-concept-2026-full.webp"
+  },
+  "900-global-wolverine-2021": {
+    "imageThumb": "/catalog/img/900-global-wolverine-2021-thumb.webp",
+    "imageFull": "/catalog/img/900-global-wolverine-2021-full.webp"
+  },
+  "900-global-zen-master-2021": {
+    "imageThumb": "/catalog/img/900-global-zen-master-2021-thumb.webp",
+    "imageFull": "/catalog/img/900-global-zen-master-2021-full.webp"
   }
 }
