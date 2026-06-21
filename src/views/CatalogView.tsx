@@ -85,6 +85,7 @@ function applyFilters(balls: CatalogBall[], filters: Filters, sort: SortKey): Ca
 
 interface DetailPanelProps {
   ball: CatalogBall;
+  owned: boolean;
   onBack: () => void;
   onAddToArsenal: (ball: CatalogBall) => void;
 }
@@ -151,7 +152,7 @@ function ColorwayCarousel({ ball }: { ball: CatalogBall }) {
   );
 }
 
-function DetailPanel({ ball, onBack, onAddToArsenal }: DetailPanelProps) {
+function DetailPanel({ ball, owned, onBack, onAddToArsenal }: DetailPanelProps) {
   return (
     // Proper modal: fixed full-screen sheet with a sticky header (brand/name +
     // X close) and an independently scrolling body, so it always opens at the
@@ -191,13 +192,19 @@ function DetailPanel({ ball, onBack, onAddToArsenal }: DetailPanelProps) {
             {ball.mbDiff !== null && <SpecItem label="MB Diff" value={ball.mbDiff.toFixed(3)} />}
           </dl>
 
-          <button
-            type="button"
-            onClick={() => onAddToArsenal(ball)}
-            className="mt-5 flex w-full items-center justify-center gap-2 rounded-lg bg-felt-700 px-4 py-3.5 text-sm font-semibold text-white shadow-sm hover:bg-felt-500"
-          >
-            Add to my arsenal
-          </button>
+          {owned ? (
+            <div className="mt-5 flex w-full items-center justify-center gap-2 rounded-lg border border-felt-700/30 bg-felt-700/10 px-4 py-3.5 text-sm font-semibold text-felt-700">
+              Already in your arsenal
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => onAddToArsenal(ball)}
+              className="mt-5 flex w-full items-center justify-center gap-2 rounded-lg bg-felt-700 px-4 py-3.5 text-sm font-semibold text-white shadow-sm hover:bg-felt-500"
+            >
+              Add to my arsenal
+            </button>
+          )}
         </div>
       </div>
     </div>
@@ -515,9 +522,10 @@ export function CatalogView({ onBack }: CatalogViewProps) {
   })();
 
   return (
-    // B1: fixed full-screen overlay covering the bottom nav
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-lane-50">
-      <div className="mx-auto w-full max-w-3xl px-3 py-5 sm:px-6">
+    // B1: fixed full-screen overlay covering the bottom nav.
+    // Column layout: fixed header/search/filters/sort up top, only the row list scrolls.
+    <div className="fixed inset-0 z-50 flex flex-col bg-lane-50">
+      <div className="shrink-0 border-b border-slate-200 bg-lane-50 mx-auto w-full max-w-3xl px-3 pt-5 sm:px-6">
         {/* Header */}
         <div className="mb-4 flex items-center gap-2">
           <button
@@ -711,7 +719,10 @@ export function CatalogView({ onBack }: CatalogViewProps) {
           {displayed.length} {displayed.length === 1 ? "ball" : "balls"}
           {allBalls.length !== displayed.length ? ` of ${allBalls.length}` : ""}
         </p>
+      </div>
 
+      {/* Scrollable row list — the only scrolling region */}
+      <div className="flex-1 overflow-y-auto mx-auto w-full max-w-3xl px-3 pb-5 pt-3 sm:px-6">
         {/* B2: Row list instead of card grid */}
         {allBalls.length === 0 && syncState.status !== "syncing" ? (
           <p className="text-sm text-slate-500">No balls in catalog yet. Try refreshing.</p>
@@ -748,6 +759,7 @@ export function CatalogView({ onBack }: CatalogViewProps) {
                     {/* Always-visible compact specs (mobile-first) */}
                     <p className="mt-0.5 text-xs text-slate-400">
                       {[
+                        ball.releaseYear ? String(ball.releaseYear) : null,
                         ball.coverstockCategory ?? null,
                         ball.coreType ?? null,
                         ball.rg !== null ? `RG ${ball.rg.toFixed(2)}` : null,
@@ -773,6 +785,7 @@ export function CatalogView({ onBack }: CatalogViewProps) {
       {selectedBall && (
         <DetailPanel
           ball={selectedBall}
+          owned={isOwned(selectedBall)}
           onBack={() => setSelectedBall(null)}
           onAddToArsenal={(b) => { setAddingBall(b); setAddError(""); }}
         />

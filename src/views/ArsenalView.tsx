@@ -28,7 +28,7 @@ import {
   syncCatalog,
 } from "../services/ballCatalogRepository";
 import type { Ball } from "../types/bowling";
-import type { CatalogBall } from "../types/catalog";
+import type { CatalogBall, Manufacturer } from "../types/catalog";
 import { DEFAULT_WEIGHT } from "../types/catalog";
 import { CatalogBallImage } from "../components/CatalogBallImage";
 
@@ -77,6 +77,18 @@ function SortableBallRow({ ball, onEdit, onDelete }: SortableBallRowProps) {
         >
           <GripVertical size={16} aria-hidden="true" />
         </button>
+
+        {/* Catalog ball image (when linked to a catalog entry) */}
+        {snap && (
+          <div className="h-12 w-12 shrink-0">
+            <CatalogBallImage
+              src={snap.imageThumb}
+              alt={ball.name}
+              brand={snap.brand as Manufacturer}
+              size="thumb"
+            />
+          </div>
+        )}
 
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
@@ -237,6 +249,12 @@ export function ArsenalView({ onOpenCatalog }: ArsenalViewProps = {}) {
     setFormError("");
     setWeightSpecs(null);
     setShowForm(true);
+    // Restore catalog link (if any) so weight specs + catalog image resolve.
+    if (ball.catalog_ref_id) {
+      void getCatalogBall(ball.catalog_ref_id).then((cb) => setFormCatalogRef(cb ?? null));
+    } else {
+      setFormCatalogRef(null);
+    }
   }
 
   function cancelForm() {
@@ -264,16 +282,19 @@ export function ArsenalView({ onOpenCatalog }: ArsenalViewProps = {}) {
 
   function pickFromCatalog(catalogBall: CatalogBall) {
     setShowCatalogPicker(false);
-    setEditingId(null);
-    setForm({
-      name: `${catalogBall.brand} ${catalogBall.name}`,
-      is_spare_ball: false,
-      layout: "",
-      notes: "",
-      weight: DEFAULT_WEIGHT,
-    });
+    // Editing an existing ball: just attach the catalog link, keep its other fields.
+    // Adding a new ball: prefill the name from the catalog entry.
+    if (editingId === null) {
+      setForm({
+        name: `${catalogBall.brand} ${catalogBall.name}`,
+        is_spare_ball: false,
+        layout: "",
+        notes: "",
+        weight: DEFAULT_WEIGHT,
+      });
+    }
     setFormError("");
-    // Store catalog ref and snapshot for addBall call via formCatalogRef.
+    // Store catalog ref and snapshot for the add/update call via formCatalogRef.
     setFormCatalogRef(catalogBall);
     setShowForm(true);
   }
@@ -387,20 +408,22 @@ export function ArsenalView({ onOpenCatalog }: ArsenalViewProps = {}) {
             <h2 className="flex-1 text-sm font-semibold text-slate-950">
               {editingId !== null ? "Edit ball" : "Add ball"}
             </h2>
-            {editingId === null && (
-              <button
-                type="button"
-                onClick={() => void openCatalogPicker()}
-                className="inline-flex h-7 items-center gap-1 rounded-md border border-slate-300 bg-white px-2 text-xs font-medium text-slate-700 hover:bg-slate-50"
-              >
-                <BookOpen size={12} aria-hidden="true" />
-                Add from catalog
-              </button>
-            )}
+            <button
+              type="button"
+              onClick={() => void openCatalogPicker()}
+              className="inline-flex h-7 items-center gap-1 rounded-md border border-slate-300 bg-white px-2 text-xs font-medium text-slate-700 hover:bg-slate-50"
+            >
+              <BookOpen size={12} aria-hidden="true" />
+              {editingId !== null
+                ? formCatalogRef
+                  ? "Change catalog link"
+                  : "Link to catalog"
+                : "Add from catalog"}
+            </button>
           </div>
           {formCatalogRef && (
             <p className="mb-2 text-xs text-felt-700 font-semibold">
-              Prefilled from catalog: {formCatalogRef.brand} {formCatalogRef.name}
+              {editingId !== null ? "Linked to catalog" : "Prefilled from catalog"}: {formCatalogRef.brand} {formCatalogRef.name}
             </p>
           )}
 
