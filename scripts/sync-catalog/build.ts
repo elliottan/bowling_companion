@@ -23,6 +23,7 @@ const __dirname = fileURLToPath(new URL(".", import.meta.url));
 const REPO_ROOT = resolve(__dirname, "../../");
 
 const DEFAULT_INPUT = resolve(__dirname, "data/balls.json");
+const IMAGES_JSON = resolve(__dirname, "data/images.json");
 // Output dir is overridable (env) so tests can write to a temp dir instead of
 // clobbering the real public/catalog catalog.
 const OUT_DIR = process.env.CATALOG_OUT_DIR
@@ -85,6 +86,11 @@ function main(): void {
   // Read raw input
   const rawBalls: RawBall[] = JSON.parse(readFileSync(inputPath, "utf-8"));
 
+  // Optional per-ball hero images (sidecar from `npm run fetch-images`).
+  const images: Record<string, { imageThumb: string; imageFull: string }> = existsSync(IMAGES_JSON)
+    ? JSON.parse(readFileSync(IMAGES_JSON, "utf-8"))
+    : {};
+
   const flagged: { name: string; problems: string[] }[] = [];
   const unclassified: string[] = [];
   const seenIds = new Map<string, string>(); // id -> name
@@ -132,8 +138,8 @@ function main(): void {
       rg: raw.rg,
       diff: raw.diff,
       mbDiff: raw.mbDiff,
-      imageThumb: null,
-      imageFull: null,
+      imageThumb: images[id]?.imageThumb ?? null,
+      imageFull: images[id]?.imageFull ?? null,
       sourceUrl: raw.sourceUrls[0] ?? "",
       ...(raw.weights !== undefined ? { weights: raw.weights } : {}),
       ...(raw.colorways !== undefined ? { colorways: raw.colorways } : {}),

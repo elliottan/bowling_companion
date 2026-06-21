@@ -261,3 +261,39 @@ PDFs with no auth** (per-ball tech sheets + full year catalogs).
   ball, not assumed.
 - UI (catalog row badge, detail-page swipe carousel, arsenal colorway picker) and
   the Storm-CDN image pipeline are follow-on work; the schema is ready for both.
+
+---
+
+## ADR-010 — Catalog sync: upsert-all + NetworkFirst (supersedes append-only)
+
+**Status:** accepted (2026-06). Supersedes the append-only client-sync rule of ADR-007.
+
+**Context.** ADR-007 made client catalog hydration **append-only** (insert ids not
+already present) and cached `catalog.json`/`-manifest.json` with
+**StaleWhileRevalidate**. In practice this stranded devices on stale data: a user
+stayed on the original 12-ball catalog even after a 34-ball catalog deployed, and
+in-app "refresh" did nothing. Root cause was a three-way interaction — SWR serves
+a version-stale response, sync **gates on `version` before fetching** the data, and
+append-only never updates existing rows — so the version setting could advance to
+the new number while the actually-applied data was still the old cached file,
+permanently skipping the real update. Append-only also meant corrected specs, new
+colorways, and ball images (ADR-009) never reached already-synced devices.
+
+**Decision.**
+- **Upsert-all.** `syncCatalog` now `bulkPut`s every remote ball (read-only,
+  server-authoritative, keyed by stable id), updating existing rows and inserting
+  new ones, then deletes local ids absent from remote. The user's arsenal (`balls`
+  table) is separate and untouched. No Dexie change.
+- **NetworkFirst** (with `networkTimeoutSeconds: 5`, cache fallback) for
+  `catalog.json` and `catalog-manifest.json`, replacing StaleWhileRevalidate, so an
+  online client reads the *current* manifest/catalog and syncs a freshly deployed
+  catalog on the first refresh. Images stay StaleWhileRevalidate.
+
+**Consequences.**
+- A new catalog version reaches online devices on the next open/refresh (the SW
+  auto-updates via `registerType: "autoUpdate"`); offline devices still work from
+  cache and reconcile when back online.
+- Spec corrections, colorways, and images now propagate to existing devices — the
+  ADR-007 limitation is resolved.
+- Sync transfers the full catalog.json each version bump (small, slow-changing), an
+  acceptable trade for correctness over the append-only diff.

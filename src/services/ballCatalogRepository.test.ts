@@ -38,13 +38,15 @@ beforeEach(async () => {
 });
 
 describe("syncCatalog", () => {
-  it("appends only new ids and does not duplicate or overwrite existing rows", async () => {
-    // Pre-populate one ball
-    const existing = makeBall("storm-nova-2024");
-    await db.ball_catalog.put(existing);
+  it("upserts: updates existing rows, inserts new ones, and removes ids gone from remote (ADR-010)", async () => {
+    // Pre-populate: one ball that will be updated, one that remote drops.
+    await db.ball_catalog.put(makeBall("storm-nova-2024"));
+    await db.ball_catalog.put(makeBall("storm-gone-2024"));
 
+    // Remote: updated nova (new name + image), a brand-new ball; no "gone".
+    const updatedNova = { ...makeBall("storm-nova-2024"), name: "Nova Updated", imageFull: "/catalog/img/nova-full.webp" };
     const newBall = makeBall("storm-alpha-2024");
-    const remoteBalls: CatalogBall[] = [existing, newBall];
+    const remoteBalls: CatalogBall[] = [updatedNova, newBall];
 
     vi.stubGlobal(
       "fetch",
@@ -66,13 +68,12 @@ describe("syncCatalog", () => {
     await syncCatalog((s) => states.push(s.status));
 
     const all = await getAllCatalog();
-    expect(all).toHaveLength(2);
+    // "gone" removed, nova kept + updated, alpha inserted
     expect(all.map((b) => b.id).sort()).toEqual(["storm-alpha-2024", "storm-nova-2024"]);
 
-    // Existing row was NOT overwritten (bulkPut would overwrite — but we filter before calling it)
-    // Verify by checking the existing ball's data matches original
-    const foundExisting = all.find((b) => b.id === "storm-nova-2024");
-    expect(foundExisting).toEqual(existing);
+    const foundNova = all.find((b) => b.id === "storm-nova-2024");
+    expect(foundNova?.name).toBe("Nova Updated");
+    expect(foundNova?.imageFull).toBe("/catalog/img/nova-full.webp");
 
     expect(states).toEqual(["syncing", "done"]);
   });

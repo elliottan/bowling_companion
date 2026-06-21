@@ -4,6 +4,15 @@ User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachan
 
 ## [Unreleased] — Catalog v3: colorways + PDF seeding (2026-06)
 
+### Fixed
+
+- **Catalog stuck on a stale ball count.** Devices stayed on an old catalog (e.g. 12 balls) even after a larger catalog deployed, and refresh didn't help. Client sync now **upserts the full catalog** (updating existing balls and removing stale ids) instead of append-only, and `catalog.json`/manifest are fetched **NetworkFirst** so a new catalog syncs on the first refresh (ADR-010). Corrected specs, colorways, and images now propagate to already-synced devices.
+- **Ball detail opened as a broken inline panel.** Tapping a catalog ball now opens a proper full-screen modal (brand/name in a sticky header, dismissable with an X, no Back button) that always opens at the top, instead of an `absolute` panel that appeared above the scrolled list.
+
+### Added (images)
+
+- **Ball hero images (Phase 6).** `npm run fetch-images` extracts each ball's photo from its Storm ad-sheet PDF (carves the embedded JPEG, resizes to webp) into `public/catalog/img/`; `build.ts` merges a sidecar `images.json`. One image per ball (Storm ad sheets are single-color), shown in the row thumbnail and detail carousel.
+
 ### Changed
 
 - **Catalog rows show specs on mobile.** The compact spec line (coverstock category · core type · RG · Diff) is now always visible on every catalog row, not just on `sm:` and wider.

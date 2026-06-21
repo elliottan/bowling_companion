@@ -34,14 +34,18 @@ export default defineConfig({
         globPatterns: ["**/*.{js,css,html,svg,png,ico,webmanifest}"],
         runtimeCaching: [
           {
+            // NetworkFirst (not SWR): online clients must read the *current*
+            // manifest/catalog so a freshly deployed catalog syncs on the first
+            // refresh instead of lagging a version behind. Cache is the offline
+            // fallback.
             urlPattern: /\/catalog\/catalog-manifest\.json$/,
-            handler: "StaleWhileRevalidate",
-            options: { cacheName: "catalog-manifest" }
+            handler: "NetworkFirst",
+            options: { cacheName: "catalog-manifest", networkTimeoutSeconds: 5 }
           },
           {
             urlPattern: /\/catalog\/catalog\.json$/,
-            handler: "StaleWhileRevalidate",
-            options: { cacheName: "catalog-data" }
+            handler: "NetworkFirst",
+            options: { cacheName: "catalog-data", networkTimeoutSeconds: 5 }
           },
           {
             urlPattern: /\/catalog\/img\/.*\.webp$/,

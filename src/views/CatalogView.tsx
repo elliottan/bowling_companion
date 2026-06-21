@@ -153,44 +153,53 @@ function ColorwayCarousel({ ball }: { ball: CatalogBall }) {
 
 function DetailPanel({ ball, onBack, onAddToArsenal }: DetailPanelProps) {
   return (
-    <div className="mx-auto w-full max-w-xl px-3 py-5 sm:px-6">
-      <button
-        type="button"
-        onClick={onBack}
-        className="mb-4 inline-flex h-9 items-center gap-1 rounded-md px-2 text-sm font-semibold text-slate-700 hover:bg-slate-100"
-      >
-        <ChevronLeft size={16} aria-hidden="true" />
-        Back
-      </button>
-
-      <ColorwayCarousel ball={ball} />
-
-      <div className="mt-4">
-        <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{ball.brand}</p>
-        <h2 className="mt-0.5 text-xl font-bold text-slate-950">{ball.name}</h2>
-        {ball.releaseYear && (
-          <p className="mt-0.5 text-sm text-slate-500">{ball.releaseYear}</p>
-        )}
+    // Proper modal: fixed full-screen sheet with a sticky header (brand/name +
+    // X close) and an independently scrolling body, so it always opens at the
+    // top regardless of the list's scroll position.
+    <div className="fixed inset-0 z-[55] flex flex-col bg-lane-50" role="dialog" aria-modal="true" aria-label={`${ball.brand} ${ball.name}`}>
+      <div className="flex items-center gap-3 border-b border-slate-200 bg-white px-4 py-3 shadow-sm">
+        <div className="min-w-0 flex-1">
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">{ball.brand}</p>
+          <h2 className="truncate text-base font-bold text-slate-950">{ball.name}</h2>
+        </div>
+        <button
+          type="button"
+          onClick={onBack}
+          aria-label="Close"
+          className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-slate-500 hover:bg-slate-100 hover:text-slate-700"
+        >
+          <X size={20} aria-hidden="true" />
+        </button>
       </div>
 
-      <dl className="mt-5 space-y-2">
-        <SpecItem label="Coverstock" value={ball.coverstockRaw} />
-        <SpecItem label="Category" value={ball.coverstockCategory ?? "Unclassified"} />
-        {ball.factoryFinish && <SpecItem label="Factory Finish" value={ball.factoryFinish} />}
-        {ball.coreName && <SpecItem label="Core" value={ball.coreName} />}
-        <SpecItem label="Core Type" value={ball.coreType ?? "—"} />
-        <SpecItem label="RG" value={ball.rg !== null ? ball.rg.toFixed(2) : "—"} />
-        <SpecItem label="Diff" value={ball.diff !== null ? ball.diff.toFixed(3) : "—"} />
-        {ball.mbDiff !== null && <SpecItem label="MB Diff" value={ball.mbDiff.toFixed(3)} />}
-      </dl>
+      <div className="flex-1 overflow-y-auto">
+        <div className="mx-auto w-full max-w-xl px-3 py-5 sm:px-6">
+          <ColorwayCarousel ball={ball} />
 
-      <button
-        type="button"
-        onClick={() => onAddToArsenal(ball)}
-        className="mt-5 flex w-full items-center justify-center gap-2 rounded-lg bg-felt-700 px-4 py-3.5 text-sm font-semibold text-white shadow-sm hover:bg-felt-500"
-      >
-        Add to my arsenal
-      </button>
+          {ball.releaseYear && (
+            <p className="mt-3 text-sm text-slate-500">{ball.releaseYear}</p>
+          )}
+
+          <dl className="mt-4 space-y-2">
+            <SpecItem label="Coverstock" value={ball.coverstockRaw} />
+            <SpecItem label="Category" value={ball.coverstockCategory ?? "Unclassified"} />
+            {ball.factoryFinish && <SpecItem label="Factory Finish" value={ball.factoryFinish} />}
+            {ball.coreName && <SpecItem label="Core" value={ball.coreName} />}
+            <SpecItem label="Core Type" value={ball.coreType ?? "—"} />
+            <SpecItem label="RG" value={ball.rg !== null ? ball.rg.toFixed(2) : "—"} />
+            <SpecItem label="Diff" value={ball.diff !== null ? ball.diff.toFixed(3) : "—"} />
+            {ball.mbDiff !== null && <SpecItem label="MB Diff" value={ball.mbDiff.toFixed(3)} />}
+          </dl>
+
+          <button
+            type="button"
+            onClick={() => onAddToArsenal(ball)}
+            className="mt-5 flex w-full items-center justify-center gap-2 rounded-lg bg-felt-700 px-4 py-3.5 text-sm font-semibold text-white shadow-sm hover:bg-felt-500"
+          >
+            Add to my arsenal
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
@@ -760,15 +769,13 @@ export function CatalogView({ onBack }: CatalogViewProps) {
         )}
       </div>
 
-      {/* B6: Detail panel — rendered inside the overlay so the add dialog works */}
+      {/* Detail panel — a self-contained fixed modal (see DetailPanel) */}
       {selectedBall && (
-        <div className="absolute inset-0 overflow-y-auto bg-lane-50">
-          <DetailPanel
-            ball={selectedBall}
-            onBack={() => setSelectedBall(null)}
-            onAddToArsenal={(b) => { setAddingBall(b); setAddError(""); }}
-          />
-        </div>
+        <DetailPanel
+          ball={selectedBall}
+          onBack={() => setSelectedBall(null)}
+          onAddToArsenal={(b) => { setAddingBall(b); setAddError(""); }}
+        />
       )}
 
       {/* Add-to-arsenal dialog — always rendered at top level so it's reachable from detail view */}

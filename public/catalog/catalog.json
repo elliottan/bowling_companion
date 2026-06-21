@@ -373,8 +373,8 @@
     "rg": 2.58,
     "diff": 0.024,
     "mbDiff": null,
-    "imageThumb": null,
-    "imageFull": null,
+    "imageThumb": "/catalog/img/storm-tropical-surge-thumb.webp",
+    "imageFull": "/catalog/img/storm-tropical-surge-full.webp",
     "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/storm/tropical-surge-pearl-various-colors",
     "colorways": [
       {
@@ -409,8 +409,8 @@
     "rg": 2.48,
     "diff": 0.053,
     "mbDiff": 0.018,
-    "imageThumb": null,
-    "imageFull": null,
+    "imageThumb": "/catalog/img/storm-alpha-crux-2026-thumb.webp",
+    "imageFull": "/catalog/img/storm-alpha-crux-2026-full.webp",
     "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/storm/alpha-crux"
   },
   {
@@ -427,8 +427,8 @@
     "rg": 2.47,
     "diff": 0.05,
     "mbDiff": null,
-    "imageThumb": null,
-    "imageFull": null,
+    "imageThumb": "/catalog/img/storm-bionic-2026-thumb.webp",
+    "imageFull": "/catalog/img/storm-bionic-2026-full.webp",
     "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/storm/bionic"
   },
   {
@@ -445,8 +445,8 @@
     "rg": 2.61,
     "diff": 0.02,
     "mbDiff": null,
-    "imageThumb": null,
-    "imageFull": null,
+    "imageThumb": "/catalog/img/storm-concept-2026-thumb.webp",
+    "imageFull": "/catalog/img/storm-concept-2026-full.webp",
     "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/storm/concept"
   },
   {
@@ -463,8 +463,8 @@
     "rg": 2.48,
     "diff": 0.054,
     "mbDiff": 0.018,
-    "imageThumb": null,
-    "imageFull": null,
+    "imageThumb": "/catalog/img/storm-equinox-2025-thumb.webp",
+    "imageFull": "/catalog/img/storm-equinox-2025-full.webp",
     "sourceUrl": "https://www.stormbowling.com",
     "weights": [
       {
@@ -915,8 +915,8 @@
     "rg": 2.55,
     "diff": 0.045,
     "mbDiff": null,
-    "imageThumb": null,
-    "imageFull": null,
+    "imageThumb": "/catalog/img/storm-road-warrior-2025-thumb.webp",
+    "imageFull": "/catalog/img/storm-road-warrior-2025-full.webp",
     "sourceUrl": "https://www.stormbowling.com",
     "weights": [
       {

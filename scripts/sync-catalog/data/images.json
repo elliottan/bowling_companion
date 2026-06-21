@@ -1,0 +1,26 @@
+{
+  "storm-tropical-surge": {
+    "imageThumb": "/catalog/img/storm-tropical-surge-thumb.webp",
+    "imageFull": "/catalog/img/storm-tropical-surge-full.webp"
+  },
+  "storm-alpha-crux-2026": {
+    "imageThumb": "/catalog/img/storm-alpha-crux-2026-thumb.webp",
+    "imageFull": "/catalog/img/storm-alpha-crux-2026-full.webp"
+  },
+  "storm-bionic-2026": {
+    "imageThumb": "/catalog/img/storm-bionic-2026-thumb.webp",
+    "imageFull": "/catalog/img/storm-bionic-2026-full.webp"
+  },
+  "storm-concept-2026": {
+    "imageThumb": "/catalog/img/storm-concept-2026-thumb.webp",
+    "imageFull": "/catalog/img/storm-concept-2026-full.webp"
+  },
+  "storm-equinox-2025": {
+    "imageThumb": "/catalog/img/storm-equinox-2025-thumb.webp",
+    "imageFull": "/catalog/img/storm-equinox-2025-full.webp"
+  },
+  "storm-road-warrior-2025": {
+    "imageThumb": "/catalog/img/storm-road-warrior-2025-thumb.webp",
+    "imageFull": "/catalog/img/storm-road-warrior-2025-full.webp"
+  }
+}

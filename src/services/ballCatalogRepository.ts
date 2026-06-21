@@ -51,12 +51,20 @@ export async function syncCatalog(onState?: (state: SyncState) => void): Promise
     return;
   }
 
-  // Append-only: only insert balls whose id is not already present.
-  const existingIds = new Set((await db.ball_catalog.toArray()).map((b) => b.id));
-  const newBalls = remoteBalls.filter((b) => !existingIds.has(b.id));
-
-  if (newBalls.length > 0) {
-    await db.ball_catalog.bulkPut(newBalls);
+  // Upsert all: the catalog is read-only, server-authoritative reference data
+  // keyed by stable id, so re-putting every ball updates existing entries
+  // (corrected specs, new images, added colorways) as well as inserting new
+  // ones. Supersedes the earlier append-only behaviour (ADR-010), which left
+  // already-synced devices stuck on stale data. The user's arsenal lives in a
+  // separate `balls` table and is untouched.
+  await db.ball_catalog.bulkPut(remoteBalls);
+  // Drop catalog ids that no longer exist remotely (keeps the table exact).
+  const remoteIds = new Set(remoteBalls.map((b) => b.id));
+  const staleIds = (await db.ball_catalog.toArray())
+    .map((b) => b.id)
+    .filter((id) => !remoteIds.has(id));
+  if (staleIds.length > 0) {
+    await db.ball_catalog.bulkDelete(staleIds);
   }
 
   await setSetting(CATALOG_VERSION_KEY, String(manifest.version));
