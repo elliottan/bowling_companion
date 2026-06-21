@@ -1,0 +1,12 @@
+# Keep `vercel --prod` CLI uploads small — mirror what git auto-deploy sends.
+# Vercel runs `npm install` + `npm run build` remotely, so none of these are
+# needed for the build, and `tmp/` holds large scratch PDFs (>100 MB) that
+# otherwise blow past Vercel's per-file upload limit.
+node_modules
+.git
+tmp
+dist
+coverage
+test-results
+playwright-report
+*.tsbuildinfo
