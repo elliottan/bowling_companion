@@ -217,3 +217,47 @@ balls to add was ad hoc; the USBC publishes an authoritative approved-ball list
   does not gather specs; that stays the curated, cited process.
 - No Dexie change; the catalog is still rebuilt wholesale and client sync is
   unchanged (ADR-007 holds).
+
+---
+
+## ADR-009 — Colorways + deterministic PDF seeding pipeline
+
+**Status:** accepted (2026-06).
+
+**Context.** Gathering specs by LLM web search cost ~24k tokens and ~19 tool
+calls per ball (measured: ~290k tokens for 20 balls, 8 of which failed) — too
+expensive to scale the catalog. Separately, a ball ships in several **colorways**
+that share one spec block (same core/coverstock), and the arsenal/detail UI wants
+to let the user pick and see the colorway they own. ADR-007 ruled out scraping
+manufacturer HTML (bot-walled), but Storm publishes spec data as **direct-CDN
+PDFs with no auth** (per-ball tech sheets + full year catalogs).
+
+**Decision.**
+- **Colorway model (nested).** Add `Colorway { sku, color, imageThumb?, imageFull? }`
+  and an optional `colorways?: Colorway[]` to `CatalogBall` and the curated
+  `RawBall`; `colorways[0]` is the default. The arsenal `Ball` gains an optional
+  `colorway_sku?` recording the user's chosen variant. All fields are non-indexed
+  and optional — **no Dexie migration** (the catalog manifest hash changes, which
+  re-syncs `ball_catalog` wholesale per ADR-007). Image fields stay null until the
+  image pipeline (future) populates them.
+- **Deterministic PDF seeding.** Parse official SPI PDFs into staging seed files
+  (`scripts/sync-catalog/data/seed/`) for human review before merge into
+  `balls.json` — never written directly. Three deterministic, no-LLM scripts share
+  `catalog/parse-blocks.ts`: `parse-catalog` (year catalog → many balls, all three
+  SPI brands), `parse-ball` (one tech-data PDF *or pasted text* → one ball), and
+  `usbc-index` (approved-ball PDF → searchable `data/usbc-index.json`). Ball
+  **name + brand are reconciled against the USBC index** (logo-derived ALL-CAPS
+  names fuzzy-matched to canonical names); unresolved balls carry `_needsReview`.
+  Codified as the `seed-catalog` skill. `gather-ball-specs` (ADR-008) remains the
+  web fallback for balls with no PDF.
+
+**Consequences.**
+- Seeding a ball from a PDF costs ~0 model tokens (deterministic extraction; the
+  PDF text is never loaded into a model context) vs ~24k via web search.
+- Colorway *specs* are reliable; colorway *grouping* from the year catalog can
+  bleed across a spec-block boundary (a ball's SKU/logo prints above its own
+  table), so the staging-review step is mandatory before merge.
+- One SPI catalog seeds Storm + Roto Grip + 900 Global; brand is resolved per
+  ball, not assumed.
+- UI (catalog row badge, detail-page swipe carousel, arsenal colorway picker) and
+  the Storm-CDN image pipeline are follow-on work; the schema is ready for both.

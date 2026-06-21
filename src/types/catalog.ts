@@ -11,6 +11,19 @@ export interface WeightSpec {
 
 export const DEFAULT_WEIGHT = 15;
 
+/**
+ * A single color variant of a ball. Specs are shared across colorways (same
+ * core/coverstock), so colorways differ only by SKU, color name, and image.
+ * colorways[0] is the default shown in the catalog. Image fields are optional
+ * and populated by the image pipeline (Phase 6); null/undefined until then.
+ */
+export interface Colorway {
+  sku: string;
+  color: string | null;
+  imageThumb?: string | null;   // "/catalog/img/<hash>-thumb.webp"
+  imageFull?: string | null;    // "/catalog/img/<hash>-full.webp"
+}
+
 export interface CatalogBall {
   id: string;              // stable: slug(`${brand}-${name}-${releaseYear}`)
   brand: Manufacturer;
@@ -29,6 +42,7 @@ export interface CatalogBall {
   imageFull: string | null;     // "/catalog/img/<hash>-full.webp"
   sourceUrl: string;            // manufacturer product page
   weights?: WeightSpec[];       // per-weight specs; top-level rg/diff/mbDiff = 15 lb default
+  colorways?: Colorway[];       // color variants; colorways[0] is the default
 }
 
 export interface CatalogManifest {

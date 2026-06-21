@@ -1,0 +1,49 @@
+[
+  {
+    "brand": "Storm",
+    "name": "!Q Tour 78/U",
+    "releaseDate": null,
+    "coverstockRaw": "Controll Solid Urethane",
+    "factoryFinish": "500-grit Abralon",
+    "coreName": "C³ Centripetal Control Core",
+    "rg": 2.49,
+    "diff": 0.029,
+    "mbDiff": null,
+    "sourceUrls": [
+      "https://www.stormbowling.com",
+      "-"
+    ],
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.49,
+        "diff": 0.035,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.49,
+        "diff": 0.029,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.54,
+        "diff": 0.034,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.59,
+        "diff": 0.045,
+        "mbDiff": null
+      }
+    ],
+    "colorways": [
+      {
+        "sku": "VLL",
+        "color": "78/U"
+      }
+    ]
+  }
+]

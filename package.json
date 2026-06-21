@@ -12,7 +12,10 @@
     "test:e2e:ui": "playwright test --ui",
     "icons": "node scripts/generate-icons.mjs",
     "sync-catalog": "tsx scripts/sync-catalog/build.ts",
-    "usbc-diff": "tsx scripts/sync-catalog/usbc/parse-usbc.ts"
+    "usbc-diff": "tsx scripts/sync-catalog/usbc/parse-usbc.ts",
+    "usbc-index": "tsx scripts/sync-catalog/usbc/build-index.ts",
+    "parse-catalog": "tsx scripts/sync-catalog/catalog/parse-catalog-pdf.ts",
+    "parse-ball": "tsx scripts/sync-catalog/catalog/parse-ball-pdf.ts"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

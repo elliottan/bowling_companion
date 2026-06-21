@@ -1,4 +1,4 @@
-import type { Manufacturer, WeightSpec } from "../../src/types/catalog.js";
+import type { Colorway, Manufacturer, WeightSpec } from "../../src/types/catalog.js";
 
 /**
  * Hand-curated input shape for the catalog build pipeline.
@@ -28,4 +28,6 @@ export interface RawBall {
   sourceUrls: string[];
   /** Optional per-weight specs. 15 lb must match top-level rg/diff/mbDiff when present. */
   weights?: WeightSpec[];
+  /** Optional color variants. colorways[0] is the default shown in the catalog. */
+  colorways?: Colorway[];
 }

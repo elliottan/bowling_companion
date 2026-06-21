@@ -1,4 +1,4 @@
-import { ChevronLeft, Loader2, RefreshCw, X } from "lucide-react";
+import { ChevronLeft, Loader2, Palette, RefreshCw, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { CatalogBallImage } from "../components/CatalogBallImage";
 import {
@@ -89,6 +89,68 @@ interface DetailPanelProps {
   onAddToArsenal: (ball: CatalogBall) => void;
 }
 
+// Swipeable colorway image carousel with pagination dots. Falls back to a
+// single image when the ball has 0–1 colorways.
+function ColorwayCarousel({ ball }: { ball: CatalogBall }) {
+  const colorways = ball.colorways ?? [];
+  const [idx, setIdx] = useState(0);
+  const touchX = useRef<number | null>(null);
+
+  if (colorways.length <= 1) {
+    const cw = colorways[0];
+    return (
+      <CatalogBallImage
+        src={cw?.imageFull ?? ball.imageFull}
+        alt={ball.name}
+        brand={ball.brand}
+        size="full"
+      />
+    );
+  }
+
+  const current = colorways[idx];
+  const go = (next: number) => setIdx((next + colorways.length) % colorways.length);
+
+  return (
+    <div>
+      <div
+        onTouchStart={(e) => (touchX.current = e.touches[0].clientX)}
+        onTouchEnd={(e) => {
+          if (touchX.current === null) return;
+          const dx = e.changedTouches[0].clientX - touchX.current;
+          if (Math.abs(dx) > 40) go(dx < 0 ? idx + 1 : idx - 1);
+          touchX.current = null;
+        }}
+      >
+        <CatalogBallImage
+          src={current.imageFull ?? ball.imageFull}
+          alt={`${ball.name}${current.color ? ` — ${current.color}` : ""}`}
+          brand={ball.brand}
+          size="full"
+        />
+      </div>
+      {current.color && (
+        <p className="mt-2 text-center text-sm font-medium text-slate-600">{current.color}</p>
+      )}
+      {/* Pagination dots */}
+      <div className="mt-2 flex items-center justify-center gap-1.5">
+        {colorways.map((cw, i) => (
+          <button
+            key={cw.sku}
+            type="button"
+            onClick={() => setIdx(i)}
+            aria-label={`View colorway ${i + 1}${cw.color ? `: ${cw.color}` : ""}`}
+            aria-current={i === idx}
+            className={`h-2 rounded-full transition-all ${
+              i === idx ? "w-5 bg-felt-700" : "w-2 bg-slate-300 hover:bg-slate-400"
+            }`}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function DetailPanel({ ball, onBack, onAddToArsenal }: DetailPanelProps) {
   return (
     <div className="mx-auto w-full max-w-xl px-3 py-5 sm:px-6">
@@ -101,7 +163,7 @@ function DetailPanel({ ball, onBack, onAddToArsenal }: DetailPanelProps) {
         Back
       </button>
 
-      <CatalogBallImage src={ball.imageFull} alt={ball.name} brand={ball.brand} size="full" />
+      <ColorwayCarousel ball={ball} />
 
       <div className="mt-4">
         <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{ball.brand}</p>
@@ -230,7 +292,7 @@ function RangeSlider({ label, min, max, step, valueMin, valueMax, format, onChan
 
 interface AddFromCatalogDialogProps {
   ball: CatalogBall;
-  onConfirm: (name: string) => void;
+  onConfirm: (name: string, colorwaySku?: string) => void;
   onCancel: () => void;
   isSaving: boolean;
   error: string;
@@ -238,6 +300,8 @@ interface AddFromCatalogDialogProps {
 
 function AddFromCatalogDialog({ ball, onConfirm, onCancel, isSaving, error }: AddFromCatalogDialogProps) {
   const [name, setName] = useState(`${ball.brand} ${ball.name}`);
+  const colorways = ball.colorways ?? [];
+  const [colorwaySku, setColorwaySku] = useState<string | undefined>(colorways[0]?.sku);
 
   return (
     <div className="fixed inset-0 z-[60] flex items-end justify-center sm:items-center" role="dialog" aria-modal="true">
@@ -259,11 +323,32 @@ function AddFromCatalogDialog({ ball, onConfirm, onCancel, isSaving, error }: Ad
           onChange={(e) => setName(e.target.value)}
           className="h-11 w-full rounded-lg border border-slate-300 px-3 text-sm outline-none focus:border-felt-700 focus:ring-2 focus:ring-felt-700/20"
         />
+        {colorways.length > 1 && (
+          <div className="mt-3">
+            <p className="mb-1.5 block text-sm font-medium text-slate-700">Colorway</p>
+            <div className="flex flex-wrap gap-1.5">
+              {colorways.map((cw) => (
+                <button
+                  key={cw.sku}
+                  type="button"
+                  onClick={() => setColorwaySku(cw.sku)}
+                  className={`rounded-full border px-2.5 py-1 text-xs font-semibold ${
+                    colorwaySku === cw.sku
+                      ? "border-felt-700 bg-felt-700 text-white"
+                      : "border-slate-300 bg-white text-slate-700 hover:border-felt-700"
+                  }`}
+                >
+                  {cw.color ?? cw.sku}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
         <div className="mt-4 flex gap-2">
           <button
             type="button"
             disabled={isSaving || !name.trim()}
-            onClick={() => onConfirm(name.trim())}
+            onClick={() => onConfirm(name.trim(), colorwaySku)}
             className="inline-flex h-10 items-center gap-2 rounded-lg bg-felt-700 px-4 text-sm font-semibold text-white hover:bg-felt-500 disabled:opacity-50"
           >
             {isSaving ? "Saving…" : "Add ball"}
@@ -374,14 +459,16 @@ export function CatalogView({ onBack }: CatalogViewProps) {
     return ownedIds.has(key);
   }
 
-  async function handleAddToArsenal(catalogBall: CatalogBall, name: string) {
+  async function handleAddToArsenal(catalogBall: CatalogBall, name: string, colorwaySku?: string) {
     setAddSaving(true);
     setAddError("");
     try {
+      const colorway = catalogBall.colorways?.find((c) => c.sku === colorwaySku);
       const payload: Omit<Ball, "id"> = {
         name,
         is_spare_ball: false,
         catalog_ref_id: catalogBall.id,
+        ...(colorwaySku ? { colorway_sku: colorwaySku } : {}),
         catalog_snapshot: {
           brand: catalogBall.brand,
           name: catalogBall.name,
@@ -390,7 +477,7 @@ export function CatalogView({ onBack }: CatalogViewProps) {
           rg: catalogBall.rg,
           diff: catalogBall.diff,
           mbDiff: catalogBall.mbDiff,
-          imageThumb: catalogBall.imageThumb,
+          imageThumb: colorway?.imageThumb ?? catalogBall.imageThumb,
         },
       };
       await addBall(payload);
@@ -640,18 +727,24 @@ export function CatalogView({ onBack }: CatalogViewProps) {
                           Owned
                         </span>
                       )}
+                      {/* Multi-colorway badge */}
+                      {(ball.colorways?.length ?? 0) > 1 && (
+                        <span className="inline-flex items-center gap-0.5 rounded-full bg-slate-100 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-slate-500">
+                          <Palette size={9} aria-hidden="true" />
+                          {ball.colorways!.length} colors
+                        </span>
+                      )}
                     </div>
                     <p className="text-sm font-semibold text-slate-950">{ball.name}</p>
-                  </div>
-                  <div className="hidden shrink-0 text-right sm:block">
-                    <p className="text-xs text-slate-500">{ball.coverstockCategory ?? "—"} · {ball.coreType ?? "—"}</p>
-                    {(ball.rg !== null || ball.diff !== null) && (
-                      <p className="text-xs text-slate-400">
-                        {ball.rg !== null ? `RG ${ball.rg.toFixed(2)}` : ""}
-                        {ball.rg !== null && ball.diff !== null ? " · " : ""}
-                        {ball.diff !== null ? `Diff ${ball.diff.toFixed(3)}` : ""}
-                      </p>
-                    )}
+                    {/* Always-visible compact specs (mobile-first) */}
+                    <p className="mt-0.5 text-xs text-slate-400">
+                      {[
+                        ball.coverstockCategory ?? null,
+                        ball.coreType ?? null,
+                        ball.rg !== null ? `RG ${ball.rg.toFixed(2)}` : null,
+                        ball.diff !== null ? `Diff ${ball.diff.toFixed(3)}` : null,
+                      ].filter(Boolean).join(" · ") || "—"}
+                    </p>
                   </div>
                 </button>
               </li>
@@ -682,7 +775,7 @@ export function CatalogView({ onBack }: CatalogViewProps) {
       {addingBall && (
         <AddFromCatalogDialog
           ball={addingBall}
-          onConfirm={(name) => void handleAddToArsenal(addingBall, name)}
+          onConfirm={(name, colorwaySku) => void handleAddToArsenal(addingBall, name, colorwaySku)}
           onCancel={() => { setAddingBall(null); setAddError(""); }}
           isSaving={addSaving}
           error={addError}

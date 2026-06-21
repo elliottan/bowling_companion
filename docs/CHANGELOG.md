@@ -2,6 +2,19 @@
 
 User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachangelog.com).
 
+## [Unreleased] — Catalog v3: colorways + PDF seeding (2026-06)
+
+### Changed
+
+- **Catalog rows show specs on mobile.** The compact spec line (coverstock category · core type · RG · Diff) is now always visible on every catalog row, not just on `sm:` and wider.
+
+### Added
+
+- **Colorway display.** Catalog rows with multiple colorways show a "N colors" badge; the ball-detail page has a swipeable colorway carousel with pagination dots and the color name; the add-to-arsenal dialog has a colorway picker that saves the chosen `colorway_sku` on the ball.
+- **Catalog seeded from Storm 2025 catalog.** 11 colorway-bearing Storm balls merged in (e.g. Tropical Surge with 4 colorways), via the new PDF pipeline.
+- **Colorways schema (ADR-009).** New `Colorway { sku, color, imageThumb?, imageFull? }` and optional `colorways?: Colorway[]` on `CatalogBall` + `RawBall`; optional `colorway_sku?` on `Ball`. All non-indexed — no Dexie bump. UI (catalog-row badge, detail-page swipe carousel, arsenal colorway picker) is follow-on.
+- **Deterministic PDF seeding pipeline (ADR-009).** `npm run usbc-index` (USBC PDF → searchable `usbc-index.json`), `npm run parse-catalog` (SPI year catalog → staging seed file, all three brands), `npm run parse-ball` (one tech-data PDF or pasted text → staging seed file). Ball name + brand reconciled against the USBC index; unresolved balls flagged for review. Wrapped in the `seed-catalog` skill. Costs ~0 model tokens vs LLM web search.
+
 ## [Unreleased] — Catalog v2: UX overhaul (2026-06)
 
 ### Changed

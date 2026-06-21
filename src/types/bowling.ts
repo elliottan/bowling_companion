@@ -43,6 +43,7 @@ export interface Ball {
   catalog_ref_id?: string;
   catalog_snapshot?: BallCatalogSnapshot;
   weight?: number;
+  colorway_sku?: string;   // chosen colorway from the catalog ball's colorways[]
 }
 
 export interface OilPattern {

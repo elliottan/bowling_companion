@@ -67,7 +67,7 @@
     "factoryFinish": "1500-grit Polished",
     "coreName": "Hustle",
     "rg": 2.53,
-    "diff": 0.030,
+    "diff": 0.03,
     "mbDiff": null,
     "sourceUrls": [
       "https://tamerbowling.com/roto-grip-hustle-ink-bowling-ball-review/",
@@ -82,7 +82,7 @@
     "factoryFinish": "2000-grit Pad",
     "coreName": "Centrum",
     "rg": 2.49,
-    "diff": 0.050,
+    "diff": 0.05,
     "mbDiff": 0.018,
     "sourceUrls": [
       "https://tamerbowling.com/roto-grip-halo-bowling-ball-review/",
@@ -177,6 +177,742 @@
     "sourceUrls": [
       "https://www.bowlingthismonth.com/bowling-ball-review/motiv-forge/",
       "https://www.discountbowlingsupply.com/products/motiv-forge"
+    ]
+  },
+  {
+    "brand": "Storm",
+    "name": "PhysiX Burst",
+    "releaseDate": null,
+    "coverstockRaw": "RX Solid Reactive",
+    "factoryFinish": "2000 Grit",
+    "coreName": "Atomic Core",
+    "rg": 2.48,
+    "diff": 0.053,
+    "mbDiff": 0.017,
+    "sourceUrls": [
+      "https://bowlersasylum.com/products/storm-physix-burst-15-lbs",
+      "https://bowl.com/approved-ball-list"
+    ]
+  },
+  {
+    "brand": "Storm",
+    "name": "Concept Purple",
+    "releaseDate": null,
+    "coverstockRaw": "ARC+ Pearl Reactive",
+    "factoryFinish": "1000 Abralon",
+    "coreName": "Radius Core",
+    "rg": 2.61,
+    "diff": 0.02,
+    "mbDiff": null,
+    "sourceUrls": [
+      "https://bowlersasylum.com/products/storm-concept-purple-15-lbs",
+      "https://bowl.com/approved-ball-list"
+    ]
+  },
+  {
+    "brand": "Storm",
+    "name": "PhysiX Genesis",
+    "releaseDate": "2026-06-01",
+    "coverstockRaw": "A2S Hybrid Reactive",
+    "factoryFinish": "3000 Abralon",
+    "coreName": "Atomic A.I. Core",
+    "rg": 2.47,
+    "diff": 0.055,
+    "mbDiff": 0.018,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/storm/physix-genesis",
+      "https://bowl.com/approved-ball-list"
+    ]
+  },
+  {
+    "brand": "Storm",
+    "name": "Code Crush",
+    "releaseDate": "2026-05-01",
+    "coverstockRaw": "R2S Deep Pearl Reactive",
+    "factoryFinish": "Power Edge",
+    "coreName": "RAD4 Core",
+    "rg": 2.5,
+    "diff": 0.058,
+    "mbDiff": 0.02,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/storm/code-crush",
+      "https://bowlersasylum.com/products/storm-code-crush-15-lbs"
+    ]
+  },
+  {
+    "brand": "Storm",
+    "name": "Ghost Lock SE",
+    "releaseDate": "2026-04-01",
+    "coverstockRaw": "NeX+ Solid",
+    "factoryFinish": "1500 Polished",
+    "coreName": "RAD-X",
+    "rg": 2.48,
+    "diff": 0.054,
+    "mbDiff": 0.018,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/storm/ghost-lock-se",
+      "https://bowl.com/approved-ball-list"
+    ]
+  },
+  {
+    "brand": "Storm",
+    "name": "Raging Bite",
+    "releaseDate": "2026-05-01",
+    "coverstockRaw": "TX-16 Solid",
+    "factoryFinish": "3000 Abralon",
+    "coreName": "G2 A.I.",
+    "rg": 2.46,
+    "diff": 0.059,
+    "mbDiff": 0.029,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/storm/raging-bite",
+      "https://nageyo.com/bowling_review/raging_bite/"
+    ]
+  },
+  {
+    "brand": "Storm",
+    "name": "Rocket A.I.",
+    "releaseDate": "2026-05-01",
+    "coverstockRaw": "A1S Pearl Reactive",
+    "factoryFinish": "Power Edge",
+    "coreName": "Booster A.I.",
+    "rg": 2.53,
+    "diff": 0.048,
+    "mbDiff": null,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/storm/rocket-ai",
+      "https://www.buddiesproshop.com/just-announced/storm-rocket-a-i-bowling-ball/"
+    ]
+  },
+  {
+    "brand": "Storm",
+    "name": "Level Up",
+    "releaseDate": null,
+    "coverstockRaw": "RPM-XT Solid",
+    "factoryFinish": "1000 Abralon",
+    "coreName": "Equalizer A.I.",
+    "rg": 2.59,
+    "diff": 0.027,
+    "mbDiff": null,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/storm/level-up",
+      "https://bowl.com/approved-ball-list"
+    ]
+  },
+  {
+    "brand": "Storm",
+    "name": "Tropical Surge",
+    "releaseDate": null,
+    "coverstockRaw": "Reactor Pearl Reactive",
+    "factoryFinish": "1500 Grit Polished",
+    "coreName": "Surge Core",
+    "rg": 2.58,
+    "diff": 0.024,
+    "mbDiff": null,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/storm/tropical-surge-pearl-various-colors",
+      "https://bowl.com/approved-ball-list"
+    ],
+    "colorways": [
+      {
+        "sku": "VEC",
+        "color": "EMERALD/CHARCOAL"
+      },
+      {
+        "sku": "TQI",
+        "color": "PINK/PURPLE"
+      },
+      {
+        "sku": "TQZ",
+        "color": "TEAL/BLUE"
+      },
+      {
+        "sku": "TQY",
+        "color": "BLACK/CHERRY"
+      }
+    ]
+  },
+  {
+    "brand": "Storm",
+    "name": "Alpha Crux",
+    "releaseDate": "2026-05-29",
+    "coverstockRaw": "GI-26 Solid Reactive",
+    "factoryFinish": "2000-grit Abralon",
+    "coreName": "Catalyst A.I. Core",
+    "rg": 2.48,
+    "diff": 0.053,
+    "mbDiff": 0.018,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/storm/alpha-crux",
+      "https://gebhardtsbowling.com/storm-alpha-crux-bowling-ball/"
+    ]
+  },
+  {
+    "brand": "Storm",
+    "name": "Bionic",
+    "releaseDate": "2026-02-27",
+    "coverstockRaw": "NRG Hybrid Reactive",
+    "factoryFinish": "4000-grit Abralon",
+    "coreName": "Torsion A.I. Core",
+    "rg": 2.47,
+    "diff": 0.05,
+    "mbDiff": null,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/storm/bionic",
+      "https://gebhardtsbowling.com/storm-bionic-bowling-ball/"
+    ]
+  },
+  {
+    "brand": "Storm",
+    "name": "Concept",
+    "releaseDate": "2026-02-27",
+    "coverstockRaw": "ARC Pearl Coverstock",
+    "factoryFinish": "1000-grit Abralon",
+    "coreName": "Radius Weight Block",
+    "rg": 2.61,
+    "diff": 0.02,
+    "mbDiff": null,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/storm/concept",
+      "https://gebhardtsbowling.com/storm-concept-bowling-ball/"
+    ]
+  },
+  {
+    "brand": "Storm",
+    "name": "Equinox",
+    "releaseDate": "2025-01-01",
+    "coverstockRaw": "A1S Pearl Reactive",
+    "factoryFinish": "Power Edge",
+    "coreName": "Solarion A.I. Core",
+    "rg": 2.48,
+    "diff": 0.054,
+    "mbDiff": 0.018,
+    "sourceUrls": [
+      "https://www.stormbowling.com",
+      "tmp/storm-2025-catalog.pdf"
+    ],
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.47,
+        "diff": 0.054,
+        "mbDiff": 0.016
+      },
+      {
+        "weight": 15,
+        "rg": 2.48,
+        "diff": 0.054,
+        "mbDiff": 0.018
+      },
+      {
+        "weight": 14,
+        "rg": 2.49,
+        "diff": 0.053,
+        "mbDiff": 0.017
+      },
+      {
+        "weight": 13,
+        "rg": 2.56,
+        "diff": 0.034,
+        "mbDiff": 0.011
+      },
+      {
+        "weight": 12,
+        "rg": 2.58,
+        "diff": 0.031,
+        "mbDiff": 0.009
+      }
+    ],
+    "colorways": [
+      {
+        "sku": "VEQ",
+        "color": "Goldenrod/Deep Violet/ Chromium"
+      }
+    ]
+  },
+  {
+    "brand": "Storm",
+    "name": "Ion Max",
+    "releaseDate": "2025-01-01",
+    "coverstockRaw": "NRG Solid Reactive",
+    "factoryFinish": "2000-grit Abralon",
+    "coreName": "Element Max A.I. Core",
+    "rg": 2.47,
+    "diff": 0.055,
+    "mbDiff": 0.014,
+    "sourceUrls": [
+      "https://www.stormbowling.com",
+      "tmp/storm-2025-catalog.pdf"
+    ],
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.47,
+        "diff": 0.053,
+        "mbDiff": 0.013
+      },
+      {
+        "weight": 15,
+        "rg": 2.47,
+        "diff": 0.055,
+        "mbDiff": 0.014
+      },
+      {
+        "weight": 14,
+        "rg": 2.49,
+        "diff": 0.053,
+        "mbDiff": 0.01
+      },
+      {
+        "weight": 13,
+        "rg": 2.56,
+        "diff": 0.034,
+        "mbDiff": 0.011
+      },
+      {
+        "weight": 12,
+        "rg": 2.58,
+        "diff": 0.031,
+        "mbDiff": 0.009
+      }
+    ],
+    "colorways": [
+      {
+        "sku": "VIO",
+        "color": "Neon Pink/Indigo/ White"
+      }
+    ]
+  },
+  {
+    "brand": "Storm",
+    "name": "Ion Pro",
+    "releaseDate": "2025-01-01",
+    "coverstockRaw": "TX-16 Hybrid Reactive",
+    "factoryFinish": "4000-grit Abralon",
+    "coreName": "Element Tour A.I. Core",
+    "rg": 2.47,
+    "diff": 0.035,
+    "mbDiff": 0.014,
+    "sourceUrls": [
+      "https://www.stormbowling.com",
+      "tmp/storm-2025-catalog.pdf"
+    ],
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.47,
+        "diff": 0.035,
+        "mbDiff": 0.013
+      },
+      {
+        "weight": 15,
+        "rg": 2.47,
+        "diff": 0.035,
+        "mbDiff": 0.014
+      },
+      {
+        "weight": 14,
+        "rg": 2.51,
+        "diff": 0.036,
+        "mbDiff": 0.01
+      },
+      {
+        "weight": 13,
+        "rg": 2.56,
+        "diff": 0.034,
+        "mbDiff": 0.011
+      },
+      {
+        "weight": 12,
+        "rg": 2.58,
+        "diff": 0.031,
+        "mbDiff": 0.009
+      }
+    ],
+    "colorways": [
+      {
+        "sku": "VIP",
+        "color": null
+      },
+      {
+        "sku": "VIS",
+        "color": null
+      }
+    ]
+  },
+  {
+    "brand": "Storm",
+    "name": "Level",
+    "releaseDate": "2025-01-01",
+    "coverstockRaw": "RPM Solid",
+    "factoryFinish": "1000-grit Abralon",
+    "coreName": "Equalizer A.I. Core",
+    "rg": 2.47,
+    "diff": 0.035,
+    "mbDiff": 0.014,
+    "sourceUrls": [
+      "https://www.stormbowling.com",
+      "tmp/storm-2025-catalog.pdf"
+    ],
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.47,
+        "diff": 0.035,
+        "mbDiff": 0.013
+      },
+      {
+        "weight": 15,
+        "rg": 2.47,
+        "diff": 0.035,
+        "mbDiff": 0.014
+      },
+      {
+        "weight": 14,
+        "rg": 2.51,
+        "diff": 0.036,
+        "mbDiff": 0.01
+      },
+      {
+        "weight": 13,
+        "rg": 2.56,
+        "diff": 0.034,
+        "mbDiff": 0.011
+      },
+      {
+        "weight": 12,
+        "rg": 2.58,
+        "diff": 0.031,
+        "mbDiff": 0.009
+      }
+    ],
+    "colorways": [
+      {
+        "sku": "VLE",
+        "color": "Black"
+      }
+    ]
+  },
+  {
+    "brand": "Storm",
+    "name": "PhysiX Blackout",
+    "releaseDate": "2025-01-01",
+    "coverstockRaw": "NeX Pearl Reactive",
+    "factoryFinish": "2000-grit Abralon",
+    "coreName": "Atomic A.I. Core",
+    "rg": 2.47,
+    "diff": 0.055,
+    "mbDiff": 0.018,
+    "sourceUrls": [
+      "https://www.stormbowling.com",
+      "tmp/storm-2025-catalog.pdf"
+    ],
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.47,
+        "diff": 0.056,
+        "mbDiff": 0.018
+      },
+      {
+        "weight": 15,
+        "rg": 2.47,
+        "diff": 0.055,
+        "mbDiff": 0.018
+      },
+      {
+        "weight": 14,
+        "rg": 2.52,
+        "diff": 0.054,
+        "mbDiff": 0.016
+      },
+      {
+        "weight": 13,
+        "rg": 2.56,
+        "diff": 0.034,
+        "mbDiff": 0.011
+      },
+      {
+        "weight": 12,
+        "rg": 2.58,
+        "diff": 0.031,
+        "mbDiff": 0.009
+      }
+    ],
+    "colorways": [
+      {
+        "sku": "VYB",
+        "color": null
+      }
+    ]
+  },
+  {
+    "brand": "Storm",
+    "name": "!Q Tour",
+    "releaseDate": "2025-01-01",
+    "coverstockRaw": "R2S Solid Reactive",
+    "factoryFinish": "4000-grit Abralon",
+    "coreName": "C 3 Centripetal Control Core",
+    "rg": 2.48,
+    "diff": 0.031,
+    "mbDiff": null,
+    "sourceUrls": [
+      "https://www.stormbowling.com",
+      "tmp/storm-2025-catalog.pdf"
+    ],
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.48,
+        "diff": 0.037,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.48,
+        "diff": 0.031,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.53,
+        "diff": 0.036,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.58,
+        "diff": 0.047,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.64,
+        "diff": 0.037,
+        "mbDiff": null
+      }
+    ],
+    "colorways": [
+      {
+        "sku": "TQT",
+        "color": "Midnight Blue"
+      }
+    ]
+  },
+  {
+    "brand": "Storm",
+    "name": "!Q Tour 78/U",
+    "releaseDate": "2025-01-01",
+    "coverstockRaw": "Controll 78 Solid Urethane",
+    "factoryFinish": "500-grit Abralon",
+    "coreName": "C 3 Centripetal Control Core",
+    "rg": 2.49,
+    "diff": 0.029,
+    "mbDiff": null,
+    "sourceUrls": [
+      "https://www.stormbowling.com",
+      "tmp/storm-2025-catalog.pdf"
+    ],
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.49,
+        "diff": 0.035,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.49,
+        "diff": 0.029,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.54,
+        "diff": 0.034,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.59,
+        "diff": 0.045,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.65,
+        "diff": 0.035,
+        "mbDiff": null
+      }
+    ],
+    "colorways": [
+      {
+        "sku": "VLL",
+        "color": "78/U"
+      }
+    ]
+  },
+  {
+    "brand": "Storm",
+    "name": "Pitch Black",
+    "releaseDate": "2025-01-01",
+    "coverstockRaw": "Controll Solid Urethane",
+    "factoryFinish": "1000-grit Abralon",
+    "coreName": "Capacitor Core",
+    "rg": 2.57,
+    "diff": 0.022,
+    "mbDiff": null,
+    "sourceUrls": [
+      "https://www.stormbowling.com",
+      "tmp/storm-2025-catalog.pdf"
+    ],
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.56,
+        "diff": 0.023,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.57,
+        "diff": 0.022,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.59,
+        "diff": 0.022,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.61,
+        "diff": 0.021,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.63,
+        "diff": 0.021,
+        "mbDiff": null
+      }
+    ],
+    "colorways": [
+      {
+        "sku": "TUB",
+        "color": "Pitch Black"
+      }
+    ]
+  },
+  {
+    "brand": "Storm",
+    "name": "Road Warrior",
+    "releaseDate": "2025-01-01",
+    "coverstockRaw": "R2S DEEP Pearl",
+    "factoryFinish": "Power Edge",
+    "coreName": "Inverted Fe 2 A.I. Core",
+    "rg": 2.55,
+    "diff": 0.045,
+    "mbDiff": null,
+    "sourceUrls": [
+      "https://www.stormbowling.com",
+      "tmp/storm-2025-catalog.pdf"
+    ],
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.55,
+        "diff": 0.045,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.55,
+        "diff": 0.045,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.55,
+        "diff": 0.045,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.58,
+        "diff": 0.047,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.64,
+        "diff": 0.037,
+        "mbDiff": null
+      }
+    ],
+    "colorways": [
+      {
+        "sku": "VWR",
+        "color": null
+      },
+      {
+        "sku": "VHY",
+        "color": null
+      }
+    ]
+  },
+  {
+    "brand": "Storm",
+    "name": "Typhoon",
+    "releaseDate": "2025-01-01",
+    "coverstockRaw": "Reactor Pearl Reactive",
+    "factoryFinish": "Power Edge",
+    "coreName": "Atmos A.I. Core",
+    "rg": 2.57,
+    "diff": 0.046,
+    "mbDiff": null,
+    "sourceUrls": [
+      "https://www.stormbowling.com",
+      "tmp/storm-2025-catalog.pdf"
+    ],
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.52,
+        "diff": 0.058,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.57,
+        "diff": 0.046,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.58,
+        "diff": 0.037,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.59,
+        "diff": 0.045,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.65,
+        "diff": 0.035,
+        "mbDiff": null
+      }
+    ],
+    "colorways": [
+      {
+        "sku": "VTY",
+        "color": "Royal Purple/Steel"
+      }
     ]
   }
 ]
