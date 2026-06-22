@@ -49,11 +49,14 @@ export function SpareLineFormDialog({
     }
 
     const spec: LineSpec | undefined =
-      line.stance != null || line.laydown != null || line.target != null
+      line.stance != null || line.laydown != null || line.target != null ||
+      line.breakpoint != null || line.breakpoint_distance != null
         ? {
             ...(line.stance != null && { stance: line.stance }),
             ...(line.laydown != null && { laydown: line.laydown }),
-            ...(line.target != null && { target: line.target })
+            ...(line.target != null && { target: line.target }),
+            ...(line.breakpoint != null && { breakpoint: line.breakpoint }),
+            ...(line.breakpoint_distance != null && { breakpoint_distance: line.breakpoint_distance })
           }
         : undefined;
 
@@ -109,11 +112,11 @@ export function SpareLineFormDialog({
             <p className="mb-2 text-xs font-medium text-slate-600">
               Shooting line (board numbers)
             </p>
-            <div className="grid grid-cols-3 gap-3">
-              {(["stance", "laydown", "target"] as const).map((field) => (
+            <div className="grid grid-cols-4 gap-2">
+              {(["stance", "laydown", "target", "breakpoint"] as const).map((field) => (
                 <div key={field}>
                   <label className="mb-1 block text-xs font-medium text-slate-600 capitalize">
-                    {field}
+                    {field === "breakpoint" ? "Bkpt" : field}
                   </label>
                   <input
                     type="number"
@@ -126,11 +129,28 @@ export function SpareLineFormDialog({
                         [field]: e.target.value === "" ? undefined : Number(e.target.value)
                       }))
                     }
-                    placeholder={field === "stance" ? "e.g. 35" : field === "laydown" ? "e.g. 18" : "e.g. 10"}
-                    className="h-10 w-full rounded-lg border border-slate-300 px-3 text-sm outline-none focus:border-felt-700 focus:ring-2 focus:ring-felt-700/20"
+                    placeholder={field === "stance" ? "35" : field === "laydown" ? "18" : field === "target" ? "10" : "6"}
+                    className="h-10 w-full rounded-lg border border-slate-300 px-2 text-sm outline-none focus:border-felt-700 focus:ring-2 focus:ring-felt-700/20"
                   />
                 </div>
               ))}
+            </div>
+            <div className="mt-2 w-32">
+              <label className="mb-1 block text-xs font-medium text-slate-600">Bkpt dist (ft)</label>
+              <input
+                type="number"
+                inputMode="decimal"
+                step="1"
+                value={line.breakpoint_distance ?? ""}
+                onChange={(e) =>
+                  setLine((l) => ({
+                    ...l,
+                    breakpoint_distance: e.target.value === "" ? undefined : Number(e.target.value)
+                  }))
+                }
+                placeholder="42"
+                className="h-10 w-full rounded-lg border border-slate-300 px-2 text-sm outline-none focus:border-felt-700 focus:ring-2 focus:ring-felt-700/20"
+              />
             </div>
             {derivePinBoard(line, pins) != null && (
               <p className="mt-2 text-xs text-slate-500">
