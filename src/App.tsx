@@ -26,7 +26,8 @@ import {
 import type { NewSessionFormValues } from "./components/SessionForm";
 import { HandednessContext } from "./lib/handednessContext";
 import { HandednessPicker } from "./components/HandednessPicker";
-import type { Handedness } from "./types/bowling";
+import type { Handedness, LineSpec } from "./types/bowling";
+import { LaneVisualizer } from "./components/LaneVisualizer";
 
 type AppView = "dashboard" | "active" | "history" | "spares" | "settings" | "catalog";
 
@@ -58,6 +59,10 @@ function App() {
   const [handednessLoaded, setHandednessLoaded] = useState(false);
   const [resumable, setResumable] = useState<ResumableGame | null>(null);
   const [arsenalOpen, setArsenalOpen] = useState(false);
+  const [lineVizOpen, setLineVizOpen] = useState(false);
+  const [sandboxLine, setSandboxLine] = useState<LineSpec | undefined>({
+    laydown: 18, target: 10, breakpoint: 7, breakpoint_distance: 42,
+  });
   const [sheetDrag, setSheetDrag] = useState(0);
   const sheetDragStartY = useRef<number | null>(null);
   const [keyboardOpen, setKeyboardOpen] = useState(false);
@@ -291,6 +296,7 @@ function App() {
             onHandednessChange={chooseHandedness}
             onOpenArsenal={openArsenal}
             onOpenCatalog={() => goTo("catalog")}
+            onOpenLineVisualizer={() => setLineVizOpen(true)}
           />
         )}
         {view === "catalog" && (
@@ -365,6 +371,15 @@ function App() {
             </div>
           </div>
         </div>
+      )}
+
+      {lineVizOpen && (
+        <LaneVisualizer
+          title="Line sandbox"
+          line={sandboxLine}
+          onChange={setSandboxLine}
+          onClose={() => setLineVizOpen(false)}
+        />
       )}
 
       {handednessLoaded && handedness === null && (

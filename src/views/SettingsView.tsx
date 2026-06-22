@@ -1,4 +1,4 @@
-import { Archive, BookOpen, ChevronLeft, ChevronRight, CircleDot, MapPin, SlidersHorizontal, type LucideIcon } from "lucide-react";
+import { Archive, BookOpen, ChevronLeft, ChevronRight, CircleDot, MapPin, SlidersHorizontal, Spline, type LucideIcon } from "lucide-react";
 import { BackupRestoreView } from "./BackupRestoreView";
 import { LaneNotesView } from "./LaneNotesView";
 import { HandednessView } from "./HandednessView";
@@ -15,6 +15,7 @@ interface SettingsViewProps {
   onOpenArsenal: () => void;
   /** Navigate to the ball catalog view. */
   onOpenCatalog: () => void;
+  onOpenLineVisualizer: () => void;
 }
 
 interface MenuRow {
@@ -51,7 +52,7 @@ const MENU_ROWS: ReadonlyArray<MenuRow> = [
   }
 ];
 
-export function SettingsView({ section, onSectionChange, handedness, onHandednessChange, onOpenArsenal, onOpenCatalog }: SettingsViewProps) {
+export function SettingsView({ section, onSectionChange, handedness, onHandednessChange, onOpenArsenal, onOpenCatalog, onOpenLineVisualizer }: SettingsViewProps) {
   if (section !== "menu") {
     return (
       <>
@@ -118,6 +119,22 @@ export function SettingsView({ section, onSectionChange, handedness, onHandednes
             <span className="min-w-0 flex-1">
               <span className="block font-semibold text-slate-950">Ball Catalog</span>
               <span className="block text-sm text-slate-500">Browse manufacturer ball specs</span>
+            </span>
+            <ChevronRight size={18} aria-hidden="true" className="shrink-0 text-slate-400" />
+          </button>
+        </li>
+        <li>
+          <button
+            type="button"
+            onClick={onOpenLineVisualizer}
+            className="flex w-full items-center gap-3 rounded-lg border border-slate-200 bg-white p-4 text-left shadow-sm hover:border-felt-700"
+          >
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-felt-700/10 text-felt-700">
+              <Spline size={20} aria-hidden="true" />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block font-semibold text-slate-950">Line Visualizer</span>
+              <span className="block text-sm text-slate-500">Sketch a line on the lane</span>
             </span>
             <ChevronRight size={18} aria-hidden="true" className="shrink-0 text-slate-400" />
           </button>
