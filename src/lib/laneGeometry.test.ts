@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import {
-  PLANE_W, PLANE_L, LANE_BOARDS, LANE_FEET,
+  PLANE_W, PLANE_L, LANE_BOARDS, DRAW_FRONT_FEET, DRAW_BACK_FEET,
   boardToX, feetToY, xToBoard, yToFeet,
   buildLinePath, DEFAULT_BREAKPOINT_FEET
 } from "./laneGeometry";
@@ -32,14 +32,16 @@ describe("board ↔ x", () => {
 });
 
 describe("feet ↔ y", () => {
-  it("foul line (0 ft) is the bottom, head pin (60 ft) the top", () => {
-    expect(feetToY(0)).toBeCloseTo(PLANE_L, 5);
-    expect(feetToY(LANE_FEET)).toBeCloseTo(0, 5);
-    expect(feetToY(30)).toBeCloseTo(PLANE_L / 2, 5);
+  it("maps the front of the drawing extent to the bottom, the back to the top", () => {
+    expect(feetToY(DRAW_FRONT_FEET)).toBeCloseTo(PLANE_L, 5);
+    expect(feetToY(DRAW_BACK_FEET)).toBeCloseTo(0, 5);
+    // The foul line (0 ft) sits a little above the very bottom (approach below it).
+    expect(feetToY(0)).toBeLessThan(PLANE_L);
+    expect(feetToY(0)).toBeGreaterThan(PLANE_L * 0.9);
   });
 
   it("yToFeet inverts feetToY", () => {
-    for (const ft of [0, 15, 42, 60]) {
+    for (const ft of [DRAW_FRONT_FEET, 0, 15, 42, 60, DRAW_BACK_FEET]) {
       expect(yToFeet(feetToY(ft))).toBeCloseTo(ft, 4);
     }
   });
@@ -60,17 +62,23 @@ describe("buildLinePath", () => {
     expect(a!.points.laydown).toEqual(b!.points.laydown);
   });
 
-  it("with a breakpoint, bends quadratically through it into the pocket", () => {
+  it("with a breakpoint, the quadratic passes through the breakpoint at its midpoint", () => {
     const line: LineSpec = { laydown: 18, target: 10, breakpoint: 6, breakpoint_distance: 42 };
     const r = buildLinePath(line, "right")!;
     expect(r.points.breakpoint).not.toBeNull();
-    const p = r.points;
-    const expected =
-      `M ${round2(p.laydown.x)} ${round2(p.laydown.y)} ` +
-      `L ${round2(p.target.x)} ${round2(p.target.y)} ` +
-      `Q ${round2(p.breakpoint!.x)} ${round2(p.breakpoint!.y)} ` +
-      `${round2(p.pocket.x)} ${round2(p.pocket.y)}`;
-    expect(r.d).toBe(expected);
+    const bp = r.points.breakpoint!;
+    // Skid is straight laydown→target, then a single quadratic to the pocket.
+    expect(r.d).toContain(`M ${round2(r.points.laydown.x)} ${round2(r.points.laydown.y)} L ${round2(r.points.target.x)} ${round2(r.points.target.y)} Q `);
+    const m = r.d.match(/Q ([\d.-]+) ([\d.-]+) ([\d.-]+) ([\d.-]+)$/)!;
+    const [cx, cy, ex, ey] = [Number(m[1]), Number(m[2]), Number(m[3]), Number(m[4])];
+    // Quadratic midpoint B(0.5) must equal the breakpoint point (so the dot is on the curve).
+    const midX = 0.25 * r.points.target.x + 0.5 * cx + 0.25 * ex;
+    const midY = 0.25 * r.points.target.y + 0.5 * cy + 0.25 * ey;
+    expect(midX).toBeCloseTo(bp.x, 1);
+    expect(midY).toBeCloseTo(bp.y, 1);
+    // Curve ends at the pocket.
+    expect(ex).toBeCloseTo(r.points.pocket.x, 5);
+    expect(ey).toBeCloseTo(r.points.pocket.y, 5);
   });
 
   it("without a breakpoint, draws straight to the pocket", () => {
@@ -83,7 +91,8 @@ describe("buildLinePath", () => {
 
   it("defaults the breakpoint distance to 42 ft", () => {
     const r = buildLinePath({ laydown: 18, target: 10, breakpoint: 6 }, "right")!;
-    expect(yToFeet(r.points.breakpoint!.y)).toBeCloseTo(DEFAULT_BREAKPOINT_FEET, 4);
+    // Point coords are rounded to 2dp, so allow ~0.1 ft of round-trip slack.
+    expect(yToFeet(r.points.breakpoint!.y)).toBeCloseTo(DEFAULT_BREAKPOINT_FEET, 1);
   });
 
   it("mirrors the pocket for a left-hander", () => {

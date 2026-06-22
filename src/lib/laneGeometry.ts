@@ -7,9 +7,18 @@ export const ARROWS_FEET = 15;          // target arrows
 export const DEFAULT_BREAKPOINT_FEET = 42;
 export const POCKET_BOARD = 17.5;       // 1-3 pocket (right-hander); mirrored by boardToX
 
+// Vertical drawing extent, in feet measured from the foul line. We draw a short
+// approach BELOW the foul line (negative) so the laydown handle isn't jammed
+// against the bottom edge, and extend ABOVE the head pin so the full pin deck
+// (pins reach ~62.9 ft) is visible rather than clipped to the foul-line→head-pin
+// span. The foul line (0 ft) therefore sits a little above the very bottom.
+export const DRAW_FRONT_FEET = -4;      // approach, below the foul line
+export const DRAW_BACK_FEET = 63;       // just behind the pin deck
+const DRAW_SPAN = DRAW_BACK_FEET - DRAW_FRONT_FEET;
+
 // Flat-plane drawing dimensions (SVG user units). Length is compressed vs.
-// width for phone legibility (true ratio ≈ 17:1; we use ≈ 4.2:1). Tune in the
-// visual pass — all geometry derives from these two constants.
+// width for phone legibility. Tune in the visual pass — all geometry derives
+// from these two constants.
 export const PLANE_W = 100;
 export const PLANE_L = 420;
 
@@ -27,14 +36,15 @@ export function xToBoard(x: number, hand: Handedness): number {
   return 1 + f * (LANE_BOARDS - 1);
 }
 
-/** Distance from foul line (ft) → y on the plane (0 ft at bottom). */
+/** Distance from foul line (ft) → y on the plane. Foul-relative feet map across
+ *  the [DRAW_FRONT_FEET, DRAW_BACK_FEET] drawing extent; smaller feet → lower. */
 export function feetToY(feet: number): number {
-  return PLANE_L * (1 - feet / LANE_FEET);
+  return PLANE_L * (1 - (feet - DRAW_FRONT_FEET) / DRAW_SPAN);
 }
 
 /** Inverse of feetToY. */
 export function yToFeet(y: number): number {
-  return LANE_FEET * (1 - y / PLANE_L);
+  return DRAW_FRONT_FEET + (1 - y / PLANE_L) * DRAW_SPAN;
 }
 
 export interface PlanePoint { x: number; y: number; }
@@ -68,14 +78,22 @@ export function buildLinePath(line: LineSpec | undefined, hand: Handedness): Lin
   const pocket = pt(boardToX(POCKET_BOARD, hand), feetToY(LANE_FEET));
 
   let breakpoint: PlanePoint | null = null;
+  let d: string;
   if (line.breakpoint != null) {
     const dist = line.breakpoint_distance ?? DEFAULT_BREAKPOINT_FEET;
     breakpoint = pt(boardToX(line.breakpoint, hand), feetToY(dist));
+    // Skid straight laydown→target, then a quadratic from target to pocket whose
+    // control point is placed so the curve passes THROUGH the breakpoint at its
+    // midpoint (t=0.5): B(0.5) = ¼·target + ½·ctrl + ¼·pocket ⇒ ctrl = 2·bp − ½(target+pocket).
+    // The breakpoint marker then sits on the line instead of floating off it.
+    const ctrl = pt(
+      2 * breakpoint.x - 0.5 * (target.x + pocket.x),
+      2 * breakpoint.y - 0.5 * (target.y + pocket.y)
+    );
+    d = `M ${laydown.x} ${laydown.y} L ${target.x} ${target.y} Q ${ctrl.x} ${ctrl.y} ${pocket.x} ${pocket.y}`;
+  } else {
+    d = `M ${laydown.x} ${laydown.y} L ${target.x} ${target.y} L ${pocket.x} ${pocket.y}`;
   }
-
-  const d = breakpoint
-    ? `M ${laydown.x} ${laydown.y} L ${target.x} ${target.y} Q ${breakpoint.x} ${breakpoint.y} ${pocket.x} ${pocket.y}`
-    : `M ${laydown.x} ${laydown.y} L ${target.x} ${target.y} L ${pocket.x} ${pocket.y}`;
 
   return { d, points: { laydown, target, breakpoint, pocket } };
 }
