@@ -1,7 +1,7 @@
 import type { Handedness, LineSpec, PinNumber } from "../types/bowling";
 import {
-  PLANE_W, PLANE_L, LANE_BOARDS, ARROWS_FEET,
-  boardToX, feetToY, buildLinePath, DEFAULT_BREAKPOINT_FEET
+  PLANE_W, PLANE_L, LANE_BOARDS, ARROWS_FEET, POCKET_BOARD,
+  boardToX, feetToY, buildLinePath, DEFAULT_BREAKPOINT_FEET, DEFAULT_HOOK_START_FEET
 } from "../lib/laneGeometry";
 import { PIN_POSITIONS } from "../lib/pinGeometry";
 
@@ -117,19 +117,23 @@ export function LaneSurface({ line, hand, leave, showMarkers = true, animate }: 
         </circle>
       )}
       {path && animate && reduceMotion && (
-        <circle data-role="ball" r="3" cx={path.points.pocket.x} cy={path.points.pocket.y} fill="#1f2937" />
+        <circle data-role="ball" r="3" cx={path.points.final.x} cy={path.points.final.y} fill="#1f2937" />
       )}
 
       {showMarkers && path && (
         <g>
           <Marker p={path.points.laydown} label={`Laydown ${line?.laydown ?? line?.stance}`} />
           <Marker p={path.points.target} label={`Target ${line?.target}`} />
+          {path.points.hookStart && (
+            <Marker p={path.points.hookStart} label={`Hook ${Math.round(line?.hook_start_distance ?? DEFAULT_HOOK_START_FEET)}ft`} />
+          )}
           {path.points.breakpoint && (
             <Marker
               p={path.points.breakpoint}
               label={`Bkpt ${line?.breakpoint} · ${line?.breakpoint_distance ?? DEFAULT_BREAKPOINT_FEET}ft`}
             />
           )}
+          <Marker p={path.points.final} label={`Final ${line?.final_board ?? POCKET_BOARD}`} />
         </g>
       )}
     </svg>
@@ -139,17 +143,17 @@ export function LaneSurface({ line, hand, leave, showMarkers = true, animate }: 
 function Marker({ p, label }: { p: { x: number; y: number }; label: string }) {
   return (
     <g data-role="marker">
-      <circle cx={p.x} cy={p.y} r="2.4" fill="#f59e0b" stroke="#fff" strokeWidth="0.6" />
+      <circle cx={p.x} cy={p.y} r="3" fill="#f59e0b" stroke="#fff" strokeWidth="0.8" />
       <text
         x={p.x}
-        y={p.y - 4}
+        y={p.y - 5}
         textAnchor="middle"
-        fontSize="3.2"
-        fontWeight="700"
-        fill="#1f2937"
+        fontSize="6.5"
+        fontWeight="800"
+        fill="#0f172a"
         paintOrder="stroke"
         stroke="#fff"
-        strokeWidth="0.8"
+        strokeWidth="1.6"
       >
         {label}
       </text>

@@ -1,8 +1,8 @@
 import { describe, it, expect } from "vitest";
 import {
-  PLANE_W, PLANE_L, LANE_BOARDS, DRAW_FRONT_FEET, DRAW_BACK_FEET,
+  PLANE_W, PLANE_L, LANE_BOARDS, DRAW_FRONT_FEET, DRAW_BACK_FEET, POCKET_BOARD,
   boardToX, feetToY, xToBoard, yToFeet,
-  buildLinePath, DEFAULT_BREAKPOINT_FEET
+  buildLinePath, skidBoard, DEFAULT_BREAKPOINT_FEET
 } from "./laneGeometry";
 import type { LineSpec } from "../types/bowling";
 
@@ -48,8 +48,6 @@ describe("feet ↔ y", () => {
 });
 
 describe("buildLinePath", () => {
-  const round2 = (n: number) => Math.round(n * 100) / 100;
-
   it("returns null without a foul board or target", () => {
     expect(buildLinePath({ target: 10 }, "right")).toBeNull();      // no laydown/stance
     expect(buildLinePath({ laydown: 18 }, "right")).toBeNull();     // no target
@@ -62,42 +60,54 @@ describe("buildLinePath", () => {
     expect(a!.points.laydown).toEqual(b!.points.laydown);
   });
 
-  it("with a breakpoint, the quadratic passes through the breakpoint at its midpoint", () => {
-    const line: LineSpec = { laydown: 18, target: 10, breakpoint: 6, breakpoint_distance: 42 };
+  it("with a breakpoint: skid → cubic hook → straight roll, breakpoint is a path vertex", () => {
+    const line: LineSpec = { laydown: 18, target: 10, breakpoint: 6, breakpoint_distance: 42, hook_start_distance: 30 };
     const r = buildLinePath(line, "right")!;
+    expect(r.points.hookStart).not.toBeNull();
     expect(r.points.breakpoint).not.toBeNull();
-    const bp = r.points.breakpoint!;
-    // Skid is straight laydown→target, then a single quadratic to the pocket.
-    expect(r.d).toContain(`M ${round2(r.points.laydown.x)} ${round2(r.points.laydown.y)} L ${round2(r.points.target.x)} ${round2(r.points.target.y)} Q `);
-    const m = r.d.match(/Q ([\d.-]+) ([\d.-]+) ([\d.-]+) ([\d.-]+)$/)!;
-    const [cx, cy, ex, ey] = [Number(m[1]), Number(m[2]), Number(m[3]), Number(m[4])];
-    // Quadratic midpoint B(0.5) must equal the breakpoint point (so the dot is on the curve).
-    const midX = 0.25 * r.points.target.x + 0.5 * cx + 0.25 * ex;
-    const midY = 0.25 * r.points.target.y + 0.5 * cy + 0.25 * ey;
-    expect(midX).toBeCloseTo(bp.x, 1);
-    expect(midY).toBeCloseTo(bp.y, 1);
-    // Curve ends at the pocket.
-    expect(ex).toBeCloseTo(r.points.pocket.x, 5);
-    expect(ey).toBeCloseTo(r.points.pocket.y, 5);
+    // straight skid to hook-start, cubic to the breakpoint, straight roll to final.
+    const m = r.d.match(/^M [\d.-]+ [\d.-]+ L ([\d.-]+) ([\d.-]+) C [\d.-]+ [\d.-]+ [\d.-]+ [\d.-]+ ([\d.-]+) ([\d.-]+) L ([\d.-]+) ([\d.-]+)$/)!;
+    expect(m).not.toBeNull();
+    // hook-start, breakpoint and final coordinates appear as explicit vertices.
+    expect(Number(m[1])).toBeCloseTo(r.points.hookStart!.x, 2);
+    expect(Number(m[3])).toBeCloseTo(r.points.breakpoint!.x, 2);
+    expect(Number(m[4])).toBeCloseTo(r.points.breakpoint!.y, 2);
+    expect(Number(m[5])).toBeCloseTo(r.points.final.x, 2);
   });
 
-  it("without a breakpoint, draws straight to the pocket", () => {
+  it("places the hook-start on the skid line at its distance", () => {
+    const line: LineSpec = { laydown: 18, target: 10, breakpoint: 6, hook_start_distance: 30 };
+    const r = buildLinePath(line, "right")!;
+    const hs = r.points.hookStart!;
+    expect(yToFeet(hs.y)).toBeCloseTo(30, 1);
+    // board equals the skid-line extrapolation at 30 ft
+    const expectedX = boardToX(skidBoard(18, 10, 30), "right");
+    expect(hs.x).toBeCloseTo(expectedX, 1);
+  });
+
+  it("final defaults to the pocket and is overridable", () => {
+    const def = buildLinePath({ laydown: 18, target: 10 }, "right")!;
+    expect(def.points.final.x).toBeCloseTo(boardToX(POCKET_BOARD, "right"), 2);
+    const gutter = buildLinePath({ laydown: 18, target: 10, final_board: 3 }, "right")!;
+    expect(gutter.points.final.x).toBeCloseTo(boardToX(3, "right"), 2);
+  });
+
+  it("without a breakpoint, draws straight to the final point", () => {
     const r = buildLinePath({ laydown: 18, target: 10 }, "right")!;
     expect(r.points.breakpoint).toBeNull();
-    expect(r.d.startsWith("M ")).toBe(true);
-    expect(r.d).toContain(" L ");
-    expect(r.d).not.toContain(" Q ");
+    expect(r.points.hookStart).toBeNull();
+    expect(r.d).not.toContain(" C ");
+    expect(r.d.match(/ L /g)!.length).toBe(2); // target, then final
   });
 
   it("defaults the breakpoint distance to 42 ft", () => {
     const r = buildLinePath({ laydown: 18, target: 10, breakpoint: 6 }, "right")!;
-    // Point coords are rounded to 2dp, so allow ~0.1 ft of round-trip slack.
     expect(yToFeet(r.points.breakpoint!.y)).toBeCloseTo(DEFAULT_BREAKPOINT_FEET, 1);
   });
 
-  it("mirrors the pocket for a left-hander", () => {
+  it("mirrors the final point for a left-hander", () => {
     const rRight = buildLinePath({ laydown: 18, target: 10 }, "right")!;
     const rLeft = buildLinePath({ laydown: 18, target: 10 }, "left")!;
-    expect(rRight.points.pocket.x).toBeCloseTo(PLANE_W - rLeft.points.pocket.x, 4);
+    expect(rRight.points.final.x).toBeCloseTo(PLANE_W - rLeft.points.final.x, 4);
   });
 });

@@ -36,16 +36,24 @@ describe("LaneVisualizer", () => {
 });
 
 describe("LaneVisualizer editing", () => {
-  it("shows draggable handles only when editable and top-down", () => {
+  it("renders a drag handle per peg when editable (laydown, target, hook-start, breakpoint, final)", () => {
     const onChange = vi.fn();
     render(
       <HandednessContext.Provider value="right">
         <LaneVisualizer line={{ laydown: 18, target: 10, breakpoint: 6 }} onClose={() => {}} onChange={onChange} />
       </HandednessContext.Provider>
     );
+    const keys = [...document.querySelectorAll('[data-role="handle"]')].map((c) => c.getAttribute("data-key"));
+    expect(keys).toEqual(["laydown", "target", "hookStart", "breakpoint", "final"]);
+  });
+
+  it("renders no handles in read-only mode (no onChange)", () => {
+    render(
+      <HandednessContext.Provider value="right">
+        <LaneVisualizer line={{ laydown: 18, target: 10, breakpoint: 6 }} onClose={() => {}} />
+      </HandednessContext.Provider>
+    );
     expect(document.querySelectorAll('[data-role="handle"]').length).toBe(0);
-    fireEvent.click(screen.getByRole("button", { name: /top-down/i }));
-    expect(document.querySelectorAll('[data-role="handle"]').length).toBeGreaterThan(0);
   });
 
   it("computes board from x via the geometry inverse", () => {

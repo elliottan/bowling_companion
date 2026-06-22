@@ -3,15 +3,23 @@ import { useRef, useState } from "react";
 import type { LineSpec, PinNumber } from "../types/bowling";
 import { useHandedness } from "../lib/handednessContext";
 import { LaneSurface } from "./LaneSurface";
-import { buildLinePath, xToBoard, yToFeet, PLANE_W, PLANE_L } from "../lib/laneGeometry";
+import {
+  buildLinePath, xToBoard, yToFeet, PLANE_W, PLANE_L,
+  ARROWS_FEET, DEFAULT_BREAKPOINT_FEET, DEFAULT_HOOK_START_FEET
+} from "../lib/laneGeometry";
 
-const ANGLED_DEG = 58;    // bowler-eye tilt (rotateX degrees away from flat)
+const ANGLED_DEG = 52;    // bowler-eye tilt (rotateX degrees away from flat)
 const TOPDOWN_DEG = 0;    // flat / top-down
+
+type LineField = "laydown" | "target" | "breakpoint" | "breakpoint_distance" | "hook_start_distance" | "final_board";
+
+const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
+const snapBoard = (b: number) => clamp(Math.round(b * 2) / 2, 1, 39);
 
 interface LaneVisualizerProps {
   line: LineSpec | undefined;
   onClose: () => void;
-  /** Optional live editing (later task). When omitted, the view is read-only. */
+  /** Optional live editing. When omitted, the view is read-only. */
   onChange?: (line: LineSpec | undefined) => void;
   /** Standing leave to light (spare surface). */
   leave?: PinNumber[];
@@ -26,10 +34,8 @@ export function LaneVisualizer({ line, onClose, onChange, leave, title = "Line" 
   const surfaceRef = useRef<HTMLDivElement | null>(null);
   const isTopDown = deg <= 2;
 
+  // Drag on empty background → tilt the camera.
   function onPointerDown(e: React.PointerEvent) {
-    // Drag anywhere on the lane tilts the camera — in both angled and top-down
-    // views. Drags that start on an edit handle stopPropagation (below), so they
-    // move the handle instead of tilting.
     dragY.current = e.clientY;
     setDragging(true);
     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
@@ -38,16 +44,59 @@ export function LaneVisualizer({ line, onClose, onChange, leave, title = "Line" 
     if (dragY.current === null) return;
     const dy = e.clientY - dragY.current;
     dragY.current = e.clientY;
-    setDeg((d) => Math.max(TOPDOWN_DEG, Math.min(ANGLED_DEG, d + dy * 0.4)));
+    setDeg((d) => clamp(d + dy * 0.4, TOPDOWN_DEG, ANGLED_DEG));
   }
   function onPointerUp() {
     dragY.current = null;
     setDragging(false);
   }
 
-  function setField(field: "laydown" | "target" | "breakpoint" | "breakpoint_distance", raw: string) {
+  function setField(field: LineField, raw: string) {
     const v = raw === "" ? undefined : Number(raw);
     onChange?.({ ...(line ?? {}), [field]: v });
+  }
+
+  // Map a screen point (top-down, flat) → board / distance and write the change.
+  function dragPoint(key: string, clientX: number, clientY: number) {
+    const el = surfaceRef.current?.querySelector("svg");
+    if (!el || !onChange) return;
+    const r = el.getBoundingClientRect();
+    const sx = ((clientX - r.left) / r.width) * PLANE_W;
+    const sy = ((clientY - r.top) / r.height) * PLANE_L;
+    const board = snapBoard(xToBoard(sx, hand));
+    const dist = Math.round(yToFeet(sy));
+    const bpDist = line?.breakpoint_distance ?? DEFAULT_BREAKPOINT_FEET;
+    const hsDist = line?.hook_start_distance ?? DEFAULT_HOOK_START_FEET;
+    const next: LineSpec = { ...(line ?? {}) };
+    switch (key) {
+      case "laydown": next.laydown = board; break;
+      case "target": next.target = board; break;
+      case "hookStart": next.hook_start_distance = clamp(dist, ARROWS_FEET + 1, bpDist - 1); break;
+      case "breakpoint":
+        next.breakpoint = board;
+        next.breakpoint_distance = clamp(dist, hsDist + 1, 59);
+        break;
+      case "final": next.final_board = board; break;
+    }
+    onChange(next);
+  }
+
+  function grabHandle(e: React.PointerEvent) {
+    e.stopPropagation();
+    // Snap flat instantly so the linear screen→lane mapping is valid mid-drag.
+    setDragging(true);
+    setDeg(TOPDOWN_DEG);
+    (e.currentTarget as Element).setPointerCapture(e.pointerId);
+  }
+
+  const path = onChange && line ? buildLinePath(line, hand) : null;
+  const handles: Array<{ key: string; p: { x: number; y: number } }> = [];
+  if (path) {
+    handles.push({ key: "laydown", p: path.points.laydown });
+    handles.push({ key: "target", p: path.points.target });
+    if (path.points.hookStart) handles.push({ key: "hookStart", p: path.points.hookStart });
+    if (path.points.breakpoint) handles.push({ key: "breakpoint", p: path.points.breakpoint });
+    handles.push({ key: "final", p: path.points.final });
   }
 
   return (
@@ -78,7 +127,7 @@ export function LaneVisualizer({ line, onClose, onChange, leave, title = "Line" 
 
       <div
         className="relative flex-1 touch-none overflow-hidden"
-        style={{ perspective: "900px" }}
+        style={{ perspective: "1100px" }}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
@@ -89,105 +138,75 @@ export function LaneVisualizer({ line, onClose, onChange, leave, title = "Line" 
           className="absolute inset-0 mx-auto"
           style={{
             transform: `rotateX(${deg}deg)`,
-            transformOrigin: "50% 100%",
+            transformOrigin: "50% 50%",
             transition: dragging ? "none" : "transform 0.25s ease-out",
           }}
         >
-          <div ref={surfaceRef} className="relative mx-auto h-full w-full max-w-[420px]">
+          <div ref={surfaceRef} className="relative mx-auto h-full w-full max-w-[360px]">
             <LaneSurface line={line} hand={hand} leave={leave} animate />
-            {onChange && isTopDown && line && (() => {
-              const path = buildLinePath(line, hand);
-              if (!path) return null;
-              const handles: Array<{ key: "laydown" | "target" | "breakpoint"; p: { x: number; y: number } }> = [
-                { key: "laydown", p: path.points.laydown },
-                { key: "target", p: path.points.target },
-              ];
-              if (path.points.breakpoint) handles.push({ key: "breakpoint", p: path.points.breakpoint });
-
-              function setFromPointer(key: string, clientX: number, clientY: number) {
-                const el = surfaceRef.current?.querySelector("svg");
-                if (!el) return;
-                const r = el.getBoundingClientRect();
-                const sx = ((clientX - r.left) / r.width) * PLANE_W;
-                const sy = ((clientY - r.top) / r.height) * PLANE_L;
-                const snap = (b: number) => Math.max(1, Math.min(39, Math.round(b * 2) / 2));
-                const board = snap(xToBoard(sx, hand));
-                const next: LineSpec = { ...line };
-                if (key === "laydown") next.laydown = board;
-                else if (key === "target") {
-                  // Dragging the target swings the breakpoint with it (laydown
-                  // stays put) so the shot keeps a sensible shape.
-                  const delta = board - (line?.target ?? board);
-                  next.target = board;
-                  if (line?.breakpoint != null) next.breakpoint = snap(line.breakpoint + delta);
-                } else if (key === "breakpoint") {
-                  next.breakpoint = board;
-                  next.breakpoint_distance = Math.max(20, Math.min(60, Math.round(yToFeet(sy))));
-                }
-                onChange!(next);
-              }
-
-              return (
-                <svg viewBox={`0 0 ${PLANE_W} ${PLANE_L}`} className="pointer-events-none absolute inset-0 h-full w-full">
-                  {handles.map((h) => (
+            {handles.length > 0 && (
+              <svg viewBox={`0 0 ${PLANE_W} ${PLANE_L}`} className="pointer-events-none absolute inset-0 h-full w-full">
+                {handles.map((h) => (
+                  <g key={h.key}>
+                    {/* visible grab ring */}
+                    <circle cx={h.p.x} cy={h.p.y} r="6" fill="none" stroke="#fff" strokeOpacity="0.55" strokeWidth="1" />
+                    {/* large invisible hit target (covers dot + nearby label) */}
                     <circle
-                      key={h.key}
                       data-role="handle"
+                      data-key={h.key}
                       cx={h.p.x}
                       cy={h.p.y}
-                      r="4"
+                      r="12"
+                      fill="transparent"
                       className="pointer-events-auto cursor-grab touch-none"
-                      fill="#fff"
-                      stroke="#f59e0b"
-                      strokeWidth="1.5"
-                      onPointerDown={(e) => { e.stopPropagation(); (e.currentTarget as Element).setPointerCapture(e.pointerId); }}
-                      onPointerMove={(e) => { if (e.buttons) { e.stopPropagation(); setFromPointer(h.key, e.clientX, e.clientY); } }}
+                      onPointerDown={grabHandle}
+                      onPointerMove={(e) => { if (e.buttons) { e.stopPropagation(); dragPoint(h.key, e.clientX, e.clientY); } }}
                     />
-                  ))}
-                </svg>
-              );
-            })()}
+                  </g>
+                ))}
+              </svg>
+            )}
           </div>
         </div>
+
+        {/* Distance inputs pinned to the side (right for a righty, left for a lefty). */}
+        {onChange && (
+          <div
+            className={`absolute top-1/2 z-10 flex -translate-y-1/2 flex-col gap-3 ${hand === "left" ? "left-3" : "right-3"}`}
+            onPointerDown={(e) => e.stopPropagation()}
+          >
+            <SideField label="Hook ft" value={line?.hook_start_distance ?? DEFAULT_HOOK_START_FEET} onChange={(r) => setField("hook_start_distance", r)} />
+            <SideField label="Bkpt ft" value={line?.breakpoint_distance ?? DEFAULT_BREAKPOINT_FEET} onChange={(r) => setField("breakpoint_distance", r)} />
+          </div>
+        )}
       </div>
 
-      {onChange && (
-        <div className="grid grid-cols-4 gap-2 px-4 pb-2 pt-1">
-          <NumberField label="Laydown" value={line?.laydown} onChange={(r) => setField("laydown", r)} />
-          <NumberField label="Target" value={line?.target} onChange={(r) => setField("target", r)} />
-          <NumberField label="Bkpt" value={line?.breakpoint} onChange={(r) => setField("breakpoint", r)} />
-          <NumberField label="Dist ft" value={line?.breakpoint_distance} onChange={(r) => setField("breakpoint_distance", r)} step="1" />
-        </div>
-      )}
-
       <p className="px-4 py-2 text-center text-xs text-white/60">
-        Drag the lane to tilt · flatten to drag the points
+        Drag a point to move it · drag the lane to tilt
       </p>
     </div>
   );
 }
 
-function NumberField({
+function SideField({
   label,
   value,
   onChange,
-  step = "0.5",
 }: {
   label: string;
   value: number | undefined;
   onChange: (raw: string) => void;
-  step?: string;
 }) {
   return (
-    <label className="flex flex-col gap-1 text-[10px] font-semibold uppercase tracking-wide text-white/60">
+    <label className="flex w-16 flex-col gap-1 text-center text-[10px] font-semibold uppercase tracking-wide text-white/70">
       {label}
       <input
         type="number"
-        inputMode="decimal"
-        step={step}
+        inputMode="numeric"
+        step="1"
         value={value ?? ""}
         onChange={(e) => onChange(e.target.value)}
-        className="h-9 w-full rounded-md border border-white/20 bg-white/10 px-2 text-sm font-medium text-white outline-none focus:border-amber-400"
+        className="h-9 w-full rounded-md border border-white/20 bg-white/10 px-1 text-center text-sm font-medium text-white outline-none focus:border-amber-400"
       />
     </label>
   );

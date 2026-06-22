@@ -4,10 +4,15 @@ export interface LineSpec {
   stance?: number;
   laydown?: number;
   target?: number;
+  /** Apex board — furthest point the ball reaches before recovering. */
   breakpoint?: number;
-  /** Down-lane distance (feet from foul line) where the ball reaches the
-   *  breakpoint board. Used to draw the hook. Defaults to 42 ft when unset. */
+  /** Down-lane distance (feet from foul line) of the breakpoint apex. ~42 ft default. */
   breakpoint_distance?: number;
+  /** Down-lane distance (feet) where the straight skid ends and the hook begins.
+   *  Its board rides the laydown→target skid line. ~30 ft default. */
+  hook_start_distance?: number;
+  /** Board the ball crosses the pin deck on (60 ft). Defaults to the pocket (17.5). */
+  final_board?: number;
 }
 
 export interface ShotMetadata {

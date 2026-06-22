@@ -328,3 +328,36 @@ the spare form captured stance/laydown/target.
 - The hook uses a fixed 1-3 pocket board (17.5, mirrored for left-handers) and a
   quadratic bend through the breakpoint; it is an illustration, not a physics
   simulation (rev rate / axis tilt are not captured).
+
+## ADR-012 — Lane line model: skid → hook → roll, free final point
+
+**Status:** accepted (2026-06). Refines ADR-011's drawing model.
+
+**Context.** ADR-011 drew the line as one quadratic that *forced* the curve into
+a fixed pocket while the breakpoint board floated independently of the skid —
+producing physically nonsensical paths (a left-aimed skid snapping back to a
+far-right breakpoint and then to the pocket). It also put the breakpoint marker
+on the quad's control point, so the dot floated off the line.
+
+**Decision.** Model a real shot as three phases and connect the control points
+in down-lane order (no forced endpoint, so no impossible configuration):
+- **Skid (straight):** `laydown ?? stance` (0 ft) → target (15 ft) → **hook-start**.
+  The hook-start board is *derived* — it rides the laydown→target skid line; only
+  its distance (`hook_start_distance`, ~30 ft default) is a free input.
+- **Hook (smooth cubic):** hook-start → **breakpoint** apex. Breakpoint board
+  (`breakpoint`) and distance (`breakpoint_distance`, ~42 ft) are both free; the
+  cubic's end tangent matches the roll line so the join is smooth (the rounded
+  transition the eye reads as the hook).
+- **Roll (straight):** breakpoint → **final** (`final_board`, default pocket 17.5),
+  a free board anywhere across the pin deck (gutter included). The breakpoint is a
+  path vertex, so its marker is always on the line.
+- Two new `LineSpec` fields: `hook_start_distance?`, `final_board?`.
+- Editing is direct manipulation (each peg moves only its own DOF; everything else
+  holds; distances clamp to keep down-lane order). Grabbing a peg snaps the camera
+  to top-down; dragging empty background tilts.
+
+**Consequences.**
+- No Dexie bump / no backup migration: both new fields are optional and nested in
+  `LineSpec`, which `validateBackup` does not inspect. Backup `version` stays 3.
+- Still an illustration, not a physics sim (no rev rate / axis tilt); roll is
+  approximated as straight.

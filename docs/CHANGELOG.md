@@ -6,11 +6,13 @@ User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachan
 
 ### Added
 
-- **Lane line visualizer (ADR-011).** A fullscreen view that draws your line
-  (laydown → target → breakpoint board + new breakpoint distance) as a hook over
-  a wood lane, with a drag-to-tilt camera (top-down ⇄ bowler-eye) and top-down
-  handle editing. Reachable from score entry, the spare-line form, and Settings.
-  Adds an optional `breakpoint_distance` (ft) to the line model.
+- **Lane line visualizer (ADR-011, ADR-012).** A fullscreen view that draws your
+  line over a wood lane as a real shot — straight skid through the arrows, a hook
+  starting where you set it, then a straight roll to a free final point on the pin
+  deck — with a drag-to-tilt camera (top-down ⇄ bowler-eye) and direct drag-to-edit
+  pegs (laydown, target, hook-start, breakpoint, final). Reachable from score entry,
+  the spare-line form, and Settings. Adds `breakpoint_distance`, `hook_start_distance`,
+  and `final_board` to the line model.
 
 ### Fixed
 
