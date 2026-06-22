@@ -5,6 +5,9 @@ export interface LineSpec {
   laydown?: number;
   target?: number;
   breakpoint?: number;
+  /** Down-lane distance (feet from foul line) where the ball reaches the
+   *  breakpoint board. Used to draw the hook. Defaults to 42 ft when unset. */
+  breakpoint_distance?: number;
 }
 
 export interface ShotMetadata {

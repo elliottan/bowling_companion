@@ -4,6 +4,14 @@ User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachan
 
 ## [Unreleased] — Catalog v3: colorways + PDF seeding (2026-06)
 
+### Added
+
+- **Lane line visualizer (ADR-011).** A fullscreen view that draws your line
+  (laydown → target → breakpoint board + new breakpoint distance) as a hook over
+  a wood lane, with a drag-to-tilt camera (top-down ⇄ bowler-eye) and top-down
+  handle editing. Reachable from score entry, the spare-line form, and Settings.
+  Adds an optional `breakpoint_distance` (ft) to the line model.
+
 ### Fixed
 
 - **Catalog stuck on a stale ball count.** Devices stayed on an old catalog (e.g. 12 balls) even after a larger catalog deployed, and refresh didn't help. Client sync now **upserts the full catalog** (updating existing balls and removing stale ids) instead of append-only, and `catalog.json`/manifest are fetched **NetworkFirst** so a new catalog syncs on the first refresh (ADR-010). Corrected specs, colorways, and images now propagate to already-synced devices.

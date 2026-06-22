@@ -297,3 +297,34 @@ colorways, and ball images (ADR-009) never reached already-synced devices.
   ADR-007 limitation is resolved.
 - Sync transfers the full catalog.json each version bump (small, slow-changing), an
   acceptable trade for correctness over the append-only diff.
+
+---
+
+## ADR-011 — Breakpoint distance + lane line visualizer
+
+**Status:** accepted (2026-06).
+
+**Context.** Lines were captured as board numbers only (stance/laydown/target/
+breakpoint). There was no down-lane distance for the breakpoint, so the ball's
+hook shape could not be drawn (see the prior TODO in `ActiveGameScorer`). Two
+entry surfaces also diverged: score entry captured stance/target/breakpoint,
+the spare form captured stance/laydown/target.
+
+**Decision.**
+- Add optional `breakpoint_distance` (feet from the foul line) to `LineSpec`,
+  defaulting to 42 ft for drawing when unset. The path's foul-line start board
+  is `laydown ?? stance` (matches `derivePinBoard`).
+- Add `breakpoint` + `breakpoint_distance` inputs to the spare form so spares
+  can describe a hook too.
+- Render lines with a reusable `LaneVisualizer`: one flat SVG lane plane tilted
+  via a CSS-3D `perspective() rotateX()` camera (continuous top-down⇄bowler-eye
+  morph), read-only when angled, with 2D drag-handle editing only when snapped
+  to top-down. Geometry lives in a pure, view-agnostic `laneGeometry.ts`.
+
+**Consequences.**
+- No Dexie bump and no backup migration: `breakpoint_distance` is optional and
+  nested inside already-serialized `LineSpec` objects; `validateBackup` does not
+  inspect `LineSpec` internals. Backup `version` stays 3.
+- The hook uses a fixed 1-3 pocket board (17.5, mirrored for left-handers) and a
+  quadratic bend through the breakpoint; it is an illustration, not a physics
+  simulation (rev rate / axis tilt are not captured).
