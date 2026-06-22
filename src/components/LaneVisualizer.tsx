@@ -85,7 +85,7 @@ export function LaneVisualizer({ line, onClose, onChange, leave, title = "Line" 
           }}
         >
           <div ref={surfaceRef} className="relative mx-auto h-full w-full max-w-[420px] [&_[data-billboard]]:[transform-box:fill-box] [&_[data-billboard]]:[transform-origin:center] [&_[data-billboard]]:[transform:rotateX(calc(var(--tilt)*-1))]">
-            <LaneSurface line={line} hand={hand} leave={leave} />
+            <LaneSurface key={JSON.stringify(line)} line={line} hand={hand} leave={leave} animate />
             {onChange && isTopDown && line && (() => {
               const path = buildLinePath(line, hand);
               if (!path) return null;

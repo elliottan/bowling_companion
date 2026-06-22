@@ -16,11 +16,15 @@ interface LaneSurfaceProps {
   leave?: PinNumber[];
   /** Rendered markers can be toggled off for a lighter preview. */
   showMarkers?: boolean;
+  animate?: boolean;
 }
 
-export function LaneSurface({ line, hand, leave, showMarkers = true }: LaneSurfaceProps) {
+export function LaneSurface({ line, hand, leave, showMarkers = true, animate }: LaneSurfaceProps) {
   const path = buildLinePath(line, hand);
   const leaveSet = new Set(leave ?? []);
+  const reduceMotion =
+    typeof window !== "undefined" &&
+    window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
 
   return (
     <svg
@@ -99,6 +103,15 @@ export function LaneSurface({ line, hand, leave, showMarkers = true }: LaneSurfa
           strokeLinecap="round"
           strokeLinejoin="round"
         />
+      )}
+
+      {path && animate && !reduceMotion && (
+        <circle data-role="ball" r="3" fill="#1f2937" stroke="#fff" strokeWidth="0.6">
+          <animateMotion dur="1.4s" repeatCount="1" fill="freeze" path={path.d} />
+        </circle>
+      )}
+      {path && animate && reduceMotion && (
+        <circle data-role="ball" r="3" cx={path.points.pocket.x} cy={path.points.pocket.y} fill="#1f2937" />
       )}
 
       {showMarkers && path && (

@@ -32,4 +32,13 @@ describe("LaneSurface", () => {
     const lit = container.querySelectorAll('[data-role="pin"][data-standing="true"]');
     expect(lit.length).toBe(1);
   });
+
+  it("animates a rolling ball along the path unless reduced-motion", () => {
+    const { container } = render(
+      <LaneSurface line={{ laydown: 18, target: 10, breakpoint: 6 }} hand="right" animate />
+    );
+    const ball = container.querySelector('[data-role="ball"]');
+    expect(ball).not.toBeNull();
+    expect(ball!.querySelector("animateMotion")).not.toBeNull();
+  });
 });
