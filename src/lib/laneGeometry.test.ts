@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   PLANE_W, PLANE_L, LANE_BOARDS, LANE_FEET,
   boardToX, feetToY, xToBoard, yToFeet,
-  buildLinePath, POCKET_BOARD, DEFAULT_BREAKPOINT_FEET
+  buildLinePath, DEFAULT_BREAKPOINT_FEET
 } from "./laneGeometry";
 import type { LineSpec } from "../types/bowling";
 

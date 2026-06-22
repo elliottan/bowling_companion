@@ -219,7 +219,7 @@ export function SpareLineFormDialog({
             title="Spare line"
             line={line}
             leave={pins}
-            onChange={setLine}
+            onChange={(l) => setLine(l ?? {})}
             onClose={() => setShowViz(false)}
           />
         )}
