@@ -1,4 +1,4 @@
-import { Plus, SlidersHorizontal, X } from "lucide-react";
+import { Eye, Plus, SlidersHorizontal, X } from "lucide-react";
 import type { PointerEvent as ReactPointerEvent } from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -14,6 +14,7 @@ import { useHandedness } from "../lib/handednessContext";
 import { laneForFrame, previousSameLaneFrame } from "../lib/lanes";
 import { getBalls, getSpareLineByPins } from "../services/ballRepository";
 import type { Ball, Frame, Game, LineSpec, PinNumber, ShotMetadata } from "../types/bowling";
+import { LaneVisualizer } from "./LaneVisualizer";
 import { PinGrid } from "./PinGrid";
 import { Scorecard } from "./Scorecard";
 import { SpareLineFormDialog } from "./SpareLineFormDialog";
@@ -246,6 +247,7 @@ function ShotDetailBar({
   onNotesChange,
   onOpenArsenal
 }: ShotDetailBarProps) {
+  const [showViz, setShowViz] = useState(false);
   return (
     <div className="flex flex-col gap-2.5 rounded-lg border border-slate-200 bg-white p-2.5">
       <div>
@@ -289,6 +291,23 @@ function ShotDetailBar({
       </div>
 
       <LineInput label="Intended" value={intended} onChange={onIntendedChange} showPresets />
+
+      <button
+        type="button"
+        onClick={() => setShowViz(true)}
+        className="inline-flex h-9 w-full items-center justify-center gap-1.5 rounded-md border border-slate-300 bg-white text-xs font-semibold text-slate-700 hover:bg-slate-50"
+      >
+        <Eye size={14} aria-hidden="true" />
+        View intended line
+      </button>
+      {showViz && (
+        <LaneVisualizer
+          title="Intended line"
+          line={intended}
+          onChange={onIntendedChange}
+          onClose={() => setShowViz(false)}
+        />
+      )}
 
       {/* Actual may stay blank, but focusing any field while all three are blank
           autofills from the current Intended line (a quick "shot it as planned"). */}
