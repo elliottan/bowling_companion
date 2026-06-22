@@ -9,15 +9,6 @@ const ALL_PINS: PinNumber[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 const ARROW_BOARDS = [5, 10, 15, 20, 25, 30, 35]; // 7 arrows
 const RULER_BOARDS = [1, 5, 10, 15, 20, 25, 30, 35, 39];
 
-/** Pin board → plane x for this handedness. */
-function pinX(board: number, hand: Handedness): number {
-  return boardToX(board, hand);
-}
-/** Pin depth: pinGeometry feet are ~60–62.6; clamp the deck to the top edge. */
-function pinY(feet: number): number {
-  return feetToY(Math.min(feet, 60));
-}
-
 interface LaneSurfaceProps {
   line: LineSpec | undefined;
   hand: Handedness;
@@ -87,8 +78,8 @@ export function LaneSurface({ line, hand, leave, showMarkers = true }: LaneSurfa
             key={p}
             data-role="pin"
             data-standing={standing ? "true" : "false"}
-            cx={pinX(pos.board, hand)}
-            cy={pinY(pos.feet)}
+            cx={boardToX(pos.board, hand)}
+            cy={feetToY(Math.min(pos.feet, 60))}
             r="2.2"
             fill={standing ? "#0f766e" : "#f8fafc"}
             stroke="#0f172a"
@@ -112,12 +103,12 @@ export function LaneSurface({ line, hand, leave, showMarkers = true }: LaneSurfa
 
       {showMarkers && path && (
         <g>
-          <Marker p={path.points.laydown} label={`Laydown ${(line!.laydown ?? line!.stance)!}`} />
-          <Marker p={path.points.target} label={`Target ${line!.target!}`} />
+          <Marker p={path.points.laydown} label={`Laydown ${line?.laydown ?? line?.stance}`} />
+          <Marker p={path.points.target} label={`Target ${line?.target}`} />
           {path.points.breakpoint && (
             <Marker
               p={path.points.breakpoint}
-              label={`Bkpt ${line!.breakpoint} · ${line!.breakpoint_distance ?? DEFAULT_BREAKPOINT_FEET}ft`}
+              label={`Bkpt ${line?.breakpoint} · ${line?.breakpoint_distance ?? DEFAULT_BREAKPOINT_FEET}ft`}
             />
           )}
         </g>
