@@ -1,6 +1,7 @@
-import { Trash2 } from "lucide-react";
+import { Eye, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { PinGrid } from "./PinGrid";
+import { LaneVisualizer } from "./LaneVisualizer";
 import { derivePinBoard } from "../lib/pinGeometry";
 import { upsertSpareLine } from "../services/ballRepository";
 import type { LineSpec, PinNumber } from "../types/bowling";
@@ -40,6 +41,7 @@ export function SpareLineFormDialog({
   const [notes, setNotes] = useState(initialNotes ?? "");
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
+  const [showViz, setShowViz] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -160,6 +162,15 @@ export function SpareLineFormDialog({
             )}
           </div>
 
+          <button
+            type="button"
+            onClick={() => setShowViz(true)}
+            className="inline-flex h-9 items-center gap-1.5 rounded-md border border-slate-300 bg-white px-3 text-sm font-medium text-slate-700 hover:bg-slate-50"
+          >
+            <Eye size={14} aria-hidden="true" />
+            View line
+          </button>
+
           <div>
             <label className="mb-1 block text-sm font-medium text-slate-700">
               Notes <span className="text-slate-400 font-normal">(optional)</span>
@@ -203,6 +214,15 @@ export function SpareLineFormDialog({
             )}
           </div>
         </form>
+        {showViz && (
+          <LaneVisualizer
+            title="Spare line"
+            line={line}
+            leave={pins}
+            onChange={setLine}
+            onClose={() => setShowViz(false)}
+          />
+        )}
       </div>
     </div>
   );
