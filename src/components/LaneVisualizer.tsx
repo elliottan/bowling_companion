@@ -3,6 +3,7 @@ import { useRef, useState } from "react";
 import type { LineSpec, PinNumber } from "../types/bowling";
 import { useHandedness } from "../lib/handednessContext";
 import { LaneSurface } from "./LaneSurface";
+import { buildLinePath, xToBoard, yToFeet, PLANE_W, PLANE_L } from "../lib/laneGeometry";
 
 const ANGLED_DEG = 58;    // bowler-eye tilt (rotateX degrees away from flat)
 const TOPDOWN_DEG = 0;    // flat / top-down
@@ -21,6 +22,7 @@ export function LaneVisualizer({ line, onClose, onChange, leave, title = "Line" 
   const hand = useHandedness();
   const [deg, setDeg] = useState(ANGLED_DEG);
   const dragY = useRef<number | null>(null);
+  const surfaceRef = useRef<HTMLDivElement | null>(null);
   const isTopDown = deg <= 2;
 
   function onPointerDown(e: React.PointerEvent) {
@@ -82,8 +84,54 @@ export function LaneVisualizer({ line, onClose, onChange, leave, title = "Line" 
             ["--tilt" as string]: `${deg}deg`,
           }}
         >
-          <div className="mx-auto h-full w-full max-w-[420px] [&_[data-billboard]]:[transform-box:fill-box] [&_[data-billboard]]:[transform-origin:center] [&_[data-billboard]]:[transform:rotateX(calc(var(--tilt)*-1))]">
+          <div ref={surfaceRef} className="relative mx-auto h-full w-full max-w-[420px] [&_[data-billboard]]:[transform-box:fill-box] [&_[data-billboard]]:[transform-origin:center] [&_[data-billboard]]:[transform:rotateX(calc(var(--tilt)*-1))]">
             <LaneSurface line={line} hand={hand} leave={leave} />
+            {onChange && isTopDown && line && (() => {
+              const path = buildLinePath(line, hand);
+              if (!path) return null;
+              const handles: Array<{ key: "laydown" | "target" | "breakpoint"; p: { x: number; y: number } }> = [
+                { key: "laydown", p: path.points.laydown },
+                { key: "target", p: path.points.target },
+              ];
+              if (path.points.breakpoint) handles.push({ key: "breakpoint", p: path.points.breakpoint });
+
+              function setFromPointer(key: string, clientX: number, clientY: number) {
+                const el = surfaceRef.current?.querySelector("svg");
+                if (!el) return;
+                const r = el.getBoundingClientRect();
+                const sx = ((clientX - r.left) / r.width) * PLANE_W;
+                const sy = ((clientY - r.top) / r.height) * PLANE_L;
+                const board = Math.max(1, Math.min(39, Math.round(xToBoard(sx, hand) * 2) / 2));
+                const next: LineSpec = { ...line };
+                if (key === "laydown") next.laydown = board;
+                else if (key === "target") next.target = board;
+                else if (key === "breakpoint") {
+                  next.breakpoint = board;
+                  next.breakpoint_distance = Math.max(20, Math.min(60, Math.round(yToFeet(sy))));
+                }
+                onChange!(next);
+              }
+
+              return (
+                <svg viewBox={`0 0 ${PLANE_W} ${PLANE_L}`} className="pointer-events-none absolute inset-0 h-full w-full">
+                  {handles.map((h) => (
+                    <circle
+                      key={h.key}
+                      data-role="handle"
+                      cx={h.p.x}
+                      cy={h.p.y}
+                      r="4"
+                      className="pointer-events-auto cursor-grab touch-none"
+                      fill="#fff"
+                      stroke="#f59e0b"
+                      strokeWidth="1.5"
+                      onPointerDown={(e) => (e.currentTarget as Element).setPointerCapture(e.pointerId)}
+                      onPointerMove={(e) => { if (e.buttons) setFromPointer(h.key, e.clientX, e.clientY); }}
+                    />
+                  ))}
+                </svg>
+              );
+            })()}
           </div>
         </div>
       </div>
