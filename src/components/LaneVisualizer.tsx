@@ -21,6 +21,7 @@ interface LaneVisualizerProps {
 export function LaneVisualizer({ line, onClose, onChange, leave, title = "Line" }: LaneVisualizerProps) {
   const hand = useHandedness();
   const [deg, setDeg] = useState(ANGLED_DEG);
+  const [dragging, setDragging] = useState(false);
   const dragY = useRef<number | null>(null);
   const surfaceRef = useRef<HTMLDivElement | null>(null);
   const isTopDown = deg <= 2;
@@ -28,6 +29,7 @@ export function LaneVisualizer({ line, onClose, onChange, leave, title = "Line" 
   function onPointerDown(e: React.PointerEvent) {
     if (isTopDown && onChange) return;
     dragY.current = e.clientY;
+    setDragging(true);
     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
   }
   function onPointerMove(e: React.PointerEvent) {
@@ -38,6 +40,7 @@ export function LaneVisualizer({ line, onClose, onChange, leave, title = "Line" 
   }
   function onPointerUp() {
     dragY.current = null;
+    setDragging(false);
   }
 
   return (
@@ -80,12 +83,12 @@ export function LaneVisualizer({ line, onClose, onChange, leave, title = "Line" 
           style={{
             transform: `rotateX(${deg}deg)`,
             transformOrigin: "50% 100%",
-            transition: dragY.current === null ? "transform 0.25s ease-out" : "none",
+            transition: dragging ? "none" : "transform 0.25s ease-out",
             ["--tilt" as string]: `${deg}deg`,
           }}
         >
           <div ref={surfaceRef} className="relative mx-auto h-full w-full max-w-[420px] [&_[data-billboard]]:[transform-box:fill-box] [&_[data-billboard]]:[transform-origin:center] [&_[data-billboard]]:[transform:rotateX(calc(var(--tilt)*-1))]">
-            <LaneSurface key={JSON.stringify(line)} line={line} hand={hand} leave={leave} animate />
+            <LaneSurface line={line} hand={hand} leave={leave} animate />
             {onChange && isTopDown && line && (() => {
               const path = buildLinePath(line, hand);
               if (!path) return null;
