@@ -399,9 +399,16 @@ want, and there were no inputs for the laydown/target/breakpoint boards.
   and clamping the held peg only as a last resort. Final defaults to the pocket
   but yields to feasibility even when pinned. Typing an input runs the same
   solver as dragging the peg.
+- **Target is a derived aim.** Like the pocket default, the target rides the
+  `laydown → breakpoint` line (so the skid points straight at the breakpoint, no
+  unnatural kink) *until the user drags it*, after which it's pinned (present in
+  `recency`). Moving the laydown or breakpoint therefore re-aims the target. The
+  derived board comes from a short fixed-point iteration (the arrows→breakpoint
+  extrapolation amplifies the `arrowFeet(target)` self-reference).
 - **Bowler view:** the tilt stage interpolates a translate+scale with the angle
-  (identity at top-down → fills the frame and clears the side inputs at the
-  bowler angle); top-down is unchanged.
+  (identity at top-down → scales the whole lane up, centred, at the bowler
+  angle). Inputs sit on the side in top-down and move to a **bottom bar** in the
+  bowler view so the lane stays centred and fully visible.
 
 **Consequences.**
 - No Dexie bump / no backup migration: the line model gains no required fields.

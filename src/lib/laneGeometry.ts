@@ -181,6 +181,15 @@ export function solveLine(line: LineSpec, held: Peg, recency: Peg[], hand: Hande
   let bpd = clamp(line.breakpoint_distance ?? DEFAULT_BREAKPOINT_FEET, Math.ceil(arrowFeet(tg)) + 1, BP_DIST_MAX);
 
   if (bp != null) {
+    // Target is a derived aim: until the user drags it, it rides the
+    // laydown→breakpoint line so the skid points straight at the breakpoint (no
+    // unnatural kink). Once dragged it's pinned (present in `recency`). The
+    // fixed-point iteration resolves the arrowFeet(target) self-reference (the
+    // arrows→breakpoint extrapolation amplifies it, so allow it to converge).
+    if (!recency.includes("target")) {
+      for (let i = 0; i < 6; i++) tg = clamp(ld + (bp - ld) * (arrowFeet(tg) / bpd), 1, 39);
+    }
+
     for (let pass = 0; pass < 6; pass++) {
       let changed = false;
 

@@ -12,11 +12,12 @@ const BOWLER_DEG = 50;     // bowler's-eye tilt (looking down the lane)
 const TOPDOWN_DEG = 0;     // flat / top-down
 
 /** Stage transform for a tilt angle. At 0° it is the identity (the centered
- *  top-down view); as it tilts toward the bowler view it scales up and shifts so
- *  the foreshortened lane fills the frame and clears the side inputs. */
+ *  top-down view, inputs on the side); as it tilts toward the bowler view it
+ *  scales up and lifts so the whole lane stays centred and visible above the
+ *  bottom input bar. */
 function stageTransform(deg: number): string {
   const t = deg / BOWLER_DEG;
-  return `translate(${(-12 * t).toFixed(2)}%, ${(-13 * t).toFixed(2)}%) scale(${(1 + 0.32 * t).toFixed(3)}) rotateX(${deg}deg)`;
+  return `translate(0%, ${(-9 * t).toFixed(2)}%) scale(${(1 + 0.24 * t).toFixed(3)}) rotateX(${deg}deg)`;
 }
 
 const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
@@ -179,10 +180,15 @@ export function LaneVisualizer({ line, onClose, onChange, leave, title = "Line" 
           </div>
         </div>
 
-        {/* Numeric inputs pinned to the side (right for a righty, left for a lefty). */}
+        {/* Numeric inputs: a side column in top-down, a bottom bar in bowler
+            view (so the lane stays centred and fully visible). */}
         {onChange && (
           <div
-            className={`absolute top-1/2 z-10 flex -translate-y-1/2 flex-col gap-2 ${hand === "left" ? "left-2" : "right-2"}`}
+            className={
+              isTopDown
+                ? `absolute top-1/2 z-10 flex -translate-y-1/2 flex-col gap-2 ${hand === "left" ? "left-2" : "right-2"}`
+                : "absolute inset-x-0 bottom-0 z-10 flex justify-center gap-1.5 px-2 pb-1"
+            }
             onPointerDown={(e) => e.stopPropagation()}
           >
             <SideField label="Laydown" value={line?.laydown ?? line?.stance} min={1} max={39}

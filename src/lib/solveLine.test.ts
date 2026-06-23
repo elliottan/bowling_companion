@@ -74,6 +74,28 @@ describe("solveLine — roll direction (RH)", () => {
   });
 });
 
+describe("solveLine — target is a derived aim", () => {
+  it("an untouched target re-aims onto the laydown→breakpoint line when laydown moves", () => {
+    // the reported impossible line: dragging laydown left with target pinned at
+    // the gutter (1) kinks the skid. Target should instead ride the
+    // laydown→breakpoint line so the skid points straight at the breakpoint.
+    const line: LineSpec = { laydown: 21, target: 1, breakpoint: 1, breakpoint_distance: 42, final_board: 37 };
+    const out = solveLine(line, "laydown", ["laydown"], "right"); // target NOT in recency
+    expect(out.target).not.toBe(1);
+    // target sits between the laydown and breakpoint…
+    expect(out.target!).toBeGreaterThan(out.breakpoint!);
+    expect(out.target!).toBeLessThan(out.laydown!);
+    // …and on the skid line, so the skid extrapolates to ~the breakpoint.
+    expect(skidBoardAt(out.laydown!, out.target!, out.breakpoint_distance!)).toBeCloseTo(out.breakpoint!, 0);
+  });
+
+  it("a target the user has dragged stays put (pinned), even when laydown moves", () => {
+    const line: LineSpec = { laydown: 21, target: 1, breakpoint: 1, breakpoint_distance: 42, final_board: 37 };
+    const out = solveLine(line, "laydown", ["laydown", "target"], "right"); // target IS in recency
+    expect(out.target).toBe(1);
+  });
+});
+
 describe("solveLine — clamping & order", () => {
   it("keeps boards on the lane and the distance below the pocket", () => {
     const line: LineSpec = { laydown: 45, target: 14, breakpoint: 5, breakpoint_distance: 80 };

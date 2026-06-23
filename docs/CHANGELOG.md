@@ -15,7 +15,11 @@ User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachan
   true apex of the curve (no right-of-breakpoint overshoot), and editing a peg
   re-solves the whole shot so it always stays physically possible: the
   least-recently-touched point yields to keep the ball going straight-or-hooking
-  to one side. Reachable from score entry, the spare-line form, and Settings.
+  to one side. The **target re-aims itself** onto the laydown→breakpoint line as
+  you move the laydown or breakpoint (until you drag the target yourself), so the
+  skid always points naturally at the breakpoint. In the bowler view the lane is
+  centred and the inputs drop to a bottom bar; top-down keeps them on the side.
+  Reachable from score entry, the spare-line form, and Settings.
   Adds `breakpoint_distance` and `final_board` to the line model (the v2
   `hook_start_distance` peg was removed).
 
