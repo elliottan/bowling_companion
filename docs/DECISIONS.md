@@ -361,3 +361,51 @@ in down-lane order (no forced endpoint, so no impossible configuration):
   `LineSpec`, which `validateBackup` does not inspect. Backup `version` stays 3.
 - Still an illustration, not a physics sim (no rev rate / axis tilt); roll is
   approximated as straight.
+
+## ADR-013 — Lane line v3: vertical-apex hook + recency-priority solver
+
+**Status:** accepted (2026-06). Supersedes ADR-012's curve construction and
+editing model; the three-phase framing (skid → hook → roll) is unchanged.
+
+**Context.** ADR-012 left the breakpoint as a free apex whose cubic end-tangent
+matched the *roll* heading. With the skid tangent driving the entry control
+point, the curve bulged **right of the breakpoint** before recovering — the ball
+appeared to "face further right" than its own trajectory, and the breakpoint was
+not actually the rightmost point. The hook-start peg added a DOF users didn't
+want, and there were no inputs for the laydown/target/breakpoint boards.
+
+**Decision.**
+- **Pegs:** four editable — laydown (board @ 0 ft), target (board; its down-lane
+  distance snaps to the arrow chevron `arrowFeet`), breakpoint (board + distance,
+  the apex), final (board @ 60 ft, default pocket 17.5, draggable). The
+  **hook-start peg is removed**; `hook_start_distance` stays in `LineSpec` as a
+  deprecated, unread optional field (no Dexie/backup change).
+- **Curve:** straight skid `laydown → target`, then two C1-continuous cubics
+  `target → breakpoint → final`. The first leaves the arrows along the skid
+  heading (long handle, with `c1.x` clamped so it never crosses the apex) and
+  arrives at the breakpoint with a **vertical tangent**; the second leaves
+  vertical and eases into the roll heading. A vertical apex tangent makes the
+  breakpoint the **strict rightmost** (RH) point by construction — the fix for
+  the v2 overshoot.
+- **Constraints** (hook side = higher board RH, lower LH): breakpoint on/hook-side
+  of the skid line at its distance (can't go right of the aim, RH); breakpoint on
+  the *anti*-hook side of `min(laydown, target)` (the **apex** rule — it can't sit
+  past the aim, else it isn't the rightmost point and the curve bulges back);
+  final on/hook-side of the breakpoint; feet ordered
+  `0 < arrowFeet(target) < bpDist < 60`.
+- **Recency-priority solver (`solveLine`).** The just-edited peg is *held*; on a
+  violation the **least-recently-adjusted peg capable of fixing that rule** yields
+  to its boundary, cascading to the next capable peg if it would leave the lane,
+  and clamping the held peg only as a last resort. Final defaults to the pocket
+  but yields to feasibility even when pinned. Typing an input runs the same
+  solver as dragging the peg.
+- **Bowler view:** the tilt stage interpolates a translate+scale with the angle
+  (identity at top-down → fills the frame and clears the side inputs at the
+  bowler angle); top-down is unchanged.
+
+**Consequences.**
+- No Dexie bump / no backup migration: the line model gains no required fields.
+- Solver-moved pegs are rounded to 2 dp (clean inputs, constraint kept exact);
+  dragged/typed pegs snap to half-boards.
+- Still an illustration, not a physics sim; the 5-phase real-shot feel is
+  approximated by the two-cubic curvature profile, not modelled from ball motion.

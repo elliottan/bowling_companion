@@ -2,9 +2,42 @@ import { describe, it, expect } from "vitest";
 import {
   PLANE_W, PLANE_L, LANE_BOARDS, DRAW_FRONT_FEET, DRAW_BACK_FEET, POCKET_BOARD,
   boardToX, feetToY, xToBoard, yToFeet,
-  buildLinePath, skidBoard, DEFAULT_BREAKPOINT_FEET
+  buildLinePath, arrowFeet, skidBoardAt, DEFAULT_BREAKPOINT_FEET
 } from "./laneGeometry";
 import type { LineSpec } from "../types/bowling";
+
+/** Sample N points along an SVG path string built of M / L / C commands. */
+function samplePath(d: string, n = 200): Array<{ x: number; y: number }> {
+  const nums = d.match(/-?[\d.]+/g)!.map(Number);
+  const cmds = d.match(/[MLC]/g)!;
+  const segs: Array<(t: number) => { x: number; y: number }> = [];
+  let i = 0;
+  let cur = { x: nums[0], y: nums[1] };
+  i = 2;
+  for (let c = 1; c < cmds.length; c++) {
+    const p0 = cur;
+    if (cmds[c] === "L") {
+      const p1 = { x: nums[i++], y: nums[i++] };
+      segs.push((t) => ({ x: p0.x + (p1.x - p0.x) * t, y: p0.y + (p1.y - p0.y) * t }));
+      cur = p1;
+    } else {
+      const c1 = { x: nums[i++], y: nums[i++] };
+      const c2 = { x: nums[i++], y: nums[i++] };
+      const p1 = { x: nums[i++], y: nums[i++] };
+      segs.push((t) => {
+        const u = 1 - t;
+        return {
+          x: u * u * u * p0.x + 3 * u * u * t * c1.x + 3 * u * t * t * c2.x + t * t * t * p1.x,
+          y: u * u * u * p0.y + 3 * u * u * t * c1.y + 3 * u * t * t * c2.y + t * t * t * p1.y,
+        };
+      });
+      cur = p1;
+    }
+  }
+  const out: Array<{ x: number; y: number }> = [];
+  for (const seg of segs) for (let k = 0; k <= n; k++) out.push(seg(k / n));
+  return out;
+}
 
 describe("board ↔ x", () => {
   it("right-hander: board 1 is the right edge, board 39 the left", () => {
@@ -47,6 +80,21 @@ describe("feet ↔ y", () => {
   });
 });
 
+describe("arrow chevron", () => {
+  it("is deepest at the centre board and steps back toward the gutters", () => {
+    expect(arrowFeet(20)).toBeGreaterThan(arrowFeet(5));
+    expect(arrowFeet(20)).toBeGreaterThan(arrowFeet(35));
+    expect(arrowFeet(15)).toBeCloseTo(arrowFeet(25), 5); // symmetric about 20
+  });
+
+  it("skidBoardAt extrapolates the laydown→target line past the arrows", () => {
+    // at the target distance it returns the target board
+    expect(skidBoardAt(18, 10, arrowFeet(10))).toBeCloseTo(10, 5);
+    // at the foul line it returns the laydown
+    expect(skidBoardAt(18, 10, 0)).toBeCloseTo(18, 5);
+  });
+});
+
 describe("buildLinePath", () => {
   it("returns null without a foul board or target", () => {
     expect(buildLinePath({ target: 10 }, "right")).toBeNull();      // no laydown/stance
@@ -60,29 +108,32 @@ describe("buildLinePath", () => {
     expect(a!.points.laydown).toEqual(b!.points.laydown);
   });
 
-  it("with a breakpoint: skid → cubic hook → straight roll, breakpoint is a path vertex", () => {
-    const line: LineSpec = { laydown: 18, target: 10, breakpoint: 6, breakpoint_distance: 42, hook_start_distance: 30 };
+  it("with a breakpoint: straight skid then two cubics through the apex", () => {
+    const line: LineSpec = { laydown: 18, target: 10, breakpoint: 6, breakpoint_distance: 42 };
     const r = buildLinePath(line, "right")!;
-    expect(r.points.hookStart).not.toBeNull();
-    expect(r.points.breakpoint).not.toBeNull();
-    // straight skid to hook-start, cubic to the breakpoint, straight roll to final.
-    const m = r.d.match(/^M [\d.-]+ [\d.-]+ L ([\d.-]+) ([\d.-]+) C [\d.-]+ [\d.-]+ [\d.-]+ [\d.-]+ ([\d.-]+) ([\d.-]+) L ([\d.-]+) ([\d.-]+)$/)!;
+    expect(r.points.hookStart).toBeNull(); // v3 dropped the hook-start peg
+    // M ld L target C .. breakpoint C .. final
+    const m = r.d.match(/^M [\d.-]+ [\d.-]+ L ([\d.-]+) ([\d.-]+) C [\d.-]+ [\d.-]+ [\d.-]+ [\d.-]+ ([\d.-]+) ([\d.-]+) C [\d.-]+ [\d.-]+ [\d.-]+ [\d.-]+ ([\d.-]+) ([\d.-]+)$/);
     expect(m).not.toBeNull();
-    // hook-start, breakpoint and final coordinates appear as explicit vertices.
-    expect(Number(m[1])).toBeCloseTo(r.points.hookStart!.x, 2);
-    expect(Number(m[3])).toBeCloseTo(r.points.breakpoint!.x, 2);
-    expect(Number(m[4])).toBeCloseTo(r.points.breakpoint!.y, 2);
-    expect(Number(m[5])).toBeCloseTo(r.points.final.x, 2);
+    expect(Number(m![1])).toBeCloseTo(r.points.target.x, 2);
+    expect(Number(m![3])).toBeCloseTo(r.points.breakpoint!.x, 2);
+    expect(Number(m![5])).toBeCloseTo(r.points.final.x, 2);
   });
 
-  it("places the hook-start on the skid line at its distance", () => {
-    const line: LineSpec = { laydown: 18, target: 10, breakpoint: 6, hook_start_distance: 30 };
+  it("the breakpoint is the strict rightmost point of the path (RH)", () => {
+    // skid heads right (target 10 right of laydown 18), breakpoint on the wall.
+    const line: LineSpec = { laydown: 18, target: 10, breakpoint: 5, breakpoint_distance: 46 };
     const r = buildLinePath(line, "right")!;
-    const hs = r.points.hookStart!;
-    expect(yToFeet(hs.y)).toBeCloseTo(30, 1);
-    // board equals the skid-line extrapolation at 30 ft
-    const expectedX = boardToX(skidBoard(18, 10, 30), "right");
-    expect(hs.x).toBeCloseTo(expectedX, 1);
+    const maxX = Math.max(...samplePath(r.d).map((p) => p.x));
+    // rightmost x of the whole path equals the breakpoint x — no overshoot.
+    expect(maxX).toBeCloseTo(r.points.breakpoint!.x, 1);
+  });
+
+  it("for a left-hander the breakpoint is the strict leftmost point", () => {
+    const line: LineSpec = { laydown: 18, target: 10, breakpoint: 5, breakpoint_distance: 46 };
+    const r = buildLinePath(line, "left")!;
+    const minX = Math.min(...samplePath(r.d).map((p) => p.x));
+    expect(minX).toBeCloseTo(r.points.breakpoint!.x, 1);
   });
 
   it("final defaults to the pocket and is overridable", () => {

@@ -20,7 +20,7 @@ describe("LaneVisualizer", () => {
     expect(document.querySelector('[data-role="ball-path"]')).not.toBeNull();
   });
 
-  it("starts angled and exposes a Top-down toggle", () => {
+  it("starts in the bowler view and exposes a Top-down toggle", () => {
     renderViz();
     const stage = document.querySelector('[data-role="tilt-stage"]') as HTMLElement;
     expect(stage.style.transform).toContain("rotateX");
@@ -36,7 +36,7 @@ describe("LaneVisualizer", () => {
 });
 
 describe("LaneVisualizer editing", () => {
-  it("renders a drag handle per peg when editable (laydown, target, hook-start, breakpoint, final)", () => {
+  it("renders a drag handle per peg when editable (laydown, target, breakpoint, final)", () => {
     const onChange = vi.fn();
     render(
       <HandednessContext.Provider value="right">
@@ -44,7 +44,7 @@ describe("LaneVisualizer editing", () => {
       </HandednessContext.Provider>
     );
     const keys = [...document.querySelectorAll('[data-role="handle"]')].map((c) => c.getAttribute("data-key"));
-    expect(keys).toEqual(["laydown", "target", "hookStart", "breakpoint", "final"]);
+    expect(keys).toEqual(["laydown", "target", "breakpoint", "final"]);
   });
 
   it("renders no handles in read-only mode (no onChange)", () => {

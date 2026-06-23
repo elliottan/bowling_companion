@@ -1,15 +1,12 @@
 import type { Handedness, LineSpec, PinNumber } from "../types/bowling";
 import {
-  PLANE_W, PLANE_L, LANE_BOARDS, ARROWS_FEET, POCKET_BOARD,
-  boardToX, feetToY, buildLinePath, DEFAULT_BREAKPOINT_FEET, DEFAULT_HOOK_START_FEET
+  PLANE_W, PLANE_L, LANE_BOARDS, POCKET_BOARD,
+  boardToX, feetToY, buildLinePath, arrowFeet, DEFAULT_BREAKPOINT_FEET
 } from "../lib/laneGeometry";
 import { PIN_POSITIONS } from "../lib/pinGeometry";
 
 const ALL_PINS: PinNumber[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 const ARROW_BOARDS = [5, 10, 15, 20, 25, 30, 35]; // 7 arrows
-// Real arrows form a chevron: the centre arrow (board 20) sits furthest
-// down-lane, the outer ones step back toward the foul line.
-const arrowFeet = (board: number) => ARROWS_FEET + 1 - (Math.abs(board - 20) / 15) * 4;
 
 interface LaneSurfaceProps {
   line: LineSpec | undefined;
@@ -124,9 +121,6 @@ export function LaneSurface({ line, hand, leave, showMarkers = true, animate }: 
         <g>
           <Marker p={path.points.laydown} label={`Laydown ${line?.laydown ?? line?.stance}`} />
           <Marker p={path.points.target} label={`Target ${line?.target}`} />
-          {path.points.hookStart && (
-            <Marker p={path.points.hookStart} label={`Hook ${Math.round(line?.hook_start_distance ?? DEFAULT_HOOK_START_FEET)}ft`} />
-          )}
           {path.points.breakpoint && (
             <Marker
               p={path.points.breakpoint}

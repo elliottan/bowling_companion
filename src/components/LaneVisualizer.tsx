@@ -4,17 +4,28 @@ import type { LineSpec, PinNumber } from "../types/bowling";
 import { useHandedness } from "../lib/handednessContext";
 import { LaneSurface } from "./LaneSurface";
 import {
-  buildLinePath, xToBoard, yToFeet, PLANE_W, PLANE_L,
-  ARROWS_FEET, DEFAULT_BREAKPOINT_FEET, DEFAULT_HOOK_START_FEET
+  buildLinePath, solveLine, xToBoard, yToFeet, PLANE_W, PLANE_L,
+  POCKET_BOARD, DEFAULT_BREAKPOINT_FEET, type Peg,
 } from "../lib/laneGeometry";
 
-const ANGLED_DEG = 52;    // bowler-eye tilt (rotateX degrees away from flat)
-const TOPDOWN_DEG = 0;    // flat / top-down
+const BOWLER_DEG = 50;     // bowler's-eye tilt (looking down the lane)
+const TOPDOWN_DEG = 0;     // flat / top-down
 
-type LineField = "laydown" | "target" | "breakpoint" | "breakpoint_distance" | "hook_start_distance" | "final_board";
+/** Stage transform for a tilt angle. At 0° it is the identity (the centered
+ *  top-down view); as it tilts toward the bowler view it scales up and shifts so
+ *  the foreshortened lane fills the frame and clears the side inputs. */
+function stageTransform(deg: number): string {
+  const t = deg / BOWLER_DEG;
+  return `translate(${(-12 * t).toFixed(2)}%, ${(-13 * t).toFixed(2)}%) scale(${(1 + 0.32 * t).toFixed(3)}) rotateX(${deg}deg)`;
+}
 
 const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
 const snapBoard = (b: number) => clamp(Math.round(b * 2) / 2, 1, 39);
+
+/** Drag handle key → the peg it owns (drives the recency-priority solver). */
+const HANDLE_PEG: Record<string, Peg> = {
+  laydown: "laydown", target: "target", breakpoint: "breakpoint", final: "final",
+};
 
 interface LaneVisualizerProps {
   line: LineSpec | undefined;
@@ -28,11 +39,21 @@ interface LaneVisualizerProps {
 
 export function LaneVisualizer({ line, onClose, onChange, leave, title = "Line" }: LaneVisualizerProps) {
   const hand = useHandedness();
-  const [deg, setDeg] = useState(ANGLED_DEG);
+  const [deg, setDeg] = useState(BOWLER_DEG);
   const [dragging, setDragging] = useState(false);
   const dragY = useRef<number | null>(null);
   const surfaceRef = useRef<HTMLDivElement | null>(null);
+  // Move history, most-recent first — the held peg is bumped to the front so the
+  // solver yields the least-recently-adjusted capable peg on a conflict.
+  const recency = useRef<Peg[]>([]);
   const isTopDown = deg <= 2;
+
+  /** Apply an edit to `peg`, run the constraint solver, and emit. */
+  function applyEdit(peg: Peg, patch: Partial<LineSpec>) {
+    if (!onChange) return;
+    recency.current = [peg, ...recency.current.filter((p) => p !== peg)];
+    onChange(solveLine({ ...(line ?? {}), ...patch }, peg, recency.current, hand));
+  }
 
   // Drag on empty background → tilt the camera.
   function onPointerDown(e: React.PointerEvent) {
@@ -44,41 +65,29 @@ export function LaneVisualizer({ line, onClose, onChange, leave, title = "Line" 
     if (dragY.current === null) return;
     const dy = e.clientY - dragY.current;
     dragY.current = e.clientY;
-    setDeg((d) => clamp(d + dy * 0.4, TOPDOWN_DEG, ANGLED_DEG));
+    setDeg((d) => clamp(d + dy * 0.4, TOPDOWN_DEG, BOWLER_DEG));
   }
   function onPointerUp() {
     dragY.current = null;
     setDragging(false);
   }
 
-  function setField(field: LineField, raw: string) {
-    const v = raw === "" ? undefined : Number(raw);
-    onChange?.({ ...(line ?? {}), [field]: v });
-  }
-
   // Map a screen point (top-down, flat) → board / distance and write the change.
   function dragPoint(key: string, clientX: number, clientY: number) {
     const el = surfaceRef.current?.querySelector("svg");
-    if (!el || !onChange) return;
+    if (!el) return;
     const r = el.getBoundingClientRect();
     const sx = ((clientX - r.left) / r.width) * PLANE_W;
     const sy = ((clientY - r.top) / r.height) * PLANE_L;
     const board = snapBoard(xToBoard(sx, hand));
     const dist = Math.round(yToFeet(sy));
-    const bpDist = line?.breakpoint_distance ?? DEFAULT_BREAKPOINT_FEET;
-    const hsDist = line?.hook_start_distance ?? DEFAULT_HOOK_START_FEET;
-    const next: LineSpec = { ...(line ?? {}) };
-    switch (key) {
-      case "laydown": next.laydown = board; break;
-      case "target": next.target = board; break;
-      case "hookStart": next.hook_start_distance = clamp(dist, ARROWS_FEET + 1, bpDist - 1); break;
-      case "breakpoint":
-        next.breakpoint = board;
-        next.breakpoint_distance = clamp(dist, hsDist + 1, 59);
-        break;
-      case "final": next.final_board = board; break;
+    const peg = HANDLE_PEG[key];
+    switch (peg) {
+      case "laydown": applyEdit(peg, { laydown: board }); break;
+      case "target": applyEdit(peg, { target: board }); break;
+      case "breakpoint": applyEdit(peg, { breakpoint: board, breakpoint_distance: dist }); break;
+      case "final": applyEdit(peg, { final_board: board }); break;
     }
-    onChange(next);
   }
 
   function grabHandle(e: React.PointerEvent) {
@@ -94,7 +103,6 @@ export function LaneVisualizer({ line, onClose, onChange, leave, title = "Line" 
   if (path) {
     handles.push({ key: "laydown", p: path.points.laydown });
     handles.push({ key: "target", p: path.points.target });
-    if (path.points.hookStart) handles.push({ key: "hookStart", p: path.points.hookStart });
     if (path.points.breakpoint) handles.push({ key: "breakpoint", p: path.points.breakpoint });
     handles.push({ key: "final", p: path.points.final });
   }
@@ -110,10 +118,10 @@ export function LaneVisualizer({ line, onClose, onChange, leave, title = "Line" 
         <h2 className="flex-1 truncate text-base font-bold">{title}</h2>
         <button
           type="button"
-          onClick={() => setDeg((d) => (d <= 2 ? ANGLED_DEG : TOPDOWN_DEG))}
+          onClick={() => setDeg((d) => (d <= 2 ? BOWLER_DEG : TOPDOWN_DEG))}
           className="rounded-md border border-white/30 px-3 py-1.5 text-xs font-semibold hover:bg-white/10"
         >
-          {isTopDown ? "Angle" : "Top-down"}
+          {isTopDown ? "Bowler view" : "Top-down"}
         </button>
         <button
           type="button"
@@ -137,7 +145,9 @@ export function LaneVisualizer({ line, onClose, onChange, leave, title = "Line" 
           data-role="tilt-stage"
           className="absolute inset-0 mx-auto"
           style={{
-            transform: `rotateX(${deg}deg)`,
+            // Identity when flat; tilts + scales into a bowler's-eye view that
+            // recedes to a vanishing point at the pins as the angle increases.
+            transform: stageTransform(deg),
             transformOrigin: "50% 50%",
             transition: dragging ? "none" : "transform 0.25s ease-out",
           }}
@@ -169,14 +179,22 @@ export function LaneVisualizer({ line, onClose, onChange, leave, title = "Line" 
           </div>
         </div>
 
-        {/* Distance inputs pinned to the side (right for a righty, left for a lefty). */}
+        {/* Numeric inputs pinned to the side (right for a righty, left for a lefty). */}
         {onChange && (
           <div
-            className={`absolute top-1/2 z-10 flex -translate-y-1/2 flex-col gap-3 ${hand === "left" ? "left-3" : "right-3"}`}
+            className={`absolute top-1/2 z-10 flex -translate-y-1/2 flex-col gap-2 ${hand === "left" ? "left-2" : "right-2"}`}
             onPointerDown={(e) => e.stopPropagation()}
           >
-            <SideField label="Hook ft" value={line?.hook_start_distance ?? DEFAULT_HOOK_START_FEET} onChange={(r) => setField("hook_start_distance", r)} />
-            <SideField label="Bkpt ft" value={line?.breakpoint_distance ?? DEFAULT_BREAKPOINT_FEET} onChange={(r) => setField("breakpoint_distance", r)} />
+            <SideField label="Laydown" value={line?.laydown ?? line?.stance} min={1} max={39}
+              onCommit={(v) => applyEdit("laydown", { laydown: v })} />
+            <SideField label="Target" value={line?.target} min={1} max={39}
+              onCommit={(v) => applyEdit("target", { target: v })} />
+            <SideField label="Bkpt" value={line?.breakpoint} min={1} max={39}
+              onCommit={(v) => applyEdit("breakpoint", { breakpoint: v })} />
+            <SideField label="Bkpt ft" value={line?.breakpoint_distance ?? DEFAULT_BREAKPOINT_FEET} min={16} max={59}
+              onCommit={(v) => applyEdit("breakpoint", { breakpoint_distance: v })} />
+            <SideField label="Final" value={line?.final_board ?? POCKET_BOARD} min={1} max={39}
+              onCommit={(v) => applyEdit("final", { final_board: v })} />
           </div>
         )}
       </div>
@@ -189,24 +207,29 @@ export function LaneVisualizer({ line, onClose, onChange, leave, title = "Line" 
 }
 
 function SideField({
-  label,
-  value,
-  onChange,
+  label, value, min, max, onCommit,
 }: {
   label: string;
   value: number | undefined;
-  onChange: (raw: string) => void;
+  min: number;
+  max: number;
+  onCommit: (v: number) => void;
 }) {
   return (
-    <label className="flex w-16 flex-col gap-1 text-center text-[10px] font-semibold uppercase tracking-wide text-white/70">
+    <label className="flex w-[4.25rem] flex-col gap-0.5 text-center text-[10px] font-semibold uppercase tracking-wide text-white/70">
       {label}
       <input
         type="number"
         inputMode="numeric"
-        step="1"
+        step="0.5"
+        min={min}
+        max={max}
         value={value ?? ""}
-        onChange={(e) => onChange(e.target.value)}
-        className="h-9 w-full rounded-md border border-white/20 bg-white/10 px-1 text-center text-sm font-medium text-white outline-none focus:border-amber-400"
+        onChange={(e) => {
+          if (e.target.value === "") return;
+          onCommit(clamp(Number(e.target.value), min, max));
+        }}
+        className="h-8 w-full rounded-md border border-white/20 bg-white/10 px-1 text-center text-sm font-medium text-white outline-none focus:border-amber-400"
       />
     </label>
   );
