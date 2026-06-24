@@ -6,22 +6,21 @@ User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachan
 
 ### Added
 
-- **Lane line visualizer (ADR-011, ADR-012, ADR-013).** A fullscreen view that
-  draws your line over a wood lane as a real shot — straight skid through the
-  arrows, a gradual hook that peaks at the breakpoint, then an easing roll to a
-  free final point on the pin deck — with a drag-to-tilt camera (a framed
+- **Lane line visualizer (ADR-011 – ADR-015).** A fullscreen view that draws your
+  line over a wood lane as a real shot — a straight skid along your aim, a hook
+  that starts gently at the arrows, steepens to peak at the breakpoint, then eases
+  to a near-straight finish into the pocket — with a drag-to-tilt camera (a framed
   top-down ⇄ bowler-eye view) and direct drag-to-edit pegs (laydown, target,
-  breakpoint, final) plus matching numeric inputs. The breakpoint is now the
-  true apex of the curve (no right-of-breakpoint overshoot), and editing a peg
-  re-solves the whole shot so it always stays physically possible: the
-  least-recently-touched point yields to keep the ball going straight-or-hooking
-  to one side. The **target re-aims itself** onto the laydown→breakpoint line as
-  you move the laydown or breakpoint (until you drag the target yourself), so the
-  skid always points naturally at the breakpoint. In the bowler view the lane is
-  centred and the inputs drop to a bottom bar; top-down keeps them on the side.
-  Reachable from score entry, the spare-line form, and Settings.
-  Adds `breakpoint_distance` and `final_board` to the line model (the v2
-  `hook_start_distance` peg was removed).
+  breakpoint, final) plus matching numeric inputs. A dotted **focal line** (your
+  laydown→target aim extended down the lane) marks the boundary the ball can never
+  cross: it rides the line on the skid and only ever peels to the hook side, and
+  once it starts hooking it never swings back. Your laydown and target stay exactly
+  where you put them; the breakpoint and final slide just enough to keep the shot
+  drawable, never snapping to the gutter. The laydown can loft off the edge of the
+  lane. In the bowler view the lane is centred and the inputs drop to a bottom bar;
+  top-down keeps them on the side. Reachable from score entry, the spare-line form,
+  and Settings. Adds `breakpoint_distance` and `final_board` to the line model (the
+  v2 `hook_start_distance` peg was removed).
 
 ### Fixed
 

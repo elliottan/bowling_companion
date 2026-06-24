@@ -96,6 +96,21 @@ export function LaneSurface({ line, hand, leave, showMarkers = true, animate }: 
         );
       })}
 
+      {path?.focal && (
+        <line
+          data-role="focal-line"
+          x1={path.focal.a.x}
+          y1={path.focal.a.y}
+          x2={path.focal.b.x}
+          y2={path.focal.b.y}
+          stroke="#fff"
+          strokeOpacity="0.5"
+          strokeWidth="0.9"
+          strokeDasharray="2 3"
+          strokeLinecap="round"
+        />
+      )}
+
       {path && (
         <path
           data-role="ball-path"

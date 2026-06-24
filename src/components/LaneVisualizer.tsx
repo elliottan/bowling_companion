@@ -44,16 +44,12 @@ export function LaneVisualizer({ line, onClose, onChange, leave, title = "Line" 
   const [dragging, setDragging] = useState(false);
   const dragY = useRef<number | null>(null);
   const surfaceRef = useRef<HTMLDivElement | null>(null);
-  // Move history, most-recent first — the held peg is bumped to the front so the
-  // solver yields the least-recently-adjusted capable peg on a conflict.
-  const recency = useRef<Peg[]>([]);
   const isTopDown = deg <= 2;
 
-  /** Apply an edit to `peg`, run the constraint solver, and emit. */
-  function applyEdit(peg: Peg, patch: Partial<LineSpec>) {
+  /** Apply an edit, re-clamp the line so it stays drawable, and emit. */
+  function applyEdit(patch: Partial<LineSpec>) {
     if (!onChange) return;
-    recency.current = [peg, ...recency.current.filter((p) => p !== peg)];
-    onChange(solveLine({ ...(line ?? {}), ...patch }, peg, recency.current, hand));
+    onChange(solveLine({ ...(line ?? {}), ...patch }, hand));
   }
 
   // Drag on empty background → tilt the camera.
@@ -84,10 +80,10 @@ export function LaneVisualizer({ line, onClose, onChange, leave, title = "Line" 
     const dist = Math.round(yToFeet(sy));
     const peg = HANDLE_PEG[key];
     switch (peg) {
-      case "laydown": applyEdit(peg, { laydown: board }); break;
-      case "target": applyEdit(peg, { target: board }); break;
-      case "breakpoint": applyEdit(peg, { breakpoint: board, breakpoint_distance: dist }); break;
-      case "final": applyEdit(peg, { final_board: board }); break;
+      case "laydown": applyEdit({ laydown: board }); break;
+      case "target": applyEdit({ target: board }); break;
+      case "breakpoint": applyEdit({ breakpoint: board, breakpoint_distance: dist }); break;
+      case "final": applyEdit({ final_board: board }); break;
     }
   }
 
@@ -191,16 +187,16 @@ export function LaneVisualizer({ line, onClose, onChange, leave, title = "Line" 
             }
             onPointerDown={(e) => e.stopPropagation()}
           >
-            <SideField label="Laydown" value={line?.laydown ?? line?.stance} min={1} max={39}
-              onCommit={(v) => applyEdit("laydown", { laydown: v })} />
+            <SideField label="Laydown" value={line?.laydown ?? line?.stance} min={1} max={59}
+              onCommit={(v) => applyEdit({ laydown: v })} />
             <SideField label="Target" value={line?.target} min={1} max={39}
-              onCommit={(v) => applyEdit("target", { target: v })} />
+              onCommit={(v) => applyEdit({ target: v })} />
             <SideField label="Bkpt" value={line?.breakpoint} min={1} max={39}
-              onCommit={(v) => applyEdit("breakpoint", { breakpoint: v })} />
+              onCommit={(v) => applyEdit({ breakpoint: v })} />
             <SideField label="Bkpt ft" value={line?.breakpoint_distance ?? DEFAULT_BREAKPOINT_FEET} min={16} max={59}
-              onCommit={(v) => applyEdit("breakpoint", { breakpoint_distance: v })} />
+              onCommit={(v) => applyEdit({ breakpoint_distance: v })} />
             <SideField label="Final" value={line?.final_board ?? POCKET_BOARD} min={1} max={39}
-              onCommit={(v) => applyEdit("final", { final_board: v })} />
+              onCommit={(v) => applyEdit({ final_board: v })} />
           </div>
         )}
       </div>

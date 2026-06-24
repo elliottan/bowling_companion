@@ -416,3 +416,93 @@ want, and there were no inputs for the laydown/target/breakpoint boards.
   dragged/typed pegs snap to half-boards.
 - Still an illustration, not a physics sim; the 5-phase real-shot feel is
   approximated by the two-cubic curvature profile, not modelled from ball motion.
+
+## ADR-014 — Focal-line model + drawability solver
+
+**Status:** accepted (2026-06). Replaces ADR-013's wall/apex solver and curve
+construction; keeps the skid→hook→roll framing and the recency-priority idea.
+
+**Context.** ADR-013 let the breakpoint sit anywhere on the hook side and forced a
+vertical apex, so steep or left-aimed lines produced bulges (curve crossing back
+the other way), kinks at the target, and finals that sat right of where a dead-
+straight ball would end. The model had no single notion of "is this line even
+drawable".
+
+**Decision.** Introduce the **focal line** — `laydown→target` extended down the
+lane (drawn as a dotted guide). The ball rides it on the skid and can only peel
+off to one side (left for RH); it never crosses right of it. A line is *drawable*
+iff (board space; hook side = higher board RH, lower LH):
+- **focalBp** — breakpoint on/hook-side of the focal line at its distance.
+- **apex/flex** — *only when the skid heads to the anti-hook side* (a rightward
+  drift, RH): the breakpoint is the apex and must drift past the target by at
+  least `minBreakpointDriftBoards` so the hook can leave the target *tangent to
+  the skid* without kinking. Closer than that isn't drawable → it clamps. A
+  left-heading skid has no rightward apex, so this is skipped.
+- **focalPin** — final on/hook-side of the focal line at the pins (pulled to the
+  gutter when the focal runs off the pin deck — "all the way left").
+- **roll** — final on/hook-side of the breakpoint.
+
+`solveLine` enforces these by yielding the least-recently-adjusted *capable* peg
+(cascading, best-effort clamping to the gutter, clamping the held peg last —
+"can't flex more → can't drag more"). The **laydown may loft off-lane** (board
+>39 / <1); `boardToX(…, raw)` maps it past the edge. The curve is two cubics:
+straight skid, then `target→breakpoint` leaving along the skid heading
+(`CURVE_LEAD`) and arriving vertical at the apex, then `breakpoint→final`. The
+flex constraint guarantees the first cubic stays tangent and monotonic (no
+bulge). Dropped ADR-013's derived-aim target.
+
+**Consequences.**
+- No Dexie/backup change. The flex constraint couples the solver to `CURVE_LEAD`
+  (the curve's lead handle) by design — they share the constant.
+- Still an illustration: drawability is geometric (can a valid single hook be
+  drawn), not a ball-motion sim.
+
+## ADR-015 — Hook as board-of-distance `b(d)`: invariants by construction
+
+**Status:** accepted (2026-06). Supersedes ADR-014's two-cubic curve and
+recency-priority solver; keeps the focal line and the skid→hook→roll framing.
+
+**Context.** ADR-014 drew the path as two free 2-D cubics, then ran an 8-pass
+solver that *clamped* violations after the fact. Two structural problems remained:
+the cubic could still bow ~1–2 boards to the anti-hook side of the focal line near
+the apex (the breakpoint marker was legal but the drawn curve wasn't), and editing
+one peg could yank the laydown/target it didn't own, snapping the breakpoint and
+final to the gutter. Both are emergent properties a clamp-solver can't guarantee,
+and on a cross-heading skid the curve could even reverse back toward the anti-hook
+side — not real ball motion.
+
+**Decision.** Model the path as **board as a function of down-lane distance**,
+`b(d)` — a real shot is single-valued in distance — so monotonicity is controlled
+directly instead of hoped for. `buildLinePath` builds a straight skid on the focal
+line over `[0, arrowFeet(target)]`, then a **monotone cubic-Hermite** hook through
+the knots `target → breakpoint → final`: it leaves the arrows tangent to the skid,
+is flat at the apex (the breakpoint is the furthest point), and arrives ~straight
+at the pins. **Fritsch–Carlson** slope limiting keeps every segment monotone, and
+`b(d)` is clamped to the hook side of the focal line where the skid is an
+out-and-back wall. So for the *drawn curve* (not just the pegs) both invariants
+hold by construction:
+- it never crosses to the anti-hook side of the focal line, and
+- after the apex the board never reverses back toward the anti-hook side.
+
+Curvature is gentle off the arrows, peaks at the breakpoint, and eases to
+~straight into the pocket. Rendered as a finely-sampled polyline (the apex is a
+sample, so the breakpoint marker sits on the line).
+
+`solveLine` becomes a **single-pass dependent re-clamp**: the laydown and target
+are the user's aim and are never moved; the breakpoint and final are dependent and
+re-clamp to the nearest drawable spot (breakpoint hook-side of the focal and, on an
+out-and-back skid, no further hook-side than the aim; final hook-side of both the
+breakpoint and the focal at the pins). No cascade, no recency, no `held` — nothing
+jumps to the gutter to "make room"; a dependent peg just slides onto its boundary.
+The laydown may still loft off-lane.
+
+**Consequences.**
+- No Dexie/backup change — `LineSpec` is unchanged. Dropped `CURVE_LEAD`,
+  `minBreakpointDriftBoards`, the recency/`held` machinery, and the 8-pass loop.
+- A hard cross-lane aim (the focal exits the lane on the hook side) still pins the
+  breakpoint/final to the gutter — now a monotone, smooth sweep rather than a
+  reversal, though the breakpoint marker can read as a non-apex in that degenerate
+  case.
+- Invariants are regression-guarded by sampling the drawn curve in
+  `laneGeometry.test.ts` / `solveLine.test.ts`. Still an illustration, not a
+  ball-motion sim.

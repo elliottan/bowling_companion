@@ -24,9 +24,11 @@ export const PLANE_L = 300;
 
 const clampBoard = (b: number) => Math.max(1, Math.min(LANE_BOARDS, b));
 
-/** Board number → x on the plane. Right-handers: board 1 = right edge. */
-export function boardToX(board: number, hand: Handedness): number {
-  const f = (clampBoard(board) - 1) / (LANE_BOARDS - 1); // 0 at board 1
+/** Board number → x on the plane. Right-handers: board 1 = right edge.
+ *  `raw` skips the [1,39] clamp so off-lane boards (a lofted laydown, the focal
+ *  line running off the edge) map past the lane's x extent instead of pinning. */
+export function boardToX(board: number, hand: Handedness, raw = false): number {
+  const f = ((raw ? board : clampBoard(board)) - 1) / (LANE_BOARDS - 1); // 0 at board 1
   return hand === "right" ? PLANE_W * (1 - f) : PLANE_W * f;
 }
 
@@ -64,6 +66,9 @@ export interface PlanePoint { x: number; y: number; }
 
 export interface LinePath {
   d: string;
+  /** Dotted guide: the straight laydown→target line extended down the lane. The
+   *  ball rides it on the skid and can never cross right of it (ADR-014). */
+  focal: { a: PlanePoint; b: PlanePoint } | null;
   points: {
     laydown: PlanePoint;
     target: PlanePoint;
@@ -75,10 +80,6 @@ export interface LinePath {
 
 const r2 = (n: number) => Math.round(n * 100) / 100;
 const pt = (x: number, y: number): PlanePoint => ({ x: r2(x), y: r2(y) });
-const unit = (dx: number, dy: number) => {
-  const m = Math.hypot(dx, dy) || 1;
-  return { x: dx / m, y: dy / m };
-};
 const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
 
 /**
@@ -100,137 +101,130 @@ export function buildLinePath(line: LineSpec | undefined, hand: Handedness): Lin
   const foul = line?.laydown ?? line?.stance;
   if (line == null || foul == null || line.target == null) return null;
 
-  const laydown = pt(boardToX(foul, hand), feetToY(0));
+  // Laydown maps raw so a lofted (off-lane) board sits past the edge.
+  const laydown = pt(boardToX(foul, hand, true), feetToY(0));
   const target = pt(boardToX(line.target, hand), feetToY(arrowFeet(line.target)));
   const final = pt(boardToX(line.final_board ?? POCKET_BOARD, hand), feetToY(LANE_FEET));
 
+  // Focal guide: laydown→target extended across the whole drawing extent.
+  const focal = {
+    a: pt(boardToX(skidBoardAt(foul, line.target, DRAW_FRONT_FEET), hand, true), feetToY(DRAW_FRONT_FEET)),
+    b: pt(boardToX(skidBoardAt(foul, line.target, DRAW_BACK_FEET), hand, true), feetToY(DRAW_BACK_FEET)),
+  };
+
   if (line.breakpoint == null) {
     const d = `M ${laydown.x} ${laydown.y} L ${target.x} ${target.y} L ${final.x} ${final.y}`;
-    return { d, points: { laydown, target, hookStart: null, breakpoint: null, final } };
+    return { d, focal, points: { laydown, target, hookStart: null, breakpoint: null, final } };
   }
 
-  const bpDist = line.breakpoint_distance ?? DEFAULT_BREAKPOINT_FEET;
-  const breakpoint = pt(boardToX(line.breakpoint, hand), feetToY(bpDist));
+  const finalBoard = line.final_board ?? POCKET_BOARD;
+  const tgt = line.target; // captured (non-null) for use inside the hookBoard closure
+  const dT = arrowFeet(line.target);
+  const bpd = clamp(line.breakpoint_distance ?? DEFAULT_BREAKPOINT_FEET, dT + 0.5, LANE_FEET - 0.5);
+  const breakpoint = pt(boardToX(line.breakpoint, hand), feetToY(bpd));
 
-  const skid = unit(target.x - laydown.x, target.y - laydown.y);
-  const roll = unit(final.x - breakpoint.x, final.y - breakpoint.y);
+  // Board as a function of down-lane distance d. Straight skid on the focal line,
+  // then a monotone cubic-Hermite hook through the breakpoint apex (flat tangent
+  // → the apex is the furthest point) easing to ~straight at the final. The pieces
+  // are monotone by construction (no reversal) and clamped to the hook side of the
+  // focal line, so the drawn curve can never cross it (ADR-015).
+  const D = [dT, bpd, LANE_FEET];
+  const V = [line.target, line.breakpoint, finalBoard];
+  const secA = (V[1] - V[0]) / (D[1] - D[0]);
+  const secB = (V[2] - V[1]) / (D[2] - D[1]);
+  const focalSlope = (line.target - foul) / arrowFeet(line.target); // boards per ft along the skid
+  // Leave the arrows tangent to the skid, arrive ~straight at the pins; Fritsch–
+  // Carlson limiting (|slope| ≤ 3×secant, zero across an extremum) keeps each
+  // Hermite segment monotone. The apex tangent is flat.
+  const fc = (m: number, s: number) => (s === 0 || m * s < 0 ? 0 : Math.sign(m) * Math.min(Math.abs(m), 3 * Math.abs(s)));
+  const M = [fc(focalSlope, secA), 0, fc(secB, secB)];
+  const dir = hand === "right" ? 1 : -1;
+  // The focal line is an anti-hook wall only when the skid heads to the anti-hook
+  // side (the ball goes out, then hooks back). When the aim itself heads hook-side
+  // (across the lane), the focal runs off-lane and imposes no wall.
+  const wall = dir * (foul - line.target) > 0;
+  const hookBoard = (d: number): number => {
+    const i = d <= bpd ? 0 : 1;
+    const h = D[i + 1] - D[i];
+    const s = (d - D[i]) / h;
+    const H00 = 2 * s ** 3 - 3 * s ** 2 + 1, H10 = s ** 3 - 2 * s ** 2 + s;
+    const H01 = -2 * s ** 3 + 3 * s ** 2, H11 = s ** 3 - s ** 2;
+    const raw = V[i] * H00 + M[i] * h * H10 + V[i + 1] * H01 + M[i + 1] * h * H11;
+    if (!wall) return raw;
+    const focalB = skidBoardAt(foul, tgt, d);
+    return dir > 0 ? Math.max(raw, focalB) : Math.min(raw, focalB); // never anti-hook of the focal
+  };
 
-  // Cubic A: target → breakpoint. Leave along the skid heading (long handle so
-  // the ball stays near-straight off the arrows, then turns late), arrive
-  // vertical at the apex. Clamp c1.x so it never crosses the apex x — that is
-  // exactly the v2 right-overshoot bug.
-  const lenA = Math.hypot(breakpoint.x - target.x, breakpoint.y - target.y);
-  const a1 = pt(
-    clamp(target.x + skid.x * lenA * 0.7, Math.min(target.x, breakpoint.x), Math.max(target.x, breakpoint.x)),
-    target.y + skid.y * lenA * 0.7
-  );
-  const a2 = pt(breakpoint.x, breakpoint.y + lenA * 0.4); // below the apex → vertical approach
+  // Sample the hook into a smooth polyline. Splitting at the apex makes bpd a
+  // sample, so the breakpoint marker sits exactly on the drawn line.
+  const SEG = 28;
+  let d = `M ${laydown.x} ${laydown.y} L ${target.x} ${target.y}`;
+  for (const [lo, hi] of [[dT, bpd], [bpd, LANE_FEET]]) {
+    for (let k = 1; k <= SEG; k++) {
+      const dist = lo + (hi - lo) * (k / SEG);
+      const p = pt(boardToX(hookBoard(dist), hand, true), feetToY(dist));
+      d += ` L ${p.x} ${p.y}`;
+    }
+  }
 
-  // Cubic B: breakpoint → final. Leave vertical (C1 with A at the apex), ease
-  // into the roll heading.
-  const lenB = Math.hypot(final.x - breakpoint.x, final.y - breakpoint.y);
-  const b1 = pt(breakpoint.x, breakpoint.y - lenB * 0.4); // above the apex → vertical departure
-  const b2 = pt(final.x - roll.x * lenB * 0.4, final.y - roll.y * lenB * 0.4);
-
-  const d =
-    `M ${laydown.x} ${laydown.y} L ${target.x} ${target.y} ` +
-    `C ${a1.x} ${a1.y} ${a2.x} ${a2.y} ${breakpoint.x} ${breakpoint.y} ` +
-    `C ${b1.x} ${b1.y} ${b2.x} ${b2.y} ${final.x} ${final.y}`;
-
-  return { d, points: { laydown, target, hookStart: null, breakpoint, final } };
+  return { d, focal, points: { laydown, target, hookStart: null, breakpoint, final } };
 }
 
-// --- Constraint solver (ADR-013) -------------------------------------------
-// A real shot can only go straight or hook to one side. So the breakpoint must
-// sit on/hook-side of the laydown→target skid line, and the final must sit
-// on/hook-side of the breakpoint. When an edit breaks a rule, the
-// least-recently-adjusted peg *capable* of fixing that rule yields; if it would
-// leave the lane we cascade to the next capable peg; if none can, the held
-// (just-edited) peg clamps. Hook side = higher board for RH, lower for LH.
+// --- Drawability solver (ADR-015) ------------------------------------------
+// The laydown and target are the user's aim and stay exactly where set — they
+// define the focal line. The breakpoint and final are *dependent*: after any edit
+// they re-clamp (in a single pass) onto the nearest drawable spot so the line stays
+// one hook, in board space (hook side = higher board RH, lower LH):
+//   - breakpoint on/hook-side of the focal line at its distance (it peels off the aim)
+//   - on an out-and-back skid, breakpoint no further hook-side than the target
+//     (so it stays the apex, not past the aim)
+//   - final on/hook-side of both the breakpoint and the focal line at the pins
+// No cascade onto the laydown/target, so nothing jumps to the gutter to "make
+// room" — a dependent peg just slides onto its boundary. The laydown may loft
+// off-lane. Pure: returns a corrected LineSpec.
 
 export type Peg = "laydown" | "target" | "breakpoint" | "final";
 
-const EPS = 1e-6;
-const BP_DIST_MAX = 59; // < 60 ft pocket
+const BP_DIST_MAX = 59;  // < 60 ft pocket
+const LOFT_MARGIN = 20;  // boards a lofted laydown may sit beyond each lane edge
 
-/** Capable pegs minus the held one, ordered least-recently-moved first
- *  (a never-moved peg yields before any the user has touched). */
-function yieldOrder(capable: Peg[], held: Peg, recency: Peg[]): Peg[] {
-  const rank = (p: Peg) => { const i = recency.indexOf(p); return i === -1 ? Infinity : i; };
-  return capable.filter((p) => p !== held).sort((a, b) => rank(b) - rank(a));
-}
-
-/**
- * Enforce the down-lane order, skid-wall and roll-direction rules after an edit
- * to `held`. `recency` is the move history, most-recent first. Pure: returns a
- * corrected LineSpec (only the fields it owns are rewritten).
- */
-export function solveLine(line: LineSpec, held: Peg, recency: Peg[], hand: Handedness): LineSpec {
+export function solveLine(line: LineSpec, hand: Handedness): LineSpec {
   const foulField: "laydown" | "stance" = line.laydown != null || line.stance == null ? "laydown" : "stance";
   const ld0 = line.laydown ?? line.stance;
   if (ld0 == null || line.target == null) return line;
 
   const dir = hand === "right" ? 1 : -1;
-  const cb = (b: number) => clamp(b, 1, 39);
-  const inLane = (v: number) => v >= 1 - EPS && v <= 39 + EPS;
+  const clLane = (b: number) => clamp(b, 1, 39);
+  const ld = clamp(ld0, 1 - LOFT_MARGIN, 39 + LOFT_MARGIN); // laydown may loft off-lane
+  const tg = clLane(line.target);
 
-  let ld = cb(ld0);
-  let tg = cb(line.target);
-  let bp = line.breakpoint == null ? null : cb(line.breakpoint);
-  let fb = line.final_board == null ? null : cb(line.final_board);
-  let bpd = clamp(line.breakpoint_distance ?? DEFAULT_BREAKPOINT_FEET, Math.ceil(arrowFeet(tg)) + 1, BP_DIST_MAX);
-
-  if (bp != null) {
-    // Target is a derived aim: until the user drags it, it rides the
-    // laydown→breakpoint line so the skid points straight at the breakpoint (no
-    // unnatural kink). Once dragged it's pinned (present in `recency`). The
-    // fixed-point iteration resolves the arrowFeet(target) self-reference (the
-    // arrows→breakpoint extrapolation amplifies it, so allow it to converge).
-    if (!recency.includes("target")) {
-      for (let i = 0; i < 6; i++) tg = clamp(ld + (bp - ld) * (arrowFeet(tg) / bpd), 1, 39);
-    }
-
-    for (let pass = 0; pass < 6; pass++) {
-      let changed = false;
-
-      // Apex: the breakpoint is the rightmost (RH) point, so it can't sit past
-      // the aim — the skid already carried the ball to min(laydown, target). A
-      // breakpoint on the hook side of that is not an apex (the curve would
-      // bulge back the other way), so clamp it onto the aim.
-      const aim = dir > 0 ? Math.min(ld, tg) : Math.max(ld, tg);
-      if (dir * (aim - bp) < -EPS) { bp = aim; changed = true; }
-
-      // Skid wall: dir*(bp - wall) >= 0
-      const wall = skidBoardAt(ld, tg, bpd);
-      if (dir * (bp - wall) < -EPS) {
-        let fixed = false;
-        for (const peg of yieldOrder(["breakpoint", "laydown", "target"], held, recency)) {
-          const k = bpd / arrowFeet(tg);
-          if (peg === "breakpoint" && inLane(wall)) { bp = cb(wall); fixed = true; break; }
-          if (peg === "laydown") { const v = (bp - tg * k) / (1 - k); if (inLane(v)) { ld = cb(v); fixed = true; break; } }
-          if (peg === "target") { const v = ld + (bp - ld) / k; if (inLane(v)) { tg = cb(v); fixed = true; break; } }
-        }
-        if (!fixed) bp = cb(skidBoardAt(ld, tg, bpd)); // clamp held to the wall
-        changed = true;
-      }
-
-      // Roll direction: dir*(final - bp) >= 0  (pocket default counts as final)
-      const fbEff = fb ?? POCKET_BOARD;
-      if (dir * (fbEff - bp) < -EPS) {
-        const [first] = yieldOrder(["final", "breakpoint"], held, recency);
-        if (first === "breakpoint") bp = cb(fbEff);
-        else fb = cb(bp); // move final onto the breakpoint (boundary)
-        changed = true;
-      }
-
-      if (!changed) break;
-    }
-  }
-
-  // Round to 2 dp / whole feet so solver-moved pegs read cleanly in the inputs
-  // and labels (no 17-digit floats) while keeping the constraint satisfied.
   const out: LineSpec = { ...line, target: r2(tg), [foulField]: r2(ld) };
-  if (bp != null) { out.breakpoint = r2(bp); out.breakpoint_distance = Math.round(bpd); }
-  if (fb != null) out.final_board = r2(fb);
+  if (line.breakpoint == null) return out;
+
+  const bpd = clamp(line.breakpoint_distance ?? DEFAULT_BREAKPOINT_FEET, Math.ceil(arrowFeet(tg)) + 1, BP_DIST_MAX);
+  const focal = (d: number) => skidBoardAt(ld, tg, d);
+  const hookSide = (a: number, b: number) => (dir > 0 ? Math.max(a, b) : Math.min(a, b)); // the more hook-side
+  const antiSide = (a: number, b: number) => (dir > 0 ? Math.min(a, b) : Math.max(a, b)); // the more anti-hook
+
+  // Breakpoint: hook-side of the focal; on an out-and-back skid it must also carry
+  // far enough *past* the aim that the hook can leave the arrows tangent to the
+  // (steeper-the-further-apart) skid without a kink. `minDrift` is the Fritsch–
+  // Carlson monotonicity threshold for that entry tangent; closer than it isn't
+  // smoothly drawable, so the breakpoint slides to the apex side (subsumes the old
+  // "no further hook-side than the aim" cap).
+  let bp = hookSide(clLane(line.breakpoint), focal(bpd));
+  if (dir * (ld - tg) > 0) {
+    const minDrift = (Math.abs(tg - ld) * (bpd - arrowFeet(tg))) / (3 * arrowFeet(tg));
+    bp = antiSide(bp, tg - dir * minDrift);
+  }
+  bp = clLane(bp);
+  out.breakpoint = r2(bp);
+  out.breakpoint_distance = Math.round(bpd);
+
+  // Final: hook-side of the breakpoint and of the focal at the pins. Materialised
+  // only when set, or when the pocket default is no longer reachable.
+  const fb = clLane(hookSide(line.final_board ?? POCKET_BOARD, hookSide(bp, focal(LANE_FEET))));
+  if (line.final_board != null || dir * (fb - POCKET_BOARD) > 0) out.final_board = r2(fb);
+
   return out;
 }

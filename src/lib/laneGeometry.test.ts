@@ -4,7 +4,7 @@ import {
   boardToX, feetToY, xToBoard, yToFeet,
   buildLinePath, arrowFeet, skidBoardAt, DEFAULT_BREAKPOINT_FEET
 } from "./laneGeometry";
-import type { LineSpec } from "../types/bowling";
+import type { Handedness, LineSpec } from "../types/bowling";
 
 /** Sample N points along an SVG path string built of M / L / C commands. */
 function samplePath(d: string, n = 200): Array<{ x: number; y: number }> {
@@ -38,6 +38,14 @@ function samplePath(d: string, n = 200): Array<{ x: number; y: number }> {
   for (const seg of segs) for (let k = 0; k <= n; k++) out.push(seg(k / n));
   return out;
 }
+
+/** Sample the drawn path in lane space: board (cross-lane) × feet (down-lane). */
+function sampleBoards(d: string, hand: Handedness, n = 80): Array<{ board: number; feet: number }> {
+  return samplePath(d, n).map((p) => ({ board: xToBoard(p.x, hand), feet: yToFeet(p.y) }));
+}
+/** Board the focal (laydown→target) line reaches at a down-lane distance. */
+const focalBoardAt = (l: LineSpec, feet: number) =>
+  skidBoardAt((l.laydown ?? l.stance)!, l.target!, feet);
 
 describe("board ↔ x", () => {
   it("right-hander: board 1 is the right edge, board 39 the left", () => {
@@ -108,16 +116,18 @@ describe("buildLinePath", () => {
     expect(a!.points.laydown).toEqual(b!.points.laydown);
   });
 
-  it("with a breakpoint: straight skid then two cubics through the apex", () => {
+  it("with a breakpoint: the drawn path passes through every peg", () => {
     const line: LineSpec = { laydown: 18, target: 10, breakpoint: 6, breakpoint_distance: 42 };
     const r = buildLinePath(line, "right")!;
     expect(r.points.hookStart).toBeNull(); // v3 dropped the hook-start peg
-    // M ld L target C .. breakpoint C .. final
-    const m = r.d.match(/^M [\d.-]+ [\d.-]+ L ([\d.-]+) ([\d.-]+) C [\d.-]+ [\d.-]+ [\d.-]+ [\d.-]+ ([\d.-]+) ([\d.-]+) C [\d.-]+ [\d.-]+ [\d.-]+ [\d.-]+ ([\d.-]+) ([\d.-]+)$/);
-    expect(m).not.toBeNull();
-    expect(Number(m![1])).toBeCloseTo(r.points.target.x, 2);
-    expect(Number(m![3])).toBeCloseTo(r.points.breakpoint!.x, 2);
-    expect(Number(m![5])).toBeCloseTo(r.points.final.x, 2);
+    const pts = sampleBoards(r.d, "right");
+    const nearest = (feet: number) =>
+      pts.reduce((a, p) => (Math.abs(p.feet - feet) < Math.abs(a.feet - feet) ? p : a), pts[0]);
+    expect(pts[0].feet).toBeCloseTo(0, 0); // starts at the laydown (foul line)
+    expect(pts[0].board).toBeCloseTo(18, 0);
+    expect(nearest(arrowFeet(10)).board).toBeCloseTo(10, 0); // through the target on the arrows
+    expect(nearest(42).board).toBeCloseTo(6, 0);             // through the breakpoint at its distance
+    expect(nearest(60).board).toBeCloseTo(POCKET_BOARD, 0);  // ends at the final (pocket default)
   });
 
   it("the breakpoint is the strict rightmost point of the path (RH)", () => {
@@ -160,5 +170,36 @@ describe("buildLinePath", () => {
     const rRight = buildLinePath({ laydown: 18, target: 10 }, "right")!;
     const rLeft = buildLinePath({ laydown: 18, target: 10 }, "left")!;
     expect(rRight.points.final.x).toBeCloseTo(PLANE_W - rLeft.points.final.x, 4);
+  });
+});
+
+// ADR-015 — the ball rides the focal line on the skid, peels off to the hook side
+// only, and never crosses back. These hold for the *drawn curve*, not just the
+// pegs: hook side = higher board (RH) / lower board (LH).
+describe("buildLinePath — focal & monotonicity invariants (ADR-015)", () => {
+  const TOL = 0.1; // boards
+
+  it("RH: the drawn curve never crosses to the anti-hook side of the focal line", () => {
+    // Legal knots (breakpoint 11 is hook-side of focal@42 ≈ 10.25) but the old two-
+    // cubic construction bowed ~1.2 boards right of the focal between target and apex.
+    const line: LineSpec = { laydown: 26, target: 20, breakpoint: 11, breakpoint_distance: 42, final_board: 17.5 };
+    for (const { board, feet } of sampleBoards(buildLinePath(line, "right")!.d, "right")) {
+      expect(board).toBeGreaterThanOrEqual(focalBoardAt(line, feet) - TOL);
+    }
+  });
+
+  it("LH mirror: the drawn curve never crosses to the anti-hook side of the focal line", () => {
+    const line: LineSpec = { laydown: 14, target: 20, breakpoint: 29, breakpoint_distance: 42, final_board: 22.5 };
+    for (const { board, feet } of sampleBoards(buildLinePath(line, "left")!.d, "left")) {
+      expect(board).toBeLessThanOrEqual(focalBoardAt(line, feet) + TOL);
+    }
+  });
+
+  it("RH: board is unimodal — falls to the apex then rises, never reversing back", () => {
+    const line: LineSpec = { laydown: 22, target: 14, breakpoint: 7, breakpoint_distance: 44, final_board: 17.5 };
+    const pts = sampleBoards(buildLinePath(line, "right")!.d, "right");
+    const apex = pts.reduce((m, p, i) => (p.board < pts[m].board ? i : m), 0);
+    for (let i = 1; i <= apex; i++) expect(pts[i].board).toBeLessThanOrEqual(pts[i - 1].board + TOL);
+    for (let i = apex + 1; i < pts.length; i++) expect(pts[i].board).toBeGreaterThanOrEqual(pts[i - 1].board - TOL);
   });
 });
