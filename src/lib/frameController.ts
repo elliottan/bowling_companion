@@ -73,6 +73,22 @@ export function submitShot(
   return completeFrame(state, updated, ALL_PINS);
 }
 
+/**
+ * The frame that the current live (un-submitted) shot would produce, with its
+ * pins + metadata applied — for persisting in-progress work without advancing.
+ * Returns null when the game is complete.
+ */
+export function buildLiveFrame(state: FrameControllerState): Frame | null {
+  if (state.isComplete) return null;
+  const draft = findFrame(state) ?? createDraftFrame(state.currentFrameNumber);
+  return applyShotToFrame(
+    draft,
+    state.currentShot,
+    normalizePins(state.standingPins),
+    state.currentShotMeta
+  );
+}
+
 export function resetCurrentShotPins(state: FrameControllerState): FrameControllerState {
   if (state.isComplete) return state;
   return { ...state, standingPins: getDefaultPinsForShot(state) };

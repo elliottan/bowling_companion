@@ -38,6 +38,27 @@ export function isSplit(standing: PinNumber[]): boolean {
   return false;
 }
 
+/** Lateral board span of one pin spacing (~11.25). Gaps at/under this mean the
+ *  standing pins are adjacent; a real (wide) split has a larger gap. */
+const ONE_PIN_GAP = 12;
+
+/**
+ * A "baby split": a split (red circle) that is makeable because all standing
+ * pins are laterally adjacent — no consecutive board gap exceeds one pin width.
+ * Examples (baby): 2-7, 3-10, 4-5, 5-6, 7-8, 9-10, 3-9-10.
+ * Examples (NOT baby / real splits): 4-6, 5-7, 7-9, 7-10, 8-10, big-four.
+ */
+export function isBabySplit(standing: PinNumber[]): boolean {
+  if (!isSplit(standing)) return false;
+  const boards = standing
+    .map((p) => PIN_POSITIONS[p].board)
+    .sort((a, b) => a - b);
+  for (let i = 1; i < boards.length; i++) {
+    if (boards[i] - boards[i - 1] > ONE_PIN_GAP) return false;
+  }
+  return true;
+}
+
 export function uniquePins(pins: PinNumber[]): PinNumber[] {
   return [...new Set(pins)].sort((a, b) => a - b);
 }

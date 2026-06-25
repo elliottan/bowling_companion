@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isSplit } from "./pins";
+import { isBabySplit, isSplit } from "./pins";
 
 describe("isSplit", () => {
   it("returns false for empty leave", () => {
@@ -77,5 +77,31 @@ describe("isSplit", () => {
 
   it("detects 6-7-10 split", () => {
     expect(isSplit([6, 7, 10])).toBe(true);
+  });
+});
+
+describe("isBabySplit", () => {
+  it("returns true for adjacent-pin splits (baby splits)", () => {
+    expect(isBabySplit([7, 8])).toBe(true);
+    expect(isBabySplit([3, 10])).toBe(true);
+    expect(isBabySplit([2, 7])).toBe(true);
+    expect(isBabySplit([5, 6])).toBe(true);
+    expect(isBabySplit([9, 10])).toBe(true);
+    expect(isBabySplit([3, 9, 10])).toBe(true);
+  });
+
+  it("returns false for real (wide) splits", () => {
+    expect(isBabySplit([4, 6])).toBe(false);
+    expect(isBabySplit([5, 7])).toBe(false);
+    expect(isBabySplit([7, 9])).toBe(false);
+    expect(isBabySplit([7, 10])).toBe(false);
+    expect(isBabySplit([8, 10])).toBe(false);
+    expect(isBabySplit([4, 6, 7, 10])).toBe(false);
+  });
+
+  it("returns false when not a split at all", () => {
+    expect(isBabySplit([2, 8])).toBe(false);  // sleeper
+    expect(isBabySplit([10])).toBe(false);    // single pin
+    expect(isBabySplit([1, 5])).toBe(false);  // has headpin
   });
 });

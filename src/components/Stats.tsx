@@ -1,5 +1,5 @@
 import { BarChart3 } from "lucide-react";
-import { isSplit } from "../lib/pins";
+import { isBabySplit, isSplit } from "../lib/pins";
 import type { BowlingStats, LeaveStats } from "../lib/stats";
 import type { PinNumber } from "../types/bowling";
 
@@ -39,13 +39,13 @@ export function Stats({ stats, isLoading = false, leaves }: StatsProps) {
 
       <div className="space-y-3 rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
         <Bar label="Strikes" pct={stats.strikePct} />
-        <Bar label="Spares" pct={stats.sparePct} />
+        <Bar label="Spares" pct={stats.sparePct} subtitle="non-splits" />
       </div>
 
       {(() => {
         const all = leaves ?? [];
-        const splits = all.filter((l) => isSplit(l.pins));
-        const spares = all.filter((l) => !isSplit(l.pins));
+        const splits = all.filter((l) => isSplit(l.pins) && !isBabySplit(l.pins));
+        const spares = all.filter((l) => !isSplit(l.pins) || isBabySplit(l.pins));
         if (all.length === 0) return null;
         return (
           <>
@@ -143,7 +143,7 @@ function Tile({ label, value }: { label: string; value: string }) {
   );
 }
 
-function Bar({ label, pct }: { label: string; pct: number | null }) {
+function Bar({ label, pct, subtitle }: { label: string; pct: number | null; subtitle?: string }) {
   const value = pct ?? 0;
   return (
     <div>
@@ -151,6 +151,7 @@ function Bar({ label, pct }: { label: string; pct: number | null }) {
         <span className="font-medium text-slate-700">{label}</span>
         <span className="font-semibold text-slate-900">{pct === null ? "—" : `${pct}%`}</span>
       </div>
+      {subtitle && <p className="mb-1 text-[10px] text-slate-400">{subtitle}</p>}
       <div className="h-2 overflow-hidden rounded-full bg-slate-100">
         <div className="h-full rounded-full bg-felt-700" style={{ width: `${value}%` }} />
       </div>

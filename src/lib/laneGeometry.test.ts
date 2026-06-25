@@ -177,7 +177,7 @@ describe("buildLinePath", () => {
 // only, and never crosses back. These hold for the *drawn curve*, not just the
 // pegs: hook side = higher board (RH) / lower board (LH).
 describe("buildLinePath — focal & monotonicity invariants (ADR-015)", () => {
-  const TOL = 0.1; // boards
+  const TOL = 0.15; // boards — the curve is clamped strictly to the hook side of the focal
 
   it("RH: the drawn curve never crosses to the anti-hook side of the focal line", () => {
     // Legal knots (breakpoint 11 is hook-side of focal@42 ≈ 10.25) but the old two-

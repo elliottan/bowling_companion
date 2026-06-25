@@ -6,7 +6,8 @@ bottom. Never edit an accepted ADR — supersede it with a new one and link.
 **Index:** ADR-001 standing-pins storage · ADR-002 snake_case wire format ·
 ADR-003 backup merge-by-content · ADR-004 mobile-first 390×844 ·
 ADR-005 stats definitions · ADR-006 inverted pin input ·
-ADR-007 catalog data source · ADR-008 multi-weight + USBC discovery
+ADR-007 catalog data source · ADR-008 multi-weight + USBC discovery ·
+ADR-016 baby splits + split-excluded spare rate · ADR-017 save-as-you-go + carry rules
 
 ---
 
@@ -490,19 +491,114 @@ sample, so the breakpoint marker sits on the line).
 
 `solveLine` becomes a **single-pass dependent re-clamp**: the laydown and target
 are the user's aim and are never moved; the breakpoint and final are dependent and
-re-clamp to the nearest drawable spot (breakpoint hook-side of the focal and, on an
-out-and-back skid, no further hook-side than the aim; final hook-side of both the
-breakpoint and the focal at the pins). No cascade, no recency, no `held` — nothing
-jumps to the gutter to "make room"; a dependent peg just slides onto its boundary.
-The laydown may still loft off-lane.
+re-clamp to the nearest drawable spot. The breakpoint stays hook-side of the focal
+and, on an out-and-back skid, must carry far enough *past* the aim — at least
+`minDrift`, the Fritsch–Carlson monotonicity threshold — that the hook can leave the
+arrows tangent to the (steeper-the-wider-the-aim) skid without a corner; the final
+stays hook-side of both the breakpoint and the focal at the pins. So a wide/steep
+aim **slides the breakpoint gutter-ward** (you can't drag the apex closer to the aim
+than a smooth hook allows). No cascade, no recency, no `held`; the laydown may still
+loft off-lane.
 
 **Consequences.**
-- No Dexie/backup change — `LineSpec` is unchanged. Dropped `CURVE_LEAD`,
-  `minBreakpointDriftBoards`, the recency/`held` machinery, and the 8-pass loop.
-- A hard cross-lane aim (the focal exits the lane on the hook side) still pins the
-  breakpoint/final to the gutter — now a monotone, smooth sweep rather than a
-  reversal, though the breakpoint marker can read as a non-apex in that degenerate
-  case.
+- No Dexie/backup change — `LineSpec` is unchanged. Dropped `CURVE_LEAD`, the old
+  `minBreakpointDriftBoards` helper (the drift is now the FC threshold computed
+  inline), the recency/`held` machinery, and the 8-pass loop.
+- The breakpoint board you set is advisory on steep aims: it slides gutter-ward to
+  the furthest apex a smooth, strictly-left hook can reach. A very wide cross-aim
+  pins it to the gutter; the transition there is tight (physically a near-gutter
+  launch) but no longer a hard corner.
 - Invariants are regression-guarded by sampling the drawn curve in
   `laneGeometry.test.ts` / `solveLine.test.ts`. Still an illustration, not a
   ball-motion sim.
+
+---
+
+## ADR-016 — Baby splits + split-excluded spare rate
+
+**Status:** accepted (2026-06).
+
+**Context.** `isSplit` (the USBC geometric definition: head pin down, gap between
+standing pins) was used for two distinct purposes: (a) the red circle on the
+scorecard, and (b) deciding which leaves are "spare opportunities." These purposes
+should be separated because a "baby split" — e.g. 2-7, 3-10, 5-6, 9-10 — is
+still a drawable spare shot, while a wide split — e.g. 4-6, 7-9, 7-10, 8-10 —
+is genuinely not. Grouping them together inflated the spare denominator with
+frames where a spare was never realistic.
+
+**Decision.**
+
+- **`isSplit` is unchanged** — it remains the sole driver of the red circle in
+  scoring. No UI or data change there.
+- **`isBabySplit(standing)`** — new function in `src/lib/pins.ts`. A split is
+  "baby" when all consecutive lateral board gaps (sorted by board position)
+  are ≤ one pin-width (~12 boards). This covers the classic adjacent-pair leaves
+  (5-6, 9-10, 7-8) and cross-row cases where no wide gap exists (3-10, 2-7).
+  Examples classified as baby: 2-7, 3-10, 4-5, 5-6, 7-8, 9-10, 3-9-10.
+  Examples classified as real (not baby): 4-6, 5-7, 7-9, 7-10, 8-10, big-four.
+- **Spare rate** (`sparePct` in `calculateStats`) excludes real splits (i.e.
+  `isSplit && !isBabySplit`) from **both** numerator and denominator. Baby
+  splits and all other open leaves remain in. Applies to frames 1–9 and the
+  10th frame's ball-2 spare opportunity.
+- **Leave display** in `Stats.tsx`: baby splits are grouped in the "Spare rates"
+  section (white card); the "Splits" section shows only real splits. The Spares
+  bar adds a `subtitle="non-splits"` label beneath its row.
+
+**Consequences.**
+- The spare rate now reflects real picking ability, excluding frames where
+  a spare was geometrically implausible.
+- `isSplit` has no callers that need updating (scoring engine, scorecard UI
+  all use it correctly for the red circle).
+- The ONE_PIN_GAP constant (12 boards) is a pragmatic threshold; the physical
+  pin spacing is ~11.25 boards. A gap just over that means two non-adjacent rows
+  with nothing between them — a real split.
+
+---
+
+## ADR-017 — Save-as-you-go frame persistence + context-carry rules
+
+**Status:** accepted (2026-06).
+
+**Context.** The original scoring flow persisted a frame only when it was fully
+complete (strike or both balls thrown). Mid-frame progress, the current live shot
+draft (ball/line/notes before the pins are recorded), and in-game context (carry
+line + ball to the next same-lane frame) were all lost when the user navigated
+away or switched games. Additionally, the ball auto-select always defaulted to
+the first ball in the list — ignoring recorded context.
+
+**Decision.**
+
+- **Persist every submitted shot immediately** (Phase 4a). `recordShot` now
+  persists the current frame even when `submitShot` returns `savedFrame: null`
+  (mid-frame, shot 1 of an open frame). It finds the in-progress frame in the
+  new state's `frames` array by frame number and calls `onFrameComplete`.
+- **Flush the live (unsubmitted) shot on navigate/unmount/page-hide** (Phase 4b).
+  A `flushRef` captures the current live context every render. On game-key change
+  (game switch) the effect cleanup fires the flush; `pagehide` and
+  `visibilitychange` (tab background) fire it directly. The flush is skipped when:
+  (a) a recorded shot is selected (edit mode), (b) the game is already complete,
+  or (c) the pin deck is a fresh rack with no user interaction
+  (`availablePins.length === 10 && liveSymbol === undefined`) — this avoids
+  mistaking an un-bowled frame for a strike.
+- **Ball/line/notes carry rules** (Phase 6) — in priority order:
+  1. Shot 1 of any frame: carry from the most-recent earlier same-lane frame
+     **in the current game** (`previousSameLaneFrame`), else from the most-recent
+     same-lane frame in **previous games of the session** on the same physical
+     lane (`previousGameSameLaneFrame`), else leave blank/unselected.
+  2. True spare attempt (availablePins.length < 10): ball = spare ball if one is
+     configured, else carry shot-1's ball. Line from session/global spare line.
+  3. Fresh-rack bonus ball (10th after strike/spare): carry line + ball from the
+     immediately preceding shot in the same frame.
+  4. No same-lane match (new game, different lanes) → ball starts unselected.
+     The hardcoded "first ball in list" auto-pick is removed.
+
+**Consequences.**
+- Data loss on tab-close or game-switch is eliminated for any shot that has had
+  pin interaction.
+- `buildLiveFrame` (new pure export in `frameController.ts`) applies the current
+  live shot to produce a Frame without advancing state — reused by the flush.
+- `previousGameSameLaneFrame` (new export in `lanes.ts`) looks backward through
+  `previousGames` (oldest→newest) for the latest frame on the same physical lane.
+- `ActiveGameScorer` gains a `previousGames` prop (default `[]`);
+  `ActiveSessionView` populates it with all earlier games in the session.
+

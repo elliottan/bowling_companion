@@ -1,4 +1,5 @@
 import { isSpare, isStrike } from "./scoring";
+import { isBabySplit, isSplit } from "./pins";
 import { laneForFrame } from "./lanes";
 import type { Frame, Game, PinNumber, SessionSummary } from "../types/bowling";
 
@@ -111,6 +112,11 @@ interface FrameTally {
   spares: number;
 }
 
+/** A frame left with a real (non-baby) split is not a spare opportunity. */
+function isRealSplit(standing: PinNumber[]): boolean {
+  return isSplit(standing) && !isBabySplit(standing);
+}
+
 function tallyFrame(frame: Frame): FrameTally {
   if (frame.frame_number === 10) return tallyTenthFrame(frame);
 
@@ -118,7 +124,7 @@ function tallyFrame(frame: Frame): FrameTally {
   const strike = isStrike(frame);
   const t: FrameTally = { strikeOpps: 1, strikes: strike ? 1 : 0, spareOpps: 0, spares: 0 };
 
-  if (!strike && frame.shots[1]) {
+  if (!strike && frame.shots[1] && !isRealSplit(frame.shots[0].pins_standing)) {
     t.spareOpps = 1;
     if (isSpare(frame)) t.spares = 1;
   }
@@ -142,8 +148,7 @@ function tallyTenthFrame(frame: Frame): FrameTally {
     // Fresh rack on ball 2 -> another strike opportunity.
     t.strikeOpps += 1;
     if (clears(shot2Standing)) t.strikes += 1;
-  } else {
-    // Ball 2 completes a spare opportunity.
+  } else if (!isRealSplit(shot1Standing)) {
     t.spareOpps += 1;
     if (clears2(shot1Standing, shot2Standing)) t.spares += 1;
   }
@@ -232,7 +237,19 @@ export function calculateCommonLeaves(
       ...entry,
       conversionPct: entry.attempts > 0 ? Math.round((entry.conversions / entry.attempts) * 100) : null
     }))
-    .sort((a, b) => b.attempts - a.attempts || a.pins.join("-").localeCompare(b.pins.join("-")));
+    .sort(
+      (a, b) =>
+        b.attempts - a.attempts ||
+        a.pins.length - b.pins.length ||
+        comparePins(a.pins, b.pins)
+    );
+}
+
+/** Element-wise numeric compare of two ascending pin lists. */
+function comparePins(a: PinNumber[], b: PinNumber[]): number {
+  const n = Math.min(a.length, b.length);
+  for (let i = 0; i < n; i++) if (a[i] !== b[i]) return a[i] - b[i];
+  return a.length - b.length;
 }
 
 // ---------------------------------------------------------------------------

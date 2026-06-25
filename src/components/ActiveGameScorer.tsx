@@ -2,6 +2,7 @@ import { Eye, Plus, SlidersHorizontal, X } from "lucide-react";
 import type { PointerEvent as ReactPointerEvent } from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
+  buildLiveFrame,
   createInitialFrameControllerState,
   editFrameShotMeta,
   editFrameShotPins,
@@ -11,7 +12,7 @@ import {
 } from "../lib/frameController";
 import { calculateGameScore, isSpare } from "../lib/scoring";
 import { useHandedness } from "../lib/handednessContext";
-import { laneForFrame, previousSameLaneFrame } from "../lib/lanes";
+import { laneForFrame, previousGameSameLaneFrame, previousSameLaneFrame } from "../lib/lanes";
 import { getBalls, getSpareLineByPins } from "../services/ballRepository";
 import type { Ball, Frame, Game, LineSpec, PinNumber, ShotMetadata } from "../types/bowling";
 import { LaneVisualizer } from "./LaneVisualizer";
@@ -346,6 +347,12 @@ interface ActiveGameScorerProps {
   /** Recorded frames from OTHER games in the same session, oldest first. Used to
    *  reuse a per-session intended spare line for an identical leave. */
   sessionFrames?: Frame[];
+  /** Earlier games in the session (oldest first), with lane config + frames.
+   *  Used to carry line/ball/notes across games on the same physical lane. */
+  previousGames?: Array<{
+    game: Pick<Game, "lanes" | "start_lane" | "lane_number">;
+    frames: Frame[];
+  }>;
   mode?: ScorerMode;
   game?: Pick<Game, "lanes" | "start_lane" | "lane_number">;
   onFrameComplete?: (frame: Frame) => Promise<void> | void;
@@ -390,6 +397,7 @@ export function ActiveGameScorer({
   gameKey = "local",
   initialFrames = [],
   sessionFrames = [],
+  previousGames = [],
   mode = "standalone",
   game,
   onFrameComplete,
@@ -448,18 +456,6 @@ export function ActiveGameScorer({
     getBalls().then(setBalls).catch(() => {});
   }, []);
 
-  // Auto-pick a ball for the live shot. The spare ball is used only on a true
-  // spare attempt (a partial leave); a fresh rack — including a 10th-frame bonus
-  // ball after a strike/spare — is a first ball and uses the normal ball.
-  useEffect(() => {
-    if (balls.length === 0) return;
-    const isSpareShot = gameState.currentShot > 1 && gameState.availablePins.length < 10;
-    const spareBall = balls.find((b) => b.is_spare_ball);
-    const strikeBall = balls.find((b) => !b.is_spare_ball) ?? balls[0];
-    const auto = isSpareShot && spareBall ? spareBall : strikeBall;
-    setSelectedBallId(auto?.id);
-  }, [gameState.currentShot, gameState.availablePins, balls]);
-
   // Push the live draft into the controller's currentShotMeta.
   useEffect(() => {
     const meta: ShotMetadata = {
@@ -481,9 +477,8 @@ export function ActiveGameScorer({
     }
   }, [gameState.isComplete, gameState.frames, selectedShot]);
 
-  // Per-shot defaults (live entry only): notes + actual always blank; intended is
-  // carried from the previous same-lane frame on a first ball, prefilled from a
-  // saved Spare Line on a true second ball, and blank on a fresh-rack bonus ball.
+  // Per-shot defaults (live entry only): notes + actual always blank; intended and
+  // ball are carried by context. See ADR-017 for the full carry-rule priority.
   useEffect(() => {
     if (selectedShot !== null || gameState.isComplete) return;
     const key = `${gameState.currentFrameNumber}-${gameState.currentShot}`;
@@ -493,22 +488,33 @@ export function ActiveGameScorer({
     setShotNotes("");
     setActualLine(undefined);
 
+    const spareBall = balls.find((b) => b.is_spare_ball);
+    const currentFrame = gameState.frames.find(
+      (f) => f.frame_number === gameState.currentFrameNumber
+    );
+
     if (gameState.currentShot === 1) {
-      // First ball: carry intended line, selected ball, and notes from the
-      // previous same-lane frame. Actual is never carried (kept blank).
-      const prev = previousSameLaneFrame(game, gameState.currentFrameNumber, gameState.frames);
+      // First ball: carry line + ball + notes from the previous same-lane
+      // frame in THIS game, else from the previous game on the same lane,
+      // else leave everything blank/unselected.
+      const prev =
+        previousSameLaneFrame(game, gameState.currentFrameNumber, gameState.frames) ??
+        previousGameSameLaneFrame(game, gameState.currentFrameNumber, previousGames);
       const prevShot = prev?.shots[0];
       setIntendedLine(prevShot?.intended);
-      if (prevShot) {
-        setShotNotes(prevShot.notes ?? "");
-        if (prevShot.ball_id != null) setSelectedBallId(prevShot.ball_id);
-      }
+      setShotNotes(prevShot?.notes ?? "");
+      setSelectedBallId(prevShot?.ball_id);
     } else if (gameState.availablePins.length < 10) {
-      // True second ball (spare attempt). Prefer the intended line from an
-      // identical leave already shot this session (per-session conditions),
-      // else fall back to the saved global Spare Line.
+      // True second ball (spare attempt): ball = spare ball if configured,
+      // else carry shot-1's ball. Line from session/saved spare line.
+      const shotOneBall = currentFrame?.shots[0]?.ball_id;
+      setSelectedBallId(spareBall?.id ?? shotOneBall);
+
       const leave = gameState.availablePins;
-      const sessionLine = sessionSpareIntended([...sessionFrames, ...gameState.frames], leave);
+      const sessionLine = sessionSpareIntended(
+        [...sessionFrames, ...gameState.frames],
+        leave
+      );
       if (sessionLine) {
         setIntendedLine({ ...sessionLine });
         return;
@@ -517,8 +523,6 @@ export function ActiveGameScorer({
       getSpareLineByPins(leave)
         .then((sl) => {
           if (lastDefaultedShot.current !== key) return;
-          // Spare defaults populate stance + target only; breakpoint stays
-          // blank (usable for a hook spare the user configures per shot).
           const line = sl?.line
             ? {
                 ...(sl.line.stance != null && { stance: sl.line.stance }),
@@ -529,11 +533,11 @@ export function ActiveGameScorer({
         })
         .catch(() => {});
     } else {
-      // Fresh-rack bonus ball (10th frame after a strike/spare): treat as a
-      // first ball — carry the intended line forward from the shot just thrown.
-      const frame = gameState.frames.find((f) => f.frame_number === gameState.currentFrameNumber);
-      const prevShot = frame?.shots[frame.shots.length - 1];
+      // Fresh-rack bonus ball (10th after strike/spare): carry line + ball
+      // from the shot just thrown in this frame.
+      const prevShot = currentFrame?.shots[currentFrame.shots.length - 1];
       setIntendedLine(prevShot?.intended);
+      setSelectedBallId(prevShot?.ball_id);
     }
   }, [
     gameState.currentFrameNumber,
@@ -543,6 +547,8 @@ export function ActiveGameScorer({
     gameState.frames,
     selectedShot,
     sessionFrames,
+    previousGames,
+    balls,
     game
   ]);
 
@@ -599,12 +605,17 @@ export function ActiveGameScorer({
 
   async function recordShot(standingOverride?: PinNumber[]) {
     const standing = standingOverride ?? gameState.standingPins;
+    const submittedFrameNumber = gameState.currentFrameNumber;
     const submission = submitShot(gameState, standing);
     setGameState(submission.state);
-    if (!submission.savedFrame) return;
-    void offerSpareLine(submission.savedFrame);
+    const frameToPersist =
+      submission.savedFrame ??
+      submission.state.frames.find((f) => f.frame_number === submittedFrameNumber) ??
+      null;
+    if (submission.savedFrame) void offerSpareLine(submission.savedFrame);
+    if (!frameToPersist) return;
     try {
-      await onFrameComplete?.(submission.savedFrame);
+      await onFrameComplete?.(frameToPersist);
       if (submission.state.isComplete) await onGameComplete?.(submission.state.frames);
       setErrorMessage("");
     } catch (error) {
@@ -649,6 +660,46 @@ export function ActiveGameScorer({
     if (fresh) return knocked === 0 ? "-" : String(knocked);
     return knocked === avail.length ? "/" : knocked === 0 ? "-" : String(knocked);
   })();
+
+  // Flush the live (un-submitted) shot when the game changes or the component
+  // unmounts — and on page-hide / tab background. The ref is refreshed in a
+  // post-commit effect (not during render) so the gameKey cleanup below — which
+  // runs BEFORE the next render's effects — reads the OUTGOING game's state
+  // paired with its matching onFrameComplete. Assigning during render would pair
+  // the outgoing game's shot with the incoming game's handler (writes to the
+  // wrong game).
+  const flushRef = useRef<() => void>(() => {});
+  useEffect(() => {
+    flushRef.current = () => {
+      if (selectedShot !== null || gameState.isComplete) return;
+      // Skip a fresh rack with no interaction (ambiguous: strike vs un-bowled).
+      if (gameState.availablePins.length === 10 && liveSymbol === undefined) return;
+      const hasInput =
+        liveSymbol !== undefined ||
+        selectedBallId != null ||
+        intendedLine != null ||
+        actualLine != null ||
+        shotNotes.trim() !== "";
+      if (!hasInput) return;
+      const frame = buildLiveFrame(gameState);
+      if (frame) void onFrameComplete?.(frame);
+    };
+  });
+
+  useEffect(() => {
+    return () => { flushRef.current(); };
+  }, [gameKey]);
+
+  useEffect(() => {
+    const onHide = () => flushRef.current();
+    window.addEventListener("pagehide", onHide);
+    const onVis = () => { if (document.hidden) flushRef.current(); };
+    document.addEventListener("visibilitychange", onVis);
+    return () => {
+      window.removeEventListener("pagehide", onHide);
+      document.removeEventListener("visibilitychange", onVis);
+    };
+  }, []);
 
   // Once the live shot has a value, fold it into the scoring frames so a prior
   // pending strike/spare resolves and shows its total — even though the current

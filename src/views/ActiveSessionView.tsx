@@ -359,6 +359,12 @@ export function ActiveSessionView({
         sessionFrames={games
           .filter((g) => g.id !== activeGame.id)
           .flatMap((g) => (g as Game & { frames: Frame[] }).frames)}
+        previousGames={games
+          .filter((g) => g.game_number < activeGame.game_number)
+          .map((g) => ({
+            game: g,
+            frames: (g as Game & { frames: Frame[] }).frames
+          }))}
         mode="session"
         game={activeGame}
         onFrameComplete={handleFrameComplete}

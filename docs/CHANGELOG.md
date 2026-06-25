@@ -2,6 +2,18 @@
 
 User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachangelog.com).
 
+## [Unreleased] — Active-scorer fixes (2026-06-25)
+
+### Fixed
+
+- **10th-frame shot-3 spare bug (#4).** After a spare on shot 2, shot 3 is a fresh rack; it now shows a pin count or `X`, never an erroneous `/` symbol.
+- **Leave tie-break sort (#5).** When two leaves have equal attempt counts, they now sort by fewer standing pins first, then lower pin number — producing a consistent, readable order.
+- **Baby splits reclassified as spare opportunities (#6, ADR-016).** A new `isBabySplit` function identifies splits whose standing pins are all laterally adjacent (e.g. 3-10, 9-10, 5-6). These are counted as spare opportunities in the spare rate; wide splits (e.g. 7-10, 4-6) are excluded from both numerator and denominator. The Spares bar now shows a `non-splits` subtitle. Baby splits appear in the Spare rates leave table; only wide splits appear under Splits.
+- **Save-as-you-go — no data loss on game-switch (#1, ADR-017).** Every submitted shot is persisted immediately (including mid-frame after shot 1 of an open frame). The live draft (ball/line/notes entered before recording pins) is flushed to the DB on game-switch, unmount, tab-background, and page-hide — as long as it has pin interaction.
+- **Ball auto-pick removed; context carry (#2, #3, ADR-017).** The hardcoded "first ball in list" default is gone. Shot 1 of any frame carries ball + line + notes from the previous same-lane frame in the current game, then from the most-recent same-lane frame in earlier games of the session. Spare attempts default to the spare ball (if configured) else the shot-1 ball. Fresh-rack bonus balls (10th after strike/spare) carry from the shot just thrown.
+
+---
+
 ## [Unreleased] — Catalog v3: colorways + PDF seeding (2026-06)
 
 ### Added
@@ -15,9 +27,10 @@ User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachan
   laydown→target aim extended down the lane) marks the boundary the ball can never
   cross: it rides the line on the skid and only ever peels to the hook side, and
   once it starts hooking it never swings back. Your laydown and target stay exactly
-  where you put them; the breakpoint and final slide just enough to keep the shot
-  drawable, never snapping to the gutter. The laydown can loft off the edge of the
-  lane. In the bowler view the lane is centred and the inputs drop to a bottom bar;
+  where you put them; the breakpoint and final are dependent — on a wide or steep
+  aim the breakpoint slides gutter-ward to the furthest apex a smooth, on-side hook
+  can actually reach. The laydown can loft off the edge of the lane. In the bowler
+  view the lane is centred and the inputs drop to a bottom bar;
   top-down keeps them on the side. Reachable from score entry, the spare-line form,
   and Settings. Adds `breakpoint_distance` and `final_board` to the line model (the
   v2 `hook_start_distance` peg was removed).

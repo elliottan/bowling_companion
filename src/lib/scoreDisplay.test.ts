@@ -29,6 +29,33 @@ describe("score display helpers", () => {
   it("renders tenth-frame strike chain", () => {
     expect(getFrameShotSymbols(frame(10, [], [], []))).toEqual(["X", "X", "X"]);
   });
+
+  it("tenth-frame shot 3 on fresh rack after spare is NOT a spare symbol", () => {
+    // 9-leave, spare, then 9 on a fresh rack -> ["9", "/", "9"], not ["9", "/", "/"]
+    // shot1 knocked 9 (pin 10 standing); shot2 spared (cleared, pins_standing=[]);
+    // shot3 on fresh rack knocks 9 (pin 10 standing).
+    const f = frame(10, [10 as PinNumber], [], [10 as PinNumber]);
+    expect(getFrameShotSymbols(f)).toEqual(["9", "/", "9"]);
+  });
+
+  it("tenth-frame shot 3 on fresh rack after two strikes is NOT a spare symbol", () => {
+    // X, X, 9 -> ["X", "X", "9"]
+    const f = frame(10, [], [], [10 as PinNumber]);
+    expect(getFrameShotSymbols(f)).toEqual(["X", "X", "9"]);
+  });
+
+  it("tenth-frame shot 3 IS a spare when shot 2 left pins (X 9 /)", () => {
+    // Strike, 9-leave (shot2 leaves pin 10), then shot3 clears it
+    // shot2 pins_standing=[10] (not empty -> not a fresh rack for shot3), shot3 clears it
+    const f = frame(10, [], [10 as PinNumber], []);
+    expect(getFrameShotSymbols(f)).toEqual(["X", "9", "/"]);
+  });
+
+  it("tenth-frame shot 3 is a strike on fresh rack after spare", () => {
+    // 9-leave, spare, then strike on fresh rack -> ["9", "/", "X"]
+    const f = frame(10, [10 as PinNumber], [], []);
+    expect(getFrameShotSymbols(f)).toEqual(["9", "/", "X"]);
+  });
 });
 
 describe("getFrameShotCells (shot index mapping)", () => {

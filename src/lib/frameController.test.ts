@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   beginEdit,
   beginEditFromShot,
+  buildLiveFrame,
   completeEdit,
   createInitialFrameControllerState,
   editFrameShotMeta,
@@ -343,6 +344,53 @@ describe("fresh-rack pin defaults (10th frame)", () => {
     expect(afterSpare.state.currentShot).toBe(3);
     expect(afterSpare.state.availablePins).toEqual(ALL);
     expect(afterSpare.state.standingPins).toEqual([]);
+  });
+});
+
+describe("buildLiveFrame", () => {
+  it("returns a 1-shot frame with applied pins when on shot 1 with a partial leave", () => {
+    const state: FrameControllerState = {
+      ...createInitialFrameControllerState(),
+      currentFrameNumber: 3,
+      currentShot: 1,
+      availablePins: ALL,
+      standingPins: [7, 10] as PinNumber[],
+      currentShotMeta: { ball_id: 5 }
+    };
+    const result = buildLiveFrame(state);
+    expect(result).not.toBeNull();
+    expect(result!.frame_number).toBe(3);
+    expect(result!.shots).toHaveLength(1);
+    expect(result!.shots[0].pins_standing).toEqual([7, 10]);
+    expect(result!.shots[0].ball_id).toBe(5);
+    // Original state unchanged
+    expect(state.currentFrameNumber).toBe(3);
+    expect(state.frames).toHaveLength(0);
+  });
+
+  it("returns a 2-shot frame when on shot 2 with existing shot 1 in state", () => {
+    // Advance to shot 2 of frame 1 via submitShot, then check buildLiveFrame
+    const afterShot1 = submitShot(createInitialFrameControllerState(), [10 as PinNumber]);
+    // Now on shot 2 of frame 1
+    const state: FrameControllerState = {
+      ...afterShot1.state,
+      standingPins: [],
+      currentShotMeta: {}
+    };
+    const result = buildLiveFrame(state);
+    expect(result).not.toBeNull();
+    expect(result!.frame_number).toBe(1);
+    expect(result!.shots).toHaveLength(2);
+    expect(result!.shots[0].pins_standing).toEqual([10]);
+    expect(result!.shots[1].pins_standing).toEqual([]);
+  });
+
+  it("returns null when the game is complete", () => {
+    const state: FrameControllerState = {
+      ...createInitialFrameControllerState(),
+      isComplete: true
+    };
+    expect(buildLiveFrame(state)).toBeNull();
   });
 });
 

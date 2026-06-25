@@ -75,7 +75,7 @@ function getTenthFrameSymbols(frame: Frame): string[] {
   );
 
   symbols.push(
-    shotTwo !== 10 && shotTwo + shotThree === 10
+    frame.shots[1].pins_standing.length > 0 && shotTwo + shotThree === 10
       ? "/"
       : shotThree === 10
       ? "X"

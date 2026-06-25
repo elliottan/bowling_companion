@@ -56,6 +56,31 @@ export function previousSameLaneFrame(
   return pool.reduce((a, b) => (b.frame_number > a.frame_number ? b : a));
 }
 
+/**
+ * The most recent frame bowled on the same physical lane as `frameNumber`
+ * (of `currentGame`) across earlier games in the session. `previousGames` is
+ * ordered oldest→newest. Used to carry a line/ball/notes into a new game.
+ */
+export function previousGameSameLaneFrame(
+  currentGame: Pick<Game, "lanes" | "start_lane" | "lane_number"> | undefined,
+  frameNumber: number,
+  previousGames: Array<{
+    game: Pick<Game, "lanes" | "start_lane" | "lane_number">;
+    frames: Frame[];
+  }>
+): Frame | undefined {
+  const lane = currentGame ? laneForFrame(currentGame, frameNumber) : undefined;
+  if (lane === undefined) return undefined;
+  for (let gi = previousGames.length - 1; gi >= 0; gi--) {
+    const { game, frames } = previousGames[gi];
+    const sameLane = frames.filter((f) => laneForFrame(game, f.frame_number) === lane);
+    if (sameLane.length > 0) {
+      return sameLane.reduce((a, b) => (b.frame_number > a.frame_number ? b : a));
+    }
+  }
+  return undefined;
+}
+
 function normalizeLanes(game: Pick<Game, "lanes" | "start_lane" | "lane_number">): string[] {
   if (game.lanes && game.lanes.length > 0) {
     return game.lanes.map((l) => l.trim()).filter(Boolean);

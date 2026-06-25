@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { endLane, laneForFrame, nextGameStartLane, previousSameLaneFrame } from "./lanes";
+import { endLane, laneForFrame, nextGameStartLane, previousGameSameLaneFrame, previousSameLaneFrame } from "./lanes";
 import type { Frame } from "../types/bowling";
 
 // Frame whose first-shot intended line encodes the frame number, for assertions.
@@ -55,6 +55,61 @@ describe("nextGameStartLane (flip)", () => {
 
   it("single lane stays put", () => {
     expect(nextGameStartLane({ lanes: ["7"] })).toBe("7");
+  });
+});
+
+describe("previousGameSameLaneFrame", () => {
+  it("single-lane: finds the latest frame in the previous game on the same lane", () => {
+    const currentGame = { lanes: ["7"] };
+    const prev1 = frame(1);
+    const prev5 = frame(5);
+    const previousGames = [
+      { game: { lanes: ["7"] }, frames: [prev1, prev5] }
+    ];
+    const result = previousGameSameLaneFrame(currentGame, 1, previousGames);
+    expect(result?.frame_number).toBe(5); // latest in prev game
+  });
+
+  it("cross-lane: frame 1 of new game finds prev game frames on the same lane", () => {
+    // New game: lanes=[11,12], start=11. Frame 1 is on lane 11.
+    const currentGame = { lanes: ["11", "12"], start_lane: "11" };
+    // Prev game: lanes=[11,12], start=12 (flipped). Frame 1 is on lane 12, frame 2 on lane 11.
+    const prevGame = { lanes: ["11", "12"], start_lane: "12" };
+    const f1 = frame(1); // lane 12 in prevGame
+    const f2 = frame(2); // lane 11 in prevGame
+    const previousGames = [{ game: prevGame, frames: [f1, f2] }];
+    // Frame 1 of currentGame is on lane 11 -> should find f2 (lane 11 in prevGame)
+    const result = previousGameSameLaneFrame(currentGame, 1, previousGames);
+    expect(result?.frame_number).toBe(2);
+  });
+
+  it("returns undefined when no previous game is on the same lane", () => {
+    const currentGame = { lanes: ["5"] };
+    const previousGames = [
+      { game: { lanes: ["7"] }, frames: [frame(1), frame(2)] }
+    ];
+    expect(previousGameSameLaneFrame(currentGame, 1, previousGames)).toBeUndefined();
+  });
+
+  it("newest matching game wins over older ones", () => {
+    const currentGame = { lanes: ["9"] };
+    const olderGame = { lanes: ["9"] };
+    const newerGame = { lanes: ["9"] };
+    const previousGames = [
+      { game: olderGame, frames: [frame(3)] },
+      { game: newerGame, frames: [frame(7)] }
+    ];
+    // Should return frame 7 from newerGame (last in array = newest)
+    const result = previousGameSameLaneFrame(currentGame, 1, previousGames);
+    expect(result?.frame_number).toBe(7);
+  });
+
+  it("returns undefined when currentGame is undefined", () => {
+    expect(previousGameSameLaneFrame(undefined, 1, [{ game: { lanes: ["9"] }, frames: [frame(1)] }])).toBeUndefined();
+  });
+
+  it("returns undefined when previousGames is empty", () => {
+    expect(previousGameSameLaneFrame({ lanes: ["9"] }, 1, [])).toBeUndefined();
   });
 });
 

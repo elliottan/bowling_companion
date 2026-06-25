@@ -152,6 +152,24 @@ describe("calculateCommonLeaves", () => {
     expect(result[1].pins).toEqual([7]);
     expect(result[1].attempts).toBe(1);
   });
+
+  it("tie-breaks equal attempts by fewer pins, then lower pin number", () => {
+    // Three leaves each with 1 attempt: [3,10], [7], [10]
+    // Expected order: [7] (1 pin, lower) before [10] (1 pin, higher) before [3,10] (2 pins)
+    const f1 = frame(1, [3 as PinNumber, 10 as PinNumber], NONE);
+    const f2 = frame(2, [10 as PinNumber], NONE);
+    const f3 = frame(3, [7 as PinNumber], NONE);
+    const sessions: SessionSummary[] = [
+      session("Lanes", [game(undefined, [f1, f2, f3])])
+    ];
+    const result = calculateCommonLeaves(sessions);
+
+    expect(result).toHaveLength(3);
+    // All have 1 attempt; then fewer pins first; then lower pin first
+    expect(result[0].pins).toEqual([7]);   // 1-pin, pin 7 (lower)
+    expect(result[1].pins).toEqual([10]);  // 1-pin, pin 10 (higher)
+    expect(result[2].pins).toEqual([3, 10]); // 2-pins
+  });
 });
 
 describe("filterSessionsBy", () => {
@@ -230,6 +248,41 @@ describe("filterSessionsBy", () => {
     expect(filterSessionsBy(sessions, { laneNumber: "10" })).toHaveLength(1);
     expect(filterSessionsBy(sessions, { laneNumber: "9" })).toHaveLength(1);
     expect(filterSessionsBy(sessions, { laneNumber: "11" })).toHaveLength(0);
+  });
+});
+
+describe("spare rate: real-split exclusion", () => {
+  it("a real split is excluded from spare rate numerator AND denominator", () => {
+    // Frame 1: real split [4,6] — not converted (should be excluded entirely)
+    // Frame 2: normal leave [10] — not converted (spare opp, not made)
+    // Expected: sparePct = 0/1 = 0% (only frame 2 counts)
+    const f1 = frame(1, [4 as PinNumber, 6 as PinNumber], [4 as PinNumber, 6 as PinNumber]);
+    const f2 = frame(2, [10 as PinNumber], [10 as PinNumber]);
+    const sessions: SessionSummary[] = [session("Lanes", [game(undefined, [f1, f2])])];
+    const stats = calculateStats(sessions);
+    expect(stats.sparePct).toBe(0); // 0/1
+  });
+
+  it("a baby split IS counted as a spare opportunity", () => {
+    // Frame 1: baby split [3,10] — converted (spare opp, made)
+    // Frame 2: baby split [9,10] — not converted (spare opp, not made)
+    // Expected: sparePct = 1/2 = 50%
+    const f1 = frame(1, [3 as PinNumber, 10 as PinNumber], NONE);
+    const f2 = frame(2, [9 as PinNumber, 10 as PinNumber], [9 as PinNumber, 10 as PinNumber]);
+    const sessions: SessionSummary[] = [session("Lanes", [game(undefined, [f1, f2])])];
+    const stats = calculateStats(sessions);
+    expect(stats.sparePct).toBe(50); // 1/2
+  });
+
+  it("real split exclusion does not affect strike% count", () => {
+    // Frame 1: strike. Frame 2: real split [7,10] not converted.
+    // strikeOpps = 2, strikes = 1 → 50%
+    const f1 = frame(1, NONE);
+    const f2 = frame(2, [7 as PinNumber, 10 as PinNumber], [7 as PinNumber, 10 as PinNumber]);
+    const sessions: SessionSummary[] = [session("Lanes", [game(undefined, [f1, f2])])];
+    const stats = calculateStats(sessions);
+    expect(stats.strikePct).toBe(50);
+    expect(stats.sparePct).toBeNull(); // no spare opps (only split left, excluded)
   });
 });
 
