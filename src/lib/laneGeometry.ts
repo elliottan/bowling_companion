@@ -118,53 +118,49 @@ export function buildLinePath(line: LineSpec | undefined, hand: Handedness): Lin
   }
 
   const finalBoard = line.final_board ?? POCKET_BOARD;
-  const tgt = line.target; // captured (non-null) for use inside the hookBoard closure
+  const tgt = line.target; // captured (non-null) for the closures below
   const dT = arrowFeet(line.target);
   const bpd = clamp(line.breakpoint_distance ?? DEFAULT_BREAKPOINT_FEET, dT + 0.5, LANE_FEET - 0.5);
   const breakpoint = pt(boardToX(line.breakpoint, hand), feetToY(bpd));
 
-  // Board as a function of down-lane distance d. Straight skid on the focal line,
-  // then a monotone cubic-Hermite hook through the breakpoint apex (flat tangent
-  // → the apex is the furthest point) easing to ~straight at the final. The pieces
-  // are monotone by construction (no reversal) and clamped to the hook side of the
-  // focal line, so the drawn curve can never cross it (ADR-015).
+  // Board as a function of down-lane distance. The skid rides the focal aim
+  // straight to the arrows; the hook then *leaves the arrows tangent to the skid*
+  // (no corner), arcs through the breakpoint apex (flat tangent → the furthest
+  // point) and eases to ~straight at the pins — two monotone cubic-Hermite pieces.
+  // The whole curve is clamped to the hook side of the focal, so it can never cross
+  // to the gutter side of the aim. The solver carries the apex far enough past the
+  // aim that the tangent leave stays smooth (ADR-015).
+  const dir = hand === "right" ? 1 : -1;
+  const focalSlope = (tgt - foul) / dT; // boards per ft along the skid
   const D = [dT, bpd, LANE_FEET];
-  const V = [line.target, line.breakpoint, finalBoard];
+  const V = [tgt, line.breakpoint, finalBoard];
   const secA = (V[1] - V[0]) / (D[1] - D[0]);
   const secB = (V[2] - V[1]) / (D[2] - D[1]);
-  const focalSlope = (line.target - foul) / arrowFeet(line.target); // boards per ft along the skid
-  // Leave the arrows tangent to the skid, arrive ~straight at the pins; Fritsch–
-  // Carlson limiting (|slope| ≤ 3×secant, zero across an extremum) keeps each
-  // Hermite segment monotone. The apex tangent is flat.
+  // Fritsch–Carlson slope limiting (|slope| ≤ 3×secant, zero across an extremum)
+  // keeps each Hermite piece monotone; the apex tangent is flat.
   const fc = (m: number, s: number) => (s === 0 || m * s < 0 ? 0 : Math.sign(m) * Math.min(Math.abs(m), 3 * Math.abs(s)));
   const M = [fc(focalSlope, secA), 0, fc(secB, secB)];
-  const dir = hand === "right" ? 1 : -1;
-  // The focal line is an anti-hook wall only when the skid heads to the anti-hook
-  // side (the ball goes out, then hooks back). When the aim itself heads hook-side
-  // (across the lane), the focal runs off-lane and imposes no wall.
-  const wall = dir * (foul - line.target) > 0;
-  const hookBoard = (d: number): number => {
+  // The focal is an anti-hook wall only on an out-and-back skid (the ball goes out,
+  // then hooks back). When the aim already heads hook-side it runs off the gutter
+  // edge and imposes no wall.
+  const wall = dir * (foul - tgt) > 0;
+  const board = (d: number): number => {
+    if (d <= dT) return skidBoardAt(foul, tgt, d); // straight skid on the focal aim
     const i = d <= bpd ? 0 : 1;
-    const h = D[i + 1] - D[i];
-    const s = (d - D[i]) / h;
-    const H00 = 2 * s ** 3 - 3 * s ** 2 + 1, H10 = s ** 3 - 2 * s ** 2 + s;
-    const H01 = -2 * s ** 3 + 3 * s ** 2, H11 = s ** 3 - s ** 2;
-    const raw = V[i] * H00 + M[i] * h * H10 + V[i + 1] * H01 + M[i + 1] * h * H11;
-    if (!wall) return raw;
-    const focalB = skidBoardAt(foul, tgt, d);
-    return dir > 0 ? Math.max(raw, focalB) : Math.min(raw, focalB); // never anti-hook of the focal
+    const h = D[i + 1] - D[i], t = (d - D[i]) / h, t2 = t * t, t3 = t2 * t;
+    const hook = V[i] * (2 * t3 - 3 * t2 + 1) + M[i] * h * (t3 - 2 * t2 + t) + V[i + 1] * (-2 * t3 + 3 * t2) + M[i + 1] * h * (t3 - t2);
+    if (!wall) return hook;
+    const f = skidBoardAt(foul, tgt, d);
+    return dir > 0 ? Math.max(hook, f) : Math.min(hook, f); // never gutter-side of the aim
   };
 
-  // Sample the hook into a smooth polyline. Splitting at the apex makes bpd a
-  // sample, so the breakpoint marker sits exactly on the drawn line.
-  const SEG = 28;
-  let d = `M ${laydown.x} ${laydown.y} L ${target.x} ${target.y}`;
-  for (const [lo, hi] of [[dT, bpd], [bpd, LANE_FEET]]) {
-    for (let k = 1; k <= SEG; k++) {
-      const dist = lo + (hi - lo) * (k / SEG);
-      const p = pt(boardToX(hookBoard(dist), hand, true), feetToY(dist));
-      d += ` L ${p.x} ${p.y}`;
-    }
+  // Sample uniformly down-lane (uniform spacing avoids a spurious kink at a knot).
+  const N = 160;
+  let d = `M ${laydown.x} ${laydown.y}`;
+  for (let k = 1; k <= N; k++) {
+    const dist = (LANE_FEET * k) / N;
+    const p = pt(boardToX(board(dist), hand, true), feetToY(dist));
+    d += ` L ${p.x} ${p.y}`;
   }
 
   return { d, focal, points: { laydown, target, hookStart: null, breakpoint, final } };
@@ -208,10 +204,10 @@ export function solveLine(line: LineSpec, hand: Handedness): LineSpec {
 
   // Breakpoint: hook-side of the focal; on an out-and-back skid it must also carry
   // far enough *past* the aim that the hook can leave the arrows tangent to the
-  // (steeper-the-further-apart) skid without a kink. `minDrift` is the Fritsch–
-  // Carlson monotonicity threshold for that entry tangent; closer than it isn't
-  // smoothly drawable, so the breakpoint slides to the apex side (subsumes the old
-  // "no further hook-side than the aim" cap).
+  // (steeper-the-wider-the-aim) skid without a corner. `minDrift` is the Fritsch–
+  // Carlson monotonicity threshold for that tangent leave; closer than it can't be
+  // drawn smoothly, so the breakpoint slides gutter-ward (subsumes the old "no
+  // further hook-side than the aim" cap).
   let bp = hookSide(clLane(line.breakpoint), focal(bpd));
   if (dir * (ld - tg) > 0) {
     const minDrift = (Math.abs(tg - ld) * (bpd - arrowFeet(tg))) / (3 * arrowFeet(tg));
