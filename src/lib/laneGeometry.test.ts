@@ -198,31 +198,37 @@ describe("buildLinePath", () => {
     expect(Math.abs(midBoard(a.d, "right") - midBoard(b.d, "right"))).toBeGreaterThan(1);
   });
 
-  it("spare curve never reverses: the gap to the focal is monotone (no S)", () => {
-    const line: LineSpec = { laydown: 6, target: 4, final_board: 3, final_distance: 62.6 };
+  it("spare skid stays on the focal until the hook starts (~38 ft)", () => {
+    const line: LineSpec = { laydown: 31, target: 22.5, final_board: 3, final_distance: 62.6 };
     const pts = sampleBoards(buildLinePath(line, "right", true)!.d, "right");
-    let prevGap = -Infinity;
-    for (const { board, feet } of pts) {
-      const gap = board - focalBoardAt(line, feet); // hook side = positive (RH)
-      expect(gap).toBeGreaterThanOrEqual(-0.2);     // never crosses anti-hook of focal
-      expect(gap).toBeGreaterThanOrEqual(prevGap - 0.2); // and only grows
-      prevGap = Math.max(prevGap, gap);
-    }
+    const at = (ft: number) => pts.reduce((a, p) => (Math.abs(p.feet - ft) < Math.abs(a.feet - ft) ? p : a), pts[0]);
+    expect(at(30).board).toBeCloseTo(focalBoardAt(line, 30), 0); // still dead-straight on the focal
   });
 
-  it("reachable spare ends exactly at the final point, miss = false", () => {
-    const r = buildLinePath({ laydown: 5, target: 4, final_board: 3, final_distance: 62.6 }, "right", true)!;
+  it("reachable spare: never right of the focal (RH), unimodal turn, ends at the pin", () => {
+    const line: LineSpec = { laydown: 31, target: 22.5, final_board: 3, final_distance: 62.6 };
+    const r = buildLinePath(line, "right", true)!;
     const pts = sampleBoards(r.d, "right");
-    expect(pts[pts.length - 1].board).toBeCloseTo(3, 1);
+    for (const { board, feet } of pts) {
+      expect(board).toBeGreaterThanOrEqual(focalBoardAt(line, feet) - 0.3); // on/left of focal
+    }
+    // one turning point: board falls to an apex (going out) then only rises (hooking back)
+    const apex = pts.reduce((m, p, i) => (p.board < pts[m].board ? i : m), 0);
+    for (let i = 1; i <= apex; i++) expect(pts[i].board).toBeLessThanOrEqual(pts[i - 1].board + 0.3);
+    for (let i = apex + 1; i < pts.length; i++) expect(pts[i].board).toBeGreaterThanOrEqual(pts[i - 1].board - 0.3);
+    expect(pts[pts.length - 1].board).toBeCloseTo(3, 0); // rolls into the pin
     expect(r.miss).toBe(false);
   });
 
-  it("unreachable spare (focal lands hook-side of the pin) draws straight + flags a miss", () => {
-    // laydown 2 / target 5: the straight focal lands ~board 18 at the pins, well
-    // hook-side (left, RH) of the board-3 pin — no hook can get back out there.
-    const r = buildLinePath({ laydown: 2, target: 5, final_board: 3, final_distance: 62.6 }, "right", true)!;
+  it("unreachable spare (pin right of the focal) rides the focal off the back + flags a miss", () => {
+    // laydown 2 / target 5: the straight focal lands ~board 18, well hook-side
+    // (left, RH) of the board-3 pin — no leftward hook can get back out there.
+    const line: LineSpec = { laydown: 2, target: 5, final_board: 3, final_distance: 62.6 };
+    const r = buildLinePath(line, "right", true)!;
     expect(r.d).not.toContain(" C ");
-    expect(r.d.match(/ L /g)!.length).toBe(2); // target, then the focal landing — straight
+    const pts = sampleBoards(r.d, "right");
+    for (const { board, feet } of pts) expect(board).toBeCloseTo(focalBoardAt(line, feet), 0); // on the focal
+    expect(pts[pts.length - 1].feet).toBeGreaterThan(62); // exits off the back, not stopping at the pin
     expect(r.miss).toBe(true);
   });
 });

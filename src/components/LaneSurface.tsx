@@ -120,12 +120,10 @@ export function LaneSurface({ line, hand, leave, showMarkers = true, animate }: 
       })}
 
       {path?.focal && (
-        <line
+        <path
           data-role="focal-line"
-          x1={path.focal.a.x}
-          y1={path.focal.a.y}
-          x2={path.focal.b.x}
-          y2={path.focal.b.y}
+          d={path.focal}
+          fill="none"
           stroke="#fff"
           strokeOpacity="0.5"
           strokeWidth="0.9"

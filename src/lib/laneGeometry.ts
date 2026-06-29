@@ -11,6 +11,15 @@ export const POCKET_BOARD = 17.5;       // 1-3 pocket (right-hander); mirrored b
 // flag an unreachable spare as a miss.
 export const BALL_PIN_BOARDS = 6.37;
 
+// Spare hook shape (ADR-019), hardcoded for now — both will become tweakable
+// parameters later. The skid rides the focal straight until HOOK_START_FT, the
+// ball hooks over the next HOOK_LENGTH_FT, then rolls straight into the pin. The
+// *amount* of hook is not a parameter: it is forced by the pin board (the ball
+// must recover exactly the focal→pin gap). Angularity is emergent (the quadratic
+// control sits on the focal at the hook-span midpoint).
+export const HOOK_START_FT = 38;
+export const HOOK_LENGTH_FT = 14;
+
 // Vertical drawing extent, in feet measured from the foul line. We draw a short
 // approach BELOW the foul line (negative) so the laydown handle isn't jammed
 // against the bottom edge, and extend ABOVE the head pin so the full pin deck
@@ -94,9 +103,11 @@ export interface LinePath {
    *  already lands more than a ball+pin radius hook-side of the pin, so no hook
    *  can reach it. Drives the miss indicator. Always false for strike lines. */
   miss: boolean;
-  /** Dotted guide: the straight laydown→target line extended down the lane. The
-   *  ball rides it on the skid and can never cross right of it (ADR-014). */
-  focal: { a: PlanePoint; b: PlanePoint } | null;
+  /** Dotted guide: the straight laydown→target line extended down the lane, as a
+   *  sampled SVG path (a 2-segment polyline kinked at the 60 ft deck knee, since
+   *  `feetToY` bends there — a single screen line would read as a chord). The ball
+   *  rides it on the skid and can never cross right of it (ADR-014). */
+  focal: string | null;
   points: {
     laydown: PlanePoint;
     target: PlanePoint;
@@ -140,43 +151,65 @@ export function buildLinePath(
   const finalFeet = line.final_distance ?? LANE_FEET;
   const final = pt(boardToX(finalBoard0, hand), feetToY(finalFeet));
 
-  // Focal guide: laydown→target extended across the whole drawing extent.
-  const focal = {
-    a: pt(boardToX(skidBoardAt(foul, line.target, DRAW_FRONT_FEET), hand, true), feetToY(DRAW_FRONT_FEET)),
-    b: pt(boardToX(skidBoardAt(foul, line.target, DRAW_BACK_FEET), hand, true), feetToY(DRAW_BACK_FEET)),
-  };
+  // Focal guide: laydown→target extended across the whole drawing extent. Drawn
+  // as a polyline kinked at the 60 ft deck knee (feetToY bends there), so it reads
+  // as the true straight-in-board line, not a chord.
+  const focalBoard = (ft: number) => skidBoardAt(foul, line.target!, ft);
+  const focalPt = (ft: number) => pt(boardToX(focalBoard(ft), hand, true), feetToY(ft));
+  const fa = focalPt(DRAW_FRONT_FEET), fk = focalPt(LANE_FEET), fb = focalPt(DRAW_BACK_FEET);
+  const focal = `M ${fa.x} ${fa.y} L ${fk.x} ${fk.y} L ${fb.x} ${fb.y}`;
 
   // Spares ignore any stored breakpoint (dormant legacy data) — they always take
   // the smooth-curve / straight branch, never the breakpoint cubic.
   if (spareCurve || line.breakpoint == null) {
     if (spareCurve) {
-      // Spare ball: straight skid laydown→target, then a hook target→final. The
-      // hook leaves the target *tangent to the skid* (so it shifts with the
-      // laydown) and peels to the hook side by an ease-in gap that reaches the
-      // final exactly. The gap grows monotonically, so the curve never crosses
-      // back over the focal — one smooth hook, no S (ADR-018).
+      // Spare ball (ADR-019): three phases as a board(ft) function, sampled
+      // uniformly down-lane so it renders smoothly through the 60 ft deck knee.
+      //   skid  — straight on the focal until HOOK_START_FT
+      //   hook  — one quadratic over HOOK_LENGTH_FT, control on the focal at the
+      //           span midpoint (so feet is linear in t and angularity is emergent)
+      //   roll  — straight from the hook's end into the pin
+      // Both joins are tangent-continuous (no kink), and because the skid and the
+      // control sit on the focal while the pin sits hook-side, the whole path is a
+      // convex blend of on-focal and hook-side points: it can never cross right of
+      // the focal and never reverts its turn (structural, not clamped).
       const dir = hand === "right" ? 1 : -1;
-      const tgt = line.target; // captured (non-null) for the closure
-      const dT = arrowFeet(tgt);
-      const focalAt = (dist: number) => skidBoardAt(foul, tgt, dist);
-      const focalAtFinal = focalAt(finalFeet);
-      // Signed hook recovery from the straight focal landing to the final. ≤ 0 ⇒
-      // the focal already lands on/hook-side of the final, so no hook can reach it
-      // (ADR-014): draw straight on the focal and flag a miss if the ball center
-      // ends more than a ball+pin radius off the pin.
-      const recovery = dir * (finalBoard0 - focalAtFinal);
-      let d = `M ${laydown.x} ${laydown.y} L ${target.x} ${target.y}`;
-      if (recovery <= 0) {
-        const end = pt(boardToX(focalAtFinal, hand, true), feetToY(finalFeet));
-        const miss = Math.abs(focalAtFinal - finalBoard0) > BALL_PIN_BOARDS;
-        return { d: `${d} L ${end.x} ${end.y}`, focal, miss, points: { laydown, target, hookStart: null, breakpoint: null, final } };
+      const fB = finalBoard0, fF = finalFeet;
+      const focalAtFinal = focalBoard(fF);
+      // Pin on the gutter side of the focal ⇒ no leftward hook can reach it: ride
+      // the focal straight off the back, flag a miss if it ends >1 ball+pin radius
+      // off the pin (else the straight ball still clips it).
+      if (dir * (fB - focalAtFinal) <= 0) {
+        const miss = Math.abs(focalAtFinal - fB) > BALL_PIN_BOARDS;
+        let d = `M ${laydown.x} ${laydown.y}`;
+        const N = 120;
+        for (let k = 1; k <= N; k++) {
+          const ft = (DRAW_BACK_FEET * k) / N;
+          d += ` L ${focalPt(ft).x} ${focalPt(ft).y}`;
+        }
+        return { d, focal, miss, points: { laydown, target, hookStart: null, breakpoint: null, final } };
       }
-      const N = 80;
+
+      const dS = clamp(HOOK_START_FT, arrowFeet(line.target) + 1, fF - 2);
+      const dE = clamp(dS + HOOK_LENGTH_FT, dS + 1, fF - 0.5);
+      const dM = (dS + dE) / 2;
+      const Psb = focalBoard(dS);          // hook start (on focal)
+      const Cb = focalBoard(dM);           // control (on focal, span midpoint)
+      const u = (dE - dM) / (fF - dM);     // roll start sits on the line C→pin…
+      const Peb = Cb + u * (fB - Cb);      // …at the hook-end distance dE
+      const board = (ft: number): number => {
+        if (ft <= dS) return focalBoard(ft);                 // skid
+        if (ft <= dE) {                                       // hook (feet linear in t)
+          const t = (ft - dS) / (dE - dS), v = 1 - t;
+          return v * v * Psb + 2 * v * t * Cb + t * t * Peb;
+        }
+        return Peb + ((ft - dE) / (fF - dE)) * (fB - Peb);    // roll (straight to pin)
+      };
+      let d = `M ${laydown.x} ${laydown.y}`;
+      const N = 160;
       for (let k = 1; k <= N; k++) {
-        const dist = dT + ((finalFeet - dT) * k) / N;
-        const s = k / N;
-        const b = focalAt(dist) + dir * recovery * s * s; // ease-in gap → final at s=1
-        const p = pt(boardToX(b, hand, true), feetToY(dist));
+        const ft = (fF * k) / N;
+        const p = pt(boardToX(board(ft), hand, true), feetToY(ft));
         d += ` L ${p.x} ${p.y}`;
       }
       return { d, focal, miss: false, points: { laydown, target, hookStart: null, breakpoint: null, final } };

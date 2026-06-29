@@ -665,3 +665,56 @@ length compression squeezed into a sliver at the top edge.
   preserved). `DRAW_BACK_FEET` is 64 (was 63) for deck headroom.
 - `spareAimPoint` is the single source for "best place to make the spare",
   shared by the visualizer's final seeding.
+
+## ADR-019 — Spare ball path: skid → quadratic hook → roll, amount forced by the pin
+
+**Status:** accepted (2026-06). Supersedes the spare-curve portion of ADR-018
+(the fixed `SPARE_BOW` quadratic); the aim-point, configurable depth, dormant
+breakpoint, and pin-deck decisions of ADR-018 still stand.
+
+**Context.** The ADR-018 spare curve was a fixed-size bézier whose control point
+sat at the chord midpoint plus a constant bow. It had three visible failures:
+its control could fall outside the endpoints → the path reversed direction (an
+S); it read only target/final, so moving the laydown didn't change the curve;
+and it always bowed hook-side even when the pin was unreachable. The focal guide
+was also drawn as a 2-point `<line>` spanning the 60 ft deck knee, so it rendered
+as a chord that diverged from the true straight-in-board line below the knee
+(the skid looked offset from its own focal).
+
+**Decision.** The spare ball path is three phases, expressed as one
+`board(ft)` function sampled uniformly down-lane (so it renders smoothly through
+the `feetToY` knee):
+- **Skid** — straight on the focal until `HOOK_START_FT` (*how early it hooks*).
+- **Hook** — one quadratic bézier over `HOOK_LENGTH_FT` (*how long it hooks*),
+  with the control point placed **on the focal at the span midpoint**. The
+  midpoint placement makes feet linear in the bézier parameter and leaves no free
+  "sharpness" knob — angularity is *emergent* from how-early + how-long + the pin.
+- **Roll** — straight from the hook's end into the pin.
+Both joins are tangent-continuous (no kink). The **amount** of hook is not a
+parameter: it is forced by the pin board (the ball must recover exactly the
+focal→pin gap). `HOOK_START_FT`/`HOOK_LENGTH_FT` are hardcoded for now and will
+become tweakable later; a future breakpoint can be a *derived output* of this
+curve, not an input.
+
+**Invariants by construction (not clamped).** The skid and the bézier control
+sit on the focal; the pin sits hook-side. Every path point is therefore a convex
+blend of on-focal and hook-side points, so the path **can never cross to the
+gutter side of the focal** and **never reverts its turn** (at most one apex —
+out then back). This is the spare analogue of ADR-015 and is the model the strike
+line will adopt next.
+
+**Unreachable leaves.** If the pin is on the gutter side of the focal at the pin
+distance (`dir·(finalBoard − focalLanding) ≤ 0`), no leftward hook can reach it:
+the ball rides the focal dead-straight off the back of the lane, and the leave
+pin renders **red** when the straight ball ends more than a ball+pin radius
+(`BALL_PIN_BOARDS`) off it (within that radius it still clips the pin).
+
+**Consequences.**
+- `SPARE_BOW` removed; `HOOK_START_FT`, `HOOK_LENGTH_FT`, `BALL_PIN_BOARDS`
+  added. `LinePath` gains `miss: boolean`.
+- `LinePath.focal` is now a sampled path string (kinked at the 60 ft knee), not
+  endpoint points; `LaneSurface` renders it as a `<path>`. Fixes the skid/focal
+  offset.
+- Drawn-curve invariants are covered by tests in `laneGeometry.test.ts`
+  (skid-on-focal, never-right + unimodal + ends-at-pin, unreachable-off-the-back
+  + miss, laydown responsiveness).

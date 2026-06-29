@@ -2,6 +2,17 @@
 
 User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachangelog.com).
 
+## [Unreleased] — Spare ball path: skid → hook → roll (2026-06-30, ADR-019)
+
+### Changed
+
+- **Spare ball path redrawn as a real ball motion.** The spare line now rolls straight off the laydown, hooks once through a smooth curve, then rolls straight into the pin — instead of the old fixed bow. The curve now responds to the laydown, can never cross to the gutter side of the dashed focal line, and never wiggles back on itself.
+- **Focal guide sits exactly on the skid.** Fixed a rendering bug where the dashed focal line read as offset from the straight laydown→target segment (it was drawn as a single line across the pin-deck scale break).
+
+### Fixed
+
+- **Unreachable spares are honest.** If the pocket/pin sits on the gutter side of the straight focal line (no hook can get back out to it), the ball is drawn dead straight off the back of the lane and the leave pin turns red, rather than drawing an impossible curve.
+
 ## [Unreleased] — Spare lines: aim, hook, depth, pin deck (2026-06-29, ADR-018)
 
 ### Added
