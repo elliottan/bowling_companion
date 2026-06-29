@@ -6,6 +6,10 @@ export const LANE_FEET = 60;            // foul line → head pin
 export const ARROWS_FEET = 15;          // target arrows
 export const DEFAULT_BREAKPOINT_FEET = 42;
 export const POCKET_BOARD = 17.5;       // 1-3 pocket (right-hander); mirrored by boardToX
+// Ball + pin radius in boards (≈ 4.25" + 2.38" over 1.0417"/board). If the ball
+// center ends farther than this off a pin it cannot have contacted it — used to
+// flag an unreachable spare as a miss.
+export const BALL_PIN_BOARDS = 6.37;
 
 // Vertical drawing extent, in feet measured from the foul line. We draw a short
 // approach BELOW the foul line (negative) so the laydown handle isn't jammed
@@ -13,8 +17,17 @@ export const POCKET_BOARD = 17.5;       // 1-3 pocket (right-hander); mirrored b
 // (pins reach ~62.9 ft) is visible rather than clipped to the foul-line→head-pin
 // span. The foul line (0 ft) therefore sits a little above the very bottom.
 export const DRAW_FRONT_FEET = -4;      // approach, below the foul line
-export const DRAW_BACK_FEET = 63;       // just behind the pin deck
-const DRAW_SPAN = DRAW_BACK_FEET - DRAW_FRONT_FEET;
+export const DRAW_BACK_FEET = 63.4;     // just behind the back pin row (~62.6 ft)
+
+// Pin deck (ADR-018): the last 2.6 ft of real lane (head pin 60 ft → back row
+// ~62.6 ft) would project into a sliver at the top edge, so the deck reads as a
+// flat smear. Instead the vertical mapping has a knot at the head pin: the lane
+// below (≤60 ft) maps linearly, and the deck above (>60 ft) is expanded into a
+// tall band so it draws as a real, proportioned triangle. The mapping stays
+// monotonic and continuous, so the ball path still lands on the pins and the
+// aim math (in real feet) is untouched — only the rendering is rescaled.
+const DECK_KNEE_FT = 60;                // head pin: lane below, expanded deck above
+const DECK_KNEE_Y = 35;                 // plane-y of the head pin (deck base)
 
 // Flat-plane drawing dimensions (SVG user units). Length is compressed vs.
 // width for phone legibility. Tune in the visual pass — all geometry derives
@@ -38,15 +51,26 @@ export function xToBoard(x: number, hand: Handedness): number {
   return 1 + f * (LANE_BOARDS - 1);
 }
 
-/** Distance from foul line (ft) → y on the plane. Foul-relative feet map across
- *  the [DRAW_FRONT_FEET, DRAW_BACK_FEET] drawing extent; smaller feet → lower. */
+/** Distance from foul line (ft) → y on the plane. Piecewise about the head-pin
+ *  knot: the lane (≤60 ft) maps across [PLANE_L, DECK_KNEE_Y], the deck (>60 ft)
+ *  expands across [DECK_KNEE_Y, 0]. Smaller feet → lower. Monotonic + continuous. */
 export function feetToY(feet: number): number {
-  return PLANE_L * (1 - (feet - DRAW_FRONT_FEET) / DRAW_SPAN);
+  if (feet <= DECK_KNEE_FT) {
+    const f = (feet - DRAW_FRONT_FEET) / (DECK_KNEE_FT - DRAW_FRONT_FEET);
+    return PLANE_L - f * (PLANE_L - DECK_KNEE_Y);
+  }
+  const f = (feet - DECK_KNEE_FT) / (DRAW_BACK_FEET - DECK_KNEE_FT);
+  return DECK_KNEE_Y - f * DECK_KNEE_Y;
 }
 
 /** Inverse of feetToY. */
 export function yToFeet(y: number): number {
-  return DRAW_FRONT_FEET + (1 - y / PLANE_L) * DRAW_SPAN;
+  if (y >= DECK_KNEE_Y) {
+    const f = (PLANE_L - y) / (PLANE_L - DECK_KNEE_Y);
+    return DRAW_FRONT_FEET + f * (DECK_KNEE_FT - DRAW_FRONT_FEET);
+  }
+  const f = (DECK_KNEE_Y - y) / DECK_KNEE_Y;
+  return DECK_KNEE_FT + f * (DRAW_BACK_FEET - DECK_KNEE_FT);
 }
 
 /** Real arrows form a chevron: the centre arrow (board 20) sits furthest
@@ -66,6 +90,10 @@ export interface PlanePoint { x: number; y: number; }
 
 export interface LinePath {
   d: string;
+  /** Spare only: the ball cannot contact the leave — the straight focal line
+   *  already lands more than a ball+pin radius hook-side of the pin, so no hook
+   *  can reach it. Drives the miss indicator. Always false for strike lines. */
+  miss: boolean;
   /** Dotted guide: the straight laydown→target line extended down the lane. The
    *  ball rides it on the skid and can never cross right of it (ADR-014). */
   focal: { a: PlanePoint; b: PlanePoint } | null;
@@ -97,14 +125,20 @@ const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v
  *
  * With no breakpoint set, the line runs straight to the final point.
  */
-export function buildLinePath(line: LineSpec | undefined, hand: Handedness): LinePath | null {
+export function buildLinePath(
+  line: LineSpec | undefined,
+  hand: Handedness,
+  spareCurve = false
+): LinePath | null {
   const foul = line?.laydown ?? line?.stance;
   if (line == null || foul == null || line.target == null) return null;
 
   // Laydown maps raw so a lofted (off-lane) board sits past the edge.
   const laydown = pt(boardToX(foul, hand, true), feetToY(0));
   const target = pt(boardToX(line.target, hand), feetToY(arrowFeet(line.target)));
-  const final = pt(boardToX(line.final_board ?? POCKET_BOARD, hand), feetToY(LANE_FEET));
+  const finalBoard0 = line.final_board ?? POCKET_BOARD;
+  const finalFeet = line.final_distance ?? LANE_FEET;
+  const final = pt(boardToX(finalBoard0, hand), feetToY(finalFeet));
 
   // Focal guide: laydown→target extended across the whole drawing extent.
   const focal = {
@@ -112,9 +146,43 @@ export function buildLinePath(line: LineSpec | undefined, hand: Handedness): Lin
     b: pt(boardToX(skidBoardAt(foul, line.target, DRAW_BACK_FEET), hand, true), feetToY(DRAW_BACK_FEET)),
   };
 
-  if (line.breakpoint == null) {
+  // Spares ignore any stored breakpoint (dormant legacy data) — they always take
+  // the smooth-curve / straight branch, never the breakpoint cubic.
+  if (spareCurve || line.breakpoint == null) {
+    if (spareCurve) {
+      // Spare ball: straight skid laydown→target, then a hook target→final. The
+      // hook leaves the target *tangent to the skid* (so it shifts with the
+      // laydown) and peels to the hook side by an ease-in gap that reaches the
+      // final exactly. The gap grows monotonically, so the curve never crosses
+      // back over the focal — one smooth hook, no S (ADR-018).
+      const dir = hand === "right" ? 1 : -1;
+      const tgt = line.target; // captured (non-null) for the closure
+      const dT = arrowFeet(tgt);
+      const focalAt = (dist: number) => skidBoardAt(foul, tgt, dist);
+      const focalAtFinal = focalAt(finalFeet);
+      // Signed hook recovery from the straight focal landing to the final. ≤ 0 ⇒
+      // the focal already lands on/hook-side of the final, so no hook can reach it
+      // (ADR-014): draw straight on the focal and flag a miss if the ball center
+      // ends more than a ball+pin radius off the pin.
+      const recovery = dir * (finalBoard0 - focalAtFinal);
+      let d = `M ${laydown.x} ${laydown.y} L ${target.x} ${target.y}`;
+      if (recovery <= 0) {
+        const end = pt(boardToX(focalAtFinal, hand, true), feetToY(finalFeet));
+        const miss = Math.abs(focalAtFinal - finalBoard0) > BALL_PIN_BOARDS;
+        return { d: `${d} L ${end.x} ${end.y}`, focal, miss, points: { laydown, target, hookStart: null, breakpoint: null, final } };
+      }
+      const N = 80;
+      for (let k = 1; k <= N; k++) {
+        const dist = dT + ((finalFeet - dT) * k) / N;
+        const s = k / N;
+        const b = focalAt(dist) + dir * recovery * s * s; // ease-in gap → final at s=1
+        const p = pt(boardToX(b, hand, true), feetToY(dist));
+        d += ` L ${p.x} ${p.y}`;
+      }
+      return { d, focal, miss: false, points: { laydown, target, hookStart: null, breakpoint: null, final } };
+    }
     const d = `M ${laydown.x} ${laydown.y} L ${target.x} ${target.y} L ${final.x} ${final.y}`;
-    return { d, focal, points: { laydown, target, hookStart: null, breakpoint: null, final } };
+    return { d, focal, miss: false, points: { laydown, target, hookStart: null, breakpoint: null, final } };
   }
 
   const finalBoard = line.final_board ?? POCKET_BOARD;
@@ -163,7 +231,7 @@ export function buildLinePath(line: LineSpec | undefined, hand: Handedness): Lin
     d += ` L ${p.x} ${p.y}`;
   }
 
-  return { d, focal, points: { laydown, target, hookStart: null, breakpoint, final } };
+  return { d, focal, miss: false, points: { laydown, target, hookStart: null, breakpoint, final } };
 }
 
 // --- Drawability solver (ADR-015) ------------------------------------------

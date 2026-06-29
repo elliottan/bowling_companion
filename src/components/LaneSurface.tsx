@@ -19,8 +19,12 @@ interface LaneSurfaceProps {
 }
 
 export function LaneSurface({ line, hand, leave, showMarkers = true, animate }: LaneSurfaceProps) {
-  const path = buildLinePath(line, hand);
   const leaveSet = new Set(leave ?? []);
+  const hasLeave = (leave?.length ?? 0) > 0;
+  const path = buildLinePath(line, hand, hasLeave); // spares (a leave) curve to the final
+  // Draw the deck back-to-front (deepest pins first) so nearer pins overlap the
+  // ones behind them — the overlap reads as depth instead of a flat smear.
+  const deckOrder = [...ALL_PINS].sort((a, b) => PIN_POSITIONS[b].feet - PIN_POSITIONS[a].feet);
   const reduceMotion =
     typeof window !== "undefined" &&
     window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
@@ -75,24 +79,43 @@ export function LaneSurface({ line, hand, leave, showMarkers = true, animate }: 
         );
       })}
 
-      <circle cx={boardToX(17.5, hand)} cy={feetToY(60)} r="10" fill="url(#pocket-glow)" />
+      {!hasLeave && (
+        <circle cx={boardToX(17.5, hand)} cy={feetToY(60)} r="10" fill="url(#pocket-glow)" />
+      )}
 
-      {ALL_PINS.map((p) => {
+      {/* Pin deck. Centres stay at the real board/feet (so the ball path lands on
+          them and the aim math is honest); only the glyph is sized for a legible,
+          proportioned rack. Standing leave pins read bright; the rest ghost out. */}
+      {deckOrder.map((p) => {
         const pos = PIN_POSITIONS[p];
-        const standing = leaveSet.has(p);
+        // PIN_POSITIONS is board-1-left; a right-hander's boards mirror about
+        // centre so the 10-pin draws on the right (matching the line boards).
+        const pinBoard = hand === "right" ? LANE_BOARDS + 1 - pos.board : pos.board;
+        const cx = boardToX(pinBoard, hand);
+        const cy = feetToY(pos.feet);
+        const standing = !hasLeave || leaveSet.has(p);
+        // A standing pin the ball can't reach (focal lands too far off) reads red.
+        const missed = standing && (path?.miss ?? false);
+        const r = 4.2;
         return (
-          <circle
-            key={p}
-            data-role="pin"
-            data-standing={standing ? "true" : "false"}
-            cx={boardToX(pos.board, hand)}
-            cy={feetToY(pos.feet)}
-            r="2.2"
-            fill={standing ? "#0f766e" : "#f8fafc"}
-            stroke="#0f172a"
-            strokeOpacity="0.25"
-            strokeWidth="0.3"
-          />
+          <g key={p} data-role="pin" data-standing={standing ? "true" : "false"} data-missed={missed ? "true" : "false"}>
+            <ellipse cx={cx} cy={cy + r * 0.55} rx={r * 0.95} ry={r * 0.4}
+              fill="#000000" opacity={standing ? 0.28 : 0.12} />
+            <circle cx={cx} cy={cy} r={r}
+              fill={missed ? "#ef4444" : standing ? "#f8fafc" : "#5b4733"}
+              fillOpacity={standing ? 1 : 0.3}
+              stroke={standing ? "#0f172a" : "#3a2a1a"}
+              strokeOpacity={standing ? 0.45 : 0.25}
+              strokeWidth="0.5" />
+            {standing && (
+              <>
+                <ellipse cx={cx} cy={cy - r * 0.32} rx={r * 0.55} ry={r * 0.4}
+                  fill="#ffffff" opacity="0.85" />
+                <rect x={cx - r * 0.55} y={cy - r * 0.18} width={r * 1.1} height={r * 0.28}
+                  rx={r * 0.14} fill="#e11d48" opacity="0.85" />
+              </>
+            )}
+          </g>
         );
       })}
 

@@ -1,7 +1,8 @@
 import { X } from "lucide-react";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { LineSpec, PinNumber } from "../types/bowling";
 import { useHandedness } from "../lib/handednessContext";
+import { spareAimPoint } from "../lib/spareAim";
 import { LaneSurface } from "./LaneSurface";
 import {
   buildLinePath, solveLine, xToBoard, yToFeet, PLANE_W, PLANE_L,
@@ -35,10 +36,12 @@ interface LaneVisualizerProps {
   onChange?: (line: LineSpec | undefined) => void;
   /** Standing leave to light (spare surface). */
   leave?: PinNumber[];
+  /** Spare mode: hook-strength slider + configurable final depth, no breakpoint. */
+  spare?: boolean;
   title?: string;
 }
 
-export function LaneVisualizer({ line, onClose, onChange, leave, title = "Line" }: LaneVisualizerProps) {
+export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, title = "Line" }: LaneVisualizerProps) {
   const hand = useHandedness();
   const [deg, setDeg] = useState(BOWLER_DEG);
   const [dragging, setDragging] = useState(false);
@@ -51,6 +54,31 @@ export function LaneVisualizer({ line, onClose, onChange, leave, title = "Line" 
     if (!onChange) return;
     onChange(solveLine({ ...(line ?? {}), ...patch }, hand));
   }
+
+  // Spare mode: seed laydown = target = final = the leave's ideal aim board
+  // (e.g. 3-3-3 for the 10-pin RH) at the leave's real depth. The focal line then
+  // reads as the perfectly-straight reference and the ball path curves to the
+  // final. Runs once while the line is still empty; user edits then take over.
+  useEffect(() => {
+    if (!spare || !onChange || !leave?.length) return;
+    if (line?.final_board != null) return; // already seeded or configured
+    const aim = spareAimPoint(leave, hand);
+    if (!aim) return;
+    const board = snapBoard(aim.board);
+    onChange(
+      solveLine(
+        {
+          ...(line ?? {}),
+          laydown: line?.laydown ?? board,
+          target: line?.target ?? board,
+          final_board: board,
+          final_distance: line?.final_distance ?? Math.round(aim.feet * 10) / 10,
+        },
+        hand
+      )
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [spare, leave]);
 
   // Drag on empty background → tilt the camera.
   function onPointerDown(e: React.PointerEvent) {
@@ -95,7 +123,7 @@ export function LaneVisualizer({ line, onClose, onChange, leave, title = "Line" 
     (e.currentTarget as Element).setPointerCapture(e.pointerId);
   }
 
-  const path = onChange && line ? buildLinePath(line, hand) : null;
+  const path = onChange && line ? buildLinePath(line, hand, spare) : null;
   const handles: Array<{ key: string; p: { x: number; y: number } }> = [];
   if (path) {
     handles.push({ key: "laydown", p: path.points.laydown });
@@ -176,9 +204,9 @@ export function LaneVisualizer({ line, onClose, onChange, leave, title = "Line" 
           </div>
         </div>
 
-        {/* Numeric inputs: a side column in top-down, a bottom bar in bowler
-            view (so the lane stays centred and fully visible). */}
-        {onChange && (
+        {/* Strike line: numeric inputs — side column in top-down, bottom bar in
+            bowler view (so the lane stays centred and fully visible). */}
+        {onChange && !spare && (
           <div
             className={
               isTopDown
@@ -197,6 +225,25 @@ export function LaneVisualizer({ line, onClose, onChange, leave, title = "Line" 
               onCommit={(v) => applyEdit({ breakpoint_distance: v })} />
             <SideField label="Final" value={line?.final_board ?? POCKET_BOARD} min={1} max={39}
               onCommit={(v) => applyEdit({ final_board: v })} />
+          </div>
+        )}
+
+        {/* Spare line: hook-strength slider + board/depth fields (no breakpoint). */}
+        {onChange && spare && (
+          <div
+            className="absolute inset-x-0 bottom-0 z-10 flex flex-col gap-2 px-3 pb-2"
+            onPointerDown={(e) => e.stopPropagation()}
+          >
+            <div className="flex justify-center gap-1.5">
+              <SideField label="Laydown" value={line?.laydown ?? line?.stance} min={1} max={59}
+                onCommit={(v) => applyEdit({ laydown: v })} />
+              <SideField label="Target" value={line?.target} min={1} max={39}
+                onCommit={(v) => applyEdit({ target: v })} />
+              <SideField label="Final" value={line?.final_board ?? POCKET_BOARD} min={1} max={39}
+                onCommit={(v) => applyEdit({ final_board: v })} />
+              <SideField label="Final ft" value={line?.final_distance ?? 60} min={55} max={63}
+                onCommit={(v) => applyEdit({ final_distance: v })} />
+            </div>
           </div>
         )}
       </div>

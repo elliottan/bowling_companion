@@ -602,3 +602,66 @@ the first ball in the list — ignoring recorded context.
 - `ActiveGameScorer` gains a `previousGames` prop (default `[]`);
   `ActiveSessionView` populates it with all earlier games in the session.
 
+
+---
+
+## ADR-018 — Spare aim model, hook-strength curve, configurable depth, proportioned deck
+
+**Status:** accepted (2026-06).
+
+**Context.** Spare lines reused the strike-line model (laydown/target/breakpoint
++ breakpoint distance) and a final point hardcoded to the pocket at 60 ft. That
+was wrong for spares: a spare ball isn't a breakpoint hook, the "best place to
+hit" depends on the leave, and back-row pins sit deeper than 60 ft. The pin deck
+also rendered as a flat smear — the real deck spans only ~2.6 ft, which the lane's
+length compression squeezed into a sliver at the top edge.
+
+**Decision.**
+
+- **Derived aim point per leave** (`src/lib/spareAim.ts`, `spareAimPoint`):
+  - Single pin → that pin's centre.
+  - Connected cluster → midpoint of the front pin **P1** (min feet) and **P2**,
+    the frontmost pin laterally connected to P1 (board gap ≤ 11.5); on a tie the
+    neighbour toward the pocket/centre. e.g. 3-6-10 → mid(3,6); 2-4-5 → mid(2,5).
+  - Split (front two not connected) → **slide-across**: clip the front pin on the
+    side away from the other so it slides into it. Offset board =
+    `(R_BALL + R_PIN) · sin θ`, where θ is the clip→other angle off the down-lane
+    axis in **real feet**. One formula reproduces the intuitive groupings —
+    same-row split (θ=90°) ≈ 6.4 boards; 4-10 ≈ 6.1; 2-10 ≈ 4.9.
+  - Sleepers (a pin stacked directly behind, e.g. 2-8, 3-9) → front-pin centre
+    for now (future: strike-ball adjustment).
+- **Configurable final depth** — new `LineSpec.final_distance` (feet).
+  `buildLinePath` draws the final at `feetToY(final_distance ?? 60)`. The spare
+  visualizer seeds `final_board`/`final_distance` from `spareAimPoint(leave)`
+  only when unset; dragging the Final handle / editing the field overrides.
+- **Spare ball path is a fixed smooth curve, not a breakpoint** — for a spare
+  (`buildLinePath(..., spareCurve=true)`, driven by the presence of a `leave`) the
+  skid stays straight (laydown→target) and the target→final segment is a quadratic
+  bézier bowing toward the hook side by a fixed `SPARE_BOW`. The focal line is the
+  perfectly-straight reference; the ball path curves off it. Endpoints stay exact
+  real points; only the path between is stylized. There is no hook-strength rating
+  — the curve shape is constant. The strike line keeps the breakpoint cubic, and
+  the no-breakpoint strike path stays straight (`spareCurve=false`).
+- **Breakpoint removed from the spare UI** — the spare dialog no longer edits
+  breakpoint/breakpoint distance and the spare card no longer shows them. Existing
+  breakpoint data on stored spare lines is left **dormant** (never read in spare
+  mode); no DB migration.
+- **Score-entry hides the breakpoint field** when a configured spare line
+  auto-populated the intended line (a 2nd-ball attempt on a leave with a saved
+  spare line). Strikes and unconfigured-leave spares keep the field.
+- **Proportioned pin deck** — `feetToY`/`yToFeet` gain a knot at the head pin
+  (60 ft): the lane below maps linearly, the deck above expands into a tall band,
+  so the deck draws as a real, legible 4-3-2-1 triangle. The mapping is monotonic
+  and continuous, so the ball path still lands on the pins and the aim math (in
+  real feet) is untouched — only the rendering is rescaled. Pins render
+  back-to-front (overlap reads as depth); the standing leave reads bright, the
+  rest ghost out. Applies to both the strike-line and spare visualizers.
+
+**Consequences.**
+- `LineSpec` gains `final_distance` (optional, backward-compatible). Spare lines
+  carry no breakpoint or hook rating — the curve is implicit and fixed.
+- The deck knot reshapes the vertical projection globally; round-trip and
+  endpoint geometry tests are unaffected (the remap is monotonic, endpoints
+  preserved). `DRAW_BACK_FEET` is 64 (was 63) for deck headroom.
+- `spareAimPoint` is the single source for "best place to make the spare",
+  shared by the visualizer's final seeding.

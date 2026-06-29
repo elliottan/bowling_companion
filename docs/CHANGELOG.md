@@ -2,6 +2,21 @@
 
 User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachangelog.com).
 
+## [Unreleased] — Spare lines: aim, hook, depth, pin deck (2026-06-29, ADR-018)
+
+### Added
+
+- **Derived spare aim point.** Viewing a spare line now auto-places the final target at the best spot to make that leave — the centre of the pin for a single, the pocket between the front two connected pins for a cluster, and a thin slide-across clip for splits (offset by the real slide angle). Back-row leaves sit at their true depth.
+- **Smooth spare ball path.** The spare line draws a gentle curve from the target to the final point (the dashed focal line stays as the perfectly-straight reference) — no breakpoint needed, and the spare ball isn't drawn dead straight.
+- **Configurable final depth.** A Final-distance (ft) control on the spare visualizer; spare pins aren't always on the front row.
+
+### Changed
+
+- **Pin deck redrawn.** The deck now renders as a proportioned 4-3-2-1 triangle of round pins instead of a flat smear, in both the strike-line and spare visualizers. Standing leave pins read bright; the rest ghost out. Point math still uses real lane distances — only the rendering is rescaled.
+- **Spare lines drop the breakpoint.** Spare lines no longer configure a breakpoint or breakpoint distance (use hook strength instead). When a saved spare line auto-fills the line during scoring, the breakpoint field is hidden.
+
+---
+
 ## [Unreleased] — Active-scorer fixes (2026-06-25)
 
 ### Fixed

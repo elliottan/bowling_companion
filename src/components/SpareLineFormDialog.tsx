@@ -52,13 +52,13 @@ export function SpareLineFormDialog({
 
     const spec: LineSpec | undefined =
       line.stance != null || line.laydown != null || line.target != null ||
-      line.breakpoint != null || line.breakpoint_distance != null
+      line.final_board != null || line.final_distance != null
         ? {
             ...(line.stance != null && { stance: line.stance }),
             ...(line.laydown != null && { laydown: line.laydown }),
             ...(line.target != null && { target: line.target }),
-            ...(line.breakpoint != null && { breakpoint: line.breakpoint }),
-            ...(line.breakpoint_distance != null && { breakpoint_distance: line.breakpoint_distance })
+            ...(line.final_board != null && { final_board: line.final_board }),
+            ...(line.final_distance != null && { final_distance: line.final_distance })
           }
         : undefined;
 
@@ -114,11 +114,11 @@ export function SpareLineFormDialog({
             <p className="mb-2 text-xs font-medium text-slate-600">
               Shooting line (board numbers)
             </p>
-            <div className="grid grid-cols-4 gap-2">
-              {(["stance", "laydown", "target", "breakpoint"] as const).map((field) => (
+            <div className="grid grid-cols-3 gap-2">
+              {(["stance", "laydown", "target"] as const).map((field) => (
                 <div key={field}>
                   <label className="mb-1 block text-xs font-medium text-slate-600 capitalize">
-                    {field === "breakpoint" ? "Bkpt" : field}
+                    {field}
                   </label>
                   <input
                     type="number"
@@ -131,29 +131,16 @@ export function SpareLineFormDialog({
                         [field]: e.target.value === "" ? undefined : Number(e.target.value)
                       }))
                     }
-                    placeholder={field === "stance" ? "35" : field === "laydown" ? "18" : field === "target" ? "10" : "6"}
+                    placeholder={field === "stance" ? "35" : field === "laydown" ? "18" : "10"}
                     className="h-10 w-full rounded-lg border border-slate-300 px-2 text-sm outline-none focus:border-felt-700 focus:ring-2 focus:ring-felt-700/20"
                   />
                 </div>
               ))}
             </div>
-            <div className="mt-2 w-32">
-              <label className="mb-1 block text-xs font-medium text-slate-600">Bkpt dist (ft)</label>
-              <input
-                type="number"
-                inputMode="decimal"
-                step="1"
-                value={line.breakpoint_distance ?? ""}
-                onChange={(e) =>
-                  setLine((l) => ({
-                    ...l,
-                    breakpoint_distance: e.target.value === "" ? undefined : Number(e.target.value)
-                  }))
-                }
-                placeholder="42"
-                className="h-10 w-full rounded-lg border border-slate-300 px-2 text-sm outline-none focus:border-felt-700 focus:ring-2 focus:ring-felt-700/20"
-              />
-            </div>
+            <p className="mt-2 text-xs text-slate-500">
+              Tap <span className="font-medium text-slate-600">View line</span> to set the final
+              target, hook strength and depth.
+            </p>
             {derivePinBoard(line, pins) != null && (
               <p className="mt-2 text-xs text-slate-500">
                 Straight-line board at the front pin:{" "}
@@ -219,6 +206,7 @@ export function SpareLineFormDialog({
             title="Spare line"
             line={line}
             leave={pins}
+            spare
             onChange={(l) => setLine(l ?? {})}
             onClose={() => setShowViz(false)}
           />

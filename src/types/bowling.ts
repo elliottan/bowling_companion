@@ -13,6 +13,9 @@ export interface LineSpec {
   hook_start_distance?: number;
   /** Board the ball crosses the pin deck on (60 ft). Defaults to the pocket (17.5). */
   final_board?: number;
+  /** Down-lane distance (feet) of the final point. Defaults to 60 ft (head pin).
+   *  Spare aim points sit deeper (back-row pins ~62.6 ft). */
+  final_distance?: number;
 }
 
 export interface ShotMetadata {

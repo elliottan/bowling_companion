@@ -33,6 +33,8 @@ interface LineInputProps {
   showPresets?: boolean;
   /** Fired when any field gains focus — used by the Actual line to autofill. */
   onFieldFocus?: () => void;
+  /** Hide the breakpoint field (a configured spare line drove this line). */
+  hideBreakpoint?: boolean;
 }
 
 const LINE_FIELDS = ["stance", "target", "breakpoint"] as const;
@@ -73,8 +75,9 @@ function parseOneDp(s: string): number | undefined {
   return Number.isNaN(n) ? undefined : Math.round(n * 10) / 10;
 }
 
-function LineInput({ label, value, onChange, showPresets = false, onFieldFocus }: LineInputProps) {
+function LineInput({ label, value, onChange, showPresets = false, onFieldFocus, hideBreakpoint = false }: LineInputProps) {
   const handedness = useHandedness();
+  const fields = hideBreakpoint ? LINE_FIELDS.filter((f) => f !== "breakpoint") : LINE_FIELDS;
   // Board numbers rise to the left for a right-hander, to the right for a
   // left-hander. dir = +1 means the LEFT arrow increases the board number.
   const dir = handedness === "right" ? 1 : -1;
@@ -161,7 +164,7 @@ function LineInput({ label, value, onChange, showPresets = false, onFieldFocus }
     <div>
       <span className="mb-1 block text-[10px] font-semibold uppercase tracking-wide text-slate-400">{label}</span>
       <div className="flex gap-1">
-        {LINE_FIELDS.map((field, i) => (
+        {fields.map((field, i) => (
           <input
             key={field}
             type="text"
@@ -232,6 +235,8 @@ interface ShotDetailBarProps {
   notes: string;
   onNotesChange: (notes: string) => void;
   onOpenArsenal?: () => void;
+  /** Hide the breakpoint field on the Intended line (configured spare applied). */
+  hideIntendedBreakpoint?: boolean;
 }
 
 // Every field is always editable; remounting (via `key`) per selected shot
@@ -246,7 +251,8 @@ function ShotDetailBar({
   onActualChange,
   notes,
   onNotesChange,
-  onOpenArsenal
+  onOpenArsenal,
+  hideIntendedBreakpoint = false
 }: ShotDetailBarProps) {
   const [showViz, setShowViz] = useState(false);
   return (
@@ -291,7 +297,7 @@ function ShotDetailBar({
         )}
       </div>
 
-      <LineInput label="Intended" value={intended} onChange={onIntendedChange} showPresets />
+      <LineInput label="Intended" value={intended} onChange={onIntendedChange} showPresets hideBreakpoint={hideIntendedBreakpoint} />
 
       <button
         type="button"
@@ -412,6 +418,8 @@ export function ActiveGameScorer({
   const [selectedBallId, setSelectedBallId] = useState<number | undefined>(undefined);
   const [intendedLine, setIntendedLine] = useState<LineSpec | undefined>(undefined);
   const [actualLine, setActualLine] = useState<LineSpec | undefined>(undefined);
+  // True when a saved spare line drove the intended line — hides the breakpoint field.
+  const [spareLineApplied, setSpareLineApplied] = useState(false);
   const [shotNotes, setShotNotes] = useState("");
   // Cursor: a recorded shot being edited inline (null = live entry).
   const [selectedShot, setSelectedShot] = useState<{ frameNumber: number; shotIndex: number } | null>(null);
@@ -487,6 +495,7 @@ export function ActiveGameScorer({
 
     setShotNotes("");
     setActualLine(undefined);
+    setSpareLineApplied(false);
 
     const spareBall = balls.find((b) => b.is_spare_ball);
     const currentFrame = gameState.frames.find(
@@ -529,7 +538,9 @@ export function ActiveGameScorer({
                 ...(sl.line.target != null && { target: sl.line.target })
               }
             : undefined;
-          setIntendedLine(line && Object.keys(line).length ? line : undefined);
+          const applied = !!(line && Object.keys(line).length);
+          setIntendedLine(applied ? line : undefined);
+          setSpareLineApplied(applied);
         })
         .catch(() => {});
     } else {
@@ -853,6 +864,7 @@ export function ActiveGameScorer({
           actual={isEditing && recordedShot ? recordedShot.actual : actualLine}
           onActualChange={isEditing ? (l) => handleEditMeta({ actual: l }) : setActualLine}
           notes={isEditing && recordedShot ? recordedShot.notes ?? "" : shotNotes}
+          hideIntendedBreakpoint={!isEditing && spareLineApplied}
           onNotesChange={
             // Store raw while typing (keeps internal/trailing spaces); the
             // textarea's onBlur trims on save. Trimming per-keystroke here made

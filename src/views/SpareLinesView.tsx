@@ -88,7 +88,7 @@ function SortableSpareCard({ sl, onEdit }: SortableSpareCardProps) {
           <SmallPinDiagram standing={sl.pins} />
           {sl.line ? (
             <span className="block text-xs font-semibold text-slate-700">
-              S{sl.line.stance ?? "·"} · L{sl.line.laydown ?? "·"} · T{sl.line.target ?? "·"} · B{sl.line.breakpoint ?? "·"}
+              S{sl.line.stance ?? "·"} · L{sl.line.laydown ?? "·"} · T{sl.line.target ?? "·"}
               {derivePinBoard(sl.line, sl.pins) != null && (
                 <span className="text-felt-700"> · pin {derivePinBoard(sl.line, sl.pins)}</span>
               )}

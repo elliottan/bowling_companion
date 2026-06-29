@@ -171,6 +171,60 @@ describe("buildLinePath", () => {
     const rLeft = buildLinePath({ laydown: 18, target: 10 }, "left")!;
     expect(rRight.points.final.x).toBeCloseTo(PLANE_W - rLeft.points.final.x, 4);
   });
+
+  it("final_distance sets the final point's depth", () => {
+    const r = buildLinePath({ laydown: 18, target: 10, final_distance: 62.6 }, "right")!;
+    expect(yToFeet(r.points.final.y)).toBeCloseTo(62.6, 1);
+  });
+
+  it("spareCurve ignores a stored breakpoint (legacy dormant data)", () => {
+    const line: LineSpec = { laydown: 18, target: 10, breakpoint: 6, breakpoint_distance: 42 };
+    const r = buildLinePath(line, "right", true)!;
+    expect(r.points.breakpoint).toBeNull(); // no breakpoint peg/marker
+    expect(r.d).not.toContain(" C ");       // not the breakpoint cubic
+  });
+
+  // Mid down-lane sample of a drawn path, in lane boards.
+  const midBoard = (d: string, hand: Handedness) => {
+    const pts = sampleBoards(d, hand);
+    return pts.reduce((a, p) => (Math.abs(p.feet - 45) < Math.abs(a.feet - 45) ? p : a), pts[0]).board;
+  };
+
+  it("spare curve responds to the laydown (tangent to the skid, not a fixed bow)", () => {
+    // Same target + final, different laydown → the hook leaves the target along the
+    // skid heading, so the whole curve shifts. (The old fixed-bow model did not.)
+    const a = buildLinePath({ laydown: 5, target: 4, final_board: 3, final_distance: 62.6 }, "right", true)!;
+    const b = buildLinePath({ laydown: 8, target: 4, final_board: 3, final_distance: 62.6 }, "right", true)!;
+    expect(Math.abs(midBoard(a.d, "right") - midBoard(b.d, "right"))).toBeGreaterThan(1);
+  });
+
+  it("spare curve never reverses: the gap to the focal is monotone (no S)", () => {
+    const line: LineSpec = { laydown: 6, target: 4, final_board: 3, final_distance: 62.6 };
+    const pts = sampleBoards(buildLinePath(line, "right", true)!.d, "right");
+    let prevGap = -Infinity;
+    for (const { board, feet } of pts) {
+      const gap = board - focalBoardAt(line, feet); // hook side = positive (RH)
+      expect(gap).toBeGreaterThanOrEqual(-0.2);     // never crosses anti-hook of focal
+      expect(gap).toBeGreaterThanOrEqual(prevGap - 0.2); // and only grows
+      prevGap = Math.max(prevGap, gap);
+    }
+  });
+
+  it("reachable spare ends exactly at the final point, miss = false", () => {
+    const r = buildLinePath({ laydown: 5, target: 4, final_board: 3, final_distance: 62.6 }, "right", true)!;
+    const pts = sampleBoards(r.d, "right");
+    expect(pts[pts.length - 1].board).toBeCloseTo(3, 1);
+    expect(r.miss).toBe(false);
+  });
+
+  it("unreachable spare (focal lands hook-side of the pin) draws straight + flags a miss", () => {
+    // laydown 2 / target 5: the straight focal lands ~board 18 at the pins, well
+    // hook-side (left, RH) of the board-3 pin — no hook can get back out there.
+    const r = buildLinePath({ laydown: 2, target: 5, final_board: 3, final_distance: 62.6 }, "right", true)!;
+    expect(r.d).not.toContain(" C ");
+    expect(r.d.match(/ L /g)!.length).toBe(2); // target, then the focal landing — straight
+    expect(r.miss).toBe(true);
+  });
 });
 
 // ADR-015 — the ball rides the focal line on the skid, peels off to the hook side
