@@ -28,15 +28,12 @@ export const HOOK_LENGTH_FT = 14;
 export const DRAW_FRONT_FEET = -4;      // approach, below the foul line
 export const DRAW_BACK_FEET = 63.4;     // just behind the back pin row (~62.6 ft)
 
-// Pin deck (ADR-018): the last 2.6 ft of real lane (head pin 60 ft → back row
-// ~62.6 ft) would project into a sliver at the top edge, so the deck reads as a
-// flat smear. Instead the vertical mapping has a knot at the head pin: the lane
-// below (≤60 ft) maps linearly, and the deck above (>60 ft) is expanded into a
-// tall band so it draws as a real, proportioned triangle. The mapping stays
-// monotonic and continuous, so the ball path still lands on the pins and the
-// aim math (in real feet) is untouched — only the rendering is rescaled.
-const DECK_KNEE_FT = 60;                // head pin: lane below, expanded deck above
-const DECK_KNEE_Y = 35;                 // plane-y of the head pin (deck base)
+// Vertical mapping is LINEAR (ADR-020): every straight line in real lane space
+// must render perfectly straight on screen, focal included. The old deck "knee"
+// (ADR-018) expanded the last 2.6 ft into a tall band, which kinked every line at
+// 60 ft — so it's gone. The pin deck is now a decorative, fixed-scale rack
+// (`LaneSurface`) anchored at the head-pin column, decoupled from feetToY: render
+// for appeal, keep the line math straight.
 
 // Flat-plane drawing dimensions (SVG user units). Length is compressed vs.
 // width for phone legibility. Tune in the visual pass — all geometry derives
@@ -60,26 +57,17 @@ export function xToBoard(x: number, hand: Handedness): number {
   return 1 + f * (LANE_BOARDS - 1);
 }
 
-/** Distance from foul line (ft) → y on the plane. Piecewise about the head-pin
- *  knot: the lane (≤60 ft) maps across [PLANE_L, DECK_KNEE_Y], the deck (>60 ft)
- *  expands across [DECK_KNEE_Y, 0]. Smaller feet → lower. Monotonic + continuous. */
+/** Distance from foul line (ft) → y on the plane. Linear across the whole extent
+ *  [DRAW_FRONT_FEET, DRAW_BACK_FEET] → [PLANE_L, 0]; smaller feet → lower. Linear
+ *  so a real-straight line draws straight (ADR-020). */
 export function feetToY(feet: number): number {
-  if (feet <= DECK_KNEE_FT) {
-    const f = (feet - DRAW_FRONT_FEET) / (DECK_KNEE_FT - DRAW_FRONT_FEET);
-    return PLANE_L - f * (PLANE_L - DECK_KNEE_Y);
-  }
-  const f = (feet - DECK_KNEE_FT) / (DRAW_BACK_FEET - DECK_KNEE_FT);
-  return DECK_KNEE_Y - f * DECK_KNEE_Y;
+  const f = (feet - DRAW_FRONT_FEET) / (DRAW_BACK_FEET - DRAW_FRONT_FEET);
+  return PLANE_L - f * PLANE_L;
 }
 
 /** Inverse of feetToY. */
 export function yToFeet(y: number): number {
-  if (y >= DECK_KNEE_Y) {
-    const f = (PLANE_L - y) / (PLANE_L - DECK_KNEE_Y);
-    return DRAW_FRONT_FEET + f * (DECK_KNEE_FT - DRAW_FRONT_FEET);
-  }
-  const f = (DECK_KNEE_Y - y) / DECK_KNEE_Y;
-  return DECK_KNEE_FT + f * (DRAW_BACK_FEET - DECK_KNEE_FT);
+  return DRAW_FRONT_FEET + ((PLANE_L - y) / PLANE_L) * (DRAW_BACK_FEET - DRAW_FRONT_FEET);
 }
 
 /** Real arrows form a chevron: the centre arrow (board 20) sits furthest
@@ -103,10 +91,9 @@ export interface LinePath {
    *  already lands more than a ball+pin radius hook-side of the pin, so no hook
    *  can reach it. Drives the miss indicator. Always false for strike lines. */
   miss: boolean;
-  /** Dotted guide: the straight laydown→target line extended down the lane, as a
-   *  sampled SVG path (a 2-segment polyline kinked at the 60 ft deck knee, since
-   *  `feetToY` bends there — a single screen line would read as a chord). The ball
-   *  rides it on the skid and can never cross right of it (ADR-014). */
+  /** Dotted guide: the straight laydown→target line extended down the lane, as an
+   *  SVG path. The ball rides it on the skid and can never cross right of it
+   *  (ADR-014). */
   focal: string | null;
   points: {
     laydown: PlanePoint;
@@ -151,13 +138,12 @@ export function buildLinePath(
   const finalFeet = line.final_distance ?? LANE_FEET;
   const final = pt(boardToX(finalBoard0, hand), feetToY(finalFeet));
 
-  // Focal guide: laydown→target extended across the whole drawing extent. Drawn
-  // as a polyline kinked at the 60 ft deck knee (feetToY bends there), so it reads
-  // as the true straight-in-board line, not a chord.
+  // Focal guide: laydown→target extended across the whole drawing extent. A plain
+  // straight segment now (feetToY is linear, ADR-020).
   const focalBoard = (ft: number) => skidBoardAt(foul, line.target!, ft);
   const focalPt = (ft: number) => pt(boardToX(focalBoard(ft), hand, true), feetToY(ft));
-  const fa = focalPt(DRAW_FRONT_FEET), fk = focalPt(LANE_FEET), fb = focalPt(DRAW_BACK_FEET);
-  const focal = `M ${fa.x} ${fa.y} L ${fk.x} ${fk.y} L ${fb.x} ${fb.y}`;
+  const fa = focalPt(DRAW_FRONT_FEET), fb = focalPt(DRAW_BACK_FEET);
+  const focal = `M ${fa.x} ${fa.y} L ${fb.x} ${fb.y}`;
 
   // Spares ignore any stored breakpoint (dormant legacy data) — they always take
   // the smooth-curve / straight branch, never the breakpoint cubic.

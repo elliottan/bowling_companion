@@ -86,6 +86,14 @@ describe("feet ↔ y", () => {
       expect(yToFeet(feetToY(ft))).toBeCloseTo(ft, 4);
     }
   });
+
+  it("is linear across the whole extent — no deck knee (ADR-020)", () => {
+    // The midpoint of any two feet maps to the midpoint of their y's. A non-linear
+    // mapping (the old 60 ft knee) would fail this and kink straight lines.
+    for (const [a, b] of [[0, 60], [40, 62.6], [DRAW_FRONT_FEET, DRAW_BACK_FEET]]) {
+      expect(feetToY((a + b) / 2)).toBeCloseTo((feetToY(a) + feetToY(b)) / 2, 5);
+    }
+  });
 });
 
 describe("arrow chevron", () => {
@@ -196,6 +204,11 @@ describe("buildLinePath", () => {
     const a = buildLinePath({ laydown: 5, target: 4, final_board: 3, final_distance: 62.6 }, "right", true)!;
     const b = buildLinePath({ laydown: 8, target: 4, final_board: 3, final_distance: 62.6 }, "right", true)!;
     expect(Math.abs(midBoard(a.d, "right") - midBoard(b.d, "right"))).toBeGreaterThan(1);
+  });
+
+  it("focal guide is a single straight segment (renders straight, ADR-020)", () => {
+    const r = buildLinePath({ laydown: 31, target: 22.5, final_board: 3, final_distance: 62.6 }, "right", true)!;
+    expect(r.focal!.match(/L/g)!.length).toBe(1); // one segment → no kink
   });
 
   it("spare skid stays on the focal until the hook starts (~38 ft)", () => {

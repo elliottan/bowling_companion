@@ -718,3 +718,37 @@ pin renders **red** when the straight ball ends more than a ball+pin radius
 - Drawn-curve invariants are covered by tests in `laneGeometry.test.ts`
   (skid-on-focal, never-right + unimodal + ends-at-pin, unreachable-off-the-back
   + miss, laydown responsiveness).
+
+## ADR-020 — Linear vertical mapping; pin deck is a decorative rack
+
+**Status:** accepted (2026-06). Supersedes the deck-knee portion of ADR-018.
+
+**Context.** ADR-018 gave `feetToY` a knot at the head pin (60 ft): the lane below
+mapped linearly, the deck above expanded into a tall band so the pins didn't
+smear. But that knot is a *bend in the vertical mapping*, so every line that is
+straight in real lane space — the focal especially, and the spare roll — rendered
+with a **kink at 60 ft** (worse under the bowler-view perspective). A straight
+ball line that visibly bends is wrong; straight-line fidelity wins over a
+perfectly-scaled deck.
+
+**Decision.**
+- **`feetToY`/`yToFeet` are linear** across the whole extent
+  `[DRAW_FRONT_FEET, DRAW_BACK_FEET] → [PLANE_L, 0]`. Every real-straight line now
+  draws straight; the focal is a single 2-point segment. This is the load-bearing
+  fix — it also benefits the strike line.
+- **The pin deck is a decorative rack** (`LaneSurface`), decoupled from `feetToY`.
+  Pin **columns** stay at the real (hand-mirrored) board, so the ball path lands
+  in the correct pin's column; pin **rows** are spread on their own fixed vertical
+  scale (`RACK_ROW_DY`), anchored at the head-pin row, instead of their true
+  (now-thin) 2.6 ft depth. "Render for appeal, keep the line math straight."
+
+**Consequences.**
+- The `DECK_KNEE_FT`/`DECK_KNEE_Y` knot and its piecewise `feetToY` are gone;
+  feet↔y round-trip and endpoint tests are unaffected (still monotonic, endpoints
+  preserved) and a new test asserts linearity (midpoint maps to midpoint).
+- Trade-off: because the deck is no longer expanded into the line space, a deep
+  spare's ball tip can sit a few plane-units short of the spread back-row glyph —
+  it stays in the right column, so it still reads as aiming at that pin.
+- The pin rack is smaller/tighter than the ADR-018 expanded deck; bowler-view
+  scaling restores most of the presence. Rack size (`RACK_ROW_DY`) is a pure
+  visual tune.

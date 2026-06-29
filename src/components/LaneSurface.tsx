@@ -1,12 +1,13 @@
 import type { Handedness, LineSpec, PinNumber } from "../types/bowling";
 import {
-  PLANE_W, PLANE_L, LANE_BOARDS, POCKET_BOARD,
+  PLANE_W, PLANE_L, LANE_BOARDS, LANE_FEET, POCKET_BOARD,
   boardToX, feetToY, buildLinePath, arrowFeet, DEFAULT_BREAKPOINT_FEET
 } from "../lib/laneGeometry";
 import { PIN_POSITIONS } from "../lib/pinGeometry";
 
 const ALL_PINS: PinNumber[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 const ARROW_BOARDS = [5, 10, 15, 20, 25, 30, 35]; // 7 arrows
+const RACK_ROW_DY = 4; // plane-units between decorative pin-deck rows
 
 interface LaneSurfaceProps {
   line: LineSpec | undefined;
@@ -83,20 +84,24 @@ export function LaneSurface({ line, hand, leave, showMarkers = true, animate }: 
         <circle cx={boardToX(17.5, hand)} cy={feetToY(60)} r="10" fill="url(#pocket-glow)" />
       )}
 
-      {/* Pin deck. Centres stay at the real board/feet (so the ball path lands on
-          them and the aim math is honest); only the glyph is sized for a legible,
-          proportioned rack. Standing leave pins read bright; the rest ghost out. */}
+      {/* Pin deck (ADR-020): a decorative, fixed-scale rack. Columns stay at the
+          real (mirrored) board so the ball path lands in the right pin's column;
+          rows are spread on their OWN vertical scale (RACK_ROW_DY), NOT feetToY —
+          the real deck is only 2.6 ft and feetToY is now linear, so it would smear.
+          The rack is anchored at the head-pin row. Standing leave pins read bright;
+          the rest ghost out. */}
       {deckOrder.map((p) => {
         const pos = PIN_POSITIONS[p];
         // PIN_POSITIONS is board-1-left; a right-hander's boards mirror about
         // centre so the 10-pin draws on the right (matching the line boards).
         const pinBoard = hand === "right" ? LANE_BOARDS + 1 - pos.board : pos.board;
+        const row = Math.round((pos.feet - LANE_FEET) / 0.866); // 0 = head pin … 3 = back row
         const cx = boardToX(pinBoard, hand);
-        const cy = feetToY(pos.feet);
+        const cy = feetToY(LANE_FEET) - row * RACK_ROW_DY;
         const standing = !hasLeave || leaveSet.has(p);
         // A standing pin the ball can't reach (focal lands too far off) reads red.
         const missed = standing && (path?.miss ?? false);
-        const r = 4.2;
+        const r = 3;
         return (
           <g key={p} data-role="pin" data-standing={standing ? "true" : "false"} data-missed={missed ? "true" : "false"}>
             <ellipse cx={cx} cy={cy + r * 0.55} rx={r * 0.95} ry={r * 0.4}

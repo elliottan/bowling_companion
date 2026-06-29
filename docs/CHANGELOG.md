@@ -2,6 +2,16 @@
 
 User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachangelog.com).
 
+## [Unreleased] — Straight lines: linear lane mapping + decorative pin rack (2026-06-30, ADR-020)
+
+### Fixed
+
+- **Lines now render perfectly straight.** The dashed focal line and the spare ball's roll no longer kink near the pins. The lane's vertical scale had a bend at the head pin (added to spread the pin deck) that made every straight line bend on screen — now the scale is linear, so straight is straight, in both top-down and bowler views.
+
+### Changed
+
+- **Pin deck is now a decorative rack.** With the lane scale linearised, the pins are drawn as a fixed-scale 4-3-2-1 triangle (in the correct columns) rather than being placed by true depth. The ball still lands in the right pin's column.
+
 ## [Unreleased] — Spare ball path: skid → hook → roll (2026-06-30, ADR-019)
 
 ### Changed
