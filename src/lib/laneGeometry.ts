@@ -145,7 +145,9 @@ export function buildLinePath(
   const target = pt(boardToX(line.target, hand), feetToY(arrowFeet(line.target)));
   const finalBoard0 = line.final_board ?? POCKET_BOARD;
   const finalFeet = line.final_distance ?? LANE_FEET;
-  const final = pt(boardToX(finalBoard0, hand), feetToY(finalFeet));
+  // raw: a guttering line's final sits off the lane (on the focal); the marker must
+  // follow it past the edge to match the drawn ball, not pin to board 39.
+  const final = pt(boardToX(finalBoard0, hand, true), feetToY(finalFeet));
 
   // Focal guide: laydown→target extended across the whole drawing extent. A plain
   // straight segment now (feetToY is linear, ADR-020).
@@ -230,7 +232,7 @@ export function buildLinePath(
   const Bb = line.breakpoint; // breakpoint board (solveLine keeps it hook-side of focal)
   const Bd = clamp(line.breakpoint_distance ?? DEFAULT_BREAKPOINT_FEET, dT + 2, LANE_FEET - 2);
   const Fb = finalBoard0, Fd = finalFeet;
-  const breakpoint = pt(boardToX(Bb, hand), feetToY(Bd));
+  const breakpoint = pt(boardToX(Bb, hand, true), feetToY(Bd)); // raw: may sit off-lane (gutter)
 
   // Hook-out Hermite from the arrows: slope focalSlope (tangent to skid) → 0 (flat
   // apex). Limit the start slope (Fritsch–Carlson) so the piece stays monotone — no
@@ -247,7 +249,6 @@ export function buildLinePath(
   const dM = (Bd + rs) / 2;
   const PeB = Bb + ((rs - dM) / (Fd - dM)) * (Fb - Bb); // roll-start board
 
-  const wall = dir * (foul - tgt) > 0; // out-and-back: focal is an anti-hook wall
   const board = (d: number): number => {
     let b: number;
     if (d <= hs) b = focalB(d);                                   // skid
@@ -260,8 +261,13 @@ export function buildLinePath(
     } else {                                                      // straight roll
       b = PeB + ((d - rs) / (Fd - rs)) * (Fb - PeB);
     }
-    if (!wall) return b;
-    return dir > 0 ? Math.max(b, focalB(d)) : Math.min(b, focalB(d)); // never gutter-side of focal
+    // The ball hooks to one side only; it can NEVER be on the anti-hook (gutter)
+    // side of the focal — always, for every aim (inside lines included). If the
+    // breakpoint/final the user set would need that, the ball rides the focal off
+    // the lane instead (ADR-021). Capped to the same off-lane bound as the pegs
+    // (solveLine) so the path and markers agree when the ball gutters.
+    const clamped = dir > 0 ? Math.max(b, focalB(d)) : Math.min(b, focalB(d));
+    return clamp(clamped, 1 - LOFT_MARGIN, 39 + LOFT_MARGIN);
   };
 
   const N = 160;
@@ -300,6 +306,10 @@ export function solveLine(line: LineSpec, hand: Handedness): LineSpec {
 
   const dir = hand === "right" ? 1 : -1;
   const clLane = (b: number) => clamp(b, 1, 39);
+  // Dependent pegs may sit off the lane on the hook side: an aim whose focal runs
+  // off the lane sends the ball into the gutter, and the breakpoint/final follow it
+  // off the edge rather than the line drawing something impossible (ADR-021).
+  const clLoft = (b: number) => clamp(b, 1 - LOFT_MARGIN, 39 + LOFT_MARGIN);
   const ld = clamp(ld0, 1 - LOFT_MARGIN, 39 + LOFT_MARGIN); // laydown may loft off-lane
   const tg = clLane(line.target);
 
@@ -322,13 +332,13 @@ export function solveLine(line: LineSpec, hand: Handedness): LineSpec {
     const minDrift = (Math.abs(tg - ld) * (bpd - arrowFeet(tg))) / (3 * arrowFeet(tg));
     bp = antiSide(bp, tg - dir * minDrift);
   }
-  bp = clLane(bp);
+  bp = clLoft(bp);
   out.breakpoint = r2(bp);
   out.breakpoint_distance = Math.round(bpd);
 
   // Final: hook-side of the breakpoint and of the focal at the pins. Materialised
   // only when set, or when the pocket default is no longer reachable.
-  const fb = clLane(hookSide(line.final_board ?? POCKET_BOARD, hookSide(bp, focal(LANE_FEET))));
+  const fb = clLoft(hookSide(line.final_board ?? POCKET_BOARD, hookSide(bp, focal(LANE_FEET))));
   if (line.final_board != null || dir * (fb - POCKET_BOARD) > 0) out.final_board = r2(fb);
 
   return out;

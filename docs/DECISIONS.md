@@ -786,10 +786,19 @@ want the same clean model for the strike, **plus** a user-controlled breakpoint
   leave still looks straight there. (`STRIKE_ROLL_START_FT` ≈ 54 ft is hardcoded
   for the roll, clamped between the breakpoint and the final; tweakable later.)
 
-**Invariants (kept):** never crosses right of the focal (out-and-back wall clamp +
-construction), one apex at the breakpoint (flat tangent → strict furthest point),
-tangent-smooth joins (max turn < 8°, tested), straight skid + straight roll,
-linear mapping.
+**Invariants (kept):** never crosses to the anti-hook side of the focal — clamped
+**always**, for every aim including inside lines whose focal already heads
+hook-side (the earlier "wall only on an out-and-back" exemption was a bug: it let
+the hook bulge gutter-side of the focal); one apex at the breakpoint (flat tangent
+→ strict furthest point); tangent-smooth joins (max turn < 8°, tested); straight
+skid + straight roll; linear mapping.
+
+**Guttering aims.** When the focal runs off the lane (a steep inside aim), the
+breakpoint/final the user set may be unreachable (anti-hook of the focal). Rather
+than draw an impossible line, `solveLine` slides the breakpoint/final off the lane
+onto the focal (allowed up to `LOFT_MARGIN`), and the drawn ball rides the focal
+into the gutter — markers (rendered raw, not pinned to board 39) and path agree.
+"If the ball ends in the gutter, so be it."
 
 **Consequences.**
 - `STRIKE_ROLL_START_FT` added; the strike branch of `buildLinePath` rewritten;

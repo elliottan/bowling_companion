@@ -8,6 +8,10 @@ User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachan
 
 - **Strike line uses the same clean curve as the spare** — straight skid, one smooth hook through the breakpoint, then a straight roll into the pocket — now on the linear lane mapping (no kinks). The breakpoint (board + distance) is the apex: the furthest-out point where the ball turns and hooks back. The line can never cross to the gutter side of the dashed focal, and the breakpoint clamps onto the focal if you drag it past it.
 
+### Fixed
+
+- **Inside aims no longer draw an impossible line.** When the aim already heads to the hook side, the curve previously bulged to the gutter side of the focal — physically impossible. The ball now always stays on the hook side of the focal, for every aim. If the aim is steep enough to send the ball off the lane, it rides the focal into the gutter and the breakpoint/final markers move off the lane with it, instead of drawing a broken line.
+
 ## [Unreleased] — Ball usage in stats (2026-06-30)
 
 ### Added

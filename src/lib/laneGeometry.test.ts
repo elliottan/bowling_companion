@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   PLANE_W, PLANE_L, LANE_BOARDS, DRAW_FRONT_FEET, DRAW_BACK_FEET, POCKET_BOARD,
   boardToX, feetToY, xToBoard, yToFeet,
-  buildLinePath, arrowFeet, skidBoardAt, DEFAULT_BREAKPOINT_FEET
+  buildLinePath, solveLine, arrowFeet, skidBoardAt, DEFAULT_BREAKPOINT_FEET
 } from "./laneGeometry";
 import type { Handedness, LineSpec } from "../types/bowling";
 
@@ -147,11 +147,14 @@ describe("buildLinePath", () => {
     expect(maxX).toBeCloseTo(r.points.breakpoint!.x, 1);
   });
 
-  it("for a left-hander the breakpoint is the strict leftmost point", () => {
-    const line: LineSpec = { laydown: 18, target: 10, breakpoint: 5, breakpoint_distance: 46 };
+  it("for a left-hander the breakpoint is the strict extreme point of the path", () => {
+    // LH out-and-back: focal heads anti-hook (higher board), the ball arcs out to
+    // the breakpoint apex (its furthest, highest board) then hooks back. With LH
+    // boards (1 = left), that apex is the max-x point — and no overshoot past it.
+    const line: LineSpec = { laydown: 18, target: 24, breakpoint: 30, breakpoint_distance: 46 };
     const r = buildLinePath(line, "left")!;
-    const minX = Math.min(...samplePath(r.d).map((p) => p.x));
-    expect(minX).toBeCloseTo(r.points.breakpoint!.x, 1);
+    const maxX = Math.max(...samplePath(r.d).map((p) => p.x));
+    expect(maxX).toBeCloseTo(r.points.breakpoint!.x, 1);
   });
 
   it("strike line ends with a straight roll into the final (ADR-021)", () => {
@@ -277,6 +280,37 @@ describe("buildLinePath — focal & monotonicity invariants (ADR-015)", () => {
     for (const { board, feet } of sampleBoards(buildLinePath(line, "left")!.d, "left")) {
       expect(board).toBeLessThanOrEqual(focalBoardAt(line, feet) + TOL);
     }
+  });
+
+  it("inside aims (focal heads hook-side) still never cross right of the focal", () => {
+    // Both are physically impossible lines (the focal already runs off the hook
+    // edge, so the breakpoint/final can't be reached) — the ball must ride the
+    // focal off the lane, never bulging to the anti-hook (gutter) side. RH.
+    for (const line of [
+      { laydown: 1, target: 10, breakpoint: 29.35, breakpoint_distance: 42, final_board: 39 },
+      { laydown: 2.5, target: 21.5, breakpoint: 39, breakpoint_distance: 45, final_board: 39 },
+    ] as LineSpec[]) {
+      const solved = solveLine(line, "right");
+      for (const { board, feet } of sampleBoards(buildLinePath(solved, "right")!.d, "right")) {
+        // Never anti-hook (right) of the focal while the focal is still on the lane.
+        // Past the edge the ball is already guttering — it rides the lane edge, not
+        // the off-lane focal extension.
+        if (focalBoardAt(solved, feet) <= 39)
+          expect(board).toBeGreaterThanOrEqual(focalBoardAt(solved, feet) - TOL);
+      }
+    }
+  });
+
+  it("a guttering aim moves the final off the lane and the ball path agrees", () => {
+    // Steep inside aim: the focal runs off the hook edge, so the ball gutters. The
+    // final re-clamps off the lane (onto the focal) and the drawn ball ends there —
+    // marker and path agree, no impossible line.
+    const solved = solveLine({ laydown: 2.5, target: 21.5, breakpoint: 39, breakpoint_distance: 45, final_board: 39 }, "right");
+    expect(solved.final_board!).toBeGreaterThan(39); // moved off the lane (into the gutter)
+    const r = buildLinePath(solved, "right")!;
+    const samples = sampleBoards(r.d, "right");
+    const last = samples[samples.length - 1];
+    expect(last.board).toBeCloseTo(xToBoard(r.points.final.x, "right"), 1); // ball ends at the final marker
   });
 
   it("RH: board is unimodal — falls to the apex then rises, never reversing back", () => {
