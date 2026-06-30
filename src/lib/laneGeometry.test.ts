@@ -154,6 +154,17 @@ describe("buildLinePath", () => {
     expect(minX).toBeCloseTo(r.points.breakpoint!.x, 1);
   });
 
+  it("strike line ends with a straight roll into the final (ADR-021)", () => {
+    const line: LineSpec = { laydown: 20, target: 15, breakpoint: 8, breakpoint_distance: 42, final_board: 17.5 };
+    const pts = sampleBoards(buildLinePath(line, "right")!.d, "right");
+    const at = (ft: number) => pts.reduce((a, p) => (Math.abs(p.feet - ft) < Math.abs(a.feet - ft) ? p : a), pts[0]);
+    // Boards over the roll phase (54→60 ft) advance linearly — a straight segment.
+    const a = at(55), b = at(57.5), c = at(59.5);
+    const slope1 = (b.board - a.board) / (b.feet - a.feet);
+    const slope2 = (c.board - b.board) / (c.feet - b.feet);
+    expect(slope2).toBeCloseTo(slope1, 1);
+  });
+
   it("final defaults to the pocket and is overridable", () => {
     const def = buildLinePath({ laydown: 18, target: 10 }, "right")!;
     expect(def.points.final.x).toBeCloseTo(boardToX(POCKET_BOARD, "right"), 2);

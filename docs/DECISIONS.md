@@ -752,3 +752,47 @@ perfectly-scaled deck.
 - The pin rack is smaller/tighter than the ADR-018 expanded deck; bowler-view
   scaling restores most of the presence. Rack size (`RACK_ROW_DY`) is a pure
   visual tune.
+
+## ADR-021 — Strike line: skid → hook → roll with a breakpoint apex
+
+**Status:** accepted (2026-06). Supersedes the two-cubic strike construction of
+ADR-013/ADR-015 (which predated the linear mapping). The focal-wall and
+drawability-solver invariants of ADR-014/ADR-015 are retained.
+
+**Context.** The spare line (ADR-019/ADR-020) was rebuilt as a clean straight
+skid → smooth hook → straight roll on a linear vertical mapping, with all the
+"never right of the focal / one apex / no kink" guarantees. The strike line still
+used the older two-cubic-Hermite construction and an eased (non-straight) tail. We
+want the same clean model for the strike, **plus** a user-controlled breakpoint
+(board + distance) — the spare has no breakpoint, the strike does.
+
+**Decision (resolved with the human in a grill session).**
+- **Focal = laydown→target** (as before); the breakpoint board + distance stay
+  independent user inputs.
+- **The breakpoint is the apex** — the single furthest-out point, drawn with a
+  **flat tangent** (db/dist = 0). It must sit on/left of the focal; `solveLine`
+  clamps it onto the focal if dragged right of it (kept — it's a constraint).
+- **Four phases**, one `board(ft)` sampled (linear `feetToY`):
+  1. **skid** — straight on the focal to the arrows.
+  2. **hook-out** — cubic Hermite leaving the arrows tangent to the skid
+     (Fritsch–Carlson-limited, monotone) into the breakpoint with a flat tangent.
+  3. **hook-in** — quadratic from the breakpoint (flat tangent) to the roll start,
+     control on the breakpoint's vertical at the span midpoint (the spare's
+     construction, mirrored about the breakpoint instead of the focal).
+  4. **roll** — straight into the final/pocket.
+- **Hook-start is the arrows, not a distance past them.** A skid that runs past
+  the arrows cannot absorb a steep focal into a flat apex without a corner (the
+  hook-out gets too short), so the strike hooks from the arrows — the tangent
+  leave still looks straight there. (`STRIKE_ROLL_START_FT` ≈ 54 ft is hardcoded
+  for the roll, clamped between the breakpoint and the final; tweakable later.)
+
+**Invariants (kept):** never crosses right of the focal (out-and-back wall clamp +
+construction), one apex at the breakpoint (flat tangent → strict furthest point),
+tangent-smooth joins (max turn < 8°, tested), straight skid + straight roll,
+linear mapping.
+
+**Consequences.**
+- `STRIKE_ROLL_START_FT` added; the strike branch of `buildLinePath` rewritten;
+  `solveLine` unchanged (breakpoint/final clamps still apply).
+- A new test asserts the straight roll tail; the existing no-kink, rightmost-apex,
+  passes-through-every-peg and focal-monotonicity tests stay green.

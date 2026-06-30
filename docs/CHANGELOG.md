@@ -2,6 +2,12 @@
 
 User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachangelog.com).
 
+## [Unreleased] — Strike line rebuilt to match the spare (2026-06-30, ADR-021)
+
+### Changed
+
+- **Strike line uses the same clean curve as the spare** — straight skid, one smooth hook through the breakpoint, then a straight roll into the pocket — now on the linear lane mapping (no kinks). The breakpoint (board + distance) is the apex: the furthest-out point where the ball turns and hooks back. The line can never cross to the gutter side of the dashed focal, and the breakpoint clamps onto the focal if you drag it past it.
+
 ## [Unreleased] — Ball usage in stats (2026-06-30)
 
 ### Added

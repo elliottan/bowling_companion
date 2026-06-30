@@ -20,6 +20,15 @@ export const BALL_PIN_BOARDS = 6.37;
 export const HOOK_START_FT = 38;
 export const HOOK_LENGTH_FT = 14;
 
+// Strike hook shape (ADR-021), hardcoded for now. The skid is straight on the
+// focal to the arrows; the hook leaves the arrows tangent to the skid, arcs out to
+// the breakpoint apex, hooks back, then rolls straight from STRIKE_ROLL_START_FT
+// into the pocket. (A skid that runs *past* the arrows can't absorb a steep focal
+// into a flat apex without a corner, so the strike hooks from the arrows — the
+// tangent leave still looks straight there.) Unlike the spare, the breakpoint
+// board + distance are user inputs (the apex), not derived.
+export const STRIKE_ROLL_START_FT = 54;
+
 // Vertical drawing extent, in feet measured from the foul line. We draw a short
 // approach BELOW the foul line (negative) so the laydown handle isn't jammed
 // against the bottom edge, and extend ABOVE the head pin so the full pin deck
@@ -204,48 +213,61 @@ export function buildLinePath(
     return { d, focal, miss: false, points: { laydown, target, hookStart: null, breakpoint: null, final } };
   }
 
-  const finalBoard = line.final_board ?? POCKET_BOARD;
-  const tgt = line.target; // captured (non-null) for the closures below
-  const dT = arrowFeet(line.target);
-  const bpd = clamp(line.breakpoint_distance ?? DEFAULT_BREAKPOINT_FEET, dT + 0.5, LANE_FEET - 0.5);
-  const breakpoint = pt(boardToX(line.breakpoint, hand), feetToY(bpd));
-
-  // Board as a function of down-lane distance. The skid rides the focal aim
-  // straight to the arrows; the hook then *leaves the arrows tangent to the skid*
-  // (no corner), arcs through the breakpoint apex (flat tangent → the furthest
-  // point) and eases to ~straight at the pins — two monotone cubic-Hermite pieces.
-  // The whole curve is clamped to the hook side of the focal, so it can never cross
-  // to the gutter side of the aim. The solver carries the apex far enough past the
-  // aim that the tangent leave stays smooth (ADR-015).
+  // Strike line (ADR-021): the spare's straight skid → smooth hook → straight roll,
+  // with a user breakpoint as a flat-tangent apex in the middle. Four phases as one
+  // board(ft) function, sampled (linear feetToY → straight renders straight):
+  //   skid     — straight on the focal to the arrows
+  //   hook-out — cubic Hermite: leaves the arrows tangent to the focal, arrives at
+  //              the breakpoint with a flat tangent (the apex / furthest point)
+  //   hook-in  — quadratic from the breakpoint (flat tangent) toward the roll start,
+  //              control on the breakpoint's vertical at the span midpoint (spare-style)
+  //   roll     — straight into the final/pocket
   const dir = hand === "right" ? 1 : -1;
+  const tgt = line.target; // captured (non-null) for the closures below
+  const dT = arrowFeet(tgt);
+  const focalB = (d: number) => skidBoardAt(foul, tgt, d);
   const focalSlope = (tgt - foul) / dT; // boards per ft along the skid
-  const D = [dT, bpd, LANE_FEET];
-  const V = [tgt, line.breakpoint, finalBoard];
-  const secA = (V[1] - V[0]) / (D[1] - D[0]);
-  const secB = (V[2] - V[1]) / (D[2] - D[1]);
-  // Fritsch–Carlson slope limiting (|slope| ≤ 3×secant, zero across an extremum)
-  // keeps each Hermite piece monotone; the apex tangent is flat.
+  const Bb = line.breakpoint; // breakpoint board (solveLine keeps it hook-side of focal)
+  const Bd = clamp(line.breakpoint_distance ?? DEFAULT_BREAKPOINT_FEET, dT + 2, LANE_FEET - 2);
+  const Fb = finalBoard0, Fd = finalFeet;
+  const breakpoint = pt(boardToX(Bb, hand), feetToY(Bd));
+
+  // Hook-out Hermite from the arrows: slope focalSlope (tangent to skid) → 0 (flat
+  // apex). Limit the start slope (Fritsch–Carlson) so the piece stays monotone — no
+  // overshoot past the apex, and no crossing right of the focal.
+  const hs = dT, bS = tgt; // skid ends on the arrows (focalB(dT) === tgt)
   const fc = (m: number, s: number) => (s === 0 || m * s < 0 ? 0 : Math.sign(m) * Math.min(Math.abs(m), 3 * Math.abs(s)));
-  const M = [fc(focalSlope, secA), 0, fc(secB, secB)];
-  // The focal is an anti-hook wall only on an out-and-back skid (the ball goes out,
-  // then hooks back). When the aim already heads hook-side it runs off the gutter
-  // edge and imposes no wall.
-  const wall = dir * (foul - tgt) > 0;
+  const mOut = fc(focalSlope, (Bb - bS) / (Bd - hs));
+
+  // Hook-in + roll (spare-style about the breakpoint's vertical): control on the
+  // vertical through the breakpoint at the span midpoint → flat tangent at the
+  // breakpoint and feet linear in t; the roll start sits on the line control→final,
+  // so the straight roll joins tangentially.
+  const rs = clamp(STRIKE_ROLL_START_FT, Bd + 1, Fd - 1);
+  const dM = (Bd + rs) / 2;
+  const PeB = Bb + ((rs - dM) / (Fd - dM)) * (Fb - Bb); // roll-start board
+
+  const wall = dir * (foul - tgt) > 0; // out-and-back: focal is an anti-hook wall
   const board = (d: number): number => {
-    if (d <= dT) return skidBoardAt(foul, tgt, d); // straight skid on the focal aim
-    const i = d <= bpd ? 0 : 1;
-    const h = D[i + 1] - D[i], t = (d - D[i]) / h, t2 = t * t, t3 = t2 * t;
-    const hook = V[i] * (2 * t3 - 3 * t2 + 1) + M[i] * h * (t3 - 2 * t2 + t) + V[i + 1] * (-2 * t3 + 3 * t2) + M[i + 1] * h * (t3 - t2);
-    if (!wall) return hook;
-    const f = skidBoardAt(foul, tgt, d);
-    return dir > 0 ? Math.max(hook, f) : Math.min(hook, f); // never gutter-side of the aim
+    let b: number;
+    if (d <= hs) b = focalB(d);                                   // skid
+    else if (d <= Bd) {                                           // hook-out Hermite
+      const h = Bd - hs, t = (d - hs) / h, t2 = t * t, t3 = t2 * t;
+      b = bS * (2 * t3 - 3 * t2 + 1) + mOut * h * (t3 - 2 * t2 + t) + Bb * (-2 * t3 + 3 * t2);
+    } else if (d <= rs) {                                         // hook-in quadratic
+      const t = (d - Bd) / (rs - Bd), v = 1 - t;
+      b = v * v * Bb + 2 * v * t * Bb + t * t * PeB;
+    } else {                                                      // straight roll
+      b = PeB + ((d - rs) / (Fd - rs)) * (Fb - PeB);
+    }
+    if (!wall) return b;
+    return dir > 0 ? Math.max(b, focalB(d)) : Math.min(b, focalB(d)); // never gutter-side of focal
   };
 
-  // Sample uniformly down-lane (uniform spacing avoids a spurious kink at a knot).
   const N = 160;
   let d = `M ${laydown.x} ${laydown.y}`;
   for (let k = 1; k <= N; k++) {
-    const dist = (LANE_FEET * k) / N;
+    const dist = (Fd * k) / N;
     const p = pt(boardToX(board(dist), hand, true), feetToY(dist));
     d += ` L ${p.x} ${p.y}`;
   }
