@@ -94,10 +94,11 @@ function App() {
 
   // iOS standalone PWA keeps 100dvh at the pre-rotation height after a
   // portrait→landscape→portrait round-trip, leaving the nav floating with blank
-  // space below. Normal render uses the 100dvh fallback; only after a rotation do
-  // we pin the root to the freshly-measured innerHeight (iOS reports a stale
-  // value synchronously on orientationchange, so we re-read on the next frames
-  // and once more after a short delay). The keyboard doesn't change innerHeight
+  // space below. Normal render uses the 100dvh fallback; once anything resizes we
+  // pin the root to the freshly-measured innerHeight. `orientationchange` reads a
+  // stale innerHeight on iOS even after a few frames, so the authoritative update
+  // is the `resize` event, which fires only once the new viewport is final — that
+  // is what recovers the rotate-back case. The keyboard doesn't change innerHeight
   // (interactive-widget=overlays-content), so this never fights the keyboard fix.
   useEffect(() => {
     const setAppHeight = () => {
@@ -107,14 +108,17 @@ function App() {
     };
     const onOrientation = () => {
       setKeyboardOpen(false);
-      // Fast path once the browser has painted the new orientation, plus a
-      // timer fallback (iOS reports a stale innerHeight synchronously, and the
-      // timer still fires if rAF is throttled).
+      // Belt-and-suspenders: nudge on the next painted frames + a timer, in case
+      // `resize` is coalesced or skipped; `resize` below is the real fix.
       requestAnimationFrame(() => requestAnimationFrame(setAppHeight));
       setTimeout(setAppHeight, 300);
     };
     window.addEventListener("orientationchange", onOrientation);
-    return () => window.removeEventListener("orientationchange", onOrientation);
+    window.addEventListener("resize", setAppHeight);
+    return () => {
+      window.removeEventListener("orientationchange", onOrientation);
+      window.removeEventListener("resize", setAppHeight);
+    };
   }, []);
 
   // On launch, if today has an unfinished game, jump straight into it.
