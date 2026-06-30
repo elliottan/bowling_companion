@@ -795,10 +795,11 @@ skid + straight roll; linear mapping.
 
 **Guttering aims.** When the focal runs off the lane (a steep inside aim), the
 breakpoint/final the user set may be unreachable (anti-hook of the focal). Rather
-than draw an impossible line, `solveLine` slides the breakpoint/final off the lane
-onto the focal (allowed up to `LOFT_MARGIN`), and the drawn ball rides the focal
-into the gutter — markers (rendered raw, not pinned to board 39) and path agree.
-"If the ball ends in the gutter, so be it."
+than draw an impossible line, the dependent pegs **cap at the lane edge** (the
+furthest on-lane point, via `clLane`) and the drawn ball is clamped to the lane
+[1, 39] — it rides the edge instead of flying off-screen. Keeping everything on the
+lane means the peg handles stay reachable (an off-lane peg's handle renders past
+the edge and can't be grabbed back).
 
 **Consequences.**
 - `STRIKE_ROLL_START_FT` added; the strike branch of `buildLinePath` rewritten;

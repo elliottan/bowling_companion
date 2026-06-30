@@ -10,7 +10,7 @@ User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachan
 
 ### Fixed
 
-- **Inside aims no longer draw an impossible line.** When the aim already heads to the hook side, the curve previously bulged to the gutter side of the focal — physically impossible. The ball now always stays on the hook side of the focal, for every aim. If the aim is steep enough to send the ball off the lane, it rides the focal into the gutter and the breakpoint/final markers move off the lane with it, instead of drawing a broken line.
+- **Inside aims no longer draw an impossible line.** When the aim already heads to the hook side, the curve previously bulged to the gutter side of the focal — physically impossible. The ball now always stays on the hook side of the focal, for every aim. If the aim is steep enough to send the ball off the lane, the ball rides the lane edge and the breakpoint/final cap at the edge — everything stays on the lane so the handles remain draggable (they no longer fly off-screen).
 
 ## [Unreleased] — Ball usage in stats (2026-06-30)
 

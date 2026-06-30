@@ -301,16 +301,17 @@ describe("buildLinePath — focal & monotonicity invariants (ADR-015)", () => {
     }
   });
 
-  it("a guttering aim moves the final off the lane and the ball path agrees", () => {
-    // Steep inside aim: the focal runs off the hook edge, so the ball gutters. The
-    // final re-clamps off the lane (onto the focal) and the drawn ball ends there —
-    // marker and path agree, no impossible line.
+  it("a guttering aim caps the final on the lane edge and the ball stays on the lane", () => {
+    // Steep inside aim: the focal runs off the hook edge. The final/breakpoint cap
+    // at the lane edge (furthest on-lane point) so their handles stay reachable, and
+    // the whole drawn ball stays on the lane (rides the edge) — nothing flies off.
     const solved = solveLine({ laydown: 2.5, target: 21.5, breakpoint: 39, breakpoint_distance: 45, final_board: 39 }, "right");
-    expect(solved.final_board!).toBeGreaterThan(39); // moved off the lane (into the gutter)
-    const r = buildLinePath(solved, "right")!;
-    const samples = sampleBoards(r.d, "right");
-    const last = samples[samples.length - 1];
-    expect(last.board).toBeCloseTo(xToBoard(r.points.final.x, "right"), 1); // ball ends at the final marker
+    expect(solved.final_board!).toBeLessThanOrEqual(39);
+    expect(solved.breakpoint!).toBeLessThanOrEqual(39);
+    for (const { board } of sampleBoards(buildLinePath(solved, "right")!.d, "right")) {
+      expect(board).toBeLessThanOrEqual(39.001);
+      expect(board).toBeGreaterThanOrEqual(0.999);
+    }
   });
 
   it("RH: board is unimodal — falls to the apex then rises, never reversing back", () => {
