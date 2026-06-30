@@ -17,6 +17,25 @@ body {
   overscroll-behavior: none;
 }
 
+/*
+ * App-native feel: nothing is text-selectable and iOS shows no long-press
+ * callout/highlight. Form controls keep selection so users can still edit and
+ * position the caret in inputs/textareas.
+ */
+html {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+input,
+textarea,
+[contenteditable="true"] {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
 :root {
   font-family:
     Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
