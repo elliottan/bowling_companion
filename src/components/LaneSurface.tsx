@@ -1,7 +1,7 @@
 import type { Handedness, LineSpec, PinNumber } from "../types/bowling";
 import {
   PLANE_W, PLANE_L, LANE_BOARDS, LANE_FEET, POCKET_BOARD,
-  boardToX, feetToY, buildLinePath, arrowFeet, DEFAULT_BREAKPOINT_FEET
+  boardToX, feetToY, xToBoard, yToFeet, buildLinePath, arrowFeet
 } from "../lib/laneGeometry";
 import { PIN_POSITIONS } from "../lib/pinGeometry";
 
@@ -165,7 +165,8 @@ export function LaneSurface({ line, hand, leave, showMarkers = true, animate }: 
           {path.points.breakpoint && (
             <Marker
               p={path.points.breakpoint}
-              label={`Bkpt ${line?.breakpoint} · ${line?.breakpoint_distance ?? DEFAULT_BREAKPOINT_FEET}ft`}
+              // Derived: the curve's rightmost point (ADR-022), not a stored input.
+              label={`Bkpt ${Math.round(xToBoard(path.points.breakpoint.x, hand) * 2) / 2} · ${Math.round(yToFeet(path.points.breakpoint.y))}ft`}
             />
           )}
           <Marker p={path.points.final} label={`Final ${line?.final_board ?? POCKET_BOARD}`} />

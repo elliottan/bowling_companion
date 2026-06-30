@@ -2,6 +2,16 @@
 
 User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachangelog.com).
 
+## [Unreleased] — Strike line uses the spare curve; breakpoint is derived (2026-07-01, ADR-022)
+
+### Fixed
+
+- **No more S-shaped strike line.** The strike line previously could curve right then left between the target and the breakpoint (impossible for a real ball) when the breakpoint sat off the aim line. The strike now draws the exact same clean, one-direction curve as the spare — straight skid, single smooth hook, straight roll — so it can never wiggle.
+
+### Changed
+
+- **Breakpoint is now read-only — the rightmost point of the curve.** Instead of dragging the breakpoint to shape the line, the breakpoint board/distance are shown as a read-out of the curve's furthest-out point. You shape the line with laydown, target and final.
+
 ## [Unreleased] — Strike line rebuilt to match the spare (2026-06-30, ADR-021)
 
 ### Changed

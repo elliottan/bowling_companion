@@ -806,3 +806,37 @@ the edge and can't be grabbed back).
   `solveLine` unchanged (breakpoint/final clamps still apply).
 - A new test asserts the straight roll tail; the existing no-kink, rightmost-apex,
   passes-through-every-peg and focal-monotonicity tests stay green.
+
+## ADR-022 — Strike line = the spare curve; breakpoint is the derived rightmost point
+
+**Status:** accepted (2026-07). Supersedes ADR-021's construction (breakpoint as a
+flat-tangent apex input). Keeps ADR-020 (linear mapping) and the spare curve
+(ADR-019).
+
+**Context.** ADR-021 made the breakpoint a user-set flat-tangent apex with a
+Fritsch–Carlson hook-out. When the breakpoint sat off the laydown→target line
+(e.g. inside-of-target), the hook-out had to leave the skid heading one way and
+flatten at the breakpoint heading another — producing an **S** (the curve went
+right, then left, on the same target→breakpoint segment). A straight ball cannot
+do that. The breakpoint-as-shaping-input was the root cause.
+
+**Decision.** The strike line uses the **exact same curve as the spare**
+(skid on the focal → one quadratic hook, control on the focal at the span midpoint
+→ straight roll; unreachable finals ride the focal). It is monotone by
+construction — never crosses to the anti-hook side of the focal, never reverts, no
+S, no kink. The **breakpoint is derived**: the furthest-out (rightmost RH / leftmost
+LH) point of that curve, surfaced as a read-only marker + readout (board · distance).
+It is no longer a shaping input and has no drag handle. The strike curve is capped
+to the lane [1, 39] (rides the edge if it would gutter) so handles stay reachable;
+the spare may still run off the back. A strike line is distinguished from a bare
+straight line by carrying a (now nominal) `breakpoint` value.
+
+**Consequences.**
+- `buildLinePath` shares one curve for spare + strike; the ADR-021 Hermite/flat-apex
+  branch and `STRIKE_ROLL_START_FT` are removed.
+- `LaneVisualizer` shows the breakpoint as read-only `ReadField`s (no Bkpt drag
+  handle); `LaneSurface` labels the breakpoint marker from the derived point.
+- `solveLine`'s breakpoint clamps are now moot for the shape (kept harmlessly; the
+  stored value only flags strike mode). Hook timing is still the spare's hardcoded
+  `HOOK_START_FT` / `HOOK_LENGTH_FT`; a line that crosses too much for that fixed
+  hook gutters (rides the edge), which is physically correct.

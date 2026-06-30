@@ -20,14 +20,6 @@ export const BALL_PIN_BOARDS = 6.37;
 export const HOOK_START_FT = 38;
 export const HOOK_LENGTH_FT = 14;
 
-// Strike hook shape (ADR-021), hardcoded for now. The skid is straight on the
-// focal to the arrows; the hook leaves the arrows tangent to the skid, arcs out to
-// the breakpoint apex, hooks back, then rolls straight from STRIKE_ROLL_START_FT
-// into the pocket. (A skid that runs *past* the arrows can't absorb a steep focal
-// into a flat apex without a corner, so the strike hooks from the arrows — the
-// tangent leave still looks straight there.) Unlike the spare, the breakpoint
-// board + distance are user inputs (the apex), not derived.
-export const STRIKE_ROLL_START_FT = 54;
 
 // Vertical drawing extent, in feet measured from the foul line. We draw a short
 // approach BELOW the foul line (negative) so the laydown handle isn't jammed
@@ -154,128 +146,74 @@ export function buildLinePath(
   const fa = focalPt(DRAW_FRONT_FEET), fb = focalPt(DRAW_BACK_FEET);
   const focal = `M ${fa.x} ${fa.y} L ${fb.x} ${fb.y}`;
 
-  // Spares ignore any stored breakpoint (dormant legacy data) — they always take
-  // the smooth-curve / straight branch, never the breakpoint cubic.
-  if (spareCurve || line.breakpoint == null) {
-    if (spareCurve) {
-      // Spare ball (ADR-019): three phases as a board(ft) function, sampled
-      // uniformly down-lane so it renders smoothly through the 60 ft deck knee.
-      //   skid  — straight on the focal until HOOK_START_FT
-      //   hook  — one quadratic over HOOK_LENGTH_FT, control on the focal at the
-      //           span midpoint (so feet is linear in t and angularity is emergent)
-      //   roll  — straight from the hook's end into the pin
-      // Both joins are tangent-continuous (no kink), and because the skid and the
-      // control sit on the focal while the pin sits hook-side, the whole path is a
-      // convex blend of on-focal and hook-side points: it can never cross right of
-      // the focal and never reverts its turn (structural, not clamped).
-      const dir = hand === "right" ? 1 : -1;
-      const fB = finalBoard0, fF = finalFeet;
-      const focalAtFinal = focalBoard(fF);
-      // Pin on the gutter side of the focal ⇒ no leftward hook can reach it: ride
-      // the focal straight off the back, flag a miss if it ends >1 ball+pin radius
-      // off the pin (else the straight ball still clips it).
-      if (dir * (fB - focalAtFinal) <= 0) {
-        const miss = Math.abs(focalAtFinal - fB) > BALL_PIN_BOARDS;
-        let d = `M ${laydown.x} ${laydown.y}`;
-        const N = 120;
-        for (let k = 1; k <= N; k++) {
-          const ft = (DRAW_BACK_FEET * k) / N;
-          d += ` L ${focalPt(ft).x} ${focalPt(ft).y}`;
-        }
-        return { d, focal, miss, points: { laydown, target, hookStart: null, breakpoint: null, final } };
-      }
+  const dir = hand === "right" ? 1 : -1;
+  // A strike line is a non-spare line that carries a breakpoint. It uses the SAME
+  // curve as the spare (ADR-022); its breakpoint is *derived* — the furthest-out
+  // point of that curve — not a shaping input.
+  const isStrike = !spareCurve && line.breakpoint != null;
 
-      const dS = clamp(HOOK_START_FT, arrowFeet(line.target) + 1, fF - 2);
-      const dE = clamp(dS + HOOK_LENGTH_FT, dS + 1, fF - 0.5);
-      const dM = (dS + dE) / 2;
-      const Psb = focalBoard(dS);          // hook start (on focal)
-      const Cb = focalBoard(dM);           // control (on focal, span midpoint)
-      const u = (dE - dM) / (fF - dM);     // roll start sits on the line C→pin…
-      const Peb = Cb + u * (fB - Cb);      // …at the hook-end distance dE
-      const board = (ft: number): number => {
-        if (ft <= dS) return focalBoard(ft);                 // skid
-        if (ft <= dE) {                                       // hook (feet linear in t)
-          const t = (ft - dS) / (dE - dS), v = 1 - t;
-          return v * v * Psb + 2 * v * t * Cb + t * t * Peb;
-        }
-        return Peb + ((ft - dE) / (fF - dE)) * (fB - Peb);    // roll (straight to pin)
-      };
-      let d = `M ${laydown.x} ${laydown.y}`;
-      const N = 160;
-      for (let k = 1; k <= N; k++) {
-        const ft = (fF * k) / N;
-        const p = pt(boardToX(board(ft), hand, true), feetToY(ft));
-        d += ` L ${p.x} ${p.y}`;
-      }
-      return { d, focal, miss: false, points: { laydown, target, hookStart: null, breakpoint: null, final } };
-    }
+  // No curve requested (a bare strike line with no breakpoint): straight to final.
+  if (!spareCurve && !isStrike) {
     const d = `M ${laydown.x} ${laydown.y} L ${target.x} ${target.y} L ${final.x} ${final.y}`;
     return { d, focal, miss: false, points: { laydown, target, hookStart: null, breakpoint: null, final } };
   }
 
-  // Strike line (ADR-021): the spare's straight skid → smooth hook → straight roll,
-  // with a user breakpoint as a flat-tangent apex in the middle. Four phases as one
-  // board(ft) function, sampled (linear feetToY → straight renders straight):
-  //   skid     — straight on the focal to the arrows
-  //   hook-out — cubic Hermite: leaves the arrows tangent to the focal, arrives at
-  //              the breakpoint with a flat tangent (the apex / furthest point)
-  //   hook-in  — quadratic from the breakpoint (flat tangent) toward the roll start,
-  //              control on the breakpoint's vertical at the span midpoint (spare-style)
-  //   roll     — straight into the final/pocket
-  const dir = hand === "right" ? 1 : -1;
-  const tgt = line.target; // captured (non-null) for the closures below
-  const dT = arrowFeet(tgt);
-  const focalB = (d: number) => skidBoardAt(foul, tgt, d);
-  const focalSlope = (tgt - foul) / dT; // boards per ft along the skid
-  const Bb = line.breakpoint; // breakpoint board (solveLine keeps it hook-side of focal)
-  const Bd = clamp(line.breakpoint_distance ?? DEFAULT_BREAKPOINT_FEET, dT + 2, LANE_FEET - 2);
-  const Fb = finalBoard0, Fd = finalFeet;
-  const breakpoint = pt(boardToX(Bb, hand), feetToY(Bd));
+  // Spare + strike share one curve (ADR-022): straight skid on the focal until
+  // HOOK_START_FT, one quadratic over HOOK_LENGTH_FT (control on the focal at the
+  // span midpoint → feet linear in t), then a straight roll into the final. The
+  // skid and control sit on the focal and the final is hook-side, so the path is a
+  // convex blend of on-focal + hook-side points: it can never cross to the anti-hook
+  // side of the focal and never reverts its turn — no S, no kink. If the final sits
+  // gutter-side of the focal it's unreachable: ride the focal straight off the back
+  // (spare flags a miss). The strike caps the curve to the lane and marks the
+  // breakpoint at the furthest-out (rightmost RH / leftmost LH) point.
+  const fB = finalBoard0, fF = finalFeet;
+  const focalAtFinal = focalBoard(fF);
+  const reachable = dir * (fB - focalAtFinal) > 0;
 
-  // Hook-out Hermite from the arrows: slope focalSlope (tangent to skid) → 0 (flat
-  // apex). Limit the start slope (Fritsch–Carlson) so the piece stays monotone — no
-  // overshoot past the apex, and no crossing right of the focal.
-  const hs = dT, bS = tgt; // skid ends on the arrows (focalB(dT) === tgt)
-  const fc = (m: number, s: number) => (s === 0 || m * s < 0 ? 0 : Math.sign(m) * Math.min(Math.abs(m), 3 * Math.abs(s)));
-  const mOut = fc(focalSlope, (Bb - bS) / (Bd - hs));
+  let board: (ft: number) => number;
+  let end: number;
+  let miss = false;
+  if (!reachable) {
+    miss = Math.abs(focalAtFinal - fB) > BALL_PIN_BOARDS;
+    board = (ft) => focalBoard(ft);
+    end = DRAW_BACK_FEET;
+  } else {
+    const dS = clamp(HOOK_START_FT, arrowFeet(line.target) + 1, fF - 2);
+    const dE = clamp(dS + HOOK_LENGTH_FT, dS + 1, fF - 0.5);
+    const dM = (dS + dE) / 2;
+    const Psb = focalBoard(dS);        // hook start (on focal)
+    const Cb = focalBoard(dM);         // control (on focal, span midpoint)
+    const u = (dE - dM) / (fF - dM);   // roll start on the line control→final…
+    const Peb = Cb + u * (fB - Cb);    // …at the hook-end distance dE
+    board = (ft) => {
+      if (ft <= dS) return focalBoard(ft);                 // skid
+      if (ft <= dE) {                                       // hook (feet linear in t)
+        const t = (ft - dS) / (dE - dS), v = 1 - t;
+        return v * v * Psb + 2 * v * t * Cb + t * t * Peb;
+      }
+      return Peb + ((ft - dE) / (fF - dE)) * (fB - Peb);    // roll (straight to final)
+    };
+    end = fF;
+  }
 
-  // Hook-in + roll (spare-style about the breakpoint's vertical): control on the
-  // vertical through the breakpoint at the span midpoint → flat tangent at the
-  // breakpoint and feet linear in t; the roll start sits on the line control→final,
-  // so the straight roll joins tangentially.
-  const rs = clamp(STRIKE_ROLL_START_FT, Bd + 1, Fd - 1);
-  const dM = (Bd + rs) / 2;
-  const PeB = Bb + ((rs - dM) / (Fd - dM)) * (Fb - Bb); // roll-start board
-
-  const board = (d: number): number => {
-    let b: number;
-    if (d <= hs) b = focalB(d);                                   // skid
-    else if (d <= Bd) {                                           // hook-out Hermite
-      const h = Bd - hs, t = (d - hs) / h, t2 = t * t, t3 = t2 * t;
-      b = bS * (2 * t3 - 3 * t2 + 1) + mOut * h * (t3 - 2 * t2 + t) + Bb * (-2 * t3 + 3 * t2);
-    } else if (d <= rs) {                                         // hook-in quadratic
-      const t = (d - Bd) / (rs - Bd), v = 1 - t;
-      b = v * v * Bb + 2 * v * t * Bb + t * t * PeB;
-    } else {                                                      // straight roll
-      b = PeB + ((d - rs) / (Fd - rs)) * (Fb - PeB);
-    }
-    // The ball hooks to one side only; it can NEVER be on the anti-hook (gutter)
-    // side of the focal — always, for every aim (inside lines included). A guttering
-    // aim would carry the focal off the lane; the ball rides the lane edge instead
-    // of flying off-screen, so it stays drawable and the pegs stay reachable.
-    const clamped = dir > 0 ? Math.max(b, focalB(d)) : Math.min(b, focalB(d));
-    return clamp(clamped, 1, 39);
-  };
-
+  // Strikes stay on the lane (ride the edge rather than gutter off-screen); spares
+  // may run off the back.
+  const cap = (b: number) => (isStrike ? clamp(b, 1, 39) : b);
+  const moreOut = (a: number, b: number) => (dir > 0 ? a < b : a > b); // furthest-out
   const N = 160;
   let d = `M ${laydown.x} ${laydown.y}`;
+  let extB = cap(focalBoard(0)), extFt = 0; // start at the laydown
   for (let k = 1; k <= N; k++) {
-    const dist = (Fd * k) / N;
-    const p = pt(boardToX(board(dist), hand, true), feetToY(dist));
+    const ft = (end * k) / N;
+    const b = cap(board(ft));
+    if (moreOut(b, extB)) { extB = b; extFt = ft; }
+    const p = pt(boardToX(b, hand, true), feetToY(ft));
     d += ` L ${p.x} ${p.y}`;
   }
 
-  return { d, focal, miss: false, points: { laydown, target, hookStart: null, breakpoint, final } };
+  const breakpoint = isStrike ? pt(boardToX(extB, hand, true), feetToY(extFt)) : null;
+  return { d, focal, miss, points: { laydown, target, hookStart: null, breakpoint, final } };
 }
 
 // --- Drawability solver (ADR-015) ------------------------------------------

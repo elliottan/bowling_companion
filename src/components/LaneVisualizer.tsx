@@ -6,7 +6,7 @@ import { spareAimPoint } from "../lib/spareAim";
 import { LaneSurface } from "./LaneSurface";
 import {
   buildLinePath, solveLine, xToBoard, yToFeet, PLANE_W, PLANE_L,
-  POCKET_BOARD, DEFAULT_BREAKPOINT_FEET, type Peg,
+  POCKET_BOARD, type Peg,
 } from "../lib/laneGeometry";
 
 const BOWLER_DEG = 50;     // bowler's-eye tilt (looking down the lane)
@@ -128,9 +128,14 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
   if (path) {
     handles.push({ key: "laydown", p: path.points.laydown });
     handles.push({ key: "target", p: path.points.target });
-    if (path.points.breakpoint) handles.push({ key: "breakpoint", p: path.points.breakpoint });
+    // Breakpoint is derived (the curve's rightmost point) — shown as a marker, not draggable.
     handles.push({ key: "final", p: path.points.final });
   }
+
+  // Derived breakpoint (rightmost point of the strike curve), shown read-only.
+  const bp = path?.points.breakpoint ?? null;
+  const bpBoard = bp ? Math.round(xToBoard(bp.x, hand) * 2) / 2 : undefined;
+  const bpFeet = bp ? Math.round(yToFeet(bp.y)) : undefined;
 
   return (
     <div
@@ -219,10 +224,8 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
               onCommit={(v) => applyEdit({ laydown: v })} />
             <SideField label="Target" value={line?.target} min={1} max={39}
               onCommit={(v) => applyEdit({ target: v })} />
-            <SideField label="Bkpt" value={line?.breakpoint} min={1} max={39}
-              onCommit={(v) => applyEdit({ breakpoint: v })} />
-            <SideField label="Bkpt ft" value={line?.breakpoint_distance ?? DEFAULT_BREAKPOINT_FEET} min={16} max={59}
-              onCommit={(v) => applyEdit({ breakpoint_distance: v })} />
+            <ReadField label="Bkpt" value={bpBoard} />
+            <ReadField label="Bkpt ft" value={bpFeet} />
             <SideField label="Final" value={line?.final_board ?? POCKET_BOARD} min={1} max={39}
               onCommit={(v) => applyEdit({ final_board: v })} />
           </div>
@@ -251,6 +254,18 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
       <p className="px-4 py-2 text-center text-xs text-white/60">
         Drag a point to move it · drag the lane to tilt
       </p>
+    </div>
+  );
+}
+
+/** Read-only readout (e.g. the derived breakpoint), styled to match SideField. */
+function ReadField({ label, value }: { label: string; value: number | undefined }) {
+  return (
+    <div className="flex w-[4.25rem] flex-col gap-0.5 text-center text-[10px] font-semibold uppercase tracking-wide text-white/50">
+      {label}
+      <div className="flex h-8 w-full items-center justify-center rounded-md border border-white/10 bg-white/5 px-1 text-sm font-medium text-white/70">
+        {value ?? "—"}
+      </div>
     </div>
   );
 }

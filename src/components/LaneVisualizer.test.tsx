@@ -36,7 +36,7 @@ describe("LaneVisualizer", () => {
 });
 
 describe("LaneVisualizer editing", () => {
-  it("renders a drag handle per peg when editable (laydown, target, breakpoint, final)", () => {
+  it("renders a draggable handle per editable peg (breakpoint is derived, not draggable)", () => {
     const onChange = vi.fn();
     render(
       <HandednessContext.Provider value="right">
@@ -44,7 +44,7 @@ describe("LaneVisualizer editing", () => {
       </HandednessContext.Provider>
     );
     const keys = [...document.querySelectorAll('[data-role="handle"]')].map((c) => c.getAttribute("data-key"));
-    expect(keys).toEqual(["laydown", "target", "breakpoint", "final"]);
+    expect(keys).toEqual(["laydown", "target", "final"]); // no breakpoint handle (ADR-022)
   });
 
   it("renders no handles in read-only mode (no onChange)", () => {

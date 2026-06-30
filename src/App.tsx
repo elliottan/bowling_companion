@@ -61,7 +61,7 @@ function App() {
   const [arsenalOpen, setArsenalOpen] = useState(false);
   const [lineVizOpen, setLineVizOpen] = useState(false);
   const [sandboxLine, setSandboxLine] = useState<LineSpec | undefined>({
-    laydown: 18, target: 10, breakpoint: 4, breakpoint_distance: 42,
+    laydown: 20, target: 15, breakpoint: 8, breakpoint_distance: 42,
   });
   const [sheetDrag, setSheetDrag] = useState(0);
   const sheetDragStartY = useRef<number | null>(null);

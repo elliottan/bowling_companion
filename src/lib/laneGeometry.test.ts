@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   PLANE_W, PLANE_L, LANE_BOARDS, DRAW_FRONT_FEET, DRAW_BACK_FEET, POCKET_BOARD,
   boardToX, feetToY, xToBoard, yToFeet,
-  buildLinePath, solveLine, arrowFeet, skidBoardAt, DEFAULT_BREAKPOINT_FEET
+  buildLinePath, solveLine, arrowFeet, skidBoardAt
 } from "./laneGeometry";
 import type { Handedness, LineSpec } from "../types/bowling";
 
@@ -124,40 +124,35 @@ describe("buildLinePath", () => {
     expect(a!.points.laydown).toEqual(b!.points.laydown);
   });
 
-  it("with a breakpoint: the drawn path passes through every peg", () => {
-    const line: LineSpec = { laydown: 18, target: 10, breakpoint: 6, breakpoint_distance: 42 };
+  it("with a breakpoint: the drawn path runs laydown → arrows → pocket (ADR-022)", () => {
+    const line: LineSpec = { laydown: 20, target: 15, breakpoint: 8, breakpoint_distance: 42 };
     const r = buildLinePath(line, "right")!;
-    expect(r.points.hookStart).toBeNull(); // v3 dropped the hook-start peg
+    expect(r.points.hookStart).toBeNull();
     const pts = sampleBoards(r.d, "right");
     const nearest = (feet: number) =>
       pts.reduce((a, p) => (Math.abs(p.feet - feet) < Math.abs(a.feet - feet) ? p : a), pts[0]);
     expect(pts[0].feet).toBeCloseTo(0, 0); // starts at the laydown (foul line)
-    expect(pts[0].board).toBeCloseTo(18, 0);
-    expect(nearest(arrowFeet(10)).board).toBeCloseTo(10, 0); // through the target on the arrows
-    expect(nearest(42).board).toBeCloseTo(6, 0);             // through the breakpoint at its distance
+    expect(pts[0].board).toBeCloseTo(20, 0);
+    expect(nearest(arrowFeet(15)).board).toBeCloseTo(15, 0); // through the target on the arrows
     expect(nearest(60).board).toBeCloseTo(POCKET_BOARD, 0);  // ends at the final (pocket default)
   });
 
-  it("the breakpoint is the strict rightmost point of the path (RH)", () => {
-    // skid heads right (target 10 right of laydown 18), breakpoint on the wall.
-    const line: LineSpec = { laydown: 18, target: 10, breakpoint: 5, breakpoint_distance: 46 };
+  it("the breakpoint marker IS the strict rightmost point of the path (RH)", () => {
+    // The strike breakpoint is derived: the furthest-out point of the spare curve.
+    const line: LineSpec = { laydown: 20, target: 15, breakpoint: 8, breakpoint_distance: 46 };
     const r = buildLinePath(line, "right")!;
     const maxX = Math.max(...samplePath(r.d).map((p) => p.x));
-    // rightmost x of the whole path equals the breakpoint x — no overshoot.
-    expect(maxX).toBeCloseTo(r.points.breakpoint!.x, 1);
+    expect(maxX).toBeCloseTo(r.points.breakpoint!.x, 1); // rightmost == breakpoint, by construction
   });
 
-  it("for a left-hander the breakpoint is the strict extreme point of the path", () => {
-    // LH out-and-back: focal heads anti-hook (higher board), the ball arcs out to
-    // the breakpoint apex (its furthest, highest board) then hooks back. With LH
-    // boards (1 = left), that apex is the max-x point — and no overshoot past it.
-    const line: LineSpec = { laydown: 18, target: 24, breakpoint: 30, breakpoint_distance: 46 };
+  it("for a left-hander the breakpoint marker is the strict extreme point", () => {
+    const line: LineSpec = { laydown: 20, target: 24, breakpoint: 32, breakpoint_distance: 46 };
     const r = buildLinePath(line, "left")!;
     const maxX = Math.max(...samplePath(r.d).map((p) => p.x));
     expect(maxX).toBeCloseTo(r.points.breakpoint!.x, 1);
   });
 
-  it("strike line ends with a straight roll into the final (ADR-021)", () => {
+  it("strike line ends with a straight roll into the final (ADR-022)", () => {
     const line: LineSpec = { laydown: 20, target: 15, breakpoint: 8, breakpoint_distance: 42, final_board: 17.5 };
     const pts = sampleBoards(buildLinePath(line, "right")!.d, "right");
     const at = (ft: number) => pts.reduce((a, p) => (Math.abs(p.feet - ft) < Math.abs(a.feet - ft) ? p : a), pts[0]);
@@ -181,11 +176,6 @@ describe("buildLinePath", () => {
     expect(r.points.hookStart).toBeNull();
     expect(r.d).not.toContain(" C ");
     expect(r.d.match(/ L /g)!.length).toBe(2); // target, then final
-  });
-
-  it("defaults the breakpoint distance to 42 ft", () => {
-    const r = buildLinePath({ laydown: 18, target: 10, breakpoint: 6 }, "right")!;
-    expect(yToFeet(r.points.breakpoint!.y)).toBeCloseTo(DEFAULT_BREAKPOINT_FEET, 1);
   });
 
   it("mirrors the final point for a left-hander", () => {
