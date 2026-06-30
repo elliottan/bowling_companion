@@ -1,15 +1,16 @@
 import { BarChart3 } from "lucide-react";
 import { isBabySplit, isSplit } from "../lib/pins";
-import type { BowlingStats, LeaveStats } from "../lib/stats";
+import type { BallUsage, BowlingStats, LeaveStats } from "../lib/stats";
 import type { PinNumber } from "../types/bowling";
 
 interface StatsProps {
   stats: BowlingStats;
   isLoading?: boolean;
   leaves?: LeaveStats[];
+  ballUsage?: BallUsage[];
 }
 
-export function Stats({ stats, isLoading = false, leaves }: StatsProps) {
+export function Stats({ stats, isLoading = false, leaves, ballUsage }: StatsProps) {
   if (isLoading) {
     return (
       <p className="rounded-lg border border-slate-200 bg-white p-4 text-sm text-slate-600 shadow-sm">
@@ -41,6 +42,27 @@ export function Stats({ stats, isLoading = false, leaves }: StatsProps) {
         <Bar label="Strikes" pct={stats.strikePct} />
         <Bar label="Spares" pct={stats.sparePct} subtitle="non-splits" />
       </div>
+
+      {ballUsage && ballUsage.length > 0 && (
+        <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+          <h2 className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
+            Ball usage
+          </h2>
+          <ul className="divide-y divide-slate-100">
+            {ballUsage.map((b) => (
+              <li key={b.ballId} className="flex items-center justify-between py-2 text-sm">
+                <span className="truncate pr-3 font-medium text-slate-700">{b.name}</span>
+                <span className="shrink-0 tabular-nums text-slate-500">
+                  <span className="font-semibold text-slate-900">{b.frames}</span> frames
+                  {" · "}
+                  <span className="font-semibold text-slate-900">{b.games}</span>{" "}
+                  {b.games === 1 ? "game" : "games"}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {(() => {
         const all = leaves ?? [];

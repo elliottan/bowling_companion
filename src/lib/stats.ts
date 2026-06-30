@@ -1,7 +1,7 @@
 import { isSpare, isStrike } from "./scoring";
 import { isBabySplit, isSplit } from "./pins";
 import { laneForFrame } from "./lanes";
-import type { Frame, Game, PinNumber, SessionSummary } from "../types/bowling";
+import type { Ball, Frame, Game, PinNumber, SessionSummary } from "../types/bowling";
 
 type GameWithFrames = Game & { frames: Frame[] };
 
@@ -243,6 +243,62 @@ export function calculateCommonLeaves(
         a.pins.length - b.pins.length ||
         comparePins(a.pins, b.pins)
     );
+}
+
+// ---------------------------------------------------------------------------
+// Ball usage
+// ---------------------------------------------------------------------------
+
+export interface BallUsage {
+  ballId: number;
+  name: string;
+  frames: number;
+  games: number;
+}
+
+/**
+ * Frames and games each ball was thrown in, across all sessions. A frame counts
+ * once per ball used in it (a frame can use two balls — e.g. a strike ball then a
+ * spare ball); a game counts once if the ball appears in any of its frames.
+ * Respects the lane filter (frames on unselected lanes are ignored). Shots with no
+ * `ball_id` are skipped. Sorted by frames thrown, descending. Pure.
+ */
+export function calculateBallUsage(
+  sessions: SessionSummary[],
+  balls: Ball[],
+  selectedLanes?: string[]
+): BallUsage[] {
+  const filter = selectedLanes && selectedLanes.length ? new Set(selectedLanes) : undefined;
+  const nameById = new Map(balls.filter((b) => b.id != null).map((b) => [b.id!, b.name]));
+  const frames = new Map<number, number>();
+  const games = new Map<number, number>();
+
+  for (const s of sessions) {
+    for (const game of s.games) {
+      const inThisGame = new Set<number>();
+      for (const frame of game.frames) {
+        if (!frameOnSelectedLane(game, frame.frame_number, filter)) continue;
+        const inThisFrame = new Set<number>();
+        for (const shot of frame.shots) {
+          if (shot.ball_id != null) inThisFrame.add(shot.ball_id);
+        }
+        for (const id of inThisFrame) {
+          frames.set(id, (frames.get(id) ?? 0) + 1);
+          inThisGame.add(id);
+        }
+      }
+      for (const id of inThisGame) games.set(id, (games.get(id) ?? 0) + 1);
+    }
+  }
+
+  return [...frames.entries()]
+    .map(([ballId, frameCount]) => ({
+      ballId,
+      name: nameById.get(ballId) ?? `Ball #${ballId}`,
+      frames: frameCount,
+      games: games.get(ballId) ?? 0
+    }))
+    .sort((a, b) => b.frames - a.frames || a.name.localeCompare(b.name));
 }
 
 /** Element-wise numeric compare of two ascending pin lists. */

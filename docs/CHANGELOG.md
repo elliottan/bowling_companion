@@ -2,6 +2,12 @@
 
 User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachangelog.com).
 
+## [Unreleased] — Ball usage in stats (2026-06-30)
+
+### Added
+
+- **Ball usage on the History → Stats page.** A breakdown of how many frames and games each ball has been thrown in, across all sessions (respects the lane filter). A frame counts once per ball used in it; a game counts if the ball appears in any frame.
+
 ## [Unreleased] — Straight lines: linear lane mapping + decorative pin rack (2026-06-30, ADR-020)
 
 ### Fixed

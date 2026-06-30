@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { calculateCommonLeaves, calculateStats, filterSessionsBy } from "./stats";
-import type { Frame, Game, PinNumber, SessionSummary, Shot } from "../types/bowling";
+import { calculateBallUsage, calculateCommonLeaves, calculateStats, filterSessionsBy } from "./stats";
+import type { Ball, Frame, Game, PinNumber, SessionSummary, Shot } from "../types/bowling";
 
 const NONE: PinNumber[] = [];
 
@@ -169,6 +169,36 @@ describe("calculateCommonLeaves", () => {
     expect(result[0].pins).toEqual([7]);   // 1-pin, pin 7 (lower)
     expect(result[1].pins).toEqual([10]);  // 1-pin, pin 10 (higher)
     expect(result[2].pins).toEqual([3, 10]); // 2-pins
+  });
+});
+
+describe("calculateBallUsage", () => {
+  const ball = (id: number, name: string): Ball => ({ id, name, is_spare_ball: false });
+  const fr = (n: number, shots: Shot[]): Frame => ({
+    game_id: 1, frame_number: n, shots,
+    is_strike: shots[0].pins_standing.length === 0,
+    is_spare: shots[0].pins_standing.length > 0 && shots[1]?.pins_standing.length === 0
+  });
+
+  it("counts frames per ball used and games the ball appears in", () => {
+    const balls = [ball(1, "Ball A"), ball(2, "Ball B")];
+    const g1 = game(150, [
+      fr(1, [{ pins_standing: [10], ball_id: 1 }, { pins_standing: NONE, ball_id: 2 }]), // A+B
+      fr(2, [{ pins_standing: NONE, ball_id: 1 }])                                       // A strike
+    ]);
+    const g2 = game(140, [fr(1, [{ pins_standing: NONE, ball_id: 1 }])]);               // A only
+    const usage = calculateBallUsage([session("Lanes", [g1, g2])], balls);
+
+    expect(usage).toEqual([
+      { ballId: 1, name: "Ball A", frames: 3, games: 2 },
+      { ballId: 2, name: "Ball B", frames: 1, games: 1 }
+    ]);
+  });
+
+  it("skips shots with no ball_id and names unknown ids", () => {
+    const g = game(120, [fr(1, [{ pins_standing: [10] }, { pins_standing: NONE, ball_id: 7 }])]);
+    const usage = calculateBallUsage([session("Lanes", [g])], []);
+    expect(usage).toEqual([{ ballId: 7, name: "Ball #7", frames: 1, games: 1 }]);
   });
 });
 

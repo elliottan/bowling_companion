@@ -3,13 +3,15 @@ import { SessionHistory } from "../components/SessionHistory";
 import { Stats } from "../components/Stats";
 import { SwipePanes } from "../components/SwipePanes";
 import {
+  calculateBallUsage,
   calculateCommonLeaves,
   calculateStats,
   filterSessionsBy,
   type BowlingStats
 } from "../lib/stats";
 import { getSessionHistory } from "../services/bowlingRepository";
-import type { SessionSummary } from "../types/bowling";
+import { getBalls } from "../services/ballRepository";
+import type { Ball, SessionSummary } from "../types/bowling";
 
 interface HistoryViewProps {
   onOpenSession: (sessionId: number) => void;
@@ -37,6 +39,7 @@ const selectClass =
 
 export function HistoryView({ onOpenSession, activeSessionId }: HistoryViewProps) {
   const [history, setHistory] = useState<SessionSummary[]>([]);
+  const [balls, setBalls] = useState<Ball[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
   const [pane, setPane] = useState<Pane>("sessions");
@@ -60,8 +63,11 @@ export function HistoryView({ onOpenSession, activeSessionId }: HistoryViewProps
       setIsLoading(true);
       setError("");
       try {
-        const h = await getSessionHistory();
-        if (isMounted) setHistory(h);
+        const [h, b] = await Promise.all([getSessionHistory(), getBalls()]);
+        if (isMounted) {
+          setHistory(h);
+          setBalls(b);
+        }
       } catch (err) {
         if (isMounted) setError(err instanceof Error ? err.message : "Unable to load history.");
       } finally {
@@ -101,6 +107,10 @@ export function HistoryView({ onOpenSession, activeSessionId }: HistoryViewProps
   const leaves = useMemo(
     () => calculateCommonLeaves(filteredHistory, selectedLanes),
     [filteredHistory, selectedLanes]
+  );
+  const ballUsage = useMemo(
+    () => calculateBallUsage(filteredHistory, balls, selectedLanes),
+    [filteredHistory, balls, selectedLanes]
   );
 
   const allAlleys = useMemo(
@@ -240,7 +250,7 @@ export function HistoryView({ onOpenSession, activeSessionId }: HistoryViewProps
             <div ref={sentinelRef} className="h-6" aria-hidden="true" />
           </div>,
           <div key="stats" className="px-3 pb-5 sm:px-6 sm:pb-8">
-            <Stats stats={isLoading ? EMPTY : stats} isLoading={isLoading} leaves={leaves} />
+            <Stats stats={isLoading ? EMPTY : stats} isLoading={isLoading} leaves={leaves} ballUsage={ballUsage} />
           </div>
         ]}
       />
