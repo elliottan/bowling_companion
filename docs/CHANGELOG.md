@@ -2,6 +2,12 @@
 
 User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachangelog.com).
 
+## [Unreleased] — Strike line is one smooth curve target→final (2026-07-01, ADR-023)
+
+### Fixed
+
+- **Strike line is smooth even on big crosses.** A line that crossed a lot (e.g. laydown 37.5 → target 19) used to ride the ball to the gutter and draw a hard corner at the lane edge. The strike is now a single smooth curve from the target to the final; when the line would run off the lane, the breakpoint is automatically brought nearer so the curve stays on the lane and smooth. Truly unreachable aims draw a smooth straight line (a guttering shot), with the pegs kept on the lane so you can always grab them.
+
 ## [Unreleased] — Strike line uses the spare curve; breakpoint is derived (2026-07-01, ADR-022)
 
 ### Fixed

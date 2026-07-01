@@ -291,17 +291,16 @@ describe("buildLinePath — focal & monotonicity invariants (ADR-015)", () => {
     }
   });
 
-  it("a guttering aim caps the final on the lane edge and the ball stays on the lane", () => {
-    // Steep inside aim: the focal runs off the hook edge. The final/breakpoint cap
-    // at the lane edge (furthest on-lane point) so their handles stay reachable, and
-    // the whole drawn ball stays on the lane (rides the edge) — nothing flies off.
+  it("a guttering aim draws a smooth straight line; pegs stay on the lane", () => {
+    // Steep inside aim: the focal runs off the hook edge, so the ball can't reach
+    // the final — it rides the focal STRAIGHT (smooth, no corner) and may run off
+    // the lane (guttering). The final/breakpoint pegs stay on the lane so their
+    // handles are reachable.
     const solved = solveLine({ laydown: 2.5, target: 21.5, breakpoint: 39, breakpoint_distance: 45, final_board: 39 }, "right");
-    expect(solved.final_board!).toBeLessThanOrEqual(39);
-    expect(solved.breakpoint!).toBeLessThanOrEqual(39);
-    for (const { board } of sampleBoards(buildLinePath(solved, "right")!.d, "right")) {
-      expect(board).toBeLessThanOrEqual(39.001);
-      expect(board).toBeGreaterThanOrEqual(0.999);
-    }
+    const r = buildLinePath(solved, "right")!;
+    expect(r.d.match(/ L /g)!.length).toBe(1); // one straight segment — smooth, no corner
+    expect(xToBoard(r.points.final.x, "right")).toBeLessThanOrEqual(39.001);       // final peg on the lane
+    expect(xToBoard(r.points.breakpoint!.x, "right")).toBeLessThanOrEqual(39.001); // breakpoint peg on the lane
   });
 
   it("RH: board is unimodal — falls to the apex then rises, never reversing back", () => {

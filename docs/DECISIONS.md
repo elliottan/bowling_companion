@@ -840,3 +840,34 @@ straight line by carrying a (now nominal) `breakpoint` value.
   stored value only flags strike mode). Hook timing is still the spare's hardcoded
   `HOOK_START_FT` / `HOOK_LENGTH_FT`; a line that crosses too much for that fixed
   hook gutters (rides the edge), which is physically correct.
+
+## ADR-023 — Strike line: one smooth quadratic target→final (control pulled onto the lane)
+
+**Status:** accepted (2026-07). Refines ADR-022 (strike shares the spare curve).
+The spare (ADR-019) is unchanged.
+
+**Context.** ADR-022 had the strike reuse the spare's "straight skid to
+`HOOK_START_FT` (38 ft) then hook" curve. On a big cross (e.g. laydown 37.5 →
+target 19) the focal runs off the lane well before 38 ft, so the skid rode the
+ball into the gutter and the lane-cap produced a hard corner at the edge — not a
+smooth curve.
+
+**Decision.** The strike is now **one quadratic Bézier from the target to the
+final**. Its control point sits on the focal at the midpoint of `[arrows, final]`,
+but is **pulled nearer** (in) if the focal there would be off the lane — clamped to
+where the focal meets the lane edge. Because the target and control sit on the
+focal and the final is hook-side, the curve is a convex blend of on-focal +
+hook-side points: it is tangent to the skid at the target, never crosses to the
+anti-hook side of the focal, never reverts (no S, no kink), and stays on the lane —
+so the breakpoint (its derived furthest-out point) simply **comes nearer** on a big
+cross instead of guttering and cornering. Unreachable finals (final gutter-side of
+the focal) ride the focal as a **straight** line (smooth; may run off the lane =
+guttering), with the pegs kept on the lane so their handles stay reachable.
+
+**Consequences.**
+- The strike no longer uses `HOOK_START_FT`/`HOOK_LENGTH_FT` or a straight-roll
+  phase (those remain the spare's). The breakpoint stays derived (ADR-022): the
+  read-only rightmost point.
+- Hook amount/shape is implicit in the geometry (laydown, target, final); no hook
+  strength knob yet. A future tweak could expose the control distance as "how far
+  out / how early the breakpoint."
