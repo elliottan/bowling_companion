@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   PLANE_W, PLANE_L, LANE_BOARDS, DRAW_FRONT_FEET, DRAW_BACK_FEET, POCKET_BOARD,
   boardToX, feetToY, xToBoard, yToFeet,
-  buildLinePath, solveLine, arrowFeet, skidBoardAt
+  buildLinePath, solveLine, arrowFeet, skidBoardAt, projectBreakpoint
 } from "./laneGeometry";
 import type { Handedness, LineSpec } from "../types/bowling";
 
@@ -152,15 +152,19 @@ describe("buildLinePath", () => {
     expect(maxX).toBeCloseTo(r.points.breakpoint!.x, 1);
   });
 
-  it("strike line ends with a straight roll into the final (ADR-022)", () => {
+  it("strike line reaches the final smoothly — one quadratic, no kink (ADR-024)", () => {
     const line: LineSpec = { laydown: 20, target: 15, breakpoint: 8, breakpoint_distance: 42, final_board: 17.5 };
     const pts = sampleBoards(buildLinePath(line, "right")!.d, "right");
-    const at = (ft: number) => pts.reduce((a, p) => (Math.abs(p.feet - ft) < Math.abs(a.feet - ft) ? p : a), pts[0]);
-    // Boards over the roll phase (54→60 ft) advance linearly — a straight segment.
-    const a = at(55), b = at(57.5), c = at(59.5);
-    const slope1 = (b.board - a.board) / (b.feet - a.feet);
-    const slope2 = (c.board - b.board) / (c.feet - b.feet);
-    expect(slope2).toBeCloseTo(slope1, 1);
+    // No corner: the per-step board change never jumps (a kink shows as a spike in
+    // the second difference). The one-quadratic strike (ADR-023/024) is C1-smooth.
+    let maxJump = 0;
+    for (let i = 2; i < pts.length; i++) {
+      const d1 = pts[i - 1].board - pts[i - 2].board;
+      const d2 = pts[i].board - pts[i - 1].board;
+      maxJump = Math.max(maxJump, Math.abs(d2 - d1));
+    }
+    expect(maxJump).toBeLessThan(0.5);
+    expect(pts[pts.length - 1].board).toBeCloseTo(17.5, 0); // ends at the final
   });
 
   it("final defaults to the pocket and is overridable", () => {
@@ -170,12 +174,45 @@ describe("buildLinePath", () => {
     expect(gutter.points.final.x).toBeCloseTo(boardToX(3, "right"), 2);
   });
 
-  it("without a breakpoint, draws straight to the final point", () => {
+  it("auto-hooks to the final even without a breakpoint set (ADR-024)", () => {
+    // Every non-spare line curves now; the breakpoint is derived (the furthest-out
+    // point of the strike quadratic). Straight is only the degenerate case below.
     const r = buildLinePath({ laydown: 18, target: 10 }, "right")!;
-    expect(r.points.breakpoint).toBeNull();
-    expect(r.points.hookStart).toBeNull();
-    expect(r.d).not.toContain(" C ");
-    expect(r.d.match(/ L /g)!.length).toBe(2); // target, then final
+    expect(r.points.breakpoint).not.toBeNull();
+    const maxX = Math.max(...samplePath(r.d).map((p) => p.x));
+    expect(maxX).toBeCloseTo(r.points.breakpoint!.x, 1); // marker == drawn rightmost point
+    // The apex sits out past the final (a real hook, not a straight line).
+    expect(xToBoard(r.points.breakpoint!.x, "right")).toBeLessThan(POCKET_BOARD);
+  });
+
+  it("draws straight when the final sits on the focal (degenerate hook)", () => {
+    // final on the extended laydown→target line → no hook needed, rides it straight.
+    const focalAt60 = skidBoardAt(18, 10, 60);
+    const r = buildLinePath({ laydown: 18, target: 10, final_board: focalAt60 }, "right")!;
+    expect(r.d.match(/ L /g)!.length).toBe(1); // one straight segment
+  });
+
+  it("breakpoint_distance drives the apex depth (the 1-DOF rail, ADR-024)", () => {
+    const base: LineSpec = { laydown: 20, target: 15, breakpoint: 8, final_board: 17.5 };
+    const shallow = buildLinePath({ ...base, breakpoint_distance: 34 }, "right")!;
+    const deep = buildLinePath({ ...base, breakpoint_distance: 48 }, "right")!;
+    expect(yToFeet(deep.points.breakpoint!.y)).toBeGreaterThan(yToFeet(shallow.points.breakpoint!.y));
+  });
+
+  it("solveLine writes the derived apex back so stored == drawn (ADR-024)", () => {
+    const solved = solveLine({ laydown: 20, target: 15, breakpoint: 8, breakpoint_distance: 42, final_board: 17.5 }, "right");
+    const r = buildLinePath(solved, "right")!;
+    expect(solved.breakpoint).toBeCloseTo(xToBoard(r.points.breakpoint!.x, "right"), 1);
+    expect(solved.breakpoint_distance).toBeCloseTo(yToFeet(r.points.breakpoint!.y), 1);
+  });
+
+  it("projectBreakpoint returns a reachable apex near a requested point", () => {
+    const line: LineSpec = { laydown: 20, target: 15, breakpoint: 8, breakpoint_distance: 42, final_board: 17.5 };
+    const a = projectBreakpoint(line, "right", 6, 44);
+    // The projected apex is a real apex of the curve at that rail setting.
+    const drawn = buildLinePath({ ...line, breakpoint_distance: a.feet }, "right")!;
+    expect(a.board).toBeCloseTo(xToBoard(drawn.points.breakpoint!.x, "right"), 1);
+    expect(a.feet).toBeCloseTo(yToFeet(drawn.points.breakpoint!.y), 1);
   });
 
   it("mirrors the final point for a left-hander", () => {
@@ -208,6 +245,19 @@ describe("buildLinePath", () => {
     const a = buildLinePath({ laydown: 5, target: 4, final_board: 3, final_distance: 62.6 }, "right", true)!;
     const b = buildLinePath({ laydown: 8, target: 4, final_board: 3, final_distance: 62.6 }, "right", true)!;
     expect(Math.abs(midBoard(a.d, "right") - midBoard(b.d, "right"))).toBeGreaterThan(1);
+  });
+
+  it("spare hook timing is per-line: a later hook start keeps the skid straight longer (ADR-024)", () => {
+    const base: LineSpec = { laydown: 31, target: 22.5, final_board: 3, final_distance: 62.6 };
+    const at = (l: LineSpec, ft: number) => {
+      const pts = sampleBoards(buildLinePath(l, "right", true)!.d, "right");
+      return pts.reduce((a, p) => (Math.abs(p.feet - ft) < Math.abs(a.feet - ft) ? p : a), pts[0]);
+    };
+    // At 48 ft the default line (hook from ~38 ft) has recovered well off the focal,
+    // while a line whose hook only starts at 48 ft is still dead-straight on it.
+    const late = at({ ...base, hook_start_distance: 48 }, 48);
+    expect(late.board).toBeCloseTo(focalBoardAt(base, 48), 0);      // still on the focal
+    expect(at({ ...base }, 48).board).toBeGreaterThan(late.board + 1); // default has hooked
   });
 
   it("focal guide is a single straight segment (renders straight, ADR-020)", () => {

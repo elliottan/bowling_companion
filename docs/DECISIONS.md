@@ -871,3 +871,56 @@ guttering), with the pegs kept on the lane so their handles stay reachable.
 - Hook amount/shape is implicit in the geometry (laydown, target, final); no hook
   strength knob yet. A future tweak could expose the control distance as "how far
   out / how early the breakpoint."
+
+## ADR-024 — Breakpoint is a 1-DOF rail; auto-hook; per-line spare hook timing
+
+**Status:** accepted (2026-07). Refines ADR-023 (strike = one quadratic) and
+ADR-019 (spare curve). Keeps ADR-020 (linear mapping) and every focal-wall /
+no-S / no-kink invariant.
+
+**Context.** ADR-023 left the strike shape fully implicit (laydown/target/final)
+with a read-only breakpoint and no way to add or tune hook in the visualizer; the
+spare's hook timing was hardcoded. The visualizer's interaction layer also had
+real bugs: drags were mapped linearly across the SVG element and so ignored the
+`preserveAspectRatio` letterboxing (handles couldn't reach the lane edges and
+didn't track the finger); numeric fields clamped on every keystroke (untypeable);
+grabbing a handle snapped the camera flat and never restored it; the spare Final
+handle wrote only board, never depth. Resolved with the human in a grill session.
+
+**Decision.**
+- **The breakpoint is a 1-DOF rail, and it is draggable again.** The one free
+  shape parameter of the ADR-023 strike quadratic is its control's down-lane
+  distance `cDist` (the control always rides the focal). `breakpoint_distance`
+  stores the apex *depth* and drives the rail; the drawn apex board is written
+  back by `solveLine` (`strikeApexPoint`) so **the stored breakpoint always equals
+  what's drawn**. Dragging the breakpoint **projects** the finger onto the
+  achievable apex arc (`projectBreakpoint`) — an impossible 2-D apex can never be
+  requested, so no S / no kink can ever appear (same "invariants by construction"
+  philosophy as ADR-015/019). A "Breakpoint distance" slider is the numeric twin
+  of the drag.
+- **Auto-hook.** Every non-spare line curves now; a straight line is just the
+  degenerate case where the final sits on the focal. `buildLinePath` no longer
+  gates the strike curve on a non-null `breakpoint`.
+- **Per-line spare hook timing.** `hook_start_distance` (how early the ball leaves
+  the skid) and a new `hook_length` (how long the hook takes) are read off the
+  `LineSpec` in the spare branch, defaulting to `HOOK_START_FT`/`HOOK_LENGTH_FT`;
+  exposed as two sliders in spare mode. The hook *amount* is still forced by the
+  pin (ADR-019) — only the timing is tunable.
+- **Interaction fixes.** Drags map through the SVG's `getScreenCTM().inverse()`
+  (letterbox-correct). Numeric fields became −/+ steppers that commit typing on
+  blur/Enter. Grabbing a handle snaps flat then **restores the prior tilt** on
+  release. The spare Final handle writes `final_distance` as well as board.
+
+**Consequences.**
+- New `LineSpec.hook_length`. `laneGeometry` gains `strikeApexPoint` +
+  `projectBreakpoint` (exported) and internal rail helpers (`strikeCDist`,
+  `sampledApex`, `solveCDist`); the ADR-021 breakpoint-clamp block in `solveLine`
+  is replaced by the apex write-back (the final clamp stays).
+- The visualizer shows the breakpoint as a draggable violet rail node with a
+  read-only board·ft readout; a "⋯" options sheet holds the sliders; a replay
+  button re-runs the ball animation (also re-runs after an edit settles).
+- Visual pass (render-only, math unchanged): a labelled board ruler at the foul
+  line, distinct per-peg colours with dodged labels, gutter shadows, and a
+  refined wood/oil gradient.
+- Tests asserting the old breakpoint-as-clamped-input behaviour were updated to
+  the derived-apex contract; drawability/monotonicity/no-corner invariants stay.

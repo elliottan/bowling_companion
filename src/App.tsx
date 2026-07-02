@@ -60,8 +60,9 @@ function App() {
   const [resumable, setResumable] = useState<ResumableGame | null>(null);
   const [arsenalOpen, setArsenalOpen] = useState(false);
   const [lineVizOpen, setLineVizOpen] = useState(false);
+  // A realistic strike line; auto-hooks to the pocket (ADR-024), no seeded breakpoint.
   const [sandboxLine, setSandboxLine] = useState<LineSpec | undefined>({
-    laydown: 20, target: 15, breakpoint: 8, breakpoint_distance: 42,
+    laydown: 20, target: 15, breakpoint: 8,
   });
   const [sheetDrag, setSheetDrag] = useState(0);
   const sheetDragStartY = useRef<number | null>(null);

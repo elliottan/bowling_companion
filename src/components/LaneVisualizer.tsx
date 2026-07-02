@@ -1,11 +1,11 @@
-import { X } from "lucide-react";
+import { Minus, Plus, RotateCcw, SlidersHorizontal, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import type { LineSpec, PinNumber } from "../types/bowling";
 import { useHandedness } from "../lib/handednessContext";
 import { spareAimPoint } from "../lib/spareAim";
 import { LaneSurface } from "./LaneSurface";
 import {
-  buildLinePath, solveLine, xToBoard, yToFeet, PLANE_W, PLANE_L,
+  buildLinePath, solveLine, projectBreakpoint, xToBoard, yToFeet, PLANE_W, PLANE_L,
   POCKET_BOARD, type Peg,
 } from "../lib/laneGeometry";
 
@@ -36,7 +36,7 @@ interface LaneVisualizerProps {
   onChange?: (line: LineSpec | undefined) => void;
   /** Standing leave to light (spare surface). */
   leave?: PinNumber[];
-  /** Spare mode: hook-strength slider + configurable final depth, no breakpoint. */
+  /** Spare mode: hook-timing sliders + configurable final depth, no breakpoint. */
   spare?: boolean;
   title?: string;
 }
@@ -45,7 +45,10 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
   const hand = useHandedness();
   const [deg, setDeg] = useState(BOWLER_DEG);
   const [dragging, setDragging] = useState(false);
+  const [optionsOpen, setOptionsOpen] = useState(false);
+  const [replayKey, setReplayKey] = useState(0);
   const dragY = useRef<number | null>(null);
+  const preGrabDeg = useRef<number>(BOWLER_DEG); // tilt to restore after a handle drag
   const surfaceRef = useRef<HTMLDivElement | null>(null);
   const isTopDown = deg <= 2;
 
@@ -80,6 +83,17 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [spare, leave]);
 
+  const path = onChange && line ? buildLinePath(line, hand, spare) : null;
+
+  // Re-run the ball animation shortly after the line settles, so an edit visibly
+  // replays the shot. Debounced so mid-drag churn doesn't restart it every frame.
+  const pathD = path?.d;
+  useEffect(() => {
+    if (!pathD) return;
+    const id = setTimeout(() => setReplayKey((k) => k + 1), 350);
+    return () => clearTimeout(id);
+  }, [pathD]);
+
   // Drag on empty background → tilt the camera.
   function onPointerDown(e: React.PointerEvent) {
     dragY.current = e.clientY;
@@ -97,42 +111,62 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
     setDragging(false);
   }
 
-  // Map a screen point (top-down, flat) → board / distance and write the change.
-  function dragPoint(key: string, clientX: number, clientY: number) {
-    const el = surfaceRef.current?.querySelector("svg");
-    if (!el) return;
-    const r = el.getBoundingClientRect();
-    const sx = ((clientX - r.left) / r.width) * PLANE_W;
-    const sy = ((clientY - r.top) / r.height) * PLANE_L;
-    const board = snapBoard(xToBoard(sx, hand));
-    const dist = Math.round(yToFeet(sy));
-    const peg = HANDLE_PEG[key];
-    switch (peg) {
+  // Map a screen point → board / distance and write the change. Uses the SVG's own
+  // screen matrix, so it accounts for letterboxing (preserveAspectRatio) and stays
+  // exact — dragging always happens flat (the handle snaps top-down on grab).
+  function dragPoint(key: string, e: React.PointerEvent) {
+    const svg = (e.currentTarget as SVGElement).ownerSVGElement;
+    const ctm = svg?.getScreenCTM();
+    if (!svg || !ctm) return;
+    const spt = svg.createSVGPoint();
+    spt.x = e.clientX;
+    spt.y = e.clientY;
+    const loc = spt.matrixTransform(ctm.inverse());
+    const boardRaw = xToBoard(loc.x, hand);
+    const board = snapBoard(boardRaw);
+    const feet = yToFeet(loc.y);
+    switch (HANDLE_PEG[key]) {
       case "laydown": applyEdit({ laydown: board }); break;
       case "target": applyEdit({ target: board }); break;
-      case "breakpoint": applyEdit({ breakpoint: board, breakpoint_distance: dist }); break;
-      case "final": applyEdit({ final_board: board }); break;
+      case "breakpoint": {
+        // 1-DOF rail: project the finger onto the achievable apex arc (ADR-024).
+        const a = projectBreakpoint(line ?? {}, hand, boardRaw, feet);
+        applyEdit({ breakpoint: a.board, breakpoint_distance: a.feet });
+        break;
+      }
+      case "final":
+        // Spare finals sit at a real pin depth, so the vertical drag is meaningful;
+        // strike finals stay at the pins (depth locked at the default).
+        if (spare) applyEdit({ final_board: board, final_distance: clamp(Math.round(feet * 10) / 10, 55, 63) });
+        else applyEdit({ final_board: board });
+        break;
     }
   }
 
   function grabHandle(e: React.PointerEvent) {
     e.stopPropagation();
-    // Snap flat instantly so the linear screen→lane mapping is valid mid-drag.
+    // Snap flat instantly so the linear screen→lane mapping is valid mid-drag;
+    // remember the current tilt to animate back to on release.
+    preGrabDeg.current = deg;
     setDragging(true);
     setDeg(TOPDOWN_DEG);
     (e.currentTarget as Element).setPointerCapture(e.pointerId);
   }
+  function releaseHandle() {
+    setDragging(false);
+    setDeg(preGrabDeg.current); // restore the working view (animates back)
+  }
 
-  const path = onChange && line ? buildLinePath(line, hand, spare) : null;
   const handles: Array<{ key: string; p: { x: number; y: number } }> = [];
   if (path) {
     handles.push({ key: "laydown", p: path.points.laydown });
     handles.push({ key: "target", p: path.points.target });
-    // Breakpoint is derived (the curve's rightmost point) — shown as a marker, not draggable.
+    // Strike: the breakpoint rides a 1-DOF rail — draggable (ADR-024). Spare has none.
+    if (!spare && path.points.breakpoint) handles.push({ key: "breakpoint", p: path.points.breakpoint });
     handles.push({ key: "final", p: path.points.final });
   }
 
-  // Derived breakpoint (rightmost point of the strike curve), shown read-only.
+  // Derived breakpoint (rightmost point of the strike curve), shown as a readout.
   const bp = path?.points.breakpoint ?? null;
   const bpBoard = bp ? Math.round(xToBoard(bp.x, hand) * 2) / 2 : undefined;
   const bpFeet = bp ? Math.round(yToFeet(bp.y)) : undefined;
@@ -144,8 +178,18 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
       aria-modal="true"
       aria-label={`${title} visualizer`}
     >
-      <div className="flex items-center gap-3 px-4 py-3 text-white">
+      <div className="flex items-center gap-2 px-4 py-3 text-white">
         <h2 className="flex-1 truncate text-base font-bold">{title}</h2>
+        {onChange && (
+          <button
+            type="button"
+            onClick={() => setOptionsOpen(true)}
+            aria-label="Hook options"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-white/30 hover:bg-white/10"
+          >
+            <SlidersHorizontal size={16} aria-hidden="true" />
+          </button>
+        )}
         <button
           type="button"
           onClick={() => setDeg((d) => (d <= 2 ? BOWLER_DEG : TOPDOWN_DEG))}
@@ -183,34 +227,60 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
           }}
         >
           <div ref={surfaceRef} className="relative mx-auto h-full w-full max-w-[360px]">
-            <LaneSurface line={line} hand={hand} leave={leave} animate />
+            <LaneSurface line={line} hand={hand} leave={leave} animate animateKey={replayKey} />
             {handles.length > 0 && (
               <svg viewBox={`0 0 ${PLANE_W} ${PLANE_L}`} className="pointer-events-none absolute inset-0 h-full w-full">
-                {handles.map((h) => (
-                  <g key={h.key}>
-                    {/* visible grab ring */}
-                    <circle cx={h.p.x} cy={h.p.y} r="6" fill="none" stroke="#fff" strokeOpacity="0.55" strokeWidth="1" />
-                    {/* large invisible hit target (covers dot + nearby label) */}
-                    <circle
-                      data-role="handle"
-                      data-key={h.key}
-                      cx={h.p.x}
-                      cy={h.p.y}
-                      r="12"
-                      fill="transparent"
-                      className="pointer-events-auto cursor-grab touch-none"
-                      onPointerDown={grabHandle}
-                      onPointerMove={(e) => { if (e.buttons) { e.stopPropagation(); dragPoint(h.key, e.clientX, e.clientY); } }}
-                    />
-                  </g>
-                ))}
+                {handles.map((h) => {
+                  const derived = h.key === "breakpoint";
+                  return (
+                    <g key={h.key}>
+                      {/* visible grab ring — the derived breakpoint reads as a rail node (hollow diamond) */}
+                      {derived ? (
+                        <rect
+                          x={h.p.x - 5} y={h.p.y - 5} width="10" height="10"
+                          transform={`rotate(45 ${h.p.x} ${h.p.y})`}
+                          fill="none" stroke="#fff" strokeOpacity="0.7" strokeWidth="1.1"
+                        />
+                      ) : (
+                        <circle cx={h.p.x} cy={h.p.y} r="6" fill="none" stroke="#fff" strokeOpacity="0.6" strokeWidth="1.1" />
+                      )}
+                      {/* large invisible hit target (covers dot + nearby label) */}
+                      <circle
+                        data-role="handle"
+                        data-key={h.key}
+                        cx={h.p.x}
+                        cy={h.p.y}
+                        r="13"
+                        fill="transparent"
+                        className="pointer-events-auto cursor-grab touch-none"
+                        onPointerDown={grabHandle}
+                        onPointerMove={(e) => { if (e.buttons) { e.stopPropagation(); dragPoint(h.key, e); } }}
+                        onPointerUp={releaseHandle}
+                        onPointerCancel={releaseHandle}
+                      />
+                    </g>
+                  );
+                })}
               </svg>
             )}
           </div>
         </div>
 
-        {/* Strike line: numeric inputs — side column in top-down, bottom bar in
-            bowler view (so the lane stays centred and fully visible). */}
+        {/* Replay the ball animation. */}
+        {path && (
+          <button
+            type="button"
+            onClick={() => setReplayKey((k) => k + 1)}
+            aria-label="Replay shot"
+            className="absolute right-3 top-3 z-10 inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/25 bg-slate-900/70 text-white/80 backdrop-blur hover:bg-white/10"
+            onPointerDown={(e) => e.stopPropagation()}
+          >
+            <RotateCcw size={16} aria-hidden="true" />
+          </button>
+        )}
+
+        {/* Strike line: editable pegs + a derived-breakpoint readout — side column in
+            top-down, bottom bar in bowler view (so the lane stays centred). */}
         {onChange && !spare && (
           <div
             className={
@@ -220,33 +290,30 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
             }
             onPointerDown={(e) => e.stopPropagation()}
           >
-            <SideField label="Laydown" value={line?.laydown ?? line?.stance} min={1} max={59}
+            <StepperField label="Laydown" value={line?.laydown ?? line?.stance} min={1} max={59}
               onCommit={(v) => applyEdit({ laydown: v })} />
-            <SideField label="Target" value={line?.target} min={1} max={39}
+            <StepperField label="Target" value={line?.target} min={1} max={39}
               onCommit={(v) => applyEdit({ target: v })} />
-            <ReadField label="Bkpt" value={bpBoard} />
-            <ReadField label="Bkpt ft" value={bpFeet} />
-            <SideField label="Final" value={line?.final_board ?? POCKET_BOARD} min={1} max={39}
+            <ReadField label="Bkpt" value={bpBoard != null && bpFeet != null ? `${bpBoard}·${bpFeet}ft` : undefined} />
+            <StepperField label="Final" value={line?.final_board ?? POCKET_BOARD} min={1} max={39}
               onCommit={(v) => applyEdit({ final_board: v })} />
           </div>
         )}
 
-        {/* Spare line: hook-strength slider + board/depth fields (no breakpoint). */}
+        {/* Spare line: editable pegs + final depth (no breakpoint). */}
         {onChange && spare && (
           <div
-            className="absolute inset-x-0 bottom-0 z-10 flex flex-col gap-2 px-3 pb-2"
+            className="absolute inset-x-0 bottom-0 z-10 flex justify-center gap-1.5 px-2 pb-1"
             onPointerDown={(e) => e.stopPropagation()}
           >
-            <div className="flex justify-center gap-1.5">
-              <SideField label="Laydown" value={line?.laydown ?? line?.stance} min={1} max={59}
-                onCommit={(v) => applyEdit({ laydown: v })} />
-              <SideField label="Target" value={line?.target} min={1} max={39}
-                onCommit={(v) => applyEdit({ target: v })} />
-              <SideField label="Final" value={line?.final_board ?? POCKET_BOARD} min={1} max={39}
-                onCommit={(v) => applyEdit({ final_board: v })} />
-              <SideField label="Final ft" value={line?.final_distance ?? 60} min={55} max={63}
-                onCommit={(v) => applyEdit({ final_distance: v })} />
-            </div>
+            <StepperField label="Laydown" value={line?.laydown ?? line?.stance} min={1} max={59}
+              onCommit={(v) => applyEdit({ laydown: v })} />
+            <StepperField label="Target" value={line?.target} min={1} max={39}
+              onCommit={(v) => applyEdit({ target: v })} />
+            <StepperField label="Final" value={line?.final_board ?? POCKET_BOARD} min={1} max={39}
+              onCommit={(v) => applyEdit({ final_board: v })} />
+            <StepperField label="Final ft" value={line?.final_distance ?? 60} min={55} max={63} step={0.5}
+              onCommit={(v) => applyEdit({ final_distance: v })} />
           </div>
         )}
       </div>
@@ -254,47 +321,169 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
       <p className="px-4 py-2 text-center text-xs text-white/60">
         Drag a point to move it · drag the lane to tilt
       </p>
+
+      {optionsOpen && (
+        <OptionsSheet
+          spare={spare}
+          line={line}
+          bpFeet={bpFeet}
+          onChange={applyEdit}
+          onClose={() => setOptionsOpen(false)}
+        />
+      )}
     </div>
   );
 }
 
-/** Read-only readout (e.g. the derived breakpoint), styled to match SideField. */
-function ReadField({ label, value }: { label: string; value: number | undefined }) {
+/** Bottom sheet with the hook-shape sliders (spare timing / strike breakpoint). */
+function OptionsSheet({
+  spare, line, bpFeet, onChange, onClose,
+}: {
+  spare: boolean;
+  line: LineSpec | undefined;
+  bpFeet: number | undefined;
+  onChange: (patch: Partial<LineSpec>) => void;
+  onClose: () => void;
+}) {
   return (
-    <div className="flex w-[4.25rem] flex-col gap-0.5 text-center text-[10px] font-semibold uppercase tracking-wide text-white/50">
+    <div className="absolute inset-0 z-20 flex flex-col justify-end bg-black/50" onClick={onClose}>
+      <div
+        className="rounded-t-2xl bg-slate-800 px-5 pb-6 pt-3 text-white"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="mx-auto mb-3 h-1.5 w-10 rounded-full bg-white/25" />
+        <div className="mb-3 flex items-center">
+          <h3 className="flex-1 text-sm font-bold">Hook shape</h3>
+          <button type="button" onClick={onClose} aria-label="Done" className="rounded-md px-3 py-1 text-xs font-semibold hover:bg-white/10">
+            Done
+          </button>
+        </div>
+        {spare ? (
+          <>
+            <Slider
+              label="Hook start" suffix="ft" min={20} max={55} step={1}
+              value={line?.hook_start_distance ?? 38}
+              onChange={(v) => onChange({ hook_start_distance: v })}
+            />
+            <Slider
+              label="Hook length" suffix="ft" min={4} max={25} step={1}
+              value={line?.hook_length ?? 14}
+              onChange={(v) => onChange({ hook_length: v })}
+            />
+            <p className="mt-1 text-xs text-white/50">
+              How early the ball leaves the skid, and how long it takes to recover into the pin.
+            </p>
+          </>
+        ) : (
+          <>
+            <Slider
+              label="Breakpoint distance" suffix="ft" min={25} max={58} step={1}
+              value={line?.breakpoint_distance ?? bpFeet ?? 42}
+              onChange={(v) => onChange({ breakpoint: line?.breakpoint ?? bpFeet ?? 42, breakpoint_distance: v })}
+            />
+            <p className="mt-1 text-xs text-white/50">
+              How far down-lane the ball reaches its furthest point before hooking back to the pocket.
+            </p>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function Slider({
+  label, suffix, min, max, step, value, onChange,
+}: {
+  label: string;
+  suffix: string;
+  min: number;
+  max: number;
+  step: number;
+  value: number;
+  onChange: (v: number) => void;
+}) {
+  return (
+    <label className="mb-3 block">
+      <div className="mb-1 flex items-baseline justify-between text-xs font-semibold uppercase tracking-wide text-white/70">
+        <span>{label}</span>
+        <span className="tabular-nums text-white/90">{Math.round(value)} {suffix}</span>
+      </div>
+      <input
+        type="range"
+        min={min}
+        max={max}
+        step={step}
+        value={value}
+        onChange={(e) => onChange(Number(e.target.value))}
+        className="h-2 w-full cursor-pointer appearance-none rounded-full bg-white/15 accent-amber-400"
+      />
+    </label>
+  );
+}
+
+/** Read-only readout (e.g. the derived breakpoint), styled to match StepperField. */
+function ReadField({ label, value }: { label: string; value: string | undefined }) {
+  return (
+    <div className="flex w-[4.75rem] flex-col gap-0.5 text-center text-[10px] font-semibold uppercase tracking-wide text-white/50">
       {label}
-      <div className="flex h-8 w-full items-center justify-center rounded-md border border-white/10 bg-white/5 px-1 text-sm font-medium text-white/70">
+      <div className="flex h-9 w-full items-center justify-center rounded-md border border-white/10 bg-white/5 px-1 text-xs font-medium text-white/70">
         {value ?? "—"}
       </div>
     </div>
   );
 }
 
-function SideField({
-  label, value, min, max, onCommit,
+/** Numeric field with −/+ half-board steppers. Typing commits on blur/Enter (a raw
+ *  clamp-per-keystroke made the field untypeable), the steppers commit immediately. */
+function StepperField({
+  label, value, min, max, step = 0.5, onCommit,
 }: {
   label: string;
   value: number | undefined;
   min: number;
   max: number;
+  step?: number;
   onCommit: (v: number) => void;
 }) {
+  const [draft, setDraft] = useState<string | null>(null);
+  const shown = draft ?? (value != null ? String(value) : "");
+  const commit = () => {
+    if (draft !== null && draft !== "") onCommit(clamp(Number(draft), min, max));
+    setDraft(null);
+  };
+  const nudge = (d: number) => onCommit(clamp((value ?? min) + d, min, max));
   return (
-    <label className="flex w-[4.25rem] flex-col gap-0.5 text-center text-[10px] font-semibold uppercase tracking-wide text-white/70">
+    <div className="flex w-[4.75rem] flex-col gap-0.5 text-center text-[10px] font-semibold uppercase tracking-wide text-white/70">
       {label}
-      <input
-        type="number"
-        inputMode="numeric"
-        step="0.5"
-        min={min}
-        max={max}
-        value={value ?? ""}
-        onChange={(e) => {
-          if (e.target.value === "") return;
-          onCommit(clamp(Number(e.target.value), min, max));
-        }}
-        className="h-8 w-full rounded-md border border-white/20 bg-white/10 px-1 text-center text-sm font-medium text-white outline-none focus:border-amber-400"
-      />
-    </label>
+      <div className="flex h-9 items-stretch overflow-hidden rounded-md border border-white/20 bg-white/10">
+        <button
+          type="button"
+          aria-label={`${label} down`}
+          onClick={() => nudge(-step)}
+          className="flex w-6 shrink-0 items-center justify-center text-white/70 hover:bg-white/10"
+        >
+          <Minus size={12} aria-hidden="true" />
+        </button>
+        <input
+          type="text"
+          inputMode="decimal"
+          aria-label={label}
+          value={shown}
+          onChange={(e) => setDraft(e.target.value)}
+          onFocus={(e) => e.target.select()}
+          onBlur={commit}
+          onKeyDown={(e) => { if (e.key === "Enter") { commit(); (e.target as HTMLInputElement).blur(); } }}
+          className="min-w-0 flex-1 bg-transparent text-center text-sm font-medium text-white outline-none"
+        />
+        <button
+          type="button"
+          aria-label={`${label} up`}
+          onClick={() => nudge(step)}
+          className="flex w-6 shrink-0 items-center justify-center text-white/70 hover:bg-white/10"
+        >
+          <Plus size={12} aria-hidden="true" />
+        </button>
+      </div>
+    </div>
   );
 }

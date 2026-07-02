@@ -2,6 +2,26 @@
 
 User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachangelog.com).
 
+## [Unreleased] — Draggable breakpoint, auto-hook, tunable spare hook, visualizer polish (2026-07-03, ADR-024)
+
+### Added
+
+- **Drag the breakpoint again.** The breakpoint rides a rail: drag it and the strike line reshapes — how far down-lane the ball reaches before hooking back — and can never draw an impossible wiggle. The stored breakpoint always matches what's drawn.
+- **Hook options.** A "⋯" button opens hook controls. Strike lines get a **Breakpoint distance** slider; spare lines get **Hook start** and **Hook length** sliders (how early the ball leaves the skid and how long it takes to recover into the pin).
+- **Replay button** re-rolls the ball down your line; it also replays after you tweak a value.
+- **Board ruler.** Labelled board numbers sit along the foul line so dragging reads in boards at a glance. Each peg (laydown / target / breakpoint / final) now has its own colour, and labels no longer overprint each other.
+
+### Fixed
+
+- **Dragging is accurate.** Handles now track your finger exactly and reach the lane edges (the old mapping ignored the letterboxing around the lane).
+- **You can type in the number fields.** They used to fight every keystroke; typing now commits when you leave the field or press Enter, with −/+ steppers for quick nudges.
+- **Grabbing a handle no longer flattens the view for good** — it snaps flat while you drag, then returns to your previous angle.
+- **Spare Final handle** now sets depth as well as board when you drag it up/down.
+
+### Changed
+
+- **Every strike line curves by default** (auto-hook); a dead-straight line is just the case where the final sits on the aim line.
+
 ## [Unreleased] — Strike line is one smooth curve target→final (2026-07-01, ADR-023)
 
 ### Fixed

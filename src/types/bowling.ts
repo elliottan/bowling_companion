@@ -4,13 +4,19 @@ export interface LineSpec {
   stance?: number;
   laydown?: number;
   target?: number;
-  /** Apex board — furthest point the ball reaches before recovering. */
+  /** Apex board — furthest point the ball reaches before recovering. Derived from
+   *  the strike curve (the rail's furthest-out point); stored so it equals the
+   *  drawn apex (ADR-024). A non-null value also flags a line as a strike line. */
   breakpoint?: number;
-  /** Down-lane distance (feet from foul line) of the breakpoint apex. ~42 ft default. */
+  /** Down-lane distance (feet) of the breakpoint apex. On a strike line this is the
+   *  rail parameter: it drives how far down-lane the hook apex sits (ADR-024). */
   breakpoint_distance?: number;
-  /** Down-lane distance (feet) where the straight skid ends and the hook begins.
-   *  Its board rides the laydown→target skid line. ~30 ft default. */
+  /** Spare hook start: down-lane distance (feet) where the straight skid ends and
+   *  the hook begins. Defaults to HOOK_START_FT (38 ft). Spare lines only (ADR-024). */
   hook_start_distance?: number;
+  /** Spare hook length: how many feet the hook phase spans before the straight roll.
+   *  Defaults to HOOK_LENGTH_FT (14 ft). Spare lines only (ADR-024). */
+  hook_length?: number;
   /** Board the ball crosses the pin deck on (60 ft). Defaults to the pocket (17.5). */
   final_board?: number;
   /** Down-lane distance (feet) of the final point. Defaults to 60 ft (head pin).

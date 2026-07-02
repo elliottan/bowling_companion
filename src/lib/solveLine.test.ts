@@ -16,9 +16,10 @@ function curve(l: LineSpec, hand: Handedness): Array<{ board: number; feet: numb
   return pts;
 }
 
-// The user owns the laydown and target (always free). The breakpoint and final are
-// dependent — they re-clamp minimally onto the focal/apex to stay drawable, never
-// cascading onto the laydown/target and never jumping to the gutter (ADR-015).
+// The user owns the laydown and target (always free). The breakpoint is now DERIVED
+// (ADR-024): the drawn strike curve's furthest-out point, written back so the stored
+// value equals what's drawn. The final stays dependent. Nothing cascades onto the
+// laydown/target and no peg jumps to the gutter.
 describe("solveLine — dependent re-clamp (RH)", () => {
   it("leaves the laydown and target exactly where the user set them", () => {
     const line: LineSpec = { laydown: 26, target: 20, breakpoint: 4, breakpoint_distance: 42, final_board: 9 };
@@ -27,21 +28,23 @@ describe("solveLine — dependent re-clamp (RH)", () => {
     expect(out.target).toBe(20);
   });
 
-  it("a breakpoint dragged anti-hook (right) of the focal clamps onto the focal line", () => {
-    // focal@42 ≈ 10.25; breakpoint 4 sits right of it → slides up ONTO the focal.
+  it("stores the derived apex — the drawn curve's furthest-out point (ADR-024)", () => {
     const line: LineSpec = { laydown: 26, target: 20, breakpoint: 4, breakpoint_distance: 42 };
     const out = solveLine(line, "right");
-    expect(out.breakpoint!).toBeCloseTo(focalAt(out, 42), 1);
-    expect(out.breakpoint!).toBeGreaterThan(4); // moved hook-side, minimally
+    const r = buildLinePath(out, "right")!;
+    expect(out.breakpoint!).toBeCloseTo(xToBoard(r.points.breakpoint!.x, "right"), 1);
+    expect(out.breakpoint_distance!).toBeCloseTo(yToFeet(r.points.breakpoint!.y), 1);
   });
 
-  it("moving the laydown re-clamps the breakpoint onto the focal, not to the gutter", () => {
+  it("moving the laydown re-derives the breakpoint apex, staying on the lane (ADR-024)", () => {
     const before: LineSpec = { laydown: 20, target: 14, breakpoint: 8, breakpoint_distance: 42, final_board: 17.5 };
     const after = solveLine({ ...before, laydown: 10 }, "right"); // laydown swung hook-ward
     expect(after.laydown).toBe(10);                              // free
     expect(after.target).toBe(14);                              // free
-    expect(after.breakpoint!).toBeCloseTo(focalAt(after, 42), 1); // slid onto the focal
-    expect(after.breakpoint!).toBeLessThan(39);                  // NOT slammed to the gutter
+    const r = buildLinePath(after, "right")!;
+    expect(after.breakpoint!).toBeCloseTo(xToBoard(r.points.breakpoint!.x, "right"), 1); // stored == drawn
+    expect(after.breakpoint!).toBeGreaterThan(1);
+    expect(after.breakpoint!).toBeLessThan(39);                  // NOT slammed to a gutter
   });
 
   it("won't let the apex be dragged hook-side of the aim on an out-and-back skid", () => {

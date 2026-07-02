@@ -109,20 +109,155 @@ const r2 = (n: number) => Math.round(n * 100) / 100;
 const pt = (x: number, y: number): PlanePoint => ({ x: r2(x), y: r2(y) });
 const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
 
+// --- Strike breakpoint rail (ADR-024) --------------------------------------
+// The strike ball path is ONE quadratic from the target to the final (ADR-023),
+// its control riding the focal (laydown→target extended). The control's down-lane
+// distance `cDist` is the single free shape parameter: a 1-DOF *rail* the derived
+// breakpoint apex slides along. `breakpoint_distance` stores the apex depth and
+// drives the rail; the drawn apex is written back so the stored value always
+// equals what's drawn (no free 2-D apex → no S / no kink, by construction).
+
+interface StrikeParams {
+  foul: number; tgt: number; tgtFt: number; fB: number; fF: number;
+  dir: number; focalBoard: (ft: number) => number;
+}
+
+function strikeParams(foul: number, tgt: number, fB: number, fF: number, dir: number): StrikeParams {
+  const tgtFt = arrowFeet(tgt);
+  return { foul, tgt, tgtFt, fB, fF, dir, focalBoard: (ft) => skidBoardAt(foul, tgt, ft) };
+}
+
+/** Valid range for the control distance. Upper bound is pulled *nearer* if the
+ *  focal there would run off the lane, so the whole curve stays on-lane (ADR-023). */
+function strikeCDistRange(p: StrikeParams): { lo: number; hi: number } {
+  const lo = p.tgtFt + 1;
+  let hi = p.fF - 1;
+  if (p.tgt !== p.foul) {
+    const focalAtBoard = (b: number) => (p.tgtFt * (b - p.foul)) / (p.tgt - p.foul);
+    const cap = focalAtBoard(p.tgt > p.foul ? 39 : 1); // where the focal meets the edge it heads for
+    if (cap > lo) hi = Math.min(hi, cap);
+  }
+  return { lo, hi: Math.max(lo, hi) };
+}
+
+const strikeDefaultCDist = (p: StrikeParams) => (p.tgtFt + p.fF) / 2;
+
+/** The drawn curve's furthest-out point (breakpoint apex) for a control distance.
+ *  Sampled the same way `buildStrike` draws, so apex == drawn apex exactly. */
+function sampledApex(p: StrikeParams, cDist: number): { board: number; feet: number } {
+  const Cb = p.focalBoard(cDist), Cf = cDist;
+  const moreOut = (a: number, b: number) => (p.dir > 0 ? a < b : a > b);
+  let extB = p.foul, extFt = 0; // laydown is furthest-out on an inside line
+  if (moreOut(p.tgt, extB)) { extB = p.tgt; extFt = p.tgtFt; }
+  const N = 120;
+  for (let k = 1; k <= N; k++) {
+    const t = k / N, v = 1 - t;
+    const b = v * v * p.tgt + 2 * v * t * Cb + t * t * p.fB;
+    if (moreOut(b, extB)) { extB = b; extFt = v * v * p.tgtFt + 2 * v * t * Cf + t * t * p.fF; }
+  }
+  return { board: extB, feet: extFt };
+}
+
+/** Solve the control distance minimising `cost(apex)`: coarse scan + bisection
+ *  refine. The apex depth vs. cDist is smooth and near-monotone, so this is stable. */
+function solveCDist(p: StrikeParams, lo: number, hi: number, cost: (a: { board: number; feet: number }) => number): number {
+  let best = lo, bestC = Infinity;
+  const STEPS = 48;
+  for (let i = 0; i <= STEPS; i++) {
+    const c = lo + ((hi - lo) * i) / STEPS;
+    const k = cost(sampledApex(p, c));
+    if (k < bestC) { bestC = k; best = c; }
+  }
+  let step = (hi - lo) / STEPS;
+  for (let r = 0; r < 20 && step > 1e-4; r++) {
+    step /= 2;
+    for (const c of [best - step, best + step]) {
+      if (c < lo || c > hi) continue;
+      const k = cost(sampledApex(p, c));
+      if (k < bestC) { bestC = k; best = c; }
+    }
+  }
+  return best;
+}
+
+/** Control distance for a line: solved to hit its stored apex depth
+ *  (`breakpoint_distance`), else the ADR-023 midpoint default. */
+function strikeCDist(p: StrikeParams, wantApexFt: number | null | undefined): number {
+  const { lo, hi } = strikeCDistRange(p);
+  if (wantApexFt == null) return clamp(strikeDefaultCDist(p), lo, hi);
+  return solveCDist(p, lo, hi, (a) => Math.abs(a.feet - wantApexFt));
+}
+
+/** Draw the strike quadratic (skid laydown→target, then target→final) and report
+ *  its furthest-out apex. Shared by buildLinePath so the marker == the drawn path. */
+function buildStrike(p: StrikeParams, wantApexFt: number | null | undefined, laydown: PlanePoint, hand: Handedness): { d: string; apex: { board: number; feet: number } } {
+  const cDist = strikeCDist(p, wantApexFt);
+  const Cb = p.focalBoard(cDist), Cf = cDist;
+  const target = pt(boardToX(p.tgt, hand), feetToY(p.tgtFt));
+  const moreOut = (a: number, b: number) => (p.dir > 0 ? a < b : a > b);
+  let extB = p.foul, extFt = 0;
+  if (moreOut(p.tgt, extB)) { extB = p.tgt; extFt = p.tgtFt; }
+  const N = 120;
+  let d = `M ${laydown.x} ${laydown.y} L ${target.x} ${target.y}`;
+  for (let k = 1; k <= N; k++) {
+    const t = k / N, v = 1 - t;
+    const b = v * v * p.tgt + 2 * v * t * Cb + t * t * p.fB;
+    const f = v * v * p.tgtFt + 2 * v * t * Cf + t * t * p.fF;
+    if (moreOut(b, extB)) { extB = b; extFt = f; }
+    const q = pt(boardToX(b, hand, true), feetToY(f));
+    d += ` L ${q.x} ${q.y}`;
+  }
+  return { d, apex: { board: extB, feet: extFt } };
+}
+
+/** The strike apex (derived breakpoint) for a line, honouring reachability the
+ *  same way `buildLinePath` does. Used by `solveLine` to write the stored value. */
+export function strikeApexPoint(line: LineSpec, hand: Handedness): { board: number; feet: number } | null {
+  const foul = line.laydown ?? line.stance;
+  if (foul == null || line.target == null) return null;
+  const dir = hand === "right" ? 1 : -1;
+  const fB = line.final_board ?? POCKET_BOARD;
+  const fF = line.final_distance ?? LANE_FEET;
+  const p = strikeParams(foul, line.target, fB, fF, dir);
+  const moreOut = (a: number, b: number) => (dir > 0 ? a < b : a > b);
+  if (dir * (fB - p.focalBoard(fF)) <= 0) {
+    // Unreachable: the ball rides the focal straight; apex = furthest on-lane point.
+    const endB = p.focalBoard(fF), outEnd = moreOut(endB, foul);
+    return { board: clamp(outEnd ? endB : foul, 1, 39), feet: outEnd ? fF : 0 };
+  }
+  return sampledApex(p, strikeCDist(p, line.breakpoint_distance));
+}
+
+/** Project a requested apex point (from a drag) onto the achievable rail: the
+ *  nearest point (in plane space) the breakpoint can actually reach. */
+export function projectBreakpoint(line: LineSpec, hand: Handedness, board: number, feet: number): { board: number; feet: number } {
+  const foul = line.laydown ?? line.stance;
+  if (foul == null || line.target == null) return { board, feet };
+  const dir = hand === "right" ? 1 : -1;
+  const fB = line.final_board ?? POCKET_BOARD;
+  const fF = line.final_distance ?? LANE_FEET;
+  const p = strikeParams(foul, line.target, fB, fF, dir);
+  if (dir * (fB - p.focalBoard(fF)) <= 0) return strikeApexPoint(line, hand) ?? { board, feet };
+  const { lo, hi } = strikeCDistRange(p);
+  const wantX = boardToX(board, hand, true), wantY = feetToY(feet);
+  const cDist = solveCDist(p, lo, hi, (a) => {
+    const dx = boardToX(a.board, hand, true) - wantX, dy = feetToY(a.feet) - wantY;
+    return dx * dx + dy * dy;
+  });
+  return sampledApex(p, cDist);
+}
+
 /**
- * Build the SVG path + marker points for a line as skid → hook → roll (ADR-013).
- * Needs a foul-line board (`laydown ?? stance`) and a `target`; returns null
- * otherwise.
+ * Build the SVG path + marker points for a line.
  *
- * - Skid (straight): laydown → target. The target rides the arrow chevron
- *   (`arrowFeet`); only its board is free.
- * - Hook + roll (two C1-continuous cubics through the breakpoint apex):
- *   target → breakpoint leaves the arrows along the skid heading and arrives at
- *   the breakpoint with a **vertical** tangent; breakpoint → final leaves
- *   vertical and eases into the roll heading. The vertical apex tangent makes the
- *   breakpoint the strict rightmost (RH) point — no overshoot.
+ * - **Strike** (non-spare): auto-hooks (ADR-024) — one quadratic target→final on
+ *   the 1-DOF breakpoint rail. Straight is just the degenerate case (final on the
+ *   focal). The breakpoint is *derived* (the curve's furthest-out point).
+ * - **Spare** (`spareCurve`): straight skid → one quadratic hook → straight roll
+ *   (ADR-019); hook timing from `hook_start_distance`/`hook_length`. No breakpoint.
+ * - **Unreachable** final (gutter-side of the focal): rides the focal straight.
  *
- * With no breakpoint set, the line runs straight to the final point.
+ * Needs a foul-line board (`laydown ?? stance`) and a `target`; returns null else.
  */
 export function buildLinePath(
   line: LineSpec | undefined,
@@ -147,16 +282,10 @@ export function buildLinePath(
   const focal = `M ${fa.x} ${fa.y} L ${fb.x} ${fb.y}`;
 
   const dir = hand === "right" ? 1 : -1;
-  // A strike line is a non-spare line that carries a breakpoint. It uses the SAME
-  // curve as the spare (ADR-022); its breakpoint is *derived* — the furthest-out
-  // point of that curve — not a shaping input.
-  const isStrike = !spareCurve && line.breakpoint != null;
-
-  // No curve requested (a bare strike line with no breakpoint): straight to final.
-  if (!spareCurve && !isStrike) {
-    const d = `M ${laydown.x} ${laydown.y} L ${target.x} ${target.y} L ${final.x} ${final.y}`;
-    return { d, focal, miss: false, points: { laydown, target, hookStart: null, breakpoint: null, final } };
-  }
+  // Auto-hook (ADR-024): every non-spare line curves. Its breakpoint is *derived*
+  // — the furthest-out point of the strike quadratic — not a shaping input. A
+  // straight line is the degenerate case where the final sits on the focal.
+  const isStrike = !spareCurve;
 
   const tgt = line.target;
   const fB = finalBoard0, fF = finalFeet;
@@ -183,44 +312,27 @@ export function buildLinePath(
     return { d, focal, miss, points: { laydown, target, hookStart: null, breakpoint, final } };
   }
 
-  // Strike (ADR-023): ONE smooth quadratic from the target to the final. The control
-  // sits on the focal at the [arrows, final] midpoint, but is pulled *nearer* if the
-  // focal would run off the lane — so the whole curve stays on the lane and smooth
-  // (the breakpoint comes nearer) instead of guttering and cornering. Tangent to the
-  // skid at the target (control on the focal) and a convex blend of on-focal +
-  // hook-side points ⇒ it never crosses to the anti-hook side of the focal and never
-  // reverts (no S, no kink). The breakpoint is the derived furthest-out point.
+  // Strike (ADR-023/024): ONE smooth quadratic from the target to the final on the
+  // 1-DOF breakpoint rail. The control rides the focal at a distance set by the
+  // stored apex depth (`breakpoint_distance`), else the [arrows, final] midpoint,
+  // pulled *nearer* if the focal would run off the lane. Tangent to the skid at the
+  // target + a convex blend of on-focal + hook-side points ⇒ never crosses to the
+  // anti-hook side of the focal, never reverts (no S, no kink). The breakpoint is
+  // the derived furthest-out point.
   if (isStrike) {
-    const focalAtBoard = (b: number) => (tgtFt * (b - foul)) / (tgt - foul);
-    let cDist = (tgtFt + fF) / 2;
-    if (tgt !== foul) {
-      const cb = focalBoard(cDist);
-      if (cb < 1) cDist = Math.min(cDist, focalAtBoard(1));
-      else if (cb > 39) cDist = Math.min(cDist, focalAtBoard(39));
-    }
-    cDist = clamp(cDist, tgtFt + 1, fF - 1);
-    const Cb = focalBoard(cDist), Cf = cDist;
-    const N = 120;
-    let d = `M ${laydown.x} ${laydown.y} L ${target.x} ${target.y}`;
-    let extB = foul, extFt = 0; // laydown is the rightmost on an inside line
-    if (moreOut(tgt, extB)) { extB = tgt; extFt = tgtFt; }
-    for (let k = 1; k <= N; k++) {
-      const t = k / N, v = 1 - t;
-      const b = v * v * tgt + 2 * v * t * Cb + t * t * fB;
-      const f = v * v * tgtFt + 2 * v * t * Cf + t * t * fF;
-      if (moreOut(b, extB)) { extB = b; extFt = f; }
-      const p = pt(boardToX(b, hand, true), feetToY(f));
-      d += ` L ${p.x} ${p.y}`;
-    }
-    const breakpoint = pt(boardToX(extB, hand, true), feetToY(extFt));
+    const p = strikeParams(foul, tgt, fB, fF, dir);
+    const { d, apex } = buildStrike(p, line.breakpoint_distance, laydown, hand);
+    const breakpoint = pt(boardToX(apex.board, hand, true), feetToY(apex.feet));
     return { d, focal, miss: false, points: { laydown, target, hookStart: null, breakpoint, final } };
   }
 
-  // Spare (ADR-019): straight skid on the focal to HOOK_START_FT, one quadratic over
-  // HOOK_LENGTH_FT (control on the focal at the span midpoint → feet linear in t),
-  // then a straight roll into the pin. No breakpoint marker.
-  const dS = clamp(HOOK_START_FT, tgtFt + 1, fF - 2);
-  const dE = clamp(dS + HOOK_LENGTH_FT, dS + 1, fF - 0.5);
+  // Spare (ADR-019): straight skid on the focal to the hook start, one quadratic over
+  // the hook length (control on the focal at the span midpoint → feet linear in t),
+  // then a straight roll into the pin. Timing is per-line (ADR-024). No breakpoint.
+  const hookStartFt = line.hook_start_distance ?? HOOK_START_FT;
+  const hookLen = line.hook_length ?? HOOK_LENGTH_FT;
+  const dS = clamp(hookStartFt, tgtFt + 1, fF - 2);
+  const dE = clamp(dS + hookLen, dS + 1, fF - 0.5);
   const dM = (dS + dE) / 2;
   const Psb = focalBoard(dS), Cb = focalBoard(dM);
   const u = (dE - dM) / (fF - dM);
@@ -255,7 +367,6 @@ export function buildLinePath(
 
 export type Peg = "laydown" | "target" | "breakpoint" | "final";
 
-const BP_DIST_MAX = 59;  // < 60 ft pocket
 const LOFT_MARGIN = 20;  // boards a lofted laydown may sit beyond each lane edge
 
 export function solveLine(line: LineSpec, hand: Handedness): LineSpec {
@@ -269,33 +380,24 @@ export function solveLine(line: LineSpec, hand: Handedness): LineSpec {
   const tg = clLane(line.target);
 
   const out: LineSpec = { ...line, target: r2(tg), [foulField]: r2(ld) };
-  if (line.breakpoint == null) return out;
+  if (line.breakpoint == null) return out; // not a strike line (spare / bare aim)
 
-  const bpd = clamp(line.breakpoint_distance ?? DEFAULT_BREAKPOINT_FEET, Math.ceil(arrowFeet(tg)) + 1, BP_DIST_MAX);
-  const focal = (d: number) => skidBoardAt(ld, tg, d);
-  const hookSide = (a: number, b: number) => (dir > 0 ? Math.max(a, b) : Math.min(a, b)); // the more hook-side
-  const antiSide = (a: number, b: number) => (dir > 0 ? Math.min(a, b) : Math.max(a, b)); // the more anti-hook
-
-  // Breakpoint: hook-side of the focal; on an out-and-back skid it must also carry
-  // far enough *past* the aim that the hook can leave the arrows tangent to the
-  // (steeper-the-wider-the-aim) skid without a corner. `minDrift` is the Fritsch–
-  // Carlson monotonicity threshold for that tangent leave; closer than it can't be
-  // drawn smoothly, so the breakpoint slides gutter-ward (subsumes the old "no
-  // further hook-side than the aim" cap).
-  let bp = hookSide(clLane(line.breakpoint), focal(bpd));
-  if (dir * (ld - tg) > 0) {
-    const minDrift = (Math.abs(tg - ld) * (bpd - arrowFeet(tg))) / (3 * arrowFeet(tg));
-    bp = antiSide(bp, tg - dir * minDrift);
+  // Breakpoint is DERIVED from the rail (ADR-024): the drawn strike apex. Write it
+  // back so the stored board + distance always equal what's drawn — `breakpoint_
+  // distance` is the rail input, the apex board falls out.
+  const apex = strikeApexPoint(out, hand);
+  if (apex) {
+    out.breakpoint = r2(apex.board);
+    out.breakpoint_distance = r2(apex.feet);
   }
-  bp = clLane(bp);
-  out.breakpoint = r2(bp);
-  out.breakpoint_distance = Math.round(bpd);
 
-  // Final: hook-side of the breakpoint and of the focal at the pins. Materialised
+  // Final: hook-side of the breakpoint apex and of the focal at the pins. Materialised
   // only when set, or when the pocket default is no longer reachable. Capped to the
-  // lane: a guttering aim's final stays at the lane edge (the furthest on-lane point)
-  // so its handle is always reachable, rather than flying off-screen.
-  const fb = clLane(hookSide(line.final_board ?? POCKET_BOARD, hookSide(bp, focal(LANE_FEET))));
+  // lane so its handle stays reachable on a guttering aim.
+  const focal = (d: number) => skidBoardAt(ld, tg, d);
+  const hookSide = (a: number, b: number) => (dir > 0 ? Math.max(a, b) : Math.min(a, b));
+  const bpBoard = apex ? apex.board : line.breakpoint;
+  const fb = clLane(hookSide(line.final_board ?? POCKET_BOARD, hookSide(bpBoard, focal(LANE_FEET))));
   if (line.final_board != null || dir * (fb - POCKET_BOARD) > 0) out.final_board = r2(fb);
 
   return out;
