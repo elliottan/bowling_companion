@@ -72,4 +72,19 @@ describe("LaneVisualizer editing", () => {
     expect(Math.round(xToBoard(x, "right"))).toBe(12);
     expect(feetToY(15)).toBeGreaterThan(0);
   });
+
+  it("stays top-down after a handle drag — no tilt restore (ADR-025)", () => {
+    (Element.prototype as unknown as { setPointerCapture?: () => void }).setPointerCapture ??= () => {};
+    const onChange = vi.fn();
+    render(
+      <HandednessContext.Provider value="right">
+        <LaneVisualizer line={{ laydown: 18, target: 10, breakpoint: 6 }} onClose={() => {}} onChange={onChange} />
+      </HandednessContext.Provider>
+    );
+    const handle = document.querySelector('[data-role="handle"][data-key="target"]')!;
+    fireEvent.pointerDown(handle);
+    fireEvent.pointerUp(handle);
+    const stage = document.querySelector('[data-role="tilt-stage"]') as HTMLElement;
+    expect(stage.style.transform).toContain("rotateX(0deg)");
+  });
 });

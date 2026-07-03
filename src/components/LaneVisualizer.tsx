@@ -48,7 +48,6 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
   const [optionsOpen, setOptionsOpen] = useState(false);
   const [replayKey, setReplayKey] = useState(0);
   const dragY = useRef<number | null>(null);
-  const preGrabDeg = useRef<number>(BOWLER_DEG); // tilt to restore after a handle drag
   const surfaceRef = useRef<HTMLDivElement | null>(null);
   const isTopDown = deg <= 2;
 
@@ -145,16 +144,15 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
 
   function grabHandle(e: React.PointerEvent) {
     e.stopPropagation();
-    // Snap flat instantly so the linear screen→lane mapping is valid mid-drag;
-    // remember the current tilt to animate back to on release.
-    preGrabDeg.current = deg;
+    // Snap flat instantly so the linear screen→lane mapping is valid mid-drag.
+    // Stays top-down after release — line edits rarely land in one try
+    // (ADR-025); the "Bowler view" toggle brings the tilt back.
     setDragging(true);
     setDeg(TOPDOWN_DEG);
     (e.currentTarget as Element).setPointerCapture(e.pointerId);
   }
   function releaseHandle() {
     setDragging(false);
-    setDeg(preGrabDeg.current); // restore the working view (animates back)
   }
 
   const handles: Array<{ key: string; p: { x: number; y: number } }> = [];
