@@ -127,15 +127,21 @@ function strikeParams(foul: number, tgt: number, fB: number, fF: number, dir: nu
   return { foul, tgt, tgtFt, fB, fF, dir, focalBoard: (ft) => skidBoardAt(foul, tgt, ft) };
 }
 
-/** Valid range for the control distance. Upper bound is pulled *nearer* if the
- *  focal there would run off the lane, so the whole curve stays on-lane (ADR-023). */
+/** Valid range for the control distance. The rail ends where the DRAWN apex
+ *  reaches the lane edge — the quadratic never touches its control, so capping
+ *  the control at the edge (ADR-023) stranded real hook range (ADR-025). */
 function strikeCDistRange(p: StrikeParams): { lo: number; hi: number } {
   const lo = p.tgtFt + 1;
   let hi = p.fF - 1;
-  if (p.tgt !== p.foul) {
-    const focalAtBoard = (b: number) => (p.tgtFt * (b - p.foul)) / (p.tgt - p.foul);
-    const cap = focalAtBoard(p.tgt > p.foul ? 39 : 1); // where the focal meets the edge it heads for
-    if (cap > lo) hi = Math.min(hi, cap);
+  const edge = p.dir > 0 ? 1 : 39;
+  const offLane = (c: number) => p.dir * (sampledApex(p, c).board - edge) < 0;
+  if (!offLane(lo) && offLane(hi)) {
+    let good = lo, bad = hi;
+    for (let i = 0; i < 24; i++) {
+      const mid = (good + bad) / 2;
+      if (offLane(mid)) bad = mid; else good = mid;
+    }
+    hi = good;
   }
   return { lo, hi: Math.max(lo, hi) };
 }
@@ -151,7 +157,12 @@ interface StrikeGeom {
  *  source of truth for the drawn shape — `buildStrike` renders these samples, so
  *  apex == drawn apex exactly. */
 function strikeGeom(p: StrikeParams, cDist: number): StrikeGeom {
-  const P0b = p.tgt, P0f = p.tgtFt;
+  // Peel (ADR-025): the hook start trails the control by the hook half-span, so
+  // low cDist reproduces the ADR-023 quadratic exactly (peel = target) and high
+  // cDist rides the focal deep before a short, sharp hook. dS ≤ cDist ≤ fF keeps
+  // depth monotone; peel-on-focal keeps the junction tangent (no kink).
+  const P0f = Math.max(p.tgtFt, 2 * cDist - p.fF);
+  const P0b = p.focalBoard(P0f);
   const Cb = p.focalBoard(cDist), Cf = cDist;
   const moreOut = (a: number, b: number) => (p.dir > 0 ? a < b : a > b);
   let extB = p.foul, extFt = 0; // laydown is furthest-out on an inside line
@@ -213,9 +224,10 @@ function buildStrike(p: StrikeParams, wantApexFt: number | null | undefined, lay
   const { pts, apex } = strikeGeom(p, cDist);
   const target = pt(boardToX(p.tgt, hand), feetToY(p.tgtFt));
   let d = `M ${laydown.x} ${laydown.y} L ${target.x} ${target.y}`;
-  for (let i = 1; i < pts.length; i++) { // skip t=0: duplicates the target just drawn
-    const s = pts[i];
-    const q = pt(boardToX(s.board, hand, true), feetToY(s.feet));
+  // pts[0] duplicates the target unless the peel has moved past it (ADR-025).
+  const start = pts[0].feet - p.tgtFt > 1e-9 ? 0 : 1;
+  for (let i = start; i < pts.length; i++) {
+    const q = pt(boardToX(pts[i].board, hand, true), feetToY(pts[i].feet));
     d += ` L ${q.x} ${q.y}`;
   }
   return { d, apex };

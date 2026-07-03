@@ -329,6 +329,64 @@ describe("buildLinePath", () => {
     expect(xToBoard(bp.x, "left")).toBeCloseTo(35, 1);
     expect(yToFeet(bp.y)).toBeGreaterThan(50);
   });
+
+  it("rail extends to a sharp late hook — the apex can approach the gutter (ADR-025)", () => {
+    // Screenshot config: old control-cap stranded the apex at board ~8.2.
+    const line: LineSpec = { laydown: 19, target: 14, breakpoint: 8, final_board: 17 };
+    const a = projectBreakpoint(line, "right", 1, 50); // finger at the gutter
+    expect(a.board).toBeLessThan(4);
+    expect(a.board).toBeGreaterThanOrEqual(1); // never off the lane
+  });
+
+  it("at the sharp end of the rail: stored == drawn, on-lane, and still no kink", () => {
+    const base: LineSpec = { laydown: 19, target: 14, breakpoint: 8, final_board: 17 };
+    const a = projectBreakpoint(base, "right", 1, 50);
+    const solved = solveLine({ ...base, breakpoint: a.board, breakpoint_distance: a.feet }, "right");
+    const r = buildLinePath(solved, "right")!;
+    expect(solved.breakpoint!).toBeCloseTo(xToBoard(r.points.breakpoint!.x, "right"), 1);
+    expect(solved.breakpoint_distance!).toBeCloseTo(yToFeet(r.points.breakpoint!.y), 1);
+    const pts = sampleBoards(r.d, "right");
+    for (const p of pts) expect(p.board).toBeGreaterThanOrEqual(0.9); // on the lane
+    let maxJump = 0; // C1 at the ride→hook junction: no second-difference spike
+    for (let i = 2; i < pts.length; i++) {
+      const d1 = pts[i - 1].board - pts[i - 2].board;
+      const d2 = pts[i].board - pts[i - 1].board;
+      maxJump = Math.max(maxJump, Math.abs(d2 - d1));
+    }
+    expect(maxJump).toBeLessThan(0.5);
+  });
+
+  it("LH mirror: sharp end of the rail stays on-lane with stored == drawn", () => {
+    const base: LineSpec = { laydown: 21, target: 26, breakpoint: 32, final_board: 23 };
+    const a = projectBreakpoint(base, "left", 39, 50); // finger at the LH gutter
+    expect(a.board).toBeGreaterThan(36);
+    expect(a.board).toBeLessThanOrEqual(39); // never off the lane
+    const solved = solveLine({ ...base, breakpoint: a.board, breakpoint_distance: a.feet }, "left");
+    const r = buildLinePath(solved, "left")!;
+    expect(solved.breakpoint!).toBeCloseTo(xToBoard(r.points.breakpoint!.x, "left"), 1);
+    expect(solved.breakpoint_distance!).toBeCloseTo(yToFeet(r.points.breakpoint!.y), 1);
+    for (const p of sampleBoards(r.d, "left")) expect(p.board).toBeLessThanOrEqual(39.1);
+  });
+
+  it("the default rail setting is unchanged by the peel (back-compat)", () => {
+    // Default cDist is the [arrows, final] midpoint → peel == target → the
+    // ADR-023 single quadratic. A line with no breakpoint_distance must keep
+    // hooking through the same apex as before the peel existed.
+    const r = buildLinePath({ laydown: 20, target: 15, breakpoint: 8 }, "right")!;
+    const apexB = xToBoard(r.points.breakpoint!.x, "right");
+    expect(apexB).toBeGreaterThan(9);   // soft mid-lane hook, nowhere near the gutter
+    expect(apexB).toBeLessThan(15);
+  });
+
+  it("deep breakpoint on a one-board focal slides the peel down the board (ADR-025)", () => {
+    // laydown == target: dragging the breakpoint deeper must move the on-board
+    // peel deeper (the rail stays meaningful on the degenerate line).
+    const base: LineSpec = { laydown: 5, target: 5, breakpoint: 5, final_board: 16 };
+    const shallow = buildLinePath({ ...base, breakpoint_distance: 20 }, "right")!;
+    const deep = buildLinePath({ ...base, breakpoint_distance: 50 }, "right")!;
+    expect(yToFeet(deep.points.breakpoint!.y)).toBeGreaterThan(yToFeet(shallow.points.breakpoint!.y) + 10);
+    expect(xToBoard(deep.points.breakpoint!.x, "right")).toBeCloseTo(5, 1);
+  });
 });
 
 // ADR-015 — the ball rides the focal line on the skid, peels off to the hook side
