@@ -2,6 +2,14 @@
 
 User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachangelog.com).
 
+## [Unreleased] — Late-hook breakpoint rail, top-down camera stays put (2026-07-04, ADR-025)
+
+### Fixed
+
+- **The breakpoint rail reaches all the way out.** Dragging it now sweeps out to a sharp late hook near the gutter instead of stalling partway across the lane.
+- **Straight-down-a-board lines put the breakpoint at the target**, not down at the foul line.
+- **The camera stays top-down after you drag a point** — it used to snap back to your previous angle on release.
+
 ## [Unreleased] — Draggable breakpoint, auto-hook, tunable spare hook, visualizer polish (2026-07-03, ADR-024)
 
 ### Added

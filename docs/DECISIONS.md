@@ -924,3 +924,45 @@ handle wrote only board, never depth. Resolved with the human in a grill session
   refined wood/oil gradient.
 - Tests asserting the old breakpoint-as-clamped-input behaviour were updated to
   the derived-apex contract; drawability/monotonicity/no-corner invariants stay.
+
+## ADR-025 — Late-hook rail (focal ride + peel), deepest-tie breakpoint, sticky top-down
+
+**Status:** accepted (2026-07). Refines ADR-023 (one quadratic) and ADR-024
+(1-DOF rail). Keeps every focal-wall / no-S / no-kink invariant. Spare (ADR-019)
+unchanged.
+
+**Context.** Three sandbox reports. (1) The rail was capped where the *control*
+(riding the focal) exits the lane — but a quadratic never touches its control,
+so the drawn apex stranded far inside the cap (laydown 19 → target 14 → final
+17: apex board 8.2 with the focal at 4.4; removing the cap alone only reached
+6.9 — the single target→final quadratic saturates). (2) With laydown == target
+the whole skid ties on one board and the strict apex scan broke the tie to the
+foul line — the breakpoint marker sat *below the target*. (3) Releasing a handle
+restored the pre-grab tilt, forcing a re-tilt round-trip between every edit.
+
+**Decision.**
+- **Peel.** The strike is a straight focal ride target→peel plus ONE quadratic
+  peel→final, control on the focal at `cDist` (still the only rail parameter).
+  The peel trails the control by the hook half-span: `dS = max(tgtFt, 2·cDist −
+  fF)`. Low `cDist` (through the default midpoint) gives `dS = tgtFt` — exactly
+  the ADR-023 curve, so existing lines render identically. High `cDist` rides
+  the focal deep, then hooks short and sharp: the apex now sweeps out to the
+  lane edge. Invariants by construction: peel and control on the focal ⇒ C¹
+  junction and a convex on-focal/hook-side blend (no S, no kink, never
+  anti-hook of the focal); `dS ≤ cDist ≤ fF` ⇒ depth monotone.
+- **Apex-edge cap.** The rail ends where the *drawn apex* reaches the lane edge
+  (bisection over `cDist`), not where the control does. The control may sit
+  off-lane; it is invisible.
+- **Deepest tie-break.** The apex scan prefers the deepest point on a board tie
+  (ε = 1e-6), in the curve scan and the unreachable-final focal ride alike. On
+  a one-board focal the breakpoint sits at/past the target and the rail slides
+  the peel down the board.
+- **Sticky top-down.** Releasing a handle no longer restores the pre-grab tilt
+  (supersedes that ADR-024 interaction point) — edits rarely land in one try.
+  The initial bowler view and the view toggle are unchanged.
+
+**Consequences.**
+- `strikeGeom` becomes the single sampler shared by the apex scan and the drawn
+  path (stored == drawn preserved); `strikeCDistRange` bisects the apex-edge
+  cap; `buildStrike` renders the samples.
+- `LaneVisualizer` drops the `preGrabDeg` restore.
