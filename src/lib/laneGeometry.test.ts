@@ -298,6 +298,37 @@ describe("buildLinePath", () => {
     expect(pts[pts.length - 1].feet).toBeGreaterThan(62); // exits off the back, not stopping at the pin
     expect(r.miss).toBe(true);
   });
+
+  it("laydown == target: breakpoint sits at/past the target, never at the foul line (ADR-025)", () => {
+    // The whole skid rides one board — the apex tie must break to the DEEPEST point.
+    const r = buildLinePath({ laydown: 5, target: 5, breakpoint: 5, final_board: 16 }, "right")!;
+    const bp = r.points.breakpoint!;
+    expect(xToBoard(bp.x, "right")).toBeCloseTo(5, 1);
+    expect(yToFeet(bp.y)).toBeGreaterThanOrEqual(arrowFeet(5) - 0.1); // ≥ target depth (12 ft)
+  });
+
+  it("LH mirror: laydown == target puts the breakpoint at/past the target", () => {
+    const r = buildLinePath({ laydown: 35, target: 35, breakpoint: 35, final_board: 24 }, "left")!;
+    const bp = r.points.breakpoint!;
+    expect(xToBoard(bp.x, "left")).toBeCloseTo(35, 1);
+    expect(yToFeet(bp.y)).toBeGreaterThanOrEqual(arrowFeet(35) - 0.1);
+  });
+
+  it("unreachable final on a one-board focal: breakpoint at the deep end, not the laydown", () => {
+    // final gutter-side of the vertical focal → rides the focal straight; the
+    // on-focal tie must break to the deep end.
+    const r = buildLinePath({ laydown: 5, target: 5, breakpoint: 5, final_board: 3 }, "right")!;
+    expect(yToFeet(r.points.breakpoint!.y)).toBeGreaterThan(50);
+  });
+
+  it("LH mirror: unreachable final on a one-board focal breaks the tie to the deep end", () => {
+    // For a left-hander the gutter side is the HIGH boards: final_board 38 sits
+    // gutter-side of the vertical board-35 focal → rides the focal straight.
+    const r = buildLinePath({ laydown: 35, target: 35, breakpoint: 35, final_board: 38 }, "left")!;
+    const bp = r.points.breakpoint!;
+    expect(xToBoard(bp.x, "left")).toBeCloseTo(35, 1);
+    expect(yToFeet(bp.y)).toBeGreaterThan(50);
+  });
 });
 
 // ADR-015 — the ball rides the focal line on the skid, peels off to the hook side

@@ -142,21 +142,39 @@ function strikeCDistRange(p: StrikeParams): { lo: number; hi: number } {
 
 const strikeDefaultCDist = (p: StrikeParams) => (p.tgtFt + p.fF) / 2;
 
-/** The drawn curve's furthest-out point (breakpoint apex) for a control distance.
- *  Sampled the same way `buildStrike` draws, so apex == drawn apex exactly. */
-function sampledApex(p: StrikeParams, cDist: number): { board: number; feet: number } {
+interface StrikeGeom {
+  pts: Array<{ board: number; feet: number }>;   // curve samples, t = 0…1
+  apex: { board: number; feet: number };         // furthest-out; deepest on ties
+}
+
+/** Sample the strike curve for a control distance and report its apex. The ONE
+ *  source of truth for the drawn shape — `buildStrike` renders these samples, so
+ *  apex == drawn apex exactly. */
+function strikeGeom(p: StrikeParams, cDist: number): StrikeGeom {
+  const P0b = p.tgt, P0f = p.tgtFt;
   const Cb = p.focalBoard(cDist), Cf = cDist;
   const moreOut = (a: number, b: number) => (p.dir > 0 ? a < b : a > b);
   let extB = p.foul, extFt = 0; // laydown is furthest-out on an inside line
-  if (moreOut(p.tgt, extB)) { extB = p.tgt; extFt = p.tgtFt; }
+  // Furthest-out wins; on a board tie (laydown == target: the whole skid rides
+  // one board) the DEEPEST point wins, so the breakpoint sits at/past the
+  // target, never back at the foul line.
+  const consider = (b: number, f: number) => {
+    if (moreOut(b, extB) || (Math.abs(b - extB) < 1e-6 && f > extFt)) { extB = b; extFt = f; }
+  };
+  consider(p.tgt, p.tgtFt);
+  const pts: Array<{ board: number; feet: number }> = [];
   const N = 120;
-  for (let k = 1; k <= N; k++) {
+  for (let k = 0; k <= N; k++) {
     const t = k / N, v = 1 - t;
-    const b = v * v * p.tgt + 2 * v * t * Cb + t * t * p.fB;
-    if (moreOut(b, extB)) { extB = b; extFt = v * v * p.tgtFt + 2 * v * t * Cf + t * t * p.fF; }
+    const b = v * v * P0b + 2 * v * t * Cb + t * t * p.fB;
+    const f = v * v * P0f + 2 * v * t * Cf + t * t * p.fF;
+    consider(b, f);
+    pts.push({ board: b, feet: f });
   }
-  return { board: extB, feet: extFt };
+  return { pts, apex: { board: extB, feet: extFt } };
 }
+
+const sampledApex = (p: StrikeParams, cDist: number) => strikeGeom(p, cDist).apex;
 
 /** Solve the control distance minimising `cost(apex)`: coarse scan + bisection
  *  refine. The apex depth vs. cDist is smooth and near-monotone, so this is stable. */
@@ -188,26 +206,19 @@ function strikeCDist(p: StrikeParams, wantApexFt: number | null | undefined): nu
   return solveCDist(p, lo, hi, (a) => Math.abs(a.feet - wantApexFt));
 }
 
-/** Draw the strike quadratic (skid laydown→target, then target→final) and report
- *  its furthest-out apex. Shared by buildLinePath so the marker == the drawn path. */
+/** Draw the strike (skid laydown→target, then the sampled curve) and report its
+ *  apex. Renders `strikeGeom`'s samples, so the marker == the drawn path. */
 function buildStrike(p: StrikeParams, wantApexFt: number | null | undefined, laydown: PlanePoint, hand: Handedness): { d: string; apex: { board: number; feet: number } } {
   const cDist = strikeCDist(p, wantApexFt);
-  const Cb = p.focalBoard(cDist), Cf = cDist;
+  const { pts, apex } = strikeGeom(p, cDist);
   const target = pt(boardToX(p.tgt, hand), feetToY(p.tgtFt));
-  const moreOut = (a: number, b: number) => (p.dir > 0 ? a < b : a > b);
-  let extB = p.foul, extFt = 0;
-  if (moreOut(p.tgt, extB)) { extB = p.tgt; extFt = p.tgtFt; }
-  const N = 120;
   let d = `M ${laydown.x} ${laydown.y} L ${target.x} ${target.y}`;
-  for (let k = 1; k <= N; k++) {
-    const t = k / N, v = 1 - t;
-    const b = v * v * p.tgt + 2 * v * t * Cb + t * t * p.fB;
-    const f = v * v * p.tgtFt + 2 * v * t * Cf + t * t * p.fF;
-    if (moreOut(b, extB)) { extB = b; extFt = f; }
-    const q = pt(boardToX(b, hand, true), feetToY(f));
+  for (let i = 1; i < pts.length; i++) { // skip t=0: duplicates the target just drawn
+    const s = pts[i];
+    const q = pt(boardToX(s.board, hand, true), feetToY(s.feet));
     d += ` L ${q.x} ${q.y}`;
   }
-  return { d, apex: { board: extB, feet: extFt } };
+  return { d, apex };
 }
 
 /** The strike apex (derived breakpoint) for a line, honouring reachability the
@@ -222,7 +233,7 @@ export function strikeApexPoint(line: LineSpec, hand: Handedness): { board: numb
   const moreOut = (a: number, b: number) => (dir > 0 ? a < b : a > b);
   if (dir * (fB - p.focalBoard(fF)) <= 0) {
     // Unreachable: the ball rides the focal straight; apex = furthest on-lane point.
-    const endB = p.focalBoard(fF), outEnd = moreOut(endB, foul);
+    const endB = p.focalBoard(fF), outEnd = !moreOut(foul, endB); // ties → deep end
     return { board: clamp(outEnd ? endB : foul, 1, 39), feet: outEnd ? fF : 0 };
   }
   return sampledApex(p, strikeCDist(p, line.breakpoint_distance));
@@ -305,7 +316,7 @@ export function buildLinePath(
     const e = focalPt(end);
     const d = `M ${laydown.x} ${laydown.y} L ${e.x} ${e.y}`;
     const endB = focalBoard(end);
-    const outEnd = moreOut(endB, foul);
+    const outEnd = !moreOut(foul, endB); // ties → deep end
     const breakpoint = isStrike
       ? pt(boardToX(clamp(outEnd ? endB : foul, 1, 39), hand, true), feetToY(outEnd ? end : 0))
       : null;
