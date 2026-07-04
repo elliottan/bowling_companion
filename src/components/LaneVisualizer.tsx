@@ -128,9 +128,10 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
       case "laydown": applyEdit({ laydown: board }); break;
       case "target": applyEdit({ target: board }); break;
       case "breakpoint": {
-        // 1-DOF rail: project the finger onto the achievable apex arc (ADR-024).
+        // Magnetic projection (ADR-026): solve hook timing so the derived apex
+        // lands as close to the finger as the curve family allows.
         const a = projectBreakpoint(line ?? {}, hand, boardRaw, feet);
-        applyEdit({ breakpoint: a.board, breakpoint_distance: a.feet });
+        applyEdit({ hook_start_distance: a.hook_start_distance, hook_length: a.hook_length });
         break;
       }
       case "final":
@@ -159,8 +160,8 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
   if (path) {
     handles.push({ key: "laydown", p: path.points.laydown });
     handles.push({ key: "target", p: path.points.target });
-    // Strike: the breakpoint rides a 1-DOF rail — draggable (ADR-024). Spare has none.
-    if (!spare && path.points.breakpoint) handles.push({ key: "breakpoint", p: path.points.breakpoint });
+    // Both modes: the derived breakpoint is draggable (ADR-026).
+    if (path.points.breakpoint) handles.push({ key: "breakpoint", p: path.points.breakpoint });
     handles.push({ key: "final", p: path.points.final });
   }
 
@@ -322,9 +323,7 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
 
       {optionsOpen && (
         <OptionsSheet
-          spare={spare}
           line={line}
-          bpFeet={bpFeet}
           onChange={applyEdit}
           onClose={() => setOptionsOpen(false)}
         />
@@ -333,13 +332,11 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
   );
 }
 
-/** Bottom sheet with the hook-shape sliders (spare timing / strike breakpoint). */
+/** Bottom sheet with the hook-shape sliders (shared by strike + spare, ADR-026). */
 function OptionsSheet({
-  spare, line, bpFeet, onChange, onClose,
+  line, onChange, onClose,
 }: {
-  spare: boolean;
   line: LineSpec | undefined;
-  bpFeet: number | undefined;
   onChange: (patch: Partial<LineSpec>) => void;
   onClose: () => void;
 }) {
@@ -356,34 +353,19 @@ function OptionsSheet({
             Done
           </button>
         </div>
-        {spare ? (
-          <>
-            <Slider
-              label="Hook start" suffix="ft" min={20} max={55} step={1}
-              value={line?.hook_start_distance ?? 38}
-              onChange={(v) => onChange({ hook_start_distance: v })}
-            />
-            <Slider
-              label="Hook length" suffix="ft" min={4} max={25} step={1}
-              value={line?.hook_length ?? 14}
-              onChange={(v) => onChange({ hook_length: v })}
-            />
-            <p className="mt-1 text-xs text-white/50">
-              How early the ball leaves the skid, and how long it takes to recover into the pin.
-            </p>
-          </>
-        ) : (
-          <>
-            <Slider
-              label="Breakpoint distance" suffix="ft" min={25} max={58} step={1}
-              value={line?.breakpoint_distance ?? bpFeet ?? 42}
-              onChange={(v) => onChange({ breakpoint: line?.breakpoint ?? bpFeet ?? 42, breakpoint_distance: v })}
-            />
-            <p className="mt-1 text-xs text-white/50">
-              How far down-lane the ball reaches its furthest point before hooking back to the pocket.
-            </p>
-          </>
-        )}
+        <Slider
+          label="Hook start" suffix="ft" min={20} max={55} step={1}
+          value={line?.hook_start_distance ?? 38}
+          onChange={(v) => onChange({ hook_start_distance: v })}
+        />
+        <Slider
+          label="Hook length" suffix="ft" min={4} max={25} step={1}
+          value={line?.hook_length ?? 14}
+          onChange={(v) => onChange({ hook_length: v })}
+        />
+        <p className="mt-1 text-xs text-white/50">
+          How early the ball leaves the skid, and how long it takes to recover into the pins.
+        </p>
       </div>
     </div>
   );

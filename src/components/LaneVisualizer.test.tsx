@@ -47,7 +47,7 @@ describe("LaneVisualizer editing", () => {
     expect(keys).toEqual(["laydown", "target", "breakpoint", "final"]);
   });
 
-  it("spare mode drops the breakpoint handle", () => {
+  it("spare mode has a draggable breakpoint handle too (ADR-026)", () => {
     const onChange = vi.fn();
     render(
       <HandednessContext.Provider value="right">
@@ -55,7 +55,29 @@ describe("LaneVisualizer editing", () => {
       </HandednessContext.Provider>
     );
     const keys = [...document.querySelectorAll('[data-role="handle"]')].map((c) => c.getAttribute("data-key"));
-    expect(keys).not.toContain("breakpoint");
+    expect(keys).toContain("breakpoint");
+  });
+
+  it("hook sliders are the same pair in strike and spare mode (ADR-026)", () => {
+    const onChange = vi.fn();
+    const { unmount } = render(
+      <HandednessContext.Provider value="right">
+        <LaneVisualizer line={{ laydown: 18, target: 10, breakpoint: 6 }} onClose={() => {}} onChange={onChange} />
+      </HandednessContext.Provider>
+    );
+    fireEvent.click(screen.getByLabelText(/hook options/i));
+    expect(screen.getByText(/hook start/i)).toBeTruthy();
+    expect(screen.getByText(/hook length/i)).toBeTruthy();
+    expect(screen.queryByText(/breakpoint distance/i)).toBeNull();
+    unmount();
+    render(
+      <HandednessContext.Provider value="right">
+        <LaneVisualizer line={{ laydown: 18, target: 10 }} leave={[10]} spare onClose={() => {}} onChange={onChange} />
+      </HandednessContext.Provider>
+    );
+    fireEvent.click(screen.getByLabelText(/hook options/i));
+    expect(screen.getByText(/hook start/i)).toBeTruthy();
+    expect(screen.getByText(/hook length/i)).toBeTruthy();
   });
 
   it("renders no handles in read-only mode (no onChange)", () => {
