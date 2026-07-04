@@ -209,8 +209,7 @@ describe("buildLinePath", () => {
   it("projectBreakpoint returns a reachable apex near a requested point", () => {
     const line: LineSpec = { laydown: 20, target: 15, breakpoint: 8, breakpoint_distance: 42, final_board: 17.5 };
     const a = projectBreakpoint(line, "right", 6, 44);
-    // The projected apex is a real apex of the curve at that rail setting.
-    const drawn = buildLinePath({ ...line, breakpoint_distance: a.feet }, "right")!;
+    const drawn = buildLinePath({ ...line, hook_start_distance: a.hook_start_distance, hook_length: a.hook_length }, "right")!;
     expect(a.board).toBeCloseTo(xToBoard(drawn.points.breakpoint!.x, "right"), 1);
     expect(a.feet).toBeCloseTo(yToFeet(drawn.points.breakpoint!.y), 1);
   });
@@ -227,10 +226,12 @@ describe("buildLinePath", () => {
   });
 
   it("spareCurve ignores a stored breakpoint (legacy dormant data)", () => {
-    const line: LineSpec = { laydown: 18, target: 10, breakpoint: 6, breakpoint_distance: 42 };
-    const r = buildLinePath(line, "right", true)!;
-    expect(r.points.breakpoint).toBeNull(); // no breakpoint peg/marker
-    expect(r.d).not.toContain(" C ");       // not the breakpoint cubic
+    const a = buildLinePath({ laydown: 18, target: 10, breakpoint: 6 }, "right", true)!;
+    const b = buildLinePath({ laydown: 18, target: 10 }, "right", true)!;
+    // shape identical with/without a stored breakpoint…
+    expect(a.d).toBe(b.d);
+    // …but the spare now derives its own marker (ADR-026)
+    expect(a.points.breakpoint).not.toBeNull();
   });
 
   // Mid down-lane sample of a drawn path, in lane boards.
@@ -341,7 +342,7 @@ describe("buildLinePath", () => {
   it("at the sharp end of the rail: stored == drawn, on-lane, and still no kink", () => {
     const base: LineSpec = { laydown: 19, target: 14, breakpoint: 8, final_board: 17 };
     const a = projectBreakpoint(base, "right", 1, 50);
-    const solved = solveLine({ ...base, breakpoint: a.board, breakpoint_distance: a.feet }, "right");
+    const solved = solveLine({ ...base, hook_start_distance: a.hook_start_distance, hook_length: a.hook_length }, "right");
     const r = buildLinePath(solved, "right")!;
     expect(solved.breakpoint!).toBeCloseTo(xToBoard(r.points.breakpoint!.x, "right"), 1);
     expect(solved.breakpoint_distance!).toBeCloseTo(yToFeet(r.points.breakpoint!.y), 1);
@@ -360,22 +361,12 @@ describe("buildLinePath", () => {
     const base: LineSpec = { laydown: 21, target: 26, breakpoint: 32, final_board: 23 };
     const a = projectBreakpoint(base, "left", 39, 50); // finger at the LH gutter
     expect(a.board).toBeGreaterThan(36);
-    expect(a.board).toBeLessThanOrEqual(39); // never off the lane
-    const solved = solveLine({ ...base, breakpoint: a.board, breakpoint_distance: a.feet }, "left");
+    expect(a.board).toBeLessThanOrEqual(39);
+    const solved = solveLine({ ...base, hook_start_distance: a.hook_start_distance, hook_length: a.hook_length }, "left");
     const r = buildLinePath(solved, "left")!;
     expect(solved.breakpoint!).toBeCloseTo(xToBoard(r.points.breakpoint!.x, "left"), 1);
     expect(solved.breakpoint_distance!).toBeCloseTo(yToFeet(r.points.breakpoint!.y), 1);
     for (const p of sampleBoards(r.d, "left")) expect(p.board).toBeLessThanOrEqual(39.1);
-  });
-
-  it("the default rail setting is unchanged by the peel (back-compat)", () => {
-    // Default cDist is the [arrows, final] midpoint → peel == target → the
-    // ADR-023 single quadratic. A line with no breakpoint_distance must keep
-    // hooking through the same apex as before the peel existed.
-    const r = buildLinePath({ laydown: 20, target: 15, breakpoint: 8 }, "right")!;
-    const apexB = xToBoard(r.points.breakpoint!.x, "right");
-    expect(apexB).toBeGreaterThan(9);   // soft mid-lane hook, nowhere near the gutter
-    expect(apexB).toBeLessThan(15);
   });
 
   it("deep breakpoint on a one-board focal slides the peel down the board (ADR-025)", () => {
@@ -398,6 +389,66 @@ describe("buildLinePath", () => {
     const solved = solveLine(line, "right");
     expect(solved.breakpoint!).toBeGreaterThanOrEqual(1);
     expect(solved.breakpoint!).toBeLessThanOrEqual(39);
+  });
+
+  it("strike hook timing is per-line, like the spare (ADR-026)", () => {
+    const base: LineSpec = { laydown: 20, target: 15, breakpoint: 8, final_board: 17.5 };
+    const early = buildLinePath({ ...base, hook_start_distance: 25, hook_length: 20 }, "right")!;
+    const late = buildLinePath({ ...base, hook_start_distance: 48, hook_length: 6 }, "right")!;
+    expect(yToFeet(late.points.breakpoint!.y)).toBeGreaterThan(yToFeet(early.points.breakpoint!.y) + 10);
+  });
+
+  it("legacy strike line (breakpoint_distance only) renders with its apex depth honored (ADR-026)", () => {
+    const r = buildLinePath({ laydown: 20, target: 15, breakpoint: 8, breakpoint_distance: 46, final_board: 17.5 }, "right")!;
+    expect(Math.abs(yToFeet(r.points.breakpoint!.y) - 46)).toBeLessThan(1.5);
+  });
+
+  it("solveLine migrates breakpoint_distance to hook timing, stably (ADR-026)", () => {
+    const solved = solveLine({ laydown: 20, target: 15, breakpoint: 8, breakpoint_distance: 46, final_board: 17.5 }, "right");
+    expect(solved.hook_start_distance).not.toBeUndefined();
+    expect(Math.abs(solved.breakpoint_distance! - 46)).toBeLessThan(1.5); // depth preserved
+    const again = solveLine(solved, "right"); // idempotent: no drift on re-solve
+    expect(again.hook_start_distance!).toBeCloseTo(solved.hook_start_distance!, 1);
+    expect(again.breakpoint_distance!).toBeCloseTo(solved.breakpoint_distance!, 1);
+  });
+
+  it("projectBreakpoint solves hook timing so the apex lands near the finger (ADR-026)", () => {
+    const line: LineSpec = { laydown: 19, target: 14, breakpoint: 8, final_board: 17 };
+    const a = projectBreakpoint(line, "right", 6, 30); // finger: early mid-lane hook
+    const r = buildLinePath({ ...line, hook_start_distance: a.hook_start_distance, hook_length: a.hook_length }, "right")!;
+    expect(xToBoard(r.points.breakpoint!.x, "right")).toBeCloseTo(a.board, 1); // returned == drawn
+    expect(yToFeet(r.points.breakpoint!.y)).toBeCloseTo(a.feet, 1);
+    expect(Math.abs(a.feet - 30)).toBeLessThan(6); // magnetic: depth tracks the finger
+  });
+
+  it("spare derives a breakpoint marker; a straight seeded aim puts it at the hook start (ADR-026)", () => {
+    // 10-pin style seed: laydown == target == board 3, pin at board 5. The skid
+    // ties along board 3; deepest tie = the hook start.
+    const r = buildLinePath({ laydown: 3, target: 3, final_board: 5, final_distance: 60, hook_start_distance: 40, hook_length: 12 }, "right", true)!;
+    expect(r.points.breakpoint).not.toBeNull();
+    expect(xToBoard(r.points.breakpoint!.x, "right")).toBeCloseTo(3, 1);
+    expect(yToFeet(r.points.breakpoint!.y)).toBeCloseTo(40, 0);
+  });
+
+  it("default strike timing: skid holds the focal to mid-lane, apex in the hook zone (ADR-026)", () => {
+    const r = buildLinePath({ laydown: 20, target: 15, breakpoint: 8 }, "right")!;
+    const pts = sampleBoards(r.d, "right");
+    const at30 = pts.reduce((a, p) => (Math.abs(p.feet - 30) < Math.abs(a.feet - 30) ? p : a), pts[0]);
+    expect(Math.abs(at30.board - skidBoardAt(20, 15, 30))).toBeLessThan(0.75); // still skidding at 30 ft
+    expect(yToFeet(r.points.breakpoint!.y)).toBeGreaterThan(35); // hook starts late (default 38 ft)
+  });
+
+  it("magnetic drag round-trips on a big cross where the lane cap binds (ADR-026)", () => {
+    // The dE clamp aliases requested lengths; the cap bisection must search with
+    // the effective length or the returned params don't reproduce the drawn apex
+    // (regression: 33 ft divergence at the first probe point).
+    const line: LineSpec = { laydown: 30, target: 10, breakpoint: 8, final_board: 17.5 };
+    for (const [b, f] of [[21.61, 54.35], [5, 45], [12, 55], [1, 50]] as const) {
+      const a = projectBreakpoint(line, "right", b, f);
+      const r = buildLinePath({ ...line, hook_start_distance: a.hook_start_distance, hook_length: a.hook_length }, "right")!;
+      expect(xToBoard(r.points.breakpoint!.x, "right")).toBeCloseTo(a.board, 1);
+      expect(yToFeet(r.points.breakpoint!.y)).toBeCloseTo(a.feet, 1);
+    }
   });
 });
 
