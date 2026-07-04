@@ -182,7 +182,9 @@ function strikeGeom(p: StrikeParams, cDist: number): StrikeGeom {
     consider(b, f);
     pts.push({ board: b, feet: f });
   }
-  return { pts, apex: { board: extB, feet: extFt } };
+  // Marker/stored board clamped to the lane: a lofted laydown can be the raw
+  // furthest-out point, and an off-plane peg would be unreachable (ADR-026).
+  return { pts, apex: { board: clamp(extB, 1, 39), feet: extFt } };
 }
 
 const sampledApex = (p: StrikeParams, cDist: number) => strikeGeom(p, cDist).apex;

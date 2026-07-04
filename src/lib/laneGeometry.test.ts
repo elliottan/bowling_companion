@@ -387,6 +387,18 @@ describe("buildLinePath", () => {
     expect(yToFeet(deep.points.breakpoint!.y)).toBeGreaterThan(yToFeet(shallow.points.breakpoint!.y) + 10);
     expect(xToBoard(deep.points.breakpoint!.x, "right")).toBeCloseTo(5, 1);
   });
+
+  it("lofted laydown: breakpoint marker and stored board stay on the lane (ADR-026)", () => {
+    // Laydown may loft up to 20 boards off-lane; the raw furthest-out point IS
+    // the laydown, which put the marker off the visible plane (x > PLANE_W).
+    const line: LineSpec = { laydown: -2, target: 1, breakpoint: 5, final_board: 17 };
+    const r = buildLinePath(line, "right")!;
+    expect(r.points.breakpoint!.x).toBeLessThanOrEqual(PLANE_W + 0.01);
+    expect(r.points.breakpoint!.x).toBeGreaterThanOrEqual(-0.01);
+    const solved = solveLine(line, "right");
+    expect(solved.breakpoint!).toBeGreaterThanOrEqual(1);
+    expect(solved.breakpoint!).toBeLessThanOrEqual(39);
+  });
 });
 
 // ADR-015 — the ball rides the focal line on the skid, peels off to the hook side
