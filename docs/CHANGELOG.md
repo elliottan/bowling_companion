@@ -2,6 +2,24 @@
 
 User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachangelog.com).
 
+## [Unreleased] — Unified hook timing, magnetic breakpoint drag (2026-07-04, ADR-026)
+
+### Added
+
+- **Strike and spare lines now share one hook model** — the same "Hook start" and
+  "Hook length" sliders shape both; the old "Breakpoint distance" slider is gone (ADR-026).
+- **The breakpoint marker is draggable in both modes and chases your finger** —
+  dragging solves both timing knobs at once ("magnetic" drag).
+
+### Fixed
+
+- **A lofted (off-lane) laydown no longer pushes the breakpoint marker off the screen.**
+
+### Changed
+
+- **Existing strike lines keep their tuned breakpoint depth** (automatic migration);
+  untouched lines adopt the new, more realistic skid→late-hook default look.
+
 ## [Unreleased] — Late-hook breakpoint rail, top-down camera stays put (2026-07-04, ADR-025)
 
 ### Fixed

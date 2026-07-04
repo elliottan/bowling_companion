@@ -36,7 +36,7 @@ describe("LaneVisualizer", () => {
 });
 
 describe("LaneVisualizer editing", () => {
-  it("renders a draggable handle per peg, including the breakpoint rail (ADR-024)", () => {
+  it("renders a draggable handle per peg, including the breakpoint (ADR-026)", () => {
     const onChange = vi.fn();
     render(
       <HandednessContext.Provider value="right">

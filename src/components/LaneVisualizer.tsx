@@ -36,7 +36,7 @@ interface LaneVisualizerProps {
   onChange?: (line: LineSpec | undefined) => void;
   /** Standing leave to light (spare surface). */
   leave?: PinNumber[];
-  /** Spare mode: hook-timing sliders + configurable final depth, no breakpoint. */
+  /** Spare mode: configurable final depth; hook timing + breakpoint shared with strike (ADR-026). */
   spare?: boolean;
   title?: string;
 }
@@ -233,7 +233,7 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
                   const derived = h.key === "breakpoint";
                   return (
                     <g key={h.key}>
-                      {/* visible grab ring — the derived breakpoint reads as a rail node (hollow diamond) */}
+                      {/* visible grab ring — the derived breakpoint reads as a derived point (hollow diamond) */}
                       {derived ? (
                         <rect
                           x={h.p.x - 5} y={h.p.y - 5} width="10" height="10"

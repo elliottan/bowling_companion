@@ -966,3 +966,51 @@ restored the pre-grab tilt, forcing a re-tilt round-trip between every edit.
   path (stored == drawn preserved); `strikeCDistRange` bisects the apex-edge
   cap; `buildStrike` renders the samples.
 - `LaneVisualizer` drops the `preGrabDeg` restore.
+
+## ADR-026 — One hook model: per-line timing for strike + spare, magnetic breakpoint drag
+
+**Status:** accepted (2026-07). Supersedes the ADR-023/024/025 strike rail
+(single quadratic + cDist). Keeps ADR-019's curve shape and every focal-wall /
+no-S / no-kink invariant. ADR-020 (linear mapping) unchanged.
+
+**Context.** Strike and spare exposed different shape controls — a "Breakpoint
+distance" rail for strikes, hook start/length sliders for spares — for what is
+physically the same event (skid, hook, roll). The human wanted one mental model:
+hook earliness + hook length everywhere, with the strike still surfacing its
+breakpoint. Separately, a reachable strike with a lofted (off-lane) laydown drew
+its derived breakpoint off the visible plane (the raw furthest-out point is the
+laydown), leaving an unreachable handle.
+
+**Decision.**
+- **Unified curve.** Both modes draw the ADR-019 construction — straight skid on
+  the focal to `hook_start_distance`, one quadratic over `hook_length` (control
+  on the focal at the span midpoint), straight roll into the final. The hook
+  *amount* stays forced by the final; only the timing is tunable. The strike
+  additionally shrinks the hook start (bisection) until the drawn apex stays
+  on-lane — the ADR-022→023 gutter failure was the *fixed* 38 ft start, and a
+  dynamic clamp removes it; the spare keeps its run-off/miss semantics.
+- **Breakpoint derived everywhere, draggable everywhere.** Furthest-out point,
+  deepest on ties, board-clamped to [1,39] (fixes the lofted-laydown off-plane
+  marker). `breakpoint`/`breakpoint_distance` are write-back outputs only
+  (stored == drawn); a non-null `breakpoint` still flags strike mode.
+- **Magnetic drag.** Dragging the marker solves BOTH timing params (coarse grid
+  + pattern search) so the apex lands nearest the finger within the achievable
+  region — 2 params ↔ 2-D finger = well-posed; impossible apexes cannot be
+  requested, so no S / no kink, by construction (ADR-015/019 philosophy).
+- **Lazy migration.** A strike line with `breakpoint_distance` but no hook
+  params renders by solving the hook start (default length) to reproduce the
+  stored apex depth; `solveLine` persists the solved timing on first edit and
+  always materialises the effective (clamped) params, so sliders show reality.
+  Lines with no stored shape get the defaults (38 ft / 14 ft) — the default
+  strike look intentionally changes from one long arc to skid→late hook.
+
+**Consequences.**
+- `laneGeometry`: `hookGeom`/`hookGeomRaw` replace `strikeGeom`, `sampledApex`,
+  `solveCDist`, `strikeCDist`, `strikeCDistRange`, `buildStrike`;
+  `projectBreakpoint` returns hook timing; `strikeApexPoint` returns effective
+  timing for the write-back.
+- `LaneVisualizer`: one slider pair for both modes ("Breakpoint distance" slider
+  removed); the breakpoint handle exists in spare mode; drags write
+  `hook_start_distance`/`hook_length`.
+- Unreachable finals now surface the deep-end breakpoint marker in spare mode
+  too (was strike-only).
