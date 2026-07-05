@@ -49,6 +49,12 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
   const [replayKey, setReplayKey] = useState(0);
   const dragY = useRef<number | null>(null);
   const surfaceRef = useRef<HTMLDivElement | null>(null);
+  // Aim cascade (ADR-027): the peg that gives way when a breakpoint drag passes
+  // the timing wall = the LEAST-recently-touched aim peg. Only direct edits
+  // update recency (a cascade move doesn't, else pegs would alternate); the
+  // choice freezes at grab for the whole gesture. Fresh line: target gives way.
+  const lastAimEdit = useRef<"laydown" | "target">("laydown");
+  const dragGiveWay = useRef<"target" | "laydown">("target");
   const isTopDown = deg <= 2;
 
   /** Apply an edit, re-clamp the line so it stays drawable, and emit. */
@@ -125,13 +131,17 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
     const board = snapBoard(boardRaw);
     const feet = yToFeet(loc.y);
     switch (HANDLE_PEG[key]) {
-      case "laydown": applyEdit({ laydown: board }); break;
-      case "target": applyEdit({ target: board }); break;
+      case "laydown": lastAimEdit.current = "laydown"; applyEdit({ laydown: board }); break;
+      case "target": lastAimEdit.current = "target"; applyEdit({ target: board }); break;
       case "breakpoint": {
-        // Magnetic projection (ADR-026): solve hook timing so the derived apex
-        // lands as close to the finger as the curve family allows.
-        const a = projectBreakpoint(line ?? {}, hand, boardRaw, feet);
-        applyEdit({ hook_start_distance: a.hook_start_distance, hook_length: a.hook_length });
+        // Magnetic projection (ADR-026) + aim cascade (ADR-027): past the timing
+        // wall the least-recently-touched aim peg gives way (frozen per gesture).
+        const a = projectBreakpoint(line ?? {}, hand, boardRaw, feet, dragGiveWay.current);
+        applyEdit({
+          hook_start_distance: a.hook_start_distance, hook_length: a.hook_length,
+          ...(a.target != null ? { target: snapBoard(a.target) } : {}),
+          ...(a.laydown != null ? { laydown: snapBoard(a.laydown) } : {}),
+        });
         break;
       }
       case "final":
@@ -145,6 +155,7 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
 
   function grabHandle(e: React.PointerEvent) {
     e.stopPropagation();
+    dragGiveWay.current = lastAimEdit.current === "target" ? "laydown" : "target";
     // Snap flat instantly so the linear screen→lane mapping is valid mid-drag.
     // Stays top-down after release — line edits rarely land in one try
     // (ADR-025); the "Bowler view" toggle brings the tilt back.
@@ -290,9 +301,9 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
             onPointerDown={(e) => e.stopPropagation()}
           >
             <StepperField label="Laydown" value={line?.laydown ?? line?.stance} min={1} max={59}
-              onCommit={(v) => applyEdit({ laydown: v })} />
+              onCommit={(v) => { lastAimEdit.current = "laydown"; applyEdit({ laydown: v }); }} />
             <StepperField label="Target" value={line?.target} min={1} max={39}
-              onCommit={(v) => applyEdit({ target: v })} />
+              onCommit={(v) => { lastAimEdit.current = "target"; applyEdit({ target: v }); }} />
             <ReadField label="Bkpt" value={bpBoard != null && bpFeet != null ? `${bpBoard}·${bpFeet}ft` : undefined} />
             <StepperField label="Final" value={line?.final_board ?? POCKET_BOARD} min={1} max={39}
               onCommit={(v) => applyEdit({ final_board: v })} />
@@ -306,9 +317,9 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
             onPointerDown={(e) => e.stopPropagation()}
           >
             <StepperField label="Laydown" value={line?.laydown ?? line?.stance} min={1} max={59}
-              onCommit={(v) => applyEdit({ laydown: v })} />
+              onCommit={(v) => { lastAimEdit.current = "laydown"; applyEdit({ laydown: v }); }} />
             <StepperField label="Target" value={line?.target} min={1} max={39}
-              onCommit={(v) => applyEdit({ target: v })} />
+              onCommit={(v) => { lastAimEdit.current = "target"; applyEdit({ target: v }); }} />
             <StepperField label="Final" value={line?.final_board ?? POCKET_BOARD} min={1} max={39}
               onCommit={(v) => applyEdit({ final_board: v })} />
             <StepperField label="Final ft" value={line?.final_distance ?? 60} min={55} max={63} step={0.5}
