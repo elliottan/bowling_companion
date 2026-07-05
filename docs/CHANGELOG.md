@@ -2,6 +2,14 @@
 
 User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachangelog.com).
 
+## [Unreleased] — Aim cascade on walled breakpoint drags (2026-07-05, ADR-027)
+
+### Added
+
+- **Dragging the breakpoint past what hook timing allows now moves your aim
+  with it** — the line follows your finger instead of resisting; whichever of
+  target/laydown you touched least recently gives way (ADR-027).
+
 ## [Unreleased] — Unified hook timing, magnetic breakpoint drag (2026-07-04, ADR-026)
 
 ### Added

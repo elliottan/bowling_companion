@@ -1014,3 +1014,46 @@ laydown), leaving an unreachable handle.
   `hook_start_distance`/`hook_length`.
 - Unreachable finals now surface the deep-end breakpoint marker in spare mode
   too (was strike-only).
+
+## ADR-027 — Aim cascade: a walled breakpoint drag rotates the least-recent aim peg
+
+**Status:** accepted (2026-07). Extends ADR-026 (magnetic drag). Narrows
+ADR-015's "no cascade onto the laydown/target" rule to the solver: the DRAG
+layer may now rotate one aim peg; `solveLine` still never does.
+
+**Context.** The ADR-026 magnetic drag tunes hook timing only, and the focal
+wall (ADR-014) confines every achievable apex to a narrow band along the
+laydown→target line. Dragging the breakpoint inward — "play a straighter
+line" — pinned at that band and felt like resistance. The human's intent for
+such a drag is an aim change, not a timing change.
+
+**Decision.**
+- **Two-stage drag.** Stage 1: the ADR-026 timing solve (searches the whole
+  timing region — at the wall, timing is exhausted by construction, so it is
+  never a give-way candidate). Stage 2: past the band (~0.6 board residual),
+  rotate ONE aim peg so the focal passes through the finger — but *blended in
+  continuously*: the rotation eases from 0 to full over a residual ramp (a
+  hard accept/reject gate popped the marker ~0.8 board at the exact frame the
+  cascade first engaged). The rotated solve is kept only if it beats the
+  un-rotated one (min-cost), and the rotation is clamped at two physical walls
+  instead of bailing: it never rotates the line past straight (an inverted aim
+  flips the apex to the laydown — marker teleport), and it never rotates the
+  final onto the wrong side of the focal (unreachable). Depth-walled fingers
+  (past the pins, shallower than the arrows) gain little from rotation, so the
+  aim barely moves.
+- **Give-way = least-recently-touched of {laydown, target}.** Just aimed at an
+  arrow → the feet slide (keep target, move feet); just set the feet → the
+  eyes move. Only direct edits (that peg's drag or stepper) update recency; a
+  cascade move does not (pegs would alternate per gesture). The choice freezes
+  at grab. Fresh line: target gives way (pivot at the feet).
+- **Both modes.** Strike and spare share the one code path; the spare's seeded
+  aim is a suggestion, not a lock. No extra visual affordance — the moving peg
+  and focal line are the feedback.
+
+**Consequences.**
+- `projectBreakpoint` gains an optional `giveWay` parameter and may return a
+  rotated `target`/`laydown`; the 4-arg form is unchanged (no cascade).
+- The engagement continuity, the no-inversion clamp, and the cascade round-trip
+  (returned aim + timing reproduce the drawn apex) are pinned by tests.
+- `LaneVisualizer` tracks aim-edit recency in refs (UI state only — nothing
+  persisted) and freezes the give-way peg per gesture.
