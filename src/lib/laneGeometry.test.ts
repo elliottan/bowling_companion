@@ -450,6 +450,63 @@ describe("buildLinePath", () => {
       expect(yToFeet(r.points.breakpoint!.y)).toBeCloseTo(a.feet, 1);
     }
   });
+
+  it("breakpoint drag past the inward wall rotates the target (aim cascade, ADR-027)", () => {
+    const line: LineSpec = { laydown: 19, target: 14, breakpoint: 8, final_board: 17 };
+    const a = projectBreakpoint(line, "right", 16, 40, "target"); // finger far hook-side of the focal
+    expect(a.target).toBeDefined();
+    expect(a.target!).toBeGreaterThan(14.5); // rotated inward, toward the finger side
+    expect(Math.abs(a.board - 16)).toBeLessThan(1.5); // marker now reaches ~the finger
+    expect(Math.abs(a.feet - 40)).toBeLessThan(4);
+    // round-trip: rebuilding with the returned aim + timing reproduces the apex
+    const r = buildLinePath({ ...line, target: a.target, hook_start_distance: a.hook_start_distance, hook_length: a.hook_length }, "right")!;
+    expect(xToBoard(r.points.breakpoint!.x, "right")).toBeCloseTo(a.board, 1);
+    expect(yToFeet(r.points.breakpoint!.y)).toBeCloseTo(a.feet, 1);
+  });
+
+  it("give-way laydown: the feet slide instead, target stays (ADR-027)", () => {
+    const line: LineSpec = { laydown: 19, target: 14, breakpoint: 8, final_board: 17 };
+    // Finger hook-side of the band but still out-side of the target: the feet
+    // slide inward (19 → ~15.6) pivoting at the arrows, line stays out-swinging.
+    const a = projectBreakpoint(line, "right", 10, 50, "laydown");
+    expect(a.laydown).toBeDefined();
+    expect(a.laydown!).toBeLessThan(19);
+    expect(a.laydown!).toBeGreaterThan(14); // never crosses the target (no inversion)
+    expect(a.target).toBeUndefined();
+    expect(Math.abs(a.board - 10)).toBeLessThan(1.5);
+  });
+
+  it("no cascade inside the reachable band — aim untouched (ADR-027)", () => {
+    const line: LineSpec = { laydown: 19, target: 14, breakpoint: 8, final_board: 17 };
+    // (4.5, 42) sits on this line's focal (focal at 42 ft ≈ board 4.4) — timing
+    // alone reaches it, so the aim must not move.
+    const a = projectBreakpoint(line, "right", 4.5, 42, "target");
+    expect(a.target).toBeUndefined();
+    expect(a.laydown).toBeUndefined();
+  });
+
+  it("LH mirror: inward cascade rotates the target the other way (ADR-027)", () => {
+    const line: LineSpec = { laydown: 21, target: 26, breakpoint: 32, final_board: 23 };
+    const a = projectBreakpoint(line, "left", 24, 40, "target");
+    expect(a.target).toBeDefined();
+    expect(a.target!).toBeLessThan(25.5); // inward for a left-hander = lower boards
+    expect(Math.abs(a.board - 24)).toBeLessThan(1.5);
+  });
+
+  it("cascade engages continuously — no marker pop at the band edge (ADR-027)", () => {
+    // Regression: the old hard accept-gate jumped the apex ~0.8 board for a
+    // 0.005-board finger move right where the cascade first engaged.
+    const line: LineSpec = { laydown: 19, target: 14, breakpoint: 8, final_board: 17 };
+    let prev: { board: number; feet: number } | null = null;
+    for (let b = 5.0; b <= 8.05; b += 0.1) {
+      const a = projectBreakpoint(line, "right", b, 42, "target");
+      if (prev) {
+        expect(Math.abs(a.board - prev.board)).toBeLessThan(0.5);
+        expect(Math.abs(a.feet - prev.feet)).toBeLessThan(3);
+      }
+      prev = { board: a.board, feet: a.feet };
+    }
+  });
 });
 
 // ADR-015 — the ball rides the focal line on the skid, peels off to the hook side

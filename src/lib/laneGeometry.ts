@@ -287,48 +287,110 @@ export function strikeApexPoint(line: LineSpec, hand: Handedness): { board: numb
 /** Magnetic drag (ADR-026): solve BOTH hook-timing params so the derived apex
  *  lands nearest the finger (plane distance) within the achievable region.
  *  Coarse grid + pattern-search refine; the apex moves smoothly in (dS, len),
- *  so this is stable at pointer-move rates. */
+ *  so this is stable at pointer-move rates.
+ *
+ *  Aim cascade (ADR-027): timing alone confines the apex to a narrow band along
+ *  the focal. With `giveWay` set, a finger beyond that band rotates the given
+ *  aim peg so the focal passes through the finger, then re-solves timing — the
+ *  cascade is accepted only when it clearly helps (residual at least halved),
+ *  so depth-walled fingers don't twitch the aim. Recency/freeze policy lives in
+ *  the caller (LaneVisualizer); solveLine never cascades (ADR-015 intact).
+ */
 export function projectBreakpoint(
-  line: LineSpec, hand: Handedness, board: number, feet: number
-): { board: number; feet: number; hook_start_distance: number; hook_length: number } {
+  line: LineSpec, hand: Handedness, board: number, feet: number,
+  giveWay?: "target" | "laydown" | null
+): { board: number; feet: number; hook_start_distance: number; hook_length: number; target?: number; laydown?: number } {
   const foul = line.laydown ?? line.stance;
   const fallback = { board, feet, hook_start_distance: line.hook_start_distance ?? HOOK_START_FT, hook_length: line.hook_length ?? HOOK_LENGTH_FT };
   if (foul == null || line.target == null) return fallback;
   const dir = hand === "right" ? 1 : -1;
   const fB = line.final_board ?? POCKET_BOARD;
   const fF = line.final_distance ?? LANE_FEET;
+  const wantX = boardToX(board, hand, true), wantY = feetToY(feet);
+
+  const solve = (p: StrikeParams) => {
+    const loS = p.tgtFt + 1, hiS = p.fF - 2, loL = 4, hiL = 25;
+    const cost = (dS: number, len: number) => {
+      const a = hookGeom(p, dS, len, true).apex;
+      const dx = boardToX(a.board, hand, true) - wantX, dy = feetToY(a.feet) - wantY;
+      return dx * dx + dy * dy;
+    };
+    let bS = loS, bL = HOOK_LENGTH_FT, bC = Infinity;
+    const GS = 12, GL = 6;
+    for (let i = 0; i <= GS; i++) {
+      for (let j = 0; j <= GL; j++) {
+        const dS = loS + ((hiS - loS) * i) / GS, len = loL + ((hiL - loL) * j) / GL;
+        const k = cost(dS, len);
+        if (k < bC) { bC = k; bS = dS; bL = len; }
+      }
+    }
+    let stepS = (hiS - loS) / GS, stepL = (hiL - loL) / GL;
+    for (let r = 0; r < 14 && (stepS > 1e-3 || stepL > 1e-3); r++) {
+      stepS /= 2; stepL /= 2;
+      for (const [dS, len] of [[bS - stepS, bL], [bS + stepS, bL], [bS, bL - stepL], [bS, bL + stepL]] as const) {
+        if (dS < loS || dS > hiS || len < loL || len > hiL) continue;
+        const k = cost(dS, len);
+        if (k < bC) { bC = k; bS = dS; bL = len; }
+      }
+    }
+    return { dS: bS, len: bL, cost: bC };
+  };
+
   const p = strikeParams(foul, line.target, fB, fF, dir);
   if (dir * (fB - p.focalBoard(fF)) <= 0) {
     const a = strikeApexPoint(line, hand);
     return a ? { board: a.board, feet: a.feet, hook_start_distance: a.dS, hook_length: a.len } : fallback;
   }
-  const wantX = boardToX(board, hand, true), wantY = feetToY(feet);
-  const loS = p.tgtFt + 1, hiS = p.fF - 2, loL = 4, hiL = 25;
-  const cost = (dS: number, len: number) => {
-    const a = hookGeom(p, dS, len, true).apex;
-    const dx = boardToX(a.board, hand, true) - wantX, dy = feetToY(a.feet) - wantY;
-    return dx * dx + dy * dy;
+  const s1 = solve(p);
+  const g1 = hookGeom(p, s1.dS, s1.len, true);
+  const base = { board: g1.apex.board, feet: g1.apex.feet, hook_start_distance: r2(g1.dS), hook_length: r2(g1.dE - g1.dS) };
+
+  const CASCADE_THRESH = 1.5; // plane units (~0.6 board): inside the band, never cascade
+  const r1 = Math.sqrt(s1.cost);
+  if (!giveWay || r1 <= CASCADE_THRESH) return base;
+  // Blend the rotation in over [T, 5T] so the cascade ENGAGES continuously —
+  // a hard accept/reject gate pops the marker ~a board at the flip point.
+  const lam = Math.min(1, (r1 - CASCADE_THRESH) / (4 * CASCADE_THRESH));
+
+  // Rotate the give-way peg so the focal passes through the finger.
+  let rl: LineSpec;
+  if (giveWay === "target") {
+    let tf = arrowFeet(line.target);
+    let t2 = foul + (board - foul) * (tf / Math.max(feet, tf + 1));
+    tf = arrowFeet(clamp(t2, 1, 39)); // arrows depth depends on the board — one refinement
+    t2 = clamp(foul + (board - foul) * (tf / Math.max(feet, tf + 1)), 1, 39);
+    // Never rotate past straight: an inverted aim (target crossing hook-side of
+    // the laydown) flips the apex to the laydown — the marker would teleport.
+    t2 = dir > 0 ? Math.min(t2, foul) : Math.max(t2, foul);
+    // Physical wall: the final must stay hook-side of the rotated focal. Clamp
+    // the rotation instead of bailing — a bail pops the marker at the boundary.
+    const tCrit = foul + ((fB - dir * 0.5) - foul) * (tf / fF);
+    t2 = dir > 0 ? Math.min(t2, tCrit) : Math.max(t2, tCrit);
+    t2 = line.target + lam * (t2 - line.target); // ease the aim in with the drag
+    rl = { ...line, target: r2(t2) };
+  } else {
+    const tf = arrowFeet(line.target);
+    if (Math.abs(feet - tf) < 1) return base; // finger at the arrows: pivot undefined
+    let l2 = clamp(line.target + (board - line.target) * ((0 - tf) / (feet - tf)), 1 - LOFT_MARGIN, 39 + LOFT_MARGIN);
+    // Never rotate past straight (laydown crossing anti-hook-side of the target).
+    l2 = dir > 0 ? Math.max(l2, line.target) : Math.min(l2, line.target);
+    // Physical wall, mirrored: keep the final reachable from the rotated focal.
+    const lCrit = ((fB - dir * 0.5) * tf - line.target * fF) / (tf - fF);
+    l2 = dir > 0 ? Math.max(l2, lCrit) : Math.min(l2, lCrit);
+    l2 = foul + lam * (l2 - foul); // ease the aim in with the drag
+    rl = { ...line, laydown: r2(l2) };
+  }
+  const foul2 = (rl.laydown ?? rl.stance)!;
+  const p2 = strikeParams(foul2, rl.target!, fB, fF, dir);
+  if (dir * (fB - p2.focalBoard(fF)) <= 0) return base; // rotation made the final unreachable
+  const s2 = solve(p2);
+  if (s2.cost >= s1.cost) return base; // take the strictly better of the two
+  const g2 = hookGeom(p2, s2.dS, s2.len, true);
+  return {
+    board: g2.apex.board, feet: g2.apex.feet,
+    hook_start_distance: r2(g2.dS), hook_length: r2(g2.dE - g2.dS),
+    ...(giveWay === "target" ? { target: rl.target } : { laydown: rl.laydown }),
   };
-  let bS = loS, bL = HOOK_LENGTH_FT, bC = Infinity;
-  const GS = 12, GL = 6;
-  for (let i = 0; i <= GS; i++) {
-    for (let j = 0; j <= GL; j++) {
-      const dS = loS + ((hiS - loS) * i) / GS, len = loL + ((hiL - loL) * j) / GL;
-      const k = cost(dS, len);
-      if (k < bC) { bC = k; bS = dS; bL = len; }
-    }
-  }
-  let stepS = (hiS - loS) / GS, stepL = (hiL - loL) / GL;
-  for (let r = 0; r < 14 && (stepS > 1e-3 || stepL > 1e-3); r++) {
-    stepS /= 2; stepL /= 2;
-    for (const [dS, len] of [[bS - stepS, bL], [bS + stepS, bL], [bS, bL - stepL], [bS, bL + stepL]] as const) {
-      if (dS < loS || dS > hiS || len < loL || len > hiL) continue;
-      const k = cost(dS, len);
-      if (k < bC) { bC = k; bS = dS; bL = len; }
-    }
-  }
-  const g = hookGeom(p, bS, bL, true);
-  return { board: g.apex.board, feet: g.apex.feet, hook_start_distance: r2(g.dS), hook_length: r2(g.dE - g.dS) };
 }
 
 /**
