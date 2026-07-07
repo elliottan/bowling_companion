@@ -41,8 +41,11 @@ describe("solveLine — dependent re-clamp (RH)", () => {
     const after = solveLine({ ...before, laydown: 10 }, "right"); // laydown swung hook-ward
     expect(after.laydown).toBe(10);                              // free
     expect(after.target).toBe(14);                              // free
+    // The swung laydown (10) is already more out than the target (14): the hook
+    // only moves inward toward the final, so there's no real apex — the marker
+    // is hidden (ADR-028) but the stored value still stays on the lane.
     const r = buildLinePath(after, "right")!;
-    expect(after.breakpoint!).toBeCloseTo(xToBoard(r.points.breakpoint!.x, "right"), 1); // stored == drawn
+    expect(r.points.breakpoint).toBeNull();
     expect(after.breakpoint!).toBeGreaterThan(1);
     expect(after.breakpoint!).toBeLessThan(39);                  // NOT slammed to a gutter
   });

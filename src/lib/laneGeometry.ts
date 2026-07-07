@@ -100,7 +100,7 @@ export interface LinePath {
     laydown: PlanePoint;
     target: PlanePoint;
     hookStart: PlanePoint | null; // deprecated: always null (v3 dropped the hook-start peg)
-    breakpoint: PlanePoint | null;
+    breakpoint: PlanePoint | null; // null when the line has no genuine outward apex (ADR-028)
     final: PlanePoint;
   };
 }
@@ -136,12 +136,14 @@ function strikeParams(foul: number, tgt: number, fB: number, fF: number, dir: nu
 // is DERIVED for both modes — the curve's furthest-out point, deepest on ties,
 // board-clamped to the lane so its handle stays reachable. `breakpoint` /
 // `breakpoint_distance` are outputs (stored == drawn); `breakpoint != null`
-// still flags strike mode.
+// still flags strike mode. Stored values persist even when the marker is hidden
+// for lack of a genuine outward apex (ADR-028).
 
 interface HookGeom {
   dS: number; dE: number;                        // effective (clamped) hook span
   pts: Array<{ board: number; feet: number }>;   // path samples, ft = fF·k/N, k = 1…N
-  apex: { board: number; feet: number };         // furthest-out; deepest on ties; board ∈ [1,39]
+  apex: { board: number; feet: number };         // furthest-out at/past the target depth; deepest on ties; board ∈ [1,39]
+  apexReal: boolean;                             // apex swings genuinely outside the target board (ADR-028) — drives the marker
   hookRawBoard: number;                          // hook-zone extreme (ft > tgtFt only), unclamped — drives the on-lane cap
 }
 
@@ -160,14 +162,14 @@ function hookGeomRaw(p: StrikeParams, dS0: number, len: number): HookGeom {
     return Peb + ((ft - dE) / (p.fF - dE)) * (p.fB - Peb);
   };
   const moreOut = (a: number, b: number) => (p.dir > 0 ? a < b : a > b);
-  let extB = p.foul, extFt = 0; // laydown is furthest-out on an inside line
-  // Furthest-out wins; on a board tie (laydown == target: the whole skid rides
-  // one board) the DEEPEST point wins, so the breakpoint sits at/past the
-  // target, never back at the foul line.
+  // Apex candidates start AT THE TARGET (ADR-028): the breakpoint is the
+  // furthest-out point at/past the target depth. The laydown and the skid below
+  // the arrows are excluded, so a straight or inward line can no longer report
+  // an apex at the foul line. Deepest point wins board ties.
+  let extB = p.tgt, extFt = p.tgtFt;
   const consider = (b: number, f: number) => {
     if (moreOut(b, extB) || (Math.abs(b - extB) < 1e-6 && f > extFt)) { extB = b; extFt = f; }
   };
-  consider(p.tgt, p.tgtFt);
   consider(Psb, dS); // the hook start exactly (grid samples straddle it)
   consider(Peb, dE);
   let hookB = Psb; // furthest-out of the timing-controlled zone (ride/hook/roll)
@@ -190,11 +192,15 @@ function hookGeomRaw(p: StrikeParams, dS0: number, len: number): HookGeom {
   for (let k = 1; k <= HOOK_N; k++) {
     const ft = (p.fF * k) / HOOK_N;
     const b = board(ft);
-    consider(b, ft);
+    if (ft >= p.tgtFt) consider(b, ft);
     if (ft > p.tgtFt) considerHook(b);
     pts.push({ board: b, feet: ft });
   }
-  return { dS, dE, pts, apex: { board: clamp(extB, 1, 39), feet: extFt }, hookRawBoard: hookB };
+  // Real apex: the ball genuinely swings outside the target board before
+  // recovering (> ¼ board, so float noise on a dead-straight skid doesn't
+  // conjure a marker). Not real ⇒ the marker is hidden.
+  const apexReal = p.dir * (p.tgt - extB) > 0.25;
+  return { dS, dE, pts, apex: { board: clamp(extB, 1, 39), feet: extFt }, apexReal, hookRawBoard: hookB };
 }
 
 /** The unified sampler. `capToLane` (strike): shrink the hook start until the
@@ -275,10 +281,15 @@ export function strikeApexPoint(line: LineSpec, hand: Handedness): { board: numb
   const t = lineHookTiming(p, line);
   const moreOut = (a: number, b: number) => (dir > 0 ? a < b : a > b);
   if (dir * (fB - p.focalBoard(fF)) <= 0) {
-    // Unreachable: the ball rides the focal straight; apex = furthest on-lane point.
+    // Unreachable: the ball rides the focal straight — there is no hook, so no
+    // real apex (ADR-028). Stored values floor at the target depth, never 0 ft.
     const endB = p.focalBoard(fF), outEnd = !moreOut(foul, endB); // ties → deep end
     const g = hookGeomRaw(p, t.dS, t.len); // effective timing for the write-back
-    return { board: clamp(outEnd ? endB : foul, 1, 39), feet: outEnd ? fF : 0, dS: g.dS, len: g.dE - g.dS };
+    return {
+      board: clamp(outEnd ? endB : p.tgt, 1, 39),
+      feet: outEnd ? fF : p.tgtFt,
+      dS: g.dS, len: g.dE - g.dS,
+    };
   }
   const g = hookGeom(p, t.dS, t.len, true);
   return { board: g.apex.board, feet: g.apex.feet, dS: g.dS, len: g.dE - g.dS };
@@ -435,22 +446,19 @@ export function buildLinePath(
   const fB = finalBoard0, fF = finalFeet;
   const focalAtFinal = focalBoard(fF);
   const reachable = dir * (fB - focalAtFinal) > 0;
-  const moreOut = (a: number, b: number) => (dir > 0 ? a < b : a > b); // furthest-out
 
   // Unreachable (final gutter-side of the focal): no hook can reach it — the ball
   // rides the focal STRAIGHT (a straight line is smooth: no corner). It may run off
-  // the lane — that's a guttering shot — but the pegs stay on the lane (the final
-  // peg is clamped, the breakpoint sits at the on-lane furthest-out end) so their
-  // handles are always reachable. The spare flags a miss.
+  // the lane — that's a guttering shot — but the final peg is clamped onto the lane
+  // so its handle stays reachable. A straight ride has no hook, so no breakpoint
+  // marker (ADR-028). The spare flags a miss.
   if (!reachable) {
     const miss = Math.abs(focalAtFinal - fB) > BALL_PIN_BOARDS;
     const end = isStrike ? fF : DRAW_BACK_FEET;
     const e = focalPt(end);
     const d = `M ${laydown.x} ${laydown.y} L ${e.x} ${e.y}`;
-    const endB = focalBoard(end);
-    const outEnd = !moreOut(foul, endB); // ties → deep end
-    const breakpoint = pt(boardToX(clamp(outEnd ? endB : foul, 1, 39), hand, true), feetToY(outEnd ? end : 0));
-    return { d, focal, miss, points: { laydown, target, hookStart: null, breakpoint, final } };
+    // No hook ⇒ no breakpoint marker (ADR-028).
+    return { d, focal, miss, points: { laydown, target, hookStart: null, breakpoint: null, final } };
   }
 
   if (isStrike) {
@@ -462,7 +470,7 @@ export function buildLinePath(
       const q = pt(boardToX(s.board, hand, true), feetToY(s.feet));
       d += ` L ${q.x} ${q.y}`;
     }
-    const breakpoint = pt(boardToX(g.apex.board, hand, true), feetToY(g.apex.feet));
+    const breakpoint = g.apexReal ? pt(boardToX(g.apex.board, hand, true), feetToY(g.apex.feet)) : null;
     return { d, focal, miss: false, points: { laydown, target, hookStart: null, breakpoint, final } };
   }
 
@@ -477,7 +485,7 @@ export function buildLinePath(
     const q = pt(boardToX(s.board, hand, true), feetToY(s.feet));
     d += ` L ${q.x} ${q.y}`;
   }
-  const spBreakpoint = pt(boardToX(sg.apex.board, hand, true), feetToY(sg.apex.feet));
+  const spBreakpoint = sg.apexReal ? pt(boardToX(sg.apex.board, hand, true), feetToY(sg.apex.feet)) : null;
   return { d, focal, miss: false, points: { laydown, target, hookStart: null, breakpoint: spBreakpoint, final } };
 }
 
@@ -514,7 +522,8 @@ export function solveLine(line: LineSpec, hand: Handedness): LineSpec {
   // Breakpoint is DERIVED (ADR-024/026): the drawn apex. Write it back so the
   // stored board + distance always equal what's drawn, and materialise the
   // effective hook timing (migrating a legacy breakpoint_distance on first
-  // edit) so the sliders always show reality.
+  // edit) so the sliders always show reality. Stored values persist even when
+  // the marker is hidden — a non-null breakpoint flags a strike line (ADR-028).
   const apex = strikeApexPoint(out, hand);
   if (apex) {
     out.breakpoint = r2(apex.board);

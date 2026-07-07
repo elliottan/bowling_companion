@@ -300,35 +300,30 @@ describe("buildLinePath", () => {
     expect(r.miss).toBe(true);
   });
 
-  it("laydown == target: breakpoint sits at/past the target, never at the foul line (ADR-025)", () => {
-    // The whole skid rides one board — the apex tie must break to the DEEPEST point.
+  it("laydown == target: no marker — the hook is purely inward, never a real out-and-back (ADR-028)", () => {
+    // The whole skid rides one board and the hook only moves inward toward the
+    // final; there is no genuine outward apex, so the marker is hidden.
     const r = buildLinePath({ laydown: 5, target: 5, breakpoint: 5, final_board: 16 }, "right")!;
-    const bp = r.points.breakpoint!;
-    expect(xToBoard(bp.x, "right")).toBeCloseTo(5, 1);
-    expect(yToFeet(bp.y)).toBeGreaterThanOrEqual(arrowFeet(5) - 0.1); // ≥ target depth (12 ft)
+    expect(r.points.breakpoint).toBeNull();
   });
 
-  it("LH mirror: laydown == target puts the breakpoint at/past the target", () => {
+  it("LH mirror: laydown == target, purely inward hook, no marker (ADR-028)", () => {
     const r = buildLinePath({ laydown: 35, target: 35, breakpoint: 35, final_board: 24 }, "left")!;
-    const bp = r.points.breakpoint!;
-    expect(xToBoard(bp.x, "left")).toBeCloseTo(35, 1);
-    expect(yToFeet(bp.y)).toBeGreaterThanOrEqual(arrowFeet(35) - 0.1);
+    expect(r.points.breakpoint).toBeNull();
   });
 
-  it("unreachable final on a one-board focal: breakpoint at the deep end, not the laydown", () => {
-    // final gutter-side of the vertical focal → rides the focal straight; the
-    // on-focal tie must break to the deep end.
+  it("unreachable final on a one-board focal: no marker (ADR-028)", () => {
+    // final gutter-side of the vertical focal → rides the focal straight; no
+    // hook, so no real apex — the marker is hidden.
     const r = buildLinePath({ laydown: 5, target: 5, breakpoint: 5, final_board: 3 }, "right")!;
-    expect(yToFeet(r.points.breakpoint!.y)).toBeGreaterThan(50);
+    expect(r.points.breakpoint).toBeNull();
   });
 
-  it("LH mirror: unreachable final on a one-board focal breaks the tie to the deep end", () => {
+  it("LH mirror: unreachable final on a one-board focal has no marker (ADR-028)", () => {
     // For a left-hander the gutter side is the HIGH boards: final_board 38 sits
     // gutter-side of the vertical board-35 focal → rides the focal straight.
     const r = buildLinePath({ laydown: 35, target: 35, breakpoint: 35, final_board: 38 }, "left")!;
-    const bp = r.points.breakpoint!;
-    expect(xToBoard(bp.x, "left")).toBeCloseTo(35, 1);
-    expect(yToFeet(bp.y)).toBeGreaterThan(50);
+    expect(r.points.breakpoint).toBeNull();
   });
 
   it("rail extends to a sharp late hook — the apex can approach the gutter (ADR-025)", () => {
@@ -369,23 +364,23 @@ describe("buildLinePath", () => {
     for (const p of sampleBoards(r.d, "left")) expect(p.board).toBeLessThanOrEqual(39.1);
   });
 
-  it("deep breakpoint on a one-board focal slides the peel down the board (ADR-025)", () => {
-    // laydown == target: dragging the breakpoint deeper must move the on-board
-    // peel deeper (the rail stays meaningful on the degenerate line).
+  it("one-board focal, purely inward hook: no marker regardless of breakpoint_distance (ADR-028)", () => {
+    // laydown == target: the hook only moves inward toward the final on every
+    // depth — never a real out-and-back — so the marker stays hidden.
     const base: LineSpec = { laydown: 5, target: 5, breakpoint: 5, final_board: 16 };
     const shallow = buildLinePath({ ...base, breakpoint_distance: 20 }, "right")!;
     const deep = buildLinePath({ ...base, breakpoint_distance: 50 }, "right")!;
-    expect(yToFeet(deep.points.breakpoint!.y)).toBeGreaterThan(yToFeet(shallow.points.breakpoint!.y) + 10);
-    expect(xToBoard(deep.points.breakpoint!.x, "right")).toBeCloseTo(5, 1);
+    expect(shallow.points.breakpoint).toBeNull();
+    expect(deep.points.breakpoint).toBeNull();
   });
 
-  it("lofted laydown: breakpoint marker and stored board stay on the lane (ADR-026)", () => {
-    // Laydown may loft up to 20 boards off-lane; the raw furthest-out point IS
-    // the laydown, which put the marker off the visible plane (x > PLANE_W).
+  it("lofted laydown: no marker (purely inward), stored board stays on the lane (ADR-026/028)", () => {
+    // Laydown may loft up to 20 boards off-lane; the hook only moves inward
+    // toward the final, so there's no real apex and the marker is hidden. The
+    // stored breakpoint (written by solveLine) still stays on the lane.
     const line: LineSpec = { laydown: -2, target: 1, breakpoint: 5, final_board: 17 };
     const r = buildLinePath(line, "right")!;
-    expect(r.points.breakpoint!.x).toBeLessThanOrEqual(PLANE_W + 0.01);
-    expect(r.points.breakpoint!.x).toBeGreaterThanOrEqual(-0.01);
+    expect(r.points.breakpoint).toBeNull();
     const solved = solveLine(line, "right");
     expect(solved.breakpoint!).toBeGreaterThanOrEqual(1);
     expect(solved.breakpoint!).toBeLessThanOrEqual(39);
@@ -421,13 +416,12 @@ describe("buildLinePath", () => {
     expect(Math.abs(a.feet - 30)).toBeLessThan(6); // magnetic: depth tracks the finger
   });
 
-  it("spare derives a breakpoint marker; a straight seeded aim puts it at the hook start (ADR-026)", () => {
+  it("spare with a straight seeded aim: no marker — purely inward hook, no real apex (ADR-028)", () => {
     // 10-pin style seed: laydown == target == board 3, pin at board 5. The skid
-    // ties along board 3; deepest tie = the hook start.
+    // ties along board 3 and the hook only moves inward toward the pin — never a
+    // real out-and-back — so the marker is hidden.
     const r = buildLinePath({ laydown: 3, target: 3, final_board: 5, final_distance: 60, hook_start_distance: 40, hook_length: 12 }, "right", true)!;
-    expect(r.points.breakpoint).not.toBeNull();
-    expect(xToBoard(r.points.breakpoint!.x, "right")).toBeCloseTo(3, 1);
-    expect(yToFeet(r.points.breakpoint!.y)).toBeCloseTo(40, 0);
+    expect(r.points.breakpoint).toBeNull();
   });
 
   it("default strike timing: skid holds the focal to mid-lane, apex in the hook zone (ADR-026)", () => {
@@ -507,6 +501,29 @@ describe("buildLinePath", () => {
       prev = { board: a.board, feet: a.feet };
     }
   });
+
+  it("no breakpoint marker when the final is unreachable — the straight-ride case (ADR-028)", () => {
+    // Screenshot bug: laydown 20 → target 22 (inward, RH) with pocket final is
+    // unreachable; the marker used to sit at the foul line (board 20, 0 ft).
+    const r = buildLinePath({ laydown: 20, target: 22, breakpoint: 8, final_board: 17.5 }, "right")!;
+    expect(r.points.breakpoint).toBeNull();
+  });
+
+  it("no breakpoint marker on a purely inward reachable line (ADR-028)", () => {
+    // Everything moves inward; there is no outward apex to mark.
+    const r = buildLinePath({ laydown: 20, target: 22, breakpoint: 8, final_board: 30 }, "right")!;
+    expect(r.points.breakpoint).toBeNull();
+  });
+
+  it("a real out-and-back hook keeps its breakpoint marker (ADR-028)", () => {
+    const r = buildLinePath({ laydown: 20, target: 15, breakpoint: 8, breakpoint_distance: 42, final_board: 17.5 }, "right")!;
+    expect(r.points.breakpoint).not.toBeNull();
+  });
+
+  it("stored breakpoint_distance never sits shallower than the target depth (ADR-028)", () => {
+    const solved = solveLine({ laydown: 20, target: 22, breakpoint: 8, final_board: 17.5 }, "right");
+    expect(solved.breakpoint_distance!).toBeGreaterThanOrEqual(arrowFeet(22) - 1e-6);
+  });
 });
 
 // ADR-015 — the ball rides the focal line on the skid, peels off to the hook side
@@ -550,16 +567,16 @@ describe("buildLinePath — focal & monotonicity invariants (ADR-015)", () => {
     }
   });
 
-  it("a guttering aim draws a smooth straight line; pegs stay on the lane", () => {
+  it("a guttering aim draws a smooth straight line; the final peg stays on the lane, no marker (ADR-028)", () => {
     // Steep inside aim: the focal runs off the hook edge, so the ball can't reach
     // the final — it rides the focal STRAIGHT (smooth, no corner) and may run off
-    // the lane (guttering). The final/breakpoint pegs stay on the lane so their
-    // handles are reachable.
+    // the lane (guttering). No hook ⇒ no marker. The final peg stays on the lane
+    // so its handle is reachable.
     const solved = solveLine({ laydown: 2.5, target: 21.5, breakpoint: 39, breakpoint_distance: 45, final_board: 39 }, "right");
     const r = buildLinePath(solved, "right")!;
     expect(r.d.match(/ L /g)!.length).toBe(1); // one straight segment — smooth, no corner
-    expect(xToBoard(r.points.final.x, "right")).toBeLessThanOrEqual(39.001);       // final peg on the lane
-    expect(xToBoard(r.points.breakpoint!.x, "right")).toBeLessThanOrEqual(39.001); // breakpoint peg on the lane
+    expect(xToBoard(r.points.final.x, "right")).toBeLessThanOrEqual(39.001); // final peg on the lane
+    expect(r.points.breakpoint).toBeNull();
   });
 
   it("RH: board is unimodal — falls to the apex then rises, never reversing back", () => {
