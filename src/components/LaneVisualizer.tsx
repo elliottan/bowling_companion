@@ -270,35 +270,6 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
       aria-modal="true"
       aria-label={`${title} visualizer`}
     >
-      <div className="flex items-center gap-2 px-4 py-3 text-white">
-        <h2 className="flex-1 truncate text-base font-bold">{title}</h2>
-        {onChange && (
-          <button
-            type="button"
-            onClick={() => setOptionsOpen(true)}
-            aria-label="Hook options"
-            className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-white/30 hover:bg-white/10"
-          >
-            <SlidersHorizontal size={16} aria-hidden="true" />
-          </button>
-        )}
-        <button
-          type="button"
-          onClick={() => setDeg((d) => (d <= 2 ? BOWLER_DEG : TOPDOWN_DEG))}
-          className="rounded-md border border-white/30 px-3 py-1.5 text-xs font-semibold hover:bg-white/10"
-        >
-          {isTopDown ? "Bowler view" : "Top-down"}
-        </button>
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label="Close"
-          className="inline-flex h-9 w-9 items-center justify-center rounded-md text-white/80 hover:bg-white/10"
-        >
-          <X size={20} aria-hidden="true" />
-        </button>
-      </div>
-
       <div
         className="relative flex-1 touch-none overflow-hidden"
         style={{ perspective: "1100px" }}
@@ -307,6 +278,39 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
         onPointerUp={onPointerUp}
         onPointerCancel={onPointerUp}
       >
+        {/* Floating controls — the header is gone so the lane gets full height. */}
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Close"
+          onPointerDown={(e) => e.stopPropagation()}
+          className="absolute right-3 top-3 z-20 inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/25 bg-slate-900/70 text-white/80 backdrop-blur hover:bg-white/10"
+        >
+          <X size={18} aria-hidden="true" />
+        </button>
+        <div
+          className="absolute left-3 top-3 z-20 flex flex-col items-start gap-2"
+          onPointerDown={(e) => e.stopPropagation()}
+        >
+          <button
+            type="button"
+            onClick={() => setDeg((d) => (d <= 2 ? BOWLER_DEG : TOPDOWN_DEG))}
+            className="inline-flex h-9 items-center rounded-full border border-white/25 bg-slate-900/70 px-3 text-xs font-semibold text-white/90 backdrop-blur hover:bg-white/10"
+          >
+            {isTopDown ? "Bowler view" : "Top-down"}
+          </button>
+          {onChange && (
+            <button
+              type="button"
+              onClick={() => setOptionsOpen(true)}
+              aria-label="Hook options"
+              className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/25 bg-slate-900/70 text-white/80 backdrop-blur hover:bg-white/10"
+            >
+              <SlidersHorizontal size={16} aria-hidden="true" />
+            </button>
+          )}
+        </div>
+
         <div
           data-role="tilt-stage"
           className="absolute inset-0 mx-auto"
