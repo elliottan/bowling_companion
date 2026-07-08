@@ -105,10 +105,33 @@ describe("LaneVisualizer editing", () => {
       </HandednessContext.Provider>
     );
     const handle = document.querySelector('[data-role="handle"][data-key="target"]')!;
-    fireEvent.pointerDown(handle);
+    // A real drag (past the tap deadzone) — a bare tap toggles a lock instead
+    // and deliberately leaves the camera alone (ADR-028).
+    fireEvent.pointerDown(handle, { clientX: 0, clientY: 0 });
+    // jsdom has no PointerEvent — a MouseEvent with the pointermove type keeps
+    // `buttons` intact so the drag guard sees a held button.
+    fireEvent(handle, new MouseEvent("pointermove", { bubbles: true, buttons: 1, clientX: 12, clientY: 0 }));
     fireEvent.pointerUp(handle);
     const stage = document.querySelector('[data-role="tilt-stage"]') as HTMLElement;
     expect(stage.style.transform).toContain("rotateX(0deg)");
+    // The drag did not toggle a lock.
+    expect(handle.getAttribute("data-locked")).toBe("false");
+  });
+
+  it("a peg tap keeps the bowler-view tilt (only a drag snaps flat, ADR-028)", () => {
+    (Element.prototype as unknown as { setPointerCapture?: () => void }).setPointerCapture ??= () => {};
+    const onChange = vi.fn();
+    render(
+      <HandednessContext.Provider value="right">
+        <LaneVisualizer line={{ laydown: 18, target: 10, breakpoint: 6 }} onClose={() => {}} onChange={onChange} />
+      </HandednessContext.Provider>
+    );
+    const handle = document.querySelector('[data-role="handle"][data-key="target"]')!;
+    fireEvent.pointerDown(handle, { clientX: 0, clientY: 0 });
+    fireEvent.pointerUp(handle);
+    const stage = document.querySelector('[data-role="tilt-stage"]') as HTMLElement;
+    expect(stage.style.transform).toContain("rotateX(50deg)");
+    expect(handle.getAttribute("data-locked")).toBe("true");
   });
 
   it("shows a Pocket chip when the strike final is off the pocket, snapping it back", () => {

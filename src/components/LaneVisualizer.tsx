@@ -216,11 +216,7 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
       if (!locked.has(alt)) return alt;
       return null;
     })();
-    // Snap flat instantly so the linear screen→lane mapping is valid mid-drag.
-    // Stays top-down after release — line edits rarely land in one try
-    // (ADR-025); the "Bowler view" toggle brings the tilt back.
     setDragging(true);
-    setDeg(TOPDOWN_DEG);
     (e.currentTarget as Element).setPointerCapture(e.pointerId);
   }
 
@@ -230,7 +226,18 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
     const g = grabXY.current;
     // 5px deadzone separates a lock-toggling tap from a drag.
     if (!dragStarted.current && g && Math.hypot(e.clientX - g.x, e.clientY - g.y) < 5) return;
-    dragStarted.current = true;
+    if (!dragStarted.current) {
+      dragStarted.current = true;
+      // Snap flat on the FIRST real drag move (not on grab, so a lock tap in
+      // bowler view doesn't flip the camera). The linear screen→lane mapping
+      // needs the flat CTM, so skip this event and map from the next one.
+      // Stays top-down after release — line edits rarely land in one try
+      // (ADR-025); the "Bowler view" toggle brings the tilt back.
+      if (!isTopDown) {
+        setDeg(TOPDOWN_DEG);
+        return;
+      }
+    }
     if (LOCKABLE.has(key) && locked.has(key as LockablePeg)) return; // locked pegs don't drag
     dragPoint(key, e);
   }
