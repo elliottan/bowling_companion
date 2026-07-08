@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { HandednessContext } from "../lib/handednessContext";
+import { LaydownOffsetContext } from "../lib/laydownOffsetContext";
 import { LaneVisualizer } from "./LaneVisualizer";
 import { boardToX, feetToY, xToBoard } from "../lib/laneGeometry";
 
@@ -108,5 +109,18 @@ describe("LaneVisualizer editing", () => {
     fireEvent.pointerUp(handle);
     const stage = document.querySelector('[data-role="tilt-stage"]') as HTMLElement;
     expect(stage.style.transform).toContain("rotateX(0deg)");
+  });
+
+  it("strike mode seeds a missing laydown from stance − offset (ADR-028)", () => {
+    const onChange = vi.fn();
+    render(
+      <HandednessContext.Provider value="right">
+        <LaydownOffsetContext.Provider value={6}>
+          <LaneVisualizer line={{ stance: 20, target: 10, breakpoint: 6 }} onClose={() => {}} onChange={onChange} />
+        </LaydownOffsetContext.Provider>
+      </HandednessContext.Provider>
+    );
+    expect(onChange).toHaveBeenCalled();
+    expect(onChange.mock.calls[0][0]).toMatchObject({ stance: 20, laydown: 14 });
   });
 });

@@ -2,6 +2,7 @@ import { Minus, Plus, RotateCcw, SlidersHorizontal, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import type { LineSpec, PinNumber } from "../types/bowling";
 import { useHandedness } from "../lib/handednessContext";
+import { useLaydownOffset, deriveLaydown } from "../lib/laydownOffsetContext";
 import { spareAimPoint } from "../lib/spareAim";
 import { LaneSurface } from "./LaneSurface";
 import {
@@ -43,6 +44,7 @@ interface LaneVisualizerProps {
 
 export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, title = "Line" }: LaneVisualizerProps) {
   const hand = useHandedness();
+  const laydownOffset = useLaydownOffset();
   const [deg, setDeg] = useState(BOWLER_DEG);
   const [dragging, setDragging] = useState(false);
   const [optionsOpen, setOptionsOpen] = useState(false);
@@ -87,6 +89,15 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [spare, leave]);
+
+  // Strike mode: derive a missing laydown from stance − per-user offset (ADR-028).
+  // Runs once while laydown is unset; a typed/dragged laydown then owns the value.
+  useEffect(() => {
+    if (spare || !onChange || !line) return;
+    if (line.laydown != null || line.stance == null) return;
+    onChange({ ...line, laydown: deriveLaydown(line.stance, laydownOffset) });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [spare, line?.stance, line?.laydown]);
 
   const path = onChange && line ? buildLinePath(line, hand, spare) : null;
 
