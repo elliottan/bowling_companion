@@ -12,6 +12,7 @@ import {
 } from "../lib/frameController";
 import { calculateGameScore, isSpare } from "../lib/scoring";
 import { useHandedness } from "../lib/handednessContext";
+import { useLaydownOffset, deriveLaydown } from "../lib/laydownOffsetContext";
 import { laneForFrame, previousGameSameLaneFrame, previousSameLaneFrame } from "../lib/lanes";
 import { getBalls, getSpareLineByPins } from "../services/ballRepository";
 import type { Ball, Frame, Game, LineSpec, PinNumber, ShotMetadata } from "../types/bowling";
@@ -35,6 +36,10 @@ interface LineInputProps {
   onFieldFocus?: () => void;
   /** Hide the breakpoint field (a configured spare line drove this line). */
   hideBreakpoint?: boolean;
+  /** Derived laydown board (stance − offset, or the explicit override). Renders a read-only chip. */
+  derivedLaydown?: number;
+  /** Tap on the laydown chip — opens the lane visualizer. */
+  onLaydownTap?: () => void;
 }
 
 const LINE_FIELDS = ["stance", "target", "breakpoint"] as const;
@@ -75,7 +80,16 @@ function parseOneDp(s: string): number | undefined {
   return Number.isNaN(n) ? undefined : Math.round(n * 10) / 10;
 }
 
-function LineInput({ label, value, onChange, showPresets = false, onFieldFocus, hideBreakpoint = false }: LineInputProps) {
+function LineInput({
+  label,
+  value,
+  onChange,
+  showPresets = false,
+  onFieldFocus,
+  hideBreakpoint = false,
+  derivedLaydown,
+  onLaydownTap
+}: LineInputProps) {
   const handedness = useHandedness();
   const fields = hideBreakpoint ? LINE_FIELDS.filter((f) => f !== "breakpoint") : LINE_FIELDS;
   // Board numbers rise to the left for a right-hander, to the right for a
@@ -180,6 +194,17 @@ function LineInput({ label, value, onChange, showPresets = false, onFieldFocus, 
         ))}
       </div>
 
+      {derivedLaydown != null && (
+        <button
+          type="button"
+          onClick={onLaydownTap}
+          title="Derived laydown board (stance − offset). Tap to view on the lane."
+          className="mt-1 inline-flex h-6 items-center gap-1 rounded-full bg-slate-100 px-2 text-[10px] font-semibold uppercase tracking-wide text-slate-500 hover:bg-slate-200"
+        >
+          Laydown {derivedLaydown}
+        </button>
+      )}
+
       {/* Focus-reveal board adjusters. Each arrow pair gets its own full-width
           row with large tap targets. Actions run on pointerdown + preventDefault:
           keeps the input focused (row stays open) and fires reliably on touch,
@@ -255,6 +280,10 @@ function ShotDetailBar({
   hideIntendedBreakpoint = false
 }: ShotDetailBarProps) {
   const [showViz, setShowViz] = useState(false);
+  const laydownOffset = useLaydownOffset();
+  const derivedLaydown =
+    intended?.laydown ??
+    (intended?.stance != null ? deriveLaydown(intended.stance, laydownOffset) : undefined);
   return (
     <div className="flex flex-col gap-2.5 rounded-lg border border-slate-200 bg-white p-2.5">
       <div>
@@ -297,7 +326,15 @@ function ShotDetailBar({
         )}
       </div>
 
-      <LineInput label="Intended" value={intended} onChange={onIntendedChange} showPresets hideBreakpoint={hideIntendedBreakpoint} />
+      <LineInput
+        label="Intended"
+        value={intended}
+        onChange={onIntendedChange}
+        showPresets
+        hideBreakpoint={hideIntendedBreakpoint}
+        derivedLaydown={derivedLaydown}
+        onLaydownTap={() => setShowViz(true)}
+      />
 
       <button
         type="button"
