@@ -262,6 +262,8 @@ interface ShotDetailBarProps {
   onOpenArsenal?: () => void;
   /** Hide the breakpoint field on the Intended line (configured spare applied). */
   hideIntendedBreakpoint?: boolean;
+  /** Standing leave the shot faces (spare attempt) — undefined on a fresh rack. */
+  spareLeave?: PinNumber[];
 }
 
 // Every field is always editable; remounting (via `key`) per selected shot
@@ -277,7 +279,8 @@ function ShotDetailBar({
   notes,
   onNotesChange,
   onOpenArsenal,
-  hideIntendedBreakpoint = false
+  hideIntendedBreakpoint = false,
+  spareLeave
 }: ShotDetailBarProps) {
   const [showViz, setShowViz] = useState(false);
   const laydownOffset = useLaydownOffset();
@@ -349,6 +352,8 @@ function ShotDetailBar({
           title="Intended line"
           line={intended}
           onChange={onIntendedChange}
+          spare={!!spareLeave?.length}
+          leave={spareLeave}
           onClose={() => setShowViz(false)}
         />
       )}
@@ -774,6 +779,16 @@ export function ActiveGameScorer({
     ? `r-${selectedShot.frameNumber}-${selectedShot.shotIndex}`
     : `live-${gameState.currentFrameNumber}-${gameState.currentShot}`;
 
+  // Leave the viewed shot faces: live entry uses the current available pins;
+  // editing derives from the pins entering the selected shot. Fresh rack ⇒ none.
+  const shownLeave = (() => {
+    if (isEditing && recordedFrame && selectedShot) {
+      const avail = availableEnteringShot(recordedFrame, selectedShot.shotIndex);
+      return avail && avail.length < 10 ? avail : undefined;
+    }
+    return gameState.availablePins.length < 10 ? gameState.availablePins : undefined;
+  })();
+
   return (
     <section className="mx-auto w-full max-w-5xl px-3 py-4 sm:px-6">
       {mode === "standalone" && (
@@ -902,6 +917,7 @@ export function ActiveGameScorer({
           onActualChange={isEditing ? (l) => handleEditMeta({ actual: l }) : setActualLine}
           notes={isEditing && recordedShot ? recordedShot.notes ?? "" : shotNotes}
           hideIntendedBreakpoint={!isEditing && spareLineApplied}
+          spareLeave={shownLeave}
           onNotesChange={
             // Store raw while typing (keeps internal/trailing spaces); the
             // textarea's onBlur trims on save. Trimming per-keystroke here made
