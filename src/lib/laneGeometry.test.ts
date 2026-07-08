@@ -243,8 +243,10 @@ describe("buildLinePath", () => {
   it("spare curve responds to the laydown (tangent to the skid, not a fixed bow)", () => {
     // Same target + final, different laydown → the hook leaves the target along the
     // skid heading, so the whole curve shifts. (The old fixed-bow model did not.)
-    const a = buildLinePath({ laydown: 5, target: 4, final_board: 3, final_distance: 62.6 }, "right", true)!;
-    const b = buildLinePath({ laydown: 8, target: 4, final_board: 3, final_distance: 62.6 }, "right", true)!;
+    // Mid-lane boards so the ADR-028 on-lane cap never engages — on the gutter
+    // wall both curves get pinned to the edge and converge by design.
+    const a = buildLinePath({ laydown: 13, target: 12, final_board: 11, final_distance: 62.6 }, "right", true)!;
+    const b = buildLinePath({ laydown: 16, target: 12, final_board: 11, final_distance: 62.6 }, "right", true)!;
     expect(Math.abs(midBoard(a.d, "right") - midBoard(b.d, "right"))).toBeGreaterThan(1);
   });
 
@@ -523,6 +525,21 @@ describe("buildLinePath", () => {
   it("stored breakpoint_distance never sits shallower than the target depth (ADR-028)", () => {
     const solved = solveLine({ laydown: 20, target: 22, breakpoint: 8, final_board: 17.5 }, "right");
     expect(solved.breakpoint_distance!).toBeGreaterThanOrEqual(arrowFeet(22) - 1e-6);
+  });
+
+  it("spare hook zone stays on the lane (ADR-028)", () => {
+    // Screenshot case: deep cross-lane spare with a big hook used to bulge past
+    // board 1 (x > PLANE_W for a right-hander) and off screen.
+    const line: LineSpec = {
+      laydown: 20, target: 6, final_board: 17.5, final_distance: 60,
+      hook_start_distance: 24, hook_length: 20,
+    };
+    const r = buildLinePath(line, "right", true)!;
+    const nums = r.d.replace(/[ML]/g, " ").trim().split(/\s+/).map(Number);
+    for (let i = 0; i < nums.length; i += 2) {
+      expect(nums[i]).toBeLessThanOrEqual(PLANE_W + 0.01);  // board 1 edge (RH)
+      expect(nums[i]).toBeGreaterThanOrEqual(-0.01);         // board 39 edge
+    }
   });
 });
 

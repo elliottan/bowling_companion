@@ -207,8 +207,10 @@ function hookGeomRaw(p: StrikeParams, dS0: number, len: number): HookGeom {
  *  hook zone (ride/hook/roll — the part timing controls; the fixed skid is
  *  exempt) stays on the lane — a deep hook start on a crossing aim rides the
  *  skid into the gutter (the ADR-023 failure mode, prevented dynamically now).
- *  When even the earliest start exits the lane, cap AT the earliest start —
- *  the nearest achievable geometry, keeping the map continuous. */
+ *  When even the earliest start exits the lane, shrink the LENGTH at that
+ *  start too (ADR-028) — a shorter span pulls the focal-riding control back
+ *  onto the boards. Only a truly impossible geometry (minimal span still off)
+ *  caps at the nearest achievable, keeping the map continuous. */
 function hookGeom(p: StrikeParams, wantDS: number, wantLen: number, capToLane: boolean): HookGeom {
   const edge = p.dir > 0 ? 1 : 39;
   const off = (g: HookGeom) => p.dir * (g.hookRawBoard - edge) < 0;
@@ -223,7 +225,19 @@ function hookGeom(p: StrikeParams, wantDS: number, wantLen: number, capToLane: b
     const lo = p.tgtFt + 1;
     const gLo = hookGeomRaw(p, lo, len);
     if (off(gLo)) {
-      g = gLo; // even the earliest start exits the lane — nearest achievable
+      // Even the earliest start exits: shrink the LENGTH too (ADR-028) — a
+      // shorter span pulls the focal-riding control back onto the lane.
+      const gMin = hookGeomRaw(p, lo, 1);
+      if (off(gMin)) {
+        g = gMin; // truly impossible — nearest achievable, keeping the map continuous
+      } else {
+        let goodL = 1, badL = len;
+        for (let i = 0; i < 20; i++) {
+          const mid = (goodL + badL) / 2;
+          if (off(hookGeomRaw(p, lo, mid))) badL = mid; else goodL = mid;
+        }
+        g = hookGeomRaw(p, lo, goodL);
+      }
     } else {
       let good = lo, bad = g.dS;
       for (let i = 0; i < 20; i++) {
@@ -409,7 +423,7 @@ export function projectBreakpoint(
  *
  * - **Strike** (non-spare): auto-hooks with the unified skid→hook→roll curve
  *   (ADR-026); timing per-line, breakpoint derived.
- * - **Spare** (`spareCurve`): same curve, no lane cap, derived breakpoint too.
+ * - **Spare** (`spareCurve`): same curve, on-lane cap (ADR-028), derived breakpoint too.
  * - **Unreachable** final (gutter-side of the focal): rides the focal straight.
  *
  * Needs a foul-line board (`laydown ?? stance`) and a `target`; returns null else.
@@ -474,12 +488,14 @@ export function buildLinePath(
     return { d, focal, miss: false, points: { laydown, target, hookStart: null, breakpoint, final } };
   }
 
-  // Spare (ADR-019 shape, per-line timing ADR-024): same unified curve, no
-  // on-lane cap (a guttering spare may run off — the miss flag handles it), and
-  // now with the derived breakpoint marker too (ADR-026).
+  // Spare (ADR-019 shape, per-line timing ADR-024): same unified curve, with
+  // the derived breakpoint marker too (ADR-026).
   const sp = strikeParams(foul, tgt, fB, fF, dir);
   const st = lineHookTiming(sp, line);
-  const sg = hookGeomRaw(sp, st.dS, st.len);
+  // Same on-lane cap as strikes (ADR-028): a huge hook request shrinks the
+  // hook start until the curve stays on the boards, instead of bulging past
+  // the gutter. The miss flag (focal-ride) path above is unaffected.
+  const sg = hookGeom(sp, st.dS, st.len, true);
   let d = `M ${laydown.x} ${laydown.y}`;
   for (const s of sg.pts) {
     const q = pt(boardToX(s.board, hand, true), feetToY(s.feet));
