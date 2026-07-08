@@ -187,12 +187,11 @@ export function LaneSurface({ line, hand, leave, showMarkers = true, animate, an
       )}
 
       {path && animate && !reduceMotion && (
-        <circle key={animateKey} data-role="ball" r="3" fill="#1f2937" stroke="#fff" strokeWidth="0.6">
+        <circle key={animateKey} data-role="ball" r="3" fill="#f59e0b" stroke="#fff" strokeWidth="0.8" opacity="0.95">
           <animateMotion dur="1.4s" repeatCount="1" fill="freeze" path={path.d} />
+          {/* Fade out at the pins — a frozen resting dot read as a mystery marker. */}
+          <animate attributeName="opacity" begin="1.5s" dur="0.35s" from="0.95" to="0" fill="freeze" />
         </circle>
-      )}
-      {path && animate && reduceMotion && (
-        <circle data-role="ball" r="3" cx={path.points.final.x} cy={path.points.final.y} fill="#1f2937" />
       )}
 
       {markers.map(({ key, ...m }) => (

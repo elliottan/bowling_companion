@@ -1,4 +1,4 @@
-import { Minus, Plus, RotateCcw, SlidersHorizontal, X } from "lucide-react";
+import { Minus, Plus, SlidersHorizontal, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import type { LineSpec, PinNumber } from "../types/bowling";
 import { useHandedness } from "../lib/handednessContext";
@@ -50,6 +50,7 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
   const [optionsOpen, setOptionsOpen] = useState(false);
   const [replayKey, setReplayKey] = useState(0);
   const dragY = useRef<number | null>(null);
+  const tiltMoved = useRef(0);
   const surfaceRef = useRef<HTMLDivElement | null>(null);
   // Aim cascade (ADR-027): the peg that gives way when a breakpoint drag passes
   // the timing wall = the LEAST-recently-touched aim peg. Only direct edits
@@ -110,9 +111,11 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
     return () => clearTimeout(id);
   }, [pathD]);
 
-  // Drag on empty background → tilt the camera.
+  // Drag on empty background → tilt the camera. A tap (no real tilt movement)
+  // replays the shot instead — replaces the old replay button.
   function onPointerDown(e: React.PointerEvent) {
     dragY.current = e.clientY;
+    tiltMoved.current = 0;
     setDragging(true);
     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
   }
@@ -120,9 +123,11 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
     if (dragY.current === null) return;
     const dy = e.clientY - dragY.current;
     dragY.current = e.clientY;
+    tiltMoved.current += Math.abs(dy);
     setDeg((d) => clamp(d + dy * 0.4, TOPDOWN_DEG, BOWLER_DEG));
   }
   function onPointerUp() {
+    if (dragY.current !== null && tiltMoved.current < 4) setReplayKey((k) => k + 1);
     dragY.current = null;
     setDragging(false);
   }
@@ -286,19 +291,6 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
             )}
           </div>
         </div>
-
-        {/* Replay the ball animation. */}
-        {path && (
-          <button
-            type="button"
-            onClick={() => setReplayKey((k) => k + 1)}
-            aria-label="Replay shot"
-            className="absolute right-3 top-3 z-10 inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/25 bg-slate-900/70 text-white/80 backdrop-blur hover:bg-white/10"
-            onPointerDown={(e) => e.stopPropagation()}
-          >
-            <RotateCcw size={16} aria-hidden="true" />
-          </button>
-        )}
 
         {/* Strike line: editable pegs + a derived-breakpoint readout — side column in
             top-down, bottom bar in bowler view (so the lane stays centred). */}
