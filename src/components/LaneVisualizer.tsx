@@ -311,12 +311,12 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
             }
             onPointerDown={(e) => e.stopPropagation()}
           >
-            <StepperField label="Laydown" value={line?.laydown ?? line?.stance} min={1} max={59}
+            <StepperField label="Laydown" value={line?.laydown ?? line?.stance} min={1} max={59} lateral
               onCommit={(v) => { lastAimEdit.current = "laydown"; applyEdit({ laydown: v }); }} />
-            <StepperField label="Target" value={line?.target} min={1} max={39}
+            <StepperField label="Target" value={line?.target} min={1} max={39} lateral
               onCommit={(v) => { lastAimEdit.current = "target"; applyEdit({ target: v }); }} />
             <ReadField label="Bkpt" value={bpBoard != null && bpFeet != null ? `${bpBoard}·${bpFeet}ft` : undefined} />
-            <StepperField label="Final" value={line?.final_board ?? POCKET_BOARD} min={1} max={39}
+            <StepperField label="Final" value={line?.final_board ?? POCKET_BOARD} min={1} max={39} lateral
               onCommit={(v) => applyEdit({ final_board: v })} />
             {finalOffPocket && (
               <button
@@ -336,11 +336,11 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
             className="absolute inset-x-0 bottom-0 z-10 flex justify-center gap-1.5 px-2 pb-1"
             onPointerDown={(e) => e.stopPropagation()}
           >
-            <StepperField label="Laydown" value={line?.laydown ?? line?.stance} min={1} max={59}
+            <StepperField label="Laydown" value={line?.laydown ?? line?.stance} min={1} max={59} lateral
               onCommit={(v) => { lastAimEdit.current = "laydown"; applyEdit({ laydown: v }); }} />
-            <StepperField label="Target" value={line?.target} min={1} max={39}
+            <StepperField label="Target" value={line?.target} min={1} max={39} lateral
               onCommit={(v) => { lastAimEdit.current = "target"; applyEdit({ target: v }); }} />
-            <StepperField label="Final" value={line?.final_board ?? POCKET_BOARD} min={1} max={39}
+            <StepperField label="Final" value={line?.final_board ?? POCKET_BOARD} min={1} max={39} lateral
               onCommit={(v) => applyEdit({ final_board: v })} />
             <StepperField label="Final ft" value={line?.final_distance ?? 60} min={55} max={63} step={0.5}
               onCommit={(v) => applyEdit({ final_distance: v })} />
@@ -471,18 +471,24 @@ function ReadField({ label, value }: { label: string; value: string | undefined 
   );
 }
 
-/** Numeric field with −/+ half-board steppers. Typing commits on blur/Enter (a raw
- *  clamp-per-keystroke made the field untypeable), the steppers commit immediately. */
+/** Numeric field with steppers. Typing commits on blur/Enter (a raw
+ *  clamp-per-keystroke made the field untypeable), the steppers commit immediately.
+ *  `lateral` board fields use screen-direction ◀/▶ (hand-mirrored, matching the
+ *  score-entry adjusters); depth fields keep −/+. */
 function StepperField({
-  label, value, min, max, step = 0.5, onCommit,
+  label, value, min, max, step = 0.5, lateral = false, disabled = false, onCommit,
 }: {
   label: string;
   value: number | undefined;
   min: number;
   max: number;
   step?: number;
+  lateral?: boolean;
+  disabled?: boolean;
   onCommit: (v: number) => void;
 }) {
+  const hand = useHandedness();
+  const dir = hand === "right" ? 1 : -1; // ◀ raises the board for a right-hander
   const [draft, setDraft] = useState<string | null>(null);
   const shown = draft ?? (value != null ? String(value) : "");
   const commit = () => {
@@ -490,23 +496,26 @@ function StepperField({
     setDraft(null);
   };
   const nudge = (d: number) => onCommit(clamp((value ?? min) + d, min, max));
+  const leftDelta = lateral ? step * dir : -step;
   return (
-    <div className="flex w-[4.75rem] flex-col gap-0.5 text-center text-[10px] font-semibold uppercase tracking-wide text-white/70">
+    <div className={`flex w-[4.75rem] flex-col gap-0.5 text-center text-[10px] font-semibold uppercase tracking-wide text-white/70 ${disabled ? "opacity-40" : ""}`}>
       {label}
       <div className="flex h-9 items-stretch overflow-hidden rounded-md border border-white/20 bg-white/10">
         <button
           type="button"
-          aria-label={`${label} down`}
-          onClick={() => nudge(-step)}
+          aria-label={lateral ? `${label} left` : `${label} down`}
+          disabled={disabled}
+          onClick={() => nudge(leftDelta)}
           className="flex w-6 shrink-0 items-center justify-center text-white/70 hover:bg-white/10"
         >
-          <Minus size={12} aria-hidden="true" />
+          {lateral ? <span aria-hidden="true" className="text-[11px]">◀</span> : <Minus size={12} aria-hidden="true" />}
         </button>
         <input
           type="text"
           inputMode="decimal"
           aria-label={label}
           value={shown}
+          disabled={disabled}
           onChange={(e) => setDraft(e.target.value)}
           onFocus={(e) => e.target.select()}
           onBlur={commit}
@@ -515,11 +524,12 @@ function StepperField({
         />
         <button
           type="button"
-          aria-label={`${label} up`}
-          onClick={() => nudge(step)}
+          aria-label={lateral ? `${label} right` : `${label} up`}
+          disabled={disabled}
+          onClick={() => nudge(-leftDelta)}
           className="flex w-6 shrink-0 items-center justify-center text-white/70 hover:bg-white/10"
         >
-          <Plus size={12} aria-hidden="true" />
+          {lateral ? <span aria-hidden="true" className="text-[11px]">▶</span> : <Plus size={12} aria-hidden="true" />}
         </button>
       </div>
     </div>

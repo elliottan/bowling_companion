@@ -122,6 +122,17 @@ describe("LaneVisualizer editing", () => {
     expect(onChange.mock.lastCall![0].final_board).toBe(17.5);
   });
 
+  it("lateral arrows are screen-spatial: ◀ raises the board for a right-hander", () => {
+    const onChange = vi.fn();
+    render(
+      <HandednessContext.Provider value="right">
+        <LaneVisualizer line={{ laydown: 18, target: 10, breakpoint: 6 }} onClose={() => {}} onChange={onChange} />
+      </HandednessContext.Provider>
+    );
+    fireEvent.click(screen.getByLabelText("Target left"));
+    expect(onChange.mock.lastCall![0].target).toBe(10.5);
+  });
+
   it("strike mode seeds a missing laydown from stance − offset (ADR-028)", () => {
     const onChange = vi.fn();
     render(
