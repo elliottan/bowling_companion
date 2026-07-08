@@ -111,6 +111,17 @@ describe("LaneVisualizer editing", () => {
     expect(stage.style.transform).toContain("rotateX(0deg)");
   });
 
+  it("shows a Pocket chip when the strike final is off the pocket, snapping it back", () => {
+    const onChange = vi.fn();
+    render(
+      <HandednessContext.Provider value="right">
+        <LaneVisualizer line={{ laydown: 18, target: 10, breakpoint: 6, final_board: 12 }} onClose={() => {}} onChange={onChange} />
+      </HandednessContext.Provider>
+    );
+    fireEvent.click(screen.getByRole("button", { name: /pocket/i }));
+    expect(onChange.mock.lastCall![0].final_board).toBe(17.5);
+  });
+
   it("strike mode seeds a missing laydown from stance − offset (ADR-028)", () => {
     const onChange = vi.fn();
     render(

@@ -197,6 +197,14 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
   const bpBoard = bp ? Math.round(xToBoard(bp.x, hand) * 2) / 2 : undefined;
   const bpFeet = bp ? Math.round(yToFeet(bp.y)) : undefined;
 
+  // Snap targets for the final: the pocket (strike) or the leave's ideal aim (spare).
+  const spareAim = spare && leave?.length ? spareAimPoint(leave, hand) : undefined;
+  const finalOffPocket = (line?.final_board ?? POCKET_BOARD) !== POCKET_BOARD;
+  const finalOffAim =
+    spareAim != null &&
+    (line?.final_board !== snapBoard(spareAim.board) ||
+      (line?.final_distance ?? LANE_FEET) !== Math.round(spareAim.feet * 10) / 10);
+
   return (
     <div
       className="fixed inset-0 z-[70] flex flex-col bg-slate-900"
@@ -310,6 +318,15 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
             <ReadField label="Bkpt" value={bpBoard != null && bpFeet != null ? `${bpBoard}·${bpFeet}ft` : undefined} />
             <StepperField label="Final" value={line?.final_board ?? POCKET_BOARD} min={1} max={39}
               onCommit={(v) => applyEdit({ final_board: v })} />
+            {finalOffPocket && (
+              <button
+                type="button"
+                onClick={() => applyEdit({ final_board: POCKET_BOARD })}
+                className="self-end rounded-full border border-emerald-300/40 bg-emerald-400/15 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-emerald-300 hover:bg-emerald-400/25"
+              >
+                Pocket
+              </button>
+            )}
           </div>
         )}
 
@@ -327,6 +344,20 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
               onCommit={(v) => applyEdit({ final_board: v })} />
             <StepperField label="Final ft" value={line?.final_distance ?? 60} min={55} max={63} step={0.5}
               onCommit={(v) => applyEdit({ final_distance: v })} />
+            {finalOffAim && spareAim && (
+              <button
+                type="button"
+                onClick={() =>
+                  applyEdit({
+                    final_board: snapBoard(spareAim.board),
+                    final_distance: Math.round(spareAim.feet * 10) / 10,
+                  })
+                }
+                className="self-end rounded-full border border-emerald-300/40 bg-emerald-400/15 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-emerald-300 hover:bg-emerald-400/25"
+              >
+                Re-aim
+              </button>
+            )}
           </div>
         )}
       </div>
