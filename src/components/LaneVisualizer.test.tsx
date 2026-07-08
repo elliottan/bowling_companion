@@ -145,4 +145,23 @@ describe("LaneVisualizer editing", () => {
     expect(onChange).toHaveBeenCalled();
     expect(onChange.mock.calls[0][0]).toMatchObject({ stance: 20, laydown: 14 });
   });
+
+  it("tapping a peg toggles a hard lock (ADR-028)", () => {
+    (Element.prototype as unknown as { setPointerCapture?: () => void }).setPointerCapture ??= () => {};
+    const onChange = vi.fn();
+    render(
+      <HandednessContext.Provider value="right">
+        <LaneVisualizer line={{ laydown: 18, target: 10, breakpoint: 6 }} onClose={() => {}} onChange={onChange} />
+      </HandednessContext.Provider>
+    );
+    const handle = document.querySelector('[data-role="handle"][data-key="target"]')!;
+    fireEvent.pointerDown(handle);
+    fireEvent.pointerUp(handle);
+    expect(handle.getAttribute("data-locked")).toBe("true");
+    // Locked ⇒ its stepper is disabled and edits that would move it are rejected.
+    expect((screen.getByLabelText("Target") as HTMLInputElement).disabled).toBe(true);
+    fireEvent.pointerDown(handle);
+    fireEvent.pointerUp(handle);
+    expect(handle.getAttribute("data-locked")).toBe("false");
+  });
 });

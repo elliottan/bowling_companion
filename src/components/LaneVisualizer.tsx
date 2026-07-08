@@ -30,6 +30,16 @@ const HANDLE_PEG: Record<string, Peg> = {
   laydown: "laydown", target: "target", breakpoint: "breakpoint", final: "final",
 };
 
+type LockablePeg = "laydown" | "target" | "final";
+const LOCKABLE: ReadonlySet<string> = new Set(["laydown", "target", "final"]);
+
+/** Effective value of a lockable peg on a line. */
+function pegValue(l: LineSpec | undefined, k: LockablePeg): number | undefined {
+  if (k === "final") return l?.final_board ?? POCKET_BOARD;
+  if (k === "laydown") return l?.laydown ?? l?.stance;
+  return l?.target;
+}
+
 interface LaneVisualizerProps {
   line: LineSpec | undefined;
   onClose: () => void;
@@ -57,13 +67,37 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
   // update recency (a cascade move doesn't, else pegs would alternate); the
   // choice freezes at grab for the whole gesture. Fresh line: target gives way.
   const lastAimEdit = useRef<"laydown" | "target">("laydown");
-  const dragGiveWay = useRef<"target" | "laydown">("target");
+  const dragGiveWay = useRef<"target" | "laydown" | null>("target");
   const isTopDown = deg <= 2;
+
+  // Hard peg locks (ADR-028): tap a peg to freeze it. Max 2 — one aim peg must
+  // stay free or nothing is editable. Reset on close (component unmounts).
+  const [locked, setLocked] = useState<ReadonlySet<LockablePeg>>(new Set());
+  const grabbedKey = useRef<string | null>(null);
+  const dragStarted = useRef(false);
+  const grabXY = useRef<{ x: number; y: number } | null>(null);
+
+  function toggleLock(key: string) {
+    if (!LOCKABLE.has(key)) return;
+    setLocked((prev) => {
+      const next = new Set(prev);
+      if (next.has(key as LockablePeg)) next.delete(key as LockablePeg);
+      else if (next.size < 2) next.add(key as LockablePeg);
+      return next;
+    });
+  }
 
   /** Apply an edit, re-clamp the line so it stays drawable, and emit. */
   function applyEdit(patch: Partial<LineSpec>) {
     if (!onChange) return;
-    onChange(solveLine({ ...(line ?? {}), ...patch }, hand));
+    const solved = solveLine({ ...(line ?? {}), ...patch }, hand);
+    // Hard lock (ADR-028): an edit whose solved result moves a locked peg stops
+    // at the wall — the edit is dropped, nothing twitches.
+    for (const k of locked) {
+      const a = pegValue(line, k), b = pegValue(solved, k);
+      if (a != null && b != null && Math.abs(a - b) > 1e-6) return;
+    }
+    onChange(solved);
   }
 
   // Spare mode: seed laydown = target = final = the leave's ideal aim board
@@ -169,9 +203,19 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
     }
   }
 
-  function grabHandle(e: React.PointerEvent) {
+  function grabHandle(key: string, e: React.PointerEvent) {
     e.stopPropagation();
-    dragGiveWay.current = lastAimEdit.current === "target" ? "laydown" : "target";
+    grabbedKey.current = key;
+    dragStarted.current = false;
+    grabXY.current = { x: e.clientX, y: e.clientY };
+    dragGiveWay.current = (() => {
+      // Cascade give-way skips locked pegs; both locked ⇒ timing-only drag (ADR-028).
+      const pref = lastAimEdit.current === "target" ? "laydown" : "target";
+      const alt = pref === "laydown" ? "target" : "laydown";
+      if (!locked.has(pref)) return pref;
+      if (!locked.has(alt)) return alt;
+      return null;
+    })();
     // Snap flat instantly so the linear screen→lane mapping is valid mid-drag.
     // Stays top-down after release — line edits rarely land in one try
     // (ADR-025); the "Bowler view" toggle brings the tilt back.
@@ -179,7 +223,21 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
     setDeg(TOPDOWN_DEG);
     (e.currentTarget as Element).setPointerCapture(e.pointerId);
   }
-  function releaseHandle() {
+
+  function moveHandle(key: string, e: React.PointerEvent) {
+    if (!e.buttons || grabbedKey.current !== key) return;
+    e.stopPropagation();
+    const g = grabXY.current;
+    // 5px deadzone separates a lock-toggling tap from a drag.
+    if (!dragStarted.current && g && Math.hypot(e.clientX - g.x, e.clientY - g.y) < 5) return;
+    dragStarted.current = true;
+    if (LOCKABLE.has(key) && locked.has(key as LockablePeg)) return; // locked pegs don't drag
+    dragPoint(key, e);
+  }
+
+  function releaseHandle(key: string) {
+    if (grabbedKey.current === key && !dragStarted.current) toggleLock(key);
+    grabbedKey.current = null;
     setDragging(false);
   }
 
@@ -266,6 +324,7 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
               <svg viewBox={`0 0 ${PLANE_W} ${PLANE_L}`} className="pointer-events-none absolute inset-0 h-full w-full">
                 {handles.map((h) => {
                   const derived = h.key === "breakpoint";
+                  const isLocked = LOCKABLE.has(h.key) && locked.has(h.key as LockablePeg);
                   return (
                     <g key={h.key}>
                       {/* visible grab ring — the derived breakpoint reads as a derived point (hollow diamond) */}
@@ -276,21 +335,30 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
                           fill="none" stroke="#fff" strokeOpacity="0.7" strokeWidth="1.1"
                         />
                       ) : (
-                        <circle cx={h.p.x} cy={h.p.y} r="6" fill="none" stroke="#fff" strokeOpacity="0.6" strokeWidth="1.1" />
+                        <circle
+                          cx={h.p.x} cy={h.p.y} r="6" fill="none"
+                          stroke={isLocked ? "#fbbf24" : "#fff"}
+                          strokeOpacity={isLocked ? 1 : 0.6}
+                          strokeWidth={isLocked ? 1.8 : 1.1}
+                        />
+                      )}
+                      {isLocked && (
+                        <text x={h.p.x + 7} y={h.p.y - 6} fontSize="6" aria-hidden="true">🔒</text>
                       )}
                       {/* large invisible hit target (covers dot + nearby label) */}
                       <circle
                         data-role="handle"
                         data-key={h.key}
+                        data-locked={isLocked ? "true" : "false"}
                         cx={h.p.x}
                         cy={h.p.y}
                         r="13"
                         fill="transparent"
                         className="pointer-events-auto cursor-grab touch-none"
-                        onPointerDown={grabHandle}
-                        onPointerMove={(e) => { if (e.buttons) { e.stopPropagation(); dragPoint(h.key, e); } }}
-                        onPointerUp={releaseHandle}
-                        onPointerCancel={releaseHandle}
+                        onPointerDown={(e) => grabHandle(h.key, e)}
+                        onPointerMove={(e) => moveHandle(h.key, e)}
+                        onPointerUp={() => releaseHandle(h.key)}
+                        onPointerCancel={() => releaseHandle(h.key)}
                       />
                     </g>
                   );
@@ -312,13 +380,16 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
             onPointerDown={(e) => e.stopPropagation()}
           >
             <StepperField label="Laydown" value={line?.laydown ?? line?.stance} min={1} max={59} lateral
+              disabled={locked.has("laydown")}
               onCommit={(v) => { lastAimEdit.current = "laydown"; applyEdit({ laydown: v }); }} />
             <StepperField label="Target" value={line?.target} min={1} max={39} lateral
+              disabled={locked.has("target")}
               onCommit={(v) => { lastAimEdit.current = "target"; applyEdit({ target: v }); }} />
             <ReadField label="Bkpt" value={bpBoard != null && bpFeet != null ? `${bpBoard}·${bpFeet}ft` : undefined} />
             <StepperField label="Final" value={line?.final_board ?? POCKET_BOARD} min={1} max={39} lateral
+              disabled={locked.has("final")}
               onCommit={(v) => applyEdit({ final_board: v })} />
-            {finalOffPocket && (
+            {finalOffPocket && !locked.has("final") && (
               <button
                 type="button"
                 onClick={() => applyEdit({ final_board: POCKET_BOARD })}
@@ -337,14 +408,18 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
             onPointerDown={(e) => e.stopPropagation()}
           >
             <StepperField label="Laydown" value={line?.laydown ?? line?.stance} min={1} max={59} lateral
+              disabled={locked.has("laydown")}
               onCommit={(v) => { lastAimEdit.current = "laydown"; applyEdit({ laydown: v }); }} />
             <StepperField label="Target" value={line?.target} min={1} max={39} lateral
+              disabled={locked.has("target")}
               onCommit={(v) => { lastAimEdit.current = "target"; applyEdit({ target: v }); }} />
             <StepperField label="Final" value={line?.final_board ?? POCKET_BOARD} min={1} max={39} lateral
+              disabled={locked.has("final")}
               onCommit={(v) => applyEdit({ final_board: v })} />
             <StepperField label="Final ft" value={line?.final_distance ?? 60} min={55} max={63} step={0.5}
+              disabled={locked.has("final")}
               onCommit={(v) => applyEdit({ final_distance: v })} />
-            {finalOffAim && spareAim && (
+            {finalOffAim && spareAim && !locked.has("final") && (
               <button
                 type="button"
                 onClick={() =>
