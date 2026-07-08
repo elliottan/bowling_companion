@@ -1,9 +1,11 @@
 import { db } from "../db/bowlingDb";
 import { calculateGameScore } from "../lib/scoring";
 import { nextGameStartLane } from "../lib/lanes";
+import { DEFAULT_LAYDOWN_OFFSET } from "../lib/laydownOffsetContext";
 import type { Frame, Game, Handedness, Session, SessionSummary } from "../types/bowling";
 
 const HANDEDNESS_KEY = "handedness";
+const LAYDOWN_OFFSET_KEY = "laydown_offset";
 
 /** Read a key-value app setting (undefined if unset). */
 export async function getSetting(key: string): Promise<string | undefined> {
@@ -23,6 +25,16 @@ export async function getHandedness(): Promise<Handedness | null> {
 
 export async function setHandedness(value: Handedness): Promise<void> {
   await setSetting(HANDEDNESS_KEY, value);
+}
+
+/** Boards between stance and laydown (ADR-028). Clamped sane; default 6. */
+export async function getLaydownOffset(): Promise<number> {
+  const v = Number(await getSetting(LAYDOWN_OFFSET_KEY));
+  return Number.isFinite(v) && v >= 0 && v <= 15 ? v : DEFAULT_LAYDOWN_OFFSET;
+}
+
+export async function setLaydownOffset(value: number): Promise<void> {
+  await setSetting(LAYDOWN_OFFSET_KEY, String(value));
 }
 
 export type CreateSessionInput = Omit<Session, "id">;

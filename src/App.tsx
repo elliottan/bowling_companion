@@ -18,13 +18,16 @@ import {
   addGameToSession,
   createSession,
   getHandedness,
+  getLaydownOffset,
   getResumableForSession,
   getResumableToday,
   setHandedness as persistHandedness,
+  setLaydownOffset as persistLaydownOffset,
   type ResumableGame
 } from "./services/bowlingRepository";
 import type { NewSessionFormValues } from "./components/SessionForm";
 import { HandednessContext } from "./lib/handednessContext";
+import { LaydownOffsetContext, DEFAULT_LAYDOWN_OFFSET } from "./lib/laydownOffsetContext";
 import { HandednessPicker } from "./components/HandednessPicker";
 import type { Handedness, LineSpec } from "./types/bowling";
 import { LaneVisualizer } from "./components/LaneVisualizer";
@@ -57,6 +60,7 @@ function App() {
   const [settingsSection, setSettingsSection] = useState<SettingsSection>("menu");
   const [handedness, setHandednessState] = useState<Handedness | null>(null);
   const [handednessLoaded, setHandednessLoaded] = useState(false);
+  const [laydownOffset, setLaydownOffsetState] = useState<number>(DEFAULT_LAYDOWN_OFFSET);
   const [resumable, setResumable] = useState<ResumableGame | null>(null);
   const [arsenalOpen, setArsenalOpen] = useState(false);
   const [lineVizOpen, setLineVizOpen] = useState(false);
@@ -154,6 +158,10 @@ function App() {
       .finally(() => setHandednessLoaded(true));
   }, []);
 
+  useEffect(() => {
+    getLaydownOffset().then(setLaydownOffsetState).catch(() => {});
+  }, []);
+
   async function chooseHandedness(value: Handedness) {
     setHandednessState(value);
     try {
@@ -161,6 +169,11 @@ function App() {
     } catch {
       // best-effort; UI already reflects the choice
     }
+  }
+
+  function chooseLaydownOffset(value: number) {
+    setLaydownOffsetState(value);
+    void persistLaydownOffset(value).catch(() => {});
   }
 
   // Navigate, remembering where we came from when entering the active or catalog view.
@@ -236,6 +249,7 @@ function App() {
 
   return (
     <HandednessContext.Provider value={handedness ?? "right"}>
+    <LaydownOffsetContext.Provider value={laydownOffset}>
     <div className="flex flex-col overflow-hidden bg-lane-50 text-slate-950" style={{ height: "var(--app-height, 100dvh)" }}>
       <header className="hidden shrink-0 border-b border-slate-200 bg-white sm:block">
         <div className="mx-auto flex w-full max-w-5xl items-center justify-between px-3 py-3 sm:px-6">
@@ -299,6 +313,8 @@ function App() {
             onSectionChange={setSettingsSection}
             handedness={handedness ?? "right"}
             onHandednessChange={chooseHandedness}
+            laydownOffset={laydownOffset}
+            onLaydownOffsetChange={chooseLaydownOffset}
             onOpenArsenal={openArsenal}
             onOpenCatalog={() => goTo("catalog")}
             onOpenLineVisualizer={() => setLineVizOpen(true)}
@@ -401,6 +417,7 @@ function App() {
         </div>
       )}
     </div>
+    </LaydownOffsetContext.Provider>
     </HandednessContext.Provider>
   );
 }

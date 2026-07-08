@@ -11,6 +11,8 @@ interface SettingsViewProps {
   onSectionChange: (section: SettingsSection) => void;
   handedness: Handedness;
   onHandednessChange: (value: Handedness) => void;
+  laydownOffset: number;
+  onLaydownOffsetChange: (v: number) => void;
   /** Arsenal opens as a modal overlay rather than an inline section. */
   onOpenArsenal: () => void;
   /** Navigate to the ball catalog view. */
@@ -52,7 +54,7 @@ const MENU_ROWS: ReadonlyArray<MenuRow> = [
   }
 ];
 
-export function SettingsView({ section, onSectionChange, handedness, onHandednessChange, onOpenArsenal, onOpenCatalog, onOpenLineVisualizer }: SettingsViewProps) {
+export function SettingsView({ section, onSectionChange, handedness, onHandednessChange, laydownOffset, onLaydownOffsetChange, onOpenArsenal, onOpenCatalog, onOpenLineVisualizer }: SettingsViewProps) {
   if (section !== "menu") {
     return (
       <>
@@ -69,7 +71,12 @@ export function SettingsView({ section, onSectionChange, handedness, onHandednes
         {section === "lanes" ? (
           <LaneNotesView />
         ) : section === "preferences" ? (
-          <HandednessView value={handedness} onChange={onHandednessChange} />
+          <HandednessView
+            value={handedness}
+            onChange={onHandednessChange}
+            laydownOffset={laydownOffset}
+            onLaydownOffsetChange={onLaydownOffsetChange}
+          />
         ) : (
           <BackupRestoreView />
         )}

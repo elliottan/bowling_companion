@@ -6,9 +6,12 @@ import {
   createSession,
   deleteGame,
   deleteSession,
+  getLaydownOffset,
   getSessionDetails,
   getSessionHistory,
   saveFrame,
+  setLaydownOffset,
+  setSetting,
   updateGameNotes
 } from "./bowlingRepository";
 
@@ -122,5 +125,24 @@ describe("bowlingRepository", () => {
 
     expect(result.sessionDeleted).toBe(true);
     expect(await getSessionHistory()).toHaveLength(0);
+  });
+});
+
+describe("laydown offset setting", () => {
+  beforeEach(async () => {
+    await db.delete();
+    await db.open();
+  });
+
+  it("defaults to 6 when unset", async () => {
+    expect(await getLaydownOffset()).toBe(6);
+  });
+  it("round-trips a stored value", async () => {
+    await setLaydownOffset(4.5);
+    expect(await getLaydownOffset()).toBe(4.5);
+  });
+  it("falls back to the default on a garbage stored value", async () => {
+    await setSetting("laydown_offset", "banana");
+    expect(await getLaydownOffset()).toBe(6);
   });
 });
