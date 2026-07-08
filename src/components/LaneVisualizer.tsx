@@ -7,7 +7,7 @@ import { spareAimPoint } from "../lib/spareAim";
 import { LaneSurface } from "./LaneSurface";
 import {
   buildLinePath, solveLine, projectBreakpoint, xToBoard, yToFeet, PLANE_W, PLANE_L,
-  POCKET_BOARD, type Peg,
+  POCKET_BOARD, type Peg, arrowFeet, ARROWS_FEET, LANE_FEET, HOOK_START_FT, HOOK_LENGTH_FT,
 } from "../lib/laneGeometry";
 
 const BOWLER_DEG = 50;     // bowler's-eye tilt (looking down the lane)
@@ -354,6 +354,15 @@ function OptionsSheet({
   onChange: (patch: Partial<LineSpec>) => void;
   onClose: () => void;
 }) {
+  // Live bounds mirroring the solver's clamps (laneGeometry hookGeomRaw): the
+  // whole track is always draggable — no dead zones to explain.
+  const fF = line?.final_distance ?? LANE_FEET;
+  const tgtFt = line?.target != null ? arrowFeet(line.target) : ARROWS_FEET;
+  const dS = line?.hook_start_distance ?? HOOK_START_FT;
+  const startMin = Math.ceil(tgtFt + 1);
+  const startMax = Math.floor(fF - 2);
+  const lenMax = Math.max(4, Math.floor(fF - 0.5 - dS));
+
   return (
     <div className="absolute inset-0 z-20 flex flex-col justify-end bg-black/50" onClick={onClose}>
       <div
@@ -368,13 +377,13 @@ function OptionsSheet({
           </button>
         </div>
         <Slider
-          label="Hook start" suffix="ft" min={20} max={55} step={1}
-          value={line?.hook_start_distance ?? 38}
+          label="Hook start" suffix="ft" min={startMin} max={startMax} step={1}
+          value={clamp(dS, startMin, startMax)}
           onChange={(v) => onChange({ hook_start_distance: v })}
         />
         <Slider
-          label="Hook length" suffix="ft" min={4} max={25} step={1}
-          value={line?.hook_length ?? 14}
+          label="Hook length" suffix="ft" min={4} max={lenMax} step={1}
+          value={clamp(line?.hook_length ?? HOOK_LENGTH_FT, 4, lenMax)}
           onChange={(v) => onChange({ hook_length: v })}
         />
         <p className="mt-1 text-xs text-white/50">
@@ -397,7 +406,7 @@ function Slider({
   onChange: (v: number) => void;
 }) {
   return (
-    <label className="mb-3 block">
+    <label className="mb-3 block py-1">
       <div className="mb-1 flex items-baseline justify-between text-xs font-semibold uppercase tracking-wide text-white/70">
         <span>{label}</span>
         <span className="tabular-nums text-white/90">{Math.round(value)} {suffix}</span>
@@ -409,8 +418,12 @@ function Slider({
         step={step}
         value={value}
         onChange={(e) => onChange(Number(e.target.value))}
-        className="h-2 w-full cursor-pointer appearance-none rounded-full bg-white/15 accent-amber-400"
+        className="h-8 w-full cursor-pointer accent-amber-400"
       />
+      <div className="flex justify-between text-[10px] tabular-nums text-white/40">
+        <span>{min} {suffix}</span>
+        <span>{max} {suffix}</span>
+      </div>
     </label>
   );
 }
