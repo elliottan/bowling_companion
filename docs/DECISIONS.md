@@ -1057,3 +1057,58 @@ such a drag is an aim change, not a timing change.
   (returned aim + timing reproduce the drawn apex) are pinned by tests.
 - `LaneVisualizer` tracks aim-edit recency in refs (UI state only — nothing
   persisted) and freezes the give-way peg per gesture.
+
+## ADR-028 — Honest line geometry: derived laydown, real-only breakpoint, hard peg locks
+
+**Status:** accepted (2026-07). Extends ADR-024/026 (derived breakpoint) and
+ADR-027 (give-way cascade); adds the first per-user tuning setting
+(`laydown_offset`).
+
+**Context.** Four honesty gaps in the line UI: (1) the drawn line started at
+the *stance* board, but a real ball touches down ~half a dozen boards inside
+the slide foot — the visualized line was wrong by that much for everyone;
+(2) the derived breakpoint could render at the foul line ("Bkpt 20·0ft") —
+the apex scan seeded at the laydown and the unreachable-final branch returned
+0 ft; (3) a big spare hook drew off the lane and off the screen (only strikes
+had the on-lane cap, and even that cap gave up when the earliest hook start
+rode an off-lane focal); (4) a spare attempt's intended line opened the
+visualizer in strike mode, aiming at a pocket that wasn't the shot.
+
+**Decision.**
+- **Laydown = stance − offset.** New `laydown_offset` setting (default 6,
+  half-board steps, 0–15; Settings → Preferences next to handedness). Board
+  numbers are hand-relative, so one subtraction serves both hands. The
+  visualizer materialises a missing `laydown` on open; a typed or dragged
+  `laydown` overrides the derivation for that line. `stance` remains the
+  entry field; the scorer shows a read-only derived-laydown chip (tap →
+  visualizer). No migration — `LineSpec` already carried both fields.
+- **Breakpoint is real-only.** Apex candidates start at the target depth, so
+  the stored `breakpoint`/`breakpoint_distance` floor there (never 0 ft; a
+  non-null `breakpoint` still flags a strike line). The *marker* renders only
+  when the ball genuinely swings > ¼ board outside the target board
+  (`apexReal`); straight, inward, and unreachable-final lines show no
+  breakpoint at all — no fake points.
+- **The drawn curve never exits boards 1–39** (the lofted-laydown skid margin
+  stays). Spares get the same cap-to-lane as strikes, and the cap learned a
+  second stage: when even the earliest hook start rides an off-lane focal, it
+  shrinks the hook *length* too; only a truly impossible geometry falls back
+  to nearest-achievable (map continuity).
+- **Hard peg locks.** Tapping laydown/target/final toggles a lock (max 2 —
+  one aim peg stays free; the derived breakpoint is not lockable). Locked
+  pegs never move: drags are ignored, steppers disable, snap chips hide, and
+  any edit whose solved result would move a locked value is dropped at the
+  wall. The ADR-027 give-way skips locked pegs (both aim pegs locked ⇒
+  timing-only drag). A peg tap no longer snaps the camera — only a real drag
+  does.
+- **Limits by construction, not warnings.** The hook sliders' min/max are
+  computed live from the solver's own clamps (no dead track), and spare
+  attempts open in spare mode with the real leave.
+
+**Consequences.**
+- `HookGeom` gains `apexReal`; `strikeApexPoint`'s unreachable branch floors
+  at the target depth; `LinePath.points.breakpoint` is null when no real apex.
+- Legacy lines with a sub-target stored `breakpoint_distance` re-solve onto
+  the floor on first edit (the existing ADR-026 lazy-migration path).
+- Locks are visualizer session state (nothing persisted).
+- The replay button is gone — tapping the lane replays; the animated ball is
+  amber and fades out at the pins (the frozen dark dot read as a marker).

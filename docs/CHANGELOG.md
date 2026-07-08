@@ -2,6 +2,42 @@
 
 User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachangelog.com).
 
+## [Unreleased] — Honest lines: derived laydown, real breakpoints, peg locks (2026-07-09, ADR-028)
+
+### Added
+
+- **Your line now starts where the ball actually lands.** A new "Laydown offset"
+  setting (Settings → Preferences, default 6 boards) derives the laydown from
+  your stance; drag the laydown point to override it for a single line. The
+  scorer shows the derived laydown as a chip on the Intended line — tap it to
+  open the lane view.
+- **Tap a point to lock it.** Locked points (laydown / target / final, up to
+  two) get an amber ring + 🔒 and never move — drags, steppers, and edits that
+  would push them all stop at the wall.
+- **"Pocket" / "Re-aim" chip** snaps the final back to the pocket (strike) or
+  the leave's ideal aim (spare) whenever it's off.
+
+### Fixed
+
+- **The breakpoint can no longer appear below your target.** Straight, inward,
+  and unreachable lines show no breakpoint at all — the marker only appears
+  when the ball genuinely swings outside the target board.
+- **Spare hooks can't draw off the lane / off the screen anymore.**
+- **Spare attempts open the lane view in spare mode** — aimed at your actual
+  leave, not the pocket.
+- **Hook sliders have no dead zones** — their ranges are computed live from
+  what the line can actually do, with the bounds shown at the track ends.
+
+### Changed
+
+- **The lane view header is gone** — the lane renders full-height; close (top
+  right), view toggle and hook options (top left) float over it.
+- **The replay button is gone** — tap anywhere on the lane to re-roll the shot.
+  The animated ball is now clearly a ball (amber) and fades out at the pins.
+- **In/out arrows (◀ ▶) replace − / +** on the lane view's board steppers,
+  matching the score-entry screen; direction is handedness-aware.
+- **The pin deck is less compressed** — bigger pins, taller rack.
+
 ## [Unreleased] — Aim cascade on walled breakpoint drags (2026-07-05, ADR-027)
 
 ### Added
