@@ -27,7 +27,7 @@ export const HOOK_LENGTH_FT = 14;
 // (pins reach ~62.9 ft) is visible rather than clipped to the foul-line→head-pin
 // span. The foul line (0 ft) therefore sits a little above the very bottom.
 export const DRAW_FRONT_FEET = -4;      // approach, below the foul line
-export const DRAW_BACK_FEET = 63.4;     // just behind the back pin row (~62.6 ft)
+export const DRAW_BACK_FEET = 65;       // room behind the back pin row (~62.6 ft) so the deck isn't crushed
 
 // Vertical mapping is LINEAR (ADR-020): every straight line in real lane space
 // must render perfectly straight on screen, focal included. The old deck "knee"

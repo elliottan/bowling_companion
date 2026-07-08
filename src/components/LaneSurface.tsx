@@ -7,7 +7,7 @@ import { PIN_POSITIONS } from "../lib/pinGeometry";
 
 const ALL_PINS: PinNumber[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 const ARROW_BOARDS = [5, 10, 15, 20, 25, 30, 35]; // 7 arrows / ruler ticks
-const RACK_ROW_DY = 4; // plane-units between decorative pin-deck rows
+const RACK_ROW_DY = 5; // plane-units between decorative pin-deck rows
 
 // Distinct colour per marker so the four pegs read apart at a glance.
 const PEG_COLOR = {
@@ -138,7 +138,7 @@ export function LaneSurface({ line, hand, leave, showMarkers = true, animate, an
         const standing = !hasLeave || leaveSet.has(p);
         // A standing pin the ball can't reach (focal lands too far off) reads red.
         const missed = standing && (path?.miss ?? false);
-        const r = 3;
+        const r = 3.4;
         return (
           <g key={p} data-role="pin" data-standing={standing ? "true" : "false"} data-missed={missed ? "true" : "false"}>
             <ellipse cx={cx} cy={cy + r * 0.6} rx={r * 0.95} ry={r * 0.4}
