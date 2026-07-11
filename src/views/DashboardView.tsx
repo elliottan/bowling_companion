@@ -1,4 +1,4 @@
-import { BookOpen, PlayCircle, Plus } from "lucide-react";
+import { BookOpen, PlayCircle, Plus, Spline } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { SessionFormDialog } from "../components/SessionFormDialog";
 import { SessionHistory } from "../components/SessionHistory";
@@ -16,6 +16,7 @@ interface DashboardViewProps {
   onViewAll: () => void;
   activeSessionId?: number | null;
   onOpenCatalog: () => void;
+  onOpenLineVisualizer: () => void;
 }
 
 const RECENT_LIMIT = 10;
@@ -29,7 +30,8 @@ export function DashboardView({
   onOpenSession,
   onViewAll,
   activeSessionId,
-  onOpenCatalog
+  onOpenCatalog,
+  onOpenLineVisualizer
 }: DashboardViewProps) {
   const [showForm, setShowForm] = useState(false);
   const [recent, setRecent] = useState<SessionSummary[]>([]);
@@ -86,6 +88,19 @@ export function DashboardView({
           <span>
             <span className="block text-sm font-semibold text-slate-950">Ball Catalog</span>
             <span className="block text-xs text-slate-500">Browse all manufacturer balls</span>
+          </span>
+        </button>
+        <button
+          type="button"
+          onClick={onOpenLineVisualizer}
+          className="flex flex-col items-start gap-2 rounded-lg border border-slate-200 bg-white p-4 shadow-sm hover:border-felt-700 text-left"
+        >
+          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-felt-700/10 text-felt-700">
+            <Spline size={18} aria-hidden="true" />
+          </span>
+          <span>
+            <span className="block text-sm font-semibold text-slate-950">Line Visualizer</span>
+            <span className="block text-xs text-slate-500">Sketch a line on the lane</span>
           </span>
         </button>
       </div>

@@ -293,6 +293,7 @@ function App() {
             onViewAll={() => goTo("history")}
             activeSessionId={activeSessionId}
             onOpenCatalog={() => goTo("catalog")}
+            onOpenLineVisualizer={() => setLineVizOpen(true)}
           />
         )}
         {view === "active" && activeSessionId && (
