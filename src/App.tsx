@@ -145,7 +145,10 @@ function App() {
   // the game number stays current.
   useEffect(() => {
     if (activeSessionId != null) {
-      getResumableForSession(activeSessionId).then(setResumable).catch(() => {});
+      getResumableForSession(activeSessionId)
+        .then((r) => (r ? r : getResumableToday()))
+        .then(setResumable)
+        .catch(() => {});
     } else {
       getResumableToday().then(setResumable).catch(() => {});
     }

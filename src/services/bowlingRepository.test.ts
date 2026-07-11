@@ -7,6 +7,7 @@ import {
   deleteGame,
   deleteSession,
   getLaydownOffset,
+  getResumableForSession,
   getSessionDetails,
   getSessionHistory,
   saveFrame,
@@ -125,6 +126,26 @@ describe("bowlingRepository", () => {
 
     expect(result.sessionDeleted).toBe(true);
     expect(await getSessionHistory()).toHaveLength(0);
+  });
+
+  it("returns null from getResumableForSession when every game is finished", async () => {
+    const sessionId = await createSession({ date: "2026-05-26", alley_name: "Test Lanes" });
+    const gameId = await addGameToSession(sessionId, { game_number: 1 });
+    await db.games.update(gameId, { final_score: 150 });
+
+    expect(await getResumableForSession(sessionId)).toBeNull();
+  });
+
+  it("returns the unfinished game from getResumableForSession", async () => {
+    const sessionId = await createSession({ date: "2026-05-26", alley_name: "Test Lanes" });
+    const g1 = await addGameToSession(sessionId, { game_number: 1 });
+    await db.games.update(g1, { final_score: 150 });
+    await addGameToSession(sessionId, { game_number: 2 });
+
+    const resumable = await getResumableForSession(sessionId);
+
+    expect(resumable).not.toBeNull();
+    expect(resumable?.gameNumber).toBe(2);
   });
 });
 

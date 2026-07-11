@@ -303,16 +303,17 @@ export async function getResumableToday(): Promise<ResumableGame | null> {
 }
 
 /**
- * Resume info for a specific session — the most recent unfinished game, or the
- * last game if all are finished. Used so the home widget always reflects and
- * jumps to whichever session is currently active.
+ * Resume info for a specific session — the most recent unfinished game, or
+ * `null` if every game in the session is finished. Used so the home widget
+ * only offers to resume a session that actually has an unfinished game.
  */
 export async function getResumableForSession(sessionId: number): Promise<ResumableGame | null> {
   const session = await db.sessions.get(sessionId);
   if (!session || session.id == null) return null;
   const games = await db.games.where("session_id").equals(session.id).sortBy("game_number");
   if (games.length === 0) return null;
-  const target = games.find((g) => g.final_score === undefined) ?? games[games.length - 1];
+  const target = games.find((g) => g.final_score === undefined);
+  if (!target) return null;
   return { sessionId: session.id, alleyName: session.alley_name, gameNumber: target.game_number };
 }
 
