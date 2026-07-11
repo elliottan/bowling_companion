@@ -7,6 +7,7 @@ import { SessionLanePanel } from "../components/SessionLanePanel";
 import { SessionStatsModal } from "../components/SessionStatsModal";
 import type { NewSessionFormValues } from "../components/SessionForm";
 import { calculateGameScore } from "../lib/scoring";
+import { useLongPress } from "../lib/useLongPress";
 import {
   addNextGameToSession,
   deleteGame,
@@ -41,7 +42,8 @@ export function ActiveSessionView({
   const [isAddingGame, setIsAddingGame] = useState(false);
   const [error, setError] = useState("");
   const [showMenu, setShowMenu] = useState(false);
-  const [confirmDeleteGame, setConfirmDeleteGame] = useState(false);
+  const [confirmDeleteGame, setConfirmDeleteGame] = useState<number | null>(null);
+  const [chipMenu, setChipMenu] = useState<{ gameId: number; left: number; top: number } | null>(null);
   const [confirmDeleteSession, setConfirmDeleteSession] = useState(false);
   const [showSheet, setShowSheet] = useState(false);
   const [showEdit, setShowEdit] = useState(false);
@@ -53,6 +55,8 @@ export function ActiveSessionView({
   const [startSide, setStartSide] = useState<"A" | "B">("A");
   const [laneError, setLaneError] = useState("");
   const [showLaneEditor, setShowLaneEditor] = useState(false);
+
+  const longPress = useLongPress();
 
   const activeGame = useMemo(
     () => sessionDetails?.games.find((g) => g.id === activeGameId) ?? null,
@@ -160,16 +164,17 @@ export function ActiveSessionView({
   }
 
   async function handleDeleteGame() {
-    if (!activeGame?.id) return;
-    setConfirmDeleteGame(false);
+    const gameId = confirmDeleteGame;
+    setConfirmDeleteGame(null);
     setShowMenu(false);
+    if (gameId == null) return;
     try {
-      const result = await deleteGame(activeGame.id);
+      const result = await deleteGame(gameId);
       if (result.sessionDeleted) {
         onSessionDeleted();
         return;
       }
-      await refreshSession();
+      await refreshSession(activeGameId ?? undefined);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to delete game.");
     }
@@ -230,6 +235,19 @@ export function ActiveSessionView({
     (sum, g) => sum + (g.final_score ?? calculateGameScore((g as Game & { frames: Frame[] }).frames).total),
     0
   );
+
+  // Confirm copy names the game being deleted (the pressed chip's game, which
+  // may not be the active one) and its score when it has one.
+  const gameToDelete = games.find((g) => g.id === confirmDeleteGame);
+  const deleteGameScore =
+    gameToDelete &&
+    (gameToDelete.final_score ??
+      (((gameToDelete as Game & { frames: Frame[] }).frames.length > 0
+        ? calculateGameScore((gameToDelete as Game & { frames: Frame[] }).frames).total
+        : undefined)));
+  const deleteGameMessage = gameToDelete
+    ? `Game ${gameToDelete.game_number}${deleteGameScore ? ` (score ${deleteGameScore})` : ""} and its frames will be permanently deleted.`
+    : "";
 
   return (
     <div>
@@ -296,7 +314,7 @@ export function ActiveSessionView({
                   </button>
                   <button
                     type="button"
-                    onClick={() => { setShowMenu(false); setConfirmDeleteGame(true); }}
+                    onClick={() => { setShowMenu(false); setConfirmDeleteGame(activeGame.id ?? null); }}
                     className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm font-medium text-red-600 hover:bg-red-50"
                   >
                     <Trash2 size={16} aria-hidden="true" />
@@ -317,23 +335,42 @@ export function ActiveSessionView({
         </div>
 
         <div className="mt-3 flex items-center gap-1 overflow-x-auto pb-1">
-          {games.map((g) => (
-            <button
-              key={g.id}
-              type="button"
-              onClick={() => g.id && setActiveGameId(g.id)}
-              className={`inline-flex h-8 shrink-0 items-center gap-1.5 rounded-md border px-3 text-xs font-semibold ${
-                g.id === activeGameId
-                  ? "border-felt-700 bg-felt-700 text-white"
-                  : "border-slate-300 bg-white text-slate-700"
-              }`}
-            >
-              G{g.game_number}
-              {g.final_score !== undefined && (
-                <span className="opacity-80">· {g.final_score}</span>
-              )}
-            </button>
-          ))}
+          {games.map((g) => {
+            const frames = (g as Game & { frames: Frame[] }).frames;
+            return (
+              <button
+                key={g.id}
+                type="button"
+                {...longPress.bind((chip) => {
+                  if (!g.id) return;
+                  const rect = chip.getBoundingClientRect();
+                  setChipMenu({
+                    gameId: g.id,
+                    left: Math.max(8, Math.min(rect.left, window.innerWidth - 184)),
+                    top: rect.bottom + 4
+                  });
+                })}
+                onClick={() => {
+                  if (longPress.didLongPress()) return;
+                  if (g.id) setActiveGameId(g.id);
+                }}
+                className={`inline-flex h-8 shrink-0 items-center gap-1.5 rounded-md border px-3 text-xs font-semibold ${
+                  g.id === activeGameId
+                    ? "border-felt-700 bg-felt-700 text-white"
+                    : "border-slate-300 bg-white text-slate-700"
+                }`}
+              >
+                G{g.game_number}
+                {g.final_score !== undefined ? (
+                  <span className="opacity-80">· {g.final_score}</span>
+                ) : (
+                  frames.length > 0 && (
+                    <span className="opacity-80">· {calculateGameScore(frames).total}+</span>
+                  )
+                )}
+              </button>
+            );
+          })}
           <button
             type="button"
             onClick={() => void handleAddGame()}
@@ -345,6 +382,29 @@ export function ActiveSessionView({
             <Plus size={16} aria-hidden="true" />
           </button>
         </div>
+
+        {chipMenu && (
+          <>
+            <div className="fixed inset-0 z-10" onClick={() => setChipMenu(null)} />
+            <div
+              className="fixed z-20 w-44 overflow-hidden rounded-lg border border-slate-200 bg-white py-1 shadow-lg"
+              style={{ left: chipMenu.left, top: chipMenu.top }}
+            >
+              <button
+                type="button"
+                onClick={() => {
+                  const gameId = chipMenu.gameId;
+                  setChipMenu(null);
+                  setConfirmDeleteGame(gameId);
+                }}
+                className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm font-medium text-red-600 hover:bg-red-50"
+              >
+                <Trash2 size={16} aria-hidden="true" />
+                Delete game
+              </button>
+            </div>
+          </>
+        )}
 
         {error && (
           <p className="mt-3 rounded-lg border border-red-200 bg-red-50 p-3 text-sm font-semibold text-red-700">
@@ -373,11 +433,11 @@ export function ActiveSessionView({
       />
 
       <ConfirmDialog
-        open={confirmDeleteGame}
+        open={confirmDeleteGame != null}
         title="Delete this game?"
-        message={`Game ${activeGame.game_number} and its frames will be permanently deleted.`}
+        message={deleteGameMessage}
         onConfirm={handleDeleteGame}
-        onCancel={() => setConfirmDeleteGame(false)}
+        onCancel={() => setConfirmDeleteGame(null)}
       />
 
       {showSheet && (
