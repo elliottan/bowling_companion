@@ -3,8 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { ActiveGameScorer } from "../components/ActiveGameScorer";
 import { ConfirmDialog } from "../components/ConfirmDialog";
 import { SessionFormDialog } from "../components/SessionFormDialog";
-import { SessionLanePanel } from "../components/SessionLanePanel";
-import { SessionStatsModal } from "../components/SessionStatsModal";
+import { SessionLanePanel, type SessionPanelTab } from "../components/SessionLanePanel";
 import type { NewSessionFormValues } from "../components/SessionForm";
 import { calculateGameScore } from "../lib/scoring";
 import { useLongPress } from "../lib/useLongPress";
@@ -46,8 +45,8 @@ export function ActiveSessionView({
   const [chipMenu, setChipMenu] = useState<{ gameId: number; left: number; top: number } | null>(null);
   const [confirmDeleteSession, setConfirmDeleteSession] = useState(false);
   const [showSheet, setShowSheet] = useState(false);
+  const [sheetTab, setSheetTab] = useState<SessionPanelTab>("sheet");
   const [showEdit, setShowEdit] = useState(false);
-  const [showStats, setShowStats] = useState(false);
 
   // Inline lane editor
   const [laneA, setLaneA] = useState("");
@@ -255,7 +254,7 @@ export function ActiveSessionView({
         <div className="flex items-center gap-2">
           <button
             type="button"
-            onClick={() => setShowSheet(true)}
+            onClick={() => { setSheetTab("sheet"); setShowSheet(true); }}
             className="min-w-0 flex-1 rounded-md text-left hover:bg-slate-50"
             aria-label="Open session sheet and lane notes"
           >
@@ -298,7 +297,7 @@ export function ActiveSessionView({
                   </button>
                   <button
                     type="button"
-                    onClick={() => { setShowMenu(false); setShowStats(true); }}
+                    onClick={() => { setShowMenu(false); setSheetTab("stats"); setShowSheet(true); }}
                     className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm font-medium text-slate-700 hover:bg-slate-50"
                   >
                     <BarChart3 size={16} aria-hidden="true" />
@@ -444,13 +443,12 @@ export function ActiveSessionView({
         <SessionLanePanel
           summary={sessionDetails}
           currentGameId={activeGame.id}
-          defaultTab="sheet"
+          defaultTab={sheetTab}
+          // Close the sheet first: it portals to body after the edit dialog,
+          // so it would otherwise paint on top of it.
+          onEdit={() => { setShowSheet(false); setShowEdit(true); }}
           onClose={() => setShowSheet(false)}
         />
-      )}
-
-      {showStats && (
-        <SessionStatsModal summary={sessionDetails} onClose={() => setShowStats(false)} />
       )}
 
       <SessionFormDialog

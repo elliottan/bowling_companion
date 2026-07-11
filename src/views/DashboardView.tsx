@@ -123,6 +123,7 @@ export function DashboardView({
           isLoading={loadingRecent}
           onOpenSession={onOpenSession}
           activeSessionId={activeSessionId}
+          onSessionChanged={loadRecent}
         />
       </div>
 

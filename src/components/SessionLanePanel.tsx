@@ -1,20 +1,25 @@
-import { X } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { Pencil, X } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { laneForFrame } from "../lib/lanes";
 import { knockedDownCount } from "../lib/pins";
 import { calculateGameScore } from "../lib/scoring";
+import { calculateBallUsage, calculateCommonLeaves, calculateStats } from "../lib/stats";
 import { getBalls } from "../services/ballRepository";
 import type { Ball, Frame, LineSpec, SessionSummary, Shot } from "../types/bowling";
 import { LaneNotesTab } from "./LaneNotesTab";
 import { MiniPins } from "./MiniPins";
+import { Stats } from "./Stats";
 import { SwipePanes } from "./SwipePanes";
 
-type Tab = "sheet" | "lanes";
+export type SessionPanelTab = "sheet" | "stats" | "lanes";
 
 interface SessionLanePanelProps {
   summary: SessionSummary;
   currentGameId?: number;
-  defaultTab?: Tab;
+  defaultTab?: SessionPanelTab;
+  /** When set, a pencil button in the header opens the session edit flow. */
+  onEdit?: () => void;
   onClose: () => void;
 }
 
@@ -40,16 +45,18 @@ function laneSummary(games: SessionSummary["games"]): string {
 }
 
 /**
- * Bottom-sheet "cheat sheet" with two swipeable tabs: the session sheet (every
- * first-ball shot, current game first) and lane notes for this alley.
+ * Bottom-sheet "cheat sheet" with three swipeable tabs: the session sheet
+ * (every first-ball shot, current game first), per-session stats, and lane
+ * notes for this alley.
  */
 export function SessionLanePanel({
   summary,
   currentGameId,
   defaultTab = "sheet",
+  onEdit,
   onClose
 }: SessionLanePanelProps) {
-  const [tab, setTab] = useState<Tab>(defaultTab);
+  const [tab, setTab] = useState<SessionPanelTab>(defaultTab);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
@@ -63,9 +70,12 @@ export function SessionLanePanel({
     .filter(Boolean)
     .sort((a, b) => Number(a) - Number(b) || a.localeCompare(b));
 
-  const tabs: Tab[] = ["sheet", "lanes"];
+  const tabs: SessionPanelTab[] = ["sheet", "stats", "lanes"];
 
-  return (
+  // Portal to body: callers can live inside SwipePanes, whose translateX
+  // transform would otherwise become the containing block for this fixed
+  // overlay and shove it off-screen.
+  return createPortal(
     <div
       className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 sm:items-center"
       role="dialog"
@@ -93,20 +103,33 @@ export function SessionLanePanel({
                 .join(" · ")}
             </p>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Close"
-            className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-slate-500 hover:bg-slate-100"
-          >
-            <X size={18} aria-hidden="true" />
-          </button>
+          <div className="flex shrink-0 items-center gap-1">
+            {onEdit && (
+              <button
+                type="button"
+                onClick={onEdit}
+                aria-label="Edit session"
+                className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-slate-500 hover:bg-slate-100"
+              >
+                <Pencil size={18} aria-hidden="true" />
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Close"
+              className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-slate-500 hover:bg-slate-100"
+            >
+              <X size={18} aria-hidden="true" />
+            </button>
+          </div>
         </div>
 
-        {/* Session sheet / Lane notes toggle */}
-        <div className="grid grid-cols-2 gap-1 border-b border-slate-200 px-4 py-2">
+        {/* Session sheet / Stats / Lane notes toggle */}
+        <div className="grid grid-cols-3 gap-1 border-b border-slate-200 px-4 py-2">
           {([
             ["sheet", "Session sheet"],
+            ["stats", "Stats"],
             ["lanes", "Lane notes"]
           ] as const).map(([key, label]) => (
             <button
@@ -131,6 +154,9 @@ export function SessionLanePanel({
               <div key="sheet" className="px-4 py-3">
                 <SessionSheetTab summary={summary} currentGameId={currentGameId} />
               </div>,
+              <div key="stats" className="px-4 py-3">
+                <StatsTab summary={summary} />
+              </div>,
               <div key="lanes" className="px-4 py-3">
                 <LaneNotesTab alley={summary.session.alley_name} currentLanes={sortedLanes} />
               </div>
@@ -138,8 +164,24 @@ export function SessionLanePanel({
           />
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
+}
+
+/** Per-session stats: the History Stats pane scoped to a single session. */
+function StatsTab({ summary }: { summary: SessionSummary }) {
+  const [balls, setBalls] = useState<Ball[]>([]);
+
+  useEffect(() => {
+    getBalls().then(setBalls).catch(() => {});
+  }, []);
+
+  const stats = useMemo(() => calculateStats([summary]), [summary]);
+  const leaves = useMemo(() => calculateCommonLeaves([summary]), [summary]);
+  const ballUsage = useMemo(() => calculateBallUsage([summary], balls), [summary, balls]);
+
+  return <Stats stats={stats} leaves={leaves} ballUsage={ballUsage} />;
 }
 
 function SessionSheetTab({

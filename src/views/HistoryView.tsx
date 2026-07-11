@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { SessionHistory } from "../components/SessionHistory";
 import { Stats } from "../components/Stats";
 import { SwipePanes } from "../components/SwipePanes";
@@ -57,28 +57,23 @@ export function HistoryView({ onOpenSession, activeSessionId }: HistoryViewProps
     );
   }
 
-  useEffect(() => {
-    let isMounted = true;
-    async function load() {
-      setIsLoading(true);
-      setError("");
-      try {
-        const [h, b] = await Promise.all([getSessionHistory(), getBalls()]);
-        if (isMounted) {
-          setHistory(h);
-          setBalls(b);
-        }
-      } catch (err) {
-        if (isMounted) setError(err instanceof Error ? err.message : "Unable to load history.");
-      } finally {
-        if (isMounted) setIsLoading(false);
-      }
+  const load = useCallback(async () => {
+    setIsLoading(true);
+    setError("");
+    try {
+      const [h, b] = await Promise.all([getSessionHistory(), getBalls()]);
+      setHistory(h);
+      setBalls(b);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unable to load history.");
+    } finally {
+      setIsLoading(false);
     }
-    load();
-    return () => {
-      isMounted = false;
-    };
   }, []);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
 
   // Alley + pattern filter at the session level; lanes apply at the frame level
   // inside the stats calculators (correct for cross-lane games).
@@ -246,6 +241,7 @@ export function HistoryView({ onOpenSession, activeSessionId }: HistoryViewProps
               isLoading={isLoading}
               onOpenSession={onOpenSession}
               activeSessionId={activeSessionId}
+              onSessionChanged={() => void load()}
             />
             <div ref={sentinelRef} className="h-6" aria-hidden="true" />
           </div>,

@@ -1,7 +1,11 @@
 import { BarChart3, History } from "lucide-react";
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import { calculateGameScore } from "../lib/scoring";
-import { SessionStatsModal } from "./SessionStatsModal";
+import { updateSession } from "../services/bowlingRepository";
+import { SessionFormDialog } from "./SessionFormDialog";
+import { SessionLanePanel } from "./SessionLanePanel";
+import type { NewSessionFormValues } from "./SessionForm";
 import type { SessionSummary } from "../types/bowling";
 
 interface SessionHistoryProps {
@@ -9,13 +13,16 @@ interface SessionHistoryProps {
   isLoading?: boolean;
   onOpenSession: (sessionId: number) => void;
   activeSessionId?: number | null;
+  /** Called after a session is edited so the list can reload. */
+  onSessionChanged?: () => void;
 }
 
 export function SessionHistory({
   sessions,
   isLoading = false,
   onOpenSession,
-  activeSessionId
+  activeSessionId,
+  onSessionChanged
 }: SessionHistoryProps) {
   if (isLoading) {
     return (
@@ -44,6 +51,7 @@ export function SessionHistory({
             summary={summary}
             isActive={summary.session.id != null && summary.session.id === activeSessionId}
             onOpen={onOpenSession}
+            onSessionChanged={onSessionChanged}
           />
         </li>
       ))}
@@ -65,12 +73,21 @@ interface SessionRowProps {
   summary: SessionSummary;
   isActive: boolean;
   onOpen: (sessionId: number) => void;
+  onSessionChanged?: () => void;
 }
 
-/** Tap a row to open the session; edit/delete live in the session detail. */
-function SessionRow({ summary, isActive, onOpen }: SessionRowProps) {
+/** Tap a row to open the session; edit lives in the stats panel's pencil. */
+function SessionRow({ summary, isActive, onOpen, onSessionChanged }: SessionRowProps) {
   const { session, games } = summary;
   const [showStats, setShowStats] = useState(false);
+  const [showEdit, setShowEdit] = useState(false);
+
+  async function handleSaveEdit(values: NewSessionFormValues) {
+    if (!session.id) return;
+    await updateSession(session.id, values);
+    setShowEdit(false);
+    onSessionChanged?.();
+  }
   // Series total = sum of every game's score (current total if unfinished);
   // average = mean of completed games only.
   const seriesTotal = games.reduce(
@@ -162,7 +179,34 @@ function SessionRow({ summary, isActive, onOpen }: SessionRowProps) {
       </button>
 
       {showStats && (
-        <SessionStatsModal summary={summary} onClose={() => setShowStats(false)} />
+        <SessionLanePanel
+          summary={summary}
+          defaultTab="stats"
+          // Close the panel first: it portals to body after the edit dialog,
+          // so it would otherwise paint on top of it.
+          onEdit={() => { setShowStats(false); setShowEdit(true); }}
+          onClose={() => setShowStats(false)}
+        />
+      )}
+
+      {/* Portal to body: rows can live inside SwipePanes, whose translateX
+          transform would otherwise reposition this fixed dialog. */}
+      {createPortal(
+        <SessionFormDialog
+          open={showEdit}
+          title="Edit session"
+          submitLabel="Save"
+          initial={{
+            alley_name: session.alley_name,
+            date: session.date,
+            description: session.description,
+            oil_pattern_id: session.oil_pattern_id,
+            general_notes: session.general_notes
+          }}
+          onSubmit={handleSaveEdit}
+          onCancel={() => setShowEdit(false)}
+        />,
+        document.body
       )}
     </div>
   );
