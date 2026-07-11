@@ -1,5 +1,5 @@
 import { Pencil, X } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { laneForFrame } from "../lib/lanes";
 import { knockedDownCount } from "../lib/pins";
@@ -58,11 +58,56 @@ export function SessionLanePanel({
 }: SessionLanePanelProps) {
   const [tab, setTab] = useState<SessionPanelTab>(defaultTab);
 
+  // Bottom-sheet feel: slide up on mount, drag down to dismiss, slide down on
+  // close — same pattern as the arsenal sheet in App.tsx.
+  const [mounted, setMounted] = useState(false);
+  const [closing, setClosing] = useState(false);
+  const [dragY, setDragY] = useState(0);
+  const dragStartY = useRef<number | null>(null);
+
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    // Flip a frame after mount so the sheet transitions from translateY(100%).
+    const id = requestAnimationFrame(() => setMounted(true));
+    return () => cancelAnimationFrame(id);
+  }, []);
+
+  const requestClose = useCallback(() => {
+    setClosing((was) => {
+      if (!was) window.setTimeout(onClose, 250);
+      return true;
+    });
+  }, [onClose]);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && requestClose();
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
-  }, [onClose]);
+  }, [requestClose]);
+
+  // Shared by the drag pill and the header row.
+  const dragHandlers = {
+    onPointerDown(e: React.PointerEvent<HTMLElement>) {
+      // Don't hijack presses on the header's buttons (pencil / close).
+      if ((e.target as HTMLElement).closest("button")) return;
+      dragStartY.current = e.clientY;
+      e.currentTarget.setPointerCapture(e.pointerId);
+    },
+    onPointerMove(e: React.PointerEvent<HTMLElement>) {
+      if (dragStartY.current === null) return;
+      const delta = e.clientY - dragStartY.current;
+      if (delta > 0) setDragY(delta);
+    },
+    onPointerUp() {
+      if (dragStartY.current === null) return;
+      if (dragY > 80) requestClose();
+      setDragY(0);
+      dragStartY.current = null;
+    },
+    onPointerCancel() {
+      setDragY(0);
+      dragStartY.current = null;
+    }
+  };
 
   const currentGame = summary.games.find((g) => g.id === currentGameId);
   const currentLanes = currentGame?.lanes ?? (currentGame?.lane_number ? [currentGame.lane_number] : []);
@@ -80,13 +125,27 @@ export function SessionLanePanel({
       className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 sm:items-center"
       role="dialog"
       aria-modal="true"
-      onClick={onClose}
+      onClick={requestClose}
     >
       <div
         className="flex h-[85vh] w-full max-w-lg flex-col rounded-t-2xl bg-white shadow-xl sm:rounded-2xl"
         onClick={(e) => e.stopPropagation()}
+        style={{
+          transform: closing || !mounted ? "translateY(100%)" : `translateY(${dragY}px)`,
+          transition: dragY === 0 || closing ? "transform 0.25s ease-out" : "none"
+        }}
       >
-        <div className="flex items-start justify-between gap-3 border-b border-slate-200 px-4 py-3">
+        {/* Drag pill */}
+        <div
+          className="flex touch-none cursor-grab justify-center pb-1 pt-3 active:cursor-grabbing"
+          {...dragHandlers}
+        >
+          <div className="h-1.5 w-10 rounded-full bg-slate-300" />
+        </div>
+        <div
+          className="flex touch-none items-start justify-between gap-3 border-b border-slate-200 px-4 py-3"
+          {...dragHandlers}
+        >
           <div className="min-w-0">
             <h2 className="truncate text-base font-bold text-slate-950">{summary.session.alley_name}</h2>
             {summary.session.description && (
@@ -116,7 +175,7 @@ export function SessionLanePanel({
             )}
             <button
               type="button"
-              onClick={onClose}
+              onClick={requestClose}
               aria-label="Close"
               className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-slate-500 hover:bg-slate-100"
             >
