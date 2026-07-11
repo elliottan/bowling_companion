@@ -1,8 +1,10 @@
-import { BarChart3, History } from "lucide-react";
+import { BarChart3, History, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { createPortal } from "react-dom";
 import { calculateGameScore } from "../lib/scoring";
-import { updateSession } from "../services/bowlingRepository";
+import { useLongPress } from "../lib/useLongPress";
+import { deleteSession, updateSession } from "../services/bowlingRepository";
+import { ConfirmDialog } from "./ConfirmDialog";
 import { SessionFormDialog } from "./SessionFormDialog";
 import { SessionLanePanel } from "./SessionLanePanel";
 import type { NewSessionFormValues } from "./SessionForm";
@@ -13,8 +15,10 @@ interface SessionHistoryProps {
   isLoading?: boolean;
   onOpenSession: (sessionId: number) => void;
   activeSessionId?: number | null;
-  /** Called after a session is edited so the list can reload. */
+  /** Called after a session is edited or deleted so the list can reload. */
   onSessionChanged?: () => void;
+  /** Called after a session is deleted so App can drop stale active state. */
+  onSessionDeleted?: (sessionId: number) => void;
 }
 
 export function SessionHistory({
@@ -22,7 +26,8 @@ export function SessionHistory({
   isLoading = false,
   onOpenSession,
   activeSessionId,
-  onSessionChanged
+  onSessionChanged,
+  onSessionDeleted
 }: SessionHistoryProps) {
   if (isLoading) {
     return (
@@ -52,6 +57,7 @@ export function SessionHistory({
             isActive={summary.session.id != null && summary.session.id === activeSessionId}
             onOpen={onOpenSession}
             onSessionChanged={onSessionChanged}
+            onSessionDeleted={onSessionDeleted}
           />
         </li>
       ))}
@@ -74,19 +80,34 @@ interface SessionRowProps {
   isActive: boolean;
   onOpen: (sessionId: number) => void;
   onSessionChanged?: () => void;
+  onSessionDeleted?: (sessionId: number) => void;
 }
 
-/** Tap a row to open the session; edit lives in the stats panel's pencil. */
-function SessionRow({ summary, isActive, onOpen, onSessionChanged }: SessionRowProps) {
+/**
+ * Tap a row to open the session; edit lives in the stats panel's pencil;
+ * long-press the row to delete the session.
+ */
+function SessionRow({ summary, isActive, onOpen, onSessionChanged, onSessionDeleted }: SessionRowProps) {
   const { session, games } = summary;
   const [showStats, setShowStats] = useState(false);
   const [showEdit, setShowEdit] = useState(false);
+  const [rowMenu, setRowMenu] = useState<{ left: number; top: number } | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const longPress = useLongPress();
 
   async function handleSaveEdit(values: NewSessionFormValues) {
     if (!session.id) return;
     await updateSession(session.id, values);
     setShowEdit(false);
     onSessionChanged?.();
+  }
+
+  async function handleDeleteSession() {
+    setConfirmDelete(false);
+    if (!session.id) return;
+    await deleteSession(session.id);
+    onSessionChanged?.();
+    onSessionDeleted?.(session.id);
   }
   // Series total = sum of every game's score (current total if unfinished);
   // average = mean of completed games only.
@@ -103,7 +124,17 @@ function SessionRow({ summary, isActive, onOpen, onSessionChanged }: SessionRowP
     <div className="relative">
     <button
       type="button"
-      onClick={() => session.id && onOpen(session.id)}
+      {...longPress.bind((row) => {
+        const rect = row.getBoundingClientRect();
+        setRowMenu({
+          left: Math.max(8, Math.min(rect.left + 16, window.innerWidth - 200)),
+          top: rect.top + Math.min(rect.height / 2, 48)
+        });
+      })}
+      onClick={() => {
+        if (longPress.didLongPress()) return;
+        if (session.id) onOpen(session.id);
+      }}
       className={`w-full rounded-lg border bg-white p-4 text-left shadow-sm ${
         isActive ? "border-felt-700 ring-1 ring-felt-700" : "border-slate-200"
       }`}
@@ -177,6 +208,44 @@ function SessionRow({ summary, isActive, onOpen, onSessionChanged }: SessionRowP
       >
         <BarChart3 size={16} aria-hidden="true" />
       </button>
+
+      {/* Long-press menu + confirm are portaled to body: rows can live inside
+          SwipePanes, whose translateX transform would otherwise reposition
+          these fixed overlays. */}
+      {rowMenu &&
+        createPortal(
+          <>
+            <div className="fixed inset-0 z-10" onClick={() => setRowMenu(null)} />
+            <div
+              className="fixed z-20 w-44 overflow-hidden rounded-lg border border-slate-200 bg-white py-1 shadow-lg"
+              style={{ left: rowMenu.left, top: rowMenu.top }}
+            >
+              <button
+                type="button"
+                onClick={() => {
+                  setRowMenu(null);
+                  setConfirmDelete(true);
+                }}
+                className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm font-medium text-red-600 hover:bg-red-50"
+              >
+                <Trash2 size={16} aria-hidden="true" />
+                Delete session
+              </button>
+            </div>
+          </>,
+          document.body
+        )}
+
+      {createPortal(
+        <ConfirmDialog
+          open={confirmDelete}
+          title="Delete this session?"
+          message={`"${session.alley_name}" and all its games will be permanently deleted.`}
+          onConfirm={handleDeleteSession}
+          onCancel={() => setConfirmDelete(false)}
+        />,
+        document.body
+      )}
 
       {showStats && (
         <SessionLanePanel

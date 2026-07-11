@@ -16,6 +16,7 @@ import type { Ball, SessionSummary } from "../types/bowling";
 interface HistoryViewProps {
   onOpenSession: (sessionId: number) => void;
   activeSessionId: number | null;
+  onSessionDeleted?: (sessionId: number) => void;
 }
 
 type Pane = "sessions" | "stats";
@@ -37,7 +38,7 @@ const EMPTY: BowlingStats = {
 const selectClass =
   "h-9 rounded-lg border border-slate-300 bg-white px-2 text-sm outline-none focus:border-felt-700";
 
-export function HistoryView({ onOpenSession, activeSessionId }: HistoryViewProps) {
+export function HistoryView({ onOpenSession, activeSessionId, onSessionDeleted }: HistoryViewProps) {
   const [history, setHistory] = useState<SessionSummary[]>([]);
   const [balls, setBalls] = useState<Ball[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -242,6 +243,7 @@ export function HistoryView({ onOpenSession, activeSessionId }: HistoryViewProps
               onOpenSession={onOpenSession}
               activeSessionId={activeSessionId}
               onSessionChanged={() => void load()}
+              onSessionDeleted={onSessionDeleted}
             />
             <div ref={sentinelRef} className="h-6" aria-hidden="true" />
           </div>,

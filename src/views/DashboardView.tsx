@@ -17,6 +17,7 @@ interface DashboardViewProps {
   activeSessionId?: number | null;
   onOpenCatalog: () => void;
   onOpenLineVisualizer: () => void;
+  onSessionDeleted?: (sessionId: number) => void;
 }
 
 const RECENT_LIMIT = 10;
@@ -31,7 +32,8 @@ export function DashboardView({
   onViewAll,
   activeSessionId,
   onOpenCatalog,
-  onOpenLineVisualizer
+  onOpenLineVisualizer,
+  onSessionDeleted
 }: DashboardViewProps) {
   const [showForm, setShowForm] = useState(false);
   const [recent, setRecent] = useState<SessionSummary[]>([]);
@@ -124,6 +126,7 @@ export function DashboardView({
           onOpenSession={onOpenSession}
           activeSessionId={activeSessionId}
           onSessionChanged={loadRecent}
+          onSessionDeleted={onSessionDeleted}
         />
       </div>
 

@@ -1,4 +1,4 @@
-import { BarChart3, ChevronLeft, MoreVertical, Pencil, Plus, Trash2 } from "lucide-react";
+import { ChevronLeft, ChevronUp, Plus, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { ActiveGameScorer } from "../components/ActiveGameScorer";
 import { ConfirmDialog } from "../components/ConfirmDialog";
@@ -10,7 +10,6 @@ import { useLongPress } from "../lib/useLongPress";
 import {
   addNextGameToSession,
   deleteGame,
-  deleteSession,
   getSessionDetails,
   saveFrame,
   updateGameLanes,
@@ -40,10 +39,8 @@ export function ActiveSessionView({
   const [isLoading, setIsLoading] = useState(true);
   const [isAddingGame, setIsAddingGame] = useState(false);
   const [error, setError] = useState("");
-  const [showMenu, setShowMenu] = useState(false);
   const [confirmDeleteGame, setConfirmDeleteGame] = useState<number | null>(null);
   const [chipMenu, setChipMenu] = useState<{ gameId: number; left: number; top: number } | null>(null);
-  const [confirmDeleteSession, setConfirmDeleteSession] = useState(false);
   const [showSheet, setShowSheet] = useState(false);
   const [sheetTab, setSheetTab] = useState<SessionPanelTab>("sheet");
   const [showEdit, setShowEdit] = useState(false);
@@ -165,7 +162,6 @@ export function ActiveSessionView({
   async function handleDeleteGame() {
     const gameId = confirmDeleteGame;
     setConfirmDeleteGame(null);
-    setShowMenu(false);
     if (gameId == null) return;
     try {
       const result = await deleteGame(gameId);
@@ -186,17 +182,6 @@ export function ActiveSessionView({
       await refreshSession(activeGameId ?? undefined);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to update session.");
-    }
-  }
-
-  async function handleDeleteSession() {
-    setConfirmDeleteSession(false);
-    setShowMenu(false);
-    try {
-      await deleteSession(sessionId);
-      onSessionDeleted();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Unable to delete session.");
     }
   }
 
@@ -227,7 +212,7 @@ export function ActiveSessionView({
   }
 
   const games = sessionDetails.games;
-  // The +/menu can add a game at any time.
+  // The chips + button can add a game at any time.
   const canAddGame = !isAddingGame;
   // Series total = sum of every game's score (final, or running if unfinished).
   const seriesTotal = games.reduce(
@@ -255,82 +240,27 @@ export function ActiveSessionView({
           <button
             type="button"
             onClick={() => { setSheetTab("sheet"); setShowSheet(true); }}
-            className="min-w-0 flex-1 rounded-md text-left hover:bg-slate-50"
+            className="flex min-w-0 flex-1 items-center gap-2 rounded-md text-left hover:bg-slate-50"
             aria-label="Open session sheet and lane notes"
           >
-            <p className="truncate text-sm font-semibold text-slate-900">
-              {sessionDetails.session.alley_name}
-            </p>
-            {sessionDetails.session.description && (
-              <p className="truncate text-xs font-medium text-slate-600">
-                {sessionDetails.session.description}
+            <span className="min-w-0 flex-1">
+              <p className="truncate text-sm font-semibold text-slate-900">
+                {sessionDetails.session.alley_name}
               </p>
-            )}
-            <p className="truncate text-xs text-slate-500">
-              {sessionDetails.session.date} · {games.length} {games.length === 1 ? "game" : "games"}
-            </p>
+              {sessionDetails.session.description && (
+                <p className="truncate text-xs font-medium text-slate-600">
+                  {sessionDetails.session.description}
+                </p>
+              )}
+              <p className="truncate text-xs text-slate-500">
+                {sessionDetails.session.date} · {games.length} {games.length === 1 ? "game" : "games"}
+              </p>
+            </span>
+            <ChevronUp size={16} aria-hidden="true" className="shrink-0 text-slate-400" />
           </button>
           <p className="shrink-0 text-2xl font-extrabold leading-none text-felt-700" aria-label="Series total">
             {seriesTotal}
           </p>
-          <div className="relative shrink-0">
-            <button
-              type="button"
-              onClick={() => setShowMenu((v) => !v)}
-              aria-label="Game options"
-              className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-slate-300 bg-white text-slate-700 hover:bg-slate-50"
-            >
-              <MoreVertical size={18} aria-hidden="true" />
-            </button>
-            {showMenu && (
-              <>
-                <div className="fixed inset-0 z-10" onClick={() => setShowMenu(false)} />
-                <div className="absolute right-0 z-20 mt-1 w-44 overflow-hidden rounded-lg border border-slate-200 bg-white py-1 shadow-lg">
-                  <button
-                    type="button"
-                    onClick={() => { setShowMenu(false); void handleAddGame(); }}
-                    disabled={!canAddGame}
-                    className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
-                  >
-                    <Plus size={16} aria-hidden="true" />
-                    New game
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => { setShowMenu(false); setSheetTab("stats"); setShowSheet(true); }}
-                    className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm font-medium text-slate-700 hover:bg-slate-50"
-                  >
-                    <BarChart3 size={16} aria-hidden="true" />
-                    Session stats
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => { setShowMenu(false); setShowEdit(true); }}
-                    className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm font-medium text-slate-700 hover:bg-slate-50"
-                  >
-                    <Pencil size={16} aria-hidden="true" />
-                    Edit session
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => { setShowMenu(false); setConfirmDeleteGame(activeGame.id ?? null); }}
-                    className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm font-medium text-red-600 hover:bg-red-50"
-                  >
-                    <Trash2 size={16} aria-hidden="true" />
-                    Delete game
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => { setShowMenu(false); setConfirmDeleteSession(true); }}
-                    className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm font-medium text-red-600 hover:bg-red-50"
-                  >
-                    <Trash2 size={16} aria-hidden="true" />
-                    Delete session
-                  </button>
-                </div>
-              </>
-            )}
-          </div>
         </div>
 
         <div className="mt-3 flex items-center gap-1 overflow-x-auto pb-1">
@@ -464,14 +394,6 @@ export function ActiveSessionView({
         }}
         onSubmit={handleSaveEdit}
         onCancel={() => setShowEdit(false)}
-      />
-
-      <ConfirmDialog
-        open={confirmDeleteSession}
-        title="Delete this session?"
-        message={`"${sessionDetails.session.alley_name}" and all its games will be permanently deleted.`}
-        onConfirm={handleDeleteSession}
-        onCancel={() => setConfirmDeleteSession(false)}
       />
 
       {showLaneEditor && (

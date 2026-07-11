@@ -6,7 +6,7 @@ import {
   Target,
   type LucideIcon
 } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { DashboardView } from "./views/DashboardView";
 import { ActiveSessionView } from "./views/ActiveSessionView";
 import { ArsenalView } from "./views/ArsenalView";
@@ -143,7 +143,7 @@ function App() {
   // session — whichever session is loaded in the Active tab. Falls back to
   // today's unfinished game when nothing is active. Refreshes on view change so
   // the game number stays current.
-  useEffect(() => {
+  const refreshResumable = useCallback(() => {
     if (activeSessionId != null) {
       getResumableForSession(activeSessionId)
         .then((r) => (r ? r : getResumableToday()))
@@ -152,7 +152,21 @@ function App() {
     } else {
       getResumableToday().then(setResumable).catch(() => {});
     }
-  }, [activeSessionId, view]);
+  }, [activeSessionId]);
+
+  useEffect(() => {
+    refreshResumable();
+  }, [refreshResumable, view]);
+
+  // A session deleted from a history row may be the active one — drop the
+  // stale active state so the Active tab and resume pill don't point at it.
+  function handleSessionDeleted(sessionId: number) {
+    if (sessionId === activeSessionId) {
+      setActiveSessionId(null); // refreshResumable refires via the effect
+    } else {
+      refreshResumable();
+    }
+  }
 
   useEffect(() => {
     getHandedness()
@@ -294,6 +308,7 @@ function App() {
             activeSessionId={activeSessionId}
             onOpenCatalog={() => goTo("catalog")}
             onOpenLineVisualizer={() => setLineVizOpen(true)}
+            onSessionDeleted={handleSessionDeleted}
           />
         )}
         {view === "active" && activeSessionId && (
@@ -308,7 +323,11 @@ function App() {
           />
         )}
         {view === "history" && (
-          <HistoryView onOpenSession={openSession} activeSessionId={activeSessionId} />
+          <HistoryView
+            onOpenSession={openSession}
+            activeSessionId={activeSessionId}
+            onSessionDeleted={handleSessionDeleted}
+          />
         )}
         {view === "spares" && <SpareLinesView />}
         {view === "settings" && (
