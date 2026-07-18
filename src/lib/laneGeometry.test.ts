@@ -640,4 +640,19 @@ describe("derivedApexForDisplay (ADR-031)", () => {
   it("missing target: returns null", () => {
     expect(derivedApexForDisplay({ stance: 20 }, "right")).toBeNull();
   });
+
+  it("left-handed: a reachable hooking line agrees with strikeApexPoint's apex", () => {
+    // Mirror of the right-handed reachable fixture above (dir flips for "left",
+    // so stance/target swap to keep the ball hooking toward the pocket).
+    const line: LineSpec = { stance: 10, target: 40 };
+    const strike = strikeApexPoint(line, "left");
+    const derived = derivedApexForDisplay(line, "left");
+    expect(strike).not.toBeNull();
+    expect(derived).not.toBeNull();
+    expect(derived!.board).toBeCloseTo(strike!.board, 6);
+    expect(derived!.feet).toBeCloseTo(strike!.feet, 6);
+    // Sanity: this exact line has no real reachable apex for a right-hander
+    // (dir flips the geometry) — confirms the hand parameter actually matters.
+    expect(derivedApexForDisplay(line, "right")).toBeNull();
+  });
 });
