@@ -13,8 +13,8 @@ interface State {
 export class AppErrorBoundary extends Component<Props, State> {
   state: State = { error: null, exportState: "idle" };
 
-  static getDerivedStateFromError(error: Error): Partial<State> {
-    return { error };
+  static getDerivedStateFromError(error: unknown): Partial<State> {
+    return { error: error instanceof Error ? error : new Error(String(error)) };
   }
 
   componentDidCatch(error: Error, info: ErrorInfo) {
@@ -26,6 +26,7 @@ export class AppErrorBoundary extends Component<Props, State> {
   };
 
   handleExport = () => {
+    if (this.state.exportState === "exporting") return;
     this.setState({ exportState: "exporting" });
     exportBackup()
       .then(() => this.setState({ exportState: "success" }))
