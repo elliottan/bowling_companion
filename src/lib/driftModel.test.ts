@@ -165,6 +165,21 @@ describe("driftModel", () => {
         )
       ).toBeNull();
     });
+
+    it("returns null when outside_max or inside_min falls outside the board range [1,39]", () => {
+      expect(
+        parseDriftModel(JSON.stringify({ ...DEFAULT_DRIFT_MODEL, outside_max: -50 }))
+      ).toBeNull();
+      expect(
+        parseDriftModel(JSON.stringify({ ...DEFAULT_DRIFT_MODEL, outside_max: 0 }))
+      ).toBeNull();
+      expect(
+        parseDriftModel(JSON.stringify({ ...DEFAULT_DRIFT_MODEL, inside_min: 500 }))
+      ).toBeNull();
+      expect(
+        parseDriftModel(JSON.stringify({ ...DEFAULT_DRIFT_MODEL, inside_min: 40 }))
+      ).toBeNull();
+    });
   });
 
   describe("migrateLegacyLaydownOffset", () => {

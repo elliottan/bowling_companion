@@ -78,6 +78,8 @@ export function parseDriftModel(raw: string | undefined): DriftModel | null {
   if (m.release_offset < 0 || m.release_offset > 15) return null;
   if (typeof m.outside_max !== "number" || !Number.isFinite(m.outside_max)) return null;
   if (typeof m.inside_min !== "number" || !Number.isFinite(m.inside_min)) return null;
+  if (m.outside_max < 1 || m.outside_max > 39) return null;
+  if (m.inside_min < 1 || m.inside_min > 39) return null;
   if (m.outside_max >= m.inside_min) return null;
   if (typeof m.drift !== "object" || m.drift === null) return null;
   const { outside, middle, inside } = m.drift as Partial<DriftModel["drift"]>;
