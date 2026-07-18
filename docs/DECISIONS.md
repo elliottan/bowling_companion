@@ -7,7 +7,8 @@ bottom. Never edit an accepted ADR — supersede it with a new one and link.
 ADR-003 backup merge-by-content · ADR-004 mobile-first 390×844 ·
 ADR-005 stats definitions · ADR-006 inverted pin input ·
 ADR-007 catalog data source · ADR-008 multi-weight + USBC discovery ·
-ADR-016 baby splits + split-excluded spare rate · ADR-017 save-as-you-go + carry rules
+ADR-016 baby splits + split-excluded spare rate · ADR-017 save-as-you-go + carry rules ·
+ADR-030 drift model: stance-zone drift + constant release offset
 
 ---
 
@@ -1158,3 +1159,79 @@ shot 1 — the same as before.
 - `ActiveGameScorer.tsx`'s per-shot defaults effect calls `freshRackSeedShot`
   for both the shot-1 branch and the fresh-rack bonus-ball branch; the
   spare-attempt branch (ADR-017 #2) is untouched.
+
+## ADR-030 — Drift model: stance-zone drift + constant release offset
+
+**Status:** accepted (2026-07). Supersedes the single-offset portion of
+ADR-028 (`laydown_offset` / `laydown = stance − offset`). ADR-028's other
+decisions (breakpoint is real-only, hard peg locks, limits by construction)
+are unaffected.
+
+**Context.** ADR-028 derived `laydown = stance − laydown_offset` from one
+global constant. A real bowler's foot drift between stance and slide/release
+varies by *where* they stand on the approach — outside, middle, or inside —
+because footwork and slide distance genuinely change with starting position.
+One global offset couldn't represent that.
+
+**Decision.**
+- **Split into two physically distinct steps:** `slide = stance − drift(stance)`,
+  then `laydown = slide − release_offset`. `release_offset` is the old
+  constant (renamed); `drift(stance)` is looked up from one of **three hard
+  zones** — outside / middle / inside — classified by the stance board, each
+  with its own configurable drift value.
+- **Storage: one versioned JSON setting**, `drift_model` (`DriftModel { v: 1,
+  release_offset, outside_max, inside_min, drift: { outside, middle, inside }
+  }`), replacing the bare-number `laydown_offset` setting as the live source
+  of truth. Defaults: `release_offset = 6` (matches the old default),
+  `outside_max = 14`, `inside_min = 25` (so outside = ≤14, middle = 15–24,
+  inside = ≥25), all `drift = 0` — out of the box, `laydown = stance − 6`
+  exactly as before (pinned by an explicit parity sweep test).
+- **Migration, never destructive.** The old `laydown_offset` setting key is
+  **never deleted** — it stays as a frozen fallback key. `getDriftModel()`
+  reads `drift_model` first; if missing or invalid, it reads the legacy
+  `laydown_offset`, migrates it into `{ ...DEFAULT, release_offset:
+  <legacy value> }`, and **writes that back to `drift_model`** so the
+  migration is idempotent (materializes once, then reads directly). This is
+  safe under `backupRepository.ts`'s settings merge, which is last-write-wins
+  **per key** (`db.settings.put` keyed by `key`) — an old app version or an
+  old exported backup that still only knows `laydown_offset` can merge in
+  without clobbering a newer device's `drift_model`, and vice versa; the two
+  keys never collide.
+- **Hand-relative boards, no mirroring needed.** As established in ADR-028,
+  board numbers in this app are hand-relative everywhere, so the *same*
+  numeric zone boundaries (`outside_max`, `inside_min`) and the same
+  subtraction direction work unchanged for both left- and right-handed
+  bowlers — no hand-mirroring logic is needed in `driftModel.ts`.
+- **Sign convention.** Positive `drift` and `release_offset` values subtract
+  toward *lower* board numbers, matching ADR-028's pre-existing
+  `stance − offset` direction. Drift can be negative (a zone that drifts
+  the other way).
+- **UI:** Settings → Preferences gains a release-offset stepper (same
+  interaction as the old laydown-offset stepper) and a drift-zones card
+  (Outside/Middle/Inside rows: editable range boundary + drift stepper per
+  zone, Middle's range read-only/derived). The zone-ordering invariant
+  (`outside_max + 2 ≤ inside_min`, keeping Middle at least 1 board wide) is
+  enforced both by clamping the steppers' effective min/max and by
+  `parseDriftModel` rejecting `outside_max >= inside_min` on load.
+- **New visual: slide tick.** `LaneVisualizer`/`LaneSurface` gain an optional,
+  non-interactive foul-line marker at the derived `slide` board (strike mode
+  only — spare mode seeds `laydown` directly with no stance chain), styled
+  lighter than the draggable pegs so it reads as informational, not editable.
+
+**Consequences.**
+- `src/lib/driftModel.ts` is the single source of truth for all zone/clamp
+  math (`zoneForStance`, `driftForStance`, `deriveSlide`, `deriveLaydown`,
+  `parseDriftModel`, `migrateLegacyLaydownOffset`, `serializeDriftModel`);
+  no consumer duplicates the clamp/snap logic. `deriveLaydown`'s signature
+  changes from `(stance, offset: number)` to `(stance, model: DriftModel)` —
+  a breaking change to the function, not to stored data.
+- `src/lib/laydownOffsetContext.ts` is deleted; `src/lib/driftModelContext.ts`
+  replaces it (`DriftModelContext`, `useDriftModel`). No re-export shim.
+- `laneGeometry.ts` is untouched — it already consumes `laydown ?? stance`
+  wherever it needs a foul-line board; the drift-model change is entirely
+  upstream of geometry.
+- Existing users who have never touched the new zone config see byte-for-byte
+  identical `laydown` output (drift = 0 everywhere, `release_offset` carried
+  over from their old `laydown_offset`) — this is the critical bit-identical
+  migration guarantee, proven by a stance sweep (1–39 in half-board steps)
+  against the old formula.

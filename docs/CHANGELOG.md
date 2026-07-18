@@ -2,6 +2,24 @@
 
 User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachangelog.com).
 
+## [Unreleased] — Drift model: stance-zone drift + release offset (2026-07-19)
+
+### Added
+
+- **Drift zones** (Settings → Preferences): the single "laydown offset" is
+  now a "release offset" plus three configurable stance zones (Outside /
+  Middle / Inside), each with its own drift amount — where you stand on the
+  approach can now change how much your feet drift before the slide. Defaults
+  keep everyone's existing laydown calculation unchanged.
+- A small "slide" tick now shows on the strike line visualizer at the derived
+  slide-foot board, alongside the laydown marker.
+
+### Changed
+
+- The laydown calculation is now `laydown = stance − drift(stance) −
+  release_offset` instead of a single subtraction; with default settings
+  (drift = 0 everywhere) the result is identical to before.
+
 ## [Unreleased] — Data safety: persistent storage + backup nudges (2026-07-19)
 
 ### Added
