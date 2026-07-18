@@ -27,9 +27,12 @@ interface LaneSurfaceProps {
   animate?: boolean;
   /** Bump to replay the rolling-ball animation (remounts it). */
   animateKey?: number;
+  /** Derived slide-foot board (ADR-030) — a small, non-interactive foul-line tick,
+   *  lighter than the draggable pegs. Omitted when there's no stance to derive from. */
+  slideBoard?: number;
 }
 
-export function LaneSurface({ line, hand, leave, showMarkers = true, animate, animateKey = 0 }: LaneSurfaceProps) {
+export function LaneSurface({ line, hand, leave, showMarkers = true, animate, animateKey = 0, slideBoard }: LaneSurfaceProps) {
   const leaveSet = new Set(leave ?? []);
   const hasLeave = (leave?.length ?? 0) > 0;
   const path = buildLinePath(line, hand, hasLeave); // spares (a leave) curve to the final
@@ -192,6 +195,32 @@ export function LaneSurface({ line, hand, leave, showMarkers = true, animate, an
           {/* Fade out at the pins — a frozen resting dot read as a mystery marker. */}
           <animate attributeName="opacity" begin="1.5s" dur="0.35s" from="0.95" to="0" fill="freeze" />
         </circle>
+      )}
+
+      {slideBoard != null && (
+        <g data-role="slide-tick" aria-hidden="true">
+          <circle
+            cx={boardToX(slideBoard, hand)}
+            cy={feetToY(0)}
+            r="2"
+            fill="#94a3b8"
+            fillOpacity="0.55"
+            stroke="#fff"
+            strokeOpacity="0.35"
+            strokeWidth="0.4"
+          />
+          <text
+            x={boardToX(slideBoard, hand)}
+            y={feetToY(0) + 8}
+            textAnchor="middle"
+            fontSize="4.5"
+            fontWeight="600"
+            fill="#e2e8f0"
+            fillOpacity="0.55"
+          >
+            slide
+          </text>
+        </g>
       )}
 
       {markers.map(({ key, ...m }) => (

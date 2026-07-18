@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { render } from "@testing-library/react";
 import { LaneSurface } from "./LaneSurface";
-import { PLANE_W, PLANE_L } from "../lib/laneGeometry";
+import { PLANE_W, PLANE_L, boardToX, feetToY } from "../lib/laneGeometry";
 
 describe("LaneSurface", () => {
   it("renders an SVG sized to the plane with 10 pins", () => {
@@ -40,5 +40,22 @@ describe("LaneSurface", () => {
     const ball = container.querySelector('[data-role="ball"]');
     expect(ball).not.toBeNull();
     expect(ball!.querySelector("animateMotion")).not.toBeNull();
+  });
+
+  it("renders a slide tick at the given board when slideBoard is provided (ADR-030)", () => {
+    const { container } = render(
+      <LaneSurface line={{ laydown: 18, target: 10, breakpoint: 6 }} hand="right" slideBoard={20} />
+    );
+    const tick = container.querySelector('[data-role="slide-tick"] circle');
+    expect(tick).not.toBeNull();
+    expect(Number(tick!.getAttribute("cx"))).toBeCloseTo(boardToX(20, "right"));
+    expect(Number(tick!.getAttribute("cy"))).toBeCloseTo(feetToY(0));
+  });
+
+  it("omits the slide tick when slideBoard is not provided", () => {
+    const { container } = render(
+      <LaneSurface line={{ laydown: 18, target: 10, breakpoint: 6 }} hand="right" />
+    );
+    expect(container.querySelector('[data-role="slide-tick"]')).toBeNull();
   });
 });

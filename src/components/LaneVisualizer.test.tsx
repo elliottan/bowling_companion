@@ -1,7 +1,8 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { HandednessContext } from "../lib/handednessContext";
-import { LaydownOffsetContext } from "../lib/laydownOffsetContext";
+import { DriftModelContext } from "../lib/driftModelContext";
+import { DEFAULT_DRIFT_MODEL } from "../lib/driftModel";
 import { LaneVisualizer } from "./LaneVisualizer";
 import { boardToX, feetToY, xToBoard } from "../lib/laneGeometry";
 
@@ -156,13 +157,13 @@ describe("LaneVisualizer editing", () => {
     expect(onChange.mock.lastCall![0].target).toBe(10.5);
   });
 
-  it("strike mode seeds a missing laydown from stance − offset (ADR-028)", () => {
+  it("strike mode seeds a missing laydown from stance via the drift model (ADR-030)", () => {
     const onChange = vi.fn();
     render(
       <HandednessContext.Provider value="right">
-        <LaydownOffsetContext.Provider value={6}>
+        <DriftModelContext.Provider value={DEFAULT_DRIFT_MODEL}>
           <LaneVisualizer line={{ stance: 20, target: 10, breakpoint: 6 }} onClose={() => {}} onChange={onChange} />
-        </LaydownOffsetContext.Provider>
+        </DriftModelContext.Provider>
       </HandednessContext.Provider>
     );
     expect(onChange).toHaveBeenCalled();

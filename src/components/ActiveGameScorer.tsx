@@ -12,7 +12,8 @@ import {
 } from "../lib/frameController";
 import { calculateGameScore, isSpare } from "../lib/scoring";
 import { useHandedness } from "../lib/handednessContext";
-import { useLaydownOffset, deriveLaydown } from "../lib/laydownOffsetContext";
+import { useDriftModel } from "../lib/driftModelContext";
+import { deriveLaydown } from "../lib/driftModel";
 import { freshRackSeedShot, laneForFrame } from "../lib/lanes";
 import { getBalls, getSpareLineByPins } from "../services/ballRepository";
 import type { Ball, Frame, Game, LineSpec, PinNumber, ShotMetadata } from "../types/bowling";
@@ -283,10 +284,10 @@ function ShotDetailBar({
   spareLeave
 }: ShotDetailBarProps) {
   const [showViz, setShowViz] = useState(false);
-  const laydownOffset = useLaydownOffset();
+  const driftModel = useDriftModel();
   const derivedLaydown =
     intended?.laydown ??
-    (intended?.stance != null ? deriveLaydown(intended.stance, laydownOffset) : undefined);
+    (intended?.stance != null ? deriveLaydown(intended.stance, driftModel) : undefined);
   return (
     <div className="flex flex-col gap-2.5 rounded-lg border border-slate-200 bg-white p-2.5">
       <div>

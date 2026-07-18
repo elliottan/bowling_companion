@@ -3,6 +3,7 @@ import { BackupRestoreView } from "./BackupRestoreView";
 import { LaneNotesView } from "./LaneNotesView";
 import { HandednessView } from "./HandednessView";
 import type { Handedness } from "../types/bowling";
+import type { DriftModel } from "../lib/driftModel";
 
 export type SettingsSection = "menu" | "arsenal" | "lanes" | "backup" | "preferences";
 
@@ -11,8 +12,8 @@ interface SettingsViewProps {
   onSectionChange: (section: SettingsSection) => void;
   handedness: Handedness;
   onHandednessChange: (value: Handedness) => void;
-  laydownOffset: number;
-  onLaydownOffsetChange: (v: number) => void;
+  driftModel: DriftModel;
+  onDriftModelChange: (next: DriftModel) => void;
   /** Arsenal opens as a modal overlay rather than an inline section. */
   onOpenArsenal: () => void;
   /** Navigate to the ball catalog view. */
@@ -54,7 +55,7 @@ const MENU_ROWS: ReadonlyArray<MenuRow> = [
   }
 ];
 
-export function SettingsView({ section, onSectionChange, handedness, onHandednessChange, laydownOffset, onLaydownOffsetChange, onOpenArsenal, onOpenCatalog, onOpenLineVisualizer }: SettingsViewProps) {
+export function SettingsView({ section, onSectionChange, handedness, onHandednessChange, driftModel, onDriftModelChange, onOpenArsenal, onOpenCatalog, onOpenLineVisualizer }: SettingsViewProps) {
   if (section !== "menu") {
     return (
       <>
@@ -74,8 +75,8 @@ export function SettingsView({ section, onSectionChange, handedness, onHandednes
           <HandednessView
             value={handedness}
             onChange={onHandednessChange}
-            laydownOffset={laydownOffset}
-            onLaydownOffsetChange={onLaydownOffsetChange}
+            driftModel={driftModel}
+            onDriftModelChange={onDriftModelChange}
           />
         ) : (
           <BackupRestoreView />

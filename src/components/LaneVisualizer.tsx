@@ -2,7 +2,8 @@ import { Minus, Plus, SlidersHorizontal, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import type { LineSpec, PinNumber } from "../types/bowling";
 import { useHandedness } from "../lib/handednessContext";
-import { useLaydownOffset, deriveLaydown } from "../lib/laydownOffsetContext";
+import { useDriftModel } from "../lib/driftModelContext";
+import { deriveLaydown, deriveSlide } from "../lib/driftModel";
 import { spareAimPoint } from "../lib/spareAim";
 import { LaneSurface } from "./LaneSurface";
 import {
@@ -54,7 +55,7 @@ interface LaneVisualizerProps {
 
 export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, title = "Line" }: LaneVisualizerProps) {
   const hand = useHandedness();
-  const laydownOffset = useLaydownOffset();
+  const driftModel = useDriftModel();
   const [deg, setDeg] = useState(BOWLER_DEG);
   const [dragging, setDragging] = useState(false);
   const [optionsOpen, setOptionsOpen] = useState(false);
@@ -125,16 +126,21 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [spare, leave]);
 
-  // Strike mode: derive a missing laydown from stance − per-user offset (ADR-028).
+  // Strike mode: derive a missing laydown from stance via the drift model (ADR-030).
   // Runs once while laydown is unset; a typed/dragged laydown then owns the value.
   useEffect(() => {
     if (spare || !onChange || !line) return;
     if (line.laydown != null || line.stance == null) return;
-    onChange({ ...line, laydown: deriveLaydown(line.stance, laydownOffset) });
+    onChange({ ...line, laydown: deriveLaydown(line.stance, driftModel) });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [spare, line?.stance, line?.laydown]);
 
   const path = onChange && line ? buildLinePath(line, hand, spare) : null;
+
+  // Slide tick (ADR-030): strike mode only, purely decorative — a derived slide-foot
+  // marker at the foul line, distinct from the (draggable) laydown peg.
+  const slideBoard =
+    !spare && line?.stance != null ? deriveSlide(line.stance, driftModel) : undefined;
 
   // Re-run the ball animation shortly after the line settles, so an edit visibly
   // replays the shot. Debounced so mid-drag churn doesn't restart it every frame.
@@ -330,7 +336,7 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
           }}
         >
           <div ref={surfaceRef} className="relative mx-auto h-full w-full max-w-[360px]">
-            <LaneSurface line={line} hand={hand} leave={leave} animate animateKey={replayKey} />
+            <LaneSurface line={line} hand={hand} leave={leave} animate animateKey={replayKey} slideBoard={slideBoard} />
             {handles.length > 0 && (
               <svg viewBox={`0 0 ${PLANE_W} ${PLANE_L}`} className="pointer-events-none absolute inset-0 h-full w-full">
                 {handles.map((h) => {
