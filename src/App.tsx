@@ -17,17 +17,18 @@ import { SpareLinesView } from "./views/SpareLinesView";
 import {
   addGameToSession,
   createSession,
+  getDriftModel,
   getHandedness,
-  getLaydownOffset,
   getResumableForSession,
   getResumableToday,
+  setDriftModel as persistDriftModel,
   setHandedness as persistHandedness,
-  setLaydownOffset as persistLaydownOffset,
   type ResumableGame
 } from "./services/bowlingRepository";
 import type { NewSessionFormValues } from "./components/SessionForm";
 import { HandednessContext } from "./lib/handednessContext";
-import { LaydownOffsetContext, DEFAULT_LAYDOWN_OFFSET } from "./lib/laydownOffsetContext";
+import { DriftModelContext } from "./lib/driftModelContext";
+import { DEFAULT_DRIFT_MODEL, type DriftModel } from "./lib/driftModel";
 import { HandednessPicker } from "./components/HandednessPicker";
 import type { Handedness, LineSpec } from "./types/bowling";
 import { LaneVisualizer } from "./components/LaneVisualizer";
@@ -61,7 +62,7 @@ function App() {
   const [settingsSection, setSettingsSection] = useState<SettingsSection>("menu");
   const [handedness, setHandednessState] = useState<Handedness | null>(null);
   const [handednessLoaded, setHandednessLoaded] = useState(false);
-  const [laydownOffset, setLaydownOffsetState] = useState<number>(DEFAULT_LAYDOWN_OFFSET);
+  const [driftModel, setDriftModelState] = useState<DriftModel>(DEFAULT_DRIFT_MODEL);
   const [resumable, setResumable] = useState<ResumableGame | null>(null);
   const [arsenalOpen, setArsenalOpen] = useState(false);
   const [lineVizOpen, setLineVizOpen] = useState(false);
@@ -189,7 +190,7 @@ function App() {
   }, []);
 
   useEffect(() => {
-    getLaydownOffset().then(setLaydownOffsetState).catch(() => {});
+    getDriftModel().then(setDriftModelState).catch(() => {});
   }, []);
 
   async function chooseHandedness(value: Handedness) {
@@ -201,9 +202,9 @@ function App() {
     }
   }
 
-  function chooseLaydownOffset(value: number) {
-    setLaydownOffsetState(value);
-    void persistLaydownOffset(value).catch(() => {});
+  function updateDriftModel(next: DriftModel) {
+    setDriftModelState(next);
+    void persistDriftModel(next).catch(() => {});
   }
 
   // Navigate, remembering where we came from when entering the active or catalog view.
@@ -286,7 +287,7 @@ function App() {
 
   return (
     <HandednessContext.Provider value={handedness ?? "right"}>
-    <LaydownOffsetContext.Provider value={laydownOffset}>
+    <DriftModelContext.Provider value={driftModel}>
     <div className="flex flex-col overflow-hidden bg-lane-50 pt-[env(safe-area-inset-top)] text-slate-950" style={{ height: "var(--app-height, 100dvh)" }}>
       <header className="hidden shrink-0 border-b border-slate-200 bg-white sm:block">
         <div className="mx-auto flex w-full max-w-5xl items-center justify-between px-3 py-3 sm:px-6">
@@ -357,8 +358,8 @@ function App() {
             onSectionChange={setSettingsSection}
             handedness={handedness ?? "right"}
             onHandednessChange={chooseHandedness}
-            laydownOffset={laydownOffset}
-            onLaydownOffsetChange={chooseLaydownOffset}
+            driftModel={driftModel}
+            onDriftModelChange={updateDriftModel}
             onOpenArsenal={openArsenal}
             onOpenCatalog={() => goTo("catalog")}
             onOpenLineVisualizer={() => setLineVizOpen(true)}
@@ -463,7 +464,7 @@ function App() {
         </div>
       )}
     </div>
-    </LaydownOffsetContext.Provider>
+    </DriftModelContext.Provider>
     </HandednessContext.Provider>
   );
 }

@@ -1,12 +1,18 @@
 import { db } from "../db/bowlingDb";
 import { calculateGameScore } from "../lib/scoring";
 import { nextGameStartLane } from "../lib/lanes";
-import { DEFAULT_LAYDOWN_OFFSET } from "../lib/laydownOffsetContext";
+import {
+  migrateLegacyLaydownOffset,
+  parseDriftModel,
+  serializeDriftModel,
+  type DriftModel
+} from "../lib/driftModel";
 import type { BackupNudgeState } from "../lib/backupNudge";
 import type { Frame, Game, Handedness, Session, SessionSummary } from "../types/bowling";
 
 const HANDEDNESS_KEY = "handedness";
 const LAYDOWN_OFFSET_KEY = "laydown_offset";
+const DRIFT_MODEL_KEY = "drift_model";
 const LAST_BACKUP_AT_KEY = "last_backup_at";
 const SESSIONS_AT_LAST_BACKUP_KEY = "sessions_at_last_backup";
 const BACKUP_NUDGE_SNOOZED_UNTIL_KEY = "backup_nudge_snoozed_until";
@@ -31,14 +37,25 @@ export async function setHandedness(value: Handedness): Promise<void> {
   await setSetting(HANDEDNESS_KEY, value);
 }
 
-/** Boards between stance and laydown (ADR-028). Clamped sane; default 6. */
-export async function getLaydownOffset(): Promise<number> {
-  const v = Number(await getSetting(LAYDOWN_OFFSET_KEY));
-  return Number.isFinite(v) && v >= 0 && v <= 15 ? v : DEFAULT_LAYDOWN_OFFSET;
+/**
+ * The bowler's drift model (ADR-030): zone-based drift + release offset.
+ * Reads the new `drift_model` setting; falls back to migrating the legacy
+ * `laydown_offset` setting (still read, never deleted) and materializes the
+ * migrated result back to `drift_model` so the migration is idempotent.
+ */
+export async function getDriftModel(): Promise<DriftModel> {
+  const raw = await getSetting(DRIFT_MODEL_KEY);
+  const parsed = parseDriftModel(raw);
+  if (parsed) return parsed;
+
+  const legacy = await getSetting(LAYDOWN_OFFSET_KEY);
+  const migrated = migrateLegacyLaydownOffset(legacy);
+  await setSetting(DRIFT_MODEL_KEY, serializeDriftModel(migrated));
+  return migrated;
 }
 
-export async function setLaydownOffset(value: number): Promise<void> {
-  await setSetting(LAYDOWN_OFFSET_KEY, String(value));
+export async function setDriftModel(model: DriftModel): Promise<void> {
+  await setSetting(DRIFT_MODEL_KEY, serializeDriftModel(model));
 }
 
 export type CreateSessionInput = Omit<Session, "id">;

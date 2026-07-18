@@ -7,16 +7,18 @@ import {
   deleteGame,
   deleteSession,
   getBackupNudgeState,
-  getLaydownOffset,
+  getDriftModel,
   getResumableForSession,
   getSessionDetails,
   getSessionHistory,
+  getSetting,
   saveFrame,
   setBackupNudgeSnoozedUntil,
-  setLaydownOffset,
+  setDriftModel,
   setSetting,
   updateGameNotes
 } from "./bowlingRepository";
+import { DEFAULT_DRIFT_MODEL } from "../lib/driftModel";
 
 describe("bowlingRepository", () => {
   beforeEach(async () => {
@@ -151,22 +153,49 @@ describe("bowlingRepository", () => {
   });
 });
 
-describe("laydown offset setting", () => {
+describe("drift model setting", () => {
   beforeEach(async () => {
     await db.delete();
     await db.open();
   });
 
-  it("defaults to 6 when unset", async () => {
-    expect(await getLaydownOffset()).toBe(6);
+  it("defaults when unset, and materializes drift_model idempotently", async () => {
+    const first = await getDriftModel();
+    expect(first).toEqual(DEFAULT_DRIFT_MODEL);
+
+    // Idempotency: the migration write-back means the underlying setting now
+    // exists, and a second call returns the same result without re-migrating.
+    expect(await getSetting("drift_model")).toBeDefined();
+    const second = await getDriftModel();
+    expect(second).toEqual(DEFAULT_DRIFT_MODEL);
   });
-  it("round-trips a stored value", async () => {
-    await setLaydownOffset(4.5);
-    expect(await getLaydownOffset()).toBe(4.5);
+
+  it("migrates a legacy laydown_offset into release_offset", async () => {
+    await setSetting("laydown_offset", "10");
+    expect(await getDriftModel()).toEqual({ ...DEFAULT_DRIFT_MODEL, release_offset: 10 });
   });
-  it("falls back to the default on a garbage stored value", async () => {
-    await setSetting("laydown_offset", "banana");
-    expect(await getLaydownOffset()).toBe(6);
+
+  it("returns an already-valid drift_model as-is, leaving laydown_offset untouched", async () => {
+    const model = { ...DEFAULT_DRIFT_MODEL, release_offset: 3, drift: { outside: 1, middle: 0, inside: -1 } };
+    await setSetting("drift_model", JSON.stringify(model));
+    await setSetting("laydown_offset", "10");
+    expect(await getDriftModel()).toEqual(model);
+    expect(await getSetting("laydown_offset")).toBe("10");
+  });
+
+  it("falls back to the legacy-or-default path on a corrupted drift_model", async () => {
+    await setSetting("drift_model", "not json");
+    expect(await getDriftModel()).toEqual(DEFAULT_DRIFT_MODEL);
+
+    await setSetting("drift_model", JSON.stringify({ ...DEFAULT_DRIFT_MODEL, outside_max: 30, inside_min: 25 }));
+    await setSetting("laydown_offset", "8");
+    expect(await getDriftModel()).toEqual({ ...DEFAULT_DRIFT_MODEL, release_offset: 8 });
+  });
+
+  it("round-trips a stored model via setDriftModel", async () => {
+    const model = { ...DEFAULT_DRIFT_MODEL, release_offset: 4.5 };
+    await setDriftModel(model);
+    expect(await getDriftModel()).toEqual(model);
   });
 });
 
