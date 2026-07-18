@@ -27,6 +27,13 @@ html {
   user-select: none;
   -webkit-touch-callout: none;
   -webkit-tap-highlight-color: transparent;
+  -webkit-text-size-adjust: 100%;
+}
+
+button,
+[role="button"],
+a {
+  touch-action: manipulation;
 }
 
 input,

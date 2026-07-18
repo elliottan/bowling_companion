@@ -2,6 +2,25 @@
 
 User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachangelog.com).
 
+## [Unreleased] — PWA native-feel polish + update flow (2026-07-19)
+
+### Added
+
+- **iOS "Add to Home Screen" now looks like a real app** — status bar
+  overlays the page (with safe-area padding added so content doesn't sit
+  under it), and the home-screen icon/title are set via new iOS meta tags.
+- **Update-available toast.** The service worker no longer silently swaps
+  itself and reloads mid-game; when a new version is ready, a small toast
+  offers an Update button so you choose when to reload.
+- **Install-app sheet** (component only, not yet wired into the UI) offering
+  the native install prompt on Android/Chrome and static "Add to Home
+  Screen" instructions on iOS Safari.
+
+### Changed
+
+- Buttons/links now respond instantly to taps (`touch-action: manipulation`),
+  removing the double-tap-zoom delay.
+
 ## [Unreleased] — Root error boundary (2026-07-19)
 
 ### Added

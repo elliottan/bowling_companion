@@ -31,6 +31,7 @@ import { LaydownOffsetContext, DEFAULT_LAYDOWN_OFFSET } from "./lib/laydownOffse
 import { HandednessPicker } from "./components/HandednessPicker";
 import type { Handedness, LineSpec } from "./types/bowling";
 import { LaneVisualizer } from "./components/LaneVisualizer";
+import { UpdateToast } from "./components/UpdateToast";
 
 type AppView = "dashboard" | "active" | "history" | "spares" | "settings" | "catalog";
 
@@ -267,7 +268,7 @@ function App() {
   return (
     <HandednessContext.Provider value={handedness ?? "right"}>
     <LaydownOffsetContext.Provider value={laydownOffset}>
-    <div className="flex flex-col overflow-hidden bg-lane-50 text-slate-950" style={{ height: "var(--app-height, 100dvh)" }}>
+    <div className="flex flex-col overflow-hidden bg-lane-50 pt-[env(safe-area-inset-top)] text-slate-950" style={{ height: "var(--app-height, 100dvh)" }}>
       <header className="hidden shrink-0 border-b border-slate-200 bg-white sm:block">
         <div className="mx-auto flex w-full max-w-5xl items-center justify-between px-3 py-3 sm:px-6">
           {view === "dashboard" ? (
@@ -425,6 +426,8 @@ function App() {
           onClose={() => setLineVizOpen(false)}
         />
       )}
+
+      <UpdateToast />
 
       {handednessLoaded && handedness === null && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4" role="dialog" aria-modal="true">
