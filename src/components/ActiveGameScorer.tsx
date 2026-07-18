@@ -14,6 +14,7 @@ import { calculateGameScore, isSpare } from "../lib/scoring";
 import { useHandedness } from "../lib/handednessContext";
 import { useDriftModel } from "../lib/driftModelContext";
 import { deriveLaydown } from "../lib/driftModel";
+import { derivedApexForDisplay } from "../lib/laneGeometry";
 import { freshRackSeedShot, laneForFrame } from "../lib/lanes";
 import { getBalls, getSpareLineByPins } from "../services/ballRepository";
 import type { Ball, Frame, Game, LineSpec, PinNumber, ShotMetadata } from "../types/bowling";
@@ -35,19 +36,18 @@ interface LineInputProps {
   showPresets?: boolean;
   /** Fired when any field gains focus — used by the Actual line to autofill. */
   onFieldFocus?: () => void;
-  /** Hide the breakpoint field (a configured spare line drove this line). */
-  hideBreakpoint?: boolean;
   /** Derived laydown board (stance − offset, or the explicit override). Renders a read-only chip. */
   derivedLaydown?: number;
-  /** Tap on the laydown chip — opens the lane visualizer. */
+  /** Derived breakpoint (real apex only — ADR-028/031). Renders a read-only chip. */
+  derivedBreakpoint?: { board: number; feet: number } | null;
+  /** Tap on the laydown or breakpoint chip — opens the lane visualizer. */
   onLaydownTap?: () => void;
 }
 
-const LINE_FIELDS = ["stance", "target", "breakpoint"] as const;
+const LINE_FIELDS = ["stance", "target"] as const;
 const FIELD_LABEL: Record<(typeof LINE_FIELDS)[number], string> = {
   stance: "Stance",
-  target: "Target",
-  breakpoint: "Breakpoint"
+  target: "Target"
 };
 // The board fields this input edits. Derived from LINE_FIELDS so it stays a
 // subset of LineSpec's keys even if other line dimensions are added elsewhere.
@@ -87,19 +87,17 @@ function LineInput({
   onChange,
   showPresets = false,
   onFieldFocus,
-  hideBreakpoint = false,
   derivedLaydown,
+  derivedBreakpoint,
   onLaydownTap
 }: LineInputProps) {
   const handedness = useHandedness();
-  const fields = hideBreakpoint ? LINE_FIELDS.filter((f) => f !== "breakpoint") : LINE_FIELDS;
   // Board numbers rise to the left for a right-hander, to the right for a
   // left-hander. dir = +1 means the LEFT arrow increases the board number.
   const dir = handedness === "right" ? 1 : -1;
   const toText = (v: LineSpec | undefined) => ({
     stance: v?.stance != null ? String(v.stance) : "",
-    target: v?.target != null ? String(v.target) : "",
-    breakpoint: v?.breakpoint != null ? String(v.breakpoint) : ""
+    target: v?.target != null ? String(v.target) : ""
   });
   const [text, setText] = useState(() => toText(value));
   const [focused, setFocused] = useState<BoardField | null>(null);
@@ -179,7 +177,7 @@ function LineInput({
     <div>
       <span className="mb-1 block text-[10px] font-semibold uppercase tracking-wide text-slate-400">{label}</span>
       <div className="flex gap-1">
-        {fields.map((field, i) => (
+        {LINE_FIELDS.map((field, i) => (
           <input
             key={field}
             type="text"
@@ -188,22 +186,36 @@ function LineInput({
             onChange={(e) => update(field, e.target.value)}
             onFocus={() => { onFieldFocus?.(); setFocused(field); }}
             onBlur={() => setFocused((f) => (f === field ? null : f))}
-            placeholder={["S", "T", "B"][i]}
+            placeholder={["S", "T"][i]}
             className="h-9 w-full min-w-0 rounded-md border border-slate-300 px-1 text-center text-xs focus:border-felt-700 focus:outline-none"
-            title={["Stance board", "Target board (arrows)", "Breakpoint board"][i]}
+            title={["Stance board", "Target board (arrows)"][i]}
           />
         ))}
       </div>
 
-      {derivedLaydown != null && (
-        <button
-          type="button"
-          onClick={onLaydownTap}
-          title="Derived laydown board (stance − offset). Tap to view on the lane."
-          className="mt-1 inline-flex h-6 items-center gap-1 rounded-full bg-slate-100 px-2 text-[10px] font-semibold uppercase tracking-wide text-slate-500 hover:bg-slate-200"
-        >
-          Laydown {derivedLaydown}
-        </button>
+      {(derivedLaydown != null || derivedBreakpoint != null) && (
+        <div className="mt-1 flex flex-wrap gap-1">
+          {derivedLaydown != null && (
+            <button
+              type="button"
+              onClick={onLaydownTap}
+              title="Derived laydown board (stance − offset). Tap to view on the lane."
+              className="inline-flex h-6 items-center gap-1 rounded-full bg-slate-100 px-2 text-[10px] font-semibold uppercase tracking-wide text-slate-500 hover:bg-slate-200"
+            >
+              Laydown {derivedLaydown}
+            </button>
+          )}
+          {derivedBreakpoint != null && (
+            <button
+              type="button"
+              onClick={onLaydownTap}
+              title="Derived breakpoint (the drawn apex). Tap to view or edit on the lane."
+              className="inline-flex h-6 items-center gap-1 rounded-full bg-slate-100 px-2 text-[10px] font-semibold uppercase tracking-wide text-slate-500 hover:bg-slate-200"
+            >
+              Bkpt {Math.round(derivedBreakpoint.board * 2) / 2} · {Math.round(derivedBreakpoint.feet)}ft
+            </button>
+          )}
+        </div>
       )}
 
       {/* Focus-reveal board adjusters. Each arrow pair gets its own full-width
@@ -261,8 +273,6 @@ interface ShotDetailBarProps {
   notes: string;
   onNotesChange: (notes: string) => void;
   onOpenArsenal?: () => void;
-  /** Hide the breakpoint field on the Intended line (configured spare applied). */
-  hideIntendedBreakpoint?: boolean;
   /** Standing leave the shot faces (spare attempt) — undefined on a fresh rack. */
   spareLeave?: PinNumber[];
 }
@@ -280,14 +290,20 @@ function ShotDetailBar({
   notes,
   onNotesChange,
   onOpenArsenal,
-  hideIntendedBreakpoint = false,
   spareLeave
 }: ShotDetailBarProps) {
   const [showViz, setShowViz] = useState(false);
   const driftModel = useDriftModel();
+  const handedness = useHandedness();
   const derivedLaydown =
     intended?.laydown ??
     (intended?.stance != null ? deriveLaydown(intended.stance, driftModel) : undefined);
+  // Never a spare-aim concept (ADR-031): suppressed entirely for spare attempts.
+  const derivedBreakpoint = spareLeave?.length
+    ? null
+    : intended
+      ? derivedApexForDisplay({ ...intended, laydown: intended.laydown ?? derivedLaydown }, handedness)
+      : null;
   return (
     <div className="flex flex-col gap-2.5 rounded-lg border border-slate-200 bg-white p-2.5">
       <div>
@@ -335,8 +351,8 @@ function ShotDetailBar({
         value={intended}
         onChange={onIntendedChange}
         showPresets
-        hideBreakpoint={hideIntendedBreakpoint}
         derivedLaydown={derivedLaydown}
+        derivedBreakpoint={derivedBreakpoint}
         onLaydownTap={() => setShowViz(true)}
       />
 
@@ -461,8 +477,6 @@ export function ActiveGameScorer({
   const [selectedBallId, setSelectedBallId] = useState<number | undefined>(undefined);
   const [intendedLine, setIntendedLine] = useState<LineSpec | undefined>(undefined);
   const [actualLine, setActualLine] = useState<LineSpec | undefined>(undefined);
-  // True when a saved spare line drove the intended line — hides the breakpoint field.
-  const [spareLineApplied, setSpareLineApplied] = useState(false);
   const [shotNotes, setShotNotes] = useState("");
   // Cursor: a recorded shot being edited inline (null = live entry).
   const [selectedShot, setSelectedShot] = useState<{ frameNumber: number; shotIndex: number } | null>(null);
@@ -538,7 +552,6 @@ export function ActiveGameScorer({
 
     setShotNotes("");
     setActualLine(undefined);
-    setSpareLineApplied(false);
 
     const spareBall = balls.find((b) => b.is_spare_ball);
     const currentFrame = gameState.frames.find(
@@ -586,7 +599,6 @@ export function ActiveGameScorer({
             : undefined;
           const applied = !!(line && Object.keys(line).length);
           setIntendedLine(applied ? line : undefined);
-          setSpareLineApplied(applied);
         })
         .catch(() => {});
     } else {
@@ -926,7 +938,6 @@ export function ActiveGameScorer({
           actual={isEditing && recordedShot ? recordedShot.actual : actualLine}
           onActualChange={isEditing ? (l) => handleEditMeta({ actual: l }) : setActualLine}
           notes={isEditing && recordedShot ? recordedShot.notes ?? "" : shotNotes}
-          hideIntendedBreakpoint={!isEditing && spareLineApplied}
           spareLeave={shownLeave}
           onNotesChange={
             // Store raw while typing (keeps internal/trailing spaces); the

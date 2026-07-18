@@ -2,7 +2,8 @@ import { describe, it, expect } from "vitest";
 import {
   PLANE_W, PLANE_L, LANE_BOARDS, DRAW_FRONT_FEET, DRAW_BACK_FEET, POCKET_BOARD,
   boardToX, feetToY, xToBoard, yToFeet,
-  buildLinePath, solveLine, arrowFeet, skidBoardAt, projectBreakpoint
+  buildLinePath, solveLine, arrowFeet, skidBoardAt, projectBreakpoint,
+  strikeApexPoint, derivedApexForDisplay
 } from "./laneGeometry";
 import type { Handedness, LineSpec } from "../types/bowling";
 
@@ -602,5 +603,41 @@ describe("buildLinePath — focal & monotonicity invariants (ADR-015)", () => {
     const apex = pts.reduce((m, p, i) => (p.board < pts[m].board ? i : m), 0);
     for (let i = 1; i <= apex; i++) expect(pts[i].board).toBeLessThanOrEqual(pts[i - 1].board + TOL);
     for (let i = apex + 1; i < pts.length; i++) expect(pts[i].board).toBeGreaterThanOrEqual(pts[i - 1].board - TOL);
+  });
+});
+
+describe("derivedApexForDisplay (ADR-031)", () => {
+  it("a normal reachable hooking line: agrees with strikeApexPoint's apex", () => {
+    const line: LineSpec = { stance: 40, target: 10 };
+    const strike = strikeApexPoint(line, "right");
+    const derived = derivedApexForDisplay(line, "right");
+    expect(strike).not.toBeNull();
+    expect(derived).not.toBeNull();
+    expect(derived!.board).toBeCloseTo(strike!.board, 6);
+    expect(derived!.feet).toBeCloseTo(strike!.feet, 6);
+  });
+
+  it("a straight/unreachable line: returns null", () => {
+    // Laydown == target == the pocket board: the focal already rides straight
+    // into the pocket, so dir * (fB - focalBoard(fF)) <= 0 — no hook, no apex.
+    const line: LineSpec = { stance: 17.5, target: 17.5 };
+    expect(strikeApexPoint(line, "right")).not.toBeNull(); // storage still gets a floored value
+    expect(derivedApexForDisplay(line, "right")).toBeNull();
+  });
+
+  it("a near-straight line whose apex fails the ADR-028 honesty threshold (<= 0.25 board): returns null", () => {
+    const line: LineSpec = { stance: 17.6, target: 17.5 };
+    const strike = strikeApexPoint(line, "right");
+    expect(strike).not.toBeNull();
+    expect(Math.abs(line.target! - strike!.board)).toBeLessThanOrEqual(0.25); // confirms the fixture is near-straight
+    expect(derivedApexForDisplay(line, "right")).toBeNull();
+  });
+
+  it("missing stance/laydown: returns null", () => {
+    expect(derivedApexForDisplay({ target: 10 }, "right")).toBeNull();
+  });
+
+  it("missing target: returns null", () => {
+    expect(derivedApexForDisplay({ stance: 20 }, "right")).toBeNull();
   });
 });

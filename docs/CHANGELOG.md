@@ -2,6 +2,17 @@
 
 User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachangelog.com).
 
+## [Unreleased] — Breakpoint is display-only in score entry (2026-07-19)
+
+### Changed
+
+- Score entry's Intended line no longer has a typeable breakpoint field —
+  only stance and target. Once both are set, a read-only breakpoint chip
+  (matching the existing laydown chip) shows the derived apex; tapping it
+  opens the lane visualizer, which is now the only place to edit breakpoint
+  or hook timing. The chip only appears for a genuine hook (not a straight
+  or unreachable line), and never appears on a spare attempt.
+
 ## [Unreleased] — Drift model: stance-zone drift + release offset (2026-07-19)
 
 ### Added

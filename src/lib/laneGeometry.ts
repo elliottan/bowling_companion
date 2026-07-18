@@ -309,6 +309,28 @@ export function strikeApexPoint(line: LineSpec, hand: Handedness): { board: numb
   return { board: g.apex.board, feet: g.apex.feet, dS: g.dS, len: g.dE - g.dS };
 }
 
+/** The derived breakpoint for DISPLAY (a read-only chip in score entry), honouring
+ *  the same real-apex gating as the visualizer's marker (ADR-028): returns null
+ *  when the line is straight/unreachable enough that there's no honest apex to show. */
+export function derivedApexForDisplay(line: LineSpec, hand: Handedness): { board: number; feet: number } | null {
+  const foul = line.laydown ?? line.stance;
+  if (foul == null || line.target == null) return null;
+  const dir = hand === "right" ? 1 : -1;
+  const fB = line.final_board ?? POCKET_BOARD;
+  const fF = line.final_distance ?? LANE_FEET;
+  const p = strikeParams(foul, line.target, fB, fF, dir);
+  const t = lineHookTiming(p, line);
+  if (dir * (fB - p.focalBoard(fF)) <= 0) {
+    // Unreachable: the ball rides the focal straight — there is no hook, so no
+    // real apex to show (ADR-028). Unlike strikeApexPoint, display has no need
+    // for a floored fallback — there's simply nothing to render.
+    return null;
+  }
+  const g = hookGeom(p, t.dS, t.len, true);
+  if (!g.apexReal) return null;
+  return { board: g.apex.board, feet: g.apex.feet };
+}
+
 /** Magnetic drag (ADR-026): solve BOTH hook-timing params so the derived apex
  *  lands nearest the finger (plane distance) within the achievable region.
  *  Coarse grid + pattern-search refine; the apex moves smoothly in (dS, len),

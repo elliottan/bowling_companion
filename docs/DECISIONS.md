@@ -1235,3 +1235,60 @@ One global offset couldn't represent that.
   over from their old `laydown_offset`) — this is the critical bit-identical
   migration guarantee, proven by a stance sweep (1–39 in half-board steps)
   against the old formula.
+
+## ADR-031 — Breakpoint is display-only in score entry
+
+**Status:** accepted (2026-07). Extends ADR-024/026's derived-breakpoint
+arc and ADR-028's real-only honesty gate (`apexReal`); does not edit any of
+their text.
+
+**Context.** Score entry's Intended-line input rendered three typeable
+fields — stance, target, breakpoint — even though ADR-024/026 already made
+`breakpoint` a *derived* quantity for strike lines (the drawn curve's apex,
+solved from stance/target + hook timing), and the lane visualizer is where
+that timing is actually tuned (drag, sliders, aim cascade). Typing a
+breakpoint board directly in the scorer bypassed that solve entirely,
+writing a value with no geometric relationship to the rest of the line — the
+one field in the row that couldn't be trusted to agree with what the
+visualizer would draw.
+
+**Decision.**
+- Score entry's Intended-line input accepts only stance and target. The
+  breakpoint text field, its label, and the `hideBreakpoint`/
+  `hideIntendedBreakpoint` plumbing that used to suppress it when a saved
+  spare line was applied are all removed — moot once there's no field to
+  hide.
+- Once both stance and target (or a derived laydown) are set, a **read-only
+  breakpoint chip** renders next to the existing derived-laydown chip,
+  showing the same apex `strikeApexPoint`/`solveLine` would compute for
+  storage — but gated through a new `derivedApexForDisplay` that additionally
+  requires `apexReal` (ADR-028's > ¼-board honesty threshold). A straight or
+  unreachable line shows no chip, matching the visualizer's own marker
+  behaviour.
+- Tapping the breakpoint chip opens the lane visualizer — the same handler
+  the laydown chip already uses. All breakpoint/hook-timing editing now
+  happens exclusively there.
+- **Spare attempts never show the chip.** Breakpoint is a strike-line
+  concept (the apex past the target on the way to the pocket); a spare aim
+  has no equivalent, so the chip is suppressed whenever the shot faces a
+  standing leave, independent of whether a saved spare line drove the
+  intended line.
+- The visualizer-to-scorer round trip needs no new plumbing: an edit in the
+  visualizer already calls `solveLine` and emits the full solved line
+  through the existing `onChange` → `onIntendedChange` wiring, which updates
+  the same `intended` state the new chip reads from.
+
+**Consequences.**
+- `src/lib/laneGeometry.ts` gains `derivedApexForDisplay(line, hand)`,
+  returning `{ board, feet } | null`. It mirrors `strikeApexPoint`'s
+  reachability check but returns `null` (not a floored fallback) on the
+  unreachable branch, and `null` when the reachable apex fails `apexReal`.
+  `strikeApexPoint` itself is unchanged — `solveLine` still uses it to write
+  `breakpoint`/`breakpoint_distance` for storage regardless of display
+  honesty.
+- Persistence is unaffected: `LineSpec.breakpoint` is still written by
+  `solveLine` exactly as before; only the *typed-entry* and *always-shown*
+  parts of the old field are gone.
+- `spareLineApplied` (`ActiveGameScorer.tsx`) is removed — its only consumer
+  was `hideIntendedBreakpoint`, and the new chip already suppresses itself
+  for spare attempts regardless of whether a spare line was applied.
