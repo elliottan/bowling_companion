@@ -2,10 +2,14 @@ import { db } from "../db/bowlingDb";
 import { calculateGameScore } from "../lib/scoring";
 import { nextGameStartLane } from "../lib/lanes";
 import { DEFAULT_LAYDOWN_OFFSET } from "../lib/laydownOffsetContext";
+import type { BackupNudgeState } from "../lib/backupNudge";
 import type { Frame, Game, Handedness, Session, SessionSummary } from "../types/bowling";
 
 const HANDEDNESS_KEY = "handedness";
 const LAYDOWN_OFFSET_KEY = "laydown_offset";
+const LAST_BACKUP_AT_KEY = "last_backup_at";
+const SESSIONS_AT_LAST_BACKUP_KEY = "sessions_at_last_backup";
+const BACKUP_NUDGE_SNOOZED_UNTIL_KEY = "backup_nudge_snoozed_until";
 
 /** Read a key-value app setting (undefined if unset). */
 export async function getSetting(key: string): Promise<string | undefined> {
@@ -315,6 +319,29 @@ export async function getResumableForSession(sessionId: number): Promise<Resumab
   const target = games.find((g) => g.final_score === undefined);
   if (!target) return null;
   return { sessionId: session.id, alleyName: session.alley_name, gameNumber: target.game_number };
+}
+
+/** Assembles the state needed to decide whether to show the backup nudge. */
+export async function getBackupNudgeState(): Promise<BackupNudgeState> {
+  const [lastBackupAt, sessionsAtLastBackup, snoozedUntil, totalSessions] = await Promise.all([
+    getSetting(LAST_BACKUP_AT_KEY),
+    getSetting(SESSIONS_AT_LAST_BACKUP_KEY),
+    getSetting(BACKUP_NUDGE_SNOOZED_UNTIL_KEY),
+    db.sessions.count()
+  ]);
+
+  return {
+    lastBackupAt: lastBackupAt ?? null,
+    sessionsAtLastBackup: sessionsAtLastBackup ? Number(sessionsAtLastBackup) : 0,
+    totalSessions,
+    snoozedUntil: snoozedUntil ?? null,
+    now: new Date()
+  };
+}
+
+/** Snooze the backup nudge until the given ISO timestamp ("Later" action). */
+export async function setBackupNudgeSnoozedUntil(iso: string): Promise<void> {
+  await setSetting(BACKUP_NUDGE_SNOOZED_UNTIL_KEY, iso);
 }
 
 export async function getSessionHistory(): Promise<SessionSummary[]> {

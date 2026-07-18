@@ -6,11 +6,13 @@ import {
   createSession,
   deleteGame,
   deleteSession,
+  getBackupNudgeState,
   getLaydownOffset,
   getResumableForSession,
   getSessionDetails,
   getSessionHistory,
   saveFrame,
+  setBackupNudgeSnoozedUntil,
   setLaydownOffset,
   setSetting,
   updateGameNotes
@@ -165,5 +167,44 @@ describe("laydown offset setting", () => {
   it("falls back to the default on a garbage stored value", async () => {
     await setSetting("laydown_offset", "banana");
     expect(await getLaydownOffset()).toBe(6);
+  });
+});
+
+describe("backup nudge state", () => {
+  beforeEach(async () => {
+    await db.delete();
+    await db.open();
+  });
+
+  it("assembles never-backed-up state", async () => {
+    await createSession({ date: "2026-07-19", alley_name: "Test Lanes" });
+
+    const state = await getBackupNudgeState();
+
+    expect(state.lastBackupAt).toBeNull();
+    expect(state.sessionsAtLastBackup).toBe(0);
+    expect(state.totalSessions).toBe(1);
+    expect(state.snoozedUntil).toBeNull();
+  });
+
+  it("assembles backed-up state", async () => {
+    await createSession({ date: "2026-07-19", alley_name: "Test Lanes" });
+    await createSession({ date: "2026-07-19", alley_name: "Other Lanes" });
+    await setSetting("last_backup_at", "2026-07-01T00:00:00.000Z");
+    await setSetting("sessions_at_last_backup", "1");
+
+    const state = await getBackupNudgeState();
+
+    expect(state.lastBackupAt).toBe("2026-07-01T00:00:00.000Z");
+    expect(state.sessionsAtLastBackup).toBe(1);
+    expect(state.totalSessions).toBe(2);
+  });
+
+  it("assembles snoozed state", async () => {
+    await setBackupNudgeSnoozedUntil("2026-07-26T00:00:00.000Z");
+
+    const state = await getBackupNudgeState();
+
+    expect(state.snoozedUntil).toBe("2026-07-26T00:00:00.000Z");
   });
 });

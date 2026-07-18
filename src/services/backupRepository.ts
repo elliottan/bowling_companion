@@ -1,5 +1,6 @@
 import { db } from "../db/bowlingDb";
 import { validateBackup } from "../lib/backupValidation";
+import { setSetting } from "./bowlingRepository";
 import type { Ball, BowlingBackup, Frame, Game, LaneNote, OilPattern, PinNumber, Session, Shot, SpareLine } from "../types/bowling";
 
 export interface ImportBackupResult {
@@ -56,6 +57,10 @@ export async function exportBackup() {
   link.click();
   link.remove();
   URL.revokeObjectURL(url);
+
+  const sessionCount = await db.sessions.count();
+  await setSetting("last_backup_at", new Date().toISOString());
+  await setSetting("sessions_at_last_backup", String(sessionCount));
 
   return backup;
 }

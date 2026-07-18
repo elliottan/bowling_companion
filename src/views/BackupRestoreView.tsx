@@ -1,5 +1,5 @@
 import { Download, Upload } from "lucide-react";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { exportBackup, importBackup } from "../services/backupRepository";
 
 export function BackupRestoreView() {
@@ -7,6 +7,13 @@ export function BackupRestoreView() {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [isBusy, setIsBusy] = useState(false);
+  const [persisted, setPersisted] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    navigator.storage?.persisted?.()
+      .then(setPersisted)
+      .catch(() => {});
+  }, []);
 
   async function handleExport() {
     setIsBusy(true);
@@ -49,6 +56,14 @@ export function BackupRestoreView() {
         Local JSON only. Imports merge into the existing database by content
         (date + alley name).
       </p>
+
+      {persisted !== null && (
+        <p className="mt-2 text-xs text-slate-500">
+          {persisted
+            ? "Storage: persistent ✓"
+            : "Storage: best-effort — install the app + back up regularly"}
+        </p>
+      )}
 
       <div
         className="mt-5 rounded-lg border border-slate-200 bg-white p-4 shadow-sm"

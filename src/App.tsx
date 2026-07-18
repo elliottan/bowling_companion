@@ -127,6 +127,18 @@ function App() {
     };
   }, []);
 
+  // Best-effort: ask the browser to make our storage persistent so it's
+  // less likely to be evicted (Safari especially). Fire-and-forget; the
+  // result is surfaced in Settings → Backup & Restore, not here.
+  useEffect(() => {
+    if (navigator.storage?.persist) {
+      navigator.storage
+        .persisted()
+        .then((already) => already || navigator.storage.persist())
+        .catch(() => {});
+    }
+  }, []);
+
   // On launch, if today has an unfinished game, jump straight into it.
   useEffect(() => {
     getResumableToday()
@@ -200,6 +212,13 @@ function App() {
     if (target === "catalog" && view !== "catalog") setPreviousView(view);
     if (target === "settings") setSettingsSection("menu");
     setView(target);
+  }
+
+  // Jump straight to Settings → Backup & Restore (skips goTo's section reset,
+  // used by the dashboard backup nudge's "Export backup" action).
+  function goToBackup() {
+    setSettingsSection("backup");
+    setView("settings");
   }
 
   // Keyboard overlays the nav (viewport interactive-widget=overlays-content).
@@ -310,6 +329,7 @@ function App() {
             onOpenCatalog={() => goTo("catalog")}
             onOpenLineVisualizer={() => setLineVizOpen(true)}
             onSessionDeleted={handleSessionDeleted}
+            onOpenBackup={goToBackup}
           />
         )}
         {view === "active" && activeSessionId && (

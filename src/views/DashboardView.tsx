@@ -1,9 +1,19 @@
-import { BookOpen, PlayCircle, Plus, Spline } from "lucide-react";
+import { BookOpen, PlayCircle, Plus, Smartphone, Spline } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { SessionFormDialog } from "../components/SessionFormDialog";
 import { SessionHistory } from "../components/SessionHistory";
+import { InstallPrompt } from "../components/InstallPrompt";
 import type { NewSessionFormValues } from "../components/SessionForm";
-import { getSessionHistory, type ResumableGame } from "../services/bowlingRepository";
+import {
+  getBackupNudgeState,
+  getSessionHistory,
+  getSetting,
+  setBackupNudgeSnoozedUntil,
+  setSetting,
+  type ResumableGame
+} from "../services/bowlingRepository";
+import { shouldShowBackupNudge } from "../lib/backupNudge";
+import { canPromptInstall, isIOSSafari, isStandalone } from "../lib/installPrompt";
 import type { SessionSummary } from "../types/bowling";
 
 interface DashboardViewProps {
@@ -18,7 +28,11 @@ interface DashboardViewProps {
   onOpenCatalog: () => void;
   onOpenLineVisualizer: () => void;
   onSessionDeleted?: (sessionId: number) => void;
+  onOpenBackup: () => void;
 }
+
+const SNOOZE_MS = 7 * 24 * 60 * 60 * 1000;
+const INSTALL_NUDGE_DISMISSED_KEY = "install_nudge_dismissed_at";
 
 const RECENT_LIMIT = 10;
 
@@ -33,11 +47,50 @@ export function DashboardView({
   activeSessionId,
   onOpenCatalog,
   onOpenLineVisualizer,
-  onSessionDeleted
+  onSessionDeleted,
+  onOpenBackup
 }: DashboardViewProps) {
   const [showForm, setShowForm] = useState(false);
   const [recent, setRecent] = useState<SessionSummary[]>([]);
   const [loadingRecent, setLoadingRecent] = useState(true);
+  const [showBackupNudge, setShowBackupNudge] = useState(false);
+  const [nudgeSessionsSince, setNudgeSessionsSince] = useState(0);
+  const [nudgeNeverBackedUp, setNudgeNeverBackedUp] = useState(false);
+  const [showInstallLine, setShowInstallLine] = useState(false);
+  const [installPromptOpen, setInstallPromptOpen] = useState(false);
+
+  const loadBackupNudge = useCallback(async () => {
+    try {
+      const state = await getBackupNudgeState();
+      setShowBackupNudge(shouldShowBackupNudge(state));
+      setNudgeSessionsSince(state.totalSessions - state.sessionsAtLastBackup);
+      setNudgeNeverBackedUp(state.lastBackupAt === null);
+    } catch {
+      // best-effort
+    }
+  }, []);
+
+  useEffect(() => {
+    loadBackupNudge();
+  }, [loadBackupNudge]);
+
+  useEffect(() => {
+    const eligible = (isIOSSafari() && !isStandalone()) || canPromptInstall();
+    if (!eligible) return;
+    getSetting(INSTALL_NUDGE_DISMISSED_KEY)
+      .then((dismissed) => setShowInstallLine(!dismissed))
+      .catch(() => {});
+  }, []);
+
+  function handleBackupLater() {
+    setShowBackupNudge(false);
+    void setBackupNudgeSnoozedUntil(new Date(Date.now() + SNOOZE_MS).toISOString());
+  }
+
+  function dismissInstallLine() {
+    setShowInstallLine(false);
+    void setSetting(INSTALL_NUDGE_DISMISSED_KEY, new Date().toISOString());
+  }
 
   const loadRecent = useCallback(async () => {
     setLoadingRecent(true);
@@ -66,6 +119,51 @@ export function DashboardView({
         <p className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm font-semibold text-red-700">
           {error}
         </p>
+      )}
+
+      {showBackupNudge && (
+        <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+          <p>
+            {nudgeNeverBackedUp
+              ? `${nudgeSessionsSince} sessions, never backed up.`
+              : `${nudgeSessionsSince} sessions since your last backup.`}
+          </p>
+          <div className="mt-2 flex items-center gap-3">
+            <button
+              type="button"
+              onClick={onOpenBackup}
+              className="text-xs font-bold text-amber-900 underline hover:no-underline"
+            >
+              Export backup
+            </button>
+            <button
+              type="button"
+              onClick={handleBackupLater}
+              className="text-xs font-semibold text-amber-700 hover:underline"
+            >
+              Later
+            </button>
+          </div>
+          {showInstallLine && (
+            <div className="mt-2 flex items-center gap-3 border-t border-amber-200 pt-2">
+              <button
+                type="button"
+                onClick={() => setInstallPromptOpen(true)}
+                className="inline-flex items-center gap-1 text-xs font-bold text-amber-900 underline hover:no-underline"
+              >
+                <Smartphone size={12} aria-hidden="true" />
+                Installing the app protects your data from 7-day cleanup
+              </button>
+              <button
+                type="button"
+                onClick={dismissInstallLine}
+                className="text-xs font-semibold text-amber-700 hover:underline"
+              >
+                Dismiss
+              </button>
+            </div>
+          )}
+        </div>
       )}
 
       <button
@@ -155,6 +253,8 @@ export function DashboardView({
         onCancel={() => setShowForm(false)}
         isSubmitting={isSubmitting}
       />
+
+      <InstallPrompt open={installPromptOpen} onClose={() => setInstallPromptOpen(false)} />
     </section>
   );
 }

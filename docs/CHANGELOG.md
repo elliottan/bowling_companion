@@ -2,6 +2,21 @@
 
 User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachangelog.com).
 
+## [Unreleased] — Data safety: persistent storage + backup nudges (2026-07-19)
+
+### Added
+
+- **Persistent storage request.** On launch, the app asks the browser to
+  make its IndexedDB storage persistent (best-effort; reduces the chance of
+  Safari evicting data). The result shows as a status line in Settings →
+  Backup & Restore.
+- **Backup reminder banner** on the dashboard: after 3+ sessions since your
+  last export (or 3+ sessions total if you've never backed up), a
+  dismissible banner offers "Export backup" (jumps to Backup & Restore) or
+  "Later" (snoozes for a week). On iOS Safari (not installed) or Android,
+  the banner also offers to open the install prompt, noting that installing
+  protects data from iOS's 7-day cleanup for non-installed PWAs.
+
 ## [Unreleased] — PWA native-feel polish + update flow (2026-07-19)
 
 ### Added

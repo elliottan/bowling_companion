@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { db } from "../db/bowlingDb";
-import { createBackup, importBackup } from "./backupRepository";
-import { addGameToSession, createSession, getSessionHistory, saveFrame } from "./bowlingRepository";
+import { createBackup, exportBackup, importBackup } from "./backupRepository";
+import { addGameToSession, createSession, getSessionHistory, getSetting, saveFrame } from "./bowlingRepository";
 
 
 describe("backupRepository", () => {
@@ -137,5 +137,18 @@ describe("backupRepository", () => {
 
     const notes = await db.lane_notes.toArray();
     expect(notes[0].notes).toBe("hooks early");
+  });
+
+  it("stamps last_backup_at and sessions_at_last_backup after export", async () => {
+    // jsdom doesn't implement the Blob URL APIs the download link uses.
+    URL.createObjectURL = () => "blob:stub";
+    URL.revokeObjectURL = () => {};
+
+    await createSession({ date: "2026-07-19", alley_name: "Stamp Lanes" });
+
+    await exportBackup();
+
+    expect(await getSetting("last_backup_at")).toEqual(expect.any(String));
+    expect(await getSetting("sessions_at_last_backup")).toBe("1");
   });
 });
