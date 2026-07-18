@@ -2,6 +2,15 @@
 
 User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachangelog.com).
 
+## [Unreleased] — Root error boundary (2026-07-19)
+
+### Added
+
+- **A crashed render no longer whitescreens the app.** A root error boundary
+  wraps the app; on an uncaught render error it shows a recovery screen with
+  a Reload button and an Export backup button (works independently of the
+  crashed tree) instead of a blank page. No crash reporting/analytics added.
+
 ## [Unreleased] — Fresh-rack bonus ball seeding fix (2026-07-19, ADR-029)
 
 ### Fixed
