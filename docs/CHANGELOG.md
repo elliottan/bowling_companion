@@ -2,6 +2,13 @@
 
 User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachangelog.com).
 
+## [Unreleased] — Fresh-rack bonus ball seeding fix (2026-07-19, ADR-029)
+
+### Fixed
+
+- **10th-frame bonus ball after a spare no longer inherits the spare's line/ball** —
+  it now seeds from the most recent strike-attempt (fresh-rack) shot.
+
 ## [Unreleased] — Honest lines: derived laydown, real breakpoints, peg locks (2026-07-09, ADR-028)
 
 ### Added

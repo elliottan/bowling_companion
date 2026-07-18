@@ -13,7 +13,7 @@ import {
 import { calculateGameScore, isSpare } from "../lib/scoring";
 import { useHandedness } from "../lib/handednessContext";
 import { useLaydownOffset, deriveLaydown } from "../lib/laydownOffsetContext";
-import { laneForFrame, previousGameSameLaneFrame, previousSameLaneFrame } from "../lib/lanes";
+import { freshRackSeedShot, laneForFrame } from "../lib/lanes";
 import { getBalls, getSpareLineByPins } from "../services/ballRepository";
 import type { Ball, Frame, Game, LineSpec, PinNumber, ShotMetadata } from "../types/bowling";
 import { LaneVisualizer } from "./LaneVisualizer";
@@ -548,10 +548,13 @@ export function ActiveGameScorer({
       // First ball: carry line + ball + notes from the previous same-lane
       // frame in THIS game, else from the previous game on the same lane,
       // else leave everything blank/unselected.
-      const prev =
-        previousSameLaneFrame(game, gameState.currentFrameNumber, gameState.frames) ??
-        previousGameSameLaneFrame(game, gameState.currentFrameNumber, previousGames);
-      const prevShot = prev?.shots[0];
+      const prevShot = freshRackSeedShot(
+        game,
+        gameState.currentFrameNumber,
+        [],
+        gameState.frames,
+        previousGames
+      );
       setIntendedLine(prevShot?.intended);
       setShotNotes(prevShot?.notes ?? "");
       setSelectedBallId(prevShot?.ball_id);
@@ -587,8 +590,14 @@ export function ActiveGameScorer({
         .catch(() => {});
     } else {
       // Fresh-rack bonus ball (10th after strike/spare): carry line + ball
-      // from the shot just thrown in this frame.
-      const prevShot = currentFrame?.shots[currentFrame.shots.length - 1];
+      // from the most recent fresh-rack shot (see ADR-029).
+      const prevShot = freshRackSeedShot(
+        game,
+        gameState.currentFrameNumber,
+        currentFrame?.shots ?? [],
+        gameState.frames,
+        previousGames
+      );
       setIntendedLine(prevShot?.intended);
       setSelectedBallId(prevShot?.ball_id);
     }

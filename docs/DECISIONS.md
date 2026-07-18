@@ -1112,3 +1112,49 @@ visualizer in strike mode, aiming at a pocket that wasn't the shot.
 - Locks are visualizer session state (nothing persisted).
 - The replay button is gone — tapping the lane replays; the animated ball is
   amber and fades out at the pins (the frozen dark dot read as a marker).
+
+## ADR-029 — Fresh-rack seeding rule
+
+**Status:** accepted (2026-07). Refines ADR-017's carry-rule #3 (fresh-rack
+bonus ball) for the 10th frame specifically; carry-rules #1, #2, and #4 are
+unchanged.
+
+**Context.** ADR-017's rule #3 seeded a 10th-frame bonus ball's line + ball
+from "the immediately preceding shot in the same frame." That's wrong when
+the preceding shot was a spare conversion: leave → spare → bonus ball wrongly
+inherited the *spare* line and *spare ball*, when the bonus ball is a
+strike-attempt thrown at a full rack and should be seeded like one.
+
+**Decision.** A shot is **fresh-rack** if it's ball 1 of a frame, or its
+immediately preceding shot cleared the deck (`pins_standing.length === 0` —
+a strike or a converted spare). Seeding a fresh-rack shot now searches, in
+order:
+1. The most recent **earlier fresh-rack shot in the current frame** (only
+   relevant in the 10th, where up to three balls can be thrown — e.g.
+   strike, strike → ball 3 seeds from ball 2).
+2. Else `previousSameLaneFrame`'s first shot (unchanged from ADR-017 #1/#3).
+3. Else `previousGameSameLaneFrame`'s first shot (unchanged).
+4. Else nothing to seed.
+
+Confirmed edge case: 10th frame, leave → spare → bonus ball 3. Ball 1 counts
+as fresh-rack (frame-index 0), and it's the most recent *earlier* fresh-rack
+shot relative to ball 3 (ball 2 doesn't qualify — its predecessor, ball 1,
+didn't clear the deck). So ball 3 seeds from **ball 1**, not ball 2.
+Recency is about which shot is fresh-rack, not which shot has data — a
+fresh-rack shot with no recorded `intended` is still the seed; the search
+does not skip it looking for an earlier shot that happens to have a line.
+
+Frames 1–9 are unaffected: ball 1 is the only fresh-rack shot there and
+there's never an earlier fresh-rack shot in the current frame, so the rule
+reduces to exactly `previousSameLaneFrame ?? previousGameSameLaneFrame` for
+shot 1 — the same as before.
+
+**Consequences.**
+- `freshRackShotIndices(shots)` and `freshRackSeedShot(game, frameNumber,
+  currentFrameShots, frames, previousGames)` are new pure exports in
+  `lanes.ts`. `SessionLanePanel.tsx`'s scorecard fresh-rack-shots predicate
+  (used to render 10th-frame symbols) now delegates to
+  `freshRackShotIndices` instead of duplicating the predicate.
+- `ActiveGameScorer.tsx`'s per-shot defaults effect calls `freshRackSeedShot`
+  for both the shot-1 branch and the fresh-rack bonus-ball branch; the
+  spare-attempt branch (ADR-017 #2) is untouched.

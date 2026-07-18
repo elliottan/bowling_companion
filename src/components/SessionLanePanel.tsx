@@ -1,7 +1,7 @@
 import { Pencil, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { laneForFrame } from "../lib/lanes";
+import { freshRackShotIndices, laneForFrame } from "../lib/lanes";
 import { knockedDownCount } from "../lib/pins";
 import { calculateGameScore } from "../lib/scoring";
 import { calculateBallUsage, calculateCommonLeaves, calculateStats } from "../lib/stats";
@@ -380,10 +380,7 @@ function GameGrid({
  * ball cleared the deck (a strike, or a spare that reset the pins) is fresh.
  */
 function freshRackShots(frame: Frame): Shot[] {
-  if (frame.frame_number !== 10) {
-    return frame.shots[0] ? [frame.shots[0]] : [];
-  }
-  return frame.shots.filter((_, i) => i === 0 || frame.shots[i - 1].pins_standing.length === 0);
+  return freshRackShotIndices(frame.shots).map((i) => frame.shots[i]);
 }
 
 function shotSymbol(shot: Shot): string {

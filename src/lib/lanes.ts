@@ -1,4 +1,4 @@
-import type { Frame, Game } from "../types/bowling";
+import type { Frame, Game, Shot } from "../types/bowling";
 
 /**
  * Resolve which physical lane a given frame is bowled on.
@@ -79,6 +79,39 @@ export function previousGameSameLaneFrame(
     }
   }
   return undefined;
+}
+
+/** Indices of shots thrown at a full rack: ball 1, or any shot after a cleared deck. */
+export function freshRackShotIndices(shots: Shot[]): number[] {
+  return shots.reduce<number[]>((acc, _shot, i) => {
+    if (i === 0 || shots[i - 1].pins_standing.length === 0) acc.push(i);
+    return acc;
+  }, []);
+}
+
+/**
+ * The shot whose context (intended line, ball) should seed a new fresh-rack shot.
+ * Search order: latest earlier fresh-rack shot in the current frame →
+ * previousSameLaneFrame(...)'s first shot → previousGameSameLaneFrame(...)'s first shot → undefined.
+ */
+export function freshRackSeedShot(
+  game: Pick<Game, "lanes" | "start_lane" | "lane_number"> | undefined,
+  frameNumber: number,
+  currentFrameShots: Shot[],
+  frames: Frame[],
+  previousGames: Array<{
+    game: Pick<Game, "lanes" | "start_lane" | "lane_number">;
+    frames: Frame[];
+  }>
+): Shot | undefined {
+  const freshIndices = freshRackShotIndices(currentFrameShots);
+  if (freshIndices.length > 0) {
+    return currentFrameShots[freshIndices[freshIndices.length - 1]];
+  }
+  const prev =
+    previousSameLaneFrame(game, frameNumber, frames) ??
+    previousGameSameLaneFrame(game, frameNumber, previousGames);
+  return prev?.shots[0];
 }
 
 function normalizeLanes(game: Pick<Game, "lanes" | "start_lane" | "lane_number">): string[] {
