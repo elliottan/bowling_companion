@@ -166,13 +166,16 @@ function ZoneRow({
   driftStepper: React.ReactNode;
 }) {
   return (
-    <div className="flex flex-wrap items-center gap-3 p-3">
-      <div className="w-16 shrink-0 text-sm font-semibold text-slate-900">{label}</div>
-      <div className="flex min-w-0 flex-1 items-center gap-2">
+    <div className="flex flex-col gap-2 p-3">
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="w-16 shrink-0 text-sm font-semibold text-slate-900">{label}</span>
         <span className="text-xs tabular-nums text-slate-500">{rangeLabel}</span>
         {rangeStepper}
       </div>
-      <div className="shrink-0">{driftStepper}</div>
+      <div className="flex items-center gap-2 pl-16">
+        <span className="text-xs text-slate-500">Drift</span>
+        {driftStepper}
+      </div>
     </div>
   );
 }
