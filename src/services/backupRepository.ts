@@ -58,9 +58,15 @@ export async function exportBackup() {
   link.remove();
   URL.revokeObjectURL(url);
 
-  const sessionCount = await db.sessions.count();
-  await setSetting("last_backup_at", new Date().toISOString());
-  await setSetting("sessions_at_last_backup", String(sessionCount));
+  // Best-effort bookkeeping for the backup-reminder nudge: a failure here must
+  // not turn an already-downloaded backup into a reported "export failed".
+  try {
+    const sessionCount = await db.sessions.count();
+    await setSetting("last_backup_at", new Date().toISOString());
+    await setSetting("sessions_at_last_backup", String(sessionCount));
+  } catch {
+    // Ignore — the backup itself already succeeded.
+  }
 
   return backup;
 }
