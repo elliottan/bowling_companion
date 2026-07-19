@@ -7,7 +7,7 @@ User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachan
 ### Added
 
 - Two new rows in Settings: "Send feedback" opens a Google Form in a new tab;
-  "Buy me a coffee" opens a donation link (placeholder URL, to be replaced).
+  "Buy me a coffee" opens a Buy Me a Coffee donation link.
 
 ## [Unreleased] — Breakpoint is display-only in score entry (2026-07-19)
 
