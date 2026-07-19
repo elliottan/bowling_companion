@@ -13,7 +13,7 @@ import {
 import { calculateGameScore, isSpare } from "../lib/scoring";
 import { useHandedness } from "../lib/handednessContext";
 import { useDriftModel } from "../lib/driftModelContext";
-import { deriveLaydown } from "../lib/driftModel";
+import { deriveLaydown, deriveStanceFromLaydown } from "../lib/driftModel";
 import { derivedApexForDisplay } from "../lib/laneGeometry";
 import { freshRackSeedShot, laneForFrame } from "../lib/lanes";
 import { getBalls, getSpareLineByPins } from "../services/ballRepository";
@@ -304,6 +304,22 @@ function ShotDetailBar({
     : intended
       ? derivedApexForDisplay({ ...intended, laydown: intended.laydown ?? derivedLaydown }, handedness)
       : null;
+
+  // Keep stance/laydown in sync (ADR-030 drift model): whichever one the user
+  // just edited (typed stance here, or dragged laydown in the visualizer)
+  // drives the other. Only reacts to user edits routed through this handler —
+  // carry-forward/prefill paths set intendedLine directly and skip it.
+  function handleIntendedChange(next: LineSpec | undefined) {
+    if (!next) { onIntendedChange(next); return; }
+    const merged = { ...next };
+    if (merged.stance !== intended?.stance && merged.stance != null) {
+      merged.laydown = deriveLaydown(merged.stance, driftModel);
+    } else if (merged.laydown !== intended?.laydown && merged.laydown != null) {
+      merged.stance = deriveStanceFromLaydown(merged.laydown, driftModel);
+    }
+    onIntendedChange(merged);
+  }
+
   return (
     <div className="flex flex-col gap-2.5 rounded-lg border border-slate-200 bg-white p-2.5">
       <div>
@@ -349,7 +365,7 @@ function ShotDetailBar({
       <LineInput
         label="Intended"
         value={intended}
-        onChange={onIntendedChange}
+        onChange={handleIntendedChange}
         showPresets
         derivedLaydown={derivedLaydown}
         derivedBreakpoint={derivedBreakpoint}
@@ -368,7 +384,7 @@ function ShotDetailBar({
         <LaneVisualizer
           title="Intended line"
           line={intended}
-          onChange={onIntendedChange}
+          onChange={handleIntendedChange}
           spare={!!spareLeave?.length}
           leave={spareLeave}
           onClose={() => setShowViz(false)}

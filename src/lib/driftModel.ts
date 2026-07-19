@@ -60,6 +60,22 @@ export function deriveLaydown(stance: number, model: DriftModel): number {
   return clampBoard(deriveSlide(stance, model) - model.release_offset);
 }
 
+/** Inverse of deriveLaydown: the stance that produces a given laydown. Each
+ *  zone's drift is a flat constant, so within a zone the transform inverts
+ *  exactly (stance = laydown + release_offset + drift[zone]) — but the zone
+ *  boundaries are defined in stance-space, so we try each zone's candidate
+ *  and keep the one that's self-consistent (falls back in the zone that
+ *  produced it). Tries outside/inside before middle, matching zoneForStance's
+ *  own boundary bias. Falls back to the middle-zone candidate if no zone is
+ *  self-consistent (an unusual drift config with gaps/overlaps at the seams). */
+export function deriveStanceFromLaydown(laydown: number, model: DriftModel): number {
+  for (const zone of ["outside", "inside", "middle"] as const) {
+    const candidate = clampBoard(laydown + model.release_offset + model.drift[zone]);
+    if (zoneForStance(candidate, model) === zone) return candidate;
+  }
+  return clampBoard(laydown + model.release_offset + model.drift.middle);
+}
+
 /** Parse + validate a stored drift model. Returns null on any parse error or
  *  invariant violation (never throws) — the caller falls back to
  *  DEFAULT_DRIFT_MODEL or the legacy migration path. */

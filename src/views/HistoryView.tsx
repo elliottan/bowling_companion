@@ -36,7 +36,7 @@ const EMPTY: BowlingStats = {
 };
 
 const selectClass =
-  "h-9 rounded-lg border border-slate-300 bg-white px-2 text-sm outline-none focus:border-felt-700";
+  "h-8 max-w-[46%] rounded-full border border-slate-300 bg-white px-3 text-xs font-medium outline-none focus:border-felt-700";
 
 export function HistoryView({ onOpenSession, activeSessionId, onSessionDeleted }: HistoryViewProps) {
   const [history, setHistory] = useState<SessionSummary[]>([]);
@@ -160,7 +160,23 @@ export function HistoryView({ onOpenSession, activeSessionId, onSessionDeleted }
 
   return (
     <section className="mx-auto flex h-full w-full max-w-3xl flex-col px-3 pt-5 sm:px-6 sm:pt-8">
-      <h1 className="mb-4 text-xl font-bold text-slate-950">History</h1>
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <h1 className="text-xl font-bold text-slate-950">History</h1>
+        <div className="grid grid-cols-2 gap-1 rounded-lg bg-slate-100 p-1">
+          {(["sessions", "stats"] as const).map((p) => (
+            <button
+              key={p}
+              type="button"
+              onClick={() => setPane(p)}
+              className={`h-7 rounded-md px-3 text-xs font-semibold capitalize ${
+                pane === p ? "bg-white text-felt-700 shadow-sm" : "text-slate-600"
+              }`}
+            >
+              {p}
+            </button>
+          ))}
+        </div>
+      </div>
 
       {error && (
         <p className="mb-3 rounded-lg border border-red-200 bg-red-50 p-3 text-sm font-semibold text-red-700">
@@ -169,7 +185,7 @@ export function HistoryView({ onOpenSession, activeSessionId, onSessionDeleted }
       )}
 
       {history.length > 0 && (
-        <div className="mb-4 flex flex-wrap gap-2">
+        <div className="mb-3 flex gap-2">
           <select value={filterAlley} onChange={(e) => setFilterAlley(e.target.value)} className={selectClass}>
             <option value="">All locations</option>
             {allAlleys.map((a) => (
@@ -186,7 +202,7 @@ export function HistoryView({ onOpenSession, activeSessionId, onSessionDeleted }
       )}
 
       {allLanes.length > 0 && (
-        <div className="mb-4 flex flex-wrap items-center gap-1.5">
+        <div className="mb-3 flex flex-wrap items-center gap-1.5">
           <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">Lanes</span>
           {allLanes.map((l) => {
             const on = selectedLanes.includes(l);
@@ -195,7 +211,7 @@ export function HistoryView({ onOpenSession, activeSessionId, onSessionDeleted }
                 key={l}
                 type="button"
                 onClick={() => toggleLane(l)}
-                className={`h-8 rounded-md border px-3 text-xs font-semibold ${
+                className={`h-7 rounded-md border px-2.5 text-xs font-semibold ${
                   on ? "border-felt-700 bg-felt-700 text-white" : "border-slate-300 bg-white text-slate-700"
                 }`}
               >
@@ -207,29 +223,13 @@ export function HistoryView({ onOpenSession, activeSessionId, onSessionDeleted }
             <button
               type="button"
               onClick={() => setSelectedLanes([])}
-              className="h-8 rounded-md px-2 text-xs font-medium text-slate-500 hover:bg-slate-100"
+              className="h-7 rounded-md px-2 text-xs font-medium text-slate-500 hover:bg-slate-100"
             >
               Clear
             </button>
           )}
         </div>
       )}
-
-      {/* Sessions / Stats toggle */}
-      <div className="mb-4 grid grid-cols-2 gap-1 rounded-lg bg-slate-100 p-1">
-        {(["sessions", "stats"] as const).map((p) => (
-          <button
-            key={p}
-            type="button"
-            onClick={() => setPane(p)}
-            className={`h-9 rounded-md text-sm font-semibold capitalize ${
-              pane === p ? "bg-white text-felt-700 shadow-sm" : "text-slate-600"
-            }`}
-          >
-            {p}
-          </button>
-        ))}
-      </div>
 
       <SwipePanes
         className="-mx-3 min-h-0 flex-1 sm:-mx-6"

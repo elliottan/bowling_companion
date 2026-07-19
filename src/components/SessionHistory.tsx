@@ -145,13 +145,14 @@ function SessionRow({ summary, isActive, onOpen, onSessionChanged, onSessionDele
           {session.description && (
             <p className="truncate text-xs font-medium text-slate-600">{session.description}</p>
           )}
-          <p className="truncate text-xs text-slate-500">
-            {[session.date, laneSummary(games), session.oil_pattern]
-              .filter(Boolean)
-              .join(" · ")}
+          <p className="text-xs text-slate-500">
+            {[session.date, laneSummary(games)].filter(Boolean).join(" · ")}
           </p>
+          {session.oil_pattern && (
+            <p className="text-xs font-medium text-slate-600">{session.oil_pattern}</p>
+          )}
         </div>
-        <div className="flex shrink-0 flex-col items-end gap-0.5 pt-7 text-right">
+        <div className="flex shrink-0 flex-col items-end gap-0.5 pr-9 text-right">
           {isActive && (
             <span className="inline-flex items-center rounded-full bg-felt-700 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">
               Active

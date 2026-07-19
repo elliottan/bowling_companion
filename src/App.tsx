@@ -101,30 +101,63 @@ function App() {
 
   // iOS standalone PWA keeps 100dvh at the pre-rotation height after a
   // portrait→landscape→portrait round-trip, leaving the nav floating with blank
-  // space below. Normal render uses the 100dvh fallback; once anything resizes we
-  // pin the root to the freshly-measured innerHeight. `orientationchange` reads a
-  // stale innerHeight on iOS even after a few frames, so the authoritative update
-  // is the `resize` event, which fires only once the new viewport is final — that
-  // is what recovers the rotate-back case. The keyboard doesn't change innerHeight
-  // (interactive-widget=overlays-content), so this never fights the keyboard fix.
+  // space below. A single `resize`-triggered read isn't reliable: iOS can skip
+  // `resize` entirely or fire it before innerHeight has settled. Instead, once
+  // orientation changes we poll innerHeight every 100ms until it holds steady
+  // for 3 ticks (or 2s elapses) — recovery no longer depends on catching one
+  // exact event. Never pin a keyboard-shrunk height (the keyboard effect above
+  // hides the nav instead); re-measure once the keyboard closes.
   useEffect(() => {
-    const setAppHeight = () => {
-      if (window.innerHeight > 0) {
-        document.documentElement.style.setProperty("--app-height", `${window.innerHeight}px`);
+    const isTextField = (el: Element | null) =>
+      !!el && (el.tagName === "TEXTAREA" || el.tagName === "INPUT");
+    let last = "";
+    const apply = () => {
+      if (isTextField(document.activeElement)) return;
+      const h = window.innerHeight;
+      const px = `${h}px`;
+      if (h > 0 && px !== last) {
+        last = px;
+        document.documentElement.style.setProperty("--app-height", px);
       }
+    };
+    let pollId: ReturnType<typeof setInterval> | null = null;
+    const pollUntilStable = () => {
+      if (pollId != null) clearInterval(pollId);
+      let stableTicks = 0;
+      let lastSeen = window.innerHeight;
+      const started = Date.now();
+      pollId = setInterval(() => {
+        apply();
+        const h = window.innerHeight;
+        stableTicks = h === lastSeen ? stableTicks + 1 : 0;
+        lastSeen = h;
+        if ((stableTicks >= 3 || Date.now() - started > 2000) && pollId != null) {
+          clearInterval(pollId);
+          pollId = null;
+        }
+      }, 100);
     };
     const onOrientation = () => {
       setKeyboardOpen(false);
-      // Belt-and-suspenders: nudge on the next painted frames + a timer, in case
-      // `resize` is coalesced or skipped; `resize` below is the real fix.
-      requestAnimationFrame(() => requestAnimationFrame(setAppHeight));
-      setTimeout(setAppHeight, 300);
+      pollUntilStable();
+    };
+    const onFocusOut = () => {
+      setTimeout(apply, 350);
     };
     window.addEventListener("orientationchange", onOrientation);
-    window.addEventListener("resize", setAppHeight);
+    window.addEventListener("resize", apply);
+    window.visualViewport?.addEventListener("resize", apply);
+    document.addEventListener("focusout", onFocusOut);
+    document.addEventListener("visibilitychange", apply);
+    window.addEventListener("pageshow", apply);
     return () => {
+      if (pollId != null) clearInterval(pollId);
       window.removeEventListener("orientationchange", onOrientation);
-      window.removeEventListener("resize", setAppHeight);
+      window.removeEventListener("resize", apply);
+      window.visualViewport?.removeEventListener("resize", apply);
+      document.removeEventListener("focusout", onFocusOut);
+      document.removeEventListener("visibilitychange", apply);
+      window.removeEventListener("pageshow", apply);
     };
   }, []);
 

@@ -87,12 +87,23 @@ function SortableSpareCard({ sl, onEdit }: SortableSpareCardProps) {
         >
           <SmallPinDiagram standing={sl.pins} />
           {sl.line ? (
-            <span className="block text-xs font-semibold text-slate-700">
-              S{sl.line.stance ?? "·"} · L{sl.line.laydown ?? "·"} · T{sl.line.target ?? "·"}
+            <div className="w-full">
+              <div className="grid grid-cols-3">
+                {([["S", sl.line.stance], ["L", sl.line.laydown], ["T", sl.line.target]] as const).map(
+                  ([k, v]) => (
+                    <div key={k}>
+                      <div className="text-[9px] font-semibold uppercase tracking-wide text-slate-400">{k}</div>
+                      <div className="text-xs font-bold tabular-nums text-slate-700">{v ?? "—"}</div>
+                    </div>
+                  )
+                )}
+              </div>
               {derivePinBoard(sl.line, sl.pins) != null && (
-                <span className="text-felt-700"> · pin {derivePinBoard(sl.line, sl.pins)}</span>
+                <div className="mt-0.5 text-[10px] font-semibold tabular-nums text-felt-700">
+                  Pin {derivePinBoard(sl.line, sl.pins)}
+                </div>
               )}
-            </span>
+            </div>
           ) : (
             <span className="block text-xs text-slate-400">No line</span>
           )}

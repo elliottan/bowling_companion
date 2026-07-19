@@ -335,8 +335,30 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
             transition: dragging ? "none" : "transform 0.25s ease-out",
           }}
         >
-          <div ref={surfaceRef} className="relative mx-auto h-full w-full max-w-[360px]">
-            <LaneSurface line={line} hand={hand} leave={leave} animate animateKey={replayKey} slideBoard={slideBoard} />
+          <div
+            ref={surfaceRef}
+            className={`relative mx-auto h-full w-full max-w-[360px] transition-transform ${
+              isTopDown && onChange && !spare ? (hand === "left" ? "translate-x-8" : "-translate-x-8") : ""
+            }`}
+          >
+            <LaneSurface
+              line={line}
+              hand={hand}
+              leave={leave}
+              animate
+              animateKey={replayKey}
+              slideBoard={slideBoard}
+              onPinTap={
+                onChange
+                  ? (hit) =>
+                      applyEdit(
+                        spare
+                          ? { final_board: snapBoard(hit.board), final_distance: clamp(Math.round(hit.feet * 10) / 10, 55, 63) }
+                          : { final_board: snapBoard(hit.board) }
+                      )
+                  : undefined
+              }
+            />
             {handles.length > 0 && (
               <svg viewBox={`0 0 ${PLANE_W} ${PLANE_L}`} className="pointer-events-none absolute inset-0 h-full w-full">
                 {handles.map((h) => {
@@ -556,7 +578,7 @@ function ReadField({ label, value }: { label: string; value: string | undefined 
   return (
     <div className="flex w-[4.75rem] flex-col gap-0.5 text-center text-[10px] font-semibold uppercase tracking-wide text-white/50">
       {label}
-      <div className="flex h-9 w-full items-center justify-center rounded-md border border-white/10 bg-white/5 px-1 text-xs font-medium text-white/70">
+      <div className="flex h-9 w-full items-center justify-center rounded-md border border-white/10 bg-white/5 px-1 text-[11px] font-medium tabular-nums text-white/70">
         {value ?? "—"}
       </div>
     </div>
@@ -598,9 +620,9 @@ function StepperField({
           aria-label={lateral ? `${label} left` : `${label} down`}
           disabled={disabled}
           onClick={() => nudge(leftDelta)}
-          className="flex w-6 shrink-0 items-center justify-center text-white/70 hover:bg-white/10"
+          className="flex w-5 shrink-0 items-center justify-center text-white/70 hover:bg-white/10"
         >
-          {lateral ? <span aria-hidden="true" className="text-[11px]">◀</span> : <Minus size={12} aria-hidden="true" />}
+          {lateral ? <span aria-hidden="true" className="text-[10px]">◀</span> : <Minus size={11} aria-hidden="true" />}
         </button>
         <input
           type="text"
@@ -612,16 +634,16 @@ function StepperField({
           onFocus={(e) => e.target.select()}
           onBlur={commit}
           onKeyDown={(e) => { if (e.key === "Enter") { commit(); (e.target as HTMLInputElement).blur(); } }}
-          className="min-w-0 flex-1 bg-transparent text-center text-sm font-medium text-white outline-none"
+          className="min-w-0 flex-1 bg-transparent text-center text-[13px] font-medium tabular-nums text-white outline-none"
         />
         <button
           type="button"
           aria-label={lateral ? `${label} right` : `${label} up`}
           disabled={disabled}
           onClick={() => nudge(-leftDelta)}
-          className="flex w-6 shrink-0 items-center justify-center text-white/70 hover:bg-white/10"
+          className="flex w-5 shrink-0 items-center justify-center text-white/70 hover:bg-white/10"
         >
-          {lateral ? <span aria-hidden="true" className="text-[11px]">▶</span> : <Plus size={12} aria-hidden="true" />}
+          {lateral ? <span aria-hidden="true" className="text-[10px]">▶</span> : <Plus size={11} aria-hidden="true" />}
         </button>
       </div>
     </div>

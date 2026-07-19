@@ -30,9 +30,11 @@ interface LaneSurfaceProps {
   /** Derived slide-foot board (ADR-030) — a small, non-interactive foul-line tick,
    *  lighter than the draggable pegs. Omitted when there's no stance to derive from. */
   slideBoard?: number;
+  /** Tap a standing pin to set Final to its board (spare mode: leave pins only). */
+  onPinTap?: (hit: { board: number; feet: number; pin: PinNumber }) => void;
 }
 
-export function LaneSurface({ line, hand, leave, showMarkers = true, animate, animateKey = 0, slideBoard }: LaneSurfaceProps) {
+export function LaneSurface({ line, hand, leave, showMarkers = true, animate, animateKey = 0, slideBoard, onPinTap }: LaneSurfaceProps) {
   const leaveSet = new Set(leave ?? []);
   const hasLeave = (leave?.length ?? 0) > 0;
   const path = buildLinePath(line, hand, hasLeave); // spares (a leave) curve to the final
@@ -159,6 +161,19 @@ export function LaneSurface({ line, hand, leave, showMarkers = true, animate, an
                 <rect x={cx - r * 0.55} y={cy - r * 0.18} width={r * 1.1} height={r * 0.28}
                   rx={r * 0.14} fill={missed ? "#b91c1c" : "#e11d48"} opacity="0.85" />
               </>
+            )}
+            {onPinTap && standing && (
+              <circle
+                data-role="pin-hit"
+                data-pin={p}
+                cx={cx}
+                cy={cy}
+                r="4"
+                fill="transparent"
+                className="cursor-pointer"
+                onPointerDown={(e) => e.stopPropagation()}
+                onClick={() => onPinTap({ board: pinBoard, feet: pos.feet, pin: p })}
+              />
             )}
           </g>
         );

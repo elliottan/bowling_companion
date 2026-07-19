@@ -201,18 +201,18 @@ function Stepper({
         type="button"
         aria-label={`Decrease ${ariaLabel}`}
         onClick={() => onChange(Math.max(min, value - step))}
-        className="inline-flex h-9 w-9 items-center justify-center rounded-md text-lg font-bold text-slate-600 hover:bg-slate-100"
+        className="inline-flex h-9 w-9 items-center justify-center rounded-md text-slate-600 hover:bg-slate-100"
       >
-        −
+        <span aria-hidden="true" className="text-sm">◀</span>
       </button>
       <span className="w-12 text-center text-base font-bold tabular-nums text-slate-900">{value}</span>
       <button
         type="button"
         aria-label={`Increase ${ariaLabel}`}
         onClick={() => onChange(Math.min(max, value + step))}
-        className="inline-flex h-9 w-9 items-center justify-center rounded-md text-lg font-bold text-slate-600 hover:bg-slate-100"
+        className="inline-flex h-9 w-9 items-center justify-center rounded-md text-slate-600 hover:bg-slate-100"
       >
-        +
+        <span aria-hidden="true" className="text-sm">▶</span>
       </button>
     </div>
   );

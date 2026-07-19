@@ -89,7 +89,7 @@ export function SettingsView({ section, onSectionChange, handedness, onHandednes
   return (
     <section className="mx-auto w-full max-w-3xl px-3 py-5 sm:px-6 sm:py-8">
       <h1 className="mb-4 text-xl font-bold text-slate-950">Settings</h1>
-      <ul className="space-y-2">
+      <ul className="space-y-1.5">
         {MENU_ROWS.map((row) => {
           const Icon = row.icon;
           const onClick =
@@ -101,16 +101,16 @@ export function SettingsView({ section, onSectionChange, handedness, onHandednes
               <button
                 type="button"
                 onClick={onClick}
-                className="flex w-full items-center gap-3 rounded-lg border border-slate-200 bg-white p-4 text-left shadow-sm hover:border-felt-700"
+                className="flex w-full items-center gap-3 rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-left shadow-sm hover:border-felt-700"
               >
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-felt-700/10 text-felt-700">
-                  <Icon size={20} aria-hidden="true" />
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-felt-700/10 text-felt-700">
+                  <Icon size={16} aria-hidden="true" />
                 </span>
                 <span className="min-w-0 flex-1">
                   <span className="block font-semibold text-slate-950">{row.label}</span>
-                  <span className="block text-sm text-slate-500">{row.description}</span>
+                  <span className="block text-xs text-slate-500">{row.description}</span>
                 </span>
-                <ChevronRight size={18} aria-hidden="true" className="shrink-0 text-slate-400" />
+                <ChevronRight size={16} aria-hidden="true" className="shrink-0 text-slate-400" />
               </button>
             </li>
           );
@@ -120,32 +120,32 @@ export function SettingsView({ section, onSectionChange, handedness, onHandednes
           <button
             type="button"
             onClick={onOpenCatalog}
-            className="flex w-full items-center gap-3 rounded-lg border border-slate-200 bg-white p-4 text-left shadow-sm hover:border-felt-700"
+            className="flex w-full items-center gap-3 rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-left shadow-sm hover:border-felt-700"
           >
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-felt-700/10 text-felt-700">
-              <BookOpen size={20} aria-hidden="true" />
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-felt-700/10 text-felt-700">
+              <BookOpen size={16} aria-hidden="true" />
             </span>
             <span className="min-w-0 flex-1">
               <span className="block font-semibold text-slate-950">Ball Catalog</span>
-              <span className="block text-sm text-slate-500">Browse manufacturer ball specs</span>
+              <span className="block text-xs text-slate-500">Browse manufacturer ball specs</span>
             </span>
-            <ChevronRight size={18} aria-hidden="true" className="shrink-0 text-slate-400" />
+            <ChevronRight size={16} aria-hidden="true" className="shrink-0 text-slate-400" />
           </button>
         </li>
         <li>
           <button
             type="button"
             onClick={onOpenLineVisualizer}
-            className="flex w-full items-center gap-3 rounded-lg border border-slate-200 bg-white p-4 text-left shadow-sm hover:border-felt-700"
+            className="flex w-full items-center gap-3 rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-left shadow-sm hover:border-felt-700"
           >
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-felt-700/10 text-felt-700">
-              <Spline size={20} aria-hidden="true" />
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-felt-700/10 text-felt-700">
+              <Spline size={16} aria-hidden="true" />
             </span>
             <span className="min-w-0 flex-1">
               <span className="block font-semibold text-slate-950">Line Visualizer</span>
-              <span className="block text-sm text-slate-500">Sketch a line on the lane</span>
+              <span className="block text-xs text-slate-500">Sketch a line on the lane</span>
             </span>
-            <ChevronRight size={18} aria-hidden="true" className="shrink-0 text-slate-400" />
+            <ChevronRight size={16} aria-hidden="true" className="shrink-0 text-slate-400" />
           </button>
         </li>
         <li>
@@ -153,14 +153,14 @@ export function SettingsView({ section, onSectionChange, handedness, onHandednes
             href={FEEDBACK_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex w-full items-center gap-3 rounded-lg border border-slate-200 bg-white p-4 text-left shadow-sm hover:border-felt-700"
+            className="flex w-full items-center gap-3 rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-left shadow-sm hover:border-felt-700"
           >
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-felt-700/10 text-felt-700">
-              <MessageSquare size={20} aria-hidden="true" />
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-felt-700/10 text-felt-700">
+              <MessageSquare size={16} aria-hidden="true" />
             </span>
             <span className="min-w-0 flex-1">
               <span className="block font-semibold text-slate-950">Send feedback</span>
-              <span className="block text-sm text-slate-500">Report a bug or share an idea</span>
+              <span className="block text-xs text-slate-500">Report a bug or share an idea</span>
             </span>
           </a>
         </li>
@@ -169,14 +169,14 @@ export function SettingsView({ section, onSectionChange, handedness, onHandednes
             href={DONATE_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex w-full items-center gap-3 rounded-lg border border-slate-200 bg-white p-4 text-left shadow-sm hover:border-felt-700"
+            className="flex w-full items-center gap-3 rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-left shadow-sm hover:border-felt-700"
           >
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-felt-700/10 text-felt-700">
-              <Coffee size={20} aria-hidden="true" />
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-felt-700/10 text-felt-700">
+              <Coffee size={16} aria-hidden="true" />
             </span>
             <span className="min-w-0 flex-1">
               <span className="block font-semibold text-slate-950">Buy me a coffee</span>
-              <span className="block text-sm text-slate-500">Support the app's development</span>
+              <span className="block text-xs text-slate-500">Support the app's development</span>
             </span>
           </a>
         </li>
