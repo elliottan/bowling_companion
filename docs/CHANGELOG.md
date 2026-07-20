@@ -2,6 +2,57 @@
 
 User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachangelog.com).
 
+## [Unreleased] — resume + catalog-restore fixes (2026-07-20)
+
+### Fixed
+
+- **Leaving the Active tab mid-frame no longer loses the second ball.**
+  Re-opening the scorer with a frame that had only its first (non-strike)
+  shot recorded resumed at the *next* frame, leaving the second ball
+  unenterable. It now resumes at ball 2 with the correct standing pins —
+  including games already stuck in that state.
+- **The ball catalog repopulates after a backup restore.** Restoring a
+  backup carried over the catalog version marker without the catalog data,
+  so sync considered itself up to date and the catalog stayed empty. Sync
+  now re-downloads whenever the local catalog table is empty.
+
+## [Unreleased] — UI/UX audit pass (2026-07-20)
+
+### Changed
+
+- Settings is grouped under "Bowling", "Data & safety", and "Support"
+  headings, and the Backup & Restore row now shows the last backup date
+  (or "Never backed up").
+- Dashboard/History session cards: the alley name wraps instead of
+  truncating, the games · average line is larger, and the ACTIVE badge now
+  means "has an unfinished game" rather than "last opened".
+- Ball catalog: active filters show as removable chips under the search bar
+  while the filter panel is closed.
+- Stats: spare/split leaves are sorted by attempts, with under-sampled
+  leaves grouped in a dimmed "Rare leaves" section.
+- Score entry: section labels bumped from 10px to 12px for alley
+  readability; the notes box starts at two rows and grows with content.
+
+### Fixed
+
+- The "Game lanes" dialog no longer re-opens on every return to the Active
+  tab — it auto-opens at most once per game, before any shots are bowled.
+- Screen-reader labels added to the settings rows, home shortcut cards, and
+  session cards, which previously announced as unnamed buttons.
+
+## [Unreleased] — iOS rotation viewport recovery (2026-07-19)
+
+### Fixed
+
+- **The mobile tab bar no longer leaves a permanent blank strip below itself
+  — after rotating back to portrait, or after dismissing the on-screen
+  keyboard.** The app shell is now `position: fixed; inset: 0`, so the browser
+  resolves its size against the live viewport on every paint. All JS viewport
+  measurement is gone; iOS has nothing left to report stale. Found by shipping
+  five candidate fixes behind a runtime switch and testing them back to back on
+  a real installed PWA — see `docs/VIEWPORT-BUG.md` for the four earlier
+  attempts that failed and why.
+
 ## [Unreleased] — Settings: feedback + donation links (2026-07-19)
 
 ### Added

@@ -99,67 +99,11 @@ function App() {
     };
   }, []);
 
-  // iOS standalone PWA keeps 100dvh at the pre-rotation height after a
-  // portrait→landscape→portrait round-trip, leaving the nav floating with blank
-  // space below. A single `resize`-triggered read isn't reliable: iOS can skip
-  // `resize` entirely or fire it before innerHeight has settled. Instead, once
-  // orientation changes we poll innerHeight every 100ms until it holds steady
-  // for 3 ticks (or 2s elapses) — recovery no longer depends on catching one
-  // exact event. Never pin a keyboard-shrunk height (the keyboard effect above
-  // hides the nav instead); re-measure once the keyboard closes.
-  useEffect(() => {
-    const isTextField = (el: Element | null) =>
-      !!el && (el.tagName === "TEXTAREA" || el.tagName === "INPUT");
-    let last = "";
-    const apply = () => {
-      if (isTextField(document.activeElement)) return;
-      const h = window.innerHeight;
-      const px = `${h}px`;
-      if (h > 0 && px !== last) {
-        last = px;
-        document.documentElement.style.setProperty("--app-height", px);
-      }
-    };
-    let pollId: ReturnType<typeof setInterval> | null = null;
-    const pollUntilStable = () => {
-      if (pollId != null) clearInterval(pollId);
-      let stableTicks = 0;
-      let lastSeen = window.innerHeight;
-      const started = Date.now();
-      pollId = setInterval(() => {
-        apply();
-        const h = window.innerHeight;
-        stableTicks = h === lastSeen ? stableTicks + 1 : 0;
-        lastSeen = h;
-        if ((stableTicks >= 3 || Date.now() - started > 2000) && pollId != null) {
-          clearInterval(pollId);
-          pollId = null;
-        }
-      }, 100);
-    };
-    const onOrientation = () => {
-      setKeyboardOpen(false);
-      pollUntilStable();
-    };
-    const onFocusOut = () => {
-      setTimeout(apply, 350);
-    };
-    window.addEventListener("orientationchange", onOrientation);
-    window.addEventListener("resize", apply);
-    window.visualViewport?.addEventListener("resize", apply);
-    document.addEventListener("focusout", onFocusOut);
-    document.addEventListener("visibilitychange", apply);
-    window.addEventListener("pageshow", apply);
-    return () => {
-      if (pollId != null) clearInterval(pollId);
-      window.removeEventListener("orientationchange", onOrientation);
-      window.removeEventListener("resize", apply);
-      window.visualViewport?.removeEventListener("resize", apply);
-      document.removeEventListener("focusout", onFocusOut);
-      document.removeEventListener("visibilitychange", apply);
-      window.removeEventListener("pageshow", apply);
-    };
-  }, []);
+  // Rotation recovery lives entirely in CSS: the shell is `fixed inset-0`, so
+  // the browser resolves its box against the live viewport at paint time. No
+  // measured pixel height, no `dvh`, nothing for iOS to hand back stale — which
+  // is what five earlier attempts all foundered on. See `docs/VIEWPORT-BUG.md`
+  // before reintroducing any JS viewport measurement here.
 
   // Best-effort: ask the browser to make our storage persistent so it's
   // less likely to be evicted (Safari especially). Fire-and-forget; the
@@ -321,7 +265,8 @@ function App() {
   return (
     <HandednessContext.Provider value={handedness ?? "right"}>
     <DriftModelContext.Provider value={driftModel}>
-    <div className="flex flex-col overflow-hidden bg-lane-50 pt-[env(safe-area-inset-top)] text-slate-950" style={{ height: "var(--app-height, 100dvh)" }}>
+    {/* `fixed inset-0` is load-bearing, not cosmetic — see the note above. */}
+    <div className="fixed inset-0 flex flex-col overflow-hidden bg-lane-50 pt-[env(safe-area-inset-top)] text-slate-950">
       <header className="hidden shrink-0 border-b border-slate-200 bg-white sm:block">
         <div className="mx-auto flex w-full max-w-5xl items-center justify-between px-3 py-3 sm:px-6">
           {view === "dashboard" ? (

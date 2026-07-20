@@ -1,0 +1,139 @@
+# The iOS standalone rotation-height bug
+
+**RESOLVED — 2026-07-21.** The fix is strategy A: the app shell is
+`position: fixed; inset: 0` and nothing measures the viewport. Confirmed on a
+real installed PWA after five attempts. Everything below is kept as the record
+of what failed and why, so it does not get re-tried.
+
+**If you are about to add JS viewport measurement back into `App.tsx`, read
+this whole file first.** Four separate measurement schemes have already been
+shipped and rejected on the device.
+
+## Symptom
+
+On iPhone, **installed PWA only** (`display: standalone` from the Home Screen —
+NOT reproducible in Safari as a normal tab):
+
+1. Rotate portrait → landscape → portrait.
+2. The app shell ends up **shorter than the screen**. A blank white strip
+   (body background, not `bg-lane-50`) appears below the bottom tab bar, and
+   the whole UI sits pushed up.
+3. It is **permanent** — no further event recovers it. Only a relaunch does.
+
+A closely-related variant was also reported after focusing and dismissing a
+text input (on-screen keyboard); see attempt 3.
+
+## Why standalone-only matters
+
+Standalone has no browser chrome, so there is no URL bar collapse/expand to
+drive the viewport-resize machinery Safari exercises constantly. The working
+theory is that iOS simply **does not re-run the resize/layout pass** for the
+standalone webview on a rotation round-trip, leaving *every* JS-visible metric
+(`innerHeight`, `documentElement.clientHeight`, `visualViewport.height`,
+`100dvh`) reporting the pre-rotation value in agreement with each other. If
+that theory holds, **no measurement strategy can work** — the fix has to stop
+depending on a measured pixel height, or force iOS to relayout.
+
+Unverified. Confirming it is worth more than another guess — a build that
+renders its live metrics on screen would settle it.
+
+## Current architecture (the thing under suspicion)
+
+`src/App.tsx` sets a CSS custom property `--app-height` from JS on a set of
+events, and the shell is `<div style={{ height: "var(--app-height, 100dvh)" }}>`
+with `html, body { height: 100%; overflow: hidden }` in `src/index.css`.
+
+## What has not worked
+
+Each of these shipped to production and was rejected by manual testing on the
+real device.
+
+### 1. `100dvh` alone (original)
+
+Shell sized purely in CSS. **Failed:** `dvh` resolves stale after the rotation
+round-trip in standalone. This is what started the whole saga.
+
+### 2. Poll `window.innerHeight` until stable
+
+On `orientationchange`, poll every 100ms; stop after the value repeats for 3
+ticks or 2s elapses. **Failed:** a stale reading is *perfectly stable*, so the
+poll confidently latched the wrong (landscape) height and stopped. "Stopped
+changing" is not evidence of "settled".
+
+### 3. Read `visualViewport.height` instead of `innerHeight`
+
+**Failed, and regressed the keyboard case.** `visualViewport.height` shrinks to
+the keyboard-free strip when the on-screen keyboard opens, so the re-measure
+scheduled after `focusout` landed mid-animation and pinned a keyboard-shrunk
+height. Rotation was not fixed either.
+
+Do not size the shell from `visualViewport.height`.
+
+### 4. `documentElement.clientHeight` + orientation cross-check
+
+Measure the layout viewport (keyboard-immune), and reject any sample whose
+aspect ratio contradicts `matchMedia("(orientation: portrait)")`, so a stale
+landscape box can no longer be latched while portrait. Poll the full window
+with no early exit. Also measure on mount.
+
+**Failed on rotation** (it did fix the keyboard variant). Strongly suggests
+`matchMedia` orientation goes stale *in agreement with* the metrics in
+standalone — i.e. the cross-check has nothing to catch, which is the evidence
+behind the theory above.
+
+## The five-way bake-off (attempt 5) — how A was found
+
+Testing one candidate per deploy was too slow when each round costs a deploy, a
+reinstall and a rotation. So all five shipped in a single build behind a
+runtime switch with a live metrics overlay, and were tested back to back on one
+Home Screen install. **A passed. B, C, D and E all failed.**
+
+| # | Strategy | Measures? | Result |
+|---|---|---|---|
+| **A** | Shell `position: fixed; inset: 0` | No | ✅ **PASS — this is the fix** |
+| **B** | No sized shell; document flows, nav `position: fixed` | No | ❌ failed |
+| **C** | Height from `window.screen` | Yes | ❌ failed |
+| **D** | Keep `100dvh`, force a relayout on rotation | No | ❌ failed |
+| **E** | `ResizeObserver` driving `--app-height` | Yes | ❌ failed |
+
+### Why this result is informative
+
+C and E failing alongside the four earlier attempts closes the door on
+measurement: reading the layout viewport, the visual viewport, the screen, and
+observing layout directly have now *all* been tried and all lost.
+
+D failing says the stale value is not a missing-relayout problem — forcing the
+reflow did not shake it loose.
+
+The interesting pair is **A passing while B failed**. Both avoid measuring, so
+"don't consume a viewport height" was not sufficient on its own. What separates
+them is that A's box is resolved by the compositor against the live viewport
+every paint, whereas B still depends on the document/`<html>` box being correct
+— and that box is exactly what iOS gets wrong. The lesson is narrower than
+"avoid measuring": **anything downstream of the stale layout viewport is
+poisoned, including pure-CSS percentage and flow layouts. Only `position: fixed`
+escapes it.**
+
+### The harness
+
+Removed once A was confirmed (`viewportStrategy.ts`, `ViewportLab.tsx`, the
+`[data-vp]` CSS block, and the strategy effect in `App.tsx`). Recoverable from
+git history if another round is ever needed — the overlay reporting `gap`,
+`client`, `innerHeight`, `visualVP`, `100dvh` and `screen` side by side is what
+made a five-way comparison practical.
+
+### Never tried (unnecessary now)
+
+- `-webkit-fill-available`.
+- Remount/re-key the shell after rotation.
+- Locking orientation in the manifest (sidesteps rather than fixes).
+
+## Testing notes
+
+- **Must be tested as an installed PWA.** Safari-tab testing proves nothing —
+  the bug does not reproduce there, so a green Safari result is not a pass.
+- Desktop browser automation cannot reproduce it either; the preview pane
+  resizes via CDP, which does not even fire `resize`.
+- Reinstall from the Home Screen after each deploy, and confirm the service
+  worker actually updated — a stale SW will happily serve the old build and
+  look like a failed fix.
