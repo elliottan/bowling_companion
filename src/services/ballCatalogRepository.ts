@@ -36,7 +36,8 @@ export async function syncCatalog(onState?: (state: SyncState) => void): Promise
   }
 
   const storedVersion = await getStoredCatalogVersion();
-  if (storedVersion !== null && storedVersion >= manifest.version) {
+  const localCount = await db.ball_catalog.count();
+  if (storedVersion !== null && storedVersion >= manifest.version && localCount > 0) {
     onState?.({ status: "done", version: manifest.version, generatedAt: manifest.generatedAt });
     return;
   }

@@ -166,6 +166,41 @@ describe("syncCatalog", () => {
     expect(all[0].id).toBe("storm-nova-2024");
   });
 
+  it("downloads and populates when stored version equals manifest version but the catalog table is empty (post-restore)", async () => {
+    // Backup restore brought back catalog_version = 5 but the ball_catalog
+    // table itself is not part of backups, so it's empty on this device.
+    await db.settings.put({ key: "catalog_version", value: "5" });
+
+    const fetchMock = vi.fn((url: string) => {
+      if (url.includes("catalog-manifest.json")) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve(makeManifest(5))
+        });
+      }
+      return Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve([makeBall("storm-nova-2024")])
+      });
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const states: string[] = [];
+    await syncCatalog((s) => states.push(s.status));
+
+    // catalog.json must have been fetched despite version matching
+    const catalogFetches = fetchMock.mock.calls.filter(
+      ([url]) => typeof url === "string" && url.includes("catalog.json") && !url.includes("manifest")
+    );
+    expect(catalogFetches).toHaveLength(1);
+
+    const all = await getAllCatalog();
+    expect(all).toHaveLength(1);
+    expect(all[0].id).toBe("storm-nova-2024");
+
+    expect(states).toEqual(["syncing", "done"]);
+  });
+
   it("persists catalog_version after a successful sync", async () => {
     vi.stubGlobal(
       "fetch",
