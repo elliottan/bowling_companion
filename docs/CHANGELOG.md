@@ -2,6 +2,17 @@
 
 User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachangelog.com).
 
+## [Unreleased] — completed games open view-only (2026-07-21)
+
+### Changed
+
+- **A completed game opens view-only.** Its pin deck, ball, line, and notes
+  fields are inert until you tap **Edit** on the slim bar above the deck —
+  a stray pin tap can no longer silently rewrite a recorded shot (there is
+  no undo). **Done**, switching games, or leaving the session re-locks it.
+  Tapping through the scorecard to review shots stays available while
+  locked. Games in progress are unaffected.
+
 ## [Unreleased] — resume + catalog-restore fixes (2026-07-20)
 
 ### Fixed

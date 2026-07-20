@@ -408,6 +408,7 @@ function ShotDetailBar({
         label="Actual"
         value={actual}
         onChange={onActualChange}
+        readOnly={readOnly}
         onFieldFocus={() => {
           if (!actual && intended) onActualChange({ ...intended });
         }}
@@ -417,6 +418,7 @@ function ShotDetailBar({
         <span className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-400">Notes</span>
         <textarea
           value={notes}
+          disabled={readOnly}
           onChange={(e) => onNotesChange(e.target.value)}
           onBlur={() => {
             const trimmed = notes.trim();
@@ -424,7 +426,7 @@ function ShotDetailBar({
           }}
           rows={2}
           placeholder="This shot…"
-          className="w-full resize-none rounded-md border border-slate-300 px-2 py-1.5 text-xs focus:border-felt-700 focus:outline-none"
+          className="w-full resize-none rounded-md border border-slate-300 px-2 py-1.5 text-xs focus:border-felt-700 focus:outline-none disabled:bg-slate-50 disabled:text-slate-600"
           onInput={(e) => {
             // Auto-grow with content so long notes stay visible without a
             // fixed six-row block dominating the panel.
@@ -520,6 +522,10 @@ export function ActiveGameScorer({
   // dismissible banner so the line can be captured in the moment.
   const [pendingSpareLeave, setPendingSpareLeave] = useState<{ pins: PinNumber[]; notes?: string } | null>(null);
   const [showSpareLineDialog, setShowSpareLineDialog] = useState(false);
+  // A finished game opens view-only so a stray pin tap can't silently rewrite a
+  // recorded shot (there is no undo). Edit arms it; Done — or moving to another
+  // game — re-locks.
+  const [unlocked, setUnlocked] = useState(false);
 
   const gameScore = useMemo(() => calculateGameScore(gameState.frames), [gameState.frames]);
   const lanesList = game?.lanes ?? (game?.lane_number ? [game.lane_number] : []);
@@ -531,6 +537,7 @@ export function ActiveGameScorer({
     : null;
   const recordedShot = recordedFrame && selectedShot ? recordedFrame.shots[selectedShot.shotIndex] ?? null : null;
   const isEditing = Boolean(recordedShot);
+  const locked = gameState.isComplete && !unlocked;
 
   // Label for the primary button: "Strike" on a fresh rack (first ball or a
   // 10th-frame bonus ball), "Spare" when shooting at a leave. While editing,
@@ -547,6 +554,7 @@ export function ActiveGameScorer({
     setGameState(hydrateFrameController(initialFrames));
     setErrorMessage("");
     setSelectedShot(null);
+    setUnlocked(false);
     lastDefaultedShot.current = null;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gameKey]);
@@ -676,7 +684,7 @@ export function ActiveGameScorer({
 
   // Edit a recorded shot's metadata only — no cascade, other shots untouched.
   function handleEditMeta(meta: ShotMetadata) {
-    if (!selectedShot) return;
+    if (!selectedShot || locked) return;
     const { frameNumber, shotIndex } = selectedShot;
     const frames = editFrameShotMeta(gameState.frames, frameNumber, shotIndex, meta);
     setGameState((s) => ({ ...s, frames }));
@@ -686,7 +694,7 @@ export function ActiveGameScorer({
 
   // Edit a recorded shot's pins — re-derive the frame, rescore, persist.
   function handleEditPins(pins: PinNumber[]) {
-    if (!selectedShot) return;
+    if (!selectedShot || locked) return;
     const { frameNumber } = selectedShot;
     const frames = editFrameShotPins(gameState.frames, frameNumber, selectedShot.shotIndex, pins);
     setGameState(hydrateFrameController(frames));
@@ -874,10 +882,40 @@ export function ActiveGameScorer({
       {/* Pin deck (left) + shot details (right), side-by-side on every width. */}
       <div className="mt-4 grid grid-cols-2 items-start gap-3 lg:grid-cols-[minmax(0,360px)_1fr]">
         <div className="space-y-2">
-          {(onEditLanes || lanesList.length > 0) && (
+          {/* Lock bar — only on a finished game. The row swapping between the
+              two states is the whole signal: nothing else on screen moves. */}
+          {gameState.isComplete && (
+            <div
+              className={`flex items-center justify-between gap-2 rounded-lg border px-2.5 py-1.5 ${
+                locked ? "border-slate-200 bg-slate-50" : "border-felt-700 bg-felt-50"
+              }`}
+            >
+              <span
+                className={`flex min-w-0 items-center gap-1.5 text-xs font-semibold ${
+                  locked ? "text-slate-400" : "text-felt-700"
+                }`}
+              >
+                {locked ? <Lock size={13} aria-hidden="true" /> : <Pencil size={13} aria-hidden="true" />}
+                <span className="truncate">{locked ? "Viewing" : "Editing"}</span>
+              </span>
+              <button
+                type="button"
+                onClick={() => setUnlocked((u) => !u)}
+                className={`inline-flex h-7 shrink-0 items-center rounded-md px-2.5 text-xs font-bold ${
+                  locked
+                    ? "border border-slate-300 bg-white text-slate-700 hover:bg-slate-50"
+                    : "bg-felt-700 text-white hover:bg-felt-500"
+                }`}
+              >
+                {locked ? "Edit" : "Done"}
+              </button>
+            </div>
+          )}
+
+          {((onEditLanes && !locked) || lanesList.length > 0) && (
             <div className="flex items-center justify-between rounded-lg border border-slate-200 bg-white px-2.5 py-1.5">
               <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">Lane</span>
-              {onEditLanes ? (
+              {onEditLanes && !locked ? (
                 <button type="button" onClick={onEditLanes} aria-label="Edit game lanes" className="inline-flex items-center gap-1">
                   {lanesList.length > 0 ? (
                     lanesList.map((l) => (
@@ -908,6 +946,7 @@ export function ActiveGameScorer({
                 : gameState.availablePins
             }
             onChange={isEditing ? handleEditPins : updateStandingPins}
+            readOnly={locked}
             size="sm"
           />
 
@@ -973,6 +1012,7 @@ export function ActiveGameScorer({
           onActualChange={isEditing ? (l) => handleEditMeta({ actual: l }) : setActualLine}
           notes={isEditing && recordedShot ? recordedShot.notes ?? "" : shotNotes}
           spareLeave={shownLeave}
+          readOnly={locked}
           onNotesChange={
             // Store raw while typing (keeps internal/trailing spaces); the
             // textarea's onBlur trims on save. Trimming per-keystroke here made
