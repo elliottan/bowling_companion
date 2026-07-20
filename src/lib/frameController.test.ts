@@ -164,6 +164,35 @@ describe("frameController", () => {
     expect(hydrated.standingPins).toEqual([]); // shot 2 resumes all-down
   });
 
+  it("hydrates a non-10th frame with only shot 1 recorded to currentShot 2 (resume mid-frame)", () => {
+    // Regression: frame 1 strike, frame 2 shot 1 = 9 pins (pin 7 left standing),
+    // shot 2 not yet thrown. Resuming should NOT skip to frame 3.
+    const frames: Frame[] = [
+      {
+        game_id: 1,
+        frame_number: 1,
+        shots: [{ pins_standing: [] }],
+        is_strike: true,
+        is_spare: false
+      },
+      {
+        game_id: 1,
+        frame_number: 2,
+        shots: [{ pins_standing: [7] }],
+        is_strike: false,
+        is_spare: false
+      }
+    ];
+
+    const hydrated = hydrateFrameController(frames);
+
+    expect(hydrated.isComplete).toBe(false);
+    expect(hydrated.currentFrameNumber).toBe(2);
+    expect(hydrated.currentShot).toBe(2);
+    expect(hydrated.standingPins).toEqual([7]);
+    expect(hydrated.availablePins).toEqual([7]);
+  });
+
   it("hydrates a finished 10th-frame open as complete", () => {
     const frames: Frame[] = [
       ...Array.from<unknown, Frame>({ length: 9 }, (_, idx) => ({

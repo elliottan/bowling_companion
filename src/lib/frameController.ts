@@ -397,8 +397,25 @@ export function hydrateFrameController(frames: Frame[]): FrameControllerState {
   const ordered = [...frames].sort((a, b) => a.frame_number - b.frame_number);
   const last = ordered[ordered.length - 1];
 
-  // Non-10th: a saved frame is complete; move to next.
+  // Non-10th: only advance to the next frame once this one is actually
+  // complete (a first-ball strike, or both shots recorded). A frame with
+  // just shot 1 recorded (non-strike) is still awaiting shot 2 — resume there.
   if (last.frame_number < 10) {
+    const shotOne = last.shots[0];
+    const frameComplete =
+      !!shotOne && (knockedDownCount(shotOne.pins_standing) === 10 || !!last.shots[1]);
+
+    if (shotOne && !frameComplete) {
+      return {
+        ...createInitialFrameControllerState(),
+        frames: ordered,
+        currentFrameNumber: last.frame_number,
+        currentShot: 2,
+        availablePins: shotOne.pins_standing,
+        standingPins: shotOne.pins_standing // shot 2 resumes pins-up
+      };
+    }
+
     return {
       ...createInitialFrameControllerState(),
       frames: ordered,
