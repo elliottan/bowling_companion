@@ -44,47 +44,76 @@ function tapPin(pin: number) {
   fireEvent.pointerUp(button);
 }
 
-describe("ActiveGameScorer completed-game lock", () => {
+const prompt = () => screen.queryByText("Edit this completed game?");
+const confirmEdit = () => fireEvent.click(screen.getByRole("button", { name: "Edit" }));
+const cancelEdit = () => fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
+
+describe("ActiveGameScorer completed-game edit prompt", () => {
   beforeEach(() => vi.clearAllMocks());
 
-  it("opens a completed game view-only and ignores pin taps", () => {
+  it("prompts instead of applying a pin tap on a completed game", () => {
     const onFrameComplete = vi.fn();
     render(
       <ActiveGameScorer gameKey={1} initialFrames={perfectGame()} onFrameComplete={onFrameComplete} />
     );
 
-    expect(screen.getByText("Viewing")).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Edit" })).toBeTruthy();
-
+    expect(prompt()).toBeNull();
     tapPin(1);
+
+    expect(prompt()).not.toBeNull();
     expect(onFrameComplete).not.toHaveBeenCalled();
   });
 
-  it("accepts pin edits after Edit is pressed", () => {
+  it("edits freely after confirming", () => {
     const onFrameComplete = vi.fn();
     render(
       <ActiveGameScorer gameKey={1} initialFrames={perfectGame()} onFrameComplete={onFrameComplete} />
     );
 
-    fireEvent.click(screen.getByRole("button", { name: "Edit" }));
-    expect(screen.getByText("Editing")).toBeTruthy();
+    tapPin(1);
+    confirmEdit();
+    expect(prompt()).toBeNull();
 
     tapPin(1);
     expect(onFrameComplete).toHaveBeenCalled();
+
+    // Still unlocked — a second edit does not re-prompt.
+    tapPin(2);
+    expect(prompt()).toBeNull();
   });
 
-  it("re-locks when the game changes", () => {
+  it("re-prompts on the next attempt after cancelling, and writes nothing", () => {
+    const onFrameComplete = vi.fn();
+    render(
+      <ActiveGameScorer gameKey={1} initialFrames={perfectGame()} onFrameComplete={onFrameComplete} />
+    );
+
+    tapPin(1);
+    cancelEdit();
+    expect(prompt()).toBeNull();
+    expect(onFrameComplete).not.toHaveBeenCalled();
+
+    tapPin(1);
+    expect(prompt()).not.toBeNull();
+    expect(onFrameComplete).not.toHaveBeenCalled();
+  });
+
+  it("re-locks when the game changes, even after an earlier confirm", () => {
     const frames = perfectGame();
     const { rerender } = render(<ActiveGameScorer gameKey={1} initialFrames={frames} />);
 
-    fireEvent.click(screen.getByRole("button", { name: "Edit" }));
-    expect(screen.getByText("Editing")).toBeTruthy();
+    tapPin(1);
+    confirmEdit();
 
+    // Away to another game and back.
     rerender(<ActiveGameScorer gameKey={2} initialFrames={frames} />);
-    expect(screen.getByText("Viewing")).toBeTruthy();
+    rerender(<ActiveGameScorer gameKey={1} initialFrames={frames} />);
+
+    tapPin(1);
+    expect(prompt()).not.toBeNull();
   });
 
-  it("leaves an in-progress game unlocked with no lock bar", () => {
+  it("never prompts on a game still in progress", () => {
     const onFrameComplete = vi.fn();
     render(
       <ActiveGameScorer
@@ -94,7 +123,7 @@ describe("ActiveGameScorer completed-game lock", () => {
       />
     );
 
-    expect(screen.queryByText("Viewing")).toBeNull();
-    expect(screen.queryByRole("button", { name: "Edit" })).toBeNull();
+    tapPin(1);
+    expect(prompt()).toBeNull();
   });
 });

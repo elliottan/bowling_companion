@@ -1,4 +1,4 @@
-import { Eye, Lock, Pencil, Plus, SlidersHorizontal, X } from "lucide-react";
+import { Eye, Plus, SlidersHorizontal, X } from "lucide-react";
 import type { PointerEvent as ReactPointerEvent } from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -18,6 +18,7 @@ import { derivedApexForDisplay } from "../lib/laneGeometry";
 import { freshRackSeedShot, laneForFrame } from "../lib/lanes";
 import { getBalls, getSpareLineByPins } from "../services/ballRepository";
 import type { Ball, Frame, Game, LineSpec, PinNumber, ShotMetadata } from "../types/bowling";
+import { ConfirmDialog } from "./ConfirmDialog";
 import { LaneVisualizer } from "./LaneVisualizer";
 import { PinGrid } from "./PinGrid";
 import { Scorecard } from "./Scorecard";
@@ -42,8 +43,9 @@ interface LineInputProps {
   derivedBreakpoint?: { board: number; feet: number } | null;
   /** Tap on the laydown or breakpoint chip — opens the lane visualizer. */
   onLaydownTap?: () => void;
-  /** Inert: board inputs are disabled and the adjuster rows never open. */
-  readOnly?: boolean;
+  /** Veto hook for a locked (completed) game: return false to drop the edit
+   *  before any local text state moves, so the fields never drift from `value`. */
+  onEditAttempt?: () => boolean;
 }
 
 const LINE_FIELDS = ["stance", "target"] as const;
@@ -92,7 +94,7 @@ function LineInput({
   derivedLaydown,
   derivedBreakpoint,
   onLaydownTap,
-  readOnly = false
+  onEditAttempt
 }: LineInputProps) {
   const handedness = useHandedness();
   // Board numbers rise to the left for a right-hander, to the right for a
@@ -125,6 +127,7 @@ function LineInput({
   // real breakpoint distance + arrow distance), derive the third by drawing the
   // straight line, so the user can fix a breakpoint+target and read the laydown.
   function applyValues(updates: Partial<Record<BoardField, number | undefined>>) {
+    if (onEditAttempt && !onEditAttempt()) return;
     const next: LineSpec = { ...value };
     for (const k of Object.keys(updates) as (BoardField)[]) {
       const v = updates[k];
@@ -143,6 +146,7 @@ function LineInput({
   }
 
   function update(field: BoardField, raw: string) {
+    if (onEditAttempt && !onEditAttempt()) return;
     const s = sanitizeLine(raw);
     setText((t) => ({ ...t, [field]: s }));
     const v = parseOneDp(s);
@@ -186,12 +190,11 @@ function LineInput({
             type="text"
             inputMode="decimal"
             value={text[field]}
-            disabled={readOnly}
             onChange={(e) => update(field, e.target.value)}
             onFocus={() => { onFieldFocus?.(); setFocused(field); }}
             onBlur={() => setFocused((f) => (f === field ? null : f))}
             placeholder={["S", "T"][i]}
-            className="h-9 w-full min-w-0 rounded-md border border-slate-300 px-1 text-center text-xs focus:border-felt-700 focus:outline-none disabled:bg-slate-50 disabled:text-slate-600"
+            className="h-9 w-full min-w-0 rounded-md border border-slate-300 px-1 text-center text-xs focus:border-felt-700 focus:outline-none"
             title={["Stance board", "Target board (arrows)"][i]}
           />
         ))}
@@ -279,13 +282,12 @@ interface ShotDetailBarProps {
   onOpenArsenal?: () => void;
   /** Standing leave the shot faces (spare attempt) — undefined on a fresh rack. */
   spareLeave?: PinNumber[];
-  /** Completed game not yet unlocked for editing — fields are inert. */
-  readOnly?: boolean;
+  /** Veto hook for a locked (completed) game — see LineInputProps. */
+  onEditAttempt?: () => boolean;
 }
 
-// Fields are editable unless the game is locked (completed, not unlocked);
-// remounting (via `key`) per selected shot resets local line text to that
-// shot's stored values.
+// Every field is always editable; remounting (via `key`) per selected shot
+// resets local line text to that shot's stored values.
 function ShotDetailBar({
   balls,
   ballId,
@@ -298,7 +300,7 @@ function ShotDetailBar({
   onNotesChange,
   onOpenArsenal,
   spareLeave,
-  readOnly = false
+  onEditAttempt
 }: ShotDetailBarProps) {
   const [showViz, setShowViz] = useState(false);
   const driftModel = useDriftModel();
@@ -317,6 +319,9 @@ function ShotDetailBar({
   // just edited (typed stance here, or dragged laydown in the visualizer)
   // drives the other. Only reacts to user edits routed through this handler —
   // carry-forward/prefill paths set intendedLine directly and skip it.
+  // No guard here: every caller is already gated — the LineInput vets its own
+  // edits, and the visualizer routes user drags through its onEditAttempt (its
+  // auto-seed effects call onChange directly and must NOT raise the prompt).
   function handleIntendedChange(next: LineSpec | undefined) {
     if (!next) { onIntendedChange(next); return; }
     const merged = { ...next };
@@ -336,9 +341,11 @@ function ShotDetailBar({
           <div className="flex items-center gap-1.5">
             <select
               value={ballId ?? ""}
-              disabled={readOnly}
-              onChange={(e) => onBallChange(e.target.value ? Number(e.target.value) : undefined)}
-              className="h-9 min-w-0 flex-1 rounded-md border border-slate-300 bg-white px-2 text-xs font-medium text-slate-700 focus:border-felt-700 focus:outline-none disabled:bg-slate-50 disabled:text-slate-600"
+              onChange={(e) => {
+                if (onEditAttempt && !onEditAttempt()) return;
+                onBallChange(e.target.value ? Number(e.target.value) : undefined);
+              }}
+              className="h-9 min-w-0 flex-1 rounded-md border border-slate-300 bg-white px-2 text-xs font-medium text-slate-700 focus:border-felt-700 focus:outline-none"
             >
               <option value="">No ball</option>
               {balls.map((b) => (
@@ -376,7 +383,7 @@ function ShotDetailBar({
         value={intended}
         onChange={handleIntendedChange}
         showPresets
-        readOnly={readOnly}
+        onEditAttempt={onEditAttempt}
         derivedLaydown={derivedLaydown}
         derivedBreakpoint={derivedBreakpoint}
         onLaydownTap={() => setShowViz(true)}
@@ -394,8 +401,8 @@ function ShotDetailBar({
         <LaneVisualizer
           title="Intended line"
           line={intended}
-          // Locked game: the visualizer opens for viewing but drag-to-edit is off.
-          onChange={readOnly ? undefined : handleIntendedChange}
+          onChange={handleIntendedChange}
+          onEditAttempt={onEditAttempt}
           spare={!!spareLeave?.length}
           leave={spareLeave}
           onClose={() => setShowViz(false)}
@@ -408,9 +415,12 @@ function ShotDetailBar({
         label="Actual"
         value={actual}
         onChange={onActualChange}
-        readOnly={readOnly}
+        onEditAttempt={onEditAttempt}
         onFieldFocus={() => {
-          if (!actual && intended) onActualChange({ ...intended });
+          if (!actual && intended) {
+            if (onEditAttempt && !onEditAttempt()) return;
+            onActualChange({ ...intended });
+          }
         }}
       />
 
@@ -418,15 +428,17 @@ function ShotDetailBar({
         <span className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-400">Notes</span>
         <textarea
           value={notes}
-          disabled={readOnly}
-          onChange={(e) => onNotesChange(e.target.value)}
+          onChange={(e) => {
+            if (onEditAttempt && !onEditAttempt()) return;
+            onNotesChange(e.target.value);
+          }}
           onBlur={() => {
             const trimmed = notes.trim();
             if (trimmed !== notes) onNotesChange(trimmed);
           }}
           rows={2}
           placeholder="This shot…"
-          className="w-full resize-none rounded-md border border-slate-300 px-2 py-1.5 text-xs focus:border-felt-700 focus:outline-none disabled:bg-slate-50 disabled:text-slate-600"
+          className="w-full resize-none rounded-md border border-slate-300 px-2 py-1.5 text-xs focus:border-felt-700 focus:outline-none"
           onInput={(e) => {
             // Auto-grow with content so long notes stay visible without a
             // fixed six-row block dominating the panel.
@@ -522,10 +534,13 @@ export function ActiveGameScorer({
   // dismissible banner so the line can be captured in the moment.
   const [pendingSpareLeave, setPendingSpareLeave] = useState<{ pins: PinNumber[]; notes?: string } | null>(null);
   const [showSpareLineDialog, setShowSpareLineDialog] = useState(false);
-  // A finished game opens view-only so a stray pin tap can't silently rewrite a
-  // recorded shot (there is no undo). Edit arms it; Done — or moving to another
-  // game — re-locks.
+  // A finished game is locked: the first edit attempt raises a confirm prompt
+  // instead of applying, so a stray pin tap can't silently rewrite a recorded
+  // shot (there is no undo). Confirming unlocks the rest of the visit;
+  // cancelling leaves it locked so the next attempt asks again. Moving to
+  // another game (gameKey) re-locks.
   const [unlocked, setUnlocked] = useState(false);
+  const [showEditPrompt, setShowEditPrompt] = useState(false);
 
   const gameScore = useMemo(() => calculateGameScore(gameState.frames), [gameState.frames]);
   const lanesList = game?.lanes ?? (game?.lane_number ? [game.lane_number] : []);
@@ -538,6 +553,14 @@ export function ActiveGameScorer({
   const recordedShot = recordedFrame && selectedShot ? recordedFrame.shots[selectedShot.shotIndex] ?? null : null;
   const isEditing = Boolean(recordedShot);
   const locked = gameState.isComplete && !unlocked;
+
+  /** Gate every user edit on a completed game. Returns false (and raises the
+   *  prompt) while locked; the caller must drop the edit. */
+  function requestEdit(): boolean {
+    if (!locked) return true;
+    setShowEditPrompt(true);
+    return false;
+  }
 
   // Label for the primary button: "Strike" on a fresh rack (first ball or a
   // 10th-frame bonus ball), "Spare" when shooting at a leave. While editing,
@@ -555,6 +578,7 @@ export function ActiveGameScorer({
     setErrorMessage("");
     setSelectedShot(null);
     setUnlocked(false);
+    setShowEditPrompt(false);
     lastDefaultedShot.current = null;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gameKey]);
@@ -882,41 +906,16 @@ export function ActiveGameScorer({
       {/* Pin deck (left) + shot details (right), side-by-side on every width. */}
       <div className="mt-4 grid grid-cols-2 items-start gap-3 lg:grid-cols-[minmax(0,360px)_1fr]">
         <div className="space-y-2">
-          {/* Lock bar — only on a finished game. The row swapping between the
-              two states is the whole signal: nothing else on screen moves. */}
-          {gameState.isComplete && (
-            <div
-              className={`flex items-center justify-between gap-2 rounded-lg border px-2.5 py-1.5 ${
-                locked ? "border-slate-200 bg-slate-50" : "border-felt-700 bg-felt-50"
-              }`}
-            >
-              <span
-                className={`flex min-w-0 items-center gap-1.5 text-xs font-semibold ${
-                  locked ? "text-slate-400" : "text-felt-700"
-                }`}
-              >
-                {locked ? <Lock size={13} aria-hidden="true" /> : <Pencil size={13} aria-hidden="true" />}
-                <span className="truncate">{locked ? "Viewing" : "Editing"}</span>
-              </span>
-              <button
-                type="button"
-                onClick={() => setUnlocked((u) => !u)}
-                className={`inline-flex h-7 shrink-0 items-center rounded-md px-2.5 text-xs font-bold ${
-                  locked
-                    ? "border border-slate-300 bg-white text-slate-700 hover:bg-slate-50"
-                    : "bg-felt-700 text-white hover:bg-felt-500"
-                }`}
-              >
-                {locked ? "Edit" : "Done"}
-              </button>
-            </div>
-          )}
-
-          {((onEditLanes && !locked) || lanesList.length > 0) && (
+          {(onEditLanes || lanesList.length > 0) && (
             <div className="flex items-center justify-between rounded-lg border border-slate-200 bg-white px-2.5 py-1.5">
               <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">Lane</span>
-              {onEditLanes && !locked ? (
-                <button type="button" onClick={onEditLanes} aria-label="Edit game lanes" className="inline-flex items-center gap-1">
+              {onEditLanes ? (
+                <button
+                  type="button"
+                  onClick={() => { if (requestEdit()) onEditLanes(); }}
+                  aria-label="Edit game lanes"
+                  className="inline-flex items-center gap-1"
+                >
                   {lanesList.length > 0 ? (
                     lanesList.map((l) => (
                       <span
@@ -945,8 +944,11 @@ export function ActiveGameScorer({
                 ? availableEnteringShot(recordedFrame, selectedShot.shotIndex)
                 : gameState.availablePins
             }
-            onChange={isEditing ? handleEditPins : updateStandingPins}
-            readOnly={locked}
+            onChange={(pins) => {
+              if (!requestEdit()) return;
+              if (isEditing) handleEditPins(pins);
+              else updateStandingPins(pins);
+            }}
             size="sm"
           />
 
@@ -1012,7 +1014,7 @@ export function ActiveGameScorer({
           onActualChange={isEditing ? (l) => handleEditMeta({ actual: l }) : setActualLine}
           notes={isEditing && recordedShot ? recordedShot.notes ?? "" : shotNotes}
           spareLeave={shownLeave}
-          readOnly={locked}
+          onEditAttempt={requestEdit}
           onNotesChange={
             // Store raw while typing (keeps internal/trailing spaces); the
             // textarea's onBlur trims on save. Trimming per-keystroke here made
@@ -1026,6 +1028,18 @@ export function ActiveGameScorer({
       {errorMessage && (
         <p className="mt-3 text-center text-sm font-semibold text-red-600">{errorMessage}</p>
       )}
+
+      <ConfirmDialog
+        open={showEditPrompt}
+        title="Edit this completed game?"
+        message="This game is finished. Changing a recorded shot can't be undone."
+        confirmLabel="Edit"
+        onConfirm={() => {
+          setUnlocked(true);
+          setShowEditPrompt(false);
+        }}
+        onCancel={() => setShowEditPrompt(false)}
+      />
 
       {showSpareLineDialog && pendingSpareLeave && (
         <SpareLineFormDialog

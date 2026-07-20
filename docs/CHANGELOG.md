@@ -2,16 +2,18 @@
 
 User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachangelog.com).
 
-## [Unreleased] — completed games open view-only (2026-07-21)
+## [Unreleased] — completed games confirm before an edit (2026-07-21)
 
 ### Changed
 
-- **A completed game opens view-only.** Its pin deck, ball, line, and notes
-  fields are inert until you tap **Edit** on the slim bar above the deck —
-  a stray pin tap can no longer silently rewrite a recorded shot (there is
-  no undo). **Done**, switching games, or leaving the session re-locks it.
-  Tapping through the scorecard to review shots stays available while
-  locked. Games in progress are unaffected.
+- **Editing a completed game asks first.** The first change you make to a
+  finished game — a pin tap, the ball, a line, notes, the lanes, or a drag
+  in the lane visualizer — is held back and a confirm appears instead, so a
+  stray tap can no longer silently rewrite a recorded shot (there is no
+  undo). Confirm once and the rest of the game edits freely; cancel and the
+  next attempt asks again. Returning to the game (or switching to another
+  and back) asks again. Viewing is untouched: the scorecard, the deck, and
+  the lane visualizer all read normally. Games in progress never ask.
 
 ## [Unreleased] — resume + catalog-restore fixes (2026-07-20)
 

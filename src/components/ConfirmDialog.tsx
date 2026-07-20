@@ -29,9 +29,11 @@ export function ConfirmDialog({
 
   if (!open) return null;
 
+  // z-[80] clears the lane visualizer (z-[70]): a confirm is always the topmost
+  // thing on screen, and the completed-game edit prompt is raised from inside it.
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+      className="fixed inset-0 z-[80] flex items-center justify-center bg-black/40 p-4"
       role="dialog"
       aria-modal="true"
       onClick={onCancel}

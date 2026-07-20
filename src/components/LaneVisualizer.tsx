@@ -51,9 +51,12 @@ interface LaneVisualizerProps {
   /** Spare mode: configurable final depth; hook timing + breakpoint shared with strike (ADR-026). */
   spare?: boolean;
   title?: string;
+  /** Veto hook for a locked (completed) game: return false to drop a user edit.
+   *  Only user drags/taps are gated — the auto-seed effects below bypass it. */
+  onEditAttempt?: () => boolean;
 }
 
-export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, title = "Line" }: LaneVisualizerProps) {
+export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, title = "Line", onEditAttempt }: LaneVisualizerProps) {
   const hand = useHandedness();
   const driftModel = useDriftModel();
   const [deg, setDeg] = useState(BOWLER_DEG);
@@ -91,6 +94,7 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
   /** Apply an edit, re-clamp the line so it stays drawable, and emit. */
   function applyEdit(patch: Partial<LineSpec>) {
     if (!onChange) return;
+    if (onEditAttempt && !onEditAttempt()) return;
     const solved = solveLine({ ...(line ?? {}), ...patch }, hand);
     // Hard lock (ADR-028): an edit whose solved result moves a locked peg stops
     // at the wall — the edit is dropped, nothing twitches.
