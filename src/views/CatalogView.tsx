@@ -383,6 +383,21 @@ function AddFromCatalogDialog({ ball, onConfirm, onCancel, isSaving, error }: Ad
   );
 }
 
+/** Removable active-filter chip shown under the search bar while the filter panel is closed. */
+function FilterChip({ label, onRemove }: { label: string; onRemove: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onRemove}
+      aria-label={`Remove filter: ${label}`}
+      className="inline-flex items-center gap-1 rounded-full border border-felt-700 bg-felt-700/10 px-2.5 py-1 text-xs font-semibold text-felt-700 hover:bg-felt-700/20"
+    >
+      {label}
+      <X size={12} aria-hidden="true" />
+    </button>
+  );
+}
+
 // ---------------------------------------------------------------------------
 // Main CatalogView — renders as fixed full-screen overlay (covers bottom nav)
 // ---------------------------------------------------------------------------
@@ -612,6 +627,50 @@ export function CatalogView({ onBack }: CatalogViewProps) {
             </select>
           </label>
         </div>
+
+        {/* Active-filter chips: visible while the panel is closed so the
+            narrowing state stays legible; tap a chip to remove that filter. */}
+        {!showFilters && activeFilterCount > 0 && (
+          <div className="mb-3 flex flex-wrap gap-1.5">
+            {[...filters.brands].map((brand) => (
+              <FilterChip
+                key={`b-${brand}`}
+                label={brand}
+                onRemove={() => setFilters((f) => ({ ...f, brands: toggleSetValue(f.brands, brand) }))}
+              />
+            ))}
+            {[...filters.coverstockCategories].map((cs) => (
+              <FilterChip
+                key={`c-${cs}`}
+                label={cs}
+                onRemove={() =>
+                  setFilters((f) => ({
+                    ...f,
+                    coverstockCategories: toggleSetValue(f.coverstockCategories, cs)
+                  }))
+                }
+              />
+            ))}
+            {filters.coreType && (
+              <FilterChip
+                label={filters.coreType}
+                onRemove={() => setFilters((f) => ({ ...f, coreType: null }))}
+              />
+            )}
+            {(filters.rgMin > RG_MIN || filters.rgMax < RG_MAX) && (
+              <FilterChip
+                label={`RG ${filters.rgMin.toFixed(2)}–${filters.rgMax.toFixed(2)}`}
+                onRemove={() => setFilters((f) => ({ ...f, rgMin: RG_MIN, rgMax: RG_MAX }))}
+              />
+            )}
+            {(filters.diffMin > DIFF_MIN || filters.diffMax < DIFF_MAX) && (
+              <FilterChip
+                label={`Diff ${filters.diffMin.toFixed(3)}–${filters.diffMax.toFixed(3)}`}
+                onRemove={() => setFilters((f) => ({ ...f, diffMin: DIFF_MIN, diffMax: DIFF_MAX }))}
+              />
+            )}
+          </div>
+        )}
 
         {/* Filters panel */}
         {showFilters && (

@@ -28,6 +28,10 @@ interface ActiveSessionViewProps {
 
 const isPositiveInt = (s: string) => /^\d+$/.test(s.trim());
 
+// Games whose lane prompt has already auto-opened this app run. Module-level
+// so the once-per-game rule survives tab switches (which remount this view).
+const lanePromptedGameIds = new Set<number>();
+
 export function ActiveSessionView({
   sessionId,
   onBack,
@@ -67,11 +71,20 @@ export function ActiveSessionView({
     setLaneError("");
   }, [activeGame?.id, activeGame?.lanes, activeGame?.lane_number, activeGame?.start_lane]);
 
-  // On switching to a game, open the lane editor immediately if its lanes are
-  // not yet set; otherwise keep it collapsed (don't reopen on every lane save).
+  // Auto-open the lane editor at most once per game, and only while the game
+  // has no recorded shots yet. Tab switches remount this view — without the
+  // guards the dialog re-opened on every return while lanes stayed unset.
+  // The inline "Set lanes" row remains the manual entry point after dismissal.
   useEffect(() => {
-    const lanes = activeGame?.lanes ?? (activeGame?.lane_number ? [activeGame.lane_number] : []);
-    setShowLaneEditor(lanes.filter((l) => l && l.trim()).length === 0);
+    if (!activeGame?.id || lanePromptedGameIds.has(activeGame.id)) return;
+    const lanes = activeGame.lanes ?? (activeGame.lane_number ? [activeGame.lane_number] : []);
+    const lanesUnset = lanes.filter((l) => l && l.trim()).length === 0;
+    const frames = (activeGame as Game & { frames: Frame[] }).frames ?? [];
+    const hasShots = frames.some((f) => f.shots.length > 0);
+    if (lanesUnset && !hasShots) {
+      lanePromptedGameIds.add(activeGame.id);
+      setShowLaneEditor(true);
+    }
   }, [activeGame?.id]);
 
   // `side` defaults to current state but the start-lane toggle passes it

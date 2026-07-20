@@ -180,6 +180,7 @@ export function DashboardView({
         <button
           type="button"
           onClick={onOpenCatalog}
+          aria-label="Ball Catalog"
           className="flex flex-col items-start gap-2 rounded-lg border border-slate-200 bg-white p-4 shadow-sm hover:border-felt-700 text-left"
         >
           <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-felt-700/10 text-felt-700">
@@ -193,6 +194,7 @@ export function DashboardView({
         <button
           type="button"
           onClick={onOpenLineVisualizer}
+          aria-label="Line Visualizer"
           className="flex flex-col items-start gap-2 rounded-lg border border-slate-200 bg-white p-4 shadow-sm hover:border-felt-700 text-left"
         >
           <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-felt-700/10 text-felt-700">

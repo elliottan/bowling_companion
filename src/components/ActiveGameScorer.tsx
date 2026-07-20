@@ -1,4 +1,4 @@
-import { Eye, Plus, SlidersHorizontal, X } from "lucide-react";
+import { Eye, Lock, Pencil, Plus, SlidersHorizontal, X } from "lucide-react";
 import type { PointerEvent as ReactPointerEvent } from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -42,6 +42,8 @@ interface LineInputProps {
   derivedBreakpoint?: { board: number; feet: number } | null;
   /** Tap on the laydown or breakpoint chip — opens the lane visualizer. */
   onLaydownTap?: () => void;
+  /** Inert: board inputs are disabled and the adjuster rows never open. */
+  readOnly?: boolean;
 }
 
 const LINE_FIELDS = ["stance", "target"] as const;
@@ -89,7 +91,8 @@ function LineInput({
   onFieldFocus,
   derivedLaydown,
   derivedBreakpoint,
-  onLaydownTap
+  onLaydownTap,
+  readOnly = false
 }: LineInputProps) {
   const handedness = useHandedness();
   // Board numbers rise to the left for a right-hander, to the right for a
@@ -165,7 +168,7 @@ function LineInput({
   // and the tapped half (left vs right of centre) decides the direction. One
   // border, no ugly split. preventDefault keeps the input focused (row open).
   const adjBtn =
-    "relative flex h-8 w-full items-center justify-center rounded-md border border-slate-300 bg-white text-[10px] font-semibold uppercase tracking-wide text-slate-500 hover:bg-slate-50 active:bg-slate-100";
+    "relative flex h-8 w-full items-center justify-center rounded-md border border-slate-300 bg-white text-xs font-semibold uppercase tracking-wide text-slate-500 hover:bg-slate-50 active:bg-slate-100";
   const halfTap =
     (onLeft: () => void, onRight: () => void) => (e: ReactPointerEvent<HTMLButtonElement>) => {
       e.preventDefault();
@@ -175,7 +178,7 @@ function LineInput({
 
   return (
     <div>
-      <span className="mb-1 block text-[10px] font-semibold uppercase tracking-wide text-slate-400">{label}</span>
+      <span className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-400">{label}</span>
       <div className="flex gap-1">
         {LINE_FIELDS.map((field, i) => (
           <input
@@ -183,11 +186,12 @@ function LineInput({
             type="text"
             inputMode="decimal"
             value={text[field]}
+            disabled={readOnly}
             onChange={(e) => update(field, e.target.value)}
             onFocus={() => { onFieldFocus?.(); setFocused(field); }}
             onBlur={() => setFocused((f) => (f === field ? null : f))}
             placeholder={["S", "T"][i]}
-            className="h-9 w-full min-w-0 rounded-md border border-slate-300 px-1 text-center text-xs focus:border-felt-700 focus:outline-none"
+            className="h-9 w-full min-w-0 rounded-md border border-slate-300 px-1 text-center text-xs focus:border-felt-700 focus:outline-none disabled:bg-slate-50 disabled:text-slate-600"
             title={["Stance board", "Target board (arrows)"][i]}
           />
         ))}
@@ -200,7 +204,7 @@ function LineInput({
               type="button"
               onClick={onLaydownTap}
               title="Derived laydown board (stance − offset). Tap to view on the lane."
-              className="inline-flex h-6 items-center gap-1 rounded-full bg-slate-100 px-2 text-[10px] font-semibold uppercase tracking-wide text-slate-500 hover:bg-slate-200"
+              className="inline-flex h-6 items-center gap-1 rounded-full bg-slate-100 px-2 text-xs font-semibold uppercase tracking-wide text-slate-500 hover:bg-slate-200"
             >
               Laydown {derivedLaydown}
             </button>
@@ -210,7 +214,7 @@ function LineInput({
               type="button"
               onClick={onLaydownTap}
               title="Derived breakpoint (the drawn apex). Tap to view or edit on the lane."
-              className="inline-flex h-6 items-center gap-1 rounded-full bg-slate-100 px-2 text-[10px] font-semibold uppercase tracking-wide text-slate-500 hover:bg-slate-200"
+              className="inline-flex h-6 items-center gap-1 rounded-full bg-slate-100 px-2 text-xs font-semibold uppercase tracking-wide text-slate-500 hover:bg-slate-200"
             >
               Bkpt {Math.round(derivedBreakpoint.board * 2) / 2} · {Math.round(derivedBreakpoint.feet)}ft
             </button>
@@ -275,10 +279,13 @@ interface ShotDetailBarProps {
   onOpenArsenal?: () => void;
   /** Standing leave the shot faces (spare attempt) — undefined on a fresh rack. */
   spareLeave?: PinNumber[];
+  /** Completed game not yet unlocked for editing — fields are inert. */
+  readOnly?: boolean;
 }
 
-// Every field is always editable; remounting (via `key`) per selected shot
-// resets local line text to that shot's stored values.
+// Fields are editable unless the game is locked (completed, not unlocked);
+// remounting (via `key`) per selected shot resets local line text to that
+// shot's stored values.
 function ShotDetailBar({
   balls,
   ballId,
@@ -290,7 +297,8 @@ function ShotDetailBar({
   notes,
   onNotesChange,
   onOpenArsenal,
-  spareLeave
+  spareLeave,
+  readOnly = false
 }: ShotDetailBarProps) {
   const [showViz, setShowViz] = useState(false);
   const driftModel = useDriftModel();
@@ -323,13 +331,14 @@ function ShotDetailBar({
   return (
     <div className="flex flex-col gap-2.5 rounded-lg border border-slate-200 bg-white p-2.5">
       <div>
-        <span className="mb-1 block text-[10px] font-semibold uppercase tracking-wide text-slate-400">Ball</span>
+        <span className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-400">Ball</span>
         {balls.length > 0 ? (
           <div className="flex items-center gap-1.5">
             <select
               value={ballId ?? ""}
+              disabled={readOnly}
               onChange={(e) => onBallChange(e.target.value ? Number(e.target.value) : undefined)}
-              className="h-9 min-w-0 flex-1 rounded-md border border-slate-300 bg-white px-2 text-xs font-medium text-slate-700 focus:border-felt-700 focus:outline-none"
+              className="h-9 min-w-0 flex-1 rounded-md border border-slate-300 bg-white px-2 text-xs font-medium text-slate-700 focus:border-felt-700 focus:outline-none disabled:bg-slate-50 disabled:text-slate-600"
             >
               <option value="">No ball</option>
               {balls.map((b) => (
@@ -367,6 +376,7 @@ function ShotDetailBar({
         value={intended}
         onChange={handleIntendedChange}
         showPresets
+        readOnly={readOnly}
         derivedLaydown={derivedLaydown}
         derivedBreakpoint={derivedBreakpoint}
         onLaydownTap={() => setShowViz(true)}
@@ -384,7 +394,8 @@ function ShotDetailBar({
         <LaneVisualizer
           title="Intended line"
           line={intended}
-          onChange={handleIntendedChange}
+          // Locked game: the visualizer opens for viewing but drag-to-edit is off.
+          onChange={readOnly ? undefined : handleIntendedChange}
           spare={!!spareLeave?.length}
           leave={spareLeave}
           onClose={() => setShowViz(false)}
@@ -403,7 +414,7 @@ function ShotDetailBar({
       />
 
       <div>
-        <span className="mb-1 block text-[10px] font-semibold uppercase tracking-wide text-slate-400">Notes</span>
+        <span className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-400">Notes</span>
         <textarea
           value={notes}
           onChange={(e) => onNotesChange(e.target.value)}
@@ -411,9 +422,16 @@ function ShotDetailBar({
             const trimmed = notes.trim();
             if (trimmed !== notes) onNotesChange(trimmed);
           }}
-          rows={6}
+          rows={2}
           placeholder="This shot…"
-          className="w-full rounded-md border border-slate-300 px-2 py-1.5 text-xs focus:border-felt-700 focus:outline-none"
+          className="w-full resize-none rounded-md border border-slate-300 px-2 py-1.5 text-xs focus:border-felt-700 focus:outline-none"
+          onInput={(e) => {
+            // Auto-grow with content so long notes stay visible without a
+            // fixed six-row block dominating the panel.
+            const el = e.currentTarget;
+            el.style.height = "auto";
+            el.style.height = `${el.scrollHeight}px`;
+          }}
         />
       </div>
     </div>
@@ -858,7 +876,7 @@ export function ActiveGameScorer({
         <div className="space-y-2">
           {(onEditLanes || lanesList.length > 0) && (
             <div className="flex items-center justify-between rounded-lg border border-slate-200 bg-white px-2.5 py-1.5">
-              <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">Lane</span>
+              <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">Lane</span>
               {onEditLanes ? (
                 <button type="button" onClick={onEditLanes} aria-label="Edit game lanes" className="inline-flex items-center gap-1">
                   {lanesList.length > 0 ? (

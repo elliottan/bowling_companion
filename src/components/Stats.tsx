@@ -53,7 +53,8 @@ export function Stats({ stats, isLoading = false, leaves, ballUsage }: StatsProp
               <li key={b.ballId} className="flex items-center justify-between py-2 text-sm">
                 <span className="truncate pr-3 font-medium text-slate-700">{b.name}</span>
                 <span className="shrink-0 tabular-nums text-slate-500">
-                  <span className="font-semibold text-slate-900">{b.frames}</span> frames
+                  <span className="font-semibold text-slate-900">{b.frames}</span>{" "}
+                  {b.frames === 1 ? "frame" : "frames"}
                   {" · "}
                   <span className="font-semibold text-slate-900">{b.games}</span>{" "}
                   {b.games === 1 ? "game" : "games"}
@@ -76,11 +77,7 @@ export function Stats({ stats, isLoading = false, leaves, ballUsage }: StatsProp
                 <h2 className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
                   Spare rates
                 </h2>
-                <div className="grid grid-cols-3 gap-2">
-                  {spares.map((leave) => (
-                    <LeaveCell key={leave.pins.join("-")} leave={leave} />
-                  ))}
-                </div>
+                <LeaveGrid leaves={spares} />
               </div>
             )}
 
@@ -89,17 +86,48 @@ export function Stats({ stats, isLoading = false, leaves, ballUsage }: StatsProp
                 <h2 className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400">
                   Splits
                 </h2>
-                <div className="grid grid-cols-3 gap-2">
-                  {splits.map((leave) => (
-                    <LeaveCell key={leave.pins.join("-")} leave={leave} muted />
-                  ))}
-                </div>
+                <LeaveGrid leaves={splits} muted />
               </div>
             )}
           </>
         );
       })()}
     </div>
+  );
+}
+
+const RARE_ATTEMPTS = 3;
+
+/**
+ * Leaves sorted by attempts (most bowled first) so meaningful rates lead.
+ * One-off leaves would otherwise bury them, so when both groups exist the
+ * under-sampled ones drop into a dimmed "Rare leaves" section.
+ */
+function LeaveGrid({ leaves, muted = false }: { leaves: LeaveStats[]; muted?: boolean }) {
+  const sorted = [...leaves].sort((a, b) => b.attempts - a.attempts);
+  const common = sorted.filter((l) => l.attempts >= RARE_ATTEMPTS);
+  const rare = sorted.filter((l) => l.attempts < RARE_ATTEMPTS);
+  const partitioned = common.length > 0 && rare.length > 0;
+  return (
+    <>
+      <div className="grid grid-cols-3 gap-2">
+        {(partitioned ? common : sorted).map((leave) => (
+          <LeaveCell key={leave.pins.join("-")} leave={leave} muted={muted} />
+        ))}
+      </div>
+      {partitioned && (
+        <>
+          <p className="mb-2 mt-3 text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+            Rare leaves (under {RARE_ATTEMPTS} attempts)
+          </p>
+          <div className="grid grid-cols-3 gap-2 opacity-60">
+            {rare.map((leave) => (
+              <LeaveCell key={leave.pins.join("-")} leave={leave} muted={muted} />
+            ))}
+          </div>
+        </>
+      )}
+    </>
   );
 }
 

@@ -119,6 +119,11 @@ function SessionRow({ summary, isActive, onOpen, onSessionChanged, onSessionDele
   const seriesAvg = completed.length
     ? Math.round(completed.reduce((a, b) => a + b, 0) / completed.length)
     : null;
+  // "Active" = the session still has a game in progress — not merely the one
+  // most recently opened (that's the border highlight via isActive).
+  const hasUnfinishedGame = games.some(
+    (g) => g.final_score === undefined && !calculateGameScore(g.frames).isComplete
+  );
 
   return (
     <div className="relative">
@@ -131,6 +136,7 @@ function SessionRow({ summary, isActive, onOpen, onSessionChanged, onSessionDele
           top: rect.top + Math.min(rect.height / 2, 48)
         });
       })}
+      aria-label={`Open session: ${session.alley_name}, ${session.date}`}
       onClick={() => {
         if (longPress.didLongPress()) return;
         if (session.id) onOpen(session.id);
@@ -141,19 +147,21 @@ function SessionRow({ summary, isActive, onOpen, onSessionChanged, onSessionDele
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
-          <p className="truncate font-semibold text-slate-950">{session.alley_name}</p>
+          <p className="line-clamp-2 break-words font-semibold text-slate-950">
+            {session.alley_name}
+          </p>
           {session.description && (
-            <p className="truncate text-xs font-medium text-slate-600">{session.description}</p>
+            <p className="truncate text-xs font-medium text-slate-500">{session.description}</p>
           )}
           <p className="text-xs text-slate-500">
             {[session.date, laneSummary(games)].filter(Boolean).join(" · ")}
           </p>
           {session.oil_pattern && (
-            <p className="text-xs font-medium text-slate-600">{session.oil_pattern}</p>
+            <p className="text-xs font-medium text-slate-500">{session.oil_pattern}</p>
           )}
         </div>
         <div className="flex shrink-0 flex-col items-end gap-0.5 pr-9 text-right">
-          {isActive && (
+          {hasUnfinishedGame && (
             <span className="inline-flex items-center rounded-full bg-felt-700 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">
               Active
             </span>
@@ -161,7 +169,7 @@ function SessionRow({ summary, isActive, onOpen, onSessionChanged, onSessionDele
           {seriesTotal > 0 && (
             <p className="text-lg font-extrabold leading-none text-felt-700">{seriesTotal}</p>
           )}
-          <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+          <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
             {games.length} {games.length === 1 ? "game" : "games"}
             {seriesAvg !== null && ` · ${seriesAvg} avg`}
           </p>
