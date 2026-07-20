@@ -3,7 +3,7 @@ import { useEffect } from "react";
 interface ConfirmDialogProps {
   open: boolean;
   title: string;
-  message?: string;
+  message?: React.ReactNode;
   confirmLabel?: string;
   onConfirm: () => void;
   onCancel: () => void;
@@ -41,7 +41,7 @@ export function ConfirmDialog({
         onClick={(e) => e.stopPropagation()}
       >
         <h2 className="text-base font-bold text-slate-950">{title}</h2>
-        {message && <p className="mt-1.5 text-sm text-slate-600">{message}</p>}
+        {message && <div className="mt-1.5 space-y-2 text-sm text-slate-600">{message}</div>}
         <div className="mt-5 flex justify-end gap-2">
           <button
             type="button"

@@ -3,6 +3,7 @@ import {
   DEFAULT_DRIFT_MODEL,
   deriveLaydown,
   deriveSlide,
+  driftDirection,
   driftForStance,
   migrateLegacyLaydownOffset,
   parseDriftModel,
@@ -198,6 +199,37 @@ describe("driftModel", () => {
       expect(migrateLegacyLaydownOffset("999")).toEqual(DEFAULT_DRIFT_MODEL);
       expect(migrateLegacyLaydownOffset("-5")).toEqual(DEFAULT_DRIFT_MODEL);
       expect(migrateLegacyLaydownOffset("abc")).toEqual(DEFAULT_DRIFT_MODEL);
+    });
+  });
+
+  describe("driftDirection", () => {
+    it("reports zero drift as neither direction", () => {
+      expect(driftDirection(0, "right")).toBe("none");
+      expect(driftDirection(0, "left")).toBe("none");
+    });
+
+    it("walks a right-hander right on positive drift (toward board 1 = right edge)", () => {
+      expect(driftDirection(2, "right")).toBe("right");
+      expect(driftDirection(-2, "right")).toBe("left");
+    });
+
+    it("mirrors for a left-hander (board 1 = left edge)", () => {
+      expect(driftDirection(2, "left")).toBe("left");
+      expect(driftDirection(-2, "left")).toBe("right");
+    });
+
+    it("agrees with the board math it describes", () => {
+      // A positive drift must land the slide foot on the side the word claims.
+      for (const hand of ["right", "left"] as const) {
+        for (const drift of [-3, -0.5, 0.5, 3]) {
+          const model: DriftModel = { ...DEFAULT_DRIFT_MODEL, drift: { outside: drift, middle: drift, inside: drift } };
+          const stance = 20;
+          const slide = deriveSlide(stance, model);
+          const movedToLowerBoard = slide < stance;
+          const expected = movedToLowerBoard === (hand === "right") ? "right" : "left";
+          expect(driftDirection(drift, hand)).toBe(expected);
+        }
+      }
     });
   });
 });

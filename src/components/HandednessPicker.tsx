@@ -9,7 +9,9 @@ interface HandednessPickerProps {
 export function HandednessPicker({ value, onSelect }: HandednessPickerProps) {
   return (
     <div className="flex gap-2">
-      {(["right", "left"] as const).map((h) => (
+      {/* Laid out the way the bowler faces the lane: Left on the left, Right on
+          the right — so the button's position matches the hand it names. */}
+      {(["left", "right"] as const).map((h) => (
         <button
           key={h}
           type="button"

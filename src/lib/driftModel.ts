@@ -16,6 +16,8 @@
  *  `stance − laydown_offset` formula — this is a strict requirement, see the
  *  parity sweep in `driftModel.test.ts`. */
 
+import type { Handedness } from "../types/bowling";
+
 export interface DriftModel {
   v: 1;
   /** Boards between the slide foot and where the ball touches down. 0–15, half-board steps. */
@@ -48,6 +50,20 @@ export function zoneForStance(stance: number, model: DriftModel): "outside" | "m
 /** The configured drift (boards) for a stance's zone. */
 export function driftForStance(stance: number, model: DriftModel): number {
   return model.drift[zoneForStance(stance, model)];
+}
+
+/** Which way, physically, a signed drift value moves the slide foot.
+ *
+ *  Positive drift subtracts toward *lower* board numbers. Boards are
+ *  hand-relative (ADR-028): board 1 is the right edge for a right-hander and
+ *  the left edge for a left-hander. So a positive drift walks a right-hander
+ *  right and a left-hander left — the sign is the same, the direction mirrors.
+ *  The settings UI shows this word instead of a bare +/− number. */
+export function driftDirection(drift: number, hand: Handedness): "left" | "right" | "none" {
+  if (drift === 0) return "none";
+  const towardLowBoards = drift > 0;
+  const lowBoardsAreRight = hand === "right";
+  return towardLowBoards === lowBoardsAreRight ? "right" : "left";
 }
 
 /** Derived slide-foot board for a stance, snapped to half-boards on the lane. */
