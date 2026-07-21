@@ -1,13 +1,19 @@
 import type { Handedness, LineSpec, PinNumber } from "../types/bowling";
 import {
-  PLANE_W, PLANE_L, LANE_BOARDS, LANE_FEET, POCKET_BOARD,
+  PLANE_W, PLANE_L, LANE_BOARDS, LANE_FEET,
   boardToX, feetToY, xToBoard, yToFeet, buildLinePath, arrowFeet
 } from "../lib/laneGeometry";
 import { PIN_POSITIONS } from "../lib/pinGeometry";
 
 const ALL_PINS: PinNumber[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 const ARROW_BOARDS = [5, 10, 15, 20, 25, 30, 35]; // 7 arrows / ruler ticks
-const RACK_ROW_DY = 5; // plane-units between decorative pin-deck rows
+// Plane-units between decorative pin-deck rows. Purely presentational — it
+// scales the rack, never the geometry (see the deck comment below). True to
+// scale would be ~14.5 (rows sit 10.4in apart, columns 12in ≈ 16.8 units), but
+// that deck would eat ~10ft of drawn lane. The ceiling is ~6.1: the back row
+// sits 3 × DY above feetToY(60), which is only 21.7 units below the top of the
+// plane, and the pin radius (3.4) has to clear it. 6 is that ceiling, rounded.
+const RACK_ROW_DY = 6;
 
 // Distinct colour per marker so the four pegs read apart at a glance.
 const PEG_COLOR = {
@@ -271,7 +277,15 @@ function buildMarkers(line: LineSpec | undefined, hand: Handedness, path: NonNul
       label: `Bkpt ${Math.round(xToBoard(path.points.breakpoint.x, hand) * 2) / 2}·${Math.round(yToFeet(path.points.breakpoint.y))}ft`,
     });
   }
-  list.push({ key: "final", p: path.points.final, color: PEG_COLOR.final, label: `Final ${line?.final_board ?? POCKET_BOARD}` });
+  // Read the board off the drawn point, not the stored final_board: on an
+  // unreachable aim the ball rides the focal and finishes elsewhere, and the
+  // label has to agree with where the dot actually sits.
+  list.push({
+    key: "final",
+    p: path.points.final,
+    color: PEG_COLOR.final,
+    label: `Final ${Math.round(xToBoard(path.points.final.x, hand) * 2) / 2}`,
+  });
 
   // Dodge labels: process top-first, keep each at least MIN_GAP below the previous.
   const MIN_GAP = 11;

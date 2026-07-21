@@ -16,7 +16,7 @@
  *  `stance − laydown_offset` formula — this is a strict requirement, see the
  *  parity sweep in `driftModel.test.ts`. */
 
-import type { Handedness } from "../types/bowling";
+import type { Handedness, LineSpec } from "../types/bowling";
 
 export interface DriftModel {
   v: 1;
@@ -103,6 +103,24 @@ export function deriveStanceFromLaydown(laydown: number, model: DriftModel): num
     if (zoneForStance(candidate, model) === zone) return candidate;
   }
   return clampBoard(laydown + model.release_offset + model.drift.middle);
+}
+
+/** Keep a planned line's stance and laydown in step across the drift model:
+ *  whichever of the two the user just moved drives the other. `prev` is the
+ *  line before the edit — the comparison is what says which one moved. Pure;
+ *  returns a new LineSpec. Mirrors score entry's Intended-line handler. */
+export function syncStanceLaydown(
+  prev: Pick<LineSpec, "stance" | "laydown"> | undefined,
+  next: LineSpec,
+  model: DriftModel
+): LineSpec {
+  const merged = { ...next };
+  if (merged.stance !== prev?.stance && merged.stance != null) {
+    merged.laydown = deriveLaydown(merged.stance, model);
+  } else if (merged.laydown !== prev?.laydown && merged.laydown != null) {
+    merged.stance = deriveStanceFromLaydown(merged.laydown, model);
+  }
+  return merged;
 }
 
 /** Parse + validate a stored drift model. Returns null on any parse error or

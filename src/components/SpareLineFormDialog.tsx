@@ -2,12 +2,21 @@ import { Eye, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { PinGrid } from "./PinGrid";
 import { LaneVisualizer } from "./LaneVisualizer";
-import { derivePinBoard } from "../lib/pinGeometry";
+import { useDriftModel } from "../lib/driftModelContext";
+import { deriveLaydown, deriveSlide, syncStanceLaydown } from "../lib/driftModel";
 import { upsertSpareLine } from "../services/ballRepository";
 import type { LineSpec, PinNumber } from "../types/bowling";
 
 const EMPTY_LINE: LineSpec = {};
 const ALL_PINS: PinNumber[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+
+// Field chrome mirrors the score-entry shot panel (ActiveGameScorer's LineInput)
+// so a spare line reads the same way a shot does.
+const floatLabel =
+  "pointer-events-none absolute -top-1.5 left-2 z-10 bg-white px-1 text-[9px] font-semibold uppercase tracking-[0.01em] text-slate-400";
+const eyebrow = "text-[10px] font-semibold uppercase tracking-[0.01em] text-slate-400";
+const boardInput =
+  "h-9 w-full min-w-0 rounded-lg border border-slate-200 bg-slate-50 text-center text-sm font-semibold tabular-nums text-slate-900 focus:border-felt-700 focus:bg-white focus:outline-none";
 
 interface SpareLineFormDialogProps {
   /** Leave being shot at (standing pins). Empty = user picks pins. */
@@ -38,10 +47,19 @@ export function SpareLineFormDialog({
 }: SpareLineFormDialogProps) {
   const [pins, setPins] = useState<PinNumber[]>(initialPins);
   const [line, setLine] = useState<LineSpec>(initialLine ?? EMPTY_LINE);
-  const [notes, setNotes] = useState(initialNotes ?? "");
+  // Notes are no longer editable here, but a stored note is carried through the
+  // save so switching to the visualizer-first flow doesn't wipe it.
+  const [notes] = useState(initialNotes ?? "");
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
   const [showViz, setShowViz] = useState(false);
+  const driftModel = useDriftModel();
+
+  const applyLine = (next: LineSpec) => setLine(syncStanceLaydown(line, next, driftModel));
+
+  const derivedSlide = line.stance != null ? deriveSlide(line.stance, driftModel) : undefined;
+  const derivedLaydown =
+    line.laydown ?? (line.stance != null ? deriveLaydown(line.stance, driftModel) : undefined);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -50,17 +68,10 @@ export function SpareLineFormDialog({
       return;
     }
 
+    // Store the spec whole — the hook timing set in the visualizer lives on the
+    // same object, and picking fields off it here would quietly drop it.
     const spec: LineSpec | undefined =
-      line.stance != null || line.laydown != null || line.target != null ||
-      line.final_board != null || line.final_distance != null
-        ? {
-            ...(line.stance != null && { stance: line.stance }),
-            ...(line.laydown != null && { laydown: line.laydown }),
-            ...(line.target != null && { target: line.target }),
-            ...(line.final_board != null && { final_board: line.final_board }),
-            ...(line.final_distance != null && { final_distance: line.final_distance })
-          }
-        : undefined;
+      Object.values(line).some((v) => v != null) ? line : undefined;
 
     setIsSaving(true);
     setError("");
@@ -111,42 +122,47 @@ export function SpareLineFormDialog({
           </div>
 
           <div>
-            <p className="mb-2 text-xs font-medium text-slate-600">
-              Shooting line (board numbers)
-            </p>
-            <div className="grid grid-cols-3 gap-2">
-              {(["stance", "laydown", "target"] as const).map((field) => (
-                <div key={field}>
-                  <label className="mb-1 block text-xs font-medium text-slate-600 capitalize">
-                    {field}
-                  </label>
+            <p className={`mb-1 ${eyebrow}`}>Shooting line (boards)</p>
+            <div className="flex gap-1.5">
+              {(["stance", "target"] as const).map((field) => (
+                <label key={field} className="relative min-w-0 flex-1">
+                  <span className={floatLabel}>{field}</span>
                   <input
                     type="number"
                     inputMode="decimal"
                     step="0.5"
                     value={line[field] ?? ""}
                     onChange={(e) =>
-                      setLine((l) => ({
-                        ...l,
+                      applyLine({
+                        ...line,
                         [field]: e.target.value === "" ? undefined : Number(e.target.value)
-                      }))
+                      })
                     }
-                    placeholder={field === "stance" ? "35" : field === "laydown" ? "18" : "10"}
-                    className="h-10 w-full rounded-lg border border-slate-300 px-2 text-sm outline-none focus:border-felt-700 focus:ring-2 focus:ring-felt-700/20"
+                    className={boardInput}
                   />
-                </div>
+                </label>
               ))}
             </div>
+            {(derivedSlide != null || derivedLaydown != null) && (
+              <button
+                type="button"
+                onClick={() => setShowViz(true)}
+                title="Derived from your stance. Tap to see it on the lane."
+                className="mt-1 flex w-full flex-wrap items-center gap-x-1 text-left text-[10px] font-semibold uppercase tracking-[0.01em] text-slate-400 tabular-nums hover:text-felt-700"
+              >
+                {derivedSlide != null && <span className="whitespace-nowrap">Slide {derivedSlide}</span>}
+                {derivedSlide != null && derivedLaydown != null && (
+                  <span aria-hidden="true" className="text-slate-300">→</span>
+                )}
+                {derivedLaydown != null && (
+                  <span className="whitespace-nowrap">Laydown {derivedLaydown}</span>
+                )}
+              </button>
+            )}
             <p className="mt-2 text-xs text-slate-500">
               Tap <span className="font-medium text-slate-600">View line</span> to set the final
               target, hook strength and depth.
             </p>
-            {derivePinBoard(line, pins) != null && (
-              <p className="mt-2 text-xs text-slate-500">
-                Straight-line board at the front pin:{" "}
-                <span className="font-semibold text-felt-700">{derivePinBoard(line, pins)}</span>
-              </p>
-            )}
           </div>
 
           <button
@@ -157,19 +173,6 @@ export function SpareLineFormDialog({
             <Eye size={14} aria-hidden="true" />
             View line
           </button>
-
-          <div>
-            <label className="mb-1 block text-sm font-medium text-slate-700">
-              Notes <span className="text-slate-400 font-normal">(optional)</span>
-            </label>
-            <textarea
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              rows={2}
-              placeholder="Any notes about this spare…"
-              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-felt-700 focus:ring-2 focus:ring-felt-700/20"
-            />
-          </div>
 
           <div className="flex items-center gap-2 pt-1">
             <button
@@ -207,7 +210,7 @@ export function SpareLineFormDialog({
             line={line}
             leave={pins}
             spare
-            onChange={(l) => setLine(l ?? {})}
+            onChange={(l) => applyLine(l ?? {})}
             onClose={() => setShowViz(false)}
           />
         )}

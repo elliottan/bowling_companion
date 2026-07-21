@@ -493,8 +493,19 @@ export function buildLinePath(
     const end = isStrike ? fF : DRAW_BACK_FEET;
     const e = focalPt(end);
     const d = `M ${laydown.x} ${laydown.y} L ${e.x} ${e.y}`;
+    // The ball rides the focal, so at the final's depth it sits on the FOCAL, not
+    // on the requested board. The marker follows the ball — it must always be a
+    // point of the drawn line, or it reads as a finish the shot can't produce.
+    // Walked back up the focal to the lane edge when the focal runs off into the
+    // gutter, so the drag handle stays reachable (ADR-028). The miss flag + red
+    // pins are what say the requested pin wasn't reached.
+    const onLane = clamp(focalAtFinal, 1, 39);
+    const finalMark =
+      onLane === focalAtFinal || tgt === foul
+        ? focalPt(fF)
+        : focalPt(clamp((arrowFeet(tgt) * (onLane - foul)) / (tgt - foul), 0, end));
     // No hook ⇒ no breakpoint marker (ADR-028).
-    return { d, focal, miss, points: { laydown, target, hookStart: null, breakpoint: null, final } };
+    return { d, focal, miss, points: { laydown, target, hookStart: null, breakpoint: null, final: finalMark } };
   }
 
   if (isStrike) {

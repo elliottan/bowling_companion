@@ -1344,3 +1344,40 @@ on the lane surface, with no way to enter it.
   lane edge, not a modelling error.
 - Autofill from Intended ("shot it as planned") converts on the way in:
   the intended `stance` becomes `deriveSlide(stance)` on the Actual line.
+
+## ADR-033 — The final marker is a point of the drawn line
+
+**Status:** accepted (2026-07). Refines ADR-028's "final peg stays on the
+lane" clamp; does not edit its text.
+
+**Context.** `buildLinePath` has an *unreachable* branch: when the requested
+final board sits gutter-side of the focal at that depth, no hook can get
+there, so the ball rides the focal straight and the leave is flagged `miss`.
+The final marker, though, was still drawn at `boardToX(final_board)` — the
+pin the user asked for. On an unreachable aim that put the green dot several
+boards off the orange path, showing a finish the drawn shot cannot produce.
+Spare lines hit this constantly: `solveLine` returns early for them (no
+`breakpoint` field), so their final is never re-clamped onto the focal, and
+the seeded aim board plus any target nudge is enough to make it unreachable.
+
+**Decision.**
+- On the unreachable branch the final marker is placed **on the focal at the
+  final's depth** — where the ball actually passes that distance. The marker
+  is a point of the drawn path in every branch, without exception.
+- ADR-028's reachability clamp is kept, expressed against the marker instead
+  of the board: when the focal has already run off the boards at that depth,
+  the marker walks back up the focal to the lane edge, so its drag handle
+  stays on screen.
+- `final_board` is **not** rewritten. It stays the pin the user aimed at;
+  the `miss` flag and the red pins remain the signal that it wasn't reached.
+- `LaneSurface` reads the final label's board off the marker rather than off
+  `final_board`, so the number always agrees with the dot. In every reachable
+  case the two are identical, so nothing changes there.
+
+**Consequences.**
+- The marker no longer mirrors between hands for a line that is reachable for
+  one hand and not the other. That asymmetry is real — hook direction is
+  hand-dependent in board space — and it was previously hidden by drawing the
+  marker from the stored board.
+- A spare aimed at an unreachable pin now reads honestly: dot on the path,
+  pin red, `Final` label naming the board the ball actually crosses.

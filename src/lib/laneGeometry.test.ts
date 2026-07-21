@@ -216,9 +216,23 @@ describe("buildLinePath", () => {
   });
 
   it("mirrors the final point for a left-hander", () => {
+    // Mirrored fixtures: the hook runs toward higher boards for a right-hander
+    // and lower boards for a left-hander, so the target sits on opposite sides
+    // of the laydown. Both reach the pocket, so both land on `final_board`.
     const rRight = buildLinePath({ laydown: 18, target: 10 }, "right")!;
-    const rLeft = buildLinePath({ laydown: 18, target: 10 }, "left")!;
+    const rLeft = buildLinePath({ laydown: 18, target: 26 }, "left")!;
     expect(rRight.points.final.x).toBeCloseTo(PLANE_W - rLeft.points.final.x, 4);
+  });
+
+  it("puts the final marker on the drawn line when the final is unreachable", () => {
+    // Aim that runs away from the final: the ball rides the focal straight, so
+    // the marker has to sit where the ball actually passes that depth — not on
+    // the requested board, which no shot on this line can produce.
+    const line: LineSpec = { laydown: 20, target: 20.5, final_board: 20, final_distance: 61.7 };
+    const r = buildLinePath(line, "right", true)!;
+    const board = xToBoard(r.points.final.x, "right");
+    expect(board).toBeCloseTo(skidBoardAt(20, 20.5, yToFeet(r.points.final.y)), 2);
+    expect(board).toBeGreaterThan(20); // moved off the requested board, onto the line
   });
 
   it("final_distance sets the final point's depth", () => {

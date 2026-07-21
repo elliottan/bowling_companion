@@ -1,4 +1,3 @@
-import { GripVertical } from "lucide-react";
 import { useEffect, useState } from "react";
 import {
   DndContext,
@@ -15,15 +14,18 @@ import {
   useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { LaneVisualizer } from "../components/LaneVisualizer";
 import { SpareLineFormDialog } from "../components/SpareLineFormDialog";
-import { derivePinBoard } from "../lib/pinGeometry";
+import { useDriftModel } from "../lib/driftModelContext";
+import { deriveLaydown, deriveSlide, syncStanceLaydown, type DriftModel } from "../lib/driftModel";
 import {
   deleteSpareLine,
   ensureDefaultSpareLines,
   getSpareLinesAll,
   reorderSpareLines,
+  upsertSpareLine,
 } from "../services/ballRepository";
-import type { PinNumber, SpareLine } from "../types/bowling";
+import type { LineSpec, PinNumber, SpareLine } from "../types/bowling";
 
 function SmallPinDiagram({ standing }: { standing: PinNumber[] }) {
   const standingSet = new Set(standing);
@@ -50,12 +52,29 @@ function SmallPinDiagram({ standing }: { standing: PinNumber[] }) {
   );
 }
 
-interface SortableSpareCardProps {
-  sl: SpareLine;
-  onEdit: (sl: SpareLine) => void;
+/** Slide → laydown, derived from the stance (ADR-030). Read-only, so it sits
+ *  under the entered boards in a lighter weight. */
+function DerivedChain({ line, model }: { line: LineSpec; model: DriftModel }) {
+  const slide = line.stance != null ? deriveSlide(line.stance, model) : undefined;
+  const laydown = line.laydown ?? (line.stance != null ? deriveLaydown(line.stance, model) : undefined);
+  if (slide == null && laydown == null) return null;
+  return (
+    <div className="mt-0.5 text-[8px] font-semibold uppercase tracking-tight text-slate-400 tabular-nums">
+      {slide != null && `Slide ${slide}`}
+      {slide != null && laydown != null && <span aria-hidden="true" className="text-slate-300"> → </span>}
+      {laydown != null && `Laydown ${laydown}`}
+    </div>
+  );
 }
 
-function SortableSpareCard({ sl, onEdit }: SortableSpareCardProps) {
+interface SortableSpareCardProps {
+  sl: SpareLine;
+  /** Tap: straight to the lane visualizer — the card already shows the boards. */
+  onOpen: (sl: SpareLine) => void;
+}
+
+function SortableSpareCard({ sl, onOpen }: SortableSpareCardProps) {
+  const driftModel = useDriftModel();
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: sl.id! });
   const style = {
@@ -70,45 +89,35 @@ function SortableSpareCard({ sl, onEdit }: SortableSpareCardProps) {
           isDragging ? "border-felt-700 opacity-90 shadow-md" : "border-slate-200"
         }`}
       >
+        {/* The whole card is the drag handle: a hold picks it up, a tap opens
+            the lane. Holding without moving ends as a no-move drag, which the
+            view turns into the edit/delete menu. */}
         <button
           type="button"
           {...attributes}
           {...listeners}
-          aria-label={`Drag to reorder spare for pins ${sl.pins.join(", ")}`}
-          className="absolute right-1 top-1 touch-none rounded p-1 text-slate-300 hover:text-slate-500"
-        >
-          <GripVertical size={14} aria-hidden="true" />
-        </button>
-        <button
-          type="button"
-          onClick={() => onEdit(sl)}
-          aria-label={`Edit spare line for pins ${sl.pins.join(", ")}`}
-          className="flex w-full flex-col items-center gap-1.5 active:opacity-70"
+          onClick={() => onOpen(sl)}
+          aria-label={`Open lane view for pins ${sl.pins.join(", ")}`}
+          className="flex w-full touch-none flex-col items-center gap-1.5 active:opacity-70"
         >
           <SmallPinDiagram standing={sl.pins} />
           {sl.line ? (
             <div className="w-full">
-              <div className="grid grid-cols-3">
-                {([["S", sl.line.stance], ["L", sl.line.laydown], ["T", sl.line.target]] as const).map(
-                  ([k, v]) => (
-                    <div key={k}>
-                      <div className="text-[9px] font-semibold uppercase tracking-wide text-slate-400">{k}</div>
-                      <div className="text-xs font-bold tabular-nums text-slate-700">{v ?? "—"}</div>
-                    </div>
-                  )
-                )}
+              {/* The two boards you act on. Laydown is derived from the stance,
+                  so it reads underneath with the slide rather than as a third
+                  column competing with them. */}
+              <div className="grid grid-cols-2">
+                {([["Stand", sl.line.stance], ["Arrow", sl.line.target]] as const).map(([k, v]) => (
+                  <div key={k}>
+                    <div className="text-[9px] font-semibold uppercase tracking-wide text-slate-400">{k}</div>
+                    <div className="text-xs font-bold tabular-nums text-slate-700">{v ?? "—"}</div>
+                  </div>
+                ))}
               </div>
-              {derivePinBoard(sl.line, sl.pins) != null && (
-                <div className="mt-0.5 text-[10px] font-semibold tabular-nums text-felt-700">
-                  Pin {derivePinBoard(sl.line, sl.pins)}
-                </div>
-              )}
+              <DerivedChain line={sl.line} model={driftModel} />
             </div>
           ) : (
             <span className="block text-xs text-slate-400">No line</span>
-          )}
-          {sl.notes && (
-            <span className="line-clamp-2 block text-[11px] text-slate-500">{sl.notes}</span>
           )}
         </button>
       </div>
@@ -123,14 +132,48 @@ export function SpareLinesView() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
   const [editing, setEditing] = useState<Editing | null>(null);
+  // Tapping a card goes straight to the lane. The line is held here while it is
+  // being dragged and written back once, on close.
+  const [viewing, setViewing] = useState<SpareLine | null>(null);
+  const [vizLine, setVizLine] = useState<LineSpec>({});
+  const driftModel = useDriftModel();
 
-  // Press-and-hold the grip handle to start a drag; a quick tap still edits.
+  function openViz(sl: SpareLine) {
+    setVizLine(sl.line ?? {});
+    setViewing(sl);
+  }
+
+  async function closeViz() {
+    const sl = viewing;
+    setViewing(null);
+    if (!sl) return;
+    const hasLine = Object.values(vizLine).some((v) => v != null);
+    try {
+      // The whole solved spec is stored, hook timing included — the visualizer
+      // is the only place those are set, so dropping them here would lose them.
+      await upsertSpareLine(sl.pins, hasLine ? vizLine : undefined, sl.notes);
+      await load();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to save spare line.");
+    }
+  }
+
+  // Press-and-hold anywhere on a card to pick it up; a quick tap opens the lane.
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { delay: 180, tolerance: 6 } })
+    useSensor(PointerSensor, { activationConstraint: { delay: 220, tolerance: 6 } })
   );
 
   async function handleDragEnd(event: DragEndEvent) {
-    const { active, over } = event;
+    const { active, over, delta } = event;
+
+    // Held but never moved: that is the long-press gesture — open the card's
+    // details (pins + delete) instead of reordering.
+    if (Math.hypot(delta.x, delta.y) < 6) {
+      const sl = spareLines.find((s) => s.id === active.id);
+      if (sl) setEditing({ mode: "edit", sl });
+      return;
+    }
+
     if (!over || active.id === over.id) return;
 
     const oldIndex = spareLines.findIndex((s) => s.id === active.id);
@@ -212,7 +255,7 @@ export function SpareLinesView() {
         <SpareLineFormDialog
           key={`edit-${editing.sl.id}`}
           initialPins={editing.sl.pins}
-          lockPins
+          lockPins={false}
           initialLine={editing.sl.line}
           initialNotes={editing.sl.notes}
           onSaved={() => {
@@ -240,11 +283,24 @@ export function SpareLinesView() {
           >
             <ul className="grid grid-cols-3 gap-2">
               {spareLines.map((sl) => (
-                <SortableSpareCard key={sl.id} sl={sl} onEdit={(s) => setEditing({ mode: "edit", sl: s })} />
+                <SortableSpareCard key={sl.id} sl={sl} onOpen={openViz} />
               ))}
             </ul>
           </SortableContext>
         </DndContext>
+      )}
+
+      {viewing && (
+        <LaneVisualizer
+          key={`viz-${viewing.id}`}
+          title={`Pins ${viewing.pins.join(", ")}`}
+          line={vizLine}
+          leave={viewing.pins}
+          spare
+          showStance
+          onChange={(l) => setVizLine(syncStanceLaydown(vizLine, l ?? {}, driftModel))}
+          onClose={() => void closeViz()}
+        />
       )}
     </section>
   );

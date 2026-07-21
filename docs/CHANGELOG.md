@@ -23,6 +23,25 @@ User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachan
 - **The spare form's board boxes match the shot panel** — Stance and Target
   with headings on the box border, and a `Slide → Laydown` readout under
   them. The standalone Laydown box is gone; drag the peg to override it.
+- **Tapping a spare goes straight to the lane.** The form in between is only
+  reached by pressing and holding a card, which is also where you change the
+  pins or delete the spare. The lane saves what you set on close, hook
+  timing included — previously the save dropped it.
+- **The visualizer takes a Stance** on the Spares tab, since that is now the
+  only place a spare line is edited. Laydown follows it through the drift
+  model, exactly as in score entry.
+- **Spare cards read `Stand` / `Arrow`**, with `Slide → Laydown` derived
+  underneath, instead of `S / L / T`. The `Pin -0.2` line is gone: it was a
+  straight-line board that ignored hook, and the lane now shows the real
+  finish honestly.
+- **The drag handle is gone from spare cards** — press and hold anywhere on a
+  card to pick it up and reorder; let go without moving and its details open.
+- **The pin deck is drawn taller.** The triangle was compressed to the point
+  of looking flat; rows now sit 6 plane-units apart (was 5), which is as far
+  as the drawing extent allows. No geometry changed — the rack is decorative.
+- **The read-only `Bkpt` box is gone from the lane controls.** It could only
+  ever be changed by dragging the breakpoint, which already labels itself on
+  the lane.
 
 ## [Unreleased] — the Actual line records your slide (2026-07-21)
 

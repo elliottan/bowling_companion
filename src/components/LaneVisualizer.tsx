@@ -50,6 +50,10 @@ interface LaneVisualizerProps {
   leave?: PinNumber[];
   /** Spare mode: configurable final depth; hook timing + breakpoint shared with strike (ADR-026). */
   spare?: boolean;
+  /** Show a Stance stepper alongside the pegs. Only for callers where stance is
+   *  the field of record and laydown is derived from it (the Spares tab, whose
+   *  form is gone) — never on an Actual line, which is slide-based (ADR-032). */
+  showStance?: boolean;
   title?: string;
   /** Veto hook for a locked (completed) game: return false to drop a user edit.
    *  Only user drags/taps are gated — the auto-seed effects below bypass it. */
@@ -60,7 +64,7 @@ interface LaneVisualizerProps {
   defaultLocks?: readonly LockablePeg[];
 }
 
-export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, title = "Line", onEditAttempt, defaultLocks }: LaneVisualizerProps) {
+export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, showStance = false, title = "Line", onEditAttempt, defaultLocks }: LaneVisualizerProps) {
   const hand = useHandedness();
   const driftModel = useDriftModel();
   const [deg, setDeg] = useState(BOWLER_DEG);
@@ -152,12 +156,12 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
 
   const path = onChange && line ? buildLinePath(line, hand, spare) : null;
 
-  // Slide tick (ADR-030): strike mode only, purely decorative — a derived slide-foot
-  // marker at the foul line, distinct from the (draggable) laydown peg.
+  // Slide tick (ADR-030): purely decorative — a derived slide-foot marker at the
+  // foul line, distinct from the (draggable) laydown peg. Shown on spare lines
+  // too: they carry a stance now, and the tick is how the drift step reads.
   // An actual line records the slide directly (ADR-032); a planned one derives it.
-  const slideBoard = spare
-    ? undefined
-    : line?.slide ?? (line?.stance != null ? deriveSlide(line.stance, driftModel) : undefined);
+  const slideBoard =
+    line?.slide ?? (line?.stance != null ? deriveSlide(line.stance, driftModel) : undefined);
 
   // Re-run the ball animation shortly after the line settles, so an edit visibly
   // replays the shot. Debounced so mid-drag churn doesn't restart it every frame.
@@ -280,11 +284,6 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
     handles.push({ key: "final", p: path.points.final });
   }
 
-  // Derived breakpoint (rightmost point of the strike curve), shown as a readout.
-  const bp = path?.points.breakpoint ?? null;
-  const bpBoard = bp ? Math.round(xToBoard(bp.x, hand) * 2) / 2 : undefined;
-  const bpFeet = bp ? Math.round(yToFeet(bp.y)) : undefined;
-
   // Snap targets for the final: the pocket (strike) or the leave's ideal aim (spare).
   const spareAim = spare && leave?.length ? spareAimPoint(leave, hand) : undefined;
   const finalOffPocket = (line?.final_board ?? POCKET_BOARD) !== POCKET_BOARD;
@@ -355,7 +354,7 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
           <div
             ref={surfaceRef}
             className={`relative mx-auto h-full w-full max-w-[360px] transition-transform ${
-              isTopDown && onChange && !spare ? (hand === "left" ? "translate-x-8" : "-translate-x-8") : ""
+              isTopDown && onChange ? (hand === "left" ? "translate-x-8" : "-translate-x-8") : ""
             }`}
           >
             <LaneSurface
@@ -443,7 +442,6 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
               locked={locked.has("target")}
               onUnlock={() => toggleLock("target")}
               onCommit={(v) => { lastAimEdit.current = "target"; applyEdit({ target: v }); }} />
-            <ReadField label="Bkpt" value={bpBoard != null && bpFeet != null ? `${bpBoard}·${bpFeet}ft` : undefined} />
             <StepperField label="Final" value={line?.final_board ?? POCKET_BOARD} min={1} max={39} lateral
               locked={locked.has("final")}
               onUnlock={() => toggleLock("final")}
@@ -460,12 +458,24 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
           </div>
         )}
 
-        {/* Spare line: editable pegs + final depth (no breakpoint). */}
+        {/* Spare line: editable pegs + final depth (no breakpoint). Same
+            side-column / bottom-bar split as the strike line above. */}
         {onChange && spare && (
           <div
-            className="absolute inset-x-0 bottom-0 z-10 flex justify-center gap-1.5 px-2 pb-1"
+            className={
+              isTopDown
+                ? `absolute top-1/2 z-10 flex -translate-y-1/2 flex-col gap-2 ${hand === "left" ? "left-2" : "right-2"}`
+                : "absolute inset-x-0 bottom-0 z-10 flex flex-wrap justify-center gap-1.5 px-2 pb-1"
+            }
             onPointerDown={(e) => e.stopPropagation()}
           >
+            {/* Stance has no peg on the lane — it sits behind the foul line. It
+                only appears where stance is the field of record (ADR-032), and
+                the caller re-derives laydown from it through the drift model. */}
+            {showStance && (
+              <StepperField label="Stance" value={line?.stance} min={1} max={59} lateral
+                onCommit={(v) => applyEdit({ stance: v })} />
+            )}
             <StepperField label="Laydown" value={line?.laydown ?? line?.stance} min={1} max={59} lateral
               locked={locked.has("laydown")}
               onUnlock={() => toggleLock("laydown")}
@@ -594,18 +604,6 @@ function Slider({
         <span>{max} {suffix}</span>
       </div>
     </label>
-  );
-}
-
-/** Read-only readout (e.g. the derived breakpoint), styled to match StepperField. */
-function ReadField({ label, value }: { label: string; value: string | undefined }) {
-  return (
-    <div className="flex w-[4.75rem] flex-col gap-0.5 text-center text-[10px] font-semibold uppercase tracking-wide text-white/50">
-      {label}
-      <div className="flex h-9 w-full items-center justify-center rounded-md border border-white/10 bg-white/5 px-1 text-[11px] font-medium tabular-nums text-white/70">
-        {value ?? "—"}
-      </div>
-    </div>
   );
 }
 
