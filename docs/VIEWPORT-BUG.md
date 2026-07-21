@@ -1,9 +1,13 @@
 # The iOS standalone rotation-height bug
 
-**RESOLVED — 2026-07-21.** The fix is strategy A: the app shell is
+**PAINTING: RESOLVED — 2026-07-21.** The fix is strategy A: the app shell is
 `position: fixed; inset: 0` and nothing measures the viewport. Confirmed on a
 real installed PWA after five attempts. Everything below is kept as the record
 of what failed and why, so it does not get re-tried.
+
+**HIT-TESTING: STILL OPEN.** See "Round 2" at the bottom — the shell now paints
+correctly but taps land displaced, so iOS is compositing against the live
+viewport while hit-testing against a stale one.
 
 **If you are about to add JS viewport measurement back into `App.tsx`, read
 this whole file first.** Four separate measurement schemes have already been
@@ -137,3 +141,52 @@ made a five-way comparison practical.
 - Reinstall from the Home Screen after each deploy, and confirm the service
   worker actually updated — a stale SW will happily serve the old build and
   look like a failed fix.
+
+## Round 2 — tap displacement (OPEN)
+
+After `fixed inset-0` shipped, the blank strip is gone but interaction is still
+wrong after a rotation round-trip: **you have to tap above an element to
+activate it.** Painting and hit-testing disagree.
+
+This is the same root cause wearing a different hat. The compositor honours the
+live viewport for a `position: fixed` layer — which is why the paint is now
+right — but hit-testing still resolves through the stale layout viewport, so
+the touch coordinate space is shifted relative to the pixels.
+
+### Measure before guessing
+
+Nine fixes in, the pattern is clear: attempts that reasoned from a theory
+failed, and the one that worked came from a build that tested candidates
+side by side. So round 2 ships a probe (`ViewportProbe.tsx`) that reports the
+displacement instead of inferring it.
+
+On every tap it takes the element iOS delivered the event to, then walks
+`document.elementFromPoint` outward from the tap coordinates until the two
+agree. That distance is the displacement, in CSS px, signed:
+
+- `hit dy: 0` — hit-testing is correct.
+- `hit dy: -40` — the hit region sits 40px above where the element is painted.
+
+It also reports `vvOffTop`, `vvPageTop`, `scrollY` and `docTop`, because a
+non-zero visual-viewport offset or a stray document scroll is the most likely
+mechanism and would show up directly in those numbers.
+
+### Candidates shipped alongside it
+
+| Fix | Does |
+|---|---|
+| `none` | Shipped behaviour, nothing extra — the control |
+| `kick` | Forces a reflow of the shell subtree on rotation |
+| `scroll` | Resets `window.scrollTo(0,0)` and `scrollingElement.scrollTop` |
+| `remount` | Re-keys the shell so React rebuilds the subtree |
+| `all` | All three |
+
+### How to run a round
+
+1. Launch the installed PWA, confirm `standalone: yes`.
+2. Rotate portrait → landscape → portrait.
+3. Tap a few elements and read `hit dy`. `last taps` keeps the recent history,
+   so a consistent number is easy to spot.
+4. **Record the number even when a fix works** — the magnitude is the evidence.
+   If it matches `vvOffTop` or `scrollY`, the mechanism is identified and the
+   real fix is to neutralise that offset, not to paper over it with a remount.
