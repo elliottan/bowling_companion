@@ -54,6 +54,8 @@ interface LineInputProps {
   derivedBreakpoint?: { board: number; feet: number } | null;
   /** Tap on the laydown or breakpoint chip — opens the lane visualizer. */
   onLaydownTap?: () => void;
+  /** Control rendered at the end of the section's eyebrow row (the lane view). */
+  action?: React.ReactNode;
   /** Veto hook for a locked (completed) game: return false to drop the edit
    *  before any local text state moves, so the fields never drift from `value`. */
   onEditAttempt?: () => boolean;
@@ -108,6 +110,7 @@ function LineInput({
   derivedLaydown,
   derivedBreakpoint,
   onLaydownTap,
+  action,
   onEditAttempt
 }: LineInputProps) {
   const handedness = useHandedness();
@@ -192,7 +195,7 @@ function LineInput({
   // and the tapped half (left vs right of centre) decides the direction. One
   // border, no ugly split. preventDefault keeps the input focused (row open).
   const adjBtn =
-    "relative flex h-8 w-full items-center justify-center rounded-md border border-slate-300 bg-white text-xs font-semibold uppercase tracking-wide text-slate-500 hover:bg-slate-50 active:bg-slate-100";
+    "relative flex h-8 w-full items-center justify-center rounded-lg border border-slate-200 bg-slate-50 text-[10px] font-semibold uppercase tracking-[0.08em] text-slate-500 hover:bg-slate-100 active:bg-slate-200";
   const halfTap =
     (onLeft: () => void, onRight: () => void) => (e: ReactPointerEvent<HTMLButtonElement>) => {
       e.preventDefault();
@@ -200,15 +203,28 @@ function LineInput({
       (e.clientX - r.left < r.width / 2 ? onLeft : onRight)();
     };
 
+  // Derived readouts, in the order the ball meets them going down the lane.
+  // Rendered as one tappable chain rather than separate pills: they are a
+  // sequence, and reading them as one line is both truer and shorter.
+  const chain: string[] = [];
+  if (derivedSlide != null) chain.push(`Slide ${derivedSlide}`);
+  if (derivedLaydown != null) chain.push(`Laydown ${derivedLaydown}`);
+  if (derivedBreakpoint != null) {
+    chain.push(`Bkpt ${Math.round(derivedBreakpoint.board * 2) / 2}·${Math.round(derivedBreakpoint.feet)}ft`);
+  }
+
   return (
     <div>
-      <span className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-400">{label}</span>
+      <div className="mb-1 flex items-center justify-between gap-2">
+        <span className="text-[10px] font-semibold uppercase tracking-[0.08em] text-slate-400">{label}</span>
+        {action}
+      </div>
       {/* Each box keeps its own heading, so a filled-in number still says what
           it is — a bare "23" reads the same whether it's a slide or a target. */}
-      <div className="flex gap-1">
+      <div className="flex gap-1.5">
         {fields.map((field) => (
-          <label key={field} className="min-w-0 flex-1">
-            <span className="mb-0.5 block text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+          <label key={field} className="relative min-w-0 flex-1">
+            <span className="pointer-events-none absolute left-2 top-1 text-[9px] font-semibold uppercase tracking-[0.08em] text-slate-400">
               {FIELD_LABEL[field]}
             </span>
             <input
@@ -219,46 +235,27 @@ function LineInput({
               onFocus={() => { onFieldFocus?.(); setFocused(field); }}
               onBlur={() => setFocused((f) => (f === field ? null : f))}
               placeholder={FIELD_LABEL[field]}
-              className="h-9 w-full min-w-0 rounded-md border border-slate-300 px-1 text-center text-xs placeholder:text-slate-300 focus:border-felt-700 focus:outline-none"
+              className="h-10 w-full min-w-0 rounded-lg border border-slate-200 bg-slate-50 pb-0.5 pt-3 text-center text-sm font-semibold tabular-nums text-slate-900 placeholder:font-normal placeholder:text-slate-300 focus:border-felt-700 focus:bg-white focus:outline-none"
               title={field === "target" ? "Target board (arrows)" : `${FIELD_LABEL[field]} board`}
             />
           </label>
         ))}
       </div>
 
-      {(derivedSlide != null || derivedLaydown != null || derivedBreakpoint != null) && (
-        <div className="mt-1 flex flex-wrap gap-1">
-          {derivedSlide != null && (
-            <button
-              type="button"
-              onClick={onLaydownTap}
-              title="Derived slide board (stance − drift). Tap to view on the lane."
-              className="inline-flex h-6 items-center gap-1 rounded-full bg-slate-100 px-2 text-xs font-semibold uppercase tracking-wide text-slate-500 hover:bg-slate-200"
-            >
-              Slide {derivedSlide}
-            </button>
-          )}
-          {derivedLaydown != null && (
-            <button
-              type="button"
-              onClick={onLaydownTap}
-              title="Derived laydown board (slide − release offset). Tap to view on the lane."
-              className="inline-flex h-6 items-center gap-1 rounded-full bg-slate-100 px-2 text-xs font-semibold uppercase tracking-wide text-slate-500 hover:bg-slate-200"
-            >
-              Laydown {derivedLaydown}
-            </button>
-          )}
-          {derivedBreakpoint != null && (
-            <button
-              type="button"
-              onClick={onLaydownTap}
-              title="Derived breakpoint (the drawn apex). Tap to view or edit on the lane."
-              className="inline-flex h-6 items-center gap-1 rounded-full bg-slate-100 px-2 text-xs font-semibold uppercase tracking-wide text-slate-500 hover:bg-slate-200"
-            >
-              Bkpt {Math.round(derivedBreakpoint.board * 2) / 2} · {Math.round(derivedBreakpoint.feet)}ft
-            </button>
-          )}
-        </div>
+      {chain.length > 0 && (
+        <button
+          type="button"
+          onClick={onLaydownTap}
+          title="Derived from what you entered. Tap to see it on the lane."
+          className="mt-1 flex w-full flex-wrap items-center gap-x-1 text-left text-[10px] font-semibold uppercase tracking-[0.06em] text-slate-400 tabular-nums hover:text-felt-700"
+        >
+          {chain.map((part, i) => (
+            <span key={part} className="flex items-center gap-1 whitespace-nowrap">
+              {i > 0 && <span aria-hidden="true" className="text-slate-300">→</span>}
+              {part}
+            </span>
+          ))}
+        </button>
       )}
 
       {/* Focus-reveal board adjusters. Each arrow pair gets its own full-width
@@ -406,19 +403,34 @@ function ShotDetailBar({
     onActualChange(merged);
   }
 
+  // One icon control per line, sitting in that line's eyebrow row. Full-width
+  // "View … line" buttons cost 72px of the panel's height for two taps that are
+  // reachable from the derived chain underneath as well.
+  const viewButton = (which: "intended" | "actual") => (
+    <button
+      type="button"
+      aria-label={`View ${which} line`}
+      title={`View ${which} line on the lane`}
+      onClick={() => setShowViz(which)}
+      className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-slate-400 hover:bg-slate-100 hover:text-felt-700"
+    >
+      <Eye size={14} aria-hidden="true" />
+    </button>
+  );
+
   return (
-    <div className="flex flex-col gap-2.5 rounded-lg border border-slate-200 bg-white p-2.5">
-      <div>
-        <span className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-400">Ball</span>
+    <div className="divide-y divide-slate-100 rounded-xl border border-slate-200 bg-white px-2.5">
+      <div className="flex items-center gap-2 py-2">
+        <span className="text-[10px] font-semibold uppercase tracking-[0.08em] text-slate-400">Ball</span>
         {balls.length > 0 ? (
-          <div className="flex items-center gap-1.5">
+          <div className="flex min-w-0 flex-1 items-center gap-1.5">
             <select
               value={ballId ?? ""}
               onChange={(e) => {
                 if (onEditAttempt && !onEditAttempt()) return;
                 onBallChange(e.target.value ? Number(e.target.value) : undefined);
               }}
-              className="h-9 min-w-0 flex-1 rounded-md border border-slate-300 bg-white px-2 text-xs font-medium text-slate-700 focus:border-felt-700 focus:outline-none"
+              className="h-8 min-w-0 flex-1 truncate rounded-lg border border-slate-200 bg-slate-50 pl-2 pr-1 text-xs font-semibold text-slate-900 focus:border-felt-700 focus:bg-white focus:outline-none"
             >
               <option value="">No ball</option>
               {balls.map((b) => (
@@ -433,9 +445,9 @@ function ShotDetailBar({
                 onClick={onOpenArsenal}
                 aria-label="Manage arsenal"
                 title="Manage arsenal"
-                className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-slate-300 bg-white text-slate-500 hover:bg-slate-50"
+                className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-felt-700"
               >
-                <SlidersHorizontal size={15} aria-hidden="true" />
+                <SlidersHorizontal size={14} aria-hidden="true" />
               </button>
             )}
           </div>
@@ -443,7 +455,7 @@ function ShotDetailBar({
           <button
             type="button"
             onClick={onOpenArsenal}
-            className="inline-flex h-9 items-center gap-1.5 rounded-md border border-slate-300 bg-white px-3 text-xs font-semibold text-felt-700 hover:bg-slate-50"
+            className="inline-flex h-8 items-center gap-1.5 rounded-lg px-2 text-xs font-semibold text-felt-700 hover:bg-slate-100"
           >
             <Plus size={14} aria-hidden="true" />
             Add a ball
@@ -451,60 +463,48 @@ function ShotDetailBar({
         )}
       </div>
 
-      <LineInput
-        label="Intended"
-        value={intended}
-        onChange={handleIntendedChange}
-        showPresets
-        onEditAttempt={onEditAttempt}
-        derivedSlide={derivedSlide}
-        derivedLaydown={derivedLaydown}
-        derivedBreakpoint={derivedBreakpoint}
-        onLaydownTap={() => setShowViz("intended")}
-      />
-
-      <button
-        type="button"
-        onClick={() => setShowViz("intended")}
-        className="inline-flex h-9 w-full items-center justify-center gap-1.5 rounded-md border border-slate-300 bg-white text-xs font-semibold text-slate-700 hover:bg-slate-50"
-      >
-        <Eye size={14} aria-hidden="true" />
-        View intended line
-      </button>
+      <div className="py-2">
+        <LineInput
+          label="Intended"
+          value={intended}
+          onChange={handleIntendedChange}
+          showPresets
+          onEditAttempt={onEditAttempt}
+          derivedSlide={derivedSlide}
+          derivedLaydown={derivedLaydown}
+          derivedBreakpoint={derivedBreakpoint}
+          onLaydownTap={() => setShowViz("intended")}
+          action={viewButton("intended")}
+        />
+      </div>
 
       {/* Actual may stay blank, but focusing any field while all three are blank
           autofills from the current Intended line (a quick "shot it as planned").
           The intended line is stance-based, so its foul-line board converts to a
           slide on the way in. */}
-      <LineInput
-        label="Actual"
-        value={actualView}
-        onChange={handleActualChange}
-        foulField="slide"
-        onEditAttempt={onEditAttempt}
-        derivedLaydown={actualLaydown}
-        derivedBreakpoint={actualBreakpoint}
-        onLaydownTap={() => setShowViz("actual")}
-        onFieldFocus={() => {
-          if (!actual && intended) {
-            if (onEditAttempt && !onEditAttempt()) return;
-            const { stance, ...rest } = intended;
-            handleActualChange({
-              ...rest,
-              slide: stance != null ? deriveSlide(stance, driftModel) : undefined
-            });
-          }
-        }}
-      />
-
-      <button
-        type="button"
-        onClick={() => setShowViz("actual")}
-        className="inline-flex h-9 w-full items-center justify-center gap-1.5 rounded-md border border-slate-300 bg-white text-xs font-semibold text-slate-700 hover:bg-slate-50"
-      >
-        <Eye size={14} aria-hidden="true" />
-        View actual line
-      </button>
+      <div className="py-2">
+        <LineInput
+          label="Actual"
+          value={actualView}
+          onChange={handleActualChange}
+          foulField="slide"
+          onEditAttempt={onEditAttempt}
+          derivedLaydown={actualLaydown}
+          derivedBreakpoint={actualBreakpoint}
+          onLaydownTap={() => setShowViz("actual")}
+          action={viewButton("actual")}
+          onFieldFocus={() => {
+            if (!actual && intended) {
+              if (onEditAttempt && !onEditAttempt()) return;
+              const { stance, ...rest } = intended;
+              handleActualChange({
+                ...rest,
+                slide: stance != null ? deriveSlide(stance, driftModel) : undefined
+              });
+            }
+          }}
+        />
+      </div>
 
       {showViz && (
         <LaneVisualizer
@@ -522,8 +522,8 @@ function ShotDetailBar({
         />
       )}
 
-      <div>
-        <span className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-400">Notes</span>
+      <div className="py-2">
+        <span className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.08em] text-slate-400">Notes</span>
         <textarea
           value={notes}
           onChange={(e) => {
@@ -534,9 +534,9 @@ function ShotDetailBar({
             const trimmed = notes.trim();
             if (trimmed !== notes) onNotesChange(trimmed);
           }}
-          rows={2}
+          rows={1}
           placeholder="This shot…"
-          className="w-full resize-none rounded-md border border-slate-300 px-2 py-1.5 text-xs focus:border-felt-700 focus:outline-none"
+          className="w-full resize-none rounded-lg border border-slate-200 bg-slate-50 px-2 py-1.5 text-xs text-slate-900 placeholder:text-slate-300 focus:border-felt-700 focus:bg-white focus:outline-none"
           onInput={(e) => {
             // Auto-grow with content so long notes stay visible without a
             // fixed six-row block dominating the panel.

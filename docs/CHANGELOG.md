@@ -25,6 +25,17 @@ User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachan
   Tapping a locked stepper unlocks it; previously locks were only reachable
   by tapping the peg on the lane.
 
+### Changed — shot panel
+
+- **The shot panel no longer scrolls.** Ball, both lines, and notes now fit
+  on one screen with every board filled in (360px, down from ~474px). The
+  two full-width "View … line" buttons became an eye control in each line's
+  heading row, and the derived boards read as one chain —
+  `Slide 24 → Laydown 21 → Bkpt 1·28ft` — in the order the ball meets them.
+- **Consistent panel styling.** One label scale, one corner radius, one field
+  treatment (recessed until focused), and lining figures throughout, so entered
+  numbers and derived numbers are told apart by weight rather than by boxes.
+
 ## [Unreleased] — completed games confirm before an edit (2026-07-21)
 
 ### Changed
