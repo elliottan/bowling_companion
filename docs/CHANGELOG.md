@@ -10,9 +10,19 @@ User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachan
   don't observe your own stance after a shot, you observe where you slid
   (ADR-032). Intended still takes Stance. Old shots keep what they stored:
   a recorded stance shows as its derived slide until you next edit that shot.
-- **Every board box has its own heading and a spelled-out placeholder.**
+- **Every board box has its own heading**, printed on the box's top border.
   A filled-in `23` says whether it's a slide, a stance, or a target without
-  you having to remember the column order.
+  you having to remember the column order — and the heading costs no height.
+- **The ball is its own control.** Its thumbnail and name sit at the top of
+  the shot panel; tapping opens a picker of your arsenal with the current ball
+  ticked. The `BALL` label, the select chrome, and the second "manage arsenal"
+  icon are gone — managing the arsenal is a link inside the picker.
+- **Notes is two lines and scrolls**, instead of one line that grew and pushed
+  the panel down.
+- **Breakpoint reads `Bkpt 15.5 (42ft)`** instead of `Bkpt 15.5·42ft`.
+- **On a finished game, the confirm prompt now appears on the tap itself** —
+  for the ball, the board boxes, and notes. Previously the field focused and
+  the keyboard opened before the prompt could stop you.
 - **Intended shows its derived Slide** beside Laydown; **Actual shows its
   Laydown and estimated breakpoint.**
 

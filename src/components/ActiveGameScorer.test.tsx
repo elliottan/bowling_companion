@@ -76,8 +76,8 @@ describe("ActiveGameScorer line inputs (ADR-032)", () => {
     expect(screen.getAllByText("Slide").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Target").length).toBe(2);
     // Placeholders spell the word out rather than "S" / "T".
-    expect(screen.getAllByPlaceholderText("Slide").length).toBe(1);
-    expect(screen.getAllByPlaceholderText("Stance").length).toBe(1);
+    expect(screen.getAllByLabelText("Slide").length).toBe(1);
+    expect(screen.getAllByLabelText("Stance").length).toBe(1);
   });
 
   it("offers a visualiser for both lines", () => {
@@ -100,7 +100,7 @@ describe("ActiveGameScorer line inputs (ADR-032)", () => {
     // The panel follows the cursor; select the recorded shot to review it.
     fireEvent.click(screen.getAllByRole("button", { name: "View frame 1 shot 1" })[0]);
 
-    const slide = screen.getByPlaceholderText("Slide") as HTMLInputElement;
+    const slide = screen.getByLabelText("Slide") as HTMLInputElement;
     expect(slide.value).toBe("21");
     // Nothing is persisted just by looking at it.
     expect(onFrameComplete).not.toHaveBeenCalled();
@@ -113,7 +113,7 @@ describe("ActiveGameScorer line inputs (ADR-032)", () => {
     );
 
     fireEvent.click(screen.getAllByRole("button", { name: "View frame 1 shot 1" })[0]);
-    fireEvent.change(screen.getByPlaceholderText("Slide"), { target: { value: "24" } });
+    fireEvent.change(screen.getByLabelText("Slide"), { target: { value: "24" } });
 
     expect(onFrameComplete).toHaveBeenCalled();
     const calls = onFrameComplete.mock.calls;

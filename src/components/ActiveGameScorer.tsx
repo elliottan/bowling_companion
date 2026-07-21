@@ -1,4 +1,4 @@
-import { Eye, Plus, SlidersHorizontal, X } from "lucide-react";
+import { Eye, Plus, X } from "lucide-react";
 import type { PointerEvent as ReactPointerEvent } from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -24,6 +24,9 @@ import { derivedApexForDisplay } from "../lib/laneGeometry";
 import { freshRackSeedShot, laneForFrame } from "../lib/lanes";
 import { getBalls, getSpareLineByPins } from "../services/ballRepository";
 import type { Ball, Frame, Game, LineSpec, PinNumber, ShotMetadata } from "../types/bowling";
+import type { Manufacturer } from "../types/catalog";
+import { BallPickerSheet } from "./BallPickerSheet";
+import { CatalogBallImage } from "./CatalogBallImage";
 import { ConfirmDialog } from "./ConfirmDialog";
 import { LaneVisualizer } from "./LaneVisualizer";
 import { PinGrid } from "./PinGrid";
@@ -70,6 +73,21 @@ const FIELD_LABEL: Record<BoardField, string> = {
   slide: "Slide",
   target: "Target"
 };
+// A field label parked on the top border of its own box. Costs no vertical band
+// of its own, and a filled-in "23" still says whether it's a slide or a target.
+const floatLabel =
+  "pointer-events-none absolute -top-1.5 left-2 z-10 bg-white px-1 text-[9px] font-semibold uppercase tracking-[0.01em] text-slate-400";
+// Section eyebrow (INTENDED / ACTUAL). Tight tracking — these are wide words.
+const eyebrow = "text-[10px] font-semibold uppercase tracking-[0.01em] text-slate-400";
+
+// Tap-gate for a locked (completed) game. Raising the prompt on `change` alone
+// let the field focus first, so the keyboard and caret appeared behind the
+// dialog; vetoing on pointerdown means the tap never lands on the control.
+const lockedTapBlocker =
+  (onEditAttempt?: () => boolean) => (e: ReactPointerEvent<HTMLElement>) => {
+    if (onEditAttempt && !onEditAttempt()) e.preventDefault();
+  };
+
 // "X-Y" board move: X boards at the stance (feet), Y at the target (arrows).
 const MOVE_PRESETS = [
   { label: "1-1", stance: 1, target: 1 },
@@ -124,6 +142,7 @@ function LineInput({
     ) as Record<BoardField, string>;
   const [text, setText] = useState(() => toText(value));
   const [focused, setFocused] = useState<BoardField | null>(null);
+  const blockLockedTap = lockedTapBlocker(onEditAttempt);
 
   // Re-sync from the prop only on external changes (carry-forward, spare-line
   // prefill, reset) — not when the prop merely echoes the user's own edit, so
@@ -210,32 +229,30 @@ function LineInput({
   if (derivedSlide != null) chain.push(`Slide ${derivedSlide}`);
   if (derivedLaydown != null) chain.push(`Laydown ${derivedLaydown}`);
   if (derivedBreakpoint != null) {
-    chain.push(`Bkpt ${Math.round(derivedBreakpoint.board * 2) / 2}·${Math.round(derivedBreakpoint.feet)}ft`);
+    chain.push(
+      `Bkpt ${Math.round(derivedBreakpoint.board * 2) / 2} (${Math.round(derivedBreakpoint.feet)}ft)`
+    );
   }
 
   return (
     <div>
       <div className="mb-1 flex items-center justify-between gap-2">
-        <span className="text-[10px] font-semibold uppercase tracking-[0.08em] text-slate-400">{label}</span>
+        <span className={eyebrow}>{label}</span>
         {action}
       </div>
-      {/* Each box keeps its own heading, so a filled-in number still says what
-          it is — a bare "23" reads the same whether it's a slide or a target. */}
       <div className="flex gap-1.5">
         {fields.map((field) => (
           <label key={field} className="relative min-w-0 flex-1">
-            <span className="pointer-events-none absolute left-2 top-1 text-[9px] font-semibold uppercase tracking-[0.08em] text-slate-400">
-              {FIELD_LABEL[field]}
-            </span>
+            <span className={floatLabel}>{FIELD_LABEL[field]}</span>
             <input
               type="text"
               inputMode="decimal"
               value={text[field]}
+              onPointerDown={blockLockedTap}
               onChange={(e) => update(field, e.target.value)}
               onFocus={() => { onFieldFocus?.(); setFocused(field); }}
               onBlur={() => setFocused((f) => (f === field ? null : f))}
-              placeholder={FIELD_LABEL[field]}
-              className="h-10 w-full min-w-0 rounded-lg border border-slate-200 bg-slate-50 pb-0.5 pt-3 text-center text-sm font-semibold tabular-nums text-slate-900 placeholder:font-normal placeholder:text-slate-300 focus:border-felt-700 focus:bg-white focus:outline-none"
+              className="h-9 w-full min-w-0 rounded-lg border border-slate-200 bg-slate-50 text-center text-sm font-semibold tabular-nums text-slate-900 focus:border-felt-700 focus:bg-white focus:outline-none"
               title={field === "target" ? "Target board (arrows)" : `${FIELD_LABEL[field]} board`}
             />
           </label>
@@ -247,7 +264,7 @@ function LineInput({
           type="button"
           onClick={onLaydownTap}
           title="Derived from what you entered. Tap to see it on the lane."
-          className="mt-1 flex w-full flex-wrap items-center gap-x-1 text-left text-[10px] font-semibold uppercase tracking-[0.06em] text-slate-400 tabular-nums hover:text-felt-700"
+          className="mt-1 flex w-full flex-wrap items-center gap-x-1 text-left text-[10px] font-semibold uppercase tracking-[0.01em] text-slate-400 tabular-nums hover:text-felt-700"
         >
           {chain.map((part, i) => (
             <span key={part} className="flex items-center gap-1 whitespace-nowrap">
@@ -336,6 +353,10 @@ function ShotDetailBar({
   onEditAttempt
 }: ShotDetailBarProps) {
   const [showViz, setShowViz] = useState<"intended" | "actual" | null>(null);
+  const [showBallPicker, setShowBallPicker] = useState(false);
+  const blockLockedTap = lockedTapBlocker(onEditAttempt);
+  const selectedBall = balls.find((b) => b.id === ballId);
+  const selectedSnap = selectedBall?.catalog_snapshot;
   const driftModel = useDriftModel();
   const handedness = useHandedness();
   const isSpareAttempt = !!spareLeave?.length;
@@ -420,42 +441,47 @@ function ShotDetailBar({
 
   return (
     <div className="divide-y divide-slate-100 rounded-xl border border-slate-200 bg-white px-2.5">
-      <div className="flex items-center gap-2 py-2">
-        <span className="text-[10px] font-semibold uppercase tracking-[0.08em] text-slate-400">Ball</span>
+      {/* Ball: the chosen ball IS the control — its thumbnail and name, tapped to
+          open the picker. No "Ball" eyebrow, no select chrome, no second icon. */}
+      <div className="flex items-center py-1.5">
         {balls.length > 0 ? (
-          <div className="flex min-w-0 flex-1 items-center gap-1.5">
-            <select
-              value={ballId ?? ""}
-              onChange={(e) => {
-                if (onEditAttempt && !onEditAttempt()) return;
-                onBallChange(e.target.value ? Number(e.target.value) : undefined);
-              }}
-              className="h-8 min-w-0 flex-1 truncate rounded-lg border border-slate-200 bg-slate-50 pl-2 pr-1 text-xs font-semibold text-slate-900 focus:border-felt-700 focus:bg-white focus:outline-none"
+          <button
+            type="button"
+            onClick={() => {
+              if (onEditAttempt && !onEditAttempt()) return;
+              setShowBallPicker(true);
+            }}
+            aria-label={`Ball: ${selectedBall?.name ?? "none"} — tap to change`}
+            className="flex min-w-0 flex-1 items-center gap-2 rounded-lg py-0.5 text-left hover:bg-slate-50"
+          >
+            <span className="h-7 w-7 shrink-0">
+              {selectedSnap ? (
+                <CatalogBallImage
+                  src={selectedSnap.imageThumb}
+                  alt=""
+                  brand={selectedSnap.brand as Manufacturer}
+                  size="thumb"
+                />
+              ) : (
+                <span className="block h-full w-full rounded-full bg-slate-200" aria-hidden="true" />
+              )}
+            </span>
+            <span
+              className={`min-w-0 flex-1 truncate text-xs font-semibold ${
+                selectedBall ? "text-slate-900" : "text-slate-400"
+              }`}
             >
-              <option value="">No ball</option>
-              {balls.map((b) => (
-                <option key={b.id} value={b.id}>
-                  {b.name}{b.is_spare_ball ? " (spare)" : ""}
-                </option>
-              ))}
-            </select>
-            {onOpenArsenal && (
-              <button
-                type="button"
-                onClick={onOpenArsenal}
-                aria-label="Manage arsenal"
-                title="Manage arsenal"
-                className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-felt-700"
-              >
-                <SlidersHorizontal size={14} aria-hidden="true" />
-              </button>
-            )}
-          </div>
+              {selectedBall?.name ?? "No ball"}
+              {selectedBall?.is_spare_ball && (
+                <span className="ml-1 font-normal text-slate-400">spare</span>
+              )}
+            </span>
+          </button>
         ) : (
           <button
             type="button"
             onClick={onOpenArsenal}
-            className="inline-flex h-8 items-center gap-1.5 rounded-lg px-2 text-xs font-semibold text-felt-700 hover:bg-slate-100"
+            className="inline-flex h-8 items-center gap-1.5 rounded-lg px-1 text-xs font-semibold text-felt-700 hover:bg-slate-100"
           >
             <Plus size={14} aria-hidden="true" />
             Add a ball
@@ -463,7 +489,17 @@ function ShotDetailBar({
         )}
       </div>
 
-      <div className="py-2">
+      {showBallPicker && (
+        <BallPickerSheet
+          balls={balls}
+          ballId={ballId}
+          onSelect={onBallChange}
+          onClose={() => setShowBallPicker(false)}
+          onOpenArsenal={onOpenArsenal}
+        />
+      )}
+
+      <div className="py-1.5">
         <LineInput
           label="Intended"
           value={intended}
@@ -482,7 +518,7 @@ function ShotDetailBar({
           autofills from the current Intended line (a quick "shot it as planned").
           The intended line is stance-based, so its foul-line board converts to a
           slide on the way in. */}
-      <div className="py-2">
+      <div className="py-1.5">
         <LineInput
           label="Actual"
           value={actualView}
@@ -522,29 +558,27 @@ function ShotDetailBar({
         />
       )}
 
-      <div className="py-2">
-        <span className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.08em] text-slate-400">Notes</span>
-        <textarea
-          value={notes}
-          onChange={(e) => {
-            if (onEditAttempt && !onEditAttempt()) return;
-            onNotesChange(e.target.value);
-          }}
-          onBlur={() => {
-            const trimmed = notes.trim();
-            if (trimmed !== notes) onNotesChange(trimmed);
-          }}
-          rows={1}
-          placeholder="This shot…"
-          className="w-full resize-none rounded-lg border border-slate-200 bg-slate-50 px-2 py-1.5 text-xs text-slate-900 placeholder:text-slate-300 focus:border-felt-700 focus:bg-white focus:outline-none"
-          onInput={(e) => {
-            // Auto-grow with content so long notes stay visible without a
-            // fixed six-row block dominating the panel.
-            const el = e.currentTarget;
-            el.style.height = "auto";
-            el.style.height = `${el.scrollHeight}px`;
-          }}
-        />
+      {/* Notes: fixed at two lines and scrolled internally rather than auto-grown,
+          so a long note can't push the rest of the panel off-screen. */}
+      <div className="py-1.5">
+        <label className="relative block">
+          <span className={floatLabel}>Notes</span>
+          <textarea
+            value={notes}
+            onPointerDown={blockLockedTap}
+            onChange={(e) => {
+              if (onEditAttempt && !onEditAttempt()) return;
+              onNotesChange(e.target.value);
+            }}
+            onBlur={() => {
+              const trimmed = notes.trim();
+              if (trimmed !== notes) onNotesChange(trimmed);
+            }}
+            rows={2}
+            placeholder="This shot…"
+            className="w-full resize-none overflow-y-auto rounded-lg border border-slate-200 bg-slate-50 px-2 pb-1 pt-1.5 text-[11px] leading-snug text-slate-900 placeholder:text-slate-300 focus:border-felt-700 focus:bg-white focus:outline-none"
+          />
+        </label>
       </div>
     </div>
   );
