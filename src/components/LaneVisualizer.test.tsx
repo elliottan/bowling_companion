@@ -182,10 +182,52 @@ describe("LaneVisualizer editing", () => {
     fireEvent.pointerDown(handle);
     fireEvent.pointerUp(handle);
     expect(handle.getAttribute("data-locked")).toBe("true");
-    // Locked ⇒ its stepper is disabled and edits that would move it are rejected.
-    expect((screen.getByLabelText("Target") as HTMLInputElement).disabled).toBe(true);
+    // Locked ⇒ its stepper is read-only (tapping it releases the peg instead of
+    // typing) and edits that would move it are rejected.
+    expect((screen.getByLabelText("Target") as HTMLInputElement).readOnly).toBe(true);
     fireEvent.pointerDown(handle);
     fireEvent.pointerUp(handle);
     expect(handle.getAttribute("data-locked")).toBe("false");
+  });
+
+  it("opens with defaultLocks applied and releases a peg when its stepper is tapped (ADR-032)", () => {
+    (Element.prototype as unknown as { setPointerCapture?: () => void }).setPointerCapture ??= () => {};
+    render(
+      <HandednessContext.Provider value="right">
+        <LaneVisualizer
+          line={{ slide: 24, laydown: 18, target: 10, breakpoint: 6 }}
+          onClose={() => {}}
+          onChange={vi.fn()}
+          defaultLocks={["laydown", "target"]}
+        />
+      </HandednessContext.Provider>
+    );
+
+    const target = screen.getByLabelText("Target") as HTMLInputElement;
+    const laydown = screen.getByLabelText("Laydown") as HTMLInputElement;
+    expect(target.readOnly).toBe(true);
+    expect(laydown.readOnly).toBe(true);
+    // Final stays free — otherwise nothing could be dragged.
+    expect((screen.getByLabelText("Final") as HTMLInputElement).readOnly).toBe(false);
+
+    fireEvent.focus(target);
+    expect((screen.getByLabelText("Target") as HTMLInputElement).readOnly).toBe(false);
+  });
+
+  it("draws the slide tick from an actual line's own slide board (ADR-032)", () => {
+    const { container } = render(
+      <HandednessContext.Provider value="right">
+        <DriftModelContext.Provider value={DEFAULT_DRIFT_MODEL}>
+          <LaneVisualizer
+            line={{ slide: 24, laydown: 18, target: 10, breakpoint: 6 }}
+            onClose={() => {}}
+            onChange={vi.fn()}
+          />
+        </DriftModelContext.Provider>
+      </HandednessContext.Provider>
+    );
+    const tick = container.querySelector('[data-role="slide-tick"] circle');
+    expect(tick).not.toBeNull();
+    expect(Number(tick!.getAttribute("cx"))).toBeCloseTo(boardToX(24, "right"), 5);
   });
 });

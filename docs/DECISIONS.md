@@ -1292,3 +1292,55 @@ visualizer would draw.
 - `spareLineApplied` (`ActiveGameScorer.tsx`) is removed — its only consumer
   was `hideIntendedBreakpoint`, and the new chip already suppresses itself
   for spare attempts regardless of whether a spare line was applied.
+
+## ADR-032 — The Actual line is slide-based
+
+**Status:** accepted (2026-07). Extends ADR-030's drift model; does not edit
+its text.
+
+**Context.** Both line inputs in score entry took the same pair of boards —
+stance and target — so `LineSpec.stance` served as "the foul-line board" for
+a planned line *and* a bowled one. That reads wrong for the Actual line: a
+bowler does not observe their own stance after the fact, they observe where
+they slid. ADR-030 already models `slide = stance − drift(stance)` and
+`laydown = slide − release_offset`, but slide existed only as a derived tick
+on the lane surface, with no way to enter it.
+
+**Decision.**
+- `LineSpec` gains an optional `slide` board. The **Intended** line keeps
+  `stance` (a plan you take up before you walk); the **Actual** line records
+  `slide` (what you actually did).
+- An observed slide skips the drift step entirely — drift is a stance→slide
+  transform, and there is nothing left to predict once the slide is known.
+  The Actual line therefore derives `laydown = slide − release_offset`
+  (`deriveLaydownFromSlide`), and a dragged laydown inverts back through the
+  same offset (`deriveSlideFromLaydown`). Downstream geometry is unchanged:
+  `solveLine` and `buildLinePath` still work from `laydown` + `target`.
+- **Legacy actual lines are not rewritten.** A stored `actual.stance` with no
+  `slide` displays as `deriveSlide(stance)`, so the box is never blank. The
+  row keeps its `stance` until the shot is next edited; the first edit writes
+  a real `slide` and drops `stance`. There is no migration and no upgrade
+  step — the fallback is display-only.
+- The Actual line gets its own lane-visualizer entry point. It opens with
+  the laydown and target pegs **pre-locked** (ADR-028's hard locks, seeded by
+  a new `defaultLocks` prop): a shot that has already been bowled has a known
+  foul-line board and arrow, so the useful gesture is dragging the *final*
+  board to where the ball actually finished and letting the path re-solve.
+- A locked peg's stepper is no longer inert. It renders a lock glyph and a
+  dashed border, and tapping the number (or either arrow) releases the peg.
+  Locks were previously only reachable by tapping the peg on the lane, which
+  was undiscoverable.
+
+**Consequences.**
+- `LineInput` is parameterised by a `foulField` (`"stance" | "slide"`) rather
+  than hard-coding the pair, and every box carries a persistent heading — a
+  filled-in `23` no longer relies on a placeholder to say what it is.
+- Both lines show their derived values as chips: Intended adds a **Slide**
+  chip beside Laydown; Actual shows Laydown and the estimated breakpoint,
+  under the same ADR-031 honesty gate (suppressed for spare attempts).
+- `deriveLaydownFromSlide` / `deriveSlideFromLaydown` round-trip exactly above
+  the lane's clamp floor (`1 + release_offset`); below it the laydown clamps
+  to board 1 and the inverse cannot recover the original slide. That is the
+  lane edge, not a modelling error.
+- Autofill from Intended ("shot it as planned") converts on the way in:
+  the intended `stance` becomes `deriveSlide(stance)` on the Actual line.

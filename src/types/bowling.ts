@@ -2,6 +2,10 @@ export type PinNumber = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
 
 export interface LineSpec {
   stance?: number;
+  /** Slide-foot board at the foul line. The Actual line's foul-line input
+   *  (ADR-032): observed directly, so it skips the stance→slide drift step and
+   *  feeds `laydown = slide − release_offset`. Intended lines use `stance`. */
+  slide?: number;
   laydown?: number;
   target?: number;
   /** Apex board — furthest point the ball reaches before recovering. Derived from

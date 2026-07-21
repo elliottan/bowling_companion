@@ -48,6 +48,84 @@ const prompt = () => screen.queryByText("Edit this completed game?");
 const confirmEdit = () => fireEvent.click(screen.getByRole("button", { name: "Edit" }));
 const cancelEdit = () => fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
 
+describe("ActiveGameScorer line inputs (ADR-032)", () => {
+  /** A game with one recorded shot selected, so the detail panel shows it. */
+  function openFrames(actual?: Record<string, number>): Frame[] {
+    return [
+      {
+        game_id: 1,
+        frame_number: 1,
+        shots: [
+          {
+            pins_standing: [7] as PinNumber[],
+            intended: { stance: 24, target: 10 },
+            ...(actual ? { actual } : {})
+          }
+        ],
+        is_strike: false,
+        is_spare: false
+      }
+    ];
+  }
+
+  it("labels the intended line Stance/Target and the actual line Slide/Target", () => {
+    render(<ActiveGameScorer gameKey={1} initialFrames={openFrames()} />);
+
+    // Headings stay visible whether or not the box is filled.
+    expect(screen.getAllByText("Stance").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Slide").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Target").length).toBe(2);
+    // Placeholders spell the word out rather than "S" / "T".
+    expect(screen.getAllByPlaceholderText("Slide").length).toBe(1);
+    expect(screen.getAllByPlaceholderText("Stance").length).toBe(1);
+  });
+
+  it("offers a visualiser for both lines", () => {
+    render(<ActiveGameScorer gameKey={1} initialFrames={openFrames()} />);
+    expect(screen.getByRole("button", { name: /view intended line/i })).toBeTruthy();
+    expect(screen.getByRole("button", { name: /view actual line/i })).toBeTruthy();
+  });
+
+  it("shows a legacy actual stance as a derived slide without rewriting the shot", () => {
+    const onFrameComplete = vi.fn();
+    // Default model: zero drift, so slide === stance.
+    render(
+      <ActiveGameScorer
+        gameKey={1}
+        initialFrames={openFrames({ stance: 21, target: 12 })}
+        onFrameComplete={onFrameComplete}
+      />
+    );
+
+    // The panel follows the cursor; select the recorded shot to review it.
+    fireEvent.click(screen.getAllByRole("button", { name: "View frame 1 shot 1" })[0]);
+
+    const slide = screen.getByPlaceholderText("Slide") as HTMLInputElement;
+    expect(slide.value).toBe("21");
+    // Nothing is persisted just by looking at it.
+    expect(onFrameComplete).not.toHaveBeenCalled();
+  });
+
+  it("writes slide + derived laydown when the actual foul-line board is typed", () => {
+    const onFrameComplete = vi.fn();
+    render(
+      <ActiveGameScorer gameKey={1} initialFrames={openFrames()} onFrameComplete={onFrameComplete} />
+    );
+
+    fireEvent.click(screen.getAllByRole("button", { name: "View frame 1 shot 1" })[0]);
+    fireEvent.change(screen.getByPlaceholderText("Slide"), { target: { value: "24" } });
+
+    expect(onFrameComplete).toHaveBeenCalled();
+    const calls = onFrameComplete.mock.calls;
+    const frame = calls[calls.length - 1][0] as Frame;
+    const actual = frame.shots[0].actual!;
+    expect(actual.slide).toBe(24);
+    // DEFAULT_DRIFT_MODEL.release_offset === 6.
+    expect(actual.laydown).toBe(18);
+    expect(actual.stance).toBeUndefined();
+  });
+});
+
 describe("ActiveGameScorer completed-game edit prompt", () => {
   beforeEach(() => vi.clearAllMocks());
 

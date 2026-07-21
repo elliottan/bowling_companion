@@ -2,6 +2,29 @@
 
 User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachangelog.com).
 
+## [Unreleased] — the Actual line records your slide (2026-07-21)
+
+### Changed
+
+- **The Actual line now takes Slide and Target**, not Stance and Target — you
+  don't observe your own stance after a shot, you observe where you slid
+  (ADR-032). Intended still takes Stance. Old shots keep what they stored:
+  a recorded stance shows as its derived slide until you next edit that shot.
+- **Every board box has its own heading and a spelled-out placeholder.**
+  A filled-in `23` says whether it's a slide, a stance, or a target without
+  you having to remember the column order.
+- **Intended shows its derived Slide** beside Laydown; **Actual shows its
+  Laydown and estimated breakpoint.**
+
+### Added
+
+- **The Actual line opens in the lane visualiser too.** It starts with the
+  laydown and target pinned, so the first thing you can drag is where the
+  ball actually finished — the rest of the line re-solves around it.
+- **Locked pegs show a lock and can be released from the number itself.**
+  Tapping a locked stepper unlocks it; previously locks were only reachable
+  by tapping the peg on the lane.
+
 ## [Unreleased] — completed games confirm before an edit (2026-07-21)
 
 ### Changed

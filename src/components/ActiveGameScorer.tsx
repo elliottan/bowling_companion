@@ -13,7 +13,13 @@ import {
 import { calculateGameScore, isSpare } from "../lib/scoring";
 import { useHandedness } from "../lib/handednessContext";
 import { useDriftModel } from "../lib/driftModelContext";
-import { deriveLaydown, deriveStanceFromLaydown } from "../lib/driftModel";
+import {
+  deriveLaydown,
+  deriveLaydownFromSlide,
+  deriveSlide,
+  deriveSlideFromLaydown,
+  deriveStanceFromLaydown
+} from "../lib/driftModel";
 import { derivedApexForDisplay } from "../lib/laneGeometry";
 import { freshRackSeedShot, laneForFrame } from "../lib/lanes";
 import { getBalls, getSpareLineByPins } from "../services/ballRepository";
@@ -33,11 +39,16 @@ interface LineInputProps {
   label: string;
   value: LineSpec | undefined;
   onChange: (value: LineSpec | undefined) => void;
+  /** Foul-line board this input edits: the Intended line takes a planned
+   *  `stance`, the Actual line an observed `slide` (ADR-032). */
+  foulField?: FoulField;
   /** Show the line-move preset chips (used for the intended line). */
   showPresets?: boolean;
   /** Fired when any field gains focus — used by the Actual line to autofill. */
   onFieldFocus?: () => void;
-  /** Derived laydown board (stance − offset, or the explicit override). Renders a read-only chip. */
+  /** Derived slide board (stance − drift). Renders a read-only chip; Intended only. */
+  derivedSlide?: number;
+  /** Derived laydown board (slide − release offset, or the explicit override). Renders a read-only chip. */
   derivedLaydown?: number;
   /** Derived breakpoint (real apex only — ADR-028/031). Renders a read-only chip. */
   derivedBreakpoint?: { board: number; feet: number } | null;
@@ -48,14 +59,15 @@ interface LineInputProps {
   onEditAttempt?: () => boolean;
 }
 
-const LINE_FIELDS = ["stance", "target"] as const;
-const FIELD_LABEL: Record<(typeof LINE_FIELDS)[number], string> = {
+// The foul-line board an input edits: a planned stance, or an observed slide.
+type FoulField = "stance" | "slide";
+// The board fields an input edits — the foul-line one plus the arrows.
+type BoardField = FoulField | "target";
+const FIELD_LABEL: Record<BoardField, string> = {
   stance: "Stance",
+  slide: "Slide",
   target: "Target"
 };
-// The board fields this input edits. Derived from LINE_FIELDS so it stays a
-// subset of LineSpec's keys even if other line dimensions are added elsewhere.
-type BoardField = (typeof LINE_FIELDS)[number];
 // "X-Y" board move: X boards at the stance (feet), Y at the target (arrows).
 const MOVE_PRESETS = [
   { label: "1-1", stance: 1, target: 1 },
@@ -63,9 +75,9 @@ const MOVE_PRESETS = [
   { label: "2-1", stance: 2, target: 1 }
 ];
 
-// The stance ("standing") board allows a wider range than the target/breakpoint
-// arrows: a bowler can stand out to board 50, but targets cap at the 39 boards.
-const maxForField = (field: BoardField) => (field === "stance" ? 50 : 39);
+// The foul-line boards allow a wider range than the target/breakpoint arrows: a
+// bowler can stand (and slide) out to board 50, but targets cap at the 39 boards.
+const maxForField = (field: BoardField) => (field === "target" ? 39 : 50);
 const clampBoard = (n: number, max = 39) => Math.max(1, Math.min(max, Math.round(n * 10) / 10));
 
 // Keep only digits and a single dot, capped at one decimal place. A trailing
@@ -89,8 +101,10 @@ function LineInput({
   label,
   value,
   onChange,
+  foulField = "stance",
   showPresets = false,
   onFieldFocus,
+  derivedSlide,
   derivedLaydown,
   derivedBreakpoint,
   onLaydownTap,
@@ -100,10 +114,11 @@ function LineInput({
   // Board numbers rise to the left for a right-hander, to the right for a
   // left-hander. dir = +1 means the LEFT arrow increases the board number.
   const dir = handedness === "right" ? 1 : -1;
-  const toText = (v: LineSpec | undefined) => ({
-    stance: v?.stance != null ? String(v.stance) : "",
-    target: v?.target != null ? String(v.target) : ""
-  });
+  const fields: BoardField[] = [foulField, "target"];
+  const toText = (v: LineSpec | undefined) =>
+    Object.fromEntries(
+      fields.map((f) => [f, v?.[f] != null ? String(v[f]) : ""])
+    ) as Record<BoardField, string>;
   const [text, setText] = useState(() => toText(value));
   const [focused, setFocused] = useState<BoardField | null>(null);
 
@@ -113,14 +128,15 @@ function LineInput({
   useEffect(() => {
     setText((prev) => {
       const next = { ...prev };
-      for (const f of LINE_FIELDS) {
-        if (parseOneDp(prev[f]) !== value?.[f]) {
+      for (const f of fields) {
+        if (parseOneDp(prev[f] ?? "") !== value?.[f]) {
           next[f] = value?.[f] != null ? String(value[f]) : "";
         }
       }
       return next;
     });
-  }, [value?.stance, value?.target, value?.breakpoint]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value?.stance, value?.slide, value?.target, value?.breakpoint]);
 
   // Merge field overrides into the spec + local text, then emit.
   // TODO(line-draw): future — given any two of stance/target/breakpoint (and a
@@ -141,7 +157,7 @@ function LineInput({
       }
       return nt;
     });
-    const hasAny = next.stance != null || next.target != null || next.breakpoint != null;
+    const hasAny = next[foulField] != null || next.target != null || next.breakpoint != null;
     onChange(hasAny ? next : undefined);
   }
 
@@ -153,7 +169,7 @@ function LineInput({
     const next: LineSpec = { ...value };
     if (v === undefined) delete next[field];
     else next[field] = Math.max(1, Math.min(maxForField(field), v));
-    const hasAny = next.stance != null || next.target != null || next.breakpoint != null;
+    const hasAny = next[foulField] != null || next.target != null || next.breakpoint != null;
     onChange(hasAny ? next : undefined);
   }
 
@@ -162,10 +178,14 @@ function LineInput({
     applyValues({ [field]: clampBoard(base + delta, maxForField(field)) });
   }
 
-  function move(stanceDelta: number, targetDelta: number) {
-    const s = parseOneDp(text.stance) ?? value?.stance ?? 20;
+  // Presets move the foul-line board and the target together.
+  function move(foulDelta: number, targetDelta: number) {
+    const s = parseOneDp(text[foulField]) ?? value?.[foulField] ?? 20;
     const t = parseOneDp(text.target) ?? value?.target ?? 20;
-    applyValues({ stance: clampBoard(s + stanceDelta, maxForField("stance")), target: clampBoard(t + targetDelta, maxForField("target")) });
+    applyValues({
+      [foulField]: clampBoard(s + foulDelta, maxForField(foulField)),
+      target: clampBoard(t + targetDelta, maxForField("target"))
+    });
   }
 
   // Single full-width button per adjuster: label centered, arrows at the edges,
@@ -183,30 +203,46 @@ function LineInput({
   return (
     <div>
       <span className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-400">{label}</span>
+      {/* Each box keeps its own heading, so a filled-in number still says what
+          it is — a bare "23" reads the same whether it's a slide or a target. */}
       <div className="flex gap-1">
-        {LINE_FIELDS.map((field, i) => (
-          <input
-            key={field}
-            type="text"
-            inputMode="decimal"
-            value={text[field]}
-            onChange={(e) => update(field, e.target.value)}
-            onFocus={() => { onFieldFocus?.(); setFocused(field); }}
-            onBlur={() => setFocused((f) => (f === field ? null : f))}
-            placeholder={["S", "T"][i]}
-            className="h-9 w-full min-w-0 rounded-md border border-slate-300 px-1 text-center text-xs focus:border-felt-700 focus:outline-none"
-            title={["Stance board", "Target board (arrows)"][i]}
-          />
+        {fields.map((field) => (
+          <label key={field} className="min-w-0 flex-1">
+            <span className="mb-0.5 block text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+              {FIELD_LABEL[field]}
+            </span>
+            <input
+              type="text"
+              inputMode="decimal"
+              value={text[field]}
+              onChange={(e) => update(field, e.target.value)}
+              onFocus={() => { onFieldFocus?.(); setFocused(field); }}
+              onBlur={() => setFocused((f) => (f === field ? null : f))}
+              placeholder={FIELD_LABEL[field]}
+              className="h-9 w-full min-w-0 rounded-md border border-slate-300 px-1 text-center text-xs placeholder:text-slate-300 focus:border-felt-700 focus:outline-none"
+              title={field === "target" ? "Target board (arrows)" : `${FIELD_LABEL[field]} board`}
+            />
+          </label>
         ))}
       </div>
 
-      {(derivedLaydown != null || derivedBreakpoint != null) && (
+      {(derivedSlide != null || derivedLaydown != null || derivedBreakpoint != null) && (
         <div className="mt-1 flex flex-wrap gap-1">
+          {derivedSlide != null && (
+            <button
+              type="button"
+              onClick={onLaydownTap}
+              title="Derived slide board (stance − drift). Tap to view on the lane."
+              className="inline-flex h-6 items-center gap-1 rounded-full bg-slate-100 px-2 text-xs font-semibold uppercase tracking-wide text-slate-500 hover:bg-slate-200"
+            >
+              Slide {derivedSlide}
+            </button>
+          )}
           {derivedLaydown != null && (
             <button
               type="button"
               onClick={onLaydownTap}
-              title="Derived laydown board (stance − offset). Tap to view on the lane."
+              title="Derived laydown board (slide − release offset). Tap to view on the lane."
               className="inline-flex h-6 items-center gap-1 rounded-full bg-slate-100 px-2 text-xs font-semibold uppercase tracking-wide text-slate-500 hover:bg-slate-200"
             >
               Laydown {derivedLaydown}
@@ -302,18 +338,40 @@ function ShotDetailBar({
   spareLeave,
   onEditAttempt
 }: ShotDetailBarProps) {
-  const [showViz, setShowViz] = useState(false);
+  const [showViz, setShowViz] = useState<"intended" | "actual" | null>(null);
   const driftModel = useDriftModel();
   const handedness = useHandedness();
+  const isSpareAttempt = !!spareLeave?.length;
+
+  const derivedSlide =
+    intended?.stance != null ? deriveSlide(intended.stance, driftModel) : undefined;
   const derivedLaydown =
     intended?.laydown ??
     (intended?.stance != null ? deriveLaydown(intended.stance, driftModel) : undefined);
+
+  // Legacy Actual lines (ADR-032) stored a stance. Show its derived slide so the
+  // box is never blank; the stored row is left alone until the shot is edited.
+  const actualView: LineSpec | undefined = actual
+    ? {
+        ...actual,
+        slide:
+          actual.slide ??
+          (actual.stance != null ? deriveSlide(actual.stance, driftModel) : undefined)
+      }
+    : actual;
+  const actualLaydown =
+    actualView?.laydown ??
+    (actualView?.slide != null
+      ? deriveLaydownFromSlide(actualView.slide, driftModel)
+      : undefined);
+
   // Never a spare-aim concept (ADR-031): suppressed entirely for spare attempts.
-  const derivedBreakpoint = spareLeave?.length
-    ? null
-    : intended
-      ? derivedApexForDisplay({ ...intended, laydown: intended.laydown ?? derivedLaydown }, handedness)
-      : null;
+  const apexFor = (line: LineSpec | undefined, laydown: number | undefined) =>
+    isSpareAttempt || !line
+      ? null
+      : derivedApexForDisplay({ ...line, laydown: line.laydown ?? laydown }, handedness);
+  const derivedBreakpoint = apexFor(intended, derivedLaydown);
+  const actualBreakpoint = apexFor(actualView, actualLaydown);
 
   // Keep stance/laydown in sync (ADR-030 drift model): whichever one the user
   // just edited (typed stance here, or dragged laydown in the visualizer)
@@ -331,6 +389,21 @@ function ShotDetailBar({
       merged.stance = deriveStanceFromLaydown(merged.laydown, driftModel);
     }
     onIntendedChange(merged);
+  }
+
+  // Actual lines are slide-based (ADR-032): slide ⇄ laydown keep each other in
+  // sync across the release offset, with no drift step. A legacy `stance` is
+  // dropped on the first edit — slide is the field of record from then on.
+  function handleActualChange(next: LineSpec | undefined) {
+    if (!next) { onActualChange(next); return; }
+    const merged = { ...next };
+    if (merged.slide !== actualView?.slide && merged.slide != null) {
+      merged.laydown = deriveLaydownFromSlide(merged.slide, driftModel);
+    } else if (merged.laydown !== actualView?.laydown && merged.laydown != null) {
+      merged.slide = deriveSlideFromLaydown(merged.laydown, driftModel);
+    }
+    if (merged.slide != null) delete merged.stance;
+    onActualChange(merged);
   }
 
   return (
@@ -384,45 +457,70 @@ function ShotDetailBar({
         onChange={handleIntendedChange}
         showPresets
         onEditAttempt={onEditAttempt}
+        derivedSlide={derivedSlide}
         derivedLaydown={derivedLaydown}
         derivedBreakpoint={derivedBreakpoint}
-        onLaydownTap={() => setShowViz(true)}
+        onLaydownTap={() => setShowViz("intended")}
       />
 
       <button
         type="button"
-        onClick={() => setShowViz(true)}
+        onClick={() => setShowViz("intended")}
         className="inline-flex h-9 w-full items-center justify-center gap-1.5 rounded-md border border-slate-300 bg-white text-xs font-semibold text-slate-700 hover:bg-slate-50"
       >
         <Eye size={14} aria-hidden="true" />
         View intended line
       </button>
-      {showViz && (
-        <LaneVisualizer
-          title="Intended line"
-          line={intended}
-          onChange={handleIntendedChange}
-          onEditAttempt={onEditAttempt}
-          spare={!!spareLeave?.length}
-          leave={spareLeave}
-          onClose={() => setShowViz(false)}
-        />
-      )}
 
       {/* Actual may stay blank, but focusing any field while all three are blank
-          autofills from the current Intended line (a quick "shot it as planned"). */}
+          autofills from the current Intended line (a quick "shot it as planned").
+          The intended line is stance-based, so its foul-line board converts to a
+          slide on the way in. */}
       <LineInput
         label="Actual"
-        value={actual}
-        onChange={onActualChange}
+        value={actualView}
+        onChange={handleActualChange}
+        foulField="slide"
         onEditAttempt={onEditAttempt}
+        derivedLaydown={actualLaydown}
+        derivedBreakpoint={actualBreakpoint}
+        onLaydownTap={() => setShowViz("actual")}
         onFieldFocus={() => {
           if (!actual && intended) {
             if (onEditAttempt && !onEditAttempt()) return;
-            onActualChange({ ...intended });
+            const { stance, ...rest } = intended;
+            handleActualChange({
+              ...rest,
+              slide: stance != null ? deriveSlide(stance, driftModel) : undefined
+            });
           }
         }}
       />
+
+      <button
+        type="button"
+        onClick={() => setShowViz("actual")}
+        className="inline-flex h-9 w-full items-center justify-center gap-1.5 rounded-md border border-slate-300 bg-white text-xs font-semibold text-slate-700 hover:bg-slate-50"
+      >
+        <Eye size={14} aria-hidden="true" />
+        View actual line
+      </button>
+
+      {showViz && (
+        <LaneVisualizer
+          title={showViz === "actual" ? "Actual line" : "Intended line"}
+          line={showViz === "actual" ? actualView : intended}
+          onChange={showViz === "actual" ? handleActualChange : handleIntendedChange}
+          onEditAttempt={onEditAttempt}
+          // The actual line records where the ball finished, so it opens with the
+          // foul line and arrows pinned: the first thing you can drag is the
+          // final board, and the path re-solves back to what you entered.
+          defaultLocks={showViz === "actual" ? ["laydown", "target"] : undefined}
+          spare={isSpareAttempt}
+          leave={spareLeave}
+          onClose={() => setShowViz(null)}
+        />
+      )}
 
       <div>
         <span className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-400">Notes</span>

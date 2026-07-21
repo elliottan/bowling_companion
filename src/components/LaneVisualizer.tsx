@@ -1,9 +1,9 @@
-import { Minus, Plus, SlidersHorizontal, X } from "lucide-react";
+import { Lock, Minus, Plus, SlidersHorizontal, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import type { LineSpec, PinNumber } from "../types/bowling";
 import { useHandedness } from "../lib/handednessContext";
 import { useDriftModel } from "../lib/driftModelContext";
-import { deriveLaydown, deriveSlide } from "../lib/driftModel";
+import { deriveLaydown, deriveLaydownFromSlide, deriveSlide } from "../lib/driftModel";
 import { spareAimPoint } from "../lib/spareAim";
 import { LaneSurface } from "./LaneSurface";
 import {
@@ -54,9 +54,13 @@ interface LaneVisualizerProps {
   /** Veto hook for a locked (completed) game: return false to drop a user edit.
    *  Only user drags/taps are gated — the auto-seed effects below bypass it. */
   onEditAttempt?: () => boolean;
+  /** Pegs pinned when the view opens (max 2 — one aim peg must stay free).
+   *  The Actual line opens with laydown + target pinned so the final board is
+   *  the first thing that moves (ADR-032). */
+  defaultLocks?: readonly LockablePeg[];
 }
 
-export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, title = "Line", onEditAttempt }: LaneVisualizerProps) {
+export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, title = "Line", onEditAttempt, defaultLocks }: LaneVisualizerProps) {
   const hand = useHandedness();
   const driftModel = useDriftModel();
   const [deg, setDeg] = useState(BOWLER_DEG);
@@ -76,7 +80,9 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
 
   // Hard peg locks (ADR-028): tap a peg to freeze it. Max 2 — one aim peg must
   // stay free or nothing is editable. Reset on close (component unmounts).
-  const [locked, setLocked] = useState<ReadonlySet<LockablePeg>>(new Set());
+  const [locked, setLocked] = useState<ReadonlySet<LockablePeg>>(
+    () => new Set((defaultLocks ?? []).slice(0, 2))
+  );
   const grabbedKey = useRef<string | null>(null);
   const dragStarted = useRef(false);
   const grabXY = useRef<{ x: number; y: number } | null>(null);
@@ -130,21 +136,28 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [spare, leave]);
 
-  // Strike mode: derive a missing laydown from stance via the drift model (ADR-030).
-  // Runs once while laydown is unset; a typed/dragged laydown then owns the value.
+  // Strike mode: derive a missing laydown from the line's foul-line board — a
+  // planned stance through the drift model (ADR-030), or an observed slide
+  // across the release offset alone (ADR-032). Runs once while laydown is unset;
+  // a typed/dragged laydown then owns the value.
   useEffect(() => {
-    if (spare || !onChange || !line) return;
-    if (line.laydown != null || line.stance == null) return;
-    onChange({ ...line, laydown: deriveLaydown(line.stance, driftModel) });
+    if (spare || !onChange || !line || line.laydown != null) return;
+    if (line.slide != null) {
+      onChange({ ...line, laydown: deriveLaydownFromSlide(line.slide, driftModel) });
+    } else if (line.stance != null) {
+      onChange({ ...line, laydown: deriveLaydown(line.stance, driftModel) });
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [spare, line?.stance, line?.laydown]);
+  }, [spare, line?.stance, line?.slide, line?.laydown]);
 
   const path = onChange && line ? buildLinePath(line, hand, spare) : null;
 
   // Slide tick (ADR-030): strike mode only, purely decorative — a derived slide-foot
   // marker at the foul line, distinct from the (draggable) laydown peg.
-  const slideBoard =
-    !spare && line?.stance != null ? deriveSlide(line.stance, driftModel) : undefined;
+  // An actual line records the slide directly (ADR-032); a planned one derives it.
+  const slideBoard = spare
+    ? undefined
+    : line?.slide ?? (line?.stance != null ? deriveSlide(line.stance, driftModel) : undefined);
 
   // Re-run the ball animation shortly after the line settles, so an edit visibly
   // replays the shot. Debounced so mid-drag churn doesn't restart it every frame.
@@ -423,14 +436,17 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
             onPointerDown={(e) => e.stopPropagation()}
           >
             <StepperField label="Laydown" value={line?.laydown ?? line?.stance} min={1} max={59} lateral
-              disabled={locked.has("laydown")}
+              locked={locked.has("laydown")}
+              onUnlock={() => toggleLock("laydown")}
               onCommit={(v) => { lastAimEdit.current = "laydown"; applyEdit({ laydown: v }); }} />
             <StepperField label="Target" value={line?.target} min={1} max={39} lateral
-              disabled={locked.has("target")}
+              locked={locked.has("target")}
+              onUnlock={() => toggleLock("target")}
               onCommit={(v) => { lastAimEdit.current = "target"; applyEdit({ target: v }); }} />
             <ReadField label="Bkpt" value={bpBoard != null && bpFeet != null ? `${bpBoard}·${bpFeet}ft` : undefined} />
             <StepperField label="Final" value={line?.final_board ?? POCKET_BOARD} min={1} max={39} lateral
-              disabled={locked.has("final")}
+              locked={locked.has("final")}
+              onUnlock={() => toggleLock("final")}
               onCommit={(v) => applyEdit({ final_board: v })} />
             {finalOffPocket && !locked.has("final") && (
               <button
@@ -451,16 +467,20 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
             onPointerDown={(e) => e.stopPropagation()}
           >
             <StepperField label="Laydown" value={line?.laydown ?? line?.stance} min={1} max={59} lateral
-              disabled={locked.has("laydown")}
+              locked={locked.has("laydown")}
+              onUnlock={() => toggleLock("laydown")}
               onCommit={(v) => { lastAimEdit.current = "laydown"; applyEdit({ laydown: v }); }} />
             <StepperField label="Target" value={line?.target} min={1} max={39} lateral
-              disabled={locked.has("target")}
+              locked={locked.has("target")}
+              onUnlock={() => toggleLock("target")}
               onCommit={(v) => { lastAimEdit.current = "target"; applyEdit({ target: v }); }} />
             <StepperField label="Final" value={line?.final_board ?? POCKET_BOARD} min={1} max={39} lateral
-              disabled={locked.has("final")}
+              locked={locked.has("final")}
+              onUnlock={() => toggleLock("final")}
               onCommit={(v) => applyEdit({ final_board: v })} />
             <StepperField label="Final ft" value={line?.final_distance ?? 60} min={55} max={63} step={0.5}
-              disabled={locked.has("final")}
+              locked={locked.has("final")}
+              onUnlock={() => toggleLock("final")}
               onCommit={(v) => applyEdit({ final_distance: v })} />
             {finalOffAim && spareAim && !locked.has("final") && (
               <button
@@ -594,7 +614,7 @@ function ReadField({ label, value }: { label: string; value: string | undefined 
  *  `lateral` board fields use screen-direction ◀/▶ (hand-mirrored, matching the
  *  score-entry adjusters); depth fields keep −/+. */
 function StepperField({
-  label, value, min, max, step = 0.5, lateral = false, disabled = false, onCommit,
+  label, value, min, max, step = 0.5, lateral = false, locked = false, onUnlock, onCommit,
 }: {
   label: string;
   value: number | undefined;
@@ -602,7 +622,10 @@ function StepperField({
   max: number;
   step?: number;
   lateral?: boolean;
-  disabled?: boolean;
+  /** Peg is pinned: the controls are inert and a lock glyph shows. */
+  locked?: boolean;
+  /** Tap anywhere on a locked field to release it — the number is the handle. */
+  onUnlock?: () => void;
   onCommit: (v: number) => void;
 }) {
   const hand = useHandedness();
@@ -616,14 +639,25 @@ function StepperField({
   const nudge = (d: number) => onCommit(clamp((value ?? min) + d, min, max));
   const leftDelta = lateral ? step * dir : -step;
   return (
-    <div className={`flex w-[4.75rem] flex-col gap-0.5 text-center text-[10px] font-semibold uppercase tracking-wide text-white/70 ${disabled ? "opacity-40" : ""}`}>
-      {label}
-      <div className="flex h-9 items-stretch overflow-hidden rounded-md border border-white/20 bg-white/10">
+    <div
+      className={`flex w-[4.75rem] flex-col gap-0.5 text-center text-[10px] font-semibold uppercase tracking-wide text-white/70 ${locked ? "opacity-60" : ""}`}
+      // A locked field is its own unlock button: tapping the number (or either
+      // arrow) releases the peg rather than doing nothing.
+      onPointerDown={locked ? () => onUnlock?.() : undefined}
+    >
+      <span className="flex items-center justify-center gap-1">
+        {locked && <Lock size={9} aria-hidden="true" />}
+        {label}
+      </span>
+      <div
+        className={`flex h-9 items-stretch overflow-hidden rounded-md border bg-white/10 ${
+          locked ? "border-dashed border-white/40" : "border-white/20"
+        }`}
+      >
         <button
           type="button"
-          aria-label={lateral ? `${label} left` : `${label} down`}
-          disabled={disabled}
-          onClick={() => nudge(leftDelta)}
+          aria-label={locked ? `Unlock ${label}` : lateral ? `${label} left` : `${label} down`}
+          onClick={() => (locked ? onUnlock?.() : nudge(leftDelta))}
           className="flex w-5 shrink-0 items-center justify-center text-white/70 hover:bg-white/10"
         >
           {lateral ? <span aria-hidden="true" className="text-[10px]">◀</span> : <Minus size={11} aria-hidden="true" />}
@@ -633,18 +667,17 @@ function StepperField({
           inputMode="decimal"
           aria-label={label}
           value={shown}
-          disabled={disabled}
+          readOnly={locked}
           onChange={(e) => setDraft(e.target.value)}
-          onFocus={(e) => e.target.select()}
+          onFocus={(e) => { if (locked) { onUnlock?.(); return; } e.target.select(); }}
           onBlur={commit}
           onKeyDown={(e) => { if (e.key === "Enter") { commit(); (e.target as HTMLInputElement).blur(); } }}
           className="min-w-0 flex-1 bg-transparent text-center text-[13px] font-medium tabular-nums text-white outline-none"
         />
         <button
           type="button"
-          aria-label={lateral ? `${label} right` : `${label} up`}
-          disabled={disabled}
-          onClick={() => nudge(-leftDelta)}
+          aria-label={locked ? `Unlock ${label}` : lateral ? `${label} right` : `${label} up`}
+          onClick={() => (locked ? onUnlock?.() : nudge(-leftDelta))}
           className="flex w-5 shrink-0 items-center justify-center text-white/70 hover:bg-white/10"
         >
           {lateral ? <span aria-hidden="true" className="text-[10px]">▶</span> : <Plus size={11} aria-hidden="true" />}

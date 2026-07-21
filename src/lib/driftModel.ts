@@ -76,6 +76,19 @@ export function deriveLaydown(stance: number, model: DriftModel): number {
   return clampBoard(deriveSlide(stance, model) - model.release_offset);
 }
 
+/** Laydown for an observed slide board (ADR-032). Drift is a stance→slide
+ *  concept, so a measured slide skips it entirely: only the release offset
+ *  separates the slide foot from where the ball touches down. */
+export function deriveLaydownFromSlide(slide: number, model: DriftModel): number {
+  return clampBoard(slide - model.release_offset);
+}
+
+/** Inverse of deriveLaydownFromSlide — used when a laydown peg is dragged on an
+ *  Actual line and the slide board has to follow it. */
+export function deriveSlideFromLaydown(laydown: number, model: DriftModel): number {
+  return clampBoard(laydown + model.release_offset);
+}
+
 /** Inverse of deriveLaydown: the stance that produces a given laydown. Each
  *  zone's drift is a flat constant, so within a zone the transform inverts
  *  exactly (stance = laydown + release_offset + drift[zone]) — but the zone

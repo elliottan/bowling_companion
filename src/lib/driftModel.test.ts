@@ -2,7 +2,9 @@ import { describe, expect, it } from "vitest";
 import {
   DEFAULT_DRIFT_MODEL,
   deriveLaydown,
+  deriveLaydownFromSlide,
   deriveSlide,
+  deriveSlideFromLaydown,
   driftDirection,
   driftForStance,
   migrateLegacyLaydownOffset,
@@ -113,6 +115,39 @@ describe("driftModel", () => {
       };
       // stance 10, drift 0.3 -> slide raw 9.7 -> snapped to nearest half-board = 9.5
       expect(deriveSlide(10, model)).toBe(9.5);
+    });
+  });
+
+  describe("slide ⇄ laydown (ADR-032)", () => {
+    const drifty: DriftModel = {
+      ...DEFAULT_DRIFT_MODEL,
+      release_offset: 5.5,
+      drift: { outside: 2, middle: -1, inside: 3 }
+    };
+
+    it("crosses only the release offset — drift never applies to an observed slide", () => {
+      expect(deriveLaydownFromSlide(24, drifty)).toBe(18.5);
+      expect(deriveSlideFromLaydown(18.5, drifty)).toBe(24);
+    });
+
+    // Below 1 + release_offset the laydown clamps to board 1 and the inverse
+    // can't recover the original slide — that's the lane edge, not a round trip.
+    it("round-trips every half board above the clamp floor", () => {
+      for (let slide = 1 + drifty.release_offset; slide <= 39; slide += 0.5) {
+        expect(deriveSlideFromLaydown(deriveLaydownFromSlide(slide, drifty), drifty)).toBe(slide);
+      }
+    });
+
+    it("agrees with the stance path: stance → slide → laydown equals deriveLaydown", () => {
+      for (let stance = 1; stance <= 39; stance += 0.5) {
+        const viaSlide = deriveLaydownFromSlide(deriveSlide(stance, drifty), drifty);
+        expect(viaSlide).toBe(deriveLaydown(stance, drifty));
+      }
+    });
+
+    it("clamps to the lane", () => {
+      expect(deriveLaydownFromSlide(2, DEFAULT_DRIFT_MODEL)).toBe(1);
+      expect(deriveSlideFromLaydown(38, DEFAULT_DRIFT_MODEL)).toBe(39);
     });
   });
 
