@@ -5,9 +5,9 @@
 real installed PWA after five attempts. Everything below is kept as the record
 of what failed and why, so it does not get re-tried.
 
-**HIT-TESTING: STILL OPEN.** See "Round 2" at the bottom — the shell now paints
-correctly but taps land displaced, so iOS is compositing against the live
-viewport while hit-testing against a stale one.
+**HIT-TESTING: RESOLVED — 2026-07-21.** iOS left the document scrolled 62px
+after a rotation round-trip, displacing every touch target. Fixed by clamping
+the document scroll back to zero. See "Round 2" at the bottom.
 
 **If you are about to add JS viewport measurement back into `App.tsx`, read
 this whole file first.** Four separate measurement schemes have already been
@@ -171,22 +171,47 @@ It also reports `vvOffTop`, `vvPageTop`, `scrollY` and `docTop`, because a
 non-zero visual-viewport offset or a stray document scroll is the most likely
 mechanism and would show up directly in those numbers.
 
-### Candidates shipped alongside it
+### The measurement that settled it
 
-| Fix | Does |
-|---|---|
-| `none` | Shipped behaviour, nothing extra — the control |
-| `kick` | Forces a reflow of the shell subtree on rotation |
-| `scroll` | Resets `window.scrollTo(0,0)` and `scrollingElement.scrollTop` |
-| `remount` | Re-keys the shell so React rebuilds the subtree |
-| `all` | All three |
+Four candidates shipped alongside the probe. Testing them back to back:
 
-### How to run a round
+| Fix | `vvOffTop` | `scrollY` | `docTop` | Taps |
+|---|---|---|---|---|
+| `none` (control) | 62 | 62 | 62 | ❌ displaced |
+| `kick` (force reflow) | 62 | 62 | 62 | ❌ displaced |
+| `remount` (re-key shell) | 62 | 62 | 62 | ❌ displaced |
+| `scroll` (reset offset) | **0** | **0** | **0** | ✅ **correct** |
 
-1. Launch the installed PWA, confirm `standalone: yes`.
-2. Rotate portrait → landscape → portrait.
-3. Tap a few elements and read `hit dy`. `last taps` keeps the recent history,
-   so a consistent number is easy to spot.
-4. **Record the number even when a fix works** — the magnitude is the evidence.
-   If it matches `vvOffTop` or `scrollY`, the mechanism is identified and the
-   real fix is to neutralise that offset, not to paper over it with a remount.
+Unambiguous, and it identifies the mechanism rather than just the remedy:
+**iOS leaves the document scrolled by 62px** — ≈ the safe-area top inset —
+after a rotation round-trip in standalone. The `fixed` shell keeps painting
+against the visual viewport, but taps resolve in layout space, so every target
+sits displaced by exactly that offset until relaunch.
+
+Reflowing and remounting both left the offset at 62 and both failed, which
+confirms the offset *is* the bug rather than a side effect of one.
+
+### The fix
+
+Clamp the document scroll to zero (`src/lib/viewportScroll.ts` + the effect in
+`App.tsx`). This app never legitimately scrolls the document — `html, body` are
+`overflow: hidden`, the shell is `position: fixed`, and scrolling is confined to
+`<main>` — so any non-zero offset is spurious by construction.
+
+Bound to `scroll` as well as `orientationchange`, so it is self-healing rather
+than rotation-specific: whatever knocks the document off zero, it returns.
+
+**The one exception is the on-screen keyboard.** iOS scrolls the page to reveal
+a focused field, and clamping that would hide what the user is typing into — so
+the reset is skipped while a text field has focus. That exception is the whole
+reason the logic lives in a tested pure function.
+
+### A note on the probe's blind spot
+
+`hit dy` read `ok` in every configuration, including the broken ones. The probe
+compared `event.target` against `document.elementFromPoint`, and both resolve in
+the *same* displaced coordinate space, so they agreed while both were wrong.
+
+What actually caught it was the offset rows sitting next to the verdict. Worth
+remembering: an instrument that can only compare two readings from the same
+subsystem cannot detect that subsystem being shifted as a whole.

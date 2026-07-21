@@ -91,6 +91,12 @@ User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachan
 
 ### Fixed
 
+- **Taps land where you tap after rotating.** Rotating out and back left iOS
+  holding the document scrolled 62px, so every button had to be tapped slightly
+  above itself until you relaunched the app. The app never scrolls the document
+  by design, so any offset is now clamped back to zero — except while you're
+  typing, since iOS scrolls the page to keep a focused field visible.
+
 - **The mobile tab bar no longer leaves a permanent blank strip below itself
   — after rotating back to portrait, or after dismissing the on-screen
   keyboard.** The app shell is now `position: fixed; inset: 0`, so the browser

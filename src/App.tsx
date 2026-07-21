@@ -33,8 +33,7 @@ import { HandednessPicker } from "./components/HandednessPicker";
 import type { Handedness, LineSpec } from "./types/bowling";
 import { LaneVisualizer } from "./components/LaneVisualizer";
 import { UpdateToast } from "./components/UpdateToast";
-import { FIX_KEY, parseFix, type ViewportFix } from "./lib/viewportFix";
-import { ViewportProbe } from "./components/ViewportProbe";
+import { shouldResetScroll } from "./lib/viewportScroll";
 
 type AppView = "dashboard" | "active" | "history" | "spares" | "settings" | "catalog";
 
@@ -107,49 +106,42 @@ function App() {
   // is what five earlier attempts all foundered on. See `docs/VIEWPORT-BUG.md`
   // before reintroducing any JS viewport measurement here.
   //
-  // That fixed the painting but NOT hit-testing: taps still land displaced
-  // after a rotation round-trip. `fix` selects between candidate remedies for
-  // that, and is temporary — see `docs/VIEWPORT-BUG.md`.
-  const [fix, setFix] = useState<ViewportFix>(() =>
-    parseFix(localStorage.getItem(FIX_KEY))
-  );
-  const chooseFix = (next: ViewportFix) => {
-    localStorage.setItem(FIX_KEY, next);
-    setFix(next);
-  };
-  // Bumping this re-keys the shell, forcing React to drop and rebuild the
-  // subtree so iOS has to rebuild its hit-test regions from scratch.
-  const [shellKey, setShellKey] = useState(0);
-
+  // That fixed the painting but not the *tapping*: after a rotation round-trip
+  // iOS left the document scrolled (measured: 62px, ≈ the safe-area top inset).
+  // The fixed shell keeps painting against the visual viewport while taps
+  // resolve in layout space, so every touch target sat displaced by exactly
+  // that offset until relaunch. Since this app never legitimately scrolls the
+  // document, any non-zero offset is spurious — clamp it back to zero.
   useEffect(() => {
-    if (fix === "none") return;
-    const onOrientation = () => {
-      const run = () => {
-        if (fix === "kick" || fix === "all") {
-          const shell = document.querySelector<HTMLElement>("[data-shell]");
-          if (shell) {
-            // Detach from layout and force a synchronous reflow, so WebKit has
-            // to recompute this subtree's boxes rather than reuse cached ones.
-            shell.style.display = "none";
-            void shell.offsetHeight;
-            shell.style.display = "";
-          }
-        }
-        if (fix === "scroll" || fix === "all") {
-          // A non-zero scroll or visual-viewport offset displaces hit-testing
-          // even when nothing appears scrolled, since the shell is fixed.
-          window.scrollTo(0, 0);
-          if (document.scrollingElement) document.scrollingElement.scrollTop = 0;
-        }
-        if (fix === "remount" || fix === "all") setShellKey((k) => k + 1);
-      };
-      // Twice: once for the flip, once after the rotation animation settles.
-      setTimeout(run, 50);
-      setTimeout(run, 500);
+    const isTextField = (el: Element | null) =>
+      !!el && (el.tagName === "TEXTAREA" || el.tagName === "INPUT");
+    const reset = () => {
+      const offset = window.scrollY || document.scrollingElement?.scrollTop || 0;
+      if (!shouldResetScroll(offset, isTextField(document.activeElement))) return;
+      window.scrollTo(0, 0);
+      if (document.scrollingElement) document.scrollingElement.scrollTop = 0;
     };
+    const onOrientation = () => {
+      // Twice: once for the flip, once after the rotation animation settles.
+      setTimeout(reset, 50);
+      setTimeout(reset, 500);
+    };
+    // Listening to scroll as well makes this self-healing rather than
+    // rotation-specific — whatever knocks the document off zero, it comes back.
     window.addEventListener("orientationchange", onOrientation);
-    return () => window.removeEventListener("orientationchange", onOrientation);
-  }, [fix]);
+    window.addEventListener("scroll", reset, { passive: true });
+    window.visualViewport?.addEventListener("scroll", reset);
+    window.addEventListener("pageshow", reset);
+    document.addEventListener("visibilitychange", reset);
+    reset();
+    return () => {
+      window.removeEventListener("orientationchange", onOrientation);
+      window.removeEventListener("scroll", reset);
+      window.visualViewport?.removeEventListener("scroll", reset);
+      window.removeEventListener("pageshow", reset);
+      document.removeEventListener("visibilitychange", reset);
+    };
+  }, []);
 
   // Best-effort: ask the browser to make our storage persistent so it's
   // less likely to be evicted (Safari especially). Fire-and-forget; the
@@ -313,11 +305,8 @@ function App() {
     <DriftModelContext.Provider value={driftModel}>
     {/* `fixed inset-0` is load-bearing, not cosmetic — see the note above. */}
     <div
-      key={shellKey}
-      data-shell=""
       className="fixed inset-0 flex flex-col overflow-hidden bg-lane-50 pt-[env(safe-area-inset-top)] text-slate-950"
     >
-      <ViewportProbe fix={fix} onFixChange={chooseFix} />
       <header className="hidden shrink-0 border-b border-slate-200 bg-white sm:block">
         <div className="mx-auto flex w-full max-w-5xl items-center justify-between px-3 py-3 sm:px-6">
           {view === "dashboard" ? (
