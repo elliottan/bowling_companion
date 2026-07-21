@@ -2,6 +2,28 @@
 
 User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachangelog.com).
 
+## [Unreleased] — spare lines behave like every other line (2026-07-22)
+
+### Fixed
+
+- **The green Final dot is always on the drawn line.** When your aim can't
+  reach the pin, the ball rides straight — the dot now sits where the shot
+  actually finishes instead of floating on the pin it never reaches, and the
+  `Final` label names that board. The pin still turns red to say you missed
+  it (ADR-033).
+
+### Changed
+
+- **Spare lines answer the view toggle.** Switching to Top-down on a spare
+  now slides the lane aside and stacks the board controls in a side column,
+  exactly as a strike line does — the two views were diverging for no reason.
+- **A spare line's stance drives its slide and laydown.** Type a stance and
+  both follow through the drift model (ADR-030), the same way score entry
+  works. The slide tick shows on the spare lane surface too.
+- **The spare form's board boxes match the shot panel** — Stance and Target
+  with headings on the box border, and a `Slide → Laydown` readout under
+  them. The standalone Laydown box is gone; drag the peg to override it.
+
 ## [Unreleased] — the Actual line records your slide (2026-07-21)
 
 ### Changed
@@ -25,6 +47,13 @@ User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachan
   the keyboard opened before the prompt could stop you.
 - **Intended shows its derived Slide** beside Laydown; **Actual shows its
   Laydown and estimated breakpoint.**
+
+### Fixed
+
+- **The ball picture no longer blinks back to the placeholder on every shot.**
+  Moving between shots rebuilds the shot panel, which restarted the image's
+  fade-in each time even though the browser already had the picture. A source
+  that has decoded once now paints straight away.
 
 ### Added
 

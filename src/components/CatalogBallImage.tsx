@@ -48,9 +48,24 @@ function BallPlaceholder({ brand, size }: { brand: Manufacturer; size: "thumb" |
   );
 }
 
+// Sources that have already decoded once this session. Callers remount this
+// component freely — the shot panel rebuilds on every shot change — and without
+// this the placeholder flashes and the fade replays for a picture the browser
+// already holds. Survives remounts, not reloads; the `complete` check below
+// covers a reload served from the HTTP cache.
+const decodedSrcs = new Set<string>();
+
 export function CatalogBallImage({ src, alt, brand, size }: CatalogBallImageProps) {
-  const [loaded, setLoaded] = useState(false);
+  // Cached on the first render, so a known source paints opaque immediately
+  // rather than starting transparent and being faded in.
+  const [wasDecoded] = useState(() => !!src && decodedSrcs.has(src));
+  const [loaded, setLoaded] = useState(wasDecoded);
   const [errored, setErrored] = useState(false);
+
+  function markLoaded() {
+    if (src) decodedSrcs.add(src);
+    setLoaded(true);
+  }
 
   return (
     // Reserved aspect-ratio box — prevents layout shift regardless of load state.
@@ -60,14 +75,20 @@ export function CatalogBallImage({ src, alt, brand, size }: CatalogBallImageProp
 
       {src && !errored && (
         <img
+          key={src}
           src={src}
           alt={alt}
           loading="lazy"
-          onLoad={() => setLoaded(true)}
+          // An image the browser already has decodes before this ref runs, so
+          // `onLoad` never fires for it — check `complete` instead of waiting.
+          ref={(el) => {
+            if (!loaded && el?.complete && el.naturalWidth > 0) markLoaded();
+          }}
+          onLoad={markLoaded}
           onError={() => setErrored(true)}
-          className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-300 ${
-            loaded ? "opacity-100" : "opacity-0"
-          }`}
+          className={`absolute inset-0 h-full w-full object-cover transition-opacity ${
+            wasDecoded ? "duration-0" : "duration-300"
+          } ${loaded ? "opacity-100" : "opacity-0"}`}
         />
       )}
     </div>
