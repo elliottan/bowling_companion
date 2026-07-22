@@ -32,6 +32,9 @@ import { LaneVisualizer } from "./LaneVisualizer";
 import { PinGrid } from "./PinGrid";
 import { Scorecard } from "./Scorecard";
 import { SpareLineFormDialog } from "./SpareLineFormDialog";
+import { Button } from "./ui/Button";
+import { TAP_TARGET_44 } from "./ui/Chip";
+import { IconButton } from "./ui/IconButton";
 
 /** "10-pin" for a single, "3-10" for multi. */
 function formatLeavePins(pins: PinNumber[]): string {
@@ -283,16 +286,16 @@ function LineInput({
           increases the board number. */}
       {focused && (
         <div className="mt-2">
-          <button
-            type="button"
-            className={adjBtn}
+          <Button
+            variant="secondary"
+            className="relative w-full text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500"
             aria-label={`${FIELD_LABEL[focused]} ±0.5 — tap left to ${dir > 0 ? "increase" : "decrease"}, right to ${dir > 0 ? "decrease" : "increase"}`}
             onPointerDown={halfTap(() => nudge(focused, 0.5 * dir), () => nudge(focused, -0.5 * dir))}
           >
             <span aria-hidden="true" className="absolute left-3 text-base font-bold text-slate-700">◀</span>
             {FIELD_LABEL[focused]} ±0.5
             <span aria-hidden="true" className="absolute right-3 text-base font-bold text-slate-700">▶</span>
-          </button>
+          </Button>
         </div>
       )}
 
@@ -428,15 +431,13 @@ function ShotDetailBar({
   // "View … line" buttons cost 72px of the panel's height for two taps that are
   // reachable from the derived chain underneath as well.
   const viewButton = (which: "intended" | "actual") => (
-    <button
-      type="button"
-      aria-label={`View ${which} line`}
+    <IconButton
+      label={`View ${which} line`}
       title={`View ${which} line on the lane`}
       onClick={() => setShowViz(which)}
-      className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-ink-secondary hover:bg-slate-100 hover:text-felt-700"
     >
       <Eye size={14} aria-hidden="true" />
-    </button>
+    </IconButton>
   );
 
   return (
@@ -452,7 +453,7 @@ function ShotDetailBar({
               setShowBallPicker(true);
             }}
             aria-label={`Ball: ${selectedBall?.name ?? "none"} — tap to change`}
-            className="flex min-w-0 flex-1 items-center gap-2 rounded-lg py-0.5 text-left hover:bg-slate-50"
+            className="flex min-h-11 min-w-0 flex-1 items-center gap-2 rounded-lg py-0.5 text-left hover:bg-slate-50"
           >
             <span className="h-7 w-7 shrink-0">
               {selectedSnap ? (
@@ -478,14 +479,10 @@ function ShotDetailBar({
             </span>
           </button>
         ) : (
-          <button
-            type="button"
-            onClick={onOpenArsenal}
-            className="inline-flex h-8 items-center gap-1.5 rounded-lg px-1 text-xs font-semibold text-felt-700 hover:bg-slate-100"
-          >
+          <Button variant="ghost" onClick={onOpenArsenal} className="text-xs">
             <Plus size={14} aria-hidden="true" />
             Add a ball
-          </button>
+          </Button>
         )}
       </div>
 
@@ -1013,13 +1010,9 @@ export function ActiveGameScorer({
     <section className="mx-auto w-full max-w-5xl px-3 py-4 sm:px-6">
       {mode === "standalone" && (
         <div className="mb-3 flex items-center justify-between gap-3">
-          <button
-            type="button"
-            onClick={newGame}
-            className="inline-flex h-9 items-center gap-1.5 rounded-md border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-700 hover:bg-slate-50"
-          >
+          <Button variant="secondary" onClick={newGame}>
             New
-          </button>
+          </Button>
           <p className="text-2xl font-extrabold leading-none text-felt-700">{gameScore.total}</p>
         </div>
       )}
@@ -1046,7 +1039,7 @@ export function ActiveGameScorer({
                   type="button"
                   onClick={() => { if (requestEdit()) onEditLanes(); }}
                   aria-label="Edit game lanes"
-                  className="inline-flex items-center gap-1"
+                  className={`relative inline-flex items-center gap-1 ${TAP_TARGET_44}`}
                 >
                   {lanesList.length > 0 ? (
                     lanesList.map((l) => (
@@ -1123,14 +1116,13 @@ export function ActiveGameScorer({
               >
                 + Save spare line for {formatLeavePins(pendingSpareLeave.pins)}
               </button>
-              <button
-                type="button"
-                aria-label="Dismiss"
+              <IconButton
+                label="Dismiss"
                 onClick={() => setPendingSpareLeave(null)}
-                className="shrink-0 text-ink-secondary hover:text-slate-600"
+                className="shrink-0"
               >
                 <X size={16} aria-hidden="true" />
-              </button>
+              </IconButton>
             </div>
           )}
         </div>

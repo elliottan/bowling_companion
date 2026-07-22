@@ -1,5 +1,6 @@
 import { Component, type ErrorInfo, type ReactNode } from "react";
 import { exportBackup } from "../services/backupRepository";
+import { Button } from "./ui/Button";
 
 interface Props {
   children: ReactNode;
@@ -50,20 +51,12 @@ export class AppErrorBoundary extends Component<Props, State> {
           {error.message}
         </p>
         <div className="flex gap-3">
-          <button
-            type="button"
-            onClick={this.handleReload}
-            className="rounded bg-neutral-900 px-4 py-2 text-sm font-medium text-white"
-          >
+          <Button variant="primary" onClick={this.handleReload}>
             Reload
-          </button>
-          <button
-            type="button"
-            onClick={this.handleExport}
-            className="rounded border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-900"
-          >
+          </Button>
+          <Button variant="secondary" onClick={this.handleExport}>
             Export backup
-          </button>
+          </Button>
         </div>
         {exportState === "success" && (
           <p className="text-xs text-green-600">Backup exported.</p>

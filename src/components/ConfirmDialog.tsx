@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { Button } from "./ui/Button";
 
 interface ConfirmDialogProps {
   open: boolean;
@@ -45,20 +46,12 @@ export function ConfirmDialog({
         <h2 className="text-base font-bold text-slate-950">{title}</h2>
         {message && <div className="mt-1.5 space-y-2 text-sm text-slate-600">{message}</div>}
         <div className="mt-5 flex justify-end gap-2">
-          <button
-            type="button"
-            onClick={onCancel}
-            className="inline-flex h-10 items-center rounded-lg border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-700 hover:bg-slate-50"
-          >
+          <Button variant="secondary" onClick={onCancel}>
             Cancel
-          </button>
-          <button
-            type="button"
-            onClick={onConfirm}
-            className="inline-flex h-10 items-center rounded-lg bg-red-600 px-4 text-sm font-bold text-white shadow-sm hover:bg-red-700"
-          >
+          </Button>
+          <Button variant="danger" onClick={onConfirm}>
             {confirmLabel}
-          </button>
+          </Button>
         </div>
       </div>
     </div>

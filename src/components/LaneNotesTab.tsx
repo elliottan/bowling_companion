@@ -2,6 +2,8 @@ import { Pencil, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { deleteLaneNote, getLaneNotes, upsertLaneNote } from "../services/ballRepository";
 import type { LaneNote } from "../types/bowling";
+import { Button } from "./ui/Button";
+import { IconButton } from "./ui/IconButton";
 
 interface LaneNotesTabProps {
   alley: string;
@@ -176,14 +178,9 @@ function LaneCell({
           Lane {lane}
         </span>
         {!editing && (
-          <button
-            type="button"
-            onClick={onEdit}
-            aria-label={`Edit lane ${lane} notes`}
-            className="text-ink-secondary hover:text-slate-700"
-          >
+          <IconButton onClick={onEdit} label={`Edit lane ${lane} notes`}>
             <Pencil size={12} aria-hidden="true" />
-          </button>
+          </IconButton>
         )}
       </div>
       {editing ? (
@@ -196,30 +193,17 @@ function LaneCell({
             placeholder="How this lane plays…"
             className="w-full rounded-md border border-slate-300 px-2 py-1 text-xs outline-none focus:border-felt-700"
           />
-          <div className="flex items-center gap-1.5">
-            <button
-              type="button"
-              onClick={onSave}
-              className="rounded-md bg-felt-700 px-2.5 py-1 text-xs font-semibold text-white hover:bg-felt-500"
-            >
+          <div className="flex flex-wrap items-center gap-1.5">
+            <Button variant="primary" onClick={onSave} className="text-xs">
               Save
-            </button>
-            <button
-              type="button"
-              onClick={onCancel}
-              className="rounded-md border border-slate-300 px-2 py-1 text-xs font-medium text-slate-600 hover:bg-slate-50"
-            >
+            </Button>
+            <Button variant="secondary" onClick={onCancel} className="text-xs">
               Cancel
-            </button>
+            </Button>
             {onDelete && (
-              <button
-                type="button"
-                onClick={onDelete}
-                aria-label={`Delete lane ${lane} notes`}
-                className="ml-auto text-ink-secondary hover:text-red-600"
-              >
+              <IconButton onClick={onDelete} label={`Delete lane ${lane} notes`} variant="danger" className="ml-auto">
                 <Trash2 size={13} aria-hidden="true" />
-              </button>
+              </IconButton>
             )}
           </div>
         </div>

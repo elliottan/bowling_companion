@@ -1,4 +1,5 @@
 import { canPromptInstall, isIOSSafari, isStandalone, promptInstall } from "../lib/installPrompt";
+import { Button } from "./ui/Button";
 
 interface InstallPromptProps {
   open: boolean;
@@ -35,23 +36,18 @@ export function InstallPrompt({ open, onClose }: InstallPromptProps) {
               Add it to your home screen for quick, full-screen access.
             </p>
             <div className="mt-5 flex justify-end gap-2">
-              <button
-                type="button"
-                onClick={onClose}
-                className="inline-flex h-10 items-center rounded-lg border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-700 hover:bg-slate-50"
-              >
+              <Button variant="secondary" onClick={onClose}>
                 Not now
-              </button>
-              <button
-                type="button"
+              </Button>
+              <Button
+                variant="primary"
                 onClick={async () => {
                   await promptInstall();
                   onClose();
                 }}
-                className="inline-flex h-10 items-center rounded-lg bg-felt-700 px-4 text-sm font-bold text-white shadow-sm"
               >
                 Install
-              </button>
+              </Button>
             </div>
           </>
         ) : (
@@ -60,13 +56,9 @@ export function InstallPrompt({ open, onClose }: InstallPromptProps) {
               Tap the Share icon, then &ldquo;Add to Home Screen&rdquo;.
             </p>
             <div className="mt-5 flex justify-end">
-              <button
-                type="button"
-                onClick={onClose}
-                className="inline-flex h-10 items-center rounded-lg border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-700 hover:bg-slate-50"
-              >
+              <Button variant="secondary" onClick={onClose}>
                 Got it
-              </button>
+              </Button>
             </div>
           </>
         )}

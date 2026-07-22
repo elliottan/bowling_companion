@@ -1,5 +1,8 @@
+import { X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { applyUpdate, setNeedsRefresh, subscribeNeedsRefresh } from "../lib/swUpdate";
+import { Button } from "./ui/Button";
+import { IconButton } from "./ui/IconButton";
 
 /**
  * Bottom toast shown when a new service worker is waiting (registerType:
@@ -21,21 +24,16 @@ export function UpdateToast() {
     >
       <div className="flex w-full max-w-sm items-center gap-3 rounded-xl bg-slate-950 px-4 py-3 text-white shadow-xl">
         <p className="flex-1 text-sm font-medium">Update available</p>
-        <button
-          type="button"
-          onClick={() => applyUpdate()}
-          className="inline-flex h-8 items-center rounded-lg bg-felt-700 px-3 text-sm font-bold text-white"
-        >
+        <Button variant="primary" onClick={() => applyUpdate()}>
           Update
-        </button>
-        <button
-          type="button"
+        </Button>
+        <IconButton
           onClick={() => setNeedsRefresh(false)}
-          aria-label="Dismiss"
-          className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-300 hover:text-white"
+          label="Dismiss"
+          className="text-slate-300 hover:bg-white/10 hover:text-white"
         >
-          ×
-        </button>
+          <X size={16} aria-hidden="true" />
+        </IconButton>
       </div>
     </div>
   );

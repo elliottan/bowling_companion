@@ -13,8 +13,10 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { BookOpen, GripVertical, Pencil, Trash2 } from "lucide-react";
+import { BookOpen, GripVertical, Pencil, Plus, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { Button } from "../components/ui/Button";
+import { IconButton } from "../components/ui/IconButton";
 import {
   addBall,
   deleteBall,
@@ -121,23 +123,13 @@ function SortableBallRow({ ball, onEdit, onDelete }: SortableBallRowProps) {
           )}
         </div>
 
-        <div className="flex shrink-0 gap-1">
-          <button
-            type="button"
-            onClick={() => onEdit(ball)}
-            aria-label={`Edit ${ball.name}`}
-            className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
-          >
+        <div className="flex shrink-0 gap-2">
+          <IconButton onClick={() => onEdit(ball)} label={`Edit ${ball.name}`}>
             <Pencil size={14} aria-hidden="true" />
-          </button>
-          <button
-            type="button"
-            onClick={() => onDelete(ball.id!)}
-            aria-label={`Delete ${ball.name}`}
-            className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-slate-200 bg-white text-slate-600 hover:bg-red-50 hover:text-red-600 hover:border-red-200"
-          >
+          </IconButton>
+          <IconButton variant="danger" onClick={() => onDelete(ball.id!)} label={`Delete ${ball.name}`}>
             <Trash2 size={14} aria-hidden="true" />
-          </button>
+          </IconButton>
         </div>
       </div>
     </li>
@@ -376,24 +368,14 @@ export function ArsenalView({ onOpenCatalog }: ArsenalViewProps = {}) {
         <h1 className="flex-1 text-xl font-bold text-slate-950">Arsenal</h1>
         {/* B10: icon-only browse catalog button */}
         {onOpenCatalog && !showForm && !showCatalogPicker && (
-          <button
-            type="button"
-            onClick={onOpenCatalog}
-            aria-label="Browse catalog"
-            className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-slate-300 bg-white text-slate-700 hover:bg-slate-50"
-          >
+          <IconButton onClick={onOpenCatalog} label="Browse catalog">
             <BookOpen size={14} aria-hidden="true" />
-          </button>
+          </IconButton>
         )}
         {!showForm && !showCatalogPicker && (
-          <button
-            type="button"
-            onClick={openAddForm}
-            aria-label="Add ball"
-            className="text-2xl leading-none text-slate-500 hover:text-slate-800 px-1"
-          >
-            +
-          </button>
+          <IconButton onClick={openAddForm} label="Add ball">
+            <Plus size={18} aria-hidden="true" />
+          </IconButton>
         )}
       </div>
 
@@ -407,18 +389,14 @@ export function ArsenalView({ onOpenCatalog }: ArsenalViewProps = {}) {
             <h2 className="flex-1 text-sm font-semibold text-slate-950">
               {editingId !== null ? "Edit ball" : "Add ball"}
             </h2>
-            <button
-              type="button"
-              onClick={() => void openCatalogPicker()}
-              className="inline-flex h-7 items-center gap-1 rounded-md border border-slate-300 bg-white px-2 text-xs font-medium text-slate-700 hover:bg-slate-50"
-            >
+            <Button variant="secondary" onClick={() => void openCatalogPicker()}>
               <BookOpen size={12} aria-hidden="true" />
               {editingId !== null
                 ? formCatalogRef
                   ? "Change catalog link"
                   : "Link to catalog"
                 : "Add from catalog"}
-            </button>
+            </Button>
           </div>
           {formCatalogRef && (
             <p className="mb-2 text-xs text-felt-700 font-semibold">
@@ -520,21 +498,12 @@ export function ArsenalView({ onOpenCatalog }: ArsenalViewProps = {}) {
             </div>
 
             <div className="flex gap-2 pt-1">
-              <button
-                type="submit"
-                disabled={isSaving}
-                className="inline-flex h-10 items-center gap-2 rounded-lg border border-felt-700 bg-felt-700 px-4 text-sm font-semibold text-white hover:bg-felt-600 disabled:opacity-50"
-              >
+              <Button type="submit" variant="primary" disabled={isSaving}>
                 {isSaving ? "Saving…" : editingId !== null ? "Save ball" : "Add ball"}
-              </button>
-              <button
-                type="button"
-                onClick={cancelForm}
-                disabled={isSaving}
-                className="inline-flex h-9 items-center gap-1.5 rounded-md border border-slate-300 bg-white px-3 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
-              >
+              </Button>
+              <Button variant="secondary" onClick={cancelForm} disabled={isSaving}>
                 Cancel
-              </button>
+              </Button>
             </div>
           </form>
         </div>
@@ -545,14 +514,9 @@ export function ArsenalView({ onOpenCatalog }: ArsenalViewProps = {}) {
         <div className="mb-4 rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
           <div className="mb-3 flex items-center gap-2">
             <h2 className="flex-1 text-sm font-semibold text-slate-950">Pick from catalog</h2>
-            <button
-              type="button"
-              onClick={() => setShowCatalogPicker(false)}
-              className="text-ink-secondary hover:text-slate-600"
-              aria-label="Close catalog picker"
-            >
+            <IconButton onClick={() => setShowCatalogPicker(false)} label="Close catalog picker">
               ✕
-            </button>
+            </IconButton>
           </div>
           <input
             type="search"

@@ -4,7 +4,7 @@ import { SessionHistory } from "../components/SessionHistory";
 import { Stats } from "../components/Stats";
 import { SwipePanes } from "../components/SwipePanes";
 import { Button } from "../components/ui/Button";
-import { Chip } from "../components/ui/Chip";
+import { Chip, TAP_TARGET_44 } from "../components/ui/Chip";
 import {
   calculateBallUsage,
   calculateCommonLeaves,
@@ -172,7 +172,11 @@ export function HistoryView({ onOpenSession, activeSessionId, onSessionDeleted }
               type="button"
               aria-pressed={pane === p}
               onClick={() => setPane(p)}
-              className={`h-7 rounded-md px-3 text-xs font-semibold capitalize ${
+              // Kept as a track-style segmented control rather than a Chip:
+              // the selected pill is white-on-slate, not the filled felt Chip
+              // uses. Tap target reaches 44pt via vertical expansion, which is
+              // safe against the horizontal neighbour since it adds no width.
+              className={`relative h-9 rounded-md px-3 text-xs font-semibold capitalize ${TAP_TARGET_44} ${
                 pane === p ? "bg-white text-felt-700 shadow-sm" : "text-slate-600"
               }`}
             >

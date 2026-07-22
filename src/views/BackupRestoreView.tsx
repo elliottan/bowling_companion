@@ -2,6 +2,7 @@ import { Download, Upload } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { ErrorBanner } from "../components/ErrorBanner";
 import { exportBackup, importBackup } from "../services/backupRepository";
+import { Button } from "../components/ui/Button";
 
 export function BackupRestoreView() {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -75,15 +76,10 @@ export function BackupRestoreView() {
         }}
       >
         <div className="grid gap-2 sm:grid-cols-2">
-          <button
-            type="button"
-            onClick={handleExport}
-            disabled={isBusy}
-            className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-felt-700 px-4 text-sm font-semibold text-white hover:bg-felt-500 disabled:cursor-not-allowed disabled:opacity-50"
-          >
+          <Button variant="primary" onClick={handleExport} disabled={isBusy}>
             <Download size={16} aria-hidden="true" />
             Export JSON
-          </button>
+          </Button>
 
           <input
             ref={fileInputRef}
@@ -92,15 +88,10 @@ export function BackupRestoreView() {
             className="hidden"
             onChange={(e) => void handleFile(e.target.files?.[0])}
           />
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            disabled={isBusy}
-            className="inline-flex h-11 items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
-          >
+          <Button variant="secondary" onClick={() => fileInputRef.current?.click()} disabled={isBusy}>
             <Upload size={16} aria-hidden="true" />
             Import JSON
-          </button>
+          </Button>
         </div>
         <p className="mt-3 text-center text-xs text-slate-500">
           Or drop a .json file here.

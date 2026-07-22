@@ -11,6 +11,8 @@ import { LaneNotesTab } from "./LaneNotesTab";
 import { MiniPins } from "./MiniPins";
 import { Stats } from "./Stats";
 import { SwipePanes } from "./SwipePanes";
+import { Chip } from "./ui/Chip";
+import { IconButton } from "./ui/IconButton";
 
 export type SessionPanelTab = "sheet" | "stats" | "lanes";
 
@@ -164,44 +166,26 @@ export function SessionLanePanel({
           </div>
           <div className="flex shrink-0 items-center gap-1">
             {onEdit && (
-              <button
-                type="button"
-                onClick={onEdit}
-                aria-label="Edit session"
-                className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-slate-500 hover:bg-slate-100"
-              >
+              <IconButton onClick={onEdit} label="Edit session">
                 <Pencil size={18} aria-hidden="true" />
-              </button>
+              </IconButton>
             )}
-            <button
-              type="button"
-              onClick={requestClose}
-              aria-label="Close"
-              className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-slate-500 hover:bg-slate-100"
-            >
+            <IconButton onClick={requestClose} label="Close">
               <X size={18} aria-hidden="true" />
-            </button>
+            </IconButton>
           </div>
         </div>
 
         {/* Session sheet / Stats / Lane notes toggle */}
-        <div className="grid grid-cols-3 gap-1 border-b border-slate-200 px-4 py-2">
+        <div className="grid grid-cols-3 gap-2 border-b border-slate-200 px-4 py-2">
           {([
             ["sheet", "Session sheet"],
             ["stats", "Stats"],
             ["lanes", "Lane notes"]
           ] as const).map(([key, label]) => (
-            <button
-              key={key}
-              type="button"
-              aria-pressed={tab === key}
-              onClick={() => setTab(key)}
-              className={`h-9 rounded-md text-sm font-semibold ${
-                tab === key ? "bg-felt-700 text-white" : "bg-slate-100 text-slate-600"
-              }`}
-            >
+            <Chip key={key} selected={tab === key} onClick={() => setTab(key)} className="w-full">
               {label}
-            </button>
+            </Chip>
           ))}
         </div>
 

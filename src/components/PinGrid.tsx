@@ -66,6 +66,11 @@ export function PinGrid({
   }
 
   const sm = size === "sm";
+  // The `sm` pins are 32px, below the 44pt HIG target. That is a layout
+  // ceiling, not an oversight: the scoring screen puts this deck in a
+  // `grid-cols-2` column ~177px wide, and after padding and gaps four pins
+  // can't exceed ~35px each. Raising them requires giving the deck more
+  // width, which is a scoring-screen layout change, not a sizing tweak.
   const pinSize = sm ? "h-8 w-8 text-xs" : "h-11 w-11 text-sm sm:h-12 sm:w-12";
   const rowGap = sm ? "gap-1.5" : "gap-2 sm:gap-3";
   const pad = sm ? "p-2" : "p-4";

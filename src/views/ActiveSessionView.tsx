@@ -5,6 +5,9 @@ import { ConfirmDialog } from "../components/ConfirmDialog";
 import { ErrorBanner } from "../components/ErrorBanner";
 import { SessionFormDialog } from "../components/SessionFormDialog";
 import { SessionLanePanel, type SessionPanelTab } from "../components/SessionLanePanel";
+import { Button } from "../components/ui/Button";
+import { Chip } from "../components/ui/Chip";
+import { IconButton } from "../components/ui/IconButton";
 import type { NewSessionFormValues } from "../components/SessionForm";
 import { calculateGameScore } from "../lib/scoring";
 import { useLongPress } from "../lib/useLongPress";
@@ -211,14 +214,10 @@ export function ActiveSessionView({
     return (
       <section className="mx-auto w-full max-w-5xl px-4 py-6">
         <ErrorBanner>{error || "No active game was found for this session."}</ErrorBanner>
-        <button
-          type="button"
-          onClick={onBack}
-          className="mt-3 inline-flex h-10 items-center gap-1 rounded-lg border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-700"
-        >
+        <Button variant="secondary" onClick={onBack} className="mt-3">
           <ChevronLeft size={16} aria-hidden="true" />
           Back
-        </button>
+        </Button>
       </section>
     );
   }
@@ -252,7 +251,7 @@ export function ActiveSessionView({
           <button
             type="button"
             onClick={() => { setSheetTab("sheet"); setShowSheet(true); }}
-            className="flex min-w-0 flex-1 items-center gap-2 rounded-md text-left hover:bg-slate-50"
+            className="flex min-h-11 min-w-0 flex-1 items-center gap-2 rounded-md text-left hover:bg-slate-50"
             aria-label="Open session sheet and lane notes"
           >
             <span className="min-w-0 flex-1">
@@ -275,14 +274,13 @@ export function ActiveSessionView({
           </p>
         </div>
 
-        <div className="mt-3 flex items-center gap-1 overflow-x-auto pb-1">
+        <div className="mt-3 flex items-center gap-2 overflow-x-auto pb-1">
           {games.map((g) => {
             const frames = (g as Game & { frames: Frame[] }).frames;
             return (
-              <button
+              <Chip
                 key={g.id}
-                type="button"
-                aria-pressed={g.id === activeGameId}
+                selected={g.id === activeGameId}
                 {...longPress.bind((chip) => {
                   if (!g.id) return;
                   const rect = chip.getBoundingClientRect();
@@ -296,11 +294,7 @@ export function ActiveSessionView({
                   if (longPress.didLongPress()) return;
                   if (g.id) setActiveGameId(g.id);
                 }}
-                className={`inline-flex h-8 shrink-0 items-center gap-1.5 rounded-md border px-3 text-xs font-semibold ${
-                  g.id === activeGameId
-                    ? "border-felt-700 bg-felt-700 text-white"
-                    : "border-slate-300 bg-white text-slate-700"
-                }`}
+                className="shrink-0 gap-1.5"
               >
                 G{g.game_number}
                 {g.final_score !== undefined ? (
@@ -310,19 +304,19 @@ export function ActiveSessionView({
                     <span className="opacity-80">· {calculateGameScore(frames).total}+</span>
                   )
                 )}
-              </button>
+              </Chip>
             );
           })}
-          <button
-            type="button"
+          <IconButton
+            variant="solid"
             onClick={() => void handleAddGame()}
             disabled={!canAddGame}
-            aria-label="New game"
+            label="New game"
             title="New game"
-            className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-slate-900 text-white hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-40"
+            className="shrink-0"
           >
             <Plus size={16} aria-hidden="true" />
-          </button>
+          </IconButton>
         </div>
 
         {chipMenu && (
@@ -446,23 +440,17 @@ export function ActiveSessionView({
             {laneA.trim() && laneB.trim() && (
               <div className="mt-4">
                 <span className="block text-xs font-semibold uppercase tracking-wide text-slate-500">Starting lane (frame 1)</span>
-                <div className="mt-1.5 flex items-center gap-1.5">
+                <div className="mt-1.5 flex items-center gap-2">
                   {(["A", "B"] as const).map((side) => {
                     const lane = side === "A" ? laneA.trim() : laneB.trim();
                     return (
-                      <button
+                      <Chip
                         key={side}
-                        type="button"
-                        aria-pressed={startSide === side}
+                        selected={startSide === side}
                         onClick={() => { setStartSide(side); void saveLanes(side); }}
-                        className={`h-9 rounded-md border px-3 text-sm font-semibold ${
-                          startSide === side
-                            ? "border-felt-700 bg-felt-700 text-white"
-                            : "border-slate-300 bg-white text-slate-700"
-                        }`}
                       >
                         {lane}
-                      </button>
+                      </Chip>
                     );
                   })}
                 </div>
@@ -472,13 +460,9 @@ export function ActiveSessionView({
             {laneError && <p className="mt-2 text-xs text-red-600">{laneError}</p>}
 
             <div className="mt-5 flex justify-end">
-              <button
-                type="button"
-                onClick={() => setShowLaneEditor(false)}
-                className="inline-flex h-10 items-center rounded-lg bg-felt-700 px-4 text-sm font-bold text-white shadow-sm hover:bg-felt-500"
-              >
+              <Button variant="primary" onClick={() => setShowLaneEditor(false)}>
                 Done
-              </button>
+              </Button>
             </div>
           </div>
         </div>

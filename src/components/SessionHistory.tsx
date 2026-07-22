@@ -7,6 +7,7 @@ import { deleteSession, updateSession } from "../services/bowlingRepository";
 import { ConfirmDialog } from "./ConfirmDialog";
 import { SessionFormDialog } from "./SessionFormDialog";
 import { SessionLanePanel } from "./SessionLanePanel";
+import { IconButton } from "./ui/IconButton";
 import type { NewSessionFormValues } from "./SessionForm";
 import type { SessionSummary } from "../types/bowling";
 
@@ -160,7 +161,7 @@ function SessionRow({ summary, isActive, onOpen, onSessionChanged, onSessionDele
             <p className="text-xs font-medium text-slate-500">{session.oil_pattern}</p>
           )}
         </div>
-        <div className="flex shrink-0 flex-col items-end gap-0.5 pr-9 text-right">
+        <div className="flex shrink-0 flex-col items-end gap-0.5 pr-14 text-right">
           {hasUnfinishedGame && (
             <span className="inline-flex items-center rounded-full bg-felt-700 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-white">
               Active
@@ -209,14 +210,13 @@ function SessionRow({ summary, isActive, onOpen, onSessionChanged, onSessionDele
       )}
     </button>
 
-      <button
-        type="button"
+      <IconButton
         onClick={() => setShowStats(true)}
-        aria-label="Session stats"
-        className="absolute right-2 top-2 inline-flex h-7 w-7 items-center justify-center rounded-md text-ink-secondary hover:bg-slate-100 hover:text-slate-700"
+        label="Session stats"
+        className="absolute right-1 top-1"
       >
         <BarChart3 size={16} aria-hidden="true" />
-      </button>
+      </IconButton>
 
       {/* Long-press menu + confirm are portaled to body: rows can live inside
           SwipePanes, whose translateX transform would otherwise reposition

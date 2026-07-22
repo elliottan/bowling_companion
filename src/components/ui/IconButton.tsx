@@ -1,10 +1,15 @@
 import type { ButtonHTMLAttributes, ReactNode } from "react";
 
-type Variant = "default" | "danger";
+type Variant = "default" | "danger" | "solid";
 
 const VARIANT: Record<Variant, string> = {
   default: "text-slate-600 hover:bg-slate-100",
-  danger: "text-danger-600 hover:bg-danger-50"
+  danger: "text-danger-600 hover:bg-danger-50",
+  // Filled treatment for an icon-only action that needs to read as prominent
+  // as a primary button. Kept as a variant rather than a className override
+  // because Tailwind resolves competing utilities by stylesheet order, not by
+  // the order they appear in the class attribute.
+  solid: "bg-slate-900 text-white hover:bg-slate-700"
 };
 
 /** Shared icon-only button primitive. Fixed at 44x44 (Apple HIG's minimum tap

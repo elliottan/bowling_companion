@@ -4,6 +4,8 @@ import { ErrorBanner } from "../components/ErrorBanner";
 import { SessionFormDialog } from "../components/SessionFormDialog";
 import { SessionHistory } from "../components/SessionHistory";
 import { InstallPrompt } from "../components/InstallPrompt";
+import { Button } from "../components/ui/Button";
+import { TAP_TARGET_44 } from "../components/ui/Chip";
 import type { NewSessionFormValues } from "../components/SessionForm";
 import {
   getBackupNudgeState,
@@ -131,14 +133,14 @@ export function DashboardView({
             <button
               type="button"
               onClick={onOpenBackup}
-              className="text-xs font-bold text-amber-900 underline hover:no-underline"
+              className={`relative text-xs font-bold text-amber-900 underline hover:no-underline ${TAP_TARGET_44}`}
             >
               Export backup
             </button>
             <button
               type="button"
               onClick={handleBackupLater}
-              className="text-xs font-semibold text-amber-700 hover:underline"
+              className={`relative inline-flex min-w-11 items-center justify-center text-xs font-semibold text-amber-700 hover:underline ${TAP_TARGET_44}`}
             >
               Later
             </button>
@@ -148,7 +150,7 @@ export function DashboardView({
               <button
                 type="button"
                 onClick={() => setInstallPromptOpen(true)}
-                className="inline-flex items-center gap-1 text-xs font-bold text-amber-900 underline hover:no-underline"
+                className={`relative inline-flex items-center gap-1 text-xs font-bold text-amber-900 underline hover:no-underline ${TAP_TARGET_44}`}
               >
                 <Smartphone size={12} aria-hidden="true" />
                 Installing the app protects your data from 7-day cleanup
@@ -156,7 +158,7 @@ export function DashboardView({
               <button
                 type="button"
                 onClick={dismissInstallLine}
-                className="text-xs font-semibold text-amber-700 hover:underline"
+                className={`relative text-xs font-semibold text-amber-700 hover:underline ${TAP_TARGET_44}`}
               >
                 Dismiss
               </button>
@@ -165,14 +167,10 @@ export function DashboardView({
         </div>
       )}
 
-      <button
-        type="button"
-        onClick={() => setShowForm(true)}
-        className="flex w-full items-center justify-center gap-2 rounded-lg bg-felt-700 px-4 py-3.5 text-sm font-semibold text-white shadow-sm hover:bg-felt-500"
-      >
+      <Button variant="primary" size="lg" onClick={() => setShowForm(true)} className="w-full">
         <Plus size={18} aria-hidden="true" />
         Start new session
-      </button>
+      </Button>
 
       {/* Widgets row */}
       <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
@@ -210,13 +208,9 @@ export function DashboardView({
         <div className="mb-2 flex items-center justify-between">
           <h2 className="text-sm font-bold uppercase tracking-wide text-slate-500">Recent sessions</h2>
           {recent.length > 0 && (
-            <button
-              type="button"
-              onClick={onViewAll}
-              className="text-xs font-semibold text-felt-700 hover:underline"
-            >
+            <Button variant="ghost" onClick={onViewAll}>
               View all
-            </button>
+            </Button>
           )}
         </div>
         <SessionHistory

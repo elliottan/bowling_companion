@@ -7,6 +7,7 @@ import { useDriftModel } from "../lib/driftModelContext";
 import { deriveLaydown, deriveSlide, syncStanceLaydown } from "../lib/driftModel";
 import { upsertSpareLine } from "../services/ballRepository";
 import type { LineSpec, PinNumber } from "../types/bowling";
+import { Button } from "./ui/Button";
 
 const EMPTY_LINE: LineSpec = {};
 const ALL_PINS: PinNumber[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
@@ -164,42 +165,29 @@ export function SpareLineFormDialog({
             </p>
           </div>
 
-          <button
-            type="button"
-            onClick={() => setShowViz(true)}
-            className="inline-flex h-9 items-center gap-1.5 rounded-md border border-slate-300 bg-white px-3 text-sm font-medium text-slate-700 hover:bg-slate-50"
-          >
+          <Button variant="secondary" onClick={() => setShowViz(true)}>
             <Eye size={14} aria-hidden="true" />
             View line
-          </button>
+          </Button>
 
           <div className="flex items-center gap-2 pt-1">
-            <button
-              type="submit"
-              disabled={isSaving}
-              className="inline-flex h-10 items-center gap-2 rounded-lg border border-felt-700 bg-felt-700 px-4 text-sm font-semibold text-white hover:bg-felt-600 disabled:opacity-50"
-            >
+            <Button type="submit" variant="primary" disabled={isSaving}>
               {isSaving ? "Saving…" : "Save spare line"}
-            </button>
-            <button
-              type="button"
-              onClick={onCancel}
-              disabled={isSaving}
-              className="inline-flex h-9 items-center gap-1.5 rounded-md border border-slate-300 bg-white px-3 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
-            >
+            </Button>
+            <Button variant="secondary" onClick={onCancel} disabled={isSaving}>
               Cancel
-            </button>
+            </Button>
             {onDelete && (
-              <button
-                type="button"
+              <Button
+                variant="danger"
                 onClick={onDelete}
                 disabled={isSaving}
                 aria-label={`Delete spare line for pins ${pins.join(", ")}`}
-                className="ml-auto inline-flex h-9 items-center gap-1.5 rounded-md border border-slate-300 bg-white px-3 text-sm font-medium text-slate-600 hover:border-red-200 hover:bg-red-50 hover:text-red-600 disabled:opacity-50"
+                className="ml-auto"
               >
                 <Trash2 size={14} aria-hidden="true" />
                 Delete
-              </button>
+              </Button>
             )}
           </div>
         </form>

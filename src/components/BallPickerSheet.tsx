@@ -2,6 +2,7 @@ import { Check, SlidersHorizontal } from "lucide-react";
 import type { Ball } from "../types/bowling";
 import type { Manufacturer } from "../types/catalog";
 import { CatalogBallImage } from "./CatalogBallImage";
+import { Button } from "./ui/Button";
 
 interface BallPickerSheetProps {
   balls: Ball[];
@@ -36,14 +37,10 @@ export function BallPickerSheet({
         <div className="flex items-center justify-between px-4 pb-2 pt-4">
           <h2 className="text-sm font-semibold text-slate-950">Ball</h2>
           {onOpenArsenal && (
-            <button
-              type="button"
-              onClick={() => { onClose(); onOpenArsenal(); }}
-              className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-xs font-semibold text-felt-700 hover:bg-slate-200"
-            >
+            <Button variant="ghost" onClick={() => { onClose(); onOpenArsenal(); }} className="text-xs">
               <SlidersHorizontal size={14} aria-hidden="true" />
               Manage arsenal
-            </button>
+            </Button>
           )}
         </div>
 

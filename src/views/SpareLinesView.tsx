@@ -1,3 +1,4 @@
+import { Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import {
   DndContext,
@@ -17,6 +18,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { ErrorBanner } from "../components/ErrorBanner";
 import { LaneVisualizer } from "../components/LaneVisualizer";
 import { SpareLineFormDialog } from "../components/SpareLineFormDialog";
+import { IconButton } from "../components/ui/IconButton";
 import { useDriftModel } from "../lib/driftModelContext";
 import { describePinsStanding } from "../lib/pins";
 import { deriveLaydown, deriveSlide, syncStanceLaydown, type DriftModel } from "../lib/driftModel";
@@ -228,14 +230,9 @@ export function SpareLinesView() {
     <section className="mx-auto w-full max-w-3xl px-3 py-5 sm:px-6 sm:py-8">
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-xl font-bold text-slate-950">Spare Lines</h1>
-        <button
-          type="button"
-          onClick={() => setEditing({ mode: "add" })}
-          aria-label="Add spare"
-          className="text-2xl leading-none text-slate-500 hover:text-slate-800 px-1"
-        >
-          +
-        </button>
+        <IconButton onClick={() => setEditing({ mode: "add" })} label="Add spare">
+          <Plus size={18} aria-hidden="true" />
+        </IconButton>
       </div>
 
       {error && (

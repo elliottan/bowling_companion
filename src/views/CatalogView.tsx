@@ -2,6 +2,9 @@ import { ChevronLeft, Loader2, Palette, RefreshCw, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { CatalogBallImage } from "../components/CatalogBallImage";
 import { ErrorBanner } from "../components/ErrorBanner";
+import { Button } from "../components/ui/Button";
+import { Chip, TAP_TARGET_44 } from "../components/ui/Chip";
+import { IconButton } from "../components/ui/IconButton";
 import {
   getAllCatalog,
   syncCatalog,
@@ -164,14 +167,9 @@ function DetailPanel({ ball, owned, onBack, onAddToArsenal }: DetailPanelProps) 
           <p className="text-[11px] font-semibold uppercase tracking-wide text-ink-secondary">{ball.brand}</p>
           <h2 className="truncate text-base font-bold text-slate-950">{ball.name}</h2>
         </div>
-        <button
-          type="button"
-          onClick={onBack}
-          aria-label="Close"
-          className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-slate-500 hover:bg-slate-100 hover:text-slate-700"
-        >
+        <IconButton onClick={onBack} label="Close" className="shrink-0">
           <X size={20} aria-hidden="true" />
-        </button>
+        </IconButton>
       </div>
 
       <div className="flex-1 overflow-y-auto">
@@ -198,13 +196,9 @@ function DetailPanel({ ball, owned, onBack, onAddToArsenal }: DetailPanelProps) 
               Already in your arsenal
             </div>
           ) : (
-            <button
-              type="button"
-              onClick={() => onAddToArsenal(ball)}
-              className="mt-5 flex w-full items-center justify-center gap-2 rounded-lg bg-felt-700 px-4 py-3.5 text-sm font-semibold text-white shadow-sm hover:bg-felt-500"
-            >
+            <Button variant="primary" size="lg" onClick={() => onAddToArsenal(ball)} className="mt-5 w-full">
               Add to my arsenal
-            </button>
+            </Button>
           )}
         </div>
       </div>
@@ -343,42 +337,26 @@ function AddFromCatalogDialog({ ball, onConfirm, onCancel, isSaving, error }: Ad
         {colorways.length > 1 && (
           <div className="mt-3">
             <p className="mb-1.5 block text-sm font-medium text-slate-700">Colorway</p>
-            <div className="flex flex-wrap gap-1.5">
+            <div className="flex flex-wrap gap-2">
               {colorways.map((cw) => (
-                <button
+                <Chip
                   key={cw.sku}
-                  type="button"
-                  aria-pressed={colorwaySku === cw.sku}
+                  selected={colorwaySku === cw.sku}
                   onClick={() => setColorwaySku(cw.sku)}
-                  className={`rounded-full border px-2.5 py-1 text-xs font-semibold ${
-                    colorwaySku === cw.sku
-                      ? "border-felt-700 bg-felt-700 text-white"
-                      : "border-slate-300 bg-white text-slate-700 hover:border-felt-700"
-                  }`}
                 >
                   {cw.color ?? cw.sku}
-                </button>
+                </Chip>
               ))}
             </div>
           </div>
         )}
         <div className="mt-4 flex gap-2">
-          <button
-            type="button"
-            disabled={isSaving || !name.trim()}
-            onClick={() => onConfirm(name.trim(), colorwaySku)}
-            className="inline-flex h-10 items-center gap-2 rounded-lg bg-felt-700 px-4 text-sm font-semibold text-white hover:bg-felt-500 disabled:opacity-50"
-          >
+          <Button variant="primary" disabled={isSaving || !name.trim()} onClick={() => onConfirm(name.trim(), colorwaySku)}>
             {isSaving ? "Saving…" : "Add ball"}
-          </button>
-          <button
-            type="button"
-            onClick={onCancel}
-            disabled={isSaving}
-            className="inline-flex h-9 items-center gap-1.5 rounded-md border border-slate-300 bg-white px-3 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
-          >
+          </Button>
+          <Button variant="secondary" onClick={onCancel} disabled={isSaving}>
             Cancel
-          </button>
+          </Button>
         </div>
       </div>
     </div>
@@ -386,13 +364,16 @@ function AddFromCatalogDialog({ ball, onConfirm, onCancel, isSaving, error }: Ad
 }
 
 /** Removable active-filter chip shown under the search bar while the filter panel is closed. */
+/** Removes an active filter. Deliberately NOT a `Chip` — this is an action,
+ *  not a toggle, so it must not claim `aria-pressed`. It borrows Chip's
+ *  tap-target expansion to stay compact while still clearing 44pt. */
 function FilterChip({ label, onRemove }: { label: string; onRemove: () => void }) {
   return (
     <button
       type="button"
       onClick={onRemove}
       aria-label={`Remove filter: ${label}`}
-      className="inline-flex items-center gap-1 rounded-full border border-felt-700 bg-felt-700/10 px-2.5 py-1 text-xs font-semibold text-felt-700 hover:bg-felt-700/20"
+      className={`relative inline-flex h-9 items-center gap-1 rounded-md bg-felt-700/10 px-3 text-xs font-semibold text-felt-700 ${TAP_TARGET_44}`}
     >
       {label}
       <X size={12} aria-hidden="true" />
@@ -545,23 +526,14 @@ export function CatalogView({ onBack }: CatalogViewProps) {
       <div className="shrink-0 border-b border-slate-200 bg-lane-50 mx-auto w-full max-w-3xl px-3 pt-5 sm:px-6">
         {/* Header */}
         <div className="mb-4 flex items-center gap-2">
-          <button
-            type="button"
-            onClick={onBack}
-            className="inline-flex h-9 items-center gap-1 rounded-md px-2 text-sm font-semibold text-slate-700 hover:bg-slate-100"
-          >
+          <Button variant="ghost" onClick={onBack}>
             <ChevronLeft size={16} aria-hidden="true" />
             Back
-          </button>
+          </Button>
           <h1 className="flex-1 text-xl font-bold text-slate-950">Ball Catalog</h1>
-          <button
-            type="button"
-            onClick={handleRefresh}
-            aria-label="Refresh catalog"
-            className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
-          >
+          <IconButton onClick={handleRefresh} label="Refresh catalog">
             <RefreshCw size={15} aria-hidden="true" />
-          </button>
+          </IconButton>
         </div>
 
         {/* Sync state banner */}
@@ -587,32 +559,24 @@ export function CatalogView({ onBack }: CatalogViewProps) {
             className="h-11 w-full rounded-lg border border-slate-300 px-3 pr-10 text-sm outline-none focus:border-felt-700 focus:ring-2 focus:ring-felt-700/20"
           />
           {filters.search && (
-            <button
-              type="button"
+            <IconButton
               onClick={() => setFilters((f) => ({ ...f, search: "" }))}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-secondary hover:text-slate-600"
-              aria-label="Clear search"
+              label="Clear search"
+              className="absolute right-3 top-1/2 -translate-y-1/2"
             >
-              <X size={14} />
-            </button>
+              <X size={14} aria-hidden="true" />
+            </IconButton>
           )}
         </div>
 
         {/* Filter toggle + sort row */}
         <div className="mb-3 flex items-center gap-2">
-          <button
-            type="button"
-            aria-pressed={showFilters}
-            onClick={() => setShowFilters((v) => !v)}
-            className={`inline-flex h-9 items-center gap-1.5 rounded-md border px-3 text-sm font-medium ${
-              showFilters ? "border-felt-700 bg-felt-700 text-white" : "border-slate-300 bg-white text-slate-700 hover:bg-slate-50"
-            }`}
-          >
+          <Chip selected={showFilters} onClick={() => setShowFilters((v) => !v)}>
             Filters
             {activeFilterCount > 0 ? (
               <span className="ml-1 rounded-full bg-white/30 px-1.5 py-0.5 text-xs font-bold leading-none">{activeFilterCount}</span>
             ) : null}
-          </button>
+          </Chip>
 
           <div className="flex-1" />
 
@@ -634,7 +598,7 @@ export function CatalogView({ onBack }: CatalogViewProps) {
         {/* Active-filter chips: visible while the panel is closed so the
             narrowing state stays legible; tap a chip to remove that filter. */}
         {!showFilters && activeFilterCount > 0 && (
-          <div className="mb-3 flex flex-wrap gap-1.5">
+          <div className="mb-3 flex flex-wrap gap-2">
             {[...filters.brands].map((brand) => (
               <FilterChip
                 key={`b-${brand}`}
@@ -683,19 +647,13 @@ export function CatalogView({ onBack }: CatalogViewProps) {
               <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">Brand</p>
               <div className="flex flex-wrap gap-2">
                 {ALL_BRANDS.map((brand) => (
-                  <button
+                  <Chip
                     key={brand}
-                    type="button"
-                    aria-pressed={filters.brands.has(brand)}
+                    selected={filters.brands.has(brand)}
                     onClick={() => setFilters((f) => ({ ...f, brands: toggleSetValue(f.brands, brand) }))}
-                    className={`rounded-full border px-3 py-1 text-xs font-semibold ${
-                      filters.brands.has(brand)
-                        ? "border-felt-700 bg-felt-700 text-white"
-                        : "border-slate-300 bg-white text-slate-700 hover:border-felt-700"
-                    }`}
                   >
                     {brand}
-                  </button>
+                  </Chip>
                 ))}
               </div>
             </div>
@@ -705,19 +663,13 @@ export function CatalogView({ onBack }: CatalogViewProps) {
               <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">Coverstock</p>
               <div className="flex flex-wrap gap-2">
                 {ALL_COVERSTOCK.map((cat) => (
-                  <button
+                  <Chip
                     key={cat}
-                    type="button"
-                    aria-pressed={filters.coverstockCategories.has(cat)}
+                    selected={filters.coverstockCategories.has(cat)}
                     onClick={() => setFilters((f) => ({ ...f, coverstockCategories: toggleSetValue(f.coverstockCategories, cat) }))}
-                    className={`rounded-full border px-3 py-1 text-xs font-semibold ${
-                      filters.coverstockCategories.has(cat)
-                        ? "border-felt-700 bg-felt-700 text-white"
-                        : "border-slate-300 bg-white text-slate-700 hover:border-felt-700"
-                    }`}
                   >
                     {cat}
-                  </button>
+                  </Chip>
                 ))}
               </div>
             </div>
@@ -727,19 +679,13 @@ export function CatalogView({ onBack }: CatalogViewProps) {
               <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">Core Type</p>
               <div className="flex gap-2">
                 {(["Symmetric", "Asymmetric"] as const).map((ct) => (
-                  <button
+                  <Chip
                     key={ct}
-                    type="button"
-                    aria-pressed={filters.coreType === ct}
+                    selected={filters.coreType === ct}
                     onClick={() => setFilters((f) => ({ ...f, coreType: f.coreType === ct ? null : ct }))}
-                    className={`rounded-full border px-3 py-1 text-xs font-semibold ${
-                      filters.coreType === ct
-                        ? "border-felt-700 bg-felt-700 text-white"
-                        : "border-slate-300 bg-white text-slate-700 hover:border-felt-700"
-                    }`}
                   >
                     {ct}
-                  </button>
+                  </Chip>
                 ))}
               </div>
             </div>
@@ -772,7 +718,7 @@ export function CatalogView({ onBack }: CatalogViewProps) {
             <button
               type="button"
               onClick={() => setFilters(EMPTY_FILTERS)}
-              className="text-xs font-semibold text-felt-700 hover:underline"
+              className={`relative text-xs font-semibold text-felt-700 hover:underline ${TAP_TARGET_44}`}
             >
               Reset all filters
             </button>

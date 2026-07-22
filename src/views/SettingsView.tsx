@@ -7,6 +7,7 @@ import { getSetting } from "../services/bowlingRepository";
 import type { Handedness } from "../types/bowling";
 import type { DriftModel } from "../lib/driftModel";
 import { DONATE_URL, FEEDBACK_URL } from "../lib/links";
+import { Button } from "../components/ui/Button";
 
 export type SettingsSection = "menu" | "arsenal" | "lanes" | "backup" | "preferences";
 
@@ -29,14 +30,10 @@ export function SettingsView({ section, onSectionChange, handedness, onHandednes
     return (
       <>
         <div className="mx-auto w-full max-w-3xl px-3 pt-4 sm:px-6">
-          <button
-            type="button"
-            onClick={() => onSectionChange("menu")}
-            className="inline-flex h-9 items-center gap-1 rounded-md px-2 text-sm font-semibold text-slate-700 hover:bg-slate-100"
-          >
+          <Button variant="ghost" onClick={() => onSectionChange("menu")}>
             <ChevronLeft size={16} aria-hidden="true" />
             Settings
-          </button>
+          </Button>
         </div>
         {section === "lanes" ? (
           <LaneNotesView />

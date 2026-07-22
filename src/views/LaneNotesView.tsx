@@ -1,6 +1,9 @@
-import { Trash2 } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { ErrorBanner } from "../components/ErrorBanner";
+import { Button } from "../components/ui/Button";
+import { Chip } from "../components/ui/Chip";
+import { IconButton } from "../components/ui/IconButton";
 import {
   deleteLaneNote,
   getLaneNotes,
@@ -141,14 +144,9 @@ export function LaneNotesView() {
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-xl font-bold text-slate-950">Lane Notes</h1>
         {!showForm && (
-          <button
-            type="button"
-            onClick={openAdd}
-            aria-label="Add lane note"
-            className="text-2xl leading-none text-slate-500 hover:text-slate-800 px-1"
-          >
-            +
-          </button>
+          <IconButton onClick={openAdd} label="Add lane note">
+            <Plus size={18} aria-hidden="true" />
+          </IconButton>
         )}
       </div>
 
@@ -216,29 +214,17 @@ export function LaneNotesView() {
               />
             </label>
             <div className="flex items-center gap-2 pt-1">
-              <button
-                type="button"
-                onClick={submit}
-                className="inline-flex h-10 items-center rounded-lg border border-felt-700 bg-felt-700 px-4 text-sm font-semibold text-white hover:bg-felt-600"
-              >
+              <Button variant="primary" onClick={submit}>
                 {editingId !== null ? "Save" : "Add"}
-              </button>
-              <button
-                type="button"
-                onClick={cancel}
-                className="inline-flex h-9 items-center rounded-md border border-slate-300 bg-white px-3 text-sm font-medium text-slate-700 hover:bg-slate-50"
-              >
+              </Button>
+              <Button variant="secondary" onClick={cancel}>
                 Cancel
-              </button>
+              </Button>
               {editingId !== null && (
-                <button
-                  type="button"
-                  onClick={() => remove(editingId)}
-                  className="ml-auto inline-flex h-9 items-center gap-1.5 rounded-md border border-slate-300 bg-white px-3 text-sm font-medium text-slate-600 hover:border-red-200 hover:bg-red-50 hover:text-red-600"
-                >
+                <Button variant="secondary" onClick={() => remove(editingId)} className="ml-auto">
                   <Trash2 size={14} aria-hidden="true" />
                   Delete
-                </button>
+                </Button>
               )}
             </div>
           </div>
@@ -260,32 +246,17 @@ export function LaneNotesView() {
             </select>
           </div>
           {noteLanes.length > 0 && (
-            <div className="mb-4 flex flex-wrap items-center gap-1.5">
+            <div className="mb-4 flex flex-wrap items-center gap-2">
               <span className="text-xs font-semibold uppercase tracking-wide text-ink-secondary">Lanes</span>
-              {noteLanes.map((l) => {
-                const on = selectedLanes.includes(l);
-                return (
-                  <button
-                    key={l}
-                    type="button"
-                    aria-pressed={on}
-                    onClick={() => toggleLane(l)}
-                    className={`h-8 rounded-md border px-3 text-xs font-semibold ${
-                      on ? "border-felt-700 bg-felt-700 text-white" : "border-slate-300 bg-white text-slate-700"
-                    }`}
-                  >
-                    {l}
-                  </button>
-                );
-              })}
+              {noteLanes.map((l) => (
+                <Chip key={l} selected={selectedLanes.includes(l)} onClick={() => toggleLane(l)}>
+                  {l}
+                </Chip>
+              ))}
               {selectedLanes.length > 0 && (
-                <button
-                  type="button"
-                  onClick={() => setSelectedLanes([])}
-                  className="h-8 rounded-md px-2 text-xs font-medium text-slate-500 hover:bg-slate-100"
-                >
+                <Button variant="ghost" className="px-2 text-xs font-medium text-slate-500" onClick={() => setSelectedLanes([])}>
                   Clear
-                </button>
+                </Button>
               )}
             </div>
           )}
