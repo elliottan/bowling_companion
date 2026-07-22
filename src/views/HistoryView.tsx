@@ -3,6 +3,8 @@ import { ErrorBanner } from "../components/ErrorBanner";
 import { SessionHistory } from "../components/SessionHistory";
 import { Stats } from "../components/Stats";
 import { SwipePanes } from "../components/SwipePanes";
+import { Button } from "../components/ui/Button";
+import { Chip } from "../components/ui/Chip";
 import {
   calculateBallUsage,
   calculateCommonLeaves,
@@ -201,33 +203,20 @@ export function HistoryView({ onOpenSession, activeSessionId, onSessionDeleted }
         </div>
       )}
 
+      {/* gap-2 is load-bearing: Chip expands its tap target 4px past its own box
+          top and bottom, so anything tighter would overlap hit regions. */}
       {allLanes.length > 0 && (
-        <div className="mb-3 flex flex-wrap items-center gap-1.5">
+        <div className="mb-3 flex flex-wrap items-center gap-2">
           <span className="text-xs font-semibold uppercase tracking-wide text-ink-secondary">Lanes</span>
-          {allLanes.map((l) => {
-            const on = selectedLanes.includes(l);
-            return (
-              <button
-                key={l}
-                type="button"
-                aria-pressed={on}
-                onClick={() => toggleLane(l)}
-                className={`h-7 rounded-md border px-2.5 text-xs font-semibold ${
-                  on ? "border-felt-700 bg-felt-700 text-white" : "border-slate-300 bg-white text-slate-700"
-                }`}
-              >
-                {l}
-              </button>
-            );
-          })}
+          {allLanes.map((l) => (
+            <Chip key={l} selected={selectedLanes.includes(l)} onClick={() => toggleLane(l)}>
+              {l}
+            </Chip>
+          ))}
           {selectedLanes.length > 0 && (
-            <button
-              type="button"
-              onClick={() => setSelectedLanes([])}
-              className="h-7 rounded-md px-2 text-xs font-medium text-slate-500 hover:bg-slate-100"
-            >
+            <Button variant="ghost" className="px-2 text-xs font-medium text-slate-500" onClick={() => setSelectedLanes([])}>
               Clear
-            </button>
+            </Button>
           )}
         </div>
       )}
