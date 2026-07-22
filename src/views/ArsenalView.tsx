@@ -29,6 +29,7 @@ import {
   getCatalogBall,
   syncCatalog,
 } from "../services/ballCatalogRepository";
+import { useOverlay } from "../lib/useOverlay";
 import type { Ball } from "../types/bowling";
 import type { CatalogBall, Manufacturer } from "../types/catalog";
 import { DEFAULT_WEIGHT } from "../types/catalog";
@@ -163,6 +164,11 @@ export function ArsenalView({ onOpenCatalog }: ArsenalViewProps = {}) {
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { delay: 180, tolerance: 6 } })
+  );
+
+  const catalogPickerRef = useOverlay<HTMLDivElement>(
+    () => setShowCatalogPicker(false),
+    showCatalogPicker
   );
 
   async function load() {
@@ -511,7 +517,13 @@ export function ArsenalView({ onOpenCatalog }: ArsenalViewProps = {}) {
 
       {/* Catalog picker panel */}
       {showCatalogPicker && (
-        <div className="mb-4 rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+        <div
+          ref={catalogPickerRef}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Pick from catalog"
+          className="mb-4 rounded-lg border border-slate-200 bg-white p-4 shadow-sm"
+        >
           <div className="mb-3 flex items-center gap-2">
             <h2 className="flex-1 text-sm font-semibold text-slate-950">Pick from catalog</h2>
             <IconButton onClick={() => setShowCatalogPicker(false)} label="Close catalog picker">

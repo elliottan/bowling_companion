@@ -5,6 +5,7 @@ import { PinGrid } from "./PinGrid";
 import { LaneVisualizer } from "./LaneVisualizer";
 import { useDriftModel } from "../lib/driftModelContext";
 import { deriveLaydown, deriveSlide, syncStanceLaydown } from "../lib/driftModel";
+import { useOverlay } from "../lib/useOverlay";
 import { upsertSpareLine } from "../services/ballRepository";
 import type { LineSpec, PinNumber } from "../types/bowling";
 import { Button } from "./ui/Button";
@@ -59,6 +60,10 @@ export function SpareLineFormDialog({
 
   const applyLine = (next: LineSpec) => setLine(syncStanceLaydown(line, next, driftModel));
 
+  // Disabled while the nested LaneVisualizer is open (showViz) so Escape and
+  // the focus trap apply only to that topmost overlay, not both at once.
+  const overlayRef = useOverlay<HTMLDivElement>(onCancel, !showViz);
+
   const derivedSlide = line.stance != null ? deriveSlide(line.stance, driftModel) : undefined;
   const derivedLaydown =
     line.laydown ?? (line.stance != null ? deriveLaydown(line.stance, driftModel) : undefined);
@@ -90,9 +95,12 @@ export function SpareLineFormDialog({
   return (
     <div
       className="fixed inset-0 z-[60] flex items-end justify-center bg-black/40 p-3 sm:items-center"
+      role="dialog"
+      aria-modal="true"
       onClick={onCancel}
     >
       <div
+        ref={overlayRef}
         className="max-h-[85vh] w-full max-w-lg overflow-y-auto rounded-lg border border-slate-200 bg-white p-4 shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >

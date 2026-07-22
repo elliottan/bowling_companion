@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useOverlay } from "../lib/useOverlay";
 import { Button } from "./ui/Button";
 
 interface ConfirmDialogProps {
@@ -19,14 +19,7 @@ export function ConfirmDialog({
   onConfirm,
   onCancel
 }: ConfirmDialogProps) {
-  useEffect(() => {
-    if (!open) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onCancel();
-    };
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-  }, [open, onCancel]);
+  const overlayRef = useOverlay<HTMLDivElement>(onCancel, open);
 
   if (!open) return null;
 
@@ -40,6 +33,7 @@ export function ConfirmDialog({
       onClick={onCancel}
     >
       <div
+        ref={overlayRef}
         className="w-full max-w-sm rounded-xl bg-white p-5 shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >

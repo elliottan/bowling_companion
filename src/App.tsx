@@ -34,6 +34,7 @@ import type { Handedness, LineSpec } from "./types/bowling";
 import { LaneVisualizer } from "./components/LaneVisualizer";
 import { UpdateToast } from "./components/UpdateToast";
 import { shouldResetScroll } from "./lib/viewportScroll";
+import { useOverlay } from "./lib/useOverlay";
 
 type AppView = "dashboard" | "active" | "history" | "spares" | "settings" | "catalog";
 
@@ -74,6 +75,16 @@ function App() {
   const [sheetDrag, setSheetDrag] = useState(0);
   const sheetDragStartY = useRef<number | null>(null);
   const [keyboardOpen, setKeyboardOpen] = useState(false);
+
+  const closeArsenal = useCallback(() => {
+    setSheetDrag(0);
+    setArsenalOpen(false);
+  }, []);
+  // Escape / focus trap / focus restore for the arsenal sheet. The drag-to-
+  // dismiss and backdrop paths below are untouched; this only adds keyboard
+  // parity. The handedness dialog further down deliberately opts out — it is
+  // mandatory first-run setup with no dismiss path at all.
+  const arsenalRef = useOverlay<HTMLDivElement>(closeArsenal, arsenalOpen);
 
   // The on-screen keyboard resizes the (standalone) webview, which would shove
   // the bottom nav up to float above the keyboard. Instead we hide the nav
@@ -409,12 +420,9 @@ function App() {
       </nav>
 
       {arsenalOpen && (
-        <div className="fixed inset-0 z-[55]" role="dialog" aria-modal="true">
+        <div ref={arsenalRef} className="fixed inset-0 z-[55]" role="dialog" aria-modal="true">
           {/* Backdrop – tap above sheet to dismiss */}
-          <div
-            className="absolute inset-0 bg-black/40"
-            onClick={() => { setSheetDrag(0); setArsenalOpen(false); }}
-          />
+          <div className="absolute inset-0 bg-black/40" onClick={closeArsenal} />
           {/* Bottom sheet */}
           <div
             className="absolute bottom-0 left-0 right-0 flex flex-col rounded-t-2xl bg-lane-50 shadow-xl"

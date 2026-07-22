@@ -1,8 +1,10 @@
-import { Check, SlidersHorizontal } from "lucide-react";
+import { Check, SlidersHorizontal, X } from "lucide-react";
 import type { Ball } from "../types/bowling";
 import type { Manufacturer } from "../types/catalog";
+import { useOverlay } from "../lib/useOverlay";
 import { CatalogBallImage } from "./CatalogBallImage";
 import { Button } from "./ui/Button";
+import { IconButton } from "./ui/IconButton";
 
 interface BallPickerSheetProps {
   balls: Ball[];
@@ -30,18 +32,25 @@ export function BallPickerSheet({
     onClose();
   };
 
+  const overlayRef = useOverlay<HTMLDivElement>(onClose);
+
   return (
     <div className="fixed inset-0 z-[60]" role="dialog" aria-modal="true" aria-label="Choose ball">
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
-      <div className="absolute bottom-0 left-0 right-0 flex max-h-[80%] flex-col rounded-t-2xl bg-lane-50 shadow-xl">
+      <div ref={overlayRef} className="absolute bottom-0 left-0 right-0 flex max-h-[80%] flex-col rounded-t-2xl bg-lane-50 shadow-xl">
         <div className="flex items-center justify-between px-4 pb-2 pt-4">
           <h2 className="text-sm font-semibold text-slate-950">Ball</h2>
-          {onOpenArsenal && (
-            <Button variant="ghost" onClick={() => { onClose(); onOpenArsenal(); }} className="text-xs">
-              <SlidersHorizontal size={14} aria-hidden="true" />
-              Manage arsenal
-            </Button>
-          )}
+          <div className="flex shrink-0 items-center gap-1">
+            {onOpenArsenal && (
+              <Button variant="ghost" onClick={() => { onClose(); onOpenArsenal(); }} className="text-xs">
+                <SlidersHorizontal size={14} aria-hidden="true" />
+                Manage arsenal
+              </Button>
+            )}
+            <IconButton onClick={onClose} label="Close">
+              <X size={18} aria-hidden="true" />
+            </IconButton>
+          </div>
         </div>
 
         <ul className="min-h-0 flex-1 space-y-1.5 overflow-y-auto overscroll-contain px-3 pb-6">

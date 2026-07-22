@@ -337,6 +337,10 @@ interface ShotDetailBarProps {
   spareLeave?: PinNumber[];
   /** Veto hook for a locked (completed) game — see LineInputProps. */
   onEditAttempt?: () => boolean;
+  /** True while the "Edit this completed game?" confirm (raised by
+   *  onEditAttempt) is open — passed through to the nested LaneVisualizer so
+   *  it suspends its own Escape/focus-trap while that confirm sits on top. */
+  editPromptOpen?: boolean;
 }
 
 // Every field is always editable; remounting (via `key`) per selected shot
@@ -353,7 +357,8 @@ function ShotDetailBar({
   onNotesChange,
   onOpenArsenal,
   spareLeave,
-  onEditAttempt
+  onEditAttempt,
+  editPromptOpen
 }: ShotDetailBarProps) {
   const [showViz, setShowViz] = useState<"intended" | "actual" | null>(null);
   const [showBallPicker, setShowBallPicker] = useState(false);
@@ -552,6 +557,7 @@ function ShotDetailBar({
           spare={isSpareAttempt}
           leave={spareLeave}
           onClose={() => setShowViz(null)}
+          suspended={editPromptOpen}
         />
       )}
 
@@ -1139,6 +1145,7 @@ export function ActiveGameScorer({
           notes={isEditing && recordedShot ? recordedShot.notes ?? "" : shotNotes}
           spareLeave={shownLeave}
           onEditAttempt={requestEdit}
+          editPromptOpen={showEditPrompt}
           onNotesChange={
             // Store raw while typing (keeps internal/trailing spaces); the
             // textarea's onBlur trims on save. Trimming per-keystroke here made

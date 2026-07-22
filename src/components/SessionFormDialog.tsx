@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useOverlay } from "../lib/useOverlay";
 import { SessionForm, type NewSessionFormValues, type SessionFormInitial } from "./SessionForm";
 
 interface SessionFormDialogProps {
@@ -25,14 +25,7 @@ export function SessionFormDialog({
   title,
   submitLabel
 }: SessionFormDialogProps) {
-  useEffect(() => {
-    if (!open) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onCancel();
-    };
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-  }, [open, onCancel]);
+  const overlayRef = useOverlay<HTMLDivElement>(onCancel, open);
 
   if (!open) return null;
 
@@ -44,6 +37,7 @@ export function SessionFormDialog({
       onClick={onCancel}
     >
       <div
+        ref={overlayRef}
         className="my-auto w-full max-w-sm rounded-xl bg-white p-5 shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >

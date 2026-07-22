@@ -11,6 +11,7 @@ import { IconButton } from "../components/ui/IconButton";
 import type { NewSessionFormValues } from "../components/SessionForm";
 import { calculateGameScore } from "../lib/scoring";
 import { useLongPress } from "../lib/useLongPress";
+import { useOverlay } from "../lib/useOverlay";
 import {
   addNextGameToSession,
   deleteGame,
@@ -61,6 +62,7 @@ export function ActiveSessionView({
   const [showLaneEditor, setShowLaneEditor] = useState(false);
 
   const longPress = useLongPress();
+  const laneEditorRef = useOverlay<HTMLDivElement>(() => setShowLaneEditor(false), showLaneEditor);
 
   const activeGame = useMemo(
     () => sessionDetails?.games.find((g) => g.id === activeGameId) ?? null,
@@ -408,7 +410,7 @@ export function ActiveSessionView({
           aria-modal="true"
           onClick={() => setShowLaneEditor(false)}
         >
-          <div className="w-full max-w-sm rounded-xl bg-white p-5 shadow-xl" onClick={(e) => e.stopPropagation()}>
+          <div ref={laneEditorRef} className="w-full max-w-sm rounded-xl bg-white p-5 shadow-xl" onClick={(e) => e.stopPropagation()}>
             <h2 className="text-base font-bold text-slate-950">Game lanes</h2>
             <p className="mt-1 text-xs text-slate-500">
               Applies to the whole game. Lanes alternate every frame — you can't set a lane per frame.

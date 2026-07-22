@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import type { LineSpec, PinNumber } from "../types/bowling";
 import { useHandedness } from "../lib/handednessContext";
 import { useDriftModel } from "../lib/driftModelContext";
+import { useOverlay } from "../lib/useOverlay";
 import { deriveLaydown, deriveLaydownFromSlide, deriveSlide } from "../lib/driftModel";
 import { spareAimPoint } from "../lib/spareAim";
 import { LaneSurface } from "./LaneSurface";
@@ -62,9 +63,14 @@ interface LaneVisualizerProps {
    *  The Actual line opens with laydown + target pinned so the final board is
    *  the first thing that moves (ADR-032). */
   defaultLocks?: readonly LockablePeg[];
+  /** True while another overlay (e.g. the locked-game "Edit this completed
+   *  game?" confirm, raised from onEditAttempt) is stacked on top of this
+   *  visualizer — suspends its own Escape/focus-trap so only the topmost
+   *  layer responds to Escape and Tab. */
+  suspended?: boolean;
 }
 
-export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, showStance = false, title = "Line", onEditAttempt, defaultLocks }: LaneVisualizerProps) {
+export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, showStance = false, title = "Line", onEditAttempt, defaultLocks, suspended = false }: LaneVisualizerProps) {
   const hand = useHandedness();
   const driftModel = useDriftModel();
   const [deg, setDeg] = useState(BOWLER_DEG);
@@ -90,6 +96,11 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
   const grabbedKey = useRef<string | null>(null);
   const dragStarted = useRef(false);
   const grabXY = useRef<{ x: number; y: number } | null>(null);
+
+  // Escape/focus-trap/focus-restore for the visualizer itself. Disabled while
+  // the nested hook-options sheet is open so a single Escape press (and the
+  // trap) only ever apply to the topmost layer — the sheet has its own.
+  const overlayRef = useOverlay<HTMLDivElement>(onClose, !optionsOpen && !suspended);
 
   function toggleLock(key: string) {
     if (!LOCKABLE.has(key)) return;
@@ -294,6 +305,7 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
 
   return (
     <div
+      ref={overlayRef}
       className="fixed inset-0 z-[70] flex flex-col bg-slate-900"
       role="dialog"
       aria-modal="true"
@@ -541,10 +553,12 @@ function OptionsSheet({
   const startMin = Math.ceil(tgtFt + 1);
   const startMax = Math.floor(fF - 2);
   const lenMax = Math.max(4, Math.floor(fF - 0.5 - dS));
+  const sheetRef = useOverlay<HTMLDivElement>(onClose);
 
   return (
     <div className="absolute inset-0 z-20 flex flex-col justify-end bg-black/50" onClick={onClose}>
       <div
+        ref={sheetRef}
         className="rounded-t-2xl bg-slate-800 px-5 pb-6 pt-3 text-white"
         onClick={(e) => e.stopPropagation()}
       >

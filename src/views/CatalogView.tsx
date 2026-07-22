@@ -5,6 +5,7 @@ import { ErrorBanner } from "../components/ErrorBanner";
 import { Button } from "../components/ui/Button";
 import { Chip, TAP_TARGET_44 } from "../components/ui/Chip";
 import { IconButton } from "../components/ui/IconButton";
+import { useOverlay } from "../lib/useOverlay";
 import {
   getAllCatalog,
   syncCatalog,
@@ -92,6 +93,9 @@ interface DetailPanelProps {
   owned: boolean;
   onBack: () => void;
   onAddToArsenal: (ball: CatalogBall) => void;
+  /** True while AddFromCatalogDialog is stacked on top — disables this
+   *  panel's own Escape/focus-trap so only the topmost overlay responds. */
+  addDialogOpen: boolean;
 }
 
 // Swipeable colorway image carousel with pagination dots. Falls back to a
@@ -156,12 +160,13 @@ function ColorwayCarousel({ ball }: { ball: CatalogBall }) {
   );
 }
 
-function DetailPanel({ ball, owned, onBack, onAddToArsenal }: DetailPanelProps) {
+function DetailPanel({ ball, owned, onBack, onAddToArsenal, addDialogOpen }: DetailPanelProps) {
+  const overlayRef = useOverlay<HTMLDivElement>(onBack, !addDialogOpen);
   return (
     // Proper modal: fixed full-screen sheet with a sticky header (brand/name +
     // X close) and an independently scrolling body, so it always opens at the
     // top regardless of the list's scroll position.
-    <div className="fixed inset-0 z-[55] flex flex-col bg-lane-50" role="dialog" aria-modal="true" aria-label={`${ball.brand} ${ball.name}`}>
+    <div ref={overlayRef} className="fixed inset-0 z-[55] flex flex-col bg-lane-50" role="dialog" aria-modal="true" aria-label={`${ball.brand} ${ball.name}`}>
       <div className="flex items-center gap-3 border-b border-slate-200 bg-white px-4 py-3 shadow-sm">
         <div className="min-w-0 flex-1">
           <p className="text-[11px] font-semibold uppercase tracking-wide text-ink-secondary">{ball.brand}</p>
@@ -313,11 +318,12 @@ function AddFromCatalogDialog({ ball, onConfirm, onCancel, isSaving, error }: Ad
   const [name, setName] = useState(`${ball.brand} ${ball.name}`);
   const colorways = ball.colorways ?? [];
   const [colorwaySku, setColorwaySku] = useState<string | undefined>(colorways[0]?.sku);
+  const overlayRef = useOverlay<HTMLDivElement>(onCancel);
 
   return (
     <div className="fixed inset-0 z-[60] flex items-end justify-center sm:items-center" role="dialog" aria-modal="true">
       <div className="absolute inset-0 bg-black/40" onClick={onCancel} />
-      <div className="relative z-10 w-full max-w-sm rounded-t-2xl bg-white p-5 shadow-xl sm:rounded-xl">
+      <div ref={overlayRef} className="relative z-10 w-full max-w-sm rounded-t-2xl bg-white p-5 shadow-xl sm:rounded-xl">
         <h2 className="mb-3 text-base font-bold text-slate-950">Add to arsenal</h2>
         {error && (
           <ErrorBanner className="mb-3">{error}</ErrorBanner>
@@ -799,6 +805,7 @@ export function CatalogView({ onBack }: CatalogViewProps) {
           owned={isOwned(selectedBall)}
           onBack={() => setSelectedBall(null)}
           onAddToArsenal={(b) => { setAddingBall(b); setAddError(""); }}
+          addDialogOpen={addingBall != null}
         />
       )}
 

@@ -5,6 +5,7 @@ import { freshRackShotIndices, laneForFrame } from "../lib/lanes";
 import { knockedDownCount } from "../lib/pins";
 import { calculateGameScore } from "../lib/scoring";
 import { calculateBallUsage, calculateCommonLeaves, calculateStats } from "../lib/stats";
+import { useOverlay } from "../lib/useOverlay";
 import { getBalls } from "../services/ballRepository";
 import type { Ball, Frame, LineSpec, SessionSummary, Shot } from "../types/bowling";
 import { LaneNotesTab } from "./LaneNotesTab";
@@ -80,11 +81,10 @@ export function SessionLanePanel({
     });
   }, [onClose]);
 
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && requestClose();
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-  }, [requestClose]);
+  // Escape + focus trap + focus restore. Tied to `requestClose` (the animated
+  // dismissal), not `onClose` directly, so Escape plays the same slide-down
+  // exit as the drag/backdrop/X paths.
+  const overlayRef = useOverlay<HTMLDivElement>(requestClose);
 
   // Shared by the drag pill and the header row.
   const dragHandlers = {
@@ -130,6 +130,7 @@ export function SessionLanePanel({
       onClick={requestClose}
     >
       <div
+        ref={overlayRef}
         className="flex h-[85vh] w-full max-w-lg flex-col rounded-t-2xl bg-white shadow-xl sm:rounded-2xl"
         onClick={(e) => e.stopPropagation()}
         style={{

@@ -1,4 +1,5 @@
 import { canPromptInstall, isIOSSafari, isStandalone, promptInstall } from "../lib/installPrompt";
+import { useOverlay } from "../lib/useOverlay";
 import { Button } from "./ui/Button";
 
 interface InstallPromptProps {
@@ -12,6 +13,8 @@ interface InstallPromptProps {
  * it, wired by the caller via `open`/`onClose`).
  */
 export function InstallPrompt({ open, onClose }: InstallPromptProps) {
+  const overlayRef = useOverlay<HTMLDivElement>(onClose, open);
+
   if (!open || isStandalone()) return null;
 
   const canInstall = canPromptInstall();
@@ -26,6 +29,7 @@ export function InstallPrompt({ open, onClose }: InstallPromptProps) {
       onClick={onClose}
     >
       <div
+        ref={overlayRef}
         className="w-full max-w-sm rounded-xl bg-white p-5 shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
