@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { ErrorBanner } from "../components/ErrorBanner";
 import { SessionHistory } from "../components/SessionHistory";
 import { Stats } from "../components/Stats";
 import { SwipePanes } from "../components/SwipePanes";
@@ -167,6 +168,7 @@ export function HistoryView({ onOpenSession, activeSessionId, onSessionDeleted }
             <button
               key={p}
               type="button"
+              aria-pressed={pane === p}
               onClick={() => setPane(p)}
               className={`h-7 rounded-md px-3 text-xs font-semibold capitalize ${
                 pane === p ? "bg-white text-felt-700 shadow-sm" : "text-slate-600"
@@ -179,9 +181,7 @@ export function HistoryView({ onOpenSession, activeSessionId, onSessionDeleted }
       </div>
 
       {error && (
-        <p className="mb-3 rounded-lg border border-red-200 bg-red-50 p-3 text-sm font-semibold text-red-700">
-          {error}
-        </p>
+        <ErrorBanner className="mb-3">{error}</ErrorBanner>
       )}
 
       {history.length > 0 && (
@@ -210,6 +210,7 @@ export function HistoryView({ onOpenSession, activeSessionId, onSessionDeleted }
               <button
                 key={l}
                 type="button"
+                aria-pressed={on}
                 onClick={() => toggleLane(l)}
                 className={`h-7 rounded-md border px-2.5 text-xs font-semibold ${
                   on ? "border-felt-700 bg-felt-700 text-white" : "border-slate-300 bg-white text-slate-700"

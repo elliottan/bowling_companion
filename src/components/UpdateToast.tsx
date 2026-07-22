@@ -15,6 +15,7 @@ export function UpdateToast() {
 
   return (
     <div
+      role="status"
       className="fixed inset-x-0 z-[50] flex justify-center px-3"
       style={{ bottom: "calc(4rem + env(safe-area-inset-bottom) + 0.75rem)" }}
     >

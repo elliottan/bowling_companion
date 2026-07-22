@@ -31,6 +31,7 @@ import type { Ball } from "../types/bowling";
 import type { CatalogBall, Manufacturer } from "../types/catalog";
 import { DEFAULT_WEIGHT } from "../types/catalog";
 import { CatalogBallImage } from "../components/CatalogBallImage";
+import { ErrorBanner } from "../components/ErrorBanner";
 
 const EMPTY_FORM = {
   name: "",
@@ -397,9 +398,7 @@ export function ArsenalView({ onOpenCatalog }: ArsenalViewProps = {}) {
       </div>
 
       {error && (
-        <p className="mb-3 rounded-lg border border-red-200 bg-red-50 p-3 text-sm font-semibold text-red-700">
-          {error}
-        </p>
+        <ErrorBanner className="mb-3">{error}</ErrorBanner>
       )}
 
       {showForm && (
@@ -428,9 +427,7 @@ export function ArsenalView({ onOpenCatalog }: ArsenalViewProps = {}) {
           )}
 
           {formError && (
-            <p className="mb-3 rounded-lg border border-red-200 bg-red-50 p-3 text-sm font-semibold text-red-700">
-              {formError}
-            </p>
+            <ErrorBanner className="mb-3">{formError}</ErrorBanner>
           )}
 
           <form onSubmit={(e) => void handleSubmit(e)} className="space-y-3">

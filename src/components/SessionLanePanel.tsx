@@ -194,6 +194,7 @@ export function SessionLanePanel({
             <button
               key={key}
               type="button"
+              aria-pressed={tab === key}
               onClick={() => setTab(key)}
               className={`h-9 rounded-md text-sm font-semibold ${
                 tab === key ? "bg-felt-700 text-white" : "bg-slate-100 text-slate-600"

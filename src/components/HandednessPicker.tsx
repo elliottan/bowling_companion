@@ -15,6 +15,7 @@ export function HandednessPicker({ value, onSelect }: HandednessPickerProps) {
         <button
           key={h}
           type="button"
+          aria-pressed={value === h}
           onClick={() => onSelect(h)}
           className={`h-12 flex-1 rounded-lg border text-sm font-semibold capitalize ${
             value === h

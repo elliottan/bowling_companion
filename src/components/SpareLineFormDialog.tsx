@@ -1,5 +1,6 @@
 import { Eye, Trash2 } from "lucide-react";
 import { useState } from "react";
+import { ErrorBanner } from "./ErrorBanner";
 import { PinGrid } from "./PinGrid";
 import { LaneVisualizer } from "./LaneVisualizer";
 import { useDriftModel } from "../lib/driftModelContext";
@@ -101,9 +102,7 @@ export function SpareLineFormDialog({
         </h2>
 
         {error && (
-          <p className="mb-3 rounded-lg border border-red-200 bg-red-50 p-3 text-sm font-semibold text-red-700">
-            {error}
-          </p>
+          <ErrorBanner className="mb-3">{error}</ErrorBanner>
         )}
 
         <form onSubmit={(e) => void handleSubmit(e)} className="space-y-4">

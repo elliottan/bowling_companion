@@ -1,5 +1,6 @@
 import { Download, Upload } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { ErrorBanner } from "../components/ErrorBanner";
 import { exportBackup, importBackup } from "../services/backupRepository";
 
 export function BackupRestoreView() {
@@ -107,14 +108,15 @@ export function BackupRestoreView() {
       </div>
 
       {message && (
-        <p className="mt-3 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm font-semibold text-emerald-800">
+        <p
+          role="status"
+          className="mt-3 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm font-semibold text-emerald-800"
+        >
           {message}
         </p>
       )}
       {error && (
-        <p className="mt-3 rounded-lg border border-red-200 bg-red-50 p-3 text-sm font-semibold text-red-700">
-          {error}
-        </p>
+        <ErrorBanner className="mt-3">{error}</ErrorBanner>
       )}
     </section>
   );

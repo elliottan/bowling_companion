@@ -499,6 +499,7 @@ function NavLink({ item, active, disabled, onClick }: NavItemProps) {
   return (
     <button
       type="button"
+      aria-current={active ? "page" : undefined}
       onClick={onClick}
       disabled={disabled}
       className={`inline-flex h-9 items-center gap-1.5 rounded-md px-3 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-40 ${
@@ -518,6 +519,7 @@ function TabBarButton({ item, active, disabled, onClick }: NavItemProps) {
   return (
     <button
       type="button"
+      aria-current={active ? "page" : undefined}
       onClick={onClick}
       disabled={disabled}
       className={`relative flex h-16 flex-col items-center justify-center gap-1 text-[11px] disabled:cursor-not-allowed disabled:opacity-40 ${

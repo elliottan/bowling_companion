@@ -14,6 +14,7 @@ import {
   useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { ErrorBanner } from "../components/ErrorBanner";
 import { LaneVisualizer } from "../components/LaneVisualizer";
 import { SpareLineFormDialog } from "../components/SpareLineFormDialog";
 import { useDriftModel } from "../lib/driftModelContext";
@@ -238,9 +239,7 @@ export function SpareLinesView() {
       </div>
 
       {error && (
-        <p className="mb-3 rounded-lg border border-red-200 bg-red-50 p-3 text-sm font-semibold text-red-700">
-          {error}
-        </p>
+        <ErrorBanner className="mb-3">{error}</ErrorBanner>
       )}
 
       {editing?.mode === "add" && (

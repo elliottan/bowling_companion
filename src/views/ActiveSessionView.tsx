@@ -2,6 +2,7 @@ import { ChevronLeft, ChevronUp, Plus, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { ActiveGameScorer } from "../components/ActiveGameScorer";
 import { ConfirmDialog } from "../components/ConfirmDialog";
+import { ErrorBanner } from "../components/ErrorBanner";
 import { SessionFormDialog } from "../components/SessionFormDialog";
 import { SessionLanePanel, type SessionPanelTab } from "../components/SessionLanePanel";
 import type { NewSessionFormValues } from "../components/SessionForm";
@@ -209,9 +210,7 @@ export function ActiveSessionView({
   if (!sessionDetails || !activeGame) {
     return (
       <section className="mx-auto w-full max-w-5xl px-4 py-6">
-        <p className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm font-semibold text-red-700">
-          {error || "No active game was found for this session."}
-        </p>
+        <ErrorBanner>{error || "No active game was found for this session."}</ErrorBanner>
         <button
           type="button"
           onClick={onBack}
@@ -283,6 +282,7 @@ export function ActiveSessionView({
               <button
                 key={g.id}
                 type="button"
+                aria-pressed={g.id === activeGameId}
                 {...longPress.bind((chip) => {
                   if (!g.id) return;
                   const rect = chip.getBoundingClientRect();
@@ -349,9 +349,7 @@ export function ActiveSessionView({
         )}
 
         {error && (
-          <p className="mt-3 rounded-lg border border-red-200 bg-red-50 p-3 text-sm font-semibold text-red-700">
-            {error}
-          </p>
+          <ErrorBanner className="mt-3">{error}</ErrorBanner>
         )}
       </section>
 
@@ -455,6 +453,7 @@ export function ActiveSessionView({
                       <button
                         key={side}
                         type="button"
+                        aria-pressed={startSide === side}
                         onClick={() => { setStartSide(side); void saveLanes(side); }}
                         className={`h-9 rounded-md border px-3 text-sm font-semibold ${
                           startSide === side

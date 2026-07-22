@@ -1,6 +1,7 @@
 import { ChevronLeft, Loader2, Palette, RefreshCw, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { CatalogBallImage } from "../components/CatalogBallImage";
+import { ErrorBanner } from "../components/ErrorBanner";
 import {
   getAllCatalog,
   syncCatalog,
@@ -325,7 +326,7 @@ function AddFromCatalogDialog({ ball, onConfirm, onCancel, isSaving, error }: Ad
       <div className="relative z-10 w-full max-w-sm rounded-t-2xl bg-white p-5 shadow-xl sm:rounded-xl">
         <h2 className="mb-3 text-base font-bold text-slate-950">Add to arsenal</h2>
         {error && (
-          <p className="mb-3 rounded-lg border border-red-200 bg-red-50 p-2 text-sm font-semibold text-red-700">{error}</p>
+          <ErrorBanner className="mb-3">{error}</ErrorBanner>
         )}
         <p className="mb-3 text-sm text-slate-600">
           Specs snapshot from catalog. You can edit the name before saving.
@@ -347,6 +348,7 @@ function AddFromCatalogDialog({ ball, onConfirm, onCancel, isSaving, error }: Ad
                 <button
                   key={cw.sku}
                   type="button"
+                  aria-pressed={colorwaySku === cw.sku}
                   onClick={() => setColorwaySku(cw.sku)}
                   className={`rounded-full border px-2.5 py-1 text-xs font-semibold ${
                     colorwaySku === cw.sku
@@ -600,6 +602,7 @@ export function CatalogView({ onBack }: CatalogViewProps) {
         <div className="mb-3 flex items-center gap-2">
           <button
             type="button"
+            aria-pressed={showFilters}
             onClick={() => setShowFilters((v) => !v)}
             className={`inline-flex h-9 items-center gap-1.5 rounded-md border px-3 text-sm font-medium ${
               showFilters ? "border-felt-700 bg-felt-700 text-white" : "border-slate-300 bg-white text-slate-700 hover:bg-slate-50"
@@ -683,6 +686,7 @@ export function CatalogView({ onBack }: CatalogViewProps) {
                   <button
                     key={brand}
                     type="button"
+                    aria-pressed={filters.brands.has(brand)}
                     onClick={() => setFilters((f) => ({ ...f, brands: toggleSetValue(f.brands, brand) }))}
                     className={`rounded-full border px-3 py-1 text-xs font-semibold ${
                       filters.brands.has(brand)
@@ -704,6 +708,7 @@ export function CatalogView({ onBack }: CatalogViewProps) {
                   <button
                     key={cat}
                     type="button"
+                    aria-pressed={filters.coverstockCategories.has(cat)}
                     onClick={() => setFilters((f) => ({ ...f, coverstockCategories: toggleSetValue(f.coverstockCategories, cat) }))}
                     className={`rounded-full border px-3 py-1 text-xs font-semibold ${
                       filters.coverstockCategories.has(cat)
@@ -725,6 +730,7 @@ export function CatalogView({ onBack }: CatalogViewProps) {
                   <button
                     key={ct}
                     type="button"
+                    aria-pressed={filters.coreType === ct}
                     onClick={() => setFilters((f) => ({ ...f, coreType: f.coreType === ct ? null : ct }))}
                     className={`rounded-full border px-3 py-1 text-xs font-semibold ${
                       filters.coreType === ct

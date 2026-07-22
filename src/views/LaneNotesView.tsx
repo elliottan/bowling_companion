@@ -1,5 +1,6 @@
 import { Trash2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { ErrorBanner } from "../components/ErrorBanner";
 import {
   deleteLaneNote,
   getLaneNotes,
@@ -152,9 +153,7 @@ export function LaneNotesView() {
       </div>
 
       {error && (
-        <p className="mb-3 rounded-lg border border-red-200 bg-red-50 p-3 text-sm font-semibold text-red-700">
-          {error}
-        </p>
+        <ErrorBanner className="mb-3">{error}</ErrorBanner>
       )}
 
       {showForm && (
@@ -269,6 +268,7 @@ export function LaneNotesView() {
                   <button
                     key={l}
                     type="button"
+                    aria-pressed={on}
                     onClick={() => toggleLane(l)}
                     className={`h-8 rounded-md border px-3 text-xs font-semibold ${
                       on ? "border-felt-700 bg-felt-700 text-white" : "border-slate-300 bg-white text-slate-700"

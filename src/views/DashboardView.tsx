@@ -1,5 +1,6 @@
 import { BookOpen, PlayCircle, Plus, Smartphone, Spline } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
+import { ErrorBanner } from "../components/ErrorBanner";
 import { SessionFormDialog } from "../components/SessionFormDialog";
 import { SessionHistory } from "../components/SessionHistory";
 import { InstallPrompt } from "../components/InstallPrompt";
@@ -116,9 +117,7 @@ export function DashboardView({
   return (
     <section className={`mx-auto w-full max-w-xl px-3 py-5 sm:px-6 sm:py-8 ${resumable ? "pb-44" : ""}`}>
       {error && (
-        <p className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm font-semibold text-red-700">
-          {error}
-        </p>
+        <ErrorBanner className="mb-4">{error}</ErrorBanner>
       )}
 
       {showBackupNudge && (
