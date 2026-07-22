@@ -78,7 +78,7 @@ export function BallPickerSheet({
                   <span className="min-w-0 flex-1 truncate text-sm font-semibold text-slate-950">
                     {b.name}
                     {b.is_spare_ball && (
-                      <span className="ml-1.5 text-xs font-normal text-slate-400">spare</span>
+                      <span className="ml-1.5 text-xs font-normal text-ink-secondary">spare</span>
                     )}
                   </span>
                   {selected && <Check size={16} className="shrink-0 text-felt-700" aria-hidden="true" />}
@@ -95,7 +95,7 @@ export function BallPickerSheet({
               className={`flex w-full items-center gap-3 rounded-xl border p-2.5 text-left text-sm font-semibold ${
                 ballId == null
                   ? "border-felt-700 bg-white text-slate-950 ring-2 ring-felt-700"
-                  : "border-slate-200 bg-white text-slate-400"
+                  : "border-slate-200 bg-white text-ink-secondary"
               }`}
             >
               <div className="h-10 w-10 shrink-0" aria-hidden="true" />

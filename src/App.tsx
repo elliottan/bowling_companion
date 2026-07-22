@@ -520,7 +520,7 @@ function TabBarButton({ item, active, disabled, onClick }: NavItemProps) {
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className={`relative flex h-16 flex-col items-center justify-center gap-1 text-[10px] disabled:cursor-not-allowed disabled:opacity-40 ${
+      className={`relative flex h-16 flex-col items-center justify-center gap-1 text-[11px] disabled:cursor-not-allowed disabled:opacity-40 ${
         active ? "font-bold text-felt-700" : "font-medium text-slate-600"
       }`}
     >

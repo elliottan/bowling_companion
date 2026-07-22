@@ -162,14 +162,14 @@ function SessionRow({ summary, isActive, onOpen, onSessionChanged, onSessionDele
         </div>
         <div className="flex shrink-0 flex-col items-end gap-0.5 pr-9 text-right">
           {hasUnfinishedGame && (
-            <span className="inline-flex items-center rounded-full bg-felt-700 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">
+            <span className="inline-flex items-center rounded-full bg-felt-700 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-white">
               Active
             </span>
           )}
           {seriesTotal > 0 && (
             <p className="text-lg font-extrabold leading-none text-felt-700">{seriesTotal}</p>
           )}
-          <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+          <p className="text-xs font-semibold uppercase tracking-wide text-ink-secondary">
             {games.length} {games.length === 1 ? "game" : "games"}
             {seriesAvg !== null && ` · ${seriesAvg} avg`}
           </p>
@@ -213,7 +213,7 @@ function SessionRow({ summary, isActive, onOpen, onSessionChanged, onSessionDele
         type="button"
         onClick={() => setShowStats(true)}
         aria-label="Session stats"
-        className="absolute right-2 top-2 inline-flex h-7 w-7 items-center justify-center rounded-md text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+        className="absolute right-2 top-2 inline-flex h-7 w-7 items-center justify-center rounded-md text-ink-secondary hover:bg-slate-100 hover:text-slate-700"
       >
         <BarChart3 size={16} aria-hidden="true" />
       </button>

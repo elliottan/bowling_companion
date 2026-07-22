@@ -59,6 +59,16 @@ export function isBabySplit(standing: PinNumber[]): boolean {
   return true;
 }
 
+/** Screen-reader description of a pin diagram. The numerals rendered inside
+ *  each pin are decorative — position and fill already carry the meaning — so
+ *  the diagram is exposed as a single labeled image using this text. */
+export function describePinsStanding(standing: PinNumber[]): string {
+  if (standing.length === 0) return "No pins standing";
+  if (standing.length === 10) return "All ten pins standing";
+  if (standing.length === 1) return `${standing[0]} pin standing`;
+  return `Pins standing: ${standing.join(", ")}`;
+}
+
 export function uniquePins(pins: PinNumber[]): PinNumber[] {
   return [...new Set(pins)].sort((a, b) => a - b);
 }

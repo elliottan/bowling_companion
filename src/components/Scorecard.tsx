@@ -141,7 +141,7 @@ function FrameCell({
 
   return (
     <div className={`${border} ${bg}`}>
-      <div className="border-b border-slate-200 px-1 py-1 text-center text-[10px] font-bold uppercase text-slate-500 sm:text-xs">
+      <div className="border-b border-slate-200 px-1 py-1 text-center text-[11px] font-bold uppercase text-slate-500 sm:text-xs">
         {frameNumber}
       </div>
       {/*

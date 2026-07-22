@@ -172,7 +172,7 @@ function LaneCell({
       }`}
     >
       <div className="flex items-center justify-between gap-1">
-        <span className="text-[10px] font-bold uppercase tracking-wide text-slate-500">
+        <span className="text-[11px] font-bold uppercase tracking-wide text-slate-500">
           Lane {lane}
         </span>
         {!editing && (
@@ -180,7 +180,7 @@ function LaneCell({
             type="button"
             onClick={onEdit}
             aria-label={`Edit lane ${lane} notes`}
-            className="text-slate-400 hover:text-slate-700"
+            className="text-ink-secondary hover:text-slate-700"
           >
             <Pencil size={12} aria-hidden="true" />
           </button>
@@ -216,7 +216,7 @@ function LaneCell({
                 type="button"
                 onClick={onDelete}
                 aria-label={`Delete lane ${lane} notes`}
-                className="ml-auto text-slate-400 hover:text-red-600"
+                className="ml-auto text-ink-secondary hover:text-red-600"
               >
                 <Trash2 size={13} aria-hidden="true" />
               </button>

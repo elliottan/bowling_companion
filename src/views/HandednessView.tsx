@@ -177,7 +177,7 @@ function Row({ label, hint, children }: { label: string; hint?: string; children
     <div className="flex min-h-[3rem] items-center gap-3">
       <span className="text-sm text-slate-700">
         {label}
-        {hint && <span className="ml-1 text-xs text-slate-400">({hint})</span>}
+        {hint && <span className="ml-1 text-xs text-ink-secondary">({hint})</span>}
       </span>
       <div className="ml-auto shrink-0">{children}</div>
     </div>

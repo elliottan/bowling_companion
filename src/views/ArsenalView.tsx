@@ -450,7 +450,7 @@ export function ArsenalView({ onOpenCatalog }: ArsenalViewProps = {}) {
             {/* B11: weight selector */}
             <div>
               <label className="mb-1 block text-sm font-medium text-slate-700">
-                Weight <span className="text-slate-400 font-normal">(lbs)</span>
+                Weight <span className="text-ink-secondary font-normal">(lbs)</span>
               </label>
               <select
                 value={form.weight}
@@ -498,7 +498,7 @@ export function ArsenalView({ onOpenCatalog }: ArsenalViewProps = {}) {
 
             <div>
               <label className="mb-1 block text-sm font-medium text-slate-700">
-                Layout <span className="text-slate-400 font-normal">(optional)</span>
+                Layout <span className="text-ink-secondary font-normal">(optional)</span>
               </label>
               <input
                 type="text"
@@ -511,7 +511,7 @@ export function ArsenalView({ onOpenCatalog }: ArsenalViewProps = {}) {
 
             <div>
               <label className="mb-1 block text-sm font-medium text-slate-700">
-                Notes <span className="text-slate-400 font-normal">(optional)</span>
+                Notes <span className="text-ink-secondary font-normal">(optional)</span>
               </label>
               <textarea
                 value={form.notes}
@@ -551,7 +551,7 @@ export function ArsenalView({ onOpenCatalog }: ArsenalViewProps = {}) {
             <button
               type="button"
               onClick={() => setShowCatalogPicker(false)}
-              className="text-slate-400 hover:text-slate-600"
+              className="text-ink-secondary hover:text-slate-600"
               aria-label="Close catalog picker"
             >
               ✕

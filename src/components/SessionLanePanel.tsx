@@ -281,14 +281,14 @@ function SessionSheetTab({
             <div className="mb-1.5 flex items-center gap-2">
               <h3 className="text-sm font-bold text-slate-900">Game {game.game_number}</h3>
               {game.id === currentGameId && (
-                <span className="rounded-full bg-felt-700 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-white">
+                <span className="rounded-full bg-felt-700 px-1.5 py-0.5 text-[11px] font-bold uppercase tracking-wide text-white">
                   Current
                 </span>
               )}
               <span className="ml-auto text-base font-extrabold text-felt-700">{total}</span>
             </div>
             {game.frames.length === 0 ? (
-              <p className="text-xs text-slate-400">No shots yet.</p>
+              <p className="text-xs text-ink-secondary">No shots yet.</p>
             ) : (
               <GameGrid game={game} ballName={ballName} />
             )}
@@ -300,7 +300,7 @@ function SessionSheetTab({
 }
 
 const emptyCell = (n: number) => (
-  <span className="text-[10px] font-bold uppercase text-slate-300">F{n}</span>
+  <span className="text-[11px] font-bold uppercase text-slate-300">F{n}</span>
 );
 
 // Cross-lane: columns are FIXED by lane number (lower = left, higher = right),
@@ -321,7 +321,7 @@ function GameGrid({
     const laneLabel = lanes[0];
     return (
       <div className="overflow-hidden rounded-lg border border-slate-200">
-        <div className="border-b border-slate-200 bg-slate-50 py-1 text-center text-[10px] font-bold uppercase tracking-wide text-slate-500">
+        <div className="border-b border-slate-200 bg-slate-50 py-1 text-center text-[11px] font-bold uppercase tracking-wide text-slate-500">
           {laneLabel ? `Lane ${laneLabel}` : "Lane"}
         </div>
         {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => {
@@ -347,7 +347,7 @@ function GameGrid({
 
   return (
     <div className="overflow-hidden rounded-lg border border-slate-200">
-      <div className="grid grid-cols-2 bg-slate-50 text-center text-[10px] font-bold uppercase tracking-wide text-slate-500">
+      <div className="grid grid-cols-2 bg-slate-50 text-center text-[11px] font-bold uppercase tracking-wide text-slate-500">
         <div className="border-b border-r border-slate-200 py-1">Lane {leftLane}</div>
         <div className="border-b border-slate-200 py-1">Lane {rightLane}</div>
       </div>
@@ -393,7 +393,7 @@ function FrameCell({ frame, ballName }: { frame: Frame; ballName: (id?: number) 
   const shots = freshRackShots(frame);
   return (
     <div className="flex flex-col items-center text-center">
-      <span className="text-[10px] font-bold uppercase text-slate-400">F{frame.frame_number}</span>
+      <span className="text-[11px] font-bold uppercase text-ink-secondary">F{frame.frame_number}</span>
       <div className="mt-1 flex flex-col items-center gap-2">
         {shots.map((shot, i) => {
           const intended = formatLine(shot.intended);
@@ -411,7 +411,7 @@ function FrameCell({ frame, ballName }: { frame: Frame; ballName: (id?: number) 
               <div className="text-[11px] leading-tight">
                 {name && <p className="font-medium text-slate-800">{name}</p>}
                 {intended && <p className="text-slate-600">{intended}</p>}
-                {actual && <p className="text-slate-400">{actual}</p>}
+                {actual && <p className="text-ink-secondary">{actual}</p>}
                 {shot.notes && <p className="break-words text-slate-500">{shot.notes}</p>}
               </div>
             </div>

@@ -160,7 +160,7 @@ function DetailPanel({ ball, owned, onBack, onAddToArsenal }: DetailPanelProps) 
     <div className="fixed inset-0 z-[55] flex flex-col bg-lane-50" role="dialog" aria-modal="true" aria-label={`${ball.brand} ${ball.name}`}>
       <div className="flex items-center gap-3 border-b border-slate-200 bg-white px-4 py-3 shadow-sm">
         <div className="min-w-0 flex-1">
-          <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">{ball.brand}</p>
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-ink-secondary">{ball.brand}</p>
           <h2 className="truncate text-base font-bold text-slate-950">{ball.name}</h2>
         </div>
         <button
@@ -588,7 +588,7 @@ export function CatalogView({ onBack }: CatalogViewProps) {
             <button
               type="button"
               onClick={() => setFilters((f) => ({ ...f, search: "" }))}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-secondary hover:text-slate-600"
               aria-label="Clear search"
             >
               <X size={14} />
@@ -799,16 +799,16 @@ export function CatalogView({ onBack }: CatalogViewProps) {
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-1.5">
-                      <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">{ball.brand}</span>
+                      <span className="text-[11px] font-semibold uppercase tracking-wide text-ink-secondary">{ball.brand}</span>
                       {/* B8: Owned badge */}
                       {isOwned(ball) && (
-                        <span className="rounded-full bg-felt-700/10 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-felt-700">
+                        <span className="rounded-full bg-felt-700/10 px-1.5 py-0.5 text-[11px] font-bold uppercase tracking-wide text-felt-700">
                           Owned
                         </span>
                       )}
                       {/* Multi-colorway badge */}
                       {(ball.colorways?.length ?? 0) > 1 && (
-                        <span className="inline-flex items-center gap-0.5 rounded-full bg-slate-100 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-slate-500">
+                        <span className="inline-flex items-center gap-0.5 rounded-full bg-slate-100 px-1.5 py-0.5 text-[11px] font-bold uppercase tracking-wide text-slate-500">
                           <Palette size={9} aria-hidden="true" />
                           {ball.colorways!.length} colors
                         </span>
@@ -816,7 +816,7 @@ export function CatalogView({ onBack }: CatalogViewProps) {
                     </div>
                     <p className="text-sm font-semibold text-slate-950">{ball.name}</p>
                     {/* Always-visible compact specs (mobile-first) */}
-                    <p className="mt-0.5 text-xs text-slate-400">
+                    <p className="mt-0.5 text-xs text-ink-secondary">
                       {[
                         ball.releaseYear ? String(ball.releaseYear) : null,
                         ball.coverstockCategory ?? null,
@@ -834,7 +834,7 @@ export function CatalogView({ onBack }: CatalogViewProps) {
 
         {/* Footer */}
         {doneState && (
-          <p className="mt-6 text-center text-xs text-slate-400">
+          <p className="mt-6 text-center text-xs text-ink-secondary">
             Catalog v{doneState.version} · Updated {new Date(doneState.generatedAt).toLocaleDateString()}
           </p>
         )}

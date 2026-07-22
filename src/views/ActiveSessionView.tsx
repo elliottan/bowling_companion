@@ -433,7 +433,7 @@ export function ActiveSessionView({
                 placeholder="12"
                 className="h-10 w-16 rounded-lg border border-slate-300 px-2 text-sm outline-none focus:border-felt-700"
               />
-              <span className="text-slate-400">/</span>
+              <span aria-hidden="true" className="text-ink-secondary">/</span>
               <input
                 value={laneB}
                 onChange={(e) => setLaneB(e.target.value.replace(/\D/g, ""))}

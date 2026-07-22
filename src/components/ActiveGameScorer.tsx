@@ -76,9 +76,9 @@ const FIELD_LABEL: Record<BoardField, string> = {
 // A field label parked on the top border of its own box. Costs no vertical band
 // of its own, and a filled-in "23" still says whether it's a slide or a target.
 const floatLabel =
-  "pointer-events-none absolute -top-1.5 left-2 z-10 bg-white px-1 text-[9px] font-semibold uppercase tracking-[0.01em] text-slate-400";
+  "pointer-events-none absolute -top-1.5 left-2 z-10 bg-white px-1 text-[11px] font-semibold uppercase tracking-[0.01em] text-ink-secondary";
 // Section eyebrow (INTENDED / ACTUAL). Tight tracking — these are wide words.
-const eyebrow = "text-[10px] font-semibold uppercase tracking-[0.01em] text-slate-400";
+const eyebrow = "text-[11px] font-semibold uppercase tracking-[0.01em] text-ink-secondary";
 
 // Tap-gate for a locked (completed) game. Raising the prompt on `change` alone
 // let the field focus first, so the keyboard and caret appeared behind the
@@ -214,7 +214,7 @@ function LineInput({
   // and the tapped half (left vs right of centre) decides the direction. One
   // border, no ugly split. preventDefault keeps the input focused (row open).
   const adjBtn =
-    "relative flex h-8 w-full items-center justify-center rounded-lg border border-slate-200 bg-slate-50 text-[10px] font-semibold uppercase tracking-[0.08em] text-slate-500 hover:bg-slate-100 active:bg-slate-200";
+    "relative flex h-8 w-full items-center justify-center rounded-lg border border-slate-200 bg-slate-50 text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500 hover:bg-slate-100 active:bg-slate-200";
   const halfTap =
     (onLeft: () => void, onRight: () => void) => (e: ReactPointerEvent<HTMLButtonElement>) => {
       e.preventDefault();
@@ -264,7 +264,7 @@ function LineInput({
           type="button"
           onClick={onLaydownTap}
           title="Derived from what you entered. Tap to see it on the lane."
-          className="mt-1 flex w-full flex-wrap items-center gap-x-1 text-left text-[10px] font-semibold uppercase tracking-[0.01em] text-slate-400 tabular-nums hover:text-felt-700"
+          className="mt-1 flex w-full flex-wrap items-center gap-x-1 text-left text-[11px] font-semibold uppercase tracking-[0.01em] text-ink-secondary tabular-nums hover:text-felt-700"
         >
           {chain.map((part, i) => (
             <span key={part} className="flex items-center gap-1 whitespace-nowrap">
@@ -433,7 +433,7 @@ function ShotDetailBar({
       aria-label={`View ${which} line`}
       title={`View ${which} line on the lane`}
       onClick={() => setShowViz(which)}
-      className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-slate-400 hover:bg-slate-100 hover:text-felt-700"
+      className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-ink-secondary hover:bg-slate-100 hover:text-felt-700"
     >
       <Eye size={14} aria-hidden="true" />
     </button>
@@ -468,12 +468,12 @@ function ShotDetailBar({
             </span>
             <span
               className={`min-w-0 flex-1 truncate text-xs font-semibold ${
-                selectedBall ? "text-slate-900" : "text-slate-400"
+                selectedBall ? "text-slate-900" : "text-ink-secondary"
               }`}
             >
               {selectedBall?.name ?? "No ball"}
               {selectedBall?.is_spare_ball && (
-                <span className="ml-1 font-normal text-slate-400">spare</span>
+                <span className="ml-1 font-normal text-ink-secondary">spare</span>
               )}
             </span>
           </button>
@@ -1040,7 +1040,7 @@ export function ActiveGameScorer({
         <div className="space-y-2">
           {(onEditLanes || lanesList.length > 0) && (
             <div className="flex items-center justify-between rounded-lg border border-slate-200 bg-white px-2.5 py-1.5">
-              <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">Lane</span>
+              <span className="text-xs font-semibold uppercase tracking-wide text-ink-secondary">Lane</span>
               {onEditLanes ? (
                 <button
                   type="button"
@@ -1053,7 +1053,7 @@ export function ActiveGameScorer({
                       <span
                         key={l}
                         className={`inline-flex h-6 min-w-[1.5rem] items-center justify-center rounded-md px-1.5 text-xs font-bold ${
-                          l === (isEditing ? viewedLane : currentLane) ? "bg-felt-700 text-white" : "bg-slate-100 text-slate-400"
+                          l === (isEditing ? viewedLane : currentLane) ? "bg-felt-700 text-white" : "bg-slate-100 text-ink-secondary"
                         }`}
                       >
                         {l}
@@ -1127,7 +1127,7 @@ export function ActiveGameScorer({
                 type="button"
                 aria-label="Dismiss"
                 onClick={() => setPendingSpareLeave(null)}
-                className="shrink-0 text-slate-400 hover:text-slate-600"
+                className="shrink-0 text-ink-secondary hover:text-slate-600"
               >
                 <X size={16} aria-hidden="true" />
               </button>

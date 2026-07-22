@@ -203,7 +203,7 @@ export function HistoryView({ onOpenSession, activeSessionId, onSessionDeleted }
 
       {allLanes.length > 0 && (
         <div className="mb-3 flex flex-wrap items-center gap-1.5">
-          <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">Lanes</span>
+          <span className="text-xs font-semibold uppercase tracking-wide text-ink-secondary">Lanes</span>
           {allLanes.map((l) => {
             const on = selectedLanes.includes(l);
             return (

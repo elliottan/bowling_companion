@@ -450,7 +450,7 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
               <button
                 type="button"
                 onClick={() => applyEdit({ final_board: POCKET_BOARD })}
-                className="self-end rounded-full border border-emerald-300/40 bg-emerald-400/15 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-emerald-300 hover:bg-emerald-400/25"
+                className="self-end rounded-full border border-emerald-300/40 bg-emerald-400/15 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-emerald-300 hover:bg-emerald-400/25"
               >
                 Pocket
               </button>
@@ -501,7 +501,7 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
                     final_distance: Math.round(spareAim.feet * 10) / 10,
                   })
                 }
-                className="self-end rounded-full border border-emerald-300/40 bg-emerald-400/15 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-emerald-300 hover:bg-emerald-400/25"
+                className="self-end rounded-full border border-emerald-300/40 bg-emerald-400/15 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-emerald-300 hover:bg-emerald-400/25"
               >
                 Re-aim
               </button>
@@ -599,7 +599,7 @@ function Slider({
         onChange={(e) => onChange(Number(e.target.value))}
         className="h-8 w-full cursor-pointer accent-amber-400"
       />
-      <div className="flex justify-between text-[10px] tabular-nums text-white/40">
+      <div className="flex justify-between text-[11px] tabular-nums text-white/40">
         <span>{min} {suffix}</span>
         <span>{max} {suffix}</span>
       </div>
@@ -638,7 +638,7 @@ function StepperField({
   const leftDelta = lateral ? step * dir : -step;
   return (
     <div
-      className={`flex w-[4.75rem] flex-col gap-0.5 text-center text-[10px] font-semibold uppercase tracking-wide text-white/70 ${locked ? "opacity-60" : ""}`}
+      className={`flex w-[4.75rem] flex-col gap-0.5 text-center text-[11px] font-semibold uppercase tracking-wide text-white/70 ${locked ? "opacity-60" : ""}`}
       // A locked field is its own unlock button: tapping the number (or either
       // arrow) releases the peg rather than doing nothing.
       onPointerDown={locked ? () => onUnlock?.() : undefined}

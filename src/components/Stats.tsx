@@ -1,5 +1,5 @@
 import { BarChart3 } from "lucide-react";
-import { isBabySplit, isSplit } from "../lib/pins";
+import { describePinsStanding, isBabySplit, isSplit } from "../lib/pins";
 import type { BallUsage, BowlingStats, LeaveStats } from "../lib/stats";
 import type { PinNumber } from "../types/bowling";
 
@@ -83,7 +83,7 @@ export function Stats({ stats, isLoading = false, leaves, ballUsage }: StatsProp
 
             {splits.length > 0 && (
               <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
-                <h2 className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400">
+                <h2 className="mb-3 text-xs font-semibold uppercase tracking-wide text-ink-secondary">
                   Splits
                 </h2>
                 <LeaveGrid leaves={splits} muted />
@@ -117,7 +117,7 @@ function LeaveGrid({ leaves, muted = false }: { leaves: LeaveStats[]; muted?: bo
       </div>
       {partitioned && (
         <>
-          <p className="mb-2 mt-3 text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+          <p className="mb-2 mt-3 text-[11px] font-semibold uppercase tracking-wide text-ink-secondary">
             Rare leaves (under {RARE_ATTEMPTS} attempts)
           </p>
           <div className="grid grid-cols-3 gap-2 opacity-60">
@@ -149,7 +149,7 @@ function LeaveCell({ leave, muted = false }: { leave: LeaveStats; muted?: boolea
       >
         {leave.conversionPct !== null ? `${leave.conversionPct}%` : "—"}
       </p>
-      <p className="text-[10px] text-slate-500">
+      <p className="text-[11px] text-slate-500">
         {leave.conversions}/{leave.attempts}
       </p>
     </div>
@@ -160,7 +160,11 @@ function MiniPinDisplay({ pins }: { pins: PinNumber[] }) {
   const pinSet = new Set(pins);
   const rows: PinNumber[][] = [[7, 8, 9, 10], [4, 5, 6], [2, 3], [1]];
   return (
-    <div className="flex shrink-0 flex-col items-center gap-0.5">
+    <div
+      className="flex shrink-0 flex-col items-center gap-0.5"
+      role="img"
+      aria-label={describePinsStanding(pins)}
+    >
       {rows.map((row) => (
         <div key={row.join("-")} className="flex gap-0.5">
           {row.map((pin) => (
@@ -201,7 +205,7 @@ function Bar({ label, pct, subtitle }: { label: string; pct: number | null; subt
         <span className="font-medium text-slate-700">{label}</span>
         <span className="font-semibold text-slate-900">{pct === null ? "—" : `${pct}%`}</span>
       </div>
-      {subtitle && <p className="mb-1 text-[10px] text-slate-400">{subtitle}</p>}
+      {subtitle && <p className="mb-1 text-[11px] text-ink-secondary">{subtitle}</p>}
       <div className="h-2 overflow-hidden rounded-full bg-slate-100">
         <div className="h-full rounded-full bg-felt-700" style={{ width: `${value}%` }} />
       </div>

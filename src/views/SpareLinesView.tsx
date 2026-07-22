@@ -17,6 +17,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { LaneVisualizer } from "../components/LaneVisualizer";
 import { SpareLineFormDialog } from "../components/SpareLineFormDialog";
 import { useDriftModel } from "../lib/driftModelContext";
+import { describePinsStanding } from "../lib/pins";
 import { deriveLaydown, deriveSlide, syncStanceLaydown, type DriftModel } from "../lib/driftModel";
 import {
   deleteSpareLine,
@@ -31,7 +32,11 @@ function SmallPinDiagram({ standing }: { standing: PinNumber[] }) {
   const standingSet = new Set(standing);
   const rows: PinNumber[][] = [[7, 8, 9, 10], [4, 5, 6], [2, 3], [1]];
   return (
-    <div className="flex flex-col items-center gap-0.5">
+    <div
+      className="flex flex-col items-center gap-0.5"
+      role="img"
+      aria-label={describePinsStanding(standing)}
+    >
       {rows.map((row) => (
         <div key={row.join("-")} className="flex gap-0.5">
           {row.map((pin) => (
@@ -59,7 +64,7 @@ function DerivedChain({ line, model }: { line: LineSpec; model: DriftModel }) {
   const laydown = line.laydown ?? (line.stance != null ? deriveLaydown(line.stance, model) : undefined);
   if (slide == null && laydown == null) return null;
   return (
-    <div className="mt-0.5 text-[8px] font-semibold uppercase tracking-tight text-slate-400 tabular-nums">
+    <div className="mt-0.5 text-[11px] font-semibold uppercase tracking-tight text-ink-secondary tabular-nums">
       {slide != null && `Slide ${slide}`}
       {slide != null && laydown != null && <span aria-hidden="true" className="text-slate-300"> → </span>}
       {laydown != null && `Laydown ${laydown}`}
@@ -109,7 +114,7 @@ function SortableSpareCard({ sl, onOpen }: SortableSpareCardProps) {
               <div className="grid grid-cols-2">
                 {([["Stand", sl.line.stance], ["Arrow", sl.line.target]] as const).map(([k, v]) => (
                   <div key={k}>
-                    <div className="text-[9px] font-semibold uppercase tracking-wide text-slate-400">{k}</div>
+                    <div className="text-[11px] font-semibold uppercase tracking-wide text-ink-secondary">{k}</div>
                     <div className="text-xs font-bold tabular-nums text-slate-700">{v ?? "—"}</div>
                   </div>
                 ))}
@@ -117,7 +122,7 @@ function SortableSpareCard({ sl, onOpen }: SortableSpareCardProps) {
               <DerivedChain line={sl.line} model={driftModel} />
             </div>
           ) : (
-            <span className="block text-xs text-slate-400">No line</span>
+            <span className="block text-xs text-ink-secondary">No line</span>
           )}
         </button>
       </div>
