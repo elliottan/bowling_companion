@@ -288,7 +288,7 @@ function LineInput({
         <div className="mt-2">
           <Button
             variant="secondary"
-            className="relative w-full text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500"
+            className="relative w-full text-[11px] font-semibold uppercase tracking-[0.08em]"
             aria-label={`${FIELD_LABEL[focused]} ±0.5 — tap left to ${dir > 0 ? "increase" : "decrease"}, right to ${dir > 0 ? "decrease" : "increase"}`}
             onPointerDown={halfTap(() => nudge(focused, 0.5 * dir), () => nudge(focused, -0.5 * dir))}
           >

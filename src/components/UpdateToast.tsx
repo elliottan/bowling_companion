@@ -27,11 +27,7 @@ export function UpdateToast() {
         <Button variant="primary" onClick={() => applyUpdate()}>
           Update
         </Button>
-        <IconButton
-          onClick={() => setNeedsRefresh(false)}
-          label="Dismiss"
-          className="text-slate-300 hover:bg-white/10 hover:text-white"
-        >
+        <IconButton variant="inverse" onClick={() => setNeedsRefresh(false)} label="Dismiss">
           <X size={16} aria-hidden="true" />
         </IconButton>
       </div>
