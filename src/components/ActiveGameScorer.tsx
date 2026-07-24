@@ -79,7 +79,7 @@ const FIELD_LABEL: Record<BoardField, string> = {
 // A field label parked on the top border of its own box. Costs no vertical band
 // of its own, and a filled-in "23" still says whether it's a slide or a target.
 const floatLabel =
-  "pointer-events-none absolute -top-1.5 left-2 z-10 bg-white px-1 text-[11px] font-semibold uppercase tracking-[0.01em] text-ink-secondary";
+  "pointer-events-none absolute -top-1.5 left-2 z-10 bg-surface px-1 text-[11px] font-semibold uppercase tracking-[0.01em] text-ink-secondary";
 // Section eyebrow (INTENDED / ACTUAL). Tight tracking — these are wide words.
 const eyebrow = "text-[11px] font-semibold uppercase tracking-[0.01em] text-ink-secondary";
 
@@ -217,7 +217,7 @@ function LineInput({
   // and the tapped half (left vs right of centre) decides the direction. One
   // border, no ugly split. preventDefault keeps the input focused (row open).
   const adjBtn =
-    "relative flex h-8 w-full items-center justify-center rounded-lg border border-slate-200 bg-slate-50 text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500 hover:bg-slate-100 active:bg-slate-200";
+    "relative flex h-8 w-full items-center justify-center rounded-lg border border-edge bg-surface-muted text-[11px] font-semibold uppercase tracking-[0.08em] text-ink-secondary hover:bg-surface-muted active:bg-edge";
   const halfTap =
     (onLeft: () => void, onRight: () => void) => (e: ReactPointerEvent<HTMLButtonElement>) => {
       e.preventDefault();
@@ -255,7 +255,7 @@ function LineInput({
               onChange={(e) => update(field, e.target.value)}
               onFocus={() => { onFieldFocus?.(); setFocused(field); }}
               onBlur={() => setFocused((f) => (f === field ? null : f))}
-              className="h-9 w-full min-w-0 rounded-lg border border-slate-200 bg-slate-50 text-center text-sm font-semibold tabular-nums text-slate-900 focus:border-felt-700 focus:bg-white focus:outline-none"
+              className="h-9 w-full min-w-0 rounded-lg border border-edge bg-surface-muted text-center text-sm font-semibold tabular-nums text-ink focus:border-felt-700 focus:bg-surface focus:outline-none"
               title={field === "target" ? "Target board (arrows)" : `${FIELD_LABEL[field]} board`}
             />
           </label>
@@ -267,11 +267,11 @@ function LineInput({
           type="button"
           onClick={onLaydownTap}
           title="Derived from what you entered. Tap to see it on the lane."
-          className="mt-1 flex w-full flex-wrap items-center gap-x-1 text-left text-[11px] font-semibold uppercase tracking-[0.01em] text-ink-secondary tabular-nums hover:text-felt-700"
+          className="mt-1 flex w-full flex-wrap items-center gap-x-1 text-left text-[11px] font-semibold uppercase tracking-[0.01em] text-ink-secondary tabular-nums hover:text-accent"
         >
           {chain.map((part, i) => (
             <span key={part} className="flex items-center gap-1 whitespace-nowrap">
-              {i > 0 && <span aria-hidden="true" className="text-slate-300">→</span>}
+              {i > 0 && <span aria-hidden="true" className="text-ink-tertiary">→</span>}
               {part}
             </span>
           ))}
@@ -292,9 +292,9 @@ function LineInput({
             aria-label={`${FIELD_LABEL[focused]} ±0.5 — tap left to ${dir > 0 ? "increase" : "decrease"}, right to ${dir > 0 ? "decrease" : "increase"}`}
             onPointerDown={halfTap(() => nudge(focused, 0.5 * dir), () => nudge(focused, -0.5 * dir))}
           >
-            <span aria-hidden="true" className="absolute left-3 text-base font-bold text-slate-700">◀</span>
+            <span aria-hidden="true" className="absolute left-3 text-base font-bold text-ink-strong">◀</span>
             {FIELD_LABEL[focused]} ±0.5
-            <span aria-hidden="true" className="absolute right-3 text-base font-bold text-slate-700">▶</span>
+            <span aria-hidden="true" className="absolute right-3 text-base font-bold text-ink-strong">▶</span>
           </Button>
         </div>
       )}
@@ -311,9 +311,9 @@ function LineInput({
               aria-label={`Move ${p.label} — tap left for ${dir > 0 ? "higher" : "lower"} boards, right for ${dir > 0 ? "lower" : "higher"}`}
               onPointerDown={halfTap(() => move(p.stance * dir, p.target * dir), () => move(-p.stance * dir, -p.target * dir))}
             >
-              <span aria-hidden="true" className="absolute left-3 text-base font-bold text-slate-700">◀</span>
+              <span aria-hidden="true" className="absolute left-3 text-base font-bold text-ink-strong">◀</span>
               Move {p.label}
-              <span aria-hidden="true" className="absolute right-3 text-base font-bold text-slate-700">▶</span>
+              <span aria-hidden="true" className="absolute right-3 text-base font-bold text-ink-strong">▶</span>
             </button>
           ))}
         </div>
@@ -446,7 +446,7 @@ function ShotDetailBar({
   );
 
   return (
-    <div className="divide-y divide-slate-100 rounded-xl border border-slate-200 bg-white px-2.5">
+    <div className="divide-y divide-edge rounded-xl border border-edge bg-surface px-2.5">
       {/* Ball: the chosen ball IS the control — its thumbnail and name, tapped to
           open the picker. No "Ball" eyebrow, no select chrome, no second icon. */}
       <div className="flex items-center py-1.5">
@@ -458,7 +458,7 @@ function ShotDetailBar({
               setShowBallPicker(true);
             }}
             aria-label={`Ball: ${selectedBall?.name ?? "none"} — tap to change`}
-            className="flex min-h-11 min-w-0 flex-1 items-center gap-2 rounded-lg py-0.5 text-left hover:bg-slate-50"
+            className="flex min-h-11 min-w-0 flex-1 items-center gap-2 rounded-lg py-0.5 text-left hover:bg-surface-muted"
           >
             <span className="h-7 w-7 shrink-0">
               {selectedSnap ? (
@@ -469,12 +469,12 @@ function ShotDetailBar({
                   size="thumb"
                 />
               ) : (
-                <span className="block h-full w-full rounded-full bg-slate-200" aria-hidden="true" />
+                <span className="block h-full w-full rounded-full bg-edge" aria-hidden="true" />
               )}
             </span>
             <span
               className={`min-w-0 flex-1 truncate text-xs font-semibold ${
-                selectedBall ? "text-slate-900" : "text-ink-secondary"
+                selectedBall ? "text-ink" : "text-ink-secondary"
               }`}
             >
               {selectedBall?.name ?? "No ball"}
@@ -579,7 +579,7 @@ function ShotDetailBar({
             }}
             rows={2}
             placeholder="This shot…"
-            className="w-full resize-none overflow-y-auto rounded-lg border border-slate-200 bg-slate-50 px-2 pb-1 pt-1.5 text-[11px] leading-snug text-slate-900 placeholder:text-slate-300 focus:border-felt-700 focus:bg-white focus:outline-none"
+            className="w-full resize-none overflow-y-auto rounded-lg border border-edge bg-surface-muted px-2 pb-1 pt-1.5 text-[11px] leading-snug text-ink placeholder:text-ink-tertiary focus:border-felt-700 focus:bg-surface focus:outline-none"
           />
         </label>
       </div>
@@ -1019,7 +1019,7 @@ export function ActiveGameScorer({
           <Button variant="secondary" onClick={newGame}>
             New
           </Button>
-          <p className="text-2xl font-extrabold leading-none text-felt-700">{gameScore.total}</p>
+          <p className="text-2xl font-extrabold leading-none text-accent">{gameScore.total}</p>
         </div>
       )}
 
@@ -1038,7 +1038,7 @@ export function ActiveGameScorer({
       <div className="mt-4 grid grid-cols-2 items-start gap-3 lg:grid-cols-[minmax(0,360px)_1fr]">
         <div className="space-y-2">
           {(onEditLanes || lanesList.length > 0) && (
-            <div className="flex items-center justify-between rounded-lg border border-slate-200 bg-white px-2.5 py-1.5">
+            <div className="flex items-center justify-between rounded-lg border border-edge bg-surface px-2.5 py-1.5">
               <span className="text-xs font-semibold uppercase tracking-wide text-ink-secondary">Lane</span>
               {onEditLanes ? (
                 <button
@@ -1052,18 +1052,18 @@ export function ActiveGameScorer({
                       <span
                         key={l}
                         className={`inline-flex h-6 min-w-[1.5rem] items-center justify-center rounded-md px-1.5 text-xs font-bold ${
-                          l === (isEditing ? viewedLane : currentLane) ? "bg-felt-700 text-white" : "bg-slate-100 text-ink-secondary"
+                          l === (isEditing ? viewedLane : currentLane) ? "bg-felt-700 text-white" : "bg-surface-muted text-ink-secondary"
                         }`}
                       >
                         {l}
                       </span>
                     ))
                   ) : (
-                    <span className="text-xs font-semibold text-felt-700">+ Set lanes</span>
+                    <span className="text-xs font-semibold text-accent">+ Set lanes</span>
                   )}
                 </button>
               ) : (
-                <span className="text-sm font-bold text-slate-900">{lanesList.join(" / ")}</span>
+                <span className="text-sm font-bold text-ink">{lanesList.join(" / ")}</span>
               )}
             </div>
           )}
@@ -1106,7 +1106,7 @@ export function ActiveGameScorer({
               <button
                 type="button"
                 onClick={() => (isEditing ? goLive() : void recordShot())}
-                className="inline-flex h-11 flex-1 items-center justify-center gap-1.5 rounded-lg border border-felt-700 bg-white text-sm font-semibold text-felt-700 hover:bg-felt-50"
+                className="inline-flex h-11 flex-1 items-center justify-center gap-1.5 rounded-lg border border-felt-700 bg-surface text-sm font-semibold text-accent hover:bg-felt-50"
               >
                 Next
               </button>
@@ -1118,7 +1118,7 @@ export function ActiveGameScorer({
               <button
                 type="button"
                 onClick={() => setShowSpareLineDialog(true)}
-                className="min-w-0 flex-1 text-left text-sm font-semibold text-felt-700"
+                className="min-w-0 flex-1 text-left text-sm font-semibold text-accent"
               >
                 + Save spare line for {formatLeavePins(pendingSpareLeave.pins)}
               </button>

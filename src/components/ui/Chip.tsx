@@ -27,7 +27,7 @@ export function Chip({
       type="button"
       aria-pressed={selected}
       className={`relative inline-flex h-9 min-w-11 items-center justify-center rounded-md px-3 text-xs font-semibold ${TAP_TARGET_44} ${
-        selected ? "border border-felt-700 bg-felt-700 text-white" : "border border-slate-300 bg-white text-slate-700"
+        selected ? "border border-felt-700 bg-felt-700 text-white" : "border border-edge-strong bg-surface text-ink-strong"
       } ${className}`.trim()}
       {...rest}
     >

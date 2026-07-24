@@ -37,9 +37,9 @@ export function BallPickerSheet({
   return (
     <div className="fixed inset-0 z-[60]" role="dialog" aria-modal="true" aria-label="Choose ball">
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
-      <div ref={overlayRef} className="absolute bottom-0 left-0 right-0 flex max-h-[80%] flex-col rounded-t-2xl bg-lane-50 shadow-xl">
+      <div ref={overlayRef} className="absolute bottom-0 left-0 right-0 flex max-h-[80%] flex-col rounded-t-2xl bg-surface-sunken shadow-xl">
         <div className="flex items-center justify-between px-4 pb-2 pt-4">
-          <h2 className="text-sm font-semibold text-slate-950">Ball</h2>
+          <h2 className="text-sm font-semibold text-ink">Ball</h2>
           <div className="flex shrink-0 items-center gap-1">
             {onOpenArsenal && (
               <Button variant="ghost" onClick={() => { onClose(); onOpenArsenal(); }} className="text-xs">
@@ -65,8 +65,8 @@ export function BallPickerSheet({
                   aria-pressed={selected}
                   className={`flex w-full items-center gap-3 rounded-xl border p-2.5 text-left ${
                     selected
-                      ? "border-felt-700 bg-white ring-2 ring-felt-700"
-                      : "border-slate-200 bg-white"
+                      ? "border-felt-700 bg-surface ring-2 ring-felt-700"
+                      : "border-edge bg-surface"
                   }`}
                 >
                   <div className="h-10 w-10 shrink-0">
@@ -78,10 +78,10 @@ export function BallPickerSheet({
                         size="thumb"
                       />
                     ) : (
-                      <div className="h-full w-full rounded-full bg-slate-200" aria-hidden="true" />
+                      <div className="h-full w-full rounded-full bg-edge" aria-hidden="true" />
                     )}
                   </div>
-                  <span className="min-w-0 flex-1 truncate text-sm font-semibold text-slate-950">
+                  <span className="min-w-0 flex-1 truncate text-sm font-semibold text-ink">
                     {b.name}
                     {b.is_spare_ball && (
                       <span className="ml-1.5 text-xs font-normal text-ink-secondary">spare</span>
@@ -100,8 +100,8 @@ export function BallPickerSheet({
               aria-pressed={ballId == null}
               className={`flex w-full items-center gap-3 rounded-xl border p-2.5 text-left text-sm font-semibold ${
                 ballId == null
-                  ? "border-felt-700 bg-white text-slate-950 ring-2 ring-felt-700"
-                  : "border-slate-200 bg-white text-ink-secondary"
+                  ? "border-felt-700 bg-surface text-ink ring-2 ring-felt-700"
+                  : "border-edge bg-surface text-ink-secondary"
               }`}
             >
               <div className="h-10 w-10 shrink-0" aria-hidden="true" />

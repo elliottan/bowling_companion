@@ -93,9 +93,9 @@ export function Scorecard({
   });
 
   return (
-    <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
+    <div className="overflow-hidden rounded-lg border border-edge bg-surface shadow-sm">
       {/* Mobile: 5×2 grid of compact frame chips. Fits 390px without overflow. */}
-      <div className="grid grid-cols-5 gap-px bg-slate-200 sm:hidden">
+      <div className="grid grid-cols-5 gap-px bg-edge sm:hidden">
         {cells.map((cell) => (
           <FrameCell key={cell.frameNumber} {...cell} compact />
         ))}
@@ -136,12 +136,12 @@ function FrameCell({
   onShotTap,
   onLiveTap
 }: FrameCellProps) {
-  const bg = isEditing ? "bg-lane-100 ring-2 ring-inset ring-felt-700" : "bg-white";
-  const border = compact ? "" : "border-r border-slate-200 last:border-r-0";
+  const bg = isEditing ? "bg-lane-100 ring-2 ring-inset ring-felt-700" : "bg-surface";
+  const border = compact ? "" : "border-r border-edge last:border-r-0";
 
   return (
     <div className={`${border} ${bg}`}>
-      <div className="border-b border-slate-200 px-1 py-1 text-center text-[11px] font-bold uppercase text-slate-500 sm:text-xs">
+      <div className="border-b border-edge px-1 py-1 text-center text-[11px] font-bold uppercase text-ink-secondary sm:text-xs">
         {frameNumber}
       </div>
       {/*
@@ -164,7 +164,7 @@ function FrameCell({
             ? "bg-felt-700 text-white"
             : "";
           const baseClass =
-            "flex h-full items-center justify-center border-l border-slate-200 text-sm font-bold text-slate-900 first:border-l-0 sm:text-base";
+            "flex h-full items-center justify-center border-l border-edge text-sm font-bold text-ink first:border-l-0 sm:text-base";
 
           // The live (in-progress) shot: an empty cell at the highlighted index
           // shows the running pin count as the user taps the deck.
@@ -215,7 +215,7 @@ function FrameCell({
         })}
       </div>
       <div
-        className={`flex h-9 items-center justify-center text-base font-bold text-felt-700 sm:h-12 sm:text-lg ${
+        className={`flex h-9 items-center justify-center text-base font-bold text-accent sm:h-12 sm:text-lg ${
           frameNumber === 10 ? "font-extrabold" : ""
         }`}
       >

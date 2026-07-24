@@ -32,7 +32,7 @@ export function SessionHistory({
 }: SessionHistoryProps) {
   if (isLoading) {
     return (
-      <p className="rounded-lg border border-slate-200 bg-white p-4 text-sm text-slate-600 shadow-sm">
+      <p className="rounded-lg border border-edge bg-surface p-4 text-sm text-ink-secondary shadow-sm">
         Loading...
       </p>
     );
@@ -40,9 +40,9 @@ export function SessionHistory({
 
   if (sessions.length === 0) {
     return (
-      <div className="rounded-lg border border-dashed border-slate-300 bg-white p-6 text-center">
-        <History className="mx-auto mb-2 text-slate-400" aria-hidden="true" size={24} />
-        <p className="text-sm text-slate-600">
+      <div className="rounded-lg border border-dashed border-edge-strong bg-surface p-6 text-center">
+        <History className="mx-auto mb-2 text-ink-tertiary" aria-hidden="true" size={24} />
+        <p className="text-sm text-ink-secondary">
           No sessions yet. Start one from the home tab.
         </p>
       </div>
@@ -142,23 +142,23 @@ function SessionRow({ summary, isActive, onOpen, onSessionChanged, onSessionDele
         if (longPress.didLongPress()) return;
         if (session.id) onOpen(session.id);
       }}
-      className={`w-full rounded-lg border bg-white p-4 text-left shadow-sm ${
-        isActive ? "border-felt-700 ring-1 ring-felt-700" : "border-slate-200"
+      className={`w-full rounded-lg border bg-surface p-4 text-left shadow-sm ${
+        isActive ? "border-felt-700 ring-1 ring-felt-700" : "border-edge"
       }`}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
-          <p className="line-clamp-2 break-words font-semibold text-slate-950">
+          <p className="line-clamp-2 break-words font-semibold text-ink">
             {session.alley_name}
           </p>
           {session.description && (
-            <p className="truncate text-xs font-medium text-slate-500">{session.description}</p>
+            <p className="truncate text-xs font-medium text-ink-secondary">{session.description}</p>
           )}
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-ink-secondary">
             {[session.date, laneSummary(games)].filter(Boolean).join(" · ")}
           </p>
           {session.oil_pattern && (
-            <p className="text-xs font-medium text-slate-500">{session.oil_pattern}</p>
+            <p className="text-xs font-medium text-ink-secondary">{session.oil_pattern}</p>
           )}
         </div>
         <div className="flex shrink-0 flex-col items-end gap-0.5 pr-14 text-right">
@@ -168,7 +168,7 @@ function SessionRow({ summary, isActive, onOpen, onSessionChanged, onSessionDele
             </span>
           )}
           {seriesTotal > 0 && (
-            <p className="text-lg font-extrabold leading-none text-felt-700">{seriesTotal}</p>
+            <p className="text-lg font-extrabold leading-none text-accent">{seriesTotal}</p>
           )}
           <p className="text-xs font-semibold uppercase tracking-wide text-ink-secondary">
             {games.length} {games.length === 1 ? "game" : "games"}
@@ -186,10 +186,10 @@ function SessionRow({ summary, isActive, onOpen, onSessionChanged, onSessionDele
             return (
               <span
                 key={game.id}
-                className="inline-flex items-center gap-1 rounded-md bg-lane-50 px-2 py-1 text-xs font-semibold text-slate-700"
+                className="inline-flex items-center gap-1 rounded-md bg-surface-sunken px-2 py-1 text-xs font-semibold text-ink-strong"
               >
-                <span className="text-slate-500">G{game.game_number}</span>
-                <span className="text-felt-700">{display}</span>
+                <span className="text-ink-secondary">G{game.game_number}</span>
+                <span className="text-accent">{display}</span>
               </span>
             );
           })}
@@ -201,7 +201,7 @@ function SessionRow({ summary, isActive, onOpen, onSessionChanged, onSessionDele
           {games
             .filter((game) => game.notes)
             .map((game) => (
-              <div key={game.id} className="flex gap-1.5 text-xs text-slate-500">
+              <div key={game.id} className="flex gap-1.5 text-xs text-ink-secondary">
                 <dt className="shrink-0 font-semibold">G{game.game_number}</dt>
                 <dd className="min-w-0 truncate">{game.notes}</dd>
               </div>
@@ -226,7 +226,7 @@ function SessionRow({ summary, isActive, onOpen, onSessionChanged, onSessionDele
           <>
             <div className="fixed inset-0 z-10" onClick={() => setRowMenu(null)} />
             <div
-              className="fixed z-20 w-44 overflow-hidden rounded-lg border border-slate-200 bg-white py-1 shadow-lg"
+              className="fixed z-20 w-44 overflow-hidden rounded-lg border border-edge bg-surface py-1 shadow-lg"
               style={{ left: rowMenu.left, top: rowMenu.top }}
             >
               <button

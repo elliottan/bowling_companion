@@ -18,7 +18,7 @@ export function MiniPins({ standing }: { standing: PinNumber[] }) {
             <div
               key={pin}
               className={`h-3 w-3 rounded-full text-[6px] leading-3 text-center font-bold ${
-                set.has(pin) ? "bg-felt-700 text-white" : "bg-slate-100 text-slate-300"
+                set.has(pin) ? "bg-felt-700 text-white" : "bg-surface-muted text-ink-tertiary"
               }`}
             >
               {pin}

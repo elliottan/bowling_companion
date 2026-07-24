@@ -206,7 +206,7 @@ export function ActiveSessionView({
 
   if (isLoading) {
     return (
-      <section className="mx-auto w-full max-w-5xl px-4 py-6 text-sm text-slate-600">
+      <section className="mx-auto w-full max-w-5xl px-4 py-6 text-sm text-ink-secondary">
         Loading...
       </section>
     );
@@ -253,25 +253,25 @@ export function ActiveSessionView({
           <button
             type="button"
             onClick={() => { setSheetTab("sheet"); setShowSheet(true); }}
-            className="flex min-h-11 min-w-0 flex-1 items-center gap-2 rounded-md text-left hover:bg-slate-50"
+            className="flex min-h-11 min-w-0 flex-1 items-center gap-2 rounded-md text-left hover:bg-surface-muted"
             aria-label="Open session sheet and lane notes"
           >
             <span className="min-w-0 flex-1">
-              <p className="truncate text-sm font-semibold text-slate-900">
+              <p className="truncate text-sm font-semibold text-ink">
                 {sessionDetails.session.alley_name}
               </p>
               {sessionDetails.session.description && (
-                <p className="truncate text-xs font-medium text-slate-600">
+                <p className="truncate text-xs font-medium text-ink-secondary">
                   {sessionDetails.session.description}
                 </p>
               )}
-              <p className="truncate text-xs text-slate-500">
+              <p className="truncate text-xs text-ink-secondary">
                 {sessionDetails.session.date} · {games.length} {games.length === 1 ? "game" : "games"}
               </p>
             </span>
-            <ChevronUp size={16} aria-hidden="true" className="shrink-0 text-slate-400" />
+            <ChevronUp size={16} aria-hidden="true" className="shrink-0 text-ink-tertiary" />
           </button>
-          <p className="shrink-0 text-2xl font-extrabold leading-none text-felt-700" aria-label="Series total">
+          <p className="shrink-0 text-2xl font-extrabold leading-none text-accent" aria-label="Series total">
             {seriesTotal}
           </p>
         </div>
@@ -328,7 +328,7 @@ export function ActiveSessionView({
           <>
             <div className="fixed inset-0 z-10" onClick={() => setChipMenu(null)} />
             <div
-              className="fixed z-20 w-44 overflow-hidden rounded-lg border border-slate-200 bg-white py-1 shadow-lg"
+              className="fixed z-20 w-44 overflow-hidden rounded-lg border border-edge bg-surface py-1 shadow-lg"
               style={{ left: chipMenu.left, top: chipMenu.top }}
             >
               <button
@@ -413,13 +413,13 @@ export function ActiveSessionView({
           aria-modal="true"
           onClick={() => setShowLaneEditor(false)}
         >
-          <div ref={laneEditorRef} className="w-full max-w-sm rounded-xl bg-white p-5 shadow-xl" onClick={(e) => e.stopPropagation()}>
-            <h2 className="text-base font-bold text-slate-950">Game lanes</h2>
-            <p className="mt-1 text-xs text-slate-500">
+          <div ref={laneEditorRef} className="w-full max-w-sm rounded-xl bg-surface p-5 shadow-xl" onClick={(e) => e.stopPropagation()}>
+            <h2 className="text-base font-bold text-ink">Game lanes</h2>
+            <p className="mt-1 text-xs text-ink-secondary">
               Applies to the whole game. Lanes alternate every frame — you can't set a lane per frame.
             </p>
 
-            <span className="mt-4 block text-xs font-semibold uppercase tracking-wide text-slate-500">Lane pair</span>
+            <span className="mt-4 block text-xs font-semibold uppercase tracking-wide text-ink-secondary">Lane pair</span>
             <div className="mt-1.5 flex items-center gap-2">
               <input
                 value={laneA}
@@ -428,7 +428,7 @@ export function ActiveSessionView({
                 inputMode="numeric"
                 aria-label="First lane"
                 placeholder="12"
-                className="h-10 w-16 rounded-lg border border-slate-300 px-2 text-sm outline-none focus:border-felt-700"
+                className="h-10 w-16 rounded-lg border border-edge-strong px-2 text-sm outline-none focus:border-felt-700"
               />
               <span aria-hidden="true" className="text-ink-secondary">/</span>
               <input
@@ -438,13 +438,13 @@ export function ActiveSessionView({
                 inputMode="numeric"
                 aria-label="Second lane"
                 placeholder="13"
-                className="h-10 w-16 rounded-lg border border-slate-300 px-2 text-sm outline-none focus:border-felt-700"
+                className="h-10 w-16 rounded-lg border border-edge-strong px-2 text-sm outline-none focus:border-felt-700"
               />
             </div>
 
             {laneA.trim() && laneB.trim() && (
               <div className="mt-4">
-                <span className="block text-xs font-semibold uppercase tracking-wide text-slate-500">Starting lane (frame 1)</span>
+                <span className="block text-xs font-semibold uppercase tracking-wide text-ink-secondary">Starting lane (frame 1)</span>
                 <div className="mt-1.5 flex items-center gap-2">
                   {(["A", "B"] as const).map((side) => {
                     const lane = side === "A" ? laneA.trim() : laneB.trim();

@@ -32,10 +32,10 @@ interface SessionFormProps {
 }
 
 const inputClass =
-  "h-11 w-full min-w-0 box-border rounded-lg border border-slate-300 px-3 text-sm outline-none focus:border-felt-700 focus:ring-2 focus:ring-felt-700/20";
+  "h-11 w-full min-w-0 box-border rounded-lg border border-edge-strong px-3 text-sm outline-none focus:border-felt-700 focus:ring-2 focus:ring-felt-700/20";
 
 const selectClass =
-  "h-11 w-full rounded-lg border border-slate-300 px-3 text-sm outline-none focus:border-felt-700 focus:ring-2 focus:ring-felt-700/20 bg-white";
+  "h-11 w-full rounded-lg border border-edge-strong px-3 text-sm outline-none focus:border-felt-700 focus:ring-2 focus:ring-felt-700/20 bg-surface";
 
 const today = () => new Date().toISOString().slice(0, 10);
 
@@ -116,7 +116,7 @@ export function SessionForm({
 
   return (
     <form onSubmit={handleSubmit}>
-      <h2 className="text-lg font-bold text-slate-950">{title}</h2>
+      <h2 className="text-lg font-bold text-ink">{title}</h2>
 
       <div className="mt-4 space-y-3">
         <Field label="Alley">
@@ -132,14 +132,14 @@ export function SessionForm({
               autoComplete="off"
             />
             {showAlleyList && alleyMatches.length > 0 && (
-              <ul className="absolute z-10 mt-1 max-h-48 w-full overflow-y-auto rounded-lg border border-slate-200 bg-white py-1 shadow-lg">
+              <ul className="absolute z-10 mt-1 max-h-48 w-full overflow-y-auto rounded-lg border border-edge bg-surface py-1 shadow-lg">
                 {alleyMatches.map((a) => (
                   <li key={a}>
                     <button
                       type="button"
                       onMouseDown={(e) => e.preventDefault()}
                       onClick={() => { setAlleyName(a); setShowAlleyList(false); }}
-                      className="block w-full px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-100"
+                      className="block w-full px-3 py-2 text-left text-sm text-ink-strong hover:bg-surface-muted"
                     >
                       {a}
                     </button>
@@ -172,14 +172,14 @@ export function SessionForm({
               autoComplete="off"
             />
             {showDescList && descMatches.length > 0 && (
-              <ul className="absolute z-10 mt-1 max-h-48 w-full overflow-y-auto rounded-lg border border-slate-200 bg-white py-1 shadow-lg">
+              <ul className="absolute z-10 mt-1 max-h-48 w-full overflow-y-auto rounded-lg border border-edge bg-surface py-1 shadow-lg">
                 {descMatches.map((d) => (
                   <li key={d}>
                     <button
                       type="button"
                       onMouseDown={(e) => e.preventDefault()}
                       onClick={() => { setDescription(d); setShowDescList(false); }}
-                      className="block w-full px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-100"
+                      className="block w-full px-3 py-2 text-left text-sm text-ink-strong hover:bg-surface-muted"
                     >
                       {d}
                     </button>
@@ -232,7 +232,7 @@ export function SessionForm({
                 <button
                   type="button"
                   onClick={() => setIsAddingPattern(false)}
-                  className="h-11 rounded-lg border border-slate-300 px-3 text-sm font-semibold text-slate-700 hover:bg-slate-100"
+                  className="h-11 rounded-lg border border-edge-strong px-3 text-sm font-semibold text-ink-strong hover:bg-surface-muted"
                 >
                   Cancel
                 </button>
@@ -246,7 +246,7 @@ export function SessionForm({
           <textarea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
-            className="min-h-20 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-felt-700 focus:ring-2 focus:ring-felt-700/20"
+            className="min-h-20 w-full rounded-lg border border-edge-strong px-3 py-2 text-sm outline-none focus:border-felt-700 focus:ring-2 focus:ring-felt-700/20"
             placeholder="Ball choice, surface, carry..."
           />
         </Field>
@@ -257,7 +257,7 @@ export function SessionForm({
           <button
             type="button"
             onClick={onCancel}
-            className="inline-flex h-12 flex-1 items-center justify-center rounded-lg border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+            className="inline-flex h-12 flex-1 items-center justify-center rounded-lg border border-edge-strong bg-surface px-4 text-sm font-semibold text-ink-strong hover:bg-surface-muted"
           >
             Cancel
           </button>
@@ -277,7 +277,7 @@ export function SessionForm({
 function Field({ label, children }: { label: string; children: ReactNode }) {
   return (
     <label className="block space-y-1.5">
-      <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+      <span className="text-xs font-semibold uppercase tracking-wide text-ink-secondary">
         {label}
       </span>
       {children}

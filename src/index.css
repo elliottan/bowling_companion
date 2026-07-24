@@ -64,6 +64,7 @@ textarea,
   --color-surface-sunken: 255 248 237; /* lane-50 cream */
   --color-surface-muted: 248 250 252; /* slate-50 */
   --color-ink: 2 6 23; /* slate-950 */
+  --color-ink-strong: 51 65 85; /* slate-700 — strong body / button text */
   --color-ink-secondary: 100 116 139; /* slate-500 */
   --color-ink-tertiary: 148 163 184; /* slate-400 */
   --color-edge: 226 232 240; /* slate-200 */
@@ -85,6 +86,7 @@ textarea,
   --color-surface-sunken: 15 23 42; /* slate-900 — app background */
   --color-surface-muted: 51 65 85; /* slate-700 — subtle raise */
   --color-ink: 241 245 249; /* slate-100 */
+  --color-ink-strong: 226 232 240; /* slate-200 — strong body / button text */
   --color-ink-secondary: 148 163 184; /* slate-400 */
   --color-ink-tertiary: 100 116 139; /* slate-500 */
   --color-edge: 51 65 85; /* slate-700 */

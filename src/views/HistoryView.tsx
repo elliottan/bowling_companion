@@ -39,7 +39,7 @@ const EMPTY: BowlingStats = {
 };
 
 const selectClass =
-  "h-8 max-w-[46%] rounded-full border border-slate-300 bg-white px-3 text-xs font-medium outline-none focus:border-felt-700";
+  "h-8 max-w-[46%] rounded-full border border-edge-strong bg-surface px-3 text-xs font-medium outline-none focus:border-felt-700";
 
 export function HistoryView({ onOpenSession, activeSessionId, onSessionDeleted }: HistoryViewProps) {
   const [history, setHistory] = useState<SessionSummary[]>([]);
@@ -164,8 +164,8 @@ export function HistoryView({ onOpenSession, activeSessionId, onSessionDeleted }
   return (
     <section className="mx-auto flex h-full w-full max-w-3xl flex-col px-3 pt-5 sm:px-6 sm:pt-8">
       <div className="mb-3 flex items-center justify-between gap-3">
-        <h1 className="text-xl font-bold text-slate-950">History</h1>
-        <div className="grid grid-cols-2 gap-1 rounded-lg bg-slate-100 p-1">
+        <h1 className="text-xl font-bold text-ink">History</h1>
+        <div className="grid grid-cols-2 gap-1 rounded-lg bg-surface-muted p-1">
           {(["sessions", "stats"] as const).map((p) => (
             <button
               key={p}
@@ -177,7 +177,7 @@ export function HistoryView({ onOpenSession, activeSessionId, onSessionDeleted }
               // uses. Tap target reaches 44pt via vertical expansion, which is
               // safe against the horizontal neighbour since it adds no width.
               className={`relative h-9 rounded-md px-3 text-xs font-semibold capitalize ${TAP_TARGET_44} ${
-                pane === p ? "bg-white text-felt-700 shadow-sm" : "text-slate-600"
+                pane === p ? "bg-surface text-accent shadow-sm" : "text-ink-secondary"
               }`}
             >
               {p}
@@ -218,7 +218,7 @@ export function HistoryView({ onOpenSession, activeSessionId, onSessionDeleted }
             </Chip>
           ))}
           {selectedLanes.length > 0 && (
-            <Button variant="ghost" className="px-2 text-xs font-medium text-slate-500" onClick={() => setSelectedLanes([])}>
+            <Button variant="ghost" className="px-2 text-xs font-medium text-ink-secondary" onClick={() => setSelectedLanes([])}>
               Clear
             </Button>
           )}

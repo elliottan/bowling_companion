@@ -139,7 +139,7 @@ function ColorwayCarousel({ ball }: { ball: CatalogBall }) {
         />
       </div>
       {current.color && (
-        <p className="mt-2 text-center text-sm font-medium text-slate-600">{current.color}</p>
+        <p className="mt-2 text-center text-sm font-medium text-ink-secondary">{current.color}</p>
       )}
       {/* Pagination dots */}
       <div className="mt-2 flex items-center justify-center gap-1.5">
@@ -151,7 +151,7 @@ function ColorwayCarousel({ ball }: { ball: CatalogBall }) {
             aria-label={`View colorway ${i + 1}${cw.color ? `: ${cw.color}` : ""}`}
             aria-current={i === idx}
             className={`h-2 rounded-full transition-all ${
-              i === idx ? "w-5 bg-felt-700" : "w-2 bg-slate-300 hover:bg-slate-400"
+              i === idx ? "w-5 bg-felt-700" : "w-2 bg-edge-strong hover:bg-ink-tertiary"
             }`}
           />
         ))}
@@ -166,11 +166,11 @@ function DetailPanel({ ball, owned, onBack, onAddToArsenal, addDialogOpen }: Det
     // Proper modal: fixed full-screen sheet with a sticky header (brand/name +
     // X close) and an independently scrolling body, so it always opens at the
     // top regardless of the list's scroll position.
-    <div ref={overlayRef} className="fixed inset-0 z-[55] flex flex-col bg-lane-50" role="dialog" aria-modal="true" aria-label={`${ball.brand} ${ball.name}`}>
-      <div className="flex items-center gap-3 border-b border-slate-200 bg-white px-4 py-3 shadow-sm">
+    <div ref={overlayRef} className="fixed inset-0 z-[55] flex flex-col bg-surface-sunken" role="dialog" aria-modal="true" aria-label={`${ball.brand} ${ball.name}`}>
+      <div className="flex items-center gap-3 border-b border-edge bg-surface px-4 py-3 shadow-sm">
         <div className="min-w-0 flex-1">
           <p className="text-[11px] font-semibold uppercase tracking-wide text-ink-secondary">{ball.brand}</p>
-          <h2 className="truncate text-base font-bold text-slate-950">{ball.name}</h2>
+          <h2 className="truncate text-base font-bold text-ink">{ball.name}</h2>
         </div>
         <IconButton onClick={onBack} label="Close" className="shrink-0">
           <X size={20} aria-hidden="true" />
@@ -182,7 +182,7 @@ function DetailPanel({ ball, owned, onBack, onAddToArsenal, addDialogOpen }: Det
           <ColorwayCarousel ball={ball} />
 
           {ball.releaseYear && (
-            <p className="mt-3 text-sm text-slate-500">{ball.releaseYear}</p>
+            <p className="mt-3 text-sm text-ink-secondary">{ball.releaseYear}</p>
           )}
 
           <dl className="mt-4 space-y-2">
@@ -197,7 +197,7 @@ function DetailPanel({ ball, owned, onBack, onAddToArsenal, addDialogOpen }: Det
           </dl>
 
           {owned ? (
-            <div className="mt-5 flex w-full items-center justify-center gap-2 rounded-lg border border-felt-700/30 bg-felt-700/10 px-4 py-3.5 text-sm font-semibold text-felt-700">
+            <div className="mt-5 flex w-full items-center justify-center gap-2 rounded-lg border border-felt-700/30 bg-accent-soft px-4 py-3.5 text-sm font-semibold text-accent">
               Already in your arsenal
             </div>
           ) : (
@@ -213,9 +213,9 @@ function DetailPanel({ ball, owned, onBack, onAddToArsenal, addDialogOpen }: Det
 
 function SpecItem({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex items-baseline justify-between border-b border-slate-100 py-1.5">
-      <dt className="text-xs font-semibold text-slate-500">{label}</dt>
-      <dd className="text-sm font-medium text-slate-950">{value}</dd>
+    <div className="flex items-baseline justify-between border-b border-edge py-1.5">
+      <dt className="text-xs font-semibold text-ink-secondary">{label}</dt>
+      <dd className="text-sm font-medium text-ink">{value}</dd>
     </div>
   );
 }
@@ -254,12 +254,12 @@ function RangeSlider({ label, min, max, step, valueMin, valueMax, format, onChan
   return (
     <div>
       <div className="mb-1 flex items-center justify-between">
-        <span className="text-xs font-medium text-slate-700">{label}</span>
-        <span className="text-xs text-slate-500">{format(displayMin)} – {format(displayMax)}</span>
+        <span className="text-xs font-medium text-ink-strong">{label}</span>
+        <span className="text-xs text-ink-secondary">{format(displayMin)} – {format(displayMax)}</span>
       </div>
       <div className="relative h-5 flex items-center">
         {/* Track background */}
-        <div className="absolute inset-x-0 h-1 rounded-full bg-slate-200" />
+        <div className="absolute inset-x-0 h-1 rounded-full bg-edge" />
         {/* Filled segment between handles */}
         <div
           className="absolute h-1 rounded-full bg-felt-700"
@@ -323,26 +323,26 @@ function AddFromCatalogDialog({ ball, onConfirm, onCancel, isSaving, error }: Ad
   return (
     <div className="fixed inset-0 z-[60] flex items-end justify-center sm:items-center" role="dialog" aria-modal="true">
       <div className="absolute inset-0 bg-black/40" onClick={onCancel} />
-      <div ref={overlayRef} className="relative z-10 w-full max-w-sm rounded-t-2xl bg-white p-5 shadow-xl sm:rounded-xl">
-        <h2 className="mb-3 text-base font-bold text-slate-950">Add to arsenal</h2>
+      <div ref={overlayRef} className="relative z-10 w-full max-w-sm rounded-t-2xl bg-surface p-5 shadow-xl sm:rounded-xl">
+        <h2 className="mb-3 text-base font-bold text-ink">Add to arsenal</h2>
         {error && (
           <ErrorBanner className="mb-3">{error}</ErrorBanner>
         )}
-        <p className="mb-3 text-sm text-slate-600">
+        <p className="mb-3 text-sm text-ink-secondary">
           Specs snapshot from catalog. You can edit the name before saving.
         </p>
-        <label className="mb-1 block text-sm font-medium text-slate-700">
+        <label className="mb-1 block text-sm font-medium text-ink-strong">
           Name <span className="text-red-500">*</span>
         </label>
         <input
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className="h-11 w-full rounded-lg border border-slate-300 px-3 text-sm outline-none focus:border-felt-700 focus:ring-2 focus:ring-felt-700/20"
+          className="h-11 w-full rounded-lg border border-edge-strong px-3 text-sm outline-none focus:border-felt-700 focus:ring-2 focus:ring-felt-700/20"
         />
         {colorways.length > 1 && (
           <div className="mt-3">
-            <p className="mb-1.5 block text-sm font-medium text-slate-700">Colorway</p>
+            <p className="mb-1.5 block text-sm font-medium text-ink-strong">Colorway</p>
             <div className="flex flex-wrap gap-2">
               {colorways.map((cw) => (
                 <Chip
@@ -379,7 +379,7 @@ function FilterChip({ label, onRemove }: { label: string; onRemove: () => void }
       type="button"
       onClick={onRemove}
       aria-label={`Remove filter: ${label}`}
-      className={`relative inline-flex h-9 items-center gap-1 rounded-md bg-felt-700/10 px-3 text-xs font-semibold text-felt-700 ${TAP_TARGET_44}`}
+      className={`relative inline-flex h-9 items-center gap-1 rounded-md bg-accent-soft px-3 text-xs font-semibold text-accent ${TAP_TARGET_44}`}
     >
       {label}
       <X size={12} aria-hidden="true" />
@@ -528,15 +528,15 @@ export function CatalogView({ onBack }: CatalogViewProps) {
   return (
     // B1: fixed full-screen overlay covering the bottom nav.
     // Column layout: fixed header/search/filters/sort up top, only the row list scrolls.
-    <div className="fixed inset-0 z-50 flex flex-col bg-lane-50">
-      <div className="shrink-0 border-b border-slate-200 bg-lane-50 mx-auto w-full max-w-3xl px-3 pt-5 sm:px-6">
+    <div className="fixed inset-0 z-50 flex flex-col bg-surface-sunken">
+      <div className="shrink-0 border-b border-edge bg-surface-sunken mx-auto w-full max-w-3xl px-3 pt-5 sm:px-6">
         {/* Header */}
         <div className="mb-4 flex items-center gap-2">
           <Button variant="ghost" onClick={onBack}>
             <ChevronLeft size={16} aria-hidden="true" />
             Back
           </Button>
-          <h1 className="flex-1 text-xl font-bold text-slate-950">Ball Catalog</h1>
+          <h1 className="flex-1 text-xl font-bold text-ink">Ball Catalog</h1>
           <IconButton onClick={handleRefresh} label="Refresh catalog">
             <RefreshCw size={15} aria-hidden="true" />
           </IconButton>
@@ -544,7 +544,7 @@ export function CatalogView({ onBack }: CatalogViewProps) {
 
         {/* Sync state banner */}
         {syncState.status === "syncing" && (
-          <div className="mb-3 flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-600">
+          <div className="mb-3 flex items-center gap-2 rounded-lg border border-edge bg-surface-muted px-3 py-2 text-sm text-ink-secondary">
             <Loader2 size={14} className="animate-spin" aria-hidden="true" />
             Syncing catalog…
           </div>
@@ -562,7 +562,7 @@ export function CatalogView({ onBack }: CatalogViewProps) {
             placeholder="Search name, brand, coverstock…"
             value={filters.search}
             onChange={(e) => setFilters((f) => ({ ...f, search: e.target.value }))}
-            className="h-11 w-full rounded-lg border border-slate-300 px-3 pr-10 text-sm outline-none focus:border-felt-700 focus:ring-2 focus:ring-felt-700/20"
+            className="h-11 w-full rounded-lg border border-edge-strong px-3 pr-10 text-sm outline-none focus:border-felt-700 focus:ring-2 focus:ring-felt-700/20"
           />
           {filters.search && (
             <IconButton
@@ -586,12 +586,12 @@ export function CatalogView({ onBack }: CatalogViewProps) {
 
           <div className="flex-1" />
 
-          <label className="flex items-center gap-1.5 text-sm text-slate-700">
+          <label className="flex items-center gap-1.5 text-sm text-ink-strong">
             <span className="font-medium">Sort:</span>
             <select
               value={sort}
               onChange={(e) => setSort(e.target.value as SortKey)}
-              className="rounded-md border border-slate-300 bg-white px-2 py-1.5 text-sm outline-none focus:border-felt-700"
+              className="rounded-md border border-edge-strong bg-surface px-2 py-1.5 text-sm outline-none focus:border-felt-700"
             >
               <option value="releaseDate">Newest first</option>
               <option value="rg">RG (low→high)</option>
@@ -647,10 +647,10 @@ export function CatalogView({ onBack }: CatalogViewProps) {
 
         {/* Filters panel */}
         {showFilters && (
-          <div className="mb-4 rounded-lg border border-slate-200 bg-white p-4 space-y-4 shadow-sm">
+          <div className="mb-4 rounded-lg border border-edge bg-surface p-4 space-y-4 shadow-sm">
             {/* Brand */}
             <div>
-              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">Brand</p>
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-secondary">Brand</p>
               <div className="flex flex-wrap gap-2">
                 {ALL_BRANDS.map((brand) => (
                   <Chip
@@ -666,7 +666,7 @@ export function CatalogView({ onBack }: CatalogViewProps) {
 
             {/* Coverstock */}
             <div>
-              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">Coverstock</p>
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-secondary">Coverstock</p>
               <div className="flex flex-wrap gap-2">
                 {ALL_COVERSTOCK.map((cat) => (
                   <Chip
@@ -682,7 +682,7 @@ export function CatalogView({ onBack }: CatalogViewProps) {
 
             {/* Core type */}
             <div>
-              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">Core Type</p>
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-secondary">Core Type</p>
               <div className="flex gap-2">
                 {(["Symmetric", "Asymmetric"] as const).map((ct) => (
                   <Chip
@@ -724,7 +724,7 @@ export function CatalogView({ onBack }: CatalogViewProps) {
             <button
               type="button"
               onClick={() => setFilters(EMPTY_FILTERS)}
-              className={`relative text-xs font-semibold text-felt-700 hover:underline ${TAP_TARGET_44}`}
+              className={`relative text-xs font-semibold text-accent hover:underline ${TAP_TARGET_44}`}
             >
               Reset all filters
             </button>
@@ -732,7 +732,7 @@ export function CatalogView({ onBack }: CatalogViewProps) {
         )}
 
         {/* Results count */}
-        <p className="mb-3 text-xs text-slate-500">
+        <p className="mb-3 text-xs text-ink-secondary">
           {displayed.length} {displayed.length === 1 ? "ball" : "balls"}
           {allBalls.length !== displayed.length ? ` of ${allBalls.length}` : ""}
         </p>
@@ -742,15 +742,15 @@ export function CatalogView({ onBack }: CatalogViewProps) {
       <div className="flex-1 overflow-y-auto mx-auto w-full max-w-3xl px-3 pb-5 pt-3 sm:px-6">
         {/* B2: Row list instead of card grid */}
         {allBalls.length === 0 && syncState.status !== "syncing" ? (
-          <p className="text-sm text-slate-500">No balls in catalog yet. Try refreshing.</p>
+          <p className="text-sm text-ink-secondary">No balls in catalog yet. Try refreshing.</p>
         ) : (
-          <ul className="divide-y divide-slate-100 rounded-lg border border-slate-200 bg-white shadow-sm">
+          <ul className="divide-y divide-edge rounded-lg border border-edge bg-surface shadow-sm">
             {displayed.map((ball) => (
               <li key={ball.id}>
                 <button
                   type="button"
                   onClick={() => setSelectedBall(ball)}
-                  className="flex w-full items-center gap-3 px-3 py-2.5 text-left hover:bg-slate-50 transition-colors"
+                  className="flex w-full items-center gap-3 px-3 py-2.5 text-left hover:bg-surface-muted transition-colors"
                 >
                   <div className="h-10 w-10 shrink-0">
                     <CatalogBallImage src={ball.imageThumb} alt={ball.name} brand={ball.brand} size="thumb" />
@@ -760,19 +760,19 @@ export function CatalogView({ onBack }: CatalogViewProps) {
                       <span className="text-[11px] font-semibold uppercase tracking-wide text-ink-secondary">{ball.brand}</span>
                       {/* B8: Owned badge */}
                       {isOwned(ball) && (
-                        <span className="rounded-full bg-felt-700/10 px-1.5 py-0.5 text-[11px] font-bold uppercase tracking-wide text-felt-700">
+                        <span className="rounded-full bg-accent-soft px-1.5 py-0.5 text-[11px] font-bold uppercase tracking-wide text-accent">
                           Owned
                         </span>
                       )}
                       {/* Multi-colorway badge */}
                       {(ball.colorways?.length ?? 0) > 1 && (
-                        <span className="inline-flex items-center gap-0.5 rounded-full bg-slate-100 px-1.5 py-0.5 text-[11px] font-bold uppercase tracking-wide text-slate-500">
+                        <span className="inline-flex items-center gap-0.5 rounded-full bg-surface-muted px-1.5 py-0.5 text-[11px] font-bold uppercase tracking-wide text-ink-secondary">
                           <Palette size={9} aria-hidden="true" />
                           {ball.colorways!.length} colors
                         </span>
                       )}
                     </div>
-                    <p className="text-sm font-semibold text-slate-950">{ball.name}</p>
+                    <p className="text-sm font-semibold text-ink">{ball.name}</p>
                     {/* Always-visible compact specs (mobile-first) */}
                     <p className="mt-0.5 text-xs text-ink-secondary">
                       {[

@@ -95,9 +95,9 @@ export function LaneNotesTab({ alley, currentLanes }: LaneNotesTabProps) {
     await load();
   }
 
-  if (loading) return <p className="px-1 py-4 text-sm text-slate-500">Loading…</p>;
+  if (loading) return <p className="px-1 py-4 text-sm text-ink-secondary">Loading…</p>;
   if (rows.length === 0)
-    return <p className="px-1 py-4 text-sm text-slate-500">No lanes to show for {alley}.</p>;
+    return <p className="px-1 py-4 text-sm text-ink-secondary">No lanes to show for {alley}.</p>;
 
   function openEdit(lane: string, note?: LaneNote) {
     setEditingLane(lane);
@@ -170,11 +170,11 @@ function LaneCell({
   return (
     <div
       className={`rounded-lg border p-2.5 ${
-        current ? "border-felt-700 bg-felt-700/5" : "border-slate-200 bg-white"
+        current ? "border-felt-700 bg-felt-700/5" : "border-edge bg-surface"
       }`}
     >
       <div className="flex items-center justify-between gap-1">
-        <span className="text-[11px] font-bold uppercase tracking-wide text-slate-500">
+        <span className="text-[11px] font-bold uppercase tracking-wide text-ink-secondary">
           Lane {lane}
         </span>
         {!editing && (
@@ -191,7 +191,7 @@ function LaneCell({
             rows={3}
             autoFocus
             placeholder="How this lane plays…"
-            className="w-full rounded-md border border-slate-300 px-2 py-1 text-xs outline-none focus:border-felt-700"
+            className="w-full rounded-md border border-edge-strong px-2 py-1 text-xs outline-none focus:border-felt-700"
           />
           <div className="flex flex-wrap items-center gap-1.5">
             <Button variant="primary" onClick={onSave} className="text-xs">
@@ -208,11 +208,11 @@ function LaneCell({
           </div>
         </div>
       ) : note?.notes ? (
-        <p className="mt-1 whitespace-pre-wrap break-words text-xs leading-snug text-slate-600">
+        <p className="mt-1 whitespace-pre-wrap break-words text-xs leading-snug text-ink-secondary">
           {note.notes}
         </p>
       ) : (
-        <p className="mt-1 text-xs italic text-slate-300">No notes</p>
+        <p className="mt-1 text-xs italic text-ink-tertiary">No notes</p>
       )}
     </div>
   );

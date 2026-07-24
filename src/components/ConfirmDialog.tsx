@@ -34,11 +34,11 @@ export function ConfirmDialog({
     >
       <div
         ref={overlayRef}
-        className="w-full max-w-sm rounded-xl bg-white p-5 shadow-xl"
+        className="w-full max-w-sm rounded-xl bg-surface p-5 shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 className="text-base font-bold text-slate-950">{title}</h2>
-        {message && <div className="mt-1.5 space-y-2 text-sm text-slate-600">{message}</div>}
+        <h2 className="text-base font-bold text-ink">{title}</h2>
+        {message && <div className="mt-1.5 space-y-2 text-sm text-ink-secondary">{message}</div>}
         <div className="mt-5 flex justify-end gap-2">
           <Button variant="secondary" onClick={onCancel}>
             Cancel

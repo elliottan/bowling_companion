@@ -3,7 +3,7 @@ import type { ButtonHTMLAttributes, ReactNode } from "react";
 type Variant = "default" | "danger" | "solid" | "inverse";
 
 const VARIANT: Record<Variant, string> = {
-  default: "text-slate-600 hover:bg-slate-100",
+  default: "text-ink-secondary hover:bg-surface-muted",
   danger: "text-danger-600 hover:bg-danger-50",
   // Filled treatment for an icon-only action that needs to read as prominent
   // as a primary button. Kept as a variant rather than a className override

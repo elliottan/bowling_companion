@@ -48,7 +48,7 @@ function SmallPinDiagram({ standing }: { standing: PinNumber[] }) {
               className={`flex h-5 w-5 items-center justify-center rounded-full text-[9px] font-bold ${
                 standingSet.has(pin as PinNumber)
                   ? "bg-felt-700 text-white"
-                  : "bg-slate-100 text-slate-300"
+                  : "bg-surface-muted text-ink-tertiary"
               }`}
             >
               {pin}
@@ -69,7 +69,7 @@ function DerivedChain({ line, model }: { line: LineSpec; model: DriftModel }) {
   return (
     <div className="mt-0.5 text-[11px] font-semibold uppercase tracking-tight text-ink-secondary tabular-nums">
       {slide != null && `Slide ${slide}`}
-      {slide != null && laydown != null && <span aria-hidden="true" className="text-slate-300"> → </span>}
+      {slide != null && laydown != null && <span aria-hidden="true" className="text-ink-tertiary"> → </span>}
       {laydown != null && `Laydown ${laydown}`}
     </div>
   );
@@ -93,8 +93,8 @@ function SortableSpareCard({ sl, onOpen }: SortableSpareCardProps) {
   return (
     <li ref={setNodeRef} style={style}>
       <div
-        className={`relative flex w-full select-none flex-col items-center gap-1.5 rounded-lg border bg-white p-3 text-center shadow-sm ${
-          isDragging ? "border-felt-700 opacity-90 shadow-md" : "border-slate-200"
+        className={`relative flex w-full select-none flex-col items-center gap-1.5 rounded-lg border bg-surface p-3 text-center shadow-sm ${
+          isDragging ? "border-felt-700 opacity-90 shadow-md" : "border-edge"
         }`}
       >
         {/* The whole card is the drag handle: a hold picks it up, a tap opens
@@ -118,7 +118,7 @@ function SortableSpareCard({ sl, onOpen }: SortableSpareCardProps) {
                 {([["Stand", sl.line.stance], ["Arrow", sl.line.target]] as const).map(([k, v]) => (
                   <div key={k}>
                     <div className="text-[11px] font-semibold uppercase tracking-wide text-ink-secondary">{k}</div>
-                    <div className="text-xs font-bold tabular-nums text-slate-700">{v ?? "—"}</div>
+                    <div className="text-xs font-bold tabular-nums text-ink-strong">{v ?? "—"}</div>
                   </div>
                 ))}
               </div>
@@ -229,7 +229,7 @@ export function SpareLinesView() {
   return (
     <section className="mx-auto w-full max-w-3xl px-3 py-5 sm:px-6 sm:py-8">
       <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-xl font-bold text-slate-950">Spare Lines</h1>
+        <h1 className="text-xl font-bold text-ink">Spare Lines</h1>
         <IconButton onClick={() => setEditing({ mode: "add" })} label="Add spare">
           <Plus size={18} aria-hidden="true" />
         </IconButton>
@@ -269,9 +269,9 @@ export function SpareLinesView() {
       )}
 
       {isLoading ? (
-        <p className="text-sm text-slate-500">Loading…</p>
+        <p className="text-sm text-ink-secondary">Loading…</p>
       ) : spareLines.length === 0 ? (
-        <p className="text-sm text-slate-500">No spare lines yet.</p>
+        <p className="text-sm text-ink-secondary">No spare lines yet.</p>
       ) : (
         <DndContext
           sensors={sensors}

@@ -62,23 +62,23 @@ export function SettingsView({ section, onSectionChange, handedness, onHandednes
 function RowContent({ icon: Icon, label, description }: { icon: LucideIcon; label: string; description: string }) {
   return (
     <>
-      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-felt-700/10 text-felt-700">
+      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-accent-soft text-accent">
         <Icon size={16} aria-hidden="true" />
       </span>
       <span className="min-w-0 flex-1">
-        <span className="block font-semibold text-slate-950">{label}</span>
-        <span className="block text-xs text-slate-500">{description}</span>
+        <span className="block font-semibold text-ink">{label}</span>
+        <span className="block text-xs text-ink-secondary">{description}</span>
       </span>
     </>
   );
 }
 
 const ROW_CLASS =
-  "flex w-full items-center gap-3 rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-left shadow-sm hover:border-felt-700";
+  "flex w-full items-center gap-3 rounded-lg border border-edge bg-surface px-3 py-2.5 text-left shadow-sm hover:border-felt-700";
 
 function GroupHeading({ children }: { children: string }) {
   return (
-    <h2 className="mb-1.5 mt-5 px-1 text-xs font-semibold uppercase tracking-wide text-slate-500 first:mt-0">
+    <h2 className="mb-1.5 mt-5 px-1 text-xs font-semibold uppercase tracking-wide text-ink-secondary first:mt-0">
       {children}
     </h2>
   );
@@ -111,7 +111,7 @@ function SettingsMenu({
 
   return (
     <section className="mx-auto w-full max-w-3xl px-3 py-5 sm:px-6 sm:py-8">
-      <h1 className="mb-4 text-xl font-bold text-slate-950">Settings</h1>
+      <h1 className="mb-4 text-xl font-bold text-ink">Settings</h1>
 
       <GroupHeading>Bowling</GroupHeading>
       <ul className="space-y-1.5">
@@ -119,7 +119,7 @@ function SettingsMenu({
           <li key={row.key}>
             <button type="button" onClick={row.onClick} aria-label={row.label} className={ROW_CLASS}>
               <RowContent icon={row.icon} label={row.label} description={row.description} />
-              <ChevronRight size={16} aria-hidden="true" className="shrink-0 text-slate-400" />
+              <ChevronRight size={16} aria-hidden="true" className="shrink-0 text-ink-tertiary" />
             </button>
           </li>
         ))}
@@ -135,7 +135,7 @@ function SettingsMenu({
             className={ROW_CLASS}
           >
             <RowContent icon={Archive} label="Backup & Restore" description={backupDescription} />
-            <ChevronRight size={16} aria-hidden="true" className="shrink-0 text-slate-400" />
+            <ChevronRight size={16} aria-hidden="true" className="shrink-0 text-ink-tertiary" />
           </button>
         </li>
       </ul>

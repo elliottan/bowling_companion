@@ -53,14 +53,14 @@ export function BackupRestoreView() {
 
   return (
     <section className="mx-auto w-full max-w-2xl px-3 py-5 sm:px-6 sm:py-8">
-      <h1 className="text-xl font-bold text-slate-950">Backup &amp; Restore</h1>
-      <p className="mt-1 text-sm text-slate-600">
+      <h1 className="text-xl font-bold text-ink">Backup &amp; Restore</h1>
+      <p className="mt-1 text-sm text-ink-secondary">
         Local JSON only. Imports merge into the existing database by content
         (date + alley name).
       </p>
 
       {persisted !== null && (
-        <p className="mt-2 text-xs text-slate-500">
+        <p className="mt-2 text-xs text-ink-secondary">
           {persisted
             ? "Storage: persistent ✓"
             : "Storage: best-effort — install the app + back up regularly"}
@@ -68,7 +68,7 @@ export function BackupRestoreView() {
       )}
 
       <div
-        className="mt-5 rounded-lg border border-slate-200 bg-white p-4 shadow-sm"
+        className="mt-5 rounded-lg border border-edge bg-surface p-4 shadow-sm"
         onDragOver={(e) => e.preventDefault()}
         onDrop={(e) => {
           e.preventDefault();
@@ -93,7 +93,7 @@ export function BackupRestoreView() {
             Import JSON
           </Button>
         </div>
-        <p className="mt-3 text-center text-xs text-slate-500">
+        <p className="mt-3 text-center text-xs text-ink-secondary">
           Or drop a .json file here.
         </p>
       </div>

@@ -30,13 +30,13 @@ export function InstallPrompt({ open, onClose }: InstallPromptProps) {
     >
       <div
         ref={overlayRef}
-        className="w-full max-w-sm rounded-xl bg-white p-5 shadow-xl"
+        className="w-full max-w-sm rounded-xl bg-surface p-5 shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 className="text-base font-bold text-slate-950">Install Bowling Companion</h2>
+        <h2 className="text-base font-bold text-ink">Install Bowling Companion</h2>
         {canInstall ? (
           <>
-            <p className="mt-1.5 text-sm text-slate-600">
+            <p className="mt-1.5 text-sm text-ink-secondary">
               Add it to your home screen for quick, full-screen access.
             </p>
             <div className="mt-5 flex justify-end gap-2">
@@ -56,7 +56,7 @@ export function InstallPrompt({ open, onClose }: InstallPromptProps) {
           </>
         ) : (
           <>
-            <p className="mt-1.5 text-sm text-slate-600">
+            <p className="mt-1.5 text-sm text-ink-secondary">
               Tap the Share icon, then &ldquo;Add to Home Screen&rdquo;.
             </p>
             <div className="mt-5 flex justify-end">

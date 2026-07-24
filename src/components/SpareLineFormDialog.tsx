@@ -16,10 +16,10 @@ const ALL_PINS: PinNumber[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 // Field chrome mirrors the score-entry shot panel (ActiveGameScorer's LineInput)
 // so a spare line reads the same way a shot does.
 const floatLabel =
-  "pointer-events-none absolute -top-1.5 left-2 z-10 bg-white px-1 text-[11px] font-semibold uppercase tracking-[0.01em] text-ink-secondary";
+  "pointer-events-none absolute -top-1.5 left-2 z-10 bg-surface px-1 text-[11px] font-semibold uppercase tracking-[0.01em] text-ink-secondary";
 const eyebrow = "text-[11px] font-semibold uppercase tracking-[0.01em] text-ink-secondary";
 const boardInput =
-  "h-9 w-full min-w-0 rounded-lg border border-slate-200 bg-slate-50 text-center text-sm font-semibold tabular-nums text-slate-900 focus:border-felt-700 focus:bg-white focus:outline-none";
+  "h-9 w-full min-w-0 rounded-lg border border-edge bg-surface-muted text-center text-sm font-semibold tabular-nums text-ink focus:border-felt-700 focus:bg-surface focus:outline-none";
 
 interface SpareLineFormDialogProps {
   /** Leave being shot at (standing pins). Empty = user picks pins. */
@@ -101,10 +101,10 @@ export function SpareLineFormDialog({
     >
       <div
         ref={overlayRef}
-        className="max-h-[85vh] w-full max-w-lg overflow-y-auto rounded-lg border border-slate-200 bg-white p-4 shadow-xl"
+        className="max-h-[85vh] w-full max-w-lg overflow-y-auto rounded-lg border border-edge bg-surface p-4 shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 className="mb-3 text-base font-semibold text-slate-950">
+        <h2 className="mb-3 text-base font-semibold text-ink">
           {pins.length === 0
             ? "Add spare line"
             : `${pins.length === 1 ? "Pin" : "Pins"} ${pins.join(", ")}`}
@@ -117,7 +117,7 @@ export function SpareLineFormDialog({
         <form onSubmit={(e) => void handleSubmit(e)} className="space-y-4">
           <div>
             {!lockPins && (
-              <p className="mb-2 text-xs text-slate-500">
+              <p className="mb-2 text-xs text-ink-secondary">
                 Tap pins to select which pins are left standing for this leave.
               </p>
             )}
@@ -156,19 +156,19 @@ export function SpareLineFormDialog({
                 type="button"
                 onClick={() => setShowViz(true)}
                 title="Derived from your stance. Tap to see it on the lane."
-                className="mt-1 flex w-full flex-wrap items-center gap-x-1 text-left text-[11px] font-semibold uppercase tracking-[0.01em] text-ink-secondary tabular-nums hover:text-felt-700"
+                className="mt-1 flex w-full flex-wrap items-center gap-x-1 text-left text-[11px] font-semibold uppercase tracking-[0.01em] text-ink-secondary tabular-nums hover:text-accent"
               >
                 {derivedSlide != null && <span className="whitespace-nowrap">Slide {derivedSlide}</span>}
                 {derivedSlide != null && derivedLaydown != null && (
-                  <span aria-hidden="true" className="text-slate-300">→</span>
+                  <span aria-hidden="true" className="text-ink-tertiary">→</span>
                 )}
                 {derivedLaydown != null && (
                   <span className="whitespace-nowrap">Laydown {derivedLaydown}</span>
                 )}
               </button>
             )}
-            <p className="mt-2 text-xs text-slate-500">
-              Tap <span className="font-medium text-slate-600">View line</span> to set the final
+            <p className="mt-2 text-xs text-ink-secondary">
+              Tap <span className="font-medium text-ink-secondary">View line</span> to set the final
               target, hook strength and depth.
             </p>
           </div>

@@ -142,7 +142,7 @@ export function LaneNotesView() {
   return (
     <section className="mx-auto w-full max-w-3xl px-3 py-5 sm:px-6 sm:py-8">
       <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-xl font-bold text-slate-950">Lane Notes</h1>
+        <h1 className="text-xl font-bold text-ink">Lane Notes</h1>
         {!showForm && (
           <IconButton onClick={openAdd} label="Add lane note">
             <Plus size={18} aria-hidden="true" />
@@ -155,14 +155,14 @@ export function LaneNotesView() {
       )}
 
       {showForm && (
-        <div className="mb-4 rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-          <h2 className="mb-3 text-base font-semibold text-slate-950">
+        <div className="mb-4 rounded-lg border border-edge bg-surface p-4 shadow-sm">
+          <h2 className="mb-3 text-base font-semibold text-ink">
             {editingId !== null ? "Edit lane note" : "Add lane note"}
           </h2>
           {formError && <p className="mb-3 text-sm font-semibold text-red-600">{formError}</p>}
           <div className="space-y-3">
             <label className="block space-y-1.5">
-              <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">Alley</span>
+              <span className="text-xs font-semibold uppercase tracking-wide text-ink-secondary">Alley</span>
               <div className="relative">
                 <input
                   value={alley}
@@ -172,17 +172,17 @@ export function LaneNotesView() {
                   disabled={editingId !== null}
                   placeholder="Orchid Bowl"
                   autoComplete="off"
-                  className="h-11 w-full rounded-lg border border-slate-300 px-3 text-sm outline-none focus:border-felt-700 disabled:bg-slate-50"
+                  className="h-11 w-full rounded-lg border border-edge-strong px-3 text-sm outline-none focus:border-felt-700 disabled:bg-surface-muted"
                 />
                 {showAlleyList && alleyMatches.length > 0 && (
-                  <ul className="absolute z-10 mt-1 max-h-48 w-full overflow-y-auto rounded-lg border border-slate-200 bg-white py-1 shadow-lg">
+                  <ul className="absolute z-10 mt-1 max-h-48 w-full overflow-y-auto rounded-lg border border-edge bg-surface py-1 shadow-lg">
                     {alleyMatches.map((a) => (
                       <li key={a}>
                         <button
                           type="button"
                           onMouseDown={(e) => e.preventDefault()}
                           onClick={() => { setAlley(a); setShowAlleyList(false); }}
-                          className="block w-full px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-100"
+                          className="block w-full px-3 py-2 text-left text-sm text-ink-strong hover:bg-surface-muted"
                         >
                           {a}
                         </button>
@@ -193,24 +193,24 @@ export function LaneNotesView() {
               </div>
             </label>
             <label className="block space-y-1.5">
-              <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">Lane</span>
+              <span className="text-xs font-semibold uppercase tracking-wide text-ink-secondary">Lane</span>
               <input
                 value={lane}
                 onChange={(e) => setLane(e.target.value)}
                 disabled={editingId !== null}
                 inputMode="numeric"
                 placeholder="12"
-                className="h-11 w-32 rounded-lg border border-slate-300 px-3 text-sm outline-none focus:border-felt-700 disabled:bg-slate-50"
+                className="h-11 w-32 rounded-lg border border-edge-strong px-3 text-sm outline-none focus:border-felt-700 disabled:bg-surface-muted"
               />
             </label>
             <label className="block space-y-1.5">
-              <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">Notes</span>
+              <span className="text-xs font-semibold uppercase tracking-wide text-ink-secondary">Notes</span>
               <textarea
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 rows={3}
                 placeholder="How this lane plays — transition, where it hooks, ball reaction…"
-                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-felt-700"
+                className="w-full rounded-lg border border-edge-strong px-3 py-2 text-sm outline-none focus:border-felt-700"
               />
             </label>
             <div className="flex items-center gap-2 pt-1">
@@ -237,7 +237,7 @@ export function LaneNotesView() {
             <select
               value={filterAlley}
               onChange={(e) => setFilterAlley(e.target.value)}
-              className="h-9 rounded-lg border border-slate-300 bg-white px-2 text-sm outline-none focus:border-felt-700"
+              className="h-9 rounded-lg border border-edge-strong bg-surface px-2 text-sm outline-none focus:border-felt-700"
             >
               <option value="">All locations</option>
               {noteAlleys.map((a) => (
@@ -254,7 +254,7 @@ export function LaneNotesView() {
                 </Chip>
               ))}
               {selectedLanes.length > 0 && (
-                <Button variant="ghost" className="px-2 text-xs font-medium text-slate-500" onClick={() => setSelectedLanes([])}>
+                <Button variant="ghost" className="px-2 text-xs font-medium text-ink-secondary" onClick={() => setSelectedLanes([])}>
                   Clear
                 </Button>
               )}
@@ -264,11 +264,11 @@ export function LaneNotesView() {
       )}
 
       {isLoading ? (
-        <p className="text-sm text-slate-500">Loading…</p>
+        <p className="text-sm text-ink-secondary">Loading…</p>
       ) : laneNotes.length === 0 ? (
-        <p className="text-sm text-slate-500">No lane notes yet.</p>
+        <p className="text-sm text-ink-secondary">No lane notes yet.</p>
       ) : displayedNotes.length === 0 ? (
-        <p className="text-sm text-slate-500">No notes match the current filters.</p>
+        <p className="text-sm text-ink-secondary">No notes match the current filters.</p>
       ) : (
         <ul className="space-y-2">
           {displayedNotes.map((n) => (
@@ -276,12 +276,12 @@ export function LaneNotesView() {
               <button
                 type="button"
                 onClick={() => openEdit(n)}
-                className="block w-full rounded-lg border border-slate-200 bg-white p-3 text-left shadow-sm hover:border-felt-700"
+                className="block w-full rounded-lg border border-edge bg-surface p-3 text-left shadow-sm hover:border-felt-700"
               >
-                <p className="font-semibold text-slate-950">
+                <p className="font-semibold text-ink">
                   {n.alley} · Lane {n.lane}
                 </p>
-                <p className="mt-0.5 text-sm text-slate-600">{n.notes || "—"}</p>
+                <p className="mt-0.5 text-sm text-ink-secondary">{n.notes || "—"}</p>
               </button>
             </li>
           ))}

@@ -131,7 +131,7 @@ export function SessionLanePanel({
     >
       <div
         ref={overlayRef}
-        className="flex h-[85vh] w-full max-w-lg flex-col rounded-t-2xl bg-white shadow-xl sm:rounded-2xl"
+        className="flex h-[85vh] w-full max-w-lg flex-col rounded-t-2xl bg-surface shadow-xl sm:rounded-2xl"
         onClick={(e) => e.stopPropagation()}
         style={{
           transform: closing || !mounted ? "translateY(100%)" : `translateY(${dragY}px)`,
@@ -143,18 +143,18 @@ export function SessionLanePanel({
           className="flex touch-none cursor-grab justify-center pb-1 pt-3 active:cursor-grabbing"
           {...dragHandlers}
         >
-          <div className="h-1.5 w-10 rounded-full bg-slate-300" />
+          <div className="h-1.5 w-10 rounded-full bg-edge-strong" />
         </div>
         <div
-          className="flex touch-none items-start justify-between gap-3 border-b border-slate-200 px-4 py-3"
+          className="flex touch-none items-start justify-between gap-3 border-b border-edge px-4 py-3"
           {...dragHandlers}
         >
           <div className="min-w-0">
-            <h2 className="truncate text-base font-bold text-slate-950">{summary.session.alley_name}</h2>
+            <h2 className="truncate text-base font-bold text-ink">{summary.session.alley_name}</h2>
             {summary.session.description && (
-              <p className="truncate text-xs font-medium text-slate-600">{summary.session.description}</p>
+              <p className="truncate text-xs font-medium text-ink-secondary">{summary.session.description}</p>
             )}
-            <p className="truncate text-xs text-slate-500">
+            <p className="truncate text-xs text-ink-secondary">
               {[
                 summary.session.date,
                 `${summary.games.length} ${summary.games.length === 1 ? "game" : "games"}`,
@@ -178,7 +178,7 @@ export function SessionLanePanel({
         </div>
 
         {/* Session sheet / Stats / Lane notes toggle */}
-        <div className="grid grid-cols-3 gap-2 border-b border-slate-200 px-4 py-2">
+        <div className="grid grid-cols-3 gap-2 border-b border-edge px-4 py-2">
           {([
             ["sheet", "Session sheet"],
             ["stats", "Stats"],
@@ -265,13 +265,13 @@ function SessionSheetTab({
             className="mb-4 scroll-mt-2 last:mb-0"
           >
             <div className="mb-1.5 flex items-center gap-2">
-              <h3 className="text-sm font-bold text-slate-900">Game {game.game_number}</h3>
+              <h3 className="text-sm font-bold text-ink">Game {game.game_number}</h3>
               {game.id === currentGameId && (
                 <span className="rounded-full bg-felt-700 px-1.5 py-0.5 text-[11px] font-bold uppercase tracking-wide text-white">
                   Current
                 </span>
               )}
-              <span className="ml-auto text-base font-extrabold text-felt-700">{total}</span>
+              <span className="ml-auto text-base font-extrabold text-accent">{total}</span>
             </div>
             {game.frames.length === 0 ? (
               <p className="text-xs text-ink-secondary">No shots yet.</p>
@@ -286,7 +286,7 @@ function SessionSheetTab({
 }
 
 const emptyCell = (n: number) => (
-  <span className="text-[11px] font-bold uppercase text-slate-300">F{n}</span>
+  <span className="text-[11px] font-bold uppercase text-ink-tertiary">F{n}</span>
 );
 
 // Cross-lane: columns are FIXED by lane number (lower = left, higher = right),
@@ -306,14 +306,14 @@ function GameGrid({
   if (lanes.length < 2) {
     const laneLabel = lanes[0];
     return (
-      <div className="overflow-hidden rounded-lg border border-slate-200">
-        <div className="border-b border-slate-200 bg-slate-50 py-1 text-center text-[11px] font-bold uppercase tracking-wide text-slate-500">
+      <div className="overflow-hidden rounded-lg border border-edge">
+        <div className="border-b border-edge bg-surface-muted py-1 text-center text-[11px] font-bold uppercase tracking-wide text-ink-secondary">
           {laneLabel ? `Lane ${laneLabel}` : "Lane"}
         </div>
         {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => {
           const frame = byNumber.get(n);
           return (
-            <div key={n} className="border-b border-slate-100 p-2 last:border-b-0">
+            <div key={n} className="border-b border-edge p-2 last:border-b-0">
               {frame ? <FrameCell frame={frame} ballName={ballName} /> : emptyCell(n)}
             </div>
           );
@@ -332,10 +332,10 @@ function GameGrid({
   ];
 
   return (
-    <div className="overflow-hidden rounded-lg border border-slate-200">
-      <div className="grid grid-cols-2 bg-slate-50 text-center text-[11px] font-bold uppercase tracking-wide text-slate-500">
-        <div className="border-b border-r border-slate-200 py-1">Lane {leftLane}</div>
-        <div className="border-b border-slate-200 py-1">Lane {rightLane}</div>
+    <div className="overflow-hidden rounded-lg border border-edge">
+      <div className="grid grid-cols-2 bg-surface-muted text-center text-[11px] font-bold uppercase tracking-wide text-ink-secondary">
+        <div className="border-b border-r border-edge py-1">Lane {leftLane}</div>
+        <div className="border-b border-edge py-1">Lane {rightLane}</div>
       </div>
       <div className="grid grid-cols-2">
         {pairs.map((pair, rowIdx) => {
@@ -346,7 +346,7 @@ function GameGrid({
           const last = rowIdx === pairs.length - 1;
           return (
             <div key={rowIdx} className="contents">
-              <div className={`border-r border-slate-100 p-2 ${last ? "" : "border-b"}`}>
+              <div className={`border-r border-edge p-2 ${last ? "" : "border-b"}`}>
                 {lf ? <FrameCell frame={lf} ballName={ballName} /> : emptyCell(leftN)}
               </div>
               <div className={`p-2 ${last ? "" : "border-b"}`}>
@@ -389,16 +389,16 @@ function FrameCell({ frame, ballName }: { frame: Frame; ballName: (id?: number) 
           return (
             <div key={i} className="flex flex-col items-center gap-0.5">
               <span
-                className={`text-sm font-bold ${symbol === "X" ? "text-felt-700" : "text-slate-900"}`}
+                className={`text-sm font-bold ${symbol === "X" ? "text-accent" : "text-ink"}`}
               >
                 {symbol}
               </span>
               <MiniPins standing={shot.pins_standing} />
               <div className="text-[11px] leading-tight">
-                {name && <p className="font-medium text-slate-800">{name}</p>}
-                {intended && <p className="text-slate-600">{intended}</p>}
+                {name && <p className="font-medium text-ink">{name}</p>}
+                {intended && <p className="text-ink-secondary">{intended}</p>}
                 {actual && <p className="text-ink-secondary">{actual}</p>}
-                {shot.notes && <p className="break-words text-slate-500">{shot.notes}</p>}
+                {shot.notes && <p className="break-words text-ink-secondary">{shot.notes}</p>}
               </div>
             </div>
           );

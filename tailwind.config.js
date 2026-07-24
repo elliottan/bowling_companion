@@ -41,6 +41,7 @@ export default {
         },
         ink: {
           DEFAULT: withVar("--color-ink"),
+          strong: withVar("--color-ink-strong"),
           secondary: withVar("--color-ink-secondary"),
           tertiary: withVar("--color-ink-tertiary")
         },

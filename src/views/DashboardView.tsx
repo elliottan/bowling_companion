@@ -178,35 +178,35 @@ export function DashboardView({
           type="button"
           onClick={onOpenCatalog}
           aria-label="Ball Catalog"
-          className="flex flex-col items-start gap-2 rounded-lg border border-slate-200 bg-white p-4 shadow-sm hover:border-felt-700 text-left"
+          className="flex flex-col items-start gap-2 rounded-lg border border-edge bg-surface p-4 shadow-sm hover:border-felt-700 text-left"
         >
-          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-felt-700/10 text-felt-700">
+          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent-soft text-accent">
             <BookOpen size={18} aria-hidden="true" />
           </span>
           <span>
-            <span className="block text-sm font-semibold text-slate-950">Ball Catalog</span>
-            <span className="block text-xs text-slate-500">Browse all manufacturer balls</span>
+            <span className="block text-sm font-semibold text-ink">Ball Catalog</span>
+            <span className="block text-xs text-ink-secondary">Browse all manufacturer balls</span>
           </span>
         </button>
         <button
           type="button"
           onClick={onOpenLineVisualizer}
           aria-label="Line Visualizer"
-          className="flex flex-col items-start gap-2 rounded-lg border border-slate-200 bg-white p-4 shadow-sm hover:border-felt-700 text-left"
+          className="flex flex-col items-start gap-2 rounded-lg border border-edge bg-surface p-4 shadow-sm hover:border-felt-700 text-left"
         >
-          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-felt-700/10 text-felt-700">
+          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent-soft text-accent">
             <Spline size={18} aria-hidden="true" />
           </span>
           <span>
-            <span className="block text-sm font-semibold text-slate-950">Line Visualizer</span>
-            <span className="block text-xs text-slate-500">Sketch a line on the lane</span>
+            <span className="block text-sm font-semibold text-ink">Line Visualizer</span>
+            <span className="block text-xs text-ink-secondary">Sketch a line on the lane</span>
           </span>
         </button>
       </div>
 
       <div className="mt-6">
         <div className="mb-2 flex items-center justify-between">
-          <h2 className="text-sm font-bold uppercase tracking-wide text-slate-500">Recent sessions</h2>
+          <h2 className="text-sm font-bold uppercase tracking-wide text-ink-secondary">Recent sessions</h2>
           {recent.length > 0 && (
             <Button variant="ghost" onClick={onViewAll}>
               View all

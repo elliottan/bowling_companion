@@ -20,7 +20,7 @@ export function HandednessPicker({ value, onSelect }: HandednessPickerProps) {
           className={`h-12 flex-1 rounded-lg border text-sm font-semibold capitalize ${
             value === h
               ? "border-felt-700 bg-felt-700 text-white"
-              : "border-slate-300 bg-white text-slate-700 hover:bg-slate-50"
+              : "border-edge-strong bg-surface text-ink-strong hover:bg-surface-muted"
           }`}
         >
           {h}-handed

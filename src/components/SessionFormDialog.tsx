@@ -38,7 +38,7 @@ export function SessionFormDialog({
     >
       <div
         ref={overlayRef}
-        className="my-auto w-full max-w-sm rounded-xl bg-white p-5 shadow-xl"
+        className="my-auto w-full max-w-sm rounded-xl bg-surface p-5 shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
         {/* `key` remounts the form when the prefill changes so a freshly opened

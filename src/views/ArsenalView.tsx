@@ -68,8 +68,8 @@ function SortableBallRow({ ball, onEdit, onDelete }: SortableBallRowProps) {
   return (
     <li ref={setNodeRef} style={style}>
       <div
-        className={`flex items-start gap-2 rounded-lg border bg-white p-4 shadow-sm ${
-          isDragging ? "border-felt-700 opacity-90 shadow-md" : "border-slate-200"
+        className={`flex items-start gap-2 rounded-lg border bg-surface p-4 shadow-sm ${
+          isDragging ? "border-felt-700 opacity-90 shadow-md" : "border-edge"
         }`}
       >
         <button
@@ -77,7 +77,7 @@ function SortableBallRow({ ball, onEdit, onDelete }: SortableBallRowProps) {
           {...attributes}
           {...listeners}
           aria-label={`Drag to reorder ${ball.name}`}
-          className="mt-0.5 touch-none shrink-0 text-slate-300 hover:text-slate-500"
+          className="mt-0.5 touch-none shrink-0 text-ink-tertiary hover:text-ink-secondary"
         >
           <GripVertical size={16} aria-hidden="true" />
         </button>
@@ -96,7 +96,7 @@ function SortableBallRow({ ball, onEdit, onDelete }: SortableBallRowProps) {
 
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="font-semibold text-slate-950">{ball.name}</span>
+            <span className="font-semibold text-ink">{ball.name}</span>
             {ball.is_spare_ball && (
               <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-700">
                 Spare ball
@@ -105,7 +105,7 @@ function SortableBallRow({ ball, onEdit, onDelete }: SortableBallRowProps) {
           </div>
           {/* B9: catalog specs line */}
           {snap && (
-            <p className="mt-0.5 text-xs text-slate-500">
+            <p className="mt-0.5 text-xs text-ink-secondary">
               {[
                 snap.coverstockCategory,
                 snap.coreName,
@@ -117,10 +117,10 @@ function SortableBallRow({ ball, onEdit, onDelete }: SortableBallRowProps) {
             </p>
           )}
           {ball.layout && (
-            <p className="mt-0.5 text-xs text-slate-500">{ball.layout}</p>
+            <p className="mt-0.5 text-xs text-ink-secondary">{ball.layout}</p>
           )}
           {ball.notes && (
-            <p className="mt-1 text-sm text-slate-600">{ball.notes}</p>
+            <p className="mt-1 text-sm text-ink-secondary">{ball.notes}</p>
           )}
         </div>
 
@@ -371,7 +371,7 @@ export function ArsenalView({ onOpenCatalog }: ArsenalViewProps = {}) {
   return (
     <section className="mx-auto w-full max-w-3xl px-3 py-5 sm:px-6 sm:py-8">
       <div className="mb-4 flex items-center gap-2">
-        <h1 className="flex-1 text-xl font-bold text-slate-950">Arsenal</h1>
+        <h1 className="flex-1 text-xl font-bold text-ink">Arsenal</h1>
         {/* B10: icon-only browse catalog button */}
         {onOpenCatalog && !showForm && !showCatalogPicker && (
           <IconButton onClick={onOpenCatalog} label="Browse catalog">
@@ -390,9 +390,9 @@ export function ArsenalView({ onOpenCatalog }: ArsenalViewProps = {}) {
       )}
 
       {showForm && (
-        <div className="mb-4 rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+        <div className="mb-4 rounded-lg border border-edge bg-surface p-4 shadow-sm">
           <div className="mb-3 flex items-center gap-2">
-            <h2 className="flex-1 text-sm font-semibold text-slate-950">
+            <h2 className="flex-1 text-sm font-semibold text-ink">
               {editingId !== null ? "Edit ball" : "Add ball"}
             </h2>
             <Button variant="secondary" onClick={() => void openCatalogPicker()}>
@@ -405,7 +405,7 @@ export function ArsenalView({ onOpenCatalog }: ArsenalViewProps = {}) {
             </Button>
           </div>
           {formCatalogRef && (
-            <p className="mb-2 text-xs text-felt-700 font-semibold">
+            <p className="mb-2 text-xs text-accent font-semibold">
               {editingId !== null ? "Linked to catalog" : "Prefilled from catalog"}: {formCatalogRef.brand} {formCatalogRef.name}
             </p>
           )}
@@ -416,7 +416,7 @@ export function ArsenalView({ onOpenCatalog }: ArsenalViewProps = {}) {
 
           <form onSubmit={(e) => void handleSubmit(e)} className="space-y-3">
             <div>
-              <label className="mb-1 block text-sm font-medium text-slate-700">
+              <label className="mb-1 block text-sm font-medium text-ink-strong">
                 Name <span className="text-red-500">*</span>
               </label>
               <input
@@ -424,19 +424,19 @@ export function ArsenalView({ onOpenCatalog }: ArsenalViewProps = {}) {
                 value={form.name}
                 onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
                 placeholder="e.g. Storm Phaze II"
-                className="h-11 w-full rounded-lg border border-slate-300 px-3 text-sm outline-none focus:border-felt-700 focus:ring-2 focus:ring-felt-700/20"
+                className="h-11 w-full rounded-lg border border-edge-strong px-3 text-sm outline-none focus:border-felt-700 focus:ring-2 focus:ring-felt-700/20"
               />
             </div>
 
             {/* B11: weight selector */}
             <div>
-              <label className="mb-1 block text-sm font-medium text-slate-700">
+              <label className="mb-1 block text-sm font-medium text-ink-strong">
                 Weight <span className="text-ink-secondary font-normal">(lbs)</span>
               </label>
               <select
                 value={form.weight}
                 onChange={(e) => setForm((f) => ({ ...f, weight: Number(e.target.value) }))}
-                className="h-11 w-full rounded-lg border border-slate-300 px-3 text-sm outline-none focus:border-felt-700 focus:ring-2 focus:ring-felt-700/20"
+                className="h-11 w-full rounded-lg border border-edge-strong px-3 text-sm outline-none focus:border-felt-700 focus:ring-2 focus:ring-felt-700/20"
               >
                 {WEIGHT_OPTIONS.map((w) => (
                   <option key={w} value={w}>{w} lb</option>
@@ -444,7 +444,7 @@ export function ArsenalView({ onOpenCatalog }: ArsenalViewProps = {}) {
               </select>
               {/* Show weight-specific specs when catalog-linked */}
               {formCatalogRef && weightSpecs && (
-                <p className="mt-1 text-xs text-slate-500">
+                <p className="mt-1 text-xs text-ink-secondary">
                   Specs for {form.weight} lb:
                   {weightSpecs.rg !== null ? ` RG ${weightSpecs.rg.toFixed(2)}` : ""}
                   {weightSpecs.diff !== null ? ` · Diff ${weightSpecs.diff.toFixed(3)}` : ""}
@@ -462,23 +462,23 @@ export function ArsenalView({ onOpenCatalog }: ArsenalViewProps = {}) {
                 onChange={(e) =>
                   setForm((f) => ({ ...f, is_spare_ball: e.target.checked }))
                 }
-                className="mt-0.5 h-4 w-4 rounded border-slate-300 accent-felt-700"
+                className="mt-0.5 h-4 w-4 rounded border-edge-strong accent-felt-700"
               />
               <div>
                 <label
                   htmlFor="is_spare_ball"
-                  className="text-sm font-medium text-slate-700"
+                  className="text-sm font-medium text-ink-strong"
                 >
                   Spare ball
                 </label>
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-ink-secondary">
                   Auto-selected for spare shots. Only one ball can be marked as spare ball.
                 </p>
               </div>
             </div>
 
             <div>
-              <label className="mb-1 block text-sm font-medium text-slate-700">
+              <label className="mb-1 block text-sm font-medium text-ink-strong">
                 Layout <span className="text-ink-secondary font-normal">(optional)</span>
               </label>
               <input
@@ -486,12 +486,12 @@ export function ArsenalView({ onOpenCatalog }: ArsenalViewProps = {}) {
                 value={form.layout}
                 onChange={(e) => setForm((f) => ({ ...f, layout: e.target.value }))}
                 placeholder='e.g. 45° × 4-1/2″ × 35°'
-                className="h-11 w-full rounded-lg border border-slate-300 px-3 text-sm outline-none focus:border-felt-700 focus:ring-2 focus:ring-felt-700/20"
+                className="h-11 w-full rounded-lg border border-edge-strong px-3 text-sm outline-none focus:border-felt-700 focus:ring-2 focus:ring-felt-700/20"
               />
             </div>
 
             <div>
-              <label className="mb-1 block text-sm font-medium text-slate-700">
+              <label className="mb-1 block text-sm font-medium text-ink-strong">
                 Notes <span className="text-ink-secondary font-normal">(optional)</span>
               </label>
               <textarea
@@ -499,7 +499,7 @@ export function ArsenalView({ onOpenCatalog }: ArsenalViewProps = {}) {
                 onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
                 rows={2}
                 placeholder="Any notes about this ball…"
-                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-felt-700 focus:ring-2 focus:ring-felt-700/20"
+                className="w-full rounded-lg border border-edge-strong px-3 py-2 text-sm outline-none focus:border-felt-700 focus:ring-2 focus:ring-felt-700/20"
               />
             </div>
 
@@ -522,10 +522,10 @@ export function ArsenalView({ onOpenCatalog }: ArsenalViewProps = {}) {
           role="dialog"
           aria-modal="true"
           aria-label="Pick from catalog"
-          className="mb-4 rounded-lg border border-slate-200 bg-white p-4 shadow-sm"
+          className="mb-4 rounded-lg border border-edge bg-surface p-4 shadow-sm"
         >
           <div className="mb-3 flex items-center gap-2">
-            <h2 className="flex-1 text-sm font-semibold text-slate-950">Pick from catalog</h2>
+            <h2 className="flex-1 text-sm font-semibold text-ink">Pick from catalog</h2>
             <IconButton onClick={() => setShowCatalogPicker(false)} label="Close catalog picker">
               ✕
             </IconButton>
@@ -535,12 +535,12 @@ export function ArsenalView({ onOpenCatalog }: ArsenalViewProps = {}) {
             placeholder="Search name, brand…"
             value={catalogSearch}
             onChange={(e) => setCatalogSearch(e.target.value)}
-            className="mb-3 h-9 w-full rounded-lg border border-slate-300 px-3 text-sm outline-none focus:border-felt-700 focus:ring-2 focus:ring-felt-700/20"
+            className="mb-3 h-9 w-full rounded-lg border border-edge-strong px-3 text-sm outline-none focus:border-felt-700 focus:ring-2 focus:ring-felt-700/20"
           />
           {catalogLoading ? (
-            <p className="text-sm text-slate-500">Loading catalog…</p>
+            <p className="text-sm text-ink-secondary">Loading catalog…</p>
           ) : catalogBalls.length === 0 ? (
-            <p className="text-sm text-slate-500">No catalog balls found. Try refreshing the catalog.</p>
+            <p className="text-sm text-ink-secondary">No catalog balls found. Try refreshing the catalog.</p>
           ) : (
             <ul className="max-h-64 space-y-1 overflow-y-auto">
               {catalogBalls
@@ -554,15 +554,15 @@ export function ArsenalView({ onOpenCatalog }: ArsenalViewProps = {}) {
                     <button
                       type="button"
                       onClick={() => pickFromCatalog(catalogBall)}
-                      className="flex w-full items-center gap-3 rounded-lg border border-slate-100 bg-slate-50 p-2 text-left hover:border-felt-700 hover:bg-white"
+                      className="flex w-full items-center gap-3 rounded-lg border border-edge bg-surface-muted p-2 text-left hover:border-felt-700 hover:bg-surface"
                     >
                       <div className="h-10 w-10 shrink-0">
                         <CatalogBallImage src={catalogBall.imageThumb} alt={catalogBall.name} brand={catalogBall.brand} size="thumb" />
                       </div>
                       <div className="min-w-0 flex-1">
-                        <p className="text-xs font-semibold text-slate-500">{catalogBall.brand}</p>
-                        <p className="text-sm font-semibold text-slate-950">{catalogBall.name}</p>
-                        <p className="text-xs text-slate-500">
+                        <p className="text-xs font-semibold text-ink-secondary">{catalogBall.brand}</p>
+                        <p className="text-sm font-semibold text-ink">{catalogBall.name}</p>
+                        <p className="text-xs text-ink-secondary">
                           {catalogBall.coverstockCategory ?? "—"} · {catalogBall.coreType ?? "—"}
                           {catalogBall.rg !== null ? ` · RG ${catalogBall.rg.toFixed(2)}` : ""}
                         </p>
@@ -576,9 +576,9 @@ export function ArsenalView({ onOpenCatalog }: ArsenalViewProps = {}) {
       )}
 
       {isLoading ? (
-        <p className="text-sm text-slate-500">Loading…</p>
+        <p className="text-sm text-ink-secondary">Loading…</p>
       ) : balls.length === 0 ? (
-        <p className="text-sm text-slate-500">
+        <p className="text-sm text-ink-secondary">
           No balls in your arsenal yet. Add your first ball.
         </p>
       ) : (

@@ -55,8 +55,8 @@ export function HandednessView({ value, onChange, driftModel, onDriftModelChange
 
   return (
     <section className="mx-auto w-full max-w-3xl px-3 py-5 sm:px-6 sm:py-8">
-      <h1 className="text-xl font-bold text-slate-950">Handedness</h1>
-      <p className="mt-1 text-sm leading-relaxed text-slate-500">
+      <h1 className="text-xl font-bold text-ink">Handedness</h1>
+      <p className="mt-1 text-sm leading-relaxed text-ink-secondary">
         Board numbers count in from your side of the lane, so everything the app draws
         and every number you type is relative to the hand you bowl with.
       </p>
@@ -65,13 +65,13 @@ export function HandednessView({ value, onChange, driftModel, onDriftModelChange
         <HandednessPicker value={value} onSelect={handleSelect} />
       </div>
 
-      <h2 className="mt-9 text-base font-bold text-slate-950">Release offset</h2>
-      <p className="mt-1 text-sm leading-relaxed text-slate-500">
+      <h2 className="mt-9 text-base font-bold text-ink">Release offset</h2>
+      <p className="mt-1 text-sm leading-relaxed text-ink-secondary">
         Boards between your slide foot and where the ball touches down. It counts to the{" "}
-        <span className="font-semibold text-slate-700">{ballSide}</span> of your foot, the side
+        <span className="font-semibold text-ink-strong">{ballSide}</span> of your foot, the side
         you release on.
       </p>
-      <div className="mt-3 rounded-xl border border-slate-200 bg-white p-3">
+      <div className="mt-3 rounded-xl border border-edge bg-surface p-3">
         <Row label="Offset" hint="boards">
           <Stepper
             ariaLabel="release offset"
@@ -84,8 +84,8 @@ export function HandednessView({ value, onChange, driftModel, onDriftModelChange
         </Row>
       </div>
 
-      <h2 className="mt-9 text-base font-bold text-slate-950">Drift zones</h2>
-      <p className="mt-1 text-sm leading-relaxed text-slate-500">
+      <h2 className="mt-9 text-base font-bold text-ink">Drift zones</h2>
+      <p className="mt-1 text-sm leading-relaxed text-ink-secondary">
         Your slide foot rarely lands on the board you started on. Set how far it drifts,
         and which way, for each part of the approach.
       </p>
@@ -96,11 +96,11 @@ export function HandednessView({ value, onChange, driftModel, onDriftModelChange
 
       <div className="mt-3 space-y-3">
         {ZONES.map((zone) => (
-          <div key={zone} className="rounded-xl border border-slate-200 bg-white p-3">
+          <div key={zone} className="rounded-xl border border-edge bg-surface p-3">
             <div className="mb-2 flex items-center gap-2">
               <span className={`h-2.5 w-2.5 rounded-full ${ZONE_ACCENT[zone].swatch}`} aria-hidden="true" />
-              <span className="text-sm font-bold capitalize text-slate-900">{zone}</span>
-              <span className="ml-auto text-xs tabular-nums text-slate-500">{zoneRange[zone]}</span>
+              <span className="text-sm font-bold capitalize text-ink">{zone}</span>
+              <span className="ml-auto text-xs tabular-nums text-ink-secondary">{zoneRange[zone]}</span>
             </div>
             <div className="space-y-2">
               {zone === "outside" && (
@@ -175,7 +175,7 @@ export function HandednessView({ value, onChange, driftModel, onDriftModelChange
 function Row({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
   return (
     <div className="flex min-h-[3rem] items-center gap-3">
-      <span className="text-sm text-slate-700">
+      <span className="text-sm text-ink-strong">
         {label}
         {hint && <span className="ml-1 text-xs text-ink-secondary">({hint})</span>}
       </span>
@@ -203,23 +203,23 @@ function DriftStepper({
   const leftStep = hand === "right" ? -0.5 : 0.5;
   const nudge = (d: number) => onChange(Math.max(-10, Math.min(10, value + d)));
   return (
-    <div className="inline-flex items-center rounded-lg border border-slate-200 bg-white">
+    <div className="inline-flex items-center rounded-lg border border-edge bg-surface">
       <button
         type="button"
         aria-label={`Move ${ariaLabel} left`}
         onClick={() => nudge(leftStep)}
-        className="inline-flex h-11 w-11 items-center justify-center rounded-l-lg text-slate-600 hover:bg-slate-100"
+        className="inline-flex h-11 w-11 items-center justify-center rounded-l-lg text-ink-secondary hover:bg-surface-muted"
       >
         <span aria-hidden="true" className="text-sm">◀</span>
       </button>
-      <span className="w-28 text-center text-sm font-bold tabular-nums text-slate-900">
+      <span className="w-28 text-center text-sm font-bold tabular-nums text-ink">
         {dir === "none" ? "None" : `${Math.abs(value)} ${dir}`}
       </span>
       <button
         type="button"
         aria-label={`Move ${ariaLabel} right`}
         onClick={() => nudge(-leftStep)}
-        className="inline-flex h-11 w-11 items-center justify-center rounded-r-lg text-slate-600 hover:bg-slate-100"
+        className="inline-flex h-11 w-11 items-center justify-center rounded-r-lg text-ink-secondary hover:bg-surface-muted"
       >
         <span aria-hidden="true" className="text-sm">▶</span>
       </button>
@@ -243,21 +243,21 @@ function Stepper({
   onChange: (v: number) => void;
 }) {
   return (
-    <div className="inline-flex items-center rounded-lg border border-slate-200 bg-white">
+    <div className="inline-flex items-center rounded-lg border border-edge bg-surface">
       <button
         type="button"
         aria-label={`Decrease ${ariaLabel}`}
         onClick={() => onChange(Math.max(min, value - step))}
-        className="inline-flex h-11 w-11 items-center justify-center rounded-l-lg text-slate-600 hover:bg-slate-100"
+        className="inline-flex h-11 w-11 items-center justify-center rounded-l-lg text-ink-secondary hover:bg-surface-muted"
       >
         <span aria-hidden="true" className="text-sm">◀</span>
       </button>
-      <span className="w-28 text-center text-sm font-bold tabular-nums text-slate-900">{value}</span>
+      <span className="w-28 text-center text-sm font-bold tabular-nums text-ink">{value}</span>
       <button
         type="button"
         aria-label={`Increase ${ariaLabel}`}
         onClick={() => onChange(Math.min(max, value + step))}
-        className="inline-flex h-11 w-11 items-center justify-center rounded-r-lg text-slate-600 hover:bg-slate-100"
+        className="inline-flex h-11 w-11 items-center justify-center rounded-r-lg text-ink-secondary hover:bg-surface-muted"
       >
         <span aria-hidden="true" className="text-sm">▶</span>
       </button>
