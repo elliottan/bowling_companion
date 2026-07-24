@@ -1,5 +1,19 @@
 /** @type {import('tailwindcss').Config} */
+
+// Semantic tokens resolve to CSS variables (defined in src/index.css) so they
+// can flip between light and dark without touching call sites. The channel
+// triples pair with `/ <alpha-value>` so opacity utilities (bg-surface/60)
+// still work. `felt` and `lane` stay static — they are brand identity, not
+// theme-dependent surfaces. `accent` is felt used as interactive text/icon,
+// which unlike the felt fill must lighten on a dark background.
+const withVar = (v) => `rgb(var(${v}) / <alpha-value>)`;
+
 export default {
+  // A pre-paint script in index.html resolves prefers-color-scheme (and any
+  // stored override) into a data-theme attribute on <html>, so this attribute
+  // is always the single source of truth. Rare explicit dark: variants key off
+  // it; most themed color comes from the variable-backed tokens above.
+  darkMode: ["selector", '[data-theme="dark"]'],
   content: ["./index.html", "./src/**/*.{ts,tsx}"],
   theme: {
     extend: {
@@ -16,32 +30,34 @@ export default {
           700: "#1b5148",
           800: "#143d36"
         },
-        // Role-named tokens mirroring the slate/red/emerald values already in
-        // use across the app. Pending call-site migration.
+        accent: {
+          DEFAULT: withVar("--color-accent"),
+          soft: withVar("--color-accent-soft")
+        },
         surface: {
-          DEFAULT: "#ffffff",
-          sunken: "#fff8ed",
-          muted: "#f8fafc"
+          DEFAULT: withVar("--color-surface"),
+          sunken: withVar("--color-surface-sunken"),
+          muted: withVar("--color-surface-muted")
         },
         ink: {
-          DEFAULT: "#020617",
-          secondary: "#64748b",
-          tertiary: "#94a3b8"
+          DEFAULT: withVar("--color-ink"),
+          secondary: withVar("--color-ink-secondary"),
+          tertiary: withVar("--color-ink-tertiary")
         },
         edge: {
-          DEFAULT: "#e2e8f0",
-          strong: "#cbd5e1"
+          DEFAULT: withVar("--color-edge"),
+          strong: withVar("--color-edge-strong")
         },
         danger: {
-          50: "#fef2f2",
-          200: "#fecaca",
-          600: "#dc2626",
-          700: "#b91c1c"
+          50: withVar("--color-danger-50"),
+          200: withVar("--color-danger-200"),
+          600: withVar("--color-danger-600"),
+          700: withVar("--color-danger-700")
         },
         success: {
-          50: "#ecfdf5",
-          200: "#a7f3d0",
-          700: "#047857"
+          50: withVar("--color-success-50"),
+          200: withVar("--color-success-200"),
+          700: withVar("--color-success-700")
         }
       }
     }

@@ -47,7 +47,57 @@ textarea,
   font-family:
     ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
     sans-serif;
+}
+
+/*
+ * Semantic color tokens as RGB channel triples (space-separated, no rgb())
+ * so Tailwind can apply `/ <alpha-value>`. Names are roles, not shades: the
+ * `50/200/700` on danger/success mean subtle-bg / border / strong-fg, and
+ * those roles keep their meaning in dark mode even though the lightness
+ * inverts. A pre-paint script sets data-theme, so [data-theme] is always
+ * present — :root here is the light fallback for the brief pre-script moment.
+ */
+:root,
+:root[data-theme="light"] {
   color-scheme: light;
+  --color-surface: 255 255 255;
+  --color-surface-sunken: 255 248 237; /* lane-50 cream */
+  --color-surface-muted: 248 250 252; /* slate-50 */
+  --color-ink: 2 6 23; /* slate-950 */
+  --color-ink-secondary: 100 116 139; /* slate-500 */
+  --color-ink-tertiary: 148 163 184; /* slate-400 */
+  --color-edge: 226 232 240; /* slate-200 */
+  --color-edge-strong: 203 213 225; /* slate-300 */
+  --color-accent: 27 81 72; /* felt-700, for interactive text/icons */
+  --color-accent-soft: 240 247 245; /* felt-50 tint bg */
+  --color-danger-50: 254 242 242;
+  --color-danger-200: 254 202 202;
+  --color-danger-600: 220 38 38;
+  --color-danger-700: 185 28 28;
+  --color-success-50: 236 253 245;
+  --color-success-200: 167 243 208;
+  --color-success-700: 4 120 87;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --color-surface: 30 41 59; /* slate-800 — elevated card */
+  --color-surface-sunken: 15 23 42; /* slate-900 — app background */
+  --color-surface-muted: 51 65 85; /* slate-700 — subtle raise */
+  --color-ink: 241 245 249; /* slate-100 */
+  --color-ink-secondary: 148 163 184; /* slate-400 */
+  --color-ink-tertiary: 100 116 139; /* slate-500 */
+  --color-edge: 51 65 85; /* slate-700 */
+  --color-edge-strong: 71 85 105; /* slate-600 */
+  --color-accent: 94 214 193; /* lightened felt, legible on dark */
+  --color-accent-soft: 22 44 40; /* deep felt tint bg */
+  --color-danger-50: 60 20 20; /* deep red bg */
+  --color-danger-200: 127 29 29; /* red-900 border */
+  --color-danger-600: 239 68 68; /* red-500, brighter fill */
+  --color-danger-700: 248 113 113; /* red-400 text on dark */
+  --color-success-50: 6 46 27; /* deep green bg */
+  --color-success-200: 20 83 45; /* green-900 border */
+  --color-success-700: 52 211 153; /* emerald-400 text on dark */
 }
 
 button,

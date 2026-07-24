@@ -3,13 +3,36 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=overlays-content" />
-    <meta name="theme-color" content="#1b5148" />
+    <meta name="theme-color" content="#fff8ed" />
     <link rel="apple-touch-icon" href="/icons/icon-192.png" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="Bowling" />
     <title>Bowling Companion</title>
+    <!--
+      Resolve the theme before first paint so there is no light-mode flash.
+      Stored 'theme' ('light'|'dark') wins; otherwise follow the OS. When no
+      preference is stored we also track OS changes live. Also keeps the
+      browser/standalone chrome color (theme-color) in sync with the shell.
+    -->
+    <script>
+      (function () {
+        var root = document.documentElement;
+        function apply(dark) {
+          root.dataset.theme = dark ? "dark" : "light";
+          var meta = document.querySelector('meta[name="theme-color"]');
+          if (meta) meta.setAttribute("content", dark ? "#0f172a" : "#fff8ed");
+        }
+        var stored = null;
+        try {
+          stored = localStorage.getItem("theme");
+        } catch (e) {}
+        var mq = window.matchMedia("(prefers-color-scheme: dark)");
+        apply(stored ? stored === "dark" : mq.matches);
+        if (!stored) mq.addEventListener("change", function (e) { apply(e.matches); });
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>
