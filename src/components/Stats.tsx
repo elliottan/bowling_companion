@@ -1,5 +1,6 @@
 import { BarChart3 } from "lucide-react";
-import { describePinsStanding, isBabySplit, isSplit } from "../lib/pins";
+import { MiniPins } from "./MiniPins";
+import { isBabySplit, isSplit } from "../lib/pins";
 import type { BallUsage, BowlingStats, LeaveStats } from "../lib/stats";
 import type { PinNumber } from "../types/bowling";
 
@@ -138,7 +139,7 @@ function LeaveCell({ leave, muted = false }: { leave: LeaveStats; muted?: boolea
         muted ? "border-edge bg-white/60" : "border-edge bg-surface shadow-sm"
       }`}
     >
-      <MiniPinDisplay pins={leave.pins} />
+      <MiniPins standing={leave.pins} size="sm" />
       <p className="text-xs font-medium text-ink-strong">{formatLeave(leave.pins)}</p>
       <p
         className={`text-sm font-bold ${
@@ -152,33 +153,6 @@ function LeaveCell({ leave, muted = false }: { leave: LeaveStats; muted?: boolea
       <p className="text-[11px] text-ink-secondary">
         {leave.conversions}/{leave.attempts}
       </p>
-    </div>
-  );
-}
-
-function MiniPinDisplay({ pins }: { pins: PinNumber[] }) {
-  const pinSet = new Set(pins);
-  const rows: PinNumber[][] = [[7, 8, 9, 10], [4, 5, 6], [2, 3], [1]];
-  return (
-    <div
-      className="flex shrink-0 flex-col items-center gap-0.5"
-      role="img"
-      aria-label={describePinsStanding(pins)}
-    >
-      {rows.map((row) => (
-        <div key={row.join("-")} className="flex gap-0.5">
-          {row.map((pin) => (
-            <div
-              key={pin}
-              className={`h-3.5 w-3.5 rounded-full text-[7px] leading-[14px] text-center font-bold ${
-                pinSet.has(pin) ? "bg-accent-fill text-accent-on-fill" : "bg-surface-muted text-ink-tertiary"
-              }`}
-            >
-              {pin}
-            </div>
-          ))}
-        </div>
-      ))}
     </div>
   );
 }

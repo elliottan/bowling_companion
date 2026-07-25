@@ -1,4 +1,4 @@
-import { Lock, Minus, Plus, SlidersHorizontal, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Lock, Minus, Plus, SlidersHorizontal, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import type { LineSpec, PinNumber } from "../types/bowling";
 import { useHandedness } from "../lib/handednessContext";
@@ -672,7 +672,7 @@ function StepperField({
           onClick={() => (locked ? onUnlock?.() : nudge(leftDelta))}
           className="flex w-5 shrink-0 items-center justify-center text-white/70 hover:bg-white/10"
         >
-          {lateral ? <span aria-hidden="true" className="text-[10px]">◀</span> : <Minus size={11} aria-hidden="true" />}
+          {lateral ? <ChevronLeft size={11} aria-hidden="true" /> : <Minus size={11} aria-hidden="true" />}
         </button>
         <input
           type="text"
@@ -692,7 +692,7 @@ function StepperField({
           onClick={() => (locked ? onUnlock?.() : nudge(-leftDelta))}
           className="flex w-5 shrink-0 items-center justify-center text-white/70 hover:bg-white/10"
         >
-          {lateral ? <span aria-hidden="true" className="text-[10px]">▶</span> : <Plus size={11} aria-hidden="true" />}
+          {lateral ? <ChevronRight size={11} aria-hidden="true" /> : <Plus size={11} aria-hidden="true" />}
         </button>
       </div>
     </div>

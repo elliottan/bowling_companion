@@ -42,12 +42,12 @@ export class AppErrorBoundary extends Component<Props, State> {
     }
 
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-white p-6 text-center text-neutral-900">
+      <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-surface p-6 text-center text-ink">
         <h1 className="text-lg font-semibold">Something went wrong</h1>
-        <p className="text-sm text-neutral-600">
+        <p className="text-sm text-ink-secondary">
           Sorry about that — the app hit an unexpected error and couldn&apos;t continue.
         </p>
-        <p className="max-w-sm truncate rounded bg-neutral-100 px-3 py-2 text-xs text-neutral-500">
+        <p className="max-w-sm truncate rounded-lg bg-surface-muted px-3 py-2 text-xs text-ink-secondary">
           {error.message}
         </p>
         <div className="flex gap-3">
@@ -59,7 +59,7 @@ export class AppErrorBoundary extends Component<Props, State> {
           </Button>
         </div>
         {exportState === "success" && (
-          <p className="text-xs text-green-600">Backup exported.</p>
+          <p className="text-xs text-success-700">Backup exported.</p>
         )}
         {exportState === "failure" && (
           <p className="text-xs text-red-600">Export failed. Please try again.</p>

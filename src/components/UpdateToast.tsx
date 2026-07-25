@@ -22,7 +22,7 @@ export function UpdateToast() {
       className="fixed inset-x-0 z-[50] flex justify-center px-3"
       style={{ bottom: "calc(4rem + env(safe-area-inset-bottom) + 0.75rem)" }}
     >
-      <div className="flex w-full max-w-sm items-center gap-3 rounded-xl bg-slate-950 px-4 py-3 text-white shadow-xl">
+      <div className="flex w-full max-w-sm items-center gap-3 rounded-xl bg-ink px-4 py-3 text-surface shadow-xl">
         <p className="flex-1 text-sm font-medium">Update available</p>
         <Button variant="primary" onClick={() => applyUpdate()}>
           Update

@@ -550,7 +550,7 @@ export function CatalogView({ onBack }: CatalogViewProps) {
           </div>
         )}
         {syncState.status === "error" && (
-          <div className="mb-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
+          <div className="mb-3 rounded-lg border border-warning-200 bg-warning-50 px-3 py-2 text-sm text-warning-700">
             <span className="font-semibold">Could not update catalog:</span> {syncState.message}. Showing last saved data.
           </div>
         )}

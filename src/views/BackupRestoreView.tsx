@@ -101,7 +101,7 @@ export function BackupRestoreView() {
       {message && (
         <p
           role="status"
-          className="mt-3 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm font-semibold text-emerald-800"
+          className="mt-3 rounded-lg border border-success-200 bg-success-50 p-3 text-sm font-semibold text-success-700"
         >
           {message}
         </p>

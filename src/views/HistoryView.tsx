@@ -177,7 +177,7 @@ export function HistoryView({ onOpenSession, activeSessionId, onSessionDeleted }
               // uses. Tap target reaches 44pt via vertical expansion, which is
               // safe against the horizontal neighbour since it adds no width.
               className={`relative h-9 rounded-md px-3 text-xs font-semibold capitalize ${TAP_TARGET_44} ${
-                pane === p ? "bg-surface text-accent shadow-sm" : "text-ink-secondary"
+                pane === p ? "bg-surface text-accent shadow-sm" : "text-ink-strong"
               }`}
             >
               {p}

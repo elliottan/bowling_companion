@@ -65,6 +65,11 @@ export default {
           50: withVar("--color-success-50"),
           200: withVar("--color-success-200"),
           700: withVar("--color-success-700")
+        },
+        warning: {
+          50: withVar("--color-warning-50"),
+          200: withVar("--color-warning-200"),
+          700: withVar("--color-warning-700")
         }
       }
     }

@@ -1,4 +1,4 @@
-import { Eye, Plus, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Eye, Plus, X } from "lucide-react";
 import type { PointerEvent as ReactPointerEvent } from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -292,9 +292,9 @@ function LineInput({
             aria-label={`${FIELD_LABEL[focused]} ±0.5 — tap left to ${dir > 0 ? "increase" : "decrease"}, right to ${dir > 0 ? "decrease" : "increase"}`}
             onPointerDown={halfTap(() => nudge(focused, 0.5 * dir), () => nudge(focused, -0.5 * dir))}
           >
-            <span aria-hidden="true" className="absolute left-3 text-base font-bold text-ink-strong">◀</span>
+            <ChevronLeft aria-hidden="true" size={16} strokeWidth={3} className="absolute left-3 text-ink-strong" />
             {FIELD_LABEL[focused]} ±0.5
-            <span aria-hidden="true" className="absolute right-3 text-base font-bold text-ink-strong">▶</span>
+            <ChevronRight aria-hidden="true" size={16} strokeWidth={3} className="absolute right-3 text-ink-strong" />
           </Button>
         </div>
       )}
@@ -311,9 +311,9 @@ function LineInput({
               aria-label={`Move ${p.label} — tap left for ${dir > 0 ? "higher" : "lower"} boards, right for ${dir > 0 ? "lower" : "higher"}`}
               onPointerDown={halfTap(() => move(p.stance * dir, p.target * dir), () => move(-p.stance * dir, -p.target * dir))}
             >
-              <span aria-hidden="true" className="absolute left-3 text-base font-bold text-ink-strong">◀</span>
+              <ChevronLeft aria-hidden="true" size={16} strokeWidth={3} className="absolute left-3 text-ink-strong" />
               Move {p.label}
-              <span aria-hidden="true" className="absolute right-3 text-base font-bold text-ink-strong">▶</span>
+              <ChevronRight aria-hidden="true" size={16} strokeWidth={3} className="absolute right-3 text-ink-strong" />
             </button>
           ))}
         </div>

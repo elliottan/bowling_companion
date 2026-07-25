@@ -81,6 +81,9 @@ textarea,
   --color-success-50: 236 253 245;
   --color-success-200: 167 243 208;
   --color-success-700: 4 120 87;
+  --color-warning-50: 255 251 235;
+  --color-warning-200: 253 230 138;
+  --color-warning-700: 120 53 15;
 }
 
 :root[data-theme="dark"] {
@@ -109,6 +112,9 @@ textarea,
   --color-success-50: 6 46 27; /* deep green bg */
   --color-success-200: 20 83 45; /* green-900 border */
   --color-success-700: 52 211 153; /* emerald-400 text on dark */
+  --color-warning-50: 45 33 8; /* deep amber bg */
+  --color-warning-200: 120 84 15; /* amber-800 border */
+  --color-warning-700: 252 211 77; /* amber-300 text on dark */
 }
 
 button,

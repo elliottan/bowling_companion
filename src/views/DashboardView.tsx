@@ -123,7 +123,7 @@ export function DashboardView({
       )}
 
       {showBackupNudge && (
-        <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+        <div className="mb-4 rounded-lg border border-warning-200 bg-warning-50 p-3 text-sm text-warning-700">
           <p>
             {nudgeNeverBackedUp
               ? `${nudgeSessionsSince} sessions, never backed up.`
@@ -133,24 +133,24 @@ export function DashboardView({
             <button
               type="button"
               onClick={onOpenBackup}
-              className={`relative text-xs font-bold text-amber-900 underline hover:no-underline ${TAP_TARGET_44}`}
+              className={`relative text-xs font-bold text-warning-700 underline hover:no-underline ${TAP_TARGET_44}`}
             >
               Export backup
             </button>
             <button
               type="button"
               onClick={handleBackupLater}
-              className={`relative inline-flex min-w-11 items-center justify-center text-xs font-semibold text-amber-700 hover:underline ${TAP_TARGET_44}`}
+              className={`relative inline-flex min-w-11 items-center justify-center text-xs font-semibold text-warning-700/80 hover:underline ${TAP_TARGET_44}`}
             >
               Later
             </button>
           </div>
           {showInstallLine && (
-            <div className="mt-2 flex items-center gap-3 border-t border-amber-200 pt-2">
+            <div className="mt-2 flex items-center gap-3 border-t border-warning-200 pt-2">
               <button
                 type="button"
                 onClick={() => setInstallPromptOpen(true)}
-                className={`relative inline-flex items-center gap-1 text-xs font-bold text-amber-900 underline hover:no-underline ${TAP_TARGET_44}`}
+                className={`relative inline-flex items-center gap-1 text-xs font-bold text-warning-700 underline hover:no-underline ${TAP_TARGET_44}`}
               >
                 <Smartphone size={12} aria-hidden="true" />
                 Installing the app protects your data from 7-day cleanup
@@ -158,7 +158,7 @@ export function DashboardView({
               <button
                 type="button"
                 onClick={dismissInstallLine}
-                className={`relative text-xs font-semibold text-amber-700 hover:underline ${TAP_TARGET_44}`}
+                className={`relative text-xs font-semibold text-warning-700/80 hover:underline ${TAP_TARGET_44}`}
               >
                 Dismiss
               </button>

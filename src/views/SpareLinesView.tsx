@@ -17,10 +17,10 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { ErrorBanner } from "../components/ErrorBanner";
 import { LaneVisualizer } from "../components/LaneVisualizer";
+import { MiniPins } from "../components/MiniPins";
 import { SpareLineFormDialog } from "../components/SpareLineFormDialog";
 import { IconButton } from "../components/ui/IconButton";
 import { useDriftModel } from "../lib/driftModelContext";
-import { describePinsStanding } from "../lib/pins";
 import { deriveLaydown, deriveSlide, syncStanceLaydown, type DriftModel } from "../lib/driftModel";
 import {
   deleteSpareLine,
@@ -29,36 +29,7 @@ import {
   reorderSpareLines,
   upsertSpareLine,
 } from "../services/ballRepository";
-import type { LineSpec, PinNumber, SpareLine } from "../types/bowling";
-
-function SmallPinDiagram({ standing }: { standing: PinNumber[] }) {
-  const standingSet = new Set(standing);
-  const rows: PinNumber[][] = [[7, 8, 9, 10], [4, 5, 6], [2, 3], [1]];
-  return (
-    <div
-      className="flex flex-col items-center gap-0.5"
-      role="img"
-      aria-label={describePinsStanding(standing)}
-    >
-      {rows.map((row) => (
-        <div key={row.join("-")} className="flex gap-0.5">
-          {row.map((pin) => (
-            <div
-              key={pin}
-              className={`flex h-5 w-5 items-center justify-center rounded-full text-[9px] font-bold ${
-                standingSet.has(pin as PinNumber)
-                  ? "bg-accent-fill text-accent-on-fill"
-                  : "bg-surface-muted text-ink-tertiary"
-              }`}
-            >
-              {pin}
-            </div>
-          ))}
-        </div>
-      ))}
-    </div>
-  );
-}
+import type { LineSpec, SpareLine } from "../types/bowling";
 
 /** Slide → laydown, derived from the stance (ADR-030). Read-only, so it sits
  *  under the entered boards in a lighter weight. */
@@ -108,7 +79,7 @@ function SortableSpareCard({ sl, onOpen }: SortableSpareCardProps) {
           aria-label={`Open lane view for pins ${sl.pins.join(", ")}`}
           className="flex w-full touch-none flex-col items-center gap-1.5 active:opacity-70"
         >
-          <SmallPinDiagram standing={sl.pins} />
+          <MiniPins standing={sl.pins} size="md" />
           {sl.line ? (
             <div className="w-full">
               {/* The two boards you act on. Laydown is derived from the stance,

@@ -1,3 +1,4 @@
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useState } from "react";
 import { HandednessPicker } from "../components/HandednessPicker";
 import { ConfirmDialog } from "../components/ConfirmDialog";
@@ -210,7 +211,7 @@ function DriftStepper({
         onClick={() => nudge(leftStep)}
         className="inline-flex h-11 w-11 items-center justify-center rounded-l-lg text-ink-secondary hover:bg-surface-muted"
       >
-        <span aria-hidden="true" className="text-sm">◀</span>
+        <ChevronLeft size={14} aria-hidden="true" />
       </button>
       <span className="w-28 text-center text-sm font-bold tabular-nums text-ink">
         {dir === "none" ? "None" : `${Math.abs(value)} ${dir}`}
@@ -221,7 +222,7 @@ function DriftStepper({
         onClick={() => nudge(-leftStep)}
         className="inline-flex h-11 w-11 items-center justify-center rounded-r-lg text-ink-secondary hover:bg-surface-muted"
       >
-        <span aria-hidden="true" className="text-sm">▶</span>
+        <ChevronRight size={14} aria-hidden="true" />
       </button>
     </div>
   );
@@ -250,7 +251,7 @@ function Stepper({
         onClick={() => onChange(Math.max(min, value - step))}
         className="inline-flex h-11 w-11 items-center justify-center rounded-l-lg text-ink-secondary hover:bg-surface-muted"
       >
-        <span aria-hidden="true" className="text-sm">◀</span>
+        <ChevronLeft size={14} aria-hidden="true" />
       </button>
       <span className="w-28 text-center text-sm font-bold tabular-nums text-ink">{value}</span>
       <button
@@ -259,7 +260,7 @@ function Stepper({
         onClick={() => onChange(Math.min(max, value + step))}
         className="inline-flex h-11 w-11 items-center justify-center rounded-r-lg text-ink-secondary hover:bg-surface-muted"
       >
-        <span aria-hidden="true" className="text-sm">▶</span>
+        <ChevronRight size={14} aria-hidden="true" />
       </button>
     </div>
   );
