@@ -316,15 +316,15 @@ function App() {
     <DriftModelContext.Provider value={driftModel}>
     {/* `fixed inset-0` is load-bearing, not cosmetic — see the note above. */}
     <div
-      className="fixed inset-0 flex flex-col overflow-hidden bg-lane-50 pt-[env(safe-area-inset-top)] text-slate-950"
+      className="fixed inset-0 flex flex-col overflow-hidden bg-surface-sunken pt-[env(safe-area-inset-top)] text-ink"
     >
-      <header className="hidden shrink-0 border-b border-slate-200 bg-white sm:block">
+      <header className="hidden shrink-0 border-b border-edge bg-surface sm:block">
         <div className="mx-auto flex w-full max-w-5xl items-center justify-between px-3 py-3 sm:px-6">
           {view === "dashboard" ? (
             <button
               type="button"
               onClick={() => goTo("dashboard")}
-              className="text-base font-bold tracking-tight text-slate-950 sm:text-lg"
+              className="text-base font-bold tracking-tight text-ink sm:text-lg"
             >
               Bowling Companion
             </button>
@@ -399,14 +399,14 @@ function App() {
         )}
       </main>
 
-      <nav className={`relative grid shrink-0 grid-cols-5 border-t border-slate-200 bg-white pb-[env(safe-area-inset-bottom)] sm:hidden ${keyboardOpen ? "hidden" : ""}`}>
+      <nav className={`relative grid shrink-0 grid-cols-5 border-t border-edge bg-surface pb-[env(safe-area-inset-bottom)] sm:hidden ${keyboardOpen ? "hidden" : ""}`}>
         {/* Single highlight that slides to the active tab. */}
         <span
           aria-hidden="true"
           className="pointer-events-none absolute top-0 left-0 h-[3px] w-1/5 transition-transform duration-200 ease-out"
           style={{ transform: `translateX(${Math.max(0, MOBILE_NAV_ITEMS.findIndex((i) => i.view === view)) * 100}%)` }}
         >
-          <span className="mx-3 block h-full rounded-b-full bg-felt-700" />
+          <span className="mx-3 block h-full rounded-b-full bg-accent-fill" />
         </span>
         {MOBILE_NAV_ITEMS.map((item) => (
           <TabBarButton
@@ -425,7 +425,7 @@ function App() {
           <div className="absolute inset-0 bg-black/40" onClick={closeArsenal} />
           {/* Bottom sheet */}
           <div
-            className="absolute bottom-0 left-0 right-0 flex flex-col rounded-t-2xl bg-lane-50 shadow-xl"
+            className="absolute bottom-0 left-0 right-0 flex flex-col rounded-t-2xl bg-surface-sunken shadow-xl"
             style={{
               top: "72px",
               transform: `translateY(${sheetDrag}px)`,
@@ -456,7 +456,7 @@ function App() {
                 sheetDragStartY.current = null;
               }}
             >
-              <div className="h-1.5 w-10 rounded-full bg-slate-300" />
+              <div className="h-1.5 w-10 rounded-full bg-edge-strong" />
             </div>
             <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
               <ArsenalView onOpenCatalog={() => { setArsenalOpen(false); goTo("catalog"); }} />
@@ -478,9 +478,9 @@ function App() {
 
       {handednessLoaded && handedness === null && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4" role="dialog" aria-modal="true">
-          <div className="w-full max-w-sm rounded-xl bg-white p-5 shadow-xl">
-            <h2 className="text-base font-bold text-slate-950">Which hand do you bowl with?</h2>
-            <p className="mt-1.5 text-sm text-slate-600">
+          <div className="w-full max-w-sm rounded-xl bg-surface p-5 shadow-xl">
+            <h2 className="text-base font-bold text-ink">Which hand do you bowl with?</h2>
+            <p className="mt-1.5 text-sm text-ink-secondary">
               This sets the direction of the board-adjust arrows when entering your line. You can change it later in Settings → Preferences.
             </p>
             <div className="mt-4">
@@ -512,8 +512,8 @@ function NavLink({ item, active, disabled, onClick }: NavItemProps) {
       disabled={disabled}
       className={`inline-flex h-9 items-center gap-1.5 rounded-md px-3 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-40 ${
         active
-          ? "bg-felt-700 text-white"
-          : "text-slate-700 hover:bg-slate-100"
+          ? "bg-accent-fill text-accent-on-fill"
+          : "text-ink-strong hover:bg-surface-muted"
       }`}
     >
       <Icon size={16} aria-hidden="true" />
@@ -531,7 +531,7 @@ function TabBarButton({ item, active, disabled, onClick }: NavItemProps) {
       onClick={onClick}
       disabled={disabled}
       className={`relative flex h-16 flex-col items-center justify-center gap-1 text-[11px] disabled:cursor-not-allowed disabled:opacity-40 ${
-        active ? "font-bold text-felt-700" : "font-medium text-slate-600"
+        active ? "font-bold text-accent" : "font-medium text-ink-secondary"
       }`}
     >
       <Icon size={20} aria-hidden="true" />

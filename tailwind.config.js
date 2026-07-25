@@ -32,7 +32,13 @@ export default {
         },
         accent: {
           DEFAULT: withVar("--color-accent"),
-          soft: withVar("--color-accent-soft")
+          soft: withVar("--color-accent-soft"),
+          // Brand fill for primary buttons/badges. A token, not static felt-700,
+          // because felt-700 on the dark background measures 1.97:1 — the button
+          // shape itself disappears. Lightens in dark to clear 3:1.
+          fill: withVar("--color-accent-fill"),
+          "fill-hover": withVar("--color-accent-fill-hover"),
+          "on-fill": withVar("--color-accent-on-fill")
         },
         surface: {
           DEFAULT: withVar("--color-surface"),

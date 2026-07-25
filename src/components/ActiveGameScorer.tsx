@@ -255,7 +255,7 @@ function LineInput({
               onChange={(e) => update(field, e.target.value)}
               onFocus={() => { onFieldFocus?.(); setFocused(field); }}
               onBlur={() => setFocused((f) => (f === field ? null : f))}
-              className="h-9 w-full min-w-0 rounded-lg border border-edge bg-surface-muted text-center text-sm font-semibold tabular-nums text-ink focus:border-felt-700 focus:bg-surface focus:outline-none"
+              className="h-9 w-full min-w-0 rounded-lg border border-edge bg-surface-muted text-center text-sm font-semibold tabular-nums text-ink focus:border-accent-fill focus:bg-surface focus:outline-none"
               title={field === "target" ? "Target board (arrows)" : `${FIELD_LABEL[field]} board`}
             />
           </label>
@@ -579,7 +579,7 @@ function ShotDetailBar({
             }}
             rows={2}
             placeholder="This shot…"
-            className="w-full resize-none overflow-y-auto rounded-lg border border-edge bg-surface-muted px-2 pb-1 pt-1.5 text-[11px] leading-snug text-ink placeholder:text-ink-tertiary focus:border-felt-700 focus:bg-surface focus:outline-none"
+            className="w-full resize-none overflow-y-auto rounded-lg border border-edge bg-surface-muted px-2 pb-1 pt-1.5 text-[11px] leading-snug text-ink placeholder:text-ink-tertiary focus:border-accent-fill focus:bg-surface focus:outline-none"
           />
         </label>
       </div>
@@ -1052,7 +1052,7 @@ export function ActiveGameScorer({
                       <span
                         key={l}
                         className={`inline-flex h-6 min-w-[1.5rem] items-center justify-center rounded-md px-1.5 text-xs font-bold ${
-                          l === (isEditing ? viewedLane : currentLane) ? "bg-felt-700 text-white" : "bg-surface-muted text-ink-secondary"
+                          l === (isEditing ? viewedLane : currentLane) ? "bg-accent-fill text-accent-on-fill" : "bg-surface-muted text-ink-secondary"
                         }`}
                       >
                         {l}
@@ -1099,14 +1099,14 @@ export function ActiveGameScorer({
                     void recordShot([]);
                   }
                 }}
-                className="inline-flex h-11 flex-1 items-center justify-center rounded-lg bg-felt-700 text-sm font-bold text-white shadow-sm hover:bg-felt-500"
+                className="inline-flex h-11 flex-1 items-center justify-center rounded-lg bg-accent-fill text-sm font-bold text-accent-on-fill shadow-sm hover:bg-accent-fill-hover"
               >
                 {editStrikeOrSpareLabel}
               </button>
               <button
                 type="button"
                 onClick={() => (isEditing ? goLive() : void recordShot())}
-                className="inline-flex h-11 flex-1 items-center justify-center gap-1.5 rounded-lg border border-felt-700 bg-surface text-sm font-semibold text-accent hover:bg-felt-50"
+                className="inline-flex h-11 flex-1 items-center justify-center gap-1.5 rounded-lg border border-accent-fill bg-surface text-sm font-semibold text-accent hover:bg-felt-50"
               >
                 Next
               </button>
@@ -1114,7 +1114,7 @@ export function ActiveGameScorer({
           ) : null}
 
           {pendingSpareLeave && (
-            <div className="flex items-center gap-2 rounded-lg border border-felt-700 bg-felt-50 px-3 py-2">
+            <div className="flex items-center gap-2 rounded-lg border border-accent-fill bg-felt-50 px-3 py-2">
               <button
                 type="button"
                 onClick={() => setShowSpareLineDialog(true)}

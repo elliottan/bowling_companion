@@ -170,7 +170,7 @@ function LaneCell({
   return (
     <div
       className={`rounded-lg border p-2.5 ${
-        current ? "border-felt-700 bg-felt-700/5" : "border-edge bg-surface"
+        current ? "border-accent-fill bg-accent-fill/5" : "border-edge bg-surface"
       }`}
     >
       <div className="flex items-center justify-between gap-1">
@@ -191,7 +191,7 @@ function LaneCell({
             rows={3}
             autoFocus
             placeholder="How this lane plays…"
-            className="w-full rounded-md border border-edge-strong px-2 py-1 text-xs outline-none focus:border-felt-700"
+            className="w-full rounded-md border border-edge-strong px-2 py-1 text-xs outline-none focus:border-accent-fill"
           />
           <div className="flex flex-wrap items-center gap-1.5">
             <Button variant="primary" onClick={onSave} className="text-xs">

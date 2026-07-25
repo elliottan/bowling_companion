@@ -143,7 +143,7 @@ function SessionRow({ summary, isActive, onOpen, onSessionChanged, onSessionDele
         if (session.id) onOpen(session.id);
       }}
       className={`w-full rounded-lg border bg-surface p-4 text-left shadow-sm ${
-        isActive ? "border-felt-700 ring-1 ring-felt-700" : "border-edge"
+        isActive ? "border-accent-fill ring-1 ring-accent-fill" : "border-edge"
       }`}
     >
       <div className="flex items-start justify-between gap-3">
@@ -163,7 +163,7 @@ function SessionRow({ summary, isActive, onOpen, onSessionChanged, onSessionDele
         </div>
         <div className="flex shrink-0 flex-col items-end gap-0.5 pr-14 text-right">
           {hasUnfinishedGame && (
-            <span className="inline-flex items-center rounded-full bg-felt-700 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-white">
+            <span className="inline-flex items-center rounded-full bg-accent-fill px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-accent-on-fill">
               Active
             </span>
           )}

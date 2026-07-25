@@ -39,7 +39,7 @@ const EMPTY: BowlingStats = {
 };
 
 const selectClass =
-  "h-8 max-w-[46%] rounded-full border border-edge-strong bg-surface px-3 text-xs font-medium outline-none focus:border-felt-700";
+  "h-8 max-w-[46%] rounded-full border border-edge-strong bg-surface px-3 text-xs font-medium outline-none focus:border-accent-fill";
 
 export function HistoryView({ onOpenSession, activeSessionId, onSessionDeleted }: HistoryViewProps) {
   const [history, setHistory] = useState<SessionSummary[]>([]);

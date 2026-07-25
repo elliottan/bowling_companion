@@ -267,7 +267,7 @@ function SessionSheetTab({
             <div className="mb-1.5 flex items-center gap-2">
               <h3 className="text-sm font-bold text-ink">Game {game.game_number}</h3>
               {game.id === currentGameId && (
-                <span className="rounded-full bg-felt-700 px-1.5 py-0.5 text-[11px] font-bold uppercase tracking-wide text-white">
+                <span className="rounded-full bg-accent-fill px-1.5 py-0.5 text-[11px] font-bold uppercase tracking-wide text-accent-on-fill">
                   Current
                 </span>
               )}

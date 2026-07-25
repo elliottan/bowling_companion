@@ -171,7 +171,7 @@ function MiniPinDisplay({ pins }: { pins: PinNumber[] }) {
             <div
               key={pin}
               className={`h-3.5 w-3.5 rounded-full text-[7px] leading-[14px] text-center font-bold ${
-                pinSet.has(pin) ? "bg-felt-700 text-white" : "bg-surface-muted text-ink-tertiary"
+                pinSet.has(pin) ? "bg-accent-fill text-accent-on-fill" : "bg-surface-muted text-ink-tertiary"
               }`}
             >
               {pin}
@@ -207,7 +207,7 @@ function Bar({ label, pct, subtitle }: { label: string; pct: number | null; subt
       </div>
       {subtitle && <p className="mb-1 text-[11px] text-ink-secondary">{subtitle}</p>}
       <div className="h-2 overflow-hidden rounded-full bg-surface-muted">
-        <div className="h-full rounded-full bg-felt-700" style={{ width: `${value}%` }} />
+        <div className="h-full rounded-full bg-accent-fill" style={{ width: `${value}%` }} />
       </div>
     </div>
   );

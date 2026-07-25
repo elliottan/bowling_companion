@@ -47,7 +47,7 @@ function SmallPinDiagram({ standing }: { standing: PinNumber[] }) {
               key={pin}
               className={`flex h-5 w-5 items-center justify-center rounded-full text-[9px] font-bold ${
                 standingSet.has(pin as PinNumber)
-                  ? "bg-felt-700 text-white"
+                  ? "bg-accent-fill text-accent-on-fill"
                   : "bg-surface-muted text-ink-tertiary"
               }`}
             >
@@ -94,7 +94,7 @@ function SortableSpareCard({ sl, onOpen }: SortableSpareCardProps) {
     <li ref={setNodeRef} style={style}>
       <div
         className={`relative flex w-full select-none flex-col items-center gap-1.5 rounded-lg border bg-surface p-3 text-center shadow-sm ${
-          isDragging ? "border-felt-700 opacity-90 shadow-md" : "border-edge"
+          isDragging ? "border-accent-fill opacity-90 shadow-md" : "border-edge"
         }`}
       >
         {/* The whole card is the drag handle: a hold picks it up, a tap opens

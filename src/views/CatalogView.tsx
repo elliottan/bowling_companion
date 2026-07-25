@@ -151,7 +151,7 @@ function ColorwayCarousel({ ball }: { ball: CatalogBall }) {
             aria-label={`View colorway ${i + 1}${cw.color ? `: ${cw.color}` : ""}`}
             aria-current={i === idx}
             className={`h-2 rounded-full transition-all ${
-              i === idx ? "w-5 bg-felt-700" : "w-2 bg-edge-strong hover:bg-ink-tertiary"
+              i === idx ? "w-5 bg-accent-fill" : "w-2 bg-edge-strong hover:bg-ink-tertiary"
             }`}
           />
         ))}
@@ -197,7 +197,7 @@ function DetailPanel({ ball, owned, onBack, onAddToArsenal, addDialogOpen }: Det
           </dl>
 
           {owned ? (
-            <div className="mt-5 flex w-full items-center justify-center gap-2 rounded-lg border border-felt-700/30 bg-accent-soft px-4 py-3.5 text-sm font-semibold text-accent">
+            <div className="mt-5 flex w-full items-center justify-center gap-2 rounded-lg border border-accent-fill/30 bg-accent-soft px-4 py-3.5 text-sm font-semibold text-accent">
               Already in your arsenal
             </div>
           ) : (
@@ -262,7 +262,7 @@ function RangeSlider({ label, min, max, step, valueMin, valueMax, format, onChan
         <div className="absolute inset-x-0 h-1 rounded-full bg-edge" />
         {/* Filled segment between handles */}
         <div
-          className="absolute h-1 rounded-full bg-felt-700"
+          className="absolute h-1 rounded-full bg-accent-fill"
           style={{ left: `${leftPct}%`, right: `${100 - rightPct}%` }}
         />
         {/* Min handle */}
@@ -279,7 +279,7 @@ function RangeSlider({ label, min, max, step, valueMin, valueMax, format, onChan
           onMouseUp={() => commitDraft(displayMin, displayMax)}
           onTouchEnd={() => commitDraft(displayMin, displayMax)}
           onKeyUp={() => commitDraft(displayMin, displayMax)}
-          className="absolute inset-0 h-full w-full cursor-pointer appearance-none bg-transparent accent-felt-700 [&::-webkit-slider-thumb]:relative [&::-webkit-slider-thumb]:z-10"
+          className="absolute inset-0 h-full w-full cursor-pointer appearance-none bg-transparent accent-[rgb(var(--color-accent-fill))] [&::-webkit-slider-thumb]:relative [&::-webkit-slider-thumb]:z-10"
         />
         {/* Max handle */}
         <input
@@ -295,7 +295,7 @@ function RangeSlider({ label, min, max, step, valueMin, valueMax, format, onChan
           onMouseUp={() => commitDraft(displayMin, displayMax)}
           onTouchEnd={() => commitDraft(displayMin, displayMax)}
           onKeyUp={() => commitDraft(displayMin, displayMax)}
-          className="absolute inset-0 h-full w-full cursor-pointer appearance-none bg-transparent accent-felt-700 [&::-webkit-slider-thumb]:relative [&::-webkit-slider-thumb]:z-10"
+          className="absolute inset-0 h-full w-full cursor-pointer appearance-none bg-transparent accent-[rgb(var(--color-accent-fill))] [&::-webkit-slider-thumb]:relative [&::-webkit-slider-thumb]:z-10"
         />
       </div>
     </div>
@@ -338,7 +338,7 @@ function AddFromCatalogDialog({ ball, onConfirm, onCancel, isSaving, error }: Ad
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className="h-11 w-full rounded-lg border border-edge-strong px-3 text-sm outline-none focus:border-felt-700 focus:ring-2 focus:ring-felt-700/20"
+          className="h-11 w-full rounded-lg border border-edge-strong px-3 text-sm outline-none focus:border-accent-fill focus:ring-2 focus:ring-accent-fill/20"
         />
         {colorways.length > 1 && (
           <div className="mt-3">
@@ -562,7 +562,7 @@ export function CatalogView({ onBack }: CatalogViewProps) {
             placeholder="Search name, brand, coverstock…"
             value={filters.search}
             onChange={(e) => setFilters((f) => ({ ...f, search: e.target.value }))}
-            className="h-11 w-full rounded-lg border border-edge-strong px-3 pr-10 text-sm outline-none focus:border-felt-700 focus:ring-2 focus:ring-felt-700/20"
+            className="h-11 w-full rounded-lg border border-edge-strong px-3 pr-10 text-sm outline-none focus:border-accent-fill focus:ring-2 focus:ring-accent-fill/20"
           />
           {filters.search && (
             <IconButton
@@ -591,7 +591,7 @@ export function CatalogView({ onBack }: CatalogViewProps) {
             <select
               value={sort}
               onChange={(e) => setSort(e.target.value as SortKey)}
-              className="rounded-md border border-edge-strong bg-surface px-2 py-1.5 text-sm outline-none focus:border-felt-700"
+              className="rounded-md border border-edge-strong bg-surface px-2 py-1.5 text-sm outline-none focus:border-accent-fill"
             >
               <option value="releaseDate">Newest first</option>
               <option value="rg">RG (low→high)</option>

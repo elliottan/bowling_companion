@@ -65,7 +65,7 @@ export function BallPickerSheet({
                   aria-pressed={selected}
                   className={`flex w-full items-center gap-3 rounded-xl border p-2.5 text-left ${
                     selected
-                      ? "border-felt-700 bg-surface ring-2 ring-felt-700"
+                      ? "border-accent-fill bg-surface ring-2 ring-accent-fill"
                       : "border-edge bg-surface"
                   }`}
                 >
@@ -87,7 +87,7 @@ export function BallPickerSheet({
                       <span className="ml-1.5 text-xs font-normal text-ink-secondary">spare</span>
                     )}
                   </span>
-                  {selected && <Check size={16} className="shrink-0 text-felt-700" aria-hidden="true" />}
+                  {selected && <Check size={16} className="shrink-0 text-accent" aria-hidden="true" />}
                 </button>
               </li>
             );
@@ -100,7 +100,7 @@ export function BallPickerSheet({
               aria-pressed={ballId == null}
               className={`flex w-full items-center gap-3 rounded-xl border p-2.5 text-left text-sm font-semibold ${
                 ballId == null
-                  ? "border-felt-700 bg-surface text-ink ring-2 ring-felt-700"
+                  ? "border-accent-fill bg-surface text-ink ring-2 ring-accent-fill"
                   : "border-edge bg-surface text-ink-secondary"
               }`}
             >

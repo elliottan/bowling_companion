@@ -136,7 +136,7 @@ function FrameCell({
   onShotTap,
   onLiveTap
 }: FrameCellProps) {
-  const bg = isEditing ? "bg-lane-100 ring-2 ring-inset ring-felt-700" : "bg-surface";
+  const bg = isEditing ? "bg-lane-100 ring-2 ring-inset ring-accent-fill" : "bg-surface";
   const border = compact ? "" : "border-r border-edge last:border-r-0";
 
   return (
@@ -161,7 +161,7 @@ function FrameCell({
               ? cell.shotIndex === highlightShotIndex
               : idx === highlightShotIndex;
           const highlightClass = isHighlighted
-            ? "bg-felt-700 text-white"
+            ? "bg-accent-fill text-accent-on-fill"
             : "";
           const baseClass =
             "flex h-full items-center justify-center border-l border-edge text-sm font-bold text-ink first:border-l-0 sm:text-base";

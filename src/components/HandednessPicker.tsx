@@ -19,7 +19,7 @@ export function HandednessPicker({ value, onSelect }: HandednessPickerProps) {
           onClick={() => onSelect(h)}
           className={`h-12 flex-1 rounded-lg border text-sm font-semibold capitalize ${
             value === h
-              ? "border-felt-700 bg-felt-700 text-white"
+              ? "border-accent-fill bg-accent-fill text-accent-on-fill"
               : "border-edge-strong bg-surface text-ink-strong hover:bg-surface-muted"
           }`}
         >

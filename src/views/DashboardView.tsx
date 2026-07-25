@@ -178,7 +178,7 @@ export function DashboardView({
           type="button"
           onClick={onOpenCatalog}
           aria-label="Ball Catalog"
-          className="flex flex-col items-start gap-2 rounded-lg border border-edge bg-surface p-4 shadow-sm hover:border-felt-700 text-left"
+          className="flex flex-col items-start gap-2 rounded-lg border border-edge bg-surface p-4 shadow-sm hover:border-accent-fill text-left"
         >
           <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent-soft text-accent">
             <BookOpen size={18} aria-hidden="true" />
@@ -192,7 +192,7 @@ export function DashboardView({
           type="button"
           onClick={onOpenLineVisualizer}
           aria-label="Line Visualizer"
-          className="flex flex-col items-start gap-2 rounded-lg border border-edge bg-surface p-4 shadow-sm hover:border-felt-700 text-left"
+          className="flex flex-col items-start gap-2 rounded-lg border border-edge bg-surface p-4 shadow-sm hover:border-accent-fill text-left"
         >
           <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent-soft text-accent">
             <Spline size={18} aria-hidden="true" />
@@ -229,7 +229,7 @@ export function DashboardView({
         <button
           type="button"
           onClick={onResume}
-          className="fixed inset-x-3 bottom-[calc(4rem+env(safe-area-inset-bottom)+0.5rem)] z-40 mx-auto flex max-w-xl items-center gap-3 rounded-xl border border-felt-700 bg-felt-700 p-4 text-left text-white shadow-2xl hover:bg-felt-500 sm:bottom-6"
+          className="fixed inset-x-3 bottom-[calc(4rem+env(safe-area-inset-bottom)+0.5rem)] z-40 mx-auto flex max-w-xl items-center gap-3 rounded-xl border border-accent-fill bg-accent-fill p-4 text-left text-accent-on-fill shadow-2xl hover:bg-accent-fill-hover sm:bottom-6"
         >
           <PlayCircle size={22} aria-hidden="true" className="shrink-0" />
           <span className="min-w-0 flex-1">

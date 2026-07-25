@@ -71,6 +71,9 @@ textarea,
   --color-edge-strong: 203 213 225; /* slate-300 */
   --color-accent: 27 81 72; /* felt-700, for interactive text/icons */
   --color-accent-soft: 240 247 245; /* felt-50 tint bg */
+  --color-accent-fill: 27 81 72; /* felt-700 */
+  --color-accent-fill-hover: 32 96 84; /* felt-600 */
+  --color-accent-on-fill: 255 255 255;
   --color-danger-50: 254 242 242;
   --color-danger-200: 254 202 202;
   --color-danger-600: 220 38 38;
@@ -93,6 +96,12 @@ textarea,
   --color-edge-strong: 71 85 105; /* slate-600 */
   --color-accent: 94 214 193; /* lightened felt, legible on dark */
   --color-accent-soft: 22 44 40; /* deep felt tint bg */
+  /* felt-700 fill measures 1.97:1 on the dark background — the button shape
+     vanishes. This lifted felt clears 3:1 against surface and surface-sunken
+     while still reading as the brand green; dark ink rides on top of it. */
+  --color-accent-fill: 45 138 120;
+  --color-accent-fill-hover: 55 163 142;
+  --color-accent-on-fill: 2 6 23;
   --color-danger-50: 60 20 20; /* deep red bg */
   --color-danger-200: 127 29 29; /* red-900 border */
   --color-danger-600: 239 68 68; /* red-500, brighter fill */

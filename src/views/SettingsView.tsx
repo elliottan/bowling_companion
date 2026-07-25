@@ -74,7 +74,7 @@ function RowContent({ icon: Icon, label, description }: { icon: LucideIcon; labe
 }
 
 const ROW_CLASS =
-  "flex w-full items-center gap-3 rounded-lg border border-edge bg-surface px-3 py-2.5 text-left shadow-sm hover:border-felt-700";
+  "flex w-full items-center gap-3 rounded-lg border border-edge bg-surface px-3 py-2.5 text-left shadow-sm hover:border-accent-fill";
 
 function GroupHeading({ children }: { children: string }) {
   return (

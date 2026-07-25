@@ -32,10 +32,10 @@ interface SessionFormProps {
 }
 
 const inputClass =
-  "h-11 w-full min-w-0 box-border rounded-lg border border-edge-strong px-3 text-sm outline-none focus:border-felt-700 focus:ring-2 focus:ring-felt-700/20";
+  "h-11 w-full min-w-0 box-border rounded-lg border border-edge-strong px-3 text-sm outline-none focus:border-accent-fill focus:ring-2 focus:ring-accent-fill/20";
 
 const selectClass =
-  "h-11 w-full rounded-lg border border-edge-strong px-3 text-sm outline-none focus:border-felt-700 focus:ring-2 focus:ring-felt-700/20 bg-surface";
+  "h-11 w-full rounded-lg border border-edge-strong px-3 text-sm outline-none focus:border-accent-fill focus:ring-2 focus:ring-accent-fill/20 bg-surface";
 
 const today = () => new Date().toISOString().slice(0, 10);
 
@@ -225,7 +225,7 @@ export function SessionForm({
                 <button
                   type="button"
                   onClick={handleAddPattern}
-                  className="h-11 rounded-lg bg-felt-700 px-3 text-sm font-semibold text-white hover:bg-felt-500"
+                  className="h-11 rounded-lg bg-accent-fill px-3 text-sm font-semibold text-accent-on-fill hover:bg-accent-fill-hover"
                 >
                   Add
                 </button>
@@ -246,7 +246,7 @@ export function SessionForm({
           <textarea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
-            className="min-h-20 w-full rounded-lg border border-edge-strong px-3 py-2 text-sm outline-none focus:border-felt-700 focus:ring-2 focus:ring-felt-700/20"
+            className="min-h-20 w-full rounded-lg border border-edge-strong px-3 py-2 text-sm outline-none focus:border-accent-fill focus:ring-2 focus:ring-accent-fill/20"
             placeholder="Ball choice, surface, carry..."
           />
         </Field>
@@ -265,7 +265,7 @@ export function SessionForm({
         <button
           type="submit"
           disabled={isSubmitting || alleyName.trim().length === 0}
-          className="inline-flex h-12 flex-1 items-center justify-center rounded-lg bg-felt-700 px-4 text-sm font-semibold text-white shadow-sm hover:bg-felt-500 disabled:cursor-not-allowed disabled:opacity-50"
+          className="inline-flex h-12 flex-1 items-center justify-center rounded-lg bg-accent-fill px-4 text-sm font-semibold text-accent-on-fill shadow-sm hover:bg-accent-fill-hover disabled:cursor-not-allowed disabled:opacity-50"
         >
           {isSubmitting ? "Saving..." : submitLabel}
         </button>

@@ -172,7 +172,7 @@ export function LaneNotesView() {
                   disabled={editingId !== null}
                   placeholder="Orchid Bowl"
                   autoComplete="off"
-                  className="h-11 w-full rounded-lg border border-edge-strong px-3 text-sm outline-none focus:border-felt-700 disabled:bg-surface-muted"
+                  className="h-11 w-full rounded-lg border border-edge-strong px-3 text-sm outline-none focus:border-accent-fill disabled:bg-surface-muted"
                 />
                 {showAlleyList && alleyMatches.length > 0 && (
                   <ul className="absolute z-10 mt-1 max-h-48 w-full overflow-y-auto rounded-lg border border-edge bg-surface py-1 shadow-lg">
@@ -200,7 +200,7 @@ export function LaneNotesView() {
                 disabled={editingId !== null}
                 inputMode="numeric"
                 placeholder="12"
-                className="h-11 w-32 rounded-lg border border-edge-strong px-3 text-sm outline-none focus:border-felt-700 disabled:bg-surface-muted"
+                className="h-11 w-32 rounded-lg border border-edge-strong px-3 text-sm outline-none focus:border-accent-fill disabled:bg-surface-muted"
               />
             </label>
             <label className="block space-y-1.5">
@@ -210,7 +210,7 @@ export function LaneNotesView() {
                 onChange={(e) => setNotes(e.target.value)}
                 rows={3}
                 placeholder="How this lane plays — transition, where it hooks, ball reaction…"
-                className="w-full rounded-lg border border-edge-strong px-3 py-2 text-sm outline-none focus:border-felt-700"
+                className="w-full rounded-lg border border-edge-strong px-3 py-2 text-sm outline-none focus:border-accent-fill"
               />
             </label>
             <div className="flex items-center gap-2 pt-1">
@@ -237,7 +237,7 @@ export function LaneNotesView() {
             <select
               value={filterAlley}
               onChange={(e) => setFilterAlley(e.target.value)}
-              className="h-9 rounded-lg border border-edge-strong bg-surface px-2 text-sm outline-none focus:border-felt-700"
+              className="h-9 rounded-lg border border-edge-strong bg-surface px-2 text-sm outline-none focus:border-accent-fill"
             >
               <option value="">All locations</option>
               {noteAlleys.map((a) => (
@@ -276,7 +276,7 @@ export function LaneNotesView() {
               <button
                 type="button"
                 onClick={() => openEdit(n)}
-                className="block w-full rounded-lg border border-edge bg-surface p-3 text-left shadow-sm hover:border-felt-700"
+                className="block w-full rounded-lg border border-edge bg-surface p-3 text-left shadow-sm hover:border-accent-fill"
               >
                 <p className="font-semibold text-ink">
                   {n.alley} · Lane {n.lane}

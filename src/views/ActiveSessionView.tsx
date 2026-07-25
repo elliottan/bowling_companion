@@ -428,7 +428,7 @@ export function ActiveSessionView({
                 inputMode="numeric"
                 aria-label="First lane"
                 placeholder="12"
-                className="h-10 w-16 rounded-lg border border-edge-strong px-2 text-sm outline-none focus:border-felt-700"
+                className="h-10 w-16 rounded-lg border border-edge-strong px-2 text-sm outline-none focus:border-accent-fill"
               />
               <span aria-hidden="true" className="text-ink-secondary">/</span>
               <input
@@ -438,7 +438,7 @@ export function ActiveSessionView({
                 inputMode="numeric"
                 aria-label="Second lane"
                 placeholder="13"
-                className="h-10 w-16 rounded-lg border border-edge-strong px-2 text-sm outline-none focus:border-felt-700"
+                className="h-10 w-16 rounded-lg border border-edge-strong px-2 text-sm outline-none focus:border-accent-fill"
               />
             </div>
 

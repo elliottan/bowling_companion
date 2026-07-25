@@ -19,7 +19,7 @@ const floatLabel =
   "pointer-events-none absolute -top-1.5 left-2 z-10 bg-surface px-1 text-[11px] font-semibold uppercase tracking-[0.01em] text-ink-secondary";
 const eyebrow = "text-[11px] font-semibold uppercase tracking-[0.01em] text-ink-secondary";
 const boardInput =
-  "h-9 w-full min-w-0 rounded-lg border border-edge bg-surface-muted text-center text-sm font-semibold tabular-nums text-ink focus:border-felt-700 focus:bg-surface focus:outline-none";
+  "h-9 w-full min-w-0 rounded-lg border border-edge bg-surface-muted text-center text-sm font-semibold tabular-nums text-ink focus:border-accent-fill focus:bg-surface focus:outline-none";
 
 interface SpareLineFormDialogProps {
   /** Leave being shot at (standing pins). Empty = user picks pins. */

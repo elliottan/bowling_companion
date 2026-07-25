@@ -69,7 +69,7 @@ function SortableBallRow({ ball, onEdit, onDelete }: SortableBallRowProps) {
     <li ref={setNodeRef} style={style}>
       <div
         className={`flex items-start gap-2 rounded-lg border bg-surface p-4 shadow-sm ${
-          isDragging ? "border-felt-700 opacity-90 shadow-md" : "border-edge"
+          isDragging ? "border-accent-fill opacity-90 shadow-md" : "border-edge"
         }`}
       >
         <button
@@ -424,7 +424,7 @@ export function ArsenalView({ onOpenCatalog }: ArsenalViewProps = {}) {
                 value={form.name}
                 onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
                 placeholder="e.g. Storm Phaze II"
-                className="h-11 w-full rounded-lg border border-edge-strong px-3 text-sm outline-none focus:border-felt-700 focus:ring-2 focus:ring-felt-700/20"
+                className="h-11 w-full rounded-lg border border-edge-strong px-3 text-sm outline-none focus:border-accent-fill focus:ring-2 focus:ring-accent-fill/20"
               />
             </div>
 
@@ -436,7 +436,7 @@ export function ArsenalView({ onOpenCatalog }: ArsenalViewProps = {}) {
               <select
                 value={form.weight}
                 onChange={(e) => setForm((f) => ({ ...f, weight: Number(e.target.value) }))}
-                className="h-11 w-full rounded-lg border border-edge-strong px-3 text-sm outline-none focus:border-felt-700 focus:ring-2 focus:ring-felt-700/20"
+                className="h-11 w-full rounded-lg border border-edge-strong px-3 text-sm outline-none focus:border-accent-fill focus:ring-2 focus:ring-accent-fill/20"
               >
                 {WEIGHT_OPTIONS.map((w) => (
                   <option key={w} value={w}>{w} lb</option>
@@ -462,7 +462,7 @@ export function ArsenalView({ onOpenCatalog }: ArsenalViewProps = {}) {
                 onChange={(e) =>
                   setForm((f) => ({ ...f, is_spare_ball: e.target.checked }))
                 }
-                className="mt-0.5 h-4 w-4 rounded border-edge-strong accent-felt-700"
+                className="mt-0.5 h-4 w-4 rounded border-edge-strong accent-[rgb(var(--color-accent-fill))]"
               />
               <div>
                 <label
@@ -486,7 +486,7 @@ export function ArsenalView({ onOpenCatalog }: ArsenalViewProps = {}) {
                 value={form.layout}
                 onChange={(e) => setForm((f) => ({ ...f, layout: e.target.value }))}
                 placeholder='e.g. 45° × 4-1/2″ × 35°'
-                className="h-11 w-full rounded-lg border border-edge-strong px-3 text-sm outline-none focus:border-felt-700 focus:ring-2 focus:ring-felt-700/20"
+                className="h-11 w-full rounded-lg border border-edge-strong px-3 text-sm outline-none focus:border-accent-fill focus:ring-2 focus:ring-accent-fill/20"
               />
             </div>
 
@@ -499,7 +499,7 @@ export function ArsenalView({ onOpenCatalog }: ArsenalViewProps = {}) {
                 onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
                 rows={2}
                 placeholder="Any notes about this ball…"
-                className="w-full rounded-lg border border-edge-strong px-3 py-2 text-sm outline-none focus:border-felt-700 focus:ring-2 focus:ring-felt-700/20"
+                className="w-full rounded-lg border border-edge-strong px-3 py-2 text-sm outline-none focus:border-accent-fill focus:ring-2 focus:ring-accent-fill/20"
               />
             </div>
 
@@ -535,7 +535,7 @@ export function ArsenalView({ onOpenCatalog }: ArsenalViewProps = {}) {
             placeholder="Search name, brand…"
             value={catalogSearch}
             onChange={(e) => setCatalogSearch(e.target.value)}
-            className="mb-3 h-9 w-full rounded-lg border border-edge-strong px-3 text-sm outline-none focus:border-felt-700 focus:ring-2 focus:ring-felt-700/20"
+            className="mb-3 h-9 w-full rounded-lg border border-edge-strong px-3 text-sm outline-none focus:border-accent-fill focus:ring-2 focus:ring-accent-fill/20"
           />
           {catalogLoading ? (
             <p className="text-sm text-ink-secondary">Loading catalog…</p>
@@ -554,7 +554,7 @@ export function ArsenalView({ onOpenCatalog }: ArsenalViewProps = {}) {
                     <button
                       type="button"
                       onClick={() => pickFromCatalog(catalogBall)}
-                      className="flex w-full items-center gap-3 rounded-lg border border-edge bg-surface-muted p-2 text-left hover:border-felt-700 hover:bg-surface"
+                      className="flex w-full items-center gap-3 rounded-lg border border-edge bg-surface-muted p-2 text-left hover:border-accent-fill hover:bg-surface"
                     >
                       <div className="h-10 w-10 shrink-0">
                         <CatalogBallImage src={catalogBall.imageThumb} alt={catalogBall.name} brand={catalogBall.brand} size="thumb" />
