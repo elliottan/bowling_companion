@@ -44,7 +44,12 @@ Scorecard re-renders <──── lib/scoring.calculateGameScore ────�
 
 ## Layering rules
 
-- `lib/*` may import only `types/*` and other `lib/*`. No React. No Dexie.
+- `lib/*` may import only `types/*` and other `lib/*`. No Dexie. **Mostly** no
+  React: the pure modules (scoring, geometry, stats) must stay React-free so
+  they're testable in isolation, but `lib/` also holds the shared hooks —
+  `useLongPress`, `useOverlay`, `useTheme` — which are UI behaviour with no
+  markup of their own. A new module here should be React-free unless it is
+  specifically a hook.
 - `services/*` may import `lib/*`, `db/*`, `types/*`. No React.
 - `components/*` may import `lib/*`, `services/*`, `types/*`, other `components/*`.
 - `views/*` may import everything below.
@@ -52,6 +57,28 @@ Scorecard re-renders <──── lib/scoring.calculateGameScore ────�
 
 The goal: a future developer can rewrite the UI without touching scoring, and
 rewrite scoring without touching the UI.
+
+## `components/ui/` — the primitives
+
+`Button`, `IconButton` and `Chip` are the shared control primitives; every
+control should be built from them rather than hand-rolled. They exist to make
+the accessibility floor structural rather than a review checklist: both `Button`
+sizes and `IconButton` clear Apple's 44pt minimum tap target, and `IconButton`
+takes `label` as a **required** prop so an icon button with no accessible name
+does not type-check.
+
+Two rules when working with them:
+
+- **Colour goes in a variant, never in `className`.** Tailwind resolves
+  competing utilities by stylesheet order, not by the order they appear in the
+  class attribute, so a colour passed via `className` silently loses to the
+  variant's. Add a variant instead.
+- **`Chip` expands its tap target with a `::after` overlay** rather than growing
+  its box, so rows of chips stay dense. That overhang is clipped by any ancestor
+  with a non-visible `overflow` — note `overflow-x-auto` forces `overflow-y` to
+  `auto` — so a scrolling chip row needs vertical padding to survive.
+
+See `docs/DECISIONS.md` ADR-034 for the token system these primitives draw on.
 
 ## Why this layout
 

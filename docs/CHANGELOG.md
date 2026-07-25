@@ -2,7 +2,38 @@
 
 User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachangelog.com).
 
-## [Unreleased] — spare lines behave like every other line (2026-07-22)
+## [Unreleased] — dark mode, bigger tap targets, and a consistent look (2026-07-25)
+
+### Added
+
+- **Dark mode.** The app follows your device setting out of the box, and
+  Settings → Preferences lets you pin Light or Dark instead. Your choice is
+  applied before the app draws, so there's no white flash on open.
+
+### Changed
+
+- **Every control is now big enough to hit.** Buttons, filter chips and icon
+  buttons meet Apple's 44pt minimum. The worst offenders were the Arsenal
+  row's edit and delete buttons, which sat side by side at 32px with one of
+  them destructive.
+- **Text is bigger and darker where it was hard to read.** Nothing sits below
+  11px any more, and low-contrast grey body text has been darkened.
+- **One colour means one thing.** Success was previously green in one place
+  and a different green in another; warnings, errors and success now each
+  have a single treatment that works in both themes.
+
+### Fixed
+
+- **The "Save spare line" prompt renders with its tint again.** It referenced
+  a colour that was never defined, so its interior was transparent.
+- **Errors are announced to screen readers.** Every failure banner was
+  previously silent.
+- **Dialogs and sheets handle the keyboard.** Escape closes them, Tab stays
+  inside, and focus returns to whatever opened them.
+- **The status bar is legible when installed to the Home Screen.** It was
+  white-on-cream.
+
+## Previously — spare lines behave like every other line (2026-07-22)
 
 ### Fixed
 

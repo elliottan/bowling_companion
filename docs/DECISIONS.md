@@ -1381,3 +1381,63 @@ the seeded aim board plus any target nudge is enough to make it unreachable.
   marker from the stored board.
 - A spare aimed at an unreachable pin now reads honestly: dot on the path,
   pin red, `Final` label naming the board the ball actually crosses.
+
+## ADR-034 — Semantic design tokens, UI primitives, and dark mode
+
+**Status:** accepted (2026-07). Covers the four-phase Apple HIG alignment pass.
+
+**Context.** The app's visual layer had no indirection. Every colour was a raw
+Tailwind utility (`text-slate-500`, `bg-white`), every button was hand-rolled at
+the call site, and the only theme values were four brand colours. Three
+consequences followed. Tap targets had drifted across `h-6`–`h-12`, with ~80% of
+controls below Apple's 44pt minimum, because nothing enforced a floor. Two brand
+classes (`felt-600`, `felt-50`) were referenced but never defined — Tailwind
+emits no CSS and no warning for an undefined token, so a panel that should have
+been tinted rendered transparent for months. And dark mode was unimplementable
+without rewriting ~400 call sites.
+
+**Decision.**
+
+- **Semantic tokens are CSS variables, named by role.** `surface`, `ink`, `edge`,
+  `accent`, `danger`, `success`, `warning` resolve to
+  `rgb(var(--color-x) / <alpha-value>)`, defined twice in `src/index.css` — once
+  per theme. Call sites never name a shade, so a theme flip needs no call-site
+  change. The numeric suffixes on `danger`/`success`/`warning` (`50/200/700`) are
+  *roles* — subtle-bg / border / strong-fg — which keep their meaning in dark
+  even though the lightness inverts.
+- **`felt` and `lane` stay static; the brand *fill* does not.** Brand hue is
+  identity and shouldn't shift, but `felt-700` as a button fill measures 1.97:1
+  against the dark background — the button shape itself disappears, independent
+  of its label. Hence `accent-fill` / `accent-fill-hover` / `accent-on-fill` as
+  tokens, and `accent` for brand-as-interactive-text.
+- **A pre-paint script owns the theme.** It resolves `prefers-color-scheme` plus
+  a `localStorage` override into `data-theme` on `<html>` before first paint. The
+  preference lives in `localStorage`, not Dexie, specifically because an async
+  IndexedDB read cannot run before paint and would flash. The script's
+  OS-change listener re-reads storage on every fire rather than being bound
+  conditionally at load, so a preference pinned later in the session isn't
+  overridden by a stale closure.
+- **Primitives own the accessibility floor.** `Button`, `IconButton` and `Chip`
+  in `src/components/ui/` make a compliant control the only thing that's
+  convenient to build. `IconButton.label` is required, not optional, so an icon
+  button with no accessible name fails to type-check.
+- **Dense chips reach 44pt by expanding their hit region, not their box.** A
+  `::after` overlay (`TAP_TARGET_44`) grows the target vertically only —
+  expanding horizontally would overlap neighbours and cause the mis-taps it
+  exists to prevent. Callers must leave `gap-2`, and the container must not clip:
+  `overflow-x-auto` forces `overflow-y: auto`, which silently kills the overhang.
+
+**Consequences.**
+- Two geometric exceptions to the 44pt floor, both measured rather than assumed:
+  `Scorecard` cells (ten frames must fit in 390px) and `PinGrid`'s `sm` pins (the
+  deck sits in a ~177px column, capping pins at ~35px). Both clear the 28pt
+  absolute minimum. Raising the latter needs a scoring-screen layout change.
+- An undefined token renders **transparent with no error**. Any new token must be
+  added to both blocks in `index.css`; the guard is that every `--color-*`
+  consumed by `tailwind.config.js` appears in both.
+- Passing colour through `className` to a primitive does **not** override its
+  variant — Tailwind resolves competing utilities by stylesheet order, not class
+  order. New colour treatments must be variants (this is why `solid` and
+  `inverse` exist on `IconButton`).
+- `src/lib/` now holds React hooks (`useOverlay`, `useTheme`) alongside the older
+  pure modules, so ARCHITECTURE.md's "no React in lib" rule no longer holds.
