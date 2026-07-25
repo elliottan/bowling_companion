@@ -580,7 +580,7 @@ export function CatalogView({ onBack }: CatalogViewProps) {
           <Chip selected={showFilters} onClick={() => setShowFilters((v) => !v)}>
             Filters
             {activeFilterCount > 0 ? (
-              <span className="ml-1 rounded-full bg-white/30 px-1.5 py-0.5 text-xs font-bold leading-none">{activeFilterCount}</span>
+              <span className="ml-1 rounded-full bg-accent-on-fill/25 px-1.5 py-0.5 text-xs font-bold leading-none">{activeFilterCount}</span>
             ) : null}
           </Chip>
 

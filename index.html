@@ -24,13 +24,23 @@
           var meta = document.querySelector('meta[name="theme-color"]');
           if (meta) meta.setAttribute("content", dark ? "#0f172a" : "#fff8ed");
         }
-        var stored = null;
-        try {
-          stored = localStorage.getItem("theme");
-        } catch (e) {}
+        function stored() {
+          try {
+            return localStorage.getItem("theme");
+          } catch (e) {
+            return null;
+          }
+        }
+        function resolve(osDark) {
+          var pinned = stored();
+          apply(pinned ? pinned === "dark" : osDark);
+        }
         var mq = window.matchMedia("(prefers-color-scheme: dark)");
-        apply(stored ? stored === "dark" : mq.matches);
-        if (!stored) mq.addEventListener("change", function (e) { apply(e.matches); });
+        resolve(mq.matches);
+        // Re-reads storage on every fire rather than being attached
+        // conditionally: the preference can be pinned later in the session, and
+        // a listener bound to the load-time value would keep overriding it.
+        mq.addEventListener("change", function (e) { resolve(e.matches); });
       })();
     </script>
   </head>

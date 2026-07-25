@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 export type ThemePreference = "system" | "light" | "dark";
 
@@ -37,14 +37,9 @@ function apply(pref: ThemePreference) {
 export function useTheme(): [ThemePreference, (next: ThemePreference) => void] {
   const [pref, setPref] = useState<ThemePreference>(readThemePreference);
 
-  // Only follow the OS while the user hasn't pinned a theme.
-  useEffect(() => {
-    if (pref !== "system") return;
-    const mq = window.matchMedia("(prefers-color-scheme: dark)");
-    const onChange = () => apply("system");
-    mq.addEventListener("change", onChange);
-    return () => mq.removeEventListener("change", onChange);
-  }, [pref]);
+  // OS tracking is owned by the pre-paint script in index.html, which re-reads
+  // the stored preference on every change. A second listener here would
+  // double-apply and could fight it, so this hook only writes.
 
   function update(next: ThemePreference) {
     setPref(next);

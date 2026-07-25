@@ -136,7 +136,7 @@ function LeaveCell({ leave, muted = false }: { leave: LeaveStats; muted?: boolea
   return (
     <div
       className={`flex flex-col items-center gap-1 rounded-lg border p-2 text-center ${
-        muted ? "border-edge bg-white/60" : "border-edge bg-surface shadow-sm"
+        muted ? "border-edge bg-surface/60" : "border-edge bg-surface shadow-sm"
       }`}
     >
       <MiniPins standing={leave.pins} size="sm" />

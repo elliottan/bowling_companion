@@ -234,11 +234,11 @@ export function DashboardView({
           <PlayCircle size={22} aria-hidden="true" className="shrink-0" />
           <span className="min-w-0 flex-1">
             <span className="block text-sm font-bold">Resume game</span>
-            <span className="block truncate text-xs text-white/80">
+            <span className="block truncate text-xs text-accent-on-fill">
               {resumable.alleyName} · Game {resumable.gameNumber}
             </span>
           </span>
-          <span className="shrink-0 text-xs font-semibold uppercase tracking-wide text-white/90">Resume →</span>
+          <span className="shrink-0 text-xs font-semibold uppercase tracking-wide text-accent-on-fill">Resume →</span>
         </button>
       )}
 
