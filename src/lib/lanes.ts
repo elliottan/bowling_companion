@@ -1,4 +1,4 @@
-import type { Frame, Game, Shot } from "../types/bowling";
+import type { Frame, Game, LineSpec, Shot } from "../types/bowling";
 
 /**
  * Resolve which physical lane a given frame is bowled on.
@@ -112,6 +112,67 @@ export function freshRackSeedShot(
     previousSameLaneFrame(game, frameNumber, frames) ??
     previousGameSameLaneFrame(game, frameNumber, previousGames);
   return prev?.shots[0];
+}
+
+/** A line worth carrying: at least one aiming field is set. */
+export function lineHasValue(l: LineSpec | undefined): boolean {
+  return !!l && (l.stance != null || l.target != null || l.breakpoint != null);
+}
+
+/**
+ * The intended line to seed from this ball's own history, used when nothing
+ * else filled the box (ADR-035). Only fresh-rack shots are eligible sources —
+ * a spare attempt aims at a leave, so its line never seeds another shot.
+ *
+ * Strict two-tier precedence, each scanned all the way back (current frame →
+ * earlier frames this game → earlier games in the session, newest first):
+ *   1. same ball, same lane as `frameNumber`
+ *   2. same ball, the other lane of a cross-lane pair
+ * A same-lane match always wins, however old — lane identity is a stronger
+ * signal than recency when a pair oils and breaks down differently.
+ */
+export function sameBallSeedLine(
+  ballId: number | undefined,
+  game: Pick<Game, "lanes" | "start_lane" | "lane_number"> | undefined,
+  frameNumber: number,
+  currentFrameShots: Shot[],
+  frames: Frame[],
+  previousGames: Array<{
+    game: Pick<Game, "lanes" | "start_lane" | "lane_number">;
+    frames: Frame[];
+  }>
+): LineSpec | undefined {
+  if (ballId == null) return undefined;
+  const lane = game ? laneForFrame(game, frameNumber) : undefined;
+
+  const sameLane: LineSpec[] = [];
+  const otherLane: LineSpec[] = [];
+
+  // No lane config (or an unknown frame lane) means there is no "other lane" to
+  // distinguish — everything counts as tier 1.
+  const collect = (shotLane: string | undefined, shots: Shot[]) => {
+    const bucket =
+      lane === undefined || shotLane === undefined || shotLane === lane ? sameLane : otherLane;
+    for (const i of freshRackShotIndices(shots).reverse()) {
+      const shot = shots[i];
+      if (shot.ball_id === ballId && lineHasValue(shot.intended)) bucket.push(shot.intended!);
+    }
+  };
+
+  const newestFirst = (fs: Frame[]) => [...fs].sort((a, b) => b.frame_number - a.frame_number);
+
+  collect(lane, currentFrameShots);
+  for (const f of newestFirst(frames.filter((f) => f.frame_number < frameNumber))) {
+    collect(game ? laneForFrame(game, f.frame_number) : undefined, f.shots);
+  }
+  for (let gi = previousGames.length - 1; gi >= 0; gi--) {
+    const pg = previousGames[gi];
+    for (const f of newestFirst(pg.frames)) {
+      collect(laneForFrame(pg.game, f.frame_number), f.shots);
+    }
+  }
+
+  return sameLane[0] ?? otherLane[0];
 }
 
 function normalizeLanes(game: Pick<Game, "lanes" | "start_lane" | "lane_number">): string[] {

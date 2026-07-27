@@ -6,6 +6,13 @@ User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachan
 
 ### Added
 
+- **Your line fills itself in from the last time you threw that ball.** Pick a
+  ball and, if the line box is empty, it fills with the line you used for that
+  same ball — preferring the same lane, reaching back through the game and
+  earlier games in the session. Shooting a spare with your strike ball inherits
+  that ball's strike line, ready to adjust off. A saved or session spare line
+  still wins, and anything you typed yourself is never overwritten.
+
 - **Dark mode.** The app follows your device setting out of the box, and
   Settings → Preferences lets you pin Light or Dark instead. Your choice is
   applied before the app draws, so there's no white flash on open.
@@ -24,6 +31,11 @@ User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachan
 
 ### Fixed
 
+- **The breakpoint now shows when you shoot a spare with a hooking ball.** It
+  was hidden on every spare attempt; it's hidden only for your plastic spare
+  ball now, which is the ball that actually has no breakpoint.
+- **A saved spare line can no longer wipe a line you just set.** The lookup ran
+  in the background and could land after you'd changed balls, clearing the box.
 - **The "Save spare line" prompt renders with its tint again.** It referenced
   a colour that was never defined, so its interior was transparent.
 - **Errors are announced to screen readers.** Every failure banner was

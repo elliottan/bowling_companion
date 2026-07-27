@@ -21,9 +21,18 @@ import {
   deriveStanceFromLaydown
 } from "../lib/driftModel";
 import { derivedApexForDisplay } from "../lib/laneGeometry";
-import { freshRackSeedShot, laneForFrame } from "../lib/lanes";
-import { getBalls, getSpareLineByPins } from "../services/ballRepository";
-import type { Ball, Frame, Game, LineSpec, PinNumber, ShotMetadata } from "../types/bowling";
+import { freshRackSeedShot, laneForFrame, lineHasValue, sameBallSeedLine } from "../lib/lanes";
+import { findSpareLineByPins, getBalls, getSpareLinesAll } from "../services/ballRepository";
+import type {
+  Ball,
+  Frame,
+  Game,
+  LineSpec,
+  PinNumber,
+  Shot,
+  ShotMetadata,
+  SpareLine
+} from "../types/bowling";
 import type { Manufacturer } from "../types/catalog";
 import { BallPickerSheet } from "./BallPickerSheet";
 import { CatalogBallImage } from "./CatalogBallImage";
@@ -368,6 +377,11 @@ function ShotDetailBar({
   const driftModel = useDriftModel();
   const handedness = useHandedness();
   const isSpareAttempt = !!spareLeave?.length;
+  // A breakpoint is a straight-ball concept, not a spare-shot one (ADR-035
+  // amends ADR-031): shooting a leave with a hooking ball has a real apex, and
+  // the lane view already draws it. Only a plastic spare ball — aimed at the pin
+  // rather than at a board down the lane — has no breakpoint to read.
+  const hidesBreakpoint = isSpareAttempt && !!selectedBall?.is_spare_ball;
 
   const derivedSlide =
     intended?.stance != null ? deriveSlide(intended.stance, driftModel) : undefined;
@@ -391,9 +405,8 @@ function ShotDetailBar({
       ? deriveLaydownFromSlide(actualView.slide, driftModel)
       : undefined);
 
-  // Never a spare-aim concept (ADR-031): suppressed entirely for spare attempts.
   const apexFor = (line: LineSpec | undefined, laydown: number | undefined) =>
-    isSpareAttempt || !line
+    hidesBreakpoint || !line
       ? null
       : derivedApexForDisplay({ ...line, laydown: line.laydown ?? laydown }, handedness);
   const derivedBreakpoint = apexFor(intended, derivedLaydown);
@@ -612,8 +625,6 @@ interface ActiveGameScorerProps {
 }
 
 const pinsKey = (p: PinNumber[]) => [...p].sort((a, b) => a - b).join(",");
-const lineHasValue = (l: LineSpec | undefined) =>
-  !!l && (l.stance != null || l.target != null || l.breakpoint != null);
 
 /**
  * The intended line of the most recent earlier spare attempt this session that
@@ -656,6 +667,10 @@ export function ActiveGameScorer({
   const [gameState, setGameState] = useState(() => hydrateFrameController(initialFrames));
   const [errorMessage, setErrorMessage] = useState("");
   const [balls, setBalls] = useState<Ball[]>([]);
+  // Whole spare_lines table, held in state like `balls` so a leave lookup is
+  // synchronous. An async lookup used to resolve *after* a ball change and
+  // clobber the line it had just seeded.
+  const [spareLines, setSpareLines] = useState<SpareLine[]>([]);
   // Live (next-unbowled) shot draft. Only used when no recorded shot is selected.
   const [selectedBallId, setSelectedBallId] = useState<number | undefined>(undefined);
   const [intendedLine, setIntendedLine] = useState<LineSpec | undefined>(undefined);
@@ -665,6 +680,10 @@ export function ActiveGameScorer({
   const [selectedShot, setSelectedShot] = useState<{ frameNumber: number; shotIndex: number } | null>(null);
   // Shot we last applied carry-forward defaults to (once per live shot).
   const lastDefaultedShot = useRef<string | null>(null);
+  // True while the intended line is one this ball's history filled in, rather
+  // than one the user typed or a carry-forward/spare line supplied. Only an
+  // auto-filled line is recomputed when the ball changes underneath it.
+  const lineAutoFilled = useRef(false);
   // A just-converted spare whose leave has no saved Spare Line — offered as a
   // dismissible banner so the line can be captured in the moment.
   const [pendingSpareLeave, setPendingSpareLeave] = useState<{ pins: PinNumber[]; notes?: string } | null>(null);
@@ -715,11 +734,13 @@ export function ActiveGameScorer({
     setUnlocked(false);
     setShowEditPrompt(false);
     lastDefaultedShot.current = null;
+    lineAutoFilled.current = false;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gameKey]);
 
   useEffect(() => {
     getBalls().then(setBalls).catch(() => {});
+    getSpareLinesAll().then(setSpareLines).catch(() => {});
   }, []);
 
   // Push the live draft into the controller's currentShotMeta.
@@ -742,6 +763,50 @@ export function ActiveGameScorer({
       }
     }
   }, [gameState.isComplete, gameState.frames, selectedShot]);
+
+  /** This ball's own history as a line source, for an otherwise-empty box. */
+  function ballHistoryLine(ballId: number | undefined, currentFrameShots: Shot[]) {
+    const found = sameBallSeedLine(
+      ballId,
+      game,
+      gameState.currentFrameNumber,
+      currentFrameShots,
+      gameState.frames,
+      previousGames
+    );
+    return found ? { ...found } : undefined;
+  }
+
+  /** Fill the intended line for a live shot: the caller's preset (carry-forward
+   *  or spare line) wins; an empty box falls back to this ball's history and is
+   *  flagged auto-filled so a later ball change can replace it (ADR-035). */
+  function seedIntendedLine(
+    preset: LineSpec | undefined,
+    ballId: number | undefined,
+    currentFrameShots: Shot[]
+  ) {
+    if (lineHasValue(preset)) {
+      lineAutoFilled.current = false;
+      setIntendedLine(preset);
+      return;
+    }
+    const fallback = ballHistoryLine(ballId, currentFrameShots);
+    lineAutoFilled.current = !!fallback;
+    setIntendedLine(fallback);
+  }
+
+  /** Live-entry ball change. Re-seeds the line when the box is empty or still
+   *  holds an auto-filled guess made for the ball being replaced. */
+  function handleLiveBallChange(ballId: number | undefined) {
+    setSelectedBallId(ballId);
+    if (lineHasValue(intendedLine) && !lineAutoFilled.current) return;
+    const currentFrame = gameState.frames.find(
+      (f) => f.frame_number === gameState.currentFrameNumber
+    );
+    const fallback = ballHistoryLine(ballId, currentFrame?.shots ?? []);
+    lineAutoFilled.current = !!fallback;
+    setIntendedLine(fallback);
+  }
 
   // Per-shot defaults (live entry only): notes + actual always blank; intended and
   // ball are carried by context. See ADR-017 for the full carry-rule priority.
@@ -770,38 +835,32 @@ export function ActiveGameScorer({
         gameState.frames,
         previousGames
       );
-      setIntendedLine(prevShot?.intended);
       setShotNotes(prevShot?.notes ?? "");
       setSelectedBallId(prevShot?.ball_id);
+      seedIntendedLine(prevShot?.intended, prevShot?.ball_id, []);
     } else if (gameState.availablePins.length < 10) {
       // True second ball (spare attempt): ball = spare ball if configured,
       // else carry shot-1's ball. Line from session/saved spare line.
       const shotOneBall = currentFrame?.shots[0]?.ball_id;
-      setSelectedBallId(spareBall?.id ?? shotOneBall);
+      const ballId = spareBall?.id ?? shotOneBall;
+      setSelectedBallId(ballId);
 
       const leave = gameState.availablePins;
       const sessionLine = sessionSpareIntended(
         [...sessionFrames, ...gameState.frames],
         leave
       );
-      if (sessionLine) {
-        setIntendedLine({ ...sessionLine });
-        return;
-      }
-      setIntendedLine(undefined);
-      getSpareLineByPins(leave)
-        .then((sl) => {
-          if (lastDefaultedShot.current !== key) return;
-          const line = sl?.line
-            ? {
-                ...(sl.line.stance != null && { stance: sl.line.stance }),
-                ...(sl.line.target != null && { target: sl.line.target })
-              }
-            : undefined;
-          const applied = !!(line && Object.keys(line).length);
-          setIntendedLine(applied ? line : undefined);
-        })
-        .catch(() => {});
+      const saved = findSpareLineByPins(spareLines, leave)?.line;
+      const savedLine = saved
+        ? {
+            ...(saved.stance != null && { stance: saved.stance }),
+            ...(saved.target != null && { target: saved.target })
+          }
+        : undefined;
+      const preset =
+        (sessionLine && { ...sessionLine }) ??
+        (savedLine && Object.keys(savedLine).length ? savedLine : undefined);
+      seedIntendedLine(preset, ballId, currentFrame?.shots ?? []);
     } else {
       // Fresh-rack bonus ball (10th after strike/spare): carry line + ball
       // from the most recent fresh-rack shot (see ADR-029).
@@ -812,8 +871,8 @@ export function ActiveGameScorer({
         gameState.frames,
         previousGames
       );
-      setIntendedLine(prevShot?.intended);
       setSelectedBallId(prevShot?.ball_id);
+      seedIntendedLine(prevShot?.intended, prevShot?.ball_id, currentFrame?.shots ?? []);
     }
   }, [
     gameState.currentFrameNumber,
@@ -825,6 +884,7 @@ export function ActiveGameScorer({
     sessionFrames,
     previousGames,
     balls,
+    spareLines,
     game
   ]);
 
@@ -863,20 +923,16 @@ export function ActiveGameScorer({
 
   // After a live spare conversion, offer to capture its line when the leave has
   // no saved Spare Line (or only a bare row with no targeting data).
-  async function offerSpareLine(frame: Frame) {
+  function offerSpareLine(frame: Frame) {
     if (!isSpare(frame)) return;
     const leave = frame.shots[0]?.pins_standing;
     if (!leave || leave.length === 0) return;
-    try {
-      const existing = await getSpareLineByPins(leave);
-      if (existing?.line) return;
-      setPendingSpareLeave({
-        pins: [...leave].sort((a, b) => a - b) as PinNumber[],
-        notes: existing?.notes
-      });
-    } catch {
-      // best-effort; skip the offer on lookup failure
-    }
+    const existing = findSpareLineByPins(spareLines, leave);
+    if (existing?.line) return;
+    setPendingSpareLeave({
+      pins: [...leave].sort((a, b) => a - b) as PinNumber[],
+      notes: existing?.notes
+    });
   }
 
   async function recordShot(standingOverride?: PinNumber[]) {
@@ -888,7 +944,7 @@ export function ActiveGameScorer({
       submission.savedFrame ??
       submission.state.frames.find((f) => f.frame_number === submittedFrameNumber) ??
       null;
-    if (submission.savedFrame) void offerSpareLine(submission.savedFrame);
+    if (submission.savedFrame) offerSpareLine(submission.savedFrame);
     if (!frameToPersist) return;
     try {
       await onFrameComplete?.(frameToPersist);
@@ -1137,9 +1193,20 @@ export function ActiveGameScorer({
           key={detailKey}
           balls={balls}
           ballId={isEditing && recordedShot ? recordedShot.ball_id : selectedBallId}
-          onBallChange={isEditing ? (id) => handleEditMeta({ ball_id: id }) : setSelectedBallId}
+          onBallChange={
+            isEditing ? (id) => handleEditMeta({ ball_id: id }) : handleLiveBallChange
+          }
           intended={isEditing && recordedShot ? recordedShot.intended : intendedLine}
-          onIntendedChange={isEditing ? (l) => handleEditMeta({ intended: l }) : setIntendedLine}
+          onIntendedChange={
+            isEditing
+              ? (l) => handleEditMeta({ intended: l })
+              : (l) => {
+                  // A hand edit owns the line from here: it must survive a
+                  // later ball change untouched.
+                  lineAutoFilled.current = false;
+                  setIntendedLine(l);
+                }
+          }
           actual={isEditing && recordedShot ? recordedShot.actual : actualLine}
           onActualChange={isEditing ? (l) => handleEditMeta({ actual: l }) : setActualLine}
           notes={isEditing && recordedShot ? recordedShot.notes ?? "" : shotNotes}
@@ -1181,6 +1248,7 @@ export function ActiveGameScorer({
           onSaved={() => {
             setShowSpareLineDialog(false);
             setPendingSpareLeave(null);
+            getSpareLinesAll().then(setSpareLines).catch(() => {});
           }}
           onCancel={() => setShowSpareLineDialog(false)}
         />

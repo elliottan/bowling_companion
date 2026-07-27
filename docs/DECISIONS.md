@@ -1441,3 +1441,73 @@ without rewriting ~400 call sites.
   `inverse` exist on `IconButton`).
 - `src/lib/` now holds React hooks (`useOverlay`, `useTheme`) alongside the older
   pure modules, so ARCHITECTURE.md's "no React in lib" rule no longer holds.
+
+---
+
+## ADR-035 — Same-ball line auto-fill, and the breakpoint as a ball concept
+
+**Status:** accepted (2026-07). Extends ADR-017's carry-forward priority and
+ADR-029's fresh-rack seeding; amends ADR-031's spare-attempt suppression rule
+(that ADR's text is left unedited).
+
+**Context.** Carry-forward seeds a shot's intended line from *one* predecessor
+shot, copying line + ball + notes as a matched set (ADR-017, ADR-029). It is
+ball-agnostic: the predecessor's line is offered whatever ball you end up
+throwing. The common miss is switching balls — the box is then either blank (no
+same-lane predecessor) or holds a line belonging to a ball you're not using.
+Every bowler already knows the answer in that moment: *where did I stand last
+time I threw this ball on this lane?*
+
+Separately, ADR-031 suppressed the derived-breakpoint chip for every spare
+attempt, on the reasoning that a breakpoint is a strike-line concept. That
+conflates the shot with the ball. Shooting a 2-8 with a hooking ball — moving
+two boards right and throwing the same equipment — has a real apex, and the lane
+visualizer has always drawn it (ADR-026 gives the spare curve the same derived
+breakpoint marker). Only a plastic spare ball, thrown straight at the pin rather
+than through a board down the lane, genuinely has none.
+
+**Decision.**
+
+- **A third tier of line seeding: this ball's own history.** It runs only when
+  the box would otherwise be empty — after carry-forward, the session spare line,
+  and the saved spare line have all declined. `sameBallSeedLine` (`src/lib/lanes.ts`)
+  resolves it, at two moments: when a shot starts, and when the user taps a ball.
+- **Only fresh-rack shots may seed.** A spare attempt aims at a leave, so its
+  line never seeds another shot. Spare attempts still *receive* one: with no
+  session or saved spare line, a leave shot inherits the strike line of the same
+  ball, which is the line the bowler adjusts *off* rather than replaces.
+- **Strict two-tier lane precedence, each scanned without limit.** Same ball on
+  the same lane wins over same ball on the pair's other lane, however much older
+  it is — a cross-lane pair oils and breaks down differently, so lane identity
+  beats recency. Both tiers scan the current frame, then earlier frames this
+  game, then earlier games in the session, newest first.
+- **Auto-filled lines carry provenance.** A line this rule supplied is replaced
+  when the ball changes under it; a line the user typed, or that carry-forward or
+  a spare line supplied, is never touched. Without this, a guess made *about a
+  different ball* silently survives onto the shot record.
+- **The breakpoint chip is suppressed by the ball, not the shot.** It hides only
+  when a spare attempt is thrown with a ball flagged `is_spare_ball`. This
+  narrows ADR-031's rule; everything else in that ADR stands.
+- **The `spare_lines` table is held in component state**, like `balls`, so leave
+  lookups are synchronous.
+
+**Consequences.**
+- The async spare-line read is gone from score entry. It could previously resolve
+  *after* a ball change and overwrite the line that change had just seeded — and
+  its "no saved line" branch cleared the box unconditionally. Both are now
+  structurally impossible rather than guarded.
+- A first ball can pair a ball and notes carried from one frame with a line found
+  in another. Accepted deliberately: an empty line helps nobody, and the notes
+  mismatch is cosmetic.
+- Shots already recorded with a non-spare ball at a leave now display a
+  breakpoint chip that was previously hidden. Nothing is rewritten — the apex is
+  derived at render time (`derivedApexForDisplay`), never stored, so there is no
+  migration and no invisible data on the record. Toggling `is_spare_ball` on a
+  ball in the Arsenal likewise changes only how past shots display.
+- Auto-fill is silent, with no marker distinguishing it from a carried or typed
+  line — consistent with how carry-forward has behaved since ADR-017. Adding
+  provenance UI for the newer path alone would make the older, equally inferred
+  path read as more authoritative than it is.
+- A spare ball used on a *first* ball keeps its breakpoint: that shot is a strike
+  shot. The converse edge case — a spare ball thrown at a hookable leave — is
+  knowingly left showing no chip.

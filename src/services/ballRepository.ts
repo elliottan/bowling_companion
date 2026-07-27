@@ -103,10 +103,18 @@ export async function reorderSpareLines(orderedIds: number[]): Promise<void> {
   });
 }
 
-export async function getSpareLineByPins(pins: PinNumber[]): Promise<SpareLine | undefined> {
+/** Match a leave against an already-loaded spare-line list (no DB round trip).
+ *  Callers that hold the table in state use this so the lookup stays sync. */
+export function findSpareLineByPins(
+  lines: SpareLine[],
+  pins: PinNumber[]
+): SpareLine | undefined {
   const sorted = sortPins(pins);
-  const all = await db.spare_lines.toArray();
-  return all.find((sl) => pinsEqual(sortPins(sl.pins), sorted));
+  return lines.find((sl) => pinsEqual(sortPins(sl.pins), sorted));
+}
+
+export async function getSpareLineByPins(pins: PinNumber[]): Promise<SpareLine | undefined> {
+  return findSpareLineByPins(await db.spare_lines.toArray(), pins);
 }
 
 export async function upsertSpareLine(

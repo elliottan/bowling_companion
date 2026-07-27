@@ -6,7 +6,8 @@ import {
   laneForFrame,
   nextGameStartLane,
   previousGameSameLaneFrame,
-  previousSameLaneFrame
+  previousSameLaneFrame,
+  sameBallSeedLine
 } from "./lanes";
 import type { Frame, Shot } from "../types/bowling";
 
@@ -234,5 +235,98 @@ describe("freshRackSeedShot", () => {
     const result = freshRackSeedShot(undefined, 10, [ball1], [], []);
     expect(result).toBe(ball1);
     expect(result?.intended).toBeUndefined();
+  });
+});
+
+describe("sameBallSeedLine", () => {
+  // Frame whose first shot was thrown with `ballId`, line keyed to the frame.
+  const bframe = (n: number, ballId: number, extra: Shot[] = []): Frame => ({
+    game_id: 1,
+    frame_number: n,
+    shots: [
+      { pins_standing: [], ball_id: ballId, intended: { stance: n, target: n } },
+      ...extra
+    ],
+    is_strike: false,
+    is_spare: false
+  });
+
+  it("no ball selected: undefined", () => {
+    expect(sameBallSeedLine(undefined, undefined, 5, [], [bframe(1, 7)], [])).toBeUndefined();
+  });
+
+  it("scans all the way back for the same ball, not just the previous frame", () => {
+    const g = { lanes: ["7"] };
+    const frames = [bframe(1, 7), bframe(2, 9), bframe(3, 9)];
+    expect(sameBallSeedLine(7, g, 4, [], frames, [])?.stance).toBe(1);
+  });
+
+  it("same lane wins over a more recent other-lane shot", () => {
+    const g = { lanes: ["11", "12"], start_lane: "11" };
+    // Frame 3 -> lane 11 (same as frame 5); frame 4 -> lane 12.
+    const frames = [bframe(3, 7), bframe(4, 7)];
+    expect(sameBallSeedLine(7, g, 5, [], frames, [])?.stance).toBe(3);
+  });
+
+  it("falls back to the other lane when the same lane has no match", () => {
+    const g = { lanes: ["11", "12"], start_lane: "11" };
+    const frames = [bframe(4, 7)]; // lane 12 only
+    expect(sameBallSeedLine(7, g, 5, [], frames, [])?.stance).toBe(4);
+  });
+
+  it("reaches into previous games on the same lane", () => {
+    const g = { lanes: ["7"] };
+    const previousGames = [{ game: { lanes: ["7"] }, frames: [bframe(6, 7)] }];
+    expect(sameBallSeedLine(7, g, 2, [], [], previousGames)?.stance).toBe(6);
+  });
+
+  it("prefers the current frame's own first shot (spare attempt seeding)", () => {
+    const g = { lanes: ["7"] };
+    const shots: Shot[] = [
+      { pins_standing: [2, 8], ball_id: 7, intended: { stance: 22, target: 10 } }
+    ];
+    expect(sameBallSeedLine(7, g, 5, shots, [bframe(3, 7)], [])?.stance).toBe(22);
+  });
+
+  it("never sources a spare attempt's line", () => {
+    const g = { lanes: ["7"] };
+    const spareShot: Shot = {
+      pins_standing: [],
+      ball_id: 7,
+      intended: { stance: 33, target: 3 }
+    };
+    // Frame 3 ball 1 used a different ball and left a leave; its spare attempt
+    // used ball 7. Only a shot at a full rack may seed.
+    const frames: Frame[] = [
+      {
+        game_id: 1,
+        frame_number: 3,
+        shots: [
+          { pins_standing: [2, 8], ball_id: 9, intended: { stance: 3, target: 3 } },
+          spareShot
+        ],
+        is_strike: false,
+        is_spare: true
+      }
+    ];
+    expect(sameBallSeedLine(7, g, 5, [], frames, [])).toBeUndefined();
+  });
+
+  it("skips same-ball shots whose line is empty", () => {
+    const g = { lanes: ["7"] };
+    const blank: Frame = {
+      game_id: 1,
+      frame_number: 4,
+      shots: [{ pins_standing: [], ball_id: 7 }],
+      is_strike: false,
+      is_spare: false
+    };
+    const frames = [bframe(2, 7), blank];
+    expect(sameBallSeedLine(7, g, 5, [], frames, [])?.stance).toBe(2);
+  });
+
+  it("no lane config: every earlier shot counts as same-lane", () => {
+    const frames = [bframe(1, 7), bframe(2, 9)];
+    expect(sameBallSeedLine(7, undefined, 3, [], frames, [])?.stance).toBe(1);
   });
 });

@@ -5,6 +5,8 @@ import type { Frame, PinNumber } from "../types/bowling";
 
 vi.mock("../services/ballRepository", () => ({
   getBalls: () => Promise.resolve([]),
+  getSpareLinesAll: () => Promise.resolve([]),
+  findSpareLineByPins: () => undefined,
   getSpareLineByPins: () => Promise.resolve(undefined)
 }));
 
