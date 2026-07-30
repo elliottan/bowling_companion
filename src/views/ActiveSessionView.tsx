@@ -24,6 +24,10 @@ import type { Frame, Game, SessionSummary } from "../types/bowling";
 
 interface ActiveSessionViewProps {
   sessionId: number;
+  /** Open the session panel on the Stats tab as soon as the view mounts. */
+  openStatsOnMount?: boolean;
+  /** Fired once the stats sheet has been auto-opened, so the flag can reset. */
+  onStatsOpened?: () => void;
   onBack: () => void;
   /** Called when the last game is deleted and the session no longer exists. */
   onSessionDeleted: () => void;
@@ -39,6 +43,8 @@ const lanePromptedGameIds = new Set<number>();
 
 export function ActiveSessionView({
   sessionId,
+  openStatsOnMount = false,
+  onStatsOpened,
   onBack,
   onSessionDeleted,
   onOpenArsenal
@@ -50,8 +56,8 @@ export function ActiveSessionView({
   const [error, setError] = useState("");
   const [confirmDeleteGame, setConfirmDeleteGame] = useState<number | null>(null);
   const [chipMenu, setChipMenu] = useState<{ gameId: number; left: number; top: number } | null>(null);
-  const [showSheet, setShowSheet] = useState(false);
-  const [sheetTab, setSheetTab] = useState<SessionPanelTab>("sheet");
+  const [showSheet, setShowSheet] = useState(openStatsOnMount);
+  const [sheetTab, setSheetTab] = useState<SessionPanelTab>(openStatsOnMount ? "stats" : "sheet");
   const [showEdit, setShowEdit] = useState(false);
 
   // Inline lane editor
@@ -60,6 +66,12 @@ export function ActiveSessionView({
   const [startSide, setStartSide] = useState<"A" | "B">("A");
   const [laneError, setLaneError] = useState("");
   const [showLaneEditor, setShowLaneEditor] = useState(false);
+
+  useEffect(() => {
+    if (openStatsOnMount) onStatsOpened?.();
+    // Mount-only: the flag is consumed by the initial state above.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const longPress = useLongPress();
   const laneEditorRef = useOverlay<HTMLDivElement>(() => setShowLaneEditor(false), showLaneEditor);

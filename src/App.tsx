@@ -59,6 +59,7 @@ function App() {
   // The view to return to when leaving the active session (set on entry).
   const [previousView, setPreviousView] = useState<AppView>("dashboard");
   const [activeSessionId, setActiveSessionId] = useState<number | null>(null);
+  const [openSessionStats, setOpenSessionStats] = useState(false);
   const [isStartingSession, setIsStartingSession] = useState(false);
   const [startError, setStartError] = useState("");
   const [settingsSection, setSettingsSection] = useState<SettingsSection>("menu");
@@ -306,8 +307,11 @@ function App() {
     }
   }
 
-  function openSession(sessionId: number) {
+  // `openStats` (a finished session) lands on the session page with the stats
+  // sheet already up — there's no scoring left to do there.
+  function openSession(sessionId: number, openStats = false) {
     setActiveSessionId(sessionId);
+    setOpenSessionStats(openStats);
     goTo("active");
   }
 
@@ -365,6 +369,10 @@ function App() {
         {view === "active" && activeSessionId && (
           <ActiveSessionView
             sessionId={activeSessionId}
+            openStatsOnMount={openSessionStats}
+            // One-shot: without this the sheet would re-open on every remount
+            // (tab switches remount this view).
+            onStatsOpened={() => setOpenSessionStats(false)}
             onBack={() => setView(previousView)}
             onSessionDeleted={() => {
               setActiveSessionId(null);

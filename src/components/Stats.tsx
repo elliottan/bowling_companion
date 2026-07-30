@@ -1,4 +1,5 @@
-import { BarChart3 } from "lucide-react";
+import { BarChart3, ChevronDown } from "lucide-react";
+import { useState } from "react";
 import { MiniPins } from "./MiniPins";
 import { isBabySplit, isSplit } from "../lib/pins";
 import type { BallUsage, BowlingStats, LeaveStats } from "../lib/stats";
@@ -12,6 +13,8 @@ interface StatsProps {
 }
 
 export function Stats({ stats, isLoading = false, leaves, ballUsage }: StatsProps) {
+  const [showBallUsage, setShowBallUsage] = useState(false);
+
   if (isLoading) {
     return (
       <p className="rounded-lg border border-edge bg-surface p-4 text-sm text-ink-secondary shadow-sm">
@@ -32,33 +35,40 @@ export function Stats({ stats, isLoading = false, leaves, ballUsage }: StatsProp
   }
 
   return (
-    <div className="space-y-4">
-      <div className="grid grid-cols-3 gap-2">
+    <div className="space-y-3">
+      <div className="grid grid-cols-5 gap-1.5">
         <Tile label="Avg" value={fmt(stats.averageScore)} />
         <Tile label="High" value={fmt(stats.highGame)} />
         <Tile label="Games" value={String(stats.completedGames)} />
-      </div>
-
-      <div className="space-y-3 rounded-lg border border-edge bg-surface p-4 shadow-sm">
-        <Bar label="Strikes" pct={stats.strikePct} />
-        <Bar label="Spares" pct={stats.sparePct} subtitle="non-splits" />
+        <Tile label="Strike" value={pct(stats.strikePct)} />
+        <Tile label="Spare" value={pct(stats.sparePct)} />
       </div>
 
       {ballUsage && ballUsage.length > 0 && (
-        <div className="rounded-lg border border-edge bg-surface p-4 shadow-sm">
-          <h2 className="mb-3 text-xs font-semibold uppercase tracking-wide text-ink-secondary">
+        <div className="rounded-lg border border-edge bg-surface p-3 shadow-sm">
+          <button
+            type="button"
+            onClick={() => setShowBallUsage((v) => !v)}
+            className="flex w-full items-center justify-between gap-2 text-xs font-semibold uppercase tracking-wide text-ink-secondary"
+          >
             Ball usage
-          </h2>
-          <ul className="divide-y divide-edge">
+            <ChevronDown
+              size={16}
+              aria-hidden="true"
+              className={showBallUsage ? "rotate-180" : ""}
+            />
+          </button>
+          <ul className={`divide-y divide-edge ${showBallUsage ? "mt-2" : "hidden"}`}>
             {ballUsage.map((b) => (
-              <li key={b.ballId} className="flex items-center justify-between py-2 text-sm">
+              <li key={b.ballId} className="flex items-center justify-between py-1.5 text-sm">
                 <span className="truncate pr-3 font-medium text-ink-strong">{b.name}</span>
                 <span className="shrink-0 tabular-nums text-ink-secondary">
                   <span className="font-semibold text-ink">{b.frames}</span>{" "}
                   {b.frames === 1 ? "frame" : "frames"}
                   {" · "}
-                  <span className="font-semibold text-ink">{b.games}</span>{" "}
-                  {b.games === 1 ? "game" : "games"}
+                  {/* Games as a fraction of a 10-frame game — a ball thrown in
+                      15 frames covers 1.5 games' worth of shots. */}
+                  <span className="font-semibold text-ink">{(b.frames / 10).toFixed(1)}</span> games
                 </span>
               </li>
             ))}
@@ -74,7 +84,7 @@ export function Stats({ stats, isLoading = false, leaves, ballUsage }: StatsProp
         return (
           <>
             {spares.length > 0 && (
-              <div className="rounded-lg border border-edge bg-surface p-4 shadow-sm">
+              <div className="rounded-lg border border-edge bg-surface p-3 shadow-sm">
                 <h2 className="mb-3 text-xs font-semibold uppercase tracking-wide text-ink-secondary">
                   Spare rates
                 </h2>
@@ -83,7 +93,7 @@ export function Stats({ stats, isLoading = false, leaves, ballUsage }: StatsProp
             )}
 
             {splits.length > 0 && (
-              <div className="rounded-lg border border-edge bg-surface-muted p-4">
+              <div className="rounded-lg border border-edge bg-surface-muted p-3">
                 <h2 className="mb-3 text-xs font-semibold uppercase tracking-wide text-ink-secondary">
                   Splits
                 </h2>
@@ -111,7 +121,7 @@ function LeaveGrid({ leaves, muted = false }: { leaves: LeaveStats[]; muted?: bo
   const partitioned = common.length > 0 && rare.length > 0;
   return (
     <>
-      <div className="grid grid-cols-3 gap-2">
+      <div className="grid grid-cols-4 gap-1.5">
         {(partitioned ? common : sorted).map((leave) => (
           <LeaveCell key={leave.pins.join("-")} leave={leave} muted={muted} />
         ))}
@@ -121,7 +131,7 @@ function LeaveGrid({ leaves, muted = false }: { leaves: LeaveStats[]; muted?: bo
           <p className="mb-2 mt-3 text-[11px] font-semibold uppercase tracking-wide text-ink-secondary">
             Rare leaves (under {RARE_ATTEMPTS} attempts)
           </p>
-          <div className="grid grid-cols-3 gap-2 opacity-60">
+          <div className="grid grid-cols-4 gap-1.5 opacity-60">
             {rare.map((leave) => (
               <LeaveCell key={leave.pins.join("-")} leave={leave} muted={muted} />
             ))}
@@ -164,29 +174,17 @@ function formatLeave(pins: PinNumber[]): string {
 
 function Tile({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-lg border border-edge bg-surface p-3 text-center shadow-sm">
-      <p className="text-2xl font-bold text-ink">{value}</p>
-      <p className="text-xs font-semibold uppercase tracking-wide text-ink-secondary">{label}</p>
-    </div>
-  );
-}
-
-function Bar({ label, pct, subtitle }: { label: string; pct: number | null; subtitle?: string }) {
-  const value = pct ?? 0;
-  return (
-    <div>
-      <div className="mb-1 flex items-center justify-between text-sm">
-        <span className="font-medium text-ink-strong">{label}</span>
-        <span className="font-semibold text-ink">{pct === null ? "—" : `${pct}%`}</span>
-      </div>
-      {subtitle && <p className="mb-1 text-[11px] text-ink-secondary">{subtitle}</p>}
-      <div className="h-2 overflow-hidden rounded-full bg-surface-muted">
-        <div className="h-full rounded-full bg-accent-fill" style={{ width: `${value}%` }} />
-      </div>
+    <div className="rounded-lg border border-edge bg-surface px-1 py-2 text-center shadow-sm">
+      <p className="text-lg font-bold tabular-nums text-ink">{value}</p>
+      <p className="text-[10px] font-semibold uppercase tracking-wide text-ink-secondary">{label}</p>
     </div>
   );
 }
 
 function fmt(value: number | null): string {
   return value === null ? "—" : String(value);
+}
+
+function pct(value: number | null): string {
+  return value === null ? "—" : `${value}%`;
 }

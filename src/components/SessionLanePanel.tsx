@@ -131,7 +131,7 @@ export function SessionLanePanel({
     >
       <div
         ref={overlayRef}
-        className="flex h-[85vh] w-full max-w-lg flex-col rounded-t-2xl bg-surface shadow-xl sm:rounded-2xl"
+        className="flex h-[100dvh] w-full max-w-lg flex-col bg-surface shadow-xl sm:h-[95vh] sm:rounded-2xl"
         onClick={(e) => e.stopPropagation()}
         style={{
           transform: closing || !mounted ? "translateY(100%)" : `translateY(${dragY}px)`,
@@ -140,7 +140,7 @@ export function SessionLanePanel({
       >
         {/* Drag pill */}
         <div
-          className="flex touch-none cursor-grab justify-center pb-1 pt-3 active:cursor-grabbing"
+          className="flex touch-none cursor-grab justify-center pb-1 pt-[calc(env(safe-area-inset-top)+0.75rem)] active:cursor-grabbing sm:pt-3"
           {...dragHandlers}
         >
           <div className="h-1.5 w-10 rounded-full bg-edge-strong" />

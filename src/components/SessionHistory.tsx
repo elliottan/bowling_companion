@@ -1,4 +1,4 @@
-import { BarChart3, History, Trash2 } from "lucide-react";
+import { History, Pencil, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { createPortal } from "react-dom";
 import { calculateGameScore } from "../lib/scoring";
@@ -6,15 +6,14 @@ import { useLongPress } from "../lib/useLongPress";
 import { deleteSession, updateSession } from "../services/bowlingRepository";
 import { ConfirmDialog } from "./ConfirmDialog";
 import { SessionFormDialog } from "./SessionFormDialog";
-import { SessionLanePanel } from "./SessionLanePanel";
-import { IconButton } from "./ui/IconButton";
 import type { NewSessionFormValues } from "./SessionForm";
 import type { SessionSummary } from "../types/bowling";
 
 interface SessionHistoryProps {
   sessions: SessionSummary[];
   isLoading?: boolean;
-  onOpenSession: (sessionId: number) => void;
+  /** `openStats` is set when every game in the session is finished. */
+  onOpenSession: (sessionId: number, openStats?: boolean) => void;
   activeSessionId?: number | null;
   /** Called after a session is edited or deleted so the list can reload. */
   onSessionChanged?: () => void;
@@ -79,7 +78,7 @@ function laneSummary(games: SessionSummary["games"]): string {
 interface SessionRowProps {
   summary: SessionSummary;
   isActive: boolean;
-  onOpen: (sessionId: number) => void;
+  onOpen: (sessionId: number, openStats?: boolean) => void;
   onSessionChanged?: () => void;
   onSessionDeleted?: (sessionId: number) => void;
 }
@@ -90,7 +89,6 @@ interface SessionRowProps {
  */
 function SessionRow({ summary, isActive, onOpen, onSessionChanged, onSessionDeleted }: SessionRowProps) {
   const { session, games } = summary;
-  const [showStats, setShowStats] = useState(false);
   const [showEdit, setShowEdit] = useState(false);
   const [rowMenu, setRowMenu] = useState<{ left: number; top: number } | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -140,7 +138,7 @@ function SessionRow({ summary, isActive, onOpen, onSessionChanged, onSessionDele
       aria-label={`Open session: ${session.alley_name}, ${session.date}`}
       onClick={() => {
         if (longPress.didLongPress()) return;
-        if (session.id) onOpen(session.id);
+        if (session.id) onOpen(session.id, !hasUnfinishedGame);
       }}
       className={`w-full rounded-lg border bg-surface p-4 text-left shadow-sm ${
         isActive ? "border-accent-fill ring-1 ring-accent-fill" : "border-edge"
@@ -161,7 +159,7 @@ function SessionRow({ summary, isActive, onOpen, onSessionChanged, onSessionDele
             <p className="text-xs font-medium text-ink-secondary">{session.oil_pattern}</p>
           )}
         </div>
-        <div className="flex shrink-0 flex-col items-end gap-0.5 pr-14 text-right">
+        <div className="flex shrink-0 flex-col items-end gap-0.5 text-right">
           {hasUnfinishedGame && (
             <span className="inline-flex items-center rounded-full bg-accent-fill px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-accent-on-fill">
               Active
@@ -210,14 +208,6 @@ function SessionRow({ summary, isActive, onOpen, onSessionChanged, onSessionDele
       )}
     </button>
 
-      <IconButton
-        onClick={() => setShowStats(true)}
-        label="Session stats"
-        className="absolute right-1 top-1"
-      >
-        <BarChart3 size={16} aria-hidden="true" />
-      </IconButton>
-
       {/* Long-press menu + confirm are portaled to body: rows can live inside
           SwipePanes, whose translateX transform would otherwise reposition
           these fixed overlays. */}
@@ -229,6 +219,17 @@ function SessionRow({ summary, isActive, onOpen, onSessionChanged, onSessionDele
               className="fixed z-20 w-44 overflow-hidden rounded-lg border border-edge bg-surface py-1 shadow-lg"
               style={{ left: rowMenu.left, top: rowMenu.top }}
             >
+              <button
+                type="button"
+                onClick={() => {
+                  setRowMenu(null);
+                  setShowEdit(true);
+                }}
+                className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm font-medium text-ink hover:bg-surface-muted"
+              >
+                <Pencil size={16} aria-hidden="true" />
+                Edit session
+              </button>
               <button
                 type="button"
                 onClick={() => {
@@ -254,17 +255,6 @@ function SessionRow({ summary, isActive, onOpen, onSessionChanged, onSessionDele
           onCancel={() => setConfirmDelete(false)}
         />,
         document.body
-      )}
-
-      {showStats && (
-        <SessionLanePanel
-          summary={summary}
-          defaultTab="stats"
-          // Close the panel first: it portals to body after the edit dialog,
-          // so it would otherwise paint on top of it.
-          onEdit={() => { setShowStats(false); setShowEdit(true); }}
-          onClose={() => setShowStats(false)}
-        />
       )}
 
       {/* Portal to body: rows can live inside SwipePanes, whose translateX
