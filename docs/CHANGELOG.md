@@ -19,6 +19,12 @@ User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachan
 
 ### Changed
 
+- **Spare % is now your makeable-spare rate.** Washouts (the head pin left
+  standing with a gap behind it, like 1-2-10) no longer count towards it, the
+  same way real splits never have. Tap the Spare tile to see the rule.
+- **Leaves are grouped as Makeables, Washouts and Splits**, each sorted by how
+  often you've faced them. The "rare leaves" section is gone.
+
 - **Every control is now big enough to hit.** Buttons, filter chips and icon
   buttons meet Apple's 44pt minimum. The worst offenders were the Arsenal
   row's edit and delete buttons, which sat side by side at 32px with one of

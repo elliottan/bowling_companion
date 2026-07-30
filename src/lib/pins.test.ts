@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isBabySplit, isSplit } from "./pins";
+import { isBabySplit, isSplit, isWashout } from "./pins";
 
 describe("isSplit", () => {
   it("returns false for empty leave", () => {
@@ -103,5 +103,20 @@ describe("isBabySplit", () => {
     expect(isBabySplit([2, 8])).toBe(false);  // sleeper
     expect(isBabySplit([10])).toBe(false);    // single pin
     expect(isBabySplit([1, 5])).toBe(false);  // has headpin
+  });
+});
+
+describe("isWashout", () => {
+  it("flags head-pin leaves with a gap behind the head pin", () => {
+    expect(isWashout([1, 2, 10])).toBe(true);
+    expect(isWashout([1, 3, 7])).toBe(true);
+    expect(isWashout([1, 2, 4, 10])).toBe(true);
+  });
+
+  it("is false without the head pin, and false for ordinary head-pin leaves", () => {
+    expect(isWashout([2, 10])).toBe(false);   // that's a split
+    expect(isWashout([1, 2, 4, 5])).toBe(false);
+    expect(isWashout([1])).toBe(false);
+    expect(isWashout([])).toBe(false);
   });
 });

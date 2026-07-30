@@ -1,5 +1,5 @@
 import { isSpare, isStrike } from "./scoring";
-import { isBabySplit, isSplit } from "./pins";
+import { isBabySplit, isSplit, isWashout } from "./pins";
 import { laneForFrame } from "./lanes";
 import type { Ball, Frame, Game, PinNumber, SessionSummary } from "../types/bowling";
 
@@ -51,7 +51,8 @@ export interface BowlingStats {
  * Strike % = strike frames / first-ball opportunities. The 10th frame can
  * carry up to three fresh-rack balls, each a strike opportunity.
  * Spare % = spares made / spare opportunities, where an opportunity is a
- * non-strike frame in which a second ball was thrown.
+ * non-strike frame in which a second ball was thrown at a makeable leave —
+ * real splits and washouts are excluded (ADR-036).
  */
 export function calculateStats(sessions: SessionSummary[], selectedLanes?: string[]): BowlingStats {
   const filter = selectedLanes && selectedLanes.length ? new Set(selectedLanes) : undefined;
@@ -114,8 +115,12 @@ interface FrameTally {
   spares: number;
 }
 
-/** A frame left with a real (non-baby) split is not a spare opportunity. */
-function isRealSplit(standing: PinNumber[]): boolean {
+/**
+ * Spare % measures makeable leaves only: a real (non-baby) split or a washout
+ * is not a spare opportunity. See ADR-036.
+ */
+function isUnmakeable(standing: PinNumber[]): boolean {
+  if (isWashout(standing)) return true;
   return isSplit(standing) && !isBabySplit(standing);
 }
 
@@ -126,7 +131,7 @@ function tallyFrame(frame: Frame): FrameTally {
   const strike = isStrike(frame);
   const t: FrameTally = { strikeOpps: 1, strikes: strike ? 1 : 0, spareOpps: 0, spares: 0 };
 
-  if (!strike && frame.shots[1] && !isRealSplit(frame.shots[0].pins_standing)) {
+  if (!strike && frame.shots[1] && !isUnmakeable(frame.shots[0].pins_standing)) {
     t.spareOpps = 1;
     if (isSpare(frame)) t.spares = 1;
   }
@@ -150,7 +155,7 @@ function tallyTenthFrame(frame: Frame): FrameTally {
     // Fresh rack on ball 2 -> another strike opportunity.
     t.strikeOpps += 1;
     if (clears(shot2Standing)) t.strikes += 1;
-  } else if (!isRealSplit(shot1Standing)) {
+  } else if (!isUnmakeable(shot1Standing)) {
     t.spareOpps += 1;
     if (clears2(shot1Standing, shot2Standing)) t.spares += 1;
   }

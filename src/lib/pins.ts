@@ -59,6 +59,17 @@ export function isBabySplit(standing: PinNumber[]): boolean {
   return true;
 }
 
+/**
+ * A washout: the head pin is standing along with pins that would form a split
+ * if it weren't (e.g. 1-2-10, 1-3-7, 1-2-4-10). By the USBC definition these
+ * are not splits — the head pin is up — but they don't convert like an
+ * ordinary leave either, so they're tracked as their own group.
+ */
+export function isWashout(standing: PinNumber[]): boolean {
+  if (!standing.includes(1)) return false;
+  return isSplit(standing.filter((p) => p !== 1));
+}
+
 /** Screen-reader description of a pin diagram. The numerals rendered inside
  *  each pin are decorative — position and fill already carry the meaning — so
  *  the diagram is exposed as a single labeled image using this text. */

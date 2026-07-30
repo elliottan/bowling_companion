@@ -3,7 +3,7 @@ import { useState, type ReactNode } from "react";
 import { CatalogBallImage } from "./CatalogBallImage";
 import { MiniPins } from "./MiniPins";
 import type { Manufacturer } from "../types/catalog";
-import { isBabySplit, isSplit } from "../lib/pins";
+import { isBabySplit, isSplit, isWashout } from "../lib/pins";
 import type { BallUsage, BowlingStats, LeaveStats } from "../lib/stats";
 
 interface StatsProps {
@@ -11,20 +11,13 @@ interface StatsProps {
   isLoading?: boolean;
   leaves?: LeaveStats[];
   ballUsage?: BallUsage[];
-  /**
-   * Split under-sampled leaves into their own collapsible section. Only worth
-   * it across all sessions — a single session never has the attempts for the
-   * distinction to say anything.
-   */
-  partitionRare?: boolean;
 }
 
 export function Stats({
   stats,
   isLoading = false,
   leaves,
-  ballUsage,
-  partitionRare = true
+  ballUsage
 }: StatsProps) {
   const [showBallUsage, setShowBallUsage] = useState(false);
   const [showSpareNote, setShowSpareNote] = useState(false);
@@ -51,20 +44,24 @@ export function Stats({
   return (
     <div className="space-y-3">
       <div className="grid grid-cols-5 gap-1.5">
-        <Tile label="Avg" value={fmt(stats.averageScore)} />
+        <Tile label="Games" value={String(stats.completedGames)} />
+        {/* High over low, each on its own line — two 3-digit scores side by
+            side don't fit the tile width. */}
         <Tile
-          label="H/L"
-          // Two 3-digit scores plus a slash don't fit at the tile's usual size.
+          label=""
           valueClass="text-xs text-ink"
           value={
-            <>
-              <span className="text-accent">{fmt(stats.highGame)}</span>
-              <span className="text-ink-tertiary">/</span>
-              <span className="text-danger-600">{fmt(stats.lowGame)}</span>
-            </>
+            <span className="flex flex-col leading-tight">
+              <span className="text-accent">
+                <span className="text-ink-tertiary">H</span> {fmt(stats.highGame)}
+              </span>
+              <span className="text-danger-600">
+                <span className="text-ink-tertiary">L</span> {fmt(stats.lowGame)}
+              </span>
+            </span>
           }
         />
-        <Tile label="Games" value={String(stats.completedGames)} />
+        <Tile label="Avg" value={fmt(stats.averageScore)} />
         <Tile label="Strike" value={pct(stats.strikePct)} />
         <Tile
           label="Spare"
@@ -79,8 +76,8 @@ export function Stats({
           onClick={() => setShowSpareNote(false)}
           className="w-full rounded-lg border border-edge bg-surface-muted p-3 text-left text-xs text-ink-secondary"
         >
-          Spare % counts only non-split leaves — splits are excluded, so a bad rack
-          doesn't drag the rate down. Tap to dismiss.
+          Spare % counts makeable leaves only. Washouts and splits are left out.
+          Tap to dismiss.
         </button>
       )}
 
@@ -130,28 +127,19 @@ export function Stats({
 
       {(() => {
         const all = leaves ?? [];
-        const splits = all.filter((l) => isSplit(l.pins) && !isBabySplit(l.pins));
-        const spares = all.filter((l) => !isSplit(l.pins) || isBabySplit(l.pins));
         if (all.length === 0) return null;
+        // Three groups, easiest first: makeables (ordinary leaves), washouts
+        // (head pin standing with a gap behind it), and real splits.
+        const splits = all.filter((l) => isSplit(l.pins) && !isBabySplit(l.pins));
+        const washouts = all.filter((l) => isWashout(l.pins));
+        const makeables = all.filter(
+          (l) => !isWashout(l.pins) && (!isSplit(l.pins) || isBabySplit(l.pins))
+        );
         return (
           <>
-            {spares.length > 0 && (
-              <div className="rounded-lg border border-edge bg-surface p-3 shadow-sm">
-                <h2 className="mb-3 text-xs font-semibold uppercase tracking-wide text-ink-secondary">
-                  Spare rates
-                </h2>
-                <LeaveGrid leaves={spares} partitionRare={partitionRare} />
-              </div>
-            )}
-
-            {splits.length > 0 && (
-              <div className="rounded-lg border border-edge bg-surface p-3 shadow-sm">
-                <h2 className="mb-3 text-xs font-semibold uppercase tracking-wide text-ink-secondary">
-                  Splits
-                </h2>
-                <LeaveGrid leaves={splits} partitionRare={partitionRare} />
-              </div>
-            )}
+            <LeaveSection title="Makeables" leaves={makeables} />
+            <LeaveSection title="Washouts" leaves={washouts} />
+            <LeaveSection title="Splits" leaves={splits} />
           </>
         );
       })()}
@@ -159,54 +147,21 @@ export function Stats({
   );
 }
 
-const RARE_ATTEMPTS = 3;
-
-/**
- * Leaves sorted by attempts (most bowled first) so meaningful rates lead.
- * Across all sessions, one-off leaves would bury the meaningful ones, so the
- * under-sampled ones fold into a collapsible "Rare leaves" section. A single
- * session has too few attempts for that split to mean anything — callers pass
- * `partitionRare={false}` there and every leave shows in one grid.
- */
-function LeaveGrid({
-  leaves,
-  partitionRare = true
-}: {
-  leaves: LeaveStats[];
-  partitionRare?: boolean;
-}) {
-  const [showRare, setShowRare] = useState(false);
+function LeaveSection({ title, leaves }: { title: string; leaves: LeaveStats[] }) {
+  if (leaves.length === 0) return null;
+  // Most-bowled first, so the leaves with meaningful sample sizes lead.
   const sorted = [...leaves].sort((a, b) => b.attempts - a.attempts);
-  const common = sorted.filter((l) => l.attempts >= RARE_ATTEMPTS);
-  const rare = sorted.filter((l) => l.attempts < RARE_ATTEMPTS);
-  const partitioned = partitionRare && common.length > 0 && rare.length > 0;
   return (
-    <>
+    <div className="rounded-lg border border-edge bg-surface p-3 shadow-sm">
+      <h2 className="mb-3 text-xs font-semibold uppercase tracking-wide text-ink-secondary">
+        {title}
+      </h2>
       <div className="grid grid-cols-4 gap-1.5">
-        {(partitioned ? common : sorted).map((leave) => (
+        {sorted.map((leave) => (
           <LeaveCell key={leave.pins.join("-")} leave={leave} />
         ))}
       </div>
-      {partitioned && (
-        <>
-          <button
-            type="button"
-            onClick={() => setShowRare((v) => !v)}
-            className="mt-3 flex w-full items-center justify-between gap-2 text-[11px] font-semibold uppercase tracking-wide text-ink-secondary"
-          >
-            Rare leaves (under {RARE_ATTEMPTS} attempts)
-            <ChevronDown size={16} aria-hidden="true" className={showRare ? "rotate-180" : ""} />
-          </button>
-          {showRare && (
-            <div className="mt-2 grid grid-cols-4 gap-1.5">
-              {rare.map((leave) => (
-                <LeaveCell key={leave.pins.join("-")} leave={leave} />
-              ))}
-            </div>
-          )}
-        </>
-      )}
-    </>
+    </div>
   );
 }
 
@@ -249,7 +204,9 @@ function Tile({
   const body = (
     <>
       <p className={`font-bold tabular-nums ${valueClass}`}>{value}</p>
-      <p className="text-[10px] font-semibold uppercase tracking-wide text-ink-secondary">{label}</p>
+      {label && (
+        <p className="text-[10px] font-semibold uppercase tracking-wide text-ink-secondary">{label}</p>
+      )}
     </>
   );
   if (!onClick) return <div className={className}>{body}</div>;

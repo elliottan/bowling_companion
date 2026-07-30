@@ -1511,3 +1511,42 @@ than through a board down the lane, genuinely has none.
 - A spare ball used on a *first* ball keeps its breakpoint: that shot is a strike
   shot. The converse edge case — a spare ball thrown at a hookable leave — is
   knowingly left showing no chip.
+
+---
+
+## ADR-036 — Washouts are their own leave class, and spare % counts makeables only
+
+**Status:** accepted (2026-07). Narrows the spare-rate definition established
+alongside ADR-001's scoring rules; the split/baby-split classification from
+`lib/pins.ts` is unchanged.
+
+**Context.** Leaves were sorted into two buckets: real splits (excluded from
+spare %) and everything else (counted). "Everything else" quietly included
+washouts — the head pin standing with pins behind a gap, e.g. 1-2-10, 1-3-7.
+By the USBC definition those are not splits, because the head pin is up, but
+they convert nothing like an ordinary 10-pin. Folding them into the same rate
+made spare % read better than the bowler's actual makeable-spare conversion,
+which is the number the rate exists to report.
+
+The leave grids had a second problem: an attempts-based "rare leaves" section
+that split each grid in two. It answered a sampling question nobody asked while
+hiding leaves the bowler wanted to see.
+
+**Decision.**
+- **`isWashout(standing)`** — head pin standing, and the remaining pins form a
+  split without it. Pure geometry, reusing `isSplit`; no new constants.
+- **Spare % counts makeable leaves only.** A real split *or* a washout is not a
+  spare opportunity: excluded from numerator and denominator alike, the same
+  treatment real splits already had.
+- **Leaves render as three fixed sections** — Makeables, Washouts, Splits —
+  each sorted by attempts. The rare/common partition is gone.
+
+**Consequences.**
+- Spare % changes for existing data. Nothing is stored or migrated: the rate is
+  derived from recorded pins on every render, so the number simply becomes the
+  makeable-conversion rate it claims to be. A bowler with frequent washouts will
+  see their spare % rise, since those attempts leave the denominator.
+- Baby splits still count as spare opportunities (unchanged) — they are
+  makeable, and they render in the Splits section, which is a display grouping,
+  not the rate's definition.
+- Washouts get a visible conversion rate of their own for the first time.

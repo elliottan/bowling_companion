@@ -305,6 +305,21 @@ describe("spare rate: real-split exclusion", () => {
     expect(stats.sparePct).toBe(50); // 1/2
   });
 
+  it("a washout is excluded from spare rate numerator AND denominator", () => {
+    // Frame 1: washout [1,2,10] — not converted (excluded entirely)
+    // Frame 2: normal leave [10] — converted (spare opp, made)
+    // Expected: sparePct = 1/1 = 100% (only frame 2 counts)
+    const f1 = frame(
+      1,
+      [1 as PinNumber, 2 as PinNumber, 10 as PinNumber],
+      [1 as PinNumber, 2 as PinNumber, 10 as PinNumber]
+    );
+    const f2 = frame(2, [10 as PinNumber], NONE);
+    const sessions: SessionSummary[] = [session("Lanes", [game(undefined, [f1, f2])])];
+    const stats = calculateStats(sessions);
+    expect(stats.sparePct).toBe(100); // 1/1
+  });
+
   it("real split exclusion does not affect strike% count", () => {
     // Frame 1: strike. Frame 2: real split [7,10] not converted.
     // strikeOpps = 2, strikes = 1 → 50%
