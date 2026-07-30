@@ -10,9 +10,21 @@ interface StatsProps {
   isLoading?: boolean;
   leaves?: LeaveStats[];
   ballUsage?: BallUsage[];
+  /**
+   * Split under-sampled leaves into their own collapsible section. Only worth
+   * it across all sessions — a single session never has the attempts for the
+   * distinction to say anything.
+   */
+  partitionRare?: boolean;
 }
 
-export function Stats({ stats, isLoading = false, leaves, ballUsage }: StatsProps) {
+export function Stats({
+  stats,
+  isLoading = false,
+  leaves,
+  ballUsage,
+  partitionRare = true
+}: StatsProps) {
   const [showBallUsage, setShowBallUsage] = useState(false);
 
   if (isLoading) {
@@ -88,7 +100,7 @@ export function Stats({ stats, isLoading = false, leaves, ballUsage }: StatsProp
                 <h2 className="mb-3 text-xs font-semibold uppercase tracking-wide text-ink-secondary">
                   Spare rates
                 </h2>
-                <LeaveGrid leaves={spares} />
+                <LeaveGrid leaves={spares} partitionRare={partitionRare} />
               </div>
             )}
 
@@ -97,7 +109,7 @@ export function Stats({ stats, isLoading = false, leaves, ballUsage }: StatsProp
                 <h2 className="mb-3 text-xs font-semibold uppercase tracking-wide text-ink-secondary">
                   Splits
                 </h2>
-                <LeaveGrid leaves={splits} muted />
+                <LeaveGrid leaves={splits} muted partitionRare={partitionRare} />
               </div>
             )}
           </>
@@ -111,14 +123,25 @@ const RARE_ATTEMPTS = 3;
 
 /**
  * Leaves sorted by attempts (most bowled first) so meaningful rates lead.
- * One-off leaves would otherwise bury them, so when both groups exist the
- * under-sampled ones drop into a dimmed "Rare leaves" section.
+ * Across all sessions, one-off leaves would bury the meaningful ones, so the
+ * under-sampled ones fold into a collapsible "Rare leaves" section. A single
+ * session has too few attempts for that split to mean anything — callers pass
+ * `partitionRare={false}` there and every leave shows in one grid.
  */
-function LeaveGrid({ leaves, muted = false }: { leaves: LeaveStats[]; muted?: boolean }) {
+function LeaveGrid({
+  leaves,
+  muted = false,
+  partitionRare = true
+}: {
+  leaves: LeaveStats[];
+  muted?: boolean;
+  partitionRare?: boolean;
+}) {
+  const [showRare, setShowRare] = useState(false);
   const sorted = [...leaves].sort((a, b) => b.attempts - a.attempts);
   const common = sorted.filter((l) => l.attempts >= RARE_ATTEMPTS);
   const rare = sorted.filter((l) => l.attempts < RARE_ATTEMPTS);
-  const partitioned = common.length > 0 && rare.length > 0;
+  const partitioned = partitionRare && common.length > 0 && rare.length > 0;
   return (
     <>
       <div className="grid grid-cols-4 gap-1.5">
@@ -128,14 +151,21 @@ function LeaveGrid({ leaves, muted = false }: { leaves: LeaveStats[]; muted?: bo
       </div>
       {partitioned && (
         <>
-          <p className="mb-2 mt-3 text-[11px] font-semibold uppercase tracking-wide text-ink-secondary">
+          <button
+            type="button"
+            onClick={() => setShowRare((v) => !v)}
+            className="mt-3 flex w-full items-center justify-between gap-2 text-[11px] font-semibold uppercase tracking-wide text-ink-secondary"
+          >
             Rare leaves (under {RARE_ATTEMPTS} attempts)
-          </p>
-          <div className="grid grid-cols-4 gap-1.5 opacity-60">
-            {rare.map((leave) => (
-              <LeaveCell key={leave.pins.join("-")} leave={leave} muted={muted} />
-            ))}
-          </div>
+            <ChevronDown size={16} aria-hidden="true" className={showRare ? "rotate-180" : ""} />
+          </button>
+          {showRare && (
+            <div className="mt-2 grid grid-cols-4 gap-1.5">
+              {rare.map((leave) => (
+                <LeaveCell key={leave.pins.join("-")} leave={leave} muted={muted} />
+              ))}
+            </div>
+          )}
         </>
       )}
     </>

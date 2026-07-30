@@ -226,7 +226,7 @@ function StatsTab({ summary }: { summary: SessionSummary }) {
   const leaves = useMemo(() => calculateCommonLeaves([summary]), [summary]);
   const ballUsage = useMemo(() => calculateBallUsage([summary], balls), [summary, balls]);
 
-  return <Stats stats={stats} leaves={leaves} ballUsage={ballUsage} />;
+  return <Stats stats={stats} leaves={leaves} ballUsage={ballUsage} partitionRare={false} />;
 }
 
 function SessionSheetTab({
