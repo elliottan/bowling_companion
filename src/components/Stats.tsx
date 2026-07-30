@@ -1,9 +1,10 @@
 import { BarChart3, ChevronDown } from "lucide-react";
 import { useState } from "react";
+import { CatalogBallImage } from "./CatalogBallImage";
 import { MiniPins } from "./MiniPins";
+import type { Manufacturer } from "../types/catalog";
 import { isBabySplit, isSplit } from "../lib/pins";
 import type { BallUsage, BowlingStats, LeaveStats } from "../lib/stats";
-import type { PinNumber } from "../types/bowling";
 
 interface StatsProps {
   stats: BowlingStats;
@@ -26,6 +27,7 @@ export function Stats({
   partitionRare = true
 }: StatsProps) {
   const [showBallUsage, setShowBallUsage] = useState(false);
+  const [showSpareNote, setShowSpareNote] = useState(false);
 
   if (isLoading) {
     return (
@@ -50,11 +52,26 @@ export function Stats({
     <div className="space-y-3">
       <div className="grid grid-cols-5 gap-1.5">
         <Tile label="Avg" value={fmt(stats.averageScore)} />
-        <Tile label="High" value={fmt(stats.highGame)} />
-        <Tile label="Games" value={String(stats.completedGames)} />
+        <Tile label="High" value={fmt(stats.highGame)} valueClass="text-accent" />
+        <Tile label="Low" value={fmt(stats.lowGame)} valueClass="text-danger-600" />
         <Tile label="Strike" value={pct(stats.strikePct)} />
-        <Tile label="Spare" value={pct(stats.sparePct)} />
+        <Tile
+          label="Spare"
+          value={pct(stats.sparePct)}
+          onClick={() => setShowSpareNote((v) => !v)}
+        />
       </div>
+
+      {showSpareNote && (
+        <button
+          type="button"
+          onClick={() => setShowSpareNote(false)}
+          className="w-full rounded-lg border border-edge bg-surface-muted p-3 text-left text-xs text-ink-secondary"
+        >
+          Spare % counts only non-split leaves — splits are excluded, so a bad rack
+          doesn't drag the rate down. Tap to dismiss.
+        </button>
+      )}
 
       {ballUsage && ballUsage.length > 0 && (
         <div className="rounded-lg border border-edge bg-surface p-3 shadow-sm">
@@ -72,11 +89,23 @@ export function Stats({
           </button>
           <ul className={`divide-y divide-edge ${showBallUsage ? "mt-2" : "hidden"}`}>
             {ballUsage.map((b) => (
-              <li key={b.ballId} className="flex items-center justify-between py-1.5 text-sm">
-                <span className="truncate pr-3 font-medium text-ink-strong">{b.name}</span>
+              <li key={b.ballId} className="flex items-center gap-2 py-1.5 text-sm">
+                <span className="h-7 w-7 shrink-0">
+                  {b.imageThumb || b.brand ? (
+                    <CatalogBallImage
+                      src={b.imageThumb}
+                      alt=""
+                      brand={b.brand as Manufacturer}
+                      size="thumb"
+                    />
+                  ) : (
+                    <span className="block h-full w-full rounded-full bg-edge" aria-hidden="true" />
+                  )}
+                </span>
+                <span className="min-w-0 flex-1 truncate font-medium text-ink-strong">{b.name}</span>
                 <span className="shrink-0 tabular-nums text-ink-secondary">
                   <span className="font-semibold text-ink">{b.frames}</span>{" "}
-                  {b.frames === 1 ? "frame" : "frames"}
+                  {b.frames === 1 ? "shot" : "shots"}
                   {" · "}
                   {/* Games as a fraction of a 10-frame game — a ball thrown in
                       15 frames covers 1.5 games' worth of shots. */}
@@ -105,11 +134,11 @@ export function Stats({
             )}
 
             {splits.length > 0 && (
-              <div className="rounded-lg border border-edge bg-surface-muted p-3">
+              <div className="rounded-lg border border-edge bg-surface p-3 shadow-sm">
                 <h2 className="mb-3 text-xs font-semibold uppercase tracking-wide text-ink-secondary">
                   Splits
                 </h2>
-                <LeaveGrid leaves={splits} muted partitionRare={partitionRare} />
+                <LeaveGrid leaves={splits} partitionRare={partitionRare} />
               </div>
             )}
           </>
@@ -130,11 +159,9 @@ const RARE_ATTEMPTS = 3;
  */
 function LeaveGrid({
   leaves,
-  muted = false,
   partitionRare = true
 }: {
   leaves: LeaveStats[];
-  muted?: boolean;
   partitionRare?: boolean;
 }) {
   const [showRare, setShowRare] = useState(false);
@@ -146,7 +173,7 @@ function LeaveGrid({
     <>
       <div className="grid grid-cols-4 gap-1.5">
         {(partitioned ? common : sorted).map((leave) => (
-          <LeaveCell key={leave.pins.join("-")} leave={leave} muted={muted} />
+          <LeaveCell key={leave.pins.join("-")} leave={leave} />
         ))}
       </div>
       {partitioned && (
@@ -162,7 +189,7 @@ function LeaveGrid({
           {showRare && (
             <div className="mt-2 grid grid-cols-4 gap-1.5">
               {rare.map((leave) => (
-                <LeaveCell key={leave.pins.join("-")} leave={leave} muted={muted} />
+                <LeaveCell key={leave.pins.join("-")} leave={leave} />
               ))}
             </div>
           )}
@@ -172,42 +199,53 @@ function LeaveGrid({
   );
 }
 
-function LeaveCell({ leave, muted = false }: { leave: LeaveStats; muted?: boolean }) {
+function LeaveCell({ leave }: { leave: LeaveStats }) {
   return (
-    <div
-      className={`flex flex-col items-center gap-1 rounded-lg border p-2 text-center ${
-        muted ? "border-edge bg-surface/60" : "border-edge bg-surface shadow-sm"
-      }`}
-    >
+    <div className="flex flex-col items-center gap-1 rounded-lg border border-edge bg-surface p-2 text-center shadow-sm">
       <MiniPins standing={leave.pins} size="sm" />
-      <p className="text-xs font-medium text-ink-strong">{formatLeave(leave.pins)}</p>
-      <p
-        className={`text-sm font-bold ${
-          leave.conversionPct !== null && leave.conversionPct >= 70
-            ? "text-accent"
-            : "text-ink"
-        }`}
-      >
-        {leave.conversionPct !== null ? `${leave.conversionPct}%` : "—"}
-      </p>
-      <p className="text-[11px] text-ink-secondary">
-        {leave.conversions}/{leave.attempts}
-      </p>
+      {/* The pin diagram already names the leave — attempts on the left, rate
+          on the right, one row. */}
+      <div className="flex w-full items-baseline justify-between gap-1">
+        <span className="text-[11px] tabular-nums text-ink-secondary">
+          {leave.conversions}/{leave.attempts}
+        </span>
+        <span
+          className={`text-sm font-bold ${
+            leave.conversionPct !== null && leave.conversionPct >= 70
+              ? "text-accent"
+              : "text-ink"
+          }`}
+        >
+          {leave.conversionPct !== null ? `${leave.conversionPct}%` : "—"}
+        </span>
+      </div>
     </div>
   );
 }
 
-function formatLeave(pins: PinNumber[]): string {
-  if (pins.length === 1) return `${pins[0]}-pin`;
-  return pins.join("-");
-}
-
-function Tile({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-lg border border-edge bg-surface px-1 py-2 text-center shadow-sm">
-      <p className="text-lg font-bold tabular-nums text-ink">{value}</p>
+function Tile({
+  label,
+  value,
+  valueClass = "text-ink",
+  onClick
+}: {
+  label: string;
+  value: string;
+  valueClass?: string;
+  onClick?: () => void;
+}) {
+  const className = "rounded-lg border border-edge bg-surface px-1 py-2 text-center shadow-sm";
+  const body = (
+    <>
+      <p className={`text-lg font-bold tabular-nums ${valueClass}`}>{value}</p>
       <p className="text-[10px] font-semibold uppercase tracking-wide text-ink-secondary">{label}</p>
-    </div>
+    </>
+  );
+  if (!onClick) return <div className={className}>{body}</div>;
+  return (
+    <button type="button" onClick={onClick} className={`${className} w-full`}>
+      {body}
+    </button>
   );
 }
 

@@ -140,16 +140,24 @@ function FrameCell({
   const border = compact ? "" : "border-r border-edge last:border-r-0";
 
   return (
-    <div className={`${border} ${bg}`}>
-      <div className="border-b border-edge px-1 py-1 text-center text-[11px] font-bold uppercase text-ink-secondary sm:text-xs">
+    <div className={`relative pt-3.5 ${border} ${bg}`}>
+      {/* The frame number rides the shot row's top border as a bubble instead
+          of taking a row of its own — saves ~14px of height per frame row.
+          `bg-inherit` so it masks the border on both the plain and the
+          being-edited cell background. */}
+      <span className="absolute left-1/2 top-0 z-10 -translate-x-1/2 rounded-full bg-inherit px-1.5 text-[10px] font-bold leading-4 text-ink-secondary">
         {frameNumber}
-      </div>
+      </span>
       {/*
        * Highlight by the shot the cell represents when a recorded shot matches
        * (so a strike's X box — shot 0 rendered in the 2nd cell — highlights, not
        * the empty first cell). Fall back to display index for the live/empty cell.
        */}
-      <div className={`grid h-9 ${frameNumber === 10 ? "grid-cols-3" : "grid-cols-2"} sm:h-11`}>
+      <div
+        className={`grid h-9 border-t border-edge ${
+          frameNumber === 10 ? "grid-cols-3" : "grid-cols-2"
+        } sm:h-11`}
+      >
         {shotCells.map((cell, idx) => {
           const tappable = onShotTap && cell.shotIndex !== null;
           const liveTappable = !tappable && !!onLiveTap;

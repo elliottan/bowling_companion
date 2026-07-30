@@ -33,6 +33,7 @@ const EMPTY: BowlingStats = {
   completedGames: 0,
   averageScore: null,
   highGame: null,
+  lowGame: null,
   strikePct: null,
   sparePct: null,
   byAlley: []

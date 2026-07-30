@@ -39,6 +39,7 @@ describe("calculateStats", () => {
       completedGames: 0,
       averageScore: null,
       highGame: null,
+      lowGame: null,
       strikePct: null,
       sparePct: null,
       byAlley: []
@@ -190,15 +191,15 @@ describe("calculateBallUsage", () => {
     const usage = calculateBallUsage([session("Lanes", [g1, g2])], balls);
 
     expect(usage).toEqual([
-      { ballId: 1, name: "Ball A", frames: 3, games: 2 },
-      { ballId: 2, name: "Ball B", frames: 1, games: 1 }
+      { ballId: 1, name: "Ball A", frames: 3, games: 2, imageThumb: null, brand: null },
+      { ballId: 2, name: "Ball B", frames: 1, games: 1, imageThumb: null, brand: null }
     ]);
   });
 
   it("skips shots with no ball_id and names unknown ids", () => {
     const g = game(120, [fr(1, [{ pins_standing: [10] }, { pins_standing: NONE, ball_id: 7 }])]);
     const usage = calculateBallUsage([session("Lanes", [g])], []);
-    expect(usage).toEqual([{ ballId: 7, name: "Ball #7", frames: 1, games: 1 }]);
+    expect(usage).toEqual([{ ballId: 7, name: "Ball #7", frames: 1, games: 1, imageThumb: null, brand: null }]);
   });
 });
 

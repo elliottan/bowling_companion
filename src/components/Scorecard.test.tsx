@@ -34,7 +34,7 @@ describe("Scorecard", () => {
     expect(offenders).toHaveLength(0);
 
     // Both layouts render their frame headers (1..10).
-    const headers = Array.from(container.querySelectorAll("div"))
+    const headers = Array.from(container.querySelectorAll("div, span"))
       .map((el) => el.textContent?.trim())
       .filter((t): t is string => !!t && /^[0-9]+$/.test(t));
     for (let n = 1; n <= 10; n += 1) {

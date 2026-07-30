@@ -6,8 +6,7 @@ import { ErrorBanner } from "../components/ErrorBanner";
 import { SessionFormDialog } from "../components/SessionFormDialog";
 import { SessionLanePanel, type SessionPanelTab } from "../components/SessionLanePanel";
 import { Button } from "../components/ui/Button";
-import { Chip } from "../components/ui/Chip";
-import { IconButton } from "../components/ui/IconButton";
+import { Chip, TAP_TARGET_44 } from "../components/ui/Chip";
 import type { NewSessionFormValues } from "../components/SessionForm";
 import { calculateGameScore } from "../lib/scoring";
 import { useLongPress } from "../lib/useLongPress";
@@ -244,6 +243,11 @@ export function ActiveSessionView({
     (sum, g) => sum + (g.final_score ?? calculateGameScore((g as Game & { frames: Frame[] }).frames).total),
     0
   );
+  // Average over completed games only — an in-progress game would drag it down.
+  const finalScores = games.flatMap((g) => (g.final_score !== undefined ? [g.final_score] : []));
+  const seriesAvg = finalScores.length
+    ? Math.round(finalScores.reduce((a, b) => a + b, 0) / finalScores.length)
+    : null;
 
   // Confirm copy names the game being deleted (the pressed chip's game, which
   // may not be the active one) and its score when it has one.
@@ -283,9 +287,14 @@ export function ActiveSessionView({
             </span>
             <ChevronUp size={16} aria-hidden="true" className="shrink-0 text-ink-tertiary" />
           </button>
-          <p className="shrink-0 text-2xl font-extrabold leading-none text-accent" aria-label="Series total">
-            {seriesTotal}
-          </p>
+          <div className="shrink-0 text-right">
+            <p className="text-2xl font-extrabold leading-none text-accent" aria-label="Series total">
+              {seriesTotal}
+            </p>
+            {seriesAvg !== null && (
+              <p className="text-xs font-semibold text-ink-secondary">{seriesAvg} avg</p>
+            )}
+          </div>
         </div>
 
         {/* py-1, not pb-1: overflow-x-auto forces overflow-y to auto, which
@@ -324,16 +333,19 @@ export function ActiveSessionView({
               </Chip>
             );
           })}
-          <IconButton
-            variant="solid"
+          {/* Chip-height (h-9), not the 44pt IconButton — it sits in the chip
+              row and a taller box makes the row look ragged. Tap target is
+              expanded vertically the same way Chip does it. */}
+          <button
+            type="button"
             onClick={() => void handleAddGame()}
             disabled={!canAddGame}
-            label="New game"
+            aria-label="New game"
             title="New game"
-            className="shrink-0"
+            className={`relative inline-flex h-9 w-11 shrink-0 items-center justify-center rounded-md bg-ink text-surface hover:bg-ink/90 disabled:cursor-not-allowed disabled:opacity-50 ${TAP_TARGET_44}`}
           >
             <Plus size={16} aria-hidden="true" />
-          </IconButton>
+          </button>
         </div>
 
         {chipMenu && (

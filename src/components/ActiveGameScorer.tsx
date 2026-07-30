@@ -492,7 +492,9 @@ function ShotDetailBar({
             >
               {selectedBall?.name ?? "No ball"}
               {selectedBall?.is_spare_ball && (
-                <span className="ml-1 font-normal text-ink-secondary">spare</span>
+                <span className="ml-1.5 rounded-full border border-edge-strong px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-ink-secondary">
+                  Spare
+                </span>
               )}
             </span>
           </button>

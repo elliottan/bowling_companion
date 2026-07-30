@@ -1,4 +1,4 @@
-import { Pencil, X } from "lucide-react";
+import { Pencil } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { freshRackShotIndices, laneForFrame } from "../lib/lanes";
@@ -13,7 +13,6 @@ import { MiniPins } from "./MiniPins";
 import { Stats } from "./Stats";
 import { SwipePanes } from "./SwipePanes";
 import { Chip } from "./ui/Chip";
-import { IconButton } from "./ui/IconButton";
 
 export type SessionPanelTab = "sheet" | "stats" | "lanes";
 
@@ -119,6 +118,27 @@ export function SessionLanePanel({
 
   const tabs: SessionPanelTab[] = ["sheet", "stats", "lanes"];
 
+  // Series total counts every game (running total for one in progress); the
+  // average is over completed games only — same rule as the history rows.
+  const seriesTotal = summary.games.reduce(
+    (sum, g) => sum + (g.final_score ?? calculateGameScore(g.frames).total),
+    0
+  );
+  const finalScores = summary.games.flatMap((g) => (g.final_score !== undefined ? [g.final_score] : []));
+  const seriesAvg = finalScores.length
+    ? Math.round(finalScores.reduce((a, b) => a + b, 0) / finalScores.length)
+    : null;
+  const gameChips = [...summary.games]
+    .sort((a, b) => a.game_number - b.game_number)
+    .map((g) => {
+      const score = calculateGameScore(g.frames);
+      return {
+        id: g.id,
+        number: g.game_number,
+        label: g.final_score ?? (score.isComplete ? score.total : `${score.total}+`)
+      };
+    });
+
   // Portal to body: callers can live inside SwipePanes, whose translateX
   // transform would otherwise become the containing block for this fixed
   // overlay and shove it off-screen.
@@ -150,7 +170,19 @@ export function SessionLanePanel({
           {...dragHandlers}
         >
           <div className="min-w-0">
-            <h2 className="truncate text-base font-bold text-ink">{summary.session.alley_name}</h2>
+            <div className="flex min-w-0 items-center gap-1">
+              <h2 className="truncate text-base font-bold text-ink">{summary.session.alley_name}</h2>
+              {onEdit && (
+                <button
+                  type="button"
+                  onClick={onEdit}
+                  aria-label="Edit session"
+                  className="shrink-0 rounded p-1 text-ink-tertiary hover:bg-surface-muted hover:text-ink-secondary"
+                >
+                  <Pencil size={14} aria-hidden="true" />
+                </button>
+              )}
+            </div>
             {summary.session.description && (
               <p className="truncate text-xs font-medium text-ink-secondary">{summary.session.description}</p>
             )}
@@ -165,16 +197,26 @@ export function SessionLanePanel({
                 .join(" · ")}
             </p>
           </div>
-          <div className="flex shrink-0 items-center gap-1">
-            {onEdit && (
-              <IconButton onClick={onEdit} label="Edit session">
-                <Pencil size={18} aria-hidden="true" />
-              </IconButton>
+          {/* Series total + average, matching the score-entry header. The sheet
+              is dismissed by dragging it down, so there's no close button. */}
+          <div className="shrink-0 text-right">
+            <p className="text-2xl font-extrabold leading-none text-accent" aria-label="Series total">
+              {seriesTotal}
+            </p>
+            {seriesAvg !== null && (
+              <p className="text-xs font-semibold text-ink-secondary">{seriesAvg} avg</p>
             )}
-            <IconButton onClick={requestClose} label="Close">
-              <X size={18} aria-hidden="true" />
-            </IconButton>
           </div>
+        </div>
+
+        {/* Read-only mirror of the score-entry game chips. */}
+        <div className="flex items-center gap-2 overflow-x-auto border-b border-edge px-4 py-2">
+          {gameChips.map((g) => (
+            <Chip key={g.id} selected={false} disabled className="shrink-0 gap-1.5 opacity-100">
+              G{g.number}
+              <span className="opacity-80">· {g.label}</span>
+            </Chip>
+          ))}
         </div>
 
         {/* Session sheet / Stats / Lane notes toggle */}

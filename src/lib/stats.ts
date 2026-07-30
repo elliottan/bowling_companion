@@ -36,6 +36,7 @@ export interface BowlingStats {
   completedGames: number;
   averageScore: number | null;
   highGame: number | null;
+  lowGame: number | null;
   strikePct: number | null;
   sparePct: number | null;
   byAlley: AlleyStats[];
@@ -99,6 +100,7 @@ export function calculateStats(sessions: SessionSummary[], selectedLanes?: strin
     completedGames: completedScores.length,
     averageScore: average(completedScores),
     highGame: completedScores.length ? Math.max(...completedScores) : null,
+    lowGame: completedScores.length ? Math.min(...completedScores) : null,
     strikePct: rate(strikes, strikeOpps),
     sparePct: rate(spares, spareOpps),
     byAlley
@@ -254,6 +256,9 @@ export interface BallUsage {
   name: string;
   frames: number;
   games: number;
+  /** Catalog artwork for the row, when the ball is linked to a catalog entry. */
+  imageThumb: string | null;
+  brand: string | null;
 }
 
 /**
@@ -269,7 +274,7 @@ export function calculateBallUsage(
   selectedLanes?: string[]
 ): BallUsage[] {
   const filter = selectedLanes && selectedLanes.length ? new Set(selectedLanes) : undefined;
-  const nameById = new Map(balls.filter((b) => b.id != null).map((b) => [b.id!, b.name]));
+  const byId = new Map(balls.filter((b) => b.id != null).map((b) => [b.id!, b]));
   const frames = new Map<number, number>();
   const games = new Map<number, number>();
 
@@ -294,9 +299,11 @@ export function calculateBallUsage(
   return [...frames.entries()]
     .map(([ballId, frameCount]) => ({
       ballId,
-      name: nameById.get(ballId) ?? `Ball #${ballId}`,
+      name: byId.get(ballId)?.name ?? `Ball #${ballId}`,
       frames: frameCount,
-      games: games.get(ballId) ?? 0
+      games: games.get(ballId) ?? 0,
+      imageThumb: byId.get(ballId)?.catalog_snapshot?.imageThumb ?? null,
+      brand: byId.get(ballId)?.catalog_snapshot?.brand ?? null
     }))
     .sort((a, b) => b.frames - a.frames || a.name.localeCompare(b.name));
 }
