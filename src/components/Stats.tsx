@@ -1,5 +1,5 @@
 import { BarChart3, ChevronDown } from "lucide-react";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { CatalogBallImage } from "./CatalogBallImage";
 import { MiniPins } from "./MiniPins";
 import type { Manufacturer } from "../types/catalog";
@@ -52,8 +52,19 @@ export function Stats({
     <div className="space-y-3">
       <div className="grid grid-cols-5 gap-1.5">
         <Tile label="Avg" value={fmt(stats.averageScore)} />
-        <Tile label="High" value={fmt(stats.highGame)} valueClass="text-accent" />
-        <Tile label="Low" value={fmt(stats.lowGame)} valueClass="text-danger-600" />
+        <Tile
+          label="H/L"
+          // Two 3-digit scores plus a slash don't fit at the tile's usual size.
+          valueClass="text-xs text-ink"
+          value={
+            <>
+              <span className="text-accent">{fmt(stats.highGame)}</span>
+              <span className="text-ink-tertiary">/</span>
+              <span className="text-danger-600">{fmt(stats.lowGame)}</span>
+            </>
+          }
+        />
+        <Tile label="Games" value={String(stats.completedGames)} />
         <Tile label="Strike" value={pct(stats.strikePct)} />
         <Tile
           label="Spare"
@@ -226,18 +237,18 @@ function LeaveCell({ leave }: { leave: LeaveStats }) {
 function Tile({
   label,
   value,
-  valueClass = "text-ink",
+  valueClass = "text-lg text-ink",
   onClick
 }: {
   label: string;
-  value: string;
+  value: ReactNode;
   valueClass?: string;
   onClick?: () => void;
 }) {
   const className = "rounded-lg border border-edge bg-surface px-1 py-2 text-center shadow-sm";
   const body = (
     <>
-      <p className={`text-lg font-bold tabular-nums ${valueClass}`}>{value}</p>
+      <p className={`font-bold tabular-nums ${valueClass}`}>{value}</p>
       <p className="text-[10px] font-semibold uppercase tracking-wide text-ink-secondary">{label}</p>
     </>
   );
