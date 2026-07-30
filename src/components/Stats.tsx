@@ -51,12 +51,16 @@ export function Stats({
           label=""
           valueClass="text-xs text-ink"
           value={
-            <span className="flex flex-col leading-tight">
-              <span className="text-accent">
-                <span className="text-ink-tertiary">H</span> {fmt(stats.highGame)}
+            // Score left, letter right, the pair centred as one block so the
+            // two rows line up whatever the digit count.
+            <span className="mx-auto flex w-fit flex-col leading-tight">
+              <span className="flex items-baseline gap-1 text-accent">
+                <span className="flex-1 text-left">{fmt(stats.highGame)}</span>
+                <span className="text-ink-tertiary">H</span>
               </span>
-              <span className="text-danger-600">
-                <span className="text-ink-tertiary">L</span> {fmt(stats.lowGame)}
+              <span className="flex items-baseline gap-1 text-danger-600">
+                <span className="flex-1 text-left">{fmt(stats.lowGame)}</span>
+                <span className="text-ink-tertiary">L</span>
               </span>
             </span>
           }
