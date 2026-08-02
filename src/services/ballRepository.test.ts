@@ -4,11 +4,14 @@ import {
   addBall,
   addOilPattern,
   deleteBall,
-  deleteOilPattern,
   deleteSpareLine,
   ensureDefaultSpareLines,
+  getAllOilPatterns,
   getBalls,
   getOilPatterns,
+  removeOilPattern,
+  setOilPatternArchived,
+  updateOilPattern,
   getSpareLinesAll,
   getSpareLineByPins,
   reorderSpareLines,
@@ -132,12 +135,69 @@ describe("ballRepository", () => {
     });
   });
 
-  describe("deleteOilPattern", () => {
-    it("removes the oil pattern", async () => {
+  describe("addOilPattern url + duplicate names", () => {
+    it("stores an http(s) link", async () => {
+      const id = await addOilPattern("Chameleon", "https://example.com/chameleon.pdf");
+      expect((await getOilPatterns()).find((p) => p.id === id)?.url).toBe(
+        "https://example.com/chameleon.pdf"
+      );
+    });
+
+    it("rejects a non-http scheme", async () => {
+      await expect(addOilPattern("Bad", "javascript:alert(1)")).rejects.toThrow(
+        "Link must start with http:// or https://"
+      );
+    });
+
+    it("rejects a duplicate name regardless of case", async () => {
+      await addOilPattern("Wolf");
+      await expect(addOilPattern("  wolf ")).rejects.toThrow('"Wolf" already exists');
+    });
+  });
+
+  describe("updateOilPattern", () => {
+    it("renames without touching sessions, which resolve by id", async () => {
+      const id = await addOilPattern("Main St");
+      const sessionId = Number(
+        await db.sessions.add({ date: "2026-06-01", alley_name: "Orchid", oil_pattern_id: id })
+      );
+
+      await updateOilPattern(id, { name: "Kegel Main Street" });
+
+      expect((await db.oil_patterns.get(id))?.name).toBe("Kegel Main Street");
+      expect((await db.sessions.get(sessionId))?.oil_pattern_id).toBe(id);
+    });
+
+    it("rejects renaming onto another pattern's name", async () => {
+      await addOilPattern("Cheetah");
+      const id = await addOilPattern("Shark");
+      await expect(updateOilPattern(id, { name: "cheetah" })).rejects.toThrow("already exists");
+    });
+  });
+
+  describe("removeOilPattern", () => {
+    it("hard-deletes a pattern no session uses", async () => {
       const id = await addOilPattern("Viper");
-      await deleteOilPattern(id);
-      const patterns = await getOilPatterns();
-      expect(patterns.find((p) => p.id === id)).toBeUndefined();
+      expect(await removeOilPattern(id)).toEqual({ outcome: "deleted" });
+      expect(await db.oil_patterns.get(id)).toBeUndefined();
+    });
+
+    it("archives a referenced pattern so history keeps resolving it", async () => {
+      const id = await addOilPattern("Bear");
+      await db.sessions.add({ date: "2026-06-01", alley_name: "Orchid", oil_pattern_id: id });
+
+      expect(await removeOilPattern(id)).toEqual({ outcome: "archived", sessions: 1 });
+      expect((await db.oil_patterns.get(id))?.archived).toBe(true);
+    });
+  });
+
+  describe("archived patterns", () => {
+    it("are hidden from the picker but visible in settings", async () => {
+      const id = await addOilPattern("Retired");
+      await setOilPatternArchived(id, true);
+
+      expect((await getOilPatterns()).find((p) => p.id === id)).toBeUndefined();
+      expect((await getAllOilPatterns()).find((p) => p.id === id)).toBeDefined();
     });
   });
 

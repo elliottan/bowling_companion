@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { db } from "../db/bowlingDb";
+import { db, linkLegacySessionOilPatterns } from "../db/bowlingDb";
 import {
   addNextGameToSession,
   addGameToSession,
@@ -30,7 +30,6 @@ describe("bowlingRepository", () => {
     const sessionId = Number(await createSession({
       date: "2026-05-26",
       alley_name: "Test Lanes",
-      oil_pattern: "House",
       general_notes: "Fresh pair"
     }));
     const gameId = Number(await addGameToSession(sessionId, {
@@ -50,6 +49,39 @@ describe("bowlingRepository", () => {
     expect(history).toHaveLength(1);
     expect(history[0].session.alley_name).toBe("Test Lanes");
     expect(history[0].games[0].frames[0].is_strike).toBe(true);
+  });
+
+  it("resolves the oil pattern name and link from oil_pattern_id", async () => {
+    const patternId = Number(
+      await db.oil_patterns.add({ name: "Kegel Main Street", url: "https://example.com/ms.pdf" })
+    );
+    const sessionId = Number(
+      await createSession({ date: "2026-05-26", alley_name: "Test Lanes", oil_pattern_id: patternId })
+    );
+
+    const details = await getSessionDetails(sessionId);
+    expect(details?.session.oil_pattern).toBe("Kegel Main Street");
+    expect(details?.session.oil_pattern_url).toBe("https://example.com/ms.pdf");
+
+    // Renaming the pattern is enough — nothing is copied onto the session.
+    await db.oil_patterns.update(patternId, { name: "Main Street" });
+    expect((await getSessionDetails(sessionId))?.session.oil_pattern).toBe("Main Street");
+  });
+
+  it("links legacy sessions that carry only the pattern name", async () => {
+    await db.sessions.add({
+      date: "2026-05-26",
+      alley_name: "Test Lanes",
+      oil_pattern: "House Shot"
+    } as never);
+
+    await linkLegacySessionOilPatterns(db.sessions, db.oil_patterns);
+
+    const [session] = await db.sessions.toArray();
+    const [pattern] = await db.oil_patterns.toArray();
+    expect(pattern.name).toBe("House Shot");
+    expect(session.oil_pattern_id).toBe(pattern.id);
+    expect((await getSessionDetails(session.id!))?.session.oil_pattern).toBe("House Shot");
   });
 
   it("loads session details and adds sequential games", async () => {

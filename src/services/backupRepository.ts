@@ -1,4 +1,4 @@
-import { db } from "../db/bowlingDb";
+import { db, linkLegacySessionOilPatterns } from "../db/bowlingDb";
 import { validateBackup } from "../lib/backupValidation";
 import { setSetting } from "./bowlingRepository";
 import type { Ball, BowlingBackup, Frame, Game, LaneNote, OilPattern, PinNumber, Session, Shot, SpareLine } from "../types/bowling";
@@ -173,6 +173,10 @@ export async function mergeBackup(backup: BowlingBackup): Promise<ImportBackupRe
     for (const s of backup.tables.settings ?? []) {
       await db.settings.put(s);
     }
+
+    // Pre-ADR-031 files carry the pattern name on the session itself; give
+    // those sessions a real pattern row so the name survives.
+    await linkLegacySessionOilPatterns(db.sessions, db.oil_patterns);
 
     return {
       sessions: backup.tables.sessions.length,

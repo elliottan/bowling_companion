@@ -99,6 +99,73 @@ export class BowlingDatabase extends Dexie {
       settings: "&key",
       ball_catalog: "&id, brand, coverstockCategory, coreType, rg, diff, releaseYear"
     });
+
+    // ADR-031: `oil_patterns` becomes the sole source of truth for the pattern
+    // name. Sessions that carried only the denormalized string (pre-v2 rows,
+    // hand-entered data) are linked to a real pattern row so the name survives.
+    this.version(6).stores({
+      sessions: "++id, date, alley_name, oil_pattern_id",
+      games: "++id, session_id, game_number, lane_number, final_score",
+      frames: "++id, game_id, [game_id+frame_number], frame_number, is_strike, is_spare",
+      balls: "++id, name, is_spare_ball",
+      oil_patterns: "++id, name",
+      spare_lines: "++id",
+      lane_notes: "++id, [alley+lane]",
+      settings: "&key",
+      ball_catalog: "&id, brand, coverstockCategory, coreType, rg, diff, releaseYear"
+    }).upgrade(async (tx) => {
+      await linkLegacySessionOilPatterns(tx.table("sessions"), tx.table("oil_patterns"));
+    });
+  }
+}
+
+/** Minimal surface of a Dexie table, so this works against `db` or a transaction. */
+interface OilPatternLinkTables {
+  toArray(): Promise<Record<string, unknown>[]>;
+  add(row: Record<string, unknown>): Promise<unknown>;
+  update(key: number, changes: Record<string, unknown>): Promise<unknown>;
+}
+
+/**
+ * Link sessions that hold an `oil_pattern` name but no `oil_pattern_id` to a
+ * pattern row (matched case-insensitively by name, created if absent), then
+ * drop the denormalized string. Idempotent — used by the v6 upgrade and by
+ * backup import, which can land legacy-shaped session rows at any time.
+ */
+export async function linkLegacySessionOilPatterns(
+  sessions: OilPatternLinkTables,
+  oilPatterns: OilPatternLinkTables
+): Promise<void> {
+  const sessionRows = await sessions.toArray();
+  const stale = sessionRows.filter(
+    (s) => typeof s.oil_pattern === "string" && (s.oil_pattern as string).trim() !== ""
+  );
+  if (stale.length === 0) return;
+
+  const patternRows = await oilPatterns.toArray();
+  const byName = new Map<string, number>();
+  for (const p of patternRows) {
+    if (typeof p.name === "string" && typeof p.id === "number") {
+      byName.set(p.name.trim().toLowerCase(), p.id);
+    }
+  }
+
+  for (const session of stale) {
+    const name = (session.oil_pattern as string).trim();
+    const key = name.toLowerCase();
+
+    let patternId = typeof session.oil_pattern_id === "number" ? session.oil_pattern_id : undefined;
+    if (patternId === undefined) {
+      patternId = byName.get(key);
+      if (patternId === undefined) {
+        patternId = Number(await oilPatterns.add({ name }));
+        byName.set(key, patternId);
+      }
+    }
+
+    if (typeof session.id === "number") {
+      await sessions.update(session.id, { oil_pattern_id: patternId, oil_pattern: undefined });
+    }
   }
 }
 

@@ -8,7 +8,7 @@ import {
   type DriftModel
 } from "../lib/driftModel";
 import type { BackupNudgeState } from "../lib/backupNudge";
-import type { Frame, Game, Handedness, Session, SessionSummary } from "../types/bowling";
+import type { Frame, Game, Handedness, HydratedSession, Session, SessionSummary } from "../types/bowling";
 
 const HANDEDNESS_KEY = "handedness";
 const LAYDOWN_OFFSET_KEY = "laydown_offset";
@@ -71,9 +71,19 @@ export interface UpdateSessionInput {
   alley_name: string;
   date: string;
   description?: string;
-  oil_pattern?: string;
   oil_pattern_id?: number;
   general_notes?: string;
+}
+
+/**
+ * Resolve `oil_pattern_id` into the display fields (ADR-031). The DB never
+ * stores a copy of the name, so renaming a pattern is correct by construction.
+ */
+async function hydrateSession(session: Session): Promise<HydratedSession> {
+  if (session.oil_pattern_id == null) return session;
+  const pattern = await db.oil_patterns.get(session.oil_pattern_id);
+  if (!pattern) return session;
+  return { ...session, oil_pattern: pattern.name, oil_pattern_url: pattern.url };
 }
 
 /** Edit a session's alley, date, description, oil pattern, and notes. */
@@ -85,7 +95,6 @@ export async function updateSession(
     alley_name: input.alley_name,
     date: input.date,
     description: input.description?.trim() || undefined,
-    oil_pattern: input.oil_pattern,
     oil_pattern_id: input.oil_pattern_id,
     general_notes: input.general_notes?.trim() || undefined
   });
@@ -135,7 +144,7 @@ export async function getSessionDetails(
   );
 
   return {
-    session,
+    session: await hydrateSession(session),
     games: gamesWithFrames
   };
 }

@@ -2,7 +2,7 @@ import type { FormEvent, ReactNode } from "react";
 import { useEffect, useMemo, useState } from "react";
 import type { CreateSessionInput } from "../services/bowlingRepository";
 import type { OilPattern } from "../types/bowling";
-import { addOilPattern, getOilPatterns } from "../services/ballRepository";
+import { addOilPattern, getOilPattern, getOilPatterns } from "../services/ballRepository";
 import { getDistinctAlleys, getDistinctDescriptions } from "../services/bowlingRepository";
 
 export interface NewSessionFormValues extends CreateSessionInput {
@@ -64,7 +64,17 @@ export function SessionForm({
   const [addPatternError, setAddPatternError] = useState("");
 
   useEffect(() => {
-    getOilPatterns().then(setOilPatterns).catch(() => {});
+    // The picker offers active patterns only, but a session being edited may
+    // point at an archived one — keep it selectable so saving can't clear it.
+    getOilPatterns()
+      .then(async (active) => {
+        const selectedId = initial?.oil_pattern_id;
+        if (selectedId == null || active.some((op) => op.id === selectedId)) return active;
+        const archived = await getOilPattern(selectedId);
+        return archived ? [...active, archived] : active;
+      })
+      .then(setOilPatterns)
+      .catch(() => {});
     getDistinctAlleys().then(setAlleys).catch(() => {});
     getDistinctDescriptions().then(setDescriptions).catch(() => {});
   }, []);
@@ -101,14 +111,12 @@ export function SessionForm({
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const selectedPattern = oilPatterns.find((op) => op.id === selectedPatternId);
     await onSubmit({
       alley_name: alleyName.trim(),
       description: description.trim() || undefined,
       lanes: [],
       start_lane: undefined,
       date,
-      oil_pattern: selectedPattern?.name,
       oil_pattern_id: selectedPatternId,
       general_notes: notes.trim() || undefined
     });
@@ -207,7 +215,9 @@ export function SessionForm({
             >
               <option value="">No pattern / unknown</option>
               {oilPatterns.map((op) => (
-                <option key={op.id} value={op.id}>{op.name}</option>
+                <option key={op.id} value={op.id}>
+                  {op.archived ? `${op.name} (archived)` : op.name}
+                </option>
               ))}
               <option value="__add_new__">+ Add new pattern</option>
             </select>

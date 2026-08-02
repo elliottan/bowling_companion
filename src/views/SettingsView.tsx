@@ -1,7 +1,8 @@
-import { Archive, BookOpen, ChevronLeft, ChevronRight, CircleDot, Coffee, MapPin, MessageSquare, SlidersHorizontal, Spline, type LucideIcon } from "lucide-react";
+import { Archive, BookOpen, ChevronLeft, ChevronRight, CircleDot, Coffee, MapPin, MessageSquare, SlidersHorizontal, Spline, Waves, type LucideIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { BackupRestoreView } from "./BackupRestoreView";
 import { LaneNotesView } from "./LaneNotesView";
+import { OilPatternsView } from "./OilPatternsView";
 import { HandednessView } from "./HandednessView";
 import { getSetting } from "../services/bowlingRepository";
 import type { Handedness } from "../types/bowling";
@@ -9,7 +10,7 @@ import type { DriftModel } from "../lib/driftModel";
 import { DONATE_URL, FEEDBACK_URL } from "../lib/links";
 import { Button } from "../components/ui/Button";
 
-export type SettingsSection = "menu" | "arsenal" | "lanes" | "backup" | "preferences";
+export type SettingsSection = "menu" | "arsenal" | "lanes" | "oil-patterns" | "backup" | "preferences";
 
 interface SettingsViewProps {
   section: SettingsSection;
@@ -37,6 +38,8 @@ export function SettingsView({ section, onSectionChange, handedness, onHandednes
         </div>
         {section === "lanes" ? (
           <LaneNotesView />
+        ) : section === "oil-patterns" ? (
+          <OilPatternsView />
         ) : section === "preferences" ? (
           <HandednessView
             value={handedness}
@@ -104,6 +107,7 @@ function SettingsMenu({
   const bowlingRows: Array<{ key: string; icon: LucideIcon; label: string; description: string; onClick: () => void }> = [
     { key: "arsenal", icon: CircleDot, label: "Arsenal", description: "Manage your bowling balls", onClick: onOpenArsenal },
     { key: "lanes", icon: MapPin, label: "Lane Notes", description: "Notes per alley + lane", onClick: () => onSectionChange("lanes") },
+    { key: "oil-patterns", icon: Waves, label: "Oil Patterns", description: "Patterns and their sheet links", onClick: () => onSectionChange("oil-patterns") },
     { key: "preferences", icon: SlidersHorizontal, label: "Preferences", description: "Handedness & defaults", onClick: () => onSectionChange("preferences") },
     { key: "catalog", icon: BookOpen, label: "Ball Catalog", description: "Browse manufacturer ball specs", onClick: onOpenCatalog },
     { key: "visualizer", icon: Spline, label: "Line Visualizer", description: "Sketch a line on the lane", onClick: onOpenLineVisualizer }

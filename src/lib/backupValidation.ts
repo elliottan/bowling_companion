@@ -80,6 +80,8 @@ function validateSession(value: unknown): value is Session {
     value.date.length > 0 &&
     typeof value.alley_name === "string" &&
     value.alley_name.length > 0 &&
+    // Pre-ADR-031 files carry the pattern name inline; import links it to a
+    // pattern row rather than rejecting the file.
     isOptionalString(value.oil_pattern) &&
     isOptionalString(value.general_notes)
   );
@@ -154,8 +156,23 @@ function validateOilPattern(value: unknown): value is OilPattern {
   if (!isRecord(value)) return false;
   return (
     isOptionalNumber(value.id) &&
-    typeof value.name === "string" && value.name.length > 0
+    typeof value.name === "string" && value.name.length > 0 &&
+    isHttpUrlOrAbsent(value.url) &&
+    (value.archived === undefined || typeof value.archived === "boolean")
   );
+}
+
+/** The URL is rendered as a link, so a backup file must not smuggle in a
+ *  `javascript:` or `data:` scheme. */
+function isHttpUrlOrAbsent(value: unknown): boolean {
+  if (value === undefined) return true;
+  if (typeof value !== "string") return false;
+  try {
+    const { protocol } = new URL(value);
+    return protocol === "http:" || protocol === "https:";
+  } catch {
+    return false;
+  }
 }
 
 function validateSpareLine(value: unknown): value is SpareLine {

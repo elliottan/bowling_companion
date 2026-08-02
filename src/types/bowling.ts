@@ -70,6 +70,10 @@ export interface Ball {
 export interface OilPattern {
   id?: number;
   name: string;
+  /** Link to the pattern sheet — usually a PDF. http/https only. */
+  url?: string;
+  /** Archived patterns stay resolvable for history but are not offered for new sessions. */
+  archived?: boolean;
 }
 
 export interface SpareLine {
@@ -85,9 +89,18 @@ export interface Session {
   date: string;
   alley_name: string;
   description?: string;
-  oil_pattern?: string;
   oil_pattern_id?: number;
   general_notes?: string;
+}
+
+/**
+ * A session as read back for display (ADR-031). `oil_patterns` is the sole
+ * source of truth for the name, so read paths resolve `oil_pattern_id` and
+ * attach the pattern here rather than the DB storing a copy of the name.
+ */
+export interface HydratedSession extends Session {
+  oil_pattern?: string;
+  oil_pattern_url?: string;
 }
 
 export interface Game {
@@ -126,7 +139,7 @@ export interface Frame {
 }
 
 export interface SessionSummary {
-  session: Session;
+  session: HydratedSession;
   games: Array<Game & { frames: Frame[] }>;
 }
 

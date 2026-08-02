@@ -190,11 +190,28 @@ export function SessionLanePanel({
               {[
                 summary.session.date,
                 `${summary.games.length} ${summary.games.length === 1 ? "game" : "games"}`,
-                laneSummary(summary.games),
-                summary.session.oil_pattern
+                laneSummary(summary.games)
               ]
                 .filter(Boolean)
                 .join(" · ")}
+              {summary.session.oil_pattern && (
+                <>
+                  {" · "}
+                  {/* The pattern sheet is worth a tap mid-session, so link it here. */}
+                  {summary.session.oil_pattern_url ? (
+                    <a
+                      href={summary.session.oil_pattern_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-medium text-accent underline underline-offset-2"
+                    >
+                      {summary.session.oil_pattern}
+                    </a>
+                  ) : (
+                    summary.session.oil_pattern
+                  )}
+                </>
+              )}
             </p>
           </div>
           {/* Series total + average, matching the score-entry header. The sheet

@@ -56,19 +56,100 @@ export async function deleteBall(id: number): Promise<void> {
 // Oil Patterns
 // ---------------------------------------------------------------------------
 
+/**
+ * Reject anything that isn't an http(s) URL — the value is rendered as a link,
+ * so `javascript:` and `data:` must never make it into the DB.
+ */
+export function normalizeOilPatternUrl(raw: string | undefined): string | undefined {
+  const trimmed = raw?.trim();
+  if (!trimmed) return undefined;
+
+  let parsed: URL;
+  try {
+    parsed = new URL(trimmed);
+  } catch {
+    throw new Error("Enter a full link starting with http:// or https://");
+  }
+  if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+    throw new Error("Link must start with http:// or https://");
+  }
+  return trimmed;
+}
+
+/** Active patterns only — archived ones stay out of pickers. */
 export async function getOilPatterns(): Promise<OilPattern[]> {
+  const all = await db.oil_patterns.orderBy("name").toArray();
+  return all.filter((p) => !p.archived);
+}
+
+/** Every pattern including archived — for the settings page. */
+export async function getAllOilPatterns(): Promise<OilPattern[]> {
   return db.oil_patterns.orderBy("name").toArray();
 }
 
-export async function addOilPattern(name: string): Promise<number> {
-  const trimmed = name.trim();
-  if (!trimmed) throw new Error("Oil pattern name cannot be empty");
-  const id = await db.oil_patterns.add({ name: trimmed });
-  return Number(id);
+export async function getOilPattern(id: number): Promise<OilPattern | undefined> {
+  return db.oil_patterns.get(id);
 }
 
-export async function deleteOilPattern(id: number): Promise<void> {
-  await db.oil_patterns.delete(id);
+/** Names are the user's handle on a pattern and must stay unambiguous. */
+async function assertNameFree(name: string, exceptId?: number): Promise<void> {
+  const key = name.toLowerCase();
+  const all = await db.oil_patterns.toArray();
+  const clash = all.find((p) => p.name.trim().toLowerCase() === key && p.id !== exceptId);
+  if (clash) throw new Error(`"${clash.name}" already exists`);
+}
+
+export async function addOilPattern(name: string, url?: string): Promise<number> {
+  const trimmed = name.trim();
+  if (!trimmed) throw new Error("Oil pattern name cannot be empty");
+  const normalizedUrl = normalizeOilPatternUrl(url);
+
+  return db.transaction("rw", db.oil_patterns, async () => {
+    await assertNameFree(trimmed);
+    const id = await db.oil_patterns.add({ name: trimmed, url: normalizedUrl });
+    return Number(id);
+  });
+}
+
+export async function updateOilPattern(
+  id: number,
+  input: { name: string; url?: string }
+): Promise<void> {
+  const trimmed = input.name.trim();
+  if (!trimmed) throw new Error("Oil pattern name cannot be empty");
+  const normalizedUrl = normalizeOilPatternUrl(input.url);
+
+  await db.transaction("rw", db.oil_patterns, async () => {
+    await assertNameFree(trimmed, id);
+    await db.oil_patterns.update(id, { name: trimmed, url: normalizedUrl });
+  });
+}
+
+/** How many sessions still point at this pattern. */
+export async function countSessionsUsingOilPattern(id: number): Promise<number> {
+  return db.sessions.where("oil_pattern_id").equals(id).count();
+}
+
+export async function setOilPatternArchived(id: number, archived: boolean): Promise<void> {
+  await db.oil_patterns.update(id, { archived: archived || undefined });
+}
+
+export type RemoveOilPatternResult = { outcome: "deleted" } | { outcome: "archived"; sessions: number };
+
+/**
+ * Unreferenced patterns are deleted outright; referenced ones are archived so
+ * the history that points at them keeps resolving a name.
+ */
+export async function removeOilPattern(id: number): Promise<RemoveOilPatternResult> {
+  return db.transaction("rw", db.oil_patterns, db.sessions, async () => {
+    const sessions = await db.sessions.where("oil_pattern_id").equals(id).count();
+    if (sessions === 0) {
+      await db.oil_patterns.delete(id);
+      return { outcome: "deleted" as const };
+    }
+    await db.oil_patterns.update(id, { archived: true });
+    return { outcome: "archived" as const, sessions };
+  });
 }
 
 // ---------------------------------------------------------------------------

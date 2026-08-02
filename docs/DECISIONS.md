@@ -1550,3 +1550,44 @@ hiding leaves the bowler wanted to see.
   makeable, and they render in the Splits section, which is a display grouping,
   not the rate's definition.
 - Washouts get a visible conversion rate of their own for the first time.
+
+---
+
+## ADR-037 — Oil patterns own their name; sessions reference them by id
+
+**Status:** accepted (2026-08).
+
+**Context.** A session stored both `oil_pattern_id` and `oil_pattern` — a copy
+of the pattern's name, written at save time. Nothing kept the copy in sync,
+which was harmless only because patterns could not be edited: the settings UI
+offered no rename, so the string could never go stale.
+
+Adding an oil-pattern settings page (rename, plus a link to the pattern sheet)
+removes that guarantee. Renaming "Main St" to "Kegel Main Street" would leave
+every past session holding the old string, and stats group by exactly that
+string (`lib/stats.ts`) — so one pattern would report as two.
+
+**Decision.** `oil_patterns` is the sole source of truth for the name.
+
+- `Session.oil_pattern` is removed. `oil_pattern_id` is the only link.
+- Read paths resolve the pattern and attach it to the returned view model as
+  `HydratedSession` (`oil_pattern`, `oil_pattern_url`). Display code keeps
+  reading the same field name; it is derived now rather than stored.
+- Patterns gain `url` (http/https only — the value is rendered as a link, so
+  other schemes are rejected on save *and* on backup import) and `archived`.
+- Names are unique case-insensitively, enforced in the repository because both
+  the settings page and the session form create patterns.
+- Removing a pattern deletes it if no session references it, and archives it
+  otherwise. Archived patterns are hidden from the session picker but still
+  resolve for history; the picker unions in the currently-selected pattern so
+  editing an old session cannot silently clear it.
+
+**Consequences.**
+- Renames propagate everywhere by construction — no backfill, no drift.
+- A referenced pattern can never be destroyed, so no session loses its pattern.
+- Sessions holding a name with no id (pre-v2 rows, and rows landed by importing
+  an older backup) are linked to a real pattern row by
+  `linkLegacySessionOilPatterns`, run by the v6 upgrade and again after import.
+  Matching is case-insensitive by name, creating the row if absent.
+- Reading a session costs one extra indexed lookup. Accepted: history already
+  issues per-session queries for games and frames.

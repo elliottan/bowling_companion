@@ -284,7 +284,6 @@ function App() {
         alley_name: values.alley_name,
         description: values.description,
         date: values.date,
-        oil_pattern: values.oil_pattern,
         oil_pattern_id: values.oil_pattern_id,
         general_notes: values.general_notes
       });

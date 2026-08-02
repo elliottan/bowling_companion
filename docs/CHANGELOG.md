@@ -6,6 +6,14 @@ User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachan
 
 ### Added
 
+- **Oil patterns have their own settings page.** Settings → Oil Patterns lists
+  every pattern you've used, and lets you add or rename one and give it a link
+  to its pattern sheet — usually a PDF. Where a pattern has a link, its name in
+  the session panel becomes tappable, so the sheet is one tap away mid-session.
+  Renaming a pattern now updates it everywhere, including your past sessions and
+  stats. Deleting one that sessions still use archives it instead: it disappears
+  from the picker for new sessions, and your history keeps its name.
+
 - **Your line fills itself in from the last time you threw that ball.** Pick a
   ball and, if the line box is empty, it fills with the line you used for that
   same ball — preferring the same lane, reaching back through the game and
