@@ -618,6 +618,9 @@ interface ActiveGameScorerProps {
   }>;
   mode?: ScorerMode;
   game?: Pick<Game, "lanes" | "start_lane" | "lane_number">;
+  /** External request to review a recorded frame (e.g. tapped in the session
+   *  sheet). Bump `token` to re-fire for the same frame. */
+  focusFrame?: { frameNumber: number; token: number };
   onFrameComplete?: (frame: Frame) => Promise<void> | void;
   onGameComplete?: (frames: Frame[]) => Promise<void> | void;
   /** Open the game-level lane editor (lane pair + starting lane). */
@@ -661,6 +664,7 @@ export function ActiveGameScorer({
   previousGames = [],
   mode = "standalone",
   game,
+  focusFrame,
   onFrameComplete,
   onGameComplete,
   onEditLanes,
@@ -745,6 +749,7 @@ export function ActiveGameScorer({
     getSpareLinesAll().then(setSpareLines).catch(() => {});
   }, []);
 
+
   // Push the live draft into the controller's currentShotMeta.
   useEffect(() => {
     const meta: ShotMetadata = {
@@ -765,6 +770,19 @@ export function ActiveGameScorer({
       }
     }
   }, [gameState.isComplete, gameState.frames, selectedShot]);
+
+  // Select the requested frame's last recorded shot. Declared after the
+  // completed-game default so its selection wins when both fire.
+  // Reads `initialFrames`, not
+  // `gameState`: when the request also switches games, the hydrate above hasn't
+  // been applied yet and `gameState` still holds the outgoing game.
+  useEffect(() => {
+    if (!focusFrame) return;
+    const frame = initialFrames.find((f) => f.frame_number === focusFrame.frameNumber);
+    if (!frame || frame.shots.length === 0) return;
+    setSelectedShot({ frameNumber: frame.frame_number, shotIndex: frame.shots.length - 1 });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [focusFrame?.token]);
 
   /** This ball's own history as a line source, for an otherwise-empty box. */
   function ballHistoryLine(ballId: number | undefined, currentFrameShots: Shot[]) {

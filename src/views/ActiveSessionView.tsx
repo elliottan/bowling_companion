@@ -1,9 +1,10 @@
-import { ChevronLeft, ChevronUp, Plus, Trash2 } from "lucide-react";
+import { ChevronLeft, Plus, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { ActiveGameScorer } from "../components/ActiveGameScorer";
 import { ConfirmDialog } from "../components/ConfirmDialog";
 import { ErrorBanner } from "../components/ErrorBanner";
 import { SessionFormDialog } from "../components/SessionFormDialog";
+import { SessionHeaderText } from "../components/SessionHeaderText";
 import { SessionLanePanel, type SessionPanelTab } from "../components/SessionLanePanel";
 import { Button } from "../components/ui/Button";
 import { Chip, TAP_TARGET_44 } from "../components/ui/Chip";
@@ -58,6 +59,8 @@ export function ActiveSessionView({
   const [showSheet, setShowSheet] = useState(openStatsOnMount);
   const [sheetTab, setSheetTab] = useState<SessionPanelTab>(openStatsOnMount ? "stats" : "sheet");
   const [showEdit, setShowEdit] = useState(false);
+  // Frame handed to the scorer when one is tapped in the session sheet.
+  const [focusFrame, setFocusFrame] = useState<{ frameNumber: number; token: number } | undefined>();
 
   // Inline lane editor
   const [laneA, setLaneA] = useState("");
@@ -265,36 +268,38 @@ export function ActiveSessionView({
   return (
     <div>
       <section className="mx-auto w-full max-w-5xl px-3 pt-3 sm:px-6">
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
+        <div className="flex items-start gap-2">
+          {/* Tapping the identity block opens the sheet; the oil-pattern link
+              inside it stops propagation so it still opens the pattern PDF. */}
+          <div
+            role="button"
+            tabIndex={0}
             onClick={() => { setSheetTab("sheet"); setShowSheet(true); }}
-            className="flex min-h-11 min-w-0 flex-1 items-center gap-2 rounded-md text-left hover:bg-surface-muted"
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                setSheetTab("sheet");
+                setShowSheet(true);
+              }
+            }}
+            className="min-w-0 flex-1 rounded-md hover:bg-surface-muted"
             aria-label="Open session sheet and lane notes"
           >
-            <span className="min-w-0 flex-1">
-              <p className="truncate text-sm font-semibold text-ink">
-                {sessionDetails.session.alley_name}
-              </p>
-              {sessionDetails.session.description && (
-                <p className="truncate text-xs font-medium text-ink-secondary">
-                  {sessionDetails.session.description}
-                </p>
-              )}
-              <p className="truncate text-xs text-ink-secondary">
-                {sessionDetails.session.date} · {games.length} {games.length === 1 ? "game" : "games"}
-              </p>
-            </span>
-            <ChevronUp size={16} aria-hidden="true" className="shrink-0 text-ink-tertiary" />
-          </button>
-          <div className="shrink-0 text-right">
-            <p className="text-2xl font-extrabold leading-none text-accent" aria-label="Series total">
-              {seriesTotal}
-            </p>
-            {seriesAvg !== null && (
-              <p className="text-xs font-semibold text-ink-secondary">{seriesAvg} avg</p>
-            )}
+            <SessionHeaderText session={sessionDetails.session} games={games} />
           </div>
+          <button
+            type="button"
+            onClick={() => { setSheetTab("stats"); setShowSheet(true); }}
+            aria-label="Open session stats"
+            className="shrink-0 rounded-md text-right hover:bg-surface-muted"
+          >
+            <span className="block text-2xl font-extrabold leading-none text-accent">
+              {seriesTotal}
+            </span>
+            {seriesAvg !== null && (
+              <span className="block text-xs font-semibold text-ink-secondary">{seriesAvg} avg</span>
+            )}
+          </button>
         </div>
 
         {/* py-1, not pb-1: overflow-x-auto forces overflow-y to auto, which
@@ -390,6 +395,7 @@ export function ActiveSessionView({
           }))}
         mode="session"
         game={activeGame}
+        focusFrame={focusFrame}
         onFrameComplete={handleFrameComplete}
         onEditLanes={() => setShowLaneEditor(true)}
         onOpenArsenal={onOpenArsenal}
@@ -411,6 +417,11 @@ export function ActiveSessionView({
           // Close the sheet first: it portals to body after the edit dialog,
           // so it would otherwise paint on top of it.
           onEdit={() => { setShowSheet(false); setShowEdit(true); }}
+          onSelectFrame={(gameId, frameNumber) => {
+            setActiveGameId(gameId);
+            setFocusFrame((prev) => ({ frameNumber, token: (prev?.token ?? 0) + 1 }));
+            setShowSheet(false);
+          }}
           onClose={() => setShowSheet(false)}
         />
       )}

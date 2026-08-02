@@ -1,4 +1,3 @@
-import { Pencil } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { freshRackShotIndices, laneForFrame } from "../lib/lanes";
@@ -9,6 +8,7 @@ import { useOverlay } from "../lib/useOverlay";
 import { getBalls } from "../services/ballRepository";
 import type { Ball, Frame, LineSpec, SessionSummary, Shot } from "../types/bowling";
 import { LaneNotesTab } from "./LaneNotesTab";
+import { SessionHeaderText } from "./SessionHeaderText";
 import { MiniPins } from "./MiniPins";
 import { Stats } from "./Stats";
 import { SwipePanes } from "./SwipePanes";
@@ -22,6 +22,8 @@ interface SessionLanePanelProps {
   defaultTab?: SessionPanelTab;
   /** When set, a pencil button in the header opens the session edit flow. */
   onEdit?: () => void;
+  /** Tap a frame in the sheet to jump to it in score entry. */
+  onSelectFrame?: (gameId: number, frameNumber: number) => void;
   onClose: () => void;
 }
 
@@ -29,21 +31,6 @@ function formatLine(line?: LineSpec): string | null {
   if (!line) return null;
   const parts = [line.stance, line.target, line.breakpoint].map((n) => (n != null ? String(n) : "·"));
   return parts.join("/");
-}
-
-// Lanes are per-game, so show each distinct lane PAIR bowled this session,
-// e.g. "Lanes 9/10, 11/12" (or "Lane 5" for a single-lane game).
-function laneSummary(games: SessionSummary["games"]): string {
-  const pairs: string[] = [];
-  for (const g of games) {
-    const lanes = (g.lanes ?? (g.lane_number ? [g.lane_number] : [])).filter(Boolean);
-    if (!lanes.length) continue;
-    const label = lanes.join("/");
-    if (!pairs.includes(label)) pairs.push(label);
-  }
-  if (!pairs.length) return "";
-  const noun = pairs.length === 1 && pairs[0].includes("/") ? "Lanes" : pairs.length > 1 ? "Lanes" : "Lane";
-  return `${noun} ${pairs.join(", ")}`;
 }
 
 /**
@@ -56,6 +43,7 @@ export function SessionLanePanel({
   currentGameId,
   defaultTab = "sheet",
   onEdit,
+  onSelectFrame,
   onClose
 }: SessionLanePanelProps) {
   const [tab, setTab] = useState<SessionPanelTab>(defaultTab);
@@ -172,53 +160,7 @@ export function SessionLanePanel({
           className="flex touch-none items-start justify-between gap-3 border-b border-edge px-4 py-3"
           {...dragHandlers}
         >
-          <div className="min-w-0">
-            <div className="flex min-w-0 items-center gap-1">
-              <h2 className="truncate text-base font-bold text-ink">{summary.session.alley_name}</h2>
-              {onEdit && (
-                <button
-                  type="button"
-                  onClick={onEdit}
-                  aria-label="Edit session"
-                  className="shrink-0 rounded p-1 text-ink-tertiary hover:bg-surface-muted hover:text-ink-secondary"
-                >
-                  <Pencil size={14} aria-hidden="true" />
-                </button>
-              )}
-            </div>
-            {/* Two rows: event/date/games, then lanes + pattern — the pattern
-                name is long, so it gets a row where it won't be truncated. */}
-            <p className="truncate text-xs text-ink-secondary">
-              {[
-                summary.session.description,
-                summary.session.date,
-                `${summary.games.length} ${summary.games.length === 1 ? "game" : "games"}`
-              ]
-                .filter(Boolean)
-                .join(" · ")}
-            </p>
-            <p className="truncate text-xs text-ink-secondary">
-              {laneSummary(summary.games)}
-              {summary.session.oil_pattern && (
-                <>
-                  {laneSummary(summary.games) && " · "}
-                  {/* The pattern sheet is worth a tap mid-session, so link it here. */}
-                  {summary.session.oil_pattern_url ? (
-                    <a
-                      href={summary.session.oil_pattern_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="font-medium text-accent underline underline-offset-2"
-                    >
-                      {summary.session.oil_pattern}
-                    </a>
-                  ) : (
-                    summary.session.oil_pattern
-                  )}
-                </>
-              )}
-            </p>
-          </div>
+          <SessionHeaderText session={summary.session} games={summary.games} onEdit={onEdit} />
           {/* Series total + average, matching the score-entry header. The sheet
               is dismissed by dragging it down, so there's no close button. */}
           <div className="shrink-0 text-right">
@@ -236,7 +178,7 @@ export function SessionLanePanel({
           {gameChips.map((g) => (
             <Chip
               key={g.id}
-              selected={g.id === focusGameId}
+              selected={tab === "sheet" && g.id === focusGameId}
               onClick={() => {
                 setTab("sheet");
                 // Bump the token so the sheet re-scrolls even if the same game
@@ -247,10 +189,10 @@ export function SessionLanePanel({
             >
               {/* The score is the point of the chip, so it carries the weight
                   and the accent colour; the G-label recedes. */}
-              <span className={g.id === focusGameId ? "font-medium opacity-80" : "font-medium text-ink-secondary"}>
+              <span className={tab === "sheet" && g.id === focusGameId ? "font-medium opacity-80" : "font-medium text-ink-secondary"}>
                 G{g.number} ·
               </span>
-              <span className={g.id === focusGameId ? "font-bold" : "font-bold text-accent"}>{g.label}</span>
+              <span className={tab === "sheet" && g.id === focusGameId ? "font-bold" : "font-bold text-accent"}>{g.label}</span>
             </Chip>
           ))}
         </div>
@@ -280,6 +222,7 @@ export function SessionLanePanel({
                   currentGameId={currentGameId}
                   focusGameId={focusGameId}
                   focusToken={focus.token}
+                  onSelectFrame={onSelectFrame}
                 />
               </div>,
               <div key="stats" className="px-4 py-3">
@@ -316,12 +259,14 @@ function SessionSheetTab({
   summary,
   currentGameId,
   focusGameId,
-  focusToken
+  focusToken,
+  onSelectFrame
 }: {
   summary: SessionSummary;
   currentGameId?: number;
   focusGameId?: number;
   focusToken: number;
+  onSelectFrame?: (gameId: number, frameNumber: number) => void;
 }) {
   const [balls, setBalls] = useState<Ball[]>([]);
 
@@ -366,7 +311,15 @@ function SessionSheetTab({
             {game.frames.length === 0 ? (
               <p className="text-xs text-ink-secondary">No shots yet.</p>
             ) : (
-              <GameGrid game={game} ballName={ballName} />
+              <GameGrid
+                game={game}
+                ballName={ballName}
+                onSelectFrame={
+                  onSelectFrame && game.id
+                    ? (frameNumber) => onSelectFrame(game.id as number, frameNumber)
+                    : undefined
+                }
+              />
             )}
           </section>
         );
@@ -385,13 +338,32 @@ const emptyCell = (n: number) => (
 // Single-lane: a single full-width column in frame order.
 function GameGrid({
   game,
-  ballName
+  ballName,
+  onSelectFrame
 }: {
   game: SessionSummary["games"][number];
   ballName: (id?: number) => string | undefined;
+  /** Tap a recorded frame to jump to it in score entry. */
+  onSelectFrame?: (frameNumber: number) => void;
 }) {
   const lanes = game.lanes ?? (game.lane_number ? [game.lane_number] : []);
   const byNumber = new Map(game.frames.map((f) => [f.frame_number, f]));
+
+  const cell = (n: number, frame?: Frame) => {
+    if (!frame) return emptyCell(n);
+    const content = <FrameCell frame={frame} ballName={ballName} />;
+    if (!onSelectFrame) return content;
+    return (
+      <button
+        type="button"
+        onClick={() => onSelectFrame(n)}
+        aria-label={`Go to frame ${n}`}
+        className="block w-full text-left active:bg-surface-muted"
+      >
+        {content}
+      </button>
+    );
+  };
 
   if (lanes.length < 2) {
     const laneLabel = lanes[0];
@@ -404,7 +376,7 @@ function GameGrid({
           const frame = byNumber.get(n);
           return (
             <div key={n} className="border-b border-edge p-1.5 last:border-b-0">
-              {frame ? <FrameCell frame={frame} ballName={ballName} /> : emptyCell(n)}
+              {cell(n, frame)}
             </div>
           );
         })}
@@ -437,10 +409,10 @@ function GameGrid({
           return (
             <div key={rowIdx} className="contents">
               <div className={`border-r border-edge p-1.5 ${last ? "" : "border-b border-edge"}`}>
-                {lf ? <FrameCell frame={lf} ballName={ballName} /> : emptyCell(leftN)}
+                {cell(leftN, lf)}
               </div>
               <div className={`p-1.5 ${last ? "" : "border-b border-edge"}`}>
-                {rf ? <FrameCell frame={rf} ballName={ballName} /> : emptyCell(rightN)}
+                {cell(rightN, rf)}
               </div>
             </div>
           );
@@ -469,9 +441,6 @@ function FrameCell({ frame, ballName }: { frame: Frame; ballName: (id?: number) 
   const shots = freshRackShots(frame);
   return (
     <div className="flex flex-col gap-1.5">
-      <span className="text-[10px] font-bold uppercase leading-none text-ink-tertiary">
-        F{frame.frame_number}
-      </span>
       {shots.map((shot, i) => {
         const intended = formatLine(shot.intended);
         const actual = formatLine(shot.actual);
@@ -479,16 +448,23 @@ function FrameCell({ frame, ballName }: { frame: Frame; ballName: (id?: number) 
         const symbol = shotSymbol(shot);
         return (
           // Pin deck left, ball + lines + notes right — reads across in one
-          // line per shot instead of a tall stacked column.
+          // line per shot instead of a tall stacked column. The deck's bottom
+          // rows narrow to one pin, so the frame number and the count tuck into
+          // the empty corners beside it.
           <div key={i} className="flex items-start gap-1.5">
-            <MiniPins standing={shot.pins_standing} />
-            <div className="min-w-0 flex-1 text-[11px] leading-tight">
-              <p className="flex items-baseline gap-1">
-                <span className={`text-sm font-bold ${symbol === "X" ? "text-accent" : "text-ink"}`}>
-                  {symbol}
+            <div className="relative shrink-0">
+              <MiniPins standing={shot.pins_standing} />
+              {i === 0 && (
+                <span className="absolute bottom-0 left-0 text-[10px] font-bold uppercase leading-none text-ink-tertiary">
+                  F{frame.frame_number}
                 </span>
-                {name && <span className="truncate font-medium text-ink">{name}</span>}
-              </p>
+              )}
+              <span className="absolute bottom-0 right-0 text-xs font-bold leading-none text-accent">
+                {symbol}
+              </span>
+            </div>
+            <div className="min-w-0 flex-1 text-[11px] leading-tight">
+              {name && <p className="truncate font-medium text-ink">{name}</p>}
               {intended && <p className="text-ink-secondary">{intended}</p>}
               {actual && <p className="text-ink-secondary">{actual}</p>}
               {shot.notes && <p className="break-words text-ink-secondary">{shot.notes}</p>}
