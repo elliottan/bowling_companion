@@ -59,6 +59,9 @@ export function SessionLanePanel({
   onClose
 }: SessionLanePanelProps) {
   const [tab, setTab] = useState<SessionPanelTab>(defaultTab);
+  // Which game the sheet scrolls to; the token re-fires the scroll on re-tap.
+  const [focus, setFocus] = useState({ id: currentGameId, token: 0 });
+  const focusGameId = focus.id;
 
   // Bottom-sheet feel: slide up on mount, drag down to dismiss, slide down on
   // close — same pattern as the arsenal sheet in App.tsx.
@@ -183,20 +186,22 @@ export function SessionLanePanel({
                 </button>
               )}
             </div>
-            {summary.session.description && (
-              <p className="truncate text-xs font-medium text-ink-secondary">{summary.session.description}</p>
-            )}
+            {/* Two rows: event/date/games, then lanes + pattern — the pattern
+                name is long, so it gets a row where it won't be truncated. */}
             <p className="truncate text-xs text-ink-secondary">
               {[
+                summary.session.description,
                 summary.session.date,
-                `${summary.games.length} ${summary.games.length === 1 ? "game" : "games"}`,
-                laneSummary(summary.games)
+                `${summary.games.length} ${summary.games.length === 1 ? "game" : "games"}`
               ]
                 .filter(Boolean)
                 .join(" · ")}
+            </p>
+            <p className="truncate text-xs text-ink-secondary">
+              {laneSummary(summary.games)}
               {summary.session.oil_pattern && (
                 <>
-                  {" · "}
+                  {laneSummary(summary.games) && " · "}
                   {/* The pattern sheet is worth a tap mid-session, so link it here. */}
                   {summary.session.oil_pattern_url ? (
                     <a
@@ -229,9 +234,23 @@ export function SessionLanePanel({
         {/* Read-only mirror of the score-entry game chips. */}
         <div className="flex items-center gap-2 overflow-x-auto border-b border-edge px-4 py-2">
           {gameChips.map((g) => (
-            <Chip key={g.id} selected={false} disabled className="shrink-0 gap-1.5 opacity-100">
-              G{g.number}
-              <span className="opacity-80">· {g.label}</span>
+            <Chip
+              key={g.id}
+              selected={g.id === focusGameId}
+              onClick={() => {
+                setTab("sheet");
+                // Bump the token so the sheet re-scrolls even if the same game
+                // chip is tapped twice.
+                setFocus({ id: g.id, token: focus.token + 1 });
+              }}
+              className="shrink-0 gap-1.5"
+            >
+              {/* The score is the point of the chip, so it carries the weight
+                  and the accent colour; the G-label recedes. */}
+              <span className={g.id === focusGameId ? "font-medium opacity-80" : "font-medium text-ink-secondary"}>
+                G{g.number} ·
+              </span>
+              <span className={g.id === focusGameId ? "font-bold" : "font-bold text-accent"}>{g.label}</span>
             </Chip>
           ))}
         </div>
@@ -256,7 +275,12 @@ export function SessionLanePanel({
             onIndexChange={(i) => setTab(tabs[i])}
             panes={[
               <div key="sheet" className="px-4 py-3">
-                <SessionSheetTab summary={summary} currentGameId={currentGameId} />
+                <SessionSheetTab
+                  summary={summary}
+                  currentGameId={currentGameId}
+                  focusGameId={focusGameId}
+                  focusToken={focus.token}
+                />
               </div>,
               <div key="stats" className="px-4 py-3">
                 <StatsTab summary={summary} />
@@ -290,10 +314,14 @@ function StatsTab({ summary }: { summary: SessionSummary }) {
 
 function SessionSheetTab({
   summary,
-  currentGameId
+  currentGameId,
+  focusGameId,
+  focusToken
 }: {
   summary: SessionSummary;
   currentGameId?: number;
+  focusGameId?: number;
+  focusToken: number;
 }) {
   const [balls, setBalls] = useState<Ball[]>([]);
 
@@ -306,11 +334,12 @@ function SessionSheetTab({
   // Chronological order — latest game at the bottom.
   const games = [...summary.games].sort((a, b) => a.game_number - b.game_number);
 
-  // Auto-scroll to the game the sheet was opened from.
-  const currentRef = useRef<HTMLElement | null>(null);
+  // Auto-scroll to the game the sheet was opened from, and to whichever game
+  // chip is tapped afterwards.
+  const focusRef = useRef<HTMLElement | null>(null);
   useEffect(() => {
-    currentRef.current?.scrollIntoView({ block: "start" });
-  }, []);
+    focusRef.current?.scrollIntoView({ block: "start", behavior: focusToken ? "smooth" : "auto" });
+  }, [focusGameId, focusToken]);
 
   return (
     <>
@@ -320,12 +349,14 @@ function SessionSheetTab({
         return (
           <section
             key={game.id}
-            ref={game.id === currentGameId ? currentRef : undefined}
+            ref={game.id === focusGameId ? focusRef : undefined}
             className="mb-4 scroll-mt-2 last:mb-0"
           >
             <div className="mb-1.5 flex items-center gap-2">
               <h3 className="text-sm font-bold text-ink">Game {game.game_number}</h3>
-              {game.id === currentGameId && (
+              {/* A finished game is never "current", even if score entry is
+                  parked on it. */}
+              {game.id === currentGameId && game.final_score === undefined && !score.isComplete && (
                 <span className="rounded-full bg-accent-fill px-1.5 py-0.5 text-[11px] font-bold uppercase tracking-wide text-accent-on-fill">
                   Current
                 </span>
@@ -345,7 +376,7 @@ function SessionSheetTab({
 }
 
 const emptyCell = (n: number) => (
-  <span className="text-[11px] font-bold uppercase text-ink-tertiary">F{n}</span>
+  <span className="text-[10px] font-bold uppercase leading-none text-ink-tertiary">F{n}</span>
 );
 
 // Cross-lane: columns are FIXED by lane number (lower = left, higher = right),
@@ -372,7 +403,7 @@ function GameGrid({
         {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => {
           const frame = byNumber.get(n);
           return (
-            <div key={n} className="border-b border-edge p-2 last:border-b-0">
+            <div key={n} className="border-b border-edge p-1.5 last:border-b-0">
               {frame ? <FrameCell frame={frame} ballName={ballName} /> : emptyCell(n)}
             </div>
           );
@@ -405,10 +436,10 @@ function GameGrid({
           const last = rowIdx === pairs.length - 1;
           return (
             <div key={rowIdx} className="contents">
-              <div className={`border-r border-edge p-2 ${last ? "" : "border-b"}`}>
+              <div className={`border-r border-edge p-1.5 ${last ? "" : "border-b border-edge"}`}>
                 {lf ? <FrameCell frame={lf} ballName={ballName} /> : emptyCell(leftN)}
               </div>
-              <div className={`p-2 ${last ? "" : "border-b"}`}>
+              <div className={`p-1.5 ${last ? "" : "border-b border-edge"}`}>
                 {rf ? <FrameCell frame={rf} ballName={ballName} /> : emptyCell(rightN)}
               </div>
             </div>
@@ -437,32 +468,34 @@ function shotSymbol(shot: Shot): string {
 function FrameCell({ frame, ballName }: { frame: Frame; ballName: (id?: number) => string | undefined }) {
   const shots = freshRackShots(frame);
   return (
-    <div className="flex flex-col items-center text-center">
-      <span className="text-[11px] font-bold uppercase text-ink-secondary">F{frame.frame_number}</span>
-      <div className="mt-1 flex flex-col items-center gap-2">
-        {shots.map((shot, i) => {
-          const intended = formatLine(shot.intended);
-          const actual = formatLine(shot.actual);
-          const name = ballName(shot.ball_id);
-          const symbol = shotSymbol(shot);
-          return (
-            <div key={i} className="flex flex-col items-center gap-0.5">
-              <span
-                className={`text-sm font-bold ${symbol === "X" ? "text-accent" : "text-ink"}`}
-              >
-                {symbol}
-              </span>
-              <MiniPins standing={shot.pins_standing} />
-              <div className="text-[11px] leading-tight">
-                {name && <p className="font-medium text-ink">{name}</p>}
-                {intended && <p className="text-ink-secondary">{intended}</p>}
-                {actual && <p className="text-ink-secondary">{actual}</p>}
-                {shot.notes && <p className="break-words text-ink-secondary">{shot.notes}</p>}
-              </div>
+    <div className="flex flex-col gap-1.5">
+      <span className="text-[10px] font-bold uppercase leading-none text-ink-tertiary">
+        F{frame.frame_number}
+      </span>
+      {shots.map((shot, i) => {
+        const intended = formatLine(shot.intended);
+        const actual = formatLine(shot.actual);
+        const name = ballName(shot.ball_id);
+        const symbol = shotSymbol(shot);
+        return (
+          // Pin deck left, ball + lines + notes right — reads across in one
+          // line per shot instead of a tall stacked column.
+          <div key={i} className="flex items-start gap-1.5">
+            <MiniPins standing={shot.pins_standing} />
+            <div className="min-w-0 flex-1 text-[11px] leading-tight">
+              <p className="flex items-baseline gap-1">
+                <span className={`text-sm font-bold ${symbol === "X" ? "text-accent" : "text-ink"}`}>
+                  {symbol}
+                </span>
+                {name && <span className="truncate font-medium text-ink">{name}</span>}
+              </p>
+              {intended && <p className="text-ink-secondary">{intended}</p>}
+              {actual && <p className="text-ink-secondary">{actual}</p>}
+              {shot.notes && <p className="break-words text-ink-secondary">{shot.notes}</p>}
             </div>
-          );
-        })}
-      </div>
+          </div>
+        );
+      })}
     </div>
   );
 }
