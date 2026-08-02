@@ -100,7 +100,7 @@ export class BowlingDatabase extends Dexie {
       ball_catalog: "&id, brand, coverstockCategory, coreType, rg, diff, releaseYear"
     });
 
-    // ADR-031: `oil_patterns` becomes the sole source of truth for the pattern
+    // ADR-037: `oil_patterns` becomes the sole source of truth for the pattern
     // name. Sessions that carried only the denormalized string (pre-v2 rows,
     // hand-entered data) are linked to a real pattern row so the name survives.
     this.version(6).stores({
@@ -119,11 +119,12 @@ export class BowlingDatabase extends Dexie {
   }
 }
 
-/** Minimal surface of a Dexie table, so this works against `db` or a transaction. */
+/** Minimal surface of a Dexie table, so this works against `db`'s typed tables
+ *  or the loosely-typed ones a transaction hands out during an upgrade. */
 interface OilPatternLinkTables {
-  toArray(): Promise<Record<string, unknown>[]>;
-  add(row: Record<string, unknown>): Promise<unknown>;
-  update(key: number, changes: Record<string, unknown>): Promise<unknown>;
+  toArray(): PromiseLike<unknown[]>;
+  add(row: never): PromiseLike<unknown>;
+  update(key: number, changes: never): PromiseLike<unknown>;
 }
 
 /**
@@ -136,13 +137,13 @@ export async function linkLegacySessionOilPatterns(
   sessions: OilPatternLinkTables,
   oilPatterns: OilPatternLinkTables
 ): Promise<void> {
-  const sessionRows = await sessions.toArray();
+  const sessionRows = (await sessions.toArray()) as Record<string, unknown>[];
   const stale = sessionRows.filter(
     (s) => typeof s.oil_pattern === "string" && (s.oil_pattern as string).trim() !== ""
   );
   if (stale.length === 0) return;
 
-  const patternRows = await oilPatterns.toArray();
+  const patternRows = (await oilPatterns.toArray()) as Record<string, unknown>[];
   const byName = new Map<string, number>();
   for (const p of patternRows) {
     if (typeof p.name === "string" && typeof p.id === "number") {
@@ -158,13 +159,16 @@ export async function linkLegacySessionOilPatterns(
     if (patternId === undefined) {
       patternId = byName.get(key);
       if (patternId === undefined) {
-        patternId = Number(await oilPatterns.add({ name }));
+        patternId = Number(await oilPatterns.add({ name } as never));
         byName.set(key, patternId);
       }
     }
 
     if (typeof session.id === "number") {
-      await sessions.update(session.id, { oil_pattern_id: patternId, oil_pattern: undefined });
+      await sessions.update(session.id, {
+        oil_pattern_id: patternId,
+        oil_pattern: undefined
+      } as never);
     }
   }
 }

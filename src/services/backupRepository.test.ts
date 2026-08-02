@@ -1,11 +1,20 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { db } from "../db/bowlingDb";
-import { createBackup, exportBackup, importBackup } from "./backupRepository";
+import { createBackup, exportBackup, prepareImport, replaceAllData } from "./backupRepository";
 import { addGameToSession, createSession, getSessionHistory, getSetting, saveFrame } from "./bowlingRepository";
 
 
+/** The full import flow: validate, then replace everything (ADR-038). */
+async function importBackup(fileOrJson: unknown) {
+  const prepared = await prepareImport(fileOrJson);
+  return replaceAllData(prepared.backup);
+}
+
 describe("backupRepository", () => {
   beforeEach(async () => {
+    // replaceAllData downloads a safety copy; jsdom has no Blob URL APIs.
+    URL.createObjectURL = () => "blob:stub";
+    URL.revokeObjectURL = () => {};
     await db.delete();
     await db.open();
   });
@@ -47,12 +56,10 @@ describe("backupRepository", () => {
     await expect(importBackup("{bad json")).rejects.toThrow();
   });
 
-  it("merges by content keys without overwriting unrelated local rows", async () => {
-    // Local row gets id=1 (different alley) before import.
+  it("replaces every local row with the file's contents", async () => {
+    // A local session the imported file knows nothing about.
     await createSession({ date: "2026-05-27", alley_name: "Local Lanes" });
 
-    // Import a backup whose session.id=1 but with a different alley name.
-    // Old (buggy) merge would overwrite Local Lanes; new merge inserts new row.
     const importedBackup = {
       app: "bowling-companion" as const,
       version: 1 as const,
@@ -67,15 +74,39 @@ describe("backupRepository", () => {
     await importBackup(importedBackup);
     const history = await getSessionHistory();
 
-    expect(history).toHaveLength(2);
-    expect(history.map((h) => h.session.alley_name).sort()).toEqual([
-      "Imported Lanes",
-      "Local Lanes"
-    ]);
+    // Local Lanes is gone — the file is the whole truth after an import.
+    expect(history).toHaveLength(1);
+    expect(history[0].session.alley_name).toBe("Imported Lanes");
+  });
+
+  it("downloads a safety copy of the current data before wiping it", async () => {
+    await createSession({ date: "2026-05-27", alley_name: "About To Be Deleted" });
+
+    let downloadedBlob: Blob | null = null;
+    URL.createObjectURL = (blob: Blob) => {
+      downloadedBlob = blob;
+      return "blob:stub";
+    };
+
+    await importBackup({
+      app: "bowling-companion" as const,
+      version: 3 as const,
+      exported_at: "2026-05-27T00:00:00.000Z",
+      tables: { sessions: [], games: [], frames: [] }
+    });
+
+    // jsdom's Blob implements neither .text() nor the fetch Blob interface,
+    // so read it the way jsdom does support.
+    const downloaded = await new Promise<string>((resolve) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result));
+      reader.readAsText(downloadedBlob!);
+    });
+    expect(downloaded).toContain("About To Be Deleted");
+    expect(await db.sessions.count()).toBe(0);
   });
 
   it("imports a v1 backup with flat frame fields", async () => {
-    await createSession({ date: "2026-05-27", alley_name: "V1 Lanes" });
     const v1Backup = {
       app: "bowling-companion" as const,
       version: 1 as const,

@@ -1,7 +1,7 @@
 import { db, linkLegacySessionOilPatterns } from "../db/bowlingDb";
 import { validateBackup } from "../lib/backupValidation";
 import { setSetting } from "./bowlingRepository";
-import type { Ball, BowlingBackup, Frame, Game, LaneNote, OilPattern, PinNumber, Session, Shot, SpareLine } from "../types/bowling";
+import type { BowlingBackup, PinNumber, Shot } from "../types/bowling";
 
 export interface ImportBackupResult {
   sessions: number;
@@ -43,8 +43,7 @@ export async function createBackup(): Promise<BowlingBackup> {
   };
 }
 
-export async function exportBackup() {
-  const backup = await createBackup();
+function downloadBackup(backup: BowlingBackup, filename: string): void {
   const blob = new Blob([JSON.stringify(backup, null, 2)], {
     type: "application/json"
   });
@@ -52,11 +51,16 @@ export async function exportBackup() {
   const link = document.createElement("a");
 
   link.href = url;
-  link.download = `bowling-companion-backup-${backup.exported_at.slice(0, 10)}.json`;
+  link.download = filename;
   document.body.append(link);
   link.click();
   link.remove();
   URL.revokeObjectURL(url);
+}
+
+export async function exportBackup() {
+  const backup = await createBackup();
+  downloadBackup(backup, `bowling-companion-backup-${backup.exported_at.slice(0, 10)}.json`);
 
   // Best-effort bookkeeping for the backup-reminder nudge: a failure here must
   // not turn an already-downloaded backup into a reported "export failed".
@@ -71,7 +75,19 @@ export async function exportBackup() {
   return backup;
 }
 
-export async function importBackup(fileOrJson: File | string | unknown) {
+export interface PreparedImport {
+  backup: BowlingBackup;
+  /** What the file will install. */
+  incoming: ImportBackupResult;
+  /** What is in the database right now, and will be destroyed. */
+  current: ImportBackupResult;
+}
+
+/**
+ * Read + validate a backup file without touching the database, so the UI can
+ * show the user exactly what they are about to destroy before they commit.
+ */
+export async function prepareImport(fileOrJson: File | string | unknown): Promise<PreparedImport> {
   const json = await readBackupInput(fileOrJson);
   const validation = validateBackup(json);
 
@@ -80,7 +96,80 @@ export async function importBackup(fileOrJson: File | string | unknown) {
   }
 
   const backup = normalizeBackup(validation.backup);
-  return mergeBackup(backup);
+  return { backup, incoming: countBackup(backup), current: await countDatabase() };
+}
+
+/**
+ * Replace the entire database with the file's contents (ADR-038). Every local
+ * row is destroyed first, so a safety copy of the current data is downloaded
+ * before anything is cleared — that file is the only way back.
+ */
+export async function replaceAllData(backup: BowlingBackup): Promise<ImportBackupResult> {
+  const safetyCopy = await createBackup();
+  downloadBackup(safetyCopy, `bowling-companion-pre-import-${Date.now()}.json`);
+
+  await db.transaction(
+    "rw",
+    [db.sessions, db.games, db.frames, db.balls, db.oil_patterns, db.spare_lines, db.lane_notes, db.settings],
+    async () => {
+      await Promise.all([
+        db.sessions.clear(),
+        db.games.clear(),
+        db.frames.clear(),
+        db.balls.clear(),
+        db.oil_patterns.clear(),
+        db.spare_lines.clear(),
+        db.lane_notes.clear(),
+        db.settings.clear()
+      ]);
+
+      // The tables are empty, so the file's own ids can be replayed verbatim —
+      // no content matching, no id remapping, no collisions to resolve.
+      await db.sessions.bulkAdd(backup.tables.sessions);
+      await db.games.bulkAdd(backup.tables.games);
+      await db.frames.bulkAdd(backup.tables.frames);
+      await db.balls.bulkAdd(backup.tables.balls ?? []);
+      await db.oil_patterns.bulkAdd(backup.tables.oil_patterns ?? []);
+      await db.spare_lines.bulkAdd(backup.tables.spare_lines ?? []);
+      await db.lane_notes.bulkAdd(backup.tables.lane_notes ?? []);
+      await db.settings.bulkAdd(backup.tables.settings ?? []);
+
+      // Pre-ADR-037 files carry the pattern name on the session itself; give
+      // those sessions a real pattern row so the name survives.
+      await linkLegacySessionOilPatterns(db.sessions, db.oil_patterns);
+    }
+  );
+
+  return countBackup(backup);
+}
+
+function countBackup(backup: BowlingBackup): ImportBackupResult {
+  return {
+    sessions: backup.tables.sessions.length,
+    games: backup.tables.games.length,
+    frames: backup.tables.frames.length,
+    balls: (backup.tables.balls ?? []).length,
+    oil_patterns: (backup.tables.oil_patterns ?? []).length,
+    spare_lines: (backup.tables.spare_lines ?? []).length,
+    lane_notes: (backup.tables.lane_notes ?? []).length,
+    settings: (backup.tables.settings ?? []).length
+  };
+}
+
+async function countDatabase(): Promise<ImportBackupResult> {
+  const [sessions, games, frames, balls, oil_patterns, spare_lines, lane_notes, settings] =
+    await Promise.all([
+      db.sessions.count(),
+      db.games.count(),
+      db.frames.count(),
+      db.balls.count(),
+      db.oil_patterns.count(),
+      db.spare_lines.count(),
+      db.lane_notes.count(),
+      db.settings.count()
+    ]);
+
+  return { sessions, games, frames, balls, oil_patterns, spare_lines, lane_notes, settings };
 }
 
 function normalizeBackup(backup: BowlingBackup): BowlingBackup {
@@ -107,90 +196,6 @@ function normalizeBackup(backup: BowlingBackup): BowlingBackup {
   return { ...backup, version: 3, tables: { ...backup.tables, frames, balls: [], oil_patterns: [], spare_lines: [], lane_notes: [], settings: [] } };
 }
 
-export async function mergeBackup(backup: BowlingBackup): Promise<ImportBackupResult> {
-  return db.transaction("rw", [db.sessions, db.games, db.frames, db.balls, db.oil_patterns, db.spare_lines, db.lane_notes, db.settings], async () => {
-    const sessionIdMap = new Map<number, number>();
-    const gameIdMap = new Map<number, number>();
-    const ballIdMap = new Map<number, number>();
-    const oilPatternIdMap = new Map<number, number>();
-
-    // Import balls first (shots reference ball_ids)
-    for (const ball of backup.tables.balls ?? []) {
-      const importedId = ball.id;
-      const localId = await upsertBall(ball);
-      if (typeof importedId === "number") ballIdMap.set(importedId, Number(localId));
-    }
-
-    // Import oil patterns (sessions reference oil_pattern_ids)
-    for (const op of backup.tables.oil_patterns ?? []) {
-      const importedId = op.id;
-      const localId = await upsertOilPattern(op);
-      if (typeof importedId === "number") oilPatternIdMap.set(importedId, Number(localId));
-    }
-
-    // Sessions (with oil_pattern_id remap)
-    for (const session of backup.tables.sessions) {
-      const importedId = session.id;
-      const mappedSession = {
-        ...session,
-        oil_pattern_id: session.oil_pattern_id != null
-          ? (oilPatternIdMap.get(session.oil_pattern_id) ?? session.oil_pattern_id)
-          : undefined
-      };
-      const localId = await upsertSession(mappedSession);
-      if (typeof importedId === "number") sessionIdMap.set(importedId, Number(localId));
-    }
-
-    // Games
-    for (const game of backup.tables.games) {
-      const importedId = game.id;
-      const sessionId = sessionIdMap.get(game.session_id) ?? game.session_id;
-      const localId = await upsertGame({ ...game, session_id: sessionId });
-      if (typeof importedId === "number") gameIdMap.set(importedId, Number(localId));
-    }
-
-    // Frames (with game_id remap and ball_id remap in shots)
-    for (const frame of backup.tables.frames) {
-      const gameId = gameIdMap.get(frame.game_id) ?? frame.game_id;
-      const remappedShots = frame.shots.map((shot) => ({
-        ...shot,
-        ball_id: shot.ball_id != null ? (ballIdMap.get(shot.ball_id) ?? shot.ball_id) : undefined
-      }));
-      await upsertFrame({ ...frame, game_id: gameId, shots: remappedShots });
-    }
-
-    // Spare lines (keyed by pins array)
-    for (const sl of backup.tables.spare_lines ?? []) {
-      await upsertSpareLine(sl);
-    }
-
-    // Lane notes (keyed by alley + lane)
-    for (const ln of backup.tables.lane_notes ?? []) {
-      await upsertLaneNote(ln);
-    }
-
-    // Settings (keyed by `key`, last-write-wins)
-    for (const s of backup.tables.settings ?? []) {
-      await db.settings.put(s);
-    }
-
-    // Pre-ADR-031 files carry the pattern name on the session itself; give
-    // those sessions a real pattern row so the name survives.
-    await linkLegacySessionOilPatterns(db.sessions, db.oil_patterns);
-
-    return {
-      sessions: backup.tables.sessions.length,
-      games: backup.tables.games.length,
-      frames: backup.tables.frames.length,
-      balls: (backup.tables.balls ?? []).length,
-      oil_patterns: (backup.tables.oil_patterns ?? []).length,
-      spare_lines: (backup.tables.spare_lines ?? []).length,
-      lane_notes: (backup.tables.lane_notes ?? []).length,
-      settings: (backup.tables.settings ?? []).length
-    };
-  });
-}
-
 async function readBackupInput(fileOrJson: File | string | unknown) {
   if (typeof File !== "undefined" && fileOrJson instanceof File) {
     return JSON.parse(await fileOrJson.text()) as unknown;
@@ -203,83 +208,3 @@ async function readBackupInput(fileOrJson: File | string | unknown) {
   return fileOrJson;
 }
 
-/**
- * Match-by-content merge: never trust imported `id`s.
- * Sessions match on (date + alley_name). Games on (session_id + game_number).
- * Frames on (game_id + frame_number). See docs/DECISIONS.md ADR-003.
- */
-async function upsertSession(session: Session): Promise<number> {
-  const candidates = await db.sessions
-    .where("date")
-    .equals(session.date)
-    .and((existing) => existing.alley_name === session.alley_name)
-    .toArray();
-  const match = candidates[0];
-
-  if (match?.id) {
-    await db.sessions.put({ ...session, id: match.id });
-    return match.id;
-  }
-
-  const id = await db.sessions.add(stripId(session));
-  return Number(id);
-}
-
-async function upsertGame(game: Game): Promise<number> {
-  const match = await db.games
-    .where("session_id")
-    .equals(game.session_id)
-    .and((existing) => existing.game_number === game.game_number)
-    .first();
-
-  if (match?.id) {
-    await db.games.put({ ...game, id: match.id });
-    return match.id;
-  }
-
-  const id = await db.games.add(stripId(game));
-  return Number(id);
-}
-
-async function upsertFrame(frame: Frame): Promise<void> {
-  const match = await db.frames
-    .where("[game_id+frame_number]")
-    .equals([frame.game_id, frame.frame_number])
-    .first()
-    .catch(() => undefined);
-
-  await db.frames.put({ ...frame, id: match?.id });
-}
-
-async function upsertBall(ball: Ball): Promise<number> {
-  const match = await db.balls.where("name").equals(ball.name).first();
-  if (match?.id) { await db.balls.put({ ...ball, id: match.id }); return match.id; }
-  return Number(await db.balls.add(stripId(ball)));
-}
-
-async function upsertOilPattern(op: OilPattern): Promise<number> {
-  const match = await db.oil_patterns.where("name").equals(op.name).first();
-  if (match?.id) { await db.oil_patterns.put({ ...op, id: match.id }); return match.id; }
-  return Number(await db.oil_patterns.add(stripId(op)));
-}
-
-async function upsertLaneNote(ln: LaneNote): Promise<void> {
-  const all = await db.lane_notes.toArray();
-  const match = all.find((existing) => existing.alley === ln.alley && existing.lane === ln.lane);
-  await db.lane_notes.put({ ...ln, id: match?.id });
-}
-
-async function upsertSpareLine(sl: SpareLine): Promise<void> {
-  const sortedPins = [...sl.pins].sort((a, b) => a - b);
-  const all = await db.spare_lines.toArray();
-  const match = all.find((existing) =>
-    existing.pins.length === sortedPins.length &&
-    existing.pins.every((p, i) => p === sortedPins[i])
-  );
-  await db.spare_lines.put({ ...sl, pins: sortedPins, id: match?.id });
-}
-
-function stripId<T extends { id?: number }>(value: T): Omit<T, "id"> {
-  const { id: _id, ...rest } = value;
-  return rest as Omit<T, "id">;
-}

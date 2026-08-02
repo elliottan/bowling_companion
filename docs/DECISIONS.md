@@ -57,8 +57,9 @@ uses camelCase.
 
 ## ADR-003 — Backup import merges by content key, never by id
 
-**Status:** accepted (2026-05). Supersedes the prior "trust imported id"
-implementation in `services/backupRepository.ts`.
+**Status:** superseded by ADR-038 (2026-08). Import no longer merges at all;
+the content-key matching described here has been removed. Kept for the record.
+Superseded the prior "trust imported id" implementation.
 
 **Context.** Auto-increment IDs from one device collide with auto-increment
 IDs on another. The earlier implementation silently overwrote a local row
@@ -1591,3 +1592,36 @@ string (`lib/stats.ts`) — so one pattern would report as two.
   Matching is case-insensitive by name, creating the row if absent.
 - Reading a session costs one extra indexed lookup. Accepted: history already
   issues per-session queries for games and frames.
+
+---
+
+## ADR-038 — Backup import replaces the whole database
+
+**Status:** accepted (2026-08). Supersedes ADR-003.
+
+**Context.** Import merged the file into the existing database, matching rows by
+content key so two devices could be combined. In practice the merge was hard to
+predict: a matched row was overwritten field-for-field by the incoming row, so
+restoring an older file silently reset fields the file knew nothing about, while
+rows absent from the file survived. The result was neither "my file is restored"
+nor "my devices are combined" — it was a per-table blend the user could not see
+before running it.
+
+**Decision.** Import replaces everything. All tables are cleared, then the
+file's rows are inserted with their own ids. There is no merge mode.
+
+- The user confirms against real counts and must type REPLACE, since this is the
+  most destructive action in the app and there is no server copy behind it.
+- A safety export of the current database downloads before anything is cleared.
+- With the tables empty, imported ids are replayed verbatim — the content-key
+  upsert helpers and id-remapping from ADR-003 are deleted.
+
+**Consequences.**
+- The file is unambiguously the source of truth after an import.
+- **Multi-device merging is gone.** Importing device B's backup onto device A
+  destroys A's own history. This is a real capability loss, accepted knowingly
+  in exchange for predictability.
+- Data created since the imported file was written is lost unless the user keeps
+  the pre-import safety copy.
+- If merging is ever wanted again, the coherent version is per-row `updated_at`
+  with last-write-wins across every table — not a return to content-key blending.

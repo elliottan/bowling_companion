@@ -76,7 +76,7 @@ export interface UpdateSessionInput {
 }
 
 /**
- * Resolve `oil_pattern_id` into the display fields (ADR-031). The DB never
+ * Resolve `oil_pattern_id` into the display fields (ADR-037). The DB never
  * stores a copy of the name, so renaming a pattern is correct by construction.
  */
 async function hydrateSession(session: Session): Promise<HydratedSession> {

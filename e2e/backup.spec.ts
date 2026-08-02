@@ -34,7 +34,18 @@ test("exports a backup, clears the database, and restores it via import", async 
   await page.getByRole("button", { name: "Settings" }).click();
   await page.getByRole("button", { name: "Backup & Restore" }).click();
   await page.locator('input[type="file"]').setInputFiles(filePath);
-  await expect(page.getByText(/Imported 1 sessions/)).toBeVisible();
+
+  // Import replaces everything (ADR-038), so it is gated behind typed confirmation.
+  await expect(page.getByRole("heading", { name: "Replace all data?" })).toBeVisible();
+  const replaceButton = page.getByRole("button", { name: "Replace everything" });
+  await expect(replaceButton).toBeDisabled();
+  await page.getByPlaceholder("REPLACE").fill("REPLACE");
+  // The safety copy of the current (empty) database downloads before the wipe.
+  const safetyCopyPromise = page.waitForEvent("download");
+  await replaceButton.click();
+  expect((await safetyCopyPromise).suggestedFilename()).toMatch(/^bowling-companion-pre-import-.*\.json$/);
+
+  await expect(page.getByText(/Replaced all data — now 1 sessions/)).toBeVisible();
 
   await page.getByRole("button", { name: "History" }).click();
   // Target the session row button (a location-filter <option> shares the name).

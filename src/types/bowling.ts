@@ -94,7 +94,7 @@ export interface Session {
 }
 
 /**
- * A session as read back for display (ADR-031). `oil_patterns` is the sole
+ * A session as read back for display (ADR-037). `oil_patterns` is the sole
  * source of truth for the name, so read paths resolve `oil_pattern_id` and
  * attach the pattern here rather than the DB storing a copy of the name.
  */

@@ -27,6 +27,13 @@ User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachan
 
 ### Changed
 
+- **Importing a backup now replaces everything, instead of merging.** The file
+  you import becomes your data, exactly as it was when you exported it — nothing
+  is blended with what's already on the device. Because that deletes anything
+  not in the file, the app shows you what you're about to lose, asks you to type
+  REPLACE, and downloads a copy of your current data first. **Note:** you can no
+  longer combine two devices by importing one into the other.
+
 - **Spare % is now your makeable-spare rate.** Washouts (the head pin left
   standing with a gap behind it, like 1-2-10) no longer count towards it, the
   same way real splits never have. Tap the Spare tile to see the rule.
