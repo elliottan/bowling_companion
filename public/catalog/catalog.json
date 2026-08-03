@@ -734,62 +734,6 @@
     ]
   },
   {
-    "id": "storm-q-tour-2025",
-    "brand": "Storm",
-    "name": "!Q Tour",
-    "releaseDate": "2025-01-01",
-    "releaseYear": 2025,
-    "coverstockRaw": "R2S Solid Reactive",
-    "coverstockCategory": "Solid",
-    "factoryFinish": "4000-grit Abralon",
-    "coreName": "C 3 Centripetal Control Core",
-    "coreType": "Symmetric",
-    "rg": 2.48,
-    "diff": 0.031,
-    "mbDiff": null,
-    "imageThumb": null,
-    "imageFull": null,
-    "sourceUrl": "https://www.stormbowling.com",
-    "weights": [
-      {
-        "weight": 16,
-        "rg": 2.48,
-        "diff": 0.037,
-        "mbDiff": null
-      },
-      {
-        "weight": 15,
-        "rg": 2.48,
-        "diff": 0.031,
-        "mbDiff": null
-      },
-      {
-        "weight": 14,
-        "rg": 2.53,
-        "diff": 0.036,
-        "mbDiff": null
-      },
-      {
-        "weight": 13,
-        "rg": 2.58,
-        "diff": 0.047,
-        "mbDiff": null
-      },
-      {
-        "weight": 12,
-        "rg": 2.64,
-        "diff": 0.037,
-        "mbDiff": null
-      }
-    ],
-    "colorways": [
-      {
-        "sku": "TQT",
-        "color": "Midnight Blue"
-      }
-    ]
-  },
-  {
     "id": "storm-q-tour-78-u-2025",
     "brand": "Storm",
     "name": "!Q Tour 78/U",
