@@ -1625,3 +1625,53 @@ file's rows are inserted with their own ids. There is no merge mode.
   the pre-import safety copy.
 - If merging is ever wanted again, the coherent version is per-row `updated_at`
   with last-write-wins across every table — not a return to content-key blending.
+
+## ADR-039 — Catalog ingest from a third-party spec database, and the image rights position
+
+**Status:** accepted (2026-08).
+
+**Context.** The catalog seeded from SPI's own PDFs (ADR-007, the `seed-catalog`
+skill) covers Storm-family balls and nothing else, and it carries no product
+photography — the ad-sheet carves in Phase 6 produced clipped, inconsistently
+framed images. Sourcing images from the manufacturers directly turned out to be
+closed: `stormbowling.com` is recaptcha-gated to every automated fetch, the SPI
+CDN has no per-ball image path that can be derived, and none of Storm, Brunswick
+or MOTIV publishes a press kit with reusable product photography.
+
+`bowwwl.com` is a third-party spec database — ~5,250 balls across 43 brands,
+served as static Drupal pages where every spec is a labelled field, with one
+consistently framed studio photo per ball.
+
+**Decision.** Ingest from it, per-ball and on demand, for balls the owner
+actually needs. `catalog/parse-bowwwl.ts` fetches a page, parses off field class
+names, and stages to `data/seed/` for human review before merge — the same
+staging flow as the PDF parsers, and the same rule that source documents never
+enter a model context.
+
+Deliberately **not** a bulk mirror of the whole database. A per-ball pull for
+balls in the arsenal is a different act from republishing someone's catalog, and
+the narrow version is both the safer position and the smaller diff.
+
+**On rights — recorded so the reasoning isn't re-derived later.** Ball specs are
+facts and carry no copyright (*Feist*; no US or Singapore database right). The
+photographs do, and the rights holder is the manufacturer, not bowwwl — which
+means bowwwl could not license them even if asked. bowwwl's own terms forbid
+reproduction, but bowwwl self-hosts manufacturer photography under no stated
+licence itself, as does every comparable non-retailer catalog app found. No
+enforcement action by any bowling manufacturer against an app or fan site could
+be found.
+
+The position taken is therefore: **unlicensed, non-commercial, and reversible.**
+Contingent on the app staying free and ad-free — Brunswick's terms permit
+copying for "personal and noncommercial use", and adding affiliate income would
+forfeit that. `data/images.json` keys every image to its ball id, so honouring a
+takedown is a data edit, not a pipeline change.
+
+**Consequences.**
+- Any brand can enter the catalog now, not just the SPI family.
+- Adding affiliate revenue is no longer a neutral product decision; it weakens
+  the image position and should be reconsidered against this ADR.
+- If written manufacturer permission is ever obtained, nothing here needs
+  rebuilding — only the provenance recorded alongside each image changes.
+- Balls whose photo is wrong on the aggregator (Pyramid Path ships in ~30
+  colourways behind one entry) still need a manufacturer-direct image.

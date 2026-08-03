@@ -36,8 +36,8 @@ const RG_MIN = 2.40;
 const RG_MAX = 2.95;
 const DIFF_MIN = 0;
 const DIFF_MAX = 0.065;
-const ALL_BRANDS: Manufacturer[] = ["Storm", "Roto Grip", "900 Global", "Motiv"];
-const ALL_COVERSTOCK: CoverstockCategory[] = ["Solid", "Pearl", "Hybrid", "Urethane"];
+const ALL_BRANDS: Manufacturer[] = ["Storm", "Roto Grip", "900 Global", "Motiv", "Pyramid"];
+const ALL_COVERSTOCK: CoverstockCategory[] = ["Solid", "Pearl", "Hybrid", "Urethane", "Polyester"];
 
 const EMPTY_FILTERS: Filters = {
   search: "",

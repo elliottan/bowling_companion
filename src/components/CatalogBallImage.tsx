@@ -8,6 +8,7 @@ const BRAND_COLORS: Record<Manufacturer, { bg: string; accent: string }> = {
   "Roto Grip":  { bg: "#1b4332", accent: "#52b788" },   // Roto green tones
   "900 Global": { bg: "#4a1942", accent: "#c77dff" },   // 900G purple tones
   "Motiv":      { bg: "#7c2d12", accent: "#fb923c" },   // Motiv orange/burnt
+  "Pyramid":    { bg: "#3f3f46", accent: "#facc15" },   // Pyramid slate + gold
 };
 
 interface CatalogBallImageProps {

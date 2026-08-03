@@ -6,6 +6,18 @@ User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachan
 
 ### Added
 
+- **Ball photos, and more balls.** The catalog now shows a real product photo
+  for every ball that has one, all framed the same way — square, evenly
+  margined, and transparent so they sit right in both light and dark mode. Balls
+  outside the Storm family can be added now too: Pyramid joins the brand filter,
+  and plastic spare balls get their own **Polyester** coverstock filter instead
+  of showing as unclassified. Newly in the catalog: Roto Grip Gem, Roto Grip Halo
+  Pearl, Storm !Q Tour Edition, and the Pyramid Path.
+
+- **Corrected ball data.** Pitch Black was listed as a 2025 ball; it's from 2014.
+  Zen Master and Wolverine now carry their 12 and 13 lb specs, which the
+  catalog was missing.
+
 - **Oil patterns have their own settings page.** Settings → Oil Patterns lists
   every pattern you've used, and lets you add or rename one and give it a link
   to its pattern sheet — usually a PDF. Where a pattern has a link, its name in

@@ -1,0 +1,530 @@
+[
+  {
+    "brand": "Roto Grip",
+    "name": "Gem",
+    "releaseDate": "2022-03-11",
+    "coverstockRaw": "MicroTrax Solid Particle Reactive",
+    "factoryFinish": "2000 Abralon",
+    "coreName": "Defiant LRG",
+    "rg": 2.47,
+    "diff": 0.053,
+    "mbDiff": 0.016,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/roto-grip/gem"
+    ],
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.47,
+        "diff": 0.051,
+        "mbDiff": 0.016
+      },
+      {
+        "weight": 15,
+        "rg": 2.47,
+        "diff": 0.053,
+        "mbDiff": 0.016
+      },
+      {
+        "weight": 14,
+        "rg": 2.5,
+        "diff": 0.052,
+        "mbDiff": 0.015
+      },
+      {
+        "weight": 13,
+        "rg": 2.57,
+        "diff": 0.032,
+        "mbDiff": 0.01
+      },
+      {
+        "weight": 12,
+        "rg": 2.59,
+        "diff": 0.029,
+        "mbDiff": 0.008
+      }
+    ],
+    "_imageUrl": "https://www.bowwwl.com/sites/default/files/balls/roto-grip-gem_0_0.png",
+    "_discontinued": true
+  },
+  {
+    "brand": "Roto Grip",
+    "name": "Halo Pearl",
+    "releaseDate": "2019-03-08",
+    "coverstockRaw": "eTrax-P18 Pearl Reactive",
+    "factoryFinish": "1500 Polished",
+    "coreName": "Centrum",
+    "rg": 2.49,
+    "diff": 0.05,
+    "mbDiff": 0.018,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/roto-grip/halo-pearl"
+    ],
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.49,
+        "diff": 0.05,
+        "mbDiff": 0.018
+      },
+      {
+        "weight": 15,
+        "rg": 2.49,
+        "diff": 0.05,
+        "mbDiff": 0.018
+      },
+      {
+        "weight": 14,
+        "rg": 2.54,
+        "diff": 0.044,
+        "mbDiff": 0.015
+      },
+      {
+        "weight": 13,
+        "rg": 2.6,
+        "diff": 0.04,
+        "mbDiff": 0.008
+      },
+      {
+        "weight": 12,
+        "rg": 2.62,
+        "diff": 0.04,
+        "mbDiff": 0.008
+      }
+    ],
+    "_imageUrl": "https://www.bowwwl.com/sites/default/files/balls/roto-grip-halo-pearl.png",
+    "_discontinued": true
+  },
+  {
+    "brand": "Pyramid",
+    "name": "Path",
+    "releaseDate": "2011-08-04",
+    "coverstockRaw": "Plastic Polyester",
+    "factoryFinish": "Polished",
+    "coreName": "Pancake",
+    "rg": 2.68,
+    "diff": 0.006,
+    "mbDiff": null,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/pyramid/path-various-colors"
+    ],
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.68,
+        "diff": 0.006,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.68,
+        "diff": 0.006,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.69,
+        "diff": 0.006,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": null,
+        "diff": null,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": null,
+        "diff": null,
+        "mbDiff": null
+      }
+    ],
+    "_imageUrl": "https://www.bowwwl.com/sites/default/files/balls/pyramid-path-hot-pink-lime-green.png",
+    "_discontinued": false
+  },
+  {
+    "brand": "900 Global",
+    "name": "Zen Master",
+    "releaseDate": "2021-08-17",
+    "coverstockRaw": "S77 Response Solid Reactive",
+    "factoryFinish": "3000 Abralon",
+    "coreName": "Meditate",
+    "rg": 2.49,
+    "diff": 0.051,
+    "mbDiff": null,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/900-global/zen-master"
+    ],
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.48,
+        "diff": 0.051,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.49,
+        "diff": 0.051,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.5,
+        "diff": 0.051,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.58,
+        "diff": 0.04,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.6,
+        "diff": 0.04,
+        "mbDiff": null
+      }
+    ],
+    "_imageUrl": "https://www.bowwwl.com/sites/default/files/balls/900-global-zen-master.png",
+    "_discontinued": true
+  },
+  {
+    "brand": "900 Global",
+    "name": "Wolverine",
+    "releaseDate": "2021-12-10",
+    "coverstockRaw": "S70 Pearl Reactive",
+    "factoryFinish": "4000 Abralon",
+    "coreName": "Lacerate 2.0",
+    "rg": 2.54,
+    "diff": 0.053,
+    "mbDiff": null,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/900-global/wolverine"
+    ],
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.53,
+        "diff": 0.051,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.54,
+        "diff": 0.053,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.54,
+        "diff": 0.052,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.59,
+        "diff": 0.045,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.65,
+        "diff": 0.035,
+        "mbDiff": null
+      }
+    ],
+    "_imageUrl": "https://www.bowwwl.com/sites/default/files/balls/900-global-wolverine_0.png",
+    "_discontinued": true
+  },
+  {
+    "brand": "Storm",
+    "name": "Pitch Black",
+    "releaseDate": "2014-05-27",
+    "coverstockRaw": "Controll Solid Urethane",
+    "factoryFinish": "1000 Abralon",
+    "coreName": "Capacitor",
+    "rg": 2.57,
+    "diff": 0.022,
+    "mbDiff": null,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/storm/pitch-black"
+    ],
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.56,
+        "diff": 0.023,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.57,
+        "diff": 0.022,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.59,
+        "diff": 0.022,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.61,
+        "diff": 0.021,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.63,
+        "diff": 0.021,
+        "mbDiff": null
+      }
+    ],
+    "_imageUrl": "https://www.bowwwl.com/sites/default/files/balls/storm-pitch-black.png",
+    "_discontinued": false
+  },
+  {
+    "brand": "Storm",
+    "name": "!Q Tour Edition",
+    "releaseDate": "2012-07-06",
+    "coverstockRaw": "R2S Solid Reactive",
+    "factoryFinish": "4000 Abralon",
+    "coreName": "C3 Centripetal Control",
+    "rg": 2.49,
+    "diff": 0.029,
+    "mbDiff": null,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/storm/iq-tour-edition"
+    ],
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.49,
+        "diff": 0.035,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.49,
+        "diff": 0.029,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.54,
+        "diff": 0.034,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.59,
+        "diff": 0.045,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.65,
+        "diff": 0.035,
+        "mbDiff": null
+      }
+    ],
+    "_imageUrl": "https://www.bowwwl.com/sites/default/files/balls/storm-iq-tour-edition.png",
+    "_discontinued": false
+  },
+  {
+    "brand": "Storm",
+    "name": "!Q Tour 30",
+    "releaseDate": "2015-11-24",
+    "coverstockRaw": "R2S Pearl Reactive",
+    "factoryFinish": "1500 Polished",
+    "coreName": "C3 Centripetal Control",
+    "rg": 2.49,
+    "diff": 0.029,
+    "mbDiff": null,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/storm/iq-tour-30"
+    ],
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.49,
+        "diff": 0.035,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.49,
+        "diff": 0.029,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.54,
+        "diff": 0.034,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.59,
+        "diff": 0.045,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.65,
+        "diff": 0.035,
+        "mbDiff": null
+      }
+    ],
+    "_imageUrl": "https://www.bowwwl.com/sites/default/files/balls/storm-iq-tour-30.png",
+    "_discontinued": true
+  },
+  {
+    "brand": "Storm",
+    "name": "!Q Tour A.I.",
+    "releaseDate": "2025-03-21",
+    "coverstockRaw": "R2S Hybrid Reactive",
+    "factoryFinish": "Power Edge",
+    "coreName": "C3 A.I.",
+    "rg": 2.48,
+    "diff": 0.031,
+    "mbDiff": null,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/storm/iq-tour-ai"
+    ],
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.48,
+        "diff": 0.037,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.48,
+        "diff": 0.031,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.53,
+        "diff": 0.036,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.58,
+        "diff": 0.047,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.64,
+        "diff": 0.037,
+        "mbDiff": null
+      }
+    ],
+    "_imageUrl": "https://www.bowwwl.com/sites/default/files/balls/storm-iq-tour-ai.png",
+    "_discontinued": false
+  },
+  {
+    "brand": "Storm",
+    "name": "Bionic",
+    "releaseDate": "2026-02-27",
+    "coverstockRaw": "NRG Hybrid Reactive",
+    "factoryFinish": "4000 Abralon",
+    "coreName": "Torsion A.I.",
+    "rg": 2.47,
+    "diff": 0.05,
+    "mbDiff": null,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/storm/bionic"
+    ],
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.47,
+        "diff": 0.05,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.47,
+        "diff": 0.05,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.48,
+        "diff": 0.047,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.58,
+        "diff": 0.047,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.64,
+        "diff": 0.037,
+        "mbDiff": null
+      }
+    ],
+    "_imageUrl": "https://www.bowwwl.com/sites/default/files/balls/storm-bionic.png",
+    "_discontinued": false
+  },
+  {
+    "brand": "Storm",
+    "name": "Concept",
+    "releaseDate": "2026-02-27",
+    "coverstockRaw": "ARC Pearl Reactive",
+    "factoryFinish": "1000 Abralon",
+    "coreName": "Radius",
+    "rg": 2.61,
+    "diff": 0.02,
+    "mbDiff": null,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/storm/concept"
+    ],
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.59,
+        "diff": 0.019,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.61,
+        "diff": 0.02,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.62,
+        "diff": 0.019,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.63,
+        "diff": 0.009,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.65,
+        "diff": 0.011,
+        "mbDiff": null
+      }
+    ],
+    "_imageUrl": "https://www.bowwwl.com/sites/default/files/balls/storm-concept.png",
+    "_discontinued": false
+  }
+]

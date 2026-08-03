@@ -19,8 +19,24 @@
     "imageThumb": "/catalog/img/900-global-zen-master-2021-thumb.webp",
     "imageFull": "/catalog/img/900-global-zen-master-2021-full.webp"
   },
-  "storm-pitch-black-2025": {
-    "imageThumb": "/catalog/img/storm-pitch-black-2025-thumb.webp",
-    "imageFull": "/catalog/img/storm-pitch-black-2025-full.webp"
+  "roto-grip-gem-2022": {
+    "imageThumb": "/catalog/img/roto-grip-gem-2022-thumb.webp",
+    "imageFull": "/catalog/img/roto-grip-gem-2022-full.webp"
+  },
+  "roto-grip-halo-pearl-2019": {
+    "imageThumb": "/catalog/img/roto-grip-halo-pearl-2019-thumb.webp",
+    "imageFull": "/catalog/img/roto-grip-halo-pearl-2019-full.webp"
+  },
+  "pyramid-path-2011": {
+    "imageThumb": "/catalog/img/pyramid-path-2011-thumb.webp",
+    "imageFull": "/catalog/img/pyramid-path-2011-full.webp"
+  },
+  "storm-pitch-black-2014": {
+    "imageThumb": "/catalog/img/storm-pitch-black-2014-thumb.webp",
+    "imageFull": "/catalog/img/storm-pitch-black-2014-full.webp"
+  },
+  "storm-q-tour-edition-2012": {
+    "imageThumb": "/catalog/img/storm-q-tour-edition-2012-thumb.webp",
+    "imageFull": "/catalog/img/storm-q-tour-edition-2012-full.webp"
   }
 }

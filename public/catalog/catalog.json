@@ -846,11 +846,11 @@
     ]
   },
   {
-    "id": "storm-pitch-black-2025",
+    "id": "storm-pitch-black-2014",
     "brand": "Storm",
     "name": "Pitch Black",
-    "releaseDate": "2025-01-01",
-    "releaseYear": 2025,
+    "releaseDate": "2014-05-27",
+    "releaseYear": 2014,
     "coverstockRaw": "Controll Solid Urethane",
     "coverstockCategory": "Urethane",
     "factoryFinish": "1000-grit Abralon",
@@ -859,8 +859,8 @@
     "rg": 2.57,
     "diff": 0.022,
     "mbDiff": null,
-    "imageThumb": "/catalog/img/storm-pitch-black-2025-thumb.webp",
-    "imageFull": "/catalog/img/storm-pitch-black-2025-full.webp",
+    "imageThumb": "/catalog/img/storm-pitch-black-2014-thumb.webp",
+    "imageFull": "/catalog/img/storm-pitch-black-2014-full.webp",
     "sourceUrl": "https://www.stormbowling.com",
     "weights": [
       {
@@ -1052,6 +1052,18 @@
         "rg": 2.54,
         "diff": 0.052,
         "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.59,
+        "diff": 0.045,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.65,
+        "diff": 0.035,
+        "mbDiff": null
       }
     ],
     "colorways": [
@@ -1095,6 +1107,18 @@
         "weight": 14,
         "rg": 2.5,
         "diff": 0.051,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.58,
+        "diff": 0.04,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.6,
+        "diff": 0.04,
         "mbDiff": null
       }
     ],
@@ -1598,6 +1622,212 @@
       {
         "sku": "TQY",
         "color": "BLACK/CHERRY"
+      }
+    ]
+  },
+  {
+    "id": "roto-grip-gem-2022",
+    "brand": "Roto Grip",
+    "name": "Gem",
+    "releaseDate": "2022-03-11",
+    "releaseYear": 2022,
+    "coverstockRaw": "MicroTrax Solid Particle Reactive",
+    "coverstockCategory": "Solid",
+    "factoryFinish": "2000 Abralon",
+    "coreName": "Defiant LRG",
+    "coreType": "Asymmetric",
+    "rg": 2.47,
+    "diff": 0.053,
+    "mbDiff": 0.016,
+    "imageThumb": "/catalog/img/roto-grip-gem-2022-thumb.webp",
+    "imageFull": "/catalog/img/roto-grip-gem-2022-full.webp",
+    "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/roto-grip/gem",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.47,
+        "diff": 0.051,
+        "mbDiff": 0.016
+      },
+      {
+        "weight": 15,
+        "rg": 2.47,
+        "diff": 0.053,
+        "mbDiff": 0.016
+      },
+      {
+        "weight": 14,
+        "rg": 2.5,
+        "diff": 0.052,
+        "mbDiff": 0.015
+      },
+      {
+        "weight": 13,
+        "rg": 2.57,
+        "diff": 0.032,
+        "mbDiff": 0.01
+      },
+      {
+        "weight": 12,
+        "rg": 2.59,
+        "diff": 0.029,
+        "mbDiff": 0.008
+      }
+    ]
+  },
+  {
+    "id": "roto-grip-halo-pearl-2019",
+    "brand": "Roto Grip",
+    "name": "Halo Pearl",
+    "releaseDate": "2019-03-08",
+    "releaseYear": 2019,
+    "coverstockRaw": "eTrax-P18 Pearl Reactive",
+    "coverstockCategory": "Pearl",
+    "factoryFinish": "1500 Polished",
+    "coreName": "Centrum",
+    "coreType": "Asymmetric",
+    "rg": 2.49,
+    "diff": 0.05,
+    "mbDiff": 0.018,
+    "imageThumb": "/catalog/img/roto-grip-halo-pearl-2019-thumb.webp",
+    "imageFull": "/catalog/img/roto-grip-halo-pearl-2019-full.webp",
+    "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/roto-grip/halo-pearl",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.49,
+        "diff": 0.05,
+        "mbDiff": 0.018
+      },
+      {
+        "weight": 15,
+        "rg": 2.49,
+        "diff": 0.05,
+        "mbDiff": 0.018
+      },
+      {
+        "weight": 14,
+        "rg": 2.54,
+        "diff": 0.044,
+        "mbDiff": 0.015
+      },
+      {
+        "weight": 13,
+        "rg": 2.6,
+        "diff": 0.04,
+        "mbDiff": 0.008
+      },
+      {
+        "weight": 12,
+        "rg": 2.62,
+        "diff": 0.04,
+        "mbDiff": 0.008
+      }
+    ]
+  },
+  {
+    "id": "pyramid-path-2011",
+    "brand": "Pyramid",
+    "name": "Path",
+    "releaseDate": "2011-08-04",
+    "releaseYear": 2011,
+    "coverstockRaw": "Plastic Polyester",
+    "coverstockCategory": "Polyester",
+    "factoryFinish": "Polished",
+    "coreName": "Pancake",
+    "coreType": "Symmetric",
+    "rg": 2.68,
+    "diff": 0.006,
+    "mbDiff": null,
+    "imageThumb": "/catalog/img/pyramid-path-2011-thumb.webp",
+    "imageFull": "/catalog/img/pyramid-path-2011-full.webp",
+    "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/pyramid/path-various-colors",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.68,
+        "diff": 0.006,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.68,
+        "diff": 0.006,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.69,
+        "diff": 0.006,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": null,
+        "diff": null,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": null,
+        "diff": null,
+        "mbDiff": null
+      }
+    ],
+    "colorways": [
+      {
+        "sku": "PATH-PK-BK",
+        "color": "Pink/Black"
+      }
+    ]
+  },
+  {
+    "id": "storm-q-tour-edition-2012",
+    "brand": "Storm",
+    "name": "!Q Tour Edition",
+    "releaseDate": "2012-07-06",
+    "releaseYear": 2012,
+    "coverstockRaw": "R2S Solid Reactive",
+    "coverstockCategory": "Solid",
+    "factoryFinish": "4000 Abralon",
+    "coreName": "C3 Centripetal Control",
+    "coreType": "Symmetric",
+    "rg": 2.49,
+    "diff": 0.029,
+    "mbDiff": null,
+    "imageThumb": "/catalog/img/storm-q-tour-edition-2012-thumb.webp",
+    "imageFull": "/catalog/img/storm-q-tour-edition-2012-full.webp",
+    "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/storm/iq-tour-edition",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.49,
+        "diff": 0.035,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.49,
+        "diff": 0.029,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.54,
+        "diff": 0.034,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.59,
+        "diff": 0.045,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.65,
+        "diff": 0.035,
+        "mbDiff": null
       }
     ]
   }

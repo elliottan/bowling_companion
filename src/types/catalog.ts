@@ -1,6 +1,6 @@
-export type CoverstockCategory = "Solid" | "Pearl" | "Hybrid" | "Urethane";
+export type CoverstockCategory = "Solid" | "Pearl" | "Hybrid" | "Urethane" | "Polyester";
 export type CoreType = "Symmetric" | "Asymmetric";
-export type Manufacturer = "Storm" | "Roto Grip" | "900 Global" | "Motiv";
+export type Manufacturer = "Storm" | "Roto Grip" | "900 Global" | "Motiv" | "Pyramid";
 
 export interface WeightSpec {
   weight: number;       // pounds, e.g. 15

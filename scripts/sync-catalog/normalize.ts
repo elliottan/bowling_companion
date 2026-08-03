@@ -7,6 +7,9 @@ import type { CoverstockCategory, CoreType } from "../../src/types/catalog.js";
  */
 export function mapCoverstock(raw: string): CoverstockCategory | null {
   const lower = raw.toLowerCase();
+  // Polyester outranks the finish words: a plastic spare ball may be sold as
+  // "Polyester Pearl", and its material is the useful classification.
+  if (lower.includes("polyester") || lower.includes("plastic")) return "Polyester";
   if (lower.includes("urethane")) return "Urethane";
   if (lower.includes("hybrid")) return "Hybrid";
   if (lower.includes("pearl")) return "Pearl";
