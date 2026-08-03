@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { freshRackShotIndices, laneForFrame } from "../lib/lanes";
 import { knockedDownCount } from "../lib/pins";
@@ -23,7 +23,7 @@ interface SessionLanePanelProps {
   /** When set, a pencil button in the header opens the session edit flow. */
   onEdit?: () => void;
   /** Tap a frame in the sheet to jump to it in score entry. */
-  onSelectFrame?: (gameId: number, frameNumber: number) => void;
+  onSelectFrame?: (gameId: number, frameNumber: number, shotIndex: number) => void;
   onClose: () => void;
 }
 
@@ -266,7 +266,7 @@ function SessionSheetTab({
   currentGameId?: number;
   focusGameId?: number;
   focusToken: number;
-  onSelectFrame?: (gameId: number, frameNumber: number) => void;
+  onSelectFrame?: (gameId: number, frameNumber: number, shotIndex: number) => void;
 }) {
   const [balls, setBalls] = useState<Ball[]>([]);
 
@@ -316,7 +316,7 @@ function SessionSheetTab({
                 ballName={ballName}
                 onSelectFrame={
                   onSelectFrame && game.id
-                    ? (frameNumber) => onSelectFrame(game.id as number, frameNumber)
+                    ? (frameNumber, shotIndex) => onSelectFrame(game.id as number, frameNumber, shotIndex)
                     : undefined
                 }
               />
@@ -343,27 +343,22 @@ function GameGrid({
 }: {
   game: SessionSummary["games"][number];
   ballName: (id?: number) => string | undefined;
-  /** Tap a recorded frame to jump to it in score entry. */
-  onSelectFrame?: (frameNumber: number) => void;
+  /** Tap a shot to jump to it in score entry. */
+  onSelectFrame?: (frameNumber: number, shotIndex: number) => void;
 }) {
   const lanes = game.lanes ?? (game.lane_number ? [game.lane_number] : []);
   const byNumber = new Map(game.frames.map((f) => [f.frame_number, f]));
 
-  const cell = (n: number, frame?: Frame) => {
-    if (!frame) return emptyCell(n);
-    const content = <FrameCell frame={frame} ballName={ballName} />;
-    if (!onSelectFrame) return content;
-    return (
-      <button
-        type="button"
-        onClick={() => onSelectFrame(n)}
-        aria-label={`Go to frame ${n}`}
-        className="block w-full text-left active:bg-surface-muted"
-      >
-        {content}
-      </button>
+  const cell = (n: number, frame?: Frame) =>
+    frame ? (
+      <FrameCell
+        frame={frame}
+        ballName={ballName}
+        onSelect={onSelectFrame && ((shotIndex) => onSelectFrame(n, shotIndex))}
+      />
+    ) : (
+      emptyCell(n)
     );
-  };
 
   if (lanes.length < 2) {
     const laneLabel = lanes[0];
@@ -427,8 +422,8 @@ function GameGrid({
  * just the first ball. The 10th frame can have several: any ball whose previous
  * ball cleared the deck (a strike, or a spare that reset the pins) is fresh.
  */
-function freshRackShots(frame: Frame): Shot[] {
-  return freshRackShotIndices(frame.shots).map((i) => frame.shots[i]);
+function freshRackShots(frame: Frame): Array<{ shot: Shot; index: number }> {
+  return freshRackShotIndices(frame.shots).map((i) => ({ shot: frame.shots[i], index: i }));
 }
 
 function shotSymbol(shot: Shot): string {
@@ -437,11 +432,44 @@ function shotSymbol(shot: Shot): string {
   return down === 0 ? "-" : String(down);
 }
 
-function FrameCell({ frame, ballName }: { frame: Frame; ballName: (id?: number) => string | undefined }) {
+/** One shot line — a button when the sheet can jump to it, a plain row otherwise. */
+function Row({
+  onSelect,
+  frameNumber,
+  children
+}: {
+  onSelect?: () => void;
+  frameNumber: number;
+  children: ReactNode;
+}) {
+  const className = "flex w-full items-start gap-1.5 text-left";
+  if (!onSelect) return <div className={className}>{children}</div>;
+  return (
+    <button
+      type="button"
+      onClick={onSelect}
+      aria-label={`Go to frame ${frameNumber}`}
+      className={`${className} rounded active:bg-surface-muted`}
+    >
+      {children}
+    </button>
+  );
+}
+
+function FrameCell({
+  frame,
+  ballName,
+  onSelect
+}: {
+  frame: Frame;
+  ballName: (id?: number) => string | undefined;
+  /** Tap this shot to review it in score entry. Index is into `frame.shots`. */
+  onSelect?: (shotIndex: number) => void;
+}) {
   const shots = freshRackShots(frame);
   return (
     <div className="flex flex-col gap-1.5">
-      {shots.map((shot, i) => {
+      {shots.map(({ shot, index }, i) => {
         const intended = formatLine(shot.intended);
         const actual = formatLine(shot.actual);
         const name = ballName(shot.ball_id);
@@ -451,7 +479,9 @@ function FrameCell({ frame, ballName }: { frame: Frame; ballName: (id?: number) 
           // line per shot instead of a tall stacked column. The deck's bottom
           // rows narrow to one pin, so the frame number and the count tuck into
           // the empty corners beside it.
-          <div key={i} className="flex items-start gap-1.5">
+          // Each fresh-rack shot is its own tap target, so a 10th frame lands
+          // on the shot that was actually tapped.
+          <Row key={i} onSelect={onSelect && (() => onSelect(index))} frameNumber={frame.frame_number}>
             <div className="relative shrink-0">
               <MiniPins standing={shot.pins_standing} />
               {i === 0 && (
@@ -469,7 +499,7 @@ function FrameCell({ frame, ballName }: { frame: Frame; ballName: (id?: number) 
               {actual && <p className="text-ink-secondary">{actual}</p>}
               {shot.notes && <p className="break-words text-ink-secondary">{shot.notes}</p>}
             </div>
-          </div>
+          </Row>
         );
       })}
     </div>

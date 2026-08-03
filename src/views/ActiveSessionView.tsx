@@ -60,7 +60,7 @@ export function ActiveSessionView({
   const [sheetTab, setSheetTab] = useState<SessionPanelTab>(openStatsOnMount ? "stats" : "sheet");
   const [showEdit, setShowEdit] = useState(false);
   // Frame handed to the scorer when one is tapped in the session sheet.
-  const [focusFrame, setFocusFrame] = useState<{ frameNumber: number; token: number } | undefined>();
+  const [focusFrame, setFocusFrame] = useState<{ frameNumber: number; shotIndex: number; token: number } | undefined>();
 
   // Inline lane editor
   const [laneA, setLaneA] = useState("");
@@ -417,9 +417,9 @@ export function ActiveSessionView({
           // Close the sheet first: it portals to body after the edit dialog,
           // so it would otherwise paint on top of it.
           onEdit={() => { setShowSheet(false); setShowEdit(true); }}
-          onSelectFrame={(gameId, frameNumber) => {
+          onSelectFrame={(gameId, frameNumber, shotIndex) => {
             setActiveGameId(gameId);
-            setFocusFrame((prev) => ({ frameNumber, token: (prev?.token ?? 0) + 1 }));
+            setFocusFrame((prev) => ({ frameNumber, shotIndex, token: (prev?.token ?? 0) + 1 }));
             setShowSheet(false);
           }}
           onClose={() => setShowSheet(false)}

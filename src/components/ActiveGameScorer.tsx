@@ -620,7 +620,7 @@ interface ActiveGameScorerProps {
   game?: Pick<Game, "lanes" | "start_lane" | "lane_number">;
   /** External request to review a recorded frame (e.g. tapped in the session
    *  sheet). Bump `token` to re-fire for the same frame. */
-  focusFrame?: { frameNumber: number; token: number };
+  focusFrame?: { frameNumber: number; shotIndex: number; token: number };
   onFrameComplete?: (frame: Frame) => Promise<void> | void;
   onGameComplete?: (frames: Frame[]) => Promise<void> | void;
   /** Open the game-level lane editor (lane pair + starting lane). */
@@ -780,7 +780,10 @@ export function ActiveGameScorer({
     if (!focusFrame) return;
     const frame = initialFrames.find((f) => f.frame_number === focusFrame.frameNumber);
     if (!frame || frame.shots.length === 0) return;
-    setSelectedShot({ frameNumber: frame.frame_number, shotIndex: frame.shots.length - 1 });
+    setSelectedShot({
+      frameNumber: frame.frame_number,
+      shotIndex: Math.min(focusFrame.shotIndex, frame.shots.length - 1)
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [focusFrame?.token]);
 
