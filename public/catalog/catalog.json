@@ -734,21 +734,21 @@
     ]
   },
   {
-    "id": "storm-q-tour-78-u-2025",
+    "id": "storm-q-tour-78-u-2023",
     "brand": "Storm",
     "name": "!Q Tour 78/U",
-    "releaseDate": "2025-01-01",
-    "releaseYear": 2025,
+    "releaseDate": "2023-12-15",
+    "releaseYear": 2023,
     "coverstockRaw": "Controll 78 Solid Urethane",
     "coverstockCategory": "Urethane",
     "factoryFinish": "500-grit Abralon",
-    "coreName": "C 3 Centripetal Control Core",
+    "coreName": "C3 Centripetal Control",
     "coreType": "Symmetric",
     "rg": 2.49,
     "diff": 0.029,
     "mbDiff": null,
-    "imageThumb": null,
-    "imageFull": null,
+    "imageThumb": "/catalog/img/storm-q-tour-78-u-2023-thumb.webp",
+    "imageFull": "/catalog/img/storm-q-tour-78-u-2023-full.webp",
     "sourceUrl": "https://www.stormbowling.com",
     "weights": [
       {

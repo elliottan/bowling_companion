@@ -649,16 +649,17 @@
   {
     "brand": "Storm",
     "name": "!Q Tour 78/U",
-    "releaseDate": "2025-01-01",
+    "releaseDate": "2023-12-15",
     "coverstockRaw": "Controll 78 Solid Urethane",
     "factoryFinish": "500-grit Abralon",
-    "coreName": "C 3 Centripetal Control Core",
+    "coreName": "C3 Centripetal Control",
     "rg": 2.49,
     "diff": 0.029,
     "mbDiff": null,
     "sourceUrls": [
       "https://www.stormbowling.com",
-      "tmp/storm-2025-catalog.pdf"
+      "tmp/storm-2025-catalog.pdf",
+      "https://www.bowwwl.com/bowling-ball-database/storm/iq-tour-78u"
     ],
     "weights": [
       {
