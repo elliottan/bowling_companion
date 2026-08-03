@@ -72,7 +72,7 @@ export function BackupRestoreView({ onBack }: BackupRestoreViewProps = {}) {
       setPending(null);
       setConfirmText("");
       setMessage(
-        `Replaced all data — now ${result.sessions} sessions · ${result.games} games · ${result.frames} frames. A copy of your previous data was downloaded first.`
+        `Replaced all data. You now have ${result.sessions} sessions · ${result.games} games · ${result.frames} frames. A copy of your previous data was downloaded first.`
       );
     } catch (err) {
       setError(err instanceof Error ? err.message : "Import failed.");
@@ -85,7 +85,7 @@ export function BackupRestoreView({ onBack }: BackupRestoreViewProps = {}) {
     <section className="mx-auto w-full max-w-2xl px-3 py-4 sm:px-6">
       <p className="text-sm text-ink-secondary">
         Local JSON only. Importing <strong className="font-semibold text-ink">replaces</strong>{" "}
-        everything on this device with the file's contents — anything not in the
+        everything on this device with the file's contents, so anything not in the
         file is deleted. A copy of your current data downloads first.
       </p>
 
@@ -93,7 +93,7 @@ export function BackupRestoreView({ onBack }: BackupRestoreViewProps = {}) {
         <p className="mt-2 text-xs text-ink-secondary">
           {persisted
             ? "Storage: persistent ✓"
-            : "Storage: best-effort — install the app + back up regularly"}
+            : "Storage: best-effort. Install the app and back up regularly"}
         </p>
       )}
 
@@ -205,10 +205,10 @@ function ReplaceConfirmDialog({
         <h2 className="text-base font-bold text-ink">Replace all data?</h2>
 
         <p className="mt-2 text-sm text-ink-secondary">
-          This permanently deletes everything on this device — {current.sessions}{" "}
+          This permanently deletes everything on this device ({current.sessions}{" "}
           {current.sessions === 1 ? "session" : "sessions"}, {current.games}{" "}
           {current.games === 1 ? "game" : "games"}, {current.balls}{" "}
-          {current.balls === 1 ? "ball" : "balls"} — and installs the file instead
+          {current.balls === 1 ? "ball" : "balls"}) and installs the file instead
           ({incoming.sessions} {incoming.sessions === 1 ? "session" : "sessions"},{" "}
           {incoming.games} {incoming.games === 1 ? "game" : "games"}).
         </p>

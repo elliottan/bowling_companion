@@ -16,18 +16,16 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { ErrorBanner } from "../components/ErrorBanner";
-import { LaneVisualizer } from "../components/LaneVisualizer";
 import { MiniPins } from "../components/MiniPins";
 import { SpareLineFormDialog } from "../components/SpareLineFormDialog";
 import { IconButton } from "../components/ui/IconButton";
 import { useDriftModel } from "../lib/driftModelContext";
-import { deriveLaydown, deriveSlide, syncStanceLaydown, type DriftModel } from "../lib/driftModel";
+import { deriveLaydown, deriveSlide, type DriftModel } from "../lib/driftModel";
 import {
   deleteSpareLine,
   ensureDefaultSpareLines,
   getSpareLinesAll,
   reorderSpareLines,
-  upsertSpareLine,
 } from "../services/ballRepository";
 import type { LineSpec, SpareLine } from "../types/bowling";
 
@@ -69,14 +67,14 @@ function SortableSpareCard({ sl, onOpen }: SortableSpareCardProps) {
         }`}
       >
         {/* The whole card is the drag handle: a hold picks it up, a tap opens
-            the lane. Holding without moving ends as a no-move drag, which the
-            view turns into the edit/delete menu. */}
+            the editor. The lane view moved behind the eye button inside that
+            editor, where "tap to edit" is the obvious meaning of a tap. */}
         <button
           type="button"
           {...attributes}
           {...listeners}
           onClick={() => onOpen(sl)}
-          aria-label={`Open lane view for pins ${sl.pins.join(", ")}`}
+          aria-label={`Edit spare line for pins ${sl.pins.join(", ")}`}
           className="flex w-full touch-none flex-col items-center gap-1.5 active:opacity-70"
         >
           <MiniPins standing={sl.pins} size="md" />
@@ -89,7 +87,7 @@ function SortableSpareCard({ sl, onOpen }: SortableSpareCardProps) {
                 {([["Stand", sl.line.stance], ["Arrow", sl.line.target]] as const).map(([k, v]) => (
                   <div key={k}>
                     <div className="text-[11px] font-semibold uppercase tracking-wide text-ink-secondary">{k}</div>
-                    <div className="text-xs font-bold tabular-nums text-ink-strong">{v ?? "—"}</div>
+                    <div className="text-xs font-bold tabular-nums text-ink-strong">{v ?? "-"}</div>
                   </div>
                 ))}
               </div>
@@ -111,31 +109,6 @@ export function SpareLinesView() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
   const [editing, setEditing] = useState<Editing | null>(null);
-  // Tapping a card goes straight to the lane. The line is held here while it is
-  // being dragged and written back once, on close.
-  const [viewing, setViewing] = useState<SpareLine | null>(null);
-  const [vizLine, setVizLine] = useState<LineSpec>({});
-  const driftModel = useDriftModel();
-
-  function openViz(sl: SpareLine) {
-    setVizLine(sl.line ?? {});
-    setViewing(sl);
-  }
-
-  async function closeViz() {
-    const sl = viewing;
-    setViewing(null);
-    if (!sl) return;
-    const hasLine = Object.values(vizLine).some((v) => v != null);
-    try {
-      // The whole solved spec is stored, hook timing included — the visualizer
-      // is the only place those are set, so dropping them here would lose them.
-      await upsertSpareLine(sl.pins, hasLine ? vizLine : undefined, sl.notes);
-      await load();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to save spare line.");
-    }
-  }
 
   // Press-and-hold anywhere on a card to pick it up; a quick tap opens the lane.
   const sensors = useSensors(
@@ -145,13 +118,9 @@ export function SpareLinesView() {
   async function handleDragEnd(event: DragEndEvent) {
     const { active, over, delta } = event;
 
-    // Held but never moved: that is the long-press gesture — open the card's
-    // details (pins + delete) instead of reordering.
-    if (Math.hypot(delta.x, delta.y) < 6) {
-      const sl = spareLines.find((s) => s.id === active.id);
-      if (sl) setEditing({ mode: "edit", sl });
-      return;
-    }
+    // Held but never moved: nothing to reorder, and a tap already opens the
+    // editor, so this is a no-op rather than a second way in.
+    if (Math.hypot(delta.x, delta.y) < 6) return;
 
     if (!over || active.id === over.id) return;
 
@@ -198,8 +167,8 @@ export function SpareLinesView() {
   }
 
   return (
-    <section className="mx-auto w-full max-w-3xl px-3 py-5 sm:px-6 sm:py-8">
-      <div className="mb-4 flex items-center justify-between">
+    <section className="mx-auto w-full max-w-3xl px-3 pb-5 pt-3 sm:px-6 sm:pt-5">
+      <div className="mb-3 flex items-center justify-between">
         <h1 className="text-xl font-bold text-ink">Spare Lines</h1>
         <IconButton onClick={() => setEditing({ mode: "add" })} label="Add spare">
           <Plus size={18} aria-hidden="true" />
@@ -255,25 +224,13 @@ export function SpareLinesView() {
           >
             <ul className="grid grid-cols-3 gap-2">
               {spareLines.map((sl) => (
-                <SortableSpareCard key={sl.id} sl={sl} onOpen={openViz} />
+                <SortableSpareCard key={sl.id} sl={sl} onOpen={(line) => setEditing({ mode: "edit", sl: line })} />
               ))}
             </ul>
           </SortableContext>
         </DndContext>
       )}
 
-      {viewing && (
-        <LaneVisualizer
-          key={`viz-${viewing.id}`}
-          title={`Pins ${viewing.pins.join(", ")}`}
-          line={vizLine}
-          leave={viewing.pins}
-          spare
-          showStance
-          onChange={(l) => setVizLine(syncStanceLaydown(vizLine, l ?? {}, driftModel))}
-          onClose={() => void closeViz()}
-        />
-      )}
     </section>
   );
 }

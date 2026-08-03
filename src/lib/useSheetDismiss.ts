@@ -1,0 +1,107 @@
+import { useCallback, useEffect, useRef, useState } from "react";
+
+const EXIT_MS = 220;
+// A drag this far down commits to closing; anything less springs back.
+const DISMISS_PX = 96;
+
+export interface SheetDismiss {
+  /** Close with the exit animation, then run `after` (defaults to `onClose`).
+   *  Wire every close path through this, confirm buttons included. */
+  dismiss: (after?: () => void) => void;
+  /** Style for the backdrop: fades with the panel. */
+  backdropStyle: React.CSSProperties;
+  /** Style for the panel itself: slides down out of view (or scales, centered). */
+  panelStyle: React.CSSProperties;
+  /** True once the exit has started, so callers can drop enter animations. */
+  exiting: boolean;
+  /** Spread onto a drag handle (bottom sheets only). */
+  dragHandlers: {
+    onPointerDown: (e: React.PointerEvent) => void;
+    onPointerMove: (e: React.PointerEvent) => void;
+    onPointerUp: () => void;
+    onPointerCancel: () => void;
+  };
+}
+
+/**
+ * Sheets and dialogs enter with an animation and used to leave by simply
+ * unmounting, which reads as the screen glitching rather than the sheet
+ * leaving. This gives every overlay a symmetric exit, and bottom sheets a
+ * drag-down-to-dismiss that follows the finger.
+ *
+ * `align: "bottom"` slides out downwards; `"center"` fades and settles back.
+ */
+export function useSheetDismiss(
+  onClose: () => void,
+  align: "bottom" | "center" = "bottom"
+): SheetDismiss {
+  const [exiting, setExiting] = useState(false);
+  const [dragY, setDragY] = useState(0);
+  const dragStartY = useRef<number | null>(null);
+  const timer = useRef<number | null>(null);
+
+  const dismiss = useCallback(
+    (after?: () => void) => {
+      const run = typeof after === "function" ? after : onClose;
+      if (timer.current !== null) return;
+      if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) {
+        run();
+        return;
+      }
+      setExiting(true);
+      timer.current = window.setTimeout(run, EXIT_MS);
+    },
+    [onClose]
+  );
+
+  useEffect(
+    () => () => {
+      if (timer.current !== null) window.clearTimeout(timer.current);
+    },
+    []
+  );
+
+  const dragging = dragStartY.current !== null;
+
+  const transform = exiting
+    ? align === "bottom"
+      ? "translateY(100%)"
+      : "scale(0.96)"
+    : dragY
+      ? `translateY(${dragY}px)`
+      : undefined;
+
+  return {
+    dismiss,
+    exiting,
+    backdropStyle: {
+      opacity: exiting ? 0 : 1,
+      transition: `opacity ${EXIT_MS}ms ease-out`
+    },
+    panelStyle: {
+      transform,
+      opacity: exiting && align === "center" ? 0 : undefined,
+      transition: dragging ? "none" : `transform ${EXIT_MS}ms cubic-bezier(0.32, 0.72, 0, 1), opacity ${EXIT_MS}ms ease-out`
+    },
+    dragHandlers: {
+      onPointerDown: (e) => {
+        dragStartY.current = e.clientY;
+        (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+      },
+      onPointerMove: (e) => {
+        if (dragStartY.current === null) return;
+        setDragY(Math.max(0, e.clientY - dragStartY.current));
+      },
+      onPointerUp: () => {
+        const shouldClose = dragY > DISMISS_PX;
+        dragStartY.current = null;
+        setDragY(0);
+        if (shouldClose) dismiss();
+      },
+      onPointerCancel: () => {
+        dragStartY.current = null;
+        setDragY(0);
+      }
+    }
+  };
+}

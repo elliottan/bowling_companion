@@ -1,4 +1,5 @@
 import { useOverlay } from "../lib/useOverlay";
+import { useSheetDismiss } from "../lib/useSheetDismiss";
 import { SessionForm, type NewSessionFormValues, type SessionFormInitial } from "./SessionForm";
 
 interface SessionFormDialogProps {
@@ -25,7 +26,8 @@ export function SessionFormDialog({
   title,
   submitLabel
 }: SessionFormDialogProps) {
-  const overlayRef = useOverlay<HTMLDivElement>(onCancel, open);
+  const { dismiss, backdropStyle, panelStyle, exiting } = useSheetDismiss(onCancel, "center");
+  const overlayRef = useOverlay<HTMLDivElement>(dismiss, open);
 
   if (!open) return null;
 
@@ -34,11 +36,13 @@ export function SessionFormDialog({
       className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/40 p-4"
       role="dialog"
       aria-modal="true"
-      onClick={onCancel}
+      style={backdropStyle}
+      onClick={() => dismiss()}
     >
       <div
         ref={overlayRef}
-        className="my-auto w-full max-w-sm rounded-xl bg-surface p-5 shadow-xl"
+        style={panelStyle}
+        className={`my-auto w-full max-w-sm rounded-xl bg-surface p-5 shadow-xl ${exiting ? "" : "animate-pop-in"}`}
         onClick={(e) => e.stopPropagation()}
       >
         {/* `key` remounts the form when the prefill changes so a freshly opened
@@ -46,7 +50,7 @@ export function SessionFormDialog({
         <SessionForm
           key={open ? (initial ? `edit-${initial.alley_name}-${initial.date}` : "create") : "closed"}
           onSubmit={onSubmit}
-          onCancel={onCancel}
+          onCancel={() => dismiss()}
           isSubmitting={isSubmitting}
           initial={initial}
           title={title}

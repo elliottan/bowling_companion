@@ -1,4 +1,4 @@
-import { BookOpen, PlayCircle, Plus, Smartphone, Spline } from "lucide-react";
+import { BookOpen, CircleDot, MapPin, PlayCircle, Plus, Smartphone, Spline, Waves, type LucideIcon } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { ErrorBanner } from "../components/ErrorBanner";
 import { SessionFormDialog } from "../components/SessionFormDialog";
@@ -30,6 +30,9 @@ interface DashboardViewProps {
   activeSessionId?: number | null;
   onOpenCatalog: () => void;
   onOpenLineVisualizer: () => void;
+  onOpenArsenal: () => void;
+  onOpenLaneNotes: () => void;
+  onOpenOilPatterns: () => void;
   onSessionDeleted?: (sessionId: number) => void;
   onOpenBackup: () => void;
 }
@@ -50,6 +53,9 @@ export function DashboardView({
   activeSessionId,
   onOpenCatalog,
   onOpenLineVisualizer,
+  onOpenArsenal,
+  onOpenLaneNotes,
+  onOpenOilPatterns,
   onSessionDeleted,
   onOpenBackup
 }: DashboardViewProps) {
@@ -116,8 +122,16 @@ export function DashboardView({
     setShowForm(false);
   }
 
+  const shortcuts: Array<{ icon: LucideIcon; label: string; onClick: () => void }> = [
+    { icon: CircleDot, label: "Arsenal", onClick: onOpenArsenal },
+    { icon: BookOpen, label: "Catalog", onClick: onOpenCatalog },
+    { icon: Spline, label: "Line", onClick: onOpenLineVisualizer },
+    { icon: MapPin, label: "Lane Notes", onClick: onOpenLaneNotes },
+    { icon: Waves, label: "Oil Patterns", onClick: onOpenOilPatterns }
+  ];
+
   return (
-    <section className={`mx-auto w-full max-w-xl px-3 py-5 sm:px-6 sm:py-8 ${resumable ? "pb-44" : ""}`}>
+    <section className={`mx-auto w-full max-w-xl px-3 pb-5 pt-3 sm:px-6 sm:pt-5 ${resumable ? "pb-44" : ""}`}>
       {error && (
         <ErrorBanner className="mb-4">{error}</ErrorBanner>
       )}
@@ -167,41 +181,23 @@ export function DashboardView({
         </div>
       )}
 
-      <Button variant="primary" size="lg" onClick={() => setShowForm(true)} className="w-full">
-        <Plus size={18} aria-hidden="true" />
-        Start new session
-      </Button>
-
-      {/* Widgets row */}
-      <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
-        <button
-          type="button"
-          onClick={onOpenCatalog}
-          aria-label="Ball Catalog"
-          className="flex flex-col items-start gap-2 rounded-lg border border-edge bg-surface p-4 shadow-sm hover:border-accent-fill text-left"
-        >
-          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent-soft text-accent">
-            <BookOpen size={18} aria-hidden="true" />
-          </span>
-          <span>
-            <span className="block text-sm font-semibold text-ink">Ball Catalog</span>
-            <span className="block text-xs text-ink-secondary">Browse all manufacturer balls</span>
-          </span>
-        </button>
-        <button
-          type="button"
-          onClick={onOpenLineVisualizer}
-          aria-label="Line Visualizer"
-          className="flex flex-col items-start gap-2 rounded-lg border border-edge bg-surface p-4 shadow-sm hover:border-accent-fill text-left"
-        >
-          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent-soft text-accent">
-            <Spline size={18} aria-hidden="true" />
-          </span>
-          <span>
-            <span className="block text-sm font-semibold text-ink">Line Visualizer</span>
-            <span className="block text-xs text-ink-secondary">Sketch a line on the lane</span>
-          </span>
-        </button>
+      {/* Shortcuts. Icon and name only: these are places the user already
+          knows, so a sentence of description each only cost vertical space. */}
+      <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
+        {shortcuts.map((s) => (
+          <button
+            key={s.label}
+            type="button"
+            onClick={s.onClick}
+            aria-label={s.label}
+            className="flex flex-col items-center gap-1.5 rounded-xl border border-edge bg-surface px-2 py-3 shadow-sm hover:border-accent-fill"
+          >
+            <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent-soft text-accent">
+              <s.icon size={18} aria-hidden="true" />
+            </span>
+            <span className="text-center text-xs font-semibold leading-tight text-ink">{s.label}</span>
+          </button>
+        ))}
       </div>
 
       <div className="mt-6">
@@ -223,24 +219,34 @@ export function DashboardView({
         />
       </div>
 
-      {/* Floating "resume" pill — hovers above the page, just over the bottom
-          nav, so the currently active session is always one tap away. */}
-      {resumable && (
+      {/* Floating row above the tab bar: starting a session is the one action
+          this page exists for, so it keeps the thumb corner, and the resume
+          pill shares the row to its left rather than replacing it. */}
+      <div className="pointer-events-none fixed inset-x-3 bottom-[calc(4rem+env(safe-area-inset-bottom)+0.5rem)] z-40 mx-auto flex max-w-xl items-center gap-2 sm:bottom-6">
+        {resumable && (
+          <button
+            type="button"
+            onClick={onResume}
+            className="pointer-events-auto flex min-w-0 flex-1 items-center gap-3 rounded-xl border border-accent-fill bg-accent-fill p-3.5 text-left text-accent-on-fill shadow-2xl hover:bg-accent-fill-hover"
+          >
+            <PlayCircle size={22} aria-hidden="true" className="shrink-0" />
+            <span className="min-w-0 flex-1">
+              <span className="block text-sm font-bold">Resume game</span>
+              <span className="block truncate text-xs text-accent-on-fill">
+                {resumable.alleyName} · Game {resumable.gameNumber}
+              </span>
+            </span>
+          </button>
+        )}
         <button
           type="button"
-          onClick={onResume}
-          className="fixed inset-x-3 bottom-[calc(4rem+env(safe-area-inset-bottom)+0.5rem)] z-40 mx-auto flex max-w-xl items-center gap-3 rounded-xl border border-accent-fill bg-accent-fill p-4 text-left text-accent-on-fill shadow-2xl hover:bg-accent-fill-hover sm:bottom-6"
+          onClick={() => setShowForm(true)}
+          aria-label="Start new session"
+          className="pointer-events-auto ml-auto flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-accent-fill text-accent-on-fill shadow-2xl hover:bg-accent-fill-hover"
         >
-          <PlayCircle size={22} aria-hidden="true" className="shrink-0" />
-          <span className="min-w-0 flex-1">
-            <span className="block text-sm font-bold">Resume game</span>
-            <span className="block truncate text-xs text-accent-on-fill">
-              {resumable.alleyName} · Game {resumable.gameNumber}
-            </span>
-          </span>
-          <span className="shrink-0 text-xs font-semibold uppercase tracking-wide text-accent-on-fill">Resume →</span>
+          <Plus size={26} aria-hidden="true" />
         </button>
-      )}
+      </div>
 
       <SessionFormDialog
         open={showForm}

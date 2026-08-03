@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { useOverlay } from "../lib/useOverlay";
+import { useSheetDismiss } from "../lib/useSheetDismiss";
 import { Button } from "./ui/Button";
 import type { OilPattern } from "../types/bowling";
 
@@ -16,7 +17,8 @@ const inputClass =
 
 /** Add or rename an oil pattern, and point it at its pattern sheet. */
 export function OilPatternFormDialog({ open, initial, onSubmit, onCancel }: OilPatternFormDialogProps) {
-  const overlayRef = useOverlay<HTMLDivElement>(onCancel, open);
+  const { dismiss, backdropStyle, panelStyle, exiting } = useSheetDismiss(onCancel, "center");
+  const overlayRef = useOverlay<HTMLDivElement>(dismiss, open);
   const [name, setName] = useState(initial?.name ?? "");
   const [url, setUrl] = useState(initial?.url ?? "");
   const [error, setError] = useState("");
@@ -41,11 +43,13 @@ export function OilPatternFormDialog({ open, initial, onSubmit, onCancel }: OilP
       className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/40 p-4"
       role="dialog"
       aria-modal="true"
-      onClick={onCancel}
+      style={backdropStyle}
+      onClick={() => dismiss()}
     >
       <div
         ref={overlayRef}
-        className="my-auto w-full max-w-sm rounded-xl bg-surface p-5 shadow-xl"
+        style={panelStyle}
+        className={`my-auto w-full max-w-sm rounded-xl bg-surface p-5 shadow-xl ${exiting ? "" : "animate-pop-in"}`}
         onClick={(e) => e.stopPropagation()}
       >
         <form onSubmit={handleSubmit}>
@@ -80,7 +84,7 @@ export function OilPatternFormDialog({ open, initial, onSubmit, onCancel }: OilP
                 autoComplete="off"
               />
               <span className="mt-1 block text-xs text-ink-tertiary">
-                Optional. Usually a PDF — opens in a new tab.
+                Optional. Usually a PDF, and it opens in a new tab.
               </span>
             </label>
 
@@ -88,7 +92,7 @@ export function OilPatternFormDialog({ open, initial, onSubmit, onCancel }: OilP
           </div>
 
           <div className="mt-5 flex justify-end gap-2">
-            <Button type="button" variant="ghost" onClick={onCancel}>
+            <Button type="button" variant="ghost" onClick={() => dismiss()}>
               Cancel
             </Button>
             <Button type="submit" variant="primary" disabled={isSaving}>

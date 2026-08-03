@@ -1,6 +1,7 @@
 import { BookOpen, ChevronRight, Search, Trash2, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useOverlay } from "../lib/useOverlay";
+import { useSheetDismiss } from "../lib/useSheetDismiss";
 import { getAllCatalog, getCatalogBall, syncCatalog } from "../services/ballCatalogRepository";
 import { addBall, updateBall } from "../services/ballRepository";
 import type { Ball } from "../types/bowling";
@@ -45,7 +46,8 @@ export function BallFormDialog({ ball, onClose, onSaved, onDelete }: BallFormDia
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
 
-  const overlayRef = useOverlay<HTMLDivElement>(onClose, !pickerOpen);
+  const { dismiss, backdropStyle, panelStyle, exiting, dragHandlers } = useSheetDismiss(onClose);
+  const overlayRef = useOverlay<HTMLDivElement>(dismiss, !pickerOpen);
 
   // Restore the existing catalog link so its image and weight specs resolve.
   useEffect(() => {
@@ -115,7 +117,7 @@ export function BallFormDialog({ ball, onClose, onSaved, onDelete }: BallFormDia
       } else {
         await addBall(payload);
       }
-      onSaved();
+      dismiss(onSaved);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to save ball.");
     } finally {
@@ -126,13 +128,19 @@ export function BallFormDialog({ ball, onClose, onSaved, onDelete }: BallFormDia
   return (
     <>
       <div className="fixed inset-0 z-[60] flex items-end justify-center sm:items-center" role="dialog" aria-modal="true" aria-label={editing ? "Edit ball" : "Add ball"}>
-        <div className="absolute inset-0 bg-black/40" onClick={onClose} />
+        <div className="absolute inset-0 bg-black/40" style={backdropStyle} onClick={() => dismiss()} />
         <div
           ref={overlayRef}
-          className="animate-sheet-up relative flex max-h-[92%] w-full max-w-lg flex-col rounded-t-2xl bg-surface-sunken shadow-xl sm:max-h-[85%] sm:rounded-2xl"
+          style={panelStyle}
+          className={`relative flex max-h-[92%] w-full max-w-lg flex-col rounded-t-2xl bg-surface-sunken shadow-xl sm:max-h-[85%] sm:rounded-2xl ${
+            exiting ? "" : "animate-slide-up"
+          }`}
         >
+          <div className="flex touch-none cursor-grab justify-center pt-2 active:cursor-grabbing sm:hidden" {...dragHandlers}>
+            <div className="h-1.5 w-10 rounded-full bg-edge-strong" />
+          </div>
           <div className="flex shrink-0 items-center gap-2 border-b border-edge px-2 py-2">
-            <IconButton onClick={onClose} label="Close">
+            <IconButton onClick={() => dismiss()} label="Close">
               <X size={20} aria-hidden="true" />
             </IconButton>
             <h2 className="flex-1 text-center text-[17px] font-semibold text-ink">
@@ -191,7 +199,7 @@ export function BallFormDialog({ ball, onClose, onSaved, onDelete }: BallFormDia
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-semibold text-ink">Link to catalog</p>
-                    <p className="text-xs text-ink-secondary">Pulls in the core, coverstock, RG and diff.</p>
+                    <p className="text-xs text-ink-secondary">Fills in the core, coverstock, RG and diff.</p>
                   </div>
                   <ChevronRight size={18} className="shrink-0 text-ink-tertiary" aria-hidden="true" />
                 </>

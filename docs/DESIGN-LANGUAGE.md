@@ -92,12 +92,37 @@ five other fields for free.
 
 ## 7. Motion
 
-Two animations, both in `src/index.css`: `push-screen-in` (0.28s, iOS's
-`cubic-bezier(0.32, 0.72, 0, 1)`) and `sheet-up` (0.2s). Interactive drags own
-their own transform and never animate against a keyframe. Everything is off
-under `prefers-reduced-motion`.
+Motion is symmetric: anything that animates in animates out. Nothing may
+disappear on a frame, because an instant unmount reads as a glitch rather than
+as the thing leaving.
+
+- **Push screens** slide in from the trailing edge and back out to it
+  (`PushScreen`, which defers the unmount until the exit finishes).
+- **Sheets** rise from the bottom edge and fall back through it, and can be
+  dragged down to dismiss (`useSheetDismiss`, `align: "bottom"`).
+- **Centred dialogs** settle in and scale back out (`useSheetDismiss`,
+  `align: "center"`).
+- **Tab switches** enter from the side of the tab that was tapped, so the
+  travel matches the reach.
+
+Keyframes live in `src/index.css`; interactive drags own their own transform
+and never animate against a keyframe. Everything is off under
+`prefers-reduced-motion`, which each hook checks before deferring an unmount.
+
+Every close path goes through the hook's `dismiss`, confirm buttons included
+(`dismiss(onConfirm)`), or the exit is skipped for that path alone.
+
+## 7b. The primary action
+
+A screen with one dominant action puts it in a floating round button in the
+bottom-trailing corner, above the tab bar, where the thumb already is. Anything
+else that floats (the resume-session pill) shares that row to its left rather
+than displacing it.
 
 ## 8. Copy
+
+No em dashes, anywhere. A comma, a colon, or a full stop always works, and the
+em dash is the clearest tell of text nobody wrote by hand.
 
 Sentence case everywhere except the small uppercase group headings. Second
 person, active voice, and say what happens rather than what the app does:

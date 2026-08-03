@@ -6,9 +6,11 @@ import { LaneVisualizer } from "./LaneVisualizer";
 import { useDriftModel } from "../lib/driftModelContext";
 import { deriveLaydown, deriveSlide, syncStanceLaydown } from "../lib/driftModel";
 import { useOverlay } from "../lib/useOverlay";
+import { useSheetDismiss } from "../lib/useSheetDismiss";
 import { upsertSpareLine } from "../services/ballRepository";
 import type { LineSpec, PinNumber } from "../types/bowling";
 import { Button } from "./ui/Button";
+import { IconButton } from "./ui/IconButton";
 
 const EMPTY_LINE: LineSpec = {};
 const ALL_PINS: PinNumber[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
@@ -62,7 +64,8 @@ export function SpareLineFormDialog({
 
   // Disabled while the nested LaneVisualizer is open (showViz) so Escape and
   // the focus trap apply only to that topmost overlay, not both at once.
-  const overlayRef = useOverlay<HTMLDivElement>(onCancel, !showViz);
+  const { dismiss, backdropStyle, panelStyle, exiting, dragHandlers } = useSheetDismiss(onCancel);
+  const overlayRef = useOverlay<HTMLDivElement>(dismiss, !showViz);
 
   const derivedSlide = line.stance != null ? deriveSlide(line.stance, driftModel) : undefined;
   const derivedLaydown =
@@ -94,16 +97,23 @@ export function SpareLineFormDialog({
 
   return (
     <div
-      className="fixed inset-0 z-[60] flex items-end justify-center bg-black/40 p-3 sm:items-center"
+      className="fixed inset-0 z-[60] flex items-end justify-center bg-black/40 sm:items-center sm:p-3"
       role="dialog"
       aria-modal="true"
-      onClick={onCancel}
+      style={backdropStyle}
+      onClick={() => dismiss()}
     >
       <div
         ref={overlayRef}
-        className="max-h-[85vh] w-full max-w-lg overflow-y-auto rounded-lg border border-edge bg-surface p-4 shadow-xl"
+        style={panelStyle}
+        className={`max-h-[85vh] w-full max-w-lg overflow-y-auto rounded-t-2xl border border-edge bg-surface px-4 pb-4 shadow-xl sm:rounded-2xl sm:pt-4 ${
+          exiting ? "" : "animate-slide-up"
+        }`}
         onClick={(e) => e.stopPropagation()}
       >
+        <div className="-mx-4 flex touch-none cursor-grab justify-center pb-2 pt-2 active:cursor-grabbing sm:hidden" {...dragHandlers}>
+          <div className="h-1.5 w-10 rounded-full bg-edge-strong" />
+        </div>
         <h2 className="mb-3 text-base font-semibold text-ink">
           {pins.length === 0
             ? "Add spare line"
@@ -131,7 +141,7 @@ export function SpareLineFormDialog({
 
           <div>
             <p className={`mb-1 ${eyebrow}`}>Shooting line (boards)</p>
-            <div className="flex gap-1.5">
+            <div className="flex items-center gap-1.5">
               {(["stance", "target"] as const).map((field) => (
                 <label key={field} className="relative min-w-0 flex-1">
                   <span className={floatLabel}>{field}</span>
@@ -150,6 +160,13 @@ export function SpareLineFormDialog({
                   />
                 </label>
               ))}
+              <IconButton
+                onClick={() => setShowViz(true)}
+                label="View line on the lane"
+                className="h-9 w-9 shrink-0 border border-edge bg-surface-muted text-ink-secondary"
+              >
+                <Eye size={16} aria-hidden="true" />
+              </IconButton>
             </div>
             {(derivedSlide != null || derivedLaydown != null) && (
               <button
@@ -168,21 +185,15 @@ export function SpareLineFormDialog({
               </button>
             )}
             <p className="mt-2 text-xs text-ink-secondary">
-              Tap <span className="font-medium text-ink-secondary">View line</span> to set the final
-              target, hook strength and depth.
+              The eye opens the lane, where you set the final target, hook strength and depth.
             </p>
           </div>
-
-          <Button variant="secondary" onClick={() => setShowViz(true)}>
-            <Eye size={14} aria-hidden="true" />
-            View line
-          </Button>
 
           <div className="flex items-center gap-2 pt-1">
             <Button type="submit" variant="primary" disabled={isSaving}>
               {isSaving ? "Saving…" : "Save spare line"}
             </Button>
-            <Button variant="secondary" onClick={onCancel} disabled={isSaving}>
+            <Button variant="secondary" onClick={() => dismiss()} disabled={isSaving}>
               Cancel
             </Button>
             {onDelete && (

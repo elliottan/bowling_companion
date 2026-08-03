@@ -16,6 +16,23 @@ User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachan
   the fold. Lists that are empty explain what belongs there and offer the button
   to start.
 
+- **Everything moves the way you would expect.** Sheets and dialogs rise from
+  the bottom and drop back through it (drag one down to dismiss), pushed screens
+  slide back out to the right instead of blinking away, and switching tabs
+  travels in the direction of the tab you tapped. Going back from a screen you
+  opened from another screen now returns to that screen rather than closing
+  everything.
+
+- **The home page leads with the action.** Starting a session is a round button
+  in the bottom-right corner, with the resume pill beside it when a game is
+  live. The shortcut tiles are smaller and now cover Arsenal, Catalog, Line,
+  Lane Notes and Oil Patterns.
+
+- **Appearance has its own settings page**, split out of Preferences.
+
+- **Spare lines open the editor on a tap.** The lane view moved to an eye button
+  beside the shooting-line boxes, where it costs no extra row.
+
 - **Ball photos look right in dark mode.** They sat on a white tile that the
   dark theme never touched; that tile now follows the theme, and the Pyramid
   Path photo has had its white backdrop cut away.

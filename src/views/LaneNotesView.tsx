@@ -208,7 +208,7 @@ export function LaneNotesView({ onBack }: LaneNotesViewProps = {}) {
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 rows={3}
-                placeholder="How this lane plays — transition, where it hooks, ball reaction…"
+                placeholder="How this lane plays: transition, where it hooks, ball reaction…"
                 className="w-full rounded-lg border border-edge-strong px-3 py-2 text-sm outline-none focus:border-accent-fill"
               />
             </label>
@@ -268,7 +268,7 @@ export function LaneNotesView({ onBack }: LaneNotesViewProps = {}) {
         <EmptyState
           icon={MapPin}
           title="No lane notes yet"
-          description="Jot down how a lane plays — where it hooks, when it transitions — and it is waiting for you next time you bowl there."
+          description="Save how a lane plays: where it hooks, when it transitions. It will be here next time you bowl there."
         >
           <Button variant="primary" size="lg" onClick={openAdd}>
             <Plus size={18} aria-hidden="true" />
@@ -289,7 +289,7 @@ export function LaneNotesView({ onBack }: LaneNotesViewProps = {}) {
                 <p className="font-semibold text-ink">
                   {n.alley} · Lane {n.lane}
                 </p>
-                <p className="mt-0.5 text-sm text-ink-secondary">{n.notes || "—"}</p>
+                <p className="mt-0.5 text-sm text-ink-secondary">{n.notes || "-"}</p>
               </button>
             </li>
           ))}

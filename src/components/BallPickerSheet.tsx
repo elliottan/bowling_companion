@@ -2,6 +2,7 @@ import { Check, SlidersHorizontal, X } from "lucide-react";
 import type { Ball } from "../types/bowling";
 import type { Manufacturer } from "../types/catalog";
 import { useOverlay } from "../lib/useOverlay";
+import { useSheetDismiss } from "../lib/useSheetDismiss";
 import { CatalogBallImage } from "./CatalogBallImage";
 import { Button } from "./ui/Button";
 import { IconButton } from "./ui/IconButton";
@@ -29,25 +30,34 @@ export function BallPickerSheet({
 }: BallPickerSheetProps) {
   const pick = (id: number | undefined) => {
     onSelect(id);
-    onClose();
+    dismiss();
   };
 
-  const overlayRef = useOverlay<HTMLDivElement>(onClose);
+  const { dismiss, backdropStyle, panelStyle, exiting, dragHandlers } = useSheetDismiss(onClose);
+  const overlayRef = useOverlay<HTMLDivElement>(dismiss);
 
   return (
     <div className="fixed inset-0 z-[60]" role="dialog" aria-modal="true" aria-label="Choose ball">
-      <div className="absolute inset-0 bg-black/40" onClick={onClose} />
-      <div ref={overlayRef} className="absolute bottom-0 left-0 right-0 flex max-h-[80%] flex-col rounded-t-2xl bg-surface-sunken shadow-xl">
-        <div className="flex items-center justify-between px-4 pb-2 pt-4">
+      <div className="absolute inset-0 bg-black/40" style={backdropStyle} onClick={() => dismiss()} />
+      <div
+        ref={overlayRef}
+        style={panelStyle}
+        className={`absolute bottom-0 left-0 right-0 flex max-h-[80%] flex-col rounded-t-2xl bg-surface-sunken shadow-xl ${exiting ? "" : "animate-slide-up"}`}
+      >
+        {/* Grab handle: drag down to dismiss, the way every iOS sheet does. */}
+        <div className="flex touch-none cursor-grab justify-center pt-2 active:cursor-grabbing" {...dragHandlers}>
+          <div className="h-1.5 w-10 rounded-full bg-edge-strong" />
+        </div>
+        <div className="flex items-center justify-between px-4 pb-2 pt-2">
           <h2 className="text-sm font-semibold text-ink">Ball</h2>
           <div className="flex shrink-0 items-center gap-1">
             {onOpenArsenal && (
-              <Button variant="ghost" onClick={() => { onClose(); onOpenArsenal(); }} className="text-xs">
+              <Button variant="ghost" onClick={() => dismiss(onOpenArsenal)} className="text-xs">
                 <SlidersHorizontal size={14} aria-hidden="true" />
                 Manage arsenal
               </Button>
             )}
-            <IconButton onClick={onClose} label="Close">
+            <IconButton onClick={() => dismiss()} label="Close">
               <X size={18} aria-hidden="true" />
             </IconButton>
           </div>

@@ -1,5 +1,6 @@
 import { canPromptInstall, isIOSSafari, isStandalone, promptInstall } from "../lib/installPrompt";
 import { useOverlay } from "../lib/useOverlay";
+import { useSheetDismiss } from "../lib/useSheetDismiss";
 import { Button } from "./ui/Button";
 
 interface InstallPromptProps {
@@ -13,7 +14,8 @@ interface InstallPromptProps {
  * it, wired by the caller via `open`/`onClose`).
  */
 export function InstallPrompt({ open, onClose }: InstallPromptProps) {
-  const overlayRef = useOverlay<HTMLDivElement>(onClose, open);
+  const { dismiss, backdropStyle, panelStyle, exiting } = useSheetDismiss(onClose, "center");
+  const overlayRef = useOverlay<HTMLDivElement>(dismiss, open);
 
   if (!open || isStandalone()) return null;
 
@@ -26,11 +28,13 @@ export function InstallPrompt({ open, onClose }: InstallPromptProps) {
       className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-4 sm:items-center"
       role="dialog"
       aria-modal="true"
-      onClick={onClose}
+      style={backdropStyle}
+      onClick={() => dismiss()}
     >
       <div
         ref={overlayRef}
-        className="w-full max-w-sm rounded-xl bg-surface p-5 shadow-xl"
+        style={panelStyle}
+        className={`w-full max-w-sm rounded-xl bg-surface p-5 shadow-xl ${exiting ? "" : "animate-pop-in"}`}
         onClick={(e) => e.stopPropagation()}
       >
         <h2 className="text-base font-bold text-ink">Install Bowling Companion</h2>
@@ -40,14 +44,14 @@ export function InstallPrompt({ open, onClose }: InstallPromptProps) {
               Add it to your home screen for quick, full-screen access.
             </p>
             <div className="mt-5 flex justify-end gap-2">
-              <Button variant="secondary" onClick={onClose}>
+              <Button variant="secondary" onClick={() => dismiss()}>
                 Not now
               </Button>
               <Button
                 variant="primary"
                 onClick={async () => {
                   await promptInstall();
-                  onClose();
+                  dismiss();
                 }}
               >
                 Install

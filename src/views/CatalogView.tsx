@@ -134,7 +134,7 @@ function ColorwayCarousel({ ball }: { ball: CatalogBall }) {
       >
         <CatalogBallImage
           src={current.imageFull ?? ball.imageFull}
-          alt={`${ball.name}${current.color ? ` — ${current.color}` : ""}`}
+          alt={`${ball.name}${current.color ? `, ${current.color}` : ""}`}
           brand={ball.brand}
           size="full"
         />
@@ -182,9 +182,9 @@ function DetailPanel({ ball, owned, onBack, onAddToArsenal, addDialogOpen }: Det
             <SpecItem label="Category" value={ball.coverstockCategory ?? "Unclassified"} />
             {ball.factoryFinish && <SpecItem label="Factory Finish" value={ball.factoryFinish} />}
             {ball.coreName && <SpecItem label="Core" value={ball.coreName} />}
-            <SpecItem label="Core Type" value={ball.coreType ?? "—"} />
-            <SpecItem label="RG" value={ball.rg !== null ? ball.rg.toFixed(2) : "—"} />
-            <SpecItem label="Diff" value={ball.diff !== null ? ball.diff.toFixed(3) : "—"} />
+            <SpecItem label="Core Type" value={ball.coreType ?? "-"} />
+            <SpecItem label="RG" value={ball.rg !== null ? ball.rg.toFixed(2) : "-"} />
+            <SpecItem label="Diff" value={ball.diff !== null ? ball.diff.toFixed(3) : "-"} />
             {ball.mbDiff !== null && <SpecItem label="MB Diff" value={ball.mbDiff.toFixed(3)} />}
           </dl>
 
@@ -771,7 +771,7 @@ export function CatalogView({ onBack, backLabel }: CatalogViewProps) {
                         ball.coreType ?? null,
                         ball.rg !== null ? `RG ${ball.rg.toFixed(2)}` : null,
                         ball.diff !== null ? `Diff ${ball.diff.toFixed(3)}` : null,
-                      ].filter(Boolean).join(" · ") || "—"}
+                      ].filter(Boolean).join(" · ") || "-"}
                     </p>
                   </div>
                 </button>

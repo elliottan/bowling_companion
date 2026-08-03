@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { ActiveGameScorer } from "./ActiveGameScorer";
 import type { Frame, PinNumber } from "../types/bowling";
 
@@ -144,7 +144,9 @@ describe("ActiveGameScorer completed-game edit prompt", () => {
     expect(onFrameComplete).not.toHaveBeenCalled();
   });
 
-  it("edits freely after confirming", () => {
+  // The confirm dialog animates out before it unmounts, so its disappearance
+  // is awaited rather than asserted on the same tick as the click.
+  it("edits freely after confirming", async () => {
     const onFrameComplete = vi.fn();
     render(
       <ActiveGameScorer gameKey={1} initialFrames={perfectGame()} onFrameComplete={onFrameComplete} />
@@ -152,7 +154,7 @@ describe("ActiveGameScorer completed-game edit prompt", () => {
 
     tapPin(1);
     confirmEdit();
-    expect(prompt()).toBeNull();
+    await waitFor(() => expect(prompt()).toBeNull());
 
     tapPin(1);
     expect(onFrameComplete).toHaveBeenCalled();
@@ -162,7 +164,7 @@ describe("ActiveGameScorer completed-game edit prompt", () => {
     expect(prompt()).toBeNull();
   });
 
-  it("re-prompts on the next attempt after cancelling, and writes nothing", () => {
+  it("re-prompts on the next attempt after cancelling, and writes nothing", async () => {
     const onFrameComplete = vi.fn();
     render(
       <ActiveGameScorer gameKey={1} initialFrames={perfectGame()} onFrameComplete={onFrameComplete} />
@@ -170,7 +172,7 @@ describe("ActiveGameScorer completed-game edit prompt", () => {
 
     tapPin(1);
     cancelEdit();
-    expect(prompt()).toBeNull();
+    await waitFor(() => expect(prompt()).toBeNull());
     expect(onFrameComplete).not.toHaveBeenCalled();
 
     tapPin(1);

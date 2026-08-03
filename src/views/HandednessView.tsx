@@ -4,16 +4,8 @@ import { HandednessPicker } from "../components/HandednessPicker";
 import { PushScreen } from "../components/PushScreen";
 import { ConfirmDialog } from "../components/ConfirmDialog";
 import { DriftZoneLane, ZONE_ACCENT } from "../components/DriftZoneLane";
-import { Chip } from "../components/ui/Chip";
 import type { Handedness } from "../types/bowling";
 import { driftDirection, type DriftModel } from "../lib/driftModel";
-import { useTheme, type ThemePreference } from "../lib/theme";
-
-const THEME_OPTIONS: { value: ThemePreference; label: string }[] = [
-  { value: "system", label: "System" },
-  { value: "light", label: "Light" },
-  { value: "dark", label: "Dark" }
-];
 
 interface HandednessViewProps {
   value: Handedness;
@@ -32,7 +24,6 @@ export function HandednessView({ value, onChange, driftModel, onDriftModelChange
   // Confirm before switching — flipping handedness mirrors the whole app, so we
   // don't want a stray tap to change it silently.
   const [pending, setPending] = useState<Handedness | null>(null);
-  const [theme, setTheme] = useTheme();
 
   const ballSide = value === "right" ? "right" : "left";
 
@@ -76,23 +67,6 @@ export function HandednessView({ value, onChange, driftModel, onDriftModelChange
       <div className="mt-4">
         {/* Picker shows the committed value; the pending choice only applies on confirm. */}
         <HandednessPicker value={value} onSelect={handleSelect} />
-      </div>
-
-      <h2 className="mt-9 text-base font-bold text-ink">Appearance</h2>
-      <p className="mt-1 text-sm leading-relaxed text-ink-secondary">
-        Follow your device setting, or pin the app to light or dark.
-      </p>
-      <div className="mt-3 flex gap-2">
-        {THEME_OPTIONS.map((opt) => (
-          <Chip
-            key={opt.value}
-            selected={theme === opt.value}
-            onClick={() => setTheme(opt.value)}
-            className="h-11 flex-1"
-          >
-            {opt.label}
-          </Chip>
-        ))}
       </div>
 
       <h2 className="mt-9 text-base font-bold text-ink">Release offset</h2>

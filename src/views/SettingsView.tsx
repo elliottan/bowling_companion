@@ -1,15 +1,16 @@
-import { Archive, BookOpen, ChevronRight, CircleDot, Coffee, MapPin, MessageSquare, SlidersHorizontal, Spline, Waves, type LucideIcon } from "lucide-react";
+import { Archive, BookOpen, ChevronRight, Palette, CircleDot, Coffee, MapPin, MessageSquare, SlidersHorizontal, Spline, Waves, type LucideIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { BackupRestoreView } from "./BackupRestoreView";
 import { LaneNotesView } from "./LaneNotesView";
 import { OilPatternsView } from "./OilPatternsView";
+import { AppearanceView } from "./AppearanceView";
 import { HandednessView } from "./HandednessView";
 import { getSetting } from "../services/bowlingRepository";
 import type { Handedness } from "../types/bowling";
 import type { DriftModel } from "../lib/driftModel";
 import { DONATE_URL, FEEDBACK_URL } from "../lib/links";
 
-export type SettingsSection = "menu" | "arsenal" | "lanes" | "oil-patterns" | "backup" | "preferences";
+export type SettingsSection = "menu" | "arsenal" | "lanes" | "oil-patterns" | "backup" | "preferences" | "appearance";
 
 interface SettingsViewProps {
   section: SettingsSection;
@@ -28,13 +29,25 @@ interface SettingsViewProps {
 export function SettingsView({ section, onSectionChange, handedness, onHandednessChange, driftModel, onDriftModelChange, onOpenArsenal, onOpenCatalog, onOpenLineVisualizer }: SettingsViewProps) {
   const back = () => onSectionChange("menu");
 
-  if (section !== "menu") {
-    return (
-      <>
-        {section === "lanes" ? (
+  // The menu stays mounted underneath the pushed section, so popping back
+  // reveals it mid-animation instead of sliding onto an empty page.
+  return (
+    <div className="relative h-full">
+      <div className="h-full overflow-y-auto">
+        <SettingsMenu
+          onOpenArsenal={onOpenArsenal}
+          onOpenCatalog={onOpenCatalog}
+          onOpenLineVisualizer={onOpenLineVisualizer}
+          onSectionChange={onSectionChange}
+        />
+      </div>
+      {section !== "menu" && (
+        section === "lanes" ? (
           <LaneNotesView onBack={back} />
         ) : section === "oil-patterns" ? (
           <OilPatternsView onBack={back} />
+        ) : section === "appearance" ? (
+          <AppearanceView onBack={back} />
         ) : section === "preferences" ? (
           <HandednessView
             value={handedness}
@@ -45,17 +58,10 @@ export function SettingsView({ section, onSectionChange, handedness, onHandednes
           />
         ) : (
           <BackupRestoreView onBack={back} />
-        )}
-      </>
-    );
-  }
-
-  return <SettingsMenu
-    onOpenArsenal={onOpenArsenal}
-    onOpenCatalog={onOpenCatalog}
-    onOpenLineVisualizer={onOpenLineVisualizer}
-    onSectionChange={onSectionChange}
-  />;
+        )
+      )}
+    </div>
+  );
 }
 
 function RowContent({ icon: Icon, label, description }: { icon: LucideIcon; label: string; description: string }) {
@@ -98,20 +104,20 @@ function SettingsMenu({
       ? "Export or import your data"
       : lastBackupAt
         ? `Last backup ${lastBackupAt.slice(0, 10)}`
-        : "Never backed up — export your data";
+        : "Never backed up. Export your data";
 
   const bowlingRows: Array<{ key: string; icon: LucideIcon; label: string; description: string; onClick: () => void }> = [
     { key: "arsenal", icon: CircleDot, label: "Arsenal", description: "Manage your bowling balls", onClick: onOpenArsenal },
     { key: "lanes", icon: MapPin, label: "Lane Notes", description: "Notes per alley + lane", onClick: () => onSectionChange("lanes") },
     { key: "oil-patterns", icon: Waves, label: "Oil Patterns", description: "Patterns and their sheet links", onClick: () => onSectionChange("oil-patterns") },
-    { key: "preferences", icon: SlidersHorizontal, label: "Preferences", description: "Handedness & defaults", onClick: () => onSectionChange("preferences") },
+    { key: "preferences", icon: SlidersHorizontal, label: "Preferences", description: "Handedness, release offset, drift", onClick: () => onSectionChange("preferences") },
     { key: "catalog", icon: BookOpen, label: "Ball Catalog", description: "Browse manufacturer ball specs", onClick: onOpenCatalog },
     { key: "visualizer", icon: Spline, label: "Line Visualizer", description: "Sketch a line on the lane", onClick: onOpenLineVisualizer }
   ];
 
   return (
-    <section className="mx-auto w-full max-w-3xl px-3 py-5 sm:px-6 sm:py-8">
-      <h1 className="mb-4 text-xl font-bold text-ink">Settings</h1>
+    <section className="mx-auto w-full max-w-3xl px-3 pb-5 pt-3 sm:px-6 sm:pt-5">
+      <h1 className="mb-3 text-xl font-bold text-ink">Settings</h1>
 
       <GroupHeading>Bowling</GroupHeading>
       <ul className="space-y-1.5">
@@ -123,6 +129,21 @@ function SettingsMenu({
             </button>
           </li>
         ))}
+      </ul>
+
+      <GroupHeading>App</GroupHeading>
+      <ul className="space-y-1.5">
+        <li>
+          <button
+            type="button"
+            onClick={() => onSectionChange("appearance")}
+            aria-label="Appearance"
+            className={ROW_CLASS}
+          >
+            <RowContent icon={Palette} label="Appearance" description="Light, dark, or follow your device" />
+            <ChevronRight size={16} aria-hidden="true" className="shrink-0 text-ink-tertiary" />
+          </button>
+        </li>
       </ul>
 
       <GroupHeading>Data &amp; safety</GroupHeading>

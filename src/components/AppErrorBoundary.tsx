@@ -45,7 +45,7 @@ export class AppErrorBoundary extends Component<Props, State> {
       <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-surface p-6 text-center text-ink">
         <h1 className="text-lg font-semibold">Something went wrong</h1>
         <p className="text-sm text-ink-secondary">
-          Sorry about that — the app hit an unexpected error and couldn&apos;t continue.
+          Sorry about that. The app hit an unexpected error and couldn&apos;t continue.
         </p>
         <p className="max-w-sm truncate rounded-lg bg-surface-muted px-3 py-2 text-xs text-ink-secondary">
           {error.message}

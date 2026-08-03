@@ -6,7 +6,7 @@ import {
   Target,
   type LucideIcon
 } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { DashboardView } from "./views/DashboardView";
 import { ActiveSessionView } from "./views/ActiveSessionView";
 import { ArsenalView } from "./views/ArsenalView";
@@ -35,7 +35,11 @@ import { LaneVisualizer } from "./components/LaneVisualizer";
 import { UpdateToast } from "./components/UpdateToast";
 import { shouldResetScroll } from "./lib/viewportScroll";
 
-type AppView = "dashboard" | "active" | "history" | "spares" | "settings" | "catalog";
+type AppView = "dashboard" | "active" | "history" | "spares" | "settings";
+
+/** Screens that float above the tab bar, newest last. Pushing one keeps what is
+ *  underneath alive, so back pops one level instead of collapsing the stack. */
+type Overlay = "arsenal" | "catalog";
 
 type NavItem = {
   view: AppView;
@@ -53,13 +57,17 @@ const NAV_ITEMS: ReadonlyArray<NavItem> = [
 
 const MOBILE_NAV_ITEMS = NAV_ITEMS;
 
-// The pushed arsenal names the screen it came from, the way a nav stack does.
-const ARSENAL_BACK_LABEL: Record<AppView, string> = {
+// A pushed screen names the screen it came from, the way a nav stack does.
+const TAB_LABEL: Record<AppView, string> = {
   dashboard: "Home",
   active: "Session",
   history: "History",
   spares: "Spares",
-  settings: "Settings",
+  settings: "Settings"
+};
+
+const OVERLAY_LABEL: Record<Overlay, string> = {
+  arsenal: "Arsenal",
   catalog: "Catalog"
 };
 
@@ -76,7 +84,7 @@ function App() {
   const [handednessLoaded, setHandednessLoaded] = useState(false);
   const [driftModel, setDriftModelState] = useState<DriftModel>(DEFAULT_DRIFT_MODEL);
   const [resumable, setResumable] = useState<ResumableGame | null>(null);
-  const [arsenalOpen, setArsenalOpen] = useState(false);
+  const [overlays, setOverlays] = useState<Overlay[]>([]);
   const [lineVizOpen, setLineVizOpen] = useState(false);
   // A realistic strike line; auto-hooks to the pocket (ADR-024), no seeded breakpoint.
   const [sandboxLine, setSandboxLine] = useState<LineSpec | undefined>({
@@ -84,9 +92,13 @@ function App() {
   });
   const [keyboardOpen, setKeyboardOpen] = useState(false);
 
-  // Arsenal is a pushed screen (PushScreen owns its Escape / focus trap /
-  // drag-back); this only tears down the app-level flag.
-  const closeArsenal = useCallback(() => setArsenalOpen(false), []);
+  // Pushed screens (PushScreen owns each one's Escape / focus trap / drag-back);
+  // these only maintain the stack.
+  const pushOverlay = useCallback(
+    (o: Overlay) => setOverlays((s) => (s[s.length - 1] === o ? s : [...s, o])),
+    []
+  );
+  const popOverlay = useCallback(() => setOverlays((s) => s.slice(0, -1)), []);
 
   // The on-screen keyboard resizes the (standalone) webview, which would shove
   // the bottom nav up to float above the keyboard. Instead we hide the nav
@@ -235,20 +247,33 @@ function App() {
     void persistDriftModel(next).catch(() => {});
   }
 
-  // Navigate, remembering where we came from when entering the active or catalog view.
+  // Sign of the travel between tabs, so the incoming screen enters from the
+  // side the user reached towards.
+  const tabIndex = NAV_ITEMS.findIndex((i) => i.view === view);
+  const previousTabIndex = useRef(tabIndex);
+  const [tabDirection, setTabDirection] = useState(1);
+  useEffect(() => {
+    if (tabIndex !== previousTabIndex.current) {
+      setTabDirection(tabIndex > previousTabIndex.current ? 1 : -1);
+      previousTabIndex.current = tabIndex;
+    }
+  }, [tabIndex]);
+
+  // Navigate, remembering where we came from when entering the active view.
   function goTo(target: AppView) {
     if (target === "active" && view !== "active") setPreviousView(view);
-    if (target === "catalog" && view !== "catalog") setPreviousView(view);
     if (target === "settings") setSettingsSection("menu");
     setView(target);
   }
 
-  // Jump straight to Settings → Backup & Restore (skips goTo's section reset,
-  // used by the dashboard backup nudge's "Export backup" action).
-  function goToBackup() {
-    setSettingsSection("backup");
+  // Jump straight into a Settings section, skipping goTo's reset to the menu.
+  // Used by the dashboard shortcuts and the backup nudge.
+  function goToSettingsSection(section: SettingsSection) {
+    setSettingsSection(section);
     setView("settings");
   }
+
+  const goToBackup = () => goToSettingsSection("backup");
 
   // Keyboard overlays the nav (viewport interactive-widget=overlays-content).
   // Only nudge a focused field into view when it's actually hidden — off the top
@@ -270,11 +295,6 @@ function App() {
     document.addEventListener("focusin", onFocusIn);
     return () => document.removeEventListener("focusin", onFocusIn);
   }, []);
-
-  // Arsenal opens as a modal overlay (from the scorer's ball selector or Settings).
-  function openArsenal() {
-    setArsenalOpen(true);
-  }
 
   async function handleStartSession(values: NewSessionFormValues) {
     setIsStartingSession(true);
@@ -349,7 +369,9 @@ function App() {
         </div>
       </header>
 
-      <main className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+      {/* Keyed on the view so each tab's content re-enters, travelling from the
+          side the tapped tab sits on. */}
+      <main key={view} className={`min-h-0 flex-1 overflow-y-auto overscroll-contain ${tabDirection >= 0 ? "animate-tab-right" : "animate-tab-left"}`}>
         {view === "dashboard" && (
           <DashboardView
             onStartSession={handleStartSession}
@@ -360,8 +382,11 @@ function App() {
             onOpenSession={openSession}
             onViewAll={() => goTo("history")}
             activeSessionId={activeSessionId}
-            onOpenCatalog={() => goTo("catalog")}
+            onOpenCatalog={() => pushOverlay("catalog")}
             onOpenLineVisualizer={() => setLineVizOpen(true)}
+            onOpenArsenal={() => pushOverlay("arsenal")}
+            onOpenLaneNotes={() => goToSettingsSection("lanes")}
+            onOpenOilPatterns={() => goToSettingsSection("oil-patterns")}
             onSessionDeleted={handleSessionDeleted}
             onOpenBackup={goToBackup}
           />
@@ -378,7 +403,7 @@ function App() {
               setActiveSessionId(null);
               setView(previousView);
             }}
-            onOpenArsenal={openArsenal}
+            onOpenArsenal={() => pushOverlay("arsenal")}
           />
         )}
         {view === "history" && (
@@ -397,13 +422,10 @@ function App() {
             onHandednessChange={chooseHandedness}
             driftModel={driftModel}
             onDriftModelChange={updateDriftModel}
-            onOpenArsenal={openArsenal}
-            onOpenCatalog={() => goTo("catalog")}
+            onOpenArsenal={() => pushOverlay("arsenal")}
+            onOpenCatalog={() => pushOverlay("catalog")}
             onOpenLineVisualizer={() => setLineVizOpen(true)}
           />
-        )}
-        {view === "catalog" && (
-          <CatalogView onBack={() => goTo(previousView)} backLabel={ARSENAL_BACK_LABEL[previousView]} />
         )}
       </main>
 
@@ -427,13 +449,22 @@ function App() {
         ))}
       </nav>
 
-      {arsenalOpen && (
-        <ArsenalView
-          onBack={closeArsenal}
-          backLabel={ARSENAL_BACK_LABEL[view]}
-          onOpenCatalog={() => { setArsenalOpen(false); goTo("catalog"); }}
-        />
-      )}
+      {/* Overlay stack. Rendering in order is what layers them: equal z-index,
+          so the later sibling paints on top, and popping reveals the one below
+          rather than dropping back to the tab. */}
+      {overlays.map((overlay, i) => {
+        const under = i === 0 ? TAB_LABEL[view] : OVERLAY_LABEL[overlays[i - 1]];
+        return overlay === "arsenal" ? (
+          <ArsenalView
+            key={`arsenal-${i}`}
+            onBack={popOverlay}
+            backLabel={under}
+            onOpenCatalog={() => pushOverlay("catalog")}
+          />
+        ) : (
+          <CatalogView key={`catalog-${i}`} onBack={popOverlay} backLabel={under} />
+        );
+      })}
 
       {lineVizOpen && (
         <LaneVisualizer

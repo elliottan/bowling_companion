@@ -200,7 +200,7 @@ export function ArsenalView({ onBack, backLabel, onOpenCatalog }: ArsenalViewPro
             <EmptyState
               icon={CircleDot}
               title="No balls yet"
-              description="Add the balls you carry. Link one to the catalog and its core, coverstock and numbers come along for the ride."
+              description="Add the balls you carry. Link one to the catalog and it brings its core, coverstock and numbers with it."
             >
               <Button variant="primary" size="lg" onClick={() => setForm({ ball: null })}>
                 <Plus size={18} aria-hidden="true" />
@@ -229,8 +229,8 @@ export function ArsenalView({ onBack, backLabel, onOpenCatalog }: ArsenalViewPro
                 </SortableContext>
               </DndContext>
               <p className="mt-3 px-1 text-xs text-ink-secondary">
-                Tap a ball to edit it. Hold the handle to reorder — the order here is the order in
-                the ball picker.
+                Tap a ball to edit it. Hold the handle to reorder. This order is the order in the
+                ball picker.
               </p>
               {onOpenCatalog && (
                 <Button variant="ghost" onClick={onOpenCatalog} className="mt-3">

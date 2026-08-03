@@ -186,7 +186,7 @@ function LeaveCell({ leave }: { leave: LeaveStats }) {
               : "text-ink"
           }`}
         >
-          {leave.conversionPct !== null ? `${leave.conversionPct}%` : "—"}
+          {leave.conversionPct !== null ? `${leave.conversionPct}%` : "-"}
         </span>
       </div>
     </div>
@@ -222,9 +222,9 @@ function Tile({
 }
 
 function fmt(value: number | null): string {
-  return value === null ? "—" : String(value);
+  return value === null ? "-" : String(value);
 }
 
 function pct(value: number | null): string {
-  return value === null ? "—" : `${value}%`;
+  return value === null ? "-" : `${value}%`;
 }

@@ -163,7 +163,7 @@ export function HistoryView({ onOpenSession, activeSessionId, onSessionDeleted }
   }, [pane, sessionList.length]);
 
   return (
-    <section className="mx-auto flex h-full w-full max-w-3xl flex-col px-3 pt-5 sm:px-6 sm:pt-8">
+    <section className="mx-auto flex h-full w-full max-w-3xl flex-col px-3 pt-3 sm:px-6 sm:pt-5">
       <div className="mb-3 flex items-center justify-between gap-3">
         <h1 className="text-xl font-bold text-ink">History</h1>
         <div className="grid grid-cols-2 gap-1 rounded-lg bg-surface-muted p-1">

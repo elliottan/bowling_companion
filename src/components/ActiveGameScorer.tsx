@@ -298,7 +298,7 @@ function LineInput({
           <Button
             variant="secondary"
             className="relative w-full text-[11px] font-semibold uppercase tracking-[0.08em]"
-            aria-label={`${FIELD_LABEL[focused]} ±0.5 — tap left to ${dir > 0 ? "increase" : "decrease"}, right to ${dir > 0 ? "decrease" : "increase"}`}
+            aria-label={`${FIELD_LABEL[focused]} ±0.5. Tap left to ${dir > 0 ? "increase" : "decrease"}, right to ${dir > 0 ? "decrease" : "increase"}`}
             onPointerDown={halfTap(() => nudge(focused, 0.5 * dir), () => nudge(focused, -0.5 * dir))}
           >
             <ChevronLeft aria-hidden="true" size={16} strokeWidth={3} className="absolute left-3 text-ink-strong" />
@@ -317,7 +317,7 @@ function LineInput({
               key={p.label}
               type="button"
               className={adjBtn}
-              aria-label={`Move ${p.label} — tap left for ${dir > 0 ? "higher" : "lower"} boards, right for ${dir > 0 ? "lower" : "higher"}`}
+              aria-label={`Move ${p.label}. Tap left for ${dir > 0 ? "higher" : "lower"} boards, right for ${dir > 0 ? "lower" : "higher"}`}
               onPointerDown={halfTap(() => move(p.stance * dir, p.target * dir), () => move(-p.stance * dir, -p.target * dir))}
             >
               <ChevronLeft aria-hidden="true" size={16} strokeWidth={3} className="absolute left-3 text-ink-strong" />
@@ -470,7 +470,7 @@ function ShotDetailBar({
               if (onEditAttempt && !onEditAttempt()) return;
               setShowBallPicker(true);
             }}
-            aria-label={`Ball: ${selectedBall?.name ?? "none"} — tap to change`}
+            aria-label={`Ball: ${selectedBall?.name ?? "none"}. Tap to change`}
             className="flex min-h-11 min-w-0 flex-1 items-center gap-2 rounded-lg py-0.5 text-left hover:bg-surface-muted"
           >
             <span className="h-7 w-7 shrink-0">
