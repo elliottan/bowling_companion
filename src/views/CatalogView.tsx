@@ -1,10 +1,11 @@
-import { ChevronLeft, Loader2, Palette, RefreshCw, X } from "lucide-react";
+import { Loader2, Palette, RefreshCw, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { CatalogBallImage } from "../components/CatalogBallImage";
 import { ErrorBanner } from "../components/ErrorBanner";
 import { Button } from "../components/ui/Button";
 import { Chip, TAP_TARGET_44 } from "../components/ui/Chip";
 import { IconButton } from "../components/ui/IconButton";
+import { PushScreen } from "../components/PushScreen";
 import { useOverlay } from "../lib/useOverlay";
 import {
   getAllCatalog,
@@ -161,24 +162,15 @@ function ColorwayCarousel({ ball }: { ball: CatalogBall }) {
 }
 
 function DetailPanel({ ball, owned, onBack, onAddToArsenal, addDialogOpen }: DetailPanelProps) {
-  const overlayRef = useOverlay<HTMLDivElement>(onBack, !addDialogOpen);
   return (
-    // Proper modal: fixed full-screen sheet with a sticky header (brand/name +
-    // X close) and an independently scrolling body, so it always opens at the
-    // top regardless of the list's scroll position.
-    <div ref={overlayRef} className="fixed inset-0 z-[55] flex flex-col bg-surface-sunken" role="dialog" aria-modal="true" aria-label={`${ball.brand} ${ball.name}`}>
-      <div className="flex items-center gap-3 border-b border-edge bg-surface px-4 py-3 shadow-sm">
-        <div className="min-w-0 flex-1">
-          <p className="text-[11px] font-semibold uppercase tracking-wide text-ink-secondary">{ball.brand}</p>
-          <h2 className="truncate text-base font-bold text-ink">{ball.name}</h2>
-        </div>
-        <IconButton onClick={onBack} label="Close" className="shrink-0">
-          <X size={20} aria-hidden="true" />
-        </IconButton>
-      </div>
-
-      <div className="flex-1 overflow-y-auto">
+    // A ball detail is one level deeper than the list, so it pushes like one
+    // — same nav bar, same back gesture, opened at the top regardless of where
+    // the list was scrolled to.
+    <PushScreen title={ball.name} backLabel="Catalog" onBack={onBack} active={!addDialogOpen}>
+      <div>
         <div className="mx-auto w-full max-w-xl px-3 py-5 sm:px-6">
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-ink-secondary">{ball.brand}</p>
+          <div className="mt-2" />
           <ColorwayCarousel ball={ball} />
 
           {ball.releaseYear && (
@@ -207,7 +199,7 @@ function DetailPanel({ ball, owned, onBack, onAddToArsenal, addDialogOpen }: Det
           )}
         </div>
       </div>
-    </div>
+    </PushScreen>
   );
 }
 
@@ -393,9 +385,11 @@ function FilterChip({ label, onRemove }: { label: string; onRemove: () => void }
 
 interface CatalogViewProps {
   onBack: () => void;
+  /** Name of the screen underneath, shown beside the back chevron. */
+  backLabel?: string;
 }
 
-export function CatalogView({ onBack }: CatalogViewProps) {
+export function CatalogView({ onBack, backLabel }: CatalogViewProps) {
   const [syncState, setSyncState] = useState<SyncState>({ status: "idle" });
   const [allBalls, setAllBalls] = useState<CatalogBall[]>([]);
   const [filters, setFilters] = useState<Filters>(EMPTY_FILTERS);
@@ -526,22 +520,19 @@ export function CatalogView({ onBack }: CatalogViewProps) {
   })();
 
   return (
-    // B1: fixed full-screen overlay covering the bottom nav.
-    // Column layout: fixed header/search/filters/sort up top, only the row list scrolls.
-    <div className="fixed inset-0 z-50 flex flex-col bg-surface-sunken">
-      <div className="shrink-0 border-b border-edge bg-surface-sunken mx-auto w-full max-w-3xl px-3 pt-5 sm:px-6">
-        {/* Header */}
-        <div className="mb-4 flex items-center gap-2">
-          <Button variant="ghost" onClick={onBack}>
-            <ChevronLeft size={16} aria-hidden="true" />
-            Back
-          </Button>
-          <h1 className="flex-1 text-xl font-bold text-ink">Ball Catalog</h1>
-          <IconButton onClick={handleRefresh} label="Refresh catalog">
-            <RefreshCw size={15} aria-hidden="true" />
-          </IconButton>
-        </div>
-
+    <PushScreen
+      title="Ball Catalog"
+      backLabel={backLabel}
+      onBack={onBack}
+      active={selectedBall === null && addingBall === null}
+      trailing={
+        <IconButton onClick={handleRefresh} label="Refresh catalog">
+          <RefreshCw size={20} aria-hidden="true" />
+        </IconButton>
+      }
+    >
+      {/* Search + filters stay pinned above the list they narrow. */}
+      <div className="sticky top-0 z-10 border-b border-edge bg-surface-sunken mx-auto w-full max-w-3xl px-3 pt-3 sm:px-6">
         {/* Sync state banner */}
         {syncState.status === "syncing" && (
           <div className="mb-3 flex items-center gap-2 rounded-lg border border-edge bg-surface-muted px-3 py-2 text-sm text-ink-secondary">
@@ -738,8 +729,7 @@ export function CatalogView({ onBack }: CatalogViewProps) {
         </p>
       </div>
 
-      {/* Scrollable row list — the only scrolling region */}
-      <div className="flex-1 overflow-y-auto mx-auto w-full max-w-3xl px-3 pb-5 pt-3 sm:px-6">
+      <div className="mx-auto w-full max-w-3xl px-3 pb-5 pt-3 sm:px-6">
         {/* B2: Row list instead of card grid */}
         {allBalls.length === 0 && syncState.status !== "syncing" ? (
           <p className="text-sm text-ink-secondary">No balls in catalog yet. Try refreshing.</p>
@@ -819,6 +809,6 @@ export function CatalogView({ onBack }: CatalogViewProps) {
           error={addError}
         />
       )}
-    </div>
+    </PushScreen>
   );
 }

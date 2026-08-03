@@ -21,6 +21,7 @@ import { ConfirmDialog } from "../components/ConfirmDialog";
 import { ErrorBanner } from "../components/ErrorBanner";
 import { PushScreen } from "../components/PushScreen";
 import { Button } from "../components/ui/Button";
+import { EmptyState } from "../components/ui/EmptyState";
 import { IconButton } from "../components/ui/IconButton";
 import { deleteBall, getBalls, reorderBalls } from "../services/ballRepository";
 import type { Ball } from "../types/bowling";
@@ -196,28 +197,22 @@ export function ArsenalView({ onBack, backLabel, onOpenCatalog }: ArsenalViewPro
           {isLoading ? (
             <p className="text-sm text-ink-secondary">Loading…</p>
           ) : balls.length === 0 ? (
-            <div className="mt-6 rounded-2xl border border-edge bg-surface px-5 py-8 text-center">
-              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-accent-soft text-accent">
-                <CircleDot size={24} aria-hidden="true" />
-              </div>
-              <h2 className="mt-3 text-base font-semibold text-ink">No balls yet</h2>
-              <p className="mx-auto mt-1 max-w-xs text-sm text-ink-secondary">
-                Add the balls you carry. Link one to the catalog and its core, coverstock and
-                numbers come along for the ride.
-              </p>
-              <div className="mt-4 flex flex-col items-center gap-2">
-                <Button variant="primary" size="lg" onClick={() => setForm({ ball: null })}>
-                  <Plus size={18} aria-hidden="true" />
-                  Add a ball
+            <EmptyState
+              icon={CircleDot}
+              title="No balls yet"
+              description="Add the balls you carry. Link one to the catalog and its core, coverstock and numbers come along for the ride."
+            >
+              <Button variant="primary" size="lg" onClick={() => setForm({ ball: null })}>
+                <Plus size={18} aria-hidden="true" />
+                Add a ball
+              </Button>
+              {onOpenCatalog && (
+                <Button variant="ghost" onClick={onOpenCatalog}>
+                  <BookOpen size={16} aria-hidden="true" />
+                  Browse the catalog
                 </Button>
-                {onOpenCatalog && (
-                  <Button variant="ghost" onClick={onOpenCatalog}>
-                    <BookOpen size={16} aria-hidden="true" />
-                    Browse the catalog
-                  </Button>
-                )}
-              </div>
-            </div>
+              )}
+            </EmptyState>
           ) : (
             <>
               <DndContext

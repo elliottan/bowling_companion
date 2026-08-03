@@ -1,8 +1,10 @@
-import { ExternalLink, Pencil, Plus, RotateCcw, Trash2 } from "lucide-react";
+import { ExternalLink, Pencil, Plus, RotateCcw, Trash2, Waves } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { ErrorBanner } from "./ErrorBanner";
 import { OilPatternFormDialog } from "./OilPatternFormDialog";
+import { PushScreen } from "./PushScreen";
 import { Button } from "./ui/Button";
+import { EmptyState } from "./ui/EmptyState";
 import { IconButton } from "./ui/IconButton";
 import {
   addOilPattern,
@@ -13,7 +15,13 @@ import {
 } from "../services/ballRepository";
 import type { OilPattern } from "../types/bowling";
 
-export function OilPatternManager() {
+interface OilPatternManagerProps {
+  /** Present when pushed from Settings — draws the shared nav bar. Absent when
+   *  the session form embeds the manager inline. */
+  onBack?: () => void;
+}
+
+export function OilPatternManager({ onBack }: OilPatternManagerProps = {}) {
   const [patterns, setPatterns] = useState<OilPattern[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
@@ -90,15 +98,16 @@ export function OilPatternManager() {
     setDialogOpen(true);
   }
 
-  return (
-    <section className="mx-auto w-full max-w-3xl px-3 py-5 sm:px-6 sm:py-8">
-      <div className="mb-4 flex items-center justify-between gap-3">
-        <h1 className="text-xl font-bold text-ink">Oil Patterns</h1>
-        <Button variant="primary" onClick={openAdd}>
-          <Plus size={16} aria-hidden="true" />
-          Add
-        </Button>
-      </div>
+  const body = (
+    <section className="mx-auto w-full max-w-3xl px-3 py-4 sm:px-6">
+      {!onBack && (
+        <div className="mb-4 flex items-center justify-between gap-3">
+          <h1 className="text-xl font-bold text-ink">Oil Patterns</h1>
+          <IconButton onClick={openAdd} label="Add oil pattern">
+            <Plus size={20} aria-hidden="true" />
+          </IconButton>
+        </div>
+      )}
 
       {error && <ErrorBanner className="mb-3">{error}</ErrorBanner>}
       {notice && <p className="mb-3 text-xs text-ink-secondary">{notice}</p>}
@@ -106,9 +115,16 @@ export function OilPatternManager() {
       {isLoading ? (
         <p className="text-sm text-ink-secondary">Loading…</p>
       ) : active.length === 0 ? (
-        <p className="text-sm text-ink-secondary">
-          No oil patterns yet. Add one here, or from the oil pattern field when you start a session.
-        </p>
+        <EmptyState
+          icon={Waves}
+          title="No oil patterns yet"
+          description="Save the patterns you bowl on, with a link to their sheet, and they show up when you start a session."
+        >
+          <Button variant="primary" size="lg" onClick={openAdd}>
+            <Plus size={18} aria-hidden="true" />
+            Add a pattern
+          </Button>
+        </EmptyState>
       ) : (
         <ul className="space-y-1.5">
           {active.map((pattern) => (
@@ -158,6 +174,24 @@ export function OilPatternManager() {
         }}
       />
     </section>
+  );
+
+  if (!onBack) return body;
+
+  return (
+    <PushScreen
+      mode="inline"
+      title="Oil Patterns"
+      backLabel="Settings"
+      onBack={onBack}
+      trailing={
+        <IconButton onClick={openAdd} label="Add oil pattern">
+          <Plus size={24} aria-hidden="true" />
+        </IconButton>
+      }
+    >
+      {body}
+    </PushScreen>
   );
 }
 

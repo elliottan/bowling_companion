@@ -1,7 +1,9 @@
-import { Plus, Trash2 } from "lucide-react";
+import { MapPin, Plus, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { ErrorBanner } from "../components/ErrorBanner";
+import { PushScreen } from "../components/PushScreen";
 import { Button } from "../components/ui/Button";
+import { EmptyState } from "../components/ui/EmptyState";
 import { Chip } from "../components/ui/Chip";
 import { IconButton } from "../components/ui/IconButton";
 import {
@@ -14,7 +16,12 @@ import type { LaneNote } from "../types/bowling";
 
 const isPositiveInt = (s: string) => /^\d+$/.test(s.trim());
 
-export function LaneNotesView() {
+interface LaneNotesViewProps {
+  /** Present when pushed from Settings — draws the shared nav bar. */
+  onBack?: () => void;
+}
+
+export function LaneNotesView({ onBack }: LaneNotesViewProps = {}) {
   const [laneNotes, setLaneNotes] = useState<LaneNote[]>([]);
   const [alleys, setAlleys] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -139,16 +146,8 @@ export function LaneNotesView() {
     }
   }
 
-  return (
-    <section className="mx-auto w-full max-w-3xl px-3 py-5 sm:px-6 sm:py-8">
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-xl font-bold text-ink">Lane Notes</h1>
-        {!showForm && (
-          <IconButton onClick={openAdd} label="Add lane note">
-            <Plus size={18} aria-hidden="true" />
-          </IconButton>
-        )}
-      </div>
+  const body = (
+    <section className="mx-auto w-full max-w-3xl px-3 py-4 sm:px-6">
 
       {error && (
         <ErrorBanner className="mb-3">{error}</ErrorBanner>
@@ -266,7 +265,16 @@ export function LaneNotesView() {
       {isLoading ? (
         <p className="text-sm text-ink-secondary">Loading…</p>
       ) : laneNotes.length === 0 ? (
-        <p className="text-sm text-ink-secondary">No lane notes yet.</p>
+        <EmptyState
+          icon={MapPin}
+          title="No lane notes yet"
+          description="Jot down how a lane plays — where it hooks, when it transitions — and it is waiting for you next time you bowl there."
+        >
+          <Button variant="primary" size="lg" onClick={openAdd}>
+            <Plus size={18} aria-hidden="true" />
+            Add a lane note
+          </Button>
+        </EmptyState>
       ) : displayedNotes.length === 0 ? (
         <p className="text-sm text-ink-secondary">No notes match the current filters.</p>
       ) : (
@@ -288,5 +296,25 @@ export function LaneNotesView() {
         </ul>
       )}
     </section>
+  );
+
+  if (!onBack) return body;
+
+  return (
+    <PushScreen
+      mode="inline"
+      title="Lane Notes"
+      backLabel="Settings"
+      onBack={onBack}
+      trailing={
+        !showForm && (
+          <IconButton onClick={openAdd} label="Add lane note">
+            <Plus size={24} aria-hidden="true" />
+          </IconButton>
+        )
+      }
+    >
+      {body}
+    </PushScreen>
   );
 }

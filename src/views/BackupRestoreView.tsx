@@ -1,6 +1,7 @@
 import { Download, Upload } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { ErrorBanner } from "../components/ErrorBanner";
+import { PushScreen } from "../components/PushScreen";
 import {
   exportBackup,
   prepareImport,
@@ -10,7 +11,12 @@ import {
 import { Button } from "../components/ui/Button";
 import { useOverlay } from "../lib/useOverlay";
 
-export function BackupRestoreView() {
+interface BackupRestoreViewProps {
+  /** Present when pushed from Settings — draws the shared nav bar. */
+  onBack?: () => void;
+}
+
+export function BackupRestoreView({ onBack }: BackupRestoreViewProps = {}) {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -75,10 +81,9 @@ export function BackupRestoreView() {
     }
   }
 
-  return (
-    <section className="mx-auto w-full max-w-2xl px-3 py-5 sm:px-6 sm:py-8">
-      <h1 className="text-xl font-bold text-ink">Backup &amp; Restore</h1>
-      <p className="mt-1 text-sm text-ink-secondary">
+  const body = (
+    <section className="mx-auto w-full max-w-2xl px-3 py-4 sm:px-6">
+      <p className="text-sm text-ink-secondary">
         Local JSON only. Importing <strong className="font-semibold text-ink">replaces</strong>{" "}
         everything on this device with the file's contents — anything not in the
         file is deleted. A copy of your current data downloads first.
@@ -147,6 +152,14 @@ export function BackupRestoreView() {
         }}
       />
     </section>
+  );
+
+  if (!onBack) return body;
+
+  return (
+    <PushScreen mode="inline" title="Backup & Restore" backLabel="Settings" onBack={onBack}>
+      {body}
+    </PushScreen>
   );
 }
 

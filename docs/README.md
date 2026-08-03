@@ -9,6 +9,7 @@ Anything that isn't code lives here.
 |---|---|
 | [ARCHITECTURE.md](./ARCHITECTURE.md) | Module map, data flow, where to put new code |
 | [DATA_MODEL.md](./DATA_MODEL.md) | Session/Game/Frame types, Dexie schema, scoring conventions |
+| [DESIGN-LANGUAGE.md](./DESIGN-LANGUAGE.md) | Navigation shapes, controls, tokens, empty states, motion, copy |
 | [DECISIONS.md](./DECISIONS.md) | ADR-light log of load-bearing decisions |
 | [CHANGELOG.md](./CHANGELOG.md) | User-visible changes |
 | [DEPLOYMENT.md](./DEPLOYMENT.md) | Build + deploy to production (Vercel) |

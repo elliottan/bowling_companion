@@ -6,6 +6,20 @@ User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachan
 
 ### Added
 
+- **Screens now push like an app, not a web page.** Your arsenal, the ball
+  catalog, a catalog ball's details and every Settings section slide in from the
+  right with the same nav bar: a back control that names where you came from
+  ("‹ Settings"), the title in the middle, and one action on the right. You can
+  drag from the left edge to go back. Adding or editing a ball is now a
+  dismissable card rather than a form wedged into the list, and linking a ball
+  to the catalog is a full-screen search you can't miss — it used to hide below
+  the fold. Lists that are empty explain what belongs there and offer the button
+  to start.
+
+- **Ball photos look right in dark mode.** They sat on a white tile that the
+  dark theme never touched; that tile now follows the theme, and the Pyramid
+  Path photo has had its white backdrop cut away.
+
 - **Ball photos, and more balls.** The catalog now shows a real product photo
   for every ball that has one, all framed the same way — square, evenly
   margined, and transparent so they sit right in both light and dark mode. Balls

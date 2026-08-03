@@ -1,4 +1,4 @@
-import { Archive, BookOpen, ChevronLeft, ChevronRight, CircleDot, Coffee, MapPin, MessageSquare, SlidersHorizontal, Spline, Waves, type LucideIcon } from "lucide-react";
+import { Archive, BookOpen, ChevronRight, CircleDot, Coffee, MapPin, MessageSquare, SlidersHorizontal, Spline, Waves, type LucideIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { BackupRestoreView } from "./BackupRestoreView";
 import { LaneNotesView } from "./LaneNotesView";
@@ -8,7 +8,6 @@ import { getSetting } from "../services/bowlingRepository";
 import type { Handedness } from "../types/bowling";
 import type { DriftModel } from "../lib/driftModel";
 import { DONATE_URL, FEEDBACK_URL } from "../lib/links";
-import { Button } from "../components/ui/Button";
 
 export type SettingsSection = "menu" | "arsenal" | "lanes" | "oil-patterns" | "backup" | "preferences";
 
@@ -27,28 +26,25 @@ interface SettingsViewProps {
 }
 
 export function SettingsView({ section, onSectionChange, handedness, onHandednessChange, driftModel, onDriftModelChange, onOpenArsenal, onOpenCatalog, onOpenLineVisualizer }: SettingsViewProps) {
+  const back = () => onSectionChange("menu");
+
   if (section !== "menu") {
     return (
       <>
-        <div className="mx-auto w-full max-w-3xl px-3 pt-4 sm:px-6">
-          <Button variant="ghost" onClick={() => onSectionChange("menu")}>
-            <ChevronLeft size={16} aria-hidden="true" />
-            Settings
-          </Button>
-        </div>
         {section === "lanes" ? (
-          <LaneNotesView />
+          <LaneNotesView onBack={back} />
         ) : section === "oil-patterns" ? (
-          <OilPatternsView />
+          <OilPatternsView onBack={back} />
         ) : section === "preferences" ? (
           <HandednessView
             value={handedness}
             onChange={onHandednessChange}
             driftModel={driftModel}
             onDriftModelChange={onDriftModelChange}
+            onBack={back}
           />
         ) : (
-          <BackupRestoreView />
+          <BackupRestoreView onBack={back} />
         )}
       </>
     );

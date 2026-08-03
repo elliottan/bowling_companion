@@ -11,6 +11,13 @@ interface PushScreenProps {
   trailing?: ReactNode;
   /** Suppress Escape / focus trap while a dialog is layered on top. */
   active?: boolean;
+  /**
+   * `overlay` (default) floats above the whole app, tab bar included — for a
+   * screen reachable from several places (the arsenal). `inline` fills the
+   * scroll area of the tab it was pushed from, so the tab bar stays put, which
+   * is what a push *within* a tab does natively.
+   */
+  mode?: "overlay" | "inline";
   children: ReactNode;
 }
 
@@ -32,11 +39,14 @@ export function PushScreen({
   onBack,
   trailing,
   active = true,
+  mode = "overlay",
   children,
 }: PushScreenProps) {
   const [dragX, setDragX] = useState(0);
   const dragStartX = useRef<number | null>(null);
-  const overlayRef = useOverlay<HTMLDivElement>(onBack, active);
+  // Inline pushes are not modal — the tab bar behind them stays live — so they
+  // must not trap focus or swallow Escape.
+  const overlayRef = useOverlay<HTMLDivElement>(onBack, active && mode === "overlay");
 
   function onPointerDown(e: React.PointerEvent) {
     if (e.pointerType === "mouse") return;
@@ -58,11 +68,20 @@ export function PushScreen({
 
   const dragging = dragStartX.current !== null;
 
+  const overlay = mode === "overlay";
+
   return (
-    <div className="fixed inset-0 z-[55]" role="dialog" aria-modal="true" aria-label={title}>
+    <div
+      className={overlay ? "fixed inset-0 z-[55]" : "relative h-full"}
+      role={overlay ? "dialog" : "region"}
+      aria-modal={overlay || undefined}
+      aria-label={title}
+    >
       {/* The screen underneath stays visible at the edge of a back-drag, which
           is what makes the gesture read as "peeling this screen off". */}
-      <div className="absolute inset-0 bg-black/30" aria-hidden="true" style={{ opacity: dragX > 0 ? 0.6 : 1 }} />
+      {overlay && (
+        <div className="absolute inset-0 bg-black/30" aria-hidden="true" style={{ opacity: dragX > 0 ? 0.6 : 1 }} />
+      )}
       <div
         ref={overlayRef}
         className={`absolute inset-0 flex flex-col bg-surface-sunken ${dragX === 0 && !dragging ? "animate-push-in" : ""}`}
@@ -75,7 +94,13 @@ export function PushScreen({
         onPointerUp={endDrag}
         onPointerCancel={endDrag}
       >
-        <header className="shrink-0 border-b border-edge bg-surface/95 pt-[env(safe-area-inset-top)] backdrop-blur">
+        {/* Safe-area insets only in overlay mode — inline sits inside the app
+            shell, which has already paid them. */}
+        <header
+          className={`shrink-0 border-b border-edge bg-surface/95 backdrop-blur ${
+            overlay ? "pt-[env(safe-area-inset-top)]" : ""
+          }`}
+        >
           <div className="relative mx-auto flex h-12 w-full max-w-3xl items-center gap-1 px-1 sm:px-4">
             <button
               type="button"
@@ -92,7 +117,11 @@ export function PushScreen({
           </div>
         </header>
 
-        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pb-[env(safe-area-inset-bottom)]">
+        <div
+          className={`min-h-0 flex-1 overflow-y-auto overscroll-contain ${
+            overlay ? "pb-[env(safe-area-inset-bottom)]" : ""
+          }`}
+        >
           {children}
         </div>
       </div>

@@ -18,6 +18,7 @@ type/schema copy in docs to keep in sync — by design.
 | Change schema / types | `src/types/bowling.ts` + `src/db/bowlingDb.ts` (canonical). `docs/DATA_MODEL.md` for invariants + the standing-pins model. |
 | Touch scoring | `src/lib/scoring.ts`, `src/lib/frameController.ts` (+ their `*.test.ts`); `docs/DECISIONS.md` ADR-001, ADR-005. |
 | Add / edit a view or component | `docs/ARCHITECTURE.md` — layering rules + data flow. Obey the import layering. |
+| Any UI work (screens, nav, controls, empty states) | `docs/DESIGN-LANGUAGE.md` — the three navigation shapes, token rules, `PushScreen` + `ui/*` primitives. ADR-040. |
 | Backup / import / merge | `docs/DECISIONS.md` ADR-003 + `src/services/backupRepository.ts`. |
 | Pin input / mobile UI | ADR-006 (inverted input), ADR-004 (mobile-first 390×844), ADR-001. |
 | Anything else | `docs/README.md` indexes all docs. |

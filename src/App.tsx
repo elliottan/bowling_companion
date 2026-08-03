@@ -6,7 +6,7 @@ import {
   Target,
   type LucideIcon
 } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { DashboardView } from "./views/DashboardView";
 import { ActiveSessionView } from "./views/ActiveSessionView";
 import { ArsenalView } from "./views/ArsenalView";
@@ -34,7 +34,6 @@ import type { Handedness, LineSpec } from "./types/bowling";
 import { LaneVisualizer } from "./components/LaneVisualizer";
 import { UpdateToast } from "./components/UpdateToast";
 import { shouldResetScroll } from "./lib/viewportScroll";
-import { useOverlay } from "./lib/useOverlay";
 
 type AppView = "dashboard" | "active" | "history" | "spares" | "settings" | "catalog";
 
@@ -404,7 +403,7 @@ function App() {
           />
         )}
         {view === "catalog" && (
-          <CatalogView onBack={() => goTo(previousView)} />
+          <CatalogView onBack={() => goTo(previousView)} backLabel={ARSENAL_BACK_LABEL[previousView]} />
         )}
       </main>
 

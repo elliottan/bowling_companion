@@ -1,6 +1,7 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useState } from "react";
 import { HandednessPicker } from "../components/HandednessPicker";
+import { PushScreen } from "../components/PushScreen";
 import { ConfirmDialog } from "../components/ConfirmDialog";
 import { DriftZoneLane, ZONE_ACCENT } from "../components/DriftZoneLane";
 import { Chip } from "../components/ui/Chip";
@@ -18,6 +19,8 @@ interface HandednessViewProps {
   value: Handedness;
   onChange: (value: Handedness) => void;
   driftModel: DriftModel;
+  /** Present when pushed from Settings — draws the shared nav bar. */
+  onBack?: () => void;
   onDriftModelChange: (next: DriftModel) => void;
 }
 
@@ -25,7 +28,7 @@ const BOARD_MAX = 39; // upper board bound (matches deriveLaydown's clamp range)
 
 const ZONES = ["outside", "middle", "inside"] as const;
 
-export function HandednessView({ value, onChange, driftModel, onDriftModelChange }: HandednessViewProps) {
+export function HandednessView({ value, onChange, driftModel, onDriftModelChange, onBack }: HandednessViewProps) {
   // Confirm before switching — flipping handedness mirrors the whole app, so we
   // don't want a stray tap to change it silently.
   const [pending, setPending] = useState<Handedness | null>(null);
@@ -63,9 +66,9 @@ export function HandednessView({ value, onChange, driftModel, onDriftModelChange
     inside: `Boards ${driftModel.inside_min} to ${BOARD_MAX}`
   };
 
-  return (
-    <section className="mx-auto w-full max-w-3xl px-3 py-5 sm:px-6 sm:py-8">
-      <h1 className="text-xl font-bold text-ink">Handedness</h1>
+  const body = (
+    <section className="mx-auto w-full max-w-3xl px-3 py-4 sm:px-6">
+      <h2 className="text-base font-bold text-ink">Handedness</h2>
       <p className="mt-1 text-sm leading-relaxed text-ink-secondary">
         Board numbers count in from your side of the lane, so everything the app draws
         and every number you type is relative to the hand you bowl with.
@@ -195,6 +198,14 @@ export function HandednessView({ value, onChange, driftModel, onDriftModelChange
         onCancel={() => setPending(null)}
       />
     </section>
+  );
+
+  if (!onBack) return body;
+
+  return (
+    <PushScreen mode="inline" title="Preferences" backLabel="Settings" onBack={onBack}>
+      {body}
+    </PushScreen>
   );
 }
 

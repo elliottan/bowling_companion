@@ -75,9 +75,18 @@ export function CatalogBallImage({ src, alt, brand, size }: CatalogBallImageProp
     // with transparent surrounds, so a hardcoded light grey was a white card
     // glowing behind every ball in dark mode.
     <div className="relative w-full overflow-hidden rounded-lg bg-surface-muted" style={{ aspectRatio: "1 / 1" }}>
-      {/* Hidden once the photo is up — otherwise the brand silhouette shows
-          through the cut-out's transparent surround as a second ball. */}
-      {!loaded && <BallPlaceholder brand={brand} size={size} />}
+      {/* Cross-fades out as the photo fades in — it has to leave, or the brand
+          silhouette shows through the cut-out's transparent surround as a
+          second ball, but unmounting it outright left a blank tile for the
+          length of the photo's fade. */}
+      <div
+        aria-hidden="true"
+        className={`absolute inset-0 transition-opacity ${wasDecoded ? "duration-0" : "duration-300"} ${
+          loaded ? "opacity-0" : "opacity-100"
+        }`}
+      >
+        <BallPlaceholder brand={brand} size={size} />
+      </div>
 
       {src && !errored && (
         <img
