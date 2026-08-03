@@ -41,16 +41,24 @@ Produces `dist/`:
 
 ## Deploy to Vercel
 
-From the repo root:
+Push to `main`:
+
+```bash
+git push origin main
+```
+
+Vercel's Git integration builds and promotes it to production. That is the
+whole deploy for normal work.
+
+The CLI path stays as the fallback for when the remote is unavailable, or for
+shipping a build that is deliberately not on `main`:
 
 ```bash
 vercel --prod
 ```
 
-That is the whole deploy. Vercel auto-detects Vite, runs `npm run build`, and
-serves `dist/`. The first run links the directory to a Vercel project
-(interactive, one-time); subsequent `vercel --prod` runs ship straight to
-production.
+Vercel auto-detects Vite, runs `npm run build`, and serves `dist/`. The first
+CLI run links the directory to a Vercel project (interactive, one-time).
 
 ### Why no `vercel.json` is needed
 
@@ -66,7 +74,7 @@ repo root and document the reason here.
 ### Service worker / cache note
 
 The PWA uses `registerType: "autoUpdate"` (see
-`2026-06-07-pwa-offline-design.md`). On a new deploy, returning visitors pick up
+`archive/2026-06-07-pwa-offline-design.md`). On a new deploy, returning visitors pick up
 the new service worker on their next load and it activates automatically — no
 manual cache busting. Hashed asset filenames mean stale assets never collide.
 

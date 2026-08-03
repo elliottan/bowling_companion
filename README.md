@@ -31,16 +31,5 @@ React 18 · Vite · TypeScript · Tailwind CSS · Dexie.js (IndexedDB) · Vitest
 
 ## Documentation
 
-| Doc | Purpose |
-|---|---|
-| [docs/README.md](./docs/README.md) | Documentation index |
-| [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md) | Module map and data flow |
-| [docs/DATA_MODEL.md](./docs/DATA_MODEL.md) | Types, Dexie schema, scoring rules |
-| [docs/DECISIONS.md](./docs/DECISIONS.md) | ADR-light log of load-bearing choices |
-| [docs/CHANGELOG.md](./docs/CHANGELOG.md) | User-visible changes |
-| [docs/DEPLOYMENT.md](./docs/DEPLOYMENT.md) | Build + deploy (Vercel) |
-| [docs/ROADMAP.md](./docs/ROADMAP.md) | Future work |
-
-Maintenance rule: any change to **scoring**, **the data model**, or
-**import/merge rules** updates [DECISIONS.md](./docs/DECISIONS.md) **and**
-[CHANGELOG.md](./docs/CHANGELOG.md) in the same PR.
+[docs/README.md](./docs/README.md) routes everything by task, and carries the
+maintenance rules. [AGENTS.md](./AGENTS.md) is the same map for coding agents.

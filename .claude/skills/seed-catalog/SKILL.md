@@ -87,4 +87,4 @@ Parsers write to `scripts/sync-catalog/data/seed/`, **never** directly to `balls
 
 Scripts: `scripts/sync-catalog/catalog/parse-blocks.ts` (shared parser),
 `parse-catalog-pdf.ts`, `parse-ball-pdf.ts`, `usbc/extract.ts`, `usbc/build-index.ts`.
-Plan + decisions: `docs/PLAN-catalog-seeding.md`. Catalog data model: ADR-007.
+Catalog data model: ADR-007, and ADR-039 for third-party ingest and image rights. The original build plan is archived at `docs/archive/2026-06-21-catalog-seeding.md`.

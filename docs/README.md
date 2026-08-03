@@ -1,25 +1,34 @@
-# Bowling Companion — docs
+# Bowling Companion docs
 
-This folder is the source of truth for everything beyond the source tree.
-Anything that isn't code lives here.
+Everything that is not code. Docs point at code and never restate it: types,
+schema and file structure are read from `src/`, and these files carry only the
+reasoning and invariants the code cannot express.
 
-## Index
+## Where to go
 
-| Doc | Purpose |
+| I am about to... | Read |
 |---|---|
-| [ARCHITECTURE.md](./ARCHITECTURE.md) | Module map, data flow, where to put new code |
-| [DATA_MODEL.md](./DATA_MODEL.md) | Session/Game/Frame types, Dexie schema, scoring conventions |
-| [DESIGN-LANGUAGE.md](./DESIGN-LANGUAGE.md) | Navigation shapes, controls, tokens, empty states, motion, copy |
-| [DECISIONS.md](./DECISIONS.md) | ADR-light log of load-bearing decisions |
-| [CHANGELOG.md](./CHANGELOG.md) | User-visible changes |
-| [DEPLOYMENT.md](./DEPLOYMENT.md) | Build + deploy to production (Vercel) |
-| [ROADMAP.md](./ROADMAP.md) | Future work that hasn't been built yet (Phase 5 lives here) |
+| Change scoring or the frame state machine | [DECISIONS.md](./DECISIONS.md) ADR-001, ADR-005, ADR-017 |
+| Change the schema, types or migrations | [DATA_MODEL.md](./DATA_MODEL.md) |
+| Add or restructure a module | [ARCHITECTURE.md](./ARCHITECTURE.md) |
+| Build any UI | [DESIGN-LANGUAGE.md](./DESIGN-LANGUAGE.md) |
+| Touch backup, import or merge | [DECISIONS.md](./DECISIONS.md) ADR-038 |
+| Touch viewport, rotation or scroll handling | [VIEWPORT-BUG.md](./VIEWPORT-BUG.md) first, without exception |
+| Ship a build | [DEPLOYMENT.md](./DEPLOYMENT.md) |
+| Pick up new work | [ROADMAP.md](./ROADMAP.md) |
+| Write a release note | [CHANGELOG.md](./CHANGELOG.md) |
 
-## Maintenance rule
+[archive/](./archive/) holds delivered plans and specs. They are history, not
+documentation, and are not a source of truth for anything.
 
-Any change touching **scoring**, **the data model**, or **import/merge rules**
-MUST update [DECISIONS.md](./DECISIONS.md) and [CHANGELOG.md](./CHANGELOG.md)
-in the same PR. The rest of the app code can be read; these three areas have
-implicit invariants that need to be written down.
+## Maintenance rules
 
-UI/UX work updates the CHANGELOG only.
+1. A change to **scoring**, **the data model**, or **import/merge rules** adds
+   an ADR to [DECISIONS.md](./DECISIONS.md) and an entry to
+   [CHANGELOG.md](./CHANGELOG.md), in the same PR. Never edit an accepted ADR;
+   supersede it.
+2. UI and UX work updates [CHANGELOG.md](./CHANGELOG.md). If it establishes a
+   pattern others should follow, it updates
+   [DESIGN-LANGUAGE.md](./DESIGN-LANGUAGE.md) too.
+3. No doc restates a type, a schema, or a file listing. Link to the code.
+4. No em dashes in anything written here.

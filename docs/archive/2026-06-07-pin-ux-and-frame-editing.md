@@ -8,7 +8,7 @@
 
 **Tech Stack:** React 18, TypeScript, Tailwind, Dexie, Vitest, Playwright. Pointer Events API for the gesture.
 
-**Spec:** `docs/superpowers/specs/2026-06-07-pin-ux-and-frame-editing-design.md`
+**Spec:** `docs/archive/2026-06-07-pin-ux-and-frame-editing-design.md`
 
 **Per-feature definition of done:** `npm test` green, `npm run build` green (includes `tsc -b`), verified at 390×844 in the preview MCP, one commit, CHANGELOG updated.
 

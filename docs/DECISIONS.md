@@ -3,12 +3,17 @@
 Each entry: context, decision, consequences. New entries are appended at the
 bottom. Never edit an accepted ADR — supersede it with a new one and link.
 
-**Index:** ADR-001 standing-pins storage · ADR-002 snake_case wire format ·
-ADR-003 backup merge-by-content · ADR-004 mobile-first 390×844 ·
-ADR-005 stats definitions · ADR-006 inverted pin input ·
-ADR-007 catalog data source · ADR-008 multi-weight + USBC discovery ·
-ADR-016 baby splits + split-excluded spare rate · ADR-017 save-as-you-go + carry rules ·
-ADR-030 drift model: stance-zone drift + constant release offset
+**Index (the ones worth knowing before you write code):** ADR-001 standing-pins
+storage · ADR-002 snake_case wire format · ADR-004 mobile-first 390×844 ·
+ADR-005 stats definitions · ADR-006 inverted pin input · ADR-007 catalog data
+source · ADR-008 multi-weight + USBC discovery · ADR-016 baby splits +
+split-excluded spare rate · ADR-017 save-as-you-go + carry rules · ADR-024 and
+ADR-025 the line model · ADR-030 drift model: stance-zone drift + constant
+release offset · ADR-034 semantic colour tokens · ADR-038 backup import
+replaces the database (supersedes ADR-003) · ADR-039 catalog ingest + image
+rights · ADR-040 navigation shapes and `PushScreen`.
+
+New entries are appended, so the last one is the most recent.
 
 ---
 
@@ -1678,22 +1683,22 @@ takedown is a data edit, not a pipeline change.
 
 ---
 
-## ADR-040 — Three navigation shapes, and `PushScreen` as the only push
+## ADR-040: Three navigation shapes, and `PushScreen` as the only push
 
 **Status:** accepted (2026-08).
 
 **Context.** Screens below the tab bar had each invented their own chrome. The
 arsenal was a bottom sheet pinned 72px from the top, with its add-ball form
 spliced inline into the list and the catalog picker nested as a short scroll
-region inside that form — so the fastest route to a fully specced ball was also
+region inside that form, so the fastest route to a fully specced ball was also
 the least discoverable one. Settings sections had a ghost "‹ Settings" button
 floating above content that then repeated its own `<h1>`. The catalog was a
 hand-rolled fixed overlay with a third variant of back. Nothing was wrong in
 isolation; together they meant that "going somewhere" looked different every
 time, and none of it read as native.
 
-**Decision.** The app has exactly three navigation shapes — **tab**, **push**,
-**dialog/sheet** — and the choice between them is semantic, not visual: a push
+**Decision.** The app has exactly three navigation shapes, **tab**, **push**,
+**dialog/sheet**, and the choice between them is semantic, not visual: a push
 is a *place*, a sheet is a *task*. Every push is `PushScreen`, which owns the
 nav bar (leading back naming the origin, centred title, at most one trailing
 action), the enter animation, the edge-drag-back gesture, and the Escape/focus
@@ -1701,8 +1706,8 @@ trap. It has an `overlay` mode (floats above the tab bar; reachable from several
 tabs) and an `inline` mode (fills the current tab's scroll area; the tab bar
 stays live). Screens supply content only.
 
-`docs/DESIGN-LANGUAGE.md` carries the full rule set — tokens, controls, empty
-states, motion, copy — and is the doc to read before any UI work.
+`docs/DESIGN-LANGUAGE.md` carries the full rule set, tokens, controls, empty
+states, motion, copy, and is the doc to read before any UI work.
 
 **Consequences.**
 - Adding a screen is a `PushScreen` plus content; nav chrome is not a decision

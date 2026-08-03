@@ -58,27 +58,19 @@ Scorecard re-renders <──── lib/scoring.calculateGameScore ────�
 The goal: a future developer can rewrite the UI without touching scoring, and
 rewrite scoring without touching the UI.
 
-## `components/ui/` — the primitives
+## `components/ui/` and the shared shells
 
-`Button`, `IconButton` and `Chip` are the shared control primitives; every
-control should be built from them rather than hand-rolled. They exist to make
-the accessibility floor structural rather than a review checklist: both `Button`
-sizes and `IconButton` clear Apple's 44pt minimum tap target, and `IconButton`
-takes `label` as a **required** prop so an icon button with no accessible name
-does not type-check.
+`Button`, `IconButton`, `Chip` and `EmptyState` are the shared primitives, and
+`PushScreen` plus `lib/useSheetDismiss.ts` own every screen and sheet
+transition. The rules for using them, and the reasons behind them, live in
+`docs/DESIGN-LANGUAGE.md` (ADR-040, and ADR-034 for the tokens). They are not
+repeated here.
 
-Two rules when working with them:
-
-- **Colour goes in a variant, never in `className`.** Tailwind resolves
-  competing utilities by stylesheet order, not by the order they appear in the
-  class attribute, so a colour passed via `className` silently loses to the
-  variant's. Add a variant instead.
-- **`Chip` expands its tap target with a `::after` overlay** rather than growing
-  its box, so rows of chips stay dense. That overhang is clipped by any ancestor
-  with a non-visible `overflow` — note `overflow-x-auto` forces `overflow-y` to
-  `auto` — so a scrolling chip row needs vertical padding to survive.
-
-See `docs/DECISIONS.md` ADR-034 for the token system these primitives draw on.
+One structural note that belongs with the layering: `Chip` expands its tap
+target with an `::after` overlay rather than growing its box, so rows of chips
+stay dense. Any ancestor with a non-visible `overflow` clips that overhang, and
+`overflow-x-auto` forces `overflow-y` to `auto`, so a scrolling chip row needs
+vertical padding to survive.
 
 ## Why this layout
 
