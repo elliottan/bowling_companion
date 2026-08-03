@@ -71,8 +71,13 @@ export function CatalogBallImage({ src, alt, brand, size }: CatalogBallImageProp
   return (
     // Reserved aspect-ratio box — prevents layout shift regardless of load state.
     // The SVG silhouette is always rendered underneath; the img fades in on load.
-    <div className="relative w-full overflow-hidden rounded-lg bg-slate-100" style={{ aspectRatio: "1 / 1" }}>
-      <BallPlaceholder brand={brand} size={size} />
+    // The tile colour is a token, not slate-100: the product shots are cut-outs
+    // with transparent surrounds, so a hardcoded light grey was a white card
+    // glowing behind every ball in dark mode.
+    <div className="relative w-full overflow-hidden rounded-lg bg-surface-muted" style={{ aspectRatio: "1 / 1" }}>
+      {/* Hidden once the photo is up — otherwise the brand silhouette shows
+          through the cut-out's transparent surround as a second ball. */}
+      {!loaded && <BallPlaceholder brand={brand} size={size} />}
 
       {src && !errored && (
         <img

@@ -153,3 +153,44 @@ input[type="date"] {
 input[type="date"]::-webkit-date-and-time-value {
   text-align: left;
 }
+
+/*
+ * Native-feeling navigation push: a full-screen child slides in from the
+ * trailing edge, the way a UINavigationController push does. Only the entry is
+ * animated — the exit is driven by the interactive drag in PushScreen, which
+ * owns its own transform, so a keyframe here would fight it.
+ */
+@keyframes push-screen-in {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.animate-push-in {
+  animation: push-screen-in 0.28s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+@keyframes sheet-up {
+  from {
+    transform: translateY(12px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-sheet-up {
+  animation: sheet-up 0.2s ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-push-in,
+  .animate-sheet-up {
+    animation: none;
+  }
+}

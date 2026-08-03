@@ -54,6 +54,16 @@ const NAV_ITEMS: ReadonlyArray<NavItem> = [
 
 const MOBILE_NAV_ITEMS = NAV_ITEMS;
 
+// The pushed arsenal names the screen it came from, the way a nav stack does.
+const ARSENAL_BACK_LABEL: Record<AppView, string> = {
+  dashboard: "Home",
+  active: "Session",
+  history: "History",
+  spares: "Spares",
+  settings: "Settings",
+  catalog: "Catalog"
+};
+
 function App() {
   const [view, setView] = useState<AppView>("dashboard");
   // The view to return to when leaving the active session (set on entry).
@@ -73,19 +83,11 @@ function App() {
   const [sandboxLine, setSandboxLine] = useState<LineSpec | undefined>({
     laydown: 20, target: 15, breakpoint: 8,
   });
-  const [sheetDrag, setSheetDrag] = useState(0);
-  const sheetDragStartY = useRef<number | null>(null);
   const [keyboardOpen, setKeyboardOpen] = useState(false);
 
-  const closeArsenal = useCallback(() => {
-    setSheetDrag(0);
-    setArsenalOpen(false);
-  }, []);
-  // Escape / focus trap / focus restore for the arsenal sheet. The drag-to-
-  // dismiss and backdrop paths below are untouched; this only adds keyboard
-  // parity. The handedness dialog further down deliberately opts out — it is
-  // mandatory first-run setup with no dismiss path at all.
-  const arsenalRef = useOverlay<HTMLDivElement>(closeArsenal, arsenalOpen);
+  // Arsenal is a pushed screen (PushScreen owns its Escape / focus trap /
+  // drag-back); this only tears down the app-level flag.
+  const closeArsenal = useCallback(() => setArsenalOpen(false), []);
 
   // The on-screen keyboard resizes the (standalone) webview, which would shove
   // the bottom nav up to float above the keyboard. Instead we hide the nav
@@ -427,49 +429,11 @@ function App() {
       </nav>
 
       {arsenalOpen && (
-        <div ref={arsenalRef} className="fixed inset-0 z-[55]" role="dialog" aria-modal="true">
-          {/* Backdrop – tap above sheet to dismiss */}
-          <div className="absolute inset-0 bg-black/40" onClick={closeArsenal} />
-          {/* Bottom sheet */}
-          <div
-            className="absolute bottom-0 left-0 right-0 flex flex-col rounded-t-2xl bg-surface-sunken shadow-xl"
-            style={{
-              top: "72px",
-              transform: `translateY(${sheetDrag}px)`,
-              transition: sheetDrag === 0 ? "transform 0.25s ease-out" : "none",
-            }}
-          >
-            {/* Drag pill */}
-            <div
-              className="flex touch-none cursor-grab justify-center pb-1 pt-3 active:cursor-grabbing"
-              onPointerDown={(e) => {
-                sheetDragStartY.current = e.clientY;
-                (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
-              }}
-              onPointerMove={(e) => {
-                if (sheetDragStartY.current === null) return;
-                const delta = e.clientY - sheetDragStartY.current;
-                if (delta > 0) setSheetDrag(delta);
-              }}
-              onPointerUp={() => {
-                if (sheetDrag > 80) {
-                  setArsenalOpen(false);
-                }
-                setSheetDrag(0);
-                sheetDragStartY.current = null;
-              }}
-              onPointerCancel={() => {
-                setSheetDrag(0);
-                sheetDragStartY.current = null;
-              }}
-            >
-              <div className="h-1.5 w-10 rounded-full bg-edge-strong" />
-            </div>
-            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
-              <ArsenalView onOpenCatalog={() => { setArsenalOpen(false); goTo("catalog"); }} />
-            </div>
-          </div>
-        </div>
+        <ArsenalView
+          onBack={closeArsenal}
+          backLabel={ARSENAL_BACK_LABEL[view]}
+          onOpenCatalog={() => { setArsenalOpen(false); goTo("catalog"); }}
+        />
       )}
 
       {lineVizOpen && (
