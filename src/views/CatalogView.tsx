@@ -441,7 +441,6 @@ export function CatalogView({ onBack, backLabel }: CatalogViewProps) {
       void loadBalls();
     });
     void loadOwned();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   function handleRefresh() {

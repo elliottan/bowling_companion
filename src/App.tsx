@@ -190,7 +190,6 @@ function App() {
         }
       })
       .catch(() => {});
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // The home "resume" widget reflects (and jumps to) the currently active

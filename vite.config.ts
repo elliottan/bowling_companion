@@ -60,6 +60,21 @@ export default defineConfig({
     environment: "jsdom",
     setupFiles: ["./src/test/setup.ts"],
     globals: true,
-    exclude: ["**/node_modules/**", "**/dist/**", "**/e2e/**"]
+    exclude: ["**/node_modules/**", "**/dist/**", "**/e2e/**"],
+    coverage: {
+      provider: "v8",
+      reporter: ["text-summary", "html", "json-summary"],
+      // Only the app ships. `scripts/` is offline catalog tooling run by hand,
+      // and screens are covered by Playwright rather than jsdom.
+      include: ["src/**/*.{ts,tsx}"],
+      exclude: ["src/main.tsx", "src/test/**", "src/**/*.test.{ts,tsx}"],
+      // Floors, not targets: the scoring engine, the geometry and the
+      // repositories are where a regression corrupts a user's data, and there
+      // is no backend to restore it from. They stay covered.
+      thresholds: {
+        "src/lib/**": { lines: 90, functions: 85, branches: 85 },
+        "src/services/**": { lines: 80, functions: 80, branches: 80 }
+      }
+    }
   }
 });

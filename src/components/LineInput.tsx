@@ -76,7 +76,7 @@ const clampBoard = (n: number, max = 39) => Math.max(1, Math.min(max, Math.round
 // Keep only digits and a single dot, capped at one decimal place. A trailing
 // dot is preserved so "15." can be typed on the way to "15.5".
 function sanitizeLine(raw: string): string {
-  let s = raw.replace(/[^\d.]/g, "");
+  const s = raw.replace(/[^\d.]/g, "");
   const dot = s.indexOf(".");
   if (dot === -1) return s;
   const intPart = s.slice(0, dot);

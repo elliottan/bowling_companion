@@ -81,3 +81,18 @@ vertical padding to survive.
   `lib/scoring.ts` + `lib/frameController.ts` lets us drive it with cheap
   unit tests instead of slow component tests.
 - Views are intentionally thin so per-screen UX iteration is local.
+
+## Where the tests live, and what holds them up
+
+The split follows the layering: `lib/` and `services/` carry the logic a
+regression can corrupt data with, so they are unit-tested and hold a coverage
+floor (`vite.config.ts`: 90% of `lib/`, 80% of `services/`, by line). Screens
+are covered by Playwright in `e2e/`, not by jsdom, because the failures worth
+catching there are flow failures. Views sit at ~0% unit coverage on purpose:
+that number is not the goal, the floors and the e2e flows are.
+
+`npm run verify` runs the whole gate. ESLint is part of it, and exists mostly
+for the hooks rules, which catch what `tsc` structurally cannot: stale
+dependency arrays, conditional hooks, missing cleanups. Its two compiler-era
+rules (`set-state-in-effect`, `refs`) are warnings, because the patterns they
+flag are used deliberately throughout the app.

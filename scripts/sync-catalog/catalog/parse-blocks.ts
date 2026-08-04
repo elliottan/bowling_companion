@@ -317,7 +317,7 @@ export function buildSeedBall(body: string, weights: WeightRow[], opts: ParseOpt
   let coreName = parseLabel(body, /WEIGHT\s*BLOCK:\s*([^]*?)(?=FACTORY|BALL COLOR:|COLOR:|FRAGRANCE:|SKU:|COVERSTOCK:|$)/i);
   if (!coreName) {
     // 2022–2024: core appears as "<NAME>™ CORE" near the SKU clause.
-    const m = body.match(/([A-Z][A-Za-z0-9][A-Za-z0-9 .\-]*?)\s*(?:™|®)?\s*CORE\b/);
+    const m = body.match(/([A-Z][A-Za-z0-9][A-Za-z0-9 .-]*?)\s*(?:™|®)?\s*CORE\b/);
     if (m) coreName = cleanField(m[1]);
   }
   const factoryFinish = parseLabel(body, /FACTORY FINISH:\s*([^]*?)(?=BALL COLOR:|COLOR:|FLARE|FRAGRANCE:|MAINTENANCE:|WEIGHTS:|SKU:|COVERSTOCK:|WEIGHT|$)/i);

@@ -77,10 +77,13 @@ export function SessionForm({
     return archived ? [...active, archived] : active;
   }, []);
 
+  // Mount only: the form is remounted (via `key`) whenever the prefill changes,
+  // so re-running on `initial` would refetch the same three lists for nothing.
   useEffect(() => {
     loadPatterns(initial?.oil_pattern_id).then(setOilPatterns).catch(() => {});
     getDistinctAlleys().then(setAlleys).catch(() => {});
     getDistinctDescriptions().then(setDescriptions).catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const alleyMatches = useMemo(() => {

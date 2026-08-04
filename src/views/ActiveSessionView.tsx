@@ -106,6 +106,10 @@ export function ActiveSessionView({
       lanePromptedGameIds.add(activeGame.id);
       setShowLaneEditor(true);
     }
+    // Keyed on the game id alone: this fires once per game, and re-running it
+    // whenever any other field of `activeGame` changes would re-open the editor
+    // mid-game.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeGame?.id]);
 
   // `side` defaults to current state but the start-lane toggle passes it

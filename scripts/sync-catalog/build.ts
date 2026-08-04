@@ -7,7 +7,7 @@
  * No network calls. Pure deterministic transform.
  */
 import { createHash } from "node:crypto";
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -165,7 +165,7 @@ function main(): void {
       existingVersion = existing.version ?? 0;
       // Only bump if hash changed
       if (existing.hash === hash) {
-        existingVersion = existingVersion; // keep
+        // keep the version: an unchanged hash is the same data
       } else {
         existingVersion = existingVersion + 1;
       }

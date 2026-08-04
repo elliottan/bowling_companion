@@ -333,6 +333,10 @@ export function ActiveGameScorer({
       setSelectedBallId(prevShot?.ball_id);
       seedIntendedLine(prevShot?.intended, prevShot?.ball_id, currentFrame?.shots ?? []);
     }
+    // seedIntendedLine is redeclared every render and only ever reads the
+    // arguments it is handed here, so listing it would re-seed the line on
+    // every render and stamp on what the user typed.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     gameState.currentFrameNumber,
     gameState.currentShot,
