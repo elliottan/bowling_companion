@@ -71,9 +71,14 @@ export default defineConfig({
       // Floors, not targets: the scoring engine, the geometry and the
       // repositories are where a regression corrupts a user's data, and there
       // is no backend to restore it from. They stay covered.
+      //
+      // Set a few points under what the suite measures today (lib 93/94/85,
+      // services 87/83/71). Vitest 4 counts branches differently to Vitest 2,
+      // so these numbers are not comparable to the ones set before that
+      // upgrade: the tests did not change, the accounting did.
       thresholds: {
-        "src/lib/**": { lines: 90, functions: 85, branches: 85 },
-        "src/services/**": { lines: 80, functions: 80, branches: 80 }
+        "src/lib/**": { lines: 90, functions: 90, branches: 82 },
+        "src/services/**": { lines: 83, functions: 80, branches: 68 }
       }
     }
   }
