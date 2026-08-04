@@ -52,20 +52,23 @@ export function LaneNotesView({ onBack }: LaneNotesViewProps = {}) {
       .sort((a, b) => Number(a) - Number(b) || a.localeCompare(b));
   }, [laneNotes, filterAlley]);
 
-  // Drop selected lanes when the location changes — a lane from another alley
-  // would otherwise filter everything out.
-  useEffect(() => {
-    setSelectedLanes([]);
-  }, [filterAlley]);
+  // Only the lanes that exist at the chosen location count. Derived rather
+  // than reset in an effect when the location changes: a selection left over
+  // from another alley simply stops applying, with no extra render where the
+  // list is filtered by a lane that is not on screen.
+  const activeLanes = useMemo(
+    () => selectedLanes.filter((l) => noteLanes.includes(l)),
+    [selectedLanes, noteLanes]
+  );
 
   const displayedNotes = useMemo(
     () =>
       laneNotes.filter((n) => {
         if (filterAlley && n.alley !== filterAlley) return false;
-        if (selectedLanes.length > 0 && !selectedLanes.includes(n.lane)) return false;
+        if (activeLanes.length > 0 && !activeLanes.includes(n.lane)) return false;
         return true;
       }),
-    [laneNotes, filterAlley, selectedLanes]
+    [laneNotes, filterAlley, activeLanes]
   );
 
   function toggleLane(lane: string) {
@@ -249,11 +252,11 @@ export function LaneNotesView({ onBack }: LaneNotesViewProps = {}) {
             <div className="mb-4 flex flex-wrap items-center gap-2">
               <span className={GROUP_HEADING}>Lanes</span>
               {noteLanes.map((l) => (
-                <Chip key={l} selected={selectedLanes.includes(l)} onClick={() => toggleLane(l)}>
+                <Chip key={l} selected={activeLanes.includes(l)} onClick={() => toggleLane(l)}>
                   {l}
                 </Chip>
               ))}
-              {selectedLanes.length > 0 && (
+              {activeLanes.length > 0 && (
                 <Button variant="ghost" className="px-2 text-xs font-medium text-ink-secondary" onClick={() => setSelectedLanes([])}>
                   Clear
                 </Button>

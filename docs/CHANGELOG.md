@@ -92,6 +92,10 @@ User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachan
 - **One colour means one thing.** Success was previously green in one place
   and a different green in another; warnings, errors and success now each
   have a single treatment that works in both themes.
+- **Lane filters remember where you were.** Picking lanes at one location, then
+  looking at another, no longer throws the selection away: the other location's
+  lanes filter nothing, and coming back restores what you had picked. The chips
+  and the Clear button always show what is actually filtering.
 - **The app starts faster.** The ball catalog, the arsenal editor and the lane
   view load when you open them rather than on every launch, which is about 8%
   less to download before the first screen paints.

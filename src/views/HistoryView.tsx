@@ -54,6 +54,10 @@ export function HistoryView({ onOpenSession, activeSessionId, onSessionDeleted }
   const [filterPattern, setFilterPattern] = useState("");
   const [selectedLanes, setSelectedLanes] = useState<string[]>([]);
   const [visibleCount, setVisibleCount] = useState(PAGE);
+  // The list the window belongs to. Comparing it during render resets the
+  // window when the filters change a list, which an effect would only do a
+  // render later, after painting a short list scrolled to the wrong place.
+  const [windowedList, setWindowedList] = useState<SessionSummary[] | null>(null);
 
   const sentinelRef = useRef<HTMLDivElement | null>(null);
 
@@ -91,38 +95,6 @@ export function HistoryView({ onOpenSession, activeSessionId, onSessionDeleted }
     });
   }, [history, filterAlley, filterPattern]);
 
-  // For the session list, a lane filter keeps sessions that played a selected lane.
-  const sessionList = useMemo(() => {
-    if (selectedLanes.length === 0) return filteredHistory;
-    return filteredHistory.filter((s) =>
-      s.games.some((g) =>
-        (g.lanes ?? (g.lane_number ? [g.lane_number] : [])).some((l) => selectedLanes.includes(l))
-      )
-    );
-  }, [filteredHistory, selectedLanes]);
-
-  const stats = useMemo(
-    () => calculateStats(filteredHistory, selectedLanes),
-    [filteredHistory, selectedLanes]
-  );
-  const leaves = useMemo(
-    () => calculateCommonLeaves(filteredHistory, selectedLanes),
-    [filteredHistory, selectedLanes]
-  );
-  const ballUsage = useMemo(
-    () => calculateBallUsage(filteredHistory, balls, selectedLanes),
-    [filteredHistory, balls, selectedLanes]
-  );
-
-  const allAlleys = useMemo(
-    () => [...new Set(history.map((s) => s.session.alley_name))].sort(),
-    [history]
-  );
-  const allPatterns = useMemo(
-    () =>
-      [...new Set(history.flatMap((s) => (s.session.oil_pattern ? [s.session.oil_pattern] : [])))].sort(),
-    [history]
-  );
   // Lanes are only meaningful within a location, so we offer them as a filter
   // only once an alley is picked — and only the lanes seen at that alley.
   const allLanes = useMemo(() => {
@@ -138,16 +110,54 @@ export function HistoryView({ onOpenSession, activeSessionId, onSessionDeleted }
     ].sort((a, b) => Number(a) - Number(b) || a.localeCompare(b));
   }, [history, filterAlley]);
 
-  // Drop any selected lane when the location changes (a lane from another alley
-  // would otherwise stay selected and filter everything out).
-  useEffect(() => {
-    setSelectedLanes([]);
-  }, [filterAlley]);
+  // Only the lanes that exist at the chosen location count. Derived rather
+  // than reset in an effect when the location changes: a selection left over
+  // from another alley simply stops applying, with no extra render where the
+  // list is filtered by a lane that is not on screen.
+  const activeLanes = useMemo(
+    () => selectedLanes.filter((l) => allLanes.includes(l)),
+    [selectedLanes, allLanes]
+  );
 
-  // Reset the window whenever the filtered list changes.
-  useEffect(() => {
+  // For the session list, a lane filter keeps sessions that played a selected lane.
+  const sessionList = useMemo(() => {
+    if (activeLanes.length === 0) return filteredHistory;
+    return filteredHistory.filter((s) =>
+      s.games.some((g) =>
+        (g.lanes ?? (g.lane_number ? [g.lane_number] : [])).some((l) => activeLanes.includes(l))
+      )
+    );
+  }, [filteredHistory, activeLanes]);
+
+  // React's documented "adjust state during render" rather than in an effect:
+  // it re-renders before anything is shown, so no wasted paint.
+  if (windowedList !== sessionList) {
+    setWindowedList(sessionList);
     setVisibleCount(PAGE);
-  }, [sessionList]);
+  }
+
+  const stats = useMemo(
+    () => calculateStats(filteredHistory, activeLanes),
+    [filteredHistory, activeLanes]
+  );
+  const leaves = useMemo(
+    () => calculateCommonLeaves(filteredHistory, activeLanes),
+    [filteredHistory, activeLanes]
+  );
+  const ballUsage = useMemo(
+    () => calculateBallUsage(filteredHistory, balls, activeLanes),
+    [filteredHistory, balls, activeLanes]
+  );
+
+  const allAlleys = useMemo(
+    () => [...new Set(history.map((s) => s.session.alley_name))].sort(),
+    [history]
+  );
+  const allPatterns = useMemo(
+    () =>
+      [...new Set(history.flatMap((s) => (s.session.oil_pattern ? [s.session.oil_pattern] : [])))].sort(),
+    [history]
+  );
 
   // Infinite scroll: load PAGE more when the sentinel scrolls into view.
   useEffect(() => {
@@ -215,11 +225,11 @@ export function HistoryView({ onOpenSession, activeSessionId, onSessionDeleted }
         <div className="mb-3 flex flex-wrap items-center gap-2">
           <span className={GROUP_HEADING}>Lanes</span>
           {allLanes.map((l) => (
-            <Chip key={l} selected={selectedLanes.includes(l)} onClick={() => toggleLane(l)}>
+            <Chip key={l} selected={activeLanes.includes(l)} onClick={() => toggleLane(l)}>
               {l}
             </Chip>
           ))}
-          {selectedLanes.length > 0 && (
+          {activeLanes.length > 0 && (
             <Button variant="ghost" className="px-2 text-xs font-medium text-ink-secondary" onClick={() => setSelectedLanes([])}>
               Clear
             </Button>
