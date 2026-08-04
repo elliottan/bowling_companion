@@ -1,5 +1,6 @@
 import { Plus } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useLiveQuery } from "dexie-react-hooks";
 import {
   DndContext,
   PointerSensor,
@@ -102,11 +103,27 @@ function SortableSpareCard({ sl, onOpen }: SortableSpareCardProps) {
   );
 }
 
+// A stable empty list: `?? []` would be a new array on every render, which
+// invalidates every useMemo downstream of it.
+const NO_LINES: SpareLine[] = [];
+
 type Editing = { mode: "add" } | { mode: "edit"; sl: SpareLine };
 
 export function SpareLinesView() {
-  const [spareLines, setSpareLines] = useState<SpareLine[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  // Seeding is a write, and a live query observes inside a readonly
+  // transaction, so it cannot live in one. Fire it once; the query below picks
+  // the rows up on its own when they land.
+  useEffect(() => {
+    void ensureDefaultSpareLines();
+  }, []);
+
+  // Live: saving, deleting and reordering all land through Dexie, so the list
+  // follows them without a refresh call at each site.
+  const live = useLiveQuery(() => getSpareLinesAll());
+  // Reordering shows the new order while the write lands.
+  const [reordered, setReordered] = useState<SpareLine[] | null>(null);
+  const spareLines = reordered ?? live ?? NO_LINES;
+  const isLoading = live === undefined;
   const [error, setError] = useState("");
   const [editing, setEditing] = useState<Editing | null>(null);
 
@@ -129,38 +146,22 @@ export function SpareLinesView() {
     if (oldIndex < 0 || newIndex < 0) return;
 
     const next = arrayMove(spareLines, oldIndex, newIndex);
-    setSpareLines(next); // optimistic
+    setReordered(next);
+    setError("");
     try {
       await reorderSpareLines(next.map((s) => s.id!));
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to save new order.");
-      await load();
-    }
-  }
-
-  async function load() {
-    setIsLoading(true);
-    setError("");
-    try {
-      await ensureDefaultSpareLines();
-      setSpareLines(await getSpareLinesAll());
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Unable to load spare lines.");
     } finally {
-      setIsLoading(false);
+      setReordered(null);
     }
   }
-
-  useEffect(() => {
-    void load();
-  }, []);
 
   async function handleDelete(id: number) {
     setError("");
     try {
       await deleteSpareLine(id);
       setEditing(null);
-      await load();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to delete spare line.");
     }
@@ -184,10 +185,7 @@ export function SpareLinesView() {
           key="add"
           initialPins={[]}
           lockPins={false}
-          onSaved={() => {
-            setEditing(null);
-            void load();
-          }}
+          onSaved={() => setEditing(null)}
           onCancel={() => setEditing(null)}
         />
       )}
@@ -199,10 +197,7 @@ export function SpareLinesView() {
           lockPins={false}
           initialLine={editing.sl.line}
           initialNotes={editing.sl.notes}
-          onSaved={() => {
-            setEditing(null);
-            void load();
-          }}
+          onSaved={() => setEditing(null)}
           onCancel={() => setEditing(null)}
           onDelete={editing.sl.id != null ? () => void handleDelete(editing.sl.id!) : undefined}
         />

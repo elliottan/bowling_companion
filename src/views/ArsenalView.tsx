@@ -14,7 +14,8 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { BookOpen, CircleDot, GripVertical, Plus } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { useLiveQuery } from "dexie-react-hooks";
 import { BallFormDialog } from "../components/BallFormDialog";
 import { CatalogBallImage } from "../components/CatalogBallImage";
 import { ConfirmDialog } from "../components/ConfirmDialog";
@@ -111,6 +112,10 @@ function SortableBallRow({ ball, onEdit }: SortableBallRowProps) {
   );
 }
 
+// A stable empty list: `?? []` would be a new array on every render, which
+// invalidates every useMemo downstream of it.
+const NO_BALLS: Ball[] = [];
+
 interface ArsenalViewProps {
   /** Dismiss the pushed screen and return to whatever launched it. */
   onBack: () => void;
@@ -120,8 +125,14 @@ interface ArsenalViewProps {
 }
 
 export function ArsenalView({ onBack, backLabel, onOpenCatalog }: ArsenalViewProps) {
-  const [balls, setBalls] = useState<Ball[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  // Live: Dexie re-runs this whenever the table changes, so saving, deleting
+  // and reordering do not each have to remember to refresh the list.
+  const live = useLiveQuery(() => getBalls());
+  // Reordering shows the new order while the write lands, or the row would
+  // snap back for a frame before the live query caught up.
+  const [reordered, setReordered] = useState<Ball[] | null>(null);
+  const balls = reordered ?? live ?? NO_BALLS;
+  const isLoading = live === undefined;
   const [error, setError] = useState("");
 
   // null = closed; { ball: null } = adding; { ball } = editing.
@@ -132,22 +143,6 @@ export function ArsenalView({ onBack, backLabel, onOpenCatalog }: ArsenalViewPro
     useSensor(PointerSensor, { activationConstraint: { delay: 180, tolerance: 6 } })
   );
 
-  async function load() {
-    setIsLoading(true);
-    setError("");
-    try {
-      setBalls(await getBalls());
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Unable to load arsenal.");
-    } finally {
-      setIsLoading(false);
-    }
-  }
-
-  useEffect(() => {
-    void load();
-  }, []);
-
   async function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;
     if (!over || active.id === over.id) return;
@@ -157,12 +152,16 @@ export function ArsenalView({ onBack, backLabel, onOpenCatalog }: ArsenalViewPro
     if (oldIndex < 0 || newIndex < 0) return;
 
     const next = arrayMove(balls, oldIndex, newIndex);
-    setBalls(next);
+    setReordered(next);
+    setError("");
     try {
       await reorderBalls(next.map((b) => b.id!));
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to save new order.");
-      await load();
+    } finally {
+      // Either the write landed and the live query already agrees, or it
+      // failed and the stored order is the truth.
+      setReordered(null);
     }
   }
 
@@ -172,7 +171,6 @@ export function ArsenalView({ onBack, backLabel, onOpenCatalog }: ArsenalViewPro
     setError("");
     try {
       await deleteBall(ball.id!);
-      await load();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to delete ball.");
     }
@@ -248,10 +246,7 @@ export function ArsenalView({ onBack, backLabel, onOpenCatalog }: ArsenalViewPro
           key={form.ball?.id ?? "new"}
           ball={form.ball}
           onClose={() => setForm(null)}
-          onSaved={() => {
-            setForm(null);
-            void load();
-          }}
+          onSaved={() => setForm(null)}
           onDelete={form.ball ? () => setPendingDelete(form.ball) : undefined}
         />
       )}

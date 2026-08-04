@@ -1,5 +1,6 @@
 import { Pencil, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useLiveQuery } from "dexie-react-hooks";
 import { deleteLaneNote, getLaneNotes, upsertLaneNote } from "../services/ballRepository";
 import type { LaneNote } from "../types/bowling";
 import { Button } from "./ui/Button";
@@ -19,6 +20,10 @@ interface PairRow {
   rightNote?: LaneNote;
 }
 
+// A stable empty list: `?? []` would be a new array on every render, which
+// invalidates every useMemo downstream of it.
+const NO_NOTES: LaneNote[] = [];
+
 /** The lower (odd) lane of the physical pair a lane belongs to. */
 function pairLeft(n: number): number {
   return n % 2 === 1 ? n : n - 1;
@@ -30,22 +35,17 @@ function pairLeft(n: number): number {
  * active game's pair, scrolls to it, and allows quick inline edits.
  */
 export function LaneNotesTab({ alley, currentLanes }: LaneNotesTabProps) {
-  const [notes, setNotes] = useState<LaneNote[]>([]);
-  const [loading, setLoading] = useState(true);
+  // Live, and re-run when the alley changes: editing a note here or on the
+  // Lane Notes screen shows up either way.
+  const live = useLiveQuery(
+    async () => (await getLaneNotes()).filter((n) => n.alley === alley),
+    [alley]
+  );
+  const notes = live ?? NO_NOTES;
+  const loading = live === undefined;
   const [editingLane, setEditingLane] = useState<string | null>(null);
   const [draft, setDraft] = useState("");
   const currentRowRef = useRef<HTMLDivElement | null>(null);
-
-  async function load() {
-    const all = await getLaneNotes();
-    setNotes(all.filter((n) => n.alley === alley));
-    setLoading(false);
-  }
-
-  useEffect(() => {
-    void load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [alley]);
 
   const currentLaneSet = useMemo(
     () => new Set(currentLanes.filter(Boolean)),
@@ -85,14 +85,12 @@ export function LaneNotesTab({ alley, currentLanes }: LaneNotesTabProps) {
   async function save(lane: string) {
     await upsertLaneNote(alley, lane, draft.trim());
     setEditingLane(null);
-    await load();
   }
 
   async function remove(note: LaneNote) {
     if (note.id == null) return;
     await deleteLaneNote(note.id);
     setEditingLane(null);
-    await load();
   }
 
   if (loading) return <p className="px-1 py-4 text-sm text-ink-secondary">Loading…</p>;

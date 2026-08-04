@@ -1,5 +1,6 @@
 import { BookOpen, CircleDot, MapPin, PlayCircle, Plus, Smartphone, Spline, Waves, type LucideIcon } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
+import { useLiveQuery } from "dexie-react-hooks";
 import { createPortal } from "react-dom";
 import { ErrorBanner } from "../components/ErrorBanner";
 import { SessionFormDialog } from "../components/SessionFormDialog";
@@ -43,6 +44,9 @@ const INSTALL_NUDGE_DISMISSED_KEY = "install_nudge_dismissed_at";
 
 const RECENT_LIMIT = 10;
 
+// A stable empty list: `?? []` would be a new array on every render.
+const NO_SESSIONS: SessionSummary[] = [];
+
 export function DashboardView({
   onStartSession,
   isSubmitting = false,
@@ -61,62 +65,37 @@ export function DashboardView({
   onOpenBackup
 }: DashboardViewProps) {
   const [showForm, setShowForm] = useState(false);
-  const [recent, setRecent] = useState<SessionSummary[]>([]);
-  const [loadingRecent, setLoadingRecent] = useState(true);
-  const [showBackupNudge, setShowBackupNudge] = useState(false);
-  const [nudgeSessionsSince, setNudgeSessionsSince] = useState(0);
-  const [nudgeNeverBackedUp, setNudgeNeverBackedUp] = useState(false);
-  const [showInstallLine, setShowInstallLine] = useState(false);
   const [installPromptOpen, setInstallPromptOpen] = useState(false);
 
-  const loadBackupNudge = useCallback(async () => {
-    try {
-      const state = await getBackupNudgeState();
-      setShowBackupNudge(shouldShowBackupNudge(state));
-      setNudgeSessionsSince(state.totalSessions - state.sessionsAtLastBackup);
-      setNudgeNeverBackedUp(state.lastBackupAt === null);
-    } catch {
-      // best-effort
-    }
-  }, []);
+  // Live: finishing a game, deleting a session or importing a backup all show
+  // up here without the dashboard being told to reload.
+  const liveRecent = useLiveQuery(async () => (await getSessionHistory()).slice(0, RECENT_LIMIT));
+  const recent = liveRecent ?? NO_SESSIONS;
+  const loadingRecent = liveRecent === undefined;
 
-  useEffect(() => {
-    loadBackupNudge();
-  }, [loadBackupNudge]);
+  const nudge = useLiveQuery(() => getBackupNudgeState());
+  const showBackupNudge = nudge ? shouldShowBackupNudge(nudge) : false;
+  const nudgeSessionsSince = nudge ? nudge.totalSessions - nudge.sessionsAtLastBackup : 0;
+  const nudgeNeverBackedUp = nudge?.lastBackupAt === null;
 
-  useEffect(() => {
-    const eligible = (isIOSSafari() && !isStandalone()) || canPromptInstall();
-    if (!eligible) return;
-    getSetting(INSTALL_NUDGE_DISMISSED_KEY)
-      .then((dismissed) => setShowInstallLine(!dismissed))
-      .catch(() => {});
-  }, []);
+  // Wrapped in an object because the setting is itself undefined when unset,
+  // which would otherwise be indistinguishable from "the query has not
+  // answered yet" and flash the banner on every load.
+  const installNudge = useLiveQuery(async () => ({
+    dismissedAt: await getSetting(INSTALL_NUDGE_DISMISSED_KEY)
+  }));
+  const installEligible = (isIOSSafari() && !isStandalone()) || canPromptInstall();
+  const showInstallLine = installEligible && !!installNudge && !installNudge.dismissedAt;
 
   function handleBackupLater() {
-    setShowBackupNudge(false);
     void setBackupNudgeSnoozedUntil(new Date(Date.now() + SNOOZE_MS).toISOString());
   }
 
+  // Both nudges dismiss by writing the setting they read: the live queries
+  // above pick the write up, so there is no second copy of "is it showing".
   function dismissInstallLine() {
-    setShowInstallLine(false);
     void setSetting(INSTALL_NUDGE_DISMISSED_KEY, new Date().toISOString());
   }
-
-  const loadRecent = useCallback(async () => {
-    setLoadingRecent(true);
-    try {
-      const all = await getSessionHistory();
-      setRecent(all.slice(0, RECENT_LIMIT));
-    } catch {
-      // best-effort
-    } finally {
-      setLoadingRecent(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    loadRecent();
-  }, [loadRecent]);
 
   async function handleSubmit(values: NewSessionFormValues) {
     await onStartSession(values);
@@ -215,7 +194,6 @@ export function DashboardView({
           isLoading={loadingRecent}
           onOpenSession={onOpenSession}
           activeSessionId={activeSessionId}
-          onSessionChanged={loadRecent}
           onSessionDeleted={onSessionDeleted}
         />
       </div>

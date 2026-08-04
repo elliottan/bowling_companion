@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useLiveQuery } from "dexie-react-hooks";
 import { ErrorBanner } from "../components/ErrorBanner";
 import { SessionHistory } from "../components/SessionHistory";
 import { Stats } from "../components/Stats";
@@ -25,6 +26,11 @@ interface HistoryViewProps {
 
 type Pane = "sessions" | "stats";
 
+// Stable empties: `?? []` would be a new array on every render, which
+// invalidates every useMemo downstream of it.
+const NO_SESSIONS: SessionSummary[] = [];
+const NO_BALLS: Ball[] = [];
+
 const PAGE = 15; // sessions loaded per infinite-scroll step
 const PANES: Pane[] = ["sessions", "stats"];
 
@@ -44,10 +50,14 @@ const selectClass =
   "h-8 max-w-[46%] rounded-full border border-edge-strong bg-surface px-3 text-xs font-medium outline-none focus:border-accent-fill";
 
 export function HistoryView({ onOpenSession, activeSessionId, onSessionDeleted }: HistoryViewProps) {
-  const [history, setHistory] = useState<SessionSummary[]>([]);
-  const [balls, setBalls] = useState<Ball[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState("");
+  // Live: renaming or deleting a session from a row updates the list and every
+  // stat derived from it, with no reload wired through the rows.
+  const liveHistory = useLiveQuery(() => getSessionHistory());
+  const liveBalls = useLiveQuery(() => getBalls());
+  const history = liveHistory ?? NO_SESSIONS;
+  const balls = liveBalls ?? NO_BALLS;
+  const isLoading = liveHistory === undefined;
+  const [error] = useState("");
   const [pane, setPane] = useState<Pane>("sessions");
 
   const [filterAlley, setFilterAlley] = useState("");
@@ -66,24 +76,6 @@ export function HistoryView({ onOpenSession, activeSessionId, onSessionDeleted }
       prev.includes(lane) ? prev.filter((l) => l !== lane) : [...prev, lane]
     );
   }
-
-  const load = useCallback(async () => {
-    setIsLoading(true);
-    setError("");
-    try {
-      const [h, b] = await Promise.all([getSessionHistory(), getBalls()]);
-      setHistory(h);
-      setBalls(b);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Unable to load history.");
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    void load();
-  }, [load]);
 
   // Alley + pattern filter at the session level; lanes apply at the frame level
   // inside the stats calculators (correct for cross-lane games).
@@ -248,7 +240,6 @@ export function HistoryView({ onOpenSession, activeSessionId, onSessionDeleted }
               isLoading={isLoading}
               onOpenSession={onOpenSession}
               activeSessionId={activeSessionId}
-              onSessionChanged={() => void load()}
               onSessionDeleted={onSessionDeleted}
             />
             <div ref={sentinelRef} className="h-6" aria-hidden="true" />

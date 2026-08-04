@@ -77,6 +77,14 @@ vertical padding to survive.
 - The whole product is offline; storage stays on-device. Putting Dexie behind
   thin repository functions means we can replace it (SQLite, file-system API,
   Origin Private File System) by changing one file.
+- Screens read those repositories through `useLiveQuery` (`dexie-react-hooks`),
+  so a write updates every list showing that data. The alternative was what the
+  app used to do: each screen loaded in a mount effect and every mutation had to
+  remember to call back and refresh, which is a stale list one forgotten call
+  away. Live queries observe in a **readonly** transaction, so a query may not
+  write (seeding defaults runs in its own effect, see `SpareLinesView`), and the
+  fallback for "not answered yet" must be a stable constant, or every `useMemo`
+  downstream of it re-runs on each render.
 - Scoring is the part that's mathematically delicate. Isolating it in
   `lib/scoring.ts` + `lib/frameController.ts` lets us drive it with cheap
   unit tests instead of slow component tests.

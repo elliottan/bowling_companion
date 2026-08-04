@@ -1,5 +1,6 @@
 import { ExternalLink, Pencil, Plus, RotateCcw, Trash2, Waves } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
+import { useLiveQuery } from "dexie-react-hooks";
 import { ErrorBanner } from "./ErrorBanner";
 import { OilPatternFormDialog } from "./OilPatternFormDialog";
 import { PushScreen } from "./PushScreen";
@@ -22,29 +23,22 @@ interface OilPatternManagerProps {
   onBack?: () => void;
 }
 
+// A stable empty list: `?? []` would be a new array on every render, which
+// invalidates every useMemo downstream of it.
+const NO_PATTERNS: OilPattern[] = [];
+
 export function OilPatternManager({ onBack }: OilPatternManagerProps = {}) {
-  const [patterns, setPatterns] = useState<OilPattern[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  // Live: adding, renaming, archiving and deleting a pattern all update this
+  // list, including when the session form has the manager open on top of it.
+  const live = useLiveQuery(() => getAllOilPatterns());
+  const patterns = live ?? NO_PATTERNS;
+  const isLoading = live === undefined;
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [showArchived, setShowArchived] = useState(false);
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<OilPattern | undefined>(undefined);
-
-  const refresh = useCallback(async () => {
-    try {
-      setPatterns(await getAllOilPatterns());
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Unable to load oil patterns.");
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    void refresh();
-  }, [refresh]);
 
   const active = useMemo(() => patterns.filter((p) => !p.archived), [patterns]);
   const archived = useMemo(() => patterns.filter((p) => p.archived), [patterns]);
@@ -58,7 +52,6 @@ export function OilPatternManager({ onBack }: OilPatternManagerProps = {}) {
     setDialogOpen(false);
     setEditing(undefined);
     setNotice("");
-    await refresh();
   }
 
   async function handleRemove(pattern: OilPattern) {
@@ -71,8 +64,7 @@ export function OilPatternManager({ onBack }: OilPatternManagerProps = {}) {
           ? `"${pattern.name}" is used by ${result.sessions} ${result.sessions === 1 ? "session" : "sessions"}, so it was archived instead of deleted.`
           : `"${pattern.name}" deleted.`
       );
-      await refresh();
-    } catch (err) {
+      } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to remove pattern.");
     }
   }
@@ -83,8 +75,7 @@ export function OilPatternManager({ onBack }: OilPatternManagerProps = {}) {
     try {
       await setOilPatternArchived(pattern.id, false);
       setNotice("");
-      await refresh();
-    } catch (err) {
+      } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to restore pattern.");
     }
   }

@@ -1,5 +1,6 @@
 import { MapPin, Plus, Trash2 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
+import { useLiveQuery } from "dexie-react-hooks";
 import { ErrorBanner } from "../components/ErrorBanner";
 import { PushScreen } from "../components/PushScreen";
 import { Button } from "../components/ui/Button";
@@ -17,15 +18,23 @@ import { GROUP_HEADING } from "../components/ui/typography";
 
 const isPositiveInt = (s: string) => /^\d+$/.test(s.trim());
 
+// A stable empty list: `?? []` would be a new array on every render, which
+// invalidates every useMemo downstream of it.
+const NO_NOTES: LaneNote[] = [];
+const NO_ALLEYS: string[] = [];
+
 interface LaneNotesViewProps {
   /** Present when pushed from Settings — draws the shared nav bar. */
   onBack?: () => void;
 }
 
 export function LaneNotesView({ onBack }: LaneNotesViewProps = {}) {
-  const [laneNotes, setLaneNotes] = useState<LaneNote[]>([]);
-  const [alleys, setAlleys] = useState<string[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  // Live: writing a note updates the list, with no refresh call per site.
+  const liveNotes = useLiveQuery(() => getLaneNotes());
+  const liveAlleys = useLiveQuery(() => getDistinctAlleys());
+  const laneNotes = liveNotes ?? NO_NOTES;
+  const alleys = liveAlleys ?? NO_ALLEYS;
+  const isLoading = liveNotes === undefined;
   const [error, setError] = useState("");
 
   const [showForm, setShowForm] = useState(false);
@@ -83,22 +92,6 @@ export function LaneNotesView({ onBack }: LaneNotesViewProps = {}) {
     return list.slice(0, 6);
   }, [alley, alleys]);
 
-  async function load() {
-    setIsLoading(true);
-    try {
-      setLaneNotes(await getLaneNotes());
-      setAlleys(await getDistinctAlleys());
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Unable to load lane notes.");
-    } finally {
-      setIsLoading(false);
-    }
-  }
-
-  useEffect(() => {
-    void load();
-  }, []);
-
   function openAdd() {
     setEditingId(null);
     setAlley("");
@@ -134,7 +127,6 @@ export function LaneNotesView({ onBack }: LaneNotesViewProps = {}) {
     try {
       await upsertLaneNote(alley, lane, notes.trim());
       cancel();
-      await load();
     } catch (err) {
       setFormError(err instanceof Error ? err.message : "Failed to save.");
     }
@@ -144,7 +136,6 @@ export function LaneNotesView({ onBack }: LaneNotesViewProps = {}) {
     try {
       await deleteLaneNote(id);
       cancel();
-      await load();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to delete.");
     }

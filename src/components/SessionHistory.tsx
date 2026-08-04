@@ -17,7 +17,6 @@ interface SessionHistoryProps {
   onOpenSession: (sessionId: number, openStats?: boolean) => void;
   activeSessionId?: number | null;
   /** Called after a session is edited or deleted so the list can reload. */
-  onSessionChanged?: () => void;
   /** Called after a session is deleted so App can drop stale active state. */
   onSessionDeleted?: (sessionId: number) => void;
 }
@@ -27,7 +26,6 @@ export function SessionHistory({
   isLoading = false,
   onOpenSession,
   activeSessionId,
-  onSessionChanged,
   onSessionDeleted
 }: SessionHistoryProps) {
   if (isLoading) {
@@ -57,7 +55,6 @@ export function SessionHistory({
             summary={summary}
             isActive={summary.session.id != null && summary.session.id === activeSessionId}
             onOpen={onOpenSession}
-            onSessionChanged={onSessionChanged}
             onSessionDeleted={onSessionDeleted}
           />
         </li>
@@ -80,7 +77,6 @@ interface SessionRowProps {
   summary: SessionSummary;
   isActive: boolean;
   onOpen: (sessionId: number, openStats?: boolean) => void;
-  onSessionChanged?: () => void;
   onSessionDeleted?: (sessionId: number) => void;
 }
 
@@ -88,7 +84,7 @@ interface SessionRowProps {
  * Tap a row to open the session; edit lives in the stats panel's pencil;
  * long-press the row to delete the session.
  */
-function SessionRow({ summary, isActive, onOpen, onSessionChanged, onSessionDeleted }: SessionRowProps) {
+function SessionRow({ summary, isActive, onOpen, onSessionDeleted }: SessionRowProps) {
   const { session, games } = summary;
   const [showEdit, setShowEdit] = useState(false);
   const [rowMenu, setRowMenu] = useState<{ left: number; top: number } | null>(null);
@@ -99,14 +95,14 @@ function SessionRow({ summary, isActive, onOpen, onSessionChanged, onSessionDele
     if (!session.id) return;
     await updateSession(session.id, values);
     setShowEdit(false);
-    onSessionChanged?.();
   }
 
   async function handleDeleteSession() {
     setConfirmDelete(false);
     if (!session.id) return;
     await deleteSession(session.id);
-    onSessionChanged?.();
+    // Still announced: the lists refresh themselves now, but the shell has to
+    // drop the session it may be holding open (ADR-041 navigation state).
     onSessionDeleted?.(session.id);
   }
   // Series total = sum of every game's score (current total if unfinished);
