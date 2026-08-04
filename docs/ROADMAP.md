@@ -8,14 +8,23 @@ open.
 
 ## High impact
 
-### Lint config (ESLint)
-
-CI relies on `tsc` + `noUnusedLocals` today. A standard React + TS ESLint
-preset would catch a11y and hooks-rules issues the type checker misses.
+Nothing open.
 
 ---
 
 ## Medium impact
+
+### Toolchain majors
+
+`npm audit` reports seven dev-only advisories (two critical) whose only fixes
+are majors: vite 8, vitest 3/4, sharp 0.35. Nothing reaches users, and vite 8
+under `vite-plugin-pwa` needs its own verification pass.
+
+### Effects that set state on mount
+
+ESLint's `set-state-in-effect` flags 19 places (and `refs` another 9). They are
+deliberate today and the rules are warnings for that reason, but the pattern is
+worth revisiting as one change rather than one file at a time.
 
 ### Splits-left tracking
 
