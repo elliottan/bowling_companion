@@ -1768,3 +1768,8 @@ to keep in step, and the hash resolves from the service worker cache.
   bookmark should open the app, not break it.
 - Sheets and dialogs (`useSheetDismiss`) are not in the URL yet, so back does
   not close a modal. Each is one action away from being added.
+- Verified on an installed iOS PWA (2026-08-04): a left-edge swipe pops exactly
+  one screen. iOS does not fire a competing native back alongside the app's own
+  edge-drag, so the drag does not need to suppress it. If a future iOS ever
+  does, the symptom is two screens closing on one swipe, and the fix is
+  `touch-action`/`preventDefault` inside `PushScreen`'s 28px edge zone.
