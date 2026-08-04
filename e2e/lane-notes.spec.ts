@@ -32,8 +32,9 @@ test("writes a lane note, edits it, and keeps it across a reload", async ({ page
   await expect(page.getByPlaceholder(/How this lane plays/)).toHaveCount(0);
   await expect(page.getByText("Dries up after game 2")).toBeVisible();
 
+  // The reload returns to this screen on its own now (ADR-041), so there is
+  // nothing to navigate: the note is either there or it never persisted.
   await page.reload();
-  await page.getByRole("button", { name: "Lane Notes" }).click();
   await expect(page.getByText("Palace Lanes · Lane 7")).toBeVisible();
   await expect(page.getByText("Dries up after game 2")).toBeVisible();
 });

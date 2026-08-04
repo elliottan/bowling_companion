@@ -1719,3 +1719,52 @@ states, motion, copy, and is the doc to read before any UI work.
   hardcoded `slate-100` behind every ball photo was a white card in dark mode.
 - Destructive actions leave list rows and live inside the editor for the thing
   they destroy, behind `ConfirmDialog`.
+
+---
+
+## ADR-041: The URL is a projection of navigation state, and the only back
+
+**Status:** accepted (2026-08).
+
+**Context.** The app kept no route. `history.length` stayed at 1 however deep
+you went, which meant Android's hardware back and iOS's left-edge swipe closed
+the whole app from anywhere, mid-session, with a full overlay stack open. A
+reload always landed on the dashboard, and no screen could be linked to.
+
+The naive fix, pushing a history entry per screen, would have made that worse.
+`PushScreen` already implements its own edge-drag-back in a 28px zone, and
+`useOverlay` its own Escape. On iOS the platform fires its back gesture for the
+same swipe, so an in-app path that popped state directly while the platform
+popped history would close two screens on one gesture.
+
+**Decision.** The navigation state (ADR-040's tab / push / dialog shapes, held
+in `lib/appNavigation.ts`) is the source of truth. The URL hash is a
+*projection* of it: `lib/appRoute.ts` serialises state to `#/home/arsenal/catalog`
+and parses it back, and `lib/useHistoryRoute.ts` keeps the two in step.
+
+Two rules make it safe:
+
+1. **Back is the browser's.** Every path back, the nav-bar control, Escape, the
+   edge-drag, Android's hardware button, iOS's swipe, calls `history.back()`.
+   `popstate` is the only place that dispatches the change. Whichever mechanism
+   fires, exactly one pop happens. The fallback is dispatching directly when the
+   app has pushed no entry of its own (a deep link straight into an overlay),
+   because `history.back()` there would leave the app.
+2. **Only navigations you can go "into" get an entry.** Overlays, sessions and
+   Settings sections push; tab switches replace. The tab bar is always on
+   screen, nobody reaches for back to change tabs, and stacking them would mean
+   several presses to leave the app.
+
+A hash, not a path: the app is offline-first, so there is no server rewrite rule
+to keep in step, and the hash resolves from the service worker cache.
+
+**Consequences.**
+- The state is restored in `useReducer`'s lazy initialiser, not a mount effect.
+  An effect runs *after* the first sync, which wrote the pre-restore state to
+  the address bar and pushed an entry for it.
+- Session memory that is not a place (`previousView`, the one-shot stats flag)
+  stays out of the URL.
+- An unreadable hash resolves to the dashboard rather than throwing: a stale
+  bookmark should open the app, not break it.
+- Sheets and dialogs (`useSheetDismiss`) are not in the URL yet, so back does
+  not close a modal. Each is one action away from being added.

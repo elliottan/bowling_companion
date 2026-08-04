@@ -18,6 +18,7 @@ shape to drift, by design.
 | Change schema or types | `src/types/bowling.ts` + `src/db/bowlingDb.ts` (canonical), then `docs/DATA_MODEL.md` for the invariants |
 | Touch scoring | `src/lib/scoring.ts`, `src/lib/frameController.ts` and their tests; ADR-001, ADR-005, ADR-017 |
 | Any UI work: screens, nav, controls, motion, copy | `docs/DESIGN-LANGUAGE.md`. It is the whole rule set, and ADR-040 is the why |
+| Navigation, back, or routing | `src/lib/appNavigation.ts` + `appRoute.ts` + `useHistoryRoute.ts`; ADR-041 for why back goes through history |
 | Add or restructure a module | `docs/ARCHITECTURE.md` for the import layering |
 | Backup, import or merge | ADR-038 + `src/services/backupRepository.ts` |
 | Pin input | ADR-006 (inverted input), ADR-001 |

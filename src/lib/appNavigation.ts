@@ -52,7 +52,19 @@ export type NavAction =
   | { type: "closeLineSandbox" }
   | { type: "statsOpened" }
   | { type: "sessionDeleted"; sessionId: number }
-  | { type: "resumeAvailable"; sessionId: number };
+  | { type: "resumeAvailable"; sessionId: number }
+  | { type: "restore"; route: RestorableRoute };
+
+/** The part of a route the URL can describe. Declared here (rather than
+ *  imported from `appRoute`) so the reducer stays the thing routes are built
+ *  against, not the other way round. */
+export interface RestorableRoute {
+  view: AppView;
+  sessionId?: number;
+  settingsSection?: SettingsSection;
+  overlays: Overlay[];
+  lineSandbox?: boolean;
+}
 
 export const INITIAL_NAV: NavState = {
   view: "dashboard",
@@ -122,6 +134,21 @@ export function navReducer(state: NavState, action: NavAction): NavState {
       return action.sessionId === state.activeSessionId
         ? { ...state, activeSessionId: null, view: state.view === "active" ? state.previousView : state.view }
         : state;
+
+    case "restore": {
+      const { route } = action;
+      return {
+        ...state,
+        view: route.view,
+        // Where back lands after a restore: the tab under the session, since
+        // the history entry that got us here is gone by the time this runs.
+        previousView: route.view === "active" ? state.previousView : route.view,
+        activeSessionId: route.sessionId ?? (route.view === "active" ? state.activeSessionId : null),
+        settingsSection: route.settingsSection ?? "menu",
+        overlays: route.overlays,
+        lineSandboxOpen: route.lineSandbox ?? false
+      };
+    }
 
     case "resumeAvailable":
       // On launch only: an unfinished game today opens straight into scoring.

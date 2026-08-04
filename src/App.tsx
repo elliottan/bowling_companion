@@ -33,12 +33,13 @@ import { LaneVisualizerLazy } from "./components/LaneVisualizerLazy";
 import { UpdateToast } from "./components/UpdateToast";
 import { shouldResetScroll } from "./lib/viewportScroll";
 import {
-  INITIAL_NAV,
   navReducer,
   underLabel,
   type AppView,
   type Overlay
 } from "./lib/appNavigation";
+import { initialNavFromHash } from "./lib/appRoute";
+import { useHistoryRoute } from "./lib/useHistoryRoute";
 
 // Pushed screens, loaded when pushed: the catalog carries the whole ball list
 // UI and the arsenal its editor, and neither is on the path to scoring a game.
@@ -75,12 +76,22 @@ const OVERLAY_LABEL: Record<Overlay, string> = {
   catalog: "Catalog"
 };
 
+// Read once, before the router normalises the hash: was the app opened at a
+// particular screen, or just opened?
+const launchedWithRoute = (() => {
+  const hash = window.location.hash;
+  return hash !== "" && hash !== "#" && hash !== "#/" && hash !== "#/home";
+})();
+
 function App() {
   // Every "where am I" question (tab, session, Settings section, overlay
   // stack) is answered by one reducer, so the rules between them are readable
   // and testable in `lib/appNavigation.ts` rather than spread across handlers.
-  const [nav, dispatch] = useReducer(navReducer, INITIAL_NAV);
+  const [nav, dispatch] = useReducer(navReducer, window.location.hash, initialNavFromHash);
   const { view, activeSessionId, openSessionStats, settingsSection, overlays } = nav;
+  // Back is the browser's: see the note in useHistoryRoute for why every path
+  // routes through it rather than dispatching a pop directly.
+  const goBack = useHistoryRoute(nav, dispatch);
   const [isStartingSession, setIsStartingSession] = useState(false);
   const [startError, setStartError] = useState("");
   const [handedness, setHandednessState] = useState<Handedness | null>(null);
@@ -96,7 +107,7 @@ function App() {
   // Pushed screens (PushScreen owns each one's Escape / focus trap / drag-back);
   // these only maintain the stack.
   const pushOverlay = useCallback((overlay: Overlay) => dispatch({ type: "pushOverlay", overlay }), []);
-  const popOverlay = useCallback(() => dispatch({ type: "popOverlay" }), []);
+  const popOverlay = useCallback(() => goBack({ type: "popOverlay" }), [goBack]);
 
   // The on-screen keyboard resizes the (standalone) webview, which would shove
   // the bottom nav up to float above the keyboard. Instead we hide the nav
@@ -178,8 +189,11 @@ function App() {
     }
   }, []);
 
-  // On launch, if today has an unfinished game, jump straight into it.
+  // On launch, if today has an unfinished game, jump straight into it. Not
+  // when the URL already named a screen: a reload or a shared link asked for
+  // somewhere specific, and that beats the convenience jump.
   useEffect(() => {
+    if (launchedWithRoute) return;
     getResumableToday()
       .then((r) => {
         if (r) dispatch({ type: "resumeAvailable", sessionId: r.sessionId });
@@ -382,7 +396,7 @@ function App() {
             // One-shot: without this the sheet would re-open on every remount
             // (tab switches remount this view).
             onStatsOpened={() => dispatch({ type: "statsOpened" })}
-            onBack={() => dispatch({ type: "leaveSession" })}
+            onBack={() => goBack({ type: "leaveSession" })}
             onSessionDeleted={() =>
               activeSessionId != null && dispatch({ type: "sessionDeleted", sessionId: activeSessionId })
             }
@@ -400,7 +414,12 @@ function App() {
         {view === "settings" && (
           <SettingsView
             section={settingsSection}
-            onSectionChange={(section) => dispatch({ type: "goToSettingsSection", section })}
+            // Leaving a section is a back; entering one is a navigation.
+            onSectionChange={(section) =>
+              section === "menu"
+                ? goBack({ type: "goToSettingsSection", section: "menu" })
+                : dispatch({ type: "goToSettingsSection", section })
+            }
             handedness={handedness ?? "right"}
             onHandednessChange={chooseHandedness}
             driftModel={driftModel}
@@ -456,7 +475,7 @@ function App() {
           title="Line sandbox"
           line={sandboxLine}
           onChange={setSandboxLine}
-          onClose={() => dispatch({ type: "closeLineSandbox" })}
+          onClose={() => goBack({ type: "closeLineSandbox" })}
         />
       )}
 

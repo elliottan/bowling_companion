@@ -96,6 +96,13 @@ User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachan
   view load when you open them rather than on every launch, which is about 8%
   less to download before the first screen paints.
 
+### Added
+
+- **Back works.** The system back button (and the left-edge swipe) now closes
+  the screen you are on instead of the whole app, one screen at a time. A
+  reload returns you to where you were rather than the home tab, and screens
+  have addresses, so a link can point at a session or a settings page.
+
 ### Fixed
 
 - **The home buttons no longer jump on arrival.** The + button and the resume
