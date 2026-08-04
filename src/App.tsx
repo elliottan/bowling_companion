@@ -6,7 +6,7 @@ import {
   Target,
   type LucideIcon
 } from "lucide-react";
-import { Suspense, lazy, useCallback, useEffect, useRef, useState } from "react";
+import { Suspense, lazy, useCallback, useEffect, useReducer, useRef, useState } from "react";
 import { DashboardView } from "./views/DashboardView";
 import { ActiveSessionView } from "./views/ActiveSessionView";
 import { HistoryView } from "./views/HistoryView";
@@ -32,17 +32,18 @@ import type { Handedness, LineSpec } from "./types/bowling";
 import { LaneVisualizerLazy } from "./components/LaneVisualizerLazy";
 import { UpdateToast } from "./components/UpdateToast";
 import { shouldResetScroll } from "./lib/viewportScroll";
+import {
+  INITIAL_NAV,
+  navReducer,
+  underLabel,
+  type AppView,
+  type Overlay
+} from "./lib/appNavigation";
 
 // Pushed screens, loaded when pushed: the catalog carries the whole ball list
 // UI and the arsenal its editor, and neither is on the path to scoring a game.
 const ArsenalView = lazy(() => import("./views/ArsenalView").then((m) => ({ default: m.ArsenalView })));
 const CatalogView = lazy(() => import("./views/CatalogView").then((m) => ({ default: m.CatalogView })));
-
-type AppView = "dashboard" | "active" | "history" | "spares" | "settings";
-
-/** Screens that float above the tab bar, newest last. Pushing one keeps what is
- *  underneath alive, so back pops one level instead of collapsing the stack. */
-type Overlay = "arsenal" | "catalog";
 
 type NavItem = {
   view: AppView;
@@ -75,20 +76,17 @@ const OVERLAY_LABEL: Record<Overlay, string> = {
 };
 
 function App() {
-  const [view, setView] = useState<AppView>("dashboard");
-  // The view to return to when leaving the active session (set on entry).
-  const [previousView, setPreviousView] = useState<AppView>("dashboard");
-  const [activeSessionId, setActiveSessionId] = useState<number | null>(null);
-  const [openSessionStats, setOpenSessionStats] = useState(false);
+  // Every "where am I" question (tab, session, Settings section, overlay
+  // stack) is answered by one reducer, so the rules between them are readable
+  // and testable in `lib/appNavigation.ts` rather than spread across handlers.
+  const [nav, dispatch] = useReducer(navReducer, INITIAL_NAV);
+  const { view, activeSessionId, openSessionStats, settingsSection, overlays } = nav;
   const [isStartingSession, setIsStartingSession] = useState(false);
   const [startError, setStartError] = useState("");
-  const [settingsSection, setSettingsSection] = useState<SettingsSection>("menu");
   const [handedness, setHandednessState] = useState<Handedness | null>(null);
   const [handednessLoaded, setHandednessLoaded] = useState(false);
   const [driftModel, setDriftModelState] = useState<DriftModel>(DEFAULT_DRIFT_MODEL);
   const [resumable, setResumable] = useState<ResumableGame | null>(null);
-  const [overlays, setOverlays] = useState<Overlay[]>([]);
-  const [lineVizOpen, setLineVizOpen] = useState(false);
   // A realistic strike line; auto-hooks to the pocket (ADR-024), no seeded breakpoint.
   const [sandboxLine, setSandboxLine] = useState<LineSpec | undefined>({
     laydown: 20, target: 15, breakpoint: 8,
@@ -97,11 +95,8 @@ function App() {
 
   // Pushed screens (PushScreen owns each one's Escape / focus trap / drag-back);
   // these only maintain the stack.
-  const pushOverlay = useCallback(
-    (o: Overlay) => setOverlays((s) => (s[s.length - 1] === o ? s : [...s, o])),
-    []
-  );
-  const popOverlay = useCallback(() => setOverlays((s) => s.slice(0, -1)), []);
+  const pushOverlay = useCallback((overlay: Overlay) => dispatch({ type: "pushOverlay", overlay }), []);
+  const popOverlay = useCallback(() => dispatch({ type: "popOverlay" }), []);
 
   // The on-screen keyboard resizes the (standalone) webview, which would shove
   // the bottom nav up to float above the keyboard. Instead we hide the nav
@@ -187,10 +182,7 @@ function App() {
   useEffect(() => {
     getResumableToday()
       .then((r) => {
-        if (r) {
-          setActiveSessionId(r.sessionId);
-          setView("active");
-        }
+        if (r) dispatch({ type: "resumeAvailable", sessionId: r.sessionId });
       })
       .catch(() => {});
   }, []);
@@ -217,11 +209,10 @@ function App() {
   // A session deleted from a history row may be the active one — drop the
   // stale active state so the Active tab and resume pill don't point at it.
   function handleSessionDeleted(sessionId: number) {
-    if (sessionId === activeSessionId) {
-      setActiveSessionId(null); // refreshResumable refires via the effect
-    } else {
-      refreshResumable();
-    }
+    // Clearing the active session refires refreshResumable via the effect;
+    // deleting any other one leaves navigation alone, so refresh by hand.
+    if (sessionId === activeSessionId) dispatch({ type: "sessionDeleted", sessionId });
+    else refreshResumable();
   }
 
   useEffect(() => {
@@ -261,19 +252,12 @@ function App() {
     }
   }, [tabIndex]);
 
-  // Navigate, remembering where we came from when entering the active view.
-  function goTo(target: AppView) {
-    if (target === "active" && view !== "active") setPreviousView(view);
-    if (target === "settings") setSettingsSection("menu");
-    setView(target);
-  }
+  const goTo = (view: AppView) => dispatch({ type: "goTo", view });
 
   // Jump straight into a Settings section, skipping goTo's reset to the menu.
   // Used by the dashboard shortcuts and the backup nudge.
-  function goToSettingsSection(section: SettingsSection) {
-    setSettingsSection(section);
-    setView("settings");
-  }
+  const goToSettingsSection = (section: SettingsSection) =>
+    dispatch({ type: "goToSettingsSection", section });
 
   const goToBackup = () => goToSettingsSection("backup");
 
@@ -318,8 +302,7 @@ function App() {
         lane_number: values.lanes[0]
       });
 
-      setActiveSessionId(sessionId);
-      goTo("active");
+      dispatch({ type: "openSession", sessionId });
     } catch (error) {
       setStartError(
         error instanceof Error ? error.message : "Unable to start session."
@@ -332,9 +315,7 @@ function App() {
   // `openStats` (a finished session) lands on the session page with the stats
   // sheet already up — there's no scoring left to do there.
   function openSession(sessionId: number, openStats = false) {
-    setActiveSessionId(sessionId);
-    setOpenSessionStats(openStats);
-    goTo("active");
+    dispatch({ type: "openSession", sessionId, openStats });
   }
 
   return (
@@ -386,7 +367,7 @@ function App() {
             onViewAll={() => goTo("history")}
             activeSessionId={activeSessionId}
             onOpenCatalog={() => pushOverlay("catalog")}
-            onOpenLineVisualizer={() => setLineVizOpen(true)}
+            onOpenLineVisualizer={() => dispatch({ type: "openLineSandbox" })}
             onOpenArsenal={() => pushOverlay("arsenal")}
             onOpenLaneNotes={() => goToSettingsSection("lanes")}
             onOpenOilPatterns={() => goToSettingsSection("oil-patterns")}
@@ -400,12 +381,11 @@ function App() {
             openStatsOnMount={openSessionStats}
             // One-shot: without this the sheet would re-open on every remount
             // (tab switches remount this view).
-            onStatsOpened={() => setOpenSessionStats(false)}
-            onBack={() => setView(previousView)}
-            onSessionDeleted={() => {
-              setActiveSessionId(null);
-              setView(previousView);
-            }}
+            onStatsOpened={() => dispatch({ type: "statsOpened" })}
+            onBack={() => dispatch({ type: "leaveSession" })}
+            onSessionDeleted={() =>
+              activeSessionId != null && dispatch({ type: "sessionDeleted", sessionId: activeSessionId })
+            }
             onOpenArsenal={() => pushOverlay("arsenal")}
           />
         )}
@@ -420,14 +400,14 @@ function App() {
         {view === "settings" && (
           <SettingsView
             section={settingsSection}
-            onSectionChange={setSettingsSection}
+            onSectionChange={(section) => dispatch({ type: "goToSettingsSection", section })}
             handedness={handedness ?? "right"}
             onHandednessChange={chooseHandedness}
             driftModel={driftModel}
             onDriftModelChange={updateDriftModel}
             onOpenArsenal={() => pushOverlay("arsenal")}
             onOpenCatalog={() => pushOverlay("catalog")}
-            onOpenLineVisualizer={() => setLineVizOpen(true)}
+            onOpenLineVisualizer={() => dispatch({ type: "openLineSandbox" })}
           />
         )}
       </main>
@@ -457,7 +437,7 @@ function App() {
           rather than dropping back to the tab. */}
       <Suspense fallback={null}>
       {overlays.map((overlay, i) => {
-        const under = i === 0 ? TAB_LABEL[view] : OVERLAY_LABEL[overlays[i - 1]];
+        const under = underLabel(nav, i, TAB_LABEL, OVERLAY_LABEL);
         return overlay === "arsenal" ? (
           <ArsenalView
             key={`arsenal-${i}`}
@@ -471,12 +451,12 @@ function App() {
       })}
       </Suspense>
 
-      {lineVizOpen && (
+      {nav.lineSandboxOpen && (
         <LaneVisualizerLazy
           title="Line sandbox"
           line={sandboxLine}
           onChange={setSandboxLine}
-          onClose={() => setLineVizOpen(false)}
+          onClose={() => dispatch({ type: "closeLineSandbox" })}
         />
       )}
 

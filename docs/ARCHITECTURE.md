@@ -80,6 +80,13 @@ vertical padding to survive.
 - Scoring is the part that's mathematically delicate. Isolating it in
   `lib/scoring.ts` + `lib/frameController.ts` lets us drive it with cheap
   unit tests instead of slow component tests.
+- Navigation gets the same treatment for the same reason. `lib/appNavigation.ts`
+  is a plain reducer holding which tab, which session, which Settings section
+  and what is stacked above them; `App.tsx` renders its state. The rules
+  between those (what "back" means two overlays deep, which tab leaving a
+  session returns to, what happens when the open session is deleted elsewhere)
+  used to be spread across a dozen inline handlers that only the running app
+  could exercise.
 - Views are intentionally thin so per-screen UX iteration is local.
 
 ## Where the tests live, and what holds them up

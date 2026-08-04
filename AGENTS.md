@@ -26,7 +26,8 @@ shape to drift, by design.
 
 ## Load-bearing files
 
-`src/App.tsx` (shell, tab routing, overlay stack) · `src/db/bowlingDb.ts`
+`src/App.tsx` (shell) + `src/lib/appNavigation.ts` (the tab/session/overlay
+state machine it renders) · `src/db/bowlingDb.ts`
 (Dexie schema + versions) · `src/services/*Repository.ts` (all persistence) ·
 `src/types/bowling.ts` (shared types) · `src/lib/scoring.ts` +
 `frameController.ts` (scoring engine) · `src/components/PushScreen.tsx` +

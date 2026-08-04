@@ -11,7 +11,10 @@ import type { DriftModel } from "../lib/driftModel";
 import { DONATE_URL, FEEDBACK_URL } from "../lib/links";
 import { GROUP_HEADING } from "../components/ui/typography";
 
-export type SettingsSection = "menu" | "arsenal" | "lanes" | "oil-patterns" | "backup" | "preferences" | "appearance";
+// Navigating to a section is a navigation action, so the union lives with the
+// rest of the navigation state.
+import type { SettingsSection } from "../lib/appNavigation";
+export type { SettingsSection };
 
 interface SettingsViewProps {
   section: SettingsSection;
