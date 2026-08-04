@@ -20,7 +20,7 @@ import type { Ball, LineSpec, PinNumber } from "../types/bowling";
 import type { Manufacturer } from "../types/catalog";
 import { BallPickerSheet } from "./BallPickerSheet";
 import { CatalogBallImage } from "./CatalogBallImage";
-import { LaneVisualizer } from "./LaneVisualizer";
+import { LaneVisualizerLazy } from "./LaneVisualizerLazy";
 import { LineInput, floatLabel, lockedTapBlocker } from "./LineInput";
 import { Button } from "./ui/Button";
 import { IconButton } from "./ui/IconButton";
@@ -254,7 +254,7 @@ export function ShotDetailBar({
       </div>
 
       {showViz && (
-        <LaneVisualizer
+        <LaneVisualizerLazy
           title={showViz === "actual" ? "Actual line" : "Intended line"}
           line={showViz === "actual" ? actualView : intended}
           onChange={showViz === "actual" ? handleActualChange : handleIntendedChange}

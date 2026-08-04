@@ -2,7 +2,7 @@ import { Eye, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { ErrorBanner } from "./ErrorBanner";
 import { PinGrid } from "./PinGrid";
-import { LaneVisualizer } from "./LaneVisualizer";
+import { LaneVisualizerLazy } from "./LaneVisualizerLazy";
 import { useDriftModel } from "../lib/driftModelContext";
 import { deriveLaydown, deriveSlide, syncStanceLaydown } from "../lib/driftModel";
 import { useOverlay } from "../lib/useOverlay";
@@ -211,7 +211,7 @@ export function SpareLineFormDialog({
           </div>
         </form>
         {showViz && (
-          <LaneVisualizer
+          <LaneVisualizerLazy
             title="Spare line"
             line={line}
             leave={pins}

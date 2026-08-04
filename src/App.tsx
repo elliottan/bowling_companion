@@ -6,11 +6,9 @@ import {
   Target,
   type LucideIcon
 } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { Suspense, lazy, useCallback, useEffect, useRef, useState } from "react";
 import { DashboardView } from "./views/DashboardView";
 import { ActiveSessionView } from "./views/ActiveSessionView";
-import { ArsenalView } from "./views/ArsenalView";
-import { CatalogView } from "./views/CatalogView";
 import { HistoryView } from "./views/HistoryView";
 import { SettingsView, type SettingsSection } from "./views/SettingsView";
 import { SpareLinesView } from "./views/SpareLinesView";
@@ -31,9 +29,14 @@ import { DriftModelContext } from "./lib/driftModelContext";
 import { DEFAULT_DRIFT_MODEL, type DriftModel } from "./lib/driftModel";
 import { HandednessPicker } from "./components/HandednessPicker";
 import type { Handedness, LineSpec } from "./types/bowling";
-import { LaneVisualizer } from "./components/LaneVisualizer";
+import { LaneVisualizerLazy } from "./components/LaneVisualizerLazy";
 import { UpdateToast } from "./components/UpdateToast";
 import { shouldResetScroll } from "./lib/viewportScroll";
+
+// Pushed screens, loaded when pushed: the catalog carries the whole ball list
+// UI and the arsenal its editor, and neither is on the path to scoring a game.
+const ArsenalView = lazy(() => import("./views/ArsenalView").then((m) => ({ default: m.ArsenalView })));
+const CatalogView = lazy(() => import("./views/CatalogView").then((m) => ({ default: m.CatalogView })));
 
 type AppView = "dashboard" | "active" | "history" | "spares" | "settings";
 
@@ -452,6 +455,7 @@ function App() {
       {/* Overlay stack. Rendering in order is what layers them: equal z-index,
           so the later sibling paints on top, and popping reveals the one below
           rather than dropping back to the tab. */}
+      <Suspense fallback={null}>
       {overlays.map((overlay, i) => {
         const under = i === 0 ? TAB_LABEL[view] : OVERLAY_LABEL[overlays[i - 1]];
         return overlay === "arsenal" ? (
@@ -465,9 +469,10 @@ function App() {
           <CatalogView key={`catalog-${i}`} onBack={popOverlay} backLabel={under} />
         );
       })}
+      </Suspense>
 
       {lineVizOpen && (
-        <LaneVisualizer
+        <LaneVisualizerLazy
           title="Line sandbox"
           line={sandboxLine}
           onChange={setSandboxLine}
