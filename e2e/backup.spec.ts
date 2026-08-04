@@ -45,7 +45,7 @@ test("exports a backup, clears the database, and restores it via import", async 
   await replaceButton.click();
   expect((await safetyCopyPromise).suggestedFilename()).toMatch(/^bowling-companion-pre-import-.*\.json$/);
 
-  await expect(page.getByText(/Replaced all data — now 1 sessions/)).toBeVisible();
+  await expect(page.getByText(/Replaced all data\. You now have 1 sessions/)).toBeVisible();
 
   await page.getByRole("button", { name: "History" }).click();
   // Target the session row button (a location-filter <option> shares the name).

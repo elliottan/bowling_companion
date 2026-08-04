@@ -30,7 +30,7 @@ test("adding a pattern from the session dialog does not submit the session form"
   await page.getByPlaceholder("Ball choice, surface, carry...").fill("keep me");
 
   await page.getByRole("button", { name: "Manage" }).click();
-  await page.getByRole("button", { name: "Add", exact: true }).click();
+  await page.getByRole("button", { name: "Add oil pattern" }).first().click();
   await page.getByPlaceholder("Kegel Main Street").fill("Kegel Navigation");
   await page.getByRole("button", { name: "Save" }).click();
 
