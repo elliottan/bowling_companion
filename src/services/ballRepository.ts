@@ -125,11 +125,6 @@ export async function updateOilPattern(
   });
 }
 
-/** How many sessions still point at this pattern. */
-export async function countSessionsUsingOilPattern(id: number): Promise<number> {
-  return db.sessions.where("oil_pattern_id").equals(id).count();
-}
-
 export async function setOilPatternArchived(id: number, archived: boolean): Promise<void> {
   await db.oil_patterns.update(id, { archived: archived || undefined });
 }

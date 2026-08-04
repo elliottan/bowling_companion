@@ -8,6 +8,7 @@ import type { CreateSessionInput } from "../services/bowlingRepository";
 import type { OilPattern } from "../types/bowling";
 import { getOilPattern, getOilPatterns } from "../services/ballRepository";
 import { getDistinctAlleys, getDistinctDescriptions } from "../services/bowlingRepository";
+import { GROUP_HEADING } from "./ui/typography";
 
 export interface NewSessionFormValues extends CreateSessionInput {
   lanes: string[];
@@ -204,7 +205,7 @@ export function SessionForm({
             <div className="flex items-center justify-between gap-2">
               <label
                 htmlFor="oil-pattern"
-                className="text-xs font-semibold uppercase tracking-wide text-ink-secondary"
+                className={GROUP_HEADING}
               >
                 Oil pattern
               </label>
@@ -310,7 +311,7 @@ export function SessionForm({
 function Field({ label, children }: { label: string; children: ReactNode }) {
   return (
     <label className="block space-y-1.5">
-      <span className="text-xs font-semibold uppercase tracking-wide text-ink-secondary">
+      <span className={GROUP_HEADING}>
         {label}
       </span>
       {children}

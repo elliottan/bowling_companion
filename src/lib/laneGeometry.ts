@@ -4,7 +4,6 @@ import type { Handedness, LineSpec } from "../types/bowling";
 export const LANE_BOARDS = 39;
 export const LANE_FEET = 60;            // foul line → head pin
 export const ARROWS_FEET = 15;          // target arrows
-export const DEFAULT_BREAKPOINT_FEET = 42;
 export const POCKET_BOARD = 17.5;       // 1-3 pocket (right-hander); mirrored by boardToX
 // Ball + pin radius in boards (≈ 4.25" + 2.38" over 1.0417"/board). If the ball
 // center ends farther than this off a pin it cannot have contacted it — used to

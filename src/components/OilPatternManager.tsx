@@ -14,6 +14,7 @@ import {
   updateOilPattern
 } from "../services/ballRepository";
 import type { OilPattern } from "../types/bowling";
+import { GROUP_HEADING } from "./ui/typography";
 
 interface OilPatternManagerProps {
   /** Present when pushed from Settings — draws the shared nav bar. Absent when
@@ -143,7 +144,7 @@ export function OilPatternManager({ onBack }: OilPatternManagerProps = {}) {
           <button
             type="button"
             onClick={() => setShowArchived((v) => !v)}
-            className="mt-5 px-1 text-xs font-semibold uppercase tracking-wide text-ink-secondary"
+            className={`mt-5 px-1 ${GROUP_HEADING}`}
           >
             {showArchived ? "Hide" : "Show"} archived ({archived.length})
           </button>

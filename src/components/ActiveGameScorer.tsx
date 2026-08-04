@@ -44,6 +44,7 @@ import { SpareLineFormDialog } from "./SpareLineFormDialog";
 import { Button } from "./ui/Button";
 import { TAP_TARGET_44 } from "./ui/Chip";
 import { IconButton } from "./ui/IconButton";
+import { GROUP_HEADING } from "./ui/typography";
 
 /** "10-pin" for a single, "3-10" for multi. */
 function formatLeavePins(pins: PinNumber[]): string {
@@ -1118,7 +1119,7 @@ export function ActiveGameScorer({
         <div className="space-y-2">
           {(onEditLanes || lanesList.length > 0) && (
             <div className="flex items-center justify-between rounded-lg border border-edge bg-surface px-2.5 py-1.5">
-              <span className="text-xs font-semibold uppercase tracking-wide text-ink-secondary">Lane</span>
+              <span className={GROUP_HEADING}>Lane</span>
               {onEditLanes ? (
                 <button
                   type="button"

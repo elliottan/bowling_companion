@@ -13,6 +13,7 @@ import {
 } from "../services/ballRepository";
 import { getDistinctAlleys } from "../services/bowlingRepository";
 import type { LaneNote } from "../types/bowling";
+import { GROUP_HEADING } from "../components/ui/typography";
 
 const isPositiveInt = (s: string) => /^\d+$/.test(s.trim());
 
@@ -161,7 +162,7 @@ export function LaneNotesView({ onBack }: LaneNotesViewProps = {}) {
           {formError && <p className="mb-3 text-sm font-semibold text-red-600">{formError}</p>}
           <div className="space-y-3">
             <label className="block space-y-1.5">
-              <span className="text-xs font-semibold uppercase tracking-wide text-ink-secondary">Alley</span>
+              <span className={GROUP_HEADING}>Alley</span>
               <div className="relative">
                 <input
                   value={alley}
@@ -192,7 +193,7 @@ export function LaneNotesView({ onBack }: LaneNotesViewProps = {}) {
               </div>
             </label>
             <label className="block space-y-1.5">
-              <span className="text-xs font-semibold uppercase tracking-wide text-ink-secondary">Lane</span>
+              <span className={GROUP_HEADING}>Lane</span>
               <input
                 value={lane}
                 onChange={(e) => setLane(e.target.value)}
@@ -203,7 +204,7 @@ export function LaneNotesView({ onBack }: LaneNotesViewProps = {}) {
               />
             </label>
             <label className="block space-y-1.5">
-              <span className="text-xs font-semibold uppercase tracking-wide text-ink-secondary">Notes</span>
+              <span className={GROUP_HEADING}>Notes</span>
               <textarea
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
@@ -246,7 +247,7 @@ export function LaneNotesView({ onBack }: LaneNotesViewProps = {}) {
           </div>
           {noteLanes.length > 0 && (
             <div className="mb-4 flex flex-wrap items-center gap-2">
-              <span className="text-xs font-semibold uppercase tracking-wide text-ink-secondary">Lanes</span>
+              <span className={GROUP_HEADING}>Lanes</span>
               {noteLanes.map((l) => (
                 <Chip key={l} selected={selectedLanes.includes(l)} onClick={() => toggleLane(l)}>
                   {l}

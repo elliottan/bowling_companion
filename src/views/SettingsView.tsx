@@ -9,6 +9,7 @@ import { getSetting } from "../services/bowlingRepository";
 import type { Handedness } from "../types/bowling";
 import type { DriftModel } from "../lib/driftModel";
 import { DONATE_URL, FEEDBACK_URL } from "../lib/links";
+import { GROUP_HEADING } from "../components/ui/typography";
 
 export type SettingsSection = "menu" | "arsenal" | "lanes" | "oil-patterns" | "backup" | "preferences" | "appearance";
 
@@ -83,7 +84,7 @@ const ROW_CLASS =
 
 function GroupHeading({ children }: { children: string }) {
   return (
-    <h2 className="mb-1.5 mt-5 px-1 text-xs font-semibold uppercase tracking-wide text-ink-secondary first:mt-0">
+    <h2 className={`mb-1.5 mt-5 px-1 ${GROUP_HEADING} first:mt-0`}>
       {children}
     </h2>
   );

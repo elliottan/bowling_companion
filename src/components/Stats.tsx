@@ -5,6 +5,7 @@ import { MiniPins } from "./MiniPins";
 import type { Manufacturer } from "../types/catalog";
 import { isBabySplit, isSplit, isWashout } from "../lib/pins";
 import type { BallUsage, BowlingStats, LeaveStats } from "../lib/stats";
+import { GROUP_HEADING } from "./ui/typography";
 
 interface StatsProps {
   stats: BowlingStats;
@@ -90,7 +91,7 @@ export function Stats({
           <button
             type="button"
             onClick={() => setShowBallUsage((v) => !v)}
-            className="flex w-full items-center justify-between gap-2 text-xs font-semibold uppercase tracking-wide text-ink-secondary"
+            className={`flex w-full items-center justify-between gap-2 ${GROUP_HEADING}`}
           >
             Ball usage
             <ChevronDown
@@ -157,7 +158,7 @@ function LeaveSection({ title, leaves }: { title: string; leaves: LeaveStats[] }
   const sorted = [...leaves].sort((a, b) => b.attempts - a.attempts);
   return (
     <div className="rounded-lg border border-edge bg-surface p-3 shadow-sm">
-      <h2 className="mb-3 text-xs font-semibold uppercase tracking-wide text-ink-secondary">
+      <h2 className={`mb-3 ${GROUP_HEADING}`}>
         {title}
       </h2>
       <div className="grid grid-cols-4 gap-1.5">

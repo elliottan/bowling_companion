@@ -15,6 +15,7 @@ import {
 import { getSessionHistory } from "../services/bowlingRepository";
 import { getBalls } from "../services/ballRepository";
 import type { Ball, SessionSummary } from "../types/bowling";
+import { GROUP_HEADING } from "../components/ui/typography";
 
 interface HistoryViewProps {
   onOpenSession: (sessionId: number) => void;
@@ -212,7 +213,7 @@ export function HistoryView({ onOpenSession, activeSessionId, onSessionDeleted }
           top and bottom, so anything tighter would overlap hit regions. */}
       {allLanes.length > 0 && (
         <div className="mb-3 flex flex-wrap items-center gap-2">
-          <span className="text-xs font-semibold uppercase tracking-wide text-ink-secondary">Lanes</span>
+          <span className={GROUP_HEADING}>Lanes</span>
           {allLanes.map((l) => (
             <Chip key={l} selected={selectedLanes.includes(l)} onClick={() => toggleLane(l)}>
               {l}

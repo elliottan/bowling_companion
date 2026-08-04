@@ -21,6 +21,7 @@ import {
   updateSession
 } from "../services/bowlingRepository";
 import type { Frame, Game, SessionSummary } from "../types/bowling";
+import { GROUP_HEADING } from "../components/ui/typography";
 
 interface ActiveSessionViewProps {
   sessionId: number;
@@ -454,7 +455,7 @@ export function ActiveSessionView({
               Applies to the whole game. Lanes alternate every frame, so you can't set a lane per frame.
             </p>
 
-            <span className="mt-4 block text-xs font-semibold uppercase tracking-wide text-ink-secondary">Lane pair</span>
+            <span className={`mt-4 block ${GROUP_HEADING}`}>Lane pair</span>
             <div className="mt-1.5 flex items-center gap-2">
               <input
                 value={laneA}
@@ -479,7 +480,7 @@ export function ActiveSessionView({
 
             {laneA.trim() && laneB.trim() && (
               <div className="mt-4">
-                <span className="block text-xs font-semibold uppercase tracking-wide text-ink-secondary">Starting lane (frame 1)</span>
+                <span className={`block ${GROUP_HEADING}`}>Starting lane (frame 1)</span>
                 <div className="mt-1.5 flex items-center gap-2">
                   {(["A", "B"] as const).map((side) => {
                     const lane = side === "A" ? laneA.trim() : laneB.trim();

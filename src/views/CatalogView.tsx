@@ -15,6 +15,7 @@ import {
 import type { CatalogBall, CoverstockCategory, Manufacturer } from "../types/catalog";
 import type { Ball } from "../types/bowling";
 import { addBall, getBalls } from "../services/ballRepository";
+import { GROUP_HEADING } from "../components/ui/typography";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -641,7 +642,7 @@ export function CatalogView({ onBack, backLabel }: CatalogViewProps) {
           <div className="mb-4 rounded-lg border border-edge bg-surface p-4 space-y-4 shadow-sm">
             {/* Brand */}
             <div>
-              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-secondary">Brand</p>
+              <p className={`mb-2 ${GROUP_HEADING}`}>Brand</p>
               <div className="flex flex-wrap gap-2">
                 {ALL_BRANDS.map((brand) => (
                   <Chip
@@ -657,7 +658,7 @@ export function CatalogView({ onBack, backLabel }: CatalogViewProps) {
 
             {/* Coverstock */}
             <div>
-              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-secondary">Coverstock</p>
+              <p className={`mb-2 ${GROUP_HEADING}`}>Coverstock</p>
               <div className="flex flex-wrap gap-2">
                 {ALL_COVERSTOCK.map((cat) => (
                   <Chip
@@ -673,7 +674,7 @@ export function CatalogView({ onBack, backLabel }: CatalogViewProps) {
 
             {/* Core type */}
             <div>
-              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-secondary">Core Type</p>
+              <p className={`mb-2 ${GROUP_HEADING}`}>Core Type</p>
               <div className="flex gap-2">
                 {(["Symmetric", "Asymmetric"] as const).map((ct) => (
                   <Chip

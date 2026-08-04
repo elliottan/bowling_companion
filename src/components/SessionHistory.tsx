@@ -8,6 +8,7 @@ import { ConfirmDialog } from "./ConfirmDialog";
 import { SessionFormDialog } from "./SessionFormDialog";
 import type { NewSessionFormValues } from "./SessionForm";
 import type { SessionSummary } from "../types/bowling";
+import { GROUP_HEADING } from "./ui/typography";
 
 interface SessionHistoryProps {
   sessions: SessionSummary[];
@@ -168,7 +169,7 @@ function SessionRow({ summary, isActive, onOpen, onSessionChanged, onSessionDele
           {seriesTotal > 0 && (
             <p className="text-lg font-extrabold leading-none text-accent">{seriesTotal}</p>
           )}
-          <p className="text-xs font-semibold uppercase tracking-wide text-ink-secondary">
+          <p className={GROUP_HEADING}>
             {games.length} {games.length === 1 ? "game" : "games"}
             {seriesAvg !== null && ` · ${seriesAvg} avg`}
           </p>

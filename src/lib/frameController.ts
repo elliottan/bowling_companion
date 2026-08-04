@@ -89,11 +89,6 @@ export function buildLiveFrame(state: FrameControllerState): Frame | null {
   );
 }
 
-export function resetCurrentShotPins(state: FrameControllerState): FrameControllerState {
-  if (state.isComplete) return state;
-  return { ...state, standingPins: getDefaultPinsForShot(state) };
-}
-
 function advanceTenthFrame(
   state: FrameControllerState,
   frame: Frame,
@@ -207,13 +202,6 @@ function upsertFrame(frames: Frame[], frame: Frame): Frame[] {
   const next = frames.filter((f) => f.frame_number !== frame.frame_number);
   next.push(frame);
   return next.sort((a, b) => a.frame_number - b.frame_number);
-}
-
-function getDefaultPinsForShot(state: FrameControllerState): PinNumber[] {
-  // Shot 1: inverted input (nothing marked standing yet).
-  // Shot 2+: pins-up on a partial rack; a fresh rack (after a strike/spare) is
-  // a "first ball" and starts all-down.
-  return state.currentShot === 1 ? [] : freshRackStart(state.availablePins);
 }
 
 /**

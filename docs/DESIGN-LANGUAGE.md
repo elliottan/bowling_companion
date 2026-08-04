@@ -124,7 +124,8 @@ than displacing it.
 No em dashes, anywhere. A comma, a colon, or a full stop always works, and the
 em dash is the clearest tell of text nobody wrote by hand.
 
-Sentence case everywhere except the small uppercase group headings. Second
+Sentence case everywhere except the small uppercase group headings, which take
+their classes from `GROUP_HEADING` (`src/components/ui/typography.ts`). Second
 person, active voice, and say what happens rather than what the app does:
 "Shots already recorded with this ball keep their scores" beats "Deletion is
 permanent". No exclamation marks.
