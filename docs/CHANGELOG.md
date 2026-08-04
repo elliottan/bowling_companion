@@ -92,9 +92,19 @@ User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachan
 - **One colour means one thing.** Success was previously green in one place
   and a different green in another; warnings, errors and success now each
   have a single treatment that works in both themes.
+- **The app starts faster.** The ball catalog, the arsenal editor and the lane
+  view load when you open them rather than on every launch, which is about 8%
+  less to download before the first screen paints.
 
 ### Fixed
 
+- **The home buttons no longer jump on arrival.** The + button and the resume
+  pill appeared a little high for a moment, then dropped into place, because the
+  tab-switch animation moved the frame they were positioned against.
+- **Start a session, cancel, start again, and the form is there.** The second
+  time it opened invisible: you could tap its fields but not see it.
+- **The pin numbers on spare cards are readable.** At 9px they were far too
+  faint against their circles, in both themes.
 - **The breakpoint now shows when you shoot a spare with a hooking ball.** It
   was hidden on every spare attempt; it's hidden only for your plastic spare
   ball now, which is the ball that actually has no breakpoint.

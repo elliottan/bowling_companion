@@ -14,6 +14,7 @@ reasoning and invariants the code cannot express.
 | Build any UI | [DESIGN-LANGUAGE.md](./DESIGN-LANGUAGE.md) |
 | Touch backup, import or merge | [DECISIONS.md](./DECISIONS.md) ADR-038 |
 | Touch viewport, rotation or scroll handling | [VIEWPORT-BUG.md](./VIEWPORT-BUG.md) first, without exception |
+| Write or run tests, or wonder what the gate checks | [ARCHITECTURE.md](./ARCHITECTURE.md), "Where the tests live" |
 | Ship a build | [DEPLOYMENT.md](./DEPLOYMENT.md) |
 | Pick up new work | [ROADMAP.md](./ROADMAP.md) |
 | Write a release note | [CHANGELOG.md](./CHANGELOG.md) |
