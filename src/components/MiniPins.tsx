@@ -26,7 +26,11 @@ export function MiniPins({ standing, size = "xs" }: { standing: PinNumber[]; siz
             <div
               key={pin}
               className={`rounded-full font-bold ${SIZE_CLASSES[size]} ${
-                set.has(pin) ? "bg-accent-fill text-accent-on-fill" : "bg-surface-muted text-ink-tertiary"
+                // `ink-strong` on the knocked-down pins. These numbers are the
+                // smallest text in the app (9px), so they need 4.5:1: the
+                // tertiary token gave 2.45:1 in light, and secondary only 3.6:1
+                // in dark. Strong clears it in both.
+                set.has(pin) ? "bg-accent-fill text-accent-on-fill" : "bg-surface-muted text-ink-strong"
               }`}
             >
               {pin}
