@@ -340,6 +340,7 @@ function App() {
     <DriftModelContext.Provider value={driftModel}>
     {/* `fixed inset-0` is load-bearing, not cosmetic — see the note above. */}
     <div
+      id="app-shell"
       className="fixed inset-0 flex flex-col overflow-hidden bg-surface-sunken pt-[env(safe-area-inset-top)] pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)] text-ink"
     >
       <header className="hidden shrink-0 border-b border-edge bg-surface sm:block">

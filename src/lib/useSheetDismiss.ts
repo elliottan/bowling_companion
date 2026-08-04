@@ -49,7 +49,13 @@ export function useSheetDismiss(
         return;
       }
       setExiting(true);
-      timer.current = window.setTimeout(run, EXIT_MS);
+      // Reset alongside `run` so a dialog that stays mounted while closed (the
+      // `open` prop pattern) comes back visible and dismissable next time.
+      timer.current = window.setTimeout(() => {
+        timer.current = null;
+        setExiting(false);
+        run();
+      }, EXIT_MS);
     },
     [onClose]
   );

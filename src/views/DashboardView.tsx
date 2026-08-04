@@ -1,5 +1,6 @@
 import { BookOpen, CircleDot, MapPin, PlayCircle, Plus, Smartphone, Spline, Waves, type LucideIcon } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { ErrorBanner } from "../components/ErrorBanner";
 import { SessionFormDialog } from "../components/SessionFormDialog";
 import { SessionHistory } from "../components/SessionHistory";
@@ -221,7 +222,13 @@ export function DashboardView({
 
       {/* Floating row above the tab bar: starting a session is the one action
           this page exists for, so it keeps the thumb corner, and the resume
-          pill shares the row to its left rather than replacing it. */}
+          pill shares the row to its left rather than replacing it.
+          Portalled out of `<main>` because the tab-switch animation transforms
+          it, and a transformed ancestor would anchor these fixed buttons to it
+          for the length of the animation, making them jump on arrival. The
+          target is the shell rather than the body so overlays (z-50) still
+          stack above this row. */}
+      {createPortal(
       <div className="pointer-events-none fixed inset-x-3 bottom-[calc(4rem+env(safe-area-inset-bottom)+0.5rem)] z-40 mx-auto flex max-w-xl items-center gap-2 sm:bottom-6">
         {resumable && (
           <button
@@ -246,7 +253,9 @@ export function DashboardView({
         >
           <Plus size={26} aria-hidden="true" />
         </button>
-      </div>
+      </div>,
+      document.getElementById("app-shell") ?? document.body
+      )}
 
       <SessionFormDialog
         open={showForm}
