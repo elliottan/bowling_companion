@@ -12,13 +12,18 @@ built static assets to any host. Vercel is the current target.
 
 ## Local checks before deploying
 
-Run the full gate the CI runs, so a deploy never ships a broken build:
+One command runs the whole gate, so a deploy never ships a broken build:
 
 ```bash
-npm test          # unit tests (vitest)
-npm run build     # tsc -b + vite build + PWA service worker/manifest
-npm run test:e2e  # Playwright smoke tests (scoring + backup + edit)
+npm run verify
 ```
+
+It is `npm test` (vitest), then `npm run build` (tsc -b + vite build + PWA
+service worker/manifest), then `npm run test:e2e` (Playwright: scoring, backup,
+oil patterns). All three, every time. e2e used to be the optional step, which
+is exactly how two specs sat red on `main` for weeks: they assert on UI copy,
+so they rot silently whenever a label changes, and that is the drift they exist
+to catch.
 
 Optional: preview the production bundle locally (this is what gets deployed,
 service worker included):

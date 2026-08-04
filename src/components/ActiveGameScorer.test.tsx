@@ -84,8 +84,8 @@ describe("ActiveGameScorer line inputs (ADR-032)", () => {
 
   it("offers a visualiser for both lines", () => {
     render(<ActiveGameScorer gameKey={1} initialFrames={openFrames()} />);
-    expect(screen.getByRole("button", { name: /view intended line/i })).toBeTruthy();
-    expect(screen.getByRole("button", { name: /view actual line/i })).toBeTruthy();
+    expect(screen.getByRole("button", { name: /view intended line/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /view actual line/i })).toBeInTheDocument();
   });
 
   it("shows a legacy actual stance as a derived slide without rewriting the shot", () => {

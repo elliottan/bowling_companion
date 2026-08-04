@@ -34,9 +34,10 @@ shape to drift, by design.
 
 ## Commands
 
-`npm run dev` · `npm test` (vitest) · `npm run test:e2e` (playwright) ·
-`npm run build` (tsc + vite + PWA). Deploy by merging to `main`; the `deploy`
-skill is the manual fallback.
+`npm run dev` · `npm run verify` (the full gate: vitest, then tsc + vite +
+PWA build, then playwright). The parts are `npm test`, `npm run build`,
+`npm run test:e2e`; ship only on a green `verify`. Deploy by merging to
+`main`; the `deploy` skill is the manual fallback.
 
 ## House rules
 

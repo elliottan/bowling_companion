@@ -17,8 +17,8 @@ function renderViz(props: Partial<React.ComponentProps<typeof LaneVisualizer>> =
 describe("LaneVisualizer", () => {
   it("renders a dialog with the lane surface and a close button", () => {
     renderViz();
-    expect(screen.getByRole("dialog")).toBeTruthy();
-    expect(screen.getByLabelText(/close/i)).toBeTruthy();
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+    expect(screen.getByLabelText(/close/i)).toBeInTheDocument();
     expect(document.querySelector('[data-role="ball-path"]')).not.toBeNull();
   });
 
@@ -26,7 +26,7 @@ describe("LaneVisualizer", () => {
     renderViz();
     const stage = document.querySelector('[data-role="tilt-stage"]') as HTMLElement;
     expect(stage.style.transform).toContain("rotateX");
-    expect(screen.getByRole("button", { name: /top-down/i })).toBeTruthy();
+    expect(screen.getByRole("button", { name: /top-down/i })).toBeInTheDocument();
   });
 
   it("close button fires onClose", () => {
@@ -68,8 +68,8 @@ describe("LaneVisualizer editing", () => {
       </HandednessContext.Provider>
     );
     fireEvent.click(screen.getByLabelText(/hook options/i));
-    expect(screen.getByText(/hook start/i)).toBeTruthy();
-    expect(screen.getByText(/hook length/i)).toBeTruthy();
+    expect(screen.getByText(/hook start/i)).toBeInTheDocument();
+    expect(screen.getByText(/hook length/i)).toBeInTheDocument();
     expect(screen.queryByText(/breakpoint distance/i)).toBeNull();
     unmount();
     render(
@@ -78,8 +78,8 @@ describe("LaneVisualizer editing", () => {
       </HandednessContext.Provider>
     );
     fireEvent.click(screen.getByLabelText(/hook options/i));
-    expect(screen.getByText(/hook start/i)).toBeTruthy();
-    expect(screen.getByText(/hook length/i)).toBeTruthy();
+    expect(screen.getByText(/hook start/i)).toBeInTheDocument();
+    expect(screen.getByText(/hook length/i)).toBeInTheDocument();
   });
 
   it("renders no handles in read-only mode (no onChange)", () => {
