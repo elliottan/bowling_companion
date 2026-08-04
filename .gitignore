@@ -12,7 +12,6 @@ coverage/
 
 # Editor and OS files
 .DS_Store
-.claude/
 .idea/
 .vscode/
 
@@ -30,6 +29,12 @@ node_modules/.tmp/
 # Playwright
 test-results/
 playwright-report/
+
+# Claude Code: skills and the preview launcher are repo knowledge and are
+# versioned; local state and worktrees are not.
+.claude/*
+!.claude/skills/
+!.claude/launch.json
 
 # USBC PDF cache (downloaded by usbc-diff script)
 tmp/

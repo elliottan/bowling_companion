@@ -25,6 +25,33 @@ is exactly how two specs sat red on `main` for weeks: they assert on UI copy,
 so they rot silently whenever a label changes, and that is the drift they exist
 to catch.
 
+### Why the gate has to hold locally
+
+Pushing to `main` **is** the deploy: Vercel's Git integration builds whatever
+lands there and never reads the CI result. In August 2026 four consecutive
+pushes shipped on a red CI run for that reason. So `.githooks/pre-push` runs
+`npm run verify` before any push to `main` and refuses the push if it fails.
+
+`npm install` points git at the hooks directory (the `prepare` script); to wire
+it up by hand, or after cloning fresh:
+
+```bash
+git config core.hooksPath .githooks
+```
+
+Bypass with `git push --no-verify` (or `SKIP_VERIFY=1 git push`) when you mean
+to, for example pushing a branch that is not `main` from a machine without
+browsers installed. CI still runs on every push, and a failure on `main` now
+files a `ci-failure` issue instead of waiting to be noticed.
+
+Two things this does not do, because both need access outside the repo, and
+they are worth setting up in the Vercel and GitHub dashboards:
+
+- **Gate the Vercel deploy on CI.** An *Ignored Build Step* that checks the
+  commit's status, or deploying from the workflow with a `VERCEL_TOKEN` secret.
+  Until then a `--no-verify` push still ships.
+- **Protect `main`** so changes arrive through a PR with the CI check required.
+
 Optional: preview the production bundle locally (this is what gets deployed,
 service worker included):
 

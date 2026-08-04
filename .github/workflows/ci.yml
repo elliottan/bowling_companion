@@ -9,6 +9,9 @@ on:
 jobs:
   verify:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
     steps:
       - uses: actions/checkout@v4
 
@@ -39,3 +42,43 @@ jobs:
           name: playwright-report
           path: playwright-report/
           retention-days: 7
+
+      # A red run on `main` is a shipped-broken production build, because
+      # Vercel deploys the push regardless of this workflow. Four such runs
+      # once went unnoticed for a day, so a failure files an issue rather than
+      # waiting to be looked at.
+      - name: Open an issue when main is red
+        if: failure() && github.ref == 'refs/heads/main'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const sha = context.sha.slice(0, 7);
+            const title = `CI is red on main (${sha})`;
+            const existing = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: "open",
+              labels: "ci-failure"
+            });
+            const body = [
+              `Run: ${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
+              `Commit: ${context.sha}`,
+              "",
+              "Vercel has already deployed this commit to production. Fix forward or roll back.",
+            ].join("\n");
+            if (existing.data.length > 0) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: existing.data[0].number,
+                body: `Still red at ${sha}.\n\n${body}`
+              });
+            } else {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title,
+                body,
+                labels: ["ci-failure"]
+              });
+            }

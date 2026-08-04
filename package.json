@@ -11,6 +11,7 @@
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "verify": "npm test && npm run build && npm run test:e2e",
+    "prepare": "git config core.hooksPath .githooks || true",
     "icons": "node scripts/generate-icons.mjs",
     "sync-catalog": "tsx scripts/sync-catalog/build.ts",
     "usbc-diff": "tsx scripts/sync-catalog/usbc/parse-usbc.ts",
