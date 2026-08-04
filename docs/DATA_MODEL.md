@@ -33,6 +33,13 @@ versioned schema. A version bump + migration is required only when an index is
 added, removed, or changed. The compound index `[game_id+frame_number]` exists
 to support upsert-by-frame during score entry without scanning the table.
 
+Every migration is guarded on **shape, not version** (`Array.isArray(frame.shots)`,
+`Array.isArray(game.lanes)`), so a row written by a newer build and reopened by
+an older one is left alone rather than migrated twice. `src/db/migrations.test.ts`
+opens a real v1 database, writes rows in the shape v1 actually stored, and lets
+the app's own Dexie declaration upgrade it: this is the one failure mode with no
+recovery, since there is no server holding a second copy.
+
 ## Scoring rules summary
 
 Implemented in `lib/scoring.ts`. The full reference is the test file
