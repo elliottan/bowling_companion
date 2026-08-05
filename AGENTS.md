@@ -41,6 +41,22 @@ PWA build, then playwright). The parts are `npm test`, `npm run build`,
 `npm run test:e2e`; ship only on a green `verify`. Deploy by merging to
 `main`; the `deploy` skill is the manual fallback.
 
+`verify` is the gate, not a formality: `.githooks/pre-push` runs it before any
+push to `main`, because pushing to `main` *is* the deploy. Vercel builds it and
+never reads CI, and a failing run on `main` files a `ci-failure` issue. `npm
+install` wires the hook up.
+
+Run it as its own command. Chaining `npm run verify | grep ... && git commit`
+skips the commit whenever the grep exits non-zero, silently.
+
+## Tests that bite
+
+- Assert on the Intended line box inside `waitFor`. `LineInput` syncs its text
+  from the prop in an effect, so the box fills a tick after the ball label.
+  Asserting straight after the label passes locally and fails on CI.
+- Run the whole suite before pushing, not the one file you touched. A race that
+  only loses under load is invisible in an isolated run.
+
 ## House rules
 
 - Changing **scoring**, the **data model**, or **import/merge** rules adds a new
