@@ -1,4 +1,4 @@
-import { BookOpen, ChevronRight, Search, Trash2, X } from "lucide-react";
+import { BookOpen, Check, ChevronRight, Search, Trash2, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useOverlay } from "../lib/useOverlay";
 import { useSheetDismiss } from "../lib/useSheetDismiss";
@@ -140,20 +140,23 @@ export function BallFormDialog({ ball, onClose, onSaved, onDelete }: BallFormDia
             <div className="h-1.5 w-10 rounded-full bg-edge-strong" />
           </div>
           <div className="flex shrink-0 items-center gap-2 border-b border-edge px-2 py-2">
-            <IconButton onClick={() => dismiss()} label="Close" variant="glass">
+            <IconButton onClick={() => dismiss()} label="Close" variant="round">
               <X size={20} aria-hidden="true" />
             </IconButton>
             <h2 className="flex-1 text-center text-[17px] font-semibold text-ink">
               {editing ? "Edit ball" : "Add ball"}
             </h2>
-            <Button
-              variant="primary"
+            {/* The confirm is the tick, matching the close beside it. It keeps
+                "Save"/"Add" as its accessible name, so what it commits to is
+                still spoken even though the word is gone. */}
+            <IconButton
+              variant="confirm"
               onClick={(e) => void handleSubmit(e)}
               disabled={isSaving}
-              className="px-3"
+              label={editing ? "Save" : "Add"}
             >
-              {isSaving ? "Saving…" : editing ? "Save" : "Add"}
-            </Button>
+              <Check size={20} aria-hidden="true" />
+            </IconButton>
           </div>
 
           <form
@@ -355,7 +358,7 @@ function CatalogPickerDialog({ onPick, onClose }: CatalogPickerDialogProps) {
     >
       <div className="shrink-0 border-b border-edge bg-surface pt-[env(safe-area-inset-top)]">
         <div className="mx-auto flex w-full max-w-3xl items-center gap-2 px-2 py-2">
-          <IconButton onClick={onClose} label="Close catalog picker" variant="glass">
+          <IconButton onClick={onClose} label="Close catalog picker" variant="round">
             <X size={20} aria-hidden="true" />
           </IconButton>
           <h2 className="flex-1 text-center text-[17px] font-semibold text-ink">Catalog</h2>

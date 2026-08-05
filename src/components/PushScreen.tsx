@@ -130,12 +130,12 @@ export function PushScreen({
         {/* Safe-area insets only in overlay mode — inline sits inside the app
             shell, which has already paid them. */}
         <header
-          className={`glass shrink-0 border-b border-edge/60 ${
+          className={`shrink-0 border-b border-edge bg-surface ${
             overlay ? "pt-[env(safe-area-inset-top)]" : ""
           }`}
         >
           <div className="relative mx-auto flex h-12 w-full max-w-3xl items-center gap-1 px-1 sm:px-4">
-            <IconButton label="Back" onClick={dismiss} variant="glass">
+            <IconButton label="Back" onClick={dismiss} variant="round">
               {/* Optically centred: the chevron's mass sits right of its box. */}
               <ChevronLeft size={22} strokeWidth={2.5} aria-hidden="true" className="-ml-0.5" />
             </IconButton>

@@ -182,7 +182,7 @@ export function ArsenalView({ onBack, onOpenCatalog }: ArsenalViewProps) {
         onBack={onBack}
         active={form === null && pendingDelete === null}
         trailing={
-          <IconButton onClick={() => setForm({ ball: null })} label="Add ball" variant="glass">
+          <IconButton onClick={() => setForm({ ball: null })} label="Add ball" variant="round">
             <Plus size={24} aria-hidden="true" />
           </IconButton>
         }

@@ -304,7 +304,7 @@ export function LaneNotesView({ onBack, mode = "inline" }: LaneNotesViewProps = 
       onBack={onBack}
       trailing={
         !showForm && (
-          <IconButton onClick={openAdd} label="Add lane note" variant="glass">
+          <IconButton onClick={openAdd} label="Add lane note" variant="round">
             <Plus size={24} aria-hidden="true" />
           </IconButton>
         )

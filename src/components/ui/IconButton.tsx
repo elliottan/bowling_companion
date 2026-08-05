@@ -1,6 +1,6 @@
 import type { ButtonHTMLAttributes, ReactNode } from "react";
 
-type Variant = "default" | "danger" | "solid" | "inverse" | "glass";
+type Variant = "default" | "danger" | "solid" | "inverse" | "round" | "confirm";
 
 const VARIANT: Record<Variant, string> = {
   default: "text-ink-secondary hover:bg-surface-muted",
@@ -15,10 +15,13 @@ const VARIANT: Record<Variant, string> = {
   // inverts together between themes — so this variant tracks both light and
   // dark automatically instead of hardcoding one direction.
   inverse: "text-surface/70 hover:bg-surface/10 hover:text-surface",
-  // Nav-bar chrome: a round lens over whatever is scrolling underneath. The
-  // look lives in `.glass-control` (src/index.css), which owns the blur and the
-  // opaque fallback where backdrop-filter is unsupported.
-  glass: "glass-control rounded-full text-accent active:opacity-80"
+  // Nav-bar and sheet-header chrome: a circular control that reads as a
+  // control without carrying a word.
+  round: "rounded-full bg-surface-muted text-accent hover:bg-edge active:opacity-80",
+  // The filled twin of `round`: a header's confirm, as prominent as a primary
+  // button. A variant rather than a className, because competing `bg-*`
+  // utilities resolve by stylesheet order and the override loses.
+  confirm: "rounded-full bg-accent-fill text-accent-on-fill hover:bg-accent-fill-hover active:opacity-80"
 };
 
 /** Shared icon-only button primitive. Fixed at 44x44 (Apple HIG's minimum tap
@@ -36,7 +39,7 @@ export function IconButton({
     <button
       type="button"
       aria-label={label}
-      className={`inline-flex h-11 w-11 shrink-0 items-center justify-center disabled:cursor-not-allowed disabled:opacity-50 ${variant === "glass" ? "" : "rounded-md"} ${VARIANT[variant]} ${className}`.trim()}
+      className={`inline-flex h-11 w-11 shrink-0 items-center justify-center disabled:cursor-not-allowed disabled:opacity-50 ${variant === "round" || variant === "confirm" ? "" : "rounded-md"} ${VARIANT[variant]} ${className}`.trim()}
       {...rest}
     >
       {children}

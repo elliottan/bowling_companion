@@ -524,7 +524,7 @@ export function CatalogView({ onBack }: CatalogViewProps) {
       onBack={onBack}
       active={selectedBall === null && addingBall === null}
       trailing={
-        <IconButton onClick={handleRefresh} label="Refresh catalog" variant="glass">
+        <IconButton onClick={handleRefresh} label="Refresh catalog" variant="round">
           <RefreshCw size={20} aria-hidden="true" />
         </IconButton>
       }

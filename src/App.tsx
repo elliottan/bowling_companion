@@ -324,7 +324,7 @@ function App() {
       id="app-shell"
       className="fixed inset-0 flex flex-col overflow-hidden bg-surface-sunken pt-[env(safe-area-inset-top)] pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)] text-ink"
     >
-      <header className="glass hidden shrink-0 border-b border-edge/60 sm:block">
+      <header className="hidden shrink-0 border-b border-edge bg-surface sm:block">
         <div className="mx-auto flex w-full max-w-5xl items-center justify-between px-3 py-3 sm:px-6">
           {view === "dashboard" ? (
             <button
@@ -415,7 +415,7 @@ function App() {
         )}
       </main>
 
-      <nav className={`glass relative grid shrink-0 grid-cols-5 border-t border-edge/60 pb-[env(safe-area-inset-bottom)] sm:hidden ${keyboardOpen ? "hidden" : ""}`}>
+      <nav className={`relative grid shrink-0 grid-cols-5 border-t border-edge bg-surface pb-[env(safe-area-inset-bottom)] sm:hidden ${keyboardOpen ? "hidden" : ""}`}>
         {/* Single highlight that slides to the active tab. */}
         <span
           aria-hidden="true"

@@ -6,12 +6,12 @@ User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachan
 
 ### Changed
 
-- **Glass chrome, and a back control that is just a chevron.** The nav bar, the
-  tab bar and the round buttons on them are translucent now: content blurs
-  through them as it scrolls, the way the system chrome on your phone does. The
-  back control lost its label. Naming the screen underneath ("‹ Settings") only
-  worked while a screen had one way in, and it started naming places you had
-  not come from.
+- **Round buttons on the nav bars, and a back control that is just a chevron.**
+  The back control lost its label: naming the screen underneath ("‹ Settings")
+  only worked while a screen had one way in, and it started naming places you
+  had not come from. A sheet's close and confirm are a cross and a tick in the
+  same round shape, so the ball editor's header no longer mixes an icon with a
+  word.
 
 ### Fixed
 

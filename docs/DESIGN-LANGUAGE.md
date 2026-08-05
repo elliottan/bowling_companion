@@ -30,7 +30,7 @@ navigate *into* your arsenal, you do not perform it on top of something else.
 
 Every push gets, without exception:
 
-- a leading back control: the chevron alone, in a round glass button, labelled
+- a leading back control: the chevron alone, in a round button, labelled
   "Back" for screen readers. It used to name the screen underneath ("‹ Settings"),
   which read as a lie once the same screen could be pushed from several places:
   opened from the dashboard it named a tab the user had never navigated from;
@@ -39,21 +39,18 @@ Every push gets, without exception:
 - an edge-drag-back gesture and, in overlay mode, Escape + a focus trap
   (`useOverlay`).
 
-## 1b. Glass chrome
+## 1b. Round controls on chrome
 
-The nav bar, the tab bar and the round controls sitting on them are glass: a
-backdrop blur with the saturation lifted, a translucent fill and a hairline
-edge (`.glass`, `.glass-control` in `src/index.css`). Content scrolls under
-them and stays legible while still colouring what is on top.
+A control that sits on a nav bar or a sheet header is round and icon-only:
+the back chevron, the trailing action, a sheet's close and its confirm. The
+word is dropped, not the meaning, so `IconButton`'s required `label` carries it
+("Back", "Save", "Add"). Use `IconButton variant="round"`, never a hand-rolled
+circle.
 
-This is an approximation of Apple's Liquid Glass, not the thing itself. That is
-a native API (SwiftUI `.glassEffect`) doing real refraction on the GPU; the web
-has backdrop-filter and nothing else, so the result is frosted rather than
-liquid. Where backdrop-filter is unsupported the fill goes fully opaque, because
-a 55% wash over moving content cannot be read.
-
-Use `IconButton variant="glass"` for a control on that chrome, never a
-hand-rolled circle. Anywhere else, glass is wrong: it is chrome, not decoration.
+Frosted glass chrome (a translucent backdrop-filter bar) was tried on these and
+removed: it approximated Apple's Liquid Glass without the refraction that makes
+that effect work, and read as haze over the content rather than as a surface.
+Chrome is opaque.
 
 ## 2. Controls
 

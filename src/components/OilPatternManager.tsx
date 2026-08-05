@@ -97,7 +97,7 @@ export function OilPatternManager({ onBack, mode = "inline" }: OilPatternManager
       {!onBack && (
         <div className="mb-4 flex items-center justify-between gap-3">
           <h1 className="text-xl font-bold text-ink">Oil Patterns</h1>
-          <IconButton onClick={openAdd} label="Add oil pattern" variant="glass">
+          <IconButton onClick={openAdd} label="Add oil pattern" variant="round">
             <Plus size={20} aria-hidden="true" />
           </IconButton>
         </div>
