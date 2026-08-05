@@ -138,6 +138,29 @@ describe("what a new shot starts with", () => {
       expect(target()).toBe("8");
     });
 
+    it("still picks the spare ball when the game opens mid-frame", async () => {
+      // Resuming a session: the scorer mounts straight into the spare attempt,
+      // so seeding has to wait for the ball list rather than run without it.
+      spareLines = [{ id: 1, pins: [10] as PinNumber[], line: { stance: 30, target: 8 }, sort_order: 0 }];
+      const midFrame: Frame[] = [
+        {
+          game_id: 1,
+          frame_number: 1,
+          shots: [{ pins_standing: [10] as PinNumber[], ball_id: 1 }],
+          is_strike: false,
+          is_spare: false
+        }
+      ];
+
+      render(<ActiveGameScorer gameKey={1} mode="session" game={ONE_LANE} initialFrames={midFrame} />);
+
+      // Two async reads (balls, spare lines) have to land before seeding runs,
+      // so this waits longer than the 1s default: it timed out once under the
+      // load of the full suite.
+      await waitFor(() => expect(ballLabel()).toContain("Plastic Spare"), { timeout: 5000 });
+      expect(stance()).toBe("30");
+    });
+
     it("prefers a line already shot at that leave this session over the saved one", async () => {
       spareLines = [{ id: 1, pins: [10] as PinNumber[], line: { stance: 30, target: 8 }, sort_order: 0 }];
       const earlier: Frame[] = [
