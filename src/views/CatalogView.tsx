@@ -167,7 +167,7 @@ function DetailPanel({ ball, owned, onBack, onAddToArsenal, addDialogOpen }: Det
     // A ball detail is one level deeper than the list, so it pushes like one
     // — same nav bar, same back gesture, opened at the top regardless of where
     // the list was scrolled to.
-    <PushScreen title={ball.name} backLabel="Catalog" onBack={onBack} active={!addDialogOpen}>
+    <PushScreen title={ball.name} onBack={onBack} active={!addDialogOpen}>
       <div>
         <div className="mx-auto w-full max-w-xl px-3 py-5 sm:px-6">
           <p className="text-[11px] font-semibold uppercase tracking-wide text-ink-secondary">{ball.brand}</p>
@@ -387,10 +387,9 @@ function FilterChip({ label, onRemove }: { label: string; onRemove: () => void }
 interface CatalogViewProps {
   onBack: () => void;
   /** Name of the screen underneath, shown beside the back chevron. */
-  backLabel?: string;
 }
 
-export function CatalogView({ onBack, backLabel }: CatalogViewProps) {
+export function CatalogView({ onBack }: CatalogViewProps) {
   const [syncState, setSyncState] = useState<SyncState>({ status: "idle" });
   const [allBalls, setAllBalls] = useState<CatalogBall[]>([]);
   const [filters, setFilters] = useState<Filters>(EMPTY_FILTERS);
@@ -522,11 +521,10 @@ export function CatalogView({ onBack, backLabel }: CatalogViewProps) {
   return (
     <PushScreen
       title="Ball Catalog"
-      backLabel={backLabel}
       onBack={onBack}
       active={selectedBall === null && addingBall === null}
       trailing={
-        <IconButton onClick={handleRefresh} label="Refresh catalog">
+        <IconButton onClick={handleRefresh} label="Refresh catalog" variant="glass">
           <RefreshCw size={20} aria-hidden="true" />
         </IconButton>
       }

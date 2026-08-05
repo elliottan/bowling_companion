@@ -4,6 +4,15 @@ User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachan
 
 ## [Unreleased]: dark mode, native navigation, and one design language (2026-07 to 2026-08)
 
+### Changed
+
+- **Glass chrome, and a back control that is just a chevron.** The nav bar, the
+  tab bar and the round buttons on them are translucent now: content blurs
+  through them as it scrolls, the way the system chrome on your phone does. The
+  back control lost its label. Naming the screen underneath ("‹ Settings") only
+  worked while a screen had one way in, and it started naming places you had
+  not come from.
+
 ### Fixed
 
 - **The dashboard's shortcuts no longer move you to Settings.** Lane Notes, Oil

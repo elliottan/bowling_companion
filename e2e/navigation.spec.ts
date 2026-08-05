@@ -31,8 +31,8 @@ test("the in-app back control and the platform back agree", async ({ page }) => 
   await page.getByRole("button", { name: "Arsenal", exact: true }).click();
   await page.getByRole("button", { name: "Browse the catalog" }).click();
 
-  // The nav-bar back control names the screen underneath it.
-  await page.getByRole("dialog", { name: "Ball Catalog" }).getByRole("button", { name: "Arsenal" }).click();
+  // The nav-bar back control is the chevron alone (DESIGN-LANGUAGE 1).
+  await page.getByRole("dialog", { name: "Ball Catalog" }).getByRole("button", { name: "Back" }).click();
 
   // One screen closed, not both: the control goes through history rather than
   // popping state itself, so it cannot double up with the platform gesture.
@@ -48,7 +48,7 @@ test("a screen opened from the dashboard goes back to the dashboard", async ({ p
   // screen the user never visited.
   await expect(page).toHaveURL(/#\/home\/lanes$/);
   const bar = page.getByRole("dialog", { name: "Lane Notes" });
-  await expect(bar.getByRole("button", { name: "Settings" })).toHaveCount(0);
+  await expect(bar.getByRole("button", { name: "Back" })).toBeVisible();
 
   await page.goBack();
   await expect(page).toHaveURL(/#\/home$/);
@@ -56,12 +56,13 @@ test("a screen opened from the dashboard goes back to the dashboard", async ({ p
   await expect(page.getByRole("heading", { name: "Lane Notes" })).toHaveCount(0);
 });
 
-test("the same screen reached from Settings still names Settings", async ({ page }) => {
+test("the same screen reached from Settings pushes inside the tab", async ({ page }) => {
   await page.getByRole("navigation").getByRole("button", { name: "Settings" }).click();
   await page.getByRole("button", { name: /Lane Notes/ }).click();
 
   await expect(page).toHaveURL(/#\/settings\/lanes$/);
-  await expect(page.getByRole("button", { name: "Settings", exact: true }).first()).toBeVisible();
+  await page.getByRole("region", { name: "Lane Notes" }).getByRole("button", { name: "Back" }).click();
+  await expect(page).toHaveURL(/#\/settings$/);
 });
 
 test("back closes the sheet in front before the screen behind it", async ({ page }) => {

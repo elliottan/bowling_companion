@@ -32,12 +32,7 @@ import type { Handedness, LineSpec } from "./types/bowling";
 import { LaneVisualizerLazy } from "./components/LaneVisualizerLazy";
 import { UpdateToast } from "./components/UpdateToast";
 import { shouldResetScroll } from "./lib/viewportScroll";
-import {
-  navReducer,
-  underLabel,
-  type AppView,
-  type Overlay
-} from "./lib/appNavigation";
+import { navReducer, type AppView, type Overlay } from "./lib/appNavigation";
 import { initialNavFromHash } from "./lib/appRoute";
 import { useHistoryRoute } from "./lib/useHistoryRoute";
 
@@ -66,23 +61,6 @@ const NAV_ITEMS: ReadonlyArray<NavItem> = [
 ];
 
 const MOBILE_NAV_ITEMS = NAV_ITEMS;
-
-// A pushed screen names the screen it came from, the way a nav stack does.
-const TAB_LABEL: Record<AppView, string> = {
-  dashboard: "Home",
-  active: "Session",
-  history: "History",
-  spares: "Spares",
-  settings: "Settings"
-};
-
-const OVERLAY_LABEL: Record<Overlay, string> = {
-  arsenal: "Arsenal",
-  catalog: "Catalog",
-  lanes: "Lane Notes",
-  "oil-patterns": "Oil Patterns",
-  backup: "Backup & Restore"
-};
 
 // Read once, before the router normalises the hash: was the app opened at a
 // particular screen, or just opened?
@@ -346,7 +324,7 @@ function App() {
       id="app-shell"
       className="fixed inset-0 flex flex-col overflow-hidden bg-surface-sunken pt-[env(safe-area-inset-top)] pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)] text-ink"
     >
-      <header className="hidden shrink-0 border-b border-edge bg-surface sm:block">
+      <header className="glass hidden shrink-0 border-b border-edge/60 sm:block">
         <div className="mx-auto flex w-full max-w-5xl items-center justify-between px-3 py-3 sm:px-6">
           {view === "dashboard" ? (
             <button
@@ -437,7 +415,7 @@ function App() {
         )}
       </main>
 
-      <nav className={`relative grid shrink-0 grid-cols-5 border-t border-edge bg-surface pb-[env(safe-area-inset-bottom)] sm:hidden ${keyboardOpen ? "hidden" : ""}`}>
+      <nav className={`glass relative grid shrink-0 grid-cols-5 border-t border-edge/60 pb-[env(safe-area-inset-bottom)] sm:hidden ${keyboardOpen ? "hidden" : ""}`}>
         {/* Single highlight that slides to the active tab. */}
         <span
           aria-hidden="true"
@@ -462,31 +440,24 @@ function App() {
           rather than dropping back to the tab. */}
       <Suspense fallback={null}>
       {overlays.map((overlay, i) => {
-        const under = underLabel(nav, i, TAB_LABEL, OVERLAY_LABEL);
         switch (overlay) {
           case "arsenal":
             return (
               <ArsenalView
                 key={`arsenal-${i}`}
                 onBack={popOverlay}
-                backLabel={under}
                 onOpenCatalog={() => pushOverlay("catalog")}
               />
             );
           case "catalog":
-            return <CatalogView key={`catalog-${i}`} onBack={popOverlay} backLabel={under} />;
-          // Settings sections pushed from elsewhere. The back control is the
-          // chevron alone: naming the screen underneath is right inside
-          // Settings, but here it would name a tab, which is not a place you
-          // came *from*.
+            return <CatalogView key={`catalog-${i}`} onBack={popOverlay} />;
+          // Settings sections, pushed over the tab that opened them.
           case "lanes":
-            return <LaneNotesView key={`lanes-${i}`} onBack={popOverlay} mode="overlay" backLabel="" />;
+            return <LaneNotesView key={`lanes-${i}`} onBack={popOverlay} mode="overlay" />;
           case "oil-patterns":
-            return (
-              <OilPatternsView key={`oil-patterns-${i}`} onBack={popOverlay} mode="overlay" backLabel="" />
-            );
+            return <OilPatternsView key={`oil-patterns-${i}`} onBack={popOverlay} mode="overlay" />;
           case "backup":
-            return <BackupRestoreView key={`backup-${i}`} onBack={popOverlay} mode="overlay" backLabel="" />;
+            return <BackupRestoreView key={`backup-${i}`} onBack={popOverlay} mode="overlay" />;
         }
       })}
       </Suspense>

@@ -28,11 +28,9 @@ interface LaneNotesViewProps {
   onBack?: () => void;
   /** `overlay` when pushed over another tab, `inline` inside Settings. */
   mode?: "inline" | "overlay";
-  /** Empty for the chevron alone (see the overlay stack in `App.tsx`). */
-  backLabel?: string;
 }
 
-export function LaneNotesView({ onBack, mode = "inline", backLabel = "Settings" }: LaneNotesViewProps = {}) {
+export function LaneNotesView({ onBack, mode = "inline" }: LaneNotesViewProps = {}) {
   // Live: writing a note updates the list, with no refresh call per site.
   const liveNotes = useLiveQuery(() => getLaneNotes());
   const liveAlleys = useLiveQuery(() => getDistinctAlleys());
@@ -303,11 +301,10 @@ export function LaneNotesView({ onBack, mode = "inline", backLabel = "Settings" 
     <PushScreen
       mode={mode}
       title="Lane Notes"
-      backLabel={backLabel}
       onBack={onBack}
       trailing={
         !showForm && (
-          <IconButton onClick={openAdd} label="Add lane note">
+          <IconButton onClick={openAdd} label="Add lane note" variant="glass">
             <Plus size={24} aria-hidden="true" />
           </IconButton>
         )

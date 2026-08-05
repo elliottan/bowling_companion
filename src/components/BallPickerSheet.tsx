@@ -57,7 +57,7 @@ export function BallPickerSheet({
                 Manage arsenal
               </Button>
             )}
-            <IconButton onClick={() => dismiss()} label="Close">
+            <IconButton onClick={() => dismiss()} label="Close" variant="glass">
               <X size={18} aria-hidden="true" />
             </IconButton>
           </div>

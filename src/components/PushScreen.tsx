@@ -1,11 +1,10 @@
 import { ChevronLeft } from "lucide-react";
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { useOverlay } from "../lib/useOverlay";
+import { IconButton } from "./ui/IconButton";
 
 interface PushScreenProps {
   title: string;
-  /** Label next to the back chevron — the place the user came from. */
-  backLabel?: string;
   onBack: () => void;
   /** Optional trailing nav-bar action (kept to one control, iOS style). */
   trailing?: ReactNode;
@@ -37,7 +36,6 @@ const EXIT_MS = 280;
  */
 export function PushScreen({
   title,
-  backLabel = "Back",
   onBack,
   trailing,
   active = true,
@@ -132,19 +130,15 @@ export function PushScreen({
         {/* Safe-area insets only in overlay mode — inline sits inside the app
             shell, which has already paid them. */}
         <header
-          className={`shrink-0 border-b border-edge bg-surface/95 backdrop-blur ${
+          className={`glass shrink-0 border-b border-edge/60 ${
             overlay ? "pt-[env(safe-area-inset-top)]" : ""
           }`}
         >
           <div className="relative mx-auto flex h-12 w-full max-w-3xl items-center gap-1 px-1 sm:px-4">
-            <button
-              type="button"
-              onClick={dismiss}
-              className="-ml-1 inline-flex h-11 shrink-0 items-center gap-0.5 rounded-lg pl-1 pr-2 text-[17px] font-medium text-accent active:opacity-60"
-            >
-              <ChevronLeft size={26} strokeWidth={2.25} aria-hidden="true" />
-              {backLabel}
-            </button>
+            <IconButton label="Back" onClick={dismiss} variant="glass">
+              {/* Optically centred: the chevron's mass sits right of its box. */}
+              <ChevronLeft size={22} strokeWidth={2.5} aria-hidden="true" className="-ml-0.5" />
+            </IconButton>
             <h1 className="pointer-events-none absolute left-1/2 -translate-x-1/2 truncate text-[17px] font-semibold text-ink">
               {title}
             </h1>

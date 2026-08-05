@@ -140,7 +140,7 @@ export function BallFormDialog({ ball, onClose, onSaved, onDelete }: BallFormDia
             <div className="h-1.5 w-10 rounded-full bg-edge-strong" />
           </div>
           <div className="flex shrink-0 items-center gap-2 border-b border-edge px-2 py-2">
-            <IconButton onClick={() => dismiss()} label="Close">
+            <IconButton onClick={() => dismiss()} label="Close" variant="glass">
               <X size={20} aria-hidden="true" />
             </IconButton>
             <h2 className="flex-1 text-center text-[17px] font-semibold text-ink">
@@ -355,7 +355,7 @@ function CatalogPickerDialog({ onPick, onClose }: CatalogPickerDialogProps) {
     >
       <div className="shrink-0 border-b border-edge bg-surface pt-[env(safe-area-inset-top)]">
         <div className="mx-auto flex w-full max-w-3xl items-center gap-2 px-2 py-2">
-          <IconButton onClick={onClose} label="Close catalog picker">
+          <IconButton onClick={onClose} label="Close catalog picker" variant="glass">
             <X size={20} aria-hidden="true" />
           </IconButton>
           <h2 className="flex-1 text-center text-[17px] font-semibold text-ink">Catalog</h2>

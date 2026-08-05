@@ -161,12 +161,3 @@ export function navReducer(state: NavState, action: NavAction): NavState {
   }
 }
 
-/** The label a pushed screen shows for the screen underneath it. */
-export function underLabel(
-  state: NavState,
-  index: number,
-  tabLabel: Record<AppView, string>,
-  overlayLabel: Record<Overlay, string>
-): string {
-  return index === 0 ? tabLabel[state.view] : overlayLabel[state.overlays[index - 1]];
-}

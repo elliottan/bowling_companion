@@ -120,11 +120,10 @@ interface ArsenalViewProps {
   /** Dismiss the pushed screen and return to whatever launched it. */
   onBack: () => void;
   /** Label of the screen underneath, shown next to the back chevron. */
-  backLabel?: string;
   onOpenCatalog?: () => void;
 }
 
-export function ArsenalView({ onBack, backLabel, onOpenCatalog }: ArsenalViewProps) {
+export function ArsenalView({ onBack, onOpenCatalog }: ArsenalViewProps) {
   // Live: Dexie re-runs this whenever the table changes, so saving, deleting
   // and reordering do not each have to remember to refresh the list.
   const live = useLiveQuery(() => getBalls());
@@ -180,11 +179,10 @@ export function ArsenalView({ onBack, backLabel, onOpenCatalog }: ArsenalViewPro
     <>
       <PushScreen
         title="Arsenal"
-        backLabel={backLabel}
         onBack={onBack}
         active={form === null && pendingDelete === null}
         trailing={
-          <IconButton onClick={() => setForm({ ball: null })} label="Add ball">
+          <IconButton onClick={() => setForm({ ball: null })} label="Add ball" variant="glass">
             <Plus size={24} aria-hidden="true" />
           </IconButton>
         }

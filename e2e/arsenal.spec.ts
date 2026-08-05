@@ -54,9 +54,8 @@ test("a ball added in the arsenal is selectable on a shot", async ({ page }) => 
   await page.getByRole("button", { name: "Add", exact: true }).click();
   await expect(page.getByText("Hy-Road")).toBeVisible();
 
-  // The arsenal is a pushed screen: leave it by its back control, which
-  // names the screen underneath (DESIGN-LANGUAGE 1).
-  await page.getByRole("banner").getByRole("button", { name: "Home" }).click();
+  // The arsenal is a pushed screen: leave it by its back control.
+  await page.getByRole("banner").getByRole("button", { name: "Back" }).click();
   await page.getByRole("button", { name: "Start new session" }).click();
   await page.getByPlaceholder("Orchid Bowl").fill("Arsenal Lanes");
   await page.getByRole("button", { name: "Start session" }).click();

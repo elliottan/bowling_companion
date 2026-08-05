@@ -41,7 +41,7 @@ export function AppearanceView({ onBack }: AppearanceViewProps = {}) {
   if (!onBack) return body;
 
   return (
-    <PushScreen mode="inline" title="Appearance" backLabel="Settings" onBack={onBack}>
+    <PushScreen mode="inline" title="Appearance" onBack={onBack}>
       {body}
     </PushScreen>
   );

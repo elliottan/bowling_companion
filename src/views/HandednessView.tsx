@@ -177,7 +177,7 @@ export function HandednessView({ value, onChange, driftModel, onDriftModelChange
   if (!onBack) return body;
 
   return (
-    <PushScreen mode="inline" title="Preferences" backLabel="Settings" onBack={onBack}>
+    <PushScreen mode="inline" title="Preferences" onBack={onBack}>
       {body}
     </PushScreen>
   );

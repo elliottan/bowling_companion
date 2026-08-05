@@ -1,13 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  INITIAL_NAV,
-  navReducer,
-  underLabel,
-  type AppView,
-  type NavAction,
-  type NavState,
-  type Overlay
-} from "./appNavigation";
+import { INITIAL_NAV, navReducer, type NavAction, type NavState } from "./appNavigation";
 
 /** Apply a sequence of actions, the way a user's taps arrive. */
 function run(actions: NavAction[], from: NavState = INITIAL_NAV): NavState {
@@ -173,36 +165,4 @@ describe("navReducer", () => {
     });
   });
 
-  describe("underLabel", () => {
-    const tabs: Record<AppView, string> = {
-      dashboard: "Home",
-      active: "Session",
-      history: "History",
-      spares: "Spares",
-      settings: "Settings"
-    };
-    const overlays: Record<Overlay, string> = {
-      arsenal: "Arsenal",
-      catalog: "Catalog",
-      lanes: "Lane Notes",
-      "oil-patterns": "Oil Patterns",
-      backup: "Backup & Restore"
-    };
-
-    it("names the tab underneath the first overlay", () => {
-      const state = run([
-        { type: "goTo", view: "history" },
-        { type: "pushOverlay", overlay: "arsenal" }
-      ]);
-      expect(underLabel(state, 0, tabs, overlays)).toBe("History");
-    });
-
-    it("names the overlay underneath a stacked one", () => {
-      const state = run([
-        { type: "pushOverlay", overlay: "arsenal" },
-        { type: "pushOverlay", overlay: "catalog" }
-      ]);
-      expect(underLabel(state, 1, tabs, overlays)).toBe("Arsenal");
-    });
-  });
 });

@@ -16,11 +16,9 @@ interface BackupRestoreViewProps {
   onBack?: () => void;
   /** `overlay` when pushed over another tab, `inline` inside Settings. */
   mode?: "inline" | "overlay";
-  /** Empty for the chevron alone (see the overlay stack in `App.tsx`). */
-  backLabel?: string;
 }
 
-export function BackupRestoreView({ onBack, mode = "inline", backLabel = "Settings" }: BackupRestoreViewProps = {}) {
+export function BackupRestoreView({ onBack, mode = "inline" }: BackupRestoreViewProps = {}) {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -161,7 +159,7 @@ export function BackupRestoreView({ onBack, mode = "inline", backLabel = "Settin
   if (!onBack) return body;
 
   return (
-    <PushScreen mode={mode} title="Backup & Restore" backLabel={backLabel} onBack={onBack}>
+    <PushScreen mode={mode} title="Backup & Restore" onBack={onBack}>
       {body}
     </PushScreen>
   );
