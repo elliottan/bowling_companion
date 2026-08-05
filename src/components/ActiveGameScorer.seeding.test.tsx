@@ -66,8 +66,11 @@ describe("what a new shot starts with", () => {
       />
     );
 
+    // Assert the line inside waitFor as well: LineInput syncs its text from
+    // the prop in an effect, so the box fills a tick after the ball label does
+    // and a bare assertion here races it on a slow machine.
     await waitFor(() => expect(ballLabel()).toContain("Hammer"));
-    expect(stance()).toBe("20");
+    await waitFor(() => expect(stance()).toBe("20"));
     expect(target()).toBe("15");
     expect(screen.getByPlaceholderText("This shot…")).toHaveValue("flush");
   });
@@ -92,7 +95,7 @@ describe("what a new shot starts with", () => {
     );
 
     await waitFor(() => expect(ballLabel()).toContain("Hammer"));
-    expect(stance()).toBe("22");
+    await waitFor(() => expect(stance()).toBe("22"));
   });
 
   it("does not carry a line across a change of lane", async () => {
@@ -135,7 +138,7 @@ describe("what a new shot starts with", () => {
       await leaveTheTenPin();
 
       await waitFor(() => expect(stance()).toBe("30"));
-      expect(target()).toBe("8");
+      await waitFor(() => expect(target()).toBe("8"));
     });
 
     it("still picks the spare ball when the game opens mid-frame", async () => {
@@ -158,7 +161,7 @@ describe("what a new shot starts with", () => {
       // so this waits longer than the 1s default: it timed out once under the
       // load of the full suite.
       await waitFor(() => expect(ballLabel()).toContain("Plastic Spare"), { timeout: 5000 });
-      expect(stance()).toBe("30");
+      await waitFor(() => expect(stance()).toBe("30"), { timeout: 5000 });
     });
 
     it("prefers a line already shot at that leave this session over the saved one", async () => {
@@ -189,7 +192,7 @@ describe("what a new shot starts with", () => {
       await leaveTheTenPin();
 
       await waitFor(() => expect(stance()).toBe("34"));
-      expect(target()).toBe("6");
+      await waitFor(() => expect(target()).toBe("6"));
     });
   });
 });
