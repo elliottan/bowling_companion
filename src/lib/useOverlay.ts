@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import type { RefObject } from "react";
+import { registerSheet } from "./sheetBackStack";
 
 const FOCUSABLE_SELECTOR =
   'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
@@ -29,10 +30,16 @@ function getFocusable(container: HTMLElement): HTMLElement[] {
  * Pass `active=false` (default `true`) to switch everything off — e.g. an
  * outer overlay while an inner one (a nested sheet/dialog) is open, so a
  * single Escape press and the focus trap only ever apply to the topmost layer.
+ *
+ * While active, the overlay also registers with `sheetBackStack`, so the
+ * platform's back closes it exactly as Escape does. Pass `backCloses=false` for
+ * overlays that are routes in their own right (pushed screens): history already
+ * closes those, and registering them would pop two layers per gesture.
  */
 export function useOverlay<T extends HTMLElement = HTMLDivElement>(
   onClose: () => void,
-  active = true
+  active = true,
+  backCloses = true
 ): RefObject<T> {
   const ref = useRef<T>(null);
   // Latest onClose without re-subscribing the listener every render.
@@ -83,13 +90,19 @@ export function useOverlay<T extends HTMLElement = HTMLDivElement>(
     }
 
     document.addEventListener("keydown", onKeyDown);
+    // The entry is stable for the registration and reads the latest onClose,
+    // so back and Escape always close the same thing.
+    const unregister = backCloses
+      ? registerSheet({ close: () => onCloseRef.current() })
+      : undefined;
     return () => {
       document.removeEventListener("keydown", onKeyDown);
+      unregister?.();
       if (previouslyFocused && document.contains(previouslyFocused)) {
         previouslyFocused.focus();
       }
     };
-  }, [active]);
+  }, [active, backCloses]);
 
   return ref;
 }

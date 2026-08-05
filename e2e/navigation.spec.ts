@@ -40,6 +40,23 @@ test("the in-app back control and the platform back agree", async ({ page }) => 
   await expect(page.getByRole("dialog", { name: "Arsenal" })).toBeVisible();
 });
 
+test("back closes the sheet in front before the screen behind it", async ({ page }) => {
+  await page.getByRole("button", { name: "Arsenal", exact: true }).click();
+  await page.getByRole("button", { name: "Add ball" }).first().click();
+  const editor = page.getByPlaceholder("e.g. Storm Phaze II");
+  await expect(editor).toBeVisible();
+
+  // The sheet is the layer the user sees, so it is what back closes; the
+  // arsenal underneath, and the URL, stay put.
+  await page.goBack();
+  await expect(editor).toHaveCount(0);
+  await expect(page.getByRole("dialog", { name: "Arsenal" })).toBeVisible();
+  await expect(page).toHaveURL(/#\/home\/arsenal$/);
+
+  await page.goBack();
+  await expect(page).toHaveURL(/#\/home$/);
+});
+
 test("a tab switch does not stack history, so back still leaves the app", async ({ page }) => {
   await page.getByRole("navigation").getByRole("button", { name: "History" }).click();
   await expect(page).toHaveURL(/#\/history$/);

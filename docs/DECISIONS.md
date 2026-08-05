@@ -1773,3 +1773,46 @@ to keep in step, and the hash resolves from the service worker cache.
   edge-drag, so the drag does not need to suppress it. If a future iOS ever
   does, the symptom is two screens closing on one swipe, and the fix is
   `touch-action`/`preventDefault` inside `PushScreen`'s 28px edge zone.
+
+---
+
+## ADR-042: One sentinel history entry for "a sheet is open"
+
+**Status:** accepted (2026-08).
+
+**Context.** ADR-041 made back the browser's, but only for things the URL
+describes. Sheets and dialogs are local component state, so back skipped the
+layer in front of the user and closed the screen behind it instead, which is the
+inconsistency felt first once back works everywhere else.
+
+Giving each sheet its own history entry was tried and reverted (2026-08-04).
+With the push and pop living in a register/unregister effect, StrictMode's
+double invoke ran a real `history.back()` from the phantom cleanup: opening one
+sheet logged `PUSH sentinel, BACK(), PUSH sentinel`, and a ball editor over the
+pushed arsenal then ate the arsenal's entry and walked out of the app. The
+single-sheet case passed throughout, which is what made it look finished.
+
+**Decision.** `lib/sheetBackStack.ts` is a registry of open overlays, in mount
+order, and nothing more: it never touches history. `useHistoryRoute` reconciles
+it against **one** sentinel entry, keyed on "is anything open" rather than on
+each registration. The sentinel carries the hash of the entry beneath it, so
+opening a sheet is not a route change.
+
+- Nothing runs in a cleanup, so a repeated effect finds the state it wants and
+  does nothing. StrictMode cannot fire a navigation.
+- A pop of the sentinel closes the topmost registered layer and dispatches no
+  route change. Nested sheets share the one sentinel, which is re-armed while
+  anything is still open, so each back closes exactly one layer.
+- A sheet that closes itself collects its own entry, guarded so the pop that
+  arrives later cannot be read as a back press against whatever opened since.
+- Registration lives in `useOverlay`, on the same `active` predicate as Escape,
+  so back and Escape can never disagree about which layer is in front.
+
+**Consequences.**
+- A screen opened from a sheet (the start-session form) **takes over** the
+  sentinel with a `replaceState` instead of stacking on it. Without that, the
+  sheet's close popped the screen's own entry: caught by e2e, not by unit tests.
+- Pushed screens opt out (`backCloses = false` in `PushScreen`): they are routes
+  already, and registering them would pop two layers per gesture.
+- The invariant the sentinel rests on is that sheets are modal, so no route
+  change lands on top of one except the takeover above.

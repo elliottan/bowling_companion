@@ -6,6 +6,12 @@ User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachan
 
 ### Added
 
+- **Back closes whatever is in front.** The phone's back gesture already closed
+  pushed screens; now it also closes the sheet or dialog on top of them, the
+  ball editor and the start-session form included, exactly as Escape does on a
+  keyboard. One gesture closes one layer, and the screen underneath stays where
+  it was.
+
 - **Screens now push like an app, not a web page.** Your arsenal, the ball
   catalog, a catalog ball's details and every Settings section slide in from the
   right with the same nav bar: a back control that names where you came from

@@ -68,7 +68,7 @@ export function PushScreen({
 
   // Inline pushes are not modal — the tab bar behind them stays live — so they
   // must not trap focus or swallow Escape.
-  const overlayRef = useOverlay<HTMLDivElement>(dismiss, active && mode === "overlay");
+  const overlayRef = useOverlay<HTMLDivElement>(dismiss, active && mode === "overlay", false);
 
   function onPointerDown(e: React.PointerEvent) {
     if (e.pointerType === "mouse") return;
