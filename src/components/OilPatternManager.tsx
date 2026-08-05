@@ -21,13 +21,17 @@ interface OilPatternManagerProps {
   /** Present when pushed from Settings — draws the shared nav bar. Absent when
    *  the session form embeds the manager inline. */
   onBack?: () => void;
+  /** `overlay` when pushed over another tab, `inline` inside Settings. */
+  mode?: "inline" | "overlay";
+  /** Empty for the chevron alone (see the overlay stack in `App.tsx`). */
+  backLabel?: string;
 }
 
 // A stable empty list: `?? []` would be a new array on every render, which
 // invalidates every useMemo downstream of it.
 const NO_PATTERNS: OilPattern[] = [];
 
-export function OilPatternManager({ onBack }: OilPatternManagerProps = {}) {
+export function OilPatternManager({ onBack, mode = "inline", backLabel = "Settings" }: OilPatternManagerProps = {}) {
   // Live: adding, renaming, archiving and deleting a pattern all update this
   // list, including when the session form has the manager open on top of it.
   const live = useLiveQuery(() => getAllOilPatterns());
@@ -172,9 +176,9 @@ export function OilPatternManager({ onBack }: OilPatternManagerProps = {}) {
 
   return (
     <PushScreen
-      mode="inline"
+      mode={mode}
       title="Oil Patterns"
-      backLabel="Settings"
+      backLabel={backLabel}
       onBack={onBack}
       trailing={
         <IconButton onClick={openAdd} label="Add oil pattern">

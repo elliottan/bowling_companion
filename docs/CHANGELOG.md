@@ -4,6 +4,15 @@ User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachan
 
 ## [Unreleased]: dark mode, native navigation, and one design language (2026-07 to 2026-08)
 
+### Fixed
+
+- **The dashboard's shortcuts no longer move you to Settings.** Lane Notes, Oil
+  Patterns and Backup opened from the dashboard used to switch you to the
+  Settings tab on the way, so going back showed Settings for a moment before
+  landing home. They now slide in over the tab you were on and go straight back
+  to it, and their back control is the chevron alone rather than naming a screen
+  you never visited. Reached from Settings, they are unchanged.
+
 ### Added
 
 - **Back closes whatever is in front.** The phone's back gesture already closed

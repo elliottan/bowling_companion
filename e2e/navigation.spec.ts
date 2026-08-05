@@ -40,6 +40,30 @@ test("the in-app back control and the platform back agree", async ({ page }) => 
   await expect(page.getByRole("dialog", { name: "Arsenal" })).toBeVisible();
 });
 
+test("a screen opened from the dashboard goes back to the dashboard", async ({ page }) => {
+  await page.getByRole("button", { name: "Lane Notes" }).click();
+
+  // Pushed over the tab it was opened from, not a jump into Settings: the URL
+  // says so, the tab bar still reads Home, and the back control does not name a
+  // screen the user never visited.
+  await expect(page).toHaveURL(/#\/home\/lanes$/);
+  const bar = page.getByRole("dialog", { name: "Lane Notes" });
+  await expect(bar.getByRole("button", { name: "Settings" })).toHaveCount(0);
+
+  await page.goBack();
+  await expect(page).toHaveURL(/#\/home$/);
+  await expect(page.getByRole("button", { name: "Start new session" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Lane Notes" })).toHaveCount(0);
+});
+
+test("the same screen reached from Settings still names Settings", async ({ page }) => {
+  await page.getByRole("navigation").getByRole("button", { name: "Settings" }).click();
+  await page.getByRole("button", { name: /Lane Notes/ }).click();
+
+  await expect(page).toHaveURL(/#\/settings\/lanes$/);
+  await expect(page.getByRole("button", { name: "Settings", exact: true }).first()).toBeVisible();
+});
+
 test("back closes the sheet in front before the screen behind it", async ({ page }) => {
   await page.getByRole("button", { name: "Arsenal", exact: true }).click();
   await page.getByRole("button", { name: "Add ball" }).first().click();

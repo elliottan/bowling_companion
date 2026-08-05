@@ -12,11 +12,15 @@ import { Button } from "../components/ui/Button";
 import { useOverlay } from "../lib/useOverlay";
 
 interface BackupRestoreViewProps {
-  /** Present when pushed from Settings — draws the shared nav bar. */
+  /** Present when pushed as a screen — draws the shared nav bar. */
   onBack?: () => void;
+  /** `overlay` when pushed over another tab, `inline` inside Settings. */
+  mode?: "inline" | "overlay";
+  /** Empty for the chevron alone (see the overlay stack in `App.tsx`). */
+  backLabel?: string;
 }
 
-export function BackupRestoreView({ onBack }: BackupRestoreViewProps = {}) {
+export function BackupRestoreView({ onBack, mode = "inline", backLabel = "Settings" }: BackupRestoreViewProps = {}) {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -157,7 +161,7 @@ export function BackupRestoreView({ onBack }: BackupRestoreViewProps = {}) {
   if (!onBack) return body;
 
   return (
-    <PushScreen mode="inline" title="Backup & Restore" backLabel="Settings" onBack={onBack}>
+    <PushScreen mode={mode} title="Backup & Restore" backLabel={backLabel} onBack={onBack}>
       {body}
     </PushScreen>
   );

@@ -39,7 +39,7 @@ const SEGMENT_VIEW = new Map<string, AppView>(
   Object.entries(VIEW_SEGMENT).map(([view, segment]) => [segment, view as AppView])
 );
 
-const OVERLAYS: readonly string[] = ["arsenal", "catalog"];
+const OVERLAYS: readonly string[] = ["arsenal", "catalog", "lanes", "oil-patterns", "backup"];
 
 const SETTINGS_SECTIONS: readonly string[] = [
   "menu",

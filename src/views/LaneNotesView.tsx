@@ -24,11 +24,15 @@ const NO_NOTES: LaneNote[] = [];
 const NO_ALLEYS: string[] = [];
 
 interface LaneNotesViewProps {
-  /** Present when pushed from Settings — draws the shared nav bar. */
+  /** Present when pushed as a screen — draws the shared nav bar. */
   onBack?: () => void;
+  /** `overlay` when pushed over another tab, `inline` inside Settings. */
+  mode?: "inline" | "overlay";
+  /** Empty for the chevron alone (see the overlay stack in `App.tsx`). */
+  backLabel?: string;
 }
 
-export function LaneNotesView({ onBack }: LaneNotesViewProps = {}) {
+export function LaneNotesView({ onBack, mode = "inline", backLabel = "Settings" }: LaneNotesViewProps = {}) {
   // Live: writing a note updates the list, with no refresh call per site.
   const liveNotes = useLiveQuery(() => getLaneNotes());
   const liveAlleys = useLiveQuery(() => getDistinctAlleys());
@@ -297,9 +301,9 @@ export function LaneNotesView({ onBack }: LaneNotesViewProps = {}) {
 
   return (
     <PushScreen
-      mode="inline"
+      mode={mode}
       title="Lane Notes"
-      backLabel="Settings"
+      backLabel={backLabel}
       onBack={onBack}
       trailing={
         !showForm && (

@@ -10,7 +10,7 @@ import { Suspense, lazy, useCallback, useEffect, useReducer, useRef, useState } 
 import { DashboardView } from "./views/DashboardView";
 import { ActiveSessionView } from "./views/ActiveSessionView";
 import { HistoryView } from "./views/HistoryView";
-import { SettingsView, type SettingsSection } from "./views/SettingsView";
+import { SettingsView } from "./views/SettingsView";
 import { SpareLinesView } from "./views/SpareLinesView";
 import {
   addGameToSession,
@@ -45,6 +45,11 @@ import { useHistoryRoute } from "./lib/useHistoryRoute";
 // UI and the arsenal its editor, and neither is on the path to scoring a game.
 const ArsenalView = lazy(() => import("./views/ArsenalView").then((m) => ({ default: m.ArsenalView })));
 const CatalogView = lazy(() => import("./views/CatalogView").then((m) => ({ default: m.CatalogView })));
+const LaneNotesView = lazy(() => import("./views/LaneNotesView").then((m) => ({ default: m.LaneNotesView })));
+const OilPatternsView = lazy(() => import("./views/OilPatternsView").then((m) => ({ default: m.OilPatternsView })));
+const BackupRestoreView = lazy(() =>
+  import("./views/BackupRestoreView").then((m) => ({ default: m.BackupRestoreView }))
+);
 
 type NavItem = {
   view: AppView;
@@ -73,7 +78,10 @@ const TAB_LABEL: Record<AppView, string> = {
 
 const OVERLAY_LABEL: Record<Overlay, string> = {
   arsenal: "Arsenal",
-  catalog: "Catalog"
+  catalog: "Catalog",
+  lanes: "Lane Notes",
+  "oil-patterns": "Oil Patterns",
+  backup: "Backup & Restore"
 };
 
 // Read once, before the router normalises the hash: was the app opened at a
@@ -269,11 +277,9 @@ function App() {
   const goTo = (view: AppView) => dispatch({ type: "goTo", view });
 
   // Jump straight into a Settings section, skipping goTo's reset to the menu.
-  // Used by the dashboard shortcuts and the backup nudge.
-  const goToSettingsSection = (section: SettingsSection) =>
-    dispatch({ type: "goToSettingsSection", section });
-
-  const goToBackup = () => goToSettingsSection("backup");
+  // The dashboard's shortcuts push over the tab the user is on (see `Overlay`),
+  // so the only jump straight to a Settings section is Settings' own menu.
+  const goToBackup = () => pushOverlay("backup");
 
   // Keyboard overlays the nav (viewport interactive-widget=overlays-content).
   // Only nudge a focused field into view when it's actually hidden — off the top
@@ -383,8 +389,8 @@ function App() {
             onOpenCatalog={() => pushOverlay("catalog")}
             onOpenLineVisualizer={() => dispatch({ type: "openLineSandbox" })}
             onOpenArsenal={() => pushOverlay("arsenal")}
-            onOpenLaneNotes={() => goToSettingsSection("lanes")}
-            onOpenOilPatterns={() => goToSettingsSection("oil-patterns")}
+            onOpenLaneNotes={() => pushOverlay("lanes")}
+            onOpenOilPatterns={() => pushOverlay("oil-patterns")}
             onSessionDeleted={handleSessionDeleted}
             onOpenBackup={goToBackup}
           />
@@ -457,16 +463,31 @@ function App() {
       <Suspense fallback={null}>
       {overlays.map((overlay, i) => {
         const under = underLabel(nav, i, TAB_LABEL, OVERLAY_LABEL);
-        return overlay === "arsenal" ? (
-          <ArsenalView
-            key={`arsenal-${i}`}
-            onBack={popOverlay}
-            backLabel={under}
-            onOpenCatalog={() => pushOverlay("catalog")}
-          />
-        ) : (
-          <CatalogView key={`catalog-${i}`} onBack={popOverlay} backLabel={under} />
-        );
+        switch (overlay) {
+          case "arsenal":
+            return (
+              <ArsenalView
+                key={`arsenal-${i}`}
+                onBack={popOverlay}
+                backLabel={under}
+                onOpenCatalog={() => pushOverlay("catalog")}
+              />
+            );
+          case "catalog":
+            return <CatalogView key={`catalog-${i}`} onBack={popOverlay} backLabel={under} />;
+          // Settings sections pushed from elsewhere. The back control is the
+          // chevron alone: naming the screen underneath is right inside
+          // Settings, but here it would name a tab, which is not a place you
+          // came *from*.
+          case "lanes":
+            return <LaneNotesView key={`lanes-${i}`} onBack={popOverlay} mode="overlay" backLabel="" />;
+          case "oil-patterns":
+            return (
+              <OilPatternsView key={`oil-patterns-${i}`} onBack={popOverlay} mode="overlay" backLabel="" />
+            );
+          case "backup":
+            return <BackupRestoreView key={`backup-${i}`} onBack={popOverlay} mode="overlay" backLabel="" />;
+        }
       })}
       </Suspense>
 

@@ -181,7 +181,13 @@ describe("navReducer", () => {
       spares: "Spares",
       settings: "Settings"
     };
-    const overlays: Record<Overlay, string> = { arsenal: "Arsenal", catalog: "Catalog" };
+    const overlays: Record<Overlay, string> = {
+      arsenal: "Arsenal",
+      catalog: "Catalog",
+      lanes: "Lane Notes",
+      "oil-patterns": "Oil Patterns",
+      backup: "Backup & Restore"
+    };
 
     it("names the tab underneath the first overlay", () => {
       const state = run([

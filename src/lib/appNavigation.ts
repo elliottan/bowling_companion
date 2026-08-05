@@ -26,8 +26,13 @@ export type SettingsSection =
 export type AppView = "dashboard" | "active" | "history" | "spares" | "settings";
 
 /** Screens that float above the tab bar, newest last. Pushing one keeps what is
- *  underneath alive, so back pops one level instead of collapsing the stack. */
-export type Overlay = "arsenal" | "catalog";
+ *  underneath alive, so back pops one level instead of collapsing the stack.
+ *
+ *  Lane notes, oil patterns and backup are also Settings sections. Reached from
+ *  the dashboard they push over the tab the user is on: switching them to the
+ *  Settings tab instead put them on a screen they never chose, and back then
+ *  showed Settings on its way home. */
+export type Overlay = "arsenal" | "catalog" | "lanes" | "oil-patterns" | "backup";
 
 export interface NavState {
   view: AppView;
