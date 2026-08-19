@@ -1774,5 +1774,105 @@
         "mbDiff": null
       }
     ]
+  },
+  {
+    "id": "storm-q-tour-30-2015",
+    "brand": "Storm",
+    "name": "!Q Tour 30",
+    "releaseDate": "2015-11-24",
+    "releaseYear": 2015,
+    "coverstockRaw": "R2S Pearl Reactive",
+    "coverstockCategory": "Pearl",
+    "factoryFinish": "1500 Polished",
+    "coreName": "C3 Centripetal Control",
+    "coreType": "Symmetric",
+    "rg": 2.49,
+    "diff": 0.029,
+    "mbDiff": null,
+    "imageThumb": "/catalog/img/storm-q-tour-30-2015-thumb.webp",
+    "imageFull": "/catalog/img/storm-q-tour-30-2015-full.webp",
+    "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/storm/iq-tour-30",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.49,
+        "diff": 0.035,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.49,
+        "diff": 0.029,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.54,
+        "diff": 0.034,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.59,
+        "diff": 0.045,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.65,
+        "diff": 0.035,
+        "mbDiff": null
+      }
+    ]
+  },
+  {
+    "id": "storm-q-tour-a-1-2025",
+    "brand": "Storm",
+    "name": "!Q Tour A.I.",
+    "releaseDate": "2025-03-21",
+    "releaseYear": 2025,
+    "coverstockRaw": "R2S Hybrid Reactive",
+    "coverstockCategory": "Hybrid",
+    "factoryFinish": "Power Edge",
+    "coreName": "C3 A.I.",
+    "coreType": "Symmetric",
+    "rg": 2.48,
+    "diff": 0.031,
+    "mbDiff": null,
+    "imageThumb": "/catalog/img/storm-q-tour-a-1-2025-thumb.webp",
+    "imageFull": "/catalog/img/storm-q-tour-a-1-2025-full.webp",
+    "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/storm/iq-tour-ai",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.48,
+        "diff": 0.037,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.48,
+        "diff": 0.031,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.53,
+        "diff": 0.036,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.58,
+        "diff": 0.047,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.64,
+        "diff": 0.037,
+        "mbDiff": null
+      }
+    ]
   }
 ]

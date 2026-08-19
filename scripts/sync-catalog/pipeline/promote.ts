@@ -1,5 +1,5 @@
 /**
- * Stage 3 — promote staged candidates into data/balls.json.
+ * Stage 3, promote staged candidates into data/balls.json.
  *
  * Usage:
  *   npm run promote-candidates              # promote data/candidates/*.json
@@ -66,6 +66,8 @@ function quoteContainsNumber(quote: string, value: number): boolean {
 function receiptProblems<T>(field: string, r: Evidence<T>, isNumber: boolean): string[] {
   const problems: string[] = [];
   if (!r.sourceUrl || !r.sourceUrl.trim()) problems.push(`${field}: reading has no sourceUrl`);
+  // A parser's output is checked by its own tests, not by a quote.
+  if (r.parser) return problems;
   if (!r.quote || !r.quote.trim()) problems.push(`${field}: reading has no quote`);
   if (!r.quote) return problems;
   const present = isNumber
@@ -101,7 +103,7 @@ export function resolveField<T extends string | number | object>(
   const problems = list.flatMap((r) => receiptProblems(field, r, isNumber));
   const sourceUrls = [...new Set(list.map((r) => r.sourceUrl).filter(Boolean))];
 
-  if (!official) {
+  if (!official && list.some((r) => !r.parser)) {
     const hosts = new Set(list.map((r) => host(r.sourceUrl)));
     if (hosts.size < 2) {
       problems.push(
@@ -117,7 +119,7 @@ export function resolveField<T extends string | number | object>(
       const gap = Math.abs((r.value as number) - (first.value as number));
       if (gap > (tolerance ?? 0)) {
         problems.push(
-          `${field}: sources disagree — ${first.value} (${host(first.sourceUrl)}) vs ${r.value} (${host(r.sourceUrl)})`
+          `${field}: sources disagree: ${first.value} (${host(first.sourceUrl)}) vs ${r.value} (${host(r.sourceUrl)})`
         );
       }
     } else if (typeof first.value === "string") {
@@ -126,7 +128,7 @@ export function resolveField<T extends string | number | object>(
         String(first.value).toLowerCase().replace(/\s+/g, " ").trim();
       if (!same) {
         problems.push(
-          `${field}: sources disagree — ${JSON.stringify(first.value)} vs ${JSON.stringify(r.value)}`
+          `${field}: sources disagree: ${JSON.stringify(first.value)} vs ${JSON.stringify(r.value)}`
         );
       }
     }
@@ -142,7 +144,7 @@ export interface PromoteResult {
 }
 
 /**
- * Key that decides "is this the same ball" — punctuation, case and roman
+ * Key that decides "is this the same ball", punctuation, case and roman
  * numerals are not identity. Storm styles its IQ line "!Q", so a bare strip of
  * punctuation leaves "q tour" against "iq tour" and the same ball enters the
  * catalog twice; the exclamation mark is read as the letter it stands in for.
@@ -175,7 +177,7 @@ export function promoteCandidate(c: BallCandidate, existing: RawBall[]): Promote
   const key = identityKey(c.brand, c.name);
   if (existing.some((b) => identityKey(b.brand, b.name) === key)) {
     problems.push(
-      `collides with a ball already in balls.json — decide by hand: update it, add a colorway, or rename this one`
+      `collides with a ball already in balls.json. Decide by hand: update it, add a colorway, or rename this one`
     );
   }
 
@@ -212,7 +214,7 @@ function main(): void {
 
   const dryRun = process.argv.includes("--dry-run");
   if (!existsSync(CANDIDATE_DIR)) {
-    console.log("No data/candidates/ directory — nothing to promote.");
+    console.log("No data/candidates/ directory: nothing to promote.");
     return;
   }
   const files = readdirSync(CANDIDATE_DIR).filter((f) => f.endsWith(".json"));
@@ -260,7 +262,7 @@ function main(): void {
   console.log(`  Refused  (${refused.length}):`);
   for (const r of refused) console.log(`    ${r}`);
   if (!dryRun && refused.length > 0) console.log(`  Conflicts written to ${CONFLICT_DIR}`);
-  if (!dryRun && promoted.length > 0) console.log(`  Wrote ${BALLS_JSON} — run npm run sync-catalog next`);
+  if (!dryRun && promoted.length > 0) console.log(`  Wrote ${BALLS_JSON}: run npm run sync-catalog next`);
 }
 
 if (process.argv[1] && process.argv[1].endsWith("promote.ts")) main();

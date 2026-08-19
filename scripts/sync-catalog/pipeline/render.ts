@@ -1,7 +1,7 @@
 /**
  * Shared image normalisation for every catalog image source.
  *
- * Sources are framed inconsistently — some arrive tight-cropped to the ball's
+ * Sources are framed inconsistently, some arrive tight-cropped to the ball's
  * bounding box, others padded on a white card, others off-centre. Rendering
  * them as-is is what made the catalog look wonky, so every image goes through
  * the same three steps regardless of where it came from: trim to the ball's

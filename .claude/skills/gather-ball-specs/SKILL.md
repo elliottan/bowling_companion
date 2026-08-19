@@ -1,121 +1,148 @@
 ---
 name: gather-ball-specs
 description: >
-  Research and add one or more bowling ball entries to
-  scripts/sync-catalog/data/balls.json. Follows the canonical
-  search protocol: 2+ sources, citation discipline, no invented numbers.
+  Add bowling balls to the catalog through the four-stage ingest pipeline:
+  select a scope, route each ball, parse what parses, read the rest with
+  quoted receipts, then promote. Never writes balls.json directly.
 trigger: >
-  User says "add ball", "gather specs", "research ball", or names a
-  specific ball to add to the catalog.
+  User says "add ball", "gather specs", "research ball", "add new releases",
+  or names balls to add to the catalog.
 ---
 
 # Gather Ball Specs
 
-Add one bowling ball at a time to `scripts/sync-catalog/data/balls.json`.
-Run `npm run sync-catalog` after each addition to verify the pipeline stays clean.
+Balls enter the catalog through `scripts/sync-catalog/pipeline/`, never by
+hand-editing `balls.json`. ADR-043 and ADR-044 carry the reasoning; this is the
+procedure.
+
+**The rule that matters:** you are the untrusted reader in this pipeline. Every
+value you produce must be quoted verbatim from the document you read it in. If a
+page does not state a number, the field is `null`. Never fill a gap from
+memory, from a sibling ball, or from what the number usually is.
 
 ---
 
-## Target fields (RawBall schema)
+## Stage 1: scope the run
 
-Every entry must have all required fields. Optional fields noted.
+Ask the user for scope if they have not given one. Then:
 
-| Field | Type | Notes |
-|---|---|---|
-| `brand` | `"Storm" \| "Roto Grip" \| "900 Global" \| "Motiv"` | Must be exact — one of the 4 whitelisted brands. |
-| `name` | `string` | Ball model name as printed on the ball (e.g., `"Phaze II"`, `"Hyped Solid"`). No color variants. |
-| `releaseDate` | `string \| null` | ISO `yyyy-mm-dd`. Use `yyyy-01-01` when only year is known. `null` if unknown. |
-| `coverstockRaw` | `string` | Exact coverstock string from the manufacturer spec sheet (e.g., `"TX-16 Solid Reactive"`). |
-| `factoryFinish` | `string \| null` | Factory surface prep string (e.g., `"3000-grit Abralon"`). `null` if not found. |
-| `coreName` | `string \| null` | Core name (e.g., `"Velocity"`). `null` if not found. |
-| `rg` | `number \| null` | Radius of gyration, two decimal places (e.g., `2.48`). **15 lb value.** `null` if not found. |
-| `diff` | `number \| null` | Total differential, three decimal places (e.g., `0.051`). **15 lb value.** `null` if not found. |
-| `mbDiff` | `number \| null` | Intermediate/mass-bias differential. `null` means symmetric. **15 lb value.** |
-| `sourceUrls` | `string[]` | At least 2 URLs. First URL = primary (manufacturer page). |
-| `weights` | `WeightSpec[] \| undefined` | **Optional.** Only include when a spec table is right in front of you with multiple weights listed. Never fetch extra pages just to fill weights. See multi-weight rule below. |
-
----
-
-## Search method
-
-### Query patterns (use multiple)
-
-1. `"<Brand> <BallName> bowling ball specs"`
-2. `"<Brand> <BallName> RG differential"`
-3. `"site:stormbowling.com <BallName>"` (or rotogrip.com / 900global.com / motivbowling.com)
-4. `"site:bowwwl.com <BallName>"` — the bowwwl.com ball database is a reliable secondary source
-5. `"site:bowlingthismonth.com <BallName> review"` — confirms specs independently
-
-### Source discipline
-
-- **Always use 2+ independent sources.** Cite both in `sourceUrls`.
-- Prefer manufacturer pages (stormbowling.com, rotogrip.com, 900global.com, motivbowling.com) as `sourceUrls[0]`.
-- bowwwl.com ball database is reliable for cross-checking numeric specs.
-- **Never invent a number.** If a source gives a value for 16 lb but not 15 lb, do NOT guess the 15 lb value — set the field to `null`.
-- **Flag-don't-guess coverstock.** If the coverstock string doesn't clearly match Solid/Pearl/Hybrid/Urethane, use the exact manufacturer string as-is. The build pipeline will flag it for human classification (`coverstockCategory = null`).
-- If two sources disagree on a numeric spec by more than rounding error, use the manufacturer value and note the discrepancy in a code comment in balls.json (JSON doesn't support comments — add to `sourceUrls` or leave a note in the PR).
-
-### What to skip
-
-- Color-variant balls (e.g., "Idol Pink Pearl", "Idol Red") — these are the same core ball with a color change. Only add the base model unless the name has a meaningful distinction (e.g., "Phaze II" vs "Phaze III" are different balls; "Idol" vs "Idol Pink Pearl" are not).
-- Balls under 13 lb only (marked `**` in the USBC list).
-- Balls from brands not in the 4-brand whitelist.
-
----
-
-## Multi-weight rule
-
-- **Always fill 15 lb** values in the top-level `rg`/`diff`/`mbDiff` fields. These are the defaults.
-- **Include `weights[]`** only when a spec table showing multiple weights is already visible in your search results — do not open additional pages just to fill it.
-- When including `weights[]`, the 15 lb entry in the array **must match** the top-level values exactly.
-- `WeightSpec` shape: `{ weight: number, rg: number | null, diff: number | null, mbDiff: number | null }`.
-
-Example:
-```json
-"weights": [
-  { "weight": 16, "rg": 2.46, "diff": 0.053, "mbDiff": 0.018 },
-  { "weight": 15, "rg": 2.48, "diff": 0.051, "mbDiff": 0.017 },
-  { "weight": 14, "rg": 2.50, "diff": 0.048, "mbDiff": null }
-]
+```bash
+npm run select-balls -- --since 2026-01-01
+npm run select-balls -- --since 2026-01-01 --brand Storm --limit 20
+npm run select-balls -- --name "Storm:Phaze V" --name "Motiv:Venom Shock"
 ```
 
----
+Writes `data/queue/<run-id>.json`, listing only balls not already in the
+catalog. Keep runs small. A phase of 10 to 20 balls is reviewable; 200 is not.
 
-## Output format
+## Stage 2a: route before reading
 
-Append to `scripts/sync-catalog/data/balls.json`. Match the existing JSON style (2-space indent, trailing comma on prior last entry).
+```bash
+npm run resolve-sources -- scripts/sync-catalog/data/queue/<run-id>.json --try-base-names
+```
 
-Example `RawBall` entry:
+Tags each ball `pdf`, `bowwwl` or `manual`, and prints how many of each. Add
+`--try-base-names` when the queue came from USBC, whose rows are per colorway.
+
+**Check every reported name reduction before using it.** A trailing `/` can mean
+a colorway ("Hustle Vanilla/Popsicle" is a Hustle) or a different ball entirely
+("Attention 78/U" is a urethane model, not a colorway of Attention). Drop the
+wrong ones from the run and tell the user which.
+
+## Stage 2b: the free paths, use these first
+
+Anything routed `pdf` or `bowwwl` is parsed by code, costs no tokens, and needs
+no quotes from you:
+
+```bash
+npm run parse-ball -- "<tech-data-pdf-url>"        # routed pdf
+npm run parse-bowwwl -- "<page-url>" [<page-url>…] # routed bowwwl
+npm run seed-to-candidates -- bowwwl-seed.json     # staged output to candidates
+npm run seed-to-candidates -- single-balls-seed.json
+```
+
+Never re-read a page yourself that a parser already handled. That is the whole
+point of the routing pass.
+
+## Stage 2c: the manual path, quoted receipts
+
+Only for balls routed `manual`. Read the manufacturer page, or a spec database,
+and write `data/candidates/<brand>-<name>-<year>.json`:
+
 ```json
 {
   "brand": "Storm",
-  "name": "Phaze II",
-  "releaseDate": "2019-01-01",
-  "coverstockRaw": "TX-16 Solid Reactive",
-  "factoryFinish": "3000-grit Abralon",
-  "coreName": "Velocity",
-  "rg": 2.48,
-  "diff": 0.051,
-  "mbDiff": null,
-  "sourceUrls": [
-    "https://www.stormbowling.com/products/equipment/bowling-balls/bbmtza-phaze-ii",
-    "https://www.bowwwl.com/bowling-ball-database/storm/phaze-ii"
-  ]
+  "name": "Phaze V",
+  "official": true,
+  "releaseDate": [{ "value": "2026-02-10", "sourceUrl": "https://…", "quote": "Release Date: February 10, 2026" }],
+  "coverstockRaw": [{ "value": "TX-20 Solid Reactive", "sourceUrl": "https://…", "quote": "Coverstock: TX-20 Solid Reactive" }],
+  "factoryFinish": [{ "value": "3000-grit Abralon", "sourceUrl": "https://…", "quote": "Factory Finish 3000-grit Abralon" }],
+  "coreName": [{ "value": "Velocity", "sourceUrl": "https://…", "quote": "Core: Velocity" }],
+  "rg": [{ "value": 2.48, "sourceUrl": "https://…", "quote": "RG 2.48" }],
+  "diff": [{ "value": 0.051, "sourceUrl": "https://…", "quote": "Differential 0.051" }],
+  "mbDiff": []
 }
 ```
 
----
+- `official: true` only for a manufacturer-published document (their own product
+  page or spec PDF). Then one reading per field is enough.
+- `official: false` for anything else. Then each field needs readings from **two
+  different sites**, and they must agree.
+- An absent field is `[]`, not a guessed value.
+- `quote` must be text that actually appears in the document and must contain the
+  value. Promote checks this mechanically and refuses the ball otherwise.
+- 15 lb values go in the top-level `rg`/`diff`/`mbDiff`. `weights` is optional
+  and only from a table already in front of you.
 
-## After adding entries
+**Bot checks.** Some manufacturer sites challenge automated fetches. Do not try
+to bypass or solve a challenge. Use the browser tools, and if a challenge
+appears, stop that ball, tell the user, and continue with the rest. The run is
+resumable; the queue file is still there.
 
-1. Run `npm run sync-catalog` — must print "All clean." or only expected warnings.
-2. Run `npm run usbc-diff` — verify the newly added ball reduces the "missing from catalog" count.
-3. Run `npm test` — must stay green.
+## Stage 3: promote
+
+```bash
+npm run promote-candidates -- --dry-run
+npm run promote-candidates
+```
+
+Refusals land in `data/conflicts/` with the reason. Handle each explicitly:
+
+- **collision**: the ball is already in the catalog. Decide with the user:
+  update the existing row, add a colorway to it, or the name was wrong.
+- **sources disagree**: go back to the documents. Never split the difference.
+- **value does not appear in its quote**: you fabricated or mistyped it. Re-read
+  the source.
+- **out of range**: usually a units or decimal-place slip.
+
+## Stage 4: images and review
+
+```bash
+npm run add-ball-image -- "<ball name or SKU>" "<direct image url>"
+npm run fetch-images
+npm run contact-sheet
+```
+
+`parse-bowwwl` records `_imageUrl` on each staged entry; that is the URL to pass
+to `add-ball-image`. Open `scripts/sync-catalog/contact-sheet.html` and look at
+it, in both light and dark. A bad cut or an off-centre ball is only visible to an
+eye. A ball with no usable image keeps the placeholder; never substitute a photo
+from a retailer.
+
+## Finish
+
+```bash
+npm run sync-catalog
+npm run verify
+```
+
+`sync-catalog` must print "All clean." Add a `docs/CHANGELOG.md` line when the
+run adds balls a user would notice. Then commit and push.
 
 ---
 
 ## References
 
-- ADR-007 in `docs/DECISIONS.md` — catalog data model decisions
-- `scripts/sync-catalog/` — pipeline source (types.ts, validate.ts, normalize.ts, build.ts)
-- `scripts/sync-catalog/usbc/parse-usbc.ts` — discovery script (`npm run usbc-diff`)
+- ADR-043, ADR-044 in `docs/DECISIONS.md`: the trust rules and why they exist
+- ADR-039: where images come from, and the rights position
+- `scripts/sync-catalog/pipeline/`: the pipeline source

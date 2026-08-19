@@ -15,9 +15,17 @@ export interface Evidence<T> {
   sourceUrl: string;
   /** Verbatim text from that document containing the value. Never paraphrased. */
   quote: string;
+  /**
+   * Name of the deterministic parser that produced this reading, when one did
+   * (`parse-bowwwl`, `parse-ball`). A parser reads a labelled field or a fixed
+   * PDF layout and cannot invent a plausible number the way a model can, so a
+   * parser reading stands on its own: no quote, and no second site. Absent
+   * means a model read it, and then both are required.
+   */
+  parser?: string;
 }
 
-/** Every field carries its readings as a list — one entry per source consulted. */
+/** Every field carries its readings as a list, one entry per source consulted. */
 export type Readings<T> = Evidence<T>[];
 
 /**
@@ -42,7 +50,7 @@ export interface BallCandidate {
   rg: Readings<number>;
   diff: Readings<number>;
   mbDiff: Readings<number>;
-  /** Whole-array readings — per-weight rows are quoted as one block. */
+  /** Whole-array readings, per-weight rows are quoted as one block. */
   weights?: Readings<WeightSpec[]>;
   colorways?: Readings<Colorway[]>;
   /** Direct product image URL, fed to the image stage. */

@@ -1,5 +1,5 @@
 /**
- * Stage 4 review — one page of every catalog image at grid size.
+ * Stage 4 review, one page of every catalog image at grid size.
  *
  * Usage:
  *   npm run contact-sheet          # every ball that has an image

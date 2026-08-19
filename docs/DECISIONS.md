@@ -1875,3 +1875,42 @@ ADR-039.
   rather than by the skill remembering to.
 - Conflicts accumulate as files. An unattended conflict is a ball missing from
   the catalog, not a wrong ball in it, which is the failure worth having.
+
+---
+
+## ADR-044: A deterministic parser is a trusted reader, and routing decides who reads
+
+**Status:** accepted (2026-08). Amends ADR-043, which stands as written.
+
+**Context.** ADR-043 put a quote behind every value and a second site behind
+every non-official one. Applied literally that also taxes `parse-bowwwl`,
+`parse-ball` and the SPI catalog parsers, which already produce whole entries
+with no model in the loop. Making them fabricate quotes to satisfy a rule aimed
+at models would turn the receipt into decoration.
+
+**Decision.** A reading carries an optional `parser` field naming the code that
+produced it. A parser reading needs no quote and no second site; a reading
+without one is a model's, and both rules apply in full. The distinction is who
+read the document, not which document it was: a parser reads a labelled DOM
+field or a fixed PDF layout and fails loudly, whereas a model fails plausibly.
+
+Route selection (`pipeline/sources.ts`, `resolve-sources.ts`) runs before any
+reading and tags each queued ball `pdf`, `bowwwl` or `manual`, so a run knows up
+front how much of it is free. On the first real queue, 77 balls approved since
+January 2026 routed as 6 pdf, 32 bowwwl, 39 manual.
+
+**On reduced names.** USBC lists one row per colorway, so a queue carries names
+like "Hustle Vanilla/Popsicle" that no page is filed under. Dropping the
+trailing slash-run finds the base ball, and this is opt-in
+(`--try-base-names`) and always reported, because the same shape appears on
+genuinely different balls: "Attention 78/U" is a urethane model, not a colorway
+of "Attention". Filing one ball's specs under another's name is the exact
+failure the collision rule exists to prevent, so it is never done silently.
+
+**Consequences.**
+- Most balls now cost nothing to add. The model is the exception path, not the
+  default one.
+- `from-seed.ts` routes existing staged parser output through the same promote
+  gate, so there is one entry into `balls.json` rather than two.
+- A parser bug now enters the catalog without a quote to catch it. That is the
+  accepted trade: parsers have tests, models do not.

@@ -26,6 +26,7 @@ import sharp from "sharp";
 
 import { slug } from "../normalize.js";
 import { renderBallPair, type ImageEntry } from "../pipeline/render.js";
+import { candidateUrls, headOk } from "../pipeline/sources.js";
 import type { RawBall } from "../types.js";
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
@@ -34,43 +35,6 @@ const BALLS_JSON = resolve(REPO_ROOT, "scripts/sync-catalog/data/balls.json");
 const IMAGES_JSON = resolve(REPO_ROOT, "scripts/sync-catalog/data/images.json");
 const DENYLIST_JSON = resolve(REPO_ROOT, "scripts/sync-catalog/data/image-denylist.json");
 const IMG_DIR = resolve(REPO_ROOT, "public/catalog/img");
-
-const CDN = "https://stormproducts.nyc3.cdn.digitaloceanspaces.com/product_pages/Balls";
-const BRAND_FOLDER: Record<string, string> = {
-  Storm: "Storm",
-  "Roto Grip": "Roto_Grip",
-  "900 Global": "900_Global",
-  Motiv: "Motiv",
-};
-
-// ---------------------------------------------------------------------------
-// Candidate ad-sheet / tech PDF URLs for a ball (Storm naming is inconsistent).
-// ---------------------------------------------------------------------------
-function candidateUrls(brand: string, name: string): string[] {
-  const brandFolder = BRAND_FOLDER[brand];
-  if (!brandFolder) return [];
-  const folder = name.replace(/\//g, "").replace(/ /g, "_");
-  const noSpace = name.replace(/[/ ]/g, "");
-  const base = `${CDN}/${brandFolder}/${folder}/`;
-  const files = [
-    `Storm_adsheet_${noSpace}-nobleed.pdf`,
-    `${name} Tech Data Final.pdf`,
-    `${name} Tech Data.pdf`,
-    `Storm_${name}_Tech Data.pdf`,
-    `Storm_${noSpace}_Design Intent.pdf`,
-    `${noSpace} Tech Data Final.pdf`,
-  ];
-  return files.map((f) => encodeURI(base + f));
-}
-
-async function headOk(url: string): Promise<boolean> {
-  try {
-    const r = await fetch(url, { method: "HEAD" });
-    return r.status === 200;
-  } catch {
-    return false;
-  }
-}
 
 // Carve embedded JPEGs (SOI FFD8 … first EOI FFD9), largest first. Byte-pattern
 // carving yields some false spans, so callers validate each with sharp.

@@ -32,7 +32,10 @@ User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachan
   instead of being averaged, and a ball whose name matches one already there is
   held back rather than added twice. Ball images from every source are now
   framed identically, so no ball renders larger than its neighbour in the grid.
-  See ADR-043.
+  See ADR-043 and ADR-044.
+
+- **Two more balls in the catalog:** the !Q Tour 30 and the !Q Tour A.I., both
+  with photos.
 
 - **Back closes whatever is in front.** The phone's back gesture already closed
   pushed screens; now it also closes the sheet or dialog on top of them, the

@@ -5,6 +5,8 @@
 import { describe, it, expect } from "vitest";
 
 import { promoteCandidate, resolveField, identityKey } from "./promote.js";
+import { toCandidate } from "./from-seed.js";
+import { baseName } from "./sources.js";
 import type { BallCandidate } from "./types.js";
 import type { RawBall } from "../types.js";
 
@@ -109,6 +111,93 @@ describe("resolveField corroboration", () => {
       0.01
     );
     expect(r.value).toBe(2.49);
+  });
+});
+
+describe("parser readings", () => {
+  it("stands on one source with no quote, because code cannot fabricate a number", () => {
+    const r = resolveField(
+      "rg",
+      [{ value: 2.49, sourceUrl: aggregatorUrl, quote: "", parser: "parse-bowwwl" }],
+      false
+    );
+    expect(r.value).toBe(2.49);
+    expect(r.problems).toEqual([]);
+  });
+
+  it("still needs a source url", () => {
+    const r = resolveField("rg", [{ value: 2.49, sourceUrl: "", quote: "", parser: "parse-bowwwl" }], false);
+    expect(r.problems).toEqual(["rg: reading has no sourceUrl"]);
+  });
+
+  it("does not exempt a model reading sitting next to a parser one", () => {
+    const r = resolveField(
+      "rg",
+      [
+        { value: 2.49, sourceUrl: aggregatorUrl, quote: "", parser: "parse-bowwwl" },
+        { value: 2.49, sourceUrl: aggregatorUrl, quote: "RG 2.49" },
+      ],
+      false,
+      0.01
+    );
+    expect(r.problems.some((p) => p.includes("2 different sites"))).toBe(true);
+  });
+});
+
+describe("toCandidate", () => {
+  it("marks every field with the parser that produced it and drops nulls", () => {
+    const c = toCandidate(
+      {
+        brand: "Roto Grip",
+        name: "Gem",
+        releaseDate: "2022-03-11",
+        coverstockRaw: "MicroTrax Solid",
+        factoryFinish: null,
+        coreName: "Defiant LRG",
+        rg: 2.47,
+        diff: 0.053,
+        mbDiff: 0.016,
+        sourceUrls: ["https://www.bowwwl.com/bowling-ball-database/roto-grip/gem"],
+      },
+      "parse-bowwwl"
+    );
+    expect(c.official).toBe(false);
+    expect(c.rg[0].parser).toBe("parse-bowwwl");
+    expect(c.factoryFinish).toEqual([]);
+  });
+
+  it("promotes straight through, since a parser reading needs no quote", () => {
+    const c = toCandidate(
+      {
+        brand: "Roto Grip",
+        name: "Gem",
+        releaseDate: "2022-03-11",
+        coverstockRaw: "MicroTrax Solid",
+        factoryFinish: null,
+        coreName: "Defiant LRG",
+        rg: 2.47,
+        diff: 0.053,
+        mbDiff: 0.016,
+        sourceUrls: ["https://www.bowwwl.com/bowling-ball-database/roto-grip/gem"],
+      },
+      "parse-bowwwl"
+    );
+    expect(promoteCandidate(c, []).ok).toBe(true);
+  });
+});
+
+describe("baseName", () => {
+  it("drops a trailing colour run", () => {
+    expect(baseName("Hustle Vanilla/Popsicle")).toBe("Hustle");
+    expect(baseName("Tropical Surge Onyx/Mercury/Graphite")).toBe("Tropical Surge");
+  });
+
+  it("leaves a name with no slash alone", () => {
+    expect(baseName("Pitch Black 78-U")).toBeNull();
+  });
+
+  it("reduces a distinct model too, which is why it is opt-in and reported", () => {
+    expect(baseName("Attention 78/U")).toBe("Attention");
   });
 });
 

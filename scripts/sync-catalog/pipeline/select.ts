@@ -1,5 +1,5 @@
 /**
- * Stage 1 — choose what a run covers, and write it as a queue file.
+ * Stage 1, choose what a run covers, and write it as a queue file.
  *
  * Usage:
  *   npm run select-balls -- --since 2026-01-01
