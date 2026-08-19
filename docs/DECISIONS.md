@@ -1816,3 +1816,62 @@ opening a sheet is not a route change.
   already, and registering them would pop two layers per gesture.
 - The invariant the sentinel rests on is that sheets are modal, so no route
   change lands on top of one except the takeover above.
+
+---
+
+## ADR-043: Catalog ingest is a four-stage pipeline, and the model stage is treated as an untrusted reader
+
+**Status:** accepted (2026-08).
+
+**Context.** ADR-007 seeded the catalog from SPI PDFs, ADR-039 opened it to any
+brand via a third-party spec database. Both are per-ball manual acts, and the
+catalog stalled at 50 balls against a USBC approved list of ~2,000. Scaling the
+manual act means letting an agent read spec pages and write `balls.json`, and an
+agent reading a page will emit a plausible RG the page never stated. At 50 rows
+nobody re-reads the file, so a fabricated number ships and stays.
+
+**Decision.** Four stages, with the model confined to one of them.
+
+1. **Select** (`pipeline/select.ts`) diffs `data/usbc-index.json` against
+   `balls.json` and writes `data/queue/<run-id>.json`. Scope is a run input, not
+   a policy: a date range, a brand, or a hand-picked list. No network.
+2. **Extract** (the agent) reads sources and stages one
+   `data/candidates/<slug>.json` per ball. Every field is a list of readings,
+   each `{value, sourceUrl, quote}` where the quote is verbatim.
+3. **Promote** (`pipeline/promote.ts`) is plain TypeScript, no model. It
+   re-checks every receipt and either appends to `balls.json` or writes
+   `data/conflicts/<slug>.json`.
+4. **Images** (`pipeline/render.ts`, `contact-sheet.ts`) normalise and then show
+   the result to a human eye.
+
+**What promote enforces, and why each rule exists.**
+- *A value must appear in its own quote.* This is the whole anti-fabrication
+  mechanism, and it is mechanical: no model judges it.
+- *An official manufacturer document is enough on its own; anything else needs
+  readings from two different sites.* The official sheet is the ground truth, so
+  corroborating it against a site that transcribed it is theatre.
+- *Sources that disagree past tolerance produce a conflict, never an average.*
+  Tolerances are RG ±0.01 and differentials ±0.002, the rounding real sheets
+  publish at.
+- *A name that collides with an existing ball is refused.* Storm re-releases
+  names, and "!Q Tour" and "IQ Tour" are the same ball, so the identity key
+  reads `!` as the letter it stands for. Update, colorway or genuinely-new is a
+  human's call.
+
+**On images.** Every source is framed differently, so all of them now go through
+one normaliser: trim to the ball's real bounds, scale to a fixed fraction of the
+canvas, centre on a transparent square. Fixed fraction is what stops one ball
+rendering larger than its neighbour in the grid. The stage ends in a contact
+sheet rather than an assertion, because a bad alpha cut is obvious to an eye and
+invisible to any check worth writing. The rights position is unchanged from
+ADR-039.
+
+**Consequences.**
+- Re-running is cheap: three of the four stages are deterministic and free, and
+  only extraction spends tokens, only on balls not already in the catalog.
+- A run can stop mid-way and resume, which matters because the browser path hits
+  bot challenges that a human has to clear by hand. Nothing bypasses one.
+- The `gather-ball-specs` skill's citation discipline is now enforced by code
+  rather than by the skill remembering to.
+- Conflicts accumulate as files. An unattended conflict is a ball missing from
+  the catalog, not a wrong ball in it, which is the failure worth having.

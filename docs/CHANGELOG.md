@@ -24,6 +24,16 @@ User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachan
 
 ### Added
 
+- **A repeatable way to add balls to the catalog.** Every ball used to be added
+  by hand, so the catalog sat at 50 while the USBC approved list ran to
+  thousands. A run now picks its own scope (a date range, a brand, or a named
+  list), and everything after the reading step is mechanical: values only enter
+  the catalog quoted from a named source, sources that disagree raise a conflict
+  instead of being averaged, and a ball whose name matches one already there is
+  held back rather than added twice. Ball images from every source are now
+  framed identically, so no ball renders larger than its neighbour in the grid.
+  See ADR-043.
+
 - **Back closes whatever is in front.** The phone's back gesture already closed
   pushed screens; now it also closes the sheet or dialog on top of them, the
   ball editor and the start-session form included, exactly as Escape does on a

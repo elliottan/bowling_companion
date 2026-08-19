@@ -38,3 +38,7 @@ playwright-report/
 
 # USBC PDF cache (downloaded by usbc-diff script)
 tmp/
+
+# Catalog pipeline local state (queue files and the image contact sheet)
+scripts/sync-catalog/data/queue/
+scripts/sync-catalog/contact-sheet.html

@@ -24,7 +24,10 @@
     "add-ball-image": "tsx scripts/sync-catalog/catalog/add-ball-image.ts",
     "parse-catalog-columnar": "tsx scripts/sync-catalog/catalog/parse-catalog-columnar.ts",
     "parse-catalog-2024": "tsx scripts/sync-catalog/catalog/parse-catalog-2024.ts",
-    "parse-bowwwl": "tsx scripts/sync-catalog/catalog/parse-bowwwl.ts"
+    "parse-bowwwl": "tsx scripts/sync-catalog/catalog/parse-bowwwl.ts",
+    "select-balls": "tsx scripts/sync-catalog/pipeline/select.ts",
+    "promote-candidates": "tsx scripts/sync-catalog/pipeline/promote.ts",
+    "contact-sheet": "tsx scripts/sync-catalog/pipeline/contact-sheet.ts"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

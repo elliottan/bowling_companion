@@ -25,6 +25,7 @@ import { fileURLToPath } from "node:url";
 import sharp from "sharp";
 
 import { slug } from "../normalize.js";
+import { renderBallPair, type ImageEntry } from "../pipeline/render.js";
 import type { RawBall } from "../types.js";
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
@@ -41,11 +42,6 @@ const BRAND_FOLDER: Record<string, string> = {
   "900 Global": "900_Global",
   Motiv: "Motiv",
 };
-
-interface ImageEntry {
-  imageThumb: string;
-  imageFull: string;
-}
 
 // ---------------------------------------------------------------------------
 // Candidate ad-sheet / tech PDF URLs for a ball (Storm naming is inconsistent).
@@ -94,9 +90,14 @@ function carveJpegs(buf: Buffer): Buffer[] {
   return out.sort((a, b) => b.length - a.length);
 }
 
-/** Resize the first JPEG candidate that sharp accepts and that looks like a
- * square-ish ball render. Returns true on success. */
-async function writeWebp(candidates: Buffer[], thumbPath: string, fullPath: string): Promise<boolean> {
+/** Render the first JPEG candidate that sharp accepts and that looks like a
+ * square-ish ball render, through the shared normaliser. Returns the images.json
+ * entry, or null when no carve was usable. */
+async function writeWebp(
+  candidates: Buffer[],
+  id: string,
+  imgDir: string
+): Promise<ImageEntry | null> {
   for (const jpeg of candidates) {
     try {
       const meta = await sharp(jpeg).metadata();
@@ -104,14 +105,12 @@ async function writeWebp(candidates: Buffer[], thumbPath: string, fullPath: stri
       if (!meta.width || !meta.height || meta.width < 200 || meta.height < 200) continue;
       const ratio = meta.width / meta.height;
       if (ratio < 0.7 || ratio > 1.4) continue;
-      await sharp(jpeg).resize(160, 160, { fit: "inside" }).webp({ quality: 80 }).toFile(thumbPath);
-      await sharp(jpeg).resize(800, 800, { fit: "inside" }).webp({ quality: 82 }).toFile(fullPath);
-      return true;
+      return await renderBallPair(jpeg, id, imgDir);
     } catch {
       // invalid carve — try next candidate
     }
   }
-  return false;
+  return null;
 }
 
 async function main(): Promise<void> {
@@ -147,27 +146,19 @@ async function main(): Promise<void> {
       continue;
     }
 
-    let ok = false;
+    let entry: ImageEntry | null = null;
     try {
       const pdf = Buffer.from(await (await fetch(pdfUrl)).arrayBuffer());
-      const candidates = carveJpegs(pdf);
-      ok = await writeWebp(
-        candidates,
-        resolve(IMG_DIR, `${id}-thumb.webp`),
-        resolve(IMG_DIR, `${id}-full.webp`)
-      );
+      entry = await writeWebp(carveJpegs(pdf), id, IMG_DIR);
     } catch {
-      ok = false;
+      entry = null;
     }
-    if (!ok) {
+    if (!entry) {
       misses.push(`${ball.brand} ${ball.name} (no usable image)`);
       continue;
     }
 
-    images[id] = {
-      imageThumb: `/catalog/img/${id}-thumb.webp`,
-      imageFull: `/catalog/img/${id}-full.webp`,
-    };
+    images[id] = entry;
     hits++;
     console.log(`  ✓ ${ball.brand} ${ball.name}`);
   }
