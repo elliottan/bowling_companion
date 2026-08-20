@@ -1914,3 +1914,42 @@ failure the collision rule exists to prevent, so it is never done silently.
   gate, so there is one entry into `balls.json` rather than two.
 - A parser bug now enters the catalog without a quote to catch it. That is the
   accepted trade: parsers have tests, models do not.
+
+---
+
+## ADR-045: Reaching back to a previous frame takes its last fresh-rack shot
+
+**Status:** accepted (2026-08). Refines ADR-029 rules 2 and 3; rule 1 and the
+fresh-rack definition are unchanged.
+
+**Context.** ADR-029 made a fresh-rack shot seed from "the most recent earlier
+fresh-rack shot in the current frame", then kept ADR-017's wording for the two
+fallbacks: `previousSameLaneFrame`'s **first** shot, and
+`previousGameSameLaneFrame`'s **first** shot.
+
+Those two rules disagree. Inside a frame the latest fresh-rack shot wins;
+across frames the first one does. In frames 1 to 9 the disagreement is
+invisible, because ball 1 is the only fresh-rack shot there. The 10th frame is
+the exception, and it is exactly the frame every reach-back lands on: frame 1 of
+a new game seeds from the previous game's 10th on the same lane.
+
+Reported from the lanes: a 10th frame of strike then strike, then the next
+game's frame 1 seeded from ball 1 rather than ball 2. Two full-rack shots were
+thrown, and the older one was carried forward.
+
+**Decision.** Both fallbacks take the frame's **last** fresh-rack shot. The rule
+is now the same wherever it is applied: among shots thrown at a full rack, the
+most recent one seeds.
+
+Frames 1 to 9 are unaffected, since a strike ends the frame and ball 1 is
+therefore their only fresh-rack shot. The 10th changes: strike, strike now seeds
+from ball 2, and strike, spare-attempt still seeds from ball 1, because a spare
+attempt is not fresh-rack and never seeds anything (ADR-029).
+
+**Consequences.**
+- `freshRackSeedShot` applies `freshRackShotIndices` to the previous frame too,
+  rather than reading `shots[0]`.
+- ADR-029's worked example is unchanged: within the 10th, leave, spare, bonus
+  ball still seeds from ball 1.
+- A bowler who changes ball for the 10th-frame bonus shots now carries that ball
+  into the next game, which is what the change of ball meant.

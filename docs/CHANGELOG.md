@@ -45,6 +45,11 @@ User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachan
 - **Six 900 Global balls,** all with photos: Gear Mark, Honey Badger Wine Pearl,
   Origin, Perfect Reality, Vengeance Returns and Viking Conquest.
 
+- **Fixed:** after a 10th frame of two full-rack shots (strike then strike), the
+  next game's first frame carried the ball and line from the *first* of them.
+  It now carries the last one thrown. A spare attempt in the 10th still never
+  seeds anything, since it was aimed at a leave. See ADR-045.
+
 - **Seven Motiv balls,** all with photos: Covert VIP ExJ, Evoke Mayhem, Frenzy,
   Max Thrill Pearl, Sigma Tour Pearl, Supra Sport and Venom Hysteria.
 

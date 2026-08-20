@@ -58,6 +58,49 @@ describe("seedForShot", () => {
       expect(seed.intended).toEqual({ stance: 22 });
     });
 
+    it("carries the LAST fresh-rack shot of a 10th frame, not its first", () => {
+      // Strike, then strike: both balls are thrown at a full rack, and the one
+      // that matters to the next game's frame 1 is the one thrown last.
+      const tenth = frame(
+        10,
+        [
+          { pins_standing: [] as PinNumber[], ball_id: 1, intended: { stance: 20 }, notes: "first" },
+          { pins_standing: [] as PinNumber[], ball_id: 2, intended: { stance: 26 }, notes: "last" }
+        ],
+        { is_strike: true }
+      );
+
+      const seed = seedForShot({
+        ...base,
+        currentFrameNumber: 1,
+        game: LANE_12,
+        previousGames: [{ game: LANE_12, frames: [tenth] }]
+      });
+
+      expect(seed.ballId).toBe(2);
+      expect(seed.intended).toEqual({ stance: 26 });
+      expect(seed.notes).toBe("last");
+    });
+
+    it("ignores a 10th-frame spare attempt, which aims at a leave", () => {
+      // 9 count, then the spare attempt. Only ball 1 is fresh-rack, so it
+      // stays the seed (ADR-029) even though ball 2 was thrown later.
+      const tenth = frame(10, [
+        { pins_standing: [10] as PinNumber[], ball_id: 1, intended: { stance: 20 } },
+        { pins_standing: [] as PinNumber[], ball_id: 2, intended: { stance: 34 } }
+      ]);
+
+      const seed = seedForShot({
+        ...base,
+        currentFrameNumber: 1,
+        game: LANE_12,
+        previousGames: [{ game: LANE_12, frames: [tenth] }]
+      });
+
+      expect(seed.ballId).toBe(1);
+      expect(seed.intended).toEqual({ stance: 20 });
+    });
+
     it("starts blank when there is nothing to carry", () => {
       expect(seedForShot({ ...base, game: LANE_12 })).toEqual({
         ballId: undefined,

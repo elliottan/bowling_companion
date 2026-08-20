@@ -91,8 +91,9 @@ export function freshRackShotIndices(shots: Shot[]): number[] {
 
 /**
  * The shot whose context (intended line, ball) should seed a new fresh-rack shot.
- * Search order: latest earlier fresh-rack shot in the current frame →
- * previousSameLaneFrame(...)'s first shot → previousGameSameLaneFrame(...)'s first shot → undefined.
+ * Search order: latest fresh-rack shot in the current frame, then the latest
+ * fresh-rack shot of previousSameLaneFrame(...), then of
+ * previousGameSameLaneFrame(...), else undefined (ADR-029, ADR-045).
  */
 export function freshRackSeedShot(
   game: Pick<Game, "lanes" | "start_lane" | "lane_number"> | undefined,
@@ -111,7 +112,13 @@ export function freshRackSeedShot(
   const prev =
     previousSameLaneFrame(game, frameNumber, frames) ??
     previousGameSameLaneFrame(game, frameNumber, previousGames);
-  return prev?.shots[0];
+  // The latest fresh-rack shot of that frame, not its first. Only the 10th can
+  // hold more than one, and there the last one thrown is the recent throw a
+  // bowler is carrying forward (ADR-045). In frames 1 to 9 ball 1 is the only
+  // fresh-rack shot, so this stays exactly ADR-029's behaviour.
+  const prevShots = prev?.shots ?? [];
+  const prevFresh = freshRackShotIndices(prevShots);
+  return prevFresh.length > 0 ? prevShots[prevFresh[prevFresh.length - 1]] : undefined;
 }
 
 /** A line worth carrying: at least one aiming field is set. */
