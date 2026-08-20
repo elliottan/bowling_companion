@@ -61,14 +61,21 @@ export function isCatalogBall(name: string, approvalDate: string | null): boolea
 }
 
 /**
- * USBC lists a row per colorway ("Cruise (PC) Purple/Copper"), so the raw list
- * over-counts badly. Dropping parentheticals and collapsing duplicates gets the
- * queue close to one row per ball; the colour suffixes that survive are left for
- * the extraction stage, which sees the real product page and knows better.
+ * USBC lists a row per colorway, so the raw list over-counts badly, and it
+ * brackets part of many names: "Sigma (Tour) Pearl", "(Covert) VIP ExJ",
+ * "Venom (Hysteria)".
+ *
+ * The brackets are punctuation, not a marker of unimportance: what is inside
+ * them is usually part of the ball's actual name, and dropping it turns
+ * "Sigma (Tour) Pearl" into a "Sigma Pearl" no page is filed under. So the
+ * brackets come off and their contents stay. Colour suffixes that survive are
+ * left for the routing pass, which finds the base ball.
  */
 function queueName(name: string): string {
-  return name.replace(/\([^)]*\)/g, " ").replace(/\s+/g, " ").trim();
+  return name.replace(/[()]/g, " ").replace(/\s+/g, " ").trim();
 }
+
+export { queueName };
 
 function main(): void {
   // Resolved inside main so importing this module for its pure functions (the

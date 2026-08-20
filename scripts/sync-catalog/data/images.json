@@ -94,5 +94,57 @@
   "roto-grip-hustle-2026": {
     "imageThumb": "/catalog/img/roto-grip-hustle-2026-thumb.webp",
     "imageFull": "/catalog/img/roto-grip-hustle-2026-full.webp"
+  },
+  "900-global-vengeance-returns-2026": {
+    "imageThumb": "/catalog/img/900-global-vengeance-returns-2026-thumb.webp",
+    "imageFull": "/catalog/img/900-global-vengeance-returns-2026-full.webp"
+  },
+  "900-global-viking-conquest-2026": {
+    "imageThumb": "/catalog/img/900-global-viking-conquest-2026-thumb.webp",
+    "imageFull": "/catalog/img/900-global-viking-conquest-2026-full.webp"
+  },
+  "900-global-perfect-reality-2026": {
+    "imageThumb": "/catalog/img/900-global-perfect-reality-2026-thumb.webp",
+    "imageFull": "/catalog/img/900-global-perfect-reality-2026-full.webp"
+  },
+  "900-global-gear-mark-2026": {
+    "imageThumb": "/catalog/img/900-global-gear-mark-2026-thumb.webp",
+    "imageFull": "/catalog/img/900-global-gear-mark-2026-full.webp"
+  },
+  "900-global-origin-2024": {
+    "imageThumb": "/catalog/img/900-global-origin-2024-thumb.webp",
+    "imageFull": "/catalog/img/900-global-origin-2024-full.webp"
+  },
+  "900-global-honey-badger-wine-pearl-2026": {
+    "imageThumb": "/catalog/img/900-global-honey-badger-wine-pearl-2026-thumb.webp",
+    "imageFull": "/catalog/img/900-global-honey-badger-wine-pearl-2026-full.webp"
+  },
+  "motiv-frenzy-2026": {
+    "imageThumb": "/catalog/img/motiv-frenzy-2026-thumb.webp",
+    "imageFull": "/catalog/img/motiv-frenzy-2026-full.webp"
+  },
+  "motiv-covert-vip-exj-2026": {
+    "imageThumb": "/catalog/img/motiv-covert-vip-exj-2026-thumb.webp",
+    "imageFull": "/catalog/img/motiv-covert-vip-exj-2026-full.webp"
+  },
+  "motiv-evoke-mayhem-2026": {
+    "imageThumb": "/catalog/img/motiv-evoke-mayhem-2026-thumb.webp",
+    "imageFull": "/catalog/img/motiv-evoke-mayhem-2026-full.webp"
+  },
+  "motiv-max-thrill-pearl-2024": {
+    "imageThumb": "/catalog/img/motiv-max-thrill-pearl-2024-thumb.webp",
+    "imageFull": "/catalog/img/motiv-max-thrill-pearl-2024-full.webp"
+  },
+  "motiv-sigma-tour-pearl-2026": {
+    "imageThumb": "/catalog/img/motiv-sigma-tour-pearl-2026-thumb.webp",
+    "imageFull": "/catalog/img/motiv-sigma-tour-pearl-2026-full.webp"
+  },
+  "motiv-supra-sport-2026": {
+    "imageThumb": "/catalog/img/motiv-supra-sport-2026-thumb.webp",
+    "imageFull": "/catalog/img/motiv-supra-sport-2026-full.webp"
+  },
+  "motiv-venom-hysteria-2026": {
+    "imageThumb": "/catalog/img/motiv-venom-hysteria-2026-thumb.webp",
+    "imageFull": "/catalog/img/motiv-venom-hysteria-2026-full.webp"
   }
 }

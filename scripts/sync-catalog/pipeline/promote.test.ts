@@ -7,7 +7,7 @@ import { describe, it, expect } from "vitest";
 import { promoteCandidate, resolveField, identityKey } from "./promote.js";
 import { toCandidate } from "./from-seed.js";
 import { baseName } from "./sources.js";
-import { isCatalogBall } from "./select.js";
+import { isCatalogBall, queueName } from "./select.js";
 import type { BallCandidate } from "./types.js";
 import type { RawBall } from "../types.js";
 
@@ -263,6 +263,19 @@ describe("isCatalogBall", () => {
 
   it("drops a row with no approval date", () => {
     expect(isCatalogBall("Big D Pro Am", null)).toBe(false);
+  });
+});
+
+describe("queueName", () => {
+  it("keeps what USBC put in brackets, because it is part of the name", () => {
+    expect(queueName("Sigma (Tour) Pearl")).toBe("Sigma Tour Pearl");
+    expect(queueName("(Covert) VIP ExJ")).toBe("Covert VIP ExJ");
+    expect(queueName("Venom (Hysteria)")).toBe("Venom Hysteria");
+    expect(queueName("(Max) Thrill Pearl Lime/Orange")).toBe("Max Thrill Pearl Lime/Orange");
+  });
+
+  it("leaves an unbracketed name alone", () => {
+    expect(queueName("Phaze Crimson")).toBe("Phaze Crimson");
   });
 });
 

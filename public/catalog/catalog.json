@@ -2406,5 +2406,655 @@
         "mbDiff": 0.008
       }
     ]
+  },
+  {
+    "id": "900-global-gear-mark-2026",
+    "brand": "900 Global",
+    "name": "Gear Mark",
+    "releaseDate": "2026-04-30",
+    "releaseYear": 2026,
+    "coverstockRaw": "Reserve Blend 93 Pearl Reactive",
+    "coverstockCategory": "Pearl",
+    "factoryFinish": "Power Edge",
+    "coreName": "Identity A.I.",
+    "coreType": "Asymmetric",
+    "rg": 2.47,
+    "diff": 0.056,
+    "mbDiff": 0.025,
+    "imageThumb": "/catalog/img/900-global-gear-mark-2026-thumb.webp",
+    "imageFull": "/catalog/img/900-global-gear-mark-2026-full.webp",
+    "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/900-global/gear-mark",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.47,
+        "diff": 0.056,
+        "mbDiff": 0.022
+      },
+      {
+        "weight": 15,
+        "rg": 2.47,
+        "diff": 0.056,
+        "mbDiff": 0.025
+      },
+      {
+        "weight": 14,
+        "rg": 2.51,
+        "diff": 0.056,
+        "mbDiff": 0.021
+      },
+      {
+        "weight": 13,
+        "rg": 2.56,
+        "diff": 0.034,
+        "mbDiff": 0.011
+      },
+      {
+        "weight": 12,
+        "rg": 2.58,
+        "diff": 0.031,
+        "mbDiff": 0.009
+      }
+    ]
+  },
+  {
+    "id": "900-global-honey-badger-wine-pearl-2026",
+    "brand": "900 Global",
+    "name": "Honey Badger Wine Pearl",
+    "releaseDate": "2026-04-23",
+    "releaseYear": 2026,
+    "coverstockRaw": "Reserve Blend 70E Pearl Reactive",
+    "coverstockCategory": "Pearl",
+    "factoryFinish": "Power Edge",
+    "coreName": "Grapnel 2.0 A.I.",
+    "coreType": "Asymmetric",
+    "rg": 2.53,
+    "diff": 0.05,
+    "mbDiff": 0.013,
+    "imageThumb": "/catalog/img/900-global-honey-badger-wine-pearl-2026-thumb.webp",
+    "imageFull": "/catalog/img/900-global-honey-badger-wine-pearl-2026-full.webp",
+    "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/900-global/honey-badger-wine-pearl",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.52,
+        "diff": 0.047,
+        "mbDiff": 0.014
+      },
+      {
+        "weight": 15,
+        "rg": 2.53,
+        "diff": 0.05,
+        "mbDiff": 0.013
+      },
+      {
+        "weight": 14,
+        "rg": 2.54,
+        "diff": 0.049,
+        "mbDiff": 0.013
+      },
+      {
+        "weight": 13,
+        "rg": 2.56,
+        "diff": 0.034,
+        "mbDiff": 0.011
+      },
+      {
+        "weight": 12,
+        "rg": 2.58,
+        "diff": 0.031,
+        "mbDiff": 0.009
+      }
+    ]
+  },
+  {
+    "id": "900-global-origin-2024",
+    "brand": "900 Global",
+    "name": "Origin",
+    "releaseDate": "2024-11-22",
+    "releaseYear": 2024,
+    "coverstockRaw": "Reserve Blend 93 Hybrid Reactive",
+    "coverstockCategory": "Hybrid",
+    "factoryFinish": "Power Edge",
+    "coreName": "Ellipse A.I.",
+    "coreType": "Asymmetric",
+    "rg": 2.48,
+    "diff": 0.05,
+    "mbDiff": 0.02,
+    "imageThumb": "/catalog/img/900-global-origin-2024-thumb.webp",
+    "imageFull": "/catalog/img/900-global-origin-2024-full.webp",
+    "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/900-global/origin",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.47,
+        "diff": 0.05,
+        "mbDiff": 0.02
+      },
+      {
+        "weight": 15,
+        "rg": 2.48,
+        "diff": 0.05,
+        "mbDiff": 0.02
+      },
+      {
+        "weight": 14,
+        "rg": 2.49,
+        "diff": 0.05,
+        "mbDiff": 0.02
+      },
+      {
+        "weight": 13,
+        "rg": 2.56,
+        "diff": 0.034,
+        "mbDiff": 0.011
+      },
+      {
+        "weight": 12,
+        "rg": 2.58,
+        "diff": 0.031,
+        "mbDiff": 0.009
+      }
+    ]
+  },
+  {
+    "id": "900-global-perfect-reality-2026",
+    "brand": "900 Global",
+    "name": "Perfect Reality",
+    "releaseDate": "2026-05-14",
+    "releaseYear": 2026,
+    "coverstockRaw": "S84 Beta Hybrid Reactive",
+    "coverstockCategory": "Hybrid",
+    "factoryFinish": "Power Edge",
+    "coreName": "Disturbance AI",
+    "coreType": "Asymmetric",
+    "rg": 2.48,
+    "diff": 0.054,
+    "mbDiff": 0.019,
+    "imageThumb": "/catalog/img/900-global-perfect-reality-2026-thumb.webp",
+    "imageFull": "/catalog/img/900-global-perfect-reality-2026-full.webp",
+    "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/900-global/perfect-reality",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.47,
+        "diff": 0.054,
+        "mbDiff": 0.019
+      },
+      {
+        "weight": 15,
+        "rg": 2.48,
+        "diff": 0.054,
+        "mbDiff": 0.019
+      },
+      {
+        "weight": 14,
+        "rg": 2.49,
+        "diff": 0.054,
+        "mbDiff": 0.019
+      },
+      {
+        "weight": 13,
+        "rg": 2.56,
+        "diff": 0.034,
+        "mbDiff": 0.011
+      },
+      {
+        "weight": 12,
+        "rg": 2.58,
+        "diff": 0.031,
+        "mbDiff": 0.009
+      }
+    ]
+  },
+  {
+    "id": "900-global-vengeance-returns-2026",
+    "brand": "900 Global",
+    "name": "Vengeance Returns",
+    "releaseDate": "2026-06-29",
+    "releaseYear": 2026,
+    "coverstockRaw": "Reserve Blend 91 Hybrid Reactive",
+    "coverstockCategory": "Hybrid",
+    "factoryFinish": "Power Edge",
+    "coreName": "Blast A.I.",
+    "coreType": "Symmetric",
+    "rg": 2.47,
+    "diff": 0.055,
+    "mbDiff": null,
+    "imageThumb": "/catalog/img/900-global-vengeance-returns-2026-thumb.webp",
+    "imageFull": "/catalog/img/900-global-vengeance-returns-2026-full.webp",
+    "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/900-global/vengeance-returns",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.46,
+        "diff": 0.056,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.47,
+        "diff": 0.055,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.48,
+        "diff": 0.056,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.58,
+        "diff": 0.047,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.64,
+        "diff": 0.037,
+        "mbDiff": null
+      }
+    ]
+  },
+  {
+    "id": "900-global-viking-conquest-2026",
+    "brand": "900 Global",
+    "name": "Viking Conquest",
+    "releaseDate": "2026-06-29",
+    "releaseYear": 2026,
+    "coverstockRaw": "Reserve Blend 94 Solid Reactive",
+    "coverstockCategory": "Solid",
+    "factoryFinish": "2000 Abralon",
+    "coreName": "Strobe A.I.",
+    "coreType": "Asymmetric",
+    "rg": 2.51,
+    "diff": 0.052,
+    "mbDiff": 0.016,
+    "imageThumb": "/catalog/img/900-global-viking-conquest-2026-thumb.webp",
+    "imageFull": "/catalog/img/900-global-viking-conquest-2026-full.webp",
+    "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/900-global/viking-conquest",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.5,
+        "diff": 0.05,
+        "mbDiff": 0.014
+      },
+      {
+        "weight": 15,
+        "rg": 2.51,
+        "diff": 0.052,
+        "mbDiff": 0.016
+      },
+      {
+        "weight": 14,
+        "rg": 2.52,
+        "diff": 0.051,
+        "mbDiff": 0.014
+      },
+      {
+        "weight": 13,
+        "rg": 2.56,
+        "diff": 0.034,
+        "mbDiff": 0.011
+      },
+      {
+        "weight": 12,
+        "rg": 2.58,
+        "diff": 0.031,
+        "mbDiff": 0.009
+      }
+    ]
+  },
+  {
+    "id": "motiv-covert-vip-exj-2026",
+    "brand": "Motiv",
+    "name": "Covert VIP ExJ",
+    "releaseDate": "2026-06-03",
+    "releaseYear": 2026,
+    "coverstockRaw": "Leverage HFS Solid Reactive",
+    "coverstockCategory": "Solid",
+    "factoryFinish": "4000 LSS",
+    "coreName": "Vanquish/Quadfire",
+    "coreType": "Symmetric",
+    "rg": 2.47,
+    "diff": 0.056,
+    "mbDiff": null,
+    "imageThumb": "/catalog/img/motiv-covert-vip-exj-2026-thumb.webp",
+    "imageFull": "/catalog/img/motiv-covert-vip-exj-2026-full.webp",
+    "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/motiv/covert-vip-exj",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.46,
+        "diff": 0.057,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.47,
+        "diff": 0.056,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.5,
+        "diff": 0.056,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.58,
+        "diff": 0.047,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.59,
+        "diff": 0.05,
+        "mbDiff": null
+      }
+    ]
+  },
+  {
+    "id": "motiv-evoke-mayhem-2026",
+    "brand": "Motiv",
+    "name": "Evoke Mayhem",
+    "releaseDate": "2026-02-11",
+    "releaseYear": 2026,
+    "coverstockRaw": "Solid Reactive",
+    "coverstockCategory": "Solid",
+    "factoryFinish": "2000 LSS",
+    "coreName": "Overload",
+    "coreType": "Asymmetric",
+    "rg": 2.48,
+    "diff": 0.05,
+    "mbDiff": 0.015,
+    "imageThumb": "/catalog/img/motiv-evoke-mayhem-2026-thumb.webp",
+    "imageFull": "/catalog/img/motiv-evoke-mayhem-2026-full.webp",
+    "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/motiv/evoke-mayhem",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.48,
+        "diff": 0.045,
+        "mbDiff": 0.015
+      },
+      {
+        "weight": 15,
+        "rg": 2.48,
+        "diff": 0.05,
+        "mbDiff": 0.015
+      },
+      {
+        "weight": 14,
+        "rg": 2.51,
+        "diff": 0.045,
+        "mbDiff": 0.015
+      },
+      {
+        "weight": 13,
+        "rg": 2.57,
+        "diff": 0.035,
+        "mbDiff": 0.012
+      },
+      {
+        "weight": 12,
+        "rg": 2.64,
+        "diff": 0.025,
+        "mbDiff": 0.008
+      }
+    ]
+  },
+  {
+    "id": "motiv-frenzy-2026",
+    "brand": "Motiv",
+    "name": "Frenzy",
+    "releaseDate": "2026-06-18",
+    "releaseYear": 2026,
+    "coverstockRaw": "Vitality Pearl Reactive",
+    "coverstockCategory": "Pearl",
+    "factoryFinish": "5500 LSP",
+    "coreName": "Excel",
+    "coreType": "Symmetric",
+    "rg": 2.57,
+    "diff": 0.03,
+    "mbDiff": null,
+    "imageThumb": "/catalog/img/motiv-frenzy-2026-thumb.webp",
+    "imageFull": "/catalog/img/motiv-frenzy-2026-full.webp",
+    "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/motiv/frenzy",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": null,
+        "diff": null,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.57,
+        "diff": 0.03,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.6,
+        "diff": 0.031,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.64,
+        "diff": 0.026,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.71,
+        "diff": 0.018,
+        "mbDiff": null
+      }
+    ]
+  },
+  {
+    "id": "motiv-max-thrill-pearl-2024",
+    "brand": "Motiv",
+    "name": "Max Thrill Pearl",
+    "releaseDate": "2024-06-05",
+    "releaseYear": 2024,
+    "coverstockRaw": "Turmoil XP3 Pearl Reactive",
+    "coverstockCategory": "Pearl",
+    "factoryFinish": "5500 LSP",
+    "coreName": "Halogen",
+    "coreType": "Symmetric",
+    "rg": 2.55,
+    "diff": 0.037,
+    "mbDiff": null,
+    "imageThumb": "/catalog/img/motiv-max-thrill-pearl-2024-thumb.webp",
+    "imageFull": "/catalog/img/motiv-max-thrill-pearl-2024-full.webp",
+    "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/motiv/max-thrill-pearl",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.54,
+        "diff": 0.036,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.55,
+        "diff": 0.037,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.56,
+        "diff": 0.038,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.59,
+        "diff": 0.038,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.64,
+        "diff": 0.031,
+        "mbDiff": null
+      }
+    ]
+  },
+  {
+    "id": "motiv-sigma-tour-pearl-2026",
+    "brand": "Motiv",
+    "name": "Sigma Tour Pearl",
+    "releaseDate": "2026-07-08",
+    "releaseYear": 2026,
+    "coverstockRaw": "Atomic Propulsion Pearl Reactive",
+    "coverstockCategory": "Pearl",
+    "factoryFinish": "5000 LSS",
+    "coreName": "Sigma",
+    "coreType": "Symmetric",
+    "rg": 2.47,
+    "diff": 0.047,
+    "mbDiff": null,
+    "imageThumb": "/catalog/img/motiv-sigma-tour-pearl-2026-thumb.webp",
+    "imageFull": "/catalog/img/motiv-sigma-tour-pearl-2026-full.webp",
+    "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/motiv/sigma-tour-pearl",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.48,
+        "diff": 0.041,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.47,
+        "diff": 0.047,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.5,
+        "diff": 0.044,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.56,
+        "diff": 0.034,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.63,
+        "diff": 0.024,
+        "mbDiff": null
+      }
+    ]
+  },
+  {
+    "id": "motiv-supra-sport-2026",
+    "brand": "Motiv",
+    "name": "Supra Sport",
+    "releaseDate": "2026-03-18",
+    "releaseYear": 2026,
+    "coverstockRaw": "Leverage MFS Solid Reactive",
+    "coverstockCategory": "Solid",
+    "factoryFinish": "4000 LSS",
+    "coreName": "Quadfire",
+    "coreType": "Symmetric",
+    "rg": 2.55,
+    "diff": 0.043,
+    "mbDiff": null,
+    "imageThumb": "/catalog/img/motiv-supra-sport-2026-thumb.webp",
+    "imageFull": "/catalog/img/motiv-supra-sport-2026-full.webp",
+    "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/motiv/supra-sport",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.54,
+        "diff": 0.04,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.55,
+        "diff": 0.043,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.56,
+        "diff": 0.043,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.58,
+        "diff": 0.047,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.59,
+        "diff": 0.05,
+        "mbDiff": null
+      }
+    ]
+  },
+  {
+    "id": "motiv-venom-hysteria-2026",
+    "brand": "Motiv",
+    "name": "Venom Hysteria",
+    "releaseDate": "2026-04-22",
+    "releaseYear": 2026,
+    "coverstockRaw": "Pearl Reactive",
+    "coverstockCategory": "Pearl",
+    "factoryFinish": "5000 LSS",
+    "coreName": "Gear",
+    "coreType": "Symmetric",
+    "rg": 2.48,
+    "diff": 0.034,
+    "mbDiff": null,
+    "imageThumb": "/catalog/img/motiv-venom-hysteria-2026-thumb.webp",
+    "imageFull": "/catalog/img/motiv-venom-hysteria-2026-full.webp",
+    "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/motiv/venom-hysteria",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.48,
+        "diff": 0.031,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.48,
+        "diff": 0.034,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.52,
+        "diff": 0.029,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.58,
+        "diff": 0.023,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.65,
+        "diff": 0.016,
+        "mbDiff": null
+      }
+    ]
   }
 ]

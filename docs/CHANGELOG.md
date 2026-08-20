@@ -42,6 +42,12 @@ User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachan
 - **Five Roto Grip balls,** all with photos: Attention, Gremlin Tour-X, Hustle,
   hyped UP! and Transform Pearl.
 
+- **Six 900 Global balls,** all with photos: Gear Mark, Honey Badger Wine Pearl,
+  Origin, Perfect Reality, Vengeance Returns and Viking Conquest.
+
+- **Seven Motiv balls,** all with photos: Covert VIP ExJ, Evoke Mayhem, Frenzy,
+  Max Thrill Pearl, Sigma Tour Pearl, Supra Sport and Venom Hysteria.
+
 - **Back closes whatever is in front.** The phone's back gesture already closed
   pushed screens; now it also closes the sheet or dialog on top of them, the
   ball editor and the start-session form included, exactly as Escape does on a
