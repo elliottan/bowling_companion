@@ -71,8 +71,28 @@
     "imageThumb": "/catalog/img/storm-monsoon-2026-thumb.webp",
     "imageFull": "/catalog/img/storm-monsoon-2026-full.webp"
   },
-  "storm-tropical-surge": {
-    "imageThumb": "/catalog/img/storm-tropical-surge-thumb.webp",
-    "imageFull": "/catalog/img/storm-tropical-surge-full.webp"
+  "storm-tropical-surge-2019": {
+    "imageThumb": "/catalog/img/storm-tropical-surge-2019-thumb.webp",
+    "imageFull": "/catalog/img/storm-tropical-surge-2019-full.webp"
+  },
+  "roto-grip-attention-2020": {
+    "imageThumb": "/catalog/img/roto-grip-attention-2020-thumb.webp",
+    "imageFull": "/catalog/img/roto-grip-attention-2020-full.webp"
+  },
+  "roto-grip-transform-pearl-2026": {
+    "imageThumb": "/catalog/img/roto-grip-transform-pearl-2026-thumb.webp",
+    "imageFull": "/catalog/img/roto-grip-transform-pearl-2026-full.webp"
+  },
+  "roto-grip-hyped-up-2026": {
+    "imageThumb": "/catalog/img/roto-grip-hyped-up-2026-thumb.webp",
+    "imageFull": "/catalog/img/roto-grip-hyped-up-2026-full.webp"
+  },
+  "roto-grip-gremlin-tour-x-2026": {
+    "imageThumb": "/catalog/img/roto-grip-gremlin-tour-x-2026-thumb.webp",
+    "imageFull": "/catalog/img/roto-grip-gremlin-tour-x-2026-full.webp"
+  },
+  "roto-grip-hustle-2026": {
+    "imageThumb": "/catalog/img/roto-grip-hustle-2026-thumb.webp",
+    "imageFull": "/catalog/img/roto-grip-hustle-2026-full.webp"
   }
 }

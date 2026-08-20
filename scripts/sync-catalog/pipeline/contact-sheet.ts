@@ -54,7 +54,7 @@ function main(): void {
   const tiles = withImage
     .map((b) => {
       const id = ballId(b);
-      return `<figure><img src="${inline(images[id].imageThumb)}" alt="${b.name}" width="160" height="160" loading="lazy"><figcaption>${b.brand} ${b.name}<br><small>${id}</small></figcaption></figure>`;
+      return `<figure><img src="${inline(images[id].imageThumb)}" alt="${b.name}" width="160" height="160"><figcaption>${b.brand} ${b.name}<br><small>${id}</small></figcaption></figure>`;
     })
     .join("\n");
 
