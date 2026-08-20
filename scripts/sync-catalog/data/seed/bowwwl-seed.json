@@ -574,5 +574,293 @@
     ],
     "_imageUrl": "https://www.bowwwl.com/sites/default/files/balls/storm-iq-tour-78-u.png",
     "_discontinued": false
+  },
+  {
+    "brand": "Storm",
+    "name": "Phaze Crimson",
+    "releaseDate": "2026-07-16",
+    "coverstockRaw": "NeX Pearl Reactive",
+    "factoryFinish": "2000 Abralon",
+    "coreName": "Velocity A.I.",
+    "rg": 2.47,
+    "diff": 0.053,
+    "mbDiff": null,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/storm/phaze-crimson"
+    ],
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.47,
+        "diff": 0.053,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.47,
+        "diff": 0.053,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.52,
+        "diff": 0.052,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.58,
+        "diff": 0.047,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.64,
+        "diff": 0.037,
+        "mbDiff": null
+      }
+    ],
+    "_imageUrl": "https://www.bowwwl.com/sites/default/files/balls/storm-phaze-crimson.png",
+    "_discontinued": false
+  },
+  {
+    "brand": "Storm",
+    "name": "Absolute Reign",
+    "releaseDate": "2026-01-30",
+    "coverstockRaw": "R2S DEEP Solid Reactive",
+    "factoryFinish": "Power Edge",
+    "coreName": "Sentinel",
+    "rg": 2.48,
+    "diff": 0.05,
+    "mbDiff": 0.021,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/storm/absolute-reign"
+    ],
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.48,
+        "diff": 0.048,
+        "mbDiff": 0.02
+      },
+      {
+        "weight": 15,
+        "rg": 2.48,
+        "diff": 0.05,
+        "mbDiff": 0.021
+      },
+      {
+        "weight": 14,
+        "rg": 2.54,
+        "diff": 0.045,
+        "mbDiff": 0.018
+      },
+      {
+        "weight": 13,
+        "rg": 2.57,
+        "diff": 0.032,
+        "mbDiff": 0.01
+      },
+      {
+        "weight": 12,
+        "rg": 2.59,
+        "diff": 0.029,
+        "mbDiff": 0.008
+      }
+    ],
+    "_imageUrl": "https://www.bowwwl.com/sites/default/files/balls/storm-absolute-reign.png",
+    "_discontinued": false
+  },
+  {
+    "brand": "Storm",
+    "name": "Code Green",
+    "releaseDate": "2014-10-01",
+    "coverstockRaw": "R2X Pearl Reactive",
+    "factoryFinish": "1500 Polished",
+    "coreName": "RAD4",
+    "rg": 2.5,
+    "diff": 0.058,
+    "mbDiff": 0.02,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/storm/code-green"
+    ],
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.49,
+        "diff": 0.056,
+        "mbDiff": 0.022
+      },
+      {
+        "weight": 15,
+        "rg": 2.5,
+        "diff": 0.058,
+        "mbDiff": 0.02
+      },
+      {
+        "weight": 14,
+        "rg": 2.55,
+        "diff": 0.056,
+        "mbDiff": 0.014
+      },
+      {
+        "weight": 13,
+        "rg": 2.63,
+        "diff": 0.039,
+        "mbDiff": 0.011
+      },
+      {
+        "weight": 12,
+        "rg": 2.72,
+        "diff": 0.022,
+        "mbDiff": 0.006
+      }
+    ],
+    "_imageUrl": "https://www.bowwwl.com/sites/default/files/balls/storm-code-green.png",
+    "_discontinued": true
+  },
+  {
+    "brand": "Storm",
+    "name": "DNA Coil II",
+    "releaseDate": "2024-04-18",
+    "coverstockRaw": "EXO Pearl Reactive",
+    "factoryFinish": "Reacta Gloss",
+    "coreName": "Supercoil",
+    "rg": 2.47,
+    "diff": 0.053,
+    "mbDiff": 0.023,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/storm/dna-coil-ii"
+    ],
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.47,
+        "diff": 0.05,
+        "mbDiff": 0.021
+      },
+      {
+        "weight": 15,
+        "rg": 2.47,
+        "diff": 0.053,
+        "mbDiff": 0.023
+      },
+      {
+        "weight": 14,
+        "rg": 2.53,
+        "diff": 0.048,
+        "mbDiff": 0.02
+      },
+      {
+        "weight": 13,
+        "rg": 2.57,
+        "diff": 0.032,
+        "mbDiff": 0.01
+      },
+      {
+        "weight": 12,
+        "rg": 2.59,
+        "diff": 0.029,
+        "mbDiff": 0.008
+      }
+    ],
+    "_imageUrl": "https://www.bowwwl.com/sites/default/files/balls/storm-dna-coil-2.png",
+    "_discontinued": false
+  },
+  {
+    "brand": "Storm",
+    "name": "Tropical Surge (Pearl, Various Colors)",
+    "releaseDate": "2019-05-03",
+    "coverstockRaw": "Reactor Pearl Reactive",
+    "factoryFinish": "1500 Polished",
+    "coreName": "Surge",
+    "rg": 2.58,
+    "diff": 0.024,
+    "mbDiff": null,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/storm/tropical-surge"
+    ],
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.57,
+        "diff": 0.025,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.58,
+        "diff": 0.024,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.6,
+        "diff": 0.025,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.62,
+        "diff": 0.021,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.64,
+        "diff": 0.02,
+        "mbDiff": null
+      }
+    ],
+    "_imageUrl": "https://www.bowwwl.com/sites/default/files/balls/storm-tropical-surge-midnight.png",
+    "_discontinued": false
+  },
+  {
+    "brand": "Storm",
+    "name": "Monsoon",
+    "releaseDate": "2026-05-01",
+    "coverstockRaw": "Reactor Solid Reactive",
+    "factoryFinish": "2000 Abralon",
+    "coreName": "Atmos A.I.",
+    "rg": 2.53,
+    "diff": 0.042,
+    "mbDiff": null,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/storm/monsoon"
+    ],
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.53,
+        "diff": 0.042,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.53,
+        "diff": 0.042,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.53,
+        "diff": 0.039,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.58,
+        "diff": 0.047,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.64,
+        "diff": 0.037,
+        "mbDiff": null
+      }
+    ],
+    "_imageUrl": "https://www.bowwwl.com/sites/default/files/balls/storm-monsoon.png",
+    "_discontinued": false
   }
 ]

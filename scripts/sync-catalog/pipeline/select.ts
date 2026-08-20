@@ -23,12 +23,6 @@ import type { RawBall } from "../types.js";
 import { identityKey } from "./promote.js";
 import type { QueueEntry } from "./types.js";
 
-const __dirname = fileURLToPath(new URL(".", import.meta.url));
-const DATA = resolve(__dirname, "../data");
-const BALLS_JSON = resolve(DATA, "balls.json");
-const USBC_JSON = resolve(DATA, "usbc-index.json");
-const QUEUE_DIR = resolve(DATA, "queue");
-
 interface UsbcEntry {
   brand: string;
   name: string;
@@ -49,6 +43,24 @@ function args(flag: string): string[] {
 }
 
 /**
+ * Rows that are approved equipment but not balls anyone would put in an
+ * arsenal, so they never belong in a queue:
+ *
+ *   "(Under 13 Lb.)" — the light-weight-only line, kids' equipment.
+ *   "X-Out …"        — cosmetic factory seconds sold under the parent ball's
+ *                      spec, with no specs published of their own.
+ *
+ * The markers live inside the parentheses that `queueName` strips, so this has
+ * to run against the raw USBC name, before any cleanup.
+ */
+export function isCatalogBall(name: string, approvalDate: string | null): boolean {
+  if (!approvalDate) return false; // a row with no approval date is a list artefact
+  if (/\(Under \d+ Lb\.?\)/i.test(name)) return false;
+  if (/^X-Out\b/i.test(name)) return false;
+  return true;
+}
+
+/**
  * USBC lists a row per colorway ("Cruise (PC) Purple/Copper"), so the raw list
  * over-counts badly. Dropping parentheticals and collapsing duplicates gets the
  * queue close to one row per ball; the colour suffixes that survive are left for
@@ -59,6 +71,13 @@ function queueName(name: string): string {
 }
 
 function main(): void {
+  // Resolved inside main so importing this module for its pure functions (the
+  // tests do) never touches import.meta.url.
+  const DATA = resolve(fileURLToPath(new URL(".", import.meta.url)), "../data");
+  const BALLS_JSON = resolve(DATA, "balls.json");
+  const USBC_JSON = resolve(DATA, "usbc-index.json");
+  const QUEUE_DIR = resolve(DATA, "queue");
+
   const since = arg("--since");
   const until = arg("--until");
   const brand = arg("--brand");
@@ -81,6 +100,7 @@ function main(): void {
     const seen = new Set<string>();
     entries = [];
     for (const e of usbc) {
+      if (!isCatalogBall(e.name, e.approvalDate)) continue;
       if (since && e.approvalDate < since) continue;
       if (until && e.approvalDate > until) continue;
       if (brand && e.brand.toLowerCase() !== brand.toLowerCase()) continue;
@@ -111,4 +131,4 @@ function main(): void {
   console.log(`  Wrote ${out}`);
 }
 
-main();
+if (process.argv[1] && process.argv[1].endsWith("select.ts")) main();

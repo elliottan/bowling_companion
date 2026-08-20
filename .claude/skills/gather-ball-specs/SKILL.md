@@ -64,6 +64,13 @@ npm run seed-to-candidates -- single-balls-seed.json
 Never re-read a page yourself that a parser already handled. That is the whole
 point of the routing pass.
 
+If `parse-ball` reports "No spec block (RG/DIFF table) found", the PDF exists but
+carries no spec table. Do not read it yourself: try the ball's `bowwwl` page
+instead, which is usually there even when routing preferred the PDF.
+
+USBC lists each colorway separately, so several queue rows can be one ball
+("Tropical Surge" three times over). Parse it once.
+
 ## Stage 2c: the manual path, quoted receipts
 
 Only for balls routed `manual`. Read the manufacturer page, or a spec database,
@@ -94,6 +101,12 @@ and write `data/candidates/<brand>-<name>-<year>.json`:
 - 15 lb values go in the top-level `rg`/`diff`/`mbDiff`. `weights` is optional
   and only from a table already in front of you.
 
+**Not every USBC row is a ball.** `select-balls` already drops the "(Under 13
+Lb.)" line, X-Outs, and rows with no approval date. What survives can still be
+promotional or internal equipment ("SPI Cube", "Big D Pro Am") that no source
+publishes specs for. When two searches find nothing, stop and report it. A ball
+missing from the catalog is a fine outcome; an invented row is not.
+
 **Bot checks.** Some manufacturer sites challenge automated fetches. Do not try
 to bypass or solve a challenge. Use the browser tools, and if a challenge
 appears, stop that ball, tell the user, and continue with the rest. The run is
@@ -114,6 +127,11 @@ Refusals land in `data/conflicts/` with the reason. Handle each explicitly:
 - **value does not appear in its quote**: you fabricated or mistyped it. Re-read
   the source.
 - **out of range**: usually a units or decimal-place slip.
+
+A ball already in the catalog with fields missing is an **update**, not a new
+row, and filling in its `releaseDate` changes its id. Ids are permanent: arsenal
+balls hold a `catalog_ref_id`. Take the other fields and leave the date, unless
+the user asks otherwise.
 
 ## Stage 4: images and review
 

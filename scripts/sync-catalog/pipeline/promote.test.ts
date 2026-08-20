@@ -7,6 +7,7 @@ import { describe, it, expect } from "vitest";
 import { promoteCandidate, resolveField, identityKey } from "./promote.js";
 import { toCandidate } from "./from-seed.js";
 import { baseName } from "./sources.js";
+import { isCatalogBall } from "./select.js";
 import type { BallCandidate } from "./types.js";
 import type { RawBall } from "../types.js";
 
@@ -242,6 +243,26 @@ describe("promoteCandidate", () => {
     const r = promoteCandidate(candidate({ coverstockRaw: [] }), []);
     expect(r.ok).toBe(false);
     expect(r.problems).toContain("missing coverstockRaw");
+  });
+});
+
+describe("isCatalogBall", () => {
+  it("keeps an ordinary approved ball", () => {
+    expect(isCatalogBall("Phaze Crimson", "2026-07-16")).toBe(true);
+    expect(isCatalogBall("Tropical Surge Onyx/Mercury/Graphite", "2026-03-10")).toBe(true);
+  });
+
+  it("drops the light-weight-only line, which is kids' equipment", () => {
+    expect(isCatalogBall("Orbit Zero (Under 13 Lb.)", "2026-03-10")).toBe(false);
+    expect(isCatalogBall("Orbit SE (Special Edition) (Under 13 Lb.)", "2026-01-13")).toBe(false);
+  });
+
+  it("drops X-Outs, which publish no specs of their own", () => {
+    expect(isCatalogBall("X-Out Breast Cancer (Marvel Pearl)", "2026-06-16")).toBe(false);
+  });
+
+  it("drops a row with no approval date", () => {
+    expect(isCatalogBall("Big D Pro Am", null)).toBe(false);
   });
 });
 

@@ -28,25 +28,48 @@ export const BRAND_FOLDER: Record<string, string> = {
   Motiv: "Motiv",
 };
 
-/**
- * Candidate tech-sheet URLs for a ball. SPI's filenames are inconsistent enough
- * that probing a handful is cheaper than maintaining a mapping by hand.
- */
-export function candidateUrls(brand: string, name: string): string[] {
+function cdnBase(brand: string, name: string): string | null {
   const brandFolder = BRAND_FOLDER[brand];
-  if (!brandFolder) return [];
+  if (!brandFolder) return null;
   const folder = name.replace(/\//g, "").replace(/ /g, "_");
+  return `${SPI_CDN}/${brandFolder}/${folder}/`;
+}
+
+/**
+ * Tech-data sheets: the documents that actually carry an RG/DIFF table. SPI's
+ * filenames are inconsistent enough that probing a handful is cheaper than
+ * maintaining a mapping by hand.
+ *
+ * Ad sheets are deliberately not in here. They exist for most balls and return
+ * 200, but they are marketing pages with no spec table, so counting one as a
+ * spec source routes a ball to a parser that can only fail on it.
+ */
+export function techDataUrls(brand: string, name: string): string[] {
+  const base = cdnBase(brand, name);
+  if (!base) return [];
   const noSpace = name.replace(/[/ ]/g, "");
-  const base = `${SPI_CDN}/${brandFolder}/${folder}/`;
   const files = [
-    `Storm_adsheet_${noSpace}-nobleed.pdf`,
     `${name} Tech Data Final.pdf`,
     `${name} Tech Data.pdf`,
     `Storm_${name}_Tech Data.pdf`,
-    `Storm_${noSpace}_Design Intent.pdf`,
     `${noSpace} Tech Data Final.pdf`,
+    `Storm_${noSpace}_Design Intent.pdf`,
   ];
   return files.map((f) => encodeURI(base + f));
+}
+
+/**
+ * Every PDF worth probing for an embedded hero render, ad sheets first: they
+ * are the ball on a plain ground, which is exactly what the image stage wants.
+ */
+export function candidateUrls(brand: string, name: string): string[] {
+  const base = cdnBase(brand, name);
+  if (!base) return [];
+  const noSpace = name.replace(/[/ ]/g, "");
+  return [
+    encodeURI(`${base}Storm_adsheet_${noSpace}-nobleed.pdf`),
+    ...techDataUrls(brand, name),
+  ];
 }
 
 function urlSlug(s: string): string {
@@ -106,7 +129,7 @@ export async function routeBall(
   name: string,
   tryBaseName = false
 ): Promise<RoutedBall> {
-  for (const url of candidateUrls(brand, name)) {
+  for (const url of techDataUrls(brand, name)) {
     if (await headOk(url)) return { brand, name, route: "pdf", url };
   }
   const page = bowwwlUrl(brand, name);
@@ -114,7 +137,7 @@ export async function routeBall(
 
   const base = tryBaseName ? baseName(name) : null;
   if (base) {
-    for (const url of candidateUrls(brand, base)) {
+    for (const url of techDataUrls(brand, base)) {
       if (await headOk(url)) return { brand, name, route: "pdf", url, nameUsed: base };
     }
     const basePage = bowwwlUrl(brand, base);

@@ -34,8 +34,9 @@ User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachan
   framed identically, so no ball renders larger than its neighbour in the grid.
   See ADR-043 and ADR-044.
 
-- **Two more balls in the catalog:** the !Q Tour 30 and the !Q Tour A.I., both
-  with photos.
+- **Seven more balls in the catalog,** all with photos: Absolute Reign, Code
+  Green, DNA Coil II, Monsoon, Phaze Crimson, and the !Q Tour 30 and !Q Tour
+  A.I. Tropical Surge gained its per-weight numbers and a photo.
 
 - **Back closes whatever is in front.** The phone's back gesture already closed
   pushed screens; now it also closes the sheet or dialog on top of them, the

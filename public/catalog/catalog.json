@@ -373,9 +373,41 @@
     "rg": 2.58,
     "diff": 0.024,
     "mbDiff": null,
-    "imageThumb": null,
-    "imageFull": null,
+    "imageThumb": "/catalog/img/storm-tropical-surge-thumb.webp",
+    "imageFull": "/catalog/img/storm-tropical-surge-full.webp",
     "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/storm/tropical-surge-pearl-various-colors",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.57,
+        "diff": 0.025,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.58,
+        "diff": 0.024,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.6,
+        "diff": 0.025,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.62,
+        "diff": 0.021,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.64,
+        "diff": 0.02,
+        "mbDiff": null
+      }
+    ],
     "colorways": [
       {
         "sku": "VEC",
@@ -1859,6 +1891,256 @@
         "weight": 14,
         "rg": 2.53,
         "diff": 0.036,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.58,
+        "diff": 0.047,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.64,
+        "diff": 0.037,
+        "mbDiff": null
+      }
+    ]
+  },
+  {
+    "id": "storm-absolute-reign-2026",
+    "brand": "Storm",
+    "name": "Absolute Reign",
+    "releaseDate": "2026-01-30",
+    "releaseYear": 2026,
+    "coverstockRaw": "R2S DEEP Solid Reactive",
+    "coverstockCategory": "Solid",
+    "factoryFinish": "Power Edge",
+    "coreName": "Sentinel",
+    "coreType": "Asymmetric",
+    "rg": 2.48,
+    "diff": 0.05,
+    "mbDiff": 0.021,
+    "imageThumb": "/catalog/img/storm-absolute-reign-2026-thumb.webp",
+    "imageFull": "/catalog/img/storm-absolute-reign-2026-full.webp",
+    "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/storm/absolute-reign",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.48,
+        "diff": 0.048,
+        "mbDiff": 0.02
+      },
+      {
+        "weight": 15,
+        "rg": 2.48,
+        "diff": 0.05,
+        "mbDiff": 0.021
+      },
+      {
+        "weight": 14,
+        "rg": 2.54,
+        "diff": 0.045,
+        "mbDiff": 0.018
+      },
+      {
+        "weight": 13,
+        "rg": 2.57,
+        "diff": 0.032,
+        "mbDiff": 0.01
+      },
+      {
+        "weight": 12,
+        "rg": 2.59,
+        "diff": 0.029,
+        "mbDiff": 0.008
+      }
+    ]
+  },
+  {
+    "id": "storm-code-green-2014",
+    "brand": "Storm",
+    "name": "Code Green",
+    "releaseDate": "2014-10-01",
+    "releaseYear": 2014,
+    "coverstockRaw": "R2X Pearl Reactive",
+    "coverstockCategory": "Pearl",
+    "factoryFinish": "1500 Polished",
+    "coreName": "RAD4",
+    "coreType": "Asymmetric",
+    "rg": 2.5,
+    "diff": 0.058,
+    "mbDiff": 0.02,
+    "imageThumb": "/catalog/img/storm-code-green-2014-thumb.webp",
+    "imageFull": "/catalog/img/storm-code-green-2014-full.webp",
+    "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/storm/code-green",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.49,
+        "diff": 0.056,
+        "mbDiff": 0.022
+      },
+      {
+        "weight": 15,
+        "rg": 2.5,
+        "diff": 0.058,
+        "mbDiff": 0.02
+      },
+      {
+        "weight": 14,
+        "rg": 2.55,
+        "diff": 0.056,
+        "mbDiff": 0.014
+      },
+      {
+        "weight": 13,
+        "rg": 2.63,
+        "diff": 0.039,
+        "mbDiff": 0.011
+      },
+      {
+        "weight": 12,
+        "rg": 2.72,
+        "diff": 0.022,
+        "mbDiff": 0.006
+      }
+    ]
+  },
+  {
+    "id": "storm-dna-coil-2-2024",
+    "brand": "Storm",
+    "name": "DNA Coil II",
+    "releaseDate": "2024-04-18",
+    "releaseYear": 2024,
+    "coverstockRaw": "EXO Pearl Reactive",
+    "coverstockCategory": "Pearl",
+    "factoryFinish": "Reacta Gloss",
+    "coreName": "Supercoil",
+    "coreType": "Asymmetric",
+    "rg": 2.47,
+    "diff": 0.053,
+    "mbDiff": 0.023,
+    "imageThumb": "/catalog/img/storm-dna-coil-2-2024-thumb.webp",
+    "imageFull": "/catalog/img/storm-dna-coil-2-2024-full.webp",
+    "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/storm/dna-coil-ii",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.47,
+        "diff": 0.05,
+        "mbDiff": 0.021
+      },
+      {
+        "weight": 15,
+        "rg": 2.47,
+        "diff": 0.053,
+        "mbDiff": 0.023
+      },
+      {
+        "weight": 14,
+        "rg": 2.53,
+        "diff": 0.048,
+        "mbDiff": 0.02
+      },
+      {
+        "weight": 13,
+        "rg": 2.57,
+        "diff": 0.032,
+        "mbDiff": 0.01
+      },
+      {
+        "weight": 12,
+        "rg": 2.59,
+        "diff": 0.029,
+        "mbDiff": 0.008
+      }
+    ]
+  },
+  {
+    "id": "storm-monsoon-2026",
+    "brand": "Storm",
+    "name": "Monsoon",
+    "releaseDate": "2026-05-01",
+    "releaseYear": 2026,
+    "coverstockRaw": "Reactor Solid Reactive",
+    "coverstockCategory": "Solid",
+    "factoryFinish": "2000 Abralon",
+    "coreName": "Atmos A.I.",
+    "coreType": "Symmetric",
+    "rg": 2.53,
+    "diff": 0.042,
+    "mbDiff": null,
+    "imageThumb": "/catalog/img/storm-monsoon-2026-thumb.webp",
+    "imageFull": "/catalog/img/storm-monsoon-2026-full.webp",
+    "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/storm/monsoon",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.53,
+        "diff": 0.042,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.53,
+        "diff": 0.042,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.53,
+        "diff": 0.039,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.58,
+        "diff": 0.047,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.64,
+        "diff": 0.037,
+        "mbDiff": null
+      }
+    ]
+  },
+  {
+    "id": "storm-phaze-crimson-2026",
+    "brand": "Storm",
+    "name": "Phaze Crimson",
+    "releaseDate": "2026-07-16",
+    "releaseYear": 2026,
+    "coverstockRaw": "NeX Pearl Reactive",
+    "coverstockCategory": "Pearl",
+    "factoryFinish": "2000 Abralon",
+    "coreName": "Velocity A.I.",
+    "coreType": "Symmetric",
+    "rg": 2.47,
+    "diff": 0.053,
+    "mbDiff": null,
+    "imageThumb": "/catalog/img/storm-phaze-crimson-2026-thumb.webp",
+    "imageFull": "/catalog/img/storm-phaze-crimson-2026-full.webp",
+    "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/storm/phaze-crimson",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.47,
+        "diff": 0.053,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.47,
+        "diff": 0.053,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.52,
+        "diff": 0.052,
         "mbDiff": null
       },
       {
