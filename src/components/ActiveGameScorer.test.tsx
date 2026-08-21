@@ -209,3 +209,47 @@ describe("ActiveGameScorer completed-game edit prompt", () => {
     expect(prompt()).toBeNull();
   });
 });
+
+describe("pocket toggle (ADR-046)", () => {
+  const pocketChip = () =>
+    screen.queryByRole("button", { name: /^(Pocket hit|Not a pocket hit)$/ });
+
+  it("records the strike button as a pocket hit", async () => {
+    const onFrameComplete = vi.fn();
+    render(<ActiveGameScorer gameKey={1} onFrameComplete={onFrameComplete} />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Strike" }));
+
+    await waitFor(() => expect(onFrameComplete).toHaveBeenCalled());
+    const frame = onFrameComplete.mock.calls[0][0] as Frame;
+    expect(frame.shots[0].pocket_hit).toBe(true);
+  });
+
+  it("follows the leave, and records the bowler's flip instead when they flip it", async () => {
+    const onFrameComplete = vi.fn();
+    render(<ActiveGameScorer gameKey={1} onFrameComplete={onFrameComplete} />);
+
+    // A 3-pin leave is not a pocket hit for a right-hander.
+    tapPin(3);
+    await waitFor(() => expect(pocketChip()).toHaveAccessibleName("Not a pocket hit"));
+
+    // The bowler disagrees: they saw it hit the pocket and the 3 stood.
+    fireEvent.click(pocketChip()!);
+    expect(pocketChip()).toHaveAccessibleName("Pocket hit");
+
+    fireEvent.click(screen.getByRole("button", { name: "Next" }));
+    await waitFor(() => expect(onFrameComplete).toHaveBeenCalled());
+    const frame = onFrameComplete.mock.calls[0][0] as Frame;
+    expect(frame.shots[0].pocket_hit).toBe(true);
+  });
+
+  it("hides the toggle on a spare attempt, which has no pocket to hit", async () => {
+    render(<ActiveGameScorer gameKey={1} />);
+
+    tapPin(10);
+    expect(pocketChip()).not.toBeNull();
+
+    fireEvent.click(screen.getByRole("button", { name: "Next" }));
+    await waitFor(() => expect(pocketChip()).toBeNull());
+  });
+});

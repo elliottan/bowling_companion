@@ -10,7 +10,9 @@ import {
   updateShotMeta
 } from "../lib/frameController";
 import { calculateGameScore, isSpare } from "../lib/scoring";
-import { laneForFrame, lineHasValue } from "../lib/lanes";
+import { useHandedness } from "../lib/handednessContext";
+import { isPocketHit } from "../lib/pins";
+import { freshRackShotIndices, laneForFrame, lineHasValue } from "../lib/lanes";
 import { seedForShot, seedLineForBall } from "../lib/shotSeeding";
 import { findSpareLineByPins, getBalls, getSpareLinesAll } from "../services/ballRepository";
 import type {
@@ -120,6 +122,10 @@ export function ActiveGameScorer({
   // another game (gameKey) re-locks.
   const [unlocked, setUnlocked] = useState(false);
   const [showEditPrompt, setShowEditPrompt] = useState(false);
+  // Pocket verdict for the live shot when the bowler has overridden the
+  // inference. Undefined means they have not touched it, so the rule stands.
+  const [pocketOverride, setPocketOverride] = useState<boolean | undefined>(undefined);
+  const handedness = useHandedness();
 
   const gameScore = useMemo(() => calculateGameScore(gameState.frames), [gameState.frames]);
   const lanesList = game?.lanes ?? (game?.lane_number ? [game.lane_number] : []);
@@ -244,6 +250,7 @@ export function ActiveGameScorer({
 
     setShotNotes("");
     setActualLine(undefined);
+    setPocketOverride(undefined);
 
     const currentFrame = gameState.frames.find(
       (f) => f.frame_number === gameState.currentFrameNumber
@@ -333,7 +340,17 @@ export function ActiveGameScorer({
   async function recordShot(standingOverride?: PinNumber[]) {
     const standing = standingOverride ?? gameState.standingPins;
     const submittedFrameNumber = gameState.currentFrameNumber;
-    const submission = submitShot(gameState, standing);
+    // Materialize the pocket verdict the bowler was looking at: the inference
+    // unless they flipped it. Only a fresh-rack ball has a pocket to hit, and
+    // the Strike button records the inference (true) without a pause, so a
+    // crossover strike is corrected by editing the frame (ADR-046).
+    const pocket = isFreshRack
+      ? { pocket_hit: pocketOverride ?? isPocketHit(standing, handedness) }
+      : {};
+    const submission = submitShot(
+      { ...gameState, currentShotMeta: { ...gameState.currentShotMeta, ...pocket } },
+      standing
+    );
     setGameState(submission.state);
     const frameToPersist =
       submission.savedFrame ??
@@ -363,6 +380,25 @@ export function ActiveGameScorer({
 
   function goLive() {
     setSelectedShot(null);
+  }
+
+  // The pocket toggle belongs to fresh-rack balls only: a shot at a leave has
+  // no pocket to hit.
+  const pocketShotIsFresh =
+    isEditing && recordedFrame && selectedShot
+      ? freshRackShotIndices(recordedFrame.shots).includes(selectedShot.shotIndex)
+      : isFreshRack;
+
+  const pocketValue =
+    isEditing && recordedShot
+      ? recordedShot.pocket_hit ?? isPocketHit(recordedShot.pins_standing, handedness)
+      : pocketOverride ?? isPocketHit(gameState.standingPins, handedness);
+
+  function togglePocket() {
+    if (!requestEdit()) return;
+    const next = !pocketValue;
+    if (isEditing) handleEditMeta({ pocket_hit: next });
+    else setPocketOverride(next);
   }
 
   const viewedLane = selectedShot && game ? laneForFrame(game, selectedShot.frameNumber) : undefined;
@@ -532,6 +568,23 @@ export function ActiveGameScorer({
               else updateStandingPins(pins);
             }}
             size="sm"
+            cornerSlot={
+              pocketShotIsFresh ? (
+                <button
+                  type="button"
+                  onClick={togglePocket}
+                  aria-pressed={pocketValue}
+                  aria-label={pocketValue ? "Pocket hit" : "Not a pocket hit"}
+                  className={`rounded-md border px-1.5 py-1 text-[9px] font-bold uppercase tracking-wide ${
+                    pocketValue
+                      ? "border-accent-fill bg-accent-fill text-accent-on-fill"
+                      : "border-[#9c7438] bg-[#c79b5e] text-[#7a5a2c] line-through"
+                  }`}
+                >
+                  Pocket
+                </button>
+              ) : undefined
+            }
           />
 
           {/* Strike/Spare + Next stay visible and functional in both live and

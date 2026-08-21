@@ -1,7 +1,15 @@
-import { isSpare, isStrike } from "./scoring";
-import { isBabySplit, isSplit, isWashout } from "./pins";
-import { laneForFrame } from "./lanes";
-import type { Ball, Frame, Game, PinNumber, SessionSummary } from "../types/bowling";
+import { isSpare } from "./scoring";
+import { isBabySplit, isSplit, isWashout, resolvePocketHit } from "./pins";
+import { freshRackShotIndices, laneForFrame } from "./lanes";
+import type {
+  Ball,
+  Frame,
+  Game,
+  Handedness,
+  PinNumber,
+  SessionSummary,
+  Shot
+} from "../types/bowling";
 
 type GameWithFrames = Game & { frames: Frame[] };
 
@@ -39,6 +47,12 @@ export interface BowlingStats {
   lowGame: number | null;
   strikePct: number | null;
   sparePct: number | null;
+  /** Share of fresh-rack balls that found the pocket (ADR-046). */
+  pocketPct: number | null;
+  /** Share of pocket hits that struck: the carry rate. Strikes the bowler
+   *  flagged as crossovers are excluded from both sides, so this stays a rate
+   *  of pocket balls carrying and cannot exceed 100. */
+  carryPct: number | null;
   byAlley: AlleyStats[];
 }
 
@@ -54,7 +68,11 @@ export interface BowlingStats {
  * non-strike frame in which a second ball was thrown at a makeable leave —
  * real splits and washouts are excluded (ADR-036).
  */
-export function calculateStats(sessions: SessionSummary[], selectedLanes?: string[]): BowlingStats {
+export function calculateStats(
+  sessions: SessionSummary[],
+  selectedLanes?: string[],
+  handedness: Handedness = "right"
+): BowlingStats {
   const filter = selectedLanes && selectedLanes.length ? new Set(selectedLanes) : undefined;
   const allGames = sessions.flatMap((s) =>
     s.games.map((g) => ({ alley: s.session.alley_name, game: g as GameWithFrames }))
@@ -66,6 +84,8 @@ export function calculateStats(sessions: SessionSummary[], selectedLanes?: strin
   let strikes = 0;
   let spareOpps = 0;
   let spares = 0;
+  let pocketHits = 0;
+  let pocketStrikes = 0;
 
   for (const { alley, game } of allGames) {
     // Avg/High are whole-game scores: include a game if it touched a selected lane.
@@ -83,6 +103,11 @@ export function calculateStats(sessions: SessionSummary[], selectedLanes?: strin
       strikes += tally.strikes;
       spareOpps += tally.spareOpps;
       spares += tally.spares;
+      for (const shot of freshRackShots(frame)) {
+        if (!resolvePocketHit(shot, handedness)) continue;
+        pocketHits++;
+        if (shot.pins_standing.length === 0) pocketStrikes++;
+      }
     }
   }
 
@@ -104,6 +129,8 @@ export function calculateStats(sessions: SessionSummary[], selectedLanes?: strin
     lowGame: completedScores.length ? Math.min(...completedScores) : null,
     strikePct: rate(strikes, strikeOpps),
     sparePct: rate(spares, spareOpps),
+    pocketPct: rate(pocketHits, strikeOpps),
+    carryPct: rate(pocketStrikes, pocketHits),
     byAlley
   };
 }
@@ -124,56 +151,38 @@ function isUnmakeable(standing: PinNumber[]): boolean {
   return isSplit(standing) && !isBabySplit(standing);
 }
 
-function tallyFrame(frame: Frame): FrameTally {
-  if (frame.frame_number === 10) return tallyTenthFrame(frame);
-
-  // Frames 1-9: one first-ball strike opportunity.
-  const strike = isStrike(frame);
-  const t: FrameTally = { strikeOpps: 1, strikes: strike ? 1 : 0, spareOpps: 0, spares: 0 };
-
-  if (!strike && frame.shots[1] && !isUnmakeable(frame.shots[0].pins_standing)) {
-    t.spareOpps = 1;
-    if (isSpare(frame)) t.spares = 1;
-  }
-  return t;
+/**
+ * The balls in a frame that were thrown at a full rack: shot 1 always, plus the
+ * 10th frame's bonus balls whenever the previous ball cleared the deck. These
+ * are the strike opportunities, and equally the pocket opportunities, since a
+ * shot at a leave has no pocket to hit. Shares `freshRackShotIndices` with the
+ * seeding rules so "fresh rack" means one thing in this codebase.
+ */
+function freshRackShots(frame: Frame): Shot[] {
+  return freshRackShotIndices(frame.shots).map((i) => frame.shots[i]);
 }
 
-function tallyTenthFrame(frame: Frame): FrameTally {
-  const t: FrameTally = { strikeOpps: 0, strikes: 0, spareOpps: 0, spares: 0 };
-  const shot1Standing = frame.shots[0].pins_standing;
-  const shot1Strike = clears(shot1Standing);
+function tallyFrame(frame: Frame): FrameTally {
+  const fresh = freshRackShots(frame);
+  const t: FrameTally = {
+    strikeOpps: fresh.length,
+    strikes: fresh.filter((s) => clears(s.pins_standing)).length,
+    spareOpps: 0,
+    spares: 0
+  };
 
-  // Ball 1 is always a strike opportunity once thrown.
-  t.strikeOpps += 1;
-  if (shot1Strike) t.strikes += 1;
+  const [s1, s2] = frame.shots;
+  if (!s1 || !s2) return t;
 
-  if (!frame.shots[1]) return t;
-
-  const shot2Standing = frame.shots[1].pins_standing;
-
-  if (shot1Strike) {
-    // Fresh rack on ball 2 -> another strike opportunity.
-    t.strikeOpps += 1;
-    if (clears(shot2Standing)) t.strikes += 1;
-  } else if (!isUnmakeable(shot1Standing)) {
-    t.spareOpps += 1;
-    if (clears2(shot1Standing, shot2Standing)) t.spares += 1;
-  }
-
-  if (!frame.shots[2]) return t;
-
-  const shot3Standing = frame.shots[2].pins_standing;
-
-  // Ball 3 exists only after a strike or spare; it lands on a fresh rack iff
-  // ball 2 cleared the lane. Treat a fresh-rack ball 3 as a strike opportunity.
-  const ball2FreshRack = shot1Strike;
-  const ball2Cleared = ball2FreshRack
-    ? clears(shot2Standing)
-    : clears2(shot1Standing, shot2Standing);
-
-  if (ball2Cleared) {
-    t.strikeOpps += 1;
-    if (clears(shot3Standing)) t.strikes += 1;
+  // A spare attempt exists only when ball 1 left a makeable leave. In the 10th
+  // that is the same test: ball 2 after a strike is a fresh rack, not a spare.
+  if (!clears(s1.pins_standing) && !isUnmakeable(s1.pins_standing)) {
+    t.spareOpps = 1;
+    if (frame.frame_number === 10) {
+      if (clears2(s1.pins_standing, s2.pins_standing)) t.spares = 1;
+    } else if (isSpare(frame)) {
+      t.spares = 1;
+    }
   }
   return t;
 }
@@ -311,6 +320,188 @@ export function calculateBallUsage(
       brand: byId.get(ballId)?.catalog_snapshot?.brand ?? null
     }))
     .sort((a, b) => b.frames - a.frames || a.name.localeCompare(b.name));
+}
+
+// ---------------------------------------------------------------------------
+// Ball performance
+// ---------------------------------------------------------------------------
+
+/** Prior weight for the shrunk aggregate: a ball needs this many fresh-rack
+ *  balls before its own rate outweighs the bowler's baseline. */
+const SHRINKAGE_FRAMES = 30;
+
+export interface BallGameCell {
+  gameNumber: number;
+  firstBalls: number;
+  pocket: number;
+  strikes: number;
+  /** Strikes thrown off a pocket hit, the numerator of carry. */
+  pocketStrikes: number;
+}
+
+export interface BallPerformance {
+  ballId: number;
+  name: string;
+  imageThumb: string | null;
+  brand: string | null;
+  firstBalls: number;
+  pocketPct: number | null;
+  carryPct: number | null;
+  strikePct: number | null;
+  /** Strike rate pulled toward the bowler's overall rate by SHRINKAGE_FRAMES.
+   *  Sorting on the raw rate would float a ball thrown twice to the top. */
+  adjustedStrikePct: number | null;
+  /** Raw per-game cells, unsmoothed on purpose: at 4 to 8 balls a cell there is
+   *  no signal to smooth, only a shape to eyeball. */
+  byGame: BallGameCell[];
+  leaves: LeaveStats[];
+}
+
+export interface BallPerformanceReport {
+  balls: BallPerformance[];
+  /** Fresh-rack balls thrown with no ball recorded, so attributable to nothing. */
+  unattributed: number;
+  baselineStrikePct: number | null;
+}
+
+interface BallAccumulator {
+  firstBalls: number;
+  pocket: number;
+  pocketStrikes: number;
+  strikes: number;
+  byGame: Map<number, BallGameCell>;
+  leaves: Map<string, LeaveStats>;
+}
+
+function emptyAccumulator(): BallAccumulator {
+  return {
+    firstBalls: 0,
+    pocket: 0,
+    pocketStrikes: 0,
+    strikes: 0,
+    byGame: new Map(),
+    leaves: new Map()
+  };
+}
+
+/**
+ * Per-ball pocket, carry and strike rates, broken out by game number, plus the
+ * leaves each ball produced (ADR-047).
+ *
+ * Only fresh-rack balls count, and only those with a `ball_id`; the rest are
+ * reported as `unattributed` rather than silently dropped, so a half-tagged
+ * history reads as incomplete instead of authoritative.
+ *
+ * Ball choice is not random. A ball pulled only when the lanes are burnt will
+ * show a worse rate for reasons that are nothing to do with the ball. These
+ * numbers describe what happened, not what would have happened with a
+ * different ball.
+ */
+export function calculateBallPerformance(
+  sessions: SessionSummary[],
+  balls: Ball[],
+  selectedLanes?: string[],
+  handedness: Handedness = "right"
+): BallPerformanceReport {
+  const filter = selectedLanes && selectedLanes.length ? new Set(selectedLanes) : undefined;
+  const byId = new Map(balls.filter((b) => b.id != null).map((b) => [b.id!, b]));
+  const acc = new Map<number, BallAccumulator>();
+  let unattributed = 0;
+  let totalFirstBalls = 0;
+  let totalStrikes = 0;
+
+  for (const s of sessions) {
+    for (const game of s.games) {
+      for (const frame of game.frames) {
+        if (!frameOnSelectedLane(game, frame.frame_number, filter)) continue;
+
+        for (const shot of freshRackShots(frame)) {
+          const struck = clears(shot.pins_standing);
+          totalFirstBalls++;
+          if (struck) totalStrikes++;
+
+          if (shot.ball_id == null) {
+            unattributed++;
+            continue;
+          }
+          if (!acc.has(shot.ball_id)) acc.set(shot.ball_id, emptyAccumulator());
+          const entry = acc.get(shot.ball_id)!;
+          const pocket = resolvePocketHit(shot, handedness);
+          entry.firstBalls++;
+          if (struck) entry.strikes++;
+          if (pocket) entry.pocket++;
+          if (pocket && struck) entry.pocketStrikes++;
+
+          const cell = entry.byGame.get(game.game_number) ?? {
+            gameNumber: game.game_number,
+            firstBalls: 0,
+            pocket: 0,
+            strikes: 0,
+            pocketStrikes: 0
+          };
+          cell.firstBalls++;
+          if (struck) cell.strikes++;
+          if (pocket) cell.pocket++;
+          if (pocket && struck) cell.pocketStrikes++;
+          entry.byGame.set(game.game_number, cell);
+        }
+
+        // Leaves belong to the ball that made them: the first ball of the frame.
+        const first = frame.shots[0];
+        if (!first || first.ball_id == null) continue;
+        if (first.pins_standing.length === 0) continue;
+        const entry = acc.get(first.ball_id);
+        if (!entry) continue;
+        const leave = [...first.pins_standing].sort((a, b) => a - b) as PinNumber[];
+        const key = leave.join("-");
+        const stat = entry.leaves.get(key) ?? {
+          pins: leave,
+          attempts: 0,
+          conversions: 0,
+          conversionPct: null
+        };
+        stat.attempts++;
+        if (frame.shots[1] && frame.shots[1].pins_standing.length === 0) stat.conversions++;
+        entry.leaves.set(key, stat);
+      }
+    }
+  }
+
+  const baseline = totalFirstBalls > 0 ? totalStrikes / totalFirstBalls : null;
+
+  const perBall = [...acc.entries()].map(([ballId, e]) => ({
+    ballId,
+    name: byId.get(ballId)?.name ?? `Ball #${ballId}`,
+    imageThumb: byId.get(ballId)?.catalog_snapshot?.imageThumb ?? null,
+    brand: byId.get(ballId)?.catalog_snapshot?.brand ?? null,
+    firstBalls: e.firstBalls,
+    pocketPct: rate(e.pocket, e.firstBalls),
+    carryPct: rate(e.pocketStrikes, e.pocket),
+    strikePct: rate(e.strikes, e.firstBalls),
+    adjustedStrikePct:
+      baseline == null
+        ? null
+        : Math.round(
+            ((e.strikes + SHRINKAGE_FRAMES * baseline) /
+              (e.firstBalls + SHRINKAGE_FRAMES)) *
+              100
+          ),
+    byGame: [...e.byGame.values()].sort((a, b) => a.gameNumber - b.gameNumber),
+    leaves: [...e.leaves.values()]
+      .map((l) => ({ ...l, conversionPct: rate(l.conversions, l.attempts) }))
+      .sort((a, b) => b.attempts - a.attempts || comparePins(a.pins, b.pins))
+  }));
+
+  return {
+    balls: perBall.sort(
+      (a, b) =>
+        (b.adjustedStrikePct ?? 0) - (a.adjustedStrikePct ?? 0) ||
+        b.firstBalls - a.firstBalls ||
+        a.name.localeCompare(b.name)
+    ),
+    unattributed,
+    baselineStrikePct: baseline == null ? null : Math.round(baseline * 100)
+  };
 }
 
 /** Element-wise numeric compare of two ascending pin lists. */

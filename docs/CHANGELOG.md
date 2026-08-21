@@ -24,6 +24,25 @@ User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachan
 
 ### Added
 
+- **Pocket and carry percentages, guessed from the leave.** A fresh-rack first
+  ball now carries a pocket verdict, worked out from what it left standing and
+  flipped in one tap from the corner of the pin deck. The stats screens report
+  what share of balls found the pocket and what share of those carried, which
+  splits a bad game into "not getting it there" and "getting it there and it is
+  not carrying". Old shots are read under the same rule, so history is not
+  blank. See ADR-046 for the table.
+
+- **A score trend for the session.** Score by game as a line, the session
+  average as a dotted rule, and the high and low games marked. A game that was
+  never scored breaks the line rather than being drawn through.
+
+- **Ball performance, by game.** The ball usage card now opens into pocket,
+  carry and strike rates per ball, broken out by game number, with that ball's
+  most common leaves. The headline rate per ball is pulled toward your overall
+  rate so a ball thrown twice cannot top the list; the per-game numbers are raw,
+  next to the count of balls behind them. Filter by pattern, alley or lane and
+  the whole table follows.
+
 - **A repeatable way to add balls to the catalog.** Every ball used to be added
   by hand, so the catalog sat at 50 while the USBC approved list ran to
   thousands. A run now picks its own scope (a date range, a brand, or a named

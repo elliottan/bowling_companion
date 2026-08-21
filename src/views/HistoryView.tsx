@@ -7,6 +7,7 @@ import { SwipePanes } from "../components/SwipePanes";
 import { Button } from "../components/ui/Button";
 import { Chip, TAP_TARGET_44 } from "../components/ui/Chip";
 import {
+  calculateBallPerformance,
   calculateBallUsage,
   calculateCommonLeaves,
   calculateStats,
@@ -17,6 +18,7 @@ import { getSessionHistory } from "../services/bowlingRepository";
 import { getBalls } from "../services/ballRepository";
 import type { Ball, SessionSummary } from "../types/bowling";
 import { GROUP_HEADING } from "../components/ui/typography";
+import { useHandedness } from "../lib/handednessContext";
 
 interface HistoryViewProps {
   onOpenSession: (sessionId: number) => void;
@@ -43,6 +45,8 @@ const EMPTY: BowlingStats = {
   lowGame: null,
   strikePct: null,
   sparePct: null,
+  pocketPct: null,
+  carryPct: null,
   byAlley: []
 };
 
@@ -57,6 +61,7 @@ export function HistoryView({ onOpenSession, activeSessionId, onSessionDeleted }
   const history = liveHistory ?? NO_SESSIONS;
   const balls = liveBalls ?? NO_BALLS;
   const isLoading = liveHistory === undefined;
+  const handedness = useHandedness();
   const [error] = useState("");
   const [pane, setPane] = useState<Pane>("sessions");
 
@@ -129,8 +134,8 @@ export function HistoryView({ onOpenSession, activeSessionId, onSessionDeleted }
   }
 
   const stats = useMemo(
-    () => calculateStats(filteredHistory, activeLanes),
-    [filteredHistory, activeLanes]
+    () => calculateStats(filteredHistory, activeLanes, handedness),
+    [filteredHistory, activeLanes, handedness]
   );
   const leaves = useMemo(
     () => calculateCommonLeaves(filteredHistory, activeLanes),
@@ -139,6 +144,10 @@ export function HistoryView({ onOpenSession, activeSessionId, onSessionDeleted }
   const ballUsage = useMemo(
     () => calculateBallUsage(filteredHistory, balls, activeLanes),
     [filteredHistory, balls, activeLanes]
+  );
+  const ballPerformance = useMemo(
+    () => calculateBallPerformance(filteredHistory, balls, activeLanes, handedness),
+    [filteredHistory, balls, activeLanes, handedness]
   );
 
   const allAlleys = useMemo(
@@ -245,7 +254,13 @@ export function HistoryView({ onOpenSession, activeSessionId, onSessionDeleted }
             <div ref={sentinelRef} className="h-6" aria-hidden="true" />
           </div>,
           <div key="stats" className="px-3 pb-5 sm:px-6 sm:pb-8">
-            <Stats stats={isLoading ? EMPTY : stats} isLoading={isLoading} leaves={leaves} ballUsage={ballUsage} />
+            <Stats
+              stats={isLoading ? EMPTY : stats}
+              isLoading={isLoading}
+              leaves={leaves}
+              ballUsage={ballUsage}
+              ballPerformance={ballPerformance}
+            />
           </div>
         ]}
       />

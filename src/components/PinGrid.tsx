@@ -1,5 +1,6 @@
 import { useRef } from "react";
-import type { PointerEvent as ReactPointerEvent } from "react";
+import type { PointerEvent as ReactPointerEvent, ReactNode } from "react";
+import { useHandedness } from "../lib/handednessContext";
 import type { PinNumber } from "../types/bowling";
 import { ALL_PINS } from "../lib/pins";
 import { applyGesture, modeFor, type GestureMode } from "../lib/pinGesture";
@@ -17,6 +18,10 @@ interface PinGridProps {
   onChange: (standingPins: PinNumber[]) => void;
   readOnly?: boolean;
   size?: "default" | "sm";
+  /** Control parked in the deck's pocket-side bottom corner (right for a
+   *  right-hander), where the ball enters. The deck stays a dumb pin renderer:
+   *  it positions whatever it is given and knows nothing about it. */
+  cornerSlot?: ReactNode;
 }
 
 export function PinGrid({
@@ -24,8 +29,10 @@ export function PinGrid({
   availablePins = ALL_PINS,
   onChange,
   readOnly = false,
-  size = "default"
+  size = "default",
+  cornerSlot
 }: PinGridProps) {
+  const handedness = useHandedness();
   const standingSet = new Set(standingPins);
   const availableSet = new Set(availablePins);
   const modeRef = useRef<GestureMode | null>(null);
@@ -78,7 +85,7 @@ export function PinGrid({
 
   return (
     <div
-      className={`rounded-lg border border-[#d3ac74] shadow-sm ${pad}`}
+      className={`relative rounded-lg border border-[#d3ac74] shadow-sm ${pad}`}
       style={{
         touchAction: "none",
         backgroundColor: "#ecc78f",
@@ -119,6 +126,17 @@ export function PinGrid({
           </div>
         ))}
       </div>
+
+      {cornerSlot && (
+        // A pin drag captures the pointer on the pin it started from, so events
+        // released over this corner still belong to that pin and never reach
+        // the control here.
+        <div
+          className={`absolute bottom-1.5 ${handedness === "left" ? "left-1.5" : "right-1.5"}`}
+        >
+          {cornerSlot}
+        </div>
+      )}
     </div>
   );
 }

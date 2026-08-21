@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { isBabySplit, isSplit, isWashout } from "./pins";
+import type { PinNumber } from "../types/bowling";
+import { isBabySplit, isPocketHit, isSplit, isWashout, resolvePocketHit } from "./pins";
 
 describe("isSplit", () => {
   it("returns false for empty leave", () => {
@@ -118,5 +119,72 @@ describe("isWashout", () => {
     expect(isWashout([1, 2, 4, 5])).toBe(false);
     expect(isWashout([1])).toBe(false);
     expect(isWashout([])).toBe(false);
+  });
+});
+
+describe("isPocketHit", () => {
+  const rh = (leave: PinNumber[]) => isPocketHit(leave, "right");
+  const lh = (leave: PinNumber[]) => isPocketHit(leave, "left");
+
+  it("counts a strike", () => {
+    expect(rh([])).toBe(true);
+  });
+
+  it("rejects any leave with the 1 or the 3 standing (RH)", () => {
+    expect(rh([1])).toBe(false);
+    expect(rh([3])).toBe(false);
+    expect(rh([3, 6, 10])).toBe(false);
+    expect(rh([1, 2, 4, 10])).toBe(false);
+  });
+
+  it("counts the ordinary pocket leaves", () => {
+    for (const leave of [[4], [6], [7], [8], [9], [10], [2], [2, 8], [4, 7], [8, 10], [7, 10], [7, 9], [6, 10], [4, 5]]) {
+      expect(rh(leave as PinNumber[])).toBe(true);
+    }
+  });
+
+  it("counts the 5 alongside a corner but not the 5 alone", () => {
+    expect(rh([5, 7])).toBe(true);
+    expect(rh([5, 10])).toBe(true);
+    expect(rh([5, 7, 10])).toBe(true);
+    expect(rh([5, 8])).toBe(true);
+    expect(rh([5])).toBe(false);
+  });
+
+  it("rejects the through-the-nose shapes", () => {
+    expect(rh([4, 6, 7, 10])).toBe(false);      // big four
+    expect(rh([4, 6, 7, 9, 10])).toBe(false);   // Greek church
+    expect(rh([4, 6])).toBe(false);
+    expect(rh([4, 9])).toBe(false);
+  });
+
+  it("rejects the light shapes", () => {
+    expect(rh([2, 10])).toBe(false);
+    expect(rh([2, 4, 5])).toBe(false);
+    expect(rh([2, 4, 5, 8])).toBe(false);
+    expect(rh([2, 4, 5, 7, 8])).toBe(false);
+  });
+
+  it("mirrors the whole table for a left-hander", () => {
+    expect(lh([2])).toBe(false);            // 2 is a pocket pin for a lefty
+    expect(lh([3])).toBe(true);             // mirror of the RH 2
+    expect(lh([7])).toBe(true);
+    expect(lh([6, 8])).toBe(false);         // mirror of 4-9
+    expect(lh([3, 7])).toBe(false);         // mirror of 2-10
+    expect(lh([3, 5, 6])).toBe(false);      // mirror of the bucket
+    expect(lh([4, 6, 7, 10])).toBe(false);  // big four is symmetric
+    expect(lh([5])).toBe(false);
+  });
+});
+
+describe("resolvePocketHit", () => {
+  it("prefers the stored verdict over the inference", () => {
+    expect(resolvePocketHit({ pins_standing: [], pocket_hit: false }, "right")).toBe(false);
+    expect(resolvePocketHit({ pins_standing: [1, 3], pocket_hit: true }, "right")).toBe(true);
+  });
+
+  it("falls back to the inference when no verdict was recorded", () => {
+    expect(resolvePocketHit({ pins_standing: [10] }, "right")).toBe(true);
+    expect(resolvePocketHit({ pins_standing: [3] }, "right")).toBe(false);
   });
 });

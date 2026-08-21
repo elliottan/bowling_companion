@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { calculateBallUsage, calculateCommonLeaves, calculateStats, filterSessionsBy } from "./stats";
+import {
+  calculateBallPerformance,
+  calculateBallUsage,
+  calculateCommonLeaves,
+  calculateStats,
+  filterSessionsBy
+} from "./stats";
 import type { Ball, Frame, Game, PinNumber, SessionSummary, Shot } from "../types/bowling";
 
 const NONE: PinNumber[] = [];
@@ -42,6 +48,8 @@ describe("calculateStats", () => {
       lowGame: null,
       strikePct: null,
       sparePct: null,
+      pocketPct: null,
+      carryPct: null,
       byAlley: []
     });
   });
@@ -362,5 +370,134 @@ describe("frame-level lane filtering", () => {
   it("common leaves respect the lane filter", () => {
     expect(calculateCommonLeaves(crossLane, ["9"])).toHaveLength(0);
     expect(calculateCommonLeaves(crossLane, ["10"]).length).toBeGreaterThan(0);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Pocket and carry
+// ---------------------------------------------------------------------------
+
+/** A frame whose first ball leaves `leave`, with an explicit pocket verdict. */
+function frameWithPocket(n: number, leave: PinNumber[], pocket?: boolean): Frame {
+  const f = frame(n, leave, leave.length ? NONE : undefined);
+  f.shots[0].pocket_hit = pocket;
+  return f;
+}
+
+describe("pocket and carry", () => {
+  it("infers the pocket from the leave when no verdict was recorded", () => {
+    // 10-pin (pocket), 3-6-10 (not), strike (pocket, and a carry).
+    const s = session("Jurong", [
+      game(180, [frame(1, [10], NONE), frame(2, [3, 6, 10], [3, 6, 10]), frame(3, NONE)])
+    ]);
+    const stats = calculateStats([s]);
+    expect(stats.pocketPct).toBe(67); // 2 of 3
+    expect(stats.carryPct).toBe(50); // 1 strike from 2 pocket hits
+  });
+
+  it("lets a recorded verdict override the inference", () => {
+    // A crossover strike the bowler flagged as not-pocket.
+    const s = session("Jurong", [game(180, [frameWithPocket(1, NONE, false), frame(2, [10], NONE)])]);
+    const stats = calculateStats([s]);
+    expect(stats.pocketPct).toBe(50);
+    expect(stats.carryPct).toBe(0); // the only strike was not a pocket hit
+  });
+
+  it("mirrors the inference for a left-hander", () => {
+    // The 2 is a lefty pocket pin, so leaving it is never a lefty pocket hit.
+    // For a right-hander the same leave is an ordinary light hit.
+    const s = session("Jurong", [game(150, [frame(1, [2], NONE)])]);
+    expect(calculateStats([s], undefined, "right").pocketPct).toBe(100);
+    expect(calculateStats([s], undefined, "left").pocketPct).toBe(0);
+  });
+
+  it("counts only fresh-rack balls, including the 10th frame bonus balls", () => {
+    // 10th: strike, strike, 3-pin left. Three fresh-rack balls, two strikes,
+    // and the last one is not a pocket hit.
+    const s = session("Jurong", [game(200, [frame(10, NONE, NONE, [3])])]);
+    const stats = calculateStats([s]);
+    expect(stats.strikePct).toBe(67);
+    expect(stats.pocketPct).toBe(67);
+    expect(stats.carryPct).toBe(100);
+  });
+});
+
+describe("calculateBallPerformance", () => {
+  const balls: Ball[] = [
+    { id: 1, name: "Phaze II", is_spare_ball: false },
+    { id: 2, name: "Hy-Road", is_spare_ball: false }
+  ];
+
+  function ballFrame(n: number, ballId: number | undefined, leave: PinNumber[]): Frame {
+    const f = frame(n, leave, leave.length ? NONE : undefined);
+    f.shots[0].ball_id = ballId;
+    return f;
+  }
+
+  it("splits rates by ball and by game number", () => {
+    const g1: Game & { frames: Frame[] } = {
+      id: 1,
+      session_id: 1,
+      game_number: 1,
+      final_score: 200,
+      frames: [ballFrame(1, 1, NONE), ballFrame(2, 1, [10])]
+    };
+    const g2: Game & { frames: Frame[] } = {
+      id: 2,
+      session_id: 1,
+      game_number: 2,
+      final_score: 150,
+      frames: [ballFrame(1, 1, [3, 6, 10]), ballFrame(2, 2, NONE)]
+    };
+    const report = calculateBallPerformance(session("Jurong", [g1, g2]) && [session("Jurong", [g1, g2])], balls);
+
+    const phaze = report.balls.find((b) => b.ballId === 1)!;
+    expect(phaze.firstBalls).toBe(3);
+    expect(phaze.strikePct).toBe(33);
+    expect(phaze.pocketPct).toBe(67);
+    expect(phaze.carryPct).toBe(50);
+    expect(phaze.byGame.map((c) => [c.gameNumber, c.firstBalls, c.strikes])).toEqual([
+      [1, 2, 1],
+      [2, 1, 0]
+    ]);
+    // Equal attempts, so the pin-order tie-break decides.
+    expect(phaze.leaves.map((l) => l.pins)).toEqual([[3, 6, 10], [10]]);
+  });
+
+  it("reports fresh-rack balls with no ball recorded instead of dropping them", () => {
+    const g: Game & { frames: Frame[] } = {
+      id: 1,
+      session_id: 1,
+      game_number: 1,
+      final_score: 150,
+      frames: [ballFrame(1, undefined, NONE), ballFrame(2, 1, NONE)]
+    };
+    const report = calculateBallPerformance([session("Jurong", [g])], balls);
+    expect(report.unattributed).toBe(1);
+    expect(report.balls).toHaveLength(1);
+    expect(report.baselineStrikePct).toBe(100);
+  });
+
+  it("shrinks a lightly-used ball toward the baseline so it cannot top the list", () => {
+    const strikes = Array.from({ length: 20 }, (_, i) => ballFrame((i % 9) + 1, 1, NONE));
+    const misses = Array.from({ length: 20 }, (_, i) => ballFrame((i % 9) + 1, 1, [3]));
+    const lucky = [ballFrame(1, 2, NONE)];
+    const g: Game & { frames: Frame[] } = {
+      id: 1,
+      session_id: 1,
+      game_number: 1,
+      final_score: 150,
+      frames: [...strikes, ...misses, ...lucky]
+    };
+    const report = calculateBallPerformance([session("Jurong", [g])], balls);
+    const hyroad = report.balls.find((b) => b.ballId === 2)!;
+    const phaze = report.balls.find((b) => b.ballId === 1)!;
+    expect(hyroad.strikePct).toBe(100); // raw: one ball, one strike
+    // Shrunk back to within a couple of points of the 50% baseline, rather
+    // than sitting 50 points clear of a ball with 40 balls behind it.
+    expect(hyroad.adjustedStrikePct).toBeLessThan(60);
+    expect(
+      Math.abs(hyroad.adjustedStrikePct! - phaze.adjustedStrikePct!)
+    ).toBeLessThan(5);
   });
 });

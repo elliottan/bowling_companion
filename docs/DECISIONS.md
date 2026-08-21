@@ -1953,3 +1953,98 @@ attempt is not fresh-rack and never seeds anything (ADR-029).
   ball still seeds from ball 1.
 - A bowler who changes ball for the 10th-frame bonus shots now carries that ball
   into the next game, which is what the change of ball meant.
+
+---
+
+## ADR-046: Pocket hits are inferred from the leave, and the bowler flips the guess
+
+**Status:** accepted (2026-08).
+
+**Context.** Pocket percentage and carry percentage are the two numbers that
+separate "I am not getting it there" from "I am getting it there and it is not
+carrying", and neither is derivable from the score. Recording them honestly
+means an extra input on every shot, which is exactly the kind of tax that stops
+a session being scored at all.
+
+The leave already carries most of the answer. A right-hander who leaves the 3
+pin did not hit the pocket; one who leaves the 10 almost always did. The
+exceptions are shapes, not single pins: 4-6 together means the ball went
+through the nose, 2-10 means it went light.
+
+**Decision.** A fresh-rack first ball gets a pocket verdict, guessed from the
+leave and overridable in one tap. The rule is stated for a right-hander, and a
+left-hander's leave is mirrored (2-3, 4-6, 7-10, 8-9) before the table runs, so
+there is one table rather than two that drift.
+
+```
+notPocket(leave) =
+     leave contains 1 or 3      the pocket pins are still up
+  || leave contains 4 and 6     through the nose: big four, Greek church
+  || leave contains 4 and 9     high and flat
+  || leave contains 2 and 10    light
+  || leave contains 2, 4 and 5  the bucket family
+  || leave is exactly {5}       nothing drove through
+```
+
+Everything else with the 1 and the 3 down is a pocket hit, including 5-7, 5-10,
+7-10, 8-10 and the corner pins on their own.
+
+The verdict is **materialized** on the shot as `pocket_hit`, written at entry
+from what the bowler was looking at. The toggle sits in the pin deck's
+pocket-side bottom corner, so it is in the reading path between setting the pins
+and pressing Next: leaving it alone is a choice, not an omission, which is why
+no "inferred or manual" flag is stored alongside it.
+
+`pocket_hit` is optional, and `undefined` means no verdict was ever recorded:
+history entered before this existed, and anything restored from an older backup.
+Those shots fall back to the rule at read time and follow it as it changes.
+
+**Consequences.**
+- Pocket % = pocket hits / fresh-rack balls. Carry % = strikes off a pocket hit
+  / pocket hits, so a strike flagged as a crossover leaves both sides and carry
+  cannot exceed 100.
+- The Strike button records a pocket hit without pausing. A crossover strike is
+  corrected by tapping back into the frame, which is three taps on maybe one
+  strike in fifty, against one saved tap on all the others.
+- Editing a shot's pins clears its verdict, the bowler's own included: it was a
+  judgement about a leave that no longer exists.
+- Spare attempts carry no verdict and no toggle. There is no pocket to hit.
+- Changing the table changes the past only for shots with no recorded verdict.
+  Shots entered under the old table keep what was written, which is the price of
+  materializing and the reason `undefined` is left meaningful.
+
+## ADR-047: Per-ball rates are shrunk in aggregate and raw per game
+
+**Status:** accepted (2026-08).
+
+**Context.** "How did this ball do in game 3 on this pattern" is three
+dimensions over a few hundred shots. A ball thrown for one game leaves 4 to 8
+first balls in that cell: a rate quantized to 12-point steps, where one
+messenger moves it two whole steps.
+
+**Decision.** Pattern is not an axis, it is the filter already on the History
+screen; the table is ball by game number and recomputes under whatever filter is
+active. The ball row shows an aggregate strike rate shrunk toward the bowler's
+own baseline:
+
+```
+adjusted = (strikes + 30 x baseline) / (firstBalls + 30)
+```
+
+so a ball with 8 balls behind it sits near the baseline and one with 200 sits at
+its own rate, and sorting the list cannot be won by a ball thrown twice.
+
+The per-game cells are **raw**, and deliberately so. At six balls a cell there
+is no signal to smooth, and a shrunk cell would render as the baseline for every
+ball in every game: a table of identical numbers reads as "no difference" rather
+than "not enough data". Raw cells at least show a shape, next to the count that
+says how much to trust it.
+
+**Consequences.**
+- Fresh-rack balls with no `ball_id` are reported as an unattributed count
+  rather than dropped, so a half-tagged history reads as incomplete.
+- Leaves are attributed to the ball that threw the first ball of the frame.
+- Ball choice is not random: a ball pulled only when the lanes are burnt will
+  show worse rates for reasons that have nothing to do with the ball. These
+  numbers describe what happened with a ball, never what would have happened
+  with a different one, and no copy in the app may imply otherwise.

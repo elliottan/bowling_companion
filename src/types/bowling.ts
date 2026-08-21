@@ -30,6 +30,11 @@ export interface LineSpec {
 
 export interface ShotMetadata {
   ball_id?: number;
+  /** Pocket verdict for a fresh-rack first ball (ADR-046). Written at entry
+   *  from the inference the bowler saw and could flip. Undefined means no
+   *  verdict was ever recorded (pre-toggle history, imports), so read paths
+   *  infer it from the leave instead. */
+  pocket_hit?: boolean;
   intended?: LineSpec;
   actual?: LineSpec;
   notes?: string;
@@ -38,6 +43,8 @@ export interface ShotMetadata {
 export interface Shot {
   pins_standing: PinNumber[];
   ball_id?: number;
+  /** See ShotMetadata.pocket_hit (ADR-046). */
+  pocket_hit?: boolean;
   intended?: LineSpec;
   actual?: LineSpec;
   notes?: string;

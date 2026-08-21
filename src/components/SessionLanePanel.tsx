@@ -3,7 +3,13 @@ import { createPortal } from "react-dom";
 import { freshRackShotIndices, laneForFrame } from "../lib/lanes";
 import { knockedDownCount } from "../lib/pins";
 import { calculateGameScore } from "../lib/scoring";
-import { calculateBallUsage, calculateCommonLeaves, calculateStats } from "../lib/stats";
+import {
+  calculateBallPerformance,
+  calculateBallUsage,
+  calculateCommonLeaves,
+  calculateStats
+} from "../lib/stats";
+import { useHandedness } from "../lib/handednessContext";
 import { useOverlay } from "../lib/useOverlay";
 import { getBalls } from "../services/ballRepository";
 import type { Ball, Frame, LineSpec, SessionSummary, Shot } from "../types/bowling";
@@ -248,11 +254,27 @@ function StatsTab({ summary }: { summary: SessionSummary }) {
     getBalls().then(setBalls).catch(() => {});
   }, []);
 
-  const stats = useMemo(() => calculateStats([summary]), [summary]);
+  const handedness = useHandedness();
+  const stats = useMemo(
+    () => calculateStats([summary], undefined, handedness),
+    [summary, handedness]
+  );
   const leaves = useMemo(() => calculateCommonLeaves([summary]), [summary]);
   const ballUsage = useMemo(() => calculateBallUsage([summary], balls), [summary, balls]);
+  const ballPerformance = useMemo(
+    () => calculateBallPerformance([summary], balls, undefined, handedness),
+    [summary, balls, handedness]
+  );
 
-  return <Stats stats={stats} leaves={leaves} ballUsage={ballUsage} />;
+  return (
+    <Stats
+      stats={stats}
+      leaves={leaves}
+      ballUsage={ballUsage}
+      ballPerformance={ballPerformance}
+      games={summary.games}
+    />
+  );
 }
 
 function SessionSheetTab({

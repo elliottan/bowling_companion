@@ -4,7 +4,9 @@ import { CatalogBallImage } from "./CatalogBallImage";
 import { MiniPins } from "./MiniPins";
 import type { Manufacturer } from "../types/catalog";
 import { isBabySplit, isSplit, isWashout } from "../lib/pins";
-import type { BallUsage, BowlingStats, LeaveStats } from "../lib/stats";
+import type { BallPerformance, BallPerformanceReport, BallUsage, BowlingStats, LeaveStats } from "../lib/stats";
+import { ScoreTrendChart } from "./ScoreTrendChart";
+import type { Game } from "../types/bowling";
 import { GROUP_HEADING } from "./ui/typography";
 
 interface StatsProps {
@@ -12,13 +14,20 @@ interface StatsProps {
   isLoading?: boolean;
   leaves?: LeaveStats[];
   ballUsage?: BallUsage[];
+  ballPerformance?: BallPerformanceReport;
+  /** Games of the session being shown, for the score trend. Omitted on the
+   *  aggregate History screen: a line through games from different nights,
+   *  houses and patterns draws a continuity that was never bowled. */
+  games?: Array<Pick<Game, "game_number" | "final_score">>;
 }
 
 export function Stats({
   stats,
   isLoading = false,
   leaves,
-  ballUsage
+  ballUsage,
+  ballPerformance,
+  games
 }: StatsProps) {
   const [showBallUsage, setShowBallUsage] = useState(false);
   const [showSpareNote, setShowSpareNote] = useState(false);
@@ -75,6 +84,13 @@ export function Stats({
         />
       </div>
 
+      <div className="grid grid-cols-2 gap-1.5">
+        <Tile label="Pocket" value={pct(stats.pocketPct)} />
+        <Tile label="Carry" value={pct(stats.carryPct)} />
+      </div>
+
+      {games && games.length > 0 && <ScoreTrendChart games={games} />}
+
       {showSpareNote && (
         <button
           type="button"
@@ -86,47 +102,38 @@ export function Stats({
         </button>
       )}
 
-      {ballUsage && ballUsage.length > 0 && (
+      {ballPerformance && ballPerformance.balls.length > 0 && (
         <div className="rounded-lg border border-edge bg-surface p-3 shadow-sm">
           <button
             type="button"
             onClick={() => setShowBallUsage((v) => !v)}
             className={`flex w-full items-center justify-between gap-2 ${GROUP_HEADING}`}
           >
-            Ball usage
+            Ball performance
             <ChevronDown
               size={16}
               aria-hidden="true"
               className={showBallUsage ? "rotate-180" : ""}
             />
           </button>
-          <ul className={`divide-y divide-edge ${showBallUsage ? "mt-2" : "hidden"}`}>
-            {ballUsage.map((b) => (
-              <li key={b.ballId} className="flex items-center gap-2 py-1.5 text-sm">
-                <span className="h-7 w-7 shrink-0">
-                  {b.imageThumb || b.brand ? (
-                    <CatalogBallImage
-                      src={b.imageThumb}
-                      alt=""
-                      brand={b.brand as Manufacturer}
-                      size="thumb"
-                    />
-                  ) : (
-                    <span className="block h-full w-full rounded-full bg-edge" aria-hidden="true" />
-                  )}
-                </span>
-                <span className="min-w-0 flex-1 truncate font-medium text-ink-strong">{b.name}</span>
-                <span className="shrink-0 tabular-nums text-ink-secondary">
-                  <span className="font-semibold text-ink">{b.frames}</span>{" "}
-                  {b.frames === 1 ? "shot" : "shots"}
-                  {" · "}
-                  {/* Games as a fraction of a 10-frame game — a ball thrown in
-                      15 frames covers 1.5 games' worth of shots. */}
-                  <span className="font-semibold text-ink">{(b.frames / 10).toFixed(1)}</span> games
-                </span>
-              </li>
-            ))}
-          </ul>
+          <div className={showBallUsage ? "mt-2" : "hidden"}>
+            <ul className="divide-y divide-edge">
+              {ballPerformance.balls.map((b) => (
+                <BallPerformanceRow
+                  key={b.ballId}
+                  ball={b}
+                  usage={ballUsage?.find((u) => u.ballId === b.ballId)}
+                />
+              ))}
+            </ul>
+            {ballPerformance.unattributed > 0 && (
+              <p className="mt-2 text-[11px] text-ink-tertiary">
+                {ballPerformance.unattributed} first{" "}
+                {ballPerformance.unattributed === 1 ? "ball" : "balls"} with no ball
+                recorded, counted in the totals but in no row here.
+              </p>
+            )}
+          </div>
         </div>
       )}
 
@@ -150,6 +157,131 @@ export function Stats({
       })()}
     </div>
   );
+}
+
+function BallPerformanceRow({
+  ball,
+  usage
+}: {
+  ball: BallPerformance;
+  usage?: BallUsage;
+}) {
+  const [open, setOpen] = useState(false);
+  return (
+    <li className="py-1.5">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="flex w-full items-center gap-2 text-left text-sm"
+      >
+        <span className="h-7 w-7 shrink-0">
+          {ball.imageThumb || ball.brand ? (
+            <CatalogBallImage
+              src={ball.imageThumb}
+              alt=""
+              brand={ball.brand as Manufacturer}
+              size="thumb"
+            />
+          ) : (
+            <span className="block h-full w-full rounded-full bg-edge" aria-hidden="true" />
+          )}
+        </span>
+        <span className="min-w-0 flex-1 truncate font-medium text-ink-strong">{ball.name}</span>
+        <span className="shrink-0 tabular-nums text-ink-secondary">
+          <span className="font-semibold text-ink">{pct(ball.adjustedStrikePct)}</span> strike
+          {" · "}
+          <span className="font-semibold text-ink">{ball.firstBalls}</span> balls
+        </span>
+        <ChevronDown size={14} aria-hidden="true" className={open ? "rotate-180" : ""} />
+      </button>
+
+      {open && (
+        <div className="mt-2 space-y-2 rounded-lg bg-surface-muted p-2">
+          <p className="text-[11px] text-ink-tertiary">
+            Rate shown above is pulled toward your overall strike rate so a
+            lightly-used ball cannot top the list. The per-game numbers below are
+            raw: at a handful of balls each they are a shape, not a verdict.
+            {usage ? ` Thrown in ${usage.frames} frames across ${usage.games} games.` : ""}
+          </p>
+
+          <table className="w-full text-[11px] tabular-nums">
+            <thead>
+              <tr className="text-ink-tertiary">
+                <th className="text-left font-semibold">Game</th>
+                {ball.byGame.map((c) => (
+                  <th key={c.gameNumber} className="text-right font-semibold">
+                    {c.gameNumber}
+                  </th>
+                ))}
+                <th className="text-right font-semibold">All</th>
+              </tr>
+            </thead>
+            <tbody className="text-ink-secondary">
+              <MetricRow
+                label="Pocket"
+                cells={ball.byGame.map((c) => rateOf(c.pocket, c.firstBalls))}
+                total={ball.pocketPct}
+              />
+              <MetricRow
+                label="Carry"
+                cells={ball.byGame.map((c) => rateOf(c.pocketStrikes, c.pocket))}
+                total={ball.carryPct}
+              />
+              <MetricRow
+                label="Strike"
+                cells={ball.byGame.map((c) => rateOf(c.strikes, c.firstBalls))}
+                total={ball.strikePct}
+              />
+              <tr>
+                <td className="text-left text-ink-tertiary">Balls</td>
+                {ball.byGame.map((c) => (
+                  <td key={c.gameNumber} className="text-right text-ink-tertiary">
+                    {c.firstBalls}
+                  </td>
+                ))}
+                <td className="text-right text-ink-tertiary">{ball.firstBalls}</td>
+              </tr>
+            </tbody>
+          </table>
+
+          {ball.leaves.length > 0 && (
+            <div className="grid grid-cols-4 gap-1.5">
+              {ball.leaves.slice(0, 4).map((leave) => (
+                <LeaveCell key={leave.pins.join("-")} leave={leave} />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </li>
+  );
+}
+
+function MetricRow({
+  label,
+  cells,
+  total
+}: {
+  label: string;
+  cells: Array<number | null>;
+  total: number | null;
+}) {
+  return (
+    <tr>
+      <td className="text-left font-semibold text-ink">{label}</td>
+      {cells.map((value, i) => (
+        <td key={i} className="text-right">
+          {pct(value)}
+        </td>
+      ))}
+      <td className="text-right font-semibold text-ink">{pct(total)}</td>
+    </tr>
+  );
+}
+
+function rateOf(made: number, opportunities: number): number | null {
+  if (opportunities === 0) return null;
+  return Math.round((made / opportunities) * 100);
 }
 
 function LeaveSection({ title, leaves }: { title: string; leaves: LeaveStats[] }) {

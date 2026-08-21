@@ -251,8 +251,11 @@ export function editFrameShotPins(
   const frame = frames.find((f) => f.frame_number === frameNumber);
   if (!frame || !frame.shots[shotIndex]) return frames;
   const normalized = normalizePins(pinsStanding);
+  // A new leave voids the old pocket verdict, the bowler's included: it was a
+  // judgement about pins that are no longer what was left (ADR-046). Dropping
+  // it puts the shot back on the inference, which re-reads the new leave.
   let shots = frame.shots.map((s, i) =>
-    i === shotIndex ? { ...s, pins_standing: normalized } : s
+    i === shotIndex ? { ...s, pins_standing: normalized, pocket_hit: undefined } : s
   );
 
   if (frameNumber === 10) {

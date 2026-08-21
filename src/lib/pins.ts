@@ -1,4 +1,4 @@
-import type { PinNumber } from "../types/bowling";
+import type { Handedness, PinNumber } from "../types/bowling";
 import { PIN_POSITIONS } from "./pinGeometry";
 
 export const ALL_PINS: PinNumber[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
@@ -101,4 +101,48 @@ export function pinsClearedBetween(
   const current = new Set(uniquePins(currentStandingPins));
 
   return uniquePins(previous).filter((pin) => !current.has(pin)).length;
+}
+
+/** Mirror of the rack: what a lefty's leave looks like to a right-hander.
+ *  Self-inverse, so the same map converts either way. */
+const MIRRORED: Record<PinNumber, PinNumber> = {
+  1: 1, 2: 3, 3: 2, 4: 6, 5: 5, 6: 4, 7: 10, 8: 9, 9: 8, 10: 7
+};
+
+/**
+ * Whether a first ball found the pocket, inferred from what it left standing
+ * (ADR-046). The rule is stated for a right-hander and a left-hander's leave is
+ * mirrored into that frame first, so there is one table, not two.
+ *
+ * The pocket is the 1-3 (RH), so a leave with the 1 or the 3 standing never
+ * qualifies. Past that the default is yes, the ball got there, minus the
+ * shapes that say otherwise: 4-6 together means it went through the nose (big
+ * four, Greek church), 4-9 is high and flat, 2-10 is light, the 2-4-5 bucket
+ * family is light, and a lone 5 means nothing drove through.
+ *
+ * A guess, not a measurement: a crossover strike reads as a pocket hit here
+ * because the rack is empty either way. The bowler overrides it on the shot.
+ */
+export function isPocketHit(standing: PinNumber[], handedness: Handedness): boolean {
+  const leave = new Set(
+    handedness === "left" ? standing.map((p) => MIRRORED[p]) : standing
+  );
+  if (leave.size === 0) return true;              // strike
+  if (leave.has(1) || leave.has(3)) return false; // pocket pins still up
+  if (leave.has(4) && leave.has(6)) return false; // through the nose
+  if (leave.has(4) && leave.has(9)) return false; // high and flat
+  if (leave.has(2) && leave.has(10)) return false; // light
+  if (leave.has(2) && leave.has(4) && leave.has(5)) return false; // bucket family
+  if (leave.size === 1 && leave.has(5)) return false; // lone 5, no drive
+  return true;
+}
+
+/** The stored verdict when the bowler set one, the inference otherwise. Shots
+ *  recorded before the toggle existed (and imported ones) carry no verdict, so
+ *  they fall back to the rule and follow it as the rule changes. */
+export function resolvePocketHit(
+  shot: { pins_standing: PinNumber[]; pocket_hit?: boolean },
+  handedness: Handedness
+): boolean {
+  return shot.pocket_hit ?? isPocketHit(shot.pins_standing, handedness);
 }
