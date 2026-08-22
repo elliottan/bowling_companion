@@ -25,6 +25,8 @@ interface SessionLanePanelProps {
   onEdit?: () => void;
   /** Tap a frame in the sheet to jump to it in score entry. */
   onSelectFrame?: (gameId: number, frameNumber: number, shotIndex: number) => void;
+  /** Tap a game in the stats drill-down to switch the scorer to it. */
+  onSelectGame?: (gameId: number) => void;
   onClose: () => void;
 }
 
@@ -45,6 +47,7 @@ export function SessionLanePanel({
   defaultTab = "sheet",
   onEdit,
   onSelectFrame,
+  onSelectGame,
   onClose
 }: SessionLanePanelProps) {
   const [tab, setTab] = useState<SessionPanelTab>(defaultTab);
@@ -227,7 +230,9 @@ export function SessionLanePanel({
                 />
               </div>,
               <div key="stats" className="px-4 py-3">
-                <StatsTab summary={summary} />
+                {/* Closing is the caller's job, same as onSelectFrame: it
+                    switches the scorer's game and drops the sheet together. */}
+                <StatsTab summary={summary} onSelectGame={onSelectGame} />
               </div>,
               <div key="lanes" className="px-4 py-3">
                 <LaneNotesTab alley={summary.session.alley_name} currentLanes={sortedLanes} />
@@ -242,7 +247,13 @@ export function SessionLanePanel({
 }
 
 /** Per-session stats: the History Stats pane scoped to a single session. */
-function StatsTab({ summary }: { summary: SessionSummary }) {
+function StatsTab({
+  summary,
+  onSelectGame
+}: {
+  summary: SessionSummary;
+  onSelectGame?: (gameId: number) => void;
+}) {
   const [balls, setBalls] = useState<Ball[]>([]);
 
   useEffect(() => {
@@ -265,6 +276,7 @@ function StatsTab({ summary }: { summary: SessionSummary }) {
       stats={stats}
       leaves={leaves}
       ballPerformance={ballPerformance}
+      onOpenGame={onSelectGame && ((_sessionId, gameId) => onSelectGame(gameId))}
       games={summary.games}
     />
   );

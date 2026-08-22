@@ -21,6 +21,8 @@ import { useHandedness } from "../lib/handednessContext";
 
 interface HistoryViewProps {
   onOpenSession: (sessionId: number) => void;
+  /** Open one game of a session directly, from a stats drill-down. */
+  onOpenSessionGame?: (sessionId: number, gameId: number) => void;
   activeSessionId: number | null;
   onSessionDeleted?: (sessionId: number) => void;
 }
@@ -52,7 +54,12 @@ const EMPTY: BowlingStats = {
 const selectClass =
   "h-8 max-w-[46%] rounded-full border border-edge-strong bg-surface px-3 text-xs font-medium outline-none focus:border-accent-fill";
 
-export function HistoryView({ onOpenSession, activeSessionId, onSessionDeleted }: HistoryViewProps) {
+export function HistoryView({
+  onOpenSession,
+  onOpenSessionGame,
+  activeSessionId,
+  onSessionDeleted
+}: HistoryViewProps) {
   // Live: renaming or deleting a session from a row updates the list and every
   // stat derived from it, with no reload wired through the rows.
   const liveHistory = useLiveQuery(() => getSessionHistory());
@@ -254,6 +261,7 @@ export function HistoryView({ onOpenSession, activeSessionId, onSessionDeleted }
               isLoading={isLoading}
               leaves={leaves}
               ballPerformance={ballPerformance}
+              onOpenGame={onOpenSessionGame}
             />
           </div>
         ]}

@@ -74,7 +74,7 @@ function App() {
   // stack) is answered by one reducer, so the rules between them are readable
   // and testable in `lib/appNavigation.ts` rather than spread across handlers.
   const [nav, dispatch] = useReducer(navReducer, window.location.hash, initialNavFromHash);
-  const { view, activeSessionId, openSessionStats, settingsSection, overlays } = nav;
+  const { view, activeSessionId, openSessionStats, openSessionGameId, settingsSection, overlays } = nav;
   // Back is the browser's: see the note in useHistoryRoute for why every path
   // routes through it rather than dispatching a pop directly.
   const goBack = useHistoryRoute(nav, dispatch);
@@ -316,6 +316,11 @@ function App() {
     dispatch({ type: "openSession", sessionId, openStats });
   }
 
+  /** Straight to one game of a session, from a stats drill-down. */
+  function openSessionGame(sessionId: number, gameId: number) {
+    dispatch({ type: "openSession", sessionId, gameId });
+  }
+
   return (
     <HandednessContext.Provider value={handedness ?? "right"}>
     <DriftModelContext.Provider value={driftModel}>
@@ -377,6 +382,8 @@ function App() {
           <ActiveSessionView
             sessionId={activeSessionId}
             openStatsOnMount={openSessionStats}
+            initialGameId={openSessionGameId ?? undefined}
+            onGameOpened={() => dispatch({ type: "sessionGameOpened" })}
             // One-shot: without this the sheet would re-open on every remount
             // (tab switches remount this view).
             onStatsOpened={() => dispatch({ type: "statsOpened" })}
@@ -390,6 +397,7 @@ function App() {
         {view === "history" && (
           <HistoryView
             onOpenSession={openSession}
+            onOpenSessionGame={openSessionGame}
             activeSessionId={activeSessionId}
             onSessionDeleted={handleSessionDeleted}
           />

@@ -433,6 +433,68 @@ describe("calculateBallPerformance", () => {
     expect(phaze.leaves.map((l) => l.pins)).toEqual([[3, 6, 10], [10]]);
   });
 
+  it("names the games behind each per-game cell, newest session first", () => {
+    const g1: Game & { frames: Frame[] } = {
+      id: 11,
+      session_id: 1,
+      game_number: 1,
+      final_score: 200,
+      frames: [ballFrame(1, 1, NONE), ballFrame(2, 1, [10])]
+    };
+    const g2: Game & { frames: Frame[] } = {
+      id: 22,
+      session_id: 2,
+      game_number: 1,
+      final_score: 150,
+      frames: [ballFrame(1, 1, NONE)]
+    };
+    const older: SessionSummary = {
+      session: { id: 1, date: "2026-06-01", alley_name: "Jurong" },
+      games: [g1]
+    };
+    const newer: SessionSummary = {
+      session: { id: 2, date: "2026-08-19", alley_name: "Serangoon", oil_pattern: "Chromium" },
+      games: [g2]
+    };
+
+    const cell = calculateBallPerformance([older, newer], balls).balls[0].byGame[0];
+    expect(cell.firstBalls).toBe(3);
+    expect(cell.sessions).toEqual([
+      {
+        sessionId: 2,
+        gameId: 22,
+        date: "2026-08-19",
+        alley: "Serangoon",
+        oilPattern: "Chromium",
+        firstBalls: 1,
+        pocket: 1,
+        strikes: 1
+      },
+      {
+        sessionId: 1,
+        gameId: 11,
+        date: "2026-06-01",
+        alley: "Jurong",
+        oilPattern: undefined,
+        firstBalls: 2,
+        pocket: 2,
+        strikes: 1
+      }
+    ]);
+  });
+
+  it("leaves out games with no id, which there is nothing to navigate to", () => {
+    const g: Game & { frames: Frame[] } = {
+      session_id: 1,
+      game_number: 1,
+      final_score: 150,
+      frames: [ballFrame(1, 1, NONE)]
+    };
+    const report = calculateBallPerformance([session("Jurong", [g])], balls);
+    expect(report.balls[0].byGame[0].firstBalls).toBe(1);
+    expect(report.balls[0].byGame[0].sessions).toEqual([]);
+  });
+
   it("reports fresh-rack balls with no ball recorded instead of dropping them", () => {
     const g: Game & { frames: Frame[] } = {
       id: 1,

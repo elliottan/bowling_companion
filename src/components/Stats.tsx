@@ -4,7 +4,14 @@ import { CatalogBallImage } from "./CatalogBallImage";
 import { MiniPins } from "./MiniPins";
 import type { Manufacturer } from "../types/catalog";
 import { isBabySplit, isSplit, isWashout } from "../lib/pins";
-import type { BallPerformance, BallPerformanceReport, BowlingStats, LeaveStats } from "../lib/stats";
+import type {
+  BallGameCell,
+  BallPerformance,
+  BallPerformanceReport,
+  BowlingStats,
+  LeaveStats
+} from "../lib/stats";
+import { BallGameSessionsDialog } from "./BallGameSessionsDialog";
 import { ScoreTrendChart } from "./ScoreTrendChart";
 import type { Game } from "../types/bowling";
 import { GROUP_HEADING } from "./ui/typography";
@@ -14,6 +21,9 @@ interface StatsProps {
   isLoading?: boolean;
   leaves?: LeaveStats[];
   ballPerformance?: BallPerformanceReport;
+  /** Open a specific game of a session. Wired where there is somewhere to go:
+   *  a game-number column then opens the games behind it. */
+  onOpenGame?: (sessionId: number, gameId: number) => void;
   /** Games of the session being shown, for the score trend. Omitted on the
    *  aggregate History screen: a line through games from different nights,
    *  houses and patterns draws a continuity that was never bowled. */
@@ -25,6 +35,7 @@ export function Stats({
   isLoading = false,
   leaves,
   ballPerformance,
+  onOpenGame,
   games
 }: StatsProps) {
   const [showBallPerformance, setShowBallPerformance] = useState(false);
@@ -117,7 +128,7 @@ export function Stats({
           <div className={showBallPerformance ? "mt-2" : "hidden"}>
             <ul className="divide-y divide-edge">
               {ballPerformance.balls.map((b) => (
-                <BallPerformanceRow key={b.ballId} ball={b} />
+                <BallPerformanceRow key={b.ballId} ball={b} onOpenGame={onOpenGame} />
               ))}
             </ul>
           </div>
@@ -146,8 +157,15 @@ export function Stats({
   );
 }
 
-function BallPerformanceRow({ ball }: { ball: BallPerformance }) {
+function BallPerformanceRow({
+  ball,
+  onOpenGame
+}: {
+  ball: BallPerformance;
+  onOpenGame?: (sessionId: number, gameId: number) => void;
+}) {
   const [open, setOpen] = useState(false);
+  const [drilldown, setDrilldown] = useState<BallGameCell | null>(null);
   return (
     <li className="py-1.5">
       <button
@@ -184,7 +202,18 @@ function BallPerformanceRow({ ball }: { ball: BallPerformance }) {
                 <th className="text-left font-semibold">Game</th>
                 {ball.byGame.map((c) => (
                   <th key={c.gameNumber} className="text-right font-semibold">
-                    {c.gameNumber}
+                    {onOpenGame && c.sessions.length > 0 ? (
+                      <button
+                        type="button"
+                        onClick={() => setDrilldown(c)}
+                        aria-label={`Games behind ${ball.name}, game ${c.gameNumber}`}
+                        className="underline decoration-dotted underline-offset-2"
+                      >
+                        {c.gameNumber}
+                      </button>
+                    ) : (
+                      c.gameNumber
+                    )}
                   </th>
                 ))}
                 <th className="text-right font-semibold">All</th>
@@ -217,6 +246,17 @@ function BallPerformanceRow({ ball }: { ball: BallPerformance }) {
               </tr>
             </tbody>
           </table>
+
+          {drilldown && onOpenGame && (
+            <BallGameSessionsDialog
+              open
+              ballName={ball.name}
+              gameNumber={drilldown.gameNumber}
+              sessions={drilldown.sessions}
+              onSelect={onOpenGame}
+              onClose={() => setDrilldown(null)}
+            />
+          )}
 
           {ball.leaves.length > 0 && (
             <div className="grid grid-cols-4 gap-1.5">

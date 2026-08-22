@@ -29,6 +29,10 @@ interface ActiveSessionViewProps {
   openStatsOnMount?: boolean;
   /** Fired once the stats sheet has been auto-opened, so the flag can reset. */
   onStatsOpened?: () => void;
+  /** Land on this game rather than the latest one (a stats drill-down). */
+  initialGameId?: number;
+  /** Fired once that game has been selected, so the flag can reset. */
+  onGameOpened?: () => void;
   onBack: () => void;
   /** Called when the last game is deleted and the session no longer exists. */
   onSessionDeleted: () => void;
@@ -46,6 +50,8 @@ export function ActiveSessionView({
   sessionId,
   openStatsOnMount = false,
   onStatsOpened,
+  initialGameId,
+  onGameOpened,
   onBack,
   onSessionDeleted,
   onOpenArsenal
@@ -161,8 +167,13 @@ export function ActiveSessionView({
         if (!isMounted) return;
         if (!details) throw new Error("Session not found.");
         setSessionDetails(details);
-        const latest = details.games[details.games.length - 1] ?? null;
-        setActiveGameId(latest?.id ?? null);
+        // A drill-down names the game; otherwise carry on from the latest.
+        const requested = initialGameId
+          ? details.games.find((g) => g.id === initialGameId)
+          : undefined;
+        const landing = requested ?? details.games[details.games.length - 1] ?? null;
+        setActiveGameId(landing?.id ?? null);
+        if (requested) onGameOpened?.();
       } catch (err) {
         if (isMounted) {
           setError(err instanceof Error ? err.message : "Unable to load session.");
@@ -175,6 +186,9 @@ export function ActiveSessionView({
     return () => {
       isMounted = false;
     };
+    // initialGameId is read on load only: it is a one-shot landing instruction,
+    // and re-running on its reset would yank the game back.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionId]);
 
   async function handleFrameComplete(frame: Frame) {
@@ -422,6 +436,10 @@ export function ActiveSessionView({
           // Close the sheet first: it portals to body after the edit dialog,
           // so it would otherwise paint on top of it.
           onEdit={() => { setShowSheet(false); setShowEdit(true); }}
+          onSelectGame={(gameId) => {
+            setActiveGameId(gameId);
+            setShowSheet(false);
+          }}
           onSelectFrame={(gameId, frameNumber, shotIndex) => {
             setActiveGameId(gameId);
             setFocusFrame((prev) => ({ frameNumber, shotIndex, token: (prev?.token ?? 0) + 1 }));

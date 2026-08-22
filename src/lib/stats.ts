@@ -265,6 +265,19 @@ export function calculateCommonLeaves(
 // Ball performance
 // ---------------------------------------------------------------------------
 
+/** One session's contribution to a ball's game-number column, so the cell can
+ *  name the games it is made of and link to them. */
+export interface BallGameSession {
+  sessionId: number;
+  gameId: number;
+  date: string;
+  alley: string;
+  oilPattern?: string;
+  firstBalls: number;
+  pocket: number;
+  strikes: number;
+}
+
 export interface BallGameCell {
   gameNumber: number;
   firstBalls: number;
@@ -272,6 +285,9 @@ export interface BallGameCell {
   strikes: number;
   /** Strikes thrown off a pocket hit, the numerator of carry. */
   pocketStrikes: number;
+  /** The games behind this cell, newest session first. Games with no id are
+   *  left out: there is nothing to navigate to. */
+  sessions: BallGameSession[];
 }
 
 export interface BallPerformance {
@@ -295,12 +311,18 @@ export interface BallPerformanceReport {
   unattributed: number;
 }
 
+/** A cell under construction: its own totals plus one entry per game feeding it. */
+interface CellAccumulator {
+  cell: Omit<BallGameCell, "sessions">;
+  sessions: Map<number, BallGameSession>;
+}
+
 interface BallAccumulator {
   firstBalls: number;
   pocket: number;
   pocketStrikes: number;
   strikes: number;
-  byGame: Map<number, BallGameCell>;
+  byGame: Map<number, CellAccumulator>;
   leaves: Map<string, LeaveStats>;
 }
 
@@ -358,18 +380,38 @@ export function calculateBallPerformance(
           if (pocket) entry.pocket++;
           if (pocket && struck) entry.pocketStrikes++;
 
-          const cell = entry.byGame.get(game.game_number) ?? {
-            gameNumber: game.game_number,
-            firstBalls: 0,
-            pocket: 0,
-            strikes: 0,
-            pocketStrikes: 0
+          const slot = entry.byGame.get(game.game_number) ?? {
+            cell: {
+              gameNumber: game.game_number,
+              firstBalls: 0,
+              pocket: 0,
+              strikes: 0,
+              pocketStrikes: 0
+            },
+            sessions: new Map<number, BallGameSession>()
           };
-          cell.firstBalls++;
-          if (struck) cell.strikes++;
-          if (pocket) cell.pocket++;
-          if (pocket && struck) cell.pocketStrikes++;
-          entry.byGame.set(game.game_number, cell);
+          slot.cell.firstBalls++;
+          if (struck) slot.cell.strikes++;
+          if (pocket) slot.cell.pocket++;
+          if (pocket && struck) slot.cell.pocketStrikes++;
+
+          if (s.session.id != null && game.id != null) {
+            const contribution = slot.sessions.get(game.id) ?? {
+              sessionId: s.session.id,
+              gameId: game.id,
+              date: s.session.date,
+              alley: s.session.alley_name,
+              oilPattern: s.session.oil_pattern,
+              firstBalls: 0,
+              pocket: 0,
+              strikes: 0
+            };
+            contribution.firstBalls++;
+            if (struck) contribution.strikes++;
+            if (pocket) contribution.pocket++;
+            slot.sessions.set(game.id, contribution);
+          }
+          entry.byGame.set(game.game_number, slot);
         }
 
         // Leaves belong to the ball that made them: the first ball of the frame.
@@ -402,7 +444,12 @@ export function calculateBallPerformance(
     pocketPct: rate(e.pocket, e.firstBalls),
     carryPct: rate(e.pocketStrikes, e.pocket),
     strikePct: rate(e.strikes, e.firstBalls),
-    byGame: [...e.byGame.values()].sort((a, b) => a.gameNumber - b.gameNumber),
+    byGame: [...e.byGame.values()]
+      .map((slot) => ({
+        ...slot.cell,
+        sessions: [...slot.sessions.values()].sort((x, y) => y.date.localeCompare(x.date))
+      }))
+      .sort((a, b) => a.gameNumber - b.gameNumber),
     leaves: [...e.leaves.values()]
       .map((l) => ({ ...l, conversionPct: rate(l.conversions, l.attempts) }))
       .sort((a, b) => b.attempts - a.attempts || comparePins(a.pins, b.pins))

@@ -78,6 +78,26 @@ describe("navReducer", () => {
       expect(navReducer(consumed, { type: "statsOpened" })).toBe(consumed);
     });
 
+    it("opens a named game of a session, once", () => {
+      const opened = run([{ type: "openSession", sessionId: 3, gameId: 9 }]);
+      expect(opened.view).toBe("active");
+      expect(opened.activeSessionId).toBe(3);
+      expect(opened.openSessionGameId).toBe(9);
+
+      const consumed = navReducer(opened, { type: "sessionGameOpened" });
+      expect(consumed.openSessionGameId).toBeNull();
+      // Consumed: a remount cannot yank the scorer back to that game.
+      expect(navReducer(consumed, { type: "sessionGameOpened" })).toBe(consumed);
+    });
+
+    it("opening a session without a game clears a previous one", () => {
+      const state = run([
+        { type: "openSession", sessionId: 3, gameId: 9 },
+        { type: "openSession", sessionId: 4 }
+      ]);
+      expect(state.openSessionGameId).toBeNull();
+    });
+
     it("a launch-time resumable game opens straight into scoring", () => {
       const state = run([{ type: "resumeAvailable", sessionId: 42 }]);
       expect(state.view).toBe("active");

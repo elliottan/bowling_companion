@@ -41,7 +41,8 @@ User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachan
   most common leaves. Every rate is the plain count, with the number of balls it
   came from next to it, and the list is ordered by balls thrown so the ball you
   actually use leads. Filter by pattern, alley or lane and the whole table
-  follows.
+  follows. Tapping a game number opens the games behind that column, and tapping
+  one of those goes straight to that game.
 
 - **A repeatable way to add balls to the catalog.** Every ball used to be added
   by hand, so the catalog sat at 50 while the USBC approved list ran to

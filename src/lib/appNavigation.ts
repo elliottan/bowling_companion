@@ -41,6 +41,10 @@ export interface NavState {
   activeSessionId: number | null;
   /** Land on the session with its stats sheet already up (a finished session). */
   openSessionStats: boolean;
+  /** Land on a specific game of that session, rather than its latest. One-shot,
+   *  like openSessionStats, and for the same reason: a tab switch remounts the
+   *  session view, which would otherwise yank the game back. */
+  openSessionGameId: number | null;
   settingsSection: SettingsSection;
   overlays: Overlay[];
   lineSandboxOpen: boolean;
@@ -48,7 +52,7 @@ export interface NavState {
 
 export type NavAction =
   | { type: "goTo"; view: AppView }
-  | { type: "openSession"; sessionId: number; openStats?: boolean }
+  | { type: "openSession"; sessionId: number; openStats?: boolean; gameId?: number }
   | { type: "leaveSession" }
   | { type: "goToSettingsSection"; section: SettingsSection }
   | { type: "pushOverlay"; overlay: Overlay }
@@ -56,6 +60,7 @@ export type NavAction =
   | { type: "openLineSandbox" }
   | { type: "closeLineSandbox" }
   | { type: "statsOpened" }
+  | { type: "sessionGameOpened" }
   | { type: "sessionDeleted"; sessionId: number }
   | { type: "resumeAvailable"; sessionId: number }
   | { type: "restore"; route: RestorableRoute };
@@ -76,6 +81,7 @@ export const INITIAL_NAV: NavState = {
   previousView: "dashboard",
   activeSessionId: null,
   openSessionStats: false,
+  openSessionGameId: null,
   settingsSection: "menu",
   overlays: [],
   lineSandboxOpen: false
@@ -103,7 +109,8 @@ export function navReducer(state: NavState, action: NavAction): NavState {
         view: "active",
         previousView: state.view !== "active" ? state.view : state.previousView,
         activeSessionId: action.sessionId,
-        openSessionStats: action.openStats ?? false
+        openSessionStats: action.openStats ?? false,
+        openSessionGameId: action.gameId ?? null
       };
 
     case "leaveSession":
@@ -127,6 +134,9 @@ export function navReducer(state: NavState, action: NavAction): NavState {
 
     case "closeLineSandbox":
       return { ...state, lineSandboxOpen: false };
+
+    case "sessionGameOpened":
+      return state.openSessionGameId === null ? state : { ...state, openSessionGameId: null };
 
     case "statsOpened":
       // One-shot: without clearing it the sheet re-opens on every remount, and
