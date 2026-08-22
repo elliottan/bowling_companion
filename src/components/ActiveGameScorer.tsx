@@ -545,23 +545,11 @@ export function ActiveGameScorer({
                     lanesList.map((l) => (
                       <span
                         key={l}
-                        className={`relative inline-flex h-6 min-w-[1.5rem] items-center justify-center rounded-md px-1.5 text-xs font-bold ${
+                        className={`inline-flex h-6 min-w-[1.5rem] items-center justify-center rounded-md px-1.5 text-xs font-bold ${
                           l === (isEditing ? viewedLane : currentLane) ? "bg-accent-fill text-accent-on-fill" : "bg-surface-muted text-ink-secondary"
                         }`}
                       >
                         {l}
-                        {/* Which lane frame 1 was bowled on. The pair alternates
-                            from there, so a wrong start shifts every frame of
-                            the game onto the wrong lane, and until it was drawn
-                            here that was invisible without opening the editor. */}
-                        {lanesList.length > 1 && l === startLane && (
-                          <span
-                            aria-hidden="true"
-                            className="absolute -top-1 -right-1 flex h-3 min-w-[0.75rem] items-center justify-center rounded-full bg-accent px-0.5 text-[8px] font-bold text-surface"
-                          >
-                            1
-                          </span>
-                        )}
                       </span>
                     ))
                   ) : (

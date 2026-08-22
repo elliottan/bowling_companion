@@ -472,7 +472,9 @@ export function ActiveSessionView({
           onClick={() => setShowLaneEditor(false)}
         >
           <div ref={laneEditorRef} className="w-full max-w-sm rounded-xl bg-surface p-5 shadow-xl" onClick={(e) => e.stopPropagation()}>
-            <h2 className="text-base font-bold text-ink">Game lanes</h2>
+            <h2 className="text-base font-bold text-ink">
+              Game {activeGame?.game_number ?? 1} lanes
+            </h2>
             <p className="mt-1 text-xs text-ink-secondary">
               This game only. Lanes alternate every frame, so you can't set a lane
               per frame, and fixing a start lane here leaves every other game alone.
@@ -503,7 +505,11 @@ export function ActiveSessionView({
 
             {laneA.trim() && laneB.trim() && (
               <div className="mt-4">
-                <span className={`block ${GROUP_HEADING}`}>Starting lane (frame 1)</span>
+                {/* Named for the game being changed: the same dialog is opened
+                    from every game, and the fix is usually to one of them. */}
+                <span className={`block ${GROUP_HEADING}`}>
+                  Game {activeGame?.game_number ?? 1}, frame 1 starts on
+                </span>
                 <div className="mt-1.5 flex items-center gap-2">
                   {(["A", "B"] as const).map((side) => {
                     const lane = side === "A" ? laneA.trim() : laneB.trim();
