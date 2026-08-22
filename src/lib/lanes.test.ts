@@ -31,6 +31,17 @@ describe("laneForFrame", () => {
     expect(laneForFrame({ lane_number: "12" }, 5)).toBe("12");
   });
 
+  it("keeps each game's start lane to itself", () => {
+    // The house's system usually flips the start each game; when it does not,
+    // one game is corrected and the others must not move with it.
+    const g1 = { lanes: ["7", "8"], start_lane: "7" };
+    const g2 = { lanes: ["7", "8"], start_lane: "7" }; // system failed to flip
+    const g3 = { lanes: ["7", "8"], start_lane: "8" };
+    expect([1, 2].map((f) => laneForFrame(g1, f))).toEqual(["7", "8"]);
+    expect([1, 2].map((f) => laneForFrame(g2, f))).toEqual(["7", "8"]);
+    expect([1, 2].map((f) => laneForFrame(g3, f))).toEqual(["8", "7"]);
+  });
+
   it("cross-lane alternates from start_lane", () => {
     const g = { lanes: ["11", "12"], start_lane: "11" };
     expect(laneForFrame(g, 1)).toBe("11"); // odd -> start

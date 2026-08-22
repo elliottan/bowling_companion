@@ -253,3 +253,33 @@ describe("pocket toggle (ADR-046)", () => {
     await waitFor(() => expect(pocketChip()).toBeNull());
   });
 });
+
+describe("start lane", () => {
+  it("names the lane frame 1 was bowled on, per game", () => {
+    render(
+      <ActiveGameScorer
+        gameKey={1}
+        game={{ lanes: ["7", "8"], start_lane: "8" }}
+        mode="session"
+        onEditLanes={() => {}}
+      />
+    );
+    // The house flips the start each game; when it does not, this is what has
+    // to be corrected, so it is readable without opening the editor.
+    expect(
+      screen.getByRole("button", { name: "Edit game lanes. Frame 1 starts on lane 8" })
+    ).toBeInTheDocument();
+  });
+
+  it("says nothing about a start lane on a single-lane game", () => {
+    render(
+      <ActiveGameScorer
+        gameKey={1}
+        game={{ lanes: ["7"] }}
+        mode="session"
+        onEditLanes={() => {}}
+      />
+    );
+    expect(screen.getByRole("button", { name: "Edit game lanes" })).toBeInTheDocument();
+  });
+});

@@ -15,6 +15,14 @@ User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachan
 
 ### Fixed
 
+- **The lane a game starts on is now visible while you bowl it.** Lanes were
+  always per game, and so was the starting lane, but nothing on screen said
+  which lane frame 1 was on, and the lane editor only opens itself for a game
+  whose lanes are unset. So when the house's system failed to cross and started
+  a game back on the lane before, there was nothing to notice. The Lane row now
+  marks the starting lane, and the editor says plainly that it changes that game
+  and no other.
+
 - **The dashboard's shortcuts no longer move you to Settings.** Lane Notes, Oil
   Patterns and Backup opened from the dashboard used to switch you to the
   Settings tab on the way, so going back showed Settings for a moment before

@@ -474,7 +474,8 @@ export function ActiveSessionView({
           <div ref={laneEditorRef} className="w-full max-w-sm rounded-xl bg-surface p-5 shadow-xl" onClick={(e) => e.stopPropagation()}>
             <h2 className="text-base font-bold text-ink">Game lanes</h2>
             <p className="mt-1 text-xs text-ink-secondary">
-              Applies to the whole game. Lanes alternate every frame, so you can't set a lane per frame.
+              This game only. Lanes alternate every frame, so you can't set a lane
+              per frame, and fixing a start lane here leaves every other game alone.
             </p>
 
             <span className={`mt-4 block ${GROUP_HEADING}`}>Lane pair</span>
