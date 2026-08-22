@@ -262,73 +262,8 @@ export function calculateCommonLeaves(
 }
 
 // ---------------------------------------------------------------------------
-// Ball usage
-// ---------------------------------------------------------------------------
-
-export interface BallUsage {
-  ballId: number;
-  name: string;
-  frames: number;
-  games: number;
-  /** Catalog artwork for the row, when the ball is linked to a catalog entry. */
-  imageThumb: string | null;
-  brand: string | null;
-}
-
-/**
- * Frames and games each ball was thrown in, across all sessions. A frame counts
- * once per ball used in it (a frame can use two balls — e.g. a strike ball then a
- * spare ball); a game counts once if the ball appears in any of its frames.
- * Respects the lane filter (frames on unselected lanes are ignored). Shots with no
- * `ball_id` are skipped. Sorted by frames thrown, descending. Pure.
- */
-export function calculateBallUsage(
-  sessions: SessionSummary[],
-  balls: Ball[],
-  selectedLanes?: string[]
-): BallUsage[] {
-  const filter = selectedLanes && selectedLanes.length ? new Set(selectedLanes) : undefined;
-  const byId = new Map(balls.filter((b) => b.id != null).map((b) => [b.id!, b]));
-  const frames = new Map<number, number>();
-  const games = new Map<number, number>();
-
-  for (const s of sessions) {
-    for (const game of s.games) {
-      const inThisGame = new Set<number>();
-      for (const frame of game.frames) {
-        if (!frameOnSelectedLane(game, frame.frame_number, filter)) continue;
-        const inThisFrame = new Set<number>();
-        for (const shot of frame.shots) {
-          if (shot.ball_id != null) inThisFrame.add(shot.ball_id);
-        }
-        for (const id of inThisFrame) {
-          frames.set(id, (frames.get(id) ?? 0) + 1);
-          inThisGame.add(id);
-        }
-      }
-      for (const id of inThisGame) games.set(id, (games.get(id) ?? 0) + 1);
-    }
-  }
-
-  return [...frames.entries()]
-    .map(([ballId, frameCount]) => ({
-      ballId,
-      name: byId.get(ballId)?.name ?? `Ball #${ballId}`,
-      frames: frameCount,
-      games: games.get(ballId) ?? 0,
-      imageThumb: byId.get(ballId)?.catalog_snapshot?.imageThumb ?? null,
-      brand: byId.get(ballId)?.catalog_snapshot?.brand ?? null
-    }))
-    .sort((a, b) => b.frames - a.frames || a.name.localeCompare(b.name));
-}
-
-// ---------------------------------------------------------------------------
 // Ball performance
 // ---------------------------------------------------------------------------
-
-/** Prior weight for the shrunk aggregate: a ball needs this many fresh-rack
- *  balls before its own rate outweighs the bowler's baseline. */
-const SHRINKAGE_FRAMES = 30;
 
 export interface BallGameCell {
   gameNumber: number;
@@ -345,14 +280,11 @@ export interface BallPerformance {
   imageThumb: string | null;
   brand: string | null;
   firstBalls: number;
+  /** Rates across every game in view. Raw, like the per-game cells: one number
+   *  per ball means one definition of that number (ADR-048). */
   pocketPct: number | null;
   carryPct: number | null;
   strikePct: number | null;
-  /** Strike rate pulled toward the bowler's overall rate by SHRINKAGE_FRAMES.
-   *  Sorting on the raw rate would float a ball thrown twice to the top. */
-  adjustedStrikePct: number | null;
-  /** Raw per-game cells, unsmoothed on purpose: at 4 to 8 balls a cell there is
-   *  no signal to smooth, only a shape to eyeball. */
   byGame: BallGameCell[];
   leaves: LeaveStats[];
 }
@@ -361,7 +293,6 @@ export interface BallPerformanceReport {
   balls: BallPerformance[];
   /** Fresh-rack balls thrown with no ball recorded, so attributable to nothing. */
   unattributed: number;
-  baselineStrikePct: number | null;
 }
 
 interface BallAccumulator {
@@ -386,7 +317,7 @@ function emptyAccumulator(): BallAccumulator {
 
 /**
  * Per-ball pocket, carry and strike rates, broken out by game number, plus the
- * leaves each ball produced (ADR-047).
+ * leaves each ball produced (ADR-047, amended by ADR-048).
  *
  * Only fresh-rack balls count, and only those with a `ball_id`; the rest are
  * reported as `unattributed` rather than silently dropped, so a half-tagged
@@ -407,8 +338,6 @@ export function calculateBallPerformance(
   const byId = new Map(balls.filter((b) => b.id != null).map((b) => [b.id!, b]));
   const acc = new Map<number, BallAccumulator>();
   let unattributed = 0;
-  let totalFirstBalls = 0;
-  let totalStrikes = 0;
 
   for (const s of sessions) {
     for (const game of s.games) {
@@ -417,9 +346,6 @@ export function calculateBallPerformance(
 
         for (const shot of freshRackShots(frame)) {
           const struck = clears(shot.pins_standing);
-          totalFirstBalls++;
-          if (struck) totalStrikes++;
-
           if (shot.ball_id == null) {
             unattributed++;
             continue;
@@ -467,8 +393,6 @@ export function calculateBallPerformance(
     }
   }
 
-  const baseline = totalFirstBalls > 0 ? totalStrikes / totalFirstBalls : null;
-
   const perBall = [...acc.entries()].map(([ballId, e]) => ({
     ballId,
     name: byId.get(ballId)?.name ?? `Ball #${ballId}`,
@@ -478,29 +402,17 @@ export function calculateBallPerformance(
     pocketPct: rate(e.pocket, e.firstBalls),
     carryPct: rate(e.pocketStrikes, e.pocket),
     strikePct: rate(e.strikes, e.firstBalls),
-    adjustedStrikePct:
-      baseline == null
-        ? null
-        : Math.round(
-            ((e.strikes + SHRINKAGE_FRAMES * baseline) /
-              (e.firstBalls + SHRINKAGE_FRAMES)) *
-              100
-          ),
     byGame: [...e.byGame.values()].sort((a, b) => a.gameNumber - b.gameNumber),
     leaves: [...e.leaves.values()]
       .map((l) => ({ ...l, conversionPct: rate(l.conversions, l.attempts) }))
       .sort((a, b) => b.attempts - a.attempts || comparePins(a.pins, b.pins))
   }));
 
+  // Most-thrown first. Sorting by rate puts the ball thrown once and struck
+  // with above the ball with three hundred balls behind it (ADR-048).
   return {
-    balls: perBall.sort(
-      (a, b) =>
-        (b.adjustedStrikePct ?? 0) - (a.adjustedStrikePct ?? 0) ||
-        b.firstBalls - a.firstBalls ||
-        a.name.localeCompare(b.name)
-    ),
-    unattributed,
-    baselineStrikePct: baseline == null ? null : Math.round(baseline * 100)
+    balls: perBall.sort((a, b) => b.firstBalls - a.firstBalls || a.name.localeCompare(b.name)),
+    unattributed
   };
 }
 

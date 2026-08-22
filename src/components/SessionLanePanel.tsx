@@ -3,12 +3,7 @@ import { createPortal } from "react-dom";
 import { freshRackShotIndices, laneForFrame } from "../lib/lanes";
 import { knockedDownCount } from "../lib/pins";
 import { calculateGameScore } from "../lib/scoring";
-import {
-  calculateBallPerformance,
-  calculateBallUsage,
-  calculateCommonLeaves,
-  calculateStats
-} from "../lib/stats";
+import { calculateBallPerformance, calculateCommonLeaves, calculateStats } from "../lib/stats";
 import { useHandedness } from "../lib/handednessContext";
 import { useOverlay } from "../lib/useOverlay";
 import { getBalls } from "../services/ballRepository";
@@ -260,7 +255,6 @@ function StatsTab({ summary }: { summary: SessionSummary }) {
     [summary, handedness]
   );
   const leaves = useMemo(() => calculateCommonLeaves([summary]), [summary]);
-  const ballUsage = useMemo(() => calculateBallUsage([summary], balls), [summary, balls]);
   const ballPerformance = useMemo(
     () => calculateBallPerformance([summary], balls, undefined, handedness),
     [summary, balls, handedness]
@@ -270,7 +264,6 @@ function StatsTab({ summary }: { summary: SessionSummary }) {
     <Stats
       stats={stats}
       leaves={leaves}
-      ballUsage={ballUsage}
       ballPerformance={ballPerformance}
       games={summary.games}
     />

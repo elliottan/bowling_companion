@@ -2048,3 +2048,36 @@ says how much to trust it.
   show worse rates for reasons that have nothing to do with the ball. These
   numbers describe what happened with a ball, never what would have happened
   with a different one, and no copy in the app may imply otherwise.
+
+## ADR-048: One rate per ball, and it is the raw one
+
+**Status:** accepted (2026-08). Amends ADR-047, which stands as written.
+
+**Context.** ADR-047 put a shrunk strike rate in each ball's row and the raw
+rate inside the same row's table. On the first real session that read as a
+contradiction: a ball thrown once, struck with, showed "46% strike" in the
+heading and "100%" in the table below, and the difference was explained only by
+a paragraph of grey text nobody should have to read to trust a number.
+
+The shrinkage was also not doing its job. That one-ball ball still sorted above
+a ball with 31 balls behind it, because a lone strike pulls the estimate up from
+the baseline rather than down.
+
+**Decision.** One rate per ball, raw, over every game in view, sitting next to
+the count of balls it came from. The estimator is gone: no prior, no blended
+number, nothing on screen that is not a count of what happened.
+
+The list sorts by **balls thrown**, descending. Sample size is the thing that
+decides whether a row deserves attention, so it decides the order directly
+instead of through an estimator.
+
+The explanatory paragraph is deleted from both stats screens. A rate with its
+denominator beside it does not need a paragraph.
+
+**Consequences.**
+- `adjustedStrikePct` and `baselineStrikePct` are gone from `BallPerformance`.
+- A ball thrown once reads "100% strike, 1 ball". Obviously thin, and it sorts
+  last, which is the honest presentation of a single data point.
+- `calculateBallUsage` had one remaining caller, the deleted paragraph, and is
+  removed with it. Frames and games per ball are readable from the per-game
+  table, which carries the same counts.

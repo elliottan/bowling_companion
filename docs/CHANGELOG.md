@@ -38,10 +38,10 @@ User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachan
 
 - **Ball performance, by game.** The ball usage card now opens into pocket,
   carry and strike rates per ball, broken out by game number, with that ball's
-  most common leaves. The headline rate per ball is pulled toward your overall
-  rate so a ball thrown twice cannot top the list; the per-game numbers are raw,
-  next to the count of balls behind them. Filter by pattern, alley or lane and
-  the whole table follows.
+  most common leaves. Every rate is the plain count, with the number of balls it
+  came from next to it, and the list is ordered by balls thrown so the ball you
+  actually use leads. Filter by pattern, alley or lane and the whole table
+  follows.
 
 - **A repeatable way to add balls to the catalog.** Every ball used to be added
   by hand, so the catalog sat at 50 while the USBC approved list ran to

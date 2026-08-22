@@ -4,7 +4,7 @@ import { CatalogBallImage } from "./CatalogBallImage";
 import { MiniPins } from "./MiniPins";
 import type { Manufacturer } from "../types/catalog";
 import { isBabySplit, isSplit, isWashout } from "../lib/pins";
-import type { BallPerformance, BallPerformanceReport, BallUsage, BowlingStats, LeaveStats } from "../lib/stats";
+import type { BallPerformance, BallPerformanceReport, BowlingStats, LeaveStats } from "../lib/stats";
 import { ScoreTrendChart } from "./ScoreTrendChart";
 import type { Game } from "../types/bowling";
 import { GROUP_HEADING } from "./ui/typography";
@@ -13,7 +13,6 @@ interface StatsProps {
   stats: BowlingStats;
   isLoading?: boolean;
   leaves?: LeaveStats[];
-  ballUsage?: BallUsage[];
   ballPerformance?: BallPerformanceReport;
   /** Games of the session being shown, for the score trend. Omitted on the
    *  aggregate History screen: a line through games from different nights,
@@ -25,11 +24,10 @@ export function Stats({
   stats,
   isLoading = false,
   leaves,
-  ballUsage,
   ballPerformance,
   games
 }: StatsProps) {
-  const [showBallUsage, setShowBallUsage] = useState(false);
+  const [showBallPerformance, setShowBallPerformance] = useState(false);
   const [showSpareNote, setShowSpareNote] = useState(false);
 
   if (isLoading) {
@@ -106,24 +104,20 @@ export function Stats({
         <div className="rounded-lg border border-edge bg-surface p-3 shadow-sm">
           <button
             type="button"
-            onClick={() => setShowBallUsage((v) => !v)}
+            onClick={() => setShowBallPerformance((v) => !v)}
             className={`flex w-full items-center justify-between gap-2 ${GROUP_HEADING}`}
           >
             Ball performance
             <ChevronDown
               size={16}
               aria-hidden="true"
-              className={showBallUsage ? "rotate-180" : ""}
+              className={showBallPerformance ? "rotate-180" : ""}
             />
           </button>
-          <div className={showBallUsage ? "mt-2" : "hidden"}>
+          <div className={showBallPerformance ? "mt-2" : "hidden"}>
             <ul className="divide-y divide-edge">
               {ballPerformance.balls.map((b) => (
-                <BallPerformanceRow
-                  key={b.ballId}
-                  ball={b}
-                  usage={ballUsage?.find((u) => u.ballId === b.ballId)}
-                />
+                <BallPerformanceRow key={b.ballId} ball={b} />
               ))}
             </ul>
             {ballPerformance.unattributed > 0 && (
@@ -159,13 +153,7 @@ export function Stats({
   );
 }
 
-function BallPerformanceRow({
-  ball,
-  usage
-}: {
-  ball: BallPerformance;
-  usage?: BallUsage;
-}) {
+function BallPerformanceRow({ ball }: { ball: BallPerformance }) {
   const [open, setOpen] = useState(false);
   return (
     <li className="py-1.5">
@@ -188,7 +176,7 @@ function BallPerformanceRow({
         </span>
         <span className="min-w-0 flex-1 truncate font-medium text-ink-strong">{ball.name}</span>
         <span className="shrink-0 tabular-nums text-ink-secondary">
-          <span className="font-semibold text-ink">{pct(ball.adjustedStrikePct)}</span> strike
+          <span className="font-semibold text-ink">{pct(ball.strikePct)}</span> strike
           {" · "}
           <span className="font-semibold text-ink">{ball.firstBalls}</span> balls
         </span>
@@ -197,13 +185,6 @@ function BallPerformanceRow({
 
       {open && (
         <div className="mt-2 space-y-2 rounded-lg bg-surface-muted p-2">
-          <p className="text-[11px] text-ink-tertiary">
-            Rate shown above is pulled toward your overall strike rate so a
-            lightly-used ball cannot top the list. The per-game numbers below are
-            raw: at a handful of balls each they are a shape, not a verdict.
-            {usage ? ` Thrown in ${usage.frames} frames across ${usage.games} games.` : ""}
-          </p>
-
           <table className="w-full text-[11px] tabular-nums">
             <thead>
               <tr className="text-ink-tertiary">

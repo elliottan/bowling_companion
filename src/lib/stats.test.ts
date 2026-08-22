@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
   calculateBallPerformance,
-  calculateBallUsage,
   calculateCommonLeaves,
   calculateStats,
   filterSessionsBy
@@ -178,36 +177,6 @@ describe("calculateCommonLeaves", () => {
     expect(result[0].pins).toEqual([7]);   // 1-pin, pin 7 (lower)
     expect(result[1].pins).toEqual([10]);  // 1-pin, pin 10 (higher)
     expect(result[2].pins).toEqual([3, 10]); // 2-pins
-  });
-});
-
-describe("calculateBallUsage", () => {
-  const ball = (id: number, name: string): Ball => ({ id, name, is_spare_ball: false });
-  const fr = (n: number, shots: Shot[]): Frame => ({
-    game_id: 1, frame_number: n, shots,
-    is_strike: shots[0].pins_standing.length === 0,
-    is_spare: shots[0].pins_standing.length > 0 && shots[1]?.pins_standing.length === 0
-  });
-
-  it("counts frames per ball used and games the ball appears in", () => {
-    const balls = [ball(1, "Ball A"), ball(2, "Ball B")];
-    const g1 = game(150, [
-      fr(1, [{ pins_standing: [10], ball_id: 1 }, { pins_standing: NONE, ball_id: 2 }]), // A+B
-      fr(2, [{ pins_standing: NONE, ball_id: 1 }])                                       // A strike
-    ]);
-    const g2 = game(140, [fr(1, [{ pins_standing: NONE, ball_id: 1 }])]);               // A only
-    const usage = calculateBallUsage([session("Lanes", [g1, g2])], balls);
-
-    expect(usage).toEqual([
-      { ballId: 1, name: "Ball A", frames: 3, games: 2, imageThumb: null, brand: null },
-      { ballId: 2, name: "Ball B", frames: 1, games: 1, imageThumb: null, brand: null }
-    ]);
-  });
-
-  it("skips shots with no ball_id and names unknown ids", () => {
-    const g = game(120, [fr(1, [{ pins_standing: [10] }, { pins_standing: NONE, ball_id: 7 }])]);
-    const usage = calculateBallUsage([session("Lanes", [g])], []);
-    expect(usage).toEqual([{ ballId: 7, name: "Ball #7", frames: 1, games: 1, imageThumb: null, brand: null }]);
   });
 });
 
@@ -475,29 +444,22 @@ describe("calculateBallPerformance", () => {
     const report = calculateBallPerformance([session("Jurong", [g])], balls);
     expect(report.unattributed).toBe(1);
     expect(report.balls).toHaveLength(1);
-    expect(report.baselineStrikePct).toBe(100);
   });
 
-  it("shrinks a lightly-used ball toward the baseline so it cannot top the list", () => {
-    const strikes = Array.from({ length: 20 }, (_, i) => ballFrame((i % 9) + 1, 1, NONE));
-    const misses = Array.from({ length: 20 }, (_, i) => ballFrame((i % 9) + 1, 1, [3]));
+  it("sorts by balls thrown, so one lucky strike cannot top the list", () => {
+    const worked = Array.from({ length: 20 }, (_, i) => ballFrame((i % 9) + 1, 1, [3]));
     const lucky = [ballFrame(1, 2, NONE)];
     const g: Game & { frames: Frame[] } = {
       id: 1,
       session_id: 1,
       game_number: 1,
       final_score: 150,
-      frames: [...strikes, ...misses, ...lucky]
+      frames: [...worked, ...lucky]
     };
     const report = calculateBallPerformance([session("Jurong", [g])], balls);
-    const hyroad = report.balls.find((b) => b.ballId === 2)!;
-    const phaze = report.balls.find((b) => b.ballId === 1)!;
-    expect(hyroad.strikePct).toBe(100); // raw: one ball, one strike
-    // Shrunk back to within a couple of points of the 50% baseline, rather
-    // than sitting 50 points clear of a ball with 40 balls behind it.
-    expect(hyroad.adjustedStrikePct).toBeLessThan(60);
-    expect(
-      Math.abs(hyroad.adjustedStrikePct! - phaze.adjustedStrikePct!)
-    ).toBeLessThan(5);
+    expect(report.balls[0].ballId).toBe(1); // 20 balls
+    expect(report.balls[1].strikePct).toBe(100); // 1 ball, still shown raw
+    expect(report.balls[1].firstBalls).toBe(1);
   });
+
 });

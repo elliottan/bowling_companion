@@ -8,7 +8,6 @@ import { Button } from "../components/ui/Button";
 import { Chip, TAP_TARGET_44 } from "../components/ui/Chip";
 import {
   calculateBallPerformance,
-  calculateBallUsage,
   calculateCommonLeaves,
   calculateStats,
   filterSessionsBy,
@@ -141,10 +140,6 @@ export function HistoryView({ onOpenSession, activeSessionId, onSessionDeleted }
     () => calculateCommonLeaves(filteredHistory, activeLanes),
     [filteredHistory, activeLanes]
   );
-  const ballUsage = useMemo(
-    () => calculateBallUsage(filteredHistory, balls, activeLanes),
-    [filteredHistory, balls, activeLanes]
-  );
   const ballPerformance = useMemo(
     () => calculateBallPerformance(filteredHistory, balls, activeLanes, handedness),
     [filteredHistory, balls, activeLanes, handedness]
@@ -258,7 +253,6 @@ export function HistoryView({ onOpenSession, activeSessionId, onSessionDeleted }
               stats={isLoading ? EMPTY : stats}
               isLoading={isLoading}
               leaves={leaves}
-              ballUsage={ballUsage}
               ballPerformance={ballPerformance}
             />
           </div>
