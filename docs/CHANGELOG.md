@@ -15,6 +15,14 @@ User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachan
 
 ### Fixed
 
+- **Leaves made in the 10th frame are counted.** A leave was read from the first
+  ball of a frame only, which is the whole story in frames 1 to 9 and misses the
+  10th, where a bonus ball is thrown at a full rack of its own. A 10th of strike,
+  strike, 9 left a pin that appeared in no count anywhere, and the ball that
+  threw it was credited with nothing. Every ball thrown at a full rack now makes
+  a leave, attributed to the ball that threw it, and a spare made off a bonus
+  ball counts as a conversion. See ADR-049.
+
 - **The lane a game starts on is now visible while you bowl it.** Lanes were
   always per game, and so was the starting lane, but nothing on screen said
   which lane frame 1 was on, and the lane editor only opens itself for a game

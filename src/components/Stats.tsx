@@ -261,7 +261,7 @@ function BallPerformanceRow({
           {ball.leaves.length > 0 && (
             <div className="grid grid-cols-4 gap-1.5">
               {ball.leaves.slice(0, 4).map((leave) => (
-                <LeaveCell key={leave.pins.join("-")} leave={leave} />
+                <LeaveCountCell key={leave.pins.join("-")} leave={leave} />
               ))}
             </div>
           )}
@@ -312,6 +312,22 @@ function LeaveSection({ title, leaves }: { title: string; leaves: LeaveStats[] }
           <LeaveCell key={leave.pins.join("-")} leave={leave} />
         ))}
       </div>
+    </div>
+  );
+}
+
+/** Per-ball leaves answer "what does this ball leave", not "do I make it": the
+ *  conversion is about the spare game, and it is already on the leaves card. */
+function LeaveCountCell({ leave }: { leave: LeaveStats }) {
+  return (
+    <div className="flex flex-col items-center gap-1 rounded-lg border border-edge bg-surface p-2 text-center shadow-sm">
+      <MiniPins standing={leave.pins} size="sm" />
+      <span className="text-sm font-bold tabular-nums text-ink">
+        {leave.attempts}
+        <span className="text-[11px] font-semibold text-ink-secondary">
+          {leave.attempts === 1 ? " time" : " times"}
+        </span>
+      </span>
     </div>
   );
 }

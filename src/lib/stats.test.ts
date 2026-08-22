@@ -391,6 +391,30 @@ describe("pocket and carry", () => {
   });
 });
 
+describe("leaves in the 10th frame", () => {
+  it("counts a leave made by a bonus ball at a full rack", () => {
+    // Strike, strike, then a 9 count: three fresh-rack balls, and the last one
+    // leaves the 10 pin. Reading shot 1 alone missed it entirely.
+    const s = session("Jurong", [game(259, [frame(10, NONE, NONE, [10])])]);
+    const leaves = calculateCommonLeaves([s]);
+    expect(leaves.map((l) => [l.pins, l.attempts, l.conversions])).toEqual([[[10], 1, 0]]);
+  });
+
+  it("counts the ball-2 leave after a 10th-frame strike, and its conversion", () => {
+    // Strike, then 9, then spare: the leave belongs to ball 2 and ball 3 made it.
+    const s = session("Jurong", [game(200, [frame(10, NONE, [7], NONE)])]);
+    const leaves = calculateCommonLeaves([s]);
+    expect(leaves.map((l) => [l.pins, l.attempts, l.conversions])).toEqual([[[7], 1, 1]]);
+  });
+
+  it("still ignores a spare attempt, which is not thrown at a full rack", () => {
+    // 8 then a spare: one leave, converted. The spare ball leaves nothing.
+    const s = session("Jurong", [game(150, [frame(10, [2, 4], NONE, NONE)])]);
+    const leaves = calculateCommonLeaves([s]);
+    expect(leaves.map((l) => [l.pins, l.attempts, l.conversions])).toEqual([[[2, 4], 1, 1]]);
+  });
+});
+
 describe("calculateBallPerformance", () => {
   const balls: Ball[] = [
     { id: 1, name: "Phaze II", is_spare_ball: false },
@@ -493,6 +517,30 @@ describe("calculateBallPerformance", () => {
     const report = calculateBallPerformance([session("Jurong", [g])], balls);
     expect(report.balls[0].byGame[0].firstBalls).toBe(1);
     expect(report.balls[0].byGame[0].sessions).toEqual([]);
+  });
+
+  it("attributes a 10th-frame bonus-ball leave to the ball that threw it", () => {
+    const tenth: Frame = {
+      game_id: 1,
+      frame_number: 10,
+      shots: [
+        { pins_standing: NONE, ball_id: 1 },
+        { pins_standing: NONE, ball_id: 1 },
+        { pins_standing: [10], ball_id: 2 }
+      ],
+      is_strike: true,
+      is_spare: false
+    };
+    const g: Game & { frames: Frame[] } = {
+      id: 1,
+      session_id: 1,
+      game_number: 1,
+      final_score: 259,
+      frames: [tenth]
+    };
+    const report = calculateBallPerformance([session("Jurong", [g])], balls);
+    expect(report.balls.find((b) => b.ballId === 1)!.leaves).toEqual([]);
+    expect(report.balls.find((b) => b.ballId === 2)!.leaves.map((l) => l.pins)).toEqual([[10]]);
   });
 
   it("reports fresh-rack balls with no ball recorded instead of dropping them", () => {

@@ -2081,3 +2081,37 @@ denominator beside it does not need a paragraph.
 - `calculateBallUsage` had one remaining caller, the deleted paragraph, and is
   removed with it. Frames and games per ball are readable from the per-game
   table, which carries the same counts.
+
+## ADR-049: A leave is made by any ball thrown at a full rack
+
+**Status:** accepted (2026-08). Amends ADR-036's leave counting; the spare-rate
+definition there is untouched.
+
+**Context.** Leave counting read `shots[0]` and stopped. In frames 1 to 9 that
+is the only ball thrown at a full rack, so it was right. The 10th frame carries
+up to three, and after a strike the next ball faces a fresh rack of its own.
+
+Reported from a 259 game: strike, strike, then a 9 count in the 10th. The 10 pin
+left by that third ball appeared in no leave count, on the leaves card or in the
+per-ball breakdown, and the ball that threw it was credited with nothing.
+
+**Decision.** Leaves come from **every fresh-rack ball that did not strike**,
+paired with whether the next ball in the frame cleared it. `freshRackShotIndices`
+already decides what "fresh rack" means for strike and pocket counting, so leave
+counting now shares that definition instead of keeping a narrower one.
+
+A leave is attributed to the ball that threw it, not to the ball that threw shot
+1 of the frame. In the 10th those differ whenever a ball is changed for the bonus
+balls.
+
+A spare attempt is still not a leave: it is thrown at what the previous ball
+left, so it has no rack of its own to leave anything from.
+
+**Consequences.**
+- Leave counts rise slightly, all of it in the 10th frame, and the same leave now
+  reports the same way whichever frame it happened in.
+- 10th-frame spares made off a bonus ball now count as conversions on the leaves
+  card, where previously neither the leave nor its conversion appeared.
+- Per-ball leaves show the number of times a ball left a shape and no conversion
+  rate: the question there is what the ball leaves, and how well the spare was
+  shot belongs to the leaves card.

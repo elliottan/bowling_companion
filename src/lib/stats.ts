@@ -162,6 +162,31 @@ function freshRackShots(frame: Frame): Shot[] {
   return freshRackShotIndices(frame.shots).map((i) => frame.shots[i]);
 }
 
+/**
+ * Leaves made in a frame: one per fresh-rack ball that did not strike, paired
+ * with whether the next ball cleared it.
+ *
+ * Reading `shots[0]` alone misses the 10th frame, where a bonus ball is thrown
+ * at a full rack and can leave pins of its own. A 10th of strike, strike, 9
+ * makes a leave on the third ball, and it used to be counted nowhere.
+ */
+function leaveEvents(
+  frame: Frame
+): Array<{ shot: Shot; leave: PinNumber[]; converted: boolean }> {
+  const out: Array<{ shot: Shot; leave: PinNumber[]; converted: boolean }> = [];
+  for (const index of freshRackShotIndices(frame.shots)) {
+    const shot = frame.shots[index];
+    if (shot.pins_standing.length === 0) continue; // struck, nothing left
+    const next = frame.shots[index + 1];
+    out.push({
+      shot,
+      leave: [...shot.pins_standing].sort((a, b) => a - b) as PinNumber[],
+      converted: Boolean(next && next.pins_standing.length === 0)
+    });
+  }
+  return out;
+}
+
 function tallyFrame(frame: Frame): FrameTally {
   const fresh = freshRackShots(frame);
   const t: FrameTally = {
@@ -232,20 +257,15 @@ export function calculateCommonLeaves(
   );
 
   for (const frame of allFrames) {
-    if (frame.is_strike) continue;
-    if (!frame.shots[0] || frame.shots[0].pins_standing.length === 0) continue;
-
-    const leave = [...frame.shots[0].pins_standing].sort((a, b) => a - b) as PinNumber[];
-    const key = leave.join("-");
-
-    const converted = Boolean(frame.shots[1] && frame.shots[1].pins_standing.length === 0);
-
-    if (!leaveMap.has(key)) {
-      leaveMap.set(key, { pins: leave, attempts: 0, conversions: 0, conversionPct: null });
+    for (const { leave, converted } of leaveEvents(frame)) {
+      const key = leave.join("-");
+      if (!leaveMap.has(key)) {
+        leaveMap.set(key, { pins: leave, attempts: 0, conversions: 0, conversionPct: null });
+      }
+      const entry = leaveMap.get(key)!;
+      entry.attempts++;
+      if (converted) entry.conversions++;
     }
-    const entry = leaveMap.get(key)!;
-    entry.attempts++;
-    if (converted) entry.conversions++;
   }
 
   return [...leaveMap.values()]
@@ -414,23 +434,23 @@ export function calculateBallPerformance(
           entry.byGame.set(game.game_number, slot);
         }
 
-        // Leaves belong to the ball that made them: the first ball of the frame.
-        const first = frame.shots[0];
-        if (!first || first.ball_id == null) continue;
-        if (first.pins_standing.length === 0) continue;
-        const entry = acc.get(first.ball_id);
-        if (!entry) continue;
-        const leave = [...first.pins_standing].sort((a, b) => a - b) as PinNumber[];
-        const key = leave.join("-");
-        const stat = entry.leaves.get(key) ?? {
-          pins: leave,
-          attempts: 0,
-          conversions: 0,
-          conversionPct: null
-        };
-        stat.attempts++;
-        if (frame.shots[1] && frame.shots[1].pins_standing.length === 0) stat.conversions++;
-        entry.leaves.set(key, stat);
+        // A leave belongs to the ball that made it, which in the 10th is not
+        // always the ball that threw shot 1.
+        for (const { shot, leave, converted } of leaveEvents(frame)) {
+          if (shot.ball_id == null) continue;
+          const entry = acc.get(shot.ball_id);
+          if (!entry) continue;
+          const key = leave.join("-");
+          const stat = entry.leaves.get(key) ?? {
+            pins: leave,
+            attempts: 0,
+            conversions: 0,
+            conversionPct: null
+          };
+          stat.attempts++;
+          if (converted) stat.conversions++;
+          entry.leaves.set(key, stat);
+        }
       }
     }
   }
