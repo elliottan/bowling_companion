@@ -51,6 +51,11 @@ User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachan
   not carrying". Old shots are read under the same rule, so history is not
   blank. See ADR-046 for the table.
 
+- **Tap a stat to read what it means.** Pocket, Carry, Strike and Spare each
+  explain themselves in one line when tapped, on the tiles and on the rows of a
+  ball's table. Tapping again puts the line away, since a definition is read
+  once and then in the way.
+
 - **A score trend for the session.** Score by game as a line, the session
   average as a dotted rule, and the high and low games marked. A game that was
   never scored breaks the line rather than being drawn through.

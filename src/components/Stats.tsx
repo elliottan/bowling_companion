@@ -16,6 +16,17 @@ import { ScoreTrendChart } from "./ScoreTrendChart";
 import type { Game } from "../types/bowling";
 import { GROUP_HEADING } from "./ui/typography";
 
+// Definitions, tapped rather than printed: they are read once and then in the
+// way. Short enough to land in a glance.
+const POCKET_NOTE =
+  "Pocket: balls thrown at a full rack that hit the pocket. Read from the leave, and you can flip it on any shot.";
+const CARRY_NOTE =
+  "Carry: pocket hits that struck. It answers whether the rack fell when you got it there.";
+const STRIKE_NOTE =
+  "Strike: balls thrown at a full rack that struck. It is pocket multiplied by carry, so it drops when either does.";
+const SPARE_NOTE =
+  "Spare: makeable leaves converted. Washouts and real splits are left out.";
+
 interface StatsProps {
   stats: BowlingStats;
   isLoading?: boolean;
@@ -39,7 +50,11 @@ export function Stats({
   games
 }: StatsProps) {
   const [showBallPerformance, setShowBallPerformance] = useState(false);
-  const [showSpareNote, setShowSpareNote] = useState(false);
+  // One note at a time, opened by tapping the stat it explains. A definition
+  // read once is enough, so it stays a tap rather than permanent copy.
+  const [note, setNote] = useState<string | null>(null);
+
+  const toggleNote = (text: string) => setNote((curr) => (curr === text ? null : text));
 
   if (isLoading) {
     return (
@@ -85,31 +100,30 @@ export function Stats({
           }
         />
         <Tile label="Avg" value={fmt(stats.averageScore)} />
-        <Tile label="Strike" value={pct(stats.strikePct)} />
+        <Tile
+          label="Strike"
+          value={pct(stats.strikePct)}
+          onClick={() => toggleNote(STRIKE_NOTE)}
+        />
         <Tile
           label="Spare"
           value={pct(stats.sparePct)}
-          onClick={() => setShowSpareNote((v) => !v)}
+          onClick={() => toggleNote(SPARE_NOTE)}
         />
       </div>
 
       <div className="grid grid-cols-2 gap-1.5">
-        <Tile label="Pocket" value={pct(stats.pocketPct)} />
-        <Tile label="Carry" value={pct(stats.carryPct)} />
+        <Tile
+          label="Pocket"
+          value={pct(stats.pocketPct)}
+          onClick={() => toggleNote(POCKET_NOTE)}
+        />
+        <Tile label="Carry" value={pct(stats.carryPct)} onClick={() => toggleNote(CARRY_NOTE)} />
       </div>
 
       {games && games.length > 0 && <ScoreTrendChart games={games} />}
 
-      {showSpareNote && (
-        <button
-          type="button"
-          onClick={() => setShowSpareNote(false)}
-          className="w-full rounded-lg border border-edge bg-surface-muted p-3 text-left text-xs text-ink-secondary"
-        >
-          Spare % counts makeable leaves only. Washouts and splits are left out.
-          Tap to dismiss.
-        </button>
-      )}
+      {note && <StatNote text={note} onDismiss={() => setNote(null)} />}
 
       {ballPerformance && ballPerformance.balls.length > 0 && (
         <div className="rounded-lg border border-edge bg-surface p-3 shadow-sm">
@@ -157,6 +171,19 @@ export function Stats({
   );
 }
 
+/** Tapped definition of a stat, dismissed by tapping it. */
+function StatNote({ text, onDismiss }: { text: string; onDismiss: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onDismiss}
+      className="w-full rounded-lg border border-edge bg-surface-muted p-3 text-left text-xs text-ink-secondary"
+    >
+      {text} Tap to dismiss.
+    </button>
+  );
+}
+
 function BallPerformanceRow({
   ball,
   onOpenGame
@@ -166,6 +193,7 @@ function BallPerformanceRow({
 }) {
   const [open, setOpen] = useState(false);
   const [drilldown, setDrilldown] = useState<BallGameCell | null>(null);
+  const [note, setNote] = useState<string | null>(null);
   return (
     <li className="py-1.5">
       <button
@@ -224,16 +252,19 @@ function BallPerformanceRow({
                 label="Pocket"
                 cells={ball.byGame.map((c) => rateOf(c.pocket, c.firstBalls))}
                 total={ball.pocketPct}
+                onExplain={() => setNote((curr) => (curr === POCKET_NOTE ? null : POCKET_NOTE))}
               />
               <MetricRow
                 label="Carry"
                 cells={ball.byGame.map((c) => rateOf(c.pocketStrikes, c.pocket))}
                 total={ball.carryPct}
+                onExplain={() => setNote((curr) => (curr === CARRY_NOTE ? null : CARRY_NOTE))}
               />
               <MetricRow
                 label="Strike"
                 cells={ball.byGame.map((c) => rateOf(c.strikes, c.firstBalls))}
                 total={ball.strikePct}
+                onExplain={() => setNote((curr) => (curr === STRIKE_NOTE ? null : STRIKE_NOTE))}
               />
               <tr>
                 <td className="text-left text-ink-tertiary">Balls</td>
@@ -246,6 +277,8 @@ function BallPerformanceRow({
               </tr>
             </tbody>
           </table>
+
+          {note && <StatNote text={note} onDismiss={() => setNote(null)} />}
 
           {drilldown && onOpenGame && (
             <BallGameSessionsDialog
@@ -274,15 +307,21 @@ function BallPerformanceRow({
 function MetricRow({
   label,
   cells,
-  total
+  total,
+  onExplain
 }: {
   label: string;
   cells: Array<number | null>;
   total: number | null;
+  onExplain: () => void;
 }) {
   return (
     <tr>
-      <td className="text-left font-semibold text-ink">{label}</td>
+      <td className="text-left font-semibold text-ink">
+        <button type="button" onClick={onExplain} className="underline decoration-dotted underline-offset-2">
+          {label}
+        </button>
+      </td>
       {cells.map((value, i) => (
         <td key={i} className="text-right">
           {pct(value)}
