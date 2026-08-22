@@ -255,6 +255,20 @@ describe("pocket toggle (ADR-046)", () => {
 });
 
 describe("start lane", () => {
+  it("names the frame the lane chips describe", () => {
+    // A game that starts on 8 lights lane 7 on the even frames. Without the
+    // frame beside it, that reads as a contradiction of the lane editor.
+    render(
+      <ActiveGameScorer
+        gameKey={1}
+        game={{ lanes: ["7", "8"], start_lane: "8" }}
+        mode="session"
+        onEditLanes={() => {}}
+      />
+    );
+    expect(screen.getByText("F1")).toBeInTheDocument();
+  });
+
   it("names the lane frame 1 was bowled on, per game", () => {
     render(
       <ActiveGameScorer

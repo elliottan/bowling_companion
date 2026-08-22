@@ -405,6 +405,9 @@ export function ActiveGameScorer({
   }
 
   const viewedLane = selectedShot && game ? laneForFrame(game, selectedShot.frameNumber) : undefined;
+  // The frame the lane chips describe: the recorded shot under review, or the
+  // live one.
+  const shownFrameNumber = selectedShot ? selectedShot.frameNumber : gameState.currentFrameNumber;
 
   const highlightCell = selectedShot
     ? { frameNumber: selectedShot.frameNumber, shotIndex: selectedShot.shotIndex }
@@ -529,7 +532,18 @@ export function ActiveGameScorer({
         <div className="space-y-2">
           {(onEditLanes || lanesList.length > 0) && (
             <div className="flex items-center justify-between rounded-lg border border-edge bg-surface px-2.5 py-1.5">
-              <span className={GROUP_HEADING}>Lane</span>
+              {/* The chips mark the lane of the frame in the cursor, not the
+                  game's starting lane. Unlabelled, a lit "7" on a game that
+                  starts on 8 reads as a contradiction of the lane editor, so
+                  the frame it is talking about is named here. */}
+              <span className={`flex items-baseline gap-1 ${GROUP_HEADING}`}>
+                Lane
+                {lanesList.length > 1 && (
+                  <span className="font-bold normal-case tracking-normal text-ink-tertiary">
+                    F{shownFrameNumber}
+                  </span>
+                )}
+              </span>
               {onEditLanes ? (
                 <button
                   type="button"

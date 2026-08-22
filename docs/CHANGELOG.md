@@ -21,7 +21,10 @@ User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachan
   whose lanes are unset. So when the house's system failed to cross and started
   a game back on the lane before, there was nothing to notice. The lane editor
   now names the game it is about to change, in its title and above the starting
-  lane, and says plainly that it changes that game and no other.
+  lane, and says plainly that it changes that game and no other. The Lane row on
+  the scoring screen names the frame its highlight belongs to, so a game that
+  starts on 8 and shows a lit 7 on frame 10 reads as the fact it is rather than
+  a contradiction.
 
 - **The dashboard's shortcuts no longer move you to Settings.** Lane Notes, Oil
   Patterns and Backup opened from the dashboard used to switch you to the
