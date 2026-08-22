@@ -120,13 +120,6 @@ export function Stats({
                 <BallPerformanceRow key={b.ballId} ball={b} />
               ))}
             </ul>
-            {ballPerformance.unattributed > 0 && (
-              <p className="mt-2 text-[11px] text-ink-tertiary">
-                {ballPerformance.unattributed} first{" "}
-                {ballPerformance.unattributed === 1 ? "ball" : "balls"} with no ball
-                recorded, counted in the totals but in no row here.
-              </p>
-            )}
           </div>
         </div>
       )}
