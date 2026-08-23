@@ -4,6 +4,17 @@ User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachan
 
 ## [Unreleased]: dark mode, native navigation, and one design language (2026-07 to 2026-08)
 
+### Fixed
+
+- **The last ball of the 10th no longer counts as a missed spare.** A leave off
+  the 12th shot has no spare behind it, but the leaves card scored it as one, so
+  a 10 pin left with the game already over pulled the 10-pin conversion rate
+  down. Leaves now carry two numbers: how many times the shape was left, and how
+  many of those a ball followed. The rate reads off the second, and the cells
+  show `made/chances` with a muted `+N` for the leaves nothing could follow. Tap
+  a group heading for the definition. The same fix stops a frame still being
+  bowled from reporting its open leave as a miss.
+
 ### Changed
 
 - **Sheets and dialogs now split on one rule: you type in a sheet, you answer a

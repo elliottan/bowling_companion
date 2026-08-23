@@ -400,6 +400,42 @@ describe("leaves in the 10th frame", () => {
     expect(leaves.map((l) => [l.pins, l.attempts, l.conversions])).toEqual([[[10], 1, 0]]);
   });
 
+  it("does not score the last ball's leave as a missed spare", () => {
+    // Strike, strike, then a 9 count. No ball can follow it, so it is a leave
+    // that happened with no spare chance: out of the rate, not a 0%.
+    const s = session("Jurong", [game(259, [frame(10, NONE, NONE, [10])])]);
+    const [ten] = calculateCommonLeaves([s]);
+    expect(ten.attempts).toBe(1);
+    expect(ten.chances).toBe(0);
+    expect(ten.conversionPct).toBeNull();
+  });
+
+  it("keeps a frame still being bowled out of the rate", () => {
+    // Ball 1 left the 10 pin and ball 2 has not been thrown yet.
+    const s = session("Jurong", [game(undefined, [frame(3, [10 as PinNumber])])]);
+    const [ten] = calculateCommonLeaves([s]);
+    expect(ten.attempts).toBe(1);
+    expect(ten.chances).toBe(0);
+    expect(ten.conversionPct).toBeNull();
+  });
+
+  it("mixes chance and no-chance instances of the same leave", () => {
+    // 10 pin left three times: made once, missed once, and once off the last
+    // ball of the 10th. Rate reads 1 of 2, with the third counted as left.
+    const s = session("Jurong", [
+      game(160, [
+        frame(1, [10 as PinNumber], NONE),
+        frame(2, [10 as PinNumber], [10 as PinNumber]),
+        frame(10, NONE, NONE, [10])
+      ])
+    ]);
+    const [ten] = calculateCommonLeaves([s]);
+    expect(ten.attempts).toBe(3);
+    expect(ten.chances).toBe(2);
+    expect(ten.conversions).toBe(1);
+    expect(ten.conversionPct).toBe(50);
+  });
+
   it("counts the ball-2 leave after a 10th-frame strike, and its conversion", () => {
     // Strike, then 9, then spare: the leave belongs to ball 2 and ball 3 made it.
     const s = session("Jurong", [game(200, [frame(10, NONE, [7], NONE)])]);

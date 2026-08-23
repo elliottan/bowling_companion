@@ -164,16 +164,21 @@ function freshRackShots(frame: Frame): Shot[] {
 
 /**
  * Leaves made in a frame: one per fresh-rack ball that did not strike, paired
- * with whether the next ball cleared it.
+ * with whether a ball followed it and whether that ball cleared it.
  *
  * Reading `shots[0]` alone misses the 10th frame, where a bonus ball is thrown
  * at a full rack and can leave pins of its own. A 10th of strike, strike, 9
  * makes a leave on the third ball, and it used to be counted nowhere.
+ *
+ * `chance` is false when no ball followed the leave: the 10th frame's last
+ * ball, which no spare attempt can follow, and a frame still being bowled.
+ * Both are leaves that happened, and neither is a spare missed, so they count
+ * as attempts but stay out of the conversion rate.
  */
 function leaveEvents(
   frame: Frame
-): Array<{ shot: Shot; leave: PinNumber[]; converted: boolean }> {
-  const out: Array<{ shot: Shot; leave: PinNumber[]; converted: boolean }> = [];
+): Array<{ shot: Shot; leave: PinNumber[]; chance: boolean; converted: boolean }> {
+  const out: Array<{ shot: Shot; leave: PinNumber[]; chance: boolean; converted: boolean }> = [];
   for (const index of freshRackShotIndices(frame.shots)) {
     const shot = frame.shots[index];
     if (shot.pins_standing.length === 0) continue; // struck, nothing left
@@ -181,6 +186,7 @@ function leaveEvents(
     out.push({
       shot,
       leave: [...shot.pins_standing].sort((a, b) => a - b) as PinNumber[],
+      chance: Boolean(next),
       converted: Boolean(next && next.pins_standing.length === 0)
     });
   }
@@ -238,8 +244,14 @@ function rate(made: number, opportunities: number): number | null {
 
 export interface LeaveStats {
   pins: PinNumber[];
+  /** Times this leave was left, every one of them. */
   attempts: number;
+  /** Attempts that a ball followed, so the spare could be made or missed.
+   *  Fewer than `attempts` when the leave came off the 10th frame's last ball
+   *  or off a frame still in progress. */
+  chances: number;
   conversions: number;
+  /** conversions / chances, null when there was never a chance. */
   conversionPct: number | null;
 }
 
@@ -257,13 +269,20 @@ export function calculateCommonLeaves(
   );
 
   for (const frame of allFrames) {
-    for (const { leave, converted } of leaveEvents(frame)) {
+    for (const { leave, chance, converted } of leaveEvents(frame)) {
       const key = leave.join("-");
       if (!leaveMap.has(key)) {
-        leaveMap.set(key, { pins: leave, attempts: 0, conversions: 0, conversionPct: null });
+        leaveMap.set(key, {
+          pins: leave,
+          attempts: 0,
+          chances: 0,
+          conversions: 0,
+          conversionPct: null
+        });
       }
       const entry = leaveMap.get(key)!;
       entry.attempts++;
+      if (chance) entry.chances++;
       if (converted) entry.conversions++;
     }
   }
@@ -271,7 +290,7 @@ export function calculateCommonLeaves(
   return [...leaveMap.values()]
     .map((entry) => ({
       ...entry,
-      conversionPct: entry.attempts > 0 ? Math.round((entry.conversions / entry.attempts) * 100) : null
+      conversionPct: rate(entry.conversions, entry.chances)
     }))
     .sort(
       (a, b) =>
@@ -436,7 +455,7 @@ export function calculateBallPerformance(
 
         // A leave belongs to the ball that made it, which in the 10th is not
         // always the ball that threw shot 1.
-        for (const { shot, leave, converted } of leaveEvents(frame)) {
+        for (const { shot, leave, chance, converted } of leaveEvents(frame)) {
           if (shot.ball_id == null) continue;
           const entry = acc.get(shot.ball_id);
           if (!entry) continue;
@@ -444,10 +463,12 @@ export function calculateBallPerformance(
           const stat = entry.leaves.get(key) ?? {
             pins: leave,
             attempts: 0,
+            chances: 0,
             conversions: 0,
             conversionPct: null
           };
           stat.attempts++;
+          if (chance) stat.chances++;
           if (converted) stat.conversions++;
           entry.leaves.set(key, stat);
         }
@@ -471,7 +492,7 @@ export function calculateBallPerformance(
       }))
       .sort((a, b) => a.gameNumber - b.gameNumber),
     leaves: [...e.leaves.values()]
-      .map((l) => ({ ...l, conversionPct: rate(l.conversions, l.attempts) }))
+      .map((l) => ({ ...l, conversionPct: rate(l.conversions, l.chances) }))
       .sort((a, b) => b.attempts - a.attempts || comparePins(a.pins, b.pins))
   }));
 

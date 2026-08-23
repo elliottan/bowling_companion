@@ -27,6 +27,8 @@ const STRIKE_NOTE =
   "Strike: balls thrown at a full rack that struck. It is pocket multiplied by carry, so it drops when either does.";
 const SPARE_NOTE =
   "Spare: makeable leaves converted. Washouts and real splits are left out.";
+const LEAVE_NOTE =
+  "Made over chances, then the rate. A leave off the last ball of the 10th has no spare to make, so it counts as left (+1) and stays out of the rate.";
 
 interface StatsProps {
   stats: BowlingStats;
@@ -123,7 +125,9 @@ export function Stats({
 
       {games && games.length > 0 && <ScoreTrendChart games={games} />}
 
-      {note && <StatNote text={note} onDismiss={() => setNote(null)} />}
+      {/* The leave note is rendered down with the leave cards it explains, so
+          the answer lands where the tap was. */}
+      {note && note !== LEAVE_NOTE && <StatNote text={note} onDismiss={() => setNote(null)} />}
 
       {ballPerformance && ballPerformance.balls.length > 0 && (
         <div className="rounded-lg border border-edge bg-surface p-3 shadow-sm">
@@ -161,9 +165,24 @@ export function Stats({
         );
         return (
           <>
-            <LeaveSection title="Makeables" leaves={makeables} />
-            <LeaveSection title="Washouts" leaves={washouts} />
-            <LeaveSection title="Splits" leaves={splits} />
+            <LeaveSection
+              title="Makeables"
+              leaves={makeables}
+              onExplain={() => toggleNote(LEAVE_NOTE)}
+            />
+            <LeaveSection
+              title="Washouts"
+              leaves={washouts}
+              onExplain={() => toggleNote(LEAVE_NOTE)}
+            />
+            <LeaveSection
+              title="Splits"
+              leaves={splits}
+              onExplain={() => toggleNote(LEAVE_NOTE)}
+            />
+            {note === LEAVE_NOTE && (
+              <StatNote text={LEAVE_NOTE} onDismiss={() => setNote(null)} />
+            )}
           </>
         );
       })()}
@@ -278,7 +297,9 @@ function BallPerformanceRow({
             </tbody>
           </table>
 
-          {note && <StatNote text={note} onDismiss={() => setNote(null)} />}
+          {/* The leave note is rendered down with the leave cards it explains, so
+          the answer lands where the tap was. */}
+      {note && note !== LEAVE_NOTE && <StatNote text={note} onDismiss={() => setNote(null)} />}
 
           {drilldown && onOpenGame && (
             <BallGameSessionsDialog
@@ -337,14 +358,24 @@ function rateOf(made: number, opportunities: number): number | null {
   return Math.round((made / opportunities) * 100);
 }
 
-function LeaveSection({ title, leaves }: { title: string; leaves: LeaveStats[] }) {
+function LeaveSection({
+  title,
+  leaves,
+  onExplain
+}: {
+  title: string;
+  leaves: LeaveStats[];
+  onExplain: () => void;
+}) {
   if (leaves.length === 0) return null;
   // Most-bowled first, so the leaves with meaningful sample sizes lead.
   const sorted = [...leaves].sort((a, b) => b.attempts - a.attempts);
   return (
     <div className="rounded-lg border border-edge bg-surface p-3 shadow-sm">
-      <h2 className={`mb-3 ${GROUP_HEADING}`}>
-        {title}
+      <h2 className="mb-3">
+        <button type="button" onClick={onExplain} className={GROUP_HEADING}>
+          {title}
+        </button>
       </h2>
       <div className="grid grid-cols-4 gap-1.5">
         {sorted.map((leave) => (
@@ -372,14 +403,18 @@ function LeaveCountCell({ leave }: { leave: LeaveStats }) {
 }
 
 function LeaveCell({ leave }: { leave: LeaveStats }) {
+  // Leaves that no ball could follow: the 10th frame's last ball. They happened,
+  // so they show, but they are not spares missed and never touch the rate.
+  const noChance = leave.attempts - leave.chances;
   return (
     <div className="flex flex-col items-center gap-1 rounded-lg border border-edge bg-surface p-2 text-center shadow-sm">
       <MiniPins standing={leave.pins} size="sm" />
-      {/* The pin diagram already names the leave — attempts on the left, rate
+      {/* The pin diagram already names the leave: chances on the left, rate
           on the right, one row. */}
       <div className="flex w-full items-baseline justify-between gap-1">
         <span className="text-[11px] tabular-nums text-ink-secondary">
-          {leave.conversions}/{leave.attempts}
+          {leave.conversions}/{leave.chances}
+          {noChance > 0 && <span className="text-ink-tertiary"> +{noChance}</span>}
         </span>
         <span
           className={`text-sm font-bold ${

@@ -2115,3 +2115,41 @@ left, so it has no rack of its own to leave anything from.
 - Per-ball leaves show the number of times a ball left a shape and no conversion
   rate: the question there is what the ball leaves, and how well the spare was
   shot belongs to the leaves card.
+
+---
+
+## ADR-050: A leave with no ball behind it is counted, not scored
+
+**Status:** accepted (2026-08). Amends ADR-049's conversion pairing. The
+spare-rate definition of ADR-036 and the leave attribution of ADR-049 are
+untouched.
+
+**Context.** ADR-049 pairs every fresh-rack leave with "whether the next ball
+cleared it", and reads a missing next ball as a miss. Two leaves have no next
+ball and never will:
+
+- the 10th frame's last ball. Strike, strike, then a 9 count leaves the 10 pin
+  with the game over. No spare was required and none was missed.
+- a frame still being bowled. Ball 1 is in, ball 2 is not thrown yet.
+
+Both landed in the conversion rate as failures, so a 10 pin left on the 12th
+shot dragged the 10-pin conversion rate down by a spare that was never offered.
+
+**Decision.** A leave carries two counts. **Attempts** is how many times the
+shape was left, all of them, including the two cases above: it happened, and
+what a ball leaves is worth knowing whichever ball threw it. **Chances** is the
+subset that a ball actually followed, and the conversion rate is
+conversions over chances. A leave with no chances shows no rate rather than 0%.
+
+The test is "was a following shot recorded", which covers both cases with one
+rule and needs no special-casing of the 10th frame.
+
+**Consequences.**
+- Conversion rates rise slightly for leaves that occur on the 12th shot, and
+  they now measure only spares that were there to be made.
+- The leaves card reads `made/chances` with a muted `+N` for the leaves that had
+  no chance, and the group heading taps open the definition, following ADR-040's
+  tapped-definition pattern rather than printing standing copy.
+- Per-ball leaves are unchanged: they already show times left, which is exactly
+  the attempts count.
+- A game in progress no longer reports its open frame as a missed spare.

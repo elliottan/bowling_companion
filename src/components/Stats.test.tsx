@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { Stats } from "./Stats";
-import type { BallPerformanceReport, BowlingStats } from "../lib/stats";
+import type { BallPerformanceReport, BowlingStats, LeaveStats } from "../lib/stats";
 
 const STATS: BowlingStats = {
   totalSessions: 1,
@@ -65,5 +65,33 @@ describe("stat definitions", () => {
     // The tile and the table row share a label, so the row is the second one.
     fireEvent.click(screen.getAllByText("Carry")[0]);
     expect(screen.getByText(/pocket hits that struck/i)).toBeInTheDocument();
+  });
+});
+
+describe("leave cells", () => {
+  const tenPin: LeaveStats = {
+    pins: [10],
+    attempts: 3,
+    chances: 2,
+    conversions: 1,
+    conversionPct: 50
+  };
+
+  it("reads the rate off chances and marks the leaves that had none", () => {
+    render(<Stats stats={STATS} leaves={[tenPin]} />);
+    expect(screen.getByText("1/2")).toBeInTheDocument();
+    expect(screen.getByText("+1")).toBeInTheDocument();
+    expect(screen.getByText("50%")).toBeInTheDocument();
+  });
+
+  it("marks nothing when every leave had a ball after it", () => {
+    render(<Stats stats={STATS} leaves={[{ ...tenPin, attempts: 2 }]} />);
+    expect(screen.queryByText(/^\+\d+$/)).toBeNull();
+  });
+
+  it("explains the counts when the group heading is tapped", () => {
+    render(<Stats stats={STATS} leaves={[tenPin]} />);
+    fireEvent.click(screen.getByText("Makeables"));
+    expect(screen.getByText(/no spare to make/i)).toBeInTheDocument();
   });
 });
