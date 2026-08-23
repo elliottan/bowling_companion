@@ -19,7 +19,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { ErrorBanner } from "../components/ErrorBanner";
 import { MiniPins } from "../components/MiniPins";
 import { SpareLineFormDialog } from "../components/SpareLineFormDialog";
-import { IconButton } from "../components/ui/IconButton";
+import { Fab, FabRow } from "../components/ui/Fab";
 import { useDriftModel } from "../lib/driftModelContext";
 import { deriveLaydown, deriveSlide, type DriftModel } from "../lib/driftModel";
 import {
@@ -169,16 +169,17 @@ export function SpareLinesView() {
 
   return (
     <section className="mx-auto w-full max-w-3xl px-3 pb-5 pt-3 sm:px-6 sm:pt-5">
-      <div className="mb-3 flex items-center justify-between">
-        <h1 className="text-xl font-bold text-ink">Spare lines</h1>
-        <IconButton onClick={() => setEditing({ mode: "add" })} label="Add spare" variant="round">
-          <Plus size={18} aria-hidden="true" />
-        </IconButton>
-      </div>
+      <h1 className="mb-3 text-xl font-bold text-ink">Spare lines</h1>
 
       {error && (
         <ErrorBanner className="mb-3">{error}</ErrorBanner>
       )}
+
+      {/* A tab with one dominant action puts it in the thumb corner, not in a
+          header (DESIGN-LANGUAGE §7b). Adding a spare line is this tab's. */}
+      <FabRow>
+        <Fab icon={Plus} label="Add spare line" onClick={() => setEditing({ mode: "add" })} />
+      </FabRow>
 
       {editing?.mode === "add" && (
         <SpareLineFormDialog

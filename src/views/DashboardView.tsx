@@ -1,10 +1,10 @@
 import { BookOpen, CircleDot, MapPin, PlayCircle, Plus, Smartphone, Spline, Waves, type LucideIcon } from "lucide-react";
 import { useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
-import { createPortal } from "react-dom";
 import { ErrorBanner } from "../components/ErrorBanner";
 import { SessionFormDialog } from "../components/SessionFormDialog";
 import { GROUP_HEADING } from "../components/ui/typography";
+import { Fab, FabRow } from "../components/ui/Fab";
 import { SessionHistory } from "../components/SessionHistory";
 import { InstallPrompt } from "../components/InstallPrompt";
 import { Button } from "../components/ui/Button";
@@ -210,16 +210,7 @@ export function DashboardView({
         />
       </div>
 
-      {/* Floating row above the tab bar: starting a session is the one action
-          this page exists for, so it keeps the thumb corner, and the resume
-          pill shares the row to its left rather than replacing it.
-          Portalled out of `<main>` because the tab-switch animation transforms
-          it, and a transformed ancestor would anchor these fixed buttons to it
-          for the length of the animation, making them jump on arrival. The
-          target is the shell rather than the body so overlays (z-50) still
-          stack above this row. */}
-      {createPortal(
-      <div className="pointer-events-none fixed inset-x-3 bottom-[calc(4rem+env(safe-area-inset-bottom)+0.5rem)] z-40 mx-auto flex max-w-xl items-center gap-2 sm:bottom-6">
+      <FabRow>
         {resumable && (
           <button
             type="button"
@@ -235,17 +226,8 @@ export function DashboardView({
             </span>
           </button>
         )}
-        <button
-          type="button"
-          onClick={() => setShowForm(true)}
-          aria-label="Start new session"
-          className="pointer-events-auto ml-auto flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-accent-fill text-accent-on-fill shadow-2xl hover:bg-accent-fill-hover"
-        >
-          <Plus size={26} aria-hidden="true" />
-        </button>
-      </div>,
-      document.getElementById("app-shell") ?? document.body
-      )}
+        <Fab icon={Plus} label="Start new session" onClick={() => setShowForm(true)} />
+      </FabRow>
 
       <SessionFormDialog
         open={showForm}

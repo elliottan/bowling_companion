@@ -33,6 +33,11 @@ User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachan
   half off-screen on iOS, while a sheet is already anchored to the edge the
   keyboard arrives at.
 
+- **Adding a spare line is where your thumb is.** It sat as a small button in
+  the screen's heading while the identical action on Home sat in the floating
+  corner button. Both tabs use the corner now, which is what §7b of the design
+  language already said.
+
 - **The Active tab opens when nothing is running.** It used to be greyed out in
   the tab bar, which is a dead control that explains nothing. It is a place with
   nothing in it, so it says so and offers to start a session.
