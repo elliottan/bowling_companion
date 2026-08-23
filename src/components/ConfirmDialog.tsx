@@ -7,6 +7,8 @@ interface ConfirmDialogProps {
   title: string;
   message?: React.ReactNode;
   confirmLabel?: string;
+  /** For a confirm that has to be earned: a typed phrase, a busy save. */
+  confirmDisabled?: boolean;
   onConfirm: () => void;
   onCancel: () => void;
 }
@@ -17,6 +19,7 @@ export function ConfirmDialog({
   title,
   message,
   confirmLabel = "Delete",
+  confirmDisabled = false,
   onConfirm,
   onCancel
 }: ConfirmDialogProps) {
@@ -47,7 +50,7 @@ export function ConfirmDialog({
           <Button variant="secondary" onClick={() => dismiss()}>
             Cancel
           </Button>
-          <Button variant="danger" onClick={() => dismiss(onConfirm)}>
+          <Button variant="danger" disabled={confirmDisabled} onClick={() => dismiss(onConfirm)}>
             {confirmLabel}
           </Button>
         </div>

@@ -1,4 +1,4 @@
-import { ChevronLeft, Plus, Trash2, X } from "lucide-react";
+import { ChevronLeft, Plus, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { ActiveGameScorer } from "../components/ActiveGameScorer";
 import { ConfirmDialog } from "../components/ConfirmDialog";
@@ -8,11 +8,12 @@ import { SessionHeaderText } from "../components/SessionHeaderText";
 import { SessionLanePanel, type SessionPanelTab } from "../components/SessionLanePanel";
 import { Button } from "../components/ui/Button";
 import { Chip, TAP_TARGET_44 } from "../components/ui/Chip";
-import { IconButton } from "../components/ui/IconButton";
+import { FormSheet } from "../components/ui/FormSheet";
+import { AnchoredMenu, AnchoredMenuItem } from "../components/ui/AnchoredMenu";
+import { FIELD } from "../components/ui/field";
 import type { NewSessionFormValues } from "../components/SessionForm";
 import { calculateGameScore } from "../lib/scoring";
 import { useLongPress } from "../lib/useLongPress";
-import { useOverlay } from "../lib/useOverlay";
 import {
   addNextGameToSession,
   deleteGame,
@@ -84,7 +85,6 @@ export function ActiveSessionView({
   }, []);
 
   const longPress = useLongPress();
-  const laneEditorRef = useOverlay<HTMLDivElement>(() => setShowLaneEditor(false), showLaneEditor);
 
   const activeGame = useMemo(
     () => sessionDetails?.games.find((g) => g.id === activeGameId) ?? null,
@@ -377,26 +377,19 @@ export function ActiveSessionView({
         </div>
 
         {chipMenu && (
-          <>
-            <div className="fixed inset-0 z-10" onClick={() => setChipMenu(null)} />
-            <div
-              className="fixed z-20 w-44 overflow-hidden rounded-lg border border-edge bg-surface py-1 shadow-lg"
-              style={{ left: chipMenu.left, top: chipMenu.top }}
+          <AnchoredMenu left={chipMenu.left} top={chipMenu.top} onClose={() => setChipMenu(null)}>
+            <AnchoredMenuItem
+              icon={Trash2}
+              danger
+              onClick={() => {
+                const gameId = chipMenu.gameId;
+                setChipMenu(null);
+                setConfirmDeleteGame(gameId);
+              }}
             >
-              <button
-                type="button"
-                onClick={() => {
-                  const gameId = chipMenu.gameId;
-                  setChipMenu(null);
-                  setConfirmDeleteGame(gameId);
-                }}
-                className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm font-medium text-danger-700 hover:bg-danger-50"
-              >
-                <Trash2 size={16} aria-hidden="true" />
-                Delete game
-              </button>
-            </div>
-          </>
+              Delete game
+            </AnchoredMenuItem>
+          </AnchoredMenu>
         )}
 
         {error && (
@@ -468,29 +461,12 @@ export function ActiveSessionView({
         onCancel={() => setShowEdit(false)}
       />
 
+      {/* Lanes save as you type, so the sheet carries a close and no commit. */}
       {showLaneEditor && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
-          role="dialog"
-          aria-modal="true"
-          aria-label={`Game ${activeGame?.game_number ?? 1} lanes`}
-          onClick={() => setShowLaneEditor(false)}
+        <FormSheet
+          title={`Game ${activeGame?.game_number ?? 1} lanes`}
+          onClose={() => setShowLaneEditor(false)}
         >
-          <div ref={laneEditorRef} className="w-full max-w-sm animate-pop-in overflow-hidden rounded-xl bg-surface shadow-xl" onClick={(e) => e.stopPropagation()}>
-            {/* Lanes save as you type, so the bar carries a close and no commit
-                (DESIGN-LANGUAGE §1: at most one trailing action, and this
-                screen has none to offer). */}
-            <div className="flex items-center gap-2 border-b border-edge px-2 py-2">
-              <IconButton onClick={() => setShowLaneEditor(false)} label="Close" variant="round">
-                <X size={20} aria-hidden="true" />
-              </IconButton>
-              <h2 className="flex-1 text-center text-[17px] font-semibold text-ink">
-                Game {activeGame?.game_number ?? 1} lanes
-              </h2>
-              <span className="h-11 w-11 shrink-0" />
-            </div>
-
-            <div className="px-5 pb-5 pt-4">
             <p className="text-xs text-ink-secondary">
               Sets the pair for this game only. Lanes alternate every frame, so
               you pick which one frame 1 starts on.
@@ -505,7 +481,7 @@ export function ActiveSessionView({
                 inputMode="numeric"
                 aria-label="First lane"
                 placeholder="12"
-                className="h-10 w-16 rounded-lg border border-edge-strong bg-surface px-2 text-sm text-ink outline-none focus:border-accent-fill"
+                className={`${FIELD} h-11 w-16 text-center`}
               />
               <span aria-hidden="true" className="text-ink-secondary">/</span>
               <input
@@ -515,7 +491,7 @@ export function ActiveSessionView({
                 inputMode="numeric"
                 aria-label="Second lane"
                 placeholder="13"
-                className="h-10 w-16 rounded-lg border border-edge-strong bg-surface px-2 text-sm text-ink outline-none focus:border-accent-fill"
+                className={`${FIELD} h-11 w-16 text-center`}
               />
             </div>
 
@@ -544,9 +520,7 @@ export function ActiveSessionView({
             )}
 
             {laneError && <p className="mt-2 text-xs text-danger-700">{laneError}</p>}
-            </div>
-          </div>
-        </div>
+        </FormSheet>
       )}
     </div>
   );

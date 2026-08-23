@@ -11,6 +11,7 @@ import type { NewSessionFormValues } from "./SessionForm";
 import type { SessionSummary } from "../types/bowling";
 import { GROUP_HEADING } from "./ui/typography";
 import { EmptyState } from "./ui/EmptyState";
+import { AnchoredMenu, AnchoredMenuItem } from "./ui/AnchoredMenu";
 
 interface SessionHistoryProps {
   sessions: SessionSummary[];
@@ -219,40 +220,29 @@ function SessionRow({ summary, isActive, onOpen, onSessionDeleted }: SessionRowP
       {/* Long-press menu + confirm are portaled to body: rows can live inside
           SwipePanes, whose translateX transform would otherwise reposition
           these fixed overlays. */}
-      {rowMenu &&
-        createPortal(
-          <>
-            <div className="fixed inset-0 z-10" onClick={() => setRowMenu(null)} />
-            <div
-              className="fixed z-20 w-44 overflow-hidden rounded-lg border border-edge bg-surface py-1 shadow-lg"
-              style={{ left: rowMenu.left, top: rowMenu.top }}
-            >
-              <button
-                type="button"
-                onClick={() => {
-                  setRowMenu(null);
-                  setShowEdit(true);
-                }}
-                className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm font-medium text-ink hover:bg-surface-muted"
-              >
-                <Pencil size={16} aria-hidden="true" />
-                Edit session
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setRowMenu(null);
-                  setConfirmDelete(true);
-                }}
-                className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm font-medium text-danger-700 hover:bg-danger-50"
-              >
-                <Trash2 size={16} aria-hidden="true" />
-                Delete session
-              </button>
-            </div>
-          </>,
-          document.body
-        )}
+      {rowMenu && (
+        <AnchoredMenu left={rowMenu.left} top={rowMenu.top} onClose={() => setRowMenu(null)}>
+          <AnchoredMenuItem
+            icon={Pencil}
+            onClick={() => {
+              setRowMenu(null);
+              setShowEdit(true);
+            }}
+          >
+            Edit session
+          </AnchoredMenuItem>
+          <AnchoredMenuItem
+            icon={Trash2}
+            danger
+            onClick={() => {
+              setRowMenu(null);
+              setConfirmDelete(true);
+            }}
+          >
+            Delete session
+          </AnchoredMenuItem>
+        </AnchoredMenu>
+      )}
 
       {createPortal(
         <ConfirmDialog

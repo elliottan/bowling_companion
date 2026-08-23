@@ -1,4 +1,4 @@
-import { Check, ChevronDown, ChevronLeft, Settings2, X } from "lucide-react";
+import { ChevronDown, ChevronLeft, Settings2, X } from "lucide-react";
 import type { FormEvent, ReactNode } from "react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
@@ -29,12 +29,12 @@ interface SessionFormProps {
   isSubmitting?: boolean;
   /** Prefill for the edit flow; blank for create. */
   initial?: SessionFormInitial;
-  /** Heading shown above the fields. */
-  title?: string;
-  /** Submit-button label (and its in-flight label). */
-  submitLabel?: string;
-  /** When provided, a Cancel button is shown (used in the modal). */
-  onCancel?: () => void;
+  /** Id of the rendered <form>, so the sheet's bar can submit it. */
+  formId: string;
+  /** Reports whether the form has enough to submit, so the sheet's commit can
+   *  disable itself. The bar lives outside this component (DESIGN-LANGUAGE §6)
+   *  but the field it depends on lives inside. */
+  onCanSubmitChange?: (canSubmit: boolean) => void;
 }
 
 // pr-16 rather than the shared pr-10: the clear button and the chevron share
@@ -47,9 +47,8 @@ export function SessionForm({
   onSubmit,
   isSubmitting = false,
   initial,
-  title = "Start new session",
-  submitLabel = "Start session",
-  onCancel
+  formId,
+  onCanSubmitChange
 }: SessionFormProps) {
   const [alleyName, setAlleyName] = useState(initial?.alley_name ?? "");
   const [date, setDate] = useState(initial?.date ?? today());
@@ -82,6 +81,13 @@ export function SessionForm({
     getDistinctDescriptions().then(setDescriptions).catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // The commit lives in the sheet's bar, so the one field it depends on has to
+  // travel out to it.
+  const canSubmit = alleyName.trim().length > 0 && !isSubmitting;
+  useEffect(() => {
+    onCanSubmitChange?.(canSubmit);
+  }, [canSubmit, onCanSubmitChange]);
 
   const alleyMatches = useMemo(() => {
     const q = alleyName.trim().toLowerCase();
@@ -124,29 +130,8 @@ export function SessionForm({
 
   return (
     <>
-      <form onSubmit={handleSubmit}>
-        {/* The dialog's own bar (DESIGN-LANGUAGE §6): close leading, commit
-            trailing, so the commit is in the same corner in every form. */}
-        <div className="flex items-center gap-2 border-b border-edge px-2 py-2">
-          {onCancel ? (
-            <IconButton onClick={onCancel} label="Cancel" variant="round">
-              <X size={20} aria-hidden="true" />
-            </IconButton>
-          ) : (
-            <span className="h-11 w-11 shrink-0" />
-          )}
-          <h2 className="flex-1 text-center text-[17px] font-semibold text-ink">{title}</h2>
-          <IconButton
-            type="submit"
-            variant="confirm"
-            disabled={isSubmitting || alleyName.trim().length === 0}
-            label={isSubmitting ? "Saving" : submitLabel}
-          >
-            <Check size={20} aria-hidden="true" />
-          </IconButton>
-        </div>
-
-        <div className="space-y-3 px-5 pb-5 pt-4">
+      <form id={formId} onSubmit={handleSubmit}>
+        <div className="space-y-3">
           <Field label="Alley">
             <div className="relative">
               <input

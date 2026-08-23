@@ -8,6 +8,8 @@ import {
 } from "lucide-react";
 import { Suspense, lazy, useCallback, useEffect, useReducer, useRef, useState } from "react";
 import { DashboardView } from "./views/DashboardView";
+import { NoSessionView } from "./views/NoSessionView";
+import { HandednessPrompt } from "./components/HandednessPrompt";
 import { ActiveSessionView } from "./views/ActiveSessionView";
 import { HistoryView } from "./views/HistoryView";
 import { SettingsView } from "./views/SettingsView";
@@ -27,7 +29,6 @@ import type { NewSessionFormValues } from "./components/SessionForm";
 import { HandednessContext } from "./lib/handednessContext";
 import { DriftModelContext } from "./lib/driftModelContext";
 import { DEFAULT_DRIFT_MODEL, type DriftModel } from "./lib/driftModel";
-import { HandednessPicker } from "./components/HandednessPicker";
 import type { Handedness, LineSpec } from "./types/bowling";
 import { LaneVisualizerLazy } from "./components/LaneVisualizerLazy";
 import { UpdateToast } from "./components/UpdateToast";
@@ -348,8 +349,7 @@ function App() {
                 key={item.view}
                 item={item}
                 active={view === item.view}
-                disabled={item.view === "active" && !activeSessionId}
-                onClick={() => goTo(item.view)}
+                  onClick={() => goTo(item.view)}
               />
             ))}
           </nav>
@@ -376,6 +376,13 @@ function App() {
             onOpenOilPatterns={() => pushOverlay("oil-patterns")}
             onSessionDeleted={handleSessionDeleted}
             onOpenBackup={goToBackup}
+          />
+        )}
+        {view === "active" && !activeSessionId && (
+          <NoSessionView
+            onStartSession={handleStartSession}
+            isSubmitting={isStartingSession}
+            error={startError}
           />
         )}
         {view === "active" && activeSessionId && (
@@ -437,7 +444,6 @@ function App() {
             key={item.view}
             item={item}
             active={view === item.view}
-            disabled={item.view === "active" && !activeSessionId}
             onClick={() => goTo(item.view)}
           />
         ))}
@@ -482,17 +488,7 @@ function App() {
       <UpdateToast />
 
       {handednessLoaded && handedness === null && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4" role="dialog" aria-modal="true">
-          <div className="w-full max-w-sm animate-pop-in rounded-xl bg-surface p-5 shadow-xl">
-            <h2 className="text-base font-bold text-ink">Which hand do you bowl with?</h2>
-            <p className="mt-1.5 text-sm text-ink-secondary">
-              This sets the direction of the board-adjust arrows when entering your line. You can change it later in Settings → Preferences.
-            </p>
-            <div className="mt-4">
-              <HandednessPicker value={handedness} onSelect={chooseHandedness} />
-            </div>
-          </div>
-        </div>
+        <HandednessPrompt onSelect={chooseHandedness} />
       )}
     </div>
     </DriftModelContext.Provider>

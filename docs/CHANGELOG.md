@@ -6,6 +6,19 @@ User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachan
 
 ### Changed
 
+- **Sheets and dialogs now split on one rule: you type in a sheet, you answer a
+  dialog.** The ball editor was a sheet and the session editor a centred dialog,
+  though they are the same object. Everything you enter data into now rises from
+  the bottom edge and can be dragged back through it: the session form, the oil
+  pattern form, the lane pair, adding a catalog ball. The keyboard is the reason,
+  not the size of the form. A centred dialog holding a focused field gets shoved
+  half off-screen on iOS, while a sheet is already anchored to the edge the
+  keyboard arrives at.
+
+- **The Active tab opens when nothing is running.** It used to be greyed out in
+  the tab bar, which is a dead control that explains nothing. It is a place with
+  nothing in it, so it says so and offers to start a session.
+
 - **Form fields, labels and dialog bars all come from one place now.** Field
   chrome was spelled out by hand in seven forms and five of those copies had
   lost their background class, so those inputs fell back to the browser's own
@@ -41,6 +54,16 @@ User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachan
   word.
 
 ### Fixed
+
+- **Four overlays stopped blinking in and out of existence.** Adding a catalog
+  ball, replacing all data, editing the lane pair and the first-run handedness
+  question all appeared or vanished on a single frame while the sheets beside
+  them slid. Every overlay goes through the one motion implementation now, and
+  the session panel no longer carries a second hand-rolled copy of it.
+
+- **The install prompt leaves the way it arrived.** It was laid out against the
+  bottom edge but animated as a centred dialog, so it sat at the bottom of the
+  screen and then scaled away into the middle.
 
 - **The edit prompt on a finished game stops reappearing when you cancel it.**
   Tapping a board or notes field on a completed game raises a confirm before

@@ -21,6 +21,27 @@ The distinction that matters: **a push is a place, a sheet is a task.** The
 arsenal used to be a bottom sheet, which is why it never felt right: you
 navigate *into* your arsenal, you do not perform it on top of something else.
 
+## 1a. Sheet or dialog: you type in a sheet, you answer a dialog
+
+Both are tasks on top of the current screen, and the split between them is the
+keyboard, not the size of the job:
+
+- **`FormSheet`** (`src/components/ui/FormSheet.tsx`) rises from the bottom
+  edge, drags back through it, and carries the close leading and the commit
+  trailing in its own bar. Everything you enter data into: the session form, the
+  ball editor, a spare line, the lane pair, adding a catalog ball. Bottom rather
+  than centred because that is the edge the keyboard arrives at; a centred
+  dialog holding a focused field gets shoved half off-screen on iOS.
+- **`ConfirmDialog`** settles in the middle and scales back out. Questions with
+  buttons, including a confirm that has to be earned by typing a phrase, because
+  typing `ERASE` is answering rather than entering.
+- **`AnchoredMenu`** (`src/components/ui/AnchoredMenu.tsx`) is the long-press
+  menu on a row or a chip. Its scrim is transparent, not dimmed: a menu is
+  anchored to the thing it acts on, and dimming would hide it.
+
+Before this rule the app had it both ways: the ball editor was a sheet and the
+session editor a centred dialog, though they are the same object.
+
 `PushScreen` has two modes:
 
 - `overlay` (default) floats above everything, tab bar included. For a screen
@@ -145,6 +166,13 @@ as the thing leaving.
 Keyframes live in `src/index.css`; interactive drags own their own transform
 and never animate against a keyframe. Everything is off under
 `prefers-reduced-motion`, which each hook checks before deferring an unmount.
+
+Every overlay goes through `useSheetDismiss`. There is exactly one motion
+implementation, and no overlay is allowed to hand-roll a second: five once did,
+and four of those had no exit at all, so they blinked out of existence while the
+sheet beside them slid. `dragHandlers` ignore a press that landed on a button,
+so a sheet can make its whole header the drag surface without swallowing the
+controls in it.
 
 Every close path goes through the hook's `dismiss`, confirm buttons included
 (`dismiss(onConfirm)`), or the exit is skipped for that path alone.

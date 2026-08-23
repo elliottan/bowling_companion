@@ -6,6 +6,7 @@ import { calculateGameScore } from "../lib/scoring";
 import { calculateBallPerformance, calculateCommonLeaves, calculateStats } from "../lib/stats";
 import { useHandedness } from "../lib/handednessContext";
 import { useOverlay } from "../lib/useOverlay";
+import { useSheetDismiss } from "../lib/useSheetDismiss";
 import { getBalls } from "../services/ballRepository";
 import type { Ball, Frame, LineSpec, SessionSummary, Shot } from "../types/bowling";
 import { LaneNotesTab } from "./LaneNotesTab";
@@ -55,55 +56,16 @@ export function SessionLanePanel({
   const [focus, setFocus] = useState({ id: currentGameId, token: 0 });
   const focusGameId = focus.id;
 
-  // Bottom-sheet feel: slide up on mount, drag down to dismiss, slide down on
-  // close — same pattern as the arsenal sheet in App.tsx.
-  const [mounted, setMounted] = useState(false);
-  const [closing, setClosing] = useState(false);
-  const [dragY, setDragY] = useState(0);
-  const dragStartY = useRef<number | null>(null);
+  // The app's one sheet motion: slide up on mount, drag down to dismiss, slide
+  // back down on close. `dragHandlers` go on the drag pill AND the header row,
+  // and the hook skips a press that landed on a button so the header's own
+  // controls still work.
+  const { dismiss, backdropStyle, panelStyle, exiting, dragHandlers } = useSheetDismiss(onClose);
+  const requestClose = useCallback(() => dismiss(), [dismiss]);
 
-  useEffect(() => {
-    // Flip a frame after mount so the sheet transitions from translateY(100%).
-    const id = requestAnimationFrame(() => setMounted(true));
-    return () => cancelAnimationFrame(id);
-  }, []);
-
-  const requestClose = useCallback(() => {
-    setClosing((was) => {
-      if (!was) window.setTimeout(onClose, 250);
-      return true;
-    });
-  }, [onClose]);
-
-  // Escape + focus trap + focus restore. Tied to `requestClose` (the animated
-  // dismissal), not `onClose` directly, so Escape plays the same slide-down
-  // exit as the drag/backdrop/X paths.
+  // Escape + focus trap + focus restore, tied to the animated dismissal rather
+  // than `onClose`, so Escape plays the same exit as the drag and backdrop.
   const overlayRef = useOverlay<HTMLDivElement>(requestClose);
-
-  // Shared by the drag pill and the header row.
-  const dragHandlers = {
-    onPointerDown(e: React.PointerEvent<HTMLElement>) {
-      // Don't hijack presses on the header's buttons (pencil / close).
-      if ((e.target as HTMLElement).closest("button")) return;
-      dragStartY.current = e.clientY;
-      e.currentTarget.setPointerCapture(e.pointerId);
-    },
-    onPointerMove(e: React.PointerEvent<HTMLElement>) {
-      if (dragStartY.current === null) return;
-      const delta = e.clientY - dragStartY.current;
-      if (delta > 0) setDragY(delta);
-    },
-    onPointerUp() {
-      if (dragStartY.current === null) return;
-      if (dragY > 80) requestClose();
-      setDragY(0);
-      dragStartY.current = null;
-    },
-    onPointerCancel() {
-      setDragY(0);
-      dragStartY.current = null;
-    }
-  };
 
   const currentGame = summary.games.find((g) => g.id === currentGameId);
   const currentLanes = currentGame?.lanes ?? (currentGame?.lane_number ? [currentGame.lane_number] : []);
@@ -142,16 +104,16 @@ export function SessionLanePanel({
       className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 sm:items-center"
       role="dialog"
       aria-modal="true"
+      style={backdropStyle}
       onClick={requestClose}
     >
       <div
         ref={overlayRef}
-        className="flex h-[100dvh] w-full max-w-lg flex-col bg-surface shadow-xl sm:h-[95vh] sm:rounded-2xl"
+        className={`flex h-[100dvh] w-full max-w-lg flex-col bg-surface shadow-xl sm:h-[95vh] sm:rounded-2xl ${
+          exiting ? "" : "animate-slide-up"
+        }`}
         onClick={(e) => e.stopPropagation()}
-        style={{
-          transform: closing || !mounted ? "translateY(100%)" : `translateY(${dragY}px)`,
-          transition: dragY === 0 || closing ? "transform 0.25s ease-out" : "none"
-        }}
+        style={panelStyle}
       >
         {/* Drag pill */}
         <div

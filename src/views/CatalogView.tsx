@@ -6,8 +6,8 @@ import { Button } from "../components/ui/Button";
 import { Chip, TAP_TARGET_44 } from "../components/ui/Chip";
 import { IconButton } from "../components/ui/IconButton";
 import { EmptyState } from "../components/ui/EmptyState";
+import { FormSheet } from "../components/ui/FormSheet";
 import { PushScreen } from "../components/PushScreen";
-import { useOverlay } from "../lib/useOverlay";
 import {
   getAllCatalog,
   syncCatalog,
@@ -313,55 +313,46 @@ function AddFromCatalogDialog({ ball, onConfirm, onCancel, isSaving, error }: Ad
   const [name, setName] = useState(`${ball.brand} ${ball.name}`);
   const colorways = ball.colorways ?? [];
   const [colorwaySku, setColorwaySku] = useState<string | undefined>(colorways[0]?.sku);
-  const overlayRef = useOverlay<HTMLDivElement>(onCancel);
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-end justify-center sm:items-center" role="dialog" aria-modal="true">
-      <div className="absolute inset-0 bg-black/40" onClick={onCancel} />
-      <div ref={overlayRef} className="relative z-10 w-full max-w-sm rounded-t-2xl bg-surface p-5 shadow-xl sm:rounded-xl">
-        <h2 className="mb-3 text-base font-bold text-ink">Add to arsenal</h2>
-        {error && (
-          <ErrorBanner className="mb-3">{error}</ErrorBanner>
-        )}
-        <p className="mb-3 text-sm text-ink-secondary">
-          Specs snapshot from catalog. You can edit the name before saving.
-        </p>
-        <label className={FIELD_LABEL} htmlFor="catalog-ball-name">
-          Name
-        </label>
-        <input
-          id="catalog-ball-name"
-          type="text"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          className={FIELD}
-        />
-        {colorways.length > 1 && (
-          <div className="mt-3">
-            <p className="mb-1.5 block text-sm font-medium text-ink-strong">Colorway</p>
-            <div className="flex flex-wrap gap-2">
-              {colorways.map((cw) => (
-                <Chip
-                  key={cw.sku}
-                  selected={colorwaySku === cw.sku}
-                  onClick={() => setColorwaySku(cw.sku)}
-                >
-                  {cw.color ?? cw.sku}
-                </Chip>
-              ))}
-            </div>
+    <FormSheet
+      title="Add to arsenal"
+      onClose={onCancel}
+      onConfirm={() => onConfirm(name.trim(), colorwaySku)}
+      confirmLabel="Add to arsenal"
+      confirmDisabled={isSaving || !name.trim()}
+      banner={error ? <ErrorBanner>{error}</ErrorBanner> : undefined}
+    >
+      <p className="mb-3 text-sm text-ink-secondary">
+        Specs snapshot from catalog. You can edit the name before saving.
+      </p>
+      <label className={FIELD_LABEL} htmlFor="catalog-ball-name">
+        Name
+      </label>
+      <input
+        id="catalog-ball-name"
+        type="text"
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        className={FIELD}
+      />
+      {colorways.length > 1 && (
+        <div className="mt-3">
+          <p className={FIELD_LABEL}>Colorway</p>
+          <div className="flex flex-wrap gap-2">
+            {colorways.map((cw) => (
+              <Chip
+                key={cw.sku}
+                selected={colorwaySku === cw.sku}
+                onClick={() => setColorwaySku(cw.sku)}
+              >
+                {cw.color ?? cw.sku}
+              </Chip>
+            ))}
           </div>
-        )}
-        <div className="mt-4 flex gap-2">
-          <Button variant="primary" disabled={isSaving || !name.trim()} onClick={() => onConfirm(name.trim(), colorwaySku)}>
-            {isSaving ? "Saving…" : "Add ball"}
-          </Button>
-          <Button variant="secondary" onClick={onCancel} disabled={isSaving}>
-            Cancel
-          </Button>
         </div>
-      </div>
-    </div>
+      )}
+    </FormSheet>
   );
 }
 

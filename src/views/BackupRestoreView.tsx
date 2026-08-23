@@ -9,8 +9,8 @@ import {
   type PreparedImport
 } from "../services/backupRepository";
 import { Button } from "../components/ui/Button";
+import { ConfirmDialog } from "../components/ConfirmDialog";
 import { FIELD, FIELD_LABEL } from "../components/ui/field";
-import { useOverlay } from "../lib/useOverlay";
 
 interface BackupRestoreViewProps {
   /** Present when pushed as a screen — draws the shared nav bar. */
@@ -187,63 +187,42 @@ function ReplaceConfirmDialog({
   onConfirm: () => void;
   onCancel: () => void;
 }) {
-  const overlayRef = useOverlay<HTMLDivElement>(onCancel, pending != null);
-
   if (!pending) return null;
 
   const { current, incoming } = pending;
 
   return (
-    <div
-      className="fixed inset-0 z-[80] flex items-center justify-center bg-black/40 p-4"
-      role="dialog"
-      aria-modal="true"
-      onClick={onCancel}
-    >
-      <div
-        ref={overlayRef}
-        className="w-full max-w-sm rounded-xl bg-surface p-5 shadow-xl"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <h2 className="text-base font-bold text-ink">Replace all data?</h2>
-
-        <p className="mt-2 text-sm text-ink-secondary">
-          This permanently deletes everything on this device ({current.sessions}{" "}
-          {current.sessions === 1 ? "session" : "sessions"}, {current.games}{" "}
-          {current.games === 1 ? "game" : "games"}, {current.balls}{" "}
-          {current.balls === 1 ? "ball" : "balls"}) and installs the file instead
-          ({incoming.sessions} {incoming.sessions === 1 ? "session" : "sessions"},{" "}
-          {incoming.games} {incoming.games === 1 ? "game" : "games"}).
-        </p>
-        <p className="mt-2 text-sm text-ink-secondary">
-          A copy of your current data is downloaded first. It is the only way back.
-        </p>
-
-        <label className="mt-4 block">
-          <span className={FIELD_LABEL}>Type {REQUIRED_CONFIRMATION} to confirm</span>
-          <input
-            autoFocus
-            value={confirmText}
-            onChange={(e) => onConfirmTextChange(e.target.value)}
-            className={FIELD}
-            placeholder={REQUIRED_CONFIRMATION}
-            autoComplete="off"
-          />
-        </label>
-
-        <div className="mt-5 flex justify-end gap-2">
-          <Button variant="ghost" onClick={onCancel} disabled={isBusy}>
-            Cancel
-          </Button>
-          <Button
-            variant="danger"
-            onClick={onConfirm}
-            disabled={isBusy || confirmText.trim() !== REQUIRED_CONFIRMATION}
-          >
-            {isBusy ? "Replacing…" : "Replace everything"}
-          </Button>
-        </div>
-      </div>
-    </div>
+    <ConfirmDialog
+      open
+      title="Replace all data?"
+      confirmLabel={isBusy ? "Replacing" : "Replace everything"}
+      confirmDisabled={isBusy || confirmText.trim() !== REQUIRED_CONFIRMATION}
+      onConfirm={onConfirm}
+      onCancel={onCancel}
+      message={
+        <>
+          <p>
+            This permanently deletes everything on this device ({current.sessions}{" "}
+            {current.sessions === 1 ? "session" : "sessions"}, {current.games}{" "}
+            {current.games === 1 ? "game" : "games"}, {current.balls}{" "}
+            {current.balls === 1 ? "ball" : "balls"}) and installs the file instead
+            ({incoming.sessions} {incoming.sessions === 1 ? "session" : "sessions"},{" "}
+            {incoming.games} {incoming.games === 1 ? "game" : "games"}).
+          </p>
+          <p>A copy of your current data is downloaded first. It is the only way back.</p>
+          <label className="block pt-1">
+            <span className={FIELD_LABEL}>Type {REQUIRED_CONFIRMATION} to confirm</span>
+            <input
+              autoFocus
+              value={confirmText}
+              onChange={(e) => onConfirmTextChange(e.target.value)}
+              className={FIELD}
+              placeholder={REQUIRED_CONFIRMATION}
+              autoComplete="off"
+            />
+          </label>
+        </>
+      }
+    />
   );
 }

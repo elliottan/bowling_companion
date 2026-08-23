@@ -1,10 +1,9 @@
 import { useState, type FormEvent } from "react";
-import { useOverlay } from "../lib/useOverlay";
-import { useSheetDismiss } from "../lib/useSheetDismiss";
-import { Check, X } from "lucide-react";
-import { IconButton } from "./ui/IconButton";
+import { FormSheet } from "./ui/FormSheet";
 import { FIELD, FIELD_LABEL } from "./ui/field";
 import type { OilPattern } from "../types/bowling";
+
+const FORM_ID = "oil-pattern-form";
 
 interface OilPatternFormDialogProps {
   open: boolean;
@@ -16,8 +15,6 @@ interface OilPatternFormDialogProps {
 
 /** Add or rename an oil pattern, and point it at its pattern sheet. */
 export function OilPatternFormDialog({ open, initial, onSubmit, onCancel }: OilPatternFormDialogProps) {
-  const { dismiss, backdropStyle, panelStyle, exiting } = useSheetDismiss(onCancel, "center");
-  const overlayRef = useOverlay<HTMLDivElement>(dismiss, open);
   const [name, setName] = useState(initial?.name ?? "");
   const [url, setUrl] = useState(initial?.url ?? "");
   const [error, setError] = useState("");
@@ -38,33 +35,18 @@ export function OilPatternFormDialog({ open, initial, onSubmit, onCancel }: OilP
   }
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/40 p-4"
-      role="dialog"
-      aria-modal="true"
-      style={backdropStyle}
-      onClick={() => dismiss()}
+    <FormSheet
+      title={initial ? "Edit oil pattern" : "Add oil pattern"}
+      onClose={onCancel}
+      onConfirm={() => {
+        const form = document.getElementById(FORM_ID);
+        if (form instanceof HTMLFormElement) form.requestSubmit();
+      }}
+      confirmLabel="Save"
+      confirmDisabled={isSaving || name.trim().length === 0}
     >
-      <div
-        ref={overlayRef}
-        style={panelStyle}
-        className={`my-auto w-full max-w-sm overflow-hidden rounded-xl bg-surface shadow-xl ${exiting ? "" : "animate-pop-in"}`}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <form onSubmit={handleSubmit}>
-          <div className="flex items-center gap-2 border-b border-edge px-2 py-2">
-            <IconButton onClick={() => dismiss()} label="Cancel" variant="round">
-              <X size={20} aria-hidden="true" />
-            </IconButton>
-            <h2 className="flex-1 text-center text-[17px] font-semibold text-ink">
-              {initial ? "Edit oil pattern" : "Add oil pattern"}
-            </h2>
-            <IconButton type="submit" variant="confirm" disabled={isSaving} label="Save">
-              <Check size={20} aria-hidden="true" />
-            </IconButton>
-          </div>
-
-          <div className="space-y-3 px-5 pb-5 pt-4">
+      <form id={FORM_ID} onSubmit={handleSubmit}>
+        <div className="space-y-3">
             <label className="block">
               <span className={FIELD_LABEL}>Name</span>
               <input
@@ -95,8 +77,7 @@ export function OilPatternFormDialog({ open, initial, onSubmit, onCancel }: OilP
 
             {error && <p className="text-xs text-danger-700">{error}</p>}
           </div>
-        </form>
-      </div>
-    </div>
+      </form>
+    </FormSheet>
   );
 }
