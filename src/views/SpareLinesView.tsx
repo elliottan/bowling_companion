@@ -170,8 +170,8 @@ export function SpareLinesView() {
   return (
     <section className="mx-auto w-full max-w-3xl px-3 pb-5 pt-3 sm:px-6 sm:pt-5">
       <div className="mb-3 flex items-center justify-between">
-        <h1 className="text-xl font-bold text-ink">Spare Lines</h1>
-        <IconButton onClick={() => setEditing({ mode: "add" })} label="Add spare">
+        <h1 className="text-xl font-bold text-ink">Spare lines</h1>
+        <IconButton onClick={() => setEditing({ mode: "add" })} label="Add spare" variant="round">
           <Plus size={18} aria-hidden="true" />
         </IconButton>
       </div>

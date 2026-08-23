@@ -1,7 +1,9 @@
 import { useState, type FormEvent } from "react";
 import { useOverlay } from "../lib/useOverlay";
 import { useSheetDismiss } from "../lib/useSheetDismiss";
-import { Button } from "./ui/Button";
+import { Check, X } from "lucide-react";
+import { IconButton } from "./ui/IconButton";
+import { FIELD, FIELD_LABEL } from "./ui/field";
 import type { OilPattern } from "../types/bowling";
 
 interface OilPatternFormDialogProps {
@@ -11,9 +13,6 @@ interface OilPatternFormDialogProps {
   onSubmit: (values: { name: string; url?: string }) => Promise<void>;
   onCancel: () => void;
 }
-
-const inputClass =
-  "h-11 w-full min-w-0 box-border rounded-lg border border-edge-strong px-3 text-sm outline-none focus:border-accent-fill focus:ring-2 focus:ring-accent-fill/20";
 
 /** Add or rename an oil pattern, and point it at its pattern sheet. */
 export function OilPatternFormDialog({ open, initial, onSubmit, onCancel }: OilPatternFormDialogProps) {
@@ -49,55 +48,52 @@ export function OilPatternFormDialog({ open, initial, onSubmit, onCancel }: OilP
       <div
         ref={overlayRef}
         style={panelStyle}
-        className={`my-auto w-full max-w-sm rounded-xl bg-surface p-5 shadow-xl ${exiting ? "" : "animate-pop-in"}`}
+        className={`my-auto w-full max-w-sm overflow-hidden rounded-xl bg-surface shadow-xl ${exiting ? "" : "animate-pop-in"}`}
         onClick={(e) => e.stopPropagation()}
       >
         <form onSubmit={handleSubmit}>
-          <h2 className="text-lg font-bold text-ink">
-            {initial ? "Edit oil pattern" : "Add oil pattern"}
-          </h2>
+          <div className="flex items-center gap-2 border-b border-edge px-2 py-2">
+            <IconButton onClick={() => dismiss()} label="Cancel" variant="round">
+              <X size={20} aria-hidden="true" />
+            </IconButton>
+            <h2 className="flex-1 text-center text-[17px] font-semibold text-ink">
+              {initial ? "Edit oil pattern" : "Add oil pattern"}
+            </h2>
+            <IconButton type="submit" variant="confirm" disabled={isSaving} label="Save">
+              <Check size={20} aria-hidden="true" />
+            </IconButton>
+          </div>
 
-          <div className="mt-4 space-y-3">
+          <div className="space-y-3 px-5 pb-5 pt-4">
             <label className="block">
-              <span className="mb-1 block text-xs font-semibold text-ink-secondary">Name</span>
+              <span className={FIELD_LABEL}>Name</span>
               <input
                 required
                 autoFocus
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className={inputClass}
+                className={FIELD}
                 placeholder="Kegel Main Street"
               />
             </label>
 
             <label className="block">
-              <span className="mb-1 block text-xs font-semibold text-ink-secondary">
-                Pattern sheet link
-              </span>
+              <span className={FIELD_LABEL}>Pattern sheet link (optional)</span>
               <input
                 type="url"
                 inputMode="url"
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
-                className={inputClass}
+                className={FIELD}
                 placeholder="https://…/main-street.pdf"
                 autoComplete="off"
               />
               <span className="mt-1 block text-xs text-ink-tertiary">
-                Optional. Usually a PDF, and it opens in a new tab.
+                Usually a PDF, and it opens in a new tab.
               </span>
             </label>
 
-            {error && <p className="text-xs text-red-600">{error}</p>}
-          </div>
-
-          <div className="mt-5 flex justify-end gap-2">
-            <Button type="button" variant="ghost" onClick={() => dismiss()}>
-              Cancel
-            </Button>
-            <Button type="submit" variant="primary" disabled={isSaving}>
-              {isSaving ? "Saving…" : "Save"}
-            </Button>
+            {error && <p className="text-xs text-danger-700">{error}</p>}
           </div>
         </form>
       </div>

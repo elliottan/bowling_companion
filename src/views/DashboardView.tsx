@@ -4,6 +4,7 @@ import { useLiveQuery } from "dexie-react-hooks";
 import { createPortal } from "react-dom";
 import { ErrorBanner } from "../components/ErrorBanner";
 import { SessionFormDialog } from "../components/SessionFormDialog";
+import { GROUP_HEADING } from "../components/ui/typography";
 import { SessionHistory } from "../components/SessionHistory";
 import { InstallPrompt } from "../components/InstallPrompt";
 import { Button } from "../components/ui/Button";
@@ -106,12 +107,14 @@ export function DashboardView({
     { icon: CircleDot, label: "Arsenal", onClick: onOpenArsenal },
     { icon: BookOpen, label: "Catalog", onClick: onOpenCatalog },
     { icon: Spline, label: "Line", onClick: onOpenLineVisualizer },
-    { icon: MapPin, label: "Lane Notes", onClick: onOpenLaneNotes },
-    { icon: Waves, label: "Oil Patterns", onClick: onOpenOilPatterns }
+    { icon: MapPin, label: "Lane notes", onClick: onOpenLaneNotes },
+    { icon: Waves, label: "Oil patterns", onClick: onOpenOilPatterns }
   ];
 
   return (
     <section className={`mx-auto w-full max-w-xl px-3 pb-5 pt-3 sm:px-6 sm:pt-5 ${resumable ? "pb-44" : ""}`}>
+      <h1 className="mb-3 text-xl font-bold text-ink">Home</h1>
+
       {error && (
         <ErrorBanner className="mb-4">{error}</ErrorBanner>
       )}
@@ -163,14 +166,18 @@ export function DashboardView({
 
       {/* Shortcuts. Icon and name only: these are places the user already
           knows, so a sentence of description each only cost vertical space. */}
-      <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
-        {shortcuts.map((s) => (
+      {/* Six columns, not three: five tiles over three columns leaves a hole in
+          the bottom-right corner. Three thirds then two halves fills both rows. */}
+      <div className="grid grid-cols-6 gap-2 sm:grid-cols-5">
+        {shortcuts.map((s, i) => (
           <button
             key={s.label}
             type="button"
             onClick={s.onClick}
             aria-label={s.label}
-            className="flex flex-col items-center gap-1.5 rounded-xl border border-edge bg-surface px-2 py-3 shadow-sm hover:border-accent-fill"
+            className={`flex flex-col items-center gap-1.5 rounded-xl border border-edge bg-surface px-2 py-3 shadow-sm hover:border-accent-fill sm:col-span-1 ${
+              i < 3 ? "col-span-2" : "col-span-3"
+            }`}
           >
             <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent-soft text-accent">
               <s.icon size={18} aria-hidden="true" />
@@ -182,7 +189,7 @@ export function DashboardView({
 
       <div className="mt-6">
         <div className="mb-2 flex items-center justify-between">
-          <h2 className="text-sm font-bold uppercase tracking-wide text-ink-secondary">Recent sessions</h2>
+          <h2 className={GROUP_HEADING}>Recent sessions</h2>
           {recent.length > 0 && (
             <Button variant="ghost" onClick={onViewAll}>
               View all
@@ -195,6 +202,11 @@ export function DashboardView({
           onOpenSession={onOpenSession}
           activeSessionId={activeSessionId}
           onSessionDeleted={onSessionDeleted}
+          emptyAction={
+            <Button variant="primary" onClick={() => setShowForm(true)}>
+              Start a session
+            </Button>
+          }
         />
       </div>
 

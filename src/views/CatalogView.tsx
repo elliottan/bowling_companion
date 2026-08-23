@@ -1,10 +1,11 @@
-import { Loader2, Palette, RefreshCw, X } from "lucide-react";
+import { BookOpen, Loader2, Palette, RefreshCw, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { CatalogBallImage } from "../components/CatalogBallImage";
 import { ErrorBanner } from "../components/ErrorBanner";
 import { Button } from "../components/ui/Button";
 import { Chip, TAP_TARGET_44 } from "../components/ui/Chip";
 import { IconButton } from "../components/ui/IconButton";
+import { EmptyState } from "../components/ui/EmptyState";
 import { PushScreen } from "../components/PushScreen";
 import { useOverlay } from "../lib/useOverlay";
 import {
@@ -16,6 +17,7 @@ import type { CatalogBall, CoverstockCategory, Manufacturer } from "../types/cat
 import type { Ball } from "../types/bowling";
 import { addBall, getBalls } from "../services/ballRepository";
 import { GROUP_HEADING } from "../components/ui/typography";
+import { FIELD, FIELD_LABEL } from "../components/ui/field";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -324,14 +326,15 @@ function AddFromCatalogDialog({ ball, onConfirm, onCancel, isSaving, error }: Ad
         <p className="mb-3 text-sm text-ink-secondary">
           Specs snapshot from catalog. You can edit the name before saving.
         </p>
-        <label className="mb-1 block text-sm font-medium text-ink-strong">
-          Name <span className="text-red-500">*</span>
+        <label className={FIELD_LABEL} htmlFor="catalog-ball-name">
+          Name
         </label>
         <input
+          id="catalog-ball-name"
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className="h-11 w-full rounded-lg border border-edge-strong px-3 text-sm outline-none focus:border-accent-fill focus:ring-2 focus:ring-accent-fill/20"
+          className={FIELD}
         />
         {colorways.length > 1 && (
           <div className="mt-3">
@@ -520,7 +523,7 @@ export function CatalogView({ onBack }: CatalogViewProps) {
 
   return (
     <PushScreen
-      title="Ball Catalog"
+      title="Ball catalog"
       onBack={onBack}
       active={selectedBall === null && addingBall === null}
       trailing={
@@ -551,7 +554,7 @@ export function CatalogView({ onBack }: CatalogViewProps) {
             placeholder="Search name, brand, coverstock…"
             value={filters.search}
             onChange={(e) => setFilters((f) => ({ ...f, search: e.target.value }))}
-            className="h-11 w-full rounded-lg border border-edge-strong px-3 pr-10 text-sm outline-none focus:border-accent-fill focus:ring-2 focus:ring-accent-fill/20"
+            className={`${FIELD} pr-10`}
           />
           {filters.search && (
             <IconButton
@@ -730,7 +733,15 @@ export function CatalogView({ onBack }: CatalogViewProps) {
       <div className="mx-auto w-full max-w-3xl px-3 pb-5 pt-3 sm:px-6">
         {/* B2: Row list instead of card grid */}
         {allBalls.length === 0 && syncState.status !== "syncing" ? (
-          <p className="text-sm text-ink-secondary">No balls in catalog yet. Try refreshing.</p>
+          <EmptyState
+            icon={BookOpen}
+            title="Catalog is empty"
+            description="The catalog holds manufacturer specs for every ball, so linking one fills in its numbers for you."
+          >
+            <Button variant="primary" onClick={handleRefresh}>
+              Refresh catalog
+            </Button>
+          </EmptyState>
         ) : (
           <ul className="divide-y divide-edge rounded-lg border border-edge bg-surface shadow-sm">
             {displayed.map((ball) => (

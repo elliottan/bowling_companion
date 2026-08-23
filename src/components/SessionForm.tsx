@@ -1,14 +1,15 @@
-import { ChevronDown, ChevronLeft, Settings2, X } from "lucide-react";
+import { Check, ChevronDown, ChevronLeft, Settings2, X } from "lucide-react";
 import type { FormEvent, ReactNode } from "react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { OilPatternManager } from "./OilPatternManager";
 import { Button } from "./ui/Button";
+import { IconButton } from "./ui/IconButton";
+import { FIELD, FIELD_LABEL, FIELD_SELECT, FIELD_TEXTAREA } from "./ui/field";
 import type { CreateSessionInput } from "../services/bowlingRepository";
 import type { OilPattern } from "../types/bowling";
 import { getOilPattern, getOilPatterns } from "../services/ballRepository";
 import { getDistinctAlleys, getDistinctDescriptions } from "../services/bowlingRepository";
-import { GROUP_HEADING } from "./ui/typography";
 
 export interface NewSessionFormValues extends CreateSessionInput {
   lanes: string[];
@@ -36,13 +37,9 @@ interface SessionFormProps {
   onCancel?: () => void;
 }
 
-const inputClass =
-  "h-11 w-full min-w-0 box-border rounded-lg border border-edge-strong px-3 text-sm outline-none focus:border-accent-fill focus:ring-2 focus:ring-accent-fill/20";
-
-// appearance-none so the clear button and chevron can share the right edge;
-// pr-16 keeps a long pattern name from running underneath them.
-const selectClass =
-  "h-11 w-full appearance-none rounded-lg border border-edge-strong pl-3 pr-16 text-sm outline-none focus:border-accent-fill focus:ring-2 focus:ring-accent-fill/20 bg-surface";
+// pr-16 rather than the shared pr-10: the clear button and the chevron share
+// the right edge here, and a long pattern name must not run under either.
+const selectClass = `${FIELD_SELECT} pr-16`;
 
 const today = () => new Date().toISOString().slice(0, 10);
 
@@ -128,9 +125,28 @@ export function SessionForm({
   return (
     <>
       <form onSubmit={handleSubmit}>
-        <h2 className="text-lg font-bold text-ink">{title}</h2>
+        {/* The dialog's own bar (DESIGN-LANGUAGE §6): close leading, commit
+            trailing, so the commit is in the same corner in every form. */}
+        <div className="flex items-center gap-2 border-b border-edge px-2 py-2">
+          {onCancel ? (
+            <IconButton onClick={onCancel} label="Cancel" variant="round">
+              <X size={20} aria-hidden="true" />
+            </IconButton>
+          ) : (
+            <span className="h-11 w-11 shrink-0" />
+          )}
+          <h2 className="flex-1 text-center text-[17px] font-semibold text-ink">{title}</h2>
+          <IconButton
+            type="submit"
+            variant="confirm"
+            disabled={isSubmitting || alleyName.trim().length === 0}
+            label={isSubmitting ? "Saving" : submitLabel}
+          >
+            <Check size={20} aria-hidden="true" />
+          </IconButton>
+        </div>
 
-        <div className="mt-4 space-y-3">
+        <div className="space-y-3 px-5 pb-5 pt-4">
           <Field label="Alley">
             <div className="relative">
               <input
@@ -139,7 +155,7 @@ export function SessionForm({
                 onChange={(e) => { setAlleyName(e.target.value); setShowAlleyList(true); }}
                 onFocus={() => setShowAlleyList(true)}
                 onBlur={() => setTimeout(() => setShowAlleyList(false), 120)}
-                className={inputClass}
+                className={FIELD}
                 placeholder="Orchid Bowl"
                 autoComplete="off"
               />
@@ -168,7 +184,7 @@ export function SessionForm({
               type="date"
               value={date}
               onChange={(e) => setDate(e.target.value)}
-              className={inputClass}
+              className={FIELD}
             />
           </Field>
 
@@ -179,8 +195,8 @@ export function SessionForm({
                 onChange={(e) => { setDescription(e.target.value); setShowDescList(true); }}
                 onFocus={() => setShowDescList(true)}
                 onBlur={() => setTimeout(() => setShowDescList(false), 120)}
-                className={inputClass}
-                placeholder="League night, practice, tournament..."
+                className={FIELD}
+                placeholder="League night, practice, tournament…"
                 autoComplete="off"
               />
               {showDescList && descMatches.length > 0 && (
@@ -206,20 +222,16 @@ export function SessionForm({
               wrapping <label> would turn into a second way to focus the select. */}
           <div className="space-y-1.5">
             <div className="flex items-center justify-between gap-2">
-              <label
-                htmlFor="oil-pattern"
-                className={GROUP_HEADING}
-              >
+              <label htmlFor="oil-pattern" className={`${FIELD_LABEL} mb-0`}>
                 Oil pattern
               </label>
-              <button
-                type="button"
+              <IconButton
                 onClick={() => setShowPatternManager(true)}
-                className="inline-flex items-center gap-1 text-xs font-semibold text-accent hover:underline"
+                label="Manage oil patterns"
+                className="-my-2 text-accent"
               >
-                <Settings2 size={12} aria-hidden="true" />
-                Manage
-              </button>
+                <Settings2 size={18} aria-hidden="true" />
+              </IconButton>
             </div>
 
             <div className="relative">
@@ -262,29 +274,10 @@ export function SessionForm({
             <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              className="min-h-20 w-full rounded-lg border border-edge-strong px-3 py-2 text-sm outline-none focus:border-accent-fill focus:ring-2 focus:ring-accent-fill/20"
-              placeholder="Ball choice, surface, carry..."
+              className={`${FIELD_TEXTAREA} min-h-20`}
+              placeholder="Ball choice, surface, carry…"
             />
           </Field>
-        </div>
-
-        <div className="mt-4 flex gap-2">
-          {onCancel && (
-            <button
-              type="button"
-              onClick={onCancel}
-              className="inline-flex h-12 flex-1 items-center justify-center rounded-lg border border-edge-strong bg-surface px-4 text-sm font-semibold text-ink-strong hover:bg-surface-muted"
-            >
-              Cancel
-            </button>
-          )}
-          <button
-            type="submit"
-            disabled={isSubmitting || alleyName.trim().length === 0}
-            className="inline-flex h-12 flex-1 items-center justify-center rounded-lg bg-accent-fill px-4 text-sm font-semibold text-accent-on-fill shadow-sm hover:bg-accent-fill-hover disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            {isSubmitting ? "Saving..." : submitLabel}
-          </button>
         </div>
 
       </form>
@@ -313,10 +306,8 @@ export function SessionForm({
 
 function Field({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <label className="block space-y-1.5">
-      <span className={GROUP_HEADING}>
-        {label}
-      </span>
+    <label className="block">
+      <span className={FIELD_LABEL}>{label}</span>
       {children}
     </label>
   );

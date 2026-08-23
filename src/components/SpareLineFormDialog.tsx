@@ -10,6 +10,7 @@ import { useSheetDismiss } from "../lib/useSheetDismiss";
 import { upsertSpareLine } from "../services/ballRepository";
 import type { LineSpec, PinNumber } from "../types/bowling";
 import { Button } from "./ui/Button";
+import { FIELD_MICRO_LABEL as floatLabel } from "./ui/field";
 import { IconButton } from "./ui/IconButton";
 
 const EMPTY_LINE: LineSpec = {};
@@ -17,11 +18,10 @@ const ALL_PINS: PinNumber[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
 // Field chrome mirrors the score-entry shot panel (ActiveGameScorer's LineInput)
 // so a spare line reads the same way a shot does.
-const floatLabel =
-  "pointer-events-none absolute -top-1.5 left-2 z-10 bg-surface px-1 text-[11px] font-semibold uppercase tracking-[0.01em] text-ink-secondary";
+
 const eyebrow = "text-[11px] font-semibold uppercase tracking-[0.01em] text-ink-secondary";
 const boardInput =
-  "h-9 w-full min-w-0 rounded-lg border border-edge bg-surface-muted text-center text-sm font-semibold tabular-nums text-ink focus:border-accent-fill focus:bg-surface focus:outline-none";
+  "h-9 w-full min-w-0 rounded-lg border border-edge-strong bg-surface-muted text-center text-sm font-semibold tabular-nums text-ink focus:border-accent-fill focus:bg-surface focus:outline-none";
 
 interface SpareLineFormDialogProps {
   /** Leave being shot at (standing pins). Empty = user picks pins. */
@@ -143,7 +143,7 @@ export function SpareLineFormDialog({
             <p className={`mb-1 ${eyebrow}`}>Shooting line (boards)</p>
             <div className="flex items-center gap-1.5">
               {(["stance", "target"] as const).map((field) => (
-                <label key={field} className="relative min-w-0 flex-1">
+                <label key={field} className="min-w-0 flex-1">
                   <span className={floatLabel}>{field}</span>
                   <input
                     type="number"

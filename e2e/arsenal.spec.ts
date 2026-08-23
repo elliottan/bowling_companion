@@ -59,7 +59,7 @@ test("a ball added in the arsenal is selectable on a shot", async ({ page }) => 
   await page.getByRole("button", { name: "Start new session" }).click();
   await page.getByPlaceholder("Orchid Bowl").fill("Arsenal Lanes");
   await page.getByRole("button", { name: "Start session" }).click();
-  await page.getByRole("button", { name: "Done" }).click();
+  await page.getByRole("dialog", { name: /lanes/i }).getByRole("button", { name: "Close" }).click();
 
   // The chosen ball IS the control: it starts unset and opens the picker.
   await page.getByRole("button", { name: /Ball: none/ }).click();

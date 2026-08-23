@@ -182,7 +182,7 @@ function FrameCell({
           const content = isLiveCell ? (
             liveSymbol
           ) : isSplitCell ? (
-            <span className="flex h-5 w-5 items-center justify-center rounded-full border-2 border-red-500 leading-none sm:h-6 sm:w-6">
+            <span className="flex h-5 w-5 items-center justify-center rounded-full border-2 border-danger-600 leading-none sm:h-6 sm:w-6">
               {cell.symbol}
             </span>
           ) : (

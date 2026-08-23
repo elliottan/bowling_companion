@@ -1,4 +1,4 @@
-import { ChevronLeft, Plus, Trash2 } from "lucide-react";
+import { ChevronLeft, Plus, Trash2, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { ActiveGameScorer } from "../components/ActiveGameScorer";
 import { ConfirmDialog } from "../components/ConfirmDialog";
@@ -8,6 +8,7 @@ import { SessionHeaderText } from "../components/SessionHeaderText";
 import { SessionLanePanel, type SessionPanelTab } from "../components/SessionLanePanel";
 import { Button } from "../components/ui/Button";
 import { Chip, TAP_TARGET_44 } from "../components/ui/Chip";
+import { IconButton } from "../components/ui/IconButton";
 import type { NewSessionFormValues } from "../components/SessionForm";
 import { calculateGameScore } from "../lib/scoring";
 import { useLongPress } from "../lib/useLongPress";
@@ -240,7 +241,7 @@ export function ActiveSessionView({
   if (isLoading) {
     return (
       <section className="mx-auto w-full max-w-5xl px-4 py-6 text-sm text-ink-secondary">
-        Loading...
+        Loading…
       </section>
     );
   }
@@ -357,16 +358,19 @@ export function ActiveSessionView({
               </Chip>
             );
           })}
-          {/* Chip-height (h-9), not the 44pt IconButton — it sits in the chip
+          {/* Chip-height (h-9), not the 44pt IconButton: it sits in the chip
               row and a taller box makes the row look ragged. Tap target is
-              expanded vertically the same way Chip does it. */}
+              expanded vertically the same way Chip does it. It also wears
+              Chip's own unselected skin, because a `bg-ink` slab was the only
+              near-black object in light mode and out-shouted the selected
+              game chip beside it. */}
           <button
             type="button"
             onClick={() => void handleAddGame()}
             disabled={!canAddGame}
             aria-label="New game"
             title="New game"
-            className={`relative inline-flex h-9 w-11 shrink-0 items-center justify-center rounded-md bg-ink text-surface hover:bg-ink/90 disabled:cursor-not-allowed disabled:opacity-50 ${TAP_TARGET_44}`}
+            className={`relative inline-flex h-9 w-11 shrink-0 items-center justify-center rounded-md border border-edge-strong bg-surface text-accent hover:bg-surface-muted disabled:cursor-not-allowed disabled:opacity-50 ${TAP_TARGET_44}`}
           >
             <Plus size={16} aria-hidden="true" />
           </button>
@@ -386,7 +390,7 @@ export function ActiveSessionView({
                   setChipMenu(null);
                   setConfirmDeleteGame(gameId);
                 }}
-                className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm font-medium text-red-600 hover:bg-red-50"
+                className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm font-medium text-danger-700 hover:bg-danger-50"
               >
                 <Trash2 size={16} aria-hidden="true" />
                 Delete game
@@ -469,15 +473,27 @@ export function ActiveSessionView({
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
           role="dialog"
           aria-modal="true"
+          aria-label={`Game ${activeGame?.game_number ?? 1} lanes`}
           onClick={() => setShowLaneEditor(false)}
         >
-          <div ref={laneEditorRef} className="w-full max-w-sm rounded-xl bg-surface p-5 shadow-xl" onClick={(e) => e.stopPropagation()}>
-            <h2 className="text-base font-bold text-ink">
-              Game {activeGame?.game_number ?? 1} lanes
-            </h2>
-            <p className="mt-1 text-xs text-ink-secondary">
-              This game only. Lanes alternate every frame, so you can't set a lane
-              per frame, and fixing a start lane here leaves every other game alone.
+          <div ref={laneEditorRef} className="w-full max-w-sm animate-pop-in overflow-hidden rounded-xl bg-surface shadow-xl" onClick={(e) => e.stopPropagation()}>
+            {/* Lanes save as you type, so the bar carries a close and no commit
+                (DESIGN-LANGUAGE §1: at most one trailing action, and this
+                screen has none to offer). */}
+            <div className="flex items-center gap-2 border-b border-edge px-2 py-2">
+              <IconButton onClick={() => setShowLaneEditor(false)} label="Close" variant="round">
+                <X size={20} aria-hidden="true" />
+              </IconButton>
+              <h2 className="flex-1 text-center text-[17px] font-semibold text-ink">
+                Game {activeGame?.game_number ?? 1} lanes
+              </h2>
+              <span className="h-11 w-11 shrink-0" />
+            </div>
+
+            <div className="px-5 pb-5 pt-4">
+            <p className="text-xs text-ink-secondary">
+              Sets the pair for this game only. Lanes alternate every frame, so
+              you pick which one frame 1 starts on.
             </p>
 
             <span className={`mt-4 block ${GROUP_HEADING}`}>Lane pair</span>
@@ -489,7 +505,7 @@ export function ActiveSessionView({
                 inputMode="numeric"
                 aria-label="First lane"
                 placeholder="12"
-                className="h-10 w-16 rounded-lg border border-edge-strong px-2 text-sm outline-none focus:border-accent-fill"
+                className="h-10 w-16 rounded-lg border border-edge-strong bg-surface px-2 text-sm text-ink outline-none focus:border-accent-fill"
               />
               <span aria-hidden="true" className="text-ink-secondary">/</span>
               <input
@@ -499,7 +515,7 @@ export function ActiveSessionView({
                 inputMode="numeric"
                 aria-label="Second lane"
                 placeholder="13"
-                className="h-10 w-16 rounded-lg border border-edge-strong px-2 text-sm outline-none focus:border-accent-fill"
+                className="h-10 w-16 rounded-lg border border-edge-strong bg-surface px-2 text-sm text-ink outline-none focus:border-accent-fill"
               />
             </div>
 
@@ -527,12 +543,7 @@ export function ActiveSessionView({
               </div>
             )}
 
-            {laneError && <p className="mt-2 text-xs text-red-600">{laneError}</p>}
-
-            <div className="mt-5 flex justify-end">
-              <Button variant="primary" onClick={() => setShowLaneEditor(false)}>
-                Done
-              </Button>
+            {laneError && <p className="mt-2 text-xs text-danger-700">{laneError}</p>}
             </div>
           </div>
         </div>

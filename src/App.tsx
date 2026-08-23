@@ -165,7 +165,7 @@ function App() {
 
   // Best-effort: ask the browser to make our storage persistent so it's
   // less likely to be evicted (Safari especially). Fire-and-forget; the
-  // result is surfaced in Settings → Backup & Restore, not here.
+  // result is surfaced in Settings → Backup & restore, not here.
   useEffect(() => {
     if (navigator.storage?.persist) {
       navigator.storage
@@ -483,7 +483,7 @@ function App() {
 
       {handednessLoaded && handedness === null && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4" role="dialog" aria-modal="true">
-          <div className="w-full max-w-sm rounded-xl bg-surface p-5 shadow-xl">
+          <div className="w-full max-w-sm animate-pop-in rounded-xl bg-surface p-5 shadow-xl">
             <h2 className="text-base font-bold text-ink">Which hand do you bowl with?</h2>
             <p className="mt-1.5 text-sm text-ink-secondary">
               This sets the direction of the board-adjust arrows when entering your line. You can change it later in Settings → Preferences.

@@ -10,7 +10,7 @@ test.beforeEach(async ({ page }) => {
  * Uncovered until now: writing one, editing it, and having it survive a reload.
  */
 test("writes a lane note, edits it, and keeps it across a reload", async ({ page }) => {
-  await page.getByRole("button", { name: "Lane Notes" }).click();
+  await page.getByRole("button", { name: "Lane notes" }).click();
   await page.getByRole("button", { name: /Add a lane note|Add lane note/ }).first().click();
 
   await page.getByPlaceholder("Orchid Bowl").fill("Palace Lanes");

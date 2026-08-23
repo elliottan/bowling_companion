@@ -45,7 +45,7 @@ export function DriftZoneLane({ model, hand }: DriftZoneLaneProps) {
   return (
     <svg
       viewBox={`0 0 ${W} ${H}`}
-      className="h-auto w-full rounded-xl border border-slate-200 bg-white"
+      className="h-auto w-full rounded-xl border border-edge bg-surface"
       role="img"
       aria-label={`Approach board diagram for a ${hand}-handed bowler, split into outside, middle and inside drift zones`}
     >

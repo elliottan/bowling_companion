@@ -1,4 +1,5 @@
 import { History, Pencil, Trash2 } from "lucide-react";
+import type { ReactNode } from "react";
 import { useState } from "react";
 import { createPortal } from "react-dom";
 import { calculateGameScore } from "../lib/scoring";
@@ -9,6 +10,7 @@ import { SessionFormDialog } from "./SessionFormDialog";
 import type { NewSessionFormValues } from "./SessionForm";
 import type { SessionSummary } from "../types/bowling";
 import { GROUP_HEADING } from "./ui/typography";
+import { EmptyState } from "./ui/EmptyState";
 
 interface SessionHistoryProps {
   sessions: SessionSummary[];
@@ -19,6 +21,9 @@ interface SessionHistoryProps {
   /** Called after a session is edited or deleted so the list can reload. */
   /** Called after a session is deleted so App can drop stale active state. */
   onSessionDeleted?: (sessionId: number) => void;
+  /** Way out of the empty state. Omitted where the screen has no start control
+   *  of its own, in which case the copy points at the one that does. */
+  emptyAction?: ReactNode;
 }
 
 export function SessionHistory({
@@ -26,24 +31,30 @@ export function SessionHistory({
   isLoading = false,
   onOpenSession,
   activeSessionId,
-  onSessionDeleted
+  onSessionDeleted,
+  emptyAction
 }: SessionHistoryProps) {
   if (isLoading) {
     return (
       <p className="rounded-lg border border-edge bg-surface p-4 text-sm text-ink-secondary shadow-sm">
-        Loading...
+        Loading…
       </p>
     );
   }
 
   if (sessions.length === 0) {
     return (
-      <div className="rounded-lg border border-dashed border-edge-strong bg-surface p-6 text-center">
-        <History className="mx-auto mb-2 text-ink-tertiary" aria-hidden="true" size={24} />
-        <p className="text-sm text-ink-secondary">
-          No sessions yet. Start one from the home tab.
-        </p>
-      </div>
+      <EmptyState
+        icon={History}
+        title="No sessions yet"
+        description={
+          emptyAction
+            ? "A session is one trip to the alley. Start one and every game, lane and ball you use lands here."
+            : "Sessions you bowl show up here. Start your first one from the Home tab."
+        }
+      >
+        {emptyAction}
+      </EmptyState>
     );
   }
 
@@ -233,7 +244,7 @@ function SessionRow({ summary, isActive, onOpen, onSessionDeleted }: SessionRowP
                   setRowMenu(null);
                   setConfirmDelete(true);
                 }}
-                className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm font-medium text-red-600 hover:bg-red-50"
+                className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm font-medium text-danger-700 hover:bg-danger-50"
               >
                 <Trash2 size={16} aria-hidden="true" />
                 Delete session

@@ -11,7 +11,7 @@ test("exports a backup, clears the database, and restores it via import", async 
 
   // Export and capture the downloaded JSON.
   await page.getByRole("button", { name: "Settings" }).click();
-  await page.getByRole("button", { name: "Backup & Restore" }).click();
+  await page.getByRole("button", { name: "Backup & restore" }).click();
   const downloadPromise = page.waitForEvent("download");
   await page.getByRole("button", { name: "Export JSON" }).click();
   const download = await downloadPromise;
@@ -28,11 +28,11 @@ test("exports a backup, clears the database, and restores it via import", async 
   await page.reload();
   await dismissHandednessModal(page);
   await page.getByRole("button", { name: "History" }).click();
-  await expect(page.getByText("No sessions yet.")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "No sessions yet" })).toBeVisible();
 
   // Import the captured backup, confirm the session is restored.
   await page.getByRole("button", { name: "Settings" }).click();
-  await page.getByRole("button", { name: "Backup & Restore" }).click();
+  await page.getByRole("button", { name: "Backup & restore" }).click();
   await page.locator('input[type="file"]').setInputFiles(filePath);
 
   // Import replaces everything (ADR-038), so it is gated behind typed confirmation.

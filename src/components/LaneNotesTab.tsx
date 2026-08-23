@@ -36,7 +36,7 @@ function pairLeft(n: number): number {
  */
 export function LaneNotesTab({ alley, currentLanes }: LaneNotesTabProps) {
   // Live, and re-run when the alley changes: editing a note here or on the
-  // Lane Notes screen shows up either way.
+  // Lane notes screen shows up either way.
   const live = useLiveQuery(
     async () => (await getLaneNotes()).filter((n) => n.alley === alley),
     [alley]

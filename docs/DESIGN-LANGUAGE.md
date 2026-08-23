@@ -98,6 +98,21 @@ screen is where a user decides whether the feature is for them.
 
 ## 6. Forms
 
+Field chrome comes from `src/components/ui/field.ts` (`FIELD`, `FIELD_SELECT`,
+`FIELD_TEXTAREA`, `FIELD_LABEL`, `FIELD_MICRO_LABEL`), never from a class string
+spelled out in the form. Seven forms had spelled it out and five of those copies
+had lost `bg-surface`, so those inputs fell back to the browser's own control
+colour: a warm grey block in a blue-slate app. That is §3's hardcoded-`slate-100`
+bug one level down, and one shared string is what stops it recurring.
+
+A field label is sentence case and sits above its field. It is *not* a
+`GROUP_HEADING`: the small uppercase style names a group of things, and reusing
+it on labels shouts every field name. The dense score panels use
+`FIELD_MICRO_LABEL`, a smaller version of the same band. They used to park the
+label on the field's own top border as an outline notch, which only reads while
+the label is short relative to the box: STANCE and TARGET are nearly as wide as
+the numeric fields they name, so the notch ate the whole top edge.
+
 Labels above fields, 44px field height, optional fields marked `(optional)`
 rather than required ones marked `*` where possible. A form in a dialog puts
 Cancel (an X) leading and the primary action trailing in the dialog's own bar,

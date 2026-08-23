@@ -62,7 +62,7 @@ export class AppErrorBoundary extends Component<Props, State> {
           <p className="text-xs text-success-700">Backup exported.</p>
         )}
         {exportState === "failure" && (
-          <p className="text-xs text-red-600">Export failed. Please try again.</p>
+          <p className="text-xs text-danger-700">Export failed. Please try again.</p>
         )}
       </div>
     );

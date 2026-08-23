@@ -27,9 +27,9 @@ async function countSessions(page: import("@playwright/test").Page) {
  */
 test("adding a pattern from the session dialog does not submit the session form", async ({ page }) => {
   await page.getByRole("button", { name: "Start new session" }).click();
-  await page.getByPlaceholder("Ball choice, surface, carry...").fill("keep me");
+  await page.getByPlaceholder("Ball choice, surface, carry…").fill("keep me");
 
-  await page.getByRole("button", { name: "Manage" }).click();
+  await page.getByRole("button", { name: "Manage oil patterns" }).click();
   await page.getByRole("button", { name: "Add oil pattern" }).first().click();
   await page.getByPlaceholder("Kegel Main Street").fill("Kegel Navigation");
   await page.getByRole("button", { name: "Save" }).click();
@@ -40,7 +40,7 @@ test("adding a pattern from the session dialog does not submit the session form"
 
   // Returning keeps the half-filled form and offers the new pattern.
   await page.getByRole("button", { name: "Back to session" }).click();
-  await expect(page.getByPlaceholder("Ball choice, surface, carry...")).toHaveValue("keep me");
+  await expect(page.getByPlaceholder("Ball choice, surface, carry…")).toHaveValue("keep me");
   await page.locator("#oil-pattern").selectOption({ label: "Kegel Navigation" });
 
   // Clearing is the only way to unset a pattern now that the empty option is gone.

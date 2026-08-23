@@ -26,8 +26,9 @@ export async function startSession(page: Page, alley: string) {
   await page.getByRole("button", { name: "Start new session" }).click();
   await page.getByPlaceholder("Orchid Bowl").fill(alley);
   await page.getByRole("button", { name: "Start session" }).click();
-  // A new game opens the lane editor (lanes unset); dismiss it.
-  await page.getByRole("button", { name: "Done" }).click();
+  // A new game opens the lane editor (lanes unset); dismiss it. Lanes save as
+  // they are typed, so the dialog's only control is its close.
+  await page.getByRole("dialog", { name: /lanes/i }).getByRole("button", { name: "Close" }).click();
   // The scorer is up once the live-entry action buttons render.
   await page.getByRole("button", { name: "Next", exact: true }).waitFor();
 }

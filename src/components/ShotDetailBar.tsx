@@ -273,7 +273,7 @@ export function ShotDetailBar({
       {/* Notes: fixed at two lines and scrolled internally rather than auto-grown,
           so a long note can't push the rest of the panel off-screen. */}
       <div className="py-1.5">
-        <label className="relative block">
+        <label className="block">
           <span className={floatLabel}>Notes</span>
           <textarea
             value={notes}
@@ -288,7 +288,7 @@ export function ShotDetailBar({
             }}
             rows={2}
             placeholder="This shot…"
-            className="w-full resize-none overflow-y-auto rounded-lg border border-edge bg-surface-muted px-2 pb-1 pt-1.5 text-[11px] leading-snug text-ink placeholder:text-ink-tertiary focus:border-accent-fill focus:bg-surface focus:outline-none"
+            className="w-full resize-none overflow-y-auto rounded-lg border border-edge-strong bg-surface-muted px-2 pb-1 pt-1.5 text-[11px] leading-snug text-ink placeholder:text-ink-tertiary focus:border-accent-fill focus:bg-surface focus:outline-none"
           />
         </label>
       </div>

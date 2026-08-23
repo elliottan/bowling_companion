@@ -115,7 +115,7 @@ export function PinGrid({
                     readOnly ? "cursor-default" : ""
                   } ${
                     isStanding
-                      ? "border-slate-300 bg-white text-slate-900 shadow-md"
+                      ? "border-[#cbd5e1] bg-white text-[#0f172a] shadow-md"
                       : "border-[#9c7438] bg-[#c79b5e] text-[#7a5a2c]"
                   } ${isAvailable || readOnly ? "" : "cursor-not-allowed opacity-30"}`}
                 >

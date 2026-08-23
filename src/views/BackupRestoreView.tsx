@@ -9,6 +9,7 @@ import {
   type PreparedImport
 } from "../services/backupRepository";
 import { Button } from "../components/ui/Button";
+import { FIELD, FIELD_LABEL } from "../components/ui/field";
 import { useOverlay } from "../lib/useOverlay";
 
 interface BackupRestoreViewProps {
@@ -159,7 +160,7 @@ export function BackupRestoreView({ onBack, mode = "inline" }: BackupRestoreView
   if (!onBack) return body;
 
   return (
-    <PushScreen mode={mode} title="Backup & Restore" onBack={onBack}>
+    <PushScreen mode={mode} title="Backup & restore" onBack={onBack}>
       {body}
     </PushScreen>
   );
@@ -219,14 +220,12 @@ function ReplaceConfirmDialog({
         </p>
 
         <label className="mt-4 block">
-          <span className="mb-1 block text-xs font-semibold text-ink-secondary">
-            Type {REQUIRED_CONFIRMATION} to confirm
-          </span>
+          <span className={FIELD_LABEL}>Type {REQUIRED_CONFIRMATION} to confirm</span>
           <input
             autoFocus
             value={confirmText}
             onChange={(e) => onConfirmTextChange(e.target.value)}
-            className="h-11 w-full box-border rounded-lg border border-edge-strong px-3 text-sm outline-none focus:border-accent-fill focus:ring-2 focus:ring-accent-fill/20"
+            className={FIELD}
             placeholder={REQUIRED_CONFIRMATION}
             autoComplete="off"
           />

@@ -15,6 +15,7 @@ import {
 import { getDistinctAlleys } from "../services/bowlingRepository";
 import type { LaneNote } from "../types/bowling";
 import { GROUP_HEADING } from "../components/ui/typography";
+import { FIELD } from "../components/ui/field";
 
 const isPositiveInt = (s: string) => /^\d+$/.test(s.trim());
 
@@ -155,7 +156,7 @@ export function LaneNotesView({ onBack, mode = "inline" }: LaneNotesViewProps = 
           <h2 className="mb-3 text-base font-semibold text-ink">
             {editingId !== null ? "Edit lane note" : "Add lane note"}
           </h2>
-          {formError && <p className="mb-3 text-sm font-semibold text-red-600">{formError}</p>}
+          {formError && <p className="mb-3 text-sm font-semibold text-danger-700">{formError}</p>}
           <div className="space-y-3">
             <label className="block space-y-1.5">
               <span className={GROUP_HEADING}>Alley</span>
@@ -168,7 +169,7 @@ export function LaneNotesView({ onBack, mode = "inline" }: LaneNotesViewProps = 
                   disabled={editingId !== null}
                   placeholder="Orchid Bowl"
                   autoComplete="off"
-                  className="h-11 w-full rounded-lg border border-edge-strong px-3 text-sm outline-none focus:border-accent-fill disabled:bg-surface-muted"
+                  className={`${FIELD} disabled:bg-surface-muted disabled:text-ink-secondary`}
                 />
                 {showAlleyList && alleyMatches.length > 0 && (
                   <ul className="absolute z-10 mt-1 max-h-48 w-full overflow-y-auto rounded-lg border border-edge bg-surface py-1 shadow-lg">
@@ -300,7 +301,7 @@ export function LaneNotesView({ onBack, mode = "inline" }: LaneNotesViewProps = 
   return (
     <PushScreen
       mode={mode}
-      title="Lane Notes"
+      title="Lane notes"
       onBack={onBack}
       trailing={
         !showForm && (

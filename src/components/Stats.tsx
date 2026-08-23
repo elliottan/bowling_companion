@@ -2,6 +2,7 @@ import { BarChart3, ChevronDown } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { CatalogBallImage } from "./CatalogBallImage";
 import { MiniPins } from "./MiniPins";
+import { EmptyState } from "./ui/EmptyState";
 import type { Manufacturer } from "../types/catalog";
 import { isBabySplit, isSplit, isWashout } from "../lib/pins";
 import type {
@@ -59,19 +60,18 @@ export function Stats({
   if (isLoading) {
     return (
       <p className="rounded-lg border border-edge bg-surface p-4 text-sm text-ink-secondary shadow-sm">
-        Loading...
+        Loading…
       </p>
     );
   }
 
   if (stats.totalGames === 0) {
     return (
-      <div className="rounded-lg border border-dashed border-edge-strong bg-surface p-6 text-center">
-        <BarChart3 className="mx-auto mb-2 text-ink-tertiary" aria-hidden="true" size={24} />
-        <p className="text-sm text-ink-secondary">
-          No games yet. Stats appear once you finish a game.
-        </p>
-      </div>
+      <EmptyState
+        icon={BarChart3}
+        title="No stats yet"
+        description="Finish a game and your strike rate, spare conversions and average land here."
+      />
     );
   }
 

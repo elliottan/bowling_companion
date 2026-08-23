@@ -42,7 +42,7 @@ export function SessionFormDialog({
       <div
         ref={overlayRef}
         style={panelStyle}
-        className={`my-auto w-full max-w-sm rounded-xl bg-surface p-5 shadow-xl ${exiting ? "" : "animate-pop-in"}`}
+        className={`my-auto w-full max-w-sm overflow-hidden rounded-xl bg-surface shadow-xl ${exiting ? "" : "animate-pop-in"}`}
         onClick={(e) => e.stopPropagation()}
       >
         {/* `key` remounts the form when the prefill changes so a freshly opened

@@ -11,11 +11,9 @@ import { CatalogBallImage } from "./CatalogBallImage";
 import { ErrorBanner } from "./ErrorBanner";
 import { Button } from "./ui/Button";
 import { IconButton } from "./ui/IconButton";
+import { FIELD } from "./ui/field";
 
 const WEIGHT_OPTIONS = [10, 11, 12, 13, 14, 15, 16];
-
-const FIELD =
-  "h-11 w-full rounded-lg border border-edge-strong bg-surface px-3 text-sm text-ink outline-none focus:border-accent-fill focus:ring-2 focus:ring-accent-fill/20";
 
 type WeightSpecs = { rg: number | null; diff: number | null; mbDiff: number | null };
 
@@ -373,7 +371,7 @@ function CatalogPickerDialog({ onPick, onClose }: CatalogPickerDialogProps) {
               placeholder="Search name, brand, coverstock…"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              className="h-11 w-full rounded-xl border border-edge-strong bg-surface pl-9 pr-3 text-sm text-ink outline-none focus:border-accent-fill focus:ring-2 focus:ring-accent-fill/20"
+              className={`${FIELD} rounded-xl pl-9`}
             />
           </div>
         </div>

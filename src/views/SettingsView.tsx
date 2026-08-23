@@ -112,11 +112,11 @@ function SettingsMenu({
 
   const bowlingRows: Array<{ key: string; icon: LucideIcon; label: string; description: string; onClick: () => void }> = [
     { key: "arsenal", icon: CircleDot, label: "Arsenal", description: "Manage your bowling balls", onClick: onOpenArsenal },
-    { key: "lanes", icon: MapPin, label: "Lane Notes", description: "Notes per alley + lane", onClick: () => onSectionChange("lanes") },
-    { key: "oil-patterns", icon: Waves, label: "Oil Patterns", description: "Patterns and their sheet links", onClick: () => onSectionChange("oil-patterns") },
+    { key: "lanes", icon: MapPin, label: "Lane notes", description: "Notes per alley + lane", onClick: () => onSectionChange("lanes") },
+    { key: "oil-patterns", icon: Waves, label: "Oil patterns", description: "Patterns and their sheet links", onClick: () => onSectionChange("oil-patterns") },
     { key: "preferences", icon: SlidersHorizontal, label: "Preferences", description: "Handedness, release offset, drift", onClick: () => onSectionChange("preferences") },
-    { key: "catalog", icon: BookOpen, label: "Ball Catalog", description: "Browse manufacturer ball specs", onClick: onOpenCatalog },
-    { key: "visualizer", icon: Spline, label: "Line Visualizer", description: "Sketch a line on the lane", onClick: onOpenLineVisualizer }
+    { key: "catalog", icon: BookOpen, label: "Ball catalog", description: "Browse manufacturer ball specs", onClick: onOpenCatalog },
+    { key: "visualizer", icon: Spline, label: "Line visualizer", description: "Sketch a line on the lane", onClick: onOpenLineVisualizer }
   ];
 
   return (
@@ -156,10 +156,10 @@ function SettingsMenu({
           <button
             type="button"
             onClick={() => onSectionChange("backup")}
-            aria-label="Backup & Restore"
+            aria-label="Backup & restore"
             className={ROW_CLASS}
           >
-            <RowContent icon={Archive} label="Backup & Restore" description={backupDescription} />
+            <RowContent icon={Archive} label="Backup & restore" description={backupDescription} />
             <ChevronRight size={16} aria-hidden="true" className="shrink-0 text-ink-tertiary" />
           </button>
         </li>

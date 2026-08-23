@@ -10,6 +10,7 @@ import { useEffect, useState } from "react";
 import { useHandedness } from "../lib/handednessContext";
 import type { LineSpec } from "../types/bowling";
 import { Button } from "./ui/Button";
+import { FIELD_MICRO_LABEL } from "./ui/field";
 
 interface LineInputProps {
   label: string;
@@ -46,10 +47,9 @@ const FIELD_LABEL: Record<BoardField, string> = {
   slide: "Slide",
   target: "Target"
 };
-// A field label parked on the top border of its own box. Costs no vertical band
-// of its own, and a filled-in "23" still says whether it's a slide or a target.
-export const floatLabel =
-  "pointer-events-none absolute -top-1.5 left-2 z-10 bg-surface px-1 text-[11px] font-semibold uppercase tracking-[0.01em] text-ink-secondary";
+// Re-exported under the name the shot panels already use: a filled-in "23"
+// still has to say whether it's a slide or a target.
+export const floatLabel = FIELD_MICRO_LABEL;
 // Section eyebrow (INTENDED / ACTUAL). Tight tracking — these are wide words.
 const eyebrow = "text-[11px] font-semibold uppercase tracking-[0.01em] text-ink-secondary";
 
@@ -215,7 +215,7 @@ export function LineInput({
       </div>
       <div className="flex gap-1.5">
         {fields.map((field) => (
-          <label key={field} className="relative min-w-0 flex-1">
+          <label key={field} className="min-w-0 flex-1">
             <span className={floatLabel}>{FIELD_LABEL[field]}</span>
             <input
               type="text"
@@ -225,7 +225,7 @@ export function LineInput({
               onChange={(e) => update(field, e.target.value)}
               onFocus={() => { onFieldFocus?.(); setFocused(field); }}
               onBlur={() => setFocused((f) => (f === field ? null : f))}
-              className="h-9 w-full min-w-0 rounded-lg border border-edge bg-surface-muted text-center text-sm font-semibold tabular-nums text-ink focus:border-accent-fill focus:bg-surface focus:outline-none"
+              className="h-9 w-full min-w-0 rounded-lg border border-edge-strong bg-surface-muted text-center text-sm font-semibold tabular-nums text-ink focus:border-accent-fill focus:bg-surface focus:outline-none"
               title={field === "target" ? "Target board (arrows)" : `${FIELD_LABEL[field]} board`}
             />
           </label>

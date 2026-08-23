@@ -1,4 +1,4 @@
-import { X } from "lucide-react";
+import { Plus, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   buildLiveFrame,
@@ -567,7 +567,10 @@ export function ActiveGameScorer({
                       </span>
                     ))
                   ) : (
-                    <span className="text-xs font-semibold text-accent">+ Set lanes</span>
+                    <span className="inline-flex h-6 items-center gap-1 rounded-md border border-accent-fill px-1.5 text-xs font-semibold text-accent">
+                      <Plus size={12} aria-hidden="true" />
+                      Set lanes
+                    </span>
                   )}
                 </button>
               ) : (
@@ -693,7 +696,7 @@ export function ActiveGameScorer({
       </div>
 
       {errorMessage && (
-        <p className="mt-3 text-center text-sm font-semibold text-red-600">{errorMessage}</p>
+        <p className="mt-3 text-center text-sm font-semibold text-danger-700">{errorMessage}</p>
       )}
 
       <ConfirmDialog

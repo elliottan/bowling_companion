@@ -6,6 +6,27 @@ User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachan
 
 ### Changed
 
+- **Form fields, labels and dialog bars all come from one place now.** Field
+  chrome was spelled out by hand in seven forms and five of those copies had
+  lost their background class, so those inputs fell back to the browser's own
+  control colour: a warm grey block in a blue-slate app, worst in dark mode.
+  Every field now draws from a single style module, field labels are sentence
+  case rather than the small uppercase group heading, and the session and oil
+  pattern forms commit through the same bar as the ball editor: close leading,
+  tick trailing.
+
+- **Home has a title, and its shortcuts fill the grid.** Every other tab led
+  with its name and Home did not. Five shortcut tiles across three columns also
+  left a hole in the bottom-right corner; three thirds then two halves fills
+  both rows. Destination names are sentence case throughout ("Lane notes",
+  "Oil patterns", "Backup & restore").
+
+- **The shot panel labels sit above their fields.** STANCE and TARGET were
+  parked on the field's own top border as an outline notch, which only works
+  while the label is short relative to the box. These labels are nearly as wide
+  as the numeric fields they name, so the notch ate the whole top edge and read
+  as a label dropped on top of the box.
+
 - **Round buttons on the nav bars, and a back control that is just a chevron.**
   The back control lost its label: naming the screen underneath ("‹ Settings")
   only worked while a screen had one way in, and it started naming places you
@@ -14,6 +35,18 @@ User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachan
   word.
 
 ### Fixed
+
+- **The empty session list says something.** Home and History rendered a dashed
+  grey box with one sentence, and that sentence told you to start a session
+  "from the home tab" while you were standing on the home tab. Both now use the
+  app's one empty state, and Home offers the button rather than describing it.
+
+- **The add-game button is not a black slab in light mode.** It wore `bg-ink`,
+  which inverts to near-black on a cream page and out-shouted the selected game
+  chip beside it. It now wears the same skin as an unselected chip.
+
+- **Error text uses the danger token.** Six places used a raw red from the
+  Tailwind palette, which does not lift for dark mode the way the token does.
 
 - **Leaves made in the 10th frame are counted.** A leave was read from the first
   ball of a frame only, which is the whole story in frames 1 to 9 and misses the
