@@ -17,6 +17,14 @@ User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachan
 
 ### Changed
 
+- **Changing ball changes the line to that ball's line.** Throw ball A on one
+  line, switch to ball B and shoot a different one, then switch back: the box
+  kept B's line. Different balls want different parts of the lane, so the box
+  now shows the line for whichever ball is selected, and keeps what is there
+  only when that ball has no line on record. At a leave it prefers your own
+  attempt at that leave with that ball over the saved line for the leave, which
+  cannot say which ball it belongs to. See ADR-052.
+
 - **The leaves card drops the leaves you never had a shot at.** A leave off the
   last ball of the 10th has no spare to make, and it used to sit on the card as
   a bare `0/0` with a muted `+1` beside it explaining why. The card now carries

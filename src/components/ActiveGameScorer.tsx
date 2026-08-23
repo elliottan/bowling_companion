@@ -12,8 +12,8 @@ import {
 import { calculateGameScore, isSpare } from "../lib/scoring";
 import { useHandedness } from "../lib/handednessContext";
 import { isPocketHit } from "../lib/pins";
-import { freshRackShotIndices, laneForFrame, lineHasValue } from "../lib/lanes";
-import { seedForShot, seedLineForBall } from "../lib/shotSeeding";
+import { freshRackShotIndices, laneForFrame } from "../lib/lanes";
+import { seedForShot, lineForBall } from "../lib/shotSeeding";
 import { findSpareLineByPins, getBalls, getSpareLinesAll } from "../services/ballRepository";
 import type {
   Ball,
@@ -110,7 +110,6 @@ export function ActiveGameScorer({
   // True while the intended line is one this ball's history filled in, rather
   // than one the user typed or a carry-forward/spare line supplied. Only an
   // auto-filled line is recomputed when the ball changes underneath it.
-  const lineAutoFilled = useRef(false);
   // A just-converted spare whose leave has no saved Spare Line — offered as a
   // dismissible banner so the line can be captured in the moment.
   const [pendingSpareLeave, setPendingSpareLeave] = useState<{ pins: PinNumber[]; notes?: string } | null>(null);
@@ -168,7 +167,6 @@ export function ActiveGameScorer({
     setUnlocked(false);
     setShowEditPrompt(false);
     lastDefaultedShot.current = null;
-    lineAutoFilled.current = false;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gameKey]);
 
@@ -221,26 +219,28 @@ export function ActiveGameScorer({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [focusFrame?.token]);
 
-  /** Live-entry ball change. Re-seeds the line when the box is empty or still
-   *  holds an auto-filled guess made for the ball being replaced. */
+  /** Live-entry ball change. The box shows the line for the ball that is
+   *  selected: this ball's line if we know one, otherwise whatever is already
+   *  there, so an unfamiliar ball inherits a starting point to adjust off. */
   function handleLiveBallChange(ballId: number | undefined) {
     setSelectedBallId(ballId);
-    if (lineHasValue(intendedLine) && !lineAutoFilled.current) return;
     const currentFrame = gameState.frames.find(
       (f) => f.frame_number === gameState.currentFrameNumber
     );
-    const { intended, autoFilled } = seedLineForBall(
+    const found = lineForBall(
       {
         currentFrameNumber: gameState.currentFrameNumber,
         frames: gameState.frames,
         game,
-        previousGames
+        previousGames,
+        sessionFrames,
+        spareLines
       },
       ballId,
-      currentFrame?.shots ?? []
+      currentFrame?.shots ?? [],
+      gameState.availablePins.length < 10 ? gameState.availablePins : undefined
     );
-    lineAutoFilled.current = autoFilled;
-    setIntendedLine(intended);
+    if (found) setIntendedLine(found);
   }
 
   // Per-shot defaults (live entry only): notes + actual always blank; intended and
@@ -277,7 +277,6 @@ export function ActiveGameScorer({
     setShotNotes(seed.notes);
     setSelectedBallId(seed.ballId);
     setIntendedLine(seed.intended);
-    lineAutoFilled.current = seed.autoFilled;
   }, [
     ballsReady,
     gameState.currentFrameNumber,
@@ -672,12 +671,7 @@ export function ActiveGameScorer({
           onIntendedChange={
             isEditing
               ? (l) => handleEditMeta({ intended: l })
-              : (l) => {
-                  // A hand edit owns the line from here: it must survive a
-                  // later ball change untouched.
-                  lineAutoFilled.current = false;
-                  setIntendedLine(l);
-                }
+              : setIntendedLine
           }
           actual={isEditing && recordedShot ? recordedShot.actual : actualLine}
           onActualChange={isEditing ? (l) => handleEditMeta({ actual: l }) : setActualLine}

@@ -37,9 +37,6 @@ export interface ShotSeed {
   ballId?: number;
   intended?: LineSpec;
   notes: string;
-  /** The line is this ball's history rather than a real carry-forward, so a
-   *  later ball change may replace it (ADR-035). */
-  autoFilled: boolean;
 }
 
 const pinsKey = (p: PinNumber[]) => [...p].sort((a, b) => a - b).join(",");
@@ -47,8 +44,17 @@ const pinsKey = (p: PinNumber[]) => [...p].sort((a, b) => a - b).join(",");
 /**
  * The intended line of the most recent earlier spare attempt this session that
  * faced the same leave. Non-10th frames only, keyed by the standing pins.
+ *
+ * `ballId` narrows it to attempts thrown with that ball, which is what a ball
+ * change at a leave asks for: a plastic spare ball and a hooking strike ball
+ * want different boards at the same pin, and `spare_lines` cannot say so (its
+ * rows are keyed by the leave alone). Session history can.
  */
-export function sessionSpareIntended(frames: Frame[], leave: PinNumber[]): LineSpec | undefined {
+export function sessionSpareIntended(
+  frames: Frame[],
+  leave: PinNumber[],
+  ballId?: number
+): LineSpec | undefined {
   const key = pinsKey(leave);
   let found: LineSpec | undefined;
   for (const f of frames) {
@@ -56,6 +62,7 @@ export function sessionSpareIntended(frames: Frame[], leave: PinNumber[]): LineS
     const [first, second] = f.shots;
     if (!first || !second) continue;
     if (pinsKey(first.pins_standing) !== key) continue;
+    if (ballId != null && second.ball_id !== ballId) continue;
     if (lineHasValue(second.intended)) found = second.intended;
   }
   return found;
@@ -71,15 +78,31 @@ export function savedSpareLine(
 }
 
 /**
- * The line this ball was last thrown on, used when nothing was carried
- * forward. Returns the line and whether it was a guess, which is what decides
- * if a later ball change may overwrite it.
+ * The line to show for a ball, which is the whole of the ball-change rule: the
+ * box shows the line for the ball that is selected, and `undefined` means this
+ * ball has no line on record, so the caller keeps whatever is already there.
+ *
+ * At a leave, "this ball's line" is this session's attempt at the same leave
+ * with the same ball, then the saved line for the leave. On a full rack it is
+ * `sameBallSeedLine`: this frame, then this lane, then the pair's other lane,
+ * newest first (ADR-035's precedence, unchanged).
  */
-export function seedLineForBall(
-  input: Pick<ShotSeedInput, "currentFrameNumber" | "frames" | "game" | "previousGames">,
+export function lineForBall(
+  input: Pick<ShotSeedInput, "currentFrameNumber" | "frames" | "game" | "previousGames"> &
+    Partial<Pick<ShotSeedInput, "sessionFrames" | "spareLines">>,
   ballId: number | undefined,
-  currentFrameShots: Shot[]
-): { intended?: LineSpec; autoFilled: boolean } {
+  currentFrameShots: Shot[],
+  leave?: PinNumber[]
+): LineSpec | undefined {
+  if (leave && leave.length > 0 && leave.length < 10) {
+    const own = sessionSpareIntended(
+      [...(input.sessionFrames ?? []), ...input.frames],
+      leave,
+      ballId
+    );
+    if (own) return { ...own };
+    return savedSpareLineBoards(input.spareLines ?? [], leave);
+  }
   const found = sameBallSeedLine(
     ballId,
     input.game,
@@ -88,7 +111,22 @@ export function seedLineForBall(
     input.frames,
     input.previousGames ?? []
   );
-  return found ? { intended: { ...found }, autoFilled: true } : { autoFilled: false };
+  return found ? { ...found } : undefined;
+}
+
+/** Only the two boards a spare line stores are its own; anything else on it
+ *  belongs to the shot it was recorded from. */
+function savedSpareLineBoards(
+  spareLines: SpareLine[],
+  leave: PinNumber[]
+): LineSpec | undefined {
+  const saved = savedSpareLine(spareLines, leave)?.line;
+  if (!saved) return undefined;
+  const boards = {
+    ...(saved.stance != null && { stance: saved.stance }),
+    ...(saved.target != null && { target: saved.target })
+  };
+  return Object.keys(boards).length ? boards : undefined;
 }
 
 /** A carry-forward or spare line wins; an empty one falls back to ball history. */
@@ -97,9 +135,17 @@ function resolveIntended(
   preset: LineSpec | undefined,
   ballId: number | undefined,
   currentFrameShots: Shot[]
-): { intended?: LineSpec; autoFilled: boolean } {
-  if (lineHasValue(preset)) return { intended: preset, autoFilled: false };
-  return seedLineForBall(input, ballId, currentFrameShots);
+): { intended?: LineSpec } {
+  if (lineHasValue(preset)) return { intended: preset };
+  const found = sameBallSeedLine(
+    ballId,
+    input.game,
+    input.currentFrameNumber,
+    currentFrameShots,
+    input.frames,
+    input.previousGames ?? []
+  );
+  return found ? { intended: { ...found } } : {};
 }
 
 export function seedForShot(input: ShotSeedInput): ShotSeed {
@@ -128,18 +174,8 @@ export function seedForShot(input: ShotSeedInput): ShotSeed {
       [...(input.sessionFrames ?? []), ...frames],
       availablePins
     );
-    const saved = savedSpareLine(input.spareLines, availablePins)?.line;
-    // Only the two boards a spare line stores are carried; anything else on it
-    // belongs to the shot it was recorded from.
-    const savedLine = saved
-      ? {
-          ...(saved.stance != null && { stance: saved.stance }),
-          ...(saved.target != null && { target: saved.target })
-        }
-      : undefined;
     const preset =
-      (sessionLine && { ...sessionLine }) ??
-      (savedLine && Object.keys(savedLine).length ? savedLine : undefined);
+      (sessionLine && { ...sessionLine }) ?? savedSpareLineBoards(input.spareLines, availablePins);
 
     return {
       ballId,

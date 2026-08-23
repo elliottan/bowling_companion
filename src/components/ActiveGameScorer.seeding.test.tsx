@@ -6,8 +6,8 @@ import type { Ball, Frame, PinNumber, SpareLine } from "../types/bowling";
 /**
  * What each new shot starts with: which ball is selected, and what the Intended
  * line box is prefilled with. The rules live in ADR-017 (carry priority),
- * ADR-029 (fresh-rack carry across games) and ADR-035 (auto-filled lines are
- * replaceable, typed ones are not).
+ * ADR-029 (fresh-rack carry across games) and ADR-052 (the box shows the line
+ * for the ball that is selected).
  *
  * These drive the rendered scorer rather than any internal, so they hold across
  * a refactor of where the decision lives. That is the point of them: the logic
@@ -193,6 +193,41 @@ describe("what a new shot starts with", () => {
 
       await waitFor(() => expect(stance()).toBe("34"));
       await waitFor(() => expect(target()).toBe("6"));
+    });
+  });
+
+  describe("changing the ball", () => {
+    /** Open the ball picker and choose by name. */
+    async function chooseBall(name: string) {
+      fireEvent.click(screen.getByRole("button", { name: /^Ball: / }));
+      const option = await screen.findByRole("button", { name: new RegExp(name) });
+      fireEvent.click(option);
+    }
+
+    it("shows the line the chosen ball was last thrown on, and puts it back on the way back", async () => {
+      // Frame 1 was struck with the Hammer on 20/15, so that is the Hammer's line.
+      render(
+        <ActiveGameScorer
+          gameKey={1}
+          mode="session"
+          game={ONE_LANE}
+          initialFrames={frameOneStrike(1, { stance: 20, target: 15 })}
+        />
+      );
+      await waitFor(() => expect(stance()).toBe("20"));
+
+      // A ball with no history keeps what is on screen as a starting point.
+      await chooseBall("Plastic Spare");
+      await waitFor(() => expect(ballLabel()).toMatch(/Plastic Spare/));
+      expect(stance()).toBe("20");
+
+      // Typing a line for it, then coming back, restores the Hammer's own line.
+      fireEvent.change(screen.getByLabelText("Stance"), { target: { value: "27" } });
+      await waitFor(() => expect(stance()).toBe("27"));
+
+      await chooseBall("Hammer");
+      await waitFor(() => expect(stance()).toBe("20"));
+      await waitFor(() => expect(target()).toBe("15"));
     });
   });
 });

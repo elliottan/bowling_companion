@@ -2189,3 +2189,47 @@ and a leave the 10th's last ball made still counts under the ball that threw it
   leaves card.
 - The tapped definition changes with it, and says where the uncounted leave went
   rather than describing a `+1` that is no longer drawn.
+
+## ADR-052: The box shows the line for the ball that is selected
+
+**Status:** accepted (2026-08). Supersedes ADR-035's "auto-filled lines carry
+provenance" bullet. Everything else in ADR-035 stands, including the two-tier
+lane precedence that decides *which* line a ball's history offers.
+
+**Context.** ADR-035 replaced the line on a ball change only when the line was
+its own guess. A line the user typed, or that carry-forward or a spare line
+supplied, was pinned. Carry-forward copies line and ball as a matched set from
+one predecessor shot, so the moment you swap the ball, the pinned line is the
+*previous* ball's line, which is the exact failure ADR-035 opens by naming: "the
+box holds a line belonging to a ball you're not using". It half-solved its own
+problem.
+
+Reported from the lane: throw ball A on one line, switch to ball B and shoot a
+different line, then next frame switch back to A. The box kept B's line. Common
+enough to be the normal case, because different balls want different parts of
+the lane.
+
+**Decision.** On a ball change the box shows **that ball's line**, and there are
+no exceptions by provenance:
+
+- a line is found for the ball, it replaces what is there;
+- no line is found, what is there stays, so an unfamiliar ball inherits a
+  starting point to adjust off rather than emptying the box.
+
+"That ball's line" is `sameBallSeedLine` on a full rack, unchanged. At a leave it
+is **this ball's own attempt at that leave this session**, then the saved line
+for the leave. `spare_lines` rows are keyed by the leave alone and cannot say
+which ball they belong to; session history can, so it is asked first.
+
+A typed line is not special. It is replaced like any other when the ball changes
+under it, and typing it again is one gesture. The alternative was a per-shot map
+of ball to line, which restores a typed line when you switch back and forth
+within one shot: rejected as machinery for an edge case.
+
+**Consequences.**
+- `ShotSeed.autoFilled` and the `lineAutoFilled` ref are gone. The rule needs no
+  provenance, which is why it fits in one sentence and the old one did not.
+- Shot-start seeding is untouched. Carry-forward brings ball and line from the
+  same predecessor shot, so they already agree; there is nothing to resolve.
+- Two balls that have never been thrown at a leave share the saved spare line
+  for it. That is a real limit of a per-leave table, and ADR-053 addresses it.

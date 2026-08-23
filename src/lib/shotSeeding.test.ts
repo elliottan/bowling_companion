@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { savedSpareLine, seedForShot, seedLineForBall, sessionSpareIntended } from "./shotSeeding";
+import { savedSpareLine, seedForShot, lineForBall, sessionSpareIntended } from "./shotSeeding";
 import type { Ball, Frame, LineSpec, PinNumber, Shot, SpareLine } from "../types/bowling";
 
 const LANE_12 = { lanes: ["12"], start_lane: "12", lane_number: "12" };
@@ -39,8 +39,7 @@ describe("seedForShot", () => {
       expect(seed).toEqual({
         ballId: 1,
         intended: { stance: 20, target: 15 },
-        notes: "flush",
-        autoFilled: false
+        notes: "flush"
       });
     });
 
@@ -105,8 +104,7 @@ describe("seedForShot", () => {
       expect(seedForShot({ ...base, game: LANE_12 })).toEqual({
         ballId: undefined,
         intended: undefined,
-        notes: "",
-        autoFilled: false
+        notes: ""
       });
     });
 
@@ -153,7 +151,6 @@ describe("seedForShot", () => {
       });
 
       expect(seed.intended).toEqual({ stance: 30, target: 8 });
-      expect(seed.autoFilled).toBe(false);
     });
 
     it("prefers this session's attempt at the same leave over the saved line", () => {
@@ -226,8 +223,6 @@ describe("seedForShot", () => {
       });
 
       expect(seed.intended).toEqual({ stance: 18, target: 12 });
-      // Auto-filled: a later ball change may replace it.
-      expect(seed.autoFilled).toBe(true);
     });
 
     it("prefers a real carry-forward over the ball's history", () => {
@@ -236,7 +231,7 @@ describe("seedForShot", () => {
         game: LANE_12,
         frames: [strike(1, { ball_id: 1, intended: { stance: 20, target: 15 } })]
       });
-      expect(seed.autoFilled).toBe(false);
+      expect(seed.intended).toEqual({ stance: 20, target: 15 });
     });
   });
 
@@ -254,9 +249,9 @@ describe("seedForShot", () => {
   });
 });
 
-describe("seedLineForBall", () => {
+describe("lineForBall", () => {
   it("finds the line for that ball, and says it is a guess", () => {
-    const result = seedLineForBall(
+    const result = lineForBall(
       {
         currentFrameNumber: 3,
         frames: [strike(1, { ball_id: 1, intended: { stance: 19 } })],
@@ -266,21 +261,19 @@ describe("seedLineForBall", () => {
       []
     );
 
-    expect(result).toEqual({ intended: { stance: 19 }, autoFilled: true });
+    expect(result).toEqual({ stance: 19 });
   });
 
   it("says nothing when the ball has no history, or there is no ball", () => {
     const frames = [strike(1, { ball_id: 1, intended: { stance: 19 } })];
-    expect(seedLineForBall({ currentFrameNumber: 3, frames, game: LANE_12 }, 2, [])).toEqual({
-      autoFilled: false
-    });
-    expect(seedLineForBall({ currentFrameNumber: 3, frames, game: LANE_12 }, undefined, [])).toEqual({
-      autoFilled: false
-    });
+    expect(lineForBall({ currentFrameNumber: 3, frames, game: LANE_12 }, 2, [])).toBeUndefined();
+    expect(
+      lineForBall({ currentFrameNumber: 3, frames, game: LANE_12 }, undefined, [])
+    ).toBeUndefined();
   });
 
   it("prefers the same lane of a pair over the other one", () => {
-    const result = seedLineForBall(
+    const result = lineForBall(
       {
         currentFrameNumber: 3, // odd frame -> lane 11 on this pair
         game: PAIR,
@@ -293,18 +286,18 @@ describe("seedLineForBall", () => {
       []
     );
 
-    expect(result.intended).toEqual({ stance: 20 });
+    expect(result).toEqual({ stance: 20 });
   });
 
   it("returns a copy, so editing the box cannot rewrite a recorded shot", () => {
     const recorded: LineSpec = { stance: 19 };
-    const result = seedLineForBall(
+    const result = lineForBall(
       { currentFrameNumber: 3, frames: [strike(1, { ball_id: 1, intended: recorded })], game: LANE_12 },
       1,
       []
     );
 
-    expect(result.intended).not.toBe(recorded);
+    expect(result).not.toBe(recorded);
   });
 });
 
