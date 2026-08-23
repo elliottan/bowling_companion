@@ -341,3 +341,120 @@ describe("savedSpareLine", () => {
     expect(savedSpareLine(lines, [3] as PinNumber[])).toBeUndefined();
   });
 });
+
+describe("a strike ball at a leave (ADR-053)", () => {
+  const TEN_PIN = [10] as PinNumber[];
+  /** The Hammer struck frame 1 playing 20 at the feet, 15 at the arrows. */
+  const hammerStruck = [strike(1, { ball_id: 1, intended: { stance: 20, target: 15 } })];
+  const withOffset = (offset: { stance?: number; target?: number }): SpareLine[] => [
+    { id: 1, pins: TEN_PIN, line: { stance: 30, target: 8 }, strike_offset: offset, sort_order: 0 }
+  ];
+
+  it("moves the ball's own strike line by the leave's offset", () => {
+    const line = lineForBall(
+      {
+        currentFrameNumber: 3,
+        frames: hammerStruck,
+        game: LANE_12,
+        balls: [HAMMER, SPARE_BALL],
+        spareLines: withOffset({ stance: 4, target: -3 })
+      },
+      1,
+      [],
+      TEN_PIN
+    );
+    expect(line).toEqual({ stance: 24, target: 12 });
+  });
+
+  it("moves only the boards the offset names, so a feet-only move leaves the arrows alone", () => {
+    const line = lineForBall(
+      {
+        currentFrameNumber: 3,
+        frames: hammerStruck,
+        game: LANE_12,
+        balls: [HAMMER, SPARE_BALL],
+        spareLines: withOffset({ stance: 5 })
+      },
+      1,
+      [],
+      TEN_PIN
+    );
+    expect(line).toEqual({ stance: 25 });
+  });
+
+  it("does not move a spare ball: the offset is a strike-ball concept", () => {
+    const line = lineForBall(
+      {
+        currentFrameNumber: 3,
+        frames: hammerStruck,
+        game: LANE_12,
+        balls: [HAMMER, SPARE_BALL],
+        spareLines: withOffset({ stance: 4 })
+      },
+      2,
+      [],
+      TEN_PIN
+    );
+    expect(line).toEqual({ stance: 30, target: 8 });
+  });
+
+  it("falls back to the absolute line when the strike ball has no strike line to move", () => {
+    const line = lineForBall(
+      {
+        currentFrameNumber: 3,
+        frames: [],
+        game: LANE_12,
+        balls: [HAMMER, SPARE_BALL],
+        spareLines: withOffset({ stance: 4 })
+      },
+      1,
+      [],
+      TEN_PIN
+    );
+    expect(line).toEqual({ stance: 30, target: 8 });
+  });
+
+  it("prefers this ball's own attempt at the leave over the offset", () => {
+    const line = lineForBall(
+      {
+        currentFrameNumber: 5,
+        frames: [
+          ...hammerStruck,
+          frame(3, [
+            { pins_standing: TEN_PIN },
+            { pins_standing: [], ball_id: 1, intended: { stance: 27, target: 11 } }
+          ], { is_spare: true })
+        ],
+        game: LANE_12,
+        balls: [HAMMER, SPARE_BALL],
+        spareLines: withOffset({ stance: 4, target: -3 })
+      },
+      1,
+      [],
+      TEN_PIN
+    );
+    expect(line).toEqual({ stance: 27, target: 11 });
+  });
+
+  it("ignores an attempt at that leave thrown with a different ball", () => {
+    const line = lineForBall(
+      {
+        currentFrameNumber: 5,
+        frames: [
+          ...hammerStruck,
+          frame(3, [
+            { pins_standing: TEN_PIN },
+            { pins_standing: [], ball_id: 2, intended: { stance: 31, target: 7 } }
+          ], { is_spare: true })
+        ],
+        game: LANE_12,
+        balls: [HAMMER, SPARE_BALL],
+        spareLines: withOffset({ stance: 4, target: -3 })
+      },
+      1,
+      [],
+      TEN_PIN
+    );
+    expect(line).toEqual({ stance: 24, target: 12 });
+  });
+});

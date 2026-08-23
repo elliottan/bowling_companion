@@ -15,6 +15,27 @@ User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachan
   a group heading for the definition. The same fix stops a frame still being
   bowled from reporting its open leave as a miss.
 
+### Added
+
+- **A spare line for your strike ball, stored as a move.** A leave's saved line
+  is real boards thrown with a plastic ball, which is wrong the moment you shoot
+  that leave with something that hooks. Each leave now also holds a move: stand
+  two right of wherever you are playing, pull the arrows in three. It applies to
+  whichever strike ball is up, off that ball's own strike line, so it survives
+  the lane changing and follows you across the bag. Either half stands alone if
+  the leave only moves your feet. See ADR-053.
+
+- **The app offers to save the line you just threw at a leave.** After any spare
+  attempt at a leave you have no line for, made or missed, a dismissable line
+  offers to keep it, already filled in with what you threw. It used to appear
+  only after a make, and it opened an empty form.
+
+- **Borrow another leave's line.** At a leave with nothing saved, a control
+  beside the Intended eye lists every spare line you have and drops its boards
+  into the box. Some leaves are one shot: a 6 and a 6-10 are thrown at the same
+  pin. It only fills the box; whether it becomes that leave's answer is the
+  prompt's job after the shot. See ADR-054.
+
 ### Changed
 
 - **Changing ball changes the line to that ball's line.** Throw ball A on one

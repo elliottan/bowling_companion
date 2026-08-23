@@ -8,7 +8,7 @@ import { deriveLaydown, deriveSlide, syncStanceLaydown } from "../lib/driftModel
 import { useOverlay } from "../lib/useOverlay";
 import { useSheetDismiss } from "../lib/useSheetDismiss";
 import { upsertSpareLine } from "../services/ballRepository";
-import type { LineSpec, PinNumber } from "../types/bowling";
+import type { LineSpec, PinNumber, SpareLine } from "../types/bowling";
 import { Button } from "./ui/Button";
 import { FIELD_MICRO_LABEL as floatLabel } from "./ui/field";
 import { IconButton } from "./ui/IconButton";
@@ -29,6 +29,7 @@ interface SpareLineFormDialogProps {
   /** Lock the pin grid (editing an existing leave / a known live leave). */
   lockPins: boolean;
   initialLine?: LineSpec;
+  initialStrikeOffset?: SpareLine["strike_offset"];
   initialNotes?: string;
   onSaved: () => void;
   onCancel: () => void;
@@ -45,6 +46,7 @@ export function SpareLineFormDialog({
   initialPins,
   lockPins,
   initialLine,
+  initialStrikeOffset,
   initialNotes,
   onSaved,
   onCancel,
@@ -52,6 +54,11 @@ export function SpareLineFormDialog({
 }: SpareLineFormDialogProps) {
   const [pins, setPins] = useState<PinNumber[]>(initialPins);
   const [line, setLine] = useState<LineSpec>(initialLine ?? EMPTY_LINE);
+  // Held as text so a lone "-" survives while the number after it is typed.
+  const [move, setMove] = useState({
+    stance: initialStrikeOffset?.stance?.toString() ?? "",
+    target: initialStrikeOffset?.target?.toString() ?? ""
+  });
   // Notes are no longer editable here, but a stored note is carried through the
   // save so switching to the visualizer-first flow doesn't wipe it.
   const [notes] = useState(initialNotes ?? "");
@@ -83,10 +90,22 @@ export function SpareLineFormDialog({
     const spec: LineSpec | undefined =
       Object.values(line).some((v) => v != null) ? line : undefined;
 
+    const moved = {
+      ...(move.stance.trim() !== "" &&
+        Number.isFinite(Number(move.stance)) && { stance: Number(move.stance) }),
+      ...(move.target.trim() !== "" &&
+        Number.isFinite(Number(move.target)) && { target: Number(move.target) })
+    };
+
     setIsSaving(true);
     setError("");
     try {
-      await upsertSpareLine(pins, spec, notes.trim() || undefined);
+      await upsertSpareLine(
+        pins,
+        spec,
+        notes.trim() || undefined,
+        Object.keys(moved).length ? moved : undefined
+      );
       onSaved();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to save spare line.");
@@ -186,6 +205,35 @@ export function SpareLineFormDialog({
             )}
             <p className="mt-2 text-xs text-ink-secondary">
               The eye opens the lane, where you set the final target, hook strength and depth.
+            </p>
+          </div>
+
+          {/* The strike-ball answer to the same leave, stored as a move rather
+              than boards: "two right of wherever I am playing" survives the
+              lane changing under you, and follows you across strike balls.
+              ADR-053. */}
+          <div>
+            <p className={`mb-1 ${eyebrow}`}>Strike ball move (boards)</p>
+            <div className="flex items-center gap-1.5">
+              {(["stance", "target"] as const).map((field) => (
+                <label key={field} className="min-w-0 flex-1">
+                  <span className={floatLabel}>{field}</span>
+                  <input
+                    type="number"
+                    inputMode="decimal"
+                    step="0.5"
+                    placeholder="0"
+                    value={move[field]}
+                    onChange={(e) => setMove((m) => ({ ...m, [field]: e.target.value }))}
+                    className={boardInput}
+                  />
+                </label>
+              ))}
+            </div>
+            <p className="mt-2 text-xs text-ink-secondary">
+              Where to stand and aim relative to your own strike line when you
+              shoot this leave with a strike ball. Positive moves up the boards.
+              Leave blank and a strike ball gets the line above instead.
             </p>
           </div>
 

@@ -9,7 +9,7 @@ import {
   submitShot,
   updateShotMeta
 } from "../lib/frameController";
-import { calculateGameScore, isSpare } from "../lib/scoring";
+import { calculateGameScore, isStrike } from "../lib/scoring";
 import { useHandedness } from "../lib/handednessContext";
 import { isPocketHit } from "../lib/pins";
 import { freshRackShotIndices, laneForFrame } from "../lib/lanes";
@@ -112,7 +112,11 @@ export function ActiveGameScorer({
   // auto-filled line is recomputed when the ball changes underneath it.
   // A just-converted spare whose leave has no saved Spare Line — offered as a
   // dismissible banner so the line can be captured in the moment.
-  const [pendingSpareLeave, setPendingSpareLeave] = useState<{ pins: PinNumber[]; notes?: string } | null>(null);
+  const [pendingSpareLeave, setPendingSpareLeave] = useState<{
+    pins: PinNumber[];
+    line?: LineSpec;
+    notes?: string;
+  } | null>(null);
   const [showSpareLineDialog, setShowSpareLineDialog] = useState(false);
   // A finished game is locked: the first edit attempt raises a confirm prompt
   // instead of applying, so a stray pin tap can't silently rewrite a recorded
@@ -234,7 +238,8 @@ export function ActiveGameScorer({
         game,
         previousGames,
         sessionFrames,
-        spareLines
+        spareLines,
+        balls
       },
       ballId,
       currentFrame?.shots ?? [],
@@ -325,16 +330,22 @@ export function ActiveGameScorer({
     if (frame) void persistFrame(frame);
   }
 
-  // After a live spare conversion, offer to capture its line when the leave has
-  // no saved Spare Line (or only a bare row with no targeting data).
+  // After a live spare attempt, offer to capture the line it was thrown on when
+  // the leave has no saved Spare Line (or only a bare row with no targeting
+  // data). Made or missed: the bowler judges whether the line was right, and a
+  // miss you know the cause of is still the line you want written down
+  // (ADR-054). Prefilled with what was actually thrown, so the common case is
+  // one tap.
   function offerSpareLine(frame: Frame) {
-    if (!isSpare(frame)) return;
+    if (isStrike(frame)) return;
     const leave = frame.shots[0]?.pins_standing;
-    if (!leave || leave.length === 0) return;
+    const attempt = frame.shots[1];
+    if (!leave || leave.length === 0 || !attempt) return;
     const existing = findSpareLineByPins(spareLines, leave);
     if (existing?.line) return;
     setPendingSpareLeave({
       pins: [...leave].sort((a, b) => a - b) as PinNumber[],
+      line: attempt.intended,
       notes: existing?.notes
     });
   }
@@ -640,24 +651,6 @@ export function ActiveGameScorer({
             </div>
           ) : null}
 
-          {pendingSpareLeave && (
-            <div className="flex items-center gap-2 rounded-lg border border-accent-fill bg-felt-50 px-3 py-2">
-              <button
-                type="button"
-                onClick={() => setShowSpareLineDialog(true)}
-                className="min-w-0 flex-1 text-left text-sm font-semibold text-accent"
-              >
-                + Save spare line for {formatLeavePins(pendingSpareLeave.pins)}
-              </button>
-              <IconButton
-                label="Dismiss"
-                onClick={() => setPendingSpareLeave(null)}
-                className="shrink-0"
-              >
-                <X size={16} aria-hidden="true" />
-              </IconButton>
-            </div>
-          )}
         </div>
 
         <ShotDetailBar
@@ -677,6 +670,7 @@ export function ActiveGameScorer({
           onActualChange={isEditing ? (l) => handleEditMeta({ actual: l }) : setActualLine}
           notes={isEditing && recordedShot ? recordedShot.notes ?? "" : shotNotes}
           spareLeave={shownLeave}
+          spareLines={spareLines}
           onEditAttempt={requestEdit}
           locked={locked}
           editPromptOpen={showEditPrompt}
@@ -689,6 +683,28 @@ export function ActiveGameScorer({
           onOpenArsenal={onOpenArsenal}
         />
       </div>
+
+      {/* Full width, under both columns: it speaks about the shot just thrown,
+          not about either column, and it wraps to three cramped lines squeezed
+          into one of them. */}
+      {pendingSpareLeave && (
+        <div className="mt-3 flex items-center gap-2 rounded-lg border border-accent-fill bg-felt-50 px-3 py-2">
+          <button
+            type="button"
+            onClick={() => setShowSpareLineDialog(true)}
+            className="min-w-0 flex-1 text-left text-sm font-semibold text-accent"
+          >
+            Save this as your line for {formatLeavePins(pendingSpareLeave.pins)}
+          </button>
+          <IconButton
+            label="Dismiss"
+            onClick={() => setPendingSpareLeave(null)}
+            className="shrink-0"
+          >
+            <X size={16} aria-hidden="true" />
+          </IconButton>
+        </div>
+      )}
 
       {errorMessage && (
         <p className="mt-3 text-center text-sm font-semibold text-danger-700">{errorMessage}</p>
@@ -711,6 +727,7 @@ export function ActiveGameScorer({
           key={pendingSpareLeave.pins.join("-")}
           initialPins={pendingSpareLeave.pins}
           lockPins
+          initialLine={pendingSpareLeave.line}
           initialNotes={pendingSpareLeave.notes}
           onSaved={() => {
             setShowSpareLineDialog(false);

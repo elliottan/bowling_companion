@@ -2233,3 +2233,79 @@ within one shot: rejected as machinery for an edge case.
   same predecessor shot, so they already agree; there is nothing to resolve.
 - Two balls that have never been thrown at a leave share the saved spare line
   for it. That is a real limit of a per-leave table, and ADR-053 addresses it.
+
+## ADR-053: A leave's strike-ball line is a move, not a set of boards
+
+**Status:** accepted (2026-08). Extends ADR-052's leave resolution. The
+`spare_lines` row keeps its absolute `line` unchanged.
+
+**Context.** `spare_lines` stores one line per leave, in real boards, recorded
+off a plastic spare ball thrown straight at the pin. Shoot the same leave with a
+hooking strike ball and those boards are wrong, and ADR-052 has no better answer
+than to offer them anyway.
+
+The bowler's own answer is not a second set of boards. It is a move: *for the 7
+pin I stand two right of wherever I am playing and pull the arrows in three.*
+Stated that way it survives the lane transitioning under you, it survives you
+switching strike balls, and it is one number rather than a line to re-measure.
+
+**Decision.** A `SpareLine` gains `strike_offset: { stance?, target? }`, signed
+boards, either field optional because some leaves move the feet only. It is a
+**move off that ball's own strike line**, resolved at use:
+
+1. this ball's own attempt at this leave this session (ADR-052, unchanged);
+2. with a strike ball selected and an offset stored, `sameBallSeedLine` for that
+   ball, moved by the offset;
+3. the leave's absolute line;
+4. the ball's bare strike line (ADR-035's last resort, unchanged).
+
+Keyed by **ball kind, not by ball**. Every strike ball takes the same move,
+because the move is a property of the leave and the base it moves off is already
+per-ball. Storing it per ball would multiply the rows the bowler has to fill in
+by the size of the bag, for an answer that does not vary that way.
+
+A spare ball never takes the offset: with one selected, step 2 is skipped.
+
+**Consequences.**
+- No Dexie version bump. `spare_lines` indexes `++id` only, so a non-indexed
+  field needs no migration (see `docs/DATA_MODEL.md`), and backups carry the
+  table wholesale.
+- An offset naming boards the strike line does not carry is skipped rather than
+  guessed: a move needs something to move off.
+- Session history is now ball-filtered when looking up a leave, so two balls no
+  longer inherit each other's attempts. An attempt that names *no* ball still
+  matches any ball, or seeding would go silent for anyone not tagging shots.
+
+## ADR-054: A spare line is captured from the shot, not typed from memory
+
+**Status:** accepted (2026-08). Replaces the made-spare-only capture prompt that
+shipped with ADR-036's spare tracking.
+
+**Context.** The `spare_lines` table only helps once it is populated, and it was
+populated by going to the Spares tab between sessions and typing boards from
+memory. On the lane the app already knows the answer: it has the leave, and it
+has the line just thrown at it.
+
+A prompt existed, but only after a spare was **made**, and it opened an empty
+form rather than the line that had just been thrown.
+
+**Decision.**
+
+- **Capture after any spare attempt**, made or missed, when the leave has no
+  saved line. A miss is not evidence the line was wrong: the bowler was there and
+  can judge. Withholding the prompt on a miss withholds it exactly when the
+  bowler is most likely to be paying attention to their line.
+- **Prefill it with the line actually thrown**, so the common case is one tap.
+- **Borrow another leave's line** from a control beside the Intended eye, shown
+  only at a leave with nothing saved. Some leaves are one shot: a 6 and a 6-10
+  are thrown at the same pin. Only stance and target travel, matching every other
+  path a saved spare line takes.
+- **Borrowing does not save.** The picker fills the box to shoot with. Whether
+  that becomes the leave's saved answer is decided afterwards by the prompt, once
+  the bowler has seen it work.
+
+**Consequences.**
+- The prompt fires far more often, so it is a dismissable line under both columns
+  rather than a modal. It never interrupts the next shot.
+- A leave with a saved line is never prompted for, so the prompt stops appearing
+  as the table fills. The borrow control disappears on the same condition.

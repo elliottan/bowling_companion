@@ -86,7 +86,14 @@ export interface OilPattern {
 export interface SpareLine {
   id?: number;
   pins: PinNumber[];
+  /** The absolute line, as thrown with a spare ball: real boards. */
   line?: LineSpec;
+  /** How far to move off a strike ball's OWN strike line to shoot this leave
+   *  with it, in signed boards (ADR-053). Kept as a move rather than boards
+   *  because the answer is "two right of wherever you are playing", which
+   *  stays true as the lane changes and follows you across strike balls.
+   *  Either field may stand alone: some leaves move the feet only. */
+  strike_offset?: { stance?: number; target?: number };
   notes?: string;
   sort_order?: number;
 }

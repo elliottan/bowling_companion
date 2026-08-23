@@ -97,9 +97,26 @@ function SortableSpareCard({ sl, onOpen }: SortableSpareCardProps) {
           ) : (
             <span className="block text-xs text-ink-secondary">No line</span>
           )}
+          <StrikeMove offset={sl.strike_offset} />
         </button>
       </div>
     </li>
+  );
+}
+
+/** The strike-ball move, when one is set. Signed and prefixed, because a bare
+ *  "2" beside a card of absolute boards reads as board 2. */
+function StrikeMove({ offset }: { offset?: SpareLine["strike_offset"] }) {
+  if (!offset || (offset.stance == null && offset.target == null)) return null;
+  const part = (n: number) => (n > 0 ? `+${n}` : `${n}`);
+  const parts = [
+    offset.stance != null ? `${part(offset.stance)} stand` : null,
+    offset.target != null ? `${part(offset.target)} arrow` : null
+  ].filter(Boolean);
+  return (
+    <span className="block w-full text-[11px] font-semibold tabular-nums text-accent">
+      Strike ball {parts.join(", ")}
+    </span>
   );
 }
 
@@ -197,6 +214,7 @@ export function SpareLinesView() {
           initialPins={editing.sl.pins}
           lockPins={false}
           initialLine={editing.sl.line}
+          initialStrikeOffset={editing.sl.strike_offset}
           initialNotes={editing.sl.notes}
           onSaved={() => setEditing(null)}
           onCancel={() => setEditing(null)}

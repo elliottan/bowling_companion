@@ -4,7 +4,7 @@
  * the note. Owns the drift-model conversions that keep stance, slide and
  * laydown in step (ADR-030, ADR-032).
  */
-import { Eye, Plus } from "lucide-react";
+import { Crosshair, Eye, Plus } from "lucide-react";
 import { useState } from "react";
 import { useDriftModel } from "../lib/driftModelContext";
 import { useHandedness } from "../lib/handednessContext";
@@ -16,7 +16,9 @@ import {
   deriveStanceFromLaydown
 } from "../lib/driftModel";
 import { derivedApexForDisplay } from "../lib/laneGeometry";
-import type { Ball, LineSpec, PinNumber } from "../types/bowling";
+import { savedSpareLine } from "../lib/shotSeeding";
+import { SpareLinePickerSheet } from "./SpareLinePickerSheet";
+import type { Ball, LineSpec, PinNumber, SpareLine } from "../types/bowling";
 import type { Manufacturer } from "../types/catalog";
 import { BallPickerSheet } from "./BallPickerSheet";
 import { CatalogBallImage } from "./CatalogBallImage";
@@ -36,8 +38,10 @@ interface ShotDetailBarProps {
   notes: string;
   onNotesChange: (notes: string) => void;
   onOpenArsenal?: () => void;
-  /** Standing leave the shot faces (spare attempt) — undefined on a fresh rack. */
+  /** Standing leave the shot faces (spare attempt), undefined on a fresh rack. */
   spareLeave?: PinNumber[];
+  /** Every saved spare line, for the borrow-a-line control. */
+  spareLines?: SpareLine[];
   /** Veto hook for a locked (completed) game, see LineInputProps. */
   onEditAttempt?: () => boolean;
   /** True while the game is locked, passed to the fields so a focus they were
@@ -63,11 +67,13 @@ export function ShotDetailBar({
   onNotesChange,
   onOpenArsenal,
   spareLeave,
+  spareLines = [],
   onEditAttempt,
   locked = false,
   editPromptOpen
 }: ShotDetailBarProps) {
   const [showViz, setShowViz] = useState<"intended" | "actual" | null>(null);
+  const [showLinePicker, setShowLinePicker] = useState(false);
   const [showBallPicker, setShowBallPicker] = useState(false);
   const blockLockedTap = lockedTapBlocker(onEditAttempt);
   const selectedBall = balls.find((b) => b.id === ballId);
@@ -160,6 +166,29 @@ export function ShotDetailBar({
     </IconButton>
   );
 
+  // Borrowing another leave's line is offered only where it helps: at a leave
+  // this bowler has never written down. With a line already saved for it, the
+  // box is already holding the right answer.
+  const hasSavedLine = Boolean(
+    spareLeave && savedSpareLine(spareLines, spareLeave)?.line
+  );
+  const intendedActions =
+    spareLeave && !hasSavedLine ? (
+      <div className="flex items-center gap-1">
+        <IconButton
+          compact
+          label="Use another leave's line"
+          title="Borrow a saved spare line for this shot"
+          onClick={() => setShowLinePicker(true)}
+        >
+          <Crosshair size={14} aria-hidden="true" />
+        </IconButton>
+        {viewButton("intended")}
+      </div>
+    ) : (
+      viewButton("intended")
+    );
+
   return (
     <div className="divide-y divide-edge rounded-xl border border-edge bg-surface px-2.5">
       {/* Ball: the chosen ball IS the control — its thumbnail and name, tapped to
@@ -230,7 +259,7 @@ export function ShotDetailBar({
           derivedLaydown={derivedLaydown}
           derivedBreakpoint={derivedBreakpoint}
           onLaydownTap={() => setShowViz("intended")}
-          action={viewButton("intended")}
+          action={intendedActions}
         />
       </div>
 
@@ -262,6 +291,18 @@ export function ShotDetailBar({
           }}
         />
       </div>
+
+      {showLinePicker && (
+        <SpareLinePickerSheet
+          spareLines={spareLines}
+          onPick={(line) => {
+            if (onEditAttempt && !onEditAttempt()) return;
+            handleIntendedChange({ ...intended, ...line });
+            setShowLinePicker(false);
+          }}
+          onClose={() => setShowLinePicker(false)}
+        />
+      )}
 
       {showViz && (
         <LaneVisualizerLazy

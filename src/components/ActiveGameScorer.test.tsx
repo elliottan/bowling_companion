@@ -323,3 +323,47 @@ describe("start lane", () => {
     expect(screen.getByRole("button", { name: "Edit game lanes" })).toBeInTheDocument();
   });
 });
+
+describe("capturing a spare line (ADR-054)", () => {
+  const savePrompt = () => screen.queryByText(/^Save this as your line for/);
+  const next = () => fireEvent.click(screen.getByRole("button", { name: /^Next$/ }));
+
+  /** Leave one pin standing on the first ball of frame 1. */
+  function leaveOnePin(pin: number) {
+    tapPin(pin);
+    next();
+  }
+
+  it("offers to save the line after a spare is missed, not only after it is made", async () => {
+    render(<ActiveGameScorer gameKey={1} initialFrames={[]} />);
+    await waitFor(() => expect(screen.getByRole("button", { name: /^Next$/ })).toBeTruthy());
+
+    leaveOnePin(6);
+    expect(savePrompt()).toBeNull();
+
+    // Second ball leaves the 6 standing again: the spare is missed.
+    next();
+    await waitFor(() => expect(savePrompt()).not.toBeNull());
+  });
+
+  it("offers nothing on a strike, which leaves nothing to shoot at", async () => {
+    render(<ActiveGameScorer gameKey={1} initialFrames={[]} />);
+    await waitFor(() => expect(screen.getByRole("button", { name: /^Next$/ })).toBeTruthy());
+
+    fireEvent.click(screen.getByRole("button", { name: "Strike" }));
+    await waitFor(() => expect(screen.getByRole("button", { name: "Strike" })).toBeTruthy());
+    expect(savePrompt()).toBeNull();
+  });
+
+  it("dismisses without saving, and stays dismissed for that shot", async () => {
+    render(<ActiveGameScorer gameKey={1} initialFrames={[]} />);
+    await waitFor(() => expect(screen.getByRole("button", { name: /^Next$/ })).toBeTruthy());
+
+    leaveOnePin(6);
+    next();
+    await waitFor(() => expect(savePrompt()).not.toBeNull());
+
+    fireEvent.click(screen.getByRole("button", { name: "Dismiss" }));
+    expect(savePrompt()).toBeNull();
+  });
+});

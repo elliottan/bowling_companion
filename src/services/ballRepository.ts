@@ -196,17 +196,20 @@ export async function getSpareLineByPins(pins: PinNumber[]): Promise<SpareLine |
 export async function upsertSpareLine(
   pins: PinNumber[],
   line?: LineSpec,
-  notes?: string
+  notes?: string,
+  strike_offset?: SpareLine["strike_offset"]
 ): Promise<void> {
   const sorted = sortPins(pins);
   const existing = await getSpareLineByPins(sorted);
   if (existing?.id !== undefined) {
-    await db.spare_lines.update(existing.id, { pins: sorted, line, notes });
+    // Written even when undefined, which is how the offset gets cleared: an
+    // omitted key would leave the old move in place.
+    await db.spare_lines.update(existing.id, { pins: sorted, line, notes, strike_offset });
   } else {
     // New leaves go to the end of the custom order.
     const all = await db.spare_lines.toArray();
     const maxOrder = all.reduce((m, sl) => Math.max(m, sl.sort_order ?? -1), -1);
-    await db.spare_lines.add({ pins: sorted, line, notes, sort_order: maxOrder + 1 });
+    await db.spare_lines.add({ pins: sorted, line, notes, strike_offset, sort_order: maxOrder + 1 });
   }
 }
 

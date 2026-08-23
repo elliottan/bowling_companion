@@ -48,7 +48,8 @@ const pinsKey = (p: PinNumber[]) => [...p].sort((a, b) => a - b).join(",");
  * `ballId` narrows it to attempts thrown with that ball, which is what a ball
  * change at a leave asks for: a plastic spare ball and a hooking strike ball
  * want different boards at the same pin, and `spare_lines` cannot say so (its
- * rows are keyed by the leave alone). Session history can.
+ * rows are keyed by the leave alone). Session history can. Attempts that name
+ * no ball match any of them.
  */
 export function sessionSpareIntended(
   frames: Frame[],
@@ -62,7 +63,11 @@ export function sessionSpareIntended(
     const [first, second] = f.shots;
     if (!first || !second) continue;
     if (pinsKey(first.pins_standing) !== key) continue;
-    if (ballId != null && second.ball_id !== ballId) continue;
+    // An attempt tagged with a DIFFERENT ball is not this ball's line. An
+    // untagged one still is: it is the only record of that leave there is, and
+    // dropping it would silently stop seeding for anyone who does not pick a
+    // ball per shot.
+    if (ballId != null && second.ball_id != null && second.ball_id !== ballId) continue;
     if (lineHasValue(second.intended)) found = second.intended;
   }
   return found;
@@ -82,45 +87,76 @@ export function savedSpareLine(
  * box shows the line for the ball that is selected, and `undefined` means this
  * ball has no line on record, so the caller keeps whatever is already there.
  *
- * At a leave, "this ball's line" is this session's attempt at the same leave
- * with the same ball, then the saved line for the leave. On a full rack it is
- * `sameBallSeedLine`: this frame, then this lane, then the pair's other lane,
- * newest first (ADR-035's precedence, unchanged).
+ * On a full rack this is `sameBallSeedLine`: this frame, then this lane, then
+ * the pair's other lane, newest first (ADR-035's precedence, unchanged).
+ *
+ * At a leave it is, in order (ADR-052, ADR-053):
+ *   1. this ball's own attempt at this leave, this session;
+ *   2. for a strike ball, that ball's own strike line moved by the leave's
+ *      `strike_offset`, which is why the offset is stored as a move: it lands
+ *      wherever you are playing today, with whichever strike ball is up;
+ *   3. the leave's absolute line, which was recorded off a spare ball.
  */
 export function lineForBall(
   input: Pick<ShotSeedInput, "currentFrameNumber" | "frames" | "game" | "previousGames"> &
-    Partial<Pick<ShotSeedInput, "sessionFrames" | "spareLines">>,
+    Partial<Pick<ShotSeedInput, "sessionFrames" | "spareLines" | "balls">>,
   ballId: number | undefined,
   currentFrameShots: Shot[],
   leave?: PinNumber[]
 ): LineSpec | undefined {
-  if (leave && leave.length > 0 && leave.length < 10) {
-    const own = sessionSpareIntended(
-      [...(input.sessionFrames ?? []), ...input.frames],
-      leave,
-      ballId
+  const ownStrikeLine = () => {
+    const found = sameBallSeedLine(
+      ballId,
+      input.game,
+      input.currentFrameNumber,
+      currentFrameShots,
+      input.frames,
+      input.previousGames ?? []
     );
-    if (own) return { ...own };
-    return savedSpareLineBoards(input.spareLines ?? [], leave);
-  }
-  const found = sameBallSeedLine(
-    ballId,
-    input.game,
-    input.currentFrameNumber,
-    currentFrameShots,
-    input.frames,
-    input.previousGames ?? []
+    return found ? { ...found } : undefined;
+  };
+
+  if (!leave || leave.length === 0 || leave.length >= 10) return ownStrikeLine();
+
+  const own = sessionSpareIntended(
+    [...(input.sessionFrames ?? []), ...input.frames],
+    leave,
+    ballId
   );
-  return found ? { ...found } : undefined;
+  if (own) return { ...own };
+
+  const saved = savedSpareLine(input.spareLines ?? [], leave);
+  const ball = input.balls?.find((b) => b.id === ballId);
+  const isStrikeBall = ballId != null && ball?.is_spare_ball !== true;
+  if (isStrikeBall && saved?.strike_offset) {
+    const moved = applyOffset(ownStrikeLine(), saved.strike_offset);
+    if (moved) return moved;
+  }
+
+  // ADR-035's last resort, kept: with nothing recorded for this leave, a leave
+  // shot inherits the ball's own strike line, which is the line you adjust off
+  // rather than replace.
+  return spareLineBoards(saved) ?? ownStrikeLine();
+}
+
+/** A leave's offset moved onto a real strike line. Null when there is no strike
+ *  line to move, or when the offset names boards the line does not carry: an
+ *  offset is a move off something, and there is nothing to move. */
+function applyOffset(
+  base: LineSpec | undefined,
+  offset: { stance?: number; target?: number }
+): LineSpec | undefined {
+  if (!base) return undefined;
+  const moved: LineSpec = {};
+  if (offset.stance != null && base.stance != null) moved.stance = base.stance + offset.stance;
+  if (offset.target != null && base.target != null) moved.target = base.target + offset.target;
+  return Object.keys(moved).length ? moved : undefined;
 }
 
 /** Only the two boards a spare line stores are its own; anything else on it
  *  belongs to the shot it was recorded from. */
-function savedSpareLineBoards(
-  spareLines: SpareLine[],
-  leave: PinNumber[]
-): LineSpec | undefined {
-  const saved = savedSpareLine(spareLines, leave)?.line;
+function spareLineBoards(entry: SpareLine | undefined): LineSpec | undefined {
+  const saved = entry?.line;
   if (!saved) return undefined;
   const boards = {
     ...(saved.stance != null && { stance: saved.stance }),
@@ -170,17 +206,12 @@ export function seedForShot(input: ShotSeedInput): ShotSeed {
     const spareBall = input.balls.find((b) => b.is_spare_ball);
     const ballId = spareBall?.id ?? currentFrameShots[0]?.ball_id;
 
-    const sessionLine = sessionSpareIntended(
-      [...(input.sessionFrames ?? []), ...frames],
-      availablePins
-    );
-    const preset =
-      (sessionLine && { ...sessionLine }) ?? savedSpareLineBoards(input.spareLines, availablePins);
-
+    // Same resolution a ball change runs, so the line a shot opens with and the
+    // line a ball change produces can never disagree.
     return {
       ballId,
       notes: "",
-      ...resolveIntended(input, preset, ballId, currentFrameShots)
+      intended: lineForBall(input, ballId, currentFrameShots, availablePins)
     };
   }
 
