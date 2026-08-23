@@ -141,9 +141,13 @@ export function ShotDetailBar({
 
   // One icon control per line, sitting in that line's eyebrow row. Full-width
   // "View … line" buttons cost 72px of the panel's height for two taps that are
-  // reachable from the derived chain underneath as well.
+  // reachable from the derived chain underneath as well. `compact` for the same
+  // reason: a full 44px box would set the height of a row that otherwise holds
+  // a 17px word, and this panel has to fit beside the pin grid without the page
+  // scrolling. The 44pt hit region survives it.
   const viewButton = (which: "intended" | "actual") => (
     <IconButton
+      compact
       label={`View ${which} line`}
       title={`View ${which} line on the lane`}
       onClick={() => setShowViz(which)}
@@ -156,7 +160,7 @@ export function ShotDetailBar({
     <div className="divide-y divide-edge rounded-xl border border-edge bg-surface px-2.5">
       {/* Ball: the chosen ball IS the control — its thumbnail and name, tapped to
           open the picker. No "Ball" eyebrow, no select chrome, no second icon. */}
-      <div className="flex items-center py-1.5">
+      <div className="flex items-center py-1">
         {balls.length > 0 ? (
           <button
             type="button"
@@ -210,7 +214,7 @@ export function ShotDetailBar({
         />
       )}
 
-      <div className="py-1.5">
+      <div className="py-1">
         <LineInput
           label="Intended"
           value={intended}
@@ -229,7 +233,7 @@ export function ShotDetailBar({
           autofills from the current Intended line (a quick "shot it as planned").
           The intended line is stance-based, so its foul-line board converts to a
           slide on the way in. */}
-      <div className="py-1.5">
+      <div className="py-1">
         <LineInput
           label="Actual"
           value={actualView}
@@ -272,7 +276,7 @@ export function ShotDetailBar({
 
       {/* Notes: fixed at two lines and scrolled internally rather than auto-grown,
           so a long note can't push the rest of the panel off-screen. */}
-      <div className="py-1.5">
+      <div className="py-1">
         <label className="block">
           <span className={floatLabel}>Notes</span>
           <textarea
@@ -288,7 +292,7 @@ export function ShotDetailBar({
             }}
             rows={2}
             placeholder="This shot…"
-            className="w-full resize-none overflow-y-auto rounded-lg border border-edge-strong bg-surface-muted px-2 pb-1 pt-1.5 text-[11px] leading-snug text-ink placeholder:text-ink-tertiary focus:border-accent-fill focus:bg-surface focus:outline-none"
+            className="h-11 w-full resize-none overflow-y-auto rounded-lg border border-edge-strong bg-surface-muted px-2 pb-1 pt-1.5 text-[11px] leading-snug text-ink placeholder:text-ink-tertiary focus:border-accent-fill focus:bg-surface focus:outline-none"
           />
         </label>
       </div>

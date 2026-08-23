@@ -59,6 +59,13 @@ rather than hand-rolling a button. Both `Button` sizes and `IconButton` clear
 the 44pt minimum tap target structurally, and `IconButton` requires `label`, so
 an unnamed icon button cannot be constructed.
 
+The 44pt floor is a *hit* target, not a box. `Chip` and `IconButton compact`
+both draw smaller than that and carry the target on an invisible `::after`,
+which is how a control rides in a dense row without setting the row's height.
+The expansion must not reach over a neighbouring control: `Chip` grows
+vertically only, and `compact` grows upward only, because it sits in a heading
+row with content directly beneath it.
+
 **Colour goes in a variant, never in `className`.** Tailwind resolves competing
 utilities by stylesheet order, not attribute order, so a colour passed through
 `className` silently loses to the variant's. Add a variant instead, which is

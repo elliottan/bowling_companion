@@ -21,6 +21,12 @@ User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachan
   both rows. Destination names are sentence case throughout ("Lane notes",
   "Oil patterns", "Backup & restore").
 
+- **The shot panel fits beside the pin grid without scrolling.** Its right
+  column ran 100px taller than the left, so the notes field sat under the tab
+  bar. The eyebrow rows were the cost: each held a 17px word and a 14px eye
+  icon, but the icon was a full 44px button and set the row's height. The eye
+  keeps its 44pt hit region and gives up the box, the way a chip does.
+
 - **The shot panel labels sit above their fields.** STANCE and TARGET were
   parked on the field's own top border as an outline notch, which only works
   while the label is short relative to the box. These labels are nearly as wide

@@ -24,22 +24,41 @@ const VARIANT: Record<Variant, string> = {
   confirm: "rounded-full bg-accent-fill text-accent-on-fill hover:bg-accent-fill-hover active:opacity-80"
 };
 
+// `compact` keeps the 44pt hit region while drawing a 20px box, the way `Chip`
+// does: an invisible ::after carries the target. Vertically the region is
+// anchored to the control's BOTTOM edge rather than centred, so it grows upward
+// only. These controls sit in a heading row directly above content, and a
+// centred region would hang over whatever is beneath and swallow taps meant for
+// it; above is the section's own padding, which has nothing to steal from.
+// Horizontally it grows both ways, which is safe because a compact control is
+// the trailing item in its row: to one side is a heading, to the other the
+// panel's padding, and neither is a tap target.
+const COMPACT =
+  'relative h-5 w-5 after:absolute after:-left-3 after:-right-3 after:bottom-0 after:h-11 after:content-[""]';
+
 /** Shared icon-only button primitive. Fixed at 44x44 (Apple HIG's minimum tap
- *  target) regardless of the icon inside. `label` is required, not optional
- *  — it becomes the `aria-label`, so an icon button with no accessible name
- *  can't be constructed. */
+ *  target) regardless of the icon inside, or 44pt of hit region around a 20px
+ *  box with `compact`. `label` is required, not optional: it becomes the
+ *  `aria-label`, so an icon button with no accessible name can't be
+ *  constructed. */
 export function IconButton({
   variant = "default",
+  compact = false,
   label,
   className = "",
   children,
   ...rest
-}: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: Variant; label: string; children: ReactNode }) {
+}: ButtonHTMLAttributes<HTMLButtonElement> & {
+  variant?: Variant;
+  compact?: boolean;
+  label: string;
+  children: ReactNode;
+}) {
   return (
     <button
       type="button"
       aria-label={label}
-      className={`inline-flex h-11 w-11 shrink-0 items-center justify-center disabled:cursor-not-allowed disabled:opacity-50 ${variant === "round" || variant === "confirm" ? "" : "rounded-md"} ${VARIANT[variant]} ${className}`.trim()}
+      className={`inline-flex shrink-0 items-center justify-center disabled:cursor-not-allowed disabled:opacity-50 ${compact ? COMPACT : "h-11 w-11"} ${variant === "round" || variant === "confirm" ? "" : "rounded-md"} ${VARIANT[variant]} ${className}`.trim()}
       {...rest}
     >
       {children}
