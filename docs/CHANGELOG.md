@@ -17,6 +17,13 @@ User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachan
 
 ### Changed
 
+- **The leaves card drops the leaves you never had a shot at.** A leave off the
+  last ball of the 10th has no spare to make, and it used to sit on the card as
+  a bare `0/0` with a muted `+1` beside it explaining why. The card now carries
+  only leaves a ball actually followed, ranked by those chances. Nothing about
+  counting changed: what a ball leaves is still every leave, still on the ball
+  that threw it. See ADR-051.
+
 - **Sheets and dialogs now split on one rule: you type in a sheet, you answer a
   dialog.** The ball editor was a sheet and the session editor a centred dialog,
   though they are the same object. Everything you enter data into now rises from

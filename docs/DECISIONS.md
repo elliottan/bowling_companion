@@ -2153,3 +2153,39 @@ rule and needs no special-casing of the 10th frame.
 - Per-ball leaves are unchanged: they already show times left, which is exactly
   the attempts count.
 - A game in progress no longer reports its open frame as a missed spare.
+
+## ADR-051: The leaves card carries only leaves a ball followed
+
+**Status:** accepted (2026-08). Revises ADR-050's presentation. Its two counts,
+and the attempts/chances split behind them, are untouched.
+
+**Context.** ADR-050 gave a leave two counts and put both on the leaves card:
+`made/chances` with a muted `+N` for the times no ball followed. The `+N` was
+doing repair work. The card sorts by attempts, so a leave that only ever came
+off the 12th shot could rank onto it, and the `+N` was the only thing that
+explained why a cell was sitting there reading `0/0` with no rate.
+
+An annotation that exists to explain why the number beside it looks wrong is a
+sign the number is wrong for that card, not that the annotation is missing.
+
+**Decision.** The leaves card answers one question: of the spares that were
+there to be made, which do you make. It carries **only leaves with at least one
+chance**, ranked by chances, and reads `made/chances` with nothing appended. A
+leave off the last ball of the 10th, or off a frame still being bowled, does not
+appear on it at all.
+
+Nothing about counting changes. The attempts count is still every leave, and it
+is still reported: per-ball leaves show times left, which is the attempts count,
+and a leave the 10th's last ball made still counts under the ball that threw it
+(ADR-049).
+
+**Consequences.**
+- The `+N` is gone, and with it the only cell on the card that could read `0/0`.
+- The three groups (makeables, washouts, splits) can be empty where they were
+  not before, in which case they do not render. A card of leaves you never had
+  a shot at was not telling you anything.
+- Frequency and conversion now live in separate places rather than fighting for
+  one cell: what a ball leaves is on the ball, whether you make it is on the
+  leaves card.
+- The tapped definition changes with it, and says where the uncounted leave went
+  rather than describing a `+1` that is no longer drawn.

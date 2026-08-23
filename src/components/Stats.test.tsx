@@ -77,11 +77,27 @@ describe("leave cells", () => {
     conversionPct: 50
   };
 
-  it("reads the rate off chances and marks the leaves that had none", () => {
+  it("reads the rate off chances, and says nothing about the leaves that had none", () => {
     render(<Stats stats={STATS} leaves={[tenPin]} />);
     expect(screen.getByText("1/2")).toBeInTheDocument();
-    expect(screen.getByText("+1")).toBeInTheDocument();
     expect(screen.getByText("50%")).toBeInTheDocument();
+    // The third time it was left, no ball followed it. These cards are about
+    // converting, so that one is not reported here at all.
+    expect(screen.queryByText("+1")).toBeNull();
+    expect(screen.queryByText("1/3")).toBeNull();
+  });
+
+  it("drops a leave no ball ever followed, rather than showing it as 0/0", () => {
+    const lastBallOnly: LeaveStats = {
+      pins: [7],
+      attempts: 2,
+      chances: 0,
+      conversions: 0,
+      conversionPct: null
+    };
+    render(<Stats stats={STATS} leaves={[lastBallOnly]} />);
+    expect(screen.queryByText("0/0")).toBeNull();
+    expect(screen.queryByText("Makeables")).toBeNull();
   });
 
   it("marks nothing when every leave had a ball after it", () => {

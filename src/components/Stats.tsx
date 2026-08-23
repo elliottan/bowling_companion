@@ -28,7 +28,7 @@ const STRIKE_NOTE =
 const SPARE_NOTE =
   "Spare: makeable leaves converted. Washouts and real splits are left out.";
 const LEAVE_NOTE =
-  "Made over chances, then the rate. A leave off the last ball of the 10th has no spare to make, so it counts as left (+1) and stays out of the rate.";
+  "Made over chances, then the rate. A leave off the last ball of the 10th has no spare to make, so it stays off this card entirely. It still counts under the ball that left it.";
 
 interface StatsProps {
   stats: BowlingStats;
@@ -154,7 +154,11 @@ export function Stats({
       )}
 
       {(() => {
-        const all = leaves ?? [];
+        // Only leaves a ball could follow. These cards are about converting,
+        // and a leave off the last ball of the 10th has no spare to convert:
+        // it used to sit here as a bare "0/0" with a "+1" beside it explaining
+        // why. The frequency it was reported for is on the ball's own leaves.
+        const all = (leaves ?? []).filter((l) => l.chances > 0);
         if (all.length === 0) return null;
         // Three groups, easiest first: makeables (ordinary leaves), washouts
         // (head pin standing with a gap behind it), and real splits.
@@ -368,8 +372,9 @@ function LeaveSection({
   onExplain: () => void;
 }) {
   if (leaves.length === 0) return null;
-  // Most-bowled first, so the leaves with meaningful sample sizes lead.
-  const sorted = [...leaves].sort((a, b) => b.attempts - a.attempts);
+  // Most-shot-at first, so the leaves with meaningful sample sizes lead. By
+  // chances rather than attempts, matching what the cells below report.
+  const sorted = [...leaves].sort((a, b) => b.chances - a.chances);
   return (
     <div className="rounded-lg border border-edge bg-surface p-3 shadow-sm">
       <h2 className="mb-3">
@@ -403,9 +408,6 @@ function LeaveCountCell({ leave }: { leave: LeaveStats }) {
 }
 
 function LeaveCell({ leave }: { leave: LeaveStats }) {
-  // Leaves that no ball could follow: the 10th frame's last ball. They happened,
-  // so they show, but they are not spares missed and never touch the rate.
-  const noChance = leave.attempts - leave.chances;
   return (
     <div className="flex flex-col items-center gap-1 rounded-lg border border-edge bg-surface p-2 text-center shadow-sm">
       <MiniPins standing={leave.pins} size="sm" />
@@ -414,7 +416,6 @@ function LeaveCell({ leave }: { leave: LeaveStats }) {
       <div className="flex w-full items-baseline justify-between gap-1">
         <span className="text-[11px] tabular-nums text-ink-secondary">
           {leave.conversions}/{leave.chances}
-          {noChance > 0 && <span className="text-ink-tertiary"> +{noChance}</span>}
         </span>
         <span
           className={`text-sm font-bold ${
