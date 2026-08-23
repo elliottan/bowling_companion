@@ -42,6 +42,18 @@ User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachan
 
 ### Fixed
 
+- **The edit prompt on a finished game stops reappearing when you cancel it.**
+  Tapping a board or notes field on a completed game raises a confirm before
+  anything is rewritten, and the tap is vetoed on pointerdown so the field never
+  takes focus. iOS Safari focuses a form control on tap anyway, veto or not, and
+  a focused field asks to edit again the moment the dialog hands focus back on
+  close, so Cancel raised the prompt straight back and only Edit escaped it. A
+  locked field now hands focus back immediately.
+
+- **The shot notes field fits three lines.** Every form control is forced to
+  16px on a phone to stop iOS zooming in on focus, so notes were showing under
+  two lines of text in a box sized for the 11px desktop metric.
+
 - **The empty session list says something.** Home and History rendered a dashed
   grey box with one sentence, and that sentence told you to start a session
   "from the home tab" while you were standing on the home tab. Both now use the

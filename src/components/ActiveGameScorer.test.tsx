@@ -180,6 +180,32 @@ describe("ActiveGameScorer completed-game edit prompt", () => {
     expect(onFrameComplete).not.toHaveBeenCalled();
   });
 
+  // iOS Safari focuses a form control on tap even when the pointerdown was
+  // preventDefault()ed, so the veto does not keep focus off a locked field. A
+  // field that holds focus asks to edit again the moment the overlay restores
+  // focus on close, which put the prompt in a loop that only "Edit" escaped.
+  it("does not let a locked field take focus, so cancelling stays cancelled", async () => {
+    const onFrameComplete = vi.fn();
+    render(
+      <ActiveGameScorer gameKey={1} initialFrames={perfectGame()} onFrameComplete={onFrameComplete} />
+    );
+
+    const stance = screen.getAllByRole("textbox")[0] as HTMLInputElement;
+    stance.focus();
+    expect(document.activeElement).not.toBe(stance);
+    expect(prompt()).toBeNull();
+
+    // The deliberate tap still raises it, exactly once, and cancelling sticks.
+    tapPin(1);
+    expect(prompt()).not.toBeNull();
+    cancelEdit();
+    await waitFor(() => expect(prompt()).toBeNull());
+
+    stance.focus();
+    expect(prompt()).toBeNull();
+    expect(onFrameComplete).not.toHaveBeenCalled();
+  });
+
   it("re-locks when the game changes, even after an earlier confirm", () => {
     const frames = perfectGame();
     const { rerender } = render(<ActiveGameScorer gameKey={1} initialFrames={frames} />);

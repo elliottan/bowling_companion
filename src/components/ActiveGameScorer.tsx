@@ -684,6 +684,7 @@ export function ActiveGameScorer({
           notes={isEditing && recordedShot ? recordedShot.notes ?? "" : shotNotes}
           spareLeave={shownLeave}
           onEditAttempt={requestEdit}
+          locked={locked}
           editPromptOpen={showEditPrompt}
           onNotesChange={
             // Store raw while typing (keeps internal/trailing spaces); the

@@ -36,6 +36,9 @@ interface LineInputProps {
   /** Veto hook for a locked (completed) game: return false to drop the edit
    *  before any local text state moves, so the fields never drift from `value`. */
   onEditAttempt?: () => boolean;
+  /** True while the game is locked. Read-only: asking `onEditAttempt` instead
+   *  would raise the prompt, and a focus event is not a request to edit. */
+  locked?: boolean;
 }
 
 // The foul-line board an input edits: a planned stance, or an observed slide.
@@ -102,7 +105,8 @@ export function LineInput({
   derivedBreakpoint,
   onLaydownTap,
   action,
-  onEditAttempt
+  onEditAttempt,
+  locked = false
 }: LineInputProps) {
   const handedness = useHandedness();
   // Board numbers rise to the left for a right-hander, to the right for a
@@ -223,7 +227,17 @@ export function LineInput({
               value={text[field]}
               onPointerDown={blockLockedTap}
               onChange={(e) => update(field, e.target.value)}
-              onFocus={() => { onFieldFocus?.(); setFocused(field); }}
+              // iOS Safari focuses a form control on tap even when the
+              // pointerdown was preventDefault()ed, so the veto that raises the
+              // edit prompt does not actually keep focus off a locked field.
+              // Hand it straight back: a focused field is what let the prompt
+              // reappear the moment it was cancelled, because the overlay
+              // restores focus on close and the field asked to edit again.
+              onFocus={(e) => {
+                if (locked) { e.currentTarget.blur(); return; }
+                onFieldFocus?.();
+                setFocused(field);
+              }}
               onBlur={() => setFocused((f) => (f === field ? null : f))}
               className="h-9 w-full min-w-0 rounded-lg border border-edge-strong bg-surface-muted text-center text-sm font-semibold tabular-nums text-ink focus:border-accent-fill focus:bg-surface focus:outline-none"
               title={field === "target" ? "Target board (arrows)" : `${FIELD_LABEL[field]} board`}

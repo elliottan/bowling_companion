@@ -38,8 +38,11 @@ interface ShotDetailBarProps {
   onOpenArsenal?: () => void;
   /** Standing leave the shot faces (spare attempt) — undefined on a fresh rack. */
   spareLeave?: PinNumber[];
-  /** Veto hook for a locked (completed) game — see LineInputProps. */
+  /** Veto hook for a locked (completed) game, see LineInputProps. */
   onEditAttempt?: () => boolean;
+  /** True while the game is locked, passed to the fields so a focus they were
+   *  never granted cannot ask to edit. See LineInputProps. */
+  locked?: boolean;
   /** True while the "Edit this completed game?" confirm (raised by
    *  onEditAttempt) is open — passed through to the nested LaneVisualizer so
    *  it suspends its own Escape/focus-trap while that confirm sits on top. */
@@ -61,6 +64,7 @@ export function ShotDetailBar({
   onOpenArsenal,
   spareLeave,
   onEditAttempt,
+  locked = false,
   editPromptOpen
 }: ShotDetailBarProps) {
   const [showViz, setShowViz] = useState<"intended" | "actual" | null>(null);
@@ -221,6 +225,7 @@ export function ShotDetailBar({
           onChange={handleIntendedChange}
           showPresets
           onEditAttempt={onEditAttempt}
+          locked={locked}
           derivedSlide={derivedSlide}
           derivedLaydown={derivedLaydown}
           derivedBreakpoint={derivedBreakpoint}
@@ -240,6 +245,7 @@ export function ShotDetailBar({
           onChange={handleActualChange}
           foulField="slide"
           onEditAttempt={onEditAttempt}
+          locked={locked}
           derivedLaydown={actualLaydown}
           derivedBreakpoint={actualBreakpoint}
           onLaydownTap={() => setShowViz("actual")}
@@ -274,8 +280,11 @@ export function ShotDetailBar({
         />
       )}
 
-      {/* Notes: fixed at two lines and scrolled internally rather than auto-grown,
-          so a long note can't push the rest of the panel off-screen. */}
+      {/* Notes: fixed height and scrolled internally rather than auto-grown, so
+          a long note can't push the rest of the panel off-screen. The height is
+          set for the phone, where index.css forces every form control to 16px
+          to stop iOS zooming on focus: three lines at 16px, not the three lines
+          of 11px that the desktop size would suggest. */}
       <div className="py-1">
         <label className="block">
           <span className={floatLabel}>Notes</span>
@@ -286,13 +295,19 @@ export function ShotDetailBar({
               if (onEditAttempt && !onEditAttempt()) return;
               onNotesChange(e.target.value);
             }}
+            onFocus={(e) => {
+              // Same as the board fields: iOS grants focus the pointerdown veto
+              // was supposed to deny, and a focused field re-raises the edit
+              // prompt when the overlay restores focus on close.
+              if (locked) e.currentTarget.blur();
+            }}
             onBlur={() => {
               const trimmed = notes.trim();
               if (trimmed !== notes) onNotesChange(trimmed);
             }}
             rows={2}
             placeholder="This shot…"
-            className="h-11 w-full resize-none overflow-y-auto rounded-lg border border-edge-strong bg-surface-muted px-2 pb-1 pt-1.5 text-[11px] leading-snug text-ink placeholder:text-ink-tertiary focus:border-accent-fill focus:bg-surface focus:outline-none"
+            className="h-20 w-full resize-none overflow-y-auto rounded-lg border border-edge-strong bg-surface-muted px-2 pb-1 pt-1.5 text-[11px] leading-snug text-ink placeholder:text-ink-tertiary focus:border-accent-fill focus:bg-surface focus:outline-none"
           />
         </label>
       </div>
