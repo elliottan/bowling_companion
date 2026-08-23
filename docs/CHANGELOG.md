@@ -1,8 +1,14 @@
 # Changelog
 
-User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachangelog.com).
+User-visible changes, newest first, in the spirit of
+[Keep a Changelog](https://keepachangelog.com).
 
-## [Unreleased]: dark mode, native navigation, and one design language (2026-07 to 2026-08)
+No version has been cut since `0.1.0`, and none is planned: the app deploys on
+merge to `main` (`docs/DEPLOYMENT.md`), so every section below is a dated batch
+of shipped work rather than a release. Thirty of them used to be headed
+`[Unreleased]`, which said nothing once they had all shipped.
+
+## Dark mode, native navigation, and one design language (2026-07 to 2026-08)
 
 ### Fixed
 
@@ -353,7 +359,7 @@ User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachan
 - **The status bar is legible when installed to the Home Screen.** It was
   white-on-cream.
 
-## Previously — spare lines behave like every other line (2026-07-22)
+## Spare lines behave like every other line (2026-07-22)
 
 ### Fixed
 
@@ -394,7 +400,7 @@ User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachan
   ever be changed by dragging the breakpoint, which already labels itself on
   the lane.
 
-## [Unreleased] — the Actual line records your slide (2026-07-21)
+## The Actual line records your slide (2026-07-21)
 
 ### Changed
 
@@ -445,7 +451,7 @@ User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachan
   treatment (recessed until focused), and lining figures throughout, so entered
   numbers and derived numbers are told apart by weight rather than by boxes.
 
-## [Unreleased] — completed games confirm before an edit (2026-07-21)
+## Completed games confirm before an edit (2026-07-21)
 
 ### Changed
 
@@ -458,7 +464,7 @@ User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachan
   and back) asks again. Viewing is untouched: the scorecard, the deck, and
   the lane visualizer all read normally. Games in progress never ask.
 
-## [Unreleased] — resume + catalog-restore fixes (2026-07-20)
+## Resume + catalog-restore fixes (2026-07-20)
 
 ### Fixed
 
@@ -472,7 +478,7 @@ User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachan
   so sync considered itself up to date and the catalog stayed empty. Sync
   now re-downloads whenever the local catalog table is empty.
 
-## [Unreleased] — UI/UX audit pass (2026-07-20)
+## UI/UX audit pass (2026-07-20)
 
 ### Changed
 
@@ -496,7 +502,7 @@ User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachan
 - Screen-reader labels added to the settings rows, home shortcut cards, and
   session cards, which previously announced as unnamed buttons.
 
-## [Unreleased] — iOS rotation viewport recovery (2026-07-19)
+## iOS rotation viewport recovery (2026-07-19)
 
 ### Fixed
 
@@ -515,14 +521,14 @@ User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachan
   a real installed PWA — see `docs/VIEWPORT-BUG.md` for the four earlier
   attempts that failed and why.
 
-## [Unreleased] — Settings: feedback + donation links (2026-07-19)
+## Settings: feedback + donation links (2026-07-19)
 
 ### Added
 
 - Two new rows in Settings: "Send feedback" opens a Google Form in a new tab;
   "Buy me a coffee" opens a Buy Me a Coffee donation link.
 
-## [Unreleased] — Breakpoint is display-only in score entry (2026-07-19)
+## Breakpoint is display-only in score entry (2026-07-19)
 
 ### Changed
 
@@ -533,7 +539,7 @@ User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachan
   or hook timing. The chip only appears for a genuine hook (not a straight
   or unreachable line), and never appears on a spare attempt.
 
-## [Unreleased] — Drift model: stance-zone drift + release offset (2026-07-19)
+## Drift model: stance-zone drift + release offset (2026-07-19)
 
 ### Added
 
@@ -551,7 +557,7 @@ User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachan
   release_offset` instead of a single subtraction; with default settings
   (drift = 0 everywhere) the result is identical to before.
 
-## [Unreleased] — Data safety: persistent storage + backup nudges (2026-07-19)
+## Data safety: persistent storage + backup nudges (2026-07-19)
 
 ### Added
 
@@ -566,7 +572,7 @@ User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachan
   the banner also offers to open the install prompt, noting that installing
   protects data from iOS's 7-day cleanup for non-installed PWAs.
 
-## [Unreleased] — PWA native-feel polish + update flow (2026-07-19)
+## PWA native-feel polish + update flow (2026-07-19)
 
 ### Added
 
@@ -585,7 +591,7 @@ User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachan
 - Buttons/links now respond instantly to taps (`touch-action: manipulation`),
   removing the double-tap-zoom delay.
 
-## [Unreleased] — Root error boundary (2026-07-19)
+## Root error boundary (2026-07-19)
 
 ### Added
 
@@ -594,14 +600,14 @@ User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachan
   a Reload button and an Export backup button (works independently of the
   crashed tree) instead of a blank page. No crash reporting/analytics added.
 
-## [Unreleased] — Fresh-rack bonus ball seeding fix (2026-07-19, ADR-029)
+## Fresh-rack bonus ball seeding fix (2026-07-19, ADR-029)
 
 ### Fixed
 
 - **10th-frame bonus ball after a spare no longer inherits the spare's line/ball** —
   it now seeds from the most recent strike-attempt (fresh-rack) shot.
 
-## [Unreleased] — Honest lines: derived laydown, real breakpoints, peg locks (2026-07-09, ADR-028)
+## Honest lines: derived laydown, real breakpoints, peg locks (2026-07-09, ADR-028)
 
 ### Added
 
@@ -637,7 +643,7 @@ User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachan
   matching the score-entry screen; direction is handedness-aware.
 - **The pin deck is less compressed** — bigger pins, taller rack.
 
-## [Unreleased] — Aim cascade on walled breakpoint drags (2026-07-05, ADR-027)
+## Aim cascade on walled breakpoint drags (2026-07-05, ADR-027)
 
 ### Added
 
@@ -645,7 +651,7 @@ User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachan
   with it** — the line follows your finger instead of resisting; whichever of
   target/laydown you touched least recently gives way (ADR-027).
 
-## [Unreleased] — Unified hook timing, magnetic breakpoint drag (2026-07-04, ADR-026)
+## Unified hook timing, magnetic breakpoint drag (2026-07-04, ADR-026)
 
 ### Added
 
@@ -663,7 +669,7 @@ User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachan
 - **Existing strike lines keep their tuned breakpoint depth** (automatic migration);
   untouched lines adopt the new, more realistic skid→late-hook default look.
 
-## [Unreleased] — Late-hook breakpoint rail, top-down camera stays put (2026-07-04, ADR-025)
+## Late-hook breakpoint rail, top-down camera stays put (2026-07-04, ADR-025)
 
 ### Fixed
 
@@ -671,7 +677,7 @@ User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachan
 - **Straight-down-a-board lines put the breakpoint at the target**, not down at the foul line.
 - **The camera stays top-down after you drag a point** — it used to snap back to your previous angle on release.
 
-## [Unreleased] — Draggable breakpoint, auto-hook, tunable spare hook, visualizer polish (2026-07-03, ADR-024)
+## Draggable breakpoint, auto-hook, tunable spare hook, visualizer polish (2026-07-03, ADR-024)
 
 ### Added
 
@@ -691,13 +697,13 @@ User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachan
 
 - **Every strike line curves by default** (auto-hook); a dead-straight line is just the case where the final sits on the aim line.
 
-## [Unreleased] — Strike line is one smooth curve target→final (2026-07-01, ADR-023)
+## Strike line is one smooth curve target→final (2026-07-01, ADR-023)
 
 ### Fixed
 
 - **Strike line is smooth even on big crosses.** A line that crossed a lot (e.g. laydown 37.5 → target 19) used to ride the ball to the gutter and draw a hard corner at the lane edge. The strike is now a single smooth curve from the target to the final; when the line would run off the lane, the breakpoint is automatically brought nearer so the curve stays on the lane and smooth. Truly unreachable aims draw a smooth straight line (a guttering shot), with the pegs kept on the lane so you can always grab them.
 
-## [Unreleased] — Strike line uses the spare curve; breakpoint is derived (2026-07-01, ADR-022)
+## Strike line uses the spare curve; breakpoint is derived (2026-07-01, ADR-022)
 
 ### Fixed
 
@@ -707,7 +713,7 @@ User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachan
 
 - **Breakpoint is now read-only — the rightmost point of the curve.** Instead of dragging the breakpoint to shape the line, the breakpoint board/distance are shown as a read-out of the curve's furthest-out point. You shape the line with laydown, target and final.
 
-## [Unreleased] — Strike line rebuilt to match the spare (2026-06-30, ADR-021)
+## Strike line rebuilt to match the spare (2026-06-30, ADR-021)
 
 ### Changed
 
@@ -717,13 +723,13 @@ User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachan
 
 - **Inside aims no longer draw an impossible line.** When the aim already heads to the hook side, the curve previously bulged to the gutter side of the focal — physically impossible. The ball now always stays on the hook side of the focal, for every aim. If the aim is steep enough to send the ball off the lane, the ball rides the lane edge and the breakpoint/final cap at the edge — everything stays on the lane so the handles remain draggable (they no longer fly off-screen).
 
-## [Unreleased] — Ball usage in stats (2026-06-30)
+## Ball usage in stats (2026-06-30)
 
 ### Added
 
 - **Ball usage on the History → Stats page.** A breakdown of how many frames and games each ball has been thrown in, across all sessions (respects the lane filter). A frame counts once per ball used in it; a game counts if the ball appears in any frame.
 
-## [Unreleased] — Straight lines: linear lane mapping + decorative pin rack (2026-06-30, ADR-020)
+## Straight lines: linear lane mapping + decorative pin rack (2026-06-30, ADR-020)
 
 ### Fixed
 
@@ -733,7 +739,7 @@ User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachan
 
 - **Pin deck is now a decorative rack.** With the lane scale linearised, the pins are drawn as a fixed-scale 4-3-2-1 triangle (in the correct columns) rather than being placed by true depth. The ball still lands in the right pin's column.
 
-## [Unreleased] — Spare ball path: skid → hook → roll (2026-06-30, ADR-019)
+## Spare ball path: skid → hook → roll (2026-06-30, ADR-019)
 
 ### Changed
 
@@ -744,7 +750,7 @@ User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachan
 
 - **Unreachable spares are honest.** If the pocket/pin sits on the gutter side of the straight focal line (no hook can get back out to it), the ball is drawn dead straight off the back of the lane and the leave pin turns red, rather than drawing an impossible curve.
 
-## [Unreleased] — Spare lines: aim, hook, depth, pin deck (2026-06-29, ADR-018)
+## Spare lines: aim, hook, depth, pin deck (2026-06-29, ADR-018)
 
 ### Added
 
@@ -759,7 +765,7 @@ User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachan
 
 ---
 
-## [Unreleased] — Active-scorer fixes (2026-06-25)
+## Active-scorer fixes (2026-06-25)
 
 ### Fixed
 
@@ -771,7 +777,7 @@ User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachan
 
 ---
 
-## [Unreleased] — Catalog v3: colorways + PDF seeding (2026-06)
+## Catalog v3: colorways + PDF seeding (2026-06)
 
 ### Added
 
@@ -818,7 +824,7 @@ User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachan
 - **Colorways schema (ADR-009).** New `Colorway { sku, color, imageThumb?, imageFull? }` and optional `colorways?: Colorway[]` on `CatalogBall` + `RawBall`; optional `colorway_sku?` on `Ball`. All non-indexed — no Dexie bump. UI (catalog-row badge, detail-page swipe carousel, arsenal colorway picker) is follow-on.
 - **Deterministic PDF seeding pipeline (ADR-009).** `npm run usbc-index` (USBC PDF → searchable `usbc-index.json`), `npm run parse-catalog` (SPI year catalog → staging seed file, all three brands), `npm run parse-ball` (one tech-data PDF or pasted text → staging seed file). Ball name + brand reconciled against the USBC index; unresolved balls flagged for review. Wrapped in the `seed-catalog` skill. Costs ~0 model tokens vs LLM web search.
 
-## [Unreleased] — Catalog v2: UX overhaul (2026-06)
+## Catalog v2: UX overhaul (2026-06)
 
 ### Changed
 
@@ -841,7 +847,7 @@ User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachan
 - Release Year filter facet removed from catalog filters.
 - "View on manufacturer site" link removed from catalog detail panel.
 
-## [Unreleased] — Catalog v2: multi-weight schema + USBC discovery (2026-06)
+## Catalog v2: multi-weight schema + USBC discovery (2026-06)
 
 ### Added
 
@@ -859,7 +865,7 @@ User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachan
 - `DEFAULT_WEIGHT = 15` constant exported from `src/types/catalog.ts`.
 - ADR-008 (multi-weight schema + USBC discovery) in `docs/DECISIONS.md`.
 
-## [Unreleased] — Roadmap features (2026-06)
+## Roadmap features (2026-06)
 
 ### Added
 
@@ -918,7 +924,7 @@ User-visible changes. Newest at top. Follow [Keep a Changelog](https://keepachan
   Metric definitions recorded in DECISIONS ADR-005. Bottom tab bar goes
   4→5 columns on mobile.
 
-## [Unreleased] — Thermo-nuclear review (2026-05)
+## Thermo-nuclear review (2026-05)
 
 ### Fixed
 

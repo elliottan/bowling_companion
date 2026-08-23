@@ -1,16 +1,16 @@
 # Data model
 
-**Canonical source of truth — read these for current field-level shape:**
+**Canonical source of truth. Read these for the current field-level shape:**
 
 - Types → `src/types/bowling.ts`
 - Dexie schema, version, and migrations → `src/db/bowlingDb.ts`
 
-This doc deliberately does **not** restate those (a copy drifts — and did). It
+This doc deliberately does **not** restate those (a copy drifts, and did). It
 records the invariants and the reasoning the code can't carry on its own.
 
 ## Standing-pins convention (ADR-001)
 
-A frame stores the **pins LEFT STANDING** after each shot — not the pins
+A frame stores the **pins LEFT STANDING** after each shot, not the pins
 knocked down. Strikes are encoded as an empty standing set (no pins remaining),
 spares as a non-empty first-shot set plus an empty second-shot set.
 
@@ -27,7 +27,7 @@ validation re-derives them on import so a hand-edited JSON can't lie.
 
 ## When a Dexie version bump is needed
 
-Adding a **non-indexed** field needs **no** version bump — IndexedDB stores
+Adding a **non-indexed** field needs **no** version bump: IndexedDB stores
 arbitrary object shapes; only the index string in `bowlingDb.ts` is the
 versioned schema. A version bump + migration is required only when an index is
 added, removed, or changed. The compound index `[game_id+frame_number]` exists

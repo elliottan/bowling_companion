@@ -15,11 +15,29 @@ chrome that a desktop would justify but a phone would not.
 |---|---|---|
 | **Tab** | The five bottom-bar destinations | Top-level areas the user switches between |
 | **Push** | `PushScreen`, sliding in from the trailing edge with a leading back control | Going *deeper*: a list to a detail, Settings to a section |
-| **Dialog / sheet** | `ConfirmDialog`, `BallFormDialog`, the picker sheets | A *task* on top of the current screen, answerable and dismissable |
+| **Dialog / sheet** | `ConfirmDialog` and `FormSheet` | A *task* on top of the current screen, answerable and dismissable. Which of the two: §1a |
 
 The distinction that matters: **a push is a place, a sheet is a task.** The
 arsenal used to be a bottom sheet, which is why it never felt right: you
 navigate *into* your arsenal, you do not perform it on top of something else.
+
+`PushScreen` has two modes:
+
+- `overlay` (default) floats above everything, tab bar included. For a screen
+  reachable from several tabs (the arsenal, the catalog, a catalog ball).
+- `inline` fills the current tab's scroll area, tab bar stays live. For a push
+  *within* a tab (every Settings section).
+
+Every push gets, without exception:
+
+- a leading back control: the chevron alone, in a round button, labelled
+  "Back" for screen readers. It used to name the screen underneath ("‹ Settings"),
+  which read as a lie once the same screen could be pushed from several places:
+  opened from the dashboard it named a tab the user had never navigated from;
+- a centred title, one line, 17px semibold;
+- at most **one** trailing action, always an `IconButton`;
+- an edge-drag-back gesture and, in overlay mode, Escape + a focus trap
+  (`useOverlay`).
 
 ## 1a. Sheet or dialog: you type in a sheet, you answer a dialog
 
@@ -42,24 +60,6 @@ keyboard, not the size of the job:
 Before this rule the app had it both ways: the ball editor was a sheet and the
 session editor a centred dialog, though they are the same object.
 
-`PushScreen` has two modes:
-
-- `overlay` (default) floats above everything, tab bar included. For a screen
-  reachable from several tabs (the arsenal, the catalog, a catalog ball).
-- `inline` fills the current tab's scroll area, tab bar stays live. For a push
-  *within* a tab (every Settings section).
-
-Every push gets, without exception:
-
-- a leading back control: the chevron alone, in a round button, labelled
-  "Back" for screen readers. It used to name the screen underneath ("‹ Settings"),
-  which read as a lie once the same screen could be pushed from several places:
-  opened from the dashboard it named a tab the user had never navigated from;
-- a centred title, one line, 17px semibold;
-- at most **one** trailing action, always an `IconButton`;
-- an edge-drag-back gesture and, in overlay mode, Escape + a focus trap
-  (`useOverlay`).
-
 ## 1b. Round controls on chrome
 
 A control that sits on a nav bar or a sheet header is round and icon-only:
@@ -75,8 +75,8 @@ Chrome is opaque.
 
 ## 2. Controls
 
-`Button`, `IconButton`, `Chip` are the only control primitives. Build from them
-rather than hand-rolling a button. Both `Button` sizes and `IconButton` clear
+`Button`, `IconButton`, `Chip` and `Fab` are the only control primitives. Build
+from them rather than hand-rolling a button. Both `Button` sizes and `IconButton` clear
 the 44pt minimum tap target structurally, and `IconButton` requires `label`, so
 an unnamed icon button cannot be constructed.
 
@@ -116,6 +116,23 @@ move into the destination, not onto the row; the exception is a drag handle,
 which is a separate control because it is a different gesture. Rows carry a
 48px leading thumbnail where one exists, title, and one truncated line of
 secondary text.
+
+## 4b. Numbers on screen
+
+A number carries its own definition or it does not go on screen. The group
+heading above a stat is a button that opens what it counts (ADR-040), which is
+cheaper than printing a sentence nobody reads twice.
+
+Two rules learned the hard way:
+
+- **An annotation that exists to explain why the number beside it looks wrong
+  means the number is wrong for that card.** The leaves card once read `0/0`
+  with a muted `+1` next to it, for a leave the 10th frame's last ball made and
+  no ball could follow. The `+1` was repair work. The fix was to take those
+  leaves off a card about converting, not to caption them (ADR-051).
+- **Frequency and rate do not share a cell.** What a ball leaves is on the ball;
+  whether you convert it is on the leaves card. Putting both in one number
+  forces a denominator that is right for neither.
 
 ## 5. Empty states
 
@@ -179,10 +196,13 @@ Every close path goes through the hook's `dismiss`, confirm buttons included
 
 ## 7b. The primary action
 
-A screen with one dominant action puts it in a floating round button in the
-bottom-trailing corner, above the tab bar, where the thumb already is. Anything
-else that floats (the resume-session pill) shares that row to its left rather
-than displacing it.
+A **tab** with one dominant action puts it in `ui/Fab.tsx`: a floating round
+button in the bottom-trailing corner, above the tab bar, where the thumb already
+is. Anything else that floats (the resume-session pill) shares that row to its
+left rather than displacing it. Home and Spare lines both add through it.
+
+A **pushed screen** does not: it has a nav bar, and §1 already gives that at
+most one trailing action. The arsenal adds from there.
 
 ## 8. Copy
 

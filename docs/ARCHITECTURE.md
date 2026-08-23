@@ -6,20 +6,21 @@ Dexie (IndexedDB) stores everything, and a small set of pure modules in
 
 ## Layers
 
-The map, not an inventory — source of truth for the file list is `src/` itself.
+The map, not an inventory. Source of truth for the file list is `src/` itself.
 Each layer's *role* and the *load-bearing* modules:
 
-- `App.tsx` — shell + tab navigation; owns the active view + session id.
-- `views/` — one page-level screen per tab. View-local state; orchestrate
+- `App.tsx`: shell + tab navigation; owns the active view + session id.
+- `views/`: one page-level screen per tab. View-local state; orchestrate
   components + repositories. **No bowling logic here.**
-- `components/` — presentation + interaction primitives; data via props
+- `components/`: presentation + interaction primitives; data via props
   (e.g. `PinGrid`, `Scorecard`, `ActiveGameScorer`).
-- `services/*Repository.ts` — async layer wrapping **all** Dexie calls in named
+- `services/*Repository.ts`: async layer wrapping **all** Dexie calls in named
   functions. The only place IndexedDB is touched.
-- `lib/` — pure, React-free, Dexie-free, unit-tested functions. Load-bearing:
-  `scoring.ts`, `frameController.ts` (shot state machine), `pins.ts`, `stats.ts`.
-- `db/bowlingDb.ts` — Dexie class + versioned schema.
-  `types/bowling.ts` — shared interfaces.
+- `lib/`: pure, React-free, Dexie-free, unit-tested functions. Load-bearing:
+  `scoring.ts`, `frameController.ts` (shot state machine), `shotSeeding.ts`
+  (what a shot opens with), `pins.ts`, `stats.ts`.
+- `db/bowlingDb.ts`: Dexie class + versioned schema.
+  `types/bowling.ts`: shared interfaces.
 
 ## Data flow
 
@@ -46,10 +47,10 @@ Scorecard re-renders <──── lib/scoring.calculateGameScore ────�
 
 - `lib/*` may import only `types/*` and other `lib/*`. No Dexie. **Mostly** no
   React: the pure modules (scoring, geometry, stats) must stay React-free so
-  they're testable in isolation, but `lib/` also holds the shared hooks —
-  `useLongPress`, `useOverlay`, `useTheme` — which are UI behaviour with no
-  markup of their own. A new module here should be React-free unless it is
-  specifically a hook.
+  they're testable in isolation, but `lib/` also holds the shared hooks
+  (`useOverlay`, `useSheetDismiss`, `useLongPress`, `useHistoryRoute`,
+  `useTheme`), which are UI behaviour with no markup of their own. A new module
+  here should be React-free unless it is specifically a hook.
 - `services/*` may import `lib/*`, `db/*`, `types/*`. No React.
 - `components/*` may import `lib/*`, `services/*`, `types/*`, other `components/*`.
 - `views/*` may import everything below.
@@ -60,11 +61,19 @@ rewrite scoring without touching the UI.
 
 ## `components/ui/` and the shared shells
 
-`Button`, `IconButton`, `Chip` and `EmptyState` are the shared primitives, and
-`PushScreen` plus `lib/useSheetDismiss.ts` own every screen and sheet
-transition. The rules for using them, and the reasons behind them, live in
-`docs/DESIGN-LANGUAGE.md` (ADR-040, and ADR-034 for the tokens). They are not
-repeated here.
+`components/ui/` holds every shared primitive: the controls (`Button`,
+`IconButton`, `Chip`, `Fab`), the shells (`FormSheet`, `AnchoredMenu`,
+`EmptyState`) and the class strings that keep chrome from drifting (`field.ts`,
+`typography.ts`). `PushScreen` and `lib/useSheetDismiss.ts` own every screen and
+overlay transition in the app, without exception. The rules for using them, and
+the reasons behind them, live in `docs/DESIGN-LANGUAGE.md` (ADR-040, and ADR-034
+for the tokens). They are not repeated here.
+
+The layering point: a primitive exists here the moment a second screen needs it,
+and the app has twice paid for the alternative. Field chrome was hand-written in
+seven forms and five copies had silently lost their background class; the two
+long-press menus were byte-identical markup in two files. Both were found by
+reading, not by a failing test, which is the argument for the rule.
 
 One structural note that belongs with the layering: `Chip` expands its tap
 target with an `::after` overlay rather than growing its box, so rows of chips
@@ -103,7 +112,8 @@ vertical padding to survive.
 
 The split follows the layering: `lib/` and `services/` carry the logic a
 regression can corrupt data with, so they are unit-tested and hold a coverage
-floor (`vite.config.ts`: 90% of `lib/`, 80% of `services/`, by line). Screens
+floor (`vite.config.ts`: 90% of `lib/` and 83% of `services/`, by line, with
+functions and branches held too). Screens
 are covered by Playwright in `e2e/`, not by jsdom, because the failures worth
 catching there are flow failures. Views sit at ~0% unit coverage on purpose:
 that number is not the goal, the floors and the e2e flows are.
