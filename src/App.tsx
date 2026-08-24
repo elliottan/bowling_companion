@@ -6,12 +6,22 @@ import {
   Target,
   type LucideIcon
 } from "lucide-react";
-import { Suspense, lazy, useCallback, useEffect, useReducer, useRef, useState } from "react";
+import {
+  Suspense,
+  lazy,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useReducer,
+  useRef,
+  useState
+} from "react";
 import { DashboardView } from "./views/DashboardView";
 import { NoSessionView } from "./views/NoSessionView";
 import { HandednessPrompt } from "./components/HandednessPrompt";
 import { ActiveSessionView } from "./views/ActiveSessionView";
 import { HistoryView } from "./views/HistoryView";
+import { rememberScroll, restoreScroll } from "./lib/viewMemory";
 import { SettingsView } from "./views/SettingsView";
 import { SpareLinesView } from "./views/SpareLinesView";
 import {
@@ -75,7 +85,15 @@ function App() {
   // stack) is answered by one reducer, so the rules between them are readable
   // and testable in `lib/appNavigation.ts` rather than spread across handlers.
   const [nav, dispatch] = useReducer(navReducer, window.location.hash, initialNavFromHash);
-  const { view, activeSessionId, openSessionStats, openSessionGameId, settingsSection, overlays } = nav;
+  const {
+    view,
+    activeSessionId,
+    openSessionStats,
+    openSessionGameId,
+    openSessionBallId,
+    settingsSection,
+    overlays
+  } = nav;
   // Back is the browser's: see the note in useHistoryRoute for why every path
   // routes through it rather than dispatching a pop directly.
   const goBack = useHistoryRoute(nav, dispatch);
@@ -90,6 +108,14 @@ function App() {
     laydown: 20, target: 15, breakpoint: 8,
   });
   const [keyboardOpen, setKeyboardOpen] = useState(false);
+
+  // Each tab is remounted on switch (the `key` on <main> below), so its scroll
+  // offset is parked on the way out and put back before the next paint.
+  const mainRef = useRef<HTMLElement | null>(null);
+  useLayoutEffect(() => {
+    if (!mainRef.current) return;
+    return restoreScroll(mainRef.current, `view:${view}`);
+  }, [view]);
 
   // Pushed screens (PushScreen owns each one's Escape / focus trap / drag-back);
   // these only maintain the stack.
@@ -317,9 +343,10 @@ function App() {
     dispatch({ type: "openSession", sessionId, openStats });
   }
 
-  /** Straight to one game of a session, from a stats drill-down. */
-  function openSessionGame(sessionId: number, gameId: number) {
-    dispatch({ type: "openSession", sessionId, gameId });
+  /** Straight to one game of a session, from a stats drill-down. The ball goes
+   *  too: the session sheet opens on that game with its shots lit up. */
+  function openSessionGame(sessionId: number, gameId: number, ballId?: number) {
+    dispatch({ type: "openSession", sessionId, gameId, ballId });
   }
 
   return (
@@ -358,7 +385,12 @@ function App() {
 
       {/* Keyed on the view so each tab's content re-enters, travelling from the
           side the tapped tab sits on. */}
-      <main key={view} className={`min-h-0 flex-1 overflow-y-auto overscroll-contain ${tabDirection >= 0 ? "animate-tab-right" : "animate-tab-left"}`}>
+      <main
+        key={view}
+        ref={mainRef}
+        onScroll={(e) => rememberScroll(`view:${view}`, e.currentTarget.scrollTop)}
+        className={`min-h-0 flex-1 overflow-y-auto overscroll-contain ${tabDirection >= 0 ? "animate-tab-right" : "animate-tab-left"}`}
+      >
         {view === "dashboard" && (
           <DashboardView
             onStartSession={handleStartSession}
@@ -390,6 +422,7 @@ function App() {
             sessionId={activeSessionId}
             openStatsOnMount={openSessionStats}
             initialGameId={openSessionGameId ?? undefined}
+            initialBallId={openSessionBallId ?? undefined}
             onGameOpened={() => dispatch({ type: "sessionGameOpened" })}
             // One-shot: without this the sheet would re-open on every remount
             // (tab switches remount this view).

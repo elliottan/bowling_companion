@@ -489,8 +489,9 @@ describe("calculateBallPerformance", () => {
       [1, 2, 1],
       [2, 1, 0]
     ]);
-    // Equal attempts, so the pin-order tie-break decides.
-    expect(phaze.leaves.map((l) => l.pins)).toEqual([[3, 6, 10], [10]]);
+    // Equal attempts, so the tie-break decides: fewer pins first, the way the
+    // leaves card orders them.
+    expect(phaze.leaves.map((l) => l.pins)).toEqual([[10], [3, 6, 10]]);
   });
 
   it("names the games behind each per-game cell, newest session first", () => {
@@ -525,20 +526,24 @@ describe("calculateBallPerformance", () => {
         gameId: 22,
         date: "2026-08-19",
         alley: "Serangoon",
+        event: undefined,
         oilPattern: "Chromium",
         firstBalls: 1,
         pocket: 1,
-        strikes: 1
+        strikes: 1,
+        pocketStrikes: 1
       },
       {
         sessionId: 1,
         gameId: 11,
         date: "2026-06-01",
         alley: "Jurong",
+        event: undefined,
         oilPattern: undefined,
         firstBalls: 2,
         pocket: 2,
-        strikes: 1
+        strikes: 1,
+        pocketStrikes: 1
       }
     ]);
   });

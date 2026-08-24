@@ -45,6 +45,9 @@ export interface NavState {
    *  like openSessionStats, and for the same reason: a tab switch remounts the
    *  session view, which would otherwise yank the game back. */
   openSessionGameId: number | null;
+  /** The ball that drill-down was about, so the session sheet can light up the
+   *  shots it threw. Cleared with `openSessionGameId`, in the same one shot. */
+  openSessionBallId: number | null;
   settingsSection: SettingsSection;
   overlays: Overlay[];
   lineSandboxOpen: boolean;
@@ -52,7 +55,13 @@ export interface NavState {
 
 export type NavAction =
   | { type: "goTo"; view: AppView }
-  | { type: "openSession"; sessionId: number; openStats?: boolean; gameId?: number }
+  | {
+      type: "openSession";
+      sessionId: number;
+      openStats?: boolean;
+      gameId?: number;
+      ballId?: number;
+    }
   | { type: "leaveSession" }
   | { type: "goToSettingsSection"; section: SettingsSection }
   | { type: "pushOverlay"; overlay: Overlay }
@@ -82,6 +91,7 @@ export const INITIAL_NAV: NavState = {
   activeSessionId: null,
   openSessionStats: false,
   openSessionGameId: null,
+  openSessionBallId: null,
   settingsSection: "menu",
   overlays: [],
   lineSandboxOpen: false
@@ -110,7 +120,8 @@ export function navReducer(state: NavState, action: NavAction): NavState {
         previousView: state.view !== "active" ? state.view : state.previousView,
         activeSessionId: action.sessionId,
         openSessionStats: action.openStats ?? false,
-        openSessionGameId: action.gameId ?? null
+        openSessionGameId: action.gameId ?? null,
+        openSessionBallId: action.ballId ?? null
       };
 
     case "leaveSession":
@@ -136,7 +147,9 @@ export function navReducer(state: NavState, action: NavAction): NavState {
       return { ...state, lineSandboxOpen: false };
 
     case "sessionGameOpened":
-      return state.openSessionGameId === null ? state : { ...state, openSessionGameId: null };
+      return state.openSessionGameId === null && state.openSessionBallId === null
+        ? state
+        : { ...state, openSessionGameId: null, openSessionBallId: null };
 
     case "statsOpened":
       // One-shot: without clearing it the sheet re-opens on every remount, and

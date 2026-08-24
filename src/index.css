@@ -270,3 +270,30 @@ input[type="date"]::-webkit-date-and-time-value {
   }
 }
 
+
+/* A shot the drill-down was about: it tints, holds long enough to be found,
+   and fades out. Background only, so nothing moves and no layout is touched,
+   which keeps it cheap on a long sheet. Reduced motion leaves the tint in
+   place instead, since the point is to answer "which frames" at a glance. */
+@keyframes ball-flash {
+  0% {
+    background-color: rgb(var(--color-accent-soft));
+  }
+  70% {
+    background-color: rgb(var(--color-accent-soft));
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
+.animate-ball-flash {
+  animation: ball-flash 2s ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-ball-flash {
+    animation: none;
+    background-color: rgb(var(--color-accent-soft));
+  }
+}

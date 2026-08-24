@@ -22,6 +22,9 @@ interface SessionLanePanelProps {
   summary: SessionSummary;
   currentGameId?: number;
   defaultTab?: SessionPanelTab;
+  /** Land on the sheet with the shots thrown with this ball lit up, the way a
+   *  ball-performance drill-down arrives. */
+  highlightBallId?: number;
   /** When set, a pencil button in the header opens the session edit flow. */
   onEdit?: () => void;
   /** Tap a frame in the sheet to jump to it in score entry. */
@@ -46,6 +49,7 @@ export function SessionLanePanel({
   summary,
   currentGameId,
   defaultTab = "sheet",
+  highlightBallId,
   onEdit,
   onSelectFrame,
   onSelectGame,
@@ -55,6 +59,13 @@ export function SessionLanePanel({
   // Which game the sheet scrolls to; the token re-fires the scroll on re-tap.
   const [focus, setFocus] = useState({ id: currentGameId, token: 0 });
   const focusGameId = focus.id;
+  // Which shots are lit, and a token that restarts the flash when the same
+  // ball is drilled into twice.
+  const [highlight, setHighlight] = useState<{
+    gameId?: number;
+    ballId?: number;
+    token: number;
+  }>({ gameId: currentGameId, ballId: highlightBallId, token: 0 });
 
   // The app's one sheet motion: slide up on mount, drag down to dismiss, slide
   // back down on close. `dragHandlers` go on the drag pill AND the header row,
@@ -188,13 +199,24 @@ export function SessionLanePanel({
                   currentGameId={currentGameId}
                   focusGameId={focusGameId}
                   focusToken={focus.token}
+                  highlight={highlight}
                   onSelectFrame={onSelectFrame}
                 />
               </div>,
               <div key="stats" className="px-4 py-3">
-                {/* Closing is the caller's job, same as onSelectFrame: it
-                    switches the scorer's game and drops the sheet together. */}
-                <StatsTab summary={summary} onSelectGame={onSelectGame} />
+                {/* A drill-down is a question about frames, so it answers on
+                    the sheet rather than closing: switch tab, scroll to the
+                    game, and light the shots thrown with that ball. The caller
+                    still gets the game so score entry follows along behind. */}
+                <StatsTab
+                  summary={summary}
+                  onSelectGame={(gameId, ballId) => {
+                    setTab("sheet");
+                    setFocus((prev) => ({ id: gameId, token: prev.token + 1 }));
+                    setHighlight((prev) => ({ gameId, ballId, token: prev.token + 1 }));
+                    onSelectGame?.(gameId);
+                  }}
+                />
               </div>,
               <div key="lanes" className="px-4 py-3">
                 <LaneNotesTab alley={summary.session.alley_name} currentLanes={sortedLanes} />
@@ -214,7 +236,7 @@ function StatsTab({
   onSelectGame
 }: {
   summary: SessionSummary;
-  onSelectGame?: (gameId: number) => void;
+  onSelectGame?: (gameId: number, ballId?: number) => void;
 }) {
   const [balls, setBalls] = useState<Ball[]>([]);
 
@@ -238,7 +260,7 @@ function StatsTab({
       stats={stats}
       leaves={leaves}
       ballPerformance={ballPerformance}
-      onOpenGame={onSelectGame && ((_sessionId, gameId) => onSelectGame(gameId))}
+      onOpenGame={onSelectGame && ((_sessionId, gameId, ballId) => onSelectGame(gameId, ballId))}
       games={summary.games}
     />
   );
@@ -249,12 +271,14 @@ function SessionSheetTab({
   currentGameId,
   focusGameId,
   focusToken,
+  highlight,
   onSelectFrame
 }: {
   summary: SessionSummary;
   currentGameId?: number;
   focusGameId?: number;
   focusToken: number;
+  highlight?: { gameId?: number; ballId?: number; token: number };
   onSelectFrame?: (gameId: number, frameNumber: number, shotIndex: number) => void;
 }) {
   const [balls, setBalls] = useState<Ball[]>([]);
@@ -303,6 +327,10 @@ function SessionSheetTab({
               <GameGrid
                 game={game}
                 ballName={ballName}
+                highlightBallId={
+                  highlight && game.id === highlight.gameId ? highlight.ballId : undefined
+                }
+                highlightToken={highlight?.token ?? 0}
                 onSelectFrame={
                   onSelectFrame && game.id
                     ? (frameNumber, shotIndex) => onSelectFrame(game.id as number, frameNumber, shotIndex)
@@ -328,10 +356,15 @@ const emptyCell = (n: number) => (
 function GameGrid({
   game,
   ballName,
+  highlightBallId,
+  highlightToken,
   onSelectFrame
 }: {
   game: SessionSummary["games"][number];
   ballName: (id?: number) => string | undefined;
+  /** Shots thrown with this ball flash when the grid appears. */
+  highlightBallId?: number;
+  highlightToken: number;
   /** Tap a shot to jump to it in score entry. */
   onSelectFrame?: (frameNumber: number, shotIndex: number) => void;
 }) {
@@ -343,6 +376,8 @@ function GameGrid({
       <FrameCell
         frame={frame}
         ballName={ballName}
+        highlightBallId={highlightBallId}
+        highlightToken={highlightToken}
         onSelect={onSelectFrame && ((shotIndex) => onSelectFrame(n, shotIndex))}
       />
     ) : (
@@ -425,20 +460,25 @@ function shotSymbol(shot: Shot): string {
 function Row({
   onSelect,
   frameNumber,
+  flash = false,
   children
 }: {
   onSelect?: () => void;
   frameNumber: number;
+  /** Briefly tint this shot: it is one the drill-down was about. */
+  flash?: boolean;
   children: ReactNode;
 }) {
-  const className = "flex w-full items-start gap-1.5 text-left";
+  const className = `flex w-full items-start gap-1.5 rounded text-left ${
+    flash ? "animate-ball-flash" : ""
+  }`;
   if (!onSelect) return <div className={className}>{children}</div>;
   return (
     <button
       type="button"
       onClick={onSelect}
       aria-label={`Go to frame ${frameNumber}`}
-      className={`${className} rounded active:bg-surface-muted`}
+      className={`${className} active:bg-surface-muted`}
     >
       {children}
     </button>
@@ -448,10 +488,14 @@ function Row({
 function FrameCell({
   frame,
   ballName,
+  highlightBallId,
+  highlightToken,
   onSelect
 }: {
   frame: Frame;
   ballName: (id?: number) => string | undefined;
+  highlightBallId?: number;
+  highlightToken: number;
   /** Tap this shot to review it in score entry. Index is into `frame.shots`. */
   onSelect?: (shotIndex: number) => void;
 }) {
@@ -470,7 +514,14 @@ function FrameCell({
           // the empty corners beside it.
           // Each fresh-rack shot is its own tap target, so a 10th frame lands
           // on the shot that was actually tapped.
-          <Row key={i} onSelect={onSelect && (() => onSelect(index))} frameNumber={frame.frame_number}>
+          // The token is in the key so a second drill-down into the same ball
+          // replays the flash: a CSS animation only runs on mount.
+          <Row
+            key={`${i}-${highlightToken}`}
+            onSelect={onSelect && (() => onSelect(index))}
+            frameNumber={frame.frame_number}
+            flash={highlightBallId != null && shot.ball_id === highlightBallId}
+          >
             <div className="relative shrink-0">
               <MiniPins standing={shot.pins_standing} />
               {i === 0 && (

@@ -311,10 +311,14 @@ export interface BallGameSession {
   gameId: number;
   date: string;
   alley: string;
+  /** What the night was: the session's own description ("SIA Bilateral"). */
+  event?: string;
   oilPattern?: string;
   firstBalls: number;
   pocket: number;
   strikes: number;
+  /** Strikes off a pocket hit, so a row can report carry as well as pocket. */
+  pocketStrikes: number;
 }
 
 export interface BallGameCell {
@@ -440,14 +444,17 @@ export function calculateBallPerformance(
               gameId: game.id,
               date: s.session.date,
               alley: s.session.alley_name,
+              event: s.session.description,
               oilPattern: s.session.oil_pattern,
               firstBalls: 0,
               pocket: 0,
-              strikes: 0
+              strikes: 0,
+              pocketStrikes: 0
             };
             contribution.firstBalls++;
             if (struck) contribution.strikes++;
             if (pocket) contribution.pocket++;
+            if (pocket && struck) contribution.pocketStrikes++;
             slot.sessions.set(game.id, contribution);
           }
           entry.byGame.set(game.game_number, slot);
@@ -493,7 +500,12 @@ export function calculateBallPerformance(
       .sort((a, b) => a.gameNumber - b.gameNumber),
     leaves: [...e.leaves.values()]
       .map((l) => ({ ...l, conversionPct: rate(l.conversions, l.chances) }))
-      .sort((a, b) => b.attempts - a.attempts || comparePins(a.pins, b.pins))
+      .sort(
+        (a, b) =>
+          b.attempts - a.attempts ||
+          a.pins.length - b.pins.length ||
+          comparePins(a.pins, b.pins)
+      )
   }));
 
   // Most-thrown first. Sorting by rate puts the ball thrown once and struck

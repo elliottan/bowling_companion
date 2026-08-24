@@ -50,12 +50,8 @@ export function BallGameSessionsDialog({
         style={panelStyle}
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 className="text-base font-bold text-ink">
-          {ballName}, game {gameNumber}
-        </h2>
-        <p className="mt-1 text-xs text-ink-secondary">
-          {sessions.length} {sessions.length === 1 ? "game" : "games"} behind this column.
-        </p>
+        <h2 className="text-base font-bold text-ink">{ballName}</h2>
+        <p className="mt-1 text-xs text-ink-secondary">Usages in game {gameNumber}</p>
 
         <ul className="-mx-2 mt-3 min-h-0 flex-1 divide-y divide-edge overflow-y-auto">
           {sessions.map((s) => (
@@ -71,10 +67,20 @@ export function BallGameSessionsDialog({
                   </span>
                   <span className="shrink-0 text-xs tabular-nums text-ink-secondary">{s.date}</span>
                 </span>
-                <span className="text-xs tabular-nums text-ink-secondary">
-                  {s.firstBalls} {s.firstBalls === 1 ? "ball" : "balls"} · {s.strikes} strike
-                  {s.strikes === 1 ? "" : "s"} · {s.pocket} pocket
-                  {s.oilPattern ? ` · ${s.oilPattern}` : ""}
+                {/* What the night was, then what the lanes were. Either can be
+                    missing, and the row reads without them. */}
+                {(s.event || s.oilPattern) && (
+                  <span className="truncate text-xs text-ink-secondary">
+                    {[s.event, s.oilPattern].filter(Boolean).join(" · ")}
+                  </span>
+                )}
+                <span className="mt-1 flex flex-wrap items-center gap-1">
+                  <Rate label="P" made={s.pocket} of={s.firstBalls} name="pocket" />
+                  <Rate label="C" made={s.pocketStrikes} of={s.pocket} name="carry" />
+                  <Rate label="S" made={s.strikes} of={s.firstBalls} name="strike" />
+                  <span className="text-[11px] tabular-nums text-ink-tertiary">
+                    {s.firstBalls} {s.firstBalls === 1 ? "ball" : "balls"}
+                  </span>
                 </span>
               </button>
             </li>
@@ -83,5 +89,42 @@ export function BallGameSessionsDialog({
       </div>
     </div>,
     document.body
+  );
+}
+
+/**
+ * One rate as a small pill: the letter, the made-over-thrown count, and the
+ * percentage. The counts stay because a percentage off three balls is not the
+ * same claim as one off thirty, and the pill is tinted only once the rate is
+ * good, so a glance down the list finds the nights that went well.
+ */
+function Rate({
+  label,
+  made,
+  of,
+  name
+}: {
+  label: string;
+  made: number;
+  of: number;
+  name: string;
+}) {
+  const pct = of === 0 ? null : Math.round((made / of) * 100);
+  const strong = pct !== null && pct >= 70;
+  return (
+    <span
+      className={`flex items-baseline gap-1 rounded-md px-1.5 py-0.5 text-[11px] tabular-nums ${
+        strong ? "bg-accent-soft text-accent" : "bg-surface-muted text-ink-secondary"
+      }`}
+      aria-label={`${name} ${made} of ${of}${pct === null ? "" : `, ${pct}%`}`}
+    >
+      <span className="font-bold" aria-hidden="true">{label}</span>
+      <span aria-hidden="true">
+        {made}/{of}
+      </span>
+      <span className="font-semibold" aria-hidden="true">
+        {pct === null ? "-" : `${pct}%`}
+      </span>
+    </span>
   );
 }

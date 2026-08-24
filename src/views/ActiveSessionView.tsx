@@ -33,6 +33,9 @@ interface ActiveSessionViewProps {
   onStatsOpened?: () => void;
   /** Land on this game rather than the latest one (a stats drill-down). */
   initialGameId?: number;
+  /** The ball that drill-down was about: the session sheet opens on the game
+   *  with the shots it threw lit up. */
+  initialBallId?: number;
   /** Fired once that game has been selected, so the flag can reset. */
   onGameOpened?: () => void;
   onBack: () => void;
@@ -53,6 +56,7 @@ export function ActiveSessionView({
   openStatsOnMount = false,
   onStatsOpened,
   initialGameId,
+  initialBallId,
   onGameOpened,
   onBack,
   onSessionDeleted,
@@ -65,7 +69,14 @@ export function ActiveSessionView({
   const [error, setError] = useState("");
   const [confirmDeleteGame, setConfirmDeleteGame] = useState<number | null>(null);
   const [chipMenu, setChipMenu] = useState<{ gameId: number; left: number; top: number } | null>(null);
-  const [showSheet, setShowSheet] = useState(openStatsOnMount);
+  // A game drill-down lands on the session sheet, scrolled to that game: the
+  // question it was asked from ("what did this ball do in game 3") is answered
+  // by the frames, not by the scorer parked on one of them.
+  const [showSheet, setShowSheet] = useState(openStatsOnMount || initialGameId != null);
+  // Captured at mount: the drill-down flags are one-shot, and the reset lands
+  // in the same commit as the loaded session, so reading the prop later would
+  // find it already cleared and the sheet would open with nothing lit.
+  const [landingBallId] = useState(initialBallId);
   const [sheetTab, setSheetTab] = useState<SessionPanelTab>(openStatsOnMount ? "stats" : "sheet");
   const [showEdit, setShowEdit] = useState(false);
   // Frame handed to the scorer when one is tapped in the session sheet.
@@ -430,13 +441,13 @@ export function ActiveSessionView({
           summary={sessionDetails}
           currentGameId={activeGame.id}
           defaultTab={sheetTab}
+          highlightBallId={landingBallId}
           // Close the sheet first: it portals to body after the edit dialog,
           // so it would otherwise paint on top of it.
           onEdit={() => { setShowSheet(false); setShowEdit(true); }}
-          onSelectGame={(gameId) => {
-            setActiveGameId(gameId);
-            setShowSheet(false);
-          }}
+          // The panel answers a drill-down on its own sheet tab, so the sheet
+          // stays up; score entry just follows along behind it.
+          onSelectGame={(gameId) => setActiveGameId(gameId)}
           onSelectFrame={(gameId, frameNumber, shotIndex) => {
             setActiveGameId(gameId);
             setFocusFrame((prev) => ({ frameNumber, shotIndex, token: (prev?.token ?? 0) + 1 }));

@@ -18,11 +18,13 @@ import { getBalls } from "../services/ballRepository";
 import type { Ball, SessionSummary } from "../types/bowling";
 import { GROUP_HEADING } from "../components/ui/typography";
 import { useHandedness } from "../lib/handednessContext";
+import { useRememberedState } from "../lib/viewMemory";
 
 interface HistoryViewProps {
   onOpenSession: (sessionId: number) => void;
-  /** Open one game of a session directly, from a stats drill-down. */
-  onOpenSessionGame?: (sessionId: number, gameId: number) => void;
+  /** Open one game of a session directly, from a stats drill-down, carrying
+   *  the ball it was about. */
+  onOpenSessionGame?: (sessionId: number, gameId: number, ballId?: number) => void;
   activeSessionId: number | null;
   onSessionDeleted?: (sessionId: number) => void;
 }
@@ -69,12 +71,14 @@ export function HistoryView({
   const isLoading = liveHistory === undefined;
   const handedness = useHandedness();
   const [error] = useState("");
-  const [pane, setPane] = useState<Pane>("sessions");
+  // Remembered across tab switches: leaving History for a session and coming
+  // back should land where you left, not on a reset screen (`lib/viewMemory`).
+  const [pane, setPane] = useRememberedState<Pane>("history:pane", "sessions");
 
-  const [filterAlley, setFilterAlley] = useState("");
-  const [filterPattern, setFilterPattern] = useState("");
-  const [selectedLanes, setSelectedLanes] = useState<string[]>([]);
-  const [visibleCount, setVisibleCount] = useState(PAGE);
+  const [filterAlley, setFilterAlley] = useRememberedState("history:alley", "");
+  const [filterPattern, setFilterPattern] = useRememberedState("history:pattern", "");
+  const [selectedLanes, setSelectedLanes] = useRememberedState<string[]>("history:lanes", []);
+  const [visibleCount, setVisibleCount] = useRememberedState("history:visible", PAGE);
   // The list the window belongs to. Comparing it during render resets the
   // window when the filters change a list, which an effect would only do a
   // render later, after painting a short list scrolled to the wrong place.
@@ -136,7 +140,10 @@ export function HistoryView({
   // it re-renders before anything is shown, so no wasted paint.
   if (windowedList !== sessionList) {
     setWindowedList(sessionList);
-    setVisibleCount(PAGE);
+    // Not on the first pass: `windowedList` starts null on every mount, and a
+    // tab switch is a mount, so resetting here would throw away a remembered
+    // window every time the tab is opened.
+    if (windowedList !== null) setVisibleCount(PAGE);
   }
 
   const stats = useMemo(
@@ -146,6 +153,28 @@ export function HistoryView({
   const leaves = useMemo(
     () => calculateCommonLeaves(filteredHistory, activeLanes),
     [filteredHistory, activeLanes]
+  );
+  // One point per session, oldest first: the History filters ask "how am I
+  // going", and a night is the unit that question is asked in. Sessions with no
+  // completed game have nothing to plot and drop out.
+  const sessionTrend = useMemo(
+    () =>
+      [...filteredHistory]
+        .sort((a, b) => a.session.date.localeCompare(b.session.date))
+        .flatMap((s) => {
+          const scores = s.games.flatMap((g) =>
+            g.final_score !== undefined ? [g.final_score] : []
+          );
+          if (scores.length === 0) return [];
+          return [
+            {
+              date: s.session.date,
+              average: Math.round(scores.reduce((a, b) => a + b, 0) / scores.length),
+              scores
+            }
+          ];
+        }),
+    [filteredHistory]
   );
   const ballPerformance = useMemo(
     () => calculateBallPerformance(filteredHistory, balls, activeLanes, handedness),
@@ -174,7 +203,9 @@ export function HistoryView({
     });
     obs.observe(el);
     return () => obs.disconnect();
-  }, [pane, sessionList.length]);
+    // `setVisibleCount` is listed because it now comes from a custom hook, so
+    // the linter cannot see that it is a `useState` setter and stable.
+  }, [pane, sessionList.length, setVisibleCount]);
 
   return (
     <section className="mx-auto flex h-full w-full max-w-3xl flex-col px-3 pt-3 sm:px-6 sm:pt-5">
@@ -242,6 +273,7 @@ export function HistoryView({
 
       <SwipePanes
         className="-mx-3 min-h-0 flex-1 sm:-mx-6"
+        scrollKey="history"
         index={PANES.indexOf(pane)}
         onIndexChange={(i) => setPane(PANES[i])}
         panes={[
@@ -261,6 +293,7 @@ export function HistoryView({
               isLoading={isLoading}
               leaves={leaves}
               ballPerformance={ballPerformance}
+              sessionTrend={sessionTrend}
               onOpenGame={onOpenSessionGame}
             />
           </div>

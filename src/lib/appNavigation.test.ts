@@ -78,6 +78,15 @@ describe("navReducer", () => {
       expect(navReducer(consumed, { type: "statsOpened" })).toBe(consumed);
     });
 
+    it("carries the ball a drill-down was about, and drops it with the game", () => {
+      const opened = run([{ type: "openSession", sessionId: 3, gameId: 9, ballId: 4 }]);
+      expect(opened.openSessionBallId).toBe(4);
+
+      const consumed = navReducer(opened, { type: "sessionGameOpened" });
+      expect(consumed.openSessionBallId).toBeNull();
+      expect(navReducer(consumed, { type: "sessionGameOpened" })).toBe(consumed);
+    });
+
     it("opens a named game of a session, once", () => {
       const opened = run([{ type: "openSession", sessionId: 3, gameId: 9 }]);
       expect(opened.view).toBe("active");

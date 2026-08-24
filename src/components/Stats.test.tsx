@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { Stats } from "./Stats";
 import type { BallPerformanceReport, BowlingStats, LeaveStats } from "../lib/stats";
 import { describePinsStanding } from "../lib/pins";
@@ -58,6 +58,15 @@ describe("stat definitions", () => {
     expect(screen.queryByText(/balls thrown at a full rack that hit the pocket/i)).toBeNull();
   });
 
+  it("puts pocket, carry and strike on the ball's own row, with the ball count", () => {
+    render(<Stats stats={STATS} ballPerformance={REPORT} />);
+    fireEvent.click(screen.getByText("Ball performance"));
+
+    // The row reads P 100 · C 75 · S 75 · 12, letters muted and numbers bold.
+    const row = screen.getByText("Wolverine").closest("button")!;
+    expect(row).toHaveTextContent(/P\s*100\s*·\s*C\s*75\s*·\s*S\s*75\s*·\s*12/);
+  });
+
   it("explains the rows of a ball's table too", () => {
     render(<Stats stats={STATS} ballPerformance={REPORT} />);
     fireEvent.click(screen.getByText("Ball performance"));
@@ -66,6 +75,72 @@ describe("stat definitions", () => {
     // The tile and the table row share a label, so the row is the second one.
     fireEvent.click(screen.getAllByText("Carry")[0]);
     expect(screen.getByText(/pocket hits that struck/i)).toBeInTheDocument();
+  });
+});
+
+describe("the games behind a column", () => {
+  const withSessions: BallPerformanceReport = {
+    ...REPORT,
+    balls: [
+      {
+        ...REPORT.balls[0],
+        byGame: [
+          {
+            gameNumber: 4,
+            firstBalls: 12,
+            pocket: 12,
+            strikes: 9,
+            pocketStrikes: 9,
+            sessions: [
+              {
+                sessionId: 3,
+                gameId: 30,
+                date: "2026-08-05",
+                alley: "Chinese Swimming Club",
+                event: "SIA Bilateral",
+                oilPattern: "Chromium 42ft",
+                firstBalls: 12,
+                pocket: 12,
+                strikes: 7,
+                pocketStrikes: 7
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  };
+
+  function openDrilldown(onOpenGame: (sessionId: number, gameId: number, ballId?: number) => void = () => {}) {
+    render(<Stats stats={STATS} ballPerformance={withSessions} onOpenGame={onOpenGame} />);
+    fireEvent.click(screen.getByText("Ball performance"));
+    fireEvent.click(screen.getByText("Wolverine"));
+    fireEvent.click(screen.getByRole("button", { name: /Games behind Wolverine, game 4/ }));
+  }
+
+  it("names the ball, and says which game the usages are in", () => {
+    openDrilldown();
+    expect(screen.getByRole("heading", { name: "Wolverine" })).toBeInTheDocument();
+    expect(screen.getByText("Usages in game 4")).toBeInTheDocument();
+  });
+
+  it("shows the event and the rates behind the counts", () => {
+    openDrilldown();
+    expect(screen.getByText(/SIA Bilateral/)).toBeInTheDocument();
+    expect(screen.getByText(/Chromium 42ft/)).toBeInTheDocument();
+    expect(screen.getByLabelText("pocket 12 of 12, 100%")).toBeInTheDocument();
+    expect(screen.getByLabelText("carry 7 of 12, 58%")).toBeInTheDocument();
+    expect(screen.getByLabelText("strike 7 of 12, 58%")).toBeInTheDocument();
+    expect(screen.getByText("12 balls")).toBeInTheDocument();
+  });
+
+  it("hands the ball to the caller, so the destination can light its shots up", async () => {
+    const opened: Array<[number, number, number | undefined]> = [];
+    openDrilldown((sessionId, gameId, ballId) => opened.push([sessionId, gameId, ballId]));
+    fireEvent.click(screen.getByText("Chinese Swimming Club"));
+    // The dialog plays its exit before handing over, so the call lands a beat
+    // after the tap.
+    await waitFor(() => expect(opened).toEqual([[3, 30, 1]]));
   });
 });
 

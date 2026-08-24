@@ -14,6 +14,7 @@ import type {
 } from "../lib/stats";
 import { BallGameSessionsDialog } from "./BallGameSessionsDialog";
 import { ScoreTrendChart } from "./ScoreTrendChart";
+import { SessionTrendChart, type SessionPoint } from "./SessionTrendChart";
 import type { Game } from "../types/bowling";
 import { GROUP_HEADING } from "./ui/typography";
 
@@ -36,12 +37,17 @@ interface StatsProps {
   leaves?: LeaveStats[];
   ballPerformance?: BallPerformanceReport;
   /** Open a specific game of a session. Wired where there is somewhere to go:
-   *  a game-number column then opens the games behind it. */
-  onOpenGame?: (sessionId: number, gameId: number) => void;
+   *  a game-number column then opens the games behind it. The ball travels
+   *  with it so the destination can show which shots it threw. */
+  onOpenGame?: (sessionId: number, gameId: number, ballId?: number) => void;
   /** Games of the session being shown, for the score trend. Omitted on the
-   *  aggregate History screen: a line through games from different nights,
-   *  houses and patterns draws a continuity that was never bowled. */
+   *  aggregate History screen, which passes `sessionTrend` instead: a line
+   *  through games from different nights, houses and patterns draws a
+   *  continuity that was never bowled, but a line through the nights
+   *  themselves is exactly the form the filters are asking about. */
   games?: Array<Pick<Game, "game_number" | "final_score">>;
+  /** One point per session, oldest first, for the History screen's trend. */
+  sessionTrend?: SessionPoint[];
 }
 
 export function Stats({
@@ -50,7 +56,8 @@ export function Stats({
   leaves,
   ballPerformance,
   onOpenGame,
-  games
+  games,
+  sessionTrend
 }: StatsProps) {
   const [showBallPerformance, setShowBallPerformance] = useState(false);
   // One note at a time, opened by tapping the stat it explains. A definition
@@ -124,6 +131,7 @@ export function Stats({
       </div>
 
       {games && games.length > 0 && <ScoreTrendChart games={games} />}
+      {sessionTrend && sessionTrend.length > 0 && <SessionTrendChart sessions={sessionTrend} />}
 
       {/* The leave note is rendered down with the leave cards it explains, so
           the answer lands where the tap was. */}
@@ -212,7 +220,7 @@ function BallPerformanceRow({
   onOpenGame
 }: {
   ball: BallPerformance;
-  onOpenGame?: (sessionId: number, gameId: number) => void;
+  onOpenGame?: (sessionId: number, gameId: number, ballId?: number) => void;
 }) {
   const [open, setOpen] = useState(false);
   const [drilldown, setDrilldown] = useState<BallGameCell | null>(null);
@@ -237,10 +245,15 @@ function BallPerformanceRow({
           )}
         </span>
         <span className="min-w-0 flex-1 truncate font-medium text-ink-strong">{ball.name}</span>
-        <span className="shrink-0 tabular-nums text-ink-secondary">
-          <span className="font-semibold text-ink">{pct(ball.strikePct)}</span> strike
-          {" · "}
-          <span className="font-semibold text-ink">{ball.firstBalls}</span> balls
+        {/* Pocket, carry and strike in one row: the letters carry the meaning
+            at a glance and the table below spells them out in full. */}
+        <span className="shrink-0 text-xs tabular-nums text-ink-secondary">
+          <HeadlineRate letter="P" value={ball.pocketPct} label="pocket" />
+          <HeadlineRate letter="C" value={ball.carryPct} label="carry" />
+          <HeadlineRate letter="S" value={ball.strikePct} label="strike" />
+          <span className="font-semibold text-ink" aria-label={`${ball.firstBalls} balls`}>
+            {ball.firstBalls}
+          </span>
         </span>
         <ChevronDown size={14} aria-hidden="true" className={open ? "rotate-180" : ""} />
       </button>
@@ -311,7 +324,7 @@ function BallPerformanceRow({
               ballName={ball.name}
               gameNumber={drilldown.gameNumber}
               sessions={drilldown.sessions}
-              onSelect={onOpenGame}
+              onSelect={(sessionId, gameId) => onOpenGame(sessionId, gameId, ball.ballId)}
               onClose={() => setDrilldown(null)}
             />
           )}
@@ -320,7 +333,7 @@ function BallPerformanceRow({
             // Grouped the way the leave cards below are, easiest first, and
             // scrolled rather than cut at four: every leave the ball left is
             // part of the answer.
-            <div className="grid auto-cols-[calc((100%-1.125rem)/4)] grid-flow-col gap-1.5 overflow-x-auto">
+            <div className="grid auto-cols-[calc((100%-1.125rem)/4)] grid-flow-col gap-1.5 overflow-x-auto overscroll-x-contain">
               {[...ball.leaves]
                 .sort((a, b) => leaveGroup(a.pins) - leaveGroup(b.pins))
                 .map((leave) => (
@@ -331,6 +344,27 @@ function BallPerformanceRow({
         </div>
       )}
     </li>
+  );
+}
+
+/** One rate on the ball's collapsed row: a muted letter, the number, a dot. */
+function HeadlineRate({
+  letter,
+  value,
+  label
+}: {
+  letter: string;
+  value: number | null;
+  label: string;
+}) {
+  return (
+    <>
+      <span className="mr-0.5 text-ink-tertiary" aria-hidden="true">{letter}</span>
+      <span className="font-semibold text-ink" aria-label={`${label} ${pct(value)}`}>
+        {value === null ? "-" : value}
+      </span>
+      <span className="px-1 text-ink-tertiary" aria-hidden="true">·</span>
+    </>
   );
 }
 

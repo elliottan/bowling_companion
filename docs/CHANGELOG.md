@@ -12,6 +12,12 @@ of shipped work rather than a release. Thirty of them used to be headed
 
 ### Fixed
 
+- **"Games behind this column" says what it means.** The drill-down is headed
+  by the ball alone now, with "Usages in game 3" under it, and each row carries
+  the event and the pattern as well as the alley and the date. The counts are
+  still there, with the rate beside them: `P 7/7 100%`, `C 6/7 86%`, `S 6/7
+  86%`, tinted once a rate is worth noticing.
+
 - **A ball's leaves read in the same order as the leave cards.** They were
   ranked by how often the ball left them and cut at four, so a split could sit
   ahead of a makeable and the rest were not shown at all. They now group the way
@@ -28,6 +34,24 @@ of shipped work rather than a release. Thirty of them used to be headed
   bowled from reporting its open leave as a miss.
 
 ### Added
+
+- **A trend line across sessions, on the History stats.** One point per night,
+  oldest on the left, with a faint dot for every game behind it so a 170/240
+  night is not read as two 205s. It follows the filters, so narrowing to a
+  house or a pattern narrows the line.
+
+- **Pocket and carry on the ball's own row.** The collapsed row now reads
+  `P 84 · C 69 · S 65 · 31`, so the three rates and the sample size are
+  legible without expanding the table (which still spells them out in full).
+
+- **A drill-down lands on the frames it was about.** Tapping a game behind a
+  ball opens that session's sheet, scrolled to that game, and the shots thrown
+  with that ball tint for a moment and fade. It is a background tint only, so
+  nothing moves; with reduced motion the tint simply stays put.
+
+- **Tabs remember where you were.** Leaving History and coming back keeps the
+  pane, the filters, the lane selection and the scroll position. Kept in
+  memory for the app run, not stored: a reload starts clean.
 
 - **A spare line for your strike ball, stored as a move.** A leave's saved line
   is real boards thrown with a plastic ball, which is wrong the moment you shoot
