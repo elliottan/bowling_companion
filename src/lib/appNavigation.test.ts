@@ -30,7 +30,7 @@ describe("navReducer", () => {
     it("leaves the section alone when moving between other tabs", () => {
       const state = run([
         { type: "goToSettingsSection", section: "oil-patterns" },
-        { type: "goTo", view: "spares" }
+        { type: "goTo", view: "stats" }
       ]);
       expect(state.settingsSection).toBe("oil-patterns");
     });
@@ -60,11 +60,11 @@ describe("navReducer", () => {
 
     it("goTo('active') from a tab records that tab too", () => {
       const state = run([
-        { type: "goTo", view: "spares" },
+        { type: "goTo", view: "stats" },
         { type: "goTo", view: "active" },
         { type: "leaveSession" }
       ]);
-      expect(state.view).toBe("spares");
+      expect(state.view).toBe("stats");
     });
 
     it("opens a finished session with its stats up, once", () => {
@@ -175,7 +175,7 @@ describe("navReducer", () => {
     it("survives a tab switch, since the tab is underneath it", () => {
       const state = run([
         { type: "pushOverlay", overlay: "catalog" },
-        { type: "goTo", view: "spares" }
+        { type: "goTo", view: "stats" }
       ]);
       expect(state.overlays).toEqual(["catalog"]);
     });

@@ -23,7 +23,7 @@ export type SettingsSection =
   | "preferences"
   | "appearance";
 
-export type AppView = "dashboard" | "active" | "history" | "spares" | "settings";
+export type AppView = "dashboard" | "active" | "history" | "stats" | "settings";
 
 /** Screens that float above the tab bar, newest last. Pushing one keeps what is
  *  underneath alive, so back pops one level instead of collapsing the stack.
@@ -31,8 +31,21 @@ export type AppView = "dashboard" | "active" | "history" | "spares" | "settings"
  *  Lane notes, oil patterns and backup are also Settings sections. Reached from
  *  the dashboard they push over the tab the user is on: switching them to the
  *  Settings tab instead put them on a screen they never chose, and back then
- *  showed Settings on its way home. */
-export type Overlay = "arsenal" | "catalog" | "lanes" | "oil-patterns" | "backup";
+ *  showed Settings on its way home.
+ *
+ *  Spare lines used to be a tab. It lost its slot to Stats (ADR-057) and is
+ *  pushed from the dashboard now, which is also where its siblings live: the
+ *  arsenal, the catalog and the lane notes are all reference you keep, not
+ *  places you sit. */
+export type Overlay =
+  | "arsenal"
+  | "catalog"
+  | "lanes"
+  | "oil-patterns"
+  | "backup"
+  | "spares"
+  | "open-frames"
+  | "game-trend";
 
 export interface NavState {
   view: AppView;

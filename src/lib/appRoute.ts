@@ -31,7 +31,7 @@ const VIEW_SEGMENT: Record<AppView, string> = {
   dashboard: "home",
   active: "session",
   history: "history",
-  spares: "spares",
+  stats: "stats",
   settings: "settings"
 };
 
@@ -39,7 +39,16 @@ const SEGMENT_VIEW = new Map<string, AppView>(
   Object.entries(VIEW_SEGMENT).map(([view, segment]) => [segment, view as AppView])
 );
 
-const OVERLAYS: readonly string[] = ["arsenal", "catalog", "lanes", "oil-patterns", "backup"];
+const OVERLAYS: readonly string[] = [
+  "arsenal",
+  "catalog",
+  "lanes",
+  "oil-patterns",
+  "backup",
+  "spares",
+  "open-frames",
+  "game-trend"
+];
 
 const SETTINGS_SECTIONS: readonly string[] = [
   "menu",

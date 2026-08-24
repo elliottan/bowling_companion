@@ -19,7 +19,8 @@ import { CSS } from "@dnd-kit/utilities";
 import { ErrorBanner } from "../components/ErrorBanner";
 import { MiniPins } from "../components/MiniPins";
 import { SpareLineFormDialog } from "../components/SpareLineFormDialog";
-import { Fab, FabRow } from "../components/ui/Fab";
+import { IconButton } from "../components/ui/IconButton";
+import { PushScreen } from "../components/PushScreen";
 import { useDriftModel } from "../lib/driftModelContext";
 import { deriveLaydown, deriveSlide, type DriftModel } from "../lib/driftModel";
 import {
@@ -126,7 +127,7 @@ const NO_LINES: SpareLine[] = [];
 
 type Editing = { mode: "add" } | { mode: "edit"; sl: SpareLine };
 
-export function SpareLinesView() {
+export function SpareLinesView({ onBack }: { onBack: () => void }) {
   // Seeding is a write, and a live query observes inside a readonly
   // transaction, so it cannot live in one. Fire it once; the query below picks
   // the rows up on its own when they land.
@@ -185,18 +186,27 @@ export function SpareLinesView() {
   }
 
   return (
-    <section className="mx-auto w-full max-w-3xl px-3 pb-5 pt-3 sm:px-6 sm:pt-5">
-      <h1 className="mb-3 text-xl font-bold text-ink">Spare lines</h1>
-
+    // A pushed screen, not a tab, since Stats took the tab slot (ADR-057). The
+    // add action moves with it: a push has a nav bar, and that bar carries the
+    // one trailing action instead of a Fab (DESIGN-LANGUAGE §7b).
+    <PushScreen
+      title="Spare lines"
+      onBack={onBack}
+      active={editing === null}
+      trailing={
+        <IconButton
+          label="Add spare line"
+          variant="round"
+          onClick={() => setEditing({ mode: "add" })}
+        >
+          <Plus size={20} aria-hidden="true" />
+        </IconButton>
+      }
+    >
+    <section className="mx-auto w-full max-w-3xl px-3 pb-8 pt-3 sm:px-6">
       {error && (
         <ErrorBanner className="mb-3">{error}</ErrorBanner>
       )}
-
-      {/* A tab with one dominant action puts it in the thumb corner, not in a
-          header (DESIGN-LANGUAGE §7b). Adding a spare line is this tab's. */}
-      <FabRow>
-        <Fab icon={Plus} label="Add spare line" onClick={() => setEditing({ mode: "add" })} />
-      </FabRow>
 
       {editing?.mode === "add" && (
         <SpareLineFormDialog
@@ -246,5 +256,6 @@ export function SpareLinesView() {
       )}
 
     </section>
+    </PushScreen>
   );
 }

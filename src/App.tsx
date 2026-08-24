@@ -1,9 +1,9 @@
 import {
+  BarChart3,
   History,
   Home,
   PlayCircle,
   Settings,
-  Target,
   type LucideIcon
 } from "lucide-react";
 import {
@@ -23,7 +23,7 @@ import { ActiveSessionView } from "./views/ActiveSessionView";
 import { HistoryView } from "./views/HistoryView";
 import { rememberScroll, restoreScroll } from "./lib/viewMemory";
 import { SettingsView } from "./views/SettingsView";
-import { SpareLinesView } from "./views/SpareLinesView";
+import { StatsView } from "./views/StatsView";
 import {
   addGameToSession,
   createSession,
@@ -56,6 +56,15 @@ const OilPatternsView = lazy(() => import("./views/OilPatternsView").then((m) =>
 const BackupRestoreView = lazy(() =>
   import("./views/BackupRestoreView").then((m) => ({ default: m.BackupRestoreView }))
 );
+const SpareLinesView = lazy(() =>
+  import("./views/SpareLinesView").then((m) => ({ default: m.SpareLinesView }))
+);
+const OpenFramesView = lazy(() =>
+  import("./views/OpenFramesView").then((m) => ({ default: m.OpenFramesView }))
+);
+const GameTrendView = lazy(() =>
+  import("./views/GameTrendView").then((m) => ({ default: m.GameTrendView }))
+);
 
 type NavItem = {
   view: AppView;
@@ -67,7 +76,7 @@ const NAV_ITEMS: ReadonlyArray<NavItem> = [
   { view: "dashboard", label: "Home", icon: Home },
   { view: "active", label: "Active", icon: PlayCircle },
   { view: "history", label: "History", icon: History },
-  { view: "spares", label: "Spares", icon: Target },
+  { view: "stats", label: "Stats", icon: BarChart3 },
   { view: "settings", label: "Settings", icon: Settings }
 ];
 
@@ -406,6 +415,7 @@ function App() {
             onOpenArsenal={() => pushOverlay("arsenal")}
             onOpenLaneNotes={() => pushOverlay("lanes")}
             onOpenOilPatterns={() => pushOverlay("oil-patterns")}
+            onOpenSpareLines={() => pushOverlay("spares")}
             onSessionDeleted={handleSessionDeleted}
             onOpenBackup={goToBackup}
           />
@@ -437,12 +447,20 @@ function App() {
         {view === "history" && (
           <HistoryView
             onOpenSession={openSession}
-            onOpenSessionGame={openSessionGame}
             activeSessionId={activeSessionId}
             onSessionDeleted={handleSessionDeleted}
+            onViewStats={() => goTo("stats")}
           />
         )}
-        {view === "spares" && <SpareLinesView />}
+        {view === "stats" && (
+          <StatsView
+            onOpenSession={openSession}
+            onOpenSessionGame={openSessionGame}
+            onViewSessions={() => goTo("history")}
+            onOpenFrames={() => pushOverlay("open-frames")}
+            onOpenGameTrend={() => pushOverlay("game-trend")}
+          />
+        )}
         {view === "settings" && (
           <SettingsView
             section={settingsSection}
@@ -505,6 +523,14 @@ function App() {
             return <OilPatternsView key={`oil-patterns-${i}`} onBack={popOverlay} mode="overlay" />;
           case "backup":
             return <BackupRestoreView key={`backup-${i}`} onBack={popOverlay} mode="overlay" />;
+          case "spares":
+            return <SpareLinesView key={`spares-${i}`} onBack={popOverlay} />;
+          // Stats drill-downs. They read the shared session filter themselves,
+          // so there is nothing to thread through here.
+          case "open-frames":
+            return <OpenFramesView key={`open-frames-${i}`} onBack={popOverlay} />;
+          case "game-trend":
+            return <GameTrendView key={`game-trend-${i}`} onBack={popOverlay} />;
         }
       })}
       </Suspense>

@@ -579,6 +579,10 @@ export interface FilterOptions {
   oilPattern?: string;
   alleyName?: string;
   laneNumber?: string;
+  /** Keep only this position in the night: every third game, say. Filtering the
+   *  games here rather than teaching each calculator about it is what lets the
+   *  whole Stats screen slice by game with no calculator changes. */
+  gameNumber?: number;
 }
 
 export function filterSessionsBy(
@@ -586,6 +590,12 @@ export function filterSessionsBy(
   filter: FilterOptions
 ): SessionSummary[] {
   return sessions.reduce<SessionSummary[]>((acc, s) => {
+    if (filter.gameNumber != null) {
+      const games = s.games.filter((g) => g.game_number === filter.gameNumber);
+      if (games.length === 0) return acc;
+      s = { session: s.session, games };
+    }
+
     if (filter.oilPattern) {
       const pat = filter.oilPattern.toLowerCase();
       const op = s.session.oil_pattern?.toLowerCase() ?? "";
@@ -610,4 +620,237 @@ export function filterSessionsBy(
     acc.push(s);
     return acc;
   }, []);
+}
+
+// ---------------------------------------------------------------------------
+// Open frames
+// ---------------------------------------------------------------------------
+
+/** One leave, and what it left standing across the frames it went open. */
+export interface OpenFrameLeave {
+  pins: PinNumber[];
+  /** Leaves a ball followed, so the spare could be made or missed. */
+  chances: number;
+  conversions: number;
+  misses: number;
+  /** Pins still standing after those misses, summed. */
+  pinsLeft: number;
+}
+
+export interface OpenFrameReport {
+  /** Completed games in view: the denominator of both per-game rates. */
+  games: number;
+  openFrames: number;
+  pinsLeft: number;
+  /** One decimal, so a small change in a short history is still visible. */
+  openFramesPerGame: number | null;
+  pinsLeftPerGame: number | null;
+  /** Heaviest first, which is frequency times size rather than either alone. */
+  leaves: OpenFrameLeave[];
+}
+
+/**
+ * What open frames leave on the deck, per game and per leave (ADR-055).
+ *
+ * The number is pins left standing, not points lost. Points lost is the more
+ * natural question and this deliberately does not answer it: converting a
+ * spare changes the score of the frame before it as well as its own, so
+ * "what would this game have been" means re-scoring a game that was never
+ * bowled. That is a counterfactual, and every other number in this file
+ * describes what happened.
+ *
+ * Only completed games count, matching `calculateStats`: a game still being
+ * bowled has frames that are not open yet, only unfinished.
+ */
+export function calculateOpenFrames(
+  sessions: SessionSummary[],
+  selectedLanes?: string[]
+): OpenFrameReport {
+  const filter = selectedLanes && selectedLanes.length ? new Set(selectedLanes) : undefined;
+  const leaveMap = new Map<string, OpenFrameLeave>();
+  let games = 0;
+  let openFrames = 0;
+  let pinsLeft = 0;
+
+  for (const s of sessions) {
+    for (const game of s.games) {
+      if (typeof game.final_score !== "number") continue;
+      if (!gameTouchesLanes(game, filter)) continue;
+      games++;
+
+      for (const frame of game.frames) {
+        if (!frameOnSelectedLane(game, frame.frame_number, filter)) continue;
+        for (const { leave, chance, converted } of leaveEvents(frame)) {
+          if (!chance || converted) continue;
+          const standing = standingAfterAttempt(frame, leave);
+          openFrames++;
+          pinsLeft += standing;
+
+          const key = leave.join("-");
+          if (!leaveMap.has(key)) {
+            leaveMap.set(key, {
+              pins: leave,
+              chances: 0,
+              conversions: 0,
+              misses: 0,
+              pinsLeft: 0
+            });
+          }
+          const entry = leaveMap.get(key)!;
+          entry.misses++;
+          entry.pinsLeft += standing;
+        }
+      }
+    }
+  }
+
+  // Chances and conversions come from every leave, not only the missed ones,
+  // so a leave's rate here reads the same as it does on the leaves card.
+  for (const s of sessions) {
+    for (const game of s.games) {
+      if (typeof game.final_score !== "number") continue;
+      if (!gameTouchesLanes(game, filter)) continue;
+      for (const frame of game.frames) {
+        if (!frameOnSelectedLane(game, frame.frame_number, filter)) continue;
+        for (const { leave, chance, converted } of leaveEvents(frame)) {
+          if (!chance) continue;
+          const entry = leaveMap.get(leave.join("-"));
+          if (!entry) continue;
+          entry.chances++;
+          if (converted) entry.conversions++;
+        }
+      }
+    }
+  }
+
+  const leaves = [...leaveMap.values()].sort(
+    (a, b) => b.pinsLeft - a.pinsLeft || b.misses - a.misses || comparePins(a.pins, b.pins)
+  );
+
+  return {
+    games,
+    openFrames,
+    pinsLeft,
+    openFramesPerGame: perGame(openFrames, games),
+    pinsLeftPerGame: perGame(pinsLeft, games),
+    leaves
+  };
+}
+
+/**
+ * Pins still standing once the frame gave up on the leave.
+ *
+ * The spare attempt is the ball straight after the leave. In frames 1 to 9
+ * that is the end of it. In the 10th a leave can come off a bonus ball with
+ * another ball behind it, so the attempt is still just the next ball: the one
+ * after that is thrown at whatever the attempt left, which is a new frame's
+ * worth of pins as far as this count is concerned.
+ */
+function standingAfterAttempt(frame: Frame, leave: PinNumber[]): number {
+  const index = frame.shots.findIndex(
+    (s) => s.pins_standing.length === leave.length && s.pins_standing.every((p) => leave.includes(p))
+  );
+  const attempt = index === -1 ? undefined : frame.shots[index + 1];
+  return attempt ? attempt.pins_standing.length : leave.length;
+}
+
+/** One decimal. `null` when there is nothing to divide by. */
+function perGame(total: number, games: number): number | null {
+  if (games === 0) return null;
+  return Math.round((total / games) * 10) / 10;
+}
+
+// ---------------------------------------------------------------------------
+// Game-number trend
+// ---------------------------------------------------------------------------
+
+/** One game slot of the night: every first game, every second game, and so on. */
+export interface GameNumberStats {
+  gameNumber: number;
+  /** Completed games in this slot. Thin slots are real and stay in the list. */
+  games: number;
+  average: number | null;
+  strikePct: number | null;
+  sparePct: number | null;
+  /** Same definitions as `calculateStats`, so a slot reads against the whole. */
+  pocketPct: number | null;
+  carryPct: number | null;
+}
+
+/**
+ * How you bowl by position in the night (ADR-056): every game 1 against every
+ * game 2, and so on, oldest slot first.
+ *
+ * This is not the same question as the session trend, which asks whether you
+ * are improving over months. This one holds the calendar still and asks what
+ * happens between the first frame of the night and the last.
+ *
+ * The slots thin out fast: most nights are three games, so game 4 and beyond
+ * carry a handful between them. The count rides on every row rather than
+ * being hidden behind a rate, and callers decide what is too thin to show.
+ */
+export function calculateGameNumberTrend(
+  sessions: SessionSummary[],
+  selectedLanes?: string[],
+  handedness: Handedness = "right"
+): GameNumberStats[] {
+  const filter = selectedLanes && selectedLanes.length ? new Set(selectedLanes) : undefined;
+  const slots = new Map<
+    number,
+    {
+      scores: number[];
+      strikeOpps: number;
+      strikes: number;
+      spareOpps: number;
+      spares: number;
+      pocketHits: number;
+      pocketStrikes: number;
+    }
+  >();
+
+  for (const s of sessions) {
+    for (const game of s.games) {
+      if (!gameTouchesLanes(game, filter)) continue;
+      const slot =
+        slots.get(game.game_number) ??
+        {
+          scores: [],
+          strikeOpps: 0,
+          strikes: 0,
+          spareOpps: 0,
+          spares: 0,
+          pocketHits: 0,
+          pocketStrikes: 0
+        };
+      slots.set(game.game_number, slot);
+
+      if (typeof game.final_score === "number") slot.scores.push(game.final_score);
+
+      for (const frame of game.frames) {
+        if (!frameOnSelectedLane(game, frame.frame_number, filter)) continue;
+        const tally = tallyFrame(frame);
+        slot.strikeOpps += tally.strikeOpps;
+        slot.strikes += tally.strikes;
+        slot.spareOpps += tally.spareOpps;
+        slot.spares += tally.spares;
+        for (const shot of freshRackShots(frame)) {
+          if (!resolvePocketHit(shot, handedness)) continue;
+          slot.pocketHits++;
+          if (shot.pins_standing.length === 0) slot.pocketStrikes++;
+        }
+      }
+    }
+  }
+
+  return [...slots.entries()]
+    .sort(([a], [b]) => a - b)
+    .map(([gameNumber, slot]) => ({
+      gameNumber,
+      games: slot.scores.length,
+      average: average(slot.scores),
+      strikePct: rate(slot.strikes, slot.strikeOpps),
+      sparePct: rate(slot.spares, slot.spareOpps),
+      pocketPct: rate(slot.pocketHits, slot.strikeOpps),
+      carryPct: rate(slot.pocketStrikes, slot.pocketHits)
+    }));
 }

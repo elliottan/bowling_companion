@@ -16,7 +16,10 @@ describe("appRoute", () => {
   const cases: Array<[string, AppRoute]> = [
     ["#/home", { view: "dashboard", overlays: [] }],
     ["#/history", { view: "history", overlays: [] }],
-    ["#/spares", { view: "spares", overlays: [] }],
+    ["#/stats", { view: "stats", overlays: [] }],
+    ["#/stats/open-frames", { view: "stats", overlays: ["open-frames"] }],
+    ["#/stats/game-trend", { view: "stats", overlays: ["game-trend"] }],
+    ["#/home/spares", { view: "dashboard", overlays: ["spares"] }],
     ["#/settings", { view: "settings", overlays: [] }],
     ["#/settings/lanes", { view: "settings", settingsSection: "lanes", overlays: [] }],
     ["#/session/12", { view: "active", sessionId: 12, overlays: [] }],
@@ -63,7 +66,7 @@ describe("appRoute", () => {
 
     it("leaves session memory out of the URL", () => {
       // previousView and the one-shot stats flag are not places.
-      const state = nav({ view: "history", previousView: "spares", openSessionStats: true });
+      const state = nav({ view: "history", previousView: "stats", openSessionStats: true });
       expect(toRoute(state)).toEqual({ view: "history", overlays: [] });
     });
 
@@ -137,7 +140,7 @@ describe("appRoute", () => {
     });
 
     it("leaves back pointing at the restored tab", () => {
-      const restored = navReducer(nav({ previousView: "spares" }), {
+      const restored = navReducer(nav({ previousView: "stats" }), {
         type: "restore",
         route: parseRoute("#/history")
       });

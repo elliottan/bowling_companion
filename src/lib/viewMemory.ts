@@ -1,4 +1,4 @@
-import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
+import { useCallback, useRef, useSyncExternalStore, type Dispatch, type SetStateAction } from "react";
 
 /**
  * Where a tab was when you left it.
@@ -11,21 +11,68 @@ import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
  *
  * Module-level, deliberately: this is app-run memory, not persisted state. A
  * reload starts clean, the same as a cold launch.
+ *
+ * The map is the value, not a copy of it. This used to be a `useState` seeded
+ * from the map on mount, which is indistinguishable while only one component
+ * reads a key: nobody else was mounted to disagree with. Two now are. The
+ * Stats tab stays mounted under its own drill-downs (ADR-057), so a filter set
+ * on the drill-down has to reach the tab underneath, and a seeded copy would
+ * only have picked it up on the next remount.
  */
 const values = new Map<string, unknown>();
 const scrolls = new Map<string, number>();
+const listeners = new Map<string, Set<() => void>>();
 
-/** `useState` that survives the view being unmounted and mounted again. */
+function subscribe(key: string, onChange: () => void): () => void {
+  const set = listeners.get(key) ?? new Set<() => void>();
+  listeners.set(key, set);
+  set.add(onChange);
+  return () => {
+    set.delete(onChange);
+    if (set.size === 0) listeners.delete(key);
+  };
+}
+
+function emit(key: string) {
+  for (const listener of listeners.get(key) ?? []) listener();
+}
+
+/**
+ * `useState` that survives the view being unmounted and mounted again, and is
+ * shared by every component reading the same key while they are all mounted.
+ */
 export function useRememberedState<T>(
   key: string,
   initial: T
 ): [T, Dispatch<SetStateAction<T>>] {
-  const [value, setValue] = useState<T>(() =>
-    values.has(key) ? (values.get(key) as T) : initial
+  // The first value is captured once. Reading `initial` on every snapshot
+  // would hand `useSyncExternalStore` a new array or object each time for the
+  // callers that default to one, which it reads as an endless change.
+  const initialRef = useRef(initial);
+
+  const getSnapshot = useCallback(() => {
+    if (!values.has(key)) values.set(key, initialRef.current);
+    return values.get(key) as T;
+  }, [key]);
+
+  const value = useSyncExternalStore(
+    useCallback((onChange: () => void) => subscribe(key, onChange), [key]),
+    getSnapshot,
+    getSnapshot
   );
-  useEffect(() => {
-    values.set(key, value);
-  }, [key, value]);
+
+  const setValue = useCallback<Dispatch<SetStateAction<T>>>(
+    (update) => {
+      const prev = values.has(key) ? (values.get(key) as T) : initialRef.current;
+      const next =
+        typeof update === "function" ? (update as (p: T) => T)(prev) : update;
+      if (Object.is(next, prev)) return;
+      values.set(key, next);
+      emit(key);
+    },
+    [key]
+  );
+
   return [value, setValue];
 }
 
@@ -74,8 +121,11 @@ export function restoreScroll(el: HTMLElement, key: string): () => void {
 const RESTORE_TRIES = 20;
 const RESTORE_TICK_MS = 50;
 
-/** Test seam: drops everything remembered. */
+/** Test seam: drops everything remembered. Anything still mounted is told, so
+ *  it falls back to its own initial value rather than holding a cleared one. */
 export function clearViewMemory() {
+  const keys = [...values.keys()];
   values.clear();
   scrolls.clear();
+  for (const key of keys) emit(key);
 }

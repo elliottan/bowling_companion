@@ -8,6 +8,32 @@ merge to `main` (`docs/DEPLOYMENT.md`), so every section below is a dated batch
 of shipped work rather than a release. Thirty of them used to be headed
 `[Unreleased]`, which said nothing once they had all shipped.
 
+## Stats gets its own tab, and two ways to cut it (2026-08)
+
+### Added
+
+- **Stats is a tab of its own**, next to History rather than a pane you swipe
+  to inside it. The two share one filter: narrow the sessions on History, tap
+  the chart icon, and the numbers are for exactly those games. The history icon
+  on Stats goes back the other way. See ADR-057.
+- **Filter by game number.** A row of chips for the position in the night, so
+  every number on the screen can be read for your third game alone. It travels
+  between the two tabs like the location and pattern filters do.
+- **Open frames**, from the Stats tab: what your misses leave on the deck, per
+  game and per leave, heaviest first. It counts pins left standing rather than
+  points lost, because points lost means scoring a game you never bowled
+  (ADR-055).
+- **Game by game**, from the Stats tab: every first game against every second
+  game, with average, strike and spare on one column set and pocket and carry
+  on the other. Slots with fewer than three games are greyed rather than
+  hidden. Tapping a row narrows the whole Stats tab to that slot (ADR-056).
+
+### Changed
+
+- **Spare lines moved off the tab bar** to the dashboard, alongside the arsenal
+  and the catalog, and adds through its nav bar instead of a floating button.
+  Stats took the slot. The old `#/spares` link now opens the dashboard.
+
 ## Dark mode, native navigation, and one design language (2026-07 to 2026-08)
 
 ### Fixed

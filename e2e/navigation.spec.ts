@@ -86,8 +86,8 @@ test("a tab switch does not stack history, so back still leaves the app", async 
   await page.getByRole("navigation").getByRole("button", { name: "History" }).click();
   await expect(page).toHaveURL(/#\/history$/);
 
-  await page.getByRole("navigation").getByRole("button", { name: "Spares" }).click();
-  await expect(page).toHaveURL(/#\/spares$/);
+  await page.getByRole("navigation").getByRole("button", { name: "Stats" }).click();
+  await expect(page).toHaveURL(/#\/stats$/);
 
   // Back from a tab does not walk the tabs backwards.
   await page.goBack();
@@ -95,12 +95,12 @@ test("a tab switch does not stack history, so back still leaves the app", async 
 });
 
 test("a reload lands back on the screen you were on", async ({ page }) => {
-  await page.getByRole("navigation").getByRole("button", { name: "Spares" }).click();
-  await expect(page).toHaveURL(/#\/spares$/);
+  await page.getByRole("navigation").getByRole("button", { name: "Stats" }).click();
+  await expect(page).toHaveURL(/#\/stats$/);
 
   await page.reload();
-  await expect(page).toHaveURL(/#\/spares$/);
-  await expect(page.getByRole("heading", { name: "Spare lines" })).toBeVisible();
+  await expect(page).toHaveURL(/#\/stats$/);
+  await expect(page.getByRole("heading", { name: "Stats", exact: true })).toBeVisible();
 });
 
 test("a session survives a reload, and the URL names it", async ({ page }) => {

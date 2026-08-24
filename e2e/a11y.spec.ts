@@ -55,7 +55,7 @@ test("the scorer is accessible mid-game", async ({ page }) => {
 });
 
 test("the arsenal, spares and settings screens are accessible", async ({ page }) => {
-  await page.getByRole("navigation").getByRole("button", { name: "Spares" }).click();
+  await page.getByRole("button", { name: "Spare lines" }).first().click();
   await expectNoViolations(page);
 
   // The spare cards are where the pin numbers live, and they are the smallest
@@ -64,6 +64,7 @@ test("the arsenal, spares and settings screens are accessible", async ({ page })
   await expectNoViolations(page);
   await page.emulateMedia({ colorScheme: "light" });
 
+  await page.getByRole("button", { name: "Back" }).click();
   await page.getByRole("navigation").getByRole("button", { name: "Settings" }).click();
   await expectNoViolations(page);
 

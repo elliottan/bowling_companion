@@ -2309,3 +2309,116 @@ form rather than the line that had just been thrown.
   rather than a modal. It never interrupts the next shot.
 - A leave with a saved line is never prompted for, so the prompt stops appearing
   as the table fills. The borrow control disappears on the same condition.
+
+---
+
+## ADR-055: Open frames are measured in pins left standing, not points lost
+
+**Status:** accepted (2026-08).
+
+**Context.** "What are my open frames costing me?" is the question a bowler
+actually asks, and the honest answer is a number of pins on the scoresheet.
+That number is not available. A spare in the sixth adds to the fifth, so
+converting one leave changes at least two frames, and any total for a night is
+the score of a game that was never bowled.
+
+Every other number in `lib/stats.ts` describes something that happened. ADR-050
+kept a leave with no ball behind it out of a conversion rate rather than
+inventing a denominator for it, and ADR-051 took leaves off a card rather than
+captioning a number that read wrong. Simulating a game to produce a headline
+would undo both.
+
+**Decision.** `calculateOpenFrames` reports **pins left standing** in frames
+that went open, per game and per leave.
+
+- A leave counts once the frame gave up on it: the ball after the leave is the
+  attempt, and what that ball leaves is what the frame cost.
+- Leaves rank by total pins left, which is frequency times size. A 10 pin
+  missed thirty times outranks a 3-6-10 missed twice, and should.
+- Ties break on misses, so the leave you keep missing sorts above the one you
+  rarely see.
+- Only completed games count, matching `calculateStats`. A frame in a game
+  still being bowled is unfinished, not open.
+
+**Consequences.**
+- The screen cannot say "fix this and you average 192". It says what is left on
+  the deck, and the bowler draws their own conclusion.
+- A single-pin tap looks cheap next to a big leave, because in pins it is. The
+  ranking recovers this through frequency rather than through a carry model.
+- If a scoreboard-cost number is ever wanted, it needs its own ADR and its own
+  name, and it must not replace this one.
+
+---
+
+## ADR-056: Game number is a filter first, and a comparison screen second
+
+**Status:** accepted (2026-08).
+
+**Context.** "How do I bowl in game 3 against game 1" is the same block of
+numbers as the Stats tab, sliced by position in the night instead of by date.
+Building a second screen that recomputes average, strike, spare, pocket and
+carry would be a second definition of each, and ADR-048 has already been
+through what happens when one number has two definitions.
+
+**Decision.** Two pieces, and only one of them is new maths.
+
+- **Game number joins the shared filter** as `FilterOptions.gameNumber`, which
+  drops games in the wrong slot before any calculator sees them. Every existing
+  number therefore slices by game with no calculator change, and the filter
+  travels to History the same way the alley and pattern filters do.
+- **`calculateGameNumberTrend` exists for the comparison**, because a filter
+  answers one slot at a time and the question is a comparison: the slots have
+  to sit next to each other. It returns the same rates by the same definitions,
+  one row per slot.
+- **Thin slots stay in the list** with their count on the row. Most nights are
+  three games, so game 4 is a handful. Hiding it would be a silent judgement;
+  greying it is a visible one.
+
+**Consequences.**
+- The Game-by-game screen is a table, not a chart per metric, and it swaps
+  between a scoring column set and a first-ball one rather than showing five
+  numeric columns on a phone (DESIGN-LANGUAGE §4b).
+- Tapping a row sets the shared game filter, so the comparison hands off to the
+  slice without a second way to express the same thing.
+
+---
+
+## ADR-057: History and Stats are two tabs over one filter
+
+**Status:** accepted (2026-08). Replaces the swipe panes inside the History tab.
+
+**Context.** History held sessions and stats as two panes of a `SwipePanes`
+with a segmented control on top. The control was a third navigation shape
+competing with the tab bar right beneath it, the swipe fought the horizontal
+gestures inside the panes, and neither pane could be linked to or restored on
+its own. Stats had also grown past what a pane can hold: it now has
+drill-downs of its own.
+
+The tab bar had five slots and no free one. Spare lines held one.
+
+**Decision.**
+
+- **Stats becomes a tab. Spare lines stops being one** and is pushed from the
+  dashboard, where the arsenal, the catalog and the lane notes already live.
+  All four are reference you keep rather than places you sit, and its add
+  action moves from a Fab to the push's trailing control (DESIGN-LANGUAGE
+  §7b).
+- **One filter, shared.** `useSessionFilters` owns alley, pattern, game and
+  lanes for both tabs. Narrow the list on History and cross over, and the
+  numbers are for the sessions you were looking at.
+- **The crossing control is an icon, no word.** The destination is named in the
+  tab bar directly below it, so a label would only say it twice.
+- **The drill-downs read the shared filter themselves** rather than taking it
+  through props, so `App` stays an orchestrator and a screen cannot be handed a
+  filter that disagrees with the tab under it.
+
+**Consequences.**
+- `#/stats` is a route, so a stats screen can be linked and restored. `#/spares`
+  is not: it is `#/home/spares` now, and the old hash resolves to the dashboard
+  like any other stale route.
+- `useRememberedState` had to become a real shared store. It was a `useState`
+  seeded from the module map on mount, which is indistinguishable from shared
+  while only one component reads a key. The Stats tab now stays mounted under
+  its own drill-downs, so a filter set on a drill-down has to reach the tab
+  underneath, and a seeded copy would only have seen it on the next remount.
+- `SwipePanes` keeps its other caller and is no longer used by History.

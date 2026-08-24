@@ -11,7 +11,7 @@ test.beforeEach(async ({ page }) => {
  * works on a multi-pin leave that is never seeded.
  */
 test("adds a spare line for a leave, stores its boards, and deletes it", async ({ page }) => {
-  await page.getByRole("navigation").getByRole("button", { name: "Spares" }).click();
+  await page.getByRole("button", { name: "Spare lines" }).first().click();
   const seeded = page.getByRole("button", { name: /^Edit spare line for pins/ });
   await expect(seeded).toHaveCount(9);
 
@@ -25,9 +25,10 @@ test("adds a spare line for a leave, stores its boards, and deletes it", async (
   await expect(card).toBeVisible();
 
   // Reopening reads back what was stored, rather than the form's own state.
-  // The app keeps no route in the URL, so a reload lands on Home.
+  // The screen is a push off Home now (ADR-057), so it has a route and a
+  // reload lands straight back on it.
   await page.reload();
-  await page.getByRole("navigation").getByRole("button", { name: "Spares" }).click();
+  await expect(page).toHaveURL(/#\/home\/spares$/);
   await expect(page.getByRole("button", { name: "Edit spare line for pins 3, 10" })).toBeVisible();
 
   await page.getByRole("button", { name: "Edit spare line for pins 3, 10" }).click();

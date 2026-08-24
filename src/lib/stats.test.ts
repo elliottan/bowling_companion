@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import {
   calculateBallPerformance,
   calculateCommonLeaves,
+  calculateGameNumberTrend,
+  calculateOpenFrames,
   calculateSessionTrend,
   calculateStats,
   filterSessionsBy
@@ -665,4 +667,206 @@ describe("calculateBallPerformance", () => {
     expect(report.balls[1].firstBalls).toBe(1);
   });
 
+});
+
+function numberedGame(
+  gameNumber: number,
+  finalScore: number | undefined,
+  frames: Frame[]
+): Game & { frames: Frame[] } {
+  return { id: gameNumber, session_id: 1, game_number: gameNumber, final_score: finalScore, frames };
+}
+
+/** Nine strikes and a 10th that opens on the given leave, left standing. */
+function gameOpeningOn(leave: PinNumber[], finalScore = 200): Game & { frames: Frame[] } {
+  return game(finalScore, [
+    ...Array.from({ length: 9 }, (_, i) => frame(i + 1, NONE)),
+    frame(10, leave, leave)
+  ]);
+}
+
+describe("filterSessionsBy game number", () => {
+  const strikes = Array.from({ length: 9 }, (_, i) => frame(i + 1, NONE)).concat(
+    frame(10, NONE, NONE, NONE)
+  );
+
+  const sessions: SessionSummary[] = [
+    {
+      session: { date: "2026-06-07", alley_name: "Sea Bowl" },
+      games: [numberedGame(1, 200, strikes), numberedGame(2, 180, strikes)]
+    },
+    {
+      session: { date: "2026-06-14", alley_name: "Sea Bowl" },
+      games: [numberedGame(1, 210, strikes)]
+    }
+  ];
+
+  it("keeps only that position in the night", () => {
+    const filtered = filterSessionsBy(sessions, { gameNumber: 2 });
+    expect(filtered).toHaveLength(1);
+    expect(filtered[0].games.map((g) => g.final_score)).toEqual([180]);
+  });
+
+  it("drops a session that never reached that game", () => {
+    expect(filterSessionsBy(sessions, { gameNumber: 3 })).toEqual([]);
+  });
+
+  it("slices the whole stats block, not just the trend", () => {
+    const stats = calculateStats(filterSessionsBy(sessions, { gameNumber: 1 }));
+    expect(stats.completedGames).toBe(2);
+    expect(stats.averageScore).toBe(205);
+  });
+});
+
+describe("calculateOpenFrames", () => {
+  it("reports nothing for no data", () => {
+    const report = calculateOpenFrames([]);
+    expect(report.games).toBe(0);
+    expect(report.openFramesPerGame).toBeNull();
+    expect(report.pinsLeftPerGame).toBeNull();
+    expect(report.leaves).toEqual([]);
+  });
+
+  it("counts the pins left standing, not the pins in the leave", () => {
+    // Left the 3-6-10, knocked the 3 over, so two pins stayed up.
+    const g = game(180, [
+      ...Array.from({ length: 9 }, (_, i) => frame(i + 1, NONE)),
+      frame(10, [3, 6, 10], [6, 10])
+    ]);
+    const report = calculateOpenFrames([session("Sea Bowl", [g])]);
+    expect(report.openFrames).toBe(1);
+    expect(report.pinsLeft).toBe(2);
+    expect(report.leaves[0].pins).toEqual([3, 6, 10]);
+    expect(report.leaves[0].pinsLeft).toBe(2);
+  });
+
+  it("leaves converted spares out of the open-frame count but keeps their rate", () => {
+    const g = game(190, [
+      ...Array.from({ length: 8 }, (_, i) => frame(i + 1, NONE)),
+      frame(9, [10], NONE),
+      frame(10, [10], [10])
+    ]);
+    const report = calculateOpenFrames([session("Sea Bowl", [g])]);
+    expect(report.openFrames).toBe(1);
+    const tenPin = report.leaves.find((l) => l.pins.join() === "10");
+    expect(tenPin).toMatchObject({ chances: 2, conversions: 1, misses: 1, pinsLeft: 1 });
+  });
+
+  it("ranks by pins left, so a frequent small leave can outweigh a rare big one", () => {
+    const sessions = [
+      session("Sea Bowl", [
+        gameOpeningOn([10]),
+        gameOpeningOn([10]),
+        gameOpeningOn([10]),
+        gameOpeningOn([2, 4, 5])
+      ])
+    ];
+    const report = calculateOpenFrames(sessions);
+    // Three missed 10 pins weigh the same as one missed 2-4-5, and the tie
+    // breaks on misses: the leave you keep missing ranks first.
+    expect(report.leaves[0].pins).toEqual([10]);
+    expect(report.leaves[0].pinsLeft).toBe(3);
+    expect(report.leaves[0].misses).toBe(3);
+    expect(report.leaves[1].pins).toEqual([2, 4, 5]);
+    expect(report.leaves[1].pinsLeft).toBe(3);
+    expect(report.leaves[1].misses).toBe(1);
+  });
+
+  it("ignores a game still being bowled", () => {
+    const inProgress = game(undefined, [frame(1, [10], [10])]);
+    const report = calculateOpenFrames([session("Sea Bowl", [inProgress])]);
+    expect(report.games).toBe(0);
+    expect(report.openFrames).toBe(0);
+  });
+
+  it("divides by completed games, to one decimal", () => {
+    const sessions = [
+      session("Sea Bowl", [gameOpeningOn([10]), gameOpeningOn([7]), gameOpeningOn([10])])
+    ];
+    const report = calculateOpenFrames(sessions);
+    expect(report.games).toBe(3);
+    expect(report.openFramesPerGame).toBe(1);
+    expect(report.pinsLeftPerGame).toBe(1);
+  });
+});
+
+describe("calculateGameNumberTrend", () => {
+  it("returns nothing for no data", () => {
+    expect(calculateGameNumberTrend([])).toEqual([]);
+  });
+
+  it("groups by position in the night, oldest slot first", () => {
+    const strikes = Array.from({ length: 9 }, (_, i) => frame(i + 1, NONE)).concat(
+      frame(10, NONE, NONE, NONE)
+    );
+    const opens = Array.from({ length: 9 }, (_, i) => frame(i + 1, [10], [10])).concat(
+      frame(10, [10], [10])
+    );
+    const sessions: SessionSummary[] = [
+      {
+        session: { date: "2026-06-07", alley_name: "Sea Bowl" },
+        games: [numberedGame(1, 300, strikes), numberedGame(2, 120, opens)]
+      },
+      {
+        session: { date: "2026-06-14", alley_name: "Sea Bowl" },
+        games: [numberedGame(1, 200, strikes), numberedGame(2, 140, opens)]
+      }
+    ];
+
+    const trend = calculateGameNumberTrend(sessions);
+    expect(trend.map((t) => t.gameNumber)).toEqual([1, 2]);
+    expect(trend[0]).toMatchObject({ games: 2, average: 250, strikePct: 100 });
+    expect(trend[1]).toMatchObject({ games: 2, average: 130, strikePct: 0 });
+  });
+
+  it("keeps a thin slot in the list, with its count", () => {
+    const strikes = Array.from({ length: 9 }, (_, i) => frame(i + 1, NONE)).concat(
+      frame(10, NONE, NONE, NONE)
+    );
+    const sessions: SessionSummary[] = [
+      {
+        session: { date: "2026-06-07", alley_name: "Sea Bowl" },
+        games: [numberedGame(1, 200, strikes), numberedGame(2, 180, strikes), numberedGame(3, 150, strikes)]
+      },
+      {
+        session: { date: "2026-06-14", alley_name: "Sea Bowl" },
+        games: [numberedGame(1, 210, strikes), numberedGame(2, 190, strikes)]
+      }
+    ];
+
+    const trend = calculateGameNumberTrend(sessions);
+    expect(trend).toHaveLength(3);
+    expect(trend[2]).toMatchObject({ gameNumber: 3, games: 1, average: 150 });
+  });
+
+  it("carries the same first-ball rates as the whole-history stats", () => {
+    // Every first ball a pocket hit; nine of ten carry.
+    const carried = Array.from({ length: 9 }, (_, i) => frame(i + 1, NONE)).concat(
+      frame(10, [10], NONE, NONE)
+    );
+    const sessions: SessionSummary[] = [
+      {
+        session: { date: "2026-06-07", alley_name: "Sea Bowl" },
+        games: [numberedGame(1, 240, carried)]
+      }
+    ];
+    const trend = calculateGameNumberTrend(sessions);
+    const whole = calculateStats(sessions);
+    expect(trend[0].pocketPct).toBe(whole.pocketPct);
+    expect(trend[0].carryPct).toBe(whole.carryPct);
+  });
+
+  it("counts an unscored game's frames but not its average", () => {
+    const opens = Array.from({ length: 9 }, (_, i) => frame(i + 1, [10], [10])).concat(
+      frame(10, [10], [10])
+    );
+    const sessions: SessionSummary[] = [
+      {
+        session: { date: "2026-06-07", alley_name: "Sea Bowl" },
+        games: [numberedGame(1, undefined, opens)]
+      }
+    ];
+    const trend = calculateGameNumberTrend(sessions);
+    expect(trend[0]).toMatchObject({ games: 0, average: null, strikePct: 0 });
+  });
 });
