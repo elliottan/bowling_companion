@@ -298,7 +298,7 @@ export function ActiveSessionView({
 
   return (
     <div>
-      <section className="mx-auto w-full max-w-5xl px-3 pt-3 sm:px-6">
+      <section className="mx-auto w-full max-w-5xl px-3 pt-2 sm:px-6">
         <div className="flex items-start gap-2">
           {/* Tapping the identity block opens the sheet; the oil-pattern link
               inside it stops propagation so it still opens the pattern PDF. */}
@@ -336,7 +336,7 @@ export function ActiveSessionView({
         {/* py-1, not pb-1: overflow-x-auto forces overflow-y to auto, which
             clips at the padding box. The Chip tap region overhangs its box 4px
             top and bottom, so both sides need padding or the top 4px is dead. */}
-        <div className="mt-3 flex items-center gap-2 overflow-x-auto py-1">
+        <div className="mt-2 flex items-center gap-2 overflow-x-auto py-1">
           {games.map((g) => {
             const frames = (g as Game & { frames: Frame[] }).frames;
             return (

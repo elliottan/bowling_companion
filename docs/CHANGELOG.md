@@ -35,6 +35,11 @@ of shipped work rather than a release. Thirty of them used to be headed
 
 ### Added
 
+- **Tighter spacing on the score-entry screen.** The gaps above the session
+  header, under it, around the game chips and between the scorecard and the
+  shot panel each came down a step. Nothing moved or resized, so the tap
+  targets are what they were.
+
 - **A trend line across sessions, on the History stats.** One point per night,
   oldest on the left, with a faint dot for every game behind it so a 170/240
   night is not read as two 205s. It follows the filters, so narrowing to a
@@ -48,6 +53,11 @@ of shipped work rather than a release. Thirty of them used to be headed
   ball opens that session's sheet, scrolled to that game, and the shots thrown
   with that ball tint for a moment and fade. It is a background tint only, so
   nothing moves; with reduced motion the tint simply stays put.
+
+- **The ball each frame opened with, in the corner of its box.** The session
+  sheet marks every frame with the ball that threw its first shot: the catalog
+  picture where there is one, the ball's initial where there is not. Reading
+  down a game now says which ball was up without reading a word.
 
 - **Tabs remember where you were.** Leaving History and coming back keeps the
   pane, the filters, the lane selection and the scroll position. Kept in

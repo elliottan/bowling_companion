@@ -516,9 +516,9 @@ export function ActiveGameScorer({
   })();
 
   return (
-    <section className="mx-auto w-full max-w-5xl px-3 py-4 sm:px-6">
+    <section className="mx-auto w-full max-w-5xl px-3 py-3 sm:px-6">
       {mode === "standalone" && (
-        <div className="mb-3 flex items-center justify-between gap-3">
+        <div className="mb-2 flex items-center justify-between gap-3">
           <Button variant="secondary" onClick={newGame}>
             New
           </Button>
@@ -538,7 +538,7 @@ export function ActiveGameScorer({
       />
 
       {/* Pin deck (left) + shot details (right), side-by-side on every width. */}
-      <div className="mt-4 grid grid-cols-2 items-start gap-3 lg:grid-cols-[minmax(0,360px)_1fr]">
+      <div className="mt-3 grid grid-cols-2 items-start gap-3 lg:grid-cols-[minmax(0,360px)_1fr]">
         <div className="space-y-2">
           {(onEditLanes || lanesList.length > 0) && (
             <div className="flex items-center justify-between rounded-lg border border-edge bg-surface px-2.5 py-1.5">

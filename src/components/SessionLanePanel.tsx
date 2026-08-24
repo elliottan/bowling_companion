@@ -9,6 +9,8 @@ import { useOverlay } from "../lib/useOverlay";
 import { useSheetDismiss } from "../lib/useSheetDismiss";
 import { getBalls } from "../services/ballRepository";
 import type { Ball, Frame, LineSpec, SessionSummary, Shot } from "../types/bowling";
+import type { Manufacturer } from "../types/catalog";
+import { CatalogBallImage } from "./CatalogBallImage";
 import { LaneNotesTab } from "./LaneNotesTab";
 import { SessionHeaderText } from "./SessionHeaderText";
 import { MiniPins } from "./MiniPins";
@@ -287,7 +289,7 @@ function SessionSheetTab({
     getBalls().then(setBalls).catch(() => {});
   }, []);
 
-  const ballName = (id?: number) => balls.find((b) => b.id === id)?.name;
+  const ballOf = (id?: number) => balls.find((b) => b.id === id);
 
   // Chronological order — latest game at the bottom.
   const games = [...summary.games].sort((a, b) => a.game_number - b.game_number);
@@ -326,7 +328,7 @@ function SessionSheetTab({
             ) : (
               <GameGrid
                 game={game}
-                ballName={ballName}
+                ballOf={ballOf}
                 highlightBallId={
                   highlight && game.id === highlight.gameId ? highlight.ballId : undefined
                 }
@@ -355,13 +357,13 @@ const emptyCell = (n: number) => (
 // Single-lane: a single full-width column in frame order.
 function GameGrid({
   game,
-  ballName,
+  ballOf,
   highlightBallId,
   highlightToken,
   onSelectFrame
 }: {
   game: SessionSummary["games"][number];
-  ballName: (id?: number) => string | undefined;
+  ballOf: (id?: number) => Ball | undefined;
   /** Shots thrown with this ball flash when the grid appears. */
   highlightBallId?: number;
   highlightToken: number;
@@ -375,7 +377,7 @@ function GameGrid({
     frame ? (
       <FrameCell
         frame={frame}
-        ballName={ballName}
+        ballOf={ballOf}
         highlightBallId={highlightBallId}
         highlightToken={highlightToken}
         onSelect={onSelectFrame && ((shotIndex) => onSelectFrame(n, shotIndex))}
@@ -442,6 +444,34 @@ function GameGrid({
 }
 
 /**
+ * The ball a frame opened with, in the corner of its box. The catalog picture
+ * when there is one, and the ball's initial when there is not: an uncatalogued
+ * ball still needs to be told apart from the one beside it.
+ */
+function BallCorner({ ball }: { ball: Ball }) {
+  const snapshot = ball.catalog_snapshot;
+  return (
+    <span
+      className="pointer-events-none absolute right-0 top-0 h-4 w-4 shrink-0 overflow-hidden rounded-full"
+      title={ball.name}
+    >
+      {snapshot ? (
+        <CatalogBallImage
+          src={snapshot.imageThumb}
+          alt=""
+          brand={snapshot.brand as Manufacturer}
+          size="thumb"
+        />
+      ) : (
+        <span className="flex h-full w-full items-center justify-center rounded-full bg-surface-muted text-[8px] font-bold uppercase text-ink-secondary">
+          {ball.name.trim().charAt(0)}
+        </span>
+      )}
+    </span>
+  );
+}
+
+/**
  * The shots thrown at a full rack ("first" / strike attempts). Frames 1–9 are
  * just the first ball. The 10th frame can have several: any ball whose previous
  * ball cleared the deck (a strike, or a spare that reset the pins) is fresh.
@@ -487,25 +517,29 @@ function Row({
 
 function FrameCell({
   frame,
-  ballName,
+  ballOf,
   highlightBallId,
   highlightToken,
   onSelect
 }: {
   frame: Frame;
-  ballName: (id?: number) => string | undefined;
+  ballOf: (id?: number) => Ball | undefined;
   highlightBallId?: number;
   highlightToken: number;
   /** Tap this shot to review it in score entry. Index is into `frame.shots`. */
   onSelect?: (shotIndex: number) => void;
 }) {
   const shots = freshRackShots(frame);
+  // The ball that started the frame, shown in the corner: reading down a game
+  // then says which ball was up without reading a word of it.
+  const opener = ballOf(shots[0]?.shot.ball_id);
   return (
-    <div className="flex flex-col gap-1.5">
+    <div className="relative flex flex-col gap-1.5">
+      {opener && <BallCorner ball={opener} />}
       {shots.map(({ shot, index }, i) => {
         const intended = formatLine(shot.intended);
         const actual = formatLine(shot.actual);
-        const name = ballName(shot.ball_id);
+        const name = ballOf(shot.ball_id)?.name;
         const symbol = shotSymbol(shot);
         return (
           // Pin deck left, ball + lines + notes right — reads across in one
@@ -534,7 +568,9 @@ function FrameCell({
               </span>
             </div>
             <div className="min-w-0 flex-1 text-[11px] leading-tight">
-              {name && <p className="truncate font-medium text-ink">{name}</p>}
+              {/* Room for the corner icon on the first line only, which is the
+                  line it sits beside. */}
+              {name && <p className={`truncate font-medium text-ink ${i === 0 ? "pr-5" : ""}`}>{name}</p>}
               {intended && <p className="text-ink-secondary">{intended}</p>}
               {actual && <p className="text-ink-secondary">{actual}</p>}
               {shot.notes && <p className="break-words text-ink-secondary">{shot.notes}</p>}
