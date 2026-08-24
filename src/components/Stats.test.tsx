@@ -66,9 +66,13 @@ describe("stat definitions", () => {
   it("puts pocket, carry and strike on the ball's own row, with the ball count", () => {
     render(<Stats stats={STATS} ballPerformance={REPORT} />);
 
-    // The row reads P 100 · C 75 · S 75 · 12, letters muted and numbers bold.
+    // Under the P / C / S / Balls headings, in that order.
     const row = screen.getByText("Wolverine").closest("button")!;
-    expect(row).toHaveTextContent(/P\s*100\s*·\s*C\s*75\s*·\s*S\s*75\s*·\s*12/);
+    expect(row).toHaveTextContent(/100%\s*75%\s*75%\s*12/);
+    expect(screen.getByLabelText("pocket 100%")).toBeInTheDocument();
+    expect(screen.getByLabelText("carry 75%")).toBeInTheDocument();
+    expect(screen.getByLabelText("strike 75%")).toBeInTheDocument();
+    expect(screen.getByLabelText("12 balls")).toBeInTheDocument();
   });
 
   it("explains the rows of a ball's table too", () => {
@@ -228,17 +232,18 @@ describe("leave cells", () => {
 });
 
 describe("what stays open", () => {
-  it("shows ball performance expanded, and keeps a ball open across a remount", () => {
+  it("keeps a ball open across a remount", () => {
     const first = render(<Stats stats={STATS} ballPerformance={REPORT} />);
-    // Open on arrival: the card is the reason to be on this screen.
+    // The card itself never folds, so the balls are always listed.
     expect(screen.getByText("Wolverine")).toBeInTheDocument();
     fireEvent.click(screen.getByText("Wolverine"));
-    expect(screen.getByText("Balls")).toBeInTheDocument();
+    // The per-game table is the row's own content.
+    expect(screen.getByText("Game")).toBeInTheDocument();
     first.unmount();
 
     // Leaving for a session and coming back finds it as it was left.
     render(<Stats stats={STATS} ballPerformance={REPORT} />);
-    expect(screen.getByText("Balls")).toBeInTheDocument();
+    expect(screen.getByText("Game")).toBeInTheDocument();
   });
 
   it("keeps each screen's copy apart", () => {
@@ -246,11 +251,11 @@ describe("what stays open", () => {
       <Stats stats={STATS} ballPerformance={REPORT} memoryKey="history" />
     );
     fireEvent.click(screen.getByText("Wolverine"));
-    expect(screen.getByText("Balls")).toBeInTheDocument();
+    expect(screen.getByText("Game")).toBeInTheDocument();
     history.unmount();
 
     // A session sheet has its own idea of what is expanded.
     render(<Stats stats={STATS} ballPerformance={REPORT} memoryKey="session" />);
-    expect(screen.queryByText("Balls")).toBeNull();
+    expect(screen.queryByText("Game")).toBeNull();
   });
 });

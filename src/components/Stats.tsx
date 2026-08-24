@@ -20,6 +20,10 @@ import { SessionTrendChart } from "./SessionTrendChart";
 import type { Game } from "../types/bowling";
 import { GROUP_HEADING } from "./ui/typography";
 
+/** One numeric column: wide enough for "100%", right-aligned so the digits
+ *  line up down the card. */
+const RATE_COLUMN = "w-9 shrink-0 text-right";
+
 // Definitions, tapped rather than printed: they are read once and then in the
 // way. Short enough to land in a glance.
 const POCKET_NOTE =
@@ -71,12 +75,6 @@ export function Stats({
   onOpenGameId,
   memoryKey = "stats"
 }: StatsProps) {
-  // Open by default, and remembered: leaving for a session and coming back
-  // should not fold the card the reader was working through.
-  const [showBallPerformance, setShowBallPerformance] = useRememberedState(
-    `${memoryKey}:ballPerformance`,
-    true
-  );
   // One note at a time, opened by tapping the stat it explains. A definition
   // read once is enough, so it stays a tap rather than permanent copy.
   const [note, setNote] = useState<string | null>(null);
@@ -160,19 +158,21 @@ export function Stats({
 
       {ballPerformance && ballPerformance.balls.length > 0 && (
         <div className="rounded-lg border border-edge bg-surface p-3 shadow-sm">
-          <button
-            type="button"
-            onClick={() => setShowBallPerformance((v) => !v)}
-            className={`flex w-full items-center justify-between gap-2 ${GROUP_HEADING}`}
-          >
-            Ball performance
-            <ChevronDown
-              size={16}
-              aria-hidden="true"
-              className={showBallPerformance ? "rotate-180" : ""}
-            />
-          </button>
-          <div className={showBallPerformance ? "mt-2" : "hidden"}>
+          <h2 className={GROUP_HEADING}>Ball performance</h2>
+          {/* Column headings on their own line, at the widths every ball row
+              below uses, so each rate sits under the letter that names it.
+              The heading above them is too long to share the line. */}
+          <div className="flex items-center gap-2 pb-1 pt-1.5 text-[10px] font-bold uppercase tracking-wide text-ink-tertiary">
+            <span className="h-3 w-7 shrink-0" aria-hidden="true" />
+            <span className="min-w-0 flex-1" aria-hidden="true" />
+            {["P", "C", "S", "Balls"].map((label) => (
+              <span key={label} className={RATE_COLUMN}>
+                {label}
+              </span>
+            ))}
+            <span className="w-3.5 shrink-0" aria-hidden="true" />
+          </div>
+          <div>
             <ul className="divide-y divide-edge">
               {ballPerformance.balls.map((b) => (
                 <BallPerformanceRow
@@ -275,15 +275,19 @@ function BallPerformanceRow({
           )}
         </span>
         <span className="min-w-0 flex-1 truncate font-medium text-ink-strong">{ball.name}</span>
-        {/* Pocket, carry and strike in one row: the letters carry the meaning
-            at a glance and the table below spells them out in full. */}
-        <span className="shrink-0 text-xs tabular-nums text-ink-secondary">
-          <HeadlineRate letter="P" value={ball.pocketPct} label="pocket" />
-          <HeadlineRate letter="C" value={ball.carryPct} label="carry" />
-          <HeadlineRate letter="S" value={ball.strikePct} label="strike" />
-          <span className="font-semibold text-ink" aria-label={`${ball.firstBalls} balls`}>
-            {ball.firstBalls}
-          </span>
+        {/* Pocket, carry, strike, then the balls behind them, each under the
+            letter that names it in the card heading. */}
+        <span className={`${RATE_COLUMN} text-xs font-semibold tabular-nums text-ink`} aria-label={`pocket ${pct(ball.pocketPct)}`}>
+          {pct(ball.pocketPct)}
+        </span>
+        <span className={`${RATE_COLUMN} text-xs font-semibold tabular-nums text-ink`} aria-label={`carry ${pct(ball.carryPct)}`}>
+          {pct(ball.carryPct)}
+        </span>
+        <span className={`${RATE_COLUMN} text-xs font-semibold tabular-nums text-ink`} aria-label={`strike ${pct(ball.strikePct)}`}>
+          {pct(ball.strikePct)}
+        </span>
+        <span className={`${RATE_COLUMN} text-xs tabular-nums text-ink-secondary`} aria-label={`${ball.firstBalls} balls`}>
+          {ball.firstBalls}
         </span>
         <ChevronDown size={14} aria-hidden="true" className={open ? "rotate-180" : ""} />
       </button>
@@ -374,27 +378,6 @@ function BallPerformanceRow({
         </div>
       )}
     </li>
-  );
-}
-
-/** One rate on the ball's collapsed row: a muted letter, the number, a dot. */
-function HeadlineRate({
-  letter,
-  value,
-  label
-}: {
-  letter: string;
-  value: number | null;
-  label: string;
-}) {
-  return (
-    <>
-      <span className="mr-0.5 text-ink-tertiary" aria-hidden="true">{letter}</span>
-      <span className="font-semibold text-ink" aria-label={`${label} ${pct(value)}`}>
-        {value === null ? "-" : value}
-      </span>
-      <span className="px-1 text-ink-tertiary" aria-hidden="true">·</span>
-    </>
   );
 }
 
