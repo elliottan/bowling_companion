@@ -1,6 +1,13 @@
 import { Pencil } from "lucide-react";
 import type { SessionSummary } from "../types/bowling";
 
+/** One game's lanes: "Lanes 9/10", or "Lane 5" when it was played on one. */
+export function laneLabel(lanes: string[]): string {
+  const played = lanes.filter(Boolean);
+  if (!played.length) return "";
+  return `${played.length > 1 ? "Lanes" : "Lane"} ${played.join("/")}`;
+}
+
 // Lanes are per-game, so show each distinct lane PAIR bowled this session,
 // e.g. "Lanes 9/10, 11/12" (or "Lane 5" for a single-lane game).
 export function laneSummary(games: SessionSummary["games"]): string {

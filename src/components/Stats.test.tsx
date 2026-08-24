@@ -98,6 +98,7 @@ describe("the games behind a column", () => {
                 date: "2026-08-05",
                 alley: "Chinese Swimming Club",
                 event: "SIA Bilateral",
+                lanes: ["5", "6"],
                 oilPattern: "Chromium 42ft",
                 firstBalls: 12,
                 pocket: 12,
@@ -126,8 +127,7 @@ describe("the games behind a column", () => {
 
   it("shows the event and the rates behind the counts", () => {
     openDrilldown();
-    expect(screen.getByText(/SIA Bilateral/)).toBeInTheDocument();
-    expect(screen.getByText(/Chromium 42ft/)).toBeInTheDocument();
+    expect(screen.getByText("SIA Bilateral · Lanes 5/6 · Chromium 42ft")).toBeInTheDocument();
     expect(screen.getByLabelText("pocket 12 of 12, 100%")).toBeInTheDocument();
     expect(screen.getByLabelText("carry 7 of 12, 58%")).toBeInTheDocument();
     expect(screen.getByLabelText("strike 7 of 12, 58%")).toBeInTheDocument();

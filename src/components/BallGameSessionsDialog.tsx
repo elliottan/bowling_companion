@@ -2,6 +2,7 @@ import { createPortal } from "react-dom";
 import { useOverlay } from "../lib/useOverlay";
 import { useSheetDismiss } from "../lib/useSheetDismiss";
 import type { BallGameSession } from "../lib/stats";
+import { laneLabel } from "./SessionHeaderText";
 
 interface BallGameSessionsDialogProps {
   open: boolean;
@@ -69,9 +70,9 @@ export function BallGameSessionsDialog({
                 </span>
                 {/* What the night was, then what the lanes were. Either can be
                     missing, and the row reads without them. */}
-                {(s.event || s.oilPattern) && (
+                {(s.event || s.lanes.length > 0 || s.oilPattern) && (
                   <span className="truncate text-xs text-ink-secondary">
-                    {[s.event, s.oilPattern].filter(Boolean).join(" · ")}
+                    {[s.event, laneLabel(s.lanes), s.oilPattern].filter(Boolean).join(" · ")}
                   </span>
                 )}
                 <span className="mt-1 flex flex-wrap items-center gap-1">

@@ -313,6 +313,8 @@ export interface BallGameSession {
   alley: string;
   /** What the night was: the session's own description ("SIA Bilateral"). */
   event?: string;
+  /** The lanes that game was bowled on, in the order they are played. */
+  lanes: string[];
   oilPattern?: string;
   firstBalls: number;
   pocket: number;
@@ -490,6 +492,7 @@ export function calculateBallPerformance(
               date: s.session.date,
               alley: s.session.alley_name,
               event: s.session.description,
+              lanes: gameLanes(game),
               oilPattern: s.session.oil_pattern,
               firstBalls: 0,
               pocket: 0,

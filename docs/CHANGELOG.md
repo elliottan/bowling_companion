@@ -21,7 +21,7 @@ of shipped work rather than a release. Thirty of them used to be headed
 
 - **"Games behind this column" says what it means.** The drill-down is headed
   by the ball alone now, with "Usages in game 3" under it, and each row carries
-  the event and the pattern as well as the alley and the date. The counts are
+  the event, the lanes and the pattern as well as the alley and the date. The counts are
   still there, with the rate beside them: `P 7/7 100%`, `C 6/7 86%`, `S 6/7
   86%`, tinted once a rate is worth noticing.
 
