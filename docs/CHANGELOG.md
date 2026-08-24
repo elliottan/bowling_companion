@@ -25,6 +25,11 @@ of shipped work rather than a release. Thirty of them used to be headed
   still there, with the rate beside them: `P 7/7 100%`, `C 6/7 86%`, `S 6/7
   86%`, tinted once a rate is worth noticing.
 
+- **The session sheet scrolls to the game you asked for, not past it.** It
+  used `scrollIntoView`, which aligns to the viewport and scrolls every
+  ancestor on the way, so inside the sheet the heading landed about a panel's
+  height too far up. It now scrolls the sheet's own pane.
+
 - **A ball's leaves read in the same order as the leave cards.** They were
   ranked by how often the ball left them and cut at four, so a split could sit
   ahead of a makeable and the rest were not shown at all. They now group the way
@@ -59,9 +64,10 @@ of shipped work rather than a release. Thirty of them used to be headed
 - **The trend lines answer back.** Tapping the History trend marks the night
   with a faint rule and names it below: alley, event, games, average, high and
   low. Tapping that card opens the session. The per-session score line works
-  the same way for games, and inside a session tapping a game scopes the stats
-  to it rather than moving you: a "Game 3 only" banner says so, and the chip or
-  the banner clears it.
+  the same way for games: its card goes to that game on the session sheet.
+  Inside a session the game chips are the filter instead, scoping every number
+  on the stats tab to one game with a "Game 3 only" banner; the chip or the
+  banner clears it.
 
 - **A drill-down lands on the frames it was about.** Tapping a game behind a
   ball opens that session's sheet, scrolled to that game, and the shots thrown

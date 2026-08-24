@@ -108,4 +108,21 @@ describe("the session sheet", () => {
     fireEvent.click(screen.getByText("Game 1 only"));
     expect(screen.queryByText("Game 1 only")).toBeNull();
   });
+
+  it("goes to the game on the sheet when one is picked off the score line", async () => {
+    render(<SessionLanePanel summary={TWO_GAMES} currentGameId={1} onClose={() => {}} />);
+    fireEvent.click(screen.getByRole("button", { name: "Stats" }));
+    await waitFor(() => expect(screen.getByText("Games")).toBeInTheDocument());
+
+    fireEvent.click(screen.getByRole("button", { name: "Game 2, 150" }));
+    // The card under the chart, not the sheet's own heading for that game.
+    fireEvent.click(screen.getByText("Game 2", { selector: "span" }));
+
+    // The chart is a way in, not a filter: this one moves to the frames.
+    expect(screen.getByRole("button", { name: "Session sheet" })).toHaveAttribute(
+      "aria-pressed",
+      "true"
+    );
+    expect(screen.queryByText("Game 2 only")).toBeNull();
+  });
 });

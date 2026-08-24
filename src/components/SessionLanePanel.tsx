@@ -58,9 +58,21 @@ export function SessionLanePanel({
   // Which game the sheet scrolls to; the token re-fires the scroll on re-tap.
   const [focus, setFocus] = useState({ id: currentGameId, token: 0 });
   const focusGameId = focus.id;
-  // Which shots are lit when the sheet opens: a History drill-down names a
-  // game and a ball, and the sheet answers by flashing that ball's shots.
-  const highlight = { gameId: currentGameId, ballId: highlightBallId, token: 0 };
+  // Which shots are lit on the sheet: a History drill-down names a game and a
+  // ball on the way in, and a ball's column here names one later. The token
+  // restarts the flash when the same ball is asked for twice.
+  const [highlight, setHighlight] = useState<{
+    gameId?: number;
+    ballId?: number;
+    token: number;
+  }>({ gameId: currentGameId, ballId: highlightBallId, token: 0 });
+
+  /** Show a game on the sheet: switch tab, scroll to it, light the ball's shots. */
+  const goToGame = (gameId: number, ballId?: number) => {
+    setTab("sheet");
+    setFocus((prev) => ({ id: gameId, token: prev.token + 1 }));
+    setHighlight((prev) => ({ gameId, ballId, token: prev.token + 1 }));
+  };
   // Stats scoped to one game. Picking a game while reading the stats is a
   // question about that game, not a request to go and look at its frames, so
   // it narrows what is on screen and stays put. Undefined is the whole series.
@@ -214,15 +226,14 @@ export function SessionLanePanel({
                 />
               </div>,
               <div key="stats" className="px-4 py-3">
-                {/* Picking a game here scopes the stats to it rather than
-                    jumping to its frames: the reader asked what that game did,
-                    and the answer is on this tab. */}
+                {/* Two different questions, two answers. A game chip above
+                    scopes these numbers to that game and stays put. A game
+                    picked out of a chart or a ball's column is a request to
+                    see it, so that one goes to the sheet. */}
                 <StatsTab
                   summary={summary}
                   gameId={statsGameId}
-                  onSelectGame={(gameId) =>
-                    setStatsGameId((curr) => (curr === gameId ? undefined : gameId))
-                  }
+                  onGoToGame={goToGame}
                   onClearGame={() => setStatsGameId(undefined)}
                 />
               </div>,
@@ -242,13 +253,14 @@ export function SessionLanePanel({
 function StatsTab({
   summary,
   gameId,
-  onSelectGame,
+  onGoToGame,
   onClearGame
 }: {
   summary: SessionSummary;
   /** Scope every number below to this game. Undefined is the whole series. */
   gameId?: number;
-  onSelectGame?: (gameId: number) => void;
+  /** Show a game on the sheet, with the shots of `ballId` lit if one is named. */
+  onGoToGame?: (gameId: number, ballId?: number) => void;
   onClearGame?: () => void;
 }) {
   const [balls, setBalls] = useState<Ball[]>([]);
@@ -293,10 +305,9 @@ function StatsTab({
       stats={stats}
       leaves={leaves}
       ballPerformance={ballPerformance}
-      onOpenGame={onSelectGame && ((_sessionId, id) => onSelectGame(id))}
-      // A game picked off the score line asks the same thing as one picked out
-      // of a ball's column: scope the stats to it.
-      onOpenGameId={onSelectGame}
+      onOpenGame={onGoToGame && ((_sessionId, id, ballId) => onGoToGame(id, ballId))}
+      // A game picked off the score line: show me that game.
+      onOpenGameId={onGoToGame && ((id) => onGoToGame(id))}
       games={summary.games}
     />
     </>
@@ -330,10 +341,28 @@ function SessionSheetTab({
   const games = [...summary.games].sort((a, b) => a.game_number - b.game_number);
 
   // Auto-scroll to the game the sheet was opened from, and to whichever game
-  // chip is tapped afterwards.
+  // is asked for afterwards.
+  //
+  // Not `scrollIntoView`: it aligns to the viewport and scrolls every ancestor
+  // on the way, which inside this sheet lands the heading a panel's height too
+  // far up. Scrolling the pane itself puts the game where "start" was meant to
+  // put it.
   const focusRef = useRef<HTMLElement | null>(null);
   useEffect(() => {
-    focusRef.current?.scrollIntoView({ block: "start", behavior: focusToken ? "smooth" : "auto" });
+    const el = focusRef.current;
+    if (!el) return;
+    const scroller = scrollParent(el);
+    if (!scroller) return;
+    const top =
+      el.getBoundingClientRect().top -
+      scroller.getBoundingClientRect().top +
+      scroller.scrollTop -
+      FOCUS_MARGIN;
+    if (typeof scroller.scrollTo === "function") {
+      scroller.scrollTo({ top, behavior: focusToken ? "smooth" : "auto" });
+    } else {
+      scroller.scrollTop = top;
+    }
   }, [focusGameId, focusToken]);
 
   return (
@@ -380,6 +409,20 @@ function SessionSheetTab({
       })}
     </>
   );
+}
+
+/** A few pixels above the game heading, so it does not sit on the pane's edge. */
+const FOCUS_MARGIN = 8;
+
+/** The nearest ancestor that scrolls vertically: the sheet's own tab pane. */
+function scrollParent(el: HTMLElement): HTMLElement | null {
+  let node = el.parentElement;
+  while (node) {
+    const overflowY = getComputedStyle(node).overflowY;
+    if (overflowY === "auto" || overflowY === "scroll") return node;
+    node = node.parentElement;
+  }
+  return null;
 }
 
 const emptyCell = (n: number) => (
