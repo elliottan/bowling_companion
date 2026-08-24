@@ -65,9 +65,11 @@ of shipped work rather than a release. Thirty of them used to be headed
   with a faint rule and names it below: alley, event, games, average, high and
   low. Tapping that card opens the session. The per-session score line works
   the same way for games: its card goes to that game on the session sheet.
-  Inside a session the game chips are the filter instead, scoping every number
-  on the stats tab to one game with a "Game 3 only" banner; the chip or the
-  banner clears it.
+  Inside a session one game is chosen at a time and both tabs read it: the
+  stats scope to it, with a "Game 3 only" banner, and the sheet scrolls to it.
+  Only the stats mark the chip, since only there does the choice change what is
+  on screen; on the sheet a chip is a place to scroll to, so it stays plain,
+  and clearing the choice is done on the stats tab.
 
 - **A drill-down lands on the frames it was about.** Tapping a game behind a
   ball opens that session's sheet, scrolled to that game, and the shots thrown

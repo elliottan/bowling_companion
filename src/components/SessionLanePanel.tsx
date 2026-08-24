@@ -55,9 +55,20 @@ export function SessionLanePanel({
   onClose
 }: SessionLanePanelProps) {
   const [tab, setTab] = useState<SessionPanelTab>(defaultTab);
-  // Which game the sheet scrolls to; the token re-fires the scroll on re-tap.
-  const [focus, setFocus] = useState({ id: currentGameId, token: 0 });
-  const focusGameId = focus.id;
+  // One game, chosen once, read by both tabs: the stats scope to it and the
+  // sheet scrolls to it, so a game picked on either tab is still the game when
+  // the other one is reached. The token re-fires the scroll on a re-tap.
+  //
+  // Nothing chosen is the whole series, which is what the stats show and what
+  // the chips look like on the sheet: only the stats mark a selection, because
+  // only there does it change what is on screen. Scrolling is a place, not a
+  // state, so the sheet leaves its chips plain.
+  const [selection, setSelection] = useState<{ gameId?: number; token: number }>({
+    gameId: undefined,
+    token: 0
+  });
+  // With nothing chosen the sheet still opens on the game being scored.
+  const focusGameId = selection.gameId ?? currentGameId;
   // Which shots are lit on the sheet: a History drill-down names a game and a
   // ball on the way in, and a ball's column here names one later. The token
   // restarts the flash when the same ball is asked for twice.
@@ -67,16 +78,15 @@ export function SessionLanePanel({
     token: number;
   }>({ gameId: currentGameId, ballId: highlightBallId, token: 0 });
 
+  const chooseGame = (gameId: number | undefined) =>
+    setSelection((prev) => ({ gameId, token: prev.token + 1 }));
+
   /** Show a game on the sheet: switch tab, scroll to it, light the ball's shots. */
   const goToGame = (gameId: number, ballId?: number) => {
     setTab("sheet");
-    setFocus((prev) => ({ id: gameId, token: prev.token + 1 }));
+    chooseGame(gameId);
     setHighlight((prev) => ({ gameId, ballId, token: prev.token + 1 }));
   };
-  // Stats scoped to one game. Picking a game while reading the stats is a
-  // question about that game, not a request to go and look at its frames, so
-  // it narrows what is on screen and stays put. Undefined is the whole series.
-  const [statsGameId, setStatsGameId] = useState<number | undefined>(undefined);
 
   // The app's one sheet motion: slide up on mount, drag down to dismiss, slide
   // back down on close. `dragHandlers` go on the drag pill AND the header row,
@@ -164,24 +174,24 @@ export function SessionLanePanel({
         {/* Read-only mirror of the score-entry game chips. */}
         <div className="flex items-center gap-2 overflow-x-auto border-b border-edge px-4 py-2">
           {gameChips.map((g) => {
-            // On the stats tab a chip is a filter, and tapping the one already
-            // on clears it. Everywhere else it is what it always was: go to
-            // that game in the sheet.
+            // On the stats tab a chip is a filter that shows as one, and
+            // tapping the one already on clears it. Elsewhere it is a way to a
+            // place: it scrolls the sheet there and stays unmarked.
             const onStats = tab === "stats";
-            const active = onStats ? g.id === statsGameId : tab === "sheet" && g.id === focusGameId;
+            const active = onStats && g.id === selection.gameId;
             return (
               <Chip
                 key={g.id}
                 selected={active}
                 onClick={() => {
                   if (onStats) {
-                    setStatsGameId((curr) => (curr === g.id ? undefined : g.id));
+                    chooseGame(g.id === selection.gameId ? undefined : g.id);
                     return;
                   }
                   setTab("sheet");
-                  // Bump the token so the sheet re-scrolls even if the same
-                  // game chip is tapped twice.
-                  setFocus({ id: g.id, token: focus.token + 1 });
+                  // The token is bumped either way, so the sheet re-scrolls
+                  // even when the same game chip is tapped twice.
+                  chooseGame(g.id);
                 }}
                 className="shrink-0 gap-1.5"
               >
@@ -220,7 +230,7 @@ export function SessionLanePanel({
                   summary={summary}
                   currentGameId={currentGameId}
                   focusGameId={focusGameId}
-                  focusToken={focus.token}
+                  focusToken={selection.token}
                   highlight={highlight}
                   onSelectFrame={onSelectFrame}
                 />
@@ -232,9 +242,9 @@ export function SessionLanePanel({
                     see it, so that one goes to the sheet. */}
                 <StatsTab
                   summary={summary}
-                  gameId={statsGameId}
+                  gameId={selection.gameId}
                   onGoToGame={goToGame}
-                  onClearGame={() => setStatsGameId(undefined)}
+                  onClearGame={() => chooseGame(undefined)}
                 />
               </div>,
               <div key="lanes" className="px-4 py-3">
