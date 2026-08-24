@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { Stats } from "./Stats";
 import type { BallPerformanceReport, BowlingStats, LeaveStats } from "../lib/stats";
+import { describePinsStanding } from "../lib/pins";
 
 const STATS: BowlingStats = {
   totalSessions: 1,
@@ -103,6 +104,44 @@ describe("leave cells", () => {
   it("marks nothing when every leave had a ball after it", () => {
     render(<Stats stats={STATS} leaves={[{ ...tenPin, attempts: 2 }]} />);
     expect(screen.queryByText(/^\+\d+$/)).toBeNull();
+  });
+
+  it("groups a ball's own leaves the way the cards below are, easiest first", () => {
+    const leave = (pins: number[], attempts: number): LeaveStats => ({
+      pins: pins as LeaveStats["pins"],
+      attempts,
+      chances: attempts,
+      conversions: 0,
+      conversionPct: 0
+    });
+    render(
+      <Stats
+        stats={STATS}
+        ballPerformance={{
+          ...REPORT,
+          balls: [
+            {
+              ...REPORT.balls[0],
+              // Most-shot-at first coming in, so any grouping has to reorder.
+              leaves: [leave([7, 10], 5), leave([1, 2, 4, 10], 3), leave([10], 2), leave([4], 1)]
+            }
+          ]
+        }}
+      />
+    );
+    fireEvent.click(screen.getByText("Ball performance"));
+    fireEvent.click(screen.getByText("Wolverine"));
+
+    const order = screen
+      .getAllByRole("img")
+      .map((el) => el.getAttribute("aria-label"))
+      .filter((l): l is string => l !== null);
+    expect(order).toEqual([
+      describePinsStanding([10]),
+      describePinsStanding([4]),
+      describePinsStanding([1, 2, 4, 10]),
+      describePinsStanding([7, 10])
+    ]);
   });
 
   it("explains the counts when the group heading is tapped", () => {

@@ -199,9 +199,17 @@ describe("what a new shot starts with", () => {
   describe("changing the ball", () => {
     /** Open the ball picker and choose by name. */
     async function chooseBall(name: string) {
+      // The picker plays an exit animation after a pick and unmounts on a
+      // timer, so wait it out before opening again. An option that unmounts
+      // between the query and the click takes the click with it: nothing is
+      // selected, and the next assertion waits on a line that never changes.
+      await waitFor(() =>
+        expect(screen.queryByRole("dialog", { name: "Choose ball" })).toBeNull()
+      );
       fireEvent.click(screen.getByRole("button", { name: /^Ball: / }));
       const option = await screen.findByRole("button", { name: new RegExp(name) });
       fireEvent.click(option);
+      await waitFor(() => expect(ballLabel()).toMatch(new RegExp(name)));
     }
 
     it("shows the line the chosen ball was last thrown on, and puts it back on the way back", async () => {

@@ -12,6 +12,12 @@ of shipped work rather than a release. Thirty of them used to be headed
 
 ### Fixed
 
+- **A ball's leaves read in the same order as the leave cards.** They were
+  ranked by how often the ball left them and cut at four, so a split could sit
+  ahead of a makeable and the rest were not shown at all. They now group the way
+  the cards below do, makeables then washouts then splits, and the row scrolls
+  sideways instead of stopping at four.
+
 - **The last ball of the 10th no longer counts as a missed spare.** A leave off
   the 12th shot has no spare behind it, but the leaves card scored it as one, so
   a 10 pin left with the game already over pulled the 10-pin conversion rate

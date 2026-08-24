@@ -317,10 +317,15 @@ function BallPerformanceRow({
           )}
 
           {ball.leaves.length > 0 && (
-            <div className="grid grid-cols-4 gap-1.5">
-              {ball.leaves.slice(0, 4).map((leave) => (
-                <LeaveCountCell key={leave.pins.join("-")} leave={leave} />
-              ))}
+            // Grouped the way the leave cards below are, easiest first, and
+            // scrolled rather than cut at four: every leave the ball left is
+            // part of the answer.
+            <div className="grid auto-cols-[calc((100%-1.125rem)/4)] grid-flow-col gap-1.5 overflow-x-auto">
+              {[...ball.leaves]
+                .sort((a, b) => leaveGroup(a.pins) - leaveGroup(b.pins))
+                .map((leave) => (
+                  <LeaveCountCell key={leave.pins.join("-")} leave={leave} />
+                ))}
             </div>
           )}
         </div>
@@ -389,6 +394,15 @@ function LeaveSection({
       </div>
     </div>
   );
+}
+
+/** The three groups the leave cards are split into, easiest first: makeables,
+ *  then washouts, then real splits. Head pin standing and head pin down are
+ *  exclusive, so a leave lands in exactly one. */
+function leaveGroup(pins: LeaveStats["pins"]): number {
+  if (isWashout(pins)) return 1;
+  if (isSplit(pins) && !isBabySplit(pins)) return 2;
+  return 0;
 }
 
 /** Per-ball leaves answer "what does this ball leave", not "do I make it": the
