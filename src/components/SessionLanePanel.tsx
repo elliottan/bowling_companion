@@ -315,6 +315,7 @@ function StatsTab({
       stats={stats}
       leaves={leaves}
       ballPerformance={ballPerformance}
+      memoryKey="session"
       onOpenGame={onGoToGame && ((_sessionId, id, ballId) => onGoToGame(id, ballId))}
       // A game picked off the score line: show me that game.
       onOpenGameId={onGoToGame && ((id) => onGoToGame(id))}

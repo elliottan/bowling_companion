@@ -1,5 +1,6 @@
 import { BarChart3, ChevronDown } from "lucide-react";
 import { useState, type ReactNode } from "react";
+import { useRememberedState } from "../lib/viewMemory";
 import { CatalogBallImage } from "./CatalogBallImage";
 import { MiniPins } from "./MiniPins";
 import { EmptyState } from "./ui/EmptyState";
@@ -53,6 +54,9 @@ interface StatsProps {
   onOpenSession?: (sessionId: number) => void;
   /** Open a game picked off the per-session score line. */
   onOpenGameId?: (gameId: number) => void;
+  /** Names this screen's copy of what is expanded, so History and a session
+   *  sheet remember their own. See `lib/viewMemory`. */
+  memoryKey?: string;
 }
 
 export function Stats({
@@ -64,9 +68,15 @@ export function Stats({
   games,
   sessionTrend,
   onOpenSession,
-  onOpenGameId
+  onOpenGameId,
+  memoryKey = "stats"
 }: StatsProps) {
-  const [showBallPerformance, setShowBallPerformance] = useState(false);
+  // Open by default, and remembered: leaving for a session and coming back
+  // should not fold the card the reader was working through.
+  const [showBallPerformance, setShowBallPerformance] = useRememberedState(
+    `${memoryKey}:ballPerformance`,
+    true
+  );
   // One note at a time, opened by tapping the stat it explains. A definition
   // read once is enough, so it stays a tap rather than permanent copy.
   const [note, setNote] = useState<string | null>(null);
@@ -165,7 +175,12 @@ export function Stats({
           <div className={showBallPerformance ? "mt-2" : "hidden"}>
             <ul className="divide-y divide-edge">
               {ballPerformance.balls.map((b) => (
-                <BallPerformanceRow key={b.ballId} ball={b} onOpenGame={onOpenGame} />
+                <BallPerformanceRow
+                  key={b.ballId}
+                  ball={b}
+                  memoryKey={memoryKey}
+                  onOpenGame={onOpenGame}
+                />
               ))}
             </ul>
           </div>
@@ -228,12 +243,16 @@ function StatNote({ text, onDismiss }: { text: string; onDismiss: () => void }) 
 
 function BallPerformanceRow({
   ball,
+  memoryKey,
   onOpenGame
 }: {
   ball: BallPerformance;
+  memoryKey: string;
   onOpenGame?: (sessionId: number, gameId: number, ballId?: number) => void;
 }) {
-  const [open, setOpen] = useState(false);
+  // Remembered per ball: a drill-down goes to a session, and coming back to a
+  // collapsed row would lose the reader's place.
+  const [open, setOpen] = useRememberedState(`${memoryKey}:ball:${ball.ballId}`, false);
   const [drilldown, setDrilldown] = useState<BallGameCell | null>(null);
   const [note, setNote] = useState<string | null>(null);
   return (

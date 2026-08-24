@@ -1,6 +1,7 @@
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { Stats } from "./Stats";
+import { clearViewMemory } from "../lib/viewMemory";
 import type { BallPerformanceReport, BowlingStats, LeaveStats } from "../lib/stats";
 import { describePinsStanding } from "../lib/pins";
 
@@ -38,6 +39,10 @@ const REPORT: BallPerformanceReport = {
   ]
 };
 
+// What is expanded is remembered for the app run (`lib/viewMemory`), so each
+// test starts from a screen nobody has touched.
+beforeEach(clearViewMemory);
+
 describe("stat definitions", () => {
   it("explains a tile when it is tapped, and hides it when tapped again", () => {
     render(<Stats stats={STATS} />);
@@ -60,7 +65,6 @@ describe("stat definitions", () => {
 
   it("puts pocket, carry and strike on the ball's own row, with the ball count", () => {
     render(<Stats stats={STATS} ballPerformance={REPORT} />);
-    fireEvent.click(screen.getByText("Ball performance"));
 
     // The row reads P 100 · C 75 · S 75 · 12, letters muted and numbers bold.
     const row = screen.getByText("Wolverine").closest("button")!;
@@ -69,7 +73,6 @@ describe("stat definitions", () => {
 
   it("explains the rows of a ball's table too", () => {
     render(<Stats stats={STATS} ballPerformance={REPORT} />);
-    fireEvent.click(screen.getByText("Ball performance"));
     fireEvent.click(screen.getByText("Wolverine"));
 
     // The tile and the table row share a label, so the row is the second one.
@@ -114,7 +117,6 @@ describe("the games behind a column", () => {
 
   function openDrilldown(onOpenGame: (sessionId: number, gameId: number, ballId?: number) => void = () => {}) {
     render(<Stats stats={STATS} ballPerformance={withSessions} onOpenGame={onOpenGame} />);
-    fireEvent.click(screen.getByText("Ball performance"));
     fireEvent.click(screen.getByText("Wolverine"));
     fireEvent.click(screen.getByRole("button", { name: /Games behind Wolverine, game 4/ }));
   }
@@ -204,7 +206,6 @@ describe("leave cells", () => {
         }}
       />
     );
-    fireEvent.click(screen.getByText("Ball performance"));
     fireEvent.click(screen.getByText("Wolverine"));
 
     const order = screen
@@ -223,5 +224,33 @@ describe("leave cells", () => {
     render(<Stats stats={STATS} leaves={[tenPin]} />);
     fireEvent.click(screen.getByText("Makeables"));
     expect(screen.getByText(/no spare to make/i)).toBeInTheDocument();
+  });
+});
+
+describe("what stays open", () => {
+  it("shows ball performance expanded, and keeps a ball open across a remount", () => {
+    const first = render(<Stats stats={STATS} ballPerformance={REPORT} />);
+    // Open on arrival: the card is the reason to be on this screen.
+    expect(screen.getByText("Wolverine")).toBeInTheDocument();
+    fireEvent.click(screen.getByText("Wolverine"));
+    expect(screen.getByText("Balls")).toBeInTheDocument();
+    first.unmount();
+
+    // Leaving for a session and coming back finds it as it was left.
+    render(<Stats stats={STATS} ballPerformance={REPORT} />);
+    expect(screen.getByText("Balls")).toBeInTheDocument();
+  });
+
+  it("keeps each screen's copy apart", () => {
+    const history = render(
+      <Stats stats={STATS} ballPerformance={REPORT} memoryKey="history" />
+    );
+    fireEvent.click(screen.getByText("Wolverine"));
+    expect(screen.getByText("Balls")).toBeInTheDocument();
+    history.unmount();
+
+    // A session sheet has its own idea of what is expanded.
+    render(<Stats stats={STATS} ballPerformance={REPORT} memoryKey="session" />);
+    expect(screen.queryByText("Balls")).toBeNull();
   });
 });

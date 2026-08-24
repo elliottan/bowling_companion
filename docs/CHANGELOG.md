@@ -81,6 +81,11 @@ of shipped work rather than a release. Thirty of them used to be headed
   picture where there is one, the ball's initial where there is not. Reading
   down a game now says which ball was up without reading a word.
 
+- **Ball performance opens with the screen, and stays as you left it.** The
+  card is expanded on arrival rather than folded away, and both it and whichever
+  ball you had open survive a trip into a session and back. History and a
+  session sheet each keep their own.
+
 - **Tabs remember where you were.** Leaving History and coming back keeps the
   pane, the filters, the lane selection and the scroll position. Kept in
   memory for the app run, not stored: a reload starts clean.

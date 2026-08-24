@@ -277,6 +277,7 @@ export function HistoryView({
               leaves={leaves}
               ballPerformance={ballPerformance}
               sessionTrend={sessionTrend}
+              memoryKey="history"
               onOpenSession={onOpenSession}
               onOpenGame={onOpenSessionGame}
             />
