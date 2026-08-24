@@ -445,9 +445,6 @@ export function ActiveSessionView({
           // Close the sheet first: it portals to body after the edit dialog,
           // so it would otherwise paint on top of it.
           onEdit={() => { setShowSheet(false); setShowEdit(true); }}
-          // The panel answers a drill-down on its own sheet tab, so the sheet
-          // stays up; score entry just follows along behind it.
-          onSelectGame={(gameId) => setActiveGameId(gameId)}
           onSelectFrame={(gameId, frameNumber, shotIndex) => {
             setActiveGameId(gameId);
             setFocusFrame((prev) => ({ frameNumber, shotIndex, token: (prev?.token ?? 0) + 1 }));

@@ -10,11 +10,12 @@ import type {
   BallPerformance,
   BallPerformanceReport,
   BowlingStats,
-  LeaveStats
+  LeaveStats,
+  SessionTrendPoint
 } from "../lib/stats";
 import { BallGameSessionsDialog } from "./BallGameSessionsDialog";
 import { ScoreTrendChart } from "./ScoreTrendChart";
-import { SessionTrendChart, type SessionPoint } from "./SessionTrendChart";
+import { SessionTrendChart } from "./SessionTrendChart";
 import type { Game } from "../types/bowling";
 import { GROUP_HEADING } from "./ui/typography";
 
@@ -47,7 +48,11 @@ interface StatsProps {
    *  themselves is exactly the form the filters are asking about. */
   games?: Array<Pick<Game, "game_number" | "final_score">>;
   /** One point per session, oldest first, for the History screen's trend. */
-  sessionTrend?: SessionPoint[];
+  sessionTrend?: SessionTrendPoint[];
+  /** Open a session picked off the trend line. */
+  onOpenSession?: (sessionId: number) => void;
+  /** Open a game picked off the per-session score line. */
+  onOpenGameId?: (gameId: number) => void;
 }
 
 export function Stats({
@@ -57,7 +62,9 @@ export function Stats({
   ballPerformance,
   onOpenGame,
   games,
-  sessionTrend
+  sessionTrend,
+  onOpenSession,
+  onOpenGameId
 }: StatsProps) {
   const [showBallPerformance, setShowBallPerformance] = useState(false);
   // One note at a time, opened by tapping the stat it explains. A definition
@@ -130,8 +137,12 @@ export function Stats({
         <Tile label="Carry" value={pct(stats.carryPct)} onClick={() => toggleNote(CARRY_NOTE)} />
       </div>
 
-      {games && games.length > 0 && <ScoreTrendChart games={games} />}
-      {sessionTrend && sessionTrend.length > 0 && <SessionTrendChart sessions={sessionTrend} />}
+      {games && games.length > 0 && (
+        <ScoreTrendChart games={games} onOpenGame={onOpenGameId} />
+      )}
+      {sessionTrend && sessionTrend.length > 0 && (
+        <SessionTrendChart sessions={sessionTrend} onOpenSession={onOpenSession} />
+      )}
 
       {/* The leave note is rendered down with the leave cards it explains, so
           the answer lands where the tap was. */}

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   calculateBallPerformance,
   calculateCommonLeaves,
+  calculateSessionTrend,
   calculateStats,
   filterSessionsBy
 } from "./stats";
@@ -448,6 +449,55 @@ describe("leaves in the 10th frame", () => {
     const s = session("Jurong", [game(150, [frame(10, [2, 4], NONE, NONE)])]);
     const leaves = calculateCommonLeaves([s]);
     expect(leaves.map((l) => [l.pins, l.attempts, l.conversions])).toEqual([[[2, 4], 1, 1]]);
+  });
+});
+
+describe("calculateSessionTrend", () => {
+  const night = (
+    date: string,
+    games: Array<{ score?: number; lanes?: string[] }>
+  ): SessionSummary => ({
+    session: { id: 1, date, alley_name: "Jurong", description: "League night" },
+    games: games.map((g, i) => ({
+      id: i + 1,
+      session_id: 1,
+      game_number: i + 1,
+      final_score: g.score,
+      lanes: g.lanes,
+      frames: []
+    })) as SessionSummary["games"]
+  });
+
+  it("averages a night's completed games, oldest night first", () => {
+    const trend = calculateSessionTrend([
+      night("2026-08-05", [{ score: 200 }, { score: 220 }]),
+      night("2026-06-01", [{ score: 150 }])
+    ]);
+    expect(trend.map((p) => [p.date, p.average])).toEqual([
+      ["2026-06-01", 150],
+      ["2026-08-05", 210]
+    ]);
+  });
+
+  it("leaves out a game that never touched a selected lane", () => {
+    const trend = calculateSessionTrend(
+      [night("2026-08-05", [{ score: 300, lanes: ["3", "4"] }, { score: 100, lanes: ["9", "10"] }])],
+      ["3"]
+    );
+    expect(trend[0].scores).toEqual([300]);
+    expect(trend[0].average).toBe(300);
+  });
+
+  it("drops a night whose games were all on other lanes", () => {
+    const trend = calculateSessionTrend(
+      [night("2026-08-05", [{ score: 200, lanes: ["5", "6"] }])],
+      ["3"]
+    );
+    expect(trend).toEqual([]);
+  });
+
+  it("drops a night with nothing scored yet rather than plotting a zero", () => {
+    expect(calculateSessionTrend([night("2026-08-05", [{}])])).toEqual([]);
   });
 });
 

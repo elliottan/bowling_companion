@@ -1,7 +1,10 @@
+import { useState } from "react";
 import type { Game } from "../types/bowling";
 
 interface ScoreTrendChartProps {
-  games: Array<Pick<Game, "game_number" | "final_score">>;
+  games: Array<Pick<Game, "id" | "game_number" | "final_score">>;
+  /** Open a game picked off the line. */
+  onOpenGame?: (gameId: number) => void;
 }
 
 /** Half a band of headroom around the scores, so a point never sits on the edge. */
@@ -24,9 +27,11 @@ const INSET_BOTTOM = 16;
  * straight through a game that was never scored invents a trend that was not
  * bowled.
  */
-export function ScoreTrendChart({ games }: ScoreTrendChartProps) {
+export function ScoreTrendChart({ games, onOpenGame }: ScoreTrendChartProps) {
+  // Same question as the session trend: which game was that, and take me to it.
+  const [selected, setSelected] = useState<number | null>(null);
   const scored = games
-    .filter((g): g is { game_number: number; final_score: number } =>
+    .filter((g): g is { id?: number; game_number: number; final_score: number } =>
       typeof g.final_score === "number"
     )
     .sort((a, b) => a.game_number - b.game_number);
@@ -63,6 +68,11 @@ export function ScoreTrendChart({ games }: ScoreTrendChartProps) {
     return acc;
   }, []);
 
+  // Wide enough to hit, never wider than the gap to the next game.
+  const columnWidth =
+    scored.length === 1 ? W : Math.max(18, (W - INSET_X * 2) / Math.max(1, gameSpan));
+  const chosen = selected === null ? null : scored.find((g) => g.game_number === selected) ?? null;
+
   return (
     <div className="rounded-lg border border-edge bg-surface p-3 shadow-sm">
       <svg
@@ -91,6 +101,17 @@ export function ScoreTrendChart({ games }: ScoreTrendChartProps) {
           avg {Math.round(avg)}
         </text>
 
+        {chosen && (
+          <line
+            x1={x(chosen.game_number)}
+            x2={x(chosen.game_number)}
+            y1={INSET_TOP - 12}
+            y2={H - INSET_BOTTOM + 4}
+            className="stroke-edge-strong"
+            strokeWidth={1}
+          />
+        )}
+
         {segments.map((d) => (
           <path key={d} d={d} fill="none" strokeWidth={2} className="stroke-accent" />
         ))}
@@ -100,6 +121,16 @@ export function ScoreTrendChart({ games }: ScoreTrendChartProps) {
           const isLow = g.final_score === low && low !== high;
           return (
             <g key={g.game_number}>
+              {chosen?.game_number === g.game_number && (
+                <circle
+                  cx={x(g.game_number)}
+                  cy={y(g.final_score)}
+                  r={6}
+                  fill="none"
+                  strokeWidth={1.5}
+                  className="stroke-accent"
+                />
+              )}
               <circle
                 cx={x(g.game_number)}
                 cy={y(g.final_score)}
@@ -131,7 +162,79 @@ export function ScoreTrendChart({ games }: ScoreTrendChartProps) {
             </g>
           );
         })}
+        {/* Full-height columns: the tap belongs to the game, not the dot. */}
+        {scored.map((g) => (
+          <rect
+            key={`hit-${g.game_number}`}
+            x={x(g.game_number) - columnWidth / 2}
+            y={0}
+            width={columnWidth}
+            height={H}
+            fill="transparent"
+            role="button"
+            tabIndex={0}
+            aria-label={`Game ${g.game_number}, ${g.final_score}`}
+            onClick={() =>
+              setSelected((curr) => (curr === g.game_number ? null : g.game_number))
+            }
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                setSelected((curr) => (curr === g.game_number ? null : g.game_number));
+              }
+            }}
+            className="cursor-pointer outline-none"
+          />
+        ))}
       </svg>
+
+      {chosen && (
+        <SelectedGame
+          game={chosen}
+          onOpen={onOpenGame}
+          onDismiss={() => setSelected(null)}
+        />
+      )}
+    </div>
+  );
+}
+
+/** The game behind the selected point, and the way into it. */
+function SelectedGame({
+  game,
+  onOpen,
+  onDismiss
+}: {
+  game: { id?: number; game_number: number; final_score: number };
+  onOpen?: (gameId: number) => void;
+  onDismiss: () => void;
+}) {
+  const body = (
+    <span className="flex items-baseline justify-between gap-2">
+      <span className="text-sm font-semibold text-ink-strong">Game {game.game_number}</span>
+      <span className="text-base font-extrabold tabular-nums text-accent">{game.final_score}</span>
+    </span>
+  );
+  const className =
+    "mt-2 flex w-full flex-col rounded-lg border border-edge bg-surface-muted p-2.5 text-left";
+
+  return onOpen && game.id != null ? (
+    <button
+      type="button"
+      onClick={() => onOpen(game.id as number)}
+      className={`${className} active:bg-surface`}
+    >
+      {body}
+    </button>
+  ) : (
+    <div
+      role="button"
+      tabIndex={0}
+      onClick={onDismiss}
+      onKeyDown={(e) => e.key === "Enter" && onDismiss()}
+      className={className}
+    >
+      {body}
     </div>
   );
 }

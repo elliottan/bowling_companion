@@ -1,14 +1,10 @@
-export interface SessionPoint {
-  /** Session date, `YYYY-MM-DD`, used for the axis label. */
-  date: string;
-  /** Average of the session's completed games. */
-  average: number;
-  /** Every completed game of that session, for the dots behind the line. */
-  scores: number[];
-}
+import { useState } from "react";
+import type { SessionTrendPoint } from "../lib/stats";
 
 interface SessionTrendChartProps {
-  sessions: SessionPoint[];
+  sessions: SessionTrendPoint[];
+  /** Open the session a selected point belongs to. */
+  onOpenSession?: (sessionId: number) => void;
 }
 
 /** Half a band of headroom around the scores, so a point never sits on the edge. */
@@ -37,7 +33,15 @@ const shortDate = (iso: string) => iso.slice(5).replace("-", "/");
  * the spread visible, which an average alone hides: a 170/240 night and two
  * 205s average the same.
  */
-export function SessionTrendChart({ sessions }: SessionTrendChartProps) {
+export function SessionTrendChart({ sessions, onOpenSession }: SessionTrendChartProps) {
+  // Which point the reader is asking about. A chart of averages answers "how
+  // am I going"; the follow-up is always "which night was that", so a tap
+  // names it and a tap on the answer goes there.
+  //
+  // Held as the night's own key rather than its position: the filters above
+  // this chart rewrite the list under it, and an index kept pointing at
+  // whatever moved into that slot (or past the end of a shorter list).
+  const [selectedKey, setSelectedKey] = useState<string | null>(null);
   const points = sessions.filter((s) => s.scores.length > 0).slice(-MAX_POINTS);
   if (points.length === 0) return null;
 
@@ -55,6 +59,16 @@ export function SessionTrendChart({ sessions }: SessionTrendChartProps) {
     points.length === 1 ? W / 2 : INSET_X + (i / lastIndex) * (W - INSET_X * 2);
   const y = (score: number) =>
     INSET_TOP + ((top - score) / span) * (H - INSET_TOP - INSET_BOTTOM);
+
+  // Wide enough to hit, never wider than the gap to the next point.
+  const columnWidth =
+    points.length === 1 ? W : Math.max(18, (W - INSET_X * 2) / Math.max(1, points.length - 1));
+
+  const keyOf = (p: SessionTrendPoint) => `${p.sessionId ?? ""}:${p.date}`;
+  const selectedIndex = points.findIndex((p) => keyOf(p) === selectedKey);
+  const selected = selectedIndex === -1 ? null : selectedIndex;
+  const toggle = (p: SessionTrendPoint) =>
+    setSelectedKey((curr) => (curr === keyOf(p) ? null : keyOf(p)));
 
   const line = points
     .map((p, i) => `${i === 0 ? "M" : "L"} ${x(i)} ${y(p.average)}`)
@@ -92,6 +106,17 @@ export function SessionTrendChart({ sessions }: SessionTrendChartProps) {
           avg {Math.round(avg)}
         </text>
 
+        {selected !== null && (
+          <line
+            x1={x(selected)}
+            x2={x(selected)}
+            y1={INSET_TOP - 12}
+            y2={H - INSET_BOTTOM + 4}
+            className="stroke-edge-strong"
+            strokeWidth={1}
+          />
+        )}
+
         {/* The games behind each average, drawn under the line. */}
         {points.map((p, i) =>
           p.scores.map((score, j) => (
@@ -114,6 +139,16 @@ export function SessionTrendChart({ sessions }: SessionTrendChartProps) {
           const isLow = p.average === low && high !== low;
           return (
             <g key={`${p.date}-${i}`}>
+              {selected === i && (
+                <circle
+                  cx={x(i)}
+                  cy={y(p.average)}
+                  r={6}
+                  fill="none"
+                  strokeWidth={1.5}
+                  className="stroke-accent"
+                />
+              )}
               <circle
                 cx={x(i)}
                 cy={y(p.average)}
@@ -143,7 +178,96 @@ export function SessionTrendChart({ sessions }: SessionTrendChartProps) {
             </g>
           );
         })}
+        {/* Full-height columns, so the tap lands on the night rather than on a
+            3px dot. Drawn last so they sit above everything they select. */}
+        {points.map((p, i) => (
+          <rect
+            key={`hit-${p.date}-${i}`}
+            x={x(i) - columnWidth / 2}
+            y={0}
+            width={columnWidth}
+            height={H}
+            fill="transparent"
+            role="button"
+            tabIndex={0}
+            aria-label={`${p.date}, ${p.alley}, average ${p.average}`}
+            onClick={() => toggle(p)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                toggle(p);
+              }
+            }}
+            className="cursor-pointer outline-none"
+          />
+        ))}
       </svg>
+
+      {selected !== null && (
+        <SelectedSession
+          point={points[selected]}
+          onOpen={onOpenSession}
+          onDismiss={() => setSelectedKey(null)}
+        />
+      )}
+    </div>
+  );
+}
+
+/** The night behind the selected point, and the way into it. */
+function SelectedSession({
+  point,
+  onOpen,
+  onDismiss
+}: {
+  point: SessionTrendPoint;
+  onOpen?: (sessionId: number) => void;
+  onDismiss: () => void;
+}) {
+  const high = Math.max(...point.scores);
+  const low = Math.min(...point.scores);
+  const detail = [point.event, `${point.scores.length} ${point.scores.length === 1 ? "game" : "games"}`]
+    .filter(Boolean)
+    .join(" · ");
+  const canOpen = onOpen && point.sessionId != null;
+  const body = (
+    <>
+      <span className="flex items-baseline justify-between gap-2">
+        <span className="min-w-0 truncate text-sm font-semibold text-ink-strong">{point.alley}</span>
+        <span className="shrink-0 text-xs tabular-nums text-ink-secondary">{point.date}</span>
+      </span>
+      {detail && <span className="truncate text-xs text-ink-secondary">{detail}</span>}
+      <span className="text-xs tabular-nums text-ink-secondary">
+        <span className="font-bold text-accent">{point.average}</span> avg
+        {high !== low && (
+          <>
+            {" · "}
+            <span className="font-semibold text-ink">{high}</span> high
+            {" · "}
+            <span className="font-semibold text-ink">{low}</span> low
+          </>
+        )}
+      </span>
+    </>
+  );
+
+  return canOpen ? (
+    <button
+      type="button"
+      onClick={() => onOpen(point.sessionId as number)}
+      className="mt-2 flex w-full flex-col gap-0.5 rounded-lg border border-edge bg-surface-muted p-2.5 text-left active:bg-surface"
+    >
+      {body}
+    </button>
+  ) : (
+    <div
+      role="button"
+      tabIndex={0}
+      onClick={onDismiss}
+      onKeyDown={(e) => e.key === "Enter" && onDismiss()}
+      className="mt-2 flex w-full flex-col gap-0.5 rounded-lg border border-edge bg-surface-muted p-2.5 text-left"
+    >
+      {body}
     </div>
   );
 }

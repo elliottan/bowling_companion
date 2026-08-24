@@ -31,8 +31,6 @@ interface SessionLanePanelProps {
   onEdit?: () => void;
   /** Tap a frame in the sheet to jump to it in score entry. */
   onSelectFrame?: (gameId: number, frameNumber: number, shotIndex: number) => void;
-  /** Tap a game in the stats drill-down to switch the scorer to it. */
-  onSelectGame?: (gameId: number) => void;
   onClose: () => void;
 }
 
@@ -54,20 +52,19 @@ export function SessionLanePanel({
   highlightBallId,
   onEdit,
   onSelectFrame,
-  onSelectGame,
   onClose
 }: SessionLanePanelProps) {
   const [tab, setTab] = useState<SessionPanelTab>(defaultTab);
   // Which game the sheet scrolls to; the token re-fires the scroll on re-tap.
   const [focus, setFocus] = useState({ id: currentGameId, token: 0 });
   const focusGameId = focus.id;
-  // Which shots are lit, and a token that restarts the flash when the same
-  // ball is drilled into twice.
-  const [highlight, setHighlight] = useState<{
-    gameId?: number;
-    ballId?: number;
-    token: number;
-  }>({ gameId: currentGameId, ballId: highlightBallId, token: 0 });
+  // Which shots are lit when the sheet opens: a History drill-down names a
+  // game and a ball, and the sheet answers by flashing that ball's shots.
+  const highlight = { gameId: currentGameId, ballId: highlightBallId, token: 0 };
+  // Stats scoped to one game. Picking a game while reading the stats is a
+  // question about that game, not a request to go and look at its frames, so
+  // it narrows what is on screen and stays put. Undefined is the whole series.
+  const [statsGameId, setStatsGameId] = useState<number | undefined>(undefined);
 
   // The app's one sheet motion: slide up on mount, drag down to dismiss, slide
   // back down on close. `dragHandlers` go on the drag pill AND the header row,
@@ -154,26 +151,37 @@ export function SessionLanePanel({
 
         {/* Read-only mirror of the score-entry game chips. */}
         <div className="flex items-center gap-2 overflow-x-auto border-b border-edge px-4 py-2">
-          {gameChips.map((g) => (
-            <Chip
-              key={g.id}
-              selected={tab === "sheet" && g.id === focusGameId}
-              onClick={() => {
-                setTab("sheet");
-                // Bump the token so the sheet re-scrolls even if the same game
-                // chip is tapped twice.
-                setFocus({ id: g.id, token: focus.token + 1 });
-              }}
-              className="shrink-0 gap-1.5"
-            >
-              {/* The score is the point of the chip, so it carries the weight
-                  and the accent colour; the G-label recedes. */}
-              <span className={tab === "sheet" && g.id === focusGameId ? "font-medium opacity-80" : "font-medium text-ink-secondary"}>
-                G{g.number} ·
-              </span>
-              <span className={tab === "sheet" && g.id === focusGameId ? "font-bold" : "font-bold text-accent"}>{g.label}</span>
-            </Chip>
-          ))}
+          {gameChips.map((g) => {
+            // On the stats tab a chip is a filter, and tapping the one already
+            // on clears it. Everywhere else it is what it always was: go to
+            // that game in the sheet.
+            const onStats = tab === "stats";
+            const active = onStats ? g.id === statsGameId : tab === "sheet" && g.id === focusGameId;
+            return (
+              <Chip
+                key={g.id}
+                selected={active}
+                onClick={() => {
+                  if (onStats) {
+                    setStatsGameId((curr) => (curr === g.id ? undefined : g.id));
+                    return;
+                  }
+                  setTab("sheet");
+                  // Bump the token so the sheet re-scrolls even if the same
+                  // game chip is tapped twice.
+                  setFocus({ id: g.id, token: focus.token + 1 });
+                }}
+                className="shrink-0 gap-1.5"
+              >
+                {/* The score is the point of the chip, so it carries the weight
+                    and the accent colour; the G-label recedes. */}
+                <span className={active ? "font-medium opacity-80" : "font-medium text-ink-secondary"}>
+                  G{g.number} ·
+                </span>
+                <span className={active ? "font-bold" : "font-bold text-accent"}>{g.label}</span>
+              </Chip>
+            );
+          })}
         </div>
 
         {/* Session sheet / Stats / Lane notes toggle */}
@@ -206,18 +214,16 @@ export function SessionLanePanel({
                 />
               </div>,
               <div key="stats" className="px-4 py-3">
-                {/* A drill-down is a question about frames, so it answers on
-                    the sheet rather than closing: switch tab, scroll to the
-                    game, and light the shots thrown with that ball. The caller
-                    still gets the game so score entry follows along behind. */}
+                {/* Picking a game here scopes the stats to it rather than
+                    jumping to its frames: the reader asked what that game did,
+                    and the answer is on this tab. */}
                 <StatsTab
                   summary={summary}
-                  onSelectGame={(gameId, ballId) => {
-                    setTab("sheet");
-                    setFocus((prev) => ({ id: gameId, token: prev.token + 1 }));
-                    setHighlight((prev) => ({ gameId, ballId, token: prev.token + 1 }));
-                    onSelectGame?.(gameId);
-                  }}
+                  gameId={statsGameId}
+                  onSelectGame={(gameId) =>
+                    setStatsGameId((curr) => (curr === gameId ? undefined : gameId))
+                  }
+                  onClearGame={() => setStatsGameId(undefined)}
                 />
               </div>,
               <div key="lanes" className="px-4 py-3">
@@ -235,10 +241,15 @@ export function SessionLanePanel({
 /** Per-session stats: the History Stats pane scoped to a single session. */
 function StatsTab({
   summary,
-  onSelectGame
+  gameId,
+  onSelectGame,
+  onClearGame
 }: {
   summary: SessionSummary;
-  onSelectGame?: (gameId: number, ballId?: number) => void;
+  /** Scope every number below to this game. Undefined is the whole series. */
+  gameId?: number;
+  onSelectGame?: (gameId: number) => void;
+  onClearGame?: () => void;
 }) {
   const [balls, setBalls] = useState<Ball[]>([]);
 
@@ -247,24 +258,48 @@ function StatsTab({
   }, []);
 
   const handedness = useHandedness();
-  const stats = useMemo(
-    () => calculateStats([summary], undefined, handedness),
-    [summary, handedness]
+  // The scoped session the numbers are read from. The chart below keeps the
+  // whole series: it is how another game is picked, so narrowing it to the one
+  // already chosen would take the picker away.
+  const scoped = useMemo(
+    () =>
+      gameId == null ? summary : { ...summary, games: summary.games.filter((g) => g.id === gameId) },
+    [summary, gameId]
   );
-  const leaves = useMemo(() => calculateCommonLeaves([summary]), [summary]);
+  const scopedNumber = summary.games.find((g) => g.id === gameId)?.game_number;
+  const stats = useMemo(
+    () => calculateStats([scoped], undefined, handedness),
+    [scoped, handedness]
+  );
+  const leaves = useMemo(() => calculateCommonLeaves([scoped]), [scoped]);
   const ballPerformance = useMemo(
-    () => calculateBallPerformance([summary], balls, undefined, handedness),
-    [summary, balls, handedness]
+    () => calculateBallPerformance([scoped], balls, undefined, handedness),
+    [scoped, balls, handedness]
   );
 
   return (
+    <>
+    {scopedNumber !== undefined && (
+      <button
+        type="button"
+        onClick={onClearGame}
+        className="mb-2 flex w-full items-center justify-between gap-2 rounded-lg border border-accent-fill bg-accent-soft px-3 py-2 text-left text-xs font-semibold text-accent"
+      >
+        <span>Game {scopedNumber} only</span>
+        <span className="text-ink-secondary">Tap to clear</span>
+      </button>
+    )}
     <Stats
       stats={stats}
       leaves={leaves}
       ballPerformance={ballPerformance}
-      onOpenGame={onSelectGame && ((_sessionId, gameId, ballId) => onSelectGame(gameId, ballId))}
+      onOpenGame={onSelectGame && ((_sessionId, id) => onSelectGame(id))}
+      // A game picked off the score line asks the same thing as one picked out
+      // of a ball's column: scope the stats to it.
+      onOpenGameId={onSelectGame}
       games={summary.games}
     />
+    </>
   );
 }
 

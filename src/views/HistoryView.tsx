@@ -9,6 +9,7 @@ import { Chip, TAP_TARGET_44 } from "../components/ui/Chip";
 import {
   calculateBallPerformance,
   calculateCommonLeaves,
+  calculateSessionTrend,
   calculateStats,
   filterSessionsBy,
   type BowlingStats
@@ -154,27 +155,9 @@ export function HistoryView({
     () => calculateCommonLeaves(filteredHistory, activeLanes),
     [filteredHistory, activeLanes]
   );
-  // One point per session, oldest first: the History filters ask "how am I
-  // going", and a night is the unit that question is asked in. Sessions with no
-  // completed game have nothing to plot and drop out.
   const sessionTrend = useMemo(
-    () =>
-      [...filteredHistory]
-        .sort((a, b) => a.session.date.localeCompare(b.session.date))
-        .flatMap((s) => {
-          const scores = s.games.flatMap((g) =>
-            g.final_score !== undefined ? [g.final_score] : []
-          );
-          if (scores.length === 0) return [];
-          return [
-            {
-              date: s.session.date,
-              average: Math.round(scores.reduce((a, b) => a + b, 0) / scores.length),
-              scores
-            }
-          ];
-        }),
-    [filteredHistory]
+    () => calculateSessionTrend(filteredHistory, activeLanes),
+    [filteredHistory, activeLanes]
   );
   const ballPerformance = useMemo(
     () => calculateBallPerformance(filteredHistory, balls, activeLanes, handedness),
@@ -294,6 +277,7 @@ export function HistoryView({
               leaves={leaves}
               ballPerformance={ballPerformance}
               sessionTrend={sessionTrend}
+              onOpenSession={onOpenSession}
               onOpenGame={onOpenSessionGame}
             />
           </div>

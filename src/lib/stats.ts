@@ -380,6 +380,51 @@ function emptyAccumulator(): BallAccumulator {
   };
 }
 
+/** One night on the History trend line: its average, and the games behind it. */
+export interface SessionTrendPoint {
+  sessionId?: number;
+  date: string;
+  alley: string;
+  event?: string;
+  average: number;
+  scores: number[];
+}
+
+/**
+ * Average by session, oldest first, for the History trend.
+ *
+ * The lane filter applies per game, not per session: a score belongs to the
+ * pair it was bowled on and cannot be split below that, so a game that never
+ * touched a selected lane leaves the line, and a session left with no games
+ * leaves it entirely. Sessions with nothing scored yet are dropped rather than
+ * plotted at zero.
+ */
+export function calculateSessionTrend(
+  sessions: SessionSummary[],
+  selectedLanes?: string[]
+): SessionTrendPoint[] {
+  const filter = selectedLanes && selectedLanes.length ? new Set(selectedLanes) : undefined;
+
+  return [...sessions]
+    .sort((a, b) => a.session.date.localeCompare(b.session.date))
+    .flatMap((s) => {
+      const scores = s.games
+        .filter((g) => !filter || gameLanes(g).some((l) => filter.has(l)))
+        .flatMap((g) => (g.final_score !== undefined ? [g.final_score] : []));
+      if (scores.length === 0) return [];
+      return [
+        {
+          sessionId: s.session.id,
+          date: s.session.date,
+          alley: s.session.alley_name,
+          event: s.session.description,
+          average: Math.round(scores.reduce((a, b) => a + b, 0) / scores.length),
+          scores
+        }
+      ];
+    });
+}
+
 /**
  * Per-ball pocket, carry and strike rates, broken out by game number, plus the
  * leaves each ball produced (ADR-047, amended by ADR-048).

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { render } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { ScoreTrendChart } from "./ScoreTrendChart";
 
 function paths(container: HTMLElement): string[] {
@@ -60,5 +60,23 @@ describe("ScoreTrendChart", () => {
     const classes = [...container.querySelectorAll("circle")].map((c) => c.getAttribute("class"));
     expect(classes).toContain("fill-success-700");
     expect(classes).toContain("fill-danger-600");
+  });
+
+  it("names the game behind a tapped point, and opens it", () => {
+    const opened: number[] = [];
+    render(
+      <ScoreTrendChart
+        games={[
+          { id: 11, game_number: 1, final_score: 191 },
+          { id: 22, game_number: 2, final_score: 224 }
+        ]}
+        onOpenGame={(id) => opened.push(id)}
+      />
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Game 2, 224" }));
+    expect(screen.getByText("Game 2")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByText("Game 2"));
+    expect(opened).toEqual([22]);
   });
 });

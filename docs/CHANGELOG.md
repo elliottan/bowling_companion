@@ -12,6 +12,13 @@ of shipped work rather than a release. Thirty of them used to be headed
 
 ### Fixed
 
+- **The History trend line now respects the lane filter.** Location and
+  pattern already narrowed it; lanes did not, so selecting a pair changed every
+  other number on the screen and left the line alone. A game that never touched
+  a selected lane now leaves the line, and a night left with no games leaves it
+  entirely. A score cannot be split below the pair it was bowled on, so the
+  filter applies per game rather than per frame.
+
 - **"Games behind this column" says what it means.** The drill-down is headed
   by the ball alone now, with "Usages in game 3" under it, and each row carries
   the event and the pattern as well as the alley and the date. The counts are
@@ -48,6 +55,13 @@ of shipped work rather than a release. Thirty of them used to be headed
 - **Pocket and carry on the ball's own row.** The collapsed row now reads
   `P 84 · C 69 · S 65 · 31`, so the three rates and the sample size are
   legible without expanding the table (which still spells them out in full).
+
+- **The trend lines answer back.** Tapping the History trend marks the night
+  with a faint rule and names it below: alley, event, games, average, high and
+  low. Tapping that card opens the session. The per-session score line works
+  the same way for games, and inside a session tapping a game scopes the stats
+  to it rather than moving you: a "Game 3 only" banner says so, and the chip or
+  the banner clears it.
 
 - **A drill-down lands on the frames it was about.** Tapping a game behind a
   ball opens that session's sheet, scrolled to that game, and the shots thrown
