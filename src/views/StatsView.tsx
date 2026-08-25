@@ -118,7 +118,7 @@ export function StatsView({
                 <AnalysisRow
                   icon={Target}
                   title="Open frames"
-                  detail="What your misses leave on the deck"
+                  detail="How often you go open, and on what"
                   onClick={onOpenFrames}
                 />
                 <AnalysisRow

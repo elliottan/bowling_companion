@@ -2422,3 +2422,47 @@ The tab bar had five slots and no free one. Spare lines held one.
   its own drill-downs, so a filter set on a drill-down has to reach the tab
   underneath, and a seeded copy would only have seen it on the next remount.
 - `SwipePanes` keeps its other caller and is no longer used by History.
+
+---
+
+## ADR-058: Open frames are counted, and only the makeable ones
+
+**Status:** accepted (2026-08). Replaces the pins-left-standing measure ADR-055
+shipped hours earlier.
+
+**Context.** ADR-055 reached for pins left standing because points lost needs a
+game that was never bowled, and pins on the deck is a fact. The reasoning holds
+and the number still failed, for a reason the ADR did not consider: nobody can
+say what one of them is worth. "1.5 pins left standing per game" describes no
+event a bowler recognises, and a leave's total of 12 grows with the length of
+the history, so two filters could not be compared and the figure meant
+something different every time the filter moved.
+
+Frequency has neither problem. Open frames a game is a number bowlers already
+keep, it is bounded by ten, and it means the same thing in a 4-game filter and
+a 400-game one.
+
+**Decision.**
+
+- **Count frames, not pins.** `openFramesPerGame` is the headline; each leave
+  carries the number of times it went open, and the list ranks on that.
+- **Makeable leaves only**, the same test spare % uses (ADR-036). A real split
+  or a washout is a first ball you did not get rather than a spare you missed.
+  Counting them would move this number when the first ball got worse, which is
+  a different problem with a different fix, and it would put leaves at the top
+  of the list that no amount of spare shooting will remove.
+- **A leave never missed is not listed.** The list is what goes open; a leave
+  you always convert belongs on the leaves card, which already has it.
+- **The definition sits behind the number** rather than in a paragraph under
+  it: the headline is a button that opens what it counts (ADR-040). The screen
+  had two blocks of prose explaining a number that should not have needed
+  explaining.
+
+**Consequences.**
+- Open frames a game and spare % now answer with the same population, so they
+  can be read against each other.
+- Splits are absent from the screen entirely. Leaving fewer of them is a
+  first-ball question, and the leaves card on Stats still reports them.
+- The per-night trend becomes worth drawing, since the value is comparable
+  between nights. It is bars rather than a line: down is better here, and a
+  falling line reads as a loss.

@@ -626,41 +626,55 @@ export function filterSessionsBy(
 // Open frames
 // ---------------------------------------------------------------------------
 
-/** One leave, and what it left standing across the frames it went open. */
+/** One leave, and how often it went open. */
 export interface OpenFrameLeave {
   pins: PinNumber[];
-  /** Leaves a ball followed, so the spare could be made or missed. */
+  /** Times this leave was thrown at, so it could be made or missed. */
   chances: number;
   conversions: number;
+  /** Chances that went open. This is what the list ranks on. */
   misses: number;
-  /** Pins still standing after those misses, summed. */
-  pinsLeft: number;
+  conversionPct: number | null;
+}
+
+/** One night, and how often it went open. */
+export interface OpenFrameTrendPoint {
+  sessionId?: number;
+  date: string;
+  alley: string;
+  games: number;
+  openFrames: number;
+  perGame: number;
 }
 
 export interface OpenFrameReport {
-  /** Completed games in view: the denominator of both per-game rates. */
+  /** Completed games in view: the denominator of the per-game rate. */
   games: number;
   openFrames: number;
-  pinsLeft: number;
-  /** One decimal, so a small change in a short history is still visible. */
   openFramesPerGame: number | null;
-  pinsLeftPerGame: number | null;
-  /** Heaviest first, which is frequency times size rather than either alone. */
+  /** Most often missed first. */
   leaves: OpenFrameLeave[];
+  /** By session, oldest first, for the trend line. */
+  trend: OpenFrameTrendPoint[];
 }
 
 /**
- * What open frames leave on the deck, per game and per leave (ADR-055).
+ * How often frames go open, and on what (ADR-058).
  *
- * The number is pins left standing, not points lost. Points lost is the more
- * natural question and this deliberately does not answer it: converting a
- * spare changes the score of the frame before it as well as its own, so
- * "what would this game have been" means re-scoring a game that was never
- * bowled. That is a counterfactual, and every other number in this file
- * describes what happened.
+ * Makeable leaves only, which is the same test spare % uses (ADR-036): a real
+ * split or a washout is not a frame you left open, it is a frame that was
+ * taken off you on the first ball. Mixing them in would mean the number moves
+ * when your first ball gets worse, which is a different problem with a
+ * different fix.
  *
- * Only completed games count, matching `calculateStats`: a game still being
- * bowled has frames that are not open yet, only unfinished.
+ * The count is frames, not pins. An earlier version weighted each miss by the
+ * pins it left standing, on the reasoning that points lost needs a game that
+ * was never bowled and pins standing does not. True, and unreadable: a total
+ * of pins grows with the length of the history, so it could not be compared
+ * between two filters, and nobody could say what one of them was worth.
+ *
+ * Only completed games count, matching `calculateStats`. A frame in a game
+ * still being bowled is unfinished, not open.
  */
 export function calculateOpenFrames(
   sessions: SessionSummary[],
@@ -668,23 +682,23 @@ export function calculateOpenFrames(
 ): OpenFrameReport {
   const filter = selectedLanes && selectedLanes.length ? new Set(selectedLanes) : undefined;
   const leaveMap = new Map<string, OpenFrameLeave>();
+  const trend: OpenFrameTrendPoint[] = [];
   let games = 0;
   let openFrames = 0;
-  let pinsLeft = 0;
 
-  for (const s of sessions) {
+  for (const s of [...sessions].sort((a, b) => a.session.date.localeCompare(b.session.date))) {
+    let sessionGames = 0;
+    let sessionOpens = 0;
+
     for (const game of s.games) {
       if (typeof game.final_score !== "number") continue;
       if (!gameTouchesLanes(game, filter)) continue;
-      games++;
+      sessionGames++;
 
       for (const frame of game.frames) {
         if (!frameOnSelectedLane(game, frame.frame_number, filter)) continue;
         for (const { leave, chance, converted } of leaveEvents(frame)) {
-          if (!chance || converted) continue;
-          const standing = standingAfterAttempt(frame, leave);
-          openFrames++;
-          pinsLeft += standing;
+          if (!chance || isUnmakeable(leave)) continue;
 
           const key = leave.join("-");
           if (!leaveMap.has(key)) {
@@ -693,65 +707,45 @@ export function calculateOpenFrames(
               chances: 0,
               conversions: 0,
               misses: 0,
-              pinsLeft: 0
+              conversionPct: null
             });
           }
           const entry = leaveMap.get(key)!;
-          entry.misses++;
-          entry.pinsLeft += standing;
-        }
-      }
-    }
-  }
-
-  // Chances and conversions come from every leave, not only the missed ones,
-  // so a leave's rate here reads the same as it does on the leaves card.
-  for (const s of sessions) {
-    for (const game of s.games) {
-      if (typeof game.final_score !== "number") continue;
-      if (!gameTouchesLanes(game, filter)) continue;
-      for (const frame of game.frames) {
-        if (!frameOnSelectedLane(game, frame.frame_number, filter)) continue;
-        for (const { leave, chance, converted } of leaveEvents(frame)) {
-          if (!chance) continue;
-          const entry = leaveMap.get(leave.join("-"));
-          if (!entry) continue;
           entry.chances++;
           if (converted) entry.conversions++;
+          else {
+            entry.misses++;
+            sessionOpens++;
+          }
         }
       }
     }
+
+    if (sessionGames === 0) continue;
+    games += sessionGames;
+    openFrames += sessionOpens;
+    trend.push({
+      sessionId: s.session.id,
+      date: s.session.date,
+      alley: s.session.alley_name,
+      games: sessionGames,
+      openFrames: sessionOpens,
+      perGame: Math.round((sessionOpens / sessionGames) * 10) / 10
+    });
   }
 
-  const leaves = [...leaveMap.values()].sort(
-    (a, b) => b.pinsLeft - a.pinsLeft || b.misses - a.misses || comparePins(a.pins, b.pins)
-  );
+  const leaves = [...leaveMap.values()]
+    .map((l) => ({ ...l, conversionPct: rate(l.conversions, l.chances) }))
+    .filter((l) => l.misses > 0)
+    .sort((a, b) => b.misses - a.misses || b.chances - a.chances || comparePins(a.pins, b.pins));
 
   return {
     games,
     openFrames,
-    pinsLeft,
     openFramesPerGame: perGame(openFrames, games),
-    pinsLeftPerGame: perGame(pinsLeft, games),
-    leaves
+    leaves,
+    trend
   };
-}
-
-/**
- * Pins still standing once the frame gave up on the leave.
- *
- * The spare attempt is the ball straight after the leave. In frames 1 to 9
- * that is the end of it. In the 10th a leave can come off a bonus ball with
- * another ball behind it, so the attempt is still just the next ball: the one
- * after that is thrown at whatever the attempt left, which is a new frame's
- * worth of pins as far as this count is concerned.
- */
-function standingAfterAttempt(frame: Frame, leave: PinNumber[]): number {
-  const index = frame.shots.findIndex(
-    (s) => s.pins_standing.length === leave.length && s.pins_standing.every((p) => leave.includes(p))
-  );
-  const attempt = index === -1 ? undefined : frame.shots[index + 1];
-  return attempt ? attempt.pins_standing.length : leave.length;
 }
 
 /** One decimal. `null` when there is nothing to divide by. */
