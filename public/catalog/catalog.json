@@ -4056,5 +4056,993 @@
         "mbDiff": 0.017
       }
     ]
+  },
+  {
+    "id": "motiv-blue-tank-2023",
+    "brand": "Motiv",
+    "name": "Blue Tank",
+    "releaseDate": "2023-01-04",
+    "releaseYear": 2023,
+    "coverstockRaw": "Frixion M3 Pearl MCP",
+    "coverstockCategory": "Pearl",
+    "factoryFinish": "1000 Grit LSS",
+    "coreName": "Halogen V2",
+    "coreType": "Symmetric",
+    "rg": 2.59,
+    "diff": 0.023,
+    "mbDiff": null,
+    "imageThumb": "/catalog/img/motiv-blue-tank-2023-thumb.webp",
+    "imageFull": "/catalog/img/motiv-blue-tank-2023-full.webp",
+    "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/blue-tank.html",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.58,
+        "diff": 0.023,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.59,
+        "diff": 0.023,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.61,
+        "diff": 0.023,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.63,
+        "diff": 0.024,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.65,
+        "diff": 0.026,
+        "mbDiff": null
+      }
+    ]
+  },
+  {
+    "id": "motiv-crimson-jackal-2024",
+    "brand": "Motiv",
+    "name": "Crimson Jackal",
+    "releaseDate": "2024-01-10",
+    "releaseYear": 2024,
+    "coverstockRaw": "Propulsion HV+ Pearl Reactive",
+    "coverstockCategory": "Pearl",
+    "factoryFinish": "5000 Grit LSS",
+    "coreName": "Predator V2",
+    "coreType": "Asymmetric",
+    "rg": 2.47,
+    "diff": 0.054,
+    "mbDiff": 0.015,
+    "imageThumb": "/catalog/img/motiv-crimson-jackal-2024-thumb.webp",
+    "imageFull": "/catalog/img/motiv-crimson-jackal-2024-full.webp",
+    "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/crimson-jackal.html",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.48,
+        "diff": 0.047,
+        "mbDiff": 0.013
+      },
+      {
+        "weight": 15,
+        "rg": 2.47,
+        "diff": 0.054,
+        "mbDiff": 0.015
+      },
+      {
+        "weight": 14,
+        "rg": 2.51,
+        "diff": 0.049,
+        "mbDiff": 0.014
+      },
+      {
+        "weight": 13,
+        "rg": 2.57,
+        "diff": 0.04,
+        "mbDiff": 0.011
+      },
+      {
+        "weight": 12,
+        "rg": 2.64,
+        "diff": 0.03,
+        "mbDiff": 0.01
+      }
+    ]
+  },
+  {
+    "id": "motiv-evoke-2024",
+    "brand": "Motiv",
+    "name": "Evoke",
+    "releaseDate": "2024-02-14",
+    "releaseYear": 2024,
+    "coverstockRaw": "Leverage MXC Solid Reactive",
+    "coverstockCategory": "Solid",
+    "factoryFinish": "2000 Grit LSS",
+    "coreName": "Overload",
+    "coreType": "Asymmetric",
+    "rg": 2.48,
+    "diff": 0.05,
+    "mbDiff": 0.015,
+    "imageThumb": "/catalog/img/motiv-evoke-2024-thumb.webp",
+    "imageFull": "/catalog/img/motiv-evoke-2024-full.webp",
+    "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/evoke.html",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.48,
+        "diff": 0.045,
+        "mbDiff": 0.015
+      },
+      {
+        "weight": 15,
+        "rg": 2.48,
+        "diff": 0.05,
+        "mbDiff": 0.015
+      },
+      {
+        "weight": 14,
+        "rg": 2.51,
+        "diff": 0.045,
+        "mbDiff": 0.015
+      },
+      {
+        "weight": 13,
+        "rg": 2.57,
+        "diff": 0.035,
+        "mbDiff": 0.012
+      },
+      {
+        "weight": 12,
+        "rg": 2.64,
+        "diff": 0.025,
+        "mbDiff": 0.008
+      }
+    ]
+  },
+  {
+    "id": "motiv-iron-forge-2023",
+    "brand": "Motiv",
+    "name": "Iron Forge",
+    "releaseDate": "2023-01-04",
+    "releaseYear": 2023,
+    "coverstockRaw": "Infusion MVP Pearl Reactive",
+    "coverstockCategory": "Pearl",
+    "factoryFinish": "5000 Grit LSP",
+    "coreName": "Detonator",
+    "coreType": "Symmetric",
+    "rg": 2.47,
+    "diff": 0.055,
+    "mbDiff": null,
+    "imageThumb": "/catalog/img/motiv-iron-forge-2023-thumb.webp",
+    "imageFull": "/catalog/img/motiv-iron-forge-2023-full.webp",
+    "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/iron-forge.html",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.47,
+        "diff": 0.054,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.47,
+        "diff": 0.055,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.49,
+        "diff": 0.054,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.55,
+        "diff": 0.045,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.62,
+        "diff": 0.032,
+        "mbDiff": null
+      }
+    ]
+  },
+  {
+    "id": "motiv-jackal-ambush-2023",
+    "brand": "Motiv",
+    "name": "Jackal Ambush",
+    "releaseDate": "2023-01-11",
+    "releaseYear": 2023,
+    "coverstockRaw": "Leverage Solid Reactive",
+    "coverstockCategory": "Solid",
+    "factoryFinish": "1000 Grit LSS",
+    "coreName": "Predator V2",
+    "coreType": "Asymmetric",
+    "rg": 2.47,
+    "diff": 0.054,
+    "mbDiff": 0.015,
+    "imageThumb": "/catalog/img/motiv-jackal-ambush-2023-thumb.webp",
+    "imageFull": "/catalog/img/motiv-jackal-ambush-2023-full.webp",
+    "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/jackal-ambush.html",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.48,
+        "diff": 0.047,
+        "mbDiff": 0.013
+      },
+      {
+        "weight": 15,
+        "rg": 2.47,
+        "diff": 0.054,
+        "mbDiff": 0.015
+      },
+      {
+        "weight": 14,
+        "rg": 2.51,
+        "diff": 0.049,
+        "mbDiff": 0.014
+      },
+      {
+        "weight": 13,
+        "rg": 2.57,
+        "diff": 0.04,
+        "mbDiff": 0.011
+      },
+      {
+        "weight": 12,
+        "rg": 2.64,
+        "diff": 0.03,
+        "mbDiff": 0.01
+      }
+    ]
+  },
+  {
+    "id": "motiv-max-thrill-solid-2024",
+    "brand": "Motiv",
+    "name": "Max Thrill Solid",
+    "releaseDate": "2024-06-05",
+    "releaseYear": 2024,
+    "coverstockRaw": "Turmoil XP3 Solid Reactive",
+    "coverstockCategory": "Solid",
+    "factoryFinish": "5000 Grit LSS",
+    "coreName": "Halogen",
+    "coreType": "Symmetric",
+    "rg": 2.55,
+    "diff": 0.037,
+    "mbDiff": null,
+    "imageThumb": "/catalog/img/motiv-max-thrill-solid-2024-thumb.webp",
+    "imageFull": "/catalog/img/motiv-max-thrill-solid-2024-full.webp",
+    "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/max-thrill-solid.html",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.54,
+        "diff": 0.036,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.55,
+        "diff": 0.037,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.56,
+        "diff": 0.038,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.59,
+        "diff": 0.038,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.64,
+        "diff": 0.031,
+        "mbDiff": null
+      },
+      {
+        "weight": 11,
+        "rg": 2.7,
+        "diff": 0.02,
+        "mbDiff": null
+      },
+      {
+        "weight": 10,
+        "rg": 2.8,
+        "diff": 0.003,
+        "mbDiff": null
+      }
+    ]
+  },
+  {
+    "id": "motiv-nuclear-forge-2023",
+    "brand": "Motiv",
+    "name": "Nuclear Forge",
+    "releaseDate": "2023-10-18",
+    "releaseYear": 2023,
+    "coverstockRaw": "Propulsion HVP Pearl Reactive",
+    "coverstockCategory": "Pearl",
+    "factoryFinish": "5000 Grit LSS",
+    "coreName": "Detonator",
+    "coreType": "Symmetric",
+    "rg": 2.47,
+    "diff": 0.055,
+    "mbDiff": null,
+    "imageThumb": "/catalog/img/motiv-nuclear-forge-2023-thumb.webp",
+    "imageFull": "/catalog/img/motiv-nuclear-forge-2023-full.webp",
+    "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/nuclear-forge.html",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.47,
+        "diff": 0.054,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.47,
+        "diff": 0.055,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.49,
+        "diff": 0.054,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.55,
+        "diff": 0.045,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.62,
+        "diff": 0.032,
+        "mbDiff": null
+      }
+    ]
+  },
+  {
+    "id": "motiv-pride-dynasty-2023",
+    "brand": "Motiv",
+    "name": "Pride Dynasty",
+    "releaseDate": "2023-09-13",
+    "releaseYear": 2023,
+    "coverstockRaw": "Leverage MFS Solid Reactive",
+    "coverstockCategory": "Solid",
+    "factoryFinish": "2000 Grit LSS",
+    "coreName": "Dominion",
+    "coreType": "Asymmetric",
+    "rg": 2.5,
+    "diff": 0.042,
+    "mbDiff": 0.01,
+    "imageThumb": "/catalog/img/motiv-pride-dynasty-2023-thumb.webp",
+    "imageFull": "/catalog/img/motiv-pride-dynasty-2023-full.webp",
+    "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/pride-dynasty.html",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.49,
+        "diff": 0.041,
+        "mbDiff": 0.01
+      },
+      {
+        "weight": 15,
+        "rg": 2.5,
+        "diff": 0.042,
+        "mbDiff": 0.01
+      },
+      {
+        "weight": 14,
+        "rg": 2.52,
+        "diff": 0.043,
+        "mbDiff": 0.011
+      },
+      {
+        "weight": 13,
+        "rg": 2.56,
+        "diff": 0.039,
+        "mbDiff": 0.009
+      },
+      {
+        "weight": 12,
+        "rg": 2.63,
+        "diff": 0.028,
+        "mbDiff": 0.007
+      }
+    ]
+  },
+  {
+    "id": "motiv-pride-liberty-2024",
+    "brand": "Motiv",
+    "name": "Pride Liberty",
+    "releaseDate": "2024-08-14",
+    "releaseYear": 2024,
+    "coverstockRaw": "Dynamic Propulsion Hybrid Reactive",
+    "coverstockCategory": "Hybrid",
+    "factoryFinish": "4000 Grit LSS",
+    "coreName": "Dominion",
+    "coreType": "Asymmetric",
+    "rg": 2.5,
+    "diff": 0.042,
+    "mbDiff": 0.01,
+    "imageThumb": "/catalog/img/motiv-pride-liberty-2024-thumb.webp",
+    "imageFull": "/catalog/img/motiv-pride-liberty-2024-full.webp",
+    "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/pride-liberty.html",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.49,
+        "diff": 0.041,
+        "mbDiff": 0.01
+      },
+      {
+        "weight": 15,
+        "rg": 2.5,
+        "diff": 0.042,
+        "mbDiff": 0.01
+      },
+      {
+        "weight": 14,
+        "rg": 2.52,
+        "diff": 0.043,
+        "mbDiff": 0.011
+      },
+      {
+        "weight": 13,
+        "rg": 2.56,
+        "diff": 0.039,
+        "mbDiff": 0.009
+      },
+      {
+        "weight": 12,
+        "rg": 2.63,
+        "diff": 0.028,
+        "mbDiff": 0.007
+      }
+    ]
+  },
+  {
+    "id": "motiv-primal-rage-evolution-2024",
+    "brand": "Motiv",
+    "name": "Primal Rage Evolution",
+    "releaseDate": "2024-11-27",
+    "releaseYear": 2024,
+    "coverstockRaw": "Propulsion FYJ Pearl Reactive",
+    "coverstockCategory": "Pearl",
+    "factoryFinish": "5500 Grit LSP",
+    "coreName": "Impulse V2",
+    "coreType": "Symmetric",
+    "rg": 2.55,
+    "diff": 0.05,
+    "mbDiff": null,
+    "imageThumb": "/catalog/img/motiv-primal-rage-evolution-2024-thumb.webp",
+    "imageFull": "/catalog/img/motiv-primal-rage-evolution-2024-full.webp",
+    "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/primal-rage-evolution.html",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.54,
+        "diff": 0.049,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.55,
+        "diff": 0.05,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.56,
+        "diff": 0.054,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.6,
+        "diff": 0.055,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.67,
+        "diff": 0.04,
+        "mbDiff": null
+      }
+    ]
+  },
+  {
+    "id": "motiv-primal-shock-2023",
+    "brand": "Motiv",
+    "name": "Primal Shock",
+    "releaseDate": "2023-02-22",
+    "releaseYear": 2023,
+    "coverstockRaw": "Turmoil MFS Solid Reactive",
+    "coverstockCategory": "Solid",
+    "factoryFinish": "4000 Grit LSS",
+    "coreName": "Impulse V2",
+    "coreType": "Symmetric",
+    "rg": 2.55,
+    "diff": 0.05,
+    "mbDiff": null,
+    "imageThumb": "/catalog/img/motiv-primal-shock-2023-thumb.webp",
+    "imageFull": "/catalog/img/motiv-primal-shock-2023-full.webp",
+    "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/primal-shock.html",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.54,
+        "diff": 0.049,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.55,
+        "diff": 0.05,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.56,
+        "diff": 0.054,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.6,
+        "diff": 0.055,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.67,
+        "diff": 0.04,
+        "mbDiff": null
+      }
+    ]
+  },
+  {
+    "id": "motiv-raptor-fury-2023",
+    "brand": "Motiv",
+    "name": "Raptor Fury",
+    "releaseDate": "2023-11-29",
+    "releaseYear": 2023,
+    "coverstockRaw": "Leverage XFS Solid Reactive",
+    "coverstockCategory": "Solid",
+    "factoryFinish": "2000 Grit LSS",
+    "coreName": "Affliction V2",
+    "coreType": "Symmetric",
+    "rg": 2.48,
+    "diff": 0.055,
+    "mbDiff": null,
+    "imageThumb": "/catalog/img/motiv-raptor-fury-2023-thumb.webp",
+    "imageFull": "/catalog/img/motiv-raptor-fury-2023-full.webp",
+    "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/raptor-fury.html",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.48,
+        "diff": 0.053,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.48,
+        "diff": 0.055,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.5,
+        "diff": 0.053,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.57,
+        "diff": 0.04,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.64,
+        "diff": 0.029,
+        "mbDiff": null
+      }
+    ]
+  },
+  {
+    "id": "motiv-raptor-rush-2024",
+    "brand": "Motiv",
+    "name": "Raptor Rush",
+    "releaseDate": "2024-10-23",
+    "releaseYear": 2024,
+    "coverstockRaw": "Propulsion FYJ Pearl Reactive",
+    "coverstockCategory": "Pearl",
+    "factoryFinish": "5000 Grit LSS",
+    "coreName": "Affliction V2",
+    "coreType": "Symmetric",
+    "rg": 2.48,
+    "diff": 0.055,
+    "mbDiff": null,
+    "imageThumb": "/catalog/img/motiv-raptor-rush-2024-thumb.webp",
+    "imageFull": "/catalog/img/motiv-raptor-rush-2024-full.webp",
+    "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/raptor-rush.html",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.48,
+        "diff": 0.053,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.48,
+        "diff": 0.055,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.5,
+        "diff": 0.053,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.57,
+        "diff": 0.04,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.64,
+        "diff": 0.029,
+        "mbDiff": null
+      }
+    ]
+  },
+  {
+    "id": "motiv-ripcord-launch-2022",
+    "brand": "Motiv",
+    "name": "Ripcord Launch",
+    "releaseDate": "2022-11-23",
+    "releaseYear": 2022,
+    "coverstockRaw": "Propulsion MVP Pearl Reactive",
+    "coverstockCategory": "Pearl",
+    "factoryFinish": "5500 Grit LSP",
+    "coreName": "Torx V2",
+    "coreType": "Symmetric",
+    "rg": 2.51,
+    "diff": 0.048,
+    "mbDiff": null,
+    "imageThumb": "/catalog/img/motiv-ripcord-launch-2022-thumb.webp",
+    "imageFull": "/catalog/img/motiv-ripcord-launch-2022-full.webp",
+    "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/ripcord-launch.html",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.49,
+        "diff": 0.048,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.51,
+        "diff": 0.048,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.53,
+        "diff": 0.048,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.57,
+        "diff": 0.041,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.64,
+        "diff": 0.029,
+        "mbDiff": null
+      }
+    ]
+  },
+  {
+    "id": "motiv-subzero-forge-2024",
+    "brand": "Motiv",
+    "name": "Subzero Forge",
+    "releaseDate": "2024-09-18",
+    "releaseYear": 2024,
+    "coverstockRaw": "Leverage MXC Solid Reactive",
+    "coverstockCategory": "Solid",
+    "factoryFinish": "2000 Grit LSS",
+    "coreName": "Detonator",
+    "coreType": "Symmetric",
+    "rg": 2.47,
+    "diff": 0.055,
+    "mbDiff": null,
+    "imageThumb": "/catalog/img/motiv-subzero-forge-2024-thumb.webp",
+    "imageFull": "/catalog/img/motiv-subzero-forge-2024-full.webp",
+    "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/subzero-forge.html",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.47,
+        "diff": 0.054,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.47,
+        "diff": 0.055,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.49,
+        "diff": 0.054,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.55,
+        "diff": 0.045,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.62,
+        "diff": 0.032,
+        "mbDiff": null
+      }
+    ]
+  },
+  {
+    "id": "motiv-supra-gt-2024",
+    "brand": "Motiv",
+    "name": "Supra GT",
+    "releaseDate": "2024-07-10",
+    "releaseYear": 2024,
+    "coverstockRaw": "Propulsion XRT Pearl Reactive",
+    "coverstockCategory": "Pearl",
+    "factoryFinish": "5500 Grit LSP",
+    "coreName": "Quadfire V2",
+    "coreType": "Symmetric",
+    "rg": 2.57,
+    "diff": 0.04,
+    "mbDiff": null,
+    "imageThumb": "/catalog/img/motiv-supra-gt-2024-thumb.webp",
+    "imageFull": "/catalog/img/motiv-supra-gt-2024-full.webp",
+    "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/supra-gt.html",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.56,
+        "diff": 0.04,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.57,
+        "diff": 0.04,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.59,
+        "diff": 0.04,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.61,
+        "diff": 0.04,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.64,
+        "diff": 0.04,
+        "mbDiff": null
+      }
+    ]
+  },
+  {
+    "id": "motiv-supra-rally-2023",
+    "brand": "Motiv",
+    "name": "Supra Rally",
+    "releaseDate": "2023-05-03",
+    "releaseYear": 2023,
+    "coverstockRaw": "Propulsion DRS Pearl Reactive",
+    "coverstockCategory": "Pearl",
+    "factoryFinish": "5500 Grit LSP",
+    "coreName": "Quadfire V2",
+    "coreType": "Symmetric",
+    "rg": 2.57,
+    "diff": 0.04,
+    "mbDiff": null,
+    "imageThumb": "/catalog/img/motiv-supra-rally-2023-thumb.webp",
+    "imageFull": "/catalog/img/motiv-supra-rally-2023-full.webp",
+    "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/supra-rally.html",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.56,
+        "diff": 0.04,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.57,
+        "diff": 0.04,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.59,
+        "diff": 0.04,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.61,
+        "diff": 0.04,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.64,
+        "diff": 0.04,
+        "mbDiff": null
+      }
+    ]
+  },
+  {
+    "id": "motiv-tank-rampage-pearl-2024",
+    "brand": "Motiv",
+    "name": "Tank Rampage Pearl",
+    "releaseDate": "2024-02-14",
+    "releaseYear": 2024,
+    "coverstockRaw": "Frixion M6 Pearl MCP",
+    "coverstockCategory": "Pearl",
+    "factoryFinish": "1000 Grit LSS",
+    "coreName": "Gear V2",
+    "coreType": "Symmetric",
+    "rg": 2.55,
+    "diff": 0.02,
+    "mbDiff": null,
+    "imageThumb": "/catalog/img/motiv-tank-rampage-pearl-2024-thumb.webp",
+    "imageFull": "/catalog/img/motiv-tank-rampage-pearl-2024-full.webp",
+    "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/tank-rampage-pearl.html",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.54,
+        "diff": 0.02,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.55,
+        "diff": 0.02,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.56,
+        "diff": 0.02,
+        "mbDiff": null
+      }
+    ]
+  },
+  {
+    "id": "motiv-venom-exj-2024",
+    "brand": "Motiv",
+    "name": "Venom EXJ",
+    "releaseDate": "2024-06-12",
+    "releaseYear": 2024,
+    "coverstockRaw": "Turmoil MXC Solid Reactive",
+    "coverstockCategory": "Solid",
+    "factoryFinish": "2000 Grit LSS",
+    "coreName": "Gear",
+    "coreType": "Symmetric",
+    "rg": 2.48,
+    "diff": 0.034,
+    "mbDiff": null,
+    "imageThumb": "/catalog/img/motiv-venom-exj-2024-thumb.webp",
+    "imageFull": "/catalog/img/motiv-venom-exj-2024-full.webp",
+    "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/venom-exj.html",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.48,
+        "diff": 0.031,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.48,
+        "diff": 0.034,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.52,
+        "diff": 0.029,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.58,
+        "diff": 0.023,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.65,
+        "diff": 0.016,
+        "mbDiff": null
+      }
+    ]
+  },
+  {
+    "id": "motiv-vip-exj-sigma-2023",
+    "brand": "Motiv",
+    "name": "VIP ExJ Sigma",
+    "releaseDate": "2023-06-14",
+    "releaseYear": 2023,
+    "coverstockRaw": "Dynamic Infusion Pearl Reactive",
+    "coverstockCategory": "Pearl",
+    "factoryFinish": "5000 Grit LSS",
+    "coreName": "Sigma",
+    "coreType": "Symmetric",
+    "rg": 2.47,
+    "diff": 0.047,
+    "mbDiff": null,
+    "imageThumb": "/catalog/img/motiv-vip-exj-sigma-2023-thumb.webp",
+    "imageFull": "/catalog/img/motiv-vip-exj-sigma-2023-full.webp",
+    "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/vip-exj-sigma.html",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.48,
+        "diff": 0.041,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.47,
+        "diff": 0.047,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.5,
+        "diff": 0.044,
+        "mbDiff": null
+      }
+    ]
   }
 ]

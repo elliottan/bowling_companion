@@ -8,6 +8,17 @@ merge to `main` (`docs/DEPLOYMENT.md`), so every section below is a dated batch
 of shipped work rather than a release. Thirty of them used to be headed
 `[Unreleased]`, which said nothing once they had all shipped.
 
+## Twenty more MOTIV balls, newest first (2026-08)
+
+### Added
+
+- **Twenty more MOTIV balls**, specs and photos both from MOTIV, working back
+  from the most recent: Primal Rage Evolution, Raptor Rush, Subzero Forge,
+  Pride Liberty, Supra GT, Venom EXJ, Max Thrill Solid, Evoke, Tank Rampage
+  Pearl, Crimson Jackal, Raptor Fury, Nuclear Forge, Pride Dynasty, VIP ExJ
+  Sigma, Supra Rally, Primal Shock, Jackal Ambush, Iron Forge, Blue Tank and
+  Ripcord Launch. Fifty MOTIV balls now, every one with a picture.
+
 ## MOTIV's own site becomes a catalog source (2026-08)
 
 ### Added
