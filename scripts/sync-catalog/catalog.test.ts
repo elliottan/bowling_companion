@@ -15,7 +15,8 @@ import {
   slug,
 } from "./normalize.js";
 import { validateRaw } from "./validate.js";
-import { parsePage as parseMotiv } from "./catalog/parse-motiv.js";
+import { parsePage as parseMotiv, type StagedBall } from "./catalog/parse-motiv.js";
+import { foldColorways } from "./pipeline/fold-colorways.js";
 import type { CatalogBall, CatalogManifest } from "../../src/types/catalog.js";
 
 // ---------------------------------------------------------------------------
@@ -443,5 +444,91 @@ describe("parse-motiv", () => {
     expect(() => parseMotiv("<html><h1>Be the first to know</h1></html>", JG2_URL)).toThrow(
       /No ball name/
     );
+  });
+});
+
+// ---------------------------------------------------------------------------
+// pipeline/fold-colorways.ts
+// ---------------------------------------------------------------------------
+describe("foldColorways", () => {
+  const ball = (name: string, over: Partial<StagedBall> = {}): StagedBall => ({
+    brand: "Motiv",
+    name,
+    releaseDate: "2025-01-01",
+    coverstockRaw: "Vitality Pearl Reactive",
+    factoryFinish: "3000 Grit LSS",
+    coreName: "Flux V2",
+    rg: 2.59,
+    diff: 0.023,
+    mbDiff: null,
+    sourceUrls: [`https://example.test/${name}`],
+    _imageUrl: `https://example.test/${name}.png`,
+    _discontinued: false,
+    _sku: name.slice(-3).toUpperCase(),
+    ...over,
+  });
+
+  it("folds pages that share a base name and every spec", () => {
+    const { balls, folded } = foldColorways([
+      ball("Aspire - Navy/Red/Blue", { _sku: "AAA" }),
+      ball("Aspire - Black/Red/Gold", { _sku: "BBB" }),
+    ]);
+    expect(balls).toHaveLength(1);
+    expect(balls[0].name).toBe("Aspire");
+    expect(balls[0].colorways).toEqual([
+      { sku: "AAA", color: "Navy/Red/Blue" },
+      { sku: "BBB", color: "Black/Red/Gold" },
+    ]);
+    // Every page it came from stays cited, not just the one it was built from.
+    expect(balls[0].sourceUrls).toHaveLength(2);
+    expect(folded).toEqual([{ name: "Aspire", from: 2 }]);
+  });
+
+  it("keeps each colourway's own picture, against its SKU", () => {
+    const { balls } = foldColorways([
+      ball("Aspire - Navy/Red/Blue", { _sku: "AAA", _imageUrl: "https://example.test/navy.png" }),
+      ball("Aspire - Black/Red/Gold", { _sku: "BBB", _imageUrl: "https://example.test/black.png" }),
+    ]);
+    expect(balls[0]._colorwayImages).toEqual({
+      AAA: "https://example.test/navy.png",
+      BBB: "https://example.test/black.png",
+    });
+  });
+
+  it("dates the ball from its earliest colourway", () => {
+    // MOTIV shipped the Thrill's colours on three dates. The ball arrived on
+    // the first of them, and the id is built from that year.
+    const { balls } = foldColorways([
+      ball("Thrill - Magenta/Wine Pearl", { _sku: "A", releaseDate: "2021-06-09" }),
+      ball("Thrill - Blue/Purple Pearl", { _sku: "B", releaseDate: "2020-02-12" }),
+    ]);
+    expect(balls[0].releaseDate).toBe("2020-02-12");
+  });
+
+  it("leaves a lone page alone, since its name is not a colour", () => {
+    // "T10 - Limited Edition" is the whole name of one ball.
+    const { balls, folded, skipped } = foldColorways([ball("T10 - Limited Edition")]);
+    expect(balls).toHaveLength(1);
+    expect(balls[0].name).toBe("T10 - Limited Edition");
+    expect(folded).toEqual([]);
+    expect(skipped[0].reason).toMatch(/only one page/);
+  });
+
+  it("refuses to fold pages whose specs disagree", () => {
+    // Same base name is not evidence of the same ball, and a wrong fold files
+    // two balls as one. Nothing downstream would catch it.
+    const { balls, skipped } = foldColorways([
+      ball("Ascent - Pearl", { rg: 2.59 }),
+      ball("Ascent - Solid", { rg: 2.48 }),
+    ]);
+    expect(balls).toHaveLength(2);
+    expect(skipped[0].reason).toMatch(/specs differ/);
+  });
+
+  it("passes through a ball with no colour in its name", () => {
+    const { balls, folded } = foldColorways([ball("Jackal Onyx")]);
+    expect(balls).toHaveLength(1);
+    expect(balls[0].colorways).toBeUndefined();
+    expect(folded).toEqual([]);
   });
 });

@@ -142,7 +142,17 @@ function main(): void {
       imageFull: images[id]?.imageFull ?? null,
       sourceUrl: raw.sourceUrls[0] ?? "",
       ...(raw.weights !== undefined ? { weights: raw.weights } : {}),
-      ...(raw.colorways !== undefined ? { colorways: raw.colorways } : {}),
+      // A colourway with its own picture carries it, keyed `<id>--<sku>`, so
+      // the carousel shows each colour rather than the ball's image four
+      // times. One without falls back to the ball's, as it always did.
+      ...(raw.colorways !== undefined
+        ? {
+            colorways: raw.colorways.map((c) => {
+              const shot = images[`${id}--${c.sku}`];
+              return shot ? { ...c, imageThumb: shot.imageThumb, imageFull: shot.imageFull } : c;
+            }),
+          }
+        : {}),
     };
 
     catalogBalls.push(ball);

@@ -4636,5 +4636,157 @@
         "mbDiff": null
       }
     ]
+  },
+  {
+    "brand": "Motiv",
+    "name": "Ascend",
+    "releaseDate": "2025-07-23",
+    "coverstockRaw": "Vitality Pearl Reactive",
+    "factoryFinish": "5500 Grit LSP",
+    "coreName": "Flux V2",
+    "rg": 2.59,
+    "diff": 0.023,
+    "mbDiff": null,
+    "sourceUrls": [
+      "https://www.motivbowling.com/products/balls/entry-level/ascend-red-black-tangerine.html"
+    ],
+    "weights": [
+      {
+        "weight": 15,
+        "rg": 2.59,
+        "diff": 0.023,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.6,
+        "diff": 0.024,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.65,
+        "diff": 0.017,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.72,
+        "diff": 0.015,
+        "mbDiff": null
+      },
+      {
+        "weight": 11,
+        "rg": 2.76,
+        "diff": 0.015,
+        "mbDiff": null
+      },
+      {
+        "weight": 10,
+        "rg": 2.83,
+        "diff": 0.015,
+        "mbDiff": null
+      }
+    ],
+    "colorways": [
+      {
+        "sku": "MTVBASRBT",
+        "color": "Red/Black/Tangerine"
+      },
+      {
+        "sku": "MTVBASBGT",
+        "color": "Green/Teal/Black"
+      },
+      {
+        "sku": "MTVBASDPB",
+        "color": "Dark Purple/Purple/Blue"
+      },
+      {
+        "sku": "MTVBASNTY",
+        "color": "Navy/Teal/Yellow"
+      }
+    ]
+  },
+  {
+    "brand": "Motiv",
+    "name": "Aspire",
+    "releaseDate": "2025-08-13",
+    "coverstockRaw": "Polyester",
+    "factoryFinish": "6000 Grit LSP",
+    "coreName": "Tyro",
+    "rg": 2.75,
+    "diff": 0.028,
+    "mbDiff": null,
+    "sourceUrls": [
+      "https://www.motivbowling.com/products/balls/spare/aspire-purple-silver-black.html"
+    ],
+    "weights": [
+      {
+        "weight": 15,
+        "rg": 2.75,
+        "diff": 0.028,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.75,
+        "diff": 0.024,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.78,
+        "diff": 0.03,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.81,
+        "diff": 0.025,
+        "mbDiff": null
+      },
+      {
+        "weight": 11,
+        "rg": 2.84,
+        "diff": 0.026,
+        "mbDiff": null
+      },
+      {
+        "weight": 10,
+        "rg": 2.87,
+        "diff": 0.026,
+        "mbDiff": null
+      },
+      {
+        "weight": 9,
+        "rg": 2.85,
+        "diff": 0.013,
+        "mbDiff": null
+      },
+      {
+        "weight": 8,
+        "rg": 2.89,
+        "diff": 0.013,
+        "mbDiff": null
+      }
+    ],
+    "colorways": [
+      {
+        "sku": "MTVBAEPBS",
+        "color": "Purple/Silver/Black"
+      },
+      {
+        "sku": "MTVBAEBSW",
+        "color": "Sky Blue/Silver/White"
+      },
+      {
+        "sku": "MTVBAEBRG",
+        "color": "Black/Red/Gold"
+      },
+      {
+        "sku": "MTVBAENBR",
+        "color": "Navy/Red/Blue"
+      }
+    ]
   }
 ]

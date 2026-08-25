@@ -8,6 +8,16 @@ merge to `main` (`docs/DEPLOYMENT.md`), so every section below is a dated batch
 of shipped work rather than a release. Thirty of them used to be headed
 `[Unreleased]`, which said nothing once they had all shipped.
 
+## Colourways fold into one ball (2026-08)
+
+### Added
+
+- **A ball sold in several colours is one ball again.** MOTIV file each
+  colourway as its own product page, so the Aspire staged four times over. The
+  pipeline now folds them before promote, and each colour keeps its own photo:
+  the catalog lists one Aspire and one Ascend, badged "4 colors", and their
+  detail pages swipe through the four (ADR-062).
+
 ## Twenty more MOTIV balls, newest first (2026-08)
 
 ### Added

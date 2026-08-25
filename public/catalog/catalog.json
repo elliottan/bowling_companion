@@ -5044,5 +5044,181 @@
         "mbDiff": null
       }
     ]
+  },
+  {
+    "id": "motiv-ascend-2025",
+    "brand": "Motiv",
+    "name": "Ascend",
+    "releaseDate": "2025-07-23",
+    "releaseYear": 2025,
+    "coverstockRaw": "Vitality Pearl Reactive",
+    "coverstockCategory": "Pearl",
+    "factoryFinish": "5500 Grit LSP",
+    "coreName": "Flux V2",
+    "coreType": "Symmetric",
+    "rg": 2.59,
+    "diff": 0.023,
+    "mbDiff": null,
+    "imageThumb": "/catalog/img/motiv-ascend-2025-thumb.webp",
+    "imageFull": "/catalog/img/motiv-ascend-2025-full.webp",
+    "sourceUrl": "https://www.motivbowling.com/products/balls/entry-level/ascend-red-black-tangerine.html",
+    "weights": [
+      {
+        "weight": 15,
+        "rg": 2.59,
+        "diff": 0.023,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.6,
+        "diff": 0.024,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.65,
+        "diff": 0.017,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.72,
+        "diff": 0.015,
+        "mbDiff": null
+      },
+      {
+        "weight": 11,
+        "rg": 2.76,
+        "diff": 0.015,
+        "mbDiff": null
+      },
+      {
+        "weight": 10,
+        "rg": 2.83,
+        "diff": 0.015,
+        "mbDiff": null
+      }
+    ],
+    "colorways": [
+      {
+        "sku": "MTVBASRBT",
+        "color": "Red/Black/Tangerine",
+        "imageThumb": "/catalog/img/motiv-ascend-2025--MTVBASRBT-thumb.webp",
+        "imageFull": "/catalog/img/motiv-ascend-2025--MTVBASRBT-full.webp"
+      },
+      {
+        "sku": "MTVBASBGT",
+        "color": "Green/Teal/Black",
+        "imageThumb": "/catalog/img/motiv-ascend-2025--MTVBASBGT-thumb.webp",
+        "imageFull": "/catalog/img/motiv-ascend-2025--MTVBASBGT-full.webp"
+      },
+      {
+        "sku": "MTVBASDPB",
+        "color": "Dark Purple/Purple/Blue",
+        "imageThumb": "/catalog/img/motiv-ascend-2025--MTVBASDPB-thumb.webp",
+        "imageFull": "/catalog/img/motiv-ascend-2025--MTVBASDPB-full.webp"
+      },
+      {
+        "sku": "MTVBASNTY",
+        "color": "Navy/Teal/Yellow",
+        "imageThumb": "/catalog/img/motiv-ascend-2025--MTVBASNTY-thumb.webp",
+        "imageFull": "/catalog/img/motiv-ascend-2025--MTVBASNTY-full.webp"
+      }
+    ]
+  },
+  {
+    "id": "motiv-aspire-2025",
+    "brand": "Motiv",
+    "name": "Aspire",
+    "releaseDate": "2025-08-13",
+    "releaseYear": 2025,
+    "coverstockRaw": "Polyester",
+    "coverstockCategory": "Polyester",
+    "factoryFinish": "6000 Grit LSP",
+    "coreName": "Tyro",
+    "coreType": "Symmetric",
+    "rg": 2.75,
+    "diff": 0.028,
+    "mbDiff": null,
+    "imageThumb": "/catalog/img/motiv-aspire-2025-thumb.webp",
+    "imageFull": "/catalog/img/motiv-aspire-2025-full.webp",
+    "sourceUrl": "https://www.motivbowling.com/products/balls/spare/aspire-purple-silver-black.html",
+    "weights": [
+      {
+        "weight": 15,
+        "rg": 2.75,
+        "diff": 0.028,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.75,
+        "diff": 0.024,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.78,
+        "diff": 0.03,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.81,
+        "diff": 0.025,
+        "mbDiff": null
+      },
+      {
+        "weight": 11,
+        "rg": 2.84,
+        "diff": 0.026,
+        "mbDiff": null
+      },
+      {
+        "weight": 10,
+        "rg": 2.87,
+        "diff": 0.026,
+        "mbDiff": null
+      },
+      {
+        "weight": 9,
+        "rg": 2.85,
+        "diff": 0.013,
+        "mbDiff": null
+      },
+      {
+        "weight": 8,
+        "rg": 2.89,
+        "diff": 0.013,
+        "mbDiff": null
+      }
+    ],
+    "colorways": [
+      {
+        "sku": "MTVBAEPBS",
+        "color": "Purple/Silver/Black",
+        "imageThumb": "/catalog/img/motiv-aspire-2025--MTVBAEPBS-thumb.webp",
+        "imageFull": "/catalog/img/motiv-aspire-2025--MTVBAEPBS-full.webp"
+      },
+      {
+        "sku": "MTVBAEBSW",
+        "color": "Sky Blue/Silver/White",
+        "imageThumb": "/catalog/img/motiv-aspire-2025--MTVBAEBSW-thumb.webp",
+        "imageFull": "/catalog/img/motiv-aspire-2025--MTVBAEBSW-full.webp"
+      },
+      {
+        "sku": "MTVBAEBRG",
+        "color": "Black/Red/Gold",
+        "imageThumb": "/catalog/img/motiv-aspire-2025--MTVBAEBRG-thumb.webp",
+        "imageFull": "/catalog/img/motiv-aspire-2025--MTVBAEBRG-full.webp"
+      },
+      {
+        "sku": "MTVBAENBR",
+        "color": "Navy/Red/Blue",
+        "imageThumb": "/catalog/img/motiv-aspire-2025--MTVBAENBR-thumb.webp",
+        "imageFull": "/catalog/img/motiv-aspire-2025--MTVBAENBR-full.webp"
+      }
+    ]
   }
 ]

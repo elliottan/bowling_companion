@@ -318,5 +318,45 @@
   "motiv-primal-rage-evolution-2024": {
     "imageThumb": "/catalog/img/motiv-primal-rage-evolution-2024-thumb.webp",
     "imageFull": "/catalog/img/motiv-primal-rage-evolution-2024-full.webp"
+  },
+  "motiv-aspire-2025--MTVBAEPBS": {
+    "imageThumb": "/catalog/img/motiv-aspire-2025--MTVBAEPBS-thumb.webp",
+    "imageFull": "/catalog/img/motiv-aspire-2025--MTVBAEPBS-full.webp"
+  },
+  "motiv-aspire-2025--MTVBAEBSW": {
+    "imageThumb": "/catalog/img/motiv-aspire-2025--MTVBAEBSW-thumb.webp",
+    "imageFull": "/catalog/img/motiv-aspire-2025--MTVBAEBSW-full.webp"
+  },
+  "motiv-aspire-2025--MTVBAEBRG": {
+    "imageThumb": "/catalog/img/motiv-aspire-2025--MTVBAEBRG-thumb.webp",
+    "imageFull": "/catalog/img/motiv-aspire-2025--MTVBAEBRG-full.webp"
+  },
+  "motiv-aspire-2025--MTVBAENBR": {
+    "imageThumb": "/catalog/img/motiv-aspire-2025--MTVBAENBR-thumb.webp",
+    "imageFull": "/catalog/img/motiv-aspire-2025--MTVBAENBR-full.webp"
+  },
+  "motiv-ascend-2025--MTVBASRBT": {
+    "imageThumb": "/catalog/img/motiv-ascend-2025--MTVBASRBT-thumb.webp",
+    "imageFull": "/catalog/img/motiv-ascend-2025--MTVBASRBT-full.webp"
+  },
+  "motiv-ascend-2025--MTVBASBGT": {
+    "imageThumb": "/catalog/img/motiv-ascend-2025--MTVBASBGT-thumb.webp",
+    "imageFull": "/catalog/img/motiv-ascend-2025--MTVBASBGT-full.webp"
+  },
+  "motiv-ascend-2025--MTVBASDPB": {
+    "imageThumb": "/catalog/img/motiv-ascend-2025--MTVBASDPB-thumb.webp",
+    "imageFull": "/catalog/img/motiv-ascend-2025--MTVBASDPB-full.webp"
+  },
+  "motiv-ascend-2025--MTVBASNTY": {
+    "imageThumb": "/catalog/img/motiv-ascend-2025--MTVBASNTY-thumb.webp",
+    "imageFull": "/catalog/img/motiv-ascend-2025--MTVBASNTY-full.webp"
+  },
+  "motiv-aspire-2025": {
+    "imageThumb": "/catalog/img/motiv-aspire-2025-thumb.webp",
+    "imageFull": "/catalog/img/motiv-aspire-2025-full.webp"
+  },
+  "motiv-ascend-2025": {
+    "imageThumb": "/catalog/img/motiv-ascend-2025-thumb.webp",
+    "imageFull": "/catalog/img/motiv-ascend-2025-full.webp"
   }
 }

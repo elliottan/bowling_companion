@@ -40,17 +40,20 @@ async function main(): Promise<void> {
   }
 
   const balls: RawBall[] = JSON.parse(readFileSync(BALLS_JSON, "utf-8"));
-  const ball = balls.find(
-    (b) =>
-      b.name.toLowerCase() === key.toLowerCase() ||
-      (b.colorways as Colorway[] | undefined)?.some((c) => c.sku.toLowerCase() === key.toLowerCase())
-  );
+  const bySku = (b: RawBall): Colorway | undefined =>
+    (b.colorways as Colorway[] | undefined)?.find((c) => c.sku.toLowerCase() === key.toLowerCase());
+  const ball = balls.find((b) => b.name.toLowerCase() === key.toLowerCase() || bySku(b));
   if (!ball) {
     console.error(`No ball in balls.json with name/SKU "${key}". Add the spec entry first.`);
     process.exit(1);
   }
 
-  const id = ballId(ball);
+  // Addressed by SKU, the image belongs to that colourway rather than to the
+  // ball: the Aspire's four pages are four different pictures of one ball, and
+  // the carousel shows the wrong one for three of them if they all land on the
+  // ball's own key. Addressed by name, it is the ball's image as before.
+  const colorway = bySku(ball);
+  const id = colorway ? `${ballId(ball)}--${colorway.sku}` : ballId(ball);
   const res = await fetch(url);
   if (!res.ok) {
     console.error(`Failed to download image: HTTP ${res.status}`);
@@ -67,7 +70,9 @@ async function main(): Promise<void> {
   images[id] = entry;
   writeFileSync(IMAGES_JSON, JSON.stringify(images, null, 2) + "\n");
 
-  console.log(`✓ ${ball.brand} ${ball.name} → ${id}`);
+  console.log(
+    `✓ ${ball.brand} ${ball.name}${colorway ? ` (${colorway.color ?? colorway.sku})` : ""} → ${id}`
+  );
   console.log(`  ${images[id].imageThumb}`);
   console.log(`  ${images[id].imageFull}`);
 }

@@ -2619,3 +2619,51 @@ of a person, which is where a source that contradicts itself belongs.
   to keep, but changing an existing row is a decision per ball, not a sweep.
 - `bowwwl` remains the route for every other brand, and for any MOTIV ball the
   sitemap does not list.
+
+## ADR-062: Colourways fold before promote, and only on proof
+
+**Status:** accepted (2026-08). Extends the MOTIV route in ADR-061.
+
+**Context.** MOTIV file every colourway of a ball as its own product page. The
+Aspire is four pages, identical in every spec, differing only in the colour
+printed on the ball and the picture of it. Parsed a page at a time, which is
+the only way a parser can work, that stages four balls. Promoted, the catalog
+gains four Aspires, and a bowler searching for one finds a wall of near
+duplicates. `colorways` already exists on `CatalogBall` for exactly this, and
+the detail view already carries a carousel for it.
+
+**Where it happens.** Not in the parser, which sees one page and cannot know
+another exists. Not in promote, which has no way to merge separate candidates
+into one row. So between them, in `pipeline/fold-colorways.ts`, operating on
+the staged seed a human is meant to review anyway.
+
+**What it will not do.** MOTIV's naming does not mark colourways reliably.
+Some append the colour behind a separator ("Aspire - Navy/Red/Blue"), some
+without one ("Ascent Pearl Pink/Purple"), and the same separator also carries
+edition labels that are part of the ball's name ("T10 - Limited Edition").
+Reading all of those shapes means guessing, and a wrong guess files two
+different balls as one ball's colourways, which nothing downstream would catch.
+
+So a group folds only on all three of: a base name shared before " - ", the one
+shape that is unambiguous; two or more pages carrying it, since one page is a
+name rather than a set; and identical specs, which is the actual evidence that
+one ball is being described twice.
+
+Release dates are excluded from that comparison. MOTIV shipped the Thrill's
+three colours on three dates and it is still one ball, so the folded ball takes
+the earliest, being when the ball itself arrived.
+
+**Consequences.**
+- Everything the rule does not cover is reported and left alone, which is the
+  point: the Thrill and Top Thrill are one ball each, but their pages disagree
+  on the core's name ("Flux" against "Flux Symmetic", "Halogen V2" against
+  "HalogenV2"). Those are MOTIV's typos, and per ADR-061 the parser does not
+  repair its source, so the fold refuses and a person decides.
+- **A colourway carries its own picture.** `add-ball-image` addressed by SKU
+  now writes `<id>--<sku>`, and the build attaches it to that colourway. Without
+  this the carousel shows the ball's one image four times over, which is worse
+  than not folding at all. A colourway with no picture of its own still falls
+  back to the ball's.
+- Folding changes the id, since the name loses its colour and the date becomes
+  the earliest. This is only safe before a ball is promoted; folding one already
+  in the catalog would strand any arsenal ball holding its `catalog_ref_id`.

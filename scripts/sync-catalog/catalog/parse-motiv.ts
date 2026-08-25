@@ -39,8 +39,16 @@ function seedPath(): string {
   return resolve(dir, "../../../", "scripts/sync-catalog/data/seed/motiv-seed.json");
 }
 
-/** A staged ball carries the image URL alongside the RawBall fields. */
-export type StagedBall = RawBall & { _imageUrl: string | null; _discontinued: boolean };
+/**
+ * A staged ball carries the image URL alongside the RawBall fields, and the
+ * item number, which is the SKU a colourway is identified by once several
+ * pages are folded into one ball.
+ */
+export type StagedBall = RawBall & {
+  _imageUrl: string | null;
+  _discontinued: boolean;
+  _sku: string | null;
+};
 
 function decode(s: string): string {
   return s
@@ -199,6 +207,7 @@ export function parsePage(html: string, url: string): StagedBall {
     sourceUrls: [url],
     weights: weights.length > 0 ? weights : undefined,
     _imageUrl: rel ? ORIGIN + rel.replace(/^\./, "") : null,
+    _sku: stripTags(html.match(/data-product-variant-item-number[^>]*>([^<]*)</)?.[1] ?? "") || null,
     // MOTIV files a ball it no longer makes under its own category rather than
     // labelling the page, so the path is the signal.
     _discontinued: url.includes("/retired-balls/"),
