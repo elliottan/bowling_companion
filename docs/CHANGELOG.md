@@ -20,6 +20,16 @@ of shipped work rather than a release. Thirty of them used to be headed
   the URL (`#/home/catalog/ball/<id>`), so back pops it and stops, and a link to
   a ball reopens it.
 
+## Fourteen MOTIV balls whose covers MOTIV explain (2026-08)
+
+### Added
+
+- **Fourteen more MOTIV balls**, the ones whose spec cell names a coverstock
+  without saying its type. MOTIV expand six of their acronyms in their own
+  copy, so HFS reads as a solid and HVH as a hybrid on their say-so rather than
+  on the shape of the letters (ADR-063). The Revolt and exclusive Jackal lines
+  arrive with them.
+
 ## Forty-seven undated MOTIV balls (2026-08)
 
 ### Added

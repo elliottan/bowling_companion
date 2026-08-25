@@ -642,5 +642,61 @@
   "motiv-venom-toxin": {
     "imageThumb": "/catalog/img/motiv-venom-toxin-thumb.webp",
     "imageFull": "/catalog/img/motiv-venom-toxin-full.webp"
+  },
+  "motiv-jackal-exj-2025": {
+    "imageThumb": "/catalog/img/motiv-jackal-exj-2025-thumb.webp",
+    "imageFull": "/catalog/img/motiv-jackal-exj-2025-full.webp"
+  },
+  "motiv-venom-recoil-2021": {
+    "imageThumb": "/catalog/img/motiv-venom-recoil-2021-thumb.webp",
+    "imageFull": "/catalog/img/motiv-venom-recoil-2021-full.webp"
+  },
+  "motiv-villain": {
+    "imageThumb": "/catalog/img/motiv-villain-thumb.webp",
+    "imageFull": "/catalog/img/motiv-villain-full.webp"
+  },
+  "motiv-ultimate-jackal": {
+    "imageThumb": "/catalog/img/motiv-ultimate-jackal-thumb.webp",
+    "imageFull": "/catalog/img/motiv-ultimate-jackal-full.webp"
+  },
+  "motiv-royal-revolt": {
+    "imageThumb": "/catalog/img/motiv-royal-revolt-thumb.webp",
+    "imageFull": "/catalog/img/motiv-royal-revolt-full.webp"
+  },
+  "motiv-rogue-assassin": {
+    "imageThumb": "/catalog/img/motiv-rogue-assassin-thumb.webp",
+    "imageFull": "/catalog/img/motiv-rogue-assassin-full.webp"
+  },
+  "motiv-revolt-havoc": {
+    "imageThumb": "/catalog/img/motiv-revolt-havoc-thumb.webp",
+    "imageFull": "/catalog/img/motiv-revolt-havoc-full.webp"
+  },
+  "motiv-jackal-scar": {
+    "imageThumb": "/catalog/img/motiv-jackal-scar-thumb.webp",
+    "imageFull": "/catalog/img/motiv-jackal-scar-full.webp"
+  },
+  "motiv-jackal-howl": {
+    "imageThumb": "/catalog/img/motiv-jackal-howl-thumb.webp",
+    "imageFull": "/catalog/img/motiv-jackal-howl-full.webp"
+  },
+  "motiv-jackal-chase": {
+    "imageThumb": "/catalog/img/motiv-jackal-chase-thumb.webp",
+    "imageFull": "/catalog/img/motiv-jackal-chase-full.webp"
+  },
+  "motiv-jackal-boss": {
+    "imageThumb": "/catalog/img/motiv-jackal-boss-thumb.webp",
+    "imageFull": "/catalog/img/motiv-jackal-boss-full.webp"
+  },
+  "motiv-hydra": {
+    "imageThumb": "/catalog/img/motiv-hydra-thumb.webp",
+    "imageFull": "/catalog/img/motiv-hydra-full.webp"
+  },
+  "motiv-covert-revolt": {
+    "imageThumb": "/catalog/img/motiv-covert-revolt-thumb.webp",
+    "imageFull": "/catalog/img/motiv-covert-revolt-full.webp"
+  },
+  "motiv-2020-revolt": {
+    "imageThumb": "/catalog/img/motiv-2020-revolt-thumb.webp",
+    "imageFull": "/catalog/img/motiv-2020-revolt-full.webp"
   }
 }

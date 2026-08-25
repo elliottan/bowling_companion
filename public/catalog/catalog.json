@@ -8566,5 +8566,657 @@
         "mbDiff": null
       }
     ]
+  },
+  {
+    "id": "motiv-2020-revolt",
+    "brand": "Motiv",
+    "name": "2020 Revolt",
+    "releaseDate": null,
+    "releaseYear": null,
+    "coverstockRaw": "Coercion HFS Solid Reactive",
+    "coverstockCategory": "Solid",
+    "factoryFinish": "3500 Grit LSS",
+    "coreName": "Vanquish",
+    "coreType": "Symmetric",
+    "rg": 2.47,
+    "diff": 0.056,
+    "mbDiff": null,
+    "imageThumb": "/catalog/img/motiv-2020-revolt-thumb.webp",
+    "imageFull": "/catalog/img/motiv-2020-revolt-full.webp",
+    "sourceUrl": "https://www.motivbowling.com/products/balls/exclusives/2020-revolt.html",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.46,
+        "diff": 0.057,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.47,
+        "diff": 0.056,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.5,
+        "diff": 0.056,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.56,
+        "diff": 0.044,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.63,
+        "diff": 0.03,
+        "mbDiff": null
+      }
+    ]
+  },
+  {
+    "id": "motiv-covert-revolt",
+    "brand": "Motiv",
+    "name": "Covert Revolt",
+    "releaseDate": null,
+    "releaseYear": null,
+    "coverstockRaw": "Turmoil HFS Solid",
+    "coverstockCategory": "Solid",
+    "factoryFinish": "4000 Grit Laser Scan Sanded",
+    "coreName": "Vanquish",
+    "coreType": "Symmetric",
+    "rg": 2.47,
+    "diff": 0.056,
+    "mbDiff": null,
+    "imageThumb": "/catalog/img/motiv-covert-revolt-thumb.webp",
+    "imageFull": "/catalog/img/motiv-covert-revolt-full.webp",
+    "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/covert-revolt.html",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.46,
+        "diff": 0.057,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.47,
+        "diff": 0.056,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.5,
+        "diff": 0.056,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.56,
+        "diff": 0.044,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.63,
+        "diff": 0.03,
+        "mbDiff": null
+      }
+    ]
+  },
+  {
+    "id": "motiv-hydra",
+    "brand": "Motiv",
+    "name": "Hydra",
+    "releaseDate": null,
+    "releaseYear": null,
+    "coverstockRaw": "Hexion LFP Pearl",
+    "coverstockCategory": "Pearl",
+    "factoryFinish": "5000 Grit LSP",
+    "coreName": "Halogen",
+    "coreType": "Symmetric",
+    "rg": 2.55,
+    "diff": 0.037,
+    "mbDiff": null,
+    "imageThumb": "/catalog/img/motiv-hydra-thumb.webp",
+    "imageFull": "/catalog/img/motiv-hydra-full.webp",
+    "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/hydra.html",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.54,
+        "diff": 0.036,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.55,
+        "diff": 0.037,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.56,
+        "diff": 0.038,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.59,
+        "diff": 0.038,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.64,
+        "diff": 0.031,
+        "mbDiff": null
+      }
+    ]
+  },
+  {
+    "id": "motiv-jackal-boss",
+    "brand": "Motiv",
+    "name": "Jackal Boss",
+    "releaseDate": null,
+    "releaseYear": null,
+    "coverstockRaw": "Coercion HVH Hybrid Reactive",
+    "coverstockCategory": "Hybrid",
+    "factoryFinish": "3000 Grit LSS",
+    "coreName": "Predator V2",
+    "coreType": "Asymmetric",
+    "rg": 2.47,
+    "diff": 0.054,
+    "mbDiff": 0.015,
+    "imageThumb": "/catalog/img/motiv-jackal-boss-thumb.webp",
+    "imageFull": "/catalog/img/motiv-jackal-boss-full.webp",
+    "sourceUrl": "https://www.motivbowling.com/products/balls/exclusives/jackal-boss.html",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.48,
+        "diff": 0.047,
+        "mbDiff": 0.013
+      },
+      {
+        "weight": 15,
+        "rg": 2.47,
+        "diff": 0.054,
+        "mbDiff": 0.015
+      },
+      {
+        "weight": 14,
+        "rg": 2.51,
+        "diff": 0.049,
+        "mbDiff": 0.014
+      }
+    ]
+  },
+  {
+    "id": "motiv-jackal-chase",
+    "brand": "Motiv",
+    "name": "Jackal Chase",
+    "releaseDate": null,
+    "releaseYear": null,
+    "coverstockRaw": "Coercion HVH Hybrid Reactive",
+    "coverstockCategory": "Hybrid",
+    "factoryFinish": "2000 Grit Laser Scan Sanded",
+    "coreName": "Predator V3",
+    "coreType": "Asymmetric",
+    "rg": 2.47,
+    "diff": 0.055,
+    "mbDiff": 0.019,
+    "imageThumb": "/catalog/img/motiv-jackal-chase-thumb.webp",
+    "imageFull": "/catalog/img/motiv-jackal-chase-full.webp",
+    "sourceUrl": "https://www.motivbowling.com/products/balls/exclusives/jackal-chase.html",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.47,
+        "diff": 0.053,
+        "mbDiff": 0.018
+      },
+      {
+        "weight": 15,
+        "rg": 2.47,
+        "diff": 0.055,
+        "mbDiff": 0.019
+      },
+      {
+        "weight": 14,
+        "rg": 2.5,
+        "diff": 0.052,
+        "mbDiff": 0.018
+      }
+    ]
+  },
+  {
+    "id": "motiv-jackal-exj-2025",
+    "brand": "Motiv",
+    "name": "Jackal EXJ",
+    "releaseDate": "2025-06-04",
+    "releaseYear": 2025,
+    "coverstockRaw": "Propulsion HVH Hybrid Reactive",
+    "coverstockCategory": "Hybrid",
+    "factoryFinish": "4000 Grit LSS",
+    "coreName": "Predator V2",
+    "coreType": "Asymmetric",
+    "rg": 2.47,
+    "diff": 0.054,
+    "mbDiff": 0.015,
+    "imageThumb": "/catalog/img/motiv-jackal-exj-2025-thumb.webp",
+    "imageFull": "/catalog/img/motiv-jackal-exj-2025-full.webp",
+    "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/jackal-exj.html",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.48,
+        "diff": 0.047,
+        "mbDiff": 0.013
+      },
+      {
+        "weight": 15,
+        "rg": 2.47,
+        "diff": 0.054,
+        "mbDiff": 0.015
+      },
+      {
+        "weight": 14,
+        "rg": 2.51,
+        "diff": 0.049,
+        "mbDiff": 0.014
+      },
+      {
+        "weight": 13,
+        "rg": 2.57,
+        "diff": 0.04,
+        "mbDiff": 0.011
+      },
+      {
+        "weight": 12,
+        "rg": 2.64,
+        "diff": 0.03,
+        "mbDiff": 0.01
+      }
+    ]
+  },
+  {
+    "id": "motiv-jackal-howl",
+    "brand": "Motiv",
+    "name": "Jackal Howl",
+    "releaseDate": null,
+    "releaseYear": null,
+    "coverstockRaw": "Coercion HFS Solid Reactive",
+    "coverstockCategory": "Solid",
+    "factoryFinish": "3000 Grit LSS",
+    "coreName": "Predator V2",
+    "coreType": "Asymmetric",
+    "rg": 2.47,
+    "diff": 0.054,
+    "mbDiff": 0.015,
+    "imageThumb": "/catalog/img/motiv-jackal-howl-thumb.webp",
+    "imageFull": "/catalog/img/motiv-jackal-howl-full.webp",
+    "sourceUrl": "https://www.motivbowling.com/products/balls/exclusives/jackal-howl.html",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.48,
+        "diff": 0.047,
+        "mbDiff": 0.013
+      },
+      {
+        "weight": 15,
+        "rg": 2.47,
+        "diff": 0.054,
+        "mbDiff": 0.015
+      },
+      {
+        "weight": 14,
+        "rg": 2.51,
+        "diff": 0.049,
+        "mbDiff": 0.014
+      },
+      {
+        "weight": 13,
+        "rg": 2.57,
+        "diff": 0.04,
+        "mbDiff": 0.011
+      },
+      {
+        "weight": 12,
+        "rg": 2.64,
+        "diff": 0.03,
+        "mbDiff": 0.01
+      }
+    ]
+  },
+  {
+    "id": "motiv-jackal-scar",
+    "brand": "Motiv",
+    "name": "Jackal Scar",
+    "releaseDate": null,
+    "releaseYear": null,
+    "coverstockRaw": "Coercion HVH Hybrid Reactive",
+    "coverstockCategory": "Hybrid",
+    "factoryFinish": "3000 Grit LSS",
+    "coreName": "Predator V2",
+    "coreType": "Asymmetric",
+    "rg": 2.47,
+    "diff": 0.054,
+    "mbDiff": 0.015,
+    "imageThumb": "/catalog/img/motiv-jackal-scar-thumb.webp",
+    "imageFull": "/catalog/img/motiv-jackal-scar-full.webp",
+    "sourceUrl": "https://www.motivbowling.com/products/balls/exclusives/jackal-scar.html",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.48,
+        "diff": 0.047,
+        "mbDiff": 0.013
+      },
+      {
+        "weight": 15,
+        "rg": 2.47,
+        "diff": 0.054,
+        "mbDiff": 0.015
+      },
+      {
+        "weight": 14,
+        "rg": 2.51,
+        "diff": 0.049,
+        "mbDiff": 0.014
+      }
+    ]
+  },
+  {
+    "id": "motiv-revolt-havoc",
+    "brand": "Motiv",
+    "name": "Revolt Havoc",
+    "releaseDate": null,
+    "releaseYear": null,
+    "coverstockRaw": "Helix HFS Solid Reactive",
+    "coverstockCategory": "Solid",
+    "factoryFinish": "3000 Grit LSS",
+    "coreName": "Vanquish",
+    "coreType": "Symmetric",
+    "rg": 2.47,
+    "diff": 0.056,
+    "mbDiff": null,
+    "imageThumb": "/catalog/img/motiv-revolt-havoc-thumb.webp",
+    "imageFull": "/catalog/img/motiv-revolt-havoc-full.webp",
+    "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/revolt-havoc.html",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.46,
+        "diff": 0.057,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.47,
+        "diff": 0.056,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.5,
+        "diff": 0.056,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.56,
+        "diff": 0.044,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.63,
+        "diff": 0.03,
+        "mbDiff": null
+      }
+    ]
+  },
+  {
+    "id": "motiv-rogue-assassin",
+    "brand": "Motiv",
+    "name": "Rogue Assassin",
+    "releaseDate": null,
+    "releaseYear": null,
+    "coverstockRaw": "Coercion HFS Solid Reactive",
+    "coverstockCategory": "Solid",
+    "factoryFinish": "3000 Grit LSS",
+    "coreName": "Sigma",
+    "coreType": "Symmetric",
+    "rg": 2.47,
+    "diff": 0.047,
+    "mbDiff": null,
+    "imageThumb": "/catalog/img/motiv-rogue-assassin-thumb.webp",
+    "imageFull": "/catalog/img/motiv-rogue-assassin-full.webp",
+    "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/rogue-assassin.html",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.48,
+        "diff": 0.041,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.47,
+        "diff": 0.047,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.5,
+        "diff": 0.044,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.56,
+        "diff": 0.034,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.63,
+        "diff": 0.024,
+        "mbDiff": null
+      }
+    ]
+  },
+  {
+    "id": "motiv-royal-revolt",
+    "brand": "Motiv",
+    "name": "Royal Revolt",
+    "releaseDate": null,
+    "releaseYear": null,
+    "coverstockRaw": "Coercion HFS Solid Reactive",
+    "coverstockCategory": "Solid",
+    "factoryFinish": "3000 Grit LSS",
+    "coreName": "Vanquish",
+    "coreType": "Symmetric",
+    "rg": 2.47,
+    "diff": 0.056,
+    "mbDiff": null,
+    "imageThumb": "/catalog/img/motiv-royal-revolt-thumb.webp",
+    "imageFull": "/catalog/img/motiv-royal-revolt-full.webp",
+    "sourceUrl": "https://www.motivbowling.com/products/balls/exclusives/royal-revolt.html",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.46,
+        "diff": 0.057,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.47,
+        "diff": 0.056,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.5,
+        "diff": 0.056,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.56,
+        "diff": 0.044,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.63,
+        "diff": 0.03,
+        "mbDiff": null
+      }
+    ]
+  },
+  {
+    "id": "motiv-ultimate-jackal",
+    "brand": "Motiv",
+    "name": "Ultimate Jackal",
+    "releaseDate": null,
+    "releaseYear": null,
+    "coverstockRaw": "Coercion HFS Solid Reactive",
+    "coverstockCategory": "Solid",
+    "factoryFinish": "3000 Grit LSS",
+    "coreName": "Predator V2",
+    "coreType": "Asymmetric",
+    "rg": 2.47,
+    "diff": 0.054,
+    "mbDiff": 0.015,
+    "imageThumb": "/catalog/img/motiv-ultimate-jackal-thumb.webp",
+    "imageFull": "/catalog/img/motiv-ultimate-jackal-full.webp",
+    "sourceUrl": "https://www.motivbowling.com/products/balls/exclusives/ultimate-jackal.html",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.48,
+        "diff": 0.047,
+        "mbDiff": 0.013
+      },
+      {
+        "weight": 15,
+        "rg": 2.47,
+        "diff": 0.054,
+        "mbDiff": 0.015
+      },
+      {
+        "weight": 14,
+        "rg": 2.51,
+        "diff": 0.049,
+        "mbDiff": 0.014
+      }
+    ]
+  },
+  {
+    "id": "motiv-venom-recoil-2021",
+    "brand": "Motiv",
+    "name": "Venom Recoil",
+    "releaseDate": "2021-10-28",
+    "releaseYear": 2021,
+    "coverstockRaw": "Coercion MFS Solid Reactive",
+    "coverstockCategory": "Solid",
+    "factoryFinish": "4000 Grit LSS",
+    "coreName": "Gear APG",
+    "coreType": "Asymmetric",
+    "rg": 2.47,
+    "diff": 0.036,
+    "mbDiff": 0.013,
+    "imageThumb": "/catalog/img/motiv-venom-recoil-2021-thumb.webp",
+    "imageFull": "/catalog/img/motiv-venom-recoil-2021-full.webp",
+    "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/venom-recoil.html",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.48,
+        "diff": 0.032,
+        "mbDiff": 0.011
+      },
+      {
+        "weight": 15,
+        "rg": 2.47,
+        "diff": 0.036,
+        "mbDiff": 0.013
+      },
+      {
+        "weight": 14,
+        "rg": 2.5,
+        "diff": 0.033,
+        "mbDiff": 0.012
+      },
+      {
+        "weight": 13,
+        "rg": 2.56,
+        "diff": 0.028,
+        "mbDiff": 0.009
+      },
+      {
+        "weight": 12,
+        "rg": 2.63,
+        "diff": 0.02,
+        "mbDiff": 0.007
+      }
+    ]
+  },
+  {
+    "id": "motiv-villain",
+    "brand": "Motiv",
+    "name": "Villain",
+    "releaseDate": null,
+    "releaseYear": null,
+    "coverstockRaw": "Coercion MFS Solid Reactive",
+    "coverstockCategory": "Solid",
+    "factoryFinish": "3000 Grit LSS",
+    "coreName": "Sinister",
+    "coreType": "Asymmetric",
+    "rg": 2.54,
+    "diff": 0.051,
+    "mbDiff": 0.018,
+    "imageThumb": "/catalog/img/motiv-villain-thumb.webp",
+    "imageFull": "/catalog/img/motiv-villain-full.webp",
+    "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/villain.html",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.53,
+        "diff": 0.05,
+        "mbDiff": 0.018
+      },
+      {
+        "weight": 15,
+        "rg": 2.54,
+        "diff": 0.051,
+        "mbDiff": 0.018
+      },
+      {
+        "weight": 14,
+        "rg": 2.55,
+        "diff": 0.052,
+        "mbDiff": 0.018
+      },
+      {
+        "weight": 13,
+        "rg": 2.58,
+        "diff": 0.052,
+        "mbDiff": 0.018
+      },
+      {
+        "weight": 12,
+        "rg": 2.64,
+        "diff": 0.036,
+        "mbDiff": 0.013
+      }
+    ]
   }
 ]

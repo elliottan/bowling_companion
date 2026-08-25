@@ -24,6 +24,7 @@ import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { MOTIV_USER_AGENT } from "../pipeline/sources.js";
+import { acronymCoverType } from "./motiv-cover-acronyms.js";
 import type { RawBall } from "../types.js";
 import type { WeightSpec } from "../../../src/types/catalog.js";
 
@@ -154,6 +155,23 @@ function statedCoverType(html: string): string | null {
   return word ? word[0].toUpperCase() + word.slice(1).toLowerCase() : null;
 }
 
+/**
+ * The cover as MOTIV write it, with the type put where their own current pages
+ * put it: before "Reactive" when the cell ends that way ("Turmoil HFP Pearl
+ * Reactive"), and on the end when it does not ("Turmoil HFS Solid").
+ *
+ * A trailing "Cover Stock" is dropped first. The cell is already labelled Cover
+ * Stock, so the value repeating it is a label rather than part of the name, the
+ * same reason the core sheds its "Symmetrical".
+ */
+function withCoverType(cover: string, type: string | null): string {
+  const name = cover.replace(/\s*cover\s*stock\s*$/i, "").trim();
+  if (!type) return name;
+  return /\breactive\s*$/i.test(name)
+    ? name.replace(/\s*reactive\s*$/i, ` ${type} Reactive`)
+    : `${name} ${type}`;
+}
+
 export function parsePage(html: string, url: string): StagedBall {
   // Anchored on the item number, which is the one thing both page layouts put
   // immediately before the name: a ball on sale wraps its heading in
@@ -182,23 +200,19 @@ export function parsePage(html: string, url: string): StagedBall {
   // itself leaves it out. A cover the build cannot classify is one the app
   // cannot filter, so the ball goes missing from the search that should find
   // it, and MOTIV state the type plainly enough elsewhere on the page.
+  // The page's own copy first, then MOTIV's expansion of the acronym in the
+  // cover's name. Both are MOTIV saying what the cover is; the page is
+  // preferred only because it is talking about this ball in particular.
   const cover = specCell(specs, "Cover Stock");
   const coverType = cover && !/solid|pearl|hybrid|urethane/i.test(cover)
-    ? statedCoverType(html)
+    ? statedCoverType(html) ?? acronymCoverType(cover)
     : null;
 
   return {
     brand: "Motiv",
     name,
     releaseDate: releaseDate(html),
-    // Written the way MOTIV's own current pages write it, name then type then
-    // "Reactive", so "Turmoil HFP Reactive" plus a stated pearl reads
-    // "Turmoil HFP Pearl Reactive".
-    coverstockRaw: cover
-      ? coverType
-        ? cover.replace(/\s*Reactive\s*$/i, ` ${coverType} Reactive`)
-        : cover
-      : "Unknown",
+    coverstockRaw: cover ? withCoverType(cover, coverType) : "Unknown",
     factoryFinish: specCell(specs, "Finish"),
     coreName: core ? core.replace(/\s+a?symmetric(al)?\s*$/i, "").trim() || null : null,
     rg: fifteen?.rg ?? null,

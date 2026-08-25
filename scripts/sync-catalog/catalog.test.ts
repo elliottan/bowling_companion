@@ -17,6 +17,7 @@ import {
 import { validateRaw } from "./validate.js";
 import { parsePage as parseMotiv, type StagedBall } from "./catalog/parse-motiv.js";
 import { foldColorways } from "./pipeline/fold-colorways.js";
+import { acronymCoverType, MOTIV_COVER_ACRONYMS } from "./catalog/motiv-cover-acronyms.js";
 import type { CatalogBall, CatalogManifest } from "../../src/types/catalog.js";
 
 // ---------------------------------------------------------------------------
@@ -325,13 +326,23 @@ describe("parse-motiv", () => {
   });
 
   it("takes the coverstock exactly as MOTIV states it", () => {
-    // A solid cover is filed as plain "Reactive" here. Adding the "Solid" that
-    // other databases infer would be inventing a word the source never used.
-    expect(parseMotiv(fixture("motiv-jackal-ghost-v2.html"), JG2_URL).coverstockRaw).toBe(
-      "Leverage HFS Reactive"
-    );
     expect(parseMotiv(fixture("motiv-nebula.html"), NEBULA_URL).coverstockRaw).toBe(
       "Dark Matter Propulsion Pearl Reactive"
+    );
+    // The cell says only "Reactive" and nothing on the page or in MOTIV's
+    // expansions says more, so nothing is added on the strength of a hunch.
+    const page =
+      '<span data-product-variant-item-number>X</span><h1>B</h1>' +
+      '<section class="product-specifications">' +
+      "<table><tr><th>Cover Stock</th><td>Coercion HV2 Reactive</td></tr></table></section>";
+    expect(parseMotiv(page, NEBULA_URL).coverstockRaw).toBe("Coercion HV2 Reactive");
+  });
+
+  it("names the type when MOTIV's own expansion of the acronym gives one", () => {
+    // The cell reads "Leverage HFS Reactive", and MOTIV expand HFS as "High
+    // Friction Solid" on the Covert Revolt's page.
+    expect(parseMotiv(fixture("motiv-jackal-ghost-v2.html"), JG2_URL).coverstockRaw).toBe(
+      "Leverage HFS Solid Reactive"
     );
   });
 
@@ -530,5 +541,62 @@ describe("foldColorways", () => {
     expect(balls).toHaveLength(1);
     expect(balls[0].colorways).toBeUndefined();
     expect(folded).toEqual([]);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// catalog/motiv-cover-acronyms.ts
+// ---------------------------------------------------------------------------
+describe("MOTIV cover acronyms", () => {
+  it("reads the type out of an acronym MOTIV have expanded", () => {
+    expect(acronymCoverType("Coercion HFS Reactive")).toBe("Solid");
+    expect(acronymCoverType("Coercion HVH Reactive")).toBe("Hybrid");
+    expect(acronymCoverType("Hexion LFP Cover Stock")).toBe("Pearl");
+  });
+
+  it("gives nothing for an acronym MOTIV have not expanded", () => {
+    // The letters of HFP and HV2 suggest an answer. The pattern is not the
+    // evidence, so until a MOTIV page spells one out it stays unclassified.
+    expect(acronymCoverType("Coercion HFP Reactive")).toBeNull();
+    expect(acronymCoverType("Coercion HV2 Reactive")).toBeNull();
+    expect(acronymCoverType("MOTIVator-Z")).toBeNull();
+  });
+
+  it("gives nothing for an expansion that names no category", () => {
+    // MCP is Microcell Polymer, which is a material of MOTIV's own and not
+    // one of the four types.
+    expect(acronymCoverType("Frixion M5 Microcell Polymer MCP")).toBeNull();
+  });
+
+  it("carries a quote containing its own expansion, for every entry", () => {
+    for (const [acronym, e] of Object.entries(MOTIV_COVER_ACRONYMS)) {
+      expect(e.quote).toContain(e.expansion);
+      expect(e.quote).toContain(acronym);
+      expect(e.sourceUrl).toMatch(/^https:\/\/www\.motivbowling\.com\//);
+    }
+  });
+
+  it("puts the type on the end when the cell does not say Reactive", () => {
+    const page = (cell: string) =>
+      '<span data-product-variant-item-number>X</span><h1>B</h1>' +
+      '<section class="product-specifications">' +
+      `<table><tr><th>Cover Stock</th><td>${cell}</td></tr></table></section>`;
+    const url = "https://www.motivbowling.com/products/balls/retired-balls/x.html";
+    expect(parseMotiv(page("Turmoil HFS"), url).coverstockRaw).toBe("Turmoil HFS Solid");
+    // "Cover Stock" in the value is the cell's own label repeated, so it goes.
+    expect(parseMotiv(page("Hexion LFP Cover Stock"), url).coverstockRaw).toBe(
+      "Hexion LFP Pearl"
+    );
+  });
+
+  it("folds the acronym's type into the coverstock when the cell omits it", () => {
+    const page =
+      '<span data-product-variant-item-number>X</span><h1>Trident Shield</h1>' +
+      '<section class="product-specifications">' +
+      "<table><tr><th>Cover Stock</th><td>Coercion HVH Reactive</td></tr></table></section>";
+    expect(
+      parseMotiv(page, "https://www.motivbowling.com/products/balls/exclusives/x.html")
+        .coverstockRaw
+    ).toBe("Coercion HVH Hybrid Reactive");
   });
 });

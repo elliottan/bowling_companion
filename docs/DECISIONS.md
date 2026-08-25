@@ -2667,3 +2667,46 @@ the earliest, being when the ball itself arrived.
 - Folding changes the id, since the name loses its colour and the date becomes
   the earliest. This is only safe before a ball is promoted; folding one already
   in the catalog would strand any arsenal ball holding its `catalog_ref_id`.
+
+
+## ADR-063: MOTIV's cover acronyms are read from their own expansions, not their letters
+
+**Status:** accepted (2026-08). Extends ADR-061.
+
+**Context.** MOTIV's spec cell often names a coverstock without saying what
+type it is: "Coercion HFS Reactive", "Hexion LFP Cover Stock". The build cannot
+classify those, and an unclassified cover is one the catalog cannot filter, so
+the ball goes missing from the search that should find it. Sixty-seven MOTIV
+balls sat outside the catalog for this reason alone.
+
+The acronyms plainly encode it. First letter the friction or volume, last the
+type: S solid, P pearl, H hybrid. Reading them that way would classify all
+sixty-seven in an afternoon.
+
+**Decision.** Do not read them that way. An acronym is used only where a MOTIV
+page spells it out in full, and the quote that does it is recorded beside the
+entry in `catalog/motiv-cover-acronyms.ts`. Six qualify: HFS, MFS, LFP, MFP,
+HVH and MCP. They were found by searching their own product pages for the
+pattern, not supplied from memory.
+
+**Why the pattern is not enough.** It is an inference about a naming scheme,
+and every ball it touches would carry the result as though it were fact. A
+coverstock category is not visibly wrong later: nothing downstream re-derives
+it, no test can catch it, and a bowler filtering for pearl would simply get the
+wrong list and never know. The same reasoning as ADR-061's refusal to repair a
+malformed number, applied to a gap rather than a typo. Where MOTIV have said
+it, it is theirs; where they have not, the letters are only a good guess, and a
+good guess recorded as a spec is indistinguishable from a bad one.
+
+**Consequences.**
+- Fourteen balls classify on this evidence and are now in the catalog. HFP,
+  HV2, HVS, XFS, SFP and the rest stay out until MOTIV expand them somewhere,
+  however strongly their letters suggest an answer.
+- MCP is recorded although it classifies nothing: "Microcell Polymer" is a
+  material of MOTIV's own rather than one of the four types. It is in the table
+  so the next reader finds the evidence instead of re-deriving the question.
+- The type is written where MOTIV's own current pages write it, before
+  "Reactive" when the cell ends that way and on the end when it does not. A
+  trailing "Cover Stock" is dropped as the cell's own label repeated.
+- This improved balls already parsed: the Jackal Ghost V2's "Leverage HFS
+  Reactive" is now correctly a solid.
