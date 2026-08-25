@@ -2466,3 +2466,53 @@ a 400-game one.
 - The per-night trend becomes worth drawing, since the value is comparable
   between nights. It is bars rather than a line: down is better here, and a
   falling line reads as a loss.
+
+---
+
+## ADR-059: The open-frame headline counts every open, and a leave is read per game
+
+**Status:** accepted (2026-08). Amends ADR-058, which shipped the same day.
+
+**Context.** ADR-058 narrowed open frames to makeable leaves, on the grounds
+that a split is a first ball you did not get rather than a spare you missed.
+That reasoning is right about the *list* and wrong about the *headline*. An
+open frame is an open frame on the scoresheet, and a bowler counting their own
+night counts all of them. Reporting 2.4 when the night had 3.8 makes the number
+disagree with anyone who counted, and quietly hides the nights that went wrong
+on the first ball.
+
+Two other things were wrong on that screen.
+
+A leave was reported as a raw count of misses. The 10 pin came top with 33,
+which mostly says the bowler is right-handed: they leave more 10 pins than
+anything else, so the leave that appears most often will also be missed most
+often. The count answers "what do I leave" when the screen is asking "what is
+going open".
+
+And the screen would not say what an open costs, having rejected pins left
+standing in ADR-058 and put nothing in its place.
+
+**Decision.**
+
+- **The headline is every open frame**, whatever left it open, with the three
+  kinds broken out beneath it: makeable, washouts, splits. They sum to the
+  headline, so the split is a decomposition rather than a filter, and a night
+  of splits reads as a first-ball night instead of a smaller number.
+- **The leave list stays makeable-only**, and says so in its heading ("Most
+  opens (makeables)"). It is a list of spares to go and work on.
+- **A leave is reported as opens a game.** Same ordering as the raw count, but
+  a number that means something on its own: "the 10 pin costs me 1.8 open
+  frames a game" is a sentence, "33" is not.
+- **Pins lost is opens a game times eleven.** A converted spare is worth ten
+  plus the next ball and an open is worth what was on the deck, so the true
+  figure moves with the leave and the ball after it. Eleven is the bowler's
+  rule of thumb and it is presented as one: the screen says "about", and the
+  note behind the headline says where the number comes from.
+
+**Consequences.**
+- Open frames a game no longer shares a population with spare %, which is
+  makeables only. The breakdown under it is what reconciles them: the makeable
+  row is the part spare % is about.
+- The rule of thumb is an estimate, and the only estimate on the screen. If it
+  is ever wanted exactly, that is a different number with a different name, and
+  it needs a game that was never bowled (ADR-055's original problem).

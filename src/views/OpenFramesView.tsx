@@ -40,16 +40,29 @@ export function OpenFramesView({ onBack }: { onBack: () => void }) {
             <button
               type="button"
               onClick={() => setNote((n) => !n)}
-              className="flex w-full items-baseline gap-2 rounded-lg border border-edge bg-surface p-4 text-left shadow-sm"
+              className="w-full rounded-lg border border-edge bg-surface p-4 text-left shadow-sm"
             >
-              <span className="text-4xl font-bold tabular-nums leading-none text-ink">
-                {report.openFramesPerGame}
+              <span className="flex items-baseline gap-2">
+                <span className="text-4xl font-bold tabular-nums leading-none text-ink">
+                  {report.openFramesPerGame}
+                </span>
+                <span className="text-sm font-semibold text-ink-secondary">
+                  open frames a game
+                </span>
+                <span className="ml-auto text-xs tabular-nums text-ink-tertiary">
+                  {report.games} {report.games === 1 ? "game" : "games"}
+                </span>
               </span>
-              <span className="text-sm font-semibold text-ink-secondary">
-                open frames a game
+              <span className="mt-1 block text-sm font-semibold text-danger-600">
+                about {report.pinsLostPerGame} pins a game
               </span>
-              <span className="ml-auto text-xs tabular-nums text-ink-tertiary">
-                {report.games} {report.games === 1 ? "game" : "games"}
+              {/* The three kinds under the number they add up to, rather than
+                  filtered out of it: a night of splits is a first-ball night,
+                  and hiding them would just shrink the headline. */}
+              <span className="mt-3 grid grid-cols-3 gap-1.5">
+                <Kind label="Makeable" value={report.makeable.perGame} strong />
+                <Kind label="Washouts" value={report.washout.perGame} />
+                <Kind label="Splits" value={report.split.perGame} />
               </span>
             </button>
 
@@ -59,26 +72,35 @@ export function OpenFramesView({ onBack }: { onBack: () => void }) {
                 onClick={() => setNote(false)}
                 className="mt-2 w-full rounded-lg border border-edge bg-surface-muted p-3 text-left text-xs text-ink-secondary"
               >
-                Makeable leaves only. A real split or a washout is a first ball you did not get,
-                not a spare you missed. Tap to dismiss.
+                An open frame gives up about 11 pins: a spare is worth ten plus your next ball,
+                so the exact figure depends on the leave and what you threw after it. Tap to
+                dismiss.
               </button>
             )}
 
             {report.trend.length > 1 && <OpenFrameTrend points={report.trend} />}
 
-            <h2 className={`${GROUP_HEADING} mb-2 mt-4`}>Most often open</h2>
+            <h2 className={`${GROUP_HEADING} mb-2 mt-4`}>Most opens (makeables)</h2>
             <ul className="divide-y divide-edge rounded-lg border border-edge bg-surface shadow-sm">
               {report.leaves.slice(0, 12).map((leave) => (
                 <li key={leave.pins.join("-")} className="flex items-center gap-3 px-3 py-2.5">
                   <MiniPins standing={leave.pins} size="sm" />
-                  <span className="min-w-0 flex-1 text-sm font-semibold tabular-nums text-ink">
-                    {leave.conversions} of {leave.chances} made
-                  </span>
-                  <span className="w-14 shrink-0 text-right">
-                    <span className="block text-sm font-bold tabular-nums text-ink">
-                      {leave.misses}
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-sm font-semibold tabular-nums text-ink">
+                      {leave.conversions} of {leave.chances} made
                     </span>
-                    <span className="block text-[10px] text-ink-tertiary">open</span>
+                    <span className="block text-xs tabular-nums text-ink-secondary">
+                      {leave.conversionPct}%
+                    </span>
+                  </span>
+                  {/* Per game, not a raw count: right-handers leave more 10
+                      pins than anything else, so the total says as much about
+                      the first ball as about the spare. */}
+                  <span className="w-16 shrink-0 text-right">
+                    <span className="block text-sm font-bold tabular-nums text-ink">
+                      {leave.perGame}
+                    </span>
+                    <span className="block text-[10px] text-ink-tertiary">open/gm</span>
                   </span>
                 </li>
               ))}
@@ -87,6 +109,30 @@ export function OpenFramesView({ onBack }: { onBack: () => void }) {
         )}
       </div>
     </PushScreen>
+  );
+}
+
+/** One of the three kinds of open, under the headline they add up to. */
+function Kind({
+  label,
+  value,
+  strong = false
+}: {
+  label: string;
+  value: number | null;
+  strong?: boolean;
+}) {
+  return (
+    <span className="block rounded-lg bg-surface-muted px-1 py-1.5 text-center">
+      <span
+        className={`block text-sm font-bold tabular-nums ${strong ? "text-ink" : "text-ink-secondary"}`}
+      >
+        {value ?? "-"}
+      </span>
+      <span className="block text-[10px] font-semibold uppercase tracking-wide text-ink-secondary">
+        {label}
+      </span>
+    </span>
   );
 }
 

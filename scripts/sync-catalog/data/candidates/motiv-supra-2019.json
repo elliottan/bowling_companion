@@ -1,0 +1,101 @@
+{
+  "brand": "Motiv",
+  "name": "Supra",
+  "official": false,
+  "releaseDate": [
+    {
+      "value": "2019-11-25",
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/motiv/supra",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "coverstockRaw": [
+    {
+      "value": "Infusion Pearl Reactive",
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/motiv/supra",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "factoryFinish": [
+    {
+      "value": "5500 LSP",
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/motiv/supra",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "coreName": [
+    {
+      "value": "High Impulse",
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/motiv/supra",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "rg": [
+    {
+      "value": 2.57,
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/motiv/supra",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "diff": [
+    {
+      "value": 0.05,
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/motiv/supra",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "mbDiff": [],
+  "weights": [
+    {
+      "value": [
+        {
+          "weight": 16,
+          "rg": 2.56,
+          "diff": 0.047,
+          "mbDiff": null
+        },
+        {
+          "weight": 15,
+          "rg": 2.57,
+          "diff": 0.05,
+          "mbDiff": null
+        },
+        {
+          "weight": 14,
+          "rg": 2.6,
+          "diff": 0.048,
+          "mbDiff": null
+        },
+        {
+          "weight": 13,
+          "rg": 2.62,
+          "diff": 0.045,
+          "mbDiff": null
+        },
+        {
+          "weight": 12,
+          "rg": 2.66,
+          "diff": 0.045,
+          "mbDiff": null
+        }
+      ],
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/motiv/supra",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "imageUrl": [
+    {
+      "value": "https://www.bowwwl.com/sites/default/files/balls/motiv-supra.png",
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/motiv/supra",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ]
+}

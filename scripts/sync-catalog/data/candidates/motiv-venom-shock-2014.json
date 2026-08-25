@@ -1,0 +1,101 @@
+{
+  "brand": "Motiv",
+  "name": "Venom Shock",
+  "official": false,
+  "releaseDate": [
+    {
+      "value": "2014-03-28",
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/motiv/venom-shock",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "coverstockRaw": [
+    {
+      "value": "Solid Reactive",
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/motiv/venom-shock",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "factoryFinish": [
+    {
+      "value": "4000 LSS",
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/motiv/venom-shock",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "coreName": [
+    {
+      "value": "Gear",
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/motiv/venom-shock",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "rg": [
+    {
+      "value": 2.48,
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/motiv/venom-shock",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "diff": [
+    {
+      "value": 0.034,
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/motiv/venom-shock",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "mbDiff": [],
+  "weights": [
+    {
+      "value": [
+        {
+          "weight": 16,
+          "rg": 2.48,
+          "diff": 0.031,
+          "mbDiff": null
+        },
+        {
+          "weight": 15,
+          "rg": 2.48,
+          "diff": 0.034,
+          "mbDiff": null
+        },
+        {
+          "weight": 14,
+          "rg": 2.52,
+          "diff": 0.029,
+          "mbDiff": null
+        },
+        {
+          "weight": 13,
+          "rg": 2.58,
+          "diff": 0.023,
+          "mbDiff": null
+        },
+        {
+          "weight": 12,
+          "rg": 2.65,
+          "diff": 0.016,
+          "mbDiff": null
+        }
+      ],
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/motiv/venom-shock",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "imageUrl": [
+    {
+      "value": "https://www.bowwwl.com/sites/default/files/balls/motiv-venom-shock-front-no-shock.png",
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/motiv/venom-shock",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ]
+}

@@ -1,0 +1,108 @@
+{
+  "brand": "Storm",
+  "name": "Code Green",
+  "official": false,
+  "releaseDate": [
+    {
+      "value": "2014-10-01",
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/storm/code-green",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "coverstockRaw": [
+    {
+      "value": "R2X Pearl Reactive",
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/storm/code-green",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "factoryFinish": [
+    {
+      "value": "1500 Polished",
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/storm/code-green",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "coreName": [
+    {
+      "value": "RAD4",
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/storm/code-green",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "rg": [
+    {
+      "value": 2.5,
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/storm/code-green",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "diff": [
+    {
+      "value": 0.058,
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/storm/code-green",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "mbDiff": [
+    {
+      "value": 0.02,
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/storm/code-green",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "weights": [
+    {
+      "value": [
+        {
+          "weight": 16,
+          "rg": 2.49,
+          "diff": 0.056,
+          "mbDiff": 0.022
+        },
+        {
+          "weight": 15,
+          "rg": 2.5,
+          "diff": 0.058,
+          "mbDiff": 0.02
+        },
+        {
+          "weight": 14,
+          "rg": 2.55,
+          "diff": 0.056,
+          "mbDiff": 0.014
+        },
+        {
+          "weight": 13,
+          "rg": 2.63,
+          "diff": 0.039,
+          "mbDiff": 0.011
+        },
+        {
+          "weight": 12,
+          "rg": 2.72,
+          "diff": 0.022,
+          "mbDiff": 0.006
+        }
+      ],
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/storm/code-green",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "imageUrl": [
+    {
+      "value": "https://www.bowwwl.com/sites/default/files/balls/storm-code-green.png",
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/storm/code-green",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ]
+}

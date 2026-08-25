@@ -52,6 +52,7 @@ describe("calculateStats", () => {
       sparePct: null,
       pocketPct: null,
       carryPct: null,
+      firstBallAverage: null,
       byAlley: []
     });
   });
@@ -723,32 +724,69 @@ describe("calculateOpenFrames", () => {
     const report = calculateOpenFrames([]);
     expect(report.games).toBe(0);
     expect(report.openFramesPerGame).toBeNull();
+    expect(report.pinsLostPerGame).toBeNull();
     expect(report.leaves).toEqual([]);
     expect(report.trend).toEqual([]);
   });
 
-  it("counts frames, not pins, so a big leave and a small one weigh the same", () => {
+  it("counts every open frame in the headline, splits included", () => {
     const sessions = [
-      session("Sea Bowl", [gameOpeningOn([10]), gameOpeningOn([2, 4, 5])])
+      session("Sea Bowl", [
+        gameOpeningOn([10]),
+        gameOpeningOn([7, 10]),
+        gameOpeningOn([1, 2, 10])
+      ])
     ];
     const report = calculateOpenFrames(sessions);
-    expect(report.openFrames).toBe(2);
-    expect(report.leaves.map((l) => l.misses)).toEqual([1, 1]);
+    expect(report.openFrames).toBe(3);
+    expect(report.openFramesPerGame).toBe(1);
   });
 
-  it("leaves real splits out: those are a first-ball problem", () => {
-    // The 7-10 is a split, so the frame it opened is not counted here.
+  it("breaks the same opens into makeable, washout and split", () => {
     const sessions = [
-      session("Sea Bowl", [gameOpeningOn([7, 10]), gameOpeningOn([10])])
+      session("Sea Bowl", [
+        gameOpeningOn([10]),
+        gameOpeningOn([7, 10]),
+        gameOpeningOn([1, 2, 10])
+      ])
     ];
     const report = calculateOpenFrames(sessions);
-    expect(report.openFrames).toBe(1);
-    expect(report.leaves.map((l) => l.pins)).toEqual([[10]]);
+    expect(report.makeable.openFrames).toBe(1);
+    expect(report.split.openFrames).toBe(1);
+    expect(report.washout.openFrames).toBe(1);
+    // The three account for every open, with nothing double counted.
+    expect(report.makeable.openFrames + report.split.openFrames + report.washout.openFrames).toBe(
+      report.openFrames
+    );
   });
 
-  it("leaves washouts out for the same reason", () => {
-    const sessions = [session("Sea Bowl", [gameOpeningOn([1, 2, 10])])];
-    expect(calculateOpenFrames(sessions).openFrames).toBe(0);
+  it("prices an open frame at the rule of thumb", () => {
+    const sessions = [session("Sea Bowl", [gameOpeningOn([10]), gameOpeningOn([10])])];
+    const report = calculateOpenFrames(sessions);
+    expect(report.openFramesPerGame).toBe(1);
+    expect(report.pinsLostPerGame).toBe(11);
+  });
+
+  it("keeps splits and washouts off the leave list", () => {
+    const sessions = [
+      session("Sea Bowl", [gameOpeningOn([7, 10]), gameOpeningOn([1, 2, 10]), gameOpeningOn([10])])
+    ];
+    expect(calculateOpenFrames(sessions).leaves.map((l) => l.pins)).toEqual([[10]]);
+  });
+
+  it("reports a leave as opens a game, not as a raw count", () => {
+    // Three 10 pins missed across four games.
+    const sessions = [
+      session("Sea Bowl", [
+        gameOpeningOn([10]),
+        gameOpeningOn([10]),
+        gameOpeningOn([10]),
+        gameOpeningOn([2, 4, 5])
+      ])
+    ];
+    const tenPin = calculateOpenFrames(sessions).leaves[0];
+    expect(tenPin).toMatchObject({ pins: [10], misses: 3 });
+    expect(tenPin.perGame).toBe(0.8);
   });
 
   it("keeps a converted leave off the list but in its rate", () => {
@@ -776,20 +814,6 @@ describe("calculateOpenFrames", () => {
     expect(calculateOpenFrames([session("Sea Bowl", [g])]).leaves).toEqual([]);
   });
 
-  it("ranks by how often a leave goes open", () => {
-    const sessions = [
-      session("Sea Bowl", [
-        gameOpeningOn([10]),
-        gameOpeningOn([10]),
-        gameOpeningOn([10]),
-        gameOpeningOn([2, 4, 5])
-      ])
-    ];
-    const report = calculateOpenFrames(sessions);
-    expect(report.leaves[0]).toMatchObject({ pins: [10], misses: 3 });
-    expect(report.leaves[1]).toMatchObject({ pins: [2, 4, 5], misses: 1 });
-  });
-
   it("ignores a game still being bowled", () => {
     const inProgress = game(undefined, [frame(1, [10], [10])]);
     const report = calculateOpenFrames([session("Sea Bowl", [inProgress])]);
@@ -798,16 +822,7 @@ describe("calculateOpenFrames", () => {
     expect(report.trend).toEqual([]);
   });
 
-  it("divides by completed games, to one decimal", () => {
-    const sessions = [
-      session("Sea Bowl", [gameOpeningOn([10]), gameOpeningOn([7]), gameOpeningOn([10])])
-    ];
-    const report = calculateOpenFrames(sessions);
-    expect(report.games).toBe(3);
-    expect(report.openFramesPerGame).toBe(1);
-  });
-
-  it("plots one trend point per night, oldest first", () => {
+  it("plots every open per night, oldest first", () => {
     const clean = game(200, [
       ...Array.from({ length: 9 }, (_, i) => frame(i + 1, NONE)),
       frame(10, [10], NONE, NONE)
@@ -819,13 +834,49 @@ describe("calculateOpenFrames", () => {
       },
       {
         session: { id: 1, date: "2026-06-07", alley_name: "Sea Bowl" },
-        games: [gameOpeningOn([10]), gameOpeningOn([10])]
+        games: [gameOpeningOn([10]), gameOpeningOn([7, 10])]
       }
     ];
     const { trend } = calculateOpenFrames(sessions);
     expect(trend.map((t) => t.date)).toEqual(["2026-06-07", "2026-06-14"]);
+    // The split counts on the line even though it is not on the leave list.
     expect(trend[0]).toMatchObject({ games: 2, openFrames: 2, perGame: 1 });
     expect(trend[1]).toMatchObject({ games: 1, openFrames: 0, perGame: 0 });
+  });
+});
+
+describe("first ball average", () => {
+  it("is null with nothing thrown", () => {
+    expect(calculateStats([]).firstBallAverage).toBeNull();
+  });
+
+  it("is ten for a perfect game", () => {
+    const frames = [
+      ...Array.from({ length: 9 }, (_, i) => frame(i + 1, NONE)),
+      frame(10, NONE, NONE, NONE)
+    ];
+    expect(calculateStats([session("Sea Bowl", [game(300, frames)])]).firstBallAverage).toBe(10);
+  });
+
+  it("averages the pins each fresh-rack ball knocked down", () => {
+    // Nine first balls leaving one pin, and a 10th of 9 then a miss.
+    const frames = [
+      ...Array.from({ length: 9 }, (_, i) => frame(i + 1, [10], NONE)),
+      frame(10, [10], [10])
+    ];
+    // Ten fresh-rack balls, every one of them a 9.
+    expect(calculateStats([session("Sea Bowl", [game(150, frames)])]).firstBallAverage).toBe(9);
+  });
+
+  it("counts the 10th frame's bonus balls, like strike and pocket do", () => {
+    const frames = [
+      ...Array.from({ length: 9 }, (_, i) => frame(i + 1, NONE)),
+      // Strike, strike, then a 4: three fresh-rack balls of 10, 10 and 4.
+      frame(10, NONE, NONE, [1, 2, 3, 4, 5, 6])
+    ];
+    const stats = calculateStats([session("Sea Bowl", [game(280, frames)])]);
+    // Eleven balls: nine tens, one ten, one four.
+    expect(stats.firstBallAverage).toBe(9.5);
   });
 });
 

@@ -34,6 +34,8 @@ const STRIKE_NOTE =
   "Strike: balls thrown at a full rack that struck. It is pocket multiplied by carry, so it drops when either does.";
 const SPARE_NOTE =
   "Spare: makeable leaves converted. Washouts and real splits are left out.";
+const FIRST_BALL_NOTE =
+  "First ball: pins knocked down by the average ball at a full rack. Same balls as strike and pocket, so the three describe one shot.";
 const LEAVE_NOTE =
   "Made over chances, then the rate. A leave off the last ball of the 10th has no spare to make, so it stays off this card entirely. It still counts under the ball that left it.";
 
@@ -136,13 +138,18 @@ export function Stats({
         />
       </div>
 
-      <div className="grid grid-cols-2 gap-1.5">
+      <div className="grid grid-cols-3 gap-1.5">
         <Tile
           label="Pocket"
           value={pct(stats.pocketPct)}
           onClick={() => toggleNote(POCKET_NOTE)}
         />
         <Tile label="Carry" value={pct(stats.carryPct)} onClick={() => toggleNote(CARRY_NOTE)} />
+        <Tile
+          label="1st ball"
+          value={fmt(stats.firstBallAverage)}
+          onClick={() => toggleNote(FIRST_BALL_NOTE)}
+        />
       </div>
 
       {games && games.length > 0 && (

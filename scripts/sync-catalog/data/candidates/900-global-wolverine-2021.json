@@ -1,0 +1,101 @@
+{
+  "brand": "900 Global",
+  "name": "Wolverine",
+  "official": false,
+  "releaseDate": [
+    {
+      "value": "2021-12-10",
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/900-global/wolverine",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "coverstockRaw": [
+    {
+      "value": "S70 Pearl Reactive",
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/900-global/wolverine",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "factoryFinish": [
+    {
+      "value": "4000 Abralon",
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/900-global/wolverine",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "coreName": [
+    {
+      "value": "Lacerate 2.0",
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/900-global/wolverine",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "rg": [
+    {
+      "value": 2.54,
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/900-global/wolverine",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "diff": [
+    {
+      "value": 0.053,
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/900-global/wolverine",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "mbDiff": [],
+  "weights": [
+    {
+      "value": [
+        {
+          "weight": 16,
+          "rg": 2.53,
+          "diff": 0.051,
+          "mbDiff": null
+        },
+        {
+          "weight": 15,
+          "rg": 2.54,
+          "diff": 0.053,
+          "mbDiff": null
+        },
+        {
+          "weight": 14,
+          "rg": 2.54,
+          "diff": 0.052,
+          "mbDiff": null
+        },
+        {
+          "weight": 13,
+          "rg": 2.59,
+          "diff": 0.045,
+          "mbDiff": null
+        },
+        {
+          "weight": 12,
+          "rg": 2.65,
+          "diff": 0.035,
+          "mbDiff": null
+        }
+      ],
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/900-global/wolverine",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "imageUrl": [
+    {
+      "value": "https://www.bowwwl.com/sites/default/files/balls/900-global-wolverine_0.png",
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/900-global/wolverine",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ]
+}

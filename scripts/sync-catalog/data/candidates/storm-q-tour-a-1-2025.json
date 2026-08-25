@@ -1,0 +1,101 @@
+{
+  "brand": "Storm",
+  "name": "!Q Tour A.I.",
+  "official": false,
+  "releaseDate": [
+    {
+      "value": "2025-03-21",
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/storm/iq-tour-ai",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "coverstockRaw": [
+    {
+      "value": "R2S Hybrid Reactive",
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/storm/iq-tour-ai",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "factoryFinish": [
+    {
+      "value": "Power Edge",
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/storm/iq-tour-ai",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "coreName": [
+    {
+      "value": "C3 A.I.",
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/storm/iq-tour-ai",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "rg": [
+    {
+      "value": 2.48,
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/storm/iq-tour-ai",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "diff": [
+    {
+      "value": 0.031,
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/storm/iq-tour-ai",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "mbDiff": [],
+  "weights": [
+    {
+      "value": [
+        {
+          "weight": 16,
+          "rg": 2.48,
+          "diff": 0.037,
+          "mbDiff": null
+        },
+        {
+          "weight": 15,
+          "rg": 2.48,
+          "diff": 0.031,
+          "mbDiff": null
+        },
+        {
+          "weight": 14,
+          "rg": 2.53,
+          "diff": 0.036,
+          "mbDiff": null
+        },
+        {
+          "weight": 13,
+          "rg": 2.58,
+          "diff": 0.047,
+          "mbDiff": null
+        },
+        {
+          "weight": 12,
+          "rg": 2.64,
+          "diff": 0.037,
+          "mbDiff": null
+        }
+      ],
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/storm/iq-tour-ai",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "imageUrl": [
+    {
+      "value": "https://www.bowwwl.com/sites/default/files/balls/storm-iq-tour-ai.png",
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/storm/iq-tour-ai",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ]
+}

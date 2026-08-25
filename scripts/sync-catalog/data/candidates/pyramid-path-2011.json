@@ -1,0 +1,101 @@
+{
+  "brand": "Pyramid",
+  "name": "Path",
+  "official": false,
+  "releaseDate": [
+    {
+      "value": "2011-08-04",
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/pyramid/path-various-colors",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "coverstockRaw": [
+    {
+      "value": "Plastic Polyester",
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/pyramid/path-various-colors",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "factoryFinish": [
+    {
+      "value": "Polished",
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/pyramid/path-various-colors",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "coreName": [
+    {
+      "value": "Pancake",
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/pyramid/path-various-colors",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "rg": [
+    {
+      "value": 2.68,
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/pyramid/path-various-colors",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "diff": [
+    {
+      "value": 0.006,
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/pyramid/path-various-colors",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "mbDiff": [],
+  "weights": [
+    {
+      "value": [
+        {
+          "weight": 16,
+          "rg": 2.68,
+          "diff": 0.006,
+          "mbDiff": null
+        },
+        {
+          "weight": 15,
+          "rg": 2.68,
+          "diff": 0.006,
+          "mbDiff": null
+        },
+        {
+          "weight": 14,
+          "rg": 2.69,
+          "diff": 0.006,
+          "mbDiff": null
+        },
+        {
+          "weight": 13,
+          "rg": null,
+          "diff": null,
+          "mbDiff": null
+        },
+        {
+          "weight": 12,
+          "rg": null,
+          "diff": null,
+          "mbDiff": null
+        }
+      ],
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/pyramid/path-various-colors",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "imageUrl": [
+    {
+      "value": "https://www.bowwwl.com/sites/default/files/balls/pyramid-path-hot-pink-lime-green.png",
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/pyramid/path-various-colors",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ]
+}

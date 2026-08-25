@@ -1,0 +1,108 @@
+{
+  "brand": "Roto Grip",
+  "name": "Gem",
+  "official": false,
+  "releaseDate": [
+    {
+      "value": "2022-03-11",
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/roto-grip/gem",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "coverstockRaw": [
+    {
+      "value": "MicroTrax Solid Particle Reactive",
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/roto-grip/gem",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "factoryFinish": [
+    {
+      "value": "2000 Abralon",
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/roto-grip/gem",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "coreName": [
+    {
+      "value": "Defiant LRG",
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/roto-grip/gem",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "rg": [
+    {
+      "value": 2.47,
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/roto-grip/gem",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "diff": [
+    {
+      "value": 0.053,
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/roto-grip/gem",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "mbDiff": [
+    {
+      "value": 0.016,
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/roto-grip/gem",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "weights": [
+    {
+      "value": [
+        {
+          "weight": 16,
+          "rg": 2.47,
+          "diff": 0.051,
+          "mbDiff": 0.016
+        },
+        {
+          "weight": 15,
+          "rg": 2.47,
+          "diff": 0.053,
+          "mbDiff": 0.016
+        },
+        {
+          "weight": 14,
+          "rg": 2.5,
+          "diff": 0.052,
+          "mbDiff": 0.015
+        },
+        {
+          "weight": 13,
+          "rg": 2.57,
+          "diff": 0.032,
+          "mbDiff": 0.01
+        },
+        {
+          "weight": 12,
+          "rg": 2.59,
+          "diff": 0.029,
+          "mbDiff": 0.008
+        }
+      ],
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/roto-grip/gem",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "imageUrl": [
+    {
+      "value": "https://www.bowwwl.com/sites/default/files/balls/roto-grip-gem_0_0.png",
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/roto-grip/gem",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ]
+}

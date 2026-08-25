@@ -1,0 +1,108 @@
+{
+  "brand": "Roto Grip",
+  "name": "Attention",
+  "official": false,
+  "releaseDate": [
+    {
+      "value": "2020-06-09",
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/roto-grip/attention",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "coverstockRaw": [
+    {
+      "value": "Hyper Response Hybrid Reactive",
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/roto-grip/attention",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "factoryFinish": [
+    {
+      "value": "1500 Abralon",
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/roto-grip/attention",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "coreName": [
+    {
+      "value": "Momentous",
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/roto-grip/attention",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "rg": [
+    {
+      "value": 2.5,
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/roto-grip/attention",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "diff": [
+    {
+      "value": 0.053,
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/roto-grip/attention",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "mbDiff": [
+    {
+      "value": 0.011,
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/roto-grip/attention",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "weights": [
+    {
+      "value": [
+        {
+          "weight": 16,
+          "rg": 2.49,
+          "diff": 0.048,
+          "mbDiff": 0.01
+        },
+        {
+          "weight": 15,
+          "rg": 2.5,
+          "diff": 0.053,
+          "mbDiff": 0.011
+        },
+        {
+          "weight": 14,
+          "rg": 2.54,
+          "diff": 0.05,
+          "mbDiff": 0.009
+        },
+        {
+          "weight": 13,
+          "rg": 2.57,
+          "diff": 0.032,
+          "mbDiff": 0.01
+        },
+        {
+          "weight": 12,
+          "rg": 2.59,
+          "diff": 0.029,
+          "mbDiff": 0.008
+        }
+      ],
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/roto-grip/attention",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "imageUrl": [
+    {
+      "value": "https://www.bowwwl.com/sites/default/files/balls/roto-grip-attention.png",
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/roto-grip/attention",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ]
+}

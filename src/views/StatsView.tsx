@@ -42,6 +42,7 @@ const EMPTY: BowlingStats = {
   sparePct: null,
   pocketPct: null,
   carryPct: null,
+  firstBallAverage: null,
   byAlley: []
 };
 

@@ -1,0 +1,101 @@
+{
+  "brand": "Storm",
+  "name": "Tropical Surge (Pearl, Various Colors)",
+  "official": false,
+  "releaseDate": [
+    {
+      "value": "2019-05-03",
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/storm/tropical-surge",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "coverstockRaw": [
+    {
+      "value": "Reactor Pearl Reactive",
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/storm/tropical-surge",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "factoryFinish": [
+    {
+      "value": "1500 Polished",
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/storm/tropical-surge",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "coreName": [
+    {
+      "value": "Surge",
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/storm/tropical-surge",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "rg": [
+    {
+      "value": 2.58,
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/storm/tropical-surge",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "diff": [
+    {
+      "value": 0.024,
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/storm/tropical-surge",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "mbDiff": [],
+  "weights": [
+    {
+      "value": [
+        {
+          "weight": 16,
+          "rg": 2.57,
+          "diff": 0.025,
+          "mbDiff": null
+        },
+        {
+          "weight": 15,
+          "rg": 2.58,
+          "diff": 0.024,
+          "mbDiff": null
+        },
+        {
+          "weight": 14,
+          "rg": 2.6,
+          "diff": 0.025,
+          "mbDiff": null
+        },
+        {
+          "weight": 13,
+          "rg": 2.62,
+          "diff": 0.021,
+          "mbDiff": null
+        },
+        {
+          "weight": 12,
+          "rg": 2.64,
+          "diff": 0.02,
+          "mbDiff": null
+        }
+      ],
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/storm/tropical-surge",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "imageUrl": [
+    {
+      "value": "https://www.bowwwl.com/sites/default/files/balls/storm-tropical-surge-midnight.png",
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/storm/tropical-surge",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ]
+}

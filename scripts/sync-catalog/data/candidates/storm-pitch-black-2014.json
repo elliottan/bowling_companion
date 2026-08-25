@@ -1,0 +1,101 @@
+{
+  "brand": "Storm",
+  "name": "Pitch Black",
+  "official": false,
+  "releaseDate": [
+    {
+      "value": "2014-05-27",
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/storm/pitch-black",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "coverstockRaw": [
+    {
+      "value": "Controll Solid Urethane",
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/storm/pitch-black",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "factoryFinish": [
+    {
+      "value": "1000 Abralon",
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/storm/pitch-black",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "coreName": [
+    {
+      "value": "Capacitor",
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/storm/pitch-black",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "rg": [
+    {
+      "value": 2.57,
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/storm/pitch-black",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "diff": [
+    {
+      "value": 0.022,
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/storm/pitch-black",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "mbDiff": [],
+  "weights": [
+    {
+      "value": [
+        {
+          "weight": 16,
+          "rg": 2.56,
+          "diff": 0.023,
+          "mbDiff": null
+        },
+        {
+          "weight": 15,
+          "rg": 2.57,
+          "diff": 0.022,
+          "mbDiff": null
+        },
+        {
+          "weight": 14,
+          "rg": 2.59,
+          "diff": 0.022,
+          "mbDiff": null
+        },
+        {
+          "weight": 13,
+          "rg": 2.61,
+          "diff": 0.021,
+          "mbDiff": null
+        },
+        {
+          "weight": 12,
+          "rg": 2.63,
+          "diff": 0.021,
+          "mbDiff": null
+        }
+      ],
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/storm/pitch-black",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "imageUrl": [
+    {
+      "value": "https://www.bowwwl.com/sites/default/files/balls/storm-pitch-black.png",
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/storm/pitch-black",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ]
+}

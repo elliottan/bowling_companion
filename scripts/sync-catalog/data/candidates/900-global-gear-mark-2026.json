@@ -1,0 +1,108 @@
+{
+  "brand": "900 Global",
+  "name": "Gear Mark",
+  "official": false,
+  "releaseDate": [
+    {
+      "value": "2026-04-30",
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/900-global/gear-mark",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "coverstockRaw": [
+    {
+      "value": "Reserve Blend 93 Pearl Reactive",
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/900-global/gear-mark",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "factoryFinish": [
+    {
+      "value": "Power Edge",
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/900-global/gear-mark",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "coreName": [
+    {
+      "value": "Identity A.I.",
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/900-global/gear-mark",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "rg": [
+    {
+      "value": 2.47,
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/900-global/gear-mark",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "diff": [
+    {
+      "value": 0.056,
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/900-global/gear-mark",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "mbDiff": [
+    {
+      "value": 0.025,
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/900-global/gear-mark",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "weights": [
+    {
+      "value": [
+        {
+          "weight": 16,
+          "rg": 2.47,
+          "diff": 0.056,
+          "mbDiff": 0.022
+        },
+        {
+          "weight": 15,
+          "rg": 2.47,
+          "diff": 0.056,
+          "mbDiff": 0.025
+        },
+        {
+          "weight": 14,
+          "rg": 2.51,
+          "diff": 0.056,
+          "mbDiff": 0.021
+        },
+        {
+          "weight": 13,
+          "rg": 2.56,
+          "diff": 0.034,
+          "mbDiff": 0.011
+        },
+        {
+          "weight": 12,
+          "rg": 2.58,
+          "diff": 0.031,
+          "mbDiff": 0.009
+        }
+      ],
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/900-global/gear-mark",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "imageUrl": [
+    {
+      "value": "https://www.bowwwl.com/sites/default/files/balls/900-global-gear-mark.png",
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/900-global/gear-mark",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ]
+}

@@ -16,6 +16,7 @@ const STATS: BowlingStats = {
   sparePct: 80,
   pocketPct: 90,
   carryPct: 67,
+  firstBallAverage: 8.4,
   byAlley: []
 };
 
@@ -257,5 +258,14 @@ describe("what stays open", () => {
     // A session sheet has its own idea of what is expanded.
     render(<Stats stats={STATS} ballPerformance={REPORT} memoryKey="session" />);
     expect(screen.queryByText("Game")).toBeNull();
+  });
+});
+
+describe("first ball average", () => {
+  it("sits with pocket and carry, and explains itself when tapped", () => {
+    render(<Stats stats={STATS} leaves={[]} />);
+    expect(screen.getByText("8.4")).toBeInTheDocument();
+    fireEvent.click(screen.getByText("1st ball"));
+    expect(screen.getByText(/pins knocked down by the average ball/i)).toBeInTheDocument();
   });
 });

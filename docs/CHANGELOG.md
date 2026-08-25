@@ -19,10 +19,14 @@ of shipped work rather than a release. Thirty of them used to be headed
 - **Filter by game number.** A row of chips for the position in the night, so
   every number on the screen can be read for your third game alone. It travels
   between the two tabs like the location and pattern filters do.
-- **Open frames**, from the Stats tab: how often frames go open, per game and
-  per leave, most often first, with a bar per night so you can see it moving.
-  Makeable leaves only: a real split is a first ball you did not get rather
-  than a spare you missed (ADR-055, ADR-058).
+- **Open frames**, from the Stats tab: how often frames go open and roughly
+  what that costs, with makeables, washouts and splits broken out under the
+  headline and a bar per night so you can see it moving. The leave list is
+  makeables only, and reports opens a game rather than a raw count, since a
+  right-hander leaves more 10 pins than anything else and the total says as
+  much about the first ball as about the spare (ADR-055, ADR-058, ADR-059).
+- **First ball average** on the Stats tiles: pins knocked down by the average
+  ball at a full rack, off the same balls as strike and pocket.
 - **Game by game**, from the Stats tab: every first game against every second
   game, with average, strike and spare on one column set and pocket and carry
   on the other. Slots with fewer than three games are greyed rather than

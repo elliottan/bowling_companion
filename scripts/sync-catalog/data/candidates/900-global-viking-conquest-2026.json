@@ -1,0 +1,108 @@
+{
+  "brand": "900 Global",
+  "name": "Viking Conquest",
+  "official": false,
+  "releaseDate": [
+    {
+      "value": "2026-06-29",
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/900-global/viking-conquest",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "coverstockRaw": [
+    {
+      "value": "Reserve Blend 94 Solid Reactive",
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/900-global/viking-conquest",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "factoryFinish": [
+    {
+      "value": "2000 Abralon",
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/900-global/viking-conquest",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "coreName": [
+    {
+      "value": "Strobe A.I.",
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/900-global/viking-conquest",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "rg": [
+    {
+      "value": 2.51,
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/900-global/viking-conquest",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "diff": [
+    {
+      "value": 0.052,
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/900-global/viking-conquest",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "mbDiff": [
+    {
+      "value": 0.016,
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/900-global/viking-conquest",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "weights": [
+    {
+      "value": [
+        {
+          "weight": 16,
+          "rg": 2.5,
+          "diff": 0.05,
+          "mbDiff": 0.014
+        },
+        {
+          "weight": 15,
+          "rg": 2.51,
+          "diff": 0.052,
+          "mbDiff": 0.016
+        },
+        {
+          "weight": 14,
+          "rg": 2.52,
+          "diff": 0.051,
+          "mbDiff": 0.014
+        },
+        {
+          "weight": 13,
+          "rg": 2.56,
+          "diff": 0.034,
+          "mbDiff": 0.011
+        },
+        {
+          "weight": 12,
+          "rg": 2.58,
+          "diff": 0.031,
+          "mbDiff": 0.009
+        }
+      ],
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/900-global/viking-conquest",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "imageUrl": [
+    {
+      "value": "https://www.bowwwl.com/sites/default/files/balls/900-global-viking-conquest.png",
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/900-global/viking-conquest",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ]
+}

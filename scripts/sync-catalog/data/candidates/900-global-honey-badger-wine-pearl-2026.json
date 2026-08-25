@@ -1,0 +1,108 @@
+{
+  "brand": "900 Global",
+  "name": "Honey Badger Wine Pearl",
+  "official": false,
+  "releaseDate": [
+    {
+      "value": "2026-04-23",
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/900-global/honey-badger-wine-pearl",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "coverstockRaw": [
+    {
+      "value": "Reserve Blend 70E Pearl Reactive",
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/900-global/honey-badger-wine-pearl",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "factoryFinish": [
+    {
+      "value": "Power Edge",
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/900-global/honey-badger-wine-pearl",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "coreName": [
+    {
+      "value": "Grapnel 2.0 A.I.",
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/900-global/honey-badger-wine-pearl",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "rg": [
+    {
+      "value": 2.53,
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/900-global/honey-badger-wine-pearl",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "diff": [
+    {
+      "value": 0.05,
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/900-global/honey-badger-wine-pearl",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "mbDiff": [
+    {
+      "value": 0.013,
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/900-global/honey-badger-wine-pearl",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "weights": [
+    {
+      "value": [
+        {
+          "weight": 16,
+          "rg": 2.52,
+          "diff": 0.047,
+          "mbDiff": 0.014
+        },
+        {
+          "weight": 15,
+          "rg": 2.53,
+          "diff": 0.05,
+          "mbDiff": 0.013
+        },
+        {
+          "weight": 14,
+          "rg": 2.54,
+          "diff": 0.049,
+          "mbDiff": 0.013
+        },
+        {
+          "weight": 13,
+          "rg": 2.56,
+          "diff": 0.034,
+          "mbDiff": 0.011
+        },
+        {
+          "weight": 12,
+          "rg": 2.58,
+          "diff": 0.031,
+          "mbDiff": 0.009
+        }
+      ],
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/900-global/honey-badger-wine-pearl",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "imageUrl": [
+    {
+      "value": "https://www.bowwwl.com/sites/default/files/balls/900-global-honey-badger-wine-pearl.png",
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/900-global/honey-badger-wine-pearl",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ]
+}

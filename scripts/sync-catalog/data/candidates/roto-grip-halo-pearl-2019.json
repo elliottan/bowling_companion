@@ -1,0 +1,108 @@
+{
+  "brand": "Roto Grip",
+  "name": "Halo Pearl",
+  "official": false,
+  "releaseDate": [
+    {
+      "value": "2019-03-08",
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/roto-grip/halo-pearl",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "coverstockRaw": [
+    {
+      "value": "eTrax-P18 Pearl Reactive",
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/roto-grip/halo-pearl",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "factoryFinish": [
+    {
+      "value": "1500 Polished",
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/roto-grip/halo-pearl",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "coreName": [
+    {
+      "value": "Centrum",
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/roto-grip/halo-pearl",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "rg": [
+    {
+      "value": 2.49,
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/roto-grip/halo-pearl",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "diff": [
+    {
+      "value": 0.05,
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/roto-grip/halo-pearl",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "mbDiff": [
+    {
+      "value": 0.018,
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/roto-grip/halo-pearl",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "weights": [
+    {
+      "value": [
+        {
+          "weight": 16,
+          "rg": 2.49,
+          "diff": 0.05,
+          "mbDiff": 0.018
+        },
+        {
+          "weight": 15,
+          "rg": 2.49,
+          "diff": 0.05,
+          "mbDiff": 0.018
+        },
+        {
+          "weight": 14,
+          "rg": 2.54,
+          "diff": 0.044,
+          "mbDiff": 0.015
+        },
+        {
+          "weight": 13,
+          "rg": 2.6,
+          "diff": 0.04,
+          "mbDiff": 0.008
+        },
+        {
+          "weight": 12,
+          "rg": 2.62,
+          "diff": 0.04,
+          "mbDiff": 0.008
+        }
+      ],
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/roto-grip/halo-pearl",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "imageUrl": [
+    {
+      "value": "https://www.bowwwl.com/sites/default/files/balls/roto-grip-halo-pearl.png",
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/roto-grip/halo-pearl",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ]
+}

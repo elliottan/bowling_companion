@@ -1,0 +1,101 @@
+{
+  "brand": "Motiv",
+  "name": "Max Thrill Pearl",
+  "official": false,
+  "releaseDate": [
+    {
+      "value": "2024-06-05",
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/motiv/max-thrill-pearl",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "coverstockRaw": [
+    {
+      "value": "Turmoil XP3 Pearl Reactive",
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/motiv/max-thrill-pearl",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "factoryFinish": [
+    {
+      "value": "5500 LSP",
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/motiv/max-thrill-pearl",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "coreName": [
+    {
+      "value": "Halogen",
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/motiv/max-thrill-pearl",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "rg": [
+    {
+      "value": 2.55,
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/motiv/max-thrill-pearl",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "diff": [
+    {
+      "value": 0.037,
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/motiv/max-thrill-pearl",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "mbDiff": [],
+  "weights": [
+    {
+      "value": [
+        {
+          "weight": 16,
+          "rg": 2.54,
+          "diff": 0.036,
+          "mbDiff": null
+        },
+        {
+          "weight": 15,
+          "rg": 2.55,
+          "diff": 0.037,
+          "mbDiff": null
+        },
+        {
+          "weight": 14,
+          "rg": 2.56,
+          "diff": 0.038,
+          "mbDiff": null
+        },
+        {
+          "weight": 13,
+          "rg": 2.59,
+          "diff": 0.038,
+          "mbDiff": null
+        },
+        {
+          "weight": 12,
+          "rg": 2.64,
+          "diff": 0.031,
+          "mbDiff": null
+        }
+      ],
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/motiv/max-thrill-pearl",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "imageUrl": [
+    {
+      "value": "https://www.bowwwl.com/sites/default/files/balls/motiv-max-thrill-pearl.png",
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/motiv/max-thrill-pearl",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ]
+}

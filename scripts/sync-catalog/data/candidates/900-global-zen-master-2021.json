@@ -1,0 +1,101 @@
+{
+  "brand": "900 Global",
+  "name": "Zen Master",
+  "official": false,
+  "releaseDate": [
+    {
+      "value": "2021-08-17",
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/900-global/zen-master",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "coverstockRaw": [
+    {
+      "value": "S77 Response Solid Reactive",
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/900-global/zen-master",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "factoryFinish": [
+    {
+      "value": "3000 Abralon",
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/900-global/zen-master",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "coreName": [
+    {
+      "value": "Meditate",
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/900-global/zen-master",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "rg": [
+    {
+      "value": 2.49,
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/900-global/zen-master",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "diff": [
+    {
+      "value": 0.051,
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/900-global/zen-master",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "mbDiff": [],
+  "weights": [
+    {
+      "value": [
+        {
+          "weight": 16,
+          "rg": 2.48,
+          "diff": 0.051,
+          "mbDiff": null
+        },
+        {
+          "weight": 15,
+          "rg": 2.49,
+          "diff": 0.051,
+          "mbDiff": null
+        },
+        {
+          "weight": 14,
+          "rg": 2.5,
+          "diff": 0.051,
+          "mbDiff": null
+        },
+        {
+          "weight": 13,
+          "rg": 2.58,
+          "diff": 0.04,
+          "mbDiff": null
+        },
+        {
+          "weight": 12,
+          "rg": 2.6,
+          "diff": 0.04,
+          "mbDiff": null
+        }
+      ],
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/900-global/zen-master",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "imageUrl": [
+    {
+      "value": "https://www.bowwwl.com/sites/default/files/balls/900-global-zen-master.png",
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/900-global/zen-master",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ]
+}

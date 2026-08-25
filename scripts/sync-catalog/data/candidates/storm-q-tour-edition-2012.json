@@ -1,0 +1,101 @@
+{
+  "brand": "Storm",
+  "name": "!Q Tour Edition",
+  "official": false,
+  "releaseDate": [
+    {
+      "value": "2012-07-06",
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/storm/iq-tour-edition",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "coverstockRaw": [
+    {
+      "value": "R2S Solid Reactive",
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/storm/iq-tour-edition",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "factoryFinish": [
+    {
+      "value": "4000 Abralon",
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/storm/iq-tour-edition",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "coreName": [
+    {
+      "value": "C3 Centripetal Control",
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/storm/iq-tour-edition",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "rg": [
+    {
+      "value": 2.49,
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/storm/iq-tour-edition",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "diff": [
+    {
+      "value": 0.029,
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/storm/iq-tour-edition",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "mbDiff": [],
+  "weights": [
+    {
+      "value": [
+        {
+          "weight": 16,
+          "rg": 2.49,
+          "diff": 0.035,
+          "mbDiff": null
+        },
+        {
+          "weight": 15,
+          "rg": 2.49,
+          "diff": 0.029,
+          "mbDiff": null
+        },
+        {
+          "weight": 14,
+          "rg": 2.54,
+          "diff": 0.034,
+          "mbDiff": null
+        },
+        {
+          "weight": 13,
+          "rg": 2.59,
+          "diff": 0.045,
+          "mbDiff": null
+        },
+        {
+          "weight": 12,
+          "rg": 2.65,
+          "diff": 0.035,
+          "mbDiff": null
+        }
+      ],
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/storm/iq-tour-edition",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ],
+  "imageUrl": [
+    {
+      "value": "https://www.bowwwl.com/sites/default/files/balls/storm-iq-tour-edition.png",
+      "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/storm/iq-tour-edition",
+      "quote": "",
+      "parser": "bowwwl"
+    }
+  ]
+}

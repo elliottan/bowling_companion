@@ -13,6 +13,17 @@ import type {
 
 type GameWithFrames = Game & { frames: Frame[] };
 
+/** A full rack. */
+const PINS = 10;
+
+/**
+ * What one open frame gives up, near enough (ADR-059). A converted spare is
+ * worth ten plus the next ball, and an open is worth what was on the deck, so
+ * the true figure depends on the leave and the ball after it. This is the
+ * bowler's rule of thumb, applied as a rule of thumb: the screen says "about".
+ */
+const PINS_PER_OPEN = 11;
+
 /** Lanes a game was bowled on (for game-level Avg/High inclusion). */
 function gameLanes(game: Game): string[] {
   return game.lanes ?? (game.lane_number ? [game.lane_number] : []);
@@ -53,6 +64,9 @@ export interface BowlingStats {
    *  flagged as crossovers are excluded from both sides, so this stays a rate
    *  of pocket balls carrying and cannot exceed 100. */
   carryPct: number | null;
+  /** Pins knocked down by the average fresh-rack ball, to one decimal. The
+   *  same population as strike and pocket, so the three describe one ball. */
+  firstBallAverage: number | null;
   byAlley: AlleyStats[];
 }
 
@@ -86,6 +100,8 @@ export function calculateStats(
   let spares = 0;
   let pocketHits = 0;
   let pocketStrikes = 0;
+  let firstBallPins = 0;
+  let firstBalls = 0;
 
   for (const { alley, game } of allGames) {
     // Avg/High are whole-game scores: include a game if it touched a selected lane.
@@ -104,6 +120,8 @@ export function calculateStats(
       spareOpps += tally.spareOpps;
       spares += tally.spares;
       for (const shot of freshRackShots(frame)) {
+        firstBalls++;
+        firstBallPins += PINS - shot.pins_standing.length;
         if (!resolvePocketHit(shot, handedness)) continue;
         pocketHits++;
         if (shot.pins_standing.length === 0) pocketStrikes++;
@@ -131,6 +149,7 @@ export function calculateStats(
     sparePct: rate(spares, spareOpps),
     pocketPct: rate(pocketHits, strikeOpps),
     carryPct: rate(pocketStrikes, pocketHits),
+    firstBallAverage: firstBalls === 0 ? null : Math.round((firstBallPins / firstBalls) * 10) / 10,
     byAlley
   };
 }
@@ -626,15 +645,23 @@ export function filterSessionsBy(
 // Open frames
 // ---------------------------------------------------------------------------
 
-/** One leave, and how often it went open. */
+/** One leave, and how often it goes open. */
 export interface OpenFrameLeave {
   pins: PinNumber[];
   /** Times this leave was thrown at, so it could be made or missed. */
   chances: number;
   conversions: number;
-  /** Chances that went open. This is what the list ranks on. */
   misses: number;
   conversionPct: number | null;
+  /** Opens a game. What the row is read on: a raw count of 10-pin misses says
+   *  as much about being right-handed as about shooting spares. */
+  perGame: number | null;
+}
+
+/** Opens of one kind, against the games they happened in. */
+export interface OpenFrameKind {
+  openFrames: number;
+  perGame: number | null;
 }
 
 /** One night, and how often it went open. */
@@ -648,30 +675,36 @@ export interface OpenFrameTrendPoint {
 }
 
 export interface OpenFrameReport {
-  /** Completed games in view: the denominator of the per-game rate. */
+  /** Completed games in view: the denominator of every per-game figure here. */
   games: number;
+  /** Every open frame, whatever left it open. */
   openFrames: number;
   openFramesPerGame: number | null;
-  /** Most often missed first. */
+  /** `openFramesPerGame` at `PINS_PER_OPEN`. A rule of thumb, labelled as one. */
+  pinsLostPerGame: number | null;
+  /** The same opens, split by what caused them. They sum to `openFrames`. */
+  makeable: OpenFrameKind;
+  washout: OpenFrameKind;
+  split: OpenFrameKind;
+  /** Makeable leaves only, most often first. Splits belong to the first ball,
+   *  so ranking them among spares you missed would be reading the wrong page. */
   leaves: OpenFrameLeave[];
-  /** By session, oldest first, for the trend line. */
+  /** By session, oldest first. Every open, matching the headline. */
   trend: OpenFrameTrendPoint[];
 }
 
 /**
- * How often frames go open, and on what (ADR-058).
+ * How often frames go open, on what, and roughly what that costs (ADR-058,
+ * amended by ADR-059).
  *
- * Makeable leaves only, which is the same test spare % uses (ADR-036): a real
- * split or a washout is not a frame you left open, it is a frame that was
- * taken off you on the first ball. Mixing them in would mean the number moves
- * when your first ball gets worse, which is a different problem with a
- * different fix.
+ * The headline counts **every** open frame, because that is what an open frame
+ * is on the scoresheet and a bowler counting their own night counts all of
+ * them. The three kinds are broken out under it rather than filtered away, so
+ * a night full of splits reads as a first-ball problem instead of quietly
+ * shrinking the number.
  *
- * The count is frames, not pins. An earlier version weighted each miss by the
- * pins it left standing, on the reasoning that points lost needs a game that
- * was never bowled and pins standing does not. True, and unreadable: a total
- * of pins grows with the length of the history, so it could not be compared
- * between two filters, and nobody could say what one of them was worth.
+ * The leave list stays makeable-only: it is a list of spares to go and work
+ * on, and no amount of spare shooting removes a 7-10.
  *
  * Only completed games count, matching `calculateStats`. A frame in a game
  * still being bowled is unfinished, not open.
@@ -685,6 +718,9 @@ export function calculateOpenFrames(
   const trend: OpenFrameTrendPoint[] = [];
   let games = 0;
   let openFrames = 0;
+  let makeable = 0;
+  let washout = 0;
+  let split = 0;
 
   for (const s of [...sessions].sort((a, b) => a.session.date.localeCompare(b.session.date))) {
     let sessionGames = 0;
@@ -698,8 +734,18 @@ export function calculateOpenFrames(
       for (const frame of game.frames) {
         if (!frameOnSelectedLane(game, frame.frame_number, filter)) continue;
         for (const { leave, chance, converted } of leaveEvents(frame)) {
-          if (!chance || isUnmakeable(leave)) continue;
+          if (!chance) continue;
 
+          const kind = openFrameKind(leave);
+          if (!converted) {
+            sessionOpens++;
+            if (kind === "washout") washout++;
+            else if (kind === "split") split++;
+            else makeable++;
+          }
+
+          // The list is the spare game, so splits and washouts stay off it.
+          if (kind !== "makeable") continue;
           const key = leave.join("-");
           if (!leaveMap.has(key)) {
             leaveMap.set(key, {
@@ -707,16 +753,14 @@ export function calculateOpenFrames(
               chances: 0,
               conversions: 0,
               misses: 0,
-              conversionPct: null
+              conversionPct: null,
+              perGame: null
             });
           }
           const entry = leaveMap.get(key)!;
           entry.chances++;
           if (converted) entry.conversions++;
-          else {
-            entry.misses++;
-            sessionOpens++;
-          }
+          else entry.misses++;
         }
       }
     }
@@ -730,12 +774,16 @@ export function calculateOpenFrames(
       alley: s.session.alley_name,
       games: sessionGames,
       openFrames: sessionOpens,
-      perGame: Math.round((sessionOpens / sessionGames) * 10) / 10
+      perGame: round1(sessionOpens / sessionGames)
     });
   }
 
   const leaves = [...leaveMap.values()]
-    .map((l) => ({ ...l, conversionPct: rate(l.conversions, l.chances) }))
+    .map((l) => ({
+      ...l,
+      conversionPct: rate(l.conversions, l.chances),
+      perGame: perGame(l.misses, games)
+    }))
     .filter((l) => l.misses > 0)
     .sort((a, b) => b.misses - a.misses || b.chances - a.chances || comparePins(a.pins, b.pins));
 
@@ -743,15 +791,32 @@ export function calculateOpenFrames(
     games,
     openFrames,
     openFramesPerGame: perGame(openFrames, games),
+    pinsLostPerGame: games === 0 ? null : Math.round((openFrames / games) * PINS_PER_OPEN),
+    makeable: { openFrames: makeable, perGame: perGame(makeable, games) },
+    washout: { openFrames: washout, perGame: perGame(washout, games) },
+    split: { openFrames: split, perGame: perGame(split, games) },
     leaves,
     trend
   };
 }
 
+/** Which of the three a leave belongs to. Exactly one, since a standing head
+ *  pin and a missing one are exclusive. Matches the split the leaves card on
+ *  Stats already draws. */
+function openFrameKind(leave: PinNumber[]): "makeable" | "washout" | "split" {
+  if (isWashout(leave)) return "washout";
+  if (isSplit(leave) && !isBabySplit(leave)) return "split";
+  return "makeable";
+}
+
 /** One decimal. `null` when there is nothing to divide by. */
 function perGame(total: number, games: number): number | null {
   if (games === 0) return null;
-  return Math.round((total / games) * 10) / 10;
+  return round1(total / games);
+}
+
+function round1(value: number): number {
+  return Math.round(value * 10) / 10;
 }
 
 // ---------------------------------------------------------------------------
