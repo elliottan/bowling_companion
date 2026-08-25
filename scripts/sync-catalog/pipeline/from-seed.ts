@@ -30,6 +30,7 @@ type StagedBall = RawBall & { _imageUrl?: string | null; _discontinued?: boolean
 /** Which parser wrote which seed file, so the provenance is not guesswork. */
 const PARSER_BY_FILE: Record<string, string> = {
   "bowwwl-seed.json": "parse-bowwwl",
+  "motiv-seed.json": "parse-motiv",
   "single-balls-seed.json": "parse-ball",
   "spi-2022-seed.json": "parse-catalog-pdf",
   "spi-2023-seed.json": "parse-catalog-pdf",
@@ -37,9 +38,10 @@ const PARSER_BY_FILE: Record<string, string> = {
   "spi-2025-seed.json": "parse-catalog-columnar",
 };
 
-/** An SPI catalog or tech sheet is the manufacturer's own document. */
+/** An SPI catalog or tech sheet, or MOTIV's own page, is the manufacturer's own. */
 const OFFICIAL_PARSERS = new Set([
   "parse-ball",
+  "parse-motiv",
   "parse-catalog-pdf",
   "parse-catalog-2024",
   "parse-catalog-columnar",

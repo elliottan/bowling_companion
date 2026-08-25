@@ -15,6 +15,7 @@ import {
   slug,
 } from "./normalize.js";
 import { validateRaw } from "./validate.js";
+import { parsePage as parseMotiv } from "./catalog/parse-motiv.js";
 import type { CatalogBall, CatalogManifest } from "../../src/types/catalog.js";
 
 // ---------------------------------------------------------------------------
@@ -287,5 +288,112 @@ describe("build script smoke test (balls.sample.json)", () => {
     const hustle = balls.find((b) => b.name === "Hustle Ink");
     expect(hustle).toBeDefined();
     expect(hustle?.weights).toBeUndefined();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// catalog/parse-motiv.ts
+// ---------------------------------------------------------------------------
+describe("parse-motiv", () => {
+  const fixture = (name: string): string =>
+    readFileSync(resolve(process.cwd(), "scripts/sync-catalog/__fixtures__", name), "utf-8");
+
+  const JG2_URL = "https://www.motivbowling.com/products/balls/heavy-oil/jackal-ghost-v2.html";
+  const NEBULA_URL = "https://www.motivbowling.com/products/balls/medium-oil/nebula.html";
+  const COVERT_URL =
+    "https://www.motivbowling.com/products/balls/medium-heavy-oil/covert-vip-exj.html";
+
+  it("reads an asymmetric ball off its spec tables", () => {
+    const ball = parseMotiv(fixture("motiv-jackal-ghost-v2.html"), JG2_URL);
+    expect(ball.brand).toBe("Motiv");
+    expect(ball.name).toBe("Jackal Ghost V2");
+    expect(ball.releaseDate).toBe("2026-08-12");
+    expect(ball.factoryFinish).toBe("3000 Grit LSS");
+    expect(ball.rg).toBe(2.47);
+    expect(ball.diff).toBe(0.054);
+    expect(ball.mbDiff).toBe(0.015);
+    expect(ball.sourceUrls).toEqual([JG2_URL]);
+    expect(ball._discontinued).toBe(false);
+  });
+
+  it("drops the trademark sign and the core's shape label", () => {
+    const ball = parseMotiv(fixture("motiv-jackal-ghost-v2.html"), JG2_URL);
+    // The cell reads "Predator™ V2 Asymmetric".
+    expect(ball.coreName).toBe("Predator V2");
+    expect(parseMotiv(fixture("motiv-nebula.html"), NEBULA_URL).coreName).toBe("Hadron");
+  });
+
+  it("takes the coverstock exactly as MOTIV states it", () => {
+    // A solid cover is filed as plain "Reactive" here. Adding the "Solid" that
+    // other databases infer would be inventing a word the source never used.
+    expect(parseMotiv(fixture("motiv-jackal-ghost-v2.html"), JG2_URL).coverstockRaw).toBe(
+      "Leverage HFS Reactive"
+    );
+    expect(parseMotiv(fixture("motiv-nebula.html"), NEBULA_URL).coverstockRaw).toBe(
+      "Dark Matter Propulsion Pearl Reactive"
+    );
+  });
+
+  it("gives a symmetric ball a null mbDiff, on every weight", () => {
+    const ball = parseMotiv(fixture("motiv-nebula.html"), NEBULA_URL);
+    expect(ball.mbDiff).toBeNull();
+    expect(ball.weights?.every((w) => w.mbDiff === null)).toBe(true);
+  });
+
+  it("reads every weight, heaviest first, and takes the 15 lb row as the headline", () => {
+    const ball = parseMotiv(fixture("motiv-jackal-ghost-v2.html"), JG2_URL);
+    expect(ball.weights?.map((w) => w.weight)).toEqual([16, 15, 14, 13, 12]);
+    expect(ball.weights?.[0]).toEqual({ weight: 16, rg: 2.48, diff: 0.047, mbDiff: 0.013 });
+    const w15 = ball.weights?.find((w) => w.weight === 15);
+    expect([ball.rg, ball.diff, ball.mbDiff]).toEqual([w15?.rg, w15?.diff, w15?.mbDiff]);
+  });
+
+  it("reads both shapes of release date, and neither as day/month", () => {
+    // A ball still coming reads "AVAILABLE 11/26/2025"; one already out reads
+    // a bare "3/28/2014". Both are month/day/year, so a day past the 12th is
+    // the case that would expose reading them the other way round.
+    expect(parseMotiv(fixture("motiv-nebula.html"), NEBULA_URL).releaseDate).toBe("2025-11-26");
+    const bare =
+      '<div class="item-name-plus-release-date"><h1>Venom Shock</h1>' +
+      '<span class="release-date">3/28/2014</span></div>';
+    expect(parseMotiv(bare, NEBULA_URL).releaseDate).toBe("2014-03-28");
+  });
+
+  it("leaves the release date null when the page carries no date", () => {
+    const undated =
+      '<div class="item-name-plus-release-date"><h1>Nebula</h1>' +
+      '<span class="release-date"></span></div>';
+    expect(parseMotiv(undated, NEBULA_URL).releaseDate).toBeNull();
+  });
+
+  it("takes the gallery's first slide as the image, not the core render", () => {
+    const ball = parseMotiv(fixture("motiv-nebula.html"), NEBULA_URL);
+    expect(ball._imageUrl).toBe(
+      "https://www.motivbowling.com/userfiles/filemanager/z481knm90gdcad8fd6sn"
+    );
+  });
+
+  it("marks a ball filed under retired-balls as discontinued", () => {
+    const retired = JG2_URL.replace("/heavy-oil/", "/retired-balls/");
+    expect(parseMotiv(fixture("motiv-jackal-ghost-v2.html"), retired)._discontinued).toBe(true);
+  });
+
+  it("reports a malformed number as printed, rather than repairing it", () => {
+    // MOTIV's Covert VIP EXJ page prints the 15 lb differential as "056",
+    // missing the leading point every other row carries. Inferring 0.056 here
+    // would be the parser inventing a digit, so it reads 56 and lets the
+    // promote gate refuse it as out of range, which puts it in front of a
+    // human instead of into the catalog.
+    const ball = parseMotiv(fixture("motiv-covert-vip-exj.html"), COVERT_URL);
+    expect(ball.diff).toBe(56);
+    expect(validateRaw(ball)).toContain("diff 56 out of range [0, 0.065]");
+    // The rows that are well formed are unaffected.
+    expect(ball.weights?.find((w) => w.weight === 16)?.diff).toBe(0.05);
+  });
+
+  it("throws rather than staging a nameless ball", () => {
+    expect(() => parseMotiv("<html><h1>Be the first to know</h1></html>", JG2_URL)).toThrow(
+      /No ball name/
+    );
   });
 });

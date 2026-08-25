@@ -60,6 +60,7 @@ async function main(): Promise<void> {
   }, {});
   console.log(`\n=== Routes ===`);
   console.log(`  pdf    ${counts.pdf ?? 0}  (npm run parse-ball, free)`);
+  console.log(`  motiv  ${counts.motiv ?? 0}  (npm run parse-motiv, free)`);
   console.log(`  bowwwl ${counts.bowwwl ?? 0}  (npm run parse-bowwwl, free)`);
   console.log(`  manual ${counts.manual ?? 0}  (a model reads these, with quotes)`);
   const reduced = routed.filter((r) => r.nameUsed);

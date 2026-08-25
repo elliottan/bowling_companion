@@ -25,6 +25,7 @@
     "parse-catalog-columnar": "tsx scripts/sync-catalog/catalog/parse-catalog-columnar.ts",
     "parse-catalog-2024": "tsx scripts/sync-catalog/catalog/parse-catalog-2024.ts",
     "parse-bowwwl": "tsx scripts/sync-catalog/catalog/parse-bowwwl.ts",
+    "parse-motiv": "tsx scripts/sync-catalog/catalog/parse-motiv.ts",
     "select-balls": "tsx scripts/sync-catalog/pipeline/select.ts",
     "promote-candidates": "tsx scripts/sync-catalog/pipeline/promote.ts",
     "contact-sheet": "tsx scripts/sync-catalog/pipeline/contact-sheet.ts",

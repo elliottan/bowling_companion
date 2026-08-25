@@ -41,8 +41,9 @@ catalog. Keep runs small. A phase of 10 to 20 balls is reviewable; 200 is not.
 npm run resolve-sources -- scripts/sync-catalog/data/queue/<run-id>.json --try-base-names
 ```
 
-Tags each ball `pdf`, `bowwwl` or `manual`, and prints how many of each. Add
-`--try-base-names` when the queue came from USBC, whose rows are per colorway.
+Tags each ball `pdf`, `motiv`, `bowwwl` or `manual`, and prints how many of
+each. Add `--try-base-names` when the queue came from USBC, whose rows are per
+colorway.
 
 **Check every reported name reduction before using it.** A trailing `/` can mean
 a colorway ("Hustle Vanilla/Popsicle" is a Hustle) or a different ball entirely
@@ -51,15 +52,22 @@ wrong ones from the run and tell the user which.
 
 ## Stage 2b: the free paths, use these first
 
-Anything routed `pdf` or `bowwwl` is parsed by code, costs no tokens, and needs
-no quotes from you:
+Anything routed `pdf`, `motiv` or `bowwwl` is parsed by code, costs no tokens,
+and needs no quotes from you:
 
 ```bash
 npm run parse-ball -- "<tech-data-pdf-url>"        # routed pdf
+npm run parse-motiv -- "<page-url>" [<page-url>…]  # routed motiv
 npm run parse-bowwwl -- "<page-url>" [<page-url>…] # routed bowwwl
 npm run seed-to-candidates -- bowwwl-seed.json     # staged output to candidates
+npm run seed-to-candidates -- motiv-seed.json
 npm run seed-to-candidates -- single-balls-seed.json
 ```
+
+`parse-motiv` reads MOTIV's own product pages, which they gave permission to use
+in August 2026 (ADR-061), so its readings count as official. It records what the
+page states even where that reads oddly, and it does not repair a malformed
+number: promote's range check is what catches those.
 
 Never re-read a page yourself that a parser already handled. That is the whole
 point of the routing pass.

@@ -2558,3 +2558,56 @@ reader cannot tell which without opening a sheet to find out.
   forces `overflow-y: auto`, which clips at the padding box, and the chips
   overhang their own box to reach 44pt. The same note sits on the game row in
   `ActiveSessionView`.
+
+## ADR-061: MOTIV's own site is a parsed route, and the parser does not repair it
+
+**Status:** accepted (2026-08). Extends the routing in ADR-043.
+
+**Context.** MOTIV replied in August 2026 granting use of the data on their
+website, on the terms that it is not resold and is kept accurate to what the
+site states. Until now every MOTIV ball routed to `bowwwl`, a third-party
+database: free to parse, but not official, and a step removed from the
+manufacturer. SPI's CDN carries no MOTIV balls, so the `pdf` route never
+applied to them and there was no official path at all.
+
+The site itself parses cleanly. Every spec is a labelled table row
+(`<th>Cover Stock</th>`) and every per-weight number a headed span, so the page
+yields to the same deterministic treatment as the `bowwwl` pages, with no model
+in the loop.
+
+**Decision.**
+
+- **A fourth route, `motiv`**, tried after `pdf` and before `bowwwl`, and only
+  for that brand. `parse-motiv` reads the page; `from-seed` marks its readings
+  official, since it is the manufacturer's own page.
+- **The URL comes from their sitemap, not from the ball's name.** MOTIV files
+  each ball under its oil category (`/products/balls/heavy-oil/`), which no
+  name implies. The sitemap is read once per run and indexed by slug, so the
+  route is a lookup rather than a guess. The memo caches the *promise*: the
+  router routes several balls concurrently, and caching the map instead lets
+  the second caller find an index that exists but is still empty.
+- **Requests name the tool.** MOTIV's edge rejects the bare "Mozilla/5.0" the
+  other parsers send, it being a stock bot signature. Naming the project is the
+  better answer regardless: permission was given to this project, so the
+  requests should be attributable to it.
+- **What MOTIV states is what is recorded, including where it reads oddly.** A
+  solid cover is filed as plain "Reactive" with no "Solid", and that stands.
+  The agreement is to stay accurate to the site, and other databases' inferences
+  are not the site.
+
+**The parser does not repair its source.** MOTIV's Covert VIP EXJ prints its
+15 lb differential as "056" where every sibling row reads ".050". The parser
+returns 56 and lets promote's range check refuse the ball, rather than inferring
+the decimal point back in. This looks pedantic for one obvious typo and is the
+only defensible rule: a parser that quietly corrects its source cannot be
+trusted on the values it did not correct, and the refusal puts the ball in front
+of a person, which is where a source that contradicts itself belongs.
+
+**Consequences.**
+- MOTIV balls added from here carry `official: true`, so one reading per field
+  is enough and the two-site rule stops applying to them.
+- The balls already in the catalog were read from `bowwwl` and are not
+  retro-fitted by this. Where the two disagree, MOTIV's own wording is the one
+  to keep, but changing an existing row is a decision per ball, not a sweep.
+- `bowwwl` remains the route for every other brand, and for any MOTIV ball the
+  sitemap does not list.

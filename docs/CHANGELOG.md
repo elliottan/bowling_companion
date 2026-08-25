@@ -8,6 +8,14 @@ merge to `main` (`docs/DEPLOYMENT.md`), so every section below is a dated batch
 of shipped work rather than a release. Thirty of them used to be headed
 `[Unreleased]`, which said nothing once they had all shipped.
 
+## MOTIV's own site becomes a catalog source (2026-08)
+
+### Added
+
+- **MOTIV balls read from MOTIV**, not a third-party database. MOTIV granted use
+  of their site's data, so the pipeline now has a `motiv` route with its own
+  parser, and its readings count as the manufacturer's own (ADR-061).
+
 ## MOTIV's top 15 balls added to the catalog (2026-08)
 
 ### Added

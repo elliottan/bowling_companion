@@ -7,6 +7,9 @@
  *
  *   pdf   , the manufacturer's own tech sheet on the SPI CDN. Parsed by
  *            `parse-ball`, deterministic, no model, official.
+ *   motiv , MOTIV's own product page. Parsed by `parse-motiv`, deterministic,
+ *            no model, official. MOTIV granted use of the site's data in
+ *            August 2026; SPI's CDN carries none of their balls.
  *   bowwwl, a third-party spec database with one labelled field per spec.
  *            Parsed by `parse-bowwwl`, deterministic, no model, not official.
  *   manual, neither exists. Only here does a model read a page, and only here
@@ -19,6 +22,17 @@
 
 const SPI_CDN =
   "https://stormproducts.nyc3.cdn.digitaloceanspaces.com/product_pages/Balls";
+
+const MOTIV_ORIGIN = "https://www.motivbowling.com";
+
+/**
+ * Says who is calling. MOTIV's edge rejects the bare "Mozilla/5.0" the other
+ * parsers send, since it is a stock bot signature, and naming the tool is the
+ * better answer anyway: they gave permission to a project, so the requests
+ * should be attributable to it.
+ */
+export const MOTIV_USER_AGENT =
+  "bowling-companion-catalog-sync/1.0 (+https://github.com/elliottan/bowling_companion)";
 
 /** SPI hosts its brands under one CDN; the folder names are not the brand names. */
 export const BRAND_FOLDER: Record<string, string> = {
@@ -84,6 +98,42 @@ export function bowwwlUrl(brand: string, name: string): string {
   return `https://www.bowwwl.com/bowling-ball-database/${urlSlug(brand)}/${urlSlug(name)}`;
 }
 
+/**
+ * MOTIV files each ball under its oil category (`/products/balls/heavy-oil/`),
+ * which no ball name implies, so the URL cannot be built from the name the way
+ * the others can. Their sitemap lists every page, so it is read once per run
+ * and indexed by slug: a lookup, never a guess.
+ */
+/**
+ * The promise is what is memoised, not the map it resolves to. The router
+ * routes several balls at once, so caching the map would let the second caller
+ * find an index that exists but is still empty and conclude the ball is not on
+ * the site: every ball after the first would fall through to bowwwl.
+ */
+let motivIndex: Promise<Map<string, string>> | null = null;
+
+async function loadMotivIndex(): Promise<Map<string, string>> {
+  const index = new Map<string, string>();
+  try {
+    const res = await fetch(`${MOTIV_ORIGIN}/sitemap.xml`, {
+      headers: { "user-agent": MOTIV_USER_AGENT },
+    });
+    const xml = await res.text();
+    for (const m of xml.matchAll(/<loc>([^<]*\/products\/balls\/[^<]*?)\.html<\/loc>/g)) {
+      index.set(m[1].slice(m[1].lastIndexOf("/") + 1), `${m[1]}.html`);
+    }
+  } catch {
+    // Leave the index empty: every lookup misses and the balls route on to
+    // bowwwl, rather than a network blip being reported as "no such ball".
+  }
+  return index;
+}
+
+export async function motivUrl(name: string): Promise<string | null> {
+  motivIndex ??= loadMotivIndex();
+  return (await motivIndex).get(urlSlug(name)) ?? null;
+}
+
 export async function headOk(url: string): Promise<boolean> {
   try {
     const r = await fetch(url, { method: "HEAD" });
@@ -93,7 +143,7 @@ export async function headOk(url: string): Promise<boolean> {
   }
 }
 
-export type Route = "pdf" | "bowwwl" | "manual";
+export type Route = "pdf" | "motiv" | "bowwwl" | "manual";
 
 export interface RoutedBall {
   brand: string;
@@ -132,6 +182,10 @@ export async function routeBall(
   for (const url of techDataUrls(brand, name)) {
     if (await headOk(url)) return { brand, name, route: "pdf", url };
   }
+  if (brand === "Motiv") {
+    const url = await motivUrl(name);
+    if (url) return { brand, name, route: "motiv", url };
+  }
   const page = bowwwlUrl(brand, name);
   if (await headOk(page)) return { brand, name, route: "bowwwl", url: page };
 
@@ -139,6 +193,10 @@ export async function routeBall(
   if (base) {
     for (const url of techDataUrls(brand, base)) {
       if (await headOk(url)) return { brand, name, route: "pdf", url, nameUsed: base };
+    }
+    if (brand === "Motiv") {
+      const url = await motivUrl(base);
+      if (url) return { brand, name, route: "motiv", url, nameUsed: base };
     }
     const basePage = bowwwlUrl(brand, base);
     if (await headOk(basePage)) {
