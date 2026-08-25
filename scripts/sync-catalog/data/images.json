@@ -454,5 +454,193 @@
   "motiv-octane-carbon-2017": {
     "imageThumb": "/catalog/img/motiv-octane-carbon-2017-thumb.webp",
     "imageFull": "/catalog/img/motiv-octane-carbon-2017-full.webp"
+  },
+  "motiv-arctic-sniper": {
+    "imageThumb": "/catalog/img/motiv-arctic-sniper-thumb.webp",
+    "imageFull": "/catalog/img/motiv-arctic-sniper-full.webp"
+  },
+  "motiv-chronic-paranoia": {
+    "imageThumb": "/catalog/img/motiv-chronic-paranoia-thumb.webp",
+    "imageFull": "/catalog/img/motiv-chronic-paranoia-full.webp"
+  },
+  "motiv-cruel-c51": {
+    "imageThumb": "/catalog/img/motiv-cruel-c51-thumb.webp",
+    "imageFull": "/catalog/img/motiv-cruel-c51-full.webp"
+  },
+  "motiv-cruel-c51-le": {
+    "imageThumb": "/catalog/img/motiv-cruel-c51-le-thumb.webp",
+    "imageFull": "/catalog/img/motiv-cruel-c51-le-full.webp"
+  },
+  "motiv-cruel-intent": {
+    "imageThumb": "/catalog/img/motiv-cruel-intent-thumb.webp",
+    "imageFull": "/catalog/img/motiv-cruel-intent-full.webp"
+  },
+  "motiv-fatal-venom": {
+    "imageThumb": "/catalog/img/motiv-fatal-venom-thumb.webp",
+    "imageFull": "/catalog/img/motiv-fatal-venom-full.webp"
+  },
+  "motiv-forza": {
+    "imageThumb": "/catalog/img/motiv-forza-thumb.webp",
+    "imageFull": "/catalog/img/motiv-forza-full.webp"
+  },
+  "motiv-forza-redline": {
+    "imageThumb": "/catalog/img/motiv-forza-redline-thumb.webp",
+    "imageFull": "/catalog/img/motiv-forza-redline-full.webp"
+  },
+  "motiv-forza-ss": {
+    "imageThumb": "/catalog/img/motiv-forza-ss-thumb.webp",
+    "imageFull": "/catalog/img/motiv-forza-ss-full.webp"
+  },
+  "motiv-freestyle": {
+    "imageThumb": "/catalog/img/motiv-freestyle-thumb.webp",
+    "imageFull": "/catalog/img/motiv-freestyle-full.webp"
+  },
+  "motiv-freestyle-pink-black": {
+    "imageThumb": "/catalog/img/motiv-freestyle-pink-black-thumb.webp",
+    "imageFull": "/catalog/img/motiv-freestyle-pink-black-full.webp"
+  },
+  "motiv-freestyle-rush": {
+    "imageThumb": "/catalog/img/motiv-freestyle-rush-thumb.webp",
+    "imageFull": "/catalog/img/motiv-freestyle-rush-full.webp"
+  },
+  "motiv-graffiti-tag": {
+    "imageThumb": "/catalog/img/motiv-graffiti-tag-thumb.webp",
+    "imageFull": "/catalog/img/motiv-graffiti-tag-full.webp"
+  },
+  "motiv-jackal-fury": {
+    "imageThumb": "/catalog/img/motiv-jackal-fury-thumb.webp",
+    "imageFull": "/catalog/img/motiv-jackal-fury-full.webp"
+  },
+  "motiv-jackal-shadow": {
+    "imageThumb": "/catalog/img/motiv-jackal-shadow-thumb.webp",
+    "imageFull": "/catalog/img/motiv-jackal-shadow-full.webp"
+  },
+  "motiv-jackal-shred": {
+    "imageThumb": "/catalog/img/motiv-jackal-shred-thumb.webp",
+    "imageFull": "/catalog/img/motiv-jackal-shred-full.webp"
+  },
+  "motiv-jackal-wild": {
+    "imageThumb": "/catalog/img/motiv-jackal-wild-thumb.webp",
+    "imageFull": "/catalog/img/motiv-jackal-wild-full.webp"
+  },
+  "motiv-king-venom": {
+    "imageThumb": "/catalog/img/motiv-king-venom-thumb.webp",
+    "imageFull": "/catalog/img/motiv-king-venom-full.webp"
+  },
+  "motiv-lethal-paranoia": {
+    "imageThumb": "/catalog/img/motiv-lethal-paranoia-thumb.webp",
+    "imageFull": "/catalog/img/motiv-lethal-paranoia-full.webp"
+  },
+  "motiv-paranoia": {
+    "imageThumb": "/catalog/img/motiv-paranoia-thumb.webp",
+    "imageFull": "/catalog/img/motiv-paranoia-full.webp"
+  },
+  "motiv-primal-fear": {
+    "imageThumb": "/catalog/img/motiv-primal-fear-thumb.webp",
+    "imageFull": "/catalog/img/motiv-primal-fear-full.webp"
+  },
+  "motiv-primal-impulse": {
+    "imageThumb": "/catalog/img/motiv-primal-impulse-thumb.webp",
+    "imageFull": "/catalog/img/motiv-primal-impulse-full.webp"
+  },
+  "motiv-primal-rage": {
+    "imageThumb": "/catalog/img/motiv-primal-rage-thumb.webp",
+    "imageFull": "/catalog/img/motiv-primal-rage-full.webp"
+  },
+  "motiv-primal-rage-remix": {
+    "imageThumb": "/catalog/img/motiv-primal-rage-remix-thumb.webp",
+    "imageFull": "/catalog/img/motiv-primal-rage-remix-full.webp"
+  },
+  "motiv-primal-scream": {
+    "imageThumb": "/catalog/img/motiv-primal-scream-thumb.webp",
+    "imageFull": "/catalog/img/motiv-primal-scream-full.webp"
+  },
+  "motiv-primal-tv4": {
+    "imageThumb": "/catalog/img/motiv-primal-tv4-thumb.webp",
+    "imageFull": "/catalog/img/motiv-primal-tv4-full.webp"
+  },
+  "motiv-raptor-altitude": {
+    "imageThumb": "/catalog/img/motiv-raptor-altitude-thumb.webp",
+    "imageFull": "/catalog/img/motiv-raptor-altitude-full.webp"
+  },
+  "motiv-raptor-talon": {
+    "imageThumb": "/catalog/img/motiv-raptor-talon-thumb.webp",
+    "imageFull": "/catalog/img/motiv-raptor-talon-full.webp"
+  },
+  "motiv-rebel-tank": {
+    "imageThumb": "/catalog/img/motiv-rebel-tank-thumb.webp",
+    "imageFull": "/catalog/img/motiv-rebel-tank-full.webp"
+  },
+  "motiv-revolt-vengeance": {
+    "imageThumb": "/catalog/img/motiv-revolt-vengeance-thumb.webp",
+    "imageFull": "/catalog/img/motiv-revolt-vengeance-full.webp"
+  },
+  "motiv-rising-venom": {
+    "imageThumb": "/catalog/img/motiv-rising-venom-thumb.webp",
+    "imageFull": "/catalog/img/motiv-rising-venom-full.webp"
+  },
+  "motiv-sapphire-jackal": {
+    "imageThumb": "/catalog/img/motiv-sapphire-jackal-thumb.webp",
+    "imageFull": "/catalog/img/motiv-sapphire-jackal-full.webp"
+  },
+  "motiv-sigma-hybrid": {
+    "imageThumb": "/catalog/img/motiv-sigma-hybrid-thumb.webp",
+    "imageFull": "/catalog/img/motiv-sigma-hybrid-full.webp"
+  },
+  "motiv-sigma-sting": {
+    "imageThumb": "/catalog/img/motiv-sigma-sting-thumb.webp",
+    "imageFull": "/catalog/img/motiv-sigma-sting-full.webp"
+  },
+  "motiv-t10-limited-edition": {
+    "imageThumb": "/catalog/img/motiv-t10-limited-edition-thumb.webp",
+    "imageFull": "/catalog/img/motiv-t10-limited-edition-full.webp"
+  },
+  "motiv-tank": {
+    "imageThumb": "/catalog/img/motiv-tank-thumb.webp",
+    "imageFull": "/catalog/img/motiv-tank-full.webp"
+  },
+  "motiv-thrash": {
+    "imageThumb": "/catalog/img/motiv-thrash-thumb.webp",
+    "imageFull": "/catalog/img/motiv-thrash-full.webp"
+  },
+  "motiv-thrash-frenzy": {
+    "imageThumb": "/catalog/img/motiv-thrash-frenzy-thumb.webp",
+    "imageFull": "/catalog/img/motiv-thrash-frenzy-full.webp"
+  },
+  "motiv-tribal": {
+    "imageThumb": "/catalog/img/motiv-tribal-thumb.webp",
+    "imageFull": "/catalog/img/motiv-tribal-full.webp"
+  },
+  "motiv-tribal-fire": {
+    "imageThumb": "/catalog/img/motiv-tribal-fire-thumb.webp",
+    "imageFull": "/catalog/img/motiv-tribal-fire-full.webp"
+  },
+  "motiv-trident-shield": {
+    "imageThumb": "/catalog/img/motiv-trident-shield-thumb.webp",
+    "imageFull": "/catalog/img/motiv-trident-shield-full.webp"
+  },
+  "motiv-trident-tempest": {
+    "imageThumb": "/catalog/img/motiv-trident-tempest-thumb.webp",
+    "imageFull": "/catalog/img/motiv-trident-tempest-full.webp"
+  },
+  "motiv-venom-cobra": {
+    "imageThumb": "/catalog/img/motiv-venom-cobra-thumb.webp",
+    "imageFull": "/catalog/img/motiv-venom-cobra-full.webp"
+  },
+  "motiv-venom-panic": {
+    "imageThumb": "/catalog/img/motiv-venom-panic-thumb.webp",
+    "imageFull": "/catalog/img/motiv-venom-panic-full.webp"
+  },
+  "motiv-venom-shock-pearl": {
+    "imageThumb": "/catalog/img/motiv-venom-shock-pearl-thumb.webp",
+    "imageFull": "/catalog/img/motiv-venom-shock-pearl-full.webp"
+  },
+  "motiv-venom-strike": {
+    "imageThumb": "/catalog/img/motiv-venom-strike-thumb.webp",
+    "imageFull": "/catalog/img/motiv-venom-strike-full.webp"
+  },
+  "motiv-venom-toxin": {
+    "imageThumb": "/catalog/img/motiv-venom-toxin-thumb.webp",
+    "imageFull": "/catalog/img/motiv-venom-toxin-full.webp"
   }
 }

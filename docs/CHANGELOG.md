@@ -20,6 +20,15 @@ of shipped work rather than a release. Thirty of them used to be headed
   the URL (`#/home/catalog/ball/<id>`), so back pops it and stops, and a link to
   a ball reopens it.
 
+## Forty-seven undated MOTIV balls (2026-08)
+
+### Added
+
+- **Forty-seven more MOTIV balls**, the ones whose pages carry no release date:
+  the Paranoia, Cruel, Forza, Freestyle, Primal, Tribal, Thrash and Venom lines
+  among them, back to the original Tank and Jackal. A hundred and twenty-three
+  MOTIV balls now, every one with a picture.
+
 ## Twenty-four more MOTIV balls (2026-08)
 
 ### Added
