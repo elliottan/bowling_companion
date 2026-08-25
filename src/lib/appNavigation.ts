@@ -63,6 +63,12 @@ export interface NavState {
   openSessionBallId: number | null;
   settingsSection: SettingsSection;
   overlays: Overlay[];
+  /** The catalog ball whose detail screen is open, by catalog id. A layer on
+   *  top of the catalog overlay rather than an overlay of its own: it only
+   *  exists while the catalog is the top overlay, and it carries an id the
+   *  Overlay union cannot. It lives here, not in CatalogView, so the platform
+   *  back gesture pops it like any other push (see useHistoryRoute). */
+  catalogBallId: string | null;
   lineSandboxOpen: boolean;
 }
 
@@ -79,6 +85,7 @@ export type NavAction =
   | { type: "goToSettingsSection"; section: SettingsSection }
   | { type: "pushOverlay"; overlay: Overlay }
   | { type: "popOverlay" }
+  | { type: "openCatalogBall"; ballId: string }
   | { type: "openLineSandbox" }
   | { type: "closeLineSandbox" }
   | { type: "statsOpened" }
@@ -95,6 +102,7 @@ export interface RestorableRoute {
   sessionId?: number;
   settingsSection?: SettingsSection;
   overlays: Overlay[];
+  catalogBallId?: string;
   lineSandbox?: boolean;
 }
 
@@ -107,6 +115,7 @@ export const INITIAL_NAV: NavState = {
   openSessionBallId: null,
   settingsSection: "menu",
   overlays: [],
+  catalogBallId: null,
   lineSandboxOpen: false
 };
 
@@ -151,7 +160,14 @@ export function navReducer(state: NavState, action: NavAction): NavState {
         : { ...state, overlays: [...state.overlays, action.overlay] };
 
     case "popOverlay":
-      return { ...state, overlays: state.overlays.slice(0, -1) };
+      // A ball detail is on top of the catalog, so back takes it first and
+      // leaves the catalog standing.
+      return state.catalogBallId !== null
+        ? { ...state, catalogBallId: null }
+        : { ...state, overlays: state.overlays.slice(0, -1) };
+
+    case "openCatalogBall":
+      return { ...state, catalogBallId: action.ballId };
 
     case "openLineSandbox":
       return { ...state, lineSandboxOpen: true };
@@ -187,6 +203,7 @@ export function navReducer(state: NavState, action: NavAction): NavState {
         activeSessionId: route.sessionId ?? (route.view === "active" ? state.activeSessionId : null),
         settingsSection: route.settingsSection ?? "menu",
         overlays: route.overlays,
+        catalogBallId: route.catalogBallId ?? null,
         lineSandboxOpen: route.lineSandbox ?? false
       };
     }

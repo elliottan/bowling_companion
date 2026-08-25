@@ -8,6 +8,27 @@ merge to `main` (`docs/DEPLOYMENT.md`), so every section below is a dated batch
 of shipped work rather than a release. Thirty of them used to be headed
 `[Unreleased]`, which said nothing once they had all shipped.
 
+## A ball's detail page is a place of its own (2026-08)
+
+### Fixed
+
+- **Swiping back from a catalog ball no longer lands on the dashboard.** The
+  detail page was local state inside the catalog, so it left no history entry,
+  and one edge-drag fired the detail's dismiss, the catalog's dismiss (they
+  share an edge, and the gesture bubbled) and the platform's own back at once:
+  three screens for one swipe. The open ball now lives in navigation state and
+  the URL (`#/home/catalog/ball/<id>`), so back pops it and stops, and a link to
+  a ball reopens it.
+
+## Twenty-four more MOTIV balls (2026-08)
+
+### Added
+
+- **Twenty-four more MOTIV balls**, specs and photos both from MOTIV, carrying
+  the run back from 2022 to 2017: the Tank, Trident, Forge, Jackal, Ripcord and
+  Supra lines among them. That is every MOTIV ball whose page carries both a
+  release date and a cover the catalog can classify.
+
 ## Colourways fold into one ball (2026-08)
 
 ### Added

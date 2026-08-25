@@ -379,16 +379,23 @@ function FilterChip({ label, onRemove }: { label: string; onRemove: () => void }
 // ---------------------------------------------------------------------------
 
 interface CatalogViewProps {
+  /** Pops whatever is on top: the ball detail if one is open, else the catalog
+   *  itself. Routed through the app's history-backed back, so the platform's
+   *  own back gesture pops exactly the same layer (see useHistoryRoute). */
   onBack: () => void;
-  /** Name of the screen underneath, shown beside the back chevron. */
+  /** The open ball's catalog id, or null. Held in nav state rather than here so
+   *  the detail is a real history entry. */
+  selectedBallId: string | null;
+  onSelectBall: (ballId: string) => void;
 }
 
-export function CatalogView({ onBack }: CatalogViewProps) {
+export function CatalogView({ onBack, selectedBallId, onSelectBall }: CatalogViewProps) {
   const [syncState, setSyncState] = useState<SyncState>({ status: "idle" });
   const [allBalls, setAllBalls] = useState<CatalogBall[]>([]);
+  // Resolved from the id rather than stored: the detail can be restored from a
+  // URL before the catalog has loaded, and this simply renders once it has.
   const [filters, setFilters] = useState<Filters>(EMPTY_FILTERS);
   const [sort, setSort] = useState<SortKey>("releaseDate");
-  const [selectedBall, setSelectedBall] = useState<CatalogBall | null>(null);
   const [addingBall, setAddingBall] = useState<CatalogBall | null>(null);
   const [addSaving, setAddSaving] = useState(false);
   const [addError, setAddError] = useState("");
@@ -502,6 +509,10 @@ export function CatalogView({ onBack }: CatalogViewProps) {
   const doneState = syncState.status === "done" ? syncState : null;
 
   // Active filter count badge (no year filter any more)
+  const selectedBall = selectedBallId
+    ? (allBalls.find((b) => b.id === selectedBallId) ?? null)
+    : null;
+
   const activeFilterCount = (() => {
     let count = 0;
     if (filters.brands.size) count++;
@@ -516,7 +527,7 @@ export function CatalogView({ onBack }: CatalogViewProps) {
     <PushScreen
       title="Ball catalog"
       onBack={onBack}
-      active={selectedBall === null && addingBall === null}
+      active={selectedBallId === null && addingBall === null}
       trailing={
         <IconButton onClick={handleRefresh} label="Refresh catalog" variant="round">
           <RefreshCw size={20} aria-hidden="true" />
@@ -739,7 +750,7 @@ export function CatalogView({ onBack }: CatalogViewProps) {
               <li key={ball.id}>
                 <button
                   type="button"
-                  onClick={() => setSelectedBall(ball)}
+                  onClick={() => onSelectBall(ball.id)}
                   className="flex w-full items-center gap-3 px-3 py-2.5 text-left hover:bg-surface-muted transition-colors"
                 >
                   <div className="h-10 w-10 shrink-0">
@@ -793,7 +804,7 @@ export function CatalogView({ onBack }: CatalogViewProps) {
         <DetailPanel
           ball={selectedBall}
           owned={isOwned(selectedBall)}
-          onBack={() => setSelectedBall(null)}
+          onBack={onBack}
           onAddToArsenal={(b) => { setAddingBall(b); setAddError(""); }}
           addDialogOpen={addingBall != null}
         />

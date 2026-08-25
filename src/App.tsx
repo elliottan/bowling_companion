@@ -515,7 +515,14 @@ function App() {
               />
             );
           case "catalog":
-            return <CatalogView key={`catalog-${i}`} onBack={popOverlay} />;
+            return (
+              <CatalogView
+                key={`catalog-${i}`}
+                onBack={popOverlay}
+                selectedBallId={nav.catalogBallId}
+                onSelectBall={(ballId) => dispatch({ type: "openCatalogBall", ballId })}
+              />
+            );
           // Settings sections, pushed over the tab that opened them.
           case "lanes":
             return <LaneNotesView key={`lanes-${i}`} onBack={popOverlay} mode="overlay" />;

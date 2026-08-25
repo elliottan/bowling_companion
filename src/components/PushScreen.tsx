@@ -72,15 +72,21 @@ export function PushScreen({
     if (e.pointerType === "mouse") return;
     const x = e.clientX - e.currentTarget.getBoundingClientRect().left;
     if (x > EDGE_ZONE_PX) return;
+    // A push rendered inside another push (a catalog ball's detail) shares the
+    // edge with it. Without this both recognisers arm on one drag and the
+    // gesture pops two screens.
+    e.stopPropagation();
     dragStartX.current = e.clientX;
   }
 
   function onPointerMove(e: React.PointerEvent) {
     if (dragStartX.current === null) return;
+    e.stopPropagation();
     setDragX(Math.max(0, e.clientX - dragStartX.current));
   }
 
-  function endDrag() {
+  function endDrag(e: React.PointerEvent) {
+    if (dragStartX.current !== null) e.stopPropagation();
     const dismissed = dragStartX.current !== null && dragX > DISMISS_PX;
     dragStartX.current = null;
     // Let the exit transform carry the drag the rest of the way out rather

@@ -194,4 +194,21 @@ describe("navReducer", () => {
     });
   });
 
+  describe("catalog ball detail", () => {
+    const detail = run([
+      { type: "pushOverlay", overlay: "catalog" },
+      { type: "openCatalogBall", ballId: "storm-physix-blackout-2025" }
+    ]);
+
+    it("takes the detail first, leaving the catalog standing", () => {
+      const popped = navReducer(detail, { type: "popOverlay" });
+      expect(popped.catalogBallId).toBeNull();
+      expect(popped.overlays).toEqual(["catalog"]);
+    });
+
+    it("pops the catalog once the detail is closed", () => {
+      const popped = navReducer(navReducer(detail, { type: "popOverlay" }), { type: "popOverlay" });
+      expect(popped.overlays).toEqual([]);
+    });
+  });
 });

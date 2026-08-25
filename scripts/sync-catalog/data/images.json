@@ -358,5 +358,101 @@
   "motiv-ascend-2025": {
     "imageThumb": "/catalog/img/motiv-ascend-2025-thumb.webp",
     "imageFull": "/catalog/img/motiv-ascend-2025-full.webp"
+  },
+  "motiv-carbide-tank-2022": {
+    "imageThumb": "/catalog/img/motiv-carbide-tank-2022-thumb.webp",
+    "imageFull": "/catalog/img/motiv-carbide-tank-2022-full.webp"
+  },
+  "motiv-sky-raptor-2022": {
+    "imageThumb": "/catalog/img/motiv-sky-raptor-2022-thumb.webp",
+    "imageFull": "/catalog/img/motiv-sky-raptor-2022-full.webp"
+  },
+  "motiv-trident-odyssey-2022": {
+    "imageThumb": "/catalog/img/motiv-trident-odyssey-2022-thumb.webp",
+    "imageFull": "/catalog/img/motiv-trident-odyssey-2022-full.webp"
+  },
+  "motiv-forge-ember-2022": {
+    "imageThumb": "/catalog/img/motiv-forge-ember-2022-thumb.webp",
+    "imageFull": "/catalog/img/motiv-forge-ember-2022-full.webp"
+  },
+  "motiv-ripcord-velocity-2022": {
+    "imageThumb": "/catalog/img/motiv-ripcord-velocity-2022-thumb.webp",
+    "imageFull": "/catalog/img/motiv-ripcord-velocity-2022-full.webp"
+  },
+  "motiv-supra-enzo-2022": {
+    "imageThumb": "/catalog/img/motiv-supra-enzo-2022-thumb.webp",
+    "imageFull": "/catalog/img/motiv-supra-enzo-2022-full.webp"
+  },
+  "motiv-pride-empire-2022": {
+    "imageThumb": "/catalog/img/motiv-pride-empire-2022-thumb.webp",
+    "imageFull": "/catalog/img/motiv-pride-empire-2022-full.webp"
+  },
+  "motiv-purple-tank-2022": {
+    "imageThumb": "/catalog/img/motiv-purple-tank-2022-thumb.webp",
+    "imageFull": "/catalog/img/motiv-purple-tank-2022-full.webp"
+  },
+  "motiv-mythic-jackal-2022": {
+    "imageThumb": "/catalog/img/motiv-mythic-jackal-2022-thumb.webp",
+    "imageFull": "/catalog/img/motiv-mythic-jackal-2022-full.webp"
+  },
+  "motiv-forge-flare-2021": {
+    "imageThumb": "/catalog/img/motiv-forge-flare-2021-thumb.webp",
+    "imageFull": "/catalog/img/motiv-forge-flare-2021-full.webp"
+  },
+  "motiv-raptor-supreme-2021": {
+    "imageThumb": "/catalog/img/motiv-raptor-supreme-2021-thumb.webp",
+    "imageFull": "/catalog/img/motiv-raptor-supreme-2021-full.webp"
+  },
+  "motiv-trident-horizon-2021": {
+    "imageThumb": "/catalog/img/motiv-trident-horizon-2021-thumb.webp",
+    "imageFull": "/catalog/img/motiv-trident-horizon-2021-full.webp"
+  },
+  "motiv-jackal-legacy-2021": {
+    "imageThumb": "/catalog/img/motiv-jackal-legacy-2021-thumb.webp",
+    "imageFull": "/catalog/img/motiv-jackal-legacy-2021-full.webp"
+  },
+  "motiv-alpha-jackal-2021": {
+    "imageThumb": "/catalog/img/motiv-alpha-jackal-2021-thumb.webp",
+    "imageFull": "/catalog/img/motiv-alpha-jackal-2021-full.webp"
+  },
+  "motiv-jackal-flash-2020": {
+    "imageThumb": "/catalog/img/motiv-jackal-flash-2020-thumb.webp",
+    "imageFull": "/catalog/img/motiv-jackal-flash-2020-full.webp"
+  },
+  "motiv-desert-tank-2020": {
+    "imageThumb": "/catalog/img/motiv-desert-tank-2020-thumb.webp",
+    "imageFull": "/catalog/img/motiv-desert-tank-2020-full.webp"
+  },
+  "motiv-ripcord-flight-2020": {
+    "imageThumb": "/catalog/img/motiv-ripcord-flight-2020-thumb.webp",
+    "imageFull": "/catalog/img/motiv-ripcord-flight-2020-full.webp"
+  },
+  "motiv-trident-nemesis-2020": {
+    "imageThumb": "/catalog/img/motiv-trident-nemesis-2020-thumb.webp",
+    "imageFull": "/catalog/img/motiv-trident-nemesis-2020-full.webp"
+  },
+  "motiv-supra-2019": {
+    "imageThumb": "/catalog/img/motiv-supra-2019-thumb.webp",
+    "imageFull": "/catalog/img/motiv-supra-2019-full.webp"
+  },
+  "motiv-forge-fire-2019": {
+    "imageThumb": "/catalog/img/motiv-forge-fire-2019-thumb.webp",
+    "imageFull": "/catalog/img/motiv-forge-fire-2019-full.webp"
+  },
+  "motiv-golden-jackal-2019": {
+    "imageThumb": "/catalog/img/motiv-golden-jackal-2019-thumb.webp",
+    "imageFull": "/catalog/img/motiv-golden-jackal-2019-full.webp"
+  },
+  "motiv-combat-tank-2018": {
+    "imageThumb": "/catalog/img/motiv-combat-tank-2018-thumb.webp",
+    "imageFull": "/catalog/img/motiv-combat-tank-2018-full.webp"
+  },
+  "motiv-tank-rampage-2017": {
+    "imageThumb": "/catalog/img/motiv-tank-rampage-2017-thumb.webp",
+    "imageFull": "/catalog/img/motiv-tank-rampage-2017-full.webp"
+  },
+  "motiv-octane-carbon-2017": {
+    "imageThumb": "/catalog/img/motiv-octane-carbon-2017-thumb.webp",
+    "imageFull": "/catalog/img/motiv-octane-carbon-2017-full.webp"
   }
 }

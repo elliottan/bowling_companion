@@ -20,6 +20,10 @@ describe("appRoute", () => {
     ["#/stats/open-frames", { view: "stats", overlays: ["open-frames"] }],
     ["#/stats/game-trend", { view: "stats", overlays: ["game-trend"] }],
     ["#/home/spares", { view: "dashboard", overlays: ["spares"] }],
+    [
+      "#/home/catalog/ball/storm-physix-blackout-2025",
+      { view: "dashboard", overlays: ["catalog"], catalogBallId: "storm-physix-blackout-2025" }
+    ],
     ["#/settings", { view: "settings", overlays: [] }],
     ["#/settings/lanes", { view: "settings", settingsSection: "lanes", overlays: [] }],
     ["#/session/12", { view: "active", sessionId: 12, overlays: [] }],
@@ -145,6 +149,36 @@ describe("appRoute", () => {
         route: parseRoute("#/history")
       });
       expect(restored.previousView).toBe("history");
+    });
+  });
+
+  describe("catalog ball detail", () => {
+    const inCatalog = (over: Partial<NavState> = {}) =>
+      nav({ overlays: ["catalog"], ...over });
+
+    it("pushes a history entry, so back pops the detail and not the catalog", () => {
+      const list = inCatalog();
+      const detail = inCatalog({ catalogBallId: "storm-physix-blackout-2025" });
+      expect(shouldPushHistory(list, detail)).toBe(true);
+    });
+
+    it("leaves the ball out of the URL when the catalog is not the top screen", () => {
+      expect(routeHash(nav({ overlays: ["arsenal"], catalogBallId: "a-ball-2025" }))).toBe(
+        "#/home/arsenal"
+      );
+    });
+
+    it("restores the open ball from a link", () => {
+      const restored = navReducer(INITIAL_NAV, {
+        type: "restore",
+        route: parseRoute("#/home/catalog/ball/storm-physix-blackout-2025")
+      });
+      expect(restored.overlays).toEqual(["catalog"]);
+      expect(restored.catalogBallId).toBe("storm-physix-blackout-2025");
+    });
+
+    it("drops a ball segment with no id rather than stranding the detail", () => {
+      expect(parseRoute("#/home/catalog/ball").catalogBallId).toBeUndefined();
     });
   });
 });

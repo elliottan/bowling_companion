@@ -40,6 +40,20 @@ test("the in-app back control and the platform back agree", async ({ page }) => 
   await expect(page.getByRole("dialog", { name: "Arsenal" })).toBeVisible();
 });
 
+test("back from a catalog ball closes the ball, not the catalog", async ({ page }) => {
+  await page.getByRole("button", { name: "Catalog" }).click();
+  await expect(page).toHaveURL(/#\/home\/catalog$/);
+
+  await page.getByPlaceholder("Search name, brand, coverstock…").fill("phaze");
+  await page.getByRole("button", { name: /Phaze/i }).first().click();
+  // The detail is a place of its own, so it names the ball in the URL.
+  await expect(page).toHaveURL(/#\/home\/catalog\/ball\/[a-z0-9-]+$/);
+
+  await page.goBack();
+  await expect(page).toHaveURL(/#\/home\/catalog$/);
+  await expect(page.getByRole("dialog", { name: "Ball catalog" })).toBeVisible();
+});
+
 test("a screen opened from the dashboard goes back to the dashboard", async ({ page }) => {
   await page.getByRole("button", { name: "Lane notes" }).click();
 

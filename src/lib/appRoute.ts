@@ -10,8 +10,9 @@ import type { AppView, NavState, Overlay, SettingsSection } from "./appNavigatio
  * A hash rather than a path because the app is offline-first: no server rewrite
  * rule to keep in step, and it resolves from the service worker cache.
  *
- * Shape: `#/<view>[/<session-or-section>][/<overlay>...][/line]`, for example
- * `#/settings/lanes`, `#/session/12`, `#/home/arsenal/catalog`.
+ * Shape: `#/<view>[/<session-or-section>][/<overlay>...][/ball/<id>][/line]`,
+ * for example `#/settings/lanes`, `#/session/12`, `#/home/arsenal/catalog`,
+ * `#/home/catalog/ball/storm-physix-blackout-2025`.
  *
  * Anything unreadable resolves to the dashboard rather than throwing. A stale
  * bookmark or a hand-edited link should open the app, not break it.
@@ -24,6 +25,7 @@ export interface AppRoute {
   sessionId?: number;
   settingsSection?: SettingsSection;
   overlays: Overlay[];
+  catalogBallId?: string;
   lineSandbox?: boolean;
 }
 
@@ -61,6 +63,7 @@ const SETTINGS_SECTIONS: readonly string[] = [
 ];
 
 const LINE_SEGMENT = "line";
+const BALL_SEGMENT = "ball";
 
 export const HOME_ROUTE: AppRoute = { view: "dashboard", overlays: [] };
 
@@ -71,6 +74,11 @@ export function toRoute(state: NavState): AppRoute {
   }
   if (state.view === "settings" && state.settingsSection !== "menu") {
     route.settingsSection = state.settingsSection;
+  }
+  // Only while the catalog is the screen underneath: the detail is a layer on
+  // that overlay, and a URL saying otherwise would describe nothing.
+  if (state.catalogBallId && state.overlays[state.overlays.length - 1] === "catalog") {
+    route.catalogBallId = state.catalogBallId;
   }
   if (state.lineSandboxOpen) route.lineSandbox = true;
   return route;
@@ -86,6 +94,7 @@ export function formatRoute(route: AppRoute): string {
   }
 
   parts.push(...route.overlays);
+  if (route.catalogBallId) parts.push(BALL_SEGMENT, encodeURIComponent(route.catalogBallId));
   if (route.lineSandbox) parts.push(LINE_SEGMENT);
 
   return `#/${parts.join("/")}`;
@@ -114,7 +123,10 @@ export function parseRoute(hash: string): AppRoute {
 
   for (; i < segments.length; i += 1) {
     const segment = segments[i];
-    if (segment === LINE_SEGMENT) route.lineSandbox = true;
+    if (segment === BALL_SEGMENT && segments[i + 1]) {
+      route.catalogBallId = decodeURIComponent(segments[i + 1]);
+      i += 1;
+    } else if (segment === LINE_SEGMENT) route.lineSandbox = true;
     else if (OVERLAYS.includes(segment)) route.overlays.push(segment as Overlay);
     // Anything else is dropped: an unknown segment must not strand the user on
     // a screen the app cannot render.
@@ -131,14 +143,16 @@ export function routeHash(state: NavState): string {
 /**
  * Whether moving between two states should leave a history entry behind.
  *
- * Pushing an overlay, opening a session and entering a Settings section are
- * things the user navigated *into*, so back should undo them one at a time.
+ * Pushing an overlay, opening a catalog ball, opening a session and entering a
+ * Settings section are things the user navigated *into*, so back should undo
+ * them one at a time.
  * Switching tabs is not: the tab bar is always on screen, nobody reaches for
  * back to change tabs, and stacking them would mean several backs to leave the
  * app. Same for landing on a different session in the same tab.
  */
 export function shouldPushHistory(from: NavState, to: NavState): boolean {
   if (to.overlays.length > from.overlays.length) return true;
+  if (to.catalogBallId && to.catalogBallId !== from.catalogBallId) return true;
   if (to.lineSandboxOpen && !from.lineSandboxOpen) return true;
   if (to.view === "active" && from.view !== "active") return true;
   if (to.view === "settings" && to.settingsSection !== "menu" && from.settingsSection === "menu") {

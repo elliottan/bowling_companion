@@ -1,178 +1,1082 @@
 [
   {
     "brand": "Motiv",
-    "name": "Aspire",
-    "releaseDate": "2025-08-13",
-    "coverstockRaw": "Polyester",
-    "factoryFinish": "6000 Grit LSP",
-    "coreName": "Tyro",
-    "rg": 2.75,
-    "diff": 0.028,
+    "name": "Carbide Tank",
+    "releaseDate": "2022-11-23",
+    "coverstockRaw": "Frixion M4 Solid MCP",
+    "factoryFinish": "1000 Grit LSS",
+    "coreName": "Gear",
+    "rg": 2.48,
+    "diff": 0.034,
     "mbDiff": null,
     "sourceUrls": [
-      "https://www.motivbowling.com/products/balls/spare/aspire-purple-silver-black.html",
-      "https://www.motivbowling.com/products/balls/spare/aspire-sky-silver-white.html",
-      "https://www.motivbowling.com/products/balls/spare/apire-black-red-gold.html",
-      "https://www.motivbowling.com/products/balls/spare/aspire-navy-red-blue.html"
+      "https://www.motivbowling.com/products/balls/retired-balls/carbide-tank.html"
     ],
     "weights": [
       {
+        "weight": 16,
+        "rg": 2.48,
+        "diff": 0.031,
+        "mbDiff": null
+      },
+      {
         "weight": 15,
-        "rg": 2.75,
-        "diff": 0.028,
+        "rg": 2.48,
+        "diff": 0.034,
         "mbDiff": null
       },
       {
         "weight": 14,
-        "rg": 2.75,
-        "diff": 0.024,
+        "rg": 2.52,
+        "diff": 0.029,
         "mbDiff": null
       },
       {
         "weight": 13,
-        "rg": 2.78,
-        "diff": 0.03,
+        "rg": 2.58,
+        "diff": 0.023,
         "mbDiff": null
       },
       {
         "weight": 12,
-        "rg": 2.81,
-        "diff": 0.025,
-        "mbDiff": null
-      },
-      {
-        "weight": 11,
-        "rg": 2.84,
-        "diff": 0.026,
-        "mbDiff": null
-      },
-      {
-        "weight": 10,
-        "rg": 2.87,
-        "diff": 0.026,
-        "mbDiff": null
-      },
-      {
-        "weight": 9,
-        "rg": 2.85,
-        "diff": 0.013,
-        "mbDiff": null
-      },
-      {
-        "weight": 8,
-        "rg": 2.89,
-        "diff": 0.013,
+        "rg": 2.65,
+        "diff": 0.016,
         "mbDiff": null
       }
     ],
-    "_imageUrl": "https://www.motivbowling.com/userfiles/filemanager/yi3w9o2luealffq0jpfd",
-    "_sku": "MTVBAEPBS",
-    "_discontinued": false,
-    "colorways": [
-      {
-        "sku": "MTVBAEPBS",
-        "color": "Purple/Silver/Black"
-      },
-      {
-        "sku": "MTVBAEBSW",
-        "color": "Sky Blue/Silver/White"
-      },
-      {
-        "sku": "MTVBAEBRG",
-        "color": "Black/Red/Gold"
-      },
-      {
-        "sku": "MTVBAENBR",
-        "color": "Navy/Red/Blue"
-      }
-    ],
-    "_colorwayImages": {
-      "MTVBAEPBS": "https://www.motivbowling.com/userfiles/filemanager/yi3w9o2luealffq0jpfd",
-      "MTVBAEBSW": "https://www.motivbowling.com/userfiles/filemanager/v7hp8ixg0gcer99flrih",
-      "MTVBAEBRG": "https://www.motivbowling.com/userfiles/filemanager/hlld4h3qi28nmevm10d2",
-      "MTVBAENBR": "https://www.motivbowling.com/userfiles/filemanager/1gm1mrtqf8bkwmw1hrqh"
-    }
+    "_imageUrl": "https://www.motivbowling.com/userfiles/filemanager/psviykh1e41743o5bfm0",
+    "_sku": "MTVBTKCBD",
+    "_discontinued": true
   },
   {
     "brand": "Motiv",
-    "name": "Ascend",
-    "releaseDate": "2025-07-23",
-    "coverstockRaw": "Vitality Pearl Reactive",
-    "factoryFinish": "5500 Grit LSP",
-    "coreName": "Flux V2",
-    "rg": 2.59,
-    "diff": 0.023,
+    "name": "Sky Raptor",
+    "releaseDate": "2022-10-12",
+    "coverstockRaw": "Dynamic Infusion Pearl Reactive",
+    "factoryFinish": "5000 Grit LSS",
+    "coreName": "Affliction V2",
+    "rg": 2.48,
+    "diff": 0.055,
     "mbDiff": null,
     "sourceUrls": [
-      "https://www.motivbowling.com/products/balls/entry-level/ascend-red-black-tangerine.html",
-      "https://www.motivbowling.com/products/balls/entry-level/ascend-green-teal-black.html",
-      "https://www.motivbowling.com/products/balls/entry-level/ascend-dark-purple-purple-blue.html",
-      "https://www.motivbowling.com/products/balls/entry-level/ascend-navy-teal-yellow.html"
+      "https://www.motivbowling.com/products/balls/retired-balls/sky-raptor.html"
     ],
     "weights": [
       {
+        "weight": 16,
+        "rg": 2.48,
+        "diff": 0.053,
+        "mbDiff": null
+      },
+      {
         "weight": 15,
-        "rg": 2.59,
-        "diff": 0.023,
+        "rg": 2.48,
+        "diff": 0.055,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.5,
+        "diff": 0.053,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.57,
+        "diff": 0.04,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.64,
+        "diff": 0.029,
+        "mbDiff": null
+      }
+    ],
+    "_imageUrl": "https://www.motivbowling.com/userfiles/filemanager/yrijyzx7jy9e2qfao5nz",
+    "_sku": "MTVBRPSKY",
+    "_discontinued": true
+  },
+  {
+    "brand": "Motiv",
+    "name": "Trident Odyssey",
+    "releaseDate": "2022-10-10",
+    "coverstockRaw": "Coercion FYS Solid Reactive",
+    "factoryFinish": "2000 Grit LSS",
+    "coreName": "Turbulent",
+    "rg": 2.49,
+    "diff": 0.054,
+    "mbDiff": 0.017,
+    "sourceUrls": [
+      "https://www.motivbowling.com/products/balls/retired-balls/trident-odyssey.html"
+    ],
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.49,
+        "diff": 0.051,
+        "mbDiff": 0.016
+      },
+      {
+        "weight": 15,
+        "rg": 2.49,
+        "diff": 0.054,
+        "mbDiff": 0.017
+      },
+      {
+        "weight": 14,
+        "rg": 2.51,
+        "diff": 0.054,
+        "mbDiff": 0.017
+      },
+      {
+        "weight": 13,
+        "rg": 2.57,
+        "diff": 0.042,
+        "mbDiff": 0.013
+      },
+      {
+        "weight": 12,
+        "rg": 2.64,
+        "diff": 0.029,
+        "mbDiff": 0.009
+      }
+    ],
+    "_imageUrl": "https://www.motivbowling.com/userfiles/filemanager/vdpwixjpncx8jm9q8gp6",
+    "_sku": "MTVBTDODY",
+    "_discontinued": true
+  },
+  {
+    "brand": "Motiv",
+    "name": "Forge Ember",
+    "releaseDate": "2022-08-31",
+    "coverstockRaw": "Infusion MXC Hybrid Reactive",
+    "factoryFinish": "2000 Grit LSS",
+    "coreName": "Detonator",
+    "rg": 2.47,
+    "diff": 0.055,
+    "mbDiff": null,
+    "sourceUrls": [
+      "https://www.motivbowling.com/products/balls/retired-balls/forge-ember.html"
+    ],
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.47,
+        "diff": 0.054,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.47,
+        "diff": 0.055,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.49,
+        "diff": 0.054,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.55,
+        "diff": 0.045,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.62,
+        "diff": 0.032,
+        "mbDiff": null
+      }
+    ],
+    "_imageUrl": "https://www.motivbowling.com/userfiles/filemanager/lb19zu3sxcw3xzj8gjry",
+    "_sku": "MTVBFGMBR",
+    "_discontinued": true
+  },
+  {
+    "brand": "Motiv",
+    "name": "Ripcord Velocity",
+    "releaseDate": "2022-07-21",
+    "coverstockRaw": "Infusion MVP Pearl Reactive",
+    "factoryFinish": "5500 Grit LSP",
+    "coreName": "Oblivion",
+    "rg": 2.53,
+    "diff": 0.047,
+    "mbDiff": null,
+    "sourceUrls": [
+      "https://www.motivbowling.com/products/balls/retired-balls/ripcord-velocity.html"
+    ],
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.53,
+        "diff": 0.04,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.53,
+        "diff": 0.047,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.54,
+        "diff": 0.048,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.6,
+        "diff": 0.038,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.65,
+        "diff": 0.028,
+        "mbDiff": null
+      }
+    ],
+    "_imageUrl": "https://www.motivbowling.com/userfiles/filemanager/r8mvtr46xfmxkimhi58j",
+    "_sku": "MTVBRCVCT",
+    "_discontinued": true
+  },
+  {
+    "brand": "Motiv",
+    "name": "Supra Enzo",
+    "releaseDate": "2022-07-21",
+    "coverstockRaw": "Infusion Hybrid Reactive",
+    "factoryFinish": "5500 Grit LSP",
+    "coreName": "High Impulse",
+    "rg": 2.57,
+    "diff": 0.05,
+    "mbDiff": null,
+    "sourceUrls": [
+      "https://www.motivbowling.com/products/balls/retired-balls/supra-enzo.html"
+    ],
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.56,
+        "diff": 0.047,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.57,
+        "diff": 0.05,
         "mbDiff": null
       },
       {
         "weight": 14,
         "rg": 2.6,
-        "diff": 0.024,
+        "diff": 0.048,
         "mbDiff": null
       },
       {
         "weight": 13,
-        "rg": 2.65,
-        "diff": 0.017,
+        "rg": 2.62,
+        "diff": 0.045,
         "mbDiff": null
       },
       {
         "weight": 12,
-        "rg": 2.72,
-        "diff": 0.015,
-        "mbDiff": null
-      },
-      {
-        "weight": 11,
-        "rg": 2.76,
-        "diff": 0.015,
-        "mbDiff": null
-      },
-      {
-        "weight": 10,
-        "rg": 2.83,
-        "diff": 0.015,
+        "rg": 2.66,
+        "diff": 0.045,
         "mbDiff": null
       }
     ],
-    "_imageUrl": "https://www.motivbowling.com/userfiles/filemanager/ej2uu7lf83vtfzplaw9j",
-    "_sku": "MTVBASRBT",
-    "_discontinued": false,
-    "colorways": [
+    "_imageUrl": "https://www.motivbowling.com/userfiles/filemanager/r7fxm1mf3qpr34ql5q43",
+    "_sku": "MTVBSPNZO",
+    "_discontinued": true
+  },
+  {
+    "brand": "Motiv",
+    "name": "Pride Empire",
+    "releaseDate": "2022-07-13",
+    "coverstockRaw": "Propulsion Pearl Reactive",
+    "factoryFinish": "5000 Grit LSP",
+    "coreName": "Dominion",
+    "rg": 2.5,
+    "diff": 0.042,
+    "mbDiff": 0.01,
+    "sourceUrls": [
+      "https://www.motivbowling.com/products/balls/retired-balls/pride-empire.html"
+    ],
+    "weights": [
       {
-        "sku": "MTVBASRBT",
-        "color": "Red/Black/Tangerine"
+        "weight": 16,
+        "rg": 2.49,
+        "diff": 0.041,
+        "mbDiff": 0.01
       },
       {
-        "sku": "MTVBASBGT",
-        "color": "Green/Teal/Black"
+        "weight": 15,
+        "rg": 2.5,
+        "diff": 0.042,
+        "mbDiff": 0.01
       },
       {
-        "sku": "MTVBASDPB",
-        "color": "Dark Purple/Purple/Blue"
+        "weight": 14,
+        "rg": 2.52,
+        "diff": 0.043,
+        "mbDiff": 0.011
       },
       {
-        "sku": "MTVBASNTY",
-        "color": "Navy/Teal/Yellow"
+        "weight": 13,
+        "rg": 2.56,
+        "diff": 0.039,
+        "mbDiff": 0.009
+      },
+      {
+        "weight": 12,
+        "rg": 2.63,
+        "diff": 0.028,
+        "mbDiff": 0.007
       }
     ],
-    "_colorwayImages": {
-      "MTVBASRBT": "https://www.motivbowling.com/userfiles/filemanager/ej2uu7lf83vtfzplaw9j",
-      "MTVBASBGT": "https://www.motivbowling.com/userfiles/filemanager/br4y1ssjynkoz6otk5vw",
-      "MTVBASDPB": "https://www.motivbowling.com/userfiles/filemanager/arl239eneh3l96qavxz1",
-      "MTVBASNTY": "https://www.motivbowling.com/userfiles/filemanager/zle89x2bp400f21vf7al"
-    }
+    "_imageUrl": "https://www.motivbowling.com/userfiles/filemanager/vabf48q10kjvbdd7jhrl",
+    "_sku": "MTVBPDEMP",
+    "_discontinued": true
+  },
+  {
+    "brand": "Motiv",
+    "name": "Purple Tank",
+    "releaseDate": "2022-05-23",
+    "coverstockRaw": "Purple Solid Urethane",
+    "factoryFinish": "1000 Grit LSS",
+    "coreName": "Flux",
+    "rg": 2.57,
+    "diff": 0.015,
+    "mbDiff": null,
+    "sourceUrls": [
+      "https://www.motivbowling.com/products/balls/retired-balls/purple-tank.html"
+    ],
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.57,
+        "diff": 0.013,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.57,
+        "diff": 0.015,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.57,
+        "diff": 0.018,
+        "mbDiff": null
+      }
+    ],
+    "_imageUrl": "https://www.motivbowling.com/userfiles/filemanager/3z81cp0cbxfo431qh1mr",
+    "_sku": "MTVBTKPPL",
+    "_discontinued": true
+  },
+  {
+    "brand": "Motiv",
+    "name": "Mythic Jackal",
+    "releaseDate": "2022-03-20",
+    "coverstockRaw": "Infusion HV 2:1 Hybrid Reactive",
+    "factoryFinish": "5000 Grit LSP",
+    "coreName": "Predator V2",
+    "rg": 2.47,
+    "diff": 0.054,
+    "mbDiff": 0.015,
+    "sourceUrls": [
+      "https://www.motivbowling.com/products/balls/retired-balls/mythic-jackal.html"
+    ],
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.48,
+        "diff": 0.047,
+        "mbDiff": 0.013
+      },
+      {
+        "weight": 15,
+        "rg": 2.47,
+        "diff": 0.054,
+        "mbDiff": 0.015
+      },
+      {
+        "weight": 14,
+        "rg": 2.51,
+        "diff": 0.049,
+        "mbDiff": 0.014
+      },
+      {
+        "weight": 13,
+        "rg": 2.57,
+        "diff": 0.04,
+        "mbDiff": 0.011
+      },
+      {
+        "weight": 12,
+        "rg": 2.64,
+        "diff": 0.03,
+        "mbDiff": 0.01
+      }
+    ],
+    "_imageUrl": "https://www.motivbowling.com/userfiles/filemanager/hn1mb0f4t96w4lpamakm",
+    "_sku": "MTVBJKNBS",
+    "_discontinued": true
+  },
+  {
+    "brand": "Motiv",
+    "name": "Forge Flare",
+    "releaseDate": "2021-12-01",
+    "coverstockRaw": "Coercion MXC Solid Reactive",
+    "factoryFinish": "2000 Grit LSS",
+    "coreName": "Detonator",
+    "rg": 2.47,
+    "diff": 0.055,
+    "mbDiff": null,
+    "sourceUrls": [
+      "https://www.motivbowling.com/products/balls/retired-balls/forge-flare.html"
+    ],
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.47,
+        "diff": 0.054,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.47,
+        "diff": 0.055,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.49,
+        "diff": 0.054,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.55,
+        "diff": 0.045,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.62,
+        "diff": 0.032,
+        "mbDiff": null
+      }
+    ],
+    "_imageUrl": "https://www.motivbowling.com/userfiles/filemanager/r0i9v16hy1g16rf1etld",
+    "_sku": "MTVBFGFLA",
+    "_discontinued": true
+  },
+  {
+    "brand": "Motiv",
+    "name": "Raptor Supreme",
+    "releaseDate": "2021-11-24",
+    "coverstockRaw": "Coercion MXC Solid Reactive",
+    "factoryFinish": "3000 Grit LSS",
+    "coreName": "Affliction",
+    "rg": 2.5,
+    "diff": 0.052,
+    "mbDiff": null,
+    "sourceUrls": [
+      "https://www.motivbowling.com/products/balls/exclusives/raptor-supreme.html"
+    ],
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.49,
+        "diff": 0.052,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.5,
+        "diff": 0.052,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.52,
+        "diff": 0.052,
+        "mbDiff": null
+      }
+    ],
+    "_imageUrl": "https://www.motivbowling.com/userfiles/filemanager/wki1f900ldzjicbcsiwy",
+    "_sku": "MTVBRPSPR",
+    "_discontinued": false
+  },
+  {
+    "brand": "Motiv",
+    "name": "Trident Horizon",
+    "releaseDate": "2021-04-14",
+    "coverstockRaw": "Coercion MXC Hybrid Reactive",
+    "factoryFinish": "4000 Grit LSS",
+    "coreName": "Sidewinder",
+    "rg": 2.52,
+    "diff": 0.049,
+    "mbDiff": 0.013,
+    "sourceUrls": [
+      "https://www.motivbowling.com/products/balls/retired-balls/trident-horizon.html"
+    ],
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.52,
+        "diff": 0.049,
+        "mbDiff": 0.013
+      },
+      {
+        "weight": 15,
+        "rg": 2.52,
+        "diff": 0.049,
+        "mbDiff": 0.013
+      },
+      {
+        "weight": 14,
+        "rg": 2.52,
+        "diff": 0.049,
+        "mbDiff": 0.013
+      },
+      {
+        "weight": 13,
+        "rg": 2.56,
+        "diff": 0.051,
+        "mbDiff": 0.015
+      },
+      {
+        "weight": 12,
+        "rg": 2.63,
+        "diff": 0.036,
+        "mbDiff": 0.01
+      }
+    ],
+    "_imageUrl": "https://www.motivbowling.com/userfiles/filemanager/kqvyj17r00u8dhfa4ujk",
+    "_sku": "MTVBTDHZN",
+    "_discontinued": true
+  },
+  {
+    "brand": "Motiv",
+    "name": "Jackal Legacy",
+    "releaseDate": "2021-01-29",
+    "coverstockRaw": "Coercion MXC Solid Reactive",
+    "factoryFinish": "2000 Grit LSS",
+    "coreName": "Predator V2",
+    "rg": 2.47,
+    "diff": 0.054,
+    "mbDiff": 0.015,
+    "sourceUrls": [
+      "https://www.motivbowling.com/products/balls/retired-balls/jackal-legacy.html"
+    ],
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.48,
+        "diff": 0.047,
+        "mbDiff": 0.013
+      },
+      {
+        "weight": 15,
+        "rg": 2.47,
+        "diff": 0.054,
+        "mbDiff": 0.015
+      },
+      {
+        "weight": 14,
+        "rg": 2.51,
+        "diff": 0.049,
+        "mbDiff": 0.014
+      },
+      {
+        "weight": 13,
+        "rg": 2.57,
+        "diff": 0.04,
+        "mbDiff": 0.011
+      },
+      {
+        "weight": 12,
+        "rg": 2.64,
+        "diff": 0.03,
+        "mbDiff": 0.01
+      }
+    ],
+    "_imageUrl": "https://www.motivbowling.com/userfiles/filemanager/k9uzwam4xtq6d7jnzi1e",
+    "_sku": "MTVBJKLEG",
+    "_discontinued": true
+  },
+  {
+    "brand": "Motiv",
+    "name": "Alpha Jackal",
+    "releaseDate": "2021-01-25",
+    "coverstockRaw": "Coercion HV3 Solid Reactive",
+    "factoryFinish": "2000 Grit LSS",
+    "coreName": "Predator V2",
+    "rg": 2.47,
+    "diff": 0.054,
+    "mbDiff": 0.015,
+    "sourceUrls": [
+      "https://www.motivbowling.com/products/balls/retired-balls/alpha-jackal.html"
+    ],
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.48,
+        "diff": 0.047,
+        "mbDiff": 0.013
+      },
+      {
+        "weight": 15,
+        "rg": 2.47,
+        "diff": 0.054,
+        "mbDiff": 0.015
+      },
+      {
+        "weight": 14,
+        "rg": 2.51,
+        "diff": 0.049,
+        "mbDiff": 0.014
+      }
+    ],
+    "_imageUrl": "https://www.motivbowling.com/userfiles/filemanager/youlcre1whzxkmdez029",
+    "_sku": "MTVAJKALP",
+    "_discontinued": true
+  },
+  {
+    "brand": "Motiv",
+    "name": "Jackal Flash",
+    "releaseDate": "2020-09-16",
+    "coverstockRaw": "Infusion HV Pearl Reactive",
+    "factoryFinish": "5000 LSP",
+    "coreName": "Predator V2",
+    "rg": 2.47,
+    "diff": 0.054,
+    "mbDiff": 0.015,
+    "sourceUrls": [
+      "https://www.motivbowling.com/products/balls/retired-balls/jackal-flash.html"
+    ],
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.48,
+        "diff": 0.047,
+        "mbDiff": 0.013
+      },
+      {
+        "weight": 15,
+        "rg": 2.47,
+        "diff": 0.054,
+        "mbDiff": 0.015
+      },
+      {
+        "weight": 14,
+        "rg": 2.51,
+        "diff": 0.049,
+        "mbDiff": 0.014
+      }
+    ],
+    "_imageUrl": "https://www.motivbowling.com/userfiles/filemanager/ymos99wbiiucm288wj8m",
+    "_sku": "MTVBJKFSH",
+    "_discontinued": true
+  },
+  {
+    "brand": "Motiv",
+    "name": "Desert Tank",
+    "releaseDate": "2020-06-17",
+    "coverstockRaw": "Frixion+ Pearl Microcell Polymer",
+    "factoryFinish": "2000 Grit LSS",
+    "coreName": "Flux",
+    "rg": 2.57,
+    "diff": 0.015,
+    "mbDiff": null,
+    "sourceUrls": [
+      "https://www.motivbowling.com/products/balls/retired-balls/desert-tank.html"
+    ],
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.57,
+        "diff": 0.013,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.57,
+        "diff": 0.015,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.57,
+        "diff": 0.018,
+        "mbDiff": null
+      }
+    ],
+    "_imageUrl": "https://www.motivbowling.com/userfiles/filemanager/sb1v3o5j2vh5ltuqpd8m",
+    "_sku": "MTVBTKDST",
+    "_discontinued": true
+  },
+  {
+    "brand": "Motiv",
+    "name": "Ripcord Flight",
+    "releaseDate": "2020-03-31",
+    "coverstockRaw": "Turmoil Max Solid Reactive",
+    "factoryFinish": "3000 Grit LSS",
+    "coreName": "Oblivion",
+    "rg": 2.53,
+    "diff": 0.047,
+    "mbDiff": null,
+    "sourceUrls": [
+      "https://www.motivbowling.com/products/balls/retired-balls/ripcord-flight.html"
+    ],
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.53,
+        "diff": 0.04,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.53,
+        "diff": 0.047,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.54,
+        "diff": 0.048,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.6,
+        "diff": 0.038,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.65,
+        "diff": 0.028,
+        "mbDiff": null
+      }
+    ],
+    "_imageUrl": "https://www.motivbowling.com/userfiles/filemanager/uuqzui1sb7mahdnsxubf",
+    "_sku": "MTVBRCFLT",
+    "_discontinued": true
+  },
+  {
+    "brand": "Motiv",
+    "name": "Trident Nemesis",
+    "releaseDate": "2020-02-19",
+    "coverstockRaw": "Infusion HV Pearl Reactive",
+    "factoryFinish": "5500 Grit LSP",
+    "coreName": "Sidewinder",
+    "rg": 2.52,
+    "diff": 0.049,
+    "mbDiff": 0.013,
+    "sourceUrls": [
+      "https://www.motivbowling.com/products/balls/retired-balls/trident-nemesis.html"
+    ],
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.52,
+        "diff": 0.049,
+        "mbDiff": 0.013
+      },
+      {
+        "weight": 15,
+        "rg": 2.52,
+        "diff": 0.049,
+        "mbDiff": 0.013
+      },
+      {
+        "weight": 14,
+        "rg": 2.52,
+        "diff": 0.049,
+        "mbDiff": 0.013
+      },
+      {
+        "weight": 13,
+        "rg": 2.56,
+        "diff": 0.051,
+        "mbDiff": 0.015
+      },
+      {
+        "weight": 12,
+        "rg": 2.63,
+        "diff": 0.036,
+        "mbDiff": 0.01
+      }
+    ],
+    "_imageUrl": "https://www.motivbowling.com/userfiles/filemanager/8zwbi8xfbr1bmjlfdke2",
+    "_sku": "MTVBTDVTX",
+    "_discontinued": true
+  },
+  {
+    "brand": "Motiv",
+    "name": "Supra",
+    "releaseDate": "2019-11-25",
+    "coverstockRaw": "Infusion Pearl Reactive",
+    "factoryFinish": "5500 Grit LSP",
+    "coreName": "High Impulse",
+    "rg": 2.57,
+    "diff": 0.05,
+    "mbDiff": null,
+    "sourceUrls": [
+      "https://www.motivbowling.com/products/balls/retired-balls/supra.html"
+    ],
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.56,
+        "diff": 0.047,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.57,
+        "diff": 0.05,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.6,
+        "diff": 0.048,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.62,
+        "diff": 0.045,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.66,
+        "diff": 0.045,
+        "mbDiff": null
+      }
+    ],
+    "_imageUrl": "https://www.motivbowling.com/userfiles/filemanager/jx1pbbm0x845euspxdtq",
+    "_sku": "MTVBSPMBP",
+    "_discontinued": true
+  },
+  {
+    "brand": "Motiv",
+    "name": "Forge Fire",
+    "releaseDate": "2019-10-16",
+    "coverstockRaw": "Infusion Hybrid Reactive",
+    "factoryFinish": "4000 Grit LSS",
+    "coreName": "Detonator",
+    "rg": 2.47,
+    "diff": 0.055,
+    "mbDiff": null,
+    "sourceUrls": [
+      "https://www.motivbowling.com/products/balls/retired-balls/forge-fire.html"
+    ],
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.47,
+        "diff": 0.054,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.47,
+        "diff": 0.055,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.49,
+        "diff": 0.054,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.55,
+        "diff": 0.045,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.62,
+        "diff": 0.032,
+        "mbDiff": null
+      }
+    ],
+    "_imageUrl": "https://www.motivbowling.com/userfiles/filemanager/ro8us2vex57cocnwjjlq",
+    "_sku": "MTVBFGFIR",
+    "_discontinued": true
+  },
+  {
+    "brand": "Motiv",
+    "name": "Golden Jackal",
+    "releaseDate": "2019-02-13",
+    "coverstockRaw": "Hexion SE Pearl",
+    "factoryFinish": "4000 Grit LSS",
+    "coreName": "Predator V3",
+    "rg": 2.47,
+    "diff": 0.055,
+    "mbDiff": 0.019,
+    "sourceUrls": [
+      "https://www.motivbowling.com/products/balls/retired-balls/golden-jackal.html"
+    ],
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.47,
+        "diff": 0.053,
+        "mbDiff": 0.018
+      },
+      {
+        "weight": 15,
+        "rg": 2.47,
+        "diff": 0.055,
+        "mbDiff": 0.019
+      },
+      {
+        "weight": 14,
+        "rg": 2.5,
+        "diff": 0.052,
+        "mbDiff": 0.018
+      }
+    ],
+    "_imageUrl": "https://www.motivbowling.com/userfiles/filemanager/awu5k5ahdkca29zgkmtl",
+    "_sku": "MTVBJKGLD",
+    "_discontinued": true
+  },
+  {
+    "brand": "Motiv",
+    "name": "Combat Tank",
+    "releaseDate": "2018-01-03",
+    "coverstockRaw": "Alchemy Hybrid",
+    "factoryFinish": "3000 Grit LSS",
+    "coreName": "Recon",
+    "rg": 2.59,
+    "diff": 0.025,
+    "mbDiff": null,
+    "sourceUrls": [
+      "https://www.motivbowling.com/products/balls/retired-balls/combat-tank.html"
+    ],
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.59,
+        "diff": 0.018,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.59,
+        "diff": 0.025,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.61,
+        "diff": 0.025,
+        "mbDiff": null
+      }
+    ],
+    "_imageUrl": "https://www.motivbowling.com/userfiles/filemanager/j1xcs9558wy7euaal1sa",
+    "_sku": "MTVBTKCKB",
+    "_discontinued": true
+  },
+  {
+    "brand": "Motiv",
+    "name": "Tank Rampage",
+    "releaseDate": "2017-05-31",
+    "coverstockRaw": "Alchemy Urethane",
+    "factoryFinish": "3000 Grit LSS",
+    "coreName": "Gear V2",
+    "rg": 2.55,
+    "diff": 0.02,
+    "mbDiff": null,
+    "sourceUrls": [
+      "https://www.motivbowling.com/products/balls/retired-balls/tank-rampage.html"
+    ],
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.54,
+        "diff": 0.02,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.55,
+        "diff": 0.02,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.56,
+        "diff": 0.02,
+        "mbDiff": null
+      }
+    ],
+    "_imageUrl": "https://www.motivbowling.com/userfiles/filemanager/2ukqbz9bjblulivhb89p",
+    "_sku": "MTVBTKBS",
+    "_discontinued": true
+  },
+  {
+    "brand": "Motiv",
+    "name": "Octane Carbon",
+    "releaseDate": "2017-04-10",
+    "coverstockRaw": "Agitator MXR Pearl",
+    "factoryFinish": "5500 Grit LSP",
+    "coreName": "Injector",
+    "rg": 2.56,
+    "diff": 0.042,
+    "mbDiff": null,
+    "sourceUrls": [
+      "https://www.motivbowling.com/products/balls/retired-balls/octane-carbon.html"
+    ],
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.56,
+        "diff": 0.039,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.56,
+        "diff": 0.042,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.58,
+        "diff": 0.043,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.6,
+        "diff": 0.042,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.61,
+        "diff": 0.048,
+        "mbDiff": null
+      }
+    ],
+    "_imageUrl": "https://www.motivbowling.com/userfiles/filemanager/tff3aoe47hjgbjn5efa4",
+    "_sku": "MTVBOCROP",
+    "_discontinued": true
   }
 ]
