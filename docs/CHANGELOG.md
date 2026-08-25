@@ -8,6 +8,15 @@ merge to `main` (`docs/DEPLOYMENT.md`), so every section below is a dated batch
 of shipped work rather than a release. Thirty of them used to be headed
 `[Unreleased]`, which said nothing once they had all shipped.
 
+## MOTIV's top 15 balls added to the catalog (2026-08)
+
+### Added
+
+- **10 new MOTIV balls**: Apex Jackal, Black Venom, Hyper Venom, Jackal Ghost
+  V2, Lethal Venom, Nebula, Primal Ghost, Raptor Reign, Steel Forge, Supra
+  Clutch. Specs and images sourced from bowwwl.com under MOTIV's data license.
+- **Image added for the existing Venom Shock**, which had specs but no photo.
+
 ## Stats gets its own tab, and two ways to cut it (2026-08)
 
 ### Added

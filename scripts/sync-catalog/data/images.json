@@ -146,5 +146,49 @@
   "motiv-venom-hysteria-2026": {
     "imageThumb": "/catalog/img/motiv-venom-hysteria-2026-thumb.webp",
     "imageFull": "/catalog/img/motiv-venom-hysteria-2026-full.webp"
+  },
+  "motiv-apex-jackal-2026": {
+    "imageThumb": "/catalog/img/motiv-apex-jackal-2026-thumb.webp",
+    "imageFull": "/catalog/img/motiv-apex-jackal-2026-full.webp"
+  },
+  "motiv-black-venom-2023": {
+    "imageThumb": "/catalog/img/motiv-black-venom-2023-thumb.webp",
+    "imageFull": "/catalog/img/motiv-black-venom-2023-full.webp"
+  },
+  "motiv-hyper-venom-2024": {
+    "imageThumb": "/catalog/img/motiv-hyper-venom-2024-thumb.webp",
+    "imageFull": "/catalog/img/motiv-hyper-venom-2024-full.webp"
+  },
+  "motiv-jackal-ghost-v2-2026": {
+    "imageThumb": "/catalog/img/motiv-jackal-ghost-v2-2026-thumb.webp",
+    "imageFull": "/catalog/img/motiv-jackal-ghost-v2-2026-full.webp"
+  },
+  "motiv-lethal-venom-2025": {
+    "imageThumb": "/catalog/img/motiv-lethal-venom-2025-thumb.webp",
+    "imageFull": "/catalog/img/motiv-lethal-venom-2025-full.webp"
+  },
+  "motiv-nebula-2025": {
+    "imageThumb": "/catalog/img/motiv-nebula-2025-thumb.webp",
+    "imageFull": "/catalog/img/motiv-nebula-2025-full.webp"
+  },
+  "motiv-primal-ghost-2025": {
+    "imageThumb": "/catalog/img/motiv-primal-ghost-2025-thumb.webp",
+    "imageFull": "/catalog/img/motiv-primal-ghost-2025-full.webp"
+  },
+  "motiv-raptor-reign-2025": {
+    "imageThumb": "/catalog/img/motiv-raptor-reign-2025-thumb.webp",
+    "imageFull": "/catalog/img/motiv-raptor-reign-2025-full.webp"
+  },
+  "motiv-steel-forge-2025": {
+    "imageThumb": "/catalog/img/motiv-steel-forge-2025-thumb.webp",
+    "imageFull": "/catalog/img/motiv-steel-forge-2025-full.webp"
+  },
+  "motiv-supra-clutch-2025": {
+    "imageThumb": "/catalog/img/motiv-supra-clutch-2025-thumb.webp",
+    "imageFull": "/catalog/img/motiv-supra-clutch-2025-full.webp"
+  },
+  "motiv-venom-shock-2014": {
+    "imageThumb": "/catalog/img/motiv-venom-shock-2014-thumb.webp",
+    "imageFull": "/catalog/img/motiv-venom-shock-2014-full.webp"
   }
 }

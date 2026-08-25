@@ -175,8 +175,8 @@
     "rg": 2.48,
     "diff": 0.034,
     "mbDiff": null,
-    "imageThumb": null,
-    "imageFull": null,
+    "imageThumb": "/catalog/img/motiv-venom-shock-2014-thumb.webp",
+    "imageFull": "/catalog/img/motiv-venom-shock-2014-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/light-medium-oil/venom-shock.html"
   },
   {
@@ -3053,6 +3053,506 @@
         "weight": 12,
         "rg": 2.65,
         "diff": 0.016,
+        "mbDiff": null
+      }
+    ]
+  },
+  {
+    "id": "motiv-apex-jackal-2026",
+    "brand": "Motiv",
+    "name": "Apex Jackal",
+    "releaseDate": "2026-01-08",
+    "releaseYear": 2026,
+    "coverstockRaw": "Pearl Reactive",
+    "coverstockCategory": "Pearl",
+    "factoryFinish": "5000 LSS",
+    "coreName": "Apex Predator",
+    "coreType": "Asymmetric",
+    "rg": 2.52,
+    "diff": 0.055,
+    "mbDiff": 0.02,
+    "imageThumb": "/catalog/img/motiv-apex-jackal-2026-thumb.webp",
+    "imageFull": "/catalog/img/motiv-apex-jackal-2026-full.webp",
+    "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/motiv/apex-jackal",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.53,
+        "diff": 0.048,
+        "mbDiff": 0.017
+      },
+      {
+        "weight": 15,
+        "rg": 2.52,
+        "diff": 0.055,
+        "mbDiff": 0.02
+      },
+      {
+        "weight": 14,
+        "rg": 2.55,
+        "diff": 0.052,
+        "mbDiff": 0.02
+      },
+      {
+        "weight": 13,
+        "rg": 2.64,
+        "diff": 0.035,
+        "mbDiff": 0.017
+      },
+      {
+        "weight": 12,
+        "rg": 2.64,
+        "diff": 0.033,
+        "mbDiff": 0.014
+      }
+    ]
+  },
+  {
+    "id": "motiv-black-venom-2023",
+    "brand": "Motiv",
+    "name": "Black Venom",
+    "releaseDate": "2023-03-29",
+    "releaseYear": 2023,
+    "coverstockRaw": "Leverage MFS Solid Reactive",
+    "coverstockCategory": "Solid",
+    "factoryFinish": "4000 LSS",
+    "coreName": "Gear APG",
+    "coreType": "Asymmetric",
+    "rg": 2.47,
+    "diff": 0.036,
+    "mbDiff": 0.013,
+    "imageThumb": "/catalog/img/motiv-black-venom-2023-thumb.webp",
+    "imageFull": "/catalog/img/motiv-black-venom-2023-full.webp",
+    "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/motiv/black-venom",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.48,
+        "diff": 0.032,
+        "mbDiff": 0.011
+      },
+      {
+        "weight": 15,
+        "rg": 2.47,
+        "diff": 0.036,
+        "mbDiff": 0.013
+      },
+      {
+        "weight": 14,
+        "rg": 2.5,
+        "diff": 0.033,
+        "mbDiff": 0.013
+      },
+      {
+        "weight": 13,
+        "rg": 2.56,
+        "diff": 0.028,
+        "mbDiff": 0.009
+      },
+      {
+        "weight": 12,
+        "rg": 2.63,
+        "diff": 0.02,
+        "mbDiff": 0.007
+      }
+    ]
+  },
+  {
+    "id": "motiv-hyper-venom-2024",
+    "brand": "Motiv",
+    "name": "Hyper Venom",
+    "releaseDate": "2024-03-20",
+    "releaseYear": 2024,
+    "coverstockRaw": "Propulsion MXR Pearl Reactive",
+    "coverstockCategory": "Pearl",
+    "factoryFinish": "5500 LSP",
+    "coreName": "Gear",
+    "coreType": "Symmetric",
+    "rg": 2.48,
+    "diff": 0.034,
+    "mbDiff": null,
+    "imageThumb": "/catalog/img/motiv-hyper-venom-2024-thumb.webp",
+    "imageFull": "/catalog/img/motiv-hyper-venom-2024-full.webp",
+    "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/motiv/hyper-venom",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.48,
+        "diff": 0.031,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.48,
+        "diff": 0.034,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.52,
+        "diff": 0.029,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.58,
+        "diff": 0.023,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.65,
+        "diff": 0.016,
+        "mbDiff": null
+      }
+    ]
+  },
+  {
+    "id": "motiv-jackal-ghost-v2-2026",
+    "brand": "Motiv",
+    "name": "Jackal Ghost V2",
+    "releaseDate": "2026-08-12",
+    "releaseYear": 2026,
+    "coverstockRaw": "Leverage HFS Solid Reactive",
+    "coverstockCategory": "Solid",
+    "factoryFinish": "3000 LSS",
+    "coreName": "Predator V2",
+    "coreType": "Asymmetric",
+    "rg": 2.47,
+    "diff": 0.054,
+    "mbDiff": 0.015,
+    "imageThumb": "/catalog/img/motiv-jackal-ghost-v2-2026-thumb.webp",
+    "imageFull": "/catalog/img/motiv-jackal-ghost-v2-2026-full.webp",
+    "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/motiv/jackal-ghost-v2",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.48,
+        "diff": 0.047,
+        "mbDiff": 0.013
+      },
+      {
+        "weight": 15,
+        "rg": 2.47,
+        "diff": 0.054,
+        "mbDiff": 0.015
+      },
+      {
+        "weight": 14,
+        "rg": 2.51,
+        "diff": 0.049,
+        "mbDiff": 0.014
+      },
+      {
+        "weight": 13,
+        "rg": 2.57,
+        "diff": 0.04,
+        "mbDiff": 0.011
+      },
+      {
+        "weight": 12,
+        "rg": 2.64,
+        "diff": 0.03,
+        "mbDiff": 0.01
+      }
+    ]
+  },
+  {
+    "id": "motiv-lethal-venom-2025",
+    "brand": "Motiv",
+    "name": "Lethal Venom",
+    "releaseDate": "2025-02-12",
+    "releaseYear": 2025,
+    "coverstockRaw": "Leverage MXC Solid Reactive",
+    "coverstockCategory": "Solid",
+    "factoryFinish": "3000 LSS",
+    "coreName": "Gear APG",
+    "coreType": "Asymmetric",
+    "rg": 2.47,
+    "diff": 0.036,
+    "mbDiff": 0.013,
+    "imageThumb": "/catalog/img/motiv-lethal-venom-2025-thumb.webp",
+    "imageFull": "/catalog/img/motiv-lethal-venom-2025-full.webp",
+    "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/motiv/lethal-venom",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.48,
+        "diff": 0.032,
+        "mbDiff": 0.011
+      },
+      {
+        "weight": 15,
+        "rg": 2.47,
+        "diff": 0.036,
+        "mbDiff": 0.013
+      },
+      {
+        "weight": 14,
+        "rg": 2.5,
+        "diff": 0.033,
+        "mbDiff": 0.013
+      },
+      {
+        "weight": 13,
+        "rg": 2.56,
+        "diff": 0.028,
+        "mbDiff": 0.009
+      },
+      {
+        "weight": 12,
+        "rg": 2.63,
+        "diff": 0.02,
+        "mbDiff": 0.007
+      }
+    ]
+  },
+  {
+    "id": "motiv-nebula-2025",
+    "brand": "Motiv",
+    "name": "Nebula",
+    "releaseDate": "2025-11-26",
+    "releaseYear": 2025,
+    "coverstockRaw": "Pearl Reactive",
+    "coverstockCategory": "Pearl",
+    "factoryFinish": "5500 LSP",
+    "coreName": "Hadron",
+    "coreType": "Symmetric",
+    "rg": 2.5,
+    "diff": 0.045,
+    "mbDiff": null,
+    "imageThumb": "/catalog/img/motiv-nebula-2025-thumb.webp",
+    "imageFull": "/catalog/img/motiv-nebula-2025-full.webp",
+    "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/motiv/nebula",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.5,
+        "diff": 0.038,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.5,
+        "diff": 0.045,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.51,
+        "diff": 0.049,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.65,
+        "diff": 0.02,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.65,
+        "diff": 0.02,
+        "mbDiff": null
+      }
+    ]
+  },
+  {
+    "id": "motiv-primal-ghost-2025",
+    "brand": "Motiv",
+    "name": "Primal Ghost",
+    "releaseDate": "2025-09-17",
+    "releaseYear": 2025,
+    "coverstockRaw": "Solid Reactive",
+    "coverstockCategory": "Solid",
+    "factoryFinish": "3000 LSS",
+    "coreName": "Impulse V2",
+    "coreType": "Symmetric",
+    "rg": 2.55,
+    "diff": 0.05,
+    "mbDiff": null,
+    "imageThumb": "/catalog/img/motiv-primal-ghost-2025-thumb.webp",
+    "imageFull": "/catalog/img/motiv-primal-ghost-2025-full.webp",
+    "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/motiv/primal-ghost",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.54,
+        "diff": 0.049,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.55,
+        "diff": 0.05,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.56,
+        "diff": 0.054,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.6,
+        "diff": 0.055,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.67,
+        "diff": 0.04,
+        "mbDiff": null
+      }
+    ]
+  },
+  {
+    "id": "motiv-raptor-reign-2025",
+    "brand": "Motiv",
+    "name": "Raptor Reign",
+    "releaseDate": "2025-10-22",
+    "releaseYear": 2025,
+    "coverstockRaw": "Leverage MXV Solid Reactive",
+    "coverstockCategory": "Solid",
+    "factoryFinish": "2000 LSS",
+    "coreName": "Affliction V2",
+    "coreType": "Symmetric",
+    "rg": 2.48,
+    "diff": 0.055,
+    "mbDiff": null,
+    "imageThumb": "/catalog/img/motiv-raptor-reign-2025-thumb.webp",
+    "imageFull": "/catalog/img/motiv-raptor-reign-2025-full.webp",
+    "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/motiv/raptor-reign",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.48,
+        "diff": 0.053,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.48,
+        "diff": 0.055,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.5,
+        "diff": 0.053,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.57,
+        "diff": 0.04,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.64,
+        "diff": 0.029,
+        "mbDiff": null
+      }
+    ]
+  },
+  {
+    "id": "motiv-steel-forge-2025",
+    "brand": "Motiv",
+    "name": "Steel Forge",
+    "releaseDate": "2025-08-13",
+    "releaseYear": 2025,
+    "coverstockRaw": "Pearl Reactive",
+    "coverstockCategory": "Pearl",
+    "factoryFinish": "5000 LSS",
+    "coreName": "Detonator",
+    "coreType": "Symmetric",
+    "rg": 2.47,
+    "diff": 0.055,
+    "mbDiff": null,
+    "imageThumb": "/catalog/img/motiv-steel-forge-2025-thumb.webp",
+    "imageFull": "/catalog/img/motiv-steel-forge-2025-full.webp",
+    "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/motiv/steel-forge",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.47,
+        "diff": 0.054,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.47,
+        "diff": 0.055,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.49,
+        "diff": 0.054,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.55,
+        "diff": 0.045,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.62,
+        "diff": 0.032,
+        "mbDiff": null
+      }
+    ]
+  },
+  {
+    "id": "motiv-supra-clutch-2025",
+    "brand": "Motiv",
+    "name": "Supra Clutch",
+    "releaseDate": "2025-07-09",
+    "releaseYear": 2025,
+    "coverstockRaw": "Propulsion XRT Hybrid Reactive",
+    "coverstockCategory": "Hybrid",
+    "factoryFinish": "5500 LSP",
+    "coreName": "Quadfire",
+    "coreType": "Symmetric",
+    "rg": 2.55,
+    "diff": 0.043,
+    "mbDiff": null,
+    "imageThumb": "/catalog/img/motiv-supra-clutch-2025-thumb.webp",
+    "imageFull": "/catalog/img/motiv-supra-clutch-2025-full.webp",
+    "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/motiv/supra-clutch",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.54,
+        "diff": 0.04,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.55,
+        "diff": 0.043,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.56,
+        "diff": 0.043,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.58,
+        "diff": 0.047,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.59,
+        "diff": 0.05,
         "mbDiff": null
       }
     ]
