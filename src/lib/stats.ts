@@ -369,10 +369,50 @@ export interface BallPerformance {
   leaves: LeaveStats[];
 }
 
+/** Fewest fresh-rack balls a ball needs before its rate is allowed to lead a
+ *  column. Under this a single lucky night wins, which is exactly the reading
+ *  ADR-047 shrinks the aggregate rates to avoid. */
+export const RATE_LEADER_MIN_BALLS = 10;
+
+/** The best rate in each column, or `null` where there is nothing to crown. */
+export interface RateLeaders {
+  pocketPct: number | null;
+  carryPct: number | null;
+  strikePct: number | null;
+}
+
 export interface BallPerformanceReport {
   balls: BallPerformance[];
   /** Fresh-rack balls thrown with no ball recorded, so attributable to nothing. */
   unattributed: number;
+}
+
+/**
+ * The leading rate in each column, for balls with enough behind them.
+ *
+ * Values rather than a winning ball, so a tie lights every ball that ties
+ * rather than picking one of them arbitrarily.
+ *
+ * Nothing leads until two balls qualify: "best of one" is not a comparison,
+ * and a lone highlighted row reads as a recommendation the data cannot make.
+ */
+export function findRateLeaders(balls: BallPerformance[]): RateLeaders {
+  const eligible = balls.filter((b) => b.firstBalls >= RATE_LEADER_MIN_BALLS);
+  if (eligible.length < 2) return { pocketPct: null, carryPct: null, strikePct: null };
+
+  const best = (pick: (b: BallPerformance) => number | null): number | null => {
+    const values = eligible.flatMap((b) => {
+      const value = pick(b);
+      return value === null ? [] : [value];
+    });
+    return values.length === 0 ? null : Math.max(...values);
+  };
+
+  return {
+    pocketPct: best((b) => b.pocketPct),
+    carryPct: best((b) => b.carryPct),
+    strikePct: best((b) => b.strikePct)
+  };
 }
 
 /** A cell under construction: its own totals plus one entry per game feeding it. */

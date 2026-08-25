@@ -1,7 +1,11 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ChevronRight, History, LayoutGrid, Target } from "lucide-react";
 import { Stats } from "../components/Stats";
-import { SessionFilterBar } from "../components/SessionFilterBar";
+import {
+  SessionFilterButton,
+  SessionFilterChips,
+  SessionFilterSheet
+} from "../components/SessionFilterBar";
 import { IconButton } from "../components/ui/IconButton";
 import { GROUP_HEADING } from "../components/ui/typography";
 import {
@@ -55,6 +59,7 @@ export function StatsView({
 }: StatsViewProps) {
   const filters = useSessionFilters();
   const { filtered, activeLanes, isLoading, history } = filters;
+  const [filtersOpen, setFiltersOpen] = useState(false);
 
   const liveBalls = useLiveQuery(() => getBalls());
   const balls = liveBalls ?? NO_BALLS;
@@ -87,13 +92,19 @@ export function StatsView({
     <section className="mx-auto flex h-full w-full max-w-3xl flex-col px-3 pt-3 sm:px-6 sm:pt-5">
       <div className="mb-3 flex items-center justify-between gap-3">
         <h1 className="text-xl font-bold text-ink">Stats</h1>
-        {/* The twin of History's own crossing control (ADR-057). */}
-        <IconButton label="View sessions" variant="round" onClick={onViewSessions}>
-          <History size={20} aria-hidden="true" />
-        </IconButton>
+        <div className="flex shrink-0 items-center gap-1">
+          <SessionFilterButton filters={filters} onOpen={() => setFiltersOpen(true)} />
+          {/* The twin of History's own crossing control (ADR-057). */}
+          <IconButton label="View sessions" variant="round" onClick={onViewSessions}>
+            <History size={20} aria-hidden="true" />
+          </IconButton>
+        </div>
       </div>
 
-      <SessionFilterBar filters={filters} />
+      <SessionFilterChips filters={filters} />
+      {filtersOpen && (
+        <SessionFilterSheet filters={filters} onClose={() => setFiltersOpen(false)} />
+      )}
 
       <div
         ref={scrollerRef}

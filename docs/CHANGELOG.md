@@ -36,12 +36,27 @@ of shipped work rather than a release. Thirty of them used to be headed
   much about the first ball as about the spare (ADR-055, ADR-058, ADR-059).
 - **First ball average** on the Stats tiles: pins knocked down by the average
   ball at a full rack, off the same balls as strike and pocket.
+- **The best pocket, carry and strike rate are called out** in the ball table.
+  A ball needs at least 10 fresh-rack balls to be in the running, so one good
+  night with a new ball cannot take the crown, and nothing is highlighted until
+  two balls qualify, since best of one is not a comparison. A tie lights both.
 - **Game by game**, from the Stats tab: every first game against every second
   game, with average, strike and spare on one column set and pocket and carry
   on the other. Slots with fewer than three games are greyed rather than
   hidden. Tapping a row narrows the whole Stats tab to that slot (ADR-056).
 
 ### Changed
+
+- **The filters collapse into a button.** Location, pattern, game and lanes now
+  open in a sheet from a round control in the header, which carries a badge
+  when anything is on. What is applied stays on screen as a row of chips you
+  can tap to remove. A twelve-lane house used to wrap the filter onto three
+  rows and push the first number most of the way down the screen; with nothing
+  filtered it now takes no room at all (ADR-060).
+- **The leaves grid is three cards to a row, not four.** A tabular "100%" and a
+  "10/10" will not both fit a quarter of a 390px screen, so the count had been
+  quietly clipping. Made-over-chances sits hard left and the rate hard right in
+  every cell.
 
 - **Spare lines moved off the tab bar** to the dashboard, alongside the arsenal
   and the catalog, and adds through its nav bar instead of a floating button.

@@ -2516,3 +2516,45 @@ standing in ADR-058 and put nothing in its place.
 - The rule of thumb is an estimate, and the only estimate on the screen. If it
   is ever wanted exactly, that is a different number with a different name, and
   it needs a game that was never bowled (ADR-055's original problem).
+
+---
+
+## ADR-060: The filter collapses to a button, and only what is applied stays on screen
+
+**Status:** accepted (2026-08). Amends the filter bar ADR-057 introduced.
+
+**Context.** The shared filter shipped as four rows of controls above the
+content: two selects, a chip per game, and a chip per lane. At a twelve-lane
+house that wrapped to three rows. Something like 130px of a 390-wide screen was
+filter, before a single number, and most of those controls are not being used
+most of the time.
+
+The obvious fix is to put the whole thing behind a button with a count. That is
+right for a list, and only half right for a screen of statistics: a filtered
+average is a different number from an unfiltered one, and `DESIGN-LANGUAGE §4b`
+says a number carries its own definition or it does not go on screen. "201 avg"
+means one thing across a season and another across game 1 on two lanes, and the
+reader cannot tell which without opening a sheet to find out.
+
+**Decision.**
+
+- **The options live in a `FormSheet`**, opened from a round button in the tab's
+  header. The sheet applies as you go, so it has no commit and the close is the
+  only way out.
+- **The button carries a badge** counting the kinds of filter applied. Lanes
+  count once however many are picked: three lanes is one answer to one
+  question, and a badge reading 5 would suggest five things to go and undo.
+- **What is applied stays on screen**, as one horizontally scrolling row of
+  chips, each of which removes its own filter. The row scrolls rather than
+  wraps, because wrapping is what made the old bar tall.
+- **Nothing applied renders nothing.** The common case costs no height at all,
+  which is where most of the saving comes from.
+
+**Consequences.**
+- The header now carries two round controls on these two tabs, the filter and
+  the crossing control. §1's one-trailing-action rule is about pushed screens,
+  which have a nav bar; a tab has its own header and can hold both.
+- The applied row is `overflow-x-auto`, so it needs vertical padding: that
+  forces `overflow-y: auto`, which clips at the padding box, and the chips
+  overhang their own box to reach 44pt. The same note sits on the game row in
+  `ActiveSessionView`.

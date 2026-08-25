@@ -6,7 +6,8 @@ import {
   calculateOpenFrames,
   calculateSessionTrend,
   calculateStats,
-  filterSessionsBy
+  filterSessionsBy,
+  findRateLeaders
 } from "./stats";
 import type { Ball, Frame, Game, PinNumber, SessionSummary, Shot } from "../types/bowling";
 
@@ -958,5 +959,77 @@ describe("calculateGameNumberTrend", () => {
     ];
     const trend = calculateGameNumberTrend(sessions);
     expect(trend[0]).toMatchObject({ games: 0, average: null, strikePct: 0 });
+  });
+});
+
+describe("findRateLeaders", () => {
+  function ballPerf(
+    ballId: number,
+    firstBalls: number,
+    pocketPct: number | null,
+    carryPct: number | null,
+    strikePct: number | null
+  ) {
+    return {
+      ballId,
+      name: `Ball ${ballId}`,
+      imageThumb: null,
+      brand: null,
+      firstBalls,
+      pocketPct,
+      carryPct,
+      strikePct,
+      byGame: [],
+      leaves: []
+    };
+  }
+
+  it("crowns nothing without two balls to compare", () => {
+    expect(findRateLeaders([])).toEqual({ pocketPct: null, carryPct: null, strikePct: null });
+    expect(findRateLeaders([ballPerf(1, 50, 60, 50, 30)])).toEqual({
+      pocketPct: null,
+      carryPct: null,
+      strikePct: null
+    });
+  });
+
+  it("takes the best in each column independently", () => {
+    const leaders = findRateLeaders([
+      ballPerf(1, 40, 70, 40, 28),
+      ballPerf(2, 40, 55, 62, 34)
+    ]);
+    expect(leaders).toEqual({ pocketPct: 70, carryPct: 62, strikePct: 34 });
+  });
+
+  it("ignores a ball under the minimum, however good it looks", () => {
+    const leaders = findRateLeaders([
+      ballPerf(1, 40, 70, 40, 28),
+      ballPerf(2, 40, 55, 62, 34),
+      // Three balls thrown, all of them strikes. Not a leader.
+      ballPerf(3, 3, 100, 100, 100)
+    ]);
+    expect(leaders).toEqual({ pocketPct: 70, carryPct: 62, strikePct: 34 });
+  });
+
+  it("needs two ELIGIBLE balls, not two balls", () => {
+    const leaders = findRateLeaders([ballPerf(1, 40, 70, 40, 28), ballPerf(2, 4, 90, 90, 90)]);
+    expect(leaders).toEqual({ pocketPct: null, carryPct: null, strikePct: null });
+  });
+
+  it("returns the value, so a tie can light both balls", () => {
+    const leaders = findRateLeaders([
+      ballPerf(1, 40, 64, 40, 28),
+      ballPerf(2, 40, 64, 62, 34)
+    ]);
+    expect(leaders.pocketPct).toBe(64);
+  });
+
+  it("skips a null rate rather than treating it as zero", () => {
+    const leaders = findRateLeaders([
+      ballPerf(1, 40, 70, null, 28),
+      ballPerf(2, 40, 55, null, 34)
+    ]);
+    expect(leaders.carryPct).toBeNull();
+    expect(leaders.pocketPct).toBe(70);
   });
 });

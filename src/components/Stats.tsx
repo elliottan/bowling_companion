@@ -6,13 +6,16 @@ import { MiniPins } from "./MiniPins";
 import { EmptyState } from "./ui/EmptyState";
 import type { Manufacturer } from "../types/catalog";
 import { isBabySplit, isSplit, isWashout } from "../lib/pins";
-import type {
-  BallGameCell,
-  BallPerformance,
-  BallPerformanceReport,
-  BowlingStats,
-  LeaveStats,
-  SessionTrendPoint
+import {
+  findRateLeaders,
+  RATE_LEADER_MIN_BALLS,
+  type BallGameCell,
+  type BallPerformance,
+  type BallPerformanceReport,
+  type BowlingStats,
+  type LeaveStats,
+  type RateLeaders,
+  type SessionTrendPoint
 } from "../lib/stats";
 import { BallGameSessionsDialog } from "./BallGameSessionsDialog";
 import { ScoreTrendChart } from "./ScoreTrendChart";
@@ -82,6 +85,9 @@ export function Stats({
   const [note, setNote] = useState<string | null>(null);
 
   const toggleNote = (text: string) => setNote((curr) => (curr === text ? null : text));
+
+  // Once for the card, not once per row.
+  const rateLeaders = findRateLeaders(ballPerformance?.balls ?? []);
 
   if (isLoading) {
     return (
@@ -185,6 +191,7 @@ export function Stats({
                 <BallPerformanceRow
                   key={b.ballId}
                   ball={b}
+                  leaders={rateLeaders}
                   memoryKey={memoryKey}
                   onOpenGame={onOpenGame}
                 />
@@ -250,13 +257,20 @@ function StatNote({ text, onDismiss }: { text: string; onDismiss: () => void }) 
 
 function BallPerformanceRow({
   ball,
+  leaders,
   memoryKey,
   onOpenGame
 }: {
   ball: BallPerformance;
+  leaders: RateLeaders;
   memoryKey: string;
   onOpenGame?: (sessionId: number, gameId: number, ballId?: number) => void;
 }) {
+  // A rate leads only if the ball has enough balls behind it to be in the
+  // running at all, so a thin row can never light up.
+  const eligible = ball.firstBalls >= RATE_LEADER_MIN_BALLS;
+  const leads = (value: number | null, best: number | null) =>
+    eligible && value !== null && value === best;
   // Remembered per ball: a drill-down goes to a session, and coming back to a
   // collapsed row would lose the reader's place.
   const [open, setOpen] = useRememberedState(`${memoryKey}:ball:${ball.ballId}`, false);
@@ -284,15 +298,21 @@ function BallPerformanceRow({
         <span className="min-w-0 flex-1 truncate font-medium text-ink-strong">{ball.name}</span>
         {/* Pocket, carry, strike, then the balls behind them, each under the
             letter that names it in the card heading. */}
-        <span className={`${RATE_COLUMN} text-xs font-semibold tabular-nums text-ink`} aria-label={`pocket ${pct(ball.pocketPct)}`}>
-          {pct(ball.pocketPct)}
-        </span>
-        <span className={`${RATE_COLUMN} text-xs font-semibold tabular-nums text-ink`} aria-label={`carry ${pct(ball.carryPct)}`}>
-          {pct(ball.carryPct)}
-        </span>
-        <span className={`${RATE_COLUMN} text-xs font-semibold tabular-nums text-ink`} aria-label={`strike ${pct(ball.strikePct)}`}>
-          {pct(ball.strikePct)}
-        </span>
+        <RateCell
+          value={ball.pocketPct}
+          leads={leads(ball.pocketPct, leaders.pocketPct)}
+          label="pocket"
+        />
+        <RateCell
+          value={ball.carryPct}
+          leads={leads(ball.carryPct, leaders.carryPct)}
+          label="carry"
+        />
+        <RateCell
+          value={ball.strikePct}
+          leads={leads(ball.strikePct, leaders.strikePct)}
+          label="strike"
+        />
         <span className={`${RATE_COLUMN} text-xs tabular-nums text-ink-secondary`} aria-label={`${ball.firstBalls} balls`}>
           {ball.firstBalls}
         </span>
@@ -441,7 +461,12 @@ function LeaveSection({
           {title}
         </button>
       </h2>
-      <div className="grid grid-cols-4 gap-1.5">
+      {/* Three to a row, not four. A tabular "100%" is 37px and "10/10" is
+          29px, which will not both fit a quarter of 390px however the type is
+          sized: at four the count was silently clipping. Three leaves room for
+          the widest pairing at full size, with the count hard left and the rate
+          hard right in every cell. */}
+      <div className="grid grid-cols-3 gap-1.5">
         {sorted.map((leave) => (
           <LeaveCell key={leave.pins.join("-")} leave={leave} />
         ))}
@@ -463,7 +488,7 @@ function leaveGroup(pins: LeaveStats["pins"]): number {
  *  conversion is about the spare game, and it is already on the leaves card. */
 function LeaveCountCell({ leave }: { leave: LeaveStats }) {
   return (
-    <div className="flex flex-col items-center gap-1 rounded-lg border border-edge bg-surface p-2 text-center shadow-sm">
+    <div className="flex flex-col items-center gap-1 rounded-lg border border-edge bg-surface px-1.5 py-2 text-center shadow-sm">
       <MiniPins standing={leave.pins} size="sm" />
       <span className="text-sm font-bold tabular-nums text-ink">
         {leave.attempts}
@@ -477,16 +502,20 @@ function LeaveCountCell({ leave }: { leave: LeaveStats }) {
 
 function LeaveCell({ leave }: { leave: LeaveStats }) {
   return (
-    <div className="flex flex-col items-center gap-1 rounded-lg border border-edge bg-surface p-2 text-center shadow-sm">
+    // px-1.5 rather than a square p-2: four of these fit a 390px row, and the
+    // widest pairing ("10/10" beside "100%") overflowed the padding and put
+    // the percent sign on the border.
+    <div className="flex flex-col items-center gap-1 rounded-lg border border-edge bg-surface px-1.5 py-2 text-center shadow-sm">
       <MiniPins standing={leave.pins} size="sm" />
-      {/* The pin diagram already names the leave: chances on the left, rate
-          on the right, one row. */}
-      <div className="flex w-full items-baseline justify-between gap-1">
-        <span className="text-[11px] tabular-nums text-ink-secondary">
+      {/* The pin diagram already names the leave: made over chances hard left,
+          rate hard right. Both are tabular so the columns line up cell to cell
+          however many digits each one happens to have. */}
+      <div className="flex w-full items-baseline gap-1">
+        <span className="min-w-0 flex-1 text-left text-[11px] tabular-nums text-ink-secondary">
           {leave.conversions}/{leave.chances}
         </span>
         <span
-          className={`text-sm font-bold ${
+          className={`shrink-0 text-right text-sm font-bold tabular-nums ${
             leave.conversionPct !== null && leave.conversionPct >= 70
               ? "text-accent"
               : "text-ink"
@@ -524,6 +553,27 @@ function Tile({
     <button type="button" onClick={onClick} className={`${className} w-full`}>
       {body}
     </button>
+  );
+}
+
+/** One rate in the ball table. The best in its column is called out in the
+ *  accent, and said out loud for anyone not reading the colour. */
+function RateCell({
+  value,
+  leads,
+  label
+}: {
+  value: number | null;
+  leads: boolean;
+  label: string;
+}) {
+  return (
+    <span
+      className={`${RATE_COLUMN} text-xs font-semibold tabular-nums ${leads ? "text-accent" : "text-ink"}`}
+      aria-label={`${label} ${pct(value)}${leads ? ", best" : ""}`}
+    >
+      {pct(value)}
+    </span>
   );
 }
 

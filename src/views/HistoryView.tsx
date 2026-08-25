@@ -2,7 +2,11 @@ import { useEffect, useRef, useState } from "react";
 import { BarChart3 } from "lucide-react";
 import { ErrorBanner } from "../components/ErrorBanner";
 import { SessionHistory } from "../components/SessionHistory";
-import { SessionFilterBar } from "../components/SessionFilterBar";
+import {
+  SessionFilterButton,
+  SessionFilterChips,
+  SessionFilterSheet
+} from "../components/SessionFilterBar";
 import { IconButton } from "../components/ui/IconButton";
 import { rememberScroll, restoreScroll, useRememberedState } from "../lib/viewMemory";
 import { useSessionFilters } from "./useSessionFilters";
@@ -27,6 +31,7 @@ export function HistoryView({
   const filters = useSessionFilters();
   const { sessionList, isLoading } = filters;
   const [error] = useState("");
+  const [filtersOpen, setFiltersOpen] = useState(false);
 
   const [visibleCount, setVisibleCount] = useRememberedState("history:visible", PAGE);
   // The list the window belongs to. Comparing it during render resets the
@@ -74,16 +79,22 @@ export function HistoryView({
     <section className="mx-auto flex h-full w-full max-w-3xl flex-col px-3 pt-3 sm:px-6 sm:pt-5">
       <div className="mb-3 flex items-center justify-between gap-3">
         <h1 className="text-xl font-bold text-ink">History</h1>
-        {/* Icon only: the tab it crosses to is named in the tab bar already,
-            and a word here would only repeat it (ADR-057). */}
-        <IconButton label="View stats" variant="round" onClick={onViewStats}>
-          <BarChart3 size={20} aria-hidden="true" />
-        </IconButton>
+        <div className="flex shrink-0 items-center gap-1">
+          <SessionFilterButton filters={filters} onOpen={() => setFiltersOpen(true)} />
+          {/* Icon only: the tab it crosses to is named in the tab bar already,
+              and a word here would only repeat it (ADR-057). */}
+          <IconButton label="View stats" variant="round" onClick={onViewStats}>
+            <BarChart3 size={20} aria-hidden="true" />
+          </IconButton>
+        </div>
       </div>
 
       {error && <ErrorBanner className="mb-3">{error}</ErrorBanner>}
 
-      <SessionFilterBar filters={filters} />
+      <SessionFilterChips filters={filters} />
+      {filtersOpen && (
+        <SessionFilterSheet filters={filters} onClose={() => setFiltersOpen(false)} />
+      )}
 
       <div
         ref={scrollerRef}
