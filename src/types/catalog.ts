@@ -40,7 +40,14 @@ export interface CatalogBall {
   mbDiff: number | null;
   imageThumb: string | null;    // "/catalog/img/<hash>-thumb.webp"
   imageFull: string | null;     // "/catalog/img/<hash>-full.webp"
-  sourceUrl: string;            // manufacturer product page
+  sourceUrl: string;            // where the specs were read from
+  /**
+   * The manufacturer's own page for this ball, where one exists. Distinct from
+   * sourceUrl, which records where the specs were read and is often a
+   * third-party database. MOTIV's licence requires a link to theirs from any
+   * ball that has one, so a row can cite one origin and link to another.
+   */
+  productUrl?: string | null;
   weights?: WeightSpec[];       // per-weight specs; top-level rg/diff/mbDiff = 15 lb default
   colorways?: Colorway[];       // color variants; colorways[0] is the default
 }

@@ -39,3 +39,23 @@ test("searches the catalog and narrows it by brand", async ({ page }) => {
   expect(shown).toBeGreaterThan(0);
   expect(shown).toBeLessThan(total);
 });
+
+/**
+ * MOTIV's licence asks that a ball listing link to their own page for any ball
+ * that has one, so a reader can check the specs against the source. That makes
+ * the link a term of the agreement rather than a nicety, and worth a test that
+ * fails if it is ever quietly dropped.
+ */
+test("a MOTIV ball links to MOTIV's own product page", async ({ page }) => {
+  await page.getByRole("button", { name: "Catalog" }).click();
+  await page.getByPlaceholder("Search name, brand, coverstock…").fill("Jackal Ghost V2");
+  await page.getByRole("button", { name: /Jackal Ghost V2/i }).first().click();
+
+  const link = page.getByRole("link", { name: /View on Motiv/i });
+  await expect(link).toBeVisible();
+  await expect(link).toHaveAttribute("href", /^https:\/\/www\.motivbowling\.com\/products\/balls\//);
+  // Opens away from the app, and without handing the opened page a reference
+  // back to this one.
+  await expect(link).toHaveAttribute("target", "_blank");
+  await expect(link).toHaveAttribute("rel", /noopener/);
+});

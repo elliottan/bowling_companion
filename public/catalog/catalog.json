@@ -177,7 +177,8 @@
     "mbDiff": null,
     "imageThumb": "/catalog/img/motiv-venom-shock-2014-thumb.webp",
     "imageFull": "/catalog/img/motiv-venom-shock-2014-full.webp",
-    "sourceUrl": "https://www.motivbowling.com/products/balls/light-medium-oil/venom-shock.html"
+    "sourceUrl": "https://www.motivbowling.com/products/balls/light-medium-oil/venom-shock.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/light-medium-oil/venom-shock.html"
   },
   {
     "id": "motiv-jackal-ghost-2018",
@@ -195,7 +196,8 @@
     "mbDiff": 0.015,
     "imageThumb": "/catalog/img/motiv-jackal-ghost-2018-thumb.webp",
     "imageFull": "/catalog/img/motiv-jackal-ghost-2018-full.webp",
-    "sourceUrl": "https://www.bowlingthismonth.com/bowling-ball-review/motiv-jackal-ghost/"
+    "sourceUrl": "https://www.bowlingthismonth.com/bowling-ball-review/motiv-jackal-ghost/",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/jackal-ghost.html"
   },
   {
     "id": "motiv-forge-2017",
@@ -213,7 +215,8 @@
     "mbDiff": null,
     "imageThumb": "/catalog/img/motiv-forge-2017-thumb.webp",
     "imageFull": "/catalog/img/motiv-forge-2017-full.webp",
-    "sourceUrl": "https://www.bowlingthismonth.com/bowling-ball-review/motiv-forge/"
+    "sourceUrl": "https://www.bowlingthismonth.com/bowling-ball-review/motiv-forge/",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/forge.html"
   },
   {
     "id": "storm-physix-burst",
@@ -2724,6 +2727,7 @@
     "imageThumb": "/catalog/img/motiv-covert-vip-exj-2026-thumb.webp",
     "imageFull": "/catalog/img/motiv-covert-vip-exj-2026-full.webp",
     "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/motiv/covert-vip-exj",
+    "productUrl": "https://www.motivbowling.com/products/balls/medium-heavy-oil/covert-vip-exj.html",
     "weights": [
       {
         "weight": 16,
@@ -2774,6 +2778,7 @@
     "imageThumb": "/catalog/img/motiv-evoke-mayhem-2026-thumb.webp",
     "imageFull": "/catalog/img/motiv-evoke-mayhem-2026-full.webp",
     "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/motiv/evoke-mayhem",
+    "productUrl": "https://www.motivbowling.com/products/balls/medium-heavy-oil/evoke-mayhem.html",
     "weights": [
       {
         "weight": 16,
@@ -2874,6 +2879,7 @@
     "imageThumb": "/catalog/img/motiv-max-thrill-pearl-2024-thumb.webp",
     "imageFull": "/catalog/img/motiv-max-thrill-pearl-2024-full.webp",
     "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/motiv/max-thrill-pearl",
+    "productUrl": "https://www.motivbowling.com/products/balls/light-oil/max-thrill-pearl.html",
     "weights": [
       {
         "weight": 16,
@@ -2924,6 +2930,7 @@
     "imageThumb": "/catalog/img/motiv-sigma-tour-pearl-2026-thumb.webp",
     "imageFull": "/catalog/img/motiv-sigma-tour-pearl-2026-full.webp",
     "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/motiv/sigma-tour-pearl",
+    "productUrl": "https://www.motivbowling.com/products/balls/medium-oil/sigma-tour-pearl.html",
     "weights": [
       {
         "weight": 16,
@@ -2974,6 +2981,7 @@
     "imageThumb": "/catalog/img/motiv-supra-sport-2026-thumb.webp",
     "imageFull": "/catalog/img/motiv-supra-sport-2026-full.webp",
     "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/motiv/supra-sport",
+    "productUrl": "https://www.motivbowling.com/products/balls/light-medium-oil/supra-sport.html",
     "weights": [
       {
         "weight": 16,
@@ -3024,6 +3032,7 @@
     "imageThumb": "/catalog/img/motiv-venom-hysteria-2026-thumb.webp",
     "imageFull": "/catalog/img/motiv-venom-hysteria-2026-full.webp",
     "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/motiv/venom-hysteria",
+    "productUrl": "https://www.motivbowling.com/products/balls/light-medium-oil/venom-hysteria.html",
     "weights": [
       {
         "weight": 16,
@@ -3074,6 +3083,7 @@
     "imageThumb": "/catalog/img/motiv-apex-jackal-2026-thumb.webp",
     "imageFull": "/catalog/img/motiv-apex-jackal-2026-full.webp",
     "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/motiv/apex-jackal",
+    "productUrl": "https://www.motivbowling.com/products/balls/heavy-oil/apex-jackal.html",
     "weights": [
       {
         "weight": 16,
@@ -3124,6 +3134,7 @@
     "imageThumb": "/catalog/img/motiv-black-venom-2023-thumb.webp",
     "imageFull": "/catalog/img/motiv-black-venom-2023-full.webp",
     "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/motiv/black-venom",
+    "productUrl": "https://www.motivbowling.com/products/balls/light-medium-oil/black-venom.html",
     "weights": [
       {
         "weight": 16,
@@ -3174,6 +3185,7 @@
     "imageThumb": "/catalog/img/motiv-hyper-venom-2024-thumb.webp",
     "imageFull": "/catalog/img/motiv-hyper-venom-2024-full.webp",
     "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/motiv/hyper-venom",
+    "productUrl": "https://www.motivbowling.com/products/balls/light-medium-oil/hyper-venom.html",
     "weights": [
       {
         "weight": 16,
@@ -3224,6 +3236,7 @@
     "imageThumb": "/catalog/img/motiv-jackal-ghost-v2-2026-thumb.webp",
     "imageFull": "/catalog/img/motiv-jackal-ghost-v2-2026-full.webp",
     "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/motiv/jackal-ghost-v2",
+    "productUrl": "https://www.motivbowling.com/products/balls/heavy-oil/jackal-ghost-v2.html",
     "weights": [
       {
         "weight": 16,
@@ -3274,6 +3287,7 @@
     "imageThumb": "/catalog/img/motiv-lethal-venom-2025-thumb.webp",
     "imageFull": "/catalog/img/motiv-lethal-venom-2025-full.webp",
     "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/motiv/lethal-venom",
+    "productUrl": "https://www.motivbowling.com/products/balls/light-medium-oil/lethal-venom.html",
     "weights": [
       {
         "weight": 16,
@@ -3324,6 +3338,7 @@
     "imageThumb": "/catalog/img/motiv-nebula-2025-thumb.webp",
     "imageFull": "/catalog/img/motiv-nebula-2025-full.webp",
     "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/motiv/nebula",
+    "productUrl": "https://www.motivbowling.com/products/balls/medium-oil/nebula.html",
     "weights": [
       {
         "weight": 16,
@@ -3374,6 +3389,7 @@
     "imageThumb": "/catalog/img/motiv-primal-ghost-2025-thumb.webp",
     "imageFull": "/catalog/img/motiv-primal-ghost-2025-full.webp",
     "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/motiv/primal-ghost",
+    "productUrl": "https://www.motivbowling.com/products/balls/medium-oil/primal-ghost.html",
     "weights": [
       {
         "weight": 16,
@@ -3424,6 +3440,7 @@
     "imageThumb": "/catalog/img/motiv-raptor-reign-2025-thumb.webp",
     "imageFull": "/catalog/img/motiv-raptor-reign-2025-full.webp",
     "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/motiv/raptor-reign",
+    "productUrl": "https://www.motivbowling.com/products/balls/heavy-oil/raptor-reign.html",
     "weights": [
       {
         "weight": 16,
@@ -3474,6 +3491,7 @@
     "imageThumb": "/catalog/img/motiv-steel-forge-2025-thumb.webp",
     "imageFull": "/catalog/img/motiv-steel-forge-2025-full.webp",
     "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/motiv/steel-forge",
+    "productUrl": "https://www.motivbowling.com/products/balls/medium-heavy-oil/steel-forge.html",
     "weights": [
       {
         "weight": 16,
@@ -3524,6 +3542,7 @@
     "imageThumb": "/catalog/img/motiv-supra-clutch-2025-thumb.webp",
     "imageFull": "/catalog/img/motiv-supra-clutch-2025-full.webp",
     "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/motiv/supra-clutch",
+    "productUrl": "https://www.motivbowling.com/products/balls/light-medium-oil/supra-clutch.html",
     "weights": [
       {
         "weight": 16,
@@ -3574,6 +3593,7 @@
     "imageThumb": "/catalog/img/motiv-evoke-hysteria-2025-thumb.webp",
     "imageFull": "/catalog/img/motiv-evoke-hysteria-2025-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/medium-heavy-oil/evoke-hysteria.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/medium-heavy-oil/evoke-hysteria.html",
     "weights": [
       {
         "weight": 16,
@@ -3624,6 +3644,7 @@
     "imageThumb": "/catalog/img/motiv-forge-fuel-2026-thumb.webp",
     "imageFull": "/catalog/img/motiv-forge-fuel-2026-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/medium-heavy-oil/forge-fuel.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/medium-heavy-oil/forge-fuel.html",
     "weights": [
       {
         "weight": 16,
@@ -3674,6 +3695,7 @@
     "imageThumb": "/catalog/img/motiv-jackal-onyx-2025-thumb.webp",
     "imageFull": "/catalog/img/motiv-jackal-onyx-2025-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/heavy-oil/jackal-onyx.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/heavy-oil/jackal-onyx.html",
     "weights": [
       {
         "weight": 16,
@@ -3724,6 +3746,7 @@
     "imageThumb": "/catalog/img/motiv-jackal-thumb.webp",
     "imageFull": "/catalog/img/motiv-jackal-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/jackal.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/jackal.html",
     "weights": [
       {
         "weight": 16,
@@ -3762,6 +3785,7 @@
     "imageThumb": "/catalog/img/motiv-max-thrill-hybrid-2025-thumb.webp",
     "imageFull": "/catalog/img/motiv-max-thrill-hybrid-2025-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/light-oil/max-thrill-hybrid.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/light-oil/max-thrill-hybrid.html",
     "weights": [
       {
         "weight": 16,
@@ -3824,6 +3848,7 @@
     "imageThumb": "/catalog/img/motiv-pride-2023-thumb.webp",
     "imageFull": "/catalog/img/motiv-pride-2023-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/pride.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/pride.html",
     "weights": [
       {
         "weight": 16,
@@ -3874,6 +3899,7 @@
     "imageThumb": "/catalog/img/motiv-shadow-tank-2025-thumb.webp",
     "imageFull": "/catalog/img/motiv-shadow-tank-2025-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/light-oil/shadow-tank.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/light-oil/shadow-tank.html",
     "weights": [
       {
         "weight": 16,
@@ -3912,6 +3938,7 @@
     "imageThumb": "/catalog/img/motiv-top-thrill-hybrid-2023-thumb.webp",
     "imageFull": "/catalog/img/motiv-top-thrill-hybrid-2023-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/top-thrill-hybrid.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/top-thrill-hybrid.html",
     "weights": [
       {
         "weight": 16,
@@ -3974,6 +4001,7 @@
     "imageThumb": "/catalog/img/motiv-top-thrill-solid-2023-thumb.webp",
     "imageFull": "/catalog/img/motiv-top-thrill-solid-2023-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/top-thrill-solid.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/top-thrill-solid.html",
     "weights": [
       {
         "weight": 16,
@@ -4036,6 +4064,7 @@
     "imageThumb": "/catalog/img/motiv-trident-thumb.webp",
     "imageFull": "/catalog/img/motiv-trident-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/trident.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/trident.html",
     "weights": [
       {
         "weight": 16,
@@ -4074,6 +4103,7 @@
     "imageThumb": "/catalog/img/motiv-blue-tank-2023-thumb.webp",
     "imageFull": "/catalog/img/motiv-blue-tank-2023-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/blue-tank.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/blue-tank.html",
     "weights": [
       {
         "weight": 16,
@@ -4124,6 +4154,7 @@
     "imageThumb": "/catalog/img/motiv-crimson-jackal-2024-thumb.webp",
     "imageFull": "/catalog/img/motiv-crimson-jackal-2024-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/crimson-jackal.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/crimson-jackal.html",
     "weights": [
       {
         "weight": 16,
@@ -4174,6 +4205,7 @@
     "imageThumb": "/catalog/img/motiv-evoke-2024-thumb.webp",
     "imageFull": "/catalog/img/motiv-evoke-2024-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/evoke.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/evoke.html",
     "weights": [
       {
         "weight": 16,
@@ -4224,6 +4256,7 @@
     "imageThumb": "/catalog/img/motiv-iron-forge-2023-thumb.webp",
     "imageFull": "/catalog/img/motiv-iron-forge-2023-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/iron-forge.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/iron-forge.html",
     "weights": [
       {
         "weight": 16,
@@ -4274,6 +4307,7 @@
     "imageThumb": "/catalog/img/motiv-jackal-ambush-2023-thumb.webp",
     "imageFull": "/catalog/img/motiv-jackal-ambush-2023-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/jackal-ambush.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/jackal-ambush.html",
     "weights": [
       {
         "weight": 16,
@@ -4324,6 +4358,7 @@
     "imageThumb": "/catalog/img/motiv-max-thrill-solid-2024-thumb.webp",
     "imageFull": "/catalog/img/motiv-max-thrill-solid-2024-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/max-thrill-solid.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/max-thrill-solid.html",
     "weights": [
       {
         "weight": 16,
@@ -4386,6 +4421,7 @@
     "imageThumb": "/catalog/img/motiv-nuclear-forge-2023-thumb.webp",
     "imageFull": "/catalog/img/motiv-nuclear-forge-2023-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/nuclear-forge.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/nuclear-forge.html",
     "weights": [
       {
         "weight": 16,
@@ -4436,6 +4472,7 @@
     "imageThumb": "/catalog/img/motiv-pride-dynasty-2023-thumb.webp",
     "imageFull": "/catalog/img/motiv-pride-dynasty-2023-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/pride-dynasty.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/pride-dynasty.html",
     "weights": [
       {
         "weight": 16,
@@ -4486,6 +4523,7 @@
     "imageThumb": "/catalog/img/motiv-pride-liberty-2024-thumb.webp",
     "imageFull": "/catalog/img/motiv-pride-liberty-2024-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/pride-liberty.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/pride-liberty.html",
     "weights": [
       {
         "weight": 16,
@@ -4536,6 +4574,7 @@
     "imageThumb": "/catalog/img/motiv-primal-rage-evolution-2024-thumb.webp",
     "imageFull": "/catalog/img/motiv-primal-rage-evolution-2024-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/primal-rage-evolution.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/primal-rage-evolution.html",
     "weights": [
       {
         "weight": 16,
@@ -4586,6 +4625,7 @@
     "imageThumb": "/catalog/img/motiv-primal-shock-2023-thumb.webp",
     "imageFull": "/catalog/img/motiv-primal-shock-2023-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/primal-shock.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/primal-shock.html",
     "weights": [
       {
         "weight": 16,
@@ -4636,6 +4676,7 @@
     "imageThumb": "/catalog/img/motiv-raptor-fury-2023-thumb.webp",
     "imageFull": "/catalog/img/motiv-raptor-fury-2023-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/raptor-fury.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/raptor-fury.html",
     "weights": [
       {
         "weight": 16,
@@ -4686,6 +4727,7 @@
     "imageThumb": "/catalog/img/motiv-raptor-rush-2024-thumb.webp",
     "imageFull": "/catalog/img/motiv-raptor-rush-2024-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/raptor-rush.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/raptor-rush.html",
     "weights": [
       {
         "weight": 16,
@@ -4736,6 +4778,7 @@
     "imageThumb": "/catalog/img/motiv-ripcord-launch-2022-thumb.webp",
     "imageFull": "/catalog/img/motiv-ripcord-launch-2022-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/ripcord-launch.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/ripcord-launch.html",
     "weights": [
       {
         "weight": 16,
@@ -4786,6 +4829,7 @@
     "imageThumb": "/catalog/img/motiv-subzero-forge-2024-thumb.webp",
     "imageFull": "/catalog/img/motiv-subzero-forge-2024-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/subzero-forge.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/subzero-forge.html",
     "weights": [
       {
         "weight": 16,
@@ -4836,6 +4880,7 @@
     "imageThumb": "/catalog/img/motiv-supra-gt-2024-thumb.webp",
     "imageFull": "/catalog/img/motiv-supra-gt-2024-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/supra-gt.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/supra-gt.html",
     "weights": [
       {
         "weight": 16,
@@ -4886,6 +4931,7 @@
     "imageThumb": "/catalog/img/motiv-supra-rally-2023-thumb.webp",
     "imageFull": "/catalog/img/motiv-supra-rally-2023-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/supra-rally.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/supra-rally.html",
     "weights": [
       {
         "weight": 16,
@@ -4936,6 +4982,7 @@
     "imageThumb": "/catalog/img/motiv-tank-rampage-pearl-2024-thumb.webp",
     "imageFull": "/catalog/img/motiv-tank-rampage-pearl-2024-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/tank-rampage-pearl.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/tank-rampage-pearl.html",
     "weights": [
       {
         "weight": 16,
@@ -4974,6 +5021,7 @@
     "imageThumb": "/catalog/img/motiv-venom-exj-2024-thumb.webp",
     "imageFull": "/catalog/img/motiv-venom-exj-2024-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/venom-exj.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/venom-exj.html",
     "weights": [
       {
         "weight": 16,
@@ -5024,6 +5072,7 @@
     "imageThumb": "/catalog/img/motiv-vip-exj-sigma-2023-thumb.webp",
     "imageFull": "/catalog/img/motiv-vip-exj-sigma-2023-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/vip-exj-sigma.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/vip-exj-sigma.html",
     "weights": [
       {
         "weight": 16,
@@ -5062,6 +5111,7 @@
     "imageThumb": "/catalog/img/motiv-ascend-2025-thumb.webp",
     "imageFull": "/catalog/img/motiv-ascend-2025-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/entry-level/ascend-red-black-tangerine.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/entry-level/ascend-red-black-tangerine.html",
     "weights": [
       {
         "weight": 15,
@@ -5144,6 +5194,7 @@
     "imageThumb": "/catalog/img/motiv-aspire-2025-thumb.webp",
     "imageFull": "/catalog/img/motiv-aspire-2025-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/spare/aspire-purple-silver-black.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/spare/aspire-purple-silver-black.html",
     "weights": [
       {
         "weight": 15,
@@ -5238,6 +5289,7 @@
     "imageThumb": "/catalog/img/motiv-alpha-jackal-2021-thumb.webp",
     "imageFull": "/catalog/img/motiv-alpha-jackal-2021-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/alpha-jackal.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/alpha-jackal.html",
     "weights": [
       {
         "weight": 16,
@@ -5276,6 +5328,7 @@
     "imageThumb": "/catalog/img/motiv-carbide-tank-2022-thumb.webp",
     "imageFull": "/catalog/img/motiv-carbide-tank-2022-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/carbide-tank.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/carbide-tank.html",
     "weights": [
       {
         "weight": 16,
@@ -5326,6 +5379,7 @@
     "imageThumb": "/catalog/img/motiv-combat-tank-2018-thumb.webp",
     "imageFull": "/catalog/img/motiv-combat-tank-2018-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/combat-tank.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/combat-tank.html",
     "weights": [
       {
         "weight": 16,
@@ -5364,6 +5418,7 @@
     "imageThumb": "/catalog/img/motiv-desert-tank-2020-thumb.webp",
     "imageFull": "/catalog/img/motiv-desert-tank-2020-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/desert-tank.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/desert-tank.html",
     "weights": [
       {
         "weight": 16,
@@ -5402,6 +5457,7 @@
     "imageThumb": "/catalog/img/motiv-forge-ember-2022-thumb.webp",
     "imageFull": "/catalog/img/motiv-forge-ember-2022-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/forge-ember.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/forge-ember.html",
     "weights": [
       {
         "weight": 16,
@@ -5452,6 +5508,7 @@
     "imageThumb": "/catalog/img/motiv-forge-fire-2019-thumb.webp",
     "imageFull": "/catalog/img/motiv-forge-fire-2019-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/forge-fire.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/forge-fire.html",
     "weights": [
       {
         "weight": 16,
@@ -5502,6 +5559,7 @@
     "imageThumb": "/catalog/img/motiv-forge-flare-2021-thumb.webp",
     "imageFull": "/catalog/img/motiv-forge-flare-2021-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/forge-flare.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/forge-flare.html",
     "weights": [
       {
         "weight": 16,
@@ -5552,6 +5610,7 @@
     "imageThumb": "/catalog/img/motiv-golden-jackal-2019-thumb.webp",
     "imageFull": "/catalog/img/motiv-golden-jackal-2019-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/golden-jackal.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/golden-jackal.html",
     "weights": [
       {
         "weight": 16,
@@ -5590,6 +5649,7 @@
     "imageThumb": "/catalog/img/motiv-jackal-flash-2020-thumb.webp",
     "imageFull": "/catalog/img/motiv-jackal-flash-2020-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/jackal-flash.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/jackal-flash.html",
     "weights": [
       {
         "weight": 16,
@@ -5628,6 +5688,7 @@
     "imageThumb": "/catalog/img/motiv-jackal-legacy-2021-thumb.webp",
     "imageFull": "/catalog/img/motiv-jackal-legacy-2021-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/jackal-legacy.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/jackal-legacy.html",
     "weights": [
       {
         "weight": 16,
@@ -5678,6 +5739,7 @@
     "imageThumb": "/catalog/img/motiv-mythic-jackal-2022-thumb.webp",
     "imageFull": "/catalog/img/motiv-mythic-jackal-2022-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/mythic-jackal.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/mythic-jackal.html",
     "weights": [
       {
         "weight": 16,
@@ -5728,6 +5790,7 @@
     "imageThumb": "/catalog/img/motiv-octane-carbon-2017-thumb.webp",
     "imageFull": "/catalog/img/motiv-octane-carbon-2017-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/octane-carbon.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/octane-carbon.html",
     "weights": [
       {
         "weight": 16,
@@ -5778,6 +5841,7 @@
     "imageThumb": "/catalog/img/motiv-pride-empire-2022-thumb.webp",
     "imageFull": "/catalog/img/motiv-pride-empire-2022-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/pride-empire.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/pride-empire.html",
     "weights": [
       {
         "weight": 16,
@@ -5828,6 +5892,7 @@
     "imageThumb": "/catalog/img/motiv-purple-tank-2022-thumb.webp",
     "imageFull": "/catalog/img/motiv-purple-tank-2022-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/purple-tank.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/purple-tank.html",
     "weights": [
       {
         "weight": 16,
@@ -5866,6 +5931,7 @@
     "imageThumb": "/catalog/img/motiv-raptor-supreme-2021-thumb.webp",
     "imageFull": "/catalog/img/motiv-raptor-supreme-2021-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/exclusives/raptor-supreme.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/exclusives/raptor-supreme.html",
     "weights": [
       {
         "weight": 16,
@@ -5904,6 +5970,7 @@
     "imageThumb": "/catalog/img/motiv-ripcord-flight-2020-thumb.webp",
     "imageFull": "/catalog/img/motiv-ripcord-flight-2020-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/ripcord-flight.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/ripcord-flight.html",
     "weights": [
       {
         "weight": 16,
@@ -5954,6 +6021,7 @@
     "imageThumb": "/catalog/img/motiv-ripcord-velocity-2022-thumb.webp",
     "imageFull": "/catalog/img/motiv-ripcord-velocity-2022-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/ripcord-velocity.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/ripcord-velocity.html",
     "weights": [
       {
         "weight": 16,
@@ -6004,6 +6072,7 @@
     "imageThumb": "/catalog/img/motiv-sky-raptor-2022-thumb.webp",
     "imageFull": "/catalog/img/motiv-sky-raptor-2022-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/sky-raptor.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/sky-raptor.html",
     "weights": [
       {
         "weight": 16,
@@ -6054,6 +6123,7 @@
     "imageThumb": "/catalog/img/motiv-supra-2019-thumb.webp",
     "imageFull": "/catalog/img/motiv-supra-2019-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/supra.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/supra.html",
     "weights": [
       {
         "weight": 16,
@@ -6104,6 +6174,7 @@
     "imageThumb": "/catalog/img/motiv-supra-enzo-2022-thumb.webp",
     "imageFull": "/catalog/img/motiv-supra-enzo-2022-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/supra-enzo.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/supra-enzo.html",
     "weights": [
       {
         "weight": 16,
@@ -6154,6 +6225,7 @@
     "imageThumb": "/catalog/img/motiv-tank-rampage-2017-thumb.webp",
     "imageFull": "/catalog/img/motiv-tank-rampage-2017-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/tank-rampage.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/tank-rampage.html",
     "weights": [
       {
         "weight": 16,
@@ -6192,6 +6264,7 @@
     "imageThumb": "/catalog/img/motiv-trident-horizon-2021-thumb.webp",
     "imageFull": "/catalog/img/motiv-trident-horizon-2021-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/trident-horizon.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/trident-horizon.html",
     "weights": [
       {
         "weight": 16,
@@ -6242,6 +6315,7 @@
     "imageThumb": "/catalog/img/motiv-trident-nemesis-2020-thumb.webp",
     "imageFull": "/catalog/img/motiv-trident-nemesis-2020-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/trident-nemesis.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/trident-nemesis.html",
     "weights": [
       {
         "weight": 16,
@@ -6292,6 +6366,7 @@
     "imageThumb": "/catalog/img/motiv-trident-odyssey-2022-thumb.webp",
     "imageFull": "/catalog/img/motiv-trident-odyssey-2022-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/trident-odyssey.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/trident-odyssey.html",
     "weights": [
       {
         "weight": 16,
@@ -6342,6 +6417,7 @@
     "imageThumb": "/catalog/img/motiv-arctic-sniper-thumb.webp",
     "imageFull": "/catalog/img/motiv-arctic-sniper-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/arctic-sniper.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/arctic-sniper.html",
     "weights": [
       {
         "weight": 16,
@@ -6392,6 +6468,7 @@
     "imageThumb": "/catalog/img/motiv-chronic-paranoia-thumb.webp",
     "imageFull": "/catalog/img/motiv-chronic-paranoia-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/chronic-paranoia.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/chronic-paranoia.html",
     "weights": [
       {
         "weight": 16,
@@ -6442,6 +6519,7 @@
     "imageThumb": "/catalog/img/motiv-cruel-c51-le-thumb.webp",
     "imageFull": "/catalog/img/motiv-cruel-c51-le-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/cruel-c51-le.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/cruel-c51-le.html",
     "weights": [
       {
         "weight": 16,
@@ -6480,6 +6558,7 @@
     "imageThumb": "/catalog/img/motiv-cruel-c51-thumb.webp",
     "imageFull": "/catalog/img/motiv-cruel-c51-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/cruel-c51.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/cruel-c51.html",
     "weights": [
       {
         "weight": 16,
@@ -6518,6 +6597,7 @@
     "imageThumb": "/catalog/img/motiv-cruel-intent-thumb.webp",
     "imageFull": "/catalog/img/motiv-cruel-intent-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/cruel-intent.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/cruel-intent.html",
     "weights": [
       {
         "weight": 16,
@@ -6556,6 +6636,7 @@
     "imageThumb": "/catalog/img/motiv-fatal-venom-thumb.webp",
     "imageFull": "/catalog/img/motiv-fatal-venom-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/fatal-venom.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/fatal-venom.html",
     "weights": [
       {
         "weight": 16,
@@ -6606,6 +6687,7 @@
     "imageThumb": "/catalog/img/motiv-forza-redline-thumb.webp",
     "imageFull": "/catalog/img/motiv-forza-redline-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/forza-redline.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/forza-redline.html",
     "weights": [
       {
         "weight": 16,
@@ -6656,6 +6738,7 @@
     "imageThumb": "/catalog/img/motiv-forza-ss-thumb.webp",
     "imageFull": "/catalog/img/motiv-forza-ss-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/forza-ss.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/forza-ss.html",
     "weights": [
       {
         "weight": 16,
@@ -6706,6 +6789,7 @@
     "imageThumb": "/catalog/img/motiv-forza-thumb.webp",
     "imageFull": "/catalog/img/motiv-forza-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/forza.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/forza.html",
     "weights": [
       {
         "weight": 16,
@@ -6756,6 +6840,7 @@
     "imageThumb": "/catalog/img/motiv-freestyle-pink-black-thumb.webp",
     "imageFull": "/catalog/img/motiv-freestyle-pink-black-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/freestyle-pink-black.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/freestyle-pink-black.html",
     "weights": [
       {
         "weight": 16,
@@ -6818,6 +6903,7 @@
     "imageThumb": "/catalog/img/motiv-freestyle-rush-thumb.webp",
     "imageFull": "/catalog/img/motiv-freestyle-rush-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/freestyle-rush.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/freestyle-rush.html",
     "weights": [
       {
         "weight": 16,
@@ -6880,6 +6966,7 @@
     "imageThumb": "/catalog/img/motiv-freestyle-thumb.webp",
     "imageFull": "/catalog/img/motiv-freestyle-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/freestyle.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/freestyle.html",
     "weights": [
       {
         "weight": 16,
@@ -6942,6 +7029,7 @@
     "imageThumb": "/catalog/img/motiv-graffiti-tag-thumb.webp",
     "imageFull": "/catalog/img/motiv-graffiti-tag-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/graffiti-tag.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/graffiti-tag.html",
     "weights": [
       {
         "weight": 16,
@@ -6992,6 +7080,7 @@
     "imageThumb": "/catalog/img/motiv-jackal-fury-thumb.webp",
     "imageFull": "/catalog/img/motiv-jackal-fury-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/exclusives/jackal-fury.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/exclusives/jackal-fury.html",
     "weights": [
       {
         "weight": 16,
@@ -7030,6 +7119,7 @@
     "imageThumb": "/catalog/img/motiv-jackal-shadow-thumb.webp",
     "imageFull": "/catalog/img/motiv-jackal-shadow-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/exclusives/jackal-shadow.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/exclusives/jackal-shadow.html",
     "weights": [
       {
         "weight": 16,
@@ -7080,6 +7170,7 @@
     "imageThumb": "/catalog/img/motiv-jackal-shred-thumb.webp",
     "imageFull": "/catalog/img/motiv-jackal-shred-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/exclusives/jackal-shred.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/exclusives/jackal-shred.html",
     "weights": [
       {
         "weight": 16,
@@ -7118,6 +7209,7 @@
     "imageThumb": "/catalog/img/motiv-jackal-wild-thumb.webp",
     "imageFull": "/catalog/img/motiv-jackal-wild-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/exclusives/jackal-wild.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/exclusives/jackal-wild.html",
     "weights": [
       {
         "weight": 16,
@@ -7156,6 +7248,7 @@
     "imageThumb": "/catalog/img/motiv-king-venom-thumb.webp",
     "imageFull": "/catalog/img/motiv-king-venom-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/exclusives/king-venom.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/exclusives/king-venom.html",
     "weights": [
       {
         "weight": 16,
@@ -7194,6 +7287,7 @@
     "imageThumb": "/catalog/img/motiv-lethal-paranoia-thumb.webp",
     "imageFull": "/catalog/img/motiv-lethal-paranoia-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/lethal-paranoia.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/lethal-paranoia.html",
     "weights": [
       {
         "weight": 16,
@@ -7244,6 +7338,7 @@
     "imageThumb": "/catalog/img/motiv-paranoia-thumb.webp",
     "imageFull": "/catalog/img/motiv-paranoia-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/paranoia.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/paranoia.html",
     "weights": [
       {
         "weight": 16,
@@ -7294,6 +7389,7 @@
     "imageThumb": "/catalog/img/motiv-primal-fear-thumb.webp",
     "imageFull": "/catalog/img/motiv-primal-fear-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/primal-fear.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/primal-fear.html",
     "weights": [
       {
         "weight": 16,
@@ -7344,6 +7440,7 @@
     "imageThumb": "/catalog/img/motiv-primal-impulse-thumb.webp",
     "imageFull": "/catalog/img/motiv-primal-impulse-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/primal-impulse.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/primal-impulse.html",
     "weights": [
       {
         "weight": 16,
@@ -7394,6 +7491,7 @@
     "imageThumb": "/catalog/img/motiv-primal-rage-remix-thumb.webp",
     "imageFull": "/catalog/img/motiv-primal-rage-remix-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/primal-rage-remix.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/primal-rage-remix.html",
     "weights": [
       {
         "weight": 16,
@@ -7444,6 +7542,7 @@
     "imageThumb": "/catalog/img/motiv-primal-rage-thumb.webp",
     "imageFull": "/catalog/img/motiv-primal-rage-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/primal-rage.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/primal-rage.html",
     "weights": [
       {
         "weight": 16,
@@ -7494,6 +7593,7 @@
     "imageThumb": "/catalog/img/motiv-primal-scream-thumb.webp",
     "imageFull": "/catalog/img/motiv-primal-scream-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/primal-scream.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/primal-scream.html",
     "weights": [
       {
         "weight": 16,
@@ -7544,6 +7644,7 @@
     "imageThumb": "/catalog/img/motiv-primal-tv4-thumb.webp",
     "imageFull": "/catalog/img/motiv-primal-tv4-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/primal-tv4.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/primal-tv4.html",
     "weights": [
       {
         "weight": 16,
@@ -7594,6 +7695,7 @@
     "imageThumb": "/catalog/img/motiv-raptor-altitude-thumb.webp",
     "imageFull": "/catalog/img/motiv-raptor-altitude-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/exclusives/raptor-altitude.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/exclusives/raptor-altitude.html",
     "weights": [
       {
         "weight": 16,
@@ -7632,6 +7734,7 @@
     "imageThumb": "/catalog/img/motiv-raptor-talon-thumb.webp",
     "imageFull": "/catalog/img/motiv-raptor-talon-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/raptor-talon.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/raptor-talon.html",
     "weights": [
       {
         "weight": 16,
@@ -7682,6 +7785,7 @@
     "imageThumb": "/catalog/img/motiv-rebel-tank-thumb.webp",
     "imageFull": "/catalog/img/motiv-rebel-tank-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/rebel-tank.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/rebel-tank.html",
     "weights": [
       {
         "weight": 16,
@@ -7720,6 +7824,7 @@
     "imageThumb": "/catalog/img/motiv-revolt-vengeance-thumb.webp",
     "imageFull": "/catalog/img/motiv-revolt-vengeance-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/revolt-vengeance.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/revolt-vengeance.html",
     "weights": [
       {
         "weight": 16,
@@ -7770,6 +7875,7 @@
     "imageThumb": "/catalog/img/motiv-rising-venom-thumb.webp",
     "imageFull": "/catalog/img/motiv-rising-venom-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/exclusives/rising-venom.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/exclusives/rising-venom.html",
     "weights": [
       {
         "weight": 16,
@@ -7820,6 +7926,7 @@
     "imageThumb": "/catalog/img/motiv-sapphire-jackal-thumb.webp",
     "imageFull": "/catalog/img/motiv-sapphire-jackal-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/exclusives/sapphire-jackal.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/exclusives/sapphire-jackal.html",
     "weights": [
       {
         "weight": 16,
@@ -7858,6 +7965,7 @@
     "imageThumb": "/catalog/img/motiv-sigma-hybrid-thumb.webp",
     "imageFull": "/catalog/img/motiv-sigma-hybrid-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/sigma-hybrid.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/sigma-hybrid.html",
     "weights": [
       {
         "weight": 16,
@@ -7908,6 +8016,7 @@
     "imageThumb": "/catalog/img/motiv-sigma-sting-thumb.webp",
     "imageFull": "/catalog/img/motiv-sigma-sting-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/sigma-sting.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/sigma-sting.html",
     "weights": [
       {
         "weight": 16,
@@ -7958,6 +8067,7 @@
     "imageThumb": "/catalog/img/motiv-t10-limited-edition-thumb.webp",
     "imageFull": "/catalog/img/motiv-t10-limited-edition-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/t10-limited-edition.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/t10-limited-edition.html",
     "weights": [
       {
         "weight": 16,
@@ -7996,6 +8106,7 @@
     "imageThumb": "/catalog/img/motiv-tank-thumb.webp",
     "imageFull": "/catalog/img/motiv-tank-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/tank.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/tank.html",
     "weights": [
       {
         "weight": 16,
@@ -8034,6 +8145,7 @@
     "imageThumb": "/catalog/img/motiv-thrash-frenzy-thumb.webp",
     "imageFull": "/catalog/img/motiv-thrash-frenzy-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/thrash-frenzy.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/thrash-frenzy.html",
     "weights": [
       {
         "weight": 16,
@@ -8084,6 +8196,7 @@
     "imageThumb": "/catalog/img/motiv-thrash-thumb.webp",
     "imageFull": "/catalog/img/motiv-thrash-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/thrash.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/thrash.html",
     "weights": [
       {
         "weight": 16,
@@ -8146,6 +8259,7 @@
     "imageThumb": "/catalog/img/motiv-tribal-fire-thumb.webp",
     "imageFull": "/catalog/img/motiv-tribal-fire-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/tribal-fire.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/tribal-fire.html",
     "weights": [
       {
         "weight": 16,
@@ -8196,6 +8310,7 @@
     "imageThumb": "/catalog/img/motiv-tribal-thumb.webp",
     "imageFull": "/catalog/img/motiv-tribal-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/tribal.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/tribal.html",
     "weights": [
       {
         "weight": 16,
@@ -8246,6 +8361,7 @@
     "imageThumb": "/catalog/img/motiv-trident-shield-thumb.webp",
     "imageFull": "/catalog/img/motiv-trident-shield-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/exclusives/trident-shield.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/exclusives/trident-shield.html",
     "weights": [
       {
         "weight": 16,
@@ -8284,6 +8400,7 @@
     "imageThumb": "/catalog/img/motiv-trident-tempest-thumb.webp",
     "imageFull": "/catalog/img/motiv-trident-tempest-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/exclusives/trident-tempest.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/exclusives/trident-tempest.html",
     "weights": [
       {
         "weight": 16,
@@ -8334,6 +8451,7 @@
     "imageThumb": "/catalog/img/motiv-venom-cobra-thumb.webp",
     "imageFull": "/catalog/img/motiv-venom-cobra-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/venom-cobra.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/venom-cobra.html",
     "weights": [
       {
         "weight": 16,
@@ -8384,6 +8502,7 @@
     "imageThumb": "/catalog/img/motiv-venom-panic-thumb.webp",
     "imageFull": "/catalog/img/motiv-venom-panic-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/venom-panic.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/venom-panic.html",
     "weights": [
       {
         "weight": 16,
@@ -8434,6 +8553,7 @@
     "imageThumb": "/catalog/img/motiv-venom-shock-pearl-thumb.webp",
     "imageFull": "/catalog/img/motiv-venom-shock-pearl-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/venom-shock-pearl.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/venom-shock-pearl.html",
     "weights": [
       {
         "weight": 16,
@@ -8484,6 +8604,7 @@
     "imageThumb": "/catalog/img/motiv-venom-strike-thumb.webp",
     "imageFull": "/catalog/img/motiv-venom-strike-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/venom-strike.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/venom-strike.html",
     "weights": [
       {
         "weight": 16,
@@ -8534,6 +8655,7 @@
     "imageThumb": "/catalog/img/motiv-venom-toxin-thumb.webp",
     "imageFull": "/catalog/img/motiv-venom-toxin-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/venom-toxin.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/venom-toxin.html",
     "weights": [
       {
         "weight": 16,
@@ -8584,6 +8706,7 @@
     "imageThumb": "/catalog/img/motiv-2020-revolt-thumb.webp",
     "imageFull": "/catalog/img/motiv-2020-revolt-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/exclusives/2020-revolt.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/exclusives/2020-revolt.html",
     "weights": [
       {
         "weight": 16,
@@ -8634,6 +8757,7 @@
     "imageThumb": "/catalog/img/motiv-covert-revolt-thumb.webp",
     "imageFull": "/catalog/img/motiv-covert-revolt-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/covert-revolt.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/covert-revolt.html",
     "weights": [
       {
         "weight": 16,
@@ -8684,6 +8808,7 @@
     "imageThumb": "/catalog/img/motiv-hydra-thumb.webp",
     "imageFull": "/catalog/img/motiv-hydra-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/hydra.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/hydra.html",
     "weights": [
       {
         "weight": 16,
@@ -8734,6 +8859,7 @@
     "imageThumb": "/catalog/img/motiv-jackal-boss-thumb.webp",
     "imageFull": "/catalog/img/motiv-jackal-boss-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/exclusives/jackal-boss.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/exclusives/jackal-boss.html",
     "weights": [
       {
         "weight": 16,
@@ -8772,6 +8898,7 @@
     "imageThumb": "/catalog/img/motiv-jackal-chase-thumb.webp",
     "imageFull": "/catalog/img/motiv-jackal-chase-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/exclusives/jackal-chase.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/exclusives/jackal-chase.html",
     "weights": [
       {
         "weight": 16,
@@ -8810,6 +8937,7 @@
     "imageThumb": "/catalog/img/motiv-jackal-exj-2025-thumb.webp",
     "imageFull": "/catalog/img/motiv-jackal-exj-2025-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/jackal-exj.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/jackal-exj.html",
     "weights": [
       {
         "weight": 16,
@@ -8860,6 +8988,7 @@
     "imageThumb": "/catalog/img/motiv-jackal-howl-thumb.webp",
     "imageFull": "/catalog/img/motiv-jackal-howl-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/exclusives/jackal-howl.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/exclusives/jackal-howl.html",
     "weights": [
       {
         "weight": 16,
@@ -8910,6 +9039,7 @@
     "imageThumb": "/catalog/img/motiv-jackal-scar-thumb.webp",
     "imageFull": "/catalog/img/motiv-jackal-scar-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/exclusives/jackal-scar.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/exclusives/jackal-scar.html",
     "weights": [
       {
         "weight": 16,
@@ -8948,6 +9078,7 @@
     "imageThumb": "/catalog/img/motiv-revolt-havoc-thumb.webp",
     "imageFull": "/catalog/img/motiv-revolt-havoc-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/revolt-havoc.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/revolt-havoc.html",
     "weights": [
       {
         "weight": 16,
@@ -8998,6 +9129,7 @@
     "imageThumb": "/catalog/img/motiv-rogue-assassin-thumb.webp",
     "imageFull": "/catalog/img/motiv-rogue-assassin-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/rogue-assassin.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/rogue-assassin.html",
     "weights": [
       {
         "weight": 16,
@@ -9048,6 +9180,7 @@
     "imageThumb": "/catalog/img/motiv-royal-revolt-thumb.webp",
     "imageFull": "/catalog/img/motiv-royal-revolt-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/exclusives/royal-revolt.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/exclusives/royal-revolt.html",
     "weights": [
       {
         "weight": 16,
@@ -9098,6 +9231,7 @@
     "imageThumb": "/catalog/img/motiv-ultimate-jackal-thumb.webp",
     "imageFull": "/catalog/img/motiv-ultimate-jackal-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/exclusives/ultimate-jackal.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/exclusives/ultimate-jackal.html",
     "weights": [
       {
         "weight": 16,
@@ -9136,6 +9270,7 @@
     "imageThumb": "/catalog/img/motiv-venom-recoil-2021-thumb.webp",
     "imageFull": "/catalog/img/motiv-venom-recoil-2021-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/venom-recoil.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/venom-recoil.html",
     "weights": [
       {
         "weight": 16,
@@ -9186,6 +9321,7 @@
     "imageThumb": "/catalog/img/motiv-villain-thumb.webp",
     "imageFull": "/catalog/img/motiv-villain-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/villain.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/villain.html",
     "weights": [
       {
         "weight": 16,
@@ -9236,6 +9372,7 @@
     "imageThumb": "/catalog/img/motiv-2cruel-thumb.webp",
     "imageFull": "/catalog/img/motiv-2cruel-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/2cruel.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/2cruel.html",
     "weights": [
       {
         "weight": 16,
@@ -9274,6 +9411,7 @@
     "imageThumb": "/catalog/img/motiv-allegiant-sniper-2020-thumb.webp",
     "imageFull": "/catalog/img/motiv-allegiant-sniper-2020-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/allegiant-sniper.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/allegiant-sniper.html",
     "weights": [
       {
         "weight": 16,
@@ -9324,6 +9462,7 @@
     "imageThumb": "/catalog/img/motiv-ascent-pearl-pink-purple-thumb.webp",
     "imageFull": "/catalog/img/motiv-ascent-pearl-pink-purple-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/ascent-pearl-pink-purple.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/ascent-pearl-pink-purple.html",
     "weights": [
       {
         "weight": 16,
@@ -9386,6 +9525,7 @@
     "imageThumb": "/catalog/img/motiv-ascent-pearl-red-black-thumb.webp",
     "imageFull": "/catalog/img/motiv-ascent-pearl-red-black-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/ascent-pearl-red-black.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/ascent-pearl-red-black.html",
     "weights": [
       {
         "weight": 16,
@@ -9448,6 +9588,7 @@
     "imageThumb": "/catalog/img/motiv-ascent-solid-thumb.webp",
     "imageFull": "/catalog/img/motiv-ascent-solid-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/ascent-solid.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/ascent-solid.html",
     "weights": [
       {
         "weight": 16,
@@ -9510,6 +9651,7 @@
     "imageThumb": "/catalog/img/motiv-black-jackal-thumb.webp",
     "imageFull": "/catalog/img/motiv-black-jackal-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/exclusives/black-jackal.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/exclusives/black-jackal.html",
     "weights": [
       {
         "weight": 16,
@@ -9548,6 +9690,7 @@
     "imageThumb": "/catalog/img/motiv-blue-coral-venom-2022-thumb.webp",
     "imageFull": "/catalog/img/motiv-blue-coral-venom-2022-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/blue-coral-venom.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/blue-coral-venom.html",
     "weights": [
       {
         "weight": 16,
@@ -9598,6 +9741,7 @@
     "imageThumb": "/catalog/img/motiv-covert-tank-2019-thumb.webp",
     "imageFull": "/catalog/img/motiv-covert-tank-2019-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/covert-tank.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/covert-tank.html",
     "weights": [
       {
         "weight": 16,
@@ -9636,6 +9780,7 @@
     "imageThumb": "/catalog/img/motiv-forza-gt-thumb.webp",
     "imageFull": "/catalog/img/motiv-forza-gt-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/forza-gt.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/forza-gt.html",
     "weights": [
       {
         "weight": 16,
@@ -9686,6 +9831,7 @@
     "imageThumb": "/catalog/img/motiv-gold-revolt-thumb.webp",
     "imageFull": "/catalog/img/motiv-gold-revolt-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/exclusives/gold-revolt.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/exclusives/gold-revolt.html",
     "weights": [
       {
         "weight": 16,
@@ -9736,6 +9882,7 @@
     "imageThumb": "/catalog/img/motiv-gt1-thumb.webp",
     "imageFull": "/catalog/img/motiv-gt1-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/gt1.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/gt1.html",
     "weights": [
       {
         "weight": 16,
@@ -9786,6 +9933,7 @@
     "imageThumb": "/catalog/img/motiv-hyper-sniper-thumb.webp",
     "imageFull": "/catalog/img/motiv-hyper-sniper-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/hyper-sniper.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/hyper-sniper.html",
     "weights": [
       {
         "weight": 16,
@@ -9836,6 +9984,7 @@
     "imageThumb": "/catalog/img/motiv-jackal-assault-thumb.webp",
     "imageFull": "/catalog/img/motiv-jackal-assault-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/exclusives/jackal-assault.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/exclusives/jackal-assault.html",
     "weights": [
       {
         "weight": 16,
@@ -9874,6 +10023,7 @@
     "imageThumb": "/catalog/img/motiv-jackal-attack-thumb.webp",
     "imageFull": "/catalog/img/motiv-jackal-attack-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/exclusives/jackal-attack.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/exclusives/jackal-attack.html",
     "weights": [
       {
         "weight": 16,
@@ -9912,6 +10062,7 @@
     "imageThumb": "/catalog/img/motiv-jackal-carnage-thumb.webp",
     "imageFull": "/catalog/img/motiv-jackal-carnage-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/jackal-carnage.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/jackal-carnage.html",
     "weights": [
       {
         "weight": 16,
@@ -9950,6 +10101,7 @@
     "imageThumb": "/catalog/img/motiv-jackal-hunt-thumb.webp",
     "imageFull": "/catalog/img/motiv-jackal-hunt-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/exclusives/jackal-hunt.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/exclusives/jackal-hunt.html",
     "weights": [
       {
         "weight": 16,
@@ -9988,6 +10140,7 @@
     "imageThumb": "/catalog/img/motiv-jackal-le-thumb.webp",
     "imageFull": "/catalog/img/motiv-jackal-le-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/jackal-le.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/jackal-le.html",
     "weights": [
       {
         "weight": 16,
@@ -10026,6 +10179,7 @@
     "imageThumb": "/catalog/img/motiv-jackal-magic-thumb.webp",
     "imageFull": "/catalog/img/motiv-jackal-magic-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/exclusives/jackal-magic.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/exclusives/jackal-magic.html",
     "weights": [
       {
         "weight": 16,
@@ -10076,6 +10230,7 @@
     "imageThumb": "/catalog/img/motiv-jackal-rising-thumb.webp",
     "imageFull": "/catalog/img/motiv-jackal-rising-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/jackal-rising.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/jackal-rising.html",
     "weights": [
       {
         "weight": 16,
@@ -10114,6 +10269,7 @@
     "imageThumb": "/catalog/img/motiv-jackal-slash-thumb.webp",
     "imageFull": "/catalog/img/motiv-jackal-slash-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/exclusives/jackal-slash.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/exclusives/jackal-slash.html",
     "weights": [
       {
         "weight": 16,
@@ -10152,6 +10308,7 @@
     "imageThumb": "/catalog/img/motiv-laser-sniper-thumb.webp",
     "imageFull": "/catalog/img/motiv-laser-sniper-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/laser-sniper.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/laser-sniper.html",
     "weights": [
       {
         "weight": 16,
@@ -10202,6 +10359,7 @@
     "imageThumb": "/catalog/img/motiv-midnight-sniper-thumb.webp",
     "imageFull": "/catalog/img/motiv-midnight-sniper-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/midnight-sniper.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/midnight-sniper.html",
     "weights": [
       {
         "weight": 16,
@@ -10252,6 +10410,7 @@
     "imageThumb": "/catalog/img/motiv-octane-burn-thumb.webp",
     "imageFull": "/catalog/img/motiv-octane-burn-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/octane-burn.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/octane-burn.html",
     "weights": [
       {
         "weight": 16,
@@ -10302,6 +10461,7 @@
     "imageThumb": "/catalog/img/motiv-octane-thumb.webp",
     "imageFull": "/catalog/img/motiv-octane-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/octane.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/octane.html",
     "weights": [
       {
         "weight": 16,
@@ -10352,6 +10512,7 @@
     "imageThumb": "/catalog/img/motiv-primal-rage-5-yr-le-thumb.webp",
     "imageFull": "/catalog/img/motiv-primal-rage-5-yr-le-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/primal-rage-5-yr-le.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/primal-rage-5-yr-le.html",
     "weights": [
       {
         "weight": 16,
@@ -10402,6 +10563,7 @@
     "imageThumb": "/catalog/img/motiv-qz1-purple-thumb.webp",
     "imageFull": "/catalog/img/motiv-qz1-purple-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/qz1-purple.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/qz1-purple.html",
     "weights": [
       {
         "weight": 16,
@@ -10464,6 +10626,7 @@
     "imageThumb": "/catalog/img/motiv-qz1-red-thumb.webp",
     "imageFull": "/catalog/img/motiv-qz1-red-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/qz1-red.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/qz1-red.html",
     "weights": [
       {
         "weight": 16,
@@ -10526,6 +10689,7 @@
     "imageThumb": "/catalog/img/motiv-qz2-backdraft-thumb.webp",
     "imageFull": "/catalog/img/motiv-qz2-backdraft-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/qz2-backdraft.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/qz2-backdraft.html",
     "weights": [
       {
         "weight": 16,
@@ -10588,6 +10752,7 @@
     "imageThumb": "/catalog/img/motiv-qz2-black-blue-pearl-thumb.webp",
     "imageFull": "/catalog/img/motiv-qz2-black-blue-pearl-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/qz2-black-blue-pearl.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/qz2-black-blue-pearl.html",
     "weights": [
       {
         "weight": 16,
@@ -10650,6 +10815,7 @@
     "imageThumb": "/catalog/img/motiv-raptor-attack-thumb.webp",
     "imageFull": "/catalog/img/motiv-raptor-attack-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/raptor-attack.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/raptor-attack.html",
     "weights": [
       {
         "weight": 16,
@@ -10700,6 +10866,7 @@
     "imageThumb": "/catalog/img/motiv-raptor-p7-thumb.webp",
     "imageFull": "/catalog/img/motiv-raptor-p7-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/raptor-p7.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/raptor-p7.html",
     "weights": [
       {
         "weight": 16,
@@ -10750,6 +10917,7 @@
     "imageThumb": "/catalog/img/motiv-recon-rx1-silver-thumb.webp",
     "imageFull": "/catalog/img/motiv-recon-rx1-silver-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/recon-rx1-silver.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/recon-rx1-silver.html",
     "weights": [
       {
         "weight": 16,
@@ -10812,6 +10980,7 @@
     "imageThumb": "/catalog/img/motiv-ripcord-2019-thumb.webp",
     "imageFull": "/catalog/img/motiv-ripcord-2019-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/ripcord.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/ripcord.html",
     "weights": [
       {
         "weight": 16,
@@ -10862,6 +11031,7 @@
     "imageThumb": "/catalog/img/motiv-rogue-blade-thumb.webp",
     "imageFull": "/catalog/img/motiv-rogue-blade-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/rogue-blade.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/rogue-blade.html",
     "weights": [
       {
         "weight": 16,
@@ -10912,6 +11082,7 @@
     "imageThumb": "/catalog/img/motiv-rx1-orange-thumb.webp",
     "imageFull": "/catalog/img/motiv-rx1-orange-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/rx1-orange.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/rx1-orange.html",
     "weights": [
       {
         "weight": 16,
@@ -10974,6 +11145,7 @@
     "imageThumb": "/catalog/img/motiv-sigma-tour-thumb.webp",
     "imageFull": "/catalog/img/motiv-sigma-tour-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/sigma-tour.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/sigma-tour.html",
     "weights": [
       {
         "weight": 16,
@@ -11024,6 +11196,7 @@
     "imageThumb": "/catalog/img/motiv-silver-sniper-2024-thumb.webp",
     "imageFull": "/catalog/img/motiv-silver-sniper-2024-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/silver-sniper.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/silver-sniper.html",
     "weights": [
       {
         "weight": 16,
@@ -11062,6 +11235,7 @@
     "imageThumb": "/catalog/img/motiv-sniper-thumb.webp",
     "imageFull": "/catalog/img/motiv-sniper-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/sniper.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/sniper.html",
     "weights": [
       {
         "weight": 16,
@@ -11112,6 +11286,7 @@
     "imageThumb": "/catalog/img/motiv-sr2-thumb.webp",
     "imageFull": "/catalog/img/motiv-sr2-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/sr2.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/sr2.html",
     "weights": [
       {
         "weight": 16,
@@ -11162,6 +11337,7 @@
     "imageThumb": "/catalog/img/motiv-sx1-thumb.webp",
     "imageFull": "/catalog/img/motiv-sx1-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/sx1.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/sx1.html",
     "weights": [
       {
         "weight": 16,
@@ -11212,6 +11388,7 @@
     "imageThumb": "/catalog/img/motiv-tag-cannon-thumb.webp",
     "imageFull": "/catalog/img/motiv-tag-cannon-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/tag-cannon.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/tag-cannon.html",
     "weights": [
       {
         "weight": 16,
@@ -11262,6 +11439,7 @@
     "imageThumb": "/catalog/img/motiv-tank-blitz-2019-thumb.webp",
     "imageFull": "/catalog/img/motiv-tank-blitz-2019-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/tank-blitz.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/tank-blitz.html",
     "weights": [
       {
         "weight": 16,
@@ -11300,6 +11478,7 @@
     "imageThumb": "/catalog/img/motiv-tank-yellowjacket-2023-thumb.webp",
     "imageFull": "/catalog/img/motiv-tank-yellowjacket-2023-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/tank-yellowjacket.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/tank-yellowjacket.html",
     "weights": [
       {
         "weight": 16,
@@ -11350,6 +11529,7 @@
     "imageThumb": "/catalog/img/motiv-trident-abyss-2018-thumb.webp",
     "imageFull": "/catalog/img/motiv-trident-abyss-2018-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/trident-abyss.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/trident-abyss.html",
     "weights": [
       {
         "weight": 16,
@@ -11388,6 +11568,7 @@
     "imageThumb": "/catalog/img/motiv-trident-quest-2017-thumb.webp",
     "imageFull": "/catalog/img/motiv-trident-quest-2017-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/trident-quest.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/trident-quest.html",
     "weights": [
       {
         "weight": 16,
@@ -11426,6 +11607,7 @@
     "imageThumb": "/catalog/img/motiv-tx1-thumb.webp",
     "imageFull": "/catalog/img/motiv-tx1-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/tx1.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/tx1.html",
     "weights": [
       {
         "weight": 16,
@@ -11476,6 +11658,7 @@
     "imageThumb": "/catalog/img/motiv-united-revolt-thumb.webp",
     "imageFull": "/catalog/img/motiv-united-revolt-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/united-revolt.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/united-revolt.html",
     "weights": [
       {
         "weight": 16,
@@ -11526,6 +11709,7 @@
     "imageThumb": "/catalog/img/motiv-villain-scorn-thumb.webp",
     "imageFull": "/catalog/img/motiv-villain-scorn-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/villain-scorn.html",
+    "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/villain-scorn.html",
     "weights": [
       {
         "weight": 16,

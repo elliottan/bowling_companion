@@ -52,6 +52,7 @@ const KEY_ORDER: (keyof CatalogBall)[] = [
   "imageThumb",
   "imageFull",
   "sourceUrl",
+  "productUrl",
   "weights",
   "colorways",
 ];
@@ -141,6 +142,7 @@ function main(): void {
       imageThumb: images[id]?.imageThumb ?? null,
       imageFull: images[id]?.imageFull ?? null,
       sourceUrl: raw.sourceUrls[0] ?? "",
+      ...(raw.productUrl ? { productUrl: raw.productUrl } : {}),
       ...(raw.weights !== undefined ? { weights: raw.weights } : {}),
       // A colourway with its own picture carries it, keyed `<id>--<sku>`, so
       // the carousel shows each colour rather than the ball's image four

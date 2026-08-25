@@ -193,6 +193,7 @@ export function promoteCandidate(c: BallCandidate, existing: RawBall[]): Promote
     diff: fields.diff.value,
     mbDiff: fields.mbDiff.value,
     sourceUrls,
+    ...(fields.productUrl?.value ? { productUrl: fields.productUrl.value } : {}),
     ...(fields.weights.value ? { weights: fields.weights.value } : {}),
     ...(fields.colorways.value ? { colorways: fields.colorways.value } : {}),
   };

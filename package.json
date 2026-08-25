@@ -31,7 +31,8 @@
     "contact-sheet": "tsx scripts/sync-catalog/pipeline/contact-sheet.ts",
     "resolve-sources": "tsx scripts/sync-catalog/pipeline/resolve-sources.ts",
     "seed-to-candidates": "tsx scripts/sync-catalog/pipeline/from-seed.ts",
-    "fold-colorways": "tsx scripts/sync-catalog/pipeline/fold-colorways.ts"
+    "fold-colorways": "tsx scripts/sync-catalog/pipeline/fold-colorways.ts",
+    "link-motiv-pages": "tsx scripts/sync-catalog/pipeline/link-motiv-pages.ts"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

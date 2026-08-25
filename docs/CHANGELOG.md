@@ -20,6 +20,15 @@ of shipped work rather than a release. Thirty of them used to be headed
   the URL (`#/home/catalog/ball/<id>`), so back pops it and stops, and a link to
   a ball reopens it.
 
+## Every MOTIV ball links to MOTIV (2026-08)
+
+### Added
+
+- **A link to the manufacturer's own page**, under the specs on a ball's
+  screen. MOTIV's licence asks for it so their specs can be checked at the
+  source, and it is a separate field from the citation, so a ball whose numbers
+  were read elsewhere still points at MOTIV for the ball itself (ADR-064).
+
 ## The rest of MOTIV, covers unclassified (2026-08)
 
 ### Added

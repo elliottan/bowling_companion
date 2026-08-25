@@ -2710,3 +2710,40 @@ good guess recorded as a spec is indistinguishable from a bad one.
   trailing "Cover Stock" is dropped as the cell's own label repeated.
 - This improved balls already parsed: the Jackal Ghost V2's "Leverage HFS
   Reactive" is now correctly a solid.
+
+## ADR-064: A ball links to the manufacturer's page, separately from where its specs were read
+
+**Status:** accepted (2026-08).
+
+**Context.** MOTIV's licence, clause 4, asks that for any ball with an active
+product page, the listing carry a reasonably accessible link to it, so a reader
+can verify the specs and find out more from MOTIV directly. Nothing in the app
+linked out at all: `sourceUrl` was carried on every ball and rendered nowhere.
+
+The obvious move is to render `sourceUrl`. It is wrong for nineteen MOTIV balls
+read before the `motiv` route existed, whose specs genuinely came from bowwwl
+or a review site. Pointing those at MOTIV means overwriting the citation, which
+buys the link by making the provenance a lie.
+
+**Decision.** A second field, `productUrl`, for the manufacturer's own page,
+independent of `sourceUrls`, which keep saying where the numbers were read. A
+row can honestly cite one origin and link to another. `parse-motiv` sets it to
+the page it parsed. `pipeline/link-motiv-pages.ts` backfills the rest by
+looking the ball up in MOTIV's sitemap, never by constructing a URL, and
+reports anything their sitemap does not list.
+
+The link renders under the specs on the ball's screen as "View on MOTIV", with
+`target="_blank"` and `rel="noopener noreferrer"`. It is absent, rather than
+broken, for a ball with no page.
+
+**Consequences.**
+- 184 of 185 MOTIV balls carry it. The Frenzy does not: it is a 2026 ball that
+  MOTIV's sitemap has no page for, and is a different ball from the Thrash
+  Frenzy, which does. Nothing is invented to fill the gap.
+- A folded ball has no page under its own name, since MOTIV file colourways
+  separately, so it links to the first colourway it was folded from.
+- The field is generic rather than MOTIV-specific. No other brand populates it
+  yet, and their balls simply show no link.
+- An e2e test asserts the link, its host and its rel. The link is a term of an
+  agreement, so it should fail loudly if it is ever dropped, not quietly go
+  missing.

@@ -1,4 +1,4 @@
-import { BookOpen, Loader2, Palette, RefreshCw, X } from "lucide-react";
+import { BookOpen, ExternalLink, Loader2, Palette, RefreshCw, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { CatalogBallImage } from "../components/CatalogBallImage";
 import { ErrorBanner } from "../components/ErrorBanner";
@@ -190,6 +190,20 @@ function DetailPanel({ ball, owned, onBack, onAddToArsenal, addDialogOpen }: Det
             <SpecItem label="Diff" value={ball.diff !== null ? ball.diff.toFixed(3) : "-"} />
             {ball.mbDiff !== null && <SpecItem label="MB Diff" value={ball.mbDiff.toFixed(3)} />}
           </dl>
+
+          {/* The manufacturer's own page for the ball, so the specs above can
+              be checked against the source. MOTIV's licence asks for it. */}
+          {ball.productUrl && (
+            <a
+              href={ball.productUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-accent underline underline-offset-2"
+            >
+              <ExternalLink size={14} aria-hidden="true" />
+              View on {ball.brand}
+            </a>
+          )}
 
           {owned ? (
             <div className="mt-5 flex w-full items-center justify-center gap-2 rounded-lg border border-accent-fill/30 bg-accent-soft px-4 py-3.5 text-sm font-semibold text-accent">

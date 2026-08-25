@@ -102,6 +102,9 @@ export function foldColorways(staged: StagedBall[]): FoldResult {
       releaseDate: dates[0] ?? null,
       colorways,
       sourceUrls: rows.flatMap((r) => r.sourceUrls),
+      // MOTIV have no page for the folded ball under its own name, so the
+      // first colourway's page is the link to them for it.
+      productUrl: rows[0].productUrl ?? rows[0].sourceUrls[0] ?? null,
       _colorwayImages: images,
     });
     for (const r of rows) consumed.add(r);

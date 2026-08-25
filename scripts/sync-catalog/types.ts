@@ -26,6 +26,12 @@ export interface RawBall {
   mbDiff: number | null;
   /** Source URL citations — at least one required */
   sourceUrls: string[];
+  /**
+   * The manufacturer's own page for this ball, where one exists. Separate from
+   * sourceUrls, which say where the specs were read: a ball read from a
+   * third-party database still links to the manufacturer.
+   */
+  productUrl?: string | null;
   /** Optional per-weight specs. 15 lb must match top-level rg/diff/mbDiff when present. */
   weights?: WeightSpec[];
   /** Optional color variants. colorways[0] is the default shown in the catalog. */

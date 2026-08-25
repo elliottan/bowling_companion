@@ -53,6 +53,8 @@ export interface BallCandidate {
   /** Whole-array readings, per-weight rows are quoted as one block. */
   weights?: Readings<WeightSpec[]>;
   colorways?: Readings<Colorway[]>;
+  /** The manufacturer's own page for this ball, where one exists. */
+  productUrl?: Readings<string>;
   /** Direct product image URL, fed to the image stage. */
   imageUrl?: Readings<string>;
 }

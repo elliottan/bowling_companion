@@ -219,6 +219,9 @@ export function parsePage(html: string, url: string): StagedBall {
     diff: fifteen?.diff ?? null,
     mbDiff: fifteen?.mbDiff ?? null,
     sourceUrls: [url],
+    // The page just read is MOTIV's own, so it is both where the specs came
+    // from and the link their licence asks for.
+    productUrl: url,
     weights: weights.length > 0 ? weights : undefined,
     _imageUrl: rel ? ORIGIN + rel.replace(/^\./, "") : null,
     _sku: stripTags(html.match(/data-product-variant-item-number[^>]*>([^<]*)</)?.[1] ?? "") || null,

@@ -66,6 +66,7 @@ export function toCandidate(ball: StagedBall, parser: string): BallCandidate {
     mbDiff: reading(ball.mbDiff, src, parser),
     ...(ball.weights ? { weights: reading(ball.weights, src, parser) } : {}),
     ...(ball.colorways ? { colorways: reading(ball.colorways, src, parser) } : {}),
+    ...(ball.productUrl ? { productUrl: reading(ball.productUrl, src, parser) } : {}),
     ...(ball._imageUrl ? { imageUrl: reading(ball._imageUrl, src, parser) } : {}),
   };
 }
