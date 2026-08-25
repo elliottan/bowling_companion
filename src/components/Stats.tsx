@@ -147,7 +147,7 @@ export function Stats({
         <Tile label="Carry" value={pct(stats.carryPct)} onClick={() => toggleNote(CARRY_NOTE)} />
         <Tile
           label="1st ball"
-          value={fmt(stats.firstBallAverage)}
+          value={oneDp(stats.firstBallAverage)}
           onClick={() => toggleNote(FIRST_BALL_NOTE)}
         />
       </div>
@@ -533,4 +533,10 @@ function fmt(value: number | null): string {
 
 function pct(value: number | null): string {
   return value === null ? "-" : `${value}%`;
+}
+
+/** Always one decimal, so a first ball of 9 reads as 9.0 and the tile does not
+ *  jump between two and three characters as the average crosses a whole pin. */
+function oneDp(value: number | null): string {
+  return value === null ? "-" : value.toFixed(1);
 }

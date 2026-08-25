@@ -268,4 +268,14 @@ describe("first ball average", () => {
     fireEvent.click(screen.getByText("1st ball"));
     expect(screen.getByText(/pins knocked down by the average ball/i)).toBeInTheDocument();
   });
+
+  it("keeps the decimal on a whole number", () => {
+    render(<Stats stats={{ ...STATS, firstBallAverage: 9 }} leaves={[]} />);
+    expect(screen.getByText("9.0")).toBeInTheDocument();
+  });
+
+  it("shows a dash when nothing has been thrown", () => {
+    render(<Stats stats={{ ...STATS, firstBallAverage: null }} leaves={[]} />);
+    expect(screen.getByText("1st ball").previousSibling).toHaveTextContent("-");
+  });
 });
