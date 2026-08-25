@@ -2594,6 +2594,14 @@ in the loop.
   solid cover is filed as plain "Reactive" with no "Solid", and that stands.
   The agreement is to stay accurate to the site, and other databases' inferences
   are not the site.
+- **A cover type stated only in the page copy still counts as stated.** Their
+  older pages leave the type out of the spec cell and put it in the prose: the
+  Trident page expands its own acronym as "Coercion HVH (High Volume Hybrid)",
+  and the Jackal page opens "The Jackal is a power pearl". Only those two
+  shapes are read, and only when the cell carries no type of its own. Leaving
+  them out is not the neutral choice it looks like: an unclassified cover is
+  one the catalog cannot filter, so the ball goes missing from the search that
+  should find it.
 
 **The parser does not repair its source.** MOTIV's Covert VIP EXJ prints its
 15 lb differential as "056" where every sibling row reads ".050". The parser

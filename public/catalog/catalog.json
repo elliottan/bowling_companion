@@ -193,8 +193,8 @@
     "rg": 2.47,
     "diff": 0.054,
     "mbDiff": 0.015,
-    "imageThumb": null,
-    "imageFull": null,
+    "imageThumb": "/catalog/img/motiv-jackal-ghost-2018-thumb.webp",
+    "imageFull": "/catalog/img/motiv-jackal-ghost-2018-full.webp",
     "sourceUrl": "https://www.bowlingthismonth.com/bowling-ball-review/motiv-jackal-ghost/"
   },
   {
@@ -211,8 +211,8 @@
     "rg": 2.47,
     "diff": 0.055,
     "mbDiff": null,
-    "imageThumb": null,
-    "imageFull": null,
+    "imageThumb": "/catalog/img/motiv-forge-2017-thumb.webp",
+    "imageFull": "/catalog/img/motiv-forge-2017-full.webp",
     "sourceUrl": "https://www.bowlingthismonth.com/bowling-ball-review/motiv-forge/"
   },
   {
@@ -3554,6 +3554,506 @@
         "rg": 2.59,
         "diff": 0.05,
         "mbDiff": null
+      }
+    ]
+  },
+  {
+    "id": "motiv-evoke-hysteria-2025",
+    "brand": "Motiv",
+    "name": "Evoke Hysteria",
+    "releaseDate": "2025-03-19",
+    "releaseYear": 2025,
+    "coverstockRaw": "Propulsion MXV Pearl Reactive",
+    "coverstockCategory": "Pearl",
+    "factoryFinish": "4000 Grit LSS",
+    "coreName": "Overload",
+    "coreType": "Asymmetric",
+    "rg": 2.48,
+    "diff": 0.05,
+    "mbDiff": 0.015,
+    "imageThumb": "/catalog/img/motiv-evoke-hysteria-2025-thumb.webp",
+    "imageFull": "/catalog/img/motiv-evoke-hysteria-2025-full.webp",
+    "sourceUrl": "https://www.motivbowling.com/products/balls/medium-heavy-oil/evoke-hysteria.html",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.48,
+        "diff": 0.045,
+        "mbDiff": 0.015
+      },
+      {
+        "weight": 15,
+        "rg": 2.48,
+        "diff": 0.05,
+        "mbDiff": 0.015
+      },
+      {
+        "weight": 14,
+        "rg": 2.51,
+        "diff": 0.045,
+        "mbDiff": 0.015
+      },
+      {
+        "weight": 13,
+        "rg": 2.57,
+        "diff": 0.035,
+        "mbDiff": 0.012
+      },
+      {
+        "weight": 12,
+        "rg": 2.64,
+        "diff": 0.025,
+        "mbDiff": 0.008
+      }
+    ]
+  },
+  {
+    "id": "motiv-forge-fuel-2026",
+    "brand": "Motiv",
+    "name": "Forge Fuel",
+    "releaseDate": "2026-09-16",
+    "releaseYear": 2026,
+    "coverstockRaw": "Leverage MXT Solid Reactive",
+    "coverstockCategory": "Solid",
+    "factoryFinish": "1000 Grit LSS",
+    "coreName": "Detonator",
+    "coreType": "Symmetric",
+    "rg": 2.47,
+    "diff": 0.055,
+    "mbDiff": null,
+    "imageThumb": "/catalog/img/motiv-forge-fuel-2026-thumb.webp",
+    "imageFull": "/catalog/img/motiv-forge-fuel-2026-full.webp",
+    "sourceUrl": "https://www.motivbowling.com/products/balls/medium-heavy-oil/forge-fuel.html",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.47,
+        "diff": 0.054,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.47,
+        "diff": 0.055,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.49,
+        "diff": 0.054,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.55,
+        "diff": 0.045,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.62,
+        "diff": 0.032,
+        "mbDiff": null
+      }
+    ]
+  },
+  {
+    "id": "motiv-jackal-onyx-2025",
+    "brand": "Motiv",
+    "name": "Jackal Onyx",
+    "releaseDate": "2025-01-08",
+    "releaseYear": 2025,
+    "coverstockRaw": "Leverage HXC Solid Reactive",
+    "coverstockCategory": "Solid",
+    "factoryFinish": "1000 Grit LSS",
+    "coreName": "Predator V2",
+    "coreType": "Asymmetric",
+    "rg": 2.47,
+    "diff": 0.054,
+    "mbDiff": 0.015,
+    "imageThumb": "/catalog/img/motiv-jackal-onyx-2025-thumb.webp",
+    "imageFull": "/catalog/img/motiv-jackal-onyx-2025-full.webp",
+    "sourceUrl": "https://www.motivbowling.com/products/balls/heavy-oil/jackal-onyx.html",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.48,
+        "diff": 0.047,
+        "mbDiff": 0.013
+      },
+      {
+        "weight": 15,
+        "rg": 2.47,
+        "diff": 0.054,
+        "mbDiff": 0.015
+      },
+      {
+        "weight": 14,
+        "rg": 2.51,
+        "diff": 0.049,
+        "mbDiff": 0.014
+      },
+      {
+        "weight": 13,
+        "rg": 2.57,
+        "diff": 0.04,
+        "mbDiff": 0.011
+      },
+      {
+        "weight": 12,
+        "rg": 2.64,
+        "diff": 0.03,
+        "mbDiff": 0.01
+      }
+    ]
+  },
+  {
+    "id": "motiv-jackal",
+    "brand": "Motiv",
+    "name": "Jackal",
+    "releaseDate": null,
+    "releaseYear": null,
+    "coverstockRaw": "Turmoil HFP Pearl Reactive",
+    "coverstockCategory": "Pearl",
+    "factoryFinish": "3000 Grit LSS",
+    "coreName": "Predator",
+    "coreType": "Asymmetric",
+    "rg": 2.46,
+    "diff": 0.06,
+    "mbDiff": 0.015,
+    "imageThumb": "/catalog/img/motiv-jackal-thumb.webp",
+    "imageFull": "/catalog/img/motiv-jackal-full.webp",
+    "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/jackal.html",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.46,
+        "diff": 0.06,
+        "mbDiff": 0.015
+      },
+      {
+        "weight": 15,
+        "rg": 2.46,
+        "diff": 0.06,
+        "mbDiff": 0.015
+      },
+      {
+        "weight": 14,
+        "rg": 2.48,
+        "diff": 0.06,
+        "mbDiff": 0.015
+      }
+    ]
+  },
+  {
+    "id": "motiv-max-thrill-hybrid-2025",
+    "brand": "Motiv",
+    "name": "Max Thrill Hybrid",
+    "releaseDate": "2025-04-23",
+    "releaseYear": 2025,
+    "coverstockRaw": "Turmoil XP3 Hybrid Reactive",
+    "coverstockCategory": "Hybrid",
+    "factoryFinish": "5500 Grit LSP",
+    "coreName": "Halogen",
+    "coreType": "Symmetric",
+    "rg": 2.55,
+    "diff": 0.037,
+    "mbDiff": null,
+    "imageThumb": "/catalog/img/motiv-max-thrill-hybrid-2025-thumb.webp",
+    "imageFull": "/catalog/img/motiv-max-thrill-hybrid-2025-full.webp",
+    "sourceUrl": "https://www.motivbowling.com/products/balls/light-oil/max-thrill-hybrid.html",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.54,
+        "diff": 0.036,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.55,
+        "diff": 0.037,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.56,
+        "diff": 0.038,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.59,
+        "diff": 0.038,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.64,
+        "diff": 0.031,
+        "mbDiff": null
+      },
+      {
+        "weight": 11,
+        "rg": 2.7,
+        "diff": 0.02,
+        "mbDiff": null
+      },
+      {
+        "weight": 10,
+        "rg": 2.8,
+        "diff": 0.003,
+        "mbDiff": null
+      }
+    ]
+  },
+  {
+    "id": "motiv-pride-2023",
+    "brand": "Motiv",
+    "name": "Pride",
+    "releaseDate": "2023-01-04",
+    "releaseYear": 2023,
+    "coverstockRaw": "Coercion UCS Solid Reactive",
+    "coverstockCategory": "Solid",
+    "factoryFinish": "4000 Grit LSS",
+    "coreName": "Dominion",
+    "coreType": "Asymmetric",
+    "rg": 2.5,
+    "diff": 0.042,
+    "mbDiff": 0.01,
+    "imageThumb": "/catalog/img/motiv-pride-2023-thumb.webp",
+    "imageFull": "/catalog/img/motiv-pride-2023-full.webp",
+    "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/pride.html",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.49,
+        "diff": 0.041,
+        "mbDiff": 0.01
+      },
+      {
+        "weight": 15,
+        "rg": 2.5,
+        "diff": 0.042,
+        "mbDiff": 0.01
+      },
+      {
+        "weight": 14,
+        "rg": 2.52,
+        "diff": 0.043,
+        "mbDiff": 0.011
+      },
+      {
+        "weight": 13,
+        "rg": 2.56,
+        "diff": 0.039,
+        "mbDiff": 0.009
+      },
+      {
+        "weight": 12,
+        "rg": 2.63,
+        "diff": 0.028,
+        "mbDiff": 0.007
+      }
+    ]
+  },
+  {
+    "id": "motiv-shadow-tank-2025",
+    "brand": "Motiv",
+    "name": "Shadow Tank",
+    "releaseDate": "2025-10-22",
+    "releaseYear": 2025,
+    "coverstockRaw": "Frixion M7 Pearl MCP",
+    "coverstockCategory": "Pearl",
+    "factoryFinish": "1000 Grit LSS",
+    "coreName": "Flux",
+    "coreType": "Symmetric",
+    "rg": 2.57,
+    "diff": 0.015,
+    "mbDiff": null,
+    "imageThumb": "/catalog/img/motiv-shadow-tank-2025-thumb.webp",
+    "imageFull": "/catalog/img/motiv-shadow-tank-2025-full.webp",
+    "sourceUrl": "https://www.motivbowling.com/products/balls/light-oil/shadow-tank.html",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.57,
+        "diff": 0.013,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.57,
+        "diff": 0.015,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.57,
+        "diff": 0.018,
+        "mbDiff": null
+      }
+    ]
+  },
+  {
+    "id": "motiv-top-thrill-hybrid-2023",
+    "brand": "Motiv",
+    "name": "Top Thrill Hybrid",
+    "releaseDate": "2023-08-09",
+    "releaseYear": 2023,
+    "coverstockRaw": "Turmoil XP2 Hybrid Reactive",
+    "coverstockCategory": "Hybrid",
+    "factoryFinish": "5500 Grit LSP",
+    "coreName": "Halogen V2",
+    "coreType": "Symmetric",
+    "rg": 2.59,
+    "diff": 0.023,
+    "mbDiff": null,
+    "imageThumb": "/catalog/img/motiv-top-thrill-hybrid-2023-thumb.webp",
+    "imageFull": "/catalog/img/motiv-top-thrill-hybrid-2023-full.webp",
+    "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/top-thrill-hybrid.html",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.58,
+        "diff": 0.023,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.59,
+        "diff": 0.023,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.61,
+        "diff": 0.023,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.63,
+        "diff": 0.024,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.65,
+        "diff": 0.026,
+        "mbDiff": null
+      },
+      {
+        "weight": 11,
+        "rg": 2.7,
+        "diff": 0.02,
+        "mbDiff": null
+      },
+      {
+        "weight": 10,
+        "rg": 2.8,
+        "diff": 0.003,
+        "mbDiff": null
+      }
+    ]
+  },
+  {
+    "id": "motiv-top-thrill-solid-2023",
+    "brand": "Motiv",
+    "name": "Top Thrill Solid",
+    "releaseDate": "2023-08-09",
+    "releaseYear": 2023,
+    "coverstockRaw": "Turmoil XP2 Solid Reactive",
+    "coverstockCategory": "Solid",
+    "factoryFinish": "4000 Grit LSS",
+    "coreName": "Halogen V2",
+    "coreType": "Symmetric",
+    "rg": 2.59,
+    "diff": 0.023,
+    "mbDiff": null,
+    "imageThumb": "/catalog/img/motiv-top-thrill-solid-2023-thumb.webp",
+    "imageFull": "/catalog/img/motiv-top-thrill-solid-2023-full.webp",
+    "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/top-thrill-solid.html",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.58,
+        "diff": 0.023,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.59,
+        "diff": 0.023,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.61,
+        "diff": 0.023,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.63,
+        "diff": 0.024,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.65,
+        "diff": 0.026,
+        "mbDiff": null
+      },
+      {
+        "weight": 11,
+        "rg": 2.7,
+        "diff": 0.02,
+        "mbDiff": null
+      },
+      {
+        "weight": 10,
+        "rg": 2.8,
+        "diff": 0.003,
+        "mbDiff": null
+      }
+    ]
+  },
+  {
+    "id": "motiv-trident",
+    "brand": "Motiv",
+    "name": "Trident",
+    "releaseDate": null,
+    "releaseYear": null,
+    "coverstockRaw": "Coercion HVH Hybrid Reactive",
+    "coverstockCategory": "Hybrid",
+    "factoryFinish": "3000 Grit LSS",
+    "coreName": "Turbulent",
+    "coreType": "Asymmetric",
+    "rg": 2.49,
+    "diff": 0.054,
+    "mbDiff": 0.017,
+    "imageThumb": "/catalog/img/motiv-trident-thumb.webp",
+    "imageFull": "/catalog/img/motiv-trident-full.webp",
+    "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/trident.html",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.49,
+        "diff": 0.051,
+        "mbDiff": 0.016
+      },
+      {
+        "weight": 15,
+        "rg": 2.49,
+        "diff": 0.054,
+        "mbDiff": 0.017
+      },
+      {
+        "weight": 14,
+        "rg": 2.51,
+        "diff": 0.054,
+        "mbDiff": 0.017
       }
     ]
   }

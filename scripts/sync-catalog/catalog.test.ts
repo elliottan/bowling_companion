@@ -354,6 +354,7 @@ describe("parse-motiv", () => {
     // the case that would expose reading them the other way round.
     expect(parseMotiv(fixture("motiv-nebula.html"), NEBULA_URL).releaseDate).toBe("2025-11-26");
     const bare =
+      '<span data-product-variant-item-number>MTVBVSPPS</span>' +
       '<div class="item-name-plus-release-date"><h1>Venom Shock</h1>' +
       '<span class="release-date">3/28/2014</span></div>';
     expect(parseMotiv(bare, NEBULA_URL).releaseDate).toBe("2014-03-28");
@@ -361,6 +362,7 @@ describe("parse-motiv", () => {
 
   it("leaves the release date null when the page carries no date", () => {
     const undated =
+      '<span data-product-variant-item-number>MTVBNEB</span>' +
       '<div class="item-name-plus-release-date"><h1>Nebula</h1>' +
       '<span class="release-date"></span></div>';
     expect(parseMotiv(undated, NEBULA_URL).releaseDate).toBeNull();
@@ -389,6 +391,52 @@ describe("parse-motiv", () => {
     expect(validateRaw(ball)).toContain("diff 56 out of range [0, 0.065]");
     // The rows that are well formed are unaffected.
     expect(ball.weights?.find((w) => w.weight === 16)?.diff).toBe(0.05);
+  });
+
+  it("names a ball whose page has retired out of the sale layout", () => {
+    // A ball still listed wraps its heading in `item-name-plus-release-date`;
+    // one retired long enough drops the wrapper and leaves the <h1> bare, with
+    // no release date anywhere on the page.
+    const url = "https://www.motivbowling.com/products/balls/retired-balls/jackal.html";
+    const ball = parseMotiv(fixture("motiv-jackal-retired.html"), url);
+    expect(ball.name).toBe("Jackal");
+    expect(ball.releaseDate).toBeNull();
+    expect(ball._discontinued).toBe(true);
+    expect(ball.rg).toBe(2.46);
+    expect(ball.diff).toBe(0.06);
+    expect(ball.mbDiff).toBe(0.015);
+  });
+
+  it("folds in a cover type MOTIV states only in the page copy", () => {
+    // An older page gives the cell just the coverstock's name and leaves the
+    // type to the copy. Left out, the build cannot classify the cover and the
+    // ball never answers a coverstock filter, so it is read from the two
+    // shapes MOTIV writes: an expanded acronym, or a plain description.
+    const trident = parseMotiv(
+      fixture("motiv-trident-retired.html"),
+      "https://www.motivbowling.com/products/balls/retired-balls/trident.html"
+    );
+    // The page reads "Coercion HVH (High Volume Hybrid) cover stock".
+    expect(trident.coverstockRaw).toBe("Coercion HVH Hybrid Reactive");
+
+    const jackal = parseMotiv(
+      fixture("motiv-jackal-retired.html"),
+      "https://www.motivbowling.com/products/balls/retired-balls/jackal.html"
+    );
+    // The page opens "The Jackal is a power pearl".
+    expect(jackal.coverstockRaw).toBe("Turmoil HFP Pearl Reactive");
+  });
+
+  it("leaves a cell that already names its type alone", () => {
+    expect(parseMotiv(fixture("motiv-nebula.html"), NEBULA_URL).coverstockRaw).toBe(
+      "Dark Matter Propulsion Pearl Reactive"
+    );
+    // No type in the cell and none stated on the page: still no invention.
+    const quiet =
+      '<span data-product-variant-item-number>X</span><h1>Quiet</h1>' +
+      '<section class="product-specifications">' +
+      "<table><tr><th>Cover Stock</th><td>Something Reactive</td></tr></table></section>";
+    expect(parseMotiv(quiet, NEBULA_URL).coverstockRaw).toBe("Something Reactive");
   });
 
   it("throws rather than staging a nameless ball", () => {

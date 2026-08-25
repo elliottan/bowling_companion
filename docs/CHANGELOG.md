@@ -15,6 +15,10 @@ of shipped work rather than a release. Thirty of them used to be headed
 - **MOTIV balls read from MOTIV**, not a third-party database. MOTIV granted use
   of their site's data, so the pipeline now has a `motiv` route with its own
   parser, and its readings count as the manufacturer's own (ADR-061).
+- **Ten more MOTIV balls**, specs and photos both from MOTIV: Jackal Onyx,
+  Evoke Hysteria, Forge Fuel, Max Thrill Hybrid, Shadow Tank, Pride, Top Thrill
+  Solid, Top Thrill Hybrid, Jackal and Trident.
+- **Photos for Forge and Jackal Ghost**, which had specs but no picture.
 
 ## MOTIV's top 15 balls added to the catalog (2026-08)
 

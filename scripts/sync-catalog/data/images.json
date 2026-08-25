@@ -190,5 +190,53 @@
   "motiv-venom-shock-2014": {
     "imageThumb": "/catalog/img/motiv-venom-shock-2014-thumb.webp",
     "imageFull": "/catalog/img/motiv-venom-shock-2014-full.webp"
+  },
+  "motiv-jackal-onyx-2025": {
+    "imageThumb": "/catalog/img/motiv-jackal-onyx-2025-thumb.webp",
+    "imageFull": "/catalog/img/motiv-jackal-onyx-2025-full.webp"
+  },
+  "motiv-evoke-hysteria-2025": {
+    "imageThumb": "/catalog/img/motiv-evoke-hysteria-2025-thumb.webp",
+    "imageFull": "/catalog/img/motiv-evoke-hysteria-2025-full.webp"
+  },
+  "motiv-forge-fuel-2026": {
+    "imageThumb": "/catalog/img/motiv-forge-fuel-2026-thumb.webp",
+    "imageFull": "/catalog/img/motiv-forge-fuel-2026-full.webp"
+  },
+  "motiv-max-thrill-hybrid-2025": {
+    "imageThumb": "/catalog/img/motiv-max-thrill-hybrid-2025-thumb.webp",
+    "imageFull": "/catalog/img/motiv-max-thrill-hybrid-2025-full.webp"
+  },
+  "motiv-shadow-tank-2025": {
+    "imageThumb": "/catalog/img/motiv-shadow-tank-2025-thumb.webp",
+    "imageFull": "/catalog/img/motiv-shadow-tank-2025-full.webp"
+  },
+  "motiv-pride-2023": {
+    "imageThumb": "/catalog/img/motiv-pride-2023-thumb.webp",
+    "imageFull": "/catalog/img/motiv-pride-2023-full.webp"
+  },
+  "motiv-top-thrill-solid-2023": {
+    "imageThumb": "/catalog/img/motiv-top-thrill-solid-2023-thumb.webp",
+    "imageFull": "/catalog/img/motiv-top-thrill-solid-2023-full.webp"
+  },
+  "motiv-top-thrill-hybrid-2023": {
+    "imageThumb": "/catalog/img/motiv-top-thrill-hybrid-2023-thumb.webp",
+    "imageFull": "/catalog/img/motiv-top-thrill-hybrid-2023-full.webp"
+  },
+  "motiv-jackal": {
+    "imageThumb": "/catalog/img/motiv-jackal-thumb.webp",
+    "imageFull": "/catalog/img/motiv-jackal-full.webp"
+  },
+  "motiv-trident": {
+    "imageThumb": "/catalog/img/motiv-trident-thumb.webp",
+    "imageFull": "/catalog/img/motiv-trident-full.webp"
+  },
+  "motiv-forge-2017": {
+    "imageThumb": "/catalog/img/motiv-forge-2017-thumb.webp",
+    "imageFull": "/catalog/img/motiv-forge-2017-full.webp"
+  },
+  "motiv-jackal-ghost-2018": {
+    "imageThumb": "/catalog/img/motiv-jackal-ghost-2018-thumb.webp",
+    "imageFull": "/catalog/img/motiv-jackal-ghost-2018-full.webp"
   }
 }

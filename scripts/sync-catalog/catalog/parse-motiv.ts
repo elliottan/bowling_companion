@@ -124,11 +124,36 @@ export function parseWeights(html: string): WeightSpec[] {
   return weights.sort((a, b) => b.weight - a.weight);
 }
 
+/**
+ * The cover type, where MOTIV states it in prose rather than in the spec cell.
+ *
+ * Their current pages put it in the cell ("Dark Matter Propulsion Pearl
+ * Reactive"), but the older ones give only the coverstock's name and leave the
+ * type to the copy: the Trident page expands its own acronym as "Coercion HVH
+ * (High Volume Hybrid)", and the Jackal page opens "The Jackal is a power
+ * pearl". Both are MOTIV describing their own ball on the ball's own page.
+ *
+ * Only these two shapes are read, and only when the cell has no type of its
+ * own. Anything else is left alone for a person to classify, which is what the
+ * build's unclassified-coverstock notice is for.
+ */
+function statedCoverType(html: string): string | null {
+  const text = stripTags(html);
+  const paren = text.match(/\(([^)]{0,40}(Solid|Pearl|Hybrid|Urethane))\)/i);
+  const prose = text.match(/\bis an?\s+(?:power\s+)?(solid|pearl|hybrid|urethane)\b/i);
+  const word = paren?.[2] ?? prose?.[1];
+  // Title case: the copy is a sentence, the spec cell is a label.
+  return word ? word[0].toUpperCase() + word.slice(1).toLowerCase() : null;
+}
+
 export function parsePage(html: string, url: string): StagedBall {
-  // Scoped to the product heading: the page carries other <h1>s (a mailing-list
-  // block among them), so an unscoped match reads the wrong one.
+  // Anchored on the item number, which is the one thing both page layouts put
+  // immediately before the name: a ball on sale wraps its heading in
+  // `item-name-plus-release-date`, while one retired long enough drops the
+  // wrapper and leaves the <h1> bare. Anchoring here also keeps the match off
+  // the other <h1>s on the page, the mailing-list block among them.
   const name = stripTags(
-    html.match(/item-name-plus-release-date"[^>]*>\s*<h1[^>]*>([\s\S]{0,200}?)<\/h1>/)?.[1] ?? ""
+    html.match(/data-product-variant-item-number[\s\S]{0,400}?<h1[^>]*>([\s\S]{0,200}?)<\/h1>/)?.[1] ?? ""
   );
   if (!name) throw new Error(`No ball name found at ${url}`);
 
@@ -145,13 +170,27 @@ export function parsePage(html: string, url: string): StagedBall {
   // suffix is a label for the core's shape, not part of its name.
   const core = specCell(specs, "Weight Block");
 
+  // The cell as MOTIV writes it, with the type folded in only where the cell
+  // itself leaves it out. A cover the build cannot classify is one the app
+  // cannot filter, so the ball goes missing from the search that should find
+  // it, and MOTIV state the type plainly enough elsewhere on the page.
+  const cover = specCell(specs, "Cover Stock");
+  const coverType = cover && !/solid|pearl|hybrid|urethane/i.test(cover)
+    ? statedCoverType(html)
+    : null;
+
   return {
     brand: "Motiv",
     name,
     releaseDate: releaseDate(html),
-    // Taken exactly as MOTIV states it. A solid cover reads "Leverage HFS
-    // Reactive" with no "Solid", and that stands rather than being filled in.
-    coverstockRaw: specCell(specs, "Cover Stock") ?? "Unknown",
+    // Written the way MOTIV's own current pages write it, name then type then
+    // "Reactive", so "Turmoil HFP Reactive" plus a stated pearl reads
+    // "Turmoil HFP Pearl Reactive".
+    coverstockRaw: cover
+      ? coverType
+        ? cover.replace(/\s*Reactive\s*$/i, ` ${coverType} Reactive`)
+        : cover
+      : "Unknown",
     factoryFinish: specCell(specs, "Finish"),
     coreName: core ? core.replace(/\s+a?symmetric(al)?\s*$/i, "").trim() || null : null,
     rg: fifteen?.rg ?? null,
@@ -182,7 +221,16 @@ async function main(): Promise<void> {
       console.error(`✗ ${url}: HTTP ${res.status}`);
       continue;
     }
-    const ball = parsePage(await res.text(), url);
+    // A page this cannot read costs that ball, not the run. Throwing here used
+    // to abort before the write below, so a bad page nine balls in discarded
+    // the eight good ones with it.
+    let ball: StagedBall;
+    try {
+      ball = parsePage(await res.text(), url);
+    } catch (e) {
+      console.error(`✗ ${url}: ${e instanceof Error ? e.message : String(e)}`);
+      continue;
+    }
     const at = staged.findIndex((b) => b.brand === ball.brand && b.name === ball.name);
     if (at === -1) staged.push(ball);
     else staged[at] = ball;
