@@ -698,5 +698,197 @@
   "motiv-2020-revolt": {
     "imageThumb": "/catalog/img/motiv-2020-revolt-thumb.webp",
     "imageFull": "/catalog/img/motiv-2020-revolt-full.webp"
+  },
+  "motiv-silver-sniper-2024": {
+    "imageThumb": "/catalog/img/motiv-silver-sniper-2024-thumb.webp",
+    "imageFull": "/catalog/img/motiv-silver-sniper-2024-full.webp"
+  },
+  "motiv-tank-yellowjacket-2023": {
+    "imageThumb": "/catalog/img/motiv-tank-yellowjacket-2023-thumb.webp",
+    "imageFull": "/catalog/img/motiv-tank-yellowjacket-2023-full.webp"
+  },
+  "motiv-blue-coral-venom-2022": {
+    "imageThumb": "/catalog/img/motiv-blue-coral-venom-2022-thumb.webp",
+    "imageFull": "/catalog/img/motiv-blue-coral-venom-2022-full.webp"
+  },
+  "motiv-allegiant-sniper-2020": {
+    "imageThumb": "/catalog/img/motiv-allegiant-sniper-2020-thumb.webp",
+    "imageFull": "/catalog/img/motiv-allegiant-sniper-2020-full.webp"
+  },
+  "motiv-tank-blitz-2019": {
+    "imageThumb": "/catalog/img/motiv-tank-blitz-2019-thumb.webp",
+    "imageFull": "/catalog/img/motiv-tank-blitz-2019-full.webp"
+  },
+  "motiv-ripcord-2019": {
+    "imageThumb": "/catalog/img/motiv-ripcord-2019-thumb.webp",
+    "imageFull": "/catalog/img/motiv-ripcord-2019-full.webp"
+  },
+  "motiv-covert-tank-2019": {
+    "imageThumb": "/catalog/img/motiv-covert-tank-2019-thumb.webp",
+    "imageFull": "/catalog/img/motiv-covert-tank-2019-full.webp"
+  },
+  "motiv-trident-abyss-2018": {
+    "imageThumb": "/catalog/img/motiv-trident-abyss-2018-thumb.webp",
+    "imageFull": "/catalog/img/motiv-trident-abyss-2018-full.webp"
+  },
+  "motiv-trident-quest-2017": {
+    "imageThumb": "/catalog/img/motiv-trident-quest-2017-thumb.webp",
+    "imageFull": "/catalog/img/motiv-trident-quest-2017-full.webp"
+  },
+  "motiv-villain-scorn": {
+    "imageThumb": "/catalog/img/motiv-villain-scorn-thumb.webp",
+    "imageFull": "/catalog/img/motiv-villain-scorn-full.webp"
+  },
+  "motiv-united-revolt": {
+    "imageThumb": "/catalog/img/motiv-united-revolt-thumb.webp",
+    "imageFull": "/catalog/img/motiv-united-revolt-full.webp"
+  },
+  "motiv-tag-cannon": {
+    "imageThumb": "/catalog/img/motiv-tag-cannon-thumb.webp",
+    "imageFull": "/catalog/img/motiv-tag-cannon-full.webp"
+  },
+  "motiv-tx1": {
+    "imageThumb": "/catalog/img/motiv-tx1-thumb.webp",
+    "imageFull": "/catalog/img/motiv-tx1-full.webp"
+  },
+  "motiv-sniper": {
+    "imageThumb": "/catalog/img/motiv-sniper-thumb.webp",
+    "imageFull": "/catalog/img/motiv-sniper-full.webp"
+  },
+  "motiv-sigma-tour": {
+    "imageThumb": "/catalog/img/motiv-sigma-tour-thumb.webp",
+    "imageFull": "/catalog/img/motiv-sigma-tour-full.webp"
+  },
+  "motiv-sx1": {
+    "imageThumb": "/catalog/img/motiv-sx1-thumb.webp",
+    "imageFull": "/catalog/img/motiv-sx1-full.webp"
+  },
+  "motiv-sr2": {
+    "imageThumb": "/catalog/img/motiv-sr2-thumb.webp",
+    "imageFull": "/catalog/img/motiv-sr2-full.webp"
+  },
+  "motiv-rogue-blade": {
+    "imageThumb": "/catalog/img/motiv-rogue-blade-thumb.webp",
+    "imageFull": "/catalog/img/motiv-rogue-blade-full.webp"
+  },
+  "motiv-recon-rx1-silver": {
+    "imageThumb": "/catalog/img/motiv-recon-rx1-silver-thumb.webp",
+    "imageFull": "/catalog/img/motiv-recon-rx1-silver-full.webp"
+  },
+  "motiv-raptor-p7": {
+    "imageThumb": "/catalog/img/motiv-raptor-p7-thumb.webp",
+    "imageFull": "/catalog/img/motiv-raptor-p7-full.webp"
+  },
+  "motiv-raptor-attack": {
+    "imageThumb": "/catalog/img/motiv-raptor-attack-thumb.webp",
+    "imageFull": "/catalog/img/motiv-raptor-attack-full.webp"
+  },
+  "motiv-rx1-orange": {
+    "imageThumb": "/catalog/img/motiv-rx1-orange-thumb.webp",
+    "imageFull": "/catalog/img/motiv-rx1-orange-full.webp"
+  },
+  "motiv-qz2-black-blue-pearl": {
+    "imageThumb": "/catalog/img/motiv-qz2-black-blue-pearl-thumb.webp",
+    "imageFull": "/catalog/img/motiv-qz2-black-blue-pearl-full.webp"
+  },
+  "motiv-qz2-backdraft": {
+    "imageThumb": "/catalog/img/motiv-qz2-backdraft-thumb.webp",
+    "imageFull": "/catalog/img/motiv-qz2-backdraft-full.webp"
+  },
+  "motiv-qz1-red": {
+    "imageThumb": "/catalog/img/motiv-qz1-red-thumb.webp",
+    "imageFull": "/catalog/img/motiv-qz1-red-full.webp"
+  },
+  "motiv-qz1-purple": {
+    "imageThumb": "/catalog/img/motiv-qz1-purple-thumb.webp",
+    "imageFull": "/catalog/img/motiv-qz1-purple-full.webp"
+  },
+  "motiv-primal-rage-5-yr-le": {
+    "imageThumb": "/catalog/img/motiv-primal-rage-5-yr-le-thumb.webp",
+    "imageFull": "/catalog/img/motiv-primal-rage-5-yr-le-full.webp"
+  },
+  "motiv-octane-burn": {
+    "imageThumb": "/catalog/img/motiv-octane-burn-thumb.webp",
+    "imageFull": "/catalog/img/motiv-octane-burn-full.webp"
+  },
+  "motiv-octane": {
+    "imageThumb": "/catalog/img/motiv-octane-thumb.webp",
+    "imageFull": "/catalog/img/motiv-octane-full.webp"
+  },
+  "motiv-midnight-sniper": {
+    "imageThumb": "/catalog/img/motiv-midnight-sniper-thumb.webp",
+    "imageFull": "/catalog/img/motiv-midnight-sniper-full.webp"
+  },
+  "motiv-laser-sniper": {
+    "imageThumb": "/catalog/img/motiv-laser-sniper-thumb.webp",
+    "imageFull": "/catalog/img/motiv-laser-sniper-full.webp"
+  },
+  "motiv-jackal-slash": {
+    "imageThumb": "/catalog/img/motiv-jackal-slash-thumb.webp",
+    "imageFull": "/catalog/img/motiv-jackal-slash-full.webp"
+  },
+  "motiv-jackal-rising": {
+    "imageThumb": "/catalog/img/motiv-jackal-rising-thumb.webp",
+    "imageFull": "/catalog/img/motiv-jackal-rising-full.webp"
+  },
+  "motiv-jackal-magic": {
+    "imageThumb": "/catalog/img/motiv-jackal-magic-thumb.webp",
+    "imageFull": "/catalog/img/motiv-jackal-magic-full.webp"
+  },
+  "motiv-jackal-le": {
+    "imageThumb": "/catalog/img/motiv-jackal-le-thumb.webp",
+    "imageFull": "/catalog/img/motiv-jackal-le-full.webp"
+  },
+  "motiv-jackal-hunt": {
+    "imageThumb": "/catalog/img/motiv-jackal-hunt-thumb.webp",
+    "imageFull": "/catalog/img/motiv-jackal-hunt-full.webp"
+  },
+  "motiv-jackal-carnage": {
+    "imageThumb": "/catalog/img/motiv-jackal-carnage-thumb.webp",
+    "imageFull": "/catalog/img/motiv-jackal-carnage-full.webp"
+  },
+  "motiv-jackal-attack": {
+    "imageThumb": "/catalog/img/motiv-jackal-attack-thumb.webp",
+    "imageFull": "/catalog/img/motiv-jackal-attack-full.webp"
+  },
+  "motiv-jackal-assault": {
+    "imageThumb": "/catalog/img/motiv-jackal-assault-thumb.webp",
+    "imageFull": "/catalog/img/motiv-jackal-assault-full.webp"
+  },
+  "motiv-hyper-sniper": {
+    "imageThumb": "/catalog/img/motiv-hyper-sniper-thumb.webp",
+    "imageFull": "/catalog/img/motiv-hyper-sniper-full.webp"
+  },
+  "motiv-gold-revolt": {
+    "imageThumb": "/catalog/img/motiv-gold-revolt-thumb.webp",
+    "imageFull": "/catalog/img/motiv-gold-revolt-full.webp"
+  },
+  "motiv-gt1": {
+    "imageThumb": "/catalog/img/motiv-gt1-thumb.webp",
+    "imageFull": "/catalog/img/motiv-gt1-full.webp"
+  },
+  "motiv-forza-gt": {
+    "imageThumb": "/catalog/img/motiv-forza-gt-thumb.webp",
+    "imageFull": "/catalog/img/motiv-forza-gt-full.webp"
+  },
+  "motiv-black-jackal": {
+    "imageThumb": "/catalog/img/motiv-black-jackal-thumb.webp",
+    "imageFull": "/catalog/img/motiv-black-jackal-full.webp"
+  },
+  "motiv-ascent-solid": {
+    "imageThumb": "/catalog/img/motiv-ascent-solid-thumb.webp",
+    "imageFull": "/catalog/img/motiv-ascent-solid-full.webp"
+  },
+  "motiv-ascent-pearl-red-black": {
+    "imageThumb": "/catalog/img/motiv-ascent-pearl-red-black-thumb.webp",
+    "imageFull": "/catalog/img/motiv-ascent-pearl-red-black-full.webp"
+  },
+  "motiv-ascent-pearl-pink-purple": {
+    "imageThumb": "/catalog/img/motiv-ascent-pearl-pink-purple-thumb.webp",
+    "imageFull": "/catalog/img/motiv-ascent-pearl-pink-purple-full.webp"
+  },
+  "motiv-2cruel": {
+    "imageThumb": "/catalog/img/motiv-2cruel-thumb.webp",
+    "imageFull": "/catalog/img/motiv-2cruel-full.webp"
   }
 }

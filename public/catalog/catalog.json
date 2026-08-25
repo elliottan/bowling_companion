@@ -9218,5 +9218,2345 @@
         "mbDiff": 0.013
       }
     ]
+  },
+  {
+    "id": "motiv-2cruel",
+    "brand": "Motiv",
+    "name": "2Cruel",
+    "releaseDate": null,
+    "releaseYear": null,
+    "coverstockRaw": "Whiplash",
+    "coverstockCategory": null,
+    "factoryFinish": "5000 Grit Laser Scan Polished",
+    "coreName": "Sinister",
+    "coreType": "Asymmetric",
+    "rg": 2.55,
+    "diff": 0.053,
+    "mbDiff": 0.018,
+    "imageThumb": "/catalog/img/motiv-2cruel-thumb.webp",
+    "imageFull": "/catalog/img/motiv-2cruel-full.webp",
+    "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/2cruel.html",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.55,
+        "diff": 0.05,
+        "mbDiff": 0.018
+      },
+      {
+        "weight": 15,
+        "rg": 2.55,
+        "diff": 0.053,
+        "mbDiff": 0.018
+      },
+      {
+        "weight": 14,
+        "rg": 2.57,
+        "diff": 0.053,
+        "mbDiff": 0.019
+      }
+    ]
+  },
+  {
+    "id": "motiv-allegiant-sniper-2020",
+    "brand": "Motiv",
+    "name": "Allegiant Sniper",
+    "releaseDate": "2020-06-17",
+    "releaseYear": 2020,
+    "coverstockRaw": "TruShot Polythane",
+    "coverstockCategory": null,
+    "factoryFinish": "5500 Grit LSP",
+    "coreName": "Hollow Point",
+    "coreType": "Symmetric",
+    "rg": 2.68,
+    "diff": 0.01,
+    "mbDiff": null,
+    "imageThumb": "/catalog/img/motiv-allegiant-sniper-2020-thumb.webp",
+    "imageFull": "/catalog/img/motiv-allegiant-sniper-2020-full.webp",
+    "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/allegiant-sniper.html",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.67,
+        "diff": 0.01,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.68,
+        "diff": 0.01,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.69,
+        "diff": 0.014,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.73,
+        "diff": 0.006,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.75,
+        "diff": 0.003,
+        "mbDiff": null
+      }
+    ]
+  },
+  {
+    "id": "motiv-ascent-pearl-pink-purple",
+    "brand": "Motiv",
+    "name": "Ascent Pearl Pink/Purple",
+    "releaseDate": null,
+    "releaseYear": null,
+    "coverstockRaw": "MOTIVator-Z Reactive",
+    "coverstockCategory": null,
+    "factoryFinish": "5500 Grit Laser Scan Polished",
+    "coreName": "Recon",
+    "coreType": "Symmetric",
+    "rg": 2.59,
+    "diff": 0.025,
+    "mbDiff": null,
+    "imageThumb": "/catalog/img/motiv-ascent-pearl-pink-purple-thumb.webp",
+    "imageFull": "/catalog/img/motiv-ascent-pearl-pink-purple-full.webp",
+    "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/ascent-pearl-pink-purple.html",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.59,
+        "diff": 0.018,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.59,
+        "diff": 0.025,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.61,
+        "diff": 0.025,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.62,
+        "diff": 0.03,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.62,
+        "diff": 0.038,
+        "mbDiff": null
+      },
+      {
+        "weight": 11,
+        "rg": 2.69,
+        "diff": 0.022,
+        "mbDiff": null
+      },
+      {
+        "weight": 10,
+        "rg": 2.75,
+        "diff": 0.01,
+        "mbDiff": null
+      }
+    ]
+  },
+  {
+    "id": "motiv-ascent-pearl-red-black",
+    "brand": "Motiv",
+    "name": "Ascent Pearl Red/Black",
+    "releaseDate": null,
+    "releaseYear": null,
+    "coverstockRaw": "MOTIVator-Z",
+    "coverstockCategory": null,
+    "factoryFinish": "5500 Grit Laser Scan Polished",
+    "coreName": "Recon",
+    "coreType": "Symmetric",
+    "rg": 2.59,
+    "diff": 0.025,
+    "mbDiff": null,
+    "imageThumb": "/catalog/img/motiv-ascent-pearl-red-black-thumb.webp",
+    "imageFull": "/catalog/img/motiv-ascent-pearl-red-black-full.webp",
+    "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/ascent-pearl-red-black.html",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.59,
+        "diff": 0.018,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.59,
+        "diff": 0.025,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.61,
+        "diff": 0.025,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.62,
+        "diff": 0.03,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.62,
+        "diff": 0.038,
+        "mbDiff": null
+      },
+      {
+        "weight": 11,
+        "rg": 2.69,
+        "diff": 0.022,
+        "mbDiff": null
+      },
+      {
+        "weight": 10,
+        "rg": 2.75,
+        "diff": 0.01,
+        "mbDiff": null
+      }
+    ]
+  },
+  {
+    "id": "motiv-ascent-solid",
+    "brand": "Motiv",
+    "name": "Ascent Solid",
+    "releaseDate": null,
+    "releaseYear": null,
+    "coverstockRaw": "MOTIVator-Z Reactive",
+    "coverstockCategory": null,
+    "factoryFinish": "3000 Grit Laser Scan Sanded",
+    "coreName": "Recon",
+    "coreType": "Symmetric",
+    "rg": 2.59,
+    "diff": 0.025,
+    "mbDiff": null,
+    "imageThumb": "/catalog/img/motiv-ascent-solid-thumb.webp",
+    "imageFull": "/catalog/img/motiv-ascent-solid-full.webp",
+    "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/ascent-solid.html",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.59,
+        "diff": 0.018,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.59,
+        "diff": 0.025,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.61,
+        "diff": 0.025,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.62,
+        "diff": 0.03,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.62,
+        "diff": 0.038,
+        "mbDiff": null
+      },
+      {
+        "weight": 11,
+        "rg": 2.69,
+        "diff": 0.022,
+        "mbDiff": null
+      },
+      {
+        "weight": 10,
+        "rg": 2.75,
+        "diff": 0.01,
+        "mbDiff": null
+      }
+    ]
+  },
+  {
+    "id": "motiv-black-jackal",
+    "brand": "Motiv",
+    "name": "Black Jackal",
+    "releaseDate": null,
+    "releaseYear": null,
+    "coverstockRaw": "Coercion HV2 Reactive",
+    "coverstockCategory": null,
+    "factoryFinish": "2000 Grit LSS",
+    "coreName": "Predator V3",
+    "coreType": "Asymmetric",
+    "rg": 2.47,
+    "diff": 0.055,
+    "mbDiff": 0.019,
+    "imageThumb": "/catalog/img/motiv-black-jackal-thumb.webp",
+    "imageFull": "/catalog/img/motiv-black-jackal-full.webp",
+    "sourceUrl": "https://www.motivbowling.com/products/balls/exclusives/black-jackal.html",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.47,
+        "diff": 0.053,
+        "mbDiff": 0.018
+      },
+      {
+        "weight": 15,
+        "rg": 2.47,
+        "diff": 0.055,
+        "mbDiff": 0.019
+      },
+      {
+        "weight": 14,
+        "rg": 2.5,
+        "diff": 0.052,
+        "mbDiff": 0.018
+      }
+    ]
+  },
+  {
+    "id": "motiv-blue-coral-venom-2022",
+    "brand": "Motiv",
+    "name": "Blue Coral Venom",
+    "releaseDate": "2022-04-13",
+    "releaseYear": 2022,
+    "coverstockRaw": "Coercion MFH Reactive",
+    "coverstockCategory": null,
+    "factoryFinish": "4000 Grit LSS",
+    "coreName": "Gear APG",
+    "coreType": "Asymmetric",
+    "rg": 2.47,
+    "diff": 0.036,
+    "mbDiff": 0.013,
+    "imageThumb": "/catalog/img/motiv-blue-coral-venom-2022-thumb.webp",
+    "imageFull": "/catalog/img/motiv-blue-coral-venom-2022-full.webp",
+    "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/blue-coral-venom.html",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.48,
+        "diff": 0.032,
+        "mbDiff": 0.011
+      },
+      {
+        "weight": 15,
+        "rg": 2.47,
+        "diff": 0.036,
+        "mbDiff": 0.013
+      },
+      {
+        "weight": 14,
+        "rg": 2.5,
+        "diff": 0.033,
+        "mbDiff": 0.012
+      },
+      {
+        "weight": 13,
+        "rg": 2.56,
+        "diff": 0.028,
+        "mbDiff": 0.009
+      },
+      {
+        "weight": 12,
+        "rg": 2.63,
+        "diff": 0.02,
+        "mbDiff": 0.007
+      }
+    ]
+  },
+  {
+    "id": "motiv-covert-tank-2019",
+    "brand": "Motiv",
+    "name": "Covert Tank",
+    "releaseDate": "2019-06-12",
+    "releaseYear": 2019,
+    "coverstockRaw": "Frixion Microcell Polymer",
+    "coverstockCategory": null,
+    "factoryFinish": "2000 Grit LSS",
+    "coreName": "Torx",
+    "coreType": "Symmetric",
+    "rg": 2.5,
+    "diff": 0.051,
+    "mbDiff": null,
+    "imageThumb": "/catalog/img/motiv-covert-tank-2019-thumb.webp",
+    "imageFull": "/catalog/img/motiv-covert-tank-2019-full.webp",
+    "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/covert-tank.html",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.5,
+        "diff": 0.046,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.5,
+        "diff": 0.051,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.53,
+        "diff": 0.047,
+        "mbDiff": null
+      }
+    ]
+  },
+  {
+    "id": "motiv-forza-gt",
+    "brand": "Motiv",
+    "name": "Forza GT",
+    "releaseDate": null,
+    "releaseYear": null,
+    "coverstockRaw": "Helix HR",
+    "coverstockCategory": null,
+    "factoryFinish": "4000 Grit LSS",
+    "coreName": "Torx",
+    "coreType": "Symmetric",
+    "rg": 2.5,
+    "diff": 0.051,
+    "mbDiff": null,
+    "imageThumb": "/catalog/img/motiv-forza-gt-thumb.webp",
+    "imageFull": "/catalog/img/motiv-forza-gt-full.webp",
+    "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/forza-gt.html",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.5,
+        "diff": 0.046,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.5,
+        "diff": 0.051,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.53,
+        "diff": 0.047,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.57,
+        "diff": 0.038,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.63,
+        "diff": 0.03,
+        "mbDiff": null
+      }
+    ]
+  },
+  {
+    "id": "motiv-gold-revolt",
+    "brand": "Motiv",
+    "name": "Gold Revolt",
+    "releaseDate": null,
+    "releaseYear": null,
+    "coverstockRaw": "Coercion HFP Reactive",
+    "coverstockCategory": null,
+    "factoryFinish": "3000 Grit LSS",
+    "coreName": "Vanquish",
+    "coreType": "Symmetric",
+    "rg": 2.47,
+    "diff": 0.056,
+    "mbDiff": null,
+    "imageThumb": "/catalog/img/motiv-gold-revolt-thumb.webp",
+    "imageFull": "/catalog/img/motiv-gold-revolt-full.webp",
+    "sourceUrl": "https://www.motivbowling.com/products/balls/exclusives/gold-revolt.html",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.46,
+        "diff": 0.057,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.47,
+        "diff": 0.056,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.5,
+        "diff": 0.056,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.56,
+        "diff": 0.044,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.63,
+        "diff": 0.03,
+        "mbDiff": null
+      }
+    ]
+  },
+  {
+    "id": "motiv-gt1",
+    "brand": "Motiv",
+    "name": "GT1",
+    "releaseDate": null,
+    "releaseYear": null,
+    "coverstockRaw": "MOTIVat-R",
+    "coverstockCategory": null,
+    "factoryFinish": "5000 Grit Laser Scan Polished",
+    "coreName": "Gear Drive",
+    "coreType": "Symmetric",
+    "rg": 2.47,
+    "diff": 0.032,
+    "mbDiff": null,
+    "imageThumb": "/catalog/img/motiv-gt1-thumb.webp",
+    "imageFull": "/catalog/img/motiv-gt1-full.webp",
+    "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/gt1.html",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.45,
+        "diff": 0.033,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.47,
+        "diff": 0.032,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.51,
+        "diff": 0.031,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.57,
+        "diff": 0.022,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.62,
+        "diff": 0.02,
+        "mbDiff": null
+      }
+    ]
+  },
+  {
+    "id": "motiv-hyper-sniper",
+    "brand": "Motiv",
+    "name": "Hyper Sniper",
+    "releaseDate": null,
+    "releaseYear": null,
+    "coverstockRaw": "TruShot Polythane",
+    "coverstockCategory": null,
+    "factoryFinish": "5500 Grit Laser Scan Polished",
+    "coreName": "Hollow-Point",
+    "coreType": "Symmetric",
+    "rg": 2.68,
+    "diff": 0.01,
+    "mbDiff": null,
+    "imageThumb": "/catalog/img/motiv-hyper-sniper-thumb.webp",
+    "imageFull": "/catalog/img/motiv-hyper-sniper-full.webp",
+    "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/hyper-sniper.html",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.67,
+        "diff": 0.01,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.68,
+        "diff": 0.01,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.69,
+        "diff": 0.014,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.73,
+        "diff": 0.006,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.75,
+        "diff": 0.003,
+        "mbDiff": null
+      }
+    ]
+  },
+  {
+    "id": "motiv-jackal-assault",
+    "brand": "Motiv",
+    "name": "Jackal Assault",
+    "releaseDate": null,
+    "releaseYear": null,
+    "coverstockRaw": "Unknown",
+    "coverstockCategory": null,
+    "factoryFinish": null,
+    "coreName": "Predator V2",
+    "coreType": "Asymmetric",
+    "rg": 2.47,
+    "diff": 0.055,
+    "mbDiff": 0.019,
+    "imageThumb": "/catalog/img/motiv-jackal-assault-thumb.webp",
+    "imageFull": "/catalog/img/motiv-jackal-assault-full.webp",
+    "sourceUrl": "https://www.motivbowling.com/products/balls/exclusives/jackal-assault.html",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.47,
+        "diff": 0.053,
+        "mbDiff": 0.018
+      },
+      {
+        "weight": 15,
+        "rg": 2.47,
+        "diff": 0.055,
+        "mbDiff": 0.019
+      },
+      {
+        "weight": 14,
+        "rg": 2.5,
+        "diff": 0.052,
+        "mbDiff": 0.018
+      }
+    ]
+  },
+  {
+    "id": "motiv-jackal-attack",
+    "brand": "Motiv",
+    "name": "Jackal Attack",
+    "releaseDate": null,
+    "releaseYear": null,
+    "coverstockRaw": "Coercion HV2 Reactive",
+    "coverstockCategory": null,
+    "factoryFinish": "2000 Grit LSS",
+    "coreName": "Predator V3",
+    "coreType": "Asymmetric",
+    "rg": 2.47,
+    "diff": 0.055,
+    "mbDiff": 0.019,
+    "imageThumb": "/catalog/img/motiv-jackal-attack-thumb.webp",
+    "imageFull": "/catalog/img/motiv-jackal-attack-full.webp",
+    "sourceUrl": "https://www.motivbowling.com/products/balls/exclusives/jackal-attack.html",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.47,
+        "diff": 0.053,
+        "mbDiff": 0.018
+      },
+      {
+        "weight": 15,
+        "rg": 2.47,
+        "diff": 0.055,
+        "mbDiff": 0.019
+      },
+      {
+        "weight": 14,
+        "rg": 2.5,
+        "diff": 0.052,
+        "mbDiff": 0.018
+      }
+    ]
+  },
+  {
+    "id": "motiv-jackal-carnage",
+    "brand": "Motiv",
+    "name": "Jackal Carnage",
+    "releaseDate": null,
+    "releaseYear": null,
+    "coverstockRaw": "Coercion XFS Reactive",
+    "coverstockCategory": null,
+    "factoryFinish": "3000 Grit LSS",
+    "coreName": "Predator",
+    "coreType": "Asymmetric",
+    "rg": 2.46,
+    "diff": 0.06,
+    "mbDiff": 0.015,
+    "imageThumb": "/catalog/img/motiv-jackal-carnage-thumb.webp",
+    "imageFull": "/catalog/img/motiv-jackal-carnage-full.webp",
+    "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/jackal-carnage.html",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.46,
+        "diff": 0.06,
+        "mbDiff": 0.015
+      },
+      {
+        "weight": 15,
+        "rg": 2.46,
+        "diff": 0.06,
+        "mbDiff": 0.015
+      },
+      {
+        "weight": 14,
+        "rg": 2.48,
+        "diff": 0.06,
+        "mbDiff": 0.015
+      }
+    ]
+  },
+  {
+    "id": "motiv-jackal-hunt",
+    "brand": "Motiv",
+    "name": "Jackal Hunt",
+    "releaseDate": null,
+    "releaseYear": null,
+    "coverstockRaw": "Coercion HV2 Reactive",
+    "coverstockCategory": null,
+    "factoryFinish": "2000 Grit LSS",
+    "coreName": "Predator V3",
+    "coreType": "Asymmetric",
+    "rg": 2.47,
+    "diff": 0.055,
+    "mbDiff": 0.019,
+    "imageThumb": "/catalog/img/motiv-jackal-hunt-thumb.webp",
+    "imageFull": "/catalog/img/motiv-jackal-hunt-full.webp",
+    "sourceUrl": "https://www.motivbowling.com/products/balls/exclusives/jackal-hunt.html",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.47,
+        "diff": 0.053,
+        "mbDiff": 0.018
+      },
+      {
+        "weight": 15,
+        "rg": 2.47,
+        "diff": 0.055,
+        "mbDiff": 0.019
+      },
+      {
+        "weight": 14,
+        "rg": 2.5,
+        "diff": 0.052,
+        "mbDiff": 0.018
+      }
+    ]
+  },
+  {
+    "id": "motiv-jackal-le",
+    "brand": "Motiv",
+    "name": "Jackal LE",
+    "releaseDate": null,
+    "releaseYear": null,
+    "coverstockRaw": "Coercion HVS Reactive",
+    "coverstockCategory": null,
+    "factoryFinish": "3000 Grit LSS",
+    "coreName": "Predator V2",
+    "coreType": "Asymmetric",
+    "rg": 2.47,
+    "diff": 0.054,
+    "mbDiff": 0.015,
+    "imageThumb": "/catalog/img/motiv-jackal-le-thumb.webp",
+    "imageFull": "/catalog/img/motiv-jackal-le-full.webp",
+    "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/jackal-le.html",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.48,
+        "diff": 0.047,
+        "mbDiff": 0.013
+      },
+      {
+        "weight": 15,
+        "rg": 2.47,
+        "diff": 0.054,
+        "mbDiff": 0.015
+      },
+      {
+        "weight": 14,
+        "rg": 2.51,
+        "diff": 0.049,
+        "mbDiff": 0.014
+      }
+    ]
+  },
+  {
+    "id": "motiv-jackal-magic",
+    "brand": "Motiv",
+    "name": "Jackal Magic",
+    "releaseDate": null,
+    "releaseYear": null,
+    "coverstockRaw": "Coercion HFH Reactive",
+    "coverstockCategory": null,
+    "factoryFinish": "3000 Grit LSS",
+    "coreName": "Predator V2 (16#-14#) / Sinister (13#-12#)",
+    "coreType": "Asymmetric",
+    "rg": 2.47,
+    "diff": 0.054,
+    "mbDiff": 0.015,
+    "imageThumb": "/catalog/img/motiv-jackal-magic-thumb.webp",
+    "imageFull": "/catalog/img/motiv-jackal-magic-full.webp",
+    "sourceUrl": "https://www.motivbowling.com/products/balls/exclusives/jackal-magic.html",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.48,
+        "diff": 0.047,
+        "mbDiff": 0.013
+      },
+      {
+        "weight": 15,
+        "rg": 2.47,
+        "diff": 0.054,
+        "mbDiff": 0.015
+      },
+      {
+        "weight": 14,
+        "rg": 2.51,
+        "diff": 0.049,
+        "mbDiff": 0.014
+      },
+      {
+        "weight": 13,
+        "rg": 2.58,
+        "diff": 0.052,
+        "mbDiff": 0.018
+      },
+      {
+        "weight": 12,
+        "rg": 2.64,
+        "diff": 0.036,
+        "mbDiff": 0.013
+      }
+    ]
+  },
+  {
+    "id": "motiv-jackal-rising",
+    "brand": "Motiv",
+    "name": "Jackal Rising",
+    "releaseDate": null,
+    "releaseYear": null,
+    "coverstockRaw": "Coercion HV2 Reactive",
+    "coverstockCategory": null,
+    "factoryFinish": "2000 Grit Laser Scan Sanded",
+    "coreName": "Predator V3",
+    "coreType": "Asymmetric",
+    "rg": 2.47,
+    "diff": 0.055,
+    "mbDiff": 0.019,
+    "imageThumb": "/catalog/img/motiv-jackal-rising-thumb.webp",
+    "imageFull": "/catalog/img/motiv-jackal-rising-full.webp",
+    "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/jackal-rising.html",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.47,
+        "diff": 0.053,
+        "mbDiff": 0.018
+      },
+      {
+        "weight": 15,
+        "rg": 2.47,
+        "diff": 0.055,
+        "mbDiff": 0.019
+      },
+      {
+        "weight": 14,
+        "rg": 2.5,
+        "diff": 0.052,
+        "mbDiff": 0.018
+      }
+    ]
+  },
+  {
+    "id": "motiv-jackal-slash",
+    "brand": "Motiv",
+    "name": "Jackal Slash",
+    "releaseDate": null,
+    "releaseYear": null,
+    "coverstockRaw": "Coercion HV2",
+    "coverstockCategory": null,
+    "factoryFinish": "2000 Grit LSS",
+    "coreName": "Predator V3",
+    "coreType": "Asymmetric",
+    "rg": 2.47,
+    "diff": 0.055,
+    "mbDiff": 0.019,
+    "imageThumb": "/catalog/img/motiv-jackal-slash-thumb.webp",
+    "imageFull": "/catalog/img/motiv-jackal-slash-full.webp",
+    "sourceUrl": "https://www.motivbowling.com/products/balls/exclusives/jackal-slash.html",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.47,
+        "diff": 0.053,
+        "mbDiff": 0.018
+      },
+      {
+        "weight": 15,
+        "rg": 2.47,
+        "diff": 0.055,
+        "mbDiff": 0.019
+      },
+      {
+        "weight": 14,
+        "rg": 2.5,
+        "diff": 0.052,
+        "mbDiff": 0.018
+      }
+    ]
+  },
+  {
+    "id": "motiv-laser-sniper",
+    "brand": "Motiv",
+    "name": "Laser Sniper",
+    "releaseDate": null,
+    "releaseYear": null,
+    "coverstockRaw": "TruShot Polythane",
+    "coverstockCategory": null,
+    "factoryFinish": "5500 Grit LSP",
+    "coreName": "Hollow Point",
+    "coreType": "Symmetric",
+    "rg": 2.68,
+    "diff": 0.01,
+    "mbDiff": null,
+    "imageThumb": "/catalog/img/motiv-laser-sniper-thumb.webp",
+    "imageFull": "/catalog/img/motiv-laser-sniper-full.webp",
+    "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/laser-sniper.html",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.67,
+        "diff": 0.01,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.68,
+        "diff": 0.01,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.69,
+        "diff": 0.014,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.73,
+        "diff": 0.006,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.75,
+        "diff": 0.003,
+        "mbDiff": null
+      }
+    ]
+  },
+  {
+    "id": "motiv-midnight-sniper",
+    "brand": "Motiv",
+    "name": "Midnight Sniper",
+    "releaseDate": null,
+    "releaseYear": null,
+    "coverstockRaw": "TruShot Polythane",
+    "coverstockCategory": null,
+    "factoryFinish": "5500 Grit LSP",
+    "coreName": "Hollow-Point",
+    "coreType": "Symmetric",
+    "rg": 2.68,
+    "diff": 0.01,
+    "mbDiff": null,
+    "imageThumb": "/catalog/img/motiv-midnight-sniper-thumb.webp",
+    "imageFull": "/catalog/img/motiv-midnight-sniper-full.webp",
+    "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/midnight-sniper.html",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.67,
+        "diff": 0.01,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.68,
+        "diff": 0.01,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.69,
+        "diff": 0.014,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.73,
+        "diff": 0.006,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.75,
+        "diff": 0.003,
+        "mbDiff": null
+      }
+    ]
+  },
+  {
+    "id": "motiv-octane-burn",
+    "brand": "Motiv",
+    "name": "Octane Burn",
+    "releaseDate": null,
+    "releaseYear": null,
+    "coverstockRaw": "Helix SFP Reactive",
+    "coverstockCategory": null,
+    "factoryFinish": "5500 Grit Laser Scan Polished",
+    "coreName": "Quadfire",
+    "coreType": "Symmetric",
+    "rg": 2.55,
+    "diff": 0.043,
+    "mbDiff": null,
+    "imageThumb": "/catalog/img/motiv-octane-burn-thumb.webp",
+    "imageFull": "/catalog/img/motiv-octane-burn-full.webp",
+    "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/octane-burn.html",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.54,
+        "diff": 0.04,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.55,
+        "diff": 0.043,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.56,
+        "diff": 0.043,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.58,
+        "diff": 0.047,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.58,
+        "diff": 0.05,
+        "mbDiff": null
+      }
+    ]
+  },
+  {
+    "id": "motiv-octane",
+    "brand": "Motiv",
+    "name": "Octane",
+    "releaseDate": null,
+    "releaseYear": null,
+    "coverstockRaw": "Agility SFX",
+    "coverstockCategory": null,
+    "factoryFinish": "5000 Grit Laser Scan Polished",
+    "coreName": "Quadfire",
+    "coreType": "Symmetric",
+    "rg": 2.55,
+    "diff": 0.043,
+    "mbDiff": null,
+    "imageThumb": "/catalog/img/motiv-octane-thumb.webp",
+    "imageFull": "/catalog/img/motiv-octane-full.webp",
+    "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/octane.html",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.54,
+        "diff": 0.04,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.55,
+        "diff": 0.043,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.56,
+        "diff": 0.043,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.58,
+        "diff": 0.047,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.59,
+        "diff": 0.05,
+        "mbDiff": null
+      }
+    ]
+  },
+  {
+    "id": "motiv-primal-rage-5-yr-le",
+    "brand": "Motiv",
+    "name": "Primal Rage 5 YR LE",
+    "releaseDate": null,
+    "releaseYear": null,
+    "coverstockRaw": "Fusion HX Reactive",
+    "coverstockCategory": null,
+    "factoryFinish": "5000 Grit LSP",
+    "coreName": "Impulse V2",
+    "coreType": "Symmetric",
+    "rg": 2.55,
+    "diff": 0.05,
+    "mbDiff": null,
+    "imageThumb": "/catalog/img/motiv-primal-rage-5-yr-le-thumb.webp",
+    "imageFull": "/catalog/img/motiv-primal-rage-5-yr-le-full.webp",
+    "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/primal-rage-5-yr-le.html",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.54,
+        "diff": 0.049,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.55,
+        "diff": 0.05,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.56,
+        "diff": 0.054,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.6,
+        "diff": 0.055,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.67,
+        "diff": 0.04,
+        "mbDiff": null
+      }
+    ]
+  },
+  {
+    "id": "motiv-qz1-purple",
+    "brand": "Motiv",
+    "name": "QZ1 Purple",
+    "releaseDate": null,
+    "releaseYear": null,
+    "coverstockRaw": "MOTIVator-Z",
+    "coverstockCategory": null,
+    "factoryFinish": "5000 Grit Laser Scan Polished",
+    "coreName": "Quadfire",
+    "coreType": "Symmetric",
+    "rg": 2.55,
+    "diff": 0.043,
+    "mbDiff": null,
+    "imageThumb": "/catalog/img/motiv-qz1-purple-thumb.webp",
+    "imageFull": "/catalog/img/motiv-qz1-purple-full.webp",
+    "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/qz1-purple.html",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.56,
+        "diff": 0.04,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.55,
+        "diff": 0.043,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.56,
+        "diff": 0.043,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.58,
+        "diff": 0.047,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.59,
+        "diff": 0.05,
+        "mbDiff": null
+      },
+      {
+        "weight": 11,
+        "rg": 2.7,
+        "diff": 0.018,
+        "mbDiff": null
+      },
+      {
+        "weight": 10,
+        "rg": 2.76,
+        "diff": 0.013,
+        "mbDiff": null
+      }
+    ]
+  },
+  {
+    "id": "motiv-qz1-red",
+    "brand": "Motiv",
+    "name": "QZ1 Red",
+    "releaseDate": null,
+    "releaseYear": null,
+    "coverstockRaw": "MOTIVator-Z",
+    "coverstockCategory": null,
+    "factoryFinish": "5500 Grit Laser Scan Polished",
+    "coreName": "Quadfire",
+    "coreType": "Symmetric",
+    "rg": 2.55,
+    "diff": 0.043,
+    "mbDiff": null,
+    "imageThumb": "/catalog/img/motiv-qz1-red-thumb.webp",
+    "imageFull": "/catalog/img/motiv-qz1-red-full.webp",
+    "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/qz1-red.html",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.54,
+        "diff": 0.04,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.55,
+        "diff": 0.043,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.56,
+        "diff": 0.043,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.58,
+        "diff": 0.047,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.59,
+        "diff": 0.05,
+        "mbDiff": null
+      },
+      {
+        "weight": 11,
+        "rg": 2.7,
+        "diff": 0.018,
+        "mbDiff": null
+      },
+      {
+        "weight": 10,
+        "rg": 2.76,
+        "diff": 0.013,
+        "mbDiff": null
+      }
+    ]
+  },
+  {
+    "id": "motiv-qz2-backdraft",
+    "brand": "Motiv",
+    "name": "QZ2 Backdraft",
+    "releaseDate": null,
+    "releaseYear": null,
+    "coverstockRaw": "MOTIVator-Z",
+    "coverstockCategory": null,
+    "factoryFinish": "5000 Grit Laser Scan Polished",
+    "coreName": "Inner Core",
+    "coreType": "Symmetric",
+    "rg": 2.55,
+    "diff": 0.043,
+    "mbDiff": null,
+    "imageThumb": "/catalog/img/motiv-qz2-backdraft-thumb.webp",
+    "imageFull": "/catalog/img/motiv-qz2-backdraft-full.webp",
+    "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/qz2-backdraft.html",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.54,
+        "diff": 0.04,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.55,
+        "diff": 0.043,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.56,
+        "diff": 0.043,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.58,
+        "diff": 0.047,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.59,
+        "diff": 0.05,
+        "mbDiff": null
+      },
+      {
+        "weight": 11,
+        "rg": 2.7,
+        "diff": 0.018,
+        "mbDiff": null
+      },
+      {
+        "weight": 10,
+        "rg": 2.76,
+        "diff": 0.013,
+        "mbDiff": null
+      }
+    ]
+  },
+  {
+    "id": "motiv-qz2-black-blue-pearl",
+    "brand": "Motiv",
+    "name": "QZ2 Black Blue Pearl",
+    "releaseDate": null,
+    "releaseYear": null,
+    "coverstockRaw": "MOTIVator-Z",
+    "coverstockCategory": null,
+    "factoryFinish": "5500 Grit Laser Scan Polished",
+    "coreName": "Quadfire",
+    "coreType": "Symmetric",
+    "rg": 2.55,
+    "diff": 0.043,
+    "mbDiff": null,
+    "imageThumb": "/catalog/img/motiv-qz2-black-blue-pearl-thumb.webp",
+    "imageFull": "/catalog/img/motiv-qz2-black-blue-pearl-full.webp",
+    "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/qz2-black-blue-pearl.html",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.56,
+        "diff": 0.04,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.55,
+        "diff": 0.043,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.56,
+        "diff": 0.043,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.58,
+        "diff": 0.047,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.59,
+        "diff": 0.05,
+        "mbDiff": null
+      },
+      {
+        "weight": 11,
+        "rg": 2.7,
+        "diff": 0.018,
+        "mbDiff": null
+      },
+      {
+        "weight": 10,
+        "rg": 2.76,
+        "diff": 0.013,
+        "mbDiff": null
+      }
+    ]
+  },
+  {
+    "id": "motiv-raptor-attack",
+    "brand": "Motiv",
+    "name": "Raptor Attack",
+    "releaseDate": null,
+    "releaseYear": null,
+    "coverstockRaw": "Atomix SFP Reactive",
+    "coverstockCategory": null,
+    "factoryFinish": "5500 Grit Laser Scan Polished",
+    "coreName": "Predator",
+    "coreType": "Asymmetric",
+    "rg": 2.46,
+    "diff": 0.06,
+    "mbDiff": 0.015,
+    "imageThumb": "/catalog/img/motiv-raptor-attack-thumb.webp",
+    "imageFull": "/catalog/img/motiv-raptor-attack-full.webp",
+    "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/raptor-attack.html",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.46,
+        "diff": 0.06,
+        "mbDiff": 0.015
+      },
+      {
+        "weight": 15,
+        "rg": 2.46,
+        "diff": 0.06,
+        "mbDiff": 0.015
+      },
+      {
+        "weight": 14,
+        "rg": 2.48,
+        "diff": 0.06,
+        "mbDiff": 0.015
+      },
+      {
+        "weight": 13,
+        "rg": 2.52,
+        "diff": 0.051,
+        "mbDiff": 0.013
+      },
+      {
+        "weight": 12,
+        "rg": 2.59,
+        "diff": 0.037,
+        "mbDiff": 0.009
+      }
+    ]
+  },
+  {
+    "id": "motiv-raptor-p7",
+    "brand": "Motiv",
+    "name": "Raptor P7",
+    "releaseDate": null,
+    "releaseYear": null,
+    "coverstockRaw": "Formula-7 Reactive",
+    "coverstockCategory": null,
+    "factoryFinish": "5000 Grit Laser Scan Polished",
+    "coreName": "Predator",
+    "coreType": "Asymmetric",
+    "rg": 2.46,
+    "diff": 0.06,
+    "mbDiff": 0.015,
+    "imageThumb": "/catalog/img/motiv-raptor-p7-thumb.webp",
+    "imageFull": "/catalog/img/motiv-raptor-p7-full.webp",
+    "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/raptor-p7.html",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.46,
+        "diff": 0.06,
+        "mbDiff": 0.015
+      },
+      {
+        "weight": 15,
+        "rg": 2.46,
+        "diff": 0.06,
+        "mbDiff": 0.015
+      },
+      {
+        "weight": 14,
+        "rg": 2.48,
+        "diff": 0.06,
+        "mbDiff": 0.015
+      },
+      {
+        "weight": 13,
+        "rg": 2.52,
+        "diff": 0.051,
+        "mbDiff": 0.013
+      },
+      {
+        "weight": 12,
+        "rg": 2.59,
+        "diff": 0.037,
+        "mbDiff": 0.009
+      }
+    ]
+  },
+  {
+    "id": "motiv-recon-rx1-silver",
+    "brand": "Motiv",
+    "name": "Recon RX1 Silver",
+    "releaseDate": null,
+    "releaseYear": null,
+    "coverstockRaw": "MOTIVator-X",
+    "coverstockCategory": null,
+    "factoryFinish": "5500 Grit Laser Scan Polished",
+    "coreName": "Recon",
+    "coreType": "Symmetric",
+    "rg": 2.59,
+    "diff": 0.025,
+    "mbDiff": null,
+    "imageThumb": "/catalog/img/motiv-recon-rx1-silver-thumb.webp",
+    "imageFull": "/catalog/img/motiv-recon-rx1-silver-full.webp",
+    "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/recon-rx1-silver.html",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.29,
+        "diff": 0.018,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.59,
+        "diff": 0.025,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.61,
+        "diff": 0.025,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.62,
+        "diff": 0.03,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.62,
+        "diff": 0.038,
+        "mbDiff": null
+      },
+      {
+        "weight": 11,
+        "rg": 2.69,
+        "diff": 0.022,
+        "mbDiff": null
+      },
+      {
+        "weight": 10,
+        "rg": 2.75,
+        "diff": 0.01,
+        "mbDiff": null
+      }
+    ]
+  },
+  {
+    "id": "motiv-ripcord-2019",
+    "brand": "Motiv",
+    "name": "Ripcord",
+    "releaseDate": "2019-07-24",
+    "releaseYear": 2019,
+    "coverstockRaw": "Infusion Reactive",
+    "coverstockCategory": null,
+    "factoryFinish": "5000 LSP",
+    "coreName": "Oblivion",
+    "coreType": "Symmetric",
+    "rg": 2.53,
+    "diff": 0.047,
+    "mbDiff": null,
+    "imageThumb": "/catalog/img/motiv-ripcord-2019-thumb.webp",
+    "imageFull": "/catalog/img/motiv-ripcord-2019-full.webp",
+    "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/ripcord.html",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.53,
+        "diff": 0.04,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.53,
+        "diff": 0.047,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.54,
+        "diff": 0.048,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.6,
+        "diff": 0.038,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.65,
+        "diff": 0.028,
+        "mbDiff": null
+      }
+    ]
+  },
+  {
+    "id": "motiv-rogue-blade",
+    "brand": "Motiv",
+    "name": "Rogue Blade",
+    "releaseDate": null,
+    "releaseYear": null,
+    "coverstockRaw": "Hexion SE",
+    "coverstockCategory": null,
+    "factoryFinish": "4000 Grit LSS",
+    "coreName": "Sigma",
+    "coreType": "Symmetric",
+    "rg": 2.47,
+    "diff": 0.047,
+    "mbDiff": null,
+    "imageThumb": "/catalog/img/motiv-rogue-blade-thumb.webp",
+    "imageFull": "/catalog/img/motiv-rogue-blade-full.webp",
+    "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/rogue-blade.html",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.48,
+        "diff": 0.041,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.47,
+        "diff": 0.047,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.5,
+        "diff": 0.044,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.56,
+        "diff": 0.034,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.63,
+        "diff": 0.024,
+        "mbDiff": null
+      }
+    ]
+  },
+  {
+    "id": "motiv-rx1-orange",
+    "brand": "Motiv",
+    "name": "RX1 Orange",
+    "releaseDate": null,
+    "releaseYear": null,
+    "coverstockRaw": "MOTIVator-X",
+    "coverstockCategory": null,
+    "factoryFinish": "5000 Grit Laser Scan Polished",
+    "coreName": "Recon",
+    "coreType": "Symmetric",
+    "rg": 2.59,
+    "diff": 0.025,
+    "mbDiff": null,
+    "imageThumb": "/catalog/img/motiv-rx1-orange-thumb.webp",
+    "imageFull": "/catalog/img/motiv-rx1-orange-full.webp",
+    "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/rx1-orange.html",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.59,
+        "diff": 0.018,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.59,
+        "diff": 0.025,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.61,
+        "diff": 0.025,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.62,
+        "diff": 0.03,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.62,
+        "diff": 0.038,
+        "mbDiff": null
+      },
+      {
+        "weight": 11,
+        "rg": 2.69,
+        "diff": 0.022,
+        "mbDiff": null
+      },
+      {
+        "weight": 10,
+        "rg": 2.75,
+        "diff": 0.01,
+        "mbDiff": null
+      }
+    ]
+  },
+  {
+    "id": "motiv-sigma-tour",
+    "brand": "Motiv",
+    "name": "Sigma Tour",
+    "releaseDate": null,
+    "releaseYear": null,
+    "coverstockRaw": "Atomix Reactive",
+    "coverstockCategory": null,
+    "factoryFinish": "3000 Grit Laser Scan Sanded",
+    "coreName": "Sigma",
+    "coreType": "Symmetric",
+    "rg": 2.47,
+    "diff": 0.047,
+    "mbDiff": null,
+    "imageThumb": "/catalog/img/motiv-sigma-tour-thumb.webp",
+    "imageFull": "/catalog/img/motiv-sigma-tour-full.webp",
+    "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/sigma-tour.html",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.46,
+        "diff": 0.044,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.47,
+        "diff": 0.047,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.51,
+        "diff": 0.04,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.57,
+        "diff": 0.032,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.63,
+        "diff": 0.024,
+        "mbDiff": null
+      }
+    ]
+  },
+  {
+    "id": "motiv-silver-sniper-2024",
+    "brand": "Motiv",
+    "name": "Silver Sniper",
+    "releaseDate": "2024-09-18",
+    "releaseYear": 2024,
+    "coverstockRaw": "TruShot Polythane",
+    "coverstockCategory": null,
+    "factoryFinish": "5500 Grit LSP",
+    "coreName": "Hollow Point",
+    "coreType": "Symmetric",
+    "rg": 2.68,
+    "diff": 0.01,
+    "mbDiff": null,
+    "imageThumb": "/catalog/img/motiv-silver-sniper-2024-thumb.webp",
+    "imageFull": "/catalog/img/motiv-silver-sniper-2024-full.webp",
+    "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/silver-sniper.html",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.67,
+        "diff": 0.01,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.68,
+        "diff": 0.01,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.69,
+        "diff": 0.014,
+        "mbDiff": null
+      }
+    ]
+  },
+  {
+    "id": "motiv-sniper",
+    "brand": "Motiv",
+    "name": "Sniper",
+    "releaseDate": null,
+    "releaseYear": null,
+    "coverstockRaw": "DMX Polyster",
+    "coverstockCategory": null,
+    "factoryFinish": "5500 Grit Laser Scan Polished",
+    "coreName": "Hollow Point",
+    "coreType": "Symmetric",
+    "rg": 2.68,
+    "diff": 0.01,
+    "mbDiff": null,
+    "imageThumb": "/catalog/img/motiv-sniper-thumb.webp",
+    "imageFull": "/catalog/img/motiv-sniper-full.webp",
+    "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/sniper.html",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.67,
+        "diff": 0.01,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.68,
+        "diff": 0.01,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.69,
+        "diff": 0.014,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.73,
+        "diff": 0.006,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.75,
+        "diff": 0.003,
+        "mbDiff": null
+      }
+    ]
+  },
+  {
+    "id": "motiv-sr2",
+    "brand": "Motiv",
+    "name": "SR2",
+    "releaseDate": null,
+    "releaseYear": null,
+    "coverstockRaw": "MOTIVat-R",
+    "coverstockCategory": null,
+    "factoryFinish": "5000 Grit Laser Scan Polished",
+    "coreName": "Sigma",
+    "coreType": "Symmetric",
+    "rg": 2.48,
+    "diff": 0.047,
+    "mbDiff": null,
+    "imageThumb": "/catalog/img/motiv-sr2-thumb.webp",
+    "imageFull": "/catalog/img/motiv-sr2-full.webp",
+    "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/sr2.html",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.46,
+        "diff": 0.044,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.48,
+        "diff": 0.047,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.51,
+        "diff": 0.04,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.57,
+        "diff": 0.032,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.63,
+        "diff": 0.024,
+        "mbDiff": null
+      }
+    ]
+  },
+  {
+    "id": "motiv-sx1",
+    "brand": "Motiv",
+    "name": "SX1",
+    "releaseDate": null,
+    "releaseYear": null,
+    "coverstockRaw": "MOTIVator-X",
+    "coverstockCategory": null,
+    "factoryFinish": "5500 Grit Laser Scan Polished",
+    "coreName": "Sigma",
+    "coreType": "Symmetric",
+    "rg": 2.47,
+    "diff": 0.047,
+    "mbDiff": null,
+    "imageThumb": "/catalog/img/motiv-sx1-thumb.webp",
+    "imageFull": "/catalog/img/motiv-sx1-full.webp",
+    "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/sx1.html",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.46,
+        "diff": 0.044,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.47,
+        "diff": 0.047,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.51,
+        "diff": 0.04,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.57,
+        "diff": 0.032,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.63,
+        "diff": 0.024,
+        "mbDiff": null
+      }
+    ]
+  },
+  {
+    "id": "motiv-tag-cannon",
+    "brand": "Motiv",
+    "name": "Tag Cannon",
+    "releaseDate": null,
+    "releaseYear": null,
+    "coverstockRaw": "Agility SFP Reactive",
+    "coverstockCategory": null,
+    "factoryFinish": "5500 Grit LSP",
+    "coreName": "Halogen",
+    "coreType": "Symmetric",
+    "rg": 2.55,
+    "diff": 0.037,
+    "mbDiff": null,
+    "imageThumb": "/catalog/img/motiv-tag-cannon-thumb.webp",
+    "imageFull": "/catalog/img/motiv-tag-cannon-full.webp",
+    "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/tag-cannon.html",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.54,
+        "diff": 0.036,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.55,
+        "diff": 0.037,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.56,
+        "diff": 0.038,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.59,
+        "diff": 0.038,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.64,
+        "diff": 0.031,
+        "mbDiff": null
+      }
+    ]
+  },
+  {
+    "id": "motiv-tank-blitz-2019",
+    "brand": "Motiv",
+    "name": "Tank Blitz",
+    "releaseDate": "2019-11-25",
+    "releaseYear": 2019,
+    "coverstockRaw": "Frixion+ Microcell Polymer",
+    "coverstockCategory": null,
+    "factoryFinish": "2000 Grit LSS",
+    "coreName": "Gear",
+    "coreType": "Symmetric",
+    "rg": 2.48,
+    "diff": 0.034,
+    "mbDiff": null,
+    "imageThumb": "/catalog/img/motiv-tank-blitz-2019-thumb.webp",
+    "imageFull": "/catalog/img/motiv-tank-blitz-2019-full.webp",
+    "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/tank-blitz.html",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.48,
+        "diff": 0.031,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.48,
+        "diff": 0.034,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.52,
+        "diff": 0.029,
+        "mbDiff": null
+      }
+    ]
+  },
+  {
+    "id": "motiv-tank-yellowjacket-2023",
+    "brand": "Motiv",
+    "name": "Tank Yellowjacket",
+    "releaseDate": "2023-07-12",
+    "releaseYear": 2023,
+    "coverstockRaw": "Frixion M5 Microcell Polymer",
+    "coverstockCategory": null,
+    "factoryFinish": "1000 Grit LSS",
+    "coreName": "Flux",
+    "coreType": "Symmetric",
+    "rg": 2.57,
+    "diff": 0.015,
+    "mbDiff": null,
+    "imageThumb": "/catalog/img/motiv-tank-yellowjacket-2023-thumb.webp",
+    "imageFull": "/catalog/img/motiv-tank-yellowjacket-2023-full.webp",
+    "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/tank-yellowjacket.html",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.57,
+        "diff": 0.013,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.57,
+        "diff": 0.015,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.57,
+        "diff": 0.018,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.58,
+        "diff": 0.02,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.65,
+        "diff": 0.012,
+        "mbDiff": null
+      }
+    ]
+  },
+  {
+    "id": "motiv-trident-abyss-2018",
+    "brand": "Motiv",
+    "name": "Trident Abyss",
+    "releaseDate": "2018-10-03",
+    "releaseYear": 2018,
+    "coverstockRaw": "Coercion HV3 Reactive",
+    "coverstockCategory": null,
+    "factoryFinish": "2000 Grit LSS",
+    "coreName": "Turbulent",
+    "coreType": "Asymmetric",
+    "rg": 2.49,
+    "diff": 0.054,
+    "mbDiff": 0.017,
+    "imageThumb": "/catalog/img/motiv-trident-abyss-2018-thumb.webp",
+    "imageFull": "/catalog/img/motiv-trident-abyss-2018-full.webp",
+    "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/trident-abyss.html",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.49,
+        "diff": 0.051,
+        "mbDiff": 0.016
+      },
+      {
+        "weight": 15,
+        "rg": 2.49,
+        "diff": 0.054,
+        "mbDiff": 0.017
+      },
+      {
+        "weight": 14,
+        "rg": 2.51,
+        "diff": 0.054,
+        "mbDiff": 0.017
+      }
+    ]
+  },
+  {
+    "id": "motiv-trident-quest-2017",
+    "brand": "Motiv",
+    "name": "Trident Quest",
+    "releaseDate": "2017-10-12",
+    "releaseYear": 2017,
+    "coverstockRaw": "Hexion Reactive",
+    "coverstockCategory": null,
+    "factoryFinish": "5000 Grit LSP",
+    "coreName": "Turbulent",
+    "coreType": "Asymmetric",
+    "rg": 2.49,
+    "diff": 0.054,
+    "mbDiff": 0.017,
+    "imageThumb": "/catalog/img/motiv-trident-quest-2017-thumb.webp",
+    "imageFull": "/catalog/img/motiv-trident-quest-2017-full.webp",
+    "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/trident-quest.html",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.49,
+        "diff": 0.051,
+        "mbDiff": 0.016
+      },
+      {
+        "weight": 15,
+        "rg": 2.49,
+        "diff": 0.054,
+        "mbDiff": 0.017
+      },
+      {
+        "weight": 14,
+        "rg": 2.51,
+        "diff": 0.054,
+        "mbDiff": 0.017
+      }
+    ]
+  },
+  {
+    "id": "motiv-tx1",
+    "brand": "Motiv",
+    "name": "TX1",
+    "releaseDate": null,
+    "releaseYear": null,
+    "coverstockRaw": "MOTIVator-X",
+    "coverstockCategory": null,
+    "factoryFinish": "5000 Grit Laser Scan Polished",
+    "coreName": "Thrust",
+    "coreType": "Symmetric",
+    "rg": 2.54,
+    "diff": 0.052,
+    "mbDiff": null,
+    "imageThumb": "/catalog/img/motiv-tx1-thumb.webp",
+    "imageFull": "/catalog/img/motiv-tx1-full.webp",
+    "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/tx1.html",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.53,
+        "diff": 0.048,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.54,
+        "diff": 0.052,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.57,
+        "diff": 0.048,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.61,
+        "diff": 0.042,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.66,
+        "diff": 0.031,
+        "mbDiff": null
+      }
+    ]
+  },
+  {
+    "id": "motiv-united-revolt",
+    "brand": "Motiv",
+    "name": "United Revolt",
+    "releaseDate": null,
+    "releaseYear": null,
+    "coverstockRaw": "Helix HFP Reactive",
+    "coverstockCategory": null,
+    "factoryFinish": "5000 Grit LSP",
+    "coreName": "Vanquish",
+    "coreType": "Symmetric",
+    "rg": 2.47,
+    "diff": 0.056,
+    "mbDiff": null,
+    "imageThumb": "/catalog/img/motiv-united-revolt-thumb.webp",
+    "imageFull": "/catalog/img/motiv-united-revolt-full.webp",
+    "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/united-revolt.html",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.46,
+        "diff": 0.057,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.47,
+        "diff": 0.056,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.5,
+        "diff": 0.056,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.56,
+        "diff": 0.044,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.63,
+        "diff": 0.03,
+        "mbDiff": null
+      }
+    ]
+  },
+  {
+    "id": "motiv-villain-scorn",
+    "brand": "Motiv",
+    "name": "Villain Scorn",
+    "releaseDate": null,
+    "releaseYear": null,
+    "coverstockRaw": "Hexion SE Reactive",
+    "coverstockCategory": null,
+    "factoryFinish": "5000 LSP",
+    "coreName": "Sinister",
+    "coreType": "Asymmetric",
+    "rg": 2.54,
+    "diff": 0.051,
+    "mbDiff": 0.018,
+    "imageThumb": "/catalog/img/motiv-villain-scorn-thumb.webp",
+    "imageFull": "/catalog/img/motiv-villain-scorn-full.webp",
+    "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/villain-scorn.html",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.53,
+        "diff": 0.05,
+        "mbDiff": 0.018
+      },
+      {
+        "weight": 15,
+        "rg": 2.54,
+        "diff": 0.051,
+        "mbDiff": 0.018
+      },
+      {
+        "weight": 14,
+        "rg": 2.55,
+        "diff": 0.052,
+        "mbDiff": 0.018
+      },
+      {
+        "weight": 13,
+        "rg": 2.58,
+        "diff": 0.052,
+        "mbDiff": 0.018
+      },
+      {
+        "weight": 12,
+        "rg": 2.64,
+        "diff": 0.036,
+        "mbDiff": 0.013
+      }
+    ]
   }
 ]

@@ -20,6 +20,16 @@ of shipped work rather than a release. Thirty of them used to be headed
   the URL (`#/home/catalog/ball/<id>`), so back pops it and stops, and a link to
   a ball reopens it.
 
+## The rest of MOTIV, covers unclassified (2026-08)
+
+### Added
+
+- **Forty-eight more MOTIV balls**, the ones whose coverstock MOTIV never
+  explain: the Sniper, Recon, RX1, SX1, TX1 and Tank lines among them. Their
+  cover reads as MOTIV write it with the category left "Unclassified", so they
+  are searchable and complete on every other spec but do not answer a
+  coverstock filter. A hundred and eighty-five MOTIV balls now.
+
 ## Fourteen MOTIV balls whose covers MOTIV explain (2026-08)
 
 ### Added

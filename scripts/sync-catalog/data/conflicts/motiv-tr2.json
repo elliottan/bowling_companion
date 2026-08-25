@@ -1,0 +1,99 @@
+{
+  "problems": [
+    "diff 0.52 out of range [0, 0.065]"
+  ],
+  "candidate": {
+    "brand": "Motiv",
+    "name": "TR2",
+    "official": true,
+    "releaseDate": [],
+    "coverstockRaw": [
+      {
+        "value": "MOTIVat-R",
+        "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/tr2.html",
+        "quote": "",
+        "parser": "parse-motiv"
+      }
+    ],
+    "factoryFinish": [
+      {
+        "value": "3000 Grit Laser Scan Sanded",
+        "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/tr2.html",
+        "quote": "",
+        "parser": "parse-motiv"
+      }
+    ],
+    "coreName": [
+      {
+        "value": "Thrust",
+        "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/tr2.html",
+        "quote": "",
+        "parser": "parse-motiv"
+      }
+    ],
+    "rg": [
+      {
+        "value": 2.54,
+        "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/tr2.html",
+        "quote": "",
+        "parser": "parse-motiv"
+      }
+    ],
+    "diff": [
+      {
+        "value": 0.52,
+        "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/tr2.html",
+        "quote": "",
+        "parser": "parse-motiv"
+      }
+    ],
+    "mbDiff": [],
+    "weights": [
+      {
+        "value": [
+          {
+            "weight": 16,
+            "rg": 2.53,
+            "diff": 0.48,
+            "mbDiff": null
+          },
+          {
+            "weight": 15,
+            "rg": 2.54,
+            "diff": 0.52,
+            "mbDiff": null
+          },
+          {
+            "weight": 14,
+            "rg": 2.57,
+            "diff": 0.48,
+            "mbDiff": null
+          },
+          {
+            "weight": 13,
+            "rg": 2.61,
+            "diff": 0.42,
+            "mbDiff": null
+          },
+          {
+            "weight": 12,
+            "rg": 2.66,
+            "diff": 0.31,
+            "mbDiff": null
+          }
+        ],
+        "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/tr2.html",
+        "quote": "",
+        "parser": "parse-motiv"
+      }
+    ],
+    "imageUrl": [
+      {
+        "value": "https://www.motivbowling.com/userfiles/filemanager/erav1aa2izdyejnvuw25",
+        "sourceUrl": "https://www.motivbowling.com/products/balls/retired-balls/tr2.html",
+        "quote": "",
+        "parser": "parse-motiv"
+      }
+    ]
+  }
+}
