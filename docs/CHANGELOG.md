@@ -139,6 +139,12 @@ of shipped work rather than a release. Thirty of them used to be headed
   much about the first ball as about the spare (ADR-055, ADR-058, ADR-059).
 - **First ball average** on the Stats tiles: pins knocked down by the average
   ball at a full rack, off the same balls as strike and pocket.
+- **Any stat can be graphed.** Tap a tile on the Stats tab and the trend line
+  below becomes that stat by session: strike, spare, pocket, carry or first
+  ball, as well as the average it always showed. Each night's value is the same
+  calculation the tile above it uses, so the two can never disagree. The
+  definition moved onto the chart, behind the info control in its header
+  (ADR-061).
 - **The best pocket, carry and strike rate are called out** in the ball table.
   A ball needs at least 10 fresh-rack balls to be in the running, so one good
   night with a new ball cannot take the crown, and nothing is highlighted until

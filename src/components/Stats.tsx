@@ -4,6 +4,7 @@ import { useRememberedState } from "../lib/viewMemory";
 import { CatalogBallImage } from "./CatalogBallImage";
 import { MiniPins } from "./MiniPins";
 import { EmptyState } from "./ui/EmptyState";
+import { IconButton } from "./ui/IconButton";
 import type { Manufacturer } from "../types/catalog";
 import { isBabySplit, isSplit, isWashout } from "../lib/pins";
 import {
@@ -15,17 +16,80 @@ import {
   type BowlingStats,
   type LeaveStats,
   type RateLeaders,
+  type SessionMetricPoint,
   type SessionTrendPoint
 } from "../lib/stats";
 import { BallGameSessionsDialog } from "./BallGameSessionsDialog";
 import { ScoreTrendChart } from "./ScoreTrendChart";
 import { SessionTrendChart } from "./SessionTrendChart";
+import { MetricTrendChart } from "./MetricTrendChart";
+import { Info } from "lucide-react";
 import type { Game } from "../types/bowling";
 import { GROUP_HEADING } from "./ui/typography";
 
 /** One numeric column: wide enough for "100%", right-aligned so the digits
  *  line up down the card. */
 const RATE_COLUMN = "w-9 shrink-0 text-right";
+
+/** The stats a tile can put on the chart, and how each one is drawn.
+ *
+ *  Every value is read off a `BowlingStats` that `calculateStats` produced, so
+ *  the point on the line and the number on the tile are the same call and
+ *  cannot drift (ADR-061). `min`/`max` are the bounds the metric cannot leave;
+ *  `minSpan` is the smallest range the chart will draw, so a tidy run does not
+ *  get magnified into a cliff. */
+const METRICS = {
+  average: {
+    label: "Avg",
+    value: (s: BowlingStats) => s.averageScore,
+    format: (v: number) => String(Math.round(v)),
+    min: 0,
+    max: 300,
+    minSpan: 80
+  },
+  strikePct: {
+    label: "Strike",
+    value: (s: BowlingStats) => s.strikePct,
+    format: (v: number) => `${Math.round(v)}%`,
+    min: 0,
+    max: 100,
+    minSpan: 25
+  },
+  sparePct: {
+    label: "Spare",
+    value: (s: BowlingStats) => s.sparePct,
+    format: (v: number) => `${Math.round(v)}%`,
+    min: 0,
+    max: 100,
+    minSpan: 25
+  },
+  pocketPct: {
+    label: "Pocket",
+    value: (s: BowlingStats) => s.pocketPct,
+    format: (v: number) => `${Math.round(v)}%`,
+    min: 0,
+    max: 100,
+    minSpan: 25
+  },
+  carryPct: {
+    label: "Carry",
+    value: (s: BowlingStats) => s.carryPct,
+    format: (v: number) => `${Math.round(v)}%`,
+    min: 0,
+    max: 100,
+    minSpan: 25
+  },
+  firstBallAverage: {
+    label: "1st ball",
+    value: (s: BowlingStats) => s.firstBallAverage,
+    format: (v: number) => v.toFixed(1),
+    min: 0,
+    max: 10,
+    minSpan: 2
+  }
+} as const;
+
+type MetricKey = keyof typeof METRICS;
 
 // Definitions, tapped rather than printed: they are read once and then in the
 // way. Short enough to land in a glance.
@@ -39,6 +103,19 @@ const SPARE_NOTE =
   "Spare: makeable leaves converted. Washouts and real splits are left out.";
 const FIRST_BALL_NOTE =
   "First ball: pins knocked down by the average ball at a full rack. Same balls as strike and pocket, so the three describe one shot.";
+const AVERAGE_NOTE =
+  "Average: every completed game in view. The faint dots behind each night are the games it is made of, so a 170 and a 240 do not look like two 205s.";
+
+/** The note that belongs to each graphable stat, shown from the chart it is
+ *  plotted on rather than from the tile (ADR-061). */
+const METRIC_NOTE: Record<MetricKey, string> = {
+  average: AVERAGE_NOTE,
+  strikePct: STRIKE_NOTE,
+  sparePct: SPARE_NOTE,
+  pocketPct: POCKET_NOTE,
+  carryPct: CARRY_NOTE,
+  firstBallAverage: FIRST_BALL_NOTE
+};
 const LEAVE_NOTE =
   "Made over chances, then the rate. A leave off the last ball of the 10th has no spare to make, so it stays off this card entirely. It still counts under the ball that left it.";
 
@@ -59,6 +136,8 @@ interface StatsProps {
   games?: Array<Pick<Game, "game_number" | "final_score">>;
   /** One point per session, oldest first, for the History screen's trend. */
   sessionTrend?: SessionTrendPoint[];
+  /** Every stat, per night, for whichever one the tiles have selected. */
+  sessionMetrics?: SessionMetricPoint[];
   /** Open a session picked off the trend line. */
   onOpenSession?: (sessionId: number) => void;
   /** Open a game picked off the per-session score line. */
@@ -76,6 +155,7 @@ export function Stats({
   onOpenGame,
   games,
   sessionTrend,
+  sessionMetrics,
   onOpenSession,
   onOpenGameId,
   memoryKey = "stats"
@@ -88,6 +168,32 @@ export function Stats({
 
   // Once for the card, not once per row.
   const rateLeaders = findRateLeaders(ballPerformance?.balls ?? []);
+
+  // Which stat the chart is plotting. Remembered, so leaving the tab and
+  // coming back does not silently drop you back on the average.
+  const [metric, setMetric] = useRememberedState<MetricKey>(`${memoryKey}:metric`, "average");
+  const [metricNoteOpen, setMetricNoteOpen] = useState(false);
+  const spec = METRICS[metric];
+
+  // One header for either chart: what is plotted, and the definition behind an
+  // info control rather than printed under it.
+  const chartHeader = (
+    <div className="mb-1">
+      <div className="flex items-center justify-between gap-2">
+        <h2 className={GROUP_HEADING}>{spec.label} by session</h2>
+        <IconButton
+          label={`What ${spec.label} counts`}
+          compact
+          onClick={() => setMetricNoteOpen((v) => !v)}
+        >
+          <Info size={16} aria-hidden="true" />
+        </IconButton>
+      </div>
+      {metricNoteOpen && (
+        <p className="mt-1 text-xs leading-relaxed text-ink-secondary">{METRIC_NOTE[metric]}</p>
+      )}
+    </div>
+  );
 
   if (isLoading) {
     return (
@@ -131,39 +237,80 @@ export function Stats({
             </span>
           }
         />
-        <Tile label="Avg" value={fmt(stats.averageScore)} />
-        <Tile
-          label="Strike"
-          value={pct(stats.strikePct)}
-          onClick={() => toggleNote(STRIKE_NOTE)}
+        <MetricTile
+          metric="average"
+          value={fmt(stats.averageScore)}
+          selected={metric === "average"}
+          onSelect={setMetric}
         />
-        <Tile
-          label="Spare"
+        <MetricTile
+          metric="strikePct"
+          value={pct(stats.strikePct)}
+          selected={metric === "strikePct"}
+          onSelect={setMetric}
+        />
+        <MetricTile
+          metric="sparePct"
           value={pct(stats.sparePct)}
-          onClick={() => toggleNote(SPARE_NOTE)}
+          selected={metric === "sparePct"}
+          onSelect={setMetric}
         />
       </div>
 
       <div className="grid grid-cols-3 gap-1.5">
-        <Tile
-          label="Pocket"
+        <MetricTile
+          metric="pocketPct"
           value={pct(stats.pocketPct)}
-          onClick={() => toggleNote(POCKET_NOTE)}
+          selected={metric === "pocketPct"}
+          onSelect={setMetric}
         />
-        <Tile label="Carry" value={pct(stats.carryPct)} onClick={() => toggleNote(CARRY_NOTE)} />
-        <Tile
-          label="1st ball"
+        <MetricTile
+          metric="carryPct"
+          value={pct(stats.carryPct)}
+          selected={metric === "carryPct"}
+          onSelect={setMetric}
+        />
+        <MetricTile
+          metric="firstBallAverage"
           value={oneDp(stats.firstBallAverage)}
-          onClick={() => toggleNote(FIRST_BALL_NOTE)}
+          selected={metric === "firstBallAverage"}
+          onSelect={setMetric}
         />
       </div>
 
       {games && games.length > 0 && (
         <ScoreTrendChart games={games} onOpenGame={onOpenGameId} />
       )}
-      {sessionTrend && sessionTrend.length > 0 && (
-        <SessionTrendChart sessions={sessionTrend} onOpenSession={onOpenSession} />
-      )}
+
+      {metric === "average"
+        ? sessionTrend &&
+          sessionTrend.length > 0 && (
+            <SessionTrendChart
+              sessions={sessionTrend}
+              header={chartHeader}
+              onOpenSession={onOpenSession}
+            />
+          )
+        : sessionMetrics &&
+          sessionMetrics.length > 0 && (
+            <MetricTrendChart
+              points={sessionMetrics.map((p) => ({
+                sessionId: p.sessionId,
+                date: p.date,
+                alley: p.alley,
+                event: p.event,
+                games: p.games,
+                value: spec.value(p.stats)
+              }))}
+              header={chartHeader}
+              overall={spec.value(stats)}
+              format={spec.format}
+              min={spec.min}
+              max={spec.max}
+              minSpan={spec.minSpan}
+              onOpenSession={onOpenSession}
+            />
+          )}
 
       {/* The leave note is rendered down with the leave cards it explains, so
           the answer lands where the tap was. */}
@@ -525,6 +672,42 @@ function LeaveCell({ leave }: { leave: LeaveStats }) {
         </span>
       </div>
     </div>
+  );
+}
+
+/** A stat tile that also picks what the chart plots (ADR-061). `aria-pressed`
+ *  rather than a tab role, matching every other selectable control here. */
+function MetricTile({
+  metric,
+  value,
+  selected,
+  onSelect
+}: {
+  metric: MetricKey;
+  value: ReactNode;
+  selected: boolean;
+  onSelect: (metric: MetricKey) => void;
+}) {
+  return (
+    <button
+      type="button"
+      aria-pressed={selected}
+      onClick={() => onSelect(metric)}
+      className={`w-full rounded-lg border px-1 py-2 text-center shadow-sm ${
+        selected ? "border-accent-fill bg-accent-soft" : "border-edge bg-surface"
+      }`}
+    >
+      <p className={`text-lg font-bold tabular-nums ${selected ? "text-accent" : "text-ink"}`}>
+        {value}
+      </p>
+      <p
+        className={`text-[10px] font-semibold uppercase tracking-wide ${
+          selected ? "text-accent" : "text-ink-secondary"
+        }`}
+      >
+        {METRICS[metric].label}
+      </p>
+    </button>
   );
 }
 

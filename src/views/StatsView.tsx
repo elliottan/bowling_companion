@@ -11,6 +11,7 @@ import { GROUP_HEADING } from "../components/ui/typography";
 import {
   calculateBallPerformance,
   calculateCommonLeaves,
+  calculateSessionMetrics,
   calculateSessionTrend,
   calculateStats,
   type BowlingStats
@@ -77,6 +78,10 @@ export function StatsView({
     () => calculateSessionTrend(filtered, activeLanes),
     [filtered, activeLanes]
   );
+  const sessionMetrics = useMemo(
+    () => calculateSessionMetrics(filtered, activeLanes, handedness),
+    [filtered, activeLanes, handedness]
+  );
   const ballPerformance = useMemo(
     () => calculateBallPerformance(filtered, balls, activeLanes, handedness),
     [filtered, balls, activeLanes, handedness]
@@ -118,6 +123,7 @@ export function StatsView({
             leaves={leaves}
             ballPerformance={ballPerformance}
             sessionTrend={sessionTrend}
+            sessionMetrics={sessionMetrics}
             memoryKey="history"
             onOpenSession={onOpenSession}
             onOpenGame={onOpenSessionGame}

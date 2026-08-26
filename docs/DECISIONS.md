@@ -2789,3 +2789,50 @@ draws them.
   edge, which is what made one drag pop two screens (see CHANGELOG, 2026-08).
 - If a platform ever ships a *worse* back gesture than the chevron, the answer
   is still not to draw our own on top of it.
+
+---
+
+## ADR-061: A stat tile picks what the chart plots, and the chart carries the definition
+
+**Status:** accepted (2026-08).
+
+**Context.** The Stats tab shows eight numbers and graphs one of them. Average
+had a trend line; strike, spare, pocket, carry and first ball had none, though
+every one of them is a per-session quantity and worth watching move. Carry in
+particular only means anything as a trend: a single figure cannot tell you
+whether the extra strikes came from getting to the pocket more or from carrying
+better once you did.
+
+The obvious build is a calculator per metric. That is how a second definition
+of every rate gets created, and ADR-048 is the record of what that costs.
+
+Tapping a tile already did something: it revealed that stat's definition. A tap
+cannot mean both "explain this" and "graph this".
+
+**Decision.**
+
+- **One pass, all metrics.** `calculateSessionMetrics` runs `calculateStats`
+  over each night and returns the whole block per session. The chart reads the
+  field the selected tile names, so the point on the line and the number on the
+  tile are the same call and cannot drift.
+- **The tiles are the picker.** Six of them select: average, strike, spare,
+  pocket, carry, first ball. Games and the high/low tile do not, because
+  neither is a rate over time. Selection uses `aria-pressed`, matching every
+  other selectable control here rather than introducing a tab role.
+- **The definition moves onto the chart**, behind an info control in its
+  header, next to the name of the thing it defines. §4b still holds: the number
+  carries its definition, it just carries it where the number is plotted rather
+  than where it is totalled.
+- **Average keeps its own chart.** `SessionTrendChart` draws a faint dot per
+  game behind each night, and that spread is meaningful for a score and
+  meaningless for a rate: a rate over two games is not the mean of two rates,
+  so there is nothing to scatter behind it.
+
+**Consequences.**
+- Two chart components sharing one header slot, picked by the selected metric.
+- Only the first high and first low are labelled on the metric chart. Rates tie
+  constantly, and two 100% nights each printing their value put one label on
+  top of the other.
+- A night with no opportunity for a metric (no pocket hits, so no carry) breaks
+  the line rather than plotting zero, the same rule the score chart uses for an
+  unscored game.

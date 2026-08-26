@@ -44,26 +44,74 @@ const REPORT: BallPerformanceReport = {
 // test starts from a screen nobody has touched.
 beforeEach(clearViewMemory);
 
-describe("stat definitions", () => {
-  it("explains a tile when it is tapped, and hides it when tapped again", () => {
-    render(<Stats stats={STATS} />);
+const TREND = [
+  {
+    sessionId: 1,
+    date: "2026-06-07",
+    alley: "Sea Bowl",
+    games: 3,
+    stats: STATS
+  },
+  {
+    sessionId: 2,
+    date: "2026-06-14",
+    alley: "Sea Bowl",
+    games: 3,
+    stats: { ...STATS, strikePct: 40, carryPct: 50, pocketPct: 80, firstBallAverage: 8.9 }
+  }
+];
+
+/** The average keeps its own chart, which draws a dot per game, so it needs the
+ *  scores as well as the per-night stats block. */
+const SESSION_TREND = [
+  { sessionId: 1, date: "2026-06-07", alley: "Sea Bowl", average: 200, scores: [190, 200, 210] },
+  { sessionId: 2, date: "2026-06-14", alley: "Sea Bowl", average: 180, scores: [170, 180, 190] }
+];
+
+describe("picking what the chart plots", () => {
+  it("starts on the average", () => {
+    render(<Stats stats={STATS} sessionMetrics={TREND} sessionTrend={SESSION_TREND} />);
+    expect(screen.getByRole("button", { name: /Avg/, pressed: true })).toBeInTheDocument();
+    expect(screen.getByText("Avg by session")).toBeInTheDocument();
+  });
+
+  it("moves the chart to whichever tile is tapped", () => {
+    render(<Stats stats={STATS} sessionMetrics={TREND} sessionTrend={SESSION_TREND} />);
+
+    fireEvent.click(screen.getByRole("button", { name: /Carry/ }));
+    expect(screen.getByText("Carry by session")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Carry/, pressed: true })).toBeInTheDocument();
+    // Only one at a time.
+    expect(screen.getByRole("button", { name: /Avg/, pressed: false })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: /Pocket/ }));
+    expect(screen.getByText("Pocket by session")).toBeInTheDocument();
+    expect(screen.queryByText("Carry by session")).toBeNull();
+  });
+
+  it("plots the value each night actually had", () => {
+    render(<Stats stats={STATS} sessionMetrics={TREND} sessionTrend={SESSION_TREND} />);
+    fireEvent.click(screen.getByRole("button", { name: /Strike/ }));
+    // 60 on the first night, 40 on the second, read off the same stats block
+    // the tiles are read from.
+    expect(screen.getByRole("button", { name: /2026-06-07, Sea Bowl, 60%/ })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /2026-06-14, Sea Bowl, 40%/ })).toBeInTheDocument();
+  });
+
+  it("explains the plotted stat from the chart, not the tile", () => {
+    render(<Stats stats={STATS} sessionMetrics={TREND} sessionTrend={SESSION_TREND} />);
+    fireEvent.click(screen.getByRole("button", { name: /Pocket/ }));
     expect(screen.queryByText(/balls thrown at a full rack that hit the pocket/i)).toBeNull();
 
-    fireEvent.click(screen.getByText("Pocket"));
+    fireEvent.click(screen.getByRole("button", { name: /What Pocket counts/ }));
     expect(screen.getByText(/balls thrown at a full rack that hit the pocket/i)).toBeInTheDocument();
 
-    fireEvent.click(screen.getByText("Pocket"));
+    fireEvent.click(screen.getByRole("button", { name: /What Pocket counts/ }));
     expect(screen.queryByText(/balls thrown at a full rack that hit the pocket/i)).toBeNull();
   });
+});
 
-  it("swaps one definition for another rather than stacking them", () => {
-    render(<Stats stats={STATS} />);
-    fireEvent.click(screen.getByText("Pocket"));
-    fireEvent.click(screen.getByText("Carry"));
-    expect(screen.getByText(/pocket hits that struck/i)).toBeInTheDocument();
-    expect(screen.queryByText(/balls thrown at a full rack that hit the pocket/i)).toBeNull();
-  });
-
+describe("stat definitions", () => {
   it("puts pocket, carry and strike on the ball's own row, with the ball count", () => {
     render(<Stats stats={STATS} ballPerformance={REPORT} />);
 
@@ -76,12 +124,15 @@ describe("stat definitions", () => {
     expect(screen.getByLabelText("12 balls")).toBeInTheDocument();
   });
 
-  it("explains the rows of a ball's table too", () => {
+  it("explains the rows of a ball's table", () => {
     render(<Stats stats={STATS} ballPerformance={REPORT} />);
     fireEvent.click(screen.getByText("Wolverine"));
 
-    // The tile and the table row share a label, so the row is the second one.
-    fireEvent.click(screen.getAllByText("Carry")[0]);
+    // The expanded table's own Carry row, not the tile that shares its label.
+    const rowLabel = screen
+      .getAllByText("Carry")
+      .find((el) => el.closest("tr") !== null)!;
+    fireEvent.click(rowLabel);
     expect(screen.getByText(/pocket hits that struck/i)).toBeInTheDocument();
   });
 });
@@ -262,10 +313,12 @@ describe("what stays open", () => {
 });
 
 describe("first ball average", () => {
-  it("sits with pocket and carry, and explains itself when tapped", () => {
-    render(<Stats stats={STATS} leaves={[]} />);
+  it("sits with pocket and carry, and can be plotted like them", () => {
+    render(<Stats stats={STATS} leaves={[]} sessionMetrics={TREND} sessionTrend={SESSION_TREND} />);
     expect(screen.getByText("8.4")).toBeInTheDocument();
-    fireEvent.click(screen.getByText("1st ball"));
+    fireEvent.click(screen.getByRole("button", { name: /1st ball/ }));
+    expect(screen.getByText("1st ball by session")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: /What 1st ball counts/ }));
     expect(screen.getByText(/pins knocked down by the average ball/i)).toBeInTheDocument();
   });
 

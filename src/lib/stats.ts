@@ -486,6 +486,57 @@ export function calculateSessionTrend(
     });
 }
 
+/** One night, with the whole stats block computed for it alone. */
+export interface SessionMetricPoint {
+  sessionId?: number;
+  date: string;
+  alley: string;
+  event?: string;
+  /** Completed games behind this point, so a thin night can be drawn as one. */
+  games: number;
+  stats: BowlingStats;
+}
+
+/**
+ * Every stat, by session, oldest first (ADR-061).
+ *
+ * One entry per night carrying a whole `BowlingStats`, rather than a function
+ * per metric. That is the point: the graph of strike % is `calculateStats`
+ * run over one night, so it cannot drift from the strike % on the tile above
+ * it. A per-metric calculator would have been a second definition of every
+ * rate, which is what ADR-048 is about.
+ *
+ * Sessions with nothing scored yet are dropped rather than plotted at zero.
+ * The lane filter applies inside `calculateStats`, per frame, so a game across
+ * two lanes still counts on the pair it was bowled on.
+ */
+export function calculateSessionMetrics(
+  sessions: SessionSummary[],
+  selectedLanes?: string[],
+  handedness: Handedness = "right"
+): SessionMetricPoint[] {
+  const filter = selectedLanes && selectedLanes.length ? new Set(selectedLanes) : undefined;
+
+  return [...sessions]
+    .sort((a, b) => a.session.date.localeCompare(b.session.date))
+    .flatMap((s) => {
+      const games = s.games.filter((g) => gameTouchesLanes(g, filter));
+      if (games.length === 0) return [];
+      const stats = calculateStats([{ session: s.session, games }], selectedLanes, handedness);
+      if (stats.completedGames === 0) return [];
+      return [
+        {
+          sessionId: s.session.id,
+          date: s.session.date,
+          alley: s.session.alley_name,
+          event: s.session.description,
+          games: stats.completedGames,
+          stats
+        }
+      ];
+    });
+}
+
 /**
  * Per-ball pocket, carry and strike rates, broken out by game number, plus the
  * leaves each ball produced (ADR-047, amended by ADR-048).

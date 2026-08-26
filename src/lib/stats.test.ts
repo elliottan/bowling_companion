@@ -4,6 +4,7 @@ import {
   calculateCommonLeaves,
   calculateGameNumberTrend,
   calculateOpenFrames,
+  calculateSessionMetrics,
   calculateSessionTrend,
   calculateStats,
   filterSessionsBy,
@@ -1031,5 +1032,76 @@ describe("findRateLeaders", () => {
     ]);
     expect(leaders.carryPct).toBeNull();
     expect(leaders.pocketPct).toBe(70);
+  });
+});
+
+describe("calculateSessionMetrics", () => {
+  const strikes = [
+    ...Array.from({ length: 9 }, (_, i) => frame(i + 1, NONE)),
+    frame(10, NONE, NONE, NONE)
+  ];
+  // Every fresh-rack ball leaves the 10 pin, the 10th frame's bonus ball
+  // included, so this game has no strike in it anywhere.
+  const nines = [
+    ...Array.from({ length: 9 }, (_, i) => frame(i + 1, [10], NONE)),
+    frame(10, [10], NONE, [10])
+  ];
+
+  it("returns nothing for no data", () => {
+    expect(calculateSessionMetrics([])).toEqual([]);
+  });
+
+  it("gives one point per night, oldest first", () => {
+    const sessions: SessionSummary[] = [
+      {
+        session: { id: 2, date: "2026-06-14", alley_name: "Sea Bowl" },
+        games: [game(180, nines)]
+      },
+      {
+        session: { id: 1, date: "2026-06-07", alley_name: "Sea Bowl" },
+        games: [game(300, strikes)]
+      }
+    ];
+    const points = calculateSessionMetrics(sessions);
+    expect(points.map((p) => p.date)).toEqual(["2026-06-07", "2026-06-14"]);
+    expect(points[0].stats.strikePct).toBe(100);
+    expect(points[1].stats.strikePct).toBe(0);
+  });
+
+  it("agrees with the whole-history block when there is one night", () => {
+    const sessions = [session("Sea Bowl", [game(300, strikes)])];
+    const [point] = calculateSessionMetrics(sessions);
+    const whole = calculateStats(sessions);
+    // The graph and the tile above it are the same call, so they cannot drift.
+    expect(point.stats).toEqual(whole);
+  });
+
+  it("drops a night with nothing scored yet", () => {
+    const sessions = [
+      {
+        session: { id: 1, date: "2026-06-07", alley_name: "Sea Bowl" },
+        games: [game(undefined, [frame(1, [10], [10])])]
+      }
+    ];
+    expect(calculateSessionMetrics(sessions)).toEqual([]);
+  });
+
+  it("carries the games behind each point", () => {
+    const sessions = [session("Sea Bowl", [game(300, strikes), game(180, nines)])];
+    expect(calculateSessionMetrics(sessions)[0].games).toBe(2);
+  });
+
+  it("drops a night that never touched a selected lane", () => {
+    const onEleven: Game & { frames: Frame[] } = {
+      id: 1,
+      session_id: 1,
+      game_number: 1,
+      lanes: ["11"],
+      final_score: 300,
+      frames: strikes
+    };
+    const sessions = [session("Sea Bowl", [onEleven])];
+    expect(calculateSessionMetrics(sessions, ["12"])).toEqual([]);
+    expect(calculateSessionMetrics(sessions, ["11"])).toHaveLength(1);
   });
 });

@@ -1,8 +1,12 @@
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import type { SessionTrendPoint } from "../lib/stats";
 
 interface SessionTrendChartProps {
   sessions: SessionTrendPoint[];
+  /** Rendered inside the card, above the plot: the metric's name and its note.
+   *  Passed in rather than built here so this chart and `MetricTrendChart`
+   *  wear the same header while the tiles switch between them. */
+  header?: ReactNode;
   /** Open the session a selected point belongs to. */
   onOpenSession?: (sessionId: number) => void;
 }
@@ -33,7 +37,7 @@ const shortDate = (iso: string) => iso.slice(5).replace("-", "/");
  * the spread visible, which an average alone hides: a 170/240 night and two
  * 205s average the same.
  */
-export function SessionTrendChart({ sessions, onOpenSession }: SessionTrendChartProps) {
+export function SessionTrendChart({ sessions, header, onOpenSession }: SessionTrendChartProps) {
   // Which point the reader is asking about. A chart of averages answers "how
   // am I going"; the follow-up is always "which night was that", so a tap
   // names it and a tap on the answer goes there.
@@ -80,6 +84,7 @@ export function SessionTrendChart({ sessions, onOpenSession }: SessionTrendChart
 
   return (
     <div className="rounded-lg border border-edge bg-surface p-3 shadow-sm">
+      {header}
       <svg
         viewBox={`0 0 ${W} ${H}`}
         className="w-full"
