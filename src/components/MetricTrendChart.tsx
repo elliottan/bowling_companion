@@ -1,13 +1,22 @@
 import { useState, type ReactNode } from "react";
 
-/** One night's value of whichever metric is selected. */
+/**
+ * One point's value of whichever metric is selected.
+ *
+ * Deliberately says nothing about being a night or a game: the Stats tab plots
+ * one per session and a session sheet plots one per game, and the only thing
+ * the chart needs to know is what to call it.
+ */
 export interface MetricPoint {
-  sessionId?: number;
-  date: string;
-  alley: string;
-  event?: string;
-  games: number;
-  /** `null` when the night had no opportunity to produce one, so it is a gap
+  /** Stable identity. Survives the list being rewritten under the chart. */
+  key: string;
+  /** Short label for the axis: a date, or "G3". */
+  axis: string;
+  /** What this point is, for the footer and for screen readers. */
+  title: string;
+  /** A line under the title in the footer: the event, the lanes. */
+  detail?: string;
+  /** `null` when the point had no opportunity to produce one, so it is a gap
    *  in the line rather than a zero. */
   value: number | null;
 }
@@ -25,7 +34,8 @@ interface MetricTrendChartProps {
   /** Smallest span the chart will draw, so a two-point wobble does not fill
    *  the card and read as a collapse. */
   minSpan: number;
-  onOpenSession?: (sessionId: number) => void;
+  /** Given for points that can be opened. Omitted, the footer only dismisses. */
+  onOpen?: (key: string) => void;
 }
 
 const W = 320;
@@ -36,7 +46,8 @@ const INSET_BOTTOM = 16;
 /** Sessions shown, newest kept. Beyond this the dots merge into a smear. */
 const MAX_POINTS = 20;
 
-const shortDate = (iso: string) => iso.slice(5).replace("-", "/");
+/** Above this, one label per point is a smear and only the ends are named. */
+const LABEL_ALL_UP_TO = 6;
 
 /**
  * Any one stat, by night, oldest on the left.
@@ -55,7 +66,7 @@ export function MetricTrendChart({
   min,
   max,
   minSpan,
-  onOpenSession
+  onOpen
 }: MetricTrendChartProps) {
   // Held as the night's own key rather than its position: the filters above
   // rewrite the list under this chart, and an index kept pointing at whatever
@@ -86,11 +97,9 @@ export function MetricTrendChart({
   const columnWidth =
     shown.length === 1 ? W : Math.max(18, (W - INSET_X * 2) / Math.max(1, shown.length - 1));
 
-  const keyOf = (p: MetricPoint) => `${p.sessionId ?? ""}:${p.date}`;
-  const selectedIndex = shown.findIndex((p) => keyOf(p) === selectedKey);
+  const selectedIndex = shown.findIndex((p) => p.key === selectedKey);
   const selected = selectedIndex === -1 ? null : selectedIndex;
-  const toggle = (p: MetricPoint) =>
-    setSelectedKey((curr) => (curr === keyOf(p) ? null : keyOf(p)));
+  const toggle = (p: MetricPoint) => setSelectedKey((curr) => (curr === p.key ? null : p.key));
 
   // A night with no value breaks the line rather than bridging it, the same
   // way the score chart refuses to bridge an unscored game.
@@ -106,9 +115,13 @@ export function MetricTrendChart({
   });
   if (current.length > 1) segments.push(current.join(" "));
 
-  // Only the ends are labelled. One date under every point is unreadable at
-  // twenty of them, and the shape is what this chart is for.
-  const labelled = new Set([0, shown.length - 1]);
+  // A handful of games get a label each; twenty nights get their two ends. One
+  // date under every point is unreadable at twenty, and the shape is what this
+  // chart is for.
+  const labelled =
+    shown.length <= LABEL_ALL_UP_TO
+      ? new Set(shown.map((_, i) => i))
+      : new Set([0, shown.length - 1]);
 
   // The best and worst night get their value printed. Only the FIRST of each,
   // because a rate ties far more often than a score does: two 100% nights both
@@ -126,8 +139,8 @@ export function MetricTrendChart({
         viewBox={`0 0 ${W} ${H}`}
         className="w-full"
         role="img"
-        aria-label={`By session, oldest first. ${shown
-          .map((p) => `${p.date}: ${p.value === null ? "none" : format(p.value)}`)
+        aria-label={`In order. ${shown
+          .map((p) => `${p.title}: ${p.value === null ? "none" : format(p.value)}`)
           .join(", ")}.`}
       >
         {overall !== null && overall <= hi && overall >= lo && (
@@ -173,7 +186,7 @@ export function MetricTrendChart({
           const isLow = showExtremes && p.value === lowValue;
           const labelThis = showExtremes && (i === highIndex || i === lowIndex);
           return (
-            <g key={`${p.date}-${i}`}>
+            <g key={p.key}>
               {selected === i && (
                 <circle
                   cx={x(i)}
@@ -212,10 +225,10 @@ export function MetricTrendChart({
                 <text
                   x={x(i)}
                   y={H - 3}
-                  textAnchor={i === 0 ? "start" : "end"}
+                  textAnchor={i === 0 ? "start" : i === shown.length - 1 ? "end" : "middle"}
                   className="fill-ink-tertiary text-[9px] tabular-nums"
                 >
-                  {shortDate(p.date)}
+                  {p.axis}
                 </text>
               )}
             </g>
@@ -226,7 +239,7 @@ export function MetricTrendChart({
             3px dot. Drawn last so they sit above everything they select. */}
         {shown.map((p, i) => (
           <rect
-            key={`hit-${p.date}-${i}`}
+            key={`hit-${p.key}`}
             x={x(i) - columnWidth / 2}
             y={0}
             width={columnWidth}
@@ -234,7 +247,7 @@ export function MetricTrendChart({
             fill="transparent"
             role="button"
             tabIndex={0}
-            aria-label={`${p.date}, ${p.alley}, ${p.value === null ? "no value" : format(p.value)}`}
+            aria-label={`${p.title}, ${p.value === null ? "no value" : format(p.value)}`}
             onClick={() => toggle(p)}
             onKeyDown={(e) => {
               if (e.key === "Enter" || e.key === " ") {
@@ -248,10 +261,10 @@ export function MetricTrendChart({
       </svg>
 
       {selected !== null && (
-        <SelectedNight
+        <SelectedPoint
           point={shown[selected]}
           format={format}
-          onOpen={onOpenSession}
+          onOpen={onOpen}
           onDismiss={() => setSelectedKey(null)}
         />
       )}
@@ -259,8 +272,8 @@ export function MetricTrendChart({
   );
 }
 
-/** The night behind the selected point, and the way into it. */
-function SelectedNight({
+/** What the selected point is, and the way into it. */
+function SelectedPoint({
   point,
   format,
   onOpen,
@@ -268,18 +281,14 @@ function SelectedNight({
 }: {
   point: MetricPoint;
   format: (value: number) => string;
-  onOpen?: (sessionId: number) => void;
+  onOpen?: (key: string) => void;
   onDismiss: () => void;
 }) {
-  const detail = [point.event, `${point.games} ${point.games === 1 ? "game" : "games"}`]
-    .filter(Boolean)
-    .join(" · ");
-
   const body = (
     <>
       <span className="min-w-0 flex-1 truncate">
-        <span className="font-semibold text-ink">{point.alley}</span>
-        <span className="ml-1.5 text-ink-secondary">{detail}</span>
+        <span className="font-semibold text-ink">{point.title}</span>
+        {point.detail && <span className="ml-1.5 text-ink-secondary">{point.detail}</span>}
       </span>
       <span className="shrink-0 font-bold tabular-nums text-ink">
         {point.value === null ? "-" : format(point.value)}
@@ -287,23 +296,13 @@ function SelectedNight({
     </>
   );
 
-  if (point.sessionId == null || !onOpen) {
-    return (
-      <button
-        type="button"
-        onClick={onDismiss}
-        className="mt-2 flex w-full items-center gap-2 rounded-lg bg-surface-muted px-3 py-2 text-left text-xs"
-      >
-        {body}
-      </button>
-    );
-  }
-
   return (
     <button
       type="button"
-      onClick={() => onOpen(point.sessionId as number)}
-      className="mt-2 flex w-full items-center gap-2 rounded-lg bg-surface-muted px-3 py-2 text-left text-xs hover:bg-edge"
+      onClick={() => (onOpen ? onOpen(point.key) : onDismiss())}
+      className={`mt-2 flex w-full items-center gap-2 rounded-lg bg-surface-muted px-3 py-2 text-left text-xs ${
+        onOpen ? "hover:bg-edge" : ""
+      }`}
     >
       {body}
     </button>

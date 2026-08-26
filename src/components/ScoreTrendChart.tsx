@@ -1,7 +1,11 @@
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import type { Game } from "../types/bowling";
 
 interface ScoreTrendChartProps {
+  /** Rendered inside the card, above the plot. Passed in so this chart and
+   *  `MetricTrendChart` wear the same header while the tiles switch between
+   *  them (ADR-061). */
+  header?: ReactNode;
   games: Array<Pick<Game, "id" | "game_number" | "final_score">>;
   /** Open a game picked off the line. */
   onOpenGame?: (gameId: number) => void;
@@ -27,7 +31,7 @@ const INSET_BOTTOM = 16;
  * straight through a game that was never scored invents a trend that was not
  * bowled.
  */
-export function ScoreTrendChart({ games, onOpenGame }: ScoreTrendChartProps) {
+export function ScoreTrendChart({ games, header, onOpenGame }: ScoreTrendChartProps) {
   // Same question as the session trend: which game was that, and take me to it.
   const [selected, setSelected] = useState<number | null>(null);
   const scored = games
@@ -75,6 +79,7 @@ export function ScoreTrendChart({ games, onOpenGame }: ScoreTrendChartProps) {
 
   return (
     <div className="rounded-lg border border-edge bg-surface p-3 shadow-sm">
+      {header}
       <svg
         viewBox={`0 0 ${W} ${H}`}
         className="w-full"

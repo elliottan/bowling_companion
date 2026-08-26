@@ -14,6 +14,7 @@ import {
   type BallPerformance,
   type BallPerformanceReport,
   type BowlingStats,
+  type GameMetricPoint,
   type LeaveStats,
   type RateLeaders,
   type SessionMetricPoint,
@@ -138,6 +139,9 @@ interface StatsProps {
   sessionTrend?: SessionTrendPoint[];
   /** Every stat, per night, for whichever one the tiles have selected. */
   sessionMetrics?: SessionMetricPoint[];
+  /** Every stat, per game, inside one session. The session sheet's answer to
+   *  `sessionMetrics`: same tiles, one point per game rather than per night. */
+  gameMetrics?: GameMetricPoint[];
   /** Open a session picked off the trend line. */
   onOpenSession?: (sessionId: number) => void;
   /** Open a game picked off the per-session score line. */
@@ -156,6 +160,7 @@ export function Stats({
   games,
   sessionTrend,
   sessionMetrics,
+  gameMetrics,
   onOpenSession,
   onOpenGameId,
   memoryKey = "stats"
@@ -180,7 +185,11 @@ export function Stats({
   const chartHeader = (
     <div className="mb-1">
       <div className="flex items-center justify-between gap-2">
-        <h2 className={GROUP_HEADING}>{spec.label} by session</h2>
+        {/* The points are games inside a session sheet and nights on the Stats
+            tab, and the header has to say which. */}
+        <h2 className={GROUP_HEADING}>
+          {spec.label} by {gameMetrics ? "game" : "session"}
+        </h2>
         <IconButton
           label={`What ${spec.label} counts`}
           compact
@@ -278,11 +287,45 @@ export function Stats({
         />
       </div>
 
-      {games && games.length > 0 && (
-        <ScoreTrendChart games={games} onOpenGame={onOpenGameId} />
+      {/* Inside a session the score line IS the average, so it answers to the
+          picker like everything else. On the Stats tab there are no games and
+          this branch never runs. */}
+      {gameMetrics && gameMetrics.length > 0 && (
+        metric === "average" ? (
+          games &&
+          games.length > 0 && (
+            <ScoreTrendChart games={games} header={chartHeader} onOpenGame={onOpenGameId} />
+          )
+        ) : (
+          <MetricTrendChart
+            points={gameMetrics.map((p) => ({
+              key: `g${p.gameId ?? p.gameNumber}`,
+              axis: `G${p.gameNumber}`,
+              title: `Game ${p.gameNumber}`,
+              detail: p.lanes.length ? `Lane${p.lanes.length > 1 ? "s" : ""} ${p.lanes.join(", ")}` : undefined,
+              value: spec.value(p.stats)
+            }))}
+            header={chartHeader}
+            overall={spec.value(stats)}
+            format={spec.format}
+            min={spec.min}
+            max={spec.max}
+            minSpan={spec.minSpan}
+            onOpen={
+              onOpenGameId &&
+              ((key) => {
+                const id = Number(key.slice(1));
+                if (Number.isInteger(id) && id > 0) onOpenGameId(id);
+              })
+            }
+          />
+        )
       )}
 
-      {metric === "average"
+      {/* Per-game and per-session are alternatives, never both: a session
+          sheet plots its games, the Stats tab plots its nights. */}
+      {!gameMetrics &&
+        (metric === "average"
         ? sessionTrend &&
           sessionTrend.length > 0 && (
             <SessionTrendChart
@@ -295,11 +338,12 @@ export function Stats({
           sessionMetrics.length > 0 && (
             <MetricTrendChart
               points={sessionMetrics.map((p) => ({
-                sessionId: p.sessionId,
-                date: p.date,
-                alley: p.alley,
-                event: p.event,
-                games: p.games,
+                key: `s${p.sessionId ?? ""}:${p.date}`,
+                axis: p.date.slice(5).replace("-", "/"),
+                title: p.alley,
+                detail: [p.event, `${p.games} ${p.games === 1 ? "game" : "games"}`]
+                  .filter(Boolean)
+                  .join(" · "),
                 value: spec.value(p.stats)
               }))}
               header={chartHeader}
@@ -308,9 +352,15 @@ export function Stats({
               min={spec.min}
               max={spec.max}
               minSpan={spec.minSpan}
-              onOpenSession={onOpenSession}
+              onOpen={
+                onOpenSession &&
+                ((key) => {
+                  const id = Number(key.slice(1).split(":")[0]);
+                  if (Number.isInteger(id) && id > 0) onOpenSession(id);
+                })
+              }
             />
-          )}
+          ))}
 
       {/* The leave note is rendered down with the leave cards it explains, so
           the answer lands where the tap was. */}

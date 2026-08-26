@@ -537,6 +537,47 @@ export function calculateSessionMetrics(
     });
 }
 
+/** One game of a session, with the whole stats block computed for it alone. */
+export interface GameMetricPoint {
+  gameId?: number;
+  gameNumber: number;
+  lanes: string[];
+  stats: BowlingStats;
+}
+
+/**
+ * Every stat, by game, for one session (ADR-061).
+ *
+ * The same trick as `calculateSessionMetrics` at a finer grain, and for the
+ * same reason: a game's strike rate is `calculateStats` run over that game, so
+ * it cannot disagree with the session total above it.
+ *
+ * Unlike the session version this keeps a game that has not been scored yet.
+ * There, an unscored night is a night that has not happened and would plot at
+ * nothing; here it is the game in front of you, and its strike rate through
+ * six frames is the most interesting number on the screen. Its average comes
+ * back null and breaks the line, which is the honest shape.
+ */
+export function calculateGameMetrics(
+  session: SessionSummary,
+  handedness: Handedness = "right"
+): GameMetricPoint[] {
+  return [...session.games]
+    .sort((a, b) => a.game_number - b.game_number)
+    .flatMap((game) => {
+      const frames = (game as GameWithFrames).frames ?? [];
+      if (frames.length === 0) return [];
+      return [
+        {
+          gameId: game.id,
+          gameNumber: game.game_number,
+          lanes: gameLanes(game),
+          stats: calculateStats([{ session: session.session, games: [game] }], undefined, handedness)
+        }
+      ];
+    });
+}
+
 /**
  * Per-ball pocket, carry and strike rates, broken out by game number, plus the
  * leaves each ball produced (ADR-047, amended by ADR-048).

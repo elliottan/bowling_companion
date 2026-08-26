@@ -145,6 +145,11 @@ of shipped work rather than a release. Thirty of them used to be headed
   calculation the tile above it uses, so the two can never disagree. The
   definition moved onto the chart, behind the info control in its header
   (ADR-061).
+- **The same picker works inside a session**, where the points are games rather
+  than nights: strike, spare, pocket, carry or first ball, game by game. The
+  score line stays as the average. A game still being bowled is plotted, since
+  its rates are real and it is the game you care about, and only its average is
+  missing, which breaks the line at that point rather than plotting a zero.
 - **The best pocket, carry and strike rate are called out** in the ball table.
   A ball needs at least 10 fresh-rack balls to be in the running, so one good
   night with a new ball cannot take the crown, and nothing is highlighted until

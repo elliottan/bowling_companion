@@ -3,7 +3,12 @@ import { createPortal } from "react-dom";
 import { freshRackShotIndices, laneForFrame } from "../lib/lanes";
 import { knockedDownCount } from "../lib/pins";
 import { calculateGameScore } from "../lib/scoring";
-import { calculateBallPerformance, calculateCommonLeaves, calculateStats } from "../lib/stats";
+import {
+  calculateBallPerformance,
+  calculateCommonLeaves,
+  calculateGameMetrics,
+  calculateStats
+} from "../lib/stats";
 import { useHandedness } from "../lib/handednessContext";
 import { useOverlay } from "../lib/useOverlay";
 import { useSheetDismiss } from "../lib/useSheetDismiss";
@@ -298,6 +303,13 @@ function StatsTab({
     () => calculateBallPerformance([scoped], balls, undefined, handedness),
     [scoped, balls, handedness]
   );
+  // Off the whole session, not the scoped one: the chart is how another game
+  // is picked, so narrowing it to the game already chosen would take the
+  // picker away. Same reasoning as `games` below.
+  const gameMetrics = useMemo(
+    () => calculateGameMetrics(summary, handedness),
+    [summary, handedness]
+  );
 
   return (
     <>
@@ -320,6 +332,7 @@ function StatsTab({
       // A game picked off the score line: show me that game.
       onOpenGameId={onGoToGame && ((id) => onGoToGame(id))}
       games={summary.games}
+      gameMetrics={gameMetrics}
     />
     </>
   );

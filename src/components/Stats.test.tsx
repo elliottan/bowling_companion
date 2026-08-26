@@ -72,21 +72,21 @@ describe("picking what the chart plots", () => {
   it("starts on the average", () => {
     render(<Stats stats={STATS} sessionMetrics={TREND} sessionTrend={SESSION_TREND} />);
     expect(screen.getByRole("button", { name: /Avg/, pressed: true })).toBeInTheDocument();
-    expect(screen.getByText("Avg by session")).toBeInTheDocument();
+    expect(screen.getByText(/Avg by\s+session/)).toBeInTheDocument();
   });
 
   it("moves the chart to whichever tile is tapped", () => {
     render(<Stats stats={STATS} sessionMetrics={TREND} sessionTrend={SESSION_TREND} />);
 
     fireEvent.click(screen.getByRole("button", { name: /Carry/ }));
-    expect(screen.getByText("Carry by session")).toBeInTheDocument();
+    expect(screen.getByText(/Carry by\s+session/)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Carry/, pressed: true })).toBeInTheDocument();
     // Only one at a time.
     expect(screen.getByRole("button", { name: /Avg/, pressed: false })).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: /Pocket/ }));
-    expect(screen.getByText("Pocket by session")).toBeInTheDocument();
-    expect(screen.queryByText("Carry by session")).toBeNull();
+    expect(screen.getByText(/Pocket by\s+session/)).toBeInTheDocument();
+    expect(screen.queryByText(/Carry by\s+session/)).toBeNull();
   });
 
   it("plots the value each night actually had", () => {
@@ -94,8 +94,10 @@ describe("picking what the chart plots", () => {
     fireEvent.click(screen.getByRole("button", { name: /Strike/ }));
     // 60 on the first night, 40 on the second, read off the same stats block
     // the tiles are read from.
-    expect(screen.getByRole("button", { name: /2026-06-07, Sea Bowl, 60%/ })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /2026-06-14, Sea Bowl, 40%/ })).toBeInTheDocument();
+    const plotted = screen
+      .getAllByRole("button", { name: /Sea Bowl, \d+%/ })
+      .map((b) => b.getAttribute("aria-label"));
+    expect(plotted).toEqual(["Sea Bowl, 60%", "Sea Bowl, 40%"]);
   });
 
   it("explains the plotted stat from the chart, not the tile", () => {
@@ -317,7 +319,7 @@ describe("first ball average", () => {
     render(<Stats stats={STATS} leaves={[]} sessionMetrics={TREND} sessionTrend={SESSION_TREND} />);
     expect(screen.getByText("8.4")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: /1st ball/ }));
-    expect(screen.getByText("1st ball by session")).toBeInTheDocument();
+    expect(screen.getByText(/1st ball by\s+session/)).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: /What 1st ball counts/ }));
     expect(screen.getByText(/pins knocked down by the average ball/i)).toBeInTheDocument();
   });
@@ -330,5 +332,61 @@ describe("first ball average", () => {
   it("shows a dash when nothing has been thrown", () => {
     render(<Stats stats={{ ...STATS, firstBallAverage: null }} leaves={[]} />);
     expect(screen.getByText("1st ball").previousSibling).toHaveTextContent("-");
+  });
+});
+
+describe("inside a session, the picker drives the per-game chart", () => {
+  const GAME_METRICS = [
+    { gameId: 1, gameNumber: 1, lanes: ["11", "12"], stats: STATS },
+    {
+      gameId: 2,
+      gameNumber: 2,
+      lanes: ["11", "12"],
+      stats: { ...STATS, strikePct: 30, carryPct: 45 }
+    },
+    {
+      gameId: 3,
+      gameNumber: 3,
+      lanes: ["11", "12"],
+      // Still being bowled: no score yet, but the balls thrown still count.
+      stats: { ...STATS, averageScore: null, strikePct: 50, carryPct: 80 }
+    }
+  ];
+  const GAMES = [
+    { id: 1, game_number: 1, final_score: 200 },
+    { id: 2, game_number: 2, final_score: 170 },
+    { id: 3, game_number: 3, final_score: undefined }
+  ];
+
+  it("keeps the score line for the average, and says these are games", () => {
+    render(<Stats stats={STATS} games={GAMES} gameMetrics={GAME_METRICS} />);
+    expect(screen.getByText(/Avg by\s+game/)).toBeInTheDocument();
+    // The score line names games, not nights.
+    expect(screen.getByRole("button", { name: /Game 1/ })).toBeInTheDocument();
+  });
+
+  it("swaps to one point per game for any other stat", () => {
+    render(<Stats stats={STATS} games={GAMES} gameMetrics={GAME_METRICS} />);
+    fireEvent.click(screen.getByRole("button", { name: /Strike/ }));
+
+    const plotted = screen
+      .getAllByRole("button", { name: /^Game \d, \d+%$/ })
+      .map((b) => b.getAttribute("aria-label"));
+    expect(plotted).toEqual(["Game 1, 60%", "Game 2, 30%", "Game 3, 50%"]);
+  });
+
+  it("plots a game that has no score yet, and breaks the average line at it", () => {
+    render(<Stats stats={STATS} games={GAMES} gameMetrics={GAME_METRICS} />);
+    fireEvent.click(screen.getByRole("button", { name: /Carry/ }));
+    // Carry exists for the unfinished game; the average would not.
+    expect(screen.getByRole("button", { name: "Game 3, 80%" })).toBeInTheDocument();
+  });
+
+  it("does not fall back to the by-session chart", () => {
+    render(
+      <Stats stats={STATS} games={GAMES} gameMetrics={GAME_METRICS} sessionMetrics={TREND} />
+    );
+    fireEvent.click(screen.getByRole("button", { name: /Pocket/ }));
+    expect(screen.queryByRole("button", { name: /Sea Bowl, \d+%/ })).toBeNull();
   });
 });

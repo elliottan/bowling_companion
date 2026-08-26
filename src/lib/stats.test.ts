@@ -4,6 +4,7 @@ import {
   calculateCommonLeaves,
   calculateGameNumberTrend,
   calculateOpenFrames,
+  calculateGameMetrics,
   calculateSessionMetrics,
   calculateSessionTrend,
   calculateStats,
@@ -1103,5 +1104,71 @@ describe("calculateSessionMetrics", () => {
     const sessions = [session("Sea Bowl", [onEleven])];
     expect(calculateSessionMetrics(sessions, ["12"])).toEqual([]);
     expect(calculateSessionMetrics(sessions, ["11"])).toHaveLength(1);
+  });
+});
+
+describe("calculateGameMetrics", () => {
+  const strikes = [
+    ...Array.from({ length: 9 }, (_, i) => frame(i + 1, NONE)),
+    frame(10, NONE, NONE, NONE)
+  ];
+  const nines = [
+    ...Array.from({ length: 9 }, (_, i) => frame(i + 1, [10], NONE)),
+    frame(10, [10], NONE, [10])
+  ];
+
+  it("returns nothing for a session with no frames", () => {
+    expect(calculateGameMetrics(session("Sea Bowl", []))).toEqual([]);
+  });
+
+  it("gives one point per game, in game order", () => {
+    const s: SessionSummary = {
+      session: { id: 1, date: "2026-06-07", alley_name: "Sea Bowl" },
+      games: [numberedGame(2, 150, nines), numberedGame(1, 300, strikes)]
+    };
+    const points = calculateGameMetrics(s);
+    expect(points.map((p) => p.gameNumber)).toEqual([1, 2]);
+    expect(points[0].stats.strikePct).toBe(100);
+    expect(points[1].stats.strikePct).toBe(0);
+  });
+
+  it("keeps a game still being bowled, because that is the one you care about", () => {
+    const halfDone = [
+      ...Array.from({ length: 5 }, (_, i) => frame(i + 1, NONE)),
+      frame(6, [10], [10])
+    ];
+    const s: SessionSummary = {
+      session: { id: 1, date: "2026-06-07", alley_name: "Sea Bowl" },
+      games: [numberedGame(1, undefined, halfDone)]
+    };
+    const [point] = calculateGameMetrics(s);
+    // Five strikes off six fresh-rack balls, with no score yet.
+    expect(point.stats.strikePct).toBe(83);
+    expect(point.stats.averageScore).toBeNull();
+  });
+
+  it("agrees with the block for that game on its own", () => {
+    const s: SessionSummary = {
+      session: { id: 1, date: "2026-06-07", alley_name: "Sea Bowl" },
+      games: [numberedGame(1, 300, strikes)]
+    };
+    const [point] = calculateGameMetrics(s);
+    expect(point.stats).toEqual(calculateStats([s]));
+  });
+
+  it("carries the lanes the game was bowled on", () => {
+    const onPair: Game & { frames: Frame[] } = {
+      id: 7,
+      session_id: 1,
+      game_number: 1,
+      lanes: ["11", "12"],
+      final_score: 300,
+      frames: strikes
+    };
+    const s: SessionSummary = {
+      session: { id: 1, date: "2026-06-07", alley_name: "Sea Bowl" },
+      games: [onPair]
+    };
+    expect(calculateGameMetrics(s)[0]).toMatchObject({ gameId: 7, lanes: ["11", "12"] });
   });
 });
