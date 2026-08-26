@@ -36,8 +36,12 @@ Every push gets, without exception:
   opened from the dashboard it named a tab the user had never navigated from;
 - a centred title, one line, 17px semibold;
 - at most **one** trailing action, always an `IconButton`;
-- an edge-drag-back gesture and, in overlay mode, Escape + a focus trap
-  (`useOverlay`).
+- in overlay mode, Escape + a focus trap (`useOverlay`).
+
+Back out of a push with the chevron or with the platform's own back gesture
+(Android's button, iOS's left-edge swipe). The app does not implement a
+back-swipe of its own: competing with the platform's drew the screen underneath
+twice (ADR-065).
 
 ## 1a. Sheet or dialog: you type in a sheet, you answer a dialog
 

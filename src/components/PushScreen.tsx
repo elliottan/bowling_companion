@@ -20,19 +20,23 @@ interface PushScreenProps {
   children: ReactNode;
 }
 
-// A drag that starts this far from the leading edge is a back gesture, not a
-// scroll — matches the iOS screen-edge pan recogniser's width.
-const EDGE_ZONE_PX = 28;
-const DISMISS_PX = 90;
 // Matches the push-screen-in keyframe, so in and out feel like one motion.
 const EXIT_MS = 280;
 
 /**
  * Full-screen navigation push: slides in from the trailing edge over whatever
- * launched it, carries a sticky nav bar with a leading back control, and can be
- * dismissed by dragging from the leading edge. This is the app's stand-in for a
- * navigation stack — a bottom sheet reads as "a task on top of this screen",
- * which is wrong for a destination the user navigates *into*.
+ * launched it and carries a sticky nav bar with a leading back control. This is
+ * the app's stand-in for a navigation stack — a bottom sheet reads as "a task
+ * on top of this screen", which is wrong for a destination the user navigates
+ * *into*.
+ *
+ * Back out of it with the chevron or with the platform's own back: Android's
+ * button, iOS's left-edge swipe. This used to carry an edge-drag of its own,
+ * from a time when an installed iOS PWA had no swipe of its own (ADR-041). iOS
+ * added one, and then both ran on the same gesture: the OS slid a snapshot of
+ * the previous entry in from the left while this slid a live screen right, and
+ * the user saw the screen underneath twice. An imitation of a platform gesture
+ * cannot win against the platform's own, so it is gone (ADR-065).
  */
 export function PushScreen({
   title,
@@ -42,9 +46,7 @@ export function PushScreen({
   mode = "overlay",
   children,
 }: PushScreenProps) {
-  const [dragX, setDragX] = useState(0);
   const [exiting, setExiting] = useState(false);
-  const dragStartX = useRef<number | null>(null);
   const exitTimer = useRef<number | null>(null);
 
   // Slide the screen back out before unmounting it. Without this the push
@@ -68,35 +70,6 @@ export function PushScreen({
   // must not trap focus or swallow Escape.
   const overlayRef = useOverlay<HTMLDivElement>(dismiss, active && mode === "overlay", false);
 
-  function onPointerDown(e: React.PointerEvent) {
-    if (e.pointerType === "mouse") return;
-    const x = e.clientX - e.currentTarget.getBoundingClientRect().left;
-    if (x > EDGE_ZONE_PX) return;
-    // A push rendered inside another push (a catalog ball's detail) shares the
-    // edge with it. Without this both recognisers arm on one drag and the
-    // gesture pops two screens.
-    e.stopPropagation();
-    dragStartX.current = e.clientX;
-  }
-
-  function onPointerMove(e: React.PointerEvent) {
-    if (dragStartX.current === null) return;
-    e.stopPropagation();
-    setDragX(Math.max(0, e.clientX - dragStartX.current));
-  }
-
-  function endDrag(e: React.PointerEvent) {
-    if (dragStartX.current !== null) e.stopPropagation();
-    const dismissed = dragStartX.current !== null && dragX > DISMISS_PX;
-    dragStartX.current = null;
-    // Let the exit transform carry the drag the rest of the way out rather
-    // than snapping back to 0 first.
-    setDragX(0);
-    if (dismissed) dismiss();
-  }
-
-  const dragging = dragStartX.current !== null;
-
   const overlay = mode === "overlay";
 
   return (
@@ -110,28 +83,24 @@ export function PushScreen({
       aria-modal={overlay || undefined}
       aria-label={title}
     >
-      {/* The screen underneath stays visible at the edge of a back-drag, which
-          is what makes the gesture read as "peeling this screen off". */}
+      {/* Dims what is underneath, and fades with the exit so the screen behind
+          arrives at full strength as this one leaves. */}
       {overlay && (
         <div
           className="absolute inset-0 bg-black/30 transition-opacity duration-200"
           aria-hidden="true"
-          style={{ opacity: exiting ? 0 : dragX > 0 ? 0.6 : 1 }}
+          style={{ opacity: exiting ? 0 : 1 }}
         />
       )}
       <div
         ref={overlayRef}
         className={`absolute inset-0 flex flex-col bg-surface-sunken ${
-          dragX === 0 && !dragging && !exiting ? "animate-push-in" : ""
+          exiting ? "" : "animate-push-in"
         }`}
         style={{
-          transform: exiting ? "translateX(100%)" : dragX ? `translateX(${dragX}px)` : undefined,
-          transition: dragging ? "none" : `transform ${EXIT_MS}ms cubic-bezier(0.32, 0.72, 0, 1)`,
+          transform: exiting ? "translateX(100%)" : undefined,
+          transition: `transform ${EXIT_MS}ms cubic-bezier(0.32, 0.72, 0, 1)`,
         }}
-        onPointerDown={onPointerDown}
-        onPointerMove={onPointerMove}
-        onPointerUp={endDrag}
-        onPointerCancel={endDrag}
       >
         {/* Safe-area insets only in overlay mode — inline sits inside the app
             shell, which has already paid them. */}

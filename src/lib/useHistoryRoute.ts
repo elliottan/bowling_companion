@@ -7,13 +7,16 @@ import { closeTopSheet, getOpenSheets, subscribeSheets } from "./sheetBackStack"
  * Keeps the URL and the navigation state in step, and makes the browser's back
  * the app's only implementation of "back".
  *
- * That last part is the whole point. The app already had three ways back (the
- * nav bar's back control, Escape, and the edge-drag in `PushScreen`), and the
- * platform adds a fourth: Android's hardware back, and iOS's left-edge swipe.
- * If the in-app paths popped state directly while the platform popped history,
- * one gesture would close two screens. So every path calls `goBack`, `goBack`
- * calls `history.back()`, and `popstate` is the single place that dispatches
- * the change. Whichever mechanism fires, exactly one pop happens.
+ * That last part is the whole point. The app has two ways back of its own (the
+ * nav bar's back control and Escape) and the platform has its own: Android's
+ * hardware back, iOS's left-edge swipe. If the in-app paths popped state
+ * directly while the platform popped history, one gesture would close two
+ * screens. So every path calls `goBack`, `goBack` calls `history.back()`, and
+ * `popstate` is the single place that dispatches the change. Whichever
+ * mechanism fires, exactly one pop happens.
+ *
+ * `PushScreen` used to carry an edge-drag too. It is gone: the gesture is the
+ * platform's now (ADR-065).
  *
  * The URL is a projection of state, never a second source of truth: state
  * changes write the hash, `popstate` reads it back through the reducer.

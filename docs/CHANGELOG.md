@@ -8,6 +8,17 @@ merge to `main` (`docs/DEPLOYMENT.md`), so every section below is a dated batch
 of shipped work rather than a release. Thirty of them used to be headed
 `[Unreleased]`, which said nothing once they had all shipped.
 
+## The back-swipe is the platform's (2026-08)
+
+### Changed
+
+- **Swiping a screen away no longer draws the screen underneath twice.** Pushes
+  carried a back-drag of their own, added when an installed iOS PWA had no
+  swipe at all. iOS has one now, so a single drag ran both: the OS slid a
+  snapshot of the previous screen in from the left while the app slid the live
+  one right. The app's version is gone, and the gesture is the platform's
+  (ADR-065). The back chevron is unchanged.
+
 ## A ball's detail page is a place of its own (2026-08)
 
 ### Fixed

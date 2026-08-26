@@ -2747,3 +2747,45 @@ broken, for a ball with no page.
 - An e2e test asserts the link, its host and its rel. The link is a term of an
   agreement, so it should fail loudly if it is ever dropped, not quietly go
   missing.
+
+---
+
+## ADR-065: The back-swipe belongs to the platform, not to us
+
+**Status:** accepted (2026-08). Supersedes ADR-041's note that `PushScreen`'s
+edge-drag does not need to suppress a native gesture.
+
+**Context.** ADR-040 gave every push an edge-drag-back of its own, and ADR-041
+recorded why it was safe: verified on an installed iOS PWA (2026-08-04), a
+left-edge swipe popped exactly one screen, because iOS fired no back of its own
+alongside it. That was the only reason the drag existed. An installed iOS user
+had the chevron and nothing else, and a push you cannot swipe off does not read
+as a push.
+
+iOS now has its own edge-swipe for same-document history, standalone included,
+and ADR-041 predicted the symptom exactly: two screens closing on one swipe.
+The visual failure came first. On one drag the OS slides a snapshot of the
+previous history entry in from the left while `PushScreen` slides the live
+screen right, so the user sees the screen underneath twice, at two offsets.
+
+ADR-041 named `touch-action`/`preventDefault` in the 28px edge zone as the fix.
+That is the wrong way round: it spends code suppressing the real gesture in
+order to keep an imitation of it. The platform's has interruptible physics, a
+rubber-band and a commit threshold tuned by the OS; ours is a `translateX` past
+90px.
+
+**Decision.** `PushScreen` implements no back gesture. Back out of a push with
+the nav-bar chevron, with Escape, or with whatever back the platform provides.
+The enter and exit animations stay: those are ours to draw, and nothing else
+draws them.
+
+**Consequences.**
+
+- Android Chrome and desktop touch lose a back-swipe they never had natively.
+  The chevron is always present, and Android's back button is unaffected.
+- Nothing to suppress, so no `preventDefault` in the edge zone, which would
+  have sat under the back chevron and eaten its taps.
+- Nested pushes (a catalog ball's detail inside the catalog) no longer share an
+  edge, which is what made one drag pop two screens (see CHANGELOG, 2026-08).
+- If a platform ever ships a *worse* back gesture than the chevron, the answer
+  is still not to draw our own on top of it.
