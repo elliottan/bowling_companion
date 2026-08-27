@@ -75,6 +75,7 @@ export interface NavState {
 
 export type NavAction =
   | { type: "goTo"; view: AppView }
+  | { type: "crossToTab"; view: AppView }
   | {
       type: "openSession";
       sessionId: number;
@@ -136,11 +137,31 @@ export function navReducer(state: NavState, action: NavAction): NavState {
       };
     }
 
+    /**
+     * Leave a pushed screen for a tab, in one move.
+     *
+     * `goTo` keeps the overlay stack, which is right for the tab bar: that bar
+     * is not reachable from an overlay anyway. A screen that hands off to a tab
+     * needs both to happen at once. Popping and then switching cannot work,
+     * because the pop goes through `history.back()` and lands asynchronously,
+     * so it would overwrite the tab switch on its way past.
+     */
+    case "crossToTab":
+      return {
+        ...state,
+        view: action.view,
+        overlays: [],
+        settingsSection: action.view === "settings" ? "menu" : state.settingsSection
+      };
+
     case "openSession":
       return {
         ...state,
         view: "active",
         previousView: state.view !== "active" ? state.view : state.previousView,
+        // A session is a place, and no pushed screen belongs in front of it.
+        // Reached from one (the game plan's "last time"), the push comes off.
+        overlays: [],
         activeSessionId: action.sessionId,
         openSessionStats: action.openStats ?? false,
         openSessionGameId: action.gameId ?? null,

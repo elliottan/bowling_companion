@@ -2986,3 +2986,40 @@ length.
   to compare your whole history to.
 - The thresholds are judgement, not derivation. They are constants in one place
   with the reasoning attached, so moving them is a decision rather than a tweak.
+
+---
+
+## ADR-065: A callout hands its slice to the Stats tab, in one dispatch
+
+**Status:** accepted (2026-08). Extends ADR-064.
+
+**Context.** A briefing callout states a number and stops there. The obvious
+next move is to go and look at it, and the Stats tab already does exactly that
+job with the same filter store behind it.
+
+**Decision.**
+
+- **Tapping a callout sets the Stats filters to the plan's slice** (location and
+  pattern) and the chart to the number the callout was about, then crosses to
+  the tab. `setRemembered` is the imperative half of `useRememberedState`, so
+  one screen can hand another its starting state without mounting a hook for a
+  key it does not otherwise read.
+- **Only location, pattern and the chart.** A callout that names two things
+  ("game 1 is your best here, game 3 your worst") cannot become one filter
+  without the tap silently picking a side. The game and lane chips are one tap
+  away in the filter sheet, and guessing which half the reader meant is worse
+  than not guessing.
+- **`crossToTab` is its own action.** `goTo` deliberately keeps the overlay
+  stack, which is right for the tab bar because that bar is not reachable from
+  a pushed screen anyway. Leaving a push for a tab has to do both at once.
+- **`openSession` now clears the overlay stack.** A session is a place, and no
+  pushed screen belongs in front of it.
+
+**Consequences.**
+- Popping and then switching cannot work here, and this is worth writing down
+  because it looks like it should. `goBack` goes through `history.back()`
+  (ADR-041), so the pop lands asynchronously through `popstate` and restores
+  the URL over whatever the synchronous switch had just set. The first version
+  of this crossed to Stats and arrived on Home.
+- The plan's own pickers stay separate from the Stats filters, so browsing a
+  plan does not disturb what the Stats tab was showing until you tap.

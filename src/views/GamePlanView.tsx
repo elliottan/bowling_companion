@@ -1,16 +1,27 @@
 import { useMemo } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
-import { Compass } from "lucide-react";
+import { ChevronRight, Compass } from "lucide-react";
 import { PushScreen } from "../components/PushScreen";
 import { EmptyState } from "../components/ui/EmptyState";
 import { GROUP_HEADING } from "../components/ui/typography";
 import { FIELD_LABEL, FIELD_SELECT } from "../components/ui/field";
 import { buildBriefing, type BriefingFinding, type BriefingGap } from "../lib/briefing";
 import { useHandedness } from "../lib/handednessContext";
-import { useRememberedState } from "../lib/viewMemory";
+import { setRemembered, useRememberedState } from "../lib/viewMemory";
 import { getSessionHistory } from "../services/bowlingRepository";
 import { getBalls } from "../services/ballRepository";
 import type { Ball, SessionSummary } from "../types/bowling";
+
+/** The chart each callout is about, keyed the way the Stats tab remembers it.
+ *  Tapping a callout lands on the number it was talking about, not on whatever
+ *  chart happened to be up last time (ADR-065). */
+const CHART_FOR: Record<BriefingFinding["kind"], string> = {
+  ball: "carryPct",
+  expectation: "average",
+  gameSlot: "average",
+  spares: "sparePct",
+  laneBias: "strikePct"
+};
 
 const NO_SESSIONS: SessionSummary[] = [];
 const NO_BALLS: Ball[] = [];
@@ -27,7 +38,15 @@ const NO_BALLS: Ball[] = [];
  * particular ball: you do not pick a ball at random, so a ball that carries
  * well somewhere may be the ball you only reach for when the lanes are good.
  */
-export function GamePlanView({ onBack }: { onBack: () => void }) {
+interface GamePlanViewProps {
+  onBack: () => void;
+  /** Cross to the Stats tab, having set the filters up for it. */
+  onOpenStats: () => void;
+  /** Open the night behind "Last time". */
+  onOpenSession: (sessionId: number) => void;
+}
+
+export function GamePlanView({ onBack, onOpenStats, onOpenSession }: GamePlanViewProps) {
   const liveHistory = useLiveQuery(() => getSessionHistory());
   const liveBalls = useLiveQuery(() => getBalls());
   const history = liveHistory ?? NO_SESSIONS;
@@ -55,6 +74,23 @@ export function GamePlanView({ onBack }: { onBack: () => void }) {
   );
 
   const where = [alley, pattern].filter(Boolean).join(" · ");
+
+  /**
+   * Hand the Stats tab this slice and the number the callout was about.
+   *
+   * Location and pattern only, plus the chart. A callout that names two things
+   * ("game 1 is your best here, game 3 your worst") cannot be turned into one
+   * filter without the tap silently picking a side, so it does not try: the
+   * game and lane chips are a tap away in the filter sheet.
+   */
+  function openInStats(kind: BriefingFinding["kind"]) {
+    setRemembered("history:alley", alley);
+    setRemembered("history:pattern", pattern);
+    setRemembered("history:game", null);
+    setRemembered("history:lanes", []);
+    setRemembered("history:metric", CHART_FOR[kind]);
+    onOpenStats();
+  }
 
   return (
     <PushScreen title="Game plan" onBack={onBack}>
@@ -117,19 +153,14 @@ export function GamePlanView({ onBack }: { onBack: () => void }) {
             {briefing.lastTime && (
               <>
                 <h2 className={`${GROUP_HEADING} mb-2 mt-4`}>Last time</h2>
-                <div className="rounded-lg border border-edge bg-surface p-3 shadow-sm">
-                  <div className="flex items-baseline justify-between gap-2">
-                    <span className="text-sm font-semibold text-ink">
-                      {briefing.lastTime.alley}
-                    </span>
-                    <span className="text-xs tabular-nums text-ink-tertiary">
-                      {briefing.lastTime.date}
-                    </span>
-                  </div>
-                  <p className="mt-1 text-sm text-ink-strong">
-                    {describeLastTime(briefing.lastTime)}
-                  </p>
-                </div>
+                <LastTimeCard
+                  last={briefing.lastTime}
+                  onOpen={
+                    briefing.lastTime.sessionId != null
+                      ? () => onOpenSession(briefing.lastTime!.sessionId as number)
+                      : undefined
+                  }
+                />
               </>
             )}
 
@@ -138,13 +169,22 @@ export function GamePlanView({ onBack }: { onBack: () => void }) {
                 <h2 className={`${GROUP_HEADING} mb-2 mt-4`}>What your history says</h2>
                 <div className="space-y-2">
                   {briefing.callouts.map((c) => (
-                    <div
+                    <button
                       key={c.kind}
-                      className="rounded-lg border border-edge bg-surface p-3 shadow-sm"
+                      type="button"
+                      onClick={() => openInStats(c.kind)}
+                      className="flex w-full items-center gap-3 rounded-lg border border-edge bg-surface p-3 text-left shadow-sm hover:border-accent-fill"
                     >
-                      <p className="text-sm leading-relaxed text-ink">{describe(c)}</p>
-                      <p className="mt-1 text-xs text-ink-tertiary">{evidence(c)}</p>
-                    </div>
+                      <span className="min-w-0 flex-1">
+                        <span className="block text-sm leading-relaxed text-ink">{describe(c)}</span>
+                        <span className="mt-1 block text-xs text-ink-tertiary">{evidence(c)}</span>
+                      </span>
+                      <ChevronRight
+                        size={18}
+                        aria-hidden="true"
+                        className="shrink-0 text-ink-tertiary"
+                      />
+                    </button>
                   ))}
                 </div>
               </>
@@ -175,6 +215,39 @@ export function GamePlanView({ onBack }: { onBack: () => void }) {
         )}
       </div>
     </PushScreen>
+  );
+}
+
+/** The night itself, and the way into it. */
+function LastTimeCard({
+  last,
+  onOpen
+}: {
+  last: NonNullable<ReturnType<typeof buildBriefing>["lastTime"]>;
+  onOpen?: () => void;
+}) {
+  const body = (
+    <>
+      <span className="flex items-baseline justify-between gap-2">
+        <span className="text-sm font-semibold text-ink">{last.alley}</span>
+        <span className="text-xs tabular-nums text-ink-tertiary">{last.date}</span>
+      </span>
+      <span className="mt-1 block text-sm text-ink-strong">{describeLastTime(last)}</span>
+    </>
+  );
+
+  if (!onOpen) {
+    return <div className="rounded-lg border border-edge bg-surface p-3 shadow-sm">{body}</div>;
+  }
+  return (
+    <button
+      type="button"
+      onClick={onOpen}
+      aria-label={`Open ${last.alley}, ${last.date}`}
+      className="block w-full rounded-lg border border-edge bg-surface p-3 text-left shadow-sm hover:border-accent-fill"
+    >
+      {body}
+    </button>
   );
 }
 

@@ -543,7 +543,16 @@ function App() {
           case "game-trend":
             return <GameTrendView key={`game-trend-${i}`} onBack={popOverlay} />;
           case "game-plan":
-            return <GamePlanView key={`game-plan-${i}`} onBack={popOverlay} />;
+            return (
+              <GamePlanView
+                key={`game-plan-${i}`}
+                onBack={popOverlay}
+                // One dispatch, not a pop and a switch: the pop lands through
+                // popstate a tick later and would overwrite the switch.
+                onOpenStats={() => dispatch({ type: "crossToTab", view: "stats" })}
+                onOpenSession={(sessionId) => openSession(sessionId)}
+              />
+            );
         }
       })}
       </Suspense>

@@ -212,3 +212,42 @@ describe("navReducer", () => {
     });
   });
 });
+
+const nav = (over: Partial<NavState> = {}): NavState => ({ ...INITIAL_NAV, ...over });
+
+describe("leaving a pushed screen for a tab", () => {
+  it("switches tab and drops the push in one move", () => {
+    const state = navReducer(
+      nav({ view: "dashboard", overlays: ["game-plan"] }),
+      { type: "crossToTab", view: "stats" }
+    );
+    expect(state.view).toBe("stats");
+    expect(state.overlays).toEqual([]);
+  });
+
+  it("starts Settings at its menu, like the tab bar does", () => {
+    const state = navReducer(
+      nav({ view: "dashboard", overlays: ["game-plan"], settingsSection: "lanes" }),
+      { type: "crossToTab", view: "settings" }
+    );
+    expect(state.settingsSection).toBe("menu");
+  });
+
+  it("leaves the push behind when a session opens from inside one", () => {
+    const state = navReducer(nav({ view: "dashboard", overlays: ["game-plan"] }), {
+      type: "openSession",
+      sessionId: 7
+    });
+    expect(state.view).toBe("active");
+    expect(state.activeSessionId).toBe(7);
+    expect(state.overlays).toEqual([]);
+  });
+
+  it("keeps the push for an ordinary tab switch, which cannot happen from one", () => {
+    const state = navReducer(nav({ view: "dashboard", overlays: ["arsenal"] }), {
+      type: "goTo",
+      view: "history"
+    });
+    expect(state.overlays).toEqual(["arsenal"]);
+  });
+});

@@ -48,7 +48,9 @@ of shipped work rather than a release. Thirty of them used to be headed
   callout carries what it is based on, and anything that has not got enough
   behind it says so rather than guessing. Nothing is recommended: you do not
   pick a ball at random, so the screen describes what happened and stops
-  (ADR-064).
+  (ADR-064). Tap any of them to land on the Stats tab, filtered to that
+  location and pattern with the chart already on the number it was talking
+  about, and tap "Last time" to open that night (ADR-065).
 
 - **A link to the manufacturer's own page**, under the specs on a ball's
   screen. MOTIV's licence asks for it so their specs can be checked at the

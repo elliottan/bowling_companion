@@ -76,6 +76,20 @@ export function useRememberedState<T>(
   return [value, setValue];
 }
 
+/**
+ * Write a remembered value from outside the component that owns it.
+ *
+ * For one screen handing another its starting state: the game plan sets the
+ * Stats chart's metric on its way there. The store is already shared, so this
+ * only exposes what `useRememberedState` does, without needing to mount the
+ * hook for a key this caller does not otherwise read.
+ */
+export function setRemembered<T>(key: string, value: T) {
+  if (Object.is(values.get(key), value)) return;
+  values.set(key, value);
+  emit(key);
+}
+
 export function rememberScroll(key: string, top: number) {
   scrolls.set(key, top);
 }

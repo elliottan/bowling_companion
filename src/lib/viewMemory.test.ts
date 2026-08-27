@@ -6,6 +6,7 @@ import {
   rememberScroll,
   rememberedScroll,
   restoreScroll,
+  setRemembered,
   useRememberedState
 } from "./viewMemory";
 
@@ -102,5 +103,32 @@ describe("restoreScroll", () => {
     grow(900);
     vi.advanceTimersByTime(1000);
     expect(el.scrollTop).toBe(0);
+  });
+});
+
+describe("setRemembered", () => {
+  it("hands a value to a key this caller does not read", () => {
+    const { result } = renderHook(() => useRememberedState("history:metric", "average"));
+    expect(result.current[0]).toBe("average");
+
+    act(() => setRemembered("history:metric", "carryPct"));
+    expect(result.current[0]).toBe("carryPct");
+  });
+
+  it("does nothing when the value has not changed", () => {
+    let renders = 0;
+    renderHook(() => {
+      renders++;
+      return useRememberedState("plan:probe", "same");
+    });
+    const before = renders;
+    act(() => setRemembered("plan:probe", "same"));
+    expect(renders).toBe(before);
+  });
+
+  it("reaches a key nothing has mounted yet", () => {
+    setRemembered("plan:unmounted", "set first");
+    const { result } = renderHook(() => useRememberedState("plan:unmounted", "default"));
+    expect(result.current[0]).toBe("set first");
   });
 });

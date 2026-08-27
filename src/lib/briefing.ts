@@ -111,6 +111,7 @@ export type BriefingFinding =
 /** The line you actually played last time you were here. Context rather than a
  *  comparison, so it sits outside the ranked list. */
 export interface LastTimeHere {
+  sessionId?: number;
   date: string;
   alley: string;
   /** Games that night, and what they averaged. */
@@ -418,6 +419,7 @@ function lastTimeHere(slice: SessionSummary[], balls: Ball[]): LastTimeHere | nu
   )[0];
 
   const base: LastTimeHere = {
+    sessionId: latest.session.id,
     date: latest.session.date,
     alley: latest.session.alley_name,
     games: scores.length,
