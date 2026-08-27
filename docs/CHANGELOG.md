@@ -41,6 +41,15 @@ of shipped work rather than a release. Thirty of them used to be headed
 
 ### Added
 
+- **Game plan**, from Home: pick a location and a pattern, or neither, and the
+  app reads your own history back at you. What you average there against
+  everywhere else, which ball carried, which game of the night treats you best,
+  how your spares hold up, and the line you actually played last time. Each
+  callout carries what it is based on, and anything that has not got enough
+  behind it says so rather than guessing. Nothing is recommended: you do not
+  pick a ball at random, so the screen describes what happened and stops
+  (ADR-064).
+
 - **A link to the manufacturer's own page**, under the specs on a ball's
   screen. MOTIV's licence asks for it so their specs can be checked at the
   source, and it is a separate field from the citation, so a ball whose numbers

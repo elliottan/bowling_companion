@@ -45,7 +45,8 @@ export type Overlay =
   | "backup"
   | "spares"
   | "open-frames"
-  | "game-trend";
+  | "game-trend"
+  | "game-plan";
 
 export interface NavState {
   view: AppView;

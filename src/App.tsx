@@ -65,6 +65,9 @@ const OpenFramesView = lazy(() =>
 const GameTrendView = lazy(() =>
   import("./views/GameTrendView").then((m) => ({ default: m.GameTrendView }))
 );
+const GamePlanView = lazy(() =>
+  import("./views/GamePlanView").then((m) => ({ default: m.GamePlanView }))
+);
 
 type NavItem = {
   view: AppView;
@@ -415,6 +418,7 @@ function App() {
             onOpenArsenal={() => pushOverlay("arsenal")}
             onOpenLaneNotes={() => pushOverlay("lanes")}
             onOpenOilPatterns={() => pushOverlay("oil-patterns")}
+            onOpenGamePlan={() => pushOverlay("game-plan")}
             onSessionDeleted={handleSessionDeleted}
             onOpenBackup={goToBackup}
           />
@@ -538,6 +542,8 @@ function App() {
             return <OpenFramesView key={`open-frames-${i}`} onBack={popOverlay} />;
           case "game-trend":
             return <GameTrendView key={`game-trend-${i}`} onBack={popOverlay} />;
+          case "game-plan":
+            return <GamePlanView key={`game-plan-${i}`} onBack={popOverlay} />;
         }
       })}
       </Suspense>

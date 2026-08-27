@@ -1,4 +1,4 @@
-import { BookOpen, CircleDot, MapPin, PlayCircle, Plus, Smartphone, Spline, Waves, type LucideIcon } from "lucide-react";
+import { BookOpen, CircleDot, Compass, MapPin, PlayCircle, Plus, Smartphone, Spline, Waves, type LucideIcon } from "lucide-react";
 import { useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { ErrorBanner } from "../components/ErrorBanner";
@@ -36,6 +36,7 @@ interface DashboardViewProps {
   onOpenArsenal: () => void;
   onOpenLaneNotes: () => void;
   onOpenOilPatterns: () => void;
+  onOpenGamePlan: () => void;
   onSessionDeleted?: (sessionId: number) => void;
   onOpenBackup: () => void;
 }
@@ -62,6 +63,7 @@ export function DashboardView({
   onOpenArsenal,
   onOpenLaneNotes,
   onOpenOilPatterns,
+  onOpenGamePlan,
   onSessionDeleted,
   onOpenBackup
 }: DashboardViewProps) {
@@ -104,6 +106,7 @@ export function DashboardView({
   }
 
   const shortcuts: Array<{ icon: LucideIcon; label: string; onClick: () => void }> = [
+    { icon: Compass, label: "Game plan", onClick: onOpenGamePlan },
     { icon: CircleDot, label: "Arsenal", onClick: onOpenArsenal },
     { icon: BookOpen, label: "Catalog", onClick: onOpenCatalog },
     { icon: Spline, label: "Line", onClick: onOpenLineVisualizer },
@@ -166,20 +169,18 @@ export function DashboardView({
 
       {/* Shortcuts. Icon and name only: these are places the user already
           knows, so a sentence of description each only cost vertical space. */}
-      {/* Six columns, not three: five tiles over three columns leaves a hole in
-          the bottom-right corner. Three thirds then two halves fills both rows.
-          Spare lines is not here any more, it lives in the Stats tab's own menu
-          alongside Open frames (ADR-063). */}
-      <div className="grid grid-cols-6 gap-2 sm:grid-cols-5">
-        {shortcuts.map((s, i) => (
+      {/* Six of them, which is two even rows of three. Spare lines is not here
+          any more: it lives in the Stats tab's menu alongside Open frames
+          (ADR-063). Game plan is, because it is read before a session and Home
+          is where you are then (ADR-064). */}
+      <div className="grid grid-cols-3 gap-2 sm:grid-cols-6">
+        {shortcuts.map((s) => (
           <button
             key={s.label}
             type="button"
             onClick={s.onClick}
             aria-label={s.label}
-            className={`flex flex-col items-center gap-1.5 rounded-xl border border-edge bg-surface px-2 py-3 shadow-sm hover:border-accent-fill sm:col-span-1 ${
-              i < 3 ? "col-span-2" : "col-span-3"
-            }`}
+            className="flex flex-col items-center gap-1.5 rounded-xl border border-edge bg-surface px-2 py-3 shadow-sm hover:border-accent-fill"
           >
             <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent-soft text-accent">
               <s.icon size={18} aria-hidden="true" />

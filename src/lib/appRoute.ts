@@ -49,7 +49,8 @@ const OVERLAYS: readonly string[] = [
   "backup",
   "spares",
   "open-frames",
-  "game-trend"
+  "game-trend",
+  "game-plan"
 ];
 
 const SETTINGS_SECTIONS: readonly string[] = [

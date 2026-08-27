@@ -2929,3 +2929,60 @@ forgotten.
 - The dashboard is back to five shortcuts, so the split-row grid that fills two
   rows of three and two comes back with it.
 - `MetricTrendChart` keeps its `windowSize`, now used only by Game-by-game.
+
+---
+
+## ADR-064: A briefing is a comparison against the rest of your history, gated three ways
+
+**Status:** accepted (2026-08).
+
+**Context.** Everything the app knows is behind you. The one moment it could be
+worth something in advance is the half hour before a session, when the ball
+bag is still in the boot and the questions are which ball, what to expect, and
+what went wrong last time here.
+
+The easy version computes a dozen things about the chosen alley and prints
+them. That produces a screen of numbers with no claim attached to any of them,
+which is the "data slop" `docs/DESIGN-LANGUAGE.md` warns about at greater
+length.
+
+**Decision.**
+
+- **One shape for every finding: the slice against the rest.** The slice is
+  whatever alley and pattern were picked; the baseline is every session outside
+  it. A number on its own says nothing; the same number against your own
+  history is the whole point.
+- **Three gates, in order.** Enough behind it, a difference big enough to
+  matter, and something you can act on tonight. The thresholds are in bowling
+  terms rather than statistical ones: five pins is a ball change, five points
+  of spare rate is a frame a night, and a lane beating its pair by less than
+  eight points is which end you started on.
+- **Fixed priority, not a computed score.** Ranking across rules needs one
+  currency, and getting pins and rate points into the same units means
+  inventing a conversion between them, which every number on the screen would
+  then inherit. So the order is by usefulness before the first ball: the ball
+  is chosen in the car park, the average sets expectations, the game slot says
+  when to pay attention, and the rest is detail. Three at a time.
+- **Findings, not sentences.** `lib/briefing` returns numbers and identifiers
+  and the screen writes the copy, so the thresholds can be tested without
+  asserting on wording and the sentences stay under the design language.
+- **Nothing is recommended.** Every line states what happened. Ball choice is
+  not random, so "the Phaze II carries better here" may be describing the ball
+  you only reach for when the lanes are good, and the screen must not turn that
+  into advice.
+- **Last time here sits outside the ranking.** It is a memory, not a
+  comparison: the line you actually played, read from the fresh-rack balls that
+  carry one, by the ball most of them were thrown with, at the median stance
+  and target so one stray shot is not the line you remember.
+
+**Consequences.**
+- A gap has to count the qualifying *things*, not the floor they clear. Most of
+  these rules need two of something: two balls with enough first balls, two
+  slots with enough games. The first version reported "needs 20 first balls,
+  best so far is 150", which reads as already satisfied because the shortfall
+  was never the first balls.
+- With nothing picked, the slice is everything and the baseline is empty, so
+  the comparisons go quiet by construction. That is correct: there is nothing
+  to compare your whole history to.
+- The thresholds are judgement, not derivation. They are constants in one place
+  with the reasoning attached, so moving them is a decision rather than a tweak.
