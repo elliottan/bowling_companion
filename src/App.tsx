@@ -415,7 +415,6 @@ function App() {
             onOpenArsenal={() => pushOverlay("arsenal")}
             onOpenLaneNotes={() => pushOverlay("lanes")}
             onOpenOilPatterns={() => pushOverlay("oil-patterns")}
-            onOpenSpareLines={() => pushOverlay("spares")}
             onSessionDeleted={handleSessionDeleted}
             onOpenBackup={goToBackup}
           />
@@ -459,6 +458,7 @@ function App() {
             onViewSessions={() => goTo("history")}
             onOpenFrames={() => pushOverlay("open-frames")}
             onOpenGameTrend={() => pushOverlay("game-trend")}
+            onOpenSpareLines={() => pushOverlay("spares")}
           />
         )}
         {view === "settings" && (

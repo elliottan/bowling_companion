@@ -1,9 +1,12 @@
-import { useMemo } from "react";
-import { LayoutGrid } from "lucide-react";
+import { useMemo, useState } from "react";
+import { Info, LayoutGrid } from "lucide-react";
 import { PushScreen } from "../components/PushScreen";
 import { EmptyState } from "../components/ui/EmptyState";
 import { GROUP_HEADING } from "../components/ui/typography";
+import { IconButton } from "../components/ui/IconButton";
 import { TAP_TARGET_44 } from "../components/ui/Chip";
+import { MetricTrendChart } from "../components/MetricTrendChart";
+import { METRIC_KEYS, metricNote, metricSpec, type MetricKey } from "../components/Stats";
 import { calculateGameNumberMetrics, type GameNumberMetricPoint } from "../lib/stats";
 import { useHandedness } from "../lib/handednessContext";
 import { useRememberedState } from "../lib/viewMemory";
@@ -17,8 +20,9 @@ const COLUMN_SETS: Columns[] = ["scoring", "first ball"];
  *  its numbers are not what the headline is read off. */
 const THIN = 3;
 
-/** Tallest a bar can draw, in px. */
-const BAR_PX = 104;
+/** Slots visible at once before the plot scrolls sideways. Four is a normal
+ *  night, so the common case never scrolls. */
+const GAME_WINDOW = 4;
 
 interface GameTrendViewProps {
   onBack: () => void;
@@ -37,12 +41,15 @@ export function GameTrendView({ onBack }: GameTrendViewProps) {
   const { filtered, activeLanes, setGameNumber } = useSessionFilters();
   const handedness = useHandedness();
   const [columns, setColumns] = useRememberedState<Columns>("game-trend:columns", "scoring");
+  const [metric, setMetric] = useRememberedState<MetricKey>("game-trend:metric", "average");
+  const [noteOpen, setNoteOpen] = useState(false);
 
   const trend = useMemo(
     () => calculateGameNumberMetrics(filtered, activeLanes, handedness),
     [filtered, activeLanes, handedness]
   );
 
+  const spec = metricSpec(metric);
   const scored = trend.filter((t) => t.stats.averageScore !== null);
 
   return (
@@ -56,10 +63,69 @@ export function GameTrendView({ onBack }: GameTrendViewProps) {
           />
         ) : (
           <>
-            <AverageBars trend={scored} />
+            {/* The same picker the Stats tiles are, in the shape a pushed
+                screen can hold: a row of chips rather than eight tiles. */}
+            <div className="mb-2 flex flex-wrap gap-2">
+              {METRIC_KEYS.map((key) => (
+                <button
+                  key={key}
+                  type="button"
+                  aria-pressed={metric === key}
+                  onClick={() => setMetric(key)}
+                  className={`relative inline-flex h-9 items-center justify-center rounded-md px-3 text-xs font-semibold ${TAP_TARGET_44} ${
+                    metric === key
+                      ? "border border-accent-fill bg-accent-fill text-accent-on-fill"
+                      : "border border-edge-strong bg-surface text-ink-strong"
+                  }`}
+                >
+                  {metricSpec(key).label}
+                </button>
+              ))}
+            </div>
+
+            <MetricTrendChart
+              points={trend.map((p) => ({
+                key: `n${p.gameNumber}`,
+                axis: `G${p.gameNumber}`,
+                title: `Game ${p.gameNumber}`,
+                detail: `${p.games} ${p.games === 1 ? "game" : "games"}`,
+                value: spec.value(p.stats)
+              }))}
+              header={
+                <div className="mb-1 flex items-center justify-between gap-2">
+                  <h2 className={GROUP_HEADING}>{spec.label} by game</h2>
+                  <IconButton
+                    label={`What ${spec.label} counts`}
+                    compact
+                    onClick={() => setNoteOpen((v) => !v)}
+                  >
+                    <Info size={16} aria-hidden="true" />
+                  </IconButton>
+                </div>
+              }
+              overall={null}
+              format={spec.format}
+              min={spec.min}
+              max={spec.max}
+              minSpan={spec.minSpan}
+              windowSize={GAME_WINDOW}
+              onOpen={(key) => {
+                const n = Number(key.slice(1));
+                if (Number.isInteger(n) && n > 0) {
+                  setGameNumber(n);
+                  onBack();
+                }
+              }}
+            />
+
+            {noteOpen && (
+              <p className="mt-2 px-0.5 text-xs leading-relaxed text-ink-secondary">
+                {metricNote(metric)}
+              </p>
+            )}
 
             <div className="mb-2 mt-4 flex items-center justify-between gap-3">
-              <h2 className={GROUP_HEADING}>By game</h2>
+              <h2 className={GROUP_HEADING}>All of them</h2>
               <div className="grid grid-cols-2 gap-1 rounded-lg bg-surface-muted p-1">
                 {COLUMN_SETS.map((c) => (
                   <button
@@ -114,48 +180,6 @@ export function GameTrendView({ onBack }: GameTrendViewProps) {
         )}
       </div>
     </PushScreen>
-  );
-}
-
-/** Average by slot, so the shape of a night reads before the numbers do. */
-function AverageBars({ trend }: { trend: GameNumberMetricPoint[] }) {
-  const averages = trend.map((t) => t.stats.averageScore as number);
-  const top = Math.max(...averages);
-  const bottom = Math.min(...averages);
-  // Half a band of headroom, and a floor on the range so a 5-pin wobble and a
-  // 50-pin collapse do not draw the same, the way the trend charts do it.
-  const high = top + 10;
-  const low = Math.min(bottom - 10, high - 60);
-  const span = high - low;
-
-  return (
-    <div className="rounded-lg border border-edge bg-surface p-3 shadow-sm">
-      <div className="flex items-end gap-2">
-        {trend.map((slot) => {
-          const value = slot.stats.averageScore as number;
-          const thin = slot.games < THIN;
-          return (
-            <div key={slot.gameNumber} className="flex min-w-0 flex-1 flex-col items-center gap-1">
-              <span
-                className={`text-xs font-bold tabular-nums ${thin ? "text-ink-secondary" : "text-ink"}`}
-              >
-                {value}
-              </span>
-              {/* Pixels, not a percentage: the column this sits in is
-                  auto-height, so a percentage has nothing to resolve against
-                  and the bar collapses to nothing. */}
-              <div
-                className={`w-full rounded-t ${thin ? "bg-edge-strong" : "bg-accent-fill"}`}
-                style={{ height: Math.max(4, Math.round(((value - low) / span) * BAR_PX)) }}
-              />
-              <span className="text-[10px] font-semibold text-ink-secondary">
-                G{slot.gameNumber}
-              </span>
-            </div>
-          );
-        })}
-      </div>
-    </div>
   );
 }
 

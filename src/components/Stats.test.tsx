@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { Stats } from "./Stats";
 import { clearViewMemory } from "../lib/viewMemory";
@@ -388,92 +388,5 @@ describe("inside a session, the picker drives the per-game chart", () => {
     );
     fireEvent.click(screen.getByRole("button", { name: /Pocket/ }));
     expect(screen.queryByRole("button", { name: /Sea Bowl, \d+%/ })).toBeNull();
-  });
-});
-
-describe("plotting by position in the night", () => {
-  const SLOTS = [
-    { gameNumber: 1, games: 8, stats: { ...STATS, carryPct: 70 } },
-    { gameNumber: 2, games: 8, stats: { ...STATS, carryPct: 60 } },
-    { gameNumber: 3, games: 6, stats: { ...STATS, carryPct: 45 } },
-    { gameNumber: 4, games: 2, stats: { ...STATS, carryPct: 30 } },
-    { gameNumber: 5, games: 1, stats: { ...STATS, carryPct: 25 } }
-  ];
-
-  it("offers the axis only where there is a second axis to offer", () => {
-    render(<Stats stats={STATS} sessionMetrics={TREND} sessionTrend={SESSION_TREND} />);
-    expect(screen.queryByRole("button", { name: "Plot by game" })).toBeNull();
-  });
-
-  it("switches the chart to one point per game slot", () => {
-    render(
-      <Stats
-        stats={STATS}
-        sessionMetrics={TREND}
-        sessionTrend={SESSION_TREND}
-        gameNumberMetrics={SLOTS}
-      />
-    );
-    fireEvent.click(screen.getByRole("button", { name: /Carry/ }));
-    fireEvent.click(screen.getByRole("button", { name: "Plot by game" }));
-
-    const plotted = screen
-      .getAllByRole("button", { name: /^Game \d, \d+%$/ })
-      .map((b) => b.getAttribute("aria-label"));
-    expect(plotted).toEqual([
-      "Game 1, 70%",
-      "Game 2, 60%",
-      "Game 3, 45%",
-      "Game 4, 30%",
-      "Game 5, 25%"
-    ]);
-    // The by-session points are gone, not merely hidden behind them.
-    expect(screen.queryByRole("button", { name: /Sea Bowl, \d+%/ })).toBeNull();
-  });
-
-  it("takes the average too, since a slot has no score line", () => {
-    render(
-      <Stats
-        stats={STATS}
-        sessionMetrics={TREND}
-        sessionTrend={SESSION_TREND}
-        gameNumberMetrics={SLOTS}
-      />
-    );
-    fireEvent.click(screen.getByRole("button", { name: "Plot by game" }));
-    expect(screen.getByRole("button", { name: "Game 1, 200" })).toBeInTheDocument();
-  });
-
-  it("narrows to a slot when one is picked", () => {
-    const onSelectGameNumber = vi.fn();
-    render(
-      <Stats
-        stats={STATS}
-        sessionMetrics={TREND}
-        sessionTrend={SESSION_TREND}
-        gameNumberMetrics={SLOTS}
-        onSelectGameNumber={onSelectGameNumber}
-      />
-    );
-    fireEvent.click(screen.getByRole("button", { name: "Plot by game" }));
-    fireEvent.click(screen.getByRole("button", { name: "Game 3, 200" }));
-    fireEvent.click(screen.getByRole("button", { name: /^Game 3 / }));
-    expect(onSelectGameNumber).toHaveBeenCalledWith(3);
-  });
-
-  it("goes back to nights when the axis is switched back", () => {
-    render(
-      <Stats
-        stats={STATS}
-        sessionMetrics={TREND}
-        sessionTrend={SESSION_TREND}
-        gameNumberMetrics={SLOTS}
-      />
-    );
-    fireEvent.click(screen.getByRole("button", { name: "Plot by game" }));
-    fireEvent.click(screen.getByRole("button", { name: "Plot by session" }));
-    // Back on the average's own chart, whose points are nights.
-    expect(screen.getByRole("button", { name: /Sea Bowl, average 200/ })).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: /^Game \d, \d+%$/ })).toBeNull();
   });
 });

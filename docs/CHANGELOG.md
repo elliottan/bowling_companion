@@ -12,6 +12,12 @@ of shipped work rather than a release. Thirty of them used to be headed
 
 ### Changed
 
+- **Game by game, Open frames and Spare lines moved into one menu** in the
+  Stats header. They used to be rows under the ball table, which is the bottom
+  of a long scroll. Spare lines left the dashboard to join them, next to Open
+  frames: that screen names the leaves you keep missing, this one is where the
+  line for shooting them lives (ADR-063).
+
 - **Swiping a screen away no longer draws the screen underneath twice.** Pushes
   carried a back-drag of their own, added when an installed iOS PWA had no
   swipe at all. iOS has one now, so a single drag ran both: the OS slid a
@@ -145,12 +151,10 @@ of shipped work rather than a release. Thirty of them used to be headed
   calculation the tile above it uses, so the two can never disagree. The
   definition moved onto the chart, behind the info control in its header
   (ADR-061).
-- **The chart plots against two axes.** The control in the chart header swaps
-  between by session and by position in the night, so "carry by game" answers
-  whether you fall apart after game two, while "carry by session" answers
-  whether you are improving over months. Four game slots are visible at a time
-  and the plot scrolls sideways past that. Tapping a slot narrows the whole tab
-  to it (ADR-062).
+- **Game by game got the chart.** The same metric picker, plotting one stat
+  across every first game, second game and so on, above the table that shows
+  three at once. Four slots are visible and it scrolls sideways past that.
+  Tapping a slot narrows the whole tab to it (ADR-062, ADR-063).
 - **The same picker works inside a session**, where the points are games rather
   than nights: strike, spare, pocket, carry or first ball, game by game. The
   score line stays as the average. A game still being bowled is plotted, since

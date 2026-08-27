@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ChevronRight, History, LayoutGrid, Target } from "lucide-react";
+import { History, LayoutGrid, MoreHorizontal, Spline, Target } from "lucide-react";
 import { Stats } from "../components/Stats";
 import {
   SessionFilterButton,
@@ -7,11 +7,10 @@ import {
   SessionFilterSheet
 } from "../components/SessionFilterBar";
 import { IconButton } from "../components/ui/IconButton";
-import { GROUP_HEADING } from "../components/ui/typography";
+import { AnchoredMenu, AnchoredMenuItem } from "../components/ui/AnchoredMenu";
 import {
   calculateBallPerformance,
   calculateCommonLeaves,
-  calculateGameNumberMetrics,
   calculateSessionMetrics,
   calculateSessionTrend,
   calculateStats,
@@ -33,6 +32,7 @@ interface StatsViewProps {
   onViewSessions: () => void;
   onOpenFrames: () => void;
   onOpenGameTrend: () => void;
+  onOpenSpareLines: () => void;
 }
 
 const NO_BALLS: Ball[] = [];
@@ -57,11 +57,14 @@ export function StatsView({
   onOpenSessionGame,
   onViewSessions,
   onOpenFrames,
-  onOpenGameTrend
+  onOpenGameTrend,
+  onOpenSpareLines
 }: StatsViewProps) {
   const filters = useSessionFilters();
-  const { filtered, filteredExceptGame, activeLanes, isLoading, history } = filters;
+  const { filtered, activeLanes, isLoading } = filters;
   const [filtersOpen, setFiltersOpen] = useState(false);
+  // Anchored to the control that opened it, so it needs that control's box.
+  const [breakdownsAt, setBreakdownsAt] = useState<{ left: number; top: number } | null>(null);
 
   const liveBalls = useLiveQuery(() => getBalls());
   const balls = liveBalls ?? NO_BALLS;
@@ -83,13 +86,6 @@ export function StatsView({
     () => calculateSessionMetrics(filtered, activeLanes, handedness),
     [filtered, activeLanes, handedness]
   );
-  // Every slot, even when one of them is filtered to: this axis IS the game
-  // picker, so narrowing it to the slot already chosen would take the picker
-  // away. Location, pattern and lanes still apply.
-  const gameNumberMetrics = useMemo(
-    () => calculateGameNumberMetrics(filteredExceptGame, activeLanes, handedness),
-    [filteredExceptGame, activeLanes, handedness]
-  );
   const ballPerformance = useMemo(
     () => calculateBallPerformance(filtered, balls, activeLanes, handedness),
     [filtered, balls, activeLanes, handedness]
@@ -107,12 +103,69 @@ export function StatsView({
         <h1 className="text-xl font-bold text-ink">Stats</h1>
         <div className="flex shrink-0 items-center gap-1">
           <SessionFilterButton filters={filters} onOpen={() => setFiltersOpen(true)} />
+          {/* These used to be rows under the ball table, which is the bottom of
+              a long scroll and nobody found them (ADR-063). One control, in the
+              header, listing where it can go. */}
+          {/* Always, not only once there is history: spare lines are set up
+              before you bowl, not after, and the two breakdowns have empty
+              states of their own. */}
+          <IconButton
+            label="More"
+            variant="round"
+            onClick={(e) => {
+              const box = e.currentTarget.getBoundingClientRect();
+              // Right-aligned under the button: the menu is 176px wide and the
+              // button sits within that of the trailing edge.
+              setBreakdownsAt({ left: Math.max(8, box.right - 176), top: box.bottom + 6 });
+            }}
+          >
+            <MoreHorizontal size={20} aria-hidden="true" />
+          </IconButton>
           {/* The twin of History's own crossing control (ADR-057). */}
           <IconButton label="View sessions" variant="round" onClick={onViewSessions}>
             <History size={20} aria-hidden="true" />
           </IconButton>
         </div>
       </div>
+
+      {breakdownsAt && (
+        <AnchoredMenu
+          left={breakdownsAt.left}
+          top={breakdownsAt.top}
+          onClose={() => setBreakdownsAt(null)}
+        >
+          <AnchoredMenuItem
+            icon={LayoutGrid}
+            onClick={() => {
+              setBreakdownsAt(null);
+              onOpenGameTrend();
+            }}
+          >
+            Game by game
+          </AnchoredMenuItem>
+          <AnchoredMenuItem
+            icon={Target}
+            onClick={() => {
+              setBreakdownsAt(null);
+              onOpenFrames();
+            }}
+          >
+            Open frames
+          </AnchoredMenuItem>
+          {/* Next to Open frames on purpose: that screen names the leaves you
+              keep missing, and this one is where the line for shooting them
+              lives. */}
+          <AnchoredMenuItem
+            icon={Spline}
+            onClick={() => {
+              setBreakdownsAt(null);
+              onOpenSpareLines();
+            }}
+          >
+            Spare lines
+          </AnchoredMenuItem>
+        </AnchoredMenu>
+      )}
 
       <SessionFilterChips filters={filters} />
       {filtersOpen && (
@@ -132,65 +185,13 @@ export function StatsView({
             ballPerformance={ballPerformance}
             sessionTrend={sessionTrend}
             sessionMetrics={sessionMetrics}
-            gameNumberMetrics={gameNumberMetrics}
-            onSelectGameNumber={filters.setGameNumber}
             memoryKey="history"
             onOpenSession={onOpenSession}
             onOpenGame={onOpenSessionGame}
           />
 
-          {history.length > 0 && (
-            <div className="mt-3">
-              <h2 className={`${GROUP_HEADING} mb-2`}>Break it down</h2>
-              <div className="space-y-2">
-                <AnalysisRow
-                  icon={Target}
-                  title="Open frames"
-                  detail="How often you go open, and on what"
-                  onClick={onOpenFrames}
-                />
-                <AnalysisRow
-                  icon={LayoutGrid}
-                  title="Game by game"
-                  detail="First game against last, on the same night"
-                  onClick={onOpenGameTrend}
-                />
-              </div>
-            </div>
-          )}
         </div>
       </div>
     </section>
-  );
-}
-
-/** A list row that opens a deeper cut of the same filtered sessions. One tap
- *  target, per docs/DESIGN-LANGUAGE.md §4. */
-function AnalysisRow({
-  icon: Icon,
-  title,
-  detail,
-  onClick
-}: {
-  icon: typeof Target;
-  title: string;
-  detail: string;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="flex w-full items-center gap-3 rounded-lg border border-edge bg-surface p-3 text-left shadow-sm hover:border-accent-fill"
-    >
-      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-accent-soft text-accent">
-        <Icon size={18} aria-hidden="true" />
-      </span>
-      <span className="min-w-0 flex-1">
-        <span className="block text-sm font-semibold text-ink">{title}</span>
-        <span className="block truncate text-xs text-ink-secondary">{detail}</span>
-      </span>
-      <ChevronRight size={18} aria-hidden="true" className="shrink-0 text-ink-tertiary" />
-    </button>
   );
 }

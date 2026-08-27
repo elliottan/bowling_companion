@@ -1,4 +1,4 @@
-import { BookOpen, CircleDot, MapPin, PlayCircle, Plus, Smartphone, Spline, Target, Waves, type LucideIcon } from "lucide-react";
+import { BookOpen, CircleDot, MapPin, PlayCircle, Plus, Smartphone, Spline, Waves, type LucideIcon } from "lucide-react";
 import { useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { ErrorBanner } from "../components/ErrorBanner";
@@ -36,7 +36,6 @@ interface DashboardViewProps {
   onOpenArsenal: () => void;
   onOpenLaneNotes: () => void;
   onOpenOilPatterns: () => void;
-  onOpenSpareLines: () => void;
   onSessionDeleted?: (sessionId: number) => void;
   onOpenBackup: () => void;
 }
@@ -63,7 +62,6 @@ export function DashboardView({
   onOpenArsenal,
   onOpenLaneNotes,
   onOpenOilPatterns,
-  onOpenSpareLines,
   onSessionDeleted,
   onOpenBackup
 }: DashboardViewProps) {
@@ -109,7 +107,6 @@ export function DashboardView({
     { icon: CircleDot, label: "Arsenal", onClick: onOpenArsenal },
     { icon: BookOpen, label: "Catalog", onClick: onOpenCatalog },
     { icon: Spline, label: "Line", onClick: onOpenLineVisualizer },
-    { icon: Target, label: "Spare lines", onClick: onOpenSpareLines },
     { icon: MapPin, label: "Lane notes", onClick: onOpenLaneNotes },
     { icon: Waves, label: "Oil patterns", onClick: onOpenOilPatterns }
   ];
@@ -169,17 +166,20 @@ export function DashboardView({
 
       {/* Shortcuts. Icon and name only: these are places the user already
           knows, so a sentence of description each only cost vertical space. */}
-      {/* Six of them since Spare lines lost its tab to Stats (ADR-057), which
-          is two even rows of three. The five-tile version needed a split row
-          to avoid a hole in the corner. */}
-      <div className="grid grid-cols-3 gap-2 sm:grid-cols-6">
-        {shortcuts.map((s) => (
+      {/* Six columns, not three: five tiles over three columns leaves a hole in
+          the bottom-right corner. Three thirds then two halves fills both rows.
+          Spare lines is not here any more, it lives in the Stats tab's own menu
+          alongside Open frames (ADR-063). */}
+      <div className="grid grid-cols-6 gap-2 sm:grid-cols-5">
+        {shortcuts.map((s, i) => (
           <button
             key={s.label}
             type="button"
             onClick={s.onClick}
             aria-label={s.label}
-            className="flex flex-col items-center gap-1.5 rounded-xl border border-edge bg-surface px-2 py-3 shadow-sm hover:border-accent-fill"
+            className={`flex flex-col items-center gap-1.5 rounded-xl border border-edge bg-surface px-2 py-3 shadow-sm hover:border-accent-fill sm:col-span-1 ${
+              i < 3 ? "col-span-2" : "col-span-3"
+            }`}
           >
             <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent-soft text-accent">
               <s.icon size={18} aria-hidden="true" />

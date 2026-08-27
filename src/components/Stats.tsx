@@ -15,7 +15,6 @@ import {
   type BallPerformanceReport,
   type BowlingStats,
   type GameMetricPoint,
-  type GameNumberMetricPoint,
   type LeaveStats,
   type RateLeaders,
   type SessionMetricPoint,
@@ -91,15 +90,22 @@ const METRICS = {
   }
 } as const;
 
-type MetricKey = keyof typeof METRICS;
+export type MetricKey = keyof typeof METRICS;
 
-/** What the chart's x axis counts, where there is a choice. */
-const AXES = ["session", "game"] as const;
-type Axis = (typeof AXES)[number];
+/** The metrics a picker can offer, in tile order. Exported so the Game-by-game
+ *  screen can build the same picker over the same specs (ADR-063). */
+export const METRIC_KEYS = Object.keys(METRICS) as MetricKey[];
 
-/** Game slots visible at once before the plot starts scrolling sideways. Four
- *  is a normal night, so the common case never scrolls. */
-const GAME_WINDOW = 4;
+/** What each metric is called and how it is drawn, for anything outside this
+ *  file that plots one. */
+export function metricSpec(metric: MetricKey) {
+  return METRICS[metric];
+}
+
+/** The definition behind a metric, for a chart that plots it elsewhere. */
+export function metricNote(metric: MetricKey): string {
+  return METRIC_NOTE[metric];
+}
 
 // Definitions, tapped rather than printed: they are read once and then in the
 // way. Short enough to land in a glance.
@@ -151,12 +157,6 @@ interface StatsProps {
   /** Every stat, per game, inside one session. The session sheet's answer to
    *  `sessionMetrics`: same tiles, one point per game rather than per night. */
   gameMetrics?: GameMetricPoint[];
-  /** Every stat, per position in the night, across everything in view. The
-   *  chart's second axis on the Stats tab (ADR-062). */
-  gameNumberMetrics?: GameNumberMetricPoint[];
-  /** Narrow everything to one position in the night, from a point on that
-   *  axis. Omitted, the points only name themselves. */
-  onSelectGameNumber?: (gameNumber: number) => void;
   /** Open a session picked off the trend line. */
   onOpenSession?: (sessionId: number) => void;
   /** Open a game picked off the per-session score line. */
@@ -176,8 +176,6 @@ export function Stats({
   sessionTrend,
   sessionMetrics,
   gameMetrics,
-  gameNumberMetrics,
-  onSelectGameNumber,
   onOpenSession,
   onOpenGameId,
   memoryKey = "stats"
@@ -195,11 +193,7 @@ export function Stats({
   // coming back does not silently drop you back on the average.
   const [metric, setMetric] = useRememberedState<MetricKey>(`${memoryKey}:metric`, "average");
   const [metricNoteOpen, setMetricNoteOpen] = useState(false);
-  // What the chart's x axis counts. Only offered where there is a second axis
-  // to offer, which is the Stats tab.
-  const [axis, setAxis] = useRememberedState<Axis>(`${memoryKey}:axis`, "session");
   const spec = METRICS[metric];
-  const byGameNumber = Boolean(gameNumberMetrics) && axis === "game";
 
   // One header for either chart: what is plotted, and the definition behind an
   // info control rather than printed under it.
@@ -210,36 +204,15 @@ export function Stats({
             on the Stats tab, and the header has to say which. Where there is a
             choice, the "by ..." half of it is the control. */}
         <h2 className={GROUP_HEADING}>
-          {spec.label}
-          {!gameNumberMetrics && ` by ${gameMetrics ? "game" : "session"}`}
+          {spec.label} by {gameMetrics ? "game" : "session"}
         </h2>
-        <div className="flex items-center gap-1">
-          {gameNumberMetrics && (
-            <div className="grid grid-cols-2 gap-0.5 rounded-md bg-surface-muted p-0.5">
-              {AXES.map((a) => (
-                <button
-                  key={a}
-                  type="button"
-                  aria-pressed={axis === a}
-                  aria-label={`Plot by ${a}`}
-                  onClick={() => setAxis(a)}
-                  className={`h-7 rounded px-2 text-[11px] font-semibold capitalize ${
-                    axis === a ? "bg-surface text-accent shadow-sm" : "text-ink-strong"
-                  }`}
-                >
-                  {a}
-                </button>
-              ))}
-            </div>
-          )}
-          <IconButton
-            label={`What ${spec.label} counts`}
-            compact
-            onClick={() => setMetricNoteOpen((v) => !v)}
-          >
-            <Info size={16} aria-hidden="true" />
-          </IconButton>
-        </div>
+        <IconButton
+          label={`What ${spec.label} counts`}
+          compact
+          onClick={() => setMetricNoteOpen((v) => !v)}
+        >
+          <Info size={16} aria-hidden="true" />
+        </IconButton>
       </div>
       {metricNoteOpen && (
         <p className="mt-1 text-xs leading-relaxed text-ink-secondary">{METRIC_NOTE[metric]}</p>
@@ -365,39 +338,9 @@ export function Stats({
         )
       )}
 
-      {/* Every game 1 against every game 2, across whatever is filtered. Takes
-          the whole chart when it is on, average included: there is no score
-          line for a slot, only the slot's average. */}
-      {byGameNumber && gameNumberMetrics && gameNumberMetrics.length > 0 && (
-        <MetricTrendChart
-          points={gameNumberMetrics.map((p) => ({
-            key: `n${p.gameNumber}`,
-            axis: `G${p.gameNumber}`,
-            title: `Game ${p.gameNumber}`,
-            detail: `${p.games} ${p.games === 1 ? "game" : "games"}`,
-            value: spec.value(p.stats)
-          }))}
-          header={chartHeader}
-          overall={spec.value(stats)}
-          format={spec.format}
-          min={spec.min}
-          max={spec.max}
-          minSpan={spec.minSpan}
-          windowSize={GAME_WINDOW}
-          onOpen={
-            onSelectGameNumber &&
-            ((key) => {
-              const n = Number(key.slice(1));
-              if (Number.isInteger(n) && n > 0) onSelectGameNumber(n);
-            })
-          }
-        />
-      )}
-
       {/* Per-game and per-session are alternatives, never both: a session
           sheet plots its games, the Stats tab plots its nights. */}
-      {!byGameNumber &&
-        !gameMetrics &&
+      {!gameMetrics &&
         (metric === "average"
         ? sessionTrend &&
           sessionTrend.length > 0 && (

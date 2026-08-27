@@ -2885,3 +2885,47 @@ across four slots; it is the wrong shape for watching one metric fall.
   Game-by-game table already had.
 - That screen is now largely redundant. It is left in place: it still shows
   three metrics at once, which the chart cannot.
+
+---
+
+## ADR-063: The game axis lives on its own screen, reached from a menu
+
+**Status:** accepted (2026-08). Amends ADR-062, which put the game axis on the
+Stats tab, and moves the entry points ADR-057 and ADR-058 left at the foot of
+the page.
+
+**Context.** ADR-062 put a `Session | Game` switch in the Stats chart header,
+which worked and made the Game-by-game screen look redundant. It is not. The
+chart shows one metric falling across the night, which is what you want when
+you already suspect one is; the table shows three at once, which is what you
+want when you do not yet know which. Neither is the other's replacement, and
+keeping the game axis in two places meant maintaining it twice.
+
+Separately, both breakdown screens were reached from rows under the ball
+table. That is the bottom of a long scroll, which is where a feature goes to be
+forgotten.
+
+**Decision.**
+
+- **The Stats chart plots nights only.** The axis switch is gone; the game axis
+  moved to the Game-by-game screen, which now carries the metric picker and the
+  chart above its table. One screen owns the question.
+- **`Stats` exports its metric specs** (`METRIC_KEYS`, `metricSpec`,
+  `metricNote`) so that picker is the same set, drawn the same way, rather than
+  a second list that can drift from the tiles.
+- **One `More` control in the Stats header**, opening a menu of the screens the
+  tab can reach: Game by game, Open frames, Spare lines. A menu rather than an
+  icon each, because four round buttons beside a title is more chrome than a
+  tab should carry and this scales if a fourth screen arrives.
+- **Spare lines joins them** and leaves the dashboard. It sits next to Open
+  frames on purpose: that screen names the leaves you keep missing, and this
+  one is where the line for shooting them lives.
+- **The menu is not gated on having history.** Spare lines are set up before
+  you bowl, not after, and the two breakdowns have empty states of their own.
+
+**Consequences.**
+- `#/home/spares` becomes `#/stats/spares`. Both are just routes; a stale one
+  resolves to the dashboard like any other.
+- The dashboard is back to five shortcuts, so the split-row grid that fills two
+  rows of three and two comes back with it.
+- `MetricTrendChart` keeps its `windowSize`, now used only by Game-by-game.
