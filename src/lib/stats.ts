@@ -955,93 +955,44 @@ function round1(value: number): number {
 // Game-number trend
 // ---------------------------------------------------------------------------
 
-/** One game slot of the night: every first game, every second game, and so on. */
-export interface GameNumberStats {
+/** One slot of the night, with the whole stats block for it. */
+export interface GameNumberMetricPoint {
   gameNumber: number;
   /** Completed games in this slot. Thin slots are real and stay in the list. */
   games: number;
-  average: number | null;
-  strikePct: number | null;
-  sparePct: number | null;
-  /** Same definitions as `calculateStats`, so a slot reads against the whole. */
-  pocketPct: number | null;
-  carryPct: number | null;
+  stats: BowlingStats;
 }
 
 /**
- * How you bowl by position in the night (ADR-056): every game 1 against every
- * game 2, and so on, oldest slot first.
+ * How you bowl by position in the night (ADR-056, ADR-061): every game 1
+ * against every game 2, and so on, first slot first.
  *
  * This is not the same question as the session trend, which asks whether you
  * are improving over months. This one holds the calendar still and asks what
  * happens between the first frame of the night and the last.
  *
+ * Built like the other two metric series: narrow the games to the slot, then
+ * run `calculateStats` over what is left. Every rate on the screen therefore
+ * comes from one calculator, whichever axis it happens to be plotted on.
+ *
  * The slots thin out fast: most nights are three games, so game 4 and beyond
- * carry a handful between them. The count rides on every row rather than
+ * carry a handful between them. The count rides on every point rather than
  * being hidden behind a rate, and callers decide what is too thin to show.
  */
-export function calculateGameNumberTrend(
+export function calculateGameNumberMetrics(
   sessions: SessionSummary[],
   selectedLanes?: string[],
   handedness: Handedness = "right"
-): GameNumberStats[] {
-  const filter = selectedLanes && selectedLanes.length ? new Set(selectedLanes) : undefined;
-  const slots = new Map<
-    number,
-    {
-      scores: number[];
-      strikeOpps: number;
-      strikes: number;
-      spareOpps: number;
-      spares: number;
-      pocketHits: number;
-      pocketStrikes: number;
-    }
-  >();
+): GameNumberMetricPoint[] {
+  const slots = [
+    ...new Set(sessions.flatMap((s) => s.games.map((g) => g.game_number)))
+  ].sort((a, b) => a - b);
 
-  for (const s of sessions) {
-    for (const game of s.games) {
-      if (!gameTouchesLanes(game, filter)) continue;
-      const slot =
-        slots.get(game.game_number) ??
-        {
-          scores: [],
-          strikeOpps: 0,
-          strikes: 0,
-          spareOpps: 0,
-          spares: 0,
-          pocketHits: 0,
-          pocketStrikes: 0
-        };
-      slots.set(game.game_number, slot);
-
-      if (typeof game.final_score === "number") slot.scores.push(game.final_score);
-
-      for (const frame of game.frames) {
-        if (!frameOnSelectedLane(game, frame.frame_number, filter)) continue;
-        const tally = tallyFrame(frame);
-        slot.strikeOpps += tally.strikeOpps;
-        slot.strikes += tally.strikes;
-        slot.spareOpps += tally.spareOpps;
-        slot.spares += tally.spares;
-        for (const shot of freshRackShots(frame)) {
-          if (!resolvePocketHit(shot, handedness)) continue;
-          slot.pocketHits++;
-          if (shot.pins_standing.length === 0) slot.pocketStrikes++;
-        }
-      }
-    }
-  }
-
-  return [...slots.entries()]
-    .sort(([a], [b]) => a - b)
-    .map(([gameNumber, slot]) => ({
-      gameNumber,
-      games: slot.scores.length,
-      average: average(slot.scores),
-      strikePct: rate(slot.strikes, slot.strikeOpps),
-      sparePct: rate(slot.spares, slot.spareOpps),
-      pocketPct: rate(slot.pocketHits, slot.strikeOpps),
-      carryPct: rate(slot.pocketStrikes, slot.pocketHits)
-    }));
+  return slots.flatMap((gameNumber) => {
+    const inSlot = filterSessionsBy(sessions, { gameNumber });
+    if (inSlot.length === 0) return [];
+    const stats = calculateStats(inSlot, selectedLanes, handedness);
+    if (stats.totalGames === 0) return [];
+    return [{ gameNumber, games: stats.completedGames, stats }];
+  });
 }

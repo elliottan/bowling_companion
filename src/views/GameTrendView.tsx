@@ -4,7 +4,7 @@ import { PushScreen } from "../components/PushScreen";
 import { EmptyState } from "../components/ui/EmptyState";
 import { GROUP_HEADING } from "../components/ui/typography";
 import { TAP_TARGET_44 } from "../components/ui/Chip";
-import { calculateGameNumberTrend, type GameNumberStats } from "../lib/stats";
+import { calculateGameNumberMetrics, type GameNumberMetricPoint } from "../lib/stats";
 import { useHandedness } from "../lib/handednessContext";
 import { useRememberedState } from "../lib/viewMemory";
 import { useSessionFilters } from "./useSessionFilters";
@@ -39,11 +39,11 @@ export function GameTrendView({ onBack }: GameTrendViewProps) {
   const [columns, setColumns] = useRememberedState<Columns>("game-trend:columns", "scoring");
 
   const trend = useMemo(
-    () => calculateGameNumberTrend(filtered, activeLanes, handedness),
+    () => calculateGameNumberMetrics(filtered, activeLanes, handedness),
     [filtered, activeLanes, handedness]
   );
 
-  const scored = trend.filter((t) => t.average !== null);
+  const scored = trend.filter((t) => t.stats.averageScore !== null);
 
   return (
     <PushScreen title="Game by game" onBack={onBack}>
@@ -118,8 +118,8 @@ export function GameTrendView({ onBack }: GameTrendViewProps) {
 }
 
 /** Average by slot, so the shape of a night reads before the numbers do. */
-function AverageBars({ trend }: { trend: GameNumberStats[] }) {
-  const averages = trend.map((t) => t.average as number);
+function AverageBars({ trend }: { trend: GameNumberMetricPoint[] }) {
+  const averages = trend.map((t) => t.stats.averageScore as number);
   const top = Math.max(...averages);
   const bottom = Math.min(...averages);
   // Half a band of headroom, and a floor on the range so a 5-pin wobble and a
@@ -132,7 +132,7 @@ function AverageBars({ trend }: { trend: GameNumberStats[] }) {
     <div className="rounded-lg border border-edge bg-surface p-3 shadow-sm">
       <div className="flex items-end gap-2">
         {trend.map((slot) => {
-          const value = slot.average as number;
+          const value = slot.stats.averageScore as number;
           const thin = slot.games < THIN;
           return (
             <div key={slot.gameNumber} className="flex min-w-0 flex-1 flex-col items-center gap-1">
@@ -164,15 +164,15 @@ function GameRow({
   columns,
   onClick
 }: {
-  slot: GameNumberStats;
+  slot: GameNumberMetricPoint;
   columns: Columns;
   onClick: () => void;
 }) {
   const thin = slot.games < THIN;
   const cells =
     columns === "scoring"
-      ? [fmt(slot.average), pct(slot.strikePct), pct(slot.sparePct)]
-      : [pct(slot.pocketPct), pct(slot.carryPct)];
+      ? [fmt(slot.stats.averageScore), pct(slot.stats.strikePct), pct(slot.stats.sparePct)]
+      : [pct(slot.stats.pocketPct), pct(slot.stats.carryPct)];
 
   return (
     <li>

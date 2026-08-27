@@ -2836,3 +2836,52 @@ cannot mean both "explain this" and "graph this".
 - A night with no opportunity for a metric (no pocket hits, so no carry) breaks
   the line rather than plotting zero, the same rule the score chart uses for an
   unscored game.
+
+---
+
+## ADR-062: The chart has two axes, and the header switches them
+
+**Status:** accepted (2026-08). Extends ADR-061.
+
+**Context.** ADR-061 made the tiles pick *what* the chart plots. The other half
+of the question is what it plots *against*. "Carry by session" answers whether
+you are improving over months; "carry by game" answers whether you fall apart
+after game two. They are different questions about the same number, and only
+one of them had a chart.
+
+The Game-by-game screen already answered the second question, as a table of
+every rate at once. A table is the right shape for comparing five metrics
+across four slots; it is the wrong shape for watching one metric fall.
+
+**Decision.**
+
+- **The chart's x axis is selectable on the Stats tab**: by session, or by
+  position in the night. The tiles keep picking the metric, so the two controls
+  compose into twelve views without twelve screens.
+- **The switch lives in the chart header.** The header already read "Carry by
+  session", so the "by ..." half of it becomes the control: the metric name on
+  the left, a `Session | Game` segmented control and the info button on the
+  right. It is a property of the chart, so it belongs on the chart, not in the
+  Filters sheet, which narrows *what* is counted rather than how it is drawn.
+- **Four slots visible, then it scrolls.** Most nights are three or four games,
+  so the common case never scrolls; a six-game night widens the plot and the
+  card scrolls sideways rather than squeezing six points into a phone's width.
+  The viewBox widens in step with the rendered width, which is what keeps the
+  labels the same size: stretching the SVG with CSS alone would scale the type
+  along with the plot.
+- **`calculateGameNumberMetrics` replaces `calculateGameNumberTrend`**, and is
+  built the way the other two series are: narrow the games to the slot, then
+  run `calculateStats`. Game-by-game now reads from it too, so there is one
+  calculator behind every rate on the screen whichever axis it is drawn on.
+- **The game axis ignores the game filter.** It *is* the game picker, so
+  narrowing it to the slot already chosen would take the picker away. Location,
+  pattern and lanes still apply. `useSessionFilters` grew
+  `filteredExceptGame` for exactly this.
+
+**Consequences.**
+- The average has no score line on the game axis, because a slot has no games
+  to scatter behind it. It plots as a point like every other metric there.
+- Tapping a slot narrows the whole tab to it, which is the affordance the
+  Game-by-game table already had.
+- That screen is now largely redundant. It is left in place: it still shows
+  three metrics at once, which the chart cannot.

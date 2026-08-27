@@ -145,6 +145,12 @@ of shipped work rather than a release. Thirty of them used to be headed
   calculation the tile above it uses, so the two can never disagree. The
   definition moved onto the chart, behind the info control in its header
   (ADR-061).
+- **The chart plots against two axes.** The control in the chart header swaps
+  between by session and by position in the night, so "carry by game" answers
+  whether you fall apart after game two, while "carry by session" answers
+  whether you are improving over months. Four game slots are visible at a time
+  and the plot scrolls sideways past that. Tapping a slot narrows the whole tab
+  to it (ADR-062).
 - **The same picker works inside a session**, where the points are games rather
   than nights: strike, spare, pocket, carry or first ball, game by game. The
   score line stays as the average. A game still being bowled is plotted, since

@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   calculateBallPerformance,
   calculateCommonLeaves,
-  calculateGameNumberTrend,
+  calculateGameNumberMetrics,
   calculateOpenFrames,
   calculateGameMetrics,
   calculateSessionMetrics,
@@ -883,9 +883,9 @@ describe("first ball average", () => {
   });
 });
 
-describe("calculateGameNumberTrend", () => {
+describe("calculateGameNumberMetrics", () => {
   it("returns nothing for no data", () => {
-    expect(calculateGameNumberTrend([])).toEqual([]);
+    expect(calculateGameNumberMetrics([])).toEqual([]);
   });
 
   it("groups by position in the night, oldest slot first", () => {
@@ -906,10 +906,12 @@ describe("calculateGameNumberTrend", () => {
       }
     ];
 
-    const trend = calculateGameNumberTrend(sessions);
-    expect(trend.map((t) => t.gameNumber)).toEqual([1, 2]);
-    expect(trend[0]).toMatchObject({ games: 2, average: 250, strikePct: 100 });
-    expect(trend[1]).toMatchObject({ games: 2, average: 130, strikePct: 0 });
+    const trend = calculateGameNumberMetrics(sessions);
+    expect(trend.map((p) => p.gameNumber)).toEqual([1, 2]);
+    expect(trend[0].games).toBe(2);
+    expect(trend[0].stats).toMatchObject({ averageScore: 250, strikePct: 100 });
+    expect(trend[1].games).toBe(2);
+    expect(trend[1].stats).toMatchObject({ averageScore: 130, strikePct: 0 });
   });
 
   it("keeps a thin slot in the list, with its count", () => {
@@ -927,9 +929,10 @@ describe("calculateGameNumberTrend", () => {
       }
     ];
 
-    const trend = calculateGameNumberTrend(sessions);
+    const trend = calculateGameNumberMetrics(sessions);
     expect(trend).toHaveLength(3);
-    expect(trend[2]).toMatchObject({ gameNumber: 3, games: 1, average: 150 });
+    expect(trend[2]).toMatchObject({ gameNumber: 3, games: 1 });
+    expect(trend[2].stats.averageScore).toBe(150);
   });
 
   it("carries the same first-ball rates as the whole-history stats", () => {
@@ -943,10 +946,10 @@ describe("calculateGameNumberTrend", () => {
         games: [numberedGame(1, 240, carried)]
       }
     ];
-    const trend = calculateGameNumberTrend(sessions);
+    const trend = calculateGameNumberMetrics(sessions);
     const whole = calculateStats(sessions);
-    expect(trend[0].pocketPct).toBe(whole.pocketPct);
-    expect(trend[0].carryPct).toBe(whole.carryPct);
+    // One slot, one session: the slice and the whole are the same call.
+    expect(trend[0].stats).toEqual(whole);
   });
 
   it("counts an unscored game's frames but not its average", () => {
@@ -959,8 +962,9 @@ describe("calculateGameNumberTrend", () => {
         games: [numberedGame(1, undefined, opens)]
       }
     ];
-    const trend = calculateGameNumberTrend(sessions);
-    expect(trend[0]).toMatchObject({ games: 0, average: null, strikePct: 0 });
+    const trend = calculateGameNumberMetrics(sessions);
+    expect(trend[0].games).toBe(0);
+    expect(trend[0].stats).toMatchObject({ averageScore: null, strikePct: 0 });
   });
 });
 

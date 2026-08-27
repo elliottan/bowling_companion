@@ -36,6 +36,9 @@ interface MetricTrendChartProps {
   minSpan: number;
   /** Given for points that can be opened. Omitted, the footer only dismisses. */
   onOpen?: (key: string) => void;
+  /** Points visible at once. Beyond this the plot grows and the card scrolls
+   *  sideways, rather than squeezing more points into the same width. */
+  windowSize?: number;
 }
 
 const W = 320;
@@ -66,7 +69,8 @@ export function MetricTrendChart({
   min,
   max,
   minSpan,
-  onOpen
+  onOpen,
+  windowSize
 }: MetricTrendChartProps) {
   // Held as the night's own key rather than its position: the filters above
   // rewrite the list under this chart, and an index kept pointing at whatever
@@ -87,15 +91,23 @@ export function MetricTrendChart({
   const lo = Math.max(min, mid - half);
   const span = hi - lo || 1;
 
+  // The plot widens rather than the points bunching up. Widening the viewBox
+  // in step with the rendered width is what keeps the type the same size: a
+  // plain CSS stretch would scale the labels along with everything else.
+  const overflows = windowSize !== undefined && shown.length > windowSize;
+  const plotW = overflows ? Math.round((W * shown.length) / (windowSize as number)) : W;
+
   const lastIndex = Math.max(1, shown.length - 1);
   const x = (i: number) =>
-    shown.length === 1 ? W / 2 : INSET_X + (i / lastIndex) * (W - INSET_X * 2);
+    shown.length === 1 ? plotW / 2 : INSET_X + (i / lastIndex) * (plotW - INSET_X * 2);
   const y = (value: number) =>
     INSET_TOP + ((hi - value) / span) * (H - INSET_TOP - INSET_BOTTOM);
 
   // Wide enough to hit, never wider than the gap to the next point.
   const columnWidth =
-    shown.length === 1 ? W : Math.max(18, (W - INSET_X * 2) / Math.max(1, shown.length - 1));
+    shown.length === 1
+      ? plotW
+      : Math.max(18, (plotW - INSET_X * 2) / Math.max(1, shown.length - 1));
 
   const selectedIndex = shown.findIndex((p) => p.key === selectedKey);
   const selected = selectedIndex === -1 ? null : selectedIndex;
@@ -135,9 +147,11 @@ export function MetricTrendChart({
   return (
     <div className="rounded-lg border border-edge bg-surface p-3 shadow-sm">
       {header}
+      <div className={overflows ? "-mx-1 overflow-x-auto overscroll-x-contain px-1" : ""}>
       <svg
-        viewBox={`0 0 ${W} ${H}`}
+        viewBox={`0 0 ${plotW} ${H}`}
         className="w-full"
+        style={overflows ? { width: `${(plotW / W) * 100}%` } : undefined}
         role="img"
         aria-label={`In order. ${shown
           .map((p) => `${p.title}: ${p.value === null ? "none" : format(p.value)}`)
@@ -147,7 +161,7 @@ export function MetricTrendChart({
           <>
             <line
               x1={0}
-              x2={W}
+              x2={plotW}
               y1={y(overall)}
               y2={y(overall)}
               strokeDasharray="4 4"
@@ -155,7 +169,7 @@ export function MetricTrendChart({
               strokeWidth={1}
             />
             <text
-              x={W}
+              x={plotW}
               y={y(overall) - 4}
               textAnchor="end"
               className="fill-ink-tertiary text-[9px] tabular-nums"
@@ -213,7 +227,7 @@ export function MetricTrendChart({
                 // Pinned inside the box: a value printed over the last point
                 // would otherwise hang off the right edge.
                 <text
-                  x={Math.min(W - 4, Math.max(4, x(i)))}
+                  x={Math.min(plotW - 4, Math.max(4, x(i)))}
                   y={y(p.value) - 8}
                   textAnchor={i === 0 ? "start" : i === shown.length - 1 ? "end" : "middle"}
                   className="fill-ink text-[10px] font-semibold tabular-nums"
@@ -259,6 +273,7 @@ export function MetricTrendChart({
           />
         ))}
       </svg>
+      </div>
 
       {selected !== null && (
         <SelectedPoint

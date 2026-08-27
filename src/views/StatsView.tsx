@@ -11,6 +11,7 @@ import { GROUP_HEADING } from "../components/ui/typography";
 import {
   calculateBallPerformance,
   calculateCommonLeaves,
+  calculateGameNumberMetrics,
   calculateSessionMetrics,
   calculateSessionTrend,
   calculateStats,
@@ -59,7 +60,7 @@ export function StatsView({
   onOpenGameTrend
 }: StatsViewProps) {
   const filters = useSessionFilters();
-  const { filtered, activeLanes, isLoading, history } = filters;
+  const { filtered, filteredExceptGame, activeLanes, isLoading, history } = filters;
   const [filtersOpen, setFiltersOpen] = useState(false);
 
   const liveBalls = useLiveQuery(() => getBalls());
@@ -81,6 +82,13 @@ export function StatsView({
   const sessionMetrics = useMemo(
     () => calculateSessionMetrics(filtered, activeLanes, handedness),
     [filtered, activeLanes, handedness]
+  );
+  // Every slot, even when one of them is filtered to: this axis IS the game
+  // picker, so narrowing it to the slot already chosen would take the picker
+  // away. Location, pattern and lanes still apply.
+  const gameNumberMetrics = useMemo(
+    () => calculateGameNumberMetrics(filteredExceptGame, activeLanes, handedness),
+    [filteredExceptGame, activeLanes, handedness]
   );
   const ballPerformance = useMemo(
     () => calculateBallPerformance(filtered, balls, activeLanes, handedness),
@@ -124,6 +132,8 @@ export function StatsView({
             ballPerformance={ballPerformance}
             sessionTrend={sessionTrend}
             sessionMetrics={sessionMetrics}
+            gameNumberMetrics={gameNumberMetrics}
+            onSelectGameNumber={filters.setGameNumber}
             memoryKey="history"
             onOpenSession={onOpenSession}
             onOpenGame={onOpenSessionGame}

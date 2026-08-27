@@ -54,6 +54,9 @@ export interface SessionFilters {
   /** Alley, pattern and game applied. Lanes are not: they apply per frame,
    *  inside the calculators, which is correct for a game across two lanes. */
   filtered: SessionSummary[];
+  /** The same, minus the game filter. For anything that IS the game picker:
+   *  narrowing it to the slot already chosen would take the picker away. */
+  filteredExceptGame: SessionSummary[];
   /** `filtered` with the lane filter applied at session level, for the list. */
   sessionList: SessionSummary[];
   /** Whether anything is narrowing the list right now. */
@@ -76,14 +79,18 @@ export function useSessionFilters(): SessionFilters {
     setLanes((prev) => (prev.includes(lane) ? prev.filter((l) => l !== lane) : [...prev, lane]));
   }
 
-  const filtered = useMemo(() => {
-    if (!alley && !pattern && gameNumber == null) return history;
+  const filteredExceptGame = useMemo(() => {
+    if (!alley && !pattern) return history;
     return filterSessionsBy(history, {
       alleyName: alley || undefined,
-      oilPattern: pattern || undefined,
-      gameNumber: gameNumber ?? undefined
+      oilPattern: pattern || undefined
     });
-  }, [history, alley, pattern, gameNumber]);
+  }, [history, alley, pattern]);
+
+  const filtered = useMemo(() => {
+    if (gameNumber == null) return filteredExceptGame;
+    return filterSessionsBy(filteredExceptGame, { gameNumber });
+  }, [filteredExceptGame, gameNumber]);
 
   // Lanes are only meaningful within a location, so we offer them as a filter
   // only once an alley is picked, and only the lanes seen at that alley.
@@ -158,6 +165,7 @@ export function useSessionFilters(): SessionFilters {
     allLanes,
     activeLanes,
     filtered,
+    filteredExceptGame,
     sessionList,
     isFiltered: Boolean(alley || pattern || gameNumber != null || activeLanes.length > 0),
     gameCount
