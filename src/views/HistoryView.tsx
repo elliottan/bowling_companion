@@ -28,7 +28,9 @@ export function HistoryView({
   onSessionDeleted,
   onViewStats
 }: HistoryViewProps) {
-  const filters = useSessionFilters();
+  // The list reads scores, never shots, so it takes the loader that skips the
+  // frames of games that already have one (ADR-066).
+  const filters = useSessionFilters({ frames: "unscored" });
   const { sessionList, isLoading } = filters;
   const [error] = useState("");
   const [filtersOpen, setFiltersOpen] = useState(false);

@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { filterSessionsBy } from "../lib/stats";
-import { getSessionHistory } from "../services/bowlingRepository";
+import { getSessionHistory, getSessionList } from "../services/bowlingRepository";
 import { useRememberedState } from "../lib/viewMemory";
 import type { SessionSummary } from "../types/bowling";
 
@@ -65,8 +65,16 @@ export interface SessionFilters {
   gameCount: number;
 }
 
-export function useSessionFilters(): SessionFilters {
-  const liveHistory = useLiveQuery(() => getSessionHistory());
+/**
+ * `frames: "unscored"` is for a caller that only lists nights: it skips the
+ * frames of every game that already has a score, which is nearly all of them
+ * (ADR-066). Anything that computes over shots must leave this alone.
+ */
+export function useSessionFilters(
+  { frames = "all" }: { frames?: "all" | "unscored" } = {}
+): SessionFilters {
+  const load = frames === "all" ? getSessionHistory : getSessionList;
+  const liveHistory = useLiveQuery(() => load(), [frames]);
   const history = liveHistory ?? NO_SESSIONS;
   const isLoading = liveHistory === undefined;
 

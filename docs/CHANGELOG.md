@@ -12,6 +12,13 @@ of shipped work rather than a release. Thirty of them used to be headed
 
 ### Changed
 
+- **History and Home open instantly on a long history.** Loading sessions used
+  to make one database request per session and per game, and every screen paid
+  for every shot ever recorded even when it only listed dates and scores. On a
+  five-year history that was 3,336 requests; it is now 3. History went from
+  381ms to 17ms, Home to 6ms, and the Stats tab roughly halved. Nothing about
+  what you see changed (ADR-066).
+
 - **Game by game, Open frames and Spare lines moved into one menu** in the
   Stats header. They used to be rows under the ball table, which is the bottom
   of a long scroll. Spare lines left the dashboard to join them, next to Open

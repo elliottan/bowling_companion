@@ -370,14 +370,92 @@ export async function setBackupNudgeSnoozedUntil(iso: string): Promise<void> {
   await setSetting(BACKUP_NUDGE_SNOOZED_UNTIL_KEY, iso);
 }
 
+/**
+ * Everything, newest night first: sessions, their games, and every frame.
+ *
+ * Three reads and a regroup, not a query per row. It used to walk the list and
+ * fetch each session's games and each game's frames one at a time, plus a
+ * `sessions.get` for a row it had already read and an `oil_patterns.get` per
+ * session. On a five-year history that was 3,336 IndexedDB requests and 332ms;
+ * the same data in bulk is 3 requests and 161ms (ADR-066).
+ */
 export async function getSessionHistory(): Promise<SessionSummary[]> {
-  const sessions = await db.sessions.orderBy("date").reverse().toArray();
+  return loadSessions("all");
+}
 
-  return Promise.all(
-    sessions.map(async (session) =>
-      session.id ? getSessionDetails(session.id) : { session, games: [] }
-    )
-  ).then((items) =>
-    items.filter((item): item is SessionSummary => Boolean(item))
-  );
+/**
+ * The same shape, for screens that list nights rather than compute over them.
+ *
+ * **Frames are loaded only for games with no `final_score`.** A scored game
+ * comes back with `frames: []`, because the list only reads frames to show a
+ * running total for a game still being bowled. That makes this an order of
+ * magnitude cheaper (12ms against 332ms on a five-year history) and it makes it
+ * WRONG for anything that counts shots: every stats calculator here must be fed
+ * `getSessionHistory`, never this.
+ */
+export async function getSessionList(): Promise<SessionSummary[]> {
+  return loadSessions("unscored");
+}
+
+/** Sessions, games and frames in bulk, grouped in memory. `frames` decides
+ *  whether every game gets its frames or only the ones still being bowled. */
+async function loadSessions(frames: "all" | "unscored"): Promise<SessionSummary[]> {
+  const [sessions, games, patterns] = await Promise.all([
+    db.sessions.toArray(),
+    db.games.toArray(),
+    db.oil_patterns.toArray()
+  ]);
+
+  const wanted =
+    frames === "all" ? games : games.filter((g) => g.final_score === undefined);
+  const wantedIds = wanted.flatMap((g) => (g.id == null ? [] : [g.id]));
+  // `anyOf` on an empty set still round-trips, and a history with nothing in
+  // progress is the common case for the list.
+  const frameRows =
+    wantedIds.length === 0
+      ? []
+      : frames === "all"
+        ? await db.frames.toArray()
+        : await db.frames.where("game_id").anyOf(wantedIds).toArray();
+
+  const framesByGame = new Map<number, Frame[]>();
+  for (const frame of frameRows) {
+    const list = framesByGame.get(frame.game_id);
+    if (list) list.push(frame);
+    else framesByGame.set(frame.game_id, [frame]);
+  }
+  for (const list of framesByGame.values()) {
+    list.sort((a, b) => a.frame_number - b.frame_number);
+  }
+
+  const gamesBySession = new Map<number, Array<Game & { frames: Frame[] }>>();
+  for (const game of games) {
+    const withFrames = { ...game, frames: (game.id && framesByGame.get(game.id)) || [] };
+    const list = gamesBySession.get(game.session_id);
+    if (list) list.push(withFrames);
+    else gamesBySession.set(game.session_id, [withFrames]);
+  }
+  for (const list of gamesBySession.values()) {
+    list.sort((a, b) => a.game_number - b.game_number);
+  }
+
+  // One pass over the patterns rather than a lookup per session (ADR-037 still
+  // holds: the name is never stored on the session, only resolved for display).
+  const patternById = new Map(patterns.flatMap((p) => (p.id == null ? [] : [[p.id, p] as const])));
+
+  return [...sessions]
+    .sort((a, b) => b.date.localeCompare(a.date))
+    .flatMap((session) => {
+      if (session.id == null) return [{ session, games: [] }];
+      const pattern =
+        session.oil_pattern_id == null ? undefined : patternById.get(session.oil_pattern_id);
+      return [
+        {
+          session: pattern
+            ? { ...session, oil_pattern: pattern.name, oil_pattern_url: pattern.url }
+            : session,
+          games: gamesBySession.get(session.id) ?? []
+        }
+      ];
+    });
 }

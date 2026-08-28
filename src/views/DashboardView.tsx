@@ -12,7 +12,7 @@ import { TAP_TARGET_44 } from "../components/ui/Chip";
 import type { NewSessionFormValues } from "../components/SessionForm";
 import {
   getBackupNudgeState,
-  getSessionHistory,
+  getSessionList,
   getSetting,
   setBackupNudgeSnoozedUntil,
   setSetting,
@@ -72,7 +72,9 @@ export function DashboardView({
 
   // Live: finishing a game, deleting a session or importing a backup all show
   // up here without the dashboard being told to reload.
-  const liveRecent = useLiveQuery(async () => (await getSessionHistory()).slice(0, RECENT_LIMIT));
+  // Ten rows, so it takes the loader that skips scored games' frames: the full
+  // one pulled every frame of every night ever bowled to render this (ADR-066).
+  const liveRecent = useLiveQuery(async () => (await getSessionList()).slice(0, RECENT_LIMIT));
   const recent = liveRecent ?? NO_SESSIONS;
   const loadingRecent = liveRecent === undefined;
 

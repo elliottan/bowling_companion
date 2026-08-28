@@ -3023,3 +3023,49 @@ job with the same filter store behind it.
   of this crossed to Stats and arrived on Home.
 - The plan's own pickers stay separate from the Stats filters, so browsing a
   plan does not disturb what the Stats tab was showing until you tap.
+
+---
+
+## ADR-066: History is read in bulk, and a list does not pay for frames
+
+**Status:** accepted (2026-08).
+
+**Context.** `getSessionHistory` walked the session list and, for each one,
+fetched the session again, then its games, then each game's frames. Measured on
+a five-year history (667 sessions, 2,001 games, 20,010 frames) that was **3,336
+IndexedDB requests and 332ms**, materialising 5.3MB. Tab switches took 497ms to
+Stats and 381ms to History on a desktop, so several times that on a phone.
+
+Two separate problems sat inside one function.
+
+The first was the shape of the reads: a query per row where three would do. It
+also re-fetched each session by id from a list it had just read, and resolved
+each session's oil pattern with its own lookup.
+
+The second was that every caller paid for frames whether it read them or not.
+The dashboard loaded every frame of every night ever bowled to render ten rows;
+History's list loaded them to show numbers that are already on the game row.
+
+**Decision.**
+
+- **Three reads, then group in memory.** Sessions, games and frames each come
+  back in one `toArray`, and the joining happens in JavaScript. 332ms becomes
+  161ms, and the request count becomes 3.
+- **`getSessionList` is the loader for screens that list nights.** Same shape,
+  but frames are fetched only for games with **no `final_score`**. That is not
+  an approximation: the list reads frames for exactly one reason, to show a
+  running total for a game still being bowled, and a scored game's frames are
+  never touched. 332ms becomes 12ms.
+- **`useSessionFilters` takes which loader to use**, defaulting to the full
+  one. History asks for the cheap one; Stats and the drill-downs do not.
+
+**Consequences.**
+- Measured after: History 381ms to **17ms**, Home to **6ms**, Stats 497ms to
+  **264ms**. Stats keeps a real cost because it genuinely reads every shot.
+- `getSessionList` is sharp, and the sharpness is not visible in its type: it
+  returns `SessionSummary[]` like the full loader, with `frames: []` on scored
+  games. Feeding it to a calculator would report a history of nothing having
+  happened. The name and the doc comment carry the warning, and tests pin both
+  halves of the rule.
+- The calculators were never the problem. At 2,000 games the entire Stats-tab
+  calculation is 72ms and it scales linearly; the whole cost was in the reads.

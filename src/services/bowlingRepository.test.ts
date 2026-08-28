@@ -11,6 +11,7 @@ import {
   getResumableForSession,
   getSessionDetails,
   getSessionHistory,
+  getSessionList,
   getSetting,
   saveFrame,
   setBackupNudgeSnoozedUntil,
@@ -267,5 +268,95 @@ describe("backup nudge state", () => {
     const state = await getBackupNudgeState();
 
     expect(state.snoozedUntil).toBe("2026-07-26T00:00:00.000Z");
+  });
+});
+
+describe("getSessionList", () => {
+  beforeEach(async () => {
+    await db.delete();
+    await db.open();
+  });
+
+  it("gives the same sessions and games as the full load", async () => {
+    const sessionId = await createSession({ date: "2026-06-07", alley_name: "Sea Bowl" });
+    const gameId = await addGameToSession(sessionId, { game_number: 1 });
+    await saveFrame(gameId, { frame_number: 1, shots: [{ pins_standing: [] }], is_strike: true, is_spare: false });
+    await db.games.update(gameId, { final_score: 200 });
+
+    const [full] = await getSessionHistory();
+    const [list] = await getSessionList();
+
+    expect(list.session).toEqual(full.session);
+    expect(list.games.map((g) => g.id)).toEqual(full.games.map((g) => g.id));
+    expect(list.games.map((g) => g.final_score)).toEqual(full.games.map((g) => g.final_score));
+  });
+
+  it("leaves the frames off a game that already has a score", async () => {
+    const sessionId = await createSession({ date: "2026-06-07", alley_name: "Sea Bowl" });
+    const gameId = await addGameToSession(sessionId, { game_number: 1 });
+    await saveFrame(gameId, { frame_number: 1, shots: [{ pins_standing: [] }], is_strike: true, is_spare: false });
+    await db.games.update(gameId, { final_score: 200 });
+
+    const [{ games }] = await getSessionList();
+    expect(games[0].frames).toEqual([]);
+    // The full loader still has them, which is what the calculators run on.
+    const [fullSession] = await getSessionHistory();
+    expect(fullSession.games[0].frames).toHaveLength(1);
+  });
+
+  it("keeps the frames of a game still being bowled, so its total can be shown", async () => {
+    const sessionId = await createSession({ date: "2026-06-07", alley_name: "Sea Bowl" });
+    const gameId = await addGameToSession(sessionId, { game_number: 1 });
+    await saveFrame(gameId, { frame_number: 1, shots: [{ pins_standing: [] }], is_strike: true, is_spare: false });
+    await saveFrame(gameId, { frame_number: 2, shots: [{ pins_standing: [] }], is_strike: true, is_spare: false });
+
+    const [{ games }] = await getSessionList();
+    expect(games[0].final_score).toBeUndefined();
+    expect(games[0].frames.map((f) => f.frame_number)).toEqual([1, 2]);
+  });
+
+  it("resolves the oil pattern name, like the full load does", async () => {
+    const patternId = Number(await db.oil_patterns.add({ name: "39 ft Sport" }));
+    const sessionId = await createSession({
+      date: "2026-06-07",
+      alley_name: "Sea Bowl",
+      oil_pattern_id: patternId
+    });
+    await addGameToSession(sessionId, { game_number: 1 });
+
+    const [{ session }] = await getSessionList();
+    expect(session.oil_pattern).toBe("39 ft Sport");
+  });
+});
+
+describe("bulk loading keeps the order it always had", () => {
+  beforeEach(async () => {
+    await db.delete();
+    await db.open();
+  });
+
+  it("returns nights newest first, and games in the order they were bowled", async () => {
+    const older = await createSession({ date: "2026-06-01", alley_name: "Sea Bowl" });
+    const newer = await createSession({ date: "2026-06-14", alley_name: "Palace" });
+    // Added out of order on purpose.
+    await addGameToSession(older, { game_number: 3 });
+    await addGameToSession(older, { game_number: 1 });
+    await addGameToSession(older, { game_number: 2 });
+    await addGameToSession(newer, { game_number: 1 });
+
+    const history = await getSessionHistory();
+    expect(history.map((h) => h.session.date)).toEqual(["2026-06-14", "2026-06-01"]);
+    expect(history[1].games.map((g) => g.game_number)).toEqual([1, 2, 3]);
+  });
+
+  it("puts a game's frames in frame order", async () => {
+    const sessionId = await createSession({ date: "2026-06-07", alley_name: "Sea Bowl" });
+    const gameId = await addGameToSession(sessionId, { game_number: 1 });
+    await saveFrame(gameId, { frame_number: 3, shots: [{ pins_standing: [] }], is_strike: true, is_spare: false });
+    await saveFrame(gameId, { frame_number: 1, shots: [{ pins_standing: [] }], is_strike: true, is_spare: false });
+    await saveFrame(gameId, { frame_number: 2, shots: [{ pins_standing: [] }], is_strike: true, is_spare: false });
+
+    const [{ games }] = await getSessionHistory();
+    expect(games[0].frames.map((f) => f.frame_number)).toEqual([1, 2, 3]);
   });
 });
