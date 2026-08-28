@@ -3,11 +3,12 @@ import { useEffect, useRef, useState } from "react";
 import { ErrorBanner } from "../components/ErrorBanner";
 import { PushScreen } from "../components/PushScreen";
 import {
-  exportBackup,
   prepareImport,
   replaceAllData,
+  shareBackup,
   type PreparedImport
 } from "../services/backupRepository";
+import { describeAge } from "../lib/backupNudge";
 import { Button } from "../components/ui/Button";
 import { ConfirmDialog } from "../components/ConfirmDialog";
 import { FIELD, FIELD_LABEL } from "../components/ui/field";
@@ -39,10 +40,16 @@ export function BackupRestoreView({ onBack, mode = "inline" }: BackupRestoreView
     setError("");
     setMessage("");
     try {
-      const backup = await exportBackup();
-      setMessage(
-        `Exported ${backup.tables.sessions.length} sessions · ${backup.tables.games.length} games · ${backup.tables.frames.length} frames.`
-      );
+      const where = await shareBackup();
+      if (where === "cancelled") {
+        // Nothing left the device, so it is not a backup and must not read as
+        // one. `shareBackup` has not recorded it either.
+        setMessage("");
+      } else if (where === "shared") {
+        setMessage("Backup sent. Save it somewhere off this device.");
+      } else {
+        setMessage("Backup downloaded. Move it somewhere off this device.");
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Export failed.");
     } finally {
@@ -189,7 +196,8 @@ function ReplaceConfirmDialog({
 }) {
   if (!pending) return null;
 
-  const { current, incoming } = pending;
+  const { current, incoming, losingSessions } = pending;
+  const age = describeAge(pending.backup.exported_at, new Date());
 
   return (
     <ConfirmDialog
@@ -201,13 +209,21 @@ function ReplaceConfirmDialog({
       onCancel={onCancel}
       message={
         <>
+          {/* The count of what goes missing, said out loud. Two counts side by
+              side read the same whichever way the restore runs (ADR-067). */}
+          {losingSessions > 0 && (
+            <p className="rounded-lg border border-danger-200 bg-danger-50 p-2 font-semibold text-danger-700">
+              This file is older than what is on this device. You would lose{" "}
+              {losingSessions} {losingSessions === 1 ? "session" : "sessions"}.
+            </p>
+          )}
           <p>
             This permanently deletes everything on this device ({current.sessions}{" "}
             {current.sessions === 1 ? "session" : "sessions"}, {current.games}{" "}
             {current.games === 1 ? "game" : "games"}, {current.balls}{" "}
             {current.balls === 1 ? "ball" : "balls"}) and installs the file instead
             ({incoming.sessions} {incoming.sessions === 1 ? "session" : "sessions"},{" "}
-            {incoming.games} {incoming.games === 1 ? "game" : "games"}).
+            {incoming.games} {incoming.games === 1 ? "game" : "games"}), saved {age}.
           </p>
           <p>A copy of your current data is downloaded first. It is the only way back.</p>
           <label className="block pt-1">

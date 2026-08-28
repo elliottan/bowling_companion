@@ -1,6 +1,13 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { db } from "../db/bowlingDb";
-import { createBackup, exportBackup, prepareImport, replaceAllData } from "./backupRepository";
+import {
+  backupFilename,
+  createBackup,
+  exportBackup,
+  prepareImport,
+  replaceAllData
+} from "./backupRepository";
+import type { BowlingBackup } from "../types/bowling";
 import { addGameToSession, createSession, getSessionHistory, getSetting, saveFrame } from "./bowlingRepository";
 
 
@@ -181,5 +188,72 @@ describe("backupRepository", () => {
 
     expect(await getSetting("last_backup_at")).toEqual(expect.any(String));
     expect(await getSetting("sessions_at_last_backup")).toBe("1");
+  });
+});
+
+describe("backup filenames", () => {
+  it("sorts by time and shows its size, so a cloud folder is readable", () => {
+    const name = backupFilename({
+      app: "bowling-companion",
+      version: 3,
+      exported_at: "2026-08-28T19:30:12.000Z",
+      tables: { sessions: [{}, {}, {}] as never, games: [] as never, frames: [] as never }
+    });
+    expect(name).toBe("bowling-companion-2026-08-28-1930-3s.json");
+  });
+
+  it("gives two exports on the same day different names", () => {
+    const at = (iso: string) =>
+      backupFilename({
+        app: "bowling-companion",
+        version: 3,
+        exported_at: iso,
+        tables: { sessions: [] as never, games: [] as never, frames: [] as never }
+      });
+    expect(at("2026-08-28T09:05:00.000Z")).not.toBe(at("2026-08-28T21:40:00.000Z"));
+  });
+});
+
+describe("a restore that goes backwards", () => {
+  beforeEach(async () => {
+    await db.delete();
+    await db.open();
+  });
+
+  it("counts what would be lost", async () => {
+    for (const date of ["2026-06-01", "2026-06-08", "2026-06-15"]) {
+      await createSession({ date, alley_name: "Sea Bowl" });
+    }
+    const thin: BowlingBackup = {
+      app: "bowling-companion",
+      version: 3,
+      exported_at: "2026-06-02T00:00:00.000Z",
+      tables: {
+        sessions: [{ id: 1, date: "2026-06-01", alley_name: "Sea Bowl" }],
+        games: [],
+        frames: []
+      }
+    };
+    const prepared = await prepareImport(JSON.stringify(thin));
+    expect(prepared.losingSessions).toBe(2);
+  });
+
+  it("counts nothing lost when the file is the fuller one", async () => {
+    await createSession({ date: "2026-06-01", alley_name: "Sea Bowl" });
+    const fat: BowlingBackup = {
+      app: "bowling-companion",
+      version: 3,
+      exported_at: "2026-06-20T00:00:00.000Z",
+      tables: {
+        sessions: [
+          { id: 1, date: "2026-06-01", alley_name: "Sea Bowl" },
+          { id: 2, date: "2026-06-08", alley_name: "Sea Bowl" }
+        ],
+        games: [],
+        frames: []
+      }
+    };
+    const prepared = await prepareImport(JSON.stringify(fat));
+    expect(prepared.losingSessions).toBe(0);
   });
 });

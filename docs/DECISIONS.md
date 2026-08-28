@@ -3069,3 +3069,58 @@ History's list loaded them to show numbers that are already on the game row.
   halves of the rule.
 - The calculators were never the problem. At 2,000 games the entire Stats-tab
   calculation is 72ms and it scales linearly; the whole cost was in the reads.
+
+---
+
+## ADR-067: The second copy leaves the device, and the app stops being quiet about it
+
+**Status:** accepted (2026-08). Extends ADR-038, which owns what an import does.
+
+**Context.** Everything lives in one IndexedDB on one device. `App` already
+asks for `navigator.storage.persist()`, which on Chrome and Firefox largely
+settles it. On iOS Safari it does not: Apple caps script-writable storage for a
+site the user has not opened in seven days, and a home-screen app is treated
+differently from a tab. So the single most protective thing an iPhone user can
+do is install the app.
+
+The app knew that and said it in the wrong place. The install line rendered
+*inside* the backup nudge, which only appears after three un-backed-up sessions
+and can be snoozed a week at a time for ever. The message that actually
+protects the data was therefore invisible to anyone who backed up regularly and
+gone entirely for anyone who kept snoozing: the two groups least and most at
+risk, both unreached.
+
+Backups themselves were a download to the device the data was already on, named
+by date alone, so two exports in one day collided in a folder as "(1)" and
+"(2)".
+
+**Decision.**
+
+- **The install prompt stands on its own.** Its own banner, on its own
+  condition, next to the backup nudge rather than inside it.
+- **The nudge escalates and eventually stops taking no for an answer.** `due`
+  after three sessions and snoozeable as before; `overdue` after eight, or
+  after sixty days with anything unsaved, and `overdue` ignores the snooze and
+  drops the Later button. A reminder that can be dismissed for ever does not
+  reach the person who has been dismissing it since March.
+- **The nudge says the age, not just the count.** "Last backup: 6 months ago"
+  is the fact that makes the count mean something.
+- **Export goes through the share sheet where there is one.** That is the only
+  route to iCloud Drive on iOS, and a copy that stays on the device is not a
+  second copy. It falls back to a download, and a cancelled share is not
+  recorded as a backup, because nothing left.
+- **Backups are named to be read in a folder**:
+  `bowling-companion-2026-08-28-1930-212s.json`. Minutes make them sort, the
+  session count says which is the fuller history.
+- **A restore that goes backwards says so.** `PreparedImport` carries
+  `losingSessions`, and the confirmation leads with "you would lose 32
+  sessions" rather than leaving the reader to subtract two counts.
+
+**Consequences.**
+- Still no merge, and deliberately so (ADR-038). A folder of backups invites
+  one, and a backup that sometimes merges is worse than one that always
+  replaces, because the result cannot be predicted. This is a backup, not sync:
+  one device is the source of truth.
+- The remaining exposure is a user who installs nothing, backs up nothing, and
+  bowls fortnightly on an iPhone. The app now warns them twice, in the right
+  place, and cannot be quietly silenced. It does not save them.

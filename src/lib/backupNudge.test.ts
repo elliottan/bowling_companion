@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { shouldShowBackupNudge, type BackupNudgeState } from "./backupNudge";
+import {
+  backupUrgency,
+  describeAge,
+  shouldShowBackupNudge,
+  type BackupNudgeState
+} from "./backupNudge";
 
 const NOW = new Date("2026-07-19T12:00:00.000Z");
 
@@ -61,5 +66,75 @@ describe("shouldShowBackupNudge", () => {
         state({ totalSessions: 5, snoozedUntil: "2026-07-18T00:00:00.000Z" })
       )
     ).toBe(true);
+  });
+});
+
+describe("backupUrgency", () => {
+  const at = (over: Partial<BackupNudgeState> = {}): BackupNudgeState => ({
+    lastBackupAt: "2026-06-01T00:00:00.000Z",
+    sessionsAtLastBackup: 10,
+    totalSessions: 10,
+    snoozedUntil: null,
+    now: new Date("2026-06-08T00:00:00.000Z"),
+    ...over
+  });
+
+  it("says nothing when everything is backed up", () => {
+    expect(backupUrgency(at())).toBe("none");
+  });
+
+  it("waits for a few sessions before asking at all", () => {
+    expect(backupUrgency(at({ totalSessions: 12 }))).toBe("none");
+    expect(backupUrgency(at({ totalSessions: 13 }))).toBe("due");
+  });
+
+  it("honours a snooze while it is only due", () => {
+    const snoozed = at({ totalSessions: 13, snoozedUntil: "2026-06-30T00:00:00.000Z" });
+    expect(backupUrgency(snoozed)).toBe("none");
+  });
+
+  it("stops honouring the snooze once enough has piled up", () => {
+    // The user who has been snoozing since March is the one who loses a season.
+    const snoozed = at({ totalSessions: 18, snoozedUntil: "2026-12-30T00:00:00.000Z" });
+    expect(backupUrgency(snoozed)).toBe("overdue");
+  });
+
+  it("goes overdue on age alone, given there is something to lose", () => {
+    const stale = at({
+      totalSessions: 14,
+      lastBackupAt: "2026-01-01T00:00:00.000Z",
+      snoozedUntil: "2026-12-30T00:00:00.000Z"
+    });
+    expect(backupUrgency(stale)).toBe("overdue");
+  });
+
+  it("stays quiet on an old backup when nothing has been bowled since", () => {
+    const stale = at({ totalSessions: 10, lastBackupAt: "2026-01-01T00:00:00.000Z" });
+    expect(backupUrgency(stale)).toBe("none");
+  });
+
+  it("counts every session when there has never been a backup", () => {
+    expect(backupUrgency(at({ lastBackupAt: null, totalSessions: 3 }))).toBe("due");
+    expect(backupUrgency(at({ lastBackupAt: null, totalSessions: 8 }))).toBe("overdue");
+  });
+});
+
+describe("describeAge", () => {
+  const now = new Date("2026-06-30T00:00:00.000Z");
+
+  it("says never when there has been no backup", () => {
+    expect(describeAge(null, now)).toBe("never");
+  });
+
+  it("reads in the units a person would use", () => {
+    expect(describeAge("2026-06-30T00:00:00.000Z", now)).toBe("today");
+    expect(describeAge("2026-06-29T00:00:00.000Z", now)).toBe("yesterday");
+    expect(describeAge("2026-06-25T00:00:00.000Z", now)).toBe("5 days ago");
+    expect(describeAge("2026-06-09T00:00:00.000Z", now)).toBe("3 weeks ago");
+    expect(describeAge("2026-03-30T00:00:00.000Z", now)).toBe("3 months ago");
+  });
+
+  it("does not go negative on a clock that has moved backwards", () => {
+    expect(describeAge("2026-07-30T00:00:00.000Z", now)).toBe("today");
   });
 });

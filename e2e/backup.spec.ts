@@ -16,7 +16,11 @@ test("exports a backup, clears the database, and restores it via import", async 
   await page.getByRole("button", { name: "Export JSON" }).click();
   const download = await downloadPromise;
   const filePath = await download.path();
-  expect(download.suggestedFilename()).toMatch(/^bowling-companion-backup-.*\.json$/);
+  // Timestamped to the minute and carrying its session count, so a folder of
+  // these sorts and identifies itself (ADR-067).
+  expect(download.suggestedFilename()).toMatch(
+    /^bowling-companion-\d{4}-\d{2}-\d{2}-\d{4}-\d+s\.json$/
+  );
 
   // Wipe the database, confirm history is empty.
   await page.evaluate(async () => {
@@ -43,7 +47,9 @@ test("exports a backup, clears the database, and restores it via import", async 
   // The safety copy of the current (empty) database downloads before the wipe.
   const safetyCopyPromise = page.waitForEvent("download");
   await replaceButton.click();
-  expect((await safetyCopyPromise).suggestedFilename()).toMatch(/^bowling-companion-pre-import-.*\.json$/);
+  expect((await safetyCopyPromise).suggestedFilename()).toMatch(
+    /^pre-import-bowling-companion-.*\.json$/
+  );
 
   await expect(page.getByText(/Replaced all data\. You now have 1 sessions/)).toBeVisible();
 

@@ -43,6 +43,18 @@ export async function createBackup(): Promise<BowlingBackup> {
   };
 }
 
+/**
+ * A name that sorts and identifies itself in a cloud folder (ADR-067).
+ *
+ * Date alone collided: two exports on the same day become "(1)" and "(2)" in
+ * Drive, with nothing to say which is which. Minutes make them sort, and the
+ * session count makes it obvious at a glance which one is the fuller history.
+ */
+export function backupFilename(backup: BowlingBackup): string {
+  const stamp = backup.exported_at.slice(0, 16).replace("T", "-").replace(":", "");
+  return `bowling-companion-${stamp}-${backup.tables.sessions.length}s.json`;
+}
+
 function downloadBackup(backup: BowlingBackup, filename: string): void {
   const blob = new Blob([JSON.stringify(backup, null, 2)], {
     type: "application/json"
@@ -58,20 +70,72 @@ function downloadBackup(backup: BowlingBackup, filename: string): void {
   URL.revokeObjectURL(url);
 }
 
-export async function exportBackup() {
-  const backup = await createBackup();
-  downloadBackup(backup, `bowling-companion-backup-${backup.exported_at.slice(0, 10)}.json`);
+/**
+ * Whether this browser can hand a file to the OS share sheet.
+ *
+ * That sheet is the only route to iCloud Drive on iOS, and the whole point of
+ * a second copy is that it leaves the device (ADR-067). Feature-detected on
+ * the file itself, because Safari advertises `share` while refusing files.
+ */
+export function canShareBackupFile(file: File, nav: Navigator = navigator): boolean {
+  return typeof nav.canShare === "function" && nav.canShare({ files: [file] });
+}
 
-  // Best-effort bookkeeping for the backup-reminder nudge: a failure here must
-  // not turn an already-downloaded backup into a reported "export failed".
+function backupFile(backup: BowlingBackup): File {
+  return new File([JSON.stringify(backup, null, 2)], backupFilename(backup), {
+    type: "application/json"
+  });
+}
+
+export type BackupDestination = "shared" | "downloaded" | "cancelled";
+
+/**
+ * Send a backup out of the app: to the share sheet where there is one, and to
+ * the downloads folder where there is not.
+ *
+ * A cancelled share is not a failure and must not be recorded as a backup:
+ * the file never left, so the nudge has to keep asking.
+ */
+export async function shareBackup(): Promise<BackupDestination> {
+  const backup = await createBackup();
+  const file = backupFile(backup);
+
+  if (canShareBackupFile(file)) {
+    try {
+      await navigator.share({ files: [file], title: "Bowling Companion backup" });
+    } catch (err) {
+      // AbortError is the user closing the sheet. Anything else falls back to
+      // a download rather than leaving them with nothing.
+      if (err instanceof Error && err.name === "AbortError") return "cancelled";
+      downloadBackup(backup, backupFilename(backup));
+      await recordBackup();
+      return "downloaded";
+    }
+    await recordBackup();
+    return "shared";
+  }
+
+  downloadBackup(backup, backupFilename(backup));
+  await recordBackup();
+  return "downloaded";
+}
+
+/** Bookkeeping for the reminder. Best-effort: a failure here must not turn a
+ *  backup that did leave into a reported failure. */
+async function recordBackup(): Promise<void> {
   try {
     const sessionCount = await db.sessions.count();
     await setSetting("last_backup_at", new Date().toISOString());
     await setSetting("sessions_at_last_backup", String(sessionCount));
   } catch {
-    // Ignore — the backup itself already succeeded.
+    // ignored
   }
+}
 
+export async function exportBackup() {
+  const backup = await createBackup();
+  downloadBackup(backup, backupFilename(backup));
+  await recordBackup();
   return backup;
 }
 
@@ -81,6 +145,16 @@ export interface PreparedImport {
   incoming: ImportBackupResult;
   /** What is in the database right now, and will be destroyed. */
   current: ImportBackupResult;
+  /**
+   * Sessions this device has that the file does not, or 0.
+   *
+   * A restore that goes backwards reads exactly like one that goes forwards:
+   * two counts side by side, no judgement (ADR-067). This is the number that
+   * makes the dangerous direction visible, and it is why the confirmation can
+   * say "you would lose 32 sessions" rather than leaving the reader to
+   * subtract two numbers under a dialog they want to dismiss.
+   */
+  losingSessions: number;
 }
 
 /**
@@ -96,7 +170,14 @@ export async function prepareImport(fileOrJson: File | string | unknown): Promis
   }
 
   const backup = normalizeBackup(validation.backup);
-  return { backup, incoming: countBackup(backup), current: await countDatabase() };
+  const incoming = countBackup(backup);
+  const current = await countDatabase();
+  return {
+    backup,
+    incoming,
+    current,
+    losingSessions: Math.max(0, current.sessions - incoming.sessions)
+  };
 }
 
 /**
@@ -106,7 +187,7 @@ export async function prepareImport(fileOrJson: File | string | unknown): Promis
  */
 export async function replaceAllData(backup: BowlingBackup): Promise<ImportBackupResult> {
   const safetyCopy = await createBackup();
-  downloadBackup(safetyCopy, `bowling-companion-pre-import-${Date.now()}.json`);
+  downloadBackup(safetyCopy, `pre-import-${backupFilename(safetyCopy)}`);
 
   await db.transaction(
     "rw",

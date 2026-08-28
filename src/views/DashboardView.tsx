@@ -18,7 +18,7 @@ import {
   setSetting,
   type ResumableGame
 } from "../services/bowlingRepository";
-import { shouldShowBackupNudge } from "../lib/backupNudge";
+import { backupUrgency as urgencyOf, describeAge } from "../lib/backupNudge";
 import { canPromptInstall, isIOSSafari, isStandalone } from "../lib/installPrompt";
 import type { SessionSummary } from "../types/bowling";
 
@@ -79,9 +79,13 @@ export function DashboardView({
   const loadingRecent = liveRecent === undefined;
 
   const nudge = useLiveQuery(() => getBackupNudgeState());
-  const showBackupNudge = nudge ? shouldShowBackupNudge(nudge) : false;
-  const nudgeSessionsSince = nudge ? nudge.totalSessions - nudge.sessionsAtLastBackup : 0;
-  const nudgeNeverBackedUp = nudge?.lastBackupAt === null;
+  const backupUrgency = nudge ? urgencyOf(nudge) : "none";
+  const nudgeSessionsSince = nudge
+    ? nudge.lastBackupAt === null
+      ? nudge.totalSessions
+      : nudge.totalSessions - nudge.sessionsAtLastBackup
+    : 0;
+  const backupAge = nudge ? describeAge(nudge.lastBackupAt, nudge.now) : "never";
 
   // Wrapped in an object because the setting is itself undefined when unset,
   // which would otherwise be indistinguishable from "the query has not
@@ -124,48 +128,64 @@ export function DashboardView({
         <ErrorBanner className="mb-4">{error}</ErrorBanner>
       )}
 
-      {showBackupNudge && (
-        <div className="mb-4 rounded-lg border border-warning-200 bg-warning-50 p-3 text-sm text-warning-700">
-          <p>
-            {nudgeNeverBackedUp
-              ? `${nudgeSessionsSince} sessions, never backed up.`
-              : `${nudgeSessionsSince} sessions since your last backup.`}
+      {/* Two separate warnings about two separate risks, and neither is
+          nested inside the other. The install line used to render inside the
+          backup nudge, so the one message that actually protects an iPhone
+          user's data was invisible to anyone who backed up regularly, and gone
+          for anyone who kept snoozing (ADR-067). */}
+      {showInstallLine && (
+        <div className="mb-3 flex items-center gap-3 rounded-lg border border-warning-200 bg-warning-50 p-3 text-sm text-warning-700">
+          <Smartphone size={18} aria-hidden="true" className="shrink-0" />
+          <button
+            type="button"
+            onClick={() => setInstallPromptOpen(true)}
+            className={`relative flex-1 text-left text-xs font-bold underline hover:no-underline ${TAP_TARGET_44}`}
+          >
+            Add to your home screen. Your scores live only on this device, and an
+            uninstalled browser tab can clear them after 7 days.
+          </button>
+          <button
+            type="button"
+            onClick={dismissInstallLine}
+            className={`relative shrink-0 text-xs font-semibold text-warning-700/80 hover:underline ${TAP_TARGET_44}`}
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
+
+      {backupUrgency !== "none" && (
+        <div
+          className={`mb-4 rounded-lg border p-3 text-sm ${
+            backupUrgency === "overdue"
+              ? "border-danger-200 bg-danger-50 text-danger-700"
+              : "border-warning-200 bg-warning-50 text-warning-700"
+          }`}
+        >
+          <p className="font-semibold">
+            {nudgeSessionsSince} {nudgeSessionsSince === 1 ? "session" : "sessions"} not backed
+            up. Last backup: {backupAge}.
           </p>
           <div className="mt-2 flex items-center gap-3">
             <button
               type="button"
               onClick={onOpenBackup}
-              className={`relative text-xs font-bold text-warning-700 underline hover:no-underline ${TAP_TARGET_44}`}
+              className={`relative text-xs font-bold underline hover:no-underline ${TAP_TARGET_44}`}
             >
-              Export backup
+              Back up now
             </button>
-            <button
-              type="button"
-              onClick={handleBackupLater}
-              className={`relative inline-flex min-w-11 items-center justify-center text-xs font-semibold text-warning-700/80 hover:underline ${TAP_TARGET_44}`}
-            >
-              Later
-            </button>
+            {/* Overdue has no Later. A reminder that can be dismissed for ever
+                never reaches the person who most needs it. */}
+            {backupUrgency === "due" && (
+              <button
+                type="button"
+                onClick={handleBackupLater}
+                className={`relative inline-flex min-w-11 items-center justify-center text-xs font-semibold opacity-80 hover:underline ${TAP_TARGET_44}`}
+              >
+                Later
+              </button>
+            )}
           </div>
-          {showInstallLine && (
-            <div className="mt-2 flex items-center gap-3 border-t border-warning-200 pt-2">
-              <button
-                type="button"
-                onClick={() => setInstallPromptOpen(true)}
-                className={`relative inline-flex items-center gap-1 text-xs font-bold text-warning-700 underline hover:no-underline ${TAP_TARGET_44}`}
-              >
-                <Smartphone size={12} aria-hidden="true" />
-                Installing the app protects your data from 7-day cleanup
-              </button>
-              <button
-                type="button"
-                onClick={dismissInstallLine}
-                className={`relative text-xs font-semibold text-warning-700/80 hover:underline ${TAP_TARGET_44}`}
-              >
-                Dismiss
-              </button>
-            </div>
-          )}
         </div>
       )}
 

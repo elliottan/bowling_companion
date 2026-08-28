@@ -12,6 +12,21 @@ of shipped work rather than a release. Thirty of them used to be headed
 
 ### Changed
 
+- **Backups can go straight to iCloud Drive, Drive or Files** through the share
+  sheet, rather than downloading onto the device the data is already on. Files
+  are now named by the minute and carry their session count
+  (`bowling-companion-2026-08-28-1930-212s.json`), so a folder of them sorts
+  and tells you which is the fuller history (ADR-067).
+- **Restoring a file older than what you have now warns you first**, naming how
+  many sessions you would lose, instead of showing two counts side by side and
+  leaving you to subtract them.
+- **The "add to home screen" advice stands on its own** rather than hiding
+  inside the backup reminder, where anyone who backed up regularly never saw
+  it. On an iPhone that advice is the thing that actually protects your scores.
+- **The backup reminder escalates.** It says how long it has actually been, and
+  once enough has piled up it stops offering "Later", since a reminder that can
+  be dismissed for ever never reaches the person dismissing it (ADR-067).
+
 - **History and Home open instantly on a long history.** Loading sessions used
   to make one database request per session and per game, and every screen paid
   for every shot ever recorded even when it only listed dates and scores. On a
