@@ -45,7 +45,7 @@ export class AppErrorBoundary extends Component<Props, State> {
       <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-surface p-6 text-center text-ink">
         <h1 className="text-lg font-semibold">Something went wrong</h1>
         <p className="text-sm text-ink-secondary">
-          Sorry about that. The app hit an unexpected error and couldn&apos;t continue.
+          The app hit an error it could not recover from. Your scores are still on this device.
         </p>
         <p className="max-w-sm truncate rounded-lg bg-surface-muted px-3 py-2 text-xs text-ink-secondary">
           {error.message}
@@ -62,7 +62,7 @@ export class AppErrorBoundary extends Component<Props, State> {
           <p className="text-xs text-success-700">Backup exported.</p>
         )}
         {exportState === "failure" && (
-          <p className="text-xs text-danger-700">Export failed. Please try again.</p>
+          <p className="text-xs text-danger-700">Export failed. The data is still there, so it is worth another go.</p>
         )}
       </div>
     );

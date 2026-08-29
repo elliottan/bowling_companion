@@ -174,7 +174,7 @@ function SettingsMenu({
         </li>
         <li>
           <a href={DONATE_URL} target="_blank" rel="noopener noreferrer" className={ROW_CLASS}>
-            <RowContent icon={Coffee} label="Buy me a coffee" description="Support the app's development" />
+            <RowContent icon={Coffee} label="Buy me a coffee" description="A one-off tip. No subscription." />
           </a>
         </li>
       </ul>

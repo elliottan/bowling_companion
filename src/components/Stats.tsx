@@ -233,7 +233,7 @@ export function Stats({
       <EmptyState
         icon={BarChart3}
         title="No stats yet"
-        description="Finish a game and your strike rate, spare conversions and average land here."
+        description="One finished game is enough to start. Strike rate, spare conversions and average come from there."
       />
     );
   }

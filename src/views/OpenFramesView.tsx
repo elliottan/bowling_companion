@@ -33,7 +33,7 @@ export function OpenFramesView({ onBack }: { onBack: () => void }) {
           <EmptyState
             icon={Target}
             title="Nothing open yet"
-            description="Finish a game and the leaves you missed show up here, most often first."
+            description="The leaves you keep missing rank here, most often first. Finish a game to start the count."
           />
         ) : (
           <>
@@ -72,8 +72,8 @@ export function OpenFramesView({ onBack }: { onBack: () => void }) {
                 onClick={() => setNote(false)}
                 className="mt-2 w-full rounded-lg border border-edge bg-surface-muted p-3 text-left text-xs text-ink-secondary"
               >
-                An open frame gives up about 11 pins: a spare is worth ten plus your next ball,
-                so the exact figure depends on the leave and what you threw after it. Tap to
+                An open frame gives up about 11 pins. A spare is worth ten plus your next ball, so
+                the real figure moves with the leave and whatever you threw after it. Tap to
                 dismiss.
               </button>
             )}

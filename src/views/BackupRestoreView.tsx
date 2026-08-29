@@ -102,8 +102,8 @@ export function BackupRestoreView({ onBack, mode = "inline" }: BackupRestoreView
       {persisted !== null && (
         <p className="mt-2 text-xs text-ink-secondary">
           {persisted
-            ? "Storage: persistent ✓"
-            : "Storage: best-effort. Install the app and back up regularly"}
+            ? "This browser has agreed not to clear your scores on its own."
+            : "This browser may clear your scores if it runs short of space. Install the app and back up."}
         </p>
       )}
 

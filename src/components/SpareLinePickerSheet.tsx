@@ -30,7 +30,7 @@ export function SpareLinePickerSheet({ spareLines, onPick, onClose }: SpareLineP
         <EmptyState
           icon={Crosshair}
           title="No lines saved yet"
-          description="Spare lines you save show up here, ready to borrow for a leave you have not written down."
+          description="Save a line for one leave and you can borrow it for another. Nothing saved yet."
         />
       ) : (
         <ul className="grid grid-cols-4 gap-1.5">

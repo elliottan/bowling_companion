@@ -30,7 +30,7 @@ export function NoSessionView({ onStartSession, isSubmitting, error }: NoSession
       <EmptyState
         icon={PlayCircle}
         title="No session running"
-        description="Start a session and this is where you score it, ball by ball, until the last frame."
+        description="Start a session and you score it here, shot by shot."
       >
         <Button variant="primary" onClick={() => setShowForm(true)}>
           Start a session

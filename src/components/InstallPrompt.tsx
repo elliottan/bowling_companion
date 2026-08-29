@@ -41,7 +41,7 @@ export function InstallPrompt({ open, onClose }: InstallPromptProps) {
         {canInstall ? (
           <>
             <p className="mt-1.5 text-sm text-ink-secondary">
-              Add it to your home screen for quick, full-screen access.
+              A browser tab left alone for a week can clear your scores. Installed, they stay, and the app opens full screen.
             </p>
             <div className="mt-5 flex justify-end gap-2">
               <Button variant="secondary" onClick={() => dismiss()}>
@@ -61,7 +61,7 @@ export function InstallPrompt({ open, onClose }: InstallPromptProps) {
         ) : (
           <>
             <p className="mt-1.5 text-sm text-ink-secondary">
-              Tap the Share icon, then &ldquo;Add to Home Screen&rdquo;.
+              Tap the Share icon, then "Add to Home Screen".
             </p>
             <div className="mt-5 flex justify-end">
               <Button variant="secondary" onClick={onClose}>

@@ -50,7 +50,7 @@ export function SessionHistory({
         title="No sessions yet"
         description={
           emptyAction
-            ? "A session is one trip to the alley. Start one and every game, lane and ball you use lands here."
+            ? "A session is one trip to the alley. Start one and it keeps every game, lane and ball you use."
             : "Sessions you bowl show up here. Start your first one from the Home tab."
         }
       >

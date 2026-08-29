@@ -183,12 +183,12 @@ function DetailPanel({ ball, owned, onBack, onAddToArsenal, addDialogOpen }: Det
           <dl className="mt-4 space-y-2">
             <SpecItem label="Coverstock" value={ball.coverstockRaw} />
             <SpecItem label="Category" value={ball.coverstockCategory ?? "Unclassified"} />
-            {ball.factoryFinish && <SpecItem label="Factory Finish" value={ball.factoryFinish} />}
+            {ball.factoryFinish && <SpecItem label="Factory finish" value={ball.factoryFinish} />}
             {ball.coreName && <SpecItem label="Core" value={ball.coreName} />}
-            <SpecItem label="Core Type" value={ball.coreType ?? "-"} />
+            <SpecItem label="Core type" value={ball.coreType ?? "-"} />
             <SpecItem label="RG" value={ball.rg !== null ? ball.rg.toFixed(2) : "-"} />
             <SpecItem label="Diff" value={ball.diff !== null ? ball.diff.toFixed(3) : "-"} />
-            {ball.mbDiff !== null && <SpecItem label="MB Diff" value={ball.mbDiff.toFixed(3)} />}
+            {ball.mbDiff !== null && <SpecItem label="MB diff" value={ball.mbDiff.toFixed(3)} />}
           </dl>
 
           {/* The manufacturer's own page for the ball, so the specs above can
@@ -264,7 +264,7 @@ function RangeSlider({ label, min, max, step, valueMin, valueMax, format, onChan
     <div>
       <div className="mb-1 flex items-center justify-between">
         <span className="text-xs font-medium text-ink-strong">{label}</span>
-        <span className="text-xs text-ink-secondary">{format(displayMin)} – {format(displayMax)}</span>
+        <span className="text-xs text-ink-secondary">{format(displayMin)} to {format(displayMax)}</span>
       </div>
       <div className="relative h-5 flex items-center">
         {/* Track background */}
@@ -640,13 +640,13 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall }: CatalogVie
             )}
             {(filters.rgMin > RG_MIN || filters.rgMax < RG_MAX) && (
               <FilterChip
-                label={`RG ${filters.rgMin.toFixed(2)}–${filters.rgMax.toFixed(2)}`}
+                label={`RG ${filters.rgMin.toFixed(2)} to ${filters.rgMax.toFixed(2)}`}
                 onRemove={() => setFilters((f) => ({ ...f, rgMin: RG_MIN, rgMax: RG_MAX }))}
               />
             )}
             {(filters.diffMin > DIFF_MIN || filters.diffMax < DIFF_MAX) && (
               <FilterChip
-                label={`Diff ${filters.diffMin.toFixed(3)}–${filters.diffMax.toFixed(3)}`}
+                label={`Diff ${filters.diffMin.toFixed(3)} to ${filters.diffMax.toFixed(3)}`}
                 onRemove={() => setFilters((f) => ({ ...f, diffMin: DIFF_MIN, diffMax: DIFF_MAX }))}
               />
             )}
@@ -690,7 +690,7 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall }: CatalogVie
 
             {/* Core type */}
             <div>
-              <p className={`mb-2 ${GROUP_HEADING}`}>Core Type</p>
+              <p className={`mb-2 ${GROUP_HEADING}`}>Core type</p>
               <div className="flex gap-2">
                 {(["Symmetric", "Asymmetric"] as const).map((ct) => (
                   <Chip
@@ -752,7 +752,7 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall }: CatalogVie
           <EmptyState
             icon={BookOpen}
             title="Catalog is empty"
-            description="The catalog holds manufacturer specs for every ball, so linking one fills in its numbers for you."
+            description="The catalog carries manufacturer specs, so linking a ball fills in its core, coverstock, RG and diff."
           >
             <Button variant="primary" onClick={handleRefresh}>
               Refresh catalog

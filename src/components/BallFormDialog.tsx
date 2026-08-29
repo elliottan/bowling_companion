@@ -383,7 +383,7 @@ function CatalogPickerDialog({ onPick, onClose }: CatalogPickerDialogProps) {
             <p className="text-sm text-ink-secondary">Loading catalog…</p>
           ) : shown.length === 0 ? (
             <p className="text-sm text-ink-secondary">
-              {balls.length === 0 ? "No catalog balls found. Try refreshing the catalog." : `No matches for “${query}”.`}
+              {balls.length === 0 ? "No catalog balls found. Try refreshing the catalog." : `No matches for "${query}".`}
             </p>
           ) : (
             <ul className="space-y-1.5">

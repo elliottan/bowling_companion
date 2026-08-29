@@ -59,7 +59,7 @@ export function GameTrendView({ onBack }: GameTrendViewProps) {
           <EmptyState
             icon={LayoutGrid}
             title="No games to compare yet"
-            description="Bowl a couple of nights and your first game lands next to your last one here."
+            description="Two nights is enough to put your first game next to your last."
           />
         ) : (
           <>
@@ -174,7 +174,7 @@ export function GameTrendView({ onBack }: GameTrendViewProps) {
 
             <p className="mt-3 px-0.5 text-xs leading-relaxed text-ink-secondary">
               Tap a game to narrow every stat to that slot. Slots under {THIN} games are greyed
-              out until there are enough of them.
+              out.
             </p>
           </>
         )}

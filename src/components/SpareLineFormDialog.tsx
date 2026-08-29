@@ -204,7 +204,7 @@ export function SpareLineFormDialog({
               </button>
             )}
             <p className="mt-2 text-xs text-ink-secondary">
-              The eye opens the lane, where you set the final target, hook strength and depth.
+              Tap the eye to open the lane and set the target, hook strength and depth.
             </p>
           </div>
 
