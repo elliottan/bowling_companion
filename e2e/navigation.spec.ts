@@ -11,33 +11,40 @@ test.beforeEach(async ({ page }) => {
  * hardware back and iOS's left-edge swipe deliver.
  */
 test("the platform back button pops one screen at a time", async ({ page }) => {
-  await page.getByRole("button", { name: "Arsenal", exact: true }).click();
-  await expect(page).toHaveURL(/#\/home\/arsenal$/);
-
-  await page.getByRole("button", { name: "Browse the catalog" }).click();
-  await expect(page).toHaveURL(/#\/home\/arsenal\/catalog$/);
+  await page.getByRole("navigation").getByRole("button", { name: "Settings" }).click();
+  await page.getByRole("button", { name: /Arsenal/ }).click();
+  await expect(page).toHaveURL(/#\/settings\/arsenal$/);
 
   await page.goBack();
-  await expect(page).toHaveURL(/#\/home\/arsenal$/);
-  await expect(page.getByRole("dialog", { name: "Ball catalog" })).toHaveCount(0);
-  await expect(page.getByRole("dialog", { name: "Arsenal" })).toBeVisible();
-
-  await page.goBack();
-  await expect(page).toHaveURL(/#\/home$/);
+  await expect(page).toHaveURL(/#\/settings$/);
   await expect(page.getByRole("dialog", { name: "Arsenal" })).toHaveCount(0);
 });
 
+test("an overlay named like a Settings section is still the overlay", async ({ page }) => {
+  // `#/settings/arsenal` used to read back as the Settings section "arsenal",
+  // so backing out of the catalog landed on Backup & restore.
+  await page.getByRole("navigation").getByRole("button", { name: "Settings" }).click();
+  await page.getByRole("button", { name: /Arsenal/ }).click();
+  await page.getByRole("dialog", { name: "Arsenal" }).getByRole("button", { name: "Back" }).click();
+
+  await expect(page).toHaveURL(/#\/settings$/);
+  await expect(page.getByRole("heading", { name: "Settings" })).toBeVisible();
+  await expect(page.getByRole("region", { name: "Backup & restore" })).toHaveCount(0);
+});
+
 test("the in-app back control and the platform back agree", async ({ page }) => {
-  await page.getByRole("button", { name: "Arsenal", exact: true }).click();
-  await page.getByRole("button", { name: "Browse the catalog" }).click();
+  await page.getByRole("button", { name: "Catalog" }).click();
+  await page.getByPlaceholder("Search name, brand, coverstock…").fill("phaze");
+  await page.getByRole("button", { name: /Phaze/i }).first().click();
+  await expect(page).toHaveURL(/#\/home\/catalog\/ball\/[a-z0-9-]+$/);
 
   // The nav-bar back control is the chevron alone (DESIGN-LANGUAGE 1).
-  await page.getByRole("dialog", { name: "Ball catalog" }).getByRole("button", { name: "Back" }).click();
+  await page.getByRole("button", { name: "Back" }).last().click();
 
   // One screen closed, not both: the control goes through history rather than
   // popping state itself, so it cannot double up with the platform gesture.
-  await expect(page).toHaveURL(/#\/home\/arsenal$/);
-  await expect(page.getByRole("dialog", { name: "Arsenal" })).toBeVisible();
+  await expect(page).toHaveURL(/#\/home\/catalog$/);
+  await expect(page.getByRole("dialog", { name: "Ball catalog" })).toBeVisible();
 });
 
 test("back from a catalog ball closes the ball, not the catalog", async ({ page }) => {
@@ -74,7 +81,7 @@ test("the same screen reached from Settings pushes inside the tab", async ({ pag
   await page.getByRole("navigation").getByRole("button", { name: "Settings" }).click();
   await page.getByRole("button", { name: /Lane notes/ }).click();
 
-  await expect(page).toHaveURL(/#\/settings\/lanes$/);
+  await expect(page).toHaveURL(/#\/settings\/section\/lanes$/);
   await page.getByRole("region", { name: "Lane notes" }).getByRole("button", { name: "Back" }).click();
   await expect(page).toHaveURL(/#\/settings$/);
 });

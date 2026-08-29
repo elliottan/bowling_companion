@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { History, LayoutGrid, MoreHorizontal, Spline, Target } from "lucide-react";
+import { LayoutGrid, MoreHorizontal, Spline, Target } from "lucide-react";
 import { Stats } from "../components/Stats";
 import {
   SessionFilterButton,
@@ -28,8 +28,6 @@ interface StatsViewProps {
   /** Open one game of a session directly, from a stats drill-down, carrying
    *  the ball it was about. */
   onOpenSessionGame?: (sessionId: number, gameId: number, ballId?: number) => void;
-  /** Cross to the History tab, carrying the filter that is on screen. */
-  onViewSessions: () => void;
   onOpenFrames: () => void;
   onOpenGameTrend: () => void;
   onOpenSpareLines: () => void;
@@ -55,7 +53,6 @@ const EMPTY: BowlingStats = {
 export function StatsView({
   onOpenSession,
   onOpenSessionGame,
-  onViewSessions,
   onOpenFrames,
   onOpenGameTrend,
   onOpenSpareLines
@@ -120,10 +117,6 @@ export function StatsView({
             }}
           >
             <MoreHorizontal size={20} aria-hidden="true" />
-          </IconButton>
-          {/* The twin of History's own crossing control (ADR-057). */}
-          <IconButton label="View sessions" variant="round" onClick={onViewSessions}>
-            <History size={20} aria-hidden="true" />
           </IconButton>
         </div>
       </div>

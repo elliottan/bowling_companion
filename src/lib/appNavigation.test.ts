@@ -14,7 +14,7 @@ describe("navReducer", () => {
 
     it("entering Settings from the tab bar starts at its menu", () => {
       const state = run([
-        { type: "goToSettingsSection", section: "backup" },
+        { type: "goToSettingsSection", section: "lanes" },
         { type: "goTo", view: "history" },
         { type: "goTo", view: "settings" }
       ]);

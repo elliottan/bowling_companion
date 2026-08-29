@@ -10,8 +10,8 @@ import type { AppView, NavState, Overlay, SettingsSection } from "./appNavigatio
  * A hash rather than a path because the app is offline-first: no server rewrite
  * rule to keep in step, and it resolves from the service worker cache.
  *
- * Shape: `#/<view>[/<session-or-section>][/<overlay>...][/ball/<id>][/line]`,
- * for example `#/settings/lanes`, `#/session/12`, `#/home/arsenal/catalog`,
+ * Shape: `#/<view>[/<session>][/section/<name>][/<overlay>...][/ball/<id>][/line]`,
+ * for example `#/settings/section/lanes`, `#/session/12`, `#/home/arsenal/catalog`,
  * `#/home/catalog/ball/storm-physix-blackout-2025`.
  *
  * Anything unreadable resolves to the dashboard rather than throwing. A stale
@@ -55,13 +55,18 @@ const OVERLAYS: readonly string[] = [
 
 const SETTINGS_SECTIONS: readonly string[] = [
   "menu",
-  "arsenal",
   "lanes",
   "oil-patterns",
-  "backup",
   "preferences",
   "appearance"
 ];
+
+/** Settings sections are written behind their own segment because their names
+ *  collide with overlay names: `#/settings/arsenal` read back as the Settings
+ *  section "arsenal", not as the arsenal pushed over the Settings tab, so back
+ *  out of the catalog landed on a screen nobody opened. A marker segment keeps
+ *  the two apart, whatever they are called. */
+const SECTION_SEGMENT = "section";
 
 const LINE_SEGMENT = "line";
 const BALL_SEGMENT = "ball";
@@ -91,7 +96,7 @@ export function formatRoute(route: AppRoute): string {
   if (route.view === "active" && route.sessionId != null) parts.push(String(route.sessionId));
   // "menu" is the settings screen itself, so it stays implicit.
   if (route.view === "settings" && route.settingsSection && route.settingsSection !== "menu") {
-    parts.push(route.settingsSection);
+    parts.push(SECTION_SEGMENT, route.settingsSection);
   }
 
   parts.push(...route.overlays);
@@ -116,10 +121,14 @@ export function parseRoute(hash: string): AppRoute {
       route.sessionId = id;
       i += 1;
     }
-  } else if (view === "settings" && SETTINGS_SECTIONS.includes(segments[i] ?? "")) {
-    const section = segments[i] as SettingsSection;
+  } else if (
+    view === "settings" &&
+    segments[i] === SECTION_SEGMENT &&
+    SETTINGS_SECTIONS.includes(segments[i + 1] ?? "")
+  ) {
+    const section = segments[i + 1] as SettingsSection;
     if (section !== "menu") route.settingsSection = section;
-    i += 1;
+    i += 2;
   }
 
   for (; i < segments.length; i += 1) {

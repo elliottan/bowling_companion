@@ -16,10 +16,8 @@
  *  from `views/` (see docs/ARCHITECTURE.md). SettingsView re-exports it. */
 export type SettingsSection =
   | "menu"
-  | "arsenal"
   | "lanes"
   | "oil-patterns"
-  | "backup"
   | "preferences"
   | "appearance";
 

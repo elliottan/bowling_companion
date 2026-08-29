@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from "react";
-import { BarChart3 } from "lucide-react";
 import { ErrorBanner } from "../components/ErrorBanner";
 import { SessionHistory } from "../components/SessionHistory";
 import {
@@ -7,7 +6,6 @@ import {
   SessionFilterChips,
   SessionFilterSheet
 } from "../components/SessionFilterBar";
-import { IconButton } from "../components/ui/IconButton";
 import { rememberScroll, restoreScroll, useRememberedState } from "../lib/viewMemory";
 import { useSessionFilters } from "./useSessionFilters";
 import type { SessionSummary } from "../types/bowling";
@@ -16,8 +14,6 @@ interface HistoryViewProps {
   onOpenSession: (sessionId: number) => void;
   activeSessionId: number | null;
   onSessionDeleted?: (sessionId: number) => void;
-  /** Cross to the Stats tab, carrying the filter that is on screen. */
-  onViewStats: () => void;
 }
 
 const PAGE = 15; // sessions loaded per infinite-scroll step
@@ -25,8 +21,7 @@ const PAGE = 15; // sessions loaded per infinite-scroll step
 export function HistoryView({
   onOpenSession,
   activeSessionId,
-  onSessionDeleted,
-  onViewStats
+  onSessionDeleted
 }: HistoryViewProps) {
   // The list reads scores, never shots, so it takes the loader that skips the
   // frames of games that already have one (ADR-066).
@@ -83,11 +78,6 @@ export function HistoryView({
         <h1 className="text-xl font-bold text-ink">History</h1>
         <div className="flex shrink-0 items-center gap-1">
           <SessionFilterButton filters={filters} onOpen={() => setFiltersOpen(true)} />
-          {/* Icon only: the tab it crosses to is named in the tab bar already,
-              and a word here would only repeat it (ADR-057). */}
-          <IconButton label="View stats" variant="round" onClick={onViewStats}>
-            <BarChart3 size={20} aria-hidden="true" />
-          </IconButton>
         </div>
       </div>
 

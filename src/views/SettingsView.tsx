@@ -1,6 +1,5 @@
 import { Archive, BookOpen, ChevronRight, Palette, CircleDot, Coffee, MapPin, MessageSquare, SlidersHorizontal, Spline, Waves, type LucideIcon } from "lucide-react";
 import { useEffect, useState } from "react";
-import { BackupRestoreView } from "./BackupRestoreView";
 import { LaneNotesView } from "./LaneNotesView";
 import { OilPatternsView } from "./OilPatternsView";
 import { AppearanceView } from "./AppearanceView";
@@ -25,12 +24,16 @@ interface SettingsViewProps {
   onDriftModelChange: (next: DriftModel) => void;
   /** Arsenal opens as a modal overlay rather than an inline section. */
   onOpenArsenal: () => void;
+  /** Backup & restore pushes over the tab, like the arsenal and the catalog:
+   *  it is also reachable from the dashboard, and both should land on the same
+   *  screen. */
+  onOpenBackup: () => void;
   /** Navigate to the ball catalog view. */
   onOpenCatalog: () => void;
   onOpenLineVisualizer: () => void;
 }
 
-export function SettingsView({ section, onSectionChange, handedness, onHandednessChange, driftModel, onDriftModelChange, onOpenArsenal, onOpenCatalog, onOpenLineVisualizer }: SettingsViewProps) {
+export function SettingsView({ section, onSectionChange, handedness, onHandednessChange, driftModel, onDriftModelChange, onOpenArsenal, onOpenBackup, onOpenCatalog, onOpenLineVisualizer }: SettingsViewProps) {
   const back = () => onSectionChange("menu");
 
   // The menu stays mounted underneath the pushed section, so popping back
@@ -40,6 +43,7 @@ export function SettingsView({ section, onSectionChange, handedness, onHandednes
       <div className="h-full overflow-y-auto">
         <SettingsMenu
           onOpenArsenal={onOpenArsenal}
+          onOpenBackup={onOpenBackup}
           onOpenCatalog={onOpenCatalog}
           onOpenLineVisualizer={onOpenLineVisualizer}
           onSectionChange={onSectionChange}
@@ -60,9 +64,7 @@ export function SettingsView({ section, onSectionChange, handedness, onHandednes
             onDriftModelChange={onDriftModelChange}
             onBack={back}
           />
-        ) : (
-          <BackupRestoreView onBack={back} />
-        )
+        ) : null
       )}
     </div>
   );
@@ -95,10 +97,11 @@ function GroupHeading({ children }: { children: string }) {
 
 function SettingsMenu({
   onOpenArsenal,
+  onOpenBackup,
   onOpenCatalog,
   onOpenLineVisualizer,
   onSectionChange
-}: Pick<SettingsViewProps, "onOpenArsenal" | "onOpenCatalog" | "onOpenLineVisualizer" | "onSectionChange">) {
+}: Pick<SettingsViewProps, "onOpenArsenal" | "onOpenBackup" | "onOpenCatalog" | "onOpenLineVisualizer" | "onSectionChange">) {
   const [lastBackupAt, setLastBackupAt] = useState<string | null | undefined>(undefined);
   useEffect(() => {
     void getSetting("last_backup_at").then((v) => setLastBackupAt(v ?? null));
@@ -155,7 +158,7 @@ function SettingsMenu({
         <li>
           <button
             type="button"
-            onClick={() => onSectionChange("backup")}
+            onClick={onOpenBackup}
             aria-label="Backup & restore"
             className={ROW_CLASS}
           >

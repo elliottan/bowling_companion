@@ -13,7 +13,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { BookOpen, CircleDot, GripVertical, Plus } from "lucide-react";
+import { CircleDot, GripVertical, Plus } from "lucide-react";
 import { useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { BallFormDialog } from "../components/BallFormDialog";
@@ -119,11 +119,9 @@ const NO_BALLS: Ball[] = [];
 interface ArsenalViewProps {
   /** Dismiss the pushed screen and return to whatever launched it. */
   onBack: () => void;
-  /** Label of the screen underneath, shown next to the back chevron. */
-  onOpenCatalog?: () => void;
 }
 
-export function ArsenalView({ onBack, onOpenCatalog }: ArsenalViewProps) {
+export function ArsenalView({ onBack }: ArsenalViewProps) {
   // Live: Dexie re-runs this whenever the table changes, so saving, deleting
   // and reordering do not each have to remember to refresh the list.
   const live = useLiveQuery(() => getBalls());
@@ -202,12 +200,6 @@ export function ArsenalView({ onBack, onOpenCatalog }: ArsenalViewProps) {
                 <Plus size={18} aria-hidden="true" />
                 Add a ball
               </Button>
-              {onOpenCatalog && (
-                <Button variant="ghost" onClick={onOpenCatalog}>
-                  <BookOpen size={16} aria-hidden="true" />
-                  Browse the catalog
-                </Button>
-              )}
             </EmptyState>
           ) : (
             <>
@@ -224,16 +216,6 @@ export function ArsenalView({ onBack, onOpenCatalog }: ArsenalViewProps) {
                   </ul>
                 </SortableContext>
               </DndContext>
-              <p className="mt-3 px-1 text-xs text-ink-secondary">
-                Tap a ball to edit it. Hold the handle to reorder. This order is the order in the
-                ball picker.
-              </p>
-              {onOpenCatalog && (
-                <Button variant="ghost" onClick={onOpenCatalog} className="mt-3">
-                  <BookOpen size={16} aria-hidden="true" />
-                  Browse the catalog
-                </Button>
-              )}
             </>
           )}
         </div>

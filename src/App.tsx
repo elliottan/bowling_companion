@@ -452,14 +452,12 @@ function App() {
             onOpenSession={openSession}
             activeSessionId={activeSessionId}
             onSessionDeleted={handleSessionDeleted}
-            onViewStats={() => goTo("stats")}
           />
         )}
         {view === "stats" && (
           <StatsView
             onOpenSession={openSession}
             onOpenSessionGame={openSessionGame}
-            onViewSessions={() => goTo("history")}
             onOpenFrames={() => pushOverlay("open-frames")}
             onOpenGameTrend={() => pushOverlay("game-trend")}
             onOpenSpareLines={() => pushOverlay("spares")}
@@ -479,6 +477,7 @@ function App() {
             driftModel={driftModel}
             onDriftModelChange={updateDriftModel}
             onOpenArsenal={() => pushOverlay("arsenal")}
+            onOpenBackup={goToBackup}
             onOpenCatalog={() => pushOverlay("catalog")}
             onOpenLineVisualizer={() => dispatch({ type: "openLineSandbox" })}
           />
@@ -512,11 +511,7 @@ function App() {
         switch (overlay) {
           case "arsenal":
             return (
-              <ArsenalView
-                key={`arsenal-${i}`}
-                onBack={popOverlay}
-                onOpenCatalog={() => pushOverlay("catalog")}
-              />
+              <ArsenalView key={`arsenal-${i}`} onBack={popOverlay} />
             );
           case "catalog":
             return (

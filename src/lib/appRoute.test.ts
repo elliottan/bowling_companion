@@ -25,7 +25,7 @@ describe("appRoute", () => {
       { view: "dashboard", overlays: ["catalog"], catalogBallId: "storm-physix-blackout-2025" }
     ],
     ["#/settings", { view: "settings", overlays: [] }],
-    ["#/settings/lanes", { view: "settings", settingsSection: "lanes", overlays: [] }],
+    ["#/settings/section/lanes", { view: "settings", settingsSection: "lanes", overlays: [] }],
     ["#/session/12", { view: "active", sessionId: 12, overlays: [] }],
     ["#/home/arsenal", { view: "dashboard", overlays: ["arsenal"] }],
     ["#/home/arsenal/catalog", { view: "dashboard", overlays: ["arsenal", "catalog"] }],
@@ -40,7 +40,7 @@ describe("appRoute", () => {
 
   it("keeps the settings menu implicit, since it is the settings screen itself", () => {
     expect(formatRoute({ view: "settings", settingsSection: "menu", overlays: [] })).toBe("#/settings");
-    expect(parseRoute("#/settings/menu")).toEqual({ view: "settings", overlays: [] });
+    expect(parseRoute("#/settings/section/menu")).toEqual({ view: "settings", overlays: [] });
   });
 
   it("drops a session id that could not be one", () => {
@@ -54,16 +54,28 @@ describe("appRoute", () => {
     }
   });
 
+  it("reads an overlay named like a settings section as the overlay it is", () => {
+    // `#/settings/arsenal` used to parse as the Settings section "arsenal",
+    // so backing out of the catalog landed on a screen nobody opened.
+    expect(parseRoute("#/settings/arsenal/catalog")).toEqual({
+      view: "settings",
+      overlays: ["arsenal", "catalog"]
+    });
+    expect(parseRoute("#/settings/backup")).toEqual({ view: "settings", overlays: ["backup"] });
+  });
+
   it("ignores segments it does not know instead of stranding the user", () => {
     expect(parseRoute("#/home/wat/arsenal")).toEqual({ view: "dashboard", overlays: ["arsenal"] });
-    expect(parseRoute("#/settings/not-a-section")).toEqual({ view: "settings", overlays: [] });
+    expect(parseRoute("#/settings/section/not-a-section")).toEqual({ view: "settings", overlays: [] });
   });
 
   describe("projecting navigation state", () => {
     it("writes down where the user is", () => {
       expect(routeHash(nav({ view: "history" }))).toBe("#/history");
       expect(routeHash(nav({ view: "active", activeSessionId: 8 }))).toBe("#/session/8");
-      expect(routeHash(nav({ view: "settings", settingsSection: "backup" }))).toBe("#/settings/backup");
+      expect(routeHash(nav({ view: "settings", settingsSection: "preferences" }))).toBe(
+        "#/settings/section/preferences"
+      );
       expect(routeHash(nav({ overlays: ["arsenal", "catalog"] }))).toBe("#/home/arsenal/catalog");
       expect(routeHash(nav({ lineSandboxOpen: true }))).toBe("#/home/line");
     });

@@ -182,6 +182,28 @@ describe("back closes an open sheet", () => {
     expect(isOpen("sheet")).toBe(true);
   });
 
+  it("a screen opened before that pop lands is not undone by it", async () => {
+    render(<Harness />);
+    await click("open sheet");
+
+    // Closing the sheet asks the browser to collect the sentinel, and back()
+    // lands a moment later. A navigation in that gap used to write its entry
+    // straight away, and the pending pop took it back off: the tap read as
+    // doing nothing at all.
+    await click("close sheet");
+    await click("arsenal");
+    // The pop takes whatever is on top of the stack when it runs, so it lands
+    // on the entry under the sentinel.
+    await browserBack("#/home");
+
+    expect(at("overlays")).toBe("arsenal");
+    expect(window.location.hash).toBe("#/home/arsenal");
+
+    // And the entry is real, so back still leaves the screen.
+    await browserBack("#/home");
+    expect(at("overlays")).toBe("");
+  });
+
   it("a screen opened from a sheet keeps its own entry", async () => {
     render(<Harness />);
     await click("open sheet");

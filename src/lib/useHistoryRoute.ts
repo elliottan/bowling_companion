@@ -33,6 +33,12 @@ export function useHistoryRoute(state: NavState, dispatch: (action: NavAction) =
   // whether we are the ones popping it because the sheet closed by itself.
   const sentinel = useRef(false);
   const consumingSentinel = useRef(false);
+  // A route change that arrived while the sentinel's own `history.back()` was
+  // still in flight. Writing it straight away loses it: the pending pop lands
+  // a moment later and takes the entry we just pushed with it, so the tap that
+  // caused the change looks like it did nothing. It is written once the pop
+  // has been accounted for instead.
+  const pendingWrite = useRef<{ hash: string; push: boolean } | null>(null);
 
   const openSheets = useSyncExternalStore(subscribeSheets, getOpenSheets, getOpenSheets);
 
@@ -53,6 +59,16 @@ export function useHistoryRoute(state: NavState, dispatch: (action: NavAction) =
         depth.current = Math.max(0, depth.current - 1);
         if (!consumingSentinel.current) closeTopSheet();
         consumingSentinel.current = false;
+        const pending = pendingWrite.current;
+        pendingWrite.current = null;
+        if (pending && pending.hash !== window.location.hash) {
+          if (pending.push) {
+            depth.current += 1;
+            window.history.pushState({ depth: depth.current }, "", pending.hash);
+          } else {
+            window.history.replaceState({ depth: depth.current }, "", pending.hash);
+          }
+        }
         return;
       }
       applyingPop.current = true;
@@ -75,6 +91,13 @@ export function useHistoryRoute(state: NavState, dispatch: (action: NavAction) =
 
     const hash = routeHash(state);
     if (hash === window.location.hash) return;
+
+    // The sentinel's back() has not landed yet. Hand the write to the popstate
+    // handler rather than racing it.
+    if (consumingSentinel.current) {
+      pendingWrite.current = { hash, push: !wasPop && shouldPushHistory(from, state) };
+      return;
+    }
 
     if (wasPop) {
       // The state ended up somewhere the popped entry did not describe (a

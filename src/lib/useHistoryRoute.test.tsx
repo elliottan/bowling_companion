@@ -160,7 +160,7 @@ describe("useHistoryRoute", () => {
   });
 
   it("restores the screen the URL names on load", async () => {
-    window.history.replaceState(null, "", "/#/settings/lanes");
+    window.history.replaceState(null, "", "/#/settings/section/lanes");
     render(<Harness />);
     await act(async () => {});
 

@@ -8,6 +8,28 @@ merge to `main` (`docs/DEPLOYMENT.md`), so every section below is a dated batch
 of shipped work rather than a release. Thirty of them used to be headed
 `[Unreleased]`, which said nothing once they had all shipped.
 
+## Back out of the catalog lands where you were (2026-08)
+
+### Fixed
+
+- **Backing out of the ball catalog no longer drops you on Backup & restore.**
+  A pushed screen and a Settings section shared a URL segment, so
+  `#/settings/arsenal` read back as the Settings section "arsenal" rather than
+  the arsenal pushed over the Settings tab, and Settings rendered its fallback
+  section. Settings sections are now written behind their own `section`
+  segment, so no overlay can be mistaken for one.
+- **A tap right after closing a sheet no longer does nothing.** Closing a sheet
+  asks the browser to collect its history entry, and back() lands a moment
+  later; a screen opened in that gap wrote its entry straight away and the
+  pending pop took it back off. The write now waits for the pop.
+
+### Changed
+
+- **The arsenal no longer carries its own catalog shortcut or its reordering
+  hint.** The catalog is a row in Settings and a push from the dashboard.
+- **History and Stats no longer cross to each other from their headers.** Both
+  are tabs in the bar underneath, one tap away either way.
+
 ## The back-swipe is the platform's (2026-08)
 
 ### Changed

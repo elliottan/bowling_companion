@@ -31,6 +31,9 @@ test("exports a backup, clears the database, and restores it via import", async 
   });
   await page.reload();
   await dismissHandednessModal(page);
+  // The reload lands back on Backup & restore, which is pushed over the tab
+  // bar, so leave it before crossing to a tab.
+  await page.getByRole("dialog", { name: "Backup & restore" }).getByRole("button", { name: "Back" }).click();
   await page.getByRole("button", { name: "History" }).click();
   await expect(page.getByRole("heading", { name: "No sessions yet" })).toBeVisible();
 
@@ -53,6 +56,8 @@ test("exports a backup, clears the database, and restores it via import", async 
 
   await expect(page.getByText(/Replaced all data\. You now have 1 sessions/)).toBeVisible();
 
+  // Backup & restore is pushed over the tab bar, so leave it before crossing.
+  await page.getByRole("dialog", { name: "Backup & restore" }).getByRole("button", { name: "Back" }).click();
   await page.getByRole("button", { name: "History" }).click();
   // Target the session row button (a location-filter <option> shares the name).
   await expect(page.getByRole("button", { name: /Backup Lanes/ })).toBeVisible();
