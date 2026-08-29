@@ -112,7 +112,7 @@ export function OilPatternManager({ onBack, mode = "inline" }: OilPatternManager
         <EmptyState
           icon={Waves}
           title="No oil patterns yet"
-          description="Save the patterns you bowl on, with a link to their sheet, and they show up when you start a session."
+          description="Save the patterns you bowl on, with a link to their sheet. They show up when you start a session."
         >
           <Button variant="primary" size="lg" onClick={openAdd}>
             <Plus size={18} aria-hidden="true" />

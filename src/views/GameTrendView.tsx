@@ -94,13 +94,16 @@ export function GameTrendView({ onBack }: GameTrendViewProps) {
               header={
                 <div className="mb-1 flex items-center justify-between gap-2">
                   <h2 className={GROUP_HEADING}>{spec.label} by game</h2>
-                  <IconButton
-                    label={`What ${spec.label} counts`}
-                    compact
-                    onClick={() => setNoteOpen((v) => !v)}
-                  >
-                    <Info size={16} aria-hidden="true" />
-                  </IconButton>
+                  {/* Only where the stat has a definition worth reading. */}
+                  {metricNote(metric) && (
+                    <IconButton
+                      label={`What ${spec.label} counts`}
+                      compact
+                      onClick={() => setNoteOpen((v) => !v)}
+                    >
+                      <Info size={16} aria-hidden="true" />
+                    </IconButton>
+                  )}
                 </div>
               }
               overall={null}
@@ -118,7 +121,7 @@ export function GameTrendView({ onBack }: GameTrendViewProps) {
               }}
             />
 
-            {noteOpen && (
+            {noteOpen && metricNote(metric) && (
               <p className="mt-2 px-0.5 text-xs leading-relaxed text-ink-secondary">
                 {metricNote(metric)}
               </p>

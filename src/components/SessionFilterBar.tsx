@@ -30,6 +30,7 @@ function activeFilterCount(filters: SessionFilters): number {
   return (
     (filters.alley ? 1 : 0) +
     (filters.pattern ? 1 : 0) +
+    (filters.event ? 1 : 0) +
     (filters.gameNumber != null ? 1 : 0) +
     (filters.activeLanes.length > 0 ? 1 : 0)
   );
@@ -70,8 +71,8 @@ export function SessionFilterButton({
  * nothing is on, which is the common case and the whole height saving.
  */
 export function SessionFilterChips({ filters }: { filters: SessionFilters }) {
-  const { alley, setAlley, pattern, setPattern, gameNumber, setGameNumber } = filters;
-  const { activeLanes, clearLanes } = filters;
+  const { alley, setAlley, pattern, setPattern, event, setEvent } = filters;
+  const { gameNumber, setGameNumber, activeLanes, clearLanes } = filters;
   const count = activeFilterCount(filters);
   if (count === 0) return null;
 
@@ -87,6 +88,7 @@ export function SessionFilterChips({ filters }: { filters: SessionFilters }) {
     <div className="-mx-3 mb-2 flex items-center gap-2 overflow-x-auto px-3 py-1.5 sm:-mx-6 sm:px-6">
       {alley && <AppliedChip label={alley} onRemove={() => setAlley("")} />}
       {pattern && <AppliedChip label={pattern} onRemove={() => setPattern("")} />}
+      {event && <AppliedChip label={event} onRemove={() => setEvent("")} />}
       {gameNumber != null && (
         <AppliedChip label={`Game ${gameNumber}`} onRemove={() => setGameNumber(null)} />
       )}
@@ -103,6 +105,7 @@ export function SessionFilterChips({ filters }: { filters: SessionFilters }) {
           onClick={() => {
             setAlley("");
             setPattern("");
+            setEvent("");
             setGameNumber(null);
             clearLanes();
           }}
@@ -144,6 +147,8 @@ export function SessionFilterSheet({
     setAlley,
     pattern,
     setPattern,
+    event,
+    setEvent,
     gameNumber,
     setGameNumber,
     lanes,
@@ -151,6 +156,7 @@ export function SessionFilterSheet({
     clearLanes,
     allAlleys,
     allPatterns,
+    allEvents,
     allGameNumbers,
     allLanes
   } = filters;
@@ -195,6 +201,27 @@ export function SessionFilterSheet({
             ))}
           </select>
         </div>
+
+        {allEvents.length > 0 && (
+          <div>
+            <label className={FIELD_LABEL} htmlFor="filter-event">
+              Event
+            </label>
+            <select
+              id="filter-event"
+              value={event}
+              onChange={(e) => setEvent(e.target.value)}
+              className={FIELD_SELECT}
+            >
+              <option value="">All events</option>
+              {allEvents.map((e) => (
+                <option key={e} value={e}>
+                  {e}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
 
         {allGameNumbers.length > 1 && (
           <div>

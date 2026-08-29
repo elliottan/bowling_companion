@@ -102,38 +102,31 @@ export function metricSpec(metric: MetricKey) {
   return METRICS[metric];
 }
 
-/** The definition behind a metric, for a chart that plots it elsewhere. */
-export function metricNote(metric: MetricKey): string {
+/** The definition behind a metric, where it has one. */
+export function metricNote(metric: MetricKey): string | undefined {
   return METRIC_NOTE[metric];
 }
 
-// Definitions, tapped rather than printed: they are read once and then in the
-// way. Short enough to land in a glance.
-const POCKET_NOTE =
-  "Pocket: balls thrown at a full rack that hit the pocket. Read from the leave, and you can flip it on any shot.";
-const CARRY_NOTE =
-  "Carry: pocket hits that struck. It answers whether the rack fell when you got it there.";
-const STRIKE_NOTE =
-  "Strike: balls thrown at a full rack that struck. It is pocket multiplied by carry, so it drops when either does.";
-const SPARE_NOTE =
-  "Spare: makeable leaves converted. Washouts and real splits are left out.";
-const FIRST_BALL_NOTE =
-  "First ball: pins knocked down by the average ball at a full rack. Same balls as strike and pocket, so the three describe one shot.";
-const AVERAGE_NOTE =
-  "Average: every completed game in view. The faint dots behind each night are the games it is made of, so a 170 and a 240 do not look like two 205s.";
+// Definitions, tapped rather than printed: read once, then in the way.
+//
+// Only for a stat whose name does not already say it. Pocket, strike and first
+// ball each explain themselves, and the notes they used to carry restated the
+// label and then padded. Not every number needs a sentence.
+const CARRY_NOTE = "Carry: pocket hits that struck.";
+const SPARE_NOTE = "Spare: makeable leaves converted, excludes splits and washouts.";
 
-/** The note that belongs to each graphable stat, shown from the chart it is
- *  plotted on rather than from the tile (ADR-061). */
-const METRIC_NOTE: Record<MetricKey, string> = {
-  average: AVERAGE_NOTE,
-  strikePct: STRIKE_NOTE,
+/** The note for a graphable stat, where there is one, shown from the chart it
+ *  is plotted on rather than from the tile (ADR-061).
+ *
+ *  Two of six. Average, pocket, strike and first ball are named plainly enough
+ *  by their own labels, and the notes they carried restated the label and then
+ *  padded. */
+const METRIC_NOTE: Partial<Record<MetricKey, string>> = {
   sparePct: SPARE_NOTE,
-  pocketPct: POCKET_NOTE,
-  carryPct: CARRY_NOTE,
-  firstBallAverage: FIRST_BALL_NOTE
+  carryPct: CARRY_NOTE
 };
 const LEAVE_NOTE =
-  "Made over chances, then the rate. A leave off the last ball of the 10th has no spare to make, so it stays off this card entirely. It still counts under the ball that left it.";
+  "Made over chances, then the rate. A leave off the last ball of the 10th has no spare to follow it, so it is not on this card.";
 
 interface StatsProps {
   stats: BowlingStats;
@@ -206,15 +199,17 @@ export function Stats({
         <h2 className={GROUP_HEADING}>
           {spec.label} by {gameMetrics ? "game" : "session"}
         </h2>
-        <IconButton
-          label={`What ${spec.label} counts`}
-          compact
-          onClick={() => setMetricNoteOpen((v) => !v)}
-        >
-          <Info size={16} aria-hidden="true" />
-        </IconButton>
+        {METRIC_NOTE[metric] && (
+          <IconButton
+            label={`What ${spec.label} counts`}
+            compact
+            onClick={() => setMetricNoteOpen((v) => !v)}
+          >
+            <Info size={16} aria-hidden="true" />
+          </IconButton>
+        )}
       </div>
-      {metricNoteOpen && (
+      {metricNoteOpen && METRIC_NOTE[metric] && (
         <p className="mt-1 text-xs leading-relaxed text-ink-secondary">{METRIC_NOTE[metric]}</p>
       )}
     </div>
@@ -463,7 +458,7 @@ function StatNote({ text, onDismiss }: { text: string; onDismiss: () => void }) 
       onClick={onDismiss}
       className="w-full rounded-lg border border-edge bg-surface-muted p-3 text-left text-xs text-ink-secondary"
     >
-      {text} Tap to dismiss.
+      {text}
     </button>
   );
 }
@@ -562,7 +557,6 @@ function BallPerformanceRow({
                 label="Pocket"
                 cells={ball.byGame.map((c) => rateOf(c.pocket, c.firstBalls))}
                 total={ball.pocketPct}
-                onExplain={() => setNote((curr) => (curr === POCKET_NOTE ? null : POCKET_NOTE))}
               />
               <MetricRow
                 label="Carry"
@@ -574,7 +568,6 @@ function BallPerformanceRow({
                 label="Strike"
                 cells={ball.byGame.map((c) => rateOf(c.strikes, c.firstBalls))}
                 total={ball.strikePct}
-                onExplain={() => setNote((curr) => (curr === STRIKE_NOTE ? null : STRIKE_NOTE))}
               />
               <tr>
                 <td className="text-left text-ink-tertiary">Balls</td>
@@ -630,14 +623,24 @@ function MetricRow({
   label: string;
   cells: Array<number | null>;
   total: number | null;
-  onExplain: () => void;
+  /** Omitted where the label needs no explaining, and then it is not a
+   *  control: a dotted underline that opens nothing is a broken promise. */
+  onExplain?: () => void;
 }) {
   return (
     <tr>
       <td className="text-left font-semibold text-ink">
-        <button type="button" onClick={onExplain} className="underline decoration-dotted underline-offset-2">
-          {label}
-        </button>
+        {onExplain ? (
+          <button
+            type="button"
+            onClick={onExplain}
+            className="underline decoration-dotted underline-offset-2"
+          >
+            {label}
+          </button>
+        ) : (
+          label
+        )}
       </td>
       {cells.map((value, i) => (
         <td key={i} className="text-right">

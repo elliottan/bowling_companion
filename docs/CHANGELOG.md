@@ -10,6 +10,21 @@ of shipped work rather than a release. Thirty of them used to be headed
 
 ## Back out of the catalog lands where you were (2026-08)
 
+### Added
+
+- **Filter History and Stats by event.** The session description ("League",
+  "Practice", a tournament name) joins alley, pattern, game and lane as a
+  filter, offered from the values already used rather than typed again.
+
+### Changed
+
+- **A night picked out of the session trend lists every game it was made of**,
+  in the order bowled. High and low alone hid the shape: 150/240 and 195/195
+  both read as one number.
+- **The metric notes are down to the two that say something.** Pocket, strike,
+  first ball and average were explained by sentences that restated their own
+  labels, and the info control is gone where there is nothing to open.
+
 ### Fixed
 
 - **Backing out of the ball catalog no longer drops you on Backup & restore.**

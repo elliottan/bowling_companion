@@ -729,6 +729,10 @@ function comparePins(a: PinNumber[], b: PinNumber[]): number {
 export interface FilterOptions {
   oilPattern?: string;
   alleyName?: string;
+  /** The session's own description: "League", "Practice", "SIA Bilateral".
+   *  Matched exactly, since these come from a picker built out of the values
+   *  already used rather than being typed again. */
+  event?: string;
   laneNumber?: string;
   /** Keep only this position in the night: every third game, say. Filtering the
    *  games here rather than teaching each calculator about it is what lets the
@@ -755,6 +759,10 @@ export function filterSessionsBy(
 
     if (filter.alleyName) {
       if (s.session.alley_name.toLowerCase() !== filter.alleyName.toLowerCase()) return acc;
+    }
+
+    if (filter.event) {
+      if ((s.session.description ?? "").toLowerCase() !== filter.event.toLowerCase()) return acc;
     }
 
     if (filter.laneNumber) {

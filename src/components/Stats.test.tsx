@@ -102,14 +102,23 @@ describe("picking what the chart plots", () => {
 
   it("explains the plotted stat from the chart, not the tile", () => {
     render(<Stats stats={STATS} sessionMetrics={TREND} sessionTrend={SESSION_TREND} />);
-    fireEvent.click(screen.getByRole("button", { name: /Pocket/ }));
-    expect(screen.queryByText(/balls thrown at a full rack that hit the pocket/i)).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: /Carry/ }));
+    expect(screen.queryByText(/pocket hits that struck/i)).toBeNull();
 
-    fireEvent.click(screen.getByRole("button", { name: /What Pocket counts/ }));
-    expect(screen.getByText(/balls thrown at a full rack that hit the pocket/i)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: /What Carry counts/ }));
+    expect(screen.getByText(/pocket hits that struck/i)).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("button", { name: /What Pocket counts/ }));
-    expect(screen.queryByText(/balls thrown at a full rack that hit the pocket/i)).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: /What Carry counts/ }));
+    expect(screen.queryByText(/pocket hits that struck/i)).toBeNull();
+  });
+
+  it("offers no explanation for a stat whose label already says it", () => {
+    render(<Stats stats={STATS} sessionMetrics={TREND} sessionTrend={SESSION_TREND} />);
+    for (const named of ["Pocket", "Strike", "1st ball"]) {
+      fireEvent.click(screen.getByRole("button", { name: new RegExp(named) }));
+      // No dangling info control, because there is nothing behind it.
+      expect(screen.queryByRole("button", { name: `What ${named} counts` })).toBeNull();
+    }
   });
 });
 
@@ -281,7 +290,7 @@ describe("leave cells", () => {
   it("explains the counts when the group heading is tapped", () => {
     render(<Stats stats={STATS} leaves={[tenPin]} />);
     fireEvent.click(screen.getByText("Makeables"));
-    expect(screen.getByText(/no spare to make/i)).toBeInTheDocument();
+    expect(screen.getByText(/no spare to follow it/i)).toBeInTheDocument();
   });
 });
 
@@ -320,8 +329,6 @@ describe("first ball average", () => {
     expect(screen.getByText("8.4")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: /1st ball/ }));
     expect(screen.getByText(/1st ball by\s+session/)).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: /What 1st ball counts/ }));
-    expect(screen.getByText(/pins knocked down by the average ball/i)).toBeInTheDocument();
   });
 
   it("keeps the decimal on a whole number", () => {

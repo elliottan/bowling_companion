@@ -229,8 +229,6 @@ function SelectedSession({
   onOpen?: (sessionId: number) => void;
   onDismiss: () => void;
 }) {
-  const high = Math.max(...point.scores);
-  const low = Math.min(...point.scores);
   const detail = [point.event, `${point.scores.length} ${point.scores.length === 1 ? "game" : "games"}`]
     .filter(Boolean)
     .join(" · ");
@@ -242,16 +240,18 @@ function SelectedSession({
         <span className="shrink-0 text-xs tabular-nums text-ink-secondary">{point.date}</span>
       </span>
       {detail && <span className="truncate text-xs text-ink-secondary">{detail}</span>}
-      <span className="text-xs tabular-nums text-ink-secondary">
-        <span className="font-bold text-accent">{point.average}</span> avg
-        {high !== low && (
-          <>
-            {" · "}
-            <span className="font-semibold text-ink">{high}</span> high
-            {" · "}
-            <span className="font-semibold text-ink">{low}</span> low
-          </>
-        )}
+      {/* Every game of the night, in the order they were bowled. High and low
+          alone hid the shape: 150/240 and 195/195 both read as one number. */}
+      <span className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5 text-xs tabular-nums text-ink-secondary">
+        <span>
+          <span className="font-bold text-accent">{point.average}</span> avg
+        </span>
+        {point.scores.map((score, i) => (
+          <span key={i}>
+            <span className="text-ink-tertiary">G{i + 1}</span>{" "}
+            <span className="font-semibold text-ink">{score}</span>
+          </span>
+        ))}
       </span>
     </>
   );

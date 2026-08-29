@@ -752,7 +752,7 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall }: CatalogVie
           <EmptyState
             icon={BookOpen}
             title="Catalog is empty"
-            description="The catalog carries manufacturer specs, so linking a ball fills in its core, coverstock, RG and diff."
+            description="The catalog has manufacturer specs, so linking a ball fills in its core, coverstock, RG and diff."
           >
             <Button variant="primary" onClick={handleRefresh}>
               Refresh catalog

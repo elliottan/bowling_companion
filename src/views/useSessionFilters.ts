@@ -36,6 +36,9 @@ export interface SessionFilters {
   setAlley: (value: string) => void;
   pattern: string;
   setPattern: (value: string) => void;
+  /** The session description: League, Practice, a tournament name. */
+  event: string;
+  setEvent: (value: string) => void;
   /** Position in the night, or null for every game. */
   gameNumber: number | null;
   setGameNumber: (value: number | null) => void;
@@ -45,6 +48,7 @@ export interface SessionFilters {
 
   allAlleys: string[];
   allPatterns: string[];
+  allEvents: string[];
   allGameNumbers: number[];
   /** Lanes offered, which is only the ones seen at the chosen alley. */
   allLanes: string[];
@@ -80,6 +84,7 @@ export function useSessionFilters(
 
   const [alley, setAlley] = useRememberedState("history:alley", "");
   const [pattern, setPattern] = useRememberedState("history:pattern", "");
+  const [event, setEvent] = useRememberedState("history:event", "");
   const [gameNumber, setGameNumber] = useRememberedState<number | null>("history:game", null);
   const [lanes, setLanes] = useRememberedState<string[]>("history:lanes", []);
 
@@ -88,12 +93,13 @@ export function useSessionFilters(
   }
 
   const filteredExceptGame = useMemo(() => {
-    if (!alley && !pattern) return history;
+    if (!alley && !pattern && !event) return history;
     return filterSessionsBy(history, {
       alleyName: alley || undefined,
-      oilPattern: pattern || undefined
+      oilPattern: pattern || undefined,
+      event: event || undefined
     });
-  }, [history, alley, pattern]);
+  }, [history, alley, pattern, event]);
 
   const filtered = useMemo(() => {
     if (gameNumber == null) return filteredExceptGame;
@@ -142,6 +148,13 @@ export function useSessionFilters(
       ].sort(),
     [history]
   );
+  const allEvents = useMemo(
+    () =>
+      [
+        ...new Set(history.flatMap((s) => (s.session.description ? [s.session.description] : [])))
+      ].sort(),
+    [history]
+  );
   // Offered from the whole history, not the filtered list: the chips must not
   // disappear as soon as one of them is picked.
   const allGameNumbers = useMemo(
@@ -162,6 +175,8 @@ export function useSessionFilters(
     setAlley,
     pattern,
     setPattern,
+    event,
+    setEvent,
     gameNumber,
     setGameNumber,
     lanes,
@@ -169,13 +184,14 @@ export function useSessionFilters(
     clearLanes: () => setLanes([]),
     allAlleys,
     allPatterns,
+    allEvents,
     allGameNumbers,
     allLanes,
     activeLanes,
     filtered,
     filteredExceptGame,
     sessionList,
-    isFiltered: Boolean(alley || pattern || gameNumber != null || activeLanes.length > 0),
+    isFiltered: Boolean(alley || pattern || event || gameNumber != null || activeLanes.length > 0),
     gameCount
   };
 }

@@ -1176,3 +1176,40 @@ describe("calculateGameMetrics", () => {
     expect(calculateGameMetrics(s)[0]).toMatchObject({ gameId: 7, lanes: ["11", "12"] });
   });
 });
+
+describe("filterSessionsBy event", () => {
+  const strikes = Array.from({ length: 9 }, (_, i) => frame(i + 1, NONE)).concat(
+    frame(10, NONE, NONE, NONE)
+  );
+  const night = (event: string | undefined, date: string): SessionSummary => ({
+    session: { id: Number(date.replace(/-/g, "")), date, alley_name: "Sea Bowl", description: event },
+    games: [numberedGame(1, 200, strikes)]
+  });
+
+  const sessions = [night("League", "2026-06-07"), night("Practice", "2026-06-14"), night(undefined, "2026-06-21")];
+
+  it("keeps only the nights with that description", () => {
+    const filtered = filterSessionsBy(sessions, { event: "League" });
+    expect(filtered.map((s) => s.session.date)).toEqual(["2026-06-07"]);
+  });
+
+  it("ignores case, since the picker offers what was already typed", () => {
+    expect(filterSessionsBy(sessions, { event: "league" })).toHaveLength(1);
+  });
+
+  it("drops a night with no description rather than matching it to everything", () => {
+    expect(filterSessionsBy(sessions, { event: "League" }).map((s) => s.session.description)).toEqual([
+      "League"
+    ]);
+  });
+
+  it("combines with the other filters", () => {
+    const mixed = [...sessions, {
+      session: { id: 99, date: "2026-06-28", alley_name: "Palace", description: "League" },
+      games: [numberedGame(1, 180, strikes)]
+    }];
+    const filtered = filterSessionsBy(mixed, { event: "League", alleyName: "Sea Bowl" });
+    expect(filtered).toHaveLength(1);
+    expect(filtered[0].session.alley_name).toBe("Sea Bowl");
+  });
+});

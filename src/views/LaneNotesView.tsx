@@ -266,7 +266,7 @@ export function LaneNotesView({ onBack, mode = "inline" }: LaneNotesViewProps = 
         <EmptyState
           icon={MapPin}
           title="No lane notes yet"
-          description="Write down how a lane plays, where it hooks and when it turns. It is waiting the next time you bowl there."
+          description="Write down how a lane plays, where it hooks and when it turns. You get it back next time you draw that lane."
         >
           <Button variant="primary" size="lg" onClick={openAdd}>
             <Plus size={18} aria-hidden="true" />
