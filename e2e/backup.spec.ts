@@ -62,3 +62,25 @@ test("exports a backup, clears the database, and restores it via import", async 
   // Target the session row button (a location-filter <option> shares the name).
   await expect(page.getByRole("button", { name: /Backup Lanes/ })).toBeVisible();
 });
+
+test("a finished game in a browser tab asks for a copy, and Later dismisses it", async ({ page }) => {
+  await startSession(page, "Eviction Lanes");
+
+  // Nothing to lose yet: the session exists but no game is finished, and
+  // asking now would train the user to ignore the prompt (ADR-068).
+  await expect(page.getByText("Save a copy")).toHaveCount(0);
+
+  // Bowl a perfect game to finish it.
+  for (let i = 0; i < 12; i++) {
+    await recordShot(page, []);
+  }
+
+  // Playwright is a browser tab, never standalone, so the tab policy applies:
+  // one unsaved session is enough.
+  await expect(
+    page.getByText("This game is saved on this phone only.", { exact: false })
+  ).toBeVisible();
+
+  await page.getByRole("button", { name: "Later" }).click();
+  await expect(page.getByText("Save a copy")).toHaveCount(0);
+});

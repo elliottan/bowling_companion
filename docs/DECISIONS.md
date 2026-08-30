@@ -3124,3 +3124,59 @@ by date alone, so two exports in one day collided in a folder as "(1)" and
 - The remaining exposure is a user who installs nothing, backs up nothing, and
   bowls fortnightly on an iPhone. The app now warns them twice, in the right
   place, and cannot be quietly silenced. It does not save them.
+
+## ADR-068: How hard the app asks depends on where it is running
+
+**Status:** accepted (2026-08). Extends ADR-067, which owns the nudge itself.
+
+**Context.** ADR-067 ended by naming its own remaining exposure: "a user who
+installs nothing, backs up nothing, and bowls fortnightly on an iPhone." That
+user is not an edge case. They are the default first-time visitor, and with the
+app about to be handed to people who have never seen it, the default is what
+matters.
+
+The thresholds were the problem. `due` at three sessions, `overdue` at eight or
+at sixty days, snooze a week. Those numbers were chosen for storage that
+persists, which is what `navigator.storage.persist()` buys on Chrome and
+Firefox. In an iOS Safari tab it buys nothing: Apple clears script-writable
+storage for a site the user has not opened in seven days. So the app waited
+sixty days to raise its voice about data that was gone on day seven. It was
+warning about a loss that had already happened, roughly eight times over.
+
+The dashboard is also the wrong place to catch this person. It speaks when they
+come back, and the whole failure mode is that they do not come back.
+
+**Decision.**
+
+- **Every threshold is a function of `isStandalone()`.** `nudgePolicy(installed)`
+  returns the numbers; nothing else in the app hardcodes one. Installed keeps
+  ADR-067's 3 / 8 / 60 days / 7-day snooze. A browser tab gets 1 / 2 / 5 days /
+  2-day snooze.
+- **Five days, not seven.** Seven is the deadline. A reminder that fires on the
+  deadline fires too late to act on.
+- **The ask also happens in the session, not only on Home.** When a game in the
+  current session has a `final_score` and the app is in a tab, `SaveCopyPrompt`
+  appears under the session header. It calls `shareBackup()` directly rather
+  than routing to the backup screen: taking someone out of a live game to go and
+  find an export button is how a prompt gets dismissed instead of acted on.
+- **It is gated on a finished game in this session, not on the session count.**
+  A night that has just been created is already one session "behind", and asking
+  someone to back up before they have thrown a ball is how a prompt teaches
+  itself to be ignored.
+- **`installed` is a parameter, not stored state.** `backupUrgency(state,
+  installed)` takes it from the caller, so `lib/` keeps its no-DOM rule and the
+  policy stays a pure function of two inputs. Views read `isStandalone()` per
+  render, which also means installing mid-session takes effect immediately.
+
+**Consequences.**
+- A tab user who bowls one game and stops is asked once, that night. This is
+  deliberately more aggressive than the installed experience, and it is
+  proportionate: their data really can be gone in a week.
+- Dismissing in-session buys two days, not seven. Long enough to finish the
+  night, short enough to land again before the eviction window closes.
+- The install prompt is still the actual fix and the nudge is damage control.
+  Nothing here saves a user who bowls, closes the tab, and returns in three
+  weeks. Only installing does.
+- The counts are now two policies rather than one, so any future change to the
+  numbers has to be made twice, on purpose. That is the point: they encode two
+  different storage guarantees and should not drift into each other.

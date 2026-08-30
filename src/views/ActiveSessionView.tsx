@@ -1,6 +1,7 @@
 import { ChevronLeft, Plus, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { ActiveGameScorer } from "../components/ActiveGameScorer";
+import { SaveCopyPrompt } from "../components/SaveCopyPrompt";
 import { ConfirmDialog } from "../components/ConfirmDialog";
 import { ErrorBanner } from "../components/ErrorBanner";
 import { SessionFormDialog } from "../components/SessionFormDialog";
@@ -12,13 +13,18 @@ import { FormSheet } from "../components/ui/FormSheet";
 import { AnchoredMenu, AnchoredMenuItem } from "../components/ui/AnchoredMenu";
 import { FIELD } from "../components/ui/field";
 import type { NewSessionFormValues } from "../components/SessionForm";
+import { useLiveQuery } from "dexie-react-hooks";
+import { backupUrgency as urgencyOf, snoozeMs } from "../lib/backupNudge";
+import { isStandalone } from "../lib/installPrompt";
 import { calculateGameScore } from "../lib/scoring";
 import { useLongPress } from "../lib/useLongPress";
 import {
   addNextGameToSession,
   deleteGame,
+  getBackupNudgeState,
   getSessionDetails,
   saveFrame,
+  setBackupNudgeSnoozedUntil,
   updateGameLanes,
   updateSession
 } from "../services/bowlingRepository";
@@ -88,6 +94,16 @@ export function ActiveSessionView({
   const [startSide, setStartSide] = useState<"A" | "B">("A");
   const [laneError, setLaneError] = useState("");
   const [showLaneEditor, setShowLaneEditor] = useState(false);
+
+  // The backup ask, in session (ADR-068). Only in a browser tab: installed,
+  // storage is durable and the dashboard nudge is soon enough.
+  const installed = isStandalone();
+  const nudge = useLiveQuery(() => getBackupNudgeState());
+  const saveCopyUrgency = !installed && nudge ? urgencyOf(nudge, installed) : "none";
+
+  function handleSaveCopyLater() {
+    void setBackupNudgeSnoozedUntil(new Date(Date.now() + snoozeMs(installed)).toISOString());
+  }
 
   useEffect(() => {
     if (openStatsOnMount) onStatsOpened?.();
@@ -405,6 +421,16 @@ export function ActiveSessionView({
 
         {error && (
           <ErrorBanner className="mt-3">{error}</ErrorBanner>
+        )}
+
+        {/* Gated on a finished game in THIS session, not on the session count
+            alone. A night that has just been created is already one session
+            "behind", and asking someone to back up before they have thrown a
+            ball is how a prompt teaches itself to be ignored (ADR-068). */}
+        {saveCopyUrgency !== "none" && finalScores.length > 0 && (
+          <div className="mt-3">
+            <SaveCopyPrompt urgency={saveCopyUrgency} onLater={handleSaveCopyLater} />
+          </div>
         )}
       </section>
 

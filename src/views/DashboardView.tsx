@@ -18,7 +18,7 @@ import {
   setSetting,
   type ResumableGame
 } from "../services/bowlingRepository";
-import { backupUrgency as urgencyOf, describeAge } from "../lib/backupNudge";
+import { backupUrgency as urgencyOf, describeAge, snoozeMs } from "../lib/backupNudge";
 import { canPromptInstall, isIOSSafari, isStandalone } from "../lib/installPrompt";
 import type { SessionSummary } from "../types/bowling";
 
@@ -41,7 +41,6 @@ interface DashboardViewProps {
   onOpenBackup: () => void;
 }
 
-const SNOOZE_MS = 7 * 24 * 60 * 60 * 1000;
 const INSTALL_NUDGE_DISMISSED_KEY = "install_nudge_dismissed_at";
 
 const RECENT_LIMIT = 10;
@@ -79,7 +78,10 @@ export function DashboardView({
   const loadingRecent = liveRecent === undefined;
 
   const nudge = useLiveQuery(() => getBackupNudgeState());
-  const backupUrgency = nudge ? urgencyOf(nudge) : "none";
+  // Read once per render rather than stored: the display mode can change under
+  // a live tab (the user installs mid-session) and this costs a matchMedia.
+  const installed = isStandalone();
+  const backupUrgency = nudge ? urgencyOf(nudge, installed) : "none";
   const nudgeSessionsSince = nudge
     ? nudge.lastBackupAt === null
       ? nudge.totalSessions
@@ -93,11 +95,11 @@ export function DashboardView({
   const installNudge = useLiveQuery(async () => ({
     dismissedAt: await getSetting(INSTALL_NUDGE_DISMISSED_KEY)
   }));
-  const installEligible = (isIOSSafari() && !isStandalone()) || canPromptInstall();
+  const installEligible = (isIOSSafari() && !installed) || canPromptInstall();
   const showInstallLine = installEligible && !!installNudge && !installNudge.dismissedAt;
 
   function handleBackupLater() {
-    void setBackupNudgeSnoozedUntil(new Date(Date.now() + SNOOZE_MS).toISOString());
+    void setBackupNudgeSnoozedUntil(new Date(Date.now() + snoozeMs(installed)).toISOString());
   }
 
   // Both nudges dismiss by writing the setting they read: the live queries

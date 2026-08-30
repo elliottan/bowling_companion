@@ -3,6 +3,9 @@
  * (not date-based) for the sessions half, because session `date` is
  * free-text/user-editable and unreliable as a signal here. The overdue half is
  * date-based on `lastBackupAt`, which the app writes itself and can trust.
+ *
+ * Every threshold is a function of whether the app is installed: see
+ * `nudgePolicy` and ADR-068.
  */
 
 export interface BackupNudgeState {
@@ -13,14 +16,43 @@ export interface BackupNudgeState {
   now: Date;
 }
 
-/** Sessions since the last backup before the nudge appears at all. */
-const NUDGE_THRESHOLD = 3;
-/** Sessions since the last backup after which snoozing stops working. */
-const OVERDUE_SESSIONS = 8;
-/** Days since the last backup after which snoozing stops working, given there
- *  is anything new to lose. */
-const OVERDUE_DAYS = 60;
 const DAY_MS = 24 * 60 * 60 * 1000;
+
+/**
+ * How hard to push, and it depends entirely on where the app is running.
+ *
+ * Installed to the home screen, storage is durable and the only real risk is a
+ * lost or wiped phone, so the app can afford to ask politely and rarely. In a
+ * browser tab it cannot: iOS Safari clears script-writable storage for a site
+ * the user has not opened in seven days (ADR-067), so the nudge has to land
+ * inside that window or it is warning about data that is already gone.
+ *
+ * `overdueDays` is five, not seven, deliberately. Seven is the deadline; a
+ * reminder that fires on the deadline fires too late to act on.
+ */
+export interface NudgePolicy {
+  /** Sessions since the last backup before the nudge appears at all. */
+  due: number;
+  /** Sessions since the last backup after which snoozing stops working. */
+  overdue: number;
+  /** Days since the last backup after which snoozing stops working, given
+   *  there is anything new to lose. */
+  overdueDays: number;
+  /** How long Later buys, in days. */
+  snoozeDays: number;
+}
+
+const INSTALLED_POLICY: NudgePolicy = { due: 3, overdue: 8, overdueDays: 60, snoozeDays: 7 };
+const BROWSER_POLICY: NudgePolicy = { due: 1, overdue: 2, overdueDays: 5, snoozeDays: 2 };
+
+export function nudgePolicy(installed: boolean): NudgePolicy {
+  return installed ? INSTALLED_POLICY : BROWSER_POLICY;
+}
+
+/** Milliseconds Later buys, for callers writing the snooze timestamp. */
+export function snoozeMs(installed: boolean): number {
+  return nudgePolicy(installed).snoozeDays * DAY_MS;
+}
 
 /**
  * How loudly to ask.
@@ -32,25 +64,26 @@ const DAY_MS = 24 * 60 * 60 * 1000;
  */
 export type BackupUrgency = "none" | "due" | "overdue";
 
-export function backupUrgency(state: BackupNudgeState): BackupUrgency {
+export function backupUrgency(state: BackupNudgeState, installed: boolean): BackupUrgency {
+  const policy = nudgePolicy(installed);
   const behind = state.lastBackupAt === null
     ? state.totalSessions
     : state.totalSessions - state.sessionsAtLastBackup;
 
   if (behind <= 0) return "none";
 
-  if (behind >= OVERDUE_SESSIONS) return "overdue";
-  if (state.lastBackupAt !== null && daysSince(state.lastBackupAt, state.now) >= OVERDUE_DAYS) {
+  if (behind >= policy.overdue) return "overdue";
+  if (state.lastBackupAt !== null && daysSince(state.lastBackupAt, state.now) >= policy.overdueDays) {
     return "overdue";
   }
 
   if (state.snoozedUntil && state.now < new Date(state.snoozedUntil)) return "none";
-  return behind >= NUDGE_THRESHOLD ? "due" : "none";
+  return behind >= policy.due ? "due" : "none";
 }
 
 /** Kept for callers that only want a yes or no. */
-export function shouldShowBackupNudge(state: BackupNudgeState): boolean {
-  return backupUrgency(state) !== "none";
+export function shouldShowBackupNudge(state: BackupNudgeState, installed: boolean): boolean {
+  return backupUrgency(state, installed) !== "none";
 }
 
 /** Whole days between an ISO timestamp and now. Negative clocks read as 0. */

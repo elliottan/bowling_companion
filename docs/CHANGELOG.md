@@ -8,6 +8,25 @@ merge to `main` (`docs/DEPLOYMENT.md`), so every section below is a dated batch
 of shipped work rather than a release. Thirty of them used to be headed
 `[Unreleased]`, which said nothing once they had all shipped.
 
+## The app asks harder when your scores are not safe (2026-08)
+
+### Changed
+
+- **The backup reminder now knows whether you installed the app.** On the home
+  screen, nothing changes: it asks after three unsaved sessions. In a browser
+  tab it asks after one, and stops taking Later for an answer after two, or
+  after five days. iOS clears a site's data seven days after your last visit,
+  and the old sixty-day limit was warning about scores that were already gone.
+- **Later buys two days in a browser tab, not seven.** Long enough to finish
+  the night, short enough to ask again before the data can be cleared.
+
+### Added
+
+- **A save prompt during the session, once a game is finished.** Browser tabs
+  only, and it shares the file straight from the prompt rather than sending you
+  to the backup screen. The reminder on Home only speaks when you come back,
+  which is no help if closing the tab is the last thing you do.
+
 ## Back out of the catalog lands where you were (2026-08)
 
 ### Added
