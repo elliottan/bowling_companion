@@ -1,5 +1,6 @@
-import { CircleDot, Crosshair, MapPin, Waves, type LucideIcon } from "lucide-react";
+import { Crosshair, MapPin, Waves, type LucideIcon } from "lucide-react";
 import { useLiveQuery } from "dexie-react-hooks";
+import { BowlingBallIcon } from "./icons/BowlingBallIcon";
 import { GROUP_HEADING } from "./ui/typography";
 import { TAP_TARGET_44 } from "./ui/Chip";
 import { nextSteps, type NextStepKey } from "../lib/onboarding";
@@ -22,23 +23,22 @@ interface StepCopy {
 
 const COPY: Record<NextStepKey, StepCopy> = {
   arsenal: {
-    icon: CircleDot,
+    icon: BowlingBallIcon,
     title: "Add the balls you throw",
-    description:
-      "Every shot is recorded against a ball, so lines, drift and carry are all read back per ball.",
+    description: "Keep track of which ball you used per shot to enrich your stats and trends data.",
     action: "Add a ball"
   },
   "spare-lines": {
     icon: Crosshair,
     title: "Write down your spare lines",
     description:
-      "Once a leave has a line saved, that line comes up on the shot bar the moment you get that leave.",
+      "Save a line for a leave, and it prefills the intended line when you leave that spare during score entry.",
     action: "Set spare lines"
   },
   "oil-pattern": {
     icon: Waves,
     title: "Add the pattern you bowl on",
-    description: "Stats filter by pattern, so nights on the same oil compare against each other.",
+    description: "Filter stats by pattern to compare nights with the same oil pattern.",
     action: "Add a pattern"
   },
   "lane-notes": {

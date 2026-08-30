@@ -72,9 +72,7 @@ export function OpenFramesView({ onBack }: { onBack: () => void }) {
                 onClick={() => setNote(false)}
                 className="mt-2 w-full rounded-lg border border-edge bg-surface-muted p-3 text-left text-xs text-ink-secondary"
               >
-                An open frame gives up about 11 pins. A spare is worth ten plus your next ball, so
-                the real figure moves with the leave and whatever you threw after it. Tap to
-                dismiss.
+                An open frame gives up about 11 pins on average.
               </button>
             )}
 

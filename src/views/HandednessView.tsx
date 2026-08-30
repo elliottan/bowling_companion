@@ -71,7 +71,7 @@ export function HandednessView({ value, onChange, driftModel, onDriftModelChange
 
       <h2 className="mt-9 text-base font-bold text-ink">Release offset</h2>
       <p className="mt-1 text-sm leading-relaxed text-ink-secondary">
-        Boards between your slide foot and where the ball touches down. It counts to the{" "}
+        Boards from your slide foot to the ball's laydown point. It counts to the{" "}
         <span className="font-semibold text-ink-strong">{ballSide}</span> of your foot, the side
         you release on.
       </p>
@@ -90,8 +90,7 @@ export function HandednessView({ value, onChange, driftModel, onDriftModelChange
 
       <h2 className="mt-9 text-base font-bold text-ink">Drift zones</h2>
       <p className="mt-1 text-sm leading-relaxed text-ink-secondary">
-        Your slide foot rarely lands on the board you started on. Set how far it drifts,
-        and which way, for each part of the approach.
+        Set how much you drift, depending on where you start on the approach.
       </p>
 
       <div className="mt-3">
@@ -151,15 +150,11 @@ export function HandednessView({ value, onChange, driftModel, onDriftModelChange
           pending ? (
             <>
               <p>
-                Switching to {pending}-handed mirrors the app. Board 1 moves to the other
-                edge of the lane, the board-adjust arrows swap sides, spare targets flip to
-                the other pocket, and your release offset and drift keep their numbers but
-                now point the other way.
+                Everything mirrors: board 1, the arrows, spare targets, offset and drift all
+                flip to the other side.
               </p>
               <p>
-                Saved sessions are not converted. Every line you have already recorded was
-                stored against your old hand, so those lines will now be drawn on the
-                opposite side of the lane.
+                Saved sessions stay as recorded. Old lines will draw on the wrong side now.
               </p>
             </>
           ) : undefined

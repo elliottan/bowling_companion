@@ -1,4 +1,5 @@
-import { Archive, BookOpen, ChevronRight, Palette, CircleDot, Coffee, Crosshair, MapPin, MessageSquare, SlidersHorizontal, Spline, Waves, type LucideIcon } from "lucide-react";
+import { Archive, BookOpen, ChevronRight, Palette, Coffee, Crosshair, MapPin, MessageSquare, SlidersHorizontal, Spline, Waves, type LucideIcon } from "lucide-react";
+import { BowlingBallIcon } from "../components/icons/BowlingBallIcon";
 import { useEffect, useState } from "react";
 import { LaneNotesView } from "./LaneNotesView";
 import { OilPatternsView } from "./OilPatternsView";
@@ -119,7 +120,7 @@ function SettingsMenu({
         : "Never backed up. Export your data";
 
   const bowlingRows: Array<{ key: string; icon: LucideIcon; label: string; description: string; onClick: () => void }> = [
-    { key: "arsenal", icon: CircleDot, label: "Arsenal", description: "Manage your bowling balls", onClick: onOpenArsenal },
+    { key: "arsenal", icon: BowlingBallIcon, label: "Arsenal", description: "Manage your bowling balls", onClick: onOpenArsenal },
     { key: "spares", icon: Crosshair, label: "Spare lines", description: "How you shoot each leave", onClick: onOpenSpareLines },
     { key: "lanes", icon: MapPin, label: "Lane notes", description: "Notes per alley + lane", onClick: () => onSectionChange("lanes") },
     { key: "oil-patterns", icon: Waves, label: "Oil patterns", description: "Patterns and their sheet links", onClick: () => onSectionChange("oil-patterns") },

@@ -54,7 +54,7 @@ test("exports a backup, clears the database, and restores it via import", async 
     /^pre-import-bowling-companion-.*\.json$/
   );
 
-  await expect(page.getByText(/Replaced all data\. You now have 1 sessions/)).toBeVisible();
+  await expect(page.getByText(/Restored 1 sessions/)).toBeVisible();
 
   // Backup & restore is pushed over the tab bar, so leave it before crossing.
   await page.getByRole("dialog", { name: "Backup & restore" }).getByRole("button", { name: "Back" }).click();
@@ -78,7 +78,7 @@ test("a finished game in a browser tab asks for a copy, and Later dismisses it",
   // Playwright is a browser tab, never standalone, so the tab policy applies:
   // one unsaved session is enough.
   await expect(
-    page.getByText("This game is saved on this phone only.", { exact: false })
+    page.getByText("Saved on this phone only.", { exact: false })
   ).toBeVisible();
 
   await page.getByRole("button", { name: "Later" }).click();

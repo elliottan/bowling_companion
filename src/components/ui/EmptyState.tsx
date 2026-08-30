@@ -5,7 +5,7 @@ interface EmptyStateProps {
   icon: LucideIcon;
   title: string;
   /** One sentence on what lives here and how it earns its keep. */
-  description: string;
+  description?: string;
   /** Primary (and optionally secondary) action — the way out of empty. */
   children?: ReactNode;
 }
@@ -20,7 +20,9 @@ export function EmptyState({ icon: Icon, title, description, children }: EmptySt
         <Icon size={24} aria-hidden="true" />
       </div>
       <h2 className="mt-3 text-base font-semibold text-ink">{title}</h2>
-      <p className="mx-auto mt-1 max-w-xs text-sm text-ink-secondary">{description}</p>
+      {description && (
+        <p className="mx-auto mt-1 max-w-xs text-sm text-ink-secondary">{description}</p>
+      )}
       {children && <div className="mt-4 flex flex-col items-center gap-2">{children}</div>}
     </div>
   );

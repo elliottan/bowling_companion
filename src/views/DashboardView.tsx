@@ -1,4 +1,5 @@
-import { BookOpen, ChevronRight, CircleDot, Compass, Crosshair, MapPin, PlayCircle, Plus, Smartphone, Spline, Waves, type LucideIcon } from "lucide-react";
+import { BookOpen, ChevronRight, Compass, Crosshair, MapPin, PlayCircle, Plus, Smartphone, Spline, Waves, type LucideIcon } from "lucide-react";
+import { BowlingBallIcon } from "../components/icons/BowlingBallIcon";
 import { useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { ErrorBanner } from "../components/ErrorBanner";
@@ -137,7 +138,7 @@ export function DashboardView({
   // latter.
   const shortcuts: Array<{ icon: LucideIcon; label: string; onClick: () => void }> = [
     { icon: Crosshair, label: "Spare lines", onClick: onOpenSpareLines },
-    { icon: CircleDot, label: "Arsenal", onClick: onOpenArsenal },
+    { icon: BowlingBallIcon, label: "Arsenal", onClick: onOpenArsenal },
     { icon: BookOpen, label: "Catalog", onClick: onOpenCatalog },
     { icon: Spline, label: "Line", onClick: onOpenLineVisualizer },
     { icon: MapPin, label: "Lane notes", onClick: onOpenLaneNotes },
@@ -165,8 +166,8 @@ export function DashboardView({
             onClick={() => setInstallPromptOpen(true)}
             className={`relative flex-1 text-left text-xs font-bold underline hover:no-underline ${TAP_TARGET_44}`}
           >
-            Add to your home screen. Your scores live only on this device, and an
-            uninstalled browser tab can clear them after 7 days.
+            Your local data might be cleared by your browser after a week. Add this to
+            your home screen.
           </button>
           <button
             type="button"
@@ -222,7 +223,7 @@ export function DashboardView({
         <EmptyState
           icon={PlayCircle}
           title="Score your first night"
-          description="Start a session and tap in each shot. Your scores, lines and stats stay on this device."
+          description="Start a session and tap in each shot."
         >
           <Button variant="primary" onClick={() => setShowForm(true)}>
             Start a session

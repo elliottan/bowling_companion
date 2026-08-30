@@ -63,7 +63,7 @@ export function OilPatternManager({ onBack, mode = "inline" }: OilPatternManager
       const result = await removeOilPattern(pattern.id);
       setNotice(
         result.outcome === "archived"
-          ? `"${pattern.name}" is used by ${result.sessions} ${result.sessions === 1 ? "session" : "sessions"}, so it was archived instead of deleted.`
+          ? `"${pattern.name}" is still used by ${result.sessions} ${result.sessions === 1 ? "session" : "sessions"}. Archived instead of deleted.`
           : `"${pattern.name}" deleted.`
       );
       } catch (err) {
@@ -112,7 +112,7 @@ export function OilPatternManager({ onBack, mode = "inline" }: OilPatternManager
         <EmptyState
           icon={Waves}
           title="No oil patterns yet"
-          description="Save the patterns you bowl on, with a link to their sheet. They show up when you start a session."
+          description="Save patterns with a link to their sheet. They show up when you start a session."
         >
           <Button variant="primary" size="lg" onClick={openAdd}>
             <Plus size={18} aria-hidden="true" />

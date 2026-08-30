@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Crosshair, LayoutGrid, MoreHorizontal, Target } from "lucide-react";
+import { LayoutGrid, MoreHorizontal, Target } from "lucide-react";
 import { Stats } from "../components/Stats";
 import {
   SessionFilterButton,
@@ -30,7 +30,6 @@ interface StatsViewProps {
   onOpenSessionGame?: (sessionId: number, gameId: number, ballId?: number) => void;
   onOpenFrames: () => void;
   onOpenGameTrend: () => void;
-  onOpenSpareLines: () => void;
 }
 
 const NO_BALLS: Ball[] = [];
@@ -54,8 +53,7 @@ export function StatsView({
   onOpenSession,
   onOpenSessionGame,
   onOpenFrames,
-  onOpenGameTrend,
-  onOpenSpareLines
+  onOpenGameTrend
 }: StatsViewProps) {
   const filters = useSessionFilters();
   const { filtered, activeLanes, isLoading } = filters;
@@ -103,9 +101,6 @@ export function StatsView({
           {/* These used to be rows under the ball table, which is the bottom of
               a long scroll and nobody found them (ADR-063). One control, in the
               header, listing where it can go. */}
-          {/* Always, not only once there is history: spare lines are set up
-              before you bowl, not after, and the two breakdowns have empty
-              states of their own. */}
           <IconButton
             label="More"
             variant="round"
@@ -144,18 +139,6 @@ export function StatsView({
             }}
           >
             Open frames
-          </AnchoredMenuItem>
-          {/* Next to Open frames on purpose: that screen names the leaves you
-              keep missing, and this one is where the line for shooting them
-              lives. */}
-          <AnchoredMenuItem
-            icon={Crosshair}
-            onClick={() => {
-              setBreakdownsAt(null);
-              onOpenSpareLines();
-            }}
-          >
-            Spare lines
           </AnchoredMenuItem>
         </AnchoredMenu>
       )}

@@ -147,7 +147,7 @@ export function SpareLineFormDialog({
           <div>
             {!lockPins && (
               <p className="mb-2 text-xs text-ink-secondary">
-                Tap pins to select which pins are left standing for this leave.
+                Tap the pins left standing.
               </p>
             )}
             <PinGrid
@@ -231,9 +231,8 @@ export function SpareLineFormDialog({
               ))}
             </div>
             <p className="mt-2 text-xs text-ink-secondary">
-              Where to stand and aim relative to your own strike line when you
-              shoot this leave with a strike ball. Positive moves up the boards.
-              Leave blank and a strike ball gets the line above instead.
+              Where to stand and aim relative to your strike line for this leave.
+              Positive moves up the boards; blank uses the line above.
             </p>
           </div>
 

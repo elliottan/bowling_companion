@@ -51,7 +51,7 @@ export function SaveCopyPrompt({ urgency, onLater }: SaveCopyPromptProps) {
       <div className="flex items-start gap-3">
         <ShieldAlert size={18} aria-hidden="true" className="mt-0.5 shrink-0" />
         <p className="flex-1 font-semibold">
-          This game is saved on this phone only. Save a copy before you close the tab.
+          Saved on this phone only. Save a copy before closing the tab.
         </p>
       </div>
       {error && <p className="mt-2 text-xs font-semibold">{error}</p>}

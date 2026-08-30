@@ -34,8 +34,7 @@ export function HandednessPrompt({ onSelect }: { onSelect: (value: Handedness) =
       >
         <h2 className="text-base font-bold text-ink">Which hand do you bowl with?</h2>
         <p className="mt-1.5 text-sm text-ink-secondary">
-          This sets the direction of the board-adjust arrows when entering your line. You can change
-          it later in Settings, under Preferences.
+          Sets which way the board-adjust arrows point. Change it later in Settings.
         </p>
         <div className="mt-4">
           <HandednessPicker value={null} onSelect={(h) => dismiss(() => onSelect(h))} />

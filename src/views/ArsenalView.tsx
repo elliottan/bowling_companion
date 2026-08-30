@@ -13,7 +13,8 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { CircleDot, GripVertical, Plus } from "lucide-react";
+import { GripVertical, Plus } from "lucide-react";
+import { BowlingBallIcon } from "../components/icons/BowlingBallIcon";
 import { useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { BallFormDialog } from "../components/BallFormDialog";
@@ -88,7 +89,7 @@ function SortableBallRow({ ball, onEdit }: SortableBallRowProps) {
               />
             ) : (
               <div className="flex h-full w-full items-center justify-center rounded-lg bg-surface-muted text-ink-tertiary">
-                <CircleDot size={22} aria-hidden="true" />
+                <BowlingBallIcon size={22} aria-hidden="true" />
               </div>
             )}
           </div>
@@ -192,7 +193,7 @@ export function ArsenalView({ onBack }: ArsenalViewProps) {
             <p className="text-sm text-ink-secondary">Loading…</p>
           ) : balls.length === 0 ? (
             <EmptyState
-              icon={CircleDot}
+              icon={BowlingBallIcon}
               title="No balls yet"
               description="Add the balls you carry. Link one to the catalog and it brings its core, coverstock and numbers with it."
             >

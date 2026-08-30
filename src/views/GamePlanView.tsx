@@ -302,14 +302,14 @@ function describeGap(g: BriefingGap): string {
     case "slice":
       return `${g.need} games here before any of this means anything. You have ${g.have}.`;
     case "ball":
-      return `Comparing balls needs ${g.need} of them with ${g.each} first balls here. ${g.have} so far.`;
+      return `${g.have} of ${g.need} balls with ${g.each}+ first balls each.`;
     case "expectation":
-      return `Comparing this to everywhere else needs ${g.need} games elsewhere. You have ${g.have}.`;
+      return `${g.have} of ${g.need} games logged elsewhere.`;
     case "gameSlot":
-      return `Game by game needs ${g.need} slots with ${g.each} games each. ${g.have} so far.`;
+      return `${g.have} of ${g.need} slots with ${g.each}+ games each.`;
     case "spares":
-      return `Comparing spares needs ${g.need} games elsewhere. You have ${g.have}.`;
+      return `${g.have} of ${g.need} games logged elsewhere.`;
     case "laneBias":
-      return `Lane by lane needs ${g.need} lanes with ${g.each} games each. ${g.have} so far.`;
+      return `${g.have} of ${g.need} lanes with ${g.each}+ games each.`;
   }
 }

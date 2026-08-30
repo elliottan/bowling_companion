@@ -5,11 +5,10 @@ test.beforeEach(async ({ page }) => {
   await clearDatabase(page);
 });
 
-/** Spare lines live in the Stats tab's own menu, next to Open frames. */
+/** Spare lines has its own shortcut on Home. */
 async function openSpareLines(page: import("@playwright/test").Page) {
-  await page.getByRole("navigation").getByRole("button", { name: "Stats" }).click();
-  await page.getByRole("button", { name: "More" }).click();
-  await page.getByRole("button", { name: "Spare lines" }).click();
+  await page.getByRole("navigation").getByRole("button", { name: "Home" }).click();
+  await page.getByRole("button", { name: "Spare lines", exact: true }).click();
 }
 
 /**
@@ -32,10 +31,10 @@ test("adds a spare line for a leave, stores its boards, and deletes it", async (
   await expect(card).toBeVisible();
 
   // Reopening reads back what was stored, rather than the form's own state.
-  // The screen is a push off the Stats tab (ADR-063), so it has a route and a
-  // reload lands straight back on it.
+  // The screen is a push off the current tab (ADR-063), so it has a route and
+  // a reload lands straight back on it.
   await page.reload();
-  await expect(page).toHaveURL(/#\/stats\/spares$/);
+  await expect(page).toHaveURL(/#\/home\/spares$/);
   await expect(page.getByRole("button", { name: "Edit spare line for pins 3, 10" })).toBeVisible();
 
   await page.getByRole("button", { name: "Edit spare line for pins 3, 10" }).click();

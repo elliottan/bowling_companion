@@ -559,7 +559,7 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall }: CatalogVie
         )}
         {syncState.status === "error" && (
           <div className="mb-3 rounded-lg border border-warning-200 bg-warning-50 px-3 py-2 text-sm text-warning-700">
-            <span className="font-semibold">Could not update catalog:</span> {syncState.message}. Showing last saved data.
+            <span className="font-semibold">Couldn't update the catalog:</span> {syncState.message}. Showing last saved data.
           </div>
         )}
 
@@ -752,7 +752,7 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall }: CatalogVie
           <EmptyState
             icon={BookOpen}
             title="Catalog is empty"
-            description="The catalog has manufacturer specs, so linking a ball fills in its core, coverstock, RG and diff."
+            description="Link a ball to the catalog for its core, coverstock, RG and diff."
           >
             <Button variant="primary" onClick={handleRefresh}>
               Refresh catalog

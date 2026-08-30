@@ -580,7 +580,7 @@ function OptionsSheet({
           onChange={(v) => onChange({ hook_length: v })}
         />
         <p className="mt-1 text-xs text-white/50">
-          How early the ball leaves the skid, and how long it takes to recover into the pins.
+          Where it leaves the skid, and how long it takes to recover into the pins.
         </p>
       </div>
     </div>

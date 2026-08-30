@@ -461,7 +461,6 @@ function App() {
             onOpenSessionGame={openSessionGame}
             onOpenFrames={() => pushOverlay("open-frames")}
             onOpenGameTrend={() => pushOverlay("game-trend")}
-            onOpenSpareLines={() => pushOverlay("spares")}
           />
         )}
         {view === "settings" && (

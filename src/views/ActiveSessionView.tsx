@@ -153,7 +153,7 @@ export function ActiveSessionView({
     const a = laneA.trim();
     const b = laneB.trim();
     if ((a && !isPositiveInt(a)) || (b && !isPositiveInt(b)) || (!a && b)) {
-      setLaneError("Lanes must be whole numbers (enter the first lane before the second).");
+      setLaneError("Enter whole numbers for both lanes.");
       return;
     }
     setLaneError("");
@@ -276,7 +276,7 @@ export function ActiveSessionView({
   if (!sessionDetails || !activeGame) {
     return (
       <section className="mx-auto w-full max-w-5xl px-4 py-6">
-        <ErrorBanner>{error || "No active game was found for this session."}</ErrorBanner>
+        <ErrorBanner>{error || "Couldn't find an active game for this session."}</ErrorBanner>
         <Button variant="secondary" onClick={onBack} className="mt-3">
           <ChevronLeft size={16} aria-hidden="true" />
           Back
@@ -502,8 +502,7 @@ export function ActiveSessionView({
           onClose={() => setShowLaneEditor(false)}
         >
             <p className="text-xs text-ink-secondary">
-              Sets the pair for this game only. Lanes alternate every frame, so
-              you pick which one frame 1 starts on.
+              Sets the pair for this game only.
             </p>
 
             <span className={`mt-4 block ${GROUP_HEADING}`}>Lane pair</span>

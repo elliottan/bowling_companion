@@ -82,7 +82,7 @@ export function BackupRestoreView({ onBack, mode = "inline" }: BackupRestoreView
       setPending(null);
       setConfirmText("");
       setMessage(
-        `Replaced all data. You now have ${result.sessions} sessions · ${result.games} games · ${result.frames} frames. A copy of your previous data was downloaded first.`
+        `Restored ${result.sessions} sessions, ${result.games} games, ${result.frames} frames. Your previous data downloaded first.`
       );
     } catch (err) {
       setError(err instanceof Error ? err.message : "Import failed.");
@@ -95,8 +95,8 @@ export function BackupRestoreView({ onBack, mode = "inline" }: BackupRestoreView
     <section className="mx-auto w-full max-w-2xl px-3 py-4 sm:px-6">
       <p className="text-sm text-ink-secondary">
         Local JSON only. Importing <strong className="font-semibold text-ink">replaces</strong>{" "}
-        everything on this device with the file's contents, so anything not in the
-        file is deleted. A copy of your current data downloads first.
+        everything on this device with the file's contents. Your current data downloads
+        first.
       </p>
 
       {persisted !== null && (
@@ -218,12 +218,12 @@ function ReplaceConfirmDialog({
             </p>
           )}
           <p>
-            This permanently deletes everything on this device ({current.sessions}{" "}
+            This deletes everything on this device: {current.sessions}{" "}
             {current.sessions === 1 ? "session" : "sessions"}, {current.games}{" "}
             {current.games === 1 ? "game" : "games"}, {current.balls}{" "}
-            {current.balls === 1 ? "ball" : "balls"}) and installs the file instead
-            ({incoming.sessions} {incoming.sessions === 1 ? "session" : "sessions"},{" "}
-            {incoming.games} {incoming.games === 1 ? "game" : "games"}), saved {age}.
+            {current.balls === 1 ? "ball" : "balls"}. It installs the file's{" "}
+            {incoming.sessions} {incoming.sessions === 1 ? "session" : "sessions"},{" "}
+            {incoming.games} {incoming.games === 1 ? "game" : "games"} instead, saved {age}.
           </p>
           <p>A copy of your current data is downloaded first. It is the only way back.</p>
           <label className="block pt-1">

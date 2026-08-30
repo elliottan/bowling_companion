@@ -40,11 +40,7 @@ export function SessionHistory({
 
   if (sessions.length === 0) {
     return (
-      <EmptyState
-        icon={History}
-        title="No sessions yet"
-        description="A session is one trip to the alley. Start your first one from the Home tab, and it keeps every game, lane and ball you use."
-      />
+      <EmptyState icon={History} title="No sessions yet" />
     );
   }
 

@@ -176,8 +176,7 @@ export function GameTrendView({ onBack }: GameTrendViewProps) {
             </div>
 
             <p className="mt-3 px-0.5 text-xs leading-relaxed text-ink-secondary">
-              Tap a game to narrow every stat to that slot. Slots under {THIN} games are greyed
-              out.
+              Tap a game to filter every stat to it. Slots under {THIN} games are greyed out.
             </p>
           </>
         )}
