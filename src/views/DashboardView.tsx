@@ -1,4 +1,4 @@
-import { BookOpen, CircleDot, Compass, MapPin, PlayCircle, Plus, Smartphone, Spline, Waves, type LucideIcon } from "lucide-react";
+import { BookOpen, ChevronRight, CircleDot, Compass, Crosshair, MapPin, PlayCircle, Plus, Smartphone, Spline, Waves, type LucideIcon } from "lucide-react";
 import { useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { ErrorBanner } from "../components/ErrorBanner";
@@ -14,6 +14,7 @@ import { TAP_TARGET_44 } from "../components/ui/Chip";
 import type { NewSessionFormValues } from "../components/SessionForm";
 import {
   getBackupNudgeState,
+  getCompletedGameCount,
   getSessionList,
   getSetting,
   setBackupNudgeSnoozedUntil,
@@ -21,6 +22,7 @@ import {
   type ResumableGame
 } from "../services/bowlingRepository";
 import { backupUrgency as urgencyOf, describeAge, snoozeMs } from "../lib/backupNudge";
+import { MIN_BRIEFING_GAMES } from "../lib/briefing";
 import { canPromptInstall, isIOSSafari, isStandalone } from "../lib/installPrompt";
 import type { SessionSummary } from "../types/bowling";
 
@@ -84,6 +86,13 @@ export function DashboardView({
   // when it is under the limit, so no extra count is needed to know that.
   const coldStart = !loadingRecent && recent.length === 0;
 
+  // Games only, no frames: this is a volume question, not a shot count.
+  const completedGames = useLiveQuery(() => getCompletedGameCount()) ?? 0;
+  // Game plan is read in the car park, so it shows when you are between
+  // sessions and your history is deep enough for a briefing to clear its own
+  // gates. Under that the screen would only say what it is still gathering.
+  const showGamePlan = !activeSessionId && completedGames >= MIN_BRIEFING_GAMES;
+
   const nudge = useLiveQuery(() => getBackupNudgeState());
   // Read once per render rather than stored: the display mode can change under
   // a live tab (the user installs mid-session) and this costs a matchMedia.
@@ -122,12 +131,12 @@ export function DashboardView({
 
   // Shortcuts. Icon and name only: these are places the user already knows, so
   // a sentence of description each only cost vertical space.
-  // Six of them, which is two even rows of three. Spare lines is not here any
-  // more: it lives in the Stats tab's menu alongside Open frames (ADR-063).
-  // Game plan is, because it is read before a session and Home is where you are
-  // then (ADR-064).
+  // Six of them, which is two even rows of three. Game plan gave up its slot to
+  // Spare lines and took a card of its own above the grid (ADR-071): it is a
+  // thing you read, not a place you keep, and a tile made it look like the
+  // latter.
   const shortcuts: Array<{ icon: LucideIcon; label: string; onClick: () => void }> = [
-    { icon: Compass, label: "Game plan", onClick: onOpenGamePlan },
+    { icon: Crosshair, label: "Spare lines", onClick: onOpenSpareLines },
     { icon: CircleDot, label: "Arsenal", onClick: onOpenArsenal },
     { icon: BookOpen, label: "Catalog", onClick: onOpenCatalog },
     { icon: Spline, label: "Line", onClick: onOpenLineVisualizer },
@@ -219,6 +228,25 @@ export function DashboardView({
             Start a session
           </Button>
         </EmptyState>
+      )}
+
+      {showGamePlan && (
+        <button
+          type="button"
+          onClick={onOpenGamePlan}
+          className="mb-2 flex w-full items-center gap-3 rounded-xl border border-edge bg-surface p-3 text-left shadow-sm hover:border-accent-fill"
+        >
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-accent-soft text-accent">
+            <Compass size={18} aria-hidden="true" />
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block text-sm font-semibold text-ink">Game plan</span>
+            <span className="block text-xs text-ink-secondary">
+              What your own history says about the house you are about to bowl at.
+            </span>
+          </span>
+          <ChevronRight size={18} aria-hidden="true" className="shrink-0 text-ink-secondary" />
+        </button>
       )}
 
       <div className={`grid grid-cols-3 gap-2 sm:grid-cols-6 ${coldStart ? "mt-6" : ""}`}>

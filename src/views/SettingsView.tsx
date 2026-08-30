@@ -1,4 +1,4 @@
-import { Archive, BookOpen, ChevronRight, Palette, CircleDot, Coffee, MapPin, MessageSquare, SlidersHorizontal, Spline, Waves, type LucideIcon } from "lucide-react";
+import { Archive, BookOpen, ChevronRight, Palette, CircleDot, Coffee, Crosshair, MapPin, MessageSquare, SlidersHorizontal, Spline, Waves, type LucideIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { LaneNotesView } from "./LaneNotesView";
 import { OilPatternsView } from "./OilPatternsView";
@@ -24,6 +24,9 @@ interface SettingsViewProps {
   onDriftModelChange: (next: DriftModel) => void;
   /** Arsenal opens as a modal overlay rather than an inline section. */
   onOpenArsenal: () => void;
+  /** Spare lines does too. It is also in the Stats menu, where it is read next
+   *  to the leaves you keep missing; here it is one of the things you keep. */
+  onOpenSpareLines: () => void;
   /** Backup & restore pushes over the tab, like the arsenal and the catalog:
    *  it is also reachable from the dashboard, and both should land on the same
    *  screen. */
@@ -33,7 +36,7 @@ interface SettingsViewProps {
   onOpenLineVisualizer: () => void;
 }
 
-export function SettingsView({ section, onSectionChange, handedness, onHandednessChange, driftModel, onDriftModelChange, onOpenArsenal, onOpenBackup, onOpenCatalog, onOpenLineVisualizer }: SettingsViewProps) {
+export function SettingsView({ section, onSectionChange, handedness, onHandednessChange, driftModel, onDriftModelChange, onOpenArsenal, onOpenSpareLines, onOpenBackup, onOpenCatalog, onOpenLineVisualizer }: SettingsViewProps) {
   const back = () => onSectionChange("menu");
 
   // The menu stays mounted underneath the pushed section, so popping back
@@ -43,6 +46,7 @@ export function SettingsView({ section, onSectionChange, handedness, onHandednes
       <div className="h-full overflow-y-auto">
         <SettingsMenu
           onOpenArsenal={onOpenArsenal}
+          onOpenSpareLines={onOpenSpareLines}
           onOpenBackup={onOpenBackup}
           onOpenCatalog={onOpenCatalog}
           onOpenLineVisualizer={onOpenLineVisualizer}
@@ -97,11 +101,12 @@ function GroupHeading({ children }: { children: string }) {
 
 function SettingsMenu({
   onOpenArsenal,
+  onOpenSpareLines,
   onOpenBackup,
   onOpenCatalog,
   onOpenLineVisualizer,
   onSectionChange
-}: Pick<SettingsViewProps, "onOpenArsenal" | "onOpenBackup" | "onOpenCatalog" | "onOpenLineVisualizer" | "onSectionChange">) {
+}: Pick<SettingsViewProps, "onOpenArsenal" | "onOpenSpareLines" | "onOpenBackup" | "onOpenCatalog" | "onOpenLineVisualizer" | "onSectionChange">) {
   const [lastBackupAt, setLastBackupAt] = useState<string | null | undefined>(undefined);
   useEffect(() => {
     void getSetting("last_backup_at").then((v) => setLastBackupAt(v ?? null));
@@ -115,6 +120,7 @@ function SettingsMenu({
 
   const bowlingRows: Array<{ key: string; icon: LucideIcon; label: string; description: string; onClick: () => void }> = [
     { key: "arsenal", icon: CircleDot, label: "Arsenal", description: "Manage your bowling balls", onClick: onOpenArsenal },
+    { key: "spares", icon: Crosshair, label: "Spare lines", description: "How you shoot each leave", onClick: onOpenSpareLines },
     { key: "lanes", icon: MapPin, label: "Lane notes", description: "Notes per alley + lane", onClick: () => onSectionChange("lanes") },
     { key: "oil-patterns", icon: Waves, label: "Oil patterns", description: "Patterns and their sheet links", onClick: () => onSectionChange("oil-patterns") },
     { key: "preferences", icon: SlidersHorizontal, label: "Preferences", description: "Handedness, release offset, drift", onClick: () => onSectionChange("preferences") },

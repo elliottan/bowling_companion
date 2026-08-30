@@ -1,4 +1,4 @@
-import { CircleDot, MapPin, Target, Waves, type LucideIcon } from "lucide-react";
+import { CircleDot, Crosshair, MapPin, Waves, type LucideIcon } from "lucide-react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { GROUP_HEADING } from "./ui/typography";
 import { TAP_TARGET_44 } from "./ui/Chip";
@@ -29,7 +29,7 @@ const COPY: Record<NextStepKey, StepCopy> = {
     action: "Add a ball"
   },
   "spare-lines": {
-    icon: Target,
+    icon: Crosshair,
     title: "Write down your spare lines",
     description:
       "Once a leave has a line saved, that line comes up on the shot bar the moment you get that leave.",

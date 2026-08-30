@@ -10,6 +10,7 @@ import {
   getDriftModel,
   getResumableForSession,
   getSessionDetails,
+  getCompletedGameCount,
   getSessionHistory,
   getSessionList,
   getSetting,
@@ -25,6 +26,18 @@ describe("bowlingRepository", () => {
   beforeEach(async () => {
     await db.delete();
     await db.open();
+  });
+
+  it("counts only games that were scored to the end", async () => {
+    expect(await getCompletedGameCount()).toBe(0);
+
+    const sessionId = Number(await createSession({ date: "2026-08-01", alley_name: "Orchid Bowl" }));
+    await addGameToSession(sessionId, { game_number: 1 });
+    expect(await getCompletedGameCount()).toBe(0);
+
+    const scored = Number(await addGameToSession(sessionId, { game_number: 2 }));
+    await db.games.update(scored, { final_score: 187 });
+    expect(await getCompletedGameCount()).toBe(1);
   });
 
   it("creates a session, adds a game, saves a frame, and reads history", async () => {

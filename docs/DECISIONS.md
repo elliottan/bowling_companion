@@ -3277,3 +3277,57 @@ lines, which is the cap, so the card is unchanged in size.
 - A brand new user sees two steps on Home instead of one. Both are answerable
   without leaving the sofa, which is the test this rule now applies.
 - ADR-069's list of gated steps should be read through this entry.
+
+---
+
+## ADR-071: Spare lines is a place you keep, the game plan is a thing you read
+
+**Status:** accepted (2026-08). Amends the Home grid from ADR-063 and the
+placement clause of the game-plan ADR.
+
+**Context.** Spare lines was reachable from exactly one control in the app: the
+`More` menu in the Stats header (ADR-063). That was defensible when it was read
+next to Open frames, which names the leaves you keep missing. It stopped being
+defensible once ADR-069 started asking users to fill spare lines in, because the
+card asking for them was the only route to them, and the route vanished the
+moment one line was saved. A feature the app nags you about should not be a
+feature you have to remember where to find.
+
+Meanwhile Game plan held a slot in the Home grid on the reasoning that it is
+read before a session and Home is where you are then. That reasoning is right
+about *when* and wrong about *what*. The other five tiles are places you keep
+things: your balls, your patterns, your notes. Game plan is not a place, it is a
+reading of the history you already have, and sitting it in a grid of stores made
+it look like one more drawer to fill.
+
+**Decision.**
+
+- **Spare lines takes the grid slot.** It keeps its place in the Stats menu, and
+  it is added to the Settings list beside Arsenal, Lane notes and Oil patterns,
+  which is where the things you keep are listed. Three entry points for one
+  screen is not duplication here: they answer three different questions, "shoot
+  this leave", "what do I keep", and "the app just asked me for this".
+- **Game plan becomes a card above the grid**, full width, one line saying what
+  it is, opening the screen. A single tap target that opens the thing, per
+  DESIGN-LANGUAGE §4.
+- **The card is gated on there being a briefing worth reading.** It shows when
+  no session is active and at least `MIN_BRIEFING_GAMES` games are scored, which
+  is the briefing's own slice floor plus its baseline floor. Under that every
+  finding is still gathering, so the card would be sending the reader to a
+  screen that has nothing to tell them.
+- **The card does not compute the briefing.** That needs `getSessionHistory`,
+  which is 161ms and 5.3MB on a long history, and ADR-066 exists precisely
+  because Home was paying that to render ten rows. The gate is a count off the
+  games table with no frames touched.
+- **One icon for spare lines.** `Crosshair`, in all three menus. It had been
+  `Spline`, which is the line visualiser's icon, and sharing it across two more
+  menus would have read as the same destination.
+
+**Consequences.**
+- The grid is still six tiles in two rows of three.
+- A user with under twelve scored games never sees the Game plan card and can
+  still reach the screen from nowhere else on Home. That is deliberate: there is
+  nothing there for them yet. It returns on its own.
+- The card is not a briefing preview. Showing the top finding inline would be
+  better and costs a full history read per Home render, which is a trade this
+  ADR declines rather than one it overlooked.

@@ -478,6 +478,7 @@ function App() {
             driftModel={driftModel}
             onDriftModelChange={updateDriftModel}
             onOpenArsenal={() => pushOverlay("arsenal")}
+            onOpenSpareLines={() => pushOverlay("spares")}
             onOpenBackup={goToBackup}
             onOpenCatalog={() => pushOverlay("catalog")}
             onOpenLineVisualizer={() => dispatch({ type: "openLineSandbox" })}

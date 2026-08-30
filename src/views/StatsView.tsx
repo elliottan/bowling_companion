@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { LayoutGrid, MoreHorizontal, Spline, Target } from "lucide-react";
+import { Crosshair, LayoutGrid, MoreHorizontal, Target } from "lucide-react";
 import { Stats } from "../components/Stats";
 import {
   SessionFilterButton,
@@ -149,7 +149,7 @@ export function StatsView({
               keep missing, and this one is where the line for shooting them
               lives. */}
           <AnchoredMenuItem
-            icon={Spline}
+            icon={Crosshair}
             onClick={() => {
               setBreakdownsAt(null);
               onOpenSpareLines();

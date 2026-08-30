@@ -379,6 +379,17 @@ export async function setBackupNudgeSnoozedUntil(iso: string): Promise<void> {
  * session. On a five-year history that was 3,336 IndexedDB requests and 332ms;
  * the same data in bulk is 3 requests and 161ms (ADR-066).
  */
+/**
+ * How many games have been scored to the end, counted off the games table.
+ *
+ * For gating a surface on "is there enough history to say anything yet", which
+ * is a question about volume, not about shots. Nothing here touches frames, so
+ * it stays cheap enough to sit behind a live query on Home (ADR-066).
+ */
+export async function getCompletedGameCount(): Promise<number> {
+  return db.games.filter((g) => g.final_score !== undefined).count();
+}
+
 export async function getSessionHistory(): Promise<SessionSummary[]> {
   return loadSessions("all");
 }

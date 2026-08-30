@@ -8,6 +8,20 @@ merge to `main` (`docs/DEPLOYMENT.md`), so every section below is a dated batch
 of shipped work rather than a release. Thirty of them used to be headed
 `[Unreleased]`, which said nothing once they had all shipped.
 
+## Spare lines get a front door (2026-08)
+
+### Changed
+
+- **Spare lines is on the Home screen and in Settings.** It used to live only
+  in the Stats menu, which meant the app could ask you to fill your spare lines
+  in and then leave you to find them. It is still in the Stats menu too.
+- **Game plan moved out of the shortcut grid into a card of its own**, above
+  it, saying what it is. The grid is for the things you keep: your balls, your
+  patterns, your notes. A game plan is a read of the history you already have.
+  The card appears once you have twelve scored games, which is the point the
+  briefing has enough behind it to say anything, and it stays out of the way
+  while a session is running.
+
 ## The first ten minutes (2026-08)
 
 ### Added

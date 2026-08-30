@@ -30,7 +30,12 @@ import type { Ball, Frame, Game, Handedness, SessionSummary } from "../types/bow
  *  noise. The screen says what it is waiting for instead. */
 export const MIN_SLICE_GAMES = 6;
 /** The rest of your history has to be worth comparing against too. */
-const MIN_BASELINE_GAMES = 6;
+export const MIN_BASELINE_GAMES = 6;
+
+/** A slice and a baseline, both at their floor. Below this every comparison in
+ *  a briefing is still gathering, so there is nothing yet to send a reader to
+ *  the screen for. */
+export const MIN_BRIEFING_GAMES = MIN_SLICE_GAMES + MIN_BASELINE_GAMES;
 
 /** Differences smaller than these are not worth a reader's attention. Chosen in
  *  bowling terms rather than statistical ones: five pins is a ball change, five
