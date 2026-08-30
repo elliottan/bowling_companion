@@ -8,6 +8,23 @@ merge to `main` (`docs/DEPLOYMENT.md`), so every section below is a dated batch
 of shipped work rather than a release. Thirty of them used to be headed
 `[Unreleased]`, which said nothing once they had all shipped.
 
+## The first ten minutes (2026-08)
+
+### Added
+
+- **The pin deck explains itself the first time you use it.** A line above the
+  deck says to tap the pins left standing, because everything you do not tap
+  counts as knocked down. It goes away when you tap Got it, and on its own once
+  you finish a game.
+- **Home now says what the app is before you have bowled anything.** A device
+  with no sessions leads with one card: score your first night, and a way to
+  start. The shortcuts sit below it, where they always were.
+- **Next steps on Home, based on what your data is missing.** Add the balls you
+  throw, write down your spare lines, add the pattern you bowl on, note what a
+  lane does. Two at a time at most, each one turns up only once it would be
+  useful, each disappears once you have done it, and Not now retires one for
+  good.
+
 ## The app asks harder when your scores are not safe (2026-08)
 
 ### Changed

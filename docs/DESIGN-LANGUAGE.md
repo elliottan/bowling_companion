@@ -145,6 +145,11 @@ one sentence saying what lives here and why it is worth filling, and the primary
 action. A bare grey "No X yet." sentence is not acceptable, because the empty
 screen is where a user decides whether the feature is for them.
 
+A screen whose *whole* content is empty leads with the empty state rather than
+burying it under chrome. Home does this on a device with no sessions. What it
+does not do is remove the chrome: the shortcut grid moves below the empty state
+and stays reachable, because it is the only way to several screens (ADR-069).
+
 ## 6. Forms
 
 Field chrome comes from `src/components/ui/field.ts` (`FIELD`, `FIELD_SELECT`,

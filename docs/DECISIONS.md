@@ -3180,3 +3180,72 @@ come back, and the whole failure mode is that they do not come back.
 - The counts are now two policies rather than one, so any future change to the
   numbers has to be made twice, on purpose. That is the point: they encode two
   different storage guarantees and should not drift into each other.
+
+---
+
+## ADR-069: Onboarding is what the data is missing, not a tour
+
+**Status:** accepted (2026-08).
+
+**Context.** The app is about to be handed to people who have never seen it, and
+ADR-068 already made the case that the first-time visitor is the default user,
+not an edge case. Two gaps were left.
+
+The first is the pin deck. ADR-006 inverted it: a shot starts with nothing
+marked and you tap the pins **left standing**, because most balls knock most
+pins down. Every other scorer in existence works the other way round. A new
+bowler taps the pins they knocked over and records the exact opposite of what
+happened, gets a 3 for a good first ball, and concludes the app is broken. No
+empty state can catch this, because the scorer is never empty.
+
+The second is Home on a device that has never scored a game: an app title, six
+icon tiles naming six places the user has not been, and a list with nothing in
+it. It reads like a settings screen. Meanwhile Arsenal, spare lines, oil
+patterns and lane notes are the features that make the rest of the app pay off,
+and nothing points at any of them until the user goes looking.
+
+The obvious answer, a first-run carousel, was rejected. It is a thing to get
+through rather than a thing to act on, everything in it is forgotten by the time
+it is needed, and it is dead weight for anyone restoring a backup.
+
+**Decision.**
+
+- **A coach line above the pin deck, until the deck is proven understood.** One
+  sentence saying what a tap means, sitting directly above the deck it
+  describes, in the accent surface rather than a warning one: this is how the
+  app works, not a problem. It retires on "Got it", and also on the first
+  finished game, which is proof the deck was read correctly ten frames running.
+  The flag is one settings key (`pin_input_coached_at`), so it rides along in a
+  backup and does not come back on a restore.
+- **Home leads with an empty state on a device with no sessions.** An
+  `EmptyState` says what the app does and offers the single action worth taking,
+  above everything else, and the recent list is hidden because it would only
+  repeat the same emptiness a second time (DESIGN-LANGUAGE §5). The shortcut
+  grid stays, below. Hiding it until the first session was tried and reverted:
+  it is the only route to the catalog and the line visualiser, and a bowler with
+  no balls yet is precisely who needs those.
+- **A Next steps card, driven by gaps in the user's own data.** `lib/onboarding`
+  is a pure function from counts to at most two steps. A step is offered only
+  once it would pay off (spare lines and oil patterns wait for a first session;
+  lane notes wait for an alley bowled twice), retires the instant the gap is
+  filled, and can be waved off individually with "Not now", persisted per step.
+- **Install and backup stay out of it.** They have their own banners on Home
+  (ADR-067, ADR-068). A second copy inside the card would compete with the one
+  message that actually protects the user's data, which is the mistake ADR-067
+  was written to undo.
+
+**Consequences.**
+- Onboarding has no completion state and no progress bar, because it is not a
+  sequence. Most users see the card empty, which is why it renders nothing at
+  all rather than a "you are all set" row.
+- A user restoring a backup onto a new device sees none of this: their counts
+  are already non-zero and their dismissals came with the file.
+- `getOnboardingFacts` reads all sessions to find repeat alleys. Session rows
+  are cheap; ADR-066's rule is about frames, and no frame is touched here.
+- Deleting every session puts Home back into the cold start. That is correct:
+  the device really does have nothing on it again.
+- The e2e suite reaches Arsenal, Catalog and Lane notes through the shortcut
+  grid on a fresh database, and caught the hidden-grid version immediately. The
+  tests were right and the design was wrong.
+- `SessionHistory` lost its `emptyAction` prop. Home was its only caller, and
+  Home's empty list is now unreachable behind the cold start.

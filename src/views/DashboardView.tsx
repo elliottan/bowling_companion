@@ -7,6 +7,8 @@ import { GROUP_HEADING } from "../components/ui/typography";
 import { Fab, FabRow } from "../components/ui/Fab";
 import { SessionHistory } from "../components/SessionHistory";
 import { InstallPrompt } from "../components/InstallPrompt";
+import { NextSteps } from "../components/NextSteps";
+import { EmptyState } from "../components/ui/EmptyState";
 import { Button } from "../components/ui/Button";
 import { TAP_TARGET_44 } from "../components/ui/Chip";
 import type { NewSessionFormValues } from "../components/SessionForm";
@@ -37,6 +39,7 @@ interface DashboardViewProps {
   onOpenLaneNotes: () => void;
   onOpenOilPatterns: () => void;
   onOpenGamePlan: () => void;
+  onOpenSpareLines: () => void;
   onSessionDeleted?: (sessionId: number) => void;
   onOpenBackup: () => void;
 }
@@ -63,6 +66,7 @@ export function DashboardView({
   onOpenLaneNotes,
   onOpenOilPatterns,
   onOpenGamePlan,
+  onOpenSpareLines,
   onSessionDeleted,
   onOpenBackup
 }: DashboardViewProps) {
@@ -76,6 +80,9 @@ export function DashboardView({
   const liveRecent = useLiveQuery(async () => (await getSessionList()).slice(0, RECENT_LIMIT));
   const recent = liveRecent ?? NO_SESSIONS;
   const loadingRecent = liveRecent === undefined;
+  // Nothing ever bowled on this device. The recent list is the whole history
+  // when it is under the limit, so no extra count is needed to know that.
+  const coldStart = !loadingRecent && recent.length === 0;
 
   const nudge = useLiveQuery(() => getBackupNudgeState());
   // Read once per render rather than stored: the display mode can change under
@@ -113,6 +120,12 @@ export function DashboardView({
     setShowForm(false);
   }
 
+  // Shortcuts. Icon and name only: these are places the user already knows, so
+  // a sentence of description each only cost vertical space.
+  // Six of them, which is two even rows of three. Spare lines is not here any
+  // more: it lives in the Stats tab's menu alongside Open frames (ADR-063).
+  // Game plan is, because it is read before a session and Home is where you are
+  // then (ADR-064).
   const shortcuts: Array<{ icon: LucideIcon; label: string; onClick: () => void }> = [
     { icon: Compass, label: "Game plan", onClick: onOpenGamePlan },
     { icon: CircleDot, label: "Arsenal", onClick: onOpenArsenal },
@@ -191,13 +204,24 @@ export function DashboardView({
         </div>
       )}
 
-      {/* Shortcuts. Icon and name only: these are places the user already
-          knows, so a sentence of description each only cost vertical space. */}
-      {/* Six of them, which is two even rows of three. Spare lines is not here
-          any more: it lives in the Stats tab's menu alongside Open frames
-          (ADR-063). Game plan is, because it is read before a session and Home
-          is where you are then (ADR-064). */}
-      <div className="grid grid-cols-3 gap-2 sm:grid-cols-6">
+      {/* A device that has never scored a game gets told what the app is
+          before it gets a grid of six places it has not been. The grid stays
+          below rather than waiting for the first session: it is the only route
+          to the catalog and the line visualiser, and a new bowler with no balls
+          is exactly who needs them (DESIGN-LANGUAGE §5). */}
+      {coldStart && (
+        <EmptyState
+          icon={PlayCircle}
+          title="Score your first night"
+          description="Start a session and tap in each shot. Your scores, lines and stats stay on this device."
+        >
+          <Button variant="primary" onClick={() => setShowForm(true)}>
+            Start a session
+          </Button>
+        </EmptyState>
+      )}
+
+      <div className={`grid grid-cols-3 gap-2 sm:grid-cols-6 ${coldStart ? "mt-6" : ""}`}>
         {shortcuts.map((s) => (
           <button
             key={s.label}
@@ -214,28 +238,32 @@ export function DashboardView({
         ))}
       </div>
 
-      <div className="mt-6">
-        <div className="mb-2 flex items-center justify-between">
-          <h2 className={GROUP_HEADING}>Recent sessions</h2>
-          {recent.length > 0 && (
-            <Button variant="ghost" onClick={onViewAll}>
-              View all
-            </Button>
-          )}
+      <NextSteps
+        onOpenArsenal={onOpenArsenal}
+        onOpenSpareLines={onOpenSpareLines}
+        onOpenOilPatterns={onOpenOilPatterns}
+        onOpenLaneNotes={onOpenLaneNotes}
+      />
+
+      {!coldStart && (
+        <div className="mt-6">
+          <div className="mb-2 flex items-center justify-between">
+            <h2 className={GROUP_HEADING}>Recent sessions</h2>
+            {recent.length > 0 && (
+              <Button variant="ghost" onClick={onViewAll}>
+                View all
+              </Button>
+            )}
+          </div>
+          <SessionHistory
+            sessions={recent}
+            isLoading={loadingRecent}
+            onOpenSession={onOpenSession}
+            activeSessionId={activeSessionId}
+            onSessionDeleted={onSessionDeleted}
+          />
         </div>
-        <SessionHistory
-          sessions={recent}
-          isLoading={loadingRecent}
-          onOpenSession={onOpenSession}
-          activeSessionId={activeSessionId}
-          onSessionDeleted={onSessionDeleted}
-          emptyAction={
-            <Button variant="primary" onClick={() => setShowForm(true)}>
-              Start a session
-            </Button>
-          }
-        />
-      </div>
+      )}
 
       <FabRow>
         {resumable && (

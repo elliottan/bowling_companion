@@ -1,5 +1,4 @@
 import { History, Pencil, Trash2 } from "lucide-react";
-import type { ReactNode } from "react";
 import { useState } from "react";
 import { createPortal } from "react-dom";
 import { calculateGameScore } from "../lib/scoring";
@@ -22,9 +21,6 @@ interface SessionHistoryProps {
   /** Called after a session is edited or deleted so the list can reload. */
   /** Called after a session is deleted so App can drop stale active state. */
   onSessionDeleted?: (sessionId: number) => void;
-  /** Way out of the empty state. Omitted where the screen has no start control
-   *  of its own, in which case the copy points at the one that does. */
-  emptyAction?: ReactNode;
 }
 
 export function SessionHistory({
@@ -32,8 +28,7 @@ export function SessionHistory({
   isLoading = false,
   onOpenSession,
   activeSessionId,
-  onSessionDeleted,
-  emptyAction
+  onSessionDeleted
 }: SessionHistoryProps) {
   if (isLoading) {
     return (
@@ -48,14 +43,8 @@ export function SessionHistory({
       <EmptyState
         icon={History}
         title="No sessions yet"
-        description={
-          emptyAction
-            ? "A session is one trip to the alley. Start one and it keeps every game, lane and ball you use."
-            : "Sessions you bowl show up here. Start your first one from the Home tab."
-        }
-      >
-        {emptyAction}
-      </EmptyState>
+        description="A session is one trip to the alley. Start your first one from the Home tab, and it keeps every game, lane and ball you use."
+      />
     );
   }
 

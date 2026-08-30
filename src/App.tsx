@@ -419,6 +419,7 @@ function App() {
             onOpenLaneNotes={() => pushOverlay("lanes")}
             onOpenOilPatterns={() => pushOverlay("oil-patterns")}
             onOpenGamePlan={() => pushOverlay("game-plan")}
+            onOpenSpareLines={() => pushOverlay("spares")}
             onSessionDeleted={handleSessionDeleted}
             onOpenBackup={goToBackup}
           />

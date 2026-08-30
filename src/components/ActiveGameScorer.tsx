@@ -1,5 +1,6 @@
-import { Plus, X } from "lucide-react";
+import { Hand, Plus, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useLiveQuery } from "dexie-react-hooks";
 import {
   buildLiveFrame,
   createInitialFrameControllerState,
@@ -15,6 +16,7 @@ import { isPocketHit } from "../lib/pins";
 import { freshRackShotIndices, laneForFrame } from "../lib/lanes";
 import { seedForShot, lineForBall } from "../lib/shotSeeding";
 import { findSpareLineByPins, getBalls, getSpareLinesAll } from "../services/ballRepository";
+import { getSetting, setSetting } from "../services/bowlingRepository";
 import type {
   Ball,
   Frame,
@@ -39,6 +41,10 @@ function formatLeavePins(pins: PinNumber[]): string {
   return pins.length === 1 ? `${pins[0]}-pin` : pins.join("-");
 }
 
+
+/** Written once the bowler has been told how the deck reads, or has finished a
+ *  game and so plainly worked it out. */
+const PIN_COACH_SEEN_KEY = "pin_input_coached_at";
 
 export type ScorerMode = "standalone" | "session";
 
@@ -144,6 +150,11 @@ export function ActiveGameScorer({
   const recordedShot = recordedFrame && selectedShot ? recordedFrame.shots[selectedShot.shotIndex] ?? null : null;
   const isEditing = Boolean(recordedShot);
   const locked = gameState.isComplete && !unlocked;
+
+  // Wrapped, so "the query has not answered" is distinguishable from "the key
+  // is unset" and the line does not flash onto every scorer that opens.
+  const pinCoach = useLiveQuery(async () => ({ seenAt: await getSetting(PIN_COACH_SEEN_KEY) }));
+  const showPinCoach = !!pinCoach && !pinCoach.seenAt;
 
   /** Gate every user edit on a completed game. Returns false (and raises the
    *  prompt) while locked; the caller must drop the edit. */
@@ -373,7 +384,13 @@ export function ActiveGameScorer({
     if (!frameToPersist) return;
     try {
       await onFrameComplete?.(frameToPersist);
-      if (submission.state.isComplete) await onGameComplete?.(submission.state.frames);
+      if (submission.state.isComplete) {
+        // A finished game is proof the deck was read correctly ten frames in a
+        // row, so the coach line retires itself rather than waiting to be
+        // dismissed on every future game.
+        await setSetting(PIN_COACH_SEEN_KEY, new Date().toISOString());
+        await onGameComplete?.(submission.state.frames);
+      }
       setErrorMessage("");
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : "Save failed.");
@@ -536,6 +553,31 @@ export function ActiveGameScorer({
         onShotTap={selectShot}
         onLiveTap={gameState.isComplete ? undefined : goLive}
       />
+
+      {/* The one thing in the app that cannot be guessed: the deck starts
+          with everything down and you tap what is still up (ADR-006). Every
+          other scorer works the other way round, so a new bowler taps the
+          pins they knocked over and records the opposite of what happened.
+          It sits directly above the deck it describes, and goes for good on
+          the first finished game or the first "Got it". */}
+      {showPinCoach && (
+        <div className="mt-3 flex items-start gap-2.5 rounded-lg border border-accent-fill bg-accent-soft p-3 text-sm text-ink">
+          <Hand size={18} aria-hidden="true" className="mt-0.5 shrink-0 text-accent" />
+          <div className="min-w-0 flex-1">
+            <p className="text-xs font-semibold">
+              Tap the pins left standing after your shot. Anything you do not tap counts as
+              knocked down, so a shot with nothing tapped is a strike.
+            </p>
+            <button
+              type="button"
+              onClick={() => void setSetting(PIN_COACH_SEEN_KEY, new Date().toISOString())}
+              className={`relative mt-1 text-xs font-bold text-accent underline hover:no-underline ${TAP_TARGET_44}`}
+            >
+              Got it
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Pin deck (left) + shot details (right), side-by-side on every width. */}
       <div className="mt-3 grid grid-cols-2 items-start gap-3 lg:grid-cols-[minmax(0,360px)_1fr]">
