@@ -3249,3 +3249,31 @@ it is needed, and it is dead weight for anyone restoring a backup.
   tests were right and the design was wrong.
 - `SessionHistory` lost its `emptyAction` prop. Home was its only caller, and
   Home's empty list is now unreachable behind the cold start.
+
+---
+
+## ADR-070: Spare lines are answerable before the first night
+
+**Status:** accepted (2026-08). Amends one clause of ADR-069, which otherwise
+stands.
+
+**Context.** ADR-069 held spare lines and oil patterns behind a first session,
+on the reasoning that neither is worth asking about before the user has bowled.
+That is true of oil patterns and wrong about spare lines. Which pattern the
+house lays is something you find out at the house. How you shoot a 10-pin is
+not: it is a thing the bowler already knows, has probably known for years, and
+would rather have written down *before* arriving than be prompted for mid-frame.
+
+Holding it back also cost the moment the answer is cheapest. Sitting at home
+with the app open and nothing else to do is a better time to fill in six leaves
+than the lane approach.
+
+**Decision.** The `spare-lines` rule drops its `sessionCount >= 1` gate and
+opens purely on `answeredSpareLines === 0`. `oil-pattern` keeps its gate for the
+reason ADR-069 gave. A cold-start device now offers two steps, balls and spare
+lines, which is the cap, so the card is unchanged in size.
+
+**Consequences.**
+- A brand new user sees two steps on Home instead of one. Both are answerable
+  without leaving the sofa, which is the test this rule now applies.
+- ADR-069's list of gated steps should be read through this entry.

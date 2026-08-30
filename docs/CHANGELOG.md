@@ -23,7 +23,8 @@ of shipped work rather than a release. Thirty of them used to be headed
   throw, write down your spare lines, add the pattern you bowl on, note what a
   lane does. Two at a time at most, each one turns up only once it would be
   useful, each disappears once you have done it, and Not now retires one for
-  good.
+  good. Balls and spare lines are both offered straight away, since you can
+  answer them without leaving the house.
 
 ## The app asks harder when your scores are not safe (2026-08)
 

@@ -37,9 +37,12 @@ const RULES: Array<{ key: NextStepKey; open: (f: OnboardingFacts) => boolean }> 
   // Before anything else: a shot with no ball on it cannot be compared to the
   // next one, and every line, drift and carry number downstream is per ball.
   { key: "arsenal", open: (f) => f.ballCount === 0 },
-  // Seeded pin sets exist from the first visit; an answer does not. Asked only
-  // once a session is on record, so day one is a single question.
-  { key: "spare-lines", open: (f) => f.sessionCount >= 1 && f.answeredSpareLines === 0 },
+  // Seeded pin sets exist from the first visit; an answer does not. No session
+  // gate: how you shoot a 10-pin is known before you get to the alley, and it
+  // is the one thing worth having written down when you arrive.
+  { key: "spare-lines", open: (f) => f.answeredSpareLines === 0 },
+  // Gated, unlike spare lines: which pattern you bowl on is something you find
+  // out at the house, so there is nothing to answer before the first night.
   { key: "oil-pattern", open: (f) => f.sessionCount >= 1 && f.oilPatternCount === 0 },
   { key: "lane-notes", open: (f) => f.repeatAlleyCount >= 1 && f.laneNoteCount === 0 }
 ];

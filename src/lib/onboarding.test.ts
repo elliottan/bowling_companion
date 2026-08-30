@@ -21,7 +21,7 @@ describe("nextSteps", () => {
     expect(nextSteps(furnished)).toEqual([]);
   });
 
-  it("asks a brand new user for balls only, and nothing else", () => {
+  it("asks a brand new user for balls and spare lines, both answerable at home", () => {
     const steps = nextSteps({
       sessionCount: 0,
       ballCount: 0,
@@ -31,12 +31,17 @@ describe("nextSteps", () => {
       laneNoteCount: 0,
       dismissed: []
     });
-    expect(steps).toEqual(["arsenal"]);
+    expect(steps).toEqual(["arsenal", "spare-lines"]);
   });
 
-  it("opens spare lines and oil patterns once a session is on record", () => {
-    expect(nextSteps(facts({ sessionCount: 1, answeredSpareLines: 0, oilPatternCount: 0 })))
-      .toEqual(["spare-lines", "oil-pattern"]);
+  it("asks for spare lines before any session, unlike oil patterns", () => {
+    const beforeFirstNight = facts({ sessionCount: 0, answeredSpareLines: 0, oilPatternCount: 0 });
+    expect(nextSteps(beforeFirstNight)).toEqual(["spare-lines"]);
+
+    expect(nextSteps({ ...beforeFirstNight, sessionCount: 1 })).toEqual([
+      "spare-lines",
+      "oil-pattern"
+    ]);
   });
 
   it("treats seeded pin sets with no answer as no spare lines", () => {

@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Bowling Companion landing page concepts</title>
+    <style>
+      :root {
+        --paper: #fff8ed;
+        --surface: #ffffff;
+        --ink: #020617;
+        --muted: #64748b;
+        --edge: #e2e8f0;
+        --felt: #1b5148;
+        --felt-pale: #f0f7f5;
+        --felt-dark: #123a33;
+        --lane: #d4a56e;
+        --pin: #fefcf8;
+        --pin-band: #b33a37;
+        --shadow: 0 18px 45px rgba(47, 37, 26, 0.12);
+        font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      * { box-sizing: border-box; }
+      html { scroll-behavior: smooth; }
+      body { margin: 0; color: var(--ink); background: var(--paper); }
+      button { font: inherit; }
+      button:focus-visible, a:focus-visible { outline: 3px solid #7dc2b3; outline-offset: 3px; }
+
+      .concept-picker {
+        position: sticky;
+        z-index: 5;
+        top: 0;
+        display: flex;
+        gap: 8px;
+        justify-content: center;
+        padding: 12px 20px;
+        border-bottom: 1px solid var(--edge);
+        background: rgba(255, 255, 255, 0.92);
+        backdrop-filter: blur(12px);
+      }
+      .concept-picker button {
+        min-height: 40px;
+        padding: 0 14px;
+        color: #49605c;
+        border: 1px solid var(--edge);
+        border-radius: 999px;
+        background: var(--surface);
+        cursor: pointer;
+      }
+      .concept-picker button[aria-selected="true"] { color: white; border-color: var(--felt); background: var(--felt); }
+      .concept { display: none; }
+      .concept.is-active { display: block; }
+
+      .page { overflow: hidden; }
+      .site-header, .hero, .proof, .features, .privacy, .site-footer { max-width: 1160px; margin: 0 auto; }
+      .site-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 22px 28px;
+      }
+      .wordmark { display: inline-flex; align-items: center; gap: 9px; font-size: 15px; font-weight: 750; letter-spacing: -0.02em; }
+      .mark { width: 25px; height: 25px; border-radius: 50%; background: var(--felt); box-shadow: inset -7px -6px 0 rgba(0,0,0,.12); }
+      .header-note { color: var(--muted); font-size: 14px; }
+
+      .hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(330px, .85fr); gap: 60px; align-items: center; padding: 68px 28px 92px; }
+      .eyebrow { margin: 0 0 16px; color: var(--felt); font-size: 13px; font-weight: 750; letter-spacing: .08em; text-transform: uppercase; }
+      h1 { max-width: 700px; margin: 0; font-size: clamp(44px, 6.5vw, 78px); line-height: .98; letter-spacing: -.065em; }
+      .intro { max-width: 590px; margin: 26px 0 0; color: #334155; font-size: clamp(18px, 2vw, 21px); line-height: 1.55; }
+      .actions { display: flex; flex-wrap: wrap; align-items: center; gap: 18px; margin-top: 30px; }
+      .button { display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 0 19px; color: white; border: 0; border-radius: 12px; background: var(--felt); font-weight: 750; text-decoration: none; }
+      .under-button { color: var(--muted); font-size: 14px; }
+
+      .phone-wrap { display: grid; place-items: center; min-height: 445px; }
+      .phone { position: relative; width: min(100%, 355px); overflow: hidden; color: #172033; border: 8px solid #172033; border-radius: 38px; background: #fff; box-shadow: var(--shadow); }
+      .phone::before { content: ""; position: absolute; z-index: 2; top: 8px; left: 50%; width: 108px; height: 20px; transform: translateX(-50%); border-radius: 0 0 14px 14px; background: #172033; }
+      .phone-bar { display: flex; align-items: center; justify-content: space-between; min-height: 71px; padding: 24px 16px 9px; border-bottom: 1px solid #e9edf2; font-size: 13px; font-weight: 750; }
+      .phone-body { min-height: 420px; padding: 17px; background: #fffdf9; }
+      .phone-label { margin: 0 0 8px; color: #617080; font-size: 10px; font-weight: 800; letter-spacing: .08em; }
+      .score-card, .small-card { padding: 13px; border: 1px solid #dfe6e7; border-radius: 14px; background: white; }
+      .score-card + .score-card, .small-card + .small-card { margin-top: 10px; }
+      .score-line { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; font-weight: 750; }
+      .score-line span { color: #687889; font-size: 12px; font-weight: 600; }
+      .score-divider { height: 1px; margin: 11px 0; background: #edf0ee; }
+      .meta { display: flex; gap: 6px; flex-wrap: wrap; color: #526576; font-size: 12px; }
+      .meta b { color: #1f413b; font-weight: 750; }
+      .pill { display: inline-flex; padding: 4px 7px; color: #1b5148; border-radius: 6px; background: #f0f7f5; font-size: 11px; font-weight: 750; }
+
+      .pin-grid { display: grid; grid-template-columns: repeat(7, 20px); gap: 5px; justify-content: center; margin: 18px 0 16px; }
+      .pin { width: 20px; height: 20px; border: 2px solid #93a0ab; border-radius: 50%; background: white; }
+      .pin.on { border-color: var(--pin-band); background: radial-gradient(circle at 50% 25%, white 0 30%, var(--pin-band) 32% 44%, var(--pin) 46%); }
+      .pin:nth-child(1) { grid-column: 4; }
+      .pin:nth-child(2) { grid-column: 3; }.pin:nth-child(3) { grid-column: 5; }
+      .pin:nth-child(4) { grid-column: 2; }.pin:nth-child(5) { grid-column: 4; }.pin:nth-child(6) { grid-column: 6; }
+      .pin:nth-child(7) { grid-column: 1; }.pin:nth-child(8) { grid-column: 3; }.pin:nth-child(9) { grid-column: 5; }.pin:nth-child(10) { grid-column: 7; }
+      .pin.on:nth-child(1) { grid-column: 4; }
+      .pin.on:nth-child(2) { grid-column: 3; }.pin.on:nth-child(3) { grid-column: 5; }
+      .pin.on:nth-child(4) { grid-column: 2; }.pin.on:nth-child(5) { grid-column: 4; }.pin.on:nth-child(6) { grid-column: 6; }
+      .pin.on:nth-child(7) { grid-column: 1; }.pin.on:nth-child(8) { grid-column: 3; }.pin.on:nth-child(9) { grid-column: 5; }.pin.on:nth-child(10) { grid-column: 7; }
+
+      .lane { position: relative; height: 76px; overflow: hidden; margin-top: 15px; border: 1px solid #c5945d; border-radius: 8px; background: repeating-linear-gradient(90deg, #d8ad76 0 12px, #e7c28f 12px 13px); }
+      .lane::after { content: ""; position: absolute; inset: 11px 12px; border-left: 2px solid rgba(103, 66, 25, .45); border-right: 2px solid rgba(103, 66, 25, .45); }
+      .lane-path { position: absolute; z-index: 1; bottom: 7px; left: 15%; width: 65%; height: 56px; border-top: 2px solid var(--felt); border-radius: 55% 65% 0 0; transform: rotate(-10deg); }
+      .lane-dot { position: absolute; z-index: 2; right: 27%; top: 27px; width: 8px; height: 8px; border-radius: 50%; background: var(--felt); }
+
+      .proof { display: grid; grid-template-columns: 1.1fr .9fr; gap: 0; margin-bottom: 92px; border: 1px solid #eadfce; border-radius: 22px; background: #fffdf9; }
+      .proof-copy { padding: 38px; }
+      .proof h2, .features h2, .privacy h2 { margin: 0; font-size: clamp(28px, 4vw, 43px); line-height: 1.04; letter-spacing: -.05em; }
+      .proof-copy p, .privacy p { max-width: 560px; color: #475569; font-size: 17px; line-height: 1.55; }
+      .proof-list { padding: 27px; background: #f3f8f6; border-radius: 0 22px 22px 0; }
+      .proof-list div { padding: 16px 0; border-bottom: 1px solid #d7e6e1; }
+      .proof-list div:last-child { border: 0; }
+      .proof-list strong { display: block; color: #1e423b; margin-bottom: 4px; }
+      .proof-list span { color: #506560; font-size: 14px; line-height: 1.45; }
+
+      .features { padding: 0 28px 90px; }
+      .feature-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 30px; }
+      .feature { min-height: 160px; padding: 22px; border: 1px solid var(--edge); border-radius: 16px; background: var(--surface); }
+      .feature-index { color: var(--felt); font-size: 12px; font-weight: 800; }
+      .feature h3 { margin: 25px 0 8px; font-size: 17px; letter-spacing: -.025em; }
+      .feature p { margin: 0; color: #526274; font-size: 14px; line-height: 1.5; }
+
+      .privacy { max-width: none; padding: 86px max(28px, calc((100vw - 1104px) / 2)); background: var(--felt-dark); color: white; }
+      .privacy p { color: #cfe0db; }
+      .privacy .small-fact { margin-top: 25px; color: #9fc3bb; font-size: 14px; }
+      .site-footer { display: flex; justify-content: space-between; gap: 20px; padding: 25px 28px 42px; color: var(--muted); font-size: 13px; }
+
+      .concept-two .hero { grid-template-columns: minmax(0, .95fr) minmax(330px, 1fr); }
+      .concept-two h1 { max-width: 620px; }
+      .concept-two .phone { transform: rotate(2deg); }
+      .concept-two .phone-wrap { position: relative; }
+      .concept-two .phone-wrap::before { content: ""; position: absolute; width: 315px; height: 315px; border: 1px solid #d5e2de; border-radius: 50%; }
+      .concept-two .proof { background: #173e37; color: white; border-color: #173e37; }
+      .concept-two .proof-copy p { color: #c3d8d2; }
+      .concept-two .proof-list { background: #f7f4ee; }
+      .concept-two .proof-list strong { color: #1c322d; }
+      .concept-two .proof-list span { color: #5a6d69; }
+
+      .concept-three .hero { padding-bottom: 62px; }
+      .concept-three .hero-copy { position: relative; }
+      .concept-three .hero-copy::before { content: ""; position: absolute; z-index: -1; top: -32px; left: -48px; width: 182px; height: 182px; border-radius: 50%; background: #e7f1ed; }
+      .concept-three .proof { margin-top: 30px; }
+      .place-row { display: flex; gap: 8px; margin: 8px 0 15px; }
+      .field { flex: 1; padding: 9px; border: 1px solid #d9e3df; border-radius: 8px; color: #455b56; font-size: 11px; }
+      .callout { padding: 13px; border-left: 3px solid var(--felt); background: #f3f8f6; color: #334b45; font-size: 12px; line-height: 1.45; }
+
+      @media (max-width: 760px) {
+        .concept-picker { justify-content: flex-start; overflow-x: auto; }
+        .site-header { padding: 18px 20px; }.header-note { display: none; }
+        .hero, .concept-two .hero { grid-template-columns: 1fr; gap: 38px; padding: 50px 20px 68px; }
+        h1 { font-size: clamp(43px, 13vw, 62px); }.intro { font-size: 18px; }
+        .phone-wrap { min-height: 0; }.phone { width: min(100%, 342px); }
+        .proof { grid-template-columns: 1fr; margin: 0 20px 66px; }.proof-copy, .proof-list { padding: 27px; }.proof-list { border-radius: 0 0 21px 21px; }
+        .feature-grid { grid-template-columns: 1fr; }.features { padding: 0 20px 66px; }
+        .privacy { padding: 64px 20px; }.site-footer { padding: 20px 20px 34px; flex-direction: column; }
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="concept-picker" aria-label="Landing page concepts">
+      <button type="button" aria-selected="true" data-concept="one">1. pin entry</button>
+      <button type="button" aria-selected="false" data-concept="two">2. the 10 pin</button>
+      <button type="button" aria-selected="false" data-concept="three">3. game plan</button>
+    </nav>
+
+    <main>
+      <article class="concept concept-one is-active" id="one">
+        <div class="page">
+          <header class="site-header"><div class="wordmark"><span class="mark"></span>Bowling Companion</div><div class="header-note">Score keeper for league nights</div></header>
+          <section class="hero">
+            <div class="hero-copy">
+              <p class="eyebrow">Score the leave</p>
+              <h1>Tap the pins you left.</h1>
+              <p class="intro">A clean deck is a strike. Leave the 4-9 standing and tap 4 and 9. The shot keeps the ball and boards beside it, so the game is still worth opening after you leave the approach.</p>
+              <div class="actions"><a class="button" href="[APP URL]">Start a game</a><span class="under-button">It runs in your phone browser and can sit on the home screen.</span></div>
+            </div>
+            <div class="phone-wrap" aria-label="Score entry mockup"><div class="phone"><div class="phone-bar"><span>Active game</span><span>Frame 7</span></div><div class="phone-body"><p class="phone-label">PINS STANDING</p><div class="score-card"><div class="pin-grid" aria-label="Pins 4 and 9 standing"><i class="pin"></i><i class="pin"></i><i class="pin"></i><i class="pin on"></i><i class="pin"></i><i class="pin"></i><i class="pin"></i><i class="pin"></i><i class="pin on"></i><i class="pin"></i></div><div class="score-line"><span>Tap a pin to change it</span><b>4-9</b></div></div><div class="score-card"><p class="phone-label">THIS SHOT</p><div class="meta"><span><b>Ball</b> [BALL]</span><span><b>Stance</b> 23</span><span><b>Target</b> 12</span></div><div class="lane"><i class="lane-path"></i><i class="lane-dot"></i></div></div></div></div></div>
+          </section>
+          <section class="proof"><div class="proof-copy"><h2>A scorecard stops at the score.</h2><p>The pin deck records the leave. The rest of the shot stays with it: the ball in your hand, where you stood and what you looked at.</p></div><div class="proof-list"><div><strong>The first ball</strong><span>Pocket, carry and strike results begin with the pins you leave.</span></div><div><strong>The spare shot</strong><span>Save the line you throw at a leave, then keep it for the next time.</span></div><div><strong>The whole night</strong><span>Read every game back by ball, lane, house and pattern.</span></div></div></section>
+          <section class="features"><h2>The things that matter after the score.</h2><div class="feature-grid"><div class="feature"><span class="feature-index">01</span><h3>Ball catalog</h3><p>Link a ball to manufacturer-sourced core, coverstock, RG and differential details.</p></div><div class="feature"><span class="feature-index">02</span><h3>Stats</h3><p>Read pocket, carry, strike, spare and first-ball results by ball and game.</p></div><div class="feature"><span class="feature-index">03</span><h3>Game plan</h3><p>Pick the house and pattern. Check what your own record says happened there.</p></div><div class="feature"><span class="feature-index">04</span><h3>Lane notes</h3><p>Keep notes by alley and lane, alongside pattern sheets and spare lines.</p></div><div class="feature"><span class="feature-index">05</span><h3>Spare lines</h3><p>Keep the boards you stand on for the leaves you see most often.</p></div><div class="feature"><span class="feature-index">06</span><h3>Backups</h3><p>Export a JSON file. Import it yourself when you need the record back.</p></div></div></section>
+          <section class="privacy"><h2>Your games stay on your device.</h2><p>There is no account. The browser stores your record in IndexedDB on this device, and nothing is uploaded.</p><p class="small-fact">A backup is a JSON file you export and import yourself.</p></section>
+          <footer class="site-footer"><span>Bowling Companion</span><span>Runs in a phone browser</span></footer>
+        </div>
+      </article>
+
+      <article class="concept concept-two" id="two">
+        <div class="page">
+          <header class="site-header"><div class="wordmark"><span class="mark"></span>Bowling Companion</div><div class="header-note">Score keeper for league nights</div></header>
+          <section class="hero"><div class="hero-copy"><p class="eyebrow">The shot you forgot</p><h1>What did you move when the 10 pin started showing up?</h1><p class="intro">The second game gets fuzzy: a ball change, a move inside, another 10 pin. Each shot can hold the ball and line you threw. Next week, open the game and check.</p><div class="actions"><a class="button" href="[APP URL]">Open the scorecard</a><span class="under-button">Data stays in this device's browser storage. Nothing is uploaded.</span></div></div><div class="phone-wrap" aria-label="Shot history mockup"><div class="phone"><div class="phone-bar"><span>Game 2</span><span>Scorecard</span></div><div class="phone-body"><p class="phone-label">FRAME 6</p><div class="score-card"><div class="score-line"><b>10 standing</b><span>First ball</span></div><div class="score-divider"></div><div class="meta"><span><b>Ball</b> [BALL]</span><span><b>Stance</b> 23</span><span><b>Target</b> 12</span></div><div class="lane"><i class="lane-path"></i><i class="lane-dot"></i></div></div><p class="phone-label" style="margin-top:18px">OTHER SHOTS</p><div class="small-card"><div class="score-line"><b>Frame 5</b><span>Strike</span></div><div class="meta" style="margin-top:8px"><span>[BALL]</span><span>23 at the arrows</span></div></div><div class="small-card"><div class="score-line"><b>Frame 7</b><span>4-9 standing</span></div><div class="meta" style="margin-top:8px"><span>[BALL]</span><span>20 at the arrows</span></div></div></div></div></div></section>
+          <section class="proof"><div class="proof-copy"><h2>The answer belongs in the game.</h2><p>Keep the ball, stance and target on every shot. A late move does not have to become a half-remembered story at the ball return.</p></div><div class="proof-list"><div><strong>Which ball</strong><span>Each shot records the ball from your own arsenal.</span></div><div><strong>Which boards</strong><span>Stand and target in boards stay beside the shot that used them.</span></div><div><strong>Which night</strong><span>Filter the record by alley, oil pattern, event and lane.</span></div></div></section>
+          <section class="features"><h2>Go back to the part you need.</h2><div class="feature-grid"><div class="feature"><span class="feature-index">01</span><h3>Pin entry</h3><p>Record the leave, not a pin count. Strikes and spares take one tap.</p></div><div class="feature"><span class="feature-index">02</span><h3>Ball catalog</h3><p>Match your arsenal to 250 balls from Storm, Motiv, Roto Grip and 900 Global.</p></div><div class="feature"><span class="feature-index">03</span><h3>Stats</h3><p>Filter results by alley, pattern, event and lane, then break them down by ball.</p></div><div class="feature"><span class="feature-index">04</span><h3>Game plan</h3><p>Check which ball carried, which spares missed and how later games went.</p></div><div class="feature"><span class="feature-index">05</span><h3>Notes</h3><p>Save the lane note when it matters, not after you have forgotten the move.</p></div><div class="feature"><span class="feature-index">06</span><h3>Backups</h3><p>Your backup is a JSON file you export and import yourself.</p></div></div></section>
+          <section class="privacy"><h2>Your record is not a profile.</h2><p>The app has no backend and no account. It keeps data in the browser on the device where you use it.</p><p class="small-fact">Export a JSON backup when you want a second copy.</p></section><footer class="site-footer"><span>Bowling Companion</span><span>Runs in a phone browser</span></footer>
+        </div>
+      </article>
+
+      <article class="concept concept-three" id="three">
+        <div class="page">
+          <header class="site-header"><div class="wordmark"><span class="mark"></span>Bowling Companion</div><div class="header-note">Score keeper for league nights</div></header>
+          <section class="hero"><div class="hero-copy"><p class="eyebrow">Before the first ball</p><h1>Before league, look at the last time you bowled there.</h1><p class="intro">Pick the house and pattern. Game plan reads back your own record for that place: the ball that carried, the games that moved, the spare results and the line from last time. If the history is thin, it says so.</p><div class="actions"><a class="button" href="[APP URL]">Open game plan</a><span class="under-button">Build the record during a game. Review it before the next one.</span></div></div><div class="phone-wrap" aria-label="Game plan mockup"><div class="phone"><div class="phone-bar"><span>Game plan</span><span>Close</span></div><div class="phone-body"><p class="phone-label">WHERE ARE YOU BOWLING?</p><div class="place-row"><div class="field">[HOUSE]</div><div class="field">[PATTERN]</div></div><div class="small-card"><p class="phone-label">LAST TIME</p><div class="score-line"><b>[BALL]</b><span class="pill">carried</span></div><div class="meta" style="margin-top:9px"><span>23 at the arrows</span><span>Frame 7</span></div></div><div class="small-card"><p class="phone-label">SPARE SHOT</p><div class="callout">4-9 standing. The saved line starts at 20 and targets 12.</div></div><div class="small-card"><p class="phone-label">GAME BY GAME</p><div class="callout">Open the games behind this house and pattern. Results stay tied to the recorded night.</div></div></div></div></div></section>
+          <section class="proof"><div class="proof-copy"><h2>Start with what happened here.</h2><p>Game plan does not pick a ball for you. It reads back the house and pattern from your own games, then leaves the decision on the rack.</p></div><div class="proof-list"><div><strong>Carry by ball</strong><span>See which ball carried at this house and pattern.</span></div><div><strong>Spare results</strong><span>Find the leaves that kept turning into open frames.</span></div><div><strong>Later games</strong><span>Check how your night usually changed after game one.</span></div></div></section>
+          <section class="features"><h2>Everything behind the next decision.</h2><div class="feature-grid"><div class="feature"><span class="feature-index">01</span><h3>Pin entry</h3><p>The pin deck records each leave exactly as it stood.</p></div><div class="feature"><span class="feature-index">02</span><h3>Ball catalog</h3><p>Add your own balls, with catalog specs where a match exists.</p></div><div class="feature"><span class="feature-index">03</span><h3>Stats</h3><p>Compare pocket, carry, strike, spare and first-ball percentages across your history.</p></div><div class="feature"><span class="feature-index">04</span><h3>Game plan</h3><p>Start with a house and pattern, then inspect the nights already behind you.</p></div><div class="feature"><span class="feature-index">05</span><h3>Notes</h3><p>Store lane notes by alley and lane. Keep pattern sheets close to the session.</p></div><div class="feature"><span class="feature-index">06</span><h3>Backups</h3><p>Export your browser data to JSON and bring it back through import.</p></div></div></section>
+          <section class="privacy"><h2>The history stays with the bowler.</h2><p>Bowling Companion stores data in IndexedDB in this browser. There is no account to create and no server holding your games.</p><p class="small-fact">You decide when to export a JSON backup and where to keep it.</p></section><footer class="site-footer"><span>Bowling Companion</span><span>Runs in a phone browser</span></footer>
+        </div>
+      </article>
+    </main>
+    <script>
+      const controls = document.querySelectorAll("[data-concept]");
+      const concepts = document.querySelectorAll(".concept");
+      controls.forEach((control) => control.addEventListener("click", () => {
+        const target = control.dataset.concept;
+        controls.forEach((item) => item.setAttribute("aria-selected", String(item === control)));
+        concepts.forEach((concept) => concept.classList.toggle("is-active", concept.id === target));
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }));
+    </script>
+  </body>
+</html>

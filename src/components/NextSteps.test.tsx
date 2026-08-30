@@ -23,16 +23,17 @@ describe("NextSteps", () => {
     await db.open();
   });
 
-  it("asks an empty database for balls first", async () => {
+  it("asks an empty database for the two things answerable before a first night", async () => {
     renderCard();
     expect(await screen.findByText("Add the balls you throw")).toBeInTheDocument();
+    expect(screen.getByText("Write down your spare lines")).toBeInTheDocument();
+    // Which pattern you bowl on is learned at the house, so it waits.
     expect(screen.queryByText("Add the pattern you bowl on")).not.toBeInTheDocument();
   });
 
   it("renders nothing once every gap is filled", async () => {
     await db.balls.add({ name: "Phaze II", is_spare_ball: false });
     await db.spare_lines.add({ pins: [10], strike_offset: { target: 3 } });
-    await db.oil_patterns.add({ name: "Kegel Main Street" });
 
     const { container } = renderCard();
     // The heading would arrive with the query, so waiting for a stable empty
@@ -48,14 +49,17 @@ describe("NextSteps", () => {
     expect(onOpenArsenal).toHaveBeenCalledOnce();
   });
 
-  it("retires a step for good when it is waved off", async () => {
+  it("retires one step for good without silencing the one beside it", async () => {
     renderCard();
-    fireEvent.click(
-      await screen.findByRole("button", { name: "Not now" })
-    );
+    await screen.findByText("Add the balls you throw");
+    // The first "Not now" belongs to the first step listed.
+    fireEvent.click(screen.getAllByRole("button", { name: "Not now" })[0]);
+
     await waitFor(() =>
       expect(screen.queryByText("Add the balls you throw")).not.toBeInTheDocument()
     );
+    expect(screen.getByText("Write down your spare lines")).toBeInTheDocument();
     expect(await db.settings.get("next_step_dismissed:arsenal")).toBeDefined();
+    expect(await db.settings.get("next_step_dismissed:spare-lines")).toBeUndefined();
   });
 });
