@@ -1,9 +1,58 @@
 import react from "@vitejs/plugin-react";
 import { VitePWA } from "vite-plugin-pwa";
+import type { Plugin } from "vite";
 import { defineConfig } from "vitest/config";
 
+/**
+ * Serve /score in dev the way the host serves it in production.
+ *
+ * Vercel resolves /score to score/index.html, but Vite's dev server only
+ * resolves the directory form, /score/. Without this the app's real URL 404s
+ * locally, the e2e suite has to ask for a URL no user will ever type, and dev
+ * and prod disagree about the one path the whole app hangs off.
+ */
+function serveScoreWithoutTrailingSlash(): Plugin {
+  return {
+    name: "score-clean-url",
+    apply: "serve",
+    configureServer(server) {
+      server.middlewares.use((req, _res, next) => {
+        if (req.url === "/score" || req.url?.startsWith("/score#") || req.url?.startsWith("/score?")) {
+          req.url = "/score/index.html" + req.url.slice("/score".length);
+        }
+        next();
+      });
+    }
+  };
+}
+
 export default defineConfig({
+  // MPA, not SPA: the default SPA fallback answers *every* HTML request with
+  // the root index.html, which would serve the landing page at /score and hide
+  // the app entirely. There are two real HTML entries and no server routing to
+  // fake, so the fallback is not wanted.
+  appType: "mpa",
+  build: {
+    rollupOptions: {
+      input: {
+        // The landing page a search engine and a link scraper read.
+        landing: "index.html",
+        // The app shell. Routing inside it is hash-based (see appRoute.ts), so
+        // every screen is /score#/..., and this is the only app URL a server
+        // ever sees.
+        //
+        // It builds to score/index.html but is linked, shared and installed as
+        // /score. Hosts disagree about whether they resolve that themselves
+        // (`vite preview` does not), so neither end is left to chance: the dev
+        // server gets the middleware above, and production gets an explicit
+        // rewrite in vercel.json. Both are inert where the host is already
+        // right, and this is the one URL the whole app hangs off.
+        app: "score/index.html"
+      }
+    }
+  },
   plugins: [
+    serveScoreWithoutTrailingSlash(),
     react(),
     VitePWA({
       registerType: "prompt",
@@ -22,7 +71,17 @@ export default defineConfig({
         background_color: "#fff8ed",
         display: "standalone",
         orientation: "portrait",
-        start_url: "/",
+        // Points at the app, not at the landing page: this is what opens when
+        // the home screen icon is tapped, and an installed user tapping their
+        // own icon must never land on a pitch for the app they installed.
+        start_url: "/score",
+        // Scope stays the whole origin even though the app lives under /score.
+        // A browser only offers to install from a page inside scope, and the
+        // landing page is where a first visitor decides to install, so scoping
+        // to /score would put the install prompt behind a click. The usual cost
+        // of the wide scope, the landing page opening inside the app window, is
+        // already handled: that page bounces a standalone launch to /score.
+        scope: "/",
         icons: [
           { src: "icons/icon-192.png", sizes: "192x192", type: "image/png" },
           { src: "icons/icon-512.png", sizes: "512x512", type: "image/png" },
@@ -35,6 +94,12 @@ export default defineConfig({
         ]
       },
       workbox: {
+        // Offline navigations to /score (no trailing slash) are not a precache
+        // URL, so without this they would fall through to the root index.html
+        // and the app would look like it had been replaced by its own advert.
+        // "/" is denied because it *is* precached, via workbox's directoryIndex.
+        navigateFallback: "/score/index.html",
+        navigateFallbackDenylist: [/^\/$/],
         // NOTE: webp and catalog JSON are intentionally excluded from precache
         // to keep boot light. They are runtime-cached on first use instead.
         globPatterns: ["**/*.{js,css,html,svg,png,ico,webmanifest}"],

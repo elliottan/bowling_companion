@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=overlays-content" />
+    <meta name="theme-color" content="#fff8ed" />
+    <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Headpin" />
+
+    <title>Headpin</title>
+    <!--
+      The app shell is deliberately not indexed. It serves an empty #root, so
+      the only thing a crawler could rank it on is the boilerplate here, and it
+      would compete with the landing page at / for the same query. One page
+      answers a search; this one answers a tap.
+    -->
+    <meta name="robots" content="noindex" />
+    <link rel="canonical" href="https://headpin.app/score" />
+
+    <!--
+      Resolve the theme before first paint so there is no light-mode flash.
+      Stored 'theme' ('light'|'dark') wins; otherwise follow the OS. When no
+      preference is stored we also track OS changes live. Also keeps the
+      browser/standalone chrome color (theme-color) in sync with the shell.
+    -->
+    <script>
+      (function () {
+        var root = document.documentElement;
+        function apply(dark) {
+          root.dataset.theme = dark ? "dark" : "light";
+          var meta = document.querySelector('meta[name="theme-color"]');
+          if (meta) meta.setAttribute("content", dark ? "#0f172a" : "#fff8ed");
+        }
+        function stored() {
+          try {
+            return localStorage.getItem("theme");
+          } catch (e) {
+            return null;
+          }
+        }
+        function resolve(osDark) {
+          var pinned = stored();
+          apply(pinned ? pinned === "dark" : osDark);
+        }
+        var mq = window.matchMedia("(prefers-color-scheme: dark)");
+        resolve(mq.matches);
+        // Re-reads storage on every fire rather than being attached
+        // conditionally: the preference can be pinned later in the session, and
+        // a listener bound to the load-time value would keep overriding it.
+        mq.addEventListener("change", function (e) { resolve(e.matches); });
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

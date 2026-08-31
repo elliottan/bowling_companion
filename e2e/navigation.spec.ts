@@ -135,7 +135,7 @@ test("a session survives a reload, and the URL names it", async ({ page }) => {
 });
 
 test("an unreadable link opens the app rather than breaking it", async ({ page }) => {
-  await page.goto("/#/not-a-screen/nonsense");
+  await page.goto("/score#/not-a-screen/nonsense");
   await expect(page.getByText(/score your first night/i)).toBeVisible();
   await expect(page).toHaveURL(/#\/home$/);
 });

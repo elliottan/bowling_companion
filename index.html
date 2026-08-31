@@ -2,13 +2,9 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=overlays-content" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#fff8ed" />
     <link rel="apple-touch-icon" href="/icons/icon-192.png" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-    <meta name="apple-mobile-web-app-title" content="Headpin" />
 
     <title>Headpin, free offline bowling score keeper</title>
     <meta
@@ -41,11 +37,29 @@
       content="Keep score for league night or open play. No signal needed, no account, and every game stays on your own phone."
     />
     <meta name="twitter:image" content="https://headpin.app/og-image.png" />
+
     <!--
-      Resolve the theme before first paint so there is no light-mode flash.
-      Stored 'theme' ('light'|'dark') wins; otherwise follow the OS. When no
-      preference is stored we also track OS changes live. Also keeps the
-      browser/standalone chrome color (theme-color) in sync with the shell.
+      Installed apps launched before the app moved to /score still have `/` as
+      their start URL, and a manifest update is not applied on any schedule we
+      control (iOS is the worst of them). Without this, tapping the home screen
+      icon opens a sales pitch for an app the user already installed. A launch
+      in an app window is never a visit to the landing page, so bounce it, and
+      `replace` so the back gesture does not land straight back here.
+    -->
+    <script>
+      (function () {
+        var standalone =
+          window.matchMedia("(display-mode: standalone)").matches ||
+          window.navigator.standalone === true;
+        if (standalone) location.replace("/score" + location.hash);
+      })();
+    </script>
+
+    <!--
+      This page carries its own theme resolution and its own styles. It is
+      served with no JavaScript bundle and no stylesheet request on purpose:
+      it is the page a crawler reads and the page a first visitor waits on, so
+      it has to paint from the one file it already has.
     -->
     <script>
       (function () {
@@ -68,51 +82,123 @@
         }
         var mq = window.matchMedia("(prefers-color-scheme: dark)");
         resolve(mq.matches);
-        // Re-reads storage on every fire rather than being attached
-        // conditionally: the preference can be pinned later in the session, and
-        // a listener bound to the load-time value would keep overriding it.
         mq.addEventListener("change", function (e) { resolve(e.matches); });
       })();
     </script>
+
+    <style>
+      :root {
+        --bg: #fff8ed;
+        --card: #ffffff;
+        --ink: #020617;
+        --ink-2: #475569;
+        --ink-3: #64748b;
+        --edge: #e2e8f0;
+        --felt: #1b5148;
+        --on-felt: #ffffff;
+      }
+      :root[data-theme="dark"] {
+        --bg: #0f172a;
+        --card: #1e293b;
+        --ink: #f1f5f9;
+        --ink-2: #cbd5e1;
+        --ink-3: #94a3b8;
+        --edge: #334155;
+        --felt: #5ed6c1;
+        --on-felt: #06231e;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", sans-serif;
+        line-height: 1.6;
+        -webkit-text-size-adjust: 100%;
+      }
+      main {
+        max-width: 36rem;
+        margin: 0 auto;
+        padding: 3.5rem 1.5rem 4rem;
+      }
+      .mark { width: 72px; height: 72px; border-radius: 1rem; display: block; }
+      h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        letter-spacing: -0.03em;
+        margin: 1.25rem 0 0;
+      }
+      .lede { font-size: 1.15rem; color: var(--ink-2); margin: 0.75rem 0 0; }
+      .cta {
+        display: inline-block;
+        margin: 1.75rem 0 0;
+        padding: 0.85rem 1.6rem;
+        border-radius: 999px;
+        background: var(--felt);
+        color: var(--on-felt);
+        font-weight: 600;
+        text-decoration: none;
+      }
+      .cta-note { font-size: 0.9rem; color: var(--ink-3); margin: 0.75rem 0 0; }
+      h2 {
+        font-size: 1.05rem;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+        text-transform: uppercase;
+        color: var(--ink-3);
+        margin: 3rem 0 1rem;
+      }
+      ul { list-style: none; margin: 0; padding: 0; }
+      li {
+        background: var(--card);
+        border: 1px solid var(--edge);
+        border-radius: 0.85rem;
+        padding: 0.85rem 1rem;
+        margin: 0 0 0.6rem;
+        color: var(--ink-2);
+      }
+      li b { color: var(--ink); font-weight: 600; }
+      p { color: var(--ink-2); }
+      footer {
+        margin-top: 3.5rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--edge);
+        color: var(--ink-3);
+        font-size: 0.9rem;
+      }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
-    <!--
-      The crawler's copy of the app. A client-rendered shell hands a search
-      engine an empty <div>, and a page with no words cannot rank for any of
-      them, so the pitch lives in the served HTML.
+    <main>
+      <img class="mark" src="/icons/icon-192.png" width="72" height="72" alt="" />
+      <h1>Headpin</h1>
+      <p class="lede">
+        A free bowling score keeper that works with no signal, needs no account,
+        and keeps every game on your own phone.
+      </p>
+      <a class="cta" href="/score">Open Headpin</a>
+      <p class="cta-note">No sign up. Opens straight into a scorecard.</p>
 
-      It sits after #root and is hidden by a CSS sibling rule the moment React
-      fills #root, so there is no frame where both are painted and no script has
-      to remove it. With JavaScript off, this is the whole page.
-    -->
-    <div id="landing">
-      <main>
-        <img src="/icons/icon-192.png" width="72" height="72" alt="" />
-        <h1>Headpin</h1>
-        <p class="lede">
-          A free bowling score keeper that works with no signal, needs no
-          account, and keeps every game on your own phone.
-        </p>
-        <h2>What it does</h2>
-        <ul>
-          <li>Scores tenpin games frame by frame, strikes and spares included.</li>
-          <li>Works offline. Bowling alleys eat phone signal, so it never asks for any.</li>
-          <li>Installs to your home screen like an app, from the browser.</li>
-          <li>Tracks which ball you threw and which pins were left standing.</li>
-          <li>Keeps a history of your games, with averages over time.</li>
-          <li>No account, no ads, no tracking. Your scores never leave the phone.</li>
-          <li>Backs up and restores through a file you hold onto yourself.</li>
-        </ul>
-        <h2>How to install it</h2>
-        <p>
-          Open headpin.app on your phone. On iPhone, tap Share and then Add to
-          Home Screen. On Android, tap the menu and then Install app. It then
-          opens like any other app, offline.
-        </p>
-        <p class="foot">Made for league night and open play.</p>
-      </main>
-    </div>
-    <script type="module" src="/src/main.tsx"></script>
+      <h2>What it does</h2>
+      <ul>
+        <li><b>Keeps score.</b> Tenpin, frame by frame, strikes and spares counted for you.</li>
+        <li><b>Works offline.</b> Bowling alleys eat phone signal, so it never asks for any.</li>
+        <li><b>Installs to your home screen.</b> Straight from the browser, no app store.</li>
+        <li><b>Tracks your arsenal.</b> Which ball you threw, and which pins were left standing.</li>
+        <li><b>Remembers every night.</b> Game history and averages over time.</li>
+        <li><b>Keeps it yours.</b> No account, no ads, no tracking. Scores never leave the phone.</li>
+        <li><b>Backs up to a file.</b> One you hold onto and can restore from anywhere.</li>
+      </ul>
+
+      <h2>How to install it</h2>
+      <p>
+        Open Headpin on your phone. On iPhone, tap Share and then Add to Home
+        Screen. On Android, tap the menu and then Install app. It then opens like
+        any other app, with or without signal.
+      </p>
+
+      <footer>Made for league night and open play.</footer>
+    </main>
   </body>
 </html>

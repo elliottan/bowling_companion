@@ -11,7 +11,7 @@ export async function dismissHandednessModal(page: Page) {
 
 /** Wipe IndexedDB so each test starts from an empty database. */
 export async function clearDatabase(page: Page) {
-  await page.goto("/");
+  await page.goto("/score");
   await page.evaluate(async () => {
     await new Promise<void>((resolve) => {
       const req = indexedDB.deleteDatabase("BowlingCompanionDB");

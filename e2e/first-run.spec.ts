@@ -3,7 +3,7 @@ import { recordShot, startSession } from "./helpers";
 
 /** Wipe the database and reload, landing on a genuine first run. */
 async function freshInstall(page: Parameters<typeof startSession>[0]) {
-  await page.goto("/");
+  await page.goto("/score");
   await page.evaluate(async () => {
     await new Promise<void>((resolve) => {
       const req = indexedDB.deleteDatabase("BowlingCompanionDB");
