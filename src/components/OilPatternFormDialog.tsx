@@ -1,4 +1,6 @@
+import { Trash2 } from "lucide-react";
 import { useState, type FormEvent } from "react";
+import { Button } from "./ui/Button";
 import { FormSheet } from "./ui/FormSheet";
 import { FIELD, FIELD_LABEL } from "./ui/field";
 import type { OilPattern } from "../types/bowling";
@@ -11,10 +13,12 @@ interface OilPatternFormDialogProps {
   initial?: OilPattern;
   onSubmit: (values: { name: string; url?: string }) => Promise<void>;
   onCancel: () => void;
+  /** Only supplied when editing: removal lives with the thing it removes (§2). */
+  onRemove?: () => void;
 }
 
 /** Add or rename an oil pattern, and point it at its pattern sheet. */
-export function OilPatternFormDialog({ open, initial, onSubmit, onCancel }: OilPatternFormDialogProps) {
+export function OilPatternFormDialog({ open, initial, onSubmit, onCancel, onRemove }: OilPatternFormDialogProps) {
   const [name, setName] = useState(initial?.name ?? "");
   const [url, setUrl] = useState(initial?.url ?? "");
   const [error, setError] = useState("");
@@ -76,6 +80,13 @@ export function OilPatternFormDialog({ open, initial, onSubmit, onCancel }: OilP
             </label>
 
             {error && <p className="text-xs text-danger-700">{error}</p>}
+
+            {onRemove && (
+              <Button variant="danger-ghost" onClick={onRemove} className="w-full">
+                <Trash2 size={16} aria-hidden="true" />
+                Remove pattern
+              </Button>
+            )}
           </div>
       </form>
     </FormSheet>

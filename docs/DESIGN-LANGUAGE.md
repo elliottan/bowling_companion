@@ -79,8 +79,8 @@ Chrome is opaque.
 
 ## 2. Controls
 
-`Button`, `IconButton`, `Chip` and `Fab` are the only control primitives. Build
-from them rather than hand-rolling a button. Both `Button` sizes and `IconButton` clear
+`Button`, `IconButton`, `Chip`, `SegmentedControl` and `Fab` are the only
+control primitives. Build from them rather than hand-rolling a button. Both `Button` sizes and `IconButton` clear
 the 44pt minimum tap target structurally, and `IconButton` requires `label`, so
 an unnamed icon button cannot be constructed.
 
@@ -90,6 +90,12 @@ which is how a control rides in a dense row without setting the row's height.
 The expansion must not reach over a neighbouring control: `Chip` grows
 vertically only, and `compact` grows upward only, because it sits in a heading
 row with content directly beneath it.
+
+`SegmentedControl` (`src/components/ui/SegmentedControl.tsx`) is one track with
+N segments and exactly one selected: a theme, a handedness. A row of `Chip`s is
+not that, and reads as one because chips sit apart with gaps between them and
+any number of them can be on. The theme picker was three chips before, and the
+shared track is what says "pick one" before a single label is read.
 
 **Colour goes in a variant, never in `className`.** Tailwind resolves competing
 utilities by stylesheet order, not attribute order, so a colour passed through
@@ -115,11 +121,26 @@ one `shadow-sm`, no stacked shadows.
 
 ## 4. Lists and rows
 
+Rows that belong together are **one card with hairline dividers**
+(`src/components/ui/ListGroup.tsx`), not a stack of separate cards with gaps.
+The gapped stack is what Settings, the lane notes and the oil patterns all had,
+and five cards in a column read as five unrelated objects that happen to be
+adjacent; one card says they are one list, and the `GROUP_HEADING` above it says
+what they have in common. The divider is drawn by the row below as an inset
+pseudo-element (`LIST_DIVIDER*`), starting where the text starts, because a
+full-bleed rule under a leading icon cuts the icon column in half.
+
+`ListRow` is the row: leading icon tile, label, one truncated line of secondary
+text, and a trailing chevron. A row that *leaves the app* swaps the chevron for
+an outward arrow, since the chevron means "deeper into this app" everywhere
+else.
+
 A list row is a **single tap target** that opens the thing. Secondary actions
 move into the destination, not onto the row; the exception is a drag handle,
-which is a separate control because it is a different gesture. Rows carry a
-48px leading thumbnail where one exists, title, and one truncated line of
-secondary text.
+which is a separate control because it is a different gesture, and a link out
+of the app, which is a different destination rather than an action on the row.
+Rows carry a 48px leading thumbnail where one exists, title, and one truncated
+line of secondary text.
 
 ## 4b. Numbers on screen
 

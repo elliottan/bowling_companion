@@ -1,4 +1,4 @@
-import { Download, Upload } from "lucide-react";
+import { Download, ShieldAlert, Upload } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { ErrorBanner } from "../components/ErrorBanner";
 import { PushScreen } from "../components/PushScreen";
@@ -99,16 +99,25 @@ export function BackupRestoreView({ onBack, mode = "inline" }: BackupRestoreView
         first.
       </p>
 
-      {persisted !== null && (
+      {/* A browser that may bin the scores is a warning, and was set in the
+          same grey as everything else, which is where a warning goes to die. */}
+      {persisted === false && (
+        <p className="mt-3 flex items-start gap-2 rounded-xl border border-warning-200 bg-warning-50 p-3 text-sm text-warning-700">
+          <ShieldAlert size={16} aria-hidden="true" className="mt-0.5 shrink-0" />
+          <span>
+            This browser may clear your scores if it runs short of space. Install the app and
+            back up.
+          </span>
+        </p>
+      )}
+      {persisted === true && (
         <p className="mt-2 text-xs text-ink-secondary">
-          {persisted
-            ? "This browser has agreed not to clear your scores on its own."
-            : "This browser may clear your scores if it runs short of space. Install the app and back up."}
+          This browser has agreed not to clear your scores on its own.
         </p>
       )}
 
       <div
-        className="mt-5 rounded-lg border border-edge bg-surface p-4 shadow-sm"
+        className="mt-5 rounded-xl border border-edge bg-surface p-4 shadow-sm"
         onDragOver={(e) => e.preventDefault()}
         onDrop={(e) => {
           e.preventDefault();

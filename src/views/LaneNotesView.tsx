@@ -11,6 +11,7 @@ import { getLaneNotes } from "../services/ballRepository";
 import { getDistinctAlleys } from "../services/bowlingRepository";
 import type { LaneNote } from "../types/bowling";
 import { GROUP_HEADING } from "../components/ui/typography";
+import { LIST_DIVIDER_BASE, ListGroup } from "../components/ui/ListGroup";
 
 // A stable empty list: `?? []` would be a new array on every render, which
 // invalidates every useMemo downstream of it.
@@ -107,42 +108,43 @@ export function LaneNotesView({ onBack, mode = "inline" }: LaneNotesViewProps = 
 
           <div className="space-y-5">
             {shown.map((group) => (
-              <section key={group.alley}>
-                <div className="mb-1.5 flex items-baseline justify-between gap-3 px-1">
-                  <h2 className="truncate text-sm font-semibold text-ink">{group.alley}</h2>
+              <ListGroup
+                key={group.alley}
+                heading={<h2 className="truncate text-sm font-semibold text-ink">{group.alley}</h2>}
+                headingTrailing={
                   <span className={`${GROUP_HEADING} shrink-0`}>
                     {group.notes.length} {group.notes.length === 1 ? "lane" : "lanes"}
                   </span>
-                </div>
-                <ul className="divide-y divide-edge overflow-hidden rounded-xl border border-edge bg-surface shadow-sm">
-                  {group.notes.map((n) => (
-                    <li key={n.id}>
-                      <button
-                        type="button"
-                        onClick={() => setForm({ note: n })}
-                        aria-label={`Edit note for ${group.alley} lane ${n.lane}`}
-                        className="flex w-full items-center gap-3 p-3 text-left active:bg-surface-muted"
-                      >
-                        <LaneBadge lane={n.lane} />
-                        {n.notes ? (
-                          <p className="line-clamp-2 min-w-0 flex-1 break-words text-sm leading-snug text-ink-secondary">
-                            {n.notes}
-                          </p>
-                        ) : (
-                          <p className="min-w-0 flex-1 text-sm italic text-ink-tertiary">
-                            Nothing written yet
-                          </p>
-                        )}
-                        <ChevronRight
-                          size={18}
-                          className="shrink-0 text-ink-tertiary"
-                          aria-hidden="true"
-                        />
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              </section>
+                }
+              >
+                {/* The divider clears the 44px lane plate: 12px padding + 44 + 12 gap. */}
+                {group.notes.map((n) => (
+                  <li key={n.id} className={`${LIST_DIVIDER_BASE} before:left-[4.25rem]`}>
+                    <button
+                      type="button"
+                      onClick={() => setForm({ note: n })}
+                      aria-label={`Edit note for ${group.alley} lane ${n.lane}`}
+                      className="flex w-full items-center gap-3 p-3 text-left active:bg-surface-muted"
+                    >
+                      <LaneBadge lane={n.lane} />
+                      {n.notes ? (
+                        <p className="line-clamp-2 min-w-0 flex-1 break-words text-sm leading-snug text-ink-secondary">
+                          {n.notes}
+                        </p>
+                      ) : (
+                        <p className="min-w-0 flex-1 text-sm italic text-ink-tertiary">
+                          Nothing written yet
+                        </p>
+                      )}
+                      <ChevronRight
+                        size={18}
+                        className="shrink-0 text-ink-tertiary"
+                        aria-hidden="true"
+                      />
+                    </button>
+                  </li>
+                ))}
+              </ListGroup>
             ))}
           </div>
         </>

@@ -1,6 +1,7 @@
-import { ExternalLink, Pencil, Plus, RotateCcw, Trash2, Waves } from "lucide-react";
+import { ChevronRight, ExternalLink, Plus, RotateCcw, Waves } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
+import { ConfirmDialog } from "./ConfirmDialog";
 import { ErrorBanner } from "./ErrorBanner";
 import { OilPatternFormDialog } from "./OilPatternFormDialog";
 import { PushScreen } from "./PushScreen";
@@ -15,6 +16,7 @@ import {
   updateOilPattern
 } from "../services/ballRepository";
 import type { OilPattern } from "../types/bowling";
+import { LIST_DIVIDER, ListGroup } from "./ui/ListGroup";
 import { GROUP_HEADING } from "./ui/typography";
 
 interface OilPatternManagerProps {
@@ -41,6 +43,7 @@ export function OilPatternManager({ onBack, mode = "inline" }: OilPatternManager
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<OilPattern | undefined>(undefined);
+  const [pendingRemove, setPendingRemove] = useState<OilPattern | null>(null);
 
   const active = useMemo(() => patterns.filter((p) => !p.archived), [patterns]);
   const archived = useMemo(() => patterns.filter((p) => p.archived), [patterns]);
@@ -58,6 +61,9 @@ export function OilPatternManager({ onBack, mode = "inline" }: OilPatternManager
 
   async function handleRemove(pattern: OilPattern) {
     if (pattern.id == null) return;
+    setPendingRemove(null);
+    setDialogOpen(false);
+    setEditing(undefined);
     setError("");
     try {
       const result = await removeOilPattern(pattern.id);
@@ -104,7 +110,14 @@ export function OilPatternManager({ onBack, mode = "inline" }: OilPatternManager
       )}
 
       {error && <ErrorBanner className="mb-3">{error}</ErrorBanner>}
-      {notice && <p className="mb-3 text-xs text-ink-secondary">{notice}</p>}
+      {notice && (
+        <p
+          role="status"
+          className="mb-3 rounded-lg border border-edge bg-surface-muted p-3 text-sm text-ink-secondary"
+        >
+          {notice}
+        </p>
+      )}
 
       {isLoading ? (
         <p className="text-sm text-ink-secondary">Loading…</p>
@@ -120,16 +133,11 @@ export function OilPatternManager({ onBack, mode = "inline" }: OilPatternManager
           </Button>
         </EmptyState>
       ) : (
-        <ul className="space-y-1.5">
+        <ListGroup>
           {active.map((pattern) => (
-            <PatternRow
-              key={pattern.id}
-              pattern={pattern}
-              onEdit={() => openEdit(pattern)}
-              onRemove={() => void handleRemove(pattern)}
-            />
+            <PatternRow key={pattern.id} pattern={pattern} onEdit={() => openEdit(pattern)} />
           ))}
-        </ul>
+        </ListGroup>
       )}
 
       {archived.length > 0 && (
@@ -142,16 +150,18 @@ export function OilPatternManager({ onBack, mode = "inline" }: OilPatternManager
             {showArchived ? "Hide" : "Show"} archived ({archived.length})
           </button>
           {showArchived && (
-            <ul className="mt-1.5 space-y-1.5">
-              {archived.map((pattern) => (
-                <PatternRow
-                  key={pattern.id}
-                  pattern={pattern}
-                  onEdit={() => openEdit(pattern)}
-                  onRestore={() => void handleRestore(pattern)}
-                />
-              ))}
-            </ul>
+            <div className="mt-1.5">
+              <ListGroup>
+                {archived.map((pattern) => (
+                  <PatternRow
+                    key={pattern.id}
+                    pattern={pattern}
+                    onEdit={() => openEdit(pattern)}
+                    onRestore={() => void handleRestore(pattern)}
+                  />
+                ))}
+              </ListGroup>
+            </div>
           )}
         </>
       )}
@@ -162,10 +172,20 @@ export function OilPatternManager({ onBack, mode = "inline" }: OilPatternManager
         open={dialogOpen}
         initial={editing}
         onSubmit={handleSubmit}
+        onRemove={editing ? () => setPendingRemove(editing) : undefined}
         onCancel={() => {
           setDialogOpen(false);
           setEditing(undefined);
         }}
+      />
+
+      <ConfirmDialog
+        open={pendingRemove !== null}
+        title={`Remove ${pendingRemove?.name ?? "pattern"}?`}
+        message="Sessions already bowled on it keep the pattern. If any still use it, it is archived instead of deleted."
+        confirmLabel="Remove"
+        onConfirm={() => pendingRemove && void handleRemove(pendingRemove)}
+        onCancel={() => setPendingRemove(null)}
       />
     </section>
   );
@@ -177,8 +197,9 @@ export function OilPatternManager({ onBack, mode = "inline" }: OilPatternManager
       mode={mode}
       title="Oil patterns"
       onBack={onBack}
+      active={!dialogOpen && pendingRemove === null}
       trailing={
-        <IconButton onClick={openAdd} label="Add oil pattern">
+        <IconButton onClick={openAdd} label="Add oil pattern" variant="round">
           <Plus size={24} aria-hidden="true" />
         </IconButton>
       }
@@ -191,42 +212,52 @@ export function OilPatternManager({ onBack, mode = "inline" }: OilPatternManager
 function PatternRow({
   pattern,
   onEdit,
-  onRemove,
   onRestore
 }: {
   pattern: OilPattern;
   onEdit: () => void;
-  onRemove?: () => void;
   onRestore?: () => void;
 }) {
   return (
-    <li className="flex items-center gap-1 rounded-lg border border-edge bg-surface px-3 py-1.5 shadow-sm">
-      <div className="min-w-0 flex-1">
-        <p className="truncate font-semibold text-ink">{pattern.name}</p>
-        {pattern.url ? (
-          <a
-            href={pattern.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 text-xs font-medium text-accent underline underline-offset-2"
-          >
-            <ExternalLink size={12} aria-hidden="true" />
-            Pattern sheet
-          </a>
-        ) : (
-          <p className="text-xs text-ink-tertiary">No link</p>
+    <li className={`flex items-center ${LIST_DIVIDER}`}>
+      {/* The row itself opens the editor. It used to carry an edit pencil and a
+          delete bin beside the name, three targets in one row; removal moved
+          into the editor, where it sits with the thing it destroys (§4, §2). */}
+      <button
+        type="button"
+        onClick={onEdit}
+        aria-label={`Edit ${pattern.name}`}
+        className="flex min-w-0 flex-1 items-center gap-3 px-3 py-2.5 text-left active:bg-surface-muted"
+      >
+        <span className="min-w-0 flex-1">
+          <span className="block truncate font-semibold text-ink">{pattern.name}</span>
+          <span className="block truncate text-xs text-ink-secondary">
+            {pattern.url ? "Pattern sheet saved" : "No link"}
+          </span>
+        </span>
+        {/* The chevron steps aside for the sheet link: two arrows in one row
+            read as one crowded control rather than two clear ones. */}
+        {!onRestore && !pattern.url && (
+          <ChevronRight size={16} aria-hidden="true" className="shrink-0 text-ink-tertiary" />
         )}
-      </div>
-      <IconButton label={`Edit ${pattern.name}`} onClick={onEdit}>
-        <Pencil size={16} aria-hidden="true" />
-      </IconButton>
-      {onRestore ? (
+      </button>
+      {/* A second target, deliberately: the sheet is a different destination
+          rather than an action on the row, the same exception the drag handle
+          takes. */}
+      {pattern.url && (
+        <a
+          href={pattern.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label={`Open the ${pattern.name} pattern sheet`}
+          className="inline-flex h-11 w-11 shrink-0 items-center justify-center text-accent"
+        >
+          <ExternalLink size={16} aria-hidden="true" />
+        </a>
+      )}
+      {onRestore && (
         <IconButton label={`Restore ${pattern.name}`} onClick={onRestore}>
           <RotateCcw size={16} aria-hidden="true" />
-        </IconButton>
-      ) : (
-        <IconButton variant="danger" label={`Remove ${pattern.name}`} onClick={onRemove}>
-          <Trash2 size={16} aria-hidden="true" />
         </IconButton>
       )}
     </li>

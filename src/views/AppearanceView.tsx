@@ -1,5 +1,5 @@
 import { PushScreen } from "../components/PushScreen";
-import { Chip } from "../components/ui/Chip";
+import { SegmentedControl } from "../components/ui/SegmentedControl";
 import { useTheme, type ThemePreference } from "../lib/theme";
 
 const THEME_OPTIONS: { value: ThemePreference; label: string }[] = [
@@ -19,22 +19,17 @@ export function AppearanceView({ onBack }: AppearanceViewProps = {}) {
 
   const body = (
     <section className="mx-auto w-full max-w-3xl px-3 py-4 sm:px-6">
-      <h2 className="text-base font-bold text-ink">Theme</h2>
-      <p className="mt-1 text-sm leading-relaxed text-ink-secondary">
+      {/* No "Theme" heading over a screen already titled Appearance whose whole
+          content is the theme. The sentence says what the choice does. */}
+      <p className="mb-3 text-sm leading-relaxed text-ink-secondary">
         Follow your device setting, or pin the app to light or dark.
       </p>
-      <div className="mt-3 flex gap-2">
-        {THEME_OPTIONS.map((opt) => (
-          <Chip
-            key={opt.value}
-            selected={theme === opt.value}
-            onClick={() => setTheme(opt.value)}
-            className="h-11 flex-1"
-          >
-            {opt.label}
-          </Chip>
-        ))}
-      </div>
+      <SegmentedControl
+        label="Theme"
+        options={THEME_OPTIONS}
+        value={theme}
+        onChange={setTheme}
+      />
     </section>
   );
 

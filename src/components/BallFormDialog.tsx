@@ -12,6 +12,7 @@ import { ErrorBanner } from "./ErrorBanner";
 import { Button } from "./ui/Button";
 import { IconButton } from "./ui/IconButton";
 import { FIELD } from "./ui/field";
+import { FormSheet } from "./ui/FormSheet";
 
 const WEIGHT_OPTIONS = [10, 11, 12, 13, 14, 15, 16];
 
@@ -298,26 +299,28 @@ export function BallFormDialog({ ball, onClose, onSaved, onDelete }: BallFormDia
         </div>
       </div>
 
-      {pickerOpen && <CatalogPickerDialog onPick={linkCatalog} onClose={() => setPickerOpen(false)} />}
+      {pickerOpen && <CatalogPickerSheet onPick={linkCatalog} onClose={() => setPickerOpen(false)} />}
     </>
   );
 }
 
-interface CatalogPickerDialogProps {
+interface CatalogPickerSheetProps {
   onPick: (ball: CatalogBall) => void;
   onClose: () => void;
 }
 
 /**
- * Full-screen catalog search, layered above the form. Full-screen on purpose:
- * as a short scroll region nested inside the form it was invisible unless you
- * happened to scroll to it.
+ * Catalog search, layered over the ball form. A sheet like every other picker
+ * in the app (the spare line picker is the same shape): it used to be an opaque
+ * full-screen page that slid in like a push but closed with an X, so it read as
+ * a place you had navigated to and dismissed like a task. What it must not be
+ * is a short scroll region nested inside the form, which is where it started
+ * and where nobody found it.
  */
-function CatalogPickerDialog({ onPick, onClose }: CatalogPickerDialogProps) {
+function CatalogPickerSheet({ onPick, onClose }: CatalogPickerSheetProps) {
   const [balls, setBalls] = useState<CatalogBall[]>([]);
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(true);
-  const overlayRef = useOverlay<HTMLDivElement>(onClose);
 
   useEffect(() => {
     let cancelled = false;
@@ -347,73 +350,62 @@ function CatalogPickerDialog({ onPick, onClose }: CatalogPickerDialogProps) {
     : balls;
 
   return (
-    <div
-      ref={overlayRef}
-      className="animate-push-in fixed inset-0 z-[70] flex flex-col bg-surface-sunken"
-      role="dialog"
-      aria-modal="true"
-      aria-label="Pick from catalog"
+    <FormSheet
+      title="Catalog"
+      onClose={onClose}
+      // The search rides in the banner slot, outside the scroll area, so it
+      // stays put while the results move under it.
+      banner={
+        <div className="relative">
+          <Search
+            size={16}
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-tertiary"
+            aria-hidden="true"
+          />
+          <input
+            type="search"
+            autoFocus
+            placeholder="Search name, brand, coverstock…"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            className={`${FIELD} rounded-xl pl-9`}
+          />
+        </div>
+      }
     >
-      <div className="shrink-0 border-b border-edge bg-surface pt-[env(safe-area-inset-top)]">
-        <div className="mx-auto flex w-full max-w-3xl items-center gap-2 px-2 py-2">
-          <IconButton onClick={onClose} label="Close catalog picker" variant="round">
-            <X size={20} aria-hidden="true" />
-          </IconButton>
-          <h2 className="flex-1 text-center text-[17px] font-semibold text-ink">Catalog</h2>
-          <span className="w-11" aria-hidden="true" />
-        </div>
-        <div className="mx-auto w-full max-w-3xl px-3 pb-3">
-          <div className="relative">
-            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-tertiary" aria-hidden="true" />
-            <input
-              type="search"
-              autoFocus
-              placeholder="Search name, brand, coverstock…"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              className={`${FIELD} rounded-xl pl-9`}
-            />
-          </div>
-        </div>
-      </div>
-
-      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
-        <div className="mx-auto w-full max-w-3xl px-3 py-3 pb-[calc(1rem+env(safe-area-inset-bottom))]">
-          {loading ? (
-            <p className="text-sm text-ink-secondary">Loading catalog…</p>
-          ) : shown.length === 0 ? (
-            <p className="text-sm text-ink-secondary">
-              {balls.length === 0 ? "No catalog balls found." : `No matches for "${query}".`}
-            </p>
-          ) : (
-            <ul className="space-y-1.5">
-              {shown.map((b) => (
-                <li key={b.id}>
-                  <button
-                    type="button"
-                    onClick={() => onPick(b)}
-                    className="flex w-full items-center gap-3 rounded-xl border border-edge bg-surface p-2.5 text-left hover:border-accent-fill"
-                  >
-                    <div className="h-12 w-12 shrink-0">
-                      <CatalogBallImage src={b.imageThumb} alt={b.name} brand={b.brand as Manufacturer} size="thumb" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-[11px] font-semibold uppercase tracking-wide text-ink-secondary">{b.brand}</p>
-                      <p className="truncate text-sm font-semibold text-ink">{b.name}</p>
-                      <p className="truncate text-xs text-ink-secondary">
-                        {[b.coverstockCategory, b.coreType, b.rg !== null ? `RG ${b.rg.toFixed(2)}` : null]
-                          .filter(Boolean)
-                          .join(" · ")}
-                      </p>
-                    </div>
-                    <ChevronRight size={18} className="shrink-0 text-ink-tertiary" aria-hidden="true" />
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      </div>
-    </div>
+      {loading ? (
+        <p className="text-sm text-ink-secondary">Loading catalog…</p>
+      ) : shown.length === 0 ? (
+        <p className="text-sm text-ink-secondary">
+          {balls.length === 0 ? "No catalog balls found." : `No matches for "${query}".`}
+        </p>
+      ) : (
+        <ul className="space-y-1.5">
+          {shown.map((b) => (
+            <li key={b.id}>
+              <button
+                type="button"
+                onClick={() => onPick(b)}
+                className="flex w-full items-center gap-3 rounded-xl border border-edge bg-surface p-2.5 text-left hover:border-accent-fill"
+              >
+                <div className="h-12 w-12 shrink-0">
+                  <CatalogBallImage src={b.imageThumb} alt={b.name} brand={b.brand as Manufacturer} size="thumb" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[11px] font-semibold uppercase tracking-wide text-ink-secondary">{b.brand}</p>
+                  <p className="truncate text-sm font-semibold text-ink">{b.name}</p>
+                  <p className="truncate text-xs text-ink-secondary">
+                    {[b.coverstockCategory, b.coreType, b.rg !== null ? `RG ${b.rg.toFixed(2)}` : null]
+                      .filter(Boolean)
+                      .join(" · ")}
+                  </p>
+                </div>
+                <ChevronRight size={18} className="shrink-0 text-ink-tertiary" aria-hidden="true" />
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </FormSheet>
   );
 }
