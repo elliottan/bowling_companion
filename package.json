@@ -12,7 +12,7 @@
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "lint": "eslint .",
-    "verify": "npm run lint && npm test && npm run build && npm run test:e2e",
+    "verify": "npm run lint && npm run test:coverage && npm run build && npm run test:e2e",
     "prepare": "git config core.hooksPath .githooks || true",
     "icons": "node scripts/generate-icons.mjs",
     "sync-catalog": "tsx scripts/sync-catalog/build.ts",

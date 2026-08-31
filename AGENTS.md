@@ -38,10 +38,18 @@ state machine it renders) · `src/db/bowlingDb.ts`
 
 ## Commands
 
-`npm run dev` · `npm run verify` (the full gate: eslint, vitest, then tsc +
-vite + PWA build, then playwright). The parts are `npm test`, `npm run build`,
-`npm run test:e2e`; ship only on a green `verify`. Deploy by merging to
+`npm run dev` · `npm run verify` (the full gate: eslint, vitest **with the
+coverage thresholds**, then tsc + vite + PWA build, then playwright). The parts
+are `npm run test:coverage`, `npm run build`, `npm run test:e2e`; ship only on a
+green `verify`. `npm test` skips coverage, so it is for a fast inner loop, never
+for the last run before a push. Deploy by merging to
 `main`; the `deploy` skill is the manual fallback.
+
+`verify` runs exactly what CI runs, in the same order, and that is the point of
+it. It once did not: CI ran `test:coverage` and `verify` ran plain `npm test`,
+so two pushes cleared a green `verify`, went straight to production through
+Vercel, and only then turned CI red on a coverage floor. A gate that is weaker
+than the judge is not a gate.
 
 `verify` is the gate, not a formality: `.githooks/pre-push` runs it before any
 push to `main`, because pushing to `main` *is* the deploy. Vercel builds it and
