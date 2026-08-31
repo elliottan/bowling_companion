@@ -3331,3 +3331,46 @@ it look like one more drawer to fill.
 - The card is not a briefing preview. Showing the top finding inline would be
   better and costs a full history read per Home render, which is a trade this
   ADR declines rather than one it overlooked.
+
+## ADR-072: The restore is offered before the hand is asked
+
+**Status:** accepted (2026-09). Complements ADR-069, which owns the in-app
+next steps; this one owns everything before the app is reachable at all.
+
+**Context.** The first thing a new user saw was a modal asking which hand they
+bowl with, floating over a fully rendered app they had never laid eyes on. It
+asked about the direction of board-adjust arrows before anything had said what
+the app was, and there was no way to answer "neither, I am restoring a backup".
+
+Underneath the awkwardness sat a real defect. Handedness is a row in
+`settings`, and `settings` are carried inside every backup (ADR-038). So a
+returning user on a new phone was asked the question, answered it, and then
+imported a file that silently overwrote the answer. Two sources of truth for
+one fact, resolved by whichever happened last.
+
+**Decision.**
+
+- **The first run owns the viewport.** `FirstRun` is a full screen, not a
+  dialog over the app. Until handedness exists, it is the app.
+- **The first question is "new, or restoring".** Not handedness. This is the
+  only ordering that cannot contradict itself: a restore supplies the answer,
+  so asking first would either be wasted or wrong.
+- **A restore ends the first run.** The file carried the handedness, so the
+  question is never put. If the file has no handedness (an old backup, or one
+  exported before the setting existed), the reload lands back on the first run
+  and it is asked then. The condition is the *absence of the setting*, never a
+  counter of how many times the app has been opened.
+- **A completed restore reloads the page.** The database has been replaced
+  wholesale and the shell holds state read once at boot. Re-deriving that by
+  hand is a list nobody keeps complete; a reload is one line and cannot drift.
+- **Install and backup prompts stay out of it.** They have their own banners on
+  Home (ADR-067, ADR-068). Repeating them in a setup flow would rebuild the
+  competing-nudge problem those decisions exist to solve.
+
+**Consequences.**
+- Two screens stand between a brand new user and the app, where there was one
+  modal. That is the cost of the restore path existing at all, and it is paid
+  once.
+- `HandednessPrompt` is gone; `HandednessPicker` is still shared with Settings.
+- The e2e helper that dismissed the old modal now walks the flow, so every
+  suite exercises the first run on its way to a clean database.

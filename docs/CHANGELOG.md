@@ -40,6 +40,27 @@ of shipped work rather than a release. Thirty of them used to be headed
   good. Balls and spare lines are both offered straight away, since you can
   answer them without leaving the house.
 
+## A first run that starts by asking what you are (2026-09)
+
+### Added
+
+- **A proper setup flow.** The app used to open on a question about which hand
+  you bowl with, in a box floating over an app you had never seen. It now opens
+  on a welcome screen that asks whether you are new or restoring a backup.
+- **Restore from the first screen.** Coming back on a new phone no longer means
+  setting the app up first and importing afterwards.
+
+### Fixed
+
+- **Restoring a backup no longer overwrites the handedness you were just
+  asked for.** Your backup carries that setting, so restoring now skips the
+  question entirely instead of asking it and then quietly changing the answer.
+
+### Changed
+
+- **A new app icon**: a bowling pin drawn as artwork rather than an emoji
+  flattened into a shape, which at home-screen size read as a white blob.
+
 ## The app is called Headpin (2026-09)
 
 ### Changed

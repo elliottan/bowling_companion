@@ -18,7 +18,7 @@ import {
 } from "react";
 import { DashboardView } from "./views/DashboardView";
 import { NoSessionView } from "./views/NoSessionView";
-import { HandednessPrompt } from "./components/HandednessPrompt";
+import { FirstRun } from "./components/FirstRun";
 import { ActiveSessionView } from "./views/ActiveSessionView";
 import { HistoryView } from "./views/HistoryView";
 import { rememberScroll, restoreScroll } from "./lib/viewMemory";
@@ -564,8 +564,11 @@ function App() {
 
       <UpdateToast />
 
+      {/* The whole first run, not a dialog over an app the user has not seen
+          yet. It owns the viewport until handedness exists, which a restore
+          can also supply (ADR-072). */}
       {handednessLoaded && handedness === null && (
-        <HandednessPrompt onSelect={chooseHandedness} />
+        <FirstRun onSelectHandedness={chooseHandedness} />
       )}
     </div>
     </DriftModelContext.Provider>

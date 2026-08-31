@@ -1,10 +1,11 @@
 import type { Page } from "@playwright/test";
 
 /**
- * First-run handedness modal blocks the UI when no choice is stored. After any
- * DB wipe it reappears; dismiss it by choosing right-handed.
+ * The first-run screen owns the viewport until handedness is stored, and after
+ * any DB wipe it comes back. Walk it: new book, then right-handed.
  */
 export async function dismissHandednessModal(page: Page) {
+  await page.getByRole("button", { name: "Set up a new book" }).click();
   await page.getByRole("button", { name: "right-handed" }).click();
 }
 
