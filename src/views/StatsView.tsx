@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { LayoutGrid, MoreHorizontal, Target } from "lucide-react";
+import { LayoutGrid, MoreHorizontal, Share2, Target } from "lucide-react";
 import { Stats } from "../components/Stats";
 import {
   SessionFilterButton,
@@ -7,6 +7,7 @@ import {
   SessionFilterSheet
 } from "../components/SessionFilterBar";
 import { IconButton } from "../components/ui/IconButton";
+import { ShareCardDialog } from "../components/ShareCardDialog";
 import { AnchoredMenu, AnchoredMenuItem } from "../components/ui/AnchoredMenu";
 import {
   calculateBallPerformance,
@@ -16,6 +17,7 @@ import {
   calculateStats,
   type BowlingStats
 } from "../lib/stats";
+import { buildStatsCard, describeFilter } from "../lib/shareCard";
 import { getBalls } from "../services/ballRepository";
 import { useLiveQuery } from "dexie-react-hooks";
 import { useHandedness } from "../lib/handednessContext";
@@ -58,6 +60,7 @@ export function StatsView({
   const filters = useSessionFilters();
   const { filtered, activeLanes, isLoading } = filters;
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
   // Anchored to the control that opened it, so it needs that control's box.
   const [breakdownsAt, setBreakdownsAt] = useState<{ left: number; top: number } | null>(null);
 
@@ -84,6 +87,24 @@ export function StatsView({
   const ballPerformance = useMemo(
     () => calculateBallPerformance(filtered, balls, activeLanes, handedness),
     [filtered, balls, activeLanes, handedness]
+  );
+
+  // The share card describes the filtered set, not the whole history: the
+  // numbers on screen are the filtered ones, and a picture that silently
+  // widened its scope would be a lie.
+  const shareCard = useMemo(
+    () =>
+      buildStatsCard(
+        stats,
+        describeFilter({
+          alley: filters.alley,
+          pattern: filters.pattern,
+          event: filters.event,
+          gameNumber: filters.gameNumber,
+          lanes: activeLanes
+        })
+      ),
+    [stats, filters.alley, filters.pattern, filters.event, filters.gameNumber, activeLanes]
   );
 
   const scrollerRef = useRef<HTMLDivElement | null>(null);
@@ -140,6 +161,15 @@ export function StatsView({
           >
             Open frames
           </AnchoredMenuItem>
+          <AnchoredMenuItem
+            icon={Share2}
+            onClick={() => {
+              setBreakdownsAt(null);
+              setShareOpen(true);
+            }}
+          >
+            Share these stats
+          </AnchoredMenuItem>
         </AnchoredMenu>
       )}
 
@@ -147,6 +177,8 @@ export function StatsView({
       {filtersOpen && (
         <SessionFilterSheet filters={filters} onClose={() => setFiltersOpen(false)} />
       )}
+
+      <ShareCardDialog open={shareOpen} card={shareCard} onClose={() => setShareOpen(false)} />
 
       <div
         ref={scrollerRef}

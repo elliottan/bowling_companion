@@ -1,7 +1,8 @@
-import { ChevronLeft, Plus, Trash2 } from "lucide-react";
+import { ChevronLeft, Plus, Share2, Trash2, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { ActiveGameScorer } from "../components/ActiveGameScorer";
 import { SaveCopyPrompt } from "../components/SaveCopyPrompt";
+import { ShareCardDialog } from "../components/ShareCardDialog";
 import { ConfirmDialog } from "../components/ConfirmDialog";
 import { ErrorBanner } from "../components/ErrorBanner";
 import { SessionFormDialog } from "../components/SessionFormDialog";
@@ -9,6 +10,7 @@ import { SessionHeaderText } from "../components/SessionHeaderText";
 import { SessionLanePanel, type SessionPanelTab } from "../components/SessionLanePanel";
 import { Button } from "../components/ui/Button";
 import { Chip, TAP_TARGET_44 } from "../components/ui/Chip";
+import { IconButton } from "../components/ui/IconButton";
 import { FormSheet } from "../components/ui/FormSheet";
 import { AnchoredMenu, AnchoredMenuItem } from "../components/ui/AnchoredMenu";
 import { FIELD } from "../components/ui/field";
@@ -17,6 +19,9 @@ import { useLiveQuery } from "dexie-react-hooks";
 import { backupUrgency as urgencyOf, snoozeMs } from "../lib/backupNudge";
 import { isStandalone } from "../lib/installPrompt";
 import { calculateGameScore } from "../lib/scoring";
+import { calculateStats } from "../lib/stats";
+import { buildSessionCard } from "../lib/shareCard";
+import { useHandedness } from "../lib/handednessContext";
 import { useLongPress } from "../lib/useLongPress";
 import {
   addNextGameToSession,
@@ -56,6 +61,10 @@ const isPositiveInt = (s: string) => /^\d+$/.test(s.trim());
 // Games whose lane prompt has already auto-opened this app run. Module-level
 // so the once-per-game rule survives tab switches (which remount this view).
 const lanePromptedGameIds = new Set<number>();
+
+// Games whose share offer has been dismissed. Module-level for the same reason
+// as the set above: a tab switch remounts this view and must not re-ask.
+const sharePromptDismissed = new Set<number>();
 
 export function ActiveSessionView({
   sessionId,
@@ -100,6 +109,12 @@ export function ActiveSessionView({
   const installed = isStandalone();
   const nudge = useLiveQuery(() => getBackupNudgeState());
   const saveCopyUrgency = !installed && nudge ? urgencyOf(nudge, installed) : "none";
+
+  const handedness = useHandedness();
+  const [shareOpen, setShareOpen] = useState(false);
+  // Bumped on dismiss so the prompt below re-evaluates; the set itself is
+  // module-level and does not trigger a render on its own.
+  const [shareDismissTick, setShareDismissTick] = useState(0);
 
   function handleSaveCopyLater() {
     void setBackupNudgeSnoozedUntil(new Date(Date.now() + snoozeMs(installed)).toISOString());
@@ -299,6 +314,37 @@ export function ActiveSessionView({
     ? Math.round(finalScores.reduce((a, b) => a + b, 0) / finalScores.length)
     : null;
 
+  // The card the share sheet draws. Built from the same numbers the header
+  // shows, so the picture and the screen can never disagree.
+  const sessionStats = calculateStats([sessionDetails], undefined, handedness);
+  const shareCard = buildSessionCard({
+    alleyName: sessionDetails.session.alley_name,
+    event: sessionDetails.session.description,
+    date: sessionDetails.session.date,
+    scores: games.map(
+      (g) => g.final_score ?? calculateGameScore((g as Game & { frames: Frame[] }).frames).total
+    ),
+    finalScores,
+    strikePct: sessionStats.strikePct,
+    sparePct: sessionStats.sparePct
+  });
+
+  // The offer to share, once a game is finished, and never on top of the
+  // backup prompt: one asks for something the user needs and the other for
+  // something optional, so they must not compete for the same strip of screen.
+  const finishedGameId = activeGame.final_score !== undefined ? activeGame.id : null;
+  const offerShare =
+    finishedGameId != null &&
+    saveCopyUrgency === "none" &&
+    !sharePromptDismissed.has(finishedGameId) &&
+    // Referenced so dismissing re-renders; the set itself is not reactive.
+    shareDismissTick >= 0;
+
+  function dismissSharePrompt() {
+    if (finishedGameId != null) sharePromptDismissed.add(finishedGameId);
+    setShareDismissTick((t) => t + 1);
+  }
+
   // Confirm copy names the game being deleted (the pressed chip's game, which
   // may not be the active one) and its score when it has one.
   const gameToDelete = games.find((g) => g.id === confirmDeleteGame);
@@ -334,6 +380,14 @@ export function ActiveSessionView({
           >
             <SessionHeaderText session={sessionDetails.session} games={games} />
           </div>
+          <IconButton
+            label="Share this night"
+            variant="round"
+            className="shrink-0"
+            onClick={() => setShareOpen(true)}
+          >
+            <Share2 size={18} aria-hidden="true" />
+          </IconButton>
           <button
             type="button"
             onClick={() => { setSheetTab("stats"); setShowSheet(true); }}
@@ -432,6 +486,29 @@ export function ActiveSessionView({
             <SaveCopyPrompt urgency={saveCopyUrgency} onLater={handleSaveCopyLater} />
           </div>
         )}
+
+        {/* Not a warning: accent, not amber. Nothing is at risk here, the app
+            is only offering. */}
+        {offerShare && (
+          <div className="mt-3 flex items-center gap-3 rounded-lg border border-accent-soft bg-accent-soft p-3">
+            <p className="flex-1 text-sm font-semibold text-accent">
+              Game {activeGame.game_number} is in the books. Share the night?
+            </p>
+            <button
+              type="button"
+              onClick={() => setShareOpen(true)}
+              className={`relative shrink-0 text-xs font-bold text-accent underline hover:no-underline ${TAP_TARGET_44}`}
+            >
+              Share
+            </button>
+            {/* Named, not just "Dismiss": the line-capture prompt below it also has a
+                dismiss, and two identical labels on one screen leave a screen
+                reader user with no way to tell them apart. */}
+            <IconButton label="Dismiss share offer" onClick={dismissSharePrompt} className="shrink-0">
+              <X size={16} aria-hidden="true" />
+            </IconButton>
+          </div>
+        )}
       </section>
 
       <ActiveGameScorer
@@ -460,6 +537,12 @@ export function ActiveSessionView({
         message={deleteGameMessage}
         onConfirm={handleDeleteGame}
         onCancel={() => setConfirmDeleteGame(null)}
+      />
+
+      <ShareCardDialog
+        open={shareOpen}
+        card={shareCard}
+        onClose={() => setShareOpen(false)}
       />
 
       {showSheet && (

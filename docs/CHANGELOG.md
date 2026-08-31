@@ -40,6 +40,26 @@ of shipped work rather than a release. Thirty of them used to be headed
   good. Balls and spare lines are both offered straight away, since you can
   answer them without leaving the house.
 
+## A night you can post (2026-08)
+
+### Added
+
+- **Share a night as a picture.** A share control in the session header, and an
+  offer once a game is finished, draw the night as a card: the series, every
+  game score in scoresheet boxes, the average, high game, strike and spare
+  rates. It goes to the share sheet where there is one and downloads where
+  there is not.
+- **Share the stats you are looking at.** From the Stats menu. The card
+  describes the filtered set and names the filters on it, so a picture cannot
+  quietly claim a wider scope than the numbers it shows.
+- **A preview before either one goes anywhere.** The card is on screen, at full
+  size, before the Share button does anything.
+
+### Changed
+
+- The backup reminder now outranks the share offer. They never appear at once:
+  one asks for something your scores need, the other for something optional.
+
 ## The app asks harder when your scores are not safe (2026-08)
 
 ### Changed
