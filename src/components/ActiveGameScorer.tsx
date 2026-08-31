@@ -564,10 +564,7 @@ export function ActiveGameScorer({
         <div className="mt-3 flex items-start gap-2.5 rounded-lg border border-accent-fill bg-accent-soft p-3 text-sm text-ink">
           <Hand size={18} aria-hidden="true" className="mt-0.5 shrink-0 text-accent" />
           <div className="min-w-0 flex-1">
-            <p className="text-xs font-semibold">
-              Tap the pins left standing after your shot. Anything you do not tap counts as
-              knocked down, so a shot with nothing tapped is a strike.
-            </p>
+            <p className="text-xs font-semibold">Tap the pins left standing after your shot.</p>
             <button
               type="button"
               onClick={() => void setSetting(PIN_COACH_SEEN_KEY, new Date().toISOString())}
