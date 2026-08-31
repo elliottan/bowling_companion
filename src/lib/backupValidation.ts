@@ -15,8 +15,11 @@ export function validateBackup(value: unknown): BackupValidationResult {
     return { isValid: false, errors: ["Backup must be a JSON object."] };
   }
 
+  // The stored value is the original codename and stays that way for ever: it
+  // is what every backup already exported carries (see BowlingBackup.app). The
+  // message says Headpin because the reader has never heard the other name.
   if (value.app !== "bowling-companion") {
-    errors.push("Backup app must be bowling-companion.");
+    errors.push("That file is not a Headpin backup.");
   }
 
   if (value.version !== 1 && value.version !== 2 && value.version !== 3) {

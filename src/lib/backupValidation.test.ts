@@ -31,7 +31,14 @@ describe("validateBackup", () => {
     const result = validateBackup({ ...validBackup, app: "other-app" });
 
     expect(result.isValid).toBe(false);
-    expect(result.errors).toContain("Backup app must be bowling-companion.");
+    expect(result.errors).toContain("That file is not a Headpin backup.");
+  });
+
+  it("still accepts the stored identifier under its original name", () => {
+    // The rename to Headpin did NOT change the value written into the file,
+    // because every backup already exported carries the old one. If this test
+    // ever fails, someone has made every existing backup un-importable.
+    expect(validateBackup({ ...validBackup, app: "bowling-companion" }).isValid).toBe(true);
   });
 
   it("rejects invalid pin arrays", () => {
