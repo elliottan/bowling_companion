@@ -40,6 +40,23 @@ of shipped work rather than a release. Thirty of them used to be headed
   good. Balls and spare lines are both offered straight away, since you can
   answer them without leaving the house.
 
+## The app is called Headpin (2026-09)
+
+### Changed
+
+- **Bowling Companion is now Headpin**, at headpin.app. The home screen used
+  to read "Bowling", which is a folder rather than a name.
+- **Backups are named `headpin-...json`.** Files exported before the rename
+  still import: the format identifier inside the file is unchanged, and only
+  the filename moved.
+
+### Added
+
+- **A stable app identity in the manifest.** Without it a browser works out
+  which app is which from the start URL, so changing that path later would
+  have looked like a different app, with its own icon and its own empty
+  history.
+
 ## A night you can post (2026-08)
 
 ### Added

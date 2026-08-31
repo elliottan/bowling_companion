@@ -377,7 +377,7 @@ function App() {
               onClick={() => goTo("dashboard")}
               className="text-base font-bold tracking-tight text-ink sm:text-lg"
             >
-              Bowling Companion
+              Headpin
             </button>
           ) : (
             <span />

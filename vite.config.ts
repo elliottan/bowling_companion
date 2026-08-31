@@ -9,9 +9,15 @@ export default defineConfig({
       registerType: "prompt",
       includeAssets: ["icons/*.png"],
       manifest: {
-        name: "Bowling Companion",
-        short_name: "Bowling",
-        description: "Offline bowling score keeper",
+        // `id` pins the app's identity independently of `start_url`. Without
+        // it a browser derives identity from the start URL, so changing that
+        // path later would register as a *different* app: a second icon, and a
+        // second origin-scoped database the user cannot see their history in.
+        // It cannot be retrofitted safely once anyone has installed.
+        id: "/",
+        name: "Headpin",
+        short_name: "Headpin",
+        description: "Offline bowling score keeper. Your scores stay on your phone.",
         theme_color: "#1b5148",
         background_color: "#fff8ed",
         display: "standalone",

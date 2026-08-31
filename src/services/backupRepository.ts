@@ -52,7 +52,7 @@ export async function createBackup(): Promise<BowlingBackup> {
  */
 export function backupFilename(backup: BowlingBackup): string {
   const stamp = backup.exported_at.slice(0, 16).replace("T", "-").replace(":", "");
-  return `bowling-companion-${stamp}-${backup.tables.sessions.length}s.json`;
+  return `headpin-${stamp}-${backup.tables.sessions.length}s.json`;
 }
 
 function downloadBackup(backup: BowlingBackup, filename: string): void {
@@ -102,7 +102,7 @@ export async function shareBackup(): Promise<BackupDestination> {
 
   if (canShareBackupFile(file)) {
     try {
-      await navigator.share({ files: [file], title: "Bowling Companion backup" });
+      await navigator.share({ files: [file], title: "Headpin backup" });
     } catch (err) {
       // AbortError is the user closing the sheet. Anything else falls back to
       // a download rather than leaving them with nothing.

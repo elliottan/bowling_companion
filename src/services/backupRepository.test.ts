@@ -199,7 +199,7 @@ describe("backup filenames", () => {
       exported_at: "2026-08-28T19:30:12.000Z",
       tables: { sessions: [{}, {}, {}] as never, games: [] as never, frames: [] as never }
     });
-    expect(name).toBe("bowling-companion-2026-08-28-1930-3s.json");
+    expect(name).toBe("headpin-2026-08-28-1930-3s.json");
   });
 
   it("gives two exports on the same day different names", () => {

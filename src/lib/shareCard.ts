@@ -322,8 +322,8 @@ export async function renderShareCard(data: ShareCardData): Promise<Blob> {
   ctx.fillStyle = "rgba(255, 248, 237, 0.16)";
   ctx.fillRect(PAD, 1200, W - PAD * 2, 2);
   ctx.fillStyle = CREAM;
-  ctx.font = font(800, 34);
-  ctx.fillText("Bowling Companion", PAD, 1264);
+  ctx.font = font(800, 46);
+  ctx.fillText("Headpin", PAD, 1268);
 
   return new Promise((resolve, reject) => {
     canvas.toBlob((blob) => {

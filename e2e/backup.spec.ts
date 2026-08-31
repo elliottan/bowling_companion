@@ -19,7 +19,7 @@ test("exports a backup, clears the database, and restores it via import", async 
   // Timestamped to the minute and carrying its session count, so a folder of
   // these sorts and identifies itself (ADR-067).
   expect(download.suggestedFilename()).toMatch(
-    /^bowling-companion-\d{4}-\d{2}-\d{2}-\d{4}-\d+s\.json$/
+    /^headpin-\d{4}-\d{2}-\d{2}-\d{4}-\d+s\.json$/
   );
 
   // Wipe the database, confirm history is empty.
@@ -51,7 +51,7 @@ test("exports a backup, clears the database, and restores it via import", async 
   const safetyCopyPromise = page.waitForEvent("download");
   await replaceButton.click();
   expect((await safetyCopyPromise).suggestedFilename()).toMatch(
-    /^pre-import-bowling-companion-.*\.json$/
+    /^pre-import-headpin-.*\.json$/
   );
 
   await expect(page.getByText(/Restored 1 sessions/)).toBeVisible();

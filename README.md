@@ -1,4 +1,4 @@
-# Bowling Companion
+# Headpin
 
 [![CI](https://github.com/elliottan/bowling_companion/actions/workflows/ci.yml/badge.svg)](https://github.com/elliottan/bowling_companion/actions/workflows/ci.yml)
 

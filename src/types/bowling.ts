@@ -158,6 +158,13 @@ export interface SessionSummary {
 }
 
 export interface BowlingBackup {
+  /**
+   * Format identifier, NOT a display name. It stays `bowling-companion` after
+   * the rename to Headpin on purpose: every backup ever exported carries this
+   * string, `backupValidation` rejects a file without it, and changing it
+   * would make every existing backup un-importable. The app was renamed; the
+   * file format was not.
+   */
   app: "bowling-companion";
   version: 1 | 2 | 3;
   exported_at: string;

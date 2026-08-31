@@ -1,6 +1,6 @@
 # Build & Deploy
 
-Bowling Companion is a static, offline-first SPA (Vite build → `dist/`). No
+Headpin is a static, offline-first SPA (Vite build → `dist/`). No
 backend, no env vars, no database to provision. Deploying is just shipping the
 built static assets to any host. Vercel is the current target.
 
@@ -93,7 +93,23 @@ vercel --prod
 Vercel auto-detects Vite, runs `npm run build`, and serves `dist/`. The first
 CLI run links the directory to a Vercel project (interactive, one-time).
 
-### Why no `vercel.json` is needed
+### What `vercel.json` is for
+
+It carries **one** rule: `www.headpin.app` redirects to the bare
+`headpin.app`. That is not cosmetic. Browser storage is scoped to an origin,
+and `www.` is a different origin, so an app served on both would give a user
+two databases, two installs and two halves of a history depending on which
+link they happened to tap. One canonical origin, for ever.
+
+The redirect is 307 rather than 308 deliberately: a permanent redirect is
+cached hard by browsers and could not be reversed on a device that had already
+seen it.
+
+It could equally be a "Redirect to" setting on the domain in the Vercel
+dashboard. It lives here instead so it is version-controlled, reviewable, and
+survives the project being recreated.
+
+### Why nothing else is needed
 
 - The app routes in the **hash fragment** (`/#/home`, `/#/session/4`), which a
   server never sees, so every request is for `/` and no SPA rewrite rule is
@@ -104,8 +120,8 @@ CLI run links the directory to a Vercel project (interactive, one-time).
   browser against IndexedDB.
 - Vite's framework preset on Vercel already maps build output to `dist/`.
 
-If a config is ever added (e.g. custom headers), put it in `vercel.json` at the
-repo root and document the reason here.
+Any further config (e.g. custom headers) goes in the same `vercel.json`, with
+the reason documented here.
 
 ### Service worker / cache note
 

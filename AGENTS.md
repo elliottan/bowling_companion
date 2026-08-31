@@ -1,4 +1,4 @@
-# Bowling Companion, agent guide
+# Headpin, agent guide
 
 Offline-first PWA bowling score keeper. React 18 + Vite + TypeScript + Tailwind,
 Dexie/IndexedDB, zero backend. Push or merge to `main` and Vercel's Git

@@ -1,6 +1,6 @@
 # Architecture
 
-Bowling Companion is a zero-backend single-page app. React renders the UI,
+Headpin is a zero-backend single-page app. React renders the UI,
 Dexie (IndexedDB) stores everything, and a small set of pure modules in
 `src/lib/` own all the bowling rules.
 

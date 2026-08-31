@@ -1,4 +1,4 @@
-# Bowling Companion docs
+# Headpin docs
 
 Everything that is not code. Docs point at code and never restate it: types,
 schema and file structure are read from `src/`, and these files carry only the

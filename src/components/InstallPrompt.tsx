@@ -37,7 +37,7 @@ export function InstallPrompt({ open, onClose }: InstallPromptProps) {
         className={`w-full max-w-sm rounded-xl bg-surface p-5 shadow-xl ${exiting ? "" : "animate-pop-in"}`}
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 className="text-base font-bold text-ink">Install Bowling Companion</h2>
+        <h2 className="text-base font-bold text-ink">Install Headpin</h2>
         {canInstall ? (
           <>
             <p className="mt-1.5 text-sm text-ink-secondary">
