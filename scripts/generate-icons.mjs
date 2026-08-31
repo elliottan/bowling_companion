@@ -6,7 +6,10 @@
 // on a home screen it read as an indistinct blob rather than as anything to do
 // with bowling.
 //
-// Output is committed to public/icons/ — re-run only when the mark changes.
+// Also draws the 1200x630 social share card (public/og-image.png), so the mark
+// and the card can never drift apart.
+//
+// Output is committed to public/. Re-run only when the mark changes.
 import { mkdir, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
@@ -81,3 +84,34 @@ await render("icon-512.png", 512, 0.74);
 // Maskable: the pin stays inside the Android safe zone (~60% centre), because
 // a launcher may crop this to a circle.
 await render("icon-512-maskable.png", 512, 0.56);
+
+// Social share card. 1200x630 is the size Facebook, Twitter/X, Slack, Discord
+// and iMessage all crop from, so a link pasted anywhere shows the mark and the
+// one line that says what this is.
+function ogSvg() {
+  const W = 1200;
+  const H = 630;
+  const h = 380;
+  const w = (h * PIN_W) / PIN_H;
+  const x = 150;
+  const y = (H - h) / 2;
+  const textX = x + w + 90;
+
+  return Buffer.from(
+    `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
+      <rect width="${W}" height="${H}" fill="${FELT}"/>
+      <g transform="translate(${x} ${y}) scale(${w / PIN_W} ${h / PIN_H})">
+        <path d="${PIN_PATH}" fill="${CREAM}"/>
+        <rect x="41" y="44" width="18" height="4.5" rx="2.25" fill="${FELT}"/>
+        <rect x="41" y="53" width="18" height="4.5" rx="2.25" fill="${FELT}"/>
+      </g>
+      <text x="${textX}" y="290" fill="${CREAM}" font-family="Helvetica, Arial, sans-serif" font-size="104" font-weight="700" letter-spacing="-2">Headpin</text>
+      <text x="${textX}" y="356" fill="${CREAM}" fill-opacity="0.75" font-family="Helvetica, Arial, sans-serif" font-size="40">Offline bowling score keeper</text>
+      <text x="${textX}" y="416" fill="${CREAM}" fill-opacity="0.55" font-family="Helvetica, Arial, sans-serif" font-size="32">Free. No account. Works on the lane.</text>
+    </svg>`
+  );
+}
+
+const ogPng = await sharp(ogSvg()).png().toBuffer();
+await writeFile(join(root, "public", "og-image.png"), ogPng);
+console.log("wrote og-image.png");

@@ -9,7 +9,38 @@
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="Headpin" />
-    <title>Headpin</title>
+
+    <title>Headpin, free offline bowling score keeper</title>
+    <meta
+      name="description"
+      content="Keep score for league night or open play. Headpin works with no signal, needs no account, and keeps every game on your own phone."
+    />
+    <link rel="canonical" href="https://headpin.app/" />
+
+    <!--
+      Share card. Every one of these is read by a different scraper, and a link
+      pasted with no image is a link nobody opens. og:image must be absolute:
+      scrapers do not resolve it against the page URL.
+    -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Headpin" />
+    <meta property="og:url" content="https://headpin.app/" />
+    <meta property="og:title" content="Headpin, free offline bowling score keeper" />
+    <meta
+      property="og:description"
+      content="Keep score for league night or open play. No signal needed, no account, and every game stays on your own phone."
+    />
+    <meta property="og:image" content="https://headpin.app/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="A bowling pin beside the word Headpin" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Headpin, free offline bowling score keeper" />
+    <meta
+      name="twitter:description"
+      content="Keep score for league night or open play. No signal needed, no account, and every game stays on your own phone."
+    />
+    <meta name="twitter:image" content="https://headpin.app/og-image.png" />
     <!--
       Resolve the theme before first paint so there is no light-mode flash.
       Stored 'theme' ('light'|'dark') wins; otherwise follow the OS. When no
@@ -46,6 +77,42 @@
   </head>
   <body>
     <div id="root"></div>
+    <!--
+      The crawler's copy of the app. A client-rendered shell hands a search
+      engine an empty <div>, and a page with no words cannot rank for any of
+      them, so the pitch lives in the served HTML.
+
+      It sits after #root and is hidden by a CSS sibling rule the moment React
+      fills #root, so there is no frame where both are painted and no script has
+      to remove it. With JavaScript off, this is the whole page.
+    -->
+    <div id="landing">
+      <main>
+        <img src="/icons/icon-192.png" width="72" height="72" alt="" />
+        <h1>Headpin</h1>
+        <p class="lede">
+          A free bowling score keeper that works with no signal, needs no
+          account, and keeps every game on your own phone.
+        </p>
+        <h2>What it does</h2>
+        <ul>
+          <li>Scores tenpin games frame by frame, strikes and spares included.</li>
+          <li>Works offline. Bowling alleys eat phone signal, so it never asks for any.</li>
+          <li>Installs to your home screen like an app, from the browser.</li>
+          <li>Tracks which ball you threw and which pins were left standing.</li>
+          <li>Keeps a history of your games, with averages over time.</li>
+          <li>No account, no ads, no tracking. Your scores never leave the phone.</li>
+          <li>Backs up and restores through a file you hold onto yourself.</li>
+        </ul>
+        <h2>How to install it</h2>
+        <p>
+          Open headpin.app on your phone. On iPhone, tap Share and then Add to
+          Home Screen. On Android, tap the menu and then Install app. It then
+          opens like any other app, offline.
+        </p>
+        <p class="foot">Made for league night and open play.</p>
+      </main>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
