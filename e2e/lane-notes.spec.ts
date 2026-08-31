@@ -20,13 +20,13 @@ test("writes a lane note, edits it, and keeps it across a reload", async ({ page
     .fill("Hooks early, play 4th arrow");
   await page.getByRole("button", { name: "Add", exact: true }).click();
 
-  await expect(page.getByText("Palace Lanes · Lane 7")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Palace Lanes" })).toBeVisible();
   await expect(page.getByText("Hooks early, play 4th arrow")).toBeVisible();
 
-  await page.getByRole("button", { name: /Palace Lanes/ }).click();
+  await page.getByRole("button", { name: "Edit note for Palace Lanes lane 7" }).click();
   await page.getByPlaceholder(/How this lane plays/).fill("Dries up after game 2");
   await page.getByRole("button", { name: "Save", exact: true }).click();
-  // Wait for the form to close: the note text is also the textarea's value
+  // Wait for the sheet to close: the note text is also the textarea's value
   // while it is open, so asserting on the text alone can pass on a save that
   // never happened.
   await expect(page.getByPlaceholder(/How this lane plays/)).toHaveCount(0);
@@ -35,6 +35,6 @@ test("writes a lane note, edits it, and keeps it across a reload", async ({ page
   // The reload returns to this screen on its own now (ADR-041), so there is
   // nothing to navigate: the note is either there or it never persisted.
   await page.reload();
-  await expect(page.getByText("Palace Lanes · Lane 7")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Palace Lanes" })).toBeVisible();
   await expect(page.getByText("Dries up after game 2")).toBeVisible();
 });
