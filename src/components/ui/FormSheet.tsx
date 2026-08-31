@@ -17,6 +17,19 @@ interface FormSheetProps {
   confirmDisabled?: boolean;
   /** Rendered above the body, outside the scroll area (an error banner). */
   banner?: ReactNode;
+  /**
+   * `"content"` (default) lets the sheet hug what is in it: a form is as tall
+   * as its fields. `"tall"` fixes it at the same height it would cap out at,
+   * for a sheet whose body is a list that arrives, filters and scrolls.
+   *
+   * A hugging sheet is anchored to the bottom edge, so anything that changes
+   * its content height moves its *top* edge, with no animation on it. The
+   * catalog picker shipped that way for one build: it slid up around a
+   * "Loading catalog…" line, one row tall, and the moment the catalog resolved
+   * the panel teleported up the screen. Searching it did the same thing in
+   * reverse on every keystroke that narrowed the list.
+   */
+  size?: "content" | "tall";
   children: ReactNode;
 }
 
@@ -38,6 +51,7 @@ export function FormSheet({
   confirmLabel = "Save",
   confirmDisabled = false,
   banner,
+  size = "content",
   children
 }: FormSheetProps) {
   const { dismiss, backdropStyle, panelStyle, exiting, dragHandlers } = useSheetDismiss(onClose);
@@ -55,8 +69,8 @@ export function FormSheet({
         ref={overlayRef}
         style={panelStyle}
         className={`relative flex max-h-[92%] w-full max-w-lg flex-col rounded-t-2xl bg-surface shadow-xl sm:max-h-[85%] sm:rounded-2xl ${
-          exiting ? "" : "animate-slide-up"
-        }`}
+          size === "tall" ? "h-[92%] sm:h-[85%]" : ""
+        } ${exiting ? "" : "animate-slide-up"}`}
       >
         <div
           className="flex touch-none cursor-grab justify-center pt-2 active:cursor-grabbing sm:hidden"

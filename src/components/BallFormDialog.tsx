@@ -353,6 +353,9 @@ function CatalogPickerSheet({ onPick, onClose }: CatalogPickerSheetProps) {
     <FormSheet
       title="Catalog"
       onClose={onClose}
+      // Fixed height: the list arrives asynchronously and then filters as you
+      // type, and a sheet that hugs its content would jump on both.
+      size="tall"
       // The search rides in the banner slot, outside the scroll area, so it
       // stays put while the results move under it.
       banner={
