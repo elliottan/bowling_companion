@@ -33,3 +33,12 @@ describe("collectDiagnostics", () => {
     vi.unstubAllGlobals();
   });
 });
+
+describe("feedbackMailto", () => {
+  it("addresses the mail and carries the diagnostics in its body", async () => {
+    const { feedbackMailto } = await import("./links");
+    const url = feedbackMailto(formatDiagnostics(sample));
+    expect(url.startsWith("mailto:hello@headpin.app?")).toBe(true);
+    expect(decodeURIComponent(url)).toContain("version: 0.1.0");
+  });
+});

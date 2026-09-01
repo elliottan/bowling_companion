@@ -3,6 +3,7 @@ import { Button } from "./ui/Button";
 import { HandednessPicker } from "./HandednessPicker";
 import { prepareImport, replaceAllData, type PreparedImport } from "../services/backupRepository";
 import { describeAge } from "../lib/backupNudge";
+import { isStandalone } from "../lib/installPrompt";
 import type { Handedness } from "../types/bowling";
 
 /** The stamp the file carries. It is the one fact that says which backup this
@@ -123,6 +124,19 @@ export function FirstRun({ onSelectHandedness }: FirstRunProps) {
                 screen of its own: there is nothing to do about it except pick a
                 different one, and the button for that is right above. */}
             {error && <p className="mt-4 text-sm font-semibold text-danger-600">{error}</p>}
+
+            {/* The way back out to the pitch, for somebody who arrived here by
+                tapping through and still wants to read what this is. Hidden in
+                an installed app, where `/` bounces straight back to `/score`
+                (see index.html) and the link would be a loop. */}
+            {!isStandalone() && (
+              <a
+                href="/"
+                className="mt-6 self-start text-sm font-semibold text-ink-secondary hover:underline"
+              >
+                What is Headpin?
+              </a>
+            )}
           </>
         )}
 

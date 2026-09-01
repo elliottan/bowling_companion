@@ -1,4 +1,5 @@
 import { countDatabase } from "../services/backupRepository";
+import { feedbackMailto } from "./links";
 
 /**
  * The state a bug report needs and a screenshot never carries.
@@ -63,4 +64,25 @@ export function formatDiagnostics(d: Diagnostics): string {
     `browser: ${d.browser}`,
     `data:    ${counts}`
   ].join("\n");
+}
+
+/**
+ * Open a feedback email with the diagnostics already attached, both ways.
+ *
+ * Both ways because neither is reliable alone: mail clients differ on whether
+ * they honour a prefilled `body`, and the clipboard is denied outright in some
+ * embedded webviews. Between them, the report arrives with a build number on
+ * it without anybody having to be asked for one.
+ *
+ * Still nothing automatic: the mail sits in the user's drafts, and they read
+ * what is in it before they send it.
+ */
+export async function openFeedbackEmail(): Promise<void> {
+  const text = formatDiagnostics(await collectDiagnostics());
+  try {
+    await navigator.clipboard.writeText(text);
+  } catch {
+    // Denied. The mail body is the other half of this for exactly that reason.
+  }
+  window.location.href = feedbackMailto(text);
 }

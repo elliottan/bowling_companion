@@ -1,8 +1,13 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { FeedbackPrompt } from "./FeedbackPrompt";
 import { db } from "../db/bowlingDb";
 import { FEEDBACK_PROMPT_KEY } from "../lib/feedbackPrompt";
+
+// Opening the mail client is a real navigation, which jsdom refuses. What this
+// file is about is whether the card retires, so stub the trip out of the app.
+const openFeedbackEmail = vi.fn();
+vi.mock("../lib/diagnostics", () => ({ openFeedbackEmail: () => openFeedbackEmail() }));
 
 async function bowl(nights: number) {
   for (let i = 0; i < nights; i++) {
@@ -39,12 +44,13 @@ describe("FeedbackPrompt", () => {
     );
   });
 
-  it("counts opening the form as an answer, so it does not come back", async () => {
+  it("counts opening the email as an answer, so it does not come back", async () => {
     await bowl(4);
     render(<FeedbackPrompt />);
     await ask();
 
-    fireEvent.click(screen.getByRole("link", { name: "Tell me" }));
+    fireEvent.click(screen.getByRole("button", { name: "Tell me" }));
+    expect(openFeedbackEmail).toHaveBeenCalled();
 
     await waitFor(async () =>
       expect(await db.settings.get(FEEDBACK_PROMPT_KEY)).toBeDefined()

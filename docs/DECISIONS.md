@@ -3464,3 +3464,49 @@ quiet majority is exactly the population whose reasons are unknown.
   which is intended, and also inherits it if they restore a backup taken before
   they ever saw the card, which simply means they get asked at three sessions
   as normal.
+
+## ADR-075: Feedback is an email with the diagnostics already in it
+
+**Status.** Accepted. Supersedes the delivery mechanism in ADR-074; the once-ever
+rule and the `settings` key it describes are unchanged.
+
+**Context.**
+
+ADR-074 shipped feedback as a link to a Google Form, and diagnostics as a
+separate "Copy diagnostics" row the user was asked to paste into it. Two
+problems, one of each kind.
+
+The practical one: nobody pastes. A form reached from a phone, with a second
+control that has to be found first and used in the right order, ends with
+reports that say "it broke" and no build number. The instrument only works if
+attaching the context costs nothing.
+
+The positioning one: a Google Form is a third party standing in the middle of
+the only conversation the app has, on a page whose whole claim is that no third
+party is in the middle of anything. It also cannot be replied to, so a report
+that needs one follow-up question is a dead end.
+
+**Decision.**
+
+- **Feedback opens a draft email to hello@headpin.app**, in the user's own mail
+  app. It can be replied to, and it involves nobody but the two people in it.
+- **The diagnostics go in the draft body**, and on the clipboard at the same
+  time. Both, because neither is reliable alone: mail clients disagree about
+  honouring a prefilled `body`, and the clipboard is denied outright in some
+  embedded webviews.
+- **The standalone "Copy diagnostics" row is gone.** Two controls that put the
+  same text in the same place is one control too many, and DESIGN-LANGUAGE §4
+  does not spend a row on a thing another row already does.
+- **Still nothing automatic.** The draft sits in the user's mail app, with the
+  diagnostics visible in it, until they choose to send. What the app knows is
+  never posted anywhere by the app itself, which is the line ADR-074 drew and
+  this does not cross.
+
+**Consequences.**
+- Sending feedback now reveals the sender's email address to me, which the form
+  did not. The legal page says so plainly rather than leaving it implied.
+- A device with no mail client configured gets nothing from the row. The
+  clipboard copy still happens first, and the address is on the legal page, so
+  there is a way through, but it is not a good one.
+- The address is now a published contact point and has to keep working. It is
+  the same address the legal page gives for trademark requests.

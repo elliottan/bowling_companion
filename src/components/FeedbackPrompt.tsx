@@ -3,7 +3,7 @@ import { useLiveQuery } from "dexie-react-hooks";
 import { TAP_TARGET_44 } from "./ui/Chip";
 import { shouldAskForFeedback } from "../lib/feedbackPrompt";
 import { dismissFeedbackPrompt, getFeedbackPromptFacts } from "../services/onboardingRepository";
-import { FEEDBACK_URL } from "../lib/links";
+import { openFeedbackEmail } from "../lib/diagnostics";
 
 /**
  * The one time Headpin asks what a bowler thinks, after three nights out.
@@ -31,19 +31,20 @@ export function FeedbackPrompt() {
       <div className="min-w-0 flex-1">
         <p className="text-sm font-semibold text-ink">How is Headpin treating you?</p>
         <p className="mt-0.5 text-xs text-ink-secondary">
-          A few nights in. Tell me what is missing, or what gets in your way. It is one
-          person reading these, and it decides what gets built next.
+          A few nights in. Tell me what is missing, or what gets in your way. It opens an
+          email to one person, and what is in it decides what gets built next.
         </p>
         <div className="mt-2 flex items-center gap-3">
-          <a
-            href={FEEDBACK_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={done}
+          <button
+            type="button"
+            onClick={() => {
+              done();
+              void openFeedbackEmail();
+            }}
             className={`relative text-xs font-bold text-accent underline hover:no-underline ${TAP_TARGET_44}`}
           >
             Tell me
-          </a>
+          </button>
           <button
             type="button"
             onClick={done}
