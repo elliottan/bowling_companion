@@ -3,6 +3,27 @@ import { useOverlay } from "../lib/useOverlay";
 import { useSheetDismiss } from "../lib/useSheetDismiss";
 import { Button } from "./ui/Button";
 import { renderShareCard, shareCardFilename, shareCardImage } from "../lib/shareCard";
+
+/**
+ * The app icon, for the footer of the share card.
+ *
+ * The shipped file rather than the pin redrawn on the canvas: the mark already
+ * has one definition and a second copy of the geometry would drift from it
+ * silently. Loaded once and remembered, because a night can be shared twice.
+ *
+ * A share is worth more than its logo, so a mark that will not load resolves to
+ * nothing and the card is drawn without it.
+ */
+let markPromise: Promise<HTMLImageElement | undefined> | undefined;
+function loadMark(): Promise<HTMLImageElement | undefined> {
+  markPromise ??= new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = () => resolve(undefined);
+    img.src = "/icons/icon-192.png";
+  });
+  return markPromise;
+}
 import type { ShareCardData } from "../lib/shareCard";
 
 interface ShareCardDialogProps {
@@ -37,7 +58,8 @@ export function ShareCardDialog({ open, card, onClose }: ShareCardDialogProps) {
     setPreview(null);
     setBlob(null);
 
-    renderShareCard(card)
+    loadMark()
+      .then((mark) => renderShareCard({ ...card, mark }))
       .then((made) => {
         if (!live) return;
         url = URL.createObjectURL(made);

@@ -17,7 +17,7 @@
     <title>Headpin, free offline bowling score keeper</title>
     <meta
       name="description"
-      content="Strikes and spares per game - the best bowlers keep track of all their stats. Try the easiest-to-use bowling score and stats tracker that looks nice and feels nice."
+      content="The top bowlers know their stats. Try the best bowling score and stats tracker app, and never forget what worked on lane 12 the last time you bowled there."
     />
     <link rel="canonical" href="https://headpin.app/" />
 
@@ -32,7 +32,7 @@
     <meta property="og:title" content="Headpin, free offline bowling score keeper" />
     <meta
       property="og:description"
-      content="Strikes and spares per game - the best bowlers keep track of all their stats. Try the easiest-to-use bowling score and stats tracker that looks nice and feels nice."
+      content="The top bowlers know their stats. Try the best bowling score and stats tracker app, and never forget what worked on lane 12 the last time you bowled there."
     />
     <meta property="og:image" content="https://headpin.app/og-image.png" />
     <meta property="og:image:width" content="1200" />
@@ -42,7 +42,7 @@
     <meta name="twitter:title" content="Headpin, free offline bowling score keeper" />
     <meta
       name="twitter:description"
-      content="Strikes and spares per game - the best bowlers keep track of all their stats. Try the easiest-to-use bowling score and stats tracker that looks nice and feels nice."
+      content="The top bowlers know their stats. Try the best bowling score and stats tracker app, and never forget what worked on lane 12 the last time you bowled there."
     />
     <meta name="twitter:image" content="https://headpin.app/og-image.png" />
 
@@ -63,7 +63,7 @@
             "@id": "https://headpin.app/#website",
             "url": "https://headpin.app/",
             "name": "Headpin",
-            "description": "Strikes and spares per game - the best bowlers keep track of all their stats. Try the easiest-to-use bowling score and stats tracker that looks nice and feels nice."
+            "description": "The top bowlers know their stats. Try the best bowling score and stats tracker app, and never forget what worked on lane 12 the last time you bowled there."
           },
           {
             "@type": "SoftwareApplication",
@@ -258,6 +258,51 @@
         height: auto;
         display: block;
       }
+      .shot-link {
+        display: block;
+        cursor: zoom-in;
+        border-radius: 1.5rem;
+        text-decoration: none;
+      }
+      .shot-link:focus-visible {
+        outline: 2px solid var(--felt);
+        outline-offset: 4px;
+      }
+      #viewer {
+        border: 0;
+        padding: 0;
+        max-width: 100vw;
+        max-height: 100vh;
+        width: 100%;
+        height: 100%;
+        background: transparent;
+        overflow: hidden;
+      }
+      #viewer::backdrop {
+        background: rgb(0 0 0 / 0.88);
+      }
+      #viewer img {
+        display: block;
+        margin: auto;
+        max-width: min(100%, 24rem);
+        max-height: 92vh;
+        width: auto;
+        border-radius: 0.9rem;
+      }
+      #viewer-close {
+        position: fixed;
+        top: 0.75rem;
+        right: 0.75rem;
+        width: 2.75rem;
+        height: 2.75rem;
+        border: 0;
+        border-radius: 999px;
+        background: rgb(255 255 255 / 0.14);
+        color: #fff;
+        font-size: 1.5rem;
+        line-height: 1;
+        cursor: pointer;
+      }
       .shots figcaption {
         margin-top: 0.6rem;
         font-size: 0.8rem;
@@ -298,9 +343,9 @@
       <img class="mark" src="/icons/icon-192.png" width="72" height="72" alt="" />
       <h1>Headpin</h1>
       <p class="lede">
-        Strikes and spares per game - the best bowlers keep track of all their
-        stats. Try the easiest-to-use bowling score and stats tracker that looks
-        nice and feels nice.
+        The top bowlers know their stats. Try the best bowling score and stats
+        tracker app, and never forget what worked on lane 12 the last time you
+        bowled there.
       </p>
       <a class="cta" href="/score">Open Headpin</a>
       <p class="cta-note">Free - no sign up required</p>
@@ -319,7 +364,7 @@
       -->
       <section class="shots">
         <figure>
-          <div class="phone"><div class="screen">
+          <a class="shot-link" href="/shots/scorer.webp" aria-label="View the scorecard larger"><div class="phone"><div class="screen">
             <picture>
             <source srcset="/shots/scorer-light.webp" media="(prefers-color-scheme: light)" />
             <img
@@ -329,22 +374,22 @@
               alt="A Headpin scorecard on the tenth frame, nine frames scored, three pins left standing, with the ball and the line written down beside it."
             />
           </picture>
-          </div></div>
-          <figcaption>Tap the pins. It does the maths.</figcaption>
+          </div></div></a>
+          <figcaption>Tap the pins, choose your ball, set your targets.</figcaption>
         </figure>
         <figure>
-          <div class="phone phone-dark"><div class="screen">
+          <a class="shot-link" href="/shots/line.webp" aria-label="View the lane view larger"><div class="phone phone-dark"><div class="screen">
             <img
               src="/shots/line.webp"
               width="780"
               height="1688"
               alt="The Headpin lane view, showing a ball path from laydown through the target arrows to the breakpoint and into the pocket."
             />
-          </div></div>
-          <figcaption>See the line you threw.</figcaption>
+          </div></div></a>
+          <figcaption>Visualize your line.</figcaption>
         </figure>
         <figure>
-          <div class="phone"><div class="screen">
+          <a class="shot-link" href="/shots/stats.webp" aria-label="View the stats screen larger"><div class="phone"><div class="screen">
             <picture>
             <source srcset="/shots/stats-light.webp" media="(prefers-color-scheme: light)" />
             <img
@@ -354,11 +399,11 @@
               alt="The Headpin stats screen showing a 193 average across five games, strike and spare percentages, and a line chart of average by session."
             />
           </picture>
-          </div></div>
-          <figcaption>Watch your average move.</figcaption>
+          </div></div></a>
+          <figcaption>Track your average, strike percentage, spare rates</figcaption>
         </figure>
         <figure>
-          <div class="phone"><div class="screen">
+          <a class="shot-link" href="/shots/arsenal.webp" aria-label="View the arsenal larger"><div class="phone"><div class="screen">
             <picture>
             <source srcset="/shots/arsenal-light.webp" media="(prefers-color-scheme: light)" />
             <img
@@ -368,8 +413,8 @@
               alt="The Headpin arsenal screen listing five bowling balls with their coverstock, RG and differential."
             />
           </picture>
-          </div></div>
-          <figcaption>Keep your arsenal in it.</figcaption>
+          </div></div></a>
+          <figcaption>Build your arsenal</figcaption>
         </figure>
       </section>
 
@@ -381,14 +426,53 @@
         <li><b>No app store download needed.</b> Installs to your home screen.</li>
       </ul>
 
-      <h2>How to use it offline</h2>
-      <p>
-        Open Headpin on your phone. On iPhone, tap Share and then Add to Home
-        Screen. On Android, tap the menu and then Install app. It then opens like
-        any other app, with or without signal.
-      </p>
-
       <footer>Made by bowlers, for bowlers.</footer>
     </main>
+
+    <!--
+      Full-size viewer. A <dialog> rather than a hand-rolled overlay: Escape,
+      focus trapping and the backdrop all come with it. Each phone is a plain
+      link to its own file underneath, so with scripts off the picture still
+      opens, just in a tab of its own.
+    -->
+    <dialog id="viewer" aria-label="Screenshot">
+      <button type="button" id="viewer-close" aria-label="Close">&times;</button>
+      <img id="viewer-img" src="" alt="" />
+    </dialog>
+    <script>
+      (function () {
+        var dlg = document.getElementById("viewer");
+        if (!dlg || typeof dlg.showModal !== "function") return;
+        var img = document.getElementById("viewer-img");
+
+        document.querySelectorAll(".shot-link").forEach(function (link) {
+          link.addEventListener("click", function (e) {
+            // Let a modified click do what the browser would normally do with
+            // it: open the file in a new tab, save it, and so on.
+            if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+            e.preventDefault();
+            var shot = link.querySelector("img");
+            // currentSrc, not src: <picture> has already chosen the theme, and
+            // the viewer must show the picture the reader is looking at.
+            img.src = shot.currentSrc || shot.src;
+            img.alt = shot.alt;
+            dlg.showModal();
+          });
+        });
+
+        document.getElementById("viewer-close").addEventListener("click", function () {
+          dlg.close();
+        });
+        // A click on the backdrop lands on the dialog itself, never on a child.
+        dlg.addEventListener("click", function (e) {
+          if (e.target === dlg) dlg.close();
+        });
+        // Drop the file when the viewer closes, so it is not held in memory
+        // for a page the reader may never scroll back to.
+        dlg.addEventListener("close", function () {
+          img.removeAttribute("src");
+        });
+      })();
+    </script>
   </body>
 </html>

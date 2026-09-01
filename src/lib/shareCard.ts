@@ -41,6 +41,11 @@ export interface ShareCardData {
   /** Supporting numbers, two per row. Four rows deep is the cap, and a card
    *  with game boxes only has room for two. */
   stats: ShareStat[];
+  /** The app mark, drawn beside the footer wordmark. Passed in rather than
+   *  loaded here: fetching an image is the view layer's job, and a card that
+   *  could not get one is still a card, so it is optional and the wordmark
+   *  simply sits where it always did. */
+  mark?: CanvasImageSource;
 }
 
 /* ------------------------------------------------------------------ *
@@ -317,13 +322,22 @@ export async function renderShareCard(data: ShareCardData): Promise<Blob> {
     ctx.fillText(stat.label.toUpperCase(), x, rowY + 98);
   });
 
-  // Footer wordmark. The entire reason a share is worth building, so it is
-  // cream rather than the brand green, which on this ground is barely legible.
+  // Footer wordmark, with the mark beside it. The entire reason a share is
+  // worth building, so it is cream rather than the brand green, which on this
+  // ground is barely legible.
   ctx.fillStyle = "rgba(255, 248, 237, 0.16)";
   ctx.fillRect(PAD, 1200, W - PAD * 2, 2);
+
+  let textX = PAD;
+  if (data.mark) {
+    const size = 56;
+    ctx.drawImage(data.mark, PAD, 1268 - size + 10, size, size);
+    textX = PAD + size + 20;
+  }
+
   ctx.fillStyle = CREAM;
   ctx.font = font(800, 46);
-  ctx.fillText("Headpin", PAD, 1268);
+  ctx.fillText("Headpin", textX, 1268);
 
   return new Promise((resolve, reject) => {
     canvas.toBlob((blob) => {
