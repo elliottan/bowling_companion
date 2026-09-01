@@ -107,7 +107,7 @@ async function dismissPrompts(page) {
     await settle(page);
   }
 
-  for (const name of ["Later", "Dismiss share offer", "Got it"]) {
+  for (const name of ["Dismiss backup reminder", "Dismiss share offer", "Got it"]) {
     const btn = page.getByRole("button", { name });
     if (await btn.count()) await btn.first().click().catch(() => {});
   }

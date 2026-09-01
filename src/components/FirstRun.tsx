@@ -41,6 +41,7 @@ export function FirstRun({ onSelectHandedness }: FirstRunProps) {
     try {
       // Nothing is written yet: the user confirms against real counts first.
       setPending(await prepareImport(file));
+      setStep("restore");
     } catch (err) {
       setError(err instanceof Error ? err.message : "That file could not be read.");
     } finally {
@@ -93,10 +94,19 @@ export function FirstRun({ onSelectHandedness }: FirstRunProps) {
               <Button size="lg" variant="primary" onClick={() => setStep("handedness")}>
                 Start fresh
               </Button>
-              <Button size="lg" variant="secondary" onClick={() => setStep("restore")}>
-                Restore from a backup
+              <Button
+                size="lg"
+                variant="secondary"
+                onClick={() => fileRef.current?.click()}
+                disabled={busy}
+              >
+                {busy ? "Reading..." : "Restore from a backup"}
               </Button>
             </div>
+            {/* A file that cannot be read is answered here rather than on a
+                screen of its own: there is nothing to do about it except pick a
+                different one, and the button for that is right above. */}
+            {error && <p className="mt-4 text-sm font-semibold text-danger-600">{error}</p>}
           </>
         )}
 
@@ -121,55 +131,41 @@ export function FirstRun({ onSelectHandedness }: FirstRunProps) {
           </>
         )}
 
-        {step === "restore" && (
+        {step === "restore" && pending && (
           <>
             <h1 className="text-2xl font-extrabold tracking-tight text-ink">
               Restore from a backup
             </h1>
             <p className="mt-2 text-base text-ink-secondary">
-              Pick a Headpin backup file. It brings back your sessions, balls, lines and settings,
-              including which hand you bowl with.
+              This brings back your sessions, balls, lines and settings, including which hand you
+              bowl with.
             </p>
 
-            {pending ? (
-              <div className="mt-6 rounded-lg border border-edge bg-surface p-4">
-                <p className="text-sm font-semibold text-ink">This file holds</p>
-                <p className="mt-1 text-sm text-ink-secondary">
-                  {pending.incoming.sessions} sessions, {pending.incoming.games} games,{" "}
-                  {pending.incoming.frames} frames.
+            <div className="mt-6 rounded-lg border border-edge bg-surface p-4">
+              <p className="text-sm font-semibold text-ink">This file holds</p>
+              <p className="mt-1 text-sm text-ink-secondary">
+                {pending.incoming.sessions} sessions, {pending.incoming.games} games,{" "}
+                {pending.incoming.frames} frames.
+              </p>
+              {pending.current.sessions > 0 && (
+                <p className="mt-2 text-sm font-semibold text-danger-600">
+                  This device already has {pending.current.sessions} sessions. Restoring replaces
+                  them.
                 </p>
-                {pending.current.sessions > 0 && (
-                  <p className="mt-2 text-sm font-semibold text-danger-600">
-                    This device already has {pending.current.sessions} sessions. Restoring replaces
-                    them.
-                  </p>
-                )}
-                <div className="mt-4 flex gap-2">
-                  <Button variant="secondary" onClick={() => setPending(null)} disabled={busy}>
-                    Pick another
-                  </Button>
-                  <Button variant="primary" onClick={handleRestore} disabled={busy}>
-                    {busy ? "Restoring..." : "Restore"}
-                  </Button>
-                </div>
-              </div>
-            ) : (
-              <div className="mt-8 flex flex-col gap-2">
-                <input
-                  ref={fileRef}
-                  type="file"
-                  accept="application/json,.json"
-                  className="sr-only"
-                  onChange={(e) => handleFile(e.target.files?.[0])}
-                />
-                <Button size="lg" variant="primary" onClick={() => fileRef.current?.click()} disabled={busy}>
-                  {busy ? "Reading..." : "Choose a file"}
+              )}
+              <div className="mt-4 flex gap-2">
+                <Button
+                  variant="secondary"
+                  onClick={() => fileRef.current?.click()}
+                  disabled={busy}
+                >
+                  Pick another
                 </Button>
-                <Button size="lg" variant="secondary" onClick={() => setStep("handedness")}>
-                  I do not have one
+                <Button variant="primary" onClick={handleRestore} disabled={busy}>
+                  {busy ? "Restoring..." : "Restore"}
                 </Button>
               </div>
-            )}
+            </div>
 
             {error && <p className="mt-4 text-sm font-semibold text-danger-600">{error}</p>}
 
@@ -186,6 +182,17 @@ export function FirstRun({ onSelectHandedness }: FirstRunProps) {
             </button>
           </>
         )}
+
+        {/* Mounted for the whole first run, not inside a step. The welcome
+            screen opens it directly, and a hidden input that only exists on the
+            screen it used to live on cannot be clicked from the one before it. */}
+        <input
+          ref={fileRef}
+          type="file"
+          accept="application/json,.json"
+          className="sr-only"
+          onChange={(e) => handleFile(e.target.files?.[0])}
+        />
       </div>
     </div>
   );

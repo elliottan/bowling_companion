@@ -3374,3 +3374,44 @@ one fact, resolved by whichever happened last.
 - `HandednessPrompt` is gone; `HandednessPicker` is still shared with Settings.
 - The e2e helper that dismissed the old modal now walks the flow, so every
   suite exercises the first run on its way to a clean database.
+
+## ADR-073: The backup nudge moves to the toast slot, and can be got out of the way
+
+**Status:** accepted (2026-09). Amends ADR-067, which owns the nudge's
+escalation, and leaves that escalation intact.
+
+**Context.** ADR-067 made the nudge harder to silence as it aged: `overdue`
+ignores the snooze and drops the Later button, because "a reminder that can be
+dismissed for ever does not reach the person who has been dismissing it since
+March." That reasoning still holds.
+
+What it did not anticipate is where the thing sits. The nudge rendered as a
+block in the page flow, between the game bar and the scorecard. On a night of
+three games it is a red slab across the top of the scorer, pushing the card
+down the screen on every return to the session, with no way to move it. It was
+the loudest object on a screen whose job is entering shots, and it stayed that
+way for the rest of the night.
+
+An immovable warning in the middle of the work is not a stronger warning. It is
+read once and then read past, and it takes the scorecard's place while doing it.
+
+**Decision.**
+
+- **The nudge is a bottom toast**, in the same slot and the same shape as the
+  update toast, above the tab bar. It stops displacing the scorecard.
+- **It carries a close control at both urgencies.** What closing means is what
+  changes with urgency, not whether it is offered:
+  - `due` closes as Later did, snoozing for the usual week.
+  - `overdue` closes for this run only. Nothing is recorded, so it is back on
+    the next launch, and no amount of closing it buys a quiet week.
+- **The update toast wins the slot** when both are up. Neither is frequent and
+  both can be closed.
+
+**Consequences.**
+- ADR-067's guarantee is unchanged in substance: an overdue nudge still cannot
+  be snoozed, and still returns until a backup actually happens. What it loses
+  is the ability to hold the top of the scorer hostage between now and then.
+- A user who closes the overdue toast and never relaunches keeps an unsaved
+  history, exactly as they would have by scrolling past the old block.
+- Two toasts share one anchor. If a third ever wants it, they need stacking
+  rather than another `z-index` guess.

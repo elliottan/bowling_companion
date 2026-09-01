@@ -39,14 +39,34 @@ test("walks new bowlers through to the app", async ({ page }) => {
   await expect(page.getByRole("button", { name: "Start new session" })).toBeVisible();
 });
 
-test("every step can be backed out of", async ({ page }) => {
+test("restoring opens the file picker, and cancelling costs nothing", async ({ page }) => {
   await freshInstall(page);
 
+  // The offer used to be a screen whose only job was to hold a Choose a file
+  // button. Now the tap opens the picker, so there is no step to back out of.
+  const chooser = page.waitForEvent("filechooser");
   await page.getByRole("button", { name: "Restore from a backup" }).click();
-  await expect(page.getByText("Pick a Headpin backup file", { exact: false })).toBeVisible();
+  await chooser;
 
-  await page.getByRole("button", { name: "Back" }).click();
   await expect(page.getByRole("button", { name: "Start fresh" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Restore from a backup" })).toBeVisible();
+});
+
+test("a file that is not a backup is refused without leaving the welcome screen", async ({
+  page
+}) => {
+  await freshInstall(page);
+
+  await page.locator('input[type="file"]').setInputFiles({
+    name: "holiday.json",
+    mimeType: "application/json",
+    buffer: Buffer.from('{"not":"a backup"}')
+  });
+
+  // The database is untouched: nothing is written until the counts are
+  // confirmed, so the way out is simply to pick a different file.
+  await expect(page.getByRole("button", { name: "Restore from a backup" })).toBeVisible();
+  await expect(page.getByText("This file holds")).toHaveCount(0);
 });
 
 test("a restore brings the history back and never asks the hand twice", async ({ page }) => {
@@ -65,7 +85,8 @@ test("a restore brings the history back and never asks the hand twice", async ({
   const file = await (await download).path();
 
   await freshInstall(page);
-  await page.getByRole("button", { name: "Restore from a backup" }).click();
+  // Straight to the input: the button opens the OS picker, which a test cannot
+  // fill in, and the input is mounted for the whole first run.
   await page.locator('input[type="file"]').setInputFiles(file!);
 
   await expect(page.getByText("This file holds")).toBeVisible();

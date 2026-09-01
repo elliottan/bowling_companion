@@ -40,7 +40,7 @@ test("offers to share once a game is finished, and takes no for an answer", asyn
 
   // The backup prompt outranks the share offer, so the offer is not up yet.
   await expect(page.getByText("Share the night?")).toHaveCount(0);
-  await page.getByRole("button", { name: "Later" }).click();
+  await page.getByRole("button", { name: "Dismiss backup reminder" }).click();
 
   await expect(page.getByText("Share the night?")).toBeVisible();
   await page.getByRole("button", { name: "Dismiss share offer" }).click();

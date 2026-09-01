@@ -120,6 +120,11 @@ export function ActiveSessionView({
     void setBackupNudgeSnoozedUntil(new Date(Date.now() + snoozeMs(installed)).toISOString());
   }
 
+  /** Closes an overdue nudge without recording anything, so it is back on the
+   *  next launch. ADR-067 refuses to let it be silenced for good; ADR-073 still
+   *  lets it be got out of the way. */
+  const [saveCopyHidden, setSaveCopyHidden] = useState(false);
+
   useEffect(() => {
     if (openStatsOnMount) onStatsOpened?.();
     // Mount-only: the flag is consumed by the initial state above.
@@ -481,10 +486,12 @@ export function ActiveSessionView({
             alone. A night that has just been created is already one session
             "behind", and asking someone to back up before they have thrown a
             ball is how a prompt teaches itself to be ignored (ADR-068). */}
-        {saveCopyUrgency !== "none" && finalScores.length > 0 && (
-          <div className="mt-3">
-            <SaveCopyPrompt urgency={saveCopyUrgency} onLater={handleSaveCopyLater} />
-          </div>
+        {saveCopyUrgency !== "none" && finalScores.length > 0 && !saveCopyHidden && (
+          <SaveCopyPrompt
+            urgency={saveCopyUrgency}
+            onLater={handleSaveCopyLater}
+            onDismiss={() => setSaveCopyHidden(true)}
+          />
         )}
 
         {/* Not a warning: accent, not amber. Nothing is at risk here, the app

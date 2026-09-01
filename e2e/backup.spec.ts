@@ -63,7 +63,7 @@ test("exports a backup, clears the database, and restores it via import", async 
   await expect(page.getByRole("button", { name: /Backup Lanes/ })).toBeVisible();
 });
 
-test("a finished game in a browser tab asks for a copy, and Later dismisses it", async ({ page }) => {
+test("a finished game in a browser tab asks for a copy, and it can be closed", async ({ page }) => {
   await startSession(page, "Eviction Lanes");
 
   // Nothing to lose yet: the session exists but no game is finished, and
@@ -81,6 +81,8 @@ test("a finished game in a browser tab asks for a copy, and Later dismisses it",
     page.getByText("Saved on this phone only.", { exact: false })
   ).toBeVisible();
 
-  await page.getByRole("button", { name: "Later" }).click();
+  // The close is the only dismissal now; while it is merely due, closing it
+  // snoozes exactly as Later did (ADR-073).
+  await page.getByRole("button", { name: "Dismiss backup reminder" }).click();
   await expect(page.getByText("Save a copy")).toHaveCount(0);
 });

@@ -6,6 +6,8 @@ import {
   SessionFilterChips,
   SessionFilterSheet
 } from "../components/SessionFilterBar";
+import { CollapsingHeader } from "../components/CollapsingHeader";
+import { useHideOnScroll } from "../lib/useHideOnScroll";
 import { rememberScroll, restoreScroll, useRememberedState } from "../lib/viewMemory";
 import { useSessionFilters } from "./useSessionFilters";
 import type { SessionSummary } from "../types/bowling";
@@ -38,6 +40,7 @@ export function HistoryView({
 
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   const scrollerRef = useRef<HTMLDivElement | null>(null);
+  const headerHidden = useHideOnScroll(scrollerRef);
 
   // The list scrolls inside the view, not in the app shell, so the shell's own
   // scroll memory never sees it. SwipePanes used to own this; the split left
@@ -74,7 +77,8 @@ export function HistoryView({
 
   return (
     <section className="mx-auto flex h-full w-full max-w-3xl flex-col px-3 pt-3 sm:px-6 sm:pt-5">
-      <div className="mb-3 flex items-center justify-between gap-3">
+      <CollapsingHeader hidden={headerHidden}>
+        <div className="mb-3 flex items-center justify-between gap-3">
         <h1 className="text-xl font-bold text-ink">History</h1>
         <div className="flex shrink-0 items-center gap-1">
           <SessionFilterButton filters={filters} onOpen={() => setFiltersOpen(true)} />
@@ -83,7 +87,8 @@ export function HistoryView({
 
       {error && <ErrorBanner className="mb-3">{error}</ErrorBanner>}
 
-      <SessionFilterChips filters={filters} />
+        <SessionFilterChips filters={filters} />
+      </CollapsingHeader>
       {filtersOpen && (
         <SessionFilterSheet filters={filters} onClose={() => setFiltersOpen(false)} />
       )}

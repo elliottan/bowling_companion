@@ -1,13 +1,17 @@
-import { ShieldAlert } from "lucide-react";
+import { ShieldAlert, X } from "lucide-react";
 import { useState } from "react";
 import { shareBackup } from "../services/backupRepository";
-import { TAP_TARGET_44 } from "./ui/Chip";
+import { Button } from "./ui/Button";
+import { IconButton } from "./ui/IconButton";
 import type { BackupUrgency } from "../lib/backupNudge";
 
 interface SaveCopyPromptProps {
-  /** "due" offers Later, "overdue" does not (ADR-067). */
+  /** "due" snoozes on dismiss, "overdue" only hides for this run (ADR-073). */
   urgency: Exclude<BackupUrgency, "none">;
+  /** Snooze it for a week. */
   onLater: () => void;
+  /** Hide it for this run only, without recording anything. */
+  onDismiss: () => void;
 }
 
 /**
@@ -22,8 +26,15 @@ interface SaveCopyPromptProps {
  * It shares directly instead of routing to the backup screen: pulling someone
  * out of a live session to go and find an export button is how a prompt gets
  * dismissed rather than acted on.
+ *
+ * A bottom toast rather than a block in the page (ADR-073): three games in and
+ * it was a red slab sitting between the game bar and the scorecard, pushing the
+ * card down the screen every time the user came back to it.
+ *
+ * It shares the toast slot with the update toast, which sits above it on the
+ * rare occasion both are up. Neither is frequent and both can be closed.
  */
-export function SaveCopyPrompt({ urgency, onLater }: SaveCopyPromptProps) {
+export function SaveCopyPrompt({ urgency, onLater, onDismiss }: SaveCopyPromptProps) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
@@ -42,37 +53,39 @@ export function SaveCopyPrompt({ urgency, onLater }: SaveCopyPromptProps) {
 
   return (
     <div
-      className={`mb-3 rounded-lg border p-3 text-sm ${
-        urgency === "overdue"
-          ? "border-danger-200 bg-danger-50 text-danger-700"
-          : "border-warning-200 bg-warning-50 text-warning-700"
-      }`}
+      role="status"
+      className="fixed inset-x-0 z-[49] flex justify-center px-3"
+      style={{ bottom: "calc(4rem + env(safe-area-inset-bottom) + 0.75rem)" }}
     >
-      <div className="flex items-start gap-3">
-        <ShieldAlert size={18} aria-hidden="true" className="mt-0.5 shrink-0" />
-        <p className="flex-1 font-semibold">
-          Saved on this phone only. Save a copy before closing the tab.
-        </p>
-      </div>
-      {error && <p className="mt-2 text-xs font-semibold">{error}</p>}
-      <div className="mt-2 flex items-center gap-3 pl-7">
-        <button
-          type="button"
-          onClick={handleSave}
-          disabled={busy}
-          className={`relative text-xs font-bold underline hover:no-underline disabled:opacity-60 ${TAP_TARGET_44}`}
-        >
-          {busy ? "Saving..." : "Save a copy"}
-        </button>
-        {urgency === "due" && (
-          <button
-            type="button"
-            onClick={onLater}
-            className={`relative inline-flex min-w-11 items-center justify-center text-xs font-semibold opacity-80 hover:underline ${TAP_TARGET_44}`}
+      <div
+        className={`w-full max-w-sm rounded-xl border p-3 shadow-xl ${
+          urgency === "overdue"
+            ? "border-danger-200 bg-danger-50 text-danger-700"
+            : "border-warning-200 bg-warning-50 text-warning-700"
+        }`}
+      >
+        <div className="flex items-start gap-2.5">
+          <ShieldAlert size={18} aria-hidden="true" className="mt-0.5 shrink-0" />
+          <p className="flex-1 text-sm font-semibold">
+            Saved on this phone only. Save a copy before closing the tab.
+          </p>
+          {/* Closes it either way. What that means depends on the urgency: a
+              week's snooze while it is only due, and until the next launch once
+              it is overdue, which is the line ADR-067 drew and ADR-073 keeps. */}
+          <IconButton
+            variant="default"
+            onClick={urgency === "overdue" ? onDismiss : onLater}
+            label="Dismiss backup reminder"
           >
-            Later
-          </button>
-        )}
+            <X size={16} aria-hidden="true" />
+          </IconButton>
+        </div>
+        {error && <p className="mt-2 pl-7 text-xs font-semibold">{error}</p>}
+        <div className="mt-2 pl-7">
+          <Button variant="primary" onClick={handleSave} disabled={busy}>
+            {busy ? "Saving..." : "Save a copy"}
+          </Button>
+        </div>
       </div>
     </div>
   );
