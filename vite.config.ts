@@ -117,8 +117,13 @@ export default defineConfig({
         // URL, so without this they would fall through to the root index.html
         // and the app would look like it had been replaced by its own advert.
         // "/" is denied because it *is* precached, via workbox's directoryIndex.
+        //
+        // /legal is denied for the opposite reason: it is a real page and not
+        // the app, but as a clean URL it is not a precache entry either, so the
+        // fallback answered it with the app shell. Anyone tapping "Privacy and
+        // terms" landed on the dashboard with /legal still in the address bar.
         navigateFallback: "/score/index.html",
-        navigateFallbackDenylist: [/^\/$/],
+        navigateFallbackDenylist: [/^\/$/, /^\/legal(\/|$)/],
         // NOTE: webp and catalog JSON are intentionally excluded from precache
         // to keep boot light. They are runtime-cached on first use instead.
         globPatterns: ["**/*.{js,css,html,svg,png,ico,webmanifest}"],
@@ -141,6 +146,15 @@ export default defineConfig({
             urlPattern: /\/catalog\/img\/.*\.webp$/,
             handler: "StaleWhileRevalidate",
             options: { cacheName: "catalog-images" }
+          },
+          {
+            // The legal page, which the fallback denylist above hands to the
+            // network. NetworkFirst so it is still readable offline once seen,
+            // rather than being the one page in an offline-first app that needs
+            // a connection.
+            urlPattern: /\/legal(\/|$)/,
+            handler: "NetworkFirst",
+            options: { cacheName: "legal-page", networkTimeoutSeconds: 5 }
           },
           {
             // The landing page's screenshots. They follow the same rule as the
