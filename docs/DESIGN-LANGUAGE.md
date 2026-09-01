@@ -97,6 +97,15 @@ not that, and reads as one because chips sit apart with gaps between them and
 any number of them can be on. The theme picker was three chips before, and the
 shared track is what says "pick one" before a single label is read.
 
+**Press feedback is `active:`, never `hover:` alone.** `hover:` is compiled
+behind `@media (hover: hover)` (`future.hoverOnlyWhenSupported` in
+`tailwind.config.js`), so it does nothing on a phone, which is the target
+device. It is set that way because iOS *latches* `:hover` on tap and clears it
+only when something else is tapped: the session header and the series score
+both kept their hover background after a tap and read as buttons stuck down,
+and opening a sheet over one did not clear it either. `active:` releases on
+pointerup and cannot latch.
+
 **Colour goes in a variant, never in `className`.** Tailwind resolves competing
 utilities by stylesheet order, not attribute order, so a colour passed through
 `className` silently loses to the variant's. Add a variant instead, which is

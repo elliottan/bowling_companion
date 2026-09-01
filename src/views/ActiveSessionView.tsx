@@ -380,7 +380,7 @@ export function ActiveSessionView({
                 setShowSheet(true);
               }
             }}
-            className="min-w-0 flex-1 rounded-md hover:bg-surface-muted"
+            className="min-w-0 flex-1 rounded-md hover:bg-surface-muted active:bg-surface-muted"
             aria-label="Open session sheet and lane notes"
           >
             <SessionHeaderText session={sessionDetails.session} games={games} />
@@ -397,7 +397,7 @@ export function ActiveSessionView({
             type="button"
             onClick={() => { setSheetTab("stats"); setShowSheet(true); }}
             aria-label="Open session stats"
-            className="shrink-0 rounded-md text-right hover:bg-surface-muted"
+            className="shrink-0 rounded-md text-right hover:bg-surface-muted active:bg-surface-muted"
           >
             <span className="block text-2xl font-extrabold leading-none text-accent">
               {seriesTotal}

@@ -9,6 +9,13 @@
 const withVar = (v) => `rgb(var(${v}) / <alpha-value>)`;
 
 export default {
+  // `hover:` compiles to `@media (hover: hover)`, so it never applies on a
+  // touch screen. iOS *latches* :hover on tap and only clears it when
+  // something else is tapped, so a tapped control kept its hover background
+  // and read as a button stuck down: the session header and the series score
+  // both did it, and holding a sheet open over one did not clear it either.
+  // Touch feedback belongs in `active:`, which releases on pointerup.
+  future: { hoverOnlyWhenSupported: true },
   // A pre-paint script in index.html resolves prefers-color-scheme (and any
   // stored override) into a data-theme attribute on <html>, so this attribute
   // is always the single source of truth. Rare explicit dark: variants key off
