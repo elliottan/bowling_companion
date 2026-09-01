@@ -31,8 +31,7 @@ export function FeedbackPrompt() {
       <div className="min-w-0 flex-1">
         <p className="text-sm font-semibold text-ink">How is Headpin treating you?</p>
         <p className="mt-0.5 text-xs text-ink-secondary">
-          A few nights in. Tell me what is missing, or what gets in your way. It opens an
-          email to one person, and what is in it decides what gets built next.
+          A few nights in. Tell me what is missing, or what gets in your way.
         </p>
         <div className="mt-2 flex items-center gap-3">
           <button
