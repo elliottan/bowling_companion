@@ -166,7 +166,10 @@ export async function prepareImport(fileOrJson: File | string | unknown): Promis
   const validation = validateBackup(json);
 
   if (!validation.isValid || !validation.backup) {
-    throw new Error(validation.errors.join(" "));
+    // Only the first error reaches the reader. The rest are a cascade off the
+    // same cause, and a paragraph of validator internals tells them nothing
+    // they can act on: the answer is always to pick a different file.
+    throw new Error(validation.errors[0]);
   }
 
   const backup = normalizeBackup(validation.backup);

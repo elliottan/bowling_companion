@@ -66,7 +66,7 @@ test("a file that is not a backup is refused without leaving the welcome screen"
   // The database is untouched: nothing is written until the counts are
   // confirmed, so the way out is simply to pick a different file.
   await expect(page.getByRole("button", { name: "Restore from a backup" })).toBeVisible();
-  await expect(page.getByText("This file holds")).toHaveCount(0);
+  await expect(page.getByText(/^Backed up /)).toHaveCount(0);
 });
 
 test("a restore brings the history back and never asks the hand twice", async ({ page }) => {
@@ -89,7 +89,7 @@ test("a restore brings the history back and never asks the hand twice", async ({
   // fill in, and the input is mounted for the whole first run.
   await page.locator('input[type="file"]').setInputFiles(file!);
 
-  await expect(page.getByText("This file holds")).toBeVisible();
+  await expect(page.getByText(/^Backed up /)).toBeVisible();
   await page.getByRole("button", { name: "Restore", exact: true }).click();
 
   // Straight into the app: the file carried the handedness, so the question

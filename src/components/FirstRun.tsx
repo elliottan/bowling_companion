@@ -2,7 +2,23 @@ import { useRef, useState } from "react";
 import { Button } from "./ui/Button";
 import { HandednessPicker } from "./HandednessPicker";
 import { prepareImport, replaceAllData, type PreparedImport } from "../services/backupRepository";
+import { describeAge } from "../lib/backupNudge";
 import type { Handedness } from "../types/bowling";
+
+/** The stamp the file carries. It is the one fact that says which backup this
+ *  is; frame counts never told anybody that. Falls back to the raw string, so
+ *  an odd stamp still shows rather than reading "Invalid Date". */
+function formatExportedAt(iso: string): string {
+  const parsed = new Date(iso);
+  if (Number.isNaN(parsed.getTime())) return iso;
+  return parsed.toLocaleString(undefined, {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit"
+  });
+}
 
 interface FirstRunProps {
   onSelectHandedness: (value: Handedness) => void;
@@ -142,10 +158,15 @@ export function FirstRun({ onSelectHandedness }: FirstRunProps) {
             </p>
 
             <div className="mt-6 rounded-lg border border-edge bg-surface p-4">
-              <p className="text-sm font-semibold text-ink">This file holds</p>
+              <p className="text-sm font-semibold text-ink">
+                Backed up {formatExportedAt(pending.backup.exported_at)}
+              </p>
               <p className="mt-1 text-sm text-ink-secondary">
-                {pending.incoming.sessions} sessions, {pending.incoming.games} games,{" "}
-                {pending.incoming.frames} frames.
+                {describeAge(pending.backup.exported_at, new Date())}. Holds{" "}
+                {pending.incoming.sessions}{" "}
+                {pending.incoming.sessions === 1 ? "session" : "sessions"},{" "}
+                {pending.incoming.games} {pending.incoming.games === 1 ? "game" : "games"},{" "}
+                {pending.incoming.balls} {pending.incoming.balls === 1 ? "ball" : "balls"}.
               </p>
               {pending.current.sessions > 0 && (
                 <p className="mt-2 text-sm font-semibold text-danger-600">
