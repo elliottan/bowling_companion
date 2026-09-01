@@ -4,12 +4,20 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#fff8ed" />
+    <!--
+      Google reads the favicon off this link, not off the manifest, and shows it
+      beside the result. Both sides are a multiple of 48 because that is what it
+      asks for; a tab would be happy with 32.
+    -->
+    <link rel="icon" type="image/png" sizes="96x96" href="/icons/icon-96.png" />
+    <link rel="icon" type="image/png" sizes="48x48" href="/icons/icon-48.png" />
+    <link rel="icon" href="/favicon.ico" sizes="any" />
     <link rel="apple-touch-icon" href="/icons/icon-192.png" />
 
     <title>Headpin, free offline bowling score keeper</title>
     <meta
       name="description"
-      content="Keep score for league night or open play. Headpin works with no signal, needs no account, and keeps every game on your own phone."
+      content="Strikes and spares per game - the best bowlers keep track of all their stats. Try the easiest-to-use bowling score and stats tracker that looks nice and feels nice."
     />
     <link rel="canonical" href="https://headpin.app/" />
 
@@ -24,7 +32,7 @@
     <meta property="og:title" content="Headpin, free offline bowling score keeper" />
     <meta
       property="og:description"
-      content="Keep score for league night or open play. No signal needed, no account, and every game stays on your own phone."
+      content="Strikes and spares per game - the best bowlers keep track of all their stats. Try the easiest-to-use bowling score and stats tracker that looks nice and feels nice."
     />
     <meta property="og:image" content="https://headpin.app/og-image.png" />
     <meta property="og:image:width" content="1200" />
@@ -34,9 +42,47 @@
     <meta name="twitter:title" content="Headpin, free offline bowling score keeper" />
     <meta
       name="twitter:description"
-      content="Keep score for league night or open play. No signal needed, no account, and every game stays on your own phone."
+      content="Strikes and spares per game - the best bowlers keep track of all their stats. Try the easiest-to-use bowling score and stats tracker that looks nice and feels nice."
     />
     <meta name="twitter:image" content="https://headpin.app/og-image.png" />
+
+    <!--
+      Structured data, for the two things a plain <title> cannot say.
+
+      WebSite is what Google reads to print a site name over the result instead
+      of the bare domain, and it only reads it from the domain root, which is
+      this page. SoftwareApplication says what the thing actually is: an app,
+      free, that runs in a browser.
+    -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "WebSite",
+            "@id": "https://headpin.app/#website",
+            "url": "https://headpin.app/",
+            "name": "Headpin",
+            "description": "Strikes and spares per game - the best bowlers keep track of all their stats. Try the easiest-to-use bowling score and stats tracker that looks nice and feels nice."
+          },
+          {
+            "@type": "SoftwareApplication",
+            "name": "Headpin",
+            "url": "https://headpin.app/",
+            "applicationCategory": "SportsApplication",
+            "operatingSystem": "Web browser, iOS, Android",
+            "browserRequirements": "Requires JavaScript. Works offline once installed.",
+            "image": "https://headpin.app/og-image.png",
+            "description": "Bowling score and stats tracker. Keeps score frame by frame, records the ball and line for every shot, and tracks averages over time. Works offline, needs no account, and keeps every game on your own device.",
+            "offers": {
+              "@type": "Offer",
+              "price": "0",
+              "priceCurrency": "USD"
+            }
+          }
+        ]
+      }
+    </script>
 
     <!--
       Installed apps launched before the app moved to /score still have `/` as
@@ -148,7 +194,6 @@
         font-weight: 600;
         text-decoration: none;
       }
-      .lede em { font-style: italic; color: var(--ink); }
       .cta-note { font-size: 0.9rem; color: var(--ink-3); margin: 0.75rem 0 0; }
       .shots {
         display: grid;
@@ -253,12 +298,12 @@
       <img class="mark" src="/icons/icon-192.png" width="72" height="72" alt="" />
       <h1>Headpin</h1>
       <p class="lede">
-        Strikes and lines per game - the best bowlers keep track of their
-        stats. Try the best bowling score and stats tracker that actually looks
-        nice and <em>just works</em>.
+        Strikes and spares per game - the best bowlers keep track of all their
+        stats. Try the easiest-to-use bowling score and stats tracker that looks
+        nice and feels nice.
       </p>
       <a class="cta" href="/score">Open Headpin</a>
-      <p class="cta-note">Free. No sign up required.</p>
+      <p class="cta-note">Free - no sign up required</p>
 
       <!--
         Real screens, captured from the running app by scripts/capture-shots.mjs

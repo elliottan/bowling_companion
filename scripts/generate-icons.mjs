@@ -85,6 +85,55 @@ await render("icon-512.png", 512, 0.74);
 // a launcher may crop this to a circle.
 await render("icon-512-maskable.png", 512, 0.56);
 
+// Search-result and browser-tab favicons. Google reads the <link rel="icon">
+// on the page and wants a square whose side is a multiple of 48, so these are
+// 48 and 96 rather than the 32 a tab alone would need. The neck bands are
+// dropped below 48px: two 4.5-unit stripes on a 32px canvas are under half a
+// pixel each, and they smear the neck into a grey band instead of reading as
+// bands.
+await render("icon-48.png", 48, 0.74);
+await render("icon-96.png", 96, 0.74);
+
+/**
+ * favicon.ico, at the root, because browsers ask for it whether or not a page
+ * links one and a 404 on every visit is a needless miss. ICO is a container:
+ * a directory of images, each of which may itself be a PNG, so the sizes below
+ * are the same renders the rest of this script produces.
+ */
+async function icoEntry(size, stripes) {
+  return { size, png: await sharp(svg(size, 0.74, stripes)).png().toBuffer() };
+}
+
+const icoImages = [await icoEntry(16, false), await icoEntry(32, false), await icoEntry(48, true)];
+const HEADER = 6;
+const ENTRY = 16;
+const header = Buffer.alloc(HEADER);
+header.writeUInt16LE(0, 0); // reserved
+header.writeUInt16LE(1, 2); // 1 = icon
+header.writeUInt16LE(icoImages.length, 4);
+
+let offset = HEADER + ENTRY * icoImages.length;
+const dir = [];
+for (const { size, png } of icoImages) {
+  const e = Buffer.alloc(ENTRY);
+  e.writeUInt8(size, 0); // width  (0 would mean 256)
+  e.writeUInt8(size, 1); // height
+  e.writeUInt8(0, 2); // palette size: 0 for truecolour
+  e.writeUInt8(0, 3); // reserved
+  e.writeUInt16LE(1, 4); // colour planes
+  e.writeUInt16LE(32, 6); // bits per pixel
+  e.writeUInt32LE(png.length, 8);
+  e.writeUInt32LE(offset, 12);
+  offset += png.length;
+  dir.push(e);
+}
+
+await writeFile(
+  join(root, "public", "favicon.ico"),
+  Buffer.concat([header, ...dir, ...icoImages.map((i) => i.png)])
+);
+console.log("wrote favicon.ico");
+
 // Social share card. 1200x630 is the size Facebook, Twitter/X, Slack, Discord
 // and iMessage all crop from, so a link pasted anywhere shows the mark and the
 // one line that says what this is.
