@@ -2,10 +2,10 @@ import type { Page } from "@playwright/test";
 
 /**
  * The first-run screen owns the viewport until handedness is stored, and after
- * any DB wipe it comes back. Walk it: new book, then right-handed.
+ * any DB wipe it comes back. Walk it: start fresh, then right-handed.
  */
 export async function dismissHandednessModal(page: Page) {
-  await page.getByRole("button", { name: "Set up a new book" }).click();
+  await page.getByRole("button", { name: "Start fresh" }).click();
   await page.getByRole("button", { name: "right-handed" }).click();
 }
 

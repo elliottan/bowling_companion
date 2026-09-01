@@ -29,7 +29,7 @@ test("opens on the welcome screen, not on a question over an unseen app", async 
 test("walks new bowlers through to the app", async ({ page }) => {
   await freshInstall(page);
 
-  await page.getByRole("button", { name: "Set up a new book" }).click();
+  await page.getByRole("button", { name: "Start fresh" }).click();
   await expect(page.getByText("Which hand do you bowl with?")).toBeVisible();
 
   await page.getByRole("button", { name: "right-handed" }).click();
@@ -46,13 +46,13 @@ test("every step can be backed out of", async ({ page }) => {
   await expect(page.getByText("Pick a Headpin backup file", { exact: false })).toBeVisible();
 
   await page.getByRole("button", { name: "Back" }).click();
-  await expect(page.getByRole("button", { name: "Set up a new book" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Start fresh" })).toBeVisible();
 });
 
 test("a restore brings the history back and never asks the hand twice", async ({ page }) => {
   // Build a real history, export it, then wipe and restore through first run.
   await freshInstall(page);
-  await page.getByRole("button", { name: "Set up a new book" }).click();
+  await page.getByRole("button", { name: "Start fresh" }).click();
   await page.getByRole("button", { name: "left-handed" }).click();
 
   await startSession(page, "Restored Lanes");

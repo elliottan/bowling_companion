@@ -201,7 +201,7 @@ await page.evaluate(
 );
 await page.reload();
 await setTheme(page, "dark");
-await page.getByRole("button", { name: "Set up a new book" }).click();
+await page.getByRole("button", { name: "Start fresh" }).click();
 await page.getByRole("button", { name: "right-handed" }).click();
 
 // Real balls, so the arsenal is a screen with something on it and the shot

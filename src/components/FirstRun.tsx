@@ -91,7 +91,7 @@ export function FirstRun({ onSelectHandedness }: FirstRunProps) {
             </p>
             <div className="mt-8 flex flex-col gap-2">
               <Button size="lg" variant="primary" onClick={() => setStep("handedness")}>
-                Set up a new book
+                Start fresh
               </Button>
               <Button size="lg" variant="secondary" onClick={() => setStep("restore")}>
                 Restore from a backup
