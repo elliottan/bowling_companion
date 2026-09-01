@@ -97,6 +97,14 @@
         --felt: #1b5148;
         --on-felt: #ffffff;
       }
+      @media (prefers-color-scheme: light) {
+        :root:not([data-theme="dark"]) .phone:not(.phone-dark) {
+          --shot-bg: #fff8ed;
+        }
+      }
+      :root[data-theme="light"] .phone:not(.phone-dark) {
+        --shot-bg: #fff8ed;
+      }
       :root[data-theme="dark"] {
         --bg: #0f172a;
         --card: #1e293b;
@@ -143,16 +151,59 @@
       .lede em { font-style: italic; color: var(--ink); }
       .cta-note { font-size: 0.9rem; color: var(--ink-3); margin: 0.75rem 0 0; }
       .shots {
-        display: flex;
-        gap: 0.9rem;
-        justify-content: center;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 1.4rem 0.9rem;
         margin: 2.75rem 0 0;
+      }
+      @media (min-width: 34rem) {
+        .shots {
+          grid-template-columns: repeat(4, minmax(0, 1fr));
+        }
       }
       .shots figure {
         margin: 0;
-        flex: 1 1 0;
-        max-width: 15rem;
         min-width: 0;
+      }
+      /*
+       * A phone drawn in CSS rather than shipped as a picture: it scales to any
+       * width, follows the theme, and costs nothing to download.
+       *
+       * The screen carries a strip of the app's own background above the
+       * screenshot. A captured screen has no status bar, so without it the
+       * camera cut-out would sit on top of the app's header instead of above
+       * it, and the frame would read as a sticker rather than as a device.
+       */
+      .phone {
+        --shot-bg: #0f172a;
+        padding: 0.28rem;
+        border-radius: 1.5rem;
+        background: linear-gradient(160deg, #52525b, #27272a 40%, #3f3f46);
+        box-shadow: 0 10px 26px rgb(0 0 0 / 0.28);
+      }
+      /* The lane view paints its own dark sky in either theme, so its strip
+         cannot follow the page. */
+      .phone-dark {
+        --shot-bg: #0f172a;
+      }
+      .screen {
+        position: relative;
+        overflow: hidden;
+        border-radius: 1.28rem;
+        background: var(--shot-bg);
+        padding-top: 5.2%;
+      }
+      /* The camera cut-out. */
+      .screen::after {
+        content: "";
+        position: absolute;
+        top: 1.5%;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 26%;
+        height: 2.7%;
+        border-radius: 999px;
+        background: #000;
       }
       .shots picture {
         display: block;
@@ -161,13 +212,11 @@
         width: 100%;
         height: auto;
         display: block;
-        border-radius: 1.1rem;
-        border: 1px solid var(--edge);
-        box-shadow: 0 12px 30px rgb(0 0 0 / 0.18);
       }
       .shots figcaption {
         margin-top: 0.6rem;
-        font-size: 0.85rem;
+        font-size: 0.8rem;
+        line-height: 1.4;
         color: var(--ink-3);
         text-align: center;
       }
@@ -214,36 +263,68 @@
       <!--
         Real screens, captured from the running app by scripts/capture-shots.mjs
         rather than drawn. Sized in the markup so the page does not jump when
-        they land, and eager rather than lazy because both sit above the fold on
-        a phone, where a lazy image is a visible gap.
+        they land, and eager rather than lazy because they sit at the top of the
+        page on a phone, where a lazy image is a visible gap.
 
-        Each screen is shot in both themes. The page claims the app looks nice,
-        and a dark screenshot on the cream background argues the other way.
+        Each screen is shot in both themes and picked with prefers-color-scheme.
+        The page claims the app looks nice, and a dark screenshot on the cream
+        background argues the other way. The lane view is the exception: it
+        paints its own wood rather than the app's colour tokens, so one file
+        serves both.
       -->
       <section class="shots">
         <figure>
-          <picture>
+          <div class="phone"><div class="screen">
+            <picture>
             <source srcset="/shots/scorer-light.webp" media="(prefers-color-scheme: light)" />
             <img
               src="/shots/scorer.webp"
               width="780"
               height="1688"
-              alt="A Headpin scorecard part way through a game, with three strikes and a spare, and the pin grid ready for the next shot."
+              alt="A Headpin scorecard on the tenth frame, nine frames scored, three pins left standing, with the ball and the line written down beside it."
             />
           </picture>
+          </div></div>
           <figcaption>Tap the pins. It does the maths.</figcaption>
         </figure>
         <figure>
-          <picture>
+          <div class="phone phone-dark"><div class="screen">
+            <img
+              src="/shots/line.webp"
+              width="780"
+              height="1688"
+              alt="The Headpin lane view, showing a ball path from laydown through the target arrows to the breakpoint and into the pocket."
+            />
+          </div></div>
+          <figcaption>See the line you threw.</figcaption>
+        </figure>
+        <figure>
+          <div class="phone"><div class="screen">
+            <picture>
             <source srcset="/shots/stats-light.webp" media="(prefers-color-scheme: light)" />
             <img
               src="/shots/stats.webp"
               width="780"
               height="1688"
-              alt="The Headpin stats screen showing a 201 average across three games, strike and spare percentages, and a line chart of average by session."
+              alt="The Headpin stats screen showing a 193 average across five games, strike and spare percentages, and a line chart of average by session."
             />
           </picture>
+          </div></div>
           <figcaption>Watch your average move.</figcaption>
+        </figure>
+        <figure>
+          <div class="phone"><div class="screen">
+            <picture>
+            <source srcset="/shots/arsenal-light.webp" media="(prefers-color-scheme: light)" />
+            <img
+              src="/shots/arsenal.webp"
+              width="780"
+              height="1688"
+              alt="The Headpin arsenal screen listing five bowling balls with their coverstock, RG and differential."
+            />
+          </picture>
+          </div></div>
+          <figcaption>Keep your arsenal in it.</figcaption>
         </figure>
       </section>
 

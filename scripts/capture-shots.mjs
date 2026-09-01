@@ -18,20 +18,30 @@ const outDir = join(root, "public", "shots");
 const BASE = process.env.SHOTS_BASE ?? "http://localhost:5173";
 
 /**
- * Games as lists of shots, not frames: a strike spends one and everything else
- * spends two, so the length has to be exact. One entry too many and the last
- * click finds no Next button, because the game is already over.
+ * Games as frames, not as a flat list of shots. A strike spends one shot and
+ * everything else spends two, so a flat list has to be counted by hand, and one
+ * entry too many means the last click finds no Next button because the game is
+ * already over. Frames cannot drift that way.
+ *
+ * Each entry is the pins left standing after that shot, matching the data model
+ * and e2e/helpers.ts.
  */
+const X = [[]]; // strike
+const SPARE = (leave) => [leave, []];
+const OPEN = (leave) => [leave, leave];
+
+// The tenth is open in every one of these on purpose: a strike or a spare there
+// earns another ball, and a game one shot short of finished is never counted,
+// so it would reach neither the stats nor the trend.
 const GAMES = [
-  // 226: strikes, a spare, one open frame.
-  [[], [], [7], [], [], [10], [10], [], [], [], [], [4], [], []],
-  // A quieter night, so the trend has somewhere to move.
-  [[], [3, 6, 10], [], [7], [], [], [8, 10], [8, 10], [], [4, 7], [], [], [10], [10], [2, 8], [2, 8]],
-  // Better again. The tenth is left open in each of these on purpose: a strike
-  // or a spare there earns another ball, and a game one shot short of finished
-  // is not counted, so it would never reach the stats or the trend.
-  [[], [], [], [6, 10], [], [], [7], [], [], [], [5], [], [10], [10]]
+  [X, X, SPARE([7]), X, X, X, SPARE([4]), X, X, OPEN([6, 10])],
+  [X, SPARE([3, 6, 10]), SPARE([7]), X, OPEN([8, 10]), X, SPARE([4, 7]), X, OPEN([10]), OPEN([2, 8])],
+  [X, X, X, SPARE([6, 10]), X, SPARE([7]), X, X, SPARE([5]), OPEN([10])],
+  [SPARE([2, 8]), X, OPEN([3, 10]), X, SPARE([7]), OPEN([6]), X, SPARE([9]), X, OPEN([4, 7])],
+  [X, X, SPARE([10]), X, SPARE([2, 4, 5]), X, X, SPARE([6]), X, OPEN([3, 6, 10])]
 ];
+
+const shotsOf = (game) => game.flat();
 
 /** Record one shot. `standingAfter` mirrors e2e/helpers.ts. */
 async function recordShot(page, standingAfter) {
@@ -55,6 +65,55 @@ async function dismissPrompts(page) {
   // The spare-line offer is a toast with only a close control.
   const toast = page.getByRole("button", { name: /Dismiss|Close/ }).last();
   if (await toast.count()) await toast.click().catch(() => {});
+}
+
+/**
+ * Add one ball from the shipped catalog, with the catalog already open on its
+ * list. Adding leaves you on the ball's own page, and leaving the catalog from
+ * there reopens it on that same ball: the next search then reads as "already in
+ * your arsenal" against the previous ball. So step back to the list first.
+ */
+async function addCatalogBall(page, query) {
+  const search = page.getByPlaceholder("Search name, brand, coverstock…");
+  await search.fill(query);
+  await page.getByRole("button", { name: new RegExp(query, "i") }).first().click();
+  await page.getByRole("button", { name: "Add to my arsenal" }).click();
+  await page.getByRole("button", { name: "Add to arsenal", exact: true }).click();
+  await settle(page);
+  // The ball's own header and the catalog's both carry a Back; the ball is the
+  // one in front.
+  await page.getByRole("banner").getByRole("button", { name: "Back" }).last().click();
+  await settle(page);
+}
+
+/**
+ * Fill the shot's Intended and Actual lines. The fields carry no aria-label,
+ * only a title, and both sections render a target, so they are taken in DOM
+ * order: Intended first, Actual second.
+ */
+async function fillLine(page, values) {
+  const targets = page.locator('input[title="Target board (arrows)"]');
+  const fields = [
+    [page.locator('input[title="Stance board"]'), values.stance],
+    [targets.nth(0), values.intendedTarget],
+    [page.locator('input[title="Slide board"]'), values.slide],
+    [targets.nth(1), values.actualTarget]
+  ];
+
+  // Twice, with a settle between. Choosing a ball seeds the line (ADR-052), and
+  // that seed lands a tick later and overwrites whatever was typed before it:
+  // the first pass loses, the second is what stays on screen.
+  for (let pass = 0; pass < 2; pass++) {
+    for (const [input, value] of fields) await input.fill(String(value));
+    // Blur so the focus-reveal adjusters are not covering the panel.
+    await page.locator("body").click({ position: { x: 5, y: 5 } });
+    await settle(page);
+  }
+
+  for (const [input, value] of fields) {
+    const got = await input.inputValue();
+    if (got !== String(value)) throw new Error(`line field settled on ${got}, wanted ${value}`);
+  }
 }
 
 async function startSession(page, alley) {
@@ -83,10 +142,23 @@ async function shoot(page, name) {
   console.log("wrote", `${name}.webp`);
 }
 
-/** Pin the app's theme and reload so it resolves before the first paint. */
+/**
+ * Flip the theme in place. It is the data-theme attribute that selects the
+ * colour tokens, so setting it is enough, and reloading to let the pre-paint
+ * script do it is not: a shot is not saved until Next, so a reload on the
+ * scorer throws away the pins, the ball and the line that the screenshot is
+ * there to show. The stored value is written too, so anything that reads the
+ * preference agrees with what is on screen.
+ */
 async function setTheme(page, theme) {
-  await page.evaluate((t) => localStorage.setItem("theme", t), theme);
-  await page.reload();
+  await page.evaluate((t) => {
+    try {
+      localStorage.setItem("theme", t);
+    } catch {
+      /* private mode: the attribute below is what the screenshot needs */
+    }
+    document.documentElement.dataset.theme = t;
+  }, theme);
   await settle(page);
 }
 
@@ -132,22 +204,57 @@ await setTheme(page, "dark");
 await page.getByRole("button", { name: "Set up a new book" }).click();
 await page.getByRole("button", { name: "right-handed" }).click();
 
-// Three nights, so the history has rows and the trend chart has a line rather
-// than a single dot.
-const alleys = ["Sunset Lanes", "Orchid Bowl", "Sunset Lanes"];
+// Real balls, so the arsenal is a screen with something on it and the shot
+// panel has a ball to name.
+await page.getByRole("button", { name: "Catalog", exact: true }).click();
+// Only some of the catalog carries artwork, and a list of grey placeholders is
+// a worse advert than no list. These five all have a real image.
+for (const q of ["Phaze Crimson", "Gem", "Jackal Ghost", "Zen Master", "Code Green"]) {
+  await addCatalogBall(page, q);
+}
+await page.getByRole("banner").getByRole("button", { name: "Back" }).first().click();
+
+await page.getByRole("button", { name: "Arsenal", exact: true }).click();
+await shootBothThemes(page, "arsenal");
+await page.getByRole("banner").getByRole("button", { name: "Back" }).first().click();
+
+await page.getByRole("button", { name: "Line", exact: true }).click();
+// One theme only: the lane view paints its own wood and sky rather than the
+// app's colour tokens, so both themes render the identical picture.
+await shoot(page, "line");
+await page.getByRole("button", { name: "Close" }).first().click();
+
+// Five nights: the trend chart is a line with somewhere to go, not two dots.
+const alleys = ["Sunset Lanes", "Orchid Bowl", "Sunset Lanes", "Pin Deck", "Sunset Lanes"];
 for (let i = 0; i < GAMES.length; i++) {
   await startSession(page, alleys[i]);
   const game = GAMES[i];
 
   if (i === GAMES.length - 1) {
-    // The last night stops half way: a part-filled scorecard with the pin
-    // input live is the screen this app actually is. A finished card is a table.
-    for (const leave of game.slice(0, 7)) await recordShot(page, leave);
+    // Stop on the first ball of the tenth. Nine frames are filled in, so the
+    // card reads as a game rather than a stub, and the shot itself is still
+    // open: pins standing, the line written down, a ball named.
+    for (const frame of game.slice(0, 9)) {
+      for (const leave of frame) await recordShot(page, leave);
+    }
+    const [tenthFirst] = game[9];
+    for (const pin of tenthFirst) {
+      const btn = page.locator(`button[aria-label="Pin ${pin} down"]:not([disabled])`);
+      if (await btn.count()) await btn.click();
+    }
+      // The control is labelled by what is on it, not by its text.
+    await page.getByRole("button", { name: /^Ball: /i }).click();
+    await page.getByRole("button", { name: /Phaze Crimson/i }).first().click();
+    await settle(page);
+    await fillLine(page, { stance: 24, intendedTarget: 10, slide: 23.5, actualTarget: 11 });
     await dismissPrompts(page);
     await shootBothThemes(page, "scorer");
-    for (const leave of game.slice(7)) await recordShot(page, leave);
+
+    // Finish the frame so the game counts: two shots, left open.
+    await page.getByRole("button", { name: "Next", exact: true }).click();
+    await recordShot(page, [10]);
   } else {
-    for (const leave of game) await recordShot(page, leave);
+    for (const leave of shotsOf(game)) await recordShot(page, leave);
   }
   await dismissPrompts(page);
 }
