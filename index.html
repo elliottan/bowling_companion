@@ -140,7 +140,37 @@
         font-weight: 600;
         text-decoration: none;
       }
+      .lede em { font-style: italic; color: var(--ink); }
       .cta-note { font-size: 0.9rem; color: var(--ink-3); margin: 0.75rem 0 0; }
+      .shots {
+        display: flex;
+        gap: 0.9rem;
+        justify-content: center;
+        margin: 2.75rem 0 0;
+      }
+      .shots figure {
+        margin: 0;
+        flex: 1 1 0;
+        max-width: 15rem;
+        min-width: 0;
+      }
+      .shots picture {
+        display: block;
+      }
+      .shots img {
+        width: 100%;
+        height: auto;
+        display: block;
+        border-radius: 1.1rem;
+        border: 1px solid var(--edge);
+        box-shadow: 0 12px 30px rgb(0 0 0 / 0.18);
+      }
+      .shots figcaption {
+        margin-top: 0.6rem;
+        font-size: 0.85rem;
+        color: var(--ink-3);
+        text-align: center;
+      }
       h2 {
         font-size: 1.05rem;
         font-weight: 600;
@@ -174,31 +204,65 @@
       <img class="mark" src="/icons/icon-192.png" width="72" height="72" alt="" />
       <h1>Headpin</h1>
       <p class="lede">
-        A free bowling score keeper that works with no signal, needs no account,
-        and keeps every game on your own phone.
+        Strikes and lines per game - the best bowlers keep track of their
+        stats. Try the best bowling score and stats tracker that actually looks
+        nice and <em>just works</em>.
       </p>
       <a class="cta" href="/score">Open Headpin</a>
-      <p class="cta-note">No sign up. Opens straight into a scorecard.</p>
+      <p class="cta-note">Free. No sign up required.</p>
+
+      <!--
+        Real screens, captured from the running app by scripts/capture-shots.mjs
+        rather than drawn. Sized in the markup so the page does not jump when
+        they land, and eager rather than lazy because both sit above the fold on
+        a phone, where a lazy image is a visible gap.
+
+        Each screen is shot in both themes. The page claims the app looks nice,
+        and a dark screenshot on the cream background argues the other way.
+      -->
+      <section class="shots">
+        <figure>
+          <picture>
+            <source srcset="/shots/scorer-light.webp" media="(prefers-color-scheme: light)" />
+            <img
+              src="/shots/scorer.webp"
+              width="780"
+              height="1688"
+              alt="A Headpin scorecard part way through a game, with three strikes and a spare, and the pin grid ready for the next shot."
+            />
+          </picture>
+          <figcaption>Tap the pins. It does the maths.</figcaption>
+        </figure>
+        <figure>
+          <picture>
+            <source srcset="/shots/stats-light.webp" media="(prefers-color-scheme: light)" />
+            <img
+              src="/shots/stats.webp"
+              width="780"
+              height="1688"
+              alt="The Headpin stats screen showing a 201 average across three games, strike and spare percentages, and a line chart of average by session."
+            />
+          </picture>
+          <figcaption>Watch your average move.</figcaption>
+        </figure>
+      </section>
 
       <h2>What it does</h2>
       <ul>
-        <li><b>Keeps score.</b> Tenpin, frame by frame, strikes and spares counted for you.</li>
-        <li><b>Works offline.</b> Bowling alleys eat phone signal, so it never asks for any.</li>
-        <li><b>Installs to your home screen.</b> Straight from the browser, no app store.</li>
-        <li><b>Tracks your arsenal.</b> Which ball you threw, and which pins were left standing.</li>
-        <li><b>Remembers every night.</b> Game history and averages over time.</li>
-        <li><b>Keeps it yours.</b> No account, no ads, no tracking. Scores never leave the phone.</li>
-        <li><b>Backs up to a file.</b> One you hold onto and can restore from anywhere.</li>
+        <li><b>Keeps score.</b> Frame by frame, shot by shot. Record every strike, spare, ball and line used.</li>
+        <li><b>Remembers every night.</b> Stats, trends, and averages over time.</li>
+        <li><b>Keeps it yours.</b> Works offline, and your data stays with you.</li>
+        <li><b>No app store download needed.</b> Installs to your home screen.</li>
       </ul>
 
-      <h2>How to install it</h2>
+      <h2>How to use it offline</h2>
       <p>
         Open Headpin on your phone. On iPhone, tap Share and then Add to Home
         Screen. On Android, tap the menu and then Install app. It then opens like
         any other app, with or without signal.
       </p>
 
-      <footer>Made for league night and open play.</footer>
+      <footer>Made by bowlers, for bowlers.</footer>
     </main>
   </body>
 </html>

@@ -122,6 +122,15 @@ export default defineConfig({
             urlPattern: /\/catalog\/img\/.*\.webp$/,
             handler: "StaleWhileRevalidate",
             options: { cacheName: "catalog-images" }
+          },
+          {
+            // The landing page's screenshots. They follow the same rule as the
+            // catalog images (webp stays out of precache to keep boot light),
+            // but the landing page is served from the cache, so without this it
+            // would come back offline with two holes where the app used to be.
+            urlPattern: /\/shots\/.*\.webp$/,
+            handler: "StaleWhileRevalidate",
+            options: { cacheName: "landing-shots" }
           }
         ]
       }
