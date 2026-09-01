@@ -51,8 +51,21 @@ export function BallPickerSheet({
         <div className="flex items-center justify-between px-4 pb-2 pt-2">
           <h2 className="text-sm font-semibold text-ink">Ball</h2>
           <div className="flex shrink-0 items-center gap-1">
+            {/* Close *and* navigate. `dismiss(after)` replaces `onClose` rather
+                than running it too, so passing the navigation on its own left
+                this sheet's open state set: it played its exit, then slid
+                straight back up on top of the arsenal it had just opened. */}
             {onOpenArsenal && (
-              <Button variant="ghost" onClick={() => dismiss(onOpenArsenal)} className="text-xs">
+              <Button
+                variant="ghost"
+                onClick={() =>
+                  dismiss(() => {
+                    onClose();
+                    onOpenArsenal();
+                  })
+                }
+                className="text-xs"
+              >
                 <SlidersHorizontal size={14} aria-hidden="true" />
                 Manage arsenal
               </Button>

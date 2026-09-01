@@ -5,8 +5,16 @@ const EXIT_MS = 220;
 const DISMISS_PX = 96;
 
 export interface SheetDismiss {
-  /** Close with the exit animation, then run `after` (defaults to `onClose`).
-   *  Wire every close path through this, confirm buttons included. */
+  /** Close with the exit animation, then run `after` *instead of* `onClose`
+   *  (with no argument, it runs `onClose`). Wire every close path through this,
+   *  confirm buttons included.
+   *
+   *  `after` replaces rather than adds, so it has to close the overlay itself.
+   *  That is free for a dialog whose confirm handler already clears the state
+   *  holding it open, and a trap for anything else: the ball picker passed its
+   *  "Manage arsenal" navigation on its own, kept its open state, and slid back
+   *  up on top of the screen it had just opened. Compose when in doubt:
+   *  `dismiss(() => { onClose(); somethingElse(); })`. */
   dismiss: (after?: () => void) => void;
   /** Style for the backdrop: fades with the panel. */
   backdropStyle: React.CSSProperties;
