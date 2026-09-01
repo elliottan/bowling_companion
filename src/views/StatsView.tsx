@@ -7,7 +7,6 @@ import {
   SessionFilterSheet
 } from "../components/SessionFilterBar";
 import { CollapsingHeader } from "../components/CollapsingHeader";
-import { useHideOnScroll } from "../lib/useHideOnScroll";
 import { IconButton } from "../components/ui/IconButton";
 import { ShareCardDialog } from "../components/ShareCardDialog";
 import { AnchoredMenu, AnchoredMenuItem } from "../components/ui/AnchoredMenu";
@@ -110,7 +109,6 @@ export function StatsView({
   );
 
   const scrollerRef = useRef<HTMLDivElement | null>(null);
-  const headerHidden = useHideOnScroll(scrollerRef);
   useEffect(() => {
     const el = scrollerRef.current;
     return el ? restoreScroll(el, "stats:scroll") : undefined;
@@ -118,7 +116,7 @@ export function StatsView({
 
   return (
     <section className="mx-auto flex h-full w-full max-w-3xl flex-col px-3 pt-3 sm:px-6 sm:pt-5">
-      <CollapsingHeader hidden={headerHidden}>
+      <CollapsingHeader scrollerRef={scrollerRef}>
         <div className="mb-3 flex items-center justify-between gap-3">
         <h1 className="text-xl font-bold text-ink">Stats</h1>
         <div className="flex shrink-0 items-center gap-1">
