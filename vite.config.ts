@@ -1,3 +1,4 @@
+import { version as pkgVersion } from "./package.json";
 import react from "@vitejs/plugin-react";
 import { VitePWA } from "vite-plugin-pwa";
 import type { Plugin } from "vite";
@@ -27,6 +28,12 @@ function serveScoreWithoutTrailingSlash(): Plugin {
 }
 
 export default defineConfig({
+  // Baked in so a pasted bug report says which build it came from. The app has
+  // no backend to ask, and a screenshot never carries it.
+  define: {
+    __APP_VERSION__: JSON.stringify(pkgVersion),
+    __BUILD_TIME__: JSON.stringify(new Date().toISOString().slice(0, 16) + "Z")
+  },
   // MPA, not SPA: the default SPA fallback answers *every* HTML request with
   // the root index.html, which would serve the landing page at /score and hide
   // the app entirely. There are two real HTML entries and no server routing to

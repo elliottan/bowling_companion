@@ -1,4 +1,4 @@
-import { Archive, ArrowUpRight, BookOpen, Palette, Coffee, Crosshair, MapPin, MessageSquare, SlidersHorizontal, Spline, Waves, type LucideIcon } from "lucide-react";
+import { Archive, ArrowUpRight, BookOpen, Check, ClipboardList, Palette, Coffee, Crosshair, MapPin, MessageSquare, SlidersHorizontal, Spline, Waves, type LucideIcon } from "lucide-react";
 import { BowlingBallIcon } from "../components/icons/BowlingBallIcon";
 import { useEffect, useState } from "react";
 import { LaneNotesView } from "./LaneNotesView";
@@ -9,6 +9,7 @@ import { getSetting } from "../services/bowlingRepository";
 import type { Handedness } from "../types/bowling";
 import type { DriftModel } from "../lib/driftModel";
 import { DONATE_URL, FEEDBACK_URL } from "../lib/links";
+import { collectDiagnostics, formatDiagnostics } from "../lib/diagnostics";
 import { ListGroup, ListRow } from "../components/ui/ListGroup";
 
 // Navigating to a section is a navigation action, so the union lives with the
@@ -152,6 +153,7 @@ function SettingsMenu({
           href={FEEDBACK_URL}
           trailing={leavesTheApp}
         />
+        <CopyDiagnosticsRow />
         <ListRow
           icon={Coffee}
           label="Buy me a coffee"
@@ -161,5 +163,40 @@ function SettingsMenu({
         />
       </ListGroup>
     </section>
+  );
+}
+
+/**
+ * The context a bug report needs, put on the clipboard for the user to paste
+ * into the feedback form themselves.
+ *
+ * A button, not a beacon: the app sends nothing anywhere, so the only honest
+ * way to learn which build a report came from is to hand the user the text and
+ * let them decide to share it (DESIGN-LANGUAGE section 4).
+ */
+function CopyDiagnosticsRow() {
+  const [copied, setCopied] = useState(false);
+
+  const copy = async () => {
+    const text = formatDiagnostics(await collectDiagnostics());
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // Clipboard is denied in some embedded webviews. Say so rather than
+      // pretending it worked, because the user is about to paste nothing.
+      window.prompt("Copy this into the feedback form:", text);
+    }
+  };
+
+  return (
+    <ListRow
+      icon={copied ? Check : ClipboardList}
+      label={copied ? "Copied" : "Copy diagnostics"}
+      description="App version and data counts, to paste into feedback"
+      onClick={() => void copy()}
+      trailing={<span aria-hidden="true" />}
+    />
   );
 }

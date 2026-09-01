@@ -237,7 +237,7 @@ function countBackup(backup: BowlingBackup): ImportBackupResult {
   };
 }
 
-async function countDatabase(): Promise<ImportBackupResult> {
+export async function countDatabase(): Promise<ImportBackupResult> {
   const [sessions, games, frames, balls, oil_patterns, spare_lines, lane_notes, settings] =
     await Promise.all([
       db.sessions.count(),
