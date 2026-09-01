@@ -4,22 +4,29 @@ import { VitePWA } from "vite-plugin-pwa";
 import type { Plugin } from "vite";
 import { defineConfig } from "vitest/config";
 
+/** The clean URLs that build to a directory, and so need resolving by hand. */
+const CLEAN_URLS = ["/score", "/legal"];
+
 /**
- * Serve /score in dev the way the host serves it in production.
+ * Serve /score and /legal in dev the way the host serves them in production.
  *
  * Vercel resolves /score to score/index.html, but Vite's dev server only
  * resolves the directory form, /score/. Without this the app's real URL 404s
  * locally, the e2e suite has to ask for a URL no user will ever type, and dev
  * and prod disagree about the one path the whole app hangs off.
  */
-function serveScoreWithoutTrailingSlash(): Plugin {
+function serveCleanUrls(): Plugin {
   return {
-    name: "score-clean-url",
+    name: "clean-urls",
     apply: "serve",
     configureServer(server) {
       server.middlewares.use((req, _res, next) => {
-        if (req.url === "/score" || req.url?.startsWith("/score#") || req.url?.startsWith("/score?")) {
-          req.url = "/score/index.html" + req.url.slice("/score".length);
+        for (const path of CLEAN_URLS) {
+          const url = req.url;
+          if (url === path || url?.startsWith(`${path}#`) || url?.startsWith(`${path}?`)) {
+            req.url = `${path}/index.html` + url.slice(path.length);
+            break;
+          }
         }
         next();
       });
@@ -54,12 +61,17 @@ export default defineConfig({
         // server gets the middleware above, and production gets an explicit
         // rewrite in vercel.json. Both are inert where the host is already
         // right, and this is the one URL the whole app hangs off.
-        app: "score/index.html"
+        app: "score/index.html",
+        // Privacy, terms and trademark notices. Static like the landing page,
+        // and deliberately not part of the app bundle: it is a page a store
+        // reviewer, a crawler and a manufacturer's lawyer must be able to read
+        // without running any JavaScript.
+        legal: "legal/index.html"
       }
     }
   },
   plugins: [
-    serveScoreWithoutTrailingSlash(),
+    serveCleanUrls(),
     react(),
     VitePWA({
       registerType: "prompt",

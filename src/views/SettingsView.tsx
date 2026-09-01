@@ -1,4 +1,4 @@
-import { Archive, ArrowUpRight, BookOpen, Check, ClipboardList, Palette, Coffee, Crosshair, MapPin, MessageSquare, SlidersHorizontal, Spline, Waves, type LucideIcon } from "lucide-react";
+import { Archive, ArrowUpRight, BookOpen, Check, ClipboardList, ScrollText, Palette, Coffee, Crosshair, MapPin, MessageSquare, SlidersHorizontal, Spline, Waves, type LucideIcon } from "lucide-react";
 import { BowlingBallIcon } from "../components/icons/BowlingBallIcon";
 import { useEffect, useState } from "react";
 import { LaneNotesView } from "./LaneNotesView";
@@ -8,7 +8,7 @@ import { HandednessView } from "./HandednessView";
 import { getSetting } from "../services/bowlingRepository";
 import type { Handedness } from "../types/bowling";
 import type { DriftModel } from "../lib/driftModel";
-import { DONATE_URL, FEEDBACK_URL } from "../lib/links";
+import { DONATE_URL, FEEDBACK_URL, LEGAL_URL } from "../lib/links";
 import { collectDiagnostics, formatDiagnostics } from "../lib/diagnostics";
 import { ListGroup, ListRow } from "../components/ui/ListGroup";
 
@@ -159,6 +159,16 @@ function SettingsMenu({
           label="Buy me a coffee"
           description="A one-off tip. No subscription."
           href={DONATE_URL}
+          trailing={leavesTheApp}
+        />
+      </ListGroup>
+
+      <ListGroup heading="About">
+        <ListRow
+          icon={ScrollText}
+          label="Privacy and terms"
+          description="What stays on your device, and what does not"
+          href={LEGAL_URL}
           trailing={leavesTheApp}
         />
       </ListGroup>

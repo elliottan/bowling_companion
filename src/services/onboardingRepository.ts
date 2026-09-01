@@ -1,4 +1,5 @@
 import { db } from "../db/bowlingDb";
+import { FEEDBACK_PROMPT_KEY } from "../lib/feedbackPrompt";
 import {
   nextStepDismissedKey,
   type NextStepKey,
@@ -49,4 +50,26 @@ export async function getOnboardingFacts(): Promise<OnboardingFacts> {
  *  live query on Home picks the change up without being told. */
 export async function dismissNextStep(step: NextStepKey): Promise<void> {
   await db.settings.put({ key: nextStepDismissedKey(step), value: new Date().toISOString() });
+}
+
+/**
+ * Whether the one-time feedback ask is still owed, and the session count the
+ * rule reads. Counted, not listed: the rule only asks how many nights there
+ * have been.
+ */
+export async function getFeedbackPromptFacts(): Promise<{
+  sessionCount: number;
+  done: boolean;
+}> {
+  const [sessionCount, row] = await Promise.all([
+    db.sessions.count(),
+    db.settings.get(FEEDBACK_PROMPT_KEY)
+  ]);
+  return { sessionCount, done: row !== undefined };
+}
+
+/** Retire the ask for good, whether they answered it or waved it off. Both are
+ *  an answer, and asking a second time is how a prompt gets ignored. */
+export async function dismissFeedbackPrompt(): Promise<void> {
+  await db.settings.put({ key: FEEDBACK_PROMPT_KEY, value: new Date().toISOString() });
 }

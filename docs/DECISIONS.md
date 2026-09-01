@@ -3415,3 +3415,52 @@ read once and then read past, and it takes the scorecard's place while doing it.
   history, exactly as they would have by scrolling past the old block.
 - Two toasts share one anchor. If a third ever wants it, they need stacking
   rather than another `z-index` guess.
+
+## ADR-074: The app asks for feedback once, and the answer rides in the backup
+
+**Status.** Accepted.
+
+**Context.**
+
+Headpin has no analytics and no backend, which is the whole pitch. The cost of
+that is total blindness: there is no funnel to read, no drop-off to measure,
+and no way to learn why someone stopped opening the app. At the scale this
+project is at, that cost is worth paying, because a conversation with one
+bowler beats a percentage from a thousand. But it only pays if the conversation
+actually happens.
+
+The Settings row that opens the feedback form catches people who already have a
+complaint big enough to go looking. It cannot catch the quiet majority, and the
+quiet majority is exactly the population whose reasons are unknown.
+
+**Decision.**
+
+- **Ask once, on Home, after three finished sessions.** Sessions, not games:
+  three nights out means the habit stuck and the rough edges have been met.
+  Before that there is nothing to say worth interrupting for.
+- **Asked once, ever.** Opening the form and waving it off are both answers,
+  and both retire the card. A prompt that returns is a prompt people learn to
+  dismiss without reading, which spends the one interruption budget the app has.
+- **The answer is a row in `settings`**, keyed `feedback_prompt_done`. That
+  table is exported in a backup and written back on restore (ADR-038), so
+  moving to a new phone does not re-ask somebody who already answered. A fresh
+  install with no restore is a genuinely new start, and asking there is right.
+- **It is not a `NextStep`.** Those name a gap in the user's own data and
+  retire when the gap is filled (`onboarding.ts`). There is no gap here, so it
+  sits beside the install and backup banners as its own object, borrowing their
+  shape.
+- **Diagnostics stay a clipboard button, never a beacon.** Settings offers
+  "Copy diagnostics", which puts the build, install mode, storage persistence
+  and per-table row counts on the clipboard for the user to paste in. It
+  carries no scores and no alley names, and it sends nothing by itself.
+
+**Consequences.**
+- The app still has no measure of retention, and this ADR does not give it one.
+  Anything better needs a network request, which is a different decision with a
+  different price, and it is not being made here.
+- One ask is one shot. If a second touchpoint is ever wanted, it needs its own
+  key at a much higher threshold, not a shorter fuse on this one.
+- A user who restores an old backup onto a fresh phone inherits the dismissal,
+  which is intended, and also inherits it if they restore a backup taken before
+  they ever saw the card, which simply means they get asked at three sessions
+  as normal.

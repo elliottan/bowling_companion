@@ -9,6 +9,7 @@ import { Fab, FabRow } from "../components/ui/Fab";
 import { SessionHistory } from "../components/SessionHistory";
 import { InstallPrompt } from "../components/InstallPrompt";
 import { NextSteps } from "../components/NextSteps";
+import { FeedbackPrompt } from "../components/FeedbackPrompt";
 import { EmptyState } from "../components/ui/EmptyState";
 import { Button } from "../components/ui/Button";
 import { TAP_TARGET_44 } from "../components/ui/Chip";
@@ -273,6 +274,8 @@ export function DashboardView({
         onOpenOilPatterns={onOpenOilPatterns}
         onOpenLaneNotes={onOpenLaneNotes}
       />
+
+      <FeedbackPrompt />
 
       {!coldStart && (
         <div className="mt-6">

@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#fff8ed" />
+    <link rel="icon" type="image/png" sizes="96x96" href="/icons/icon-96.png" />
+    <link rel="icon" type="image/png" sizes="48x48" href="/icons/icon-48.png" />
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+
+    <title>Privacy and terms, Headpin</title>
+    <meta
+      name="description"
+      content="What Headpin stores, what leaves your device, and the terms it is offered under. Headpin has no accounts and no analytics: your scores stay on your phone."
+    />
+    <link rel="canonical" href="https://headpin.app/legal" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Headpin" />
+    <meta property="og:url" content="https://headpin.app/legal" />
+    <meta property="og:title" content="Privacy and terms, Headpin" />
+    <meta
+      property="og:description"
+      content="What Headpin stores, what leaves your device, and the terms it is offered under."
+    />
+
+    <!--
+      This page carries its own theme resolution and styles, for the same reason
+      the landing page does: it is served with no bundle and no stylesheet
+      request, so it has to paint from the one file the reader already has.
+    -->
+    <script>
+      (function () {
+        var root = document.documentElement;
+        function apply(dark) {
+          root.dataset.theme = dark ? "dark" : "light";
+          var meta = document.querySelector('meta[name="theme-color"]');
+          if (meta) meta.setAttribute("content", dark ? "#0f172a" : "#fff8ed");
+        }
+        function stored() {
+          try {
+            return localStorage.getItem("theme");
+          } catch (e) {
+            return null;
+          }
+        }
+        function resolve(osDark) {
+          var pinned = stored();
+          apply(pinned ? pinned === "dark" : osDark);
+        }
+        var mq = window.matchMedia("(prefers-color-scheme: dark)");
+        resolve(mq.matches);
+        mq.addEventListener("change", function (e) { resolve(e.matches); });
+      })();
+    </script>
+
+    <style>
+      :root {
+        --bg: #fff8ed;
+        --card: #ffffff;
+        --ink: #020617;
+        --ink-2: #475569;
+        --ink-3: #64748b;
+        --edge: #e2e8f0;
+        --felt: #1b5148;
+      }
+      :root[data-theme="dark"] {
+        --bg: #0f172a;
+        --card: #1e293b;
+        --ink: #f1f5f9;
+        --ink-2: #cbd5e1;
+        --ink-3: #94a3b8;
+        --edge: #334155;
+        --felt: #5ed6c1;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", sans-serif;
+        line-height: 1.65;
+        -webkit-text-size-adjust: 100%;
+      }
+      main {
+        max-width: 40rem;
+        margin: 0 auto;
+        padding: 3rem 1.5rem 4rem;
+      }
+      a { color: var(--felt); }
+      h1 {
+        font-size: 2rem;
+        font-weight: 700;
+        letter-spacing: -0.03em;
+        margin: 1rem 0 0;
+      }
+      h2 {
+        font-size: 1.2rem;
+        font-weight: 700;
+        letter-spacing: -0.01em;
+        margin: 2.75rem 0 0;
+        scroll-margin-top: 1.5rem;
+      }
+      h3 {
+        font-size: 1rem;
+        font-weight: 700;
+        margin: 1.75rem 0 0;
+      }
+      p, ul { margin: 0.75rem 0 0; color: var(--ink-2); }
+      li { margin: 0.35rem 0 0; }
+      .lede { font-size: 1.1rem; color: var(--ink-2); margin-top: 0.5rem; }
+      .stamp { font-size: 0.85rem; color: var(--ink-3); margin-top: 0.35rem; }
+      .summary {
+        margin: 2rem 0 0;
+        padding: 1.1rem 1.25rem;
+        border: 1px solid var(--edge);
+        border-radius: 1rem;
+        background: var(--card);
+      }
+      .summary h2 { margin-top: 0; font-size: 1rem; }
+      .summary p { margin-top: 0.5rem; }
+      nav ul { padding-left: 1.1rem; }
+      footer {
+        margin-top: 3.5rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--edge);
+        font-size: 0.9rem;
+        color: var(--ink-3);
+      }
+      .back { display: inline-block; font-size: 0.9rem; text-decoration: none; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <a class="back" href="/">&larr; Headpin</a>
+      <h1>Privacy and terms</h1>
+      <p class="stamp">Last updated 2 September 2026</p>
+      <p class="lede">
+        Headpin keeps your bowling scores on your own device. There are no
+        accounts, no analytics, and no server holding your games.
+      </p>
+
+      <div class="summary">
+        <h2>The short version</h2>
+        <p>
+          Your scores, balls, lines and notes are saved in your browser's own
+          storage on your device. Headpin has no backend, so they are never
+          uploaded and nobody, including me, can read them.
+        </p>
+        <p>
+          The other side of that: nobody can recover them for you either. Export
+          a backup from Settings, and keep it somewhere safe.
+        </p>
+      </div>
+
+      <nav>
+        <ul>
+          <li><a href="#privacy">Privacy</a></li>
+          <li><a href="#your-data">Your data and backups</a></li>
+          <li><a href="#trademarks">Ball names, images and trademarks</a></li>
+          <li><a href="#terms">Terms of use</a></li>
+          <li><a href="#contact">Contact</a></li>
+        </ul>
+      </nav>
+
+      <h2 id="privacy">Privacy</h2>
+
+      <h3>What stays on your device</h3>
+      <p>
+        Everything you enter. Sessions, games, frames, shots, your arsenal,
+        spare lines, oil patterns, lane notes and your settings are written to
+        IndexedDB in your browser. They stay on that device until you delete
+        them or the browser clears its storage.
+      </p>
+      <p>
+        Headpin does not ask for an account, an email address or a name. It does
+        not use cookies to track you, and it runs no analytics or advertising
+        scripts. There is no consent banner because there is nothing to consent
+        to.
+      </p>
+
+      <h3>What does leave your device</h3>
+      <p>
+        Being honest about the exceptions matters more than the claim, so here
+        they all are:
+      </p>
+      <ul>
+        <li>
+          <strong>Hosting.</strong> The site is served by Vercel. Like any web
+          host, its servers record ordinary request logs, which include IP
+          addresses. Once the app is installed it runs from your device's cache,
+          so it usually only contacts the host to check for an update.
+        </li>
+        <li>
+          <strong>Feedback.</strong> The feedback form is a Google Form. It is
+          only reached if you choose to open it, and it only receives what you
+          type into it. The "Copy diagnostics" button in Settings puts app
+          version and row counts on your clipboard so you can paste them in. It
+          sends nothing by itself, and it never includes your scores or the
+          names of the places you bowl.
+        </li>
+        <li>
+          <strong>Ball images.</strong> Pictures in the ball catalog may be
+          loaded from the address they are published at, which tells that host
+          your browser requested an image.
+        </li>
+        <li>
+          <strong>Outbound links.</strong> Links to manufacturer pages and to
+          "Buy me a coffee" take you to sites with their own policies.
+        </li>
+      </ul>
+      <p>
+        Headpin is not directed at children under 13. It collects nothing from
+        anyone, of any age.
+      </p>
+
+      <h2 id="your-data">Your data and backups</h2>
+      <p>
+        Browser storage is not permanent. A browser can clear it when the device
+        runs low on space, and it is erased if you clear site data, uninstall
+        the app, or use private browsing. Headpin asks the browser to keep its
+        storage persistent, but browsers are free to say no.
+      </p>
+      <p>
+        <strong>
+          There is no copy of your scores anywhere else, and no way for anyone
+          to restore them.
+        </strong>
+        Export a backup regularly from Settings, and keep the file somewhere you
+        would keep a photo you care about.
+      </p>
+
+      <h2 id="trademarks">Ball names, images and trademarks</h2>
+      <p>
+        Headpin's ball catalog lists equipment by its real name so you can find
+        the ball you actually throw. Ball names, brand names, logos and product
+        images are the property of their respective owners, and are used here to
+        identify those products.
+      </p>
+      <p>
+        Headpin is an independent project. It is not affiliated with, endorsed
+        by, sponsored by or connected to any ball manufacturer, any bowling
+        centre, the United States Bowling Congress, or any other bowling
+        organisation. Oil pattern names are likewise used only to identify the
+        patterns.
+      </p>
+      <p>
+        If you own a mark or an image here and would like it changed or removed,
+        get in touch and I will do it.
+      </p>
+
+      <h2 id="terms">Terms of use</h2>
+      <p>
+        Headpin is provided free of charge and as it is, with no warranty of any
+        kind. It is a score keeper, not a system of record. Scores, averages and
+        statistics it shows are for your own use, and are not certified or
+        sanctioned by any league or governing body.
+      </p>
+      <p>
+        To the fullest extent the law allows, I am not liable for any loss or
+        damage arising from using Headpin, including lost or corrupted data.
+        Your remedy, if the app does not suit you, is to stop using it.
+      </p>
+      <p>
+        Do not use Headpin to break the law, and do not try to interfere with
+        the site or with other people's use of it. These terms may change; the
+        date at the top says when they last did.
+      </p>
+
+      <h2 id="contact">Contact</h2>
+      <p>
+        Questions about any of the above, a trademark request, or a bug, all go
+        to the same place:
+        <a
+          href="https://docs.google.com/forms/d/e/1FAIpQLSdzIGRYAIO8ul8RRAEOi4E2ec4PsnXSevPgvmbWf_2IK_Hv3Q/viewform"
+          target="_blank"
+          rel="noopener noreferrer"
+          >the feedback form</a
+        >. Leave an email address in it if you would like a reply.
+      </p>
+
+      <footer>Made by bowlers, for bowlers.</footer>
+    </main>
+  </body>
+</html>

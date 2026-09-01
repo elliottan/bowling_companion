@@ -3,7 +3,12 @@
   "redirects": [
     {
       "source": "/(.*)",
-      "has": [{ "type": "host", "value": "www.headpin.app" }],
+      "has": [
+        {
+          "type": "host",
+          "value": "www.headpin.app"
+        }
+      ],
       "destination": "https://headpin.app/$1",
       "permanent": false
     }
@@ -12,6 +17,10 @@
     {
       "source": "/score",
       "destination": "/score/index.html"
+    },
+    {
+      "source": "/legal",
+      "destination": "/legal/index.html"
     }
   ]
 }
