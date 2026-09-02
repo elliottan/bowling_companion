@@ -8,6 +8,7 @@ import type { Ball } from "../types/bowling";
 import type { CatalogBall, Manufacturer } from "../types/catalog";
 import { DEFAULT_WEIGHT } from "../types/catalog";
 import { CatalogBallImage } from "./CatalogBallImage";
+import { ConfirmDialog } from "./ConfirmDialog";
 import { ErrorBanner } from "./ErrorBanner";
 import { Button } from "./ui/Button";
 import { IconButton } from "./ui/IconButton";
@@ -37,6 +38,7 @@ export function BallFormDialog({ ball, onClose, onSaved, onDelete }: BallFormDia
   const [name, setName] = useState(ball?.name ?? "");
   const [weight, setWeight] = useState<number>(ball?.weight ?? DEFAULT_WEIGHT);
   const [isSpare, setIsSpare] = useState(ball?.is_spare_ball ?? false);
+  const [confirmUnlink, setConfirmUnlink] = useState(false);
   const [layout, setLayout] = useState(ball?.layout ?? "");
   const [notes, setNotes] = useState(ball?.notes ?? "");
   const [catalogRef, setCatalogRef] = useState<CatalogBall | null>(null);
@@ -210,7 +212,7 @@ export function BallFormDialog({ ball, onClose, onSaved, onDelete }: BallFormDia
             {catalogRef && (
               <button
                 type="button"
-                onClick={() => setCatalogRef(null)}
+                onClick={() => setConfirmUnlink(true)}
                 className="-mt-2 text-xs font-semibold text-ink-secondary underline"
               >
                 Unlink from catalog
@@ -300,6 +302,18 @@ export function BallFormDialog({ ball, onClose, onSaved, onDelete }: BallFormDia
       </div>
 
       {pickerOpen && <CatalogPickerSheet onPick={linkCatalog} onClose={() => setPickerOpen(false)} />}
+
+      <ConfirmDialog
+        open={confirmUnlink}
+        title="Unlink from the catalog?"
+        message="The photo and specs come off this ball. Shots keep their scores."
+        confirmLabel="Unlink"
+        onConfirm={() => {
+          setConfirmUnlink(false);
+          setCatalogRef(null);
+        }}
+        onCancel={() => setConfirmUnlink(false)}
+      />
     </>
   );
 }

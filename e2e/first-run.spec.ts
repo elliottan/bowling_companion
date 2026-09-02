@@ -69,6 +69,21 @@ test("a file that is not a backup is refused without leaving the welcome screen"
   await expect(page.getByText(/^Backed up /)).toHaveCount(0);
 });
 
+test("a file that is not JSON at all is refused in the app's own words", async ({ page }) => {
+  await freshInstall(page);
+
+  // A photo renamed to .json used to surface a JSON.parse message about a
+  // token at a position, which tells a bowler nothing.
+  await page.locator('input[type="file"]').setInputFiles({
+    name: "photo.json",
+    mimeType: "application/json",
+    buffer: Buffer.from("not json at all")
+  });
+
+  await expect(page.getByText("That file is not a Headpin backup.")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Restore from a backup" })).toBeVisible();
+});
+
 test("a restore brings the history back and never asks the hand twice", async ({ page }) => {
   // Build a real history, export it, then wipe and restore through first run.
   await freshInstall(page);

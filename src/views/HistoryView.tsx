@@ -27,8 +27,7 @@ export function HistoryView({
   // The list reads scores, never shots, so it takes the loader that skips the
   // frames of games that already have one (ADR-066).
   const filters = useSessionFilters({ frames: "unscored" });
-  const { sessionList, isLoading } = filters;
-  const [error] = useState("");
+  const { sessionList, isLoading, error } = filters;
   const [filtersOpen, setFiltersOpen] = useState(false);
 
   const [visibleCount, setVisibleCount] = useRememberedState("history:visible", PAGE);
@@ -83,7 +82,7 @@ export function HistoryView({
         </div>
       </div>
 
-      {error && <ErrorBanner className="mb-3">{error}</ErrorBanner>}
+      {error && <ErrorBanner className="mb-3">Your sessions could not be read. Reload the app, then try again.</ErrorBanner>}
 
         <SessionFilterChips filters={filters} />
       </CollapsingHeader>

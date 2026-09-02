@@ -39,6 +39,15 @@ test("adds a spare line for a leave, stores its boards, and deletes it", async (
 
   await page.getByRole("button", { name: "Edit spare line for pins 3, 10" }).click();
   await page.getByRole("button", { name: "Delete spare line for pins 3, 10" }).click();
+
+  // A line is tuned over a season and there is no undo behind it, so the delete
+  // is confirmed before it runs.
+  // The topmost dialog: the pushed screen behind it is also one, and it
+  // contains this text by containing the confirm.
+  const confirm = page.getByRole("dialog").filter({ hasText: "Delete this spare line?" }).last();
+  await expect(confirm).toBeVisible();
+  await confirm.getByRole("button", { name: "Delete", exact: true }).click();
+
   await expect(page.getByRole("button", { name: "Edit spare line for pins 3, 10" })).toHaveCount(0);
   await expect(seeded).toHaveCount(9);
 });

@@ -144,10 +144,21 @@ describe("validateBackup", () => {
     expect(result.errors).toContain("Backup table settings has an invalid record at index 0.");
   });
 
-  it("rejects a version it cannot read", () => {
+  it("sends a newer backup to the update, not to another file", () => {
     const result = validateBackup({ ...validBackup, version: 4 });
 
     expect(result.isValid).toBe(false);
-    expect(result.errors).toContain("Backup version must be 1, 2, or 3.");
+    expect(result.errors).toContain(
+      "This backup was made by a newer Headpin. Update the app, then try again."
+    );
+  });
+
+  it("keeps the plain message for a version that is not a newer number", () => {
+    for (const version of [0, "3", null, undefined]) {
+      const result = validateBackup({ ...validBackup, version });
+
+      expect(result.isValid).toBe(false);
+      expect(result.errors).toContain("Backup version must be 1, 2, or 3.");
+    }
   });
 });

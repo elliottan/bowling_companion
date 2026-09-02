@@ -59,8 +59,41 @@ describe("backupRepository", () => {
     expect(history[0].games[0].frames[0].is_strike).toBe(true);
   });
 
-  it("rejects invalid backup JSON", async () => {
-    await expect(importBackup("{bad json")).rejects.toThrow();
+  it("rejects invalid backup JSON in the app's own words", async () => {
+    await expect(importBackup("{bad json")).rejects.toThrow(
+      "That file is not a Headpin backup."
+    );
+  });
+
+  it("re-derives the strike and spare marks from the shots (ADR-078)", async () => {
+    // A file that says the opposite of what its own shots say. The shots win.
+    await importBackup({
+      app: "bowling-companion" as const,
+      version: 3 as const,
+      exported_at: "2026-05-27T00:00:00.000Z",
+      tables: {
+        sessions: [{ id: 1, date: "2026-05-27", alley_name: "Liar Lanes" }],
+        games: [{ id: 1, session_id: 1, game_number: 1 }],
+        frames: [
+          {
+            id: 1, game_id: 1, frame_number: 1,
+            shots: [{ pins_standing: [] }],
+            is_strike: false, is_spare: true
+          },
+          {
+            id: 2, game_id: 1, frame_number: 2,
+            shots: [{ pins_standing: [7] }, { pins_standing: [] }],
+            is_strike: true, is_spare: false
+          }
+        ]
+      }
+    });
+
+    const frames = (await getSessionHistory())[0].games[0].frames;
+    expect(frames[0].is_strike).toBe(true);
+    expect(frames[0].is_spare).toBe(false);
+    expect(frames[1].is_strike).toBe(false);
+    expect(frames[1].is_spare).toBe(true);
   });
 
   it("replaces every local row with the file's contents", async () => {

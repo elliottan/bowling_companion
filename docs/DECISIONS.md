@@ -3606,3 +3606,36 @@ done.
   out of the first run only for devices that already have history, where it was
   offering to do a thing that had already happened.
 
+## ADR-078: The file never decides whether a frame was a strike
+
+**Status.** Accepted. Amends the import rules of ADR-038; nothing else in it
+changes.
+
+**Context.**
+
+`is_strike` and `is_spare` on a frame are a cache. The shots are the record, and
+`lib/scoring.ts` derives both marks from the first two shots of a frame. That is
+what `docs/DATA_MODEL.md` has always said.
+
+The import did not enforce it. `backupValidation` type-checked the two booleans
+and passed them through, so a backup could carry a frame whose shots knock down
+ten pins and whose `is_strike` says false. The scorer reads the shots and the
+scorecard reads the marks, so a frame like that scores one way and reads another
+on the same screen. A hand-edited file, a half-written export, or a bug in some
+future writer would all land the same way.
+
+**Decision.**
+
+`normalizeBackup` re-derives `is_strike` and `is_spare` from `shots` for every
+frame in the file, on every version, before anything is written. Whatever the
+file says about the marks is dropped.
+
+**Consequences.**
+- A backup can no longer install a frame that disagrees with itself.
+- Nothing is rejected over it. The marks are derivable, so there is nothing for
+  the bowler to fix and no reason to make them read an error.
+- v1 files, whose flat shot fields are widened into `shots` first, are re-derived
+  after that transform, so the two paths agree.
+- The claim in `docs/DATA_MODEL.md` is now true of the code. It named backup
+  validation as the place that did this; the work belongs to normalization,
+  which is the step that already rewrites frames.

@@ -26,6 +26,14 @@ export class AppErrorBoundary extends Component<Props, State> {
     window.location.reload();
   };
 
+  // A crash the reload cannot clear leaves the bowler with a file and no way to
+  // use it, so the third button is the road back in: set the hash first, then
+  // reload, because this screen has replaced the app that reads the hash.
+  handleRestore = () => {
+    window.location.hash = "#/settings/backup";
+    window.location.reload();
+  };
+
   handleExport = () => {
     if (this.state.exportState === "exporting") return;
     this.setState({ exportState: "exporting" });
@@ -50,12 +58,15 @@ export class AppErrorBoundary extends Component<Props, State> {
         <p className="max-w-sm truncate rounded-lg bg-surface-muted px-3 py-2 text-xs text-ink-secondary">
           {error.message}
         </p>
-        <div className="flex gap-3">
+        <div className="flex flex-wrap items-center justify-center gap-3">
           <Button variant="primary" onClick={this.handleReload}>
             Reload
           </Button>
           <Button variant="secondary" onClick={this.handleExport}>
             Export backup
+          </Button>
+          <Button variant="secondary" onClick={this.handleRestore}>
+            Restore a backup
           </Button>
         </div>
         {exportState === "success" && (

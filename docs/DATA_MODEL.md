@@ -23,7 +23,8 @@ Rationale:
   arrays carry that information directly.
 
 Frame-level `is_strike` / `is_spare` are **derived**, not authoritative; backup
-validation re-derives them on import so a hand-edited JSON can't lie.
+normalization re-derives them on import so a hand-edited JSON cannot lie
+(ADR-078).
 
 ## When a Dexie version bump is needed
 

@@ -4,6 +4,7 @@ import { HandednessPicker } from "./HandednessPicker";
 import { prepareImport, replaceAllData, type PreparedImport } from "../services/backupRepository";
 import { describeAge } from "../lib/backupNudge";
 import { isStandalone } from "../lib/installPrompt";
+import { ReplaceConfirmDialog } from "./ReplaceConfirmDialog";
 import type { Handedness } from "../types/bowling";
 
 /** The stamp the file carries. It is the one fact that says which backup this
@@ -58,6 +59,8 @@ export function FirstRun({ onSelectHandedness, hasSavedData = false }: FirstRunP
   const [pending, setPending] = useState<PreparedImport | null>(null);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [gateOpen, setGateOpen] = useState(false);
+  const [confirmText, setConfirmText] = useState("");
   const fileRef = useRef<HTMLInputElement | null>(null);
 
   async function handleFile(file?: File) {
@@ -81,7 +84,9 @@ export function FirstRun({ onSelectHandedness, hasSavedData = false }: FirstRunP
     setBusy(true);
     setError("");
     try {
-      await replaceAllData(pending.backup);
+      // The device is empty on a true first run, so there is nothing worth
+      // saving off first (backupRepository.replaceAllData).
+      await replaceAllData(pending.backup, { safetyCopy: pending.current.sessions > 0 });
       // A full reload rather than a state update. The database was just
       // replaced wholesale, and this screen sits above state that was read
       // once at boot (handedness, drift model); re-deriving it by hand would
@@ -209,8 +214,17 @@ export function FirstRun({ onSelectHandedness, hasSavedData = false }: FirstRunP
                 >
                   Pick another
                 </Button>
-                <Button variant="primary" onClick={handleRestore} disabled={busy}>
-                  {busy ? "Restoring..." : "Restore"}
+                <Button
+                  variant="primary"
+                  onClick={() => {
+                    // Same gate the Settings restore uses: a device that already
+                    // holds sessions never loses them to one tap (ADR-038).
+                    if (pending.current.sessions > 0) setGateOpen(true);
+                    else void handleRestore();
+                  }}
+                  disabled={busy}
+                >
+                  {busy ? "Restoring…" : "Restore"}
                 </Button>
               </div>
             </div>
@@ -242,6 +256,18 @@ export function FirstRun({ onSelectHandedness, hasSavedData = false }: FirstRunP
           onChange={(e) => handleFile(e.target.files?.[0])}
         />
       </div>
+
+      <ReplaceConfirmDialog
+        pending={gateOpen ? pending : null}
+        confirmText={confirmText}
+        onConfirmTextChange={setConfirmText}
+        isBusy={busy}
+        onConfirm={() => void handleRestore()}
+        onCancel={() => {
+          setGateOpen(false);
+          setConfirmText("");
+        }}
+      />
     </div>
   );
 }
