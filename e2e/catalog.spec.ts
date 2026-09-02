@@ -64,12 +64,17 @@ test("renders the catalog a page at a time, and grows as you scroll", async ({ p
   await page.getByRole("button", { name: "Catalog" }).click();
   await expect(page.getByPlaceholder("Search name, brand, coverstock…")).toBeVisible();
 
-  const rows = page.locator("ul > li");
+  // The results list, not the filter chips above it.
+  const rows = page.getByRole("list").last().locator("> li");
   // Every ball used to be in the DOM at once, photo and all.
   await expect.poll(async () => rows.count()).toBeGreaterThan(0);
   const first = await rows.count();
   expect(first).toBeLessThanOrEqual(40);
 
-  await page.mouse.wheel(0, 6000);
+  // The app shell is `fixed inset-0` with its own scroller, so the document
+  // does not scroll and mobile WebKit has no wheel either. Bringing the last
+  // rendered row into view moves whichever container actually scrolls, which
+  // is what the sentinel below it is watching.
+  await rows.last().scrollIntoViewIfNeeded();
   await expect.poll(async () => rows.count()).toBeGreaterThan(first);
 });

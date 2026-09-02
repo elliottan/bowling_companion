@@ -1,7 +1,14 @@
 import { expect, test } from "@playwright/test";
-import { clearDatabase, dismissHandednessModal, recordShot, startSession } from "./helpers";
+import {
+  clearDatabase,
+  dismissHandednessModal,
+  preferDownloadOverShare,
+  recordShot,
+  startSession
+} from "./helpers";
 
 test.beforeEach(async ({ page }) => {
+  await preferDownloadOverShare(page);
   await clearDatabase(page);
 });
 

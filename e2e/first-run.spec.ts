@@ -1,8 +1,9 @@
 import { expect, test } from "@playwright/test";
-import { recordShot, startSession } from "./helpers";
+import { preferDownloadOverShare, recordShot, startSession } from "./helpers";
 
 /** Wipe the database and reload, landing on a genuine first run. */
 async function freshInstall(page: Parameters<typeof startSession>[0]) {
+  await preferDownloadOverShare(page);
   await page.goto("/score");
   await page.evaluate(async () => {
     await new Promise<void>((resolve) => {
