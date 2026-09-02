@@ -180,7 +180,7 @@ export function GameTrendView({ onBack }: GameTrendViewProps) {
 
             <p className="mt-3 px-0.5 text-xs leading-relaxed text-ink-secondary">
               Tap a game to filter every stat to it. Games with fewer than {THIN} played are
-              greyed out.
+              grayed out.
             </p>
           </>
         )}

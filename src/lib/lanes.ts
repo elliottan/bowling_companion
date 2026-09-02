@@ -128,7 +128,7 @@ export function lineHasValue(l: LineSpec | undefined): boolean {
 
 /**
  * The intended line to seed from this ball's own history, used when nothing
- * else filled the box (ADR-035). Only fresh-rack shots are eligible sources , 
+ * else filled the box (ADR-035). Only fresh-rack shots are eligible sources,
  * a spare attempt aims at a leave, so its line never seeds another shot.
  *
  * Strict two-tier precedence, each scanned all the way back (current frame →

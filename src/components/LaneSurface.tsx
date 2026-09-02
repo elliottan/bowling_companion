@@ -134,7 +134,7 @@ export function LaneSurface({ line, hand, leave, showMarkers = true, animate, an
 
       {/* Pin deck (ADR-020): a decorative, fixed-scale rack. Columns stay at the
           real (mirrored) board so the ball path lands in the right pin's column;
-          rows are spread on their OWN vertical scale (RACK_ROW_DY), NOT feetToY , 
+          rows are spread on their OWN vertical scale (RACK_ROW_DY), NOT feetToY,
           the real deck is only 2.6 ft and feetToY is now linear, so it would smear.
           The rack is anchored at the head-pin row. Standing leave pins read bright;
           the rest ghost out. */}

@@ -395,7 +395,7 @@ function CatalogPickerSheet({ onPick, onClose }: CatalogPickerSheetProps) {
       ) : shown.length === 0 ? (
         <p className="text-sm text-ink-secondary">
           {balls.length === 0
-            ? "The catalog has not loaded yet. Connect once and it is yours offline."
+            ? "The catalog has not loaded yet. It needs one connection, then it works offline."
             : `Nothing in the catalog matches "${query}".`}
         </p>
       ) : (

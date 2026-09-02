@@ -28,6 +28,9 @@ import type {
 } from "../types/bowling";
 import { ConfirmDialog } from "./ConfirmDialog";
 import { PinGrid } from "./PinGrid";
+
+const NO_BALLS: Ball[] = [];
+const NO_SPARE_LINES: SpareLine[] = [];
 import { Scorecard } from "./Scorecard";
 import { ShotDetailBar } from "./ShotDetailBar";
 import { SpareLineFormDialog } from "./SpareLineFormDialog";
@@ -95,15 +98,21 @@ export function ActiveGameScorer({
 }: ActiveGameScorerProps) {
   const [gameState, setGameState] = useState(() => hydrateFrameController(initialFrames));
   const [errorMessage, setErrorMessage] = useState("");
-  const [balls, setBalls] = useState<Ball[]>([]);
-  // Whole spare_lines table, held in state like `balls` so a leave lookup is
+  // Live, not read once. The Arsenal is an overlay, so this screen stays
+  // mounted while a ball is added and would otherwise never hear about it: a
+  // bowler's first ball, added from "Add a ball" on this very screen, was
+  // invisible until the app was reopened.
+  const liveBalls = useLiveQuery(() => getBalls(), []);
+  // Whole spare_lines table, held like `balls` so a leave lookup is
   // synchronous. An async lookup used to resolve *after* a ball change and
   // clobber the line it had just seeded.
-  const [spareLines, setSpareLines] = useState<SpareLine[]>([]);
+  const liveSpareLines = useLiveQuery(() => getSpareLinesAll(), []);
+  const balls = liveBalls ?? NO_BALLS;
+  const spareLines = liveSpareLines ?? NO_SPARE_LINES;
   // Seeding reads both lists, so it has to wait for them. Resuming a game
   // mid-frame used to seed the spare attempt before `balls` arrived, which
   // meant the spare ball was never the one picked.
-  const [ballsReady, setBallsReady] = useState(false);
+  const ballsReady = liveBalls !== undefined && liveSpareLines !== undefined;
   // Live (next-unbowled) shot draft. Only used when no recorded shot is selected.
   const [selectedBallId, setSelectedBallId] = useState<number | undefined>(undefined);
   const [intendedLine, setIntendedLine] = useState<LineSpec | undefined>(undefined);
@@ -185,16 +194,18 @@ export function ActiveGameScorer({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gameKey]);
 
+  // The first ball in the bag goes straight onto the live shot. It was added
+  // from this screen, by a bowler who came to pick it, and asking them to pick
+  // it a second time read as the add having failed.
+  const previousBallCount = useRef<number | null>(null);
   useEffect(() => {
-    Promise.all([
-      getBalls().then(setBalls),
-      getSpareLinesAll().then(setSpareLines)
-    ])
-      .catch(() => {})
-      // Ready either way: a failed read must not leave the shot unseeded
-      // forever, it just seeds from what the game itself knows.
-      .finally(() => setBallsReady(true));
-  }, []);
+    if (!ballsReady) return;
+    const before = previousBallCount.current;
+    previousBallCount.current = balls.length;
+    if (before === 0 && balls.length === 1 && selectedShot === null && selectedBallId === undefined) {
+      setSelectedBallId(balls[0].id);
+    }
+  }, [ballsReady, balls, selectedShot, selectedBallId]);
 
 
   // Push the live draft into the controller's currentShotMeta.
@@ -662,7 +673,7 @@ export function ActiveGameScorer({
 
           {/* Strike/Spare + Next stay visible and functional in both live and
               editing states (every frame is editable). While editing a recorded
-              shot, Strike/Spare applies that mark and Next leaves it untouched , 
+              shot, Strike/Spare applies that mark and Next leaves it untouched,
               both then jump the cursor back to the latest incomplete frame. */}
           {!gameState.isComplete ? (
             <div className="flex gap-2">
@@ -771,7 +782,6 @@ export function ActiveGameScorer({
           onSaved={() => {
             setShowSpareLineDialog(false);
             setPendingSpareLeave(null);
-            getSpareLinesAll().then(setSpareLines).catch(() => {});
           }}
           onCancel={() => setShowSpareLineDialog(false)}
         />

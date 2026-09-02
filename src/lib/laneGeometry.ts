@@ -394,7 +394,7 @@ export function projectBreakpoint(
   const CASCADE_THRESH = 1.5; // plane units (~0.6 board): inside the band, never cascade
   const r1 = Math.sqrt(s1.cost);
   if (!giveWay || r1 <= CASCADE_THRESH) return base;
-  // Blend the rotation in over [T, 5T] so the cascade ENGAGES continuously , 
+  // Blend the rotation in over [T, 5T] so the cascade ENGAGES continuously,
   // a hard accept/reject gate pops the marker ~a board at the flip point.
   const lam = Math.min(1, (r1 - CASCADE_THRESH) / (4 * CASCADE_THRESH));
 

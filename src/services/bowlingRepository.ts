@@ -1,5 +1,6 @@
 import { db } from "../db/bowlingDb";
 import { calculateGameScore } from "../lib/scoring";
+import { localDateKey } from "../lib/dates";
 import { nextGameStartLane } from "../lib/lanes";
 import {
   migrateLegacyLaydownOffset,
@@ -323,7 +324,7 @@ export interface ResumableGame {
  * recent session first, used to offer "jump back in" on launch.
  */
 export async function getResumableToday(): Promise<ResumableGame | null> {
-  const today = new Date().toISOString().slice(0, 10);
+  const today = localDateKey();
   const sessions = (await db.sessions.where("date").equals(today).toArray()).sort(
     (a, b) => (b.id ?? 0) - (a.id ?? 0)
   );

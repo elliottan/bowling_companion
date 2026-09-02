@@ -166,6 +166,13 @@ describe("checking for an update", () => {
 });
 
 describe("isStaleShellError", () => {
+  it("treats a lazy chunk that vanished under a deploy as a stale shell", () => {
+    expect(isStaleShellError(new TypeError("Importing a module script failed."))).toBe(true);
+    expect(
+      isStaleShellError(new TypeError("Failed to fetch dynamically imported module: /assets/x.js"))
+    ).toBe(true);
+  });
+
   it("names the failures a shell older than its database throws", () => {
     for (const name of ["VersionError", "DatabaseClosedError", "UnknownError"]) {
       const err = new Error("nope");

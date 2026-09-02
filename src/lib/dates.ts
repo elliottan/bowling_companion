@@ -43,3 +43,13 @@ export function formatTimestamp(iso: string): string {
       })
     : iso;
 }
+
+/** Today as the stored `YYYY-MM-DD` key, in the device's own day. `toISOString`
+ *  gives the UTC day, which is already tomorrow for a 7 pm league anywhere
+ *  west of Greenwich, so a Tuesday session was being filed under Wednesday. */
+export function localDateKey(date: Date = new Date()): string {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}

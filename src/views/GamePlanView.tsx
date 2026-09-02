@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { ChevronRight, Compass } from "lucide-react";
+import { formatSessionDate } from "../lib/dates";
 import { PushScreen } from "../components/PushScreen";
 import { EmptyState } from "../components/ui/EmptyState";
 import { LoadingCard } from "../components/ui/LoadingCard";
@@ -234,7 +235,7 @@ function LastTimeCard({
     <>
       <span className="flex items-baseline justify-between gap-2">
         <span className="text-sm font-semibold text-ink">{last.alley}</span>
-        <span className="text-xs tabular-nums text-ink-tertiary">{last.date}</span>
+        <span className="text-xs tabular-nums text-ink-tertiary">{formatSessionDate(last.date)}</span>
       </span>
       <span className="mt-1 block text-sm text-ink-strong">{describeLastTime(last)}</span>
     </>
@@ -247,7 +248,7 @@ function LastTimeCard({
     <button
       type="button"
       onClick={onOpen}
-      aria-label={`Open ${last.alley}, ${last.date}`}
+      aria-label={`Open ${last.alley}, ${formatSessionDate(last.date)}`}
       className="block w-full rounded-lg border border-edge bg-surface p-3 text-left shadow-sm hover:border-accent-fill"
     >
       {body}

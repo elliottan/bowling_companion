@@ -62,7 +62,7 @@ export function Scorecard({
     // The 10th frame shows the game's running cumulative total even before it is
     // mathematically resolvable, so an in-progress game always has a score in the
     // last cell (no provisional "+"). Frames 1–9 only show a total once the frame
-    // is settled (both balls thrown, or a strike) and its rolling total resolves , 
+    // is settled (both balls thrown, or a strike) and its rolling total resolves,
     // no provisional partial-frame score mid-frame.
     const frameSettled =
       !!frame && (frame.shots.length >= 2 || (frame.shots.length === 1 && isStrike(frame)));

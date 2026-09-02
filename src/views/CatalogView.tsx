@@ -752,7 +752,7 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall }: CatalogVie
           <EmptyState
             icon={BookOpen}
             title="The catalog has not loaded"
-            description="It downloads once, then it is yours offline: the core, coverstock, RG and diff of every ball in it."
+            description="It downloads once and then works offline. Every ball brings its core, coverstock, RG and diff."
           >
             <Button variant="primary" onClick={handleRefresh}>
               Refresh catalog

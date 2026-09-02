@@ -155,7 +155,7 @@ wherever a reload costs the user nothing (`src/lib/swUpdate.ts`).
   left in the background for weeks would otherwise never see. A check, never an
   apply.
 - A tab left open across a deploy can open a database newer than its own shell.
-  Dexie throws `VersionError`, `AppErrorBoundary` recognises it, and
+  Dexie throws `VersionError`, `AppErrorBoundary` recognizes it, and
   `StaleShellScreen` offers the reload that actually activates the new worker. A
   plain `location.reload()` never does, because `updateSW(true)` only sends
   SKIP_WAITING and rides workbox's `controlling` event.

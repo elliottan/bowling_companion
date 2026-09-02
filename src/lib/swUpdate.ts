@@ -107,8 +107,14 @@ export function initForegroundUpdateCheck(doc: Document = document): () => void 
  * database. None of them are fixed by reloading the same stale shell.
  */
 export function isStaleShellError(err: unknown): boolean {
-  const name = err instanceof Error ? err.name : "";
-  return name === "VersionError" || name === "DatabaseClosedError" || name === "UnknownError";
+  if (!(err instanceof Error)) return false;
+  const name = err.name;
+  if (name === "VersionError" || name === "DatabaseClosedError" || name === "UnknownError") return true;
+  // A lazy chunk that no longer exists: a deploy landed under an open tab and
+  // the hashed file its shell asks for is gone. Safari says "Importing a module
+  // script failed", Chromium "Failed to fetch dynamically imported module".
+  // Either way the shell is stale, and the fix is the same reload.
+  return /module script|dynamically imported module|Loading chunk/i.test(err.message);
 }
 
 export function subscribeNeedsRefresh(fn: Listener): () => void {

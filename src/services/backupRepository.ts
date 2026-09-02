@@ -217,7 +217,7 @@ export async function replaceAllData(
         db.settings.clear()
       ]);
 
-      // The tables are empty, so the file's own ids can be replayed verbatim , 
+      // The tables are empty, so the file's own ids can be replayed verbatim,
       // no content matching, no id remapping, no collisions to resolve.
       await db.sessions.bulkAdd(backup.tables.sessions);
       await db.games.bulkAdd(backup.tables.games);
