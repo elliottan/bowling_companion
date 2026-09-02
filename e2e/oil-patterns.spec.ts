@@ -39,7 +39,11 @@ test("adding a pattern from the session dialog does not submit the session form"
   expect(await countSessions(page)).toBe(0);
 
   // Returning keeps the half-filled form and offers the new pattern.
-  await page.getByRole("button", { name: "Back to session" }).click();
+  // The manager is a PushScreen now, so it leaves by the nav bar's back.
+  await page
+    .getByRole("dialog", { name: "Oil patterns" })
+    .getByRole("button", { name: "Back", exact: true })
+    .click();
   await expect(page.getByPlaceholder("Ball choice, surface, carry…")).toHaveValue("keep me");
   await page.locator("#oil-pattern").selectOption({ label: "Kegel Navigation" });
 

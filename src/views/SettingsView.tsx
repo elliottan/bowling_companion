@@ -1,4 +1,4 @@
-import { Archive, ArrowUpRight, BookOpen, ScrollText, Palette, Coffee, MessageSquare, SlidersHorizontal, type LucideIcon } from "lucide-react";
+import { Archive, ArrowUpRight, BookOpen, Coffee, Download, MessageSquare, Palette, ScrollText, SlidersHorizontal, type LucideIcon } from "lucide-react";
 import {
   BowlingBallIcon,
   LanePairIcon,
@@ -6,7 +6,6 @@ import {
   OilPatternIcon,
   SpareLineIcon
 } from "../components/icons";
-import { useEffect, useState } from "react";
 import { LaneNotesView } from "./LaneNotesView";
 import { OilPatternsView } from "./OilPatternsView";
 import { AppearanceView } from "./AppearanceView";
@@ -22,6 +21,10 @@ import { ListGroup, ListRow } from "../components/ui/ListGroup";
 // rest of the navigation state.
 import type { SettingsSection } from "../lib/appNavigation";
 import { describeAge } from "../lib/backupNudge";
+import { useLiveQuery } from "dexie-react-hooks";
+import { canPromptInstall, isIOSSafari, isStandalone } from "../lib/installPrompt";
+import { InstallPrompt } from "../components/InstallPrompt";
+import { useState } from "react";
 export type { SettingsSection };
 
 interface SettingsViewProps {
@@ -91,10 +94,15 @@ function SettingsMenu({
   onOpenLineVisualizer,
   onSectionChange
 }: Pick<SettingsViewProps, "onOpenArsenal" | "onOpenSpareLines" | "onOpenBackup" | "onOpenCatalog" | "onOpenLineVisualizer" | "onSectionChange">) {
-  const [lastBackupAt, setLastBackupAt] = useState<string | null | undefined>(undefined);
-  useEffect(() => {
-    void getSetting("last_backup_at").then((v) => setLastBackupAt(v ?? null));
-  }, []);
+  const [installOpen, setInstallOpen] = useState(false);
+  // The same test the Dashboard nudge uses: an installed app has nothing to
+  // offer here, and a browser that cannot install would offer a dead end.
+  const installable = (isIOSSafari() && !isStandalone()) || canPromptInstall();
+
+  // Live rather than read once at mount: Settings does not unmount when the
+  // backup screen is pushed over it, so a mount-only read left the row saying
+  // "Never backed up" straight after a backup.
+  const lastBackupAt = useLiveQuery(async () => (await getSetting("last_backup_at")) ?? null);
   const backupDescription =
     lastBackupAt === undefined
       ? "Export or import your data"
@@ -153,6 +161,16 @@ function SettingsMenu({
       </ListGroup>
 
       <ListGroup heading="Support">
+        {/* The way back to an install the Dashboard nudge was waved away from.
+            Hidden once the app is installed, when it would offer nothing. */}
+        {installable && (
+          <ListRow
+            icon={Download}
+            label="Install Headpin"
+            description="Put it on your home screen, so it opens like an app"
+            onClick={() => setInstallOpen(true)}
+          />
+        )}
         <ListRow
           icon={MessageSquare}
           label="Send feedback"
@@ -168,6 +186,8 @@ function SettingsMenu({
           trailing={leavesTheApp}
         />
       </ListGroup>
+
+      <InstallPrompt open={installOpen} onClose={() => setInstallOpen(false)} />
 
       <ListGroup heading="About">
         <ListRow

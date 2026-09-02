@@ -1,4 +1,4 @@
-import { Hand, Plus, X } from "lucide-react";
+import { Hand, Plus, Undo2, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import {
@@ -8,6 +8,8 @@ import {
   editFrameShotPins,
   hydrateFrameController,
   submitShot,
+  undoLastShot,
+  type UndoResult,
   updateShotMeta
 } from "../lib/frameController";
 import { calculateGameScore, isStrike } from "../lib/scoring";
@@ -49,6 +51,11 @@ function formatLeavePins(pins: PinNumber[]): string {
  *  game and so plainly worked it out. */
 const PIN_COACH_SEEN_KEY = "pin_input_coached_at";
 
+/** Games whose "edit a finished game" prompt has already been answered. Module
+ *  level, so it outlives the component the way the decision outlives the visit;
+ *  a reload is a new session and asks again. */
+const unlockedGames = new Set<string | number>();
+
 export type ScorerMode = "standalone" | "session";
 
 interface ActiveGameScorerProps {
@@ -74,6 +81,12 @@ interface ActiveGameScorerProps {
   onEditLanes?: () => void;
   /** Jump to the Arsenal screen to manage balls. */
   onOpenArsenal?: () => void;
+  /** Persist an undo: rewrite the frame it changed, or delete the one it
+   *  emptied. Absent in the standalone scorer, which stores nothing. */
+  onUndoShot?: (result: UndoResult) => Promise<void> | void;
+  /** The game being bowled, as opposed to one revisited from earlier in the
+   *  session. It is never locked once complete. */
+  isCurrentGame?: boolean;
 }
 
 /** Pins available entering a given shot of a frame (for editing a past shot). */
@@ -94,7 +107,9 @@ export function ActiveGameScorer({
   onFrameComplete,
   onGameComplete,
   onEditLanes,
-  onOpenArsenal
+  onOpenArsenal,
+  onUndoShot,
+  isCurrentGame = false
 }: ActiveGameScorerProps) {
   const [gameState, setGameState] = useState(() => hydrateFrameController(initialFrames));
   const [errorMessage, setErrorMessage] = useState("");
@@ -133,11 +148,12 @@ export function ActiveGameScorer({
     notes?: string;
   } | null>(null);
   const [showSpareLineDialog, setShowSpareLineDialog] = useState(false);
-  // A finished game is locked: the first edit attempt raises a confirm prompt
-  // instead of applying, so a stray pin tap can't silently rewrite a recorded
-  // shot (there is no undo). Confirming unlocks the rest of the visit;
-  // cancelling leaves it locked so the next attempt asks again. Moving to
-  // another game (gameKey) re-locks.
+  // A finished game from earlier in the session is locked: the first edit
+  // attempt raises a confirm instead of applying, so a stray pin tap does not
+  // silently rewrite a shot on a game the bowler has moved on from. The game
+  // being bowled is not locked, even once its tenth frame lands: it is the one
+  // you are still standing at, undo is right there, and a confirm between a
+  // bowler and the shot they just threw is in the way.
   const [unlocked, setUnlocked] = useState(false);
   const [showEditPrompt, setShowEditPrompt] = useState(false);
   // Pocket verdict for the live shot when the bowler has overridden the
@@ -153,12 +169,35 @@ export function ActiveGameScorer({
   const startLane = game ? laneForFrame(game, 1) : undefined;
   const isFreshRack = gameState.availablePins.length === 10;
 
+  /** Pins the current selection would knock down, in the inverted input model:
+   *  shot 1 starts all-down and pins are tapped up, later shots start pins-up
+   *  and are tapped down. Either way it is what is available minus what stands. */
+  const pinsThisShot = gameState.availablePins.length - gameState.standingPins.length;
+
+
   const recordedFrame = selectedShot
     ? gameState.frames.find((f) => f.frame_number === selectedShot.frameNumber) ?? null
     : null;
   const recordedShot = recordedFrame && selectedShot ? recordedFrame.shots[selectedShot.shotIndex] ?? null : null;
   const isEditing = Boolean(recordedShot);
-  const locked = gameState.isComplete && !unlocked;
+  const locked = gameState.isComplete && !unlocked && !isCurrentGame;
+  /**
+   * "Next" said nothing about what it was about to record, which on a button
+   * that commits a shot is the one thing it has to say (DESIGN-LANGUAGE §8).
+   * It names the count instead, except when the deck reads as the strike or
+   * spare that the button next to it already offers.
+   */
+  const nextLabel = (() => {
+    if (isEditing) return "Next";
+    if (pinsThisShot === 0) return "Gutter";
+    // A full deck is what the button beside this one records, and two adjacent
+    // buttons with the same word on them is worse than one that says "Next".
+    if (pinsThisShot === gameState.availablePins.length) return "Next";
+    return `Count ${pinsThisShot}`;
+  })();
+
+  /** Nothing to take back on an untouched game. */
+  const canUndo = gameState.frames.some((frame) => frame.shots.length > 0);
 
   // Wrapped, so "the query has not answered" is distinguishable from "the key
   // is unset" and the line does not flash onto every scorer that opens.
@@ -188,7 +227,10 @@ export function ActiveGameScorer({
     setGameState(hydrateFrameController(initialFrames));
     setErrorMessage("");
     setSelectedShot(null);
-    setUnlocked(false);
+    // Answered once per game for as long as the app is open, not once per
+    // visit. Crossing to another game and back is not a new decision, and being
+    // asked again on the way back reads as the app forgetting.
+    setUnlocked(unlockedGames.has(gameKey));
     setShowEditPrompt(false);
     lastDefaultedShot.current = null;
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -405,6 +447,27 @@ export function ActiveGameScorer({
       setErrorMessage("");
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : "Save failed.");
+    }
+  }
+
+  /**
+   * Take the last recorded shot back (ADR-079). The position afterwards is
+   * re-derived by `hydrateFrameController`, the same function that answers
+   * "where were we" after a reload, so an undo can never leave the scorer
+   * somewhere a resume would not.
+   */
+  async function undoShot() {
+    const result = undoLastShot(gameState.frames);
+    if (!result.changedFrame && result.deletedFrameNumber === null) return;
+
+    setGameState(hydrateFrameController(result.frames));
+    setSelectedShot(null);
+    setPendingSpareLeave(null);
+    try {
+      await onUndoShot?.(result);
+      setErrorMessage("");
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : "Undo failed.");
     }
   }
 
@@ -675,31 +738,45 @@ export function ActiveGameScorer({
               editing states (every frame is editable). While editing a recorded
               shot, Strike/Spare applies that mark and Next leaves it untouched,
               both then jump the cursor back to the latest incomplete frame. */}
-          {!gameState.isComplete ? (
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={() => {
-                  if (isEditing) {
-                    handleEditPins([]);
-                    goLive();
-                  } else {
-                    void recordShot([]);
-                  }
-                }}
-                className="inline-flex h-11 flex-1 items-center justify-center rounded-lg bg-accent-fill text-sm font-bold text-accent-on-fill shadow-sm hover:bg-accent-fill-hover"
+          {/* Undo stays after the tenth: taking the last ball back is exactly
+              what a bowler wants from a game that just finished wrong. */}
+          <div className="flex gap-2">
+            {!gameState.isComplete && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (isEditing) {
+                      handleEditPins([]);
+                      goLive();
+                    } else {
+                      void recordShot([]);
+                    }
+                  }}
+                  className="inline-flex h-11 flex-1 items-center justify-center rounded-lg bg-accent-fill text-sm font-bold text-accent-on-fill shadow-sm hover:bg-accent-fill-hover"
+                >
+                  {editStrikeOrSpareLabel}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => (isEditing ? goLive() : void recordShot())}
+                  className="inline-flex h-11 flex-1 items-center justify-center gap-1.5 rounded-lg border border-accent-fill bg-surface text-sm font-semibold text-accent hover:bg-surface-muted"
+                >
+                  {nextLabel}
+                </button>
+              </>
+            )}
+            {onUndoShot && canUndo && (
+              <IconButton
+                onClick={() => void undoShot()}
+                label="Undo last shot"
+                variant="round"
+                className={gameState.isComplete ? "ml-auto" : ""}
               >
-                {editStrikeOrSpareLabel}
-              </button>
-              <button
-                type="button"
-                onClick={() => (isEditing ? goLive() : void recordShot())}
-                className="inline-flex h-11 flex-1 items-center justify-center gap-1.5 rounded-lg border border-accent-fill bg-surface text-sm font-semibold text-accent hover:bg-felt-50"
-              >
-                Next
-              </button>
-            </div>
-          ) : null}
+                <Undo2 size={20} aria-hidden="true" />
+              </IconButton>
+            )}
+          </div>
 
         </div>
 
@@ -766,6 +843,7 @@ export function ActiveGameScorer({
         message="This game is finished. Changing a recorded shot cannot be undone."
         confirmLabel="Edit"
         onConfirm={() => {
+          unlockedGames.add(gameKey);
           setUnlocked(true);
           setShowEditPrompt(false);
         }}

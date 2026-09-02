@@ -52,7 +52,7 @@ test("shares the stats currently on screen, filters and all", async ({ page }) =
   await bowlAGame(page);
 
   await page.getByRole("button", { name: "Stats" }).last().click();
-  await page.getByRole("button", { name: "More" }).click();
+  // The share is the Stats header's one action now, not an entry in a menu.
   await page.getByRole("button", { name: "Share these stats" }).click();
 
   const dialog = page.getByRole("dialog", { name: "Share image" });

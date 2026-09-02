@@ -158,6 +158,10 @@ interface StatsProps {
   /** Names this screen's copy of what is expanded, so History and a session
    *  sheet remember their own. See `lib/viewMemory`. */
   memoryKey?: string;
+  /** Rendered directly under the metric tiles. The Stats tab puts its
+   *  drill-downs here: they belong with the numbers they break down, and the
+   *  screen's one header action is the share (DESIGN-LANGUAGE §1). */
+  underTiles?: ReactNode;
 }
 
 export function Stats({
@@ -172,7 +176,8 @@ export function Stats({
   gameMetrics,
   onOpenSession,
   onOpenGameId,
-  memoryKey = "stats"
+  memoryKey = "stats",
+  underTiles
 }: StatsProps) {
   // One note at a time, opened by tapping the stat it explains. A definition
   // read once is enough, so it stays a tap rather than permanent copy.
@@ -292,6 +297,8 @@ export function Stats({
           onSelect={setMetric}
         />
       </div>
+
+      {underTiles}
 
       {/* Inside a session the score line IS the average, so it answers to the
           picker like everything else. On the Stats tab there are no games and

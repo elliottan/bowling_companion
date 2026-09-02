@@ -1,5 +1,10 @@
 import type { Page } from "@playwright/test";
 
+/** The scorer's commit button names what it is about to record, so it reads
+ *  "Next" only when the deck is the strike or spare the button beside it
+ *  offers, and "Gutter" or "Count 7" otherwise. */
+export const RECORD_SHOT = /^(Next|Gutter|Count \d+)$/;
+
 /**
  * The first-run screen owns the viewport until handedness is stored, and after
  * any DB wipe it comes back. Walk it: start fresh, then right-handed.
@@ -35,7 +40,7 @@ export async function startSession(page: Page, alley: string) {
   // they are typed, so the dialog's only control is its close.
   await page.getByRole("dialog", { name: /lanes/i }).getByRole("button", { name: "Close" }).click();
   // The scorer is up once the live-entry action buttons render.
-  await page.getByRole("button", { name: "Next", exact: true }).waitFor();
+  await page.getByRole("button", { name: RECORD_SHOT }).waitFor();
 }
 
 /**
@@ -61,5 +66,5 @@ export async function recordShot(page: Page, standingAfter: number[]) {
       if (await standingBtn.count()) await standingBtn.click();
     }
   }
-  await page.getByRole("button", { name: "Next", exact: true }).click();
+  await page.getByRole("button", { name: RECORD_SHOT }).click();
 }

@@ -260,6 +260,25 @@ function RangeSlider({ label, min, max, step, valueMin, valueMax, format, onChan
     onChange(dMin, dMax);
   }
 
+  // A range input only fires mouseup or touchend when the pointer is released
+  // over the input itself, and dragging a handle to an end value normally takes
+  // the thumb off the track. Released anywhere else, the draft was never
+  // committed and the filter silently did not apply. The window always sees the
+  // release, so that is where the commit hangs.
+  useEffect(() => {
+    if (!draft) return;
+    const commit = () => {
+      setDraft(null);
+      onChange(draft.min, draft.max);
+    };
+    window.addEventListener("pointerup", commit);
+    window.addEventListener("pointercancel", commit);
+    return () => {
+      window.removeEventListener("pointerup", commit);
+      window.removeEventListener("pointercancel", commit);
+    };
+  }, [draft, onChange]);
+
   return (
     <div>
       <div className="mb-1 flex items-center justify-between">
@@ -285,8 +304,6 @@ function RangeSlider({ label, min, max, step, valueMin, valueMax, format, onChan
             const v = Math.min(Number(e.target.value), displayMax - step);
             setDraft({ min: v, max: displayMax });
           }}
-          onMouseUp={() => commitDraft(displayMin, displayMax)}
-          onTouchEnd={() => commitDraft(displayMin, displayMax)}
           onKeyUp={() => commitDraft(displayMin, displayMax)}
           className="absolute inset-0 h-full w-full cursor-pointer appearance-none bg-transparent accent-[rgb(var(--color-accent-fill))] [&::-webkit-slider-thumb]:relative [&::-webkit-slider-thumb]:z-10"
         />
@@ -301,8 +318,6 @@ function RangeSlider({ label, min, max, step, valueMin, valueMax, format, onChan
             const v = Math.max(Number(e.target.value), displayMin + step);
             setDraft({ min: displayMin, max: v });
           }}
-          onMouseUp={() => commitDraft(displayMin, displayMax)}
-          onTouchEnd={() => commitDraft(displayMin, displayMax)}
           onKeyUp={() => commitDraft(displayMin, displayMax)}
           className="absolute inset-0 h-full w-full cursor-pointer appearance-none bg-transparent accent-[rgb(var(--color-accent-fill))] [&::-webkit-slider-thumb]:relative [&::-webkit-slider-thumb]:z-10"
         />
@@ -405,6 +420,19 @@ interface CatalogViewProps {
 
 export function CatalogView({ onBack, selectedBallId, onSelectBall }: CatalogViewProps) {
   const [syncState, setSyncState] = useState<SyncState>({ status: "idle" });
+  // The catalog is the one thing in the app that needs the network once. An
+  // offline empty state that says "Refresh" offers a button that cannot work,
+  // so it says what will work instead.
+  const [online, setOnline] = useState(() => navigator.onLine);
+  useEffect(() => {
+    const update = () => setOnline(navigator.onLine);
+    window.addEventListener("online", update);
+    window.addEventListener("offline", update);
+    return () => {
+      window.removeEventListener("online", update);
+      window.removeEventListener("offline", update);
+    };
+  }, []);
   const [allBalls, setAllBalls] = useState<CatalogBall[]>([]);
   // Resolved from the id rather than stored: the detail can be restored from a
   // URL before the catalog has loaded, and this simply renders once it has.
@@ -751,11 +779,11 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall }: CatalogVie
         {allBalls.length === 0 && syncState.status !== "syncing" ? (
           <EmptyState
             icon={BookOpen}
-            title="The catalog has not loaded"
+            title={online ? "The catalog has not loaded" : "Connect once to load the catalog"}
             description="It downloads once and then works offline. Every ball brings its core, coverstock, RG and diff."
           >
-            <Button variant="primary" onClick={handleRefresh}>
-              Refresh catalog
+            <Button variant="primary" onClick={handleRefresh} disabled={!online}>
+              {online ? "Load the catalog" : "Waiting for a connection"}
             </Button>
           </EmptyState>
         ) : (

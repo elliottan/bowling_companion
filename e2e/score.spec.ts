@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { clearDatabase, recordShot, startSession } from "./helpers";
+import { RECORD_SHOT, clearDatabase, recordShot, startSession } from "./helpers";
 
 test.beforeEach(async ({ page }) => {
   await clearDatabase(page);
@@ -63,19 +63,54 @@ test("10th frame: strike + spare + open third shot scores correctly", async ({ p
   await recordShot(page, [4, 8, 9, 10]); // shot 3 final ball
 
   // Game complete → the live-entry "Next" control disappears.
-  await expect(page.getByRole("button", { name: "Next", exact: true })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: RECORD_SHOT })).toHaveCount(0);
 });
 
 test("completing a game removes the live-entry controls", async ({ page }) => {
   await startSession(page, "Next Game Lanes");
 
   // Live entry is active while the game is in progress.
-  await expect(page.getByRole("button", { name: "Next", exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: RECORD_SHOT })).toBeVisible();
 
   // Bowl a perfect game to complete it.
   for (let i = 0; i < 12; i++) {
     await recordShot(page, []);
   }
 
-  await expect(page.getByRole("button", { name: "Next", exact: true })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: RECORD_SHOT })).toHaveCount(0);
+});
+
+test("takes the last shot back, and the score follows it", async ({ page }) => {
+  await startSession(page, "Undo Lanes");
+
+  // Frame 1: strike. Frame 2: nine, leaving the 10 pin.
+  await recordShot(page, []);
+  await recordShot(page, [10]);
+
+  const undo = page.getByRole("button", { name: "Undo last shot" });
+  await expect(undo).toBeVisible();
+
+  // Back to the second frame's first ball: the deck is a fresh rack again, so
+  // the commit button offers a strike rather than a count.
+  await undo.click();
+  await expect(page.getByRole("button", { name: RECORD_SHOT })).toHaveText("Next");
+
+  // Again, and the strike in frame 1 is gone with it.
+  await undo.click();
+  await expect(undo).toHaveCount(0);
+
+  // It survives a reload, so the undo was written and not only shown.
+  await page.reload();
+  await expect(page.getByRole("button", { name: "Undo last shot" })).toHaveCount(0);
+});
+
+test("the commit button names the count it is about to record", async ({ page }) => {
+  await startSession(page, "Label Lanes");
+
+  const commit = page.getByRole("button", { name: RECORD_SHOT });
+  await expect(commit).toHaveText("Next");
+
+  // Shot 1 starts all-down; tapping a pin stands it back up.
+  await page.getByRole("button", { name: /Pin 10 (down|standing)/ }).click();
+  await expect(commit).toHaveText("Count 9");
 });

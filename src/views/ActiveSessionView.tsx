@@ -28,6 +28,7 @@ import {
   deleteGame,
   getBackupNudgeState,
   getSessionDetails,
+  deleteFrame,
   saveFrame,
   setBackupNudgeSnoozedUntil,
   updateGameLanes,
@@ -35,6 +36,7 @@ import {
 } from "../services/bowlingRepository";
 import type { Frame, Game, SessionSummary } from "../types/bowling";
 import { GROUP_HEADING } from "../components/ui/typography";
+import type { UndoResult } from "../lib/frameController";
 
 interface ActiveSessionViewProps {
   sessionId: number;
@@ -245,6 +247,18 @@ export function ActiveSessionView({
     await refreshSession(activeGame.id);
   }
 
+  /** Persist an undo (ADR-079): rewrite the frame it changed, or delete the one
+   *  it emptied. Either way the session is re-read, so the scorecard, the
+   *  series total and the game chips all follow. */
+  async function handleUndoShot(result: UndoResult) {
+    if (!activeGame?.id) throw new Error("No active game selected.");
+    if (result.changedFrame) await saveFrame(activeGame.id, result.changedFrame);
+    else if (result.deletedFrameNumber !== null) {
+      await deleteFrame(activeGame.id, result.deletedFrameNumber);
+    }
+    await refreshSession(activeGame.id);
+  }
+
   async function handleAddGame() {
     if (isAddingGame) return;
     setError("");
@@ -297,10 +311,18 @@ export function ActiveSessionView({
     return (
       <section className="mx-auto w-full max-w-5xl px-4 py-6">
         <ErrorBanner>{error || "No active game was found for this session."}</ErrorBanner>
-        <Button variant="secondary" onClick={onBack} className="mt-3">
-          <ChevronLeft size={16} aria-hidden="true" />
-          Back
-        </Button>
+        {/* A session with no game is a session waiting for one, so the way out
+            of this screen is forward as well as back. */}
+        <div className="mt-3 flex flex-wrap gap-2">
+          <Button variant="primary" onClick={() => void handleAddGame()}>
+            <Plus size={16} aria-hidden="true" />
+            Add game
+          </Button>
+          <Button variant="secondary" onClick={onBack}>
+            <ChevronLeft size={16} aria-hidden="true" />
+            Back
+          </Button>
+        </div>
       </section>
     );
   }
@@ -534,6 +556,10 @@ export function ActiveSessionView({
         game={activeGame}
         focusFrame={focusFrame}
         onFrameComplete={handleFrameComplete}
+        onUndoShot={handleUndoShot}
+        // The last game of the session is the one being bowled, so it is not
+        // gated behind the "edit a finished game" confirm.
+        isCurrentGame={activeGame.game_number === games[games.length - 1]?.game_number}
         onEditLanes={() => setShowLaneEditor(true)}
         onOpenArsenal={onOpenArsenal}
       />

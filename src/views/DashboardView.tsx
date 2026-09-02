@@ -58,6 +58,12 @@ interface DashboardViewProps {
 
 const INSTALL_NUDGE_DISMISSED_KEY = "install_nudge_dismissed_at";
 
+/** The install nudge snoozes rather than dismissing for ever. Someone who says
+ *  not now on a borrowed phone still wants the offer on their own, and 30 days
+ *  is long enough that it is never nagging. The Settings row is the way back
+ *  before then. */
+const INSTALL_SNOOZE_DAYS = 30;
+
 const RECENT_LIMIT = 10;
 
 // A stable empty list: `?? []` would be a new array on every render.
@@ -118,11 +124,17 @@ export function DashboardView({
   // Wrapped in an object because the setting is itself undefined when unset,
   // which would otherwise be indistinguishable from "the query has not
   // answered yet" and flash the banner on every load.
-  const installNudge = useLiveQuery(async () => ({
-    dismissedAt: await getSetting(INSTALL_NUDGE_DISMISSED_KEY)
-  }));
+  // The clock is read inside the query, not in render: `Date.now()` in a
+  // render body is a value that changes without a re-render to explain it.
+  const installNudge = useLiveQuery(async () => {
+    const dismissedAt = await getSetting(INSTALL_NUDGE_DISMISSED_KEY);
+    const snoozedUntil = dismissedAt
+      ? new Date(dismissedAt).getTime() + INSTALL_SNOOZE_DAYS * 24 * 60 * 60 * 1000
+      : 0;
+    return { snoozed: snoozedUntil > Date.now() };
+  });
   const installEligible = (isIOSSafari() && !installed) || canPromptInstall();
-  const showInstallLine = installEligible && !!installNudge && !installNudge.dismissedAt;
+  const showInstallLine = installEligible && !!installNudge && !installNudge.snoozed;
 
   function handleBackupLater() {
     void setBackupNudgeSnoozedUntil(new Date(Date.now() + snoozeMs(installed)).toISOString());
