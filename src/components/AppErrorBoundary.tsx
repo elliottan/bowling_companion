@@ -1,5 +1,7 @@
 import { Component, type ErrorInfo, type ReactNode } from "react";
+import { isStaleShellError } from "../lib/swUpdate";
 import { exportBackup } from "../services/backupRepository";
+import { StaleShellScreen } from "./StaleShellScreen";
 import { Button } from "./ui/Button";
 
 interface Props {
@@ -47,6 +49,13 @@ export class AppErrorBoundary extends Component<Props, State> {
 
     if (!error) {
       return this.props.children;
+    }
+
+    // A shell older than the database it opened is not a crash: it is a deploy
+    // the tab has not picked up. The crash screen's Reload only loops on it,
+    // because a plain reload never activates a waiting worker.
+    if (isStaleShellError(error)) {
+      return <StaleShellScreen />;
     }
 
     return (

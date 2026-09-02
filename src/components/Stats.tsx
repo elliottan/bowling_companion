@@ -3,6 +3,7 @@ import { useState, type ReactNode } from "react";
 import { useRememberedState } from "../lib/viewMemory";
 import { CatalogBallImage } from "./CatalogBallImage";
 import { MiniPins } from "./MiniPins";
+import { LoadingCard } from "./ui/LoadingCard";
 import { EmptyState } from "./ui/EmptyState";
 import { IconButton } from "./ui/IconButton";
 import type { Manufacturer } from "../types/catalog";
@@ -215,13 +216,7 @@ export function Stats({
     </div>
   );
 
-  if (isLoading) {
-    return (
-      <p className="rounded-lg border border-edge bg-surface p-4 text-sm text-ink-secondary shadow-sm">
-        Loading…
-      </p>
-    );
-  }
+  if (isLoading) return <LoadingCard />;
 
   if (stats.totalGames === 0) {
     return (

@@ -54,6 +54,35 @@ describe("AppErrorBoundary", () => {
     });
   });
 
+  it("sends a shell older than its database to the update screen, not the crash screen", () => {
+    // Dexie throws VersionError when the stored database is newer than the one
+    // this build declares, which is a tab left open across a deploy.
+    function StaleShell(): never {
+      const err = new Error("newer version exists");
+      err.name = "VersionError";
+      throw err;
+    }
+
+    render(
+      <AppErrorBoundary>
+        <StaleShell />
+      </AppErrorBoundary>
+    );
+
+    expect(screen.getByText("Headpin needs to update")).toBeInTheDocument();
+    expect(screen.queryByText("The app crashed")).not.toBeInTheDocument();
+  });
+
+  it("offers a way back in beside Reload and Export", () => {
+    render(
+      <AppErrorBoundary>
+        <Bomb />
+      </AppErrorBoundary>
+    );
+
+    expect(screen.getByRole("button", { name: /restore a backup/i })).toBeInTheDocument();
+  });
+
   it("shows failure text when exportBackup rejects, without throwing", async () => {
     vi.mocked(exportBackup).mockRejectedValue(new Error("db locked"));
 
