@@ -12,6 +12,9 @@ of shipped work rather than a release. Thirty of them used to be headed
 
 ### Changed
 
+- **The header takes its time.** It flipped away and back fast enough to read
+  as a snap; it now glides over the same travel.
+
 - **The header is either there or gone, never half way.** It used to follow
   your thumb pixel for pixel, which left it stuck at heights too short to read
   and too tall to be out of the way. Scrolling down takes it away, scrolling
@@ -19,6 +22,10 @@ of shipped work rather than a release. Thirty of them used to be headed
 
 ### Fixed
 
+- **A backup no longer leaves a stray text file behind.** Saving a backup to
+  Files dropped a small `.txt` next to it every time, holding nothing but the
+  words "Headpin backup". The share carried a title, and iOS wrote the title
+  out as a file of its own. Only the backup is shared now.
 - **The x on a filter chip removes the filter.** On a phone it did nothing,
   however many times you tapped it, and the filter then seemed to vanish at
   random when you next opened the filters. The tap was always landing; the

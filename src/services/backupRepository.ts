@@ -102,7 +102,9 @@ export async function shareBackup(): Promise<BackupDestination> {
 
   if (canShareBackupFile(file)) {
     try {
-      await navigator.share({ files: [file], title: "Headpin backup" });
+      // Files only, no title: iOS "Save to Files" writes the share title out as
+      // its own stray .txt beside the backup.
+      await navigator.share({ files: [file] });
     } catch (err) {
       // AbortError is the user closing the sheet. Anything else falls back to
       // a download rather than leaving them with nothing.
