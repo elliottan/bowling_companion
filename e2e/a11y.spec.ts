@@ -65,7 +65,7 @@ test("the arsenal, spares and settings screens are accessible", async ({ page })
   await expectNoViolations(page);
   await page.emulateMedia({ colorScheme: "light" });
 
-  await page.getByRole("button", { name: "Back" }).click();
+  await page.getByRole("button", { name: "Back", exact: true }).click();
   await page.getByRole("navigation").getByRole("button", { name: "Settings" }).click();
   await expectNoViolations(page);
 

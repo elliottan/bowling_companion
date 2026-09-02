@@ -25,7 +25,7 @@ export function SessionFormDialog({
   onCancel,
   isSubmitting = false,
   initial,
-  title = "Start new session",
+  title = "Start session",
   submitLabel = "Start session"
 }: SessionFormDialogProps) {
   const [canSubmit, setCanSubmit] = useState(false);

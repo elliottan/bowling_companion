@@ -1,4 +1,5 @@
-import { ChevronRight, MapPin, Plus } from "lucide-react";
+import { ChevronRight, Plus } from "lucide-react";
+import { LanePairIcon } from "../components/icons";
 import { useMemo, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { LaneBadge, LaneNoteFormDialog } from "../components/LaneNoteFormDialog";
@@ -77,9 +78,9 @@ export function LaneNotesView({ onBack, mode = "inline" }: LaneNotesViewProps = 
         <p className="text-sm text-ink-secondary">Loading…</p>
       ) : groups.length === 0 ? (
         <EmptyState
-          icon={MapPin}
+          icon={LanePairIcon}
           title="No lane notes yet"
-          description="Keep track of how each lane in an alley plays, so you never forget."
+          description="What a lane does is worth writing down once. It is here the next time you draw it."
         >
           <Button variant="primary" size="lg" onClick={() => setForm({ note: null })}>
             <Plus size={18} aria-hidden="true" />

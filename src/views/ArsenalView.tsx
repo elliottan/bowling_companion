@@ -34,7 +34,7 @@ interface SortableBallRowProps {
   onEdit: (ball: Ball) => void;
 }
 
-/** One arsenal entry. The whole row opens the editor — the old row had an edit
+/** One arsenal entry. The whole row opens the editor, the old row had an edit
  *  and a delete target crammed beside a drag handle, three ways to mis-tap. */
 function SortableBallRow({ ball, onEdit }: SortableBallRowProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =

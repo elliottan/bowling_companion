@@ -105,7 +105,7 @@ export function LaneNoteFormDialog({ note, alleys, onClose, onSaved }: LaneNoteF
                     }}
                     onFocus={() => setShowAlleyList(true)}
                     onBlur={() => setTimeout(() => setShowAlleyList(false), 120)}
-                    placeholder="Orchid Bowl"
+                    placeholder="Pinecrest Lanes"
                     autoComplete="off"
                     className={FIELD}
                   />

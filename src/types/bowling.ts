@@ -8,7 +8,7 @@ export interface LineSpec {
   slide?: number;
   laydown?: number;
   target?: number;
-  /** Apex board — furthest point the ball reaches before recovering. Derived from
+  /** Apex board, furthest point the ball reaches before recovering. Derived from
    *  the strike curve (the rail's furthest-out point); stored so it equals the
    *  drawn apex (ADR-024). A non-null value also flags a line as a strike line. */
   breakpoint?: number;
@@ -77,7 +77,7 @@ export interface Ball {
 export interface OilPattern {
   id?: number;
   name: string;
-  /** Link to the pattern sheet — usually a PDF. http/https only. */
+  /** Link to the pattern sheet, usually a PDF. http/https only. */
   url?: string;
   /** Archived patterns stay resolvable for history but are not offered for new sessions. */
   archived?: boolean;

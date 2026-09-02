@@ -3,7 +3,7 @@ import type { LineSpec, PinNumber } from "../types/bowling";
 /**
  * Approximate pin positions: board (1–39, lower = right for a RH view) and
  * distance from the foul line in feet. Head pin (1) at board 20 / 60 ft, pins
- * on 12-inch (~11.25-board) centres, rows ~0.866 ft deeper. Hardcoded — the
+ * on 12-inch (~11.25-board) centres, rows ~0.866 ft deeper. Hardcoded, the
  * pin deck geometry is fixed.
  */
 export const PIN_POSITIONS: Record<PinNumber, { board: number; feet: number }> = {

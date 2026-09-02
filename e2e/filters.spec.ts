@@ -18,9 +18,9 @@ async function twoNights(page: Parameters<typeof startSession>[0]) {
   await page.getByRole("button", { name: "History" }).click();
 }
 
-async function applyLocation(page: Parameters<typeof startSession>[0], alley: string) {
+async function applyAlley(page: Parameters<typeof startSession>[0], alley: string) {
   await page.getByRole("button", { name: /^Filters/ }).tap();
-  await page.getByLabel("Location").selectOption(alley);
+  await page.getByLabel("Alley").selectOption(alley);
   await page
     .getByRole("dialog", { name: "Filters" })
     .getByRole("button", { name: "Close" })
@@ -29,7 +29,7 @@ async function applyLocation(page: Parameters<typeof startSession>[0], alley: st
 
 test("an applied filter comes off by its own chip", async ({ page }) => {
   await twoNights(page);
-  await applyLocation(page, "Alpha Lanes");
+  await applyAlley(page, "Alpha Lanes");
 
   // Wait for the sheet to be properly gone, the way a reader who looks at the
   // chip before deciding to remove it does. Tapping while it is still leaving
@@ -53,7 +53,7 @@ test("an applied filter comes off by its own chip", async ({ page }) => {
 
 test("it still comes off after the filter sheet has been opened again", async ({ page }) => {
   await twoNights(page);
-  await applyLocation(page, "Alpha Lanes");
+  await applyAlley(page, "Alpha Lanes");
 
   // Reopening must not drop what is applied, and must not leave the chip dead.
   // The wait lets the first sheet finish leaving: reopening mid-exit stacks two
@@ -61,7 +61,7 @@ test("it still comes off after the filter sheet has been opened again", async ({
   // filter, and not what this test is about.
   await expect(page.getByRole("dialog", { name: "Filters" })).toHaveCount(0);
   await page.getByRole("button", { name: /^Filters/ }).tap();
-  await expect(page.getByLabel("Location")).toHaveValue("Alpha Lanes");
+  await expect(page.getByLabel("Alley")).toHaveValue("Alpha Lanes");
   await page
     .getByRole("dialog", { name: "Filters" })
     .getByRole("button", { name: "Close" })
@@ -75,7 +75,7 @@ test("it still comes off after the filter sheet has been opened again", async ({
 
 test("a sheet on its way out does not swallow the next tap", async ({ page }) => {
   await twoNights(page);
-  await applyLocation(page, "Alpha Lanes");
+  await applyAlley(page, "Alpha Lanes");
 
   // No wait: the tap lands while the sheet is still fading. It used to hit the
   // leaving overlay for the length of the exit, so the first tap after closing

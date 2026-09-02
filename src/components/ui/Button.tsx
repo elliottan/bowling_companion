@@ -7,7 +7,7 @@ const VARIANT: Record<Variant, string> = {
   primary: "bg-accent-fill text-accent-on-fill shadow-sm hover:bg-accent-fill-hover",
   secondary: "border border-edge-strong bg-surface text-ink-strong hover:bg-surface-muted",
   danger: "bg-danger-600 text-white shadow-sm hover:bg-danger-700",
-  // Destructive but unfilled — for a delete that sits inside an edit form,
+  // Destructive but unfilled, for a delete that sits inside an edit form,
   // where a solid red slab shouts louder than the save it sits beside.
   "danger-ghost": "border border-danger-200 bg-surface text-danger-600 hover:bg-danger-50",
   ghost: "text-accent hover:bg-surface-muted"
@@ -19,7 +19,7 @@ const SIZE: Record<Size, string> = {
 };
 
 /** Shared button primitive. Both sizes clear Apple HIG's 44pt minimum tap
- *  target — that floor is the point of this component, not an accident of
+ *  target, that floor is the point of this component, not an accident of
  *  styling. Defaults to `type="button"` so it never accidentally submits a
  *  form; pass `type="submit"` explicitly where that's wanted. */
 export function Button({

@@ -38,7 +38,7 @@ interface SpareLineFormDialogProps {
 }
 
 /**
- * Add/edit dialog for a Spare Line. Mounts fresh per open — callers give it a
+ * Add/edit dialog for a Spare Line. Mounts fresh per open, callers give it a
  * `key` (e.g. the editing id or leave) so internal state resets. Used by the
  * Spares tab and by the live scorer when capturing a just-converted spare.
  */
@@ -85,7 +85,7 @@ export function SpareLineFormDialog({
       return;
     }
 
-    // Store the spec whole — the hook timing set in the visualizer lives on the
+    // Store the spec whole, the hook timing set in the visualizer lives on the
     // same object, and picking fields off it here would quietly drop it.
     const spec: LineSpec | undefined =
       Object.values(line).some((v) => v != null) ? line : undefined;
@@ -161,9 +161,9 @@ export function SpareLineFormDialog({
           <div>
             <p className={`mb-1 ${eyebrow}`}>Shooting line (boards)</p>
             <div className="flex items-center gap-1.5">
-              {(["stance", "target"] as const).map((field) => (
+              {([["stance", "Stance"], ["target", "Target"]] as const).map(([field, label]) => (
                 <label key={field} className="min-w-0 flex-1">
-                  <span className={floatLabel}>{field}</span>
+                  <span className={floatLabel}>{label}</span>
                   <input
                     type="number"
                     inputMode="decimal"

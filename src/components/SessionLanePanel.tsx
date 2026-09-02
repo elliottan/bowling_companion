@@ -113,7 +113,7 @@ export function SessionLanePanel({
   const tabs: SessionPanelTab[] = ["sheet", "stats", "lanes"];
 
   // Series total counts every game (running total for one in progress); the
-  // average is over completed games only — same rule as the history rows.
+  // average is over completed games only, same rule as the history rows.
   const seriesTotal = summary.games.reduce(
     (sum, g) => sum + (g.final_score ?? calculateGameScore(g.frames).total),
     0
@@ -361,7 +361,7 @@ function SessionSheetTab({
 
   const ballOf = (id?: number) => balls.find((b) => b.id === id);
 
-  // Chronological order — latest game at the bottom.
+  // Chronological order, latest game at the bottom.
   const games = [...summary.games].sort((a, b) => a.game_number - b.game_number);
 
   // Auto-scroll to the game the sheet was opened from, and to whichever game
@@ -588,7 +588,7 @@ function shotSymbol(shot: Shot): string {
   return down === 0 ? "-" : String(down);
 }
 
-/** One shot line — a button when the sheet can jump to it, a plain row otherwise. */
+/** One shot line, a button when the sheet can jump to it, a plain row otherwise. */
 function Row({
   onSelect,
   frameNumber,
@@ -644,7 +644,7 @@ function FrameCell({
         const name = ballOf(shot.ball_id)?.name;
         const symbol = shotSymbol(shot);
         return (
-          // Pin deck left, ball + lines + notes right — reads across in one
+          // Pin deck left, ball + lines + notes right, reads across in one
           // line per shot instead of a tall stacked column. The deck's bottom
           // rows narrow to one pin, so the frame number and the count tuck into
           // the empty corners beside it.

@@ -88,7 +88,7 @@ describe("feet ↔ y", () => {
     }
   });
 
-  it("is linear across the whole extent — no deck knee (ADR-020)", () => {
+  it("is linear across the whole extent, no deck knee (ADR-020)", () => {
     // The midpoint of any two feet maps to the midpoint of their y's. A non-linear
     // mapping (the old 60 ft knee) would fail this and kink straight lines.
     for (const [a, b] of [[0, 60], [40, 62.6], [DRAW_FRONT_FEET, DRAW_BACK_FEET]]) {
@@ -153,7 +153,7 @@ describe("buildLinePath", () => {
     expect(maxX).toBeCloseTo(r.points.breakpoint!.x, 1);
   });
 
-  it("strike line reaches the final smoothly — one quadratic, no kink (ADR-024)", () => {
+  it("strike line reaches the final smoothly, one quadratic, no kink (ADR-024)", () => {
     const line: LineSpec = { laydown: 20, target: 15, breakpoint: 8, breakpoint_distance: 42, final_board: 17.5 };
     const pts = sampleBoards(buildLinePath(line, "right")!.d, "right");
     // No corner: the per-step board change never jumps (a kink shows as a spike in
@@ -226,7 +226,7 @@ describe("buildLinePath", () => {
 
   it("puts the final marker on the drawn line when the final is unreachable", () => {
     // Aim that runs away from the final: the ball rides the focal straight, so
-    // the marker has to sit where the ball actually passes that depth — not on
+    // the marker has to sit where the ball actually passes that depth, not on
     // the requested board, which no shot on this line can produce.
     const line: LineSpec = { laydown: 20, target: 20.5, final_board: 20, final_distance: 61.7 };
     const r = buildLinePath(line, "right", true)!;
@@ -258,7 +258,7 @@ describe("buildLinePath", () => {
   it("spare curve responds to the laydown (tangent to the skid, not a fixed bow)", () => {
     // Same target + final, different laydown → the hook leaves the target along the
     // skid heading, so the whole curve shifts. (The old fixed-bow model did not.)
-    // Mid-lane boards so the ADR-028 on-lane cap never engages — on the gutter
+    // Mid-lane boards so the ADR-028 on-lane cap never engages, on the gutter
     // wall both curves get pinned to the edge and converge by design.
     const a = buildLinePath({ laydown: 13, target: 12, final_board: 11, final_distance: 62.6 }, "right", true)!;
     const b = buildLinePath({ laydown: 16, target: 12, final_board: 11, final_distance: 62.6 }, "right", true)!;
@@ -307,7 +307,7 @@ describe("buildLinePath", () => {
 
   it("unreachable spare (pin right of the focal) rides the focal off the back + flags a miss", () => {
     // laydown 2 / target 5: the straight focal lands ~board 18, well hook-side
-    // (left, RH) of the board-3 pin — no leftward hook can get back out there.
+    // (left, RH) of the board-3 pin, no leftward hook can get back out there.
     const line: LineSpec = { laydown: 2, target: 5, final_board: 3, final_distance: 62.6 };
     const r = buildLinePath(line, "right", true)!;
     expect(r.d).not.toContain(" C ");
@@ -317,7 +317,7 @@ describe("buildLinePath", () => {
     expect(r.miss).toBe(true);
   });
 
-  it("laydown == target: no marker — the hook is purely inward, never a real out-and-back (ADR-028)", () => {
+  it("laydown == target: no marker, the hook is purely inward, never a real out-and-back (ADR-028)", () => {
     // The whole skid rides one board and the hook only moves inward toward the
     // final; there is no genuine outward apex, so the marker is hidden.
     const r = buildLinePath({ laydown: 5, target: 5, breakpoint: 5, final_board: 16 }, "right")!;
@@ -331,7 +331,7 @@ describe("buildLinePath", () => {
 
   it("unreachable final on a one-board focal: no marker (ADR-028)", () => {
     // final gutter-side of the vertical focal → rides the focal straight; no
-    // hook, so no real apex — the marker is hidden.
+    // hook, so no real apex, the marker is hidden.
     const r = buildLinePath({ laydown: 5, target: 5, breakpoint: 5, final_board: 3 }, "right")!;
     expect(r.points.breakpoint).toBeNull();
   });
@@ -343,7 +343,7 @@ describe("buildLinePath", () => {
     expect(r.points.breakpoint).toBeNull();
   });
 
-  it("rail extends to a sharp late hook — the apex can approach the gutter (ADR-025)", () => {
+  it("rail extends to a sharp late hook, the apex can approach the gutter (ADR-025)", () => {
     // Screenshot config: old control-cap stranded the apex at board ~8.2.
     const line: LineSpec = { laydown: 19, target: 14, breakpoint: 8, final_board: 17 };
     const a = projectBreakpoint(line, "right", 1, 50); // finger at the gutter
@@ -383,7 +383,7 @@ describe("buildLinePath", () => {
 
   it("one-board focal, purely inward hook: no marker regardless of breakpoint_distance (ADR-028)", () => {
     // laydown == target: the hook only moves inward toward the final on every
-    // depth — never a real out-and-back — so the marker stays hidden.
+    // depth, never a real out-and-back, so the marker stays hidden.
     const base: LineSpec = { laydown: 5, target: 5, breakpoint: 5, final_board: 16 };
     const shallow = buildLinePath({ ...base, breakpoint_distance: 20 }, "right")!;
     const deep = buildLinePath({ ...base, breakpoint_distance: 50 }, "right")!;
@@ -433,10 +433,10 @@ describe("buildLinePath", () => {
     expect(Math.abs(a.feet - 30)).toBeLessThan(6); // magnetic: depth tracks the finger
   });
 
-  it("spare with a straight seeded aim: no marker — purely inward hook, no real apex (ADR-028)", () => {
+  it("spare with a straight seeded aim: no marker, purely inward hook, no real apex (ADR-028)", () => {
     // 10-pin style seed: laydown == target == board 3, pin at board 5. The skid
-    // ties along board 3 and the hook only moves inward toward the pin — never a
-    // real out-and-back — so the marker is hidden.
+    // ties along board 3 and the hook only moves inward toward the pin, never a
+    // real out-and-back, so the marker is hidden.
     const r = buildLinePath({ laydown: 3, target: 3, final_board: 5, final_distance: 60, hook_start_distance: 40, hook_length: 12 }, "right", true)!;
     expect(r.points.breakpoint).toBeNull();
   });
@@ -487,9 +487,9 @@ describe("buildLinePath", () => {
     expect(Math.abs(a.board - 10)).toBeLessThan(1.5);
   });
 
-  it("no cascade inside the reachable band — aim untouched (ADR-027)", () => {
+  it("no cascade inside the reachable band, aim untouched (ADR-027)", () => {
     const line: LineSpec = { laydown: 19, target: 14, breakpoint: 8, final_board: 17 };
-    // (4.5, 42) sits on this line's focal (focal at 42 ft ≈ board 4.4) — timing
+    // (4.5, 42) sits on this line's focal (focal at 42 ft ≈ board 4.4), timing
     // alone reaches it, so the aim must not move.
     const a = projectBreakpoint(line, "right", 4.5, 42, "target");
     expect(a.target).toBeUndefined();
@@ -504,7 +504,7 @@ describe("buildLinePath", () => {
     expect(Math.abs(a.board - 24)).toBeLessThan(1.5);
   });
 
-  it("cascade engages continuously — no marker pop at the band edge (ADR-027)", () => {
+  it("cascade engages continuously, no marker pop at the band edge (ADR-027)", () => {
     // Regression: the old hard accept-gate jumped the apex ~0.8 board for a
     // 0.005-board finger move right where the cascade first engaged.
     const line: LineSpec = { laydown: 19, target: 14, breakpoint: 8, final_board: 17 };
@@ -519,7 +519,7 @@ describe("buildLinePath", () => {
     }
   });
 
-  it("no breakpoint marker when the final is unreachable — the straight-ride case (ADR-028)", () => {
+  it("no breakpoint marker when the final is unreachable, the straight-ride case (ADR-028)", () => {
     // Screenshot bug: laydown 20 → target 22 (inward, RH) with pocket final is
     // unreachable; the marker used to sit at the foul line (board 20, 0 ft).
     const r = buildLinePath({ laydown: 20, target: 22, breakpoint: 8, final_board: 17.5 }, "right")!;
@@ -558,11 +558,11 @@ describe("buildLinePath", () => {
   });
 });
 
-// ADR-015 — the ball rides the focal line on the skid, peels off to the hook side
+// ADR-015, the ball rides the focal line on the skid, peels off to the hook side
 // only, and never crosses back. These hold for the *drawn curve*, not just the
 // pegs: hook side = higher board (RH) / lower board (LH).
-describe("buildLinePath — focal & monotonicity invariants (ADR-015)", () => {
-  const TOL = 0.15; // boards — the curve is clamped strictly to the hook side of the focal
+describe("buildLinePath, focal & monotonicity invariants (ADR-015)", () => {
+  const TOL = 0.15; // boards, the curve is clamped strictly to the hook side of the focal
 
   it("RH: the drawn curve never crosses to the anti-hook side of the focal line", () => {
     // Legal knots (breakpoint 11 is hook-side of focal@42 ≈ 10.25) but the old two-
@@ -582,7 +582,7 @@ describe("buildLinePath — focal & monotonicity invariants (ADR-015)", () => {
 
   it("inside aims (focal heads hook-side) still never cross right of the focal", () => {
     // Both are physically impossible lines (the focal already runs off the hook
-    // edge, so the breakpoint/final can't be reached) — the ball must ride the
+    // edge, so the breakpoint/final can't be reached), the ball must ride the
     // focal off the lane, never bulging to the anti-hook (gutter) side. RH.
     for (const line of [
       { laydown: 1, target: 10, breakpoint: 29.35, breakpoint_distance: 42, final_board: 39 },
@@ -591,7 +591,7 @@ describe("buildLinePath — focal & monotonicity invariants (ADR-015)", () => {
       const solved = solveLine(line, "right");
       for (const { board, feet } of sampleBoards(buildLinePath(solved, "right")!.d, "right")) {
         // Never anti-hook (right) of the focal while the focal is still on the lane.
-        // Past the edge the ball is already guttering — it rides the lane edge, not
+        // Past the edge the ball is already guttering, it rides the lane edge, not
         // the off-lane focal extension.
         if (focalBoardAt(solved, feet) <= 39)
           expect(board).toBeGreaterThanOrEqual(focalBoardAt(solved, feet) - TOL);
@@ -601,17 +601,17 @@ describe("buildLinePath — focal & monotonicity invariants (ADR-015)", () => {
 
   it("a guttering aim draws a smooth straight line; the final peg stays on the lane, no marker (ADR-028)", () => {
     // Steep inside aim: the focal runs off the hook edge, so the ball can't reach
-    // the final — it rides the focal STRAIGHT (smooth, no corner) and may run off
+    // the final, it rides the focal STRAIGHT (smooth, no corner) and may run off
     // the lane (guttering). No hook ⇒ no marker. The final peg stays on the lane
     // so its handle is reachable.
     const solved = solveLine({ laydown: 2.5, target: 21.5, breakpoint: 39, breakpoint_distance: 45, final_board: 39 }, "right");
     const r = buildLinePath(solved, "right")!;
-    expect(r.d.match(/ L /g)!.length).toBe(1); // one straight segment — smooth, no corner
+    expect(r.d.match(/ L /g)!.length).toBe(1); // one straight segment, smooth, no corner
     expect(xToBoard(r.points.final.x, "right")).toBeLessThanOrEqual(39.001); // final peg on the lane
     expect(r.points.breakpoint).toBeNull();
   });
 
-  it("RH: board is unimodal — falls to the apex then rises, never reversing back", () => {
+  it("RH: board is unimodal, falls to the apex then rises, never reversing back", () => {
     const line: LineSpec = { laydown: 22, target: 14, breakpoint: 7, breakpoint_distance: 44, final_board: 17.5 };
     const pts = sampleBoards(buildLinePath(line, "right")!.d, "right");
     const apex = pts.reduce((m, p, i) => (p.board < pts[m].board ? i : m), 0);
@@ -633,7 +633,7 @@ describe("derivedApexForDisplay (ADR-031)", () => {
 
   it("a straight/unreachable line: returns null", () => {
     // Laydown == target == the pocket board: the focal already rides straight
-    // into the pocket, so dir * (fB - focalBoard(fF)) <= 0 — no hook, no apex.
+    // into the pocket, so dir * (fB - focalBoard(fF)) <= 0, no hook, no apex.
     const line: LineSpec = { stance: 17.5, target: 17.5 };
     expect(strikeApexPoint(line, "right")).not.toBeNull(); // storage still gets a floored value
     expect(derivedApexForDisplay(line, "right")).toBeNull();
@@ -666,7 +666,7 @@ describe("derivedApexForDisplay (ADR-031)", () => {
     expect(derived!.board).toBeCloseTo(strike!.board, 6);
     expect(derived!.feet).toBeCloseTo(strike!.feet, 6);
     // Sanity: this exact line has no real reachable apex for a right-hander
-    // (dir flips the geometry) — confirms the hand parameter actually matters.
+    // (dir flips the geometry), confirms the hand parameter actually matters.
     expect(derivedApexForDisplay(line, "right")).toBeNull();
   });
 });

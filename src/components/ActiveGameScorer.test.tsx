@@ -18,7 +18,7 @@ if (!Element.prototype.setPointerCapture) {
 
 const NONE: PinNumber[] = [];
 
-/** A strike in every frame — a complete game (10th has three strikes). */
+/** A strike in every frame, a complete game (10th has three strikes). */
 function perfectGame(): Frame[] {
   const frames: Frame[] = [];
   for (let n = 1; n <= 9; n += 1) {
@@ -159,7 +159,7 @@ describe("ActiveGameScorer completed-game edit prompt", () => {
     tapPin(1);
     expect(onFrameComplete).toHaveBeenCalled();
 
-    // Still unlocked — a second edit does not re-prompt.
+    // Still unlocked, a second edit does not re-prompt.
     tapPin(2);
     expect(prompt()).toBeNull();
   });

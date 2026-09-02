@@ -24,7 +24,7 @@ describe("useSheetDismiss", () => {
     act(() => void vi.advanceTimersByTime(300));
     expect(onClose).toHaveBeenCalledTimes(1);
 
-    // Parent keeps the hook mounted and only flips `open` — the exit state must
+    // Parent keeps the hook mounted and only flips `open`, the exit state must
     // have reset, or the panel comes back transparent and scaled down.
     rerender(<Dialog open={false} onClose={onClose} />);
     rerender(<Dialog open onClose={onClose} />);

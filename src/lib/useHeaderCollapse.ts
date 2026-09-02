@@ -39,7 +39,7 @@ export const INITIAL_COLLAPSE: CollapseState = { collapsed: false, travel: 0 };
  * The header is a switch, not a slider: the scroll decides *when* it flips, and
  * the header itself decides how it gets there. A header pinned to the scroll
  * pixel for pixel spends most of its life half-there, which is the one state it
- * is no use in — too short to read, too tall to be out of the way.
+ * is no use in, too short to read, too tall to be out of the way.
  *
  * Travel accumulates in whichever direction the reader is going and resets when
  * they turn around, so a flick that changes its mind mid-way does not bank the

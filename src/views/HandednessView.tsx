@@ -12,7 +12,7 @@ interface HandednessViewProps {
   value: Handedness;
   onChange: (value: Handedness) => void;
   driftModel: DriftModel;
-  /** Present when pushed from Settings — draws the shared nav bar. */
+  /** Present when pushed from Settings, draws the shared nav bar. */
   onBack?: () => void;
   onDriftModelChange: (next: DriftModel) => void;
 }
@@ -22,7 +22,7 @@ const BOARD_MAX = 39; // upper board bound (matches deriveLaydown's clamp range)
 const ZONES = ["outside", "middle", "inside"] as const;
 
 export function HandednessView({ value, onChange, driftModel, onDriftModelChange, onBack }: HandednessViewProps) {
-  // Confirm before switching — flipping handedness mirrors the whole app, so we
+  // Confirm before switching, flipping handedness mirrors the whole app, so we
   // don't want a stray tap to change it silently.
   const [pending, setPending] = useState<Handedness | null>(null);
 
@@ -223,7 +223,7 @@ function Row({ label, hint, children }: { label: string; hint?: string; children
 
 /** Drift is stored signed, but a sign is meaningless to a bowler standing on the
  *  approach. Show the physical direction instead, and make the left arrow move
- *  the foot left — which means the arrows mirror for a left-hander, since
+ *  the foot left, which means the arrows mirror for a left-hander, since
  *  positive drift walks a left-hander left (see `driftDirection`). */
 function DriftStepper({
   ariaLabel,

@@ -4,8 +4,8 @@
  *    slide   = stance − drift(stance)     // drift varies by stance zone
  *    laydown = slide − release_offset     // constant per bowler
  *
- *  `drift(stance)` is looked up from one of three hard zones — outside,
- *  middle, inside — classified by the stance board. Board numbers are
+ *  `drift(stance)` is looked up from one of three hard zones, outside,
+ *  middle, inside, classified by the stance board. Board numbers are
  *  hand-relative everywhere in this app (ADR-028), so the same numeric zone
  *  boundaries and the same subtraction work for both left- and right-handed
  *  bowlers without any hand-mirroring logic.
@@ -13,7 +13,7 @@
  *  Positive drift/offset values subtract toward lower board numbers, matching
  *  the pre-existing `stance − offset` direction (ADR-028). Out of the box
  *  (all drift = 0), `deriveLaydown` is bit-identical to the old
- *  `stance − laydown_offset` formula — this is a strict requirement, see the
+ *  `stance − laydown_offset` formula, this is a strict requirement, see the
  *  parity sweep in `driftModel.test.ts`. */
 
 import type { Handedness, LineSpec } from "../types/bowling";
@@ -57,7 +57,7 @@ export function driftForStance(stance: number, model: DriftModel): number {
  *  Positive drift subtracts toward *lower* board numbers. Boards are
  *  hand-relative (ADR-028): board 1 is the right edge for a right-hander and
  *  the left edge for a left-hander. So a positive drift walks a right-hander
- *  right and a left-hander left — the sign is the same, the direction mirrors.
+ *  right and a left-hander left, the sign is the same, the direction mirrors.
  *  The settings UI shows this word instead of a bare +/− number. */
 export function driftDirection(drift: number, hand: Handedness): "left" | "right" | "none" {
   if (drift === 0) return "none";
@@ -83,7 +83,7 @@ export function deriveLaydownFromSlide(slide: number, model: DriftModel): number
   return clampBoard(slide - model.release_offset);
 }
 
-/** Inverse of deriveLaydownFromSlide — used when a laydown peg is dragged on an
+/** Inverse of deriveLaydownFromSlide, used when a laydown peg is dragged on an
  *  Actual line and the slide board has to follow it. */
 export function deriveSlideFromLaydown(laydown: number, model: DriftModel): number {
   return clampBoard(laydown + model.release_offset);
@@ -91,7 +91,7 @@ export function deriveSlideFromLaydown(laydown: number, model: DriftModel): numb
 
 /** Inverse of deriveLaydown: the stance that produces a given laydown. Each
  *  zone's drift is a flat constant, so within a zone the transform inverts
- *  exactly (stance = laydown + release_offset + drift[zone]) — but the zone
+ *  exactly (stance = laydown + release_offset + drift[zone]), but the zone
  *  boundaries are defined in stance-space, so we try each zone's candidate
  *  and keep the one that's self-consistent (falls back in the zone that
  *  produced it). Tries outside/inside before middle, matching zoneForStance's
@@ -107,7 +107,7 @@ export function deriveStanceFromLaydown(laydown: number, model: DriftModel): num
 
 /** Keep a planned line's stance and laydown in step across the drift model:
  *  whichever of the two the user just moved drives the other. `prev` is the
- *  line before the edit — the comparison is what says which one moved. Pure;
+ *  line before the edit, the comparison is what says which one moved. Pure;
  *  returns a new LineSpec. Mirrors score entry's Intended-line handler. */
 export function syncStanceLaydown(
   prev: Pick<LineSpec, "stance" | "laydown"> | undefined,
@@ -124,7 +124,7 @@ export function syncStanceLaydown(
 }
 
 /** Parse + validate a stored drift model. Returns null on any parse error or
- *  invariant violation (never throws) — the caller falls back to
+ *  invariant violation (never throws), the caller falls back to
  *  DEFAULT_DRIFT_MODEL or the legacy migration path. */
 export function parseDriftModel(raw: string | undefined): DriftModel | null {
   if (!raw) return null;

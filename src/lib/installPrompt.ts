@@ -2,7 +2,7 @@
  * Handles the native "Add to Home Screen" install flow. Android/Chrome fire
  * `beforeinstallprompt`, which we capture (side effect, registered from
  * main.tsx) and replay later via promptInstall(). iOS Safari has no such
- * event/API — isIOSSafari() lets the UI fall back to static instructions.
+ * event/API, isIOSSafari() lets the UI fall back to static instructions.
  */
 
 interface BeforeInstallPromptEvent extends Event {

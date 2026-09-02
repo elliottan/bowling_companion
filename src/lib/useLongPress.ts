@@ -8,8 +8,8 @@ const MOVE_TOLERANCE_PX = 10;
  * Long-press detection for pointer devices. `bind(cb)` returns handlers to
  * spread onto an element: `cb` fires after a 500 ms hold (with a small haptic
  * tick where supported) and receives the pressed element. The press cancels if
- * the pointer moves more than 10 px — so scrolling a chip row never triggers
- * it — or on pointer up/cancel. The iOS context menu is suppressed while
+ * the pointer moves more than 10 px, so scrolling a chip row never triggers
+ * it, or on pointer up/cancel. The iOS context menu is suppressed while
  * pressing, and callers must check `didLongPress()` at the top of the
  * element's onClick to swallow the click that follows a fired press.
  */
@@ -55,7 +55,7 @@ export function useLongPress() {
     };
   }
 
-  /** True exactly once after a fired long-press — check first in onClick. */
+  /** True exactly once after a fired long-press, check first in onClick. */
   function didLongPress() {
     const wasFired = fired.current;
     fired.current = false;

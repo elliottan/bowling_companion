@@ -3,6 +3,7 @@ import { Button } from "./ui/Button";
 import { HandednessPicker } from "./HandednessPicker";
 import { prepareImport, replaceAllData, type PreparedImport } from "../services/backupRepository";
 import { describeAge } from "../lib/backupNudge";
+import { formatTimestamp } from "../lib/dates";
 import { isStandalone } from "../lib/installPrompt";
 import { ReplaceConfirmDialog } from "./ReplaceConfirmDialog";
 import type { Handedness } from "../types/bowling";
@@ -10,17 +11,7 @@ import type { Handedness } from "../types/bowling";
 /** The stamp the file carries. It is the one fact that says which backup this
  *  is; frame counts never told anybody that. Falls back to the raw string, so
  *  an odd stamp still shows rather than reading "Invalid Date". */
-function formatExportedAt(iso: string): string {
-  const parsed = new Date(iso);
-  if (Number.isNaN(parsed.getTime())) return iso;
-  return parsed.toLocaleString(undefined, {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-    hour: "numeric",
-    minute: "2-digit"
-  });
-}
+
 
 interface FirstRunProps {
   onSelectHandedness: (value: Handedness) => void;
@@ -48,7 +39,7 @@ type Step = "welcome" | "handedness" | "restore";
  * competing-nudge problem those decisions exist to fix.
  *
  * A bowler who already has sessions on this device never sees the welcome, even
- * when handedness is missing — which happens after restoring a backup taken
+ * when handedness is missing, which happens after restoring a backup taken
  * before `settings` were in the file. Offering "Start fresh" to somebody whose
  * history is right there is offering to walk past it, and offering a restore is
  * offering the thing they have already done. They are asked the one question
@@ -118,7 +109,7 @@ export function FirstRun({ onSelectHandedness, hasSavedData = false }: FirstRunP
             />
             <h1 className="text-2xl font-extrabold tracking-tight text-ink">Headpin</h1>
             <p className="mt-2 text-base text-ink-secondary">
-              Keep every game, ball and line from every night you bowl. Your scores stay on this
+              Keep every game, ball and line from every session you bowl. Your scores stay on this
               phone.
             </p>
             <div className="mt-8 flex flex-col gap-2">
@@ -131,7 +122,7 @@ export function FirstRun({ onSelectHandedness, hasSavedData = false }: FirstRunP
                 onClick={() => fileRef.current?.click()}
                 disabled={busy}
               >
-                {busy ? "Reading..." : "Restore from a backup"}
+                {busy ? "Reading…" : "Restore from a backup"}
               </Button>
             </div>
             {/* A file that cannot be read is answered here rather than on a
@@ -191,7 +182,7 @@ export function FirstRun({ onSelectHandedness, hasSavedData = false }: FirstRunP
 
             <div className="mt-6 rounded-lg border border-edge bg-surface p-4">
               <p className="text-sm font-semibold text-ink">
-                Backed up {formatExportedAt(pending.backup.exported_at)}
+                Backed up {formatTimestamp(pending.backup.exported_at)}
               </p>
               <p className="mt-1 text-sm text-ink-secondary">
                 {describeAge(pending.backup.exported_at, new Date())}. Holds{" "}

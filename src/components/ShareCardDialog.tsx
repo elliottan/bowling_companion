@@ -132,7 +132,7 @@ export function ShareCardDialog({ open, card, onClose }: ShareCardDialogProps) {
             Close
           </Button>
           <Button onClick={handleShare} disabled={!blob || busy}>
-            {busy ? "Sharing..." : "Share"}
+            {busy ? "Sharing…" : "Share"}
           </Button>
         </div>
       </div>

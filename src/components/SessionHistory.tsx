@@ -12,6 +12,7 @@ import { GROUP_HEADING } from "./ui/typography";
 import { LoadingCard } from "./ui/LoadingCard";
 import { EmptyState } from "./ui/EmptyState";
 import { AnchoredMenu, AnchoredMenuItem } from "./ui/AnchoredMenu";
+import { formatSessionDate } from "../lib/dates";
 
 interface SessionHistoryProps {
   sessions: SessionSummary[];
@@ -35,7 +36,11 @@ export function SessionHistory({
 
   if (sessions.length === 0) {
     return (
-      <EmptyState icon={History} title="No sessions yet" />
+      <EmptyState
+        icon={History}
+        title="No sessions yet"
+        description="A session is one trip to the alley. Start one and every game in it lands here."
+      />
     );
   }
 
@@ -107,7 +112,7 @@ function SessionRow({ summary, isActive, onOpen, onSessionDeleted }: SessionRowP
   const seriesAvg = completed.length
     ? Math.round(completed.reduce((a, b) => a + b, 0) / completed.length)
     : null;
-  // "Active" = the session still has a game in progress — not merely the one
+  // "Active" = the session still has a game in progress, not merely the one
   // most recently opened (that's the border highlight via isActive).
   const hasUnfinishedGame = games.some(
     (g) => g.final_score === undefined && !calculateGameScore(g.frames).isComplete
@@ -124,7 +129,7 @@ function SessionRow({ summary, isActive, onOpen, onSessionDeleted }: SessionRowP
           top: rect.top + Math.min(rect.height / 2, 48)
         });
       })}
-      aria-label={`Open session: ${session.alley_name}, ${session.date}`}
+      aria-label={`Open session: ${session.alley_name}, ${formatSessionDate(session.date)}`}
       onClick={() => {
         if (longPress.didLongPress()) return;
         if (session.id) onOpen(session.id, !hasUnfinishedGame);
@@ -142,7 +147,7 @@ function SessionRow({ summary, isActive, onOpen, onSessionDeleted }: SessionRowP
             <p className="truncate text-xs font-medium text-ink-secondary">{session.description}</p>
           )}
           <p className="text-xs text-ink-secondary">
-            {[session.date, laneSummary(games)].filter(Boolean).join(" · ")}
+            {[formatSessionDate(session.date), laneSummary(games)].filter(Boolean).join(" · ")}
           </p>
           {session.oil_pattern && (
             <p className="text-xs font-medium text-ink-secondary">{session.oil_pattern}</p>

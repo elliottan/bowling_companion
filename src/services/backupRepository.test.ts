@@ -114,7 +114,7 @@ describe("backupRepository", () => {
     await importBackup(importedBackup);
     const history = await getSessionHistory();
 
-    // Local Lanes is gone — the file is the whole truth after an import.
+    // Local Lanes is gone, the file is the whole truth after an import.
     expect(history).toHaveLength(1);
     expect(history[0].session.alley_name).toBe("Imported Lanes");
   });

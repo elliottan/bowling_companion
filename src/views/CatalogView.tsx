@@ -97,7 +97,7 @@ interface DetailPanelProps {
   owned: boolean;
   onBack: () => void;
   onAddToArsenal: (ball: CatalogBall) => void;
-  /** True while AddFromCatalogDialog is stacked on top — disables this
+  /** True while AddFromCatalogDialog is stacked on top, disables this
    *  panel's own Escape/focus-trap so only the topmost overlay responds. */
   addDialogOpen: boolean;
 }
@@ -167,7 +167,7 @@ function ColorwayCarousel({ ball }: { ball: CatalogBall }) {
 function DetailPanel({ ball, owned, onBack, onAddToArsenal, addDialogOpen }: DetailPanelProps) {
   return (
     // A ball detail is one level deeper than the list, so it pushes like one
-    // — same nav bar, same back gesture, opened at the top regardless of where
+    //, same nav bar, same back gesture, opened at the top regardless of where
     // the list was scrolled to.
     <PushScreen title={ball.name} onBack={onBack} active={!addDialogOpen}>
       <div>
@@ -211,7 +211,7 @@ function DetailPanel({ ball, owned, onBack, onAddToArsenal, addDialogOpen }: Det
             </div>
           ) : (
             <Button variant="primary" size="lg" onClick={() => onAddToArsenal(ball)} className="mt-5 w-full">
-              Add to my arsenal
+              Add to arsenal
             </Button>
           )}
         </div>
@@ -230,7 +230,7 @@ function SpecItem({ label, value }: { label: string; value: string }) {
 }
 
 // ---------------------------------------------------------------------------
-// Range slider — single track, fill between handles, commit on release
+// Range slider, single track, fill between handles, commit on release
 // ---------------------------------------------------------------------------
 
 interface RangeSliderProps {
@@ -338,7 +338,7 @@ function AddFromCatalogDialog({ ball, onConfirm, onCancel, isSaving, error }: Ad
       banner={error ? <ErrorBanner>{error}</ErrorBanner> : undefined}
     >
       <p className="mb-3 text-sm text-ink-secondary">
-        Specs snapshot from catalog. You can edit the name before saving.
+        The specs come across with it. Change the name now if you call it something else.
       </p>
       <label className={FIELD_LABEL} htmlFor="catalog-ball-name">
         Name
@@ -371,7 +371,7 @@ function AddFromCatalogDialog({ ball, onConfirm, onCancel, isSaving, error }: Ad
 }
 
 /** Removable active-filter chip shown under the search bar while the filter panel is closed. */
-/** Removes an active filter. Deliberately NOT a `Chip` — this is an action,
+/** Removes an active filter. Deliberately NOT a `Chip`, this is an action,
  *  not a toggle, so it must not claim `aria-pressed`. It borrows Chip's
  *  tap-target expansion to stay compact while still clearing 44pt. */
 function FilterChip({ label, onRemove }: { label: string; onRemove: () => void }) {
@@ -389,7 +389,7 @@ function FilterChip({ label, onRemove }: { label: string; onRemove: () => void }
 }
 
 // ---------------------------------------------------------------------------
-// Main CatalogView — renders as fixed full-screen overlay (covers bottom nav)
+// Main CatalogView, renders as fixed full-screen overlay (covers bottom nav)
 // ---------------------------------------------------------------------------
 
 interface CatalogViewProps {
@@ -539,7 +539,7 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall }: CatalogVie
 
   return (
     <PushScreen
-      title="Ball catalog"
+      title="Catalog"
       onBack={onBack}
       active={selectedBallId === null && addingBall === null}
       trailing={
@@ -559,7 +559,7 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall }: CatalogVie
         )}
         {syncState.status === "error" && (
           <div className="mb-3 rounded-lg border border-warning-200 bg-warning-50 px-3 py-2 text-sm text-warning-700">
-            <span className="font-semibold">Couldn't update the catalog:</span> {syncState.message}. Showing last saved data.
+            <span className="font-semibold">Could not update the catalog:</span> {syncState.message}. Showing last saved data.
           </div>
         )}
 
@@ -602,9 +602,9 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall }: CatalogVie
               className="rounded-md border border-edge-strong bg-surface px-2 py-1.5 text-sm outline-none focus:border-accent-fill"
             >
               <option value="releaseDate">Newest first</option>
-              <option value="rg">RG (low→high)</option>
-              <option value="diff">Diff (high→low)</option>
-              <option value="name">Name A→Z</option>
+              <option value="rg">RG, low to high</option>
+              <option value="diff">Diff, high to low</option>
+              <option value="name">Name, A to Z</option>
             </select>
           </label>
         </div>
@@ -751,8 +751,8 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall }: CatalogVie
         {allBalls.length === 0 && syncState.status !== "syncing" ? (
           <EmptyState
             icon={BookOpen}
-            title="Catalog is empty"
-            description="Link a ball to the catalog for its core, coverstock, RG and diff."
+            title="The catalog has not loaded"
+            description="It downloads once, then it is yours offline: the core, coverstock, RG and diff of every ball in it."
           >
             <Button variant="primary" onClick={handleRefresh}>
               Refresh catalog
@@ -813,7 +813,7 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall }: CatalogVie
         )}
       </div>
 
-      {/* Detail panel — a self-contained fixed modal (see DetailPanel) */}
+      {/* Detail panel, a self-contained fixed modal (see DetailPanel) */}
       {selectedBall && (
         <DetailPanel
           ball={selectedBall}
@@ -824,7 +824,7 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall }: CatalogVie
         />
       )}
 
-      {/* Add-to-arsenal dialog — always rendered at top level so it's reachable from detail view */}
+      {/* Add-to-arsenal dialog, always rendered at top level so it's reachable from detail view */}
       {addingBall && (
         <AddFromCatalogDialog
           ball={addingBall}

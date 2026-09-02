@@ -12,7 +12,7 @@ import {
 import { Button } from "../components/ui/Button";
 
 interface BackupRestoreViewProps {
-  /** Present when pushed as a screen — draws the shared nav bar. */
+  /** Present when pushed as a screen, draws the shared nav bar. */
   onBack?: () => void;
   /** `overlay` when pushed over another tab, `inline` inside Settings. */
   mode?: "inline" | "overlay";
@@ -61,7 +61,7 @@ export function BackupRestoreView({ onBack, mode = "inline" }: BackupRestoreView
     setError("");
     setMessage("");
     try {
-      // Nothing is written yet — the user confirms against real counts first.
+      // Nothing is written yet, the user confirms against real counts first.
       setPending(await prepareImport(file));
     } catch (err) {
       setError(err instanceof Error ? err.message : "Import failed.");
@@ -92,9 +92,10 @@ export function BackupRestoreView({ onBack, mode = "inline" }: BackupRestoreView
   const body = (
     <section className="mx-auto w-full max-w-2xl px-3 py-4 sm:px-6">
       <p className="text-sm text-ink-secondary">
-        Local JSON only. Importing <strong className="font-semibold text-ink">replaces</strong>{" "}
-        everything on this device with the file's contents. Your current data downloads
-        first.
+        A backup is one file, kept on this device or wherever you put it.
+        Restoring <strong className="font-semibold text-ink">replaces</strong>{" "}
+        everything on this device with what is in the file. Your current data is
+        saved off first.
       </p>
 
       {/* A browser that may bin the scores is a warning, and was set in the
@@ -125,7 +126,7 @@ export function BackupRestoreView({ onBack, mode = "inline" }: BackupRestoreView
         <div className="grid gap-2 sm:grid-cols-2">
           <Button variant="primary" onClick={handleExport} disabled={isBusy}>
             <Download size={16} aria-hidden="true" />
-            Export JSON
+            Save a backup
           </Button>
 
           <input
@@ -137,11 +138,11 @@ export function BackupRestoreView({ onBack, mode = "inline" }: BackupRestoreView
           />
           <Button variant="secondary" onClick={() => fileInputRef.current?.click()} disabled={isBusy}>
             <Upload size={16} aria-hidden="true" />
-            Import JSON
+            Restore a backup
           </Button>
         </div>
         <p className="mt-3 text-center text-xs text-ink-secondary">
-          Or drop a .json file here.
+          Or drop a backup file here.
         </p>
       </div>
 

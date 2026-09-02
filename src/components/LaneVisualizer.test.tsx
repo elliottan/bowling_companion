@@ -97,7 +97,7 @@ describe("LaneVisualizer editing", () => {
     expect(feetToY(15)).toBeGreaterThan(0);
   });
 
-  it("stays top-down after a handle drag — no tilt restore (ADR-025)", () => {
+  it("stays top-down after a handle drag, no tilt restore (ADR-025)", () => {
     (Element.prototype as unknown as { setPointerCapture?: () => void }).setPointerCapture ??= () => {};
     const onChange = vi.fn();
     render(
@@ -106,10 +106,10 @@ describe("LaneVisualizer editing", () => {
       </HandednessContext.Provider>
     );
     const handle = document.querySelector('[data-role="handle"][data-key="target"]')!;
-    // A real drag (past the tap deadzone) — a bare tap toggles a lock instead
+    // A real drag (past the tap deadzone), a bare tap toggles a lock instead
     // and deliberately leaves the camera alone (ADR-028).
     fireEvent.pointerDown(handle, { clientX: 0, clientY: 0 });
-    // jsdom has no PointerEvent — a MouseEvent with the pointermove type keeps
+    // jsdom has no PointerEvent, a MouseEvent with the pointermove type keeps
     // `buttons` intact so the drag guard sees a held button.
     fireEvent(handle, new MouseEvent("pointermove", { bubbles: true, buttons: 1, clientX: 12, clientY: 0 }));
     fireEvent.pointerUp(handle);
@@ -207,7 +207,7 @@ describe("LaneVisualizer editing", () => {
     const laydown = screen.getByLabelText("Laydown") as HTMLInputElement;
     expect(target.readOnly).toBe(true);
     expect(laydown.readOnly).toBe(true);
-    // Final stays free — otherwise nothing could be dragged.
+    // Final stays free, otherwise nothing could be dragged.
     expect((screen.getByLabelText("Final") as HTMLInputElement).readOnly).toBe(false);
 
     fireEvent.focus(target);

@@ -13,7 +13,7 @@ test("exports a backup, clears the database, and restores it via import", async 
   await page.getByRole("button", { name: "Settings" }).click();
   await page.getByRole("button", { name: "Backup & restore" }).click();
   const downloadPromise = page.waitForEvent("download");
-  await page.getByRole("button", { name: "Export JSON" }).click();
+  await page.getByRole("button", { name: "Save a backup" }).click();
   const download = await downloadPromise;
   const filePath = await download.path();
   // Timestamped to the minute and carrying its session count, so a folder of
@@ -33,7 +33,7 @@ test("exports a backup, clears the database, and restores it via import", async 
   await dismissHandednessModal(page);
   // The reload lands back on Backup & restore, which is pushed over the tab
   // bar, so leave it before crossing to a tab.
-  await page.getByRole("dialog", { name: "Backup & restore" }).getByRole("button", { name: "Back" }).click();
+  await page.getByRole("dialog", { name: "Backup & restore" }).getByRole("button", { name: "Back", exact: true }).click();
   await page.getByRole("button", { name: "History" }).click();
   await expect(page.getByRole("heading", { name: "No sessions yet" })).toBeVisible();
 
@@ -60,7 +60,7 @@ test("exports a backup, clears the database, and restores it via import", async 
   await expect(page.getByRole("heading", { name: "Replace all data?" })).toHaveCount(0);
 
   // Backup & restore is pushed over the tab bar, so leave it before crossing.
-  await page.getByRole("dialog", { name: "Backup & restore" }).getByRole("button", { name: "Back" }).click();
+  await page.getByRole("dialog", { name: "Backup & restore" }).getByRole("button", { name: "Back", exact: true }).click();
   await page.getByRole("button", { name: "History" }).click();
   // Target the session row button (a location-filter <option> shares the name).
   await expect(page.getByRole("button", { name: /Backup Lanes/ })).toBeVisible();

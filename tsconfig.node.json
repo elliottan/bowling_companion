@@ -10,5 +10,7 @@
     "strict": true,
     "noEmit": true
   },
-  "include": ["vite.config.ts", "package.json"]
+  // The copy lint reads source files off disk, so it needs node types the
+  // app config deliberately does not carry.
+  "include": ["vite.config.ts", "package.json", "src/test/copy.test.ts"]
 }

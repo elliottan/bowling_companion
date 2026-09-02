@@ -21,15 +21,15 @@ interface LineInputProps {
   foulField?: FoulField;
   /** Show the line-move preset chips (used for the intended line). */
   showPresets?: boolean;
-  /** Fired when any field gains focus — used by the Actual line to autofill. */
+  /** Fired when any field gains focus, used by the Actual line to autofill. */
   onFieldFocus?: () => void;
   /** Derived slide board (stance − drift). Renders a read-only chip; Intended only. */
   derivedSlide?: number;
   /** Derived laydown board (slide − release offset, or the explicit override). Renders a read-only chip. */
   derivedLaydown?: number;
-  /** Derived breakpoint (real apex only — ADR-028/031). Renders a read-only chip. */
+  /** Derived breakpoint (real apex only, ADR-028/031). Renders a read-only chip. */
   derivedBreakpoint?: { board: number; feet: number } | null;
-  /** Tap on the laydown or breakpoint chip — opens the lane visualizer. */
+  /** Tap on the laydown or breakpoint chip, opens the lane visualizer. */
   onLaydownTap?: () => void;
   /** Control rendered at the end of the section's eyebrow row (the lane view). */
   action?: React.ReactNode;
@@ -43,7 +43,7 @@ interface LineInputProps {
 
 // The foul-line board an input edits: a planned stance, or an observed slide.
 type FoulField = "stance" | "slide";
-// The board fields an input edits — the foul-line one plus the arrows.
+// The board fields an input edits, the foul-line one plus the arrows.
 type BoardField = FoulField | "target";
 const FIELD_LABEL: Record<BoardField, string> = {
   stance: "Stance",
@@ -53,7 +53,7 @@ const FIELD_LABEL: Record<BoardField, string> = {
 // Re-exported under the name the shot panels already use: a filled-in "23"
 // still has to say whether it's a slide or a target.
 export const floatLabel = FIELD_MICRO_LABEL;
-// Section eyebrow (INTENDED / ACTUAL). Tight tracking — these are wide words.
+// Section eyebrow (INTENDED / ACTUAL). Tight tracking, these are wide words.
 const eyebrow = "text-[11px] font-semibold uppercase tracking-[0.01em] text-ink-secondary";
 
 // Tap-gate for a locked (completed) game. Raising the prompt on `change` alone
@@ -122,7 +122,7 @@ export function LineInput({
   const blockLockedTap = lockedTapBlocker(onEditAttempt);
 
   // Re-sync from the prop only on external changes (carry-forward, spare-line
-  // prefill, reset) — not when the prop merely echoes the user's own edit, so
+  // prefill, reset), not when the prop merely echoes the user's own edit, so
   // in-progress entries like "15." aren't wiped.
   useEffect(() => {
     setText((prev) => {
@@ -138,7 +138,7 @@ export function LineInput({
   }, [value?.stance, value?.slide, value?.target, value?.breakpoint]);
 
   // Merge field overrides into the spec + local text, then emit.
-  // TODO(line-draw): future — given any two of stance/target/breakpoint (and a
+  // TODO(line-draw): future, given any two of stance/target/breakpoint (and a
   // real breakpoint distance + arrow distance), derive the third by drawing the
   // straight line, so the user can fix a breakpoint+target and read the laydown.
   function applyValues(updates: Partial<Record<BoardField, number | undefined>>) {
@@ -207,7 +207,7 @@ export function LineInput({
   if (derivedLaydown != null) chain.push(`Laydown ${derivedLaydown}`);
   if (derivedBreakpoint != null) {
     chain.push(
-      `Bkpt ${Math.round(derivedBreakpoint.board * 2) / 2} (${Math.round(derivedBreakpoint.feet)}ft)`
+      `Break ${Math.round(derivedBreakpoint.board * 2) / 2} (${Math.round(derivedBreakpoint.feet)}ft)`
     );
   }
 
@@ -266,7 +266,7 @@ export function LineInput({
           row with large tap targets. Actions run on pointerdown + preventDefault:
           keeps the input focused (row stays open) and fires reliably on touch,
           where a preventDefault pointerdown otherwise suppresses the click.
-          Direction respects handedness — for a right-hander the LEFT arrow
+          Direction respects handedness, for a right-hander the LEFT arrow
           increases the board number. */}
       {focused && (
         <div className="mt-2">

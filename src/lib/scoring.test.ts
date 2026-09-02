@@ -107,7 +107,7 @@ describe("scoring helpers", () => {
     const tenthFrame: Frame = {
       game_id: 1,
       frame_number: 10,
-      shots: [{ pins_standing: [] }], // one shot only — ball 2 not yet thrown
+      shots: [{ pins_standing: [] }], // one shot only, ball 2 not yet thrown
       is_strike: true,
       is_spare: false
     };

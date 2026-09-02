@@ -320,7 +320,7 @@ export interface ResumableGame {
 
 /**
  * An unfinished game (no final score yet) from a session dated today, most
- * recent session first — used to offer "jump back in" on launch.
+ * recent session first, used to offer "jump back in" on launch.
  */
 export async function getResumableToday(): Promise<ResumableGame | null> {
   const today = new Date().toISOString().slice(0, 10);
@@ -339,7 +339,7 @@ export async function getResumableToday(): Promise<ResumableGame | null> {
 }
 
 /**
- * Resume info for a specific session — the most recent unfinished game, or
+ * Resume info for a specific session, the most recent unfinished game, or
  * `null` if every game in the session is finished. Used so the home widget
  * only offers to resume a session that actually has an unfinished game.
  */

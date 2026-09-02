@@ -55,7 +55,7 @@ textarea,
  * `50/200/700` on danger/success mean subtle-bg / border / strong-fg, and
  * those roles keep their meaning in dark mode even though the lightness
  * inverts. A pre-paint script sets data-theme, so [data-theme] is always
- * present — :root here is the light fallback for the brief pre-script moment.
+ * present, :root here is the light fallback for the brief pre-script moment.
  */
 :root,
 :root[data-theme="light"] {
@@ -64,7 +64,7 @@ textarea,
   --color-surface-sunken: 255 248 237; /* lane-50 cream */
   --color-surface-muted: 248 250 252; /* slate-50 */
   --color-ink: 2 6 23; /* slate-950 */
-  --color-ink-strong: 51 65 85; /* slate-700 — strong body / button text */
+  --color-ink-strong: 51 65 85; /* slate-700, strong body / button text */
   --color-ink-secondary: 100 116 139; /* slate-500 */
   --color-ink-tertiary: 148 163 184; /* slate-400 */
   --color-edge: 226 232 240; /* slate-200 */
@@ -88,18 +88,18 @@ textarea,
 
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --color-surface: 30 41 59; /* slate-800 — elevated card */
-  --color-surface-sunken: 15 23 42; /* slate-900 — app background */
-  --color-surface-muted: 51 65 85; /* slate-700 — subtle raise */
+  --color-surface: 30 41 59; /* slate-800, elevated card */
+  --color-surface-sunken: 15 23 42; /* slate-900, app background */
+  --color-surface-muted: 51 65 85; /* slate-700, subtle raise */
   --color-ink: 241 245 249; /* slate-100 */
-  --color-ink-strong: 226 232 240; /* slate-200 — strong body / button text */
+  --color-ink-strong: 226 232 240; /* slate-200, strong body / button text */
   --color-ink-secondary: 148 163 184; /* slate-400 */
   --color-ink-tertiary: 100 116 139; /* slate-500 */
   --color-edge: 51 65 85; /* slate-700 */
   --color-edge-strong: 71 85 105; /* slate-600 */
   --color-accent: 94 214 193; /* lightened felt, legible on dark */
   --color-accent-soft: 22 44 40; /* deep felt tint bg */
-  /* felt-700 fill measures 1.97:1 on the dark background — the button shape
+  /* felt-700 fill measures 1.97:1 on the dark background, the button shape
      vanishes. This lifted felt clears 3:1 against surface and surface-sunken
      while still reading as the brand green; dark ink rides on top of it. */
   --color-accent-fill: 45 138 120;
@@ -157,7 +157,7 @@ input[type="date"]::-webkit-date-and-time-value {
 /*
  * Native-feeling navigation push: a full-screen child slides in from the
  * trailing edge, the way a UINavigationController push does. Only the entry is
- * animated — the exit is driven by the interactive drag in PushScreen, which
+ * animated, the exit is driven by the interactive drag in PushScreen, which
  * owns its own transform, so a keyframe here would fight it.
  */
 @keyframes push-screen-in {

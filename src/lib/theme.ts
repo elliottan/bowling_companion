@@ -6,7 +6,7 @@ const KEY = "theme";
 
 /**
  * Theme lives in localStorage, not Dexie, because a pre-paint script in
- * index.html reads it before React mounts — that is what stops a light flash
+ * index.html reads it before React mounts, that is what stops a light flash
  * before the dark palette lands. An async IndexedDB read can't run there.
  *
  * Stored values are only "light" | "dark"; absence means "follow the system",

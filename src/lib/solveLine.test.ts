@@ -20,7 +20,7 @@ function curve(l: LineSpec, hand: Handedness): Array<{ board: number; feet: numb
 // (ADR-024): the drawn strike curve's furthest-out point, written back so the stored
 // value equals what's drawn. The final stays dependent. Nothing cascades onto the
 // laydown/target and no peg jumps to the gutter.
-describe("solveLine — dependent re-clamp (RH)", () => {
+describe("solveLine, dependent re-clamp (RH)", () => {
   it("leaves the laydown and target exactly where the user set them", () => {
     const line: LineSpec = { laydown: 26, target: 20, breakpoint: 4, breakpoint_distance: 42, final_board: 9 };
     const out = solveLine(line, "right");
@@ -28,7 +28,7 @@ describe("solveLine — dependent re-clamp (RH)", () => {
     expect(out.target).toBe(20);
   });
 
-  it("stores the derived apex — the drawn curve's furthest-out point (ADR-024)", () => {
+  it("stores the derived apex, the drawn curve's furthest-out point (ADR-024)", () => {
     const line: LineSpec = { laydown: 26, target: 20, breakpoint: 4, breakpoint_distance: 42 };
     const out = solveLine(line, "right");
     const r = buildLinePath(out, "right")!;
@@ -42,7 +42,7 @@ describe("solveLine — dependent re-clamp (RH)", () => {
     expect(after.laydown).toBe(10);                              // free
     expect(after.target).toBe(14);                              // free
     // The swung laydown (10) is already more out than the target (14): the hook
-    // only moves inward toward the final, so there's no real apex — the marker
+    // only moves inward toward the final, so there's no real apex, the marker
     // is hidden (ADR-028) but the stored value still stays on the lane.
     const r = buildLinePath(after, "right")!;
     expect(r.points.breakpoint).toBeNull();
@@ -74,7 +74,7 @@ describe("solveLine — dependent re-clamp (RH)", () => {
   });
 });
 
-describe("solveLine — the solved line is always drawable", () => {
+describe("solveLine, the solved line is always drawable", () => {
   const TOL = 0.15; // the curve is clamped strictly to the hook side of the focal
   const cases: Array<[string, LineSpec, Handedness]> = [
     ["RH out-and-back", { laydown: 22, target: 12, breakpoint: 4, breakpoint_distance: 42, final_board: 30 }, "right"],
@@ -99,7 +99,7 @@ describe("solveLine — the solved line is always drawable", () => {
   }
 });
 
-describe("solveLine — left-hander mirror", () => {
+describe("solveLine, left-hander mirror", () => {
   it("clamps the breakpoint onto the hook (lower-board) side of the focal", () => {
     const line: LineSpec = { laydown: 14, target: 20, breakpoint: 36, breakpoint_distance: 42 };
     const out = solveLine(line, "left");
@@ -107,7 +107,7 @@ describe("solveLine — left-hander mirror", () => {
   });
 });
 
-// The whole line is one smooth curve — the skid eases into the hook with no corner
+// The whole line is one smooth curve, the skid eases into the hook with no corner
 // anywhere. A hard corner at any peg would spike the turn between two consecutive
 // sampled segments, so the max turn angle over the path bounds the worst corner.
 const maxTurnDeg = (l: LineSpec, hand: Handedness) => {
@@ -124,9 +124,9 @@ const maxTurnDeg = (l: LineSpec, hand: Handedness) => {
   return worst;
 };
 
-describe("solveLine — the hook leaves the arrows tangent (no corner) for realistic aims", () => {
+describe("solveLine, the hook leaves the arrows tangent (no corner) for realistic aims", () => {
   // Moderate aims whose focal stays on the lane (a big cross gutters under the
-  // fixed hook and rides the edge — a kink there is expected, not a defect).
+  // fixed hook and rides the edge, a kink there is expected, not a defect).
   for (const [name, line, hand] of [
     ["default", { laydown: 20, target: 15, breakpoint: 8, breakpoint_distance: 42 }, "right"],
     ["normal swing", { laydown: 22, target: 16, breakpoint: 7, breakpoint_distance: 42, final_board: 17.5 }, "right"],

@@ -15,11 +15,11 @@ async function bowlAGame(page: Parameters<typeof recordShot>[0]) {
   for (let i = 0; i < 9; i++) await recordShot(page, []);
 }
 
-test("shares a night as a picture, from the session header", async ({ page }) => {
+test("shares a session as a picture, from the session header", async ({ page }) => {
   await startSession(page, "Sunset Lanes");
   await bowlAGame(page);
 
-  await page.getByRole("button", { name: "Share this night" }).click();
+  await page.getByRole("button", { name: "Share this session" }).click();
 
   const dialog = page.getByRole("dialog", { name: "Share image" });
   await expect(dialog).toBeVisible();
@@ -39,12 +39,12 @@ test("offers to share once a game is finished, and takes no for an answer", asyn
   await bowlAGame(page);
 
   // The backup prompt outranks the share offer, so the offer is not up yet.
-  await expect(page.getByText("Share the night?")).toHaveCount(0);
+  await expect(page.getByText("Share the session?")).toHaveCount(0);
   await page.getByRole("button", { name: "Dismiss backup reminder" }).click();
 
-  await expect(page.getByText("Share the night?")).toBeVisible();
+  await expect(page.getByText("Share the session?")).toBeVisible();
   await page.getByRole("button", { name: "Dismiss share offer" }).click();
-  await expect(page.getByText("Share the night?")).toHaveCount(0);
+  await expect(page.getByText("Share the session?")).toHaveCount(0);
 });
 
 test("shares the stats currently on screen, filters and all", async ({ page }) => {

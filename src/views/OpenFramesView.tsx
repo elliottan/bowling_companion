@@ -101,7 +101,7 @@ export function OpenFramesView({ onBack }: { onBack: () => void }) {
                     <span className="block text-sm font-bold tabular-nums text-ink">
                       {leave.perGame}
                     </span>
-                    <span className="block text-[10px] text-ink-tertiary">open/gm</span>
+                    <span className="block text-[10px] leading-tight text-ink-tertiary">open frames<br />a game</span>
                   </span>
                 </li>
               ))}

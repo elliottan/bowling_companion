@@ -21,6 +21,7 @@ import { ListGroup, ListRow } from "../components/ui/ListGroup";
 // Navigating to a section is a navigation action, so the union lives with the
 // rest of the navigation state.
 import type { SettingsSection } from "../lib/appNavigation";
+import { describeAge } from "../lib/backupNudge";
 export type { SettingsSection };
 
 interface SettingsViewProps {
@@ -98,7 +99,7 @@ function SettingsMenu({
     lastBackupAt === undefined
       ? "Export or import your data"
       : lastBackupAt
-        ? `Last backup ${lastBackupAt.slice(0, 10)}`
+        ? `Last backup ${describeAge(lastBackupAt, new Date())}`
         : "Never backed up";
 
   const bowlingRows: Array<{ key: string; icon: LucideIcon; label: string; description: string; onClick: () => void }> = [
@@ -107,7 +108,7 @@ function SettingsMenu({
     { key: "lanes", icon: LanePairIcon, label: "Lane notes", description: "Notes per alley and lane", onClick: () => onSectionChange("lanes") },
     { key: "oil-patterns", icon: OilPatternIcon, label: "Oil patterns", description: "Patterns and their sheet links", onClick: () => onSectionChange("oil-patterns") },
     { key: "preferences", icon: SlidersHorizontal, label: "Preferences", description: "Handedness, release offset, drift", onClick: () => onSectionChange("preferences") },
-    { key: "catalog", icon: BookOpen, label: "Ball catalog", description: "Browse manufacturer ball specs", onClick: onOpenCatalog },
+    { key: "catalog", icon: BookOpen, label: "Catalog", description: "Browse manufacturer ball specs", onClick: onOpenCatalog },
     { key: "visualizer", icon: LaneViewIcon, label: "Line visualizer", description: "Sketch a line on the lane", onClick: onOpenLineVisualizer }
   ];
 

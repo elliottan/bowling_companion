@@ -130,7 +130,7 @@ interface OilPatternLinkTables {
 /**
  * Link sessions that hold an `oil_pattern` name but no `oil_pattern_id` to a
  * pattern row (matched case-insensitively by name, created if absent), then
- * drop the denormalized string. Idempotent — used by the v6 upgrade and by
+ * drop the denormalized string. Idempotent, used by the v6 upgrade and by
  * backup import, which can land legacy-shaped session rows at any time.
  */
 export async function linkLegacySessionOilPatterns(

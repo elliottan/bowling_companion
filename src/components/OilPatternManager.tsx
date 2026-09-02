@@ -20,7 +20,7 @@ import { LIST_DIVIDER, ListGroup } from "./ui/ListGroup";
 import { GROUP_HEADING } from "./ui/typography";
 
 interface OilPatternManagerProps {
-  /** Present when pushed from Settings — draws the shared nav bar. Absent when
+  /** Present when pushed from Settings, draws the shared nav bar. Absent when
    *  the session form embeds the manager inline. */
   onBack?: () => void;
   /** `overlay` when pushed over another tab, `inline` inside Settings. */

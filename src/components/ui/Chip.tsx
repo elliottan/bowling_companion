@@ -7,7 +7,7 @@ export const TAP_TARGET_44 = 'after:absolute after:inset-x-0 after:top-1/2 after
 
 /** Dense filter/segmented chip. Visually `h-9` (36px) so rows of them don't
  *  eat vertical space on a 390px screen, but its hit region is expanded to
- *  44pt via an invisible `::after` pseudo-element — the CSS equivalent of
+ *  44pt via an invisible `::after` pseudo-element, the CSS equivalent of
  *  UIKit's hit-test expansion. The expansion is vertical only (4px overhang
  *  top and bottom); it deliberately does not expand horizontally, because
  *  that would make neighbouring chips' hit regions overlap. Callers laying
@@ -15,7 +15,7 @@ export const TAP_TARGET_44 = 'after:absolute after:inset-x-0 after:top-1/2 after
  *  rows so the expanded hit regions meet exactly and never overlap.
  *  `min-w-11` keeps short labels (e.g. single-digit lane numbers) from
  *  presenting too narrow a target. Uses `aria-pressed`, matching this app's
- *  existing chip convention — never `role="tab"`/`aria-selected`. */
+ *  existing chip convention, never `role="tab"`/`aria-selected`. */
 export function Chip({
   selected,
   className = "",
