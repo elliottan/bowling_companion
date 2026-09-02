@@ -20,6 +20,11 @@ const outDir = join(root, "public", "icons");
 
 const FELT = "#1b5148";
 const CREAM = "#fff8ed";
+// The neck bands used to be cut in the background colour, which meant they only
+// existed where the pin sat on felt and read as two nicks out of the neck. Real
+// pins have red bands, and a red that survives being 1px tall at 48px is a
+// saturated one; #c8102e is the red of a house pin.
+const BAND = "#c8102e";
 
 // Pin profile in a 100x154 box: head, neck, shoulder, belly, base. Symmetric
 // about x=50, drawn down the right side and back up the left.
@@ -48,39 +53,57 @@ const PIN_PATH = [
  * @param scale   pin height as a fraction of the canvas (safe zone control)
  * @param stripes whether to cut the two neck bands out of the pin
  */
-function svg(size, scale, stripes) {
+function svg(size, scale, stripes, { background = FELT, pin = CREAM, bandFill = BAND } = {}) {
   const h = size * scale;
   const w = (h * PIN_W) / PIN_H;
   const x = (size - w) / 2;
   const y = (size - h) / 2;
 
-  // The classic two bands. Cut in the background colour so the pin stays one
-  // shape; at small sizes they read as a neck rather than as separate marks.
+  // The classic two bands, painted rather than cut, so the pin reads as a pin
+  // on any background. Dropped below 48px, where each band is under half a
+  // pixel and smears the neck into a grey smudge.
   const bands = stripes
-    ? `<rect x="41" y="44" width="18" height="4.5" rx="2.25" fill="${FELT}"/>
-       <rect x="41" y="53" width="18" height="4.5" rx="2.25" fill="${FELT}"/>`
+    ? `<rect x="41" y="44" width="18" height="5" rx="2.5" fill="${BAND}"/>
+       <rect x="41" y="53" width="18" height="5" rx="2.5" fill="${BAND}"/>`
     : "";
 
   return Buffer.from(
     `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
-      <rect width="${size}" height="${size}" fill="${FELT}"/>
+      <rect width="${size}" height="${size}" fill="${background}"/>
       <g transform="translate(${x} ${y}) scale(${w / PIN_W} ${h / PIN_H})">
-        <path d="${PIN_PATH}" fill="${CREAM}"/>
-        ${bands}
+        <path d="${PIN_PATH}" fill="${pin}"/>
+        ${bands.replaceAll(BAND, bandFill)}
       </g>
     </svg>`
   );
 }
 
-async function render(name, size, scale, stripes = true) {
-  const png = await sharp(svg(size, scale, stripes)).png().toBuffer();
+async function render(name, size, scale, stripes = true, colors) {
+  const png = await sharp(svg(size, scale, stripes, colors)).png().toBuffer();
   await writeFile(join(outDir, name), png);
   console.log("wrote", name);
 }
 
 await mkdir(outDir, { recursive: true });
-await render("icon-192.png", 192, 0.74);
-await render("icon-512.png", 512, 0.74);
+// 0.80 rather than 0.74: these are the icons a launcher shows at their own
+// size, with no safe zone to respect, and the extra fill is what makes the pin
+// legible at 40px on a home screen.
+await render("icon-192.png", 192, 0.8);
+await render("icon-512.png", 512, 0.8);
+
+// iOS composites any alpha in a home-screen icon onto black, and it does not
+// round the corners of a PNG it was not given as a square. A dedicated opaque
+// 180x180 is the size iOS actually asks for.
+await render("apple-touch-icon.png", 180, 0.8);
+
+// Android themed icons: the launcher recolours a single-colour glyph to the
+// user's wallpaper palette, so this one is the pin alone on transparency, with
+// the bands in the same ink as the pin (a two-colour glyph would be flattened).
+await render("icon-512-monochrome.png", 512, 0.56, true, {
+  background: "#00000000",
+  pin: "#000000",
+  bandFill: "#00000000"
+});
 // Maskable: the pin stays inside the Android safe zone (~60% centre), because
 // a launcher may crop this to a circle.
 await render("icon-512-maskable.png", 512, 0.56);
@@ -91,8 +114,8 @@ await render("icon-512-maskable.png", 512, 0.56);
 // dropped below 48px: two 4.5-unit stripes on a 32px canvas are under half a
 // pixel each, and they smear the neck into a grey band instead of reading as
 // bands.
-await render("icon-48.png", 48, 0.74);
-await render("icon-96.png", 96, 0.74);
+await render("icon-48.png", 48, 0.8);
+await render("icon-96.png", 96, 0.8);
 
 /**
  * favicon.ico, at the root, because browsers ask for it whether or not a page
@@ -101,7 +124,7 @@ await render("icon-96.png", 96, 0.74);
  * are the same renders the rest of this script produces.
  */
 async function icoEntry(size, stripes) {
-  return { size, png: await sharp(svg(size, 0.74, stripes)).png().toBuffer() };
+  return { size, png: await sharp(svg(size, 0.8, stripes)).png().toBuffer() };
 }
 
 const icoImages = [await icoEntry(16, false), await icoEntry(32, false), await icoEntry(48, true)];
@@ -151,8 +174,8 @@ function ogSvg() {
       <rect width="${W}" height="${H}" fill="${FELT}"/>
       <g transform="translate(${x} ${y}) scale(${w / PIN_W} ${h / PIN_H})">
         <path d="${PIN_PATH}" fill="${CREAM}"/>
-        <rect x="41" y="44" width="18" height="4.5" rx="2.25" fill="${FELT}"/>
-        <rect x="41" y="53" width="18" height="4.5" rx="2.25" fill="${FELT}"/>
+        <rect x="41" y="44" width="18" height="5" rx="2.5" fill="${BAND}"/>
+        <rect x="41" y="53" width="18" height="5" rx="2.5" fill="${BAND}"/>
       </g>
       <text x="${textX}" y="290" fill="${CREAM}" font-family="Helvetica, Arial, sans-serif" font-size="104" font-weight="700" letter-spacing="-2">Headpin</text>
       <text x="${textX}" y="356" fill="${CREAM}" fill-opacity="0.75" font-family="Helvetica, Arial, sans-serif" font-size="40">Offline bowling score keeper</text>

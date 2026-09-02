@@ -14,7 +14,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { GripVertical, Plus } from "lucide-react";
-import { BowlingBallIcon } from "../components/icons/BowlingBallIcon";
+import { BowlingBallIcon } from "../components/icons";
 import { useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { BallFormDialog } from "../components/BallFormDialog";

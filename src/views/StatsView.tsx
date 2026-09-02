@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { LayoutGrid, MoreHorizontal, Share2, Target } from "lucide-react";
+import { LayoutGrid, MoreHorizontal, Share2 } from "lucide-react";
+import { RackIcon } from "../components/icons";
 import { Stats } from "../components/Stats";
 import {
   SessionFilterButton,
@@ -155,7 +156,7 @@ export function StatsView({
             Game by game
           </AnchoredMenuItem>
           <AnchoredMenuItem
-            icon={Target}
+            icon={RackIcon}
             onClick={() => {
               setBreakdownsAt(null);
               onOpenFrames();

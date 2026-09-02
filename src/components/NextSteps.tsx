@@ -1,6 +1,6 @@
-import { Crosshair, MapPin, Waves, type LucideIcon } from "lucide-react";
+import { type LucideIcon } from "lucide-react";
 import { useLiveQuery } from "dexie-react-hooks";
-import { BowlingBallIcon } from "./icons/BowlingBallIcon";
+import { BowlingBallIcon, LanePairIcon, OilPatternIcon, SpareLineIcon } from "./icons";
 import { GROUP_HEADING } from "./ui/typography";
 import { TAP_TARGET_44 } from "./ui/Chip";
 import { nextSteps, type NextStepKey } from "../lib/onboarding";
@@ -29,20 +29,20 @@ const COPY: Record<NextStepKey, StepCopy> = {
     action: "Add a ball"
   },
   "spare-lines": {
-    icon: Crosshair,
+    icon: SpareLineIcon,
     title: "Write down your spare lines",
     description:
       "Save a line for a leave, and it prefills the intended line when you leave that spare during score entry.",
     action: "Set spare lines"
   },
   "oil-pattern": {
-    icon: Waves,
+    icon: OilPatternIcon,
     title: "Add the pattern you bowl on",
     description: "Filter stats by pattern to compare nights with the same oil pattern.",
     action: "Add a pattern"
   },
   "lane-notes": {
-    icon: MapPin,
+    icon: LanePairIcon,
     title: "Note what a lane does",
     description:
       "You keep going back to the same house. What its lanes do is worth writing down once.",

@@ -2,7 +2,6 @@ import {
   BarChart3,
   History,
   Home,
-  PlayCircle,
   Settings,
   type LucideIcon
 } from "lucide-react";
@@ -22,6 +21,7 @@ import { FirstRun } from "./components/FirstRun";
 import { ActiveSessionView } from "./views/ActiveSessionView";
 import { HistoryView } from "./views/HistoryView";
 import { rememberScroll, restoreScroll } from "./lib/viewMemory";
+import { PinIcon } from "./components/icons";
 import { SettingsView } from "./views/SettingsView";
 import { useBoot } from "./views/useBoot";
 import { setUpdateSafe } from "./lib/swUpdate";
@@ -78,7 +78,7 @@ type NavItem = {
 
 const NAV_ITEMS: ReadonlyArray<NavItem> = [
   { view: "dashboard", label: "Home", icon: Home },
-  { view: "active", label: "Active", icon: PlayCircle },
+  { view: "active", label: "Active", icon: PinIcon },
   { view: "history", label: "History", icon: History },
   { view: "stats", label: "Stats", icon: BarChart3 },
   { view: "settings", label: "Settings", icon: Settings }

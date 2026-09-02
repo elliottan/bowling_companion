@@ -1,5 +1,11 @@
-import { Archive, ArrowUpRight, BookOpen, ScrollText, Palette, Coffee, Crosshair, MapPin, MessageSquare, SlidersHorizontal, Spline, Waves, type LucideIcon } from "lucide-react";
-import { BowlingBallIcon } from "../components/icons/BowlingBallIcon";
+import { Archive, ArrowUpRight, BookOpen, ScrollText, Palette, Coffee, MessageSquare, SlidersHorizontal, type LucideIcon } from "lucide-react";
+import {
+  BowlingBallIcon,
+  LanePairIcon,
+  LaneViewIcon,
+  OilPatternIcon,
+  SpareLineIcon
+} from "../components/icons";
 import { useEffect, useState } from "react";
 import { LaneNotesView } from "./LaneNotesView";
 import { OilPatternsView } from "./OilPatternsView";
@@ -97,12 +103,12 @@ function SettingsMenu({
 
   const bowlingRows: Array<{ key: string; icon: LucideIcon; label: string; description: string; onClick: () => void }> = [
     { key: "arsenal", icon: BowlingBallIcon, label: "Arsenal", description: "Manage your bowling balls", onClick: onOpenArsenal },
-    { key: "spares", icon: Crosshair, label: "Spare lines", description: "How you shoot each leave", onClick: onOpenSpareLines },
-    { key: "lanes", icon: MapPin, label: "Lane notes", description: "Notes per alley and lane", onClick: () => onSectionChange("lanes") },
-    { key: "oil-patterns", icon: Waves, label: "Oil patterns", description: "Patterns and their sheet links", onClick: () => onSectionChange("oil-patterns") },
+    { key: "spares", icon: SpareLineIcon, label: "Spare lines", description: "How you shoot each leave", onClick: onOpenSpareLines },
+    { key: "lanes", icon: LanePairIcon, label: "Lane notes", description: "Notes per alley and lane", onClick: () => onSectionChange("lanes") },
+    { key: "oil-patterns", icon: OilPatternIcon, label: "Oil patterns", description: "Patterns and their sheet links", onClick: () => onSectionChange("oil-patterns") },
     { key: "preferences", icon: SlidersHorizontal, label: "Preferences", description: "Handedness, release offset, drift", onClick: () => onSectionChange("preferences") },
     { key: "catalog", icon: BookOpen, label: "Ball catalog", description: "Browse manufacturer ball specs", onClick: onOpenCatalog },
-    { key: "visualizer", icon: Spline, label: "Line visualizer", description: "Sketch a line on the lane", onClick: onOpenLineVisualizer }
+    { key: "visualizer", icon: LaneViewIcon, label: "Line visualizer", description: "Sketch a line on the lane", onClick: onOpenLineVisualizer }
   ];
 
   // A link that leaves the app says so with the outward arrow, rather than the
