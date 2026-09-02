@@ -53,19 +53,19 @@ interface LaneVisualizerProps {
   spare?: boolean;
   /** Show a Stance stepper alongside the pegs. Only for callers where stance is
    *  the field of record and laydown is derived from it (the Spares tab, whose
-   *  form is gone) — never on an Actual line, which is slide-based (ADR-032). */
+   *  form is gone), never on an Actual line, which is slide-based (ADR-032). */
   showStance?: boolean;
   title?: string;
   /** Veto hook for a locked (completed) game: return false to drop a user edit.
-   *  Only user drags/taps are gated — the auto-seed effects below bypass it. */
+   *  Only user drags/taps are gated, the auto-seed effects below bypass it. */
   onEditAttempt?: () => boolean;
-  /** Pegs pinned when the view opens (max 2 — one aim peg must stay free).
+  /** Pegs pinned when the view opens (max 2, one aim peg must stay free).
    *  The Actual line opens with laydown + target pinned so the final board is
    *  the first thing that moves (ADR-032). */
   defaultLocks?: readonly LockablePeg[];
   /** True while another overlay (e.g. the locked-game "Edit this completed
    *  game?" confirm, raised from onEditAttempt) is stacked on top of this
-   *  visualizer — suspends its own Escape/focus-trap so only the topmost
+   *  visualizer, suspends its own Escape/focus-trap so only the topmost
    *  layer responds to Escape and Tab. */
   suspended?: boolean;
 }
@@ -88,7 +88,7 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
   const dragGiveWay = useRef<"target" | "laydown" | null>("target");
   const isTopDown = deg <= 2;
 
-  // Hard peg locks (ADR-028): tap a peg to freeze it. Max 2 — one aim peg must
+  // Hard peg locks (ADR-028): tap a peg to freeze it. Max 2, one aim peg must
   // stay free or nothing is editable. Reset on close (component unmounts).
   const [locked, setLocked] = useState<ReadonlySet<LockablePeg>>(
     () => new Set((defaultLocks ?? []).slice(0, 2))
@@ -99,7 +99,7 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
 
   // Escape/focus-trap/focus-restore for the visualizer itself. Disabled while
   // the nested hook-options sheet is open so a single Escape press (and the
-  // trap) only ever apply to the topmost layer — the sheet has its own.
+  // trap) only ever apply to the topmost layer, the sheet has its own.
   const overlayRef = useOverlay<HTMLDivElement>(onClose, !optionsOpen && !suspended);
 
   function toggleLock(key: string) {
@@ -118,7 +118,7 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
     if (onEditAttempt && !onEditAttempt()) return;
     const solved = solveLine({ ...(line ?? {}), ...patch }, hand);
     // Hard lock (ADR-028): an edit whose solved result moves a locked peg stops
-    // at the wall — the edit is dropped, nothing twitches.
+    // at the wall, the edit is dropped, nothing twitches.
     for (const k of locked) {
       const a = pegValue(line, k), b = pegValue(solved, k);
       if (a != null && b != null && Math.abs(a - b) > 1e-6) return;
@@ -151,7 +151,7 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [spare, leave]);
 
-  // Strike mode: derive a missing laydown from the line's foul-line board — a
+  // Strike mode: derive a missing laydown from the line's foul-line board, a
   // planned stance through the drift model (ADR-030), or an observed slide
   // across the release offset alone (ADR-032). Runs once while laydown is unset;
   // a typed/dragged laydown then owns the value.
@@ -167,7 +167,7 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
 
   const path = onChange && line ? buildLinePath(line, hand, spare) : null;
 
-  // Slide tick (ADR-030): purely decorative — a derived slide-foot marker at the
+  // Slide tick (ADR-030): purely decorative, a derived slide-foot marker at the
   // foul line, distinct from the (draggable) laydown peg. Shown on spare lines
   // too: they carry a stance now, and the tick is how the drift step reads.
   // An actual line records the slide directly (ADR-032); a planned one derives it.
@@ -184,7 +184,7 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
   }, [pathD]);
 
   // Drag on empty background → tilt the camera. A tap (no real tilt movement)
-  // replays the shot instead — replaces the old replay button.
+  // replays the shot instead, replaces the old replay button.
   function onPointerDown(e: React.PointerEvent) {
     dragY.current = e.clientY;
     tiltMoved.current = 0;
@@ -206,7 +206,7 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
 
   // Map a screen point → board / distance and write the change. Uses the SVG's own
   // screen matrix, so it accounts for letterboxing (preserveAspectRatio) and stays
-  // exact — dragging always happens flat (the handle snaps top-down on grab).
+  // exact, dragging always happens flat (the handle snaps top-down on grab).
   function dragPoint(key: string, e: React.PointerEvent) {
     const svg = (e.currentTarget as SVGElement).ownerSVGElement;
     const ctm = svg?.getScreenCTM();
@@ -269,7 +269,7 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
       // Snap flat on the FIRST real drag move (not on grab, so a lock tap in
       // bowler view doesn't flip the camera). The linear screen→lane mapping
       // needs the flat CTM, so skip this event and map from the next one.
-      // Stays top-down after release — line edits rarely land in one try
+      // Stays top-down after release, line edits rarely land in one try
       // (ADR-025); the "Bowler view" toggle brings the tilt back.
       if (!isTopDown) {
         setDeg(TOPDOWN_DEG);
@@ -319,7 +319,7 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
         onPointerUp={onPointerUp}
         onPointerCancel={onPointerUp}
       >
-        {/* Floating controls — the header is gone so the lane gets full height. */}
+        {/* Floating controls, the header is gone so the lane gets full height. */}
         <button
           type="button"
           onClick={onClose}
@@ -394,7 +394,7 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
                   const isLocked = LOCKABLE.has(h.key) && locked.has(h.key as LockablePeg);
                   return (
                     <g key={h.key}>
-                      {/* visible grab ring — the derived breakpoint reads as a derived point (hollow diamond) */}
+                      {/* visible grab ring, the derived breakpoint reads as a derived point (hollow diamond) */}
                       {derived ? (
                         <rect
                           x={h.p.x - 5} y={h.p.y - 5} width="10" height="10"
@@ -435,7 +435,7 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
           </div>
         </div>
 
-        {/* Strike line: editable pegs + a derived-breakpoint readout — side column in
+        {/* Strike line: editable pegs + a derived-breakpoint readout, side column in
             top-down, bottom bar in bowler view (so the lane stays centred). */}
         {onChange && !spare && (
           <div
@@ -481,7 +481,7 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
             }
             onPointerDown={(e) => e.stopPropagation()}
           >
-            {/* Stance has no peg on the lane — it sits behind the foul line. It
+            {/* Stance has no peg on the lane, it sits behind the foul line. It
                 only appears where stance is the field of record (ADR-032), and
                 the caller re-derives laydown from it through the drift model. */}
             {showStance && (
@@ -546,7 +546,7 @@ function OptionsSheet({
   onClose: () => void;
 }) {
   // Live bounds mirroring the solver's clamps (laneGeometry hookGeomRaw): the
-  // whole track is always draggable — no dead zones to explain.
+  // whole track is always draggable, no dead zones to explain.
   const fF = line?.final_distance ?? LANE_FEET;
   const tgtFt = line?.target != null ? arrowFeet(line.target) : ARROWS_FEET;
   const dS = line?.hook_start_distance ?? HOOK_START_FT;
@@ -636,7 +636,7 @@ function StepperField({
   lateral?: boolean;
   /** Peg is pinned: the controls are inert and a lock glyph shows. */
   locked?: boolean;
-  /** Tap anywhere on a locked field to release it — the number is the handle. */
+  /** Tap anywhere on a locked field to release it, the number is the handle. */
   onUnlock?: () => void;
   onCommit: (v: number) => void;
 }) {

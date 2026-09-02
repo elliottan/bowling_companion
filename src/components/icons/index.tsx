@@ -86,3 +86,15 @@ export const LanePairIcon = createIcon(
     <rect x="13.5" y="3" width="8" height="18" rx="1.5" />
   </>
 );
+
+/** The iOS share control, shown inline in a sentence that tells someone to tap
+ *  it. Lucide's Share2 is the Android glyph, which is a different picture on
+ *  the screen the reader is looking at. */
+export const ShareIosIcon = createIcon(
+  "ShareIosIcon",
+  <>
+    <path d="M12 3v12" />
+    <path d="m8.5 6.5 3.5-3.5 3.5 3.5" />
+    <path d="M7 10H5.5A1.5 1.5 0 0 0 4 11.5v8A1.5 1.5 0 0 0 5.5 21h13a1.5 1.5 0 0 0 1.5-1.5v-8A1.5 1.5 0 0 0 18.5 10H17" />
+  </>
+);

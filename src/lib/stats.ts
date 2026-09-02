@@ -71,7 +71,7 @@ export interface BowlingStats {
 }
 
 /**
- * Aggregate stats across all sessions. Pure — consumes the SessionSummary[]
+ * Aggregate stats across all sessions. Pure, consumes the SessionSummary[]
  * the repository already builds. Averages and the high game use COMPLETED
  * games only (final_score set); strike/spare rates use every ball actually
  * thrown across all games.
@@ -79,7 +79,7 @@ export interface BowlingStats {
  * Strike % = strike frames / first-ball opportunities. The 10th frame can
  * carry up to three fresh-rack balls, each a strike opportunity.
  * Spare % = spares made / spare opportunities, where an opportunity is a
- * non-strike frame in which a second ball was thrown at a makeable leave —
+ * non-strike frame in which a second ball was thrown at a makeable leave , 
  * real splits and washouts are excluded (ADR-036).
  */
 export function calculateStats(

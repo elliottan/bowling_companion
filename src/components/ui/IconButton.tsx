@@ -11,8 +11,8 @@ const VARIANT: Record<Variant, string> = {
   // the order they appear in the class attribute.
   solid: "bg-ink text-surface hover:bg-ink/90",
   // For icon buttons on an inverted surface (e.g. the update toast, which
-  // sits on bg-ink). text-surface always contrasts against bg-ink — the pair
-  // inverts together between themes — so this variant tracks both light and
+  // sits on bg-ink). text-surface always contrasts against bg-ink, the pair
+  // inverts together between themes, so this variant tracks both light and
   // dark automatically instead of hardcoding one direction.
   inverse: "text-surface/70 hover:bg-surface/10 hover:text-surface",
   // Nav-bar and sheet-header chrome: a circular control that reads as a

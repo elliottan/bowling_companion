@@ -103,14 +103,14 @@ export function GamePlanView({ onBack, onOpenStats, onOpenSession }: GamePlanVie
           <EmptyState
             icon={Compass}
             title="Nothing to go on yet"
-            description="Bowl a few nights and this reads them back to you before the next one."
+            description="Bowl a few sessions and this reads them back to you before the next one."
           />
         ) : (
           <>
             <div className="flex gap-2">
               <div className="min-w-0 flex-1">
                 <label className={FIELD_LABEL} htmlFor="plan-alley">
-                  Location
+                  Alley
                 </label>
                 <select
                   id="plan-alley"
@@ -118,7 +118,7 @@ export function GamePlanView({ onBack, onOpenStats, onOpenSession }: GamePlanVie
                   onChange={(e) => setAlley(e.target.value)}
                   className={FIELD_SELECT}
                 >
-                  <option value="">Anywhere</option>
+                  <option value="">Any alley</option>
                   {allAlleys.map((a) => (
                     <option key={a} value={a}>
                       {a}
@@ -151,7 +151,7 @@ export function GamePlanView({ onBack, onOpenStats, onOpenSession }: GamePlanVie
                 ? `Nothing recorded for ${where || "this"} yet.`
                 : `${briefing.games} ${briefing.games === 1 ? "game" : "games"} over ${
                     briefing.sessions
-                  } ${briefing.sessions === 1 ? "night" : "nights"}${where ? ` at ${where}` : ""}.`}
+                  } ${briefing.sessions === 1 ? "session" : "sessions"}${where ? ` at ${where}` : ""}.`}
             </p>
 
             {briefing.lastTime && (
@@ -262,7 +262,7 @@ function describeLastTime(last: NonNullable<ReturnType<typeof buildBriefing>["la
       : `${last.games} ${last.games === 1 ? "game" : "games"} averaging ${last.average}`;
 
   if (last.ballName && last.stance !== undefined && last.target !== undefined) {
-    return `${scored}. You played the ${last.ballName} from ${last.stance} to ${last.target}.`;
+    return `${scored}. You played the ${last.ballName} from stance ${last.stance} to target ${last.target}.`;
   }
   if (last.ballName) return `${scored}, mostly on the ${last.ballName}.`;
   return `${scored}.`;

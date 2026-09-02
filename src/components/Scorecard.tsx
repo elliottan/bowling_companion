@@ -12,7 +12,7 @@ interface ScorecardProps {
   /** Live pin count for the in-progress shot, shown in the highlighted cell
    *  before the shot is recorded (updates as the user taps the pin deck). */
   liveSymbol?: string;
-  /** Frames to score with — defaults to `frames`. May include the live shot so a
+  /** Frames to score with, defaults to `frames`. May include the live shot so a
    *  prior pending strike/spare resolves before the current shot is recorded.
    *  Symbols and frame-settled checks still use the recorded `frames`. */
   scoreFrames?: Frame[];
@@ -62,7 +62,7 @@ export function Scorecard({
     // The 10th frame shows the game's running cumulative total even before it is
     // mathematically resolvable, so an in-progress game always has a score in the
     // last cell (no provisional "+"). Frames 1–9 only show a total once the frame
-    // is settled (both balls thrown, or a strike) and its rolling total resolves —
+    // is settled (both balls thrown, or a strike) and its rolling total resolves , 
     // no provisional partial-frame score mid-frame.
     const frameSettled =
       !!frame && (frame.shots.length >= 2 || (frame.shots.length === 1 && isStrike(frame)));
@@ -142,7 +142,7 @@ function FrameCell({
   return (
     <div className={`relative pt-3.5 ${border} ${bg}`}>
       {/* The frame number rides the shot row's top border as a bubble instead
-          of taking a row of its own — saves ~14px of height per frame row.
+          of taking a row of its own, saves ~14px of height per frame row.
           `bg-inherit` so it masks the border on both the plain and the
           being-edited cell background. */}
       <span className="absolute left-1/2 top-0 z-10 -translate-x-1/2 rounded-full bg-inherit px-1.5 text-[10px] font-bold leading-4 text-ink-secondary">
@@ -150,7 +150,7 @@ function FrameCell({
       </span>
       {/*
        * Highlight by the shot the cell represents when a recorded shot matches
-       * (so a strike's X box — shot 0 rendered in the 2nd cell — highlights, not
+       * (so a strike's X box, shot 0 rendered in the 2nd cell, highlights, not
        * the empty first cell). Fall back to display index for the live/empty cell.
        */}
       <div

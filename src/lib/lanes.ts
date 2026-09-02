@@ -4,7 +4,7 @@ import type { Frame, Game, LineSpec, Shot } from "../types/bowling";
  * Resolve which physical lane a given frame is bowled on.
  *
  * - Single lane (or no config): every frame is on that lane.
- * - Cross-lane pair: frames alternate starting from `start_lane` — odd frames
+ * - Cross-lane pair: frames alternate starting from `start_lane`, odd frames
  *   (1,3,5,7,9) on the start lane, even frames on the other.
  *
  * Derivation is live: editing a game's lane config re-derives every frame, so
@@ -128,14 +128,14 @@ export function lineHasValue(l: LineSpec | undefined): boolean {
 
 /**
  * The intended line to seed from this ball's own history, used when nothing
- * else filled the box (ADR-035). Only fresh-rack shots are eligible sources —
+ * else filled the box (ADR-035). Only fresh-rack shots are eligible sources , 
  * a spare attempt aims at a leave, so its line never seeds another shot.
  *
  * Strict two-tier precedence, each scanned all the way back (current frame →
  * earlier frames this game → earlier games in the session, newest first):
  *   1. same ball, same lane as `frameNumber`
  *   2. same ball, the other lane of a cross-lane pair
- * A same-lane match always wins, however old — lane identity is a stronger
+ * A same-lane match always wins, however old, lane identity is a stronger
  * signal than recency when a pair oils and breaks down differently.
  */
 export function sameBallSeedLine(
@@ -156,7 +156,7 @@ export function sameBallSeedLine(
   const otherLane: LineSpec[] = [];
 
   // No lane config (or an unknown frame lane) means there is no "other lane" to
-  // distinguish — everything counts as tier 1.
+  // distinguish, everything counts as tier 1.
   const collect = (shotLane: string | undefined, shots: Shot[]) => {
     const bucket =
       lane === undefined || shotLane === undefined || shotLane === lane ? sameLane : otherLane;

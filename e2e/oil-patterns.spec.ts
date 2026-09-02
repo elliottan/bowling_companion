@@ -26,7 +26,7 @@ async function countSessions(page: import("@playwright/test").Page) {
  * session form's submit handler and silently created a session.
  */
 test("adding a pattern from the session dialog does not submit the session form", async ({ page }) => {
-  await page.getByRole("button", { name: "Start new session" }).click();
+  await page.getByRole("button", { name: "Start session" }).first().click();
   await page.getByPlaceholder("Ball choice, surface, carry…").fill("keep me");
 
   await page.getByRole("button", { name: "Manage oil patterns" }).click();

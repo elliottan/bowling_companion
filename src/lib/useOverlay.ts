@@ -24,10 +24,10 @@ function getFocusable(container: HTMLElement): HTMLElement[] {
  *
  * Usage: `const ref = useOverlay<HTMLDivElement>(onClose); return <div ref={ref} role="dialog" ...>`.
  * The ref must land on the actual overlay container (its focus trap boundary),
- * which matters for portalled content — point it at the portalled node, not
+ * which matters for portalled content, point it at the portalled node, not
  * something at the trigger's position in the tree.
  *
- * Pass `active=false` (default `true`) to switch everything off — e.g. an
+ * Pass `active=false` (default `true`) to switch everything off, e.g. an
  * outer overlay while an inner one (a nested sheet/dialog) is open, so a
  * single Escape press and the focus trap only ever apply to the topmost layer.
  *
@@ -71,7 +71,7 @@ export function useOverlay<T extends HTMLElement = HTMLDivElement>(
       if (!c) return;
       const focusable = getFocusable(c);
       if (focusable.length === 0) {
-        // Nothing to tab to inside the overlay — keep focus from escaping it.
+        // Nothing to tab to inside the overlay, keep focus from escaping it.
         e.preventDefault();
         return;
       }

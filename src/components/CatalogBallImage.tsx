@@ -18,7 +18,7 @@ interface CatalogBallImageProps {
   size: "thumb" | "full";
 }
 
-/** Ball silhouette SVG placeholder — brand-colored, no broken-image glyph. */
+/** Ball silhouette SVG placeholder, brand-colored, no broken-image glyph. */
 function BallPlaceholder({ brand, size }: { brand: Manufacturer; size: "thumb" | "full" }) {
   const colors = BRAND_COLORS[brand];
   const r = size === "full" ? 100 : 60;
@@ -31,7 +31,7 @@ function BallPlaceholder({ brand, size }: { brand: Manufacturer; size: "thumb" |
     >
       {/* Ball body */}
       <circle cx={viewSize / 2} cy={viewSize / 2} r={r} fill={colors.bg} />
-      {/* Finger-hole row — decorative */}
+      {/* Finger-hole row, decorative */}
       <circle cx={viewSize / 2 - r * 0.22} cy={viewSize / 2 - r * 0.15} r={r * 0.08} fill={colors.accent} opacity="0.6" />
       <circle cx={viewSize / 2 + r * 0.04} cy={viewSize / 2 - r * 0.22} r={r * 0.08} fill={colors.accent} opacity="0.6" />
       <circle cx={viewSize / 2 + r * 0.24} cy={viewSize / 2 - r * 0.08} r={r * 0.08} fill={colors.accent} opacity="0.6" />
@@ -50,7 +50,7 @@ function BallPlaceholder({ brand, size }: { brand: Manufacturer; size: "thumb" |
 }
 
 // Sources that have already decoded once this session. Callers remount this
-// component freely — the shot panel rebuilds on every shot change — and without
+// component freely, the shot panel rebuilds on every shot change, and without
 // this the placeholder flashes and the fade replays for a picture the browser
 // already holds. Survives remounts, not reloads; the `complete` check below
 // covers a reload served from the HTTP cache.
@@ -69,13 +69,13 @@ export function CatalogBallImage({ src, alt, brand, size }: CatalogBallImageProp
   }
 
   return (
-    // Reserved aspect-ratio box — prevents layout shift regardless of load state.
+    // Reserved aspect-ratio box, prevents layout shift regardless of load state.
     // The SVG silhouette is always rendered underneath; the img fades in on load.
     // The tile colour is a token, not slate-100: the product shots are cut-outs
     // with transparent surrounds, so a hardcoded light grey was a white card
     // glowing behind every ball in dark mode.
     <div className="relative w-full overflow-hidden rounded-lg bg-surface-muted" style={{ aspectRatio: "1 / 1" }}>
-      {/* Cross-fades out as the photo fades in — it has to leave, or the brand
+      {/* Cross-fades out as the photo fades in, it has to leave, or the brand
           silhouette shows through the cut-out's transparent surround as a
           second ball, but unmounting it outright left a blank tile for the
           length of the photo's fade. */}
@@ -95,7 +95,7 @@ export function CatalogBallImage({ src, alt, brand, size }: CatalogBallImageProp
           alt={alt}
           loading="lazy"
           // An image the browser already has decodes before this ref runs, so
-          // `onLoad` never fires for it — check `complete` instead of waiting.
+          // `onLoad` never fires for it, check `complete` instead of waiting.
           ref={(el) => {
             if (!loaded && el?.complete && el.naturalWidth > 0) markLoaded();
           }}

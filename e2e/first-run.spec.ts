@@ -45,7 +45,7 @@ test("the welcome screen is the first thing painted, never a Dashboard first", a
     new MutationObserver(() => {
       const buttons = document.querySelectorAll("button");
       for (const b of buttons) {
-        if (b.textContent?.includes("Start new session")) {
+        if (b.textContent?.includes("Start session")) {
           (window as unknown as { __sawApp?: boolean }).__sawApp = true;
         }
       }
@@ -69,7 +69,7 @@ test("walks new bowlers through to the app", async ({ page }) => {
 
   // The first run is done and hands over to the app.
   await expect(page.getByRole("dialog", { name: "Set up Headpin" })).toHaveCount(0);
-  await expect(page.getByRole("button", { name: "Start new session" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Start session" }).first()).toBeVisible();
 });
 
 test("restoring opens the file picker, and cancelling costs nothing", async ({ page }) => {
@@ -129,7 +129,7 @@ test("a restore brings the history back and never asks the hand twice", async ({
   const download = page.waitForEvent("download");
   await page.getByRole("button", { name: "Settings" }).click();
   await page.getByRole("button", { name: /Back up|Backup/ }).first().click();
-  await page.getByRole("button", { name: /Export|Save a copy|Back up now/ }).first().click();
+  await page.getByRole("button", { name: "Save a backup" }).click();
   const file = await (await download).path();
 
   await freshInstall(page);
@@ -167,7 +167,7 @@ test("a bowler who already has sessions is never asked if they are new", async (
   await expect(firstRun.getByRole("button", { name: "right-handed" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Start fresh" })).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Restore from a backup" })).toHaveCount(0);
-  await expect(page.getByRole("button", { name: "Back" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Back", exact: true })).toHaveCount(0);
 
   // Answering it lands on Home, with the history still there.
   await firstRun.getByRole("button", { name: "right-handed" }).click();

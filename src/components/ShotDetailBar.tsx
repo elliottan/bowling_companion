@@ -48,7 +48,7 @@ interface ShotDetailBarProps {
    *  never granted cannot ask to edit. See LineInputProps. */
   locked?: boolean;
   /** True while the "Edit this completed game?" confirm (raised by
-   *  onEditAttempt) is open — passed through to the nested LaneVisualizer so
+   *  onEditAttempt) is open, passed through to the nested LaneVisualizer so
    *  it suspends its own Escape/focus-trap while that confirm sits on top. */
   editPromptOpen?: boolean;
 }
@@ -83,8 +83,8 @@ export function ShotDetailBar({
   const isSpareAttempt = !!spareLeave?.length;
   // A breakpoint is a straight-ball concept, not a spare-shot one (ADR-035
   // amends ADR-031): shooting a leave with a hooking ball has a real apex, and
-  // the lane view already draws it. Only a plastic spare ball — aimed at the pin
-  // rather than at a board down the lane — has no breakpoint to read.
+  // the lane view already draws it. Only a plastic spare ball, aimed at the pin
+  // rather than at a board down the lane, has no breakpoint to read.
   const hidesBreakpoint = isSpareAttempt && !!selectedBall?.is_spare_ball;
 
   const derivedSlide =
@@ -118,9 +118,9 @@ export function ShotDetailBar({
 
   // Keep stance/laydown in sync (ADR-030 drift model): whichever one the user
   // just edited (typed stance here, or dragged laydown in the visualizer)
-  // drives the other. Only reacts to user edits routed through this handler —
+  // drives the other. Only reacts to user edits routed through this handler , 
   // carry-forward/prefill paths set intendedLine directly and skip it.
-  // No guard here: every caller is already gated — the LineInput vets its own
+  // No guard here: every caller is already gated, the LineInput vets its own
   // edits, and the visualizer routes user drags through its onEditAttempt (its
   // auto-seed effects call onChange directly and must NOT raise the prompt).
   function handleIntendedChange(next: LineSpec | undefined) {
@@ -136,7 +136,7 @@ export function ShotDetailBar({
 
   // Actual lines are slide-based (ADR-032): slide ⇄ laydown keep each other in
   // sync across the release offset, with no drift step. A legacy `stance` is
-  // dropped on the first edit — slide is the field of record from then on.
+  // dropped on the first edit, slide is the field of record from then on.
   function handleActualChange(next: LineSpec | undefined) {
     if (!next) { onActualChange(next); return; }
     const merged = { ...next };
@@ -191,7 +191,7 @@ export function ShotDetailBar({
 
   return (
     <div className="divide-y divide-edge rounded-xl border border-edge bg-surface px-2.5">
-      {/* Ball: the chosen ball IS the control — its thumbnail and name, tapped to
+      {/* Ball: the chosen ball IS the control, its thumbnail and name, tapped to
           open the picker. No "Ball" eyebrow, no select chrome, no second icon. */}
       <div className="flex items-center py-1">
         {balls.length > 0 ? (

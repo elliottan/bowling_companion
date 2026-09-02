@@ -11,7 +11,7 @@ interface PushScreenProps {
   /** Suppress Escape / focus trap while a dialog is layered on top. */
   active?: boolean;
   /**
-   * `overlay` (default) floats above the whole app, tab bar included — for a
+   * `overlay` (default) floats above the whole app, tab bar included, for a
    * screen reachable from several places (the arsenal). `inline` fills the
    * scroll area of the tab it was pushed from, so the tab bar stays put, which
    * is what a push *within* a tab does natively.
@@ -26,7 +26,7 @@ const EXIT_MS = 280;
 /**
  * Full-screen navigation push: slides in from the trailing edge over whatever
  * launched it and carries a sticky nav bar with a leading back control. This is
- * the app's stand-in for a navigation stack — a bottom sheet reads as "a task
+ * the app's stand-in for a navigation stack, a bottom sheet reads as "a task
  * on top of this screen", which is wrong for a destination the user navigates
  * *into*.
  *
@@ -51,7 +51,7 @@ export function PushScreen({
 
   // Slide the screen back out before unmounting it. Without this the push
   // animated in and then vanished on a frame, which reads as a page swap
-  // rather than a pop — the asymmetry was the whole complaint.
+  // rather than a pop, the asymmetry was the whole complaint.
   const dismiss = useCallback(() => {
     if (exitTimer.current !== null) return;
     if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) {
@@ -66,7 +66,7 @@ export function PushScreen({
     if (exitTimer.current !== null) window.clearTimeout(exitTimer.current);
   }, []);
 
-  // Inline pushes are not modal — the tab bar behind them stays live — so they
+  // Inline pushes are not modal, the tab bar behind them stays live, so they
   // must not trap focus or swallow Escape.
   const overlayRef = useOverlay<HTMLDivElement>(dismiss, active && mode === "overlay", false);
 
@@ -102,7 +102,7 @@ export function PushScreen({
           transition: `transform ${EXIT_MS}ms cubic-bezier(0.32, 0.72, 0, 1)`,
         }}
       >
-        {/* Safe-area insets only in overlay mode — inline sits inside the app
+        {/* Safe-area insets only in overlay mode, inline sits inside the app
             shell, which has already paid them. */}
         <header
           className={`shrink-0 border-b border-edge bg-surface ${

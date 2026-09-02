@@ -25,7 +25,7 @@ test("an overlay named like a Settings section is still the overlay", async ({ p
   // so backing out of the catalog landed on Backup & restore.
   await page.getByRole("navigation").getByRole("button", { name: "Settings" }).click();
   await page.getByRole("button", { name: /Arsenal/ }).click();
-  await page.getByRole("dialog", { name: "Arsenal" }).getByRole("button", { name: "Back" }).click();
+  await page.getByRole("dialog", { name: "Arsenal" }).getByRole("button", { name: "Back", exact: true }).click();
 
   await expect(page).toHaveURL(/#\/settings$/);
   await expect(page.getByRole("heading", { name: "Settings" })).toBeVisible();
@@ -39,12 +39,12 @@ test("the in-app back control and the platform back agree", async ({ page }) => 
   await expect(page).toHaveURL(/#\/home\/catalog\/ball\/[a-z0-9-]+$/);
 
   // The nav-bar back control is the chevron alone (DESIGN-LANGUAGE 1).
-  await page.getByRole("button", { name: "Back" }).last().click();
+  await page.getByRole("button", { name: "Back", exact: true }).last().click();
 
   // One screen closed, not both: the control goes through history rather than
   // popping state itself, so it cannot double up with the platform gesture.
   await expect(page).toHaveURL(/#\/home\/catalog$/);
-  await expect(page.getByRole("dialog", { name: "Ball catalog" })).toBeVisible();
+  await expect(page.getByRole("dialog", { name: "Catalog" })).toBeVisible();
 });
 
 test("back from a catalog ball closes the ball, not the catalog", async ({ page }) => {
@@ -58,7 +58,7 @@ test("back from a catalog ball closes the ball, not the catalog", async ({ page 
 
   await page.goBack();
   await expect(page).toHaveURL(/#\/home\/catalog$/);
-  await expect(page.getByRole("dialog", { name: "Ball catalog" })).toBeVisible();
+  await expect(page.getByRole("dialog", { name: "Catalog" })).toBeVisible();
 });
 
 test("a screen opened from the dashboard goes back to the dashboard", async ({ page }) => {
@@ -69,11 +69,11 @@ test("a screen opened from the dashboard goes back to the dashboard", async ({ p
   // screen the user never visited.
   await expect(page).toHaveURL(/#\/home\/lanes$/);
   const bar = page.getByRole("dialog", { name: "Lane notes" });
-  await expect(bar.getByRole("button", { name: "Back" })).toBeVisible();
+  await expect(bar.getByRole("button", { name: "Back", exact: true })).toBeVisible();
 
   await page.goBack();
   await expect(page).toHaveURL(/#\/home$/);
-  await expect(page.getByRole("button", { name: "Start new session" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Start session" }).first()).toBeVisible();
   await expect(page.getByRole("heading", { name: "Lane notes" })).toHaveCount(0);
 });
 
@@ -82,7 +82,7 @@ test("the same screen reached from Settings pushes inside the tab", async ({ pag
   await page.getByRole("button", { name: /Lane notes/ }).click();
 
   await expect(page).toHaveURL(/#\/settings\/section\/lanes$/);
-  await page.getByRole("region", { name: "Lane notes" }).getByRole("button", { name: "Back" }).click();
+  await page.getByRole("region", { name: "Lane notes" }).getByRole("button", { name: "Back", exact: true }).click();
   await expect(page).toHaveURL(/#\/settings$/);
 });
 
@@ -136,6 +136,6 @@ test("a session survives a reload, and the URL names it", async ({ page }) => {
 
 test("an unreadable link opens the app rather than breaking it", async ({ page }) => {
   await page.goto("/score#/not-a-screen/nonsense");
-  await expect(page.getByText(/score your first night/i)).toBeVisible();
+  await expect(page.getByText(/score your first session/i)).toBeVisible();
   await expect(page).toHaveURL(/#\/home$/);
 });

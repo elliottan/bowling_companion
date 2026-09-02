@@ -147,7 +147,7 @@ export function ActiveSessionView({
   }, [activeGame?.id, activeGame?.lanes, activeGame?.lane_number, activeGame?.start_lane]);
 
   // Auto-open the lane editor at most once per game, and only while the game
-  // has no recorded shots yet. Tab switches remount this view — without the
+  // has no recorded shots yet. Tab switches remount this view, without the
   // guards the dialog re-opened on every return while lanes stayed unset.
   // The inline "Set lanes" row remains the manual entry point after dismissal.
   useEffect(() => {
@@ -296,7 +296,7 @@ export function ActiveSessionView({
   if (!sessionDetails || !activeGame) {
     return (
       <section className="mx-auto w-full max-w-5xl px-4 py-6">
-        <ErrorBanner>{error || "Couldn't find an active game for this session."}</ErrorBanner>
+        <ErrorBanner>{error || "No active game was found for this session."}</ErrorBanner>
         <Button variant="secondary" onClick={onBack} className="mt-3">
           <ChevronLeft size={16} aria-hidden="true" />
           Back
@@ -313,7 +313,7 @@ export function ActiveSessionView({
     (sum, g) => sum + (g.final_score ?? calculateGameScore((g as Game & { frames: Frame[] }).frames).total),
     0
   );
-  // Average over completed games only — an in-progress game would drag it down.
+  // Average over completed games only, an in-progress game would drag it down.
   const finalScores = games.flatMap((g) => (g.final_score !== undefined ? [g.final_score] : []));
   const seriesAvg = finalScores.length
     ? Math.round(finalScores.reduce((a, b) => a + b, 0) / finalScores.length)
@@ -386,7 +386,7 @@ export function ActiveSessionView({
             <SessionHeaderText session={sessionDetails.session} games={games} />
           </div>
           <IconButton
-            label="Share this night"
+            label="Share this session"
             variant="round"
             className="shrink-0"
             onClick={() => setShareOpen(true)}
@@ -499,7 +499,7 @@ export function ActiveSessionView({
         {offerShare && (
           <div className="mt-3 flex items-center gap-3 rounded-lg border border-accent-soft bg-accent-soft p-3">
             <p className="flex-1 text-sm font-semibold text-accent">
-              Game {activeGame.game_number} is in the books. Share the night?
+              Game {activeGame.game_number} is in the books. Share the session?
             </p>
             <button
               type="button"

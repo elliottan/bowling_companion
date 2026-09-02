@@ -75,7 +75,7 @@ export function submitShot(
 
 /**
  * The frame that the current live (un-submitted) shot would produce, with its
- * pins + metadata applied — for persisting in-progress work without advancing.
+ * pins + metadata applied, for persisting in-progress work without advancing.
  * Returns null when the game is complete.
  */
 export function buildLiveFrame(state: FrameControllerState): Frame | null {
@@ -390,7 +390,7 @@ export function hydrateFrameController(frames: Frame[]): FrameControllerState {
 
   // Non-10th: only advance to the next frame once this one is actually
   // complete (a first-ball strike, or both shots recorded). A frame with
-  // just shot 1 recorded (non-strike) is still awaiting shot 2 — resume there.
+  // just shot 1 recorded (non-strike) is still awaiting shot 2, resume there.
   if (last.frame_number < 10) {
     const shotOne = last.shots[0];
     const frameComplete =

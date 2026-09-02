@@ -230,11 +230,11 @@ export function DashboardView({
       {coldStart && (
         <EmptyState
           icon={PlayCircle}
-          title="Score your first night"
+          title="Score your first session"
           description="Start a session and tap in each shot."
         >
           <Button variant="primary" onClick={() => setShowForm(true)}>
-            Start a session
+            Start session
           </Button>
         </EmptyState>
       )}
@@ -251,7 +251,7 @@ export function DashboardView({
           <span className="min-w-0 flex-1">
             <span className="block text-sm font-semibold text-ink">Game plan</span>
             <span className="block text-xs text-ink-secondary">
-              What your own history says about the house you are about to bowl at.
+              What your own history says about the alley you are about to bowl at.
             </span>
           </span>
           <ChevronRight size={18} aria-hidden="true" className="shrink-0 text-ink-secondary" />
@@ -320,7 +320,7 @@ export function DashboardView({
             </span>
           </button>
         )}
-        <Fab icon={Plus} label="Start new session" onClick={() => setShowForm(true)} />
+        <Fab icon={Plus} label="Start session" onClick={() => setShowForm(true)} />
       </FabRow>
 
       <SessionFormDialog

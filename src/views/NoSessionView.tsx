@@ -33,7 +33,7 @@ export function NoSessionView({ onStartSession, isSubmitting, error }: NoSession
         description="Start a session and you score it here, shot by shot."
       >
         <Button variant="primary" onClick={() => setShowForm(true)}>
-          Start a session
+          Start session
         </Button>
       </EmptyState>
 

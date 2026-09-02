@@ -59,10 +59,13 @@ test("a ball added in the arsenal is selectable on a shot", async ({ page }) => 
   await expect(page.getByText("Hy-Road")).toBeVisible();
 
   // The arsenal is a pushed screen: leave it by its back control.
-  await page.getByRole("banner").getByRole("button", { name: "Back" }).click();
-  await page.getByRole("button", { name: "Start new session" }).click();
-  await page.getByPlaceholder("Orchid Bowl").fill("Arsenal Lanes");
-  await page.getByRole("button", { name: "Start session" }).click();
+  await page.getByRole("banner").getByRole("button", { name: "Back", exact: true }).click();
+  await page.getByRole("button", { name: "Start session" }).first().click();
+  await page.getByPlaceholder("Pinecrest Lanes").fill("Arsenal Lanes");
+  await page
+    .getByRole("dialog", { name: "Start session" })
+    .getByRole("button", { name: "Start session" })
+    .click();
   await page.getByRole("dialog", { name: /lanes/i }).getByRole("button", { name: "Close" }).click();
 
   // The chosen ball IS the control: it starts unset and opens the picker.

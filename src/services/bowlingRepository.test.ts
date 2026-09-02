@@ -77,7 +77,7 @@ describe("bowlingRepository", () => {
     expect(details?.session.oil_pattern).toBe("Kegel Main Street");
     expect(details?.session.oil_pattern_url).toBe("https://example.com/ms.pdf");
 
-    // Renaming the pattern is enough — nothing is copied onto the session.
+    // Renaming the pattern is enough, nothing is copied onto the session.
     await db.oil_patterns.update(patternId, { name: "Main Street" });
     expect((await getSessionDetails(sessionId))?.session.oil_pattern).toBe("Main Street");
   });

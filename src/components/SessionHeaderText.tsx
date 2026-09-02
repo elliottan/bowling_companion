@@ -1,4 +1,5 @@
 import { Pencil } from "lucide-react";
+import { formatSessionDate } from "../lib/dates";
 import type { SessionSummary } from "../types/bowling";
 
 /** One game's lanes: "Lanes 9/10", or "Lane 5" when it was played on one. */
@@ -24,7 +25,7 @@ export function laneSummary(games: SessionSummary["games"]): string {
 }
 
 /**
- * Session identity block — alley, event/date/games, lanes/oil pattern. Shared
+ * Session identity block, alley, event/date/games, lanes/oil pattern. Shared
  * by the score-entry header and the session sheet so both read identically.
  * The oil pattern is a link; callers that make the whole block tappable get a
  * `stopPropagation` on it so tapping the pattern opens the sheet, not the block.
@@ -55,10 +56,10 @@ export function SessionHeaderText({
           </button>
         )}
       </div>
-      {/* Two rows: event/date/games, then lanes + pattern — the pattern name is
+      {/* Two rows: event/date/games, then lanes + pattern, the pattern name is
           long, so it gets a row where it won't be truncated. */}
       <p className="truncate text-xs text-ink-secondary">
-        {[session.description, session.date, `${games.length} ${games.length === 1 ? "game" : "games"}`]
+        {[session.description, formatSessionDate(session.date), `${games.length} ${games.length === 1 ? "game" : "games"}`]
           .filter(Boolean)
           .join(" · ")}
       </p>

@@ -13,7 +13,7 @@ test("writes a lane note, edits it, and keeps it across a reload", async ({ page
   await page.getByRole("button", { name: "Lane notes" }).click();
   await page.getByRole("button", { name: /Add a lane note|Add lane note/ }).first().click();
 
-  await page.getByPlaceholder("Orchid Bowl").fill("Palace Lanes");
+  await page.getByPlaceholder("Pinecrest Lanes").fill("Palace Lanes");
   await page.getByPlaceholder("12").fill("7");
   await page
     .getByPlaceholder(/How this lane plays/)

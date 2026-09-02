@@ -6,7 +6,7 @@ interface EmptyStateProps {
   title: string;
   /** One sentence on what lives here and how it earns its keep. */
   description?: string;
-  /** Primary (and optionally secondary) action — the way out of empty. */
+  /** Primary (and optionally secondary) action, the way out of empty. */
   children?: ReactNode;
 }
 

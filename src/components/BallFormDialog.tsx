@@ -24,7 +24,7 @@ interface BallFormDialogProps {
   ball: Ball | null;
   onClose: () => void;
   onSaved: () => void;
-  /** Only supplied when editing — deletion lives with the ball it destroys. */
+  /** Only supplied when editing, deletion lives with the ball it destroys. */
   onDelete?: () => void;
 }
 
@@ -166,7 +166,7 @@ export function BallFormDialog({ ball, onClose, onSaved, onDelete }: BallFormDia
           >
             {error && <ErrorBanner>{error}</ErrorBanner>}
 
-            {/* Catalog link — first thing in the form, and always visible, so
+            {/* Catalog link, first thing in the form, and always visible, so
                 the fastest path to a fully specced ball is also the obvious one. */}
             <button
               type="button"
@@ -394,7 +394,9 @@ function CatalogPickerSheet({ onPick, onClose }: CatalogPickerSheetProps) {
         <p className="text-sm text-ink-secondary">Loading catalog…</p>
       ) : shown.length === 0 ? (
         <p className="text-sm text-ink-secondary">
-          {balls.length === 0 ? "No catalog balls found." : `No matches for "${query}".`}
+          {balls.length === 0
+            ? "The catalog has not loaded yet. Connect once and it is yours offline."
+            : `Nothing in the catalog matches "${query}".`}
         </p>
       ) : (
         <ul className="space-y-1.5">

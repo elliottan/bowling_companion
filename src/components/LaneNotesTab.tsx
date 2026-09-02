@@ -6,6 +6,8 @@ import { deleteLaneNote, getLaneNotes, upsertLaneNote } from "../services/ballRe
 import type { LaneNote } from "../types/bowling";
 import { Button } from "./ui/Button";
 import { IconButton } from "./ui/IconButton";
+import { EmptyState } from "./ui/EmptyState";
+import { LanePairIcon } from "./icons";
 
 interface LaneNotesTabProps {
   alley: string;
@@ -97,7 +99,13 @@ export function LaneNotesTab({ alley, currentLanes }: LaneNotesTabProps) {
 
   if (loading) return <p className="px-1 py-4 text-sm text-ink-secondary">Loading…</p>;
   if (rows.length === 0)
-    return <p className="px-1 py-4 text-sm text-ink-secondary">No lanes to show for {alley}.</p>;
+    return (
+      <EmptyState
+        icon={LanePairIcon}
+        title={`No lanes yet for ${alley}`}
+        description="Set the lanes on a game and the pair shows up here, ready for a note."
+      />
+    );
 
   function openEdit(lane: string, note?: LaneNote) {
     setEditingLane(lane);

@@ -57,7 +57,7 @@ export async function deleteBall(id: number): Promise<void> {
 // ---------------------------------------------------------------------------
 
 /**
- * Reject anything that isn't an http(s) URL — the value is rendered as a link,
+ * Reject anything that isn't an http(s) URL, the value is rendered as a link,
  * so `javascript:` and `data:` must never make it into the DB.
  */
 export function normalizeOilPatternUrl(raw: string | undefined): string | undefined {
@@ -76,13 +76,13 @@ export function normalizeOilPatternUrl(raw: string | undefined): string | undefi
   return trimmed;
 }
 
-/** Active patterns only — archived ones stay out of pickers. */
+/** Active patterns only, archived ones stay out of pickers. */
 export async function getOilPatterns(): Promise<OilPattern[]> {
   const all = await db.oil_patterns.orderBy("name").toArray();
   return all.filter((p) => !p.archived);
 }
 
-/** Every pattern including archived — for the settings page. */
+/** Every pattern including archived, for the settings page. */
 export async function getAllOilPatterns(): Promise<OilPattern[]> {
   return db.oil_patterns.orderBy("name").toArray();
 }

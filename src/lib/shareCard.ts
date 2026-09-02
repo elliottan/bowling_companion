@@ -1,3 +1,4 @@
+import { formatSessionDate } from "./dates";
 /**
  * The picture a bowler posts after a good night.
  *
@@ -67,16 +68,10 @@ interface SessionLike {
   sparePct: number | null;
 }
 
-/** Formats a stored session date for the card. Falls back to the raw string,
- *  because `date` is user-editable free text and may not parse. */
+/** Formats a stored session date for the card. One formatter for every place
+ *  a session day is shown (`lib/dates.ts`). */
 export function formatCardDate(date: string): string {
-  const parsed = new Date(date);
-  if (Number.isNaN(parsed.getTime())) return date;
-  return parsed.toLocaleDateString(undefined, {
-    day: "numeric",
-    month: "short",
-    year: "numeric"
-  });
+  return formatSessionDate(date);
 }
 
 function pct(value: number | null): string | null {

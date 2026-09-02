@@ -24,9 +24,13 @@ export async function clearDatabase(page: Page) {
 
 /** Fill the start-session form and submit. Lands on the active scorer. */
 export async function startSession(page: Page, alley: string) {
-  await page.getByRole("button", { name: "Start new session" }).click();
-  await page.getByPlaceholder("Orchid Bowl").fill(alley);
-  await page.getByRole("button", { name: "Start session" }).click();
+  // "Start session" is the one label for this action, so Home offers it twice
+  // (the card and the Fab) and the sheet's commit carries it too. Open with
+  // either, then commit inside the sheet.
+  await page.getByRole("button", { name: "Start session" }).first().click();
+  const sheet = page.getByRole("dialog", { name: "Start session" });
+  await sheet.getByPlaceholder("Pinecrest Lanes").fill(alley);
+  await sheet.getByRole("button", { name: "Start session" }).click();
   // A new game opens the lane editor (lanes unset); dismiss it. Lanes save as
   // they are typed, so the dialog's only control is its close.
   await page.getByRole("dialog", { name: /lanes/i }).getByRole("button", { name: "Close" }).click();

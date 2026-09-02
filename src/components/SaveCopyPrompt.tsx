@@ -83,7 +83,7 @@ export function SaveCopyPrompt({ urgency, onLater, onDismiss }: SaveCopyPromptPr
         {error && <p className="mt-2 pl-7 text-xs font-semibold">{error}</p>}
         <div className="mt-2 pl-7">
           <Button variant="primary" onClick={handleSave} disabled={busy}>
-            {busy ? "Saving..." : "Save a copy"}
+            {busy ? "Saving…" : "Save a copy"}
           </Button>
         </div>
       </div>

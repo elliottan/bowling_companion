@@ -189,7 +189,7 @@ export async function prepareImport(fileOrJson: File | string | unknown): Promis
 /**
  * Replace the entire database with the file's contents (ADR-038). Every local
  * row is destroyed first, so a safety copy of the current data is downloaded
- * before anything is cleared — that file is the only way back.
+ * before anything is cleared, that file is the only way back.
  */
 export async function replaceAllData(
   backup: BowlingBackup,
@@ -217,7 +217,7 @@ export async function replaceAllData(
         db.settings.clear()
       ]);
 
-      // The tables are empty, so the file's own ids can be replayed verbatim —
+      // The tables are empty, so the file's own ids can be replayed verbatim , 
       // no content matching, no id remapping, no collisions to resolve.
       await db.sessions.bulkAdd(backup.tables.sessions);
       await db.games.bulkAdd(backup.tables.games);

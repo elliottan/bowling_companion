@@ -75,7 +75,7 @@ interface ActiveGameScorerProps {
 
 /** Pins available entering a given shot of a frame (for editing a past shot). */
 function availableEnteringShot(frame: Frame, shotIndex: number): PinNumber[] | undefined {
-  if (shotIndex === 0) return undefined; // fresh rack — all pins available
+  if (shotIndex === 0) return undefined; // fresh rack, all pins available
   const prev = frame.shots[shotIndex - 1]?.pins_standing;
   return prev && prev.length > 0 ? prev : undefined;
 }
@@ -116,7 +116,7 @@ export function ActiveGameScorer({
   // True while the intended line is one this ball's history filled in, rather
   // than one the user typed or a carry-forward/spare line supplied. Only an
   // auto-filled line is recomputed when the ball changes underneath it.
-  // A just-converted spare whose leave has no saved Spare Line — offered as a
+  // A just-converted spare whose leave has no saved Spare Line, offered as a
   // dismissible banner so the line can be captured in the moment.
   const [pendingSpareLeave, setPendingSpareLeave] = useState<{
     pins: PinNumber[];
@@ -321,7 +321,7 @@ export function ActiveGameScorer({
     }
   }
 
-  // Edit a recorded shot's metadata only — no cascade, other shots untouched.
+  // Edit a recorded shot's metadata only, no cascade, other shots untouched.
   function handleEditMeta(meta: ShotMetadata) {
     if (!selectedShot || locked) return;
     const { frameNumber, shotIndex } = selectedShot;
@@ -331,7 +331,7 @@ export function ActiveGameScorer({
     if (frame) void persistFrame(frame);
   }
 
-  // Edit a recorded shot's pins — re-derive the frame, rescore, persist.
+  // Edit a recorded shot's pins, re-derive the frame, rescore, persist.
   function handleEditPins(pins: PinNumber[]) {
     if (!selectedShot || locked) return;
     const { frameNumber } = selectedShot;
@@ -458,9 +458,9 @@ export function ActiveGameScorer({
   })();
 
   // Flush the live (un-submitted) shot when the game changes or the component
-  // unmounts — and on page-hide / tab background. The ref is refreshed in a
-  // post-commit effect (not during render) so the gameKey cleanup below — which
-  // runs BEFORE the next render's effects — reads the OUTGOING game's state
+  // unmounts, and on page-hide / tab background. The ref is refreshed in a
+  // post-commit effect (not during render) so the gameKey cleanup below, which
+  // runs BEFORE the next render's effects, reads the OUTGOING game's state
   // paired with its matching onFrameComplete. Assigning during render would pair
   // the outgoing game's shot with the incoming game's handler (writes to the
   // wrong game).
@@ -498,7 +498,7 @@ export function ActiveGameScorer({
   }, []);
 
   // Once the live shot has a value, fold it into the scoring frames so a prior
-  // pending strike/spare resolves and shows its total — even though the current
+  // pending strike/spare resolves and shows its total, even though the current
   // frame itself stays blank until it is settled.
   const scoreFrames = (() => {
     if (liveSymbol === undefined) return gameState.frames;
@@ -662,7 +662,7 @@ export function ActiveGameScorer({
 
           {/* Strike/Spare + Next stay visible and functional in both live and
               editing states (every frame is editable). While editing a recorded
-              shot, Strike/Spare applies that mark and Next leaves it untouched —
+              shot, Strike/Spare applies that mark and Next leaves it untouched , 
               both then jump the cursor back to the latest incomplete frame. */}
           {!gameState.isComplete ? (
             <div className="flex gap-2">
@@ -752,7 +752,7 @@ export function ActiveGameScorer({
       <ConfirmDialog
         open={showEditPrompt}
         title="Edit this completed game?"
-        message="This game is finished. Changing a recorded shot can't be undone."
+        message="This game is finished. Changing a recorded shot cannot be undone."
         confirmLabel="Edit"
         onConfirm={() => {
           setUnlocked(true);

@@ -65,7 +65,7 @@ export function SessionForm({
   const [showPatternManager, setShowPatternManager] = useState(false);
 
   // The picker offers active patterns only, but a session being edited may
-  // point at an archived one — keep it selectable so saving can't clear it.
+  // point at an archived one, keep it selectable so saving can't clear it.
   const loadPatterns = useCallback(async (selectedId?: number) => {
     const active = await getOilPatterns();
     if (selectedId == null || active.some((op) => op.id === selectedId)) return active;
@@ -104,7 +104,7 @@ export function SessionForm({
   }, [description, descriptions]);
 
   // Patterns may have been renamed, added, archived or deleted while the
-  // manager was open — and the current selection may no longer exist.
+  // manager was open, and the current selection may no longer exist.
   async function closePatternManager() {
     setShowPatternManager(false);
     const refreshed = await loadPatterns(selectedPatternId).catch(() => null);
@@ -141,7 +141,7 @@ export function SessionForm({
                 onFocus={() => setShowAlleyList(true)}
                 onBlur={() => setTimeout(() => setShowAlleyList(false), 120)}
                 className={FIELD}
-                placeholder="Orchid Bowl"
+                placeholder="Pinecrest Lanes"
                 autoComplete="off"
               />
               {showAlleyList && alleyMatches.length > 0 && (
@@ -181,7 +181,7 @@ export function SessionForm({
                 onFocus={() => setShowDescList(true)}
                 onBlur={() => setTimeout(() => setShowDescList(false), 120)}
                 className={FIELD}
-                placeholder="League night, practice, tournament…"
+                placeholder="League, practice, tournament…"
                 autoComplete="off"
               />
               {showDescList && descMatches.length > 0 && (

@@ -17,7 +17,7 @@ type Columns = "scoring" | "first ball";
 
 const COLUMN_SETS: Columns[] = ["scoring", "first ball"];
 
-/** Below this a slot is one or two nights of luck, so it is drawn muted and
+/** Below this a game number is one or two sessions of luck, so it is drawn muted and
  *  its numbers are not what the headline is read off. */
 const THIN = 3;
 
@@ -62,7 +62,7 @@ export function GameTrendView({ onBack }: GameTrendViewProps) {
           <EmptyState
             icon={LayoutGrid}
             title="No games to compare yet"
-            description="Two nights is enough to put your first game next to your last."
+            description="Two sessions is enough to put your first game next to your last."
           />
         ) : (
           <>
@@ -179,7 +179,8 @@ export function GameTrendView({ onBack }: GameTrendViewProps) {
             </div>
 
             <p className="mt-3 px-0.5 text-xs leading-relaxed text-ink-secondary">
-              Tap a game to filter every stat to it. Slots under {THIN} games are greyed out.
+              Tap a game to filter every stat to it. Games with fewer than {THIN} played are
+              greyed out.
             </p>
           </>
         )}

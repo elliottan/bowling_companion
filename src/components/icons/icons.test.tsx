@@ -19,6 +19,7 @@ describe("the custom icon set", () => {
       "OilPatternIcon",
       "PinIcon",
       "RackIcon",
+      "ShareIosIcon",
       "SpareLineIcon"
     ]);
   });

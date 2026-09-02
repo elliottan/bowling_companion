@@ -8,6 +8,32 @@ merge to `main` (`docs/DEPLOYMENT.md`), so every section below is a dated batch
 of shipped work rather than a release. Thirty of them used to be headed
 `[Unreleased]`, which said nothing once they had all shipped.
 
+## One word for each thing (2026-09)
+
+### Changed
+
+- **A trip to the alley is a "session" everywhere.** It was a night on some
+  screens and a session on others, sometimes both in the same card.
+- **A place you bowl is an "alley".** It was a location in the filters, a house
+  in two nudges, and an alley in Settings.
+- **The two boards you set are "stance" and "target"**, on the spare line cards
+  and in the game plan, matching the scorer. "Bkpt" is now "Break".
+- **One label per action.** Start session, Add to arsenal, Catalog: each was
+  written two or three ways depending on where you found it.
+- **Backup and restore stops saying JSON.** "Save a backup", "Restore a backup",
+  and a drop target that names a backup file rather than a file extension.
+- **Dates read as dates.** Session headers and the history list printed the
+  stored `2026-09-01`; they now use the device's own date format.
+- **The stat abbreviations say what they stand for.** P, C and S on the ball
+  table now carry their full names, and open frames says "open frames a game"
+  instead of "open/gm".
+- **The catalog's empty state describes the catalog**, says it needs one trip
+  online, and stops describing a different feature.
+- **Spare lines, lane notes and history get real empty states**, with a line
+  about what lives there and a way in.
+- **The iOS install steps say Safari**, and show the share glyph inline, because
+  Chrome and Firefox on iOS cannot add to the home screen.
+
 ## The mark, and icons that mean bowling (2026-09)
 
 ### Changed

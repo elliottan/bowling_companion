@@ -83,7 +83,7 @@ export function SwipePanes({
       axis.current = Math.abs(dx) > Math.abs(dy) ? "h" : "v";
     }
     if (axis.current !== "h") return;
-    // Stay put at the ends — no rubber-band.
+    // Stay put at the ends, no rubber-band.
     const canGo = (dx < 0 && index < n - 1) || (dx > 0 && index > 0);
     setDragging(true);
     setDrag(canGo ? dx : 0);

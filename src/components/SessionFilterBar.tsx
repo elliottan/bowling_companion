@@ -166,7 +166,7 @@ export function SessionFilterSheet({
       <div className="space-y-4 px-4 py-4">
         <div>
           <label className={FIELD_LABEL} htmlFor="filter-alley">
-            Location
+            Alley
           </label>
           <select
             id="filter-alley"
@@ -174,7 +174,7 @@ export function SessionFilterSheet({
             onChange={(e) => setAlley(e.target.value)}
             className={FIELD_SELECT}
           >
-            <option value="">All locations</option>
+            <option value="">All alleys</option>
             {allAlleys.map((a) => (
               <option key={a} value={a}>
                 {a}
@@ -272,7 +272,7 @@ export function SessionFilterSheet({
 
         {allLanes.length === 0 && (
           <p className="text-xs text-ink-secondary">
-            Pick a location to filter by lane.
+            Pick an alley to filter by lane.
           </p>
         )}
       </div>

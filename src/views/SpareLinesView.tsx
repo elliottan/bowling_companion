@@ -31,6 +31,9 @@ import {
   reorderSpareLines,
 } from "../services/ballRepository";
 import type { LineSpec, SpareLine } from "../types/bowling";
+import { EmptyState } from "../components/ui/EmptyState";
+import { Button } from "../components/ui/Button";
+import { SpareLineIcon } from "../components/icons";
 
 /** Slide → laydown, derived from the stance (ADR-030). Read-only, so it sits
  *  under the entered boards in a lighter weight. */
@@ -49,7 +52,7 @@ function DerivedChain({ line, model }: { line: LineSpec; model: DriftModel }) {
 
 interface SortableSpareCardProps {
   sl: SpareLine;
-  /** Tap: straight to the lane visualizer — the card already shows the boards. */
+  /** Tap: straight to the lane visualizer, the card already shows the boards. */
   onOpen: (sl: SpareLine) => void;
 }
 
@@ -87,7 +90,7 @@ function SortableSpareCard({ sl, onOpen }: SortableSpareCardProps) {
                   so it reads underneath with the slide rather than as a third
                   column competing with them. */}
               <div className="grid grid-cols-2">
-                {([["Stand", sl.line.stance], ["Arrow", sl.line.target]] as const).map(([k, v]) => (
+                {([["Stance", sl.line.stance], ["Target", sl.line.target]] as const).map(([k, v]) => (
                   <div key={k}>
                     <div className="text-[11px] font-semibold uppercase tracking-wide text-ink-secondary">{k}</div>
                     <div className="text-xs font-bold tabular-nums text-ink-strong">{v ?? "-"}</div>
@@ -112,8 +115,8 @@ function StrikeMove({ offset }: { offset?: SpareLine["strike_offset"] }) {
   if (!offset || (offset.stance == null && offset.target == null)) return null;
   const part = (n: number) => (n > 0 ? `+${n}` : `${n}`);
   const parts = [
-    offset.stance != null ? `${part(offset.stance)} stand` : null,
-    offset.target != null ? `${part(offset.target)} arrow` : null
+    offset.stance != null ? `${part(offset.stance)} stance` : null,
+    offset.target != null ? `${part(offset.target)} target` : null
   ].filter(Boolean);
   return (
     <span className="block w-full text-[11px] font-semibold tabular-nums text-accent">
@@ -237,7 +240,16 @@ export function SpareLinesView({ onBack }: { onBack: () => void }) {
       {isLoading ? (
         <p className="text-sm text-ink-secondary">Loading…</p>
       ) : spareLines.length === 0 ? (
-        <p className="text-sm text-ink-secondary">No spare lines yet.</p>
+        <EmptyState
+          icon={SpareLineIcon}
+          title="No spare lines yet"
+          description="Save where you stand and where you aim for a leave, and it comes back the next time you draw it."
+        >
+          <Button variant="primary" onClick={() => setEditing({ mode: "add" })}>
+            <Plus size={18} aria-hidden="true" />
+            Add spare line
+          </Button>
+        </EmptyState>
       ) : (
         <DndContext
           sensors={sensors}

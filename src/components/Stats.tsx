@@ -196,7 +196,7 @@ export function Stats({
       <div className="flex items-center justify-between gap-2">
         {/* The points are games inside a session sheet and nights or game slots
             on the Stats tab, and the header has to say which. Where there is a
-            choice, the "by ..." half of it is the control. */}
+            choice, the "by …" half of it is the control. */}
         <h2 className={GROUP_HEADING}>
           {spec.label} by {gameMetrics ? "game" : "session"}
         </h2>
@@ -232,7 +232,7 @@ export function Stats({
     <div className="space-y-3">
       <div className="grid grid-cols-5 gap-1.5">
         <Tile label="Games" value={String(stats.completedGames)} />
-        {/* High over low, each on its own line — two 3-digit scores side by
+        {/* High over low, each on its own line, two 3-digit scores side by
             side don't fit the tile width. */}
         <Tile
           label=""
@@ -381,11 +381,12 @@ export function Stats({
           <div className="flex items-center gap-2 pb-1 pt-1.5 text-[10px] font-bold uppercase tracking-wide text-ink-tertiary">
             <span className="h-3 w-7 shrink-0" aria-hidden="true" />
             <span className="min-w-0 flex-1" aria-hidden="true" />
-            {["P", "C", "S", "Balls"].map((label) => (
-              <span key={label} className={RATE_COLUMN}>
-                {label}
+            {[["P", "Pocket"], ["C", "Carry"], ["S", "Strike"]].map(([label, full]) => (
+              <span key={label} className={RATE_COLUMN} title={full}>
+                <abbr title={full} className="no-underline">{label}</abbr>
               </span>
             ))}
+            <span className={RATE_COLUMN}>Balls</span>
             <span className="w-3.5 shrink-0" aria-hidden="true" />
           </div>
           <div>

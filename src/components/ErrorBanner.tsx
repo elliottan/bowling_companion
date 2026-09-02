@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 
 /** Inline error message. `role="alert"` makes screen readers announce it the
- *  moment it appears — without it a failure is silent for AT users. */
+ *  moment it appears, without it a failure is silent for AT users. */
 export function ErrorBanner({ children, className = "" }: { children: ReactNode; className?: string }) {
   return (
     <p

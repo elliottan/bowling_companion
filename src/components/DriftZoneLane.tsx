@@ -32,7 +32,7 @@ interface DriftZoneLaneProps {
 /**
  * The approach at the foul line, seen from behind the bowler: 39 board columns
  * with the locator dots, tinted into the three drift zones. Each band carries an
- * arrow showing which way that zone's drift walks the slide foot — the same
+ * arrow showing which way that zone's drift walks the slide foot, the same
  * direction word the stepper below it shows.
  */
 export function DriftZoneLane({ model, hand }: DriftZoneLaneProps) {
@@ -49,7 +49,7 @@ export function DriftZoneLane({ model, hand }: DriftZoneLaneProps) {
       role="img"
       aria-label={`Approach board diagram for a ${hand}-handed bowler, split into outside, middle and inside drift zones`}
     >
-      {/* Maple approach. The foul line runs across the top — the lane is beyond it. */}
+      {/* Maple approach. The foul line runs across the top, the lane is beyond it. */}
       <rect x={0} y={FOUL_H} width={W} height={H - FOUL_H} fill="#efe6d3" />
       <rect x={0} y={0} width={W} height={FOUL_H} fill="#1e293b" />
 

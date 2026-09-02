@@ -7,7 +7,7 @@ import { PIN_POSITIONS } from "../lib/pinGeometry";
 
 const ALL_PINS: PinNumber[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 const ARROW_BOARDS = [5, 10, 15, 20, 25, 30, 35]; // 7 arrows / ruler ticks
-// Plane-units between decorative pin-deck rows. Purely presentational — it
+// Plane-units between decorative pin-deck rows. Purely presentational, it
 // scales the rack, never the geometry (see the deck comment below). True to
 // scale would be ~14.5 (rows sit 10.4in apart, columns 12in ≈ 16.8 units), but
 // that deck would eat ~10ft of drawn lane. The ceiling is ~6.1: the back row
@@ -19,8 +19,8 @@ const RACK_ROW_DY = 6;
 const PEG_COLOR = {
   laydown: "#38bdf8", // sky
   target: "#f59e0b",  // amber (matches the ball path)
-  breakpoint: "#c084fc", // violet — derived, rides the rail
-  final: "#34d399",   // emerald — the pocket / pin target
+  breakpoint: "#c084fc", // violet, derived, rides the rail
+  final: "#34d399",   // emerald, the pocket / pin target
 } as const;
 
 interface LaneSurfaceProps {
@@ -33,7 +33,7 @@ interface LaneSurfaceProps {
   animate?: boolean;
   /** Bump to replay the rolling-ball animation (remounts it). */
   animateKey?: number;
-  /** Derived slide-foot board (ADR-030) — a small, non-interactive foul-line tick,
+  /** Derived slide-foot board (ADR-030), a small, non-interactive foul-line tick,
    *  lighter than the draggable pegs. Omitted when there's no stance to derive from. */
   slideBoard?: number;
   /** Tap a standing pin to set Final to its board (spare mode: leave pins only). */
@@ -45,7 +45,7 @@ export function LaneSurface({ line, hand, leave, showMarkers = true, animate, an
   const hasLeave = (leave?.length ?? 0) > 0;
   const path = buildLinePath(line, hand, hasLeave); // spares (a leave) curve to the final
   // Draw the deck back-to-front (deepest pins first) so nearer pins overlap the
-  // ones behind them — the overlap reads as depth instead of a flat smear.
+  // ones behind them, the overlap reads as depth instead of a flat smear.
   const deckOrder = [...ALL_PINS].sort((a, b) => PIN_POSITIONS[b].feet - PIN_POSITIONS[a].feet);
   const reduceMotion =
     typeof window !== "undefined" &&
@@ -134,7 +134,7 @@ export function LaneSurface({ line, hand, leave, showMarkers = true, animate, an
 
       {/* Pin deck (ADR-020): a decorative, fixed-scale rack. Columns stay at the
           real (mirrored) board so the ball path lands in the right pin's column;
-          rows are spread on their OWN vertical scale (RACK_ROW_DY), NOT feetToY —
+          rows are spread on their OWN vertical scale (RACK_ROW_DY), NOT feetToY , 
           the real deck is only 2.6 ft and feetToY is now linear, so it would smear.
           The rack is anchored at the head-pin row. Standing leave pins read bright;
           the rest ghost out. */}
@@ -213,7 +213,7 @@ export function LaneSurface({ line, hand, leave, showMarkers = true, animate, an
       {path && animate && !reduceMotion && (
         <circle key={animateKey} data-role="ball" r="3" fill="#f59e0b" stroke="#fff" strokeWidth="0.8" opacity="0.95">
           <animateMotion dur="1.4s" repeatCount="1" fill="freeze" path={path.d} />
-          {/* Fade out at the pins — a frozen resting dot read as a mystery marker. */}
+          {/* Fade out at the pins, a frozen resting dot read as a mystery marker. */}
           <animate attributeName="opacity" begin="1.5s" dur="0.35s" from="0.95" to="0" fill="freeze" />
         </circle>
       )}
@@ -274,7 +274,7 @@ function buildMarkers(line: LineSpec | undefined, hand: Handedness, path: NonNul
       p: path.points.breakpoint,
       color: PEG_COLOR.breakpoint,
       // Derived: the curve's rightmost point (ADR-024), not a stored input.
-      label: `Bkpt ${Math.round(xToBoard(path.points.breakpoint.x, hand) * 2) / 2}·${Math.round(yToFeet(path.points.breakpoint.y))}ft`,
+      label: `Break ${Math.round(xToBoard(path.points.breakpoint.x, hand) * 2) / 2}·${Math.round(yToFeet(path.points.breakpoint.y))}ft`,
     });
   }
   // Read the board off the drawn point, not the stored final_board: on an
@@ -299,7 +299,7 @@ function buildMarkers(line: LineSpec | undefined, hand: Handedness, path: NonNul
     last = ly;
   }
   // Near a lane edge, anchor the label so it grows inward instead of clipping off
-  // (common for edge spares — the 7/10-pin sit on board ~3 at the very edge).
+  // (common for edge spares, the 7/10-pin sit on board ~3 at the very edge).
   const EDGE = 28;
   return list.map((m) => {
     let anchor: MarkerData["anchor"] = "middle";

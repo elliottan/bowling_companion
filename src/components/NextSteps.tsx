@@ -25,7 +25,7 @@ const COPY: Record<NextStepKey, StepCopy> = {
   arsenal: {
     icon: BowlingBallIcon,
     title: "Add the balls you throw",
-    description: "Keep track of which ball you used per shot to enrich your stats and trends data.",
+    description: "Once a ball is in your arsenal you can name it on every shot, and the stats split by ball.",
     action: "Add a ball"
   },
   "spare-lines": {
@@ -38,14 +38,14 @@ const COPY: Record<NextStepKey, StepCopy> = {
   "oil-pattern": {
     icon: OilPatternIcon,
     title: "Add the pattern you bowl on",
-    description: "Filter stats by pattern to compare nights with the same oil pattern.",
+    description: "Filter stats by pattern to compare sessions on the same oil.",
     action: "Add a pattern"
   },
   "lane-notes": {
     icon: LanePairIcon,
     title: "Note what a lane does",
     description:
-      "You keep going back to the same house. What its lanes do is worth writing down once.",
+      "You keep going back to the same alley. What its lanes do is worth writing down once.",
     action: "Add a lane note"
   }
 };

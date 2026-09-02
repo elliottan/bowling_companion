@@ -29,7 +29,7 @@ describe("CatalogBallImage", () => {
 
     expect(remounted.className).toContain("opacity-100");
     expect(remounted.className).not.toContain("opacity-0");
-    // No fade to replay either — it was never transparent.
+    // No fade to replay either, it was never transparent.
     expect(remounted.className).toContain("duration-0");
   });
 

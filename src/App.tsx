@@ -163,7 +163,7 @@ function App() {
 
   // Rotation recovery lives entirely in CSS: the shell is `fixed inset-0`, so
   // the browser resolves its box against the live viewport at paint time. No
-  // measured pixel height, no `dvh`, nothing for iOS to hand back stale — which
+  // measured pixel height, no `dvh`, nothing for iOS to hand back stale, which
   // is what five earlier attempts all foundered on. See `docs/VIEWPORT-BUG.md`
   // before reintroducing any JS viewport measurement here.
   //
@@ -172,7 +172,7 @@ function App() {
   // The fixed shell keeps painting against the visual viewport while taps
   // resolve in layout space, so every touch target sat displaced by exactly
   // that offset until relaunch. Since this app never legitimately scrolls the
-  // document, any non-zero offset is spurious — clamp it back to zero.
+  // document, any non-zero offset is spurious, clamp it back to zero.
   useEffect(() => {
     const isTextField = (el: Element | null) =>
       !!el && (el.tagName === "TEXTAREA" || el.tagName === "INPUT");
@@ -188,7 +188,7 @@ function App() {
       setTimeout(reset, 500);
     };
     // Listening to scroll as well makes this self-healing rather than
-    // rotation-specific — whatever knocks the document off zero, it comes back.
+    // rotation-specific, whatever knocks the document off zero, it comes back.
     window.addEventListener("orientationchange", onOrientation);
     window.addEventListener("scroll", reset, { passive: true });
     window.visualViewport?.addEventListener("scroll", reset);
@@ -241,7 +241,7 @@ function App() {
   }, [boot.resumable]);
 
   // The home "resume" widget reflects (and jumps to) the currently active
-  // session — whichever session is loaded in the Active tab. Falls back to
+  // session, whichever session is loaded in the Active tab. Falls back to
   // today's unfinished game when nothing is active. Refreshes on view change so
   // the game number stays current.
   const refreshResumable = useCallback(() => {
@@ -259,7 +259,7 @@ function App() {
     refreshResumable();
   }, [refreshResumable, view]);
 
-  // A session deleted from a history row may be the active one — drop the
+  // A session deleted from a history row may be the active one, drop the
   // stale active state so the Active tab and resume pill don't point at it.
   function handleSessionDeleted(sessionId: number) {
     // Clearing the active session refires refreshResumable via the effect;
@@ -306,8 +306,8 @@ function App() {
   const goToBackup = () => pushOverlay("backup");
 
   // Keyboard overlays the nav (viewport interactive-widget=overlays-content).
-  // Only nudge a focused field into view when it's actually hidden — off the top
-  // or below the keyboard-shrunk visual viewport — and then by the minimum amount
+  // Only nudge a focused field into view when it's actually hidden, off the top
+  // or below the keyboard-shrunk visual viewport, and then by the minimum amount
   // (block: "nearest"). Scrolling already-visible fields caused a jarring jump.
   useEffect(() => {
     function onFocusIn(e: FocusEvent) {
@@ -357,7 +357,7 @@ function App() {
   }
 
   // `openStats` (a finished session) lands on the session page with the stats
-  // sheet already up — there's no scoring left to do there.
+  // sheet already up, there's no scoring left to do there.
   function openSession(sessionId: number, openStats = false) {
     dispatch({ type: "openSession", sessionId, openStats });
   }
@@ -389,7 +389,7 @@ function App() {
   return (
     <HandednessContext.Provider value={handedness ?? "right"}>
     <DriftModelContext.Provider value={driftModel}>
-    {/* `fixed inset-0` is load-bearing, not cosmetic — see the note above. */}
+    {/* `fixed inset-0` is load-bearing, not cosmetic, see the note above. */}
     <div
       id="app-shell"
       className="fixed inset-0 flex flex-col overflow-hidden bg-surface-sunken pt-[env(safe-area-inset-top)] pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)] text-ink"

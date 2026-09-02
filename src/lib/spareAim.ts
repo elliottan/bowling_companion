@@ -6,7 +6,7 @@ import { LANE_BOARDS } from "./laneGeometry";
 const BOARD_IN = 1.0417;
 const R_BALL = 4.08; // 8.5 in ball / 2 / BOARD_IN
 const R_PIN = 2.29; // 4.766 in pin / 2 / BOARD_IN
-const SLIDE_REACH = R_BALL + R_PIN; // ≈ 6.37 — full lateral slide offset (θ=90°)
+const SLIDE_REACH = R_BALL + R_PIN; // ≈ 6.37, full lateral slide offset (θ=90°)
 const CONNECT_BOARDS = 11.5; // ≤ one pin spacing → laterally connected
 const SLEEPER_BOARDS = 3; // |Δboard| under this + deeper = a pin stacked behind
 
