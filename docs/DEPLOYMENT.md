@@ -162,6 +162,27 @@ wherever a reload costs the user nothing (`src/lib/swUpdate.ts`).
 
 Hashed asset filenames mean stale assets never collide.
 
+## Manual checks
+
+Two things the suite cannot do, both on a real device.
+
+**Rotation.** `docs/VIEWPORT-BUG.md` explains why: the bug it documents lives in
+the browser's own viewport handling, and neither jsdom nor a headless browser
+reproduces it. On an iPhone, in the installed app:
+
+1. Score a frame in portrait, rotate to landscape, rotate back. The scorer is
+   still on the same frame and the page is not scrolled somewhere else.
+2. Open a sheet (the ball picker), rotate, close it. The tab bar is where it
+   was and nothing is under the home indicator.
+3. Focus a notes field, rotate with the keyboard up, dismiss it. The layout
+   comes back to full height.
+
+**The update flow.** `swUpdate` is unit-tested (applies when safe, holds while
+unsafe, once per page, foreground check), but a real service worker taking over
+a real page is not. After a deploy, with the app already installed: open it,
+leave it on Home, and confirm it picks the new version up without a prompt;
+then repeat on the Active tab and confirm the toast waits there instead.
+
 ## Post-deploy smoke check
 
 1. Open the production URL on a phone.

@@ -8,6 +8,24 @@ merge to `main` (`docs/DEPLOYMENT.md`), so every section below is a dated batch
 of shipped work rather than a release. Thirty of them used to be headed
 `[Unreleased]`, which said nothing once they had all shipped.
 
+## Tests that outlive this pass (2026-09)
+
+Nothing user-visible. Recorded because it is why the changes above can be
+trusted, and why the next ones can be.
+
+- **Safari is tested now.** The end-to-end suite runs under WebKit as well as
+  Chromium, on an iPhone 13 profile. The launch crowd bowls with an iPhone in
+  their pocket, and nothing ran there before; the first WebKit run found six
+  failures.
+- **The five screens that carry the data-loss risks have unit tests**: backup
+  and restore, the first run, Settings, the active session and the catalog.
+  View coverage went from 11% to 35%, and both views and components now have a
+  floor, so they cannot quietly go back to zero.
+- **New end-to-end cases** for scoring with the network switched off, for the
+  theme and handedness surviving a reload, and for the catalog's windowing.
+- **A manual checklist** in the deployment doc for the two things a headless
+  browser cannot check: rotation, and a real service worker taking over.
+
 ## Less to download, and less to draw (2026-09)
 
 ### Changed

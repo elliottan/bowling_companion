@@ -256,7 +256,15 @@ export default defineConfig({
       // upgrade: the tests did not change, the accounting did.
       thresholds: {
         "src/lib/**": { lines: 90, functions: 90, branches: 82 },
-        "src/services/**": { lines: 83, functions: 80, branches: 68 }
+        "src/services/**": { lines: 83, functions: 80, branches: 68 },
+        // Views and components have floors now, which they did not before, and
+        // the point is that a floor exists rather than that it is high: it
+        // stops the five screens that carry the data-loss risks from quietly
+        // going back to zero. Measured at views 34/21/24 and components
+        // 62/52/59; set a few points under each so a refactor that moves a
+        // branch around does not fail the build.
+        "src/views/**": { lines: 30, functions: 18, branches: 21 },
+        "src/components/**": { lines: 58, functions: 48, branches: 55 }
       }
     }
   }

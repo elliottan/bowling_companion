@@ -68,3 +68,19 @@ export async function recordShot(page: Page, standingAfter: number[]) {
   }
   await page.getByRole("button", { name: RECORD_SHOT }).click();
 }
+
+/**
+ * Take the download path rather than the share sheet.
+ *
+ * `shareBackup` prefers `navigator.share` where the browser can share a file,
+ * which is the right destination on a phone and is what a WebKit run gets.
+ * Playwright cannot complete an OS share sheet, so a test that wants the file
+ * on disk asks for the fallback. The share branch itself is unit-tested
+ * (`canShareBackupFile`).
+ */
+export async function preferDownloadOverShare(page: Page) {
+  await page.addInitScript(() => {
+    Object.defineProperty(navigator, "share", { value: undefined, configurable: true });
+    Object.defineProperty(navigator, "canShare", { value: undefined, configurable: true });
+  });
+}

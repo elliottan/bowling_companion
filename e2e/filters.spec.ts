@@ -11,7 +11,7 @@ test.use({ hasTouch: true, isMobile: true });
 async function twoNights(page: Parameters<typeof startSession>[0]) {
   await clearDatabase(page);
   for (const alley of ["Alpha Lanes", "Beta Lanes"]) {
-    await page.getByRole("button", { name: "Home" }).click();
+    await page.getByRole("navigation").getByRole("button", { name: "Home" }).click();
     await startSession(page, alley);
     for (let i = 0; i < 12; i++) await recordShot(page, []);
   }

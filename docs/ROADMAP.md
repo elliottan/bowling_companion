@@ -42,13 +42,27 @@ worth revisiting as one change rather than one file at a time.
 
 ## Lower impact / exploratory
 
-### The spare line editor is the last form off the shared shell
+### An end-to-end test of a real service worker takeover
 
-`SpareLineFormDialog` still carries its own header and a footer row of Save /
-Cancel / Delete, where every other form now uses `ui/FormSheet` and puts the
-commit in the bar (DESIGN-LANGUAGE §1a). It has a third action and a nested
-visualizer, so it needs a decision about where Delete lives rather than a
-mechanical port.
+`swUpdate` is covered by unit tests (applies when safe, holds while unsafe, once
+per page, the foreground check, the stale-shell error names), but the last mile,
+a real worker activating over a real page, is not. Playwright would need a
+second built copy of the app served by `vite preview`, deployed mid-run, which
+the current single-`webServer` config cannot express. Until then it is the
+manual check in `docs/DEPLOYMENT.md`.
+
+### The session sheet is the last full-screen surface off `FormSheet`
+
+`SessionLanePanel` has its own shell: a full-height sheet with a tab track and
+swipeable panes inside it. It now carries the close control §1b asks for, but
+its body is a scroll container of its own, which `FormSheet` also wants to own,
+so porting it is a layout decision rather than a mechanical swap.
+
+### The lane visualizer paints its own dark chrome
+
+`LaneVisualizer` uses `slate-*` and `white/*` directly rather than theme tokens.
+That is deliberate, the lane is the same wood in a dark room as a light one, but
+it is currently undocumented as an exception in the way `PinGrid`'s wood now is.
 
 ---
 
