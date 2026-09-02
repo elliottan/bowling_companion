@@ -1,13 +1,15 @@
 import { X } from "lucide-react";
 import { useEffect, useState } from "react";
-import { applyUpdate, setNeedsRefresh, subscribeNeedsRefresh } from "../lib/swUpdate";
+import { applyUpdate, dismissUpdate, subscribeNeedsRefresh } from "../lib/swUpdate";
 import { Button } from "./ui/Button";
 import { IconButton } from "./ui/IconButton";
 
 /**
- * Bottom toast shown when a new service worker is waiting (registerType:
- * "prompt" — we never auto-swap mid-game). Sits above the mobile tab bar
- * (h-16 + safe-area-inset-bottom) and below the arsenal sheet / modals.
+ * Bottom toast shown when a new service worker is waiting and the app is
+ * somewhere a reload would cost something, which in practice is the Active tab
+ * (`lib/swUpdate.ts` applies the update by itself everywhere else). Sits above
+ * the mobile tab bar (h-16 + safe-area-inset-bottom) and below the arsenal
+ * sheet and modals.
  */
 export function UpdateToast() {
   const [visible, setVisible] = useState(false);
@@ -27,7 +29,7 @@ export function UpdateToast() {
         <Button variant="primary" onClick={() => applyUpdate()}>
           Update
         </Button>
-        <IconButton variant="inverse" onClick={() => setNeedsRefresh(false)} label="Dismiss">
+        <IconButton variant="inverse" onClick={() => dismissUpdate()} label="Dismiss">
           <X size={16} aria-hidden="true" />
         </IconButton>
       </div>

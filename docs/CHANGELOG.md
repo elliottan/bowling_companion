@@ -8,6 +8,28 @@ merge to `main` (`docs/DEPLOYMENT.md`), so every section below is a dated batch
 of shipped work rather than a release. Thirty of them used to be headed
 `[Unreleased]`, which said nothing once they had all shipped.
 
+## Updates land by themselves, and the app opens once (2026-09)
+
+### Changed
+
+- **A new version installs itself when it costs you nothing.** It used to wait
+  behind a toast until you tapped Update. It now applies on its own anywhere
+  outside the Active tab, and only waits there. The toast's x puts the toast
+  away for that visit; the update still lands the moment you leave the tab.
+- **Coming back to the app looks for a new version.** An installed app left in
+  the background for weeks never noticed there was one.
+- **The app opens once, not three times.** It used to paint an empty Dashboard,
+  then the welcome screen over the top of it, then the real data. To anyone with
+  a history that read as a wipe. Everything now waits for one read, and a read
+  that hangs releases the app after four seconds rather than holding it shut.
+- **A tab left open across an update says so.** It used to crash, and the crash
+  screen's Reload could not fix it. It now offers the reload that can.
+
+### Fixed
+
+- **The stats screens say they are still reading** instead of showing "nothing
+  yet" for a frame to a bowler with a season of games behind them.
+
 ## Nothing is deleted without asking (2026-09)
 
 ### Added

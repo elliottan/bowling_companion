@@ -9,6 +9,7 @@ import { SessionFormDialog } from "./SessionFormDialog";
 import type { NewSessionFormValues } from "./SessionForm";
 import type { SessionSummary } from "../types/bowling";
 import { GROUP_HEADING } from "./ui/typography";
+import { LoadingCard } from "./ui/LoadingCard";
 import { EmptyState } from "./ui/EmptyState";
 import { AnchoredMenu, AnchoredMenuItem } from "./ui/AnchoredMenu";
 
@@ -30,13 +31,7 @@ export function SessionHistory({
   activeSessionId,
   onSessionDeleted
 }: SessionHistoryProps) {
-  if (isLoading) {
-    return (
-      <p className="rounded-lg border border-edge bg-surface p-4 text-sm text-ink-secondary shadow-sm">
-        Loading…
-      </p>
-    );
-  }
+  if (isLoading) return <LoadingCard />;
 
   if (sessions.length === 0) {
     return (

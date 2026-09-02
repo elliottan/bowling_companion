@@ -23,13 +23,13 @@ import { ActiveSessionView } from "./views/ActiveSessionView";
 import { HistoryView } from "./views/HistoryView";
 import { rememberScroll, restoreScroll } from "./lib/viewMemory";
 import { SettingsView } from "./views/SettingsView";
+import { useBoot } from "./views/useBoot";
+import { setUpdateSafe } from "./lib/swUpdate";
 import { StatsView } from "./views/StatsView";
 import {
   addGameToSession,
   createSession,
   getDriftModel,
-  hasSavedData as hasSavedDataOnDevice,
-  getHandedness,
   getResumableForSession,
   getResumableToday,
   setDriftModel as persistDriftModel,
@@ -112,9 +112,9 @@ function App() {
   const goBack = useHistoryRoute(nav, dispatch);
   const [isStartingSession, setIsStartingSession] = useState(false);
   const [startError, setStartError] = useState("");
-  const [handedness, setHandednessState] = useState<Handedness | null>(null);
-  const [handednessLoaded, setHandednessLoaded] = useState(false);
-  const [hasSavedData, setHasSavedData] = useState(false);
+  // The stored answer comes from the boot gate; this only holds the one the
+  // user just gave, which is on screen before the write lands.
+  const [chosenHandedness, setChosenHandedness] = useState<Handedness | null>(null);
   const [driftModel, setDriftModelState] = useState<DriftModel>(DEFAULT_DRIFT_MODEL);
   const [resumable, setResumable] = useState<ResumableGame | null>(null);
   // A realistic strike line; auto-hooks to the pocket (ADR-024), no seeded breakpoint.
@@ -216,17 +216,29 @@ function App() {
     }
   }, []);
 
-  // On launch, if today has an unfinished game, jump straight into it. Not
-  // when the URL already named a screen: a reload or a shared link asked for
-  // somewhere specific, and that beats the convenience jump.
+  // Where a waiting update may apply itself. Every shot is already persisted
+  // and the session id is in the hash, so the only place a reload costs
+  // anything is mid-entry: the Active tab, a keyboard up, a session being
+  // started. Everywhere else the update lands with nothing to notice.
   useEffect(() => {
-    if (launchedWithRoute) return;
-    getResumableToday()
-      .then((r) => {
-        if (r) dispatch({ type: "resumeAvailable", sessionId: r.sessionId });
-      })
-      .catch(() => {});
-  }, []);
+    setUpdateSafe(view !== "active" && !keyboardOpen && !isStartingSession);
+  }, [view, keyboardOpen, isStartingSession]);
+
+  // One gate rather than three mount effects, so the shell never paints an
+  // empty Dashboard, then a welcome over it, then the real data (useBoot).
+  const boot = useBoot(launchedWithRoute);
+
+  const handedness = chosenHandedness ?? boot.handedness;
+  const hasSavedData = boot.hasSavedData;
+
+  // If today has an unfinished game, jump straight into it. Not when the URL
+  // already named a screen: a reload or a shared link asked for somewhere
+  // specific, and that beats the convenience jump.
+  useEffect(() => {
+    if (boot.resumable) {
+      dispatch({ type: "resumeAvailable", sessionId: boot.resumable.sessionId });
+    }
+  }, [boot.resumable]);
 
   // The home "resume" widget reflects (and jumps to) the currently active
   // session — whichever session is loaded in the Active tab. Falls back to
@@ -257,27 +269,11 @@ function App() {
   }
 
   useEffect(() => {
-    getHandedness()
-      .then(setHandednessState)
-      .catch(() => {})
-      .finally(() => setHandednessLoaded(true));
-  }, []);
-
-  useEffect(() => {
     getDriftModel().then(setDriftModelState).catch(() => {});
   }, []);
 
-  // Asked alongside handedness, not derived from it: a restore can leave a
-  // device with a full history and no handedness row, and that bowler is not
-  // new. Read once, next to the question it decides.
-  useEffect(() => {
-    hasSavedDataOnDevice()
-      .then(setHasSavedData)
-      .catch(() => {});
-  }, []);
-
   async function chooseHandedness(value: Handedness) {
-    setHandednessState(value);
+    setChosenHandedness(value);
     try {
       await persistHandedness(value);
     } catch {
@@ -370,6 +366,24 @@ function App() {
    *  too: the session sheet opens on that game with its shots lit up. */
   function openSessionGame(sessionId: number, gameId: number, ballId?: number) {
     dispatch({ type: "openSession", sessionId, gameId, ballId });
+  }
+
+  // Thrown in render, not handled here: only AppErrorBoundary can tell a shell
+  // older than its database from an ordinary crash.
+  if (boot.error) throw boot.error;
+
+  // Before the gate resolves the shell is one flat colour, which is the
+  // background it would be painting anyway. A splash or a skeleton here would
+  // be a flash on an installed device, which boots from precache.
+  if (!boot.booted) {
+    return (
+      <div
+        id="app-shell"
+        className="fixed inset-0 flex flex-col overflow-hidden bg-surface-sunken text-ink"
+      >
+        <UpdateToast />
+      </div>
+    );
   }
 
   return (
@@ -578,7 +592,7 @@ function App() {
       {/* The whole first run, not a dialog over an app the user has not seen
           yet. It owns the viewport until handedness exists, which a restore
           can also supply (ADR-072). */}
-      {handednessLoaded && handedness === null && (
+      {boot.handednessKnown && handedness === null && (
         <FirstRun onSelectHandedness={chooseHandedness} hasSavedData={hasSavedData} />
       )}
     </div>

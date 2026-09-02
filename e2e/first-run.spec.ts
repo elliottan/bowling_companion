@@ -26,6 +26,39 @@ test("opens on the welcome screen, not on a question over an unseen app", async 
   await expect(page.getByRole("button", { name: "Restore from a backup" })).toBeVisible();
 });
 
+test("the welcome screen is the first thing painted, never a Dashboard first", async ({
+  page
+}) => {
+  await page.goto("/score");
+  await page.evaluate(async () => {
+    await new Promise<void>((resolve) => {
+      const req = indexedDB.deleteDatabase("BowlingCompanionDB");
+      req.onsuccess = req.onerror = req.onblocked = () => resolve();
+    });
+  });
+
+  // A flag set by whatever appears first. The three boot reads used to land in
+  // any order, so a new bowler saw an empty Dashboard and then a welcome over
+  // the top of it, which reads as a wipe to anyone who is not new.
+  await page.addInitScript(() => {
+    (window as unknown as { __sawApp?: boolean }).__sawApp = false;
+    new MutationObserver(() => {
+      const buttons = document.querySelectorAll("button");
+      for (const b of buttons) {
+        if (b.textContent?.includes("Start new session")) {
+          (window as unknown as { __sawApp?: boolean }).__sawApp = true;
+        }
+      }
+    }).observe(document.documentElement, { childList: true, subtree: true });
+  });
+
+  await page.reload();
+  await expect(page.getByRole("dialog", { name: "Set up Headpin" })).toBeVisible();
+  expect(await page.evaluate(() => (window as unknown as { __sawApp?: boolean }).__sawApp)).toBe(
+    false
+  );
+});
+
 test("walks new bowlers through to the app", async ({ page }) => {
   await freshInstall(page);
 

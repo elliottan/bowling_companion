@@ -3,6 +3,7 @@ import { useLiveQuery } from "dexie-react-hooks";
 import { ChevronRight, Compass } from "lucide-react";
 import { PushScreen } from "../components/PushScreen";
 import { EmptyState } from "../components/ui/EmptyState";
+import { LoadingCard } from "../components/ui/LoadingCard";
 import { GROUP_HEADING } from "../components/ui/typography";
 import { FIELD_LABEL, FIELD_SELECT } from "../components/ui/field";
 import { buildBriefing, type BriefingFinding, type BriefingGap } from "../lib/briefing";
@@ -50,6 +51,7 @@ export function GamePlanView({ onBack, onOpenStats, onOpenSession }: GamePlanVie
   const liveHistory = useLiveQuery(() => getSessionHistory());
   const liveBalls = useLiveQuery(() => getBalls());
   const history = liveHistory ?? NO_SESSIONS;
+  const isLoading = liveHistory === undefined;
   const balls = liveBalls ?? NO_BALLS;
   const handedness = useHandedness();
 
@@ -95,7 +97,9 @@ export function GamePlanView({ onBack, onOpenStats, onOpenSession }: GamePlanVie
   return (
     <PushScreen title="Game plan" onBack={onBack}>
       <div className="mx-auto w-full max-w-3xl px-3 pb-8 pt-3 sm:px-6">
-        {history.length === 0 ? (
+        {isLoading ? (
+          <LoadingCard />
+        ) : history.length === 0 ? (
           <EmptyState
             icon={Compass}
             title="Nothing to go on yet"

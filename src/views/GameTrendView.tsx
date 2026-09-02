@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { Info, LayoutGrid } from "lucide-react";
 import { PushScreen } from "../components/PushScreen";
 import { EmptyState } from "../components/ui/EmptyState";
+import { LoadingCard } from "../components/ui/LoadingCard";
 import { GROUP_HEADING } from "../components/ui/typography";
 import { IconButton } from "../components/ui/IconButton";
 import { TAP_TARGET_44 } from "../components/ui/Chip";
@@ -38,7 +39,7 @@ interface GameTrendViewProps {
  * do not fit a phone (docs/DESIGN-LANGUAGE.md §4b).
  */
 export function GameTrendView({ onBack }: GameTrendViewProps) {
-  const { filtered, activeLanes, setGameNumber } = useSessionFilters();
+  const { filtered, activeLanes, setGameNumber, isLoading } = useSessionFilters();
   const handedness = useHandedness();
   const [columns, setColumns] = useRememberedState<Columns>("game-trend:columns", "scoring");
   const [metric, setMetric] = useRememberedState<MetricKey>("game-trend:metric", "average");
@@ -55,7 +56,9 @@ export function GameTrendView({ onBack }: GameTrendViewProps) {
   return (
     <PushScreen title="Game by game" onBack={onBack}>
       <div className="mx-auto w-full max-w-3xl px-3 pb-8 pt-3 sm:px-6">
-        {scored.length === 0 ? (
+        {isLoading ? (
+          <LoadingCard />
+        ) : scored.length === 0 ? (
           <EmptyState
             icon={LayoutGrid}
             title="No games to compare yet"

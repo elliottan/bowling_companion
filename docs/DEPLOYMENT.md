@@ -125,10 +125,25 @@ the reason documented here.
 
 ### Service worker / cache note
 
-The PWA uses `registerType: "autoUpdate"` (see
-`archive/2026-06-07-pwa-offline-design.md`). On a new deploy, returning visitors pick up
-the new service worker on their next load and it activates automatically, with no
-manual cache busting. Hashed asset filenames mean stale assets never collide.
+The PWA uses `registerType: "prompt"`, with the prompt applied automatically
+wherever a reload costs the user nothing (`src/lib/swUpdate.ts`).
+
+- A waiting worker is applied on its own when the app is off the Active tab,
+  with no keyboard up and no session being started. Every shot is already
+  persisted and the session id is in the hash, so the reload lands on the same
+  screen with nothing lost.
+- On the Active tab the toast waits instead. Its x hides the toast for that page
+  only; the update still applies the moment the bowler leaves the tab.
+- Returning to the foreground checks for a newer worker, which an installed app
+  left in the background for weeks would otherwise never see. A check, never an
+  apply.
+- A tab left open across a deploy can open a database newer than its own shell.
+  Dexie throws `VersionError`, `AppErrorBoundary` recognises it, and
+  `StaleShellScreen` offers the reload that actually activates the new worker. A
+  plain `location.reload()` never does, because `updateSW(true)` only sends
+  SKIP_WAITING and rides workbox's `controlling` event.
+
+Hashed asset filenames mean stale assets never collide.
 
 ## Post-deploy smoke check
 

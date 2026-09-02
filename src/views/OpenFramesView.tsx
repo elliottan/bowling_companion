@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { Target } from "lucide-react";
+import { LoadingCard } from "../components/ui/LoadingCard";
 import { PushScreen } from "../components/PushScreen";
 import { MiniPins } from "../components/MiniPins";
 import { EmptyState } from "../components/ui/EmptyState";
@@ -17,7 +18,7 @@ import { useSessionFilters } from "./useSessionFilters";
  * through `App`.
  */
 export function OpenFramesView({ onBack }: { onBack: () => void }) {
-  const { filtered, activeLanes } = useSessionFilters();
+  const { filtered, activeLanes, isLoading } = useSessionFilters();
   const report = useMemo(
     () => calculateOpenFrames(filtered, activeLanes),
     [filtered, activeLanes]
@@ -29,7 +30,9 @@ export function OpenFramesView({ onBack }: { onBack: () => void }) {
   return (
     <PushScreen title="Open frames" onBack={onBack}>
       <div className="mx-auto w-full max-w-3xl px-3 pb-8 pt-3 sm:px-6">
-        {report.games === 0 ? (
+        {isLoading ? (
+          <LoadingCard />
+        ) : report.games === 0 ? (
           <EmptyState
             icon={Target}
             title="Nothing open yet"
