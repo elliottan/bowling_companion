@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { filterSessionsBy } from "../lib/stats";
 import { getSessionHistory, getSessionList } from "../services/bowlingRepository";
@@ -31,6 +31,8 @@ export interface SessionFilters {
   /** Everything, unfiltered. The pickers are built from this. */
   history: SessionSummary[];
   isLoading: boolean;
+  /** The read that failed, so a view can say so instead of showing "no sessions". */
+  error: Error | null;
 
   alley: string;
   setAlley: (value: string) => void;
@@ -78,7 +80,19 @@ export function useSessionFilters(
   { frames = "all" }: { frames?: "all" | "unscored" } = {}
 ): SessionFilters {
   const load = frames === "all" ? getSessionHistory : getSessionList;
-  const liveHistory = useLiveQuery(() => load(), [frames]);
+  // A failed read used to arrive as an empty list, which reads as "you have
+  // never bowled". Caught here so every caller can tell the two apart.
+  const [error, setError] = useState<Error | null>(null);
+  const liveHistory = useLiveQuery(async () => {
+    try {
+      const rows = await load();
+      setError(null);
+      return rows;
+    } catch (err) {
+      setError(err instanceof Error ? err : new Error(String(err)));
+      return NO_SESSIONS;
+    }
+  }, [frames]);
   const history = liveHistory ?? NO_SESSIONS;
   const isLoading = liveHistory === undefined;
 
@@ -171,6 +185,7 @@ export function useSessionFilters(
   return {
     history,
     isLoading,
+    error,
     alley,
     setAlley,
     pattern,

@@ -1,5 +1,6 @@
 import { db, linkLegacySessionOilPatterns } from "../db/bowlingDb";
 import { validateBackup } from "../lib/backupValidation";
+import { isSpare, isStrike } from "../lib/scoring";
 import { setSetting } from "./bowlingRepository";
 import type { BowlingBackup, PinNumber, Shot } from "../types/bowling";
 
@@ -190,9 +191,16 @@ export async function prepareImport(fileOrJson: File | string | unknown): Promis
  * row is destroyed first, so a safety copy of the current data is downloaded
  * before anything is cleared — that file is the only way back.
  */
-export async function replaceAllData(backup: BowlingBackup): Promise<ImportBackupResult> {
-  const safetyCopy = await createBackup();
-  downloadBackup(safetyCopy, `pre-import-${backupFilename(safetyCopy)}`);
+export async function replaceAllData(
+  backup: BowlingBackup,
+  options: { safetyCopy?: boolean } = {}
+): Promise<ImportBackupResult> {
+  // On a device that holds nothing there is nothing to hand back, and a
+  // pre-import file of an empty database only confuses a first-time user.
+  if (options.safetyCopy !== false) {
+    const safetyCopy = await createBackup();
+    downloadBackup(safetyCopy, `pre-import-${backupFilename(safetyCopy)}`);
+  }
 
   await db.transaction(
     "rw",
@@ -258,8 +266,23 @@ export async function countDatabase(): Promise<ImportBackupResult> {
   return { sessions, games, frames, balls, oil_patterns, spare_lines, lane_notes, settings };
 }
 
+/**
+ * `is_strike` and `is_spare` are a cache of what the shots already say, so the
+ * file never gets to decide them (docs/DATA_MODEL.md, ADR-078). A hand-edited
+ * or half-written backup that disagrees with its own shots would otherwise
+ * import a frame that scores one way and reads another.
+ */
+function rederiveFrameMarks(backup: BowlingBackup): BowlingBackup {
+  const frames = backup.tables.frames.map((frame) =>
+    Array.isArray(frame.shots)
+      ? { ...frame, is_strike: isStrike(frame), is_spare: isSpare(frame) }
+      : frame
+  );
+  return { ...backup, tables: { ...backup.tables, frames } };
+}
+
 function normalizeBackup(backup: BowlingBackup): BowlingBackup {
-  if (backup.version === 2 || backup.version === 3) return backup;
+  if (backup.version === 2 || backup.version === 3) return rederiveFrameMarks(backup);
 
   // Transform v1 flat frame fields → shots[]
   const frames = backup.tables.frames.map((frame) => {
@@ -279,16 +302,31 @@ function normalizeBackup(backup: BowlingBackup): BowlingBackup {
     return { ...frame, shots };
   });
 
-  return { ...backup, version: 3, tables: { ...backup.tables, frames, balls: [], oil_patterns: [], spare_lines: [], lane_notes: [], settings: [] } };
+  return rederiveFrameMarks({
+    ...backup,
+    version: 3,
+    tables: { ...backup.tables, frames, balls: [], oil_patterns: [], spare_lines: [], lane_notes: [], settings: [] }
+  });
+}
+
+// A file that is not JSON at all throws deep inside JSON.parse with a message
+// about a token at a position, which tells a bowler nothing. The one thing they
+// need to know is that they picked the wrong file.
+function parseBackupJson(text: string): unknown {
+  try {
+    return JSON.parse(text) as unknown;
+  } catch {
+    throw new Error("That file is not a Headpin backup.");
+  }
 }
 
 async function readBackupInput(fileOrJson: File | string | unknown) {
   if (typeof File !== "undefined" && fileOrJson instanceof File) {
-    return JSON.parse(await fileOrJson.text()) as unknown;
+    return parseBackupJson(await fileOrJson.text());
   }
 
   if (typeof fileOrJson === "string") {
-    return JSON.parse(fileOrJson) as unknown;
+    return parseBackupJson(fileOrJson);
   }
 
   return fileOrJson;

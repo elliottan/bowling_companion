@@ -23,7 +23,13 @@ export function validateBackup(value: unknown): BackupValidationResult {
   }
 
   if (value.version !== 1 && value.version !== 2 && value.version !== 3) {
-    errors.push("Backup version must be 1, 2, or 3.");
+    // A number above the newest version is a backup from a build this app has
+    // not caught up with, so the way out is an update, not a different file.
+    errors.push(
+      typeof value.version === "number" && value.version > 3
+        ? "This backup was made by a newer Headpin. Update the app, then try again."
+        : "Backup version must be 1, 2, or 3."
+    );
   }
 
   if (typeof value.exported_at !== "string" || value.exported_at.length === 0) {

@@ -16,6 +16,7 @@ import {
   useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { ConfirmDialog } from "../components/ConfirmDialog";
 import { ErrorBanner } from "../components/ErrorBanner";
 import { MiniPins } from "../components/MiniPins";
 import { SpareLineFormDialog } from "../components/SpareLineFormDialog";
@@ -144,6 +145,7 @@ export function SpareLinesView({ onBack }: { onBack: () => void }) {
   const isLoading = live === undefined;
   const [error, setError] = useState("");
   const [editing, setEditing] = useState<Editing | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<SpareLine | null>(null);
 
   // Press-and-hold anywhere on a card to pick it up; a quick tap opens the lane.
   const sensors = useSensors(
@@ -228,7 +230,7 @@ export function SpareLinesView({ onBack }: { onBack: () => void }) {
           initialNotes={editing.sl.notes}
           onSaved={() => setEditing(null)}
           onCancel={() => setEditing(null)}
-          onDelete={editing.sl.id != null ? () => void handleDelete(editing.sl.id!) : undefined}
+          onDelete={editing.sl.id != null ? () => setPendingDelete(editing.sl) : undefined}
         />
       )}
 
@@ -255,6 +257,17 @@ export function SpareLinesView({ onBack }: { onBack: () => void }) {
         </DndContext>
       )}
 
+      <ConfirmDialog
+        open={pendingDelete !== null}
+        title="Delete this spare line?"
+        message="The stance and target you saved for this leave are gone. Your shots keep their scores."
+        onConfirm={() => {
+          const id = pendingDelete?.id;
+          setPendingDelete(null);
+          if (id != null) void handleDelete(id);
+        }}
+        onCancel={() => setPendingDelete(null)}
+      />
     </section>
     </PushScreen>
   );

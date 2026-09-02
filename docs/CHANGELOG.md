@@ -8,6 +8,41 @@ merge to `main` (`docs/DEPLOYMENT.md`), so every section below is a dated batch
 of shipped work rather than a release. Thirty of them used to be headed
 `[Unreleased]`, which said nothing once they had all shipped.
 
+## Nothing is deleted without asking (2026-09)
+
+### Added
+
+- **Deleting a spare line asks first.** The Delete button on a spare line fired
+  straight away. A line is tuned over a season and there is no undo behind it,
+  so it now goes through the same confirm as everything else destructive.
+- **Deleting a lane note asks first.** Same change, on the lane notes inside a
+  session.
+- **Unlinking a ball from the catalog asks first.** The photo and the specs come
+  off the ball when you unlink it, and that was not said anywhere.
+- **The crash screen offers a way back in.** Beside Reload and Export backup
+  there is now Restore a backup, which is the only useful move when a reload
+  does not clear the crash.
+
+### Changed
+
+- **A file that is not a backup says so.** Picking the wrong file used to show a
+  message about a token at a position. It now says "That file is not a Headpin
+  backup."
+- **A backup from a newer version says what to do.** It asks you to update the
+  app rather than reporting a version number.
+- **A first restore onto an empty device stops downloading a copy of nothing.**
+  Restoring onto a device that already holds sessions still writes the safety
+  copy first, and now asks you to type REPLACE, the same as the Settings
+  restore.
+- **A frame's strike and spare marks are read from its shots on import**, never
+  from the file. A hand-edited backup can no longer install a frame that scores
+  one way and reads another (ADR-078).
+
+### Fixed
+
+- **History says when it could not read your sessions**, instead of showing an
+  empty list that reads as "you have never bowled".
+
 ## Restores land properly, and the header comes back (2026-09)
 
 ### Changed

@@ -1,6 +1,7 @@
 import { Pencil, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
+import { ConfirmDialog } from "./ConfirmDialog";
 import { deleteLaneNote, getLaneNotes, upsertLaneNote } from "../services/ballRepository";
 import type { LaneNote } from "../types/bowling";
 import { Button } from "./ui/Button";
@@ -45,6 +46,7 @@ export function LaneNotesTab({ alley, currentLanes }: LaneNotesTabProps) {
   const loading = live === undefined;
   const [editingLane, setEditingLane] = useState<string | null>(null);
   const [draft, setDraft] = useState("");
+  const [pendingDelete, setPendingDelete] = useState<LaneNote | null>(null);
   const currentRowRef = useRef<HTMLDivElement | null>(null);
 
   const currentLaneSet = useMemo(
@@ -120,7 +122,7 @@ export function LaneNotesTab({ alley, currentLanes }: LaneNotesTabProps) {
             onEdit={() => openEdit(row.left, row.leftNote)}
             onCancel={() => setEditingLane(null)}
             onSave={() => save(row.left)}
-            onDelete={row.leftNote ? () => remove(row.leftNote!) : undefined}
+            onDelete={row.leftNote ? () => setPendingDelete(row.leftNote!) : undefined}
           />
           <LaneCell
             lane={row.right}
@@ -132,10 +134,21 @@ export function LaneNotesTab({ alley, currentLanes }: LaneNotesTabProps) {
             onEdit={() => openEdit(row.right, row.rightNote)}
             onCancel={() => setEditingLane(null)}
             onSave={() => save(row.right)}
-            onDelete={row.rightNote ? () => remove(row.rightNote!) : undefined}
+            onDelete={row.rightNote ? () => setPendingDelete(row.rightNote!) : undefined}
           />
         </div>
       ))}
+      <ConfirmDialog
+        open={pendingDelete !== null}
+        title={`Delete the note for lane ${pendingDelete?.lane ?? ""}?`}
+        message="What you wrote about how this lane plays is gone. Nothing else changes."
+        onConfirm={() => {
+          const note = pendingDelete;
+          setPendingDelete(null);
+          if (note) void remove(note);
+        }}
+        onCancel={() => setPendingDelete(null)}
+      />
     </div>
   );
 }
