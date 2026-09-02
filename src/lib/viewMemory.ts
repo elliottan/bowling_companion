@@ -1,4 +1,4 @@
-import { useCallback, useRef, useSyncExternalStore, type Dispatch, type SetStateAction } from "react";
+import { useCallback, useEffect, useRef, useState, type Dispatch, type SetStateAction } from "react";
 
 /**
  * Where a tab was when you left it.
@@ -23,18 +23,31 @@ const values = new Map<string, unknown>();
 const scrolls = new Map<string, number>();
 const listeners = new Map<string, Set<() => void>>();
 
-function subscribe(key: string, onChange: () => void): () => void {
-  const set = listeners.get(key) ?? new Set<() => void>();
+/**
+ * The listener set for a key, created once and never replaced. It used to be
+ * dropped from the map when the last listener left, so the next subscriber got
+ * a different Set from the one an earlier cleanup still closed over.
+ */
+function listenersFor(key: string): Set<() => void> {
+  const existing = listeners.get(key);
+  if (existing) return existing;
+  const set = new Set<() => void>();
   listeners.set(key, set);
+  return set;
+}
+
+function subscribe(key: string, onChange: () => void): () => void {
+  const set = listenersFor(key);
   set.add(onChange);
   return () => {
     set.delete(onChange);
-    if (set.size === 0) listeners.delete(key);
   };
 }
 
+// Over a copy: a listener may subscribe or unsubscribe in response, and
+// mutating the Set being iterated is how a listener gets skipped.
 function emit(key: string) {
-  for (const listener of listeners.get(key) ?? []) listener();
+  for (const listener of [...listenersFor(key)]) listener();
 }
 
 /**
@@ -45,21 +58,36 @@ export function useRememberedState<T>(
   key: string,
   initial: T
 ): [T, Dispatch<SetStateAction<T>>] {
-  // The first value is captured once. Reading `initial` on every snapshot
-  // would hand `useSyncExternalStore` a new array or object each time for the
-  // callers that default to one, which it reads as an endless change.
+  // The first value is captured once, so a caller that defaults to a fresh
+  // array or object does not hand a new one down on every render.
   const initialRef = useRef(initial);
 
-  const getSnapshot = useCallback(() => {
-    if (!values.has(key)) values.set(key, initialRef.current);
-    return values.get(key) as T;
-  }, [key]);
-
-  const value = useSyncExternalStore(
-    useCallback((onChange: () => void) => subscribe(key, onChange), [key]),
-    getSnapshot,
-    getSnapshot
+  // Pure: an unset key reads as its initial value. Nothing writes to the store
+  // to answer a read.
+  const read = useCallback(
+    () => (values.has(key) ? (values.get(key) as T) : initialRef.current),
+    [key]
   );
+
+  // `useState` plus a subscription, rather than `useSyncExternalStore`. This
+  // store is a plain Map with no version counter, and its snapshot was seeded
+  // per component from that component's own `initial`, so two readers of one
+  // key could answer differently for the same store state. Against that React
+  // held a cached snapshot: the store took the write, the listener fired, the
+  // snapshot read back the new value, and the component was still not
+  // re-rendered. On a filter chip that meant the x did nothing at all, however
+  // many times it was tapped. A `setState` in the listener has no cached
+  // snapshot to disagree with.
+  const [value, setLocal] = useState<T>(() =>
+    values.has(key) ? (values.get(key) as T) : initial
+  );
+
+  useEffect(() => {
+    // Anything written between this render and the subscription landing would
+    // otherwise be missed, so the value is read back on the way in.
+    setLocal(read());
+    return subscribe(key, () => setLocal(read()));
+  }, [key, read]);
 
   const setValue = useCallback<Dispatch<SetStateAction<T>>>(
     (update) => {

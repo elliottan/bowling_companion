@@ -19,6 +19,10 @@ of shipped work rather than a release. Thirty of them used to be headed
 
 ### Fixed
 
+- **The x on a filter chip removes the filter.** On a phone it did nothing,
+  however many times you tapped it, and the filter then seemed to vanish at
+  random when you next opened the filters. The tap was always landing; the
+  screen was rendering a stale copy of what was applied.
 - **The first tap after closing a sheet works.** A closing sheet kept taking
   taps for the whole quarter-second it spent fading, so tapping the x on a
   filter chip, or the filter button again, did nothing and you had to tap

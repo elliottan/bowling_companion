@@ -29,6 +29,42 @@ describe("useRememberedState", () => {
     expect(b.result.current[0]).toBe(1);
   });
 
+  it("keeps rendering what it is told, write after write", () => {
+    // The regression this exists for: a filter chip whose x did nothing. The
+    // store took the write and told its listener, and the view went on
+    // rendering the old value, so the chip stayed, and the next tap wrote the
+    // same value and changed nothing at all.
+    const { result } = renderHook(() => useRememberedState("tab:alley", ""));
+
+    for (const value of ["Alpha", "", "Beta", "", "Alpha"]) {
+      act(() => result.current[1](value));
+      expect(result.current[0]).toBe(value);
+    }
+  });
+
+  it("tells every mounted reader of a key, not just the first", () => {
+    const a = renderHook(() => useRememberedState("tab:shared", ""));
+    const b = renderHook(() => useRememberedState("tab:shared", ""));
+
+    act(() => a.result.current[1]("Chameleon"));
+    expect(b.result.current[0]).toBe("Chameleon");
+
+    act(() => b.result.current[1](""));
+    expect(a.result.current[0]).toBe("");
+  });
+
+  it("still reaches a reader that arrived after another one left", () => {
+    // The listener set used to be dropped from the map when it emptied, so a
+    // later subscriber got a different set from the one an earlier cleanup
+    // still held.
+    const first = renderHook(() => useRememberedState("tab:churn", ""));
+    first.unmount();
+
+    const second = renderHook(() => useRememberedState("tab:churn", ""));
+    act(() => second.result.current[1]("Main Street"));
+    expect(second.result.current[0]).toBe("Main Street");
+  });
+
   it("starts clean once memory is dropped, the way a reload does", () => {
     const first = renderHook(() => useRememberedState("tab:pane", "sessions"));
     act(() => first.result.current[1]("stats"));

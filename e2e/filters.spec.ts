@@ -1,6 +1,12 @@
 import { expect, test } from "@playwright/test";
 import { clearDatabase, recordShot, startSession } from "./helpers";
 
+// Taps, not clicks. The chip bug was invisible to a mouse: the click handler
+// ran either way, but only the touch path left the view rendering the old
+// value. A phone-first app tested only with a mouse has a blind spot exactly
+// where its users are.
+test.use({ hasTouch: true, isMobile: true });
+
 /** Two nights at two houses, so there is something to filter down to. */
 async function twoNights(page: Parameters<typeof startSession>[0]) {
   await clearDatabase(page);
@@ -13,23 +19,28 @@ async function twoNights(page: Parameters<typeof startSession>[0]) {
 }
 
 async function applyLocation(page: Parameters<typeof startSession>[0], alley: string) {
-  await page.getByRole("button", { name: /^Filters/ }).click();
+  await page.getByRole("button", { name: /^Filters/ }).tap();
   await page.getByLabel("Location").selectOption(alley);
   await page
     .getByRole("dialog", { name: "Filters" })
     .getByRole("button", { name: "Close" })
-    .click();
+    .tap();
 }
 
 test("an applied filter comes off by its own chip", async ({ page }) => {
   await twoNights(page);
   await applyLocation(page, "Alpha Lanes");
 
+  // Wait for the sheet to be properly gone, the way a reader who looks at the
+  // chip before deciding to remove it does. Tapping while it is still leaving
+  // is a different and much more forgiving path.
+  await expect(page.getByRole("dialog", { name: "Filters" })).toHaveCount(0);
+
   const chip = page.getByRole("button", { name: "Remove filter Alpha Lanes" });
   await expect(chip).toBeVisible();
   await expect(page.getByRole("button", { name: "Filters, 1 applied" })).toBeVisible();
 
-  await chip.click();
+  await chip.tap();
 
   // The chip, the badge and the list all have to answer, not just the list:
   // the store took the write and the header used to go on rendering the old
@@ -49,15 +60,16 @@ test("it still comes off after the filter sheet has been opened again", async ({
   // instances of it, which is a race with the animation rather than with the
   // filter, and not what this test is about.
   await expect(page.getByRole("dialog", { name: "Filters" })).toHaveCount(0);
-  await page.getByRole("button", { name: /^Filters/ }).click();
+  await page.getByRole("button", { name: /^Filters/ }).tap();
   await expect(page.getByLabel("Location")).toHaveValue("Alpha Lanes");
   await page
     .getByRole("dialog", { name: "Filters" })
     .getByRole("button", { name: "Close" })
-    .click();
+    .tap();
+  await expect(page.getByRole("dialog", { name: "Filters" })).toHaveCount(0);
 
   await expect(page.getByRole("button", { name: "Remove filter Alpha Lanes" })).toBeVisible();
-  await page.getByRole("button", { name: "Remove filter Alpha Lanes" }).click();
+  await page.getByRole("button", { name: "Remove filter Alpha Lanes" }).tap();
   await expect(page.getByRole("button", { name: /^Remove filter/ })).toHaveCount(0);
 });
 
