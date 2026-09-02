@@ -6,8 +6,6 @@ import {
   OilPatternIcon,
   SpareLineIcon
 } from "../components/icons";
-import { LaneNotesView } from "./LaneNotesView";
-import { OilPatternsView } from "./OilPatternsView";
 import { AppearanceView } from "./AppearanceView";
 import { HandednessView } from "./HandednessView";
 import { getSetting } from "../services/bowlingRepository";
@@ -24,7 +22,7 @@ import { describeAge } from "../lib/backupNudge";
 import { useLiveQuery } from "dexie-react-hooks";
 import { canPromptInstall, isIOSSafari, isStandalone } from "../lib/installPrompt";
 import { InstallPrompt } from "../components/InstallPrompt";
-import { useState } from "react";
+import { Suspense, lazy, useState } from "react";
 export type { SettingsSection };
 
 interface SettingsViewProps {
@@ -48,6 +46,19 @@ interface SettingsViewProps {
   onOpenLineVisualizer: () => void;
 }
 
+/**
+ * Lazy for the same reason App.tsx makes them lazy: both are also pushed as
+ * overlays from the dashboard, and a static import here dragged their chunks
+ * back into the main bundle, so the split App had already paid for bought
+ * nothing.
+ */
+const LaneNotesView = lazy(() =>
+  import("./LaneNotesView").then((m) => ({ default: m.LaneNotesView }))
+);
+const OilPatternsView = lazy(() =>
+  import("./OilPatternsView").then((m) => ({ default: m.OilPatternsView }))
+);
+
 export function SettingsView({ section, onSectionChange, handedness, onHandednessChange, driftModel, onDriftModelChange, onOpenArsenal, onOpenSpareLines, onOpenBackup, onOpenCatalog, onOpenLineVisualizer }: SettingsViewProps) {
   const back = () => onSectionChange("menu");
 
@@ -66,7 +77,8 @@ export function SettingsView({ section, onSectionChange, handedness, onHandednes
         />
       </div>
       {section !== "menu" && (
-        section === "lanes" ? (
+        <Suspense fallback={null}>
+        {section === "lanes" ? (
           <LaneNotesView onBack={back} />
         ) : section === "oil-patterns" ? (
           <OilPatternsView onBack={back} />
@@ -80,7 +92,8 @@ export function SettingsView({ section, onSectionChange, handedness, onHandednes
             onDriftModelChange={onDriftModelChange}
             onBack={back}
           />
-        ) : null
+        ) : null}
+        </Suspense>
       )}
     </div>
   );

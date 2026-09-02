@@ -59,3 +59,17 @@ test("a MOTIV ball links to MOTIV's own product page", async ({ page }) => {
   await expect(link).toHaveAttribute("target", "_blank");
   await expect(link).toHaveAttribute("rel", /noopener/);
 });
+
+test("renders the catalog a page at a time, and grows as you scroll", async ({ page }) => {
+  await page.getByRole("button", { name: "Catalog" }).click();
+  await expect(page.getByPlaceholder("Search name, brand, coverstock…")).toBeVisible();
+
+  const rows = page.locator("ul > li");
+  // Every ball used to be in the DOM at once, photo and all.
+  await expect.poll(async () => rows.count()).toBeGreaterThan(0);
+  const first = await rows.count();
+  expect(first).toBeLessThanOrEqual(40);
+
+  await page.mouse.wheel(0, 6000);
+  await expect.poll(async () => rows.count()).toBeGreaterThan(first);
+});

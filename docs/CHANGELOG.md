@@ -8,6 +8,20 @@ merge to `main` (`docs/DEPLOYMENT.md`), so every section below is a dated batch
 of shipped work rather than a release. Thirty of them used to be headed
 `[Unreleased]`, which said nothing once they had all shipped.
 
+## Less to download, and less to draw (2026-09)
+
+### Changed
+
+- **The app opens on less than half the JavaScript.** The bundle every visitor
+  downloads went from 158KB to 73KB gzipped: Stats, Settings, lane notes and
+  oil patterns are fetched when you first open them, and React and Dexie are
+  split into chunks of their own.
+- **An update after this one downloads less.** React and Dexie only change when
+  they are upgraded, so an ordinary deploy leaves both in the cache: about 75KB
+  gzipped an installed app no longer re-fetches each time.
+- **The catalog draws forty balls, then more as you scroll.** All 250 rows and
+  their photos used to be in the page whether or not you scrolled to them.
+
 ## The same shapes everywhere (2026-09)
 
 ### Changed
