@@ -133,6 +133,7 @@ export function BackupRestoreView({ onBack, mode = "inline" }: BackupRestoreView
             ref={fileInputRef}
             type="file"
             accept="application/json,.json"
+            aria-label="Choose a backup file"
             className="hidden"
             onChange={(e) => void handleFile(e.target.files?.[0])}
           />

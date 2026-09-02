@@ -8,6 +8,41 @@ merge to `main` (`docs/DEPLOYMENT.md`), so every section below is a dated batch
 of shipped work rather than a release. Thirty of them used to be headed
 `[Unreleased]`, which said nothing once they had all shipped.
 
+## Headpin is public (2026-09-03)
+
+The first version put in front of people who did not build it. Everything below
+this line shipped in the run-up to that, newest first; this entry is what
+changed, read as one thing.
+
+**Nothing you enter can be lost by accident.** Deleting a spare line, a lane
+note or a ball's catalog link asks first. A backup that is not a backup says so
+in words. Restoring over a device that already holds sessions makes you type
+the word, and saves your current data off before it starts. A frame's marks are
+read from its shots on import, so a file cannot install a game that scores one
+way and reads another.
+
+**The app updates itself, quietly.** A new version installs the moment you are
+somewhere a reload costs nothing, and waits behind a toast on the one screen
+where it would. A tab left open across an update says so instead of crashing.
+
+**It opens once.** It used to paint an empty Dashboard, then a welcome screen
+over the top, then your real data, which read as a wipe to anyone who had
+history. And it opens on less than half the JavaScript it did.
+
+**You can take a shot back.** Undo sits beside Strike, keeps working after the
+tenth frame, and takes the ball and line with it. The button that records a
+shot now says what it is about to record.
+
+**It says one thing one way.** A trip out is a session, a place you bowl is an
+alley, the two boards you set are stance and target, everywhere. The forms are
+one form, the cards one shape, the errors one banner. The icons for bowling
+ideas are drawn rather than borrowed, and the pin on your home screen has its
+red bands.
+
+**And it is tested where you use it.** The end-to-end suite runs on Safari as
+well as Chrome, offline scoring included, and the screens that could lose data
+have unit tests behind them.
+
 ## Housekeeping (2026-09)
 
 Nothing user-visible.

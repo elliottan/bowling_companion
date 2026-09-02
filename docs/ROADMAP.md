@@ -58,6 +58,16 @@ at which the shape belongs in `ui/`.
 
 ## Lower impact / exploratory
 
+### A WebKit page that occasionally never finishes loading
+
+Late in a full run, one WebKit test's first `page.goto` hangs waiting for
+`load` and never returns: it lands on the 51st of 52 tests, survived raising
+the per-test budget to 60s, and does not reproduce in any smaller subset,
+including the two specs on either side of it. It looks like accumulation in the
+single long-lived WebKit process rather than anything the app does, which is
+why the retry is set to 1 everywhere rather than the spec being changed. Worth
+returning to with a `--repeat-each` run and a browser trace.
+
 ### An end-to-end test of a real service worker takeover
 
 `swUpdate` is covered by unit tests (applies when safe, holds while unsafe, once

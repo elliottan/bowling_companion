@@ -19,7 +19,13 @@ export default defineConfig({
   testDir: "./e2e",
   fullyParallel: false,
   forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 1 : 0,
+  // One retry everywhere, not only on CI. `verify` exists to run exactly what
+  // CI runs (AGENTS.md), and a gate that is stricter than the judge sends you
+  // hunting a failure the judge would have passed: a WebKit page late in the
+  // run occasionally never fires `load` on the next test's first navigation,
+  // which reproduces at the 51st test of 52 and not in any smaller subset. It
+  // is tracked in docs/ROADMAP.md rather than papered over silently.
+  retries: 1,
   workers: 1,
   reporter: process.env.CI ? "list" : "line",
   use: {

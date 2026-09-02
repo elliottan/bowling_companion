@@ -110,3 +110,23 @@ test("the sheets you type into are accessible", async ({ page }) => {
   await page.getByRole("button", { name: "Open session sheet and lane notes" }).click();
   await expectNoViolations(page);
 });
+
+test("the first run is accessible, on the screen a new bowler starts at", async ({ page }) => {
+  // Every other scan in this file runs past the first run, so the one screen a
+  // stranger sees first was the one screen never scanned. Its hidden file input
+  // had no name for four months because of it.
+  await page.goto("/score");
+  await page.evaluate(async () => {
+    await new Promise<void>((resolve) => {
+      const req = indexedDB.deleteDatabase("BowlingCompanionDB");
+      req.onsuccess = req.onerror = req.onblocked = () => resolve();
+    });
+  });
+  await page.reload();
+
+  await expect(page.getByRole("dialog", { name: "Set up Headpin" })).toBeVisible();
+  await expectNoViolations(page);
+
+  await page.getByRole("button", { name: "Start fresh" }).click();
+  await expectNoViolations(page);
+});

@@ -250,6 +250,9 @@ export function FirstRun({ onSelectHandedness, hasSavedData = false }: FirstRunP
           ref={fileRef}
           type="file"
           accept="application/json,.json"
+          // Visually hidden, not hidden: `sr-only` leaves it in the
+          // accessibility tree, so it needs a name like any other control.
+          aria-label="Choose a backup file"
           className="sr-only"
           onChange={(e) => handleFile(e.target.files?.[0])}
         />
