@@ -67,6 +67,23 @@ export default defineConfig({
         // reviewer, a crawler and a manufacturer's lawyer must be able to read
         // without running any JavaScript.
         legal: "legal/index.html"
+      },
+      output: {
+        /**
+         * Explicit lists, never a function over `id.includes("node_modules")`.
+         * A catch-all vendor rule would pull `@dnd-kit` out of the Arsenal's
+         * lazy chunk and into a bundle every visitor downloads, which is the
+         * opposite of what this is for.
+         *
+         * React and Dexie are split out because they change only when they are
+         * upgraded. An app-only deploy then re-downloads the app chunk and
+         * leaves both of these in the service worker's precache, so an
+         * installed user pays roughly 75KB gzip less per deploy.
+         */
+        manualChunks: {
+          react: ["react", "react-dom", "react-dom/client", "scheduler"],
+          dexie: ["dexie", "dexie-react-hooks"]
+        }
       }
     }
   },

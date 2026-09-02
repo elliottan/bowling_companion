@@ -22,10 +22,8 @@ import { ActiveSessionView } from "./views/ActiveSessionView";
 import { HistoryView } from "./views/HistoryView";
 import { rememberScroll, restoreScroll } from "./lib/viewMemory";
 import { PinIcon } from "./components/icons";
-import { SettingsView } from "./views/SettingsView";
 import { useBoot } from "./views/useBoot";
 import { setUpdateSafe } from "./lib/swUpdate";
-import { StatsView } from "./views/StatsView";
 import {
   addGameToSession,
   createSession,
@@ -50,6 +48,17 @@ import { useHistoryRoute } from "./lib/useHistoryRoute";
 
 // Pushed screens, loaded when pushed: the catalog carries the whole ball list
 // UI and the arsenal its editor, and neither is on the path to scoring a game.
+/**
+ * Stats and Settings are whole screens that a bowler reaches after the core
+ * loop, and neither shares much with it, so they leave the first-paint bundle.
+ * Dashboard, Active, History and the first run stay eager: they are the loop,
+ * they share most of their code, and one of them is what the app paints first.
+ */
+const StatsView = lazy(() => import("./views/StatsView").then((m) => ({ default: m.StatsView })));
+const SettingsView = lazy(() =>
+  import("./views/SettingsView").then((m) => ({ default: m.SettingsView }))
+);
+
 const ArsenalView = lazy(() => import("./views/ArsenalView").then((m) => ({ default: m.ArsenalView })));
 const CatalogView = lazy(() => import("./views/CatalogView").then((m) => ({ default: m.CatalogView })));
 const LaneNotesView = lazy(() => import("./views/LaneNotesView").then((m) => ({ default: m.LaneNotesView })));
@@ -428,6 +437,7 @@ function App() {
         onScroll={(e) => rememberScroll(`view:${view}`, e.currentTarget.scrollTop)}
         className={`min-h-0 flex-1 overflow-y-auto overscroll-contain ${tabDirection >= 0 ? "animate-tab-right" : "animate-tab-left"}`}
       >
+        <Suspense fallback={null}>
         {view === "dashboard" && (
           <DashboardView
             onStartSession={handleStartSession}
@@ -508,6 +518,7 @@ function App() {
             onOpenLineVisualizer={() => dispatch({ type: "openLineSandbox" })}
           />
         )}
+        </Suspense>
       </main>
 
       <nav className={`relative grid shrink-0 grid-cols-5 border-t border-edge bg-surface pb-[env(safe-area-inset-bottom)] sm:hidden ${keyboardOpen ? "hidden" : ""}`}>

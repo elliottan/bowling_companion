@@ -58,6 +58,11 @@ const EMPTY_FILTERS: Filters = {
 // Filter/sort logic (pure, memoized in component)
 // ---------------------------------------------------------------------------
 
+/** Rows rendered before the first scroll, and per step after it. Forty fills
+ *  a 390px screen several times over, so the sentinel is always below the
+ *  fold when the list first paints. */
+const CATALOG_PAGE = 40;
+
 function applyFilters(balls: CatalogBall[], filters: Filters, sort: SortKey): CatalogBall[] {
   const q = filters.search.toLowerCase().trim();
 
@@ -505,6 +510,34 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall }: CatalogVie
   // Memoized filtered + sorted list.
   const displayed = useMemo(() => applyFilters(allBalls, filters, sort), [allBalls, filters, sort]);
 
+  // The catalog is 250 rows, each carrying a photo, and every one of them was
+  // in the DOM whether or not it had been scrolled to. Windowed the way History
+  // pages its sessions: a page at a time, grown by a sentinel below the list.
+  const [visibleCount, setVisibleCount] = useState(CATALOG_PAGE);
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
+
+  // A filter change is a new list, so the window starts again. Adjusted during
+  // render rather than in an effect, which would paint the old window first.
+  const [windowedList, setWindowedList] = useState<CatalogBall[] | null>(null);
+  if (windowedList !== displayed) {
+    setWindowedList(displayed);
+    if (windowedList !== null) setVisibleCount(CATALOG_PAGE);
+  }
+
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el) return;
+    const obs = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting) {
+        setVisibleCount((c) => (c < displayed.length ? c + CATALOG_PAGE : c));
+      }
+    });
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [displayed.length]);
+
+  const shown = displayed.slice(0, visibleCount);
+
   function toggleSetValue<T>(set: Set<T>, value: T): Set<T> {
     const next = new Set(set);
     if (next.has(value)) next.delete(value); else next.add(value);
@@ -791,8 +824,8 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall }: CatalogVie
             </Button>
           </EmptyState>
         ) : (
-          <ul className="divide-y divide-edge rounded-lg border border-edge bg-surface shadow-sm">
-            {displayed.map((ball) => (
+          <ul className="divide-y divide-edge rounded-xl border border-edge bg-surface shadow-sm">
+            {shown.map((ball) => (
               <li key={ball.id}>
                 <button
                   type="button"
@@ -836,6 +869,9 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall }: CatalogVie
             ))}
           </ul>
         )}
+        {/* Grows the window when it scrolls into view. Rendered only while
+            there is more, so it cannot fire against a finished list. */}
+        {shown.length < displayed.length && <div ref={sentinelRef} className="h-8" />}
 
         {/* Footer */}
         {doneState && (
