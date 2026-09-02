@@ -1,11 +1,8 @@
-import { Check, SlidersHorizontal, X } from "lucide-react";
+import { Check, SlidersHorizontal } from "lucide-react";
 import type { Ball } from "../types/bowling";
 import type { Manufacturer } from "../types/catalog";
-import { useOverlay } from "../lib/useOverlay";
-import { useSheetDismiss } from "../lib/useSheetDismiss";
 import { CatalogBallImage } from "./CatalogBallImage";
-import { Button } from "./ui/Button";
-import { IconButton } from "./ui/IconButton";
+import { FormSheet } from "./ui/FormSheet";
 
 interface BallPickerSheetProps {
   balls: Ball[];
@@ -30,53 +27,14 @@ export function BallPickerSheet({
 }: BallPickerSheetProps) {
   const pick = (id: number | undefined) => {
     onSelect(id);
-    dismiss();
+    onClose();
   };
 
-  const { dismiss, backdropStyle, rootStyle, panelStyle, exiting, dragHandlers } = useSheetDismiss(onClose);
-  const overlayRef = useOverlay<HTMLDivElement>(dismiss);
-
   return (
-    <div className="fixed inset-0 z-[60]" style={rootStyle} role="dialog" aria-modal="true" aria-label="Choose ball">
-      <div className="absolute inset-0 bg-black/40" style={backdropStyle} onClick={() => dismiss()} />
-      <div
-        ref={overlayRef}
-        style={panelStyle}
-        className={`absolute bottom-0 left-0 right-0 flex max-h-[80%] flex-col rounded-t-2xl bg-surface-sunken shadow-xl ${exiting ? "" : "animate-slide-up"}`}
-      >
-        {/* Grab handle: drag down to dismiss, the way every iOS sheet does. */}
-        <div className="flex touch-none cursor-grab justify-center pt-2 active:cursor-grabbing" {...dragHandlers}>
-          <div className="h-1.5 w-10 rounded-full bg-edge-strong" />
-        </div>
-        <div className="flex items-center justify-between px-4 pb-2 pt-2">
-          <h2 className="text-sm font-semibold text-ink">Ball</h2>
-          <div className="flex shrink-0 items-center gap-1">
-            {/* Close *and* navigate. `dismiss(after)` replaces `onClose` rather
-                than running it too, so passing the navigation on its own left
-                this sheet's open state set: it played its exit, then slid
-                straight back up on top of the arsenal it had just opened. */}
-            {onOpenArsenal && (
-              <Button
-                variant="ghost"
-                onClick={() =>
-                  dismiss(() => {
-                    onClose();
-                    onOpenArsenal();
-                  })
-                }
-                className="text-xs"
-              >
-                <SlidersHorizontal size={14} aria-hidden="true" />
-                Manage arsenal
-              </Button>
-            )}
-            <IconButton onClick={() => dismiss()} label="Close" variant="round">
-              <X size={18} aria-hidden="true" />
-            </IconButton>
-          </div>
-        </div>
-
-        <ul className="min-h-0 flex-1 space-y-1.5 overflow-y-auto overscroll-contain px-3 pb-6">
+    // The sheet's bar carries the close alone: picking a ball is the commit, so
+    // there is no tick to put in the trailing slot (DESIGN-LANGUAGE §1).
+    <FormSheet title="Ball" onClose={onClose} size="tall">
+      <ul className="space-y-1.5">
           {balls.map((b) => {
             const snap = b.catalog_snapshot;
             const selected = b.id === ballId;
@@ -131,8 +89,27 @@ export function BallPickerSheet({
               No ball
             </button>
           </li>
+
+          {/* A row at the bottom of the list rather than a worded button in the
+              bar: the bar holds the close and the commit, and nothing else. */}
+          {onOpenArsenal && (
+            <li>
+              <button
+                type="button"
+                onClick={() => {
+                  onClose();
+                  onOpenArsenal();
+                }}
+                className="flex w-full items-center gap-3 rounded-xl border border-edge bg-surface p-2.5 text-left text-sm font-semibold text-accent"
+              >
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center">
+                  <SlidersHorizontal size={18} aria-hidden="true" />
+                </span>
+                Manage arsenal
+              </button>
+            </li>
+          )}
         </ul>
-      </div>
-    </div>
+    </FormSheet>
   );
 }

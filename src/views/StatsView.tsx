@@ -26,6 +26,7 @@ import { rememberScroll, restoreScroll } from "../lib/viewMemory";
 import { useSessionFilters } from "./useSessionFilters";
 import type { Ball } from "../types/bowling";
 import { ListGroup, ListRow } from "../components/ui/ListGroup";
+import { ErrorBanner } from "../components/ErrorBanner";
 
 interface StatsViewProps {
   onOpenSession: (sessionId: number) => void;
@@ -148,6 +149,11 @@ export function StatsView({
         className="-mx-3 min-h-0 flex-1 overflow-y-auto overscroll-contain sm:-mx-6"
       >
         <div className="px-3 pb-5 sm:px-6 sm:pb-8">
+          {filters.error && (
+            <ErrorBanner className="mb-3">
+              Your sessions could not be read. Reload the app, then try again.
+            </ErrorBanner>
+          )}
           <Stats
             stats={isLoading ? EMPTY : stats}
             isLoading={isLoading}

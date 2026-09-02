@@ -5,13 +5,15 @@ import { EmptyState } from "../components/ui/EmptyState";
 import { LoadingCard } from "../components/ui/LoadingCard";
 import { GROUP_HEADING } from "../components/ui/typography";
 import { IconButton } from "../components/ui/IconButton";
-import { TAP_TARGET_44 } from "../components/ui/Chip";
 import { MetricTrendChart } from "../components/MetricTrendChart";
 import { METRIC_KEYS, metricNote, metricSpec, type MetricKey } from "../components/Stats";
 import { calculateGameNumberMetrics, type GameNumberMetricPoint } from "../lib/stats";
 import { useHandedness } from "../lib/handednessContext";
 import { useRememberedState } from "../lib/viewMemory";
 import { useSessionFilters } from "./useSessionFilters";
+import { Chip } from "../components/ui/Chip";
+import { SegmentedControl } from "../components/ui/SegmentedControl";
+import { ErrorBanner } from "../components/ErrorBanner";
 
 type Columns = "scoring" | "first ball";
 
@@ -39,7 +41,7 @@ interface GameTrendViewProps {
  * do not fit a phone (docs/DESIGN-LANGUAGE.md §4b).
  */
 export function GameTrendView({ onBack }: GameTrendViewProps) {
-  const { filtered, activeLanes, setGameNumber, isLoading } = useSessionFilters();
+  const { filtered, activeLanes, setGameNumber, isLoading, error } = useSessionFilters();
   const handedness = useHandedness();
   const [columns, setColumns] = useRememberedState<Columns>("game-trend:columns", "scoring");
   const [metric, setMetric] = useRememberedState<MetricKey>("game-trend:metric", "average");
@@ -56,7 +58,9 @@ export function GameTrendView({ onBack }: GameTrendViewProps) {
   return (
     <PushScreen title="Game by game" onBack={onBack}>
       <div className="mx-auto w-full max-w-3xl px-3 pb-8 pt-3 sm:px-6">
-        {isLoading ? (
+        {error ? (
+          <ErrorBanner>Your sessions could not be read. Reload the app, then try again.</ErrorBanner>
+        ) : isLoading ? (
           <LoadingCard />
         ) : scored.length === 0 ? (
           <EmptyState
@@ -70,19 +74,9 @@ export function GameTrendView({ onBack }: GameTrendViewProps) {
                 screen can hold: a row of chips rather than eight tiles. */}
             <div className="mb-2 flex flex-wrap gap-2">
               {METRIC_KEYS.map((key) => (
-                <button
-                  key={key}
-                  type="button"
-                  aria-pressed={metric === key}
-                  onClick={() => setMetric(key)}
-                  className={`relative inline-flex h-9 items-center justify-center rounded-md px-3 text-xs font-semibold ${TAP_TARGET_44} ${
-                    metric === key
-                      ? "border border-accent-fill bg-accent-fill text-accent-on-fill"
-                      : "border border-edge-strong bg-surface text-ink-strong"
-                  }`}
-                >
+                <Chip key={key} selected={metric === key} onClick={() => setMetric(key)}>
                   {metricSpec(key).label}
-                </button>
+                </Chip>
               ))}
             </div>
 
@@ -132,24 +126,17 @@ export function GameTrendView({ onBack }: GameTrendViewProps) {
 
             <div className="mb-2 mt-4 flex items-center justify-between gap-3">
               <h2 className={GROUP_HEADING}>All of them</h2>
-              <div className="grid grid-cols-2 gap-1 rounded-lg bg-surface-muted p-1">
-                {COLUMN_SETS.map((c) => (
-                  <button
-                    key={c}
-                    type="button"
-                    aria-pressed={columns === c}
-                    onClick={() => setColumns(c)}
-                    className={`relative h-9 rounded-md px-3 text-xs font-semibold capitalize ${TAP_TARGET_44} ${
-                      columns === c ? "bg-surface text-accent shadow-sm" : "text-ink-strong"
-                    }`}
-                  >
-                    {c}
-                  </button>
-                ))}
+              <div className="w-44 shrink-0">
+                <SegmentedControl
+                  label="Columns"
+                  value={columns}
+                  onChange={setColumns}
+                  options={COLUMN_SETS.map((c) => ({ value: c, label: c === "scoring" ? "Scoring" : "First ball" }))}
+                />
               </div>
             </div>
 
-            <div className="overflow-hidden rounded-lg border border-edge bg-surface shadow-sm">
+            <div className="overflow-hidden rounded-xl border border-edge bg-surface shadow-sm">
               <div className="flex items-center gap-2 px-3 pb-1 pt-2 text-[10px] font-bold uppercase tracking-wide text-ink-tertiary">
                 <span className="min-w-0 flex-1" aria-hidden="true" />
                 {(columns === "scoring" ? ["Avg", "Strike", "Spare"] : ["Pocket", "Carry"]).map(

@@ -5,13 +5,12 @@ import { PinGrid } from "./PinGrid";
 import { LaneVisualizerLazy } from "./LaneVisualizerLazy";
 import { useDriftModel } from "../lib/driftModelContext";
 import { deriveLaydown, deriveSlide, syncStanceLaydown } from "../lib/driftModel";
-import { useOverlay } from "../lib/useOverlay";
-import { useSheetDismiss } from "../lib/useSheetDismiss";
 import { upsertSpareLine } from "../services/ballRepository";
 import type { LineSpec, PinNumber, SpareLine } from "../types/bowling";
 import { Button } from "./ui/Button";
-import { FIELD_LABEL, FIELD_MICRO_LABEL as floatLabel, FIELD_TEXTAREA } from "./ui/field";
+import { FIELD_DENSE, FIELD_LABEL, FIELD_MICRO_LABEL as floatLabel, FIELD_TEXTAREA } from "./ui/field";
 import { IconButton } from "./ui/IconButton";
+import { FormSheet } from "./ui/FormSheet";
 
 const EMPTY_LINE: LineSpec = {};
 const ALL_PINS: PinNumber[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
@@ -20,8 +19,7 @@ const ALL_PINS: PinNumber[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 // so a spare line reads the same way a shot does.
 
 const eyebrow = "text-[11px] font-semibold uppercase tracking-[0.01em] text-ink-secondary";
-const boardInput =
-  "h-9 w-full min-w-0 rounded-lg border border-edge-strong bg-surface-muted text-center text-sm font-semibold tabular-nums text-ink focus:border-accent-fill focus:bg-surface focus:outline-none";
+const boardInput = `${FIELD_DENSE} px-1 text-center font-semibold tabular-nums`;
 
 interface SpareLineFormDialogProps {
   /** Leave being shot at (standing pins). Empty = user picks pins. */
@@ -69,15 +67,13 @@ export function SpareLineFormDialog({
 
   // Disabled while the nested LaneVisualizer is open (showViz) so Escape and
   // the focus trap apply only to that topmost overlay, not both at once.
-  const { dismiss, backdropStyle, rootStyle, panelStyle, exiting, dragHandlers } = useSheetDismiss(onCancel);
-  const overlayRef = useOverlay<HTMLDivElement>(dismiss, !showViz);
 
   const derivedSlide = line.stance != null ? deriveSlide(line.stance, driftModel) : undefined;
   const derivedLaydown =
     line.laydown ?? (line.stance != null ? deriveLaydown(line.stance, driftModel) : undefined);
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  async function handleSubmit(e?: React.FormEvent) {
+    e?.preventDefault();
     if (pins.length === 0) {
       setError("Select at least one pin for this leave.");
       return;
@@ -113,35 +109,19 @@ export function SpareLineFormDialog({
   }
 
   return (
-    <div
-      className="fixed inset-0 z-[60] flex items-end justify-center bg-black/40 sm:items-center sm:p-3"
-      role="dialog"
-      aria-modal="true"
-      style={{ ...backdropStyle, ...rootStyle }}
-      onClick={() => dismiss()}
+    <FormSheet
+      title={
+        pins.length === 0
+          ? "Add spare line"
+          : `${pins.length === 1 ? "Pin" : "Pins"} ${pins.join(", ")}`
+      }
+      onClose={onCancel}
+      onConfirm={() => void handleSubmit()}
+      confirmLabel="Save spare line"
+      confirmDisabled={isSaving}
+      banner={error ? <ErrorBanner>{error}</ErrorBanner> : undefined}
     >
-      <div
-        ref={overlayRef}
-        style={panelStyle}
-        className={`max-h-[85vh] w-full max-w-lg overflow-y-auto rounded-t-2xl border border-edge bg-surface px-4 pb-4 shadow-xl sm:rounded-2xl sm:pt-4 ${
-          exiting ? "" : "animate-slide-up"
-        }`}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="-mx-4 flex touch-none cursor-grab justify-center pb-2 pt-2 active:cursor-grabbing sm:hidden" {...dragHandlers}>
-          <div className="h-1.5 w-10 rounded-full bg-edge-strong" />
-        </div>
-        <h2 className="mb-3 text-base font-semibold text-ink">
-          {pins.length === 0
-            ? "Add spare line"
-            : `${pins.length === 1 ? "Pin" : "Pins"} ${pins.join(", ")}`}
-        </h2>
-
-        {error && (
-          <ErrorBanner className="mb-3">{error}</ErrorBanner>
-        )}
-
-        <form onSubmit={(e) => void handleSubmit(e)} className="space-y-4">
+      <form onSubmit={(e) => void handleSubmit(e)} className="space-y-4">
           <div>
             {!lockPins && (
               <p className="mb-2 text-xs text-ink-secondary">
@@ -250,38 +230,36 @@ export function SpareLineFormDialog({
             />
           </div>
 
-          <div className="flex items-center gap-2 pt-1">
-            <Button type="submit" variant="primary" disabled={isSaving}>
-              {isSaving ? "Saving…" : "Save spare line"}
-            </Button>
-            <Button variant="secondary" onClick={() => dismiss()} disabled={isSaving}>
-              Cancel
-            </Button>
-            {onDelete && (
-              <Button
-                variant="danger"
-                onClick={onDelete}
-                disabled={isSaving}
-                aria-label={`Delete spare line for pins ${pins.join(", ")}`}
-                className="ml-auto"
-              >
-                <Trash2 size={14} aria-hidden="true" />
-                Delete
-              </Button>
-            )}
-          </div>
-        </form>
-        {showViz && (
-          <LaneVisualizerLazy
-            title="Spare line"
-            line={line}
-            leave={pins}
-            spare
-            onChange={(l) => applyLine(l ?? {})}
-            onClose={() => setShowViz(false)}
-          />
+        {/* Delete lives in the body, above the fold, as a danger-ghost button:
+            the sheet's bar carries the commit, and a destructive action never
+            shares that slot (DESIGN-LANGUAGE §1). */}
+        {onDelete && (
+          <Button
+            variant="danger-ghost"
+            onClick={onDelete}
+            disabled={isSaving}
+            aria-label={`Delete spare line for pins ${pins.join(", ")}`}
+            className="w-full"
+          >
+            <Trash2 size={16} aria-hidden="true" />
+            Delete spare line
+          </Button>
         )}
-      </div>
-    </div>
+
+        {/* Enables the keyboard's Go/Return to submit without a visible row. */}
+        <button type="submit" className="sr-only" tabIndex={-1} aria-hidden="true" />
+      </form>
+
+      {showViz && (
+        <LaneVisualizerLazy
+          title="Spare line"
+          line={line}
+          leave={pins}
+          spare
+          onChange={(l) => applyLine(l ?? {})}
+          onClose={() => setShowViz(false)}
+        />
+      )}
+    </FormSheet>
   );
 }

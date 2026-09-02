@@ -380,7 +380,7 @@ export function Stats({
       {note && note !== LEAVE_NOTE && <StatNote text={note} onDismiss={() => setNote(null)} />}
 
       {ballPerformance && ballPerformance.balls.length > 0 && (
-        <div className="rounded-lg border border-edge bg-surface p-3 shadow-sm">
+        <div className="rounded-xl border border-edge bg-surface p-3 shadow-sm">
           <h2 className={GROUP_HEADING}>Ball performance</h2>
           {/* Column headings on their own line, at the widths every ball row
               below uses, so each rate sits under the letter that names it.
@@ -459,7 +459,7 @@ function StatNote({ text, onDismiss }: { text: string; onDismiss: () => void }) 
     <button
       type="button"
       onClick={onDismiss}
-      className="w-full rounded-lg border border-edge bg-surface-muted p-3 text-left text-xs text-ink-secondary"
+      className="w-full rounded-xl border border-edge bg-surface-muted p-3 text-left text-xs text-ink-secondary"
     >
       {text}
     </button>
@@ -674,7 +674,7 @@ function LeaveSection({
   // chances rather than attempts, matching what the cells below report.
   const sorted = [...leaves].sort((a, b) => b.chances - a.chances);
   return (
-    <div className="rounded-lg border border-edge bg-surface p-3 shadow-sm">
+    <div className="rounded-xl border border-edge bg-surface p-3 shadow-sm">
       <h2 className="mb-3">
         <button type="button" onClick={onExplain} className={GROUP_HEADING}>
           {title}
@@ -707,7 +707,7 @@ function leaveGroup(pins: LeaveStats["pins"]): number {
  *  conversion is about the spare game, and it is already on the leaves card. */
 function LeaveCountCell({ leave }: { leave: LeaveStats }) {
   return (
-    <div className="flex flex-col items-center gap-1 rounded-lg border border-edge bg-surface px-1.5 py-2 text-center shadow-sm">
+    <div className="flex flex-col items-center gap-1 rounded-xl border border-edge bg-surface px-1.5 py-2 text-center shadow-sm">
       <MiniPins standing={leave.pins} size="sm" />
       <span className="text-sm font-bold tabular-nums text-ink">
         {leave.attempts}
@@ -724,7 +724,7 @@ function LeaveCell({ leave }: { leave: LeaveStats }) {
     // px-1.5 rather than a square p-2: four of these fit a 390px row, and the
     // widest pairing ("10/10" beside "100%") overflowed the padding and put
     // the percent sign on the border.
-    <div className="flex flex-col items-center gap-1 rounded-lg border border-edge bg-surface px-1.5 py-2 text-center shadow-sm">
+    <div className="flex flex-col items-center gap-1 rounded-xl border border-edge bg-surface px-1.5 py-2 text-center shadow-sm">
       <MiniPins standing={leave.pins} size="sm" />
       {/* The pin diagram already names the leave: made over chances hard left,
           rate hard right. Both are tabular so the columns line up cell to cell
@@ -794,7 +794,7 @@ function Tile({
   valueClass?: string;
   onClick?: () => void;
 }) {
-  const className = "rounded-lg border border-edge bg-surface px-1 py-2 text-center shadow-sm";
+  const className = "rounded-xl border border-edge bg-surface px-1 py-2 text-center shadow-sm";
   const body = (
     <>
       <p className={`font-bold tabular-nums ${valueClass}`}>{value}</p>

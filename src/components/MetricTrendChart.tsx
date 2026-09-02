@@ -145,7 +145,7 @@ export function MetricTrendChart({
   const showExtremes = highValue !== lowValue;
 
   return (
-    <div className="rounded-lg border border-edge bg-surface p-3 shadow-sm">
+    <div className="rounded-xl border border-edge bg-surface p-3 shadow-sm">
       {header}
       <div className={overflows ? "-mx-1 overflow-x-auto overscroll-x-contain px-1" : ""}>
       <svg

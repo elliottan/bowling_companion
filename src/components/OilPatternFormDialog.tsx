@@ -4,6 +4,7 @@ import { Button } from "./ui/Button";
 import { FormSheet } from "./ui/FormSheet";
 import { FIELD, FIELD_LABEL } from "./ui/field";
 import type { OilPattern } from "../types/bowling";
+import { ErrorBanner } from "./ErrorBanner";
 
 const FORM_ID = "oil-pattern-form";
 
@@ -79,7 +80,7 @@ export function OilPatternFormDialog({ open, initial, onSubmit, onCancel, onRemo
               </span>
             </label>
 
-            {error && <p className="text-xs text-danger-700">{error}</p>}
+            {error && <ErrorBanner>{error}</ErrorBanner>}
 
             {onRemove && (
               <Button variant="danger-ghost" onClick={onRemove} className="w-full">

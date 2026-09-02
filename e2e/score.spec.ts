@@ -41,7 +41,7 @@ test("editing a past shot inline (no edit button) re-derives the frame", async (
   await expect(page.getByRole("button", { name: "Edit", exact: true })).toHaveCount(0);
 
   // Select frame 2's second shot and clear the remaining pin → it becomes a spare.
-  await page.getByRole("button", { name: "View frame 2 shot 2" }).first().click();
+  await page.getByRole("button", { name: /^Frame 2, shot 2:/ }).first().click();
   await page.locator('button[aria-label="Pin 10 standing"]:not([disabled])').click();
 
   // Scorecard frame 2 now renders the spare symbol.

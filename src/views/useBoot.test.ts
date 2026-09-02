@@ -1,4 +1,4 @@
-import { renderHook, waitFor } from "@testing-library/react";
+import { act, renderHook, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { BOOT_TIMEOUT_MS, useBoot } from "./useBoot";
 import { db } from "../db/bowlingDb";
@@ -57,7 +57,12 @@ describe("useBoot", () => {
     const { result } = renderHook(() => useBoot(false));
     expect(result.current.booted).toBe(false);
 
-    await vi.advanceTimersByTimeAsync(BOOT_TIMEOUT_MS);
+    // Past the deadline rather than exactly on it: the state lands in a
+    // microtask after the timer fires, and asserting on the same tick is a race
+    // that only loses under load.
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(BOOT_TIMEOUT_MS + 50);
+    });
 
     expect(result.current.booted).toBe(true);
     expect(result.current.handednessKnown).toBe(false);

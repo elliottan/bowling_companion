@@ -26,6 +26,7 @@ import { LaneVisualizerLazy } from "./LaneVisualizerLazy";
 import { LineInput, floatLabel, lockedTapBlocker } from "./LineInput";
 import { Button } from "./ui/Button";
 import { IconButton } from "./ui/IconButton";
+import { FIELD_DENSE_TEXTAREA } from "./ui/field";
 
 interface ShotDetailBarProps {
   balls: Ball[];
@@ -348,7 +349,7 @@ export function ShotDetailBar({
             }}
             rows={2}
             placeholder="This shot…"
-            className="h-20 w-full resize-none overflow-y-auto rounded-lg border border-edge-strong bg-surface-muted px-2 pb-1 pt-1.5 text-[11px] leading-snug text-ink placeholder:text-ink-tertiary focus:border-accent-fill focus:bg-surface focus:outline-none"
+            className={`${FIELD_DENSE_TEXTAREA} h-20 overflow-y-auto text-[11px]`}
           />
         </label>
       </div>

@@ -89,7 +89,7 @@ describe("the session sheet", () => {
     expect(screen.getByText("Game 2 only")).toBeInTheDocument();
     // Still on the stats tab: the frames were not what was asked for.
     expect(screen.getByRole("button", { name: "Stats" })).toHaveAttribute("aria-pressed", "true");
-    expect(screen.getByRole("button", { name: "Session sheet" })).toHaveAttribute(
+    expect(screen.getByRole("button", { name: "Sheet" })).toHaveAttribute(
       "aria-pressed",
       "false"
     );
@@ -119,7 +119,7 @@ describe("the session sheet", () => {
     fireEvent.click(screen.getByText("Game 2", { selector: "span" }));
 
     // The chart is the way in: this one moves to the frames.
-    expect(screen.getByRole("button", { name: "Session sheet" })).toHaveAttribute(
+    expect(screen.getByRole("button", { name: "Sheet" })).toHaveAttribute(
       "aria-pressed",
       "true"
     );
@@ -136,7 +136,7 @@ describe("the session sheet", () => {
     expect(screen.getByRole("button", { name: /G2/ })).toHaveAttribute("aria-pressed", "true");
 
     // On the sheet a chip is a place to scroll to, so none of them read as on.
-    fireEvent.click(screen.getByRole("button", { name: "Session sheet" }));
+    fireEvent.click(screen.getByRole("button", { name: "Sheet" }));
     expect(screen.getByRole("button", { name: /G1/ })).toHaveAttribute("aria-pressed", "false");
     expect(screen.getByRole("button", { name: /G2/ })).toHaveAttribute("aria-pressed", "false");
   });

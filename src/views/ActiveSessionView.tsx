@@ -668,7 +668,7 @@ export function ActiveSessionView({
               </div>
             )}
 
-            {laneError && <p className="mt-2 text-xs text-danger-700">{laneError}</p>}
+            {laneError && <ErrorBanner className="mt-2">{laneError}</ErrorBanner>}
         </FormSheet>
       )}
     </div>

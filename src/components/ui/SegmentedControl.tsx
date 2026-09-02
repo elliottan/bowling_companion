@@ -4,7 +4,10 @@ interface SegmentedControlProps<T extends string> {
   /** Spoken name for the group, since the segments only say their own label. */
   label: string;
   options: ReadonlyArray<{ value: T; label: string }>;
-  value: T;
+  /** Null where the question has not been answered yet, which is a real state
+   *  on the first run: no segment is pressed, and the track still says that
+   *  exactly one of these is the answer. */
+  value: T | null;
   onChange: (value: T) => void;
 }
 

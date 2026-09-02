@@ -52,8 +52,9 @@ describe("NextSteps", () => {
   it("retires one step for good without silencing the one beside it", async () => {
     renderCard();
     await screen.findByText("Add the balls you throw");
-    // The first "Not now" belongs to the first step listed.
-    fireEvent.click(screen.getAllByRole("button", { name: "Not now" })[0]);
+    // Each dismiss is named after the card it answers, so there is no need to
+    // count them off the page.
+    fireEvent.click(screen.getAllByRole("button", { name: /^Not now: / })[0]);
 
     await waitFor(() =>
       expect(screen.queryByText("Add the balls you throw")).not.toBeInTheDocument()

@@ -7,6 +7,8 @@ import { formatTimestamp } from "../lib/dates";
 import { isStandalone } from "../lib/installPrompt";
 import { ReplaceConfirmDialog } from "./ReplaceConfirmDialog";
 import type { Handedness } from "../types/bowling";
+import { ErrorBanner } from "./ErrorBanner";
+import { useOverlay } from "../lib/useOverlay";
 
 /** The stamp the file carries. It is the one fact that says which backup this
  *  is; frame counts never told anybody that. Falls back to the raw string, so
@@ -51,6 +53,10 @@ export function FirstRun({ onSelectHandedness, hasSavedData = false }: FirstRunP
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [gateOpen, setGateOpen] = useState(false);
+  // It claimed aria-modal without trapping anything, so Tab walked straight out
+  // of the first run and onto an app the bowler has not been shown yet. Escape
+  // is a no-op on purpose: there is nowhere behind this to go back to.
+  const overlayRef = useOverlay<HTMLDivElement>(() => {}, true, false);
   const [confirmText, setConfirmText] = useState("");
   const fileRef = useRef<HTMLInputElement | null>(null);
 
@@ -92,6 +98,7 @@ export function FirstRun({ onSelectHandedness, hasSavedData = false }: FirstRunP
 
   return (
     <div
+      ref={overlayRef}
       className="fixed inset-0 z-[60] flex flex-col overflow-y-auto bg-surface-sunken"
       role="dialog"
       aria-modal="true"
@@ -128,7 +135,7 @@ export function FirstRun({ onSelectHandedness, hasSavedData = false }: FirstRunP
             {/* A file that cannot be read is answered here rather than on a
                 screen of its own: there is nothing to do about it except pick a
                 different one, and the button for that is right above. */}
-            {error && <p className="mt-4 text-sm font-semibold text-danger-600">{error}</p>}
+            {error && <ErrorBanner className="mt-4">{error}</ErrorBanner>}
 
             {/* The way back out to the pitch, for somebody who arrived here by
                 tapping through and still wants to read what this is. Hidden in
@@ -180,7 +187,7 @@ export function FirstRun({ onSelectHandedness, hasSavedData = false }: FirstRunP
               bowl with.
             </p>
 
-            <div className="mt-6 rounded-lg border border-edge bg-surface p-4">
+            <div className="mt-6 rounded-xl border border-edge bg-surface p-4">
               <p className="text-sm font-semibold text-ink">
                 Backed up {formatTimestamp(pending.backup.exported_at)}
               </p>
@@ -220,7 +227,7 @@ export function FirstRun({ onSelectHandedness, hasSavedData = false }: FirstRunP
               </div>
             </div>
 
-            {error && <p className="mt-4 text-sm font-semibold text-danger-600">{error}</p>}
+            {error && <ErrorBanner className="mt-4">{error}</ErrorBanner>}
 
             <button
               type="button"
