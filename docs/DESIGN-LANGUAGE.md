@@ -218,6 +218,10 @@ as the thing leaving.
   `align: "center"`).
 - **Tab switches** enter from the side of the tab that was tapped, so the
   travel matches the reach.
+- **Collapsing tab headers** flip fully away and fully back, never parking half
+  way (`useHeaderCollapse`, `CollapsingHeader`). The scroll says when, the
+  header says how: it earns the flip over a threshold of committed travel, then
+  transitions its own height. ADR-077.
 
 Keyframes live in `src/index.css`; interactive drags own their own transform
 and never animate against a keyframe. Everything is off under

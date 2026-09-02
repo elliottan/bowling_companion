@@ -23,6 +23,8 @@ function formatExportedAt(iso: string): string {
 
 interface FirstRunProps {
   onSelectHandedness: (value: Handedness) => void;
+  /** Whether this device already holds sessions. */
+  hasSavedData?: boolean;
 }
 
 type Step = "welcome" | "handedness" | "restore";
@@ -43,9 +45,16 @@ type Step = "welcome" | "handedness" | "restore";
  * Install and backup prompts are deliberately absent: they have their own
  * banners on Home (ADR-067, ADR-068), and repeating them here would rebuild the
  * competing-nudge problem those decisions exist to fix.
+ *
+ * A bowler who already has sessions on this device never sees the welcome, even
+ * when handedness is missing — which happens after restoring a backup taken
+ * before `settings` were in the file. Offering "Start fresh" to somebody whose
+ * history is right there is offering to walk past it, and offering a restore is
+ * offering the thing they have already done. They are asked the one question
+ * that is genuinely unanswered and let into the app.
  */
-export function FirstRun({ onSelectHandedness }: FirstRunProps) {
-  const [step, setStep] = useState<Step>("welcome");
+export function FirstRun({ onSelectHandedness, hasSavedData = false }: FirstRunProps) {
+  const [step, setStep] = useState<Step>(hasSavedData ? "handedness" : "welcome");
   const [pending, setPending] = useState<PreparedImport | null>(null);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
@@ -151,13 +160,17 @@ export function FirstRun({ onSelectHandedness }: FirstRunProps) {
             <div className="mt-8">
               <HandednessPicker value={null} onSelect={onSelectHandedness} />
             </div>
-            <button
-              type="button"
-              onClick={() => setStep("welcome")}
-              className="mt-6 self-start text-sm font-semibold text-ink-secondary hover:underline"
-            >
-              Back
-            </button>
+            {/* There is no way back for a bowler who already has data: the
+                welcome behind this asks whether they are new, and they are not. */}
+            {!hasSavedData && (
+              <button
+                type="button"
+                onClick={() => setStep("welcome")}
+                className="mt-6 self-start text-sm font-semibold text-ink-secondary hover:underline"
+              >
+                Back
+              </button>
+            )}
           </>
         )}
 

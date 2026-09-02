@@ -3556,3 +3556,53 @@ held the original has been wiped.
 - The coverage test fails the moment a table is added to `bowlingDb.ts` without
   a decision about backing it up. That is the intent: the decision becomes a
   line in the exclusion map or a line in `createBackup`, and never an omission.
+
+## ADR-077: The header is a switch, and a bowler with history is never asked if they are new
+
+**Status.** Accepted. Amends the header behaviour introduced alongside ADR-040
+and the first-run order in ADR-072; neither is otherwise changed.
+
+**Context.**
+
+Two screens were answering the wrong question.
+
+The header followed the scroll pixel for pixel. That was the intent, and it was
+wrong: a header tied to the finger spends most of its life half-there, which is
+the one height it is no use at. Too short to read, too tall to be out of the
+way, and it changes on every frame, so the eye keeps going back to it.
+
+The first run showed its welcome whenever handedness was missing. Handedness is
+a row in `settings`, and `settings` only entered the backup file at version 3.
+Restore a file taken before that and the device has a full history and no
+handedness, so a returning bowler was met with "Start fresh" over the top of
+their own seasons, and "Restore from a backup" for a restore they had just
+done.
+
+**Decision.**
+
+- **The header flips, it does not slide.** The scroll decides *when*: it takes
+  the header away after `COLLAPSE_THRESHOLD` px of committed travel downward,
+  and puts it back after the same distance upward. It is only ever fully there
+  or fully away. Travel resets when the reader turns around, so a flick that
+  changes its mind banks nothing, and a flip resets it too, so coming back needs
+  a threshold of its own rather than the tail of the move that just flipped it.
+- **The header owns its own motion.** The scroll no longer animates it, so the
+  height and transform are transitioned together and are off under
+  `prefers-reduced-motion`, which DESIGN-LANGUAGE §7 requires of anything that
+  would otherwise change on one frame.
+- **The top of a list always shows its header**, with no threshold to clear.
+- **First run asks "are you new" of the database, not of the handedness row.**
+  A device holding any session goes straight to the handedness question, with no
+  welcome, no restore offer, and no way back to either.
+
+**Consequences.**
+- The threshold is a number that has to be felt rather than derived. 24px is
+  small enough to answer a deliberate flick and large enough to ignore the
+  wobble in a thumb held still.
+- A bowler with data and no handedness still has to answer one question before
+  reaching Home. That is right: the arrows point the wrong way without it, and
+  it is one tap rather than a screen about what the app is.
+- Restoring a backup remains the way to bring history to a new device. It moved
+  out of the first run only for devices that already have history, where it was
+  offering to do a thing that had already happened.
+

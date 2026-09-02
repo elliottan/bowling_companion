@@ -234,6 +234,23 @@ input[type="date"]::-webkit-date-and-time-value {
   }
 }
 
+/* The tab header flips fully away and fully back (never half-there), so the
+   travel has to be animated: the scroll only says when, not how. Height and
+   transform move together, because the row gives its space back rather than
+   sliding over the content. */
+.collapsing-header,
+.collapsing-header > * {
+  transition: height 0.22s cubic-bezier(0.32, 0.72, 0, 1),
+    transform 0.22s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .collapsing-header,
+  .collapsing-header > * {
+    transition: none;
+  }
+}
+
 .animate-tab-right {
   animation: slide-in-from-right 0.22s cubic-bezier(0.32, 0.72, 0, 1);
 }

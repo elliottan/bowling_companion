@@ -27,6 +27,12 @@ export async function setSetting(key: string, value: string): Promise<void> {
   await db.settings.put({ key, value });
 }
 
+/** Whether this device holds any bowling history at all. The question the
+ *  first run really asks is "are you new here", and this is that question. */
+export async function hasSavedData(): Promise<boolean> {
+  return (await db.sessions.count()) > 0;
+}
+
 /** Stored handedness, or null if the user has never chosen one. */
 export async function getHandedness(): Promise<Handedness | null> {
   const v = await getSetting(HANDEDNESS_KEY);

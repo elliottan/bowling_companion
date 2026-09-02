@@ -97,3 +97,33 @@ test("a restore brings the history back and never asks the hand twice", async ({
   await expect(page.getByRole("dialog", { name: "Set up Headpin" })).toHaveCount(0);
   await expect(page.getByText("Restored Lanes")).toBeVisible();
 });
+
+test("a bowler who already has sessions is never asked if they are new", async ({ page }) => {
+  // A history on the device, then the handedness row alone taken away: the
+  // exact state a backup taken before `settings` were in the file restores to.
+  await freshInstall(page);
+  await page.getByRole("button", { name: "Start fresh" }).click();
+  await page.getByRole("button", { name: "right-handed" }).click();
+  await startSession(page, "Returning Lanes");
+  await recordShot(page, []);
+
+  await page.evaluate(async () => {
+    const { db } = await import("/src/db/bowlingDb.ts");
+    await db.settings.delete("handedness");
+  });
+  await page.reload();
+
+  // Asked the one thing that is genuinely unanswered, and nothing else. No
+  // offer to start fresh over the top of a history that is right there.
+  const firstRun = page.getByRole("dialog", { name: "Set up Headpin" });
+  await expect(firstRun.getByRole("button", { name: "right-handed" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Start fresh" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Restore from a backup" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Back" })).toHaveCount(0);
+
+  // Answering it lands on Home, with the history still there.
+  await firstRun.getByRole("button", { name: "right-handed" }).click();
+  await expect(firstRun).toHaveCount(0);
+  await page.getByRole("button", { name: "History" }).click();
+  await expect(page.getByRole("button", { name: /Returning Lanes/ })).toBeVisible();
+});

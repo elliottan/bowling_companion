@@ -28,6 +28,7 @@ import {
   addGameToSession,
   createSession,
   getDriftModel,
+  hasSavedData as hasSavedDataOnDevice,
   getHandedness,
   getResumableForSession,
   getResumableToday,
@@ -113,6 +114,7 @@ function App() {
   const [startError, setStartError] = useState("");
   const [handedness, setHandednessState] = useState<Handedness | null>(null);
   const [handednessLoaded, setHandednessLoaded] = useState(false);
+  const [hasSavedData, setHasSavedData] = useState(false);
   const [driftModel, setDriftModelState] = useState<DriftModel>(DEFAULT_DRIFT_MODEL);
   const [resumable, setResumable] = useState<ResumableGame | null>(null);
   // A realistic strike line; auto-hooks to the pocket (ADR-024), no seeded breakpoint.
@@ -263,6 +265,15 @@ function App() {
 
   useEffect(() => {
     getDriftModel().then(setDriftModelState).catch(() => {});
+  }, []);
+
+  // Asked alongside handedness, not derived from it: a restore can leave a
+  // device with a full history and no handedness row, and that bowler is not
+  // new. Read once, next to the question it decides.
+  useEffect(() => {
+    hasSavedDataOnDevice()
+      .then(setHasSavedData)
+      .catch(() => {});
   }, []);
 
   async function chooseHandedness(value: Handedness) {
@@ -568,7 +579,7 @@ function App() {
           yet. It owns the viewport until handedness exists, which a restore
           can also supply (ADR-072). */}
       {handednessLoaded && handedness === null && (
-        <FirstRun onSelectHandedness={chooseHandedness} />
+        <FirstRun onSelectHandedness={chooseHandedness} hasSavedData={hasSavedData} />
       )}
     </div>
     </DriftModelContext.Provider>

@@ -10,7 +10,20 @@ of shipped work rather than a release. Thirty of them used to be headed
 
 ## Restores land properly, and the header comes back (2026-09)
 
+### Changed
+
+- **The header is either there or gone, never half way.** It used to follow
+  your thumb pixel for pixel, which left it stuck at heights too short to read
+  and too tall to be out of the way. Scrolling down takes it away, scrolling
+  back up brings it back, and it animates itself between the two.
+
 ### Fixed
+
+- **Opening the app with a history behind you goes to Home.** If you restored
+  an older backup, one taken before settings were saved in the file, the app
+  kept meeting you with "Start fresh" and an offer to restore, over the top of
+  the seasons you already had. It now asks which hand you bowl with and lets
+  you in.
 
 - **Restoring a backup from Settings now reloads the app.** It used to leave
   the screen running on the data it had just replaced, so a restored drift

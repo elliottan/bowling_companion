@@ -9,13 +9,15 @@ interface CollapsingHeaderProps {
 }
 
 /**
- * A tab header that moves with the scroll: pulled up as the reader reads down,
- * and returned by the first movement back the other way, pixel for pixel.
+ * A tab header the scroll switches on and off: taken away once the reader is
+ * reading down, and put back by the first deliberate movement the other way.
+ * It is only ever fully there or fully away, never parked in between.
  *
  * It gives the space back rather than sliding over the content, so the wrapper
- * loses exactly the height the header gains in offset. Nothing is animated and
- * nothing is transitioned: the scroll *is* the animation, and a transition on
- * top of it would lag the finger by its own duration.
+ * loses exactly the height the header gains in offset. Both are transitioned
+ * together (`.collapsing-header` in `index.css`), because the scroll now only
+ * decides *when* the header flips: without a transition of its own the row
+ * would jump its whole height on one frame, which §7 does not allow.
  *
  * The height is measured rather than assumed. This row is taller when there are
  * filter chips in it, and it changes height while the screen is open.
@@ -36,7 +38,7 @@ export function CollapsingHeader({ scrollerRef, children }: CollapsingHeaderProp
 
   return (
     <div
-      className="overflow-hidden"
+      className="collapsing-header overflow-hidden"
       // Until the row has been measured it sizes itself, so the header is on
       // screen for the first paint rather than collapsed to nothing.
       style={height ? { height: height - offset } : undefined}
