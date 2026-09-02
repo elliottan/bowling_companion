@@ -16,6 +16,9 @@ export interface SheetDismiss {
    *  up on top of the screen it had just opened. Compose when in doubt:
    *  `dismiss(() => { onClose(); somethingElse(); })`. */
   dismiss: (after?: () => void) => void;
+  /** Style for the overlay's outermost element: stops it taking taps on the
+   *  way out, when it is a picture of a sheet rather than a sheet. */
+  rootStyle: React.CSSProperties;
   /** Style for the backdrop: fades with the panel. */
   backdropStyle: React.CSSProperties;
   /** Style for the panel itself: slides down out of view (or scales, centered). */
@@ -88,6 +91,13 @@ export function useSheetDismiss(
   return {
     dismiss,
     exiting,
+    // For the overlay's outermost element. An overlay on its way out is a
+    // picture, not a surface: it used to keep swallowing taps for the whole
+    // exit, so the first tap after closing a sheet went nowhere and the reader
+    // tapped again at something that had already moved.
+    rootStyle: {
+      pointerEvents: exiting ? ("none" as const) : undefined
+    },
     backdropStyle: {
       opacity: exiting ? 0 : 1,
       transition: `opacity ${EXIT_MS}ms ease-out`

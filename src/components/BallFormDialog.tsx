@@ -45,7 +45,7 @@ export function BallFormDialog({ ball, onClose, onSaved, onDelete }: BallFormDia
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
 
-  const { dismiss, backdropStyle, panelStyle, exiting, dragHandlers } = useSheetDismiss(onClose);
+  const { dismiss, backdropStyle, rootStyle, panelStyle, exiting, dragHandlers } = useSheetDismiss(onClose);
   const overlayRef = useOverlay<HTMLDivElement>(dismiss, !pickerOpen);
 
   // Restore the existing catalog link so its image and weight specs resolve.
@@ -126,7 +126,7 @@ export function BallFormDialog({ ball, onClose, onSaved, onDelete }: BallFormDia
 
   return (
     <>
-      <div className="fixed inset-0 z-[60] flex items-end justify-center sm:items-center" role="dialog" aria-modal="true" aria-label={editing ? "Edit ball" : "Add ball"}>
+      <div className="fixed inset-0 z-[60] flex items-end justify-center sm:items-center" style={rootStyle} role="dialog" aria-modal="true" aria-label={editing ? "Edit ball" : "Add ball"}>
         <div className="absolute inset-0 bg-black/40" style={backdropStyle} onClick={() => dismiss()} />
         <div
           ref={overlayRef}

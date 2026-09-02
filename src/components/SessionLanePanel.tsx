@@ -97,7 +97,7 @@ export function SessionLanePanel({
   // back down on close. `dragHandlers` go on the drag pill AND the header row,
   // and the hook skips a press that landed on a button so the header's own
   // controls still work.
-  const { dismiss, backdropStyle, panelStyle, exiting, dragHandlers } = useSheetDismiss(onClose);
+  const { dismiss, backdropStyle, rootStyle, panelStyle, exiting, dragHandlers } = useSheetDismiss(onClose);
   const requestClose = useCallback(() => dismiss(), [dismiss]);
 
   // Escape + focus trap + focus restore, tied to the animated dismissal rather
@@ -141,7 +141,7 @@ export function SessionLanePanel({
       className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 sm:items-center"
       role="dialog"
       aria-modal="true"
-      style={backdropStyle}
+      style={{ ...backdropStyle, ...rootStyle }}
       onClick={requestClose}
     >
       <div

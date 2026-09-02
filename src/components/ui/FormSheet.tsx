@@ -54,12 +54,13 @@ export function FormSheet({
   size = "content",
   children
 }: FormSheetProps) {
-  const { dismiss, backdropStyle, panelStyle, exiting, dragHandlers } = useSheetDismiss(onClose);
+  const { dismiss, backdropStyle, rootStyle, panelStyle, exiting, dragHandlers } = useSheetDismiss(onClose);
   const overlayRef = useOverlay<HTMLDivElement>(dismiss);
 
   return (
     <div
       className="fixed inset-0 z-[60] flex items-end justify-center sm:items-center sm:p-3"
+      style={rootStyle}
       role="dialog"
       aria-modal="true"
       aria-label={title}

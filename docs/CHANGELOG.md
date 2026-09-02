@@ -19,6 +19,10 @@ of shipped work rather than a release. Thirty of them used to be headed
 
 ### Fixed
 
+- **The first tap after closing a sheet works.** A closing sheet kept taking
+  taps for the whole quarter-second it spent fading, so tapping the x on a
+  filter chip, or the filter button again, did nothing and you had to tap
+  twice. Every sheet and dialog in the app was doing this.
 - **Opening the app with a history behind you goes to Home.** If you restored
   an older backup, one taken before settings were saved in the file, the app
   kept meeting you with "Start fresh" and an offer to restore, over the top of

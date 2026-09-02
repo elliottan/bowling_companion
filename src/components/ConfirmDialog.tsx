@@ -23,7 +23,7 @@ export function ConfirmDialog({
   onConfirm,
   onCancel
 }: ConfirmDialogProps) {
-  const { dismiss, backdropStyle, panelStyle, exiting } = useSheetDismiss(onCancel, "center");
+  const { dismiss, backdropStyle, rootStyle, panelStyle, exiting } = useSheetDismiss(onCancel, "center");
   const overlayRef = useOverlay<HTMLDivElement>(dismiss, open);
 
   if (!open) return null;
@@ -35,7 +35,7 @@ export function ConfirmDialog({
       className="fixed inset-0 z-[80] flex items-center justify-center bg-black/40 p-4"
       role="dialog"
       aria-modal="true"
-      style={backdropStyle}
+      style={{ ...backdropStyle, ...rootStyle }}
       onClick={() => dismiss()}
     >
       <div

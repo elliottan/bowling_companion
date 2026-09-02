@@ -237,6 +237,11 @@ controls in it.
 Every close path goes through the hook's `dismiss`, confirm buttons included
 (`dismiss(onConfirm)`), or the exit is skipped for that path alone.
 
+An overlay's outermost element takes `rootStyle` from the hook, which stops it
+taking taps while it leaves. An overlay on its way out is a picture of itself:
+without this it went on swallowing every tap for the length of the exit, so the
+first tap after closing a sheet did nothing at all.
+
 ## 7b. The primary action
 
 A **tab** with one dominant action puts it in `ui/Fab.tsx`: a floating round

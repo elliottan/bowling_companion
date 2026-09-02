@@ -26,7 +26,7 @@ export function BallGameSessionsDialog({
   onSelect,
   onClose
 }: BallGameSessionsDialogProps) {
-  const { dismiss, backdropStyle, panelStyle, exiting } = useSheetDismiss(onClose, "center");
+  const { dismiss, backdropStyle, rootStyle, panelStyle, exiting } = useSheetDismiss(onClose, "center");
   const overlayRef = useOverlay<HTMLDivElement>(dismiss, open);
 
   if (!open) return null;
@@ -40,7 +40,7 @@ export function BallGameSessionsDialog({
       role="dialog"
       aria-modal="true"
       aria-label={`${ballName}, game ${gameNumber}`}
-      style={backdropStyle}
+      style={{ ...backdropStyle, ...rootStyle }}
       onClick={() => dismiss()}
     >
       <div

@@ -41,7 +41,7 @@ interface ShareCardDialogProps {
  * the thing being saved is on screen.
  */
 export function ShareCardDialog({ open, card, onClose }: ShareCardDialogProps) {
-  const { dismiss, backdropStyle, panelStyle, exiting } = useSheetDismiss(onClose, "center");
+  const { dismiss, backdropStyle, rootStyle, panelStyle, exiting } = useSheetDismiss(onClose, "center");
   const overlayRef = useOverlay<HTMLDivElement>(dismiss, open);
 
   const [preview, setPreview] = useState<string | null>(null);
@@ -99,7 +99,7 @@ export function ShareCardDialog({ open, card, onClose }: ShareCardDialogProps) {
       role="dialog"
       aria-modal="true"
       aria-label="Share image"
-      style={backdropStyle}
+      style={{ ...backdropStyle, ...rootStyle }}
       onClick={() => dismiss()}
     >
       <div

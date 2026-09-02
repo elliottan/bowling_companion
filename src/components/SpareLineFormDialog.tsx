@@ -71,7 +71,7 @@ export function SpareLineFormDialog({
 
   // Disabled while the nested LaneVisualizer is open (showViz) so Escape and
   // the focus trap apply only to that topmost overlay, not both at once.
-  const { dismiss, backdropStyle, panelStyle, exiting, dragHandlers } = useSheetDismiss(onCancel);
+  const { dismiss, backdropStyle, rootStyle, panelStyle, exiting, dragHandlers } = useSheetDismiss(onCancel);
   const overlayRef = useOverlay<HTMLDivElement>(dismiss, !showViz);
 
   const derivedSlide = line.stance != null ? deriveSlide(line.stance, driftModel) : undefined;
@@ -119,7 +119,7 @@ export function SpareLineFormDialog({
       className="fixed inset-0 z-[60] flex items-end justify-center bg-black/40 sm:items-center sm:p-3"
       role="dialog"
       aria-modal="true"
-      style={backdropStyle}
+      style={{ ...backdropStyle, ...rootStyle }}
       onClick={() => dismiss()}
     >
       <div

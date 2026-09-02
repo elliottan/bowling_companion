@@ -33,11 +33,11 @@ export function BallPickerSheet({
     dismiss();
   };
 
-  const { dismiss, backdropStyle, panelStyle, exiting, dragHandlers } = useSheetDismiss(onClose);
+  const { dismiss, backdropStyle, rootStyle, panelStyle, exiting, dragHandlers } = useSheetDismiss(onClose);
   const overlayRef = useOverlay<HTMLDivElement>(dismiss);
 
   return (
-    <div className="fixed inset-0 z-[60]" role="dialog" aria-modal="true" aria-label="Choose ball">
+    <div className="fixed inset-0 z-[60]" style={rootStyle} role="dialog" aria-modal="true" aria-label="Choose ball">
       <div className="absolute inset-0 bg-black/40" style={backdropStyle} onClick={() => dismiss()} />
       <div
         ref={overlayRef}

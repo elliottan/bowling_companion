@@ -14,7 +14,7 @@ interface InstallPromptProps {
  * it, wired by the caller via `open`/`onClose`).
  */
 export function InstallPrompt({ open, onClose }: InstallPromptProps) {
-  const { dismiss, backdropStyle, panelStyle, exiting } = useSheetDismiss(onClose, "center");
+  const { dismiss, backdropStyle, rootStyle, panelStyle, exiting } = useSheetDismiss(onClose, "center");
   const overlayRef = useOverlay<HTMLDivElement>(dismiss, open);
 
   if (!open || isStandalone()) return null;
@@ -28,7 +28,7 @@ export function InstallPrompt({ open, onClose }: InstallPromptProps) {
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
       role="dialog"
       aria-modal="true"
-      style={backdropStyle}
+      style={{ ...backdropStyle, ...rootStyle }}
       onClick={() => dismiss()}
     >
       <div
