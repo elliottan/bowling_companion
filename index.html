@@ -17,7 +17,7 @@
     <title>Headpin, free offline bowling score keeper</title>
     <meta
       name="description"
-      content="The top bowlers know their stats. Try the best bowling score and stats tracker app, and never forget what worked on lane 12 the last time you bowled there."
+      content="Tap the pins you left. Headpin keeps score, records the ball and line you used, and shows you what worked last time you bowled that alley."
     />
     <link rel="canonical" href="https://headpin.app/" />
 
@@ -32,7 +32,7 @@
     <meta property="og:title" content="Headpin, free offline bowling score keeper" />
     <meta
       property="og:description"
-      content="The top bowlers know their stats. Try the best bowling score and stats tracker app, and never forget what worked on lane 12 the last time you bowled there."
+      content="Tap the pins you left. Headpin keeps score, records the ball and line you used, and shows you what worked last time you bowled that alley."
     />
     <meta property="og:image" content="https://headpin.app/og-image.png" />
     <meta property="og:image:width" content="1200" />
@@ -42,7 +42,7 @@
     <meta name="twitter:title" content="Headpin, free offline bowling score keeper" />
     <meta
       name="twitter:description"
-      content="The top bowlers know their stats. Try the best bowling score and stats tracker app, and never forget what worked on lane 12 the last time you bowled there."
+      content="Tap the pins you left. Headpin keeps score, records the ball and line you used, and shows you what worked last time you bowled that alley."
     />
     <meta name="twitter:image" content="https://headpin.app/og-image.png" />
 
@@ -63,11 +63,12 @@
             "@id": "https://headpin.app/#website",
             "url": "https://headpin.app/",
             "name": "Headpin",
-            "description": "The top bowlers know their stats. Try the best bowling score and stats tracker app, and never forget what worked on lane 12 the last time you bowled there."
+            "description": "Tap the pins you left. Headpin keeps score, records the ball and line you used, and shows you what worked last time you bowled that alley."
           },
           {
             "@type": "SoftwareApplication",
             "name": "Headpin",
+            "isPartOf": { "@id": "https://headpin.app/#website" },
             "url": "https://headpin.app/",
             "applicationCategory": "SportsApplication",
             "operatingSystem": "Web browser, iOS, Android",
@@ -183,7 +184,17 @@
         letter-spacing: -0.03em;
         margin: 1.25rem 0 0;
       }
-      .lede { font-size: 1.15rem; color: var(--ink-2); margin: 0.75rem 0 0; }
+      /* The value line under the wordmark. The section headings below share the
+         h2 tag and are small caps, so this one opts out of all of that. */
+      h2.value {
+        font-size: 1.35rem;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+        text-transform: none;
+        color: var(--ink);
+        margin: 0.6rem 0 0;
+      }
+      .lede { font-size: 1.05rem; color: var(--ink-2); margin: 0.6rem 0 0; }
       .cta {
         display: inline-block;
         margin: 1.75rem 0 0;
@@ -338,18 +349,25 @@
         font-size: 0.9rem;
       }
     </style>
+    <!--
+      Page counts only (Vercel Web Analytics): views, referrers, rough country.
+      No cookies and no identifier stored in the browser, which is why /legal
+      needs no consent banner and does not carry this itself. It fails silently
+      when offline, which is most of the time for an installed app.
+    -->
+    <script defer src="/_vercel/insights/script.js"></script>
   </head>
   <body>
     <main>
       <img class="mark" src="/icons/icon-192.png" width="72" height="72" alt="" />
       <h1>Headpin</h1>
+      <h2 class="value">A bowling score keeper that remembers what you threw</h2>
       <p class="lede">
-        The top bowlers know their stats. Try the best bowling score and stats
-        tracker app, and never forget what worked on lane 12 the last time you
-        bowled there.
+        Tap the pins you left. Headpin keeps score, records the ball and line
+        you used, and shows you what worked last time you bowled that alley.
       </p>
       <a class="cta" href="/score">Open Headpin</a>
-      <p class="cta-note">Free - no sign up required</p>
+      <p class="cta-note">Free. No sign up.</p>
 
       <!--
         Real screens, captured from the running app by scripts/capture-shots.mjs
@@ -360,7 +378,7 @@
         Each screen is shot in both themes and picked with prefers-color-scheme.
         The page claims the app looks nice, and a dark screenshot on the cream
         background argues the other way. The lane view is the exception: it
-        paints its own wood rather than the app's colour tokens, so one file
+        paints its own wood rather than the app's color tokens, so one file
         serves both.
       -->
       <section class="shots">
@@ -376,7 +394,7 @@
             />
           </picture>
           </div></div></a>
-          <figcaption>Tap the pins, choose your ball, set your targets.</figcaption>
+          <figcaption>Tap the pins you left</figcaption>
         </figure>
         <figure>
           <a class="shot-link" href="/shots/line.webp" aria-label="View the lane view larger"><div class="phone phone-dark"><div class="screen">
@@ -387,7 +405,7 @@
               alt="The Headpin lane view, showing a ball path from laydown through the target arrows to the breakpoint and into the pocket."
             />
           </div></div></a>
-          <figcaption>Visualize your line.</figcaption>
+          <figcaption>See the line you threw</figcaption>
         </figure>
         <figure>
           <a class="shot-link" href="/shots/stats.webp" aria-label="View the stats screen larger"><div class="phone"><div class="screen">
@@ -401,7 +419,7 @@
             />
           </picture>
           </div></div></a>
-          <figcaption>Track your average, strike percentage, spare rates</figcaption>
+          <figcaption>Watch the average move</figcaption>
         </figure>
         <figure>
           <a class="shot-link" href="/shots/arsenal.webp" aria-label="View the arsenal larger"><div class="phone"><div class="screen">
@@ -415,19 +433,34 @@
             />
           </picture>
           </div></div></a>
-          <figcaption>Build your arsenal</figcaption>
+          <figcaption>Keep your arsenal</figcaption>
         </figure>
       </section>
 
       <h2>What it does</h2>
       <ul>
-        <li><b>Keeps score.</b> Frame by frame, shot by shot. Record every strike, spare, ball and line used.</li>
-        <li><b>Remembers every night.</b> Stats, trends, and averages over time.</li>
-        <li><b>Keeps it yours.</b> Works offline, and your data stays with you.</li>
-        <li><b>No app store download needed.</b> Installs to your home screen.</li>
+        <li>
+          Score by tapping the pins that are still standing. There is no keypad,
+          because a deck of pins is what you are already looking at.
+        </li>
+        <li>
+          See your line drawn on the lane, from where the ball lands through the
+          arrows to the breakpoint and into the pocket.
+        </li>
+        <li>
+          Every shot keeps the ball and the boards that went with it, so the
+          answer you found last week is still written down.
+        </li>
+        <li>
+          It all stays on the phone. No account, nothing to sign up for, and it
+          works with no signal once it is on the home screen.
+        </li>
       </ul>
 
-      <footer>Made by bowlers, for bowlers. <a href="/legal">Privacy and terms</a></footer>
+      <footer>
+        <a href="/legal">Privacy and terms</a> ·
+        <a href="mailto:hello@headpin.app">hello@headpin.app</a>
+      </footer>
     </main>
 
     <!--

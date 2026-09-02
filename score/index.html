@@ -26,7 +26,6 @@
       answers a search; this one answers a tap.
     -->
     <meta name="robots" content="noindex" />
-    <link rel="canonical" href="https://headpin.app/score" />
 
     <!--
       Resolve the theme before first paint so there is no light-mode flash.
@@ -61,6 +60,13 @@
         mq.addEventListener("change", function (e) { resolve(e.matches); });
       })();
     </script>
+    <!--
+      Page counts only (Vercel Web Analytics): views, referrers, rough country.
+      No cookies and no identifier stored in the browser, which is why /legal
+      needs no consent banner and does not carry this itself. It fails silently
+      when offline, which is most of the time for an installed app.
+    -->
+    <script defer src="/_vercel/insights/script.js"></script>
   </head>
   <body>
     <div id="root"></div>

@@ -120,8 +120,25 @@ survives the project being recreated.
   browser against IndexedDB.
 - Vite's framework preset on Vercel already maps build output to `dist/`.
 
-Any further config (e.g. custom headers) goes in the same `vercel.json`, with
-the reason documented here.
+`vercel.json` also carries the response headers, applied to every path:
+`X-Content-Type-Options: nosniff`, `Referrer-Policy:
+strict-origin-when-cross-origin`, `Permissions-Policy` denying camera,
+microphone and geolocation, and HSTS. There is no CSP yet: the three HTML
+shells each run an inline theme script, which a CSP would need nonces for, and
+nonces need a server rendering step this site does not have (ROADMAP).
+
+`public/404.html` is served from the output root for any unmatched path.
+
+Any further config goes in the same `vercel.json`, with the reason documented
+here.
+
+### Web Analytics
+
+The site carries Vercel Web Analytics on `/` and `/score` (not `/legal`), as a
+`<script defer src="/_vercel/insights/script.js">`. It is cookieless, stores no
+identifier, and counts page views, referrers and rough country. It has to be
+switched on once in the Vercel dashboard, under the project's Analytics tab, or
+the script 404s and counts nothing. `/legal` discloses it.
 
 ### Service worker / cache note
 
