@@ -20,12 +20,17 @@ const BASE = process.env.SHOTS_BASE ?? "http://localhost:5173";
 /**
  * Games as frames, not as a flat list of shots. A strike spends one shot and
  * everything else spends two, so a flat list has to be counted by hand, and one
- * entry too many means the last click finds no Next button because the game is
- * already over. Frames cannot drift that way.
+ * entry too many means the last click finds no commit button because the game
+ * is already over. Frames cannot drift that way.
  *
  * Each entry is the pins left standing after that shot, matching the data model
  * and e2e/helpers.ts.
  */
+/** The scorer's commit button, which names the count it is about to record and
+ *  says "Next" only where the deck is the strike or spare the button beside it
+ *  already offers (DESIGN-LANGUAGE §8). */
+const RECORD_SHOT = /^(Next|Gutter|Count \d+)$/;
+
 const X = [[]]; // strike
 const SPARE = (leave) => [leave, []];
 const OPEN = (leave, after = leave) => [leave, after];
@@ -91,7 +96,7 @@ async function recordShot(page, standingAfter) {
     const btn = page.locator(sel);
     if (await btn.count()) await btn.click();
   }
-  await page.getByRole("button", { name: "Next", exact: true }).click();
+  await page.getByRole("button", { name: RECORD_SHOT }).click();
 }
 
 /** Clear whatever prompt is up, so the shot is of the app and not of a dialog. */
@@ -126,12 +131,17 @@ async function addCatalogBall(page, query) {
   const search = page.getByPlaceholder("Search name, brand, coverstock…");
   await search.fill(query);
   await page.getByRole("button", { name: new RegExp(query, "i") }).first().click();
-  await page.getByRole("button", { name: "Add to my arsenal" }).click();
-  await page.getByRole("button", { name: "Add to arsenal", exact: true }).click();
+  // The ball page's own button, then the confirm inside the sheet it opens.
+  // Both carry the same name, which is the point: one label per action.
+  await page.getByRole("button", { name: "Add to arsenal" }).first().click();
+  await page
+    .getByRole("dialog", { name: "Add to arsenal" })
+    .getByRole("button", { name: "Add to arsenal" })
+    .click();
   await settle(page);
   // The ball's own header and the catalog's both carry a Back; the ball is the
   // one in front.
-  await page.getByRole("banner").getByRole("button", { name: "Back" }).last().click();
+  await page.getByRole("banner").getByRole("button", { name: "Back", exact: true }).last().click();
   await settle(page);
 }
 
@@ -172,7 +182,7 @@ async function fillLine(page, values) {
  * over a single throw is 0% or 100% and says nothing.
  */
 async function chooseBall(page, name, decoy) {
-  const sheet = page.getByRole("dialog", { name: "Choose ball" });
+  const sheet = page.getByRole("dialog", { name: "Ball" });
   const control = page.getByRole("button", { name: /^Ball: / });
 
   // Twice: the decoy, then the ball we want.
@@ -219,10 +229,11 @@ async function setLanes(page) {
 
 async function startSession(page, alley) {
   // A finished game leaves you on the Active tab; the start control is on Home.
-  await page.getByRole("button", { name: "Home" }).last().click();
-  await page.getByRole("button", { name: "Start new session" }).click();
-  await page.getByPlaceholder("Orchid Bowl").fill(alley);
-  await page.getByRole("button", { name: "Start session" }).click();
+  await page.getByRole("navigation").getByRole("button", { name: "Home" }).click();
+  await page.getByRole("button", { name: "Start session" }).first().click();
+  const startSheet = page.getByRole("dialog", { name: "Start session" });
+  await startSheet.getByPlaceholder("Pinecrest Lanes").fill(alley);
+  await startSheet.getByRole("button", { name: "Start session" }).click();
   await setLanes(page);
   await page.getByRole("button", { name: "Next", exact: true }).waitFor();
 }
@@ -321,11 +332,11 @@ await page.getByRole("button", { name: "Catalog", exact: true }).click();
 for (const q of ["Phaze Crimson", "Gem", "Jackal Ghost", "Zen Master", "Code Green"]) {
   await addCatalogBall(page, q);
 }
-await page.getByRole("banner").getByRole("button", { name: "Back" }).first().click();
+await page.getByRole("banner").getByRole("button", { name: "Back", exact: true }).first().click();
 
 await page.getByRole("button", { name: "Arsenal", exact: true }).click();
 await shootBothThemes(page, "arsenal");
-await page.getByRole("banner").getByRole("button", { name: "Back" }).first().click();
+await page.getByRole("banner").getByRole("button", { name: "Back", exact: true }).first().click();
 
 await page.getByRole("button", { name: "Line", exact: true }).click();
 // One theme only: the lane view paints its own wood and sky rather than the
@@ -381,7 +392,7 @@ for (let i = 0; i < GAMES.length; i++) {
     await shootBothThemes(page, "scorer");
 
     // Finish the frame so the game counts: two shots, left open.
-    await page.getByRole("button", { name: "Next", exact: true }).click();
+    await page.getByRole("button", { name: RECORD_SHOT }).click();
     await recordShot(page, game[9][1]);
   } else {
     for (const frame of game) {
