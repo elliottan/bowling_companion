@@ -3,6 +3,10 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { ActiveGameScorer } from "./ActiveGameScorer";
 import type { Ball, Frame, PinNumber, SpareLine } from "../types/bowling";
 
+/** The commit button names what it is about to record, so it is "Next" only
+ *  when the deck reads as the strike or spare the button beside it offers. */
+const RECORD_SHOT = /^(Next|Gutter|Count \d+)$/;
+
 /**
  * What each new shot starts with: which ball is selected, and what the Intended
  * line box is prefilled with. The rules live in ADR-017 (carry priority),
@@ -119,7 +123,7 @@ describe("what a new shot starts with", () => {
       const pin = screen.getByRole("button", { name: /^Pin 10 / });
       fireEvent.pointerDown(pin);
       fireEvent.pointerUp(pin);
-      fireEvent.click(screen.getByRole("button", { name: "Next" }));
+      fireEvent.click(screen.getByRole("button", { name: RECORD_SHOT }));
     }
 
     it("picks the spare ball when one is configured", async () => {

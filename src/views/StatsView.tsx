@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { LayoutGrid, MoreHorizontal, Share2 } from "lucide-react";
+import { LayoutGrid, Share2 } from "lucide-react";
 import { RackIcon } from "../components/icons";
 import { Stats } from "../components/Stats";
 import {
@@ -10,7 +10,6 @@ import {
 import { CollapsingHeader } from "../components/CollapsingHeader";
 import { IconButton } from "../components/ui/IconButton";
 import { ShareCardDialog } from "../components/ShareCardDialog";
-import { AnchoredMenu, AnchoredMenuItem } from "../components/ui/AnchoredMenu";
 import {
   calculateBallPerformance,
   calculateCommonLeaves,
@@ -26,6 +25,7 @@ import { useHandedness } from "../lib/handednessContext";
 import { rememberScroll, restoreScroll } from "../lib/viewMemory";
 import { useSessionFilters } from "./useSessionFilters";
 import type { Ball } from "../types/bowling";
+import { ListGroup, ListRow } from "../components/ui/ListGroup";
 
 interface StatsViewProps {
   onOpenSession: (sessionId: number) => void;
@@ -64,7 +64,6 @@ export function StatsView({
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
   // Anchored to the control that opened it, so it needs that control's box.
-  const [breakdownsAt, setBreakdownsAt] = useState<{ left: number; top: number } | null>(null);
 
   const liveBalls = useLiveQuery(() => getBalls());
   const balls = liveBalls ?? NO_BALLS;
@@ -122,59 +121,18 @@ export function StatsView({
         <h1 className="text-xl font-bold text-ink">Stats</h1>
         <div className="flex shrink-0 items-center gap-1">
           <SessionFilterButton filters={filters} onOpen={() => setFiltersOpen(true)} />
-          {/* These used to be rows under the ball table, which is the bottom of
-              a long scroll and nobody found them (ADR-063). One control, in the
-              header, listing where it can go. */}
-          <IconButton
-            label="More"
-            variant="round"
-            onClick={(e) => {
-              const box = e.currentTarget.getBoundingClientRect();
-              // Right-aligned under the button: the menu is 176px wide and the
-              // button sits within that of the trailing edge.
-              setBreakdownsAt({ left: Math.max(8, box.right - 176), top: box.bottom + 6 });
-            }}
-          >
-            <MoreHorizontal size={20} aria-hidden="true" />
+          {/* The two drill-downs used to live behind this control, which meant
+              a screen full of numbers hid the two screens that explain them
+              behind a menu with no name on it. They are rows under the tiles
+              now (ADR-063 put them there to get them off the bottom of a long
+              scroll; under the tiles is neither the bottom nor a menu), and the
+              header keeps its one action, which is the share. */}
+          <IconButton label="Share these stats" variant="round" onClick={() => setShareOpen(true)}>
+            <Share2 size={20} aria-hidden="true" />
           </IconButton>
         </div>
       </div>
 
-      {breakdownsAt && (
-        <AnchoredMenu
-          left={breakdownsAt.left}
-          top={breakdownsAt.top}
-          onClose={() => setBreakdownsAt(null)}
-        >
-          <AnchoredMenuItem
-            icon={LayoutGrid}
-            onClick={() => {
-              setBreakdownsAt(null);
-              onOpenGameTrend();
-            }}
-          >
-            Game by game
-          </AnchoredMenuItem>
-          <AnchoredMenuItem
-            icon={RackIcon}
-            onClick={() => {
-              setBreakdownsAt(null);
-              onOpenFrames();
-            }}
-          >
-            Open frames
-          </AnchoredMenuItem>
-          <AnchoredMenuItem
-            icon={Share2}
-            onClick={() => {
-              setBreakdownsAt(null);
-              setShareOpen(true);
-            }}
-          >
-            Share these stats
-          </AnchoredMenuItem>
-        </AnchoredMenu>
-      )}
 
         <SessionFilterChips filters={filters} />
       </CollapsingHeader>
@@ -198,6 +156,22 @@ export function StatsView({
             sessionTrend={sessionTrend}
             sessionMetrics={sessionMetrics}
             memoryKey="history"
+            underTiles={
+              <ListGroup>
+                <ListRow
+                  icon={LayoutGrid}
+                  label="Game by game"
+                  description="How your first game compares with your last"
+                  onClick={onOpenGameTrend}
+                />
+                <ListRow
+                  icon={RackIcon}
+                  label="Open frames"
+                  description="The leaves you keep missing, most often first"
+                  onClick={onOpenFrames}
+                />
+              </ListGroup>
+            }
             onOpenSession={onOpenSession}
             onOpenGame={onOpenSessionGame}
           />

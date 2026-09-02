@@ -9,6 +9,7 @@ import {
   editFrameShotPins,
   hydrateFrameController,
   submitShot,
+  undoLastShot,
   updateShotMeta,
   type FrameControllerState
 } from "./frameController";
@@ -500,5 +501,83 @@ describe("editFrameShot* helpers", () => {
     // Editing shot 1 (index 0) drops every later shot.
     const out2 = editFrameShotPins([tenth], 10, 0, [7]);
     expect(out2.find((x) => x.frame_number === 10)!.shots).toHaveLength(1);
+  });
+});
+
+/**
+ * Undo is a pop off the stack of shots, and the position afterwards is derived
+ * by the same hydrate that answers "where were we" after a reload. These cases
+ * are the four places that derivation could disagree with itself.
+ */
+describe("undoLastShot", () => {
+  /** Play a list of shots from an empty game and return the stored frames. */
+  function play(shots: PinNumber[][]): Frame[] {
+    let state = createInitialFrameControllerState();
+    for (const pins of shots) state = submitShot(state, pins).state;
+    return state.frames;
+  }
+
+  it("takes back the second ball of a frame and waits for it again", () => {
+    const frames = play([[3, 10], [10]]);
+    const { frames: after, changedFrame, deletedFrameNumber } = undoLastShot(frames);
+
+    expect(deletedFrameNumber).toBeNull();
+    expect(changedFrame?.frame_number).toBe(1);
+    expect(changedFrame?.shots).toHaveLength(1);
+
+    const state = hydrateFrameController(after);
+    expect(state.currentFrameNumber).toBe(1);
+    expect(state.currentShot).toBe(2);
+    expect(state.availablePins).toEqual([3, 10]);
+  });
+
+  it("takes back a strike, which empties the frame it was the whole of", () => {
+    const frames = play([[3, 10], [], []]);
+    const { frames: after, changedFrame, deletedFrameNumber } = undoLastShot(frames);
+
+    expect(deletedFrameNumber).toBe(2);
+    expect(changedFrame).toBeNull();
+    expect(after.map((f) => f.frame_number)).toEqual([1]);
+    expect(hydrateFrameController(after).currentFrameNumber).toBe(2);
+  });
+
+  it("un-finishes a game when the last ball of the tenth is taken back", () => {
+    const shots: PinNumber[][] = [];
+    for (let i = 0; i < 9; i++) shots.push([]); // nine strikes
+    shots.push([], [], []); // tenth: strike, strike, strike
+    const frames = play(shots);
+    expect(hydrateFrameController(frames).isComplete).toBe(true);
+
+    const { frames: after, changedFrame } = undoLastShot(frames);
+
+    expect(changedFrame?.frame_number).toBe(10);
+    expect(changedFrame?.shots).toHaveLength(2);
+    const state = hydrateFrameController(after);
+    expect(state.isComplete).toBe(false);
+    expect(state.currentFrameNumber).toBe(10);
+    expect(state.currentShot).toBe(3);
+  });
+
+  it("takes back the first shot of a game and leaves nothing to undo", () => {
+    const frames = play([[3, 10]]);
+    const { frames: after, deletedFrameNumber } = undoLastShot(frames);
+
+    expect(deletedFrameNumber).toBe(1);
+    expect(after).toEqual([]);
+
+    // Nothing recorded: a second undo is a no-op rather than an error.
+    const again = undoLastShot(after);
+    expect(again.frames).toEqual([]);
+    expect(again.changedFrame).toBeNull();
+    expect(again.deletedFrameNumber).toBeNull();
+  });
+
+  it("re-derives the marks of the frame it rewrites", () => {
+    // A spare, undone, leaves a frame that is neither a strike nor a spare.
+    const frames = play([[3, 10], []]);
+    const { changedFrame } = undoLastShot(frames);
+
+    expect(changedFrame?.is_spare).toBe(false);
+    expect(changedFrame?.is_strike).toBe(false);
   });
 });

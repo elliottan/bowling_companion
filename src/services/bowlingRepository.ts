@@ -255,14 +255,37 @@ export async function saveFrame(gameId: number, frame: SaveFrameInput): Promise<
     const frames = await db.frames.where("game_id").equals(gameId).toArray();
     const score = calculateGameScore(frames);
 
-    if (score.isComplete) {
-      await db.games.update(gameId, { final_score: score.total });
-    }
+    // Cleared as well as set: an undo can rewrite the tenth frame into an
+    // unfinished one, and a stale final_score would keep the game complete.
+    await db.games.update(gameId, {
+      final_score: score.isComplete ? score.total : undefined
+    });
 
     return savedId;
   });
 
   return Number(id);
+}
+
+/**
+ * Remove one frame of a game, for an undo that emptied it (ADR-079). The
+ * game's final score is recomputed the same way `saveFrame` does, and cleared
+ * when the game is no longer complete: taking a shot back off the tenth frame
+ * un-finishes the game.
+ */
+export async function deleteFrame(gameId: number, frameNumber: number): Promise<void> {
+  await db.transaction("rw", db.frames, db.games, async () => {
+    await db.frames
+      .where("[game_id+frame_number]")
+      .equals([gameId, frameNumber])
+      .delete();
+
+    const frames = await db.frames.where("game_id").equals(gameId).toArray();
+    const score = calculateGameScore(frames);
+    await db.games.update(gameId, {
+      final_score: score.isComplete ? score.total : undefined
+    });
+  });
 }
 
 /** Delete a session and all of its games + frames. */

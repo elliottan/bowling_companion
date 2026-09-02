@@ -1,3 +1,4 @@
+import { X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { freshRackShotIndices, laneForFrame } from "../lib/lanes";
@@ -22,6 +23,7 @@ import { MiniPins } from "./MiniPins";
 import { Stats } from "./Stats";
 import { SwipePanes } from "./SwipePanes";
 import { Chip } from "./ui/Chip";
+import { IconButton } from "./ui/IconButton";
 
 export type SessionPanelTab = "sheet" | "stats" | "lanes";
 
@@ -163,9 +165,14 @@ export function SessionLanePanel({
           className="flex touch-none items-start justify-between gap-3 border-b border-edge px-4 py-3"
           {...dragHandlers}
         >
+          {/* The sheet is full height, so the screen behind it is not visible to
+              tap on and the drag was the only way out. Anything that fills the
+              screen carries a close (DESIGN-LANGUAGE §1b). */}
+          <IconButton onClick={requestClose} label="Close" variant="round" className="shrink-0">
+            <X size={20} aria-hidden="true" />
+          </IconButton>
           <SessionHeaderText session={summary.session} games={summary.games} onEdit={onEdit} />
-          {/* Series total + average, matching the score-entry header. The sheet
-              is dismissed by dragging it down, so there's no close button. */}
+          {/* Series total + average, matching the score-entry header. */}
           <div className="shrink-0 text-right">
             <p className="text-2xl font-extrabold leading-none text-accent" aria-label="Series total">
               {seriesTotal}

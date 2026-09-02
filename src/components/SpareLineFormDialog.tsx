@@ -10,7 +10,7 @@ import { useSheetDismiss } from "../lib/useSheetDismiss";
 import { upsertSpareLine } from "../services/ballRepository";
 import type { LineSpec, PinNumber, SpareLine } from "../types/bowling";
 import { Button } from "./ui/Button";
-import { FIELD_MICRO_LABEL as floatLabel } from "./ui/field";
+import { FIELD_LABEL, FIELD_MICRO_LABEL as floatLabel, FIELD_TEXTAREA } from "./ui/field";
 import { IconButton } from "./ui/IconButton";
 
 const EMPTY_LINE: LineSpec = {};
@@ -59,9 +59,7 @@ export function SpareLineFormDialog({
     stance: initialStrikeOffset?.stance?.toString() ?? "",
     target: initialStrikeOffset?.target?.toString() ?? ""
   });
-  // Notes are no longer editable here, but a stored note is carried through the
-  // save so switching to the visualizer-first flow doesn't wipe it.
-  const [notes] = useState(initialNotes ?? "");
+  const [notes, setNotes] = useState(initialNotes ?? "");
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
   const [showViz, setShowViz] = useState(false);
@@ -234,6 +232,22 @@ export function SpareLineFormDialog({
               Where to stand and aim relative to your strike line for this leave.
               Positive moves up the boards; blank uses the line above.
             </p>
+          </div>
+
+          {/* The note was stored and carried through every save, and never
+              shown, so a line saved with one looked like a line without. */}
+          <div>
+            <label htmlFor="spare-line-notes" className={FIELD_LABEL}>
+              Notes <span className="font-normal text-ink-secondary">(optional)</span>
+            </label>
+            <textarea
+              id="spare-line-notes"
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              rows={2}
+              placeholder="What this leave needs: speed, hand, which ball…"
+              className={FIELD_TEXTAREA}
+            />
           </div>
 
           <div className="flex items-center gap-2 pt-1">

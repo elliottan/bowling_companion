@@ -1,9 +1,9 @@
-import { ChevronDown, ChevronLeft, Settings2, X } from "lucide-react";
+import { ChevronDown, Settings2, X } from "lucide-react";
 import type { FormEvent, ReactNode } from "react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { OilPatternManager } from "./OilPatternManager";
-import { Button } from "./ui/Button";
+import { PushScreen } from "./PushScreen";
 import { IconButton } from "./ui/IconButton";
 import { FIELD, FIELD_LABEL, FIELD_SELECT, FIELD_TEXTAREA } from "./ui/field";
 import type { CreateSessionInput } from "../services/bowlingRepository";
@@ -274,15 +274,16 @@ export function SessionForm({
           when the pattern dialog is saved. */}
       {showPatternManager &&
         createPortal(
-          <div className="fixed inset-0 z-[70] overflow-y-auto bg-surface-sunken">
-            <div className="mx-auto w-full max-w-3xl px-3 pt-4 sm:px-6">
-              <Button variant="ghost" onClick={closePatternManager}>
-                <ChevronLeft size={16} aria-hidden="true" />
-                Back to session
-              </Button>
+          // A PushScreen rather than a hand-rolled `fixed inset-0`: that one had
+          // no Escape and no platform back, so Android's back closed the
+          // session form underneath and threw away everything typed into it.
+          // Going through PushScreen puts it on `useOverlay` and the sheet back
+          // stack, where back closes the topmost layer and nothing else.
+          <PushScreen title="Oil patterns" onBack={closePatternManager} backCloses>
+            <div className="mx-auto w-full max-w-3xl">
+              <OilPatternManager />
             </div>
-            <OilPatternManager />
-          </div>,
+          </PushScreen>,
           document.body
         )}
     </>

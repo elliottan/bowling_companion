@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { clearDatabase, startSession } from "./helpers";
+import { RECORD_SHOT, clearDatabase, startSession } from "./helpers";
 
 test.beforeEach(async ({ page }) => {
   await clearDatabase(page);
@@ -131,11 +131,27 @@ test("a session survives a reload, and the URL names it", async ({ page }) => {
 
   await page.reload();
   await expect(page).toHaveURL(url);
-  await expect(page.getByRole("button", { name: "Next", exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: RECORD_SHOT })).toBeVisible();
 });
 
 test("an unreadable link opens the app rather than breaking it", async ({ page }) => {
   await page.goto("/score#/not-a-screen/nonsense");
   await expect(page.getByText(/score your first session/i)).toBeVisible();
   await expect(page).toHaveURL(/#\/home$/);
+});
+
+test("back closes the oil pattern manager, not the session form under it", async ({ page }) => {
+  await page.getByRole("button", { name: "Start session" }).first().click();
+  await page.getByPlaceholder("Ball choice, surface, carry…").fill("keep me");
+
+  // The manager used to be a hand-rolled fixed overlay with no Escape and no
+  // place on the back stack, so Android's back closed the form underneath and
+  // took everything typed into it.
+  await page.getByRole("button", { name: "Manage oil patterns" }).click();
+  await expect(page.getByRole("dialog", { name: "Oil patterns" })).toBeVisible();
+
+  await page.goBack();
+
+  await expect(page.getByRole("dialog", { name: "Oil patterns" })).toHaveCount(0);
+  await expect(page.getByPlaceholder("Ball choice, surface, carry…")).toHaveValue("keep me");
 });

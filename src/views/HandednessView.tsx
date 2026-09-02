@@ -1,8 +1,6 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { useState } from "react";
 import { HandednessPicker } from "../components/HandednessPicker";
 import { PushScreen } from "../components/PushScreen";
-import { ConfirmDialog } from "../components/ConfirmDialog";
 import { DriftZoneLane, ZONE_ACCENT } from "../components/DriftZoneLane";
 import type { Handedness } from "../types/bowling";
 import { driftDirection, type DriftModel } from "../lib/driftModel";
@@ -22,16 +20,7 @@ const BOARD_MAX = 39; // upper board bound (matches deriveLaydown's clamp range)
 const ZONES = ["outside", "middle", "inside"] as const;
 
 export function HandednessView({ value, onChange, driftModel, onDriftModelChange, onBack }: HandednessViewProps) {
-  // Confirm before switching, flipping handedness mirrors the whole app, so we
-  // don't want a stray tap to change it silently.
-  const [pending, setPending] = useState<Handedness | null>(null);
-
   const ballSide = value === "right" ? "right" : "left";
-
-  function handleSelect(next: Handedness) {
-    if (next === value) return;
-    setPending(next);
-  }
 
   function setReleaseOffset(v: number) {
     onDriftModelChange({ ...driftModel, release_offset: v });
@@ -69,8 +58,15 @@ export function HandednessView({ value, onChange, driftModel, onDriftModelChange
           </>
         }
       >
-        {/* Picker shows the committed value; the pending choice only applies on confirm. */}
-        <HandednessPicker value={value} onSelect={handleSelect} />
+        {/* No confirm. It used to open a two-paragraph dialog, which is the
+            weight of a destructive action; this changes one setting and the way
+            back is the other half of the same control. The consequence is worth
+            one line, under the control it belongs to. */}
+        <HandednessPicker value={value} onSelect={onChange} />
+        <p className="mt-2 text-xs text-ink-secondary">
+          Everything mirrors: board 1, the arrows, spare targets, offset and
+          drift. Saved sessions keep the numbers they were recorded with.
+        </p>
       </Group>
 
       <Group
@@ -150,29 +146,6 @@ export function HandednessView({ value, onChange, driftModel, onDriftModelChange
         </div>
       </Group>
 
-      <ConfirmDialog
-        open={pending !== null}
-        title="Change handedness?"
-        message={
-          pending ? (
-            <>
-              <p>
-                Everything mirrors: board 1, the arrows, spare targets, offset and drift all
-                flip to the other side.
-              </p>
-              <p>
-                Saved sessions stay as recorded. Old lines will draw on the wrong side now.
-              </p>
-            </>
-          ) : undefined
-        }
-        confirmLabel="Change"
-        onConfirm={() => {
-          if (pending) onChange(pending);
-          setPending(null);
-        }}
-        onCancel={() => setPending(null)}
-      />
     </section>
   );
 

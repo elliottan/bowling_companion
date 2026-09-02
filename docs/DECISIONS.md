@@ -3639,3 +3639,54 @@ file says about the marks is dropped.
 - The claim in `docs/DATA_MODEL.md` is now true of the code. It named backup
   validation as the place that did this; the work belongs to normalization,
   which is the step that already rewrites frames.
+
+## ADR-079: A shot can be taken back
+
+**Status.** Accepted. Amends the scoring flow of ADR-001 and the completed-game
+edit gate; the pin input rules of ADR-006 are unchanged.
+
+**Context.**
+
+The scorer had no undo. A ball recorded wrong could only be corrected by tapping
+its frame open and editing the pins, which is a different gesture, in a
+different place, with a different mental model: you are no longer scoring, you
+are auditing. On a lane, mid-frame, with a ball on the return, that is the wrong
+shape of action for the most common mistake there is.
+
+The absence of an undo is also what the completed-game confirm was built on. It
+gated every edit on a finished game behind a typed-out warning, on the grounds
+that a stray tap could rewrite a shot and there was no way back. That reasoning
+covered the game you have moved on from and the game you are standing at
+equally, and the second one is where a bowler is most likely to want a change
+and least likely to want a dialog.
+
+**Decision.**
+
+`undoLastShot(frames)` in `lib/frameController.ts` pops the last shot of the
+last frame that has one, and the scorer re-derives its position by running
+`hydrateFrameController` over the result. A frame left with no shots is deleted
+rather than stored empty.
+
+The control is an icon button beside Strike and the commit button, and it stays
+after the tenth frame, because the last ball of a game is exactly the one a
+bowler wants back.
+
+The completed-game confirm now applies only to a game other than the one being
+bowled.
+
+`saveFrame` clears `final_score` when the game is no longer complete, and
+`deleteFrame` does the same, so undoing off the tenth frame un-finishes the game
+rather than leaving a stale total behind.
+
+**Consequences.**
+- Undo cannot disagree with resume: the position after an undo is computed by
+  the same function that computes the position after a reload. Any bug in one is
+  a bug in both, and both are covered by the same tests.
+- It is one shot deep per press, not a history. Pressing it repeatedly walks
+  back through the game, which is the behaviour a stack gives for free; there is
+  no redo.
+- A shot's ball, line and notes go with it. They were part of the shot.
+- The scorer's commit button now names what it will record ("Gutter", "Count
+  7"), and says "Next" only when the deck reads as the strike or spare the
+  button beside it already offers. Two adjacent buttons with the same word on
+  them would be worse than the thing this fixes.

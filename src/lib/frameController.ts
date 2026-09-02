@@ -461,3 +461,52 @@ export function hydrateFrameController(frames: Frame[]): FrameControllerState {
     isComplete: true
   };
 }
+
+export interface UndoResult {
+  /** The frames as they should be stored. */
+  frames: Frame[];
+  /** The frame the undo rewrote, for the caller to persist. */
+  changedFrame: Frame | null;
+  /** Set when the undo emptied a frame, so the caller deletes it instead. */
+  deletedFrameNumber: number | null;
+}
+
+/**
+ * Take back the last shot recorded in a game (ADR-079).
+ *
+ * A game is a stack of shots, so an undo is a pop: drop the last shot of the
+ * last frame that has one, and let `hydrateFrameController` work out where that
+ * leaves the game. Rebuilding the position rather than reversing the transition
+ * means undo cannot disagree with resume, because it is the same function that
+ * answers "where are we" after a reload.
+ *
+ * A frame left with no shots is deleted rather than stored empty: an empty
+ * frame row would score as an open frame with no balls thrown, which is not a
+ * thing that happens.
+ */
+export function undoLastShot(frames: Frame[]): UndoResult {
+  const ordered = [...frames].sort((a, b) => a.frame_number - b.frame_number);
+  const last = [...ordered].reverse().find((f) => f.shots.length > 0);
+
+  if (!last) return { frames: ordered, changedFrame: null, deletedFrameNumber: null };
+
+  const shots = last.shots.slice(0, -1);
+
+  if (shots.length === 0) {
+    return {
+      frames: ordered.filter((f) => f.frame_number !== last.frame_number),
+      changedFrame: null,
+      deletedFrameNumber: last.frame_number
+    };
+  }
+
+  const rewritten = finalizeFrame({ ...last, shots });
+  return {
+    frames: upsertFrame(
+      ordered.filter((f) => f.frame_number !== last.frame_number),
+      rewritten
+    ),
+    changedFrame: rewritten,
+    deletedFrameNumber: null
+  };
+}

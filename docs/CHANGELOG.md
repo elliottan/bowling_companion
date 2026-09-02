@@ -8,6 +8,45 @@ merge to `main` (`docs/DEPLOYMENT.md`), so every section below is a dated batch
 of shipped work rather than a release. Thirty of them used to be headed
 `[Unreleased]`, which said nothing once they had all shipped.
 
+## Take a shot back (2026-09)
+
+### Added
+
+- **Undo the last shot.** A button beside Strike takes back the ball you just
+  recorded, including its ball, line and notes. Press it again to keep walking
+  back. It stays after the tenth frame, because that is the ball you most want
+  back (ADR-079).
+- **An install row in Settings.** The home-screen nudge now snoozes for 30 days
+  instead of going away for good, and there is a way to it from Settings either
+  way.
+
+### Changed
+
+- **The commit button says what it will record**: "Gutter", "Count 7". It reads
+  "Next" only when the deck is the strike or spare the button beside it offers.
+- **A finished game you are still standing at is no longer locked.** The confirm
+  before editing a completed game now applies to earlier games only, and the
+  answer is remembered for that game rather than asked again on every visit.
+- **Game by game and Open frames are rows under the stat tiles**, not entries in
+  an unnamed overflow menu. The header keeps the share.
+- **Changing your handedness takes one tap.** It used to open a two-paragraph
+  confirm for a setting that is reversed by tapping the other half of the same
+  control; the consequence is a line under it instead.
+- **The session sheet has a close button.** It fills the screen, so the drag was
+  the only way out of it.
+- **Managing oil patterns from the session form is a proper screen.** Android's
+  back used to close the form underneath and throw away everything typed in.
+- **The catalog says what to do when you are offline** instead of offering a
+  refresh that cannot work.
+- **A spare line's note is editable**, having been stored and never shown.
+- **The backup age in Settings updates itself** after you take a backup.
+
+### Fixed
+
+- **The catalog's RG and diff sliders apply when you let go anywhere.**
+  Releasing off the track left the filter unapplied.
+- **A session with no games offers to add one**, rather than only offering Back.
+
 ## One word for each thing (2026-09)
 
 ### Changed

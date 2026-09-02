@@ -17,6 +17,14 @@ interface PushScreenProps {
    * is what a push *within* a tab does natively.
    */
   mode?: "overlay" | "inline";
+  /**
+   * Put this screen on the sheet back stack, so the platform's back closes it
+   * before whatever is underneath. Off by default because a push is normally a
+   * route, and history already closes those (ADR-041). On for a push that is
+   * *not* a route: one opened from inside a sheet, where back would otherwise
+   * pop the sheet's own history entry and close the sheet under it.
+   */
+  backCloses?: boolean;
   children: ReactNode;
 }
 
@@ -44,6 +52,7 @@ export function PushScreen({
   trailing,
   active = true,
   mode = "overlay",
+  backCloses = false,
   children,
 }: PushScreenProps) {
   const [exiting, setExiting] = useState(false);
@@ -68,7 +77,7 @@ export function PushScreen({
 
   // Inline pushes are not modal, the tab bar behind them stays live, so they
   // must not trap focus or swallow Escape.
-  const overlayRef = useOverlay<HTMLDivElement>(dismiss, active && mode === "overlay", false);
+  const overlayRef = useOverlay<HTMLDivElement>(dismiss, active && mode === "overlay", backCloses);
 
   const overlay = mode === "overlay";
 
