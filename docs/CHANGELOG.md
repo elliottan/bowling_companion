@@ -8,6 +8,26 @@ merge to `main` (`docs/DEPLOYMENT.md`), so every section below is a dated batch
 of shipped work rather than a release. Thirty of them used to be headed
 `[Unreleased]`, which said nothing once they had all shipped.
 
+## Restores land properly, and the header comes back (2026-09)
+
+### Fixed
+
+- **Restoring a backup from Settings now reloads the app.** It used to leave
+  the screen running on the data it had just replaced, so a restored drift
+  model sat on disk while the old boards stayed on screen until you closed and
+  reopened the app. The first-run restore always reloaded; now both do.
+- **The header stops vanishing when you let go of a scroll.** Dragging past the
+  top or bottom of a list and releasing it made the phone's rubber-band bounce
+  read as a real scroll, which pulled the header up and gave no way to get it
+  back, because scrolling up ended in the same bounce. The bounce is now
+  ignored at both ends.
+
+### Changed
+
+- **A restore from Settings no longer prints a "Restored N sessions" line.**
+  The same counts are shown in the confirmation before you commit, which is
+  where they are worth reading.
+
 ## Spare lines get a front door (2026-08)
 
 ### Changed

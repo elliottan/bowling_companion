@@ -3510,3 +3510,49 @@ that needs one follow-up question is a dead end.
   there is a way through, but it is not a good one.
 - The address is now a published contact point and has to keep working. It is
   the same address the legal page gives for trademark requests.
+
+## ADR-076: A restore reloads the app, and backup coverage is asserted against the schema
+
+**Status.** Accepted. Extends ADR-038; the replace-everything rule itself is
+unchanged.
+
+**Context.**
+
+Two faults, one visible and one waiting.
+
+The visible one: restoring from Settings left the app running on top of the
+database it had just replaced. The shell reads handedness and the drift model
+once at boot (`App.tsx`) and holds them in state, so after a Settings restore
+the file's drift model was on disk while the old one was still on screen, and
+every board derived from it was wrong until the next cold start. The first-run
+restore already reloaded for exactly this reason. Only one of the two paths did.
+
+The waiting one: nothing tied the backup to the schema. `createBackup` listed
+its tables by hand, and a table added to Dexie without a matching line there
+would export, import and validate without a single error. That is the worst
+shape a bug can take here, because the file looks fine, the restore reports
+success, and the loss is only discovered on the far side, after the device that
+held the original has been wiped.
+
+**Decision.**
+
+- **Every restore reloads the app**, from Settings as well as from first run.
+  Re-deriving the boot-time state by hand is a list nobody can keep complete,
+  which is the same argument ADR-038 makes about merging.
+- **Backup coverage is asserted against `db.tables`**, not against a list in a
+  test. A table in the schema must appear in the backup or be named in an
+  explicit exclusion map with the reason it is safe to lose. `ball_catalog` is
+  the only entry: it is read-only reference data, re-synced from the shipped
+  catalog.
+- **A round-trip test writes one fully populated row into every backed-up
+  table** and asserts the tables come back deep-equal. Rows are stored and
+  replayed whole, so this makes a field added to any type in future carried by
+  construction, and a field the export drops a failing diff.
+
+**Consequences.**
+- The Settings restore no longer shows a "Restored N sessions" message. The
+  counts were already confirmed against the real numbers in the dialog before
+  the user committed, so the message repeated what they had just read.
+- The coverage test fails the moment a table is added to `bowlingDb.ts` without
+  a decision about backing it up. That is the intent: the decision becomes a
+  line in the exclusion map or a line in `createBackup`, and never an omission.

@@ -54,7 +54,10 @@ test("exports a backup, clears the database, and restores it via import", async 
     /^pre-import-headpin-.*\.json$/
   );
 
-  await expect(page.getByText(/Restored 1 sessions/)).toBeVisible();
+  // The restore reloads the app, because the shell reads handedness and the
+  // drift model once at boot and the database underneath them just changed.
+  await page.waitForLoadState("load");
+  await expect(page.getByRole("heading", { name: "Replace all data?" })).toHaveCount(0);
 
   // Backup & restore is pushed over the tab bar, so leave it before crossing.
   await page.getByRole("dialog", { name: "Backup & restore" }).getByRole("button", { name: "Back" }).click();

@@ -78,15 +78,15 @@ export function BackupRestoreView({ onBack, mode = "inline" }: BackupRestoreView
     setIsBusy(true);
     setError("");
     try {
-      const result = await replaceAllData(pending.backup);
-      setPending(null);
-      setConfirmText("");
-      setMessage(
-        `Restored ${result.sessions} sessions, ${result.games} games, ${result.frames} frames. Your previous data downloaded first.`
-      );
+      await replaceAllData(pending.backup);
+      // A full reload, for the same reason the first-run restore does one: the
+      // database was just replaced wholesale, and the shell sits above state
+      // read once at boot (handedness, the drift model). Without this the
+      // restored file's drift model is on disk but not on screen, and the
+      // boards it derives are the old ones until the next cold start.
+      window.location.reload();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Import failed.");
-    } finally {
       setIsBusy(false);
     }
   }

@@ -257,3 +257,147 @@ describe("a restore that goes backwards", () => {
     expect(prepared.losingSessions).toBe(0);
   });
 });
+
+/**
+ * The gate that stops a future table or field being dropped from a backup in
+ * silence (ADR-038).
+ *
+ * A backup that quietly loses data is the one bug the user cannot recover
+ * from: the file looks fine, imports without an error, and the missing part is
+ * only noticed on the far side, once the original device has been wiped. So
+ * coverage is asserted against the schema itself rather than against a list
+ * kept by hand, which is the list that goes stale.
+ */
+describe("backup completeness", () => {
+  beforeEach(async () => {
+    URL.createObjectURL = () => "blob:stub";
+    URL.revokeObjectURL = () => {};
+    await db.delete();
+    await db.open();
+  });
+
+  /**
+   * Tables deliberately left out, each with the reason it is safe to lose.
+   * Adding a name here is the explicit decision; forgetting one fails the test
+   * above instead of shipping.
+   */
+  const NOT_BACKED_UP: Record<string, string> = {
+    ball_catalog: "read-only reference data, re-synced from the shipped catalog"
+  };
+
+  it("backs up every table in the schema, or names why not", async () => {
+    const backup = await createBackup();
+    const covered = new Set(Object.keys(backup.tables));
+    const missing = db.tables
+      .map((t) => t.name)
+      .filter((name) => !covered.has(name) && !(name in NOT_BACKED_UP));
+
+    expect(missing).toEqual([]);
+  });
+
+  it("puts nothing in the file that the schema does not have", async () => {
+    const backup = await createBackup();
+    const schema = new Set(db.tables.map((t) => t.name));
+
+    expect(Object.keys(backup.tables).filter((name) => !schema.has(name))).toEqual([]);
+  });
+
+  it("restores every row of every table byte for byte", async () => {
+    // One row per backed-up table, with every optional field filled in. A field
+    // added to any of these types in future is carried by the same round trip;
+    // a field the export drops shows up here as a diff, not as a lost season.
+    const line = {
+      stance: 20,
+      slide: 18,
+      laydown: 12,
+      target: 10,
+      breakpoint: 6,
+      breakpoint_distance: 42,
+      hook_start_distance: 38,
+      hook_length: 14,
+      final_board: 17.5,
+      final_distance: 60
+    };
+
+    await db.sessions.add({
+      id: 1,
+      date: "2026-06-01",
+      alley_name: "Round Trip Lanes",
+      description: "league night",
+      oil_pattern_id: 1,
+      general_notes: "fresh oil"
+    });
+    await db.games.add({
+      id: 1,
+      session_id: 1,
+      game_number: 1,
+      lane_number: "7",
+      lanes: ["7", "8"],
+      start_lane: "7",
+      final_score: 212,
+      notes: "moved left"
+    });
+    await db.frames.add({
+      id: 1,
+      game_id: 1,
+      frame_number: 1,
+      is_strike: false,
+      is_spare: true,
+      shots: [
+        {
+          pins_standing: [10],
+          ball_id: 1,
+          pocket_hit: true,
+          intended: line,
+          actual: { ...line, stance: 21 },
+          notes: "ringing ten"
+        },
+        { pins_standing: [], ball_id: 1, notes: "covered" }
+      ]
+    });
+    await db.balls.add({
+      id: 1,
+      name: "Phaze II",
+      is_spare_ball: false,
+      layout: "45 x 4 x 35",
+      notes: "2000 grit",
+      sort_order: 1,
+      catalog_ref_id: "storm-phaze-ii",
+      catalog_snapshot: {
+        brand: "Storm",
+        name: "Phaze II",
+        coverstockCategory: "Reactive",
+        coreName: "Velocity",
+        rg: 2.48,
+        diff: 0.051,
+        mbDiff: null,
+        imageThumb: "/balls/phaze-ii.webp"
+      },
+      weight: 15,
+      colorway_sku: "PHZ2-15"
+    });
+    await db.oil_patterns.add({ id: 1, name: "Kegel Main Street", url: "https://example.com/p.pdf", archived: false });
+    await db.spare_lines.add({
+      id: 1,
+      pins: [10],
+      line,
+      strike_offset: { stance: 2, target: -1 },
+      notes: "flat ten",
+      sort_order: 1
+    });
+    await db.lane_notes.add({ id: 1, alley: "Round Trip Lanes", lane: "7", notes: "dry outside" });
+    await db.settings.add({ key: "drift_model", value: JSON.stringify({ v: 1, release_offset: 5 }) });
+
+    const before = await createBackup();
+    await importBackup(JSON.parse(JSON.stringify(before)));
+    const after = await createBackup();
+
+    expect(after.tables).toEqual(before.tables);
+
+    // And every table actually carried a row, so an empty table can never make
+    // this pass by comparing nothing to nothing.
+    for (const [name, rows] of Object.entries(before.tables)) {
+      expect(rows, `${name} must have a row to round trip`).not.toHaveLength(0);
+    }
+  });
+});

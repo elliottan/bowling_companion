@@ -16,6 +16,21 @@ export function nextOffset(offset: number, top: number, lastTop: number, max: nu
 }
 
 /**
+ * Where the scroller really is, ignoring rubber-band overscroll.
+ *
+ * iOS lets `scrollTop` run past both ends while a finger drags, then springs it
+ * back. That spring is not a scroll: pulling 60px past the top and letting go
+ * reports a +60 move, which collapses the header in one jump and leaves no way
+ * to get it back, because every attempt to scroll up ends in the same spring.
+ * Reading the position clamped to the real range makes the bounce a no-op at
+ * both ends.
+ */
+export function scrollPosition(el: HTMLElement): number {
+  const range = Math.max(0, el.scrollHeight - el.clientHeight);
+  return Math.max(0, Math.min(range, el.scrollTop));
+}
+
+/**
  * How far a tab header should be pulled up, in pixels, as the reader scrolls.
  *
  * Stats and History both spend a row on a title and two icons, and another on
@@ -40,9 +55,9 @@ export function useHeaderCollapse(
     const el = scrollerRef.current;
     if (!el) return;
 
-    lastTop.current = el.scrollTop;
+    lastTop.current = scrollPosition(el);
     const onScroll = () => {
-      const top = el.scrollTop;
+      const top = scrollPosition(el);
       // Read into a local before the updater is handed over: React may run it
       // after this returns, and reading the ref inside would then measure the
       // new position against itself and never move anything.
