@@ -240,8 +240,8 @@ input[type="date"]::-webkit-date-and-time-value {
    sliding over the content. */
 .collapsing-header,
 .collapsing-header > * {
-  transition: height 0.22s cubic-bezier(0.32, 0.72, 0, 1),
-    transform 0.22s cubic-bezier(0.32, 0.72, 0, 1);
+  transition: height 0.4s cubic-bezier(0.32, 0.72, 0, 1),
+    transform 0.4s cubic-bezier(0.32, 0.72, 0, 1);
 }
 
 @media (prefers-reduced-motion: reduce) {
