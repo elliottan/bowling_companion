@@ -37,7 +37,7 @@ const RATE_COLUMN = "w-9 shrink-0 text-right";
  *
  *  Every value is read off a `BowlingStats` that `calculateStats` produced, so
  *  the point on the line and the number on the tile are the same call and
- *  cannot drift (ADR-061). `min`/`max` are the bounds the metric cannot leave;
+ *  cannot drift (ADR-061b). `min`/`max` are the bounds the metric cannot leave;
  *  `minSpan` is the smallest range the chart will draw, so a tidy run does not
  *  get magnified into a cliff. */
 const METRICS = {
@@ -94,7 +94,7 @@ const METRICS = {
 export type MetricKey = keyof typeof METRICS;
 
 /** The metrics a picker can offer, in tile order. Exported so the Game-by-game
- *  screen can build the same picker over the same specs (ADR-063). */
+ *  screen can build the same picker over the same specs (ADR-063b). */
 export const METRIC_KEYS = Object.keys(METRICS) as MetricKey[];
 
 /** What each metric is called and how it is drawn, for anything outside this
@@ -117,7 +117,7 @@ const CARRY_NOTE = "Carry: pocket hits that struck.";
 const SPARE_NOTE = "Spare: makeable leaves converted, excludes splits and washouts.";
 
 /** The note for a graphable stat, where there is one, shown from the chart it
- *  is plotted on rather than from the tile (ADR-061).
+ *  is plotted on rather than from the tile (ADR-061b).
  *
  *  Two of six. Average, pocket, strike and first ball are named plainly enough
  *  by their own labels, and the notes they carried restated the label and then
@@ -747,7 +747,7 @@ function LeaveCell({ leave }: { leave: LeaveStats }) {
   );
 }
 
-/** A stat tile that also picks what the chart plots (ADR-061). `aria-pressed`
+/** A stat tile that also picks what the chart plots (ADR-061b). `aria-pressed`
  *  rather than a tab role, matching every other selectable control here. */
 function MetricTile({
   metric,

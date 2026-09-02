@@ -125,7 +125,7 @@ export function StatsView({
           {/* The two drill-downs used to live behind this control, which meant
               a screen full of numbers hid the two screens that explain them
               behind a menu with no name on it. They are rows under the tiles
-              now (ADR-063 put them there to get them off the bottom of a long
+              now (ADR-063b put them there to get them off the bottom of a long
               scroll; under the tiles is neither the bottom nor a menu), and the
               header keeps its one action, which is the share. */}
           <IconButton label="Share these stats" variant="round" onClick={() => setShareOpen(true)}>

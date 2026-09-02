@@ -8,7 +8,7 @@ import {
 import type { Ball, Frame, Game, Handedness, SessionSummary } from "../types/bowling";
 
 /**
- * What your own history says about somewhere you are about to bowl (ADR-064).
+ * What your own history says about somewhere you are about to bowl (ADR-064b).
  *
  * Every finding here is the same shape: the slice you picked against the rest
  * of your history, reported only when the gap is worth mentioning and there is

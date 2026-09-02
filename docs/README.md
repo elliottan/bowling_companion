@@ -33,6 +33,7 @@ documentation, and are not a source of truth for anything.
    pattern others should follow, it updates
    [DESIGN-LANGUAGE.md](./DESIGN-LANGUAGE.md) too.
 3. No doc restates a type, a schema, or a file listing. Link to the code.
-4. No em dashes in anything written here. Every maintained doc is clean; the
-   207 in `DECISIONS.md` and 67 in `CHANGELOG.md` predate the rule and stay,
-   because both are records and an accepted ADR is never edited.
+4. No em dashes in anything written here, and `src/test/copy.test.ts` fails the
+   build on one. The two records, `DECISIONS.md` and `CHANGELOG.md`, are exempt:
+   an accepted ADR is never edited, and a changelog entry says what was written
+   at the time.

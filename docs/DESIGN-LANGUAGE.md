@@ -115,6 +115,13 @@ Destructive actions: the trigger sits with the thing it destroys (delete lives
 *inside* the ball editor, not as a third icon on the list row), and always goes
 through `ConfirmDialog`.
 
+**Icons.** Lucide, at the size the control asks for, for anything universal: a
+close, a share, a chevron, a trash. A *bowling* idea gets one of the app's own
+glyphs from `src/components/icons/` instead, because the nearest Lucide
+neighbour says something else: `Waves` for an oil pattern is water, `Crosshair`
+for a spare line is a scope. They are drawn on Lucide's grid at stroke 2 with
+round caps and take the same props, so every consumer accepts either.
+
 ## 3. Surfaces and color
 
 Semantic tokens only: `surface`, `surface-sunken`, `surface-muted`, `ink`,
@@ -127,6 +134,15 @@ mode.
 Depth: `surface-sunken` is the page, `surface` is a card on it, `edge` draws the
 boundary. Cards are `rounded-xl` (`rounded-2xl` for a full-width empty state),
 one `shadow-sm`, no stacked shadows.
+
+**The one exception is the lane.** A pin deck is maple and a knocked-down pin is
+tan, in a dark room as much as a light one, and a deck that went slate at night
+would stop being a deck. `PinGrid` paints those colours literally and exports
+`WOOD_PIN_DOWN` so the pocket toggle sitting on the same surface matches it
+rather than repeating the hex. `LaneVisualizer` is the same argument at full
+screen. Nothing else may reach for a raw palette colour, and anything that
+does has to earn it the way these two did: by depicting a physical object whose
+colour is not the app's to choose.
 
 ## 4. Lists and rows
 
@@ -256,6 +272,19 @@ most one trailing action. The arsenal adds from there.
 
 No em dashes, anywhere. A comma, a colon, or a full stop always works, and the
 em dash is the clearest tell of text nobody wrote by hand.
+`src/test/copy.test.ts` fails the build on one, and on the other words this
+section settles.
+
+**One word per thing.** A trip to the alley is a *session*, never a night. A
+place you bowl is an *alley*, never a location or a house ("house shot" and
+"house ball" are bowling phrases and stay). The two boards you set are *stance*
+and *target*, on a spare line as much as on a shot. Ellipses are the character
+`…`, not three dots. No contractions.
+
+**A button that commits says what it commits.** "Next" on the scorer names the
+count it is about to record ("Gutter", "Count 7"), and falls back to the plain
+word only where the deck reads as the strike or spare the button beside it
+already offers. Two adjacent buttons never carry the same word.
 
 Sentence case everywhere except the small uppercase group headings, which take
 their classes from `GROUP_HEADING` (`src/components/ui/typography.ts`). Second

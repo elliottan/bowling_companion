@@ -498,7 +498,7 @@ export interface SessionMetricPoint {
 }
 
 /**
- * Every stat, by session, oldest first (ADR-061).
+ * Every stat, by session, oldest first (ADR-061b).
  *
  * One entry per night carrying a whole `BowlingStats`, rather than a function
  * per metric. That is the point: the graph of strike % is `calculateStats`
@@ -546,7 +546,7 @@ export interface GameMetricPoint {
 }
 
 /**
- * Every stat, by game, for one session (ADR-061).
+ * Every stat, by game, for one session (ADR-061b).
  *
  * The same trick as `calculateSessionMetrics` at a finer grain, and for the
  * same reason: a game's strike rate is `calculateStats` run over that game, so
@@ -972,7 +972,7 @@ export interface GameNumberMetricPoint {
 }
 
 /**
- * How you bowl by position in the night (ADR-056, ADR-061): every game 1
+ * How you bowl by position in the night (ADR-056, ADR-061b): every game 1
  * against every game 2, and so on, first slot first.
  *
  * This is not the same question as the session trend, which asks whether you

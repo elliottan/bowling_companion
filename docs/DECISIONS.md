@@ -15,6 +15,13 @@ rights · ADR-040 navigation shapes and `PushScreen`.
 
 New entries are appended, so the last one is the most recent.
 
+**A note on ADR-061b to ADR-065b.** Two runs of work numbered their decisions
+in parallel and both reached 061 to 065, so ten entries shared five numbers.
+The five written second carry a `b` suffix. Renumbering them properly would
+have rewritten references in accepted ADRs, which this file does not allow, and
+the suffix keeps every reference written before the clash pointing where it
+always did.
+
 ---
 
 ## ADR-001 — Standing pins are the source of truth
@@ -2792,7 +2799,7 @@ draws them.
 
 ---
 
-## ADR-061: A stat tile picks what the chart plots, and the chart carries the definition
+## ADR-061b: A stat tile picks what the chart plots, and the chart carries the definition
 
 **Status:** accepted (2026-08).
 
@@ -2839,7 +2846,7 @@ cannot mean both "explain this" and "graph this".
 
 ---
 
-## ADR-062: The chart has two axes, and the header switches them
+## ADR-062b: The chart has two axes, and the header switches them
 
 **Status:** accepted (2026-08). Extends ADR-061.
 
@@ -2888,7 +2895,7 @@ across four slots; it is the wrong shape for watching one metric fall.
 
 ---
 
-## ADR-063: The game axis lives on its own screen, reached from a menu
+## ADR-063b: The game axis lives on its own screen, reached from a menu
 
 **Status:** accepted (2026-08). Amends ADR-062, which put the game axis on the
 Stats tab, and moves the entry points ADR-057 and ADR-058 left at the foot of
@@ -2932,7 +2939,7 @@ forgotten.
 
 ---
 
-## ADR-064: A briefing is a comparison against the rest of your history, gated three ways
+## ADR-064b: A briefing is a comparison against the rest of your history, gated three ways
 
 **Status:** accepted (2026-08).
 
@@ -2989,7 +2996,7 @@ length.
 
 ---
 
-## ADR-065: A callout hands its slice to the Stats tab, in one dispatch
+## ADR-065b: A callout hands its slice to the Stats tab, in one dispatch
 
 **Status:** accepted (2026-08). Extends ADR-064.
 
