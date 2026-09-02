@@ -10,8 +10,8 @@ import { openFeedbackEmail } from "../lib/diagnostics";
  *
  * The Settings row catches people who already have a complaint. This catches
  * the quiet majority who would never go looking for it, and those are the ones
- * whose reasons for drifting away the app can never otherwise learn: there is
- * no analytics, by design, so asking is the only instrument there is.
+ * whose reasons for drifting away the app can never otherwise learn: the only
+ * measurement is a page count, so asking is the only instrument there is.
  *
  * Shaped like a Next steps card, and dismissed for good either way (opening the
  * form counts as answering, ADR-069).

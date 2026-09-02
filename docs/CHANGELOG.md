@@ -8,6 +8,27 @@ merge to `main` (`docs/DEPLOYMENT.md`), so every section below is a dated batch
 of shipped work rather than a release. Thirty of them used to be headed
 `[Unreleased]`, which said nothing once they had all shipped.
 
+## The pages people land on (2026-09)
+
+### Changed
+
+- **The landing page says what the app does**, in one line rather than the same
+  search-engine sentence printed five times.
+- **Privacy and terms is written in the product's voice**, uses US spelling, and
+  is straight about the ball photos: all 446 are served from headpin.app itself,
+  so opening the catalog contacts no other site.
+
+### Added
+
+- **A page count.** The site now carries Vercel Web Analytics on the landing
+  page and the app shell: page views, referrers and rough country. No cookies,
+  no identifier stored in your browser, and it never sees anything you enter.
+  Disclosed on the legal page.
+- **A 404 page** in the site's own style, with a way to the app and a way to the
+  landing page.
+- **Response headers**: nosniff, a referrer policy, a permissions policy denying
+  camera, microphone and location, and HSTS.
+
 ## Updates land by themselves, and the app opens once (2026-09)
 
 ### Changed

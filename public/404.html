@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#fff8ed" />
+    <link rel="icon" type="image/png" sizes="96x96" href="/icons/icon-96.png" />
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <title>Page not found, Headpin</title>
+    <meta name="robots" content="noindex" />
+
+    <!-- Same theme resolution as the other two pages, so a dark reader who
+         mistypes a URL does not get a flash of cream. -->
+    <script>
+      (function () {
+        var root = document.documentElement;
+        function apply(dark) {
+          root.dataset.theme = dark ? "dark" : "light";
+          var meta = document.querySelector('meta[name="theme-color"]');
+          if (meta) meta.setAttribute("content", dark ? "#0f172a" : "#fff8ed");
+        }
+        function stored() {
+          try {
+            return localStorage.getItem("theme");
+          } catch (e) {
+            return null;
+          }
+        }
+        var mq = window.matchMedia("(prefers-color-scheme: dark)");
+        function resolve(osDark) {
+          var pinned = stored();
+          apply(pinned ? pinned === "dark" : osDark);
+        }
+        resolve(mq.matches);
+        mq.addEventListener("change", function (e) {
+          resolve(e.matches);
+        });
+      })();
+    </script>
+
+    <style>
+      :root {
+        --bg: #fff8ed;
+        --ink: #020617;
+        --ink-2: #475569;
+        --ink-3: #64748b;
+        --felt: #1b5148;
+        --on-felt: #ffffff;
+      }
+      :root[data-theme="dark"] {
+        --bg: #0f172a;
+        --ink: #f1f5f9;
+        --ink-2: #cbd5e1;
+        --ink-3: #94a3b8;
+        --felt: #5ed6c1;
+        --on-felt: #06231e;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", sans-serif;
+        line-height: 1.6;
+        -webkit-text-size-adjust: 100%;
+      }
+      main {
+        max-width: 36rem;
+        margin: 0 auto;
+        padding: 4.5rem 1.5rem;
+      }
+      .mark { width: 72px; height: 72px; border-radius: 1rem; display: block; }
+      h1 { font-size: 2rem; font-weight: 700; letter-spacing: -0.03em; margin: 1.25rem 0 0; }
+      p { color: var(--ink-2); margin: 0.75rem 0 0; }
+      .cta {
+        display: inline-block;
+        margin: 1.75rem 0 0;
+        padding: 0.85rem 1.6rem;
+        border-radius: 999px;
+        background: var(--felt);
+        color: var(--on-felt);
+        font-weight: 600;
+        text-decoration: none;
+      }
+      .other { display: block; margin-top: 1.25rem; color: var(--felt); font-size: 0.95rem; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <img class="mark" src="/icons/icon-192.png" width="72" height="72" alt="" />
+      <h1>Nothing on this lane</h1>
+      <p>That address does not go anywhere. The link may be old, or a character short.</p>
+      <a class="cta" href="/score">Open Headpin</a>
+      <a class="other" href="/">Read about Headpin</a>
+    </main>
+  </body>
+</html>
