@@ -17,7 +17,7 @@ import { ErrorBanner } from "../components/ErrorBanner";
 
 /** The chart each callout is about, keyed the way the Stats tab remembers it.
  *  Tapping a callout lands on the number it was talking about, not on whatever
- *  chart happened to be up last time (ADR-065). */
+ *  chart happened to be up last time (ADR-065b). */
 const CHART_FOR: Record<BriefingFinding["kind"], string> = {
   ball: "carryPct",
   expectation: "average",
@@ -30,7 +30,7 @@ const NO_SESSIONS: SessionSummary[] = [];
 const NO_BALLS: Ball[] = [];
 
 /**
- * What your own history says about where you are about to bowl (ADR-064).
+ * What your own history says about where you are about to bowl (ADR-064b).
  *
  * The copy lives here rather than in `lib/briefing`, which returns findings and
  * numbers. That split is what lets the thresholds be tested without asserting

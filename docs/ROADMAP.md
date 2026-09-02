@@ -25,18 +25,34 @@ property of the leave (derivable, since both are "the 6 pin is the target") or a
 choice the bowler makes per pair. Deriving it is wrong for anyone who plays a
 6-10 differently to a 6.
 
-### Dependency advisories
-
-`npm audit` reports two high-severity advisories, `nanoid` and `pdfjs-dist`,
-both with fixes available inside the current majors (`npm audit fix`). Neither
-reaches a user: `pdfjs-dist` is used by the catalog seeding scripts and `nanoid`
-is a build-time transitive. Worth taking with a full `verify` behind it.
-
 ### Effects that set state on mount
 
-ESLint's `set-state-in-effect` flags 8 places and `refs` another 9. They are
-deliberate today and both rules are warnings for that reason, but the pattern is
-worth revisiting as one change rather than one file at a time.
+ESLint reports 22 warnings and no errors: `set-state-in-effect` 10, `refs` 4,
+`react-refresh/only-export-components` 8. The first two are deliberate today and
+are warnings for that reason, but the pattern is worth revisiting as one change
+rather than one file at a time. The third is the cost of a few modules that
+export a constant beside a component; it costs a hot reload, never a build.
+
+### Majors this pass did not take
+
+React 19, Tailwind 4 and Vite 8 all have majors out. Nothing here needs them,
+and a launch is the wrong week to take three of them at once. `npm audit` is
+clean inside the current majors as of September 2026.
+
+### A Content Security Policy
+
+`vercel.json` carries nosniff, a referrer policy, a permissions policy and HSTS,
+but no CSP. All three HTML shells run an inline theme script, which a CSP would
+need nonces for, and a nonce needs a rendering step this static site does not
+have. The alternatives are hashing the three scripts (brittle: any edit to them
+breaks the page silently) or moving them to files (a flash of the wrong theme on
+every cold load, which is the bug they exist to prevent).
+
+### One card shape for the two nudges
+
+`NextSteps` and `FeedbackPrompt` draw the same card, and draw it twice. Neither
+is wrong today, but a third nudge would be a third copy, and that is the point
+at which the shape belongs in `ui/`.
 
 ---
 
@@ -77,3 +93,9 @@ it is currently undocumented as an exception in the way `PinGrid`'s wood now is.
 - **Per-ball spare lines.** A leave's strike-ball answer is a move off that
   ball's own line, not a second set of boards, so one move per leave already
   covers every strike ball in the bag (ADR-053).
+- **A "finish session" action.** A session ends by being left, which is what
+  happens on a lane: you stop bowling and go home. An explicit finish would add
+  a state the app then has to keep honest against a bowler who adds a game an
+  hour later.
+- **A virtualized arsenal.** The catalog is 250 rows and is windowed; an
+  arsenal is a dozen balls, and windowing a dozen rows costs more than it saves.

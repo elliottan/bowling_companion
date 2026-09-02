@@ -14,6 +14,10 @@ Each layer's *role* and the *load-bearing* modules:
   components + repositories. **No bowling logic here.**
 - `components/`: presentation + interaction primitives; data via props
   (e.g. `PinGrid`, `Scorecard`, `ActiveGameScorer`).
+  - `components/ui/`: the shared primitives every screen composes from.
+  - `components/icons/`: the app's own glyphs, for the bowling ideas Lucide has
+    no icon for. Same 24x24 grid and props, so anything taking a `LucideIcon`
+    takes one of these.
 - `services/*Repository.ts`: async layer wrapping **all** Dexie calls in named
   functions. The only place IndexedDB is touched.
 - `lib/`: pure, React-free, Dexie-free, unit-tested functions. Load-bearing:
@@ -21,6 +25,8 @@ Each layer's *role* and the *load-bearing* modules:
   (what a shot opens with), `pins.ts`, `stats.ts`.
 - `db/bowlingDb.ts`: Dexie class + versioned schema.
   `types/bowling.ts`: shared interfaces.
+- `test/`: the vitest setup (jsdom shims for `Blob.text`, `matchMedia` and
+  `IntersectionObserver`) and the copy lint that holds the app's vocabulary.
 
 ## Data flow
 
@@ -120,6 +126,6 @@ that number is not the goal, the floors and the e2e flows are.
 
 `npm run verify` runs the whole gate. ESLint is part of it, and exists mostly
 for the hooks rules, which catch what `tsc` structurally cannot: stale
-dependency arrays, conditional hooks, missing cleanups. Its two compiler-era
-rules (`set-state-in-effect`, `refs`) are warnings, because the patterns they
-flag are used deliberately throughout the app.
+dependency arrays, conditional hooks, missing cleanups. Its three compiler-era
+rules (`set-state-in-effect`, `refs`, `purity`) are warnings, because the
+patterns they flag are used deliberately throughout the app.

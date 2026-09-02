@@ -18,13 +18,16 @@ One command runs the whole gate, so a deploy never ships a broken build:
 npm run verify
 ```
 
-It is `npm run lint` (ESLint, mostly for the hooks rules), then `npm test`
-(vitest), then `npm run build` (tsc -b + vite build + PWA service
-worker/manifest), then `npm run test:e2e` (Playwright: scoring, backup, oil
-patterns). All four, every time. e2e used to be the optional step, which
-is exactly how two specs sat red on `main` for weeks: they assert on UI copy,
-so they rot silently whenever a label changes, and that is the drift they exist
-to catch.
+It is `npm run lint` (ESLint, mostly for the hooks rules), then
+`npm run test:coverage` (vitest **with the coverage floors**), then
+`npm run build` (tsc -b + vite build + PWA service worker/manifest), then
+`npm run test:e2e` (Playwright, Chromium and WebKit). All four, every time.
+
+`npm test` is the fast inner loop and skips coverage, so it is never the last
+run before a push: CI runs `test:coverage`, and a gate weaker than the judge is
+not a gate. e2e used to be the optional step, which is exactly how two specs sat
+red on `main` for weeks: they assert on UI copy, so they rot silently whenever a
+label changes, and that is the drift they exist to catch.
 
 ### Why the gate has to hold locally
 
@@ -67,8 +70,12 @@ npm run build
 ```
 
 Produces `dist/`:
-- `index.html`, hashed JS/CSS in `assets/`
-- `sw.js` + `workbox-*.js` (service worker), `manifest.webmanifest`, `icons/`
+- `index.html` (the landing page), `score/index.html` (the app shell),
+  `legal/index.html`, `404.html`
+- hashed JS/CSS in `assets/`, split into the app chunk, `react`, `dexie` and a
+  lazy chunk per screen that is not part of the core loop
+- `sw.js` + `workbox-*.js` (service worker), `manifest.webmanifest`, `icons/`,
+  `shots/`, `catalog/`
 
 `dist/` is git-ignored: it is a build artifact, never committed.
 
@@ -95,8 +102,10 @@ CLI run links the directory to a Vercel project (interactive, one-time).
 
 ### What `vercel.json` is for
 
-It carries **one** rule: `www.headpin.app` redirects to the bare
-`headpin.app`. That is not cosmetic. Browser storage is scoped to an origin,
+It carries a redirect, two rewrites and the response headers.
+
+The redirect is `www.headpin.app` to the bare `headpin.app`. That is not
+cosmetic. Browser storage is scoped to an origin,
 and `www.` is a different origin, so an app served on both would give a user
 two databases, two installs and two halves of a history depending on which
 link they happened to tap. One canonical origin, for ever.
@@ -109,11 +118,17 @@ It could equally be a "Redirect to" setting on the domain in the Vercel
 dashboard. It lives here instead so it is version-controlled, reviewable, and
 survives the project being recreated.
 
+The two rewrites serve `/score` and `/legal` from their own `index.html`,
+because both are linked, shared and installed without a trailing slash and
+hosts disagree about resolving that themselves.
+
+The headers block is described under "Deploy to Vercel" above.
+
 ### Why nothing else is needed
 
-- The app routes in the **hash fragment** (`/#/home`, `/#/session/4`), which a
-  server never sees, so every request is for `/` and no SPA rewrite rule is
-  required. This is the reason, and it is load-bearing: move the routes into the
+- The app routes in the **hash fragment** (`/score#/home`, `/score#/session/4`),
+  which a server never sees, so every request is for `/score` and no SPA rewrite
+  rule is required beyond the one that resolves that path to its `index.html`. This is the reason, and it is load-bearing: move the routes into the
   path and a rewrite becomes mandatory. Routing itself is real, see ADR-041 and
   `src/lib/appRoute.ts`.
 - It needs **no env vars or serverless functions**: everything runs in the

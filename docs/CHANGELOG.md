@@ -8,6 +8,18 @@ merge to `main` (`docs/DEPLOYMENT.md`), so every section below is a dated batch
 of shipped work rather than a release. Thirty of them used to be headed
 `[Unreleased]`, which said nothing once they had all shipped.
 
+## Housekeeping (2026-09)
+
+Nothing user-visible.
+
+- Dependencies patched inside their current majors; `npm audit` is clean.
+- The decision log's ten ADRs sharing five numbers are disambiguated, with a
+  note at the top of the file saying how and why.
+- The deployment guide, the README, the architecture notes and the design
+  language all describe what the app now does: the real gate command, the real
+  dist layout, the real hash routes, the wood exception, the custom icon rule,
+  the vocabulary, and the rule for a button that commits a shot.
+
 ## Tests that outlive this pass (2026-09)
 
 Nothing user-visible. Recorded because it is why the changes above can be

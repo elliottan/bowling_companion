@@ -4,7 +4,7 @@ import type { Game } from "../types/bowling";
 interface ScoreTrendChartProps {
   /** Rendered inside the card, above the plot. Passed in so this chart and
    *  `MetricTrendChart` wear the same header while the tiles switch between
-   *  them (ADR-061). */
+   *  them (ADR-061b). */
   header?: ReactNode;
   games: Array<Pick<Game, "id" | "game_number" | "final_score">>;
   /** Open a game picked off the line. */

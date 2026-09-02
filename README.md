@@ -9,7 +9,7 @@ locally in IndexedDB, no backend.
 
 ```bash
 npm install
-npm run dev       # vite dev server on http://127.0.0.1:5173
+npm run dev       # vite dev server on http://localhost:5173
 npm test          # vitest run (unit)
 npm run test:e2e  # playwright smoke tests
 npm run build     # tsc -b && vite build (+ PWA)
@@ -17,13 +17,17 @@ npm run build     # tsc -b && vite build (+ PWA)
 
 ## Deploy
 
+Merging to `main` is the deploy: Vercel's Git integration builds and ships it.
+The gate is `npm run verify`, which `.githooks/pre-push` runs before any push
+to `main`.
+
 ```bash
-npm test && npm run build   # verify first
-vercel --prod               # ship dist/ to Vercel (zero config)
+npm run verify              # lint, coverage, build, e2e. Ship only when green.
+git push origin main        # Vercel picks it up from here
 ```
 
-Full guide: [docs/DEPLOYMENT.md](./docs/DEPLOYMENT.md). There's also a `deploy`
-skill that runs the verify-then-ship flow.
+Full guide: [docs/DEPLOYMENT.md](./docs/DEPLOYMENT.md). There is also a `deploy`
+skill, as the manual fallback when the Git integration is not an option.
 
 ## Tech stack
 
