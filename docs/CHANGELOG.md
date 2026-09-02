@@ -8,6 +8,25 @@ merge to `main` (`docs/DEPLOYMENT.md`), so every section below is a dated batch
 of shipped work rather than a release. Thirty of them used to be headed
 `[Unreleased]`, which said nothing once they had all shipped.
 
+## The mark, and icons that mean bowling (2026-09)
+
+### Changed
+
+- **The app icon has real red neck bands** and a fuller pin, so it reads as a
+  pin at home-screen size rather than as a pale shape on green. iOS gets its
+  own opaque 180x180 file, because it composites transparency onto black.
+- **The share card is drawn from the same mark**, so the two can never drift.
+- **The menu icons say bowling.** Spare lines, lane notes, oil patterns, the
+  lane view, the game plan, open frames and the Active tab all had the nearest
+  general-purpose icon standing in for them. Each now has its own glyph, drawn
+  on the same grid and stroke as the rest. Universal actions keep theirs.
+
+### Added
+
+- **The Android install sheet shows the app**: screenshots, categories, and
+  shortcuts straight to a new session or to Stats. It also gets a themed icon
+  that follows the wallpaper palette.
+
 ## The pages people land on (2026-09)
 
 ### Changed

@@ -12,7 +12,9 @@
     <link rel="icon" type="image/png" sizes="96x96" href="/icons/icon-96.png" />
     <link rel="icon" type="image/png" sizes="48x48" href="/icons/icon-48.png" />
     <link rel="icon" href="/favicon.ico" sizes="any" />
-    <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+    <!-- iOS composites alpha onto black and wants 180x180, so it gets its own
+         opaque file rather than the maskable-safe 192. -->
+    <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />

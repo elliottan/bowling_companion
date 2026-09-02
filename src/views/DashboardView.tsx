@@ -1,5 +1,12 @@
-import { BookOpen, ChevronRight, Compass, Crosshair, MapPin, PlayCircle, Plus, Smartphone, Spline, Waves, type LucideIcon } from "lucide-react";
-import { BowlingBallIcon } from "../components/icons/BowlingBallIcon";
+import { BookOpen, ChevronRight, PlayCircle, Plus, Smartphone, type LucideIcon } from "lucide-react";
+import {
+  BowlingBallIcon,
+  GamePlanIcon,
+  LanePairIcon,
+  LaneViewIcon,
+  OilPatternIcon,
+  SpareLineIcon
+} from "../components/icons";
 import { useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { ErrorBanner } from "../components/ErrorBanner";
@@ -138,12 +145,12 @@ export function DashboardView({
   // thing you read, not a place you keep, and a tile made it look like the
   // latter.
   const shortcuts: Array<{ icon: LucideIcon; label: string; onClick: () => void }> = [
-    { icon: Crosshair, label: "Spare lines", onClick: onOpenSpareLines },
+    { icon: SpareLineIcon, label: "Spare lines", onClick: onOpenSpareLines },
     { icon: BowlingBallIcon, label: "Arsenal", onClick: onOpenArsenal },
     { icon: BookOpen, label: "Catalog", onClick: onOpenCatalog },
-    { icon: Spline, label: "Line", onClick: onOpenLineVisualizer },
-    { icon: MapPin, label: "Lane notes", onClick: onOpenLaneNotes },
-    { icon: Waves, label: "Oil patterns", onClick: onOpenOilPatterns }
+    { icon: LaneViewIcon, label: "Line", onClick: onOpenLineVisualizer },
+    { icon: LanePairIcon, label: "Lane notes", onClick: onOpenLaneNotes },
+    { icon: OilPatternIcon, label: "Oil patterns", onClick: onOpenOilPatterns }
   ];
 
   return (
@@ -239,7 +246,7 @@ export function DashboardView({
           className="mb-2 flex w-full items-center gap-3 rounded-xl border border-edge bg-surface p-3 text-left shadow-sm hover:border-accent-fill"
         >
           <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-accent-soft text-accent">
-            <Compass size={18} aria-hidden="true" />
+            <GamePlanIcon size={18} aria-hidden="true" />
           </span>
           <span className="min-w-0 flex-1">
             <span className="block text-sm font-semibold text-ink">Game plan</span>

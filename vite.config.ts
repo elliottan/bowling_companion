@@ -101,15 +101,63 @@ export default defineConfig({
         // of the wide scope, the landing page opening inside the app window, is
         // already handled: that page bounces a standalone launch to /score.
         scope: "/",
+        categories: ["sports", "utilities"],
         icons: [
-          { src: "icons/icon-192.png", sizes: "192x192", type: "image/png" },
-          { src: "icons/icon-512.png", sizes: "512x512", type: "image/png" },
+          // `purpose: "any"` is stated rather than left to the default, because
+          // a manifest that names a maskable icon and no explicit "any" lets a
+          // launcher use the maskable one everywhere, padding included.
+          { src: "icons/icon-192.png", sizes: "192x192", type: "image/png", purpose: "any" },
+          { src: "icons/icon-512.png", sizes: "512x512", type: "image/png", purpose: "any" },
           {
             src: "icons/icon-512-maskable.png",
             sizes: "512x512",
             type: "image/png",
             purpose: "maskable"
+          },
+          // Android themed icons: recoloured to the wallpaper palette, so it
+          // must be one colour on transparency.
+          {
+            src: "icons/icon-512-monochrome.png",
+            sizes: "512x512",
+            type: "image/png",
+            purpose: "monochrome"
           }
+        ],
+        // The richer install sheet on Android: without screenshots it shows a
+        // single line of text, with them it shows the app.
+        screenshots: [
+          {
+            src: "shots/scorer.webp",
+            sizes: "780x1688",
+            type: "image/webp",
+            form_factor: "narrow",
+            label: "Scoring a game frame by frame"
+          },
+          {
+            src: "shots/line.webp",
+            sizes: "780x1688",
+            type: "image/webp",
+            form_factor: "narrow",
+            label: "The line you threw, drawn on the lane"
+          },
+          {
+            src: "shots/stats.webp",
+            sizes: "780x1688",
+            type: "image/webp",
+            form_factor: "narrow",
+            label: "Averages, strike and spare rates over time"
+          },
+          {
+            src: "shots/arsenal.webp",
+            sizes: "780x1688",
+            type: "image/webp",
+            form_factor: "narrow",
+            label: "Your arsenal, with the specs of every ball"
+          }
+        ],
+        shortcuts: [
+          { name: "Start session", url: "/score#/home", icons: [{ src: "icons/icon-192.png", sizes: "192x192" }] },
+          { name: "Stats", url: "/score#/stats", icons: [{ src: "icons/icon-192.png", sizes: "192x192" }] }
         ]
       },
       workbox: {
