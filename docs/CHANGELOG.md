@@ -8,6 +8,37 @@ merge to `main` (`docs/DEPLOYMENT.md`), so every section below is a dated batch
 of shipped work rather than a release. Thirty of them used to be headed
 `[Unreleased]`, which said nothing once they had all shipped.
 
+## The same shapes everywhere (2026-09)
+
+### Changed
+
+- **Add ball, the spare line form and the ball picker are the same sheet as
+  every other form.** They were three hand-built copies that had each drifted:
+  different corner, different bar, and one of them put Delete beside Save.
+- **Right / left handed and the session sheet's sections are segmented
+  controls**, not rows of buttons and chips. One answer out of a few reads as
+  one answer.
+- **Cards are one corner radius**, fields are one set of chrome, and the lane
+  note field gets the background it had lost, so it stops falling back to the
+  browser's own grey.
+- **Errors are the same red banner everywhere**, instead of a bare red sentence
+  on three screens.
+- **Stats, the game plan, the game trend and open frames say when a read
+  failed**, instead of showing "nothing yet".
+
+### Fixed
+
+- **The frame labels in the session sheet are readable.** F1 to F10 were pale
+  grey at 10px, under half the contrast they need.
+- **The colorway dots in the catalog are a real tap target**, and its search
+  field has a name for a screen reader.
+- **The scorecard reads out loud.** Each cell says its frame, its mark as a
+  word, and the running total, instead of announcing "X".
+- **The first run keeps the keyboard inside it.** It claimed to be a modal and
+  let Tab walk out into an app the bowler had not been shown yet.
+- **The two "Not now" buttons say which card they answer**, and the install
+  reminder's Dismiss says what it dismisses.
+
 ## Take a shot back (2026-09)
 
 ### Added

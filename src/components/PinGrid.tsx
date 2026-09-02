@@ -24,6 +24,16 @@ interface PinGridProps {
   cornerSlot?: ReactNode;
 }
 
+
+/**
+ * The deck's wood. Maple and a knocked-down pin are the one place in the app
+ * that does not take its colours from the theme (DESIGN-LANGUAGE §3): a lane is
+ * the same colour in a dark room as a light one, and a pin deck that went slate
+ * at night would stop being a pin deck. Exported because the pocket toggle
+ * sits on this surface and has to match it.
+ */
+export const WOOD_PIN_DOWN = "border-[#9c7438] bg-[#c79b5e] text-[#7a5a2c]";
+
 export function PinGrid({
   standingPins,
   availablePins = ALL_PINS,
@@ -116,7 +126,7 @@ export function PinGrid({
                   } ${
                     isStanding
                       ? "border-[#cbd5e1] bg-white text-[#0f172a] shadow-md"
-                      : "border-[#9c7438] bg-[#c79b5e] text-[#7a5a2c]"
+                      : WOOD_PIN_DOWN
                   } ${isAvailable || readOnly ? "" : "cursor-not-allowed opacity-30"}`}
                 >
                   {pin}

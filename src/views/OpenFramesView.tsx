@@ -7,6 +7,7 @@ import { EmptyState } from "../components/ui/EmptyState";
 import { GROUP_HEADING } from "../components/ui/typography";
 import { calculateOpenFrames, type OpenFrameTrendPoint } from "../lib/stats";
 import { useSessionFilters } from "./useSessionFilters";
+import { ErrorBanner } from "../components/ErrorBanner";
 
 /**
  * How often frames go open, and on what, for whatever the Stats tab is
@@ -18,7 +19,7 @@ import { useSessionFilters } from "./useSessionFilters";
  * through `App`.
  */
 export function OpenFramesView({ onBack }: { onBack: () => void }) {
-  const { filtered, activeLanes, isLoading } = useSessionFilters();
+  const { filtered, activeLanes, isLoading, error } = useSessionFilters();
   const report = useMemo(
     () => calculateOpenFrames(filtered, activeLanes),
     [filtered, activeLanes]
@@ -30,7 +31,9 @@ export function OpenFramesView({ onBack }: { onBack: () => void }) {
   return (
     <PushScreen title="Open frames" onBack={onBack}>
       <div className="mx-auto w-full max-w-3xl px-3 pb-8 pt-3 sm:px-6">
-        {isLoading ? (
+        {error ? (
+          <ErrorBanner>Your sessions could not be read. Reload the app, then try again.</ErrorBanner>
+        ) : isLoading ? (
           <LoadingCard />
         ) : report.games === 0 ? (
           <EmptyState
@@ -43,7 +46,7 @@ export function OpenFramesView({ onBack }: { onBack: () => void }) {
             <button
               type="button"
               onClick={() => setNote((n) => !n)}
-              className="w-full rounded-lg border border-edge bg-surface p-4 text-left shadow-sm"
+              className="w-full rounded-xl border border-edge bg-surface p-4 text-left shadow-sm"
             >
               <span className="flex items-baseline gap-2">
                 <span className="text-4xl font-bold tabular-nums leading-none text-ink">
@@ -73,7 +76,7 @@ export function OpenFramesView({ onBack }: { onBack: () => void }) {
               <button
                 type="button"
                 onClick={() => setNote(false)}
-                className="mt-2 w-full rounded-lg border border-edge bg-surface-muted p-3 text-left text-xs text-ink-secondary"
+                className="mt-2 w-full rounded-xl border border-edge bg-surface-muted p-3 text-left text-xs text-ink-secondary"
               >
                 An open frame gives up about 11 pins on average.
               </button>
@@ -82,7 +85,7 @@ export function OpenFramesView({ onBack }: { onBack: () => void }) {
             {report.trend.length > 1 && <OpenFrameTrend points={report.trend} />}
 
             <h2 className={`${GROUP_HEADING} mb-2 mt-4`}>Most opens (makeables)</h2>
-            <ul className="divide-y divide-edge rounded-lg border border-edge bg-surface shadow-sm">
+            <ul className="divide-y divide-edge rounded-xl border border-edge bg-surface shadow-sm">
               {report.leaves.slice(0, 12).map((leave) => (
                 <li key={leave.pins.join("-")} className="flex items-center gap-3 px-3 py-2.5">
                   <MiniPins standing={leave.pins} size="sm" />
@@ -159,7 +162,7 @@ function OpenFrameTrend({ points }: { points: OpenFrameTrendPoint[] }) {
   const barW = Math.min(22, slot * 0.7);
 
   return (
-    <div className="mt-3 rounded-lg border border-edge bg-surface p-3 shadow-sm">
+    <div className="mt-3 rounded-xl border border-edge bg-surface p-3 shadow-sm">
       <svg
         viewBox={`0 0 ${W} ${H}`}
         className="w-full"

@@ -27,3 +27,21 @@ export const FIELD_LABEL = "mb-1 block text-sm font-medium text-ink-strong";
  */
 export const FIELD_MICRO_LABEL =
   "mb-0.5 block text-[10px] font-semibold uppercase leading-none tracking-[0.02em] text-ink-secondary";
+
+/**
+ * The dense variant, for the score panels: the shot detail bar, the spare line
+ * boards. They sit two to a row beside a pin deck on a 390px screen, where a
+ * 44px field would push the deck off the fold, so they are shorter than the
+ * tap-target minimum on purpose. Everything else about them, the border, the
+ * surface, the focus ring, is the same chrome as a full-size field, which is
+ * the point: this exists so the three panels that need it stop each inventing
+ * their own and losing `bg-surface` on the way (§6).
+ */
+export const FIELD_DENSE =
+  "h-9 w-full min-w-0 box-border rounded-lg border border-edge-strong bg-surface-muted px-2 text-sm text-ink placeholder:text-ink-tertiary outline-none focus:border-accent-fill focus:bg-surface";
+
+/** The dense chrome for a multi-line field. */
+export const FIELD_DENSE_TEXTAREA = `${FIELD_DENSE.replace("h-9", "min-h-9 py-1.5")} resize-none leading-snug`;
+
+/** The dense chrome for a `<select>`, which needs room for its own chevron. */
+export const FIELD_DENSE_SELECT = `${FIELD_DENSE} appearance-none pr-8`;

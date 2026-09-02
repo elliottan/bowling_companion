@@ -20,6 +20,16 @@ interface ScorecardProps {
   onLiveTap?: () => void;
 }
 
+/** A scorecard mark, said out loud. "X" and "/" are the written forms; a
+ *  reader needs the words. */
+function speakMark(symbol: string | null | undefined): string {
+  if (!symbol) return "not bowled yet";
+  if (symbol === "X") return "strike";
+  if (symbol === "/") return "spare";
+  if (symbol === "-") return "gutter";
+  return symbol;
+}
+
 export function Scorecard({
   frames,
   activeFrameNumber,
@@ -93,7 +103,7 @@ export function Scorecard({
   });
 
   return (
-    <div className="overflow-hidden rounded-lg border border-edge bg-surface shadow-sm">
+    <div className="overflow-hidden rounded-xl border border-edge bg-surface shadow-sm">
       {/* Mobile: 5×2 grid of compact frame chips. Fits 390px without overflow. */}
       <div className="grid grid-cols-5 gap-px bg-edge sm:hidden">
         {cells.map((cell) => (
@@ -189,13 +199,20 @@ function FrameCell({
             cell.symbol
           );
 
+          // The mark is drawn as an X, a slash or a digit, none of which a
+          // screen reader says as bowling. The label says it out loud, so the
+          // scorecard can be read without seeing it.
+          const spokenMark = speakMark(cell.symbol);
+
           if (tappable) {
             return (
               <button
                 key={idx}
                 type="button"
                 onClick={() => onShotTap!(frameNumber, cell.shotIndex!)}
-                aria-label={`View frame ${frameNumber} shot ${cell.shotIndex! + 1}`}
+                aria-label={`Frame ${frameNumber}, shot ${cell.shotIndex! + 1}: ${spokenMark}${
+                  rollingTotal != null ? `, running total ${rollingTotal}` : ""
+                }`}
                 className={`${baseClass} ${highlightClass}`}
               >
                 {content}
@@ -216,7 +233,13 @@ function FrameCell({
             );
           }
           return (
-            <div key={idx} className={`${baseClass} ${highlightClass}`}>
+            <div
+              key={idx}
+              className={`${baseClass} ${highlightClass}`}
+              aria-label={
+                cell.symbol ? `Frame ${frameNumber}: ${spokenMark}` : undefined
+              }
+            >
               {content}
             </div>
           );

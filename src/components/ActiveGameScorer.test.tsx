@@ -104,7 +104,7 @@ describe("ActiveGameScorer line inputs (ADR-032)", () => {
     );
 
     // The panel follows the cursor; select the recorded shot to review it.
-    fireEvent.click(screen.getAllByRole("button", { name: "View frame 1 shot 1" })[0]);
+    fireEvent.click(screen.getAllByRole("button", { name: /^Frame 1, shot 1:/ })[0]);
 
     const slide = screen.getByLabelText("Slide") as HTMLInputElement;
     expect(slide.value).toBe("21");
@@ -118,7 +118,7 @@ describe("ActiveGameScorer line inputs (ADR-032)", () => {
       <ActiveGameScorer gameKey={1} initialFrames={openFrames()} onFrameComplete={onFrameComplete} />
     );
 
-    fireEvent.click(screen.getAllByRole("button", { name: "View frame 1 shot 1" })[0]);
+    fireEvent.click(screen.getAllByRole("button", { name: /^Frame 1, shot 1:/ })[0]);
     fireEvent.change(screen.getByLabelText("Slide"), { target: { value: "24" } });
 
     expect(onFrameComplete).toHaveBeenCalled();

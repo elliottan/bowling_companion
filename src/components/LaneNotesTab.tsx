@@ -8,6 +8,7 @@ import { Button } from "./ui/Button";
 import { IconButton } from "./ui/IconButton";
 import { EmptyState } from "./ui/EmptyState";
 import { LanePairIcon } from "./icons";
+import { FIELD_DENSE_TEXTAREA } from "./ui/field";
 
 interface LaneNotesTabProps {
   alley: string;
@@ -210,7 +211,7 @@ function LaneCell({
             rows={3}
             autoFocus
             placeholder="How this lane plays…"
-            className="w-full rounded-md border border-edge-strong px-2 py-1 text-xs outline-none focus:border-accent-fill"
+            className={FIELD_DENSE_TEXTAREA}
           />
           <div className="flex flex-wrap items-center gap-1.5">
             <Button variant="primary" onClick={onSave} className="text-xs">

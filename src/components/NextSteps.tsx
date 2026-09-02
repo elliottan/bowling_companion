@@ -106,6 +106,7 @@ export function NextSteps({
                   <button
                     type="button"
                     onClick={() => void dismissNextStep(step)}
+                    aria-label={`Not now: ${copy.title}`}
                     className={`relative inline-flex min-w-11 items-center justify-center text-xs font-semibold text-ink-secondary hover:underline ${TAP_TARGET_44}`}
                   >
                     Not now

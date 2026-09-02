@@ -24,6 +24,7 @@ import { Stats } from "./Stats";
 import { SwipePanes } from "./SwipePanes";
 import { Chip } from "./ui/Chip";
 import { IconButton } from "./ui/IconButton";
+import { SegmentedControl } from "./ui/SegmentedControl";
 
 export type SessionPanelTab = "sheet" | "stats" | "lanes";
 
@@ -218,17 +219,19 @@ export function SessionLanePanel({
           })}
         </div>
 
-        {/* Session sheet / Stats / Lane notes toggle */}
-        <div className="grid grid-cols-3 gap-2 border-b border-edge px-4 py-2">
-          {([
-            ["sheet", "Session sheet"],
-            ["stats", "Stats"],
-            ["lanes", "Lane notes"]
-          ] as const).map(([key, label]) => (
-            <Chip key={key} selected={tab === key} onClick={() => setTab(key)} className="w-full">
-              {label}
-            </Chip>
-          ))}
+        {/* One of three, so a segmented control rather than three chips: chips
+            read as filters that could all be on at once (DESIGN-LANGUAGE §4). */}
+        <div className="border-b border-edge px-4 py-2">
+          <SegmentedControl
+            label="Session sheet section"
+            value={tab}
+            onChange={setTab}
+            options={[
+              { value: "sheet", label: "Sheet" },
+              { value: "stats", label: "Stats" },
+              { value: "lanes", label: "Lanes" }
+            ]}
+          />
         </div>
 
         <div className="min-h-0 flex-1 overflow-hidden">
@@ -457,7 +460,7 @@ function scrollParent(el: HTMLElement): HTMLElement | null {
 }
 
 const emptyCell = (n: number) => (
-  <span className="text-[10px] font-bold uppercase leading-none text-ink-tertiary">F{n}</span>
+  <span className="text-[10px] font-bold uppercase leading-none text-ink-secondary">F{n}</span>
 );
 
 // Cross-lane: columns are FIXED by lane number (lower = left, higher = right),
@@ -668,7 +671,7 @@ function FrameCell({
             <div className="relative shrink-0">
               <MiniPins standing={shot.pins_standing} />
               {i === 0 && (
-                <span className="absolute bottom-0 left-0 text-[10px] font-bold uppercase leading-none text-ink-tertiary">
+                <span className="absolute bottom-0 left-0 text-[10px] font-bold uppercase leading-none text-ink-secondary">
                   F{frame.frame_number}
                 </span>
               )}

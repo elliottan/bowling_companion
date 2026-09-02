@@ -17,7 +17,7 @@ import type { CatalogBall, CoverstockCategory, Manufacturer } from "../types/cat
 import type { Ball } from "../types/bowling";
 import { addBall, getBalls } from "../services/ballRepository";
 import { GROUP_HEADING } from "../components/ui/typography";
-import { FIELD, FIELD_LABEL } from "../components/ui/field";
+import { FIELD, FIELD_DENSE_SELECT, FIELD_LABEL } from "../components/ui/field";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -146,7 +146,10 @@ function ColorwayCarousel({ ball }: { ball: CatalogBall }) {
         <p className="mt-2 text-center text-sm font-medium text-ink-secondary">{current.color}</p>
       )}
       {/* Pagination dots */}
-      <div className="mt-2 flex items-center justify-center gap-1.5">
+      {/* An 8px dot is not a target. The row gets the height and each dot a
+          44pt hit region vertically; the gap is widened so two neighbouring
+          regions meet rather than overlap (see TAP_TARGET_44). */}
+      <div className="mt-2 flex min-h-11 items-center justify-center gap-3">
         {colorways.map((cw, i) => (
           <button
             key={cw.sku}
@@ -154,7 +157,7 @@ function ColorwayCarousel({ ball }: { ball: CatalogBall }) {
             onClick={() => setIdx(i)}
             aria-label={`View colorway ${i + 1}${cw.color ? `: ${cw.color}` : ""}`}
             aria-current={i === idx}
-            className={`h-2 rounded-full transition-all ${
+            className={`relative h-2 rounded-full transition-all ${TAP_TARGET_44} ${
               i === idx ? "w-5 bg-accent-fill" : "w-2 bg-edge-strong hover:bg-ink-tertiary"
             }`}
           />
@@ -595,6 +598,7 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall }: CatalogVie
         <div className="relative mb-3">
           <input
             type="search"
+            aria-label="Search the catalog"
             placeholder="Search name, brand, coverstock…"
             value={filters.search}
             onChange={(e) => setFilters((f) => ({ ...f, search: e.target.value }))}
@@ -627,7 +631,7 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall }: CatalogVie
             <select
               value={sort}
               onChange={(e) => setSort(e.target.value as SortKey)}
-              className="rounded-md border border-edge-strong bg-surface px-2 py-1.5 text-sm outline-none focus:border-accent-fill"
+              className={FIELD_DENSE_SELECT}
             >
               <option value="releaseDate">Newest first</option>
               <option value="rg">RG, low to high</option>

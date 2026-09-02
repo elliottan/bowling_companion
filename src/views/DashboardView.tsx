@@ -193,6 +193,7 @@ export function DashboardView({
           <button
             type="button"
             onClick={dismissInstallLine}
+            aria-label="Dismiss install reminder"
             className={`relative shrink-0 text-xs font-semibold text-warning-700/80 hover:underline ${TAP_TARGET_44}`}
           >
             Dismiss

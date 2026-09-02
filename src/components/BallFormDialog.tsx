@@ -1,7 +1,5 @@
-import { BookOpen, Check, ChevronRight, Search, Trash2, X } from "lucide-react";
+import { BookOpen, ChevronRight, Search, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useOverlay } from "../lib/useOverlay";
-import { useSheetDismiss } from "../lib/useSheetDismiss";
 import { getAllCatalog, getCatalogBall, syncCatalog } from "../services/ballCatalogRepository";
 import { addBall, updateBall } from "../services/ballRepository";
 import type { Ball } from "../types/bowling";
@@ -11,7 +9,6 @@ import { CatalogBallImage } from "./CatalogBallImage";
 import { ConfirmDialog } from "./ConfirmDialog";
 import { ErrorBanner } from "./ErrorBanner";
 import { Button } from "./ui/Button";
-import { IconButton } from "./ui/IconButton";
 import { FIELD } from "./ui/field";
 import { FormSheet } from "./ui/FormSheet";
 
@@ -47,8 +44,6 @@ export function BallFormDialog({ ball, onClose, onSaved, onDelete }: BallFormDia
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
 
-  const { dismiss, backdropStyle, rootStyle, panelStyle, exiting, dragHandlers } = useSheetDismiss(onClose);
-  const overlayRef = useOverlay<HTMLDivElement>(dismiss, !pickerOpen);
 
   // Restore the existing catalog link so its image and weight specs resolve.
   useEffect(() => {
@@ -81,8 +76,8 @@ export function BallFormDialog({ ball, onClose, onSaved, onDelete }: BallFormDia
     if (!editing && !name.trim()) setName(`${picked.brand} ${picked.name}`);
   }
 
-  async function handleSubmit(e: React.SyntheticEvent) {
-    e.preventDefault();
+  async function handleSubmit(e?: React.SyntheticEvent) {
+    e?.preventDefault();
     const trimmed = name.trim();
     if (!trimmed) {
       setError("Ball name is required.");
@@ -118,7 +113,7 @@ export function BallFormDialog({ ball, onClose, onSaved, onDelete }: BallFormDia
       } else {
         await addBall(payload);
       }
-      dismiss(onSaved);
+      onSaved();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to save ball.");
     } finally {
@@ -128,43 +123,15 @@ export function BallFormDialog({ ball, onClose, onSaved, onDelete }: BallFormDia
 
   return (
     <>
-      <div className="fixed inset-0 z-[60] flex items-end justify-center sm:items-center" style={rootStyle} role="dialog" aria-modal="true" aria-label={editing ? "Edit ball" : "Add ball"}>
-        <div className="absolute inset-0 bg-black/40" style={backdropStyle} onClick={() => dismiss()} />
-        <div
-          ref={overlayRef}
-          style={panelStyle}
-          className={`relative flex max-h-[92%] w-full max-w-lg flex-col rounded-t-2xl bg-surface-sunken shadow-xl sm:max-h-[85%] sm:rounded-2xl ${
-            exiting ? "" : "animate-slide-up"
-          }`}
-        >
-          <div className="flex touch-none cursor-grab justify-center pt-2 active:cursor-grabbing sm:hidden" {...dragHandlers}>
-            <div className="h-1.5 w-10 rounded-full bg-edge-strong" />
-          </div>
-          <div className="flex shrink-0 items-center gap-2 border-b border-edge px-2 py-2">
-            <IconButton onClick={() => dismiss()} label="Close" variant="round">
-              <X size={20} aria-hidden="true" />
-            </IconButton>
-            <h2 className="flex-1 text-center text-[17px] font-semibold text-ink">
-              {editing ? "Edit ball" : "Add ball"}
-            </h2>
-            {/* The confirm is the tick, matching the close beside it. It keeps
-                "Save"/"Add" as its accessible name, so what it commits to is
-                still spoken even though the word is gone. */}
-            <IconButton
-              variant="confirm"
-              onClick={(e) => void handleSubmit(e)}
-              disabled={isSaving}
-              label={editing ? "Save" : "Add"}
-            >
-              <Check size={20} aria-hidden="true" />
-            </IconButton>
-          </div>
-
-          <form
-            onSubmit={(e) => void handleSubmit(e)}
-            className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain px-4 py-4 pb-[calc(1rem+env(safe-area-inset-bottom))]"
-          >
-            {error && <ErrorBanner>{error}</ErrorBanner>}
+      <FormSheet
+        title={editing ? "Edit ball" : "Add ball"}
+        onClose={onClose}
+        onConfirm={() => void handleSubmit()}
+        confirmLabel={editing ? "Save" : "Add"}
+        confirmDisabled={isSaving}
+        banner={error ? <ErrorBanner>{error}</ErrorBanner> : undefined}
+      >
+        <form onSubmit={(e) => void handleSubmit(e)} className="space-y-4">
 
             {/* Catalog link, first thing in the form, and always visible, so
                 the fastest path to a fully specced ball is also the obvious one. */}
@@ -295,11 +262,10 @@ export function BallFormDialog({ ball, onClose, onSaved, onDelete }: BallFormDia
                 Delete ball
               </Button>
             )}
-            {/* Enables the keyboard's Go/Return to submit without a visible row. */}
-            <button type="submit" className="sr-only" tabIndex={-1} aria-hidden="true" />
-          </form>
-        </div>
-      </div>
+          {/* Enables the keyboard's Go/Return to submit without a visible row. */}
+          <button type="submit" className="sr-only" tabIndex={-1} aria-hidden="true" />
+        </form>
+      </FormSheet>
 
       {pickerOpen && <CatalogPickerSheet onPick={linkCatalog} onClose={() => setPickerOpen(false)} />}
 

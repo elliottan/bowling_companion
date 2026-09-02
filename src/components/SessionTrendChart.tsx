@@ -83,7 +83,7 @@ export function SessionTrendChart({ sessions, header, onOpenSession }: SessionTr
   const labelled = new Set([0, points.length - 1]);
 
   return (
-    <div className="rounded-lg border border-edge bg-surface p-3 shadow-sm">
+    <div className="rounded-xl border border-edge bg-surface p-3 shadow-sm">
       {header}
       <svg
         viewBox={`0 0 ${W} ${H}`}

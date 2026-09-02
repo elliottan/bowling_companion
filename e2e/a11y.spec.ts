@@ -72,3 +72,41 @@ test("the arsenal, spares and settings screens are accessible", async ({ page })
   await page.getByRole("button", { name: "Arsenal" }).first().click();
   await expectNoViolations(page);
 });
+
+test("the catalog and the backup screen are accessible", async ({ page }) => {
+  await page.getByRole("navigation").getByRole("button", { name: "Settings" }).click();
+
+  await page.getByRole("button", { name: "Catalog" }).first().click();
+  await expectNoViolations(page);
+  await page
+    .getByRole("dialog", { name: "Catalog" })
+    .getByRole("button", { name: "Back", exact: true })
+    .click();
+
+  await page.getByRole("button", { name: /Back up|Backup/ }).first().click();
+  await expectNoViolations(page);
+});
+
+test("the sheets you type into are accessible", async ({ page }) => {
+  // The spare line form: a sheet full of number fields, which is where field
+  // chrome and labelling go wrong.
+  await page.getByRole("navigation").getByRole("button", { name: "Home" }).click();
+  await page.getByRole("button", { name: "Spare lines", exact: true }).click();
+  await page.getByRole("button", { name: /^Edit spare line for pins/ }).first().click();
+  await expectNoViolations(page);
+  await page
+    .getByRole("dialog")
+    .last()
+    .getByRole("button", { name: "Close" })
+    .click();
+
+  // The session sheet, which fills the screen over the scorer.
+  await page
+    .getByRole("dialog", { name: "Spare lines" })
+    .getByRole("button", { name: "Back", exact: true })
+    .click();
+  await startSession(page, "Axe Lanes");
+  await recordShot(page, [7]);
+  await page.getByRole("button", { name: "Open session sheet and lane notes" }).click();
+  await expectNoViolations(page);
+});

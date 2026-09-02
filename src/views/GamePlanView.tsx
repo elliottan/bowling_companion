@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { ChevronRight, Compass } from "lucide-react";
 import { formatSessionDate } from "../lib/dates";
@@ -13,6 +13,7 @@ import { setRemembered, useRememberedState } from "../lib/viewMemory";
 import { getSessionHistory } from "../services/bowlingRepository";
 import { getBalls } from "../services/ballRepository";
 import type { Ball, SessionSummary } from "../types/bowling";
+import { ErrorBanner } from "../components/ErrorBanner";
 
 /** The chart each callout is about, keyed the way the Stats tab remembers it.
  *  Tapping a callout lands on the number it was talking about, not on whatever
@@ -49,7 +50,19 @@ interface GamePlanViewProps {
 }
 
 export function GamePlanView({ onBack, onOpenStats, onOpenSession }: GamePlanViewProps) {
-  const liveHistory = useLiveQuery(() => getSessionHistory());
+  // A failed read used to arrive as an empty list, which reads as "you have
+  // never bowled" to someone who has.
+  const [error, setError] = useState<Error | null>(null);
+  const liveHistory = useLiveQuery(async () => {
+    try {
+      const rows = await getSessionHistory();
+      setError(null);
+      return rows;
+    } catch (err) {
+      setError(err instanceof Error ? err : new Error(String(err)));
+      return NO_SESSIONS;
+    }
+  });
   const liveBalls = useLiveQuery(() => getBalls());
   const history = liveHistory ?? NO_SESSIONS;
   const isLoading = liveHistory === undefined;
@@ -98,7 +111,9 @@ export function GamePlanView({ onBack, onOpenStats, onOpenSession }: GamePlanVie
   return (
     <PushScreen title="Game plan" onBack={onBack}>
       <div className="mx-auto w-full max-w-3xl px-3 pb-8 pt-3 sm:px-6">
-        {isLoading ? (
+        {error ? (
+          <ErrorBanner>Your sessions could not be read. Reload the app, then try again.</ErrorBanner>
+        ) : isLoading ? (
           <LoadingCard />
         ) : history.length === 0 ? (
           <EmptyState
@@ -178,7 +193,7 @@ export function GamePlanView({ onBack, onOpenStats, onOpenSession }: GamePlanVie
                       key={c.kind}
                       type="button"
                       onClick={() => openInStats(c.kind)}
-                      className="flex w-full items-center gap-3 rounded-lg border border-edge bg-surface p-3 text-left shadow-sm hover:border-accent-fill"
+                      className="flex w-full items-center gap-3 rounded-xl border border-edge bg-surface p-3 text-left shadow-sm hover:border-accent-fill"
                     >
                       <span className="min-w-0 flex-1">
                         <span className="block text-sm leading-relaxed text-ink">{describe(c)}</span>
@@ -196,7 +211,7 @@ export function GamePlanView({ onBack, onOpenStats, onOpenSession }: GamePlanVie
             )}
 
             {briefing.callouts.length === 0 && briefing.games > 0 && (
-              <p className="mt-4 rounded-lg border border-edge bg-surface-muted p-3 text-sm text-ink-secondary">
+              <p className="mt-4 rounded-xl border border-edge bg-surface-muted p-3 text-sm text-ink-secondary">
                 Nothing here stands out from the rest of your history yet.
               </p>
             )}
@@ -242,14 +257,14 @@ function LastTimeCard({
   );
 
   if (!onOpen) {
-    return <div className="rounded-lg border border-edge bg-surface p-3 shadow-sm">{body}</div>;
+    return <div className="rounded-xl border border-edge bg-surface p-3 shadow-sm">{body}</div>;
   }
   return (
     <button
       type="button"
       onClick={onOpen}
       aria-label={`Open ${last.alley}, ${formatSessionDate(last.date)}`}
-      className="block w-full rounded-lg border border-edge bg-surface p-3 text-left shadow-sm hover:border-accent-fill"
+      className="block w-full rounded-xl border border-edge bg-surface p-3 text-left shadow-sm hover:border-accent-fill"
     >
       {body}
     </button>

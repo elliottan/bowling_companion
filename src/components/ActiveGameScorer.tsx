@@ -29,7 +29,7 @@ import type {
   SpareLine
 } from "../types/bowling";
 import { ConfirmDialog } from "./ConfirmDialog";
-import { PinGrid } from "./PinGrid";
+import { PinGrid, WOOD_PIN_DOWN } from "./PinGrid";
 
 const NO_BALLS: Ball[] = [];
 const NO_SPARE_LINES: SpareLine[] = [];
@@ -40,6 +40,7 @@ import { Button } from "./ui/Button";
 import { TAP_TARGET_44 } from "./ui/Chip";
 import { IconButton } from "./ui/IconButton";
 import { GROUP_HEADING } from "./ui/typography";
+import { ErrorBanner } from "./ErrorBanner";
 
 /** "10-pin" for a single, "3-10" for multi. */
 function formatLeavePins(pins: PinNumber[]): string {
@@ -725,7 +726,7 @@ export function ActiveGameScorer({
                   className={`rounded-md border px-1.5 py-1 text-[9px] font-bold uppercase tracking-wide ${
                     pocketValue
                       ? "border-accent-fill bg-accent-fill text-accent-on-fill"
-                      : "border-[#9c7438] bg-[#c79b5e] text-[#7a5a2c] line-through"
+                      : `${WOOD_PIN_DOWN} line-through`
                   }`}
                 >
                   Pocket
@@ -815,7 +816,7 @@ export function ActiveGameScorer({
           not about either column, and it wraps to three cramped lines squeezed
           into one of them. */}
       {pendingSpareLeave && (
-        <div className="mt-3 flex items-center gap-2 rounded-lg border border-accent-fill bg-felt-50 px-3 py-2">
+        <div className="mt-3 flex items-center gap-2 rounded-xl border border-accent-fill bg-accent-soft px-3 py-2">
           <button
             type="button"
             onClick={() => setShowSpareLineDialog(true)}
@@ -834,7 +835,7 @@ export function ActiveGameScorer({
       )}
 
       {errorMessage && (
-        <p className="mt-3 text-center text-sm font-semibold text-danger-700">{errorMessage}</p>
+        <ErrorBanner className="mt-3">{errorMessage}</ErrorBanner>
       )}
 
       <ConfirmDialog

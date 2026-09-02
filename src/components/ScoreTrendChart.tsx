@@ -78,7 +78,7 @@ export function ScoreTrendChart({ games, header, onOpenGame }: ScoreTrendChartPr
   const chosen = selected === null ? null : scored.find((g) => g.game_number === selected) ?? null;
 
   return (
-    <div className="rounded-lg border border-edge bg-surface p-3 shadow-sm">
+    <div className="rounded-xl border border-edge bg-surface p-3 shadow-sm">
       {header}
       <svg
         viewBox={`0 0 ${W} ${H}`}

@@ -57,9 +57,9 @@ describe("Scorecard", () => {
     const labels = queryAllByRole("button").map((b) => b.getAttribute("aria-label"));
     // Past frames' shots are tappable; active (3) and empty future frames are not buttons.
     // Two layouts (mobile + desktop) each render the eligible frames.
-    expect(labels).toContain("View frame 1 shot 1");
-    expect(labels).toContain("View frame 2 shot 2");
-    expect(labels.some((l) => l?.startsWith("View frame 3"))).toBe(false);
-    expect(labels.some((l) => l?.startsWith("View frame 4"))).toBe(false);
+    expect(labels.some((l) => l?.startsWith("Frame 1, shot 1:"))).toBe(true);
+    expect(labels.some((l) => l?.startsWith("Frame 2, shot 2:"))).toBe(true);
+    expect(labels.some((l) => l?.startsWith("Frame 3, shot"))).toBe(false);
+    expect(labels.some((l) => l?.startsWith("Frame 4, shot"))).toBe(false);
   });
 });
