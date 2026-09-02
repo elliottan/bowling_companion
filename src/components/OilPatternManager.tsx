@@ -1,4 +1,5 @@
-import { ChevronRight, ExternalLink, Plus, RotateCcw, Waves } from "lucide-react";
+import { ChevronRight, ExternalLink, Plus, RotateCcw } from "lucide-react";
+import { OilPatternIcon } from "./icons";
 import { useMemo, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { ConfirmDialog } from "./ConfirmDialog";
@@ -123,7 +124,7 @@ export function OilPatternManager({ onBack, mode = "inline" }: OilPatternManager
         <p className="text-sm text-ink-secondary">Loading…</p>
       ) : active.length === 0 ? (
         <EmptyState
-          icon={Waves}
+          icon={OilPatternIcon}
           title="No oil patterns yet"
           description="Save patterns with a link to their sheet. They show up when you start a session."
         >

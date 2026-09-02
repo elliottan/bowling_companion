@@ -243,7 +243,7 @@ export function SpareLinesView({ onBack }: { onBack: () => void }) {
         <EmptyState
           icon={SpareLineIcon}
           title="No spare lines yet"
-          description="Save where you stand and where you aim for a leave, and it comes back the next time you draw it."
+          description="Save where you stand and where you aim for a leave, and it is there the next time you face it."
         >
           <Button variant="primary" onClick={() => setEditing({ mode: "add" })}>
             <Plus size={18} aria-hidden="true" />

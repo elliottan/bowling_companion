@@ -151,7 +151,7 @@ export function FirstRun({ onSelectHandedness, hasSavedData = false }: FirstRunP
               Which hand do you bowl with?
             </h1>
             <p className="mt-2 text-base text-ink-secondary">
-              Sets which way the board-adjust arrows point. You can change it later in Settings.
+              A move left or right depends on the hand you throw with. You can change this later in Settings.
             </p>
             <div className="mt-8">
               <HandednessPicker value={null} onSelect={onSelectHandedness} />

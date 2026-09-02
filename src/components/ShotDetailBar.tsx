@@ -118,7 +118,7 @@ export function ShotDetailBar({
 
   // Keep stance/laydown in sync (ADR-030 drift model): whichever one the user
   // just edited (typed stance here, or dragged laydown in the visualizer)
-  // drives the other. Only reacts to user edits routed through this handler , 
+  // drives the other. Only reacts to user edits routed through this handler,
   // carry-forward/prefill paths set intendedLine directly and skip it.
   // No guard here: every caller is already gated, the LineInput vets its own
   // edits, and the visualizer routes user drags through its onEditAttempt (its

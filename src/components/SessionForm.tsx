@@ -1,6 +1,7 @@
 import { ChevronDown, ChevronLeft, Settings2, X } from "lucide-react";
 import type { FormEvent, ReactNode } from "react";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { localDateKey } from "../lib/dates";
 import { createPortal } from "react-dom";
 import { OilPatternManager } from "./OilPatternManager";
 import { Button } from "./ui/Button";
@@ -41,7 +42,7 @@ interface SessionFormProps {
 // the right edge here, and a long pattern name must not run under either.
 const selectClass = `${FIELD_SELECT} pr-16`;
 
-const today = () => new Date().toISOString().slice(0, 10);
+const today = () => localDateKey();
 
 export function SessionForm({
   onSubmit,

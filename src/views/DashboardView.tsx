@@ -1,4 +1,5 @@
 import { BookOpen, ChevronRight, PlayCircle, Plus, Smartphone, type LucideIcon } from "lucide-react";
+import { PinIcon } from "../components/icons";
 import {
   BowlingBallIcon,
   GamePlanIcon,
@@ -154,7 +155,7 @@ export function DashboardView({
   ];
 
   return (
-    <section className={`mx-auto w-full max-w-xl px-3 pb-5 pt-3 sm:px-6 sm:pt-5 ${resumable ? "pb-44" : ""}`}>
+    <section className={`mx-auto w-full max-w-xl px-3 pt-3 sm:px-6 sm:pt-5 ${resumable ? "pb-44" : "pb-24"}`}>
       <h1 className="mb-3 text-xl font-bold text-ink">Home</h1>
 
       {error && (
@@ -229,7 +230,7 @@ export function DashboardView({
           is exactly who needs them (DESIGN-LANGUAGE §5). */}
       {coldStart && (
         <EmptyState
-          icon={PlayCircle}
+          icon={PinIcon}
           title="Score your first session"
           description="Start a session and tap in each shot."
         >

@@ -49,7 +49,7 @@ Scorecard re-renders <──── lib/scoring.calculateGameScore ────�
   React: the pure modules (scoring, geometry, stats) must stay React-free so
   they're testable in isolation, but `lib/` also holds the shared hooks
   (`useOverlay`, `useSheetDismiss`, `useLongPress`, `useHistoryRoute`,
-  `useTheme`), which are UI behaviour with no markup of their own. A new module
+  `useTheme`), which are UI behavior with no markup of their own. A new module
   here should be React-free unless it is specifically a hook.
 - `services/*` may import `lib/*`, `db/*`, `types/*`. No React.
 - `components/*` may import `lib/*`, `services/*`, `types/*`, other `components/*`.

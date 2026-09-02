@@ -30,11 +30,11 @@ navigate *into* your arsenal, you do not perform it on top of something else.
 
 Every push gets, without exception:
 
-- a leading back control: the chevron alone, in a round button, labelled
+- a leading back control: the chevron alone, in a round button, labeled
   "Back" for screen readers. It used to name the screen underneath ("‹ Settings"),
   which read as a lie once the same screen could be pushed from several places:
   opened from the dashboard it named a tab the user had never navigated from;
-- a centred title, one line, 17px semibold;
+- a centered title, one line, 17px semibold;
 - at most **one** trailing action, always an `IconButton`;
 - in overlay mode, Escape + a focus trap (`useOverlay`).
 
@@ -52,7 +52,7 @@ keyboard, not the size of the job:
   edge, drags back through it, and carries the close leading and the commit
   trailing in its own bar. Everything you enter data into: the session form, the
   ball editor, a spare line, the lane pair, adding a catalog ball. Bottom rather
-  than centred because that is the edge the keyboard arrives at; a centred
+  than centered because that is the edge the keyboard arrives at; a centered
   dialog holding a focused field gets shoved half off-screen on iOS.
 - **`ConfirmDialog`** settles in the middle and scales back out. Questions with
   buttons, including a confirm that has to be earned by typing a phrase, because
@@ -62,7 +62,7 @@ keyboard, not the size of the job:
   anchored to the thing it acts on, and dimming would hide it.
 
 Before this rule the app had it both ways: the ball editor was a sheet and the
-session editor a centred dialog, though they are the same object.
+session editor a centered dialog, though they are the same object.
 
 ## 1b. Round controls on chrome
 
@@ -106,8 +106,8 @@ both kept their hover background after a tap and read as buttons stuck down,
 and opening a sheet over one did not clear it either. `active:` releases on
 pointerup and cannot latch.
 
-**Colour goes in a variant, never in `className`.** Tailwind resolves competing
-utilities by stylesheet order, not attribute order, so a colour passed through
+**Color goes in a variant, never in `className`.** Tailwind resolves competing
+utilities by stylesheet order, not attribute order, so a color passed through
 `className` silently loses to the variant's. Add a variant instead, which is
 why `danger-ghost` exists alongside `danger`.
 
@@ -115,11 +115,11 @@ Destructive actions: the trigger sits with the thing it destroys (delete lives
 *inside* the ball editor, not as a third icon on the list row), and always goes
 through `ConfirmDialog`.
 
-## 3. Surfaces and colour
+## 3. Surfaces and color
 
 Semantic tokens only: `surface`, `surface-sunken`, `surface-muted`, `ink`,
 `ink-secondary`, `edge`, `accent`, `danger`, `success`, `warning`. Never a raw
-Tailwind palette colour (`bg-slate-100`, `text-red-500`) in app code: the tokens
+Tailwind palette color (`bg-slate-100`, `text-red-500`) in app code: the tokens
 flip between light and dark, the palette does not. That exact bug shipped once:
 a hardcoded `slate-100` behind every ball photo, a white card glowing in dark
 mode.
@@ -172,7 +172,7 @@ Two rules learned the hard way:
 
 Every list that can be empty renders `EmptyState`: circular accent icon, title,
 one sentence saying what lives here and why it is worth filling, and the primary
-action. A bare grey "No X yet." sentence is not acceptable, because the empty
+action. A bare gray "No X yet." sentence is not acceptable, because the empty
 screen is where a user decides whether the feature is for them.
 
 A screen whose *whole* content is empty leads with the empty state rather than
@@ -186,7 +186,7 @@ Field chrome comes from `src/components/ui/field.ts` (`FIELD`, `FIELD_SELECT`,
 `FIELD_TEXTAREA`, `FIELD_LABEL`, `FIELD_MICRO_LABEL`), never from a class string
 spelled out in the form. Seven forms had spelled it out and five of those copies
 had lost `bg-surface`, so those inputs fell back to the browser's own control
-colour: a warm grey block in a blue-slate app. That is §3's hardcoded-`slate-100`
+color: a warm gray block in a blue-slate app. That is §3's hardcoded-`slate-100`
 bug one level down, and one shared string is what stops it recurring.
 
 A field label is sentence case and sits above its field. It is *not* a
@@ -214,7 +214,7 @@ as the thing leaving.
   (`PushScreen`, which defers the unmount until the exit finishes).
 - **Sheets** rise from the bottom edge and fall back through it, and can be
   dragged down to dismiss (`useSheetDismiss`, `align: "bottom"`).
-- **Centred dialogs** settle in and scale back out (`useSheetDismiss`,
+- **Centered dialogs** settle in and scale back out (`useSheetDismiss`,
   `align: "center"`).
 - **Tab switches** enter from the side of the tab that was tapped, so the
   travel matches the reach.

@@ -37,6 +37,7 @@ const RULES: Array<{ pattern: RegExp; why: string }> = [
   { pattern: /\bnights?\b/i, why: 'the word "night". An outing is a session.' },
   { pattern: /\blocations?\b/i, why: 'the word "location". A place you bowl is an alley.' },
   { pattern: /\bhouses?\b/i, why: 'the word "house" outside a bowling phrase. Say alley.' },
+  { pattern: /\b(colour|grey|centre|organis(e|ation)|recognis|behaviour|catalogue|favourite|licence)/i, why: "UK spelling. The app writes US English." },
   { pattern: /\bBkpt\b/, why: '"Bkpt". The word is Break.' },
   // `...x` is a spread, which a template literal can carry into a string.
   { pattern: /\.\.\.(?![A-Za-z_$[{])/, why: "three dots. The ellipsis character is …" }

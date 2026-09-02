@@ -96,6 +96,38 @@ of shipped work rather than a release. Thirty of them used to be headed
 - **The stats screens say they are still reading** instead of showing "nothing
   yet" for a frame to a bowler with a season of games behind them.
 
+## The first ball lands, and the day is your own (2026-09)
+
+### Fixed
+
+- **A ball added from the scorer is on the shot.** Adding your first ball from
+  "Add a ball" mid-game left the scorer none the wiser: the button kept sending
+  you to the arsenal and the ball never appeared. The scorer now watches the
+  arsenal, and the first ball you add goes straight onto the live shot.
+- **Sessions are dated in your own day.** The date on a new session came from
+  the clock in Greenwich, so a 7 pm league anywhere in the Americas was filed
+  under tomorrow, and "resume today's game" looked for it on the wrong day.
+- **A deploy under an open tab reloads instead of crashing.** Opening a section
+  the tab had not loaded yet, after a new version shipped, ended on "The app
+  crashed: Importing a module script failed." That is now recognized as an
+  out-of-date tab and offered the reload that fixes it.
+- **The Home shortcuts no longer hide under the plus button.** The last tile
+  in the grid sat beneath it on a phone with no game in progress.
+- **Game plan shows the date the way the rest of the app does**, and the oil
+  pattern and open frames empty states use the app's own glyphs.
+
+### Changed
+
+- **Legal page.** "No tracking" became "no ads", now that the site keeps a page
+  count and says so. The liability clause names the maker, not the product.
+- **Copy.** Three lines that read like a brochure were rewritten, the handedness
+  question no longer mentions "board-adjust arrows" to someone who has never
+  opened the app, and the copy lint now refuses UK spelling in anything the app
+  says. The maintained docs moved to US spelling with it.
+- **Two checkouts can run the gate at once.** Playwright takes its port from
+  `PORT`, so a worktree beside the main tree no longer tests the other tree's
+  code by accident.
+
 ## Nothing is deleted without asking (2026-09)
 
 ### Added

@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Target } from "lucide-react";
+import { RackIcon } from "../components/icons";
 import { LoadingCard } from "../components/ui/LoadingCard";
 import { PushScreen } from "../components/PushScreen";
 import { MiniPins } from "../components/MiniPins";
@@ -34,7 +34,7 @@ export function OpenFramesView({ onBack }: { onBack: () => void }) {
           <LoadingCard />
         ) : report.games === 0 ? (
           <EmptyState
-            icon={Target}
+            icon={RackIcon}
             title="Nothing open yet"
             description="The leaves you keep missing rank here, most often first. Finish a game to start the count."
           />
