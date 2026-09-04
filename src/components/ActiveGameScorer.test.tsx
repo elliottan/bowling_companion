@@ -5,7 +5,7 @@ import type { Frame, PinNumber } from "../types/bowling";
 
 /** The commit button names what it is about to record, so it is "Next" only
  *  when the deck reads as the strike or spare the button beside it offers. */
-const RECORD_SHOT = /^(Next|Gutter|Count \d+)$/;
+const RECORD_SHOT = /^(Next|Gutter)$/;
 
 vi.mock("../services/ballRepository", () => ({
   getBalls: () => Promise.resolve([]),
@@ -396,7 +396,7 @@ describe("what the commit button says it will record", () => {
     ];
   }
 
-  it('reads "Next" on a full deck, where the button beside it already says Strike', () => {
+  it('reads "Next" on a full deck', () => {
     render(<ActiveGameScorer gameKey="label-fresh" />);
 
     expect(screen.getByRole("button", { name: RECORD_SHOT })).toHaveTextContent("Next");
@@ -413,16 +413,16 @@ describe("what the commit button says it will record", () => {
     expect(screen.getByRole("button", { name: RECORD_SHOT })).toHaveTextContent("Gutter");
   });
 
-  it("names the count of a partial first ball", () => {
+  it('reads "Next" on a partial first ball', () => {
     render(<ActiveGameScorer gameKey="label-count" />);
 
     tapPin(7);
     tapPin(10);
 
-    expect(screen.getByRole("button", { name: RECORD_SHOT })).toHaveTextContent("Count 8");
+    expect(screen.getByRole("button", { name: RECORD_SHOT })).toHaveTextContent("Next");
   });
 
-  it('reads "Next" on a spare, and names the count on a miss', () => {
+  it('reads "Gutter" on an untouched leave, and "Next" once a pin goes down', () => {
     render(<ActiveGameScorer gameKey="label-spare" initialFrames={openTenPinLeave()} />);
 
     // Shot 2 starts pins-up: the 10 pin is standing, so leaving it alone is a

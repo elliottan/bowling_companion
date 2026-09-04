@@ -183,18 +183,13 @@ export function ActiveGameScorer({
   const isEditing = Boolean(recordedShot);
   const locked = gameState.isComplete && !unlocked && !isCurrentGame;
   /**
-   * "Next" said nothing about what it was about to record, which on a button
-   * that commits a shot is the one thing it has to say (DESIGN-LANGUAGE §8).
-   * It names the count instead, except when the deck reads as the strike or
-   * spare that the button next to it already offers.
+   * The button says "Next", and only calls out the one deck a count would not
+   * be read off the pins anyway: a ball that knocked nothing over.
    */
   const nextLabel = (() => {
     if (isEditing) return "Next";
     if (pinsThisShot === 0) return "Gutter";
-    // A full deck is what the button beside this one records, and two adjacent
-    // buttons with the same word on them is worse than one that says "Next".
-    if (pinsThisShot === gameState.availablePins.length) return "Next";
-    return `Count ${pinsThisShot}`;
+    return "Next";
   })();
 
   /** Nothing to take back on an untouched game. */

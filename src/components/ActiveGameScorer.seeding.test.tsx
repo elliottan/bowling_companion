@@ -5,7 +5,7 @@ import type { Ball, Frame, PinNumber, SpareLine } from "../types/bowling";
 
 /** The commit button names what it is about to record, so it is "Next" only
  *  when the deck reads as the strike or spare the button beside it offers. */
-const RECORD_SHOT = /^(Next|Gutter|Count \d+)$/;
+const RECORD_SHOT = /^(Next|Gutter)$/;
 
 /**
  * What each new shot starts with: which ball is selected, and what the Intended

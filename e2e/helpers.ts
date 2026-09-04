@@ -1,9 +1,8 @@
 import type { Page } from "@playwright/test";
 
-/** The scorer's commit button names what it is about to record, so it reads
- *  "Next" only when the deck is the strike or spare the button beside it
- *  offers, and "Gutter" or "Count 7" otherwise. */
-export const RECORD_SHOT = /^(Next|Gutter|Count \d+)$/;
+/** The scorer's commit button reads "Next", except on a ball that knocked
+ *  nothing over, where it reads "Gutter". */
+export const RECORD_SHOT = /^(Next|Gutter)$/;
 
 /**
  * The first-run screen owns the viewport until handedness is stored, and after

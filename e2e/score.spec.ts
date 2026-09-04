@@ -104,13 +104,16 @@ test("takes the last shot back, and the score follows it", async ({ page }) => {
   await expect(page.getByRole("button", { name: "Undo last shot" })).toHaveCount(0);
 });
 
-test("the commit button names the count it is about to record", async ({ page }) => {
+test("the commit button reads Next, and Gutter on a ball that knocked nothing over", async ({ page }) => {
   await startSession(page, "Label Lanes");
 
   const commit = page.getByRole("button", { name: RECORD_SHOT });
   await expect(commit).toHaveText("Next");
 
-  // Shot 1 starts all-down; tapping a pin stands it back up.
-  await page.getByRole("button", { name: /Pin 10 (down|standing)/ }).click();
-  await expect(commit).toHaveText("Count 9");
+  // Shot 1 starts all-down; tapping a pin stands it back up, so standing all
+  // ten is a ball that took nothing with it.
+  for (let pin = 1; pin <= 10; pin += 1) {
+    await page.getByRole("button", { name: new RegExp(`Pin ${pin} (down|standing)`) }).click();
+  }
+  await expect(commit).toHaveText("Gutter");
 });
