@@ -281,10 +281,18 @@ place you bowl is an *alley*, never a location or a house ("house shot" and
 and *target*, on a spare line as much as on a shot. Ellipses are the character
 `…`, not three dots. No contractions.
 
-**A button that commits says what it commits.** "Next" on the scorer names the
-count it is about to record ("Gutter", "Count 7"), and falls back to the plain
-word only where the deck reads as the strike or spare the button beside it
-already offers. Two adjacent buttons never carry the same word.
+**A button that commits says what it commits.** "Next" on the scorer stays the
+word "Next", and what it is about to record is named under it in subtext:
+"Strike" or "Hit 7" on a fresh rack, "Spare" or "Hit 0" at a leave. The word
+holds still under the thumb, which the label itself could not do while it
+changed on every pin tap, and the outcome is still on screen before the ball is
+committed. Two adjacent buttons never carry the same word.
+
+**Changing something already recorded asks first.** Editing a recorded shot or
+undoing the last ball raises a `ConfirmDialog` naming what changes. A recorded
+shot asks once per visit to it, not once per tap: the bowler correcting a pin
+is answering a question they have already answered. Entering a new shot never
+asks, because choosing the pins left standing is entering it, not changing it.
 
 Sentence case everywhere except the small uppercase group headings, which take
 their classes from `GROUP_HEADING` (`src/components/ui/typography.ts`). Second

@@ -157,6 +157,17 @@ export function ActiveGameScorer({
   // bowler and the shot they just threw is in the way.
   const [unlocked, setUnlocked] = useState(false);
   const [showEditPrompt, setShowEditPrompt] = useState(false);
+  // A change to an already recorded shot is confirmed once per visit to that
+  // shot: the first change asks, the rest of the visit does not, and leaving
+  // the shot and coming back asks again. Live entry never asks, because
+  // choosing the pins left standing is entering a shot, not changing one.
+  const [editConfirmed, setEditConfirmed] = useState(false);
+  const [pendingChange, setPendingChange] = useState<{
+    title: string;
+    message: string;
+    confirmLabel: string;
+    run: () => void;
+  } | null>(null);
   // Pocket verdict for the live shot when the bowler has overridden the
   // inference. Undefined means they have not touched it, so the rule stands.
   const [pocketOverride, setPocketOverride] = useState<boolean | undefined>(undefined);
@@ -183,13 +194,15 @@ export function ActiveGameScorer({
   const isEditing = Boolean(recordedShot);
   const locked = gameState.isComplete && !unlocked && !isCurrentGame;
   /**
-   * The button says "Next", and only calls out the one deck a count would not
-   * be read off the pins anyway: a ball that knocked nothing over.
+   * The button is always the word "Next". What it is about to record is said
+   * underneath it in subtext (DESIGN-LANGUAGE 8): the word stays still under
+   * the thumb while the outcome tracks the deck. There is nothing to preview
+   * while editing, where Next leaves the recorded shot exactly as it is.
    */
-  const nextLabel = (() => {
-    if (isEditing) return "Next";
-    if (pinsThisShot === 0) return "Gutter";
-    return "Next";
+  const nextOutcome = (() => {
+    if (isEditing) return undefined;
+    if (isFreshRack) return pinsThisShot === 10 ? "Strike" : `Hit ${pinsThisShot}`;
+    return pinsThisShot === gameState.availablePins.length ? "Spare" : `Hit ${pinsThisShot}`;
   })();
 
   /** Nothing to take back on an untouched game. */
@@ -206,6 +219,35 @@ export function ActiveGameScorer({
     if (!locked) return true;
     setShowEditPrompt(true);
     return false;
+  }
+
+  /** Run a change to the selected recorded shot, asking first the one time
+   *  this visit to it. Live entry runs straight through. */
+  function withEditConfirm(run: () => void) {
+    if (!isEditing || editConfirmed) {
+      run();
+      return;
+    }
+    const ball = (selectedShot?.shotIndex ?? 0) + 1;
+    setPendingChange({
+      title: "Edit this recorded shot?",
+      message: `Frame ${selectedShot?.frameNumber}, ball ${ball} is already recorded. Changing it rescores the game from that frame on.`,
+      confirmLabel: "Edit",
+      run: () => {
+        setEditConfirmed(true);
+        run();
+      }
+    });
+  }
+
+  /** Undo takes a recorded ball back, so it always asks. */
+  function requestUndo() {
+    setPendingChange({
+      title: "Undo the last shot?",
+      message: "The last recorded ball comes off the card, and the score follows it.",
+      confirmLabel: "Undo",
+      run: () => void undoShot()
+    });
   }
 
   // Label for the primary button: "Strike" on a fresh rack (first ball or a
@@ -228,9 +270,17 @@ export function ActiveGameScorer({
     // asked again on the way back reads as the app forgetting.
     setUnlocked(unlockedGames.has(gameKey));
     setShowEditPrompt(false);
+    setEditConfirmed(false);
+    setPendingChange(null);
     lastDefaultedShot.current = null;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gameKey]);
+
+  // Every move of the cursor re-arms the confirm: coming back to a shot is a
+  // fresh visit, and the bowler is owed the warning again.
+  useEffect(() => {
+    setEditConfirmed(false);
+  }, [selectedShot]);
 
   // The first ball in the bag goes straight onto the live shot. It was added
   // from this screen, by a bowler who came to pick it, and asking them to pick
@@ -707,7 +757,7 @@ export function ActiveGameScorer({
             }
             onChange={(pins) => {
               if (!requestEdit()) return;
-              if (isEditing) handleEditPins(pins);
+              if (isEditing) withEditConfirm(() => handleEditPins(pins));
               else updateStandingPins(pins);
             }}
             size="sm"
@@ -743,8 +793,10 @@ export function ActiveGameScorer({
                   type="button"
                   onClick={() => {
                     if (isEditing) {
-                      handleEditPins([]);
-                      goLive();
+                      withEditConfirm(() => {
+                        handleEditPins([]);
+                        goLive();
+                      });
                     } else {
                       void recordShot([]);
                     }
@@ -756,15 +808,21 @@ export function ActiveGameScorer({
                 <button
                   type="button"
                   onClick={() => (isEditing ? goLive() : void recordShot())}
-                  className="inline-flex h-11 flex-1 items-center justify-center gap-1.5 rounded-lg border border-accent-fill bg-surface text-sm font-semibold text-accent hover:bg-surface-muted"
+                  aria-label={nextOutcome ? `Next: ${nextOutcome}` : "Next"}
+                  className="inline-flex h-11 flex-1 flex-col items-center justify-center rounded-lg border border-accent-fill bg-surface leading-none text-accent hover:bg-surface-muted"
                 >
-                  {nextLabel}
+                  <span className="text-sm font-semibold">Next</span>
+                  {nextOutcome && (
+                    <span aria-hidden="true" className="mt-0.5 text-[10px] font-bold text-accent">
+                      {nextOutcome}
+                    </span>
+                  )}
                 </button>
               </>
             )}
             {onUndoShot && canUndo && (
               <IconButton
-                onClick={() => void undoShot()}
+                onClick={requestUndo}
                 label="Undo last shot"
                 variant="round"
                 className={gameState.isComplete ? "ml-auto" : ""}
@@ -844,6 +902,18 @@ export function ActiveGameScorer({
           setShowEditPrompt(false);
         }}
         onCancel={() => setShowEditPrompt(false)}
+      />
+
+      <ConfirmDialog
+        open={pendingChange !== null}
+        title={pendingChange?.title ?? ""}
+        message={pendingChange?.message}
+        confirmLabel={pendingChange?.confirmLabel}
+        onConfirm={() => {
+          pendingChange?.run();
+          setPendingChange(null);
+        }}
+        onCancel={() => setPendingChange(null)}
       />
 
       {showSpareLineDialog && pendingSpareLeave && (

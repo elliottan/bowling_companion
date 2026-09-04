@@ -1,8 +1,8 @@
 import type { Page } from "@playwright/test";
 
-/** The scorer's commit button reads "Next", except on a ball that knocked
- *  nothing over, where it reads "Gutter". */
-export const RECORD_SHOT = /^(Next|Gutter)$/;
+/** The scorer's commit button reads "Next", with what it would record named
+ *  under it; the accessible name carries that outcome as "Next: Strike". */
+export const RECORD_SHOT = /^Next(:|$)/;
 
 /**
  * The first-run screen owns the viewport until handedness is stored, and after

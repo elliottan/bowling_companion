@@ -44,6 +44,9 @@ test("editing a past shot inline (no edit button) re-derives the frame", async (
   await page.getByRole("button", { name: /^Frame 2, shot 2:/ }).first().click();
   await page.locator('button[aria-label="Pin 10 standing"]:not([disabled])').click();
 
+  // Rewriting a recorded shot asks first, once for this visit to it.
+  await page.getByRole("button", { name: "Edit", exact: true }).click();
+
   // Scorecard frame 2 now renders the spare symbol.
   await expect(page.getByText("/").first()).toBeVisible();
 });
@@ -89,14 +92,19 @@ test("takes the last shot back, and the score follows it", async ({ page }) => {
 
   const undo = page.getByRole("button", { name: "Undo last shot" });
   await expect(undo).toBeVisible();
+  // Undo takes a recorded ball back, so it asks first, every time.
+  const confirmUndo = async () => {
+    await undo.click();
+    await page.getByRole("button", { name: "Undo", exact: true }).click();
+  };
 
   // Back to the second frame's first ball: the deck is a fresh rack again, so
   // the commit button offers a strike rather than a count.
-  await undo.click();
-  await expect(page.getByRole("button", { name: RECORD_SHOT })).toHaveText("Next");
+  await confirmUndo();
+  await expect(page.getByRole("button", { name: RECORD_SHOT })).toContainText("Strike");
 
   // Again, and the strike in frame 1 is gone with it.
-  await undo.click();
+  await confirmUndo();
   await expect(undo).toHaveCount(0);
 
   // It survives a reload, so the undo was written and not only shown.
@@ -104,16 +112,15 @@ test("takes the last shot back, and the score follows it", async ({ page }) => {
   await expect(page.getByRole("button", { name: "Undo last shot" })).toHaveCount(0);
 });
 
-test("the commit button reads Next, and Gutter on a ball that knocked nothing over", async ({ page }) => {
+test("the commit button reads Next, over what it would record", async ({ page }) => {
   await startSession(page, "Label Lanes");
 
   const commit = page.getByRole("button", { name: RECORD_SHOT });
-  await expect(commit).toHaveText("Next");
+  await expect(commit).toContainText("Next");
+  // The deck opens all-down, so the ball on offer is a strike.
+  await expect(commit).toContainText("Strike");
 
-  // Shot 1 starts all-down; tapping a pin stands it back up, so standing all
-  // ten is a ball that took nothing with it.
-  for (let pin = 1; pin <= 10; pin += 1) {
-    await page.getByRole("button", { name: new RegExp(`Pin ${pin} (down|standing)`) }).click();
-  }
-  await expect(commit).toHaveText("Gutter");
+  // Shot 1 starts all-down; tapping a pin stands it back up.
+  await page.getByRole("button", { name: /Pin 10 (down|standing)/ }).click();
+  await expect(commit).toContainText("Hit 9");
 });
