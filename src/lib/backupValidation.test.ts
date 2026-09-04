@@ -27,6 +27,17 @@ describe("validateBackup", () => {
     expect(validateBackup(validBackup).isValid).toBe(true);
   });
 
+  // A session can be started without naming the alley (ADR-080), so a file
+  // carrying an empty one is a file this app wrote.
+  it("accepts a session with no alley name", () => {
+    const backup = {
+      ...validBackup,
+      tables: { ...validBackup.tables, sessions: [{ id: 1, date: "2026-05-27", alley_name: "" }] }
+    };
+
+    expect(validateBackup(backup).isValid).toBe(true);
+  });
+
   it("rejects malformed app metadata", () => {
     const result = validateBackup({ ...validBackup, app: "other-app" });
 

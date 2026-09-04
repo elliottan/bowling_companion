@@ -87,8 +87,9 @@ function validateSession(value: unknown): value is Session {
     isOptionalNumber(value.id) &&
     typeof value.date === "string" &&
     value.date.length > 0 &&
+    // Empty is legal: a session can be started without naming the alley
+    // (ADR-080), and a file carrying one is not a broken file.
     typeof value.alley_name === "string" &&
-    value.alley_name.length > 0 &&
     // Pre-ADR-037 files carry the pattern name inline; import links it to a
     // pattern row rather than rejecting the file.
     isOptionalString(value.oil_pattern) &&

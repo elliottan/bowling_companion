@@ -3,9 +3,9 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { ActiveGameScorer } from "./ActiveGameScorer";
 import type { Frame, PinNumber } from "../types/bowling";
 
-/** The commit button names what it is about to record, so it is "Next" only
- *  when the deck reads as the strike or spare the button beside it offers. */
-const RECORD_SHOT = /^(Next|Gutter|Count \d+)$/;
+/** The commit button reads "Next", with what it would record named under it;
+ *  the accessible name carries that outcome as "Next: Strike". */
+const RECORD_SHOT = /^Next(:|$)/;
 
 vi.mock("../services/ballRepository", () => ({
   getBalls: () => Promise.resolve([]),
@@ -165,10 +165,13 @@ describe("ActiveGameScorer completed-game edit prompt", () => {
     confirmEdit();
     await waitFor(() => expect(prompt()).toBeNull());
 
+    // Unlocked, the tap now reaches the recorded shot, which raises the
+    // edit-a-recorded-shot confirm of its own.
     tapPin(1);
-    expect(onFrameComplete).toHaveBeenCalled();
+    confirmEdit();
+    await waitFor(() => expect(onFrameComplete).toHaveBeenCalled());
 
-    // Still unlocked, a second edit does not re-prompt.
+    // Still unlocked, a second edit does not re-prompt for the game.
     tapPin(2);
     expect(prompt()).toBeNull();
   });
@@ -396,21 +399,22 @@ describe("what the commit button says it will record", () => {
     ];
   }
 
-  it('reads "Next" on a full deck, where the button beside it already says Strike', () => {
+  it('reads "Next" over "Strike" on a full deck', () => {
     render(<ActiveGameScorer gameKey="label-fresh" />);
 
-    expect(screen.getByRole("button", { name: RECORD_SHOT })).toHaveTextContent("Next");
-    expect(screen.getByRole("button", { name: "Strike" })).toBeInTheDocument();
+    const commit = screen.getByRole("button", { name: RECORD_SHOT });
+    expect(commit).toHaveTextContent("Next");
+    expect(commit).toHaveTextContent("Strike");
   });
 
-  it('reads "Gutter" when nothing on the deck would go down', () => {
+  it('names the count as "Hit 0" when nothing on the deck would go down', () => {
     render(<ActiveGameScorer gameKey="label-gutter" />);
 
     // Shot 1 starts all-down and pins are tapped up, so standing all ten is a
     // ball that knocked nothing over.
     for (let pin = 1; pin <= 10; pin += 1) tapPin(pin);
 
-    expect(screen.getByRole("button", { name: RECORD_SHOT })).toHaveTextContent("Gutter");
+    expect(screen.getByRole("button", { name: RECORD_SHOT })).toHaveTextContent("Hit 0");
   });
 
   it("names the count of a partial first ball", () => {
@@ -419,18 +423,124 @@ describe("what the commit button says it will record", () => {
     tapPin(7);
     tapPin(10);
 
-    expect(screen.getByRole("button", { name: RECORD_SHOT })).toHaveTextContent("Count 8");
+    expect(screen.getByRole("button", { name: RECORD_SHOT })).toHaveTextContent("Hit 8");
   });
 
-  it('reads "Next" on a spare, and names the count on a miss', () => {
+  it('reads "Spare" once the leave is cleared, and the count until then', () => {
     render(<ActiveGameScorer gameKey="label-spare" initialFrames={openTenPinLeave()} />);
 
     // Shot 2 starts pins-up: the 10 pin is standing, so leaving it alone is a
     // miss and knocking it down is the spare.
-    expect(screen.getByRole("button", { name: RECORD_SHOT })).toHaveTextContent("Gutter");
+    expect(screen.getByRole("button", { name: RECORD_SHOT })).toHaveTextContent("Hit 0");
 
     tapPin(10);
-    expect(screen.getByRole("button", { name: RECORD_SHOT })).toHaveTextContent("Next");
+    expect(screen.getByRole("button", { name: RECORD_SHOT })).toHaveTextContent("Spare");
+  });
+});
+
+/**
+ * Changing something already on the card asks first. The question is per visit
+ * to a shot, not per tap: a bowler correcting a pin has already answered it.
+ */
+describe("confirming a change to a recorded shot", () => {
+  const editPrompt = () => screen.queryByText("Edit this recorded shot?");
+
+  /** One open frame, so the game is live and nothing is locked. */
+  function openFrame(): Frame[] {
+    return [
+      {
+        game_id: 1,
+        frame_number: 1,
+        shots: [{ pins_standing: [10] as PinNumber[] }, { pins_standing: [10] as PinNumber[] }],
+        is_strike: false,
+        is_spare: false
+      }
+    ];
+  }
+
+  function selectFirstShot() {
+    fireEvent.click(screen.getAllByRole("button", { name: /^Frame 1, shot 1:/ })[0]);
+  }
+
+  it("never asks while a new shot is being entered", () => {
+    render(<ActiveGameScorer gameKey="confirm-live" onFrameComplete={vi.fn()} />);
+
+    tapPin(1);
+    tapPin(2);
+
+    expect(editPrompt()).toBeNull();
+  });
+
+  it("asks before a pin tap rewrites a recorded shot, and writes nothing until it is answered", () => {
+    const onFrameComplete = vi.fn();
+    render(
+      <ActiveGameScorer gameKey="confirm-pins" initialFrames={openFrame()} onFrameComplete={onFrameComplete} />
+    );
+
+    selectFirstShot();
+    tapPin(7);
+
+    expect(editPrompt()).not.toBeNull();
+    expect(onFrameComplete).not.toHaveBeenCalled();
+  });
+
+  it("asks once per visit, not once per tap", async () => {
+    const onFrameComplete = vi.fn();
+    render(
+      <ActiveGameScorer gameKey="confirm-once" initialFrames={openFrame()} onFrameComplete={onFrameComplete} />
+    );
+
+    selectFirstShot();
+    tapPin(7);
+    confirmEdit();
+    await waitFor(() => expect(editPrompt()).toBeNull());
+    await waitFor(() => expect(onFrameComplete).toHaveBeenCalled());
+
+    tapPin(9);
+    expect(editPrompt()).toBeNull();
+  });
+
+  it("asks again after the cursor has been away and come back", async () => {
+    render(
+      <ActiveGameScorer gameKey="confirm-revisit" initialFrames={openFrame()} onFrameComplete={vi.fn()} />
+    );
+
+    selectFirstShot();
+    tapPin(7);
+    confirmEdit();
+    await waitFor(() => expect(editPrompt()).toBeNull());
+
+    // Away to the second shot of the frame, then back to the first.
+    fireEvent.click(screen.getAllByRole("button", { name: /^Frame 1, shot 2:/ })[0]);
+    selectFirstShot();
+    tapPin(9);
+
+    expect(editPrompt()).not.toBeNull();
+  });
+
+  it("leaves the recorded shot alone when the question is cancelled", async () => {
+    const onFrameComplete = vi.fn();
+    render(
+      <ActiveGameScorer gameKey="confirm-cancel" initialFrames={openFrame()} onFrameComplete={onFrameComplete} />
+    );
+
+    selectFirstShot();
+    tapPin(7);
+    cancelEdit();
+
+    await waitFor(() => expect(editPrompt()).toBeNull());
+    expect(onFrameComplete).not.toHaveBeenCalled();
+  });
+
+  it("asks before Strike marks a recorded shot", () => {
+    render(
+      <ActiveGameScorer gameKey="confirm-strike" initialFrames={openFrame()} onFrameComplete={vi.fn()} />
+    );
+
+    selectFirstShot();
+    fireEvent.click(screen.getByRole("button", { name: "Strike" }));
+
+    expect(editPrompt()).not.toBeNull();
   });
 });
 
@@ -461,6 +571,9 @@ describe("undo", () => {
     );
 
     fireEvent.click(screen.getByRole("button", { name: "Undo last shot" }));
+    // Undo takes a recorded ball back, so it asks first.
+    expect(screen.getByText("Undo the last shot?")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Undo" }));
 
     await waitFor(() => expect(onUndoShot).toHaveBeenCalledTimes(1));
     expect(onUndoShot.mock.calls[0][0]).toMatchObject({
@@ -469,6 +582,32 @@ describe("undo", () => {
     });
     // Back to the first ball of the first frame, with nothing left to undo.
     expect(screen.queryByRole("button", { name: "Undo last shot" })).toBeNull();
+  });
+
+  it("leaves the card alone when the undo question is cancelled", async () => {
+    const onUndoShot = vi.fn();
+    render(
+      <ActiveGameScorer
+        gameKey="undo-cancel"
+        initialFrames={[
+          {
+            game_id: 1,
+            frame_number: 1,
+            shots: [{ pins_standing: [10] as PinNumber[] }],
+            is_strike: false,
+            is_spare: false
+          }
+        ]}
+        onUndoShot={onUndoShot}
+      />
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Undo last shot" }));
+    cancelEdit();
+
+    await waitFor(() => expect(screen.queryByText("Undo the last shot?")).toBeNull());
+    expect(onUndoShot).not.toHaveBeenCalled();
+    expect(screen.getByRole("button", { name: "Undo last shot" })).toBeInTheDocument();
   });
 
   it("stays available on a finished game, which is when it is wanted most", () => {

@@ -1,5 +1,5 @@
-import { readFileSync } from "node:fs";
-import { globSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
 /**
@@ -14,7 +14,21 @@ import { describe, expect, it } from "vitest";
  * would only cover the screens a test happens to mount.
  */
 
-const SOURCES = globSync("src/**/*.{ts,tsx}").filter(
+/**
+ * Walked by hand rather than globbed. `fs.globSync` landed in Node 22 and CI
+ * pins Node 20, so the sweep threw "globSync is not a function" there and
+ * passed on every machine that ran it locally: the one failure mode a
+ * regression guard must not have.
+ */
+function sourcesUnder(dir: string): string[] {
+  return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
+    const path = join(dir, entry.name);
+    if (entry.isDirectory()) return sourcesUnder(path);
+    return /\.tsx?$/.test(entry.name) ? [path] : [];
+  });
+}
+
+const SOURCES = sourcesUnder("src").filter(
   (f) => !f.includes(".test.") && !f.includes("/test/")
 );
 

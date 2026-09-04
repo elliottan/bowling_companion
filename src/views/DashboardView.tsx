@@ -12,6 +12,7 @@ import { useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { ErrorBanner } from "../components/ErrorBanner";
 import { SessionFormDialog } from "../components/SessionFormDialog";
+import { alleyLabel } from "../lib/sessionLabels";
 import { GROUP_HEADING } from "../components/ui/typography";
 import { Fab, FabRow } from "../components/ui/Fab";
 import { SessionHistory } from "../components/SessionHistory";
@@ -38,6 +39,8 @@ import type { SessionSummary } from "../types/bowling";
 
 interface DashboardViewProps {
   onStartSession: (values: NewSessionFormValues) => Promise<void> | void;
+  /** Start scoring with nothing filled in (ADR-080). */
+  onScoreNow: () => Promise<void> | void;
   isSubmitting?: boolean;
   error?: string;
   resumable?: ResumableGame | null;
@@ -71,6 +74,7 @@ const NO_SESSIONS: SessionSummary[] = [];
 
 export function DashboardView({
   onStartSession,
+  onScoreNow,
   isSubmitting = false,
   error,
   resumable,
@@ -250,6 +254,11 @@ export function DashboardView({
           <Button variant="primary" onClick={() => setShowForm(true)}>
             Start session
           </Button>
+          {/* The fastest route to the pin deck, for a bowler seeing the app for
+              the first time. Details are added afterwards (ADR-080). */}
+          <Button variant="ghost" disabled={isSubmitting} onClick={() => void onScoreNow()}>
+            Score now, add details later
+          </Button>
         </EmptyState>
       )}
 
@@ -329,7 +338,7 @@ export function DashboardView({
             <span className="min-w-0 flex-1">
               <span className="block text-sm font-bold">Resume game</span>
               <span className="block truncate text-xs text-accent-on-fill">
-                {resumable.alleyName} · Game {resumable.gameNumber}
+                {alleyLabel(resumable.alleyName)} · Game {resumable.gameNumber}
               </span>
             </span>
           </button>

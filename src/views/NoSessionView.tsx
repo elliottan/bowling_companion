@@ -8,6 +8,8 @@ import { ErrorBanner } from "../components/ErrorBanner";
 
 interface NoSessionViewProps {
   onStartSession: (values: NewSessionFormValues) => Promise<void> | void;
+  /** Start scoring with nothing filled in (ADR-080). */
+  onScoreNow: () => Promise<void> | void;
   isSubmitting: boolean;
   error: string;
 }
@@ -18,7 +20,7 @@ interface NoSessionViewProps {
  * places, and a place you cannot go reads as a fault. It is a place with
  * nothing in it, so it says so and offers the way out (DESIGN-LANGUAGE §5).
  */
-export function NoSessionView({ onStartSession, isSubmitting, error }: NoSessionViewProps) {
+export function NoSessionView({ onStartSession, onScoreNow, isSubmitting, error }: NoSessionViewProps) {
   const [showForm, setShowForm] = useState(false);
 
   return (
@@ -34,6 +36,11 @@ export function NoSessionView({ onStartSession, isSubmitting, error }: NoSession
       >
         <Button variant="primary" onClick={() => setShowForm(true)}>
           Start session
+        </Button>
+        {/* The way past the form for a bowler who is already standing at the
+            lane. The alley and the rest can be filled in afterwards. */}
+        <Button variant="ghost" disabled={isSubmitting} onClick={() => void onScoreNow()}>
+          Score now, add details later
         </Button>
       </EmptyState>
 

@@ -14,6 +14,24 @@ async function freshInstall(page: Parameters<typeof startSession>[0]) {
   await page.reload();
 }
 
+/**
+ * The fast path (ADR-080): a bowler who has just installed the app reaches the
+ * pin deck without naming an alley or opening the form at all.
+ */
+test("scores without filling anything in", async ({ page }) => {
+  await freshInstall(page);
+  await page.getByRole("button", { name: "Start fresh" }).click();
+  await page.getByRole("button", { name: "right-handed" }).click();
+
+  await page.getByRole("button", { name: "Score now, add details later" }).first().click();
+
+  // Straight onto the pin deck, no form and no lane editor in the way.
+  await expect(page.getByRole("button", { name: /^Next(:|$)/ })).toBeVisible();
+
+  // The session it made is real, and says so where it has no alley to print.
+  await expect(page.getByText("Unnamed session").first()).toBeVisible();
+});
+
 test("opens on the welcome screen, not on a question over an unseen app", async ({ page }) => {
   await freshInstall(page);
 
