@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { preferDownloadOverShare, recordShot, startSession } from "./helpers";
+import { preferDownloadOverShare, RECORD_SHOT, recordShot, startSession } from "./helpers";
 
 /** Wipe the database and reload, landing on a genuine first run. */
 async function freshInstall(page: Parameters<typeof startSession>[0]) {
@@ -26,7 +26,7 @@ test("scores without filling anything in", async ({ page }) => {
   await page.getByRole("button", { name: "Score now, add details later" }).first().click();
 
   // Straight onto the pin deck, no form and no lane editor in the way.
-  await expect(page.getByRole("button", { name: /^Next(:|$)/ })).toBeVisible();
+  await expect(page.getByRole("button", { name: RECORD_SHOT })).toBeVisible();
 
   // The session it made is real, and says so where it has no alley to print.
   await expect(page.getByText("Unnamed session").first()).toBeVisible();

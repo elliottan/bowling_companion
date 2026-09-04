@@ -16,8 +16,8 @@ on the pin deck with a session dated today and nothing else set. The details are
 the same form, reachable from the session header whenever you want them.
 
 **The commit button holds still.** It reads "Next" in every state, with what it
-would record named underneath: "Strike", "Spare", or "Hit 7". It used to be the
-label itself, which changed under your thumb on every pin tap.
+would record noted underneath in brackets: "(Strike)", "(Spare)", or "(Hit 7)".
+It used to be the label itself, which changed under your thumb on every pin tap.
 
 **Changing something already recorded asks first.** Rewriting a shot on the card
 or undoing the last ball raises a confirm naming what changes. A recorded shot

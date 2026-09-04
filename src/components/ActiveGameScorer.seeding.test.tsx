@@ -3,9 +3,9 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { ActiveGameScorer } from "./ActiveGameScorer";
 import type { Ball, Frame, PinNumber, SpareLine } from "../types/bowling";
 
-/** The commit button reads "Next", with what it would record named under it;
- *  the accessible name carries that outcome as "Next: Strike". */
-const RECORD_SHOT = /^Next(:|$)/;
+/** The commit button reads "Next", with what it would record bracketed under
+ *  it; the accessible name carries that outcome as "Next (Strike)". */
+const RECORD_SHOT = /^Next( \(|$)/;
 
 /**
  * What each new shot starts with: which ball is selected, and what the Intended

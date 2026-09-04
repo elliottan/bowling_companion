@@ -101,7 +101,7 @@ test("takes the last shot back, and the score follows it", async ({ page }) => {
   // Back to the second frame's first ball: the deck is a fresh rack again, so
   // the commit button offers a strike rather than a count.
   await confirmUndo();
-  await expect(page.getByRole("button", { name: RECORD_SHOT })).toContainText("Strike");
+  await expect(page.getByRole("button", { name: RECORD_SHOT })).toContainText("(Strike)");
 
   // Again, and the strike in frame 1 is gone with it.
   await confirmUndo();
@@ -118,9 +118,9 @@ test("the commit button reads Next, over what it would record", async ({ page })
   const commit = page.getByRole("button", { name: RECORD_SHOT });
   await expect(commit).toContainText("Next");
   // The deck opens all-down, so the ball on offer is a strike.
-  await expect(commit).toContainText("Strike");
+  await expect(commit).toContainText("(Strike)");
 
   // Shot 1 starts all-down; tapping a pin stands it back up.
   await page.getByRole("button", { name: /Pin 10 (down|standing)/ }).click();
-  await expect(commit).toContainText("Hit 9");
+  await expect(commit).toContainText("(Hit 9)");
 });
