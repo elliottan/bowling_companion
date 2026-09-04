@@ -3,9 +3,9 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { ActiveGameScorer } from "./ActiveGameScorer";
 import type { Frame, PinNumber } from "../types/bowling";
 
-/** The commit button reads "Next", with what it would record named under it;
- *  the accessible name carries that outcome as "Next: Strike". */
-const RECORD_SHOT = /^Next(:|$)/;
+/** The commit button reads "Next", with what it would record bracketed under
+ *  it; the accessible name carries that outcome as "Next (Strike)". */
+const RECORD_SHOT = /^Next( \(|$)/;
 
 vi.mock("../services/ballRepository", () => ({
   getBalls: () => Promise.resolve([]),
@@ -404,7 +404,9 @@ describe("what the commit button says it will record", () => {
 
     const commit = screen.getByRole("button", { name: RECORD_SHOT });
     expect(commit).toHaveTextContent("Next");
-    expect(commit).toHaveTextContent("Strike");
+    // Bracketed, so the two read as a button and a note rather than as the
+    // phrase "Next Strike".
+    expect(commit).toHaveTextContent("(Strike)");
   });
 
   it('names the count as "Hit 0" when nothing on the deck would go down', () => {
@@ -414,7 +416,7 @@ describe("what the commit button says it will record", () => {
     // ball that knocked nothing over.
     for (let pin = 1; pin <= 10; pin += 1) tapPin(pin);
 
-    expect(screen.getByRole("button", { name: RECORD_SHOT })).toHaveTextContent("Hit 0");
+    expect(screen.getByRole("button", { name: RECORD_SHOT })).toHaveTextContent("(Hit 0)");
   });
 
   it("names the count of a partial first ball", () => {
@@ -423,7 +425,7 @@ describe("what the commit button says it will record", () => {
     tapPin(7);
     tapPin(10);
 
-    expect(screen.getByRole("button", { name: RECORD_SHOT })).toHaveTextContent("Hit 8");
+    expect(screen.getByRole("button", { name: RECORD_SHOT })).toHaveTextContent("(Hit 8)");
   });
 
   it('reads "Spare" once the leave is cleared, and the count until then', () => {
@@ -431,10 +433,10 @@ describe("what the commit button says it will record", () => {
 
     // Shot 2 starts pins-up: the 10 pin is standing, so leaving it alone is a
     // miss and knocking it down is the spare.
-    expect(screen.getByRole("button", { name: RECORD_SHOT })).toHaveTextContent("Hit 0");
+    expect(screen.getByRole("button", { name: RECORD_SHOT })).toHaveTextContent("(Hit 0)");
 
     tapPin(10);
-    expect(screen.getByRole("button", { name: RECORD_SHOT })).toHaveTextContent("Spare");
+    expect(screen.getByRole("button", { name: RECORD_SHOT })).toHaveTextContent("(Spare)");
   });
 });
 

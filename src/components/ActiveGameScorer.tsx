@@ -198,6 +198,10 @@ export function ActiveGameScorer({
    * underneath it in subtext (DESIGN-LANGUAGE 8): the word stays still under
    * the thumb while the outcome tracks the deck. There is nothing to preview
    * while editing, where Next leaves the recorded shot exactly as it is.
+   *
+   * Bracketed, and grey rather than accent, so it reads as an aside about the
+   * button rather than as a second word in its label: "Next Strike" was a
+   * phrase, "Next (Strike)" is a button and a note.
    */
   const nextOutcome = (() => {
     if (isEditing) return undefined;
@@ -808,13 +812,13 @@ export function ActiveGameScorer({
                 <button
                   type="button"
                   onClick={() => (isEditing ? goLive() : void recordShot())}
-                  aria-label={nextOutcome ? `Next: ${nextOutcome}` : "Next"}
+                  aria-label={nextOutcome ? `Next (${nextOutcome})` : "Next"}
                   className="inline-flex h-11 flex-1 flex-col items-center justify-center rounded-lg border border-accent-fill bg-surface leading-none text-accent hover:bg-surface-muted"
                 >
                   <span className="text-sm font-semibold">Next</span>
                   {nextOutcome && (
-                    <span aria-hidden="true" className="mt-0.5 text-[10px] font-bold text-accent">
-                      {nextOutcome}
+                    <span aria-hidden="true" className="mt-0.5 text-[10px] font-semibold text-ink-secondary">
+                      ({nextOutcome})
                     </span>
                   )}
                 </button>
