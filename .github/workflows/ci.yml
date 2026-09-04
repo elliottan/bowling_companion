@@ -32,8 +32,13 @@ jobs:
       - name: Build (typecheck + production bundle + PWA)
         run: npm run build
 
+      # Both projects in playwright.config.ts, not just chromium. The webkit
+      # project is the iPhone the launch crowd actually bowls with, and CI
+      # installed only chromium, so all 54 of its tests failed to launch a
+      # browser. It went unseen while the copy sweep crashed the run before
+      # the e2e step was ever reached.
       - name: Install Playwright browsers
-        run: npx playwright install --with-deps chromium
+        run: npx playwright install --with-deps chromium webkit
 
       - name: End-to-end smoke tests
         run: npm run test:e2e
