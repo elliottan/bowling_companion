@@ -8,6 +8,21 @@ merge to `main` (`docs/DEPLOYMENT.md`), so every section below is a dated batch
 of shipped work rather than a release. Thirty of them used to be headed
 `[Unreleased]`, which said nothing once they had all shipped.
 
+## Score first, file later (2026-09-04)
+
+**You can start scoring without filling anything in.** The alley is optional
+now, and both empty screens carry "Score now, add details later", which puts you
+on the pin deck with a session dated today and nothing else set. The details are
+the same form, reachable from the session header whenever you want them.
+
+**The commit button holds still.** It reads "Next" in every state, with what it
+would record named underneath: "Strike", "Spare", or "Hit 7". It used to be the
+label itself, which changed under your thumb on every pin tap.
+
+**Changing something already recorded asks first.** Rewriting a shot on the card
+or undoing the last ball raises a confirm naming what changes. A recorded shot
+asks once per visit to it, not once per tap, and entering a new shot never asks.
+
 ## Headpin is public (2026-09-03)
 
 The first version put in front of people who did not build it. Everything below

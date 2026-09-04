@@ -72,8 +72,10 @@ export function GamePlanView({ onBack, onOpenStats, onOpenSession }: GamePlanVie
   const [alley, setAlley] = useRememberedState("plan:alley", "");
   const [pattern, setPattern] = useRememberedState("plan:pattern", "");
 
+  // A session started without an alley (ADR-080) has no name to filter by, so
+  // it is not offered as one.
   const allAlleys = useMemo(
-    () => [...new Set(history.map((s) => s.session.alley_name))].sort(),
+    () => [...new Set(history.map((s) => s.session.alley_name).filter((a) => a.trim()))].sort(),
     [history]
   );
   const allPatterns = useMemo(

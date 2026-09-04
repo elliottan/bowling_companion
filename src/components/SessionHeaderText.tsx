@@ -1,5 +1,6 @@
 import { Pencil } from "lucide-react";
 import { formatSessionDate } from "../lib/dates";
+import { alleyLabel } from "../lib/sessionLabels";
 import type { SessionSummary } from "../types/bowling";
 
 /** One game's lanes: "Lanes 9/10", or "Lane 5" when it was played on one. */
@@ -44,7 +45,7 @@ export function SessionHeaderText({
   return (
     <div className="min-w-0">
       <div className="flex min-w-0 items-center gap-1">
-        <h2 className="truncate text-base font-bold text-ink">{session.alley_name}</h2>
+        <h2 className="truncate text-base font-bold text-ink">{alleyLabel(session.alley_name)}</h2>
         {onEdit && (
           <button
             type="button"

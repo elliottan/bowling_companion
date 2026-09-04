@@ -3697,3 +3697,95 @@ rather than leaving a stale total behind.
   7"), and says "Next" only when the deck reads as the strike or spare the
   button beside it already offers. Two adjacent buttons with the same word on
   them would be worse than the thing this fixes.
+
+## ADR-080: A session can be started with nothing filled in
+
+**Status.** Accepted. Amends the session shape of ADR-038's backup contract and
+the create flow; the stored schema is unchanged.
+
+**Context.**
+
+Starting a session meant filling in a form, and the alley was required: the
+sheet's commit stayed disabled until a name was typed. Everything else on that
+form was already optional, so the alley alone stood between a bowler and the
+pin deck.
+
+That is the wrong toll to charge, and it is charged at the worst moment. Someone
+opening the app for the first time is deciding whether the scorer is any good,
+and the scorer is the only screen that can answer them. Someone standing at the
+lane with a ball on the return is not naming a building, they are about to
+throw. In both cases the app asks for a piece of filing before it will do the
+job it exists to do.
+
+Every field on that form can be filled in afterwards from the same form: the
+session header carries a pencil, and history rows edit in place.
+
+**Decision.**
+
+`alley_name` stays a required string on `Session`, and may now be empty. No
+schema version, no migration: an empty string is a legal value of the column
+that is already there.
+
+The create form marks the alley `(optional)` and its commit is live from the
+moment the sheet opens. Both empty states, Home on a device that has never
+scored and the Active tab with nothing running, carry a second action, "Score
+now, add details later", which starts a session dated today with nothing else
+set and lands on the pin deck.
+
+Everywhere a session is named on screen goes through `alleyLabel()` in
+`lib/sessionLabels.ts`, which prints "Unnamed session" for an empty name. The
+Game plan's alley filter offers only sessions that name one, since an unnamed
+session cannot be filtered by a name.
+
+`backupValidation` no longer rejects an empty `alley_name`. A file carrying one
+is a file written by this app.
+
+**Consequences.**
+- A backup written by this version imports into an older build only if that
+  build's validator predates this change; the older one rejects the whole file
+  on an empty alley. This is a one-way relaxation, and the reason it is written
+  down here rather than treated as a bug fix.
+- Autocomplete and the alley filter are unaffected: `getDistinctAlleys` already
+  skips blank values.
+- Lane notes are keyed by alley name, so unnamed sessions share one bucket. That
+  is the honest answer for a session whose alley is not known, and naming the
+  session later moves its notes to the right place.
+
+## ADR-081: The commit button says Next, and a change to a recorded shot asks first
+
+**Status.** Accepted. Supersedes the last consequence of ADR-079 (the commit
+button naming its count) and narrows ADR-006 not at all.
+
+**Context.**
+
+ADR-079 made the scorer's commit button name what it was about to record, so it
+read "Gutter" or "Count 7" and fell back to "Next" only where the deck was the
+strike or spare the button beside it already offered. The reasoning was sound
+and the result was not: the word under the thumb changed on every pin tap, and
+the number it showed was a count of a deck the bowler was already looking at.
+
+Separately, undo (ADR-079) and inline editing (ADR-001) both rewrite something
+already on the card, and neither said so. A stray tap on a selected frame
+rewrote a recorded shot silently, and the completed-game confirm covered only a
+game the bowler had moved on from.
+
+**Decision.**
+
+The commit button is the word "Next" in every state. What it would record is
+named beneath it in subtext: "Strike" or "Hit 7" on a fresh rack, "Spare" or
+"Hit 0" at a leave. The accessible name carries the same thing as "Next: Hit 7".
+Nothing is shown while a recorded shot is selected, where Next changes nothing.
+
+A change to something already recorded raises a confirm naming what changes:
+rewriting a recorded shot, by a pin tap or by the Strike/Spare button, and undo.
+The recorded-shot question is asked once per visit to that shot rather than once
+per tap, and moving the cursor re-arms it. Live entry never asks, because
+choosing the pins left standing is entering the shot, not changing one.
+
+**Consequences.**
+- The label stops moving, and the outcome is still on screen before the ball is
+  committed, which was the whole point of ADR-079's change.
+- Correcting a recorded shot costs one extra tap per visit. Correcting a live
+  one costs nothing, and that is the common case by an order of magnitude.
+- Undo asks every time. It is one press from destroying a ball, and unlike a pin
+  tap there is no cursor to say which one.

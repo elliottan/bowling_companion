@@ -6,6 +6,7 @@ import { useLongPress } from "../lib/useLongPress";
 import { deleteSession, updateSession } from "../services/bowlingRepository";
 import { ConfirmDialog } from "./ConfirmDialog";
 import { SessionFormDialog } from "./SessionFormDialog";
+import { alleyLabel } from "../lib/sessionLabels";
 import type { NewSessionFormValues } from "./SessionForm";
 import type { SessionSummary } from "../types/bowling";
 import { GROUP_HEADING } from "./ui/typography";
@@ -129,7 +130,7 @@ function SessionRow({ summary, isActive, onOpen, onSessionDeleted }: SessionRowP
           top: rect.top + Math.min(rect.height / 2, 48)
         });
       })}
-      aria-label={`Open session: ${session.alley_name}, ${formatSessionDate(session.date)}`}
+      aria-label={`Open session: ${alleyLabel(session.alley_name)}, ${formatSessionDate(session.date)}`}
       onClick={() => {
         if (longPress.didLongPress()) return;
         if (session.id) onOpen(session.id, !hasUnfinishedGame);
@@ -141,7 +142,7 @@ function SessionRow({ summary, isActive, onOpen, onSessionDeleted }: SessionRowP
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           <p className="line-clamp-2 break-words font-semibold text-ink">
-            {session.alley_name}
+            {alleyLabel(session.alley_name)}
           </p>
           {session.description && (
             <p className="truncate text-xs font-medium text-ink-secondary">{session.description}</p>
@@ -233,7 +234,7 @@ function SessionRow({ summary, isActive, onOpen, onSessionDeleted }: SessionRowP
         <ConfirmDialog
           open={confirmDelete}
           title="Delete this session?"
-          message={`"${session.alley_name}" and all its games will be permanently deleted.`}
+          message={`"${alleyLabel(session.alley_name)}" and all its games will be permanently deleted.`}
           onConfirm={handleDeleteSession}
           onCancel={() => setConfirmDelete(false)}
         />,

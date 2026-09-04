@@ -83,9 +83,10 @@ export function SessionForm({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // The commit lives in the sheet's bar, so the one field it depends on has to
-  // travel out to it.
-  const canSubmit = alleyName.trim().length > 0 && !isSubmitting;
+  // Nothing here is required (ADR-080). A bowler standing at the lane with a
+  // ball on the return can start scoring and name the alley afterwards, and the
+  // commit in the sheet's bar is live from the moment the sheet opens.
+  const canSubmit = !isSubmitting;
   useEffect(() => {
     onCanSubmitChange?.(canSubmit);
   }, [canSubmit, onCanSubmitChange]);
@@ -133,10 +134,9 @@ export function SessionForm({
     <>
       <form id={formId} onSubmit={handleSubmit}>
         <div className="space-y-3">
-          <Field label="Alley">
+          <Field label="Alley (optional)">
             <div className="relative">
               <input
-                required
                 value={alleyName}
                 onChange={(e) => { setAlleyName(e.target.value); setShowAlleyList(true); }}
                 onFocus={() => setShowAlleyList(true)}

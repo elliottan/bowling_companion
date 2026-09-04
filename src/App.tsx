@@ -21,6 +21,7 @@ import { FirstRun } from "./components/FirstRun";
 import { ActiveSessionView } from "./views/ActiveSessionView";
 import { HistoryView } from "./views/HistoryView";
 import { rememberScroll, restoreScroll } from "./lib/viewMemory";
+import { localDateKey } from "./lib/dates";
 import { PinIcon } from "./components/icons";
 import { useBoot } from "./views/useBoot";
 import { setUpdateSafe } from "./lib/swUpdate";
@@ -365,6 +366,16 @@ function App() {
     }
   }
 
+  /**
+   * Straight to the pin deck, with nothing filled in (ADR-080). The whole form
+   * is a set of details about a session, and every one of them can be added
+   * afterwards from the same form; making a first-time bowler name an alley to
+   * see the one screen worth seeing put a wall in front of the app.
+   */
+  function handleScoreNow() {
+    return handleStartSession({ alley_name: "", date: localDateKey(), lanes: [] });
+  }
+
   // `openStats` (a finished session) lands on the session page with the stats
   // sheet already up, there's no scoring left to do there.
   function openSession(sessionId: number, openStats = false) {
@@ -441,6 +452,7 @@ function App() {
         {view === "dashboard" && (
           <DashboardView
             onStartSession={handleStartSession}
+            onScoreNow={handleScoreNow}
             isSubmitting={isStartingSession}
             error={startError}
             resumable={resumable}
@@ -462,6 +474,7 @@ function App() {
         {view === "active" && !activeSessionId && (
           <NoSessionView
             onStartSession={handleStartSession}
+            onScoreNow={handleScoreNow}
             isSubmitting={isStartingSession}
             error={startError}
           />

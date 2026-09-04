@@ -37,6 +37,7 @@ import {
 import type { Frame, Game, SessionSummary } from "../types/bowling";
 import { GROUP_HEADING } from "../components/ui/typography";
 import type { UndoResult } from "../lib/frameController";
+import { alleyLabel } from "../lib/sessionLabels";
 
 interface ActiveSessionViewProps {
   sessionId: number;
@@ -345,7 +346,7 @@ export function ActiveSessionView({
   // shows, so the picture and the screen can never disagree.
   const sessionStats = calculateStats([sessionDetails], undefined, handedness);
   const shareCard = buildSessionCard({
-    alleyName: sessionDetails.session.alley_name,
+    alleyName: alleyLabel(sessionDetails.session.alley_name),
     event: sessionDetails.session.description,
     date: sessionDetails.session.date,
     scores: games.map(
