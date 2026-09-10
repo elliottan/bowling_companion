@@ -3789,3 +3789,52 @@ choosing the pins left standing is entering the shot, not changing one.
   one costs nothing, and that is the common case by an order of magnitude.
 - Undo asks every time. It is one press from destroying a ball, and unlike a pin
   tap there is no cursor to say which one.
+
+## ADR-082: The game plan reads the line back game by game
+
+**Status:** accepted (2026-09).
+
+**Context.** ADR-064b built the game plan out of comparisons: the slice against
+the rest of your history, gated three ways. Every one of those findings
+collapses a session into a single number, and "Last time" collapsed it further
+still, taking the busiest ball across the whole session and the median stance
+and target across every fresh-rack shot in it.
+
+That read is wrong in a specific way. Lanes transition, and a bowler moves with
+them. A session that opened on the IQ at 23 to 17 and finished on the Wolverine
+at 26 to 19 is reported as a middle that was never played. The two questions a
+bowler actually carries to the approach, what to open with and how far the line
+will have moved by the last game, were the two the screen could not answer,
+while it answered questions about carry percentages that no one asks at the
+foul line.
+
+**Decision.**
+
+- **Two reads, not one.** "Last time" keeps its sentence and gains a row per
+  game of that session: the ball most of that game's fresh-rack balls were
+  thrown with, the median stance and target with that ball, and the score. A
+  new "How the session moves here" reads the same thing per game *slot* across
+  every session in the slice, so game 1 here sits against game 3 here.
+- **The median is taken within the busiest ball, never across balls.**
+  Averaging a line thrown with two different balls describes a shot nobody
+  threw.
+- **The movement read is not gated like a comparison.** It compares nothing, so
+  the six-game slice floor does not apply to it and its own floor is two games
+  per slot rather than three. That floor guards a median stance and target,
+  which is a description of what happened, where `MIN_SLOT_GAMES` guards an
+  average score, which is noisy. Two slots are needed: one slot is a line, not
+  a move.
+- **It still recommends nothing.** The summary under the rows states the shift
+  in boards and stops. Whether to make that move tonight is the bowler's call,
+  on lanes this screen has never seen. Board direction follows handedness, the
+  way `LineInput` does: a higher board is left for a right-hander and right for
+  a left-hander, and it is not a direction on its own.
+
+**Consequences.**
+- The screen says something useful after two sessions at an alley, where before
+  it said "still gathering" until six games and a qualifying second slot.
+- A game that carried no line is left out rather than shown blank, and dropping
+  a slot can take the movement read back below two slots, which is the honest
+  outcome.
+- "Last time" is now a tall card. It is still one tap target, and what it opens
+  is the session those rows came from.

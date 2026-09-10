@@ -8,6 +8,23 @@ merge to `main` (`docs/DEPLOYMENT.md`), so every section below is a dated batch
 of shipped work rather than a release. Thirty of them used to be headed
 `[Unreleased]`, which said nothing once they had all shipped.
 
+## The game plan reads your line back (2026-09-10)
+
+**Last time now shows every game, not an average of them.** The card lists what
+you threw in game 1, game 2 and game 3, with the ball, the stance and target you
+played it from, and the score. It used to take the busiest ball of the session
+and the median line across all of it, which describes a middle you never
+actually played on a session where the lanes moved.
+
+**A new "How the session moves here" says how far the lanes take you.** Once you
+have played a game slot twice at an alley, the game plan reads that slot's line
+back across every session there, so game 1 sits against your last game, and a
+line underneath states the shift in boards and which ball you finished on. It
+describes the move and stops: whether to make it tonight is your call.
+
+This read is not held back by the six-game floor the comparisons use, because it
+compares nothing. Two sessions at an alley is enough to see it.
+
 ## Score first, file later (2026-09-04)
 
 **You can start scoring without filling anything in.** The alley is optional
