@@ -8,6 +8,17 @@ merge to `main` (`docs/DEPLOYMENT.md`), so every section below is a dated batch
 of shipped work rather than a release. Thirty of them used to be headed
 `[Unreleased]`, which said nothing once they had all shipped.
 
+## Back out of Stats, into the game plan (2026-09-10)
+
+**Tapping a game plan callout now pushes the Stats screen instead of switching
+to the Stats tab.** Back returns you to the game plan with the filters still
+set, so you can read a callout, look at exactly what it is counting, and come
+straight back to the next one. It used to strand you on the Stats tab with no
+route back but the dashboard.
+
+The pushed screen is the Stats screen itself, filters and all, and it is a real
+place: `#/home/game-plan/stats-push` survives a reload.
+
 ## The game plan reads your line back (2026-09-10)
 
 **Last time now shows every game, not an average of them.** The card lists what

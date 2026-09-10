@@ -155,3 +155,30 @@ test("back closes the oil pattern manager, not the session form under it", async
   await expect(page.getByRole("dialog", { name: "Oil patterns" })).toHaveCount(0);
   await expect(page.getByPlaceholder("Ball choice, surface, carry…")).toHaveValue("keep me");
 });
+
+test("Stats opened from the game plan is a push, and back returns to it", async ({ page }) => {
+  // Driven by URL rather than by tapping a callout: a callout needs six games
+  // at one alley behind it, and what is under test here is the shape of the
+  // hand-off, not the thresholds that produce one.
+  //
+  // Through the game plan rather than straight at the pair, because that is
+  // what the hand-off does. A deep link lands the whole stack in one history
+  // entry, so back would leave the app with nothing to return to, which is the
+  // right behaviour for a link and the wrong test for a push.
+  await page.goto("/score/#/home/game-plan");
+  await expect(page.getByRole("dialog", { name: "Game plan" })).toBeVisible();
+
+  await page.goto("/score/#/home/game-plan/stats-push");
+
+  const stats = page.getByRole("dialog", { name: "Stats" });
+  await expect(stats).toBeVisible();
+  // Named exactly once. The nav bar carries the title, so the screen suppresses
+  // the heading it wears as a tab: two of them read as two screens.
+  await expect(stats.getByRole("heading", { name: "Stats", exact: true })).toHaveCount(1);
+  // The controls that belong to the filter chips stay with them.
+  await expect(stats.getByRole("button", { name: "Share these stats" })).toBeVisible();
+
+  await page.goBack();
+  await expect(page).toHaveURL(/#\/home\/game-plan$/);
+  await expect(page.getByRole("dialog", { name: "Game plan" })).toBeVisible();
+});

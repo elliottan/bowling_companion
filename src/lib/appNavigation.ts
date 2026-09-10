@@ -44,7 +44,11 @@ export type Overlay =
   | "spares"
   | "open-frames"
   | "game-trend"
-  | "game-plan";
+  | "game-plan"
+  /** The Stats tab's own screen, pushed rather than switched to. The game plan
+   *  hands off to it with the filters already set, and a hand-off that switched
+   *  tabs left no way back to the screen that made the point (ADR-083). */
+  | "stats-push";
 
 export interface NavState {
   view: AppView;
@@ -73,7 +77,6 @@ export interface NavState {
 
 export type NavAction =
   | { type: "goTo"; view: AppView }
-  | { type: "crossToTab"; view: AppView }
   | {
       type: "openSession";
       sessionId: number;
@@ -134,23 +137,6 @@ export function navReducer(state: NavState, action: NavAction): NavState {
         settingsSection: view === "settings" ? "menu" : state.settingsSection
       };
     }
-
-    /**
-     * Leave a pushed screen for a tab, in one move.
-     *
-     * `goTo` keeps the overlay stack, which is right for the tab bar: that bar
-     * is not reachable from an overlay anyway. A screen that hands off to a tab
-     * needs both to happen at once. Popping and then switching cannot work,
-     * because the pop goes through `history.back()` and lands asynchronously,
-     * so it would overwrite the tab switch on its way past.
-     */
-    case "crossToTab":
-      return {
-        ...state,
-        view: action.view,
-        overlays: [],
-        settingsSection: action.view === "settings" ? "menu" : state.settingsSection
-      };
 
     case "openSession":
       return {

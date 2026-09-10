@@ -50,7 +50,9 @@ const NO_BALLS: Ball[] = [];
  */
 interface GamePlanViewProps {
   onBack: () => void;
-  /** Cross to the Stats tab, having set the filters up for it. */
+  /** Push the Stats screen, having set the filters up for it. A push rather
+   *  than a tab switch, so back returns to the callout that made the point
+   *  (ADR-083). */
   onOpenStats: () => void;
   /** Open the night behind "Last time". */
   onOpenSession: (sessionId: number) => void;
@@ -101,7 +103,7 @@ export function GamePlanView({ onBack, onOpenStats, onOpenSession }: GamePlanVie
   const where = [alley, pattern].filter(Boolean).join(" · ");
 
   /**
-   * Hand the Stats tab this slice and the number the callout was about.
+   * Hand the Stats screen this slice and the number the callout was about.
    *
    * Location and pattern only, plus the chart. A callout that names two things
    * ("game 1 is your best here, game 3 your worst") cannot be turned into one
