@@ -246,6 +246,53 @@ describe("buildBriefing", () => {
       expect(lastTime).toMatchObject({ stance: 20, target: 10 });
     });
 
+    it("reads each game back on its own, not as one collapsed median", () => {
+      const withLine = (stance: number, target: number, ballId: number, gameId: number) =>
+        Array.from({ length: 10 }, (_, i) =>
+          frame(i + 1, NONE, undefined, { ball_id: ballId, intended: { stance, target } })
+        ).map((f) => ({ ...f, game_id: gameId }));
+
+      const sessions: SessionSummary[] = [
+        {
+          session: { id: 1, date: "2026-07-19", alley_name: "Sea Bowl" },
+          games: [
+            { ...game(1, 200, 10), frames: withLine(20, 10, 1, 1) },
+            { ...game(2, 190, 9), frames: withLine(23, 12, 1, 2) },
+            { ...game(3, 170, 7), frames: withLine(26, 14, 2, 3) }
+          ]
+        }
+      ];
+      const balls: Ball[] = [
+        { id: 1, name: "Phaze II", is_spare_ball: false },
+        { id: 2, name: "IQ Tour", is_spare_ball: false }
+      ];
+
+      const { lastTime } = buildBriefing(sessions, balls, {});
+      expect(lastTime?.perGame).toEqual([
+        { gameNumber: 1, score: 200, ballName: "Phaze II", stance: 20, target: 10 },
+        { gameNumber: 2, score: 190, ballName: "Phaze II", stance: 23, target: 12 },
+        { gameNumber: 3, score: 170, ballName: "IQ Tour", stance: 26, target: 14 }
+      ]);
+      // The collapsed read is still the busiest ball across the whole session,
+      // which is exactly the middle the per-game rows exist to undo.
+      expect(lastTime).toMatchObject({ ballName: "Phaze II" });
+    });
+
+    it("leaves out a game that carried no line at all", () => {
+      const lined = Array.from({ length: 10 }, (_, i) =>
+        frame(i + 1, NONE, undefined, { ball_id: 1, intended: { stance: 20, target: 10 } })
+      );
+      const sessions: SessionSummary[] = [
+        {
+          session: { id: 1, date: "2026-07-19", alley_name: "Sea Bowl" },
+          games: [{ ...game(1, 200, 10), frames: lined }, game(2, 180, 8)]
+        }
+      ];
+      const balls: Ball[] = [{ id: 1, name: "Phaze II", is_spare_ball: false }];
+      const { lastTime } = buildBriefing(sessions, balls, {});
+      expect(lastTime?.perGame.map((g) => g.gameNumber)).toEqual([1]);
+    });
+
     it("still names the night when no line was recorded", () => {
       const sessions = nights(1, "Sea Bowl", 200, 6);
       const { lastTime } = buildBriefing(sessions, NO_BALLS, {});
@@ -318,5 +365,101 @@ describe("what a rule says it is short of", () => {
     ];
     const { gathering } = buildBriefing(sessions, NO_BALLS, { alley: "Sea Bowl" });
     expect(gathering).toEqual([{ kind: "slice", have: 3, need: 6 }]);
+  });
+});
+
+describe("how the session moves here", () => {
+  const balls: Ball[] = [
+    { id: 1, name: "Phaze II", is_spare_ball: false },
+    { id: 2, name: "IQ Tour", is_spare_ball: false }
+  ];
+
+  /** `count` sessions, each drifting from `from` to `to` over three games. */
+  function drifting(count: number, alley: string, lines: Array<[number, number, number]>) {
+    return Array.from({ length: count }, (_, i) =>
+      session(
+        `2026-06-${String(1 + i).padStart(2, "0")}`,
+        alley,
+        lines.map(([stance, target, ballId], slot) => ({
+          ...game(slot + 1, 200 - slot * 10, 8),
+          frames: Array.from({ length: 10 }, (_, f) =>
+            frame(f + 1, NONE, undefined, { ball_id: ballId, intended: { stance, target } })
+          )
+        }))
+      )
+    );
+  }
+
+  it("reads the line slot by slot, in game order", () => {
+    const sessions = drifting(2, "Sea Bowl", [
+      [20, 10, 1],
+      [23, 12, 1],
+      [26, 14, 2]
+    ]);
+    const { movement } = buildBriefing(sessions, balls, { alley: "Sea Bowl" });
+    expect(movement).toEqual([
+      { gameNumber: 1, games: 2, score: 200, ballName: "Phaze II", stance: 20, target: 10 },
+      { gameNumber: 2, games: 2, score: 190, ballName: "Phaze II", stance: 23, target: 12 },
+      { gameNumber: 3, games: 2, score: 180, ballName: "IQ Tour", stance: 26, target: 14 }
+    ]);
+  });
+
+  it("reads before the slice gate, since it compares nothing", () => {
+    // Six games is the floor for every callout. Two sessions of three is under
+    // it, and the line you played here is still worth reading back.
+    const sessions = drifting(1, "Sea Bowl", [
+      [20, 10, 1],
+      [26, 14, 1]
+    ]);
+    const briefing = buildBriefing([...sessions, ...sessions.map((s) => ({
+      ...s,
+      session: { ...s.session, id: 99, date: "2026-06-20" }
+    }))], balls, { alley: "Sea Bowl" });
+    expect(briefing.games).toBe(4);
+    expect(briefing.callouts).toEqual([]);
+    expect(briefing.movement.map((m) => m.gameNumber)).toEqual([1, 2]);
+  });
+
+  it("says nothing off a single session, which is what last time is for", () => {
+    // Six games, so the slice itself is worth reading, but every slot in it
+    // has been played once.
+    const sessions = drifting(1, "Sea Bowl", [
+      [20, 10, 1],
+      [23, 12, 1],
+      [26, 14, 1],
+      [26, 14, 1],
+      [26, 14, 1],
+      [26, 14, 1]
+    ]);
+    const { movement, gathering } = buildBriefing(sessions, balls, { alley: "Sea Bowl" });
+    expect(movement).toEqual([]);
+    expect(gathering).toContainEqual({ kind: "movement", have: 0, need: 2, each: 2 });
+  });
+
+  it("says nothing when only one slot has been played twice", () => {
+    const sessions = [
+      ...drifting(6, "Sea Bowl", [[20, 10, 1]]),
+      session("2026-07-01", "Sea Bowl", [game(2, 180, 8)])
+    ];
+    const { movement, gathering } = buildBriefing(sessions, balls, { alley: "Sea Bowl" });
+    expect(movement).toEqual([]);
+    expect(gathering).toContainEqual({ kind: "movement", have: 1, need: 2, each: 2 });
+  });
+
+  it("drops a qualifying slot that carried no line", () => {
+    const sessions = Array.from({ length: 2 }, (_, i) =>
+      session(`2026-06-0${1 + i}`, "Sea Bowl", [
+        {
+          ...game(1, 200, 8),
+          frames: Array.from({ length: 10 }, (_, f) =>
+            frame(f + 1, NONE, undefined, { ball_id: 1, intended: { stance: 20, target: 10 } })
+          )
+        },
+        game(2, 180, 8)
+      ])
+    );
+    const { movement } = buildBriefing(sessions, balls, { alley: "Sea Bowl" });
+    // Slot 1 alone is a line, not a move.
+    expect(movement).toEqual([]);
   });
 });

@@ -48,6 +48,17 @@ const MIN_SLOT_DELTA = 8;
  *  happened to start on. */
 const MIN_LANE_DELTA = 8;
 
+/** A game slot needs this many games here before its line is worth reading
+ *  back. Lower than `MIN_SLOT_GAMES`, deliberately: that floor guards an
+ *  average score, which is noisy, while this one guards a median stance and
+ *  target, which is a description of what you did rather than a comparison
+ *  against anything. Two sessions is enough to say where you opened and where
+ *  you finished; one session is what "Last time" already shows. */
+const MIN_MOVEMENT_SLOT_GAMES = 2;
+/** Slots needed before there is a movement to read. One slot is a line, not a
+ *  move. */
+const MIN_MOVEMENT_SLOTS = 2;
+
 /** A ball needs this many fresh-rack balls in the slice before it can be
  *  compared to another one. Matches the ball table's own floor. */
 const MIN_BALL_FIRST_BALLS = 20;
@@ -113,6 +124,34 @@ export type BriefingFinding =
       games: number;
     };
 
+/**
+ * The line played in one game: the ball most of its fresh-rack balls were
+ * thrown with, and the median stance and target with that ball.
+ *
+ * One of these per game is what a night's movement is made of. Collapsing a
+ * night into a single median hides the thing a bowler wants back, which is
+ * where the line started and where it finished (ADR-082).
+ */
+export interface GameLine {
+  gameNumber: number;
+  score: number | null;
+  ballName?: string;
+  stance?: number;
+  target?: number;
+}
+
+/**
+ * Where the line sits in one game slot, across every session in the slice.
+ *
+ * Slot rather than session: game 1 here against game 3 here is the comparison
+ * that says how far the lanes move on you at this alley. A slot needs enough
+ * games behind it before its median is a pattern rather than one night.
+ */
+export interface MovementSlot extends GameLine {
+  /** Games behind this slot's line. `score` is their average. */
+  games: number;
+}
+
 /** The line you actually played last time you were here. Context rather than a
  *  comparison, so it sits outside the ranked list. */
 export interface LastTimeHere {
@@ -128,6 +167,9 @@ export interface LastTimeHere {
    *  become the remembered line. */
   stance?: number;
   target?: number;
+  /** The same read, game by game, in the order they were bowled. Empty when
+   *  none of that session's games carried a line. */
+  perGame: GameLine[];
 }
 
 /**
@@ -140,8 +182,9 @@ export interface LastTimeHere {
  * reads as nonsense because the shortfall was never the first balls.
  */
 export interface BriefingGap {
-  /** `slice` is the whole screen being short, rather than one rule. */
-  kind: BriefingFinding["kind"] | "slice";
+  /** `slice` is the whole screen being short, rather than one rule.
+   *  `movement` is the game-by-game line, which is not a ranked finding. */
+  kind: BriefingFinding["kind"] | "slice" | "movement";
   have: number;
   need: number;
   /** Floor each of the `need` things has to clear, where there is one. */
@@ -154,6 +197,9 @@ export interface Briefing {
   /** Ranked and capped. Empty when nothing cleared the gates. */
   callouts: BriefingFinding[];
   lastTime: LastTimeHere | null;
+  /** How the line moves across a session here, slot by slot, in game order.
+   *  Empty until enough slots carry enough games. */
+  movement: MovementSlot[];
   gathering: BriefingGap[];
 }
 
@@ -199,6 +245,23 @@ export function buildBriefing(
   const found: BriefingFinding[] = [];
   const gathering: BriefingGap[] = [];
 
+  // Read before the slice gate, not after. That gate guards comparisons
+  // against the rest of your history, and the movement compares nothing: it
+  // reads back the line you played here, which is worth having on a screen
+  // that otherwise has nothing to say until six games are in.
+  const movement = movementSlots(slice, balls);
+  if (movement.length === 0 && games >= MIN_SLICE_GAMES) {
+    // Only once the slice itself is worth reading. Below that the slice note
+    // is the one shortfall, and a second line saying the same thing in game
+    // slots is a second way of saying "keep bowling".
+    gathering.push({
+      kind: "movement",
+      have: qualifyingMovementSlots(slice),
+      need: MIN_MOVEMENT_SLOTS,
+      each: MIN_MOVEMENT_SLOT_GAMES
+    });
+  }
+
   if (games < MIN_SLICE_GAMES) {
     // Nothing is worth saying yet, and it is one shortfall rather than five:
     // listing every rule as blocked would be five ways of saying the same thing.
@@ -207,6 +270,7 @@ export function buildBriefing(
       games,
       callouts: [],
       lastTime: lastTimeHere(slice, balls),
+      movement,
       gathering: [{ kind: "slice", have: games, need: MIN_SLICE_GAMES }]
     };
   }
@@ -226,6 +290,7 @@ export function buildBriefing(
     games,
     callouts,
     lastTime: lastTimeHere(slice, balls),
+    movement,
     gathering
   };
 }
@@ -384,26 +449,22 @@ function laneBiasFinding(slice: SessionSummary[], handedness: Handedness): RuleR
 }
 
 // ---------------------------------------------------------------------------
-// Last time here
+// The line you played
 // ---------------------------------------------------------------------------
 
-/**
- * The line you played on your most recent night in the slice.
- *
- * Read from the fresh-rack balls that carry a line, grouped by ball, taking
- * whichever ball most of them were thrown with. Median rather than mean, so a
- * single stray shot does not become the line you remember playing.
- */
-function lastTimeHere(slice: SessionSummary[], balls: Ball[]): LastTimeHere | null {
-  const latest = [...slice].sort((a, b) => b.session.date.localeCompare(a.session.date))[0];
-  if (!latest) return null;
+/** Fresh-rack lines in these games, grouped by the ball that threw them. */
+type LinesByBall = Map<number | undefined, { stances: number[]; targets: number[] }>;
 
-  const scores = latest.games.flatMap((g) =>
-    typeof g.final_score === "number" ? [g.final_score] : []
-  );
+/** A ball and a line, or nothing when no shot in the group carried one. */
+interface BallLine {
+  ballName?: string;
+  stance?: number;
+  target?: number;
+}
 
-  const byBall = new Map<number | undefined, { stances: number[]; targets: number[] }>();
-  for (const game of latest.games) {
+function collectLines(games: Game[]): LinesByBall {
+  const byBall: LinesByBall = new Map();
+  for (const game of games) {
     for (const frame of (game as Game & { frames: Frame[] }).frames ?? []) {
       for (const index of freshRackShotIndices(frame.shots)) {
         const shot = frame.shots[index];
@@ -417,11 +478,59 @@ function lastTimeHere(slice: SessionSummary[], balls: Ball[]): LastTimeHere | nu
       }
     }
   }
+  return byBall;
+}
 
+/**
+ * The ball most of these lines were thrown with, and the median line with it.
+ *
+ * Median rather than mean, so a single stray shot does not become the line you
+ * remember playing. Medians are taken within the busiest ball rather than
+ * across every ball, because averaging a line thrown with two different balls
+ * describes a shot nobody threw.
+ */
+function busiestLine(byBall: LinesByBall, balls: Ball[]): BallLine | null {
   const busiest = [...byBall.entries()].sort(
     (a, b) =>
       b[1].stances.length + b[1].targets.length - (a[1].stances.length + a[1].targets.length)
   )[0];
+  if (!busiest) return null;
+  return {
+    ballName: balls.find((b) => b.id === busiest[0])?.name,
+    stance: median(busiest[1].stances),
+    target: median(busiest[1].targets)
+  };
+}
+
+/**
+ * The line you played on your most recent session in the slice, whole and then
+ * game by game.
+ *
+ * The whole-session read stays because it is the one line that fits in a
+ * sentence. The per-game read is the one that answers what you opened with and
+ * where you had moved to by the last game, which the session median averages
+ * away (ADR-082).
+ */
+function lastTimeHere(slice: SessionSummary[], balls: Ball[]): LastTimeHere | null {
+  const latest = [...slice].sort((a, b) => b.session.date.localeCompare(a.session.date))[0];
+  if (!latest) return null;
+
+  const scores = latest.games.flatMap((g) =>
+    typeof g.final_score === "number" ? [g.final_score] : []
+  );
+
+  const ordered = [...latest.games].sort((a, b) => a.game_number - b.game_number);
+  const perGame = ordered.flatMap<GameLine>((game) => {
+    const line = busiestLine(collectLines([game]), balls);
+    if (!line) return [];
+    return [
+      {
+        gameNumber: game.game_number,
+        score: typeof game.final_score === "number" ? game.final_score : null,
+        ...line
+      }
+    ];
+  });
 
   const base: LastTimeHere = {
     sessionId: latest.session.id,
@@ -430,16 +539,69 @@ function lastTimeHere(slice: SessionSummary[], balls: Ball[]): LastTimeHere | nu
     games: scores.length,
     average: scores.length
       ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length)
-      : null
+      : null,
+    perGame
   };
 
-  if (!busiest) return base;
-  return {
-    ...base,
-    ballName: balls.find((b) => b.id === busiest[0])?.name,
-    stance: median(busiest[1].stances),
-    target: median(busiest[1].targets)
-  };
+  const whole = busiestLine(collectLines(latest.games), balls);
+  if (!whole) return base;
+  return { ...base, ...whole };
+}
+
+// ---------------------------------------------------------------------------
+// How the session moves here
+// ---------------------------------------------------------------------------
+
+/** Games in the slice, keyed by the slot they were bowled in. */
+function gamesBySlot(slice: SessionSummary[]): Map<number, Game[]> {
+  const slots = new Map<number, Game[]>();
+  for (const s of slice) {
+    for (const game of s.games) {
+      const inSlot = slots.get(game.game_number) ?? [];
+      inSlot.push(game);
+      slots.set(game.game_number, inSlot);
+    }
+  }
+  return slots;
+}
+
+/** Slots with enough games behind them, whether or not they carry a line. The
+ *  number the "still gathering" note counts down. */
+function qualifyingMovementSlots(slice: SessionSummary[]): number {
+  return [...gamesBySlot(slice).values()].filter((g) => g.length >= MIN_MOVEMENT_SLOT_GAMES)
+    .length;
+}
+
+/**
+ * Where the line sits in each game slot here, in game order.
+ *
+ * Empty unless at least two slots clear the floor: one slot is where you play,
+ * not how the lanes move. A slot that clears the floor but carries no line at
+ * all is dropped rather than shown blank, and dropping it can take the reading
+ * back below two, which is the honest outcome.
+ */
+function movementSlots(slice: SessionSummary[], balls: Ball[]): MovementSlot[] {
+  const slots = [...gamesBySlot(slice).entries()]
+    .filter(([, games]) => games.length >= MIN_MOVEMENT_SLOT_GAMES)
+    .sort((a, b) => a[0] - b[0]);
+
+  const read = slots.flatMap<MovementSlot>(([gameNumber, games]) => {
+    const line = busiestLine(collectLines(games), balls);
+    if (!line) return [];
+    const scores = games.flatMap((g) => (typeof g.final_score === "number" ? [g.final_score] : []));
+    return [
+      {
+        gameNumber,
+        games: games.length,
+        score: scores.length
+          ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length)
+          : null,
+        ...line
+      }
+    ];
+  });
+
+  return read.length >= MIN_MOVEMENT_SLOTS ? read : [];
 }
 
 function median(values: number[]): number | undefined {

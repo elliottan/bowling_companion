@@ -7,12 +7,19 @@ import { EmptyState } from "../components/ui/EmptyState";
 import { LoadingCard } from "../components/ui/LoadingCard";
 import { GROUP_HEADING } from "../components/ui/typography";
 import { FIELD_LABEL, FIELD_SELECT } from "../components/ui/field";
-import { buildBriefing, type BriefingFinding, type BriefingGap } from "../lib/briefing";
+import { LIST_DIVIDER, ListGroup } from "../components/ui/ListGroup";
+import {
+  buildBriefing,
+  type BriefingFinding,
+  type BriefingGap,
+  type GameLine,
+  type MovementSlot
+} from "../lib/briefing";
 import { useHandedness } from "../lib/handednessContext";
 import { setRemembered, useRememberedState } from "../lib/viewMemory";
 import { getSessionHistory } from "../services/bowlingRepository";
 import { getBalls } from "../services/ballRepository";
-import type { Ball, SessionSummary } from "../types/bowling";
+import type { Ball, Handedness, SessionSummary } from "../types/bowling";
 import { ErrorBanner } from "../components/ErrorBanner";
 
 /** The chart each callout is about, keyed the way the Stats tab remembers it.
@@ -186,6 +193,19 @@ export function GamePlanView({ onBack, onOpenStats, onOpenSession }: GamePlanVie
               </>
             )}
 
+            {briefing.movement.length > 0 && (
+              <div className="mt-4">
+                <ListGroup heading="How the session moves here">
+                  {briefing.movement.map((slot) => (
+                    <MovementRow key={slot.gameNumber} slot={slot} />
+                  ))}
+                </ListGroup>
+                <p className="mt-1.5 px-1 text-xs text-ink-tertiary">
+                  {describeDrift(briefing.movement, handedness)}
+                </p>
+              </div>
+            )}
+
             {briefing.callouts.length > 0 && (
               <>
                 <h2 className={`${GROUP_HEADING} mb-2 mt-4`}>What your history says</h2>
@@ -255,6 +275,13 @@ function LastTimeCard({
         <span className="text-xs tabular-nums text-ink-tertiary">{formatSessionDate(last.date)}</span>
       </span>
       <span className="mt-1 block text-sm text-ink-strong">{describeLastTime(last)}</span>
+      {last.perGame.length > 0 && (
+        <span className="mt-2.5 block border-t border-edge pt-1">
+          {last.perGame.map((game) => (
+            <GameLineRow key={game.gameNumber} line={game} />
+          ))}
+        </span>
+      )}
     </>
   );
 
@@ -333,5 +360,103 @@ function describeGap(g: BriefingGap): string {
       return `${g.have} of ${g.need} games logged elsewhere.`;
     case "laneBias":
       return `${g.have} of ${g.need} lanes with ${g.each}+ games each.`;
+    case "movement":
+      return `${g.have} of ${g.need} game slots with ${g.each}+ games each, before the line here can be read back.`;
   }
+}
+
+/**
+ * One game of the session read back: what you threw and where from.
+ *
+ * A span rather than a list item, because these sit inside the button that
+ * opens the session and a button may not contain a list.
+ */
+function GameLineRow({ line }: { line: GameLine }) {
+  return (
+    <span className="flex items-baseline gap-3 py-1">
+      <span className="w-14 shrink-0 text-xs text-ink-tertiary">Game {line.gameNumber}</span>
+      <span className="min-w-0 flex-1 truncate text-xs text-ink-secondary">
+        {describeLine(line)}
+      </span>
+      {line.score !== null && (
+        <span className="shrink-0 text-xs tabular-nums text-ink-tertiary">{line.score}</span>
+      )}
+    </span>
+  );
+}
+
+/** One game slot across every session here. */
+function MovementRow({ slot }: { slot: MovementSlot }) {
+  return (
+    <li className={`${LIST_DIVIDER} flex items-baseline gap-3 px-3 py-2.5`}>
+      <span className="w-14 shrink-0 text-sm text-ink">Game {slot.gameNumber}</span>
+      <span className="min-w-0 flex-1 truncate text-sm text-ink-secondary">
+        {describeLine(slot)}
+      </span>
+      <span className="shrink-0 text-xs tabular-nums text-ink-tertiary">
+        {slot.score !== null ? `${slot.score} avg` : `${slot.games} games`}
+      </span>
+    </li>
+  );
+}
+
+/** The ball and the boards, saying only what was recorded. */
+function describeLine(line: { ballName?: string; stance?: number; target?: number }): string {
+  const boards =
+    line.stance !== undefined && line.target !== undefined
+      ? `${line.stance} to ${line.target}`
+      : line.stance !== undefined
+        ? `stance ${line.stance}`
+        : line.target !== undefined
+          ? `target ${line.target}`
+          : "";
+  if (line.ballName && boards) return `${line.ballName}, ${boards}`;
+  return line.ballName ?? boards;
+}
+
+/**
+ * The move itself, stated once under the rows.
+ *
+ * Rows give the reader three lines to subtract in their head, and the number
+ * they would arrive at is the thing they came for. It describes the shift and
+ * stops: whether to make that move on the night is the bowler's call, on lanes
+ * this screen has never seen.
+ */
+export function describeDrift(slots: MovementSlot[], handedness: Handedness): string {
+  const first = slots[0];
+  const last = slots[slots.length - 1];
+  const ballChanged = !!first.ballName && !!last.ballName && first.ballName !== last.ballName;
+
+  const moves: string[] = [];
+  if (first.stance !== undefined && last.stance !== undefined && first.stance !== last.stance) {
+    moves.push(`${boardsMoved(first.stance, last.stance, handedness)} at the stance`);
+  }
+  if (first.target !== undefined && last.target !== undefined && first.target !== last.target) {
+    moves.push(`${boardsMoved(first.target, last.target, handedness)} at the target`);
+  }
+
+  const span = `By game ${last.gameNumber}`;
+  if (moves.length === 0 && !ballChanged) {
+    return `${span} you are on the same ball and the same line as game ${first.gameNumber}.`;
+  }
+  if (moves.length === 0) {
+    return `${span} you are on the ${last.ballName}, from the same line as game ${first.gameNumber}.`;
+  }
+  const move = `${span} you have moved ${moves.join(" and ")}`;
+  return ballChanged ? `${move}, and onto the ${last.ballName}.` : `${move}.`;
+}
+
+/**
+ * Boards and which way, in the bowler's own terms.
+ *
+ * Board numbers rise to the left for a right-hander and to the right for a
+ * left-hander, which is the same rule the line adjusters run on
+ * (`LineInput`). A higher board is not a direction on its own.
+ */
+function boardsMoved(from: number, to: number, handedness: Handedness): string {
+  const boards = Math.abs(to - from);
+  const unit = boards === 1 ? "board" : "boards";
+  const towardsHigher = handedness === "right" ? "left" : "right";
+  const towardsLower = handedness === "right" ? "right" : "left";
+  return `${boards} ${unit} ${to > from ? towardsHigher : towardsLower}`;
 }
