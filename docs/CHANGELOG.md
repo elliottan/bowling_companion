@@ -8,6 +8,14 @@ merge to `main` (`docs/DEPLOYMENT.md`), so every section below is a dated batch
 of shipped work rather than a release. Thirty of them used to be headed
 `[Unreleased]`, which said nothing once they had all shipped.
 
+## Tabs swap instead of sliding (2026-09-10)
+
+**Switching tabs no longer animates.** The content used to slide in from the
+side of the tab you tapped. Switching tabs is the most frequent thing you do in
+the app, and the screen was already chosen before the movement started, so the
+travel was only ever a delay. Pushed screens, sheets and dialogs keep their
+motion: those are places arriving and leaving.
+
 ## A session you are reading stays out of the Active tab (2026-09-10)
 
 **Opening a past session now pushes it over the list you opened it from.** Back

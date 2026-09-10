@@ -232,8 +232,11 @@ as the thing leaving.
   dragged down to dismiss (`useSheetDismiss`, `align: "bottom"`).
 - **Centered dialogs** settle in and scale back out (`useSheetDismiss`,
   `align: "center"`).
-- **Tab switches** enter from the side of the tab that was tapped, so the
-  travel matches the reach.
+- **Tab switches** do not animate. The destination is already on screen in the
+  bottom bar and the user has already chosen it, so travel only puts distance
+  between the tap and the screen (ADR-085). This is the one exception to the
+  symmetry rule above, and it is not really an exception: nothing animates in,
+  so nothing has to animate out.
 - **Collapsing tab headers** flip fully away and fully back, never parking half
   way (`useHeaderCollapse`, `CollapsingHeader`). The scroll says when, the
   header says how: it earns the flip over a threshold of committed travel, then

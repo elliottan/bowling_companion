@@ -3926,3 +3926,36 @@ session actually being bowled from the tab meant to hold it.
 - Deleting a session has two places to close it from, and does.
 - The Active tab can still be empty while history is full, which is correct:
   it is where you bowl, not where you browse.
+
+## ADR-085: A tab switch does not animate
+
+**Status:** accepted (2026-09).
+
+**Context.** Tab content entered from the side of the tab that was tapped, on a
+220ms slide, so the travel matched the reach. It read well in isolation and
+badly in use: the tab bar is the one piece of chrome always on screen, switching
+tabs is the most frequent navigation in the app, and every switch put a fifth of
+a second of movement between the tap and the screen that was already chosen.
+
+A push earns its slide because it is going somewhere new and back has to undo
+it. A tab switch is not going anywhere: the destination was visible and one tap
+away the whole time.
+
+**Decision.**
+
+Tab content swaps. No enter animation, no exit, no keyframes. The `<main>` stays
+keyed on the view, because several screens rely on the remount for their
+one-shot landing state, but the key now costs nothing visible.
+
+Push screens, sheets, dialogs and the collapsing header keep their motion
+unchanged: each is a place arriving or leaving, and each has a back that has to
+undo it.
+
+**Consequences.**
+- The `slide-in-from-right` and `slide-in-from-left` keyframes and their two
+  classes are gone, along with the direction state that picked between them.
+- `docs/DESIGN-LANGUAGE.md` §7 records the absence rather than leaving the rule
+  to be rediscovered from the code, since a missing animation is exactly the
+  kind of thing a later change adds back as an improvement.
+- Nothing was reduced-motion-only here: the switch is now instant for everyone,
+  which is what `prefers-reduced-motion` already gave a minority.
