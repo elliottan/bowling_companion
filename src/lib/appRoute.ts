@@ -23,6 +23,9 @@ import type { AppView, NavState, Overlay, SettingsSection } from "./appNavigatio
 export interface AppRoute {
   view: AppView;
   sessionId?: number;
+  /** The session pushed over the view, distinct from `sessionId`, which is the
+   *  session loaded in the Active tab. */
+  viewedSessionId?: number;
   settingsSection?: SettingsSection;
   overlays: Overlay[];
   catalogBallId?: string;
@@ -51,7 +54,8 @@ const OVERLAYS: readonly string[] = [
   "open-frames",
   "game-trend",
   "game-plan",
-  "stats-push"
+  "stats-push",
+  "session"
 ];
 
 const SETTINGS_SECTIONS: readonly string[] = [
@@ -87,6 +91,11 @@ export function toRoute(state: NavState): AppRoute {
   if (state.catalogBallId && state.overlays[state.overlays.length - 1] === "catalog") {
     route.catalogBallId = state.catalogBallId;
   }
+  // Only while the pushed session screen is the one on top, for the same
+  // reason as the catalog ball above it.
+  if (state.viewedSessionId != null && state.overlays[state.overlays.length - 1] === "session") {
+    route.viewedSessionId = state.viewedSessionId;
+  }
   if (state.lineSandboxOpen) route.lineSandbox = true;
   return route;
 }
@@ -101,6 +110,11 @@ export function formatRoute(route: AppRoute): string {
   }
 
   parts.push(...route.overlays);
+  // The id rides directly behind its own overlay segment, so `#/history/session/12`
+  // reads as the session pushed over History. The Active tab's own session is
+  // `#/session/12`, which is the view segment and cannot collide: a view is
+  // always the first segment and an overlay never is.
+  if (route.viewedSessionId != null) parts.push(String(route.viewedSessionId));
   if (route.catalogBallId) parts.push(BALL_SEGMENT, encodeURIComponent(route.catalogBallId));
   if (route.lineSandbox) parts.push(LINE_SEGMENT);
 
@@ -138,7 +152,18 @@ export function parseRoute(hash: string): AppRoute {
       route.catalogBallId = decodeURIComponent(segments[i + 1]);
       i += 1;
     } else if (segment === LINE_SEGMENT) route.lineSandbox = true;
-    else if (OVERLAYS.includes(segment)) route.overlays.push(segment as Overlay);
+    else if (OVERLAYS.includes(segment)) {
+      route.overlays.push(segment as Overlay);
+      if (segment === "session") {
+        const id = Number(segments[i + 1]);
+        // A pushed session with no usable id has nothing to show, so the
+        // overlay comes back off rather than opening empty.
+        if (Number.isInteger(id) && id > 0) {
+          route.viewedSessionId = id;
+          i += 1;
+        } else route.overlays.pop();
+      }
+    }
     // Anything else is dropped: an unknown segment must not strand the user on
     // a screen the app cannot render.
   }
@@ -164,6 +189,9 @@ export function routeHash(state: NavState): string {
 export function shouldPushHistory(from: NavState, to: NavState): boolean {
   if (to.overlays.length > from.overlays.length) return true;
   if (to.catalogBallId && to.catalogBallId !== from.catalogBallId) return true;
+  // Landing on a different session in the pushed screen is a navigation of its
+  // own, the way a different catalog ball is.
+  if (to.viewedSessionId != null && to.viewedSessionId !== from.viewedSessionId) return true;
   if (to.lineSandboxOpen && !from.lineSandboxOpen) return true;
   if (to.view === "active" && from.view !== "active") return true;
   if (to.view === "settings" && to.settingsSection !== "menu" && from.settingsSection === "menu") {

@@ -29,6 +29,17 @@ describe("appRoute", () => {
     ["#/session/12", { view: "active", sessionId: 12, overlays: [] }],
     ["#/home/arsenal", { view: "dashboard", overlays: ["arsenal"] }],
     ["#/home/arsenal/catalog", { view: "dashboard", overlays: ["arsenal", "catalog"] }],
+    // A session you are reading rides behind its own overlay segment, so the
+    // list underneath survives a reload. `#/session/12` is still the Active
+    // tab's own session: a view is always the first segment.
+    [
+      "#/history/session/12",
+      { view: "history", overlays: ["session"], viewedSessionId: 12 }
+    ],
+    [
+      "#/home/game-plan/session/12",
+      { view: "dashboard", overlays: ["game-plan", "session"], viewedSessionId: 12 }
+    ],
     // The game plan hands off to Stats by pushing it, so the pair survives a
     // reload and the platform back still lands on the game plan.
     [
@@ -197,6 +208,17 @@ describe("appRoute", () => {
 
     it("drops a ball segment with no id rather than stranding the detail", () => {
       expect(parseRoute("#/home/catalog/ball").catalogBallId).toBeUndefined();
+    });
+
+    it("drops a pushed session with no id rather than opening it empty", () => {
+      const route = parseRoute("#/history/session");
+      expect(route.overlays).toEqual([]);
+      expect(route.viewedSessionId).toBeUndefined();
+    });
+
+    it("still reads the Active tab's own session, which is a view", () => {
+      const route = parseRoute("#/session/12");
+      expect(route).toEqual({ view: "active", sessionId: 12, overlays: [] });
     });
   });
 });

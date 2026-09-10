@@ -8,6 +8,20 @@ merge to `main` (`docs/DEPLOYMENT.md`), so every section below is a dated batch
 of shipped work rather than a release. Thirty of them used to be headed
 `[Unreleased]`, which said nothing once they had all shipped.
 
+## A session you are reading stays out of the Active tab (2026-09-10)
+
+**Opening a past session now pushes it over the list you opened it from.** Back
+returns you to that list, whether it was History, a stats drill-down or the game
+plan, instead of leaving you in the Active tab.
+
+**The Game plan card no longer disappears after you look at an old session.**
+The card shows while you are between sessions, and reading a session used to
+count as being in one, so the card vanished until you started and left another.
+
+**A session with a game still to finish still opens in the Active tab**, because
+that is where you bowl it. Only sessions with nothing left to score are pushed,
+and opening one no longer takes the session you are bowling out of the tab.
+
 ## Back out of Stats, into the game plan (2026-09-10)
 
 **Tapping a game plan callout now pushes the Stats screen instead of switching

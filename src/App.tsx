@@ -378,14 +378,30 @@ function App() {
 
   // `openStats` (a finished session) lands on the session page with the stats
   // sheet already up, there's no scoring left to do there.
-  function openSession(sessionId: number, openStats = false) {
-    dispatch({ type: "openSession", sessionId, openStats });
+  /**
+   * Open a session from a list, as the thing it is.
+   *
+   * A session with a game still to finish is one you are bowling, so it loads
+   * into the Active tab, which is the one place scoring happens. Any other
+   * session is one you are reading, so it pushes over the list you opened it
+   * from: back returns to the list, and the Active tab keeps whatever you were
+   * actually bowling (ADR-084).
+   *
+   * The read decides, rather than the caller, because every caller is a list of
+   * sessions and none of them knows which kind it is holding.
+   */
+  async function openSession(sessionId: number, openStats = false) {
+    const resumable = await getResumableForSession(sessionId).catch(() => null);
+    if (resumable) dispatch({ type: "openSession", sessionId, openStats });
+    else dispatch({ type: "viewSession", sessionId, openStats });
   }
 
   /** Straight to one game of a session, from a stats drill-down. The ball goes
    *  too: the session sheet opens on that game with its shots lit up. */
-  function openSessionGame(sessionId: number, gameId: number, ballId?: number) {
-    dispatch({ type: "openSession", sessionId, gameId, ballId });
+  async function openSessionGame(sessionId: number, gameId: number, ballId?: number) {
+    const resumable = await getResumableForSession(sessionId).catch(() => null);
+    if (resumable) dispatch({ type: "openSession", sessionId, gameId, ballId });
+    else dispatch({ type: "viewSession", sessionId, gameId, ballId });
   }
 
   // Thrown in render, not handled here: only AppErrorBoundary can tell a shell
@@ -590,6 +606,28 @@ function App() {
           // The Stats screen itself, pushed. Same component and the same
           // remembered filters as the tab, so the numbers a callout sent you to
           // are the numbers you land on.
+          // A session you are reading, over the list you opened it from. The
+          // Active tab is untouched underneath: it holds the session you are
+          // bowling, if there is one (ADR-084).
+          case "session":
+            return nav.viewedSessionId == null ? null : (
+              <ActiveSessionView
+                key={`session-${i}-${nav.viewedSessionId}`}
+                mode="push"
+                sessionId={nav.viewedSessionId}
+                openStatsOnMount={openSessionStats}
+                initialGameId={openSessionGameId ?? undefined}
+                initialBallId={openSessionBallId ?? undefined}
+                onGameOpened={() => dispatch({ type: "sessionGameOpened" })}
+                onStatsOpened={() => dispatch({ type: "statsOpened" })}
+                onBack={popOverlay}
+                onSessionDeleted={() =>
+                  nav.viewedSessionId != null &&
+                  dispatch({ type: "sessionDeleted", sessionId: nav.viewedSessionId })
+                }
+                onOpenArsenal={() => pushOverlay("arsenal")}
+              />
+            );
           case "stats-push":
             return (
               <StatsView

@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { RECORD_SHOT, clearDatabase, startSession } from "./helpers";
+import { RECORD_SHOT, clearDatabase, recordShot, startSession } from "./helpers";
 
 test.beforeEach(async ({ page }) => {
   await clearDatabase(page);
@@ -181,4 +181,41 @@ test("Stats opened from the game plan is a push, and back returns to it", async 
   await page.goBack();
   await expect(page).toHaveURL(/#\/home\/game-plan$/);
   await expect(page.getByRole("dialog", { name: "Game plan" })).toBeVisible();
+});
+
+/**
+ * Which of the two a session opens as is read from the session, not chosen by
+ * the list that holds it: one with a game still to finish is one you are
+ * bowling, anything else is one you are reading (ADR-084).
+ */
+test("a finished session opened from History pushes, and back returns to History", async ({
+  page
+}) => {
+  await startSession(page, "Read Lanes");
+  // A perfect game, so nothing is left to finish and the session is a thing to
+  // read rather than a thing to bowl.
+  for (let i = 0; i < 12; i++) await recordShot(page, []);
+
+  await page.getByRole("navigation").getByRole("button", { name: "History" }).click();
+  await expect(page).toHaveURL(/#\/history$/);
+  await page.getByRole("button", { name: /Read Lanes/ }).click();
+
+  // Pushed over History, not loaded into the Active tab.
+  await expect(page).toHaveURL(/#\/history\/session\/\d+$/);
+  await expect(page.getByRole("dialog", { name: "Session" })).toBeVisible();
+
+  await page.goBack();
+  await expect(page).toHaveURL(/#\/history$/);
+});
+
+test("a session with a game still to finish opens in the Active tab", async ({ page }) => {
+  await startSession(page, "Bowling Lanes");
+  await recordShot(page, []); // one frame, ten still to go
+
+  await page.getByRole("navigation").getByRole("button", { name: "History" }).click();
+  await page.getByRole("button", { name: /Bowling Lanes/ }).click();
+
+  // The one place scoring happens, so the live-entry control is there.
+  await expect(page).toHaveURL(/#\/session\/\d+$/);
+  await expect(page.getByRole("button", { name: RECORD_SHOT })).toBeVisible();
 });

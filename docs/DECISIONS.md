@@ -3879,3 +3879,50 @@ with filters set by a screen no longer on the stack.
   it is opened, exactly as the tab switch did. The filters are one shared
   memory, which is the point of them: they are the slice you are looking at,
   not a property of a screen.
+
+## ADR-084: A session you are reading is not the session you are bowling
+
+**Status:** accepted (2026-09).
+
+**Context.** One piece of state meant two things. `view: "active"` plus
+`activeSessionId` was both "the session I am bowling" and "a session I happened
+to open", because every route into a session went through the same action: the
+history list, a stats drill-down, and the game plan's "last time" all switched
+to the Active tab and loaded the session there.
+
+That conflation was visible as a bug. The dashboard hides its Game plan card
+while `activeSessionId` is set, because a game plan is read between sessions.
+Open a past session from the game plan, go home, and the card was gone: the app
+believed a session was underway on the strength of a session the user had only
+looked at. Opening a past session mid-session was worse, silently evicting the
+session actually being bowled from the tab meant to hold it.
+
+**Decision.**
+
+- **Two pieces of state.** `activeSessionId` is the session being bowled, and
+  only that. `viewedSessionId`, beside a `session` overlay, is a session being
+  read, pushed over the list it was opened from. The id sits beside the overlay
+  rather than inside it for the same reason `catalogBallId` does: the Overlay
+  union cannot carry one.
+- **The session decides which, not the caller.** Opening a session reads
+  `getResumableForSession`. A session with a game still to finish loads into the
+  Active tab, because that is the one place scoring happens. Every other session
+  pushes. Every caller is a list of sessions and none of them knows which kind
+  it is holding, so the choice belongs in one place rather than at each of them.
+- **The pushed screen is the same component.** `ActiveSessionView` in `push`
+  mode wraps itself in a `PushScreen`, so it carries a back control and the tab
+  bar stays live underneath. A finished session already hides the live-entry
+  controls, so nothing had to be disabled to make it a reading screen.
+- **`#/history/session/12` is the URL**, the id riding behind its own overlay
+  segment. `#/session/12` still means the Active tab's session: a view is
+  always the first segment and an overlay never is, so the two cannot collide.
+
+**Consequences.**
+- The Game plan card survives reading a past session, which is the bug that
+  started this.
+- Opening a session while bowling one no longer evicts the one being bowled.
+- Back out of a session returns to the list it was opened from rather than to
+  whatever `previousView` happened to hold.
+- Deleting a session has two places to close it from, and does.
+- The Active tab can still be empty while history is full, which is correct:
+  it is where you bowl, not where you browse.
