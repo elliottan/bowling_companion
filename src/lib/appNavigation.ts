@@ -45,6 +45,10 @@ export type Overlay =
   | "open-frames"
   | "game-trend"
   | "game-plan"
+  /** A session you are looking at rather than bowling. Pushed over whatever
+   *  list you opened it from, so back returns to the list and the Active tab
+   *  keeps the session you are actually bowling (ADR-084). */
+  | "session"
   /** The Stats tab's own screen, pushed rather than switched to. The game plan
    *  hands off to it with the filters already set, and a hand-off that switched
    *  tabs left no way back to the screen that made the point (ADR-083). */
@@ -72,6 +76,11 @@ export interface NavState {
    *  Overlay union cannot. It lives here, not in CatalogView, so the platform
    *  back gesture pops it like any other push (see useHistoryRoute). */
   catalogBallId: string | null;
+  /** The session the pushed `session` overlay is showing, by id. A field beside
+   *  the overlay rather than part of it, for the same reason as
+   *  `catalogBallId`: the Overlay union cannot carry an id. Distinct from
+   *  `activeSessionId`, which is the session being bowled (ADR-084). */
+  viewedSessionId: number | null;
   lineSandboxOpen: boolean;
 }
 
@@ -85,6 +94,8 @@ export type NavAction =
       ballId?: number;
     }
   | { type: "leaveSession" }
+  /** Look at a session without making it the one you are bowling. */
+  | { type: "viewSession"; sessionId: number; openStats?: boolean; gameId?: number; ballId?: number }
   | { type: "goToSettingsSection"; section: SettingsSection }
   | { type: "pushOverlay"; overlay: Overlay }
   | { type: "popOverlay" }
@@ -103,6 +114,9 @@ export type NavAction =
 export interface RestorableRoute {
   view: AppView;
   sessionId?: number;
+  /** The pushed session, which is not the same thing as `sessionId`: that one
+   *  is the Active tab's. */
+  viewedSessionId?: number;
   settingsSection?: SettingsSection;
   overlays: Overlay[];
   catalogBallId?: string;
@@ -119,6 +133,7 @@ export const INITIAL_NAV: NavState = {
   settingsSection: "menu",
   overlays: [],
   catalogBallId: null,
+  viewedSessionId: null,
   lineSandboxOpen: false
 };
 
@@ -152,6 +167,28 @@ export function navReducer(state: NavState, action: NavAction): NavState {
         openSessionBallId: action.ballId ?? null
       };
 
+    /**
+     * A session you are reading, pushed over the list you opened it from.
+     *
+     * Nothing about the Active tab moves: the session you are bowling stays
+     * loaded in it, and the dashboard goes on treating you as between sessions,
+     * which is what it means to be reading one (ADR-084). The one-shot fields
+     * are shared with `openSession`, since only one session screen is ever on
+     * top and they are cleared the moment it reads them.
+     */
+    case "viewSession":
+      return {
+        ...state,
+        overlays:
+          state.overlays[state.overlays.length - 1] === "session"
+            ? state.overlays
+            : [...state.overlays, "session"],
+        viewedSessionId: action.sessionId,
+        openSessionStats: action.openStats ?? false,
+        openSessionGameId: action.gameId ?? null,
+        openSessionBallId: action.ballId ?? null
+      };
+
     case "leaveSession":
       return { ...state, view: state.previousView };
 
@@ -165,12 +202,17 @@ export function navReducer(state: NavState, action: NavAction): NavState {
         ? state
         : { ...state, overlays: [...state.overlays, action.overlay] };
 
-    case "popOverlay":
+    case "popOverlay": {
       // A ball detail is on top of the catalog, so back takes it first and
       // leaves the catalog standing.
-      return state.catalogBallId !== null
-        ? { ...state, catalogBallId: null }
-        : { ...state, overlays: state.overlays.slice(0, -1) };
+      if (state.catalogBallId !== null) return { ...state, catalogBallId: null };
+      const overlays = state.overlays.slice(0, -1);
+      // The id goes with the screen that was showing it, or a later push of
+      // another session would flash the last one on its way in.
+      return overlays.includes("session")
+        ? { ...state, overlays }
+        : { ...state, overlays, viewedSessionId: null };
+    }
 
     case "openCatalogBall":
       return { ...state, catalogBallId: action.ballId };
@@ -191,12 +233,27 @@ export function navReducer(state: NavState, action: NavAction): NavState {
       // tab switches remount the session view.
       return state.openSessionStats ? { ...state, openSessionStats: false } : state;
 
-    case "sessionDeleted":
+    case "sessionDeleted": {
       // Deleting the session that is open drops us out of it; deleting any
-      // other one leaves navigation alone.
-      return action.sessionId === state.activeSessionId
-        ? { ...state, activeSessionId: null, view: state.view === "active" ? state.previousView : state.view }
-        : state;
+      // other one leaves navigation alone. Both places a session can be open
+      // count: the Active tab, and a pushed one on top of a list.
+      let next = state;
+      if (action.sessionId === state.viewedSessionId) {
+        next = {
+          ...next,
+          viewedSessionId: null,
+          overlays: next.overlays.filter((o) => o !== "session")
+        };
+      }
+      if (action.sessionId === state.activeSessionId) {
+        next = {
+          ...next,
+          activeSessionId: null,
+          view: next.view === "active" ? next.previousView : next.view
+        };
+      }
+      return next;
+    }
 
     case "restore": {
       const { route } = action;
@@ -210,6 +267,7 @@ export function navReducer(state: NavState, action: NavAction): NavState {
         settingsSection: route.settingsSection ?? "menu",
         overlays: route.overlays,
         catalogBallId: route.catalogBallId ?? null,
+        viewedSessionId: route.viewedSessionId ?? null,
         lineSandboxOpen: route.lineSandbox ?? false
       };
     }

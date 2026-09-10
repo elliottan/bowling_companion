@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { RECORD_SHOT, clearDatabase, startSession } from "./helpers";
+import { RECORD_SHOT, clearDatabase, recordShot, startSession } from "./helpers";
 
 test.beforeEach(async ({ page }) => {
   await clearDatabase(page);
@@ -181,4 +181,61 @@ test("Stats opened from the game plan is a push, and back returns to it", async 
   await page.goBack();
   await expect(page).toHaveURL(/#\/home\/game-plan$/);
   await expect(page.getByRole("dialog", { name: "Game plan" })).toBeVisible();
+});
+
+/**
+ * Which of the two a session opens as is read from the session, not chosen by
+ * the list that holds it: one with a game still to finish is one you are
+ * bowling, anything else is one you are reading (ADR-084).
+ */
+test("a finished session opened from History pushes, and back returns to History", async ({
+  page
+}) => {
+  await startSession(page, "Read Lanes");
+  // A perfect game, so nothing is left to finish and the session is a thing to
+  // read rather than a thing to bowl.
+  for (let i = 0; i < 12; i++) await recordShot(page, []);
+  // Assert the precondition rather than assume it. The live-entry control going
+  // away is how a finished game shows itself, and waiting for it is what makes
+  // the read behind the tap below see a scored game: without this the loop can
+  // return with the tenth frame still open, the session is then one you are
+  // still bowling, and it correctly opens in the Active tab instead.
+  await expect(page.getByRole("button", { name: RECORD_SHOT })).toHaveCount(0);
+
+  // Straight to History by URL, which starts the back stack fresh: bowling the
+  // game walked through the scorer and raised the backup and share prompts,
+  // and each of those leaves entries of its own behind.
+  await page.goto("/score/#/history");
+  await expect(page).toHaveURL(/#\/history$/);
+  await page.getByRole("button", { name: /Read Lanes/ }).click();
+
+  // Pushed over History, not loaded into the Active tab.
+  await expect(page).toHaveURL(/#\/history\/session\/\d+$/);
+  await expect(page.getByRole("dialog", { name: "Session" })).toBeVisible();
+
+  // A finished session lands with its panel already up (SessionHistory opens
+  // one with openStats), and back closes the sheet in front before the screen
+  // behind it. So the first back is the panel's, not the push's.
+  // The panel carries the series total; the pushed screen behind it does not.
+  await expect(page.getByLabel("Series total")).toBeVisible();
+  await page.goBack();
+  await expect(page.getByLabel("Series total")).toHaveCount(0);
+  await expect(page).toHaveURL(/#\/history\/session\/\d+$/);
+
+  // The push's own back, which is what this test is about.
+  await page.goBack();
+  await expect(page).toHaveURL(/#\/history$/);
+  await expect(page.getByRole("dialog", { name: "Session" })).toHaveCount(0);
+});
+
+test("a session with a game still to finish opens in the Active tab", async ({ page }) => {
+  await startSession(page, "Bowling Lanes");
+  await recordShot(page, []); // one frame, ten still to go
+
+  await page.getByRole("navigation").getByRole("button", { name: "History" }).click();
+  await page.getByRole("button", { name: /Bowling Lanes/ }).click();
+
+  // The one place scoring happens, so the live-entry control is there.
+  await expect(page).toHaveURL(/#\/session\/\d+$/);
+  await expect(page.getByRole("button", { name: RECORD_SHOT })).toBeVisible();
 });

@@ -7,6 +7,7 @@ import { ConfirmDialog } from "../components/ConfirmDialog";
 import { ErrorBanner } from "../components/ErrorBanner";
 import { SessionFormDialog } from "../components/SessionFormDialog";
 import { SessionHeaderText } from "../components/SessionHeaderText";
+import { PushScreen } from "../components/PushScreen";
 import { SessionLanePanel, type SessionPanelTab } from "../components/SessionLanePanel";
 import { Button } from "../components/ui/Button";
 import { Chip, TAP_TARGET_44 } from "../components/ui/Chip";
@@ -57,6 +58,13 @@ interface ActiveSessionViewProps {
   onSessionDeleted: () => void;
   /** Jump to Arsenal to manage balls. */
   onOpenArsenal: () => void;
+  /**
+   * `tab` (default) is the Active tab: the session you are bowling, with the
+   * tab bar as its navigation. `push` is a session you are reading, pushed over
+   * the list you opened it from, so it carries a nav bar and a back control
+   * (ADR-084).
+   */
+  mode?: "tab" | "push";
 }
 
 const isPositiveInt = (s: string) => /^\d+$/.test(s.trim());
@@ -78,7 +86,8 @@ export function ActiveSessionView({
   onGameOpened,
   onBack,
   onSessionDeleted,
-  onOpenArsenal
+  onOpenArsenal,
+  mode = "tab"
 }: ActiveSessionViewProps) {
   const [sessionDetails, setSessionDetails] = useState<SessionSummary | null>(null);
   const [activeGameId, setActiveGameId] = useState<number | null>(null);
@@ -386,7 +395,7 @@ export function ActiveSessionView({
     ? `Game ${gameToDelete.game_number}${deleteGameScore ? ` (score ${deleteGameScore})` : ""} and its frames will be permanently deleted.`
     : "";
 
-  return (
+  const body = (
     <div>
       <section className="mx-auto w-full max-w-5xl px-3 pt-2 sm:px-6">
         <div className="flex items-start gap-2">
@@ -673,5 +682,21 @@ export function ActiveSessionView({
         </FormSheet>
       )}
     </div>
+  );
+
+  if (mode === "tab") return body;
+  // "Session" rather than the alley: the identity block right underneath
+  // already names the alley and the date, and a nav title that arrives a tick
+  // after the screen does reads as the screen changing under the thumb.
+  return (
+    <PushScreen
+      title="Session"
+      onBack={onBack}
+      active={
+        !showSheet && !shareOpen && !showEdit && !showLaneEditor && confirmDeleteGame === null
+      }
+    >
+      {body}
+    </PushScreen>
   );
 }

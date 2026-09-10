@@ -226,6 +226,44 @@ describe("leaving a pushed screen", () => {
     expect(navReducer(state, { type: "popOverlay" }).overlays).toEqual(["game-plan"]);
   });
 
+  it("pushes a session you are reading, leaving the Active tab alone", () => {
+    // The whole point of the split: the dashboard treats a set activeSessionId
+    // as "you are mid-session" and hides the game plan card for it, so reading
+    // a past session must not set one (ADR-084).
+    const state = navReducer(
+      nav({ view: "dashboard", overlays: ["game-plan"], activeSessionId: 3 }),
+      { type: "viewSession", sessionId: 7 }
+    );
+    expect(state.view).toBe("dashboard");
+    expect(state.overlays).toEqual(["game-plan", "session"]);
+    expect(state.viewedSessionId).toBe(7);
+    expect(state.activeSessionId).toBe(3);
+
+    const back = navReducer(state, { type: "popOverlay" });
+    expect(back.overlays).toEqual(["game-plan"]);
+    expect(back.viewedSessionId).toBeNull();
+  });
+
+  it("swaps the session in place rather than stacking two of them", () => {
+    const first = navReducer(nav({ view: "history" }), { type: "viewSession", sessionId: 7 });
+    const second = navReducer(first, { type: "viewSession", sessionId: 9 });
+    expect(second.overlays).toEqual(["session"]);
+    expect(second.viewedSessionId).toBe(9);
+  });
+
+  it("closes a pushed session when that session is deleted", () => {
+    const open = navReducer(nav({ view: "history" }), { type: "viewSession", sessionId: 7 });
+    const gone = navReducer(open, { type: "sessionDeleted", sessionId: 7 });
+    expect(gone.overlays).toEqual([]);
+    expect(gone.viewedSessionId).toBeNull();
+    expect(gone.view).toBe("history");
+  });
+
+  it("leaves a pushed session standing when a different session is deleted", () => {
+    const open = navReducer(nav({ view: "history" }), { type: "viewSession", sessionId: 7 });
+    expect(navReducer(open, { type: "sessionDeleted", sessionId: 8 })).toEqual(open);
+  });
+
   it("leaves the push behind when a session opens from inside one", () => {
     const state = navReducer(nav({ view: "dashboard", overlays: ["game-plan"] }), {
       type: "openSession",
