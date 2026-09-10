@@ -296,17 +296,6 @@ function App() {
     void persistDriftModel(next).catch(() => {});
   }
 
-  // Sign of the travel between tabs, so the incoming screen enters from the
-  // side the user reached towards.
-  const tabIndex = NAV_ITEMS.findIndex((i) => i.view === view);
-  const previousTabIndex = useRef(tabIndex);
-  const [tabDirection, setTabDirection] = useState(1);
-  useEffect(() => {
-    if (tabIndex !== previousTabIndex.current) {
-      setTabDirection(tabIndex > previousTabIndex.current ? 1 : -1);
-      previousTabIndex.current = tabIndex;
-    }
-  }, [tabIndex]);
 
   const goTo = (view: AppView) => dispatch({ type: "goTo", view });
 
@@ -456,13 +445,15 @@ function App() {
         </div>
       </header>
 
-      {/* Keyed on the view so each tab's content re-enters, travelling from the
-          side the tapped tab sits on. */}
+      {/* Keyed on the view so each tab's content mounts fresh, which several
+          screens rely on for their one-shot landing state. A tab switch does
+          not animate: the tab bar is always on screen and the destination is
+          already chosen, so travel only delays it (ADR-085). */}
       <main
         key={view}
         ref={mainRef}
         onScroll={(e) => rememberScroll(`view:${view}`, e.currentTarget.scrollTop)}
-        className={`min-h-0 flex-1 overflow-y-auto overscroll-contain ${tabDirection >= 0 ? "animate-tab-right" : "animate-tab-left"}`}
+        className="min-h-0 flex-1 overflow-y-auto overscroll-contain"
       >
         <Suspense fallback={null}>
         {view === "dashboard" && (

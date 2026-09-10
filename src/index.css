@@ -211,29 +211,6 @@ input[type="date"]::-webkit-date-and-time-value {
   animation: pop-in 0.18s ease-out;
 }
 
-/* Tab switches travel in the direction of the tab that was tapped. */
-@keyframes slide-in-from-right {
-  from {
-    transform: translateX(24px);
-    opacity: 0;
-  }
-  to {
-    transform: translateX(0);
-    opacity: 1;
-  }
-}
-
-@keyframes slide-in-from-left {
-  from {
-    transform: translateX(-24px);
-    opacity: 0;
-  }
-  to {
-    transform: translateX(0);
-    opacity: 1;
-  }
-}
-
 /* The tab header flips fully away and fully back (never half-there), so the
    travel has to be animated: the scroll only says when, not how. Height and
    transform move together, because the row gives its space back rather than
@@ -251,18 +228,8 @@ input[type="date"]::-webkit-date-and-time-value {
   }
 }
 
-.animate-tab-right {
-  animation: slide-in-from-right 0.22s cubic-bezier(0.32, 0.72, 0, 1);
-}
-
-.animate-tab-left {
-  animation: slide-in-from-left 0.22s cubic-bezier(0.32, 0.72, 0, 1);
-}
-
 @media (prefers-reduced-motion: reduce) {
-  .animate-pop-in,
-  .animate-tab-right,
-  .animate-tab-left {
+  .animate-pop-in {
     animation: none;
   }
 }
