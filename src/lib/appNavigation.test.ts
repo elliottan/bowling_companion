@@ -215,22 +215,15 @@ describe("navReducer", () => {
 
 const nav = (over: Partial<NavState> = {}): NavState => ({ ...INITIAL_NAV, ...over });
 
-describe("leaving a pushed screen for a tab", () => {
-  it("switches tab and drops the push in one move", () => {
-    const state = navReducer(
-      nav({ view: "dashboard", overlays: ["game-plan"] }),
-      { type: "crossToTab", view: "stats" }
-    );
-    expect(state.view).toBe("stats");
-    expect(state.overlays).toEqual([]);
-  });
-
-  it("starts Settings at its menu, like the tab bar does", () => {
-    const state = navReducer(
-      nav({ view: "dashboard", overlays: ["game-plan"], settingsSection: "lanes" }),
-      { type: "crossToTab", view: "settings" }
-    );
-    expect(state.settingsSection).toBe("menu");
+describe("leaving a pushed screen", () => {
+  it("stacks the Stats push over the game plan, so back returns to it", () => {
+    const state = navReducer(nav({ view: "dashboard", overlays: ["game-plan"] }), {
+      type: "pushOverlay",
+      overlay: "stats-push"
+    });
+    expect(state.view).toBe("dashboard");
+    expect(state.overlays).toEqual(["game-plan", "stats-push"]);
+    expect(navReducer(state, { type: "popOverlay" }).overlays).toEqual(["game-plan"]);
   });
 
   it("leaves the push behind when a session opens from inside one", () => {

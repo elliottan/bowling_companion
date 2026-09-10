@@ -3838,3 +3838,44 @@ foul line.
   outcome.
 - "Last time" is now a tall card. It is still one tap target, and what it opens
   is the session those rows came from.
+
+## ADR-083: The game plan pushes Stats rather than crossing to the tab
+
+**Status:** accepted (2026-09).
+
+**Context.** Every callout on the game plan is a claim about a number, and
+tapping one hands the Stats screen the slice it was talking about (ADR-065b):
+the alley, the pattern, and the chart the callout was about. That hand-off was
+a tab switch. It dropped the overlay stack and left the user on the Stats tab
+with no way back, so reading a callout cost you the screen that made the point,
+and the only route back was the dashboard and another push into the game plan.
+
+The tab switch also could not survive a reload as what it was. `#/stats` says
+"the Stats tab", so a refresh landed somewhere the user had not navigated to,
+with filters set by a screen no longer on the stack.
+
+**Decision.**
+
+- **The hand-off is a push.** Stats goes on the overlay stack above the game
+  plan as `stats-push`, so the platform back, the nav-bar chevron and a reload
+  all agree: back returns to the game plan, filters and all.
+- **Same component, same filters.** The pushed screen is `StatsView` in `push`
+  mode, reading the same remembered `history:*` filters as the tab. The numbers
+  a callout sends you to are the numbers the tab would show.
+- **Pushed, it does not head itself.** The nav bar carries the title, so the
+  screen's own `<h1>Stats</h1>` is suppressed in `push` mode. The filter and
+  share controls stay in the content, above the chips they belong to: only one
+  of them could have moved into the nav bar's single trailing slot, and
+  splitting the pair would have been worse than leaving both.
+- **`crossToTab` goes.** It existed for this one hand-off, which was the only
+  screen that left a push for a tab. A navigation action with no callers is a
+  shape the next screen copies by accident.
+
+**Consequences.**
+- `#/home/game-plan/stats-push` is a linkable, reloadable place.
+- The Stats screen now has two chromes, and a change to its header has to be
+  read in both. The alternative was a second component that would drift.
+- Stats reached from the game plan sets the filters the tab will show next time
+  it is opened, exactly as the tab switch did. The filters are one shared
+  memory, which is the point of them: they are the slice you are looking at,
+  not a property of a screen.

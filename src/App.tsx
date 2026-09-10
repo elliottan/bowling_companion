@@ -587,14 +587,31 @@ function App() {
             return <OpenFramesView key={`open-frames-${i}`} onBack={popOverlay} />;
           case "game-trend":
             return <GameTrendView key={`game-trend-${i}`} onBack={popOverlay} />;
+          // The Stats screen itself, pushed. Same component and the same
+          // remembered filters as the tab, so the numbers a callout sent you to
+          // are the numbers you land on.
+          case "stats-push":
+            return (
+              <StatsView
+                key={`stats-push-${i}`}
+                mode="push"
+                onBack={popOverlay}
+                onOpenSession={openSession}
+                onOpenSessionGame={openSessionGame}
+                onOpenFrames={() => pushOverlay("open-frames")}
+                onOpenGameTrend={() => pushOverlay("game-trend")}
+              />
+            );
           case "game-plan":
             return (
               <GamePlanView
                 key={`game-plan-${i}`}
                 onBack={popOverlay}
-                // One dispatch, not a pop and a switch: the pop lands through
-                // popstate a tick later and would overwrite the switch.
-                onOpenStats={() => dispatch({ type: "crossToTab", view: "stats" })}
+                // Pushed over the game plan rather than a switch to the Stats
+                // tab. The callout made a point about a number, and back has to
+                // return to the point rather than strand you on a tab you never
+                // chose (ADR-083).
+                onOpenStats={() => pushOverlay("stats-push")}
                 onOpenSession={(sessionId) => openSession(sessionId)}
               />
             );

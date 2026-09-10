@@ -27,6 +27,7 @@ import { useSessionFilters } from "./useSessionFilters";
 import type { Ball } from "../types/bowling";
 import { ListGroup, ListRow } from "../components/ui/ListGroup";
 import { ErrorBanner } from "../components/ErrorBanner";
+import { PushScreen } from "../components/PushScreen";
 
 interface StatsViewProps {
   onOpenSession: (sessionId: number) => void;
@@ -35,6 +36,15 @@ interface StatsViewProps {
   onOpenSessionGame?: (sessionId: number, gameId: number, ballId?: number) => void;
   onOpenFrames: () => void;
   onOpenGameTrend: () => void;
+  /**
+   * `tab` (default) is the Stats tab: its own screen, titled by its heading.
+   * `push` is the same screen pushed over whatever opened it, which the game
+   * plan does so that back returns to the callout that sent you here rather
+   * than dropping you on a tab you never chose (ADR-083).
+   */
+  mode?: "tab" | "push";
+  /** Required in `push` mode, ignored in `tab` mode. */
+  onBack?: () => void;
 }
 
 const NO_BALLS: Ball[] = [];
@@ -58,7 +68,9 @@ export function StatsView({
   onOpenSession,
   onOpenSessionGame,
   onOpenFrames,
-  onOpenGameTrend
+  onOpenGameTrend,
+  mode = "tab",
+  onBack
 }: StatsViewProps) {
   const filters = useSessionFilters();
   const { filtered, activeLanes, isLoading } = filters;
@@ -115,11 +127,19 @@ export function StatsView({
     return el ? restoreScroll(el, "stats:scroll") : undefined;
   }, []);
 
-  return (
+  // Pushed, the nav bar already carries the title, so a second "Stats" under
+  // it would name the screen twice. The two controls stay where they are: they
+  // belong to the filter chips they sit above, and only one of them could have
+  // moved into the nav bar's single trailing slot anyway.
+  const body = (
     <section className="mx-auto flex h-full w-full max-w-3xl flex-col px-3 pt-3 sm:px-6 sm:pt-5">
       <CollapsingHeader scrollerRef={scrollerRef}>
-        <div className="mb-3 flex items-center justify-between gap-3">
-        <h1 className="text-xl font-bold text-ink">Stats</h1>
+        <div
+          className={`mb-3 flex items-center gap-3 ${
+            mode === "push" ? "justify-end" : "justify-between"
+          }`}
+        >
+        {mode === "tab" && <h1 className="text-xl font-bold text-ink">Stats</h1>}
         <div className="flex shrink-0 items-center gap-1">
           <SessionFilterButton filters={filters} onOpen={() => setFiltersOpen(true)} />
           {/* The two drill-downs used to live behind this control, which meant
@@ -185,5 +205,12 @@ export function StatsView({
         </div>
       </div>
     </section>
+  );
+
+  if (mode === "tab") return body;
+  return (
+    <PushScreen title="Stats" onBack={onBack ?? (() => {})} active={!filtersOpen && !shareOpen}>
+      {body}
+    </PushScreen>
   );
 }

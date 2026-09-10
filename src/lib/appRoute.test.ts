@@ -29,6 +29,12 @@ describe("appRoute", () => {
     ["#/session/12", { view: "active", sessionId: 12, overlays: [] }],
     ["#/home/arsenal", { view: "dashboard", overlays: ["arsenal"] }],
     ["#/home/arsenal/catalog", { view: "dashboard", overlays: ["arsenal", "catalog"] }],
+    // The game plan hands off to Stats by pushing it, so the pair survives a
+    // reload and the platform back still lands on the game plan.
+    [
+      "#/home/game-plan/stats-push",
+      { view: "dashboard", overlays: ["game-plan", "stats-push"] }
+    ],
     ["#/home/line", { view: "dashboard", overlays: [], lineSandbox: true }],
     ["#/session/3/catalog/line", { view: "active", sessionId: 3, overlays: ["catalog"], lineSandbox: true }]
   ];
