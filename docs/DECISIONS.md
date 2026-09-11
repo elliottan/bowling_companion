@@ -3959,3 +3959,51 @@ undo it.
   kind of thing a later change adds back as an improvement.
 - Nothing was reduced-motion-only here: the switch is now instant for everyone,
   which is what `prefers-reduced-motion` already gave a minority.
+
+## ADR-086: The collapsing header and the list under it are one block
+
+**Status:** accepted (2026-09). Amends the motion introduced by ADR-077; the
+flip itself, its threshold and its rule about the top of a list are unchanged.
+
+**Context.** The header went away well and came back badly. Going, the reader is
+already moving with it and rarely watching it. Coming back, they are watching,
+and it read as the list being shoved down past where the header had got to.
+
+Two things were animating. The row transitioned its `height`, and the row's
+contents transitioned a `transform`, on the same curve and the same duration.
+Same curve is not the same motion: a height is laid out on the main thread and a
+transform is composited, so one drops a frame the other does not, and the gap
+between them is exactly the header height at its worst. Everything below the
+header followed the height, which is the half that stutters.
+
+The row also fought the reader at the end of a short list. Taking the header
+away hands its height to the scroller, so there is a header less to scroll, and
+the browser pulls the position back to the new end. Read as a scroll, that is a
+movement upward of a whole header height, which brings the header back, which
+takes the height away again.
+
+**Decision.**
+
+- **The header and its scroll area are one block, and the block slides.** Only
+  `transform` is animated, on one element, so there is nothing left to drift
+  against. `CollapsingHeader` now wraps the scroller rather than sitting above
+  it, and both views hand it their list.
+- **The space is still given back, not slid over.** While the header is up, the
+  block is a header taller than the screen, so the scroller keeps the height the
+  header let go of. That extra height is only ever added or taken away while it
+  is below the bottom edge, which is why it needs no transition and why the
+  block stays tall until the slide has finished.
+- **A position the browser clamped is not a scroll.** `useHeaderCollapse`
+  measures travel from a baseline capped to the scroller's current range, so the
+  pull back to a new end reads as no movement at all.
+
+**Consequences.**
+- The header's own height is no longer animated anywhere, and the transition
+  duration in `index.css` now has a counterpart constant in the component, which
+  has to know when the slide is over. They are commented as a pair.
+- The block is a `transform`ed ancestor, so a `position: fixed` descendant of a
+  list would be positioned against it. Every overlay already portals to `body`,
+  which is a rule ADR-040 set for its own reasons and this one now relies on.
+- `e2e/header-collapse.spec.ts` measures the two halves mid-slide, on one frame,
+  because a drift between them is invisible to an assertion taken at rest and
+  was invisible to the suite for as long as it existed.

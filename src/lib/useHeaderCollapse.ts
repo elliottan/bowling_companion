@@ -20,8 +20,12 @@ export const COLLAPSE_THRESHOLD = 24;
  * position clamped to the real range makes the bounce a no-op at both ends.
  */
 export function scrollPosition(el: HTMLElement): number {
-  const range = Math.max(0, el.scrollHeight - el.clientHeight);
-  return Math.max(0, Math.min(range, el.scrollTop));
+  return Math.max(0, Math.min(scrollRange(el), el.scrollTop));
+}
+
+/** How far this scroller can actually travel. */
+export function scrollRange(el: HTMLElement): number {
+  return Math.max(0, el.scrollHeight - el.clientHeight);
 }
 
 export interface CollapseState {
@@ -98,7 +102,15 @@ export function useHeaderCollapse(
       // Read into a local before the updater is handed over: React may run it
       // after this returns, and reading the ref inside would then measure the
       // new position against itself and never move anything.
-      const previous = lastTop.current;
+      //
+      // The baseline is capped to the range, because a header going away hands
+      // its height to the scroller, and near the bottom of a short list that
+      // leaves less to scroll than there was. The browser pulls `scrollTop`
+      // back to the new end, which is not the reader moving. Read as one, it
+      // is a move upward of exactly a header's height, which brings the header
+      // back, which takes the height away again: the row oscillates for as
+      // long as the reader stays near the end.
+      const previous = Math.min(lastTop.current, scrollRange(el));
       lastTop.current = top;
       setState((was) => nextCollapse(was, top, previous));
     };
