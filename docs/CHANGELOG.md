@@ -8,6 +8,17 @@ merge to `main` (`docs/DEPLOYMENT.md`), so every section below is a dated batch
 of shipped work rather than a release. Thirty of them used to be headed
 `[Unreleased]`, which said nothing once they had all shipped.
 
+## The header slides away and back in one piece (2026-09-11)
+
+**The header coming back on History and Stats no longer shoves the list.** The
+header and the list under it move as one block now, instead of as two things
+animated separately, which is what made the way back feel heavier than the way
+out.
+
+**The header stays away at the end of a short list.** Reading to the bottom used
+to be able to flip it back and forth, because the space it gives the list left
+less to scroll and the list springing to its new end looked like reading upward.
+
 ## Tabs swap instead of sliding (2026-09-10)
 
 **Switching tabs no longer animates.** The content used to slide in from the

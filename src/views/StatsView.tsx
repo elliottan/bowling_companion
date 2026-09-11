@@ -133,77 +133,80 @@ export function StatsView({
   // moved into the nav bar's single trailing slot anyway.
   const body = (
     <section className="mx-auto flex h-full w-full max-w-3xl flex-col px-3 pt-3 sm:px-6 sm:pt-5">
-      <CollapsingHeader scrollerRef={scrollerRef}>
+      <CollapsingHeader
+        scrollerRef={scrollerRef}
+        header={
+          <>
+            <div
+              className={`mb-3 flex items-center gap-3 ${
+                mode === "push" ? "justify-end" : "justify-between"
+              }`}
+            >
+              {mode === "tab" && <h1 className="text-xl font-bold text-ink">Stats</h1>}
+              <div className="flex shrink-0 items-center gap-1">
+                <SessionFilterButton filters={filters} onOpen={() => setFiltersOpen(true)} />
+                {/* The two drill-downs used to live behind this control, which meant
+                    a screen full of numbers hid the two screens that explain them
+                    behind a menu with no name on it. They are rows under the tiles
+                    now (ADR-063b put them there to get them off the bottom of a long
+                    scroll; under the tiles is neither the bottom nor a menu), and the
+                    header keeps its one action, which is the share. */}
+                <IconButton label="Share these stats" variant="round" onClick={() => setShareOpen(true)}>
+                  <Share2 size={20} aria-hidden="true" />
+                </IconButton>
+              </div>
+            </div>
+
+            <SessionFilterChips filters={filters} />
+          </>
+        }
+      >
         <div
-          className={`mb-3 flex items-center gap-3 ${
-            mode === "push" ? "justify-end" : "justify-between"
-          }`}
+          ref={scrollerRef}
+          onScroll={(e) => rememberScroll("stats:scroll", e.currentTarget.scrollTop)}
+          className="min-h-0 flex-1 overflow-y-auto overscroll-contain"
         >
-        {mode === "tab" && <h1 className="text-xl font-bold text-ink">Stats</h1>}
-        <div className="flex shrink-0 items-center gap-1">
-          <SessionFilterButton filters={filters} onOpen={() => setFiltersOpen(true)} />
-          {/* The two drill-downs used to live behind this control, which meant
-              a screen full of numbers hid the two screens that explain them
-              behind a menu with no name on it. They are rows under the tiles
-              now (ADR-063b put them there to get them off the bottom of a long
-              scroll; under the tiles is neither the bottom nor a menu), and the
-              header keeps its one action, which is the share. */}
-          <IconButton label="Share these stats" variant="round" onClick={() => setShareOpen(true)}>
-            <Share2 size={20} aria-hidden="true" />
-          </IconButton>
+          <div className="px-3 pb-5 sm:px-6 sm:pb-8">
+            {filters.error && (
+              <ErrorBanner className="mb-3">
+                Your sessions could not be read. Reload the app, then try again.
+              </ErrorBanner>
+            )}
+            <Stats
+              stats={isLoading ? EMPTY : stats}
+              isLoading={isLoading}
+              leaves={leaves}
+              ballPerformance={ballPerformance}
+              sessionTrend={sessionTrend}
+              sessionMetrics={sessionMetrics}
+              memoryKey="history"
+              underTiles={
+                <ListGroup>
+                  <ListRow
+                    icon={LayoutGrid}
+                    label="Game by game"
+                    description="How your first game compares with your last"
+                    onClick={onOpenGameTrend}
+                  />
+                  <ListRow
+                    icon={RackIcon}
+                    label="Open frames"
+                    description="The leaves you keep missing, most often first"
+                    onClick={onOpenFrames}
+                  />
+                </ListGroup>
+              }
+              onOpenSession={onOpenSession}
+              onOpenGame={onOpenSessionGame}
+            />
+          </div>
         </div>
-      </div>
-
-
-        <SessionFilterChips filters={filters} />
       </CollapsingHeader>
       {filtersOpen && (
         <SessionFilterSheet filters={filters} onClose={() => setFiltersOpen(false)} />
       )}
 
       <ShareCardDialog open={shareOpen} card={shareCard} onClose={() => setShareOpen(false)} />
-
-      <div
-        ref={scrollerRef}
-        onScroll={(e) => rememberScroll("stats:scroll", e.currentTarget.scrollTop)}
-        className="-mx-3 min-h-0 flex-1 overflow-y-auto overscroll-contain sm:-mx-6"
-      >
-        <div className="px-3 pb-5 sm:px-6 sm:pb-8">
-          {filters.error && (
-            <ErrorBanner className="mb-3">
-              Your sessions could not be read. Reload the app, then try again.
-            </ErrorBanner>
-          )}
-          <Stats
-            stats={isLoading ? EMPTY : stats}
-            isLoading={isLoading}
-            leaves={leaves}
-            ballPerformance={ballPerformance}
-            sessionTrend={sessionTrend}
-            sessionMetrics={sessionMetrics}
-            memoryKey="history"
-            underTiles={
-              <ListGroup>
-                <ListRow
-                  icon={LayoutGrid}
-                  label="Game by game"
-                  description="How your first game compares with your last"
-                  onClick={onOpenGameTrend}
-                />
-                <ListRow
-                  icon={RackIcon}
-                  label="Open frames"
-                  description="The leaves you keep missing, most often first"
-                  onClick={onOpenFrames}
-                />
-              </ListGroup>
-            }
-            onOpenSession={onOpenSession}
-            onOpenGame={onOpenSessionGame}
-          />
-
-        </div>
-      </div>
     </section>
   );
 

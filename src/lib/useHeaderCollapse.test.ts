@@ -169,6 +169,26 @@ describe("useHeaderCollapse", () => {
     expect(result.current).toBe(MAX);
   });
 
+  it("does not read the header's own height back as a scroll up", () => {
+    // A short list, read to the end. Taking the header away hands its height to
+    // the scroller, so there is a header less to scroll and the browser pulls
+    // the position back to the new end. Counted as reading upward, that would
+    // bring the header back, which would take the height away again.
+    const el = scroller(1000, 800);
+    const { result } = renderHook(() => useHeaderCollapse({ current: el }, MAX));
+
+    scrollTo(el, 200);
+    expect(result.current).toBe(MAX);
+
+    Object.defineProperty(el, "clientHeight", { value: 900, configurable: true });
+    scrollTo(el, 100);
+    expect(result.current).toBe(MAX);
+
+    // A real movement up from the new end still brings it back.
+    scrollTo(el, 100 - T);
+    expect(result.current).toBe(0);
+  });
+
   it("returns the header whenever the reader is back at the top", () => {
     const el = scroller();
     const { result } = renderHook(() => useHeaderCollapse({ current: el }, MAX));

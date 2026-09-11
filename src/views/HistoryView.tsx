@@ -74,38 +74,43 @@ export function HistoryView({
 
   return (
     <section className="mx-auto flex h-full w-full max-w-3xl flex-col px-3 pt-3 sm:px-6 sm:pt-5">
-      <CollapsingHeader scrollerRef={scrollerRef}>
-        <div className="mb-3 flex items-center justify-between gap-3">
-        <h1 className="text-xl font-bold text-ink">History</h1>
-        <div className="flex shrink-0 items-center gap-1">
-          <SessionFilterButton filters={filters} onOpen={() => setFiltersOpen(true)} />
+      <CollapsingHeader
+        scrollerRef={scrollerRef}
+        header={
+          <>
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <h1 className="text-xl font-bold text-ink">History</h1>
+              <div className="flex shrink-0 items-center gap-1">
+                <SessionFilterButton filters={filters} onOpen={() => setFiltersOpen(true)} />
+              </div>
+            </div>
+
+            {error && <ErrorBanner className="mb-3">Your sessions could not be read. Reload the app, then try again.</ErrorBanner>}
+
+            <SessionFilterChips filters={filters} />
+          </>
+        }
+      >
+        <div
+          ref={scrollerRef}
+          onScroll={(e) => rememberScroll("history:sessions", e.currentTarget.scrollTop)}
+          className="min-h-0 flex-1 overflow-y-auto overscroll-contain"
+        >
+          <div className="px-3 pb-5 sm:px-6 sm:pb-8">
+            <SessionHistory
+              sessions={sessionList.slice(0, visibleCount)}
+              isLoading={isLoading}
+              onOpenSession={onOpenSession}
+              activeSessionId={activeSessionId}
+              onSessionDeleted={onSessionDeleted}
+            />
+            <div ref={sentinelRef} className="h-6" aria-hidden="true" />
+          </div>
         </div>
-      </div>
-
-      {error && <ErrorBanner className="mb-3">Your sessions could not be read. Reload the app, then try again.</ErrorBanner>}
-
-        <SessionFilterChips filters={filters} />
       </CollapsingHeader>
       {filtersOpen && (
         <SessionFilterSheet filters={filters} onClose={() => setFiltersOpen(false)} />
       )}
-
-      <div
-        ref={scrollerRef}
-        onScroll={(e) => rememberScroll("history:sessions", e.currentTarget.scrollTop)}
-        className="-mx-3 min-h-0 flex-1 overflow-y-auto overscroll-contain sm:-mx-6"
-      >
-        <div className="px-3 pb-5 sm:px-6 sm:pb-8">
-          <SessionHistory
-            sessions={sessionList.slice(0, visibleCount)}
-            isLoading={isLoading}
-            onOpenSession={onOpenSession}
-            activeSessionId={activeSessionId}
-            onSessionDeleted={onSessionDeleted}
-          />
-          <div ref={sentinelRef} className="h-6" aria-hidden="true" />
-        </div>
-      </div>
     </section>
   );
 }
