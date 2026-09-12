@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import type { Page } from "@playwright/test";
 import { clearDatabase, recordShot, startSession } from "./helpers";
 
 // A short screen, so a handful of nights is enough to give the list something
@@ -9,12 +10,14 @@ test.use({ hasTouch: true, isMobile: true, viewport: { width: 390, height: 420 }
 const MID_SLIDE = 140;
 const AFTER_SLIDE = 600;
 
+const SCROLLER = "div.overflow-y-auto";
+
 /** Where the header is, and where the list under it has got to. Read on one
  *  frame: two round trips land milliseconds apart, and mid-slide that is
  *  enough travel to muddy exactly what these tests measure. */
-async function geometry(page: import("@playwright/test").Page) {
-  return page.evaluate(() => {
-    const scroller = document.querySelector("div.overflow-y-auto") as HTMLElement;
+async function geometry(page: Page) {
+  return page.evaluate((sel) => {
+    const scroller = document.querySelector(sel) as HTMLElement;
     const card = scroller.querySelector("ul > li") as HTMLElement;
     return {
       heading: document.querySelector("h1")!.getBoundingClientRect().y,
@@ -24,35 +27,62 @@ async function geometry(page: import("@playwright/test").Page) {
       scrollTop: scroller.scrollTop,
       viewport: scroller.getBoundingClientRect().height
     };
-  });
+  }, SCROLLER);
 }
 
-function scrollBy(page: import("@playwright/test").Page, by: number) {
+/** Scrolls, and answers with where that left the scroller. The tests assert on
+ *  that before they read the header: a fixture that did not scroll would
+ *  otherwise read as a header that refused to move. */
+async function scrollBy(page: Page, by: number) {
   return page.evaluate(
-    (d) => (document.querySelector("div.overflow-y-auto") as HTMLElement).scrollBy(0, d),
-    by
+    ([sel, d]) => {
+      const scroller = document.querySelector(sel as string) as HTMLElement;
+      scroller.scrollBy(0, d as number);
+      return scroller.scrollTop;
+    },
+    [SCROLLER, by] as const
   );
 }
 
-async function threeNights(page: import("@playwright/test").Page, alleys: string[]) {
+/**
+ * A History with enough nights in it to scroll, landed on and settled.
+ *
+ * The settling is the point. The screen paints before the sessions arrive from
+ * IndexedDB, with a skeleton standing in, and a skeleton is both shorter than
+ * the list and made of the same `ul > li` the tests measure. Measuring one, or
+ * scrolling a list that is not there yet, is measuring nothing: it read as a
+ * header that would not move, on CI, where the runner gets there first.
+ */
+async function history(page: Page, nights: number) {
   await clearDatabase(page);
-  for (const alley of alleys) {
+  for (let i = 0; i < nights; i++) {
     await page.getByRole("navigation").getByRole("button", { name: "Home" }).click();
-    await startSession(page, alley);
-    for (let i = 0; i < 12; i++) await recordShot(page, []);
+    await startSession(page, `Lane ${i + 1} Bowl`);
+    for (let shot = 0; shot < 12; shot++) await recordShot(page, []);
   }
   await page.getByRole("button", { name: "History" }).click();
   await expect(page.getByRole("heading", { name: "History" })).toBeVisible();
+
+  // The last night bowled is the first card, so its arrival is the real list's.
+  await expect(page.getByRole("button", { name: new RegExp(`Lane ${nights} Bowl`) })).toBeVisible();
+  await expect
+    .poll(() =>
+      page.evaluate((sel) => {
+        const scroller = document.querySelector(sel) as HTMLElement;
+        return scroller.scrollHeight - scroller.clientHeight;
+      }, SCROLLER)
+    )
+    .toBeGreaterThan(120);
 }
 
 test("the header leaves and returns without moving the list", async ({ page }) => {
-  await threeNights(page, ["Alpha Lanes", "Beta Lanes", "Gamma Lanes"]);
+  await history(page, 5);
 
   const open = await geometry(page);
 
   // Down past the threshold. The header goes; the list has moved by the scroll
   // and by nothing else, and the scroller is the same height it always was.
-  await scrollBy(page, 60);
+  expect(await scrollBy(page, 60)).toBeCloseTo(open.scrollTop + 60, 0);
   await page.waitForTimeout(MID_SLIDE);
   const midOut = await geometry(page);
   expect(midOut.heading).toBeLessThan(open.heading);
@@ -68,7 +98,7 @@ test("the header leaves and returns without moving the list", async ({ page }) =
   // again moved by the scroll and by nothing else. This is the whole point: the
   // header used to hand its height to the list and take it back, so every flip
   // shoved the list by a header on top of what the reader was doing.
-  await scrollBy(page, -30);
+  expect(await scrollBy(page, -30)).toBeCloseTo(away.scrollTop - 30, 0);
   await page.waitForTimeout(MID_SLIDE);
   const midBack = await geometry(page);
   expect(midBack.heading).toBeGreaterThan(away.heading);
@@ -79,17 +109,16 @@ test("the header leaves and returns without moving the list", async ({ page }) =
   const back = await geometry(page);
   expect(back.heading).toBeCloseTo(open.heading, 0);
   expect(back.content).toBeCloseTo(away.content + 30, 0);
-  expect(back.scrollTop).toBeCloseTo(30, 0);
 });
 
 test("a filtered list is no different", async ({ page }) => {
   // Filters work both ends of the old rule against the reader: the chips make
   // the header nearly twice as tall, and the filter is there to leave fewer
   // sessions under it, so a flip used to move the list by half a screen.
-  await threeNights(page, ["Alpha Lanes", "Alpha Lanes", "Alpha Lanes", "Beta Lanes"]);
+  await history(page, 6);
 
   await page.getByRole("button", { name: /^Filters/ }).tap();
-  await page.getByLabel("Alley").selectOption("Alpha Lanes");
+  await page.getByLabel("Alley").selectOption("Lane 6 Bowl");
   await page.getByRole("dialog", { name: "Filters" }).getByRole("button", { name: "Close" }).tap();
   await expect(page.getByRole("dialog", { name: "Filters" })).toHaveCount(0);
 
@@ -107,13 +136,13 @@ test("a filtered list is no different", async ({ page }) => {
 });
 
 test("the top of the list is never hidden behind the header", async ({ page }) => {
-  await threeNights(page, ["Alpha Lanes", "Beta Lanes", "Gamma Lanes"]);
+  await history(page, 5);
 
   // The list runs under the header rather than starting below it, so what
   // guarantees the first card is readable is the space kept for the header at
   // the top of the list.
-  const top = await page.evaluate(() => {
-    const scroller = document.querySelector("div.overflow-y-auto") as HTMLElement;
+  const top = await page.evaluate((sel) => {
+    const scroller = document.querySelector(sel) as HTMLElement;
     scroller.scrollTop = 0;
     const header = document.querySelector("h1")!.closest("div.collapsing-header")!;
     const card = scroller.querySelector("ul > li") as HTMLElement;
@@ -121,6 +150,6 @@ test("the top of the list is never hidden behind the header", async ({ page }) =
       headerBottom: header.getBoundingClientRect().bottom,
       cardTop: card.getBoundingClientRect().y
     };
-  });
+  }, SCROLLER);
   expect(top.cardTop).toBeGreaterThanOrEqual(top.headerBottom - 1);
 });
