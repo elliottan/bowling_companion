@@ -64,9 +64,16 @@ export function isBabySplit(standing: PinNumber[]): boolean {
  * if it weren't (e.g. 1-2-10, 1-3-7, 1-2-4-10). By the USBC definition these
  * are not splits, the head pin is up, but they don't convert like an
  * ordinary leave either, so they're tracked as their own group.
+ *
+ * The head pin can only wash out to one side: the ball came in on one side of
+ * it and left the other. So a leave with both the 2 and the 3 still standing
+ * is not a washout however wide it spreads, it is a leave the ball barely
+ * touched (a full rack after a gutter or a foul, 1-2-3-5) and the pins behind
+ * the gap are still shootable through the front. Those are makeables (ADR-094).
  */
 export function isWashout(standing: PinNumber[]): boolean {
   if (!standing.includes(1)) return false;
+  if (standing.includes(2) && standing.includes(3)) return false;
   return isSplit(standing.filter((p) => p !== 1));
 }
 

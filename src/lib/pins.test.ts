@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { PinNumber } from "../types/bowling";
-import { isBabySplit, isPocketHit, isSplit, isWashout, resolvePocketHit } from "./pins";
+import { ALL_PINS, isBabySplit, isPocketHit, isSplit, isWashout, resolvePocketHit } from "./pins";
 
 describe("isSplit", () => {
   it("returns false for empty leave", () => {
@@ -119,6 +119,13 @@ describe("isWashout", () => {
     expect(isWashout([1, 2, 4, 5])).toBe(false);
     expect(isWashout([1])).toBe(false);
     expect(isWashout([])).toBe(false);
+  });
+
+  it("is false when both the 2 and the 3 are standing", () => {
+    expect(isWashout(ALL_PINS)).toBe(false);          // full rack, gutter or foul
+    expect(isWashout([1, 2, 3, 5])).toBe(false);
+    expect(isWashout([1, 2, 3, 7, 10])).toBe(false);
+    expect(isWashout([1, 2, 3, 4, 6, 7, 10])).toBe(false);
   });
 });
 

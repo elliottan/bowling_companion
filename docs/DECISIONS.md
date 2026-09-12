@@ -4282,3 +4282,40 @@ and it is still only ever fully there or fully away.
   apart. Views hand it their list and an `onScroll`.
 - What is lost is that the header covers list while it is there. That is what a
   header does, and it is what the collapse is for.
+
+---
+
+## ADR-094: A washout washes out to one side, so the 2 and the 3 cannot both stand
+
+**Status:** accepted (2026-09). Narrows `isWashout` from ADR-036; the split and
+baby-split classification is unchanged, and nothing is stored or migrated.
+
+**Context.** ADR-036 defined a washout as the head pin standing with the rest of
+the leave forming a split without it. That is the right shape for 1-2-10 and
+1-3-7, and it is wrong for a leave the ball never really entered. A full rack
+after a gutter or a foul has the 1 up and, with the 1 removed, a 2-through-10
+spread that reads as a split, so it was filed as a washout. So was 1-2-3-5.
+Those came out of spare % as unmakeable, which is the opposite of true: the rack
+is standing whole in front of the bowler and the second ball has the whole front
+of it to work with.
+
+What the original rule missed is what a washout physically is. The ball comes in
+on one side of the head pin and carries that side away, leaving the head pin and
+whatever survives on the far side behind a gap. It washes out to one side. If
+both the 2 and the 3 are still standing the ball did not do that, whatever the
+geometry of the pins behind them looks like.
+
+**Decision.** A washout is the head pin standing, the 2 and the 3 not both
+standing, and the remaining pins forming a split without the head pin. The
+2-and-3 test is one line in `isWashout`; no new geometry and no new constants.
+
+**Consequences.**
+- A full rack after a gutter or foul, 1-2-3-5, and anything else holding both
+  front pins are makeables now. They re-enter spare %, in the numerator and the
+  denominator alike, and they move to the Makeables section of the leave grids.
+- Spare % changes again for existing data, downward for anyone who has gutters
+  or fouls on record, because a full rack is a leave they were expected to
+  convert some of. As with ADR-036 the rate is derived on every render, so there
+  is nothing to migrate.
+- The washout conversion rate now reports only true washouts, which is what made
+  it worth its own section.
