@@ -620,3 +620,172 @@ describe("undo", () => {
     expect(screen.getByRole("button", { name: "Undo last shot" })).toBeInTheDocument();
   });
 });
+
+describe("the ball after a gutter (ADR-088)", () => {
+  const ALL: PinNumber[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+
+  /** A frame whose first ball left everything standing. */
+  const guttered = (frameNumber: number): Frame => ({
+    game_id: 1,
+    frame_number: frameNumber,
+    shots: [{ pins_standing: ALL }],
+    is_strike: false,
+    is_spare: false
+  });
+
+  it("offers Spare, not Strike, with all ten still up", async () => {
+    render(<ActiveGameScorer initialFrames={[guttered(1)]} />);
+
+    expect(await screen.findByRole("button", { name: "Spare" })).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Strike" })).toBeNull();
+  });
+
+  it("says Next (Spare) once the deck is cleared", async () => {
+    render(<ActiveGameScorer initialFrames={[guttered(1)]} />);
+    await screen.findByRole("button", { name: "Spare" });
+
+    // Pins resume standing, so knocking them all down is the spare.
+    for (let pin = 1; pin <= 10; pin += 1) tapPin(pin);
+
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: "Next (Spare)" })).toBeTruthy();
+    });
+  });
+
+  it("holds the same rule in the 10th frame", async () => {
+    const frames: Frame[] = [];
+    for (let n = 1; n <= 9; n += 1) {
+      frames.push({
+        game_id: 1,
+        frame_number: n,
+        shots: [{ pins_standing: NONE }],
+        is_strike: true,
+        is_spare: false
+      });
+    }
+    frames.push(guttered(10));
+    render(<ActiveGameScorer initialFrames={frames} />);
+
+    expect(await screen.findByRole("button", { name: "Spare" })).toBeTruthy();
+  });
+});
+
+describe("gutter and foul (ADR-089)", () => {
+  const openMore = async () => {
+    fireEvent.click(await screen.findByRole("button", { name: "More" }));
+  };
+
+  it("keeps both behind More until they are asked for", async () => {
+    render(<ActiveGameScorer />);
+    await screen.findByRole("button", { name: "Strike" });
+
+    expect(screen.queryByRole("button", { name: "Foul" })).toBeNull();
+    await openMore();
+    expect(screen.getByRole("button", { name: "Gutter" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Foul" })).toBeTruthy();
+  });
+
+  it("records a gutter as a dash and hands the frame its second ball", async () => {
+    const onFrameComplete = vi.fn();
+    render(<ActiveGameScorer onFrameComplete={onFrameComplete} />);
+    await openMore();
+    fireEvent.click(screen.getByRole("button", { name: "Gutter" }));
+
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: "Spare" })).toBeTruthy();
+    });
+    const frame = onFrameComplete.mock.calls[0][0] as Frame;
+    expect(frame.shots[0].pins_standing).toHaveLength(10);
+    expect(frame.shots[0].foul).toBeUndefined();
+  });
+
+  it("records a foul as F on the card", async () => {
+    const onFrameComplete = vi.fn();
+    render(<ActiveGameScorer onFrameComplete={onFrameComplete} />);
+    await openMore();
+    fireEvent.click(screen.getByRole("button", { name: "Foul" }));
+
+    await waitFor(() => {
+      expect(onFrameComplete).toHaveBeenCalled();
+    });
+    const frame = onFrameComplete.mock.calls[0][0] as Frame;
+    expect(frame.shots[0].foul).toBe(true);
+    expect(screen.getAllByRole("button", { name: /^Frame 1, shot 1: foul/ }).length).toBeGreaterThan(0);
+  });
+});
+
+describe("the board adjusters survive losing the keyboard (ADR-091)", () => {
+  /** Fire a press on the half of `button` the given fraction across it. */
+  function pressHalf(button: HTMLElement, fraction: number) {
+    // jsdom lays nothing out, so every rect is zero-sized: the half a press
+    // lands in is geometry, and the geometry has to be supplied.
+    vi.spyOn(button, "getBoundingClientRect").mockReturnValue({
+      left: 0,
+      width: 100,
+      top: 0,
+      height: 32,
+      right: 100,
+      bottom: 32,
+      x: 0,
+      y: 0,
+      toJSON: () => ({})
+    } as DOMRect);
+    // jsdom has no PointerEvent, and fireEvent.pointerDown drops clientX on the
+    // way through, so the press is built as a MouseEvent of that type: React
+    // listens by name, and this one carries the coordinate the half-tap reads.
+    fireEvent(
+      button,
+      new MouseEvent("pointerdown", { bubbles: true, cancelable: true, clientX: 100 * fraction })
+    );
+  }
+
+  it("moves both boards from either half of a preset", async () => {
+    render(<ActiveGameScorer />);
+    const stanceField = await screen.findByLabelText("Stance");
+    fireEvent.change(stanceField, { target: { value: "20" } });
+    // Two lines carry a Target; the Intended one is first.
+    const target = () => screen.getAllByLabelText("Target")[0] as HTMLInputElement;
+    fireEvent.change(target(), { target: { value: "16" } });
+    fireEvent.focus(stanceField);
+
+    const preset = () => screen.getByRole("button", { name: /^Move 2-1\./ });
+    pressHalf(preset(), 0.9); // right half: lower boards for a right-hander
+    await waitFor(() => {
+      expect((screen.getByLabelText("Stance") as HTMLInputElement).value).toBe("18");
+    });
+    expect(target().value).toBe("15");
+
+    pressHalf(preset(), 0.1); // left half: back up again
+    await waitFor(() => {
+      expect((screen.getByLabelText("Stance") as HTMLInputElement).value).toBe("20");
+    });
+  });
+
+  it("keeps the row open when the press blurs the field", async () => {
+    render(<ActiveGameScorer />);
+    const stanceField = await screen.findByLabelText("Stance");
+    fireEvent.change(stanceField, { target: { value: "20" } });
+    fireEvent.focus(stanceField);
+
+    const preset = screen.getByRole("button", { name: /^Move 2-1\./ });
+    pressHalf(preset, 0.9);
+    // WebKit ignores the press's preventDefault and blurs the field anyway.
+    fireEvent.blur(stanceField);
+
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: /^Move 2-1\./ })).toBeTruthy();
+    });
+  });
+
+  it("still closes the row when the bowler leaves the field", async () => {
+    render(<ActiveGameScorer />);
+    const stanceField = await screen.findByLabelText("Stance");
+    fireEvent.focus(stanceField);
+    expect(screen.getByRole("button", { name: /^Move 2-1\./ })).toBeTruthy();
+
+    fireEvent.blur(stanceField);
+    await waitFor(() => {
+      expect(screen.queryByRole("button", { name: /^Move 2-1\./ })).toBeNull();
+    });
+  });
+});

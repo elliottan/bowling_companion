@@ -4047,3 +4047,185 @@ list grows enough to afford it.
   to compute.
 - The flip is no longer reachable by a fast flick that lands past the shortened
   end, which was the one way the clamp could still be provoked.
+
+## ADR-088: A fresh rack is a cleared deck, not ten pins available
+
+**Status:** accepted (2026-09). Amends ADR-006 and ADR-045; supersedes nothing.
+
+**Context.** "Fresh rack" decides a lot: whether the primary button says Strike
+or Spare, whether the pin deck opens all-down or pins-up (ADR-006's inverted
+input), whether a shot has a pocket to hit (ADR-046), whether it is a strike
+opportunity in the stats, and which shot a line carries from (ADR-029, ADR-045).
+
+Two definitions of it were in the codebase. `lanes.freshRackShotIndices`, which
+the stats and the seeding rules read, says a ball is at a fresh rack when it is
+ball 1 or the ball before it cleared the deck. The scorer and the frame
+controller instead counted the pins available to the shot: ten means fresh.
+
+Those agree on every frame except the one that matters here. A gutter ball, and
+now a foul (ADR-089), leaves all ten pins available to the next ball, and the
+count says fresh rack. It is not one. That ball is a spare attempt at a full
+rack, and it can only ever be a spare, never a strike.
+
+So after a gutter the scorer offered Strike, opened the deck all-down when the
+ten pins were plainly still up, read the shot for a pocket hit it had no claim
+to, and counted a strike opportunity in one place while the stats counted none.
+
+**Decision.**
+
+There is one definition, `lanes.isFreshRackShot(shots, shotIndex)`: the shot at
+index 0, or a shot whose predecessor left nothing standing. Every caller reads
+it, including the ones that used to count available pins. It answers for a shot
+that has not been recorded yet, which is how the scorer asks about the ball it
+is about to take.
+
+**Consequences.**
+- After a gutter or a foul the primary button reads Spare, the deck opens
+  pins-up, Next previews "(Spare)", and clearing the rack scores and renders as
+  the spare it is.
+- The same holds in the 10th, live and on resume: the 11th ball after a gutter
+  opens pins-up, while the 11th after a strike still opens all-down.
+- No pocket verdict is written for a ball at a leave, whatever the leave's size,
+  which is what the stats already assumed.
+- `freshRackStart` takes the previous ball's deck rather than inferring it from
+  a count, so the frame controller can no longer disagree with the stats.
+
+## ADR-089: A foul is its own mark, and it hides behind More
+
+**Status:** accepted (2026-09). Extends the shot model of ADR-001.
+
+**Context.** The app could record a ball worth nothing, by leaving every
+available pin standing, and it drew that as the dash it is. It could not say
+*why* it was worth nothing. A gutter ball and a foul score the same and read
+very differently a month later, and the sheet a bowler keeps by hand has always
+separated them: a foul is an F.
+
+Both are also awkward to enter. Marking a gutter means tapping ten pins back up,
+or tapping none and trusting the inverted input, and there was no way at all to
+say the ball crossed the line.
+
+They are rare, though. Neither deserves a permanent place beside Strike and
+Next, which are the two buttons every ball uses and which would each lose a
+third of their width to make room.
+
+**Decision.**
+
+`Shot.foul` is a boolean. A foul records the deck exactly as it found it, which
+is what makes its pinfall zero, plus the flag; the scorecard draws F where the
+pinfall would otherwise draw a dash.
+
+Both marks sit behind a **More** button under the Strike/Next row, one tap away
+and folded back afterwards.
+
+**Consequences.**
+- Scoring is untouched. A foul is zero pinfall because the pins it carries are
+  the pins that were available, and every existing rule reads it that way. A
+  first-ball foul therefore models the respot correctly, and the frame can still
+  be spared with the second ball.
+- Nothing migrates. `foul` is absent on every shot recorded before this, which
+  reads as "not a foul", and a backup from either side of the change imports.
+- Re-entering a recorded shot's pins clears its foul, the same argument ADR-046
+  makes for the pocket verdict: the mark was about a ball that is being told
+  differently now.
+- The 10th frame needs no special case. A foul on the 11th or 12th ball marks
+  that ball, and the frame's own rules about what earns a third ball are about
+  pinfall, which a foul has none of.
+
+## ADR-090: The 10th frame is a spare-line source like any other
+
+**Status:** accepted (2026-09). Amends ADR-052.
+
+**Context.** `sessionSpareIntended` is how a leave you have already shot at this
+session seeds the box the next time you face it. It paired `shots[0]` with
+`shots[1]` and skipped the 10th frame outright, because in the 10th that pair is
+not a leave and the ball at it: after a strike, `shots[1]` is a fresh rack.
+
+The skip was correct about the pairing and wrong about the frame. It left the
+11th and the 12th balls as the only spare attempts in a session whose line was
+never written down anywhere. Shoot the 10-pin in the 10th, and the next game
+opened that same leave with an empty box, which is exactly the carry the rule
+exists to provide.
+
+**Decision.**
+
+A spare attempt is the ball after a fresh-rack ball that left pins standing
+(ADR-088), read with `freshRackShotIndices`. That is the same pairing in frames
+1 to 9 and the right one in the 10th, so the frame needs no exception.
+
+**Consequences.**
+- A leave shot in the 10th seeds the same leave later in the session, in this
+  game or the next, exactly as one shot in the 4th does.
+- The offer to save a new Spare Line follows the same rule, so a 10th that opens
+  with a strike and shoots a leave with its 12th ball is offered too. It used to
+  be skipped for having struck.
+- Nothing else moves: the precedence in `lineForBall` is unchanged, and a
+  fresh-rack bonus ball is still not an attempt at anything.
+
+## ADR-091: An adjuster row does not depend on the keyboard staying up
+
+**Status:** accepted (2026-09).
+
+**Context.** The board fields reveal their adjusters on focus: the stance/target
+nudge, and the three move presets. Each is one full-width button whose left and
+right halves move the boards in opposite directions, and each acts on
+`pointerdown` with `preventDefault()`, so the field keeps focus and the row stays
+open under the finger.
+
+That rests on `preventDefault()` on a pointer event suppressing the focus change.
+Chrome honours it. WebKit does not reliably: iOS moved focus out of the field
+anyway, the keyboard went down, `focused` went null, and the row the press landed
+on unmounted mid-press. On a phone that reads as a button that does nothing
+except dismiss the keyboard, which is what it was reported as.
+
+The row was gated on the field holding focus, and focus is the thing the
+platform would not guarantee.
+
+**Decision.**
+
+Three things, none of which trust a single mechanism:
+
+1. `mousedown`'s default is cancelable everywhere, so the adjusters cancel that
+   too. That alone keeps focus in every engine that synthesises mouse events
+   from a tap.
+2. A press hands focus back to the field it belongs to, so the state and the
+   platform agree again even where step 1 was too late.
+3. A blur raised by an adjuster press does not close the row. The press is not
+   the bowler leaving the field, and the adjusters read the entered text rather
+   than the focus, so the row goes on working either way.
+
+**Consequences.**
+- Both halves of every adjuster move the boards on iOS, and the row stays open
+  for the next one.
+- Leaving the field for anything else still closes the row, which is the only
+  way it was ever meant to close.
+- A press is still one `pointerdown`. Nothing moved to `click`, which on touch
+  arrives late and, after a `preventDefault`ed `pointerdown`, sometimes not at
+  all.
+
+## ADR-092: A spare opportunity is any leave a ball followed
+
+**Status:** accepted (2026-09). Amends ADR-036.
+
+**Context.** Spare % read ball 1 and ball 2 of a frame and nothing else. In
+frames 1 to 9 those are the only two balls, so it was right. In the 10th it was
+blind: a 10th of strike, 9, spare converted a leave with the 12th ball, and no
+rate counted it, while the leaves card counted it correctly because
+`leaveEvents` already reads every fresh-rack ball in the frame.
+
+One frame's worth of spares is not nothing when a bowler shoots three games a
+night, and a number that disagrees with the card underneath it is worse than a
+number that is merely small.
+
+**Decision.**
+
+`tallyFrame` counts spare opportunities from `leaveEvents`: every makeable leave
+(ADR-036's test is unchanged) that a ball actually followed, wherever in the
+frame it was left, with a conversion when that ball cleared it.
+
+**Consequences.**
+- Frames 1 to 9 are arithmetically identical to before: one fresh-rack ball, one
+  leave, one chance.
+- The 10th now contributes up to two spare opportunities, which is how many it
+  can really hold.
+- A leave off the 10th's last ball still counts nowhere, because no ball can
+  follow it. That is ADR-051's rule, and `leaveEvents` was already applying it.

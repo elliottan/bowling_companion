@@ -104,7 +104,7 @@ function advanceTenthFrame(
         frames: upsertFrame(state.frames, frame),
         currentShot: 2,
         availablePins: ap,
-        standingPins: freshRackStart(ap), // fresh rack (after strike) -> all down
+        standingPins: freshRackStart(ap, strike), // fresh rack (after strike) -> all down
         currentShotMeta: {}
       }
     };
@@ -127,7 +127,7 @@ function advanceTenthFrame(
         frames: upsertFrame(state.frames, frame),
         currentShot: 3,
         availablePins: racked,
-        standingPins: freshRackStart(racked), // fresh rack (after strike/spare) -> all down
+        standingPins: freshRackStart(racked, pinsStanding.length === 0),
         currentShotMeta: {}
       }
     };
@@ -205,11 +205,15 @@ function upsertFrame(frames: Frame[], frame: Frame): Frame[] {
 }
 
 /**
- * A ball thrown at a fresh rack (all 10 available) is a "first ball" and starts
- * all-down (empty selection); a partial rack starts pins-up (remaining standing).
+ * A ball thrown at a fresh rack is a "first ball" and starts all-down (empty
+ * selection); a ball thrown at what the previous one left starts pins-up.
+ *
+ * `previousCleared` is what makes it a fresh rack, not the count of available
+ * pins: a gutter ball leaves ten pins available and the ball after it is still
+ * a spare attempt, so it opens pins-up like any other.
  */
-function freshRackStart(available: PinNumber[]): PinNumber[] {
-  return available.length === 10 ? [] : available;
+function freshRackStart(available: PinNumber[], previousCleared: boolean): PinNumber[] {
+  return previousCleared ? [] : available;
 }
 
 function normalizePins(pins: PinNumber[]): PinNumber[] {
@@ -246,7 +250,8 @@ export function editFrameShotPins(
   frames: Frame[],
   frameNumber: number,
   shotIndex: number,
-  pinsStanding: PinNumber[]
+  pinsStanding: PinNumber[],
+  foul?: boolean
 ): Frame[] {
   const frame = frames.find((f) => f.frame_number === frameNumber);
   if (!frame || !frame.shots[shotIndex]) return frames;
@@ -254,8 +259,13 @@ export function editFrameShotPins(
   // A new leave voids the old pocket verdict, the bowler's included: it was a
   // judgement about pins that are no longer what was left (ADR-046). Dropping
   // it puts the shot back on the inference, which re-reads the new leave.
+  // A foul is a judgement about the ball, not about the deck, so it is set or
+  // cleared by the caller rather than carried: re-entering a shot's pins says
+  // the ball was thrown differently from how it was recorded (ADR-089).
   let shots = frame.shots.map((s, i) =>
-    i === shotIndex ? { ...s, pins_standing: normalized, pocket_hit: undefined } : s
+    i === shotIndex
+      ? { ...s, pins_standing: normalized, pocket_hit: undefined, foul: foul || undefined }
+      : s
   );
 
   if (frameNumber === 10) {
@@ -426,7 +436,7 @@ export function hydrateFrameController(frames: Frame[]): FrameControllerState {
       currentFrameNumber: 10,
       currentShot: 2,
       availablePins: ap,
-      standingPins: freshRackStart(ap) // fresh rack resumes all-down
+      standingPins: freshRackStart(ap, last.shots[0].pins_standing.length === 0)
     };
   }
 
@@ -449,7 +459,7 @@ export function hydrateFrameController(frames: Frame[]): FrameControllerState {
       currentFrameNumber: 10,
       currentShot: 3,
       availablePins: racked,
-      standingPins: freshRackStart(racked) // fresh rack resumes all-down
+      standingPins: freshRackStart(racked, last.shots[1].pins_standing.length === 0)
     };
   }
 

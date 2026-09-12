@@ -35,6 +35,10 @@ export interface ShotMetadata {
    *  verdict was ever recorded (pre-toggle history, imports), so read paths
    *  infer it from the leave instead. */
   pocket_hit?: boolean;
+  /** The ball crossed the foul line (ADR-089). Pinfall is zero and the shot
+   *  reads F on the card; the pins it carries are the ones left standing, which
+   *  after a foul is everything that was available. */
+  foul?: boolean;
   intended?: LineSpec;
   actual?: LineSpec;
   notes?: string;
@@ -45,6 +49,8 @@ export interface Shot {
   ball_id?: number;
   /** See ShotMetadata.pocket_hit (ADR-046). */
   pocket_hit?: boolean;
+  /** See ShotMetadata.foul (ADR-089). */
+  foul?: boolean;
   intended?: LineSpec;
   actual?: LineSpec;
   notes?: string;

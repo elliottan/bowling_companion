@@ -27,6 +27,7 @@ function speakMark(symbol: string | null | undefined): string {
   if (symbol === "X") return "strike";
   if (symbol === "/") return "spare";
   if (symbol === "-") return "gutter";
+  if (symbol === "F") return "foul";
   return symbol;
 }
 

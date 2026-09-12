@@ -318,8 +318,27 @@ describe("sessionSpareIntended", () => {
     expect(sessionSpareIntended([attempt(2, [10])], [10])).toBeUndefined();
   });
 
-  it("skips the 10th frame, where a second shot may be a fresh rack", () => {
-    expect(sessionSpareIntended([attempt(10, [10], { stance: 30 })], [10])).toBeUndefined();
+  it("reads the 10th frame's own spare attempt", () => {
+    expect(sessionSpareIntended([attempt(10, [10], { stance: 30 })], [10])).toEqual({ stance: 30 });
+  });
+
+  it("reads a 10th-frame attempt at a leave the bonus ball made", () => {
+    // Strike, then 9 leaving the 10-pin, then the ball at it: the 12th shot is
+    // the spare attempt, and shots[0] is not its leave.
+    const tenth = frame(10, [
+      { pins_standing: [] as PinNumber[] },
+      { pins_standing: [10] as PinNumber[] },
+      { pins_standing: [] as PinNumber[], intended: { stance: 31 } }
+    ]);
+    expect(sessionSpareIntended([tenth], [10])).toEqual({ stance: 31 });
+  });
+
+  it("does not read a 10th-frame bonus ball as an attempt at nothing", () => {
+    const tenth = frame(10, [
+      { pins_standing: [] as PinNumber[] },
+      { pins_standing: [] as PinNumber[], intended: { stance: 22 } }
+    ]);
+    expect(sessionSpareIntended([tenth], [])).toBeUndefined();
   });
 
   it("ignores a frame that never got a second shot", () => {

@@ -26,6 +26,18 @@ Frame-level `is_strike` / `is_spare` are **derived**, not authoritative; backup
 normalization re-derives them on import so a hand-edited JSON cannot lie
 (ADR-078).
 
+A **fresh-rack** ball is ball 1, or a ball whose predecessor left nothing
+standing. It is never "ten pins were available": a gutter or a foul leaves ten
+available and the ball after it is a spare attempt. One function answers it,
+`lib/lanes.isFreshRackShot`, and the scorer, the stats and the seeding rules all
+read that one (ADR-088).
+
+A **foul** (`Shot.foul`, ADR-089) carries the deck exactly as it found it, so it
+is worth zero pinfall by the convention above and needs no scoring rule of its
+own. The flag only changes what the card draws: F rather than the dash. It is
+absent on every shot recorded before the flag existed, which reads as "not a
+foul".
+
 ## When a Dexie version bump is needed
 
 Adding a **non-indexed** field needs **no** version bump: IndexedDB stores
@@ -53,6 +65,7 @@ Implemented in `lib/scoring.ts`. The full reference is the test file
   a strike OR shot 1 + shot 2 cleared all 10. Score is the literal sum of the
   three shots' pinfall.
 - Rolling totals stay `null` until all bonus shots needed are available.
+- A foul scores as the zero its standing pins already say it is.
 
 `final_score` on a `Game` row is written only when
 `calculateGameScore(frames).isComplete === true`. Until then, callers compute

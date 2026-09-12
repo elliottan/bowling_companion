@@ -124,3 +124,24 @@ test("the commit button reads Next, over what it would record", async ({ page })
   await page.getByRole("button", { name: /Pin 10 (down|standing)/ }).click();
   await expect(commit).toContainText("(Hit 9)");
 });
+
+test("records a gutter and a foul from behind More", async ({ page }) => {
+  await startSession(page, "Foul Lanes");
+
+  // Frame 1: a gutter, then the spare it can still be turned into.
+  await page.getByRole("button", { name: "More" }).click();
+  await page.getByRole("button", { name: "Gutter" }).click();
+  // Ten pins still standing is a spare attempt, not a first ball.
+  await expect(page.getByRole("button", { name: "Spare", exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Spare", exact: true }).click();
+
+  // Frame 2: a foul, which reads F on the card.
+  await page.getByRole("button", { name: "More" }).click();
+  await page.getByRole("button", { name: "Foul" }).click();
+  await expect(
+    page.getByRole("button", { name: /^Frame 2, shot 1: foul/ }).first()
+  ).toBeVisible();
+
+  // Frame 1 scored as a spare: 10 + frame 2's first ball (a foul, so 0) = 10.
+  await expect(page.getByRole("button", { name: /^Frame 1, shot 1: gutter/ }).first()).toBeVisible();
+});

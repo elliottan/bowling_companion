@@ -1,4 +1,3 @@
-import { isSpare } from "./scoring";
 import { isBabySplit, isSplit, isWashout, resolvePocketHit } from "./pins";
 import { freshRackShotIndices, laneForFrame } from "./lanes";
 import type {
@@ -221,18 +220,14 @@ function tallyFrame(frame: Frame): FrameTally {
     spares: 0
   };
 
-  const [s1, s2] = frame.shots;
-  if (!s1 || !s2) return t;
-
-  // A spare attempt exists only when ball 1 left a makeable leave. In the 10th
-  // that is the same test: ball 2 after a strike is a fresh rack, not a spare.
-  if (!clears(s1.pins_standing) && !isUnmakeable(s1.pins_standing)) {
-    t.spareOpps = 1;
-    if (frame.frame_number === 10) {
-      if (clears2(s1.pins_standing, s2.pins_standing)) t.spares = 1;
-    } else if (isSpare(frame)) {
-      t.spares = 1;
-    }
+  // A spare attempt is a makeable leave that a ball followed, wherever in the
+  // frame it was left (ADR-092). Reading ball 1 alone was right for frames 1 to
+  // 9 and blind in the 10th, where a bonus ball leaves pins of its own: a 10th
+  // of strike, 9, spare made a spare that no rate counted.
+  for (const { leave, chance, converted } of leaveEvents(frame)) {
+    if (!chance || isUnmakeable(leave)) continue;
+    t.spareOpps++;
+    if (converted) t.spares++;
   }
   return t;
 }
@@ -240,11 +235,6 @@ function tallyFrame(frame: Frame): FrameTally {
 /** A ball that leaves no pins standing knocked them all down. */
 function clears(standing?: PinNumber[]): boolean {
   return Array.isArray(standing) && standing.length === 0;
-}
-
-/** Second ball cleared whatever the first ball left. */
-function clears2(prevStanding: PinNumber[], currStanding?: PinNumber[]): boolean {
-  return Array.isArray(currStanding) && currStanding.length === 0 && prevStanding.length > 0;
 }
 
 function average(values: number[]): number | null {
