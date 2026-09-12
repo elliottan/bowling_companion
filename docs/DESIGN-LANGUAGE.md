@@ -314,6 +314,13 @@ shot asks once per visit to it, not once per tap: the bowler correcting a pin
 is answering a question they have already answered. Entering a new shot never
 asks, because choosing the pins left standing is entering it, not changing it.
 
+**A screen that is finished shows nothing that would change it.** A completed
+game carries no control that records a ball, only a quiet "Edit shots" that
+turns them back on for the shot in the cursor, and a Done that puts them away
+again (ADR-094). The guard is the absence of the buttons; the dialog is the
+door, not the wall. Prefer this to a screen full of live controls that each
+raise a warning.
+
 Sentence case everywhere except the small uppercase group headings, which take
 their classes from `GROUP_HEADING` (`src/components/ui/typography.ts`). Second
 person, active voice, and say what happens rather than what the app does:

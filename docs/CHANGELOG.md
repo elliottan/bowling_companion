@@ -8,6 +8,15 @@ merge to `main` (`docs/DEPLOYMENT.md`), so every section below is a dated batch
 of shipped work rather than a release. Thirty of them used to be headed
 `[Unreleased]`, which said nothing once they had all shipped.
 
+## Fixing a shot in a finished game (2026-09-12)
+
+**A finished game now has an Edit shots button instead of an undo.** Tap the
+ball you want on the card, tap Edit shots, confirm, and Strike, Spare, Gutter
+and Foul come back for that ball: the foul you forgot in frame 3 is three taps
+away rather than nine frames of undo. Done puts the buttons away and locks the
+game again, so reading through an old game cannot change one by accident. Undo
+stays where it belongs, on the game you are still bowling (ADR-094).
+
 ## Scrolling is no longer moved by the header (2026-09-12)
 
 **The list now answers your finger and nothing else.** The header used to give
