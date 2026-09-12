@@ -4007,3 +4007,43 @@ takes the height away again.
 - `e2e/header-collapse.spec.ts` measures the two halves mid-slide, on one frame,
   because a drift between them is invisible to an assertion taken at rest and
   was invisible to the suite for as long as it existed.
+
+## ADR-087: The header only goes if the list can spare it
+
+**Status:** accepted (2026-09). Amends the flip conditions of ADR-077; ADR-086's
+one-block motion is unchanged.
+
+**Context.** ADR-086 made the header and the list move as one block, which fixed
+the drift between them. It did not fix the case that is worst to read, which is
+History with a filter on.
+
+A filter works both ends of the rule against the reader. The chips row makes the
+header nearly twice as tall, around 108px rather than 56px, and the filter is
+there to leave fewer sessions under it. On a 390x844 phone that is a list barely
+longer than the screen with a header a quarter of it tall.
+
+Flipping such a header away hands the list a height it has no content for. There
+is then a header less to scroll, so the browser pulls the position back to the
+new end, and the reader gets a lurch of up to a full header on top of the travel
+they asked for, in exchange for a few pixels of extra list. The guard added with
+ADR-086 stopped that lurch being read back as a scroll, so the row no longer
+oscillated, but the lurch itself was still there and still the wrong answer.
+
+**Decision.**
+
+The header goes away only when the list can spare it: what is left to scroll
+once the header's height is handed over must be at least the header's own
+height, and must still be at least where the reader is now. Otherwise the header
+stays, and the banked travel stays with it, so the flip lands the moment the
+list grows enough to afford it.
+
+**Consequences.**
+- On a filtered History the header simply stays. That costs the reader nothing
+  they can see: the list under it is short, which is what the filter was for.
+- A list only a little longer than the screen keeps its header too. The
+  collapse exists to buy a long list more room, and there is no long list here.
+- `nextCollapse` now takes the scroller's range and the header's height. Both
+  are already known at the call site, and neither is an argument the caller has
+  to compute.
+- The flip is no longer reachable by a fast flick that lands past the shortened
+  end, which was the one way the clamp could still be provoked.

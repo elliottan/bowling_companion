@@ -8,6 +8,14 @@ merge to `main` (`docs/DEPLOYMENT.md`), so every section below is a dated batch
 of shipped work rather than a release. Thirty of them used to be headed
 `[Unreleased]`, which said nothing once they had all shipped.
 
+## The header stays put on a filtered History (2026-09-12)
+
+**A filtered list no longer hands its header away.** Filter chips make the
+header nearly twice as tall and the filter leaves fewer sessions under it, so
+taking it away gave the list room it had nothing to put in, and the list jumped
+further than the scroll asked for. The header now goes only when what is left to
+read without it is worth more than the header itself.
+
 ## The header slides away and back in one piece (2026-09-11)
 
 **The header coming back on History and Stats no longer shoves the list.** The
