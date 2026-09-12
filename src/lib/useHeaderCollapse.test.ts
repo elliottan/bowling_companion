@@ -5,7 +5,9 @@ import {
   INITIAL_COLLAPSE,
   nextCollapse,
   scrollPosition,
-  useHeaderCollapse
+  UNMEASURED,
+  useHeaderCollapse,
+  worthLeaving
 } from "./useHeaderCollapse";
 
 const MAX = 100;
@@ -71,6 +73,53 @@ describe("nextCollapse", () => {
       top = next;
       expect(typeof state.collapsed).toBe("boolean");
     }
+  });
+});
+
+describe("worthLeaving", () => {
+  it("goes when the list still has a header's worth of travel left", () => {
+    expect(worthLeaving(10, { range: 400, header: 56 })).toBe(true);
+  });
+
+  it("stays when leaving would buy the reader almost no list", () => {
+    // 155 of travel and a 108px header with chips in it: going leaves 47, less
+    // than the header that would have to come back for it.
+    expect(worthLeaving(10, { range: 155, header: 108 })).toBe(false);
+  });
+
+  it("stays when the reader is already past where the shorter list would end", () => {
+    // Going would leave 100 of travel and the reader is at 140, so the browser
+    // would pull them back 40px they did not ask to travel.
+    expect(worthLeaving(140, { range: 200, header: 100 })).toBe(false);
+    expect(worthLeaving(90, { range: 200, header: 100 })).toBe(true);
+  });
+
+  it("weighs nothing before the header has been measured", () => {
+    expect(worthLeaving(4000, UNMEASURED)).toBe(true);
+  });
+});
+
+describe("nextCollapse, on a list too short to earn it", () => {
+  const short = { range: 155, header: 108 };
+
+  it("holds the header rather than lurching the list", () => {
+    expect(nextCollapse(INITIAL_COLLAPSE, 100 + T, 100, short).collapsed).toBe(false);
+  });
+
+  it("keeps the travel, so the flip lands as soon as the list can afford it", () => {
+    const held = nextCollapse(INITIAL_COLLAPSE, 100 + T, 100, short);
+    expect(held.travel).toBe(T);
+
+    // One more pixel down, with the filter now off and a full list under it.
+    expect(nextCollapse(held, 101 + T, 100 + T, { range: 4000, header: 56 })).toEqual({
+      collapsed: true,
+      travel: 0
+    });
+  });
+
+  it("still brings a collapsed header back on a short list", () => {
+    const away = { collapsed: true, travel: 0 };
+    expect(nextCollapse(away, 100 - T, 100, short)).toEqual(INITIAL_COLLAPSE);
   });
 });
 
@@ -160,32 +209,34 @@ describe("useHeaderCollapse", () => {
     const el = scroller(1000, 800);
     const { result } = renderHook(() => useHeaderCollapse({ current: el }, MAX));
 
+    // 200 of travel against a 100px header: the end of this list is not far
+    // enough from the header to be worth giving it up, so the header stays.
     scrollTo(el, 200);
-    expect(result.current).toBe(MAX);
+    expect(result.current).toBe(0);
 
     scrollTo(el, 260);
-    expect(result.current).toBe(MAX);
+    expect(result.current).toBe(0);
     scrollTo(el, 200);
-    expect(result.current).toBe(MAX);
+    expect(result.current).toBe(0);
   });
 
-  it("does not read the header's own height back as a scroll up", () => {
-    // A short list, read to the end. Taking the header away hands its height to
-    // the scroller, so there is a header less to scroll and the browser pulls
-    // the position back to the new end. Counted as reading upward, that would
-    // bring the header back, which would take the height away again.
-    const el = scroller(1000, 800);
+  it("does not read a list that got shorter as a scroll up", () => {
+    // The reader deletes a session, or applies a filter, while reading down
+    // with the header away. There is less list than there was, so the browser
+    // pulls the position back to the new end. Counted as reading upward, that
+    // would bring the header back over a list that just got shorter.
+    const el = scroller(10000, 800);
     const { result } = renderHook(() => useHeaderCollapse({ current: el }, MAX));
 
-    scrollTo(el, 200);
+    scrollTo(el, 4000);
     expect(result.current).toBe(MAX);
 
-    Object.defineProperty(el, "clientHeight", { value: 900, configurable: true });
-    scrollTo(el, 100);
+    Object.defineProperty(el, "scrollHeight", { value: 4600, configurable: true });
+    scrollTo(el, 3800);
     expect(result.current).toBe(MAX);
 
     // A real movement up from the new end still brings it back.
-    scrollTo(el, 100 - T);
+    scrollTo(el, 3800 - T);
     expect(result.current).toBe(0);
   });
 

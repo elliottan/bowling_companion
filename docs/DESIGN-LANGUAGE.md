@@ -241,7 +241,8 @@ as the thing leaving.
   way (`useHeaderCollapse`, `CollapsingHeader`). The scroll says when, the
   header says how: it earns the flip over a threshold of committed travel, then
   slides, taking the list with it as one block on one transform, so the two can
-  never drift apart. ADR-077.
+  never drift apart. It earns it twice over: a list that cannot spare the
+  header's height keeps the header. ADR-077, ADR-086, ADR-087.
 
 Keyframes live in `src/index.css`; interactive drags own their own transform
 and never animate against a keyframe. Everything is off under
