@@ -8,6 +8,16 @@ merge to `main` (`docs/DEPLOYMENT.md`), so every section below is a dated batch
 of shipped work rather than a release. Thirty of them used to be headed
 `[Unreleased]`, which said nothing once they had all shipped.
 
+## A standing rack is a makeable, not a washout (2026-09-12)
+
+**A full rack is no longer filed as a washout.** After a gutter or a foul the
+ten pins in front of you are a spare you can shoot at, and so is 1-2-3-5, but
+both were being counted as washouts and kept out of spare % as unmakeable. A
+washout is the head pin left standing on one side of the ball, so a leave that
+still has both the 2 and the 3 up is not one. Those leaves move to Makeables and
+count toward spare % again, which will move the number for anyone with gutters
+or fouls on record (ADR-094).
+
 ## Scrolling is no longer moved by the header (2026-09-12)
 
 **The list now answers your finger and nothing else.** The header used to give
