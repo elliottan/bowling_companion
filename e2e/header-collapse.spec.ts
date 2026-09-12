@@ -6,8 +6,7 @@ import { clearDatabase, recordShot, startSession } from "./helpers";
 // to scroll and to put the reader near the end of it while they do.
 test.use({ hasTouch: true, isMobile: true, viewport: { width: 390, height: 420 } });
 
-/** Mid-flight, a third of the way through the 0.4s slide. */
-const MID_SLIDE = 140;
+/** Comfortably past the end of the 0.4s slide. */
 const AFTER_SLIDE = 600;
 
 const SCROLLER = "div.overflow-y-auto";
@@ -75,6 +74,25 @@ async function history(page: Page, nights: number) {
     .toBeGreaterThan(120);
 }
 
+/**
+ * The first reading in which the header has left `from`, so the sample lands
+ * while it is on its way.
+ *
+ * Sampling at a fixed point into the slide instead was engine-specific: webkit
+ * had not started moving 140ms after the scroll that flipped it, where chromium
+ * was well under way, and a header that starts late is not a header that drags
+ * the list. What these tests are about holds at every instant of the slide, so
+ * they wait for the movement rather than for the clock.
+ */
+async function whileMoving(page: Page, from: number) {
+  const deadline = Date.now() + 4000;
+  for (;;) {
+    const now = await geometry(page);
+    if (now.heading !== from) return now;
+    if (Date.now() > deadline) throw new Error(`the header never left ${from}`);
+  }
+}
+
 test("the header leaves and returns without moving the list", async ({ page }) => {
   await history(page, 5);
 
@@ -83,8 +101,7 @@ test("the header leaves and returns without moving the list", async ({ page }) =
   // Down past the threshold. The header goes; the list has moved by the scroll
   // and by nothing else, and the scroller is the same height it always was.
   expect(await scrollBy(page, 60)).toBeCloseTo(open.scrollTop + 60, 0);
-  await page.waitForTimeout(MID_SLIDE);
-  const midOut = await geometry(page);
+  const midOut = await whileMoving(page, open.heading);
   expect(midOut.heading).toBeLessThan(open.heading);
   expect(midOut.content).toBeCloseTo(open.content - 60, 0);
   expect(midOut.viewport).toBeCloseTo(open.viewport, 0);
@@ -99,8 +116,7 @@ test("the header leaves and returns without moving the list", async ({ page }) =
   // header used to hand its height to the list and take it back, so every flip
   // shoved the list by a header on top of what the reader was doing.
   expect(await scrollBy(page, -30)).toBeCloseTo(away.scrollTop - 30, 0);
-  await page.waitForTimeout(MID_SLIDE);
-  const midBack = await geometry(page);
+  const midBack = await whileMoving(page, away.heading);
   expect(midBack.heading).toBeGreaterThan(away.heading);
   expect(midBack.content).toBeCloseTo(away.content + 30, 0);
   expect(midBack.viewport).toBeCloseTo(open.viewport, 0);
