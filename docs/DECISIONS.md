@@ -4229,3 +4229,56 @@ frame it was left, with a conversion when that ball cleared it.
   can really hold.
 - A leave off the 10th's last ball still counts nowhere, because no ball can
   follow it. That is ADR-051's rule, and `leaveEvents` was already applying it.
+
+## ADR-093: The header floats over the list, and the scroll is never moved by it
+
+**Status:** accepted (2026-09). Supersedes the reclaim in ADR-086 and the
+condition it forced in ADR-087; the flip itself, its threshold, and the rule
+that the top of a list always shows its header are unchanged.
+
+**Context.**
+
+Three goes at this fixed three real faults and never fixed what was reported.
+
+ADR-077 made the header a switch. ADR-086 found that the row's height and its
+contents' transform were animated on two different pipelines and made the header
+and the list one block. ADR-087 found that on a short list the flip handed the
+list a height it could not use, and refused the flip there. Each was a genuine
+defect, and after all three the complaint was word for word what it had been at
+the start: scrolling down brings the screen up with the header, scrolling up
+brings the screen down with it.
+
+The three fixes have one assumption between them, which is the one thing never
+questioned: that the header gives the list its height and takes it back. Every
+one of those is the list moving by a header, on top of the travel the finger
+asked for. It cannot be smoothed, because it is not a rendering fault. A reclaim
+*is* a move.
+
+**Decision.**
+
+The list is the full height of the screen whether the header is there or not.
+The header floats above it, and the flip changes only how much of the list the
+header is covering. Nothing reflows, the scroller's height never changes, so
+nothing is clamped, and a finger on the list moves it by exactly as much as the
+finger moved.
+
+The header keeps its own motion: it slides, on a transform, on its own curve,
+and it is still only ever fully there or fully away.
+
+**Consequences.**
+- The list runs under the header rather than starting below it, so the header
+  needs a ground of its own. `bg-surface-sunken`, the app's own background, as
+  `CatalogView`'s sticky header already uses.
+- The top of the list keeps a header's height of space, so the first card is
+  never behind the header, and the top of a list always shows its header, so
+  that space is never empty.
+- ADR-087's condition goes with the reclaim that forced it. Flipping now costs
+  the reader nothing on any list, so weighing whether the list can afford it
+  weighs nothing. The guard against reading a clamp as a scroll stays: the list
+  can still get shorter under the reader, from a deleted session or an applied
+  filter.
+- `CollapsingHeader` owns the scroll area rather than sitting above it, so that
+  the space at the top of the list and the height of the header cannot drift
+  apart. Views hand it their list and an `onScroll`.
+- What is lost is that the header covers list while it is there. That is what a
+  header does, and it is what the collapse is for.

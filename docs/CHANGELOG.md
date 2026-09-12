@@ -8,6 +8,15 @@ merge to `main` (`docs/DEPLOYMENT.md`), so every section below is a dated batch
 of shipped work rather than a release. Thirty of them used to be headed
 `[Unreleased]`, which said nothing once they had all shipped.
 
+## Scrolling is no longer moved by the header (2026-09-12)
+
+**The list now answers your finger and nothing else.** The header used to give
+the list its height and take it back, so every time it left or returned the
+whole screen moved by a header's worth on top of the scroll you were doing:
+up when you scrolled down, down when you scrolled up. It floats over the list
+now. It still slides away as you read down and comes back the moment you head
+up, but the list underneath does not move with it.
+
 ## Gutter, foul, and what counts as a first ball (2026-09-12)
 
 **A gutter ball no longer offers you a strike.** With all ten pins still up

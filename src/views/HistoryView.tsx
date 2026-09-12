@@ -90,22 +90,17 @@ export function HistoryView({
             <SessionFilterChips filters={filters} />
           </>
         }
+        onScroll={(e) => rememberScroll("history:sessions", e.currentTarget.scrollTop)}
       >
-        <div
-          ref={scrollerRef}
-          onScroll={(e) => rememberScroll("history:sessions", e.currentTarget.scrollTop)}
-          className="min-h-0 flex-1 overflow-y-auto overscroll-contain"
-        >
-          <div className="px-3 pb-5 sm:px-6 sm:pb-8">
-            <SessionHistory
-              sessions={sessionList.slice(0, visibleCount)}
-              isLoading={isLoading}
-              onOpenSession={onOpenSession}
-              activeSessionId={activeSessionId}
-              onSessionDeleted={onSessionDeleted}
-            />
-            <div ref={sentinelRef} className="h-6" aria-hidden="true" />
-          </div>
+        <div className="px-3 pb-5 sm:px-6 sm:pb-8">
+          <SessionHistory
+            sessions={sessionList.slice(0, visibleCount)}
+            isLoading={isLoading}
+            onOpenSession={onOpenSession}
+            activeSessionId={activeSessionId}
+            onSessionDeleted={onSessionDeleted}
+          />
+          <div ref={sentinelRef} className="h-6" aria-hidden="true" />
         </div>
       </CollapsingHeader>
       {filtersOpen && (

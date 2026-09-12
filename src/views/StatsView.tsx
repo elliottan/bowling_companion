@@ -160,46 +160,41 @@ export function StatsView({
             <SessionFilterChips filters={filters} />
           </>
         }
+        onScroll={(e) => rememberScroll("stats:scroll", e.currentTarget.scrollTop)}
       >
-        <div
-          ref={scrollerRef}
-          onScroll={(e) => rememberScroll("stats:scroll", e.currentTarget.scrollTop)}
-          className="min-h-0 flex-1 overflow-y-auto overscroll-contain"
-        >
-          <div className="px-3 pb-5 sm:px-6 sm:pb-8">
-            {filters.error && (
-              <ErrorBanner className="mb-3">
-                Your sessions could not be read. Reload the app, then try again.
-              </ErrorBanner>
-            )}
-            <Stats
-              stats={isLoading ? EMPTY : stats}
-              isLoading={isLoading}
-              leaves={leaves}
-              ballPerformance={ballPerformance}
-              sessionTrend={sessionTrend}
-              sessionMetrics={sessionMetrics}
-              memoryKey="history"
-              underTiles={
-                <ListGroup>
-                  <ListRow
-                    icon={LayoutGrid}
-                    label="Game by game"
-                    description="How your first game compares with your last"
-                    onClick={onOpenGameTrend}
-                  />
-                  <ListRow
-                    icon={RackIcon}
-                    label="Open frames"
-                    description="The leaves you keep missing, most often first"
-                    onClick={onOpenFrames}
-                  />
-                </ListGroup>
-              }
-              onOpenSession={onOpenSession}
-              onOpenGame={onOpenSessionGame}
-            />
-          </div>
+        <div className="px-3 pb-5 sm:px-6 sm:pb-8">
+          {filters.error && (
+            <ErrorBanner className="mb-3">
+              Your sessions could not be read. Reload the app, then try again.
+            </ErrorBanner>
+          )}
+          <Stats
+            stats={isLoading ? EMPTY : stats}
+            isLoading={isLoading}
+            leaves={leaves}
+            ballPerformance={ballPerformance}
+            sessionTrend={sessionTrend}
+            sessionMetrics={sessionMetrics}
+            memoryKey="history"
+            underTiles={
+              <ListGroup>
+                <ListRow
+                  icon={LayoutGrid}
+                  label="Game by game"
+                  description="How your first game compares with your last"
+                  onClick={onOpenGameTrend}
+                />
+                <ListRow
+                  icon={RackIcon}
+                  label="Open frames"
+                  description="The leaves you keep missing, most often first"
+                  onClick={onOpenFrames}
+                />
+              </ListGroup>
+            }
+            onOpenSession={onOpenSession}
+            onOpenGame={onOpenSessionGame}
+          />
         </div>
       </CollapsingHeader>
       {filtersOpen && (

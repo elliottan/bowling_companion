@@ -240,9 +240,10 @@ as the thing leaving.
 - **Collapsing tab headers** flip fully away and fully back, never parking half
   way (`useHeaderCollapse`, `CollapsingHeader`). The scroll says when, the
   header says how: it earns the flip over a threshold of committed travel, then
-  slides, taking the list with it as one block on one transform, so the two can
-  never drift apart. It earns it twice over: a list that cannot spare the
-  header's height keeps the header. ADR-077, ADR-086, ADR-087.
+  slides over the list on a transform of its own. The list is full height
+  whether the header is there or not, so the flip changes only how much of the
+  list the header covers: the scroll is never moved by the header. ADR-077,
+  ADR-093.
 
 Keyframes live in `src/index.css`; interactive drags own their own transform
 and never animate against a keyframe. Everything is off under
