@@ -8,6 +8,37 @@ merge to `main` (`docs/DEPLOYMENT.md`), so every section below is a dated batch
 of shipped work rather than a release. Thirty of them used to be headed
 `[Unreleased]`, which said nothing once they had all shipped.
 
+## Gutter, foul, and what counts as a first ball (2026-09-12)
+
+**A gutter ball no longer offers you a strike.** With all ten pins still up
+after a gutter or a foul, the next ball is a spare attempt, not a first ball:
+the button now reads Spare, the deck opens with the ten pins standing rather
+than flat, and clearing them scores and draws as the spare it is. The app had
+two definitions of "fresh rack" and the scorer was using the one that counts
+available pins; now there is one, and the stats and the scorer cannot disagree
+(ADR-088).
+
+**A foul is an F.** Gutter and Foul sit behind More, under Strike and Next.
+Both record a ball worth nothing; the foul additionally marks the ball, and the
+card draws F where the dash would go. Scores are unchanged, since a foul is
+worth no pins either way, and the frame can still be spared with the next ball
+(ADR-089).
+
+**A line you shot in the 10th is remembered.** The 11th and 12th balls were the
+only spare attempts in a session whose line was never written down, so the next
+game opened that same leave with an empty box. The 10th is now read like any
+other frame, and a leave shot with the 12th ball is offered as a Spare Line too
+(ADR-090).
+
+**Spare % counts the 10th frame's bonus balls.** A 10th of strike, 9, spare made
+a spare that no rate counted, though the leaves card had it right all along
+(ADR-092).
+
+**The move buttons work on iPhone.** Tapping one half of a board adjuster used
+to be able to dismiss the keyboard and take the row with it instead of moving
+the boards, because the row was gated on the field keeping a focus that iOS
+would not guarantee it (ADR-091).
+
 ## The header stays put on a filtered History (2026-09-12)
 
 **A filtered list no longer hands its header away.** Filter chips make the

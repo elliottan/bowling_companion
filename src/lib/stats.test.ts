@@ -1213,3 +1213,28 @@ describe("filterSessionsBy event", () => {
     expect(filtered[0].session.alley_name).toBe("Sea Bowl");
   });
 });
+
+describe("spare rate across the 10th frame's bonus balls (ADR-092)", () => {
+  const only = (frames: Frame[]) => calculateStats([session("Tenth Lanes", [game(0, frames)])]);
+
+  it("counts a spare shot with the 12th ball", () => {
+    // Strike, then 9 leaving the 10-pin, then the ball that made it.
+    const stats = only([frame(10, NONE, [10], NONE)]);
+    expect(stats.sparePct).toBe(100);
+  });
+
+  it("counts the miss too", () => {
+    const stats = only([frame(10, NONE, [10], [10])]);
+    expect(stats.sparePct).toBe(0);
+  });
+
+  it("leaves the last ball's own leave out, since no ball can follow it", () => {
+    const stats = only([frame(10, NONE, NONE, [10])]);
+    expect(stats.sparePct).toBeNull();
+  });
+
+  it("still reads frames 1 to 9 off ball one", () => {
+    const stats = only([frame(3, [10], NONE), frame(4, [7], [7])]);
+    expect(stats.sparePct).toBe(50);
+  });
+});

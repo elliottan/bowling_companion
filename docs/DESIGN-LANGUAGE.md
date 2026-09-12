@@ -295,6 +295,18 @@ on screen before the ball is committed. The brackets are what keep the two apart
 as a button and a note: unbracketed and in the accent colour, "Next Strike" read
 as one phrase naming a shot. Two adjacent buttons never carry the same word.
 
+**A control that is rarely reached goes behind More.** The gutter and the foul
+marks sit under the scorer's Strike and Next rather than beside them: two
+buttons every ball uses do not give up a third of their width each for two
+marks a bowler throws a handful of times a season. One tap opens the row, one
+tap records, and the row folds back.
+
+**A revealed row does not depend on the keyboard staying up.** The board
+adjusters appear while a field is focused, and iOS will take that focus back
+whatever the press asks for. Hand focus back, and never unmount the row on a
+blur the row itself caused, or the control reads as a button that only dismisses
+the keyboard (ADR-091).
+
 **Changing something already recorded asks first.** Editing a recorded shot or
 undoing the last ball raises a `ConfirmDialog` naming what changes. A recorded
 shot asks once per visit to it, not once per tap: the bowler correcting a pin

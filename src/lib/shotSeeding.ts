@@ -1,4 +1,4 @@
-import { freshRackSeedShot, lineHasValue, sameBallSeedLine } from "./lanes";
+import { freshRackSeedShot, freshRackShotIndices, lineHasValue, sameBallSeedLine } from "./lanes";
 import type { Ball, Frame, Game, LineSpec, PinNumber, Shot, SpareLine } from "../types/bowling";
 
 /**
@@ -43,7 +43,14 @@ const pinsKey = (p: PinNumber[]) => [...p].sort((a, b) => a - b).join(",");
 
 /**
  * The intended line of the most recent earlier spare attempt this session that
- * faced the same leave. Non-10th frames only, keyed by the standing pins.
+ * faced the same leave, keyed by the standing pins.
+ *
+ * A spare attempt is the ball after a fresh-rack ball that left pins, which is
+ * what makes the 10th frame readable here too (ADR-090). It used to be skipped
+ * outright, because `shots[0]` is not the leave `shots[1]` faces once the first
+ * ball strikes, so the 11th and 12th balls were the only spare attempts in a
+ * session whose line was never remembered: shoot the 10-pin in the 10th, and the
+ * next game opened that leave with nothing in the box.
  *
  * `ballId` narrows it to attempts thrown with that ball, which is what a ball
  * change at a leave asks for: a plastic spare ball and a hooking strike ball
@@ -59,16 +66,18 @@ export function sessionSpareIntended(
   const key = pinsKey(leave);
   let found: LineSpec | undefined;
   for (const f of frames) {
-    if (f.frame_number === 10) continue;
-    const [first, second] = f.shots;
-    if (!first || !second) continue;
-    if (pinsKey(first.pins_standing) !== key) continue;
-    // An attempt tagged with a DIFFERENT ball is not this ball's line. An
-    // untagged one still is: it is the only record of that leave there is, and
-    // dropping it would silently stop seeding for anyone who does not pick a
-    // ball per shot.
-    if (ballId != null && second.ball_id != null && second.ball_id !== ballId) continue;
-    if (lineHasValue(second.intended)) found = second.intended;
+    for (const i of freshRackShotIndices(f.shots)) {
+      const rack = f.shots[i];
+      const attempt = f.shots[i + 1];
+      if (!attempt || rack.pins_standing.length === 0) continue;
+      if (pinsKey(rack.pins_standing) !== key) continue;
+      // An attempt tagged with a DIFFERENT ball is not this ball's line. An
+      // untagged one still is: it is the only record of that leave there is, and
+      // dropping it would silently stop seeding for anyone who does not pick a
+      // ball per shot.
+      if (ballId != null && attempt.ball_id != null && attempt.ball_id !== ballId) continue;
+      if (lineHasValue(attempt.intended)) found = attempt.intended;
+    }
   }
   return found;
 }

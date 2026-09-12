@@ -1,4 +1,4 @@
-import { Hand, Plus, Undo2, X } from "lucide-react";
+import { ChevronDown, ChevronUp, Hand, Plus, Undo2, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import {
@@ -12,10 +12,10 @@ import {
   type UndoResult,
   updateShotMeta
 } from "../lib/frameController";
-import { calculateGameScore, isStrike } from "../lib/scoring";
+import { ALL_PINS, calculateGameScore } from "../lib/scoring";
 import { useHandedness } from "../lib/handednessContext";
 import { isPocketHit } from "../lib/pins";
-import { freshRackShotIndices, laneForFrame } from "../lib/lanes";
+import { freshRackShotIndices, isFreshRackShot, laneForFrame } from "../lib/lanes";
 import { seedForShot, lineForBall } from "../lib/shotSeeding";
 import { findSpareLineByPins, getBalls, getSpareLinesAll } from "../services/ballRepository";
 import { getSetting, setSetting } from "../services/bowlingRepository";
@@ -157,6 +157,10 @@ export function ActiveGameScorer({
   // bowler and the shot they just threw is in the way.
   const [unlocked, setUnlocked] = useState(false);
   const [showEditPrompt, setShowEditPrompt] = useState(false);
+  // The gutter and foul marks, folded away behind More (ADR-089). Neither is
+  // thrown often enough to hold a permanent place beside Strike and Next, and
+  // both are one tap once the row is open.
+  const [showMore, setShowMore] = useState(false);
   // A change to an already recorded shot is confirmed once per visit to that
   // shot: the first change asks, the rest of the visit does not, and leaving
   // the shot and coming back asks again. Live entry never asks, because
@@ -179,7 +183,12 @@ export function ActiveGameScorer({
   // Frame 1's lane for this game. Set per game: the house's system flips it
   // each game, and when it does not, this is the thing that needs correcting.
   const startLane = game ? laneForFrame(game, 1) : undefined;
-  const isFreshRack = gameState.availablePins.length === 10;
+  const currentFrameShots =
+    gameState.frames.find((f) => f.frame_number === gameState.currentFrameNumber)?.shots ?? [];
+  // A fresh rack is a deck the previous ball cleared, not ten pins available
+  // (ADR-088). After a gutter or a foul all ten are available and the ball at
+  // them is still a spare attempt: it can only be a spare, never a strike.
+  const isFreshRack = isFreshRackShot(currentFrameShots, gameState.currentShot - 1);
 
   /** Pins the current selection would knock down, in the inverted input model:
    *  shot 1 starts all-down and pins are tapped up, later shots start pins-up
@@ -259,8 +268,9 @@ export function ActiveGameScorer({
   // derive from the pins available entering the selected shot.
   const editStrikeOrSpareLabel = (() => {
     if (isEditing && recordedFrame && selectedShot) {
-      const avail = availableEnteringShot(recordedFrame, selectedShot.shotIndex);
-      return (avail?.length ?? 10) === 10 ? "Strike" : "Spare";
+      return freshRackShotIndices(recordedFrame.shots).includes(selectedShot.shotIndex)
+        ? "Strike"
+        : "Spare";
     }
     return isFreshRack ? "Strike" : "Spare";
   })();
@@ -435,10 +445,16 @@ export function ActiveGameScorer({
   }
 
   // Edit a recorded shot's pins, re-derive the frame, rescore, persist.
-  function handleEditPins(pins: PinNumber[]) {
+  function handleEditPins(pins: PinNumber[], foul?: boolean) {
     if (!selectedShot || locked) return;
     const { frameNumber } = selectedShot;
-    const frames = editFrameShotPins(gameState.frames, frameNumber, selectedShot.shotIndex, pins);
+    const frames = editFrameShotPins(
+      gameState.frames,
+      frameNumber,
+      selectedShot.shotIndex,
+      pins,
+      foul
+    );
     setGameState(hydrateFrameController(frames));
     const frame = frames.find((f) => f.frame_number === frameNumber);
     if (frame) void persistFrame(frame);
@@ -451,9 +467,15 @@ export function ActiveGameScorer({
   // (ADR-054). Prefilled with what was actually thrown, so the common case is
   // one tap.
   function offerSpareLine(frame: Frame) {
-    if (isStrike(frame)) return;
-    const leave = frame.shots[0]?.pins_standing;
-    const attempt = frame.shots[1];
+    // The last leave in the frame that a ball was thrown at, which in the 10th
+    // is not always ball 1's: a 10th of strike, 9, spare shot its leave with the
+    // 12th ball, and the offer used to skip the frame outright for striking.
+    const index = freshRackShotIndices(frame.shots)
+      .filter((i) => frame.shots[i].pins_standing.length > 0 && frame.shots[i + 1])
+      .pop();
+    if (index === undefined) return;
+    const leave = frame.shots[index].pins_standing;
+    const attempt = frame.shots[index + 1];
     if (!leave || leave.length === 0 || !attempt) return;
     const existing = findSpareLineByPins(spareLines, leave);
     if (existing?.line) return;
@@ -464,7 +486,7 @@ export function ActiveGameScorer({
     });
   }
 
-  async function recordShot(standingOverride?: PinNumber[]) {
+  async function recordShot(standingOverride?: PinNumber[], extraMeta?: ShotMetadata) {
     const standing = standingOverride ?? gameState.standingPins;
     const submittedFrameNumber = gameState.currentFrameNumber;
     // Materialize the pocket verdict the bowler was looking at: the inference
@@ -475,7 +497,10 @@ export function ActiveGameScorer({
       ? { pocket_hit: pocketOverride ?? isPocketHit(standing, handedness) }
       : {};
     const submission = submitShot(
-      { ...gameState, currentShotMeta: { ...gameState.currentShotMeta, ...pocket } },
+      {
+        ...gameState,
+        currentShotMeta: { ...gameState.currentShotMeta, ...pocket, ...extraMeta }
+      },
       standing
     );
     setGameState(submission.state);
@@ -519,6 +544,28 @@ export function ActiveGameScorer({
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : "Undo failed.");
     }
+  }
+
+  /**
+   * Record a ball worth nothing: a gutter, or a foul (ADR-089). Both leave the
+   * deck exactly as they found it, which is what makes them zero, and a foul
+   * additionally carries the mark that draws F on the card.
+   */
+  function recordNoPinfall(foul: boolean) {
+    if (!requestEdit()) return;
+    setShowMore(false);
+    const available =
+      isEditing && recordedFrame && selectedShot
+        ? availableEnteringShot(recordedFrame, selectedShot.shotIndex) ?? ALL_PINS
+        : gameState.availablePins;
+    if (isEditing) {
+      withEditConfirm(() => {
+        handleEditPins(available, foul);
+        goLive();
+      });
+      return;
+    }
+    void recordShot(available, { foul: foul || undefined });
   }
 
   function newGame() {
@@ -571,12 +618,12 @@ export function ActiveGameScorer({
     if (isEditing || gameState.isComplete) return undefined;
     const avail = gameState.availablePins;
     const standing = gameState.standingPins;
-    const fresh = avail.length === 10;
+    const fresh = isFreshRack;
     // Stay blank until the user taps the deck for this shot. The default (no tap)
     // is all pins standing-up on a fresh rack and all pins up on a partial leave.
     const interacted = fresh ? standing.length > 0 : standing.length < avail.length;
     if (!interacted) return undefined;
-    const knocked = fresh ? 10 - standing.length : avail.length - standing.length;
+    const knocked = avail.length - standing.length;
     if (fresh) return knocked === 0 ? "-" : String(knocked);
     return knocked === avail.length ? "/" : knocked === 0 ? "-" : String(knocked);
   })();
@@ -835,6 +882,45 @@ export function ActiveGameScorer({
               </IconButton>
             )}
           </div>
+
+          {/* A gutter and a foul are rare enough that a permanent place beside
+              Strike and Next would cost the two buttons every ball uses their
+              width. Folded away, they are one tap behind More (ADR-089). */}
+          {!gameState.isComplete && (
+            <div className="space-y-2">
+              <Button
+                variant="ghost"
+                className="w-full text-xs"
+                aria-expanded={showMore}
+                onClick={() => setShowMore((open) => !open)}
+              >
+                {showMore ? (
+                  <ChevronUp size={14} aria-hidden="true" />
+                ) : (
+                  <ChevronDown size={14} aria-hidden="true" />
+                )}
+                More
+              </Button>
+              {showMore && (
+                <div className="flex gap-2">
+                  <Button
+                    variant="secondary"
+                    className="flex-1"
+                    onClick={() => recordNoPinfall(false)}
+                  >
+                    Gutter
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    className="flex-1"
+                    onClick={() => recordNoPinfall(true)}
+                  >
+                    Foul
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
 
         </div>
 

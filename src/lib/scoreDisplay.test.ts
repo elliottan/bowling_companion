@@ -83,3 +83,37 @@ describe("getFrameShotCells (shot index mapping)", () => {
     expect(cells.map((c) => c.shotIndex)).toEqual([0, 1, 2]);
   });
 });
+
+describe("fouls (ADR-089)", () => {
+  const ALL: PinNumber[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+
+  function fouled(frameNumber: number, shotIndex: number, ...pins: PinNumber[][]): Frame {
+    const f = frame(frameNumber, ...(pins as [PinNumber[], PinNumber[]?, PinNumber[]?]));
+    f.shots[shotIndex] = { ...f.shots[shotIndex], foul: true };
+    return f;
+  }
+
+  it("renders F rather than the dash a zero ball would draw", () => {
+    expect(getFrameShotSymbols(fouled(3, 0, ALL, ALL))).toEqual(["F", "-"]);
+  });
+
+  it("keeps the spare it was converted into", () => {
+    expect(getFrameShotSymbols(fouled(3, 0, ALL, []))).toEqual(["F", "/"]);
+  });
+
+  it("marks a second-ball foul", () => {
+    expect(getFrameShotSymbols(fouled(3, 1, [7, 10], [7, 10]))).toEqual(["8", "F"]);
+  });
+
+  it("marks a foul in the 10th, bonus balls included", () => {
+    expect(getFrameShotSymbols(fouled(10, 2, [], [], ALL))).toEqual(["X", "X", "F"]);
+  });
+
+  it("still pairs each cell with its shot", () => {
+    const cells = getFrameShotCells(fouled(3, 0, ALL, ALL));
+    expect(cells.map((c) => [c.symbol, c.shotIndex])).toEqual([
+      ["F", 0],
+      ["-", 1]
+    ]);
+  });
+});

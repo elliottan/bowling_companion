@@ -81,10 +81,25 @@ export function previousGameSameLaneFrame(
   return undefined;
 }
 
+/**
+ * Whether the shot at `shotIndex` is thrown at a full rack: ball 1, or any shot
+ * after a cleared deck. `shotIndex` may point one past the recorded shots, which
+ * is how the scorer asks about the ball it is about to record.
+ *
+ * The test is the deck the previous ball left, never how many pins are
+ * available. Ten pins are available after a gutter ball too, and that shot is a
+ * spare attempt at a full rack: it can only be a spare, never a strike.
+ */
+export function isFreshRackShot(shots: Shot[], shotIndex: number): boolean {
+  if (shotIndex <= 0) return true;
+  const previous = shots[shotIndex - 1];
+  return !previous || previous.pins_standing.length === 0;
+}
+
 /** Indices of shots thrown at a full rack: ball 1, or any shot after a cleared deck. */
 export function freshRackShotIndices(shots: Shot[]): number[] {
   return shots.reduce<number[]>((acc, _shot, i) => {
-    if (i === 0 || shots[i - 1].pins_standing.length === 0) acc.push(i);
+    if (isFreshRackShot(shots, i)) acc.push(i);
     return acc;
   }, []);
 }
