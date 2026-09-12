@@ -81,6 +81,47 @@ test("completing a game removes the live-entry controls", async ({ page }) => {
   }
 
   await expect(page.getByRole("button", { name: RECORD_SHOT })).toHaveCount(0);
+  // Nothing that records a ball is left on a finished game, undo included
+  // (ADR-094): the way back in is Edit shots.
+  await expect(page.getByRole("button", { name: "Undo last shot" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Strike", exact: true })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: /Edit shots/ })).toBeVisible();
+});
+
+test("edit mode marks a shot in a finished game, and Done locks it again", async ({ page }) => {
+  await startSession(page, "Edit Mode Lanes");
+
+  for (let i = 0; i < 12; i++) {
+    await recordShot(page, []);
+  }
+
+  // Finishing a game in a browser tab raises the backup prompt, which sits
+  // over the controls under test (ADR-068). Not this test's subject.
+  await page.getByRole("button", { name: "Dismiss backup reminder" }).click();
+
+  const editShots = page.getByRole("button", { name: /Edit shots/ });
+  const strike = page.getByRole("button", { name: "Strike", exact: true });
+
+  // The prompt is the door: confirming it brings the marks back.
+  await editShots.click();
+  await expect(page.getByText("Edit this completed game?")).toBeVisible();
+  await page.getByRole("button", { name: "Edit", exact: true }).click();
+  await expect(strike).toBeVisible();
+
+  // Aimed at the shot in the cursor, which on a finished game is the last ball
+  // of the tenth. A foul marks it F, and the cursor stays on it.
+  await page.getByRole("button", { name: "More" }).click();
+  await page.getByRole("button", { name: "Foul" }).click();
+  await page.getByRole("button", { name: "Edit", exact: true }).click();
+  await expect(page.getByText("F", { exact: true }).first()).toBeVisible();
+  await expect(strike).toBeVisible();
+
+  // Done puts them away and locks the game, so the next edit asks again.
+  await page.getByRole("button", { name: "Done" }).click();
+  await expect(strike).toHaveCount(0);
+  await expect(editShots).toBeVisible();
+  await editShots.click();
+  await expect(page.getByText("Edit this completed game?")).toBeVisible();
 });
 
 test("takes the last shot back, and the score follows it", async ({ page }) => {

@@ -567,9 +567,6 @@ export function ActiveSessionView({
         focusFrame={focusFrame}
         onFrameComplete={handleFrameComplete}
         onUndoShot={handleUndoShot}
-        // The last game of the session is the one being bowled, so it is not
-        // gated behind the "edit a finished game" confirm.
-        isCurrentGame={activeGame.game_number === games[games.length - 1]?.game_number}
         onEditLanes={() => setShowLaneEditor(true)}
         onOpenArsenal={onOpenArsenal}
       />

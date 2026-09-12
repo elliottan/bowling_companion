@@ -612,12 +612,106 @@ describe("undo", () => {
     expect(screen.getByRole("button", { name: "Undo last shot" })).toBeInTheDocument();
   });
 
-  it("stays available on a finished game, which is when it is wanted most", () => {
+  // Undo is for the ball you just threw. A finished game has none, and edit
+  // mode is the way to correct one (ADR-094).
+  it("goes away on a finished game, which has no last ball to take back", () => {
     render(
       <ActiveGameScorer gameKey="undo-done" initialFrames={perfectGame()} onUndoShot={vi.fn()} />
     );
 
-    expect(screen.getByRole("button", { name: "Undo last shot" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Undo last shot" })).toBeNull();
+    expect(screen.getByRole("button", { name: /Edit shots/ })).toBeInTheDocument();
+  });
+});
+
+/** Edit mode on a finished game (ADR-094). A game of its own per case, because
+ *  the answer to the prompt is remembered per game. */
+describe("finished-game edit mode (ADR-094)", () => {
+  const editShots = () => screen.queryByRole("button", { name: /Edit shots/ });
+  const strike = () => screen.queryByRole("button", { name: "Strike" });
+  const done = () => screen.queryByRole("button", { name: /Done/ });
+
+  it("hides the scoring controls behind Edit shots until it is confirmed", async () => {
+    render(<ActiveGameScorer gameKey="edit-mode-1" initialFrames={perfectGame()} />);
+
+    // Locked: nothing on screen records a ball.
+    expect(strike()).toBeNull();
+    expect(screen.queryByRole("button", { name: /More/ })).toBeNull();
+    expect(screen.queryByRole("button", { name: /^Next/ })).toBeNull();
+
+    fireEvent.click(editShots()!);
+    expect(prompt()).not.toBeNull();
+    confirmEdit();
+    await waitFor(() => expect(prompt()).toBeNull());
+
+    // Unlocked: the marks are back, aimed at the shot in the cursor. Next is
+    // not, because there is no ball to enter.
+    expect(strike()).not.toBeNull();
+    expect(screen.getByRole("button", { name: /More/ })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /^Next/ })).toBeNull();
+    expect(editShots()).toBeNull();
+  });
+
+  it("leaves the game alone when the prompt is cancelled", async () => {
+    const onFrameComplete = vi.fn();
+    render(
+      <ActiveGameScorer
+        gameKey="edit-mode-2"
+        initialFrames={perfectGame()}
+        onFrameComplete={onFrameComplete}
+      />
+    );
+
+    fireEvent.click(editShots()!);
+    cancelEdit();
+    await waitFor(() => expect(prompt()).toBeNull());
+
+    expect(strike()).toBeNull();
+    expect(editShots()).not.toBeNull();
+    expect(onFrameComplete).not.toHaveBeenCalled();
+  });
+
+  it("marks the selected shot a foul without moving the cursor off it", async () => {
+    const onFrameComplete = vi.fn();
+    render(
+      <ActiveGameScorer
+        gameKey="edit-mode-3"
+        initialFrames={perfectGame()}
+        onFrameComplete={onFrameComplete}
+      />
+    );
+
+    fireEvent.click(editShots()!);
+    confirmEdit();
+    await waitFor(() => expect(prompt()).toBeNull());
+
+    fireEvent.click(screen.getByRole("button", { name: /More/ }));
+    fireEvent.click(screen.getByRole("button", { name: "Foul" }));
+    // Changing a recorded shot asks once per visit to it (ADR-081).
+    confirmEdit();
+
+    await waitFor(() => expect(onFrameComplete).toHaveBeenCalled());
+    const frame = onFrameComplete.mock.calls[0][0] as Frame;
+    expect(frame.frame_number).toBe(10);
+    expect(frame.shots[frame.shots.length - 1].foul).toBe(true);
+    // Still in edit mode, still on the shot that was changed.
+    expect(strike()).not.toBeNull();
+    expect(editShots()).toBeNull();
+  });
+
+  it("locks the game again on Done, so the next edit asks again", async () => {
+    render(<ActiveGameScorer gameKey="edit-mode-4" initialFrames={perfectGame()} />);
+
+    fireEvent.click(editShots()!);
+    confirmEdit();
+    await waitFor(() => expect(prompt()).toBeNull());
+
+    fireEvent.click(done()!);
+    expect(strike()).toBeNull();
+    expect(editShots()).not.toBeNull();
+
+    fireEvent.click(editShots()!);
+    expect(prompt()).not.toBeNull();
   });
 });
 

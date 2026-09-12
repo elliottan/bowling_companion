@@ -1,4 +1,4 @@
-import { ChevronDown, ChevronUp, Hand, Plus, Undo2, X } from "lucide-react";
+import { Check, ChevronDown, ChevronUp, Hand, Pencil, Plus, Undo2, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import {
@@ -52,9 +52,10 @@ function formatLeavePins(pins: PinNumber[]): string {
  *  game and so plainly worked it out. */
 const PIN_COACH_SEEN_KEY = "pin_input_coached_at";
 
-/** Games whose "edit a finished game" prompt has already been answered. Module
- *  level, so it outlives the component the way the decision outlives the visit;
- *  a reload is a new session and asks again. */
+/** Games currently in edit mode, i.e. whose "edit a finished game" prompt has
+ *  been answered and not since closed with Done. Module level, so it outlives
+ *  the component the way the decision outlives a trip to another game; a reload
+ *  is a new session and asks again. */
 const unlockedGames = new Set<string | number>();
 
 export type ScorerMode = "standalone" | "session";
@@ -85,9 +86,6 @@ interface ActiveGameScorerProps {
   /** Persist an undo: rewrite the frame it changed, or delete the one it
    *  emptied. Absent in the standalone scorer, which stores nothing. */
   onUndoShot?: (result: UndoResult) => Promise<void> | void;
-  /** The game being bowled, as opposed to one revisited from earlier in the
-   *  session. It is never locked once complete. */
-  isCurrentGame?: boolean;
 }
 
 /** Pins available entering a given shot of a frame (for editing a past shot). */
@@ -109,8 +107,7 @@ export function ActiveGameScorer({
   onGameComplete,
   onEditLanes,
   onOpenArsenal,
-  onUndoShot,
-  isCurrentGame = false
+  onUndoShot
 }: ActiveGameScorerProps) {
   const [gameState, setGameState] = useState(() => hydrateFrameController(initialFrames));
   const [errorMessage, setErrorMessage] = useState("");
@@ -149,12 +146,12 @@ export function ActiveGameScorer({
     notes?: string;
   } | null>(null);
   const [showSpareLineDialog, setShowSpareLineDialog] = useState(false);
-  // A finished game from earlier in the session is locked: the first edit
-  // attempt raises a confirm instead of applying, so a stray pin tap does not
-  // silently rewrite a shot on a game the bowler has moved on from. The game
-  // being bowled is not locked, even once its tenth frame lands: it is the one
-  // you are still standing at, undo is right there, and a confirm between a
-  // bowler and the shot they just threw is in the way.
+  // A finished game is locked, and edit mode is the way in (ADR-094). While
+  // locked there is nothing on the screen that records a ball, so a stray tap
+  // has nothing to rewrite; the prompt that unlocks is the same one a tap on a
+  // locked field or pin raises, so the door is wherever the bowler reaches for
+  // it. Held here, and mirrored into `unlockedGames`, so crossing to another
+  // game and back does not close it.
   const [unlocked, setUnlocked] = useState(false);
   const [showEditPrompt, setShowEditPrompt] = useState(false);
   // The gutter and foul marks, folded away behind More (ADR-089). Neither is
@@ -201,7 +198,10 @@ export function ActiveGameScorer({
     : null;
   const recordedShot = recordedFrame && selectedShot ? recordedFrame.shots[selectedShot.shotIndex] ?? null : null;
   const isEditing = Boolean(recordedShot);
-  const locked = gameState.isComplete && !unlocked && !isCurrentGame;
+  const locked = gameState.isComplete && !unlocked;
+  /** A finished game with its controls out: Strike/Spare and the More marks
+   *  apply to the recorded shot in the cursor, and Done puts them away. */
+  const editingComplete = gameState.isComplete && unlocked;
   /**
    * The button is always the word "Next". What it is about to record is said
    * underneath it in subtext (DESIGN-LANGUAGE 8): the word stays still under
@@ -218,8 +218,12 @@ export function ActiveGameScorer({
     return pinsThisShot === gameState.availablePins.length ? "Spare" : `Hit ${pinsThisShot}`;
   })();
 
-  /** Nothing to take back on an untouched game. */
-  const canUndo = gameState.frames.some((frame) => frame.shots.length > 0);
+  /** Nothing to take back on an untouched game, and nothing to take back from a
+   *  finished one: undo is for the ball you just threw, and on a game that is
+   *  fully recorded there is no such ball. Correcting a finished game is edit
+   *  mode's job, where the change is aimed at a shot you picked (ADR-094). */
+  const canUndo =
+    !gameState.isComplete && gameState.frames.some((frame) => frame.shots.length > 0);
 
   // Wrapped, so "the query has not answered" is distinguishable from "the key
   // is unset" and the line does not flash onto every scorer that opens.
@@ -553,6 +557,10 @@ export function ActiveGameScorer({
    */
   function recordNoPinfall(foul: boolean) {
     if (!requestEdit()) return;
+    // On a finished game the mark is always aimed at a recorded shot. With no
+    // cursor there is nothing to aim it at, and recording a fresh ball onto a
+    // game that has all ten frames is not what the button offered.
+    if (gameState.isComplete && !isEditing) return;
     setShowMore(false);
     const available =
       isEditing && recordedFrame && selectedShot
@@ -561,7 +569,7 @@ export function ActiveGameScorer({
     if (isEditing) {
       withEditConfirm(() => {
         handleEditPins(available, foul);
-        goLive();
+        afterRecordedEdit();
       });
       return;
     }
@@ -581,6 +589,24 @@ export function ActiveGameScorer({
 
   function goLive() {
     setSelectedShot(null);
+  }
+
+  /** Where the cursor goes once a mark has been applied to a recorded shot:
+   *  back to the live shot, which is the one the bowler is about to throw. A
+   *  finished game has no live shot, so the cursor stays on what was changed,
+   *  where the card and the detail panel both still describe it. */
+  function afterRecordedEdit() {
+    if (!gameState.isComplete) goLive();
+  }
+
+  /** Put the controls away and lock the game again. Deliberate on the way in
+   *  and deliberate on the way out: leaving edit mode is what makes the next
+   *  edit ask again. */
+  function leaveEditMode() {
+    unlockedGames.delete(gameKey);
+    setUnlocked(false);
+    setEditConfirmed(false);
+    setShowMore(false);
   }
 
   // The pocket toggle belongs to fresh-rack balls only: a shot at a leave has
@@ -834,59 +860,76 @@ export function ActiveGameScorer({
           {/* Strike/Spare + Next stay visible and functional in both live and
               editing states (every frame is editable). While editing a recorded
               shot, Strike/Spare applies that mark and Next leaves it untouched,
-              both then jump the cursor back to the latest incomplete frame. */}
-          {/* Undo stays after the tenth: taking the last ball back is exactly
-              what a bowler wants from a game that just finished wrong. */}
+              both then jump the cursor back to the latest incomplete frame.
+
+              A finished game has no ball to enter, so it shows neither Next nor
+              Undo. Its row is empty until edit mode is asked for, and holds
+              Strike/Spare and Done once it has been (ADR-094). */}
           <div className="flex gap-2">
+            {(!gameState.isComplete || editingComplete) && (
+              <button
+                type="button"
+                onClick={() => {
+                  if (isEditing) {
+                    withEditConfirm(() => {
+                      handleEditPins([]);
+                      afterRecordedEdit();
+                    });
+                  } else if (!gameState.isComplete) {
+                    void recordShot([]);
+                  }
+                }}
+                className="inline-flex h-11 flex-1 items-center justify-center rounded-lg bg-accent-fill text-sm font-bold text-accent-on-fill shadow-sm hover:bg-accent-fill-hover"
+              >
+                {editStrikeOrSpareLabel}
+              </button>
+            )}
             {!gameState.isComplete && (
-              <>
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (isEditing) {
-                      withEditConfirm(() => {
-                        handleEditPins([]);
-                        goLive();
-                      });
-                    } else {
-                      void recordShot([]);
-                    }
-                  }}
-                  className="inline-flex h-11 flex-1 items-center justify-center rounded-lg bg-accent-fill text-sm font-bold text-accent-on-fill shadow-sm hover:bg-accent-fill-hover"
-                >
-                  {editStrikeOrSpareLabel}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => (isEditing ? goLive() : void recordShot())}
-                  aria-label={nextOutcome ? `Next (${nextOutcome})` : "Next"}
-                  className="inline-flex h-11 flex-1 flex-col items-center justify-center rounded-lg border border-accent-fill bg-surface leading-none text-accent hover:bg-surface-muted"
-                >
-                  <span className="text-sm font-semibold">Next</span>
-                  {nextOutcome && (
-                    <span aria-hidden="true" className="mt-0.5 text-[10px] font-semibold text-ink-secondary">
-                      ({nextOutcome})
-                    </span>
-                  )}
-                </button>
-              </>
+              <button
+                type="button"
+                onClick={() => (isEditing ? goLive() : void recordShot())}
+                aria-label={nextOutcome ? `Next (${nextOutcome})` : "Next"}
+                className="inline-flex h-11 flex-1 flex-col items-center justify-center rounded-lg border border-accent-fill bg-surface leading-none text-accent hover:bg-surface-muted"
+              >
+                <span className="text-sm font-semibold">Next</span>
+                {nextOutcome && (
+                  <span aria-hidden="true" className="mt-0.5 text-[10px] font-semibold text-ink-secondary">
+                    ({nextOutcome})
+                  </span>
+                )}
+              </button>
+            )}
+            {editingComplete && (
+              <Button variant="secondary" className="flex-1" onClick={leaveEditMode}>
+                <Check size={14} aria-hidden="true" />
+                Done
+              </Button>
             )}
             {onUndoShot && canUndo && (
-              <IconButton
-                onClick={requestUndo}
-                label="Undo last shot"
-                variant="round"
-                className={gameState.isComplete ? "ml-auto" : ""}
-              >
+              <IconButton onClick={requestUndo} label="Undo last shot" variant="round">
                 <Undo2 size={20} aria-hidden="true" />
               </IconButton>
             )}
           </div>
 
+          {/* The way into a finished game. Quiet, because the common reason to
+              open one is to read it, and named, because a bowler who wants the
+              foul they forgot has to be able to see where it is. */}
+          {locked && (
+            <Button
+              variant="ghost"
+              className="w-full text-xs"
+              onClick={() => setShowEditPrompt(true)}
+            >
+              <Pencil size={14} aria-hidden="true" />
+              Edit shots
+            </Button>
+          )}
+
           {/* A gutter and a foul are rare enough that a permanent place beside
               Strike and Next would cost the two buttons every ball uses their
               width. Folded away, they are one tap behind More (ADR-089). */}
-          {!gameState.isComplete && (
+          {(!gameState.isComplete || (editingComplete && isEditing)) && (
             <div className="space-y-2">
               <Button
                 variant="ghost"
@@ -984,7 +1027,7 @@ export function ActiveGameScorer({
       <ConfirmDialog
         open={showEditPrompt}
         title="Edit this completed game?"
-        message="This game is finished. Changing a recorded shot cannot be undone."
+        message="Strike, Spare, Gutter and Foul come back, and they change the shot you have picked on the card. Rescoring follows, and it cannot be undone."
         confirmLabel="Edit"
         onConfirm={() => {
           unlockedGames.add(gameKey);
