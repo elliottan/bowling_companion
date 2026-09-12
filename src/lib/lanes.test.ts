@@ -3,13 +3,16 @@ import {
   endLane,
   freshRackSeedShot,
   freshRackShotIndices,
+  isFreshRackShot,
   laneForFrame,
   nextGameStartLane,
   previousGameSameLaneFrame,
   previousSameLaneFrame,
   sameBallSeedLine
 } from "./lanes";
-import type { Frame, Shot } from "../types/bowling";
+import type { Frame, PinNumber, Shot } from "../types/bowling";
+
+const ALL_TEN: PinNumber[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
 // Frame whose first-shot intended line encodes the frame number, for assertions.
 const frame = (n: number): Frame => ({
@@ -339,5 +342,22 @@ describe("sameBallSeedLine", () => {
   it("no lane config: every earlier shot counts as same-lane", () => {
     const frames = [bframe(1, 7), bframe(2, 9)];
     expect(sameBallSeedLine(7, undefined, 3, [], frames, [])?.stance).toBe(1);
+  });
+});
+
+describe("isFreshRackShot", () => {
+  const shot = (pins: PinNumber[]) => ({ pins_standing: pins });
+
+  it("counts ball one, and any ball after a cleared deck", () => {
+    expect(isFreshRackShot([], 0)).toBe(true);
+    expect(isFreshRackShot([shot([])], 1)).toBe(true);
+  });
+
+  it("does not count the ball after a gutter, where ten pins are still up", () => {
+    expect(isFreshRackShot([shot(ALL_TEN)], 1)).toBe(false);
+  });
+
+  it("does not count a spare attempt", () => {
+    expect(isFreshRackShot([shot([10])], 1)).toBe(false);
   });
 });

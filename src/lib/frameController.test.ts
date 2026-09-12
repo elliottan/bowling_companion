@@ -581,3 +581,83 @@ describe("undoLastShot", () => {
     expect(changedFrame?.is_strike).toBe(false);
   });
 });
+
+/**
+ * A gutter ball leaves all ten available, and every "is this a fresh rack"
+ * question in the app used to answer it by counting them (ADR-088).
+ */
+describe("the ball after a gutter", () => {
+  const ALL: PinNumber[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+
+  function playTo(shots: PinNumber[][]): FrameControllerState {
+    let state = createInitialFrameControllerState();
+    for (const pins of shots) state = submitShot(state, pins).state;
+    return state;
+  }
+
+  it("opens pins-up in frames 1 to 9", () => {
+    const state = playTo([ALL]);
+    expect(state.currentShot).toBe(2);
+    expect(state.availablePins).toEqual(ALL);
+    expect(state.standingPins).toEqual(ALL);
+  });
+
+  it("opens pins-up in the 10th as well", () => {
+    const nine = Array.from({ length: 9 }, () => [] as PinNumber[]);
+    const state = playTo([...nine, ALL]);
+
+    expect(state.currentFrameNumber).toBe(10);
+    expect(state.currentShot).toBe(2);
+    expect(state.availablePins).toEqual(ALL);
+    expect(state.standingPins).toEqual(ALL);
+  });
+
+  it("resumes pins-up in the 10th after a reload", () => {
+    const nine = Array.from({ length: 9 }, () => [] as PinNumber[]);
+    const state = hydrateFrameController(playTo([...nine, ALL]).frames);
+
+    expect(state.currentShot).toBe(2);
+    expect(state.standingPins).toEqual(ALL);
+  });
+
+  it("still opens the 10th's bonus ball all-down after a strike", () => {
+    const nine = Array.from({ length: 9 }, () => [] as PinNumber[]);
+    const state = playTo([...nine, []]);
+
+    expect(state.currentShot).toBe(2);
+    expect(state.availablePins).toEqual(ALL);
+    expect(state.standingPins).toEqual([]);
+    expect(hydrateFrameController(state.frames).standingPins).toEqual([]);
+  });
+
+  it("scores the frame it clears as a spare", () => {
+    const state = playTo([ALL, []]);
+    const first = state.frames.find((f) => f.frame_number === 1);
+    expect(first?.is_spare).toBe(true);
+    expect(first?.is_strike).toBe(false);
+  });
+});
+
+describe("editFrameShotPins and fouls (ADR-089)", () => {
+  const ALL: PinNumber[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+  const base: Frame[] = [
+    {
+      game_id: 1,
+      frame_number: 1,
+      shots: [{ pins_standing: [10] }, { pins_standing: [10] }],
+      is_strike: false,
+      is_spare: false
+    }
+  ];
+
+  it("marks a recorded shot as a foul", () => {
+    const after = editFrameShotPins(base, 1, 1, [10], true);
+    expect(after[0].shots[1].foul).toBe(true);
+  });
+
+  it("clears the mark when the shot is re-entered without it", () => {
+    const fouled = editFrameShotPins(base, 1, 0, ALL, true);
+    expect(fouled[0].shots[0].foul).toBe(true);
+    expect(editFrameShotPins(fouled, 1, 0, [10])[0].shots[0].foul).toBeUndefined();
+  });
+});

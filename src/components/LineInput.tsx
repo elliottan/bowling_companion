@@ -5,8 +5,8 @@
  * Intended line, once for the Actual one.
  */
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import type { PointerEvent as ReactPointerEvent } from "react";
-import { useEffect, useState } from "react";
+import type { MouseEvent as ReactMouseEvent, PointerEvent as ReactPointerEvent } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useHandedness } from "../lib/handednessContext";
 import type { LineSpec } from "../types/bowling";
 import { Button } from "./ui/Button";
@@ -120,6 +120,11 @@ export function LineInput({
   const [text, setText] = useState(() => toText(value));
   const [focused, setFocused] = useState<BoardField | null>(null);
   const blockLockedTap = lockedTapBlocker(onEditAttempt);
+  const inputs = useRef<Partial<Record<BoardField, HTMLInputElement | null>>>({});
+  // Set while an adjuster is being pressed, so the blur it causes on a browser
+  // that ignores the press's preventDefault does not close the row out from
+  // under the finger. See `halfTap`.
+  const adjusterPressed = useRef(false);
 
   // Re-sync from the prop only on external changes (carry-forward, spare-line
   // prefill, reset), not when the prop merely echoes the user's own edit, so
@@ -196,8 +201,21 @@ export function LineInput({
     (onLeft: () => void, onRight: () => void) => (e: ReactPointerEvent<HTMLButtonElement>) => {
       e.preventDefault();
       const r = e.currentTarget.getBoundingClientRect();
+      adjusterPressed.current = true;
       (e.clientX - r.left < r.width / 2 ? onLeft : onRight)();
+      // WebKit does not honour preventDefault on a pointer event the way it
+      // honours it on a mouse event, so on iOS the press still moved focus out
+      // of the board field: the keyboard went down, `focused` went null, and the
+      // adjuster row it opened vanished mid-tap. Hand focus straight back, so
+      // the row the bowler is working in stays where they left it (ADR-091).
+      const field = focused;
+      const el = field ? inputs.current[field] : null;
+      if (el && document.activeElement !== el) el.focus();
     };
+
+  // Belt and braces for the same thing: a mousedown's default IS cancelable in
+  // every engine, and cancelling it is what keeps the focused field focused.
+  const keepFocus = (e: ReactMouseEvent<HTMLButtonElement>) => e.preventDefault();
 
   // Derived readouts, in the order the ball meets them going down the lane.
   // Rendered as one tappable chain rather than separate pills: they are a
@@ -224,6 +242,7 @@ export function LineInput({
             <input
               type="text"
               inputMode="decimal"
+              ref={(el) => { inputs.current[field] = el; }}
               value={text[field]}
               onPointerDown={blockLockedTap}
               onChange={(e) => update(field, e.target.value)}
@@ -238,7 +257,16 @@ export function LineInput({
                 onFieldFocus?.();
                 setFocused(field);
               }}
-              onBlur={() => setFocused((f) => (f === field ? null : f))}
+              onBlur={() => {
+                // A blur raised by an adjuster press is the press, not the
+                // bowler leaving the field: `halfTap` is already handing focus
+                // back, so the row stays open either way.
+                if (adjusterPressed.current) {
+                  adjusterPressed.current = false;
+                  return;
+                }
+                setFocused((f) => (f === field ? null : f));
+              }}
               className="h-9 w-full min-w-0 rounded-lg border border-edge-strong bg-surface-muted text-center text-sm font-semibold tabular-nums text-ink focus:border-accent-fill focus:bg-surface focus:outline-none"
               title={field === "target" ? "Target board (arrows)" : `${FIELD_LABEL[field]} board`}
             />
@@ -274,6 +302,7 @@ export function LineInput({
             variant="secondary"
             className="relative w-full text-[11px] font-semibold uppercase tracking-[0.08em]"
             aria-label={`${FIELD_LABEL[focused]} ±0.5. Tap left to ${dir > 0 ? "increase" : "decrease"}, right to ${dir > 0 ? "decrease" : "increase"}`}
+            onMouseDown={keepFocus}
             onPointerDown={halfTap(() => nudge(focused, 0.5 * dir), () => nudge(focused, -0.5 * dir))}
           >
             <ChevronLeft aria-hidden="true" size={16} strokeWidth={3} className="absolute left-3 text-ink-strong" />
@@ -293,6 +322,7 @@ export function LineInput({
               type="button"
               className={adjBtn}
               aria-label={`Move ${p.label}. Tap left for ${dir > 0 ? "higher" : "lower"} boards, right for ${dir > 0 ? "lower" : "higher"}`}
+              onMouseDown={keepFocus}
               onPointerDown={halfTap(() => move(p.stance * dir, p.target * dir), () => move(-p.stance * dir, -p.target * dir))}
             >
               <ChevronLeft aria-hidden="true" size={16} strokeWidth={3} className="absolute left-3 text-ink-strong" />

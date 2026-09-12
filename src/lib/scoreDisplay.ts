@@ -31,6 +31,25 @@ export function getFrameShotCells(frame: Frame): FrameShotCell[] {
 }
 
 export function getFrameShotSymbols(frame: Frame): string[] {
+  return markFouls(frame, rawFrameShotSymbols(frame));
+}
+
+/**
+ * A foul reads F rather than the dash its zero pinfall would otherwise draw
+ * (ADR-089). Applied over the computed symbols rather than inside each branch:
+ * a foul is worth no pins, so it can never be the strike or the spare that the
+ * branches special-case, and every other symbol sits at its own shot's index.
+ */
+function markFouls(frame: Frame, symbols: string[]): string[] {
+  if (!frame.shots.some((s) => s?.foul)) return symbols;
+  // A strike in frames 1 to 9 renders in the second box, so the symbols stop
+  // lining up with the shots there. A strike is never a foul, so a frame that
+  // struck has nothing to mark anyway.
+  if (frame.frame_number !== 10 && isStrike(frame)) return symbols;
+  return symbols.map((symbol, i) => (frame.shots[i]?.foul ? "F" : symbol));
+}
+
+function rawFrameShotSymbols(frame: Frame): string[] {
   if (frame.frame_number === 10) return getTenthFrameSymbols(frame);
 
   if (isStrike(frame)) return ["", "X"];
