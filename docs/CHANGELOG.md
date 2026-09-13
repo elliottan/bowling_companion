@@ -16,7 +16,16 @@ both were being counted as washouts and kept out of spare % as unmakeable. A
 washout is the head pin left standing on one side of the ball, so a leave that
 still has both the 2 and the 3 up is not one. Those leaves move to Makeables and
 count toward spare % again, which will move the number for anyone with gutters
-or fouls on record (ADR-094).
+or fouls on record (ADR-095).
+
+## Fixing a shot in a finished game (2026-09-12)
+
+**A finished game now has an Edit shots button instead of an undo.** Tap the
+ball you want on the card, tap Edit shots, confirm, and Strike, Spare, Gutter
+and Foul come back for that ball: the foul you forgot in frame 3 is three taps
+away rather than nine frames of undo. Done puts the buttons away and locks the
+game again, so reading through an old game cannot change one by accident. Undo
+stays where it belongs, on the game you are still bowling (ADR-094).
 
 ## Scrolling is no longer moved by the header (2026-09-12)
 

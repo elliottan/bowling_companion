@@ -69,7 +69,7 @@ export function isBabySplit(standing: PinNumber[]): boolean {
  * it and left the other. So a leave with both the 2 and the 3 still standing
  * is not a washout however wide it spreads, it is a leave the ball barely
  * touched (a full rack after a gutter or a foul, 1-2-3-5) and the pins behind
- * the gap are still shootable through the front. Those are makeables (ADR-094).
+ * the gap are still shootable through the front. Those are makeables (ADR-095).
  */
 export function isWashout(standing: PinNumber[]): boolean {
   if (!standing.includes(1)) return false;
