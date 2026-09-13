@@ -21,11 +21,24 @@ async function twoNights(page: Parameters<typeof startSession>[0]) {
 async function applyAlley(page: Parameters<typeof startSession>[0], alley: string) {
   await page.getByRole("button", { name: /^Filters/ }).tap();
   await page.getByLabel("Alley").selectOption(alley);
-  await page
-    .getByRole("dialog", { name: "Filters" })
-    .getByRole("button", { name: "Close" })
-    .tap();
+  await page.getByRole("dialog", { name: "Filters" }).getByRole("button", { name: "Done" }).tap();
 }
+
+test("the alley list leads with the house bowled most", async ({ page }) => {
+  await clearDatabase(page);
+  // Beta twice, Alpha once. Alphabetical would put Alpha first, so the order
+  // here is the frequency rule and nothing else.
+  for (const alley of ["Alpha Lanes", "Beta Lanes", "Beta Lanes"]) {
+    await page.getByRole("navigation").getByRole("button", { name: "Home" }).click();
+    await startSession(page, alley);
+    for (let i = 0; i < 12; i++) await recordShot(page, []);
+  }
+  await page.getByRole("button", { name: "History" }).click();
+
+  await page.getByRole("button", { name: /^Filters/ }).tap();
+  const options = page.getByLabel("Alley").locator("option");
+  await expect(options).toHaveText(["All alleys", "Beta Lanes", "Alpha Lanes"]);
+});
 
 test("an applied filter comes off by its own chip", async ({ page }) => {
   await twoNights(page);
@@ -62,10 +75,7 @@ test("it still comes off after the filter sheet has been opened again", async ({
   await expect(page.getByRole("dialog", { name: "Filters" })).toHaveCount(0);
   await page.getByRole("button", { name: /^Filters/ }).tap();
   await expect(page.getByLabel("Alley")).toHaveValue("Alpha Lanes");
-  await page
-    .getByRole("dialog", { name: "Filters" })
-    .getByRole("button", { name: "Close" })
-    .tap();
+  await page.getByRole("dialog", { name: "Filters" }).getByRole("button", { name: "Done" }).tap();
   await expect(page.getByRole("dialog", { name: "Filters" })).toHaveCount(0);
 
   await expect(page.getByRole("button", { name: "Remove filter Alpha Lanes" })).toBeVisible();

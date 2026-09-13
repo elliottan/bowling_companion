@@ -135,7 +135,7 @@ test("a filtered list is no different", async ({ page }) => {
 
   await page.getByRole("button", { name: /^Filters/ }).tap();
   await page.getByLabel("Alley").selectOption("Lane 6 Bowl");
-  await page.getByRole("dialog", { name: "Filters" }).getByRole("button", { name: "Close" }).tap();
+  await page.getByRole("dialog", { name: "Filters" }).getByRole("button", { name: "Done" }).tap();
   await expect(page.getByRole("dialog", { name: "Filters" })).toHaveCount(0);
 
   let last = await geometry(page);
