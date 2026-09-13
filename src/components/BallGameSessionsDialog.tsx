@@ -59,7 +59,16 @@ export function BallGameSessionsDialog({
             <li key={s.gameId}>
               <button
                 type="button"
-                onClick={() => dismiss(() => onSelect(s.sessionId, s.gameId))}
+                // Composed rather than passed alone: `after` replaces `onClose`,
+                // so handing the selection over on its own left the dialog open
+                // in the caller's state and it came straight back on top of the
+                // game it had just opened.
+                onClick={() =>
+                  dismiss(() => {
+                    onClose();
+                    onSelect(s.sessionId, s.gameId);
+                  })
+                }
                 className="flex w-full flex-col gap-0.5 px-2 py-2.5 text-left"
               >
                 <span className="flex items-baseline justify-between gap-2">

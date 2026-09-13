@@ -211,6 +211,12 @@ describe("the games behind a column", () => {
     // after the tap.
     await waitFor(() => expect(opened).toEqual([[3, 30, 1]]));
   });
+
+  it("closes itself on the way out, so it does not come back over the game it opened", async () => {
+    openDrilldown();
+    fireEvent.click(screen.getByText("Chinese Swimming Club"));
+    await waitFor(() => expect(screen.queryByText("Usages in game 4")).toBeNull());
+  });
 });
 
 describe("leave cells", () => {
