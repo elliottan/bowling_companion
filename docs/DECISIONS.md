@@ -4282,3 +4282,65 @@ and it is still only ever fully there or fully away.
   apart. Views hand it their list and an `onScroll`.
 - What is lost is that the header covers list while it is there. That is what a
   header does, and it is what the collapse is for.
+
+## ADR-094: A finished game has an edit mode, not an undo
+
+**Status:** accepted (2026-09). Amends the undo placement and the lock rule of
+ADR-079; the undo mechanism itself, and the per-shot confirm of ADR-081, are
+unchanged.
+
+**Context.**
+
+Once the tenth frame landed, the scorer dropped Strike, Spare and the More row
+that holds Gutter and Foul, and left Undo standing alone. That is exactly
+backwards for the thing a bowler actually wants from a finished game.
+
+A finished game is read, not bowled. When a correction is wanted it is almost
+always a specific ball several frames back: the foul in frame 3 that was
+recorded as a gutter, the count that went in one pin light. Undo cannot reach
+it. Undo pops the last recorded ball, so reaching frame 3 means taking apart
+frames 10 through 3 and bowling them again, and every press of it on a finished
+game destroys a frame the bowler did not ask about.
+
+Meanwhile the marks that *would* fix it in one tap, Strike, Spare, Gutter and
+Foul, were the things that had been taken away. The card was still tappable, so
+a shot could be selected, and then there was nothing to do to it but move pins
+one at a time on the deck.
+
+ADR-079 also left the completed-game lock applying to every game except the one
+being bowled, and its reason was that undo was right there. On a finished game
+it no longer is.
+
+**Decision.**
+
+Every finished game is locked, the one just bowled included. Locked, the scorer
+shows no control that records a ball: no Strike or Spare, no Next, no More, and
+no Undo. It shows one quiet ghost button, **Edit shots**.
+
+Edit shots raises the existing completed-game `ConfirmDialog`, and confirming it
+turns edit mode on. So does a tap on a locked pin or a locked field, which
+raises the same prompt: the door is wherever the bowler reached for it.
+
+In edit mode the marks come back, aimed at the recorded shot in the cursor.
+Strike/Spare applies to it, Gutter and Foul apply to it from behind More, and
+each still asks once per visit to that shot (ADR-081). Next does not come back,
+because there is no ball to enter. **Done** puts them away and locks the game
+again.
+
+Undo is now shown only while a game is unfinished.
+
+**Consequences.**
+- Two deliberate acts stand between a reading bowler and a rewritten shot: open
+  edit mode, then confirm the change to the shot. Neither is a dialog in the way
+  of ordinary scoring, because neither exists until the game is finished.
+- The cursor does not move after a mark is applied on a finished game. There is
+  no live shot to jump back to, and the card and the detail panel both go on
+  describing what was just changed.
+- Leaving edit mode is what re-arms the prompt. Crossing to another game in the
+  session and back does not, so a correction that spans two games is not two
+  dialogs.
+- The last ball of a game that finished wrong now costs one more tap than it
+  did: Edit shots, confirm, then the mark. It is aimed at that ball rather than
+  at whatever happens to be last, which is the trade.
+- `isCurrentGame` is gone from `ActiveGameScorer`. The lock no longer asks which
+  game is being bowled, only whether the game in front of it is finished.
