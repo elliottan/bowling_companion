@@ -72,7 +72,7 @@ export function SessionFilterButton({
  */
 export function SessionFilterChips({ filters }: { filters: SessionFilters }) {
   const { alley, setAlley, pattern, setPattern, event, setEvent } = filters;
-  const { gameNumber, setGameNumber, activeLanes, clearLanes } = filters;
+  const { gameNumber, setGameNumber, activeLanes, clearLanes, clearAll } = filters;
   const count = activeFilterCount(filters);
   if (count === 0) return null;
 
@@ -102,13 +102,7 @@ export function SessionFilterChips({ filters }: { filters: SessionFilters }) {
         <Button
           variant="ghost"
           className="shrink-0 px-2 text-xs font-medium text-ink-secondary"
-          onClick={() => {
-            setAlley("");
-            setPattern("");
-            setEvent("");
-            setGameNumber(null);
-            clearLanes();
-          }}
+          onClick={clearAll}
         >
           Clear
         </Button>
@@ -133,8 +127,14 @@ function AppliedChip({ label, onRemove }: { label: string; onRemove: () => void 
   );
 }
 
-/** Every option, in a sheet. It applies as you go, so it has no commit and the
- *  close is the only way out (`FormSheet` with no `onConfirm`). */
+/**
+ * Every option, in a sheet. It applies as you go, so it has no commit: the tick
+ * in the bar closes it and nothing else (`FormSheet dismissAs="done"`).
+ *
+ * The options themselves are only ever the ones that lead somewhere: pick a
+ * house and the pattern, event and lane lists are what that house has actually
+ * seen. See `lib/filterFacets` for why, and for the ordering.
+ */
 export function SessionFilterSheet({
   filters,
   onClose
@@ -162,7 +162,9 @@ export function SessionFilterSheet({
   } = filters;
 
   return (
-    <FormSheet title="Filters" onClose={onClose}>
+    // A tick rather than an X: every control here has already applied itself,
+    // so there is nothing to cancel and leaving only confirms what is on screen.
+    <FormSheet title="Filters" onClose={onClose} dismissAs="done">
       <div className="space-y-4 px-4 py-4">
         <div>
           <label className={FIELD_LABEL} htmlFor="filter-alley">

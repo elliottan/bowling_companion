@@ -16,6 +16,7 @@ import {
   type MovementSlot
 } from "../lib/briefing";
 import { useHandedness } from "../lib/handednessContext";
+import { buildFilterOptions, EMPTY_SELECTION } from "../lib/filterFacets";
 import { setRemembered, useRememberedState } from "../lib/viewMemory";
 import { getSessionHistory } from "../services/bowlingRepository";
 import { getBalls } from "../services/ballRepository";
@@ -78,22 +79,32 @@ export function GamePlanView({ onBack, onOpenStats, onOpenSession }: GamePlanVie
   const balls = liveBalls ?? NO_BALLS;
   const handedness = useHandedness();
 
-  const [alley, setAlley] = useRememberedState("plan:alley", "");
-  const [pattern, setPattern] = useRememberedState("plan:pattern", "");
+  const [rememberedAlley, setAlley] = useRememberedState("plan:alley", "");
+  const [rememberedPattern, setPattern] = useRememberedState("plan:pattern", "");
 
   // A session started without an alley (ADR-080) has no name to filter by, so
-  // it is not offered as one.
+  // it is not offered as one. Most bowled first, and the pattern list is only
+  // what the chosen house has run (`lib/filterFacets`).
   const allAlleys = useMemo(
-    () => [...new Set(history.map((s) => s.session.alley_name).filter((a) => a.trim()))].sort(),
+    () => buildFilterOptions(history, EMPTY_SELECTION).alleys.filter((a) => a.trim()),
     [history]
   );
+
+  /**
+   * This screen reads one place back to you, so "anywhere" is not an answer it
+   * can give: an average across three houses is a number about none of them.
+   * With nothing chosen it opens on the house you bowl most, which is the one
+   * being asked about nearly every time.
+   */
+  const alley = allAlleys.includes(rememberedAlley) ? rememberedAlley : (allAlleys[0] ?? "");
+
   const allPatterns = useMemo(
-    () =>
-      [
-        ...new Set(history.flatMap((s) => (s.session.oil_pattern ? [s.session.oil_pattern] : [])))
-      ].sort(),
-    [history]
+    () => buildFilterOptions(history, { ...EMPTY_SELECTION, alley }).patterns,
+    [history, alley]
   );
+  // A pattern left over from another house simply stops applying, rather than
+  // filtering the briefing down to nothing.
+  const pattern = allPatterns.includes(rememberedPattern) ? rememberedPattern : "";
 
   const briefing = useMemo(
     () => buildBriefing(history, balls, { alley, pattern }, handedness),
@@ -134,25 +145,28 @@ export function GamePlanView({ onBack, onOpenStats, onOpenSession }: GamePlanVie
           />
         ) : (
           <>
+            {/* Nothing to pick between when no session has ever named a house
+                (ADR-080), and a select with no options is furniture. */}
             <div className="flex gap-2">
-              <div className="min-w-0 flex-1">
-                <label className={FIELD_LABEL} htmlFor="plan-alley">
-                  Alley
-                </label>
-                <select
-                  id="plan-alley"
-                  value={alley}
-                  onChange={(e) => setAlley(e.target.value)}
-                  className={FIELD_SELECT}
-                >
-                  <option value="">Any alley</option>
-                  {allAlleys.map((a) => (
-                    <option key={a} value={a}>
-                      {a}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              {allAlleys.length > 0 && (
+                <div className="min-w-0 flex-1">
+                  <label className={FIELD_LABEL} htmlFor="plan-alley">
+                    Alley
+                  </label>
+                  <select
+                    id="plan-alley"
+                    value={alley}
+                    onChange={(e) => setAlley(e.target.value)}
+                    className={FIELD_SELECT}
+                  >
+                    {allAlleys.map((a) => (
+                      <option key={a} value={a}>
+                        {a}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
               <div className="min-w-0 flex-1">
                 <label className={FIELD_LABEL} htmlFor="plan-pattern">
                   Pattern

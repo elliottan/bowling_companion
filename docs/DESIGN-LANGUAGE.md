@@ -53,7 +53,12 @@ keyboard, not the size of the job:
   trailing in its own bar. Everything you enter data into: the session form, the
   ball editor, a spare line, the lane pair, adding a catalog ball. Bottom rather
   than centered because that is the edge the keyboard arrives at; a centered
-  dialog holding a focused field gets shoved half off-screen on iOS.
+  dialog holding a focused field gets shoved half off-screen on iOS. The one
+  exception to the leading close is a sheet that has already applied everything
+  as you went, the filter sheet being the only one: there is nothing to cancel,
+  so an X would be a lie about what leaving does. Those carry no leading control
+  and a tick trailing instead (`dismissAs="done"`), which reads as keeping what
+  is on screen.
 - **`ConfirmDialog`** settles in the middle and scales back out. Questions with
   buttons, including a confirm that has to be earned by typing a phrase, because
   typing `ERASE` is answering rather than entering.

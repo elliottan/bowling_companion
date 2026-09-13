@@ -1,6 +1,13 @@
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { filterSessionsBy } from "../lib/stats";
+import {
+  buildFilterOptions,
+  lanesOf,
+  reconcileSelection,
+  type FacetKey,
+  type FilterSelection
+} from "../lib/filterFacets";
 import { getSessionHistory, getSessionList } from "../services/bowlingRepository";
 import { useRememberedState } from "../lib/viewMemory";
 import type { SessionSummary } from "../types/bowling";
@@ -47,7 +54,15 @@ export interface SessionFilters {
   lanes: string[];
   toggleLane: (lane: string) => void;
   clearLanes: () => void;
+  /** Everything off, in one write. Not four setters in a row: each of those
+   *  writes the whole selection (it has to, to drop what no longer fits), so
+   *  they would read each other's stale state and put back what the one before
+   *  had just cleared. */
+  clearAll: () => void;
 
+  /** What each picker offers: only the values the *other* filters still leave
+   *  reachable, so no option on screen empties the screen. The text lists are
+   *  most common first (`lib/filterFacets`). */
   allAlleys: string[];
   allPatterns: string[];
   allEvents: string[];
@@ -96,15 +111,51 @@ export function useSessionFilters(
   const history = liveHistory ?? NO_SESSIONS;
   const isLoading = liveHistory === undefined;
 
-  const [alley, setAlley] = useRememberedState("history:alley", "");
-  const [pattern, setPattern] = useRememberedState("history:pattern", "");
-  const [event, setEvent] = useRememberedState("history:event", "");
-  const [gameNumber, setGameNumber] = useRememberedState<number | null>("history:game", null);
+  const [alley, setAlleyValue] = useRememberedState("history:alley", "");
+  const [pattern, setPatternValue] = useRememberedState("history:pattern", "");
+  const [event, setEventValue] = useRememberedState("history:event", "");
+  const [gameNumber, setGameNumberValue] = useRememberedState<number | null>("history:game", null);
   const [lanes, setLanes] = useRememberedState<string[]>("history:lanes", []);
 
-  function toggleLane(lane: string) {
-    setLanes((prev) => (prev.includes(lane) ? prev.filter((l) => l !== lane) : [...prev, lane]));
-  }
+  const selection = useMemo<FilterSelection>(
+    () => ({ alley, pattern, event, gameNumber, lanes }),
+    [alley, pattern, event, gameNumber, lanes]
+  );
+
+  /**
+   * Write one filter, and drop whatever it just made impossible.
+   *
+   * Every setter goes through this. The pickers only offer options that lead
+   * somewhere (`buildFilterOptions`), and this is the other half of that:
+   * without it, picking a house would leave last month's pattern applied at a
+   * house that has never run it, and the screen would empty with no hint as to
+   * which of the two chips was the problem.
+   */
+  const commit = useCallback(
+    (changed: FacetKey, value: FilterSelection[FacetKey]) => {
+      const next = reconcileSelection(history, { ...selection, [changed]: value }, changed);
+      setAlleyValue(next.alley);
+      setPatternValue(next.pattern);
+      setEventValue(next.event);
+      setGameNumberValue(next.gameNumber);
+      setLanes(next.lanes);
+    },
+    [history, selection, setAlleyValue, setPatternValue, setEventValue, setGameNumberValue, setLanes]
+  );
+
+  const setAlley = useCallback((value: string) => commit("alley", value), [commit]);
+  const setPattern = useCallback((value: string) => commit("pattern", value), [commit]);
+  const setEvent = useCallback((value: string) => commit("event", value), [commit]);
+  const setGameNumber = useCallback(
+    (value: number | null) => commit("gameNumber", value),
+    [commit]
+  );
+
+  const toggleLane = useCallback(
+    (lane: string) =>
+      commit("lanes", lanes.includes(lane) ? lanes.filter((l) => l !== lane) : [...lanes, lane]),
+    [commit, lanes]
+  );
 
   const filteredExceptGame = useMemo(() => {
     if (!alley && !pattern && !event) return history;
@@ -120,18 +171,10 @@ export function useSessionFilters(
     return filterSessionsBy(filteredExceptGame, { gameNumber });
   }, [filteredExceptGame, gameNumber]);
 
-  // Lanes are only meaningful within a location, so we offer them as a filter
-  // only once an alley is picked, and only the lanes seen at that alley.
-  const allLanes = useMemo(() => {
-    if (!alley) return [];
-    return [
-      ...new Set(
-        history
-          .filter((s) => s.session.alley_name === alley)
-          .flatMap((s) => s.games.flatMap((g) => g.lanes ?? (g.lane_number ? [g.lane_number] : [])))
-      )
-    ].sort((a, b) => Number(a) - Number(b) || a.localeCompare(b));
-  }, [history, alley]);
+  // Each picker offers only what the other filters leave reachable, and the
+  // text lists come back most common first. See `lib/filterFacets`.
+  const options = useMemo(() => buildFilterOptions(history, selection), [history, selection]);
+  const allLanes = options.lanes;
 
   // Derived rather than reset in an effect when the location changes: a
   // selection left over from another alley simply stops applying, with no
@@ -145,37 +188,16 @@ export function useSessionFilters(
   const sessionList = useMemo(() => {
     if (activeLanes.length === 0) return filtered;
     return filtered.filter((s) =>
-      s.games.some((g) =>
-        (g.lanes ?? (g.lane_number ? [g.lane_number] : [])).some((l) => activeLanes.includes(l))
-      )
+      s.games.some((g) => lanesOf(g).some((l) => activeLanes.includes(l)))
     );
   }, [filtered, activeLanes]);
 
-  const allAlleys = useMemo(
-    () => [...new Set(history.map((s) => s.session.alley_name))].sort(),
-    [history]
-  );
-  const allPatterns = useMemo(
-    () =>
-      [
-        ...new Set(history.flatMap((s) => (s.session.oil_pattern ? [s.session.oil_pattern] : [])))
-      ].sort(),
-    [history]
-  );
-  const allEvents = useMemo(
-    () =>
-      [
-        ...new Set(history.flatMap((s) => (s.session.description ? [s.session.description] : [])))
-      ].sort(),
-    [history]
-  );
-  // Offered from the whole history, not the filtered list: the chips must not
-  // disappear as soon as one of them is picked.
-  const allGameNumbers = useMemo(
-    () =>
-      [...new Set(history.flatMap((s) => s.games.map((g) => g.game_number)))].sort((a, b) => a - b),
-    [history]
-  );
+  const allAlleys = options.alleys;
+  const allPatterns = options.patterns;
+  const allEvents = options.events;
+  // A facet never narrows itself, so the chips do not disappear as soon as one
+  // of them is picked.
+  const allGameNumbers = options.gameNumbers;
 
   const gameCount = useMemo(
     () => sessionList.reduce((n, s) => n + s.games.length, 0),
@@ -196,7 +218,14 @@ export function useSessionFilters(
     setGameNumber,
     lanes,
     toggleLane,
-    clearLanes: () => setLanes([]),
+    clearLanes: () => commit("lanes", []),
+    clearAll: () => {
+      setAlleyValue("");
+      setPatternValue("");
+      setEventValue("");
+      setGameNumberValue(null);
+      setLanes([]);
+    },
     allAlleys,
     allPatterns,
     allEvents,

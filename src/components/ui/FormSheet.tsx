@@ -30,6 +30,16 @@ interface FormSheetProps {
    * reverse on every keystroke that narrowed the list.
    */
   size?: "content" | "tall";
+  /**
+   * How the sheet is left. `"close"` (default) puts an X leading, for a sheet
+   * you can back out of without keeping what you did.
+   *
+   * `"done"` drops the X and puts a tick trailing instead, for a sheet that has
+   * already applied everything as you went: there is nothing to cancel, so an X
+   * is a lie about what leaving does, and the tick says the thing on screen is
+   * the thing you keep.
+   */
+  dismissAs?: "close" | "done";
   children: ReactNode;
 }
 
@@ -52,6 +62,7 @@ export function FormSheet({
   confirmDisabled = false,
   banner,
   size = "content",
+  dismissAs = "close",
   children
 }: FormSheetProps) {
   const { dismiss, backdropStyle, rootStyle, panelStyle, exiting, dragHandlers } = useSheetDismiss(onClose);
@@ -81,9 +92,13 @@ export function FormSheet({
         </div>
 
         <div className="flex shrink-0 items-center gap-2 border-b border-edge px-2 py-2">
-          <IconButton onClick={() => dismiss()} label="Close" variant="round">
-            <X size={20} aria-hidden="true" />
-          </IconButton>
+          {dismissAs === "close" ? (
+            <IconButton onClick={() => dismiss()} label="Close" variant="round">
+              <X size={20} aria-hidden="true" />
+            </IconButton>
+          ) : (
+            <span className="h-11 w-11 shrink-0" />
+          )}
           <h2 className="flex-1 text-center text-[17px] font-semibold text-ink">{title}</h2>
           {onConfirm ? (
             <IconButton
@@ -92,6 +107,12 @@ export function FormSheet({
               disabled={confirmDisabled}
               label={confirmLabel}
             >
+              <Check size={20} aria-hidden="true" />
+            </IconButton>
+          ) : dismissAs === "done" ? (
+            // Leaves through `dismiss` like the X it replaces, so the sheet
+            // still plays its exit rather than blinking out.
+            <IconButton variant="confirm" onClick={() => dismiss()} label="Done">
               <Check size={20} aria-hidden="true" />
             </IconButton>
           ) : (

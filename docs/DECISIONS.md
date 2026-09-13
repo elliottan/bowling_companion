@@ -4383,3 +4383,38 @@ standing, and the remaining pins forming a split without the head pin. The
   is nothing to migrate.
 - The washout conversion rate now reports only true washouts, which is what made
   it worth its own section.
+
+## ADR-096: A filter only offers what leads somewhere, most common first
+
+**Context.** The filter sheet built each picker from the whole history. Pick the
+house you visit once a year and the pattern list still named every pattern you
+have ever seen, nearly all of them somewhere else, and every one of those was a
+tap that emptied the screen. The lists were alphabetical, so the house you bowl
+every week sat wherever its name fell.
+
+Worse, the filters already applied were left alone when a new one arrived.
+Picking a house kept last month's pattern on, the two never co-occurred, and the
+screen went empty with two chips and no hint as to which one was the problem.
+
+**Decision.** Each picker offers only the values present in the sessions that
+match the *other* filters, and every write drops whatever it has just made
+impossible (`src/lib/filterFacets.ts`). A facet never narrows itself: the alley
+list is not cut down to the alley already chosen, and the game chips do not
+vanish when one of them is picked.
+
+Text lists come back most common first, ties alphabetical. Game and lane numbers
+stay in number order, because they are read as a sequence.
+
+Lanes keep their existing rule of being offered only inside a chosen house, and
+they are left out of the question of which houses to offer: lane 7 is a
+different lane at every house, so letting it narrow that list would hide houses
+behind a number that was never about them.
+
+**Consequences.**
+- A filter combination can no longer be assembled that matches nothing, so the
+  empty-state copy is about a slice with no data rather than a contradiction.
+- Clearing everything is one write (`clearAll`). Four setters in a row would
+  each write the whole selection and put back what the one before had cleared.
+- Game plan takes a location rather than offering "any alley", defaulting to the
+  house with the most sessions. It reads one place back to you, and an average
+  across three houses is a number about none of them.
