@@ -20,6 +20,11 @@ describe("appRoute", () => {
     ["#/stats/open-frames", { view: "stats", overlays: ["open-frames"] }],
     ["#/stats/game-trend", { view: "stats", overlays: ["game-trend"] }],
     ["#/home/spares", { view: "dashboard", overlays: ["spares"] }],
+    ["#/home/guides", { view: "dashboard", overlays: ["guides"] }],
+    [
+      "#/home/guides/guide/dual-angle-layouts",
+      { view: "dashboard", overlays: ["guides"], guideId: "dual-angle-layouts" }
+    ],
     [
       "#/home/catalog/ball/storm-physix-blackout-2025",
       { view: "dashboard", overlays: ["catalog"], catalogBallId: "storm-physix-blackout-2025" }
@@ -208,6 +213,33 @@ describe("appRoute", () => {
 
     it("drops a ball segment with no id rather than stranding the detail", () => {
       expect(parseRoute("#/home/catalog/ball").catalogBallId).toBeUndefined();
+    });
+  });
+
+  describe("an open guide", () => {
+    it("pushes a history entry, so back closes the article and not the shelf", () => {
+      const shelf = nav({ overlays: ["guides"] });
+      const article = nav({ overlays: ["guides"], openGuideId: "dual-angle-layouts" });
+      expect(shouldPushHistory(shelf, article)).toBe(true);
+    });
+
+    it("leaves the guide out of the URL when the shelf is not the top screen", () => {
+      expect(routeHash(nav({ overlays: ["arsenal"], openGuideId: "dual-angle-layouts" }))).toBe(
+        "#/home/arsenal"
+      );
+    });
+
+    it("restores the open guide from a link", () => {
+      const restored = navReducer(INITIAL_NAV, {
+        type: "restore",
+        route: parseRoute("#/home/guides/guide/dual-angle-layouts")
+      });
+      expect(restored.overlays).toEqual(["guides"]);
+      expect(restored.openGuideId).toBe("dual-angle-layouts");
+    });
+
+    it("drops a guide segment with no id", () => {
+      expect(parseRoute("#/home/guides/guide").guideId).toBeUndefined();
     });
 
     it("drops a pushed session with no id rather than opening it empty", () => {

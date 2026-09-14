@@ -8,6 +8,23 @@ merge to `main` (`docs/DEPLOYMENT.md`), so every section below is a dated batch
 of shipped work rather than a release. Thirty of them used to be headed
 `[Unreleased]`, which said nothing once they had all shipped.
 
+## Guides, a reading shelf on Home (2026-09-14)
+
+**Layout and equipment articles now ship with the app.** A Guides card under
+the Home shortcuts opens a shelf of articles that do not change between
+sessions, and the article reads offline at the alley like everything else here.
+
+It opens with four: the vocabulary a layout conversation assumes (PAP, VAL,
+pin, PSA, flare), the dual angle system (drilling angle, pin to PAP, VAL angle,
+and the rule that their sum sets how fast the ball transitions), the pin buffer
+system behind a layout written as 6 x 4 x 4, and what to measure and ask before
+buying the next ball. Each carries its sources as links out, because a layout
+claim the reader cannot check is worth less when money is about to be spent.
+
+The content is static data in `src/lib/guides.ts`, not a table: none of it is
+the bowler's, so none of it belongs in a backup or a migration. A guide the
+bowler writes would be a different feature.
+
 ## A standing rack is a makeable, not a washout (2026-09-12)
 
 **A full rack is no longer filed as a washout.** After a gutter or a foul the

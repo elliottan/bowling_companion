@@ -42,6 +42,10 @@ export type Overlay =
   | "oil-patterns"
   | "backup"
   | "spares"
+  /** The reading shelf: layout and equipment articles that ship with the app.
+   *  A sibling of the catalog and the spare lines, reference you keep rather
+   *  than a place you sit, so it is pushed from the dashboard like they are. */
+  | "guides"
   | "open-frames"
   | "game-trend"
   | "game-plan"
@@ -76,6 +80,11 @@ export interface NavState {
    *  Overlay union cannot. It lives here, not in CatalogView, so the platform
    *  back gesture pops it like any other push (see useHistoryRoute). */
   catalogBallId: string | null;
+  /** The guide whose article is open, by id. A layer on top of the guides
+   *  overlay for the same reason as `catalogBallId`: it exists only while the
+   *  guides list is the top overlay, and the Overlay union cannot carry an
+   *  id. */
+  openGuideId: string | null;
   /** The session the pushed `session` overlay is showing, by id. A field beside
    *  the overlay rather than part of it, for the same reason as
    *  `catalogBallId`: the Overlay union cannot carry an id. Distinct from
@@ -100,6 +109,7 @@ export type NavAction =
   | { type: "pushOverlay"; overlay: Overlay }
   | { type: "popOverlay" }
   | { type: "openCatalogBall"; ballId: string }
+  | { type: "openGuide"; guideId: string }
   | { type: "openLineSandbox" }
   | { type: "closeLineSandbox" }
   | { type: "statsOpened" }
@@ -120,6 +130,7 @@ export interface RestorableRoute {
   settingsSection?: SettingsSection;
   overlays: Overlay[];
   catalogBallId?: string;
+  guideId?: string;
   lineSandbox?: boolean;
 }
 
@@ -133,6 +144,7 @@ export const INITIAL_NAV: NavState = {
   settingsSection: "menu",
   overlays: [],
   catalogBallId: null,
+  openGuideId: null,
   viewedSessionId: null,
   lineSandboxOpen: false
 };
@@ -204,8 +216,10 @@ export function navReducer(state: NavState, action: NavAction): NavState {
 
     case "popOverlay": {
       // A ball detail is on top of the catalog, so back takes it first and
-      // leaves the catalog standing.
+      // leaves the catalog standing. An open guide is the same layer over the
+      // guides list.
       if (state.catalogBallId !== null) return { ...state, catalogBallId: null };
+      if (state.openGuideId !== null) return { ...state, openGuideId: null };
       const overlays = state.overlays.slice(0, -1);
       // The id goes with the screen that was showing it, or a later push of
       // another session would flash the last one on its way in.
@@ -216,6 +230,9 @@ export function navReducer(state: NavState, action: NavAction): NavState {
 
     case "openCatalogBall":
       return { ...state, catalogBallId: action.ballId };
+
+    case "openGuide":
+      return { ...state, openGuideId: action.guideId };
 
     case "openLineSandbox":
       return { ...state, lineSandboxOpen: true };
@@ -267,6 +284,7 @@ export function navReducer(state: NavState, action: NavAction): NavState {
         settingsSection: route.settingsSection ?? "menu",
         overlays: route.overlays,
         catalogBallId: route.catalogBallId ?? null,
+        openGuideId: route.guideId ?? null,
         viewedSessionId: route.viewedSessionId ?? null,
         lineSandboxOpen: route.lineSandbox ?? false
       };

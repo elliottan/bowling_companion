@@ -1,4 +1,4 @@
-import { BookOpen, ChevronRight, PlayCircle, Plus, Smartphone, type LucideIcon } from "lucide-react";
+import { BookOpen, ChevronRight, GraduationCap, PlayCircle, Plus, Smartphone, type LucideIcon } from "lucide-react";
 import { PinIcon } from "../components/icons";
 import {
   BowlingBallIcon,
@@ -55,6 +55,7 @@ interface DashboardViewProps {
   onOpenOilPatterns: () => void;
   onOpenGamePlan: () => void;
   onOpenSpareLines: () => void;
+  onOpenGuides: () => void;
   onSessionDeleted?: (sessionId: number) => void;
   onOpenBackup: () => void;
 }
@@ -89,6 +90,7 @@ export function DashboardView({
   onOpenOilPatterns,
   onOpenGamePlan,
   onOpenSpareLines,
+  onOpenGuides,
   onSessionDeleted,
   onOpenBackup
 }: DashboardViewProps) {
@@ -297,6 +299,27 @@ export function DashboardView({
           </button>
         ))}
       </div>
+
+      {/* Guides take a card rather than a seventh tile, on ADR-071's argument
+          for the game plan: the grid holds places you keep things, and reading
+          is not one of them. It sits under the grid because it is the one thing
+          on Home that is never about tonight. */}
+      <button
+        type="button"
+        onClick={onOpenGuides}
+        className="mt-2 flex w-full items-center gap-3 rounded-xl border border-edge bg-surface p-3 text-left shadow-sm hover:border-accent-fill"
+      >
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-accent-soft text-accent">
+          <GraduationCap size={18} aria-hidden="true" />
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block text-sm font-semibold text-ink">Guides</span>
+          <span className="block text-xs text-ink-secondary">
+            Layouts, drilling and equipment, readable offline at the alley.
+          </span>
+        </span>
+        <ChevronRight size={18} aria-hidden="true" className="shrink-0 text-ink-secondary" />
+      </button>
 
       <NextSteps
         onOpenArsenal={onOpenArsenal}
