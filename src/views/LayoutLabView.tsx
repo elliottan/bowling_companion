@@ -4,13 +4,14 @@ import { BallLayoutDiagram } from "../components/BallLayoutDiagram";
 import { PushScreen } from "../components/PushScreen";
 import { Chip } from "../components/ui/Chip";
 import { SegmentedControl } from "../components/ui/SegmentedControl";
-import { FIELD_DENSE, FIELD_MICRO_LABEL } from "../components/ui/field";
+import { FIELD_DENSE, FIELD_DENSE_SELECT, FIELD_MICRO_LABEL } from "../components/ui/field";
 import { GROUP_HEADING } from "../components/ui/typography";
 import {
   DEFAULT_ASYMMETRIC,
   DEFAULT_PAP,
   DEFAULT_SYMMETRIC,
   DO_NOT_USE_BAND,
+  EIGHTHS,
   LAYOUT_PRESETS,
   clamp,
   coreToPap,
@@ -19,13 +20,16 @@ import {
   formatVls,
   fromVls,
   inDoNotUseBand,
+  joinInches,
   layoutGeometry,
   pinBuffer,
   presetLayout,
   readMotion,
+  splitInches,
   toVls,
   type BallSpec,
   type DualAngleLayout,
+  type InchParts,
   type PapMeasurement
 } from "../lib/ballLayout";
 import { DEFAULT_ORIENTATION, orientationFacing, type Orientation } from "../lib/ballProjection";
@@ -115,8 +119,41 @@ export function LayoutLabView({ onBack }: LayoutLabViewProps) {
   return (
     <PushScreen title="Layout lab" onBack={onBack}>
       <div className="mx-auto w-full max-w-xl space-y-5 px-3 py-4 sm:px-6">
-        {/* 1. What ball. The core type is first because it changes what the
-            drilling angle means, and therefore what every number below does. */}
+        {/* 1. Whose ball this is. The PAP leads because it is the frame every
+            other number is measured against: the VAL angle is measured at it
+            and the pin-to-PAP distance is measured to it, so a layout read
+            against the wrong axis is the wrong layout. It used to sit last on
+            the grounds that it is set once and then left alone, which is true
+            of how often it is touched and wrong about what it means. */}
+        <section className="space-y-2">
+          <h2 className={GROUP_HEADING}>Your PAP</h2>
+          <div className="space-y-3 rounded-xl border border-edge bg-surface p-3 shadow-sm">
+            <InchField
+              label="Over"
+              id="pap-over"
+              value={pap.over}
+              maxWhole={6}
+              onChange={(over) => setPap((v) => ({ ...v, over: clamp(over, 0, 6.5) }))}
+            />
+            <InchField
+              label="Up or down"
+              id="pap-up"
+              value={pap.up}
+              maxWhole={3}
+              signed
+              onChange={(up) => setPap((v) => ({ ...v, up: clamp(up, -3, 3) }))}
+            />
+          </div>
+          <p className="text-xs text-ink-secondary">
+            Measured from the center of grip: across the midline, then up or down. Down is below
+            the midline, which is a normal place for a PAP to be. This moves the grip under the
+            layout, not the layout itself.
+          </p>
+        </section>
+
+        {/* 2. What ball. The core type comes before the numbers because it
+            changes what the drilling angle means, and therefore what every
+            number below does. */}
         <section className="space-y-2">
           <h2 className={GROUP_HEADING}>Core</h2>
           <SegmentedControl
@@ -135,7 +172,7 @@ export function LayoutLabView({ onBack }: LayoutLabViewProps) {
           </p>
         </section>
 
-        {/* 2. The numbers. */}
+        {/* 3. The numbers. */}
         <section className="space-y-3">
           <div className="flex items-center justify-between gap-3">
             <h2 className={GROUP_HEADING}>Layout</h2>
@@ -265,7 +302,7 @@ export function LayoutLabView({ onBack }: LayoutLabViewProps) {
           )}
         </section>
 
-        {/* 3. The ball. */}
+        {/* 4. The ball. */}
         <section className="space-y-2">
           <h2 className={GROUP_HEADING}>On the ball</h2>
           <div className="overflow-hidden rounded-xl border border-edge bg-surface-sunken shadow-sm">
@@ -293,7 +330,7 @@ export function LayoutLabView({ onBack }: LayoutLabViewProps) {
           </div>
         </section>
 
-        {/* 4. What it will do. */}
+        {/* 5. What it will do. */}
         <section className="space-y-2">
           <h2 className={GROUP_HEADING}>What it will do</h2>
           <div className="space-y-3 rounded-xl border border-edge bg-surface p-3 shadow-sm">
@@ -322,44 +359,108 @@ export function LayoutLabView({ onBack }: LayoutLabViewProps) {
           ))}
         </section>
 
-        {/* 5. Your own axis, last: it is set once and then left alone, so it
-            does not belong above the controls that get touched every time. */}
-        <section className="space-y-2">
-          <h2 className={GROUP_HEADING}>Your PAP</h2>
-          <div className="grid grid-cols-2 gap-2 rounded-xl border border-edge bg-surface p-3 shadow-sm">
-            <div>
-              <label className={FIELD_MICRO_LABEL} htmlFor="pap-over">Over</label>
-              <input
-                id="pap-over"
-                type="number"
-                inputMode="decimal"
-                step="0.125"
-                className={FIELD_DENSE}
-                value={pap.over}
-                onChange={(e) => setPap((v) => ({ ...v, over: clamp(Number(e.target.value) || 0, 0, 6.5) }))}
-              />
-            </div>
-            <div>
-              <label className={FIELD_MICRO_LABEL} htmlFor="pap-up">Up</label>
-              <input
-                id="pap-up"
-                type="number"
-                inputMode="decimal"
-                step="0.125"
-                className={FIELD_DENSE}
-                value={pap.up}
-                onChange={(e) => setPap((v) => ({ ...v, up: clamp(Number(e.target.value) || 0, -3, 3) }))}
-              />
-            </div>
-          </div>
-          <p className="text-xs text-ink-secondary">
-            Measured from the center of grip: across the midline, then up or down. A negative up is
-            a PAP below the line, which is normal. It moves the grip under the layout, not the
-            layout itself.
-          </p>
-        </section>
       </div>
     </PushScreen>
+  );
+}
+
+/**
+ * A measurement typed the way it is written: whole inches in one box, the
+ * fraction in another, and the unit spelled out after both.
+ *
+ * This replaced a single `type="number"` with `step="0.125"`. Nothing in
+ * bowling is measured in decimal inches, so that field asked for a number no
+ * bowler has: a PAP is "5 over and a half up", a tape reads in sixteenths, and
+ * a drill sheet never carries a decimal point. Worse, the step only bound the
+ * spinner arrows, so the keyboard would happily take 5.31 and the ball would
+ * quietly move to an axis no pro shop could measure.
+ *
+ * So the decimal is not accepted rather than rounded away: the whole-inch box
+ * is a text input filtered to digits, which cannot hold a point at all, and the
+ * fraction is a select whose only options are the eighths. Every value the pair
+ * can produce is a value someone could mark on a ball.
+ *
+ * The fraction may be left blank, which is the whole inch. `signed` adds the
+ * direction control for a measurement that can sit either side of the midline;
+ * the sign rides the whole measurement rather than its integer part, because
+ * half an inch below the line cannot be written as a negative zero.
+ */
+function InchField({
+  label,
+  id,
+  value,
+  onChange,
+  maxWhole,
+  signed = false
+}: {
+  label: string;
+  id: string;
+  value: number;
+  onChange: (value: number) => void;
+  maxWhole: number;
+  signed?: boolean;
+}) {
+  const parts = splitInches(value);
+  const emit = (next: Partial<InchParts>) => onChange(joinInches({ ...parts, ...next }));
+
+  return (
+    <div>
+      <span className={FIELD_MICRO_LABEL} id={`${id}-label`}>
+        {label}
+      </span>
+      <div className="flex items-center gap-2">
+        {signed && (
+          <div className="w-[7.5rem] shrink-0">
+            <SegmentedControl
+              label={`${label} direction`}
+              value={parts.negative ? "down" : "up"}
+              onChange={(d) => emit({ negative: d === "down" })}
+              options={[
+                { value: "up", label: "Up" },
+                { value: "down", label: "Down" }
+              ]}
+            />
+          </div>
+        )}
+        {/* Each control is sized by its wrapper rather than by a width class
+            on the control itself. `FIELD_DENSE` carries `w-full`, and Tailwind
+            resolves competing utilities by stylesheet order rather than
+            attribute order, so a `w-14` appended to it loses and the row
+            overflows the card. Same trap as the colour rule in
+            docs/DESIGN-LANGUAGE.md section 2. */}
+        <div className="w-14 shrink-0">
+          <input
+            id={id}
+            type="text"
+            inputMode="numeric"
+            aria-labelledby={`${id}-label`}
+            className={`${FIELD_DENSE} text-center tabular-nums`}
+            value={String(parts.whole)}
+            onChange={(e) => {
+              // Digits only. A stripped field reads as 0 rather than NaN, so
+              // clearing it to type a new number never blanks the drawing.
+              const digits = e.target.value.replace(/\D/g, "");
+              emit({ whole: Math.min(Number(digits || 0), maxWhole) });
+            }}
+          />
+        </div>
+        <div className="w-[5.5rem] shrink-0">
+          <select
+            aria-label={`${label} fraction`}
+            className={FIELD_DENSE_SELECT}
+            value={parts.eighths}
+            onChange={(e) => emit({ eighths: Number(e.target.value) })}
+          >
+            {EIGHTHS.map((fraction, eighths) => (
+              <option key={eighths} value={eighths}>
+                {fraction}
+              </option>
+            ))}
+          </select>
+        </div>
+        <span className="text-sm text-ink-secondary">in</span>
+      </div>
+    </div>
   );
 }
 

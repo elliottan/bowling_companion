@@ -371,7 +371,8 @@ export function formatDualAngle(layout: DualAngleLayout): string {
   return `${Math.round(layout.drillingAngle)} x ${formatInches(layout.pinToPap)} x ${Math.round(layout.valAngle)}`;
 }
 
-const EIGHTHS = ["", "1/8", "1/4", "3/8", "1/2", "5/8", "3/4", "7/8"];
+/** The eighths, by numerator. Index 0 is the whole inch, which has no fraction. */
+export const EIGHTHS = ["", "1/8", "1/4", "3/8", "1/2", "5/8", "3/4", "7/8"] as const;
 
 /** Inches to the nearest eighth, written as a mixed fraction. */
 export function formatInches(value: number): string {
@@ -381,6 +382,37 @@ export function formatInches(value: number): string {
   if (rest === 0) return `${whole}`;
   if (whole === 0) return EIGHTHS[rest];
   return `${whole} ${EIGHTHS[rest]}`;
+}
+
+/**
+ * A measurement as it is written and typed: whole inches, eighths, and which
+ * way it goes.
+ *
+ * Nothing in bowling is measured in decimal inches. A pro shop writes a PAP as
+ * "5 over and 1/2 up", a tape reads in sixteenths, and a drill sheet never
+ * carries a decimal point. So a measurement is entered as the two parts it is
+ * spoken in, and this pair of functions is the only place the decimal the math
+ * needs and the fraction a bowler reads meet.
+ *
+ * `negative` rather than a signed whole number because the sign belongs to the
+ * whole measurement, not to its integer part: half an inch below the midline is
+ * a real PAP and there is no way to write it as a negative zero.
+ */
+export interface InchParts {
+  whole: number;
+  /** Numerator over eight, 0 to 7. */
+  eighths: number;
+  negative: boolean;
+}
+
+export function splitInches(value: number): InchParts {
+  const total = Math.round(Math.abs(value) * 8);
+  return { whole: Math.floor(total / 8), eighths: total % 8, negative: value < 0 };
+}
+
+export function joinInches({ whole, eighths, negative }: InchParts): number {
+  const magnitude = Math.abs(whole) + Math.abs(eighths) / 8;
+  return negative ? -magnitude : magnitude;
 }
 
 // ---------------------------------------------------------------------------

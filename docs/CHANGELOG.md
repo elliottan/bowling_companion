@@ -8,6 +8,31 @@ merge to `main` (`docs/DEPLOYMENT.md`), so every section below is a dated batch
 of shipped work rather than a release. Thirty of them used to be headed
 `[Unreleased]`, which said nothing once they had all shipped.
 
+## A PAP is typed in inches and eighths, not decimals (2026-09-14)
+
+**The layout lab asks for your PAP first, and takes it the way it is written.**
+The PAP moved to the top of the screen. It had been last on the grounds that it
+is set once and then left alone, which is true of how often it is touched and
+wrong about what it means: the VAL angle is measured at the PAP and the
+pin-to-PAP distance is measured to it, so it is the frame every other number on
+the screen is read against.
+
+**The decimal field is gone.** It was one number box stepping by 0.125, which
+asked for a measurement no bowler has. A PAP is "5 over and a half up", a tape
+reads in sixteenths, and a drill sheet never carries a decimal point. The step
+only bound the spinner arrows too, so the keyboard would take 5.31 and move the
+axis somewhere no pro shop could measure.
+
+It is now two boxes and a unit: whole inches, then the fraction, then "in". The
+whole-inch box is filtered to digits so a decimal point cannot be typed into it
+at all, and the fraction offers only the eighths, blank for a whole inch. Every
+value the pair can produce is a value someone could mark on a ball.
+
+**Up and down is its own control.** The sign belongs to the whole measurement
+rather than to its integer part, because half an inch below the midline is a
+real PAP and there is no way to write it as a negative zero. The old field
+wanted you to know that a PAP below the line was typed as a minus.
+
 ## The layout lab (2026-09-14)
 
 **A dual angle layout is now something you can play with rather than read
