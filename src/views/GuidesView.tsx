@@ -31,10 +31,6 @@ export function GuidesView({ onBack, openGuideId, onOpenGuide }: GuidesViewProps
     <>
       <PushScreen title="Guides" onBack={onBack} active={!open}>
         <div className="mx-auto w-full max-w-xl space-y-5 px-3 py-4 sm:px-6">
-          <p className="px-1 text-sm text-ink-secondary">
-            Reference that does not change between sessions, kept here so it reads offline at
-            the alley.
-          </p>
           {guidesByTopic().map(({ topic, guides }) => (
             <ListGroup key={topic} heading={topic}>
               {guides.map((guide) => (
