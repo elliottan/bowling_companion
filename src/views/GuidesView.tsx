@@ -1,4 +1,5 @@
 import { ExternalLink, FileText } from "lucide-react";
+import { GuideFigure } from "../components/GuideFigure";
 import { PushScreen } from "../components/PushScreen";
 import { ListGroup, ListRow } from "../components/ui/ListGroup";
 import { GROUP_HEADING } from "../components/ui/typography";
@@ -129,6 +130,9 @@ function Block({ block }: { block: GuideBlock }) {
           ))}
         </dl>
       );
+
+    case "figure":
+      return <GuideFigure figure={block.figure} caption={block.caption} />;
 
     case "note":
       return (

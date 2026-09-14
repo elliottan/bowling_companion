@@ -22,7 +22,16 @@ export type GuideBlock =
    *  assumes you already have. */
   | { kind: "terms"; items: Array<{ term: string; text: string }> }
   /** Set apart: a caveat, or the one line to remember off the screen. */
-  | { kind: "note"; text: string };
+  | { kind: "note"; text: string }
+  /** A drawing. The id names one of the figures in `components/GuideFigure`,
+   *  which owns the geometry: `lib` cannot import a component, and a figure is
+   *  markup rather than content. The caption is also its spoken name. */
+  | { kind: "figure"; figure: GuideFigureId; caption: string };
+
+/** Kept in step with `GuideFigureId` in `components/GuideFigure.tsx` by hand,
+ *  because importing it here would point `lib` at a component. A figure named
+ *  here and missing there fails `guides.test.ts` rather than rendering blank. */
+export type GuideFigureId = "ball-points" | "dual-angles" | "flare-rings" | "pin-buffer";
 
 export interface GuideSource {
   label: string;
@@ -62,6 +71,11 @@ export const GUIDES: readonly Guide[] = [
         text: "Every layout system names the same few points on the ball. Read these once and the two systems below make sense."
       },
       {
+        kind: "figure",
+        figure: "ball-points",
+        caption: "The same ball every figure below uses. The grip center, the PAP, the VAL through it at a right angle to the grip line, and the pin."
+      },
+      {
         kind: "terms",
         items: [
           {
@@ -89,6 +103,11 @@ export const GUIDES: readonly Guide[] = [
             text: "Where the pin ends up, above or below the finger holes. Pin up delays the roll and keeps the shape sharper at the back. Pin down starts the roll earlier and smooths it out. The numbers below produce both. Neither is a system of its own."
           }
         ]
+      },
+      {
+        kind: "figure",
+        figure: "flare-rings",
+        caption: "Track flare. The axis moves a little on every revolution, so each one lays its own ring and puts dry coverstock on the lane."
       },
       {
         kind: "note",
@@ -129,6 +148,11 @@ export const GUIDES: readonly Guide[] = [
             text: "The angle at the PAP between the pin to PAP line and the vertical axis line. It sets the shape of the transition at the breakpoint. A smaller VAL angle transitions faster, so the ball changes direction sharply. A larger one, up to about 70 degrees, raises the drilled RG and lowers the drilled differential, so the ball revs up slower and reads smoother. About 30 to 45 degrees lands pin up, and 65 degrees and above lands pin down."
           }
         ]
+      },
+      {
+        kind: "figure",
+        figure: "dual-angles",
+        caption: "Both angles are measured at the PAP and share the pin line. The drilling angle opens off the grip line, the VAL angle off the VAL."
       },
       { kind: "heading", text: "What the two angles add up to" },
       {
@@ -195,6 +219,11 @@ export const GUIDES: readonly Guide[] = [
             text: "The distance from the pin to your vertical axis line. It shapes the move at the breakpoint, by setting how the flare passes the grip. It runs from 0 up to the pin to PAP distance you picked, so the third number is never larger than the first."
           }
         ]
+      },
+      {
+        kind: "figure",
+        figure: "pin-buffer",
+        caption: "The buffer is the square distance from the pin across to the VAL, not the distance along the pin line."
       },
       { kind: "heading", text: "How it lines up with dual angle" },
       {
