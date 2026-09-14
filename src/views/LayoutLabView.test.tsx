@@ -171,6 +171,46 @@ describe("LayoutLabView", () => {
     expect(headings[1]).toBe("Your PAP");
   });
 
+  it("puts each angle at its own vertex, not both in the middle of the ball", () => {
+    renderLab();
+    const svg = screen.getByRole("img", { name: /bowling ball/i });
+    const texts = Array.from(svg.querySelectorAll("text"));
+    const at = (starts: string) => {
+      const t = texts.find((n) => (n.textContent ?? "").trim().startsWith(starts));
+      return { x: Number(t?.getAttribute("x")), y: Number(t?.getAttribute("y")) };
+    };
+    const gap = (a: { x: number; y: number }, b: { x: number; y: number }) =>
+      Math.hypot(a.x - b.x, a.y - b.y);
+
+    const pin = at("Pin");
+    const pap = at("PAP");
+    const drill = texts.find((n) => (n.textContent ?? "").includes("DRILL"));
+    const val = texts.find((n) => (n.textContent ?? "").includes("VAL"));
+    const drillAt = { x: Number(drill?.getAttribute("x")), y: Number(drill?.getAttribute("y")) };
+    const valAt = { x: Number(val?.getAttribute("x")), y: Number(val?.getAttribute("y")) };
+
+    // The drilling angle is measured at the pin and the VAL angle at the PAP,
+    // so each label must sit by the vertex it belongs to. Both wedges open
+    // inward along the pin-to-PAP line, so a label placed too far out along its
+    // own bisector walks toward the other one until the two huddle in the
+    // middle of the ball and neither reads as belonging anywhere.
+    expect(gap(drillAt, pin)).toBeLessThan(gap(drillAt, pap));
+    expect(gap(valAt, pap)).toBeLessThan(gap(valAt, pin));
+
+    // And they stay apart from each other by more than either is from its own
+    // vertex, which is what "one angle at each corner" looks like numerically.
+    expect(gap(drillAt, valAt)).toBeGreaterThan(gap(drillAt, pin));
+    expect(gap(drillAt, valAt)).toBeGreaterThan(gap(valAt, pap));
+  });
+
+  it("names each angle, so which is which does not depend on the colour", () => {
+    renderLab();
+    const svg = screen.getByRole("img", { name: /bowling ball/i });
+    const all = Array.from(svg.querySelectorAll("text")).map((t) => (t.textContent ?? "").trim());
+    expect(all.some((t) => t.includes("DRILL"))).toBe(true);
+    expect(all.some((t) => t.includes("VAL"))).toBe(true);
+  });
+
   it("goes back", async () => {
     const { onBack } = renderLab();
     fireEvent.click(screen.getByRole("button", { name: /back/i }));

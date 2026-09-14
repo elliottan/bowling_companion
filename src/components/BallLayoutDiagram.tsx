@@ -277,6 +277,7 @@ export function BallLayoutDiagram({
               b={walk(geometry.pap, geometry.valDirection, arcToAngle(2))}
               color="#38bdf8"
               value={Math.round(layout.valAngle)}
+              name="VAL"
               orientation={orientation}
             />
             {/* Vertex at the pin: pin-to-PAP against pin-to-core. */}
@@ -286,6 +287,7 @@ export function BallLayoutDiagram({
               b={geometry.core}
               color="#fbbf24"
               value={Math.round(layout.drillingAngle)}
+              name="DRILL"
               orientation={orientation}
             />
           </>
@@ -389,6 +391,20 @@ function Marker({ shape, x, y, color }: { shape: Landmark["shape"]; x: number; y
  * The little arc at a vertex that shows the angle being measured, drawn on the
  * ball surface rather than on the screen plane so it sits flat on the sphere
  * and shrinks correctly as the vertex turns away.
+ *
+ * The two angles of a dual angle layout sit at opposite ends of the pin-to-PAP
+ * line and open away from each other, which is the shape the system makes: the
+ * drilling angle at the pin swings the core marker one way, the VAL angle at
+ * the PAP opens to the axis line the other way. But both wedges open *inward*
+ * along that line, so a label on each bisector walks toward the other one. At
+ * the reach this used (1.85 inches, about 43 screen units) the two labels ended
+ * up 43 units apart on a line only 130 long, huddled in the middle of the ball,
+ * and the drawing read as one pair of adjacent angles rather than one angle at
+ * each corner. A reader could not tell which vertex either belonged to.
+ *
+ * So the label is pulled in tight to its own vertex, and carries the angle's
+ * name under the degrees. The name is what makes it unambiguous no matter how
+ * the ball is turned; the short reach is what keeps the two apart.
  */
 function AngleArc({
   vertex,
@@ -396,6 +412,7 @@ function AngleArc({
   b,
   color,
   value,
+  name,
   orientation
 }: {
   vertex: Vec3;
@@ -403,18 +420,19 @@ function AngleArc({
   b: Vec3;
   color: string;
   value: number;
+  name: string;
   orientation: Orientation;
 }) {
   const toA = tangentToward(vertex, a);
   const toB = tangentToward(vertex, b);
-  const reach = arcToAngle(1.1);
+  const reach = arcToAngle(0.8);
   const start = walk(vertex, toA, reach);
   const end = walk(vertex, toB, reach);
   const runs = splitByDepth(arcPoints(start, end, 24), orientation, CENTER, CENTER, RADIUS);
   // The number sits on the bisector, just outside the arc, which is where it
   // stays clear of both legs at every angle including a very tight one.
   const bisector = normalize({ x: toA.x + toB.x, y: toA.y + toB.y, z: toA.z + toB.z });
-  const label = project(walk(vertex, bisector, arcToAngle(1.85)), orientation, CENTER, CENTER, RADIUS);
+  const label = project(walk(vertex, bisector, arcToAngle(1.25)), orientation, CENTER, CENTER, RADIUS);
 
   return (
     <g pointerEvents="none">
@@ -424,8 +442,8 @@ function AngleArc({
           points={toPolyline(run)}
           fill="none"
           stroke={color}
-          strokeWidth="1.5"
-          opacity={run.front ? 0.9 : BEHIND}
+          strokeWidth="2"
+          opacity={run.front ? 0.95 : BEHIND}
         />
       ))}
       {label.front && label.facing > 0.3 && (
@@ -433,18 +451,23 @@ function AngleArc({
           x={label.x}
           y={label.y}
           fill={color}
-          fontSize="10"
           fontWeight="700"
           textAnchor="middle"
-          dominantBaseline="middle"
           opacity={Math.min(1, (label.facing - 0.3) * 4)}
           stroke="#0f172a"
           strokeWidth="2.5"
           strokeLinejoin="round"
           style={{ paintOrder: "stroke" }}
         >
-          {value}
-          {"°"}
+          {/* Two lines rather than "45° VAL" on one, which would be half as
+              wide again and put the two labels back into each other. */}
+          <tspan x={label.x} fontSize="11">
+            {value}
+            {"°"}
+          </tspan>
+          <tspan x={label.x} dy="8" fontSize="6.5" letterSpacing="0.4">
+            {name}
+          </tspan>
         </text>
       )}
     </g>

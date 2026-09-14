@@ -8,6 +8,25 @@ merge to `main` (`docs/DEPLOYMENT.md`), so every section below is a dated batch
 of shipped work rather than a release. Thirty of them used to be headed
 `[Unreleased]`, which said nothing once they had all shipped.
 
+## Each layout angle sits at its own corner (2026-09-14)
+
+**Fixed: the layout lab drew both angles huddled in the middle of the ball.**
+The geometry was right and the drawing was not. The drilling angle really is
+measured at the pin, between the pin-to-PAP line and the line to the PSA on an
+asymmetric ball or the CG on a symmetric one, and the VAL angle really is
+measured at the PAP, between the pin-to-PAP line and the axis line. The two
+open away from each other, which is the shape the dual angle system makes.
+
+But both wedges open inward along the pin-to-PAP line, and each label was
+placed well out along its own bisector, so the two labels walked toward each
+other until they sat closer together than either was to the vertex it belonged
+to. The drawing read as one pair of adjacent angles rather than one angle at
+each end, and there was no way to tell which vertex either number described.
+
+Each label now tucks in beside its own vertex and carries the angle's name
+under the degrees, so which is which does not depend on noticing that the
+number shares a color with the line it measures to.
+
 ## The ball turns the way you drag it (2026-09-14)
 
 **Fixed: dragging the layout lab's ball up and down moved it the wrong way.**
