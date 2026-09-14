@@ -8,6 +8,26 @@ merge to `main` (`docs/DEPLOYMENT.md`), so every section below is a dated batch
 of shipped work rather than a release. Thirty of them used to be headed
 `[Unreleased]`, which said nothing once they had all shipped.
 
+## The ball turns the way you drag it (2026-09-14)
+
+**Fixed: dragging the layout lab's ball up and down moved it the wrong way.**
+Left and right were right; vertically the ball fought the finger, so dragging
+up sent the surface down. One sign in the drag handler, and one negation too
+many: raising the pitch tips the ball's top toward the viewer, which carries
+the point under the finger down the screen, and the projection negates y again
+on the way into SVG coordinates. Two flips cancel and the third was the bug.
+
+The arrow keys carried the same inverted sign in their own copy of the
+arithmetic, so they were backwards too. They now go through the same function
+the drag does, which is what stops the two from ever disagreeing about which
+way is up again.
+
+The test that should have caught this was the reason it shipped. It asserted
+that a finger moving up produced a positive pitch and called that "raises the
+ball", which is a claim about an internal number wearing the clothes of a claim
+about behavior, and it passed happily while the control was visibly wrong. It
+now projects a point and checks where it lands on screen.
+
 ## A PAP is typed in inches and eighths, not decimals (2026-09-14)
 
 **The layout lab asks for your PAP first, and takes it the way it is written.**

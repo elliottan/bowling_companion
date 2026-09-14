@@ -228,6 +228,25 @@ export function orientationFacing(target: Vec3): Orientation {
  */
 export const DRAG_TURNS_PER_WIDTH = 0.55;
 
+/**
+ * Both axes add the delta, and the vertical one is not negated.
+ *
+ * It was, and the ball fought the finger: dragging up sent the surface down.
+ * The reasoning behind the minus was that a finger moving up the screen is a
+ * negative `dy`, so the pitch had to go the other way to compensate. That is
+ * one negation too many. Raising the pitch tips the ball's top *toward* the
+ * viewer, which carries the point under the finger *down* the screen, and
+ * `project` then negates y again on the way into SVG coordinates. Two flips
+ * cancel; the third was the bug.
+ *
+ * The lesson is in the test rather than here. The old one asserted that a
+ * finger moving up produced a positive pitch and called that "raises the
+ * ball", which is an assertion about an internal number dressed up as one
+ * about behaviour. It passed while the control was visibly wrong. The test now
+ * projects a point and checks where it lands, which is the only claim worth
+ * making about a direct-manipulation control: the surface goes where the
+ * finger goes.
+ */
 export function dragToOrientation(
   start: Orientation,
   dx: number,
@@ -237,9 +256,21 @@ export function dragToOrientation(
   const perPixel = (2 * Math.PI * DRAG_TURNS_PER_WIDTH) / Math.max(width, 1);
   return clampOrientation({
     yaw: start.yaw + dx * perPixel,
-    pitch: start.pitch - dy * perPixel
+    pitch: start.pitch + dy * perPixel
   });
 }
+
+/**
+ * One arrow key press, as the drag it stands for.
+ *
+ * The keyboard goes through `dragToOrientation` rather than touching yaw and
+ * pitch itself, so the two controls cannot disagree about which way is up.
+ * They did: the same inverted sign had been copied into the key handler, so
+ * fixing one would have left the other backwards. 28 pixels over this notional
+ * width is about 15 degrees.
+ */
+export const KEY_STEP_PX = 28;
+export const KEY_STEP_WIDTH = 360;
 
 /**
  * Track flare rings: where the ball's axis actually sits on each successive

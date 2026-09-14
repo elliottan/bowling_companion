@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import { DEFAULT_ASYMMETRIC, layoutGeometry, normalize, surfaceDistance, type Vec3 } from "./ballLayout";
 import {
   IDENTITY_ORIENTATION,
+  KEY_STEP_PX,
+  KEY_STEP_WIDTH,
   MAX_PITCH,
   arcPoints,
   circlePoints,
@@ -188,12 +190,57 @@ describe("drag", () => {
     expect(dragToOrientation(IDENTITY_ORIENTATION, 300, 0, 300).yaw).toBeCloseTo(2 * Math.PI * 0.55, 6);
   });
 
-  it("raises the ball when the finger moves up the screen", () => {
-    expect(dragToOrientation(IDENTITY_ORIENTATION, 0, -50, 300).pitch).toBeGreaterThan(0);
+  it("moves the surface the way the finger moves, on both axes", () => {
+    // The only claim worth making about a direct-manipulation control, and the
+    // one the old test did not make: it asserted that a finger moving up gave a
+    // positive pitch and called that "raises the ball", which is a claim about
+    // an internal number wearing the clothes of a claim about behaviour. It
+    // passed while the vertical drag was visibly inverted. So project a point
+    // and look at where it lands.
+    const front = { x: 0, y: 0, z: 1 };
+    const at = (o: typeof IDENTITY_ORIENTATION) => project(front, o, 100, 100, 80);
+    const rest = at(IDENTITY_ORIENTATION);
+    const drag = (dx: number, dy: number) => at(dragToOrientation(IDENTITY_ORIENTATION, dx, dy, 300));
+
+    // Smaller y is higher up the screen.
+    expect(drag(0, -40).y).toBeLessThan(rest.y);
+    expect(drag(0, 40).y).toBeGreaterThan(rest.y);
+    expect(drag(40, 0).x).toBeGreaterThan(rest.x);
+    expect(drag(-40, 0).x).toBeLessThan(rest.x);
+  });
+
+  it("moves the surface by the same amount either way, so a drag and back is a no-op", () => {
+    const front = { x: 0, y: 0, z: 1 };
+    const at = (o: typeof IDENTITY_ORIENTATION) => project(front, o, 100, 100, 80);
+    const rest = at(IDENTITY_ORIENTATION);
+    const up = at(dragToOrientation(IDENTITY_ORIENTATION, 0, -40, 300));
+    const down = at(dragToOrientation(IDENTITY_ORIENTATION, 0, 40, 300));
+    expect(rest.y - up.y).toBeCloseTo(down.y - rest.y, 6);
+  });
+
+  it("gives the keyboard the same directions as the pointer", () => {
+    // The key handler goes through dragToOrientation for exactly this reason:
+    // the inverted sign had been copied into it, so fixing one place alone
+    // would have left the other backwards.
+    const front = { x: 0, y: 0, z: 1 };
+    const at = (o: typeof IDENTITY_ORIENTATION) => project(front, o, 100, 100, 80);
+    const rest = at(IDENTITY_ORIENTATION);
+    const key = (dx: number, dy: number) =>
+      at(dragToOrientation(IDENTITY_ORIENTATION, dx * KEY_STEP_PX, dy * KEY_STEP_PX, KEY_STEP_WIDTH));
+
+    expect(key(0, -1).y).toBeLessThan(rest.y);   // ArrowUp
+    expect(key(0, 1).y).toBeGreaterThan(rest.y); // ArrowDown
+    expect(key(1, 0).x).toBeGreaterThan(rest.x); // ArrowRight
+    expect(key(-1, 0).x).toBeLessThan(rest.x);   // ArrowLeft
+  });
+
+  it("makes one arrow press about fifteen degrees", () => {
+    const turned = dragToOrientation(IDENTITY_ORIENTATION, KEY_STEP_PX, 0, KEY_STEP_WIDTH);
+    expect((turned.yaw * 180) / Math.PI).toBeCloseTo(15, 0);
   });
 
   it("stops at the pole instead of flipping the ball over", () => {
-    const far = dragToOrientation(IDENTITY_ORIENTATION, 0, -10000, 300);
+    const far = dragToOrientation(IDENTITY_ORIENTATION, 0, 10000, 300);
     expect(far.pitch).toBeCloseTo(MAX_PITCH, 10);
     expect(clampOrientation({ yaw: 0, pitch: -99 }).pitch).toBeCloseTo(-MAX_PITCH, 10);
   });
