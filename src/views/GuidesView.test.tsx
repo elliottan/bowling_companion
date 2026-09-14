@@ -23,7 +23,7 @@ describe("GuidesView", () => {
   it("renders the article over the list, with its sources as links out", () => {
     render(<GuidesView onBack={vi.fn()} openGuideId="dual-angle-layouts" onOpenGuide={vi.fn()} />);
     const article = screen.getByRole("article");
-    expect(within(article).getByText(/sum, not either number alone/i)).toBeTruthy();
+    expect(within(article).getByText(/neither number sets it alone/i)).toBeTruthy();
     const source = within(article).getAllByRole("link")[0] as HTMLAnchorElement;
     expect(source.target).toBe("_blank");
     // The shelf is still mounted underneath: back peels the article off first.
