@@ -1,0 +1,490 @@
+import { useCallback, useMemo, useState } from "react";
+import { RotateCcw } from "lucide-react";
+import { BallLayoutDiagram } from "../components/BallLayoutDiagram";
+import { PushScreen } from "../components/PushScreen";
+import { Chip } from "../components/ui/Chip";
+import { SegmentedControl } from "../components/ui/SegmentedControl";
+import { FIELD_DENSE, FIELD_MICRO_LABEL } from "../components/ui/field";
+import { GROUP_HEADING } from "../components/ui/typography";
+import {
+  DEFAULT_ASYMMETRIC,
+  DEFAULT_PAP,
+  DEFAULT_SYMMETRIC,
+  DO_NOT_USE_BAND,
+  LAYOUT_PRESETS,
+  clamp,
+  coreToPap,
+  formatDualAngle,
+  formatInches,
+  formatVls,
+  fromVls,
+  inDoNotUseBand,
+  layoutGeometry,
+  pinBuffer,
+  presetLayout,
+  readMotion,
+  toVls,
+  type BallSpec,
+  type DualAngleLayout,
+  type PapMeasurement
+} from "../lib/ballLayout";
+import { DEFAULT_ORIENTATION, orientationFacing, type Orientation } from "../lib/ballProjection";
+
+interface LayoutLabViewProps {
+  onBack: () => void;
+}
+
+/** The two ways to write the same layout. */
+type System = "dual" | "vls";
+
+const BENCHMARK: DualAngleLayout = { drillingAngle: 45, pinToPap: 4.5, valAngle: 45 };
+
+/**
+ * The layout lab: three numbers, a ball you can turn, and what the ball will do.
+ *
+ * It holds nothing and saves nothing, which is deliberate. This is the ball
+ * equivalent of the line sandbox: a place to find out what a layout does before
+ * committing to one, not a record of a layout you own. A ball's actual layout
+ * is a field on the ball in the arsenal.
+ *
+ * The screen is arranged in the order the question gets asked: what ball, what
+ * numbers, what does it look like, what will it do. The diagram sits directly
+ * under the sliders rather than at the top, because the sliders are what the
+ * thumb is on and a picture above them would be the thing scrolled off screen.
+ */
+export function LayoutLabView({ onBack }: LayoutLabViewProps) {
+  const [symmetric, setSymmetric] = useState(false);
+  const [layout, setLayout] = useState<DualAngleLayout>(BENCHMARK);
+  const [pap, setPap] = useState<PapMeasurement>(DEFAULT_PAP);
+  const [system, setSystem] = useState<System>("dual");
+  const [orientation, setOrientation] = useState<Orientation>(DEFAULT_ORIENTATION);
+  const [showFlare, setShowFlare] = useState(true);
+
+  const ball: BallSpec = useMemo(
+    () => (symmetric ? DEFAULT_SYMMETRIC : DEFAULT_ASYMMETRIC),
+    [symmetric]
+  );
+
+  const motion = useMemo(() => readMotion(layout, ball, pap), [layout, ball, pap]);
+  const vls = useMemo(() => toVls(layout, ball), [layout, ball]);
+  const geometry = useMemo(() => layoutGeometry(layout, ball, pap), [layout, ball, pap]);
+
+  const set = useCallback(
+    (patch: Partial<DualAngleLayout>) => setLayout((l) => ({ ...l, ...patch })),
+    []
+  );
+
+  // Editing a VLS number is editing the layout: it converts back through the
+  // same geometry, so the two sets of sliders are two views of one state rather
+  // than two states kept in step. There is nothing to drift.
+  const setVls = useCallback(
+    (patch: Partial<{ pinToPap: number; psaToPap: number; pinBuffer: number }>) => {
+      setLayout((l) => {
+        const current = toVls(l, ball);
+        const next = fromVls(
+          {
+            pinToPap: patch.pinToPap ?? current.pinToPap,
+            psaToPap: patch.psaToPap ?? current.psaToPap,
+            pinBuffer: patch.pinBuffer ?? current.pinBuffer
+          },
+          ball
+        );
+        return { drillingAngle: next.drillingAngle, pinToPap: next.pinToPap, valAngle: next.valAngle };
+      });
+    },
+    [ball]
+  );
+
+  const face = (target: keyof typeof targets) => () => setOrientation(orientationFacing(targets[target]));
+  const targets = {
+    grip: geometry.gripCenter,
+    pin: geometry.pin,
+    pap: geometry.pap,
+    core: geometry.core
+  };
+
+  const activePreset = LAYOUT_PRESETS.find((p) => {
+    const l = presetLayout(p, ball);
+    return (
+      Math.abs(l.drillingAngle - layout.drillingAngle) < 0.5 &&
+      Math.abs(l.pinToPap - layout.pinToPap) < 0.02 &&
+      Math.abs(l.valAngle - layout.valAngle) < 0.5
+    );
+  });
+
+  return (
+    <PushScreen title="Layout lab" onBack={onBack}>
+      <div className="mx-auto w-full max-w-xl space-y-5 px-3 py-4 sm:px-6">
+        {/* 1. What ball. The core type is first because it changes what the
+            drilling angle means, and therefore what every number below does. */}
+        <section className="space-y-2">
+          <h2 className={GROUP_HEADING}>Core</h2>
+          <SegmentedControl
+            label="Core type"
+            value={symmetric ? "sym" : "asym"}
+            onChange={(v) => setSymmetric(v === "sym")}
+            options={[
+              { value: "asym", label: "Asymmetric" },
+              { value: "sym", label: "Symmetric" }
+            ]}
+          />
+          <p className="text-xs text-ink-secondary">
+            {symmetric
+              ? "A symmetric core has no preferred spin axis, so the drilling angle only moves the CG and changes far less."
+              : "An asymmetric core has a PSA, so the drilling angle swings real mass and is the strongest of the three numbers."}
+          </p>
+        </section>
+
+        {/* 2. The numbers. */}
+        <section className="space-y-3">
+          <div className="flex items-center justify-between gap-3">
+            <h2 className={GROUP_HEADING}>Layout</h2>
+            <button
+              type="button"
+              onClick={() => {
+                setLayout(BENCHMARK);
+                setPap(DEFAULT_PAP);
+                setOrientation(DEFAULT_ORIENTATION);
+              }}
+              className="inline-flex items-center gap-1 text-xs font-semibold text-accent"
+            >
+              <RotateCcw size={13} aria-hidden="true" />
+              Reset
+            </button>
+          </div>
+
+          <SegmentedControl
+            label="Layout system"
+            value={system}
+            onChange={setSystem}
+            options={[
+              { value: "dual", label: "Dual angle" },
+              { value: "vls", label: "Storm VLS" }
+            ]}
+          />
+
+          {system === "dual" ? (
+            <div className="space-y-3 rounded-xl border border-edge bg-surface p-3 shadow-sm">
+              <Slider
+                label="Drilling angle"
+                hint="At the pin, to the CG or PSA. Low rolls early, high rolls late."
+                value={layout.drillingAngle}
+                min={0}
+                max={90}
+                step={1}
+                unit="deg"
+                onChange={(drillingAngle) => set({ drillingAngle })}
+              />
+              <Slider
+                label="Pin to PAP"
+                hint="Sets the flare. Peaks around 4 inches and falls away either side."
+                value={layout.pinToPap}
+                min={0.5}
+                max={6}
+                step={0.125}
+                unit="in"
+                warn={inDoNotUseBand(layout.pinToPap)}
+                band={DO_NOT_USE_BAND}
+                bandMin={0.5}
+                bandMax={6}
+                onChange={(pinToPap) => set({ pinToPap })}
+              />
+              <Slider
+                label="VAL angle"
+                hint="At the PAP, to the axis line. Low is pin up and sharp, high is pin down and smooth."
+                value={layout.valAngle}
+                min={0}
+                max={90}
+                step={1}
+                unit="deg"
+                onChange={(valAngle) => set({ valAngle })}
+              />
+            </div>
+          ) : (
+            <div className="space-y-3 rounded-xl border border-edge bg-surface p-3 shadow-sm">
+              <Slider
+                label="Pin to PAP"
+                hint="The same first number in both systems."
+                value={vls.pinToPap}
+                min={0.5}
+                max={6}
+                step={0.125}
+                unit="in"
+                onChange={(pinToPap) => setVls({ pinToPap })}
+              />
+              {vls.psaToPap == null ? (
+                <p className="rounded-lg bg-surface-muted p-2.5 text-xs text-ink-secondary">
+                  A symmetric ball has no preferred spin axis to measure to, so a VLS layout for
+                  one is two numbers, not three.
+                </p>
+              ) : (
+                <Slider
+                  label="PSA to PAP"
+                  hint="How fast the ball sheds side roll. This is the drilling angle, written as a distance."
+                  value={vls.psaToPap}
+                  min={Math.max(0.25, Math.abs(ball.pinToCore - vls.pinToPap))}
+                  max={Math.min(6.7, ball.pinToCore + vls.pinToPap)}
+                  step={0.125}
+                  unit="in"
+                  onChange={(psaToPap) => setVls({ psaToPap })}
+                />
+              )}
+              <Slider
+                label="Pin buffer"
+                hint="Pin to the axis line. Short reads smooth and early, long is stronger off the friction."
+                value={vls.pinBuffer}
+                min={0}
+                max={Math.min(vls.pinToPap, 6)}
+                step={0.125}
+                unit="in"
+                onChange={(buffer) => setVls({ pinBuffer: buffer })}
+              />
+            </div>
+          )}
+
+          {/* Both notations, always, whichever one is being edited. The whole
+              point of the toggle is that they are the same layout. */}
+          <div className="grid grid-cols-2 gap-2">
+            <Readout label="Dual angle" value={formatDualAngle(layout)} />
+            <Readout label="Storm VLS" value={formatVls(vls)} />
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            {LAYOUT_PRESETS.map((preset) => (
+              <Chip
+                key={preset.id}
+                selected={activePreset?.id === preset.id}
+                onClick={() => setLayout(presetLayout(preset, ball))}
+              >
+                {preset.name}
+              </Chip>
+            ))}
+          </div>
+          {activePreset && (
+            <p className="text-xs text-ink-secondary">{activePreset.blurb}</p>
+          )}
+        </section>
+
+        {/* 3. The ball. */}
+        <section className="space-y-2">
+          <h2 className={GROUP_HEADING}>On the ball</h2>
+          <div className="overflow-hidden rounded-xl border border-edge bg-surface-sunken shadow-sm">
+            <BallLayoutDiagram
+              layout={layout}
+              ball={ball}
+              pap={pap}
+              flareInches={motion.flareInches}
+              showFlare={showFlare}
+              orientation={orientation}
+              onOrientationChange={setOrientation}
+            />
+          </div>
+          <p className="text-center text-xs text-ink-secondary">
+            Drag the ball to turn it. Arrow keys work too.
+          </p>
+          <div className="flex flex-wrap justify-center gap-2">
+            <Chip selected={false} onClick={face("grip")}>Grip</Chip>
+            <Chip selected={false} onClick={face("pin")}>Pin</Chip>
+            <Chip selected={false} onClick={face("pap")}>PAP</Chip>
+            <Chip selected={false} onClick={face("core")}>{ball.symmetric ? "CG" : "PSA"}</Chip>
+            <Chip selected={showFlare} onClick={() => setShowFlare((v) => !v)}>
+              Flare rings
+            </Chip>
+          </div>
+        </section>
+
+        {/* 4. What it will do. */}
+        <section className="space-y-2">
+          <h2 className={GROUP_HEADING}>What it will do</h2>
+          <div className="space-y-3 rounded-xl border border-edge bg-surface p-3 shadow-sm">
+            <p className="text-sm text-ink">{motion.summary}</p>
+            <Axis label="Flare" value={motion.flare} low="Low" high="High" note={`${motion.flareInches.toFixed(1)}"`} />
+            <Axis label="Reads the lane" value={motion.length} low="Early" high="Late" />
+            <Axis label="Off the friction" value={motion.angularity} low="Smooth" high="Sharp" />
+            <Axis label="Overall strength" value={motion.strength} low="Weak" high="Strong" />
+          </div>
+
+          <div className="grid grid-cols-2 gap-2">
+            <Readout label="Pin buffer" value={`${formatInches(pinBuffer(layout.pinToPap, layout.valAngle))}"`} />
+            <Readout
+              label={`${ball.symmetric ? "CG" : "PSA"} to PAP`}
+              value={`${formatInches(coreToPap(layout, ball))}"`}
+            />
+          </div>
+
+          {motion.warnings.map((warning) => (
+            <p
+              key={warning}
+              className="rounded-lg border border-warning-200 bg-warning-50 p-2.5 text-xs text-warning-700"
+            >
+              {warning}
+            </p>
+          ))}
+        </section>
+
+        {/* 5. Your own axis, last: it is set once and then left alone, so it
+            does not belong above the controls that get touched every time. */}
+        <section className="space-y-2">
+          <h2 className={GROUP_HEADING}>Your PAP</h2>
+          <div className="grid grid-cols-2 gap-2 rounded-xl border border-edge bg-surface p-3 shadow-sm">
+            <div>
+              <label className={FIELD_MICRO_LABEL} htmlFor="pap-over">Over</label>
+              <input
+                id="pap-over"
+                type="number"
+                inputMode="decimal"
+                step="0.125"
+                className={FIELD_DENSE}
+                value={pap.over}
+                onChange={(e) => setPap((v) => ({ ...v, over: clamp(Number(e.target.value) || 0, 0, 6.5) }))}
+              />
+            </div>
+            <div>
+              <label className={FIELD_MICRO_LABEL} htmlFor="pap-up">Up</label>
+              <input
+                id="pap-up"
+                type="number"
+                inputMode="decimal"
+                step="0.125"
+                className={FIELD_DENSE}
+                value={pap.up}
+                onChange={(e) => setPap((v) => ({ ...v, up: clamp(Number(e.target.value) || 0, -3, 3) }))}
+              />
+            </div>
+          </div>
+          <p className="text-xs text-ink-secondary">
+            Measured from the center of grip: across the midline, then up or down. A negative up is
+            a PAP below the line, which is normal. It moves the grip under the layout, not the
+            layout itself.
+          </p>
+        </section>
+      </div>
+    </PushScreen>
+  );
+}
+
+/**
+ * A labelled range with its number beside it.
+ *
+ * A native range input rather than a hand-rolled drag: it is the one control
+ * the platform already makes accessible, keyboard-operable and correctly sized
+ * for a thumb, and the app has no slider primitive to reach for. If a second
+ * screen wants one, this graduates to `components/ui/`.
+ */
+function Slider({
+  label,
+  hint,
+  value,
+  min,
+  max,
+  step,
+  unit,
+  onChange,
+  warn = false,
+  band,
+  bandMin,
+  bandMax
+}: {
+  label: string;
+  hint: string;
+  value: number;
+  min: number;
+  max: number;
+  step: number;
+  unit: "deg" | "in";
+  onChange: (value: number) => void;
+  warn?: boolean;
+  /** A span of the track to shade as unusable, in the value's own units. */
+  band?: readonly [number, number];
+  bandMin?: number;
+  bandMax?: number;
+}) {
+  const shown = unit === "deg" ? `${Math.round(value)}°` : `${formatInches(value)}"`;
+  const id = `slider-${label.replace(/\s+/g, "-").toLowerCase()}`;
+
+  const bandStyle =
+    band && bandMin != null && bandMax != null
+      ? {
+          left: `${((band[0] - bandMin) / (bandMax - bandMin)) * 100}%`,
+          width: `${((band[1] - band[0]) / (bandMax - bandMin)) * 100}%`
+        }
+      : null;
+
+  return (
+    <div>
+      <div className="mb-1 flex items-baseline justify-between gap-2">
+        <label className={FIELD_MICRO_LABEL} htmlFor={id}>{label}</label>
+        <span className={`text-sm font-bold tabular-nums ${warn ? "text-warning-700" : "text-ink"}`}>
+          {shown}
+        </span>
+      </div>
+      <div className="relative">
+        {/* The do-not-use band, drawn on the track itself. A number a bowler
+            should not pick is better shown where they are picking it than
+            explained underneath after they have picked it. */}
+        {bandStyle && (
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute top-1/2 h-1.5 -translate-y-1/2 rounded-sm bg-warning-200"
+            style={bandStyle}
+          />
+        )}
+        <input
+          id={id}
+          type="range"
+          min={min}
+          max={max}
+          step={step}
+          value={value}
+          onChange={(e) => onChange(Number(e.target.value))}
+          className="relative h-11 w-full cursor-pointer appearance-none bg-transparent [&::-moz-range-thumb]:h-5 [&::-moz-range-thumb]:w-5 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-surface [&::-moz-range-thumb]:bg-accent-fill [&::-moz-range-track]:h-1.5 [&::-moz-range-track]:rounded-full [&::-moz-range-track]:bg-edge-strong [&::-webkit-slider-runnable-track]:h-1.5 [&::-webkit-slider-runnable-track]:rounded-full [&::-webkit-slider-runnable-track]:bg-edge-strong [&::-webkit-slider-thumb]:-mt-1.5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-surface [&::-webkit-slider-thumb]:bg-accent-fill [&::-webkit-slider-thumb]:shadow"
+        />
+      </div>
+      <p className="text-xs leading-snug text-ink-secondary">{hint}</p>
+    </div>
+  );
+}
+
+/** One motion axis as a bar between its two named ends. */
+function Axis({
+  label,
+  value,
+  low,
+  high,
+  note
+}: {
+  label: string;
+  value: number;
+  low: string;
+  high: string;
+  note?: string;
+}) {
+  return (
+    <div>
+      <div className="mb-1 flex items-baseline justify-between gap-2 text-xs">
+        <span className="font-semibold text-ink-strong">{label}</span>
+        {note && <span className="tabular-nums text-ink-secondary">{note}</span>}
+      </div>
+      <div className="h-1.5 w-full overflow-hidden rounded-full bg-surface-muted">
+        <div
+          className="h-full rounded-full bg-accent-fill"
+          style={{ width: `${clamp(value, 0, 1) * 100}%` }}
+        />
+      </div>
+      <div className="mt-0.5 flex justify-between text-[10px] text-ink-tertiary">
+        <span>{low}</span>
+        <span>{high}</span>
+      </div>
+    </div>
+  );
+}
+
+/** A named number, in the notation a drill sheet uses. */
+function Readout({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-xl border border-edge bg-surface p-2.5 shadow-sm">
+      <span className={FIELD_MICRO_LABEL}>{label}</span>
+      <span className="block text-sm font-bold tabular-nums text-ink">{value}</span>
+    </div>
+  );
+}

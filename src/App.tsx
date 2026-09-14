@@ -77,6 +77,11 @@ const GameTrendView = lazy(() =>
   import("./views/GameTrendView").then((m) => ({ default: m.GameTrendView }))
 );
 const GuidesView = lazy(() => import("./views/GuidesView").then((m) => ({ default: m.GuidesView })));
+// Lazy like its siblings: the diagram and its geometry are a chunk nobody who
+// never opens the lab should download.
+const LayoutLabView = lazy(() =>
+  import("./views/LayoutLabView").then((m) => ({ default: m.LayoutLabView }))
+);
 const GamePlanView = lazy(() =>
   import("./views/GamePlanView").then((m) => ({ default: m.GamePlanView }))
 );
@@ -476,6 +481,7 @@ function App() {
             onOpenGamePlan={() => pushOverlay("game-plan")}
             onOpenSpareLines={() => pushOverlay("spares")}
             onOpenGuides={() => pushOverlay("guides")}
+            onOpenLayoutLab={() => pushOverlay("layout-lab")}
             onSessionDeleted={handleSessionDeleted}
             onOpenBackup={goToBackup}
           />
@@ -599,6 +605,8 @@ function App() {
                 onOpenGuide={(guideId) => dispatch({ type: "openGuide", guideId })}
               />
             );
+          case "layout-lab":
+            return <LayoutLabView key={`layout-lab-${i}`} onBack={popOverlay} />;
           // Stats drill-downs. They read the shared session filter themselves,
           // so there is nothing to thread through here.
           case "open-frames":

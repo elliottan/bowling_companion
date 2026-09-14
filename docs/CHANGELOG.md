@@ -8,6 +8,53 @@ merge to `main` (`docs/DEPLOYMENT.md`), so every section below is a dated batch
 of shipped work rather than a release. Thirty of them used to be headed
 `[Unreleased]`, which said nothing once they had all shipped.
 
+## The layout lab (2026-09-14)
+
+**A dual angle layout is now something you can play with rather than read
+about.** Layout lab, from the dashboard, gives you the three numbers on sliders,
+a bowling ball you drag to turn, and a plain reading of what the layout will do
+on the lane. The ball is real spherical geometry, not a diagram: the pin-to-PAP
+line and the pin-to-PSA line are great circles drawn on the surface, they fade
+as they pass round the back, and both angles are drawn as arcs at the vertex
+each one is actually measured from. Drag it or use the arrow keys, and a chip
+row turns it straight to the grip, the pin, the PAP or the core marker.
+
+The point is that the flat two-circle diagram every layout chart prints only
+works for someone who already knows where the pin goes. Watching the pin travel
+as the VAL angle opens is the explanation.
+
+**Each number is applied at its own vertex, which is the part charts leave
+implicit.** The drilling angle is measured at the pin, between the line to the
+PAP and the line to the CG on a symmetric ball or the PSA on an asymmetric one.
+The VAL angle is measured at the PAP, between the line to the pin and the
+vertical axis line. Getting those two vertices right is what makes everything
+else fall out: the pin buffer, the PSA-to-PAP distance, and the Storm VLS
+conversion are all read back off the same geometry rather than estimated.
+
+**The do-not-use band is drawn on the slider, not explained underneath it.** A
+pin-to-PAP distance between 2 3/8" and 3 3/8" runs the track over the thumb
+hole and makes the reaction hard to repeat, so that span is shaded on the track
+where the choice is being made.
+
+**Storm VLS is a toggle, and the same layout either way.** Both notations are
+always on screen, and switching moves the sliders onto the VLS numbers:
+pin-to-PAP, PSA-to-PAP and pin buffer. Editing either set edits one layout, so
+there is nothing to keep in step. A symmetric ball has no preferred spin axis to
+measure to, so its VLS layout is two numbers rather than three.
+
+One correction worth writing down. The rule of thumb pro shops quote for the pin
+buffer, and the worked example that goes with it, "2 1/2 inches of buffer on a 5
+inch pin-to-PAP is a 30 degree VAL angle", is flat trigonometry applied to a
+curved ball. Both the angle and the distances are measured on the ball surface,
+so the triangle is spherical, and a 5 inch pin-to-PAP is nearly a fifth of the
+way round an 8.5 inch ball. The true answer is 37 degrees, and a real 30 degree
+VAL angle gives a 2 1/16 inch buffer. The app uses the spherical form
+throughout.
+
+The lab saves nothing. It is the ball equivalent of the line sandbox: a place to
+find out what a layout does before committing to one. A ball's actual layout is
+still a field on the ball in the arsenal.
+
 ## Leave shares, and which ball works when (2026-09-14)
 
 **A ball's leaves now carry a share as well as a count.** Under Ball

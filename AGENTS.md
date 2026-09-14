@@ -23,6 +23,7 @@ shape to drift, by design.
 | Add or restructure a module | `docs/ARCHITECTURE.md` for the import layering |
 | Add balls to the catalog | `scripts/sync-catalog/pipeline/` (select, promote, images); ADR-043 for the trust rules, ADR-039 for the image position |
 | Backup, import or merge | ADR-038 + `src/services/backupRepository.ts` |
+| Ball layouts: dual angle, VAL, pin buffer, Storm VLS | `src/lib/ballLayout.ts` (geometry + motion) and `src/lib/ballProjection.ts` (drawing it), with their tests |
 | Pin input | ADR-006 (inverted input), ADR-001 |
 | Viewport, rotation or scroll handling | `docs/VIEWPORT-BUG.md`, in full, before writing a line |
 | Add or edit a guide article | `src/lib/guides.ts` (static content, block union, sources) |

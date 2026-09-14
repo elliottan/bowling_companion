@@ -46,6 +46,10 @@ export type Overlay =
    *  A sibling of the catalog and the spare lines, reference you keep rather
    *  than a place you sit, so it is pushed from the dashboard like they are. */
   | "guides"
+  /** The dual angle layout lab: sliders, a ball you can turn, and what the
+   *  layout will do. A sandbox like the line visualizer rather than a record,
+   *  so it saves nothing and is pushed from the dashboard beside its siblings. */
+  | "layout-lab"
   | "open-frames"
   | "game-trend"
   | "game-plan"
