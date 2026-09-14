@@ -15,9 +15,10 @@ import {
 import { layoutGeometry } from "../lib/ballLayout";
 import {
   IDENTITY_ORIENTATION,
+  KEY_STEP_PX,
+  KEY_STEP_WIDTH,
   arcPoints,
   circlePoints,
-  clampOrientation,
   dragToOrientation,
   flareAxes,
   project,
@@ -140,17 +141,16 @@ export function BallLayoutDiagram({
   // pointer-only control would put that information out of reach entirely.
   const onKeyDown = useCallback(
     (e: React.KeyboardEvent<SVGSVGElement>) => {
-      const step = Math.PI / 12;
-      const nudge = (yaw: number, pitch: number) => {
+      // Expressed as the drag each key stands for, so the keyboard and the
+      // pointer can never disagree about which way is up.
+      const nudge = (dx: number, dy: number) => {
         e.preventDefault();
-        onOrientationChange(
-          clampOrientation({ yaw: orientation.yaw + yaw, pitch: orientation.pitch + pitch })
-        );
+        onOrientationChange(dragToOrientation(orientation, dx, dy, KEY_STEP_WIDTH));
       };
-      if (e.key === "ArrowLeft") nudge(-step, 0);
-      else if (e.key === "ArrowRight") nudge(step, 0);
-      else if (e.key === "ArrowUp") nudge(0, step);
-      else if (e.key === "ArrowDown") nudge(0, -step);
+      if (e.key === "ArrowLeft") nudge(-KEY_STEP_PX, 0);
+      else if (e.key === "ArrowRight") nudge(KEY_STEP_PX, 0);
+      else if (e.key === "ArrowUp") nudge(0, -KEY_STEP_PX);
+      else if (e.key === "ArrowDown") nudge(0, KEY_STEP_PX);
       else if (e.key === "Home") {
         e.preventDefault();
         onOrientationChange(IDENTITY_ORIENTATION);

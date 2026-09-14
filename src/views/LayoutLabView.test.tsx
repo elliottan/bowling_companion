@@ -115,10 +115,60 @@ describe("LayoutLabView", () => {
     renderLab();
     const ball = screen.getByRole("img", { name: /bowling ball/i });
     const before = ball.innerHTML;
-    fireEvent.change(screen.getByLabelText("Over"), { target: { value: "3.5" } });
+    fireEvent.change(screen.getByLabelText("Over"), { target: { value: "3" } });
     expect(ball.innerHTML).not.toBe(before);
     // The layout numbers themselves are untouched: a PAP is the bowler, not the drill.
     expect(dualAngle()).toBe("45 x 4 1/2 x 45");
+  });
+
+  it("takes a PAP as whole inches and a fraction, never as a decimal", () => {
+    renderLab();
+    const whole = screen.getByLabelText("Over") as HTMLInputElement;
+    // The default PAP is 5" over, which is 5 and no fraction.
+    expect(whole.value).toBe("5");
+    expect((screen.getByLabelText("Over fraction") as HTMLSelectElement).value).toBe("0");
+
+    // A typed decimal point cannot land in the field at all: it is filtered to
+    // digits, so "3.5" is read as the whole inches 35 and clamped to the max.
+    fireEvent.change(whole, { target: { value: "3.5" } });
+    expect(whole.value).toBe("6");
+  });
+
+  it("offers only the eighths as fractions, with blank for a whole inch", () => {
+    renderLab();
+    const options = Array.from(
+      (screen.getByLabelText("Over fraction") as HTMLSelectElement).options
+    ).map((o) => o.text);
+    expect(options).toEqual(["", "1/8", "1/4", "3/8", "1/2", "5/8", "3/4", "7/8"]);
+  });
+
+  it("combines the whole and the fraction into one measurement", () => {
+    renderLab();
+    const ball = () => screen.getByRole("img", { name: /bowling ball/i }).innerHTML;
+    fireEvent.change(screen.getByLabelText("Over"), { target: { value: "4" } });
+    const atFourInches = ball();
+    fireEvent.change(screen.getByLabelText("Over fraction"), { target: { value: "4" } });
+    // 4 1/2 is not 4, so the grip moved.
+    expect(ball()).not.toBe(atFourInches);
+  });
+
+  it("puts the sign on the whole measurement, so a PAP below the midline is reachable", () => {
+    renderLab();
+    const ball = () => screen.getByRole("img", { name: /bowling ball/i }).innerHTML;
+    fireEvent.change(screen.getByLabelText("Up or down"), { target: { value: "0" } });
+    fireEvent.change(screen.getByLabelText("Up or down fraction"), { target: { value: "4" } });
+    const halfUp = ball();
+    // Half an inch DOWN is a different axis, and cannot be written as a
+    // negative zero, which is the whole reason the direction is its own control.
+    fireEvent.click(screen.getByRole("button", { name: "Down" }));
+    expect(ball()).not.toBe(halfUp);
+  });
+
+  it("leads with the PAP, which every other number is measured against", () => {
+    renderLab();
+    const headings = screen.getAllByRole("heading").map((h) => h.textContent);
+    expect(headings[0]).toBe("Layout lab");
+    expect(headings[1]).toBe("Your PAP");
   });
 
   it("goes back", async () => {

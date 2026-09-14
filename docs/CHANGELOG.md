@@ -8,6 +8,51 @@ merge to `main` (`docs/DEPLOYMENT.md`), so every section below is a dated batch
 of shipped work rather than a release. Thirty of them used to be headed
 `[Unreleased]`, which said nothing once they had all shipped.
 
+## The ball turns the way you drag it (2026-09-14)
+
+**Fixed: dragging the layout lab's ball up and down moved it the wrong way.**
+Left and right were right; vertically the ball fought the finger, so dragging
+up sent the surface down. One sign in the drag handler, and one negation too
+many: raising the pitch tips the ball's top toward the viewer, which carries
+the point under the finger down the screen, and the projection negates y again
+on the way into SVG coordinates. Two flips cancel and the third was the bug.
+
+The arrow keys carried the same inverted sign in their own copy of the
+arithmetic, so they were backwards too. They now go through the same function
+the drag does, which is what stops the two from ever disagreeing about which
+way is up again.
+
+The test that should have caught this was the reason it shipped. It asserted
+that a finger moving up produced a positive pitch and called that "raises the
+ball", which is a claim about an internal number wearing the clothes of a claim
+about behavior, and it passed happily while the control was visibly wrong. It
+now projects a point and checks where it lands on screen.
+
+## A PAP is typed in inches and eighths, not decimals (2026-09-14)
+
+**The layout lab asks for your PAP first, and takes it the way it is written.**
+The PAP moved to the top of the screen. It had been last on the grounds that it
+is set once and then left alone, which is true of how often it is touched and
+wrong about what it means: the VAL angle is measured at the PAP and the
+pin-to-PAP distance is measured to it, so it is the frame every other number on
+the screen is read against.
+
+**The decimal field is gone.** It was one number box stepping by 0.125, which
+asked for a measurement no bowler has. A PAP is "5 over and a half up", a tape
+reads in sixteenths, and a drill sheet never carries a decimal point. The step
+only bound the spinner arrows too, so the keyboard would take 5.31 and move the
+axis somewhere no pro shop could measure.
+
+It is now two boxes and a unit: whole inches, then the fraction, then "in". The
+whole-inch box is filtered to digits so a decimal point cannot be typed into it
+at all, and the fraction offers only the eighths, blank for a whole inch. Every
+value the pair can produce is a value someone could mark on a ball.
+
+**Up and down is its own control.** The sign belongs to the whole measurement
+rather than to its integer part, because half an inch below the midline is a
+real PAP and there is no way to write it as a negative zero. The old field
+wanted you to know that a PAP below the line was typed as a minus.
+
 ## The layout lab (2026-09-14)
 
 **A dual angle layout is now something you can play with rather than read

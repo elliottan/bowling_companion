@@ -5,6 +5,7 @@ import {
   DEFAULT_PAP,
   DEFAULT_SYMMETRIC,
   DO_NOT_USE_BAND,
+  EIGHTHS,
   LAYOUT_PRESETS,
   angleToArc,
   arcToAngle,
@@ -18,12 +19,14 @@ import {
   formatVls,
   fromVls,
   inDoNotUseBand,
+  joinInches,
   layoutGeometry,
   normalize,
   papVector,
   pinBuffer,
   presetLayout,
   readMotion,
+  splitInches,
   surfaceDistance,
   tangentToward,
   toVls,
@@ -256,6 +259,41 @@ describe("formatting", () => {
 
   it("writes a dual angle the way a drill sheet writes it", () => {
     expect(formatDualAngle(BENCHMARK)).toBe("45 x 4 1/2 x 45");
+  });
+});
+
+describe("inches as whole and eighths", () => {
+  it("splits a measurement the way it is written", () => {
+    expect(splitInches(5)).toEqual({ whole: 5, eighths: 0, negative: false });
+    expect(splitInches(4.5)).toEqual({ whole: 4, eighths: 4, negative: false });
+    expect(splitInches(0.125)).toEqual({ whole: 0, eighths: 1, negative: false });
+  });
+
+  it("puts the sign on the whole measurement, not on its integer part", () => {
+    // Half an inch below the midline is a real PAP, and there is no way to
+    // write it as a negative zero.
+    expect(splitInches(-0.5)).toEqual({ whole: 0, eighths: 4, negative: true });
+    expect(joinInches({ whole: 0, eighths: 4, negative: true })).toBeCloseTo(-0.5, 10);
+  });
+
+  it("round-trips every eighth in the range a PAP can sit", () => {
+    for (let v = -3; v <= 6.5; v += 0.125) {
+      expect(joinInches(splitInches(v))).toBeCloseTo(v, 10);
+    }
+  });
+
+  it("snaps a decimal that is not an eighth to the nearest one", () => {
+    // The field cannot produce this, but a stored value from anywhere else can.
+    expect(joinInches(splitInches(5.31))).toBeCloseTo(5.25, 10);
+    expect(joinInches(splitInches(5.32))).toBeCloseTo(5.375, 10);
+  });
+
+  it("agrees with how formatInches writes the same number", () => {
+    for (const v of [0, 0.125, 2.375, 4.5, 5.875]) {
+      const { whole, eighths } = splitInches(v);
+      const written = eighths === 0 ? `${whole}` : whole === 0 ? EIGHTHS[eighths] : `${whole} ${EIGHTHS[eighths]}`;
+      expect(formatInches(v)).toBe(written);
+    }
   });
 });
 
