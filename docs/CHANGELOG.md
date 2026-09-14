@@ -8,6 +8,40 @@ merge to `main` (`docs/DEPLOYMENT.md`), so every section below is a dated batch
 of shipped work rather than a release. Thirty of them used to be headed
 `[Unreleased]`, which said nothing once they had all shipped.
 
+## Leave shares, and which ball works when (2026-09-14)
+
+**A ball's leaves now carry a share as well as a count.** Under Ball
+performance on Stats, every leave a ball produced reads as a percentage of the
+fresh-rack balls thrown with that ball, next to the count. The count alone
+rewarded the ball thrown most: nine 10 pins off three hundred balls is a
+different ball from nine off forty, and the two rows used to read the same.
+The leaves card at the bottom of the tab carries the same share, against every
+fresh-rack ball in view.
+
+**Game plan answers which ball works when, without a trip to the filters.** A
+"Which ball, when" section carries one ball table and a chip row that re-reads
+it: every game here, then game 1, game 2 and each other game bowled, then the
+fresh (games 1 to 2), the middle of the session (games 2 to 4) and late (game 4
+on). Pocket, carry and strike for each ball, ordered by strike rate.
+
+The windows overlap on purpose: a pattern breaks down by shots thrown on it, so
+game 2 behind a squad of eight is nothing like game 2 bowling alone, and a hard
+cut would claim a precision the game number does not have. A window that covers
+only one game you have actually bowled is not offered, so a chip never leads to
+a table you have already seen under another name.
+
+**Game plan takes a lane, and keeps the house read beside it.** Pick the lane
+you are about to bowl and each ball reads twice: on that lane, and across every
+lane at that alley and pattern. Neither answer is dropped, because they are
+different halves of one question, and the fallback is never uniform: the ball
+you throw every game has a real lane read while the one you pull out twice a
+season does not. A lane read under eight fresh-rack balls is marked thin and
+does not set the order.
+
+It says what happened, not what to bring: a ball that only comes out of the bag
+when the lanes have gone will look worse late for reasons that have nothing to
+do with the ball.
+
 ## Guides, a reading shelf on Home (2026-09-14)
 
 **Layout and equipment articles now ship with the app.** A Guides card under

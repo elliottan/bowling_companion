@@ -4418,3 +4418,72 @@ behind a number that was never about them.
 - Game plan takes a location rather than offering "any alley", defaulting to the
   house with the most sessions. It reads one place back to you, and an average
   across three houses is a number about none of them.
+
+## ADR-097: A leave count is read against how much was thrown, and Game plan reads one ball table through a scope
+
+**Context.** Two numbers on the stats side rewarded volume rather than
+describing a ball.
+
+The per-ball leave cards counted leaves and stopped. The ball with forty five
+fresh-rack balls behind it showed four 10 pins and the ball with fifteen showed
+two, and the second ball is the one leaving them more often. Nothing on the card
+said so.
+
+Game plan had nothing to say about which ball works when. The ball table on
+Stats breaks out by game number, which is the right grain for a table and the
+wrong one for a plan, and getting the read a bowler actually wants meant
+setting three filters on another screen and reading a column at a time.
+
+**Decision.** Every `LeaveStats` carries `sharePct` beside its count: attempts
+over the fresh-rack balls in whatever produced it, which for a ball's own leaves
+is that ball's fresh-rack balls and for the leaves card is every fresh-rack ball
+in view.
+
+Game plan carries one ball table and a chip row that re-reads it: every game
+here, then each game number bowled, then the windows of a session, fresh (games
+1 to 2), mid (2 to 4) and late (4 on). One table rather than a card per window,
+because a card per scope is a screen the reader scrolls past to reach the one
+scope they wanted, and because the per-game read and the window read are the
+same question at two grains.
+
+The windows overlap, and that is the decision rather than an accident of the
+boundaries. A pattern breaks down by shots thrown on it, so game 2 behind a
+squad of eight is a long way from fresh and game 2 bowling alone is not, and the
+app records neither the squad size nor the pair's traffic. A hard cut would put
+a boundary where the data cannot support one; overlapping windows let a ball
+appear in two of them and let the reader see where it stops working. A window
+covering only one game number that was actually bowled is not offered: its chip
+would lead to that game's table under a second name.
+
+Game plan also takes a lane, and a lane does not replace the house read: each
+ball carries both, the lane above and every lane at that alley and pattern
+below. Falling back per screen would be wrong in both directions, because the
+fallback is never uniform. The ball thrown every game has a real read on lane 7
+while the one pulled out twice a season does not, and they sit in the same
+table. A lane read under eight fresh-rack balls is marked thin and does not set
+the order, rather than being hidden: a thin read next to a fuller one is
+information, and it is the column the lane picker was chosen for.
+
+Balls are ordered by strike rate within a scope, on the lane read where that
+read is not thin and on the house read otherwise. Strike rate is the one rate
+that counts everything the ball did with a full rack in front of it.
+
+Scope rates are the per-game cells of `calculateBallPerformance` added up, not a
+second pass over the frames, so ADR-048 still holds: there is one definition of
+pocket, carry and strike, and a figure here reconciles with the row it came
+from.
+
+**Consequences.**
+- A ball needs twelve fresh-rack balls inside a scope before it is listed
+  there, lower than the ball callout's floor of twenty, because a scope can be
+  one game of each session rather than all of them. A single game of a thin
+  history therefore offers no chip of its own, and the wider scopes still do.
+- A ball that is only pulled out when the lanes have gone will read badly late
+  and be absent from fresh. The section says what happened; it does not
+  recommend, for the same reason ADR-064b does not.
+- The lane picker is offered only inside a chosen house, like every other lane
+  filter (ADR-096): lane 7 is a different lane at every house.
+- Lane filtering is per frame, so a lane read is the frames bowled on that lane
+  rather than the games, and a pair played alternately gives roughly half the
+  balls of the house read. That is why the thin floor is lower than the scope
+  floor rather than equal to it.
