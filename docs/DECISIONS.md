@@ -4418,3 +4418,48 @@ behind a number that was never about them.
 - Game plan takes a location rather than offering "any alley", defaulting to the
   house with the most sessions. It reads one place back to you, and an average
   across three houses is a number about none of them.
+
+## ADR-097: A leave count is read against how much was thrown, and a session is read in three overlapping windows
+
+**Context.** Two numbers on the stats side rewarded volume rather than
+describing a ball.
+
+The per-ball leave cards counted leaves and stopped. The ball with forty five
+fresh-rack balls behind it showed four 10 pins and the ball with fifteen showed
+two, and the second ball is the one leaving them more often. Nothing on the card
+said so.
+
+Game plan had nothing to say about when in a session a ball works. The ball
+table breaks out by game number, which is the right grain for a table and the
+wrong one for a plan: the question before a session is what to open with and
+what to move to, not what game 3 looked like.
+
+**Decision.** Every `LeaveStats` carries `sharePct` beside its count: attempts
+over the fresh-rack balls in whatever produced it, which for a ball's own leaves
+is that ball's fresh-rack balls and for the leaves card is every fresh-rack ball
+in view.
+
+Game plan groups the session into three windows by game number, fresh (1 to 2),
+mid (2 to 4) and late (4 on), and reports each ball's pocket, carry and strike
+inside each. The windows overlap, and that is the decision rather than an
+accident of the boundaries. A pattern breaks down by shots thrown on it, so
+game 2 behind a squad of eight is a long way from fresh and game 2 bowling alone
+is not, and the app records neither the squad size nor the pair's traffic. A
+hard cut would put a boundary where the data cannot support one; overlapping
+windows let a ball appear in two of them and let the reader see where it stops
+working.
+
+The window rates are the per-game cells of `calculateBallPerformance` added up,
+not a second pass over the frames, so ADR-048 still holds: there is one
+definition of pocket, carry and strike, and a window figure reconciles with the
+row it came from.
+
+**Consequences.**
+- A ball needs twelve fresh-rack balls inside a window before it is listed
+  there, lower than the ball callout's floor of twenty, because a window is one
+  or two games of each session rather than all of them.
+- A ball that is only pulled out when the lanes have gone will read badly late
+  and be absent from fresh. The section says what happened; it does not
+  recommend, for the same reason ADR-064b does not.
+- A session bowled as two games never reaches the late window, and that window
+  is then not shown at all rather than shown empty.

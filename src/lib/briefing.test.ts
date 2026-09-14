@@ -463,3 +463,56 @@ describe("how the session moves here", () => {
     expect(movement).toEqual([]);
   });
 });
+
+describe("which ball, when", () => {
+  const balls: Ball[] = [
+    { id: 1, name: "Gem", is_spare_ball: false },
+    { id: 2, name: "Pitch Black", is_spare_ball: false }
+  ];
+
+  /** Nights of four games: the first two thrown with ball 1, the last two with
+   *  ball 2, so each window has a different ball behind it. */
+  function split(count: number, strikesEarly: number, strikesLate: number): SessionSummary[] {
+    return Array.from({ length: count }, (_, i) =>
+      session(`2026-06-0${1 + i}`, "Sea Bowl", [
+        game(1, 200, strikesEarly, { ballId: 1 }),
+        game(2, 195, strikesEarly, { ballId: 1 }),
+        game(3, 170, strikesLate, { ballId: 2 }),
+        game(4, 165, strikesLate, { ballId: 2 })
+      ])
+    );
+  }
+
+  it("reads each ball back inside the window it was thrown in", () => {
+    const { phases } = buildBriefing(split(3, 8, 4), balls, { alley: "Sea Bowl" });
+    expect(phases.map((p) => p.key)).toEqual(["fresh", "mid", "late"]);
+
+    const fresh = phases[0];
+    expect(fresh.balls.map((b) => b.name)).toEqual(["Gem"]);
+    expect(fresh.balls[0].strikePct).toBe(80);
+    expect(fresh.balls[0].firstBalls).toBe(60);
+    expect(fresh.games).toBe(6);
+
+    // The windows overlap, so game 2 counts as fresh and as mid.
+    expect(phases[1].balls.map((b) => b.name)).toEqual(["Gem", "Pitch Black"]);
+    expect(phases[2].balls.map((b) => b.name)).toEqual(["Pitch Black"]);
+    expect(phases[2].balls[0].strikePct).toBe(40);
+  });
+
+  it("leaves out a ball with too little behind it in that window", () => {
+    // One night leaves Gem with 20 fresh-rack balls in the fresh window but
+    // only game 2, ten balls, inside the mid one, so it drops out there. The
+    // late window is a single game and reports nothing at all.
+    const { phases } = buildBriefing(split(1, 8, 4), balls, { alley: "Sea Bowl" });
+    expect(phases.map((p) => p.key)).toEqual(["fresh", "mid"]);
+    expect(phases[0].balls.map((b) => b.name)).toEqual(["Gem"]);
+    expect(phases[1].balls.map((b) => b.name)).toEqual(["Pitch Black"]);
+  });
+
+  it("counts down the balls it is short of when no window can be read", () => {
+    const sessions = nights(2, "Sea Bowl", 180, 8);
+    const { phases, gathering } = buildBriefing(sessions, balls, { alley: "Sea Bowl" });
+    expect(phases).toEqual([]);
+    expect(gathering).toContainEqual({ kind: "phase", have: 0, need: 12 });
+  });
+});

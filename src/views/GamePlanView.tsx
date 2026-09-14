@@ -12,6 +12,7 @@ import {
   buildBriefing,
   type BriefingFinding,
   type BriefingGap,
+  type BriefingPhase,
   type GameLine,
   type MovementSlot
 } from "../lib/briefing";
@@ -222,6 +223,22 @@ export function GamePlanView({ onBack, onOpenStats, onOpenSession }: GamePlanVie
               </div>
             )}
 
+            {briefing.phases.length > 0 && (
+              <>
+                <h2 className={`${GROUP_HEADING} mb-2 mt-4`}>Which ball, when</h2>
+                <div className="space-y-2">
+                  {briefing.phases.map((phase) => (
+                    <PhaseCard key={phase.key} phase={phase} />
+                  ))}
+                </div>
+                <p className="mt-1.5 px-1 text-xs text-ink-tertiary">
+                  Windows overlap because a pattern breaks down by shots thrown on it, not by the
+                  clock: game 2 behind a squad of eight is nothing like game 2 bowling alone. What
+                  each ball did in that window, not what to bring.
+                </p>
+              </>
+            )}
+
             {briefing.callouts.length > 0 && (
               <>
                 <h2 className={`${GROUP_HEADING} mb-2 mt-4`}>What your history says</h2>
@@ -378,7 +395,73 @@ function describeGap(g: BriefingGap): string {
       return `${g.have} of ${g.need} lanes with ${g.each}+ games each.`;
     case "movement":
       return `${g.have} of ${g.need} game slots with ${g.each}+ games each, before the line here can be read back.`;
+    case "phase":
+      return `No ball has ${g.need}+ first balls in any part of a session here yet. Best so far is ${g.have}.`;
   }
+}
+
+/** What each window covers, said in games rather than in phase names alone. */
+export function describePhase(phase: BriefingPhase): string {
+  const range =
+    phase.toGame === undefined
+      ? `game ${phase.fromGame} on`
+      : `games ${phase.fromGame} to ${phase.toGame}`;
+  switch (phase.key) {
+    case "fresh":
+      return `Fresh · ${range}`;
+    case "mid":
+      return `Mid session · ${range}`;
+    case "late":
+      return `Late · ${range}`;
+  }
+}
+
+/** One phase, with its balls under the same P/C/S columns the Stats ball table
+ *  uses. Rates only, in the order they were thrown with most: this says what
+ *  each ball did in that window, it does not pick one. */
+function PhaseCard({ phase }: { phase: BriefingPhase }) {
+  return (
+    <div className="rounded-xl border border-edge bg-surface p-3 shadow-sm">
+      <div className="flex items-baseline justify-between gap-2">
+        <h3 className="truncate text-sm font-semibold text-ink-strong">{describePhase(phase)}</h3>
+        <span className="shrink-0 text-xs tabular-nums text-ink-tertiary">
+          {phase.games} {phase.games === 1 ? "game" : "games"}
+        </span>
+      </div>
+      <table className="mt-2 w-full text-xs tabular-nums">
+        <thead>
+          <tr className="text-ink-tertiary">
+            <th className="text-left font-semibold">Ball</th>
+            <th className="w-10 text-right font-semibold" title="Pocket">
+              P
+            </th>
+            <th className="w-10 text-right font-semibold" title="Carry">
+              C
+            </th>
+            <th className="w-10 text-right font-semibold" title="Strike">
+              S
+            </th>
+            <th className="w-10 text-right font-semibold">Balls</th>
+          </tr>
+        </thead>
+        <tbody>
+          {phase.balls.map((ball) => (
+            <tr key={ball.ballId}>
+              <td className="max-w-0 truncate pr-2 text-left text-sm text-ink">{ball.name}</td>
+              <td className="text-right text-ink-secondary">{phasePct(ball.pocketPct)}</td>
+              <td className="text-right text-ink-secondary">{phasePct(ball.carryPct)}</td>
+              <td className="text-right font-semibold text-ink">{phasePct(ball.strikePct)}</td>
+              <td className="text-right text-ink-tertiary">{ball.firstBalls}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function phasePct(value: number | null): string {
+  return value === null ? "-" : `${value}%`;
 }
 
 /**

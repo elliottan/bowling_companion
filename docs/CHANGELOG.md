@@ -8,6 +8,30 @@ merge to `main` (`docs/DEPLOYMENT.md`), so every section below is a dated batch
 of shipped work rather than a release. Thirty of them used to be headed
 `[Unreleased]`, which said nothing once they had all shipped.
 
+## Leave shares, and which ball works when (2026-09-14)
+
+**A ball's leaves now carry a share as well as a count.** Under Ball
+performance on Stats, every leave a ball produced reads as a percentage of the
+fresh-rack balls thrown with that ball, next to the count. The count alone
+rewarded the ball thrown most: nine 10 pins off three hundred balls is a
+different ball from nine off forty, and the two rows used to read the same.
+The leaves card at the bottom of the tab carries the same share, against every
+fresh-rack ball in view.
+
+**Game plan reads the session in three windows.** A "Which ball, when" section
+lists what each ball did on the fresh (games 1 to 2), through the middle of the
+session (games 2 to 4) and late (game 4 on), with pocket, carry and strike for
+each. The windows overlap on purpose: a pattern breaks down by shots thrown on
+it, so game 2 behind a squad of eight is nothing like game 2 bowling alone, and
+a hard cut would claim a precision the game number does not have. A ball needs
+twelve fresh-rack balls inside a window before it appears there, and the rates
+are the ball table's own per-game columns added up, so a number here can always
+be reconciled with the row it came from.
+
+It says what happened, not what to bring: a ball that only comes out of the bag
+when the lanes have gone will look worse late for reasons that have nothing to
+do with the ball.
+
 ## Guides, a reading shelf on Home (2026-09-14)
 
 **Layout and equipment articles now ship with the app.** A Guides card under

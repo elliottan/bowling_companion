@@ -136,6 +136,9 @@ describe("calculateCommonLeaves", () => {
     expect(result[0].conversions).toBe(1);
     expect(result[0].conversionPct).toBe(50);
 
+    // Three fresh-rack balls behind it, so two 10 pins is two thirds of them.
+    expect(result[0].sharePct).toBe(67);
+
     // 7-10 split appears once
     expect(result[1].pins).toEqual([7, 10]);
     expect(result[1].attempts).toBe(1);
@@ -653,6 +656,27 @@ describe("calculateBallPerformance", () => {
     const report = calculateBallPerformance([session("Jurong", [g])], balls);
     expect(report.unattributed).toBe(1);
     expect(report.balls).toHaveLength(1);
+  });
+
+  it("reports each leave as a share of that ball's own fresh-rack balls", () => {
+    // Four balls with ball 1, one of which left the 10 pin: 25%. Ball 2 threw
+    // once and left it too, which is 100% of what it threw.
+    const g: Game & { frames: Frame[] } = {
+      id: 1,
+      session_id: 1,
+      game_number: 1,
+      final_score: 150,
+      frames: [
+        ballFrame(1, 1, [10]),
+        ballFrame(2, 1, NONE),
+        ballFrame(3, 1, NONE),
+        ballFrame(4, 1, NONE),
+        ballFrame(5, 2, [10])
+      ]
+    };
+    const report = calculateBallPerformance([session("Jurong", [g])], balls);
+    expect(report.balls.find((b) => b.ballId === 1)!.leaves[0].sharePct).toBe(25);
+    expect(report.balls.find((b) => b.ballId === 2)!.leaves[0].sharePct).toBe(100);
   });
 
   it("sorts by balls thrown, so one lucky strike cannot top the list", () => {

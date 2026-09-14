@@ -262,6 +262,11 @@ export interface LeaveStats {
   conversions: number;
   /** conversions / chances, null when there was never a chance. */
   conversionPct: number | null;
+  /** attempts / fresh-rack balls thrown, so a leave count can be read against
+   *  how much was thrown to produce it. A ball with three hundred balls behind
+   *  it leaves more 10 pins than a ball with thirty, without leaving them any
+   *  more often. Null when nothing was thrown. */
+  sharePct: number | null;
 }
 
 export function calculateCommonLeaves(
@@ -277,7 +282,12 @@ export function calculateCommonLeaves(
     )
   );
 
+  // The denominator for `sharePct`: every fresh-rack ball that could have left
+  // something, whether or not it did.
+  let freshRackBalls = 0;
+
   for (const frame of allFrames) {
+    freshRackBalls += freshRackShots(frame).length;
     for (const { leave, chance, converted } of leaveEvents(frame)) {
       const key = leave.join("-");
       if (!leaveMap.has(key)) {
@@ -286,7 +296,8 @@ export function calculateCommonLeaves(
           attempts: 0,
           chances: 0,
           conversions: 0,
-          conversionPct: null
+          conversionPct: null,
+          sharePct: null
         });
       }
       const entry = leaveMap.get(key)!;
@@ -299,7 +310,8 @@ export function calculateCommonLeaves(
   return [...leaveMap.values()]
     .map((entry) => ({
       ...entry,
-      conversionPct: rate(entry.conversions, entry.chances)
+      conversionPct: rate(entry.conversions, entry.chances),
+      sharePct: rate(entry.attempts, freshRackBalls)
     }))
     .sort(
       (a, b) =>
@@ -661,7 +673,8 @@ export function calculateBallPerformance(
             attempts: 0,
             chances: 0,
             conversions: 0,
-            conversionPct: null
+            conversionPct: null,
+            sharePct: null
           };
           stat.attempts++;
           if (chance) stat.chances++;
@@ -688,7 +701,13 @@ export function calculateBallPerformance(
       }))
       .sort((a, b) => a.gameNumber - b.gameNumber),
     leaves: [...e.leaves.values()]
-      .map((l) => ({ ...l, conversionPct: rate(l.conversions, l.chances) }))
+      .map((l) => ({
+        ...l,
+        conversionPct: rate(l.conversions, l.chances),
+        // Against this ball's own fresh-rack balls, so the share answers "how
+        // often does this ball leave that", not "how much do I throw it".
+        sharePct: rate(l.attempts, e.firstBalls)
+      }))
       .sort(
         (a, b) =>
           b.attempts - a.attempts ||

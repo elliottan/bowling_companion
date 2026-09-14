@@ -62,6 +62,15 @@ const MIN_MOVEMENT_SLOTS = 2;
 /** A ball needs this many fresh-rack balls in the slice before it can be
  *  compared to another one. Matches the ball table's own floor. */
 const MIN_BALL_FIRST_BALLS = 20;
+/** A ball needs this many fresh-rack balls inside a phase before its rates are
+ *  worth reading there. Lower than `MIN_BALL_FIRST_BALLS`, because a phase is
+ *  one or two games of every session rather than all of them, and a floor the
+ *  slice can never clear reports nothing forever. Two games is roughly twenty
+ *  fresh-rack balls, so this is about a session and a half in that phase. */
+const MIN_PHASE_FIRST_BALLS = 12;
+/** Balls listed per phase. Below the top three it is a list of what you own. */
+const MAX_PHASE_BALLS = 3;
+
 /** A game slot needs this many games before it is a pattern rather than a night. */
 const MIN_SLOT_GAMES = 3;
 /** A lane needs this many games before its strike rate means anything. */
@@ -184,11 +193,57 @@ export interface LastTimeHere {
 export interface BriefingGap {
   /** `slice` is the whole screen being short, rather than one rule.
    *  `movement` is the game-by-game line, which is not a ranked finding. */
-  kind: BriefingFinding["kind"] | "slice" | "movement";
+  kind: BriefingFinding["kind"] | "slice" | "movement" | "phase";
   have: number;
   need: number;
   /** Floor each of the `need` things has to clear, where there is one. */
   each?: number;
+}
+
+/**
+ * The three reads of a lane: fresh, the middle of the session, and the end of
+ * it. Game number is the only clock the app has, so that is what the windows
+ * are cut on.
+ *
+ * They overlap on purpose. How fast a pattern breaks down depends on how many
+ * bowlers are on the pair: game 2 on a squad of eight is already a long way
+ * from fresh, while game 2 bowling alone is close to it. So game 2 counts as
+ * both fresh and mid, and game 4 as both mid and late, and a ball that is
+ * strong in one window and weak in the next says the transition happens around
+ * there. A single hard cut would claim a precision the data does not have.
+ */
+export type PhaseKey = "fresh" | "mid" | "late";
+
+export interface PhaseWindow {
+  key: PhaseKey;
+  fromGame: number;
+  /** Inclusive. Absent on the last window, which runs to the end of the night. */
+  toGame?: number;
+}
+
+export const PHASE_WINDOWS: PhaseWindow[] = [
+  { key: "fresh", fromGame: 1, toGame: 2 },
+  { key: "mid", fromGame: 2, toGame: 4 },
+  { key: "late", fromGame: 4 }
+];
+
+/** One ball's rates inside one phase, on the same definitions the ball table
+ *  uses (ADR-048): they are the per-game cells of `calculateBallPerformance`
+ *  added up over the window, not a second calculation. */
+export interface PhaseBall {
+  ballId: number;
+  name: string;
+  firstBalls: number;
+  pocketPct: number | null;
+  carryPct: number | null;
+  strikePct: number | null;
+}
+
+export interface BriefingPhase extends PhaseWindow {
+  /** Games in the slice that fell inside the window. */
+  games: number;
+  /** Best first, capped. Empty phases are not returned at all. */
+  balls: PhaseBall[];
 }
 
 export interface Briefing {
@@ -200,6 +255,9 @@ export interface Briefing {
   /** How the line moves across a session here, slot by slot, in game order.
    *  Empty until enough slots carry enough games. */
   movement: MovementSlot[];
+  /** Which ball did what on the fresh, in the middle and at the end here. In
+   *  window order, and only the windows with a ball to report. */
+  phases: BriefingPhase[];
   gathering: BriefingGap[];
 }
 
@@ -250,6 +308,18 @@ export function buildBriefing(
   // reads back the line you played here, which is worth having on a screen
   // that otherwise has nothing to say until six games are in.
   const movement = movementSlots(slice, balls);
+
+  // Same reasoning: this describes what each ball did here, window by window,
+  // rather than comparing the slice against anywhere else.
+  const phases = phasePerformance(slice, balls, handedness);
+  if (phases.length === 0 && games >= MIN_SLICE_GAMES) {
+    gathering.push({
+      kind: "phase",
+      have: bestPhaseFirstBalls(slice, balls, handedness),
+      need: MIN_PHASE_FIRST_BALLS
+    });
+  }
+
   if (movement.length === 0 && games >= MIN_SLICE_GAMES) {
     // Only once the slice itself is worth reading. Below that the slice note
     // is the one shortfall, and a second line saying the same thing in game
@@ -271,6 +341,7 @@ export function buildBriefing(
       callouts: [],
       lastTime: lastTimeHere(slice, balls),
       movement,
+      phases,
       gathering: [{ kind: "slice", have: games, need: MIN_SLICE_GAMES }]
     };
   }
@@ -291,6 +362,7 @@ export function buildBriefing(
     callouts,
     lastTime: lastTimeHere(slice, balls),
     movement,
+    phases,
     gathering
   };
 }
@@ -446,6 +518,95 @@ function laneBiasFinding(slice: SessionSummary[], handedness: Handedness): RuleR
     otherStrikePct: bottom.strikePct as number,
     games: top.games + bottom.games
   };
+}
+
+// ---------------------------------------------------------------------------
+// Which ball, when
+// ---------------------------------------------------------------------------
+
+function inWindow(gameNumber: number, window: PhaseWindow): boolean {
+  return gameNumber >= window.fromGame && (window.toGame === undefined || gameNumber <= window.toGame);
+}
+
+/**
+ * Each ball's pocket, carry and strike rates inside each phase of a session.
+ *
+ * Built from the per-game cells of `calculateBallPerformance` rather than from
+ * the frames again, so a phase is literally the ball table's own columns added
+ * up: one definition of each rate (ADR-048), and a number here can always be
+ * reconciled with the row it came from.
+ *
+ * This describes what happened, and nothing more. Ball choice is not random:
+ * the ball you only pull out when the lanes have gone will carry worse late
+ * for reasons that are nothing to do with the ball, and a ball that never
+ * comes out of the bag until game 4 cannot look good on the fresh.
+ */
+function phasePerformance(
+  slice: SessionSummary[],
+  balls: Ball[],
+  handedness: Handedness
+): BriefingPhase[] {
+  const report = calculateBallPerformance(slice, balls, undefined, handedness);
+
+  return PHASE_WINDOWS.flatMap<BriefingPhase>((window) => {
+    const games = slice.reduce(
+      (n, s) => n + s.games.filter((g) => inWindow(g.game_number, window)).length,
+      0
+    );
+
+    const rated = report.balls.flatMap<PhaseBall>((ball) => {
+      const cells = ball.byGame.filter((c) => inWindow(c.gameNumber, window));
+      const firstBalls = sum(cells.map((c) => c.firstBalls));
+      if (firstBalls < MIN_PHASE_FIRST_BALLS) return [];
+      const pocket = sum(cells.map((c) => c.pocket));
+      return [
+        {
+          ballId: ball.ballId,
+          name: ball.name,
+          firstBalls,
+          pocketPct: percent(pocket, firstBalls),
+          carryPct: percent(sum(cells.map((c) => c.pocketStrikes)), pocket),
+          strikePct: percent(sum(cells.map((c) => c.strikes)), firstBalls)
+        }
+      ];
+    });
+
+    if (rated.length === 0) return [];
+
+    // Strike rate leads the order: it is the one rate that counts everything
+    // the ball did with a full rack in front of it. Ties fall to the ball with
+    // more behind it rather than to whichever was tagged first.
+    const sorted = rated
+      .sort((a, b) => (b.strikePct ?? -1) - (a.strikePct ?? -1) || b.firstBalls - a.firstBalls)
+      .slice(0, MAX_PHASE_BALLS);
+
+    return [{ ...window, games, balls: sorted }];
+  });
+}
+
+/** Fresh-rack balls behind the best-supported ball in any phase, so the "still
+ *  gathering" note counts down the thing that is actually short. */
+function bestPhaseFirstBalls(
+  slice: SessionSummary[],
+  balls: Ball[],
+  handedness: Handedness
+): number {
+  const report = calculateBallPerformance(slice, balls, undefined, handedness);
+  const totals = PHASE_WINDOWS.flatMap((window) =>
+    report.balls.map((ball) =>
+      sum(ball.byGame.filter((c) => inWindow(c.gameNumber, window)).map((c) => c.firstBalls))
+    )
+  );
+  return totals.length === 0 ? 0 : Math.max(...totals);
+}
+
+function sum(values: number[]): number {
+  return values.reduce((a, b) => a + b, 0);
+}
+
+function percent(made: number, opportunities: number): number | null {
+  if (opportunities === 0) return null;
+  return Math.round((made / opportunities) * 100);
 }
 
 // ---------------------------------------------------------------------------

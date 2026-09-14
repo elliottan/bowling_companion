@@ -715,6 +715,11 @@ function LeaveCountCell({ leave }: { leave: LeaveStats }) {
           {leave.attempts === 1 ? " time" : " times"}
         </span>
       </span>
+      {/* The count alone rewards the ball thrown most: a share of this ball's
+          own fresh-rack balls is the number that compares across the rows. */}
+      {leave.sharePct !== null && (
+        <span className="text-[11px] tabular-nums text-ink-tertiary">{leave.sharePct}%</span>
+      )}
     </div>
   );
 }

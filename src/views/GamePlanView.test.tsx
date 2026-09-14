@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { describeDrift } from "./GamePlanView";
-import type { MovementSlot } from "../lib/briefing";
+import { describeDrift, describePhase } from "./GamePlanView";
+import { PHASE_WINDOWS, type MovementSlot } from "../lib/briefing";
 
 /**
  * The sentence under the movement rows is the number the reader came for, so
@@ -57,5 +57,21 @@ describe("the sentence under how the session moves here", () => {
     expect(describeDrift(slots, "right")).toBe(
       "By game 2 you have moved 1 board right at the stance."
     );
+  });
+});
+
+describe("the phase headings", () => {
+  const phase = (key: (typeof PHASE_WINDOWS)[number]["key"]) => {
+    const window = PHASE_WINDOWS.find((w) => w.key === key)!;
+    return { ...window, games: 6, balls: [] };
+  };
+
+  it("names the games each window covers, so the overlap is visible", () => {
+    expect(describePhase(phase("fresh"))).toBe("Fresh \u00b7 games 1 to 2");
+    expect(describePhase(phase("mid"))).toBe("Mid session \u00b7 games 2 to 4");
+  });
+
+  it("leaves the last window open, because a night has no fixed length", () => {
+    expect(describePhase(phase("late"))).toBe("Late \u00b7 game 4 on");
   });
 });

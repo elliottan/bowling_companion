@@ -225,7 +225,8 @@ describe("leave cells", () => {
     attempts: 3,
     chances: 2,
     conversions: 1,
-    conversionPct: 50
+    conversionPct: 50,
+    sharePct: 6
   };
 
   it("reads the rate off chances, and says nothing about the leaves that had none", () => {
@@ -244,7 +245,8 @@ describe("leave cells", () => {
       attempts: 2,
       chances: 0,
       conversions: 0,
-      conversionPct: null
+      conversionPct: null,
+      sharePct: 4
     };
     render(<Stats stats={STATS} leaves={[lastBallOnly]} />);
     expect(screen.queryByText("0/0")).toBeNull();
@@ -262,7 +264,8 @@ describe("leave cells", () => {
       attempts,
       chances: attempts,
       conversions: 0,
-      conversionPct: 0
+      conversionPct: 0,
+      sharePct: null
     });
     render(
       <Stats
@@ -291,6 +294,35 @@ describe("leave cells", () => {
       describePinsStanding([1, 2, 4, 10]),
       describePinsStanding([7, 10])
     ]);
+  });
+
+  it("puts a ball's leave count against how much that ball was thrown", () => {
+    render(
+      <Stats
+        stats={STATS}
+        ballPerformance={{
+          ...REPORT,
+          balls: [
+            {
+              ...REPORT.balls[0],
+              leaves: [
+                {
+                  pins: [10],
+                  attempts: 9,
+                  chances: 9,
+                  conversions: 4,
+                  conversionPct: 44,
+                  sharePct: 12
+                }
+              ]
+            }
+          ]
+        }}
+      />
+    );
+    fireEvent.click(screen.getByText("Wolverine"));
+    expect(screen.getByText("times").parentElement).toHaveTextContent("9 times");
+    expect(screen.getByText("12%")).toBeInTheDocument();
   });
 
   it("explains the counts when the group heading is tapped", () => {
