@@ -211,6 +211,20 @@ describe("navReducer", () => {
       expect(popped.overlays).toEqual([]);
     });
   });
+
+  describe("an open guide", () => {
+    const reading = run([
+      { type: "pushOverlay", overlay: "guides" },
+      { type: "openGuide", guideId: "dual-angle-layouts" }
+    ]);
+
+    it("comes off before the shelf underneath it", () => {
+      const popped = navReducer(reading, { type: "popOverlay" });
+      expect(popped.openGuideId).toBeNull();
+      expect(popped.overlays).toEqual(["guides"]);
+      expect(navReducer(popped, { type: "popOverlay" }).overlays).toEqual([]);
+    });
+  });
 });
 
 const nav = (over: Partial<NavState> = {}): NavState => ({ ...INITIAL_NAV, ...over });

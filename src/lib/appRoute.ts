@@ -29,6 +29,8 @@ export interface AppRoute {
   settingsSection?: SettingsSection;
   overlays: Overlay[];
   catalogBallId?: string;
+  /** The open guide, which rides behind the guides overlay segment. */
+  guideId?: string;
   lineSandbox?: boolean;
 }
 
@@ -51,6 +53,7 @@ const OVERLAYS: readonly string[] = [
   "oil-patterns",
   "backup",
   "spares",
+  "guides",
   "open-frames",
   "game-trend",
   "game-plan",
@@ -74,6 +77,7 @@ const SETTINGS_SECTIONS: readonly string[] = [
 const SECTION_SEGMENT = "section";
 
 const LINE_SEGMENT = "line";
+const GUIDE_SEGMENT = "guide";
 const BALL_SEGMENT = "ball";
 
 export const HOME_ROUTE: AppRoute = { view: "dashboard", overlays: [] };
@@ -96,6 +100,11 @@ export function toRoute(state: NavState): AppRoute {
   if (state.viewedSessionId != null && state.overlays[state.overlays.length - 1] === "session") {
     route.viewedSessionId = state.viewedSessionId;
   }
+  // Only while the guides list is the screen underneath, for the same reason
+  // as the catalog ball above it.
+  if (state.openGuideId && state.overlays[state.overlays.length - 1] === "guides") {
+    route.guideId = state.openGuideId;
+  }
   if (state.lineSandboxOpen) route.lineSandbox = true;
   return route;
 }
@@ -116,6 +125,7 @@ export function formatRoute(route: AppRoute): string {
   // always the first segment and an overlay never is.
   if (route.viewedSessionId != null) parts.push(String(route.viewedSessionId));
   if (route.catalogBallId) parts.push(BALL_SEGMENT, encodeURIComponent(route.catalogBallId));
+  if (route.guideId) parts.push(GUIDE_SEGMENT, encodeURIComponent(route.guideId));
   if (route.lineSandbox) parts.push(LINE_SEGMENT);
 
   return `#/${parts.join("/")}`;
@@ -150,6 +160,9 @@ export function parseRoute(hash: string): AppRoute {
     const segment = segments[i];
     if (segment === BALL_SEGMENT && segments[i + 1]) {
       route.catalogBallId = decodeURIComponent(segments[i + 1]);
+      i += 1;
+    } else if (segment === GUIDE_SEGMENT && segments[i + 1]) {
+      route.guideId = decodeURIComponent(segments[i + 1]);
       i += 1;
     } else if (segment === LINE_SEGMENT) route.lineSandbox = true;
     else if (OVERLAYS.includes(segment)) {
@@ -189,6 +202,7 @@ export function routeHash(state: NavState): string {
 export function shouldPushHistory(from: NavState, to: NavState): boolean {
   if (to.overlays.length > from.overlays.length) return true;
   if (to.catalogBallId && to.catalogBallId !== from.catalogBallId) return true;
+  if (to.openGuideId && to.openGuideId !== from.openGuideId) return true;
   // Landing on a different session in the pushed screen is a navigation of its
   // own, the way a different catalog ball is.
   if (to.viewedSessionId != null && to.viewedSessionId !== from.viewedSessionId) return true;

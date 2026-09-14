@@ -76,6 +76,7 @@ const OpenFramesView = lazy(() =>
 const GameTrendView = lazy(() =>
   import("./views/GameTrendView").then((m) => ({ default: m.GameTrendView }))
 );
+const GuidesView = lazy(() => import("./views/GuidesView").then((m) => ({ default: m.GuidesView })));
 const GamePlanView = lazy(() =>
   import("./views/GamePlanView").then((m) => ({ default: m.GamePlanView }))
 );
@@ -474,6 +475,7 @@ function App() {
             onOpenOilPatterns={() => pushOverlay("oil-patterns")}
             onOpenGamePlan={() => pushOverlay("game-plan")}
             onOpenSpareLines={() => pushOverlay("spares")}
+            onOpenGuides={() => pushOverlay("guides")}
             onSessionDeleted={handleSessionDeleted}
             onOpenBackup={goToBackup}
           />
@@ -588,6 +590,15 @@ function App() {
             return <BackupRestoreView key={`backup-${i}`} onBack={popOverlay} mode="overlay" />;
           case "spares":
             return <SpareLinesView key={`spares-${i}`} onBack={popOverlay} />;
+          case "guides":
+            return (
+              <GuidesView
+                key={`guides-${i}`}
+                onBack={popOverlay}
+                openGuideId={nav.openGuideId}
+                onOpenGuide={(guideId) => dispatch({ type: "openGuide", guideId })}
+              />
+            );
           // Stats drill-downs. They read the shared session filter themselves,
           // so there is nothing to thread through here.
           case "open-frames":

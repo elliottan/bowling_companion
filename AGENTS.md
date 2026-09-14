@@ -25,6 +25,7 @@ shape to drift, by design.
 | Backup, import or merge | ADR-038 + `src/services/backupRepository.ts` |
 | Pin input | ADR-006 (inverted input), ADR-001 |
 | Viewport, rotation or scroll handling | `docs/VIEWPORT-BUG.md`, in full, before writing a line |
+| Add or edit a guide article | `src/lib/guides.ts` (static content, block union, sources) |
 | Anything else | `docs/README.md` routes everything |
 
 ## Load-bearing files
