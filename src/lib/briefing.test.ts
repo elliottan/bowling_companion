@@ -483,36 +483,127 @@ describe("which ball, when", () => {
     );
   }
 
-  it("reads each ball back inside the window it was thrown in", () => {
-    const { phases } = buildBriefing(split(3, 8, 4), balls, { alley: "Sea Bowl" });
-    expect(phases.map((p) => p.key)).toEqual(["fresh", "mid", "late"]);
+  const keys = (b: ReturnType<typeof buildBriefing>) => b.scopes.map((s) => s.key);
+  const named = (b: ReturnType<typeof buildBriefing>, key: string) =>
+    b.scopes.find((s) => s.key === key)?.balls.map((x) => x.name) ?? [];
 
-    const fresh = phases[0];
+  it("offers everything, then each game bowled, then the windows", () => {
+    const briefing = buildBriefing(split(3, 8, 4), balls, { alley: "Sea Bowl" });
+    // No "late": nothing past game 4 is on record, so that window covers game
+    // 4 alone and its chip would lead to the game 4 table under another name.
+    expect(keys(briefing)).toEqual([
+      "all",
+      "game-1",
+      "game-2",
+      "game-3",
+      "game-4",
+      "phase-fresh",
+      "phase-mid"
+    ]);
+  });
+
+  it("reads each ball back inside the scope it was thrown in", () => {
+    const briefing = buildBriefing(split(3, 8, 4), balls, { alley: "Sea Bowl" });
+
+    const fresh = briefing.scopes.find((s) => s.key === "phase-fresh")!;
     expect(fresh.balls.map((b) => b.name)).toEqual(["Gem"]);
-    expect(fresh.balls[0].strikePct).toBe(80);
-    expect(fresh.balls[0].firstBalls).toBe(60);
+    expect(fresh.balls[0].house.strikePct).toBe(80);
+    expect(fresh.balls[0].house.firstBalls).toBe(60);
     expect(fresh.games).toBe(6);
 
     // The windows overlap, so game 2 counts as fresh and as mid.
-    expect(phases[1].balls.map((b) => b.name)).toEqual(["Gem", "Pitch Black"]);
-    expect(phases[2].balls.map((b) => b.name)).toEqual(["Pitch Black"]);
-    expect(phases[2].balls[0].strikePct).toBe(40);
+    expect(named(briefing, "phase-mid")).toEqual(["Gem", "Pitch Black"]);
+    expect(named(briefing, "game-4")).toEqual(["Pitch Black"]);
+
+    // Strike rate leads, so the better ball tops the widest scope.
+    expect(named(briefing, "all")).toEqual(["Gem", "Pitch Black"]);
   });
 
-  it("leaves out a ball with too little behind it in that window", () => {
-    // One night leaves Gem with 20 fresh-rack balls in the fresh window but
-    // only game 2, ten balls, inside the mid one, so it drops out there. The
-    // late window is a single game and reports nothing at all.
-    const { phases } = buildBriefing(split(1, 8, 4), balls, { alley: "Sea Bowl" });
-    expect(phases.map((p) => p.key)).toEqual(["fresh", "mid"]);
-    expect(phases[0].balls.map((b) => b.name)).toEqual(["Gem"]);
-    expect(phases[1].balls.map((b) => b.name)).toEqual(["Pitch Black"]);
+  it("drops a window that covers only one game bowled, rather than repeating it", () => {
+    // Nothing past game 2, so "late" is empty and "mid" would be game 2 again.
+    const sessions = Array.from({ length: 3 }, (_, i) =>
+      session(`2026-06-0${1 + i}`, "Sea Bowl", [
+        game(1, 200, 8, { ballId: 1 }),
+        game(2, 195, 8, { ballId: 1 })
+      ])
+    );
+    const briefing = buildBriefing(sessions, balls, { alley: "Sea Bowl" });
+    expect(keys(briefing)).toEqual(["all", "game-1", "game-2", "phase-fresh"]);
   });
 
-  it("counts down the balls it is short of when no window can be read", () => {
+  it("leaves out a ball with too little behind it in that scope", () => {
+    // Game 3 is ten fresh-rack balls of Pitch Black over one night, under the
+    // floor, so the scope reports nothing and is not offered.
+    // One night is ten fresh-rack balls a game, under the floor, so no single
+    // game is offered at all: only the scopes wide enough to clear it.
+    const briefing = buildBriefing(split(1, 8, 4), balls, { alley: "Sea Bowl" });
+    expect(keys(briefing)).toEqual(["all", "phase-fresh", "phase-mid"]);
+    expect(named(briefing, "phase-fresh")).toEqual(["Gem"]);
+    expect(named(briefing, "phase-mid")).toEqual(["Pitch Black"]);
+  });
+
+  it("counts down the balls it is short of when no scope can be read", () => {
     const sessions = nights(2, "Sea Bowl", 180, 8);
-    const { phases, gathering } = buildBriefing(sessions, balls, { alley: "Sea Bowl" });
-    expect(phases).toEqual([]);
+    const { scopes, gathering } = buildBriefing(sessions, balls, { alley: "Sea Bowl" });
+    expect(scopes).toEqual([]);
     expect(gathering).toContainEqual({ kind: "phase", have: 0, need: 12 });
+  });
+});
+
+describe("the lane read beside the house read", () => {
+  const balls: Ball[] = [
+    { id: 1, name: "Gem", is_spare_ball: false },
+    { id: 2, name: "Pitch Black", is_spare_ball: false }
+  ];
+
+  /** Four nights with the Gem, two of them on the 7-8 pair and two on 9-10,
+   *  and the Gem striking far more on the first pair. Lane filtering is per
+   *  frame (a pair is played alternately), so a lane read is the odd or even
+   *  frames of those games rather than all of them. */
+  function acrossLanes(): SessionSummary[] {
+    return Array.from({ length: 4 }, (_, i) =>
+      session(`2026-06-0${1 + i}`, "Sea Bowl", [
+        game(1, 200, i < 2 ? 9 : 3, { ballId: 1, lanes: i < 2 ? ["7", "8"] : ["9", "10"] }),
+        game(2, 190, i < 2 ? 9 : 3, { ballId: 1, lanes: i < 2 ? ["7", "8"] : ["9", "10"] })
+      ])
+    );
+  }
+
+  it("carries a lane read only when a lane is chosen", () => {
+    const withoutLane = buildBriefing(acrossLanes(), balls, { alley: "Sea Bowl" });
+    expect(withoutLane.scopes[0].balls[0].lane).toBeNull();
+  });
+
+  it("keeps the house read whole beside the lane read, rather than replacing it", () => {
+    const briefing = buildBriefing(acrossLanes(), balls, { alley: "Sea Bowl", lane: "7" });
+    const gem = briefing.scopes[0].balls[0];
+    expect(gem.name).toBe("Gem");
+    // Two good nights on lane 7 against four nights everywhere: the lane read
+    // is the better one, and the house read beside it is what says whether
+    // that was the lane or the ball.
+    expect(gem.lane).not.toBeNull();
+    expect(gem.lane!.strikePct).toBeGreaterThan(gem.house.strikePct as number);
+    expect(gem.lane!.firstBalls).toBeLessThan(gem.house.firstBalls);
+    expect(gem.lane!.thin).toBe(false);
+  });
+
+  it("marks a thin lane read rather than hiding it, and keeps it out of the order", () => {
+    const sessions = [
+      ...acrossLanes(),
+      // The Pitch Black has a full house read off the far pair, and a single
+      // game on lane 7.
+      session("2026-07-01", "Sea Bowl", [
+        game(1, 150, 0, { ballId: 2, lanes: ["9", "10"] }),
+        game(2, 150, 0, { ballId: 2, lanes: ["9", "10"] })
+      ]),
+      session("2026-07-02", "Sea Bowl", [game(1, 150, 10, { ballId: 2, lanes: ["7", "8"] })])
+    ];
+    const briefing = buildBriefing(sessions, balls, { alley: "Sea Bowl", lane: "7" });
+    const pitch = briefing.scopes[0].balls.find((b) => b.name === "Pitch Black");
+    expect(pitch?.lane?.thin).toBe(true);
+    expect(pitch?.house.thin).toBe(false);
+    // Five frames of strikes on the lane do not outrank a season: a thin lane
+    // read does not set the order.
+    expect(briefing.scopes[0].balls[0].name).toBe("Gem");
   });
 });

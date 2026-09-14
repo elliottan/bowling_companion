@@ -8,11 +8,15 @@ import { LoadingCard } from "../components/ui/LoadingCard";
 import { GROUP_HEADING } from "../components/ui/typography";
 import { FIELD_LABEL, FIELD_SELECT } from "../components/ui/field";
 import { LIST_DIVIDER, ListGroup } from "../components/ui/ListGroup";
+import { Chip } from "../components/ui/Chip";
 import {
   buildBriefing,
   type BriefingFinding,
+  type BallRates,
+  type BallScope,
   type BriefingGap,
-  type BriefingPhase,
+  type ScopeBall,
+  type ScopeSpan,
   type GameLine,
   type MovementSlot
 } from "../lib/briefing";
@@ -82,6 +86,8 @@ export function GamePlanView({ onBack, onOpenStats, onOpenSession }: GamePlanVie
 
   const [rememberedAlley, setAlley] = useRememberedState("plan:alley", "");
   const [rememberedPattern, setPattern] = useRememberedState("plan:pattern", "");
+  const [rememberedLane, setLane] = useRememberedState("plan:lane", "");
+  const [rememberedScope, setScope] = useRememberedState("plan:scope", "all");
 
   // A session started without an alley (ADR-080) has no name to filter by, so
   // it is not offered as one. Most bowled first, and the pattern list is only
@@ -107,10 +113,25 @@ export function GamePlanView({ onBack, onOpenStats, onOpenSession }: GamePlanVie
   // filtering the briefing down to nothing.
   const pattern = allPatterns.includes(rememberedPattern) ? rememberedPattern : "";
 
-  const briefing = useMemo(
-    () => buildBriefing(history, balls, { alley, pattern }, handedness),
-    [history, balls, alley, pattern, handedness]
+  // Lanes are only offered inside a house: lane 7 is a different lane at every
+  // one of them (`lib/filterFacets`). A lane left over from another house stops
+  // applying the same way a pattern does.
+  const allLanes = useMemo(
+    () => buildFilterOptions(history, { ...EMPTY_SELECTION, alley, pattern }).lanes,
+    [history, alley, pattern]
   );
+  const lane = allLanes.includes(rememberedLane) ? rememberedLane : "";
+
+  const briefing = useMemo(
+    () => buildBriefing(history, balls, { alley, pattern, lane }, handedness),
+    [history, balls, alley, pattern, lane, handedness]
+  );
+
+  // A scope the current slice cannot offer (game 4 at a house you have only
+  // ever bowled three games at) falls back to everything, rather than leaving
+  // the table blank under a chip that is no longer there.
+  const scope =
+    briefing.scopes.find((sc) => sc.key === rememberedScope) ?? briefing.scopes[0] ?? null;
 
   const where = [alley, pattern].filter(Boolean).join(" · ");
 
@@ -186,6 +207,28 @@ export function GamePlanView({ onBack, onOpenStats, onOpenSession }: GamePlanVie
                   ))}
                 </select>
               </div>
+              {/* Only inside a house that has lanes on record: a lane number
+                  means nothing across houses, and an empty picker is furniture. */}
+              {allLanes.length > 0 && (
+                <div className="w-24 shrink-0">
+                  <label className={FIELD_LABEL} htmlFor="plan-lane">
+                    Lane
+                  </label>
+                  <select
+                    id="plan-lane"
+                    value={lane}
+                    onChange={(e) => setLane(e.target.value)}
+                    className={FIELD_SELECT}
+                  >
+                    <option value="">Any</option>
+                    {allLanes.map((l) => (
+                      <option key={l} value={l}>
+                        {l}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
             </div>
 
             <p className="mt-3 text-xs text-ink-secondary">
@@ -223,19 +266,27 @@ export function GamePlanView({ onBack, onOpenStats, onOpenSession }: GamePlanVie
               </div>
             )}
 
-            {briefing.phases.length > 0 && (
+            {scope && (
               <>
                 <h2 className={`${GROUP_HEADING} mb-2 mt-4`}>Which ball, when</h2>
-                <div className="space-y-2">
-                  {briefing.phases.map((phase) => (
-                    <PhaseCard key={phase.key} phase={phase} />
+                {/* Widest first, then game by game, then the windows. Scrolled
+                    rather than wrapped: the order is a sequence through a
+                    night, and wrapping breaks it into rows that read as
+                    groups. */}
+                <div className="-mx-3 flex gap-2 overflow-x-auto overscroll-x-contain px-3 pb-1 sm:mx-0 sm:px-0">
+                  {briefing.scopes.map((sc) => (
+                    <Chip
+                      key={sc.key}
+                      selected={sc.key === scope.key}
+                      onClick={() => setScope(sc.key)}
+                      className="shrink-0"
+                    >
+                      {scopeChip(sc.span)}
+                    </Chip>
                   ))}
                 </div>
-                <p className="mt-1.5 px-1 text-xs text-ink-tertiary">
-                  Windows overlap because a pattern breaks down by shots thrown on it, not by the
-                  clock: game 2 behind a squad of eight is nothing like game 2 bowling alone. What
-                  each ball did in that window, not what to bring.
-                </p>
+                <ScopeTable scope={scope} lane={lane} />
+                <p className="mt-1.5 px-1 text-xs text-ink-tertiary">{scopeNote(scope, lane)}</p>
               </>
             )}
 
@@ -400,32 +451,69 @@ function describeGap(g: BriefingGap): string {
   }
 }
 
-/** What each window covers, said in games rather than in phase names alone. */
-export function describePhase(phase: BriefingPhase): string {
-  const range =
-    phase.toGame === undefined
-      ? `game ${phase.fromGame} on`
-      : `games ${phase.fromGame} to ${phase.toGame}`;
-  switch (phase.key) {
+/** The chip: short enough for a row of them on a 390px screen. */
+function scopeChip(span: ScopeSpan): string {
+  if (span.kind === "all") return "All games";
+  if (span.kind === "game") return `Game ${span.gameNumber}`;
+  switch (span.key) {
     case "fresh":
-      return `Fresh · ${range}`;
+      return "Fresh";
     case "mid":
-      return `Mid session · ${range}`;
+      return "Mid";
     case "late":
-      return `Late · ${range}`;
+      return "Late";
   }
 }
 
-/** One phase, with its balls under the same P/C/S columns the Stats ball table
- *  uses. Rates only, in the order they were thrown with most: this says what
- *  each ball did in that window, it does not pick one. */
-function PhaseCard({ phase }: { phase: BriefingPhase }) {
+/** The heading above the table, which has room to say what the chip cannot. */
+export function describeScope(span: ScopeSpan): string {
+  if (span.kind === "all") return "Every game";
+  if (span.kind === "game") return `Game ${span.gameNumber}`;
+  const range =
+    span.toGame === undefined
+      ? `game ${span.fromGame} on`
+      : `games ${span.fromGame} to ${span.toGame}`;
+  switch (span.key) {
+    case "fresh":
+      return `Fresh \u00b7 ${range}`;
+    case "mid":
+      return `Mid session \u00b7 ${range}`;
+    case "late":
+      return `Late \u00b7 ${range}`;
+  }
+}
+
+/**
+ * The line under the table: what this scope is, and what the lane column is
+ * doing, said once rather than repeated per row.
+ */
+export function scopeNote(scope: BallScope, lane: string): string {
+  const windows =
+    scope.span.kind === "phase"
+      ? "Windows overlap because a pattern breaks down by shots thrown on it, not by the clock: game 2 behind a squad of eight is nothing like game 2 bowling alone. "
+      : "";
+  const lanes = lane
+    ? `Lane ${lane} beside every lane here, so a thin lane read can be weighed against the fuller one rather than replace it. A read marked thin is under ${MIN_LANE_BALLS_COPY} balls. `
+    : "";
+  return `${windows}${lanes}What each ball did, not what to bring.`;
+}
+
+/** Repeated in the note above, and the floor `lib/briefing` marks a lane read
+ *  thin at. Kept as copy here rather than exported from the calculator, which
+ *  returns numbers and findings rather than sentences. */
+const MIN_LANE_BALLS_COPY = 8;
+
+/** One scope: the balls, under the same P/C/S columns the Stats ball table
+ *  uses, and with the lane read above the house read where a lane is chosen. */
+function ScopeTable({ scope, lane }: { scope: BallScope; lane: string }) {
   return (
-    <div className="rounded-xl border border-edge bg-surface p-3 shadow-sm">
+    <div className="mt-2 rounded-xl border border-edge bg-surface p-3 shadow-sm">
       <div className="flex items-baseline justify-between gap-2">
-        <h3 className="truncate text-sm font-semibold text-ink-strong">{describePhase(phase)}</h3>
+        <h3 className="truncate text-sm font-semibold text-ink-strong">
+          {describeScope(scope.span)}
+        </h3>
         <span className="shrink-0 text-xs tabular-nums text-ink-tertiary">
-          {phase.games} {phase.games === 1 ? "game" : "games"}
+          {scope.games} {scope.games === 1 ? "game" : "games"}
         </span>
       </div>
       <table className="mt-2 w-full text-xs tabular-nums">
@@ -444,23 +532,66 @@ function PhaseCard({ phase }: { phase: BriefingPhase }) {
             <th className="w-10 text-right font-semibold">Balls</th>
           </tr>
         </thead>
-        <tbody>
-          {phase.balls.map((ball) => (
-            <tr key={ball.ballId}>
-              <td className="max-w-0 truncate pr-2 text-left text-sm text-ink">{ball.name}</td>
-              <td className="text-right text-ink-secondary">{phasePct(ball.pocketPct)}</td>
-              <td className="text-right text-ink-secondary">{phasePct(ball.carryPct)}</td>
-              <td className="text-right font-semibold text-ink">{phasePct(ball.strikePct)}</td>
-              <td className="text-right text-ink-tertiary">{ball.firstBalls}</td>
-            </tr>
-          ))}
-        </tbody>
+        {scope.balls.map((ball) => (
+          <BallRows key={ball.ballId} ball={ball} lane={lane} />
+        ))}
       </table>
     </div>
   );
 }
 
-function phasePct(value: number | null): string {
+/**
+ * One ball: its name, then a row per read.
+ *
+ * A tbody per ball rather than one long list of rows, so the lane read and the
+ * house read under a name are one group to a screen reader as well as to the
+ * eye, and the border falls between balls rather than between a ball and its
+ * own second line.
+ */
+function BallRows({ ball, lane }: { ball: ScopeBall; lane: string }) {
+  return (
+    <tbody className="border-t border-edge">
+      <tr>
+        <td colSpan={5} className="truncate pt-1.5 text-left text-sm text-ink">
+          {ball.name}
+        </td>
+      </tr>
+      {ball.lane && <RateRow label={`Lane ${lane}`} rates={ball.lane} />}
+      {/* Named "All lanes" only when there is a lane read to tell it apart
+          from. On its own it is simply this ball here, and a qualifier with
+          nothing to qualify reads as a filter the reader did not set. */}
+      <RateRow label={ball.lane ? "All lanes" : "Here"} rates={ball.house} muted={!!ball.lane} />
+    </tbody>
+  );
+}
+
+function RateRow({
+  label,
+  rates,
+  muted = false
+}: {
+  label: string;
+  rates: BallRates;
+  muted?: boolean;
+}) {
+  const tone = muted ? "text-ink-tertiary" : "text-ink-secondary";
+  return (
+    <tr className={rates.thin ? "opacity-70" : ""}>
+      <td className={`max-w-0 truncate pr-2 text-left text-[11px] ${tone}`}>
+        {label}
+        {rates.thin && <span className="text-ink-tertiary"> thin</span>}
+      </td>
+      <td className={`text-right ${tone}`}>{scopePct(rates.pocketPct)}</td>
+      <td className={`text-right ${tone}`}>{scopePct(rates.carryPct)}</td>
+      <td className={`text-right font-semibold ${muted ? "text-ink-secondary" : "text-ink"}`}>
+        {scopePct(rates.strikePct)}
+      </td>
+      <td className="text-right text-ink-tertiary">{rates.firstBalls}</td>
+    </tr>
+  );
+}
+
+function scopePct(value: number | null): string {
   return value === null ? "-" : `${value}%`;
 }
 
