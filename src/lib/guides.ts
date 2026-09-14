@@ -31,7 +31,7 @@ export type GuideBlock =
 /** Kept in step with `GuideFigureId` in `components/GuideFigure.tsx` by hand,
  *  because importing it here would point `lib` at a component. A figure named
  *  here and missing there fails `guides.test.ts` rather than rendering blank. */
-export type GuideFigureId = "ball-points" | "dual-angles" | "flare-rings" | "pin-buffer";
+export type GuideFigureId = "ball-points" | "dual-angles" | "pin-buffer";
 
 export interface GuideSource {
   label: string;
@@ -68,12 +68,12 @@ export const GUIDES: readonly Guide[] = [
     body: [
       {
         kind: "text",
-        text: "Every layout system names the same few points on the ball. Read these once and the two systems below make sense."
+        text: "Every layout system names the same few points on the ball."
       },
       {
         kind: "figure",
         figure: "ball-points",
-        caption: "The same ball every figure below uses. The grip center, the PAP, the VAL through it at a right angle to the grip line, and the pin."
+        caption: "The ball seen straight down the PAP. A line drawn on a ball curves away from you unless it runs through the point you are looking at, and the midline, the VAL and the pin line all run through the PAP. Distances are not to scale."
       },
       {
         kind: "terms",
@@ -84,7 +84,7 @@ export const GUIDES: readonly Guide[] = [
           },
           {
             term: "VAL, the vertical axis line",
-            text: "The line through your PAP at a right angle to the line from PAP to the grip center. Layouts measure the pin against it, because where the pin sits against that line sets the shape of the ball at the breakpoint."
+            text: "The line through your PAP that crosses the grip midline square, and carries on around the ball. The midline is the line drawn through the grip center that your PAP distance is measured along. Layouts measure the pin against the VAL, because where the pin sits against it sets the shape of the ball at the breakpoint."
           },
           {
             term: "Pin",
@@ -103,11 +103,6 @@ export const GUIDES: readonly Guide[] = [
             text: "Where the pin ends up, above or below the finger holes. Pin up delays the roll and keeps the shape sharper at the back. Pin down starts the roll earlier and smooths it out. The numbers below produce both. Neither is a system of its own."
           }
         ]
-      },
-      {
-        kind: "figure",
-        figure: "flare-rings",
-        caption: "Track flare. The axis moves a little on every revolution, so each one lays its own ring and puts dry coverstock on the lane."
       },
       {
         kind: "note",
@@ -152,7 +147,7 @@ export const GUIDES: readonly Guide[] = [
       {
         kind: "figure",
         figure: "dual-angles",
-        caption: "Both angles are measured at the PAP and share the pin line. The drilling angle opens off the grip line, the VAL angle off the VAL."
+        caption: "Both angles are measured at the PAP and share the pin line. The drilling angle opens off the midline toward the grip, the VAL angle off the VAL."
       },
       { kind: "heading", text: "What the two angles add up to" },
       {
