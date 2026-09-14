@@ -217,13 +217,13 @@ describe("appRoute", () => {
   });
 
   describe("an open guide", () => {
-    it("pushes a history entry, so back closes the article and not the shelf", () => {
-      const shelf = nav({ overlays: ["guides"] });
+    it("pushes a history entry, so back closes the article and not the list", () => {
+      const list = nav({ overlays: ["guides"] });
       const article = nav({ overlays: ["guides"], openGuideId: "dual-angle-layouts" });
-      expect(shouldPushHistory(shelf, article)).toBe(true);
+      expect(shouldPushHistory(list, article)).toBe(true);
     });
 
-    it("leaves the guide out of the URL when the shelf is not the top screen", () => {
+    it("leaves the guide out of the URL when the list is not the top screen", () => {
       expect(routeHash(nav({ overlays: ["arsenal"], openGuideId: "dual-angle-layouts" }))).toBe(
         "#/home/arsenal"
       );

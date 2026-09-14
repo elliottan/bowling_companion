@@ -42,7 +42,7 @@ export type Overlay =
   | "oil-patterns"
   | "backup"
   | "spares"
-  /** The reading shelf: layout and equipment articles that ship with the app.
+  /** The guide list: layout and equipment articles that ship with the app.
    *  A sibling of the catalog and the spare lines, reference you keep rather
    *  than a place you sit, so it is pushed from the dashboard like they are. */
   | "guides"

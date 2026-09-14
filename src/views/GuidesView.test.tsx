@@ -26,11 +26,11 @@ describe("GuidesView", () => {
     expect(within(article).getByText(/neither number sets it alone/i)).toBeTruthy();
     const source = within(article).getAllByRole("link")[0] as HTMLAnchorElement;
     expect(source.target).toBe("_blank");
-    // The shelf is still mounted underneath: back peels the article off first.
+    // The list is still mounted underneath, so back closes the article first.
     expect(screen.getByRole("dialog", { name: "Guides" })).toBeTruthy();
   });
 
-  it("shows the shelf for an id that is not on it, rather than an empty screen", () => {
+  it("shows the list for an id that is not in it, rather than an empty screen", () => {
     render(<GuidesView onBack={vi.fn()} openGuideId="no-such-guide" onOpenGuide={vi.fn()} />);
     expect(screen.queryByRole("article")).toBeNull();
     expect(screen.getByRole("button", { name: /dual angle layouts/i })).toBeTruthy();
