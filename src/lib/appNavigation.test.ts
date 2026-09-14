@@ -218,7 +218,7 @@ describe("navReducer", () => {
       { type: "openGuide", guideId: "dual-angle-layouts" }
     ]);
 
-    it("comes off before the shelf underneath it", () => {
+    it("comes off before the list underneath it", () => {
       const popped = navReducer(reading, { type: "popOverlay" });
       expect(popped.openGuideId).toBeNull();
       expect(popped.overlays).toEqual(["guides"]);

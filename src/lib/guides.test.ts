@@ -1,13 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { GUIDES, GUIDE_TOPICS, findGuide, guidesByTopic } from "./guides";
 
-describe("the guide shelf", () => {
+describe("the guide list", () => {
   it("gives every guide a unique id, since the URL carries it", () => {
     const ids = GUIDES.map((g) => g.id);
     expect(new Set(ids).size).toBe(ids.length);
   });
 
-  it("puts every guide on a known shelf, or it would never be listed", () => {
+  it("puts every guide under a known topic, or it would never be listed", () => {
     for (const guide of GUIDES) {
       expect(GUIDE_TOPICS).toContain(guide.topic);
       expect(guide.body.length).toBeGreaterThan(0);
@@ -20,7 +20,7 @@ describe("the guide shelf", () => {
     expect(grouped).toHaveLength(GUIDES.length);
   });
 
-  it("answers undefined for an id that is not on the shelf", () => {
+  it("answers undefined for an id that is not in the list", () => {
     expect(findGuide("no-such-guide")).toBeUndefined();
     expect(findGuide(null)).toBeUndefined();
     expect(findGuide("dual-angle-layouts")?.title).toBe("Dual angle layouts");

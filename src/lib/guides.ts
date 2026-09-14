@@ -1,5 +1,5 @@
 /**
- * The reading shelf: layout and equipment articles that do not change between
+ * The guide list: layout and equipment articles that do not change between
  * sessions, kept in the app because the alley is where they get read and the
  * app is offline there.
  *
@@ -18,11 +18,20 @@ export type GuideBlock =
   | { kind: "heading"; text: string }
   | { kind: "text"; text: string }
   | { kind: "list"; items: string[] }
-  /** A term and what it means, for the vocabulary a layout conversation
+  /** A term and what it means, for the words a layout conversation
    *  assumes you already have. */
   | { kind: "terms"; items: Array<{ term: string; text: string }> }
   /** Set apart: a caveat, or the one line to remember off the screen. */
-  | { kind: "note"; text: string };
+  | { kind: "note"; text: string }
+  /** A drawing. The id names one of the figures in `components/GuideFigure`,
+   *  which owns the geometry: `lib` cannot import a component, and a figure is
+   *  markup rather than content. The caption is also its spoken name. */
+  | { kind: "figure"; figure: GuideFigureId; caption: string };
+
+/** Kept in step with `GuideFigureId` in `components/GuideFigure.tsx` by hand,
+ *  because importing it here would point `lib` at a component. A figure named
+ *  here and missing there fails `guides.test.ts` rather than rendering blank. */
+export type GuideFigureId = "ball-points" | "dual-angles" | "flare-rings" | "pin-buffer";
 
 export interface GuideSource {
   label: string;
@@ -34,7 +43,7 @@ export interface Guide {
   title: string;
   /** One line on the list row, so it has to say who the guide is for. */
   summary: string;
-  /** The shelf it sits on. Guides are grouped by this, in TOPICS order. */
+  /** The topic it sits under. Guides are grouped by this, in TOPICS order. */
   topic: GuideTopic;
   /** Rounded reading time, for deciding whether this fits before the squad. */
   minutes: number;
@@ -52,14 +61,19 @@ export const GUIDE_TOPICS: readonly GuideTopic[] = ["Layouts", "Equipment"];
 export const GUIDES: readonly Guide[] = [
   {
     id: "layout-vocabulary",
-    title: "The words a layout uses",
+    title: "Layout vocabulary",
     summary: "PAP, VAL, pin, PSA and flare, before the numbers make sense.",
     topic: "Layouts",
     minutes: 3,
     body: [
       {
         kind: "text",
-        text: "Every layout system names the same few landmarks on the ball. Read these once and the two systems below make sense."
+        text: "Every layout system names the same few points on the ball. Read these once and the two systems below make sense."
+      },
+      {
+        kind: "figure",
+        figure: "ball-points",
+        caption: "The same ball every figure below uses. The grip center, the PAP, the VAL through it at a right angle to the grip line, and the pin."
       },
       {
         kind: "terms",
@@ -74,7 +88,7 @@ export const GUIDES: readonly Guide[] = [
           },
           {
             term: "Pin",
-            text: "The colored dot on the ball. It marks the top of the core, the axis the core is lightest around. Where the pin sits relative to your PAP sets how far the ball's axis moves as it rolls."
+            text: "The colored dot on the ball. It marks the top of the core, the axis the core is lightest around. How far the pin sits from your PAP sets how far the ball's axis moves as it rolls."
           },
           {
             term: "PSA, the preferred spin axis",
@@ -86,9 +100,14 @@ export const GUIDES: readonly Guide[] = [
           },
           {
             term: "Pin up and pin down",
-            text: "Where the pin ends up relative to the finger holes. Pin up delays the roll and keeps the shape sharper at the back. Pin down starts the roll earlier and smooths it out. The numbers below produce both. Neither is a system of its own."
+            text: "Where the pin ends up, above or below the finger holes. Pin up delays the roll and keeps the shape sharper at the back. Pin down starts the roll earlier and smooths it out. The numbers below produce both. Neither is a system of its own."
           }
         ]
+      },
+      {
+        kind: "figure",
+        figure: "flare-rings",
+        caption: "Track flare. The axis moves a little on every revolution, so each one lays its own ring and puts dry coverstock on the lane."
       },
       {
         kind: "note",
@@ -130,6 +149,11 @@ export const GUIDES: readonly Guide[] = [
           }
         ]
       },
+      {
+        kind: "figure",
+        figure: "dual-angles",
+        caption: "Both angles are measured at the PAP and share the pin line. The drilling angle opens off the grip line, the VAL angle off the VAL."
+      },
       { kind: "heading", text: "What the two angles add up to" },
       {
         kind: "text",
@@ -138,7 +162,7 @@ export const GUIDES: readonly Guide[] = [
       {
         kind: "list",
         items: [
-          "Speed dominant bowlers, meaning ball speed high relative to rev rate, want a smaller sum so the ball gets into a roll in time.",
+          "Speed dominant bowlers, meaning ball speed that is high for their rev rate, want a smaller sum so the ball gets into a roll in time.",
           "Rev dominant bowlers want a larger sum so the ball does not burn up its energy before the pins.",
           "Two layouts with the same sum can still differ. Moving the split between the two angles trades early rev up against backend shape."
         ]
@@ -177,7 +201,7 @@ export const GUIDES: readonly Guide[] = [
     body: [
       {
         kind: "text",
-        text: "Storm's vector layout system, VLS, describes the same geometry in inches rather than degrees. It writes a layout as three distances, for example 6 x 4 x 4 or 5 x 4 x 3. A shop working this way measures every number on the ball with a tape instead of setting it with a protractor."
+        text: "Storm's vector layout system, VLS, describes the same layout in inches rather than degrees. It writes a layout as three distances, for example 6 x 4 x 4 or 5 x 4 x 3. A shop working this way measures every number on the ball with a tape instead of setting it with a protractor."
       },
       {
         kind: "terms",
@@ -196,10 +220,15 @@ export const GUIDES: readonly Guide[] = [
           }
         ]
       },
+      {
+        kind: "figure",
+        figure: "pin-buffer",
+        caption: "The buffer is the square distance from the pin across to the VAL, not the distance along the pin line."
+      },
       { kind: "heading", text: "How it lines up with dual angle" },
       {
         kind: "text",
-        text: "The two systems describe one geometry, so a shop can convert between them. A larger pin buffer puts the pin further off the VAL, which is a larger VAL angle, which is the smoother and slower transition from the dual angle guide. A small buffer makes the sharper move."
+        text: "The two systems describe one layout, so a shop can convert between them. A larger pin buffer puts the pin further off the VAL, which is a larger VAL angle, which is the smoother and slower transition from the dual angle guide. A small buffer makes the sharper move."
       },
       {
         kind: "text",
@@ -207,7 +236,7 @@ export const GUIDES: readonly Guide[] = [
       },
       {
         kind: "note",
-        text: "Shops state the buffer's effect in both directions, so ask which one yours means before the drill. The measurement is not ambiguous. The shorthand for its effect is."
+        text: "Shops state the buffer's effect in both directions, so ask which one yours means before the drill. The measurement itself is clear. The shorthand for what it does is not."
       }
     ],
     sources: [
@@ -236,7 +265,7 @@ export const GUIDES: readonly Guide[] = [
       {
         kind: "list",
         items: [
-          "PAP. Have the shop measure it rather than guessing at it. Every number in every layout is relative to it.",
+          "PAP. Have the shop measure it rather than guessing at it. Every number in every layout is measured from it.",
           "Rev rate and ball speed, and which of the two dominates. Speed dominant wants a faster transition, rev dominant wants a slower one.",
           "Axis tilt. High tilt, meaning a spinner release, gets less out of flare, so a strong flare layout buys less than its numbers suggest.",
           "The shot you bowl most weeks, at the alley you bowl it at."
@@ -273,12 +302,12 @@ export const GUIDES: readonly Guide[] = [
 ];
 
 /** Lookup by id, for the route and the article screen. Undefined for an id
- *  that is not on the shelf: a stale bookmark opens the list, not an error. */
+ *  that is not in the list: a stale bookmark opens the list, not an error. */
 export function findGuide(id: string | null | undefined): Guide | undefined {
   return id ? GUIDES.find((g) => g.id === id) : undefined;
 }
 
-/** The shelf, grouped and in `GUIDE_TOPICS` order, skipping empty topics. */
+/** The guides, grouped and in `GUIDE_TOPICS` order, skipping empty topics. */
 export function guidesByTopic(): Array<{ topic: GuideTopic; guides: Guide[] }> {
   return GUIDE_TOPICS.map((topic) => ({
     topic,

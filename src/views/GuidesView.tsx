@@ -1,4 +1,5 @@
 import { ExternalLink, FileText } from "lucide-react";
+import { GuideFigure } from "../components/GuideFigure";
 import { PushScreen } from "../components/PushScreen";
 import { ListGroup, ListRow } from "../components/ui/ListGroup";
 import { GROUP_HEADING } from "../components/ui/typography";
@@ -17,12 +18,12 @@ function readingTime(guide: Guide): string {
 }
 
 /**
- * The reading shelf, and one article pushed on top of it.
+ * The list of guides, and one article pushed on top of it.
  *
  * Both screens live in this file, and the article is a second `PushScreen`
  * rather than a route of its own, exactly as the catalog and its ball detail
- * do: the article only exists while the shelf is underneath it, so the shelf
- * owns which one is open and back peels it off first (appNavigation).
+ * do: the article only exists while the list is underneath it, so the list
+ * owns which one is open and back closes it first (appNavigation).
  */
 export function GuidesView({ onBack, openGuideId, onOpenGuide }: GuidesViewProps) {
   const open = findGuide(openGuideId);
@@ -52,7 +53,7 @@ export function GuidesView({ onBack, openGuideId, onOpenGuide }: GuidesViewProps
   );
 }
 
-/** One article. `onBack` is the same pop as the shelf's: the reducer takes the
+/** One article. `onBack` is the same pop as the list's: the reducer takes the
  *  open guide off before it touches the overlay stack. */
 function GuideArticle({ guide, onBack }: { guide: Guide; onBack: () => void }) {
   return (
@@ -129,6 +130,9 @@ function Block({ block }: { block: GuideBlock }) {
           ))}
         </dl>
       );
+
+    case "figure":
+      return <GuideFigure figure={block.figure} caption={block.caption} />;
 
     case "note":
       return (

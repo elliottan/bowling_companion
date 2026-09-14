@@ -26,11 +26,27 @@ describe("GuidesView", () => {
     expect(within(article).getByText(/neither number sets it alone/i)).toBeTruthy();
     const source = within(article).getAllByRole("link")[0] as HTMLAnchorElement;
     expect(source.target).toBe("_blank");
-    // The shelf is still mounted underneath: back peels the article off first.
+    // The list is still mounted underneath, so back closes the article first.
     expect(screen.getByRole("dialog", { name: "Guides" })).toBeTruthy();
   });
 
-  it("shows the shelf for an id that is not on it, rather than an empty screen", () => {
+  it("draws every figure the articles ask for, named by its caption", () => {
+    // Renders each article in turn: a figure id with no drawing behind it
+    // would throw here rather than leaving a blank box on the screen.
+    for (const guide of GUIDES) {
+      const figures = guide.body.filter((b) => b.kind === "figure");
+      const { unmount } = render(
+        <GuidesView onBack={vi.fn()} openGuideId={guide.id} onOpenGuide={vi.fn()} />
+      );
+      for (const block of figures) {
+        if (block.kind !== "figure") continue;
+        expect(screen.getByRole("img", { name: block.caption })).toBeTruthy();
+      }
+      unmount();
+    }
+  });
+
+  it("shows the list for an id that is not in it, rather than an empty screen", () => {
     render(<GuidesView onBack={vi.fn()} openGuideId="no-such-guide" onOpenGuide={vi.fn()} />);
     expect(screen.queryByRole("article")).toBeNull();
     expect(screen.getByRole("button", { name: /dual angle layouts/i })).toBeTruthy();
