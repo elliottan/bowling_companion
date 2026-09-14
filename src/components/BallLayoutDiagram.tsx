@@ -1,0 +1,511 @@
+import { useCallback, useMemo, useRef, useState } from "react";
+import {
+  DEFAULT_PAP,
+  arcToAngle,
+  coreToPap,
+  normalize,
+  pinBuffer,
+  tangentToward,
+  walk,
+  type BallSpec,
+  type DualAngleLayout,
+  type PapMeasurement,
+  type Vec3
+} from "../lib/ballLayout";
+import { layoutGeometry } from "../lib/ballLayout";
+import {
+  IDENTITY_ORIENTATION,
+  arcPoints,
+  circlePoints,
+  clampOrientation,
+  dragToOrientation,
+  flareAxes,
+  project,
+  splitByDepth,
+  toPolyline,
+  type Orientation
+} from "../lib/ballProjection";
+
+/**
+ * The ball, drawn, with the layout on it, and draggable.
+ *
+ * Why this is a sphere you turn rather than the flat two-circle diagram every
+ * layout chart prints: the flat diagram only works because the reader already
+ * knows the pin goes round the back. A bowler learning what a 70 degree VAL
+ * angle does needs to see the pin travel, and the moment the drawing is a
+ * sphere, "drag it" is the only interaction anyone tries. So the geometry is
+ * real 3D (`lib/ballProjection`) and the drag is the primary control.
+ *
+ * On colour: this is the `docs/DESIGN-LANGUAGE.md` §3 exception that `PinGrid`
+ * and `LaneVisualizer` already hold. A bowling ball is a physical object with a
+ * colour of its own, a drilled hole is a hole in both themes, and a ball that
+ * went slate at night would stop being a ball. The markers and the lines are
+ * the app's, so those take the semantic tokens.
+ */
+
+interface BallLayoutDiagramProps {
+  layout: DualAngleLayout;
+  ball: BallSpec;
+  pap?: PapMeasurement;
+  /** Inches of track flare to draw, from the motion model. Zero hides the rings. */
+  flareInches?: number;
+  /** Turn the flare rings off even when there is flare, for a cleaner read. */
+  showFlare?: boolean;
+  /** Draw the finger and thumb holes. */
+  showGrip?: boolean;
+  /** Draw the measured angle at each vertex. */
+  showAngles?: boolean;
+  /**
+   * Which way the ball is turned. Controlled by the parent rather than held
+   * here, because "show me the PSA" is a thing the screen around the ball asks
+   * for, and a diagram that owned its own orientation could only be told by an
+   * effect that fired on a prop change: a render writing back into itself. The
+   * parent already holds the layout, so it can hold the one other piece of view
+   * state and the data flows one way.
+   */
+  orientation: Orientation;
+  onOrientationChange: (next: Orientation) => void;
+  className?: string;
+}
+
+// Drawing space. The viewBox is square and the ball is inset enough that a
+// label beside a marker on the silhouette still has room to sit.
+const SIZE = 320;
+const CENTER = SIZE / 2;
+const RADIUS = 110;
+
+/** Ball surface colours, lit from the upper left. See the note on §3 above. */
+const BALL_LIGHT = "#5b6b84";
+const BALL_MID = "#33415c";
+const BALL_DARK = "#161e2e";
+const HOLE = "#0b0f18";
+
+/** Opacity for anything on the far side of the ball, seen through it. */
+const BEHIND = 0.26;
+
+interface Landmark {
+  id: string;
+  point: Vec3;
+  label: string;
+  color: string;
+  shape: "pin" | "core" | "pap";
+}
+
+export function BallLayoutDiagram({
+  layout,
+  ball,
+  pap = DEFAULT_PAP,
+  flareInches = 0,
+  showFlare = true,
+  showGrip = true,
+  showAngles = true,
+  orientation,
+  onOrientationChange,
+  className = ""
+}: BallLayoutDiagramProps) {
+  const geometry = useMemo(() => layoutGeometry(layout, ball, pap), [layout, ball, pap]);
+
+  const [dragging, setDragging] = useState(false);
+  const svgRef = useRef<SVGSVGElement>(null);
+  // The drag's own transform, owned here and never animated against a keyframe
+  // (docs/DESIGN-LANGUAGE.md §7).
+  const drag = useRef<{ id: number; x: number; y: number; from: Orientation } | null>(null);
+
+  const onPointerDown = useCallback(
+    (e: React.PointerEvent<SVGSVGElement>) => {
+      drag.current = { id: e.pointerId, x: e.clientX, y: e.clientY, from: orientation };
+      e.currentTarget.setPointerCapture(e.pointerId);
+      setDragging(true);
+    },
+    [orientation]
+  );
+
+  const onPointerMove = useCallback((e: React.PointerEvent<SVGSVGElement>) => {
+    const d = drag.current;
+    if (!d || d.id !== e.pointerId) return;
+    // Measured against the element's own width, so the ball turns the same
+    // amount per finger-travel whatever size it is drawn at.
+    const width = svgRef.current?.getBoundingClientRect().width ?? SIZE;
+    onOrientationChange(dragToOrientation(d.from, e.clientX - d.x, e.clientY - d.y, width));
+  }, [onOrientationChange]);
+
+  const endDrag = useCallback((e: React.PointerEvent<SVGSVGElement>) => {
+    if (drag.current?.id !== e.pointerId) return;
+    drag.current = null;
+    setDragging(false);
+  }, []);
+
+  // Keyboard is a first-class way to turn the ball, not an afterthought: the
+  // diagram carries information that is only reachable by rotating it, so a
+  // pointer-only control would put that information out of reach entirely.
+  const onKeyDown = useCallback(
+    (e: React.KeyboardEvent<SVGSVGElement>) => {
+      const step = Math.PI / 12;
+      const nudge = (yaw: number, pitch: number) => {
+        e.preventDefault();
+        onOrientationChange(
+          clampOrientation({ yaw: orientation.yaw + yaw, pitch: orientation.pitch + pitch })
+        );
+      };
+      if (e.key === "ArrowLeft") nudge(-step, 0);
+      else if (e.key === "ArrowRight") nudge(step, 0);
+      else if (e.key === "ArrowUp") nudge(0, step);
+      else if (e.key === "ArrowDown") nudge(0, -step);
+      else if (e.key === "Home") {
+        e.preventDefault();
+        onOrientationChange(IDENTITY_ORIENTATION);
+      }
+    },
+    [onOrientationChange, orientation]
+  );
+
+  const p = useCallback(
+    (v: Vec3) => project(v, orientation, CENTER, CENTER, RADIUS),
+    [orientation]
+  );
+
+  const stroke = useCallback(
+    (points: Vec3[], color: string, width: number, dash?: string, key?: string) =>
+      splitByDepth(points, orientation, CENTER, CENTER, RADIUS).map((run, i) => (
+        <polyline
+          key={`${key}-${i}`}
+          points={toPolyline(run)}
+          fill="none"
+          stroke={color}
+          strokeWidth={width}
+          strokeDasharray={dash}
+          strokeLinecap="round"
+          opacity={run.front ? 1 : BEHIND}
+        />
+      )),
+    [orientation]
+  );
+
+  const landmarks: Landmark[] = [
+    { id: "pin", point: geometry.pin, label: "Pin", color: "#f8fafc", shape: "pin" },
+    {
+      id: "core",
+      point: geometry.core,
+      label: ball.symmetric ? "CG" : "PSA",
+      color: "#fbbf24",
+      shape: "core"
+    },
+    { id: "pap", point: geometry.pap, label: "PAP", color: "#38bdf8", shape: "pap" }
+  ];
+
+  const gripHoles = useMemo(() => (showGrip ? gripHolePoints(geometry.gripCenter, pap) : []), [
+    geometry.gripCenter,
+    pap,
+    showGrip
+  ]);
+
+  const flareRings = useMemo(
+    () =>
+      showFlare && flareInches > 0.05
+        ? flareAxes(geometry.pap, geometry.pin, flareInches, 5)
+        : [],
+    [showFlare, flareInches, geometry.pap, geometry.pin]
+  );
+
+  return (
+    <svg
+      ref={svgRef}
+      viewBox={`0 0 ${SIZE} ${SIZE}`}
+      className={`w-full touch-none select-none ${dragging ? "cursor-grabbing" : "cursor-grab"} ${className}`}
+      role="img"
+      tabIndex={0}
+      aria-label={describeDiagram(layout, ball)}
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={endDrag}
+      onPointerCancel={endDrag}
+      onKeyDown={onKeyDown}
+    >
+      <defs>
+        <radialGradient id="ball-body" cx="34%" cy="28%" r="78%">
+          <stop offset="0%" stopColor={BALL_LIGHT} />
+          <stop offset="55%" stopColor={BALL_MID} />
+          <stop offset="100%" stopColor={BALL_DARK} />
+        </radialGradient>
+        {/* The rim darkening that makes a flat disc read as a sphere. Without
+            it the silhouette is a hard edge and the ball looks like a coin. */}
+        <radialGradient id="ball-rim" cx="50%" cy="50%" r="50%">
+          <stop offset="82%" stopColor="#000" stopOpacity="0" />
+          <stop offset="100%" stopColor="#000" stopOpacity="0.45" />
+        </radialGradient>
+        <clipPath id="ball-clip">
+          <circle cx={CENTER} cy={CENTER} r={RADIUS} />
+        </clipPath>
+      </defs>
+
+      <circle cx={CENTER} cy={CENTER} r={RADIUS} fill="url(#ball-body)" />
+
+      <g clipPath="url(#ball-clip)">
+        {/* Reference circles first, so every measured line sits on top of them. */}
+        {stroke(circlePoints(geometry.pap, geometry.gripCenter), "#94a3b8", 1, "3 4", "midline")}
+        {stroke(circlePoints(geometry.gripDirection, geometry.pap), "#38bdf8", 1.6, undefined, "val")}
+
+        {/* Track flare: the circle the ball rolls on for each revolution as the
+            axis migrates. Drawn under the layout lines because it is what the
+            layout produces, not part of the layout itself.
+            
+            Kept deliberately faint. These are full great circles, and they are
+            correct as full circles (an oiled ball really does show rings that
+            pinch together a quarter turn from the migration path). But at the
+            weight the layout lines carry, five of them turn the ball into a
+            wireframe globe and the two lines that matter disappear into it.
+            They are surface markings, so they are drawn like surface
+            markings. */}
+        <g opacity={0.4}>
+          {flareRings.map((axis, i) => (
+            <g key={`flare-${i}`}>
+              {stroke(circlePoints(axis, perpendicularTo(axis)), "#34d399", 0.9, undefined, `flare-${i}`)}
+            </g>
+          ))}
+        </g>
+
+        {/* The two measured lines of the dual angle system. */}
+        {stroke(arcPoints(geometry.pin, geometry.pap), "#f8fafc", 2.4, undefined, "pin-pap")}
+        {stroke(arcPoints(geometry.pin, geometry.core), "#fbbf24", 2, "5 3", "pin-core")}
+
+        {showAngles && (
+          <>
+            {/* Vertex at the PAP: pin-to-PAP against the VAL. */}
+            <AngleArc
+              vertex={geometry.pap}
+              a={geometry.pin}
+              b={walk(geometry.pap, geometry.valDirection, arcToAngle(2))}
+              color="#38bdf8"
+              value={Math.round(layout.valAngle)}
+              orientation={orientation}
+            />
+            {/* Vertex at the pin: pin-to-PAP against pin-to-core. */}
+            <AngleArc
+              vertex={geometry.pin}
+              a={geometry.pap}
+              b={geometry.core}
+              color="#fbbf24"
+              value={Math.round(layout.drillingAngle)}
+              orientation={orientation}
+            />
+          </>
+        )}
+
+        {gripHoles.map((hole, i) => {
+          const q = p(hole.point);
+          if (!q.front) return null;
+          // Squashed toward the silhouette, which is what a round hole does
+          // when the surface it sits on turns away.
+          return (
+            <ellipse
+              key={`hole-${i}`}
+              cx={q.x}
+              cy={q.y}
+              rx={hole.r * RADIUS * Math.max(q.facing, 0.12)}
+              ry={hole.r * RADIUS}
+              transform={`rotate(${holeAngle(q, CENTER)} ${q.x} ${q.y})`}
+              fill={HOLE}
+              opacity={0.9}
+            />
+          );
+        })}
+      </g>
+
+      {/* Rim shading sits above the surface detail and below the markers. */}
+      <circle cx={CENTER} cy={CENTER} r={RADIUS} fill="url(#ball-rim)" pointerEvents="none" />
+      <circle
+        cx={CENTER}
+        cy={CENTER}
+        r={RADIUS}
+        fill="none"
+        stroke="#0f172a"
+        strokeOpacity="0.5"
+        strokeWidth="1"
+      />
+
+      {landmarks.map((mark) => {
+        const q = p(mark.point);
+        return (
+          <g key={mark.id} opacity={q.front ? 1 : BEHIND} pointerEvents="none">
+            <Marker shape={mark.shape} x={q.x} y={q.y} color={mark.color} />
+            {q.front && q.facing > 0.25 && (
+              <text
+                {...labelAnchor(q.x, q.y)}
+                fill={mark.color}
+                fontSize="11"
+                fontWeight="700"
+                opacity={Math.min(1, (q.facing - 0.25) * 4)}
+                style={{ paintOrder: "stroke" }}
+                stroke="#0f172a"
+                strokeWidth="3"
+                strokeLinejoin="round"
+              >
+                {mark.label}
+              </text>
+            )}
+          </g>
+        );
+      })}
+    </svg>
+  );
+}
+
+function Marker({ shape, x, y, color }: { shape: Landmark["shape"]; x: number; y: number; color: string }) {
+  if (shape === "pap") {
+    // A crosshair, because the PAP is a located point rather than a thing
+    // moulded into the ball: it is where the bowler's axis comes out.
+    return (
+      <g stroke={color} strokeWidth="2" fill="none" strokeLinecap="round">
+        <circle cx={x} cy={y} r="6" />
+        <line x1={x - 10} y1={y} x2={x - 8} y2={y} />
+        <line x1={x + 8} y1={y} x2={x + 10} y2={y} />
+        <line x1={x} y1={y - 10} x2={x} y2={y - 8} />
+        <line x1={x} y1={y + 8} x2={x} y2={y + 10} />
+      </g>
+    );
+  }
+  if (shape === "core") {
+    // A diamond: the PSA and the CG are both marks the factory puts on, and a
+    // second filled dot would read as a second pin.
+    return (
+      <g>
+        <path
+          d={`M ${x} ${y - 6.5} L ${x + 6.5} ${y} L ${x} ${y + 6.5} L ${x - 6.5} ${y} Z`}
+          fill={color}
+          stroke="#0f172a"
+          strokeWidth="1.5"
+        />
+      </g>
+    );
+  }
+  return (
+    <g>
+      <circle cx={x} cy={y} r="5.5" fill={color} stroke="#0f172a" strokeWidth="1.5" />
+    </g>
+  );
+}
+
+/**
+ * The little arc at a vertex that shows the angle being measured, drawn on the
+ * ball surface rather than on the screen plane so it sits flat on the sphere
+ * and shrinks correctly as the vertex turns away.
+ */
+function AngleArc({
+  vertex,
+  a,
+  b,
+  color,
+  value,
+  orientation
+}: {
+  vertex: Vec3;
+  a: Vec3;
+  b: Vec3;
+  color: string;
+  value: number;
+  orientation: Orientation;
+}) {
+  const toA = tangentToward(vertex, a);
+  const toB = tangentToward(vertex, b);
+  const reach = arcToAngle(1.1);
+  const start = walk(vertex, toA, reach);
+  const end = walk(vertex, toB, reach);
+  const runs = splitByDepth(arcPoints(start, end, 24), orientation, CENTER, CENTER, RADIUS);
+  // The number sits on the bisector, just outside the arc, which is where it
+  // stays clear of both legs at every angle including a very tight one.
+  const bisector = normalize({ x: toA.x + toB.x, y: toA.y + toB.y, z: toA.z + toB.z });
+  const label = project(walk(vertex, bisector, arcToAngle(1.85)), orientation, CENTER, CENTER, RADIUS);
+
+  return (
+    <g pointerEvents="none">
+      {runs.map((run, i) => (
+        <polyline
+          key={i}
+          points={toPolyline(run)}
+          fill="none"
+          stroke={color}
+          strokeWidth="1.5"
+          opacity={run.front ? 0.9 : BEHIND}
+        />
+      ))}
+      {label.front && label.facing > 0.3 && (
+        <text
+          x={label.x}
+          y={label.y}
+          fill={color}
+          fontSize="10"
+          fontWeight="700"
+          textAnchor="middle"
+          dominantBaseline="middle"
+          opacity={Math.min(1, (label.facing - 0.3) * 4)}
+          stroke="#0f172a"
+          strokeWidth="2.5"
+          strokeLinejoin="round"
+          style={{ paintOrder: "stroke" }}
+        >
+          {value}
+          {"°"}
+        </text>
+      )}
+    </g>
+  );
+}
+
+/**
+ * Put a marker's label beside it, on whichever side keeps it inside the drawing.
+ *
+ * A label always set outward runs off the viewBox the moment its marker reaches
+ * the silhouette, which is exactly where the PAP sits at a normal 5 inch
+ * measurement. So it starts outward and flips inward at the edge rather than
+ * being clipped.
+ */
+function labelAnchor(x: number, y: number): { x: number; y: number; textAnchor: "start" | "end" } {
+  const outward = x >= CENTER;
+  const gutter = 36;
+  if (outward && x + gutter > SIZE) return { x: x - 11, y: y - 9, textAnchor: "end" };
+  if (!outward && x - gutter < 0) return { x: x + 11, y: y - 9, textAnchor: "start" };
+  return outward
+    ? { x: x + 11, y: y - 9, textAnchor: "start" }
+    : { x: x - 11, y: y - 9, textAnchor: "end" };
+}
+
+/** Any unit vector perpendicular to `v`, for seeding a circle about it. */
+function perpendicularTo(v: Vec3): Vec3 {
+  const seed: Vec3 = Math.abs(v.y) < 0.9 ? { x: 0, y: 1, z: 0 } : { x: 1, y: 0, z: 0 };
+  return tangentToward(v, seed);
+}
+
+/** Screen angle from the ball's centre out to a point, so a hole's squash is
+ *  flattened along the radius rather than along the screen's x axis. */
+function holeAngle(q: { x: number; y: number }, center: number): number {
+  return (Math.atan2(q.y - center, q.x - center) * 180) / Math.PI;
+}
+
+/**
+ * A conventional grip: thumb on the midline toward the bowler's own side, two
+ * finger holes above it. Not measured off the layout, since span and pitch are
+ * a hand fitting rather than a layout, but drawn because the VAL angle is
+ * meaningless without something to be up or down *of*.
+ */
+function gripHolePoints(gripCenter: Vec3, pap: PapMeasurement): Array<{ point: Vec3; r: number }> {
+  const towardPap = tangentToward(gripCenter, { x: Math.sign(pap.over) || 1, y: 0, z: 0 });
+  const up = tangentToward(gripCenter, { x: 0, y: 1, z: 0 });
+  const thumb = walk(gripCenter, up, arcToAngle(-1.7));
+  const fingerRow = walk(gripCenter, up, arcToAngle(2.4));
+  return [
+    { point: thumb, r: 0.075 },
+    { point: walk(fingerRow, towardPap, arcToAngle(-0.9)), r: 0.055 },
+    { point: walk(fingerRow, towardPap, arcToAngle(0.9)), r: 0.055 }
+  ];
+}
+
+/** What a screen reader gets, since the picture carries the whole point. */
+function describeDiagram(layout: DualAngleLayout, ball: BallSpec): string {
+  const marker = ball.symmetric ? "CG" : "PSA";
+  return (
+    `A bowling ball showing a ${Math.round(layout.drillingAngle)} by ${layout.pinToPap.toFixed(2)} inch by ` +
+    `${Math.round(layout.valAngle)} dual angle layout. The pin sits ${layout.pinToPap.toFixed(2)} inches from the PAP ` +
+    `with a ${pinBuffer(layout.pinToPap, layout.valAngle).toFixed(2)} inch pin buffer, and the ${marker} is ` +
+    `${coreToPap(layout, ball).toFixed(2)} inches from the PAP. Drag the ball, or use the arrow keys, to turn it.`
+  );
+}

@@ -1,4 +1,4 @@
-import { BookOpen, ChevronRight, GraduationCap, PlayCircle, Plus, Smartphone, type LucideIcon } from "lucide-react";
+import { BookOpen, ChevronRight, Compass, GraduationCap, PlayCircle, Plus, Smartphone, type LucideIcon } from "lucide-react";
 import { PinIcon } from "../components/icons";
 import {
   BowlingBallIcon,
@@ -50,6 +50,7 @@ interface DashboardViewProps {
   activeSessionId?: number | null;
   onOpenCatalog: () => void;
   onOpenLineVisualizer: () => void;
+  onOpenLayoutLab: () => void;
   onOpenArsenal: () => void;
   onOpenLaneNotes: () => void;
   onOpenOilPatterns: () => void;
@@ -85,6 +86,7 @@ export function DashboardView({
   activeSessionId,
   onOpenCatalog,
   onOpenLineVisualizer,
+  onOpenLayoutLab,
   onOpenArsenal,
   onOpenLaneNotes,
   onOpenOilPatterns,
@@ -168,6 +170,7 @@ export function DashboardView({
     { icon: BowlingBallIcon, label: "Arsenal", onClick: onOpenArsenal },
     { icon: BookOpen, label: "Catalog", onClick: onOpenCatalog },
     { icon: LaneViewIcon, label: "Line", onClick: onOpenLineVisualizer },
+    { icon: Compass, label: "Layout lab", onClick: onOpenLayoutLab },
     { icon: LanePairIcon, label: "Lane notes", onClick: onOpenLaneNotes },
     { icon: OilPatternIcon, label: "Oil patterns", onClick: onOpenOilPatterns }
   ];

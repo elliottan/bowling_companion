@@ -54,6 +54,7 @@ const OVERLAYS: readonly string[] = [
   "backup",
   "spares",
   "guides",
+  "layout-lab",
   "open-frames",
   "game-trend",
   "game-plan",
