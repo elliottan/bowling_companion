@@ -1,9 +1,16 @@
 import { useEffect, useState } from "react";
 import { useOverlay } from "../lib/useOverlay";
 import { useSheetDismiss } from "../lib/useSheetDismiss";
+import { Download } from "lucide-react";
 import { Button } from "./ui/Button";
+import { IconButton } from "./ui/IconButton";
 import { ShareIosIcon } from "./icons";
-import { renderShareCard, shareCardFilename, shareCardImage } from "../lib/shareCard";
+import {
+  downloadCardImage,
+  renderShareCard,
+  shareCardFilename,
+  shareCardImage
+} from "../lib/shareCard";
 
 /**
  * The app icon, for the footer of the share card.
@@ -13,14 +20,21 @@ import { renderShareCard, shareCardFilename, shareCardImage } from "../lib/share
  * silently. Loaded once and remembered, because a night can be shared twice.
  *
  * A share is worth more than its logo, so a mark that will not load resolves to
- * nothing and the card is drawn without it.
+ * nothing and the card is drawn without it. That has to include a load that
+ * never finishes, not just one that fails: the whole card waits on this, and a
+ * request left hanging by a flaky connection would otherwise leave the preview
+ * spinning forever with no error to show for it. Hence the timeout, the same
+ * guard and for the same reason as the one in `lib/svgImage.ts`.
  */
+const MARK_TIMEOUT_MS = 4000;
+
 let markPromise: Promise<HTMLImageElement | undefined> | undefined;
 function loadMark(): Promise<HTMLImageElement | undefined> {
   markPromise ??= new Promise((resolve) => {
     const img = new Image();
     img.onload = () => resolve(img);
     img.onerror = () => resolve(undefined);
+    setTimeout(() => resolve(undefined), MARK_TIMEOUT_MS);
     img.src = "/icons/icon-192.png";
   });
   return markPromise;
@@ -40,6 +54,10 @@ interface ShareCardDialogProps {
    * can never do. The card is still rendered and still shown, because a link
    * into a chat is a line of text nobody can see, and the preview is what says
    * what they are about to send.
+   *
+   * Setting this also puts a download control on the card, because the picture
+   * otherwise has no way off the device at all: when the button sends a link,
+   * nothing else here saves the PNG.
    */
   link?: { url: string; title: string } | null;
 }
@@ -123,6 +141,13 @@ export function ShareCardDialog({ open, card, onClose, link = null }: ShareCardD
     }
   }
 
+  function handleDownload() {
+    if (!blob || !card) return;
+    setError("");
+    downloadCardImage(blob, shareCardFilename(card.title));
+    setNote("Image saved");
+  }
+
   return (
     <div
       className="fixed inset-0 z-[80] flex items-center justify-center bg-black/50 p-4"
@@ -140,6 +165,25 @@ export function ShareCardDialog({ open, card, onClose, link = null }: ShareCardD
         style={panelStyle}
         onClick={(e) => e.stopPropagation()}
       >
+        {/* The picture's own way out, on the picture, at the corner a phone
+            puts a save control on. It rides the preview rather than the screen
+            behind it because this is where the image exists: the card is built
+            when the dialog opens, and a control outside would have to build a
+            second copy of it to save. Only on a link share, where the button
+            below sends a URL and nothing else here would save the PNG. */}
+        {link && (
+          <div className="mb-2 flex justify-end">
+            <IconButton
+              variant="round"
+              label="Save image"
+              disabled={!blob}
+              onClick={handleDownload}
+            >
+              <Download size={18} aria-hidden="true" />
+            </IconButton>
+          </div>
+        )}
+
         <div className="min-h-0 flex-1 overflow-y-auto">
           {preview ? (
             <img

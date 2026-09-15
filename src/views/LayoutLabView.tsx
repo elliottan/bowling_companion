@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Check,
-  Download,
   Info,
   LayoutGrid,
   MoreHorizontal,
@@ -43,13 +42,7 @@ import {
 } from "../lib/ballLayout";
 import { defaultOrientationFor, type Orientation } from "../lib/ballProjection";
 import { decodeLayoutParams, layoutShareUrl } from "../lib/layoutShare";
-import {
-  buildLayoutCard,
-  downloadCardImage,
-  renderShareCard,
-  shareCardFilename,
-  type ShareCardData
-} from "../lib/shareCard";
+import { buildLayoutCard, type ShareCardData } from "../lib/shareCard";
 import { svgToImage } from "../lib/svgImage";
 import {
   getGripStyle,
@@ -125,7 +118,6 @@ export function LayoutLabView({ onBack, onOpenSettings }: LayoutLabViewProps) {
   const [presetAt, setPresetAt] = useState<Anchor | null>(null);
   const [pendingPreset, setPendingPreset] = useState<LayoutPreset | null>(null);
   const [resetting, setResetting] = useState(false);
-  const [shareNote, setShareNote] = useState<string | null>(null);
   const [card, setCard] = useState<ShareCardData | null>(null);
   // The diagram's own SVG, read off the DOM when a picture is asked for.
   // BallLayoutDiagram is a plain function component and forwards no ref, and
@@ -255,8 +247,8 @@ export function LayoutLabView({ onBack, onOpenSettings }: LayoutLabViewProps) {
    * ball, move the sliders, and send a different layout back, and a PNG can do
    * none of that. The card is still drawn and still shown, because a link
    * pasted into a chat is a line of text nobody can see, and the preview is
-   * what says what is about to be sent. The picture itself is still reachable,
-   * one control along, for the bowler who wants it in their camera roll.
+   * what says what is about to be sent. Saving the picture to the camera roll
+   * is a control on that preview, which is where the picture exists.
    */
   const shareLink = useCallback(async () => {
     setMenuAt(null);
@@ -266,29 +258,6 @@ export function LayoutLabView({ onBack, onOpenSettings }: LayoutLabViewProps) {
     const diagram = await rasterizeBall();
     if (diagram) setCard((current) => (current ? { ...current, diagram } : current));
   }, [buildCard, rasterizeBall]);
-
-  /** The same card, straight to the device. No share sheet: this control is the
-   *  one that says "save it", and a chooser is not what was asked for. */
-  const downloadPicture = useCallback(async () => {
-    setMenuAt(null);
-    try {
-      const base = buildCard();
-      const diagram = await rasterizeBall();
-      const blob = await renderShareCard(diagram ? { ...base, diagram } : base);
-      downloadCardImage(blob, shareCardFilename(base.title));
-      setShareNote("Image saved");
-    } catch {
-      setShareNote("The image could not be saved.");
-    }
-  }, [buildCard, rasterizeBall]);
-
-  // The share note says one thing and then goes, rather than sitting there
-  // until something else happens to clear it.
-  useEffect(() => {
-    if (!shareNote) return;
-    const t = setTimeout(() => setShareNote(null), 2600);
-    return () => clearTimeout(t);
-  }, [shareNote]);
 
   const shareUrl = useMemo(
     () =>
@@ -351,25 +320,17 @@ export function LayoutLabView({ onBack, onOpenSettings }: LayoutLabViewProps) {
       active={
         pendingPreset == null && !resetting && menuAt == null && presetAt == null && card == null
       }
-      /* Three trailing actions, which is the one place the app departs from the
+      /* Two trailing actions, which is the one place the app departs from the
          single trailing action in docs/DESIGN-LANGUAGE.md section 1. Sharing a
          layout is the thing this screen is for once the numbers are right, and
-         a share buried one tap inside More reads as an afterthought; saving the
-         picture is the same action pointed at the camera roll instead of a
-         chat, so it sits beside it rather than a menu away. Everything that is
-         genuinely rare still lives behind the glyph. */
+         a share buried one tap inside More reads as an afterthought. Saving the
+         picture used to be a third glyph here and is not: it is a thing to do
+         to the card, not to the screen, so it lives on the card. Everything
+         that is genuinely rare still lives behind the glyph. */
       trailing={
         <>
           <IconButton variant="round" label="Share layout" onClick={() => void shareLink()}>
             <ShareIosIcon size={18} aria-hidden="true" />
-          </IconButton>
-          <IconButton
-            variant="round"
-            label="Save image"
-            className="ml-1"
-            onClick={() => void downloadPicture()}
-          >
-            <Download size={18} aria-hidden="true" />
           </IconButton>
           <IconButton
             variant="round"
@@ -707,17 +668,6 @@ export function LayoutLabView({ onBack, onOpenSettings }: LayoutLabViewProps) {
         link={{ url: shareUrl, title: `Layout ${formatDualAngle(layout)}` }}
         onClose={() => setCard(null)}
       />
-
-      {shareNote && (
-        <div
-          role="status"
-          className="pointer-events-none fixed inset-x-0 bottom-8 z-50 flex justify-center px-4"
-        >
-          <span className="rounded-full bg-ink px-4 py-2 text-xs font-semibold text-surface shadow-lg">
-            {shareNote}
-          </span>
-        </div>
-      )}
     </PushScreen>
   );
 }

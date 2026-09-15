@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { LayoutLabView } from "./LayoutLabView";
 import { db } from "../db/bowlingDb";
@@ -56,6 +56,21 @@ const openMenu = () =>
   fireEvent.click(screen.getByRole("button", { name: /^Presets,/ }));
 
 describe("LayoutLabView", () => {
+  beforeAll(() => {
+    // jsdom fetches no resources, so an `<img>` settles neither way and the
+    // share card's app mark would hang the preview for its whole timeout. The
+    // app already treats a mark it cannot load as no mark; this makes jsdom say
+    // so at once instead of waiting to be told.
+    class UnloadableImage {
+      onload: (() => void) | null = null;
+      onerror: (() => void) | null = null;
+      set src(_value: string) {
+        queueMicrotask(() => this.onerror?.());
+      }
+    }
+    vi.stubGlobal("Image", UnloadableImage);
+  });
+
   beforeEach(async () => {
     await db.delete();
     await db.open();
@@ -429,17 +444,28 @@ describe("LayoutLabView", () => {
     expect(within(dialog).getByRole("button", { name: "Share link" })).toBeInTheDocument();
   });
 
-  it("saves the picture to the device from its own control, beside the share", async () => {
+  it("saves the picture from the preview it is a picture of", async () => {
     renderLab();
-    // Saving to the camera roll is the same action pointed somewhere else, so
-    // it sits beside the share rather than a menu away, and it goes straight to
-    // the device: a chooser is not what "save it" asked for.
-    fireEvent.click(screen.getByRole("button", { name: "Save image" }));
+    // Saving is a thing to do to the card, not to the screen, so it is not a
+    // third glyph in the nav bar: it lives on the preview where the picture
+    // actually exists.
+    expect(screen.queryByRole("button", { name: "Save image" })).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Share layout" }));
+    const dialog = await screen.findByRole("dialog", { name: "Share image" });
+    const save = await within(dialog).findByRole("button", { name: "Save image" });
+    // Dead until there is a picture to save, rather than a control that looks
+    // live and does nothing while the card is still being drawn.
+    await waitFor(() => expect(save).not.toBeDisabled());
+
+    fireEvent.click(save);
     await waitFor(() => expect(raster.downloads).toHaveLength(1));
     // Named after the layout, so two saves do not collide in a folder.
     expect(raster.downloads[0]).toMatch(/^45-x-4-1-2-x-45-.*\.png$/);
-    // No share sheet opened on the way: this control is not the share.
-    expect(screen.queryByRole("dialog", { name: "Share image" })).not.toBeInTheDocument();
+    // Straight to the device, and the dialog stays up: saving the picture is
+    // not the same act as sending the link, and does not stand in for it.
+    expect(within(dialog).getByRole("status").textContent).toMatch(/image saved/i);
+    expect(screen.getByRole("dialog", { name: "Share image" })).toBeInTheDocument();
   });
 
   it("offers the settings that hold the hand and the PAP, behind More", () => {

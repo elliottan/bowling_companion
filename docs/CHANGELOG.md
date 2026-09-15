@@ -15,9 +15,16 @@ button now sends the link to the layout rather than a PNG, because a layout is
 a thing to open: whoever gets it can turn the ball, move the sliders and send a
 different layout back. The card is still drawn and still shown before anything
 is sent, so you can see what you are sharing. Saving the picture to your phone
-is its own button beside it. The flare figure is off the card: the sentence
+is a button on that preview, at its top right, which is where the picture is.
+The flare figure is off the card: the sentence
 above it already says what the ball will do, and a number to a tenth of an inch
 invited being read as a spec.
+
+**A share card no longer waits forever on its own logo.** The app mark is
+drawn into the card, and a request for it that never finished (rather than
+failing outright) left the preview spinning with nothing to show. It gives up
+after four seconds and draws the card without the mark, which is what a mark
+that fails to load already did.
 
 **Every share icon is the share glyph.** The one your phone draws for sharing,
 on the session, the stats and the layout.
