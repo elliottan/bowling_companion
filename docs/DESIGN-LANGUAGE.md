@@ -35,7 +35,11 @@ Every push gets, without exception:
   which read as a lie once the same screen could be pushed from several places:
   opened from the dashboard it named a tab the user had never navigated from;
 - a centered title, one line, 17px semibold;
-- at most **one** trailing action, always an `IconButton`;
+- at most **one** trailing action, always an `IconButton`. The layout lab is the
+  single exception and has to earn it each time it is copied: sharing a layout
+  is the thing that screen exists to do once the numbers are right, so it sits
+  beside More rather than inside it. Two is the ceiling, and the second one is
+  never a control the screen merely offers;
 - in overlay mode, Escape + a focus trap (`useOverlay`).
 
 Back out of a push with the chevron or with the platform's own back gesture

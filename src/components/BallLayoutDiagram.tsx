@@ -53,7 +53,9 @@ interface BallLayoutDiagramProps {
   pap?: PapMeasurement;
   /** Inches of track flare to draw, from the motion model. Zero hides the rings. */
   flareInches?: number;
-  /** Turn the flare rings off even when there is flare, for a cleaner read. */
+  /** Draw the flare rings. Off by default: they are what the layout produces
+   *  rather than part of it, and five great circles behind two measured lines
+   *  is a lot of ink to put on the ball before anyone asks for it. */
   showFlare?: boolean;
   /** Draw the finger and thumb holes. */
   showGrip?: boolean;
@@ -102,7 +104,7 @@ export function BallLayoutDiagram({
   ball,
   pap = DEFAULT_PAP,
   flareInches = 0,
-  showFlare = true,
+  showFlare = false,
   showGrip = true,
   showAngles = true,
   orientation,
@@ -246,9 +248,17 @@ export function BallLayoutDiagram({
       <circle cx={CENTER} cy={CENTER} r={RADIUS} fill="url(#ball-body)" />
 
       <g clipPath="url(#ball-clip)">
-        {/* Reference circles first, so every measured line sits on top of them. */}
-        {stroke(circlePoints(geometry.pap, geometry.gripCenter), "#94a3b8", 1, "3 4", "midline")}
-        {stroke(circlePoints(geometry.gripDirection, geometry.pap), "#38bdf8", 1.6, undefined, "val")}
+        {/* Where the axis comes out, related to where the hand goes: a dotted
+            arc from the grip centre to the PAP, and nothing else.
+
+            This used to be two full great circles, the midline and the axis
+            line. Both are correct and both are what a layout chart prints, but
+            on a sphere you can turn they wrap all the way round the ball and
+            read as globe wireframe rather than as a measurement: the question
+            a bowler asks here is how far the axis sits from the grip, and one
+            short dotted run answers exactly that. The VAL angle keeps its own
+            arc at the PAP, which is where that number is measured. */}
+        {stroke(arcPoints(geometry.gripCenter, geometry.pap), "#94a3b8", 1.4, "2 4", "grip-pap")}
 
         {/* Track flare: the circle the ball rolls on for each revolution as the
             axis migrates. Drawn under the layout lines because it is what the
@@ -331,6 +341,20 @@ export function BallLayoutDiagram({
             />
           );
         })}
+
+        {/* The grip centre itself, as a small cross: the dotted arc has to
+            start somewhere, and the point it starts from is the one the span
+            is laid out around. Small enough not to compete with the pin. */}
+        {(() => {
+          const q = p(geometry.gripCenter);
+          if (!q.front) return null;
+          return (
+            <g stroke="#cbd5f5" strokeWidth="1.6" strokeLinecap="round" opacity={0.85}>
+              <line x1={q.x - 4} y1={q.y} x2={q.x + 4} y2={q.y} />
+              <line x1={q.x} y1={q.y - 4} x2={q.x} y2={q.y + 4} />
+            </g>
+          );
+        })()}
       </g>
 
       {/* Rim shading sits above the surface detail and below the markers. */}

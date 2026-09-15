@@ -385,8 +385,14 @@ export function formatDualAngle(layout: DualAngleLayout): string {
   return `${Math.round(layout.drillingAngle)} x ${formatInches(layout.pinToPap)} x ${Math.round(layout.valAngle)}`;
 }
 
-/** The eighths, by numerator. Index 0 is the whole inch, which has no fraction. */
-export const EIGHTHS = ["", "1/8", "1/4", "3/8", "1/2", "5/8", "3/4", "7/8"] as const;
+/**
+ * The eighths, by numerator. Index 0 is the whole inch, written "0" rather than
+ * left blank: it is an option in a list of fractions, and an empty row reads as
+ * a box that failed to fill in rather than as no eighths at all. Nothing
+ * formats through index 0, because `formatInches` returns the whole inches
+ * before it reaches here.
+ */
+export const EIGHTHS = ["0", "1/8", "1/4", "3/8", "1/2", "5/8", "3/4", "7/8"] as const;
 
 /** Inches to the nearest eighth, written as a mixed fraction. */
 export function formatInches(value: number): string {

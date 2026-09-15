@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   buildSessionCard,
   buildStatsCard,
+  buildLayoutCard,
   describeFilter,
   formatCardDate,
   shareCardFilename
@@ -77,6 +78,45 @@ describe("buildSessionCard", () => {
   it("drops the event from the eyebrow when there is not one", () => {
     const card = buildSessionCard({ ...session, event: undefined });
     expect(card.eyebrow).not.toContain("·");
+  });
+});
+
+describe("buildLayoutCard", () => {
+  const layout = {
+    dualAngle: "45 x 4 1/2 x 45",
+    vls: "4 1/2 x 3 7/8 x 2 7/8",
+    symmetric: false,
+    hand: "right" as const,
+    pap: '5" over, 1/2" up',
+    flareInches: 5.6,
+    summary: "Picks up in the mid lane and turns the corner with a defined shape."
+  };
+
+  it("leads with the three numbers, which is what one bowler asks another for", () => {
+    expect(buildLayoutCard(layout).title).toBe("45 x 4 1/2 x 45");
+  });
+
+  it("names the core, the hand and the axis, without which the numbers are a different layout", () => {
+    expect(buildLayoutCard(layout).eyebrow).toBe(
+      'Asymmetric core  ·  Right hand  ·  PAP 5" over, 1/2" up'
+    );
+    expect(buildLayoutCard({ ...layout, symmetric: true, hand: "left" }).eyebrow).toContain(
+      "Symmetric core  ·  Left hand"
+    );
+  });
+
+  it("carries what the ball will do as the caption, and no hero or game boxes", () => {
+    const card = buildLayoutCard(layout);
+    expect(card.caption).toBe(layout.summary);
+    expect(card.hero).toBeNull();
+    expect(card.games).toBeNull();
+  });
+
+  it("keeps the other notation and the flare, which the picture cannot say", () => {
+    expect(buildLayoutCard(layout).stats).toEqual([
+      { value: "4 1/2 x 3 7/8 x 2 7/8", label: "Storm VLS" },
+      { value: '5.6"', label: "Flare" }
+    ]);
   });
 });
 

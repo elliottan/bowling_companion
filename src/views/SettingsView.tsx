@@ -128,7 +128,7 @@ function SettingsMenu({
     { key: "spares", icon: SpareLineIcon, label: "Spare lines", description: "How you shoot each leave", onClick: onOpenSpareLines },
     { key: "lanes", icon: LanePairIcon, label: "Lane notes", description: "Notes per alley and lane", onClick: () => onSectionChange("lanes") },
     { key: "oil-patterns", icon: OilPatternIcon, label: "Oil patterns", description: "Patterns and their sheet links", onClick: () => onSectionChange("oil-patterns") },
-    { key: "preferences", icon: SlidersHorizontal, label: "Preferences", description: "Handedness, release offset, drift", onClick: () => onSectionChange("preferences") },
+    { key: "preferences", icon: SlidersHorizontal, label: "Preferences", description: "Handedness, PAP, release offset, drift", onClick: () => onSectionChange("preferences") },
     { key: "catalog", icon: BookOpen, label: "Catalog", description: "Browse manufacturer ball specs", onClick: onOpenCatalog },
     { key: "visualizer", icon: LaneViewIcon, label: "Line visualizer", description: "Sketch a line on the lane", onClick: onOpenLineVisualizer }
   ];

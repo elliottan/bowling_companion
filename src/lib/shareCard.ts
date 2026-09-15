@@ -35,6 +35,9 @@ export interface ShareCardData {
   /** Small line above the title: the date, the event, the sample size. */
   eyebrow: string;
   title: string;
+  /** A sentence under the title, wrapped over at most two lines. What the
+   *  numbers above mean, where they have a meaning worth a sentence. */
+  caption?: string;
   /** The one number the card is about. */
   hero: ShareStat | null;
   /** Game scores, drawn as scoresheet boxes. Null on a card that is not a night. */
@@ -42,6 +45,10 @@ export interface ShareCardData {
   /** Supporting numbers, two per row. Four rows deep is the cap, and a card
    *  with game boxes only has room for two. */
   stats: ShareStat[];
+  /** A picture to put where the hero and the game boxes would go: the ball,
+   *  with the layout on it. Square, and passed in already rasterized, because
+   *  turning the app's own SVG into an image is the view layer's job. */
+  diagram?: CanvasImageSource;
   /** The app mark, drawn beside the footer wordmark. Passed in rather than
    *  loaded here: fetching an image is the view layer's job, and a card that
    *  could not get one is still a card, so it is optional and the wordmark
@@ -166,6 +173,50 @@ export function describeFilter(parts: FilterParts): string {
   return named.length === 0 ? "Every session" : named.join("  ·  ");
 }
 
+interface LayoutLike {
+  /** `45 x 4 1/2 x 45`, the dual angle as a drill sheet writes it. */
+  dualAngle: string;
+  /** The same layout in the Storm VLS notation. */
+  vls: string;
+  symmetric: boolean;
+  hand: "left" | "right";
+  /** The bowler's axis, written the way it is spoken: `5" over, 1/2" up`. */
+  pap: string;
+  /** Inches of track flare the layout is good for. */
+  flareInches: number;
+  /** What the ball will do, in the words the lab already uses. */
+  summary: string;
+}
+
+/**
+ * A layout, as a picture worth posting.
+ *
+ * The three numbers are the title because they are what a bowler asks another
+ * bowler for, and the ball carries the card: a drill sheet reads as a drill
+ * sheet, and the whole reason to share a layout rather than type it is that the
+ * picture says where the pin went without anyone having to imagine it.
+ */
+export function buildLayoutCard(layout: LayoutLike): ShareCardData {
+  return {
+    // The axis rides the eyebrow rather than the stats: it is a condition the
+    // three numbers are read under, like the core and the hand beside it, and
+    // the card's lower half belongs to the ball.
+    eyebrow: [
+      layout.symmetric ? "Symmetric core" : "Asymmetric core",
+      layout.hand === "left" ? "Left hand" : "Right hand",
+      `PAP ${layout.pap}`
+    ].join("  ·  "),
+    title: layout.dualAngle,
+    caption: layout.summary,
+    hero: null,
+    games: null,
+    stats: [
+      { value: layout.vls, label: "Storm VLS" },
+      { value: `${layout.flareInches.toFixed(1)}"`, label: "Flare" }
+    ]
+  };
+}
+
 /** Filename for the saved image. Minutes included so two shares in one day do
  *  not collide in a folder as "(1)" and "(2)", the way backups used to. */
 export function shareCardFilename(title: string, now = new Date()): string {
@@ -215,6 +266,47 @@ function fitText(
   ctx.fillText(out, x, y);
 }
 
+/**
+ * Greedy word wrap, capped at `maxLines` with an ellipsis on the last one. The
+ * canvas has no text layout of its own, and a sentence is the one thing on this
+ * card too long to shrink to a single line and still be read.
+ */
+function wrapText(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  maxWidth: number,
+  maxLines: number
+): string[] {
+  const words = text.split(/\s+/).filter(Boolean);
+  const lines: string[] = [];
+  let line = "";
+  for (const word of words) {
+    const next = line ? `${line} ${word}` : word;
+    if (ctx.measureText(next).width <= maxWidth || !line) {
+      line = next;
+      continue;
+    }
+    lines.push(line);
+    line = word;
+    if (lines.length === maxLines) break;
+  }
+  if (lines.length < maxLines && line) lines.push(line);
+  if (lines.length === maxLines && words.length) {
+    // Anything that did not fit is cut on the last line rather than dropped
+    // silently, so the sentence reads as continuing rather than as ending
+    // mid-thought.
+    const used = lines.join(" ").split(/\s+/).length;
+    if (used < words.length) {
+      let last = lines[maxLines - 1];
+      while (last.length > 1 && ctx.measureText(`${last}…`).width > maxWidth) {
+        last = last.slice(0, -1);
+      }
+      lines[maxLines - 1] = `${last}…`;
+    }
+  }
+  return lines;
+}
+
 function roundRect(
   ctx: CanvasRenderingContext2D,
   x: number,
@@ -245,21 +337,47 @@ export async function renderShareCard(data: ShareCardData): Promise<Blob> {
   ctx.fillRect(0, 0, W, H);
 
   // A lane-shaped band behind the hero, so the card has depth without needing
-  // an image to load.
-  ctx.fillStyle = "rgba(255, 248, 237, 0.045)";
-  ctx.fillRect(0, 296, W, 308);
+  // an image to load. A card carrying the ball has its own focal point and the
+  // band only cuts across it.
+  if (!data.diagram) {
+    ctx.fillStyle = "rgba(255, 248, 237, 0.045)";
+    ctx.fillRect(0, 296, W, 308);
+  }
 
   ctx.textBaseline = "alphabetic";
   ctx.textAlign = "left";
 
   // Eyebrow
   ctx.fillStyle = CREAM_DIM;
-  ctx.font = font(600, 30);
-  ctx.fillText(data.eyebrow.toUpperCase(), PAD, 148);
+  // Shrunk to fit like everything else on the card: the layout card's eyebrow
+  // carries three clauses and would otherwise run off the edge.
+  fitText(ctx, data.eyebrow.toUpperCase(), PAD, 148, W - PAD * 2, 600, 30);
 
   // Title
   ctx.fillStyle = CREAM;
   fitText(ctx, data.title, PAD, 244, W - PAD * 2, 800, 78);
+
+  // Caption, wrapped over at most two lines. It is a sentence rather than a
+  // number, so it takes the dim ink and sits directly under the title it
+  // qualifies.
+  let captionBottom = 244;
+  if (data.caption) {
+    ctx.fillStyle = CREAM_DIM;
+    ctx.font = font(500, 34);
+    const lines = wrapText(ctx, data.caption, W - PAD * 2, 2);
+    lines.forEach((line, i) => {
+      ctx.fillText(line, PAD, 310 + i * 46);
+    });
+    captionBottom = 310 + (lines.length - 1) * 46;
+  }
+
+  // The ball, where the hero and the game boxes would have been. Square, and
+  // centred, because it is the card rather than an illustration beside it.
+  if (data.diagram) {
+    const size = 640;
+    const top = captionBottom + 16;
+    ctx.drawImage(data.diagram, (W - size) / 2, top, size, size);
+  }
 
   // Hero. Shrunk to fit like the title: a six-game series runs to four digits.
   if (data.hero) {
@@ -304,14 +422,17 @@ export async function renderShareCard(data: ShareCardData): Promise<Blob> {
   // room for two rows; a stats card has neither and takes three, which is why
   // the start moves rather than the spacing.
   const shown = data.stats.slice(0, hasGames ? 4 : 6);
-  const statsY = hasGames ? 872 : 700;
+  // Under the ball, clear of the footer rule at 1200: one row of two, which is
+  // what is left of the card once the picture has had its share of it.
+  const statsY = data.diagram ? 1000 : hasGames ? 872 : 700;
   const colW = (W - PAD * 2) / 2;
   shown.forEach((stat, i) => {
     const x = PAD + (i % 2) * colW;
     const rowY = statsY + Math.floor(i / 2) * 126;
     ctx.fillStyle = CREAM;
-    ctx.font = font(700, 66);
-    ctx.fillText(stat.value, x, rowY + 60);
+    // Shrunk to fit its own column: a Storm VLS reading is three fractions
+    // long and would otherwise run into the stat beside it.
+    fitText(ctx, stat.value, x, rowY + 60, colW - 32, 700, 66);
     ctx.fillStyle = CREAM_DIM;
     ctx.font = font(600, 26);
     ctx.fillText(stat.label.toUpperCase(), x, rowY + 98);

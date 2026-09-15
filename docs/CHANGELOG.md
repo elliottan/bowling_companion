@@ -8,6 +8,47 @@ merge to `main` (`docs/DEPLOYMENT.md`), so every section below is a dated batch
 of shipped work rather than a release. Thirty of them used to be headed
 `[Unreleased]`, which said nothing once they had all shipped.
 
+## The layout lab fits more on the screen (2026-09-15)
+
+**A layout shares as a picture.** The share button now builds the same kind of
+card a night or a set of stats does, with the ball on it: the three numbers as
+the title, what the ball will do underneath, and the Storm VLS reading and the
+flare below the picture. It is previewed before it goes anywhere, like every
+other share in the app. The link, for a reader who would rather open the layout
+and move the sliders than look at it, is under More.
+
+**Your PAP is a setting you can find.** Settings, Preferences now holds it
+beside your handedness, with the same control the lab uses and a reset back to
+the default. Whichever screen you edit it on, the other one already knows.
+
+**The fraction dropdowns say 0 rather than nothing.** A blank row in a list of
+eighths read as a box that had failed to fill itself in.
+
+**Share has its own button, and the presets have their own menu.** Sharing a
+layout is what the screen is for once the numbers are right, so it sits in the
+nav bar beside More rather than one tap inside it. The presets moved out of
+More too, onto a named Preset control under the layout system toggle that says
+which one is on screen, or Custom. What is left behind More is a link to
+Settings, where the hand and the PAP this screen opens with are kept.
+
+**Everything is closer together, and less of it is drawn.** The row of chips
+under the ball is gone (the ball is dragged, which is what everyone tries
+first) and so are the flare rings, the pin buffer and core-to-PAP boxes at the
+bottom (both numbers are already in the Storm VLS readout above them), and the
+padding between every section. A slider's explanation now opens as a small
+popup you dismiss rather than a line that pushes the sliders below it down the
+screen.
+
+**The PAP reads more like a measurement.** Every part of it is a dropdown of
+one height, including the whole inches, which were a box you could type a
+decimal into; the hand is L and R with left on the left, the core is Asym and
+Sym, and a reset beside the heading puts your own saved axis and hand back.
+
+**The ball shows the axis as a dotted line from the grip.** The two reference
+circles that wrapped all the way round the ball are gone, replaced by a dotted
+run from the grip centre, marked with a small cross, out to the PAP: that is
+the distance the question is about, and the great circles read as wireframe.
+
 ## The layout lab gets your PAP, your hand, and a share link (2026-09-15)
 
 **Your PAP and your hand are saved and fill themselves in.** Both are yours

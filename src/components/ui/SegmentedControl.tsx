@@ -3,7 +3,10 @@ import { TAP_TARGET_44 } from "./Chip";
 interface SegmentedControlProps<T extends string> {
   /** Spoken name for the group, since the segments only say their own label. */
   label: string;
-  options: ReadonlyArray<{ value: T; label: string }>;
+  /** `srLabel` is the spoken name where the visible label is an abbreviation:
+   *  a segment reading "L" says "Left" to a screen reader, so shortening the
+   *  track to fit a dense row never shortens what it means. */
+  options: ReadonlyArray<{ value: T; label: string; srLabel?: string }>;
   /** Null where the question has not been answered yet, which is a real state
    *  on the first run: no segment is pressed, and the track still says that
    *  exactly one of these is the answer. */
@@ -38,6 +41,7 @@ export function SegmentedControl<T extends string>({
           <button
             key={opt.value}
             type="button"
+            aria-label={opt.srLabel}
             aria-pressed={selected}
             onClick={() => onChange(opt.value)}
             className={`relative h-10 flex-1 rounded-lg text-sm font-semibold ${TAP_TARGET_44} ${
