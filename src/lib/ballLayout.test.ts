@@ -138,6 +138,36 @@ describe("layoutGeometry", () => {
   });
 });
 
+describe("handedness", () => {
+  const L = { drillingAngle: 45, pinToPap: 4.5, valAngle: 45 };
+
+  it("mirrors every landmark to the other side of the ball", () => {
+    const right = layoutGeometry(L, DEFAULT_ASYMMETRIC, DEFAULT_PAP, "right");
+    const left = layoutGeometry(L, DEFAULT_ASYMMETRIC, DEFAULT_PAP, "left");
+    for (const key of ["pap", "pin", "core"] as const) {
+      expect(left[key].x).toBeCloseTo(-right[key].x, 10);
+      expect(left[key].y).toBeCloseTo(right[key].y, 10);
+      expect(left[key].z).toBeCloseTo(right[key].z, 10);
+    }
+  });
+
+  it("keeps every measured distance and angle identical", () => {
+    // A mirror image is the same layout seen from the other side, so the three
+    // numbers a driller reads off it cannot change.
+    const right = layoutGeometry(L, DEFAULT_ASYMMETRIC, DEFAULT_PAP, "right");
+    const left = layoutGeometry(L, DEFAULT_ASYMMETRIC, DEFAULT_PAP, "left");
+    expect(surfaceDistance(left.pin, left.pap)).toBeCloseTo(surfaceDistance(right.pin, right.pap), 10);
+    expect(surfaceDistance(left.pin, left.core)).toBeCloseTo(surfaceDistance(right.pin, right.core), 10);
+    expect(surfaceDistance(left.core, left.pap)).toBeCloseTo(surfaceDistance(right.core, right.pap), 10);
+  });
+
+  it("defaults to a right-hander, which is what the old signature did", () => {
+    const explicit = layoutGeometry(L, DEFAULT_ASYMMETRIC, DEFAULT_PAP, "right");
+    const implied = layoutGeometry(L, DEFAULT_ASYMMETRIC, DEFAULT_PAP);
+    expect(implied.pin).toEqual(explicit.pin);
+  });
+});
+
 describe("pin buffer", () => {
   it("converges on the flat rule of thumb at short distances", () => {
     // Under an inch the sphere barely curves, so spherical and flat agree.

@@ -1,6 +1,9 @@
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { LayoutLabView } from "./LayoutLabView";
+import { db } from "../db/bowlingDb";
+import { getPap, setHandedness, setPap } from "../services/bowlingRepository";
+import { decodeLayoutParams } from "../lib/layoutShare";
 
 const renderLab = () => {
   const onBack = vi.fn();
@@ -23,7 +26,16 @@ const readout = (label: string) =>
 const dualAngle = () => readout("Dual angle");
 const vlsReadout = () => readout("Storm VLS");
 
+/** Open the More menu in the nav bar, where the presets and Share now live. */
+const openMenu = () => fireEvent.click(screen.getByRole("button", { name: "More" }));
+
 describe("LayoutLabView", () => {
+  beforeEach(async () => {
+    await db.delete();
+    await db.open();
+    window.history.replaceState({}, "", "/score");
+  });
+
   it("opens on the benchmark layout, in both notations", () => {
     renderLab();
     expect(dualAngle()).toBe("45 x 4 1/2 x 45");
@@ -44,14 +56,63 @@ describe("LayoutLabView", () => {
     renderLab();
     fireEvent.click(screen.getByRole("button", { name: "Symmetric" }));
     expect(vlsReadout()?.split(" x ")).toHaveLength(2);
-    expect(screen.getByText(/only moves the CG/i)).toBeInTheDocument();
+    // The marker the drilling angle measures to is the CG on a symmetric ball.
+    expect(screen.getByRole("button", { name: "CG" })).toBeInTheDocument();
   });
 
-  it("applies a preset and says what it is for", () => {
+  it("applies a preset from the More menu", () => {
     renderLab();
+    openMenu();
+    // The screen opens on the benchmark, which is itself a preset, so switching
+    // presets loses nothing and goes straight through.
     fireEvent.click(screen.getByRole("button", { name: "Pin down" }));
     expect(dualAngle()).toBe("70 x 4 1/2 x 70");
-    expect(screen.getByText(/smoothest shape/i)).toBeInTheDocument();
+  });
+
+  it("asks before a preset throws away numbers the bowler typed", async () => {
+    renderLab();
+    // Move off every preset, so there is custom work on screen.
+    fireEvent.change(slider(/VAL angle/i), { target: { value: "62" } });
+    openMenu();
+    fireEvent.click(screen.getByRole("button", { name: "Pin down" }));
+
+    // Nothing has changed yet: the dialog names both layouts and waits.
+    expect(dualAngle()).toBe("45 x 4 1/2 x 62");
+    // The pushed screen is itself a dialog, so the confirm is found by its own
+    // title rather than by role alone.
+    const dialog = screen
+      .getByText(/Use the pin down layout\?/i)
+      .closest('[role="dialog"]') as HTMLElement;
+    expect(dialog).toBeTruthy();
+    // It names what is being lost and what replaces it, so the answer is a
+    // decision rather than a guess.
+    expect(dialog.textContent).toContain("45 x 4 1/2 x 62");
+    expect(dialog.textContent).toContain("70 x 4 1/2 x 70");
+
+    fireEvent.click(screen.getByRole("button", { name: "Replace" }));
+    // ConfirmDialog commits through its own dismiss, which waits for the exit.
+    await waitFor(() => expect(dualAngle()).toBe("70 x 4 1/2 x 70"));
+  });
+
+  it("does not ask when the layout on screen is already a preset", () => {
+    renderLab();
+    openMenu();
+    fireEvent.click(screen.getByRole("button", { name: "Early roll" }));
+    // Straight through, no dialog: switching between presets discards nothing
+    // that took work, and a dialog whose answer is always yes teaches people to
+    // dismiss dialogs unread.
+    expect(screen.queryByText(/Use the/i)).not.toBeInTheDocument();
+    expect(dualAngle()).toBe("35 x 4 x 35");
+  });
+
+  it("keeps the layout when the preset confirm is cancelled", async () => {
+    renderLab();
+    fireEvent.change(slider(/VAL angle/i), { target: { value: "62" } });
+    openMenu();
+    fireEvent.click(screen.getByRole("button", { name: "Short pin" }));
+    fireEvent.click(screen.getByRole("button", { name: /cancel/i }));
+    await waitFor(() => expect(screen.queryByText(/Use the/i)).not.toBeInTheDocument());
+    expect(dualAngle()).toBe("45 x 4 1/2 x 62");
   });
 
   it("warns on the lane, not after the fact, when the pin-to-PAP lands in the do-not-use band", () => {
@@ -84,6 +145,7 @@ describe("LayoutLabView", () => {
 
   it("resets back to the benchmark", () => {
     renderLab();
+    openMenu();
     fireEvent.click(screen.getByRole("button", { name: "Short pin" }));
     expect(dualAngle()).not.toBe("45 x 4 1/2 x 45");
     fireEvent.click(screen.getByRole("button", { name: /reset/i }));
@@ -209,6 +271,102 @@ describe("LayoutLabView", () => {
     const all = Array.from(svg.querySelectorAll("text")).map((t) => (t.textContent ?? "").trim());
     expect(all.some((t) => t.includes("DRILL"))).toBe(true);
     expect(all.some((t) => t.includes("VAL"))).toBe(true);
+  });
+
+  it("fills the PAP and the hand from the bowler's own settings", async () => {
+    await setPap({ over: 4.25, up: -0.25 });
+    await setHandedness("left");
+    renderLab();
+
+    await waitFor(() =>
+      expect((screen.getByRole("textbox", { name: "Over" }) as HTMLInputElement).value).toBe("4")
+    );
+    expect((screen.getByLabelText("Over fraction") as HTMLSelectElement).value).toBe("2");
+    // Below the midline, which is what the stored negative means.
+    expect(screen.getByRole("button", { name: "Down" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("button", { name: "Left" })).toHaveAttribute("aria-pressed", "true");
+  });
+
+  it("saves the PAP back, because it is the bowler's measurement and not this screen's", async () => {
+    renderLab();
+    fireEvent.change(screen.getByRole("textbox", { name: "Over" }), { target: { value: "4" } });
+    await waitFor(async () => expect(await getPap()).toEqual({ over: 4, up: 0.5 }));
+  });
+
+  it("mirrors the whole layout for a left-hander", () => {
+    renderLab();
+    const ball = () => screen.getByRole("img", { name: /bowling ball/i }).innerHTML;
+    const right = ball();
+    fireEvent.click(screen.getByRole("button", { name: "Left" }));
+    // Same three numbers, opposite side of the ball.
+    expect(ball()).not.toBe(right);
+    expect(dualAngle()).toBe("45 x 4 1/2 x 45");
+  });
+
+  it("shows the ball's own pin-to-PSA distance on the line it measures", () => {
+    renderLab();
+    const svg = screen.getByRole("img", { name: /bowling ball/i });
+    const texts = Array.from(svg.querySelectorAll("text")).map((t) => (t.textContent ?? "").trim());
+    // 6 3/4" is the asymmetric default, and it is the one number in the drawing
+    // the driller does not choose.
+    expect(texts).toContain('6 3/4"');
+  });
+
+  it("opens with the flare rings off", () => {
+    renderLab();
+    expect(screen.getByRole("button", { name: "Flare rings" })).toHaveAttribute(
+      "aria-pressed",
+      "false"
+    );
+  });
+
+  it("keeps each slider's explanation behind its own label until asked", () => {
+    renderLab();
+    const hint = /Sets the flare/i;
+    expect(screen.getByText(hint)).not.toBeVisible();
+    fireEvent.click(screen.getByRole("button", { name: /Pin to PAP/i }));
+    expect(screen.getByText(hint)).toBeVisible();
+    fireEvent.click(screen.getByRole("button", { name: /Pin to PAP/i }));
+    expect(screen.getByText(hint)).not.toBeVisible();
+  });
+
+  it("shares a link that reopens the same layout", async () => {
+    const written: string[] = [];
+    Object.assign(navigator, {
+      clipboard: { writeText: (t: string) => (written.push(t), Promise.resolve()) }
+    });
+    renderLab();
+    fireEvent.change(slider(/VAL angle/i), { target: { value: "30" } });
+    openMenu();
+    fireEvent.click(screen.getByRole("button", { name: /share layout/i }));
+
+    await waitFor(() => expect(written).toHaveLength(1));
+    const url = written[0];
+    expect(url).toContain("#/home/layout-lab");
+    const decoded = decodeLayoutParams(url.slice(url.indexOf("?"), url.indexOf("#")));
+    expect(decoded?.layout.valAngle).toBe(30);
+    expect(decoded?.layout.pinToPap).toBe(4.5);
+  });
+
+  it("opens on a shared layout, overriding the bowler's own PAP and hand", async () => {
+    await setPap({ over: 5, up: 0.5 });
+    await setHandedness("right");
+    window.history.replaceState({}, "", "/score?da=70&ptp=5&val=30&hand=left&over=4&up=0&core=asym");
+    renderLab();
+
+    expect(dualAngle()).toBe("70 x 5 x 30");
+    expect(screen.getByRole("button", { name: "Left" })).toHaveAttribute("aria-pressed", "true");
+    expect((screen.getByRole("textbox", { name: "Over" }) as HTMLInputElement).value).toBe("4");
+  });
+
+  it("never saves a PAP that arrived in somebody else's link", async () => {
+    window.history.replaceState({}, "", "/score?da=45&ptp=4.5&val=45&over=3&up=0");
+    renderLab();
+    fireEvent.change(screen.getByRole("textbox", { name: "Over" }), { target: { value: "2" } });
+    // The bowler's own stored axis is untouched: a shared layout is a thing to
+    // look at, not a measurement of the person looking at it.
+    await waitFor(() => expect(dualAngle()).toBe("45 x 4 1/2 x 45"));
+    expect(await getPap()).toBeNull();
   });
 
   it("goes back", async () => {

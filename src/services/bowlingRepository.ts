@@ -9,6 +9,7 @@ import {
   type DriftModel
 } from "../lib/driftModel";
 import type { BackupNudgeState } from "../lib/backupNudge";
+import type { PapMeasurement } from "../lib/ballLayout";
 import type { Frame, Game, Handedness, HydratedSession, Session, SessionSummary } from "../types/bowling";
 
 const HANDEDNESS_KEY = "handedness";
@@ -17,6 +18,7 @@ const DRIFT_MODEL_KEY = "drift_model";
 const LAST_BACKUP_AT_KEY = "last_backup_at";
 const SESSIONS_AT_LAST_BACKUP_KEY = "sessions_at_last_backup";
 const BACKUP_NUDGE_SNOOZED_UNTIL_KEY = "backup_nudge_snoozed_until";
+const PAP_KEY = "pap";
 
 /** Read a key-value app setting (undefined if unset). */
 export async function getSetting(key: string): Promise<string | undefined> {
@@ -42,6 +44,33 @@ export async function getHandedness(): Promise<Handedness | null> {
 
 export async function setHandedness(value: Handedness): Promise<void> {
   await setSetting(HANDEDNESS_KEY, value);
+}
+
+/**
+ * The bowler's own positive axis point, as "over,up" in inches.
+ *
+ * A setting rather than a field on anything, because it belongs to the bowler
+ * and not to a ball: it is measured once off a thrown shot and then every
+ * layout, on every ball in the arsenal, is read against it. The layout lab
+ * fills from it so nobody re-types their own axis on each visit.
+ *
+ * Null when never measured, which the lab shows as its own default rather than
+ * pretending a stored answer exists.
+ */
+export async function getPap(): Promise<PapMeasurement | null> {
+  return parsePap(await getSetting(PAP_KEY));
+}
+
+export async function setPap(pap: PapMeasurement): Promise<void> {
+  await setSetting(PAP_KEY, `${pap.over},${pap.up}`);
+}
+
+/** Exported for its tests: a stored string is user data and can be anything. */
+export function parsePap(raw: string | undefined): PapMeasurement | null {
+  if (!raw) return null;
+  const [over, up] = raw.split(",").map(Number);
+  if (!Number.isFinite(over) || !Number.isFinite(up)) return null;
+  return { over, up };
 }
 
 /**

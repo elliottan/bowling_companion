@@ -32,6 +32,8 @@
  * Pure, React-free and Dexie-free, per the `lib/` layering rule.
  */
 
+import type { Handedness } from "../types/bowling";
+
 /** A USBC-legal ball is 8.5" across, so every arc on its surface rides this radius. */
 export const BALL_RADIUS = 4.25;
 /** Full circumference, the number pro shops quote when they talk about arc distance. */
@@ -203,7 +205,8 @@ export function papVector(pap: PapMeasurement): Vec3 {
 export function layoutGeometry(
   layout: DualAngleLayout,
   ball: BallSpec,
-  pap: PapMeasurement = DEFAULT_PAP
+  pap: PapMeasurement = DEFAULT_PAP,
+  hand: Handedness = "right"
 ): LayoutGeometry {
   const gripCenter: Vec3 = { x: 0, y: 0, z: 1 };
   const papPoint = papVector(pap);
@@ -226,16 +229,27 @@ export function layoutGeometry(
   const coreDirection = normalize(add(scale(toPap, Math.cos(drillRad)), scale(away, Math.sin(drillRad))));
   const core = walk(pin, coreDirection, arcToAngle(clamp(ball.pinToCore, 0, MAX_ARC)));
 
+  // A left-handed layout is the right-handed one seen in a mirror. Negating x
+  // reflects the whole construction through the plane of the grip, which leaves
+  // every arc length and every angle exactly as it was and swings the pin, the
+  // core and the axis to the other side of the ball. Mirroring at the end
+  // rather than threading a sign through each step is what keeps that true by
+  // construction: there is only one place the handedness can be got wrong.
+  const flip = hand === "left" ? mirrorX : (v: Vec3) => v;
+
   return {
     gripCenter,
-    pap: papPoint,
-    papNegative: scale(papPoint, -1),
-    pin,
-    core,
-    valDirection,
-    gripDirection
+    pap: flip(papPoint),
+    papNegative: flip(scale(papPoint, -1)),
+    pin: flip(pin),
+    core: flip(core),
+    valDirection: flip(valDirection),
+    gripDirection: flip(gripDirection)
   };
 }
+
+/** Reflection through the plane x = 0, which is the grip's own vertical plane. */
+const mirrorX = (v: Vec3): Vec3 => ({ x: -v.x, y: v.y, z: v.z });
 
 // ---------------------------------------------------------------------------
 // Derived distances: the numbers a pro shop measures back off a drilled ball,

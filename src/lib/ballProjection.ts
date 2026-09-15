@@ -42,6 +42,20 @@ export const IDENTITY_ORIENTATION: Orientation = { yaw: 0, pitch: 0 };
 export const DEFAULT_ORIENTATION: Orientation = { yaw: -0.6, pitch: 0.12 };
 
 /**
+ * The opening view for a given hand.
+ *
+ * A left-handed layout is the right-handed one mirrored, so its PAP sits at -x
+ * instead of +x and the yaw that brings the layout into the front half has to
+ * turn the other way. Without this a left-hander opened the lab looking at the
+ * back of their own ball, with the pin and the PAP sliding off the edge: the
+ * geometry was mirrored and the camera was not.
+ */
+export const defaultOrientationFor = (hand: "left" | "right"): Orientation => ({
+  yaw: hand === "left" ? -DEFAULT_ORIENTATION.yaw : DEFAULT_ORIENTATION.yaw,
+  pitch: DEFAULT_ORIENTATION.pitch
+});
+
+/**
  * Pitch is clamped just shy of straight up or down. Past the pole the ball
  * keeps rotating but the drag reverses direction, which reads as the ball
  * fighting the finger, so the gesture stops there instead.

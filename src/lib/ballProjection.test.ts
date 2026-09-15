@@ -8,6 +8,7 @@ import {
   arcPoints,
   circlePoints,
   clampOrientation,
+  defaultOrientationFor,
   dragToOrientation,
   flareAxes,
   orient,
@@ -176,6 +177,36 @@ describe("orientationFacing", () => {
     expect(p.x).toBeCloseTo(100, 4);
     expect(p.y).toBeCloseTo(100, 4);
     expect(p.front).toBe(true);
+  });
+});
+
+describe("the opening view", () => {
+  it("brings a right-hander's PAP into the front half", () => {
+    const g = layoutGeometry({ drillingAngle: 45, pinToPap: 4.5, valAngle: 45 }, DEFAULT_ASYMMETRIC);
+    const at = project(g.pap, defaultOrientationFor("right"), 100, 100, 80);
+    expect(at.front).toBe(true);
+    // Square enough to the viewer to carry a label rather than edge on.
+    expect(at.facing).toBeGreaterThan(0.5);
+  });
+
+  it("follows the hand, so a left-hander does not open looking at the back of the ball", () => {
+    // The lefty geometry is the mirror, so the camera has to mirror with it.
+    // It did not, and a left-hander opened the lab with the pin and the PAP
+    // sliding off the edge.
+    const layout = { drillingAngle: 45, pinToPap: 4.5, valAngle: 45 };
+    const lefty = layoutGeometry(layout, DEFAULT_ASYMMETRIC, undefined, "left");
+    const at = project(lefty.pap, defaultOrientationFor("left"), 100, 100, 80);
+    expect(at.front).toBe(true);
+    expect(at.facing).toBeGreaterThan(0.5);
+
+    // And the wrong camera is genuinely wrong, not merely different.
+    const wrong = project(lefty.pap, defaultOrientationFor("right"), 100, 100, 80);
+    expect(wrong.facing).toBeLessThan(at.facing);
+  });
+
+  it("is an exact mirror pair, since a lefty layout is a mirrored righty one", () => {
+    expect(defaultOrientationFor("left").yaw).toBeCloseTo(-defaultOrientationFor("right").yaw, 10);
+    expect(defaultOrientationFor("left").pitch).toBeCloseTo(defaultOrientationFor("right").pitch, 10);
   });
 });
 
