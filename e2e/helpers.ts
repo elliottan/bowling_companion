@@ -1,4 +1,4 @@
-import type { Page } from "@playwright/test";
+import { expect, type Page } from "@playwright/test";
 
 /** The scorer's commit button reads "Next", with what it would record
  *  bracketed under it; the accessible name reads "Next (Strike)". */
@@ -66,6 +66,56 @@ export async function recordShot(page: Page, standingAfter: number[]) {
     }
   }
   await page.getByRole("button", { name: RECORD_SHOT }).click();
+}
+
+/**
+ * Wait until every game in the database carries its final score.
+ *
+ * The scorer drops its live-entry controls the moment the frames say the game
+ * is over, and that is a render ahead of the row it is derived from: the last
+ * frame and the final score go into one Dexie transaction, and a navigation
+ * issued before that transaction commits takes the whole shot with it. The app
+ * is then right to call the session one you are still bowling, about a game the
+ * screen had already shown as finished, and a test that navigated on the pixel
+ * fails somewhere else entirely.
+ *
+ * So a test that bowls a game out and then leaves the scorer waits here first,
+ * on the stored row rather than on the button. Read straight out of IndexedDB
+ * rather than through the app, because the point is to know what survived a
+ * reload, which is exactly what the UI cannot say.
+ */
+export async function waitForScoresPersisted(page: Page) {
+  await expect
+    .poll(
+      () =>
+        page.evaluate(
+          () =>
+            new Promise<boolean>((resolve) => {
+              const req = indexedDB.open("BowlingCompanionDB");
+              req.onerror = () => resolve(false);
+              req.onsuccess = () => {
+                const database = req.result;
+                if (!database.objectStoreNames.contains("games")) {
+                  database.close();
+                  resolve(false);
+                  return;
+                }
+                const rows = database.transaction("games", "readonly").objectStore("games").getAll();
+                rows.onerror = () => {
+                  database.close();
+                  resolve(false);
+                };
+                rows.onsuccess = () => {
+                  const games = rows.result as Array<{ final_score?: number }>;
+                  database.close();
+                  resolve(games.length > 0 && games.every((g) => g.final_score !== undefined));
+                };
+              };
+            })
+        ),
+      { timeout: 10_000 }
+    )
+    .toBe(true);
 }
 
 /**

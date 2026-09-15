@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { RECORD_SHOT, clearDatabase, recordShot, startSession } from "./helpers";
+import { RECORD_SHOT, clearDatabase, recordShot, startSession, waitForScoresPersisted } from "./helpers";
 
 test.beforeEach(async ({ page }) => {
   await clearDatabase(page);
@@ -201,6 +201,10 @@ test("a finished session opened from History pushes, and back returns to History
   // return with the tenth frame still open, the session is then one you are
   // still bowling, and it correctly opens in the Active tab instead.
   await expect(page.getByRole("button", { name: RECORD_SHOT })).toHaveCount(0);
+  // And wait for the score to be stored, not merely drawn: the navigation
+  // below is a fresh page load, and it would otherwise race the write that
+  // makes this session one to read rather than one to bowl.
+  await waitForScoresPersisted(page);
 
   // Straight to History by URL, which starts the back stack fresh: bowling the
   // game walked through the scorer and raised the backup and share prompts,
