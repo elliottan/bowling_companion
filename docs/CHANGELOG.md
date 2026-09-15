@@ -8,6 +8,36 @@ merge to `main` (`docs/DEPLOYMENT.md`), so every section below is a dated batch
 of shipped work rather than a release. Thirty of them used to be headed
 `[Unreleased]`, which said nothing once they had all shipped.
 
+## A centred grip, and a two-hander's ball (2026-09-15)
+
+**The centre of your grip is now drawn in the centre of your grip.** The cross
+the drawing labels as the centre of grip is the point every other number is
+measured from: your PAP is so many inches over and up from it, and the whole
+layout hangs off it. The holes around it were placed by eye, 1.7" below and
+2.4" above, which left the middle of the span about 3/8" above the cross. The
+thumb and the fingers now sit half a span either side of it, so the picture and
+the arithmetic agree. Nothing about your layout numbers changed.
+
+Span itself is still not something the app asks for: it is a hand fitting
+rather than a layout, and moving it would move no number here. The drawing uses
+a middling 4 1/4" adult span.
+
+**Two-handed draws a two-hander's ball.** Set the grip to two-handed, in
+Settings or in the lab, and the ball is drawn the way it is drilled: two finger
+holes, no thumb hole, and the centre of your grip between the fingers, which is
+where a thumbless PAP is measured from.
+
+**And the do-not-use band goes with it.** The dual angle chart's 2 3/8" to
+3 3/8" band is not a motion judgement, it is there to keep your track off the
+thumb hole. With no thumb in the ball there is no hole to run over, so a
+two-hander gets no shaded band on the pin-to-PAP slider and no warning under
+the reading. On a symmetric ball the PSA marker goes too: the convention names
+the thumb hole, and there is not one.
+
+The motion reading itself is unchanged for both grips. It is fitted to the dual
+angle chart, which was written for a thumb-in game, and the app would rather
+say it has not adjusted that than guess at a two-handed release.
+
 ## No more pin-to-PSA slider on a ball (2026-09-15)
 
 **Adding a layout no longer asks for the pin-to-PSA distance.** An asymmetric
