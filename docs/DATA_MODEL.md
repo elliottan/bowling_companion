@@ -67,6 +67,19 @@ written. It is not parsed into numbers, because the text says nothing about the
 core type or the pin-to-PSA distance the conversion needs, and entering a real
 layout is what retires it.
 
+## An oil pattern (ADR-100)
+
+`OilPattern.passes` is the pattern sheet's load table and the whole pattern. The
+distance, the volume and the ratio are derived from it (`lib/oilPattern.ts`) and
+never stored, so they cannot drift from the table they describe.
+
+Pass boards are absolute, counted from the left edge, 1 to 39, the way a sheet
+prints them: "L5 to R5" is `left_board: 5, right_board: 35`. The app's own board
+space is handed, so the mirror belongs at the drawing edge and nowhere else.
+
+`passes` is optional. Every pattern saved before ADR-100 has none, and a pattern
+that is only a name is still a label worth having on a session.
+
 ## Scoring rules summary
 
 Implemented in `lib/scoring.ts`. The full reference is the test file

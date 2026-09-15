@@ -6,6 +6,8 @@ import { SaveCopyPrompt } from "../components/SaveCopyPrompt";
 import { ShareCardDialog } from "../components/ShareCardDialog";
 import { ConfirmDialog } from "../components/ConfirmDialog";
 import { ErrorBanner } from "../components/ErrorBanner";
+import { OilPatternContext } from "../lib/oilPatternContext";
+import { getOilPattern } from "../services/ballRepository";
 import { SessionFormDialog } from "../components/SessionFormDialog";
 import { SessionHeaderText } from "../components/SessionHeaderText";
 import { PushScreen } from "../components/PushScreen";
@@ -36,7 +38,7 @@ import {
   updateGameLanes,
   updateSession
 } from "../services/bowlingRepository";
-import type { Frame, Game, SessionSummary } from "../types/bowling";
+import type { Frame, Game, OilPattern, SessionSummary } from "../types/bowling";
 import { GROUP_HEADING } from "../components/ui/typography";
 import type { UndoResult } from "../lib/frameController";
 import { alleyLabel } from "../lib/sessionLabels";
@@ -91,6 +93,9 @@ export function ActiveSessionView({
   mode = "tab"
 }: ActiveSessionViewProps) {
   const [sessionDetails, setSessionDetails] = useState<SessionSummary | null>(null);
+  // The session's pattern in full, load table and all: the hydrated session only
+  // carries the name and the link (ADR-037), and the lane needs the passes.
+  const [oilPattern, setOilPattern] = useState<OilPattern | null>(null);
   const [activeGameId, setActiveGameId] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isAddingGame, setIsAddingGame] = useState(false);
@@ -217,6 +222,18 @@ export function ActiveSessionView({
       null;
     setActiveGameId(selected?.id ?? null);
   }
+
+  // Follows the session's pattern id, so editing the session to a different
+  // pattern re-draws the lane without a reload.
+  const oilPatternId = sessionDetails?.session.oil_pattern_id;
+  useEffect(() => {
+    let isMounted = true;
+    const read = oilPatternId == null ? Promise.resolve(undefined) : getOilPattern(oilPatternId);
+    read
+      .then((p) => { if (isMounted) setOilPattern(p ?? null); })
+      .catch(() => { if (isMounted) setOilPattern(null); });
+    return () => { isMounted = false; };
+  }, [oilPatternId]);
 
   useEffect(() => {
     let isMounted = true;
@@ -397,6 +414,7 @@ export function ActiveSessionView({
     : "";
 
   const body = (
+    <OilPatternContext.Provider value={oilPattern}>
     <div>
       <section className="mx-auto w-full max-w-5xl px-3 pt-2 sm:px-6">
         <div className="flex items-start gap-2">
@@ -680,6 +698,7 @@ export function ActiveSessionView({
         </FormSheet>
       )}
     </div>
+    </OilPatternContext.Provider>
   );
 
   if (mode === "tab") return body;

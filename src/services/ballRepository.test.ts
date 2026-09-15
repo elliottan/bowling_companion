@@ -155,6 +155,50 @@ describe("ballRepository", () => {
     });
   });
 
+  describe("oil pattern load tables", () => {
+    it("stores a table it can draw", async () => {
+      const id = await addOilPattern("Main Street", undefined, [
+        { direction: "forward", start_distance: 0, stop_distance: 38, left_board: 5, right_board: 35, loads: 2, microliters: 30 },
+      ]);
+      const saved = (await getOilPatterns()).find((p) => p.id === id);
+      expect(saved?.passes).toHaveLength(1);
+      expect(saved?.passes?.[0]).toMatchObject({ stop_distance: 38, left_board: 5 });
+    });
+
+    it("keeps a pattern that is only a name", async () => {
+      const id = await addOilPattern("Just a name");
+      expect((await getOilPatterns()).find((p) => p.id === id)?.passes).toBeUndefined();
+    });
+
+    it("rejects a pass it cannot draw, by name", async () => {
+      await expect(
+        addOilPattern("Backwards", undefined, [
+          { direction: "forward", start_distance: 30, stop_distance: 10, left_board: 5, right_board: 35, loads: 1, microliters: 30 },
+        ])
+      ).rejects.toThrow("Pass 1: stop distance must be past the start");
+
+      await expect(
+        addOilPattern("Off lane", undefined, [
+          { direction: "forward", start_distance: 0, stop_distance: 30, left_board: 5, right_board: 44, loads: 1, microliters: 30 },
+        ])
+      ).rejects.toThrow("Pass 1: boards must run left to right, between 1 and 39");
+
+      await expect(
+        addOilPattern("Dry", undefined, [
+          { direction: "forward", start_distance: 0, stop_distance: 30, left_board: 5, right_board: 35, loads: 1, microliters: 0 },
+        ])
+      ).rejects.toThrow("Pass 1: needs oil on the board");
+    });
+
+    it("clears the table when an edit removes every pass", async () => {
+      const id = await addOilPattern("Cleared", undefined, [
+        { direction: "forward", start_distance: 0, stop_distance: 38, left_board: 5, right_board: 35, loads: 2, microliters: 30 },
+      ]);
+      await updateOilPattern(id, { name: "Cleared", passes: [] });
+      expect((await getOilPatterns()).find((p) => p.id === id)?.passes).toBeUndefined();
+    });
+  });
+
   describe("updateOilPattern", () => {
     it("renames without touching sessions, which resolve by id", async () => {
       const id = await addOilPattern("Main St");

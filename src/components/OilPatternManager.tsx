@@ -16,7 +16,8 @@ import {
   setOilPatternArchived,
   updateOilPattern
 } from "../services/ballRepository";
-import type { OilPattern } from "../types/bowling";
+import type { OilPass, OilPattern } from "../types/bowling";
+import { oilStats } from "../lib/oilPattern";
 import { LIST_DIVIDER, ListGroup } from "./ui/ListGroup";
 import { GROUP_HEADING } from "./ui/typography";
 
@@ -49,11 +50,11 @@ export function OilPatternManager({ onBack, mode = "inline" }: OilPatternManager
   const active = useMemo(() => patterns.filter((p) => !p.archived), [patterns]);
   const archived = useMemo(() => patterns.filter((p) => p.archived), [patterns]);
 
-  async function handleSubmit(values: { name: string; url?: string }) {
+  async function handleSubmit(values: { name: string; url?: string; passes?: OilPass[] }) {
     if (editing?.id != null) {
       await updateOilPattern(editing.id, values);
     } else {
-      await addOilPattern(values.name, values.url);
+      await addOilPattern(values.name, values.url, values.passes);
     }
     setDialogOpen(false);
     setEditing(undefined);
@@ -210,6 +211,18 @@ export function OilPatternManager({ onBack, mode = "inline" }: OilPatternManager
   );
 }
 
+/** The one line under the name: what the pattern IS where it is known, and what
+ *  is on file where it is not. A load table outranks a link, because a drawn
+ *  pattern is the thing the link was standing in for. */
+function summarize(pattern: OilPattern): string {
+  const stats = oilStats(pattern.passes);
+  if (stats.length > 0) {
+    const ratio = stats.ratio != null ? ` · ${stats.ratio.toFixed(1)}:1` : "";
+    return `${Math.round(stats.length)} ft · ${stats.volumeMl.toFixed(1)} mL${ratio}`;
+  }
+  return pattern.url ? "Pattern sheet saved" : "No link";
+}
+
 function PatternRow({
   pattern,
   onEdit,
@@ -232,8 +245,8 @@ function PatternRow({
       >
         <span className="min-w-0 flex-1">
           <span className="block truncate font-semibold text-ink">{pattern.name}</span>
-          <span className="block truncate text-xs text-ink-secondary">
-            {pattern.url ? "Pattern sheet saved" : "No link"}
+          <span className="block truncate text-xs tabular-nums text-ink-secondary">
+            {summarize(pattern)}
           </span>
         </span>
         {/* The chevron steps aside for the sheet link: two arrows in one row

@@ -4594,3 +4594,76 @@ mapping layer whose only job is to be got wrong once.
 - A bowler who switches the preference re-reads their whole arsenal in the other
   notation, including balls drilled before the switch, because the numbers
   convert exactly.
+
+## ADR-100 — An oil pattern is its load table, and the lane draws it
+
+**Status.** Accepted, 2026-09-15.
+
+**Context.** An oil pattern in the app was a name and a link to its sheet. The
+sheet is where the numbers were, which means the numbers were somewhere the app
+could not reach: a bowler looking at their line on the lane and at a 39 ft
+pattern on a PDF had to hold the second one in their head and imagine where the
+ball ran out of oil. That imagined point is the one that decides the shot. The
+lane already drew a generic sheen over the front 45 ft, which is decoration, and
+decoration in the shape of data is worse than nothing, because it invites the
+reading it cannot support.
+
+The obvious small version is to store a pattern distance and draw a line across
+the lane at it. That draws the *end* of the pattern, and the end of the pattern
+is only the exit point for a ball that stays inside the oiled width the whole
+way down. A ball played out to the dry leaves the pattern early, out at the
+edge, with oil still ahead of it. A single distance cannot express that, and a
+distance plus a ratio still cannot: ratio is a summary of a shape, not the
+shape.
+
+**Decision.** `OilPattern.passes` stores the sheet's load table, one `OilPass`
+per machine pass: direction, start and stop distance, the board span loaded,
+the number of loads, and microlitres per board per load. That list is the
+pattern, and everything quoted about a pattern is derived from it in
+`lib/oilPattern.ts`, never stored beside it:
+
+- **Distance** is the deepest foot any pass loads.
+- **Volume**, forward and reverse, is the oil those passes carry.
+- **Ratio** is the heaviest loaded board against the lightest loaded one, which
+  is what makes a flat pattern 1:1 by construction and a house shot 8:1.
+
+Storing a distance or a ratio as its own field would let the two disagree, and
+a pattern whose stated ratio contradicts its own table is a pattern nobody can
+act on.
+
+Boards in a pass are **absolute and counted from the left edge**, 1 to 39, the
+way a sheet is printed, so "L5 to R5" is `left_board: 5, right_board: 35`. The
+app's own board space is handed (`boardToX` puts board 1 on the bowler's side),
+so the mirror happens once, at the drawing edge, exactly as the pin deck's
+mirror does. The half board that widens a band to its outer edge is added in
+sheet space *before* the mirror: mirror first and the half lands on the wrong
+side and shifts every band by a board.
+
+`LaneSurface` paints the table as rectangles, one per run of equally loaded
+boards over one down-lane slice, and nothing is smoothed. A pattern has edges,
+and the edges are the thing the drawing is for. Where a pattern is drawn, the
+decorative sheen is not: two oils on one lane read as one.
+
+The exit point is the payload. `oilExitPoint` walks the drawn line and returns
+the last point of it still sitting on a loaded board, so it answers "where do I
+leave the oil" rather than "where does the oil end", and it moves with every
+drag of a peg.
+
+**Consequences.**
+- No schema version. `passes` is not indexed, so Dexie stores it as-is (see
+  "When a Dexie version bump is needed" in DATA_MODEL.md).
+- `passes` is optional, and absent on every pattern saved before this. A pattern
+  that is only a name stays a useful label on a session, and the lane keeps its
+  sheen.
+- A backup carries the table and `backupValidation.ts` checks every pass. One
+  undrawable row would put a pattern on the lane that was never laid, and a
+  bowler would read an exit point off it in good faith.
+- `normalizeOilPasses` rejects a bad pass by name rather than dropping it, for
+  the same reason: a pattern quietly missing a pass draws a shape nobody entered.
+- The lane reads the pattern from `OilPatternContext`, provided by the session,
+  rather than from a prop threaded through the scorer. The visualizer is four
+  components below the session and none of the three between them has any
+  business carrying oil.
+- `buildLinePath` now returns `samples`, the drawn path as real lane
+  coordinates. The exit question is asked of the path, and asking it of an SVG
+  `d` string would mean parsing back out what the geometry already knew.

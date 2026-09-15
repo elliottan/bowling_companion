@@ -3,6 +3,8 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import { HandednessContext } from "../lib/handednessContext";
 import { DriftModelContext } from "../lib/driftModelContext";
 import { DEFAULT_DRIFT_MODEL } from "../lib/driftModel";
+import { OilPatternContext } from "../lib/oilPatternContext";
+import type { OilPattern } from "../types/bowling";
 import { LaneVisualizer } from "./LaneVisualizer";
 import { boardToX, feetToY, xToBoard } from "../lib/laneGeometry";
 
@@ -67,7 +69,7 @@ describe("LaneVisualizer editing", () => {
         <LaneVisualizer line={{ laydown: 18, target: 10, breakpoint: 6 }} onClose={() => {}} onChange={onChange} />
       </HandednessContext.Provider>
     );
-    fireEvent.click(screen.getByLabelText(/hook options/i));
+    fireEvent.click(screen.getByLabelText(/lane options/i));
     expect(screen.getByText(/hook start/i)).toBeInTheDocument();
     expect(screen.getByText(/hook length/i)).toBeInTheDocument();
     expect(screen.queryByText(/breakpoint distance/i)).toBeNull();
@@ -77,7 +79,7 @@ describe("LaneVisualizer editing", () => {
         <LaneVisualizer line={{ laydown: 18, target: 10 }} leave={[10]} spare onClose={() => {}} onChange={onChange} />
       </HandednessContext.Provider>
     );
-    fireEvent.click(screen.getByLabelText(/hook options/i));
+    fireEvent.click(screen.getByLabelText(/lane options/i));
     expect(screen.getByText(/hook start/i)).toBeInTheDocument();
     expect(screen.getByText(/hook length/i)).toBeInTheDocument();
   });
@@ -229,5 +231,54 @@ describe("LaneVisualizer editing", () => {
     const tick = container.querySelector('[data-role="slide-tick"] circle');
     expect(tick).not.toBeNull();
     expect(Number(tick!.getAttribute("cx"))).toBeCloseTo(boardToX(24, "right"), 5);
+  });
+});
+
+describe("LaneVisualizer oil pattern", () => {
+  const pattern: OilPattern = {
+    id: 1,
+    name: "Main Street",
+    passes: [
+      { direction: "forward", start_distance: 0, stop_distance: 39, left_board: 5, right_board: 35, loads: 2, microliters: 20 },
+      { direction: "forward", start_distance: 0, stop_distance: 25, left_board: 15, right_board: 25, loads: 2, microliters: 20 },
+    ],
+  };
+
+  function renderWithPattern(value: OilPattern | null) {
+    return render(
+      <HandednessContext.Provider value="right">
+        <OilPatternContext.Provider value={value}>
+          <LaneVisualizer line={{ laydown: 18, target: 10, breakpoint: 6 }} onClose={() => {}} />
+        </OilPatternContext.Provider>
+      </HandednessContext.Provider>
+    );
+  }
+
+  it("draws the session's pattern on the lane", () => {
+    const { container } = renderWithPattern(pattern);
+    expect(container.querySelectorAll('[data-role="oil-band"]').length).toBeGreaterThan(1);
+    expect(container.querySelector('[data-role="oil-exit"]')).not.toBeNull();
+  });
+
+  it("draws nothing extra when the session names no pattern", () => {
+    const { container } = renderWithPattern(null);
+    expect(container.querySelector('[data-role="oil-film"]')).toBeNull();
+    expect(screen.queryByLabelText(/lane options/i)).toBeNull();
+  });
+
+  it("reads the pattern out, and the switch puts the oil away", () => {
+    const { container } = renderWithPattern(pattern);
+    fireEvent.click(screen.getByLabelText(/lane options/i));
+    // One readout line, so the name and the numbers it belongs to stay together.
+    expect(screen.getByText(/Main Street/).textContent).toMatch(/39 ft · 1\.7 mL · 2\.0:1/);
+
+    fireEvent.click(screen.getByRole("checkbox", { name: /show oil pattern/i }));
+    expect(container.querySelector('[data-role="oil-film"]')).toBeNull();
+  });
+
+  it("offers no hook sliders on a read-only line", () => {
+    renderWithPattern(pattern);
+    fireEvent.click(screen.getByLabelText(/lane options/i));
+    expect(screen.queryByText(/hook shape/i)).toBeNull();
   });
 });

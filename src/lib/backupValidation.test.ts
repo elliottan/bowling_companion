@@ -125,6 +125,44 @@ describe("validateBackup", () => {
     }
   );
 
+  it("restores an oil pattern carrying its load table", () => {
+    const result = validateBackup({
+      ...validBackup,
+      tables: {
+        ...validBackup.tables,
+        oil_patterns: [{
+          id: 1,
+          name: "Main Street",
+          passes: [{
+            direction: "forward", start_distance: 0, stop_distance: 38,
+            left_board: 5, right_board: 35, loads: 2, microliters: 30,
+          }],
+        }],
+      }
+    });
+
+    expect(result.errors).toEqual([]);
+    expect(result.isValid).toBe(true);
+  });
+
+  // One undrawable pass would put a pattern on the lane that was never laid,
+  // and the bowler would read an exit point off it anyway.
+  it.each([
+    { direction: "sideways", start_distance: 0, stop_distance: 38, left_board: 5, right_board: 35, loads: 2, microliters: 30 },
+    { direction: "forward", start_distance: 38, stop_distance: 0, left_board: 5, right_board: 35, loads: 2, microliters: 30 },
+    { direction: "forward", start_distance: 0, stop_distance: 38, left_board: 5, right_board: 44, loads: 2, microliters: 30 },
+    { direction: "forward", start_distance: 0, stop_distance: 38, left_board: 5, right_board: 35, loads: 0, microliters: 30 },
+    { direction: "forward", start_distance: 0, stop_distance: 38, left_board: 5, right_board: 35, loads: 2, microliters: "lots" },
+  ])("rejects an undrawable pass %#", (pass) => {
+    const result = validateBackup({
+      ...validBackup,
+      tables: { ...validBackup.tables, oil_patterns: [{ name: "Bent", passes: [pass] }] }
+    });
+
+    expect(result.isValid).toBe(false);
+    expect(result.errors[0]).toContain("oil_patterns");
+  });
+
   it("rejects a ball with no name and a lane note with no lane", () => {
     const result = validateBackup({
       ...validBackup,

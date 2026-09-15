@@ -125,6 +125,31 @@ export interface Ball {
   colorway_sku?: string;   // chosen colorway from the catalog ball's colorways[]
 }
 
+/**
+ * One pass of the lane machine, a single row of a Kegel-style load table
+ * (ADR-090). A pattern is the sum of its passes and nothing else: length,
+ * volume and ratio are all derived from this list, never stored beside it.
+ */
+export interface OilPass {
+  /** Forward passes lay the pattern going down lane, reverse ones on the way back. */
+  direction: "forward" | "reverse";
+  /** Where the pass starts and stops loading, in feet from the foul line. */
+  start_distance: number;
+  stop_distance: number;
+  /**
+   * The span of boards the pass loads, ABSOLUTE and counted from the left
+   * edge (1 = far left, 39 = far right), the way a pattern sheet is printed.
+   * A sheet writing "L5 to R5" is `left_board: 5, right_board: 35`. The
+   * drawing mirrors these for a right-hander, exactly as the pin deck does.
+   */
+  left_board: number;
+  right_board: number;
+  /** Crossings of the loading head over that span. */
+  loads: number;
+  /** Oil laid per board, per load, in microlitres. */
+  microliters: number;
+}
+
 export interface OilPattern {
   id?: number;
   name: string;
@@ -132,6 +157,9 @@ export interface OilPattern {
   url?: string;
   /** Archived patterns stay resolvable for history but are not offered for new sessions. */
   archived?: boolean;
+  /** The load table. Absent or empty means a pattern that is only a name, which
+   *  is every pattern saved before ADR-090, so it stays perfectly valid. */
+  passes?: OilPass[];
 }
 
 export interface SpareLine {

@@ -25,6 +25,7 @@ shape to drift, by design.
 | Backup, import or merge | ADR-038 + `src/services/backupRepository.ts` |
 | Ball layouts: dual angle, VAL, pin buffer, Storm VLS | `src/lib/ballLayout.ts` (geometry + motion) and `src/lib/ballProjection.ts` (drawing it), with their tests |
 | Pin input | ADR-006 (inverted input), ADR-001 |
+| Oil patterns: load table, the film on the lane, exit point | `src/lib/oilPattern.ts` + its tests, `LaneSurface`; ADR-100 |
 | Viewport, rotation or scroll handling | `docs/VIEWPORT-BUG.md`, in full, before writing a line |
 | Add or edit a guide article | `src/lib/guides.ts` (static content, block union, sources) |
 | Anything else | `docs/README.md` routes everything |
