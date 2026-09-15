@@ -8,6 +8,14 @@ merge to `main` (`docs/DEPLOYMENT.md`), so every section below is a dated batch
 of shipped work rather than a release. Thirty of them used to be headed
 `[Unreleased]`, which said nothing once they had all shipped.
 
+## A finished session opens where it should, under load (2026-09-15)
+
+No app change: the end-to-end test that guards it was asking the screen
+whether the game was over and then navigating away, which is a page load
+issued a render before the write it depends on. It waits for the stored score
+now, so a slow machine no longer reports a session opening in the wrong place
+when what actually happened is that its last shot had not landed yet.
+
 ## The layout lab fits more on the screen (2026-09-15)
 
 **A layout shares as a picture.** The share button now builds the same kind of
