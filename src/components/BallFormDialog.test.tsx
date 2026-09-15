@@ -81,6 +81,15 @@ describe("BallFormDialog layout", () => {
     expect(await screen.findByRole("slider", { name: "Pin buffer" })).toBeTruthy();
   });
 
+  it("does not ask for a pin-to-PSA distance, which the core fixes at 6 3/4\"", async () => {
+    await addBall({ name: "Phaze II", is_spare_ball: false, layout_spec: SPEC });
+    const ball = await saved("Phaze II");
+
+    render(<BallFormDialog ball={ball!} onClose={vi.fn()} onSaved={vi.fn()} />);
+    expect(await screen.findByRole("slider", { name: "Pin to PAP" })).toBeTruthy();
+    expect(screen.queryByRole("slider", { name: "Pin to PSA" })).toBeNull();
+  });
+
   it("moves the core marker with the core type, so the ball still exists", async () => {
     await addBall({ name: "Phaze II", is_spare_ball: false, layout_spec: SPEC });
     const ball = await saved("Phaze II");

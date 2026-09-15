@@ -16,7 +16,7 @@ import type { Ball, BallLayoutSpec, LayoutSystem } from "../types/bowling";
 import type { CatalogBall, Manufacturer } from "../types/catalog";
 import { DEFAULT_WEIGHT } from "../types/catalog";
 import { CatalogBallImage } from "./CatalogBallImage";
-import { LayoutEditor, Slider } from "./LayoutEditor";
+import { LayoutEditor } from "./LayoutEditor";
 import { Measure } from "./ui/Measure";
 import { SegmentedControl } from "./ui/SegmentedControl";
 import { GROUP_HEADING } from "./ui/typography";
@@ -555,22 +555,6 @@ function LayoutField({
             onSystemChange={(next) => onChange({ ...spec, system: next })}
             idPrefix="ball"
           />
-
-          {!spec.symmetric && (
-            <div className="rounded-xl border border-edge bg-surface p-2.5 shadow-sm">
-              <Slider
-                idPrefix="ball-core"
-                label="Pin to PSA"
-                hint="This ball's own geometry, not part of the layout. It is what the VLS numbers are measured against."
-                value={spec.pinToCore}
-                min={1}
-                max={6.75}
-                step={0.125}
-                unit="in"
-                onChange={(pinToCore) => onChange({ ...spec, pinToCore })}
-              />
-            </div>
-          )}
 
           {spec.system && (
             <button

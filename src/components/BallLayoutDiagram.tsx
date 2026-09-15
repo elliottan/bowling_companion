@@ -337,9 +337,16 @@ export function BallLayoutDiagram({
         )}
 
         {/* The measured lines. Pin to PAP is the first number of both systems,
-            so it is drawn either way; what hangs off it is what the two
-            notations disagree about. */}
+            so the line and its number are drawn either way; what hangs off it
+            is what the two notations disagree about. */}
         {stroke(arcPoints(geometry.pin, geometry.pap), "#f8fafc", 2.4, undefined, "pin-pap")}
+        <ArcDistance
+          from={geometry.pin}
+          to={geometry.pap}
+          label={`${formatInches(layout.pinToPap)}"`}
+          color="#f8fafc"
+          orientation={orientation}
+        />
 
         {vls ? (
           <>
@@ -349,13 +356,6 @@ export function BallLayoutDiagram({
                 PSA-to-PAP arc is the second. Neither is a wedge, and drawing
                 the dual angle's wedges here would answer a question the sliders
                 on screen are not asking. */}
-            <ArcDistance
-              from={geometry.pin}
-              to={geometry.pap}
-              label={`${formatInches(layout.pinToPap)}"`}
-              color="#f8fafc"
-              orientation={orientation}
-            />
             {!ball.symmetric && (
               <>
                 {stroke(arcPoints(geometry.core, geometry.pap), "#fbbf24", 2, "5 3", "core-pap")}
