@@ -438,6 +438,15 @@ describe("LayoutLabView", () => {
     expect(texts).toContain('6 3/4"');
   });
 
+  it("writes the pin-to-PAP distance on the ball in dual angle too", () => {
+    renderLab();
+    const svg = screen.getByRole("img", { name: /bowling ball/i });
+    const texts = Array.from(svg.querySelectorAll("text")).map((t) => (t.textContent ?? "").trim());
+    // The first number of both notations, so it belongs on the drawing in both.
+    // It used to appear only once VLS was showing.
+    expect(texts).toContain('4 1/2"');
+  });
+
   it("carries no chip row under the ball, and no flare rings on it", () => {
     renderLab();
     // The ball is dragged, which is the gesture everyone tries: the chips that

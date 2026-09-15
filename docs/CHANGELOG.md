@@ -8,6 +8,14 @@ merge to `main` (`docs/DEPLOYMENT.md`), so every section below is a dated batch
 of shipped work rather than a release. Thirty of them used to be headed
 `[Unreleased]`, which said nothing once they had all shipped.
 
+## Pin to PAP, written on the ball (2026-09-15)
+
+**The first number of the layout is now on the drawing in both notations.** The
+pin-to-PAP arc was always drawn, but only Storm VLS put the measurement on it.
+In dual angle the line sat there unlabelled while the pin-to-PSA distance beside
+it carried a number, which read as though the ball's own geometry were the
+measured one and the layout's first number were not.
+
 ## Your balls carry their layouts (2026-09-15)
 
 **A ball's layout is entered on sliders, not typed.** The arsenal's layout box
