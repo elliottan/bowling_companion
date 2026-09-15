@@ -45,7 +45,13 @@ Presets control on the Layout heading, and the preset field below it is gone.
 
 **The two notations are the toggle.** The Dual angle and Storm VLS boxes are
 now the buttons that choose which one the sliders edit. The segmented control
-above them said the same two words.
+above them said the same two words. Both read centred, with the x's between the
+measurements stepped back so the numbers carry the line.
+
+**The layout panel is tighter.** Less air between the three sliders, and the
+hand and grip toggles end level with the PAP box beside them instead of hanging
+below it. No control got smaller to the finger: the toggles are drawn shorter
+and keep their full 44pt tap target.
 
 **Reset asks first, and says what it resets to.** It puts the hand, grip and
 PAP from your preferences back, which matters most when you are reading

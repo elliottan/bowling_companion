@@ -44,8 +44,12 @@ const slider = (name: RegExp | string) =>
 const systemCard = (label: string) =>
   screen.getByRole("button", { name: new RegExp(`^${label}`) });
 
+/* The separators are dimmed, so the reading is spans rather than one text
+ * node. Read the card whole and drop its label: what matters is that the three
+ * measurements still come out as one string, spaces and all, which is also
+ * exactly what the button's accessible name is built from. */
 const readout = (label: string) =>
-  within(systemCard(label)).getByText(/ x /).textContent;
+  (systemCard(label).textContent ?? "").replace(label, "").trim();
 
 const dualAngle = () => readout("Dual angle");
 const vlsReadout = () => readout("Storm VLS");
@@ -164,6 +168,23 @@ describe("LayoutLabView", () => {
     renderLab();
     fireEvent.change(slider(/Pin to PAP/i), { target: { value: "3" } });
     expect(screen.getByText(/thumb hole/i)).toBeInTheDocument();
+  });
+
+  it("dims the separators without running the numbers together", () => {
+    renderLab();
+    const card = systemCard("Dual angle");
+    // Dimmed for the eye: the x's are the only repeated shape in the line and
+    // at one weight they read as loudly as the measurements.
+    const separators = Array.from(card.querySelectorAll("span")).filter(
+      (n) => (n.textContent ?? "").trim() === "x"
+    );
+    expect(separators).toHaveLength(2);
+    for (const sep of separators) expect(sep.className).toMatch(/text-ink-tertiary/);
+
+    // Still three measurements to a screen reader, which gets the text content
+    // with the styling thrown away. Padding instead of real spaces would look
+    // identical and say "45x4 1/2x45".
+    expect(card).toHaveAccessibleName("Dual angle 45 x 4 1/2 x 45");
   });
 
   it("edits the layout through the VLS numbers and converts back", () => {

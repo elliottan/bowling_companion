@@ -371,37 +371,49 @@ export function LayoutLabView({ onBack, onOpenSettings }: LayoutLabViewProps) {
               <RotateCcw size={15} aria-hidden="true" />
             </IconButton>
           </div>
-          <div className="flex items-start gap-2">
+          {/* Stretched rather than top-aligned, so the two cards end level
+              whichever is taller. The hand card is the taller of the two (two
+              toggles against two rows of fields), so the PAP card takes a few
+              px of extra padding at the bottom, which reads as padding. */}
+          <div className="flex items-stretch gap-2">
             <div className="min-w-0 flex-1 space-y-1.5 rounded-xl border border-edge bg-surface p-2.5 shadow-sm">
               <span className={FIELD_MICRO_LABEL}>Your PAP</span>
               <PapEditor pap={pap} onChange={updatePap} idPrefix="lab-pap" />
             </div>
             <div className="w-[7.5rem] shrink-0 space-y-1.5 rounded-xl border border-edge bg-surface p-2.5 shadow-sm">
               <span className={FIELD_MICRO_LABEL}>Hand</span>
-              {/* Left on the left, which is the one ordering that needs no
-                  reading: the letters sit where the hands do. */}
-              <SegmentedControl
-                label="Bowling hand"
-                value={hand}
-                onChange={chooseHand}
-                options={[
-                  { value: "left", label: "L", srLabel: "Left" },
-                  { value: "right", label: "R", srLabel: "Right" }
-                ]}
-              />
-              {/* One-handed or two-handed. It is stored and it is shared, and
-                  it changes nothing about the arithmetic yet: a two-handed
-                  layout is genuinely different geometry and guessing at it here
-                  would be worse than saying nothing. */}
-              <SegmentedControl
-                label="Grip style"
-                value={grip}
-                onChange={chooseGrip}
-                options={[
-                  { value: "1h", label: "1H", srLabel: "One handed" },
-                  { value: "2h", label: "2H", srLabel: "Two handed" }
-                ]}
-              />
+              {/* `space-y-2` is required, not chosen: a dense segmented control
+                  is 36px drawn and 44pt to the finger, so two stacked any
+                  closer than 8px would have overlapping hit regions and the
+                  grip row would start swallowing taps meant for the hand. */}
+              <div className="space-y-2">
+                {/* Left on the left, which is the one ordering that needs no
+                    reading: the letters sit where the hands do. */}
+                <SegmentedControl
+                  dense
+                  label="Bowling hand"
+                  value={hand}
+                  onChange={chooseHand}
+                  options={[
+                    { value: "left", label: "L", srLabel: "Left" },
+                    { value: "right", label: "R", srLabel: "Right" }
+                  ]}
+                />
+                {/* One-handed or two-handed. It is stored and it is shared, and
+                    it changes nothing about the arithmetic yet: a two-handed
+                    layout is genuinely different geometry and guessing at it
+                    here would be worse than saying nothing. */}
+                <SegmentedControl
+                  dense
+                  label="Grip style"
+                  value={grip}
+                  onChange={chooseGrip}
+                  options={[
+                    { value: "1h", label: "1H", srLabel: "One handed" },
+                    { value: "2h", label: "2H", srLabel: "Two handed" }
+                  ]}
+                />
+              </div>
             </div>
           </div>
         </section>
@@ -468,7 +480,7 @@ export function LayoutLabView({ onBack, onOpenSettings }: LayoutLabViewProps) {
           </div>
 
           {system === "dual" ? (
-            <div className="space-y-2 rounded-xl border border-edge bg-surface p-2.5 shadow-sm">
+            <div className="space-y-0.5 rounded-xl border border-edge bg-surface p-2.5 shadow-sm">
               <Slider
                 label="Drilling angle"
                 hint="At the pin, to the CG or PSA. Low rolls early, high rolls late."
@@ -505,7 +517,7 @@ export function LayoutLabView({ onBack, onOpenSettings }: LayoutLabViewProps) {
               />
             </div>
           ) : (
-            <div className="space-y-2 rounded-xl border border-edge bg-surface p-2.5 shadow-sm">
+            <div className="space-y-0.5 rounded-xl border border-edge bg-surface p-2.5 shadow-sm">
               <Slider
                 label="Pin to PAP"
                 hint="The same first number in both systems."
@@ -737,7 +749,7 @@ function Slider({
 
   return (
     <div className="relative" ref={hintRef}>
-      <div className="mb-1 flex items-baseline justify-between gap-2">
+      <div className="mb-0.5 flex items-baseline justify-between gap-2">
         {/* The label is the affordance. Tapping the name of a thing to find out
             what it means is the gesture people already try, and a separate icon
             would be a second tap target in a row that is already dense, so the
@@ -862,7 +874,7 @@ function SystemCard({
       type="button"
       aria-pressed={selected}
       onClick={onClick}
-      className={`rounded-xl border p-2.5 text-left shadow-sm active:opacity-80 ${
+      className={`rounded-xl border p-2.5 text-center shadow-sm active:opacity-80 ${
         selected ? "border-accent-fill bg-accent-soft" : "border-edge bg-surface"
       }`}
     >
@@ -870,8 +882,42 @@ function SystemCard({
       <span
         className={`block text-sm font-bold tabular-nums ${selected ? "text-accent" : "text-ink"}`}
       >
-        {value}
+        <LayoutNumbers value={value} />
       </span>
     </button>
+  );
+}
+
+/**
+ * A layout reading with its separators stepped back, so the numbers carry it.
+ *
+ * `45 x 4 1/2 x 45` is three measurements and two pieces of punctuation, and at
+ * one weight the punctuation reads as loudly as the numbers: the eye lands on
+ * the x's because they are the only repeated shape in the line. Dimming them
+ * costs nothing and puts the emphasis where the meaning is.
+ *
+ * Split rather than formatted this way at the source, because the separator is
+ * a presentation choice and `formatDualAngle` and `formatVls` have three other
+ * callers (the share card, the share title, a screen reader) that all want one
+ * plain string. The split is safe on the space-padded `x`: a fraction inside a
+ * measurement is `4 1/2`, which has a space but never a lone x around it.
+ *
+ * The spaces around the separator are real text rather than padding on the
+ * span. Padding would look identical and read as `45x4 1/2x45`, because the
+ * accessible name of the button around this is its text content with the
+ * styling thrown away: a screen reader would get one run-on number where a
+ * sighted reader gets three measurements.
+ */
+function LayoutNumbers({ value }: { value: string }) {
+  const parts = value.split(" x ");
+  return (
+    <>
+      {parts.map((part, i) => (
+        <span key={i}>
+          {i > 0 && <span className="font-normal text-ink-tertiary">{" x "}</span>}
+          {part}
+        </span>
+      ))}
+    </>
   );
 }
