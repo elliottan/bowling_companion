@@ -47,11 +47,13 @@ describe("HandednessView", () => {
     );
   });
 
-  it("says out loud that a two-handed layout is not modelled yet", () => {
-    // The app would rather say it does not know than quietly hand back a
-    // number computed for a grip it has not been taught.
+  it("says what a two-handed grip does change, and what it leaves alone", () => {
+    // It draws the ball that is actually drilled and drops the thumb-hole band,
+    // and it says the motion reading is still the thumb-in chart's rather than
+    // quietly handing back a number computed for a release it was not fitted to.
     renderPrefs();
-    expect(screen.getByText(/not modelled yet/i)).toBeInTheDocument();
+    expect(screen.getByText(/no thumb hole/i)).toBeInTheDocument();
+    expect(screen.getByText(/fitted to a thumb-in release/i)).toBeInTheDocument();
   });
 
   it("edits the same stored PAP the layout lab does", async () => {

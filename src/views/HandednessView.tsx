@@ -88,9 +88,11 @@ export function HandednessView({ value, onChange, driftModel, onDriftModelChange
         description={
           <>
             One-handed with a thumb, or two-handed with the thumb out. The layout lab opens on
-            this and carries it in a shared layout. What a two-handed grip does to the layout
-            geometry and the ball-motion reading is not modelled yet, so nothing here changes a
-            number: the app would rather say it does not know than guess.
+            this and carries it in a shared layout. Two-handed draws the ball with no thumb hole
+            and the center of your grip between your fingers, and it drops the do-not-use band,
+            which only exists to keep the track off a thumb hole. The motion reading itself is
+            still the dual angle chart's, fitted to a thumb-in release: the app would rather say
+            it has not adjusted that than guess at it.
           </>
         }
       >

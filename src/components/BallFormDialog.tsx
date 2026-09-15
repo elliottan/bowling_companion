@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { getAllCatalog, getCatalogBall, syncCatalog } from "../services/ballCatalogRepository";
 import { addBall, updateBall } from "../services/ballRepository";
-import { getLayoutSystem } from "../services/bowlingRepository";
+import { getGripStyle, getLayoutSystem } from "../services/bowlingRepository";
 import {
   DEFAULT_ASYMMETRIC,
   DEFAULT_SYMMETRIC,
@@ -70,7 +70,6 @@ export function BallFormDialog({ ball, onClose, onSaved, onDelete }: BallFormDia
   // while it loads, which the field shows as the app's own default rather than
   // flashing the wrong words.
   const systemPreference = useLiveQuery(getLayoutSystem, [], undefined) ?? "dual";
-
 
   // Restore the existing catalog link so its image and weight specs resolve.
   useEffect(() => {
@@ -464,6 +463,10 @@ function LayoutField({
 }) {
   const ball = spec ? specToBall(spec) : null;
   const layout = spec ? specToLayout(spec) : null;
+  // The bowler's grip, read here for the same reason the lab reads it: the
+  // do-not-use band on the pin-to-PAP slider is a thumb-hole rule and does not
+  // apply to a two-hander. One-handed until the setting says otherwise.
+  const grip = useLiveQuery(getGripStyle, [], undefined) ?? "1h";
   // What the sliders are editing in. A ball that has never been given a
   // notation of its own follows the preference, and keeps following it: that is
   // what makes the preference worth having.
@@ -553,6 +556,7 @@ function LayoutField({
             // not just how it is being typed: the arsenal reads it back in the
             // same one. A ball that never asked keeps following the preference.
             onSystemChange={(next) => onChange({ ...spec, system: next })}
+            grip={grip}
             idPrefix="ball"
           />
 

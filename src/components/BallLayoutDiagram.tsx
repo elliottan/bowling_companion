@@ -1,10 +1,11 @@
 import { useCallback, useMemo, useRef, useState } from "react";
-import type { Handedness } from "../types/bowling";
+import type { GripStyle, Handedness } from "../types/bowling";
 import {
   DEFAULT_PAP,
   arcToAngle,
   coreToPap,
   formatInches,
+  gripHoles,
   normalize,
   pinBuffer,
   surfaceDistance,
@@ -12,6 +13,7 @@ import {
   walk,
   type BallSpec,
   type DualAngleLayout,
+  type GripHole,
   type PapMeasurement,
   type Vec3
 } from "../lib/ballLayout";
@@ -87,6 +89,14 @@ interface BallLayoutDiagramProps {
   onOrientationChange: (next: Orientation) => void;
   /** Which hand the layout is for. A lefty layout is the mirror image. */
   hand?: Handedness;
+  /**
+   * How the bowler holds the ball. A two-handed grip has no thumb in the ball,
+   * so the drawing has no thumb hole to draw and the finger row is the whole
+   * grip. It changes nothing about the layout arithmetic (`lib/ballLayout`
+   * measures everything from the centre of grip either way), only what is
+   * drilled around it.
+   */
+  grip?: GripStyle;
   className?: string;
 }
 
@@ -125,6 +135,7 @@ export function BallLayoutDiagram({
   orientation,
   onOrientationChange,
   hand = "right",
+  grip = "1h",
   className = ""
 }: BallLayoutDiagramProps) {
   const geometry = useMemo(() => layoutGeometry(layout, ball, pap, hand), [layout, ball, pap, hand]);
@@ -217,10 +228,11 @@ export function BallLayoutDiagram({
     { id: "pap", point: geometry.pap, label: "PAP", color: "#38bdf8", shape: "pap" }
   ];
 
-  const gripHoles = useMemo(
-    () => (showGrip ? gripHolePoints(geometry.gripCenter, hand) : []),
-    [geometry.gripCenter, hand, showGrip]
+  const holes = useMemo(
+    () => (showGrip ? gripHoles(geometry.gripCenter, hand, grip) : []),
+    [geometry.gripCenter, hand, grip, showGrip]
   );
+  const thumb = holes.find((hole) => hole.kind === "thumb");
 
   /**
    * On a symmetric ball the PSA is in the thumb hole.
@@ -234,11 +246,17 @@ export function BallLayoutDiagram({
    * else left the drawing saying a symmetric ball has no PSA at all, which is a
    * different and wrong claim. The marker only appears with the grip, since
    * without a thumb hole drawn there is nothing for it to point at.
+   *
+   * Which is also why a two-hander does not get one. The convention names the
+   * thumb hole because the thumb hole is the mass the drilling removes; with no
+   * thumb in the ball there is no such hole and no pro shop names a PSA on a
+   * symmetric ball drilled this way. Drawing one at the fingers instead would be
+   * inventing a landmark rather than reporting one.
    */
-  if (ball.symmetric && gripHoles.length > 0) {
+  if (ball.symmetric && thumb) {
     landmarks.push({
       id: "psa",
-      point: gripHoles[0].point,
+      point: thumb.point,
       label: "PSA",
       color: "#fbbf24",
       shape: "psa"
@@ -260,7 +278,7 @@ export function BallLayoutDiagram({
       className={`w-full touch-none select-none ${dragging ? "cursor-grabbing" : "cursor-grab"} ${className}`}
       role="img"
       tabIndex={0}
-      aria-label={describeDiagram(layout, ball, system)}
+      aria-label={describeDiagram(layout, ball, system, grip)}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={endDrag}
@@ -423,9 +441,10 @@ export function BallLayoutDiagram({
           </>
         )}
 
-        {gripHoles.map((hole, i) => {
+        {holes.map((hole, i) => {
           const q = p(hole.point);
           if (!q.front) return null;
+          const r = holeRadius(hole);
           // Squashed toward the silhouette, which is what a round hole does
           // when the surface it sits on turns away.
           return (
@@ -433,8 +452,8 @@ export function BallLayoutDiagram({
               key={`hole-${i}`}
               cx={q.x}
               cy={q.y}
-              rx={hole.r * RADIUS * Math.max(q.facing, 0.12)}
-              ry={hole.r * RADIUS}
+              rx={r * RADIUS * Math.max(q.facing, 0.12)}
+              ry={r * RADIUS}
               transform={`rotate(${holeAngle(q, CENTER)} ${q.x} ${q.y})`}
               fill={HOLE}
               opacity={0.9}
@@ -709,28 +728,18 @@ function holeAngle(q: { x: number; y: number }, center: number): number {
   return (Math.atan2(q.y - center, q.x - center) * 180) / Math.PI;
 }
 
-/**
- * A conventional grip: thumb on the midline toward the bowler's own side, two
- * finger holes above it. Not measured off the layout, since span and pitch are
- * a hand fitting rather than a layout, but drawn because the VAL angle is
- * meaningless without something to be up or down *of*.
- */
-function gripHolePoints(gripCenter: Vec3, hand: Handedness): Array<{ point: Vec3; r: number }> {
-  // The finger row leans toward the PAP, which is on the other side of the ball
-  // for a left-hander, so the holes mirror with the rest of the layout.
-  const towardPap = tangentToward(gripCenter, { x: hand === "left" ? -1 : 1, y: 0, z: 0 });
-  const up = tangentToward(gripCenter, { x: 0, y: 1, z: 0 });
-  const thumb = walk(gripCenter, up, arcToAngle(-1.7));
-  const fingerRow = walk(gripCenter, up, arcToAngle(2.4));
-  return [
-    { point: thumb, r: 0.075 },
-    { point: walk(fingerRow, towardPap, arcToAngle(-0.9)), r: 0.055 },
-    { point: walk(fingerRow, towardPap, arcToAngle(0.9)), r: 0.055 }
-  ];
-}
+/** How big each hole is drawn, as a fraction of the ball's radius. A thumb hole
+ *  is the wider of the two on every grip that has one. Where the holes *go*
+ *  is geometry and lives in `lib/ballLayout`; how big they look is drawing. */
+const holeRadius = (hole: GripHole) => (hole.kind === "thumb" ? 0.075 : 0.055);
 
 /** What a screen reader gets, since the picture carries the whole point. */
-function describeDiagram(layout: DualAngleLayout, ball: BallSpec, system: "dual" | "vls"): string {
+function describeDiagram(
+  layout: DualAngleLayout,
+  ball: BallSpec,
+  system: "dual" | "vls",
+  grip: GripStyle
+): string {
   const marker = ball.symmetric ? "CG" : "PSA";
   const named =
     system === "vls"
@@ -738,8 +747,9 @@ function describeDiagram(layout: DualAngleLayout, ball: BallSpec, system: "dual"
         `${pinBuffer(layout.pinToPap, layout.valAngle).toFixed(2)} inch Storm VLS layout`
       : `a ${Math.round(layout.drillingAngle)} by ${layout.pinToPap.toFixed(2)} inch by ` +
         `${Math.round(layout.valAngle)} dual angle layout`;
+  const drilled = grip === "2h" ? "two finger holes and no thumb hole" : "a thumb hole and two finger holes";
   return (
-    `A bowling ball showing ${named}. The pin sits ${layout.pinToPap.toFixed(2)} inches from the PAP ` +
+    `A bowling ball drilled with ${drilled}, showing ${named}. The pin sits ${layout.pinToPap.toFixed(2)} inches from the PAP ` +
     `with a ${pinBuffer(layout.pinToPap, layout.valAngle).toFixed(2)} inch pin buffer, and the ${marker} is ` +
     `${coreToPap(layout, ball).toFixed(2)} inches from the PAP. Drag the ball, or use the arrow keys, to turn it.`
   );

@@ -19,6 +19,8 @@ import {
   formatLayoutSpec,
   formatVls,
   fromVls,
+  gripHoles,
+  GRIP_SPAN,
   layoutSystemFor,
   makeLayoutSpec,
   specToBall,
@@ -372,6 +374,88 @@ describe("the do-not-use band", () => {
   it("warns when a layout lands in it", () => {
     const warnings = readMotion({ ...BENCHMARK, pinToPap: 3 }, DEFAULT_ASYMMETRIC).warnings;
     expect(warnings.some((w) => w.includes("thumb hole"))).toBe(true);
+  });
+
+  // The band exists to keep the track off the thumb hole, so a grip with no
+  // thumb hole has no band. Both the predicate and the warning that reads it.
+  it("does not apply to a two-handed grip", () => {
+    expect(inDoNotUseBand(3, "2h")).toBe(false);
+    expect(inDoNotUseBand(3, "1h")).toBe(true);
+    const warnings = readMotion({ ...BENCHMARK, pinToPap: 3 }, DEFAULT_ASYMMETRIC, DEFAULT_PAP, "2h")
+      .warnings;
+    expect(warnings.some((w) => w.includes("thumb hole"))).toBe(false);
+  });
+
+  it("leaves every other warning alone for a two-hander", () => {
+    const layout = { ...BENCHMARK, pinToPap: 6 };
+    expect(readMotion(layout, DEFAULT_ASYMMETRIC, DEFAULT_PAP, "2h").warnings).toEqual(
+      readMotion(layout, DEFAULT_ASYMMETRIC, DEFAULT_PAP, "1h").warnings
+    );
+  });
+
+  it("moves no motion number for a two-hander", () => {
+    const one = readMotion(BENCHMARK, DEFAULT_ASYMMETRIC, DEFAULT_PAP, "1h");
+    const two = readMotion(BENCHMARK, DEFAULT_ASYMMETRIC, DEFAULT_PAP, "2h");
+    expect(two.flare).toBe(one.flare);
+    expect(two.length).toBe(one.length);
+    expect(two.angularity).toBe(one.angularity);
+    expect(two.strength).toBe(one.strength);
+    expect(two.summary).toBe(one.summary);
+  });
+});
+
+describe("grip holes", () => {
+  const CENTER: Vec3 = { x: 0, y: 0, z: 1 };
+
+  it("puts the centre of grip midway between the thumb and the finger row", () => {
+    const holes = gripHoles(CENTER, "right", "1h");
+    const thumb = holes.find((h) => h.kind === "thumb")!;
+    const fingers = holes.filter((h) => h.kind === "finger");
+
+    // The one thing the drawing was getting wrong: the cross the layout is
+    // measured from has to sit the same distance from both ends of the span.
+    const toThumb = surfaceDistance(CENTER, thumb.point);
+    const midFingers = normalize({
+      x: fingers[0].point.x + fingers[1].point.x,
+      y: fingers[0].point.y + fingers[1].point.y,
+      z: fingers[0].point.z + fingers[1].point.z
+    });
+    expect(toThumb).toBeCloseTo(surfaceDistance(CENTER, midFingers), 6);
+    expect(toThumb + surfaceDistance(CENTER, midFingers)).toBeCloseTo(GRIP_SPAN, 6);
+  });
+
+  it("drills three holes for one hand and two for two hands", () => {
+    expect(gripHoles(CENTER, "right", "1h").map((h) => h.kind)).toEqual([
+      "thumb",
+      "finger",
+      "finger"
+    ]);
+    expect(gripHoles(CENTER, "right", "2h").map((h) => h.kind)).toEqual(["finger", "finger"]);
+  });
+
+  it("centres a two-hander's grip between the finger holes", () => {
+    const [left, right] = gripHoles(CENTER, "right", "2h");
+    expect(surfaceDistance(CENTER, left.point)).toBeCloseTo(
+      surfaceDistance(CENTER, right.point),
+      6
+    );
+    // No thumb to average against, so the centre is the fingers' own midpoint
+    // and sits level with them rather than half a span below.
+    expect(left.point.y).toBeCloseTo(0, 6);
+    expect(right.point.y).toBeCloseTo(0, 6);
+  });
+
+  it("mirrors the finger row for a left-hander", () => {
+    const right = gripHoles(CENTER, "right", "1h");
+    const left = gripHoles(CENTER, "left", "1h");
+    for (let i = 0; i < right.length; i += 1) {
+      expect(left[i].point.x).toBeCloseTo(-right[i].point.x, 10);
+      expect(left[i].point.y).toBeCloseTo(right[i].point.y, 10);
+    }
+  });
+
+  it("is one-handed when no grip is named", () => {
+    expect(gripHoles(CENTER)).toEqual(gripHoles(CENTER, "right", "1h"));
   });
 });
 
