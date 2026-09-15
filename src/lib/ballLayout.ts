@@ -172,6 +172,13 @@ export interface LayoutGeometry {
   valDirection: Vec3;
   /** Unit tangent at the PAP along the midline, pointing at the grip centre. */
   gripDirection: Vec3;
+  /**
+   * Where the shortest arc from the pin meets the VAL: the foot of the pin
+   * buffer. It is not a layout input, it is where the second number of a Storm
+   * VLS layout is measured to, so the drawing needs it to put that measurement
+   * on the ball rather than only in a readout.
+   */
+  valFoot: Vec3;
 }
 
 /**
@@ -237,6 +244,13 @@ export function layoutGeometry(
   // construction: there is only one place the handedness can be got wrong.
   const flip = hand === "left" ? mirrorX : (v: Vec3) => v;
 
+  // The VAL is the great circle through the PAP with tangent `valDirection`, so
+  // its pole is the one axis both are perpendicular to. Dropping the pin onto
+  // that plane and renormalising is the foot of the perpendicular, which is the
+  // nearest point of the VAL to the pin and therefore the end of the buffer.
+  const valPole = normalize(cross(papPoint, valDirection));
+  const valFoot = normalize(add(pin, scale(valPole, -dot(pin, valPole))));
+
   return {
     gripCenter,
     pap: flip(papPoint),
@@ -244,7 +258,8 @@ export function layoutGeometry(
     pin: flip(pin),
     core: flip(core),
     valDirection: flip(valDirection),
-    gripDirection: flip(gripDirection)
+    gripDirection: flip(gripDirection),
+    valFoot: flip(valFoot)
   };
 }
 

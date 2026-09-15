@@ -87,8 +87,8 @@ describe("buildLayoutCard", () => {
     vls: "4 1/2 x 3 7/8 x 2 7/8",
     symmetric: false,
     hand: "right" as const,
+    grip: "1h" as const,
     pap: '5" over, 1/2" up',
-    flareInches: 5.6,
     summary: "Picks up in the mid lane and turns the corner with a defined shape."
   };
 
@@ -112,11 +112,21 @@ describe("buildLayoutCard", () => {
     expect(card.games).toBeNull();
   });
 
-  it("keeps the other notation and the flare, which the picture cannot say", () => {
+  it("keeps the other notation, which the picture cannot say, and nothing else", () => {
+    // The flare figure used to sit beside it. It is the one number on the card
+    // that is a model's opinion rather than a measurement, the caption above it
+    // already says what the ball will do in words, and quoting a tenth of an
+    // inch invites it to be read as a spec.
     expect(buildLayoutCard(layout).stats).toEqual([
-      { value: "4 1/2 x 3 7/8 x 2 7/8", label: "Storm VLS" },
-      { value: '5.6"', label: "Flare" }
+      { value: "4 1/2 x 3 7/8 x 2 7/8", label: "Storm VLS" }
     ]);
+  });
+
+  it("names a two-handed grip, and leaves the common one unsaid", () => {
+    // A card that spelled out "one handed" on every layout would be spending a
+    // clause of a crowded eyebrow to say nothing surprising.
+    expect(buildLayoutCard({ ...layout, grip: "2h" }).eyebrow).toContain("Right hand, two handed");
+    expect(buildLayoutCard(layout).eyebrow).not.toContain("handed");
   });
 });
 

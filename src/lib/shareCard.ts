@@ -180,10 +180,10 @@ interface LayoutLike {
   vls: string;
   symmetric: boolean;
   hand: "left" | "right";
+  /** One-handed or two-handed, named on the card only when it is the rarer one. */
+  grip: "1h" | "2h";
   /** The bowler's axis, written the way it is spoken: `5" over, 1/2" up`. */
   pap: string;
-  /** Inches of track flare the layout is good for. */
-  flareInches: number;
   /** What the ball will do, in the words the lab already uses. */
   summary: string;
 }
@@ -203,17 +203,19 @@ export function buildLayoutCard(layout: LayoutLike): ShareCardData {
     // the card's lower half belongs to the ball.
     eyebrow: [
       layout.symmetric ? "Symmetric core" : "Asymmetric core",
-      layout.hand === "left" ? "Left hand" : "Right hand",
+      `${layout.hand === "left" ? "Left" : "Right"} hand${layout.grip === "2h" ? ", two handed" : ""}`,
       `PAP ${layout.pap}`
     ].join("  ·  "),
     title: layout.dualAngle,
     caption: layout.summary,
     hero: null,
     games: null,
-    stats: [
-      { value: layout.vls, label: "Storm VLS" },
-      { value: `${layout.flareInches.toFixed(1)}"`, label: "Flare" }
-    ]
+    // The layout in the other notation, and nothing else. The flare figure used
+    // to sit beside it and was the one number on the card that is a model's
+    // opinion rather than a measurement: the caption above already says what
+    // the ball will do, in words, and a card that quotes a tenth of an inch of
+    // flare invites it to be read as a spec.
+    stats: [{ value: layout.vls, label: "Storm VLS" }]
   };
 }
 
@@ -473,6 +475,14 @@ export type ShareDestination = "shared" | "downloaded" | "cancelled";
  *  the file itself: Safari advertises `share` while refusing some files. */
 export function canShareImage(file: File, nav: Navigator = navigator): boolean {
   return typeof nav.canShare === "function" && nav.canShare({ files: [file] });
+}
+
+/** Hand a rendered card straight to the device, with no share sheet in
+ *  between. The lab's own download control wants exactly this: the sheet is
+ *  what the share button is for, and a "save it" that opens a chooser is not
+ *  the thing that was asked for. */
+export function downloadCardImage(blob: Blob, filename: string): void {
+  download(blob, filename);
 }
 
 function download(blob: Blob, filename: string): void {

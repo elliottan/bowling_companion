@@ -23,6 +23,7 @@ import {
   arcPoints,
   circlePoints,
   dragToOrientation,
+  halfCirclePoints,
   flareAxes,
   project,
   splitByDepth,
@@ -59,8 +60,21 @@ interface BallLayoutDiagramProps {
   showFlare?: boolean;
   /** Draw the finger and thumb holes. */
   showGrip?: boolean;
-  /** Draw the measured angle at each vertex. */
+  /** Draw the measured angle at each vertex. Dual angle only: VLS has no
+   *  angles to draw, it says the same thing in distances. */
   showAngles?: boolean;
+  /**
+   * Which notation the drawing is in.
+   *
+   * The two systems describe one layout, but they do not draw the same picture.
+   * Dual angle is two angles at two vertices, so the drawing marks the wedge at
+   * the pin and the wedge at the PAP. Storm VLS is three distances, so the
+   * drawing measures pin to PAP, PSA to PAP and the pin buffer along the arcs
+   * they are taken along. Showing the angle version while the sliders say
+   * inches was the drawing quietly answering a different question from the one
+   * on screen.
+   */
+  system?: "dual" | "vls";
   /**
    * Which way the ball is turned. Controlled by the parent rather than held
    * here, because "show me the PSA" is a thing the screen around the ball asks
@@ -96,7 +110,7 @@ interface Landmark {
   point: Vec3;
   label: string;
   color: string;
-  shape: "pin" | "core" | "pap";
+  shape: "pin" | "core" | "pap" | "psa";
 }
 
 export function BallLayoutDiagram({
@@ -107,12 +121,14 @@ export function BallLayoutDiagram({
   showFlare = false,
   showGrip = true,
   showAngles = true,
+  system = "dual",
   orientation,
   onOrientationChange,
   hand = "right",
   className = ""
 }: BallLayoutDiagramProps) {
   const geometry = useMemo(() => layoutGeometry(layout, ball, pap, hand), [layout, ball, pap, hand]);
+  const vls = system === "vls";
 
   const [dragging, setDragging] = useState(false);
   const svgRef = useRef<SVGSVGElement>(null);
@@ -206,6 +222,29 @@ export function BallLayoutDiagram({
     [geometry.gripCenter, hand, showGrip]
   );
 
+  /**
+   * On a symmetric ball the PSA is in the thumb hole.
+   *
+   * A symmetric core has no single preferred spin axis: every axis through the
+   * pin at a quarter turn is equally preferred, so there is no PSA the factory
+   * could mark and none is marked. What a pro shop does instead is name one,
+   * and the one it names is the thumb hole, because the hole itself is the
+   * biggest piece of mass the drilling removes and so it is what actually
+   * creates the asymmetry the finished ball has. Drawing the CG and nothing
+   * else left the drawing saying a symmetric ball has no PSA at all, which is a
+   * different and wrong claim. The marker only appears with the grip, since
+   * without a thumb hole drawn there is nothing for it to point at.
+   */
+  if (ball.symmetric && gripHoles.length > 0) {
+    landmarks.push({
+      id: "psa",
+      point: gripHoles[0].point,
+      label: "PSA",
+      color: "#fbbf24",
+      shape: "psa"
+    });
+  }
+
   const flareRings = useMemo(
     () =>
       showFlare && flareInches > 0.05
@@ -221,7 +260,7 @@ export function BallLayoutDiagram({
       className={`w-full touch-none select-none ${dragging ? "cursor-grabbing" : "cursor-grab"} ${className}`}
       role="img"
       tabIndex={0}
-      aria-label={describeDiagram(layout, ball)}
+      aria-label={describeDiagram(layout, ball, system)}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={endDrag}
@@ -279,47 +318,108 @@ export function BallLayoutDiagram({
           ))}
         </g>
 
-        {/* The two measured lines of the dual angle system. */}
+        {/* The Vertical Axis Line, on half the ball.
+
+            It is back, and it is a semicircle rather than the full great
+            circle it was before. The full circle wrapped all the way round and
+            read as globe wireframe, which is why it was taken out; with it
+            gone, the VAL angle at the PAP was a wedge with one leg ending in
+            nothing, and an angle measured against a line that is not drawn
+            looks like a mistake rather than a measurement. Half a circle,
+            centred on the PAP, is the line as a drill sheet draws it: through
+            the axis point, out to the silhouette either side, and stopping. */}
+        {stroke(
+          halfCirclePoints(geometry.pap, geometry.valDirection),
+          "#38bdf8",
+          1.6,
+          "4 4",
+          "val"
+        )}
+
+        {/* The measured lines. Pin to PAP is the first number of both systems,
+            so it is drawn either way; what hangs off it is what the two
+            notations disagree about. */}
         {stroke(arcPoints(geometry.pin, geometry.pap), "#f8fafc", 2.4, undefined, "pin-pap")}
-        {stroke(arcPoints(geometry.pin, geometry.core), "#fbbf24", 2, "5 3", "pin-core")}
 
-        {/* The ball's own pin-to-PSA (or pin-to-CG) distance, written on the
-            line it measures. It is the one number in the drawing that is not a
-            layout choice: the core puts it there and the driller works around
-            it, which is exactly why it has to be visible. Two balls with the
-            same dual angle numbers and different pin-to-PSA distances are
-            different layouts, and without this the drawing gives no hint of
-            that. */}
-        <ArcDistance
-          from={geometry.pin}
-          to={geometry.core}
-          label={`${formatInches(ball.pinToCore)}"`}
-          color="#fbbf24"
-          orientation={orientation}
-        />
-
-        {showAngles && (
+        {vls ? (
           <>
-            {/* Vertex at the PAP: pin-to-PAP against the VAL. */}
-            <AngleArc
-              vertex={geometry.pap}
-              a={geometry.pin}
-              b={walk(geometry.pap, geometry.valDirection, arcToAngle(2))}
+            {/* Storm VLS is three distances, so the drawing measures them. The
+                pin buffer runs from the pin to the nearest point of the VAL,
+                which is what "buffer" means and what the third number is; the
+                PSA-to-PAP arc is the second. Neither is a wedge, and drawing
+                the dual angle's wedges here would answer a question the sliders
+                on screen are not asking. */}
+            <ArcDistance
+              from={geometry.pin}
+              to={geometry.pap}
+              label={`${formatInches(layout.pinToPap)}"`}
+              color="#f8fafc"
+              orientation={orientation}
+            />
+            {!ball.symmetric && (
+              <>
+                {stroke(arcPoints(geometry.core, geometry.pap), "#fbbf24", 2, "5 3", "core-pap")}
+                <ArcDistance
+                  from={geometry.core}
+                  to={geometry.pap}
+                  label={`${formatInches(coreToPap(layout, ball))}"`}
+                  color="#fbbf24"
+                  orientation={orientation}
+                />
+              </>
+            )}
+            {stroke(arcPoints(geometry.pin, geometry.valFoot), "#38bdf8", 2, "5 3", "buffer")}
+            <ArcDistance
+              from={geometry.pin}
+              to={geometry.valFoot}
+              label={`${formatInches(pinBuffer(layout.pinToPap, layout.valAngle))}"`}
               color="#38bdf8"
-              value={Math.round(layout.valAngle)}
-              name="VAL"
               orientation={orientation}
             />
-            {/* Vertex at the pin: pin-to-PAP against pin-to-core. */}
-            <AngleArc
-              vertex={geometry.pin}
-              a={geometry.pap}
-              b={geometry.core}
+          </>
+        ) : (
+          <>
+            {stroke(arcPoints(geometry.pin, geometry.core), "#fbbf24", 2, "5 3", "pin-core")}
+
+            {/* The ball's own pin-to-PSA (or pin-to-CG) distance, written on the
+                line it measures. It is the one number in the drawing that is not
+                a layout choice: the core puts it there and the driller works
+                around it, which is exactly why it has to be visible. Two balls
+                with the same dual angle numbers and different pin-to-PSA
+                distances are different layouts, and without this the drawing
+                gives no hint of that. */}
+            <ArcDistance
+              from={geometry.pin}
+              to={geometry.core}
+              label={`${formatInches(ball.pinToCore)}"`}
               color="#fbbf24"
-              value={Math.round(layout.drillingAngle)}
-              name="DRILL"
               orientation={orientation}
             />
+
+            {showAngles && (
+              <>
+                {/* Vertex at the PAP: pin-to-PAP against the VAL. */}
+                <AngleArc
+                  vertex={geometry.pap}
+                  a={geometry.pin}
+                  b={walk(geometry.pap, geometry.valDirection, arcToAngle(2))}
+                  color="#38bdf8"
+                  value={Math.round(layout.valAngle)}
+                  name="VAL"
+                  orientation={orientation}
+                />
+                {/* Vertex at the pin: pin-to-PAP against pin-to-core. */}
+                <AngleArc
+                  vertex={geometry.pin}
+                  a={geometry.pap}
+                  b={geometry.core}
+                  color="#fbbf24"
+                  value={Math.round(layout.drillingAngle)}
+                  name="DRILL"
+                  orientation={orientation}
+                />
+              </>
+            )}
           </>
         )}
 
@@ -408,6 +508,15 @@ function Marker({ shape, x, y, color }: { shape: Landmark["shape"]; x: number; y
         <line x1={x} y1={y - 10} x2={x} y2={y - 8} />
         <line x1={x} y1={y + 8} x2={x} y2={y + 10} />
       </g>
+    );
+  }
+  if (shape === "psa") {
+    // A ring rather than a second filled diamond: on a symmetric ball this
+    // marks a PSA the pro shop named, at the thumb hole, rather than one the
+    // factory moulded in, and an outline says "located here" where a solid
+    // shape would say "moulded here".
+    return (
+      <circle cx={x} cy={y} r="5" fill="none" stroke={color} strokeWidth="2" />
     );
   }
   if (shape === "core") {
@@ -621,11 +730,16 @@ function gripHolePoints(gripCenter: Vec3, hand: Handedness): Array<{ point: Vec3
 }
 
 /** What a screen reader gets, since the picture carries the whole point. */
-function describeDiagram(layout: DualAngleLayout, ball: BallSpec): string {
+function describeDiagram(layout: DualAngleLayout, ball: BallSpec, system: "dual" | "vls"): string {
   const marker = ball.symmetric ? "CG" : "PSA";
+  const named =
+    system === "vls"
+      ? `a ${layout.pinToPap.toFixed(2)} by ${coreToPap(layout, ball).toFixed(2)} by ` +
+        `${pinBuffer(layout.pinToPap, layout.valAngle).toFixed(2)} inch Storm VLS layout`
+      : `a ${Math.round(layout.drillingAngle)} by ${layout.pinToPap.toFixed(2)} inch by ` +
+        `${Math.round(layout.valAngle)} dual angle layout`;
   return (
-    `A bowling ball showing a ${Math.round(layout.drillingAngle)} by ${layout.pinToPap.toFixed(2)} inch by ` +
-    `${Math.round(layout.valAngle)} dual angle layout. The pin sits ${layout.pinToPap.toFixed(2)} inches from the PAP ` +
+    `A bowling ball showing ${named}. The pin sits ${layout.pinToPap.toFixed(2)} inches from the PAP ` +
     `with a ${pinBuffer(layout.pinToPap, layout.valAngle).toFixed(2)} inch pin buffer, and the ${marker} is ` +
     `${coreToPap(layout, ball).toFixed(2)} inches from the PAP. Drag the ball, or use the arrow keys, to turn it.`
   );

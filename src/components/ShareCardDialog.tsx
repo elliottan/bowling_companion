@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useOverlay } from "../lib/useOverlay";
 import { useSheetDismiss } from "../lib/useSheetDismiss";
 import { Button } from "./ui/Button";
+import { ShareIosIcon } from "./icons";
 import { renderShareCard, shareCardFilename, shareCardImage } from "../lib/shareCard";
 
 /**
@@ -30,6 +31,17 @@ interface ShareCardDialogProps {
   open: boolean;
   card: ShareCardData | null;
   onClose: () => void;
+  /**
+   * Share a link instead of the picture, with the picture as the preview.
+   *
+   * For a screen whose share is worth opening rather than looking at. A layout
+   * is the case: the three numbers are only half of it, and a reader who gets
+   * the link can turn the ball, move the sliders and send one back, which a PNG
+   * can never do. The card is still rendered and still shown, because a link
+   * into a chat is a line of text nobody can see, and the preview is what says
+   * what they are about to send.
+   */
+  link?: { url: string; title: string } | null;
 }
 
 /**
@@ -40,7 +52,7 @@ interface ShareCardDialogProps {
  * "Save image" fallback honest on the browsers with no share sheet, because
  * the thing being saved is on screen.
  */
-export function ShareCardDialog({ open, card, onClose }: ShareCardDialogProps) {
+export function ShareCardDialog({ open, card, onClose, link = null }: ShareCardDialogProps) {
   const { dismiss, backdropStyle, rootStyle, panelStyle, exiting } = useSheetDismiss(onClose, "center");
   const overlayRef = useOverlay<HTMLDivElement>(dismiss, open);
 
@@ -48,6 +60,7 @@ export function ShareCardDialog({ open, card, onClose }: ShareCardDialogProps) {
   const [blob, setBlob] = useState<Blob | null>(null);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [note, setNote] = useState("");
 
   useEffect(() => {
     if (!open || !card) return;
@@ -55,6 +68,7 @@ export function ShareCardDialog({ open, card, onClose }: ShareCardDialogProps) {
     let live = true;
 
     setError("");
+    setNote("");
     setPreview(null);
     setBlob(null);
 
@@ -81,13 +95,29 @@ export function ShareCardDialog({ open, card, onClose }: ShareCardDialogProps) {
   if (!open || !card) return null;
 
   async function handleShare() {
-    if (!blob || !card) return;
+    if (!card) return;
     setBusy(true);
     setError("");
+    setNote("");
     try {
-      await shareCardImage(blob, shareCardFilename(card.title));
+      if (link) {
+        // The share sheet where there is one, the clipboard where there is
+        // not. A link nobody can paste is not a share, so the fallback says
+        // out loud that it landed somewhere.
+        if (typeof navigator.share === "function") {
+          await navigator.share({ title: link.title, url: link.url });
+        } else {
+          await navigator.clipboard.writeText(link.url);
+          setNote("Link copied");
+        }
+      } else if (blob) {
+        await shareCardImage(blob, shareCardFilename(card.title));
+      }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Sharing failed.");
+      // A dismissed share sheet rejects, and cancelling is not a failure.
+      if (!(err instanceof Error) || err.name !== "AbortError") {
+        setError(err instanceof Error ? err.message : "Sharing failed.");
+      }
     } finally {
       setBusy(false);
     }
@@ -126,13 +156,22 @@ export function ShareCardDialog({ open, card, onClose }: ShareCardDialogProps) {
         </div>
 
         {error && <p className="mt-3 text-sm font-semibold text-danger-600">{error}</p>}
+        {note && (
+          <p role="status" className="mt-3 text-sm font-semibold text-ink-secondary">
+            {note}
+          </p>
+        )}
 
         <div className="mt-4 flex justify-end gap-2">
           <Button variant="secondary" onClick={() => dismiss()}>
             Close
           </Button>
-          <Button onClick={handleShare} disabled={!blob || busy}>
-            {busy ? "Sharing…" : "Share"}
+          {/* A link share does not wait on the picture: the preview is a
+              courtesy, and a browser that will not rasterize the ball must not
+              take the share down with it. */}
+          <Button onClick={handleShare} disabled={(!link && !blob) || busy}>
+            <ShareIosIcon size={16} aria-hidden="true" />
+            {busy ? "Sharing…" : link ? "Share link" : "Share"}
           </Button>
         </div>
       </div>

@@ -4487,3 +4487,46 @@ from.
   rather than the games, and a pair played alternately gives roughly half the
   balls of the house read. That is why the thin floor is lower than the scope
   floor rather than equal to it.
+
+## ADR-098: A grip style is a bowler's setting, stored and shared before it is modelled
+
+**Context.** The app knows two things about the bowler that every layout is read
+against: which hand they throw with, and where their axis comes out. It did not
+know how they hold the ball.
+
+Two-handed bowling is not a variation on a one-handed release. There is no thumb
+in the ball, the axis tilt and rotation a two-hander generates are outside the
+range a one-handed model is fitted to, and a PAP measured off a two-handed track
+sits somewhere a one-handed chart has no advice about. The dual angle system
+itself was written for a thumb-in game, and the motion reading in
+`lib/ballLayout.ts` is calibrated against that chart.
+
+So there were two ways to add it: model it, or record it. Modelling it now would
+mean inventing coefficients for a release nothing in this codebase has ever
+measured, and the layout lab's whole value is that a bowler can trust what it
+says about a layout before drilling it.
+
+**Decision.** `GripStyle` is `"1h" | "2h"`, stored under the `grip_style`
+settings key alongside handedness and the PAP, edited in Settings, Preferences
+and in the layout lab, and carried in a shared layout link as `grip`.
+
+Nothing downstream reads it yet. `layoutGeometry`, `readMotion` and the ball
+drawing are unchanged by it, and the Preferences copy says so out loud rather
+than leaving a bowler to assume the numbers moved.
+
+Absent means one-handed, everywhere: unset in the database, missing from a link,
+or unreadable in one. A toggle sitting on neither answer is a question nobody
+asked, and one-handed is still overwhelmingly the common grip.
+
+**Consequences.**
+- Every layout link shared before this reads back as one-handed, which is what
+  it was, so no link breaks and none has to be versioned.
+- The setting accretes now and is available the day the geometry is taught two
+  handed layouts, so nobody has to re-answer it then.
+- A two-handed bowler gets a layout reading calibrated for a thumb-in game and
+  is told nothing about that in the lab itself, only in Preferences. That is the
+  cost of recording before modelling, and it is the smaller cost: a number
+  quietly computed for the wrong release would be worse than a number the app
+  has not adjusted and says it has not adjusted.
+- No schema version. `settings` is a key-value table, so a new key is a new row
+  (ADR-038's backup shape carries it without changes).

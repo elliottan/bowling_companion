@@ -8,6 +8,56 @@ merge to `main` (`docs/DEPLOYMENT.md`), so every section below is a dated batch
 of shipped work rather than a release. Thirty of them used to be headed
 `[Unreleased]`, which said nothing once they had all shipped.
 
+## The layout lab, in less space and with more of the ball (2026-09-15)
+
+**A layout shares as a link, with the picture as the preview.** The share
+button now sends the link to the layout rather than a PNG, because a layout is
+a thing to open: whoever gets it can turn the ball, move the sliders and send a
+different layout back. The card is still drawn and still shown before anything
+is sent, so you can see what you are sharing. Saving the picture to your phone
+is its own button beside it. The flare figure is off the card: the sentence
+above it already says what the ball will do, and a number to a tenth of an inch
+invited being read as a spec.
+
+**Every share icon is the share glyph.** The one your phone draws for sharing,
+on the session, the stats and the layout.
+
+**The layout lab says who is bowling in one band.** Your PAP reads as one line
+per measurement, "5 over" and "1/2 up", with no heading band above either, and
+the hand and grip toggles sit beside it instead of underneath.
+
+**One-handed or two-handed.** A new toggle in the layout lab and in Settings,
+Preferences. It is saved, it rides a shared layout link, and it opens
+one-handed. What a two-handed grip does to the layout geometry and the motion
+reading is not modelled yet, and Preferences says so rather than quietly
+handing back a number computed for a different release.
+
+**Presets replaced the reset.** Every reset the screen had was "go back to the
+benchmark", and the benchmark is a preset, so the two controls became one named
+Presets control on the Layout heading, and the preset field below it is gone.
+
+**The two notations are the toggle.** The Dual angle and Storm VLS boxes are
+now the buttons that choose which one the sliders edit. The segmented control
+above them said the same two words.
+
+**Reset asks first, and says what it resets to.** It puts the hand, grip and
+PAP from your preferences back, which matters most when you are reading
+somebody else's shared layout, so it names that before doing it.
+
+**The ball draws what you are editing.** Switch to Storm VLS and the ball
+measures the three distances instead of drawing the two angles. The axis line
+is back, across half the ball, so the VAL angle is measured against something
+again. A symmetric ball shows its PSA in the thumb hole, which is where a pro
+shop puts one.
+
+**The ball no longer turns to its back.** Dragging stops a quarter turn either
+way, because the back of a laid-out ball is blank and getting back from it took
+another drag.
+
+**Settings opens from the layout lab.** Tapping Settings in the lab's More menu
+did nothing: the screen closed itself and then undid the move. It goes to
+Preferences now.
+
 ## A finished session opens where it should, under load (2026-09-15)
 
 No app change: the end-to-end test that guards it was asking the screen

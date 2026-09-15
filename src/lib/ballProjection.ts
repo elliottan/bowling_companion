@@ -62,8 +62,21 @@ export const defaultOrientationFor = (hand: "left" | "right"): Orientation => ({
  */
 export const MAX_PITCH = Math.PI / 2 - 0.05;
 
+/**
+ * How far round the ball a drag may go, either way from square on.
+ *
+ * The back of a laid-out ball is nothing: the pin, the core marker, the PAP and
+ * the grip all live in the front hemisphere by construction, and a bowler who
+ * kept dragging arrived at a blank sphere with a faded line or two showing
+ * through it, then had to drag all the way back to find the layout again. A
+ * quarter turn either side keeps the grip centre on screen at every orientation
+ * and still reaches round far enough to see the PAP square on, which is the
+ * furthest anything worth looking at ever sits.
+ */
+export const MAX_YAW = Math.PI / 2;
+
 export const clampOrientation = (o: Orientation): Orientation => ({
-  yaw: o.yaw,
+  yaw: clamp(o.yaw, -MAX_YAW, MAX_YAW),
   pitch: clamp(o.pitch, -MAX_PITCH, MAX_PITCH)
 });
 
@@ -171,6 +184,25 @@ export function circlePoints(pole: Vec3, through: Vec3, steps = 96): Vec3[] {
         z: start.z * c + perp.z * s
       })
     );
+  }
+  return out;
+}
+
+/**
+ * Sample half a great circle, centred on `through` and running `dir` both ways.
+ *
+ * Half rather than the whole circle, for a line whose job is to give an angle
+ * something to be measured against. A full circle wraps all the way round the
+ * ball and reads as globe wireframe (the note on the midline in
+ * `BallLayoutDiagram` says why); a bare vertex with nothing leaving it leaves
+ * the angle hanging in space. A semicircle centred on the vertex is the line
+ * as a drill sheet draws it: through the point, out to the silhouette either
+ * side, and stopping where the ball turns away.
+ */
+export function halfCirclePoints(through: Vec3, dir: Vec3, steps = 48): Vec3[] {
+  const out: Vec3[] = [];
+  for (let i = 0; i <= steps; i += 1) {
+    out.push(walk(through, dir, -Math.PI / 2 + (Math.PI * i) / steps));
   }
   return out;
 }

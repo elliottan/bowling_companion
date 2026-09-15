@@ -45,3 +45,16 @@ export const FIELD_DENSE_TEXTAREA = `${FIELD_DENSE.replace("h-9", "min-h-9 py-1.
 
 /** The dense chrome for a `<select>`, which needs room for its own chevron. */
 export const FIELD_DENSE_SELECT = `${FIELD_DENSE} appearance-none pr-8`;
+
+/**
+ * The dense `<select>` chrome for a box holding a digit or a fraction rather
+ * than a word: a PAP's whole inches, its eighths.
+ *
+ * `FIELD_DENSE_SELECT` reserves 2rem on the right for the chevron, which is
+ * right for a box the width of a word and eats most of a box the width of "1/8".
+ * A narrower reserve is the only difference, and it is a constant rather than a
+ * `pr-5` appended at the call site because Tailwind resolves competing padding
+ * utilities by stylesheet order, not by the order they appear in the class
+ * attribute, so the override would silently lose (§2).
+ */
+export const FIELD_DENSE_SELECT_NARROW = `${FIELD_DENSE} appearance-none pr-5`;

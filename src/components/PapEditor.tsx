@@ -1,6 +1,6 @@
 import { ChevronDown } from "lucide-react";
 import type { ReactNode } from "react";
-import { FIELD_DENSE_SELECT, FIELD_MICRO_LABEL } from "./ui/field";
+import { FIELD_DENSE_SELECT, FIELD_DENSE_SELECT_NARROW } from "./ui/field";
 import {
   EIGHTHS,
   clamp,
@@ -17,6 +17,14 @@ import {
  * lab edits it, Settings edits it, and both write the same stored measurement.
  * One component means the two can never disagree about the bounds, the rounding
  * or which way "down" is.
+ *
+ * Each measurement is one line, and the line reads the way it is said out loud:
+ * the number first, then what it is. "5 1/2 over", "1/2 down". The labels used
+ * to sit in a band above each row, which cost two bands of a phone screen to
+ * name two things a bowler can already read off the row itself, and pushed the
+ * ball below the fold on the screen whose whole complaint was that too little
+ * fits on it. The names survive as the spoken labels on each control, so
+ * nothing is lost to a screen reader.
  */
 export function PapEditor({
   pap,
@@ -29,6 +37,8 @@ export function PapEditor({
    *  lab is pushed over Settings. */
   idPrefix?: string;
 }) {
+  const parts = splitInches(pap.up);
+
   return (
     <>
       <InchField
@@ -37,14 +47,37 @@ export function PapEditor({
         value={pap.over}
         maxWhole={6}
         onChange={(over) => onChange({ ...pap, over: clamp(over, 0, 6.5) })}
+        trailing={<span className="text-sm text-ink-secondary">Over</span>}
       />
       <InchField
         label="Up or down"
         id={`${idPrefix}-up`}
         value={pap.up}
         maxWhole={3}
-        signed
         onChange={(up) => onChange({ ...pap, up: clamp(up, -3, 3) })}
+        trailing={
+          // The direction rides the end of the row rather than the start,
+          // because it is the word the measurement finishes on. It carries the
+          // sign for the whole measurement, not for its integer part: half an
+          // inch below the midline is a real PAP and there is no way to write
+          // it as a negative zero.
+          <Dropdown className="w-[5.25rem]">
+            <select
+              aria-label="Up or down direction"
+              className={FIELD_DENSE_SELECT}
+              value={parts.negative ? "down" : "up"}
+              onChange={(e) =>
+                onChange({
+                  ...pap,
+                  up: clamp(joinInches({ ...parts, negative: e.target.value === "down" }), -3, 3)
+                })
+              }
+            >
+              <option value="up">Up</option>
+              <option value="down">Down</option>
+            </select>
+          </Dropdown>
+        }
       />
     </>
   );
@@ -64,9 +97,9 @@ function Dropdown({ className, children }: { className: string; children: ReactN
     <div className={`relative shrink-0 ${className}`}>
       {children}
       <ChevronDown
-        size={14}
+        size={13}
         aria-hidden="true"
-        className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-ink-tertiary"
+        className="pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2 text-ink-tertiary"
       />
     </div>
   );
@@ -74,7 +107,7 @@ function Dropdown({ className, children }: { className: string; children: ReactN
 
 /**
  * A measurement picked the way it is written: whole inches in one box, the
- * fraction in another, and the unit spelled out after both.
+ * fraction in another, and what it means after both.
  *
  * This replaced a single `type="number"` with `step="0.125"`. Nothing in
  * bowling is measured in decimal inches, so that field asked for a number no
@@ -88,13 +121,8 @@ function Dropdown({ className, children }: { className: string; children: ReactN
  * seven, and a list cannot hold a decimal point, a stray digit or a number out
  * of range in the first place. The typed box that used to hold the whole inches
  * had to filter digits and clamp on the way through, and it still drew a
- * different control from the fraction beside it. Three selects of one width and
+ * different control from the fraction beside it. Two selects of one width and
  * one height read as one measurement.
- *
- * `signed` adds the direction select for a measurement that can sit either side
- * of the midline; the sign rides the whole measurement rather than its integer
- * part, because half an inch below the line cannot be written as a negative
- * zero.
  */
 export function InchField({
   label,
@@ -102,78 +130,57 @@ export function InchField({
   value,
   onChange,
   maxWhole,
-  signed = false
+  trailing
 }: {
   label: string;
   id: string;
   value: number;
   onChange: (value: number) => void;
   maxWhole: number;
-  signed?: boolean;
+  /** What the row finishes on: the word the measurement is named by, or the
+   *  control that says which way it goes. */
+  trailing?: ReactNode;
 }) {
   const parts = splitInches(value);
   const emit = (next: Partial<InchParts>) => onChange(joinInches({ ...parts, ...next }));
 
   return (
-    <div>
-      <span className={FIELD_MICRO_LABEL} id={`${id}-label`}>
-        {label}
-      </span>
-      {/* Each control is sized by its wrapper rather than by a width class on
-          the control itself. `FIELD_DENSE` carries `w-full`, and Tailwind
-          resolves competing utilities by stylesheet order rather than attribute
-          order, so a `w-14` appended to it loses and the row overflows the
-          card. Same trap as the colour rule in docs/DESIGN-LANGUAGE.md §2. */}
-      <div className="flex items-center gap-2">
-        {/* Direction first, because it is read first: "half an inch down". A
-            row without one indents by the same width, so the whole inches of
-            both measurements line up in a column. */}
-        {signed ? (
-          <Dropdown className="w-[5.5rem]">
-            <select
-              aria-label={`${label} direction`}
-              className={FIELD_DENSE_SELECT}
-              value={parts.negative ? "down" : "up"}
-              onChange={(e) => emit({ negative: e.target.value === "down" })}
-            >
-              <option value="up">Up</option>
-              <option value="down">Down</option>
-            </select>
-          </Dropdown>
-        ) : (
-          <span aria-hidden="true" className="w-[5.5rem] shrink-0" />
-        )}
-        <Dropdown className="w-[5rem]">
-          <select
-            id={id}
-            aria-labelledby={`${id}-label`}
-            className={`${FIELD_DENSE_SELECT} tabular-nums`}
-            value={parts.whole}
-            onChange={(e) => emit({ whole: Number(e.target.value) })}
-          >
-            {Array.from({ length: maxWhole + 1 }, (_, whole) => (
-              <option key={whole} value={whole}>
-                {whole}
-              </option>
-            ))}
-          </select>
-        </Dropdown>
-        <Dropdown className="w-[5rem]">
-          <select
-            aria-label={`${label} fraction`}
-            className={`${FIELD_DENSE_SELECT} tabular-nums`}
-            value={parts.eighths}
-            onChange={(e) => emit({ eighths: Number(e.target.value) })}
-          >
-            {EIGHTHS.map((fraction, eighths) => (
-              <option key={eighths} value={eighths}>
-                {fraction}
-              </option>
-            ))}
-          </select>
-        </Dropdown>
-        <span className="text-sm text-ink-secondary">in</span>
-      </div>
+    // Each control is sized by its wrapper rather than by a width class on the
+    // control itself. `FIELD_DENSE` carries `w-full`, and Tailwind resolves
+    // competing utilities by stylesheet order rather than attribute order, so a
+    // `w-14` appended to it loses and the row overflows the card. Same trap as
+    // the colour rule in docs/DESIGN-LANGUAGE.md §2.
+    <div className="flex items-center gap-1.5">
+      <Dropdown className="w-[3.5rem]">
+        <select
+          id={id}
+          aria-label={label}
+          className={`${FIELD_DENSE_SELECT_NARROW} tabular-nums`}
+          value={parts.whole}
+          onChange={(e) => emit({ whole: Number(e.target.value) })}
+        >
+          {Array.from({ length: maxWhole + 1 }, (_, whole) => (
+            <option key={whole} value={whole}>
+              {whole}
+            </option>
+          ))}
+        </select>
+      </Dropdown>
+      <Dropdown className="w-[4.5rem]">
+        <select
+          aria-label={`${label} fraction`}
+          className={`${FIELD_DENSE_SELECT_NARROW} tabular-nums`}
+          value={parts.eighths}
+          onChange={(e) => emit({ eighths: Number(e.target.value) })}
+        >
+          {EIGHTHS.map((fraction, eighths) => (
+            <option key={eighths} value={eighths}>
+              {fraction}
+            </option>
+          ))}
+        </select>
+      </Dropdown>
+      {trailing}
     </div>
   );
 }

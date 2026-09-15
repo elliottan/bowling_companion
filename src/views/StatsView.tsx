@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { LayoutGrid, Share2 } from "lucide-react";
+import { LayoutGrid } from "lucide-react";
+import { ShareIosIcon } from "../components/icons";
 import { RackIcon } from "../components/icons";
 import { Stats } from "../components/Stats";
 import {
@@ -152,7 +153,7 @@ export function StatsView({
                     scroll; under the tiles is neither the bottom nor a menu), and the
                     header keeps its one action, which is the share. */}
                 <IconButton label="Share these stats" variant="round" onClick={() => setShareOpen(true)}>
-                  <Share2 size={20} aria-hidden="true" />
+                  <ShareIosIcon size={20} aria-hidden="true" />
                 </IconButton>
               </div>
             </div>

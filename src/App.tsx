@@ -610,14 +610,14 @@ function App() {
               <LayoutLabView
                 key={`layout-lab-${i}`}
                 onBack={popOverlay}
-                // The lab opens with the bowler's hand and PAP, so its More
-                // menu goes to where those two are kept. The overlay comes off
-                // first: Settings is a tab, and leaving a pushed screen up over
-                // the tab it just switched to would hide the destination.
-                onOpenSettings={() => {
-                  popOverlay();
-                  dispatch({ type: "goToSettingsSection", section: "preferences" });
-                }}
+                // The lab opens with the bowler's hand, grip and PAP, so its
+                // More menu goes to where those are kept. One dispatch: the
+                // action takes the overlay off itself, because popping it
+                // separately went through history and landed after the tab
+                // switch, undoing it (see the note on the reducer case).
+                onOpenSettings={() =>
+                  dispatch({ type: "goToSettingsSection", section: "preferences" })
+                }
               />
             );
           // Stats drill-downs. They read the shared session filter themselves,

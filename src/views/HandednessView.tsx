@@ -4,10 +4,11 @@ import { HandednessPicker } from "../components/HandednessPicker";
 import { PapEditor } from "../components/PapEditor";
 import { IconButton } from "../components/ui/IconButton";
 import { DEFAULT_PAP } from "../lib/ballLayout";
-import { getPap, setPap } from "../services/bowlingRepository";
+import { getGripStyle, getPap, setGripStyle, setPap } from "../services/bowlingRepository";
 import { PushScreen } from "../components/PushScreen";
 import { DriftZoneLane, ZONE_ACCENT } from "../components/DriftZoneLane";
-import type { Handedness } from "../types/bowling";
+import { SegmentedControl } from "../components/ui/SegmentedControl";
+import type { GripStyle, Handedness } from "../types/bowling";
 import { driftDirection, type DriftModel } from "../lib/driftModel";
 import { GROUP_HEADING } from "../components/ui/typography";
 
@@ -50,6 +51,10 @@ export function HandednessView({ value, onChange, driftModel, onDriftModelChange
   // a read taken once at mount would sit here stale behind the lab that is
   // pushed over this very screen.
   const pap = useLiveQuery(getPap, [], undefined) ?? DEFAULT_PAP;
+  // One-handed until told otherwise. Two-handed is a real and growing grip, but
+  // it is still the rarer one, and a toggle that opens on neither answer is a
+  // question nobody asked.
+  const grip: GripStyle = useLiveQuery(getGripStyle, [], undefined) ?? "1h";
 
   const zoneRange: Record<(typeof ZONES)[number], string> = {
     outside: `Boards 1 to ${driftModel.outside_max}`,
@@ -77,6 +82,28 @@ export function HandednessView({ value, onChange, driftModel, onDriftModelChange
           Everything mirrors: board 1, the arrows, spare targets, offset and
           drift. Saved sessions keep the numbers they were recorded with.
         </p>
+      </Group>
+
+      <Group
+        heading="Grip"
+        description={
+          <>
+            One-handed with a thumb, or two-handed with the thumb out. The layout lab opens on
+            this and carries it in a shared layout. What a two-handed grip does to the layout
+            geometry and the ball-motion reading is not modelled yet, so nothing here changes a
+            number: the app would rather say it does not know than guess.
+          </>
+        }
+      >
+        <SegmentedControl
+          label="Grip style"
+          value={grip}
+          onChange={(next) => void setGripStyle(next)}
+          options={[
+            { value: "1h", label: "One-handed" },
+            { value: "2h", label: "Two-handed" }
+          ]}
+        />
       </Group>
 
       <Group

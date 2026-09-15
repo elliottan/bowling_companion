@@ -208,8 +208,29 @@ export function navReducer(state: NavState, action: NavAction): NavState {
     case "leaveSession":
       return { ...state, view: state.previousView };
 
+    /**
+     * Land on a Settings section, with nothing left standing over it.
+     *
+     * The overlays go because a settings section is a destination on a tab, and
+     * a pushed screen left up in front of it hides the thing just navigated to.
+     * The layout lab's own "Settings" item is where this bit: it used to pop
+     * the overlay and then dispatch this, two steps, and the pop goes through
+     * `history.back()`, which lands asynchronously. The dispatch ran first, the
+     * pop arrived a moment later carrying the route from before it, and the
+     * reducer dutifully restored the lab over the Settings screen. The tap
+     * looked like it did nothing at all. One action that describes the whole
+     * move cannot race itself.
+     */
     case "goToSettingsSection":
-      return { ...state, view: "settings", settingsSection: action.section };
+      return {
+        ...state,
+        view: "settings",
+        settingsSection: action.section,
+        overlays: [],
+        viewedSessionId: null,
+        catalogBallId: null,
+        openGuideId: null
+      };
 
     case "pushOverlay":
       // Re-pushing the overlay already on top is a no-op: the shortcut that

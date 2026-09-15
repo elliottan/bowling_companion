@@ -33,7 +33,8 @@ import {
   valAngleForBuffer,
   walk,
   type BallSpec,
-  type DualAngleLayout
+  type DualAngleLayout,
+  type Vec3
 } from "./ballLayout";
 
 const BENCHMARK: DualAngleLayout = { drillingAngle: 45, pinToPap: 4.5, valAngle: 45 };
@@ -479,3 +480,52 @@ describe("presets", () => {
     expect(late.angularity).toBeGreaterThan(down.angularity);
   });
 });
+
+describe("valFoot", () => {
+  const ball = DEFAULT_ASYMMETRIC;
+
+  it("sits on the VAL, which is what makes it the foot of the buffer", () => {
+    const g = layoutGeometry({ drillingAngle: 45, pinToPap: 4.5, valAngle: 40 }, ball);
+    // The VAL is the great circle through the PAP perpendicular to the
+    // PAP-to-grip line, so its pole is perpendicular to every point on it.
+    const pole = normalize(crossOf(g.pap, g.valDirection));
+    expect(dot(g.valFoot, pole)).toBeCloseTo(0, 8);
+  });
+
+  it("is exactly a pin buffer away from the pin", () => {
+    // The drawing measures the third VLS number along this arc, so if the two
+    // ever disagreed the picture would be labelling itself wrongly.
+    for (const valAngle of [5, 25, 45, 70, 89]) {
+      const layout = { drillingAngle: 45, pinToPap: 4.5, valAngle };
+      const g = layoutGeometry(layout, ball);
+      expect(surfaceDistance(g.pin, g.valFoot)).toBeCloseTo(pinBuffer(4.5, valAngle), 6);
+    }
+  });
+
+  it("collapses onto the PAP when the pin lies on the VAL itself", () => {
+    // A zero VAL angle puts the pin straight up the axis line, so the nearest
+    // point of that line to the pin is the pin's own foot on it, and the buffer
+    // is nothing.
+    const g = layoutGeometry({ drillingAngle: 45, pinToPap: 4.5, valAngle: 0 }, ball);
+    expect(surfaceDistance(g.pin, g.valFoot)).toBeCloseTo(0, 6);
+  });
+
+  it("mirrors with the rest of the layout for a left-hander", () => {
+    const layout = { drillingAngle: 45, pinToPap: 4.5, valAngle: 40 };
+    const right = layoutGeometry(layout, ball, DEFAULT_PAP, "right");
+    const left = layoutGeometry(layout, ball, DEFAULT_PAP, "left");
+    expect(left.valFoot.x).toBeCloseTo(-right.valFoot.x, 10);
+    expect(left.valFoot.y).toBeCloseTo(right.valFoot.y, 10);
+    expect(left.valFoot.z).toBeCloseTo(right.valFoot.z, 10);
+  });
+});
+
+/** The cross product, written out: `ballLayout` keeps its own private and one
+ *  use in a test does not earn an export. */
+function crossOf(a: Vec3, b: Vec3): Vec3 {
+  return {
+    x: a.y * b.z - a.z * b.y,
+    y: a.z * b.x - a.x * b.z,
+    z: a.x * b.y - a.y * b.x
+  };
+}

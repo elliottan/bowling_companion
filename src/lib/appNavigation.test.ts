@@ -27,6 +27,34 @@ describe("navReducer", () => {
       expect(state.settingsSection).toBe("lanes");
     });
 
+    it("clears whatever was pushed over the tab, so the section is the thing on screen", () => {
+      // The layout lab's Settings item is where this bit. It used to pop the
+      // overlay and then dispatch this, two steps, and the pop goes through
+      // history and lands asynchronously: it arrived after the tab switch,
+      // carrying the route from before it, and put the lab straight back over
+      // the Settings screen. The tap looked like it did nothing at all. One
+      // action for the whole move cannot race itself.
+      const state = run([
+        { type: "pushOverlay", overlay: "layout-lab" },
+        { type: "goToSettingsSection", section: "preferences" }
+      ]);
+      expect(state.view).toBe("settings");
+      expect(state.settingsSection).toBe("preferences");
+      expect(state.overlays).toEqual([]);
+    });
+
+    it("clears the layers that ride on an overlay too", () => {
+      const state = run([
+        { type: "pushOverlay", overlay: "catalog" },
+        { type: "openCatalogBall", ballId: "storm-physix" },
+        { type: "goToSettingsSection", section: "preferences" }
+      ]);
+      // A ball detail with no catalog under it describes nothing, so it goes
+      // with the screen that was showing it.
+      expect(state.catalogBallId).toBeNull();
+      expect(state.overlays).toEqual([]);
+    });
+
     it("leaves the section alone when moving between other tabs", () => {
       const state = run([
         { type: "goToSettingsSection", section: "oil-patterns" },
