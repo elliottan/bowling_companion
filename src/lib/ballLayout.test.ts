@@ -16,8 +16,14 @@ import {
   flarePotential,
   formatDualAngle,
   formatInches,
+  formatLayoutSpec,
   formatVls,
   fromVls,
+  layoutSystemFor,
+  makeLayoutSpec,
+  specToBall,
+  specToLayout,
+  splitFractionRuns,
   inDoNotUseBand,
   joinInches,
   layoutGeometry,
@@ -517,6 +523,69 @@ describe("valFoot", () => {
     expect(left.valFoot.x).toBeCloseTo(-right.valFoot.x, 10);
     expect(left.valFoot.y).toBeCloseTo(right.valFoot.y, 10);
     expect(left.valFoot.z).toBeCloseTo(right.valFoot.z, 10);
+  });
+});
+
+describe("fractional runs", () => {
+  it("pulls the fraction out of a mixed measurement, inch mark and all", () => {
+    expect(splitFractionRuns('4 1/2"')).toEqual([
+      { text: "4 ", fraction: false },
+      { text: '1/2"', fraction: true }
+    ]);
+  });
+
+  it("returns a whole number as one run, so nothing is set smaller", () => {
+    expect(splitFractionRuns('45')).toEqual([{ text: "45", fraction: false }]);
+  });
+
+  it("handles a bare fraction with no whole part", () => {
+    expect(splitFractionRuns("1/8")).toEqual([{ text: "1/8", fraction: true }]);
+  });
+
+  it("keeps the separators of a three-number layout between the measurements", () => {
+    expect(splitFractionRuns("45 x 4 1/2 x 45").map((r) => r.text).join("")).toBe(
+      "45 x 4 1/2 x 45"
+    );
+    expect(splitFractionRuns("45 x 4 1/2 x 45").filter((r) => r.fraction)).toHaveLength(1);
+  });
+
+  it("marks every fraction in a reading written entirely in them", () => {
+    expect(splitFractionRuns('5 1/2" x 4 1/4" x 2 3/8"').filter((r) => r.fraction)).toHaveLength(3);
+  });
+});
+
+describe("a layout as a ball keeps it", () => {
+  const spec = makeLayoutSpec({ drillingAngle: 50, pinToPap: 4.5, valAngle: 40 }, DEFAULT_ASYMMETRIC);
+
+  it("round-trips the three numbers and the ball's own geometry", () => {
+    expect(specToLayout(spec)).toEqual({ drillingAngle: 50, pinToPap: 4.5, valAngle: 40 });
+    expect(specToBall(spec).pinToCore).toBe(DEFAULT_ASYMMETRIC.pinToCore);
+    expect(specToBall(spec).symmetric).toBe(false);
+  });
+
+  it("stores no notation unless one was asked for", () => {
+    expect(spec.system).toBeUndefined();
+    expect(makeLayoutSpec(specToLayout(spec), DEFAULT_ASYMMETRIC, "vls").system).toBe("vls");
+  });
+
+  it("writes the same layout in either notation", () => {
+    expect(formatLayoutSpec(spec, "dual")).toBe("50 x 4 1/2 x 40");
+    expect(formatLayoutSpec(spec, "vls")).toBe(
+      formatVls(toVls(specToLayout(spec), specToBall(spec)))
+    );
+  });
+
+  it("falls back to the app-wide notation, and lets a ball outrank it", () => {
+    expect(layoutSystemFor(spec, "vls")).toBe("vls");
+    expect(layoutSystemFor({ ...spec, system: "dual" }, "vls")).toBe("dual");
+    expect(layoutSystemFor(undefined, "dual")).toBe("dual");
+  });
+
+  it("gives a symmetric ball the CG distance rather than a PSA one", () => {
+    const sym = makeLayoutSpec({ drillingAngle: 45, pinToPap: 4, valAngle: 45 }, DEFAULT_SYMMETRIC);
+    expect(specToBall(sym).pinToCore).toBe(DEFAULT_SYMMETRIC.pinToCore);
+    // No moulded PSA, so VLS is two numbers on it.
+    expect(formatLayoutSpec(sym, "vls").split(" x ")).toHaveLength(2);
   });
 });
 

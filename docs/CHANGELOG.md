@@ -8,6 +8,32 @@ merge to `main` (`docs/DEPLOYMENT.md`), so every section below is a dated batch
 of shipped work rather than a release. Thirty of them used to be headed
 `[Unreleased]`, which said nothing once they had all shipped.
 
+## Your balls carry their layouts (2026-09-15)
+
+**A ball's layout is entered on sliders, not typed.** The arsenal's layout box
+took whatever you wrote and could do nothing with it. Adding or editing a ball
+now gives you the same controls the layout lab has: dual angle or Storm VLS,
+the core type, and the pin-to-PSA distance on an asymmetric ball. Switching
+between the two notations changes how you are typing, never the drilling.
+
+**View layout, from the arsenal.** Every ball with a layout gets an eye beside
+it that opens the layout lab on that ball: its numbers, its core, drawn against
+your own axis, hand and grip. The lab still saves nothing, and it says so.
+
+**Which system layouts are written in is yours to choose.** Settings,
+Appearance, Layout numbers: dual angle or Storm VLS. It sets what the arsenal
+shows, what the lab opens in, and how a new layout is typed. A single ball can
+be pinned to the other system in its own form, for when the drill sheet came
+that way.
+
+**Fractions read as fractions.** Every measurement in inches sets its fraction a
+step smaller than the whole number, so `4 1/2"` reads as four and a half at a
+glance instead of as a row of digits.
+
+**Layouts you typed before are kept.** A ball that carries the old text still
+shows it, on the ball and in the form, until you enter the numbers. Nothing was
+guessed at or converted behind your back.
+
 ## The layout lab, in less space and with more of the ball (2026-09-15)
 
 **A layout shares as a link, with the picture as the preview.** The share

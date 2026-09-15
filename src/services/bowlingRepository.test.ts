@@ -13,10 +13,12 @@ import {
   getCompletedGameCount,
   getSessionHistory,
   getSessionList,
+  getLayoutSystem,
   getSetting,
   saveFrame,
   setBackupNudgeSnoozedUntil,
   setDriftModel,
+  setLayoutSystem,
   setSetting,
   updateGameNotes
 } from "./bowlingRepository";
@@ -242,6 +244,29 @@ describe("drift model setting", () => {
     const model = { ...DEFAULT_DRIFT_MODEL, release_offset: 4.5 };
     await setDriftModel(model);
     expect(await getDriftModel()).toEqual(model);
+  });
+});
+
+describe("layout system preference", () => {
+  beforeEach(async () => {
+    await db.delete();
+    await db.open();
+  });
+
+  it("is null until the bowler picks one, so callers can name their own default", async () => {
+    expect(await getLayoutSystem()).toBeNull();
+  });
+
+  it("round-trips a choice", async () => {
+    await setLayoutSystem("vls");
+    expect(await getLayoutSystem()).toBe("vls");
+    await setLayoutSystem("dual");
+    expect(await getLayoutSystem()).toBe("dual");
+  });
+
+  it("reads a stored value that is not a notation as no choice at all", async () => {
+    await setSetting("layout_system", "storm");
+    expect(await getLayoutSystem()).toBeNull();
   });
 });
 

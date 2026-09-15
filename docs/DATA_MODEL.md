@@ -53,6 +53,20 @@ opens a real v1 database, writes rows in the shape v1 actually stored, and lets
 the app's own Dexie declaration upgrade it: this is the one failure mode with no
 recovery, since there is no server holding a second copy.
 
+## A ball's layout (ADR-099)
+
+`Ball.layout_spec` stores the dual angle three plus the ball's own core geometry
+(`symmetric`, `pinToCore`), and never the VLS distances: those are a pure
+function of the stored numbers (`toVls` in `lib/ballLayout.ts`), so storing them
+too would be storing one fact twice. `spec.system` pins one ball to a notation;
+unset means the app-wide `layout_system` setting, which in turn defaults to dual
+angle.
+
+`Ball.layout`, the free text the arsenal used to take, is still read and never
+written. It is not parsed into numbers, because the text says nothing about the
+core type or the pin-to-PSA distance the conversion needs, and entering a real
+layout is what retires it.
+
 ## Scoring rules summary
 
 Implemented in `lib/scoring.ts`. The full reference is the test file

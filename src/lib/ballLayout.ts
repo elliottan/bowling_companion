@@ -32,7 +32,7 @@
  * Pure, React-free and Dexie-free, per the `lib/` layering rule.
  */
 
-import type { Handedness } from "../types/bowling";
+import type { BallLayoutSpec, Handedness, LayoutSystem } from "../types/bowling";
 
 /** A USBC-legal ball is 8.5" across, so every arc on its surface rides this radius. */
 export const BALL_RADIUS = 4.25;
@@ -420,6 +420,45 @@ export function formatInches(value: number): string {
 }
 
 /**
+ * A written measurement, split into the parts that are set at different sizes.
+ *
+ * `4 1/2"` is one number, but the fraction in it is a stack of two digits
+ * squeezed into the height of one, so at a single weight it reads as noise
+ * beside the whole inches and the eye has to stop and parse it. Setting the
+ * fraction a step smaller is what typesetting has always done with one, and it
+ * is what makes `4 1/2` read as four and a half at a glance rather than as
+ * three characters.
+ *
+ * The split is here rather than in the component that draws it because it is a
+ * string rule with edge cases worth testing: a bare fraction with no whole part
+ * (`1/2"`), a separator (`x`) between measurements, and a number that has no
+ * fraction at all and must come back as one part rather than as an empty one.
+ *
+ * A fractional run carries any inch mark that follows it, so `1/2"` shrinks
+ * whole rather than leaving a full-size quote hanging off a small fraction.
+ */
+export interface MeasureRun {
+  text: string;
+  /** True where this run is a fraction and should be set smaller. */
+  fraction: boolean;
+}
+
+const FRACTION_RUN = /\d+\/\d+"?/g;
+
+export function splitFractionRuns(text: string): MeasureRun[] {
+  const runs: MeasureRun[] = [];
+  let at = 0;
+  for (const match of text.matchAll(FRACTION_RUN)) {
+    const start = match.index;
+    if (start > at) runs.push({ text: text.slice(at, start), fraction: false });
+    runs.push({ text: match[0], fraction: true });
+    at = start + match[0].length;
+  }
+  if (at < text.length) runs.push({ text: text.slice(at), fraction: false });
+  return runs;
+}
+
+/**
  * A measurement as it is written and typed: whole inches, eighths, and which
  * way it goes.
  *
@@ -669,3 +708,61 @@ export const LAYOUT_PRESETS: readonly LayoutPreset[] = [
 /** Pull the right half of a preset for the ball in hand. */
 export const presetLayout = (preset: LayoutPreset, ball: BallSpec): DualAngleLayout =>
   ball.symmetric ? preset.symmetric : preset.asymmetric;
+
+// ---------------------------------------------------------------------------
+// A layout as a ball keeps it
+// ---------------------------------------------------------------------------
+
+/**
+ * The stored form of a layout and the working form are not the same shape, and
+ * these four functions are the only place they meet.
+ *
+ * A ball stores the dual angle three plus its own core geometry (`BallLayoutSpec`
+ * in `types/bowling.ts`). The screens work in a `DualAngleLayout` and a
+ * `BallSpec`, because that is what every function above takes. The differential
+ * numbers a `BallSpec` also carries are not stored on the ball: they scale the
+ * motion reading, not the geometry, and the ones worth having come from the
+ * catalog entry the ball is linked to rather than from a slider.
+ */
+export function specToLayout(spec: BallLayoutSpec): DualAngleLayout {
+  return {
+    drillingAngle: spec.drillingAngle,
+    pinToPap: spec.pinToPap,
+    valAngle: spec.valAngle
+  };
+}
+
+/** The ball a stored layout was drilled on, with the default differentials for
+ *  its core type where the ball itself has nothing better to say. */
+export function specToBall(spec: BallLayoutSpec): BallSpec {
+  const base = spec.symmetric ? DEFAULT_SYMMETRIC : DEFAULT_ASYMMETRIC;
+  return { ...base, pinToCore: spec.pinToCore };
+}
+
+export function makeLayoutSpec(
+  layout: DualAngleLayout,
+  ball: BallSpec,
+  system?: LayoutSystem
+): BallLayoutSpec {
+  return {
+    drillingAngle: layout.drillingAngle,
+    pinToPap: layout.pinToPap,
+    valAngle: layout.valAngle,
+    symmetric: ball.symmetric,
+    pinToCore: ball.pinToCore,
+    ...(system ? { system } : {})
+  };
+}
+
+/** A stored layout written in one notation or the other. */
+export function formatLayoutSpec(spec: BallLayoutSpec, system: LayoutSystem): string {
+  return system === "vls"
+    ? formatVls(toVls(specToLayout(spec), specToBall(spec)))
+    : formatDualAngle(specToLayout(spec));
+}
+
+/** What a stored layout is read in: its own choice, else the app-wide one. */
+export const layoutSystemFor = (
+  spec: BallLayoutSpec | undefined,
+  preference: LayoutSystem
+): LayoutSystem => spec?.system ?? preference;

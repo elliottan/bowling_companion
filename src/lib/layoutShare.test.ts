@@ -4,6 +4,7 @@ import {
   LAYOUT_LAB_HASH,
   decodeLayoutParams,
   encodeLayoutParams,
+  layoutSeedFromBall,
   layoutShareUrl
 } from "./layoutShare";
 import { DEFAULT_ASYMMETRIC, DEFAULT_PAP, DEFAULT_SYMMETRIC } from "./ballLayout";
@@ -129,5 +130,51 @@ describe("grip style", () => {
   it("is enough on its own to make a query a shared layout", () => {
     expect(decodeLayoutParams("?grip=2h")).not.toBeNull();
     expect(decodeLayoutParams("?utm_source=chat")).toBeNull();
+  });
+});
+
+describe("a ball's own layout, handed to the lab", () => {
+  const bowler = { pap: { over: 4.75, up: -0.5 }, hand: "left" as const, grip: "2h" as const };
+
+  it("reads the ball's numbers against the bowler's own axis", () => {
+    const seed = layoutSeedFromBall(
+      {
+        name: "Phaze II",
+        layout_spec: {
+          drillingAngle: 50,
+          pinToPap: 4.5,
+          valAngle: 40,
+          symmetric: false,
+          pinToCore: 6.75
+        }
+      },
+      bowler,
+      "dual"
+    );
+    expect(seed?.layout).toEqual({ drillingAngle: 50, pinToPap: 4.5, valAngle: 40 });
+    expect(seed?.ball.pinToCore).toBe(6.75);
+    expect(seed?.pap).toEqual(bowler.pap);
+    expect(seed?.hand).toBe("left");
+    expect(seed?.grip).toBe("2h");
+    expect(seed?.ballName).toBe("Phaze II");
+  });
+
+  it("opens in the ball's own notation where it has one, else the app's", () => {
+    const spec = {
+      drillingAngle: 50,
+      pinToPap: 4.5,
+      valAngle: 40,
+      symmetric: false,
+      pinToCore: 6.75
+    };
+    expect(layoutSeedFromBall({ name: "A", layout_spec: spec }, bowler, "vls")?.system).toBe("vls");
+    expect(
+      layoutSeedFromBall({ name: "A", layout_spec: { ...spec, system: "dual" } }, bowler, "vls")
+        ?.system
+    ).toBe("dual");
+  });
+
+  it("has nothing to show for a ball with no layout", () => {
+    expect(layoutSeedFromBall({ name: "A" }, bowler, "dual")).toBeNull();
   });
 });
