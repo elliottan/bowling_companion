@@ -44,13 +44,7 @@ import { defaultOrientationFor, type Orientation } from "../lib/ballProjection";
 import { decodeLayoutParams, layoutShareUrl } from "../lib/layoutShare";
 import { buildLayoutCard, type ShareCardData } from "../lib/shareCard";
 import { svgToImage } from "../lib/svgImage";
-import {
-  getGripStyle,
-  getHandedness,
-  getPap,
-  setGripStyle as saveGripStyle,
-  setPap as savePap
-} from "../services/bowlingRepository";
+import { getGripStyle, getHandedness, getPap } from "../services/bowlingRepository";
 import { useHandedness } from "../lib/handednessContext";
 import type { GripStyle, Handedness } from "../types/bowling";
 
@@ -92,7 +86,8 @@ const BENCHMARK: DualAngleLayout = { drillingAngle: 45, pinToPap: 4.5, valAngle:
  * It holds nothing and saves nothing, which is deliberate. This is the ball
  * equivalent of the line sandbox: a place to find out what a layout does before
  * committing to one, not a record of a layout you own. A ball's actual layout
- * is a field on the ball in the arsenal.
+ * is a field on the ball in the arsenal, and the bowler's own axis, hand and
+ * grip are settings: this screen opens on them and never writes to them.
  *
  * The screen is arranged in the order the question gets asked: who is bowling,
  * what ball, what numbers, what does it look like, what will it do. The diagram
@@ -164,27 +159,28 @@ export function LayoutLabView({ onBack, onOpenSettings }: LayoutLabViewProps) {
     return { ...base, pinToCore };
   }, [symmetric, shared]);
 
-  // Editing the PAP or the grip writes it back, because both are the bowler's
-  // own and not this screen's scratch values: the whole point of storing them
-  // is that the next visit, and every other screen that ever wants them,
-  // already knows. Anything that arrived in a shared link is somebody else's
-  // and is never saved.
-  const fromLink = shared != null;
-  const updatePap = useCallback(
-    (next: PapMeasurement) => {
-      setPapOverride(next);
-      if (!fromLink) void savePap(next);
-    },
-    [fromLink]
-  );
-
-  const chooseGrip = useCallback(
-    (next: GripStyle) => {
-      setGripOverride(next);
-      if (!fromLink) void saveGripStyle(next);
-    },
-    [fromLink]
-  );
+  /*
+   * Nothing on this screen is written back. Not the PAP, not the grip, not the
+   * hand.
+   *
+   * The lab seeds from the bowler's saved settings so nobody re-types their own
+   * axis on every visit, and that is where the connection ends: turning the
+   * PAP up an eighth here to see what it does to a layout is a question being
+   * asked, not a measurement being taken. Saving it made the sandbox edit the
+   * bowler, and it did so silently, from a control that gives no hint it is
+   * touching anything outside the screen. Worse, it is a sandbox people are
+   * meant to poke at, so the damage was likeliest for exactly the person using
+   * it as intended, and a PAP is measured off a thrown shot in a pro shop, not
+   * recoverable by undoing a dropdown.
+   *
+   * So the writes live where the measurements do, in Settings, Preferences.
+   * This screen reads them, and the reset beside them puts the saved ones back
+   * when the sliders have wandered (or when a shared link brought someone
+   * else's along). It is the module's own opening claim, finally true: it
+   * holds nothing and saves nothing.
+   */
+  const updatePap = useCallback((next: PapMeasurement) => setPapOverride(next), []);
+  const chooseGrip = useCallback((next: GripStyle) => setGripOverride(next), []);
 
   const motion = useMemo(() => readMotion(layout, ball, pap), [layout, ball, pap]);
   const vls = useMemo(() => toVls(layout, ball), [layout, ball]);

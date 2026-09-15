@@ -1,8 +1,7 @@
-import { ChevronLeft, ChevronRight, RotateCcw } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { HandednessPicker } from "../components/HandednessPicker";
 import { PapEditor } from "../components/PapEditor";
-import { IconButton } from "../components/ui/IconButton";
 import { DEFAULT_PAP } from "../lib/ballLayout";
 import { getGripStyle, getPap, setGripStyle, setPap } from "../services/bowlingRepository";
 import { PushScreen } from "../components/PushScreen";
@@ -115,16 +114,6 @@ export function HandednessView({ value, onChange, driftModel, onDriftModelChange
             it, so a layout is only right when this is.
           </>
         }
-        action={
-          <IconButton
-            compact
-            label="Reset PAP"
-            title="Reset to default"
-            onClick={() => void setPap(DEFAULT_PAP)}
-          >
-            <RotateCcw size={15} aria-hidden="true" />
-          </IconButton>
-        }
       >
         <div className="space-y-2 rounded-xl border border-edge bg-surface p-3">
           <PapEditor pap={pap} onChange={(next) => void setPap(next)} idPrefix="settings-pap" />
@@ -228,23 +217,15 @@ export function HandednessView({ value, onChange, driftModel, onDriftModelChange
 function Group({
   heading,
   description,
-  action,
   children
 }: {
   heading: string;
   description: React.ReactNode;
-  /** A control on the heading row, for a group that can be put back the way it
-   *  came. It rides the heading rather than the card so it is never mistaken
-   *  for one of the fields it resets. */
-  action?: React.ReactNode;
   children: React.ReactNode;
 }) {
   return (
     <section>
-      <div className="flex items-center justify-between gap-2">
-        <h2 className={GROUP_HEADING}>{heading}</h2>
-        {action}
-      </div>
+      <h2 className={GROUP_HEADING}>{heading}</h2>
       <p className="mb-3 mt-1 text-sm leading-relaxed text-ink-secondary">{description}</p>
       {children}
     </section>

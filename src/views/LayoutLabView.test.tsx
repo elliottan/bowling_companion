@@ -2,7 +2,14 @@ import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { LayoutLabView } from "./LayoutLabView";
 import { db } from "../db/bowlingDb";
-import { getGripStyle, getPap, setGripStyle, setHandedness, setPap } from "../services/bowlingRepository";
+import {
+  getGripStyle,
+  getHandedness,
+  getPap,
+  setGripStyle,
+  setHandedness,
+  setPap
+} from "../services/bowlingRepository";
 import { decodeLayoutParams } from "../lib/layoutShare";
 
 /* jsdom has no 2D canvas context and never resolves an `<img>` decode, so the
@@ -369,10 +376,46 @@ describe("LayoutLabView", () => {
     expect(screen.getByRole("button", { name: "Left" })).toHaveAttribute("aria-pressed", "true");
   });
 
-  it("saves the PAP back, because it is the bowler's measurement and not this screen's", async () => {
+  it("never writes the PAP back, because this screen is a question and not a measurement", async () => {
+    await setPap({ over: 5, up: 0.5 });
     renderLab();
+    await waitFor(() =>
+      expect((screen.getByLabelText("Over") as HTMLSelectElement).value).toBe("5")
+    );
+
     fireEvent.change(screen.getByRole("combobox", { name: "Over" }), { target: { value: "4" } });
-    await waitFor(async () => expect(await getPap()).toEqual({ over: 4, up: 0.5 }));
+    // On screen, because the whole point is seeing what a different axis does.
+    await waitFor(() =>
+      expect((screen.getByLabelText("Over") as HTMLSelectElement).value).toBe("4")
+    );
+    // And nowhere else. Turning the PAP down an inch here to see what happens
+    // is asking a question, not taking a measurement, and it used to quietly
+    // overwrite an axis measured off a thrown shot in a pro shop.
+    expect(await getPap()).toEqual({ over: 5, up: 0.5 });
+  });
+
+  it("never writes the grip or the hand back either", async () => {
+    await setGripStyle("1h");
+    await setHandedness("right");
+    renderLab();
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: "One handed" })).toHaveAttribute(
+        "aria-pressed",
+        "true"
+      )
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Two handed" }));
+    fireEvent.click(screen.getByRole("button", { name: "Left" }));
+    expect(screen.getByRole("button", { name: "Two handed" })).toHaveAttribute(
+      "aria-pressed",
+      "true"
+    );
+    // The lab seeds from the bowler's settings and that is where it ends: all
+    // three answers belong to Settings, and a sandbox that edits them does it
+    // from controls giving no hint they reach outside the screen.
+    expect(await getGripStyle()).toBe("1h");
+    expect(await getHandedness()).toBe("right");
   });
 
   it("mirrors the whole layout for a left-hander", () => {
@@ -446,14 +489,17 @@ describe("LayoutLabView", () => {
     expect((screen.getByRole("combobox", { name: "Over" }) as HTMLSelectElement).value).toBe("4");
   });
 
-  it("never saves a PAP that arrived in somebody else's link", async () => {
+  it("leaves the reader's own axis alone when it opens on somebody else's", async () => {
+    await setPap({ over: 5, up: 0.5 });
     window.history.replaceState({}, "", "/score?da=45&ptp=4.5&val=45&over=3&up=0");
     renderLab();
+    // The link's axis is what the layout is read against, so it is what shows.
+    expect((screen.getByLabelText("Over") as HTMLSelectElement).value).toBe("3");
     fireEvent.change(screen.getByRole("combobox", { name: "Over" }), { target: { value: "2" } });
-    // The bowler's own stored axis is untouched: a shared layout is a thing to
-    // look at, not a measurement of the person looking at it.
+    // A shared layout is a thing to look at, not a measurement of the person
+    // looking at it.
     await waitFor(() => expect(dualAngle()).toBe("45 x 4 1/2 x 45"));
-    expect(await getPap()).toBeNull();
+    expect(await getPap()).toEqual({ over: 5, up: 0.5 });
   });
 
   it("previews the layout as a picture before the link goes anywhere", async () => {
@@ -533,16 +579,12 @@ describe("LayoutLabView", () => {
     expect((screen.getByLabelText("Over") as HTMLSelectElement).value).toBe("6");
   });
 
-  it("opens one-handed, and saves the grip when it changes", async () => {
+  it("opens one-handed when nothing has been chosen", () => {
     renderLab();
     expect(screen.getByRole("button", { name: "One handed" })).toHaveAttribute(
       "aria-pressed",
       "true"
     );
-    fireEvent.click(screen.getByRole("button", { name: "Two handed" }));
-    // The grip is the bowler's, not this screen's, so it is written back the
-    // way the PAP is: the next visit, and Settings, already know.
-    await waitFor(async () => expect(await getGripStyle()).toBe("2h"));
   });
 
   it("fills the grip from settings, and carries it in a shared link", async () => {
@@ -566,7 +608,7 @@ describe("LayoutLabView", () => {
     expect(decodeLayoutParams(url.slice(url.indexOf("?"), url.indexOf("#")))?.grip).toBe("2h");
   });
 
-  it("never saves a grip that arrived in somebody else's link", async () => {
+  it("leaves the reader's own grip alone when it opens on somebody else's", async () => {
     window.history.replaceState({}, "", "/score?da=45&ptp=4.5&val=45&grip=2h");
     renderLab();
     expect(screen.getByRole("button", { name: "Two handed" })).toHaveAttribute(

@@ -48,6 +48,20 @@ now the buttons that choose which one the sliders edit. The segmented control
 above them said the same two words. Both read centred, with the x's between the
 measurements stepped back so the numbers carry the line.
 
+**The layout lab no longer edits your settings behind your back.** Turning the
+PAP up an eighth in the lab to see what it does to a layout was overwriting the
+axis saved in your preferences, silently, from a control that gives no hint it
+reaches outside the screen. It was likeliest to happen to whoever used the
+sandbox as a sandbox, and a PAP is measured off a thrown shot in a pro shop
+rather than recovered by undoing a dropdown. The lab still opens on your saved
+hand, grip and PAP and the reset beside them still puts them back; it just
+writes nothing now. Settings, Preferences is where those are changed.
+
+**Preferences has no reset for your PAP.** "Reset to default" on a measurement
+taken in a pro shop is a control whose only outcome is losing it: the app's
+default is a plausible axis, not yours, so putting it back undoes nothing. The
+fields are the way to change it.
+
 **The layout panel is tighter.** Less air between the three sliders, and the
 hand and grip toggles end level with the PAP box beside them instead of hanging
 below it. No control got smaller to the finger: the toggles are drawn shorter
