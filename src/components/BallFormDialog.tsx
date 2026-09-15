@@ -1,11 +1,25 @@
-import { BookOpen, ChevronRight, Search, Trash2 } from "lucide-react";
+import { BookOpen, ChevronRight, Plus, Search, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useLiveQuery } from "dexie-react-hooks";
 import { getAllCatalog, getCatalogBall, syncCatalog } from "../services/ballCatalogRepository";
 import { addBall, updateBall } from "../services/ballRepository";
-import type { Ball } from "../types/bowling";
+import { getLayoutSystem } from "../services/bowlingRepository";
+import {
+  DEFAULT_ASYMMETRIC,
+  DEFAULT_SYMMETRIC,
+  makeLayoutSpec,
+  specToBall,
+  specToLayout,
+  type DualAngleLayout
+} from "../lib/ballLayout";
+import type { Ball, BallLayoutSpec, LayoutSystem } from "../types/bowling";
 import type { CatalogBall, Manufacturer } from "../types/catalog";
 import { DEFAULT_WEIGHT } from "../types/catalog";
 import { CatalogBallImage } from "./CatalogBallImage";
+import { LayoutEditor, Slider } from "./LayoutEditor";
+import { Measure } from "./ui/Measure";
+import { SegmentedControl } from "./ui/SegmentedControl";
+import { GROUP_HEADING } from "./ui/typography";
 import { ConfirmDialog } from "./ConfirmDialog";
 import { ErrorBanner } from "./ErrorBanner";
 import { Button } from "./ui/Button";
@@ -13,6 +27,10 @@ import { FIELD } from "./ui/field";
 import { FormSheet } from "./ui/FormSheet";
 
 const WEIGHT_OPTIONS = [10, 11, 12, 13, 14, 15, 16];
+
+/** What a fresh layout opens on: the benchmark every chart is read against,
+ *  and the same one the layout lab starts from. */
+const BENCHMARK_LAYOUT: DualAngleLayout = { drillingAngle: 45, pinToPap: 4.5, valAngle: 45 };
 
 type WeightSpecs = { rg: number | null; diff: number | null; mbDiff: number | null };
 
@@ -36,13 +54,22 @@ export function BallFormDialog({ ball, onClose, onSaved, onDelete }: BallFormDia
   const [weight, setWeight] = useState<number>(ball?.weight ?? DEFAULT_WEIGHT);
   const [isSpare, setIsSpare] = useState(ball?.is_spare_ball ?? false);
   const [confirmUnlink, setConfirmUnlink] = useState(false);
-  const [layout, setLayout] = useState(ball?.layout ?? "");
+  // The drilling as numbers, and the free text the field used to take. The old
+  // text is never written again and never thrown away: a ball entered before
+  // this screen could hold numbers still has to show what was typed on it
+  // (ADR-095). Entering a layout is what retires it.
+  const [layoutSpec, setLayoutSpec] = useState<BallLayoutSpec | null>(ball?.layout_spec ?? null);
+  const legacyLayout = ball?.layout_spec ? undefined : ball?.layout;
   const [notes, setNotes] = useState(ball?.notes ?? "");
   const [catalogRef, setCatalogRef] = useState<CatalogBall | null>(null);
   const [weightSpecs, setWeightSpecs] = useState<WeightSpecs | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
+  // Which notation a ball with no notation of its own is read in. Undefined
+  // while it loads, which the field shows as the app's own default rather than
+  // flashing the wrong words.
+  const systemPreference = useLiveQuery(getLayoutSystem, [], undefined) ?? "dual";
 
 
   // Restore the existing catalog link so its image and weight specs resolve.
@@ -89,7 +116,11 @@ export function BallFormDialog({ ball, onClose, onSaved, onDelete }: BallFormDia
       const payload: Omit<Ball, "id"> = {
         name: trimmed,
         is_spare_ball: isSpare,
-        layout: layout.trim() || undefined,
+        layout_spec: layoutSpec ?? undefined,
+        // Kept rather than migrated: parsing "45 x 4.5 x 35" out of free text
+        // would be guessing at a core type and a pin-to-PSA distance nobody
+        // wrote down, and a guessed layout is worse than a remembered string.
+        layout: layoutSpec ? undefined : legacyLayout,
         notes: notes.trim() || undefined,
         weight,
         ...(catalogRef
@@ -228,19 +259,23 @@ export function BallFormDialog({ ball, onClose, onSaved, onDelete }: BallFormDia
               </span>
             </label>
 
-            <div>
-              <label htmlFor="ball-layout" className="mb-1 block text-sm font-medium text-ink-strong">
-                Layout <span className="font-normal text-ink-secondary">(optional)</span>
-              </label>
-              <input
-                id="ball-layout"
-                type="text"
-                value={layout}
-                onChange={(e) => setLayout(e.target.value)}
-                placeholder="e.g. 45° × 4-1/2″ × 35°"
-                className={FIELD}
-              />
-            </div>
+            <LayoutField
+              spec={layoutSpec}
+              onChange={setLayoutSpec}
+              preference={systemPreference}
+              legacyText={legacyLayout}
+              // What the catalog says about the core, where the ball is linked
+              // to one. An unlinked ball opens asymmetric, which is what the
+              // lab opens on and what most balls carrying a layout worth
+              // recording are: a guess either way, and this is the likelier.
+              defaultSymmetric={
+                catalogRef?.coreType
+                  ? catalogRef.coreType !== "Asymmetric"
+                  : weightSpecs?.mbDiff != null
+                    ? weightSpecs.mbDiff === 0
+                    : false
+              }
+            />
 
             <div>
               <label htmlFor="ball-notes" className="mb-1 block text-sm font-medium text-ink-strong">
@@ -392,5 +427,165 @@ function CatalogPickerSheet({ onPick, onClose }: CatalogPickerSheetProps) {
         </ul>
       )}
     </FormSheet>
+  );
+}
+
+/**
+ * A ball's drilling, as the numbers it is: the same sliders the layout lab
+ * carries, on the ball that owns them.
+ *
+ * It replaced a free text box that took `45 x 4 1/2 x 35` as a string. The box
+ * asked the bowler to be the formatter, so it held whatever they typed, in
+ * whichever notation, with whatever punctuation, and nothing downstream could
+ * read it: the arsenal could show it and that was the whole of what a stored
+ * layout could do. Numbers convert between notations, draw on a ball, and read
+ * back out as motion. That is the reason for the change, not tidiness.
+ *
+ * A layout is optional and stays optional. A ball with none shows one control
+ * that offers one, rather than three sliders parked on a benchmark layout
+ * nobody drilled, which would be the form inventing a fact about the ball.
+ */
+function LayoutField({
+  spec,
+  onChange,
+  preference,
+  legacyText,
+  defaultSymmetric
+}: {
+  spec: BallLayoutSpec | null;
+  onChange: (spec: BallLayoutSpec | null) => void;
+  preference: LayoutSystem;
+  /** What the old free text field holds on this ball, if it has not been
+   *  replaced by numbers yet. */
+  legacyText?: string;
+  /** What the catalog says this ball's core is, so adding a layout opens on the
+   *  right one. A guess the bowler can correct, not a fact stored anywhere. */
+  defaultSymmetric: boolean;
+}) {
+  const ball = spec ? specToBall(spec) : null;
+  const layout = spec ? specToLayout(spec) : null;
+  // What the sliders are editing in. A ball that has never been given a
+  // notation of its own follows the preference, and keeps following it: that is
+  // what makes the preference worth having.
+  const system = spec?.system ?? preference;
+
+  const setLayout = (next: DualAngleLayout) => {
+    if (!spec) return;
+    onChange({ ...spec, ...next });
+  };
+
+  const setCore = (symmetric: boolean) => {
+    if (!spec || spec.symmetric === symmetric) return;
+    // The core marker moves with the core type: a symmetric ball is measured to
+    // its CG, an asymmetric one to a PSA the core puts much further out, so
+    // carrying the old distance across would describe a ball that does not
+    // exist.
+    const base = symmetric ? DEFAULT_SYMMETRIC : DEFAULT_ASYMMETRIC;
+    onChange({ ...spec, symmetric, pinToCore: base.pinToCore });
+  };
+
+  return (
+    <section className="space-y-2">
+      <div className="flex items-center justify-between gap-3">
+        <h2 className={GROUP_HEADING}>Layout</h2>
+        {spec && (
+          <button
+            type="button"
+            onClick={() => onChange(null)}
+            className="text-xs font-semibold text-ink-secondary underline"
+          >
+            Remove layout
+          </button>
+        )}
+      </div>
+
+      {legacyText && (
+        <p className="rounded-lg bg-surface-muted p-2.5 text-xs text-ink-secondary">
+          This ball carries the layout you typed before:{" "}
+          <span className="font-semibold text-ink">
+            <Measure>{legacyText}</Measure>
+          </span>
+          . Entering it below replaces the text with numbers.
+        </p>
+      )}
+
+      {spec == null || ball == null || layout == null ? (
+        <button
+          type="button"
+          onClick={() =>
+            onChange(
+              makeLayoutSpec(BENCHMARK_LAYOUT, defaultSymmetric ? DEFAULT_SYMMETRIC : DEFAULT_ASYMMETRIC)
+            )
+          }
+          className="flex w-full items-center gap-3 rounded-xl border border-dashed border-edge-strong bg-surface p-3 text-left hover:border-accent-fill"
+        >
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-accent-soft text-accent">
+            <Plus size={18} aria-hidden="true" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-semibold text-ink">Add a layout</p>
+            <p className="text-xs text-ink-secondary">
+              Dual angle or Storm VLS, on sliders. Opens on the benchmark.
+            </p>
+          </div>
+        </button>
+      ) : (
+        <>
+          {/* The core type first, because it changes what the drilling angle
+              means and therefore what every slider under it does. Same order,
+              and the same reason, as the layout lab. */}
+          <SegmentedControl
+            label="Core type"
+            value={spec.symmetric ? "sym" : "asym"}
+            onChange={(v) => setCore(v === "sym")}
+            options={[
+              { value: "asym", label: "Asym", srLabel: "Asymmetric" },
+              { value: "sym", label: "Sym", srLabel: "Symmetric" }
+            ]}
+          />
+
+          <LayoutEditor
+            layout={layout}
+            onChange={setLayout}
+            ball={ball}
+            system={system}
+            // Picking a notation here is picking how this ball is written down,
+            // not just how it is being typed: the arsenal reads it back in the
+            // same one. A ball that never asked keeps following the preference.
+            onSystemChange={(next) => onChange({ ...spec, system: next })}
+            idPrefix="ball"
+          />
+
+          {!spec.symmetric && (
+            <div className="rounded-xl border border-edge bg-surface p-2.5 shadow-sm">
+              <Slider
+                idPrefix="ball-core"
+                label="Pin to PSA"
+                hint="This ball's own geometry, not part of the layout. It is what the VLS numbers are measured against."
+                value={spec.pinToCore}
+                min={1}
+                max={6.75}
+                step={0.125}
+                unit="in"
+                onChange={(pinToCore) => onChange({ ...spec, pinToCore })}
+              />
+            </div>
+          )}
+
+          {spec.system && (
+            <button
+              type="button"
+              onClick={() => {
+                const { system: _dropped, ...rest } = spec;
+                onChange(rest);
+              }}
+              className="text-xs font-semibold text-ink-secondary underline"
+            >
+              Read this ball in my default notation
+            </button>
+          )}
+        </>
+      )}
+    </section>
   );
 }

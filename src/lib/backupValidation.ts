@@ -151,6 +151,27 @@ function validatePins(value: unknown): value is PinNumber[] {
   );
 }
 
+/**
+ * A ball's stored drilling, if it has one.
+ *
+ * Checked rather than waved through because these numbers go straight into
+ * spherical geometry and out again as a picture: a string where a degree count
+ * belongs propagates as NaN through every coordinate and draws a ball with no
+ * landmarks on it, from a file the app said was valid. A ball whose layout does
+ * not check out fails the ball, which is the same answer this file gives for
+ * every other malformed row.
+ */
+function isOptionalLayoutSpec(value: unknown): boolean {
+  if (value === undefined) return true;
+  if (!isRecord(value)) return false;
+  const numbers = [value.drillingAngle, value.pinToPap, value.valAngle, value.pinToCore];
+  return (
+    numbers.every((n) => typeof n === "number" && Number.isFinite(n)) &&
+    typeof value.symmetric === "boolean" &&
+    (value.system === undefined || value.system === "dual" || value.system === "vls")
+  );
+}
+
 function validateBall(value: unknown): value is Ball {
   if (!isRecord(value)) return false;
   return (
@@ -158,6 +179,7 @@ function validateBall(value: unknown): value is Ball {
     typeof value.name === "string" && value.name.length > 0 &&
     typeof value.is_spare_ball === "boolean" &&
     isOptionalString(value.layout) &&
+    isOptionalLayoutSpec(value.layout_spec) &&
     isOptionalString(value.notes)
   );
 }

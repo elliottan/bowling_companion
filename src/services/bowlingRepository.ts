@@ -16,6 +16,7 @@ import type {
   GripStyle,
   Handedness,
   HydratedSession,
+  LayoutSystem,
   Session,
   SessionSummary
 } from "../types/bowling";
@@ -28,6 +29,7 @@ const SESSIONS_AT_LAST_BACKUP_KEY = "sessions_at_last_backup";
 const BACKUP_NUDGE_SNOOZED_UNTIL_KEY = "backup_nudge_snoozed_until";
 const PAP_KEY = "pap";
 const GRIP_STYLE_KEY = "grip_style";
+const LAYOUT_SYSTEM_KEY = "layout_system";
 
 /** Read a key-value app setting (undefined if unset). */
 export async function getSetting(key: string): Promise<string | undefined> {
@@ -95,6 +97,26 @@ export async function getGripStyle(): Promise<GripStyle | null> {
 
 export async function setGripStyle(value: GripStyle): Promise<void> {
   await setSetting(GRIP_STYLE_KEY, value);
+}
+
+/**
+ * Which notation layouts are written in: dual angle or Storm VLS.
+ *
+ * A preference rather than a field on anything, because it is a choice about
+ * reading, not about a ball: a bowler who thinks in VLS thinks in VLS for the
+ * whole arsenal. A ball may still override it (`BallLayoutSpec.system`), which
+ * is what the toggle in the ball form writes.
+ *
+ * Null when never chosen. Callers show dual angle, which is the notation the
+ * app's own geometry and every preset are written in.
+ */
+export async function getLayoutSystem(): Promise<LayoutSystem | null> {
+  const v = await getSetting(LAYOUT_SYSTEM_KEY);
+  return v === "dual" || v === "vls" ? v : null;
+}
+
+export async function setLayoutSystem(value: LayoutSystem): Promise<void> {
+  await setSetting(LAYOUT_SYSTEM_KEY, value);
 }
 
 /**

@@ -4530,3 +4530,67 @@ asked, and one-handed is still overwhelmingly the common grip.
   has not adjusted and says it has not adjusted.
 - No schema version. `settings` is a key-value table, so a new key is a new row
   (ADR-038's backup shape carries it without changes).
+
+## ADR-099: A ball's layout is numbers, and which notation it is read in is a preference
+
+**Context.** The arsenal took a layout as free text. The field accepted
+`45 x 4 1/2 x 35`, `45/4.5/35`, `4 1/2 pin, 45 deg` and everything else a bowler
+might write on a drill sheet, and stored it exactly as typed. That made the
+bowler the formatter, and it made the stored layout unreadable to the app: the
+arsenal could print the string back and nothing else could do anything with it.
+
+Meanwhile the layout lab had the whole of `lib/ballLayout.ts` behind it: the
+dual angle three, Storm's VLS distances, an exact conversion between them, the
+ball drawn with its landmarks on it, and a motion reading. None of it could be
+pointed at a ball the bowler owns, because a ball owned no numbers.
+
+Two notations are in real use, and which one a bowler thinks in is a fact about
+the bowler, not about the ball: a pro shop that writes VLS on the drill sheet
+writes it on every sheet. But a single ball can arrive written the other way,
+and re-deriving it in your head to enter it is exactly the error this change
+exists to remove.
+
+**Decision.** A ball carries `layout_spec`, a `BallLayoutSpec`: the dual angle
+three (`drillingAngle`, `pinToPap`, `valAngle`), the ball's own core geometry
+(`symmetric`, `pinToCore`), and an optional `system`.
+
+The stored numbers are always dual angle. VLS is a pure function of them plus
+`pinToCore` (`toVls`), so storing both would be storing one fact twice, and two
+copies of one fact are two chances to disagree. `symmetric` and `pinToCore` are
+part of the layout rather than read off the catalog entry, because the
+conversion needs them and a hand-entered ball has no catalog entry to ask.
+
+Which notation a layout is *shown* in is a preference, `layout_system` in
+`settings`, edited in Settings, Appearance, and unset means dual angle. A ball
+may pin itself to one notation with `spec.system`, which the ball form writes
+when a notation is chosen on that ball; a ball that never asked keeps following
+the preference, which is what makes the preference worth having.
+
+The free text `layout` field stays on the type and is never written again. It is
+not parsed into numbers: `45 x 4.5 x 35` does not say whether the core is
+symmetric or where its PSA sits, and a guessed layout is worse than a remembered
+string. A ball that has one shows it until a layout is entered, and entering one
+drops it.
+
+The fields inside `layout_spec` are camelCase, against ADR-002's snake_case rule
+for DB fields, for the same reason `catalog_snapshot` is: the object is a stored
+copy of a `lib/` type, and renaming every field on the way in and out would add a
+mapping layer whose only job is to be got wrong once.
+
+**Consequences.**
+- No schema version. `layout_spec` is not indexed, so Dexie stores it as-is
+  (see "When a Dexie version bump is needed" in DATA_MODEL.md).
+- A backup carries it, and `backupValidation.ts` checks it: these numbers go
+  into spherical geometry and come back out as a drawing, so a string where a
+  degree count belongs would propagate as NaN through every coordinate of a
+  ball the app had just called valid.
+- An older build reading a newer backup ignores `layout_spec` and shows the ball
+  with no layout, rather than breaking. It will also drop the field on the next
+  save of that ball, which is the ordinary cost of an older build editing newer
+  rows and is why the free text is never deleted on the way in.
+- The arsenal can hand a ball's layout to the lab, so "what does this ball
+  actually do" is now a question with an answer on screen. The lab still saves
+  nothing: what it opens on is a copy, and it says so.
+- A bowler who switches the preference re-reads their whole arsenal in the other
+  notation, including balls drilled before the switch, because the numbers
+  convert exactly.

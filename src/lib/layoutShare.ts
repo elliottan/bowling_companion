@@ -30,11 +30,14 @@ import {
   DEFAULT_SYMMETRIC,
   MAX_ARC,
   clamp,
+  layoutSystemFor,
+  specToBall,
+  specToLayout,
   type BallSpec,
   type DualAngleLayout,
   type PapMeasurement
 } from "./ballLayout";
-import type { GripStyle, Handedness } from "../types/bowling";
+import type { Ball, GripStyle, Handedness, LayoutSystem } from "../types/bowling";
 
 /** Everything a shared link carries: the layout, the ball, the bowler. */
 export interface SharedLayout {
@@ -130,5 +133,47 @@ export function decodeLayoutParams(search: string): SharedLayout | null {
     },
     hand: hand === "left" ? "left" : "right",
     grip: params.get("grip") === "2h" ? "2h" : "1h"
+  };
+}
+
+/**
+ * A layout handed to the lab by the app rather than by a URL.
+ *
+ * Same shape as a shared link plus the two things a link cannot carry: which
+ * notation to open in, and whose layout this is. It exists because the arsenal
+ * can now send a ball's own drilling to the lab, and "view this layout" has to
+ * land on the layout, the ball's core, the notation it is written in and the
+ * bowler it was drilled for, all at once. Reusing `SharedLayout` is the point:
+ * a seeded lab and a shared one are the same screen showing somebody's numbers.
+ */
+export interface LayoutSeed extends SharedLayout {
+  system?: LayoutSystem;
+  /** The ball these numbers are drilled on, so the lab can say so. */
+  ballName?: string;
+}
+
+/**
+ * A ball in the arsenal, as the lab wants it. Returns null for a ball with no
+ * stored layout, which is how the caller knows there is nothing to view.
+ *
+ * The bowler's own axis, hand and grip come from settings and ride along
+ * unchanged: a layout is only a layout when it is read against the bowler it
+ * was drilled for, and that is as true of your own ball as of a link.
+ */
+export function layoutSeedFromBall(
+  ball: Pick<Ball, "name" | "layout_spec">,
+  bowler: { pap: PapMeasurement; hand: Handedness; grip: GripStyle },
+  system: LayoutSystem
+): LayoutSeed | null {
+  const spec = ball.layout_spec;
+  if (!spec) return null;
+  return {
+    layout: specToLayout(spec),
+    ball: specToBall(spec),
+    pap: bowler.pap,
+    hand: bowler.hand,
+    grip: bowler.grip,
+    system: layoutSystemFor(spec, system),
+    ballName: ball.name
   };
 }

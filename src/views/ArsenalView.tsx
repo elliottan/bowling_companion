@@ -13,7 +13,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { GripVertical, Plus } from "lucide-react";
+import { Eye, GripVertical, Plus } from "lucide-react";
 import { BowlingBallIcon } from "../components/icons";
 import { useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
@@ -25,18 +25,34 @@ import { PushScreen } from "../components/PushScreen";
 import { Button } from "../components/ui/Button";
 import { EmptyState } from "../components/ui/EmptyState";
 import { IconButton } from "../components/ui/IconButton";
+import { Measure } from "../components/ui/Measure";
 import { deleteBall, getBalls, reorderBalls } from "../services/ballRepository";
-import type { Ball } from "../types/bowling";
+import {
+  getGripStyle,
+  getHandedness,
+  getLayoutSystem,
+  getPap
+} from "../services/bowlingRepository";
+import { DEFAULT_PAP, formatLayoutSpec, layoutSystemFor } from "../lib/ballLayout";
+import { layoutSeedFromBall, type LayoutSeed } from "../lib/layoutShare";
+import { useHandedness } from "../lib/handednessContext";
+import type { Ball, LayoutSystem } from "../types/bowling";
 import type { Manufacturer } from "../types/catalog";
 
 interface SortableBallRowProps {
   ball: Ball;
   onEdit: (ball: Ball) => void;
+  /** Which notation a ball with none of its own is written in. */
+  system: LayoutSystem;
+  /** Open the layout lab on this ball's drilling. Absent while the bowler's own
+   *  numbers are still loading, which is the one moment there is nothing
+   *  coherent to open. */
+  onViewLayout?: (ball: Ball) => void;
 }
 
 /** One arsenal entry. The whole row opens the editor, the old row had an edit
  *  and a delete target crammed beside a drag handle, three ways to mis-tap. */
-function SortableBallRow({ ball, onEdit }: SortableBallRowProps) {
+function SortableBallRow({ ball, onEdit, system, onViewLayout }: SortableBallRowProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: ball.id! });
   const style = {
@@ -104,10 +120,33 @@ function SortableBallRow({ ball, onEdit }: SortableBallRowProps) {
               )}
             </div>
             {specs && <p className="truncate text-xs text-ink-secondary">{specs}</p>}
-            {ball.layout && <p className="truncate text-xs text-ink-secondary">{ball.layout}</p>}
+            {/* The drilling, written in the notation this ball is read in. A
+                ball entered before the arsenal could hold numbers still shows
+                the text that was typed on it. */}
+            {ball.layout_spec ? (
+              <p className="truncate text-xs tabular-nums text-ink-secondary">
+                <Measure>{formatLayoutSpec(ball.layout_spec, layoutSystemFor(ball.layout_spec, system))}</Measure>
+              </p>
+            ) : (
+              ball.layout && <p className="truncate text-xs text-ink-secondary">{ball.layout}</p>
+            )}
             {ball.notes && <p className="truncate text-xs text-ink-secondary">{ball.notes}</p>}
           </div>
         </button>
+
+        {/* The way to see the layout drawn on a ball, on the ball that has one.
+            It is a separate target rather than part of the row because the row
+            already means "edit this ball", and the two are different questions:
+            what are the numbers, and what do they do. */}
+        {ball.layout_spec && onViewLayout && (
+          <IconButton
+            label={`View the layout on ${ball.name}`}
+            title="View layout"
+            onClick={() => onViewLayout(ball)}
+          >
+            <Eye size={18} aria-hidden="true" />
+          </IconButton>
+        )}
       </div>
     </li>
   );
@@ -120,9 +159,13 @@ const NO_BALLS: Ball[] = [];
 interface ArsenalViewProps {
   /** Dismiss the pushed screen and return to whatever launched it. */
   onBack: () => void;
+  /** Push the layout lab, showing this ball's drilling against the bowler's own
+   *  axis. Optional, so the screen still renders in a test that only cares
+   *  about the list. */
+  onViewLayout?: (seed: LayoutSeed) => void;
 }
 
-export function ArsenalView({ onBack }: ArsenalViewProps) {
+export function ArsenalView({ onBack, onViewLayout }: ArsenalViewProps) {
   // Live: Dexie re-runs this whenever the table changes, so saving, deleting
   // and reordering do not each have to remember to refresh the list.
   const live = useLiveQuery(() => getBalls());
@@ -132,6 +175,23 @@ export function ArsenalView({ onBack }: ArsenalViewProps) {
   const balls = reordered ?? live ?? NO_BALLS;
   const isLoading = live === undefined;
   const [error, setError] = useState("");
+
+  // The bowler's own numbers, so a layout opened from here is read against the
+  // axis it was drilled for rather than against a default.
+  const appHand = useHandedness();
+  const pap = useLiveQuery(getPap, [], undefined);
+  const storedHand = useLiveQuery(getHandedness, [], undefined);
+  const grip = useLiveQuery(getGripStyle, [], undefined);
+  const system = useLiveQuery(getLayoutSystem, [], undefined) ?? "dual";
+
+  const viewLayout = (ball: Ball) => {
+    const seed = layoutSeedFromBall(
+      ball,
+      { pap: pap ?? DEFAULT_PAP, hand: storedHand ?? appHand, grip: grip ?? "1h" },
+      system
+    );
+    if (seed) onViewLayout?.(seed);
+  };
 
   // null = closed; { ball: null } = adding; { ball } = editing.
   const [form, setForm] = useState<{ ball: Ball | null } | null>(null);
@@ -212,7 +272,13 @@ export function ArsenalView({ onBack }: ArsenalViewProps) {
                 <SortableContext items={balls.map((b) => b.id!)} strategy={verticalListSortingStrategy}>
                   <ul className="space-y-2">
                     {balls.map((ball) => (
-                      <SortableBallRow key={ball.id} ball={ball} onEdit={(b) => setForm({ ball: b })} />
+                      <SortableBallRow
+                        key={ball.id}
+                        ball={ball}
+                        system={system}
+                        onEdit={(b) => setForm({ ball: b })}
+                        onViewLayout={onViewLayout ? viewLayout : undefined}
+                      />
                     ))}
                   </ul>
                 </SortableContext>

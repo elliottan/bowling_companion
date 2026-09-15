@@ -324,3 +324,48 @@ describe("leaving a pushed screen", () => {
     expect(state.overlays).toEqual(["arsenal"]);
   });
 });
+
+describe("the layout lab, opened on a ball", () => {
+  const seed = {
+    layout: { drillingAngle: 50, pinToPap: 4.5, valAngle: 40 },
+    ball: { symmetric: false, pinToCore: 6.75, diff: 0.05, mbDiff: 0.018 },
+    pap: { over: 5, up: 0.5 },
+    hand: "right" as const,
+    grip: "1h" as const,
+    ballName: "Phaze II"
+  };
+
+  it("pushes the lab and its layout in one action", () => {
+    const state = run([{ type: "openLayoutLab", seed }]);
+    expect(state.overlays).toEqual(["layout-lab"]);
+    expect(state.layoutSeed?.ballName).toBe("Phaze II");
+  });
+
+  it("swaps the layout when it is already the screen on top", () => {
+    const state = run([
+      { type: "openLayoutLab", seed },
+      { type: "openLayoutLab", seed: { ...seed, ballName: "IQ Tour" } }
+    ]);
+    expect(state.overlays).toEqual(["layout-lab"]);
+    expect(state.layoutSeed?.ballName).toBe("IQ Tour");
+  });
+
+  it("drops the layout with the screen that was showing it", () => {
+    const state = run([
+      { type: "pushOverlay", overlay: "arsenal" },
+      { type: "openLayoutLab", seed },
+      { type: "popOverlay" }
+    ]);
+    expect(state.overlays).toEqual(["arsenal"]);
+    expect(state.layoutSeed).toBeNull();
+  });
+
+  it("opens on no ball at all when the lab is reached on its own", () => {
+    const state = run([
+      { type: "openLayoutLab", seed },
+      { type: "popOverlay" },
+      { type: "pushOverlay", overlay: "layout-lab" }
+    ]);
+    expect(state.layoutSeed).toBeNull();
+  });
+});

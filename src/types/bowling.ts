@@ -67,10 +67,55 @@ export interface BallCatalogSnapshot {
   imageThumb: string | null;
 }
 
+/**
+ * The two ways the same drilling is written: the Dual Angle Layout Technique
+ * (drilling angle x pin to PAP x VAL angle) and Storm's VLS (pin to PAP x PSA
+ * to PAP x pin buffer). One is a choice of notation, never a different layout,
+ * which is why a ball stores which one it is read in rather than which numbers
+ * it keeps.
+ */
+export type LayoutSystem = "dual" | "vls";
+
+/**
+ * A ball's drilling, stored the one way that cannot drift.
+ *
+ * The numbers are always the dual angle three, because that is the notation the
+ * geometry in `lib/ballLayout.ts` is written in and every other notation is a
+ * pure function of it plus the ball's own pin-to-PSA distance. Storing VLS
+ * alongside would be storing the same fact twice, and two copies of one fact
+ * are two chances to disagree.
+ *
+ * `symmetric` and `pinToCore` are part of the layout rather than of the ball's
+ * catalog entry, because they are what the conversion needs and a hand-entered
+ * ball has no catalog entry to ask. The same three numbers on two balls with
+ * different pin-to-PSA distances are two different VLS layouts (ADR-095).
+ */
+export interface BallLayoutSpec {
+  /** Degrees, vertex at the pin. */
+  drillingAngle: number;
+  /** Inches along the ball surface. */
+  pinToPap: number;
+  /** Degrees, vertex at the PAP. */
+  valAngle: number;
+  symmetric: boolean;
+  /** Pin to core marker distance in inches, the ball's own number. */
+  pinToCore: number;
+  /** Which notation this ball is read in. Unset means "whatever the app-wide
+   *  preference says", so changing that preference moves every ball that never
+   *  asked for anything else. */
+  system?: LayoutSystem;
+}
+
 export interface Ball {
   id?: number;
   name: string;
   is_spare_ball: boolean;
+  /** The drilling as numbers. Absent on a ball drilled before the arsenal could
+   *  hold them, and on one whose layout nobody has entered. */
+  layout_spec?: BallLayoutSpec;
+  /** The free text layout this screen used to take, kept so a ball entered
+   *  before `layout_spec` existed still shows what was typed (ADR-095). Nothing
+   *  writes it any more. */
   layout?: string;
   notes?: string;
   sort_order?: number;

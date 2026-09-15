@@ -576,7 +576,13 @@ function App() {
         switch (overlay) {
           case "arsenal":
             return (
-              <ArsenalView key={`arsenal-${i}`} onBack={popOverlay} />
+              <ArsenalView
+                key={`arsenal-${i}`}
+                onBack={popOverlay}
+                // Pushed over the arsenal rather than replacing it, so back
+                // returns to the list of balls the layout was opened from.
+                onViewLayout={(seed) => dispatch({ type: "openLayoutLab", seed })}
+              />
             );
           case "catalog":
             return (
@@ -610,6 +616,7 @@ function App() {
               <LayoutLabView
                 key={`layout-lab-${i}`}
                 onBack={popOverlay}
+                seed={nav.layoutSeed ?? undefined}
                 // The lab opens with the bowler's hand, grip and PAP, so its
                 // More menu goes to where those are kept. One dispatch: the
                 // action takes the overlay off itself, because popping it

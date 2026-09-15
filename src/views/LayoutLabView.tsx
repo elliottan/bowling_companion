@@ -1,15 +1,8 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import {
-  Check,
-  Info,
-  LayoutGrid,
-  MoreHorizontal,
-  RotateCcw,
-  SlidersHorizontal,
-  X
-} from "lucide-react";
+import { useCallback, useMemo, useRef, useState } from "react";
+import { Check, LayoutGrid, MoreHorizontal, RotateCcw, SlidersHorizontal } from "lucide-react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { BallLayoutDiagram } from "../components/BallLayoutDiagram";
+import { LayoutEditor } from "../components/LayoutEditor";
 import { PapEditor } from "../components/PapEditor";
 import { ShareCardDialog } from "../components/ShareCardDialog";
 import { PushScreen } from "../components/PushScreen";
@@ -24,14 +17,11 @@ import {
   DEFAULT_ASYMMETRIC,
   DEFAULT_PAP,
   DEFAULT_SYMMETRIC,
-  DO_NOT_USE_BAND,
   LAYOUT_PRESETS,
   clamp,
   formatDualAngle,
   formatInches,
   formatVls,
-  fromVls,
-  inDoNotUseBand,
   presetLayout,
   readMotion,
   toVls,
@@ -41,12 +31,17 @@ import {
   type PapMeasurement
 } from "../lib/ballLayout";
 import { defaultOrientationFor, type Orientation } from "../lib/ballProjection";
-import { decodeLayoutParams, layoutShareUrl } from "../lib/layoutShare";
+import { decodeLayoutParams, layoutShareUrl, type LayoutSeed } from "../lib/layoutShare";
 import { buildLayoutCard, type ShareCardData } from "../lib/shareCard";
 import { svgToImage } from "../lib/svgImage";
-import { getGripStyle, getHandedness, getPap } from "../services/bowlingRepository";
+import {
+  getGripStyle,
+  getHandedness,
+  getLayoutSystem,
+  getPap
+} from "../services/bowlingRepository";
 import { useHandedness } from "../lib/handednessContext";
-import type { GripStyle, Handedness } from "../types/bowling";
+import type { GripStyle, Handedness, LayoutSystem } from "../types/bowling";
 
 interface LayoutLabViewProps {
   onBack: () => void;
@@ -54,6 +49,11 @@ interface LayoutLabViewProps {
    *  the PAP this screen opens with are kept. Optional, so the screen still
    *  renders in a test that only cares about the layout. */
   onOpenSettings?: () => void;
+  /** A layout to open on, handed in by whatever sent us here: a ball in the
+   *  arsenal whose drilling is being looked at. It outranks the query string
+   *  the same way a shared link outranks the defaults, because it is the more
+   *  specific answer to "which layout is this screen about". */
+  seed?: LayoutSeed;
 }
 
 /** Where a menu hangs from, in viewport coordinates. */
@@ -68,9 +68,6 @@ function anchorUnder(el: Element, width: number): Anchor {
   const r = el.getBoundingClientRect();
   return { left: Math.max(8, Math.min(r.right - width, window.innerWidth - width - 8)), top: r.bottom + 6 };
 }
-
-/** The two ways to write the same layout. */
-type System = "dual" | "vls";
 
 /** The page's query string, guarded for a render with no window behind it. */
 function currentSearch(): string {
@@ -95,16 +92,20 @@ const BENCHMARK: DualAngleLayout = { drillingAngle: 45, pinToPap: 4.5, valAngle:
  * are what the thumb is on and a picture above them would be the thing scrolled
  * off screen.
  */
-export function LayoutLabView({ onBack, onOpenSettings }: LayoutLabViewProps) {
+export function LayoutLabView({ onBack, onOpenSettings, seed }: LayoutLabViewProps) {
   // A link shared into the app wins over everything, and it is read once at
   // module level of this render rather than in an effect: it is available
   // synchronously, so seeding state from it needs no second render and no
   // flash of the defaults before the shared layout arrives.
-  const shared = useMemo(() => decodeLayoutParams(currentSearch()), []);
+  const shared = useMemo(() => seed ?? decodeLayoutParams(currentSearch()), [seed]);
 
   const [symmetric, setSymmetric] = useState(shared ? shared.ball.symmetric : false);
   const [layout, setLayout] = useState<DualAngleLayout>(shared?.layout ?? BENCHMARK);
-  const [system, setSystem] = useState<System>("dual");
+  // Null means "whichever notation the bowler reads layouts in", so the stored
+  // preference can arrive a tick later without an effect reaching back into
+  // state. A seeded ball that names its own notation wins over both: it is the
+  // notation that ball's layout was written down in.
+  const [systemOverride, setSystemOverride] = useState<LayoutSystem | null>(seed?.system ?? null);
   // Null means "wherever this hand's layout opens", so the camera can follow a
   // handedness that arrives asynchronously from settings without an effect
   // reaching back into state after the fact.
@@ -127,6 +128,7 @@ export function LayoutLabView({ onBack, onOpenSettings }: LayoutLabViewProps) {
   const storedPap = useLiveQuery(getPap, [], undefined);
   const storedHand = useLiveQuery(getHandedness, [], undefined);
   const storedGrip = useLiveQuery(getGripStyle, [], undefined);
+  const storedSystem = useLiveQuery(getLayoutSystem, [], undefined);
 
   const [papOverride, setPapOverride] = useState<PapMeasurement | null>(shared?.pap ?? null);
   const [handOverride, setHandOverride] = useState<Handedness | null>(shared?.hand ?? null);
@@ -137,6 +139,7 @@ export function LayoutLabView({ onBack, onOpenSettings }: LayoutLabViewProps) {
   // One-handed until told otherwise: it is far and away the common grip, and a
   // toggle sitting on neither answer is a question nobody asked.
   const grip: GripStyle = gripOverride ?? storedGrip ?? "1h";
+  const system: LayoutSystem = systemOverride ?? storedSystem ?? "dual";
   const orientation = turnedTo ?? defaultOrientationFor(hand);
   const setOrientation = setTurnedTo;
 
@@ -184,32 +187,6 @@ export function LayoutLabView({ onBack, onOpenSettings }: LayoutLabViewProps) {
 
   const motion = useMemo(() => readMotion(layout, ball, pap), [layout, ball, pap]);
   const vls = useMemo(() => toVls(layout, ball), [layout, ball]);
-
-  const set = useCallback(
-    (patch: Partial<DualAngleLayout>) => setLayout((l) => ({ ...l, ...patch })),
-    []
-  );
-
-  // Editing a VLS number is editing the layout: it converts back through the
-  // same geometry, so the two sets of sliders are two views of one state rather
-  // than two states kept in step. There is nothing to drift.
-  const setVls = useCallback(
-    (patch: Partial<{ pinToPap: number; psaToPap: number; pinBuffer: number }>) => {
-      setLayout((l) => {
-        const current = toVls(l, ball);
-        const next = fromVls(
-          {
-            pinToPap: patch.pinToPap ?? current.pinToPap,
-            psaToPap: patch.psaToPap ?? current.psaToPap,
-            pinBuffer: patch.pinBuffer ?? current.pinBuffer
-          },
-          ball
-        );
-        return { drillingAngle: next.drillingAngle, pinToPap: next.pinToPap, valAngle: next.valAngle };
-      });
-    },
-    [ball]
-  );
 
   /** The card this layout makes, numbers first and the ball a frame later. */
   const buildCard = useCallback(() => {
@@ -342,6 +319,17 @@ export function LayoutLabView({ onBack, onOpenSettings }: LayoutLabViewProps) {
       }
     >
       <div className="mx-auto w-full max-w-xl space-y-3 px-3 py-3 sm:px-6">
+        {/* Whose layout is on screen, when it arrived from a ball rather than
+            from the sliders. The lab still holds nothing and saves nothing, so
+            the line says that too: it is the answer to "am I editing my ball
+            right now", asked by everyone who taps through from the arsenal. */}
+        {seed?.ballName && (
+          <p className="rounded-xl border border-edge bg-surface-muted px-3 py-2 text-xs text-ink-secondary">
+            The layout on <span className="font-semibold text-ink">{seed.ballName}</span>. Moving
+            anything here is a what-if, and never changes the ball.
+          </p>
+        )}
+
         {/* 1. Who is bowling. The PAP leads because it is the frame every other
             number is measured against: the VAL angle is measured at it and the
             pin-to-PAP distance is measured to it, so a layout read against the
@@ -454,105 +442,14 @@ export function LayoutLabView({ onBack, onOpenSettings }: LayoutLabViewProps) {
             </button>
           </div>
 
-          {/* Both notations, always, and the one being edited is the one
-              selected. These used to be two read-only boxes under a segmented
-              control that said the same two words: the toggle's whole argument
-              is that the two notations are one layout, so the boxes showing
-              that layout in both are exactly the right thing to tap. One row
-              instead of two, and nothing is hidden to get it. */}
-          <div className="grid grid-cols-2 gap-2">
-            <SystemCard
-              label="Dual angle"
-              value={formatDualAngle(layout)}
-              selected={system === "dual"}
-              onClick={() => setSystem("dual")}
-            />
-            <SystemCard
-              label="Storm VLS"
-              value={formatVls(vls)}
-              selected={system === "vls"}
-              onClick={() => setSystem("vls")}
-            />
-          </div>
-
-          {system === "dual" ? (
-            <div className="space-y-0.5 rounded-xl border border-edge bg-surface p-2.5 shadow-sm">
-              <Slider
-                label="Drilling angle"
-                hint="At the pin, to the CG or PSA. Low rolls early, high rolls late."
-                value={layout.drillingAngle}
-                min={0}
-                max={90}
-                step={1}
-                unit="deg"
-                onChange={(drillingAngle) => set({ drillingAngle })}
-              />
-              <Slider
-                label="Pin to PAP"
-                hint="Sets the flare. Peaks around 4 inches and falls away either side."
-                value={layout.pinToPap}
-                min={0.5}
-                max={6}
-                step={0.125}
-                unit="in"
-                warn={inDoNotUseBand(layout.pinToPap)}
-                band={DO_NOT_USE_BAND}
-                bandMin={0.5}
-                bandMax={6}
-                onChange={(pinToPap) => set({ pinToPap })}
-              />
-              <Slider
-                label="VAL angle"
-                hint="At the PAP, to the axis line. Low is pin up and sharp, high is pin down and smooth."
-                value={layout.valAngle}
-                min={0}
-                max={90}
-                step={1}
-                unit="deg"
-                onChange={(valAngle) => set({ valAngle })}
-              />
-            </div>
-          ) : (
-            <div className="space-y-0.5 rounded-xl border border-edge bg-surface p-2.5 shadow-sm">
-              <Slider
-                label="Pin to PAP"
-                hint="The same first number in both systems."
-                value={vls.pinToPap}
-                min={0.5}
-                max={6}
-                step={0.125}
-                unit="in"
-                onChange={(pinToPap) => setVls({ pinToPap })}
-              />
-              {vls.psaToPap == null ? (
-                <p className="rounded-lg bg-surface-muted p-2.5 text-xs text-ink-secondary">
-                  No moulded PSA on a symmetric ball, so VLS is two numbers here. The pro shop names
-                  one in the thumb hole, which is where the ball shows it.
-                </p>
-              ) : (
-                <Slider
-                  label="PSA to PAP"
-                  hint="How fast the ball sheds side roll. This is the drilling angle, written as a distance."
-                  value={vls.psaToPap}
-                  min={Math.max(0.25, Math.abs(ball.pinToCore - vls.pinToPap))}
-                  max={Math.min(6.7, ball.pinToCore + vls.pinToPap)}
-                  step={0.125}
-                  unit="in"
-                  onChange={(psaToPap) => setVls({ psaToPap })}
-                />
-              )}
-              <Slider
-                label="Pin buffer"
-                hint="Pin to the axis line. Short reads smooth and early, long is stronger off the friction."
-                value={vls.pinBuffer}
-                min={0}
-                max={Math.min(vls.pinToPap, 6)}
-                step={0.125}
-                unit="in"
-                onChange={(buffer) => setVls({ pinBuffer: buffer })}
-              />
-            </div>
-          )}
+          <LayoutEditor
+            layout={layout}
+            onChange={setLayout}
+            ball={ball}
+            system={system}
+            onSystemChange={setSystemOverride}
+            idPrefix="lab"
+          />
         </section>
 
         {/* 4. The ball. The row of chips that used to sit under it (jump to the
@@ -680,135 +577,6 @@ export function LayoutLabView({ onBack, onOpenSettings }: LayoutLabViewProps) {
   );
 }
 
-/**
- * A labelled range with its number beside it.
- *
- * A native range input rather than a hand-rolled drag: it is the one control
- * the platform already makes accessible, keyboard-operable and correctly sized
- * for a thumb, and the app has no slider primitive to reach for. If a second
- * screen wants one, this graduates to `components/ui/`.
- */
-function Slider({
-  label,
-  hint,
-  value,
-  min,
-  max,
-  step,
-  unit,
-  onChange,
-  warn = false,
-  band,
-  bandMin,
-  bandMax
-}: {
-  label: string;
-  hint: string;
-  value: number;
-  min: number;
-  max: number;
-  step: number;
-  unit: "deg" | "in";
-  onChange: (value: number) => void;
-  warn?: boolean;
-  /** A span of the track to shade as unusable, in the value's own units. */
-  band?: readonly [number, number];
-  bandMin?: number;
-  bandMax?: number;
-}) {
-  const shown = unit === "deg" ? `${Math.round(value)}°` : `${formatInches(value)}"`;
-  const id = `slider-${label.replace(/\s+/g, "-").toLowerCase()}`;
-  const [hintOpen, setHintOpen] = useState(false);
-  const hintRef = useRef<HTMLDivElement>(null);
-
-  // A tap anywhere else puts the bubble away, which is what makes it a popup
-  // rather than a panel: it is read once and dismissed, and it never has to be
-  // closed from the same small target that opened it. `pointerdown` rather
-  // than `click`, so the tap that dismisses it does not also work the control
-  // underneath it by accident.
-  useEffect(() => {
-    if (!hintOpen) return;
-    const away = (e: PointerEvent) => {
-      if (!hintRef.current?.contains(e.target as Node)) setHintOpen(false);
-    };
-    document.addEventListener("pointerdown", away);
-    return () => document.removeEventListener("pointerdown", away);
-  }, [hintOpen]);
-
-  const bandStyle =
-    band && bandMin != null && bandMax != null
-      ? {
-          left: `${((band[0] - bandMin) / (bandMax - bandMin)) * 100}%`,
-          width: `${((band[1] - band[0]) / (bandMax - bandMin)) * 100}%`
-        }
-      : null;
-
-  return (
-    <div className="relative" ref={hintRef}>
-      <div className="mb-0.5 flex items-baseline justify-between gap-2">
-        {/* The label is the affordance. Tapping the name of a thing to find out
-            what it means is the gesture people already try, and a separate icon
-            would be a second tap target in a row that is already dense, so the
-            whole label is the button and the glyph only says that it is one. */}
-        <button
-          type="button"
-          onClick={() => setHintOpen((v) => !v)}
-          aria-expanded={hintOpen}
-          aria-controls={`${id}-hint`}
-          className={`${FIELD_MICRO_LABEL} mb-0 inline-flex items-center gap-1 text-left`}
-        >
-          {label}
-          <Info size={11} aria-hidden="true" className="opacity-60" />
-        </button>
-        <span className={`text-sm font-bold tabular-nums ${warn ? "text-warning-700" : "text-ink"}`}>
-          {shown}
-        </span>
-      </div>
-      <div className="relative">
-        {/* The do-not-use band, drawn on the track itself. A number a bowler
-            should not pick is better shown where they are picking it than
-            explained underneath after they have picked it. */}
-        {bandStyle && (
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute top-1/2 h-1.5 -translate-y-1/2 rounded-sm bg-warning-200"
-            style={bandStyle}
-          />
-        )}
-        <input
-          id={id}
-          type="range"
-          aria-label={label}
-          min={min}
-          max={max}
-          step={step}
-          value={value}
-          onChange={(e) => onChange(Number(e.target.value))}
-          className="relative h-11 w-full cursor-pointer appearance-none bg-transparent [&::-moz-range-thumb]:h-5 [&::-moz-range-thumb]:w-5 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-surface [&::-moz-range-thumb]:bg-accent-fill [&::-moz-range-track]:h-1.5 [&::-moz-range-track]:rounded-full [&::-moz-range-track]:bg-edge-strong [&::-webkit-slider-runnable-track]:h-1.5 [&::-webkit-slider-runnable-track]:rounded-full [&::-webkit-slider-runnable-track]:bg-edge-strong [&::-webkit-slider-thumb]:-mt-1.5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-surface [&::-webkit-slider-thumb]:bg-accent-fill [&::-webkit-slider-thumb]:shadow"
-        />
-      </div>
-      {/* A popup over the row rather than a line added under it. Three of these
-          stacked is a paragraph standing between the bowler and the control
-          they came to move, and opening one used to push the two sliders below
-          it down the screen under the thumb that was already reaching for
-          them. Floating it changes nothing about where anything sits. */}
-      {hintOpen && (
-        <div
-          id={`${id}-hint`}
-          role="dialog"
-          aria-label={`${label}, what it does`}
-          className="absolute left-0 right-0 top-6 z-20 flex items-start gap-2 rounded-lg border border-edge bg-surface p-2 text-xs leading-snug text-ink-secondary shadow-lg"
-        >
-          <p className="min-w-0 flex-1">{hint}</p>
-          <IconButton compact label="Close" onClick={() => setHintOpen(false)}>
-            <X size={14} aria-hidden="true" />
-          </IconButton>
-        </div>
-      )}
-    </div>
-  );
-}
-
 /** One motion axis as a bar between its two named ends. */
 function Axis({
   label,
@@ -840,80 +608,5 @@ function Axis({
         <span>{high}</span>
       </div>
     </div>
-  );
-}
-
-/**
- * One notation, as a button: its name, the layout written in it, and whether it
- * is the one the sliders are editing.
- *
- * It replaced a read-only box of the same shape sitting under a segmented
- * control that carried the same two words. The control and the boxes were
- * saying one thing twice, and the boxes were the half worth keeping: the whole
- * argument for having a toggle at all is that the two notations are one layout,
- * and the box that shows the layout in a notation is exactly the thing to tap
- * to start editing it in that notation.
- */
-function SystemCard({
-  label,
-  value,
-  selected,
-  onClick
-}: {
-  label: string;
-  value: string;
-  selected: boolean;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      aria-pressed={selected}
-      onClick={onClick}
-      className={`rounded-xl border p-2.5 text-center shadow-sm active:opacity-80 ${
-        selected ? "border-accent-fill bg-accent-soft" : "border-edge bg-surface"
-      }`}
-    >
-      <span className={FIELD_MICRO_LABEL}>{label}</span>
-      <span
-        className={`block text-sm font-bold tabular-nums ${selected ? "text-accent" : "text-ink"}`}
-      >
-        <LayoutNumbers value={value} />
-      </span>
-    </button>
-  );
-}
-
-/**
- * A layout reading with its separators stepped back, so the numbers carry it.
- *
- * `45 x 4 1/2 x 45` is three measurements and two pieces of punctuation, and at
- * one weight the punctuation reads as loudly as the numbers: the eye lands on
- * the x's because they are the only repeated shape in the line. Dimming them
- * costs nothing and puts the emphasis where the meaning is.
- *
- * Split rather than formatted this way at the source, because the separator is
- * a presentation choice and `formatDualAngle` and `formatVls` have three other
- * callers (the share card, the share title, a screen reader) that all want one
- * plain string. The split is safe on the space-padded `x`: a fraction inside a
- * measurement is `4 1/2`, which has a space but never a lone x around it.
- *
- * The spaces around the separator are real text rather than padding on the
- * span. Padding would look identical and read as `45x4 1/2x45`, because the
- * accessible name of the button around this is its text content with the
- * styling thrown away: a screen reader would get one run-on number where a
- * sighted reader gets three measurements.
- */
-function LayoutNumbers({ value }: { value: string }) {
-  const parts = value.split(" x ");
-  return (
-    <>
-      {parts.map((part, i) => (
-        <span key={i}>
-          {i > 0 && <span className="font-normal text-ink-tertiary">{" x "}</span>}
-          {part}
-        </span>
-      ))}
-    </>
   );
 }

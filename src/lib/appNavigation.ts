@@ -21,6 +21,8 @@ export type SettingsSection =
   | "preferences"
   | "appearance";
 
+import type { LayoutSeed } from "./layoutShare";
+
 export type AppView = "dashboard" | "active" | "history" | "stats" | "settings";
 
 /** Screens that float above the tab bar, newest last. Pushing one keeps what is
@@ -89,6 +91,12 @@ export interface NavState {
    *  guides list is the top overlay, and the Overlay union cannot carry an
    *  id. */
   openGuideId: string | null;
+  /** The layout the pushed lab opens on, when it was sent there by a ball in
+   *  the arsenal rather than reached on its own. A field beside the overlay for
+   *  the same reason as `catalogBallId`: the Overlay union cannot carry one.
+   *  Deliberately not part of the route: it is content, and the query string is
+   *  where a layout goes in a URL (see `layoutShare.ts`). */
+  layoutSeed: LayoutSeed | null;
   /** The session the pushed `session` overlay is showing, by id. A field beside
    *  the overlay rather than part of it, for the same reason as
    *  `catalogBallId`: the Overlay union cannot carry an id. Distinct from
@@ -114,6 +122,8 @@ export type NavAction =
   | { type: "popOverlay" }
   | { type: "openCatalogBall"; ballId: string }
   | { type: "openGuide"; guideId: string }
+  /** Open the layout lab, optionally on a layout something else chose. */
+  | { type: "openLayoutLab"; seed?: LayoutSeed }
   | { type: "openLineSandbox" }
   | { type: "closeLineSandbox" }
   | { type: "statsOpened" }
@@ -149,6 +159,7 @@ export const INITIAL_NAV: NavState = {
   overlays: [],
   catalogBallId: null,
   openGuideId: null,
+  layoutSeed: null,
   viewedSessionId: null,
   lineSandboxOpen: false
 };
@@ -177,6 +188,7 @@ export function navReducer(state: NavState, action: NavAction): NavState {
         // A session is a place, and no pushed screen belongs in front of it.
         // Reached from one (the game plan's "last time"), the push comes off.
         overlays: [],
+        layoutSeed: null,
         activeSessionId: action.sessionId,
         openSessionStats: action.openStats ?? false,
         openSessionGameId: action.gameId ?? null,
@@ -229,7 +241,8 @@ export function navReducer(state: NavState, action: NavAction): NavState {
         overlays: [],
         viewedSessionId: null,
         catalogBallId: null,
-        openGuideId: null
+        openGuideId: null,
+        layoutSeed: null
       };
 
     case "pushOverlay":
@@ -237,7 +250,13 @@ export function navReducer(state: NavState, action: NavAction): NavState {
       // opens it is reachable from the screen itself.
       return state.overlays[state.overlays.length - 1] === action.overlay
         ? state
-        : { ...state, overlays: [...state.overlays, action.overlay] };
+        : {
+            ...state,
+            overlays: [...state.overlays, action.overlay],
+            // Reaching the lab on its own is asking about no ball in
+            // particular, so a seed left over from the last one goes.
+            layoutSeed: action.overlay === "layout-lab" ? null : state.layoutSeed
+          };
 
     case "popOverlay": {
       // A ball detail is on top of the catalog, so back takes it first and
@@ -248,9 +267,12 @@ export function navReducer(state: NavState, action: NavAction): NavState {
       const overlays = state.overlays.slice(0, -1);
       // The id goes with the screen that was showing it, or a later push of
       // another session would flash the last one on its way in.
+      // Each id goes with the screen that was showing it, or a later push would
+      // flash the last one on its way in.
+      const next = overlays.includes("layout-lab") ? state.layoutSeed : null;
       return overlays.includes("session")
-        ? { ...state, overlays }
-        : { ...state, overlays, viewedSessionId: null };
+        ? { ...state, overlays, layoutSeed: next }
+        : { ...state, overlays, layoutSeed: next, viewedSessionId: null };
     }
 
     case "openCatalogBall":
@@ -258,6 +280,21 @@ export function navReducer(state: NavState, action: NavAction): NavState {
 
     case "openGuide":
       return { ...state, openGuideId: action.guideId };
+
+    /**
+     * The lab, on the layout the caller has in mind.
+     *
+     * One action rather than a push followed by a write, because the seed and
+     * the screen it seeds arrive together or the lab renders once on the
+     * defaults and then jumps. Re-opening it while it is already on top swaps
+     * the seed, which is what tapping a second ball from underneath means.
+     */
+    case "openLayoutLab": {
+      const seed = action.seed ?? null;
+      return state.overlays[state.overlays.length - 1] === "layout-lab"
+        ? { ...state, layoutSeed: seed }
+        : { ...state, overlays: [...state.overlays, "layout-lab"], layoutSeed: seed };
+    }
 
     case "openLineSandbox":
       return { ...state, lineSandboxOpen: true };
@@ -310,6 +347,10 @@ export function navReducer(state: NavState, action: NavAction): NavState {
         overlays: route.overlays,
         catalogBallId: route.catalogBallId ?? null,
         openGuideId: route.guideId ?? null,
+        // A restored route is a URL, and a URL says which screen, never which
+        // ball: a lab restored from history opens on its own defaults or on the
+        // query string, exactly as a pasted link does.
+        layoutSeed: null,
         viewedSessionId: route.viewedSessionId ?? null,
         lineSandboxOpen: route.lineSandbox ?? false
       };

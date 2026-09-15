@@ -8,6 +8,7 @@ import {
   getPap,
   setGripStyle,
   setHandedness,
+  setLayoutSystem,
   setPap
 } from "../services/bowlingRepository";
 import { decodeLayoutParams } from "../lib/layoutShare";
@@ -682,6 +683,49 @@ describe("LayoutLabView", () => {
       screen.getByRole("img", { name: /bowling ball/i }).querySelectorAll("text")
     ).map((t) => (t.textContent ?? "").trim());
     expect(asym.filter((t) => t === "PSA")).toHaveLength(1);
+  });
+
+  it("opens on a ball's own layout, and says whose it is", async () => {
+    render(
+      <LayoutLabView
+        onBack={vi.fn()}
+        seed={{
+          layout: { drillingAngle: 60, pinToPap: 5, valAngle: 30 },
+          ball: { symmetric: false, pinToCore: 6, diff: 0.05, mbDiff: 0.018 },
+          pap: { over: 4.75, up: -0.5 },
+          hand: "left",
+          grip: "2h",
+          ballName: "Phaze II"
+        }}
+      />
+    );
+    expect(dualAngle()).toBe("60 x 5 x 30");
+    expect(screen.getByText(/Phaze II/)).toBeTruthy();
+    // The lab still holds nothing: the ball is not what is being edited.
+    expect(screen.getByText(/never changes the ball/)).toBeTruthy();
+  });
+
+  it("opens a seeded ball in the notation that ball is written in", async () => {
+    render(
+      <LayoutLabView
+        onBack={vi.fn()}
+        seed={{
+          layout: { drillingAngle: 60, pinToPap: 5, valAngle: 30 },
+          ball: { symmetric: false, pinToCore: 6, diff: 0.05, mbDiff: 0.018 },
+          pap: { over: 5, up: 0.5 },
+          hand: "right",
+          grip: "1h",
+          system: "vls"
+        }}
+      />
+    );
+    expect(await screen.findByRole("slider", { name: "Pin buffer" })).toBeTruthy();
+  });
+
+  it("opens in the notation the bowler reads layouts in", async () => {
+    await setLayoutSystem("vls");
+    renderLab();
+    expect(await screen.findByRole("slider", { name: "Pin buffer" })).toBeTruthy();
   });
 
   it("goes back", async () => {
