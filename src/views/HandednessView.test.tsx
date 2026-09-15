@@ -64,14 +64,17 @@ describe("HandednessView", () => {
     await waitFor(async () => expect(await getPap()).toEqual({ over: 5, up: 0.5 }));
   });
 
-  it("puts the PAP back to the default from the reset beside it", async () => {
+  it("offers no reset, because a measured PAP is not a thing to put back", async () => {
+    // It used to. "Reset to default" on a measurement taken off a thrown shot
+    // in a pro shop is a control whose only outcome is losing it: the app's
+    // default is a plausible axis, not the bowler's, so restoring it is not
+    // undoing anything. The fields themselves are the way to change it.
     await setPap({ over: 2, up: -1 });
     renderPrefs();
     await waitFor(() =>
       expect((screen.getByLabelText("Over") as HTMLSelectElement).value).toBe("2")
     );
-    fireEvent.click(screen.getByRole("button", { name: "Reset PAP" }));
-    await waitFor(async () => expect(await getPap()).toEqual({ over: 5, up: 0.5 }));
+    expect(screen.queryByRole("button", { name: /reset/i })).not.toBeInTheDocument();
   });
 
   it("reads each PAP measurement as one line, with no heading band above it", async () => {

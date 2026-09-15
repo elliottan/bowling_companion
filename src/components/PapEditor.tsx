@@ -13,10 +13,11 @@ import {
 /**
  * The bowler's positive axis point, as the two measurements it is spoken in.
  *
- * It lives here rather than in the layout lab because the PAP is a setting: the
- * lab edits it, Settings edits it, and both write the same stored measurement.
- * One component means the two can never disagree about the bounds, the rounding
- * or which way "down" is.
+ * It lives here rather than in the layout lab because the PAP is a setting, and
+ * two screens show these fields: Settings, which is the one that saves, and the
+ * lab, where the same fields are a what-if that is never written back. One
+ * component means the two can never disagree about the bounds, the rounding or
+ * which way "down" is.
  *
  * Each measurement is one line, and the line reads the way it is said out loud:
  * the number first, then what it is. "5 1/2 over", "1/2 down". The labels used

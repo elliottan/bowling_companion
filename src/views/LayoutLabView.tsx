@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Check,
-  Download,
   Info,
   LayoutGrid,
   MoreHorizontal,
@@ -43,21 +42,9 @@ import {
 } from "../lib/ballLayout";
 import { defaultOrientationFor, type Orientation } from "../lib/ballProjection";
 import { decodeLayoutParams, layoutShareUrl } from "../lib/layoutShare";
-import {
-  buildLayoutCard,
-  downloadCardImage,
-  renderShareCard,
-  shareCardFilename,
-  type ShareCardData
-} from "../lib/shareCard";
+import { buildLayoutCard, type ShareCardData } from "../lib/shareCard";
 import { svgToImage } from "../lib/svgImage";
-import {
-  getGripStyle,
-  getHandedness,
-  getPap,
-  setGripStyle as saveGripStyle,
-  setPap as savePap
-} from "../services/bowlingRepository";
+import { getGripStyle, getHandedness, getPap } from "../services/bowlingRepository";
 import { useHandedness } from "../lib/handednessContext";
 import type { GripStyle, Handedness } from "../types/bowling";
 
@@ -99,7 +86,8 @@ const BENCHMARK: DualAngleLayout = { drillingAngle: 45, pinToPap: 4.5, valAngle:
  * It holds nothing and saves nothing, which is deliberate. This is the ball
  * equivalent of the line sandbox: a place to find out what a layout does before
  * committing to one, not a record of a layout you own. A ball's actual layout
- * is a field on the ball in the arsenal.
+ * is a field on the ball in the arsenal, and the bowler's own axis, hand and
+ * grip are settings: this screen opens on them and never writes to them.
  *
  * The screen is arranged in the order the question gets asked: who is bowling,
  * what ball, what numbers, what does it look like, what will it do. The diagram
@@ -125,7 +113,6 @@ export function LayoutLabView({ onBack, onOpenSettings }: LayoutLabViewProps) {
   const [presetAt, setPresetAt] = useState<Anchor | null>(null);
   const [pendingPreset, setPendingPreset] = useState<LayoutPreset | null>(null);
   const [resetting, setResetting] = useState(false);
-  const [shareNote, setShareNote] = useState<string | null>(null);
   const [card, setCard] = useState<ShareCardData | null>(null);
   // The diagram's own SVG, read off the DOM when a picture is asked for.
   // BallLayoutDiagram is a plain function component and forwards no ref, and
@@ -172,27 +159,28 @@ export function LayoutLabView({ onBack, onOpenSettings }: LayoutLabViewProps) {
     return { ...base, pinToCore };
   }, [symmetric, shared]);
 
-  // Editing the PAP or the grip writes it back, because both are the bowler's
-  // own and not this screen's scratch values: the whole point of storing them
-  // is that the next visit, and every other screen that ever wants them,
-  // already knows. Anything that arrived in a shared link is somebody else's
-  // and is never saved.
-  const fromLink = shared != null;
-  const updatePap = useCallback(
-    (next: PapMeasurement) => {
-      setPapOverride(next);
-      if (!fromLink) void savePap(next);
-    },
-    [fromLink]
-  );
-
-  const chooseGrip = useCallback(
-    (next: GripStyle) => {
-      setGripOverride(next);
-      if (!fromLink) void saveGripStyle(next);
-    },
-    [fromLink]
-  );
+  /*
+   * Nothing on this screen is written back. Not the PAP, not the grip, not the
+   * hand.
+   *
+   * The lab seeds from the bowler's saved settings so nobody re-types their own
+   * axis on every visit, and that is where the connection ends: turning the
+   * PAP up an eighth here to see what it does to a layout is a question being
+   * asked, not a measurement being taken. Saving it made the sandbox edit the
+   * bowler, and it did so silently, from a control that gives no hint it is
+   * touching anything outside the screen. Worse, it is a sandbox people are
+   * meant to poke at, so the damage was likeliest for exactly the person using
+   * it as intended, and a PAP is measured off a thrown shot in a pro shop, not
+   * recoverable by undoing a dropdown.
+   *
+   * So the writes live where the measurements do, in Settings, Preferences.
+   * This screen reads them, and the reset beside them puts the saved ones back
+   * when the sliders have wandered (or when a shared link brought someone
+   * else's along). It is the module's own opening claim, finally true: it
+   * holds nothing and saves nothing.
+   */
+  const updatePap = useCallback((next: PapMeasurement) => setPapOverride(next), []);
+  const chooseGrip = useCallback((next: GripStyle) => setGripOverride(next), []);
 
   const motion = useMemo(() => readMotion(layout, ball, pap), [layout, ball, pap]);
   const vls = useMemo(() => toVls(layout, ball), [layout, ball]);
@@ -255,8 +243,8 @@ export function LayoutLabView({ onBack, onOpenSettings }: LayoutLabViewProps) {
    * ball, move the sliders, and send a different layout back, and a PNG can do
    * none of that. The card is still drawn and still shown, because a link
    * pasted into a chat is a line of text nobody can see, and the preview is
-   * what says what is about to be sent. The picture itself is still reachable,
-   * one control along, for the bowler who wants it in their camera roll.
+   * what says what is about to be sent. Saving the picture to the camera roll
+   * is a control on that preview, which is where the picture exists.
    */
   const shareLink = useCallback(async () => {
     setMenuAt(null);
@@ -266,29 +254,6 @@ export function LayoutLabView({ onBack, onOpenSettings }: LayoutLabViewProps) {
     const diagram = await rasterizeBall();
     if (diagram) setCard((current) => (current ? { ...current, diagram } : current));
   }, [buildCard, rasterizeBall]);
-
-  /** The same card, straight to the device. No share sheet: this control is the
-   *  one that says "save it", and a chooser is not what was asked for. */
-  const downloadPicture = useCallback(async () => {
-    setMenuAt(null);
-    try {
-      const base = buildCard();
-      const diagram = await rasterizeBall();
-      const blob = await renderShareCard(diagram ? { ...base, diagram } : base);
-      downloadCardImage(blob, shareCardFilename(base.title));
-      setShareNote("Image saved");
-    } catch {
-      setShareNote("The image could not be saved.");
-    }
-  }, [buildCard, rasterizeBall]);
-
-  // The share note says one thing and then goes, rather than sitting there
-  // until something else happens to clear it.
-  useEffect(() => {
-    if (!shareNote) return;
-    const t = setTimeout(() => setShareNote(null), 2600);
-    return () => clearTimeout(t);
-  }, [shareNote]);
 
   const shareUrl = useMemo(
     () =>
@@ -351,25 +316,17 @@ export function LayoutLabView({ onBack, onOpenSettings }: LayoutLabViewProps) {
       active={
         pendingPreset == null && !resetting && menuAt == null && presetAt == null && card == null
       }
-      /* Three trailing actions, which is the one place the app departs from the
+      /* Two trailing actions, which is the one place the app departs from the
          single trailing action in docs/DESIGN-LANGUAGE.md section 1. Sharing a
          layout is the thing this screen is for once the numbers are right, and
-         a share buried one tap inside More reads as an afterthought; saving the
-         picture is the same action pointed at the camera roll instead of a
-         chat, so it sits beside it rather than a menu away. Everything that is
-         genuinely rare still lives behind the glyph. */
+         a share buried one tap inside More reads as an afterthought. Saving the
+         picture used to be a third glyph here and is not: it is a thing to do
+         to the card, not to the screen, so it lives on the card. Everything
+         that is genuinely rare still lives behind the glyph. */
       trailing={
         <>
           <IconButton variant="round" label="Share layout" onClick={() => void shareLink()}>
             <ShareIosIcon size={18} aria-hidden="true" />
-          </IconButton>
-          <IconButton
-            variant="round"
-            label="Save image"
-            className="ml-1"
-            onClick={() => void downloadPicture()}
-          >
-            <Download size={18} aria-hidden="true" />
           </IconButton>
           <IconButton
             variant="round"
@@ -410,37 +367,49 @@ export function LayoutLabView({ onBack, onOpenSettings }: LayoutLabViewProps) {
               <RotateCcw size={15} aria-hidden="true" />
             </IconButton>
           </div>
-          <div className="flex items-start gap-2">
+          {/* Stretched rather than top-aligned, so the two cards end level
+              whichever is taller. The hand card is the taller of the two (two
+              toggles against two rows of fields), so the PAP card takes a few
+              px of extra padding at the bottom, which reads as padding. */}
+          <div className="flex items-stretch gap-2">
             <div className="min-w-0 flex-1 space-y-1.5 rounded-xl border border-edge bg-surface p-2.5 shadow-sm">
               <span className={FIELD_MICRO_LABEL}>Your PAP</span>
               <PapEditor pap={pap} onChange={updatePap} idPrefix="lab-pap" />
             </div>
             <div className="w-[7.5rem] shrink-0 space-y-1.5 rounded-xl border border-edge bg-surface p-2.5 shadow-sm">
               <span className={FIELD_MICRO_LABEL}>Hand</span>
-              {/* Left on the left, which is the one ordering that needs no
-                  reading: the letters sit where the hands do. */}
-              <SegmentedControl
-                label="Bowling hand"
-                value={hand}
-                onChange={chooseHand}
-                options={[
-                  { value: "left", label: "L", srLabel: "Left" },
-                  { value: "right", label: "R", srLabel: "Right" }
-                ]}
-              />
-              {/* One-handed or two-handed. It is stored and it is shared, and
-                  it changes nothing about the arithmetic yet: a two-handed
-                  layout is genuinely different geometry and guessing at it here
-                  would be worse than saying nothing. */}
-              <SegmentedControl
-                label="Grip style"
-                value={grip}
-                onChange={chooseGrip}
-                options={[
-                  { value: "1h", label: "1H", srLabel: "One handed" },
-                  { value: "2h", label: "2H", srLabel: "Two handed" }
-                ]}
-              />
+              {/* `space-y-2` is required, not chosen: a dense segmented control
+                  is 36px drawn and 44pt to the finger, so two stacked any
+                  closer than 8px would have overlapping hit regions and the
+                  grip row would start swallowing taps meant for the hand. */}
+              <div className="space-y-2">
+                {/* Left on the left, which is the one ordering that needs no
+                    reading: the letters sit where the hands do. */}
+                <SegmentedControl
+                  dense
+                  label="Bowling hand"
+                  value={hand}
+                  onChange={chooseHand}
+                  options={[
+                    { value: "left", label: "L", srLabel: "Left" },
+                    { value: "right", label: "R", srLabel: "Right" }
+                  ]}
+                />
+                {/* One-handed or two-handed. It is stored and it is shared, and
+                    it changes nothing about the arithmetic yet: a two-handed
+                    layout is genuinely different geometry and guessing at it
+                    here would be worse than saying nothing. */}
+                <SegmentedControl
+                  dense
+                  label="Grip style"
+                  value={grip}
+                  onChange={chooseGrip}
+                  options={[
+                    { value: "1h", label: "1H", srLabel: "One handed" },
+                    { value: "2h", label: "2H", srLabel: "Two handed" }
+                  ]}
+                />
+              </div>
             </div>
           </div>
         </section>
@@ -507,7 +476,7 @@ export function LayoutLabView({ onBack, onOpenSettings }: LayoutLabViewProps) {
           </div>
 
           {system === "dual" ? (
-            <div className="space-y-2 rounded-xl border border-edge bg-surface p-2.5 shadow-sm">
+            <div className="space-y-0.5 rounded-xl border border-edge bg-surface p-2.5 shadow-sm">
               <Slider
                 label="Drilling angle"
                 hint="At the pin, to the CG or PSA. Low rolls early, high rolls late."
@@ -544,7 +513,7 @@ export function LayoutLabView({ onBack, onOpenSettings }: LayoutLabViewProps) {
               />
             </div>
           ) : (
-            <div className="space-y-2 rounded-xl border border-edge bg-surface p-2.5 shadow-sm">
+            <div className="space-y-0.5 rounded-xl border border-edge bg-surface p-2.5 shadow-sm">
               <Slider
                 label="Pin to PAP"
                 hint="The same first number in both systems."
@@ -707,17 +676,6 @@ export function LayoutLabView({ onBack, onOpenSettings }: LayoutLabViewProps) {
         link={{ url: shareUrl, title: `Layout ${formatDualAngle(layout)}` }}
         onClose={() => setCard(null)}
       />
-
-      {shareNote && (
-        <div
-          role="status"
-          className="pointer-events-none fixed inset-x-0 bottom-8 z-50 flex justify-center px-4"
-        >
-          <span className="rounded-full bg-ink px-4 py-2 text-xs font-semibold text-surface shadow-lg">
-            {shareNote}
-          </span>
-        </div>
-      )}
     </PushScreen>
   );
 }
@@ -787,7 +745,7 @@ function Slider({
 
   return (
     <div className="relative" ref={hintRef}>
-      <div className="mb-1 flex items-baseline justify-between gap-2">
+      <div className="mb-0.5 flex items-baseline justify-between gap-2">
         {/* The label is the affordance. Tapping the name of a thing to find out
             what it means is the gesture people already try, and a separate icon
             would be a second tap target in a row that is already dense, so the
@@ -912,7 +870,7 @@ function SystemCard({
       type="button"
       aria-pressed={selected}
       onClick={onClick}
-      className={`rounded-xl border p-2.5 text-left shadow-sm active:opacity-80 ${
+      className={`rounded-xl border p-2.5 text-center shadow-sm active:opacity-80 ${
         selected ? "border-accent-fill bg-accent-soft" : "border-edge bg-surface"
       }`}
     >
@@ -920,8 +878,42 @@ function SystemCard({
       <span
         className={`block text-sm font-bold tabular-nums ${selected ? "text-accent" : "text-ink"}`}
       >
-        {value}
+        <LayoutNumbers value={value} />
       </span>
     </button>
+  );
+}
+
+/**
+ * A layout reading with its separators stepped back, so the numbers carry it.
+ *
+ * `45 x 4 1/2 x 45` is three measurements and two pieces of punctuation, and at
+ * one weight the punctuation reads as loudly as the numbers: the eye lands on
+ * the x's because they are the only repeated shape in the line. Dimming them
+ * costs nothing and puts the emphasis where the meaning is.
+ *
+ * Split rather than formatted this way at the source, because the separator is
+ * a presentation choice and `formatDualAngle` and `formatVls` have three other
+ * callers (the share card, the share title, a screen reader) that all want one
+ * plain string. The split is safe on the space-padded `x`: a fraction inside a
+ * measurement is `4 1/2`, which has a space but never a lone x around it.
+ *
+ * The spaces around the separator are real text rather than padding on the
+ * span. Padding would look identical and read as `45x4 1/2x45`, because the
+ * accessible name of the button around this is its text content with the
+ * styling thrown away: a screen reader would get one run-on number where a
+ * sighted reader gets three measurements.
+ */
+function LayoutNumbers({ value }: { value: string }) {
+  const parts = value.split(" x ");
+  return (
+    <>
+      {parts.map((part, i) => (
+        <span key={i}>
+          {i > 0 && <span className="font-normal text-ink-tertiary">{" x "}</span>}
+          {part}
+        </span>
+      ))}
+    </>
   );
 }

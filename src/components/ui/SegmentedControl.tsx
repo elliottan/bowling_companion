@@ -12,6 +12,16 @@ interface SegmentedControlProps<T extends string> {
    *  exactly one of these is the answer. */
   value: T | null;
   onChange: (value: T) => void;
+  /**
+   * The shorter track, for a control stacked with others in a dense panel.
+   *
+   * Visually 36px rather than 40, with the hit region still 44pt through the
+   * same invisible `::after` that `Chip` uses. That leaves 4px of overhang top
+   * and bottom, so a caller stacking two of these MUST leave at least 8px
+   * between them (`space-y-2`) or the two hit regions overlap and the row
+   * underneath starts stealing taps meant for the one above.
+   */
+  dense?: boolean;
 }
 
 /**
@@ -27,13 +37,16 @@ export function SegmentedControl<T extends string>({
   label,
   options,
   value,
-  onChange
+  onChange,
+  dense = false
 }: SegmentedControlProps<T>) {
   return (
     <div
       role="group"
       aria-label={label}
-      className="flex gap-1 rounded-xl border border-edge bg-surface-muted p-1"
+      className={`flex rounded-xl border border-edge bg-surface-muted ${
+        dense ? "gap-0.5 p-0.5" : "gap-1 p-1"
+      }`}
     >
       {options.map((opt) => {
         const selected = opt.value === value;
@@ -44,7 +57,9 @@ export function SegmentedControl<T extends string>({
             aria-label={opt.srLabel}
             aria-pressed={selected}
             onClick={() => onChange(opt.value)}
-            className={`relative h-10 flex-1 rounded-lg text-sm font-semibold ${TAP_TARGET_44} ${
+            className={`relative flex-1 rounded-lg text-sm font-semibold ${
+              dense ? "h-9" : "h-10"
+            } ${TAP_TARGET_44} ${
               selected
                 ? "bg-accent-fill text-accent-on-fill shadow-sm"
                 : "text-ink-secondary active:bg-surface"
