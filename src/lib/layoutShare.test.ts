@@ -13,7 +13,8 @@ const A_LAYOUT: SharedLayout = {
   layout: { drillingAngle: 70, pinToPap: 5.25, valAngle: 30 },
   ball: { ...DEFAULT_ASYMMETRIC, pinToCore: 6 },
   pap: { over: 4.75, up: -0.5 },
-  hand: "left"
+  hand: "left",
+  grip: "2h"
 };
 
 describe("encode and decode", () => {
@@ -23,6 +24,7 @@ describe("encode and decode", () => {
     expect(back?.layout).toEqual(A_LAYOUT.layout);
     expect(back?.pap).toEqual(A_LAYOUT.pap);
     expect(back?.hand).toBe("left");
+    expect(back?.grip).toBe("2h");
     expect(back?.ball.symmetric).toBe(false);
     expect(back?.ball.pinToCore).toBe(6);
   });
@@ -105,5 +107,27 @@ describe("the shareable URL", () => {
     const url = layoutShareUrl(A_LAYOUT, "https://headpin.app", "/score");
     const search = url.slice(url.indexOf("?"), url.indexOf("#"));
     expect(decodeLayoutParams(search)?.layout).toEqual(A_LAYOUT.layout);
+  });
+});
+
+describe("grip style", () => {
+  it("rides the link, because a layout belongs to a bowler and not just a hand", () => {
+    expect(encodeLayoutParams(A_LAYOUT)).toContain("grip=2h");
+  });
+
+  it("opens one-handed on a link that says nothing about the grip", () => {
+    // Every link shared before the toggle existed is such a link, and the
+    // common grip is the right thing to open them on.
+    const older = decodeLayoutParams("?da=45&ptp=4.5&val=45&hand=right");
+    expect(older?.grip).toBe("1h");
+  });
+
+  it("reads an unrecognised grip as one-handed rather than failing", () => {
+    expect(decodeLayoutParams("?da=45&grip=three-handed")?.grip).toBe("1h");
+  });
+
+  it("is enough on its own to make a query a shared layout", () => {
+    expect(decodeLayoutParams("?grip=2h")).not.toBeNull();
+    expect(decodeLayoutParams("?utm_source=chat")).toBeNull();
   });
 });

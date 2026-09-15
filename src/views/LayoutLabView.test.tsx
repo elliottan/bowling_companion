@@ -2,8 +2,30 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { LayoutLabView } from "./LayoutLabView";
 import { db } from "../db/bowlingDb";
-import { getPap, setHandedness, setPap } from "../services/bowlingRepository";
+import { getGripStyle, getPap, setGripStyle, setHandedness, setPap } from "../services/bowlingRepository";
 import { decodeLayoutParams } from "../lib/layoutShare";
+
+/* jsdom has no 2D canvas context and never resolves an `<img>` decode, so the
+ * two steps between "the layout on screen" and "a PNG on the phone" cannot run
+ * here. They are stubbed at the seam rather than skipped, which leaves the
+ * screen's own half, deciding what goes on the card and where it is sent,
+ * testable. `lib/shareCard`'s own tests cover the builders underneath. */
+const raster = vi.hoisted(() => ({ downloads: [] as string[] }));
+
+vi.mock("../lib/svgImage", () => ({
+  svgToImage: () => Promise.reject(new Error("no raster in jsdom"))
+}));
+
+vi.mock("../lib/shareCard", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../lib/shareCard")>();
+  return {
+    ...actual,
+    renderShareCard: () => Promise.resolve(new Blob(["png"], { type: "image/png" })),
+    downloadCardImage: (_blob: Blob, filename: string) => {
+      raster.downloads.push(filename);
+    }
+  };
+});
 
 const renderLab = () => {
   const onBack = vi.fn();
@@ -16,25 +38,28 @@ const renderLab = () => {
 const slider = (name: RegExp | string) =>
   screen.getByRole("slider", { name }) as HTMLInputElement;
 
-/** The "45 x 4 1/2 x 45" readout, whatever it currently says. */
-// Both names appear twice on screen, once as the system toggle's button and
-// once as the readout's label, so the readouts are found by their label span.
+/** The "45 x 4 1/2 x 45" readout, whatever it currently says. Each notation is
+ *  one control now: the box that shows the layout in a notation is the button
+ *  that starts editing it in that notation. */
+const systemCard = (label: string) =>
+  screen.getByRole("button", { name: new RegExp(`^${label}`) });
+
 const readout = (label: string) =>
-  within(screen.getByText(label, { selector: "span" }).closest("div") as HTMLElement).getByText(/ x /)
-    .textContent;
+  within(systemCard(label)).getByText(/ x /).textContent;
 
 const dualAngle = () => readout("Dual angle");
 const vlsReadout = () => readout("Storm VLS");
 
-/** Open the preset menu, which hangs off the named button under the Layout
- *  heading rather than off the nav bar's More. */
+/** Open the preset menu, which hangs off the named button on the Layout
+ *  heading row rather than off the nav bar's More. */
 const openMenu = () =>
-  fireEvent.click(screen.getByRole("button", { name: /^Preset,/ }));
+  fireEvent.click(screen.getByRole("button", { name: /^Presets,/ }));
 
 describe("LayoutLabView", () => {
   beforeEach(async () => {
     await db.delete();
     await db.open();
+    raster.downloads.length = 0;
     window.history.replaceState({}, "", "/score");
   });
 
@@ -128,7 +153,7 @@ describe("LayoutLabView", () => {
 
   it("edits the layout through the VLS numbers and converts back", () => {
     renderLab();
-    fireEvent.click(screen.getByRole("button", { name: "Storm VLS" }));
+    fireEvent.click(systemCard("Storm VLS"));
     fireEvent.change(slider(/Pin buffer/i), { target: { value: "4.125" } });
     // Near enough the 70 degree VAL angle the slider above reached, arrived at
     // from the other side, but a degree off it rather than exactly on it. That
@@ -148,13 +173,18 @@ describe("LayoutLabView", () => {
     expect(screen.getByText(/snaps hard off the friction/i)).toBeInTheDocument();
   });
 
-  it("resets back to the benchmark", () => {
+  it("gets back to the benchmark through the presets, which is what reset meant", async () => {
     renderLab();
     openMenu();
     fireEvent.click(screen.getByRole("button", { name: "Short pin" }));
     expect(dualAngle()).not.toBe("45 x 4 1/2 x 45");
-    fireEvent.click(screen.getByRole("button", { name: "Reset" }));
-    expect(dualAngle()).toBe("45 x 4 1/2 x 45");
+    // The separate Reset control is gone: every reset it offered was "go back
+    // to the benchmark", and the benchmark is itself a preset, so the two
+    // controls were one idea spending two bands of a phone screen.
+    expect(screen.queryByRole("button", { name: "Reset" })).not.toBeInTheDocument();
+    openMenu();
+    fireEvent.click(screen.getByRole("button", { name: "Benchmark" }));
+    await waitFor(() => expect(dualAngle()).toBe("45 x 4 1/2 x 45"));
   });
 
   it("draws a ball that describes itself, since the picture carries the point", () => {
@@ -242,11 +272,11 @@ describe("LayoutLabView", () => {
     expect(ball()).not.toBe(halfUp);
   });
 
-  it("leads with the PAP, which every other number is measured against", () => {
+  it("leads with the bowler, whose axis every other number is measured against", () => {
     renderLab();
     const headings = screen.getAllByRole("heading").map((h) => h.textContent);
     expect(headings[0]).toBe("Layout lab");
-    expect(headings[1]).toBe("Your PAP");
+    expect(headings[1]).toBe("You");
   });
 
   it("puts each angle at its own vertex, not both in the middle of the ball", () => {
@@ -356,9 +386,10 @@ describe("LayoutLabView", () => {
     });
     renderLab();
     fireEvent.change(slider(/VAL angle/i), { target: { value: "30" } });
-    // The link lives under More now; the nav bar button shares the picture.
-    fireEvent.click(screen.getByRole("button", { name: "More" }));
-    fireEvent.click(screen.getByRole("button", { name: /share a link/i }));
+    // The nav bar's share is the link now: a layout is a thing to open, not
+    // only a thing to look at. The picture is one control along.
+    fireEvent.click(screen.getByRole("button", { name: "Share layout" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Share link" }));
 
     await waitFor(() => expect(written).toHaveLength(1));
     const url = written[0];
@@ -389,13 +420,26 @@ describe("LayoutLabView", () => {
     expect(await getPap()).toBeNull();
   });
 
-  it("shares the layout as a picture, with the ball on it", async () => {
+  it("previews the layout as a picture before the link goes anywhere", async () => {
     renderLab();
     fireEvent.click(screen.getByRole("button", { name: "Share layout" }));
-    // The card is previewed before it goes anywhere, like every other share in
-    // the app: nobody should post a picture they have not seen.
+    // A link pasted into a chat is a line of text nobody can see, so the card
+    // is still drawn and still shown: it is what says what is being sent.
     const dialog = await screen.findByRole("dialog", { name: "Share image" });
-    expect(dialog).toBeInTheDocument();
+    expect(within(dialog).getByRole("button", { name: "Share link" })).toBeInTheDocument();
+  });
+
+  it("saves the picture to the device from its own control, beside the share", async () => {
+    renderLab();
+    // Saving to the camera roll is the same action pointed somewhere else, so
+    // it sits beside the share rather than a menu away, and it goes straight to
+    // the device: a chooser is not what "save it" asked for.
+    fireEvent.click(screen.getByRole("button", { name: "Save image" }));
+    await waitFor(() => expect(raster.downloads).toHaveLength(1));
+    // Named after the layout, so two saves do not collide in a folder.
+    expect(raster.downloads[0]).toMatch(/^45-x-4-1-2-x-45-.*\.png$/);
+    // No share sheet opened on the way: this control is not the share.
+    expect(screen.queryByRole("dialog", { name: "Share image" })).not.toBeInTheDocument();
   });
 
   it("offers the settings that hold the hand and the PAP, behind More", () => {
@@ -406,17 +450,149 @@ describe("LayoutLabView", () => {
     expect(onOpenSettings).toHaveBeenCalled();
   });
 
-  it("puts the bowler's own PAP back with the reset beside it", async () => {
+  it("asks before the reset, and names the settings it is resetting to", async () => {
+    await setPap({ over: 3, up: 0 });
+    window.history.replaceState({}, "", "/score?da=45&ptp=4.5&val=45&over=6&up=0&hand=left");
+    renderLab();
+    // Somebody else's axis, from their link.
+    expect((screen.getByLabelText("Over") as HTMLSelectElement).value).toBe("6");
+
+    fireEvent.click(screen.getByRole("button", { name: /reset to your saved settings/i }));
+    // It says what it is resetting *to*, because the person reaching for this
+    // is usually reading a shared layout and is about to swap the sender's
+    // measurements for their own rather than blank both.
+    const dialog = screen
+      .getByText(/Use your saved settings\?/i)
+      .closest('[role="dialog"]') as HTMLElement;
+    expect(dialog.textContent).toMatch(/hand, grip and PAP from your preferences/i);
+    expect(dialog.textContent).toMatch(/layout numbers stay as they are/i);
+
+    fireEvent.click(screen.getByRole("button", { name: "Use mine" }));
+    await waitFor(() =>
+      expect((screen.getByLabelText("Over") as HTMLSelectElement).value).toBe("3")
+    );
+  });
+
+  it("leaves everything alone when the reset is cancelled", async () => {
     await setPap({ over: 3, up: 0 });
     renderLab();
     await waitFor(() =>
       expect((screen.getByLabelText("Over") as HTMLSelectElement).value).toBe("3")
     );
-    fireEvent.click(screen.getByRole("button", { name: /reset PAP and hand/i }));
-    // Back to the app's default axis, and saved, because the PAP is the
-    // bowler's measurement wherever it is edited from.
-    await waitFor(() => expect(getPap()).resolves.toEqual({ over: 5, up: 0.5 }));
-    expect((screen.getByLabelText("Over") as HTMLSelectElement).value).toBe("5");
+    fireEvent.change(screen.getByRole("combobox", { name: "Over" }), { target: { value: "6" } });
+    fireEvent.click(screen.getByRole("button", { name: /reset to your saved settings/i }));
+    fireEvent.click(screen.getByRole("button", { name: /cancel/i }));
+    await waitFor(() => expect(screen.queryByText(/Use your saved settings/i)).not.toBeInTheDocument());
+    expect((screen.getByLabelText("Over") as HTMLSelectElement).value).toBe("6");
+  });
+
+  it("opens one-handed, and saves the grip when it changes", async () => {
+    renderLab();
+    expect(screen.getByRole("button", { name: "One handed" })).toHaveAttribute(
+      "aria-pressed",
+      "true"
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Two handed" }));
+    // The grip is the bowler's, not this screen's, so it is written back the
+    // way the PAP is: the next visit, and Settings, already know.
+    await waitFor(async () => expect(await getGripStyle()).toBe("2h"));
+  });
+
+  it("fills the grip from settings, and carries it in a shared link", async () => {
+    const written: string[] = [];
+    Object.assign(navigator, {
+      clipboard: { writeText: (t: string) => (written.push(t), Promise.resolve()) }
+    });
+    await setGripStyle("2h");
+    renderLab();
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: "Two handed" })).toHaveAttribute(
+        "aria-pressed",
+        "true"
+      )
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Share layout" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Share link" }));
+    await waitFor(() => expect(written).toHaveLength(1));
+    const url = written[0];
+    expect(decodeLayoutParams(url.slice(url.indexOf("?"), url.indexOf("#")))?.grip).toBe("2h");
+  });
+
+  it("never saves a grip that arrived in somebody else's link", async () => {
+    window.history.replaceState({}, "", "/score?da=45&ptp=4.5&val=45&grip=2h");
+    renderLab();
+    expect(screen.getByRole("button", { name: "Two handed" })).toHaveAttribute(
+      "aria-pressed",
+      "true"
+    );
+    fireEvent.click(screen.getByRole("button", { name: "One handed" }));
+    // A shared layout says who it was drilled for. It does not say who is
+    // reading it, so nothing about the reader is written from it.
+    await waitFor(() => expect(dualAngle()).toBe("45 x 4 1/2 x 45"));
+    expect(await getGripStyle()).toBeNull();
+  });
+
+  it("draws the VAL as a line across half the ball, so the angle is measured against something", () => {
+    renderLab();
+    const svg = screen.getByRole("img", { name: /bowling ball/i });
+    // Half a great circle reaches the silhouette on both sides, so its two
+    // furthest-apart points are about a ball's diameter apart. A stub hanging
+    // off the vertex would be a few pixels long, and the drawing's whole
+    // complaint was an angle measured against a line that was not there.
+    const points = Array.from(svg.querySelectorAll('polyline[stroke="#38bdf8"]'))
+      .flatMap((n) => (n.getAttribute("points") ?? "").split(" "))
+      .map((pair) => pair.split(",").map(Number))
+      .filter(([x, y]) => Number.isFinite(x) && Number.isFinite(y));
+    expect(points.length).toBeGreaterThan(0);
+    let widest = 0;
+    for (const [ax, ay] of points) {
+      for (const [bx, by] of points) widest = Math.max(widest, Math.hypot(ax - bx, ay - by));
+    }
+    // The ball is drawn at a 110 radius, so a diameter is 220.
+    expect(widest).toBeGreaterThan(180);
+  });
+
+  it("draws the VLS notation when the VLS numbers are the ones being edited", () => {
+    renderLab();
+    const texts = () =>
+      Array.from(
+        screen.getByRole("img", { name: /bowling ball/i }).querySelectorAll("text")
+      ).map((t) => (t.textContent ?? "").trim());
+
+    // Dual angle is two angles at two vertices.
+    expect(texts().some((t) => t.includes("DRILL"))).toBe(true);
+
+    fireEvent.click(systemCard("Storm VLS"));
+    // VLS is three distances, so the drawing measures them instead. Showing
+    // wedges while the sliders read inches was the picture answering a
+    // different question from the one on screen.
+    const after = texts();
+    expect(after.some((t) => t.includes("DRILL"))).toBe(false);
+    expect(after.some((t) => t.includes("VAL"))).toBe(false);
+    expect(after).toContain('4 1/2"');
+    // And the ball says so to a screen reader too.
+    expect(
+      screen.getByRole("img", { name: /Storm VLS layout/i })
+    ).toBeInTheDocument();
+  });
+
+  it("puts the PSA in the thumb hole on a symmetric ball", () => {
+    renderLab();
+    fireEvent.click(screen.getByRole("button", { name: "Symmetric" }));
+    const svg = screen.getByRole("img", { name: /bowling ball/i });
+    const texts = Array.from(svg.querySelectorAll("text")).map((t) => (t.textContent ?? "").trim());
+    // A symmetric core has no moulded PSA, so the pro shop names one, and the
+    // one it names is the thumb hole. Drawing the CG alone said a symmetric
+    // ball has no PSA at all, which is a different and wrong claim.
+    expect(texts).toContain("PSA");
+    expect(texts).toContain("CG");
+    // An asymmetric ball has its own, and does not get a second.
+    fireEvent.click(screen.getByRole("button", { name: "Asymmetric" }));
+    const asym = Array.from(
+      screen.getByRole("img", { name: /bowling ball/i }).querySelectorAll("text")
+    ).map((t) => (t.textContent ?? "").trim());
+    expect(asym.filter((t) => t === "PSA")).toHaveLength(1);
   });
 
   it("goes back", async () => {

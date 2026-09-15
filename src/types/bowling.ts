@@ -143,6 +143,19 @@ export interface LaneNote {
 
 export type Handedness = "right" | "left";
 
+/**
+ * How the bowler holds the ball: one hand with a thumb, or two-handed with the
+ * thumb out.
+ *
+ * A preference rather than a field on a ball, for the same reason the PAP is
+ * one: it belongs to the bowler and every ball they own is drilled for it. It
+ * is stored, and carried in a shared layout, from the phase that added the
+ * toggle; what a two-handed grip does to the layout geometry and the motion
+ * reading is deliberately left to the phase after it, so nothing here pretends
+ * to a calculation it has not made yet.
+ */
+export type GripStyle = "1h" | "2h";
+
 /** Key-value app preferences (e.g. handedness). One row per key. */
 export interface AppSetting {
   key: string;

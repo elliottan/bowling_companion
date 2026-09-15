@@ -1,4 +1,5 @@
-import { ChevronLeft, Plus, Share2, Trash2, X } from "lucide-react";
+import { ChevronLeft, Plus, Trash2, X } from "lucide-react";
+import { ShareIosIcon } from "../components/icons";
 import { useEffect, useMemo, useState } from "react";
 import { ActiveGameScorer } from "../components/ActiveGameScorer";
 import { SaveCopyPrompt } from "../components/SaveCopyPrompt";
@@ -423,7 +424,7 @@ export function ActiveSessionView({
             className="shrink-0"
             onClick={() => setShareOpen(true)}
           >
-            <Share2 size={18} aria-hidden="true" />
+            <ShareIosIcon size={18} aria-hidden="true" />
           </IconButton>
           <button
             type="button"

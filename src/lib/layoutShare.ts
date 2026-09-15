@@ -12,7 +12,7 @@
  *
  * So a shared layout looks like:
  *
- *   https://headpin.app/score?da=45&ptp=4.5&val=45&hand=right&over=5&up=0.5#/home/layout-lab
+ *   https://headpin.app/score?da=45&ptp=4.5&val=45&hand=right&grip=1h&over=5&up=0.5#/home/layout-lab
  *
  * The hash still says where to go, exactly as it does for every other screen,
  * and the query says what to put on it.
@@ -34,7 +34,7 @@ import {
   type DualAngleLayout,
   type PapMeasurement
 } from "./ballLayout";
-import type { Handedness } from "../types/bowling";
+import type { GripStyle, Handedness } from "../types/bowling";
 
 /** Everything a shared link carries: the layout, the ball, the bowler. */
 export interface SharedLayout {
@@ -42,6 +42,10 @@ export interface SharedLayout {
   ball: BallSpec;
   pap: PapMeasurement;
   hand: Handedness;
+  /** One-handed or two-handed. Carried because it is part of who the layout
+   *  was drilled for, the way the hand and the axis are, even while nothing
+   *  downstream changes its arithmetic for it yet. */
+  grip: GripStyle;
 }
 
 export const LAYOUT_LAB_HASH = "#/home/layout-lab";
@@ -50,7 +54,8 @@ export const DEFAULT_SHARED: SharedLayout = {
   layout: { drillingAngle: 45, pinToPap: 4.5, valAngle: 45 },
   ball: DEFAULT_ASYMMETRIC,
   pap: DEFAULT_PAP,
-  hand: "right"
+  hand: "right",
+  grip: "1h"
 };
 
 /**
@@ -70,6 +75,7 @@ export function encodeLayoutParams(shared: SharedLayout): string {
   params.set("core", shared.ball.symmetric ? "sym" : "asym");
   params.set("ptc", num(shared.ball.pinToCore));
   params.set("hand", shared.hand);
+  params.set("grip", shared.grip);
   params.set("over", num(shared.pap.over));
   params.set("up", num(shared.pap.up));
   return params.toString();
@@ -104,7 +110,7 @@ function readNumber(raw: string | null, lo: number, hi: number): number | undefi
  */
 export function decodeLayoutParams(search: string): SharedLayout | null {
   const params = new URLSearchParams(search.startsWith("?") ? search.slice(1) : search);
-  const known = ["da", "ptp", "val", "core", "ptc", "hand", "over", "up"];
+  const known = ["da", "ptp", "val", "core", "ptc", "hand", "grip", "over", "up"];
   if (!known.some((key) => params.has(key))) return null;
 
   const symmetric = params.get("core") === "sym";
@@ -122,6 +128,7 @@ export function decodeLayoutParams(search: string): SharedLayout | null {
       over: readNumber(params.get("over"), 0, 6.5) ?? DEFAULT_PAP.over,
       up: readNumber(params.get("up"), -3, 3) ?? DEFAULT_PAP.up
     },
-    hand: hand === "left" ? "left" : "right"
+    hand: hand === "left" ? "left" : "right",
+    grip: params.get("grip") === "2h" ? "2h" : "1h"
   };
 }

@@ -5,12 +5,14 @@ import {
   KEY_STEP_PX,
   KEY_STEP_WIDTH,
   MAX_PITCH,
+  MAX_YAW,
   arcPoints,
   circlePoints,
   clampOrientation,
   defaultOrientationFor,
   dragToOrientation,
   flareAxes,
+  halfCirclePoints,
   orient,
   orientationFacing,
   project,
@@ -157,14 +159,26 @@ describe("splitByDepth", () => {
 
 describe("orientationFacing", () => {
   it("brings the target square to the viewer", () => {
+    // Everything a layout puts on the ball is in the front half, which is the
+    // half the yaw clamp can reach. Anything further round is deliberately out
+    // of reach, and the case below says what happens there instead.
     for (const target of [
       normalize({ x: 1, y: 0, z: 0 }),
-      normalize({ x: -0.4, y: 0.6, z: -0.7 }),
+      normalize({ x: -0.4, y: 0.6, z: 0.7 }),
       normalize({ x: 0.2, y: -0.9, z: 0.3 })
     ]) {
       const p = orient(target, orientationFacing(target));
       expect(p.z).toBeCloseTo(1, 6);
     }
+  });
+
+  it("goes as far round as the clamp allows toward a target on the back", () => {
+    const behind = normalize({ x: -0.4, y: 0.1, z: -0.9 });
+    const o = orientationFacing(behind);
+    expect(Math.abs(o.yaw)).toBeCloseTo(MAX_YAW, 10);
+    // Not square on, because square on is round the back, and the back is the
+    // one place the camera will not go.
+    expect(orient(behind, o).z).toBeLessThan(1);
   });
 
   it("clamps rather than tipping past the pole", () => {
@@ -217,8 +231,28 @@ describe("drag", () => {
     expect(dragToOrientation(moved, -100, 0, 300).yaw).toBeCloseTo(0, 10);
   });
 
-  it("drags a full width for a bit over half a turn", () => {
-    expect(dragToOrientation(IDENTITY_ORIENTATION, 300, 0, 300).yaw).toBeCloseTo(2 * Math.PI * 0.55, 6);
+  it("drags at a bit over half a turn per full width, until the clamp stops it", () => {
+    // The ratio is what the gesture is tuned to; the clamp is what it runs into
+    // first. A quarter of the width is inside the clamp and shows the ratio.
+    expect(dragToOrientation(IDENTITY_ORIENTATION, 75, 0, 300).yaw).toBeCloseTo(
+      (Math.PI * 0.55) / 2,
+      6
+    );
+    expect(dragToOrientation(IDENTITY_ORIENTATION, 300, 0, 300).yaw).toBeCloseTo(MAX_YAW, 10);
+  });
+
+  it("will not turn the ball to its back, whichever way the finger goes", () => {
+    // The back of a laid-out ball is blank: everything a layout puts on it is
+    // in the front half, and a bowler who dragged past the edge landed on an
+    // empty sphere and had to drag all the way back to find the layout again.
+    expect(dragToOrientation(IDENTITY_ORIENTATION, 10000, 0, 300).yaw).toBeCloseTo(MAX_YAW, 10);
+    expect(dragToOrientation(IDENTITY_ORIENTATION, -10000, 0, 300).yaw).toBeCloseTo(-MAX_YAW, 10);
+    expect(clampOrientation({ yaw: 99, pitch: 0 }).yaw).toBeCloseTo(MAX_YAW, 10);
+    // The grip centre stays on screen at the furthest either way, which is what
+    // "never blank" means as a number.
+    for (const yaw of [MAX_YAW, -MAX_YAW]) {
+      expect(orient({ x: 0, y: 0, z: 1 }, { yaw, pitch: 0 }).z).toBeGreaterThanOrEqual(-1e-9);
+    }
   });
 
   it("moves the surface the way the finger moves, on both axes", () => {
@@ -307,5 +341,41 @@ describe("flareAxes", () => {
     const axes = flareAxes(g.pap, g.pin, 4, 8);
     expect(axes).toHaveLength(8);
     for (const a of axes) expect(unit(a)).toBeCloseTo(1, 8);
+  });
+});
+
+describe("halfCirclePoints", () => {
+  const g = layoutGeometry({ drillingAngle: 45, pinToPap: 4.5, valAngle: 45 }, DEFAULT_ASYMMETRIC);
+
+  it("runs through the point it is centred on", () => {
+    const points = halfCirclePoints(g.pap, g.valDirection, 48);
+    expect(surfaceDistance(points[24], g.pap)).toBeCloseTo(0, 6);
+  });
+
+  it("covers half the ball and no more, which is the whole reason it exists", () => {
+    // A full great circle wraps all the way round and reads as globe wireframe;
+    // a bare vertex leaves the angle measured against nothing. The ends sit a
+    // quarter turn either side of the vertex, so the line spans a half turn.
+    const points = halfCirclePoints(g.pap, g.valDirection, 48);
+    const quarter = (2 * Math.PI * 4.25) / 4;
+    expect(surfaceDistance(points[0], g.pap)).toBeCloseTo(quarter, 6);
+    expect(surfaceDistance(points[points.length - 1], g.pap)).toBeCloseTo(quarter, 6);
+    // Antipodal ends: half a circle, not a whole one and not a stub.
+    expect(surfaceDistance(points[0], points[points.length - 1])).toBeCloseTo(quarter * 2, 6);
+  });
+
+  it("stays on the sphere, and on the line it was given", () => {
+    const points = halfCirclePoints(g.pap, g.valDirection, 12);
+    expect(points).toHaveLength(13);
+    for (const v of points) {
+      expect(Math.hypot(v.x, v.y, v.z)).toBeCloseTo(1, 8);
+      // Every point of a great circle is perpendicular to that circle's pole.
+      const pole = normalize({
+        x: g.pap.y * g.valDirection.z - g.pap.z * g.valDirection.y,
+        y: g.pap.z * g.valDirection.x - g.pap.x * g.valDirection.z,
+        z: g.pap.x * g.valDirection.y - g.pap.y * g.valDirection.x
+      });
+      expect(v.x * pole.x + v.y * pole.y + v.z * pole.z).toBeCloseTo(0, 8);
+    }
   });
 });

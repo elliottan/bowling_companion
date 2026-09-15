@@ -10,7 +10,15 @@ import {
 } from "../lib/driftModel";
 import type { BackupNudgeState } from "../lib/backupNudge";
 import type { PapMeasurement } from "../lib/ballLayout";
-import type { Frame, Game, Handedness, HydratedSession, Session, SessionSummary } from "../types/bowling";
+import type {
+  Frame,
+  Game,
+  GripStyle,
+  Handedness,
+  HydratedSession,
+  Session,
+  SessionSummary
+} from "../types/bowling";
 
 const HANDEDNESS_KEY = "handedness";
 const LAYDOWN_OFFSET_KEY = "laydown_offset";
@@ -19,6 +27,7 @@ const LAST_BACKUP_AT_KEY = "last_backup_at";
 const SESSIONS_AT_LAST_BACKUP_KEY = "sessions_at_last_backup";
 const BACKUP_NUDGE_SNOOZED_UNTIL_KEY = "backup_nudge_snoozed_until";
 const PAP_KEY = "pap";
+const GRIP_STYLE_KEY = "grip_style";
 
 /** Read a key-value app setting (undefined if unset). */
 export async function getSetting(key: string): Promise<string | undefined> {
@@ -71,6 +80,21 @@ export function parsePap(raw: string | undefined): PapMeasurement | null {
   const [over, up] = raw.split(",").map(Number);
   if (!Number.isFinite(over) || !Number.isFinite(up)) return null;
   return { over, up };
+}
+
+/**
+ * One-handed or two-handed, the other thing about a bowler every layout is read
+ * against. Null when never chosen, which callers show as one-handed: it is far
+ * and away the common grip, and a toggle that opens on neither answer is a
+ * question nobody asked.
+ */
+export async function getGripStyle(): Promise<GripStyle | null> {
+  const v = await getSetting(GRIP_STYLE_KEY);
+  return v === "1h" || v === "2h" ? v : null;
+}
+
+export async function setGripStyle(value: GripStyle): Promise<void> {
+  await setSetting(GRIP_STYLE_KEY, value);
 }
 
 /**
