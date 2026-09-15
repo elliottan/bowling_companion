@@ -239,8 +239,8 @@ describe("LaneVisualizer oil pattern", () => {
     id: 1,
     name: "Main Street",
     passes: [
-      { direction: "forward", start_distance: 0, stop_distance: 39, left_board: 5, right_board: 35, loads: 2, microliters: 20 },
-      { direction: "forward", start_distance: 0, stop_distance: 25, left_board: 15, right_board: 25, loads: 2, microliters: 20 },
+      { direction: "forward", start_distance: 0, end_distance: 39, left_board: 5, right_board: 35, loads: 2, microliters: 20 },
+      { direction: "forward", start_distance: 0, end_distance: 25, left_board: 15, right_board: 25, loads: 2, microliters: 20 },
     ],
   };
 
@@ -270,7 +270,7 @@ describe("LaneVisualizer oil pattern", () => {
     const { container } = renderWithPattern(pattern);
     fireEvent.click(screen.getByLabelText(/lane options/i));
     // One readout line, so the name and the numbers it belongs to stay together.
-    expect(screen.getByText(/Main Street/).textContent).toMatch(/39 ft · 1\.7 mL · 2\.0:1/);
+    expect(screen.getByText(/Main Street/).textContent).toMatch(/39 ft · 1\.68 mL · 3\.3:1/);
 
     fireEvent.click(screen.getByRole("checkbox", { name: /show oil pattern/i }));
     expect(container.querySelector('[data-role="oil-film"]')).toBeNull();

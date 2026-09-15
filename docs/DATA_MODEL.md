@@ -73,9 +73,16 @@ layout is what retires it.
 distance, the volume and the ratio are derived from it (`lib/oilPattern.ts`) and
 never stored, so they cannot drift from the table they describe.
 
-Pass boards are absolute, counted from the left edge, 1 to 39, the way a sheet
-prints them: "L5 to R5" is `left_board: 5, right_board: 35`. The app's own board
-space is handed, so the mirror belongs at the drawing edge and nowhere else.
+Pass boards are absolute, counted from the left edge, 1 to 39. A sheet counts in
+from each gutter, so "2L to 2R" is `left_board: 2, right_board: 38`. The app's
+own board space is handed, so the mirror belongs at the drawing edge and nowhere
+else.
+
+Two rows of a real sheet look broken and are not: a reverse pass ends before it
+starts, and a buffer pass carries zero loads. The second is why the pattern
+distance is the furthest a pass travels rather than the furthest it oils.
+`lib/oilPattern.fixture.ts` holds Kegel's Chromium 6742 so the derivations stay
+checked against a sheet rather than against themselves.
 
 `passes` is optional. Every pattern saved before ADR-100 has none, and a pattern
 that is only a name is still a label worth having on a session.

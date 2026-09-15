@@ -202,16 +202,18 @@ function isOptionalOilPasses(value: unknown): value is OilPass[] | undefined {
   if (!Array.isArray(value)) return false;
   return value.every((pass) => {
     if (!isRecord(pass)) return false;
-    const nums = [pass.start_distance, pass.stop_distance, pass.left_board, pass.right_board, pass.loads, pass.microliters];
+    const nums = [pass.start_distance, pass.end_distance, pass.left_board, pass.right_board, pass.loads, pass.microliters];
     if (!nums.every((n) => typeof n === "number" && Number.isFinite(n))) return false;
     return (
       (pass.direction === "forward" || pass.direction === "reverse") &&
-      (pass.stop_distance as number) > (pass.start_distance as number) &&
+      // A reverse pass ends before it starts; only a pass that goes nowhere is
+      // broken. A buffer-only pass carries zero loads and still belongs.
+      (pass.end_distance as number) !== (pass.start_distance as number) &&
       (pass.left_board as number) >= 1 &&
       (pass.right_board as number) <= 39 &&
       (pass.right_board as number) >= (pass.left_board as number) &&
-      (pass.loads as number) >= 1 &&
-      (pass.microliters as number) > 0
+      (pass.loads as number) >= 0 &&
+      (pass.microliters as number) >= 0
     );
   });
 }

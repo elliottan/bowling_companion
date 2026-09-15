@@ -17,7 +17,7 @@ import {
   updateOilPattern
 } from "../services/ballRepository";
 import type { OilPass, OilPattern } from "../types/bowling";
-import { oilStats } from "../lib/oilPattern";
+import { headlineRatio, oilStats } from "../lib/oilPattern";
 import { LIST_DIVIDER, ListGroup } from "./ui/ListGroup";
 import { GROUP_HEADING } from "./ui/typography";
 
@@ -217,8 +217,9 @@ export function OilPatternManager({ onBack, mode = "inline" }: OilPatternManager
 function summarize(pattern: OilPattern): string {
   const stats = oilStats(pattern.passes);
   if (stats.length > 0) {
-    const ratio = stats.ratio != null ? ` · ${stats.ratio.toFixed(1)}:1` : "";
-    return `${Math.round(stats.length)} ft · ${stats.volumeMl.toFixed(1)} mL${ratio}`;
+    const ratio = headlineRatio(pattern.passes);
+    const tail = ratio != null ? ` · ${ratio.toFixed(1)}:1` : "";
+    return `${Math.round(stats.length)} ft · ${stats.volumeMl.toFixed(2)} mL${tail}`;
   }
   return pattern.url ? "Pattern sheet saved" : "No link";
 }

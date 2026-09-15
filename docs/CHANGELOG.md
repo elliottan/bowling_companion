@@ -11,19 +11,21 @@ of shipped work rather than a release. Thirty of them used to be headed
 ## The oil pattern, on the lane (2026-09-15)
 
 **An oil pattern can now carry its load table, and the lane draws it.** Add a
-pass per row of the pattern sheet, direction, the feet it covers, the boards it
-loads, the loads and the microlitres, and the visualizer paints the oil under
-your line: heavier boards denser, the stair steps where the sheet has them, and
-a dashed line where the pattern ends.
+pass per row of the pattern sheet, in the sheet's own columns and its own board
+notation, 2L to 2R, and the visualizer paints the oil under your line: heavier
+boards denser, the stair steps where the sheet has them, and a dashed line where
+the pattern ends. Reverse passes and buffer passes go in as printed.
 
 **The exit point is marked on your line.** Not where the pattern ends, where
 *you* leave it. A ball played out to the dry runs off the oiled width early,
 with oil still ahead of it, and the marker moves as you drag a peg. The lane
 options button carries a switch to put the oil away.
 
-The distance, the volume and the ratio are read off the table rather than typed,
-so they cannot disagree with it, and they show on the pattern's row in Settings.
-A pattern that is only a name still works exactly as it did.
+The distance, the volume and the track zone ratios are read off the table rather
+than typed, so they cannot disagree with it, and they show on the pattern's row
+in Settings. Checked against Kegel's Chromium 6742: every total the app derives
+is a total that sheet prints. A pattern that is only a name still works exactly
+as it did.
 
 ## No more pin-to-PSA slider on a ball (2026-09-15)
 

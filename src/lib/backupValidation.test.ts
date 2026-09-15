@@ -125,6 +125,27 @@ describe("validateBackup", () => {
     }
   );
 
+  // A reverse pass ends before it starts and a buffer pass carries no oil.
+  // Both are ordinary rows of a real sheet, and a restore has to take them.
+  it("restores a reverse pass and a buffer pass", () => {
+    const result = validateBackup({
+      ...validBackup,
+      tables: {
+        ...validBackup.tables,
+        oil_patterns: [{
+          name: "Chromium",
+          passes: [
+            { direction: "reverse", start_distance: 28, end_distance: 20.4, left_board: 13, right_board: 27, loads: 3, microliters: 50 },
+            { direction: "forward", start_distance: 35, end_distance: 42, left_board: 2, right_board: 38, loads: 0, microliters: 40 },
+          ],
+        }],
+      }
+    });
+
+    expect(result.errors).toEqual([]);
+    expect(result.isValid).toBe(true);
+  });
+
   it("restores an oil pattern carrying its load table", () => {
     const result = validateBackup({
       ...validBackup,
@@ -134,7 +155,7 @@ describe("validateBackup", () => {
           id: 1,
           name: "Main Street",
           passes: [{
-            direction: "forward", start_distance: 0, stop_distance: 38,
+            direction: "forward", start_distance: 0, end_distance: 38,
             left_board: 5, right_board: 35, loads: 2, microliters: 30,
           }],
         }],
@@ -148,11 +169,11 @@ describe("validateBackup", () => {
   // One undrawable pass would put a pattern on the lane that was never laid,
   // and the bowler would read an exit point off it anyway.
   it.each([
-    { direction: "sideways", start_distance: 0, stop_distance: 38, left_board: 5, right_board: 35, loads: 2, microliters: 30 },
-    { direction: "forward", start_distance: 38, stop_distance: 0, left_board: 5, right_board: 35, loads: 2, microliters: 30 },
-    { direction: "forward", start_distance: 0, stop_distance: 38, left_board: 5, right_board: 44, loads: 2, microliters: 30 },
-    { direction: "forward", start_distance: 0, stop_distance: 38, left_board: 5, right_board: 35, loads: 0, microliters: 30 },
-    { direction: "forward", start_distance: 0, stop_distance: 38, left_board: 5, right_board: 35, loads: 2, microliters: "lots" },
+    { direction: "sideways", start_distance: 0, end_distance: 38, left_board: 5, right_board: 35, loads: 2, microliters: 30 },
+    { direction: "forward", start_distance: 38, end_distance: 38, left_board: 5, right_board: 35, loads: 2, microliters: 30 },
+    { direction: "forward", start_distance: 0, end_distance: 38, left_board: 5, right_board: 44, loads: 2, microliters: 30 },
+    { direction: "forward", start_distance: 0, end_distance: 38, left_board: 5, right_board: 35, loads: -2, microliters: 30 },
+    { direction: "forward", start_distance: 0, end_distance: 38, left_board: 5, right_board: 35, loads: 2, microliters: "lots" },
   ])("rejects an undrawable pass %#", (pass) => {
     const result = validateBackup({
       ...validBackup,

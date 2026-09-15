@@ -20,6 +20,36 @@ export function toHandBoard(board: number, hand: Handedness): number {
   return hand === "right" ? LANE_BOARDS + 1 - board : board;
 }
 
+/**
+ * A sheet's board, "2L" or "7R", as an absolute board counted from the left
+ * edge. Kegel counts in from each gutter, so 2L is board 2 and 2R is board 38,
+ * and a pass written "2L to 2R" covers 37 boards. That is checkable rather than
+ * assumed: the Chromium 6742 sheet prints CROSSED 111 for that pass at 3 loads,
+ * and 3 × 37 is 111.
+ */
+export function parseSheetBoard(raw: string): number | null {
+  const m = /^\s*(\d{1,2})\s*([LlRr])?\s*$/.exec(raw);
+  if (!m) return null;
+  const n = Number(m[1]);
+  if (n < 1) return null;
+  const board = m[2]?.toUpperCase() === "R" ? LANE_BOARDS + 1 - n : n;
+  return board >= 1 && board <= LANE_BOARDS ? board : null;
+}
+
+/** The inverse, so a stored pass reads back in the notation it was typed in. */
+export function formatSheetBoard(board: number): string {
+  return board <= (LANE_BOARDS + 1) / 2 ? `${board}L` : `${LANE_BOARDS + 1 - board}R`;
+}
+
+/** The feet a pass covers. A reverse pass runs back toward the foul line, so
+ *  its end is before its start and the span has to be read either way round. */
+function passSpan(p: OilPass): { from: number; to: number } {
+  return {
+    from: Math.min(p.start_distance, p.end_distance),
+    to: Math.max(p.start_distance, p.end_distance),
+  };
+}
+
 /** Per-board oil units over one down-lane slice. `units[i]` is board `i + 1`. */
 export interface OilZone {
   /** Feet from the foul line. */
@@ -52,20 +82,28 @@ export interface OilStats {
   toBoard: number | null;
 }
 
-const isUsable = (p: OilPass): boolean =>
-  p.stop_distance > p.start_distance &&
+/** A pass whose geometry makes sense. A buffer-only pass (LOADS 0) is one of
+ *  these: it lays nothing, but it travels, and the pattern distance is how far
+ *  the machine got, not where the last oil went down. */
+const isDrawable = (p: OilPass): boolean =>
+  p.start_distance !== p.end_distance &&
   p.right_board >= p.left_board &&
-  p.loads > 0 &&
-  p.microliters > 0;
+  p.loads >= 0 &&
+  p.microliters >= 0;
+
+/** A pass that actually puts oil on the boards. */
+const laysOil = (p: OilPass): boolean => isDrawable(p) && p.loads > 0 && p.microliters > 0;
+
+/** Units this pass leaves on each board it covers. */
+const passUnits = (p: OilPass): number => p.loads * p.microliters;
 
 /** Slice the lane at every pass boundary, then total each board in each slice. */
 export function oilZones(passes: readonly OilPass[] | undefined): OilZone[] {
-  const usable = (passes ?? []).filter(isUsable);
+  const usable = (passes ?? []).filter(laysOil);
   if (usable.length === 0) return [];
 
-  const edges = [...new Set(usable.flatMap((p) => [p.start_distance, p.stop_distance]))].sort(
-    (a, b) => a - b
-  );
+  const spans = usable.map((p) => ({ pass: p, ...passSpan(p) }));
+  const edges = [...new Set(spans.flatMap((s) => [s.from, s.to]))].sort((a, b) => a - b);
 
   const zones: OilZone[] = [];
   for (let i = 0; i < edges.length - 1; i += 1) {
@@ -73,11 +111,11 @@ export function oilZones(passes: readonly OilPass[] | undefined): OilZone[] {
     const stop = edges[i + 1];
     const units = new Array<number>(LANE_BOARDS).fill(0);
     let any = false;
-    for (const p of usable) {
-      if (p.start_distance > start || p.stop_distance < stop) continue;
-      const lo = Math.max(1, Math.round(p.left_board));
-      const hi = Math.min(LANE_BOARDS, Math.round(p.right_board));
-      for (let b = lo; b <= hi; b += 1) units[b - 1] += p.loads * p.microliters;
+    for (const s of spans) {
+      if (s.from > start || s.to < stop) continue;
+      const lo = Math.max(1, Math.round(s.pass.left_board));
+      const hi = Math.min(LANE_BOARDS, Math.round(s.pass.right_board));
+      for (let b = lo; b <= hi; b += 1) units[b - 1] += passUnits(s.pass);
       any = any || hi >= lo;
     }
     if (any) zones.push({ start, stop, units });
@@ -114,34 +152,30 @@ export function peakUnits(zones: readonly OilZone[]): number {
 }
 
 export function oilStats(passes: readonly OilPass[] | undefined): OilStats {
-  const usable = (passes ?? []).filter(isUsable);
+  const all = (passes ?? []).filter(isDrawable);
+  const oiling = all.filter(laysOil);
   const empty: OilStats = {
     length: 0, volumeMl: 0, forwardMl: 0, reverseMl: 0, ratio: null, fromBoard: null, toBoard: null,
   };
-  if (usable.length === 0) return empty;
+  if (all.length === 0) return empty;
 
   let forward = 0;
   let reverse = 0;
-  for (const p of usable) {
-    const boards = Math.min(LANE_BOARDS, Math.round(p.right_board)) - Math.max(1, Math.round(p.left_board)) + 1;
-    const microliters = p.loads * p.microliters * Math.max(0, boards);
+  for (const p of oiling) {
+    const microliters = passUnits(p) * boardCount(p);
     if (p.direction === "reverse") reverse += microliters;
     else forward += microliters;
   }
 
-  // Per-board totals, the y-axis of the classic pattern graph. The ratio is read
-  // off it: a flat pattern loads every board the same and is 1:1 by definition,
-  // a house shot piles the middle up and reads 8:1 or so.
-  const totals = new Array<number>(LANE_BOARDS).fill(0);
-  for (const p of usable) {
-    const lo = Math.max(1, Math.round(p.left_board));
-    const hi = Math.min(LANE_BOARDS, Math.round(p.right_board));
-    for (let b = lo; b <= hi; b += 1) totals[b - 1] += p.loads * p.microliters;
-  }
+  const totals = boardTotals(oiling);
   const loaded = totals.map((u, i) => ({ u, board: i + 1 })).filter((t) => t.u > 0);
 
   return {
-    length: Math.max(...usable.map((p) => p.stop_distance)),
+    // The distance the machine reaches, buffer-only passes included. On the
+    // Chromium 6742 sheet the last oil goes down at 30.6 ft and the quoted
+    // pattern distance is 42: the buffer carries it the rest of the way, and 42
+    // is the number on the wall at the alley.
+    length: Math.max(...all.map((p) => passSpan(p).to)),
     volumeMl: (forward + reverse) / 1000,
     forwardMl: forward / 1000,
     reverseMl: reverse / 1000,
@@ -151,7 +185,71 @@ export function oilStats(passes: readonly OilPass[] | undefined): OilStats {
   };
 }
 
-/** The oiled board span at a given distance, or null where the lane is dry. */
+const boardCount = (p: OilPass): number =>
+  Math.max(0, Math.min(LANE_BOARDS, Math.round(p.right_board)) - Math.max(1, Math.round(p.left_board)) + 1);
+
+/** Units on every board, the y-axis of the pattern graph printed on a sheet. */
+function boardTotals(passes: readonly OilPass[]): number[] {
+  const totals = new Array<number>(LANE_BOARDS).fill(0);
+  for (const p of passes) {
+    const lo = Math.max(1, Math.round(p.left_board));
+    const hi = Math.min(LANE_BOARDS, Math.round(p.right_board));
+    for (let b = lo; b <= hi; b += 1) totals[b - 1] += passUnits(p);
+  }
+  return totals;
+}
+
+/**
+ * The track zone ratios a sheet prints, each zone against the middle of the
+ * lane: how many times more oil the middle carries than that band of boards.
+ * The outside one is the number bowlers quote about a pattern.
+ *
+ * Zones are the sheet's own, five boards each counted in from the left gutter
+ * and mirrored on the right, with the middle being 18L to 18R. Verified against
+ * Kegel's Chromium 6742, which prints 6.71 / 1.76 / 1.00 both ways round, and
+ * `oilPattern.test.ts` holds that sheet as a fixture.
+ */
+export interface TrackZoneRatio {
+  /** The sheet's own label, e.g. "3L-7L". */
+  label: string;
+  ratio: number;
+}
+
+const TRACK_ZONES: Array<{ label: string; from: number; to: number }> = [
+  { label: "3L-7L", from: 3, to: 7 },
+  { label: "8L-12L", from: 8, to: 12 },
+  { label: "13L-17L", from: 13, to: 17 },
+  { label: "17R-13R", from: 23, to: 27 },
+  { label: "12R-8R", from: 28, to: 32 },
+  { label: "7R-3R", from: 33, to: 37 },
+];
+const MIDDLE_ZONE = { from: 18, to: 22 }; // 18L to 18R
+
+export function trackZoneRatios(passes: readonly OilPass[] | undefined): TrackZoneRatio[] {
+  const oiling = (passes ?? []).filter(laysOil);
+  if (oiling.length === 0) return [];
+  const totals = boardTotals(oiling);
+  const mean = (from: number, to: number) => {
+    let sum = 0;
+    for (let b = from; b <= to; b += 1) sum += totals[b - 1] ?? 0;
+    return sum / (to - from + 1);
+  };
+  const middle = mean(MIDDLE_ZONE.from, MIDDLE_ZONE.to);
+  if (middle <= 0) return [];
+  return TRACK_ZONES.flatMap(({ label, from, to }) => {
+    const zone = mean(from, to);
+    return zone > 0 ? [{ label, ratio: middle / zone }] : [];
+  });
+}
+
+/** The outside track against the middle, the ratio a pattern is known by. The
+ *  higher of the two sides, so an asymmetric pattern is quoted by its steepest. */
+export function headlineRatio(passes: readonly OilPass[] | undefined): number | null {
+  const outside = trackZoneRatios(passes).filter((z) => z.label === "3L-7L" || z.label === "7R-3R");
+  return outside.length ? Math.max(...outside.map((z) => z.ratio)) : null;
+}
+
+/** The oiled board span at a given distance/** The oiled board span at a given distance, or null where the lane is dry. */
 export function oiledSpanAt(
   zones: readonly OilZone[],
   feet: number
@@ -181,16 +279,40 @@ export function oilExitPoint(
   hand: Handedness
 ): { board: number; feet: number } | null {
   if (zones.length === 0) return null;
+  const inOil = (p: { board: number; feet: number }): boolean => {
+    const span = oiledSpanAt(zones, p.feet);
+    if (span == null) return false;
+    const sheetBoard = toHandBoard(p.board, hand); // the mirror is its own inverse
+    return sheetBoard >= span.fromBoard - 0.5 && sheetBoard <= span.toBoard + 0.5;
+  };
+
+  const walk = densify(samples, 0.5);
   let last: { board: number; feet: number } | null = null;
-  for (const s of densify(samples, 0.5)) {
-    const span = oiledSpanAt(zones, s.feet);
-    const sheetBoard = toHandBoard(s.board, hand); // the mirror is its own inverse
-    const inOil =
-      span != null && sheetBoard >= span.fromBoard - 0.5 && sheetBoard <= span.toBoard + 0.5;
-    if (inOil) last = s;
-    else if (last) break; // left the oil and did not come back
+  let first: { board: number; feet: number } | null = null;
+  for (const p of walk) {
+    if (inOil(p)) {
+      last = p;
+    } else if (last) {
+      first = p; // left the oil and does not come back
+      break;
+    }
   }
-  return last;
+  if (!last) return null;
+  if (!first) return last;
+
+  // Close the half-foot the walk steps over, so the exit reads as the number on
+  // the sheet (30.6 ft, not 30.5) rather than as an artefact of the step size.
+  let lo = last;
+  let hi = first;
+  for (let i = 0; i < 12; i += 1) {
+    const mid = {
+      board: (lo.board + hi.board) / 2,
+      feet: (lo.feet + hi.feet) / 2,
+    };
+    if (inOil(mid)) lo = mid;
+    else hi = mid;
+  }
+  return { board: Math.round(lo.board * 100) / 100, feet: Math.round(lo.feet * 100) / 100 };
 }
 
 /** Walk a polyline in fixed down-lane steps, so the exit reads to the half foot

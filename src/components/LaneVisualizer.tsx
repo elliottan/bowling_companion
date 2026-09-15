@@ -4,7 +4,7 @@ import type { LineSpec, PinNumber } from "../types/bowling";
 import { useHandedness } from "../lib/handednessContext";
 import { useDriftModel } from "../lib/driftModelContext";
 import { useSessionOilPattern } from "../lib/oilPatternContext";
-import { oilBands, oilExitPoint, oilStats, oilZones, type OilStats } from "../lib/oilPattern";
+import { headlineRatio, oilBands, oilExitPoint, oilStats, oilZones, peakUnits, type OilStats } from "../lib/oilPattern";
 import { useOverlay } from "../lib/useOverlay";
 import { deriveLaydown, deriveLaydownFromSlide, deriveSlide } from "../lib/driftModel";
 import { spareAimPoint } from "../lib/spareAim";
@@ -182,7 +182,7 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
     if (!hasOil || !showOil) return undefined;
     return {
       bands: oilBands(zones),
-      peak: Math.max(...zones.flatMap((z) => z.units)),
+      peak: peakUnits(zones),
       length: stats.length,
       exit: path ? oilExitPoint(zones, path.samples, hand) : null,
     };
@@ -555,6 +555,7 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
           onChange={applyEdit}
           oilName={hasOil ? oilPattern?.name : undefined}
           oilStats={hasOil ? stats : undefined}
+          oilRatio={hasOil ? headlineRatio(oilPattern?.passes) : null}
           showOil={showOil}
           onToggleOil={setShowOil}
           onClose={() => setOptionsOpen(false)}
@@ -567,13 +568,14 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
 /** Bottom sheet with the hook-shape sliders (shared by strike + spare, ADR-026)
  *  and the oil pattern switch (ADR-090). */
 function OptionsSheet({
-  line, editable, onChange, oilName, oilStats: oil, showOil, onToggleOil, onClose,
+  line, editable, onChange, oilName, oilStats: oil, oilRatio, showOil, onToggleOil, onClose,
 }: {
   line: LineSpec | undefined;
   editable: boolean;
   onChange: (patch: Partial<LineSpec>) => void;
   oilName: string | undefined;
   oilStats: OilStats | undefined;
+  oilRatio: number | null;
   showOil: boolean;
   onToggleOil: (on: boolean) => void;
   onClose: () => void;
@@ -614,8 +616,8 @@ function OptionsSheet({
               <span className="flex-1 text-sm font-semibold">Show oil pattern</span>
             </label>
             <p className="mt-1 text-xs tabular-nums text-white/60">
-              {oilName} · {Math.round(oil.length)} ft · {oil.volumeMl.toFixed(1)} mL
-              {oil.ratio != null ? ` · ${oil.ratio.toFixed(1)}:1` : ""}
+              {oilName} · {Math.round(oil.length)} ft · {oil.volumeMl.toFixed(2)} mL
+              {oilRatio != null ? ` · ${oilRatio.toFixed(1)}:1` : ""}
             </p>
           </div>
         )}

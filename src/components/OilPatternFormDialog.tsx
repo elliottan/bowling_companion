@@ -5,19 +5,19 @@ import { FormSheet } from "./ui/FormSheet";
 import { FIELD, FIELD_DENSE, FIELD_DENSE_SELECT, FIELD_LABEL, FIELD_MICRO_LABEL } from "./ui/field";
 import { GROUP_HEADING } from "./ui/typography";
 import type { OilPass, OilPattern } from "../types/bowling";
-import { oilStats } from "../lib/oilPattern";
+import { formatSheetBoard, headlineRatio, oilStats, parseSheetBoard, trackZoneRatios } from "../lib/oilPattern";
 import { ErrorBanner } from "./ErrorBanner";
 
 /** A fresh row, sized like a typical house-shot forward pass so the first one
  *  only needs the numbers changed rather than every field filled from zero. */
 const NEW_PASS: OilPass = {
   direction: "forward",
-  start_distance: 0,
-  stop_distance: 35,
   left_board: 10,
   right_board: 30,
   loads: 2,
   microliters: 40,
+  start_distance: 0,
+  end_distance: 35,
 };
 
 const FORM_ID = "oil-pattern-form";
@@ -43,6 +43,8 @@ export function OilPatternFormDialog({ open, initial, onSubmit, onCancel, onRemo
   // Derived live, so the numbers the sheet shows are the numbers the lane will
   // draw. They are never stored: the passes are the pattern (ADR-090).
   const stats = useMemo(() => oilStats(passes), [passes]);
+  const ratio = useMemo(() => headlineRatio(passes), [passes]);
+  const zones = useMemo(() => trackZoneRatios(passes), [passes]);
 
   function patchPass(index: number, patch: Partial<OilPass>) {
     setPasses((prev) => prev.map((p, i) => (i === index ? { ...p, ...patch } : p)));
@@ -122,9 +124,15 @@ export function OilPatternFormDialog({ open, initial, onSubmit, onCancel, onRemo
                 </p>
               ) : (
                 <p className="mt-2 text-xs tabular-nums text-ink-secondary">
-                  {Math.round(stats.length)} ft · {stats.volumeMl.toFixed(1)} mL ·{" "}
-                  {stats.forwardMl.toFixed(1)} forward / {stats.reverseMl.toFixed(1)} reverse
-                  {stats.ratio != null ? ` · ${stats.ratio.toFixed(1)}:1` : ""}
+                  {Math.round(stats.length)} ft · {stats.volumeMl.toFixed(2)} mL ·{" "}
+                  {stats.forwardMl.toFixed(2)} forward / {stats.reverseMl.toFixed(2)} reverse
+                  {ratio != null ? ` · ${ratio.toFixed(2)}:1` : ""}
+                </p>
+              )}
+
+              {zones.length > 0 && (
+                <p className="mt-1 text-xs tabular-nums text-ink-tertiary">
+                  Track zones · {zones.map((z) => `${z.label} ${z.ratio.toFixed(2)}`).join(" · ")}
                 </p>
               )}
 
@@ -144,6 +152,9 @@ export function OilPatternFormDialog({ open, initial, onSubmit, onCancel, onRemo
                         <X size={14} aria-hidden="true" />
                       </button>
                     </div>
+                    {/* The sheet's own column order, so a row transcribes left
+                        to right without hunting: START and STOP boards, LOADS,
+                        MICS, then the feet it runs over. */}
                     <div className="grid grid-cols-3 gap-2">
                       <label className="col-span-3 block">
                         <span className={FIELD_MICRO_LABEL}>Direction</span>
@@ -156,18 +167,18 @@ export function OilPatternFormDialog({ open, initial, onSubmit, onCancel, onRemo
                           <option value="reverse">Reverse</option>
                         </select>
                       </label>
-                      <PassNumber label="Start ft" value={pass.start_distance}
-                        onChange={(v) => patchPass(index, { start_distance: v })} />
-                      <PassNumber label="Stop ft" value={pass.stop_distance}
-                        onChange={(v) => patchPass(index, { stop_distance: v })} />
+                      <PassBoard label="Start board" value={pass.left_board}
+                        onChange={(v) => patchPass(index, { left_board: v })} />
+                      <PassBoard label="Stop board" value={pass.right_board}
+                        onChange={(v) => patchPass(index, { right_board: v })} />
                       <PassNumber label="Loads" value={pass.loads}
                         onChange={(v) => patchPass(index, { loads: v })} />
-                      <PassNumber label="Left board" value={pass.left_board}
-                        onChange={(v) => patchPass(index, { left_board: v })} />
-                      <PassNumber label="Right board" value={pass.right_board}
-                        onChange={(v) => patchPass(index, { right_board: v })} />
-                      <PassNumber label="µL / board" value={pass.microliters}
+                      <PassNumber label="Mics" value={pass.microliters}
                         onChange={(v) => patchPass(index, { microliters: v })} />
+                      <PassNumber label="Start ft" value={pass.start_distance}
+                        onChange={(v) => patchPass(index, { start_distance: v })} />
+                      <PassNumber label="End ft" value={pass.end_distance}
+                        onChange={(v) => patchPass(index, { end_distance: v })} />
                     </div>
                   </div>
                 ))}
@@ -175,8 +186,9 @@ export function OilPatternFormDialog({ open, initial, onSubmit, onCancel, onRemo
 
               {passes.length > 0 && (
                 <p className="mt-2 text-xs text-ink-tertiary">
-                  Boards count from the left edge, the way a sheet prints them, so
-                  L5 to R5 is 5 to 35.
+                  Boards take the sheet's own notation, 2L or 7R, counted in from each
+                  gutter. A reverse pass ends before it starts, and a buffer pass with
+                  no loads still sets how far the pattern reaches.
                 </p>
               )}
             </div>
@@ -214,6 +226,40 @@ function PassNumber({
         onChange={(e) => onChange(e.target.value === "" ? Number.NaN : Number(e.target.value))}
         className={`${FIELD_DENSE} tabular-nums`}
         aria-label={label}
+      />
+    </label>
+  );
+}
+
+/** A board in the sheet's own notation. Typed as "2L" or "7R" and stored as an
+ *  absolute board, so the transcription is the sheet's problem and not the
+ *  bowler's. A bare number is taken as counted from the left. */
+function PassBoard({
+  label, value, onChange,
+}: {
+  label: string;
+  value: number;
+  onChange: (value: number) => void;
+}) {
+  const [text, setText] = useState(() => formatSheetBoard(value));
+  const parsed = parseSheetBoard(text);
+
+  return (
+    <label className="block">
+      <span className={FIELD_MICRO_LABEL}>{label}</span>
+      <input
+        type="text"
+        inputMode="text"
+        value={text}
+        onChange={(e) => {
+          setText(e.target.value);
+          const board = parseSheetBoard(e.target.value);
+          if (board != null) onChange(board);
+        }}
+        onBlur={() => setText(formatSheetBoard(parsed ?? value))}
+        aria-label={label}
+        aria-invalid={parsed == null}
+        className={`${FIELD_DENSE} uppercase ${parsed == null ? "border-danger-600" : ""}`}
       />
     </label>
   );

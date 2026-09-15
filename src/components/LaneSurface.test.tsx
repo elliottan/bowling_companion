@@ -63,8 +63,8 @@ describe("LaneSurface", () => {
 
 describe("LaneSurface oil overlay", () => {
   const zones = oilZones([
-    { direction: "forward", start_distance: 0, stop_distance: 40, left_board: 5, right_board: 35, loads: 2, microliters: 20 },
-    { direction: "forward", start_distance: 0, stop_distance: 25, left_board: 15, right_board: 25, loads: 2, microliters: 20 },
+    { direction: "forward", start_distance: 0, end_distance: 40, left_board: 5, right_board: 35, loads: 2, microliters: 20 },
+    { direction: "forward", start_distance: 0, end_distance: 25, left_board: 15, right_board: 25, loads: 2, microliters: 20 },
   ]);
   const oil: OilOverlay = {
     bands: oilBands(zones),

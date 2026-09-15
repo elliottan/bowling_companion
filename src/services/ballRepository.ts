@@ -91,26 +91,35 @@ export function normalizeOilPasses(passes: OilPass[] | undefined): OilPass[] | u
       return v;
     };
     const start = num(p.start_distance, "start distance");
-    const stop = num(p.stop_distance, "stop distance");
+    const end = num(p.end_distance, "end distance");
     const left = Math.round(num(p.left_board, "left board"));
     const right = Math.round(num(p.right_board, "right board"));
     const loads = Math.round(num(p.loads, "loads"));
     const microliters = num(p.microliters, "microlitres");
-    if (start < 0 || stop > 70) throw new Error(`${at}: distances must sit between 0 and 70 feet`);
-    if (stop <= start) throw new Error(`${at}: stop distance must be past the start`);
+    if (Math.min(start, end) < 0 || Math.max(start, end) > 70) {
+      throw new Error(`${at}: distances must sit between 0 and 70 feet`);
+    }
+    // A reverse pass runs back toward the foul line, so its end is BEFORE its
+    // start. Only a pass that goes nowhere is a typo.
+    if (start === end) throw new Error(`${at}: the pass has to travel`);
     if (left < 1 || right > LANE_BOARDS_MAX || right < left) {
       throw new Error(`${at}: boards must run left to right, between 1 and ${LANE_BOARDS_MAX}`);
     }
-    if (loads < 1) throw new Error(`${at}: needs at least one load`);
-    if (microliters <= 0) throw new Error(`${at}: needs oil on the board`);
+    // Loads of zero is a buffer-only pass: it lays no oil, and it still counts,
+    // because the pattern distance is how far the machine reached.
+    if (loads < 0) throw new Error(`${at}: loads cannot be negative`);
+    if (microliters < 0) throw new Error(`${at}: microlitres cannot be negative`);
     return {
       direction: p.direction === "reverse" ? "reverse" : "forward",
-      start_distance: start,
-      stop_distance: stop,
       left_board: left,
       right_board: right,
       loads,
       microliters,
+      start_distance: start,
+      end_distance: end,
+      ...(Number.isFinite(p.speed as number) ? { speed: p.speed } : {}),
+      ...(Number.isFinite(p.buffer as number) ? { buffer: p.buffer } : {}),
+      ...(typeof p.tank === "string" && p.tank.trim() ? { tank: p.tank.trim() } : {}),
     } satisfies OilPass;
   });
 }

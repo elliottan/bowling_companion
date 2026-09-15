@@ -127,27 +127,37 @@ export interface Ball {
 
 /**
  * One pass of the lane machine, a single row of a Kegel-style load table
- * (ADR-090). A pattern is the sum of its passes and nothing else: length,
- * volume and ratio are all derived from this list, never stored beside it.
+ * (ADR-100), named after the sheet's own columns. A pattern is the sum of its
+ * passes and nothing else: distance, volume and ratio are all derived from this
+ * list, never stored beside it.
  */
 export interface OilPass {
   /** Forward passes lay the pattern going down lane, reverse ones on the way back. */
   direction: "forward" | "reverse";
-  /** Where the pass starts and stops loading, in feet from the foul line. */
-  start_distance: number;
-  stop_distance: number;
   /**
-   * The span of boards the pass loads, ABSOLUTE and counted from the left
-   * edge (1 = far left, 39 = far right), the way a pattern sheet is printed.
-   * A sheet writing "L5 to R5" is `left_board: 5, right_board: 35`. The
-   * drawing mirrors these for a right-hander, exactly as the pin deck does.
+   * START and STOP: the span of boards the pass loads, ABSOLUTE and counted
+   * from the left edge (1 = far left, 39 = far right). A sheet writes these in
+   * its own L/R notation, counted in from each gutter, so "2L to 2R" is
+   * `left_board: 2, right_board: 38` (`parseSheetBoard` does the conversion).
    */
   left_board: number;
   right_board: number;
-  /** Crossings of the loading head over that span. */
+  /** LOADS: crossings of the loading head. ZERO on a buffer-only pass, which
+   *  lays no oil but still travels, and so still sets the pattern distance. */
   loads: number;
-  /** Oil laid per board, per load, in microlitres. */
+  /** MICS: oil laid per board, per load, in microlitres. */
   microliters: number;
+  /**
+   * START and END feet. A reverse pass runs back toward the foul line, so its
+   * end is BEFORE its start, exactly as the sheet prints it (42.0 to 39.0).
+   */
+  start_distance: number;
+  end_distance: number;
+  /** SPEED, BUFFER and TANK. Carried so a sheet transcribes whole, and read by
+   *  nothing: they change how the oil sits, which this app does not model. */
+  speed?: number;
+  buffer?: number;
+  tank?: string;
 }
 
 export interface OilPattern {

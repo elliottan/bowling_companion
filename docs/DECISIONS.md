@@ -4601,7 +4601,7 @@ mapping layer whose only job is to be got wrong once.
 
 **Context.** An oil pattern in the app was a name and a link to its sheet. The
 sheet is where the numbers were, which means the numbers were somewhere the app
-could not reach: a bowler looking at their line on the lane and at a 39 ft
+could not reach: a bowler looking at their line on the lane and at a 42 ft
 pattern on a PDF had to hold the second one in their head and imagine where the
 ball ran out of oil. That imagined point is the one that decides the shot. The
 lane already drew a generic sheen over the front 45 ft, which is decoration, and
@@ -4617,26 +4617,50 @@ distance plus a ratio still cannot: ratio is a summary of a shape, not the
 shape.
 
 **Decision.** `OilPattern.passes` stores the sheet's load table, one `OilPass`
-per machine pass: direction, start and stop distance, the board span loaded,
-the number of loads, and microlitres per board per load. That list is the
+per machine pass, named after the sheet's own columns: START and STOP boards,
+LOADS, MICS, and the START and END feet the pass runs over. That list is the
 pattern, and everything quoted about a pattern is derived from it in
-`lib/oilPattern.ts`, never stored beside it:
+`lib/oilPattern.ts`, never stored beside it. Storing a distance or a ratio as
+its own field would let the two disagree, and a pattern whose stated ratio
+contradicts its own table is a pattern nobody can act on.
 
-- **Distance** is the deepest foot any pass loads.
-- **Volume**, forward and reverse, is the oil those passes carry.
-- **Ratio** is the heaviest loaded board against the lightest loaded one, which
-  is what makes a flat pattern 1:1 by construction and a house shot 8:1.
+The model is checked against a real sheet rather than against itself. Kegel's
+Element Challenge Chromium 6742 is transcribed row for row in
+`lib/oilPattern.fixture.ts`, and the derivations reproduce every total it
+prints: CROSSED, T.OIL, 15.41 mL forward, 10.15 mL reverse, 25.56 mL total,
+42 ft, and the six track zone ratios. Three of the rules below are only right
+*because* that sheet said so, and the first draft of this ADR had all three
+wrong.
 
-Storing a distance or a ratio as its own field would let the two disagree, and
-a pattern whose stated ratio contradicts its own table is a pattern nobody can
-act on.
+- **Boards** are absolute, counted from the left edge, 1 to 39. A sheet writes
+  them counted in from each gutter, so "2L to 2R" is boards 2 to 38, and
+  `parseSheetBoard` converts. That reading is checkable rather than assumed:
+  the sheet prints CROSSED 111 for that pass at 3 loads, and 3 × 37 is 111.
+- **A reverse pass ends before it starts.** The sheet prints its reverse rows
+  as 42.0 to 39.0, running back toward the foul line, so `end_distance` may be
+  less than `start_distance` and the covered span is read either way round.
+  Requiring end past start, as the first draft did, made half of every real
+  sheet untranscribable.
+- **A buffer-only pass carries zero loads**, lays no oil, and still counts. On
+  Chromium 6742 the last oil goes down at 30.6 ft and the quoted pattern
+  distance is 42: the buffer carries it the rest of the way. So the distance is
+  the furthest any pass *travels*, not the furthest any pass oils. 42 is the
+  number on the wall at the alley, and a model that said 30.6 would be arguing
+  with the sheet.
+- **Volume** is `loads × mics × boards`, which is the sheet's own T.OIL column.
+- **Ratio** is the sheet's track zone ratio: the middle of the lane (18L to 18R)
+  against each five-board band out to the gutter, which gives Chromium's printed
+  6.71 / 1.76 / 1.00 on both sides. The outside one is the number a pattern is
+  known by. A heaviest-board-against-lightest-board figure was the first draft's
+  answer and is not what a sheet prints.
 
-Boards in a pass are **absolute and counted from the left edge**, 1 to 39, the
-way a sheet is printed, so "L5 to R5" is `left_board: 5, right_board: 35`. The
-app's own board space is handed (`boardToX` puts board 1 on the bowler's side),
-so the mirror happens once, at the drawing edge, exactly as the pin deck's
-mirror does. The half board that widens a band to its outer edge is added in
-sheet space *before* the mirror: mirror first and the half lands on the wrong
+`speed`, `buffer` and `tank` are carried so a sheet transcribes whole, and read
+by nothing: they change how the oil sits, which this app does not model.
+
+The app's own board space is handed (`boardToX` puts board 1 on the bowler's
+side), so the mirror happens once, at the drawing edge, exactly as the pin
+deck's mirror does. The half board that widens a band to its outer edge is added
+in sheet space *before* the mirror: mirror first and the half lands on the wrong
 side and shifts every band by a board.
 
 `LaneSurface` paints the table as rectangles, one per run of equally loaded
@@ -4647,7 +4671,9 @@ decorative sheen is not: two oils on one lane read as one.
 The exit point is the payload. `oilExitPoint` walks the drawn line and returns
 the last point of it still sitting on a loaded board, so it answers "where do I
 leave the oil" rather than "where does the oil end", and it moves with every
-drag of a peg.
+drag of a peg. The walk steps half a foot and then bisects the last half foot,
+so the exit reads as the number on the sheet rather than as an artefact of the
+step size.
 
 **Consequences.**
 - No schema version. `passes` is not indexed, so Dexie stores it as-is (see
@@ -4657,7 +4683,9 @@ drag of a peg.
   sheen.
 - A backup carries the table and `backupValidation.ts` checks every pass. One
   undrawable row would put a pattern on the lane that was never laid, and a
-  bowler would read an exit point off it in good faith.
+  bowler would read an exit point off it in good faith. "Undrawable" is now a
+  pass that goes nowhere or off the boards, not one that runs backward or
+  carries no oil.
 - `normalizeOilPasses` rejects a bad pass by name rather than dropping it, for
   the same reason: a pattern quietly missing a pass draws a shape nobody entered.
 - The lane reads the pattern from `OilPatternContext`, provided by the session,
@@ -4667,3 +4695,5 @@ drag of a peg.
 - `buildLinePath` now returns `samples`, the drawn path as real lane
   coordinates. The exit question is asked of the path, and asking it of an SVG
   `d` string would mean parsing back out what the geometry already knew.
+- The pass editor takes boards in the sheet's notation, because the alternative
+  is a bowler doing 39-minus-n in their head fifteen times per pattern.

@@ -158,11 +158,11 @@ describe("ballRepository", () => {
   describe("oil pattern load tables", () => {
     it("stores a table it can draw", async () => {
       const id = await addOilPattern("Main Street", undefined, [
-        { direction: "forward", start_distance: 0, stop_distance: 38, left_board: 5, right_board: 35, loads: 2, microliters: 30 },
+        { direction: "forward", start_distance: 0, end_distance: 38, left_board: 5, right_board: 35, loads: 2, microliters: 30 },
       ]);
       const saved = (await getOilPatterns()).find((p) => p.id === id);
       expect(saved?.passes).toHaveLength(1);
-      expect(saved?.passes?.[0]).toMatchObject({ stop_distance: 38, left_board: 5 });
+      expect(saved?.passes?.[0]).toMatchObject({ end_distance: 38, left_board: 5 });
     });
 
     it("keeps a pattern that is only a name", async () => {
@@ -170,29 +170,55 @@ describe("ballRepository", () => {
       expect((await getOilPatterns()).find((p) => p.id === id)?.passes).toBeUndefined();
     });
 
+    it("takes a reverse pass, which ends before it starts", async () => {
+      const id = await addOilPattern("Reverse", undefined, [
+        { direction: "reverse", start_distance: 28, end_distance: 20.4, left_board: 13, right_board: 27, loads: 3, microliters: 50 },
+      ]);
+      expect((await getOilPatterns()).find((p) => p.id === id)?.passes?.[0]).toMatchObject({
+        start_distance: 28, end_distance: 20.4,
+      });
+    });
+
+    it("takes a buffer pass, which lays nothing and still travels", async () => {
+      const id = await addOilPattern("Buffered", undefined, [
+        { direction: "forward", start_distance: 0, end_distance: 30, left_board: 5, right_board: 35, loads: 2, microliters: 40 },
+        { direction: "forward", start_distance: 30, end_distance: 42, left_board: 2, right_board: 38, loads: 0, microliters: 40 },
+      ]);
+      expect((await getOilPatterns()).find((p) => p.id === id)?.passes).toHaveLength(2);
+    });
+
+    it("keeps the sheet's speed, buffer and tank when they are given", async () => {
+      const id = await addOilPattern("Full row", undefined, [
+        { direction: "forward", start_distance: 0, end_distance: 5.1, left_board: 2, right_board: 38, loads: 3, microliters: 50, speed: 18, buffer: 4, tank: "A" },
+      ]);
+      expect((await getOilPatterns()).find((p) => p.id === id)?.passes?.[0]).toMatchObject({
+        speed: 18, buffer: 4, tank: "A",
+      });
+    });
+
     it("rejects a pass it cannot draw, by name", async () => {
       await expect(
-        addOilPattern("Backwards", undefined, [
-          { direction: "forward", start_distance: 30, stop_distance: 10, left_board: 5, right_board: 35, loads: 1, microliters: 30 },
+        addOilPattern("Standing still", undefined, [
+          { direction: "forward", start_distance: 30, end_distance: 30, left_board: 5, right_board: 35, loads: 1, microliters: 30 },
         ])
-      ).rejects.toThrow("Pass 1: stop distance must be past the start");
+      ).rejects.toThrow("Pass 1: the pass has to travel");
 
       await expect(
         addOilPattern("Off lane", undefined, [
-          { direction: "forward", start_distance: 0, stop_distance: 30, left_board: 5, right_board: 44, loads: 1, microliters: 30 },
+          { direction: "forward", start_distance: 0, end_distance: 30, left_board: 5, right_board: 44, loads: 1, microliters: 30 },
         ])
       ).rejects.toThrow("Pass 1: boards must run left to right, between 1 and 39");
 
       await expect(
-        addOilPattern("Dry", undefined, [
-          { direction: "forward", start_distance: 0, stop_distance: 30, left_board: 5, right_board: 35, loads: 1, microliters: 0 },
+        addOilPattern("Negative", undefined, [
+          { direction: "forward", start_distance: 0, end_distance: 30, left_board: 5, right_board: 35, loads: -1, microliters: 30 },
         ])
-      ).rejects.toThrow("Pass 1: needs oil on the board");
+      ).rejects.toThrow("Pass 1: loads cannot be negative");
     });
 
     it("clears the table when an edit removes every pass", async () => {
       const id = await addOilPattern("Cleared", undefined, [
-        { direction: "forward", start_distance: 0, stop_distance: 38, left_board: 5, right_board: 35, loads: 2, microliters: 30 },
+        { direction: "forward", start_distance: 0, end_distance: 38, left_board: 5, right_board: 35, loads: 2, microliters: 30 },
       ]);
       await updateOilPattern(id, { name: "Cleared", passes: [] });
       expect((await getOilPatterns()).find((p) => p.id === id)?.passes).toBeUndefined();
