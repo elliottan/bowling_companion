@@ -8,6 +8,34 @@ merge to `main` (`docs/DEPLOYMENT.md`), so every section below is a dated batch
 of shipped work rather than a release. Thirty of them used to be headed
 `[Unreleased]`, which said nothing once they had all shipped.
 
+## The layout lab gets your PAP, your hand, and a share link (2026-09-15)
+
+**Your PAP and your hand are saved and fill themselves in.** Both are yours
+rather than a ball's, so they are settings now: measure the axis once and every
+visit to the layout lab starts from it. A left-handed layout draws as the
+mirror of the right-handed one, which it is, and the ball opens turned the
+right way round for it.
+
+**A layout can be shared as a link.** Share layout, under More, hands over a URL
+that reopens the lab showing exactly what the sender was looking at: the three
+numbers, the core, the ball's own pin-to-PSA distance, and the PAP and hand it
+was drilled for. Someone else's PAP arrives for the viewing and is never saved
+over yours. The parameters ride in the query string rather than the hash,
+because the hash is the app's own record of which screen you are on and a
+drilling angle is not a screen.
+
+**The ball's pin-to-PSA distance is drawn on the line it measures.** It is the
+one number in the picture nobody chooses: the core puts it there and the driller
+works around it. Two balls with the same three numbers and different pin-to-PSA
+distances are different layouts, and the drawing used to give no hint of that.
+
+**The screen got shorter.** The presets moved into a More menu in the nav bar,
+each slider's explanation hides behind its own label until tapped, the
+paragraphs between sections are gone, and the flare rings start off. Choosing a
+preset asks first when there are numbers on screen that nobody else can bring
+back, and goes straight through when the layout is already a preset, because a
+dialog whose answer is always yes only teaches people to dismiss dialogs.
+
 ## Each layout angle sits at its own corner (2026-09-14)
 
 **Fixed: the layout lab drew both angles huddled in the middle of the ball.**

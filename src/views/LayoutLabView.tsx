@@ -1,8 +1,12 @@
-import { useCallback, useMemo, useState } from "react";
-import { RotateCcw } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Check, Info, MoreHorizontal, RotateCcw, Share2 } from "lucide-react";
+import { useLiveQuery } from "dexie-react-hooks";
 import { BallLayoutDiagram } from "../components/BallLayoutDiagram";
 import { PushScreen } from "../components/PushScreen";
+import { AnchoredMenu, AnchoredMenuItem } from "../components/ui/AnchoredMenu";
 import { Chip } from "../components/ui/Chip";
+import { ConfirmDialog } from "../components/ConfirmDialog";
+import { IconButton } from "../components/ui/IconButton";
 import { SegmentedControl } from "../components/ui/SegmentedControl";
 import { FIELD_DENSE, FIELD_DENSE_SELECT, FIELD_MICRO_LABEL } from "../components/ui/field";
 import { GROUP_HEADING } from "../components/ui/typography";
@@ -30,9 +34,14 @@ import {
   type BallSpec,
   type DualAngleLayout,
   type InchParts,
+  type LayoutPreset,
   type PapMeasurement
 } from "../lib/ballLayout";
-import { DEFAULT_ORIENTATION, orientationFacing, type Orientation } from "../lib/ballProjection";
+import { defaultOrientationFor, orientationFacing, type Orientation } from "../lib/ballProjection";
+import { decodeLayoutParams, layoutShareUrl } from "../lib/layoutShare";
+import { getHandedness, getPap, setPap as savePap } from "../services/bowlingRepository";
+import { useHandedness } from "../lib/handednessContext";
+import type { Handedness } from "../types/bowling";
 
 interface LayoutLabViewProps {
   onBack: () => void;
@@ -40,6 +49,12 @@ interface LayoutLabViewProps {
 
 /** The two ways to write the same layout. */
 type System = "dual" | "vls";
+
+/** The page's query string, guarded for a render with no window behind it. */
+function currentSearch(): string {
+  if (typeof window === "undefined") return "";
+  return window.location.search;
+}
 
 const BENCHMARK: DualAngleLayout = { drillingAngle: 45, pinToPap: 4.5, valAngle: 45 };
 
@@ -57,21 +72,78 @@ const BENCHMARK: DualAngleLayout = { drillingAngle: 45, pinToPap: 4.5, valAngle:
  * thumb is on and a picture above them would be the thing scrolled off screen.
  */
 export function LayoutLabView({ onBack }: LayoutLabViewProps) {
-  const [symmetric, setSymmetric] = useState(false);
-  const [layout, setLayout] = useState<DualAngleLayout>(BENCHMARK);
-  const [pap, setPap] = useState<PapMeasurement>(DEFAULT_PAP);
-  const [system, setSystem] = useState<System>("dual");
-  const [orientation, setOrientation] = useState<Orientation>(DEFAULT_ORIENTATION);
-  const [showFlare, setShowFlare] = useState(true);
+  // A link shared into the app wins over everything, and it is read once at
+  // module level of this render rather than in an effect: it is available
+  // synchronously, so seeding state from it needs no second render and no
+  // flash of the defaults before the shared layout arrives.
+  const shared = useMemo(() => decodeLayoutParams(currentSearch()), []);
 
-  const ball: BallSpec = useMemo(
-    () => (symmetric ? DEFAULT_SYMMETRIC : DEFAULT_ASYMMETRIC),
-    [symmetric]
+  const [symmetric, setSymmetric] = useState(shared ? shared.ball.symmetric : false);
+  const [layout, setLayout] = useState<DualAngleLayout>(shared?.layout ?? BENCHMARK);
+  const [system, setSystem] = useState<System>("dual");
+  // Null means "wherever this hand's layout opens", so the camera can follow a
+  // handedness that arrives asynchronously from settings without an effect
+  // reaching back into state after the fact.
+  const [turnedTo, setTurnedTo] = useState<Orientation | null>(null);
+  // Off by default. The rings are what the layout produces rather than part of
+  // it, and five great circles behind two measured lines is a lot of ink to
+  // put on screen before anyone asks for it.
+  const [showFlare, setShowFlare] = useState(false);
+  const [menuAt, setMenuAt] = useState<{ left: number; top: number } | null>(null);
+  const [pendingPreset, setPendingPreset] = useState<LayoutPreset | null>(null);
+  const [shareNote, setShareNote] = useState<string | null>(null);
+
+  // The bowler's own two numbers come from their settings, so nobody re-types
+  // their axis or their hand on every visit. A shared link overrides both:
+  // someone else's layout is only a layout when it is read against the axis it
+  // was drilled for.
+  const appHand = useHandedness();
+  const storedPap = useLiveQuery(getPap, [], undefined);
+  const storedHand = useLiveQuery(getHandedness, [], undefined);
+
+  const [papOverride, setPapOverride] = useState<PapMeasurement | null>(shared?.pap ?? null);
+  const [handOverride, setHandOverride] = useState<Handedness | null>(shared?.hand ?? null);
+
+  const pap = papOverride ?? storedPap ?? DEFAULT_PAP;
+  const hand: Handedness = handOverride ?? storedHand ?? appHand;
+  const orientation = turnedTo ?? defaultOrientationFor(hand);
+  const setOrientation = setTurnedTo;
+
+  // Switching hand mirrors the ball, so the camera goes back to this hand's
+  // opening view rather than leaving the layout facing away.
+  const chooseHand = useCallback((next: Handedness) => {
+    setHandOverride(next);
+    setTurnedTo(null);
+  }, []);
+
+  const ball: BallSpec = useMemo(() => {
+    const base = symmetric ? DEFAULT_SYMMETRIC : DEFAULT_ASYMMETRIC;
+    // A shared link carries the ball's own pin-to-PSA distance, because two
+    // balls with the same three numbers and different distances are two
+    // different layouts. It applies only to the core type it was shared for:
+    // switching to the other core is asking about a different ball, and that
+    // ball's own distance is the one that belongs to it.
+    const pinToCore =
+      shared && shared.ball.symmetric === symmetric ? shared.ball.pinToCore : base.pinToCore;
+    return { ...base, pinToCore };
+  }, [symmetric, shared]);
+
+  // Editing the PAP writes it back, because it is the bowler's measurement and
+  // not this screen's scratch value: the whole point of storing it is that the
+  // next visit, and every other screen that ever wants it, already knows.
+  // A PAP that arrived in a shared link is somebody else's and is never saved.
+  const fromLink = shared != null;
+  const updatePap = useCallback(
+    (next: PapMeasurement) => {
+      setPapOverride(next);
+      if (!fromLink) void savePap(next);
+    },
+    [fromLink]
   );
 
   const motion = useMemo(() => readMotion(layout, ball, pap), [layout, ball, pap]);
   const vls = useMemo(() => toVls(layout, ball), [layout, ball]);
-  const geometry = useMemo(() => layoutGeometry(layout, ball, pap), [layout, ball, pap]);
+  const geometry = useMemo(() => layoutGeometry(layout, ball, pap, hand), [layout, ball, pap, hand]);
 
   const set = useCallback(
     (patch: Partial<DualAngleLayout>) => setLayout((l) => ({ ...l, ...patch })),
@@ -107,6 +179,49 @@ export function LayoutLabView({ onBack }: LayoutLabViewProps) {
     core: geometry.core
   };
 
+  // Share. A link rather than a picture: a picture of a layout cannot be
+  // opened, adjusted and sent back, and this screen is for adjusting.
+  const share = useCallback(async () => {
+    setMenuAt(null);
+    const url = layoutShareUrl(
+      { layout, ball, pap, hand },
+      window.location.origin,
+      window.location.pathname
+    );
+    const title = `Layout ${formatDualAngle(layout)}`;
+    try {
+      if (typeof navigator.share === "function") {
+        await navigator.share({ title, url });
+        return;
+      }
+      await navigator.clipboard.writeText(url);
+      setShareNote("Link copied");
+    } catch {
+      // A dismissed share sheet rejects, and so does a clipboard the browser
+      // will not grant. Neither is an error worth a dialog, but silence would
+      // read as a dead button, so the one case that leaves nothing behind says
+      // so and the user can still read the link off the address bar.
+      setShareNote("Could not share. The link is in this screen's address.");
+    }
+  }, [layout, ball, pap, hand]);
+
+  // The share note says one thing and then goes, rather than sitting there
+  // until something else happens to clear it.
+  useEffect(() => {
+    if (!shareNote) return;
+    const t = setTimeout(() => setShareNote(null), 2600);
+    return () => clearTimeout(t);
+  }, [shareNote]);
+
+  const applyPreset = useCallback(
+    (preset: LayoutPreset) => {
+      setLayout(presetLayout(preset, ball));
+      setPendingPreset(null);
+      setMenuAt(null);
+    },
+    [ball]
+  );
+
   const activePreset = LAYOUT_PRESETS.find((p) => {
     const l = presetLayout(p, ball);
     return (
@@ -116,8 +231,56 @@ export function LayoutLabView({ onBack }: LayoutLabViewProps) {
     );
   });
 
+  /**
+   * Choosing a preset replaces whatever is on screen, so it asks first.
+   *
+   * It asks only when there is something to lose. Sitting on one preset and
+   * picking another discards nothing the bowler typed, and a dialog there would
+   * be asking a question whose answer is always yes, which is the fastest way
+   * to teach someone to dismiss dialogs without reading them. Custom numbers
+   * are different: those took work and nothing else on this screen can bring
+   * them back.
+   */
+  const choosePreset = useCallback(
+    (preset: LayoutPreset) => {
+      if (activePreset) applyPreset(preset);
+      else {
+        setMenuAt(null);
+        setPendingPreset(preset);
+      }
+    },
+    [activePreset, applyPreset]
+  );
+
   return (
-    <PushScreen title="Layout lab" onBack={onBack}>
+    <PushScreen
+      title="Layout lab"
+      onBack={onBack}
+      /* Escape belongs to whatever is layered on top. Without this the menu's
+         own Escape and the screen's both fired, so dismissing the menu also
+         popped the screen out from under it. */
+      active={pendingPreset == null && menuAt == null}
+      /* One trailing action, per docs/DESIGN-LANGUAGE.md section 1. The presets
+         and the share both live behind it: neither is touched on most visits,
+         and a row of five preset chips was taking a block of the screen to say
+         what a menu says in one glyph. */
+      trailing={
+        <IconButton
+          variant="round"
+          label="More"
+          onClick={(e) => {
+            // Anchored off the event's own target rather than a ref, because
+            // IconButton is a plain function component and does not forward one.
+            const r = e.currentTarget.getBoundingClientRect();
+            // The menu is 11rem wide and hangs from the button's trailing edge,
+            // clamped so it cannot run off a narrow screen.
+            setMenuAt({ left: Math.max(8, r.right - 176), top: r.bottom + 6 });
+          }}
+        >
+          <MoreHorizontal size={20} aria-hidden="true" />
+        </IconButton>
+      }
+    >
       <div className="mx-auto w-full max-w-xl space-y-5 px-3 py-4 sm:px-6">
         {/* 1. Whose ball this is. The PAP leads because it is the frame every
             other number is measured against: the VAL angle is measured at it
@@ -133,7 +296,7 @@ export function LayoutLabView({ onBack }: LayoutLabViewProps) {
               id="pap-over"
               value={pap.over}
               maxWhole={6}
-              onChange={(over) => setPap((v) => ({ ...v, over: clamp(over, 0, 6.5) }))}
+              onChange={(over) => updatePap({ ...pap, over: clamp(over, 0, 6.5) })}
             />
             <InchField
               label="Up or down"
@@ -141,14 +304,21 @@ export function LayoutLabView({ onBack }: LayoutLabViewProps) {
               value={pap.up}
               maxWhole={3}
               signed
-              onChange={(up) => setPap((v) => ({ ...v, up: clamp(up, -3, 3) }))}
+              onChange={(up) => updatePap({ ...pap, up: clamp(up, -3, 3) })}
             />
+            <div>
+              <span className={FIELD_MICRO_LABEL}>Hand</span>
+              <SegmentedControl
+                label="Bowling hand"
+                value={hand}
+                onChange={chooseHand}
+                options={[
+                  { value: "right", label: "Right" },
+                  { value: "left", label: "Left" }
+                ]}
+              />
+            </div>
           </div>
-          <p className="text-xs text-ink-secondary">
-            Measured from the center of grip: across the midline, then up or down. Down is below
-            the midline, which is a normal place for a PAP to be. This moves the grip under the
-            layout, not the layout itself.
-          </p>
         </section>
 
         {/* 2. What ball. The core type comes before the numbers because it
@@ -165,11 +335,6 @@ export function LayoutLabView({ onBack }: LayoutLabViewProps) {
               { value: "sym", label: "Symmetric" }
             ]}
           />
-          <p className="text-xs text-ink-secondary">
-            {symmetric
-              ? "A symmetric core has no preferred spin axis, so the drilling angle only moves the CG and changes far less."
-              : "An asymmetric core has a PSA, so the drilling angle swings real mass and is the strongest of the three numbers."}
-          </p>
         </section>
 
         {/* 3. The numbers. */}
@@ -179,9 +344,15 @@ export function LayoutLabView({ onBack }: LayoutLabViewProps) {
             <button
               type="button"
               onClick={() => {
+                // Resets the layout, not the bowler. The PAP and the hand are
+                // saved measurements now, so clearing them here would throw
+                // away something measured off a real shot to undo some slider
+                // dragging. Dropping the overrides is how a shared link gets
+                // out of the way and the bowler's own two numbers come back.
                 setLayout(BENCHMARK);
-                setPap(DEFAULT_PAP);
-                setOrientation(DEFAULT_ORIENTATION);
+                setPapOverride(null);
+                setHandOverride(null);
+                setTurnedTo(null);
               }}
               className="inline-flex items-center gap-1 text-xs font-semibold text-accent"
             >
@@ -251,8 +422,7 @@ export function LayoutLabView({ onBack }: LayoutLabViewProps) {
               />
               {vls.psaToPap == null ? (
                 <p className="rounded-lg bg-surface-muted p-2.5 text-xs text-ink-secondary">
-                  A symmetric ball has no preferred spin axis to measure to, so a VLS layout for
-                  one is two numbers, not three.
+                  No PSA on a symmetric ball, so VLS is two numbers here.
                 </p>
               ) : (
                 <Slider
@@ -286,20 +456,6 @@ export function LayoutLabView({ onBack }: LayoutLabViewProps) {
             <Readout label="Storm VLS" value={formatVls(vls)} />
           </div>
 
-          <div className="flex flex-wrap gap-2">
-            {LAYOUT_PRESETS.map((preset) => (
-              <Chip
-                key={preset.id}
-                selected={activePreset?.id === preset.id}
-                onClick={() => setLayout(presetLayout(preset, ball))}
-              >
-                {preset.name}
-              </Chip>
-            ))}
-          </div>
-          {activePreset && (
-            <p className="text-xs text-ink-secondary">{activePreset.blurb}</p>
-          )}
         </section>
 
         {/* 4. The ball. */}
@@ -314,11 +470,9 @@ export function LayoutLabView({ onBack }: LayoutLabViewProps) {
               showFlare={showFlare}
               orientation={orientation}
               onOrientationChange={setOrientation}
+              hand={hand}
             />
           </div>
-          <p className="text-center text-xs text-ink-secondary">
-            Drag the ball to turn it. Arrow keys work too.
-          </p>
           <div className="flex flex-wrap justify-center gap-2">
             <Chip selected={false} onClick={face("grip")}>Grip</Chip>
             <Chip selected={false} onClick={face("pin")}>Pin</Chip>
@@ -360,6 +514,49 @@ export function LayoutLabView({ onBack }: LayoutLabViewProps) {
         </section>
 
       </div>
+
+      {menuAt && (
+        <AnchoredMenu left={menuAt.left} top={menuAt.top} onClose={() => setMenuAt(null)}>
+          <AnchoredMenuItem icon={Share2} onClick={() => void share()}>
+            Share layout
+          </AnchoredMenuItem>
+          {LAYOUT_PRESETS.map((preset) => (
+            <AnchoredMenuItem
+              key={preset.id}
+              icon={activePreset?.id === preset.id ? Check : RotateCcw}
+              onClick={() => choosePreset(preset)}
+            >
+              {preset.name}
+            </AnchoredMenuItem>
+          ))}
+        </AnchoredMenu>
+      )}
+
+      <ConfirmDialog
+        open={pendingPreset != null}
+        title={`Use the ${pendingPreset?.name.toLowerCase() ?? ""} layout?`}
+        message={
+          <>
+            This replaces the layout on screen, {formatDualAngle(layout)}, with{" "}
+            {pendingPreset ? formatDualAngle(presetLayout(pendingPreset, ball)) : ""}. Your PAP and
+            hand stay as they are.
+          </>
+        }
+        confirmLabel="Replace"
+        onConfirm={() => pendingPreset && applyPreset(pendingPreset)}
+        onCancel={() => setPendingPreset(null)}
+      />
+
+      {shareNote && (
+        <div
+          role="status"
+          className="pointer-events-none fixed inset-x-0 bottom-8 z-50 flex justify-center px-4"
+        >
+          <span className="rounded-full bg-ink px-4 py-2 text-xs font-semibold text-surface shadow-lg">
+            {shareNote}
+          </span>
+        </div>
+      )}
     </PushScreen>
   );
 }
@@ -502,6 +699,7 @@ function Slider({
 }) {
   const shown = unit === "deg" ? `${Math.round(value)}°` : `${formatInches(value)}"`;
   const id = `slider-${label.replace(/\s+/g, "-").toLowerCase()}`;
+  const [hintOpen, setHintOpen] = useState(false);
 
   const bandStyle =
     band && bandMin != null && bandMax != null
@@ -514,7 +712,20 @@ function Slider({
   return (
     <div>
       <div className="mb-1 flex items-baseline justify-between gap-2">
-        <label className={FIELD_MICRO_LABEL} htmlFor={id}>{label}</label>
+        {/* The label is the affordance. Tapping the name of a thing to find out
+            what it means is the gesture people already try, and a separate icon
+            would be a second tap target in a row that is already dense, so the
+            whole label is the button and the glyph only says that it is one. */}
+        <button
+          type="button"
+          onClick={() => setHintOpen((v) => !v)}
+          aria-expanded={hintOpen}
+          aria-controls={`${id}-hint`}
+          className={`${FIELD_MICRO_LABEL} mb-0 inline-flex items-center gap-1 text-left`}
+        >
+          {label}
+          <Info size={11} aria-hidden="true" className="opacity-60" />
+        </button>
         <span className={`text-sm font-bold tabular-nums ${warn ? "text-warning-700" : "text-ink"}`}>
           {shown}
         </span>
@@ -533,6 +744,7 @@ function Slider({
         <input
           id={id}
           type="range"
+          aria-label={label}
           min={min}
           max={max}
           step={step}
@@ -541,7 +753,16 @@ function Slider({
           className="relative h-11 w-full cursor-pointer appearance-none bg-transparent [&::-moz-range-thumb]:h-5 [&::-moz-range-thumb]:w-5 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-surface [&::-moz-range-thumb]:bg-accent-fill [&::-moz-range-track]:h-1.5 [&::-moz-range-track]:rounded-full [&::-moz-range-track]:bg-edge-strong [&::-webkit-slider-runnable-track]:h-1.5 [&::-webkit-slider-runnable-track]:rounded-full [&::-webkit-slider-runnable-track]:bg-edge-strong [&::-webkit-slider-thumb]:-mt-1.5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-surface [&::-webkit-slider-thumb]:bg-accent-fill [&::-webkit-slider-thumb]:shadow"
         />
       </div>
-      <p className="text-xs leading-snug text-ink-secondary">{hint}</p>
+      {/* Hidden until asked for. Three of these stacked is a paragraph of
+          explanation standing between the bowler and the control they came to
+          move. */}
+      <p
+        id={`${id}-hint`}
+        hidden={!hintOpen}
+        className="mt-0.5 text-xs leading-snug text-ink-secondary"
+      >
+        {hint}
+      </p>
     </div>
   );
 }

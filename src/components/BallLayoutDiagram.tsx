@@ -1,10 +1,13 @@
 import { useCallback, useMemo, useRef, useState } from "react";
+import type { Handedness } from "../types/bowling";
 import {
   DEFAULT_PAP,
   arcToAngle,
   coreToPap,
+  formatInches,
   normalize,
   pinBuffer,
+  surfaceDistance,
   tangentToward,
   walk,
   type BallSpec,
@@ -66,6 +69,8 @@ interface BallLayoutDiagramProps {
    */
   orientation: Orientation;
   onOrientationChange: (next: Orientation) => void;
+  /** Which hand the layout is for. A lefty layout is the mirror image. */
+  hand?: Handedness;
   className?: string;
 }
 
@@ -102,9 +107,10 @@ export function BallLayoutDiagram({
   showAngles = true,
   orientation,
   onOrientationChange,
+  hand = "right",
   className = ""
 }: BallLayoutDiagramProps) {
-  const geometry = useMemo(() => layoutGeometry(layout, ball, pap), [layout, ball, pap]);
+  const geometry = useMemo(() => layoutGeometry(layout, ball, pap, hand), [layout, ball, pap, hand]);
 
   const [dragging, setDragging] = useState(false);
   const svgRef = useRef<SVGSVGElement>(null);
@@ -193,11 +199,10 @@ export function BallLayoutDiagram({
     { id: "pap", point: geometry.pap, label: "PAP", color: "#38bdf8", shape: "pap" }
   ];
 
-  const gripHoles = useMemo(() => (showGrip ? gripHolePoints(geometry.gripCenter, pap) : []), [
-    geometry.gripCenter,
-    pap,
-    showGrip
-  ]);
+  const gripHoles = useMemo(
+    () => (showGrip ? gripHolePoints(geometry.gripCenter, hand) : []),
+    [geometry.gripCenter, hand, showGrip]
+  );
 
   const flareRings = useMemo(
     () =>
@@ -267,6 +272,21 @@ export function BallLayoutDiagram({
         {/* The two measured lines of the dual angle system. */}
         {stroke(arcPoints(geometry.pin, geometry.pap), "#f8fafc", 2.4, undefined, "pin-pap")}
         {stroke(arcPoints(geometry.pin, geometry.core), "#fbbf24", 2, "5 3", "pin-core")}
+
+        {/* The ball's own pin-to-PSA (or pin-to-CG) distance, written on the
+            line it measures. It is the one number in the drawing that is not a
+            layout choice: the core puts it there and the driller works around
+            it, which is exactly why it has to be visible. Two balls with the
+            same dual angle numbers and different pin-to-PSA distances are
+            different layouts, and without this the drawing gives no hint of
+            that. */}
+        <ArcDistance
+          from={geometry.pin}
+          to={geometry.core}
+          label={`${formatInches(ball.pinToCore)}"`}
+          color="#fbbf24"
+          orientation={orientation}
+        />
 
         {showAngles && (
           <>
@@ -384,6 +404,58 @@ function Marker({ shape, x, y, color }: { shape: Landmark["shape"]; x: number; y
     <g>
       <circle cx={x} cy={y} r="5.5" fill={color} stroke="#0f172a" strokeWidth="1.5" />
     </g>
+  );
+}
+
+/**
+ * A distance written along the middle of the arc it measures, lifted a little
+ * clear of the line so the stroke does not run through the text.
+ */
+function ArcDistance({
+  from,
+  to,
+  label,
+  color,
+  orientation
+}: {
+  from: Vec3;
+  to: Vec3;
+  label: string;
+  color: string;
+  orientation: Orientation;
+}) {
+  const half = surfaceDistance(from, to) / 2;
+  const middle = walk(from, tangentToward(from, to), arcToAngle(half));
+  // Step off the line, perpendicular to it, so the label clears the stroke.
+  // The cross product is written out because ballLayout keeps its own private,
+  // and one use does not earn an export.
+  const along = tangentToward(middle, to);
+  const aside = normalize({
+    x: along.y * middle.z - along.z * middle.y,
+    y: along.z * middle.x - along.x * middle.z,
+    z: along.x * middle.y - along.y * middle.x
+  });
+  const at = project(walk(middle, aside, arcToAngle(0.6)), orientation, CENTER, CENTER, RADIUS);
+  if (!at.front || at.facing < 0.3) return null;
+
+  return (
+    <text
+      x={at.x}
+      y={at.y}
+      fill={color}
+      fontSize="9"
+      fontWeight="700"
+      textAnchor="middle"
+      dominantBaseline="middle"
+      opacity={Math.min(1, (at.facing - 0.3) * 4)}
+      stroke="#0f172a"
+      strokeWidth="2.5"
+      strokeLinejoin="round"
+      style={{ paintOrder: "stroke" }}
+      pointerEvents="none"
+    >
+      {label}
+    </text>
   );
 }
 
@@ -510,8 +582,10 @@ function holeAngle(q: { x: number; y: number }, center: number): number {
  * a hand fitting rather than a layout, but drawn because the VAL angle is
  * meaningless without something to be up or down *of*.
  */
-function gripHolePoints(gripCenter: Vec3, pap: PapMeasurement): Array<{ point: Vec3; r: number }> {
-  const towardPap = tangentToward(gripCenter, { x: Math.sign(pap.over) || 1, y: 0, z: 0 });
+function gripHolePoints(gripCenter: Vec3, hand: Handedness): Array<{ point: Vec3; r: number }> {
+  // The finger row leans toward the PAP, which is on the other side of the ball
+  // for a left-hander, so the holes mirror with the rest of the layout.
+  const towardPap = tangentToward(gripCenter, { x: hand === "left" ? -1 : 1, y: 0, z: 0 });
   const up = tangentToward(gripCenter, { x: 0, y: 1, z: 0 });
   const thumb = walk(gripCenter, up, arcToAngle(-1.7));
   const fingerRow = walk(gripCenter, up, arcToAngle(2.4));
