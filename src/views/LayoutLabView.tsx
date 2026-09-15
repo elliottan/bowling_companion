@@ -1,29 +1,31 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Check,
   ChevronDown,
+  Image as ImageIcon,
   Info,
   MoreHorizontal,
+  Link2,
   RotateCcw,
-  Share2,
   SlidersHorizontal,
   X
 } from "lucide-react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { BallLayoutDiagram } from "../components/BallLayoutDiagram";
+import { PapEditor } from "../components/PapEditor";
+import { ShareCardDialog } from "../components/ShareCardDialog";
 import { PushScreen } from "../components/PushScreen";
 import { AnchoredMenu, AnchoredMenuItem } from "../components/ui/AnchoredMenu";
 import { ConfirmDialog } from "../components/ConfirmDialog";
 import { IconButton } from "../components/ui/IconButton";
 import { SegmentedControl } from "../components/ui/SegmentedControl";
-import { FIELD_DENSE, FIELD_DENSE_SELECT, FIELD_MICRO_LABEL } from "../components/ui/field";
+import { FIELD_DENSE, FIELD_MICRO_LABEL } from "../components/ui/field";
 import { GROUP_HEADING } from "../components/ui/typography";
 import {
   DEFAULT_ASYMMETRIC,
   DEFAULT_PAP,
   DEFAULT_SYMMETRIC,
   DO_NOT_USE_BAND,
-  EIGHTHS,
   LAYOUT_PRESETS,
   clamp,
   formatDualAngle,
@@ -31,19 +33,18 @@ import {
   formatVls,
   fromVls,
   inDoNotUseBand,
-  joinInches,
   presetLayout,
   readMotion,
-  splitInches,
   toVls,
   type BallSpec,
   type DualAngleLayout,
-  type InchParts,
   type LayoutPreset,
   type PapMeasurement
 } from "../lib/ballLayout";
 import { defaultOrientationFor, type Orientation } from "../lib/ballProjection";
 import { decodeLayoutParams, layoutShareUrl } from "../lib/layoutShare";
+import { buildLayoutCard, type ShareCardData } from "../lib/shareCard";
+import { svgToImage } from "../lib/svgImage";
 import { getHandedness, getPap, setPap as savePap } from "../services/bowlingRepository";
 import { useHandedness } from "../lib/handednessContext";
 import type { Handedness } from "../types/bowling";
@@ -111,6 +112,11 @@ export function LayoutLabView({ onBack, onOpenSettings }: LayoutLabViewProps) {
   const [presetAt, setPresetAt] = useState<Anchor | null>(null);
   const [pendingPreset, setPendingPreset] = useState<LayoutPreset | null>(null);
   const [shareNote, setShareNote] = useState<string | null>(null);
+  const [card, setCard] = useState<ShareCardData | null>(null);
+  // The diagram's own SVG, read off the DOM when a picture is asked for.
+  // BallLayoutDiagram is a plain function component and forwards no ref, and
+  // a second hidden copy of the ball would be the same geometry drawn twice.
+  const ballRef = useRef<HTMLDivElement>(null);
 
   // The bowler's own two numbers come from their settings, so nobody re-types
   // their axis or their hand on every visit. A shared link overrides both:
@@ -189,9 +195,44 @@ export function LayoutLabView({ onBack, onOpenSettings }: LayoutLabViewProps) {
     [ball]
   );
 
-  // Share. A link rather than a picture: a picture of a layout cannot be
-  // opened, adjusted and sent back, and this screen is for adjusting.
-  const share = useCallback(async () => {
+  /**
+   * Share the layout as a picture, the way a session or a night is shared.
+   *
+   * The ball is the card: three numbers in a message are a layout somebody has
+   * to imagine, and the whole argument for this screen is that they should not
+   * have to. The link is still there, under More, for the reader who wants to
+   * open the layout and move the sliders rather than look at it.
+   */
+  const sharePicture = useCallback(async () => {
+    setMenuAt(null);
+    const svg = ballRef.current?.querySelector("svg");
+    const base = buildLayoutCard({
+      dualAngle: formatDualAngle(layout),
+      vls: formatVls(vls),
+      symmetric: ball.symmetric,
+      hand,
+      pap: `${formatInches(pap.over)}" over, ${formatInches(Math.abs(pap.up))}" ${pap.up < 0 ? "down" : "up"}`,
+      flareInches: motion.flareInches,
+      summary: motion.summary
+    });
+    // The dialog opens on the numbers straight away and the ball lands in it a
+    // frame later, rather than the button sitting dead while an image decodes.
+    // A browser that will not rasterize the SVG at all therefore costs nothing:
+    // the card is already on screen, and a layout card without the picture is
+    // still the three numbers and what they do.
+    setCard(base);
+    if (!svg) return;
+    try {
+      const diagram = await svgToImage(svg as SVGSVGElement, 560);
+      setCard((current) => (current ? { ...current, diagram } : current));
+    } catch {
+      // Left as it is, with the ball missing.
+    }
+  }, [layout, vls, ball, hand, pap, motion]);
+
+  // The same layout as a link, for a reader who wants to adjust it rather than
+  // look at it: a picture cannot be opened and sent back.
+  const shareLink = useCallback(async () => {
     setMenuAt(null);
     const url = layoutShareUrl(
       { layout, ball, pap, hand },
@@ -269,7 +310,7 @@ export function LayoutLabView({ onBack, onOpenSettings }: LayoutLabViewProps) {
       /* Escape belongs to whatever is layered on top. Without this the menu's
          own Escape and the screen's both fired, so dismissing the menu also
          popped the screen out from under it. */
-      active={pendingPreset == null && menuAt == null && presetAt == null}
+      active={pendingPreset == null && menuAt == null && presetAt == null && card == null}
       /* Two trailing actions, which is the one place the app departs from the
          single trailing action in docs/DESIGN-LANGUAGE.md section 1. Sharing a
          layout is the thing this screen is for once the numbers are right, and
@@ -277,8 +318,8 @@ export function LayoutLabView({ onBack, onOpenSettings }: LayoutLabViewProps) {
          that is genuinely rare still lives behind the glyph. */
       trailing={
         <>
-          <IconButton variant="round" label="Share layout" onClick={() => void share()}>
-            <Share2 size={18} aria-hidden="true" />
+          <IconButton variant="round" label="Share layout" onClick={() => void sharePicture()}>
+            <ImageIcon size={18} aria-hidden="true" />
           </IconButton>
           <IconButton
             variant="round"
@@ -321,21 +362,7 @@ export function LayoutLabView({ onBack, onOpenSettings }: LayoutLabViewProps) {
             </IconButton>
           </div>
           <div className="space-y-2 rounded-xl border border-edge bg-surface p-2.5 shadow-sm">
-            <InchField
-              label="Over"
-              id="pap-over"
-              value={pap.over}
-              maxWhole={6}
-              onChange={(over) => updatePap({ ...pap, over: clamp(over, 0, 6.5) })}
-            />
-            <InchField
-              label="Up or down"
-              id="pap-up"
-              value={pap.up}
-              maxWhole={3}
-              signed
-              onChange={(up) => updatePap({ ...pap, up: clamp(up, -3, 3) })}
-            />
+            <PapEditor pap={pap} onChange={updatePap} idPrefix="lab-pap" />
             <div>
               <span className={FIELD_MICRO_LABEL}>Hand</span>
               {/* Left on the left, which is the one ordering that needs no
@@ -519,7 +546,10 @@ export function LayoutLabView({ onBack, onOpenSettings }: LayoutLabViewProps) {
             of a screen whose whole complaint was that too little fits on it. */}
         <section className="space-y-1.5">
           <h2 className={GROUP_HEADING}>On the ball</h2>
-          <div className="overflow-hidden rounded-xl border border-edge bg-surface-sunken shadow-sm">
+          <div
+            ref={ballRef}
+            className="overflow-hidden rounded-xl border border-edge bg-surface-sunken shadow-sm"
+          >
             <BallLayoutDiagram
               layout={layout}
               ball={ball}
@@ -565,6 +595,9 @@ export function LayoutLabView({ onBack, onOpenSettings }: LayoutLabViewProps) {
           {/* The hand and the PAP are settings, not this screen's numbers, so
               the way to their permanent home is here rather than a second
               control beside the fields that edit them. */}
+          <AnchoredMenuItem icon={Link2} onClick={() => void shareLink()}>
+            Share a link
+          </AnchoredMenuItem>
           <AnchoredMenuItem
             icon={SlidersHorizontal}
             onClick={() => {
@@ -606,6 +639,8 @@ export function LayoutLabView({ onBack, onOpenSettings }: LayoutLabViewProps) {
         onCancel={() => setPendingPreset(null)}
       />
 
+      <ShareCardDialog open={card != null} card={card} onClose={() => setCard(null)} />
+
       {shareNote && (
         <div
           role="status"
@@ -617,131 +652,6 @@ export function LayoutLabView({ onBack, onOpenSettings }: LayoutLabViewProps) {
         </div>
       )}
     </PushScreen>
-  );
-}
-
-/**
- * A select and the chevron that says it is one.
- *
- * `FIELD_DENSE_SELECT` drops the browser's own arrow (`appearance-none`) and
- * leaves room for a replacement it does not draw, which every other screen
- * gets away with because its selects hold a word. Here two of the three hold a
- * single digit or nothing at all, and a bare box with "5" in it reads as a
- * text field: the chevron is the only thing saying there is a list behind it.
- */
-function Dropdown({ className, children }: { className: string; children: ReactNode }) {
-  return (
-    <div className={`relative shrink-0 ${className}`}>
-      {children}
-      <ChevronDown
-        size={14}
-        aria-hidden="true"
-        className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-ink-tertiary"
-      />
-    </div>
-  );
-}
-
-/**
- * A measurement picked the way it is written: whole inches in one box, the
- * fraction in another, and the unit spelled out after both.
- *
- * This replaced a single `type="number"` with `step="0.125"`. Nothing in
- * bowling is measured in decimal inches, so that field asked for a number no
- * bowler has: a PAP is "5 over and a half up", a tape reads in sixteenths, and
- * a drill sheet never carries a decimal point. Worse, the step only bound the
- * spinner arrows, so the keyboard would happily take 5.31 and the ball would
- * quietly move to an axis no pro shop could measure.
- *
- * Every part is a select, and that is the point: a PAP is bounded on both ends
- * (nobody measures 9 inches over), so the whole inches are a list of at most
- * seven, and a list cannot hold a decimal point, a stray digit or a number out
- * of range in the first place. The typed box that used to hold the whole inches
- * had to filter digits and clamp on the way through, and it still drew a
- * different control from the fraction beside it. Three selects of one height
- * read as one measurement.
- *
- * The fraction may be left blank, which is the whole inch. `signed` adds the
- * direction select for a measurement that can sit either side of the midline;
- * the sign rides the whole measurement rather than its integer part, because
- * half an inch below the line cannot be written as a negative zero.
- */
-function InchField({
-  label,
-  id,
-  value,
-  onChange,
-  maxWhole,
-  signed = false
-}: {
-  label: string;
-  id: string;
-  value: number;
-  onChange: (value: number) => void;
-  maxWhole: number;
-  signed?: boolean;
-}) {
-  const parts = splitInches(value);
-  const emit = (next: Partial<InchParts>) => onChange(joinInches({ ...parts, ...next }));
-
-  return (
-    <div>
-      <span className={FIELD_MICRO_LABEL} id={`${id}-label`}>
-        {label}
-      </span>
-      <div className="flex items-center gap-2">
-        {/* Direction first, because it is read first: "half an inch down". */}
-        {signed && (
-          <Dropdown className="w-[5.5rem]">
-            <select
-              aria-label={`${label} direction`}
-              className={FIELD_DENSE_SELECT}
-              value={parts.negative ? "down" : "up"}
-              onChange={(e) => emit({ negative: e.target.value === "down" })}
-            >
-              <option value="up">Up</option>
-              <option value="down">Down</option>
-            </select>
-          </Dropdown>
-        )}
-        {/* Each control is sized by its wrapper rather than by a width class
-            on the control itself. `FIELD_DENSE` carries `w-full`, and Tailwind
-            resolves competing utilities by stylesheet order rather than
-            attribute order, so a `w-14` appended to it loses and the row
-            overflows the card. Same trap as the colour rule in
-            docs/DESIGN-LANGUAGE.md section 2. */}
-        <Dropdown className="w-[4.5rem]">
-          <select
-            id={id}
-            aria-labelledby={`${id}-label`}
-            className={`${FIELD_DENSE_SELECT} tabular-nums`}
-            value={parts.whole}
-            onChange={(e) => emit({ whole: Number(e.target.value) })}
-          >
-            {Array.from({ length: maxWhole + 1 }, (_, whole) => (
-              <option key={whole} value={whole}>
-                {whole}
-              </option>
-            ))}
-          </select>
-        </Dropdown>
-        <Dropdown className="w-[5rem]">
-          <select
-            aria-label={`${label} fraction`}
-            className={FIELD_DENSE_SELECT}
-            value={parts.eighths}
-            onChange={(e) => emit({ eighths: Number(e.target.value) })}
-          >
-            {EIGHTHS.map((fraction, eighths) => (
-              <option key={eighths} value={eighths}>
-                {fraction}
-              </option>
-            ))}
-          </select>
-        </Dropdown>
-        <span className="text-sm text-ink-secondary">in</span>
-      </div>
-    </div>
   );
 }
 

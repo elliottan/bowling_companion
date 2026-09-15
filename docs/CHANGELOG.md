@@ -10,6 +10,20 @@ of shipped work rather than a release. Thirty of them used to be headed
 
 ## The layout lab fits more on the screen (2026-09-15)
 
+**A layout shares as a picture.** The share button now builds the same kind of
+card a night or a set of stats does, with the ball on it: the three numbers as
+the title, what the ball will do underneath, and the Storm VLS reading and the
+flare below the picture. It is previewed before it goes anywhere, like every
+other share in the app. The link, for a reader who would rather open the layout
+and move the sliders than look at it, is under More.
+
+**Your PAP is a setting you can find.** Settings, Preferences now holds it
+beside your handedness, with the same control the lab uses and a reset back to
+the default. Whichever screen you edit it on, the other one already knows.
+
+**The fraction dropdowns say 0 rather than nothing.** A blank row in a list of
+eighths read as a box that had failed to fill itself in.
+
 **Share has its own button, and the presets have their own menu.** Sharing a
 layout is what the screen is for once the numbers are right, so it sits in the
 nav bar beside More rather than one tap inside it. The presets moved out of

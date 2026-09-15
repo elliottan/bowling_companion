@@ -208,12 +208,14 @@ describe("LayoutLabView", () => {
     ]);
   });
 
-  it("offers only the eighths as fractions, with blank for a whole inch", () => {
+  it("offers only the eighths as fractions, with zero for a whole inch", () => {
     renderLab();
     const options = Array.from(
       (screen.getByLabelText("Over fraction") as HTMLSelectElement).options
     ).map((o) => o.text);
-    expect(options).toEqual(["", "1/8", "1/4", "3/8", "1/2", "5/8", "3/4", "7/8"]);
+    // Zero is a listed option rather than a blank row, which read as a box
+    // that had failed to fill itself in.
+    expect(options).toEqual(["0", "1/8", "1/4", "3/8", "1/2", "5/8", "3/4", "7/8"]);
   });
 
   it("combines the whole and the fraction into one measurement", () => {
@@ -354,9 +356,9 @@ describe("LayoutLabView", () => {
     });
     renderLab();
     fireEvent.change(slider(/VAL angle/i), { target: { value: "30" } });
-    // Its own button in the nav bar, beside More: sharing the layout is what
-    // this screen is for once the numbers are right.
-    fireEvent.click(screen.getByRole("button", { name: /share layout/i }));
+    // The link lives under More now; the nav bar button shares the picture.
+    fireEvent.click(screen.getByRole("button", { name: "More" }));
+    fireEvent.click(screen.getByRole("button", { name: /share a link/i }));
 
     await waitFor(() => expect(written).toHaveLength(1));
     const url = written[0];
@@ -385,6 +387,15 @@ describe("LayoutLabView", () => {
     // look at, not a measurement of the person looking at it.
     await waitFor(() => expect(dualAngle()).toBe("45 x 4 1/2 x 45"));
     expect(await getPap()).toBeNull();
+  });
+
+  it("shares the layout as a picture, with the ball on it", async () => {
+    renderLab();
+    fireEvent.click(screen.getByRole("button", { name: "Share layout" }));
+    // The card is previewed before it goes anywhere, like every other share in
+    // the app: nobody should post a picture they have not seen.
+    const dialog = await screen.findByRole("dialog", { name: "Share image" });
+    expect(dialog).toBeInTheDocument();
   });
 
   it("offers the settings that hold the hand and the PAP, behind More", () => {
