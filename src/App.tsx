@@ -606,7 +606,20 @@ function App() {
               />
             );
           case "layout-lab":
-            return <LayoutLabView key={`layout-lab-${i}`} onBack={popOverlay} />;
+            return (
+              <LayoutLabView
+                key={`layout-lab-${i}`}
+                onBack={popOverlay}
+                // The lab opens with the bowler's hand and PAP, so its More
+                // menu goes to where those two are kept. The overlay comes off
+                // first: Settings is a tab, and leaving a pushed screen up over
+                // the tab it just switched to would hide the destination.
+                onOpenSettings={() => {
+                  popOverlay();
+                  dispatch({ type: "goToSettingsSection", section: "preferences" });
+                }}
+              />
+            );
           // Stats drill-downs. They read the shared session filter themselves,
           // so there is nothing to thread through here.
           case "open-frames":

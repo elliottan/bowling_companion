@@ -1,10 +1,18 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { Check, Info, MoreHorizontal, RotateCcw, Share2 } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import {
+  Check,
+  ChevronDown,
+  Info,
+  MoreHorizontal,
+  RotateCcw,
+  Share2,
+  SlidersHorizontal,
+  X
+} from "lucide-react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { BallLayoutDiagram } from "../components/BallLayoutDiagram";
 import { PushScreen } from "../components/PushScreen";
 import { AnchoredMenu, AnchoredMenuItem } from "../components/ui/AnchoredMenu";
-import { Chip } from "../components/ui/Chip";
 import { ConfirmDialog } from "../components/ConfirmDialog";
 import { IconButton } from "../components/ui/IconButton";
 import { SegmentedControl } from "../components/ui/SegmentedControl";
@@ -18,15 +26,12 @@ import {
   EIGHTHS,
   LAYOUT_PRESETS,
   clamp,
-  coreToPap,
   formatDualAngle,
   formatInches,
   formatVls,
   fromVls,
   inDoNotUseBand,
   joinInches,
-  layoutGeometry,
-  pinBuffer,
   presetLayout,
   readMotion,
   splitInches,
@@ -37,7 +42,7 @@ import {
   type LayoutPreset,
   type PapMeasurement
 } from "../lib/ballLayout";
-import { defaultOrientationFor, orientationFacing, type Orientation } from "../lib/ballProjection";
+import { defaultOrientationFor, type Orientation } from "../lib/ballProjection";
 import { decodeLayoutParams, layoutShareUrl } from "../lib/layoutShare";
 import { getHandedness, getPap, setPap as savePap } from "../services/bowlingRepository";
 import { useHandedness } from "../lib/handednessContext";
@@ -45,6 +50,23 @@ import type { Handedness } from "../types/bowling";
 
 interface LayoutLabViewProps {
   onBack: () => void;
+  /** Open Settings at the preferences section, where the hand and the PAP this
+   *  screen opens with are kept. Optional, so the screen still renders in a
+   *  test that only cares about the layout. */
+  onOpenSettings?: () => void;
+}
+
+/** Where a menu hangs from, in viewport coordinates. */
+interface Anchor {
+  left: number;
+  top: number;
+}
+
+/** Anchor a menu of `width` px under the control that opened it, clamped so it
+ *  cannot run off a narrow screen. */
+function anchorUnder(el: Element, width: number): Anchor {
+  const r = el.getBoundingClientRect();
+  return { left: Math.max(8, Math.min(r.right - width, window.innerWidth - width - 8)), top: r.bottom + 6 };
 }
 
 /** The two ways to write the same layout. */
@@ -71,7 +93,7 @@ const BENCHMARK: DualAngleLayout = { drillingAngle: 45, pinToPap: 4.5, valAngle:
  * under the sliders rather than at the top, because the sliders are what the
  * thumb is on and a picture above them would be the thing scrolled off screen.
  */
-export function LayoutLabView({ onBack }: LayoutLabViewProps) {
+export function LayoutLabView({ onBack, onOpenSettings }: LayoutLabViewProps) {
   // A link shared into the app wins over everything, and it is read once at
   // module level of this render rather than in an effect: it is available
   // synchronously, so seeding state from it needs no second render and no
@@ -85,11 +107,8 @@ export function LayoutLabView({ onBack }: LayoutLabViewProps) {
   // handedness that arrives asynchronously from settings without an effect
   // reaching back into state after the fact.
   const [turnedTo, setTurnedTo] = useState<Orientation | null>(null);
-  // Off by default. The rings are what the layout produces rather than part of
-  // it, and five great circles behind two measured lines is a lot of ink to
-  // put on screen before anyone asks for it.
-  const [showFlare, setShowFlare] = useState(false);
-  const [menuAt, setMenuAt] = useState<{ left: number; top: number } | null>(null);
+  const [menuAt, setMenuAt] = useState<Anchor | null>(null);
+  const [presetAt, setPresetAt] = useState<Anchor | null>(null);
   const [pendingPreset, setPendingPreset] = useState<LayoutPreset | null>(null);
   const [shareNote, setShareNote] = useState<string | null>(null);
 
@@ -143,7 +162,6 @@ export function LayoutLabView({ onBack }: LayoutLabViewProps) {
 
   const motion = useMemo(() => readMotion(layout, ball, pap), [layout, ball, pap]);
   const vls = useMemo(() => toVls(layout, ball), [layout, ball]);
-  const geometry = useMemo(() => layoutGeometry(layout, ball, pap, hand), [layout, ball, pap, hand]);
 
   const set = useCallback(
     (patch: Partial<DualAngleLayout>) => setLayout((l) => ({ ...l, ...patch })),
@@ -170,14 +188,6 @@ export function LayoutLabView({ onBack }: LayoutLabViewProps) {
     },
     [ball]
   );
-
-  const face = (target: keyof typeof targets) => () => setOrientation(orientationFacing(targets[target]));
-  const targets = {
-    grip: geometry.gripCenter,
-    pin: geometry.pin,
-    pap: geometry.pap,
-    core: geometry.core
-  };
 
   // Share. A link rather than a picture: a picture of a layout cannot be
   // opened, adjusted and sent back, and this screen is for adjusting.
@@ -217,7 +227,7 @@ export function LayoutLabView({ onBack }: LayoutLabViewProps) {
     (preset: LayoutPreset) => {
       setLayout(presetLayout(preset, ball));
       setPendingPreset(null);
-      setMenuAt(null);
+      setPresetAt(null);
     },
     [ball]
   );
@@ -245,7 +255,7 @@ export function LayoutLabView({ onBack }: LayoutLabViewProps) {
     (preset: LayoutPreset) => {
       if (activePreset) applyPreset(preset);
       else {
-        setMenuAt(null);
+        setPresetAt(null);
         setPendingPreset(preset);
       }
     },
@@ -259,38 +269,58 @@ export function LayoutLabView({ onBack }: LayoutLabViewProps) {
       /* Escape belongs to whatever is layered on top. Without this the menu's
          own Escape and the screen's both fired, so dismissing the menu also
          popped the screen out from under it. */
-      active={pendingPreset == null && menuAt == null}
-      /* One trailing action, per docs/DESIGN-LANGUAGE.md section 1. The presets
-         and the share both live behind it: neither is touched on most visits,
-         and a row of five preset chips was taking a block of the screen to say
-         what a menu says in one glyph. */
+      active={pendingPreset == null && menuAt == null && presetAt == null}
+      /* Two trailing actions, which is the one place the app departs from the
+         single trailing action in docs/DESIGN-LANGUAGE.md section 1. Sharing a
+         layout is the thing this screen is for once the numbers are right, and
+         a share buried one tap inside More reads as an afterthought. Everything
+         that is genuinely rare still lives behind the glyph. */
       trailing={
-        <IconButton
-          variant="round"
-          label="More"
-          onClick={(e) => {
+        <>
+          <IconButton variant="round" label="Share layout" onClick={() => void share()}>
+            <Share2 size={18} aria-hidden="true" />
+          </IconButton>
+          <IconButton
+            variant="round"
+            label="More"
+            className="ml-1"
             // Anchored off the event's own target rather than a ref, because
             // IconButton is a plain function component and does not forward one.
-            const r = e.currentTarget.getBoundingClientRect();
-            // The menu is 11rem wide and hangs from the button's trailing edge,
-            // clamped so it cannot run off a narrow screen.
-            setMenuAt({ left: Math.max(8, r.right - 176), top: r.bottom + 6 });
-          }}
-        >
-          <MoreHorizontal size={20} aria-hidden="true" />
-        </IconButton>
+            onClick={(e) => setMenuAt(anchorUnder(e.currentTarget, 176))}
+          >
+            <MoreHorizontal size={20} aria-hidden="true" />
+          </IconButton>
+        </>
       }
     >
-      <div className="mx-auto w-full max-w-xl space-y-5 px-3 py-4 sm:px-6">
+      <div className="mx-auto w-full max-w-xl space-y-3 px-3 py-3 sm:px-6">
         {/* 1. Whose ball this is. The PAP leads because it is the frame every
             other number is measured against: the VAL angle is measured at it
             and the pin-to-PAP distance is measured to it, so a layout read
             against the wrong axis is the wrong layout. It used to sit last on
             the grounds that it is set once and then left alone, which is true
             of how often it is touched and wrong about what it means. */}
-        <section className="space-y-2">
-          <h2 className={GROUP_HEADING}>Your PAP</h2>
-          <div className="space-y-3 rounded-xl border border-edge bg-surface p-3 shadow-sm">
+        <section className="space-y-1.5">
+          <div className="flex items-center justify-between gap-2">
+            <h2 className={GROUP_HEADING}>Your PAP</h2>
+            {/* Back to the app's own two numbers, in one tap. The PAP and the
+                hand are the pair a shared link overrides, so the way out of
+                somebody else's measurement sits with the measurement. */}
+            <IconButton
+              compact
+              label="Reset PAP and hand"
+              title="Reset to default"
+              onClick={() => {
+                setPapOverride(null);
+                setHandOverride(null);
+                setTurnedTo(null);
+                if (!fromLink) void savePap(DEFAULT_PAP);
+              }}
+            >
+              <RotateCcw size={15} aria-hidden="true" />
+            </IconButton>
+          </div>
+          <div className="space-y-2 rounded-xl border border-edge bg-surface p-2.5 shadow-sm">
             <InchField
               label="Over"
               id="pap-over"
@@ -308,13 +338,15 @@ export function LayoutLabView({ onBack }: LayoutLabViewProps) {
             />
             <div>
               <span className={FIELD_MICRO_LABEL}>Hand</span>
+              {/* Left on the left, which is the one ordering that needs no
+                  reading: the letters sit where the hands do. */}
               <SegmentedControl
                 label="Bowling hand"
                 value={hand}
                 onChange={chooseHand}
                 options={[
-                  { value: "right", label: "Right" },
-                  { value: "left", label: "Left" }
+                  { value: "left", label: "L", srLabel: "Left" },
+                  { value: "right", label: "R", srLabel: "Right" }
                 ]}
               />
             </div>
@@ -324,21 +356,21 @@ export function LayoutLabView({ onBack }: LayoutLabViewProps) {
         {/* 2. What ball. The core type comes before the numbers because it
             changes what the drilling angle means, and therefore what every
             number below does. */}
-        <section className="space-y-2">
+        <section className="space-y-1.5">
           <h2 className={GROUP_HEADING}>Core</h2>
           <SegmentedControl
             label="Core type"
             value={symmetric ? "sym" : "asym"}
             onChange={(v) => setSymmetric(v === "sym")}
             options={[
-              { value: "asym", label: "Asymmetric" },
-              { value: "sym", label: "Symmetric" }
+              { value: "asym", label: "Asym", srLabel: "Asymmetric" },
+              { value: "sym", label: "Sym", srLabel: "Symmetric" }
             ]}
           />
         </section>
 
         {/* 3. The numbers. */}
-        <section className="space-y-3">
+        <section className="space-y-2">
           <div className="flex items-center justify-between gap-3">
             <h2 className={GROUP_HEADING}>Layout</h2>
             <button
@@ -371,8 +403,30 @@ export function LayoutLabView({ onBack }: LayoutLabViewProps) {
             ]}
           />
 
+          {/* The presets, as a named menu rather than a row of chips or a block
+              of items inside More. A preset is a starting point for the three
+              sliders under it, so it belongs beside them and it says which one
+              is on screen: a row of chips could show that too, but only by
+              spending a band of a phone screen on five words that are read
+              once a visit. "Custom" is the honest label for numbers that are
+              nobody's preset, and it is most of the time here. */}
+          <div className="flex items-center gap-2">
+            <span className={`${FIELD_MICRO_LABEL} mb-0`}>Preset</span>
+            <button
+              type="button"
+              aria-haspopup="menu"
+              aria-expanded={presetAt != null}
+              aria-label={`Preset, ${activePreset?.name ?? "Custom"}`}
+              onClick={(e) => setPresetAt(anchorUnder(e.currentTarget, 176))}
+              className={`${FIELD_DENSE} flex w-auto min-w-[9rem] items-center justify-between gap-2 font-semibold active:opacity-80`}
+            >
+              {activePreset?.name ?? "Custom"}
+              <ChevronDown size={14} aria-hidden="true" className="text-ink-tertiary" />
+            </button>
+          </div>
+
           {system === "dual" ? (
-            <div className="space-y-3 rounded-xl border border-edge bg-surface p-3 shadow-sm">
+            <div className="space-y-2 rounded-xl border border-edge bg-surface p-2.5 shadow-sm">
               <Slider
                 label="Drilling angle"
                 hint="At the pin, to the CG or PSA. Low rolls early, high rolls late."
@@ -409,7 +463,7 @@ export function LayoutLabView({ onBack }: LayoutLabViewProps) {
               />
             </div>
           ) : (
-            <div className="space-y-3 rounded-xl border border-edge bg-surface p-3 shadow-sm">
+            <div className="space-y-2 rounded-xl border border-edge bg-surface p-2.5 shadow-sm">
               <Slider
                 label="Pin to PAP"
                 hint="The same first number in both systems."
@@ -458,36 +512,29 @@ export function LayoutLabView({ onBack }: LayoutLabViewProps) {
 
         </section>
 
-        {/* 4. The ball. */}
-        <section className="space-y-2">
+        {/* 4. The ball. The row of chips that used to sit under it (jump to the
+            grip, the pin, the PAP, the core, and a flare rings toggle) is gone:
+            the ball is draggable, which is the gesture everyone tries first,
+            and the chips were a second way to do the same thing taking a band
+            of a screen whose whole complaint was that too little fits on it. */}
+        <section className="space-y-1.5">
           <h2 className={GROUP_HEADING}>On the ball</h2>
           <div className="overflow-hidden rounded-xl border border-edge bg-surface-sunken shadow-sm">
             <BallLayoutDiagram
               layout={layout}
               ball={ball}
               pap={pap}
-              flareInches={motion.flareInches}
-              showFlare={showFlare}
               orientation={orientation}
               onOrientationChange={setOrientation}
               hand={hand}
             />
           </div>
-          <div className="flex flex-wrap justify-center gap-2">
-            <Chip selected={false} onClick={face("grip")}>Grip</Chip>
-            <Chip selected={false} onClick={face("pin")}>Pin</Chip>
-            <Chip selected={false} onClick={face("pap")}>PAP</Chip>
-            <Chip selected={false} onClick={face("core")}>{ball.symmetric ? "CG" : "PSA"}</Chip>
-            <Chip selected={showFlare} onClick={() => setShowFlare((v) => !v)}>
-              Flare rings
-            </Chip>
-          </div>
         </section>
 
         {/* 5. What it will do. */}
-        <section className="space-y-2">
+        <section className="space-y-1.5">
           <h2 className={GROUP_HEADING}>What it will do</h2>
-          <div className="space-y-3 rounded-xl border border-edge bg-surface p-3 shadow-sm">
+          <div className="space-y-2 rounded-xl border border-edge bg-surface p-2.5 shadow-sm">
             <p className="text-sm text-ink">{motion.summary}</p>
             <Axis label="Flare" value={motion.flare} low="Low" high="High" note={`${motion.flareInches.toFixed(1)}"`} />
             <Axis label="Reads the lane" value={motion.length} low="Early" high="Late" />
@@ -495,13 +542,11 @@ export function LayoutLabView({ onBack }: LayoutLabViewProps) {
             <Axis label="Overall strength" value={motion.strength} low="Weak" high="Strong" />
           </div>
 
-          <div className="grid grid-cols-2 gap-2">
-            <Readout label="Pin buffer" value={`${formatInches(pinBuffer(layout.pinToPap, layout.valAngle))}"`} />
-            <Readout
-              label={`${ball.symmetric ? "CG" : "PSA"} to PAP`}
-              value={`${formatInches(coreToPap(layout, ball))}"`}
-            />
-          </div>
+          {/* The pin buffer and the core-to-PAP distance used to be printed
+              here as two more boxes. They are the second and third numbers of
+              the Storm VLS notation, which is already on screen in the readout
+              above and is a slider away in the VLS system, so the boxes said
+              the same thing a third time. */}
 
           {motion.warnings.map((warning) => (
             <p
@@ -517,9 +562,23 @@ export function LayoutLabView({ onBack }: LayoutLabViewProps) {
 
       {menuAt && (
         <AnchoredMenu left={menuAt.left} top={menuAt.top} onClose={() => setMenuAt(null)}>
-          <AnchoredMenuItem icon={Share2} onClick={() => void share()}>
-            Share layout
+          {/* The hand and the PAP are settings, not this screen's numbers, so
+              the way to their permanent home is here rather than a second
+              control beside the fields that edit them. */}
+          <AnchoredMenuItem
+            icon={SlidersHorizontal}
+            onClick={() => {
+              setMenuAt(null);
+              onOpenSettings?.();
+            }}
+          >
+            Settings
           </AnchoredMenuItem>
+        </AnchoredMenu>
+      )}
+
+      {presetAt && (
+        <AnchoredMenu left={presetAt.left} top={presetAt.top} onClose={() => setPresetAt(null)}>
           {LAYOUT_PRESETS.map((preset) => (
             <AnchoredMenuItem
               key={preset.id}
@@ -562,7 +621,29 @@ export function LayoutLabView({ onBack }: LayoutLabViewProps) {
 }
 
 /**
- * A measurement typed the way it is written: whole inches in one box, the
+ * A select and the chevron that says it is one.
+ *
+ * `FIELD_DENSE_SELECT` drops the browser's own arrow (`appearance-none`) and
+ * leaves room for a replacement it does not draw, which every other screen
+ * gets away with because its selects hold a word. Here two of the three hold a
+ * single digit or nothing at all, and a bare box with "5" in it reads as a
+ * text field: the chevron is the only thing saying there is a list behind it.
+ */
+function Dropdown({ className, children }: { className: string; children: ReactNode }) {
+  return (
+    <div className={`relative shrink-0 ${className}`}>
+      {children}
+      <ChevronDown
+        size={14}
+        aria-hidden="true"
+        className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-ink-tertiary"
+      />
+    </div>
+  );
+}
+
+/**
+ * A measurement picked the way it is written: whole inches in one box, the
  * fraction in another, and the unit spelled out after both.
  *
  * This replaced a single `type="number"` with `step="0.125"`. Nothing in
@@ -572,13 +653,16 @@ export function LayoutLabView({ onBack }: LayoutLabViewProps) {
  * spinner arrows, so the keyboard would happily take 5.31 and the ball would
  * quietly move to an axis no pro shop could measure.
  *
- * So the decimal is not accepted rather than rounded away: the whole-inch box
- * is a text input filtered to digits, which cannot hold a point at all, and the
- * fraction is a select whose only options are the eighths. Every value the pair
- * can produce is a value someone could mark on a ball.
+ * Every part is a select, and that is the point: a PAP is bounded on both ends
+ * (nobody measures 9 inches over), so the whole inches are a list of at most
+ * seven, and a list cannot hold a decimal point, a stray digit or a number out
+ * of range in the first place. The typed box that used to hold the whole inches
+ * had to filter digits and clamp on the way through, and it still drew a
+ * different control from the fraction beside it. Three selects of one height
+ * read as one measurement.
  *
  * The fraction may be left blank, which is the whole inch. `signed` adds the
- * direction control for a measurement that can sit either side of the midline;
+ * direction select for a measurement that can sit either side of the midline;
  * the sign rides the whole measurement rather than its integer part, because
  * half an inch below the line cannot be written as a negative zero.
  */
@@ -606,18 +690,19 @@ function InchField({
         {label}
       </span>
       <div className="flex items-center gap-2">
+        {/* Direction first, because it is read first: "half an inch down". */}
         {signed && (
-          <div className="w-[7.5rem] shrink-0">
-            <SegmentedControl
-              label={`${label} direction`}
+          <Dropdown className="w-[5.5rem]">
+            <select
+              aria-label={`${label} direction`}
+              className={FIELD_DENSE_SELECT}
               value={parts.negative ? "down" : "up"}
-              onChange={(d) => emit({ negative: d === "down" })}
-              options={[
-                { value: "up", label: "Up" },
-                { value: "down", label: "Down" }
-              ]}
-            />
-          </div>
+              onChange={(e) => emit({ negative: e.target.value === "down" })}
+            >
+              <option value="up">Up</option>
+              <option value="down">Down</option>
+            </select>
+          </Dropdown>
         )}
         {/* Each control is sized by its wrapper rather than by a width class
             on the control itself. `FIELD_DENSE` carries `w-full`, and Tailwind
@@ -625,23 +710,22 @@ function InchField({
             attribute order, so a `w-14` appended to it loses and the row
             overflows the card. Same trap as the colour rule in
             docs/DESIGN-LANGUAGE.md section 2. */}
-        <div className="w-14 shrink-0">
-          <input
+        <Dropdown className="w-[4.5rem]">
+          <select
             id={id}
-            type="text"
-            inputMode="numeric"
             aria-labelledby={`${id}-label`}
-            className={`${FIELD_DENSE} text-center tabular-nums`}
-            value={String(parts.whole)}
-            onChange={(e) => {
-              // Digits only. A stripped field reads as 0 rather than NaN, so
-              // clearing it to type a new number never blanks the drawing.
-              const digits = e.target.value.replace(/\D/g, "");
-              emit({ whole: Math.min(Number(digits || 0), maxWhole) });
-            }}
-          />
-        </div>
-        <div className="w-[5.5rem] shrink-0">
+            className={`${FIELD_DENSE_SELECT} tabular-nums`}
+            value={parts.whole}
+            onChange={(e) => emit({ whole: Number(e.target.value) })}
+          >
+            {Array.from({ length: maxWhole + 1 }, (_, whole) => (
+              <option key={whole} value={whole}>
+                {whole}
+              </option>
+            ))}
+          </select>
+        </Dropdown>
+        <Dropdown className="w-[5rem]">
           <select
             aria-label={`${label} fraction`}
             className={FIELD_DENSE_SELECT}
@@ -654,7 +738,7 @@ function InchField({
               </option>
             ))}
           </select>
-        </div>
+        </Dropdown>
         <span className="text-sm text-ink-secondary">in</span>
       </div>
     </div>
@@ -700,6 +784,21 @@ function Slider({
   const shown = unit === "deg" ? `${Math.round(value)}°` : `${formatInches(value)}"`;
   const id = `slider-${label.replace(/\s+/g, "-").toLowerCase()}`;
   const [hintOpen, setHintOpen] = useState(false);
+  const hintRef = useRef<HTMLDivElement>(null);
+
+  // A tap anywhere else puts the bubble away, which is what makes it a popup
+  // rather than a panel: it is read once and dismissed, and it never has to be
+  // closed from the same small target that opened it. `pointerdown` rather
+  // than `click`, so the tap that dismisses it does not also work the control
+  // underneath it by accident.
+  useEffect(() => {
+    if (!hintOpen) return;
+    const away = (e: PointerEvent) => {
+      if (!hintRef.current?.contains(e.target as Node)) setHintOpen(false);
+    };
+    document.addEventListener("pointerdown", away);
+    return () => document.removeEventListener("pointerdown", away);
+  }, [hintOpen]);
 
   const bandStyle =
     band && bandMin != null && bandMax != null
@@ -710,7 +809,7 @@ function Slider({
       : null;
 
   return (
-    <div>
+    <div className="relative" ref={hintRef}>
       <div className="mb-1 flex items-baseline justify-between gap-2">
         {/* The label is the affordance. Tapping the name of a thing to find out
             what it means is the gesture people already try, and a separate icon
@@ -753,16 +852,24 @@ function Slider({
           className="relative h-11 w-full cursor-pointer appearance-none bg-transparent [&::-moz-range-thumb]:h-5 [&::-moz-range-thumb]:w-5 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-surface [&::-moz-range-thumb]:bg-accent-fill [&::-moz-range-track]:h-1.5 [&::-moz-range-track]:rounded-full [&::-moz-range-track]:bg-edge-strong [&::-webkit-slider-runnable-track]:h-1.5 [&::-webkit-slider-runnable-track]:rounded-full [&::-webkit-slider-runnable-track]:bg-edge-strong [&::-webkit-slider-thumb]:-mt-1.5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-surface [&::-webkit-slider-thumb]:bg-accent-fill [&::-webkit-slider-thumb]:shadow"
         />
       </div>
-      {/* Hidden until asked for. Three of these stacked is a paragraph of
-          explanation standing between the bowler and the control they came to
-          move. */}
-      <p
-        id={`${id}-hint`}
-        hidden={!hintOpen}
-        className="mt-0.5 text-xs leading-snug text-ink-secondary"
-      >
-        {hint}
-      </p>
+      {/* A popup over the row rather than a line added under it. Three of these
+          stacked is a paragraph standing between the bowler and the control
+          they came to move, and opening one used to push the two sliders below
+          it down the screen under the thumb that was already reaching for
+          them. Floating it changes nothing about where anything sits. */}
+      {hintOpen && (
+        <div
+          id={`${id}-hint`}
+          role="dialog"
+          aria-label={`${label}, what it does`}
+          className="absolute left-0 right-0 top-6 z-20 flex items-start gap-2 rounded-lg border border-edge bg-surface p-2 text-xs leading-snug text-ink-secondary shadow-lg"
+        >
+          <p className="min-w-0 flex-1">{hint}</p>
+          <IconButton compact label="Close" onClick={() => setHintOpen(false)}>
+            <X size={14} aria-hidden="true" />
+          </IconButton>
+        </div>
+      )}
     </div>
   );
 }

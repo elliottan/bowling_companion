@@ -26,8 +26,10 @@ const readout = (label: string) =>
 const dualAngle = () => readout("Dual angle");
 const vlsReadout = () => readout("Storm VLS");
 
-/** Open the More menu in the nav bar, where the presets and Share now live. */
-const openMenu = () => fireEvent.click(screen.getByRole("button", { name: "More" }));
+/** Open the preset menu, which hangs off the named button under the Layout
+ *  heading rather than off the nav bar's More. */
+const openMenu = () =>
+  fireEvent.click(screen.getByRole("button", { name: /^Preset,/ }));
 
 describe("LayoutLabView", () => {
   beforeEach(async () => {
@@ -56,11 +58,14 @@ describe("LayoutLabView", () => {
     renderLab();
     fireEvent.click(screen.getByRole("button", { name: "Symmetric" }));
     expect(vlsReadout()?.split(" x ")).toHaveLength(2);
-    // The marker the drilling angle measures to is the CG on a symmetric ball.
-    expect(screen.getByRole("button", { name: "CG" })).toBeInTheDocument();
+    // The marker the drilling angle measures to is the CG on a symmetric ball,
+    // and the ball says so where the marker is drawn.
+    const svg = screen.getByRole("img", { name: /bowling ball/i });
+    const texts = Array.from(svg.querySelectorAll("text")).map((t) => (t.textContent ?? "").trim());
+    expect(texts).toContain("CG");
   });
 
-  it("applies a preset from the More menu", () => {
+  it("applies a preset from the preset menu", () => {
     renderLab();
     openMenu();
     // The screen opens on the benchmark, which is itself a preset, so switching
@@ -148,7 +153,7 @@ describe("LayoutLabView", () => {
     openMenu();
     fireEvent.click(screen.getByRole("button", { name: "Short pin" }));
     expect(dualAngle()).not.toBe("45 x 4 1/2 x 45");
-    fireEvent.click(screen.getByRole("button", { name: /reset/i }));
+    fireEvent.click(screen.getByRole("button", { name: "Reset" }));
     expect(dualAngle()).toBe("45 x 4 1/2 x 45");
   });
 
@@ -185,15 +190,22 @@ describe("LayoutLabView", () => {
 
   it("takes a PAP as whole inches and a fraction, never as a decimal", () => {
     renderLab();
-    const whole = screen.getByLabelText("Over") as HTMLInputElement;
+    const whole = screen.getByLabelText("Over") as HTMLSelectElement;
     // The default PAP is 5" over, which is 5 and no fraction.
     expect(whole.value).toBe("5");
     expect((screen.getByLabelText("Over fraction") as HTMLSelectElement).value).toBe("0");
 
-    // A typed decimal point cannot land in the field at all: it is filtered to
-    // digits, so "3.5" is read as the whole inches 35 and clamped to the max.
-    fireEvent.change(whole, { target: { value: "3.5" } });
-    expect(whole.value).toBe("6");
+    // A decimal cannot be entered at all, because the whole inches are a list
+    // of the seven a PAP can be rather than a box to type in.
+    expect(Array.from(whole.options).map((o) => o.text)).toEqual([
+      "0",
+      "1",
+      "2",
+      "3",
+      "4",
+      "5",
+      "6"
+    ]);
   });
 
   it("offers only the eighths as fractions, with blank for a whole inch", () => {
@@ -222,7 +234,9 @@ describe("LayoutLabView", () => {
     const halfUp = ball();
     // Half an inch DOWN is a different axis, and cannot be written as a
     // negative zero, which is the whole reason the direction is its own control.
-    fireEvent.click(screen.getByRole("button", { name: "Down" }));
+    fireEvent.change(screen.getByLabelText("Up or down direction"), {
+      target: { value: "down" }
+    });
     expect(ball()).not.toBe(halfUp);
   });
 
@@ -279,17 +293,17 @@ describe("LayoutLabView", () => {
     renderLab();
 
     await waitFor(() =>
-      expect((screen.getByRole("textbox", { name: "Over" }) as HTMLInputElement).value).toBe("4")
+      expect((screen.getByRole("combobox", { name: "Over" }) as HTMLSelectElement).value).toBe("4")
     );
     expect((screen.getByLabelText("Over fraction") as HTMLSelectElement).value).toBe("2");
     // Below the midline, which is what the stored negative means.
-    expect(screen.getByRole("button", { name: "Down" })).toHaveAttribute("aria-pressed", "true");
+    expect((screen.getByLabelText("Up or down direction") as HTMLSelectElement).value).toBe("down");
     expect(screen.getByRole("button", { name: "Left" })).toHaveAttribute("aria-pressed", "true");
   });
 
   it("saves the PAP back, because it is the bowler's measurement and not this screen's", async () => {
     renderLab();
-    fireEvent.change(screen.getByRole("textbox", { name: "Over" }), { target: { value: "4" } });
+    fireEvent.change(screen.getByRole("combobox", { name: "Over" }), { target: { value: "4" } });
     await waitFor(async () => expect(await getPap()).toEqual({ over: 4, up: 0.5 }));
   });
 
@@ -312,22 +326,25 @@ describe("LayoutLabView", () => {
     expect(texts).toContain('6 3/4"');
   });
 
-  it("opens with the flare rings off", () => {
+  it("carries no chip row under the ball, and no flare rings on it", () => {
     renderLab();
-    expect(screen.getByRole("button", { name: "Flare rings" })).toHaveAttribute(
-      "aria-pressed",
-      "false"
-    );
+    // The ball is dragged, which is the gesture everyone tries: the chips that
+    // jumped the camera to each landmark were a second way to do it, and the
+    // flare rings are what the layout produces rather than part of it.
+    expect(screen.queryByRole("button", { name: "Flare rings" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "PAP" })).not.toBeInTheDocument();
   });
 
-  it("keeps each slider's explanation behind its own label until asked", () => {
+  it("keeps each slider's explanation in a popup behind its own label", () => {
     renderLab();
     const hint = /Sets the flare/i;
-    expect(screen.getByText(hint)).not.toBeVisible();
+    expect(screen.queryByText(hint)).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: /Pin to PAP/i }));
     expect(screen.getByText(hint)).toBeVisible();
-    fireEvent.click(screen.getByRole("button", { name: /Pin to PAP/i }));
-    expect(screen.getByText(hint)).not.toBeVisible();
+    // Dismissable, rather than a line that stays and pushes the sliders below
+    // it down the screen.
+    fireEvent.click(screen.getByRole("button", { name: "Close" }));
+    expect(screen.queryByText(hint)).not.toBeInTheDocument();
   });
 
   it("shares a link that reopens the same layout", async () => {
@@ -337,7 +354,8 @@ describe("LayoutLabView", () => {
     });
     renderLab();
     fireEvent.change(slider(/VAL angle/i), { target: { value: "30" } });
-    openMenu();
+    // Its own button in the nav bar, beside More: sharing the layout is what
+    // this screen is for once the numbers are right.
     fireEvent.click(screen.getByRole("button", { name: /share layout/i }));
 
     await waitFor(() => expect(written).toHaveLength(1));
@@ -356,17 +374,38 @@ describe("LayoutLabView", () => {
 
     expect(dualAngle()).toBe("70 x 5 x 30");
     expect(screen.getByRole("button", { name: "Left" })).toHaveAttribute("aria-pressed", "true");
-    expect((screen.getByRole("textbox", { name: "Over" }) as HTMLInputElement).value).toBe("4");
+    expect((screen.getByRole("combobox", { name: "Over" }) as HTMLSelectElement).value).toBe("4");
   });
 
   it("never saves a PAP that arrived in somebody else's link", async () => {
     window.history.replaceState({}, "", "/score?da=45&ptp=4.5&val=45&over=3&up=0");
     renderLab();
-    fireEvent.change(screen.getByRole("textbox", { name: "Over" }), { target: { value: "2" } });
+    fireEvent.change(screen.getByRole("combobox", { name: "Over" }), { target: { value: "2" } });
     // The bowler's own stored axis is untouched: a shared layout is a thing to
     // look at, not a measurement of the person looking at it.
     await waitFor(() => expect(dualAngle()).toBe("45 x 4 1/2 x 45"));
     expect(await getPap()).toBeNull();
+  });
+
+  it("offers the settings that hold the hand and the PAP, behind More", () => {
+    const onOpenSettings = vi.fn();
+    render(<LayoutLabView onBack={vi.fn()} onOpenSettings={onOpenSettings} />);
+    fireEvent.click(screen.getByRole("button", { name: "More" }));
+    fireEvent.click(screen.getByRole("button", { name: "Settings" }));
+    expect(onOpenSettings).toHaveBeenCalled();
+  });
+
+  it("puts the bowler's own PAP back with the reset beside it", async () => {
+    await setPap({ over: 3, up: 0 });
+    renderLab();
+    await waitFor(() =>
+      expect((screen.getByLabelText("Over") as HTMLSelectElement).value).toBe("3")
+    );
+    fireEvent.click(screen.getByRole("button", { name: /reset PAP and hand/i }));
+    // Back to the app's default axis, and saved, because the PAP is the
+    // bowler's measurement wherever it is edited from.
+    await waitFor(() => expect(getPap()).resolves.toEqual({ over: 5, up: 0.5 }));
+    expect((screen.getByLabelText("Over") as HTMLSelectElement).value).toBe("5");
   });
 
   it("goes back", async () => {
