@@ -8,44 +8,22 @@ merge to `main` (`docs/DEPLOYMENT.md`), so every section below is a dated batch
 of shipped work rather than a release. Thirty of them used to be headed
 `[Unreleased]`, which said nothing once they had all shipped.
 
-## Import a pattern sheet instead of typing it (2026-09-16)
+## Oil patterns come with the app (2026-09-16)
 
-**Point the app at a pattern sheet and it reads the load table for you.** Pick
-the file, or paste a link to it. Fifteen rows of seven numbers, filled in for
-you, with the name off the sheet and the sheet link kept. The import leads the
-form now, because it fills in everything under it. It is read on your own phone
-and nothing is uploaded.
+**A catalog of patterns ships with Headpin, load tables and all.** Settings, oil
+patterns, add from the catalog: pick one and it is yours, with its distance, its
+volume and its ratio already known and the lane ready to draw it. Adding one
+copies it, so you can edit your copy without touching the catalog.
 
-The distance, the volume and the ratio are shown as soon as a sheet is read.
-They are not fields to fill in: they fall out of the load table, so seeing them
-is how you know the sheet was read correctly.
+Every pattern in it was read from its own sheet and then checked against the
+totals that sheet prints, before it shipped. A reading that does not add up does
+not become a pattern.
 
-Some sites do not let other pages read their files, and a link to one of those
-cannot be fetched by an app with no server. When that happens it says so, and
-says to open the link and import the file instead.
-
-**Kegel's own sheets draw their load tables as pictures, and those are read
-too.** The app scans them on your phone when there is no text to read, and then
-checks what it scanned against the header, which is text and so can be trusted.
-
-Scanning drops a decimal point here and there, and the sheet puts them back: a
-distance carries one decimal and the FEET column says what the gap should be, so
-"153" can only be 15.3. A board that comes back as 71L is recovered from the
-crossings, which say how wide the pass was. Anything that cannot be repaired is
-left as scanned and fails its check, so you fix one row rather than fifteen.
-
-The scanner is a few megabytes and is only fetched the first time you import a
-sheet that needs it, then kept for next time.
-
-**It checks the sheet against itself before it says it worked.** Every row of a
-sheet prints its own crossings and oil total, and the header prints the
-distance and the volumes, so the import re-derives all of them and tells you how
-many checks passed. A sheet that does not add up still fills the rows in, so you
-can fix the odd one, but it says which sum disagrees rather than quietly saving
-a pattern that is slightly wrong.
-
-No pattern library is bundled, by choice: you bring your own sheet, and none of
-Kegel's data ships in the app.
+The in-app sheet import is gone. Reading a pattern sheet turned out to be a job
+worth doing once, properly, rather than on every phone: Kegel draws its load
+tables as pictures, and reading those needed several megabytes of scanner that
+every bowler would have carried to keep score. A pattern the catalog does not
+have can still be typed in by hand.
 
 ## The oil pattern, on the lane (2026-09-15)
 

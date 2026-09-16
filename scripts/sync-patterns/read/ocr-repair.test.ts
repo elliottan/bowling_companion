@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { boardFromCrossings, repairDistance, repairOcrLine, repairOcrLines } from "./oilPatternOcr";
-import { parseSheetLines } from "./oilPatternSheet";
-import { oilStats, headlineRatio } from "./oilPattern";
+import { boardFromCrossings, repairDistance, repairOcrLine, repairOcrLines } from "./ocr-repair.js";
+import { parseSheetLines } from "./sheet-text.js";
+import { oilStats, headlineRatio } from "../../../src/lib/oilPattern.js";
 
 /**
  * Verbatim tesseract output for the two table images of Kegel's Chromium 6742,

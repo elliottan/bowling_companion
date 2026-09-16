@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { parseSheetItems, parseSheetLines, sheetLines, type SheetTextItem } from "./oilPatternSheet";
-import { oilStats } from "./oilPattern";
+import { parseSheetItems, parseSheetLines, sheetLines, type SheetTextItem } from "./sheet-text.js";
+import { oilStats } from "../../../src/lib/oilPattern.js";
 
 /**
  * Chromium 6742 as its tables print, row for row. The parser is fed these as

@@ -1,11 +1,12 @@
 import { ChevronRight, ExternalLink, Plus, RotateCcw } from "lucide-react";
 import { OilPatternIcon } from "./icons";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { ConfirmDialog } from "./ConfirmDialog";
 import { ErrorBanner } from "./ErrorBanner";
 import { OilPatternFormDialog } from "./OilPatternFormDialog";
 import { PushScreen } from "./PushScreen";
+import { FormSheet } from "./ui/FormSheet";
 import { Button } from "./ui/Button";
 import { EmptyState } from "./ui/EmptyState";
 import { IconButton } from "./ui/IconButton";
@@ -18,6 +19,7 @@ import {
 } from "../services/ballRepository";
 import type { OilPass, OilPattern } from "../types/bowling";
 import { headlineRatio, oilStats } from "../lib/oilPattern";
+import { getCatalogPatterns, type CatalogPattern } from "../services/patternCatalog";
 import { LIST_DIVIDER, ListGroup } from "./ui/ListGroup";
 import { GROUP_HEADING } from "./ui/typography";
 
@@ -46,6 +48,29 @@ export function OilPatternManager({ onBack, mode = "inline" }: OilPatternManager
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<OilPattern | undefined>(undefined);
   const [pendingRemove, setPendingRemove] = useState<OilPattern | null>(null);
+  const [catalog, setCatalog] = useState<CatalogPattern[]>([]);
+  const [showCatalog, setShowCatalog] = useState(false);
+
+  // The shipped catalog (ADR-104). Loaded once, and an empty one simply means
+  // nothing to start from, never a broken screen.
+  useEffect(() => {
+    let live = true;
+    getCatalogPatterns().then((p) => { if (live) setCatalog(p); }).catch(() => {});
+    return () => { live = false; };
+  }, []);
+
+  /** Add a catalog pattern to your own list. It is copied, not referenced: a
+   *  pattern in your list is yours, and editing it must never edit the catalog. */
+  async function addFromCatalog(pattern: CatalogPattern) {
+    setShowCatalog(false);
+    try {
+      // useLiveQuery re-reads the list, so there is nothing to refresh by hand.
+      await addOilPattern(pattern.name, pattern.sourceUrl, pattern.passes);
+      setNotice(`Added ${pattern.name}.`);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unable to add that pattern.");
+    }
+  }
 
   const active = useMemo(() => patterns.filter((p) => !p.archived), [patterns]);
   const archived = useMemo(() => patterns.filter((p) => p.archived), [patterns]);
@@ -121,6 +146,25 @@ export function OilPatternManager({ onBack, mode = "inline" }: OilPatternManager
         </p>
       )}
 
+      {/* The catalog leads, because it is how a pattern gets a load table
+          without anyone typing one (ADR-104). Absent when the catalog is
+          empty or unreachable, so it never advertises nothing. */}
+      {catalog.length > 0 && (
+        <button
+          type="button"
+          onClick={() => setShowCatalog(true)}
+          className="mb-3 flex w-full items-center gap-3 rounded-xl border border-edge bg-surface px-3 py-2.5 text-left active:bg-surface-muted"
+        >
+          <span className="min-w-0 flex-1">
+            <span className="block font-semibold text-ink">Add from the catalog</span>
+            <span className="block truncate text-xs text-ink-secondary">
+              {catalog.length} pattern{catalog.length === 1 ? "" : "s"}, with their load tables
+            </span>
+          </span>
+          <ChevronRight size={16} aria-hidden="true" className="shrink-0 text-ink-tertiary" />
+        </button>
+      )}
+
       {isLoading ? (
         <p className="text-sm text-ink-secondary">Loading…</p>
       ) : active.length === 0 ? (
@@ -166,6 +210,35 @@ export function OilPatternManager({ onBack, mode = "inline" }: OilPatternManager
             </div>
           )}
         </>
+      )}
+
+      {showCatalog && (
+        <FormSheet title="Add from the catalog" onClose={() => setShowCatalog(false)}>
+          <ListGroup>
+            {catalog.map((pattern) => (
+              <li key={pattern.id} className={`flex items-center ${LIST_DIVIDER}`}>
+                <button
+                  type="button"
+                  onClick={() => void addFromCatalog(pattern)}
+                  className="flex min-w-0 flex-1 items-center gap-3 px-3 py-2.5 text-left active:bg-surface-muted"
+                >
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate font-semibold text-ink">{pattern.name}</span>
+                    <span className="block truncate text-xs tabular-nums text-ink-secondary">
+                      {Math.round(pattern.distance)} ft · {pattern.volumeMl.toFixed(2)} mL
+                      {pattern.ratio != null ? ` · ${pattern.ratio.toFixed(1)}:1` : ""}
+                    </span>
+                  </span>
+                  <Plus size={16} aria-hidden="true" className="shrink-0 text-ink-tertiary" />
+                </button>
+              </li>
+            ))}
+          </ListGroup>
+          <p className="mt-2 px-1 text-xs text-ink-tertiary">
+            Each one was checked against the totals printed on its own sheet before
+            it shipped. Adding one copies it into your list, so you can edit it.
+          </p>
+        </FormSheet>
       )}
 
       <OilPatternFormDialog

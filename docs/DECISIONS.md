@@ -4937,3 +4937,64 @@ loses rows and fails its checks, rather than importing a wrong pattern quietly.
   are never handed to OCR.
 - The language pack is the 3 MB integer build, which read this sheet exactly as
   well as the 11 MB one.
+
+## ADR-104 — Pattern sheets are ingested by a pipeline, not read on a phone
+
+**Status.** Accepted, 2026-09-16. Supersedes ADR-102 and ADR-103, which stand as
+written and as the record of how this was learned.
+
+**Context.** ADR-102 read pattern sheets in the app, ADR-103 added OCR when the
+real sheet turned out to draw its tables as pictures. Both worked in the sense
+that their tests passed. Neither was a good place for the job.
+
+The reading is the hard part, and putting it in the app put it in the worst
+possible place for it: on a phone, at the moment a bowler wants an answer, with
+8.5 MB of PDF parser and wasm behind it, where a failure is the bowler's problem
+and where it could not be verified in CI, because a browser could not be run to
+try it. Worse, the work is the same every time. Chromium 6742 does not change.
+Reading it once, carefully, and shipping the result is strictly better than
+every bowler's phone reading it again and hoping.
+
+The ball catalog settled this shape already (ADR-043, ADR-044): read at
+authoring time, treat the reader as untrusted, promote deterministically.
+
+**Decision.** Oil patterns get the same pipeline, in `scripts/sync-patterns`.
+
+1. **Ingest** (`ingest.ts`) reads a sheet and stages a candidate. Routing decides
+   who reads it, per ADR-044: a sheet with a real text layer is parsed and costs
+   nothing; only a sheet that draws its tables as pictures pays for OCR. Neither
+   reader decides whether it succeeded.
+2. **Promote** (`promote.ts`) is deterministic, with no reader in the loop. It
+   re-derives the sheet's own printed numbers from the staged rows, and a
+   pattern reaches the catalog only when they agree. Anything else goes to
+   `data/conflicts/` for a person.
+
+**The check is the whole point, and it is not a formality.** On the first real
+run, OCR lost two forward rows of Chromium 6742, and promote caught it on the
+header totals: 13.94 mL against a printed 15.41. The catalog stayed empty rather
+than gaining a pattern that was wrong in a way nobody would have noticed on the
+lane. A reading by eye then passed the same checks and shipped. Both routes ran,
+the arithmetic decided, and that is the design working.
+
+**Every reader is equal before the checks.** `text-layer`, `ocr` and `manual` are
+recorded on a candidate for a human reading a conflict, and mean nothing to
+promote. A load table is the rare document that can prove it was read correctly,
+so who read it does not have to be argued about.
+
+**Consequences.**
+- The app carries no sheet reader. pdf.js, tesseract, the browser glue and about
+  8.5 MB of assets are gone, along with the only code in this feature that could
+  not be tested here.
+- `oilPatternSheet.ts` and `oilPatternOcr.ts` moved to `scripts/sync-patterns/read/`
+  unchanged, tests included, because the reading and the repair were right; only
+  where they ran was wrong. The verbatim tesseract fixture moves with them.
+- A pattern is added from the catalog by copying it, never by referencing it. A
+  pattern in your list is yours, and editing it must not edit the catalog.
+- The catalog is fetched and runtime cached like the ball catalog, not bundled,
+  so it can grow without every boot paying for it.
+- A bowler with a sheet the catalog lacks types it in, or sends it to be
+  ingested. That is worse for them than a working in-app import would have been,
+  and better than an in-app import that cannot read Kegel's sheets.
+- Competition patterns ship with the app. They are published freely and printed
+  in tournament rules, but published is not licensed, and this is a deliberate
+  risk taken with the repository owner's agreement rather than an oversight.

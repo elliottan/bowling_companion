@@ -1,8 +1,8 @@
-import { parseSheetBoard } from "./oilPattern";
-import { LANE_BOARDS } from "./laneGeometry";
+import { parseSheetBoard } from "../../../src/lib/oilPattern.js";
+import { LANE_BOARDS } from "../../../src/lib/laneGeometry.js";
 
 /**
- * Repairing a load table read by OCR (ADR-103).
+ * Repairing a load table read by OCR (ADR-104).
  *
  * Kegel draws its load tables as pictures, so the only way to read one is OCR,
  * and OCR is the reader ADR-044 warns about: it fails plausibly. On a real

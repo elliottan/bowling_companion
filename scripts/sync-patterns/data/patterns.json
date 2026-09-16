@@ -1,0 +1,197 @@
+{
+  "version": 1,
+  "generated_at": "2026-09-16T04:04:50.096Z",
+  "patterns": [
+    {
+      "id": "kegel-element-challenge-chromium-6742",
+      "name": "Kegel Element Challenge Chromium 6742",
+      "vendor": "kegel",
+      "sourceUrl": "https://www.lvsb.at/wp-content/uploads/2021/05/Chromium-6742.pdf",
+      "distance": 42,
+      "volumeMl": 25.56,
+      "ratio": 6.705882352941177,
+      "passes": [
+        {
+          "direction": "forward",
+          "left_board": 2,
+          "right_board": 38,
+          "loads": 3,
+          "microliters": 50,
+          "start_distance": 0,
+          "end_distance": 5.1,
+          "speed": 18,
+          "buffer": 4,
+          "tank": "A"
+        },
+        {
+          "direction": "forward",
+          "left_board": 7,
+          "right_board": 33,
+          "loads": 2,
+          "microliters": 50,
+          "start_distance": 5.1,
+          "end_distance": 10.2,
+          "speed": 18,
+          "buffer": 4,
+          "tank": "A"
+        },
+        {
+          "direction": "forward",
+          "left_board": 9,
+          "right_board": 31,
+          "loads": 2,
+          "microliters": 45,
+          "start_distance": 10.2,
+          "end_distance": 15.3,
+          "speed": 18,
+          "buffer": 3,
+          "tank": "A"
+        },
+        {
+          "direction": "forward",
+          "left_board": 10,
+          "right_board": 30,
+          "loads": 2,
+          "microliters": 45,
+          "start_distance": 15.3,
+          "end_distance": 20.4,
+          "speed": 18,
+          "buffer": 3,
+          "tank": "A"
+        },
+        {
+          "direction": "forward",
+          "left_board": 10,
+          "right_board": 30,
+          "loads": 2,
+          "microliters": 40,
+          "start_distance": 20.4,
+          "end_distance": 25.5,
+          "speed": 18,
+          "buffer": 3,
+          "tank": "A"
+        },
+        {
+          "direction": "forward",
+          "left_board": 11,
+          "right_board": 29,
+          "loads": 2,
+          "microliters": 40,
+          "start_distance": 25.5,
+          "end_distance": 30.6,
+          "speed": 18,
+          "buffer": 3,
+          "tank": "A"
+        },
+        {
+          "direction": "forward",
+          "left_board": 2,
+          "right_board": 38,
+          "loads": 0,
+          "microliters": 40,
+          "start_distance": 30.6,
+          "end_distance": 35,
+          "speed": 22,
+          "buffer": 3,
+          "tank": "A"
+        },
+        {
+          "direction": "forward",
+          "left_board": 2,
+          "right_board": 38,
+          "loads": 0,
+          "microliters": 40,
+          "start_distance": 35,
+          "end_distance": 42,
+          "speed": 26,
+          "buffer": 2,
+          "tank": "A"
+        },
+        {
+          "direction": "reverse",
+          "left_board": 2,
+          "right_board": 38,
+          "loads": 0,
+          "microliters": 50,
+          "start_distance": 42,
+          "end_distance": 39,
+          "speed": 30,
+          "buffer": 3,
+          "tank": "B"
+        },
+        {
+          "direction": "reverse",
+          "left_board": 2,
+          "right_board": 38,
+          "loads": 0,
+          "microliters": 50,
+          "start_distance": 39,
+          "end_distance": 28,
+          "speed": 22,
+          "buffer": 3,
+          "tank": "B"
+        },
+        {
+          "direction": "reverse",
+          "left_board": 13,
+          "right_board": 27,
+          "loads": 3,
+          "microliters": 50,
+          "start_distance": 28,
+          "end_distance": 20.4,
+          "speed": 18,
+          "buffer": 3,
+          "tank": "B"
+        },
+        {
+          "direction": "reverse",
+          "left_board": 12,
+          "right_board": 28,
+          "loads": 3,
+          "microliters": 50,
+          "start_distance": 20.4,
+          "end_distance": 12.8,
+          "speed": 18,
+          "buffer": 3,
+          "tank": "B"
+        },
+        {
+          "direction": "reverse",
+          "left_board": 11,
+          "right_board": 29,
+          "loads": 3,
+          "microliters": 50,
+          "start_distance": 12.8,
+          "end_distance": 6.9,
+          "speed": 14,
+          "buffer": 3,
+          "tank": "B"
+        },
+        {
+          "direction": "reverse",
+          "left_board": 8,
+          "right_board": 32,
+          "loads": 2,
+          "microliters": 50,
+          "start_distance": 6.9,
+          "end_distance": 3,
+          "speed": 14,
+          "buffer": 4,
+          "tank": "B"
+        },
+        {
+          "direction": "reverse",
+          "left_board": 2,
+          "right_board": 38,
+          "loads": 0,
+          "microliters": 50,
+          "start_distance": 3,
+          "end_distance": 0,
+          "speed": 14,
+          "buffer": 4,
+          "tank": "B"
+        }
+      ]
+    }
+  ]
+}
