@@ -121,10 +121,9 @@ export function LineInput({
   const [focused, setFocused] = useState<BoardField | null>(null);
   const blockLockedTap = lockedTapBlocker(onEditAttempt);
   const inputs = useRef<Partial<Record<BoardField, HTMLInputElement | null>>>({});
-  // Set while an adjuster is being pressed, so the blur it causes on a browser
-  // that ignores the press's preventDefault does not close the row out from
-  // under the finger. See `halfTap`.
-  const adjusterPressed = useRef(false);
+  // Pending close check, scheduled on blur and cancelled if focus lands back on
+  // a board field. See the blur handler.
+  const closeTimer = useRef<number | null>(null);
 
   // Re-sync from the prop only on external changes (carry-forward, spare-line
   // prefill, reset), not when the prop merely echoes the user's own edit, so
@@ -201,7 +200,6 @@ export function LineInput({
     (onLeft: () => void, onRight: () => void) => (e: ReactPointerEvent<HTMLButtonElement>) => {
       e.preventDefault();
       const r = e.currentTarget.getBoundingClientRect();
-      adjusterPressed.current = true;
       (e.clientX - r.left < r.width / 2 ? onLeft : onRight)();
       // WebKit does not honour preventDefault on a pointer event the way it
       // honours it on a mouse event, so on iOS the press still moved focus out
@@ -216,6 +214,10 @@ export function LineInput({
   // Belt and braces for the same thing: a mousedown's default IS cancelable in
   // every engine, and cancelling it is what keeps the focused field focused.
   const keepFocus = (e: ReactMouseEvent<HTMLButtonElement>) => e.preventDefault();
+
+  useEffect(() => () => {
+    if (closeTimer.current != null) clearTimeout(closeTimer.current);
+  }, []);
 
   // Derived readouts, in the order the ball meets them going down the lane.
   // Rendered as one tappable chain rather than separate pills: they are a
@@ -259,13 +261,21 @@ export function LineInput({
               }}
               onBlur={() => {
                 // A blur raised by an adjuster press is the press, not the
-                // bowler leaving the field: `halfTap` is already handing focus
-                // back, so the row stays open either way.
-                if (adjusterPressed.current) {
-                  adjusterPressed.current = false;
-                  return;
-                }
-                setFocused((f) => (f === field ? null : f));
+                // bowler leaving the field: `halfTap` hands focus straight back,
+                // so ask on the next tick where focus actually ended up rather
+                // than guessing from a flag. A flag set by the press and cleared
+                // only by a blur goes stale on any engine that honours the
+                // press's preventDefault, and then swallows the real blur, which
+                // is what left the adjusters and quick moves on screen with no
+                // field focused.
+                if (closeTimer.current != null) clearTimeout(closeTimer.current);
+                closeTimer.current = window.setTimeout(() => {
+                  closeTimer.current = null;
+                  const back = Object.values(inputs.current).some(
+                    (el) => el && document.activeElement === el
+                  );
+                  if (!back) setFocused(null);
+                }, 0);
               }}
               className="h-9 w-full min-w-0 rounded-lg border border-edge-strong bg-surface-muted text-center text-sm font-semibold tabular-nums text-ink focus:border-accent-fill focus:bg-surface focus:outline-none"
               title={field === "target" ? "Target board (arrows)" : `${FIELD_LABEL[field]} board`}
