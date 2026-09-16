@@ -24,6 +24,10 @@ Some sites do not let other pages read their files, and a link to one of those
 cannot be fetched by an app with no server. When that happens it says so, and
 says to open the link and import the file instead.
 
+Kegel's own sheets draw their load tables as pictures rather than text, and a
+picture cannot be read this way. Those say exactly that, rather than asking
+whether the thing in your hand is a pattern sheet.
+
 **It checks the sheet against itself before it says it worked.** Every row of a
 sheet prints its own crossings and oil total, and the header prints the
 distance and the volumes, so the import re-derives all of them and tells you how

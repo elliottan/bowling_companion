@@ -32,6 +32,18 @@ const MAX_BYTES = 12 * 1024 * 1024;
  * indistinguishable from an offline one at the API level, so the message names
  * both rather than guessing.
  */
+/** Whether any page paints an image, which is how a scanned or drawn table
+ *  shows up. Only asked on the no-rows path, since it costs an operator list
+ *  per page. */
+async function hasPictures(pages: Array<{ getOperatorList: () => Promise<{ fnArray: number[] }> }>): Promise<boolean> {
+  const { OPS } = await import("pdfjs-dist");
+  for (const page of pages) {
+    const ops = await page.getOperatorList();
+    if (ops.fnArray.some((fn) => fn === OPS.paintImageXObject)) return true;
+  }
+  return false;
+}
+
 export async function readPatternSheetFromUrl(rawUrl: string): Promise<ParsedSheet> {
   let url: URL;
   try {
@@ -76,8 +88,10 @@ export async function readPatternSheet(file: File): Promise<ParsedSheet> {
   const doc = await task.promise;
   try {
     const items: SheetTextItem[] = [];
+    const pages = [];
     for (let n = 1; n <= doc.numPages; n += 1) {
       const page = await doc.getPage(n);
+      pages.push(page);
       const content = await page.getTextContent();
       for (const item of content.items) {
         if (!("str" in item)) continue;
@@ -87,9 +101,21 @@ export async function readPatternSheet(file: File): Promise<ParsedSheet> {
         // interleaving its rows by height.
         items.push({ text: item.str, x, y: y - n * 10_000 });
       }
-      page.cleanup();
     }
-    return parseSheetItems(items);
+
+    const parsed = parseSheetItems(items);
+    // Kegel's own generator draws the load tables as pictures and leaves only
+    // the header in the text layer, so the commonest way to find no rows is a
+    // genuine, current pattern sheet whose tables cannot be read as text at all.
+    // Saying "is it a pattern sheet?" to someone holding one is worse than
+    // useless, so the two cases are told apart before either is reported.
+    if (parsed.passes.length === 0 && (await hasPictures(pages))) {
+      throw new Error(
+        "This sheet's load tables are pictures rather than text, so they cannot be read. Type the rows in below, or import a sheet that has them as text."
+      );
+    }
+    for (const page of pages) page.cleanup();
+    return parsed;
   } finally {
     // Destroying the loading task tears the worker down with it; leaking one
     // per import would keep a megabyte of parser alive per sheet read.

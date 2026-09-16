@@ -6,19 +6,23 @@ import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 const getDocument = vi.fn();
 vi.mock("pdfjs-dist", () => ({
   GlobalWorkerOptions: { workerSrc: "" },
+  OPS: { paintImageXObject: 85 },
   getDocument: (args: unknown) => getDocument(args),
 }));
 vi.mock("pdfjs-dist/build/pdf.worker.min.mjs?url", () => ({ default: "/worker.mjs" }));
 
 import { readPatternSheet, readPatternSheetFromUrl } from "./oilPatternPdf";
 
-/** A one page document whose text runs make up a single load table row. */
-function stubDoc(runs: Array<{ str: string; transform: number[] }>) {
+/** A one page document whose text runs make up a single load table row.
+ *  `imageOps` stands in for a page that paints pictures (85 is
+ *  paintImageXObject, which the mock below reports as pdf.js does). */
+function stubDoc(runs: Array<{ str: string; transform: number[] }>, imageOps = false) {
   return {
     promise: Promise.resolve({
       numPages: 1,
       getPage: async () => ({
         getTextContent: async () => ({ items: runs }),
+        getOperatorList: async () => ({ fnArray: imageOps ? [85, 91] : [91] }),
         cleanup: () => {},
       }),
     }),
@@ -63,6 +67,27 @@ describe("readPatternSheet", () => {
 
     await expect(readPatternSheet(pdfFile())).rejects.toThrow("broken page");
     expect(doc.destroy).toHaveBeenCalled();
+  });
+
+  // Kegel's own sheets draw their load tables as pictures, so this is the
+  // commonest failure and the one message that must not be "is it a sheet?".
+  it("says the tables are pictures rather than doubting it is a sheet", async () => {
+    const header = "Oil Pattern Distance 42".split(" ").map((str, i) => ({
+      str, transform: [1, 0, 0, 1, i * 18, 700],
+    }));
+    getDocument.mockReturnValue(stubDoc(header, true));
+    await expect(readPatternSheet(pdfFile())).rejects.toThrow(
+      /load tables are pictures rather than text/
+    );
+  });
+
+  it("still doubts a document with neither rows nor pictures", async () => {
+    const shopping = "milk bread".split(" ").map((str, i) => ({
+      str, transform: [1, 0, 0, 1, i * 18, 700],
+    }));
+    getDocument.mockReturnValue(stubDoc(shopping, false));
+    const parsed = await readPatternSheet(pdfFile());
+    expect(parsed.passes).toEqual([]); // the form asks "is it a pattern sheet?"
   });
 
   it("refuses a file too big to be a pattern sheet", async () => {

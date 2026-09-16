@@ -4838,6 +4838,26 @@ published but not licensed for that. Import sidesteps it completely: the bowler
 brings their own sheet, and nothing of Kegel's lives in the repo but a
 transcription used as a test fixture.
 
+**What the real sheet then said.** Kegel's own generator writes the header into
+the text layer and draws the two load tables as **pictures**. On Chromium 6742
+the whole page carries 59 text runs, the header and the title, and seven images.
+So the parser reads the distance and the volumes off that sheet and finds no
+rows at all, and this is not an edge case: it is what a current, genuine Kegel
+sheet looks like.
+
+That does not undo the reasoning above, it narrows its reach. The checks, the
+board notation and the arithmetic are all still right, and are still what any
+reader has to answer to. What is now false is the assumption that a sheet's
+table is text. A sheet whose tables are text imports and verifies; a sheet whose
+tables are pictures cannot be read at all, and says so in those words rather
+than asking a bowler holding a pattern sheet whether it is one. The two are told
+apart by whether the page paints any image before either is reported.
+
+Reading those pictures needs OCR, which is a different reader with a different
+failure mode, and is left to its own decision rather than smuggled in here. The
+checks are what would make it tenable: OCR is exactly the reader that fails
+plausibly, and this is exactly the document that can catch it.
+
 **Consequences.**
 - pdf.js is imported dynamically and only from `oilPatternPdf`, so its 1.7 MB
   lands in its own chunk. It is kept out of the service worker precache
@@ -4846,9 +4866,10 @@ transcription used as a test fixture.
   to do it.
 - Parsing is local. Nothing is uploaded, and the import works on a phone in an
   alley with no signal, which is the whole point of the app.
-- The parser is tested against a faithful transcription of a real sheet rather
-  than the binary, because the network policy here cannot reach it. The
-  checksums are what make that acceptable: a real sheet whose layout differs
-  fails its own arithmetic loudly rather than importing something wrong.
+- The fixture transcription was checked against the real PDF, row for row, and
+  is exact. What the real PDF also showed is that its tables are images, which
+  is why the transcription is still the fixture: it is the arithmetic that the
+  fixture proves, and no text-layer parse of that particular sheet exists to
+  prove the reading against.
 - A sheet that is not a load table imports nothing and says so, rather than
   saving an empty pattern.
