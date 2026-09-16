@@ -12,7 +12,7 @@
 import { readFileSync } from "node:fs";
 import { basename } from "node:path";
 
-import { parseSheetLines, sheetLines, type SheetTextItem } from "./sheet-text.js";
+import { HEADER, parseSheetLines, sheetLines, type SheetTextItem } from "./sheet-text.js";
 import { repairOcrLines } from "./ocr-repair.js";
 import type { PatternCandidate, Reader } from "../types.js";
 import { oilStats, headlineRatio } from "../../../src/lib/oilPattern.js";
@@ -27,6 +27,32 @@ interface RawImage {
   width: number;
   height: number;
   data: Uint8ClampedArray;
+}
+
+/**
+ * Whatever pdf.js hands back, as RGBA.
+ *
+ * It decodes to one, three or four bytes a pixel depending on how the image was
+ * stored, and only accepting four silently skipped the tables on a sheet that
+ * happened to store them as RGB: the pattern then read as having no load table
+ * at all, which is a wrong answer arrived at quietly.
+ */
+function toRgba(image: RawImage): RawImage | null {
+  const pixels = image.width * image.height;
+  const components = image.data.length / pixels;
+  if (components === 4) return image;
+  if (components !== 1 && components !== 3) return null;
+
+  const data = new Uint8ClampedArray(pixels * 4);
+  for (let i = 0; i < pixels; i += 1) {
+    const s = i * components;
+    const d = i * 4;
+    data[d] = image.data[s];
+    data[d + 1] = image.data[components === 1 ? s : s + 1];
+    data[d + 2] = image.data[components === 1 ? s : s + 2];
+    data[d + 3] = 255;
+  }
+  return { width: image.width, height: image.height, data };
 }
 
 interface SheetContents {
@@ -58,8 +84,7 @@ async function openSheet(path: string): Promise<SheetContents> {
       const image = await new Promise<RawImage | null>((resolve) => {
         try {
           page.objs.get(name, (obj: RawImage | undefined) => {
-            const rgba = obj && obj.data?.length === obj.width * obj.height * 4;
-            resolve(rgba && isTable(obj.width, obj.height) ? obj : null);
+            resolve(obj && isTable(obj.width, obj.height) ? toRgba(obj) : null);
           });
         } catch {
           resolve(null);
@@ -166,7 +191,7 @@ export async function readSheet(path: string, opts: { vendor?: string; sourceUrl
   }
 
   const stats = oilStats(parsed.passes);
-  const name = parsed.name ?? basename(path).replace(/\.pdf$/i, "");
+  const name = normalizePatternName(parsed.name ?? basename(path));
   return {
     candidate: {
       id: slug(name),
@@ -176,10 +201,12 @@ export async function readSheet(path: string, opts: { vendor?: string; sourceUrl
       reader,
       passes: parsed.passes,
       stated: {
-        distance: statedFrom(textLines, /Oil Pattern Distance/i),
-        forwardMl: statedFrom(textLines, /Forward Oil Total/i),
-        reverseMl: statedFrom(textLines, /Reverse Oil Total/i),
-        volumeMl: statedFrom(textLines, /Volume Oil Total/i),
+        // The same labels the checks use, so a candidate is never staged with
+        // a header the parser read and the candidate did not.
+        distance: statedFrom(textLines, HEADER.distance),
+        forwardMl: statedFrom(textLines, HEADER.forward),
+        reverseMl: statedFrom(textLines, HEADER.reverse),
+        volumeMl: statedFrom(textLines, HEADER.volume),
       },
       note: `${basename(path)} · ${stats.length} ft · ${headlineRatio(parsed.passes)?.toFixed(2) ?? "?"}:1`,
     },
@@ -196,6 +223,32 @@ function statedFrom(lines: readonly string[], label: RegExp): number | undefined
     if (m) return Number(m[1]);
   }
   return undefined;
+}
+
+/**
+ * A pattern's name as a bowler says it.
+ *
+ * Sheets carry the vendor, the series and whatever the file was called: "R -
+ * Stonehenge", "Kegel Element Challenge Chromium 6742", "EP-CHALLENGE_MERCURY".
+ * None of that is the pattern's name, and a list of patterns that all begin
+ * "Kegel Element Challenge" is a list you cannot scan. The pattern code is kept
+ * where there is one: it is how a sheet is identified, and two patterns really
+ * do share a name across years.
+ */
+export function normalizePatternName(raw: string): string {
+  let name = raw.replace(/\.pdf$/i, "").replace(/[_]+/g, " ");
+  // A leading "R - " marks the reverse-brush variant of a sheet, not a name.
+  name = name.replace(/^\s*[A-Z]\s*[-–]\s*/i, "");
+  // Vendor and series prefixes, in whichever form the sheet writes them.
+  name = name.replace(/\b(kegel|ep)\b[\s-]*/gi, "");
+  name = name.replace(/\belement\s+challenge\b[\s-]*/gi, "");
+  name = name.replace(/\bchallenge\b[\s-]+(?=[a-z])/gi, "");
+  name = name.replace(/\s{2,}/g, " ").trim();
+  // A sheet shouting its title is the sheet's style, not the name's.
+  if (name === name.toUpperCase()) {
+    name = name.toLowerCase().replace(/\b[a-z]/g, (c) => c.toUpperCase());
+  }
+  return name.trim();
 }
 
 export function slug(name: string): string {

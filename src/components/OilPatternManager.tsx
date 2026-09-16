@@ -54,6 +54,9 @@ export function OilPatternManager({ onBack, mode = "inline" }: OilPatternManager
   const [catalog, setCatalog] = useState<CatalogPattern[]>([]);
   const [showCatalog, setShowCatalog] = useState(false);
   const [query, setQuery] = useState("");
+  // Set while the catalog sheet is lending a load table to an existing pattern
+  // rather than adding a new one.
+  const [linkTo, setLinkTo] = useState<OilPattern | null>(null);
   const [shape, setShape] = useState<PatternClass | null>(null);
 
   // The shipped catalog (ADR-104). Loaded once, and an empty one simply means
@@ -81,9 +84,23 @@ export function OilPatternManager({ onBack, mode = "inline" }: OilPatternManager
   }, [catalog, query, shape]);
 
   async function addFromCatalog(pattern: CatalogPattern) {
+    const target = linkTo;
     setShowCatalog(false);
+    setLinkTo(null);
     try {
       // useLiveQuery re-reads the list, so there is nothing to refresh by hand.
+      if (target?.id != null) {
+        // The same row, enriched. Its id does not change, so every session
+        // already on this pattern keeps resolving it, and the bowler's own name
+        // for it survives: that is the name their history is written in.
+        await updateOilPattern(target.id, {
+          name: target.name,
+          url: target.url ?? pattern.sourceUrl,
+          passes: pattern.passes,
+        });
+        setNotice(`${target.name} now draws ${pattern.name}.`);
+        return;
+      }
       await addOilPattern(pattern.name, pattern.sourceUrl, pattern.passes);
       setNotice(`Added ${pattern.name}.`);
     } catch (err) {
@@ -232,7 +249,10 @@ export function OilPatternManager({ onBack, mode = "inline" }: OilPatternManager
       )}
 
       {showCatalog && (
-        <FormSheet title="Add from the catalog" onClose={() => setShowCatalog(false)}>
+        <FormSheet
+          title={linkTo ? `Load table for ${linkTo.name}` : "Add from the catalog"}
+          onClose={() => { setShowCatalog(false); setLinkTo(null); }}
+        >
           <input
             type="search"
             value={query}
@@ -305,6 +325,17 @@ export function OilPatternManager({ onBack, mode = "inline" }: OilPatternManager
         initial={editing}
         onSubmit={handleSubmit}
         onRemove={editing ? () => setPendingRemove(editing) : undefined}
+        onLinkCatalog={
+          editing && catalog.length > 0
+            ? () => {
+                const target = editing;
+                setDialogOpen(false);
+                setEditing(undefined);
+                setLinkTo(target);
+                setShowCatalog(true);
+              }
+            : undefined
+        }
         onCancel={() => {
           setDialogOpen(false);
           setEditing(undefined);

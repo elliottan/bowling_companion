@@ -1,6 +1,6 @@
 {
-  "id": "kegel-element-challenge-chromium-6742",
-  "name": "Kegel Element Challenge Chromium 6742",
+  "id": "chromium-6742",
+  "name": "Chromium 6742",
   "vendor": "kegel",
   "sourceUrl": "https://www.lvsb.at/wp-content/uploads/2021/05/Chromium-6742.pdf",
   "reader": "manual",

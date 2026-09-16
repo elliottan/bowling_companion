@@ -8,6 +8,21 @@ merge to `main` (`docs/DEPLOYMENT.md`), so every section below is a dated batch
 of shipped work rather than a release. Thirty of them used to be headed
 `[Unreleased]`, which said nothing once they had all shipped.
 
+## Three more patterns, and a load table for the one you already have (2026-09-16)
+
+**Stonehenge, Big Ben and Chromium are in the catalog**, at 40, 44 and 42 feet.
+Each was read from its own sheet and checked against the totals that sheet
+prints before it shipped.
+
+**A pattern you already use can borrow a load table.** If you typed one in
+before the catalog existed, open it and pick the matching pattern: the table is
+written onto the pattern you already have, so every session on it keeps
+pointing at it and it keeps the name you gave it. Renaming works as it always
+did, including for a pattern you took from the catalog.
+
+Names arrive tidied. A sheet calls a pattern "R - Stonehenge" or "Kegel Element
+Challenge Chromium 6742", and neither is what anyone calls it.
+
 ## Find a pattern by name, length or how it plays (2026-09-16)
 
 **The catalog is searchable.** One box takes either a name or a length, so

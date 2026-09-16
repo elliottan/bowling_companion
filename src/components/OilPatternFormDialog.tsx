@@ -1,4 +1,4 @@
-import { Trash2 } from "lucide-react";
+import { Library, Trash2 } from "lucide-react";
 import { useState, type FormEvent } from "react";
 import { Button } from "./ui/Button";
 import { FormSheet } from "./ui/FormSheet";
@@ -22,6 +22,10 @@ interface OilPatternFormDialogProps {
   onCancel: () => void;
   /** Only supplied when editing: removal lives with the thing it removes (§2). */
   onRemove?: () => void;
+  /** Offered when this pattern has no load table and the catalog has one to
+   *  lend. Enriches the pattern in place, keeping it and everything already
+   *  pointing at it. */
+  onLinkCatalog?: () => void;
 }
 
 /**
@@ -38,7 +42,7 @@ interface OilPatternFormDialogProps {
  * straight back out: dropping it silently would destroy the only thing that
  * makes the lane drawable.
  */
-export function OilPatternFormDialog({ open, initial, onSubmit, onCancel, onRemove }: OilPatternFormDialogProps) {
+export function OilPatternFormDialog({ open, initial, onSubmit, onCancel, onRemove, onLinkCatalog }: OilPatternFormDialogProps) {
   const [name, setName] = useState(initial?.name ?? "");
   const [url, setUrl] = useState(initial?.url ?? "");
   const [distance, setDistance] = useState(initial?.distance != null ? String(initial.distance) : "");
@@ -147,6 +151,16 @@ export function OilPatternFormDialog({ open, initial, onSubmit, onCancel, onRemo
               Usually a PDF, and it opens in a new tab.
             </span>
           </label>
+
+          {/* For a pattern that predates the catalog, or one typed in by hand.
+              The sessions already on it keep pointing at it: it is the same
+              pattern, now with the table it never had. */}
+          {onLinkCatalog && table.length === 0 && (
+            <Button variant="secondary" onClick={onLinkCatalog} className="w-full">
+              <Library size={16} aria-hidden="true" />
+              Use a load table from the catalog
+            </Button>
+          )}
 
           {error && <ErrorBanner>{error}</ErrorBanner>}
 

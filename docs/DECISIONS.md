@@ -4998,3 +4998,20 @@ so who read it does not have to be argued about.
 - Competition patterns ship with the app. They are published freely and printed
   in tournament rules, but published is not licensed, and this is a deliberate
   risk taken with the repository owner's agreement rather than an oversight.
+- **A layout is a regex, not a reader.** Kegel prints at least three: the
+  thirteen-column sheet with CROSSED, the current pattern-library sheet with the
+  distance as an arrow span and the tank as a name, and its older software
+  captured as a picture of its own grid, which prints no mics column at all
+  (T.OIL over CROSSED is what it was). Each is checked against the totals its own
+  header prints, so a new layout costs a pattern to match and nothing else.
+- **Names are normalised on the way in.** Sheets carry the vendor, the series and
+  whatever the file was called: "R - Stonehenge", "Kegel Element Challenge
+  Chromium 6742", "EP-CHALLENGE_MERCURY_4940.pdf". A list where every row begins
+  "Kegel Element Challenge" is a list nobody can scan. The pattern code is kept,
+  because it is how a sheet is identified and patterns do share names across
+  years.
+- **A pattern already in use is enriched, never replaced.** A pattern typed in
+  before the catalog existed is on sessions already, so borrowing a catalog load
+  table writes the table onto that same row: its id does not change, every
+  session keeps resolving it, and the bowler's own name for it survives, because
+  that is the name their history is written in.

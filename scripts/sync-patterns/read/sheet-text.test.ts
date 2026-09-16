@@ -155,3 +155,96 @@ describe("sheetLines", () => {
     expect(parsed.passes).toHaveLength(15);
   });
 });
+
+// Kegel prints more than one layout and all of them are real sheets. Each is
+// checked against the totals its own header prints, which is what lets a new
+// layout be a regex rather than a new reader (ADR-104).
+describe("Big Ben, the arrow layout", () => {
+  const SHEET = [
+    "BIG BEN",
+    "DISTANCE: 44 FEET VOLUME: 24.7 mL",
+    "RATIO: 7.33:1 FORWARD: 16.22 mL",
+    "DROP BRUSH: 39 FEET REVERSE: 8.48 mL",
+    "FORWARD LOADS DATA",
+    "# START STOP LOADS MICS SPEED BUFF TANK DISTANCE T.OIL",
+    "1 2L 2R 3 50 14 3 A - FIRE 0 → 4 5,550",
+    "2 9L 9R 2 50 14 3 A - FIRE 4 → 8 2,300",
+    "3 10L 10R 3 45 18 3 A - FIRE 8 → 15 2,835",
+    "4 11L 11R 3 45 18 3 A - FIRE 15 → 23 2,565",
+    "5 12L 12R 3 45 18 3 A - FIRE 23 → 31 2,295",
+    "6 13L 13R 1 45 18 3 A - FIRE 31 → 33 675",
+    "7 2L 2R 0 45 22 3 A - FIRE 33 → 39 0",
+    "8 2L 2R 0 45 26 2 A - FIRE 39 → 44 0",
+    "REVERSE LOADS DATA",
+    "1 2L 2R 0 40 30 1 A - FIRE 39 → 36 0",
+    "2 12L 12R 1 40 26 3 A - FIRE 36 → 32 680",
+    "3 11L 11R 2 40 22 3 A - FIRE 32 → 26 1,520",
+    "4 10L 10R 3 40 22 3 A - FIRE 26 → 17 2,520",
+    "5 9L 9R 3 40 18 4 A - FIRE 17 → 9 2,760",
+    "6 8L 8R 1 40 14 4 A - FIRE 9 → 7 1,000",
+    "7 2L 2R 0 40 14 4 A - FIRE 7 → 0 0",
+  ];
+
+  it("reads a tank that is a name and an oil total with a comma in it", () => {
+    const parsed = parseSheetLines(SHEET);
+    expect(parsed.passes).toHaveLength(15);
+    expect(parsed.passes[0]).toMatchObject({ tank: "A - FIRE", microliters: 50 });
+  });
+
+  it("comes to the totals the sheet prints", () => {
+    const stats = oilStats(parseSheetLines(SHEET).passes);
+    expect(stats.forwardMl).toBeCloseTo(16.22, 2);
+    expect(stats.reverseMl).toBeCloseTo(8.48, 2);
+    expect(stats.volumeMl).toBeCloseTo(24.7, 2);
+    expect(stats.length).toBe(44);
+  });
+
+  it("verifies, and is not fooled by a heading that reads like a total", () => {
+    const parsed = parseSheetLines(SHEET);
+    // "FORWARD LOADS DATA" is a heading; only "FORWARD:" is the number.
+    expect(parsed.checks.find((c) => c.label === "Forward oil")).toMatchObject({
+      stated: 16.22, ok: true,
+    });
+    expect(parsed.verified).toBe(true);
+  });
+});
+
+describe("Stonehenge, the grid layout", () => {
+  // Kegel's older software, captured as a picture of its own table: no mics
+  // column at all, because T.OIL over CROSSED is what it was.
+  const SHEET = [
+    "R - Stonehenge",
+    "Oil Pattern Distance: 40 Feet Reverse Brush Drop: 40 Feet Oil Per Board: 50 uL",
+    "Forward Oil Total: 15.95 mL Reverse Oil Total: 7.8 mL Volume Oil Total: 23.75 mL",
+    "1 2L 2R 3 18 111 0.0 5.1 5.1 5550",
+    "2 7L 7R 1 18 27 5.1 7.6 2.5 1350",
+    "3 9L 9R 2 18 46 7.6 12.7 5.1 2300",
+    "4 10L 10R 3 18 63 12.7 20.3 7.6 3150",
+    "5 11L 11R 2 18 38 20.3 25.4 5.1 1900",
+    "6 12L 12R 2 18 34 25.4 30.5 5.1 1700",
+    "7 2L 2R 0 22 0 30.5 36.0 5.5 0",
+    "8 2L 2R 0 30 0 36.0 40.0 4.0 0",
+    "1 2L 2R 0 30 0 40.0 28.0 -12.0 0",
+    "2 12L 12R 2 18 34 28.0 22.9 -5.1 1700",
+    "3 11L 11R 2 18 38 22.9 17.8 -5.1 1900",
+    "4 10L 10R 4 18 84 17.8 7.6 -10.2 4200",
+    "5 2L 2R 0 14 0 7.6 0.0 -7.6 0",
+  ];
+
+  it("recovers the oil per board the sheet never prints", () => {
+    const parsed = parseSheetLines(SHEET);
+    expect(parsed.passes).toHaveLength(13);
+    // 5550 over 111 crossings is 50 microlitres a board.
+    expect(parsed.passes[0].microliters).toBe(50);
+  });
+
+  it("comes to the totals the sheet prints, and verifies", () => {
+    const parsed = parseSheetLines(SHEET);
+    const stats = oilStats(parsed.passes);
+    expect(stats.forwardMl).toBeCloseTo(15.95, 2);
+    expect(stats.reverseMl).toBeCloseTo(7.8, 2);
+    expect(stats.volumeMl).toBeCloseTo(23.75, 2);
+    expect(stats.length).toBe(40);
+    expect(parsed.verified).toBe(true);
+  });
+});

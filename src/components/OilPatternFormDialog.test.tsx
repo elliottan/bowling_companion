@@ -69,3 +69,33 @@ describe("OilPatternFormDialog", () => {
     expect(onSubmit.mock.calls[0][0].passes).toHaveLength(15);
   });
 });
+
+describe("OilPatternFormDialog catalog link", () => {
+  // Backward compatibility: a pattern typed in before the catalog existed is
+  // already on sessions, so it is enriched in place rather than replaced.
+  it("offers a catalog load table to a pattern that has none", () => {
+    const onLinkCatalog = vi.fn();
+    renderForm({ initial: { id: 3, name: "Thursday league" }, onLinkCatalog });
+    fireEvent.click(screen.getByRole("button", { name: /use a load table from the catalog/i }));
+    expect(onLinkCatalog).toHaveBeenCalled();
+  });
+
+  it("does not offer one to a pattern that already has a table", () => {
+    renderForm({
+      initial: { id: 3, name: "Chromium", passes: CHROMIUM_6742 },
+      onLinkCatalog: vi.fn(),
+    });
+    expect(screen.queryByRole("button", { name: /use a load table/i })).toBeNull();
+  });
+
+  it("still lets the pattern be renamed", async () => {
+    const onSubmit = vi.fn().mockResolvedValue(undefined);
+    renderForm({ initial: { id: 3, name: "Kegel Main Street" }, onSubmit });
+    fireEvent.change(screen.getByDisplayValue("Kegel Main Street"), {
+      target: { value: "My house shot" },
+    });
+    fireEvent.submit(document.getElementById("oil-pattern-form")!);
+    await waitFor(() => expect(onSubmit).toHaveBeenCalled());
+    expect(onSubmit.mock.calls[0][0].name).toBe("My house shot");
+  });
+});
