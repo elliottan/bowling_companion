@@ -94,6 +94,11 @@ How a pattern plays, Sport, Challenge or Recreation, is derived from its ratio
 rather than stored on it (`patternClass`), for the same reason: a pattern must
 not be able to claim a classification its own load table contradicts.
 
+`catalog_id` marks a row that IS a catalog pattern (ADR-105). The catalog owns
+its load table and sheet link and keeps them current; the bowler owns its name.
+Rows are matched by that id and never by name, so a rename survives. Linking is
+one way, and a linked row is not deletable: it would return on the next boot.
+
 ## Scoring rules summary
 
 Implemented in `lib/scoring.ts`. The full reference is the test file

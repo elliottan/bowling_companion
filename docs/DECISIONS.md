@@ -5015,3 +5015,46 @@ so who read it does not have to be argued about.
   table writes the table onto that same row: its id does not change, every
   session keeps resolving it, and the bowler's own name for it survives, because
   that is the name their history is written in.
+
+## ADR-105 — The catalog is the pattern list, not a place you copy from
+
+**Status.** Accepted, 2026-09-16. Amends ADR-104, which stands as written.
+
+**Context.** ADR-104 shipped a catalog and had a bowler *add* from it: the
+catalog was one list and the patterns you could pick for a session were another,
+and a pattern had to be copied across before it could be used. That is a
+distinction the app invented. Nobody starting a session wants to know whether a
+pattern has been imported yet; they want the pattern.
+
+**Decision.** The catalog seeds itself into the bowler's own pattern list at
+boot (`syncPatternCatalog`), so a catalog pattern is a row like any other and
+nothing downstream, the session form, the visualizer, the settings list, has to
+know where a pattern came from. One list, searched one way.
+
+Rows are matched by `catalog_id`, never by name. A bowler who renames one keeps
+their name and still gets its load table kept current when the catalog improves,
+which is the split that matters: **the catalog owns the numbers, the bowler owns
+the name.** A name they already used for a pattern of their own is left alone,
+and the link is offered in the editor instead.
+
+**Linking is one way.** A pattern that predates the catalog is already on
+sessions, so linking writes `catalog_id` onto that same row rather than
+replacing it: the id does not change, the sessions keep resolving it, and from
+then on it *is* that catalog pattern. There is no unlink, because there is
+nothing sensible to unlink back to: the load table it had before was either
+absent or a copy of this one.
+
+**Consequences.**
+- Seeding runs at boot, unawaited and never fatal. Boot does not wait on a
+  fetch, and a bowler with no signal still has every pattern they had yesterday.
+- A linked or seeded pattern cannot be deleted, because it would return on the
+  next boot. A pattern of the bowler's own still can.
+- A linked pattern's sheet link and load table are the catalog's and are not
+  editable. Its name is, which is the whole of what was promised.
+- Backups carry `catalog_id`, so a restore on another device lands on the same
+  rows rather than duplicating them.
+- Asymmetric passes are real. Mercury 4940 runs 6L to 8R, and the board repair
+  that assumed nL to nR would have corrupted it. CROSSED over LOADS gives the
+  board *count*, which fixes a misread board without assuming symmetry, and the
+  correction is taken only when T.OIL agrees. That is what got Mercury from
+  29 checks of 32 to all of them, off a single misread digit.

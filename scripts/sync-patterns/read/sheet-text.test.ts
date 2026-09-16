@@ -248,3 +248,29 @@ describe("Stonehenge, the grid layout", () => {
     expect(parsed.verified).toBe(true);
   });
 });
+
+describe("a board a scan misread", () => {
+  // Mercury 4940, reverse row 5: the stop board is 7R (board 33) and OCR read
+  // 8R (board 32), one board narrow. CROSSED says the pass was 25 boards wide,
+  // and T.OIL confirms the correction, so the row repairs itself.
+  const ROW = "5 9L 8R 2 45 18 3 A 50 14.7 9.6 -5.1 2250";
+
+  it("widens the pass to the crossings, when the oil total agrees", () => {
+    const [pass] = parseSheetLines([ROW]).passes;
+    expect(pass.left_board).toBe(9);
+    expect(pass.right_board).toBe(33); // 9 + 25 - 1
+  });
+
+  it("leaves a row alone when the correction would not add up", () => {
+    // Same row with a T.OIL that matches neither span: nothing is assumed.
+    const [pass] = parseSheetLines(["5 9L 8R 2 45 18 3 A 50 14.7 9.6 -5.1 9999"]).passes;
+    expect(pass.right_board).toBe(32);
+  });
+
+  it("leaves an asymmetric pass that was read correctly", () => {
+    // Mercury's forward row 2 really is 6L to 8R, not 6L to 6R.
+    const [pass] = parseSheetLines(["2 6L 8R 2 40 18 4 B 54 5.1 10.2 5.1 2160"]).passes;
+    expect(pass.left_board).toBe(6);
+    expect(pass.right_board).toBe(32);
+  });
+});

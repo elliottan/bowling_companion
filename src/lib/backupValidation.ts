@@ -191,7 +191,9 @@ function validateOilPattern(value: unknown): value is OilPattern {
     typeof value.name === "string" && value.name.length > 0 &&
     isHttpUrlOrAbsent(value.url) &&
     (value.archived === undefined || typeof value.archived === "boolean") &&
-    isOptionalOilPasses(value.passes)
+    isOptionalOilPasses(value.passes) &&
+    isOptionalNumber(value.distance) &&
+    isOptionalString(value.catalog_id)
   );
 }
 

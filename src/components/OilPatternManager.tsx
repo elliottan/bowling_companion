@@ -71,18 +71,6 @@ export function OilPatternManager({ onBack, mode = "inline" }: OilPatternManager
    *  pattern in your list is yours, and editing it must never edit the catalog. */
   // One box for both things worth searching by: a pattern's name, and how long
   // it is. Typing 40 finds the forty footers, typing stone finds Stonehenge.
-  const shown = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    return catalog.filter((pattern) => {
-      if (shape && (pattern.shape ?? patternClass(pattern.ratio)) !== shape) return false;
-      if (!q) return true;
-      return (
-        pattern.name.toLowerCase().includes(q) ||
-        String(Math.round(pattern.distance)).startsWith(q)
-      );
-    });
-  }, [catalog, query, shape]);
-
   async function addFromCatalog(pattern: CatalogPattern) {
     const target = linkTo;
     setShowCatalog(false);
@@ -97,6 +85,10 @@ export function OilPatternManager({ onBack, mode = "inline" }: OilPatternManager
           name: target.name,
           url: target.url ?? pattern.sourceUrl,
           passes: pattern.passes,
+          // One way, and the point of it: this row IS that pattern now, so the
+          // catalog keeps its load table current and only the name stays the
+          // bowler's (ADR-105).
+          catalog_id: pattern.id,
         });
         setNotice(`${target.name} now draws ${pattern.name}.`);
         return;
@@ -108,7 +100,22 @@ export function OilPatternManager({ onBack, mode = "inline" }: OilPatternManager
     }
   }
 
-  const active = useMemo(() => patterns.filter((p) => !p.archived), [patterns]);
+  const all = useMemo(() => patterns.filter((p) => !p.archived), [patterns]);
+  // One list, searched one way. The catalog seeds itself into it (ADR-105), so
+  // there is nothing here to tell apart from anything else.
+  const active = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return all.filter((pattern) => {
+      const ratio = headlineRatio(pattern.passes);
+      if (shape && patternClass(ratio) !== shape) return false;
+      if (!q) return true;
+      const feet = patternLength(pattern);
+      return (
+        pattern.name.toLowerCase().includes(q) ||
+        (feet != null && String(Math.round(feet)).startsWith(q))
+      );
+    });
+  }, [all, query, shape]);
   const archived = useMemo(() => patterns.filter((p) => p.archived), [patterns]);
 
   async function handleSubmit(values: { name: string; url?: string; passes?: OilPass[]; distance?: number }) {
@@ -182,23 +189,35 @@ export function OilPatternManager({ onBack, mode = "inline" }: OilPatternManager
         </p>
       )}
 
-      {/* The catalog leads, because it is how a pattern gets a load table
-          without anyone typing one (ADR-104). Absent when the catalog is
-          empty or unreachable, so it never advertises nothing. */}
-      {catalog.length > 0 && (
-        <button
-          type="button"
-          onClick={() => setShowCatalog(true)}
-          className="mb-3 flex w-full items-center gap-3 rounded-xl border border-edge bg-surface px-3 py-2.5 text-left active:bg-surface-muted"
-        >
-          <span className="min-w-0 flex-1">
-            <span className="block font-semibold text-ink">Add from the catalog</span>
-            <span className="block truncate text-xs text-ink-secondary">
-              {catalog.length} pattern{catalog.length === 1 ? "" : "s"}, with their load tables
-            </span>
-          </span>
-          <ChevronRight size={16} aria-hidden="true" className="shrink-0 text-ink-tertiary" />
-        </button>
+      {all.length > 3 && (
+        <>
+          <input
+            type="search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            className={`${FIELD} mb-2`}
+            placeholder="Name or length, e.g. Stonehenge or 40"
+            aria-label="Search patterns"
+          />
+          {/* How a pattern plays, by its ratio, derived rather than claimed. */}
+          <div className="mb-3 flex gap-1.5">
+            {(["sport", "challenge", "recreation"] as const).map((option) => (
+              <button
+                key={option}
+                type="button"
+                onClick={() => setShape((current) => (current === option ? null : option))}
+                aria-pressed={shape === option}
+                className={`rounded-full border px-3 py-1 text-xs font-semibold ${
+                  shape === option
+                    ? "border-accent-fill bg-accent-soft text-accent-strong"
+                    : "border-edge-strong bg-surface text-ink-secondary"
+                }`}
+              >
+                {PATTERN_CLASS_LABEL[option]}
+              </button>
+            ))}
+          </div>
+        </>
       )}
 
       {isLoading ? (
@@ -250,7 +269,7 @@ export function OilPatternManager({ onBack, mode = "inline" }: OilPatternManager
 
       {showCatalog && (
         <FormSheet
-          title={linkTo ? `Load table for ${linkTo.name}` : "Add from the catalog"}
+          title={`Load table for ${linkTo?.name ?? "this pattern"}`}
           onClose={() => { setShowCatalog(false); setLinkTo(null); }}
         >
           <input
@@ -282,13 +301,8 @@ export function OilPatternManager({ onBack, mode = "inline" }: OilPatternManager
             ))}
           </div>
 
-          {shown.length === 0 ? (
-            <p className="px-1 py-3 text-sm text-ink-secondary">
-              No pattern matches that.
-            </p>
-          ) : (
           <ListGroup>
-            {shown.map((pattern) => (
+            {catalog.map((pattern) => (
               <li key={pattern.id} className={`flex items-center ${LIST_DIVIDER}`}>
                 <button
                   type="button"
@@ -310,10 +324,10 @@ export function OilPatternManager({ onBack, mode = "inline" }: OilPatternManager
               </li>
             ))}
           </ListGroup>
-          )}
           <p className="mt-2 px-1 text-xs text-ink-tertiary">
-            Each one was checked against the totals printed on its own sheet before
-            it shipped. Adding one copies it into your list, so you can edit it.
+            Each one was checked against the totals printed on its own sheet before it
+            shipped. This pattern becomes that one, keeping the name you gave it and
+            every session already on it. It cannot be undone.
           </p>
         </FormSheet>
       )}
@@ -324,9 +338,9 @@ export function OilPatternManager({ onBack, mode = "inline" }: OilPatternManager
         open={dialogOpen}
         initial={editing}
         onSubmit={handleSubmit}
-        onRemove={editing ? () => setPendingRemove(editing) : undefined}
+        onRemove={editing && !editing.catalog_id ? () => setPendingRemove(editing) : undefined}
         onLinkCatalog={
-          editing && catalog.length > 0
+          editing && !editing.catalog_id && catalog.length > 0
             ? () => {
                 const target = editing;
                 setDialogOpen(false);
