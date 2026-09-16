@@ -185,7 +185,7 @@ export function LayoutLabView({ onBack, onOpenSettings, seed }: LayoutLabViewPro
   const updatePap = useCallback((next: PapMeasurement) => setPapOverride(next), []);
   const chooseGrip = useCallback((next: GripStyle) => setGripOverride(next), []);
 
-  const motion = useMemo(() => readMotion(layout, ball, pap), [layout, ball, pap]);
+  const motion = useMemo(() => readMotion(layout, ball, pap, grip), [layout, ball, pap, grip]);
   const vls = useMemo(() => toVls(layout, ball), [layout, ball]);
 
   /** The card this layout makes, numbers first and the ball a frame later. */
@@ -383,10 +383,13 @@ export function LayoutLabView({ onBack, onOpenSettings, seed }: LayoutLabViewPro
                     { value: "right", label: "R", srLabel: "Right" }
                   ]}
                 />
-                {/* One-handed or two-handed. It is stored and it is shared, and
-                    it changes nothing about the arithmetic yet: a two-handed
-                    layout is genuinely different geometry and guessing at it
-                    here would be worse than saying nothing. */}
+                {/* One-handed or two-handed. It draws the ball the bowler
+                    actually holds (no thumb hole, and the grip centred between
+                    the fingers) and it drops the do-not-use band, whose whole
+                    reason is a thumb hole to run the track over. It still moves
+                    none of the motion coefficients: those are fitted to a
+                    thumb-in chart, and guessing at a two-handed release would
+                    be worse than saying nothing. */}
                 <SegmentedControl
                   dense
                   label="Grip style"
@@ -448,6 +451,7 @@ export function LayoutLabView({ onBack, onOpenSettings, seed }: LayoutLabViewPro
             ball={ball}
             system={system}
             onSystemChange={setSystemOverride}
+            grip={grip}
             idPrefix="lab"
           />
         </section>
@@ -473,6 +477,7 @@ export function LayoutLabView({ onBack, onOpenSettings, seed }: LayoutLabViewPro
               orientation={orientation}
               onOrientationChange={setOrientation}
               hand={hand}
+              grip={grip}
             />
           </div>
         </section>

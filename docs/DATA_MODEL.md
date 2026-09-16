@@ -67,7 +67,7 @@ written. It is not parsed into numbers, because the text says nothing about the
 core type or the pin-to-PSA distance the conversion needs, and entering a real
 layout is what retires it.
 
-## An oil pattern (ADR-100)
+## An oil pattern (ADR-101)
 
 `OilPattern.passes` is the pattern sheet's load table and the whole pattern. The
 distance, the volume and the ratio are derived from it (`lib/oilPattern.ts`) and
@@ -84,7 +84,7 @@ distance is the furthest a pass travels rather than the furthest it oils.
 `lib/oilPattern.fixture.ts` holds Kegel's Chromium 6742 so the derivations stay
 checked against a sheet rather than against themselves.
 
-`passes` is optional. Every pattern saved before ADR-100 has none, and a pattern
+`passes` is optional. Every pattern saved before ADR-101 has none, and a pattern
 that is only a name is still a label worth having on a session.
 
 ## Scoring rules summary

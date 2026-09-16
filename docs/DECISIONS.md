@@ -4595,7 +4595,81 @@ mapping layer whose only job is to be got wrong once.
   notation, including balls drilled before the switch, because the numbers
   convert exactly.
 
-## ADR-100 — An oil pattern is its load table, and the lane draws it
+## ADR-100: A two-handed grip changes what is drilled, not what the chart says
+
+**Status:** accepted (2026-09). Takes up the modelling question ADR-098 parked.
+
+**Context.** ADR-098 stored `GripStyle` and had nothing read it, on the grounds
+that inventing coefficients for a release nothing here has measured would be
+worse than saying nothing. That is still true of the motion reading. It was
+never true of the drawing.
+
+Two things were wrong once the grip was known and unused.
+
+The first is not about two-handers at all. The drawing marks the centre of grip
+with a cross, and that cross is the origin of the whole layout: a PAP is so many
+inches over and up from it, the VAL is perpendicular to the line from the PAP to
+it, and every arc on the ball is measured in that frame. The holes around it were
+placed at 1.7" below and 2.4" above, numbers chosen to look right, so the
+midpoint of the span sat 0.35" above the point labelled as its centre. The
+picture disagreed with the arithmetic about the one point the arithmetic starts
+from.
+
+The second is that a two-hander's ball has no thumb hole, and the drawing drew
+one. That is not a calibration question. It is a fact about what is drilled.
+
+**Decision.** Where the holes go is geometry, so it moved from
+`BallLayoutDiagram` into `lib/ballLayout` as `gripHoles(gripCenter, hand, grip)`,
+with the drawing keeping only how big they look.
+
+The centre of grip is defined by the holes rather than the other way round, and
+the two grips define it differently:
+
+- One-handed it is the midpoint of the span, so the thumb hole and the middle of
+  the finger row sit half a `GRIP_SPAN` either side of it, and the centre lands
+  in the web of the hand where no hole is.
+- Two-handed there is no thumb to take a midpoint against, so the finger row is
+  the whole grip and the centre is the point between the two finger holes.
+
+`GRIP_SPAN` is a constant, 4 1/4". Span is a hand fitting, it is the one number
+on this screen no layout chart asks for, and a slider for it would suggest that
+moving it changes the layout. It does not: `layoutGeometry` measures from the
+centre of grip, so where the holes sit relative to that centre changes no pin,
+no PAP, no core and no arc between them. A bowler with a longer or shorter hand
+reads a picture whose holes are an eighth or two out, and the point the layout
+hangs off is exact either way.
+
+Two further things follow from there being no thumb hole, and both are reported
+rather than modelled:
+
+- The chart's 2 3/8" to 3 3/8" do-not-use band is a thumb-hole rule. What it
+  warns about, in its own words, is the track running over the hole. Remove the
+  hole and the band has nothing left to be about, so `inDoNotUseBand` takes the
+  grip and is false for a two-hander: the slider loses its shaded band and the
+  motion reading loses its warning, both through that one function.
+- The symmetric-ball PSA marker names the thumb hole because the thumb hole is
+  the mass the drilling removes. A two-hander has none, so no marker is drawn.
+  Putting one at the fingers would be inventing a landmark rather than reporting
+  one.
+
+Nothing else moves. `readMotion` takes the grip only to route the band warning:
+flare, length, angularity and strength are identical for the two grips, and a
+test asserts that rather than leaving it to be noticed.
+
+**Consequences.**
+- A two-handed bowler gets a drawing of their own ball and a slider with no
+  false band on it, which is the range the band was routing them out of for a
+  reason that does not apply to them.
+- The motion reading is still the thumb-in chart's for both grips. Preferences
+  says so, in the same place it used to say nothing downstream read the setting
+  at all.
+- No schema change and no link change. The grip was already stored (ADR-098) and
+  already carried in a shared layout, so every existing link draws correctly the
+  moment this ships.
+- `GRIP_SPAN` is the app's first stated opinion about a hand rather than a ball.
+  If span is ever asked for, it replaces the constant and nothing else: the one
+  reason it exists is to place two holes around a centre that was already exact.
+## ADR-101 — An oil pattern is its load table, and the lane draws it
 
 **Status.** Accepted, 2026-09-15.
 
@@ -4698,11 +4772,11 @@ step size.
 - The pass editor takes boards in the sheet's notation, because the alternative
   is a bowler doing 39-minus-n in their head fifteen times per pattern.
 
-## ADR-101 — A pattern sheet is parsed, not read by a model, and it checks itself
+## ADR-102 — A pattern sheet is parsed, not read by a model, and it checks itself
 
 **Status.** Accepted, 2026-09-16.
 
-**Context.** ADR-100 made a pattern its load table, which is the right model and
+**Context.** ADR-101 made a pattern its load table, which is the right model and
 a miserable thing to type. Chromium 6742 is fifteen rows of seven numbers, and a
 bowler has the sheet as a PDF already. So the entry problem is real and the
 obvious answer, out loud, is "let an AI read the sheet".
@@ -4724,7 +4798,7 @@ from, by arithmetic, with nothing taken on trust.
 
 - `lib/oilPatternSheet.ts` is pure: positioned text runs in, passes and checks
   out. It groups runs into lines by their baselines, matches the load table's
-  thirteen columns, and converts the sheet's board notation through ADR-100's
+  thirteen columns, and converts the sheet's board notation through ADR-101's
   `parseSheetBoard`. It is tested against Chromium 6742's real rows.
 - `lib/oilPatternPdf.ts` is the pdf.js half, and does nothing but fetch glyphs.
 

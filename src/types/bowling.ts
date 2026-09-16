@@ -127,7 +127,7 @@ export interface Ball {
 
 /**
  * One pass of the lane machine, a single row of a Kegel-style load table
- * (ADR-100), named after the sheet's own columns. A pattern is the sum of its
+ * (ADR-101), named after the sheet's own columns. A pattern is the sum of its
  * passes and nothing else: distance, volume and ratio are all derived from this
  * list, never stored beside it.
  */

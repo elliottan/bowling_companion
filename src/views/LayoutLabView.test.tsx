@@ -233,7 +233,9 @@ describe("LayoutLabView", () => {
 
   it("draws a ball that describes itself, since the picture carries the point", () => {
     renderLab();
-    const ball = screen.getByRole("img", { name: /bowling ball showing a 45 by 4.50 inch by 45 dual angle/i });
+    const ball = screen.getByRole("img", {
+      name: /bowling ball drilled with a thumb hole and two finger holes, showing a 45 by 4.50 inch by 45 dual angle/i
+    });
     expect(ball).toBeInTheDocument();
     expect(ball.getAttribute("aria-label")).toMatch(/Drag the ball, or use the arrow keys/);
   });
@@ -616,6 +618,23 @@ describe("LayoutLabView", () => {
     await waitFor(() => expect(written).toHaveLength(1));
     const url = written[0];
     expect(decodeLayoutParams(url.slice(url.indexOf("?"), url.indexOf("#")))?.grip).toBe("2h");
+  });
+
+  it("drills the drawn ball for the grip on screen, and drops the thumb-hole band", async () => {
+    renderLab();
+    // The band's reason is a thumb hole, so both the warning and the drawn
+    // thumb hole come and go together with the grip.
+    fireEvent.change(slider(/Pin to PAP/), { target: { value: "3" } });
+    await waitFor(() =>
+      expect(screen.getByRole("img").getAttribute("aria-label")).toMatch(/a thumb hole/)
+    );
+    expect(screen.getByText(/runs the track over the thumb hole/i)).toBeTruthy();
+
+    fireEvent.click(screen.getByRole("button", { name: "Two handed" }));
+    await waitFor(() =>
+      expect(screen.getByRole("img").getAttribute("aria-label")).toMatch(/no thumb hole/)
+    );
+    expect(screen.queryByText(/runs the track over the thumb hole/i)).toBeNull();
   });
 
   it("leaves the reader's own grip alone when it opens on somebody else's", async () => {

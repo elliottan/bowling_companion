@@ -32,7 +32,7 @@
  * Pure, React-free and Dexie-free, per the `lib/` layering rule.
  */
 
-import type { BallLayoutSpec, Handedness, LayoutSystem } from "../types/bowling";
+import type { BallLayoutSpec, GripStyle, Handedness, LayoutSystem } from "../types/bowling";
 
 /** A USBC-legal ball is 8.5" across, so every arc on its surface rides this radius. */
 export const BALL_RADIUS = 4.25;
@@ -265,6 +265,86 @@ export function layoutGeometry(
 
 /** Reflection through the plane x = 0, which is the grip's own vertical plane. */
 const mirrorX = (v: Vec3): Vec3 => ({ x: -v.x, y: v.y, z: v.z });
+
+// ---------------------------------------------------------------------------
+// The grip
+// ---------------------------------------------------------------------------
+
+/**
+ * Centre-to-centre span from the thumb hole to the middle of the finger row, in
+ * inches of surface arc.
+ *
+ * It is a constant rather than an input, and that is a deliberate limit. Span is
+ * a hand fitting: it is measured off the bowler's hand in a pro shop, it is the
+ * one number here that no layout chart asks for, and a slider for it would
+ * invite the reading that moving it changes the layout. It does not. Every
+ * measurement on this ball is taken from the centre of grip, and where the holes
+ * sit relative to that centre changes nothing about the pin, the PAP, the core
+ * or the arcs between them.
+ *
+ * What it does change is whether the drawing agrees with the arithmetic, and
+ * that is why the number is here at all. The holes used to be placed at a
+ * chosen-by-eye 1.7" below and 2.4" above the centre, which put the middle of
+ * the grip 0.35" above the cross the drawing labels "centre of grip": the one
+ * point the whole layout is measured from was drawn off centre.
+ *
+ * 4 1/4" is a middling adult span. Anyone whose hand is longer or shorter reads
+ * a picture whose holes are an eighth or two out, which is the ordinary cost of
+ * not asking, and the point the layout hangs off is exact either way.
+ */
+export const GRIP_SPAN = 4.25;
+
+/** How far each finger hole sits from the midline, inches of arc. */
+export const FINGER_HALF_GAP = 0.9;
+
+export interface GripHole {
+  /** Which hole. The drawing sizes them differently, and a thumb hole is the
+   *  landmark a pro shop names as the PSA on a symmetric ball. */
+  kind: "thumb" | "finger";
+  point: Vec3;
+}
+
+/**
+ * Where the holes go, for the grip the bowler actually uses.
+ *
+ * Not measured off the layout, since span and pitch are a hand fitting rather
+ * than a layout, but placed because the VAL angle is meaningless without
+ * something to be up or down *of*.
+ *
+ * The two grips put their holes in different places relative to the centre of
+ * grip, and they do it for one reason: the centre of grip is defined by the
+ * holes, not the other way round.
+ *
+ * - **One-handed** it is the midpoint of the span, halfway between the thumb
+ *   hole and the middle of the finger row. So the two sit half a span either
+ *   side of it, and the centre lands in the web of the hand where no hole is.
+ * - **Two-handed** there is no thumb in the ball, so there is nothing to take a
+ *   midpoint against. The finger row is the whole grip and the centre of it is
+ *   the point between the two finger holes. A two-hander's PAP is measured from
+ *   there, which is the only reason this function needs to know the grip at all.
+ */
+export function gripHoles(
+  gripCenter: Vec3,
+  hand: Handedness = "right",
+  grip: GripStyle = "1h"
+): GripHole[] {
+  const up = tangentToward(gripCenter, { x: 0, y: 1, z: 0 });
+  const fingerRow = grip === "2h" ? gripCenter : walk(gripCenter, up, arcToAngle(GRIP_SPAN / 2));
+  // The finger row leans toward the PAP, which is on the other side of the ball
+  // for a left-hander, so the holes mirror with the rest of the layout. Taken
+  // as a tangent at the row itself rather than at the centre, so the two finger
+  // holes sit level with each other wherever the row ended up.
+  const across = tangentToward(fingerRow, { x: hand === "left" ? -1 : 1, y: 0, z: 0 });
+  const fingers: GripHole[] = [
+    { kind: "finger", point: walk(fingerRow, across, arcToAngle(-FINGER_HALF_GAP)) },
+    { kind: "finger", point: walk(fingerRow, across, arcToAngle(FINGER_HALF_GAP)) }
+  ];
+  if (grip === "2h") return fingers;
+  return [
+    { kind: "thumb", point: walk(gripCenter, up, arcToAngle(-GRIP_SPAN / 2)) },
+    ...fingers
+  ];
+}
 
 // ---------------------------------------------------------------------------
 // Derived distances: the numbers a pro shop measures back off a drilled ball,
@@ -536,8 +616,22 @@ export function flarePotential(pinToPap: number, diff: number): number {
  */
 export const DO_NOT_USE_BAND: readonly [number, number] = [2.375, 3.375];
 
-export const inDoNotUseBand = (pinToPap: number) =>
-  pinToPap > DO_NOT_USE_BAND[0] && pinToPap < DO_NOT_USE_BAND[1];
+/**
+ * Whether a pin-to-PAP distance lands in that band, which for a two-hander it
+ * never does.
+ *
+ * The band is a thumb-hole rule, and the chart says so: what it warns about is
+ * the track running over the hole. Take the thumb out of the ball and the hole
+ * the track would catch is not there, so the band has nothing left to be about.
+ * This is the one place where reading the grip style needs no new coefficient
+ * and no guess about a two-handed release: the band's own stated reason is
+ * absent, so the band is absent with it.
+ *
+ * Both the slider's marked band and the warning under the motion reading go
+ * through here, so the two can never disagree about who the band applies to.
+ */
+export const inDoNotUseBand = (pinToPap: number, grip: GripStyle = "1h") =>
+  grip === "1h" && pinToPap > DO_NOT_USE_BAND[0] && pinToPap < DO_NOT_USE_BAND[1];
 
 export interface MotionReading {
   /** 0 = as little flare as the layout can make, 1 = the ball's full differential. */
@@ -587,7 +681,8 @@ export interface MotionReading {
 export function readMotion(
   layout: DualAngleLayout,
   ball: BallSpec,
-  pap: PapMeasurement = DEFAULT_PAP
+  pap: PapMeasurement = DEFAULT_PAP,
+  grip: GripStyle = "1h"
 ): MotionReading {
   const flare = clamp(flarePotential(layout.pinToPap, ball.diff), 0, 1.4);
   const flareInches = clamp(flare, 0, 1.4) * 6.5;
@@ -605,7 +700,7 @@ export function readMotion(
   const strength = clamp(flare * 0.7 + (1 - Math.abs(val - 0.35)) * 0.3, 0, 1);
 
   const warnings: string[] = [];
-  if (inDoNotUseBand(layout.pinToPap)) {
+  if (inDoNotUseBand(layout.pinToPap, grip)) {
     warnings.push(
       `A pin-to-PAP distance between ${formatInches(DO_NOT_USE_BAND[0])}" and ${formatInches(DO_NOT_USE_BAND[1])}" runs the track over the thumb hole. The reaction is hard to repeat, so the dual angle system skips this band.`
     );

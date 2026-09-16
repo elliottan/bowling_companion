@@ -2,7 +2,7 @@ import type { OilPass } from "../types/bowling";
 import { oilStats, parseSheetBoard } from "./oilPattern";
 
 /**
- * Reading a pattern sheet (ADR-101).
+ * Reading a pattern sheet (ADR-102).
  *
  * A Kegel-style sheet is a fixed layout of rigid numeric tables, which by
  * ADR-044 makes it a parser's document and not a model's: a parser reads a

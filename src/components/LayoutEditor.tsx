@@ -14,7 +14,7 @@ import {
   type BallSpec,
   type DualAngleLayout
 } from "../lib/ballLayout";
-import type { LayoutSystem } from "../types/bowling";
+import type { GripStyle, LayoutSystem } from "../types/bowling";
 
 /**
  * The three numbers of a layout, in whichever notation is being read, with the
@@ -36,6 +36,7 @@ export function LayoutEditor({
   ball,
   system,
   onSystemChange,
+  grip = "1h",
   idPrefix = "layout"
 }: {
   layout: DualAngleLayout;
@@ -43,6 +44,9 @@ export function LayoutEditor({
   ball: BallSpec;
   system: LayoutSystem;
   onSystemChange: (system: LayoutSystem) => void;
+  /** How the bowler holds the ball. The do-not-use band is a thumb-hole rule,
+   *  so it is not marked on a two-hander's slider. */
+  grip?: GripStyle;
   /** Distinguishes two copies of the sliders when both are mounted, as they are
    *  when the lab is pushed over the ball form. */
   idPrefix?: string;
@@ -119,8 +123,8 @@ export function LayoutEditor({
             max={6}
             step={0.125}
             unit="in"
-            warn={inDoNotUseBand(layout.pinToPap)}
-            band={DO_NOT_USE_BAND}
+            warn={inDoNotUseBand(layout.pinToPap, grip)}
+            band={grip === "1h" ? DO_NOT_USE_BAND : undefined}
             bandMin={0.5}
             bandMax={6}
             onChange={(pinToPap) => set({ pinToPap })}

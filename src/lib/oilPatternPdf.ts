@@ -1,7 +1,7 @@
 import { parseSheetItems, type ParsedSheet, type SheetTextItem } from "./oilPatternSheet";
 
 /**
- * The pdf.js half of reading a pattern sheet (ADR-101): a file goes in, text
+ * The pdf.js half of reading a pattern sheet (ADR-102): a file goes in, text
  * runs with their positions come out, and `oilPatternSheet` does the reading.
  * The split is on purpose. Everything that decides what a number means is pure
  * and tested against a real sheet's rows; this module only fetches glyphs.
