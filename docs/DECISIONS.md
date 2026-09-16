@@ -4697,3 +4697,71 @@ step size.
   `d` string would mean parsing back out what the geometry already knew.
 - The pass editor takes boards in the sheet's notation, because the alternative
   is a bowler doing 39-minus-n in their head fifteen times per pattern.
+
+## ADR-101 — A pattern sheet is parsed, not read by a model, and it checks itself
+
+**Status.** Accepted, 2026-09-16.
+
+**Context.** ADR-100 made a pattern its load table, which is the right model and
+a miserable thing to type. Chromium 6742 is fifteen rows of seven numbers, and a
+bowler has the sheet as a PDF already. So the entry problem is real and the
+obvious answer, out loud, is "let an AI read the sheet".
+
+Two things say otherwise. The app has no backend (`CLAUDE.md`), so there is no
+model to call at the moment a bowler picks a file, and adding one to read a
+public PDF would be the first server this app ever needed. And ADR-044 already
+settled who reads a fixed layout: a parser reads it and fails loudly, a model
+reads it and fails plausibly. A sheet is a rigid numeric table, which is the
+parser's case exactly.
+
+What makes it more than a preference is that **a pattern sheet carries its own
+checksums.** Every row prints CROSSED, which is loads × boards, and T.OIL, which
+is CROSSED × mics. The header prints the pattern distance and the forward,
+reverse and total volumes. So a parse can be checked against the document it came
+from, by arithmetic, with nothing taken on trust.
+
+**Decision.** Reading a sheet is two modules, split where the risk changes.
+
+- `lib/oilPatternSheet.ts` is pure: positioned text runs in, passes and checks
+  out. It groups runs into lines by their baselines, matches the load table's
+  thirteen columns, and converts the sheet's board notation through ADR-100's
+  `parseSheetBoard`. It is tested against Chromium 6742's real rows.
+- `lib/oilPatternPdf.ts` is the pdf.js half, and does nothing but fetch glyphs.
+
+Direction comes from the row, not from which table it was in: the machine only
+runs away from the foul line going forward and back toward it in reverse, so
+`end > start` decides it. That is one less thing a layout change can break.
+
+**Every parsed sheet is verified against itself**, two checks per row plus the
+header totals, and the import reports the count. A sheet that does not add up
+still fills the rows in, because the usual cause is one odd row and the rows are
+right there to correct, but it is never called verified and it says which sum
+disagrees and by how much. The failure mode this exists to prevent is a misread
+column that produces a *plausible* pattern, saved quietly, and then trusted on
+the lane for a season.
+
+The printed track zone ratios are deliberately not checked. They sit in a footer
+table whose labels and values are on separate lines, so pairing them by position
+is guesswork, and a check that misreads is worse than no check: it would fail a
+sheet that parsed perfectly.
+
+**No pattern library ships with the app.** A built-in catalog, the ball
+catalog's shape, would mean redistributing Kegel's pattern data, which is
+published but not licensed for that. Import sidesteps it completely: the bowler
+brings their own sheet, and nothing of Kegel's lives in the repo but a
+transcription used as a test fixture.
+
+**Consequences.**
+- pdf.js is imported dynamically and only from `oilPatternPdf`, so its 1.7 MB
+  lands in its own chunk. It is kept out of the service worker precache
+  (`globIgnores`) and runtime cached on first use, because most bowlers keep
+  score and never import a sheet, and none of them should download a PDF parser
+  to do it.
+- Parsing is local. Nothing is uploaded, and the import works on a phone in an
+  alley with no signal, which is the whole point of the app.
+- The parser is tested against a faithful transcription of a real sheet rather
+  than the binary, because the network policy here cannot reach it. The
+  checksums are what make that acceptable: a real sheet whose layout differs
+  fails its own arithmetic loudly rather than importing something wrong.
+- A sheet that is not a load table imports nothing and says so, rather than
+  saving an empty pattern.

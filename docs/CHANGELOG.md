@@ -8,6 +8,23 @@ merge to `main` (`docs/DEPLOYMENT.md`), so every section below is a dated batch
 of shipped work rather than a release. Thirty of them used to be headed
 `[Unreleased]`, which said nothing once they had all shipped.
 
+## Import a pattern sheet instead of typing it (2026-09-16)
+
+**Point the app at a pattern sheet PDF and it reads the load table for you.**
+Fifteen rows of seven numbers, filled in from the file, with the name taken off
+the sheet. It is read on your own phone, nothing is uploaded, and it works with
+no signal.
+
+**It checks the sheet against itself before it says it worked.** Every row of a
+sheet prints its own crossings and oil total, and the header prints the
+distance and the volumes, so the import re-derives all of them and tells you how
+many checks passed. A sheet that does not add up still fills the rows in, so you
+can fix the odd one, but it says which sum disagrees rather than quietly saving
+a pattern that is slightly wrong.
+
+No pattern library is bundled, by choice: you bring your own sheet, and none of
+Kegel's data ships in the app.
+
 ## The oil pattern, on the lane (2026-09-15)
 
 **An oil pattern can now carry its load table, and the lane draws it.** Add a

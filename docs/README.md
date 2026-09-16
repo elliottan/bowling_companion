@@ -16,6 +16,7 @@ reasoning and invariants the code cannot express.
 | Touch ball layouts, the dual angle system or the VLS conversion | `src/lib/ballLayout.ts` for the geometry and the motion model, `src/lib/ballProjection.ts` for how it is drawn |
 | Add or edit a guide article | `src/lib/guides.ts`, which carries the shape and why it is static data |
 | Draw an oil pattern on the lane | [DECISIONS.md](./DECISIONS.md) ADR-100 |
+| Import a pattern sheet | [DECISIONS.md](./DECISIONS.md) ADR-101 |
 | Touch backup, import or merge | [DECISIONS.md](./DECISIONS.md) ADR-038 |
 | Touch viewport, rotation or scroll handling | [VIEWPORT-BUG.md](./VIEWPORT-BUG.md) first, without exception |
 | Write or run tests, or wonder what the gate checks | [ARCHITECTURE.md](./ARCHITECTURE.md), "Where the tests live" |

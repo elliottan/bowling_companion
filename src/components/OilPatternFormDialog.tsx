@@ -1,4 +1,4 @@
-import { Plus, Trash2, X } from "lucide-react";
+import { Check, Plus, Trash2, TriangleAlert, X } from "lucide-react";
 import { useMemo, useState, type FormEvent } from "react";
 import { Button } from "./ui/Button";
 import { FormSheet } from "./ui/FormSheet";
@@ -7,6 +7,7 @@ import { GROUP_HEADING } from "./ui/typography";
 import type { OilPass, OilPattern } from "../types/bowling";
 import { formatSheetBoard, headlineRatio, oilStats, parseSheetBoard, trackZoneRatios } from "../lib/oilPattern";
 import { ErrorBanner } from "./ErrorBanner";
+import type { ParsedSheet } from "../lib/oilPatternSheet";
 
 /** A fresh row, sized like a typical house-shot forward pass so the first one
  *  only needs the numbers changed rather than every field filled from zero. */
@@ -37,6 +38,8 @@ export function OilPatternFormDialog({ open, initial, onSubmit, onCancel, onRemo
   const [name, setName] = useState(initial?.name ?? "");
   const [url, setUrl] = useState(initial?.url ?? "");
   const [passes, setPasses] = useState<OilPass[]>(initial?.passes ?? []);
+  const [sheet, setSheet] = useState<ParsedSheet | null>(null);
+  const [reading, setReading] = useState(false);
   const [error, setError] = useState("");
   const [isSaving, setIsSaving] = useState(false);
 
@@ -45,6 +48,29 @@ export function OilPatternFormDialog({ open, initial, onSubmit, onCancel, onRemo
   const stats = useMemo(() => oilStats(passes), [passes]);
   const ratio = useMemo(() => headlineRatio(passes), [passes]);
   const zones = useMemo(() => trackZoneRatios(passes), [passes]);
+
+  /** Read a pattern sheet and fill the form from it. The parse is only offered
+   *  once it has checked itself against the sheet's own printed totals, and an
+   *  import that does not add up says so rather than saving quietly. */
+  async function importSheet(file: File) {
+    setReading(true);
+    setError("");
+    setSheet(null);
+    try {
+      const { readPatternSheet } = await import("../lib/oilPatternPdf");
+      const parsed = await readPatternSheet(file);
+      if (parsed.passes.length === 0) {
+        throw new Error("No load table in that file. Is it a pattern sheet?");
+      }
+      setSheet(parsed);
+      setPasses(parsed.passes);
+      if (parsed.name && !name.trim()) setName(parsed.name);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unable to read that sheet.");
+    } finally {
+      setReading(false);
+    }
+  }
 
   function patchPass(index: number, patch: Partial<OilPass>) {
     setPasses((prev) => prev.map((p, i) => (i === index ? { ...p, ...patch } : p)));
@@ -109,6 +135,32 @@ export function OilPatternFormDialog({ open, initial, onSubmit, onCancel, onRemo
                 is still a useful label on a session, and every pattern saved
                 before this existed is one. Fill it in and the lane draws it. */}
             <div className="rounded-xl border border-edge bg-surface-sunken p-3">
+              {/* The import goes first, for the same reason the catalog link
+                  leads the ball editor (DESIGN-LANGUAGE §6): it fills in
+                  everything below it, and typing fifteen rows off a PDF by hand
+                  is the worst job in the app. */}
+              <label className="mb-3 block">
+                <span className={FIELD_LABEL}>Import a pattern sheet (optional)</span>
+                <input
+                  type="file"
+                  accept="application/pdf,.pdf"
+                  disabled={reading}
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    e.target.value = ""; // so the same file re-imports
+                    if (file) void importSheet(file);
+                  }}
+                  className="block w-full text-sm text-ink-secondary file:mr-3 file:h-10 file:rounded-lg file:border file:border-edge-strong file:bg-surface file:px-3 file:text-sm file:font-semibold file:text-ink"
+                />
+                <span className="mt-1 block text-xs text-ink-tertiary">
+                  {reading
+                    ? "Reading the sheet…"
+                    : "A Kegel style sheet PDF. It is read on your phone, and nothing is uploaded."}
+                </span>
+              </label>
+
+              {sheet && <SheetReceipt sheet={sheet} />}
+
               <div className="flex items-center gap-2">
                 <h3 className={`flex-1 ${GROUP_HEADING}`}>Load table (optional)</h3>
                 <Button variant="ghost" onClick={() => setPasses((prev) => [...prev, { ...NEW_PASS }])}>
@@ -262,5 +314,49 @@ function PassBoard({
         className={`${FIELD_DENSE} uppercase ${parsed == null ? "border-danger-600" : ""}`}
       />
     </label>
+  );
+}
+
+/**
+ * What the import read, and whether the sheet agrees with it. Every row prints
+ * its own crossings and oil, and the header prints the totals, so a misread
+ * column shows up here as arithmetic that does not add up. The passes are
+ * filled in either way: a sheet that fails a check is usually one odd row, and
+ * the rows are right there to fix. What the app will not do is call it verified.
+ */
+function SheetReceipt({ sheet }: { sheet: ParsedSheet }) {
+  const failed = sheet.checks.filter((c) => !c.ok);
+
+  return (
+    <div
+      className={`mb-3 rounded-lg border p-2.5 ${
+        sheet.verified ? "border-success-200 bg-success-50" : "border-warning-200 bg-warning-50"
+      }`}
+    >
+      <p className="flex items-center gap-2 text-sm font-semibold text-ink">
+        {sheet.verified ? (
+          <Check size={16} aria-hidden="true" className="shrink-0 text-success-700" />
+        ) : (
+          <TriangleAlert size={16} aria-hidden="true" className="shrink-0 text-warning-700" />
+        )}
+        {sheet.passes.length} passes read
+        {sheet.verified ? ", and the sheet checks out" : ", but the sheet does not add up"}
+      </p>
+      <p className="mt-1 text-xs text-ink-secondary">
+        {sheet.verified
+          ? `Every row matches its own crossings and oil, and the totals match the header. ${sheet.checks.length} checks.`
+          : "Check the rows below against the sheet before saving."}
+      </p>
+      {failed.length > 0 && (
+        <ul className="mt-1.5 space-y-0.5 text-xs tabular-nums text-ink-secondary">
+          {failed.slice(0, 4).map((c) => (
+            <li key={c.label}>
+              {c.label}: sheet says {c.stated}, rows come to {Math.round(c.derived * 100) / 100}
+            </li>
+          ))}
+          {failed.length > 4 && <li>and {failed.length - 4} more</li>}
+        </ul>
+      )}
+    </div>
   );
 }
