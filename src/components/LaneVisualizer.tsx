@@ -4,6 +4,8 @@ import type { LineSpec, PinNumber } from "../types/bowling";
 import { useHandedness } from "../lib/handednessContext";
 import { useDriftModel } from "../lib/driftModelContext";
 import { useSessionOilPattern } from "../lib/oilPatternContext";
+import { getOilPatterns } from "../services/ballRepository";
+import type { OilPattern } from "../types/bowling";
 import { headlineRatio, oilBands, oilExitPoint, oilStats, oilZones, peakUnits, type OilStats } from "../lib/oilPattern";
 import { useOverlay } from "../lib/useOverlay";
 import { deriveLaydown, deriveLaydownFromSlide, deriveSlide } from "../lib/driftModel";
@@ -75,7 +77,14 @@ interface LaneVisualizerProps {
 export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, showStance = false, title = "Line", onEditAttempt, defaultLocks, suspended = false }: LaneVisualizerProps) {
   const hand = useHandedness();
   const driftModel = useDriftModel();
-  const oilPattern = useSessionOilPattern();
+  // A session names its pattern, and that is not the visualizer's to override.
+  // Without one, the lane can still be tried against a pattern you have saved:
+  // the sandbox is exactly where you would want that, and it has no session to
+  // inherit from (ADR-101).
+  const sessionPattern = useSessionOilPattern();
+  const [pickable, setPickable] = useState<OilPattern[]>([]);
+  const [pickedId, setPickedId] = useState<number | null>(null);
+  const oilPattern = sessionPattern ?? pickable.find((p) => p.id === pickedId) ?? null;
   const [deg, setDeg] = useState(BOWLER_DEG);
   const [showOil, setShowOil] = useState(true);
   const [dragging, setDragging] = useState(false);
@@ -172,6 +181,17 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
   // Drawn for every caller, editable or not: the oil exit rides this path, and a
   // read-only line still has one. Only the drag handles are gated on onChange.
   const path = line ? buildLinePath(line, hand, spare) : null;
+
+  // Only the patterns that can actually be drawn: a pattern that is just a name
+  // would offer a choice that changes nothing on the lane.
+  useEffect(() => {
+    if (sessionPattern) return;
+    let live = true;
+    getOilPatterns()
+      .then((all) => { if (live) setPickable(all.filter((p) => (p.passes?.length ?? 0) > 0)); })
+      .catch(() => {});
+    return () => { live = false; };
+  }, [sessionPattern]);
 
   // The pattern, derived from its load table every time the line moves, so the
   // exit point tracks the drag. Cheap: a handful of passes over 39 boards.
@@ -361,7 +381,7 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
           >
             {isTopDown ? "Bowler view" : "Top-down"}
           </button>
-          {(onChange || hasOil) && (
+          {(onChange || hasOil || pickable.length > 0) && (
             <button
               type="button"
               onClick={() => setOptionsOpen(true)}
@@ -556,6 +576,9 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
           oilName={hasOil ? oilPattern?.name : undefined}
           oilStats={hasOil ? stats : undefined}
           oilRatio={hasOil ? headlineRatio(oilPattern?.passes) : null}
+          pickable={sessionPattern ? [] : pickable}
+          pickedId={pickedId}
+          onPick={setPickedId}
           showOil={showOil}
           onToggleOil={setShowOil}
           onClose={() => setOptionsOpen(false)}
@@ -568,7 +591,8 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
 /** Bottom sheet with the hook-shape sliders (shared by strike + spare, ADR-026)
  *  and the oil pattern switch (ADR-090). */
 function OptionsSheet({
-  line, editable, onChange, oilName, oilStats: oil, oilRatio, showOil, onToggleOil, onClose,
+  line, editable, onChange, oilName, oilStats: oil, oilRatio, showOil, onToggleOil,
+  pickable, pickedId, onPick, onClose,
 }: {
   line: LineSpec | undefined;
   editable: boolean;
@@ -578,6 +602,10 @@ function OptionsSheet({
   oilRatio: number | null;
   showOil: boolean;
   onToggleOil: (on: boolean) => void;
+  /** Patterns to choose from. Empty when a session already names one. */
+  pickable: OilPattern[];
+  pickedId: number | null;
+  onPick: (id: number | null) => void;
   onClose: () => void;
 }) {
   // Live bounds mirroring the solver's clamps (laneGeometry hookGeomRaw): the
@@ -604,6 +632,29 @@ function OptionsSheet({
             Done
           </button>
         </div>
+        {pickable.length > 0 && (
+          <label className="mb-4 block border-b border-white/10 pb-3">
+            <span className="mb-1 block text-xs font-bold uppercase tracking-wide text-white/60">
+              Oil pattern
+            </span>
+            <select
+              value={pickedId ?? ""}
+              onChange={(e) => onPick(e.target.value === "" ? null : Number(e.target.value))}
+              className="h-11 w-full rounded-lg border border-white/20 bg-slate-900 px-3 text-sm text-white"
+            >
+              <option value="">No pattern</option>
+              {pickable.map((pattern) => (
+                <option key={pattern.id} value={pattern.id}>
+                  {pattern.name}
+                </option>
+              ))}
+            </select>
+            <p className="mt-1 text-xs text-white/50">
+              A session draws its own pattern. This is for trying a line against one.
+            </p>
+          </label>
+        )}
+
         {oil && (
           <div className="mb-4 border-b border-white/10 pb-3">
             <label className="flex items-center gap-3 py-1">

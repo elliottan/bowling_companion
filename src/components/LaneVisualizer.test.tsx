@@ -1,10 +1,18 @@
-import { describe, it, expect, vi } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { HandednessContext } from "../lib/handednessContext";
 import { DriftModelContext } from "../lib/driftModelContext";
 import { DEFAULT_DRIFT_MODEL } from "../lib/driftModel";
 import { OilPatternContext } from "../lib/oilPatternContext";
+import { getOilPatterns } from "../services/ballRepository";
 import type { OilPattern } from "../types/bowling";
+
+// Defaults to no saved patterns, so every other test in this file behaves as it
+// did: the picker only appears where there is something to pick.
+vi.mock("../services/ballRepository", () => ({
+  getOilPatterns: vi.fn(() => Promise.resolve([])),
+}));
+const listPatterns = vi.mocked(getOilPatterns);
 import { LaneVisualizer } from "./LaneVisualizer";
 import { boardToX, feetToY, xToBoard } from "../lib/laneGeometry";
 
@@ -280,5 +288,67 @@ describe("LaneVisualizer oil pattern", () => {
     renderWithPattern(pattern);
     fireEvent.click(screen.getByLabelText(/lane options/i));
     expect(screen.queryByText(/hook shape/i)).toBeNull();
+  });
+});
+
+// The sandbox has no session to inherit a pattern from, so the visualizer lets
+// you choose one there. A session still names its own, and that is not the
+// visualizer's to override.
+describe("LaneVisualizer pattern picker", () => {
+  const saved: OilPattern = {
+    id: 7,
+    name: "Chromium 6742",
+    passes: [
+      { direction: "forward", left_board: 5, right_board: 35, loads: 2, microliters: 20, start_distance: 0, end_distance: 39 },
+    ],
+  };
+
+  beforeEach(() => {
+    listPatterns.mockClear();
+    listPatterns.mockResolvedValue([saved]);
+  });
+
+  function renderSandbox(value: OilPattern | null = null) {
+    return render(
+      <HandednessContext.Provider value="right">
+        <OilPatternContext.Provider value={value}>
+          <LaneVisualizer line={{ laydown: 18, target: 10, breakpoint: 6 }} onClose={() => {}} />
+        </OilPatternContext.Provider>
+      </HandednessContext.Provider>
+    );
+  }
+
+  it("offers the patterns you have saved when no session names one", async () => {
+    renderSandbox();
+    await waitFor(() => expect(listPatterns).toHaveBeenCalled());
+    fireEvent.click(screen.getByLabelText(/lane options/i));
+    expect(await screen.findByRole("combobox", { name: /oil pattern/i })).toBeInTheDocument();
+  });
+
+  it("draws the pattern once one is chosen", async () => {
+    const { container } = renderSandbox();
+    await waitFor(() => expect(listPatterns).toHaveBeenCalled());
+    fireEvent.click(screen.getByLabelText(/lane options/i));
+    fireEvent.change(await screen.findByRole("combobox", { name: /oil pattern/i }), {
+      target: { value: "7" },
+    });
+    await waitFor(() =>
+      expect(container.querySelector('[data-role="oil-film"]')).not.toBeNull()
+    );
+  });
+
+  it("does not offer a choice where the session already made one", async () => {
+    renderSandbox(saved);
+    fireEvent.click(screen.getByLabelText(/lane options/i));
+    expect(screen.queryByRole("combobox", { name: /oil pattern/i })).toBeNull();
+    // It still reads the session's pattern out.
+    expect(screen.getByText(/Chromium 6742/)).toBeInTheDocument();
+  });
+
+  it("skips a pattern that is only a name, since it would draw nothing", async () => {
+    listPatterns.mockResolvedValue([{ id: 8, name: "Just a name" }]);
+    renderSandbox();
+    await waitFor(() => expect(listPatterns).toHaveBeenCalled());
+    expect(screen.queryByLabelText(/lane options/i)).toBeNull();
   });
 });

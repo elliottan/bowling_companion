@@ -8,6 +8,16 @@ merge to `main` (`docs/DEPLOYMENT.md`), so every section below is a dated batch
 of shipped work rather than a release. Thirty of them used to be headed
 `[Unreleased]`, which said nothing once they had all shipped.
 
+## Try a line against a pattern without bowling a session (2026-09-16)
+
+**The line sandbox can draw a pattern now.** Open the lane options and pick one
+of your patterns, and the oil is drawn under the line with the exit point on it,
+the same as inside a session. A session still draws its own pattern and does not
+offer the choice: the session already made it.
+
+Only patterns with a load table are offered, since a pattern that is only a name
+would change nothing on the lane.
+
 ## Oil patterns come with the app (2026-09-16)
 
 **A catalog of patterns ships with Headpin, load tables and all.** Settings, oil
