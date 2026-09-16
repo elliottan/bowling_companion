@@ -99,6 +99,11 @@ its load table and sheet link and keeps them current; the bowler owns its name.
 Rows are matched by that id and never by name, so a rename survives. Linking is
 one way, and a linked row is not deletable: it would return on the next boot.
 
+Seeding also adopts a row that has no `catalog_id` but is plainly a catalog
+pattern already, by identical load table or by exact name (ADR-106). Adoption
+keeps the row and its id, so sessions on it keep resolving, and is what stops a
+cleared link from turning into a duplicate.
+
 ## Scoring rules summary
 
 Implemented in `lib/scoring.ts`. The full reference is the test file

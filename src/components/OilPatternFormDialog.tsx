@@ -162,7 +162,10 @@ export function OilPatternFormDialog({ open, initial, onSubmit, onCancel, onRemo
           {/* For a pattern that predates the catalog, or one typed in by hand.
               The sessions already on it keep pointing at it: it is the same
               pattern, now with the table it never had. */}
-          {onLinkCatalog && table.length === 0 && (
+          {/* Offered to anything not yet linked, table or no table: after the
+              one-time link reset (ADR-106) a row can be carrying a load table
+              and still need pointing at the pattern it came from. */}
+          {onLinkCatalog && !linked && (
             <Button variant="secondary" onClick={onLinkCatalog} className="w-full">
               <Library size={16} aria-hidden="true" />
               Use a load table from the catalog

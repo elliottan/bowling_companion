@@ -5058,3 +5058,49 @@ absent or a copy of this one.
   board *count*, which fixes a misread board without assuming symmetry, and the
   correction is taken only when T.OIL agrees. That is what got Mercury from
   29 checks of 32 to all of them, off a single misread digit.
+
+## ADR-106 — The pattern sheet lives in the app
+
+**Status.** Accepted, 2026-09-16. Extends ADR-101 and ADR-105.
+
+**Context.** A pattern's numbers were reachable two ways, neither of them good:
+the lane overlay, which shows the film and the exit point but no digits, and a
+link out to whoever published the sheet. The link leaves the app, needs a
+network, and for a catalog pattern is redundant, since we already hold the load
+table the sheet prints.
+
+**Decision.** A pattern opens its own sheet view in the app, built from the same
+derivations as everything else (`components/PatternSheet.tsx`): distance, total
+volume, ratio with its classification, forward and reverse pass counts, a per
+board volume graph, the track zone ratios, and the load table itself with boards
+written back in sheet notation (`formatSheetBoard`), the way the printed sheet
+writes them.
+
+Nothing here is stored. The sheet is a second reading of `passes`, so it cannot
+disagree with the overlay or with the list. A pattern with no load table gets an
+honest empty state rather than a page of zeroes, and keeps its link if it has
+one. The link is what a pattern without numbers has instead of a sheet, not a
+thing every pattern needs.
+
+**A one time link reset.** Linking is irreversible by ADR-105, which is right
+for the rule and unhelpful when a bowler links the wrong pattern. Rather than
+add an unlink, and with it a second way to think about what a pattern is, this
+release clears `catalog_id` from every row once, guarded by a settings flag so it
+runs on each device exactly once. Bowlers relink, and the irreversible rule
+stands for the links made after it.
+
+**Adoption over duplication.** Seeding has to be able to recognise a row as a
+catalog pattern it has lost the id for, or the reset would leave a bowler with
+two of everything. A row with no `catalog_id` is adopted when its load table is
+identical to a catalog pattern's, or when its name is exactly that pattern's.
+ADR-105 said a same named pattern of the bowler's own was left alone; that was
+the separation the bowler asked us to collapse, and adoption keeps the row, its
+id and every session on it, which is the same guarantee linking gives.
+
+**Consequences.**
+- The reset is a single pass at boot, unawaited like the sync it runs inside.
+- The link button is offered to any unlinked pattern, not only to one with no
+  load table: after the reset a row keeps the table it was given, and refusing to
+  relink it would strand it.
+- The linking logic is still here on purpose. It comes out once the relinking is
+  done and every row has collapsed onto its catalog pattern.

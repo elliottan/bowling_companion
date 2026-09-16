@@ -65,7 +65,40 @@ export function resetPatternCatalogCache(): void {
  * improves. A name they already used for a pattern of their own is left alone:
  * theirs is theirs, and the link is offered in the editor instead.
  */
+/**
+ * A one-time reset of every catalog link (ADR-106).
+ *
+ * Linking was one way by design, which is right for a link made deliberately
+ * and wrong for the first one made by mistake. Rather than add an unlink
+ * button, which would undo the property the model rests on, every link is
+ * cleared once so the bowler can make them again. The load tables are left
+ * alone: a row keeps what it had, and adoption below re-links whatever is
+ * unambiguous, so in practice only the mistake needs redoing.
+ */
+const RESET_KEY = "oil_pattern_links_reset";
+
+async function resetLinksOnce(): Promise<void> {
+  const { getSetting, setSetting } = await import("./bowlingRepository");
+  if (await getSetting(RESET_KEY)) return;
+
+  const { db } = await import("../db/bowlingDb");
+  const linked = (await db.oil_patterns.toArray()).filter((p) => p.catalog_id != null);
+  for (const pattern of linked) {
+    if (pattern.id != null) await db.oil_patterns.update(pattern.id, { catalog_id: undefined });
+  }
+  await setSetting(RESET_KEY, new Date().toISOString());
+}
+
+/** Two rows are the same pattern when their load tables are, whatever they are
+ *  called. This is what lets a renamed row be re-adopted rather than duplicated. */
+function sameTable(a: OilPass[] | undefined, b: OilPass[]): boolean {
+  if (!a || a.length !== b.length) return false;
+  return a.every((pass, i) => JSON.stringify(pass) === JSON.stringify(b[i]));
+}
+
 export async function syncPatternCatalog(): Promise<void> {
+  await resetLinksOnce();
+
   const [catalog, { db }] = await Promise.all([
     getCatalogPatterns(),
     import("../db/bowlingDb"),
@@ -84,6 +117,24 @@ export async function syncPatternCatalog(): Promise<void> {
         passes: pattern.passes,
         url: existing.url ?? pattern.sourceUrl,
       });
+      continue;
+    }
+    // Adopt a row that is plainly this pattern already: one carrying exactly
+    // its load table, whatever it has been renamed to, or one that still has
+    // its name. Both are unambiguous, and adopting beats inserting a duplicate
+    // beside a pattern the bowler is already using.
+    const adoptable = mine.find(
+      (row) =>
+        row.catalog_id == null &&
+        (sameTable(row.passes, pattern.passes) ||
+          row.name.trim().toLowerCase() === pattern.name.trim().toLowerCase())
+    );
+    if (adoptable?.id != null) {
+      await db.oil_patterns.update(adoptable.id, {
+        catalog_id: pattern.id,
+        passes: pattern.passes,
+      });
+      adoptable.catalog_id = pattern.id;
       continue;
     }
     if (usedNames.has(pattern.name.trim().toLowerCase())) continue;

@@ -1,10 +1,11 @@
-import { ChevronRight, ExternalLink, Plus, RotateCcw } from "lucide-react";
+import { ChevronRight, ExternalLink, Plus, RotateCcw, ScrollText } from "lucide-react";
 import { OilPatternIcon } from "./icons";
 import { useMemo, useState, useEffect } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { ConfirmDialog } from "./ConfirmDialog";
 import { ErrorBanner } from "./ErrorBanner";
 import { OilPatternFormDialog } from "./OilPatternFormDialog";
+import { PatternSheet } from "./PatternSheet";
 import { PushScreen } from "./PushScreen";
 import { FormSheet } from "./ui/FormSheet";
 import { Button } from "./ui/Button";
@@ -57,6 +58,7 @@ export function OilPatternManager({ onBack, mode = "inline" }: OilPatternManager
   // Set while the catalog sheet is lending a load table to an existing pattern
   // rather than adding a new one.
   const [linkTo, setLinkTo] = useState<OilPattern | null>(null);
+  const [sheetFor, setSheetFor] = useState<OilPattern | null>(null);
   const [shape, setShape] = useState<PatternClass | null>(null);
 
   // The shipped catalog (ADR-104). Loaded once, and an empty one simply means
@@ -236,7 +238,14 @@ export function OilPatternManager({ onBack, mode = "inline" }: OilPatternManager
       ) : (
         <ListGroup>
           {active.map((pattern) => (
-            <PatternRow key={pattern.id} pattern={pattern} onEdit={() => openEdit(pattern)} />
+            <PatternRow
+              key={pattern.id}
+              pattern={pattern}
+              onEdit={() => openEdit(pattern)}
+              onOpenSheet={
+                (pattern.passes?.length ?? 0) > 0 ? () => setSheetFor(pattern) : undefined
+              }
+            />
           ))}
         </ListGroup>
       )}
@@ -266,6 +275,8 @@ export function OilPatternManager({ onBack, mode = "inline" }: OilPatternManager
           )}
         </>
       )}
+
+      {sheetFor && <PatternSheet pattern={sheetFor} onClose={() => setSheetFor(null)} />}
 
       {showCatalog && (
         <FormSheet
@@ -411,10 +422,13 @@ function summarize(pattern: OilPattern): string {
 function PatternRow({
   pattern,
   onEdit,
+  onOpenSheet,
   onRestore
 }: {
   pattern: OilPattern;
   onEdit: () => void;
+  /** Given when the pattern has a load table to show. */
+  onOpenSheet?: () => void;
   onRestore?: () => void;
 }) {
   return (
@@ -434,16 +448,22 @@ function PatternRow({
             {summarize(pattern)}
           </span>
         </span>
-        {/* The chevron steps aside for the sheet link: two arrows in one row
-            read as one crowded control rather than two clear ones. */}
-        {!onRestore && !pattern.url && (
+        {/* The chevron steps aside for whichever sheet this row offers: two
+            arrows in one row read as one crowded control rather than two. */}
+        {!onRestore && !onOpenSheet && !pattern.url && (
           <ChevronRight size={16} aria-hidden="true" className="shrink-0 text-ink-tertiary" />
         )}
       </button>
       {/* A second target, deliberately: the sheet is a different destination
           rather than an action on the row, the same exception the drag handle
-          takes. */}
-      {pattern.url && (
+          takes. The app's own sheet wins where there is one, because it needs
+          no signal and does not leave the app (ADR-106); the outward link is
+          only for a pattern the app cannot draw. */}
+      {onOpenSheet ? (
+        <IconButton label={`Pattern sheet for ${pattern.name}`} onClick={onOpenSheet}>
+          <ScrollText size={16} aria-hidden="true" />
+        </IconButton>
+      ) : pattern.url ? (
         <a
           href={pattern.url}
           target="_blank"
@@ -453,7 +473,7 @@ function PatternRow({
         >
           <ExternalLink size={16} aria-hidden="true" />
         </a>
-      )}
+      ) : null}
       {onRestore && (
         <IconButton label={`Restore ${pattern.name}`} onClick={onRestore}>
           <RotateCcw size={16} aria-hidden="true" />

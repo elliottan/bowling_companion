@@ -95,12 +95,14 @@ describe("OilPatternFormDialog catalog link", () => {
     expect(screen.queryByRole("button", { name: /use a load table/i })).toBeNull();
   });
 
-  it("does not offer one to a pattern that already has a table", () => {
-    renderForm({
-      initial: { id: 3, name: "Chromium", passes: CHROMIUM_6742 },
-      onLinkCatalog: vi.fn(),
-    });
-    expect(screen.queryByRole("button", { name: /use a load table/i })).toBeNull();
+  // Offered to anything not yet linked, table or no table: after the one-time
+  // link reset (ADR-106) a row can carry a load table and still need pointing
+  // at the pattern it came from.
+  it("offers one to an unlinked pattern even when it carries a table", () => {
+    const onLinkCatalog = vi.fn();
+    renderForm({ initial: { id: 3, name: "Chromium", passes: CHROMIUM_6742 }, onLinkCatalog });
+    fireEvent.click(screen.getByRole("button", { name: /use a load table from the catalog/i }));
+    expect(onLinkCatalog).toHaveBeenCalled();
   });
 
   it("still lets the pattern be renamed", async () => {
