@@ -10,10 +10,19 @@ of shipped work rather than a release. Thirty of them used to be headed
 
 ## Import a pattern sheet instead of typing it (2026-09-16)
 
-**Point the app at a pattern sheet PDF and it reads the load table for you.**
-Fifteen rows of seven numbers, filled in from the file, with the name taken off
-the sheet. It is read on your own phone, nothing is uploaded, and it works with
-no signal.
+**Point the app at a pattern sheet and it reads the load table for you.** Pick
+the file, or paste a link to it. Fifteen rows of seven numbers, filled in for
+you, with the name off the sheet and the sheet link kept. The import leads the
+form now, because it fills in everything under it. It is read on your own phone
+and nothing is uploaded.
+
+The distance, the volume and the ratio are shown as soon as a sheet is read.
+They are not fields to fill in: they fall out of the load table, so seeing them
+is how you know the sheet was read correctly.
+
+Some sites do not let other pages read their files, and a link to one of those
+cannot be fetched by an app with no server. When that happens it says so, and
+says to open the link and import the file instead.
 
 **It checks the sheet against itself before it says it worked.** Every row of a
 sheet prints its own crossings and oil total, and the header prints the

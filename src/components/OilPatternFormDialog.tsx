@@ -1,11 +1,13 @@
-import { Check, Plus, Trash2, TriangleAlert, X } from "lucide-react";
+import { Check, FileUp, Plus, Trash2, TriangleAlert, X } from "lucide-react";
 import { useMemo, useState, type FormEvent } from "react";
 import { Button } from "./ui/Button";
 import { FormSheet } from "./ui/FormSheet";
 import { FIELD, FIELD_DENSE, FIELD_DENSE_SELECT, FIELD_LABEL, FIELD_MICRO_LABEL } from "./ui/field";
 import { GROUP_HEADING } from "./ui/typography";
 import type { OilPass, OilPattern } from "../types/bowling";
-import { formatSheetBoard, headlineRatio, oilStats, parseSheetBoard, trackZoneRatios } from "../lib/oilPattern";
+import {
+  formatSheetBoard, headlineRatio, oilStats, parseSheetBoard, trackZoneRatios, type OilStats,
+} from "../lib/oilPattern";
 import { ErrorBanner } from "./ErrorBanner";
 import type { ParsedSheet } from "../lib/oilPatternSheet";
 
@@ -40,6 +42,7 @@ export function OilPatternFormDialog({ open, initial, onSubmit, onCancel, onRemo
   const [passes, setPasses] = useState<OilPass[]>(initial?.passes ?? []);
   const [sheet, setSheet] = useState<ParsedSheet | null>(null);
   const [reading, setReading] = useState(false);
+  const [sheetUrl, setSheetUrl] = useState("");
   const [error, setError] = useState("");
   const [isSaving, setIsSaving] = useState(false);
 
@@ -49,27 +52,49 @@ export function OilPatternFormDialog({ open, initial, onSubmit, onCancel, onRemo
   const ratio = useMemo(() => headlineRatio(passes), [passes]);
   const zones = useMemo(() => trackZoneRatios(passes), [passes]);
 
-  /** Read a pattern sheet and fill the form from it. The parse is only offered
-   *  once it has checked itself against the sheet's own printed totals, and an
-   *  import that does not add up says so rather than saving quietly. */
-  async function importSheet(file: File) {
+  /**
+   * Fill the form from a sheet, whichever way it arrived. Everything the sheet
+   * knows is filled in: the passes, which the distance, the volume and the
+   * ratio are all derived from, and the name off its title. Nothing already
+   * typed is overwritten, because the bowler's own name for a pattern beats the
+   * one printed on the sheet.
+   */
+  async function runImport(read: () => Promise<ParsedSheet>, sourceUrl?: string) {
     setReading(true);
     setError("");
     setSheet(null);
     try {
-      const { readPatternSheet } = await import("../lib/oilPatternPdf");
-      const parsed = await readPatternSheet(file);
+      const parsed = await read();
       if (parsed.passes.length === 0) {
         throw new Error("No load table in that file. Is it a pattern sheet?");
       }
       setSheet(parsed);
       setPasses(parsed.passes);
       if (parsed.name && !name.trim()) setName(parsed.name);
+      // A link that produced a sheet is the sheet link, so it fills that in too
+      // rather than making the bowler paste the same URL twice.
+      if (sourceUrl && !url.trim()) setUrl(sourceUrl.trim());
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to read that sheet.");
     } finally {
       setReading(false);
     }
+  }
+
+  async function importFile(file: File) {
+    await runImport(async () => {
+      const { readPatternSheet } = await import("../lib/oilPatternPdf");
+      return readPatternSheet(file);
+    });
+  }
+
+  async function importUrl() {
+    const link = sheetUrl.trim();
+    if (!link) return;
+    await runImport(async () => {
+      const { readPatternSheetFromUrl } = await import("../lib/oilPatternPdf");
+      return readPatternSheetFromUrl(link);
+    }, link);
   }
 
   function patchPass(index: number, patch: Partial<OilPass>) {
@@ -103,11 +128,80 @@ export function OilPatternFormDialog({ open, initial, onSubmit, onCancel, onRemo
     >
       <form id={FORM_ID} onSubmit={handleSubmit}>
         <div className="space-y-3">
+            {/* The import leads the form, for the same reason the catalog link
+                leads the ball editor (DESIGN-LANGUAGE §6): it fills in every
+                field under it, and typing fifteen rows off a sheet by hand is
+                the worst job in the app. */}
+            <div className="rounded-xl border border-edge bg-surface-sunken p-3">
+              <h3 className={GROUP_HEADING}>Import a pattern sheet</h3>
+              <p className="mt-1 text-xs text-ink-tertiary">
+                A Kegel style sheet. It is read on your own phone, nothing is uploaded,
+                and it fills in the name and the whole load table.
+              </p>
+
+              <label className="mt-2.5 block">
+                <span className={FIELD_MICRO_LABEL}>From a file</span>
+                <input
+                  type="file"
+                  accept="application/pdf,.pdf"
+                  disabled={reading}
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    e.target.value = ""; // so the same file re-imports
+                    if (file) void importFile(file);
+                  }}
+                  className="block w-full text-sm text-ink-secondary file:mr-3 file:h-10 file:rounded-lg file:border file:border-edge-strong file:bg-surface file:px-3 file:text-sm file:font-semibold file:text-ink"
+                />
+              </label>
+
+              <div className="mt-2.5">
+                <span className={FIELD_MICRO_LABEL}>From a link</span>
+                <div className="flex gap-2">
+                  <input
+                    type="url"
+                    inputMode="url"
+                    value={sheetUrl}
+                    disabled={reading}
+                    onChange={(e) => setSheetUrl(e.target.value)}
+                    onKeyDown={(e) => {
+                      // Enter in a link box means fetch it, not submit the form
+                      // and save a pattern the bowler has not seen yet.
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        void importUrl();
+                      }
+                    }}
+                    className={FIELD}
+                    placeholder="https://…/chromium-6742.pdf"
+                    autoComplete="off"
+                  />
+                  <Button
+                    variant="secondary"
+                    onClick={() => void importUrl()}
+                    disabled={reading || sheetUrl.trim().length === 0}
+                  >
+                    <FileUp size={16} aria-hidden="true" />
+                    Read
+                  </Button>
+                </div>
+                <span className="mt-1 block text-xs text-ink-tertiary">
+                  {reading
+                    ? "Reading the sheet…"
+                    : "Some sites do not let other pages read their files. If a link will not load, open it and import the file."}
+                </span>
+              </div>
+
+              {sheet && (
+                <div className="mt-3">
+                  <SheetReceipt sheet={sheet} stats={stats} ratio={ratio} />
+                </div>
+              )}
+            </div>
+
             <label className="block">
               <span className={FIELD_LABEL}>Name</span>
               <input
                 required
-                autoFocus
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 className={FIELD}
@@ -135,32 +229,6 @@ export function OilPatternFormDialog({ open, initial, onSubmit, onCancel, onRemo
                 is still a useful label on a session, and every pattern saved
                 before this existed is one. Fill it in and the lane draws it. */}
             <div className="rounded-xl border border-edge bg-surface-sunken p-3">
-              {/* The import goes first, for the same reason the catalog link
-                  leads the ball editor (DESIGN-LANGUAGE §6): it fills in
-                  everything below it, and typing fifteen rows off a PDF by hand
-                  is the worst job in the app. */}
-              <label className="mb-3 block">
-                <span className={FIELD_LABEL}>Import a pattern sheet (optional)</span>
-                <input
-                  type="file"
-                  accept="application/pdf,.pdf"
-                  disabled={reading}
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    e.target.value = ""; // so the same file re-imports
-                    if (file) void importSheet(file);
-                  }}
-                  className="block w-full text-sm text-ink-secondary file:mr-3 file:h-10 file:rounded-lg file:border file:border-edge-strong file:bg-surface file:px-3 file:text-sm file:font-semibold file:text-ink"
-                />
-                <span className="mt-1 block text-xs text-ink-tertiary">
-                  {reading
-                    ? "Reading the sheet…"
-                    : "A Kegel style sheet PDF. It is read on your phone, and nothing is uploaded."}
-                </span>
-              </label>
-
-              {sheet && <SheetReceipt sheet={sheet} />}
-
               <div className="flex items-center gap-2">
                 <h3 className={`flex-1 ${GROUP_HEADING}`}>Load table (optional)</h3>
                 <Button variant="ghost" onClick={() => setPasses((prev) => [...prev, { ...NEW_PASS }])}>
@@ -324,7 +392,13 @@ function PassBoard({
  * filled in either way: a sheet that fails a check is usually one odd row, and
  * the rows are right there to fix. What the app will not do is call it verified.
  */
-function SheetReceipt({ sheet }: { sheet: ParsedSheet }) {
+function SheetReceipt({
+  sheet, stats, ratio,
+}: {
+  sheet: ParsedSheet;
+  stats: OilStats;
+  ratio: number | null;
+}) {
   const failed = sheet.checks.filter((c) => !c.ok);
 
   return (
@@ -341,6 +415,13 @@ function SheetReceipt({ sheet }: { sheet: ParsedSheet }) {
         )}
         {sheet.passes.length} passes read
         {sheet.verified ? ", and the sheet checks out" : ", but the sheet does not add up"}
+      </p>
+      {/* What it filled in. The distance, the volume and the ratio are not
+          fields: they fall out of the passes (ADR-101), so showing them here is
+          showing the sheet read correctly, not offering another thing to type. */}
+      <p className="mt-1 text-sm tabular-nums text-ink">
+        {Math.round(stats.length)} ft · {stats.volumeMl.toFixed(2)} mL
+        {ratio != null ? ` · ${ratio.toFixed(1)}:1` : ""}
       </p>
       <p className="mt-1 text-xs text-ink-secondary">
         {sheet.verified

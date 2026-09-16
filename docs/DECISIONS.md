@@ -4819,6 +4819,19 @@ table whose labels and values are on separate lines, so pairing them by position
 is guesswork, and a check that misreads is worse than no check: it would fail a
 sheet that parsed perfectly.
 
+**A sheet arrives as a file or as a link**, and the link is best effort by
+nature. A browser will only hand a cross-origin response to a page the host
+invited, and most bowling sites send no CORS headers, so a perfectly good link
+often cannot be read by a page with no backend to proxy through. Both ways
+around that cost more than they are worth. A public CORS proxy would send every
+link a bowler imports to a stranger's server, which breaks the one promise this
+feature makes, that the sheet is read on your own phone. A server of our own
+would be the first this app has ever needed, to download a public PDF the
+browser can already be pointed at. So a blocked link reports what happened and
+the fix the bowler can apply, open it and import the file, and the failure is
+never dressed up as a parse error. A link that does work fills in the pattern's
+sheet link as well, since a link that produced a sheet is that sheet's link.
+
 **No pattern library ships with the app.** A built-in catalog, the ball
 catalog's shape, would mean redistributing Kegel's pattern data, which is
 published but not licensed for that. Import sidesteps it completely: the bowler
