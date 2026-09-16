@@ -1,5 +1,6 @@
 import type { OilPass } from "../../../src/types/bowling.js";
 import { oilStats, parseSheetBoard } from "../../../src/lib/oilPattern.js";
+import { LANE_BOARDS } from "../../../src/lib/laneGeometry.js";
 
 /**
  * Reading a pattern sheet (ADR-104).
@@ -226,6 +227,24 @@ export function parseSheetLines(lines: readonly string[]): ParsedSheet {
       buffer: Number(row.buffer),
       tank: row.tank.toUpperCase(),
     };
+    // A misread board is the commonest way a scan goes wrong, and CROSSED says
+    // how wide the pass really was: crossings over loads is the board count.
+    // The correction is only taken when T.OIL then agrees, so it is confirmed by
+    // a third column rather than assumed. Mercury 4940 needed exactly this: OCR
+    // read a stop board of 7R as 8R, one board narrow and 90 microlitres light.
+    const crossings = row.crossed != null ? Number(row.crossed) : null;
+    if (crossings != null && pass.loads > 0 && crossings % pass.loads === 0) {
+      const wanted = crossings / pass.loads;
+      const read = pass.right_board - pass.left_board + 1;
+      const toilStated = Number(row.toil.replace(/,/g, ""));
+      if (wanted !== read && wanted >= 1) {
+        const corrected = pass.left_board + wanted - 1;
+        if (corrected <= LANE_BOARDS && pass.loads * wanted * pass.microliters === toilStated) {
+          pass.right_board = corrected;
+        }
+      }
+    }
+
     passes.push(pass);
 
     const boards = pass.right_board - pass.left_board + 1;

@@ -178,6 +178,13 @@ export interface OilPattern {
    * never disagree.
    */
   distance?: number;
+  /**
+   * Set when this row IS a catalog pattern (ADR-105). The catalog owns its load
+   * table and its sheet link; the bowler owns its name. Linking is one way: a
+   * pattern that has been linked is that pattern, and there is nothing sensible
+   * to unlink it back to.
+   */
+  catalog_id?: string;
 }
 
 export interface SpareLine {

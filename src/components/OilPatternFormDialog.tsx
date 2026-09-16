@@ -51,6 +51,7 @@ export function OilPatternFormDialog({ open, initial, onSubmit, onCancel, onRemo
 
   // Carried, not edited. See the note above.
   const passes = initial?.passes;
+  const linked = initial?.catalog_id != null;
   const table = oilStats(passes);
   const ratio = headlineRatio(passes);
   const shape = patternClass(ratio);
@@ -64,7 +65,7 @@ export function OilPatternFormDialog({ open, initial, onSubmit, onCancel, onRemo
       const feet = Number(distance);
       await onSubmit({
         name,
-        url,
+        url: linked ? initial?.url : url,
         passes,
         distance: distance.trim() !== "" && Number.isFinite(feet) && feet > 0 ? feet : undefined,
       });
@@ -124,18 +125,23 @@ export function OilPatternFormDialog({ open, initial, onSubmit, onCancel, onRemo
 
           {table.length > 0 && (
             <div className="rounded-xl border border-edge bg-surface-sunken p-3">
-              <p className="text-sm font-semibold text-ink">From the catalog</p>
+              <p className="text-sm font-semibold text-ink">
+                {linked ? "This is a catalog pattern" : "From the catalog"}
+              </p>
               <p className="mt-1 text-xs tabular-nums text-ink-secondary">
                 {Math.round(table.length)} ft · {table.volumeMl.toFixed(2)} mL
                 {ratio != null ? ` · ${ratio.toFixed(1)}:1` : ""}
                 {shape ? ` · ${PATTERN_CLASS_LABEL[shape]}` : ""}
               </p>
               <p className="mt-1 text-xs text-ink-tertiary">
-                {passes?.length} passes, kept as they were read from the sheet.
+                {linked
+                  ? `${passes?.length} passes, kept current by the catalog. The name is yours to change.`
+                  : `${passes?.length} passes, kept as they were read from the sheet.`}
               </p>
             </div>
           )}
 
+          {!linked && (
           <label className="block">
             <span className={FIELD_LABEL}>Pattern sheet link (optional)</span>
             <input
@@ -151,6 +157,7 @@ export function OilPatternFormDialog({ open, initial, onSubmit, onCancel, onRemo
               Usually a PDF, and it opens in a new tab.
             </span>
           </label>
+          )}
 
           {/* For a pattern that predates the catalog, or one typed in by hand.
               The sessions already on it keep pointing at it: it is the same

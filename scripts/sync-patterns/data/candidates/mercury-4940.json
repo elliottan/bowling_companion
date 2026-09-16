@@ -1,0 +1,193 @@
+{
+  "id": "mercury-4940",
+  "name": "Mercury 4940",
+  "vendor": "kegel",
+  "reader": "ocr",
+  "passes": [
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 3,
+      "microliters": 40,
+      "start_distance": 0,
+      "end_distance": 5.1,
+      "speed": 18,
+      "buffer": 4,
+      "tank": "A"
+    },
+    {
+      "direction": "forward",
+      "left_board": 6,
+      "right_board": 32,
+      "loads": 2,
+      "microliters": 40,
+      "start_distance": 5.1,
+      "end_distance": 10.2,
+      "speed": 18,
+      "buffer": 4,
+      "tank": "B"
+    },
+    {
+      "direction": "forward",
+      "left_board": 7,
+      "right_board": 31,
+      "loads": 2,
+      "microliters": 45,
+      "start_distance": 10.2,
+      "end_distance": 15.3,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "B"
+    },
+    {
+      "direction": "forward",
+      "left_board": 9,
+      "right_board": 29,
+      "loads": 3,
+      "microliters": 45,
+      "start_distance": 15.3,
+      "end_distance": 22.9,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "B"
+    },
+    {
+      "direction": "forward",
+      "left_board": 11,
+      "right_board": 27,
+      "loads": 3,
+      "microliters": 45,
+      "start_distance": 22.9,
+      "end_distance": 30.5,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "B"
+    },
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 45,
+      "start_distance": 30.5,
+      "end_distance": 34,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "B"
+    },
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 45,
+      "start_distance": 34,
+      "end_distance": 40,
+      "speed": 22,
+      "buffer": 3,
+      "tank": "B"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 45,
+      "start_distance": 40,
+      "end_distance": 38,
+      "speed": 26,
+      "buffer": 3,
+      "tank": "A"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 45,
+      "start_distance": 38,
+      "end_distance": 30,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "A"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 13,
+      "right_board": 30,
+      "loads": 4,
+      "microliters": 45,
+      "start_distance": 30,
+      "end_distance": 19.8,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "A"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 11,
+      "right_board": 32,
+      "loads": 2,
+      "microliters": 45,
+      "start_distance": 19.8,
+      "end_distance": 14.7,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "A"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 9,
+      "right_board": 33,
+      "loads": 2,
+      "microliters": 45,
+      "start_distance": 14.7,
+      "end_distance": 9.6,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "A"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 8,
+      "right_board": 34,
+      "loads": 2,
+      "microliters": 45,
+      "start_distance": 9.6,
+      "end_distance": 5.7,
+      "speed": 14,
+      "buffer": 4,
+      "tank": "A"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 1,
+      "microliters": 45,
+      "start_distance": 5.7,
+      "end_distance": 3.8,
+      "speed": 14,
+      "buffer": 4,
+      "tank": "A"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 45,
+      "start_distance": 3.8,
+      "end_distance": 0,
+      "speed": 14,
+      "buffer": 4,
+      "tank": "A"
+    }
+  ],
+  "stated": {
+    "distance": 40,
+    "volumeMl": 25.545
+  },
+  "note": "c2d088c9-EP-CHALLENGE_MERCURY_4940.pdf · 40 ft · 4.91:1"
+}

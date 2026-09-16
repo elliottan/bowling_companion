@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { syncPatternCatalog } from "../services/patternCatalog";
 import {
   getResumableToday,
   getHandedness,
@@ -91,6 +92,12 @@ export function useBoot(launchedWithRoute: boolean): BootState {
         });
       })
       .finally(() => window.clearTimeout(timeout));
+
+    // The pattern catalog seeds itself into the bowler's own list (ADR-105), so
+    // a catalog pattern is just a pattern everywhere else. Deliberately not
+    // awaited and never fatal: boot must not wait on a fetch, and a bowler with
+    // no signal still has every pattern they had yesterday.
+    void syncPatternCatalog().catch(() => {});
 
     return () => {
       done = true;

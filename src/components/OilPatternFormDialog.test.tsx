@@ -80,6 +80,21 @@ describe("OilPatternFormDialog catalog link", () => {
     expect(onLinkCatalog).toHaveBeenCalled();
   });
 
+  // Linking is one way (ADR-105): a linked pattern is that catalog pattern, and
+  // the only thing left that is the bowler's is its name.
+  it("says a linked pattern is the catalog's, and offers only its name", () => {
+    renderForm({
+      initial: { id: 3, name: "Thursday shot", catalog_id: "stonehenge", passes: CHROMIUM_6742 },
+      onLinkCatalog: vi.fn(),
+    });
+    expect(screen.getByText(/This is a catalog pattern/i)).toBeInTheDocument();
+    expect(screen.getByDisplayValue("Thursday shot")).toBeInTheDocument();
+    // Its sheet link and its table belong to the catalog now.
+    expect(screen.queryByPlaceholderText(/main-street\.pdf/i)).toBeNull();
+    expect(screen.queryByLabelText(/length/i)).toBeNull();
+    expect(screen.queryByRole("button", { name: /use a load table/i })).toBeNull();
+  });
+
   it("does not offer one to a pattern that already has a table", () => {
     renderForm({
       initial: { id: 3, name: "Chromium", passes: CHROMIUM_6742 },

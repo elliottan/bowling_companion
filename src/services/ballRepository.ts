@@ -184,7 +184,7 @@ function normalizeDistance(distance: number | undefined): number | undefined {
 
 export async function updateOilPattern(
   id: number,
-  input: { name: string; url?: string; passes?: OilPass[]; distance?: number }
+  input: { name: string; url?: string; passes?: OilPass[]; distance?: number; catalog_id?: string }
 ): Promise<void> {
   const trimmed = input.name.trim();
   if (!trimmed) throw new Error("Oil pattern name cannot be empty");
@@ -198,6 +198,8 @@ export async function updateOilPattern(
       url: normalizedUrl,
       passes: normalizedPasses,
       distance: normalizeDistance(input.distance),
+      // Never cleared: a link is one way (ADR-105).
+      ...(input.catalog_id ? { catalog_id: input.catalog_id } : {}),
     });
   });
 }

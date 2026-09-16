@@ -8,6 +8,25 @@ merge to `main` (`docs/DEPLOYMENT.md`), so every section below is a dated batch
 of shipped work rather than a release. Thirty of them used to be headed
 `[Unreleased]`, which said nothing once they had all shipped.
 
+## Every pattern is just there (2026-09-16)
+
+**The catalog is your pattern list.** Stonehenge, Big Ben, Mercury and Chromium
+are simply in it, ready to pick for a session, with nothing to import first.
+Search by name or length, filter by Sport, Challenge or Recreation.
+
+Rename any of them to whatever you call it. The name is yours; the load table
+stays the catalog's and keeps itself current.
+
+**Mercury 4940 joins them**, at 40 feet. Its passes run across the lane rather
+than evenly either side, which caught a bad assumption: a misread board is now
+recovered from the crossings, which say how wide a pass was without assuming it
+was symmetric.
+
+Adding your own pattern still works, and yours are still yours to delete. If you
+have one from before the catalog existed, you can point it at the matching
+pattern and it becomes that pattern, keeping its name and every session on it.
+That one cannot be undone.
+
 ## Three more patterns, and a load table for the one you already have (2026-09-16)
 
 **Stonehenge, Big Ben and Chromium are in the catalog**, at 40, 44 and 42 feet.
