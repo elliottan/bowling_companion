@@ -11,6 +11,11 @@ vi.mock("pdfjs-dist", () => ({
 }));
 vi.mock("pdfjs-dist/build/pdf.worker.min.mjs?url", () => ({ default: "/worker.mjs" }));
 
+const readTableImages = vi.fn();
+vi.mock("./oilPatternOcrReader", () => ({
+  readTableImages: (images: unknown) => readTableImages(images),
+}));
+
 import { readPatternSheet, readPatternSheetFromUrl } from "./oilPatternPdf";
 
 /** A one page document whose text runs make up a single load table row.
@@ -22,7 +27,14 @@ function stubDoc(runs: Array<{ str: string; transform: number[] }>, imageOps = f
       numPages: 1,
       getPage: async () => ({
         getTextContent: async () => ({ items: runs }),
-        getOperatorList: async () => ({ fnArray: imageOps ? [85, 91] : [91] }),
+        getOperatorList: async () => ({
+          fnArray: imageOps ? [85, 91] : [91],
+          argsArray: imageOps ? [["img_1"], []] : [[]],
+        }),
+        objs: {
+          get: (_name: string, cb: (obj: unknown) => void) =>
+            cb({ width: 2, height: 1, data: new Uint8ClampedArray(8) }),
+        },
         cleanup: () => {},
       }),
     }),
@@ -46,7 +58,10 @@ const pdfFile = (name = "sheet.pdf") =>
   new File(["%PDF-1.4"], name, { type: "application/pdf" });
 
 describe("readPatternSheet", () => {
-  beforeEach(() => getDocument.mockReset());
+  beforeEach(() => {
+    getDocument.mockReset();
+    readTableImages.mockReset();
+  });
 
   it("reads the text runs and hands them to the parser", async () => {
     getDocument.mockReturnValue(stubDoc(runs));
@@ -69,16 +84,35 @@ describe("readPatternSheet", () => {
     expect(doc.destroy).toHaveBeenCalled();
   });
 
-  // Kegel's own sheets draw their load tables as pictures, so this is the
-  // commonest failure and the one message that must not be "is it a sheet?".
-  it("says the tables are pictures rather than doubting it is a sheet", async () => {
-    const header = "Oil Pattern Distance 42".split(" ").map((str, i) => ({
+  // Kegel's own sheets draw their load tables as pictures, so a page with no
+  // text rows and an image on it is handed to OCR rather than given up on.
+  it("sends a picture of a table to OCR, and keeps the header with it", async () => {
+    const header = "Forward Oil Total 1.85 mL".split(" ").map((str, i) => ({
       str, transform: [1, 0, 0, 1, i * 18, 700],
     }));
     getDocument.mockReturnValue(stubDoc(header, true));
-    await expect(readPatternSheet(pdfFile())).rejects.toThrow(
-      /load tables are pictures rather than text/
-    );
+    readTableImages.mockResolvedValue(["1 2L 2R 1 50 18 4 A 37 0.0 5.1 5.1 1850"]);
+
+    const parsed = await readPatternSheet(pdfFile());
+    expect(readTableImages).toHaveBeenCalled();
+    expect(parsed.passes).toHaveLength(1);
+    // The header is text and so is trusted; it is what the OCR is checked on.
+    expect(parsed.checks.find((c) => c.label === "Forward oil")).toMatchObject({ ok: true });
+    expect(parsed.verified).toBe(true);
+  });
+
+  it("gives up quietly when OCR finds nothing in the picture", async () => {
+    getDocument.mockReturnValue(stubDoc([], true));
+    readTableImages.mockResolvedValue([]);
+    const parsed = await readPatternSheet(pdfFile());
+    expect(parsed.passes).toEqual([]);
+  });
+
+  it("does not run OCR when the text layer already had the rows", async () => {
+    getDocument.mockReturnValue(stubDoc(runs, true));
+    const parsed = await readPatternSheet(pdfFile());
+    expect(parsed.passes).toHaveLength(1);
+    expect(readTableImages).not.toHaveBeenCalled();
   });
 
   it("still doubts a document with neither rows nor pictures", async () => {

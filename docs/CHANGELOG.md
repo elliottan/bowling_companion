@@ -24,9 +24,18 @@ Some sites do not let other pages read their files, and a link to one of those
 cannot be fetched by an app with no server. When that happens it says so, and
 says to open the link and import the file instead.
 
-Kegel's own sheets draw their load tables as pictures rather than text, and a
-picture cannot be read this way. Those say exactly that, rather than asking
-whether the thing in your hand is a pattern sheet.
+**Kegel's own sheets draw their load tables as pictures, and those are read
+too.** The app scans them on your phone when there is no text to read, and then
+checks what it scanned against the header, which is text and so can be trusted.
+
+Scanning drops a decimal point here and there, and the sheet puts them back: a
+distance carries one decimal and the FEET column says what the gap should be, so
+"153" can only be 15.3. A board that comes back as 71L is recovered from the
+crossings, which say how wide the pass was. Anything that cannot be repaired is
+left as scanned and fails its check, so you fix one row rather than fifteen.
+
+The scanner is a few megabytes and is only fetched the first time you import a
+sheet that needs it, then kept for next time.
 
 **It checks the sheet against itself before it says it worked.** Every row of a
 sheet prints its own crossings and oil total, and the header prints the

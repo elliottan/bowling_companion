@@ -197,7 +197,18 @@ export default defineConfig({
         // bowlers who never import one, so it is fetched on demand and cached
         // once used (the rule below). The catalog JSON and webp are out for the
         // same reason.
-        globIgnores: ["**/pdf*.worker*.{js,mjs}", "**/assets/pdf*.js"],
+        // Tesseract is the same bargain again, larger: a wasm core and a
+        // language pack that only a picture of a load table ever needs. They
+        // are served from our own origin (never a CDN, because the app has to
+        // work in an alley with no signal once used), kept out of the install,
+        // and cached the first time a sheet is scanned.
+        globIgnores: [
+          "**/pdf*.worker*.{js,mjs}",
+          "**/assets/pdf*.js",
+          "**/assets/tesseract*",
+          "**/assets/eng.traineddata*",
+          "**/assets/worker.min*.js",
+        ],
         runtimeCaching: [
           {
             // CacheFirst: the parser never changes within a build, and once a
@@ -205,6 +216,16 @@ export default defineConfig({
             urlPattern: /\/assets\/pdf.*\.(?:js|mjs)$/,
             handler: "CacheFirst",
             options: { cacheName: "pdf-reader" }
+          },
+          {
+            // Same, for the OCR core and its language data. Big and immutable,
+            // so worth keeping once fetched and never worth revalidating.
+            urlPattern: /\/assets\/(?:tesseract|eng\.traineddata|worker\.min).*/,
+            handler: "CacheFirst",
+            options: {
+              cacheName: "sheet-ocr",
+              expiration: { maxEntries: 8 }
+            }
           },
           {
             // NetworkFirst (not SWR): online clients must read the *current*

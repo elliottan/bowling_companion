@@ -4873,3 +4873,67 @@ plausibly, and this is exactly the document that can catch it.
   prove the reading against.
 - A sheet that is not a load table imports nothing and says so, rather than
   saving an empty pattern.
+
+## ADR-103 — Kegel draws its tables, so they are read by OCR and repaired by the sheet
+
+**Status.** Accepted, 2026-09-16.
+
+**Context.** ADR-102 chose a parser over a model for reading a pattern sheet,
+on ADR-044's rule that a parser reads a fixed layout and fails loudly. The real
+Chromium 6742 then showed the assumption underneath it to be false. Kegel's
+generator writes the header into the text layer and draws both load tables as
+**pictures**: 59 text runs on the whole page, and seven images. There is no
+fixed text layout to parse, because there is no text.
+
+So the choice is not parser against model any more. It is OCR against typing
+fifteen rows of seven numbers by hand, which is the job this feature exists to
+abolish.
+
+**Decision.** A sheet whose text layer yields no rows has its table images read
+with OCR, in the browser, with every asset served from our own origin.
+
+OCR is precisely the reader ADR-044 warns about: it fails plausibly. On the real
+sheet it gets **every digit right** and then loses things one or two pixels
+wide. Two failures repeat, and the sheet repairs both, because a load table says
+everything more than once:
+
+- **A dropped decimal point.** "15.3" comes back "153". Distances carry exactly
+  one decimal, so a distance with no point is missing one, and there is only one
+  reading in range. The FEET column proves it: END minus START must equal FEET.
+- **A board that gained a digit.** "7L" comes back "71L", which is not a board.
+  CROSSED over LOADS is how many boards the pass covered, and a pass from nL to
+  nR covers 41 - 2n of them, so the crossings name the board OCR lost.
+
+Nothing is guessed. Every repair is derived from another column of the same row,
+and a row that cannot be repaired is left as read, to fail the checks and be
+corrected by hand.
+
+**What verifies the scan is the header, because the header is text.** The
+distance and the forward, reverse and total volumes come from the text layer and
+are trustworthy; the rows do not and are not. Checking the rows against the
+header is checking a suspect reader against a reliable one, which is the whole
+reason this is tenable at all. ADR-102's row checksums still apply on top.
+
+The proof is kept: `oilPatternOcr.test.ts` holds the **verbatim tesseract output**
+for both of Chromium 6742's tables, dropped decimals, spurious digits and all,
+and asserts that repairing it reproduces the sheet's printed 15.41 / 10.15 /
+25.56 mL, 42 ft and 6.71:1. The same test asserts that the *unrepaired* output
+loses rows and fails its checks, rather than importing a wrong pattern quietly.
+
+**Consequences.**
+- The reading is split in two. `oilPatternOcr.ts` is pure repair logic and is
+  where the reasoning lives; `oilPatternOcrReader.ts` drives the wasm worker.
+  The part that can be tested against a real sheet is not tangled in the part
+  that cannot.
+- OCR runs only when the text layer found nothing, so a sheet with real text
+  never pays for it.
+- Roughly 6.8 MB of core and language data, lazy, kept out of the service worker
+  precache and runtime cached on first use, exactly as pdf.js is. A bowler who
+  never imports a picture of a table never downloads it.
+- The assets are bundled rather than fetched from tesseract's default CDN. An
+  app that works in an alley with no signal cannot depend on jsdelivr, and a
+  scan is not worth leaking which patterns a bowler looks up.
+- Only images shaped like a table are scanned, so the logo and the pattern graph
+  are never handed to OCR.
+- The language pack is the 3 MB integer build, which read this sheet exactly as
+  well as the 11 MB one.

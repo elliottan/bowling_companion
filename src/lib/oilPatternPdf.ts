@@ -1,4 +1,5 @@
-import { parseSheetItems, type ParsedSheet, type SheetTextItem } from "./oilPatternSheet";
+import { parseSheetItems, parseSheetLines, sheetLines, type ParsedSheet, type SheetTextItem } from "./oilPatternSheet";
+import type { SheetImage } from "./oilPatternOcrReader";
 
 /**
  * The pdf.js half of reading a pattern sheet (ADR-102): a file goes in, text
@@ -32,17 +33,38 @@ const MAX_BYTES = 12 * 1024 * 1024;
  * indistinguishable from an offline one at the API level, so the message names
  * both rather than guessing.
  */
-/** Whether any page paints an image, which is how a scanned or drawn table
- *  shows up. Only asked on the no-rows path, since it costs an operator list
- *  per page. */
-async function hasPictures(pages: Array<{ getOperatorList: () => Promise<{ fnArray: number[] }> }>): Promise<boolean> {
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/** Every image a page paints, pulled out of pdf.js's object store. Only asked
+ *  on the no-rows path, since it costs an operator list per page. */
+async function tableImages(pages: any[]): Promise<SheetImage[]> {
   const { OPS } = await import("pdfjs-dist");
+  const found: SheetImage[] = [];
   for (const page of pages) {
     const ops = await page.getOperatorList();
-    if (ops.fnArray.some((fn) => fn === OPS.paintImageXObject)) return true;
+    for (let i = 0; i < ops.fnArray.length; i += 1) {
+      if (ops.fnArray[i] !== OPS.paintImageXObject) continue;
+      const name = ops.argsArray[i]?.[0];
+      if (typeof name !== "string") continue;
+      const image = await new Promise<SheetImage | null>((resolve) => {
+        try {
+          page.objs.get(name, (obj: any) => {
+            // Only RGBA comes back ready to draw; anything else is skipped
+            // rather than guessed at, and the sheet simply does not import.
+            const expected = obj?.width * obj?.height * 4;
+            resolve(obj?.data && obj.data.length === expected
+              ? { width: obj.width, height: obj.height, data: obj.data }
+              : null);
+          });
+        } catch {
+          resolve(null);
+        }
+      });
+      if (image) found.push(image);
+    }
   }
-  return false;
+  return found;
 }
+/* eslint-enable @typescript-eslint/no-explicit-any */
 
 export async function readPatternSheetFromUrl(rawUrl: string): Promise<ParsedSheet> {
   let url: URL;
@@ -104,18 +126,24 @@ export async function readPatternSheet(file: File): Promise<ParsedSheet> {
     }
 
     const parsed = parseSheetItems(items);
-    // Kegel's own generator draws the load tables as pictures and leaves only
-    // the header in the text layer, so the commonest way to find no rows is a
-    // genuine, current pattern sheet whose tables cannot be read as text at all.
-    // Saying "is it a pattern sheet?" to someone holding one is worse than
-    // useless, so the two cases are told apart before either is reported.
-    if (parsed.passes.length === 0 && (await hasPictures(pages))) {
-      throw new Error(
-        "This sheet's load tables are pictures rather than text, so they cannot be read. Type the rows in below, or import a sheet that has them as text."
-      );
+    if (parsed.passes.length > 0) {
+      for (const page of pages) page.cleanup();
+      return parsed;
     }
+
+    // Kegel's own generator leaves only the header in the text layer and draws
+    // both load tables as pictures, so finding no rows is not the odd case: it
+    // is what a current, genuine sheet looks like. The pictures are read with
+    // OCR (ADR-103) and checked against the header, which IS text and so is
+    // trustworthy, rather than against themselves.
+    const images = await tableImages(pages);
     for (const page of pages) page.cleanup();
-    return parsed;
+    if (images.length === 0) return parsed;
+
+    const { readTableImages } = await import("./oilPatternOcrReader");
+    const scanned = await readTableImages(images);
+    if (scanned.length === 0) return parsed;
+    return parseSheetLines([...sheetLines(items), ...scanned]);
   } finally {
     // Destroying the loading task tears the worker down with it; leaking one
     // per import would keep a megabyte of parser alive per sheet read.
