@@ -182,6 +182,29 @@ function normalizeDistance(distance: number | undefined): number | undefined {
   return Math.round(distance * 10) / 10;
 }
 
+/**
+ * Two rows cannot be the same catalog pattern (ADR-107).
+ *
+ * Linking writes `catalog_id` onto a row the bowler already had, and the
+ * catalog may have seeded its own row beside it, so the link leaves a pair that
+ * is one pattern twice over. The row being linked survives, because it carries
+ * the bowler's name and the history written in it. The other one's sessions are
+ * repointed at the survivor before it goes, so nothing loses its pattern.
+ *
+ * Runs inside the caller's transaction, which must hold `oil_patterns` and
+ * `sessions`.
+ */
+export async function collapseCatalogDuplicates(keepId: number, catalogId: string): Promise<number> {
+  const duplicates = (await db.oil_patterns.toArray()).filter(
+    (row) => row.catalog_id === catalogId && row.id != null && row.id !== keepId
+  );
+  for (const duplicate of duplicates) {
+    await db.sessions.where("oil_pattern_id").equals(duplicate.id!).modify({ oil_pattern_id: keepId });
+    await db.oil_patterns.delete(duplicate.id!);
+  }
+  return duplicates.length;
+}
+
 export async function updateOilPattern(
   id: number,
   input: { name: string; url?: string; passes?: OilPass[]; distance?: number; catalog_id?: string }
@@ -191,7 +214,10 @@ export async function updateOilPattern(
   const normalizedUrl = normalizeOilPatternUrl(input.url);
   const normalizedPasses = normalizeOilPasses(input.passes);
 
-  await db.transaction("rw", db.oil_patterns, async () => {
+  await db.transaction("rw", db.oil_patterns, db.sessions, async () => {
+    // A row about to become a catalog pattern takes the place of whatever else
+    // already was it, so the name check runs against the list that will remain.
+    if (input.catalog_id) await collapseCatalogDuplicates(id, input.catalog_id);
     await assertNameFree(trimmed, id);
     await db.oil_patterns.update(id, {
       name: trimmed,

@@ -243,6 +243,36 @@ describe("ballRepository", () => {
       const id = await addOilPattern("Shark");
       await expect(updateOilPattern(id, { name: "cheetah" })).rejects.toThrow("already exists");
     });
+
+    // ADR-107: a link used to leave the seeded row sitting beside the row it
+    // linked, which is one pattern in the list twice.
+    it("takes the seeded row out of the list when a row links to it", async () => {
+      const mine = await addOilPattern("Thursday 40ft");
+      const seeded = await addOilPattern("Stonehenge");
+      await db.oil_patterns.update(seeded, { catalog_id: "stonehenge" });
+      const sessionId = Number(
+        await db.sessions.add({ date: "2026-06-01", alley_name: "Orchid", oil_pattern_id: seeded })
+      );
+
+      await updateOilPattern(mine, { name: "Thursday 40ft", catalog_id: "stonehenge" });
+
+      expect(await db.oil_patterns.get(seeded)).toBeUndefined();
+      expect((await db.sessions.get(sessionId))?.oil_pattern_id).toBe(mine);
+      expect((await db.oil_patterns.get(mine))?.catalog_id).toBe("stonehenge");
+    });
+
+    // The collapse runs first, so the name the seeded row was holding is free
+    // for the row that has just become that pattern.
+    it("frees the name the row it removed was using", async () => {
+      const mine = await addOilPattern("Thursday 40ft");
+      const seeded = await addOilPattern("Stonehenge");
+      await db.oil_patterns.update(seeded, { catalog_id: "stonehenge" });
+
+      await updateOilPattern(mine, { name: "Stonehenge", catalog_id: "stonehenge" });
+
+      expect(await getAllOilPatterns()).toHaveLength(1);
+      expect((await db.oil_patterns.get(mine))?.name).toBe("Stonehenge");
+    });
   });
 
   describe("removeOilPattern", () => {

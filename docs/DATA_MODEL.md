@@ -104,6 +104,11 @@ pattern already, by identical load table or by exact name (ADR-106). Adoption
 keeps the row and its id, so sessions on it keep resolving, and is what stops a
 cleared link from turning into a duplicate.
 
+A `catalog_id` identifies exactly one row (ADR-107). Taking one collapses any
+other row that holds it: sessions are repointed at the survivor, then it is
+deleted. The survivor is the row being linked, or on the boot-time heal the
+older of the pair, because that is the row the history was written against.
+
 ## Scoring rules summary
 
 Implemented in `lib/scoring.ts`. The full reference is the test file

@@ -8,6 +8,14 @@ merge to `main` (`docs/DEPLOYMENT.md`), so every section below is a dated batch
 of shipped work rather than a release. Thirty of them used to be headed
 `[Unreleased]`, which said nothing once they had all shipped.
 
+## One pattern, one row (2026-09-16)
+
+**A pattern you linked no longer appears twice.** Pointing your own pattern at
+one from the catalog used to leave the catalog's copy sitting next to it, so
+"Chromium 42ft" and "Chromium 6742" were both in the list and were the same
+shot. They now collapse into the one you already use, keeping your name for it,
+and any session on the copy moves across rather than losing its pattern.
+
 ## A pattern's numbers, without leaving the app (2026-09-16)
 
 **Every pattern opens its own sheet.** The distance, the total volume, the ratio
