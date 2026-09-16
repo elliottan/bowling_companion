@@ -1,4 +1,4 @@
-import { Eye, Trash2 } from "lucide-react";
+import { Eye, Minus, Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { ErrorBanner } from "./ErrorBanner";
 import { PinGrid } from "./PinGrid";
@@ -194,18 +194,12 @@ export function SpareLineFormDialog({
             <p className={`mb-1 ${eyebrow}`}>Strike ball move (boards)</p>
             <div className="flex items-center gap-1.5">
               {(["stance", "target"] as const).map((field) => (
-                <label key={field} className="min-w-0 flex-1">
-                  <span className={floatLabel}>{field}</span>
-                  <input
-                    type="number"
-                    inputMode="decimal"
-                    step="0.5"
-                    placeholder="0"
-                    value={move[field]}
-                    onChange={(e) => setMove((m) => ({ ...m, [field]: e.target.value }))}
-                    className={boardInput}
-                  />
-                </label>
+                <MoveStepper
+                  key={field}
+                  label={field}
+                  value={move[field]}
+                  onChange={(next) => setMove((m) => ({ ...m, [field]: next }))}
+                />
               ))}
             </div>
             <p className="mt-2 text-xs text-ink-secondary">
@@ -261,5 +255,72 @@ export function SpareLineFormDialog({
         />
       )}
     </FormSheet>
+  );
+}
+
+/** How far one tap of an arrow moves the strike ball. Half a board, because a
+ *  spare move is read off the same boards a shooting line is and half of one is
+ *  the smallest move a bowler actually makes. */
+const MOVE_STEP = 0.5;
+/** Past this the move is not a move, it is a different line. */
+const MOVE_LIMIT = 20;
+
+/**
+ * A strike-ball move field with arrows either side of it.
+ *
+ * The move is signed, and a phone's numeric keyboard has no minus key, so the
+ * field on its own could only ever be given a move to the right. The arrows are
+ * the way in to the other half of the range, not a convenience: they step half
+ * a board each, through zero, in both directions. The box still takes typing
+ * (kept as text, so a lone "-" survives while the digits after it are typed)
+ * for anyone who has a minus key.
+ */
+function MoveStepper({
+  label,
+  value,
+  onChange
+}: {
+  label: string;
+  value: string;
+  onChange: (next: string) => void;
+}) {
+  const nudge = (delta: number) => {
+    const current = value.trim() === "" || !Number.isFinite(Number(value)) ? 0 : Number(value);
+    const next = Math.min(MOVE_LIMIT, Math.max(-MOVE_LIMIT, current + delta));
+    // Rounded to the step, so a typed 0.3 lands on the grid the arrows walk.
+    onChange(String(Math.round(next / MOVE_STEP) * MOVE_STEP));
+  };
+
+  return (
+    <label className="min-w-0 flex-1">
+      <span className={floatLabel}>{label}</span>
+      <div className="flex h-9 items-stretch overflow-hidden rounded-lg border border-edge-strong bg-surface-muted focus-within:border-accent-fill focus-within:bg-surface">
+        <button
+          type="button"
+          aria-label={`${label} move down half a board`}
+          onClick={() => nudge(-MOVE_STEP)}
+          className="flex w-8 shrink-0 items-center justify-center text-ink-secondary active:bg-edge"
+        >
+          <Minus size={14} aria-hidden="true" />
+        </button>
+        <input
+          type="text"
+          inputMode="decimal"
+          aria-label={`${label} move`}
+          placeholder="0"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className="min-w-0 flex-1 bg-transparent px-0.5 text-center text-sm font-semibold tabular-nums text-ink placeholder:text-ink-tertiary outline-none"
+        />
+        <button
+          type="button"
+          aria-label={`${label} move up half a board`}
+          onClick={() => nudge(MOVE_STEP)}
+          className="flex w-8 shrink-0 items-center justify-center text-ink-secondary active:bg-edge"
+        >
+          <Plus size={14} aria-hidden="true" />
+        </button>
+      </div>
+    </label>
   );
 }
