@@ -155,3 +155,58 @@ describe("the one-time link reset", () => {
     expect(after[0]).toMatchObject({ name: "My Thursday shot", catalog_id: "stonehenge" });
   });
 });
+
+// ADR-107. Linking used to leave the pair it created: the bowler's own row,
+// now carrying the catalog id, and the row the catalog had seeded beside it.
+describe("collapsing a pattern that is in the list twice", () => {
+  beforeEach(async () => {
+    await db.oil_patterns.clear();
+    await db.sessions.clear();
+    await db.settings.clear();
+    resetPatternCatalogCache();
+    vi.unstubAllGlobals();
+  });
+
+  it("keeps the older row and takes the younger one out of the list", async () => {
+    const mine = await db.oil_patterns.add({ name: "Thursday 40ft", catalog_id: "stonehenge" });
+    const seeded = await db.oil_patterns.add({ name: "Stonehenge", catalog_id: "stonehenge" });
+    await db.settings.put({ key: "oil_pattern_links_reset", value: "done" });
+
+    serveCatalog();
+    await syncPatternCatalog();
+
+    const after = await getAllOilPatterns();
+    expect(after).toHaveLength(1);
+    expect(after[0].id).toBe(mine);
+    expect(after[0].name).toBe("Thursday 40ft");
+    expect(await db.oil_patterns.get(seeded)).toBeUndefined();
+  });
+
+  it("moves the sessions off the row it removes, so none loses its pattern", async () => {
+    const mine = await db.oil_patterns.add({ name: "Thursday 40ft", catalog_id: "stonehenge" });
+    const seeded = await db.oil_patterns.add({ name: "Stonehenge", catalog_id: "stonehenge" });
+    const session = await db.sessions.add({
+      date: "2026-09-01",
+      alley_name: "Orchid",
+      oil_pattern_id: seeded,
+    });
+    await db.settings.put({ key: "oil_pattern_links_reset", value: "done" });
+
+    serveCatalog();
+    await syncPatternCatalog();
+
+    expect((await db.sessions.get(session))?.oil_pattern_id).toBe(mine);
+  });
+
+  it("leaves a list with nothing duplicated in it alone", async () => {
+    serveCatalog();
+    await syncPatternCatalog();
+    const before = await getAllOilPatterns();
+
+    resetPatternCatalogCache();
+    serveCatalog();
+    await syncPatternCatalog();
+
+    expect(await getAllOilPatterns()).toEqual(before);
+  });
+});

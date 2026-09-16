@@ -96,6 +96,33 @@ function sameTable(a: OilPass[] | undefined, b: OilPass[]): boolean {
   return a.every((pass, i) => JSON.stringify(pass) === JSON.stringify(b[i]));
 }
 
+/**
+ * Collapse rows that are already the same catalog pattern twice (ADR-107).
+ *
+ * A link made before this shipped left a pair: the bowler's own row, now
+ * carrying the catalog id, and the row the catalog had seeded beside it. The
+ * survivor is the older of the two, which is the one their sessions were
+ * written against, and the younger one's sessions are repointed at it anyway
+ * before it goes. Linking collapses its own duplicates now, so this only ever
+ * has work to do once per pair.
+ */
+async function healDuplicateLinks(): Promise<void> {
+  const { db } = await import("../db/bowlingDb");
+  const { collapseCatalogDuplicates } = await import("./ballRepository");
+
+  const linked = (await db.oil_patterns.toArray()).filter((p) => p.catalog_id != null && p.id != null);
+  const oldestByCatalogId = new Map<string, number>();
+  for (const row of linked) {
+    const seen = oldestByCatalogId.get(row.catalog_id!);
+    if (seen == null || row.id! < seen) oldestByCatalogId.set(row.catalog_id!, row.id!);
+  }
+  for (const [catalogId, keepId] of oldestByCatalogId) {
+    await db.transaction("rw", db.oil_patterns, db.sessions, () =>
+      collapseCatalogDuplicates(keepId, catalogId)
+    );
+  }
+}
+
 export async function syncPatternCatalog(): Promise<void> {
   await resetLinksOnce();
 
@@ -104,6 +131,8 @@ export async function syncPatternCatalog(): Promise<void> {
     import("../db/bowlingDb"),
   ]);
   if (catalog.length === 0) return;
+
+  await healDuplicateLinks();
 
   const mine = await db.oil_patterns.toArray();
   const byCatalogId = new Map(mine.filter((p) => p.catalog_id).map((p) => [p.catalog_id!, p]));

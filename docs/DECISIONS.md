@@ -5104,3 +5104,37 @@ id and every session on it, which is the same guarantee linking gives.
   relink it would strand it.
 - The linking logic is still here on purpose. It comes out once the relinking is
   done and every row has collapsed onto its catalog pattern.
+
+## ADR-107 — A pattern cannot be in the list twice
+
+**Status.** Accepted, 2026-09-16. Fixes a gap in ADR-105 and ADR-106.
+
+**Context.** ADR-105 made linking write `catalog_id` onto the row the bowler
+already had, rather than replacing it, so its id survives and every session on
+it keeps resolving. What it never said is what happens to the row the catalog
+had already seeded beside it. Nothing did: the link produced two rows carrying
+the same `catalog_id`, the same load table and the same numbers, under two
+names. "Chromium 42ft" and "Chromium 6742" are one pattern, and the list showed
+both.
+
+**Decision.** A `catalog_id` identifies exactly one row. When a row takes one,
+any other row already holding it is collapsed into it: its sessions are
+repointed at the survivor first, then it is deleted. Nothing is archived,
+because an archived row is a name kept alive for history, and here the history
+has somewhere better to point.
+
+The survivor is the row being linked, which is the bowler's own: it carries the
+name they chose and the sessions they have already played on it. At boot the
+same collapse heals a pair made before this shipped, and there the survivor is
+the older of the two, for the same reason, it is the one their history was
+written against.
+
+**Consequences.**
+- The collapse runs before the duplicate name check, so a row may take the name
+  the row it replaced was using. That is the common case: linking "Chromium
+  42ft" and then calling it "Chromium 6742" is now allowed, because by then
+  there is only one of them.
+- A session never loses its pattern. It is moved, not orphaned, and the move is
+  in the same transaction as the delete.
+- The heal is idempotent and costs one table read on a list with nothing wrong
+  with it.
