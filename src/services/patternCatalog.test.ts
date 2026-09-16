@@ -71,20 +71,87 @@ describe("syncPatternCatalog", () => {
     expect(after.passes).toHaveLength(1);
   });
 
-  it("leaves a pattern of the bowler's own that happens to share the name", async () => {
+  // Collapsed together (ADR-106): a row named exactly what a catalog pattern is
+  // called IS that pattern, and adopting it beats standing a duplicate next to
+  // it. It gains the load table it never had; nothing of the bowler's is lost,
+  // because a pattern of their own never had one to lose.
+  it("adopts a pattern of the bowler's own that carries the same name", async () => {
     await addOilPattern("Stonehenge");
     serveCatalog();
     await syncPatternCatalog();
 
     const patterns = await getAllOilPatterns();
     expect(patterns).toHaveLength(1);
-    expect(patterns[0].catalog_id).toBeUndefined();
-    expect(patterns[0].passes).toBeUndefined();
+    expect(patterns[0]).toMatchObject({ name: "Stonehenge", catalog_id: "stonehenge" });
+    expect(patterns[0].passes).toHaveLength(1);
+  });
+
+  it("leaves a pattern whose name is the bowler's own alone", async () => {
+    await addOilPattern("Thursday league");
+    serveCatalog();
+    await syncPatternCatalog();
+
+    const mine = (await getAllOilPatterns()).find((p) => p.name === "Thursday league");
+    expect(mine?.catalog_id).toBeUndefined();
+    expect(mine?.passes).toBeUndefined();
   });
 
   it("does nothing at all when the catalog cannot be reached", async () => {
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("offline")));
     await syncPatternCatalog();
     expect(await getAllOilPatterns()).toHaveLength(0);
+  });
+});
+
+describe("the one-time link reset", () => {
+  beforeEach(async () => {
+    await db.oil_patterns.clear();
+    await db.settings.clear();
+    resetPatternCatalogCache();
+    vi.unstubAllGlobals();
+  });
+
+  // Linking is one way by design, which is right for a deliberate link and
+  // wrong for the first one made by mistake (ADR-106).
+  it("clears a link the bowler wants to make again", async () => {
+    const id = await db.oil_patterns.add({
+      name: "Thursday shot",
+      catalog_id: "chromium-6742",
+      passes: [],
+    });
+    serveCatalog();
+    await syncPatternCatalog();
+
+    expect((await db.oil_patterns.get(id))?.catalog_id).toBeUndefined();
+  });
+
+  it("runs once, so a link made afterwards survives the next boot", async () => {
+    serveCatalog();
+    await syncPatternCatalog();
+    const id = await db.oil_patterns.add({ name: "Mine", catalog_id: "chromium-6742" });
+
+    resetPatternCatalogCache();
+    serveCatalog();
+    await syncPatternCatalog();
+
+    expect((await db.oil_patterns.get(id))?.catalog_id).toBe("chromium-6742");
+  });
+
+  // A renamed row must not be duplicated by the reset: its load table says
+  // which pattern it is, whatever it is called.
+  it("re-adopts a renamed pattern by its load table rather than duplicating it", async () => {
+    serveCatalog();
+    await syncPatternCatalog();
+    const [seeded] = await getAllOilPatterns();
+    await db.oil_patterns.update(seeded.id!, { name: "My Thursday shot" });
+    await db.settings.clear(); // let the reset run again
+
+    resetPatternCatalogCache();
+    serveCatalog();
+    await syncPatternCatalog();
+
+    const after = await getAllOilPatterns();
+    expect(after).toHaveLength(1);
+    expect(after[0]).toMatchObject({ name: "My Thursday shot", catalog_id: "stonehenge" });
   });
 });

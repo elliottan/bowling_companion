@@ -188,8 +188,9 @@ export function oilStats(passes: readonly OilPass[] | undefined): OilStats {
 const boardCount = (p: OilPass): number =>
   Math.max(0, Math.min(LANE_BOARDS, Math.round(p.right_board)) - Math.max(1, Math.round(p.left_board)) + 1);
 
-/** Units on every board, the y-axis of the pattern graph printed on a sheet. */
-function boardTotals(passes: readonly OilPass[]): number[] {
+/** Units on every board, the y-axis of the pattern graph printed on a sheet.
+ *  `totals[i]` is board `i + 1`, counted from the left edge. */
+export function boardTotals(passes: readonly OilPass[]): number[] {
   const totals = new Array<number>(LANE_BOARDS).fill(0);
   for (const p of passes) {
     const lo = Math.max(1, Math.round(p.left_board));

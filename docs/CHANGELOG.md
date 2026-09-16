@@ -8,6 +8,21 @@ merge to `main` (`docs/DEPLOYMENT.md`), so every section below is a dated batch
 of shipped work rather than a release. Thirty of them used to be headed
 `[Unreleased]`, which said nothing once they had all shipped.
 
+## A pattern's numbers, without leaving the app (2026-09-16)
+
+**Every pattern opens its own sheet.** The distance, the total volume, the ratio
+and what it plays as, a bar per board showing where the oil actually is, the
+track zone ratios, and the whole load table with its boards written the way the
+printed sheet writes them. No link, no network, no trip off to someone else's
+site. A pattern you added yourself has no table to show, so it says so and keeps
+its link.
+
+**Pattern links are cleared once, so you can redo them.** If you pointed a
+pattern at the wrong one in the catalog, this release undoes every link on your
+device a single time. Pick the right one and it sticks. Renames survive it, and
+so does every session: a pattern that matches a catalog one by table or by name
+is recognised again rather than duplicated.
+
 ## Every pattern is just there (2026-09-16)
 
 **The catalog is your pattern list.** Stonehenge, Big Ben, Mercury and Chromium
