@@ -4669,3 +4669,271 @@ test asserts that rather than leaving it to be noticed.
 - `GRIP_SPAN` is the app's first stated opinion about a hand rather than a ball.
   If span is ever asked for, it replaces the constant and nothing else: the one
   reason it exists is to place two holes around a centre that was already exact.
+## ADR-101 — An oil pattern is its load table, and the lane draws it
+
+**Status.** Accepted, 2026-09-15.
+
+**Context.** An oil pattern in the app was a name and a link to its sheet. The
+sheet is where the numbers were, which means the numbers were somewhere the app
+could not reach: a bowler looking at their line on the lane and at a 42 ft
+pattern on a PDF had to hold the second one in their head and imagine where the
+ball ran out of oil. That imagined point is the one that decides the shot. The
+lane already drew a generic sheen over the front 45 ft, which is decoration, and
+decoration in the shape of data is worse than nothing, because it invites the
+reading it cannot support.
+
+The obvious small version is to store a pattern distance and draw a line across
+the lane at it. That draws the *end* of the pattern, and the end of the pattern
+is only the exit point for a ball that stays inside the oiled width the whole
+way down. A ball played out to the dry leaves the pattern early, out at the
+edge, with oil still ahead of it. A single distance cannot express that, and a
+distance plus a ratio still cannot: ratio is a summary of a shape, not the
+shape.
+
+**Decision.** `OilPattern.passes` stores the sheet's load table, one `OilPass`
+per machine pass, named after the sheet's own columns: START and STOP boards,
+LOADS, MICS, and the START and END feet the pass runs over. That list is the
+pattern, and everything quoted about a pattern is derived from it in
+`lib/oilPattern.ts`, never stored beside it. Storing a distance or a ratio as
+its own field would let the two disagree, and a pattern whose stated ratio
+contradicts its own table is a pattern nobody can act on.
+
+The model is checked against a real sheet rather than against itself. Kegel's
+Element Challenge Chromium 6742 is transcribed row for row in
+`lib/oilPattern.fixture.ts`, and the derivations reproduce every total it
+prints: CROSSED, T.OIL, 15.41 mL forward, 10.15 mL reverse, 25.56 mL total,
+42 ft, and the six track zone ratios. Three of the rules below are only right
+*because* that sheet said so, and the first draft of this ADR had all three
+wrong.
+
+- **Boards** are absolute, counted from the left edge, 1 to 39. A sheet writes
+  them counted in from each gutter, so "2L to 2R" is boards 2 to 38, and
+  `parseSheetBoard` converts. That reading is checkable rather than assumed:
+  the sheet prints CROSSED 111 for that pass at 3 loads, and 3 × 37 is 111.
+- **A reverse pass ends before it starts.** The sheet prints its reverse rows
+  as 42.0 to 39.0, running back toward the foul line, so `end_distance` may be
+  less than `start_distance` and the covered span is read either way round.
+  Requiring end past start, as the first draft did, made half of every real
+  sheet untranscribable.
+- **A buffer-only pass carries zero loads**, lays no oil, and still counts. On
+  Chromium 6742 the last oil goes down at 30.6 ft and the quoted pattern
+  distance is 42: the buffer carries it the rest of the way. So the distance is
+  the furthest any pass *travels*, not the furthest any pass oils. 42 is the
+  number on the wall at the alley, and a model that said 30.6 would be arguing
+  with the sheet.
+- **Volume** is `loads × mics × boards`, which is the sheet's own T.OIL column.
+- **Ratio** is the sheet's track zone ratio: the middle of the lane (18L to 18R)
+  against each five-board band out to the gutter, which gives Chromium's printed
+  6.71 / 1.76 / 1.00 on both sides. The outside one is the number a pattern is
+  known by. A heaviest-board-against-lightest-board figure was the first draft's
+  answer and is not what a sheet prints.
+
+`speed`, `buffer` and `tank` are carried so a sheet transcribes whole, and read
+by nothing: they change how the oil sits, which this app does not model.
+
+The app's own board space is handed (`boardToX` puts board 1 on the bowler's
+side), so the mirror happens once, at the drawing edge, exactly as the pin
+deck's mirror does. The half board that widens a band to its outer edge is added
+in sheet space *before* the mirror: mirror first and the half lands on the wrong
+side and shifts every band by a board.
+
+`LaneSurface` paints the table as rectangles, one per run of equally loaded
+boards over one down-lane slice, and nothing is smoothed. A pattern has edges,
+and the edges are the thing the drawing is for. Where a pattern is drawn, the
+decorative sheen is not: two oils on one lane read as one.
+
+The exit point is the payload. `oilExitPoint` walks the drawn line and returns
+the last point of it still sitting on a loaded board, so it answers "where do I
+leave the oil" rather than "where does the oil end", and it moves with every
+drag of a peg. The walk steps half a foot and then bisects the last half foot,
+so the exit reads as the number on the sheet rather than as an artefact of the
+step size.
+
+**Consequences.**
+- No schema version. `passes` is not indexed, so Dexie stores it as-is (see
+  "When a Dexie version bump is needed" in DATA_MODEL.md).
+- `passes` is optional, and absent on every pattern saved before this. A pattern
+  that is only a name stays a useful label on a session, and the lane keeps its
+  sheen.
+- A backup carries the table and `backupValidation.ts` checks every pass. One
+  undrawable row would put a pattern on the lane that was never laid, and a
+  bowler would read an exit point off it in good faith. "Undrawable" is now a
+  pass that goes nowhere or off the boards, not one that runs backward or
+  carries no oil.
+- `normalizeOilPasses` rejects a bad pass by name rather than dropping it, for
+  the same reason: a pattern quietly missing a pass draws a shape nobody entered.
+- The lane reads the pattern from `OilPatternContext`, provided by the session,
+  rather than from a prop threaded through the scorer. The visualizer is four
+  components below the session and none of the three between them has any
+  business carrying oil.
+- `buildLinePath` now returns `samples`, the drawn path as real lane
+  coordinates. The exit question is asked of the path, and asking it of an SVG
+  `d` string would mean parsing back out what the geometry already knew.
+- The pass editor takes boards in the sheet's notation, because the alternative
+  is a bowler doing 39-minus-n in their head fifteen times per pattern.
+
+## ADR-102 — A pattern sheet is parsed, not read by a model, and it checks itself
+
+**Status.** Accepted, 2026-09-16.
+
+**Context.** ADR-101 made a pattern its load table, which is the right model and
+a miserable thing to type. Chromium 6742 is fifteen rows of seven numbers, and a
+bowler has the sheet as a PDF already. So the entry problem is real and the
+obvious answer, out loud, is "let an AI read the sheet".
+
+Two things say otherwise. The app has no backend (`CLAUDE.md`), so there is no
+model to call at the moment a bowler picks a file, and adding one to read a
+public PDF would be the first server this app ever needed. And ADR-044 already
+settled who reads a fixed layout: a parser reads it and fails loudly, a model
+reads it and fails plausibly. A sheet is a rigid numeric table, which is the
+parser's case exactly.
+
+What makes it more than a preference is that **a pattern sheet carries its own
+checksums.** Every row prints CROSSED, which is loads × boards, and T.OIL, which
+is CROSSED × mics. The header prints the pattern distance and the forward,
+reverse and total volumes. So a parse can be checked against the document it came
+from, by arithmetic, with nothing taken on trust.
+
+**Decision.** Reading a sheet is two modules, split where the risk changes.
+
+- `lib/oilPatternSheet.ts` is pure: positioned text runs in, passes and checks
+  out. It groups runs into lines by their baselines, matches the load table's
+  thirteen columns, and converts the sheet's board notation through ADR-101's
+  `parseSheetBoard`. It is tested against Chromium 6742's real rows.
+- `lib/oilPatternPdf.ts` is the pdf.js half, and does nothing but fetch glyphs.
+
+Direction comes from the row, not from which table it was in: the machine only
+runs away from the foul line going forward and back toward it in reverse, so
+`end > start` decides it. That is one less thing a layout change can break.
+
+**Every parsed sheet is verified against itself**, two checks per row plus the
+header totals, and the import reports the count. A sheet that does not add up
+still fills the rows in, because the usual cause is one odd row and the rows are
+right there to correct, but it is never called verified and it says which sum
+disagrees and by how much. The failure mode this exists to prevent is a misread
+column that produces a *plausible* pattern, saved quietly, and then trusted on
+the lane for a season.
+
+The printed track zone ratios are deliberately not checked. They sit in a footer
+table whose labels and values are on separate lines, so pairing them by position
+is guesswork, and a check that misreads is worse than no check: it would fail a
+sheet that parsed perfectly.
+
+**A sheet arrives as a file or as a link**, and the link is best effort by
+nature. A browser will only hand a cross-origin response to a page the host
+invited, and most bowling sites send no CORS headers, so a perfectly good link
+often cannot be read by a page with no backend to proxy through. Both ways
+around that cost more than they are worth. A public CORS proxy would send every
+link a bowler imports to a stranger's server, which breaks the one promise this
+feature makes, that the sheet is read on your own phone. A server of our own
+would be the first this app has ever needed, to download a public PDF the
+browser can already be pointed at. So a blocked link reports what happened and
+the fix the bowler can apply, open it and import the file, and the failure is
+never dressed up as a parse error. A link that does work fills in the pattern's
+sheet link as well, since a link that produced a sheet is that sheet's link.
+
+**No pattern library ships with the app.** A built-in catalog, the ball
+catalog's shape, would mean redistributing Kegel's pattern data, which is
+published but not licensed for that. Import sidesteps it completely: the bowler
+brings their own sheet, and nothing of Kegel's lives in the repo but a
+transcription used as a test fixture.
+
+**What the real sheet then said.** Kegel's own generator writes the header into
+the text layer and draws the two load tables as **pictures**. On Chromium 6742
+the whole page carries 59 text runs, the header and the title, and seven images.
+So the parser reads the distance and the volumes off that sheet and finds no
+rows at all, and this is not an edge case: it is what a current, genuine Kegel
+sheet looks like.
+
+That does not undo the reasoning above, it narrows its reach. The checks, the
+board notation and the arithmetic are all still right, and are still what any
+reader has to answer to. What is now false is the assumption that a sheet's
+table is text. A sheet whose tables are text imports and verifies; a sheet whose
+tables are pictures cannot be read at all, and says so in those words rather
+than asking a bowler holding a pattern sheet whether it is one. The two are told
+apart by whether the page paints any image before either is reported.
+
+Reading those pictures needs OCR, which is a different reader with a different
+failure mode, and is left to its own decision rather than smuggled in here. The
+checks are what would make it tenable: OCR is exactly the reader that fails
+plausibly, and this is exactly the document that can catch it.
+
+**Consequences.**
+- pdf.js is imported dynamically and only from `oilPatternPdf`, so its 1.7 MB
+  lands in its own chunk. It is kept out of the service worker precache
+  (`globIgnores`) and runtime cached on first use, because most bowlers keep
+  score and never import a sheet, and none of them should download a PDF parser
+  to do it.
+- Parsing is local. Nothing is uploaded, and the import works on a phone in an
+  alley with no signal, which is the whole point of the app.
+- The fixture transcription was checked against the real PDF, row for row, and
+  is exact. What the real PDF also showed is that its tables are images, which
+  is why the transcription is still the fixture: it is the arithmetic that the
+  fixture proves, and no text-layer parse of that particular sheet exists to
+  prove the reading against.
+- A sheet that is not a load table imports nothing and says so, rather than
+  saving an empty pattern.
+
+## ADR-103 — Kegel draws its tables, so they are read by OCR and repaired by the sheet
+
+**Status.** Accepted, 2026-09-16.
+
+**Context.** ADR-102 chose a parser over a model for reading a pattern sheet,
+on ADR-044's rule that a parser reads a fixed layout and fails loudly. The real
+Chromium 6742 then showed the assumption underneath it to be false. Kegel's
+generator writes the header into the text layer and draws both load tables as
+**pictures**: 59 text runs on the whole page, and seven images. There is no
+fixed text layout to parse, because there is no text.
+
+So the choice is not parser against model any more. It is OCR against typing
+fifteen rows of seven numbers by hand, which is the job this feature exists to
+abolish.
+
+**Decision.** A sheet whose text layer yields no rows has its table images read
+with OCR, in the browser, with every asset served from our own origin.
+
+OCR is precisely the reader ADR-044 warns about: it fails plausibly. On the real
+sheet it gets **every digit right** and then loses things one or two pixels
+wide. Two failures repeat, and the sheet repairs both, because a load table says
+everything more than once:
+
+- **A dropped decimal point.** "15.3" comes back "153". Distances carry exactly
+  one decimal, so a distance with no point is missing one, and there is only one
+  reading in range. The FEET column proves it: END minus START must equal FEET.
+- **A board that gained a digit.** "7L" comes back "71L", which is not a board.
+  CROSSED over LOADS is how many boards the pass covered, and a pass from nL to
+  nR covers 41 - 2n of them, so the crossings name the board OCR lost.
+
+Nothing is guessed. Every repair is derived from another column of the same row,
+and a row that cannot be repaired is left as read, to fail the checks and be
+corrected by hand.
+
+**What verifies the scan is the header, because the header is text.** The
+distance and the forward, reverse and total volumes come from the text layer and
+are trustworthy; the rows do not and are not. Checking the rows against the
+header is checking a suspect reader against a reliable one, which is the whole
+reason this is tenable at all. ADR-102's row checksums still apply on top.
+
+The proof is kept: `oilPatternOcr.test.ts` holds the **verbatim tesseract output**
+for both of Chromium 6742's tables, dropped decimals, spurious digits and all,
+and asserts that repairing it reproduces the sheet's printed 15.41 / 10.15 /
+25.56 mL, 42 ft and 6.71:1. The same test asserts that the *unrepaired* output
+loses rows and fails its checks, rather than importing a wrong pattern quietly.
+
+**Consequences.**
+- The reading is split in two. `oilPatternOcr.ts` is pure repair logic and is
+  where the reasoning lives; `oilPatternOcrReader.ts` drives the wasm worker.
+  The part that can be tested against a real sheet is not tangled in the part
+  that cannot.
+- OCR runs only when the text layer found nothing, so a sheet with real text
+  never pays for it.
+- Roughly 6.8 MB of core and language data, lazy, kept out of the service worker
+  precache and runtime cached on first use, exactly as pdf.js is. A bowler who
+  never imports a picture of a table never downloads it.
+- The assets are bundled rather than fetched from tesseract's default CDN. An
+  app that works in an alley with no signal cannot depend on jsdelivr, and a
+  scan is not worth leaking which patterns a bowler looks up.
+- Only images shaped like a table are scanned, so the logo and the pattern graph
+  are never handed to OCR.
+- The language pack is the 3 MB integer build, which read this sheet exactly as
+  well as the 11 MB one.

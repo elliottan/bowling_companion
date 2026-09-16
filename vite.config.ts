@@ -192,7 +192,41 @@ export default defineConfig({
         // NOTE: webp and catalog JSON are intentionally excluded from precache
         // to keep boot light. They are runtime-cached on first use instead.
         globPatterns: ["**/*.{js,css,html,svg,png,ico,webmanifest}"],
+        // pdf.js is 1.7 MB of PDF parser that only a pattern sheet import ever
+        // touches. Precaching it would put that on every install, including the
+        // bowlers who never import one, so it is fetched on demand and cached
+        // once used (the rule below). The catalog JSON and webp are out for the
+        // same reason.
+        // Tesseract is the same bargain again, larger: a wasm core and a
+        // language pack that only a picture of a load table ever needs. They
+        // are served from our own origin (never a CDN, because the app has to
+        // work in an alley with no signal once used), kept out of the install,
+        // and cached the first time a sheet is scanned.
+        globIgnores: [
+          "**/pdf*.worker*.{js,mjs}",
+          "**/assets/pdf*.js",
+          "**/assets/tesseract*",
+          "**/assets/eng.traineddata*",
+          "**/assets/worker.min*.js",
+        ],
         runtimeCaching: [
+          {
+            // CacheFirst: the parser never changes within a build, and once a
+            // sheet has been imported the next one works with no network.
+            urlPattern: /\/assets\/pdf.*\.(?:js|mjs)$/,
+            handler: "CacheFirst",
+            options: { cacheName: "pdf-reader" }
+          },
+          {
+            // Same, for the OCR core and its language data. Big and immutable,
+            // so worth keeping once fetched and never worth revalidating.
+            urlPattern: /\/assets\/(?:tesseract|eng\.traineddata|worker\.min).*/,
+            handler: "CacheFirst",
+            options: {
+              cacheName: "sheet-ocr",
+              expiration: { maxEntries: 8 }
+            }
+          },
           {
             // NetworkFirst (not SWR): online clients must read the *current*
             // manifest/catalog so a freshly deployed catalog syncs on the first

@@ -1,12 +1,14 @@
 import { ChevronLeft, ChevronRight, Lock, Minus, Plus, SlidersHorizontal, X } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { LineSpec, PinNumber } from "../types/bowling";
 import { useHandedness } from "../lib/handednessContext";
 import { useDriftModel } from "../lib/driftModelContext";
+import { useSessionOilPattern } from "../lib/oilPatternContext";
+import { headlineRatio, oilBands, oilExitPoint, oilStats, oilZones, peakUnits, type OilStats } from "../lib/oilPattern";
 import { useOverlay } from "../lib/useOverlay";
 import { deriveLaydown, deriveLaydownFromSlide, deriveSlide } from "../lib/driftModel";
 import { spareAimPoint } from "../lib/spareAim";
-import { LaneSurface } from "./LaneSurface";
+import { LaneSurface, type OilOverlay } from "./LaneSurface";
 import {
   buildLinePath, solveLine, projectBreakpoint, xToBoard, yToFeet, PLANE_W, PLANE_L,
   POCKET_BOARD, type Peg, arrowFeet, ARROWS_FEET, LANE_FEET, HOOK_START_FT, HOOK_LENGTH_FT,
@@ -73,7 +75,9 @@ interface LaneVisualizerProps {
 export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, showStance = false, title = "Line", onEditAttempt, defaultLocks, suspended = false }: LaneVisualizerProps) {
   const hand = useHandedness();
   const driftModel = useDriftModel();
+  const oilPattern = useSessionOilPattern();
   const [deg, setDeg] = useState(BOWLER_DEG);
+  const [showOil, setShowOil] = useState(true);
   const [dragging, setDragging] = useState(false);
   const [optionsOpen, setOptionsOpen] = useState(false);
   const [replayKey, setReplayKey] = useState(0);
@@ -165,7 +169,24 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [spare, line?.stance, line?.slide, line?.laydown]);
 
-  const path = onChange && line ? buildLinePath(line, hand, spare) : null;
+  // Drawn for every caller, editable or not: the oil exit rides this path, and a
+  // read-only line still has one. Only the drag handles are gated on onChange.
+  const path = line ? buildLinePath(line, hand, spare) : null;
+
+  // The pattern, derived from its load table every time the line moves, so the
+  // exit point tracks the drag. Cheap: a handful of passes over 39 boards.
+  const zones = useMemo(() => oilZones(oilPattern?.passes), [oilPattern]);
+  const stats = useMemo(() => oilStats(oilPattern?.passes), [oilPattern]);
+  const hasOil = zones.length > 0;
+  const oil: OilOverlay | undefined = useMemo(() => {
+    if (!hasOil || !showOil) return undefined;
+    return {
+      bands: oilBands(zones),
+      peak: peakUnits(zones),
+      length: stats.length,
+      exit: path ? oilExitPoint(zones, path.samples, hand) : null,
+    };
+  }, [hasOil, showOil, zones, stats.length, path, hand]);
 
   // Slide tick (ADR-030): purely decorative, a derived slide-foot marker at the
   // foul line, distinct from the (draggable) laydown peg. Shown on spare lines
@@ -287,7 +308,7 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
   }
 
   const handles: Array<{ key: string; p: { x: number; y: number } }> = [];
-  if (path) {
+  if (path && onChange) {
     handles.push({ key: "laydown", p: path.points.laydown });
     handles.push({ key: "target", p: path.points.target });
     // Both modes: the derived breakpoint is draggable (ADR-026).
@@ -340,11 +361,11 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
           >
             {isTopDown ? "Bowler view" : "Top-down"}
           </button>
-          {onChange && (
+          {(onChange || hasOil) && (
             <button
               type="button"
               onClick={() => setOptionsOpen(true)}
-              aria-label="Hook options"
+              aria-label="Lane options"
               className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/25 bg-slate-900/70 text-white/80 backdrop-blur hover:bg-white/10"
             >
               <SlidersHorizontal size={16} aria-hidden="true" />
@@ -373,6 +394,7 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
               line={line}
               hand={hand}
               leave={leave}
+              oil={oil}
               animate
               animateKey={replayKey}
               slideBoard={slideBoard}
@@ -529,7 +551,13 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
       {optionsOpen && (
         <OptionsSheet
           line={line}
+          editable={onChange != null}
           onChange={applyEdit}
+          oilName={hasOil ? oilPattern?.name : undefined}
+          oilStats={hasOil ? stats : undefined}
+          oilRatio={hasOil ? headlineRatio(oilPattern?.passes) : null}
+          showOil={showOil}
+          onToggleOil={setShowOil}
           onClose={() => setOptionsOpen(false)}
         />
       )}
@@ -537,12 +565,19 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
   );
 }
 
-/** Bottom sheet with the hook-shape sliders (shared by strike + spare, ADR-026). */
+/** Bottom sheet with the hook-shape sliders (shared by strike + spare, ADR-026)
+ *  and the oil pattern switch (ADR-090). */
 function OptionsSheet({
-  line, onChange, onClose,
+  line, editable, onChange, oilName, oilStats: oil, oilRatio, showOil, onToggleOil, onClose,
 }: {
   line: LineSpec | undefined;
+  editable: boolean;
   onChange: (patch: Partial<LineSpec>) => void;
+  oilName: string | undefined;
+  oilStats: OilStats | undefined;
+  oilRatio: number | null;
+  showOil: boolean;
+  onToggleOil: (on: boolean) => void;
   onClose: () => void;
 }) {
   // Live bounds mirroring the solver's clamps (laneGeometry hookGeomRaw): the
@@ -564,24 +599,42 @@ function OptionsSheet({
       >
         <div className="mx-auto mb-3 h-1.5 w-10 rounded-full bg-white/25" />
         <div className="mb-3 flex items-center">
-          <h3 className="flex-1 text-sm font-bold">Hook shape</h3>
+          <h3 className="flex-1 text-sm font-bold">Lane options</h3>
           <button type="button" onClick={onClose} aria-label="Done" className="rounded-md px-3 py-1 text-xs font-semibold hover:bg-white/10">
             Done
           </button>
         </div>
-        <Slider
+        {oil && (
+          <div className="mb-4 border-b border-white/10 pb-3">
+            <label className="flex items-center gap-3 py-1">
+              <input
+                type="checkbox"
+                checked={showOil}
+                onChange={(e) => onToggleOil(e.target.checked)}
+                className="h-5 w-5 accent-sky-400"
+              />
+              <span className="flex-1 text-sm font-semibold">Show oil pattern</span>
+            </label>
+            <p className="mt-1 text-xs tabular-nums text-white/60">
+              {oilName} · {Math.round(oil.length)} ft · {oil.volumeMl.toFixed(2)} mL
+              {oilRatio != null ? ` · ${oilRatio.toFixed(1)}:1` : ""}
+            </p>
+          </div>
+        )}
+        {editable && <h4 className="mb-2 text-xs font-bold uppercase tracking-wide text-white/60">Hook shape</h4>}
+        {editable && <Slider
           label="Hook start" suffix="ft" min={startMin} max={startMax} step={1}
           value={clamp(dS, startMin, startMax)}
           onChange={(v) => onChange({ hook_start_distance: v })}
-        />
-        <Slider
+        />}
+        {editable && <><Slider
           label="Hook length" suffix="ft" min={4} max={lenMax} step={1}
           value={clamp(line?.hook_length ?? HOOK_LENGTH_FT, 4, lenMax)}
           onChange={(v) => onChange({ hook_length: v })}
         />
         <p className="mt-1 text-xs text-white/50">
           Where it leaves the skid, and how long it takes to recover into the pins.
-        </p>
+        </p></>}
       </div>
     </div>
   );

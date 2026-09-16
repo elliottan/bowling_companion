@@ -8,6 +8,64 @@ merge to `main` (`docs/DEPLOYMENT.md`), so every section below is a dated batch
 of shipped work rather than a release. Thirty of them used to be headed
 `[Unreleased]`, which said nothing once they had all shipped.
 
+## Import a pattern sheet instead of typing it (2026-09-16)
+
+**Point the app at a pattern sheet and it reads the load table for you.** Pick
+the file, or paste a link to it. Fifteen rows of seven numbers, filled in for
+you, with the name off the sheet and the sheet link kept. The import leads the
+form now, because it fills in everything under it. It is read on your own phone
+and nothing is uploaded.
+
+The distance, the volume and the ratio are shown as soon as a sheet is read.
+They are not fields to fill in: they fall out of the load table, so seeing them
+is how you know the sheet was read correctly.
+
+Some sites do not let other pages read their files, and a link to one of those
+cannot be fetched by an app with no server. When that happens it says so, and
+says to open the link and import the file instead.
+
+**Kegel's own sheets draw their load tables as pictures, and those are read
+too.** The app scans them on your phone when there is no text to read, and then
+checks what it scanned against the header, which is text and so can be trusted.
+
+Scanning drops a decimal point here and there, and the sheet puts them back: a
+distance carries one decimal and the FEET column says what the gap should be, so
+"153" can only be 15.3. A board that comes back as 71L is recovered from the
+crossings, which say how wide the pass was. Anything that cannot be repaired is
+left as scanned and fails its check, so you fix one row rather than fifteen.
+
+The scanner is a few megabytes and is only fetched the first time you import a
+sheet that needs it, then kept for next time.
+
+**It checks the sheet against itself before it says it worked.** Every row of a
+sheet prints its own crossings and oil total, and the header prints the
+distance and the volumes, so the import re-derives all of them and tells you how
+many checks passed. A sheet that does not add up still fills the rows in, so you
+can fix the odd one, but it says which sum disagrees rather than quietly saving
+a pattern that is slightly wrong.
+
+No pattern library is bundled, by choice: you bring your own sheet, and none of
+Kegel's data ships in the app.
+
+## The oil pattern, on the lane (2026-09-15)
+
+**An oil pattern can now carry its load table, and the lane draws it.** Add a
+pass per row of the pattern sheet, in the sheet's own columns and its own board
+notation, 2L to 2R, and the visualizer paints the oil under your line: heavier
+boards denser, the stair steps where the sheet has them, and a dashed line where
+the pattern ends. Reverse passes and buffer passes go in as printed.
+
+**The exit point is marked on your line.** Not where the pattern ends, where
+*you* leave it. A ball played out to the dry runs off the oiled width early,
+with oil still ahead of it, and the marker moves as you drag a peg. The lane
+options button carries a switch to put the oil away.
+
+The distance, the volume and the track zone ratios are read off the table rather
+than typed, so they cannot disagree with it, and they show on the pattern's row
+in Settings. Checked against Kegel's Chromium 6742: every total the app derives
+is a total that sheet prints. A pattern that is only a name still works exactly
+as it did.
+
 ## A centred grip, and a two-hander's ball (2026-09-15)
 
 **The centre of your grip is now drawn in the centre of your grip.** The cross

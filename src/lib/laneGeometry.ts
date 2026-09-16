@@ -95,6 +95,11 @@ export interface LinePath {
    *  SVG path. The ball rides it on the skid and can never cross right of it
    *  (ADR-014). */
   focal: string | null;
+  /** The drawn path as real lane samples (board in the app's handed space,
+   *  feet from the foul line), front to back. Same vertices the `d` string is
+   *  built from, kept so callers can ask lane questions of the path itself,
+   *  e.g. where it leaves the oil (`oilExitPoint`). */
+  samples: Array<{ board: number; feet: number }>;
   points: {
     laydown: PlanePoint;
     target: PlanePoint;
@@ -492,6 +497,7 @@ export function buildLinePath(
     const end = isStrike ? fF : DRAW_BACK_FEET;
     const e = focalPt(end);
     const d = `M ${laydown.x} ${laydown.y} L ${e.x} ${e.y}`;
+    const samples = [{ board: foul, feet: 0 }, { board: focalBoard(end), feet: end }];
     // The ball rides the focal, so at the final's depth it sits on the FOCAL, not
     // on the requested board. The marker follows the ball, it must always be a
     // point of the drawn line, or it reads as a finish the shot can't produce.
@@ -504,7 +510,7 @@ export function buildLinePath(
         ? focalPt(fF)
         : focalPt(clamp((arrowFeet(tgt) * (onLane - foul)) / (tgt - foul), 0, end));
     // No hook ⇒ no breakpoint marker (ADR-028).
-    return { d, focal, miss, points: { laydown, target, hookStart: null, breakpoint: null, final: finalMark } };
+    return { d, focal, miss, samples, points: { laydown, target, hookStart: null, breakpoint: null, final: finalMark } };
   }
 
   if (isStrike) {
@@ -517,7 +523,11 @@ export function buildLinePath(
       d += ` L ${q.x} ${q.y}`;
     }
     const breakpoint = g.apexReal ? pt(boardToX(g.apex.board, hand, true), feetToY(g.apex.feet)) : null;
-    return { d, focal, miss: false, points: { laydown, target, hookStart: null, breakpoint, final } };
+    return {
+      d, focal, miss: false,
+      samples: [{ board: foul, feet: 0 }, ...g.pts.map((s) => ({ board: s.board, feet: s.feet }))],
+      points: { laydown, target, hookStart: null, breakpoint, final },
+    };
   }
 
   // Spare (ADR-019 shape, per-line timing ADR-024): same unified curve, with
@@ -534,7 +544,11 @@ export function buildLinePath(
     d += ` L ${q.x} ${q.y}`;
   }
   const spBreakpoint = sg.apexReal ? pt(boardToX(sg.apex.board, hand, true), feetToY(sg.apex.feet)) : null;
-  return { d, focal, miss: false, points: { laydown, target, hookStart: null, breakpoint: spBreakpoint, final } };
+  return {
+    d, focal, miss: false,
+    samples: [{ board: foul, feet: 0 }, ...sg.pts.map((s) => ({ board: s.board, feet: s.feet }))],
+    points: { laydown, target, hookStart: null, breakpoint: spBreakpoint, final },
+  };
 }
 
 // --- Drawability solver (ADR-015) ------------------------------------------
