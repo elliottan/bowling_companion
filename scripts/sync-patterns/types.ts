@@ -1,4 +1,5 @@
 import type { OilPass } from "../../src/types/bowling.js";
+import type { PatternClass } from "../../src/lib/oilPattern.js";
 
 /**
  * Oil pattern catalog ingest (ADR-104).
@@ -52,6 +53,8 @@ export interface CatalogPattern {
   distance: number;
   volumeMl: number;
   ratio: number | null;
+  /** Sport, challenge or recreation, derived from the ratio (ADR-101). */
+  shape: PatternClass | null;
   passes: OilPass[];
 }
 

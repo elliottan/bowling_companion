@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generated_at": "2026-09-16T04:04:50.096Z",
+  "generated_at": "2026-09-16T05:38:39.610Z",
   "patterns": [
     {
       "id": "kegel-element-challenge-chromium-6742",
@@ -10,6 +10,7 @@
       "distance": 42,
       "volumeMl": 25.56,
       "ratio": 6.705882352941177,
+      "shape": "challenge",
       "passes": [
         {
           "direction": "forward",

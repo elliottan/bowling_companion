@@ -19,7 +19,7 @@ import { readFileSync, writeFileSync, readdirSync, mkdirSync, existsSync } from 
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { oilStats, headlineRatio } from "../../src/lib/oilPattern.js";
+import { oilStats, headlineRatio, patternClass } from "../../src/lib/oilPattern.js";
 import type { CatalogPattern, PatternCandidate, PatternCatalog } from "./types.js";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -88,6 +88,7 @@ export function toCatalogPattern(candidate: PatternCandidate): CatalogPattern {
     distance: stats.length,
     volumeMl: Math.round(stats.volumeMl * 100) / 100,
     ratio: headlineRatio(candidate.passes),
+    shape: patternClass(headlineRatio(candidate.passes)),
     passes: candidate.passes,
   };
 }

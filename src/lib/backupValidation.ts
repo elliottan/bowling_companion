@@ -195,7 +195,7 @@ function validateOilPattern(value: unknown): value is OilPattern {
   );
 }
 
-/** A load table restores only if every pass is drawable (ADR-090). One bad row
+/** A load table restores only if every pass is drawable (ADR-101). One bad row
  *  would draw a pattern the bowler never laid, so the file is rejected. */
 function isOptionalOilPasses(value: unknown): value is OilPass[] | undefined {
   if (value === undefined) return true;

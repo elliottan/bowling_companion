@@ -2,7 +2,8 @@ import { describe, expect, it } from "vitest";
 import type { OilPass } from "../types/bowling";
 import {
   formatSheetBoard, headlineRatio, oilBands, oilExitPoint, oilStats, oilZones,
-  oiledSpanAt, parseSheetBoard, peakUnits, toHandBoard, trackZoneRatios,
+  oiledSpanAt, parseSheetBoard, patternClass, patternLength, peakUnits, toHandBoard,
+  trackZoneRatios,
 } from "./oilPattern";
 import { CHROMIUM_6742 } from "./oilPattern.fixture";
 
@@ -242,5 +243,57 @@ describe("Kegel Chromium 6742", () => {
     );
     // The last oil is at 30.6 ft; past it the lane is dry, buffer travel or not.
     expect(exit!.feet).toBeCloseTo(30.6, 2);
+  });
+});
+
+describe("patternClass", () => {
+  // The bands the sport uses: USBC caps a Sport pattern at 3:1, challenge runs
+  // about 4:1 to 8:1, and a house shot is 8:1 and up.
+  it("calls a flat pattern a sport shot", () => {
+    expect(patternClass(1)).toBe("sport");
+    expect(patternClass(2.5)).toBe("sport");
+    expect(patternClass(3)).toBe("sport");
+  });
+
+  it("calls the middle ground a challenge", () => {
+    expect(patternClass(3.1)).toBe("challenge");
+    expect(patternClass(6.71)).toBe("challenge"); // Chromium 6742
+    expect(patternClass(7.9)).toBe("challenge");
+  });
+
+  it("calls a funnel a house shot", () => {
+    expect(patternClass(8)).toBe("recreation");
+    expect(patternClass(12)).toBe("recreation");
+  });
+
+  it("classifies nothing without a ratio", () => {
+    expect(patternClass(null)).toBeNull();
+    expect(patternClass(undefined)).toBeNull();
+    expect(patternClass(0)).toBeNull();
+    expect(patternClass(Number.NaN)).toBeNull();
+  });
+
+  it("agrees with the load table it came from", () => {
+    expect(patternClass(headlineRatio(CHROMIUM_6742))).toBe("challenge");
+  });
+});
+
+describe("patternLength", () => {
+  it("takes the length from the table when there is one", () => {
+    expect(patternLength({ passes: CHROMIUM_6742 })).toBe(42);
+  });
+
+  // A table and a typed length cannot disagree, because the table always wins.
+  it("ignores a typed length that contradicts the table", () => {
+    expect(patternLength({ passes: CHROMIUM_6742, distance: 35 })).toBe(42);
+  });
+
+  it("falls back to the typed length for a pattern with no table", () => {
+    expect(patternLength({ distance: 40 })).toBe(40);
+  });
+
+  it("knows nothing when neither is given", () => {
+    expect(patternLength({})).toBeNull();
+    expect(patternLength({ distance: 0 })).toBeNull();
   });
 });

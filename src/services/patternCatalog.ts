@@ -1,4 +1,5 @@
 import type { OilPass } from "../types/bowling";
+import type { PatternClass } from "../lib/oilPattern";
 
 /**
  * The shipped oil pattern catalog (ADR-104).
@@ -20,6 +21,9 @@ export interface CatalogPattern {
   distance: number;
   volumeMl: number;
   ratio: number | null;
+  /** Sport, challenge or recreation. Derived at ingest, shipped so a long list
+   *  does not recompute it on every keystroke of a search. */
+  shape: PatternClass | null;
   passes: OilPass[];
 }
 

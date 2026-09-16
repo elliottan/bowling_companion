@@ -2,7 +2,7 @@ import { LANE_BOARDS } from "./laneGeometry";
 import type { Handedness, OilPass } from "../types/bowling";
 
 /**
- * The oil pattern, derived from its load table (ADR-090).
+ * The oil pattern, derived from its load table (ADR-101).
  *
  * A pattern sheet is a list of machine passes, and everything a bowler quotes
  * about a pattern falls out of that list: the distance is the deepest pass, the
@@ -334,4 +334,42 @@ function densify(
   }
   if (poly.length > 0) out.push(poly[poly.length - 1]);
   return out;
+}
+
+/**
+ * How a pattern is spoken about, derived from its ratio rather than asserted.
+ *
+ * The bands are the ones the sport actually uses: USBC caps a Sport pattern at
+ * 3:1, challenge conditions run about 4:1 to 8:1, and a recreation pattern is
+ * 8:1 and up, which is the funnel that makes a house shot forgiving. Deriving
+ * this keeps it honest: a pattern cannot claim to be a Sport shot while its own
+ * load table says 8:1.
+ */
+export type PatternClass = "sport" | "challenge" | "recreation";
+
+export function patternClass(ratio: number | null | undefined): PatternClass | null {
+  if (ratio == null || !Number.isFinite(ratio) || ratio <= 0) return null;
+  if (ratio <= 3) return "sport";
+  return ratio < 8 ? "challenge" : "recreation";
+}
+
+/** What to call it on screen. Kegel's own three tiers, and the words a bowler
+ *  reads on a pattern sheet. */
+export const PATTERN_CLASS_LABEL: Record<PatternClass, string> = {
+  sport: "Sport",
+  challenge: "Challenge",
+  recreation: "Recreation",
+};
+
+/**
+ * A pattern's length, however it knows it. A load table decides it; without one
+ * the stored distance is all there is. Returns null when neither is known.
+ */
+export function patternLength(pattern: {
+  passes?: OilPass[];
+  distance?: number;
+}): number | null {
+  const stats = oilStats(pattern.passes);
+  if (stats.length > 0) return stats.length;
+  return pattern.distance != null && pattern.distance > 0 ? pattern.distance : null;
 }

@@ -18,7 +18,10 @@ import {
   updateOilPattern
 } from "../services/ballRepository";
 import type { OilPass, OilPattern } from "../types/bowling";
-import { headlineRatio, oilStats } from "../lib/oilPattern";
+import {
+  headlineRatio, oilStats, patternClass, patternLength, PATTERN_CLASS_LABEL, type PatternClass,
+} from "../lib/oilPattern";
+import { FIELD } from "./ui/field";
 import { getCatalogPatterns, type CatalogPattern } from "../services/patternCatalog";
 import { LIST_DIVIDER, ListGroup } from "./ui/ListGroup";
 import { GROUP_HEADING } from "./ui/typography";
@@ -50,6 +53,8 @@ export function OilPatternManager({ onBack, mode = "inline" }: OilPatternManager
   const [pendingRemove, setPendingRemove] = useState<OilPattern | null>(null);
   const [catalog, setCatalog] = useState<CatalogPattern[]>([]);
   const [showCatalog, setShowCatalog] = useState(false);
+  const [query, setQuery] = useState("");
+  const [shape, setShape] = useState<PatternClass | null>(null);
 
   // The shipped catalog (ADR-104). Loaded once, and an empty one simply means
   // nothing to start from, never a broken screen.
@@ -61,6 +66,20 @@ export function OilPatternManager({ onBack, mode = "inline" }: OilPatternManager
 
   /** Add a catalog pattern to your own list. It is copied, not referenced: a
    *  pattern in your list is yours, and editing it must never edit the catalog. */
+  // One box for both things worth searching by: a pattern's name, and how long
+  // it is. Typing 40 finds the forty footers, typing stone finds Stonehenge.
+  const shown = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return catalog.filter((pattern) => {
+      if (shape && (pattern.shape ?? patternClass(pattern.ratio)) !== shape) return false;
+      if (!q) return true;
+      return (
+        pattern.name.toLowerCase().includes(q) ||
+        String(Math.round(pattern.distance)).startsWith(q)
+      );
+    });
+  }, [catalog, query, shape]);
+
   async function addFromCatalog(pattern: CatalogPattern) {
     setShowCatalog(false);
     try {
@@ -75,11 +94,11 @@ export function OilPatternManager({ onBack, mode = "inline" }: OilPatternManager
   const active = useMemo(() => patterns.filter((p) => !p.archived), [patterns]);
   const archived = useMemo(() => patterns.filter((p) => p.archived), [patterns]);
 
-  async function handleSubmit(values: { name: string; url?: string; passes?: OilPass[] }) {
+  async function handleSubmit(values: { name: string; url?: string; passes?: OilPass[]; distance?: number }) {
     if (editing?.id != null) {
       await updateOilPattern(editing.id, values);
     } else {
-      await addOilPattern(values.name, values.url, values.passes);
+      await addOilPattern(values.name, values.url, values.passes, values.distance);
     }
     setDialogOpen(false);
     setEditing(undefined);
@@ -214,8 +233,42 @@ export function OilPatternManager({ onBack, mode = "inline" }: OilPatternManager
 
       {showCatalog && (
         <FormSheet title="Add from the catalog" onClose={() => setShowCatalog(false)}>
+          <input
+            type="search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            className={`${FIELD} mb-2`}
+            placeholder="Name or length, e.g. Stonehenge or 40"
+            aria-label="Search patterns"
+          />
+
+          {/* How a pattern plays, by its ratio: the first thing a bowler wants
+              to filter on, and derived rather than claimed (ADR-101). */}
+          <div className="mb-3 flex gap-1.5">
+            {(["sport", "challenge", "recreation"] as const).map((option) => (
+              <button
+                key={option}
+                type="button"
+                onClick={() => setShape((current) => (current === option ? null : option))}
+                aria-pressed={shape === option}
+                className={`rounded-full border px-3 py-1 text-xs font-semibold ${
+                  shape === option
+                    ? "border-accent-fill bg-accent-soft text-accent-strong"
+                    : "border-edge-strong bg-surface text-ink-secondary"
+                }`}
+              >
+                {PATTERN_CLASS_LABEL[option]}
+              </button>
+            ))}
+          </div>
+
+          {shown.length === 0 ? (
+            <p className="px-1 py-3 text-sm text-ink-secondary">
+              No pattern matches that.
+            </p>
+          ) : (
           <ListGroup>
-            {catalog.map((pattern) => (
+            {shown.map((pattern) => (
               <li key={pattern.id} className={`flex items-center ${LIST_DIVIDER}`}>
                 <button
                   type="button"
@@ -227,6 +280,9 @@ export function OilPatternManager({ onBack, mode = "inline" }: OilPatternManager
                     <span className="block truncate text-xs tabular-nums text-ink-secondary">
                       {Math.round(pattern.distance)} ft · {pattern.volumeMl.toFixed(2)} mL
                       {pattern.ratio != null ? ` · ${pattern.ratio.toFixed(1)}:1` : ""}
+                      {(pattern.shape ?? patternClass(pattern.ratio))
+                        ? ` · ${PATTERN_CLASS_LABEL[(pattern.shape ?? patternClass(pattern.ratio))!]}`
+                        : ""}
                     </span>
                   </span>
                   <Plus size={16} aria-hidden="true" className="shrink-0 text-ink-tertiary" />
@@ -234,6 +290,7 @@ export function OilPatternManager({ onBack, mode = "inline" }: OilPatternManager
               </li>
             ))}
           </ListGroup>
+          )}
           <p className="mt-2 px-1 text-xs text-ink-tertiary">
             Each one was checked against the totals printed on its own sheet before
             it shipped. Adding one copies it into your list, so you can edit it.
@@ -291,9 +348,18 @@ function summarize(pattern: OilPattern): string {
   const stats = oilStats(pattern.passes);
   if (stats.length > 0) {
     const ratio = headlineRatio(pattern.passes);
-    const tail = ratio != null ? ` · ${ratio.toFixed(1)}:1` : "";
-    return `${Math.round(stats.length)} ft · ${stats.volumeMl.toFixed(2)} mL${tail}`;
+    const shape = patternClass(ratio);
+    return [
+      `${Math.round(stats.length)} ft`,
+      `${stats.volumeMl.toFixed(2)} mL`,
+      ratio != null ? `${ratio.toFixed(1)}:1` : null,
+      shape ? PATTERN_CLASS_LABEL[shape] : null,
+    ].filter(Boolean).join(" · ");
   }
+  // No table, so the length is whatever was typed, and there is no ratio to
+  // classify by: a pattern you added yourself is a label, not a drawing.
+  const feet = patternLength(pattern);
+  if (feet != null) return `${Math.round(feet)} ft`;
   return pattern.url ? "Pattern sheet saved" : "No link";
 }
 

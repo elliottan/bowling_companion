@@ -25,7 +25,7 @@ const PEG_COLOR = {
 } as const;
 
 /** The oil pattern as this surface draws it, all derived in `lib/oilPattern`
- *  (ADR-090). Absent means no pattern to draw, and the lane keeps its
+ *  (ADR-101). Absent means no pattern to draw, and the lane keeps its
  *  decorative sheen instead. */
 export interface OilOverlay {
   bands: OilBand[];

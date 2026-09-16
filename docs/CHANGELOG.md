@@ -8,6 +8,24 @@ merge to `main` (`docs/DEPLOYMENT.md`), so every section below is a dated batch
 of shipped work rather than a release. Thirty of them used to be headed
 `[Unreleased]`, which said nothing once they had all shipped.
 
+## Find a pattern by name, length or how it plays (2026-09-16)
+
+**The catalog is searchable.** One box takes either a name or a length, so
+typing Stonehenge finds Stonehenge and typing 40 finds the forty footers. Three
+chips filter by how a pattern plays: Sport, Challenge or Recreation.
+
+That classification is not something a pattern claims. It is read off its own
+ratio, the way the sport defines it: a Sport pattern is capped at 3:1, challenge
+conditions run to about 8:1, and anything above that is the funnel a league
+shot gives you. A pattern cannot say it is a Sport shot while its load table
+says otherwise.
+
+**A pattern you add yourself is simpler now.** A name, a link to its sheet and
+its length, and no load table to type. Patterns worth drawing on the lane come
+from the catalog, already read and checked, so your own patterns are labels for
+a session rather than fifteen rows of numbers. Adding one from the catalog and
+then editing it keeps its table.
+
 ## Try a line against a pattern without bowling a session (2026-09-16)
 
 **The line sandbox can draw a pattern now.** Open the lane options and pick one

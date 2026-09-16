@@ -77,7 +77,7 @@ export function normalizeOilPatternUrl(raw: string | undefined): string | undefi
 }
 
 /**
- * Clean a load table on its way into the DB (ADR-090). A pass that cannot be
+ * Clean a load table on its way into the DB (ADR-101). A pass that cannot be
  * drawn is a typo, not data: it is rejected by name rather than silently
  * dropped, because a pattern quietly missing a pass draws a shape the bowler
  * never entered and would trust anyway.
@@ -151,7 +151,12 @@ async function assertNameFree(name: string, exceptId?: number): Promise<void> {
   if (clash) throw new Error(`"${clash.name}" already exists`);
 }
 
-export async function addOilPattern(name: string, url?: string, passes?: OilPass[]): Promise<number> {
+export async function addOilPattern(
+  name: string,
+  url?: string,
+  passes?: OilPass[],
+  distance?: number
+): Promise<number> {
   const trimmed = name.trim();
   if (!trimmed) throw new Error("Oil pattern name cannot be empty");
   const normalizedUrl = normalizeOilPatternUrl(url);
@@ -159,14 +164,27 @@ export async function addOilPattern(name: string, url?: string, passes?: OilPass
 
   return db.transaction("rw", db.oil_patterns, async () => {
     await assertNameFree(trimmed);
-    const id = await db.oil_patterns.add({ name: trimmed, url: normalizedUrl, passes: normalizedPasses });
+    const id = await db.oil_patterns.add({
+      name: trimmed,
+      url: normalizedUrl,
+      passes: normalizedPasses,
+      distance: normalizeDistance(distance),
+    });
     return Number(id);
   });
 }
 
+/** A length only means anything for a pattern with no table, and a lane is not
+ *  70 feet long. Anything outside that is a typo, not a pattern. */
+function normalizeDistance(distance: number | undefined): number | undefined {
+  if (distance == null || !Number.isFinite(distance)) return undefined;
+  if (distance <= 0 || distance > 70) throw new Error("Pattern length must be between 1 and 70 feet");
+  return Math.round(distance * 10) / 10;
+}
+
 export async function updateOilPattern(
   id: number,
-  input: { name: string; url?: string; passes?: OilPass[] }
+  input: { name: string; url?: string; passes?: OilPass[]; distance?: number }
 ): Promise<void> {
   const trimmed = input.name.trim();
   if (!trimmed) throw new Error("Oil pattern name cannot be empty");
@@ -175,7 +193,12 @@ export async function updateOilPattern(
 
   await db.transaction("rw", db.oil_patterns, async () => {
     await assertNameFree(trimmed, id);
-    await db.oil_patterns.update(id, { name: trimmed, url: normalizedUrl, passes: normalizedPasses });
+    await db.oil_patterns.update(id, {
+      name: trimmed,
+      url: normalizedUrl,
+      passes: normalizedPasses,
+      distance: normalizeDistance(input.distance),
+    });
   });
 }
 

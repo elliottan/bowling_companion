@@ -84,8 +84,15 @@ distance is the furthest a pass travels rather than the furthest it oils.
 `lib/oilPattern.fixture.ts` holds Kegel's Chromium 6742 so the derivations stay
 checked against a sheet rather than against themselves.
 
-`passes` is optional. Every pattern saved before ADR-101 has none, and a pattern
-that is only a name is still a label worth having on a session.
+`passes` is optional, and a pattern you add yourself has none: load tables come
+from the catalog (ADR-104). Such a pattern may carry `distance`, the one number
+a bowler knows without a sheet. Where there is a table the length is derived
+from it and `distance` is ignored, so the two can never disagree
+(`patternLength`).
+
+How a pattern plays, Sport, Challenge or Recreation, is derived from its ratio
+rather than stored on it (`patternClass`), for the same reason: a pattern must
+not be able to claim a classification its own load table contradicts.
 
 ## Scoring rules summary
 

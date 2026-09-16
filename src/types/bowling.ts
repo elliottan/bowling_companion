@@ -168,8 +168,16 @@ export interface OilPattern {
   /** Archived patterns stay resolvable for history but are not offered for new sessions. */
   archived?: boolean;
   /** The load table. Absent or empty means a pattern that is only a name, which
-   *  is every pattern saved before ADR-090, so it stays perfectly valid. */
+   *  is every pattern saved before ADR-101, so it stays perfectly valid. A
+   *  pattern you add yourself has none: tables come from the catalog (ADR-104). */
   passes?: OilPass[];
+  /**
+   * Pattern length in feet, for a pattern with NO load table: the one number a
+   * bowler knows about their house shot without a sheet. Where there is a table
+   * the length is derived from it (ADR-101) and this is ignored, so the two can
+   * never disagree.
+   */
+  distance?: number;
 }
 
 export interface SpareLine {

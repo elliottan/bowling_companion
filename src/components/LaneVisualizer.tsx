@@ -589,7 +589,7 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
 }
 
 /** Bottom sheet with the hook-shape sliders (shared by strike + spare, ADR-026)
- *  and the oil pattern switch (ADR-090). */
+ *  and the oil pattern switch (ADR-101). */
 function OptionsSheet({
   line, editable, onChange, oilName, oilStats: oil, oilRatio, showOil, onToggleOil,
   pickable, pickedId, onPick, onClose,
