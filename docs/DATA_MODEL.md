@@ -67,6 +67,33 @@ written. It is not parsed into numbers, because the text says nothing about the
 core type or the pin-to-PSA distance the conversion needs, and entering a real
 layout is what retires it.
 
+## An oil pattern (ADR-101)
+
+`OilPattern.passes` is the pattern sheet's load table and the whole pattern. The
+distance, the volume and the ratio are derived from it (`lib/oilPattern.ts`) and
+never stored, so they cannot drift from the table they describe.
+
+Pass boards are absolute, counted from the left edge, 1 to 39. A sheet counts in
+from each gutter, so "2L to 2R" is `left_board: 2, right_board: 38`. The app's
+own board space is handed, so the mirror belongs at the drawing edge and nowhere
+else.
+
+Two rows of a real sheet look broken and are not: a reverse pass ends before it
+starts, and a buffer pass carries zero loads. The second is why the pattern
+distance is the furthest a pass travels rather than the furthest it oils.
+`lib/oilPattern.fixture.ts` holds Kegel's Chromium 6742 so the derivations stay
+checked against a sheet rather than against themselves.
+
+`passes` is optional, and a pattern you add yourself has none: load tables come
+from the catalog (ADR-104). Such a pattern may carry `distance`, the one number
+a bowler knows without a sheet. Where there is a table the length is derived
+from it and `distance` is ignored, so the two can never disagree
+(`patternLength`).
+
+How a pattern plays, Sport, Challenge or Recreation, is derived from its ratio
+rather than stored on it (`patternClass`), for the same reason: a pattern must
+not be able to claim a classification its own load table contradicts.
+
 ## Scoring rules summary
 
 Implemented in `lib/scoring.ts`. The full reference is the test file

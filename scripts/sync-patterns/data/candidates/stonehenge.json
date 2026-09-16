@@ -1,0 +1,146 @@
+{
+  "id": "stonehenge",
+  "name": "Stonehenge",
+  "vendor": "kegel",
+  "sourceUrl": "https://www.vsbv.at/daten/sj_18_19/oelungen/lv28_sj_18_19_oelung_bludenz.pdf",
+  "reader": "manual",
+  "passes": [
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 3,
+      "microliters": 50.0,
+      "start_distance": 0.0,
+      "end_distance": 5.1,
+      "speed": 18
+    },
+    {
+      "direction": "forward",
+      "left_board": 7,
+      "right_board": 33,
+      "loads": 1,
+      "microliters": 50.0,
+      "start_distance": 5.1,
+      "end_distance": 7.6,
+      "speed": 18
+    },
+    {
+      "direction": "forward",
+      "left_board": 9,
+      "right_board": 31,
+      "loads": 2,
+      "microliters": 50.0,
+      "start_distance": 7.6,
+      "end_distance": 12.7,
+      "speed": 18
+    },
+    {
+      "direction": "forward",
+      "left_board": 10,
+      "right_board": 30,
+      "loads": 3,
+      "microliters": 50.0,
+      "start_distance": 12.7,
+      "end_distance": 20.3,
+      "speed": 18
+    },
+    {
+      "direction": "forward",
+      "left_board": 11,
+      "right_board": 29,
+      "loads": 2,
+      "microliters": 50.0,
+      "start_distance": 20.3,
+      "end_distance": 25.4,
+      "speed": 18
+    },
+    {
+      "direction": "forward",
+      "left_board": 12,
+      "right_board": 28,
+      "loads": 2,
+      "microliters": 50.0,
+      "start_distance": 25.4,
+      "end_distance": 30.5,
+      "speed": 18
+    },
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 0,
+      "start_distance": 30.5,
+      "end_distance": 36.0,
+      "speed": 22
+    },
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 0,
+      "start_distance": 36.0,
+      "end_distance": 40.0,
+      "speed": 30
+    },
+    {
+      "direction": "reverse",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 0,
+      "start_distance": 40.0,
+      "end_distance": 28.0,
+      "speed": 30
+    },
+    {
+      "direction": "reverse",
+      "left_board": 12,
+      "right_board": 28,
+      "loads": 2,
+      "microliters": 50.0,
+      "start_distance": 28.0,
+      "end_distance": 22.9,
+      "speed": 18
+    },
+    {
+      "direction": "reverse",
+      "left_board": 11,
+      "right_board": 29,
+      "loads": 2,
+      "microliters": 50.0,
+      "start_distance": 22.9,
+      "end_distance": 17.8,
+      "speed": 18
+    },
+    {
+      "direction": "reverse",
+      "left_board": 10,
+      "right_board": 30,
+      "loads": 4,
+      "microliters": 50.0,
+      "start_distance": 17.8,
+      "end_distance": 7.6,
+      "speed": 18
+    },
+    {
+      "direction": "reverse",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 0,
+      "start_distance": 7.6,
+      "end_distance": 0.0,
+      "speed": 14
+    }
+  ],
+  "stated": {
+    "distance": 40,
+    "forwardMl": 15.95,
+    "reverseMl": 7.8,
+    "volumeMl": 23.75
+  },
+  "note": "Read from the sheet's two grid images; OCR managed 1 row of 13 at that size."
+}

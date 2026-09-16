@@ -4,6 +4,7 @@ import {
   boardToX, feetToY, xToBoard, yToFeet, buildLinePath, arrowFeet
 } from "../lib/laneGeometry";
 import { PIN_POSITIONS } from "../lib/pinGeometry";
+import { toHandBoard, type OilBand } from "../lib/oilPattern";
 
 const ALL_PINS: PinNumber[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 const ARROW_BOARDS = [5, 10, 15, 20, 25, 30, 35]; // 7 arrows / ruler ticks
@@ -23,6 +24,19 @@ const PEG_COLOR = {
   final: "#34d399",   // emerald, the pocket / pin target
 } as const;
 
+/** The oil pattern as this surface draws it, all derived in `lib/oilPattern`
+ *  (ADR-101). Absent means no pattern to draw, and the lane keeps its
+ *  decorative sheen instead. */
+export interface OilOverlay {
+  bands: OilBand[];
+  /** Heaviest board load in the pattern, the scale the film is painted against. */
+  peak: number;
+  /** Pattern distance, in feet from the foul line. */
+  length: number;
+  /** Where the drawn line leaves the oil, in the app's handed board space. */
+  exit: { board: number; feet: number } | null;
+}
+
 interface LaneSurfaceProps {
   line: LineSpec | undefined;
   hand: Handedness;
@@ -30,6 +44,8 @@ interface LaneSurfaceProps {
   leave?: PinNumber[];
   /** Rendered markers can be toggled off for a lighter preview. */
   showMarkers?: boolean;
+  /** Oil pattern film, drawn on the wood under everything else. */
+  oil?: OilOverlay;
   animate?: boolean;
   /** Bump to replay the rolling-ball animation (remounts it). */
   animateKey?: number;
@@ -40,7 +56,7 @@ interface LaneSurfaceProps {
   onPinTap?: (hit: { board: number; feet: number; pin: PinNumber }) => void;
 }
 
-export function LaneSurface({ line, hand, leave, showMarkers = true, animate, animateKey = 0, slideBoard, onPinTap }: LaneSurfaceProps) {
+export function LaneSurface({ line, hand, leave, showMarkers = true, oil, animate, animateKey = 0, slideBoard, onPinTap }: LaneSurfaceProps) {
   const leaveSet = new Set(leave ?? []);
   const hasLeave = (leave?.length ?? 0) > 0;
   const path = buildLinePath(line, hand, hasLeave); // spares (a leave) curve to the final
@@ -82,7 +98,9 @@ export function LaneSurface({ line, hand, leave, showMarkers = true, animate, an
       {/* Approach (below the foul line) as a darker base, then the lane wood on top. */}
       <rect x="0" y="0" width={PLANE_W} height={PLANE_L} fill="#2e1f12" />
       <rect x="0" y="0" width={PLANE_W} height={feetToY(0)} fill="url(#lane-wood)" />
-      <rect x="0" y={feetToY(45)} width={PLANE_W} height={feetToY(0) - feetToY(45)} fill="url(#lane-oil)" />
+      {oil ? <OilFilm oil={oil} hand={hand} /> : (
+        <rect x="0" y={feetToY(45)} width={PLANE_W} height={feetToY(0) - feetToY(45)} fill="url(#lane-oil)" />
+      )}
 
       {/* Gutter shadows down each edge, so the lane reads as a bounded surface. */}
       <rect x="0" y="0" width="2.4" height={feetToY(0)} fill="#000000" opacity="0.28" />
@@ -210,6 +228,8 @@ export function LaneSurface({ line, hand, leave, showMarkers = true, animate, an
         />
       )}
 
+      {oil?.exit && <OilExit exit={oil.exit} hand={hand} />}
+
       {path && animate && !reduceMotion && (
         <circle key={animateKey} data-role="ball" r="3" fill="#f59e0b" stroke="#fff" strokeWidth="0.8" opacity="0.95">
           <animateMotion dur="1.4s" repeatCount="1" fill="freeze" path={path.d} />
@@ -329,6 +349,88 @@ function Marker({ p, label, color, labelY, labelX, anchor }: Omit<MarkerData, "k
         strokeWidth="1.6"
       >
         {label}
+      </text>
+    </g>
+  );
+}
+
+// Oil colour: a cool film on warm maple, so the pattern reads as something
+// lying ON the lane rather than as another board. Raw palette, under the lane
+// exception in DESIGN-LANGUAGE §3, oil is not the app's colour to choose.
+const OIL_FILL = "#cfe8ff";
+const OIL_EDGE = "#7dd3fc";
+
+/** x and width of an inclusive sheet-board span, in plane units. Boards are a
+ *  full board wide, so the span runs from the outer edge of one to the other.
+ *  The half board is added in SHEET space and mirrored with the rest: mirror
+ *  first and the half lands on the wrong side, shifting every band a board. */
+function bandRect(fromBoard: number, toBoard: number, hand: Handedness) {
+  const a = boardToX(toHandBoard(fromBoard - 0.5, hand), hand, true);
+  const b = boardToX(toHandBoard(toBoard + 0.5, hand), hand, true);
+  return { x: Math.min(a, b), width: Math.abs(b - a) };
+}
+
+/**
+ * The load table, painted. Each rectangle is one run of equally loaded boards
+ * over one down-lane slice, so the stair steps on screen are literally the rows
+ * of the pattern sheet: heavier boards sit denser, and the film stops where the
+ * oil stops. Nothing here is smoothed, a pattern has edges and hiding them
+ * would hide the very thing the drawing is for.
+ */
+function OilFilm({ oil, hand }: { oil: OilOverlay; hand: Handedness }) {
+  const peak = oil.peak > 0 ? oil.peak : 1;
+  const endY = feetToY(oil.length);
+  return (
+    <g data-role="oil-film" aria-hidden="true">
+      {oil.bands.map((b, i) => {
+        const { x, width } = bandRect(b.fromBoard, b.toBoard, hand);
+        const y = feetToY(b.stop);
+        return (
+          <rect
+            key={i}
+            data-role="oil-band"
+            x={x}
+            y={y}
+            width={width}
+            height={feetToY(b.start) - y}
+            fill={OIL_FILL}
+            fillOpacity={0.1 + 0.34 * (b.units / peak)}
+          />
+        );
+      })}
+      {oil.length > 0 && (
+        <>
+          <line
+            data-role="oil-end"
+            x1="0" y1={endY} x2={PLANE_W} y2={endY}
+            stroke={OIL_EDGE} strokeOpacity="0.75" strokeWidth="0.7" strokeDasharray="3 2"
+          />
+          <text
+            x={PLANE_W - 1} y={endY - 2} textAnchor="end"
+            fontSize="5" fontWeight="700" fill={OIL_EDGE} fillOpacity="0.9"
+          >
+            {Math.round(oil.length)} ft
+          </text>
+        </>
+      )}
+    </g>
+  );
+}
+
+/** Where this line runs out of oil. It rides the drawn path, so it moves with
+ *  every drag: the point of the whole overlay is watching it move. */
+function OilExit({ exit, hand }: { exit: { board: number; feet: number }; hand: Handedness }) {
+  const x = boardToX(exit.board, hand, true);
+  const y = feetToY(exit.feet);
+  return (
+    <g data-role="oil-exit">
+      <circle cx={x} cy={y} r="2.4" fill={OIL_EDGE} stroke="#0f172a" strokeWidth="0.6" />
+      <text
+        x={x} y={y + 8} textAnchor="middle"
+        fontSize="5.5" fontWeight="800"
+        fill="#0c4a6e" paintOrder="stroke" stroke="#e0f2fe" strokeWidth="1.4"
+      >
+        {`Exit ${Math.round(exit.board * 2) / 2}·${Math.round(exit.feet)}ft`}
       </text>
     </g>
   );

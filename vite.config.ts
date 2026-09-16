@@ -203,6 +203,13 @@ export default defineConfig({
             options: { cacheName: "catalog-manifest", networkTimeoutSeconds: 5 }
           },
           {
+            // The pattern catalog, same bargain as the ball one: fetched rather
+            // than precached, so boot stays light as it grows (ADR-104).
+            urlPattern: /\/catalog\/patterns\.json$/,
+            handler: "NetworkFirst",
+            options: { cacheName: "pattern-catalog", networkTimeoutSeconds: 5 }
+          },
+          {
             urlPattern: /\/catalog\/catalog\.json$/,
             handler: "NetworkFirst",
             options: { cacheName: "catalog-data", networkTimeoutSeconds: 5 }

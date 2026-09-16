@@ -46,7 +46,7 @@ const pinsKey = (p: PinNumber[]) => [...p].sort((a, b) => a - b).join(",");
  * faced the same leave, keyed by the standing pins.
  *
  * A spare attempt is the ball after a fresh-rack ball that left pins, which is
- * what makes the 10th frame readable here too (ADR-090). It used to be skipped
+ * what makes the 10th frame readable here too (ADR-101). It used to be skipped
  * outright, because `shots[0]` is not the leave `shots[1]` faces once the first
  * ball strikes, so the 11th and 12th balls were the only spare attempts in a
  * session whose line was never remembered: shoot the 10-pin in the 10th, and the

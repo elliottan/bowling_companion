@@ -8,6 +8,85 @@ merge to `main` (`docs/DEPLOYMENT.md`), so every section below is a dated batch
 of shipped work rather than a release. Thirty of them used to be headed
 `[Unreleased]`, which said nothing once they had all shipped.
 
+## Three more patterns, and a load table for the one you already have (2026-09-16)
+
+**Stonehenge, Big Ben and Chromium are in the catalog**, at 40, 44 and 42 feet.
+Each was read from its own sheet and checked against the totals that sheet
+prints before it shipped.
+
+**A pattern you already use can borrow a load table.** If you typed one in
+before the catalog existed, open it and pick the matching pattern: the table is
+written onto the pattern you already have, so every session on it keeps
+pointing at it and it keeps the name you gave it. Renaming works as it always
+did, including for a pattern you took from the catalog.
+
+Names arrive tidied. A sheet calls a pattern "R - Stonehenge" or "Kegel Element
+Challenge Chromium 6742", and neither is what anyone calls it.
+
+## Find a pattern by name, length or how it plays (2026-09-16)
+
+**The catalog is searchable.** One box takes either a name or a length, so
+typing Stonehenge finds Stonehenge and typing 40 finds the forty footers. Three
+chips filter by how a pattern plays: Sport, Challenge or Recreation.
+
+That classification is not something a pattern claims. It is read off its own
+ratio, the way the sport defines it: a Sport pattern is capped at 3:1, challenge
+conditions run to about 8:1, and anything above that is the funnel a league
+shot gives you. A pattern cannot say it is a Sport shot while its load table
+says otherwise.
+
+**A pattern you add yourself is simpler now.** A name, a link to its sheet and
+its length, and no load table to type. Patterns worth drawing on the lane come
+from the catalog, already read and checked, so your own patterns are labels for
+a session rather than fifteen rows of numbers. Adding one from the catalog and
+then editing it keeps its table.
+
+## Try a line against a pattern without bowling a session (2026-09-16)
+
+**The line sandbox can draw a pattern now.** Open the lane options and pick one
+of your patterns, and the oil is drawn under the line with the exit point on it,
+the same as inside a session. A session still draws its own pattern and does not
+offer the choice: the session already made it.
+
+Only patterns with a load table are offered, since a pattern that is only a name
+would change nothing on the lane.
+
+## Oil patterns come with the app (2026-09-16)
+
+**A catalog of patterns ships with Headpin, load tables and all.** Settings, oil
+patterns, add from the catalog: pick one and it is yours, with its distance, its
+volume and its ratio already known and the lane ready to draw it. Adding one
+copies it, so you can edit your copy without touching the catalog.
+
+Every pattern in it was read from its own sheet and then checked against the
+totals that sheet prints, before it shipped. A reading that does not add up does
+not become a pattern.
+
+The in-app sheet import is gone. Reading a pattern sheet turned out to be a job
+worth doing once, properly, rather than on every phone: Kegel draws its load
+tables as pictures, and reading those needed several megabytes of scanner that
+every bowler would have carried to keep score. A pattern the catalog does not
+have can still be typed in by hand.
+
+## The oil pattern, on the lane (2026-09-15)
+
+**An oil pattern can now carry its load table, and the lane draws it.** Add a
+pass per row of the pattern sheet, in the sheet's own columns and its own board
+notation, 2L to 2R, and the visualizer paints the oil under your line: heavier
+boards denser, the stair steps where the sheet has them, and a dashed line where
+the pattern ends. Reverse passes and buffer passes go in as printed.
+
+**The exit point is marked on your line.** Not where the pattern ends, where
+*you* leave it. A ball played out to the dry runs off the oiled width early,
+with oil still ahead of it, and the marker moves as you drag a peg. The lane
+options button carries a switch to put the oil away.
+
+The distance, the volume and the track zone ratios are read off the table rather
+than typed, so they cannot disagree with it, and they show on the pattern's row
+in Settings. Checked against Kegel's Chromium 6742: every total the app derives
+is a total that sheet prints. A pattern that is only a name still works exactly
+as it did.
+
 ## A centred grip, and a two-hander's ball (2026-09-15)
 
 **The centre of your grip is now drawn in the centre of your grip.** The cross

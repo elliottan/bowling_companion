@@ -125,6 +125,41 @@ export interface Ball {
   colorway_sku?: string;   // chosen colorway from the catalog ball's colorways[]
 }
 
+/**
+ * One pass of the lane machine, a single row of a Kegel-style load table
+ * (ADR-101), named after the sheet's own columns. A pattern is the sum of its
+ * passes and nothing else: distance, volume and ratio are all derived from this
+ * list, never stored beside it.
+ */
+export interface OilPass {
+  /** Forward passes lay the pattern going down lane, reverse ones on the way back. */
+  direction: "forward" | "reverse";
+  /**
+   * START and STOP: the span of boards the pass loads, ABSOLUTE and counted
+   * from the left edge (1 = far left, 39 = far right). A sheet writes these in
+   * its own L/R notation, counted in from each gutter, so "2L to 2R" is
+   * `left_board: 2, right_board: 38` (`parseSheetBoard` does the conversion).
+   */
+  left_board: number;
+  right_board: number;
+  /** LOADS: crossings of the loading head. ZERO on a buffer-only pass, which
+   *  lays no oil but still travels, and so still sets the pattern distance. */
+  loads: number;
+  /** MICS: oil laid per board, per load, in microlitres. */
+  microliters: number;
+  /**
+   * START and END feet. A reverse pass runs back toward the foul line, so its
+   * end is BEFORE its start, exactly as the sheet prints it (42.0 to 39.0).
+   */
+  start_distance: number;
+  end_distance: number;
+  /** SPEED, BUFFER and TANK. Carried so a sheet transcribes whole, and read by
+   *  nothing: they change how the oil sits, which this app does not model. */
+  speed?: number;
+  buffer?: number;
+  tank?: string;
+}
+
 export interface OilPattern {
   id?: number;
   name: string;
@@ -132,6 +167,17 @@ export interface OilPattern {
   url?: string;
   /** Archived patterns stay resolvable for history but are not offered for new sessions. */
   archived?: boolean;
+  /** The load table. Absent or empty means a pattern that is only a name, which
+   *  is every pattern saved before ADR-101, so it stays perfectly valid. A
+   *  pattern you add yourself has none: tables come from the catalog (ADR-104). */
+  passes?: OilPass[];
+  /**
+   * Pattern length in feet, for a pattern with NO load table: the one number a
+   * bowler knows about their house shot without a sheet. Where there is a table
+   * the length is derived from it (ADR-101) and this is ignored, so the two can
+   * never disagree.
+   */
+  distance?: number;
 }
 
 export interface SpareLine {

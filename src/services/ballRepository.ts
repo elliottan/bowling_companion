@@ -1,5 +1,5 @@
 import { db } from "../db/bowlingDb";
-import type { Ball, LaneNote, LineSpec, OilPattern, PinNumber, SpareLine } from "../types/bowling";
+import type { Ball, LaneNote, LineSpec, OilPass, OilPattern, PinNumber, SpareLine } from "../types/bowling";
 
 // ---------------------------------------------------------------------------
 // Balls
@@ -76,6 +76,58 @@ export function normalizeOilPatternUrl(raw: string | undefined): string | undefi
   return trimmed;
 }
 
+/**
+ * Clean a load table on its way into the DB (ADR-101). A pass that cannot be
+ * drawn is a typo, not data: it is rejected by name rather than silently
+ * dropped, because a pattern quietly missing a pass draws a shape the bowler
+ * never entered and would trust anyway.
+ */
+export function normalizeOilPasses(passes: OilPass[] | undefined): OilPass[] | undefined {
+  if (!passes || passes.length === 0) return undefined;
+  return passes.map((p, i) => {
+    const at = `Pass ${i + 1}`;
+    const num = (v: number, label: string) => {
+      if (!Number.isFinite(v)) throw new Error(`${at}: ${label} must be a number`);
+      return v;
+    };
+    const start = num(p.start_distance, "start distance");
+    const end = num(p.end_distance, "end distance");
+    const left = Math.round(num(p.left_board, "left board"));
+    const right = Math.round(num(p.right_board, "right board"));
+    const loads = Math.round(num(p.loads, "loads"));
+    const microliters = num(p.microliters, "microlitres");
+    if (Math.min(start, end) < 0 || Math.max(start, end) > 70) {
+      throw new Error(`${at}: distances must sit between 0 and 70 feet`);
+    }
+    // A reverse pass runs back toward the foul line, so its end is BEFORE its
+    // start. Only a pass that goes nowhere is a typo.
+    if (start === end) throw new Error(`${at}: the pass has to travel`);
+    if (left < 1 || right > LANE_BOARDS_MAX || right < left) {
+      throw new Error(`${at}: boards must run left to right, between 1 and ${LANE_BOARDS_MAX}`);
+    }
+    // Loads of zero is a buffer-only pass: it lays no oil, and it still counts,
+    // because the pattern distance is how far the machine reached.
+    if (loads < 0) throw new Error(`${at}: loads cannot be negative`);
+    if (microliters < 0) throw new Error(`${at}: microlitres cannot be negative`);
+    return {
+      direction: p.direction === "reverse" ? "reverse" : "forward",
+      left_board: left,
+      right_board: right,
+      loads,
+      microliters,
+      start_distance: start,
+      end_distance: end,
+      ...(Number.isFinite(p.speed as number) ? { speed: p.speed } : {}),
+      ...(Number.isFinite(p.buffer as number) ? { buffer: p.buffer } : {}),
+      ...(typeof p.tank === "string" && p.tank.trim() ? { tank: p.tank.trim() } : {}),
+    } satisfies OilPass;
+  });
+}
+
+/** Boards on a lane. Spelled here rather than imported from `laneGeometry`, so
+ *  the service layer keeps its back to the drawing layer (ARCHITECTURE.md). */
+const LANE_BOARDS_MAX = 39;
+
 /** Active patterns only, archived ones stay out of pickers. */
 export async function getOilPatterns(): Promise<OilPattern[]> {
   const all = await db.oil_patterns.orderBy("name").toArray();
@@ -99,29 +151,54 @@ async function assertNameFree(name: string, exceptId?: number): Promise<void> {
   if (clash) throw new Error(`"${clash.name}" already exists`);
 }
 
-export async function addOilPattern(name: string, url?: string): Promise<number> {
+export async function addOilPattern(
+  name: string,
+  url?: string,
+  passes?: OilPass[],
+  distance?: number
+): Promise<number> {
   const trimmed = name.trim();
   if (!trimmed) throw new Error("Oil pattern name cannot be empty");
   const normalizedUrl = normalizeOilPatternUrl(url);
+  const normalizedPasses = normalizeOilPasses(passes);
 
   return db.transaction("rw", db.oil_patterns, async () => {
     await assertNameFree(trimmed);
-    const id = await db.oil_patterns.add({ name: trimmed, url: normalizedUrl });
+    const id = await db.oil_patterns.add({
+      name: trimmed,
+      url: normalizedUrl,
+      passes: normalizedPasses,
+      distance: normalizeDistance(distance),
+    });
     return Number(id);
   });
 }
 
+/** A length only means anything for a pattern with no table, and a lane is not
+ *  70 feet long. Anything outside that is a typo, not a pattern. */
+function normalizeDistance(distance: number | undefined): number | undefined {
+  if (distance == null || !Number.isFinite(distance)) return undefined;
+  if (distance <= 0 || distance > 70) throw new Error("Pattern length must be between 1 and 70 feet");
+  return Math.round(distance * 10) / 10;
+}
+
 export async function updateOilPattern(
   id: number,
-  input: { name: string; url?: string }
+  input: { name: string; url?: string; passes?: OilPass[]; distance?: number }
 ): Promise<void> {
   const trimmed = input.name.trim();
   if (!trimmed) throw new Error("Oil pattern name cannot be empty");
   const normalizedUrl = normalizeOilPatternUrl(input.url);
+  const normalizedPasses = normalizeOilPasses(input.passes);
 
   await db.transaction("rw", db.oil_patterns, async () => {
     await assertNameFree(trimmed, id);
-    await db.oil_patterns.update(id, { name: trimmed, url: normalizedUrl });
+    await db.oil_patterns.update(id, {
+      name: trimmed,
+      url: normalizedUrl,
+      passes: normalizedPasses,
+      distance: normalizeDistance(input.distance),
+    });
   });
 }
 
