@@ -5138,3 +5138,41 @@ written against.
   in the same transaction as the delete.
 - The heal is idempotent and costs one table read on a list with nothing wrong
   with it.
+
+## ADR-108 — The line sandbox draws either hand, and the bowler stays who they are
+
+**Status.** Accepted, 2026-09-17.
+
+**Context.** Every lane the app draws is mirrored for the bowler's hand: the
+boards run their way, the pocket is theirs, the steppers' arrows point where
+the ball goes on screen. That is right everywhere a shot is involved, because a
+shot was thrown by a hand and there is nothing to choose.
+
+The line sandbox is the exception. It has no shot behind it and no session, and
+it is where someone works a line out: a lefty reading a righty's line off a
+video, a coach showing a student the mirror of their own play, anyone asking
+what the same pattern gives from the other side. Today the only way to see that
+is to change handedness in settings, which rewrites the rest of the app (pin
+grids, adjusters, every saved line's reading) to answer a question about one
+drawing.
+
+That is the same shape as the pattern question ADR-101 settled: a session names
+its pattern and the sandbox picks one, because the sandbox has nobody to
+inherit from.
+
+**Decision.** The lane visualizer takes a `handSwitchable` flag, and only the
+line sandbox passes it. With it, the lane options sheet offers L / R above the
+pattern picker, and the chosen hand is provided through `HandednessContext` for
+the whole overlay, so the surface, the pegs and the steppers' directions all
+mirror together rather than the geometry mirroring while the arrows do not.
+
+**Nothing is written back.** The override lives in component state and dies with
+the overlay, exactly as the layout lab seeds from the bowler's settings and
+saves none of it. A sandbox that silently re-handed the bowler would be a
+control that edits the app from the one screen built for poking at.
+
+**Consequences.**
+- A shot's line (intended, actual, spare) offers no switch. Those belong to a
+  throw, and the hand is a fact about it.
+- The switch resets to the bowler's own hand every time the sandbox opens, so
+  the default is never something left behind by an earlier session.

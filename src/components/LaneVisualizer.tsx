@@ -1,7 +1,7 @@
 import { ChevronLeft, ChevronRight, Lock, Minus, Plus, SlidersHorizontal, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { LineSpec, PinNumber } from "../types/bowling";
-import { useHandedness } from "../lib/handednessContext";
+import type { Handedness, LineSpec, PinNumber } from "../types/bowling";
+import { HandednessContext, useHandedness } from "../lib/handednessContext";
 import { useDriftModel } from "../lib/driftModelContext";
 import { useSessionOilPattern } from "../lib/oilPatternContext";
 import { getOilPatterns } from "../services/ballRepository";
@@ -72,10 +72,19 @@ interface LaneVisualizerProps {
    *  visualizer, suspends its own Escape/focus-trap so only the topmost
    *  layer responds to Escape and Tab. */
   suspended?: boolean;
+  /** Offer a bowling-hand switch in the lane options, for a view that belongs to
+   *  nobody's shot. Same rule as the pattern picker above it: a shot was thrown
+   *  by a hand and the sandbox was not (ADR-108). */
+  handSwitchable?: boolean;
 }
 
-export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, showStance = false, title = "Line", onEditAttempt, defaultLocks, suspended = false }: LaneVisualizerProps) {
-  const hand = useHandedness();
+export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, showStance = false, title = "Line", onEditAttempt, defaultLocks, suspended = false, handSwitchable = false }: LaneVisualizerProps) {
+  const appHand = useHandedness();
+  // Nothing here is written back to settings: mirroring the lane to see how the
+  // other hand plays it is a question being asked, not the bowler changing hands
+  // (the layout lab's rule, ADR-108). Resets on close with the component.
+  const [handOverride, setHandOverride] = useState<Handedness | null>(null);
+  const hand = handSwitchable ? handOverride ?? appHand : appHand;
   const driftModel = useDriftModel();
   // A session names its pattern, and that is not the visualizer's to override.
   // Without one, the lane can still be tried against a pattern you have saved:
@@ -345,6 +354,10 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
       (line?.final_distance ?? LANE_FEET) !== Math.round(spareAim.feet * 10) / 10);
 
   return (
+    // Everything below reads the hand from context (the steppers' arrow
+    // direction, the pin grid), so the switch has to reach them rather than only
+    // the geometry computed here.
+    <HandednessContext.Provider value={hand}>
     <div
       ref={overlayRef}
       className="fixed inset-0 z-[70] flex flex-col bg-slate-900"
@@ -381,7 +394,7 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
           >
             {isTopDown ? "Bowler view" : "Top-down"}
           </button>
-          {(onChange || hasOil || pickable.length > 0) && (
+          {(onChange || hasOil || pickable.length > 0 || handSwitchable) && (
             <button
               type="button"
               onClick={() => setOptionsOpen(true)}
@@ -582,9 +595,12 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
           showOil={showOil}
           onToggleOil={setShowOil}
           onClose={() => setOptionsOpen(false)}
+          hand={handSwitchable ? hand : null}
+          onPickHand={setHandOverride}
         />
       )}
     </div>
+    </HandednessContext.Provider>
   );
 }
 
@@ -592,7 +608,7 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
  *  and the oil pattern switch (ADR-101). */
 function OptionsSheet({
   line, editable, onChange, oilName, oilStats: oil, oilRatio, showOil, onToggleOil,
-  pickable, pickedId, onPick, onClose,
+  pickable, pickedId, onPick, hand, onPickHand, onClose,
 }: {
   line: LineSpec | undefined;
   editable: boolean;
@@ -606,6 +622,9 @@ function OptionsSheet({
   pickable: OilPattern[];
   pickedId: number | null;
   onPick: (id: number | null) => void;
+  /** Hand the lane is drawn for, or null where it is not the view's to switch. */
+  hand: Handedness | null;
+  onPickHand: (hand: Handedness) => void;
   onClose: () => void;
 }) {
   // Live bounds mirroring the solver's clamps (laneGeometry hookGeomRaw): the
@@ -632,6 +651,34 @@ function OptionsSheet({
             Done
           </button>
         </div>
+        {hand && (
+          <div className="mb-4 border-b border-white/10 pb-3">
+            <span className="mb-1 block text-xs font-bold uppercase tracking-wide text-white/60">
+              Bowling hand
+            </span>
+            {/* Left on the left, so the letters sit where the hands do. */}
+            <div role="group" aria-label="Bowling hand" className="flex gap-1 rounded-xl border border-white/20 bg-slate-900 p-1">
+              {(["left", "right"] as const).map((h) => (
+                <button
+                  key={h}
+                  type="button"
+                  aria-label={h === "left" ? "Left" : "Right"}
+                  aria-pressed={hand === h}
+                  onClick={() => onPickHand(h)}
+                  className={`h-9 flex-1 rounded-lg text-sm font-semibold ${
+                    hand === h ? "bg-amber-400 text-slate-900" : "text-white/70 hover:bg-white/10"
+                  }`}
+                >
+                  {h === "left" ? "L" : "R"}
+                </button>
+              ))}
+            </div>
+            <p className="mt-1 text-xs text-white/50">
+              Mirrors the lane. Your own hand is untouched.
+            </p>
+          </div>
+        )}
+
         {pickable.length > 0 && (
           <label className="mb-4 block border-b border-white/10 pb-3">
             <span className="mb-1 block text-xs font-bold uppercase tracking-wide text-white/60">

@@ -352,3 +352,40 @@ describe("LaneVisualizer pattern picker", () => {
     expect(screen.queryByLabelText(/lane options/i)).toBeNull();
   });
 });
+
+describe("LaneVisualizer hand switch (ADR-108)", () => {
+  it("offers L / R only where the caller says the view belongs to no shot", () => {
+    const onChange = vi.fn();
+    const { rerender } = render(
+      <HandednessContext.Provider value="right">
+        <LaneVisualizer line={{ laydown: 18, target: 10 }} onClose={() => {}} onChange={onChange} />
+      </HandednessContext.Provider>
+    );
+    fireEvent.click(screen.getByLabelText(/lane options/i));
+    expect(screen.queryByRole("group", { name: /bowling hand/i })).toBeNull();
+
+    rerender(
+      <HandednessContext.Provider value="right">
+        <LaneVisualizer line={{ laydown: 18, target: 10 }} onClose={() => {}} onChange={onChange} handSwitchable />
+      </HandednessContext.Provider>
+    );
+    fireEvent.click(screen.getByLabelText(/lane options/i));
+    expect(screen.getByRole("group", { name: /bowling hand/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Right" })).toHaveAttribute("aria-pressed", "true");
+  });
+
+  it("mirrors the steppers with the lane, so the arrows keep pointing on screen", () => {
+    const onChange = vi.fn();
+    render(
+      <HandednessContext.Provider value="right">
+        <LaneVisualizer line={{ laydown: 18, target: 10 }} onClose={() => {}} onChange={onChange} handSwitchable />
+      </HandednessContext.Provider>
+    );
+    fireEvent.click(screen.getByLabelText(/lane options/i));
+    fireEvent.click(screen.getByRole("button", { name: "Left" }));
+    fireEvent.click(screen.getByRole("button", { name: /done/i }));
+    // Right-handed, ◀ raises the board; left-handed it lowers it.
+    fireEvent.click(screen.getByLabelText("Target left"));
+    expect(onChange.mock.lastCall![0].target).toBe(9.5);
+  });
+});

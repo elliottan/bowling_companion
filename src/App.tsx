@@ -692,6 +692,9 @@ function App() {
           title="Line sandbox"
           line={sandboxLine}
           onChange={setSandboxLine}
+          // No shot behind this lane, so the hand is a question rather than a
+          // fact, the same reason the sandbox picks its own pattern (ADR-108).
+          handSwitchable
           onClose={() => goBack({ type: "closeLineSandbox" })}
         />
       )}

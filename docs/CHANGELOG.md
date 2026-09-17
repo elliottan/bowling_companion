@@ -8,6 +8,17 @@ merge to `main` (`docs/DEPLOYMENT.md`), so every section below is a dated batch
 of shipped work rather than a release. Thirty of them used to be headed
 `[Unreleased]`, which said nothing once they had all shipped.
 
+## See a line from the other hand (2026-09-17)
+
+**The line sandbox draws left or right.** Open the lane options and switch the
+bowling hand: the lane mirrors, the pattern mirrors with it, and the arrows on
+the steppers point where the ball goes on screen. Handy for reading someone
+else's line, or showing a student the mirror of their own.
+
+Your own handedness is untouched, the same as everything else in the sandbox.
+The switch is the sandbox's alone and starts from your hand every time it opens.
+A line on a shot you actually threw still has one hand, because the shot did.
+
 ## One pattern, one row (2026-09-16)
 
 **A pattern you linked no longer appears twice.** Pointing your own pattern at
