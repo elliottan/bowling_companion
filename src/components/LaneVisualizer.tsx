@@ -1,10 +1,15 @@
-import { ChevronLeft, ChevronRight, Lock, Minus, Plus, SlidersHorizontal, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Lock, Minus, MoveHorizontal, Plus, SlidersHorizontal, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { LineSpec, PinNumber } from "../types/bowling";
-import { useHandedness } from "../lib/handednessContext";
+import type { Handedness, LineSpec, PinNumber } from "../types/bowling";
+import { HandednessContext, useHandedness } from "../lib/handednessContext";
 import { useDriftModel } from "../lib/driftModelContext";
 import { useSessionOilPattern } from "../lib/oilPatternContext";
 import { getOilPatterns } from "../services/ballRepository";
+import { getCatalogPatterns } from "../services/patternCatalog";
+import { buildLineCard, type ShareCardData } from "../lib/shareCard";
+import { lineShareUrl } from "../lib/lineShare";
+import { ShareCardDialog } from "./ShareCardDialog";
+import { ShareIosIcon } from "./icons";
 import type { OilPattern } from "../types/bowling";
 import { headlineRatio, oilBands, oilExitPoint, oilStats, oilZones, peakUnits, type OilStats } from "../lib/oilPattern";
 import { useOverlay } from "../lib/useOverlay";
@@ -72,10 +77,27 @@ interface LaneVisualizerProps {
    *  visualizer, suspends its own Escape/focus-trap so only the topmost
    *  layer responds to Escape and Tab. */
   suspended?: boolean;
+  /** Offer a bowling-hand switch in the lane options, for a view that belongs to
+   *  nobody's shot. Same rule as the pattern picker above it: a shot was thrown
+   *  by a hand and the sandbox was not (ADR-108). */
+  handSwitchable?: boolean;
+  /** Hand the view opens on, overriding the bowler's own. Only a shared link
+   *  sets it: the line was drawn by whoever sent it (ADR-110). */
+  seedHand?: Handedness;
+  /** `catalog_id` of the pattern to open drawn under the line, from a shared
+   *  link. Resolved against the bowler's own rows first, then the catalog. */
+  seedPatternCatalogId?: string;
 }
 
-export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, showStance = false, title = "Line", onEditAttempt, defaultLocks, suspended = false }: LaneVisualizerProps) {
-  const hand = useHandedness();
+export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, showStance = false, title = "Line", onEditAttempt, defaultLocks, suspended = false, handSwitchable = false, seedHand, seedPatternCatalogId }: LaneVisualizerProps) {
+  const appHand = useHandedness();
+  // Nothing here is written back to settings: mirroring the lane to see how the
+  // other hand plays it is a question being asked, not the bowler changing hands
+  // (the layout lab's rule, ADR-108). Resets on close with the component.
+  // A shared link seeds it, because the line it carries was drawn by that hand
+  // and reading it as your own would be reading a different shot (ADR-110).
+  const [handOverride, setHandOverride] = useState<Handedness | null>(seedHand ?? null);
+  const hand = handSwitchable ? handOverride ?? appHand : appHand;
   const driftModel = useDriftModel();
   // A session names its pattern, and that is not the visualizer's to override.
   // Without one, the lane can still be tried against a pattern you have saved:
@@ -84,9 +106,18 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
   const sessionPattern = useSessionOilPattern();
   const [pickable, setPickable] = useState<OilPattern[]>([]);
   const [pickedId, setPickedId] = useState<number | null>(null);
-  const oilPattern = sessionPattern ?? pickable.find((p) => p.id === pickedId) ?? null;
+  // A pattern a link named that this device does not have saved. Drawn from the
+  // catalog so the line still arrives on the lane it was played on, and never
+  // written to the bowler's list: reading someone's line is not adopting their
+  // pattern (ADR-110).
+  const [linkPattern, setLinkPattern] = useState<OilPattern | null>(null);
+  const oilPattern = sessionPattern ?? pickable.find((p) => p.id === pickedId) ?? linkPattern ?? null;
   const [deg, setDeg] = useState(BOWLER_DEG);
   const [showOil, setShowOil] = useState(true);
+  // The quick-move menu (ADR-109) and the share preview. Both are layers over
+  // the lane, so both suspend the visualizer's own Escape while they are up.
+  const [movesOpen, setMovesOpen] = useState(false);
+  const [card, setCard] = useState<ShareCardData | null>(null);
   const [dragging, setDragging] = useState(false);
   const [optionsOpen, setOptionsOpen] = useState(false);
   const [replayKey, setReplayKey] = useState(0);
@@ -113,7 +144,10 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
   // Escape/focus-trap/focus-restore for the visualizer itself. Disabled while
   // the nested hook-options sheet is open so a single Escape press (and the
   // trap) only ever apply to the topmost layer, the sheet has its own.
-  const overlayRef = useOverlay<HTMLDivElement>(onClose, !optionsOpen && !suspended);
+  const overlayRef = useOverlay<HTMLDivElement>(
+    onClose,
+    !optionsOpen && !movesOpen && card == null && !suspended
+  );
 
   function toggleLock(key: string) {
     if (!LOCKABLE.has(key)) return;
@@ -129,7 +163,7 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
   function applyEdit(patch: Partial<LineSpec>) {
     if (!onChange) return;
     if (onEditAttempt && !onEditAttempt()) return;
-    const solved = solveLine({ ...(line ?? {}), ...patch }, hand);
+    const solved = solveLine({ ...(line ?? {}), ...patch });
     // Hard lock (ADR-028): an edit whose solved result moves a locked peg stops
     // at the wall, the edit is dropped, nothing twitches.
     for (const k of locked) {
@@ -138,6 +172,55 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
     }
     onChange(solved);
   }
+
+  /** A quick move (ADR-109): the same "X-Y" presets as score entry, X boards at
+   *  the foul line and Y at the arrows, in one tap. `toward` is +1 for a move
+   *  inside (toward the middle of the lane, board numbers up) and -1 for out.
+   *  The final board is left alone on purpose, so the redraw shows what the new
+   *  angle does to the finish rather than carrying it along and saying nothing. */
+  function quickMove(laydownBy: number, targetBy: number, toward: 1 | -1) {
+    const ld = line?.laydown ?? line?.stance;
+    const tg = line?.target;
+    if (ld == null && tg == null) return;
+    applyEdit({
+      ...(ld != null ? { laydown: clamp(ld + laydownBy * toward, 1, 59) } : {}),
+      ...(tg != null ? { target: clamp(tg + targetBy * toward, 1, 39) } : {}),
+    });
+  }
+
+  /** Share the line as a link, with the card as its preview: a line is a thing
+   *  to open, not a picture to look at (the layout lab's reasoning, ADR-110). */
+  function shareLine() {
+    setMovesOpen(false);
+    setCard(buildLineCard({
+      laydown: line?.laydown ?? line?.stance,
+      target: line?.target,
+      finalBoard: line?.final_board ?? (spare ? undefined : POCKET_BOARD),
+      hookStart: line?.hook_start_distance,
+      hookLength: line?.hook_length,
+      hand,
+      spare,
+      title,
+      patternName: oilPattern?.name,
+    }));
+  }
+
+  const shareUrl =
+    typeof window === "undefined"
+      ? ""
+      : lineShareUrl(
+          {
+            line: line ?? {},
+            hand,
+            ...(spare ? { spare: true } : {}),
+            ...(spare && leave?.length ? { leave } : {}),
+            // Only a catalog pattern travels: someone's own row is a load table
+            // that exists on one device (ADR-110).
+            ...(oilPattern?.catalog_id ? { patternCatalogId: oilPattern.catalog_id } : {}),
+          },
+          window.location.origin,
+          window.location.pathname
+        );
 
   // Spare mode: seed laydown = target = final = the leave's ideal aim board
   // (e.g. 3-3-3 for the 10-pin RH) at the leave's real depth. The focal line then
@@ -157,8 +240,7 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
           target: line?.target ?? board,
           final_board: board,
           final_distance: line?.final_distance ?? Math.round(aim.feet * 10) / 10,
-        },
-        hand
+        }
       )
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -188,10 +270,28 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
     if (sessionPattern) return;
     let live = true;
     getOilPatterns()
-      .then((all) => { if (live) setPickable(all.filter((p) => (p.passes?.length ?? 0) > 0)); })
+      .then(async (all) => {
+        if (!live) return;
+        const drawable = all.filter((p) => (p.passes?.length ?? 0) > 0);
+        setPickable(drawable);
+        if (!seedPatternCatalogId) return;
+        // A link names the pattern by its catalog id, never by name: the name is
+        // the bowler's to change (ADR-105), so the row you call "Thursday 40ft"
+        // and the row they call "Stonehenge" are matched by what they are.
+        const mine = drawable.find((p) => p.catalog_id === seedPatternCatalogId);
+        if (mine?.id != null) {
+          setPickedId(mine.id);
+          return;
+        }
+        const catalog = await getCatalogPatterns();
+        const from = catalog.find((p) => p.id === seedPatternCatalogId);
+        if (live && from) {
+          setLinkPattern({ name: from.name, passes: from.passes, catalog_id: from.id });
+        }
+      })
       .catch(() => {});
     return () => { live = false; };
-  }, [sessionPattern]);
+  }, [sessionPattern, seedPatternCatalogId]);
 
   // The pattern, derived from its load table every time the line moves, so the
   // exit point tracks the drag. Cheap: a handful of passes over 39 boards.
@@ -345,6 +445,10 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
       (line?.final_distance ?? LANE_FEET) !== Math.round(spareAim.feet * 10) / 10);
 
   return (
+    // Everything below reads the hand from context (the steppers' arrow
+    // direction, the pin grid), so the switch has to reach them rather than only
+    // the geometry computed here.
+    <HandednessContext.Provider value={hand}>
     <div
       ref={overlayRef}
       className="fixed inset-0 z-[70] flex flex-col bg-slate-900"
@@ -361,15 +465,27 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
         onPointerCancel={onPointerUp}
       >
         {/* Floating controls, the header is gone so the lane gets full height. */}
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label="Close"
+        <div
+          className="absolute right-3 top-3 z-20 flex items-center gap-2"
           onPointerDown={(e) => e.stopPropagation()}
-          className="absolute right-3 top-3 z-20 inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/25 bg-slate-900/70 text-white/80 backdrop-blur hover:bg-white/10"
         >
-          <X size={18} aria-hidden="true" />
-        </button>
+          <button
+            type="button"
+            onClick={shareLine}
+            aria-label="Share line"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/25 bg-slate-900/70 text-white/80 backdrop-blur hover:bg-white/10"
+          >
+            <ShareIosIcon size={18} aria-hidden="true" />
+          </button>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/25 bg-slate-900/70 text-white/80 backdrop-blur hover:bg-white/10"
+          >
+            <X size={18} aria-hidden="true" />
+          </button>
+        </div>
         <div
           className="absolute left-3 top-3 z-20 flex flex-col items-start gap-2"
           onPointerDown={(e) => e.stopPropagation()}
@@ -381,7 +497,7 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
           >
             {isTopDown ? "Bowler view" : "Top-down"}
           </button>
-          {(onChange || hasOil || pickable.length > 0) && (
+          {(onChange || hasOil || pickable.length > 0 || handSwitchable) && (
             <button
               type="button"
               onClick={() => setOptionsOpen(true)}
@@ -390,6 +506,24 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
             >
               <SlidersHorizontal size={16} aria-hidden="true" />
             </button>
+          )}
+          {onChange && (
+            <button
+              type="button"
+              onClick={() => setMovesOpen((open) => !open)}
+              aria-label="Quick moves"
+              aria-expanded={movesOpen}
+              className={`inline-flex h-9 w-9 items-center justify-center rounded-full border backdrop-blur ${
+                movesOpen
+                  ? "border-amber-300/60 bg-amber-400/20 text-amber-200"
+                  : "border-white/25 bg-slate-900/70 text-white/80 hover:bg-white/10"
+              }`}
+            >
+              <MoveHorizontal size={16} aria-hidden="true" />
+            </button>
+          )}
+          {movesOpen && onChange && (
+            <QuickMoves hand={hand} onMove={quickMove} onClose={() => setMovesOpen(false)} />
           )}
         </div>
 
@@ -582,9 +716,101 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
           showOil={showOil}
           onToggleOil={setShowOil}
           onClose={() => setOptionsOpen(false)}
+          hand={handSwitchable ? hand : null}
+          onPickHand={setHandOverride}
         />
       )}
+
+      <ShareCardDialog
+        open={card != null}
+        card={card}
+        onClose={() => setCard(null)}
+        link={{ url: shareUrl, title: `${title}: ${line?.laydown ?? line?.stance ?? "?"} to ${line?.target ?? "?"}` }}
+      />
     </div>
+    </HandednessContext.Provider>
+  );
+}
+
+// "X-Y" board move: X boards at the foul line, Y at the arrows. The same three
+// the score entry line editor offers, and deliberately the same three: a bowler
+// who moves 2-1 between shots is making the move they already know by name, and
+// two sets of presets in one app would be two vocabularies for one adjustment.
+const MOVE_PRESETS = [
+  { label: "1-1", laydown: 1, target: 1 },
+  { label: "1.5-1", laydown: 1.5, target: 1 },
+  { label: "2-1", laydown: 2, target: 1 },
+];
+
+/**
+ * The quick-move menu (ADR-109).
+ *
+ * A temporary layer rather than a row parked on the lane: these are three
+ * buttons a bowler reaches for in bursts, and the lane is the thing they are
+ * watching while they tap. It closes on a tap anywhere else, on Escape, and on
+ * the icon that opened it.
+ *
+ * Each preset is one full-width button whose tapped half decides the direction,
+ * exactly as the score entry presets work (ADR-091), with the arrows carrying
+ * IN and OUT for the current hand: the arrow says which way the line goes on
+ * screen, the word says which way it goes on the lane, and for a left-hander
+ * those are opposite sides.
+ */
+function QuickMoves({
+  hand, onMove, onClose,
+}: {
+  hand: Handedness;
+  onMove: (laydownBy: number, targetBy: number, toward: 1 | -1) => void;
+  onClose: () => void;
+}) {
+  const panelRef = useOverlay<HTMLDivElement>(onClose);
+  // Board numbers rise toward the middle of the lane from the bowler's own
+  // side, so "in" is always up-board. For a right-hander up-board is screen
+  // left; for a left-hander the lane is mirrored and it is screen right.
+  const leftIsIn = hand === "right";
+  return (
+    <>
+      {/* Catches the tap that dismisses it, including one on the lane, so the
+          menu never eats a drag it was in the way of. */}
+      <div data-role="quick-moves-backdrop" className="fixed inset-0" onPointerDown={onClose} />
+      <div
+        ref={panelRef}
+        role="group"
+        aria-label="Move presets"
+        className="relative w-44 rounded-xl border border-white/20 bg-slate-900/90 p-2 text-white shadow-lg backdrop-blur"
+      >
+        <p className="mb-1.5 px-1 text-[11px] font-bold uppercase tracking-wide text-white/50">
+          Move feet · eyes
+        </p>
+        <div className="flex flex-col gap-1.5">
+          {MOVE_PRESETS.map((p) => (
+            <div key={p.label} className="flex items-stretch overflow-hidden rounded-lg border border-white/20 bg-white/10">
+              <button
+                type="button"
+                aria-label={`Move ${p.label} ${leftIsIn ? "in" : "out"}`}
+                onClick={() => onMove(p.laydown, p.target, leftIsIn ? 1 : -1)}
+                className="flex w-11 shrink-0 items-center justify-center gap-0.5 text-[10px] font-bold uppercase text-white/70 hover:bg-white/10"
+              >
+                <ChevronLeft size={12} aria-hidden="true" />
+                {leftIsIn ? "In" : "Out"}
+              </button>
+              <span className="flex flex-1 items-center justify-center text-[13px] font-semibold tabular-nums">
+                {p.label}
+              </span>
+              <button
+                type="button"
+                aria-label={`Move ${p.label} ${leftIsIn ? "out" : "in"}`}
+                onClick={() => onMove(p.laydown, p.target, leftIsIn ? -1 : 1)}
+                className="flex w-11 shrink-0 items-center justify-center gap-0.5 text-[10px] font-bold uppercase text-white/70 hover:bg-white/10"
+              >
+                {leftIsIn ? "Out" : "In"}
+                <ChevronRight size={12} aria-hidden="true" />
+              </button>
+            </div>
+          ))}
+        </div>
+      </div>
+    </>
   );
 }
 
@@ -592,7 +818,7 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
  *  and the oil pattern switch (ADR-101). */
 function OptionsSheet({
   line, editable, onChange, oilName, oilStats: oil, oilRatio, showOil, onToggleOil,
-  pickable, pickedId, onPick, onClose,
+  pickable, pickedId, onPick, hand, onPickHand, onClose,
 }: {
   line: LineSpec | undefined;
   editable: boolean;
@@ -606,6 +832,9 @@ function OptionsSheet({
   pickable: OilPattern[];
   pickedId: number | null;
   onPick: (id: number | null) => void;
+  /** Hand the lane is drawn for, or null where it is not the view's to switch. */
+  hand: Handedness | null;
+  onPickHand: (hand: Handedness) => void;
   onClose: () => void;
 }) {
   // Live bounds mirroring the solver's clamps (laneGeometry hookGeomRaw): the
@@ -632,6 +861,34 @@ function OptionsSheet({
             Done
           </button>
         </div>
+        {hand && (
+          <div className="mb-4 border-b border-white/10 pb-3">
+            <span className="mb-1 block text-xs font-bold uppercase tracking-wide text-white/60">
+              Bowling hand
+            </span>
+            {/* Left on the left, so the letters sit where the hands do. */}
+            <div role="group" aria-label="Bowling hand" className="flex gap-1 rounded-xl border border-white/20 bg-slate-900 p-1">
+              {(["left", "right"] as const).map((h) => (
+                <button
+                  key={h}
+                  type="button"
+                  aria-label={h === "left" ? "Left" : "Right"}
+                  aria-pressed={hand === h}
+                  onClick={() => onPickHand(h)}
+                  className={`h-9 flex-1 rounded-lg text-sm font-semibold ${
+                    hand === h ? "bg-amber-400 text-slate-900" : "text-white/70 hover:bg-white/10"
+                  }`}
+                >
+                  {h === "left" ? "L" : "R"}
+                </button>
+              ))}
+            </div>
+            <p className="mt-1 text-xs text-white/50">
+              Mirrors the lane. Your own hand is untouched.
+            </p>
+          </div>
+        )}
+
         {pickable.length > 0 && (
           <label className="mb-4 block border-b border-white/10 pb-3">
             <span className="mb-1 block text-xs font-bold uppercase tracking-wide text-white/60">

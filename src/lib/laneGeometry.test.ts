@@ -147,10 +147,13 @@ describe("buildLinePath", () => {
   });
 
   it("for a left-hander the breakpoint marker is the strict extreme point", () => {
-    const line: LineSpec = { laydown: 20, target: 24, breakpoint: 32, breakpoint_distance: 46 };
+    // The SAME line, drawn for the other hand (ADR-111): board 1 is the bowler's
+    // own gutter either way, so the furthest-out point is the same board and
+    // only the screen side changes, leftmost rather than rightmost.
+    const line: LineSpec = { laydown: 20, target: 15, breakpoint: 8, breakpoint_distance: 46 };
     const r = buildLinePath(line, "left")!;
-    const maxX = Math.max(...samplePath(r.d).map((p) => p.x));
-    expect(maxX).toBeCloseTo(r.points.breakpoint!.x, 1);
+    const minX = Math.min(...samplePath(r.d).map((p) => p.x));
+    expect(minX).toBeCloseTo(r.points.breakpoint!.x, 1);
   });
 
   it("strike line reaches the final smoothly, one quadratic, no kink (ADR-024)", () => {
@@ -201,7 +204,7 @@ describe("buildLinePath", () => {
   });
 
   it("solveLine writes the derived apex back so stored == drawn (ADR-024)", () => {
-    const solved = solveLine({ laydown: 20, target: 15, breakpoint: 8, breakpoint_distance: 42, final_board: 17.5 }, "right");
+    const solved = solveLine({ laydown: 20, target: 15, breakpoint: 8, breakpoint_distance: 42, final_board: 17.5 });
     const r = buildLinePath(solved, "right")!;
     expect(solved.breakpoint).toBeCloseTo(xToBoard(r.points.breakpoint!.x, "right"), 1);
     expect(solved.breakpoint_distance).toBeCloseTo(yToFeet(r.points.breakpoint!.y), 1);
@@ -216,12 +219,30 @@ describe("buildLinePath", () => {
   });
 
   it("mirrors the final point for a left-hander", () => {
-    // Mirrored fixtures: the hook runs toward higher boards for a right-hander
-    // and lower boards for a left-hander, so the target sits on opposite sides
-    // of the laydown. Both reach the pocket, so both land on `final_board`.
-    const rRight = buildLinePath({ laydown: 18, target: 10 }, "right")!;
-    const rLeft = buildLinePath({ laydown: 18, target: 26 }, "left")!;
+    // ONE set of numbers, two hands (ADR-111). Boards are written from the
+    // bowler's own gutter, so the line is the same line and the drawing is its
+    // mirror image; the hook does not change direction in board space.
+    const line: LineSpec = { laydown: 18, target: 10 };
+    const rRight = buildLinePath(line, "right")!;
+    const rLeft = buildLinePath(line, "left")!;
     expect(rRight.points.final.x).toBeCloseTo(PLANE_W - rLeft.points.final.x, 4);
+  });
+
+  it("draws the whole line as one mirror image, hand for hand (ADR-111)", () => {
+    // The regression this file exists to prevent: a left-hander's line used to
+    // re-mirror the hook on top of the already-handed boards, so the ball rode
+    // straight off the lane and the final was rewritten to board 1.
+    const line: LineSpec = { laydown: 33, target: 21, breakpoint: 3.5, final_board: 17.5 };
+    const right = sampleBoards(buildLinePath(line, "right")!.d, "right");
+    const left = sampleBoards(buildLinePath(line, "left")!.d, "left");
+    expect(left.length).toBe(right.length);
+    for (let i = 0; i < right.length; i++) {
+      expect(left[i].board).toBeCloseTo(right[i].board, 6);
+      expect(left[i].feet).toBeCloseTo(right[i].feet, 6);
+    }
+    // And it still hooks back to the pocket rather than guttering out.
+    expect(Math.min(...left.map((p) => p.board))).toBeGreaterThanOrEqual(1);
+    expect(solveLine(line).final_board).toBe(17.5);
   });
 
   it("puts the final marker on the drawn line when the final is unreachable", () => {
@@ -325,7 +346,9 @@ describe("buildLinePath", () => {
   });
 
   it("LH mirror: laydown == target, purely inward hook, no marker (ADR-028)", () => {
-    const r = buildLinePath({ laydown: 35, target: 35, breakpoint: 35, final_board: 24 }, "left")!;
+    // Same boards as the right-handed case above: inward is toward the higher
+    // boards for either hand (ADR-111).
+    const r = buildLinePath({ laydown: 5, target: 5, breakpoint: 5, final_board: 16 }, "left")!;
     expect(r.points.breakpoint).toBeNull();
   });
 
@@ -337,9 +360,9 @@ describe("buildLinePath", () => {
   });
 
   it("LH mirror: unreachable final on a one-board focal has no marker (ADR-028)", () => {
-    // For a left-hander the gutter side is the HIGH boards: final_board 38 sits
-    // gutter-side of the vertical board-35 focal → rides the focal straight.
-    const r = buildLinePath({ laydown: 35, target: 35, breakpoint: 35, final_board: 38 }, "left")!;
+    // The gutter side is the LOW boards for either hand (ADR-111): final_board 3
+    // sits gutter-side of the vertical board-5 focal → rides the focal straight.
+    const r = buildLinePath({ laydown: 5, target: 5, breakpoint: 5, final_board: 3 }, "left")!;
     expect(r.points.breakpoint).toBeNull();
   });
 
@@ -354,7 +377,7 @@ describe("buildLinePath", () => {
   it("at the sharp end of the rail: stored == drawn, on-lane, and still no kink", () => {
     const base: LineSpec = { laydown: 19, target: 14, breakpoint: 8, final_board: 17 };
     const a = projectBreakpoint(base, "right", 1, 50);
-    const solved = solveLine({ ...base, hook_start_distance: a.hook_start_distance, hook_length: a.hook_length }, "right");
+    const solved = solveLine({ ...base, hook_start_distance: a.hook_start_distance, hook_length: a.hook_length });
     const r = buildLinePath(solved, "right")!;
     expect(solved.breakpoint!).toBeCloseTo(xToBoard(r.points.breakpoint!.x, "right"), 1);
     expect(solved.breakpoint_distance!).toBeCloseTo(yToFeet(r.points.breakpoint!.y), 1);
@@ -370,15 +393,17 @@ describe("buildLinePath", () => {
   });
 
   it("LH mirror: sharp end of the rail stays on-lane with stored == drawn", () => {
-    const base: LineSpec = { laydown: 21, target: 26, breakpoint: 32, final_board: 23 };
-    const a = projectBreakpoint(base, "left", 39, 50); // finger at the LH gutter
-    expect(a.board).toBeGreaterThan(36);
-    expect(a.board).toBeLessThanOrEqual(39);
-    const solved = solveLine({ ...base, hook_start_distance: a.hook_start_distance, hook_length: a.hook_length }, "left");
+    // The right-handed fixture, unchanged, drawn for a left-hander: the gutter
+    // the apex approaches is board 1 for either hand (ADR-111).
+    const base: LineSpec = { laydown: 19, target: 14, breakpoint: 8, final_board: 17 };
+    const a = projectBreakpoint(base, "left", 1, 50); // finger at the LH gutter
+    expect(a.board).toBeLessThan(4);
+    expect(a.board).toBeGreaterThanOrEqual(1);
+    const solved = solveLine({ ...base, hook_start_distance: a.hook_start_distance, hook_length: a.hook_length });
     const r = buildLinePath(solved, "left")!;
     expect(solved.breakpoint!).toBeCloseTo(xToBoard(r.points.breakpoint!.x, "left"), 1);
     expect(solved.breakpoint_distance!).toBeCloseTo(yToFeet(r.points.breakpoint!.y), 1);
-    for (const p of sampleBoards(r.d, "left")) expect(p.board).toBeLessThanOrEqual(39.1);
+    for (const p of sampleBoards(r.d, "left")) expect(p.board).toBeGreaterThanOrEqual(0.9);
   });
 
   it("one-board focal, purely inward hook: no marker regardless of breakpoint_distance (ADR-028)", () => {
@@ -398,7 +423,7 @@ describe("buildLinePath", () => {
     const line: LineSpec = { laydown: -2, target: 1, breakpoint: 5, final_board: 17 };
     const r = buildLinePath(line, "right")!;
     expect(r.points.breakpoint).toBeNull();
-    const solved = solveLine(line, "right");
+    const solved = solveLine(line);
     expect(solved.breakpoint!).toBeGreaterThanOrEqual(1);
     expect(solved.breakpoint!).toBeLessThanOrEqual(39);
   });
@@ -416,10 +441,10 @@ describe("buildLinePath", () => {
   });
 
   it("solveLine migrates breakpoint_distance to hook timing, stably (ADR-026)", () => {
-    const solved = solveLine({ laydown: 20, target: 15, breakpoint: 8, breakpoint_distance: 46, final_board: 17.5 }, "right");
+    const solved = solveLine({ laydown: 20, target: 15, breakpoint: 8, breakpoint_distance: 46, final_board: 17.5 });
     expect(solved.hook_start_distance).not.toBeUndefined();
     expect(Math.abs(solved.breakpoint_distance! - 46)).toBeLessThan(1.5); // depth preserved
-    const again = solveLine(solved, "right"); // idempotent: no drift on re-solve
+    const again = solveLine(solved); // idempotent: no drift on re-solve
     expect(again.hook_start_distance!).toBeCloseTo(solved.hook_start_distance!, 1);
     expect(again.breakpoint_distance!).toBeCloseTo(solved.breakpoint_distance!, 1);
   });
@@ -496,12 +521,16 @@ describe("buildLinePath", () => {
     expect(a.laydown).toBeUndefined();
   });
 
-  it("LH mirror: inward cascade rotates the target the other way (ADR-027)", () => {
-    const line: LineSpec = { laydown: 21, target: 26, breakpoint: 32, final_board: 23 };
-    const a = projectBreakpoint(line, "left", 24, 40, "target");
-    expect(a.target).toBeDefined();
-    expect(a.target!).toBeLessThan(25.5); // inward for a left-hander = lower boards
-    expect(Math.abs(a.board - 24)).toBeLessThan(1.5);
+  it("LH mirror: the cascade gives the same answer in board space (ADR-111)", () => {
+    // Nothing about the aim cascade depends on the hand: the finger is mapped
+    // through boardToX, which already mirrors, so the same finger on the same
+    // line must rotate the aim to the same board for either hand.
+    const line: LineSpec = { laydown: 19, target: 14, breakpoint: 8, final_board: 17 };
+    const right = projectBreakpoint(line, "right", 10, 40, "target");
+    const left = projectBreakpoint(line, "left", 10, 40, "target");
+    expect(left.target).toBeCloseTo(right.target!, 6);
+    expect(left.board).toBeCloseTo(right.board, 6);
+    expect(left.feet).toBeCloseTo(right.feet, 6);
   });
 
   it("cascade engages continuously, no marker pop at the band edge (ADR-027)", () => {
@@ -538,7 +567,7 @@ describe("buildLinePath", () => {
   });
 
   it("stored breakpoint_distance never sits shallower than the target depth (ADR-028)", () => {
-    const solved = solveLine({ laydown: 20, target: 22, breakpoint: 8, final_board: 17.5 }, "right");
+    const solved = solveLine({ laydown: 20, target: 22, breakpoint: 8, final_board: 17.5 });
     expect(solved.breakpoint_distance!).toBeGreaterThanOrEqual(arrowFeet(22) - 1e-6);
   });
 
@@ -574,9 +603,11 @@ describe("buildLinePath, focal & monotonicity invariants (ADR-015)", () => {
   });
 
   it("LH mirror: the drawn curve never crosses to the anti-hook side of the focal line", () => {
-    const line: LineSpec = { laydown: 14, target: 20, breakpoint: 29, breakpoint_distance: 42, final_board: 22.5 };
+    // The right-handed fixture drawn for the other hand: the hook side is the
+    // higher boards for either of them (ADR-111), so the rule is the same rule.
+    const line: LineSpec = { laydown: 26, target: 20, breakpoint: 11, breakpoint_distance: 42, final_board: 17.5 };
     for (const { board, feet } of sampleBoards(buildLinePath(line, "left")!.d, "left")) {
-      expect(board).toBeLessThanOrEqual(focalBoardAt(line, feet) + TOL);
+      expect(board).toBeGreaterThanOrEqual(focalBoardAt(line, feet) - TOL);
     }
   });
 
@@ -588,7 +619,7 @@ describe("buildLinePath, focal & monotonicity invariants (ADR-015)", () => {
       { laydown: 1, target: 10, breakpoint: 29.35, breakpoint_distance: 42, final_board: 39 },
       { laydown: 2.5, target: 21.5, breakpoint: 39, breakpoint_distance: 45, final_board: 39 },
     ] as LineSpec[]) {
-      const solved = solveLine(line, "right");
+      const solved = solveLine(line);
       for (const { board, feet } of sampleBoards(buildLinePath(solved, "right")!.d, "right")) {
         // Never anti-hook (right) of the focal while the focal is still on the lane.
         // Past the edge the ball is already guttering, it rides the lane edge, not
@@ -604,7 +635,7 @@ describe("buildLinePath, focal & monotonicity invariants (ADR-015)", () => {
     // the final, it rides the focal STRAIGHT (smooth, no corner) and may run off
     // the lane (guttering). No hook ⇒ no marker. The final peg stays on the lane
     // so its handle is reachable.
-    const solved = solveLine({ laydown: 2.5, target: 21.5, breakpoint: 39, breakpoint_distance: 45, final_board: 39 }, "right");
+    const solved = solveLine({ laydown: 2.5, target: 21.5, breakpoint: 39, breakpoint_distance: 45, final_board: 39 });
     const r = buildLinePath(solved, "right")!;
     expect(r.d.match(/ L /g)!.length).toBe(1); // one straight segment, smooth, no corner
     expect(xToBoard(r.points.final.x, "right")).toBeLessThanOrEqual(39.001); // final peg on the lane
@@ -623,8 +654,8 @@ describe("buildLinePath, focal & monotonicity invariants (ADR-015)", () => {
 describe("derivedApexForDisplay (ADR-031)", () => {
   it("a normal reachable hooking line: agrees with strikeApexPoint's apex", () => {
     const line: LineSpec = { stance: 40, target: 10 };
-    const strike = strikeApexPoint(line, "right");
-    const derived = derivedApexForDisplay(line, "right");
+    const strike = strikeApexPoint(line);
+    const derived = derivedApexForDisplay(line);
     expect(strike).not.toBeNull();
     expect(derived).not.toBeNull();
     expect(derived!.board).toBeCloseTo(strike!.board, 6);
@@ -635,38 +666,35 @@ describe("derivedApexForDisplay (ADR-031)", () => {
     // Laydown == target == the pocket board: the focal already rides straight
     // into the pocket, so dir * (fB - focalBoard(fF)) <= 0, no hook, no apex.
     const line: LineSpec = { stance: 17.5, target: 17.5 };
-    expect(strikeApexPoint(line, "right")).not.toBeNull(); // storage still gets a floored value
-    expect(derivedApexForDisplay(line, "right")).toBeNull();
+    expect(strikeApexPoint(line)).not.toBeNull(); // storage still gets a floored value
+    expect(derivedApexForDisplay(line)).toBeNull();
   });
 
   it("a near-straight line whose apex fails the ADR-028 honesty threshold (<= 0.25 board): returns null", () => {
     const line: LineSpec = { stance: 17.6, target: 17.5 };
-    const strike = strikeApexPoint(line, "right");
+    const strike = strikeApexPoint(line);
     expect(strike).not.toBeNull();
     expect(Math.abs(line.target! - strike!.board)).toBeLessThanOrEqual(0.25); // confirms the fixture is near-straight
-    expect(derivedApexForDisplay(line, "right")).toBeNull();
+    expect(derivedApexForDisplay(line)).toBeNull();
   });
 
   it("missing stance/laydown: returns null", () => {
-    expect(derivedApexForDisplay({ target: 10 }, "right")).toBeNull();
+    expect(derivedApexForDisplay({ target: 10 })).toBeNull();
   });
 
   it("missing target: returns null", () => {
-    expect(derivedApexForDisplay({ stance: 20 }, "right")).toBeNull();
+    expect(derivedApexForDisplay({ stance: 20 })).toBeNull();
   });
 
-  it("left-handed: a reachable hooking line agrees with strikeApexPoint's apex", () => {
-    // Mirror of the right-handed reachable fixture above (dir flips for "left",
-    // so stance/target swap to keep the ball hooking toward the pocket).
-    const line: LineSpec = { stance: 10, target: 40 };
-    const strike = strikeApexPoint(line, "left");
-    const derived = derivedApexForDisplay(line, "left");
+  it("the apex is read in board space, so it does not depend on the hand (ADR-111)", () => {
+    // The right-handed reachable fixture: there is no left-handed variant to
+    // write, because the boards are already the bowler's own.
+    const line: LineSpec = { stance: 40, target: 10 };
+    const strike = strikeApexPoint(line);
+    const derived = derivedApexForDisplay(line);
     expect(strike).not.toBeNull();
     expect(derived).not.toBeNull();
     expect(derived!.board).toBeCloseTo(strike!.board, 6);
     expect(derived!.feet).toBeCloseTo(strike!.feet, 6);
-    // Sanity: this exact line has no real reachable apex for a right-hander
-    // (dir flips the geometry), confirms the hand parameter actually matters.
-    expect(derivedApexForDisplay(line, "right")).toBeNull();
   });
 });

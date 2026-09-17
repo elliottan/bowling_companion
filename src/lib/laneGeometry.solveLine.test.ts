@@ -23,14 +23,14 @@ function curve(l: LineSpec, hand: Handedness): Array<{ board: number; feet: numb
 describe("solveLine, dependent re-clamp (RH)", () => {
   it("leaves the laydown and target exactly where the user set them", () => {
     const line: LineSpec = { laydown: 26, target: 20, breakpoint: 4, breakpoint_distance: 42, final_board: 9 };
-    const out = solveLine(line, "right");
+    const out = solveLine(line);
     expect(out.laydown).toBe(26);
     expect(out.target).toBe(20);
   });
 
   it("stores the derived apex, the drawn curve's furthest-out point (ADR-024)", () => {
     const line: LineSpec = { laydown: 26, target: 20, breakpoint: 4, breakpoint_distance: 42 };
-    const out = solveLine(line, "right");
+    const out = solveLine(line);
     const r = buildLinePath(out, "right")!;
     expect(out.breakpoint!).toBeCloseTo(xToBoard(r.points.breakpoint!.x, "right"), 1);
     expect(out.breakpoint_distance!).toBeCloseTo(yToFeet(r.points.breakpoint!.y), 1);
@@ -38,7 +38,7 @@ describe("solveLine, dependent re-clamp (RH)", () => {
 
   it("moving the laydown re-derives the breakpoint apex, staying on the lane (ADR-024)", () => {
     const before: LineSpec = { laydown: 20, target: 14, breakpoint: 8, breakpoint_distance: 42, final_board: 17.5 };
-    const after = solveLine({ ...before, laydown: 10 }, "right"); // laydown swung hook-ward
+    const after = solveLine({ ...before, laydown: 10 }); // laydown swung hook-ward
     expect(after.laydown).toBe(10);                              // free
     expect(after.target).toBe(14);                              // free
     // The swung laydown (10) is already more out than the target (14): the hook
@@ -52,24 +52,24 @@ describe("solveLine, dependent re-clamp (RH)", () => {
 
   it("won't let the apex be dragged hook-side of the aim on an out-and-back skid", () => {
     const line: LineSpec = { laydown: 20, target: 12, breakpoint: 25, breakpoint_distance: 40 };
-    const out = solveLine(line, "right");
+    const out = solveLine(line);
     expect(out.breakpoint!).toBeLessThanOrEqual(out.target! + 0.01);
   });
 
   it("pulls the final hook-side of the breakpoint (it hooks after the apex)", () => {
     const line: LineSpec = { laydown: 20, target: 16, breakpoint: 14, breakpoint_distance: 42, final_board: 9 };
-    const out = solveLine(line, "right");
+    const out = solveLine(line);
     expect(out.final_board!).toBeGreaterThanOrEqual(out.breakpoint! - 0.01);
   });
 
   it("clamps the breakpoint distance between the arrows and the pocket", () => {
-    const out = solveLine({ laydown: 18, target: 14, breakpoint: 6, breakpoint_distance: 80 }, "right");
+    const out = solveLine({ laydown: 18, target: 14, breakpoint: 6, breakpoint_distance: 80 });
     expect(out.breakpoint_distance!).toBeLessThanOrEqual(59);
     expect(out.breakpoint_distance!).toBeGreaterThan(arrowFeet(out.target!));
   });
 
   it("lets the laydown loft off the lane", () => {
-    const out = solveLine({ laydown: 45, target: 14, breakpoint: 6, breakpoint_distance: 42 }, "right");
+    const out = solveLine({ laydown: 45, target: 14, breakpoint: 6, breakpoint_distance: 42 });
     expect(out.laydown).toBe(45);
   });
 });
@@ -80,30 +80,35 @@ describe("solveLine, the solved line is always drawable", () => {
     ["RH out-and-back", { laydown: 22, target: 12, breakpoint: 4, breakpoint_distance: 42, final_board: 30 }, "right"],
     ["RH cross-lane aim", { laydown: 4, target: 20, breakpoint: 10, breakpoint_distance: 38, final_board: 17.5 }, "right"],
     ["RH steep skid", { laydown: 35, target: 18, breakpoint: 3, breakpoint_distance: 44, final_board: 17.5 }, "right"],
-    ["LH out-and-back", { laydown: 18, target: 28, breakpoint: 36, breakpoint_distance: 42, final_board: 10 }, "left"],
+    // The same out-and-back, drawn for the other hand: one line, two pictures
+    // (ADR-111). There is no left-handed geometry to assert separately.
+    ["LH out-and-back", { laydown: 22, target: 12, breakpoint: 4, breakpoint_distance: 42, final_board: 30 }, "left"],
   ];
   for (const [name, line, hand] of cases) {
     it(`${name}: drawn curve is monotone and never crosses the focal`, () => {
-      const out = solveLine(line, hand);
-      const dir = hand === "right" ? 1 : -1;
+      const out = solveLine(line);
       const pts = curve(out, hand);
       const ld = (out.laydown ?? out.stance)!;
       // The focal is a wall only on a true out-and-back skid.
-      if (dir * (ld - out.target!) > 0)
-        for (const { board, feet } of pts) expect(dir * (board - focalAt(out, feet))).toBeGreaterThanOrEqual(-TOL);
+      if (ld - out.target! > 0)
+        for (const { board, feet } of pts) expect(board - focalAt(out, feet)).toBeGreaterThanOrEqual(-TOL);
       // Unimodal: one apex, then no reversal back toward the anti-hook side.
-      const apex = pts.reduce((m, p, i) => (dir * p.board < dir * pts[m].board ? i : m), 0);
-      for (let i = 1; i <= apex; i++) expect(dir * pts[i].board).toBeLessThanOrEqual(dir * pts[i - 1].board + TOL);
-      for (let i = apex + 1; i < pts.length; i++) expect(dir * pts[i].board).toBeGreaterThanOrEqual(dir * pts[i - 1].board - TOL);
+      const apex = pts.reduce((m, p, i) => (p.board < pts[m].board ? i : m), 0);
+      for (let i = 1; i <= apex; i++) expect(pts[i].board).toBeLessThanOrEqual(pts[i - 1].board + TOL);
+      for (let i = apex + 1; i < pts.length; i++) expect(pts[i].board).toBeGreaterThanOrEqual(pts[i - 1].board - TOL);
     });
   }
 });
 
 describe("solveLine, left-hander mirror", () => {
-  it("clamps the breakpoint onto the hook (lower-board) side of the focal", () => {
-    const line: LineSpec = { laydown: 14, target: 20, breakpoint: 36, breakpoint_distance: 42 };
-    const out = solveLine(line, "left");
-    expect(out.breakpoint!).toBeLessThanOrEqual(focalAt(out, 42) + 0.1);
+  it("solves a left-hander's line to the very same numbers (ADR-111)", () => {
+    // The clamp is the right-handed clamp: boards are written from the bowler's
+    // own gutter, so solveLine has no hand to know about, and a line that
+    // crosses the lane cannot solve two ways for two bowlers.
+    const line: LineSpec = { laydown: 20, target: 14, breakpoint: 36, breakpoint_distance: 42 };
+    const out = solveLine(line);
+    expect(out.breakpoint!).toBeGreaterThanOrEqual(focalAt(out, 42) - 0.1);
+    expect(out.final_board ?? 17.5).toBeGreaterThanOrEqual(17.5);
   });
 });
 
@@ -111,7 +116,7 @@ describe("solveLine, left-hander mirror", () => {
 // anywhere. A hard corner at any peg would spike the turn between two consecutive
 // sampled segments, so the max turn angle over the path bounds the worst corner.
 const maxTurnDeg = (l: LineSpec, hand: Handedness) => {
-  const d = buildLinePath(solveLine(l, hand), hand)!.d;
+  const d = buildLinePath(solveLine(l), hand)!.d;
   const n = d.match(/-?[\d.]+/g)!.map(Number);
   const p = (i: number) => [n[i * 2], n[i * 2 + 1]];
   let worst = 0;
@@ -131,7 +136,8 @@ describe("solveLine, the hook leaves the arrows tangent (no corner) for realisti
     ["default", { laydown: 20, target: 15, breakpoint: 8, breakpoint_distance: 42 }, "right"],
     ["normal swing", { laydown: 22, target: 16, breakpoint: 7, breakpoint_distance: 42, final_board: 17.5 }, "right"],
     ["steep", { laydown: 24, target: 17, breakpoint: 6, breakpoint_distance: 43, final_board: 17.5 }, "right"],
-    ["LH", { laydown: 20, target: 24, breakpoint: 32, breakpoint_distance: 42 }, "left"],
+    // The default line drawn for the other hand: same numbers, mirrored picture.
+    ["LH", { laydown: 20, target: 15, breakpoint: 8, breakpoint_distance: 42 }, "left"],
   ] as Array<[string, LineSpec, Handedness]>) {
     it(`${name}: no sharp angle change anywhere on the line`, () => {
       expect(maxTurnDeg(line, hand)).toBeLessThan(8);

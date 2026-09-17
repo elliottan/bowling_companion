@@ -15,6 +15,52 @@ track: the recreation shot a lot of house leagues are actually played on, and
 the first pattern in the list that is not a sport or challenge shape. Its whole
 load table comes with it, so the sheet view draws where the oil sits, board by
 board, the same as every other catalog pattern.
+## A left-hander's line finally draws right (2026-09-17)
+
+**The lane mirrors, and nothing else does.** A left-handed line used to draw
+with the hook running the wrong way: the ball rode straight across the lane and
+off the edge instead of coming back to the pocket, and the finishing board was
+quietly rewritten to 1. Every board in the app is counted from your own gutter,
+so the same numbers are the same shot whichever hand you bowl with, and the
+picture is simply mirrored. That is now true of the drawing as well.
+
+If you bowl left-handed, lines you saved before this were solved against the old
+rule. Nothing has been changed behind your back: open one and it re-solves to
+the right side of the lane.
+
+## Move the line in one tap, and send it to someone (2026-09-17)
+
+**Quick moves on the lane.** The same 1-1, 1.5-1 and 2-1 presets score entry
+has always had, now in the visualiser: one tap moves your feet and your eyes
+together, in or out. The final board stays where it is, so you watch what the
+new angle does to the finish. They live behind their own control beside the
+lane options and go away the moment you tap somewhere else.
+
+Each preset says both things at once: an arrow for which way the line goes on
+screen, and IN or OUT for which way it goes on the lane. Those are opposite
+sides for a lefty, which is exactly why both are there.
+
+**A line is a link now.** Share any line, from a shot or from the sandbox, and
+what arrives is a lane someone can drag rather than four numbers read out loud.
+The link carries the boards, the hook shape, the hand it was played with and,
+for a spare, the leave. It opens the sandbox, so they can move it and send one
+back.
+
+The oil pattern travels too, by what the pattern *is* rather than what it is
+called, so it still draws when you and they call it different things. A pattern
+you typed in yourself stays yours: its numbers live on your device, so the link
+leaves it out rather than naming something they cannot draw.
+
+## See a line from the other hand (2026-09-17)
+
+**The line sandbox draws left or right.** Open the lane options and switch the
+bowling hand: the lane mirrors, the pattern mirrors with it, and the arrows on
+the steppers point where the ball goes on screen. Handy for reading someone
+else's line, or showing a student the mirror of their own.
+
+Your own handedness is untouched, the same as everything else in the sandbox.
+The switch is the sandbox's alone and starts from your hand every time it opens.
+A line on a shot you actually threw still has one hand, because the shot did.
 
 ## One pattern, one row (2026-09-16)
 
