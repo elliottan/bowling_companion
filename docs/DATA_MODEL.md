@@ -109,6 +109,20 @@ other row that holds it: sessions are repointed at the survivor, then it is
 deleted. The survivor is the row being linked, or on the boot-time heal the
 older of the pair, because that is the row the history was written against.
 
+## A line's boards (ADR-111)
+
+Every board on a `LineSpec` (`stance`, `slide`, `laydown`, `target`,
+`breakpoint`, `final_board`) is written in the **handed** board space: board 1 is
+the bowler's own gutter, 39 is the far one, and 17.5 is their pocket, the 1-3 for
+a right-hander and the 1-2 for a left-hander. `spareAim.ts` calls this the
+line-board convention and converts the absolute pin and pattern boards into it.
+
+So a line has no handedness of its own. The same numbers are the same shot for
+either bowler, the hook always runs from the low boards back toward the higher
+ones, and the only thing the hand changes is which way `boardToX` draws it.
+`lib/laneGeometry.ts` may not flip a sign for the hand anywhere else, and the
+one place that did is what ADR-111 is about.
+
 ## Scoring rules summary
 
 Implemented in `lib/scoring.ts`. The full reference is the test file

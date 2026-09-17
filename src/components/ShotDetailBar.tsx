@@ -7,7 +7,6 @@
 import { Crosshair, Eye, Plus } from "lucide-react";
 import { useState } from "react";
 import { useDriftModel } from "../lib/driftModelContext";
-import { useHandedness } from "../lib/handednessContext";
 import {
   deriveLaydown,
   deriveLaydownFromSlide,
@@ -80,7 +79,6 @@ export function ShotDetailBar({
   const selectedBall = balls.find((b) => b.id === ballId);
   const selectedSnap = selectedBall?.catalog_snapshot;
   const driftModel = useDriftModel();
-  const handedness = useHandedness();
   const isSpareAttempt = !!spareLeave?.length;
   // A breakpoint is a straight-ball concept, not a spare-shot one (ADR-035
   // amends ADR-031): shooting a leave with a hooking ball has a real apex, and
@@ -113,7 +111,7 @@ export function ShotDetailBar({
   const apexFor = (line: LineSpec | undefined, laydown: number | undefined) =>
     hidesBreakpoint || !line
       ? null
-      : derivedApexForDisplay({ ...line, laydown: line.laydown ?? laydown }, handedness);
+      : derivedApexForDisplay({ ...line, laydown: line.laydown ?? laydown });
   const derivedBreakpoint = apexFor(intended, derivedLaydown);
   const actualBreakpoint = apexFor(actualView, actualLaydown);
 
