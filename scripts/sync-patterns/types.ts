@@ -15,6 +15,8 @@ export type Reader =
   | "text-layer"
   /** Tesseract over the sheet's table images, repaired by `read/ocr-repair.ts`. */
   | "ocr"
+  /** A Kegel KOSI program file, the machine's own copy, read by `read/kosi.ts`. */
+  | "kosi"
   /** A person or an agent, reading the sheet by eye. */
   | "manual";
 
