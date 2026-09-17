@@ -8,6 +8,19 @@ merge to `main` (`docs/DEPLOYMENT.md`), so every section below is a dated batch
 of shipped work rather than a release. Thirty of them used to be headed
 `[Unreleased]`, which said nothing once they had all shipped.
 
+## A left-hander's line finally draws right (2026-09-17)
+
+**The lane mirrors, and nothing else does.** A left-handed line used to draw
+with the hook running the wrong way: the ball rode straight across the lane and
+off the edge instead of coming back to the pocket, and the finishing board was
+quietly rewritten to 1. Every board in the app is counted from your own gutter,
+so the same numbers are the same shot whichever hand you bowl with, and the
+picture is simply mirrored. That is now true of the drawing as well.
+
+If you bowl left-handed, lines you saved before this were solved against the old
+rule. Nothing has been changed behind your back: open one and it re-solves to
+the right side of the lane.
+
 ## Move the line in one tap, and send it to someone (2026-09-17)
 
 **Quick moves on the lane.** The same 1-1, 1.5-1 and 2-1 presets score entry

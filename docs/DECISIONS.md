@@ -5264,3 +5264,60 @@ pattern.
   uses (ADR-108), so it is one tap back to your own.
 - A link a chat app has trimmed still opens: missing fields fall back, and a
   leave with its spare flag gone is still read as a spare line.
+
+## ADR-111 — A line's boards are the bowler's own, so the hook never flips for the hand
+
+**Status.** Accepted, 2026-09-17.
+
+**Context.** A left-hander's line drew wrong, and had done since the auto-hook
+shipped. Switching the sandbox to the left hand (ADR-108) put the two pictures
+side by side for the first time and made it obvious: the same numbers that draw a
+right-hander's hook into the pocket drew a left-hander's ball riding dead straight
+across the lane and off the edge, with the final board silently rewritten to 1.
+
+The cause is two mirrors where there is one mirror to apply.
+
+`boardToX` maps board 1 to the bowler's own gutter, right edge for a
+right-hander, left for a left-hander, so **the board space is already handed**.
+`docs/DATA_MODEL.md` says so about pattern boards, and `spareAim.ts` names the
+convention outright: "the bowler's **line-board** convention, board 1 = the
+bowler's gutter side, so for a right-hander the 10-pin lands near board 3."
+
+`lib/laneGeometry.ts` then carried `dir = hand === "right" ? 1 : -1` through the
+whole hook construction: which side is "out", which way the apex counts, which
+edge the on-lane cap uses, which side of the focal the final is clamped to. Every
+one of those is a statement about board numbers, and board numbers are already
+the bowler's own. Applying the hand a second time inverted all of it for a
+left-hander, and it looked deliberate: several tests asserted it, with comments
+explaining that the hook "runs toward higher boards for a right-hander and lower
+boards for a left-hander", which is exactly the double mirror, written down.
+
+**Decision.** A line has no handedness. In the handed board space, for either
+bowler:
+
+- **Out** is the low-board side, toward the bowler's own gutter.
+- **The hook side** is the higher boards. A ball goes out and comes back.
+- **The pocket** is board 17.5.
+
+So `laneGeometry` computes in board space with no hand at all, and `hand` stays
+only where a board becomes a pixel: `boardToX` / `xToBoard`, and
+`projectBreakpoint`, which maps a finger on the screen back to a board.
+`solveLine`, `strikeApexPoint` and `derivedApexForDisplay` no longer take a
+`Handedness`, because a parameter that must not be used is an invitation to use
+it. The mirror belongs at the drawing edge and nowhere else.
+
+**Consequences.**
+- A left-hander's line now draws as the exact mirror of the right-handed one,
+  which is the only reading of "the same line" that survives two bowlers.
+- The left-handed tests that asserted the flip are rewritten around the
+  right-handed fixtures, since there is no separate left-handed geometry to
+  assert. One new test draws one line for both hands and compares every sample.
+- A left-hander who used the app before this has stored lines whose
+  `final_board` and `breakpoint` were written by the old solver, which was
+  clamping toward the wrong edge. Nothing is migrated: the stored numbers were
+  never wrong as *numbers*, they were solved against a mirrored rule, and a
+  migration would have to guess which of them the bowler meant. They re-solve to
+  the correct side on the next edit.
+- ADR-024, ADR-026, ADR-027 and ADR-028 are unchanged in substance. Their rules
+  were always stated in board space; this only stops the code from re-mirroring
+  that space underneath them.

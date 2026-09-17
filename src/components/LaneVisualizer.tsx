@@ -163,7 +163,7 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
   function applyEdit(patch: Partial<LineSpec>) {
     if (!onChange) return;
     if (onEditAttempt && !onEditAttempt()) return;
-    const solved = solveLine({ ...(line ?? {}), ...patch }, hand);
+    const solved = solveLine({ ...(line ?? {}), ...patch });
     // Hard lock (ADR-028): an edit whose solved result moves a locked peg stops
     // at the wall, the edit is dropped, nothing twitches.
     for (const k of locked) {
@@ -240,8 +240,7 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
           target: line?.target ?? board,
           final_board: board,
           final_distance: line?.final_distance ?? Math.round(aim.feet * 10) / 10,
-        },
-        hand
+        }
       )
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
