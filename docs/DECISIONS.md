@@ -5138,3 +5138,129 @@ written against.
   in the same transaction as the delete.
 - The heal is idempotent and costs one table read on a list with nothing wrong
   with it.
+
+## ADR-108 — The line sandbox draws either hand, and the bowler stays who they are
+
+**Status.** Accepted, 2026-09-17.
+
+**Context.** Every lane the app draws is mirrored for the bowler's hand: the
+boards run their way, the pocket is theirs, the steppers' arrows point where
+the ball goes on screen. That is right everywhere a shot is involved, because a
+shot was thrown by a hand and there is nothing to choose.
+
+The line sandbox is the exception. It has no shot behind it and no session, and
+it is where someone works a line out: a lefty reading a righty's line off a
+video, a coach showing a student the mirror of their own play, anyone asking
+what the same pattern gives from the other side. Today the only way to see that
+is to change handedness in settings, which rewrites the rest of the app (pin
+grids, adjusters, every saved line's reading) to answer a question about one
+drawing.
+
+That is the same shape as the pattern question ADR-101 settled: a session names
+its pattern and the sandbox picks one, because the sandbox has nobody to
+inherit from.
+
+**Decision.** The lane visualizer takes a `handSwitchable` flag, and only the
+line sandbox passes it. With it, the lane options sheet offers L / R above the
+pattern picker, and the chosen hand is provided through `HandednessContext` for
+the whole overlay, so the surface, the pegs and the steppers' directions all
+mirror together rather than the geometry mirroring while the arrows do not.
+
+**Nothing is written back.** The override lives in component state and dies with
+the overlay, exactly as the layout lab seeds from the bowler's settings and
+saves none of it. A sandbox that silently re-handed the bowler would be a
+control that edits the app from the one screen built for poking at.
+
+**Consequences.**
+- A shot's line (intended, actual, spare) offers no switch. Those belong to a
+  throw, and the hand is a fact about it.
+- The switch resets to the bowler's own hand every time the sandbox opens, so
+  the default is never something left behind by an earlier session.
+
+## ADR-109 — Quick moves are a menu over the lane, in the vocabulary score entry already uses
+
+**Status.** Accepted, 2026-09-17.
+
+**Context.** The visualizer could only be moved a peg at a time: drag the
+laydown, drag the target, and a 2-1 move (two boards with the feet, one with the
+eyes) took two gestures and some arithmetic. Score entry has had the move as one
+tap since it shipped, as `MOVE_PRESETS` in `LineInput`: 1-1, 1.5-1, 2-1, one
+full-width button each, with the tapped half deciding which way.
+
+The presets are the same three here on purpose. A bowler who says "I moved 2-1
+left" is naming a move, and two sets of presets in one app, or one set with an
+extra option, would be two vocabularies for one adjustment.
+
+**Decision.** A quick-move menu, opened by its own control beside the lane
+options, holding the same three presets. It moves the laydown and the target and
+**leaves the final board alone**, so the redraw answers the question the move was
+asking: what this angle does to where the ball finishes. Carrying the final along
+would translate the whole line and say nothing.
+
+It is a transient layer, not a row parked under the lane. These are buttons a
+bowler taps in bursts while watching the lane, and a permanent row would spend
+the rest of the time taking height from the drawing. So it closes on a tap
+anywhere else, on Escape, and on the control that opened it, and the backdrop
+that catches the dismissing tap is what stops it swallowing a drag.
+
+**Direction reads twice, on purpose.** Each preset's arrows carry IN and OUT for
+the current hand. Board numbers rise from the bowler's own edge toward the
+middle, so *in* is always up-board, which is screen-left for a right-hander and
+screen-right for a left-hander. The arrow says which way the line moves on
+screen, the word says which way it moves on the lane, and neither one alone is
+unambiguous for both hands.
+
+**Consequences.**
+- A locked peg (ADR-028) stops a move the way it stops a drag: the whole edit is
+  dropped rather than half-applied, so a pinned laydown cannot be slid by a
+  preset.
+- The presets work on a line that has only one of the two boards, moving what is
+  there. A line with neither is not a line to move, and the menu does nothing.
+
+## ADR-110 — A line is a link, and the pattern in it travels by catalog id
+
+**Status.** Accepted, 2026-09-17.
+
+**Context.** A layout has been shareable as a link since the lab shipped
+(`lib/layoutShare.ts`): the numbers ride in the query string, the hash names the
+screen, and what arrives is a layout you can move rather than a picture of one. A
+line is the same kind of object and had no way out of the app at all. Reading a
+line to somebody meant reading four numbers out loud, and the numbers do not
+carry the hand, the pattern or the shape of the hook.
+
+**Decision.** `lib/lineShare.ts`, built on `layoutShare.ts`'s rules: parameters
+in the **search** string (a line is what the screen is showing, not a screen, so
+it has no business in the nav projection `appRoute.ts` owns), the sandbox's own
+existing route `#/home/line` in the hash, everything optional on the way in, and
+the origin taken from the running page so a link shared out of a preview build
+opens that preview.
+
+The link carries the boards, the hook timing, the hand, and, for a spare line,
+the leave: the same boards at a different rack are a different shot. It opens the
+sandbox, editable, because a line is a thing to open. The share card is the
+preview on the way out, for the same reason the layout's is: a link pasted into a
+chat is a line of text nobody can see.
+
+**The card does not draw the lane.** It is the one picture on any of these cards
+that would be read as data (where the oil ends, where the ball leaves it) while
+carrying none of the conditions that make those numbers mean anything. The link
+is one tap away and draws the real thing.
+
+**The pattern travels as its `catalog_id` and nothing else.** A name is the
+bowler's to change (ADR-105), so the row one person calls "Thursday 40ft" and
+another calls "Stonehenge" are the same pattern and match on neither name. A
+pattern with no catalog id is somebody's own row whose load table exists on one
+device, so it is left out of the link rather than sent as a name that would draw
+nothing. On the way in the id is matched against the receiver's own rows first,
+then the shipped catalog, and a pattern found in the catalog is drawn without
+being written to their list: reading someone's line is not adopting their
+pattern.
+
+**Consequences.**
+- Every mode shares, read-only ones included: an Intended line, an Actual one and
+  a spare line are all worth sending, and all of them open in the sandbox, which
+  is the screen that belongs to nobody's shot.
+- A link opens on the sender's hand through the same override the hand switch
+  uses (ADR-108), so it is one tap back to your own.
+- A link a chat app has trimmed still opens: missing fields fall back, and a
+  leave with its spare flag gone is still read as a spare line.

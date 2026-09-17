@@ -40,6 +40,7 @@ import { HandednessContext } from "./lib/handednessContext";
 import { DriftModelContext } from "./lib/driftModelContext";
 import { DEFAULT_DRIFT_MODEL, type DriftModel } from "./lib/driftModel";
 import type { Handedness, LineSpec } from "./types/bowling";
+import { decodeLineParams } from "./lib/lineShare";
 import { LaneVisualizerLazy } from "./components/LaneVisualizerLazy";
 import { UpdateToast } from "./components/UpdateToast";
 import { shouldResetScroll } from "./lib/viewportScroll";
@@ -102,6 +103,13 @@ const NAV_ITEMS: ReadonlyArray<NavItem> = [
 
 const MOBILE_NAV_ITEMS = NAV_ITEMS;
 
+/** The page's query string, guarded for a render with no window behind it.
+ *  Shared content rides there rather than in the hash (`lib/lineShare.ts`). */
+function currentSearch(): string {
+  if (typeof window === "undefined") return "";
+  return window.location.search;
+}
+
 // Read once, before the router normalises the hash: was the app opened at a
 // particular screen, or just opened?
 const launchedWithRoute = (() => {
@@ -133,10 +141,14 @@ function App() {
   const [chosenHandedness, setChosenHandedness] = useState<Handedness | null>(null);
   const [driftModel, setDriftModelState] = useState<DriftModel>(DEFAULT_DRIFT_MODEL);
   const [resumable, setResumable] = useState<ResumableGame | null>(null);
+  // A line someone sent, read once at first render for the same reason the
+  // layout lab reads its own link there: the sandbox should open on the line,
+  // never on a flash of the default one before it arrives (ADR-110).
+  const [sharedLine] = useState(() => decodeLineParams(currentSearch()));
   // A realistic strike line; auto-hooks to the pocket (ADR-024), no seeded breakpoint.
-  const [sandboxLine, setSandboxLine] = useState<LineSpec | undefined>({
-    laydown: 20, target: 15, breakpoint: 8,
-  });
+  const [sandboxLine, setSandboxLine] = useState<LineSpec | undefined>(
+    sharedLine?.line ?? { laydown: 20, target: 15, breakpoint: 8 }
+  );
   const [keyboardOpen, setKeyboardOpen] = useState(false);
 
   // Each tab is remounted on switch (the `key` on <main> below), so its scroll
@@ -692,6 +704,15 @@ function App() {
           title="Line sandbox"
           line={sandboxLine}
           onChange={setSandboxLine}
+          // No shot behind this lane, so the hand is a question rather than a
+          // fact, the same reason the sandbox picks its own pattern (ADR-108).
+          handSwitchable
+          // A shared line opens as it was drawn: their hand, their pattern,
+          // their leave if it was a spare (ADR-110).
+          seedHand={sharedLine?.hand}
+          seedPatternCatalogId={sharedLine?.patternCatalogId}
+          spare={sharedLine?.spare}
+          leave={sharedLine?.leave}
           onClose={() => goBack({ type: "closeLineSandbox" })}
         />
       )}
