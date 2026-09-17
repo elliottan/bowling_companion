@@ -219,6 +219,50 @@ export function buildLayoutCard(layout: LayoutLike): ShareCardData {
   };
 }
 
+interface LineLike {
+  /** Foul-line board, arrows, and where the ball is meant to finish. */
+  laydown?: number;
+  target?: number;
+  finalBoard?: number;
+  hookStart?: number;
+  hookLength?: number;
+  hand: "left" | "right";
+  spare: boolean;
+  /** What the sender was looking at: "Intended line", "Line sandbox". */
+  title: string;
+  patternName?: string;
+}
+
+/**
+ * A line, as the preview for its link.
+ *
+ * The boards are the title because they are how a line is said out loud: "20 to
+ * 15, out to the pocket". The lane itself is not drawn on the card. It is the
+ * one picture on any of these cards that would be read as data (where the oil
+ * ends, where the ball leaves it), and a card is a picture in a chat, without
+ * the pattern or the hand that make those numbers mean anything. The link is
+ * one tap away and draws the real thing.
+ */
+export function buildLineCard(line: LineLike): ShareCardData {
+  const board = (v: number | undefined) => (v == null ? "?" : String(Math.round(v * 10) / 10));
+  const stats: ShareStat[] = [];
+  if (line.hookStart != null) stats.push({ value: `${Math.round(line.hookStart)} ft`, label: "Hook start" });
+  if (line.hookLength != null) stats.push({ value: `${Math.round(line.hookLength)} ft`, label: "Hook length" });
+
+  return {
+    eyebrow: [
+      `${line.hand === "left" ? "Left" : "Right"} hand`,
+      line.spare ? "Spare line" : "Strike line",
+      ...(line.patternName ? [line.patternName] : [])
+    ].join("  ·  "),
+    title: `${board(line.laydown)} · ${board(line.target)} → ${board(line.finalBoard)}`,
+    caption: "Foul line, arrows, and where it finishes. Open the link to move it.",
+    hero: null,
+    games: null,
+    stats
+  };
+}
+
 /** Filename for the saved image. Minutes included so two shares in one day do
  *  not collide in a folder as "(1)" and "(2)", the way backups used to. */
 export function shareCardFilename(title: string, now = new Date()): string {

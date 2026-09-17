@@ -5,7 +5,7 @@ import { DriftModelContext } from "../lib/driftModelContext";
 import { DEFAULT_DRIFT_MODEL } from "../lib/driftModel";
 import { OilPatternContext } from "../lib/oilPatternContext";
 import { getOilPatterns } from "../services/ballRepository";
-import type { OilPattern } from "../types/bowling";
+import type { LineSpec, OilPattern } from "../types/bowling";
 
 // Defaults to no saved patterns, so every other test in this file behaves as it
 // did: the picker only appears where there is something to pick.
@@ -387,5 +387,69 @@ describe("LaneVisualizer hand switch (ADR-108)", () => {
     // Right-handed, ◀ raises the board; left-handed it lowers it.
     fireEvent.click(screen.getByLabelText("Target left"));
     expect(onChange.mock.lastCall![0].target).toBe(9.5);
+  });
+});
+
+describe("LaneVisualizer quick moves (ADR-109)", () => {
+  function openMoves(hand: "left" | "right", onChange: (line: LineSpec | undefined) => void) {
+    render(
+      <HandednessContext.Provider value={hand}>
+        <LaneVisualizer
+          line={{ laydown: 20, target: 15, final_board: 17.5 }}
+          onClose={() => {}}
+          onChange={onChange}
+        />
+      </HandednessContext.Provider>
+    );
+    fireEvent.click(screen.getByLabelText(/quick moves/i));
+  }
+
+  it("moves the foul-line board and the arrows together, leaving the final alone", () => {
+    const onChange = vi.fn();
+    openMoves("right", onChange);
+    fireEvent.click(screen.getByLabelText("Move 2-1 in"));
+    const moved = onChange.mock.lastCall![0];
+    expect(moved.laydown).toBe(22);
+    expect(moved.target).toBe(16);
+    expect(moved.final_board).toBe(17.5);
+  });
+
+  it("in is up-board for either hand, so the arrow flips and the word does not", () => {
+    const right = vi.fn();
+    openMoves("right", right);
+    // Right-hander: the LEFT arrow is the move inside.
+    expect(screen.getByLabelText("Move 1-1 in").textContent).toContain("In");
+    fireEvent.click(screen.getByLabelText("Move 1-1 out"));
+    expect(right.mock.lastCall![0].target).toBe(14);
+  });
+
+  it("closes on a tap anywhere else, so it never sits in the way of the lane", () => {
+    const onChange = vi.fn();
+    openMoves("right", onChange);
+    expect(screen.getByRole("group", { name: /move presets/i })).toBeInTheDocument();
+    fireEvent.pointerDown(document.querySelector('[data-role="quick-moves-backdrop"]')!);
+    expect(screen.queryByRole("group", { name: /move presets/i })).toBeNull();
+  });
+
+  it("is not offered on a read-only line", () => {
+    render(
+      <HandednessContext.Provider value="right">
+        <LaneVisualizer line={{ laydown: 20, target: 15 }} onClose={() => {}} />
+      </HandednessContext.Provider>
+    );
+    expect(screen.queryByLabelText(/quick moves/i)).toBeNull();
+  });
+});
+
+describe("LaneVisualizer share (ADR-110)", () => {
+  it("offers a share on every mode, read-only included", () => {
+    renderViz();
+    expect(screen.getByLabelText(/share line/i)).toBeInTheDocument();
+  });
+
+  it("previews the line before it goes anywhere", async () => {
+    renderViz({ line: { laydown: 20, target: 15, final_board: 17.5 } });
+    fireEvent.click(screen.getByLabelText(/share line/i));
+    expect(await screen.findByRole("dialog", { name: /share image/i })).toBeInTheDocument();
   });
 });
