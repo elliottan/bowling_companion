@@ -8,6 +8,13 @@ merge to `main` (`docs/DEPLOYMENT.md`), so every section below is a dated batch
 of shipped work rather than a release. Thirty of them used to be headed
 `[Unreleased]`, which said nothing once they had all shipped.
 
+## High Street V2 joins the pattern list (2026-09-17)
+
+**Kegel's High Street V2 is in the catalog.** 44 feet, 25 mL, 13:1 out of the
+track: the recreation shot a lot of house leagues are actually played on, and
+the first pattern in the list that is not a sport or challenge shape. Its whole
+load table comes with it, so the sheet view draws where the oil sits, board by
+board, the same as every other catalog pattern.
 ## A left-hander's line finally draws right (2026-09-17)
 
 **The lane mirrors, and nothing else does.** A left-handed line used to draw

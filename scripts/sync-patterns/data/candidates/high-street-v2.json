@@ -1,0 +1,146 @@
+{
+  "id": "high-street-v2",
+  "name": "High Street V2",
+  "vendor": "kegel",
+  "sourceUrl": "https://khsaa.org/bowling/2020/Singles-Oil-Pattern-High-Street-V2.pdf",
+  "reader": "kosi",
+  "passes": [
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 2,
+      "microliters": 50,
+      "start_distance": 0,
+      "end_distance": 2.5,
+      "speed": 18,
+      "tank": "A"
+    },
+    {
+      "direction": "forward",
+      "left_board": 9,
+      "right_board": 31,
+      "loads": 3,
+      "microliters": 50,
+      "start_distance": 2.5,
+      "end_distance": 10.1,
+      "speed": 18,
+      "tank": "A"
+    },
+    {
+      "direction": "forward",
+      "left_board": 10,
+      "right_board": 30,
+      "loads": 4,
+      "microliters": 50,
+      "start_distance": 10.1,
+      "end_distance": 20.3,
+      "speed": 18,
+      "tank": "A"
+    },
+    {
+      "direction": "forward",
+      "left_board": 12,
+      "right_board": 28,
+      "loads": 4,
+      "microliters": 50,
+      "start_distance": 20.3,
+      "end_distance": 30.5,
+      "speed": 18,
+      "tank": "A"
+    },
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 50,
+      "start_distance": 30.5,
+      "end_distance": 38,
+      "speed": 22,
+      "tank": "A"
+    },
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 50,
+      "start_distance": 38,
+      "end_distance": 44,
+      "speed": 30,
+      "tank": "A"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 50,
+      "start_distance": 44,
+      "end_distance": 35,
+      "speed": 30,
+      "tank": "B"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 14,
+      "right_board": 26,
+      "loads": 3,
+      "microliters": 50,
+      "start_distance": 35,
+      "end_distance": 27.4,
+      "speed": 18,
+      "tank": "B"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 13,
+      "right_board": 27,
+      "loads": 4,
+      "microliters": 50,
+      "start_distance": 27.4,
+      "end_distance": 17.2,
+      "speed": 18,
+      "tank": "B"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 12,
+      "right_board": 28,
+      "loads": 4,
+      "microliters": 50,
+      "start_distance": 17.2,
+      "end_distance": 9.3,
+      "speed": 14,
+      "tank": "B"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 11,
+      "right_board": 29,
+      "loads": 2,
+      "microliters": 50,
+      "start_distance": 9.3,
+      "end_distance": 6.5,
+      "speed": 10,
+      "tank": "B"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 50,
+      "start_distance": 6.5,
+      "end_distance": 0,
+      "speed": 10,
+      "tank": "B"
+    }
+  ],
+  "stated": {
+    "distance": 44,
+    "volumeMl": 25
+  },
+  "note": "high-street-v2.kosi · program 1758 · 44 ft · 50 ul per board · 13.00:1"
+}

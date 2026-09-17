@@ -5321,3 +5321,49 @@ it. The mirror belongs at the drawing edge and nowhere else.
 - ADR-024, ADR-026, ADR-027 and ADR-028 are unchanged in substance. Their rules
   were always stated in board space; this only stops the code from re-mirroring
   that space underneath them.
+---
+
+## ADR-112: A lane machine's own program file is a third way into the catalog
+
+**Status.** Accepted, 2026-09-17. Extends ADR-104's ingest and ADR-044's routing.
+
+**Context.** ADR-102 read a pattern sheet's text layer, ADR-103 fell back to OCR
+when Kegel drew its tables as pictures, and both start from the PDF a bowler is
+handed. High Street V2 arrived as neither: a KOSI program file, which is what
+the lane machine is actually loaded with. It is the same pattern with the
+pictures taken off, and it was already in hand when no sheet PDF could be
+reached at all.
+
+Read as a document it looks worse than a sheet, because it has no labels: a
+program number, a name, eleven bare integers, then columns of numbers padded out
+with blank lines. Nothing says which column is loads and which is speed.
+
+**Decision.** A KOSI file is read by `read/kosi.ts`, an ADR-044 parser reading
+at fixed positions that throws rather than guessing, and `ingest.ts` routes to it
+for anything that is not a `.pdf`.
+
+What makes the unlabelled columns tenable is that **the file states its boards
+twice**, once as absolute numbers and once in the sheet's own L/R notation. On
+High Street V2 that is twenty-four values checking twelve, through ADR-101's
+`parseSheetBoard`, and a column read out of order fails there rather than on the
+lane. Two more readings pin the header positions to the tables rather than to a
+guess: the header's distance must equal the last forward pass's end, and its
+reverse brush drop must be where the reverse table starts laying oil.
+
+**A program file states no volume**, which is the one number that would check the
+loads and the oil per board. So `--volume` carries the total the printed sheet
+states, and without it the promote gate can only check the pattern's length. On
+High Street V2 the tables come to 25.00 mL against the 25 mL its published sheet
+states, which is what makes the single global oil-per-board in the header a read
+value rather than an assumption.
+
+**Consequences.**
+- Passes chain: a column holds where each pass ENDS, and each starts where the
+  one before it stopped, forward from the foul line and reverse from the far end
+  of the pattern. That is how a sheet prints the pair of tables, and it puts the
+  buffer-only passes at both ends, which is what sets the pattern distance.
+- The program file itself is kept in `data/programs/`, so a promoted pattern can
+  be re-derived from what it came from rather than trusted for being there
+  already. The tests read that file, not a copy of it.
+- A file whose columns are arranged differently does not read partially. It
+  throws, names the file, and stages nothing.
