@@ -215,7 +215,7 @@ export async function readSheet(path: string, opts: { vendor?: string; sourceUrl
   };
 }
 
-function statedFrom(lines: readonly string[], label: RegExp): number | undefined {
+export function statedFrom(lines: readonly string[], label: RegExp): number | undefined {
   for (const line of lines) {
     const at = line.search(label);
     if (at < 0) continue;
