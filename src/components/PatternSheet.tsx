@@ -165,7 +165,7 @@ function BoardGraph({ totals }: { totals: number[] }) {
           fontSize="3.4"
           fontWeight={board === 20 ? 700 : 400}
         >
-          {board}
+          {20 - Math.abs(board - 20)}
         </text>
       ))}
     </svg>
