@@ -555,7 +555,7 @@ function App() {
             onOpenSpareLines={() => pushOverlay("spares")}
             onOpenBackup={goToBackup}
             onOpenCatalog={() => pushOverlay("catalog")}
-            onOpenLineVisualizer={() => dispatch({ type: "openLineSandbox" })}
+            onOpenLineVisualizer={(patternId) => dispatch({ type: "openLineSandbox", patternId })}
           />
         )}
         </Suspense>
@@ -609,7 +609,14 @@ function App() {
           case "lanes":
             return <LaneNotesView key={`lanes-${i}`} onBack={popOverlay} mode="overlay" />;
           case "oil-patterns":
-            return <OilPatternsView key={`oil-patterns-${i}`} onBack={popOverlay} mode="overlay" />;
+            return (
+              <OilPatternsView
+                key={`oil-patterns-${i}`}
+                onBack={popOverlay}
+                mode="overlay"
+                onOpenLineVisualizer={(patternId) => dispatch({ type: "openLineSandbox", patternId })}
+              />
+            );
           case "backup":
             return <BackupRestoreView key={`backup-${i}`} onBack={popOverlay} mode="overlay" />;
           case "spares":
@@ -711,6 +718,7 @@ function App() {
           // their leave if it was a spare (ADR-110).
           seedHand={sharedLine?.hand}
           seedPatternCatalogId={sharedLine?.patternCatalogId}
+          seedPatternId={nav.lineSandboxPatternId ?? undefined}
           spare={sharedLine?.spare}
           leave={sharedLine?.leave}
           onClose={() => goBack({ type: "closeLineSandbox" })}

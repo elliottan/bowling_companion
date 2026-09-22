@@ -87,9 +87,15 @@ interface LaneVisualizerProps {
   /** `catalog_id` of the pattern to open drawn under the line, from a shared
    *  link. Resolved against the bowler's own rows first, then the catalog. */
   seedPatternCatalogId?: string;
+  /** Own row id of the pattern to open drawn under the line, from its own
+   *  detail sheet ("try this pattern in the line visualizer"). Distinct from
+   *  `seedPatternCatalogId`: that one names a pattern by what it IS, for a
+   *  link that may cross devices; this one names a row already on this
+   *  device, so its own id is enough. */
+  seedPatternId?: number;
 }
 
-export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, showStance = false, title = "Line", onEditAttempt, defaultLocks, suspended = false, handSwitchable = false, seedHand, seedPatternCatalogId }: LaneVisualizerProps) {
+export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, showStance = false, title = "Line", onEditAttempt, defaultLocks, suspended = false, handSwitchable = false, seedHand, seedPatternCatalogId, seedPatternId }: LaneVisualizerProps) {
   const appHand = useHandedness();
   // Nothing here is written back to settings: mirroring the lane to see how the
   // other hand plays it is a question being asked, not the bowler changing hands
@@ -105,7 +111,7 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
   // inherit from (ADR-101).
   const sessionPattern = useSessionOilPattern();
   const [pickable, setPickable] = useState<OilPattern[]>([]);
-  const [pickedId, setPickedId] = useState<number | null>(null);
+  const [pickedId, setPickedId] = useState<number | null>(seedPatternId ?? null);
   // A pattern a link named that this device does not have saved. Drawn from the
   // catalog so the line still arrives on the lane it was played on, and never
   // written to the bowler's list: reading someone's line is not adopting their
