@@ -43,7 +43,7 @@ interface SettingsViewProps {
   onOpenBackup: () => void;
   /** Navigate to the ball catalog view. */
   onOpenCatalog: () => void;
-  onOpenLineVisualizer: () => void;
+  onOpenLineVisualizer: (patternId?: number) => void;
 }
 
 /**
@@ -81,7 +81,7 @@ export function SettingsView({ section, onSectionChange, handedness, onHandednes
         {section === "lanes" ? (
           <LaneNotesView onBack={back} />
         ) : section === "oil-patterns" ? (
-          <OilPatternsView onBack={back} />
+          <OilPatternsView onBack={back} onOpenLineVisualizer={onOpenLineVisualizer} />
         ) : section === "appearance" ? (
           <AppearanceView onBack={back} />
         ) : section === "preferences" ? (

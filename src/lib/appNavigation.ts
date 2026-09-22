@@ -103,6 +103,11 @@ export interface NavState {
    *  `activeSessionId`, which is the session being bowled (ADR-084). */
   viewedSessionId: number | null;
   lineSandboxOpen: boolean;
+  /** The pattern the sandbox opens with drawn on the lane, when it was sent
+   *  there from a pattern's own detail sheet rather than reached on its own.
+   *  A field beside the flag for the same reason as `catalogBallId`: it is
+   *  content, not part of the route (see `layoutSeed`). */
+  lineSandboxPatternId: number | null;
 }
 
 export type NavAction =
@@ -124,7 +129,7 @@ export type NavAction =
   | { type: "openGuide"; guideId: string }
   /** Open the layout lab, optionally on a layout something else chose. */
   | { type: "openLayoutLab"; seed?: LayoutSeed }
-  | { type: "openLineSandbox" }
+  | { type: "openLineSandbox"; patternId?: number }
   | { type: "closeLineSandbox" }
   | { type: "statsOpened" }
   | { type: "sessionGameOpened" }
@@ -161,7 +166,8 @@ export const INITIAL_NAV: NavState = {
   openGuideId: null,
   layoutSeed: null,
   viewedSessionId: null,
-  lineSandboxOpen: false
+  lineSandboxOpen: false,
+  lineSandboxPatternId: null
 };
 
 export function navReducer(state: NavState, action: NavAction): NavState {
@@ -297,10 +303,10 @@ export function navReducer(state: NavState, action: NavAction): NavState {
     }
 
     case "openLineSandbox":
-      return { ...state, lineSandboxOpen: true };
+      return { ...state, lineSandboxOpen: true, lineSandboxPatternId: action.patternId ?? null };
 
     case "closeLineSandbox":
-      return { ...state, lineSandboxOpen: false };
+      return { ...state, lineSandboxOpen: false, lineSandboxPatternId: null };
 
     case "sessionGameOpened":
       return state.openSessionGameId === null && state.openSessionBallId === null
@@ -352,7 +358,8 @@ export function navReducer(state: NavState, action: NavAction): NavState {
         // query string, exactly as a pasted link does.
         layoutSeed: null,
         viewedSessionId: route.viewedSessionId ?? null,
-        lineSandboxOpen: route.lineSandbox ?? false
+        lineSandboxOpen: route.lineSandbox ?? false,
+        lineSandboxPatternId: null
       };
     }
 

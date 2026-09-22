@@ -8,6 +8,8 @@ import {
 import { LANE_BOARDS } from "../lib/laneGeometry";
 import { useOverlay } from "../lib/useOverlay";
 import { GROUP_HEADING } from "./ui/typography";
+import { Button } from "./ui/Button";
+import { LaneViewIcon } from "./icons";
 
 /**
  * A pattern sheet, in the app (ADR-106).
@@ -25,9 +27,13 @@ import { GROUP_HEADING } from "./ui/typography";
 interface PatternSheetProps {
   pattern: OilPattern;
   onClose: () => void;
+  /** Jump to the line visualizer with this pattern already drawn on the lane.
+   *  Omitted where the pattern has no load table to draw (nothing would show
+   *  up) or the caller has no visualizer to send you to. */
+  onOpenInLineVisualizer?: () => void;
 }
 
-export function PatternSheet({ pattern, onClose }: PatternSheetProps) {
+export function PatternSheet({ pattern, onClose, onOpenInLineVisualizer }: PatternSheetProps) {
   const ref = useOverlay<HTMLDivElement>(onClose);
   const stats = useMemo(() => oilStats(pattern.passes), [pattern.passes]);
   const ratio = useMemo(() => headlineRatio(pattern.passes), [pattern.passes]);
@@ -60,6 +66,13 @@ export function PatternSheet({ pattern, onClose }: PatternSheetProps) {
             </p>
           ) : (
             <>
+              {onOpenInLineVisualizer && (
+                <Button variant="secondary" onClick={onOpenInLineVisualizer} className="w-full">
+                  <LaneViewIcon size={16} aria-hidden="true" />
+                  Try this pattern in the line visualizer
+                </Button>
+              )}
+
               {/* The four figures a sheet leads with. */}
               <dl className="grid grid-cols-2 gap-2">
                 <Figure label="Distance" value={`${Math.round(stats.length)} ft`} />

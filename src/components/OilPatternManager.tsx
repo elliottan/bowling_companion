@@ -1,4 +1,4 @@
-import { ChevronRight, ExternalLink, Plus, RotateCcw, ScrollText } from "lucide-react";
+import { ChevronRight, Pencil, Plus, RotateCcw } from "lucide-react";
 import { OilPatternIcon } from "./icons";
 import { useMemo, useState, useEffect } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
@@ -33,13 +33,17 @@ interface OilPatternManagerProps {
   onBack?: () => void;
   /** `overlay` when pushed over another tab, `inline` inside Settings. */
   mode?: "inline" | "overlay";
+  /** Jump to the line visualizer with a pattern's own load table already
+   *  drawn. Omitted where the manager has no visualizer to send you to (the
+   *  session form's inline copy). */
+  onOpenLineVisualizer?: (patternId: number) => void;
 }
 
 // A stable empty list: `?? []` would be a new array on every render, which
 // invalidates every useMemo downstream of it.
 const NO_PATTERNS: OilPattern[] = [];
 
-export function OilPatternManager({ onBack, mode = "inline" }: OilPatternManagerProps = {}) {
+export function OilPatternManager({ onBack, mode = "inline", onOpenLineVisualizer }: OilPatternManagerProps = {}) {
   // Live: adding, renaming, archiving and deleting a pattern all update this
   // list, including when the session form has the manager open on top of it.
   const live = useLiveQuery(() => getAllOilPatterns());
@@ -242,9 +246,7 @@ export function OilPatternManager({ onBack, mode = "inline" }: OilPatternManager
               key={pattern.id}
               pattern={pattern}
               onEdit={() => openEdit(pattern)}
-              onOpenSheet={
-                (pattern.passes?.length ?? 0) > 0 ? () => setSheetFor(pattern) : undefined
-              }
+              onOpenSheet={() => setSheetFor(pattern)}
             />
           ))}
         </ListGroup>
@@ -276,7 +278,20 @@ export function OilPatternManager({ onBack, mode = "inline" }: OilPatternManager
         </>
       )}
 
-      {sheetFor && <PatternSheet pattern={sheetFor} onClose={() => setSheetFor(null)} />}
+      {sheetFor && (
+        <PatternSheet
+          pattern={sheetFor}
+          onClose={() => setSheetFor(null)}
+          onOpenInLineVisualizer={
+            onOpenLineVisualizer && sheetFor.id != null
+              ? () => {
+                  onOpenLineVisualizer(sheetFor.id!);
+                  setSheetFor(null);
+                }
+              : undefined
+          }
+        />
+      )}
 
       {showCatalog && (
         <FormSheet
@@ -427,19 +442,19 @@ function PatternRow({
 }: {
   pattern: OilPattern;
   onEdit: () => void;
-  /** Given when the pattern has a load table to show. */
+  /** Given for the active list: the row opens the pattern's detail sheet, and
+   *  the pencil beside it opens the editor. Archived rows have no detail page
+   *  worth a special row, so they keep the row opening the editor directly. */
   onOpenSheet?: () => void;
   onRestore?: () => void;
 }) {
+  const primary = onOpenSheet ?? onEdit;
   return (
     <li className={`flex items-center ${LIST_DIVIDER}`}>
-      {/* The row itself opens the editor. It used to carry an edit pencil and a
-          delete bin beside the name, three targets in one row; removal moved
-          into the editor, where it sits with the thing it destroys (§4, §2). */}
       <button
         type="button"
-        onClick={onEdit}
-        aria-label={`Edit ${pattern.name}`}
+        onClick={primary}
+        aria-label={onOpenSheet ? `${pattern.name} details` : `Edit ${pattern.name}`}
         className="flex min-w-0 flex-1 items-center gap-3 px-3 py-2.5 text-left active:bg-surface-muted"
       >
         <span className="min-w-0 flex-1">
@@ -448,32 +463,18 @@ function PatternRow({
             {summarize(pattern)}
           </span>
         </span>
-        {/* The chevron steps aside for whichever sheet this row offers: two
-            arrows in one row read as one crowded control rather than two. */}
-        {!onRestore && !onOpenSheet && !pattern.url && (
+        {!onOpenSheet && !onRestore && (
           <ChevronRight size={16} aria-hidden="true" className="shrink-0 text-ink-tertiary" />
         )}
       </button>
-      {/* A second target, deliberately: the sheet is a different destination
-          rather than an action on the row, the same exception the drag handle
-          takes. The app's own sheet wins where there is one, because it needs
-          no signal and does not leave the app (ADR-106); the outward link is
-          only for a pattern the app cannot draw. */}
-      {onOpenSheet ? (
-        <IconButton label={`Pattern sheet for ${pattern.name}`} onClick={onOpenSheet}>
-          <ScrollText size={16} aria-hidden="true" />
+      {/* A second target, deliberately: editing is a different destination
+          rather than an action folded into the row, the same exception the
+          drag handle takes. */}
+      {onOpenSheet && (
+        <IconButton label={`Edit ${pattern.name}`} onClick={onEdit}>
+          <Pencil size={16} aria-hidden="true" />
         </IconButton>
-      ) : pattern.url ? (
-        <a
-          href={pattern.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label={`Open the ${pattern.name} pattern sheet`}
-          className="inline-flex h-11 w-11 shrink-0 items-center justify-center text-accent"
-        >
-          <ExternalLink size={16} aria-hidden="true" />
-        </a>
-      ) : null}
+      )}
       {onRestore && (
         <IconButton label={`Restore ${pattern.name}`} onClick={onRestore}>
           <RotateCcw size={16} aria-hidden="true" />
