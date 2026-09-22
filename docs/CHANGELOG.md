@@ -8,6 +8,14 @@ merge to `main` (`docs/DEPLOYMENT.md`), so every section below is a dated batch
 of shipped work rather than a release. Thirty of them used to be headed
 `[Unreleased]`, which said nothing once they had all shipped.
 
+## Striking Against Breast Cancer joins the pattern list (2026-09-22)
+
+**Kegel's 2025 Striking Against Breast Cancer Mixed Doubles pattern is in the
+catalog.** 41 feet, 29.1 mL, 2.37:1: a sport shape, read by eye off the
+printed sheet and checked the same way as every other reading, its own
+CROSSED and T.OIL arithmetic against the header. It carries its full load
+table into the catalog, forward and reverse passes both.
+
 ## High Street V2 joins the pattern list (2026-09-17)
 
 **Kegel's High Street V2 is in the catalog.** 44 feet, 25 mL, 13:1 out of the
