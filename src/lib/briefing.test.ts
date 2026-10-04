@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildBriefing } from "./briefing";
+import { buildBriefing, lastTimeAt, movementAt } from "./briefing";
 import type { Ball, Frame, Game, PinNumber, SessionSummary, Shot } from "../types/bowling";
 
 const NONE: PinNumber[] = [];
@@ -402,6 +402,27 @@ describe("how the session moves here", () => {
       { gameNumber: 2, games: 2, score: 190, ballName: "Phaze II", stance: 23, target: 12 },
       { gameNumber: 3, games: 2, score: 180, ballName: "IQ Tour", stance: 26, target: 14 }
     ]);
+  });
+
+  it("is read per alley for the scorer's hint, and the last night for the start sheet", () => {
+    const sessions = [
+      ...drifting(2, "Sea Bowl", [
+        [20, 10, 1],
+        [22, 11, 1]
+      ]),
+      ...drifting(2, "Other Lanes", [
+        [30, 15, 2],
+        [30, 15, 2]
+      ])
+    ];
+    expect(movementAt(sessions, balls, "sea bowl").map((m) => m.stance)).toEqual([20, 22]);
+    expect(movementAt(sessions, balls, " ")).toEqual([]);
+    expect(lastTimeAt(sessions, balls, "Other Lanes")).toMatchObject({
+      alley: "Other Lanes",
+      ballName: "IQ Tour"
+    });
+    expect(lastTimeAt(sessions, balls, "Nowhere")).toBeNull();
+    expect(lastTimeAt(sessions, balls, "")).toBeNull();
   });
 
   it("reads before the slice gate, since it compares nothing", () => {

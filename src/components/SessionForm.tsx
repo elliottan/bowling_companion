@@ -10,7 +10,11 @@ import { FIELD, FIELD_LABEL, FIELD_SELECT, FIELD_TEXTAREA } from "./ui/field";
 import type { CreateSessionInput } from "../services/bowlingRepository";
 import type { OilPattern } from "../types/bowling";
 import { getOilPattern, getOilPatterns } from "../services/ballRepository";
-import { getDistinctAlleys, getDistinctDescriptions } from "../services/bowlingRepository";
+import { getDistinctAlleys, getDistinctDescriptions, getSessionHistory } from "../services/bowlingRepository";
+import { getBalls } from "../services/ballRepository";
+import { useLiveQuery } from "dexie-react-hooks";
+import { lastTimeAt } from "../lib/briefing";
+import { LastTimeCard } from "./AlleyHistory";
 
 export interface NewSessionFormValues extends CreateSessionInput {
   lanes: string[];
@@ -91,6 +95,21 @@ export function SessionForm({
     onCanSubmitChange?.(canSubmit);
   }, [canSubmit, onCanSubmitChange]);
 
+  // "What did I do last time here", answered where the decision is made
+  // (ADR-115). Only when starting a session, and only once the alley typed is
+  // one this bowler has been to: the read pulls every frame, so it waits for a
+  // name worth reading.
+  const knownAlley = initial
+    ? undefined
+    : alleys.find((a) => a.toLowerCase() === alleyName.trim().toLowerCase());
+  const lastTime = useLiveQuery(async () => {
+    if (!knownAlley) return null;
+    const [history, balls] = await Promise.all([getSessionHistory(), getBalls()]);
+    const last = lastTimeAt(history, balls, knownAlley);
+    // A night with nothing scored and no line on it has nothing to read back.
+    return last && (last.average !== null || last.ballName || last.perGame.length > 0) ? last : null;
+  }, [knownAlley]);
+
   const alleyMatches = useMemo(() => {
     const q = alleyName.trim().toLowerCase();
     const list = q ? alleys.filter((a) => a.toLowerCase().includes(q) && a.toLowerCase() !== q) : alleys;
@@ -163,6 +182,13 @@ export function SessionForm({
               )}
             </div>
           </Field>
+
+          {lastTime && !showAlleyList && (
+            <div>
+              <span className={FIELD_LABEL}>Last time here</span>
+              <LastTimeCard last={lastTime} />
+            </div>
+          )}
 
           <Field label="Date">
             <input

@@ -95,7 +95,9 @@ type NavItem = {
 
 const NAV_ITEMS: ReadonlyArray<NavItem> = [
   { view: "dashboard", label: "Home", icon: Home },
-  { view: "active", label: "Active", icon: PinIcon },
+  // "Score", not "Active": the tab is named for what you do there, and
+  // "Active" named a state the tab is usually not in (ADR-115).
+  { view: "active", label: "Score", icon: PinIcon },
   { view: "history", label: "History", icon: History },
   { view: "stats", label: "Stats", icon: BarChart3 },
   { view: "settings", label: "Settings", icon: Settings }
@@ -490,7 +492,6 @@ function App() {
             onOpenArsenal={() => pushOverlay("arsenal")}
             onOpenLaneNotes={() => pushOverlay("lanes")}
             onOpenOilPatterns={() => pushOverlay("oil-patterns")}
-            onOpenGamePlan={() => pushOverlay("game-plan")}
             onOpenSpareLines={() => pushOverlay("spares")}
             onOpenGuides={() => pushOverlay("guides")}
             onOpenLayoutLab={() => pushOverlay("layout-lab")}
@@ -536,6 +537,7 @@ function App() {
             onOpenSessionGame={openSessionGame}
             onOpenFrames={() => pushOverlay("open-frames")}
             onOpenGameTrend={() => pushOverlay("game-trend")}
+            onOpenAlleyReport={() => pushOverlay("game-plan")}
           />
         )}
         {view === "settings" && (
@@ -551,11 +553,12 @@ function App() {
             onHandednessChange={chooseHandedness}
             driftModel={driftModel}
             onDriftModelChange={updateDriftModel}
-            onOpenArsenal={() => pushOverlay("arsenal")}
-            onOpenSpareLines={() => pushOverlay("spares")}
             onOpenBackup={goToBackup}
-            onOpenCatalog={() => pushOverlay("catalog")}
             onOpenLineVisualizer={(patternId) => dispatch({ type: "openLineSandbox", patternId })}
+            onOpenGuide={(guideId) => {
+              pushOverlay("guides");
+              dispatch({ type: "openGuide", guideId });
+            }}
           />
         )}
         </Suspense>
@@ -642,7 +645,7 @@ function App() {
                 // separately went through history and landed after the tab
                 // switch, undoing it (see the note on the reducer case).
                 onOpenSettings={() =>
-                  dispatch({ type: "goToSettingsSection", section: "preferences" })
+                  dispatch({ type: "goToSettingsSection", section: "menu" })
                 }
               />
             );
@@ -687,6 +690,7 @@ function App() {
                 onOpenSessionGame={openSessionGame}
                 onOpenFrames={() => pushOverlay("open-frames")}
                 onOpenGameTrend={() => pushOverlay("game-trend")}
+                onOpenAlleyReport={() => pushOverlay("game-plan")}
               />
             );
           case "game-plan":

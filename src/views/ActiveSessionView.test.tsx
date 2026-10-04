@@ -149,4 +149,35 @@ describe("ActiveSessionView", () => {
       expect(await db.settings.get("share_offer")).toBeTruthy()
     );
   });
+
+  it("tells a new game what the bowler usually moves into it at this alley (U3)", async () => {
+    async function nightAt(date: string, lines: Array<[number, number]>, playLast = true) {
+      const sessionId = Number(await createSession({ date, alley_name: "Axe Lanes" }));
+      for (const [i, [stance, target]] of lines.entries()) {
+        const gameId = Number(await addGameToSession(sessionId, { game_number: i + 1 }));
+        await db.games.update(gameId, { lanes: ["9"], start_lane: "9" });
+        if (!playLast && i === lines.length - 1) continue;
+        await saveFrame(gameId, {
+          frame_number: 1,
+          shots: [{ pins_standing: [], intended: { stance, target } }],
+          is_strike: true,
+          is_spare: false
+        });
+      }
+      return sessionId;
+    }
+    await nightAt("2026-05-01", [[20, 10], [22, 11]]);
+    await nightAt("2026-05-08", [[20, 10], [22, 11]]);
+    const tonight = await nightAt("2026-05-15", [[20, 10], [0, 0]], false);
+
+    renderSession(tonight);
+
+    expect(
+      await screen.findByText(
+        "Game 2 here: you usually move 2 boards left at the stance and 1 board left at the target."
+      )
+    ).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Dismiss game hint" }));
+    await waitFor(() => expect(screen.queryByText(/you usually move/)).toBeNull());
+  });
 });

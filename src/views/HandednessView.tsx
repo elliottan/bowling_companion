@@ -1,19 +1,17 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useLiveQuery } from "dexie-react-hooks";
-import { HandednessPicker } from "../components/HandednessPicker";
 import { PapEditor } from "../components/PapEditor";
 import { DEFAULT_PAP } from "../lib/ballLayout";
-import { getGripStyle, getPap, setGripStyle, setPap } from "../services/bowlingRepository";
+import { getPap, setPap } from "../services/bowlingRepository";
 import { PushScreen } from "../components/PushScreen";
 import { DriftZoneLane, ZONE_ACCENT } from "../components/DriftZoneLane";
-import { SegmentedControl } from "../components/ui/SegmentedControl";
-import type { GripStyle, Handedness } from "../types/bowling";
+import type { Handedness } from "../types/bowling";
 import { driftDirection, type DriftModel } from "../lib/driftModel";
 import { GROUP_HEADING } from "../components/ui/typography";
 
 interface HandednessViewProps {
+  /** The bowler's hand, which the release offset and drift directions read. */
   value: Handedness;
-  onChange: (value: Handedness) => void;
   driftModel: DriftModel;
   /** Present when pushed from Settings, draws the shared nav bar. */
   onBack?: () => void;
@@ -24,7 +22,13 @@ const BOARD_MAX = 39; // upper board bound (matches deriveLaydown's clamp range)
 
 const ZONES = ["outside", "middle", "inside"] as const;
 
-export function HandednessView({ value, onChange, driftModel, onDriftModelChange, onBack }: HandednessViewProps) {
+/**
+ * The Advanced settings (ADR-115): the numbers only the lane view and the
+ * layout lab read. Handedness and grip used to open this screen, above PAP and
+ * drift, as if a new bowler had to understand all of it; they are answered on
+ * the Settings list itself now, and the long explanations are a guide.
+ */
+export function HandednessView({ value, driftModel, onDriftModelChange, onBack }: HandednessViewProps) {
   const ballSide = value === "right" ? "right" : "left";
 
   function setReleaseOffset(v: number) {
@@ -50,11 +54,6 @@ export function HandednessView({ value, onChange, driftModel, onDriftModelChange
   // a read taken once at mount would sit here stale behind the lab that is
   // pushed over this very screen.
   const pap = useLiveQuery(getPap, [], undefined) ?? DEFAULT_PAP;
-  // One-handed until told otherwise. Two-handed is a real and growing grip, but
-  // it is still the rarer one, and a toggle that opens on neither answer is a
-  // question nobody asked.
-  const grip: GripStyle = useLiveQuery(getGripStyle, [], undefined) ?? "1h";
-
   const zoneRange: Record<(typeof ZONES)[number], string> = {
     outside: `Boards 1 to ${driftModel.outside_max}`,
     middle: `Boards ${driftModel.outside_max + 0.5} to ${driftModel.inside_min - 0.5}`,
@@ -63,50 +62,6 @@ export function HandednessView({ value, onChange, driftModel, onDriftModelChange
 
   const body = (
     <section className="mx-auto w-full max-w-3xl space-y-7 px-3 py-4 sm:px-6">
-      <Group
-        heading="Handedness"
-        description={
-          <>
-            Board numbers count in from your side of the lane, so everything the app draws
-            and every number you type is relative to the hand you bowl with.
-          </>
-        }
-      >
-        {/* No confirm. It used to open a two-paragraph dialog, which is the
-            weight of a destructive action; this changes one setting and the way
-            back is the other half of the same control. The consequence is worth
-            one line, under the control it belongs to. */}
-        <HandednessPicker value={value} onSelect={onChange} />
-        <p className="mt-2 text-xs text-ink-secondary">
-          Everything mirrors: board 1, the arrows, spare targets, offset and
-          drift. Saved sessions keep the numbers they were recorded with.
-        </p>
-      </Group>
-
-      <Group
-        heading="Grip"
-        description={
-          <>
-            One-handed with a thumb, or two-handed with the thumb out. The layout lab opens on
-            this and carries it in a shared layout. Two-handed draws the ball with no thumb hole
-            and the center of your grip between your fingers, and it drops the do-not-use band,
-            which only exists to keep the track off a thumb hole. The motion reading itself is
-            still the dual angle chart's, fitted to a thumb-in release: the app would rather say
-            it has not adjusted that than guess at it.
-          </>
-        }
-      >
-        <SegmentedControl
-          label="Grip style"
-          value={grip}
-          onChange={(next) => void setGripStyle(next)}
-          options={[
-            { value: "1h", label: "One-handed" },
-            { value: "2h", label: "Two-handed" }
-          ]}
-        />
-      </Group>
-
       <Group
         heading="Your PAP"
         description={
@@ -205,7 +160,7 @@ export function HandednessView({ value, onChange, driftModel, onDriftModelChange
   if (!onBack) return body;
 
   return (
-    <PushScreen mode="inline" title="Preferences" onBack={onBack}>
+    <PushScreen mode="inline" title="PAP, release and drift" onBack={onBack}>
       {body}
     </PushScreen>
   );

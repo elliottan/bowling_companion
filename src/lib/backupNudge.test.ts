@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  protectionCard,
   backupUrgency,
   describeAge,
   nudgePolicy,
@@ -205,5 +206,39 @@ describe("describeAge", () => {
 
   it("does not go negative on a clock that has moved backwards", () => {
     expect(describeAge("2026-07-30T00:00:00.000Z", now)).toBe("today");
+  });
+});
+
+describe("protectionCard (ADR-115)", () => {
+  const owed = state({ totalSessions: 3 });
+  const clear = state({ totalSessions: 3, sessionsAtLastBackup: 3, lastBackupAt: NOW.toISOString() });
+
+  it("leads with installing while the app can be installed", () => {
+    expect(protectionCard(owed, false, true)).toEqual({ kind: "install", backupOwed: true });
+    expect(protectionCard(clear, false, true)).toEqual({ kind: "install", backupOwed: false });
+  });
+
+  it("is the backup card once installed, red and with no Later when overdue", () => {
+    expect(protectionCard(state({ totalSessions: 9 }), true, false)).toEqual({
+      kind: "backup",
+      urgency: "overdue",
+      canLater: false
+    });
+    expect(protectionCard(state({ totalSessions: 3 }), true, false)).toEqual({
+      kind: "backup",
+      urgency: "due",
+      canLater: true
+    });
+    expect(protectionCard(clear, true, false)).toBeNull();
+  });
+
+  it("stays amber and can be put off in a tab that cannot install", () => {
+    expect(protectionCard(owed, false, false)).toEqual({
+      kind: "backup",
+      urgency: "due",
+      canLater: true
+    });
+    const later = new Date(NOW.getTime() + 60_000).toISOString();
+    expect(protectionCard(state({ totalSessions: 3, snoozedUntil: later }), false, false)).toBeNull();
   });
 });

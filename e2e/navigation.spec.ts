@@ -12,19 +12,20 @@ test.beforeEach(async ({ page }) => {
  */
 test("the platform back button pops one screen at a time", async ({ page }) => {
   await page.getByRole("navigation").getByRole("button", { name: "Settings" }).click();
-  await page.getByRole("button", { name: /Arsenal/ }).click();
-  await expect(page).toHaveURL(/#\/settings\/arsenal$/);
+  await page.getByRole("button", { name: /Backup & restore/ }).click();
+  await expect(page).toHaveURL(/#\/settings\/backup$/);
 
   await page.goBack();
   await expect(page).toHaveURL(/#\/settings$/);
-  await expect(page.getByRole("dialog", { name: "Arsenal" })).toHaveCount(0);
+  await expect(page.getByRole("dialog", { name: "Backup & restore" })).toHaveCount(0);
 });
 
 test("an overlay named like a Settings section is still the overlay", async ({ page }) => {
   // `#/settings/arsenal` used to read back as the Settings section "arsenal",
-  // so backing out of the catalog landed on Backup & restore.
+  // so backing out of the catalog landed on Backup & restore. Settings no
+  // longer lists the arsenal (ADR-115), so the link is followed directly.
   await page.getByRole("navigation").getByRole("button", { name: "Settings" }).click();
-  await page.getByRole("button", { name: /Arsenal/ }).click();
+  await page.goto("/score/#/settings/arsenal");
   await page.getByRole("dialog", { name: "Arsenal" }).getByRole("button", { name: "Back", exact: true }).click();
 
   await expect(page).toHaveURL(/#\/settings$/);
@@ -79,10 +80,10 @@ test("a screen opened from the dashboard goes back to the dashboard", async ({ p
 
 test("the same screen reached from Settings pushes inside the tab", async ({ page }) => {
   await page.getByRole("navigation").getByRole("button", { name: "Settings" }).click();
-  await page.getByRole("button", { name: /Lane notes/ }).click();
+  await page.getByRole("button", { name: /Appearance/ }).click();
 
-  await expect(page).toHaveURL(/#\/settings\/section\/lanes$/);
-  await page.getByRole("region", { name: "Lane notes" }).getByRole("button", { name: "Back", exact: true }).click();
+  await expect(page).toHaveURL(/#\/settings\/section\/appearance$/);
+  await page.getByRole("region", { name: "Appearance" }).getByRole("button", { name: "Back", exact: true }).click();
   await expect(page).toHaveURL(/#\/settings$/);
 });
 
@@ -156,7 +157,7 @@ test("back closes the oil pattern manager, not the session form under it", async
   await expect(page.getByPlaceholder("Ball choice, surface, carry…")).toHaveValue("keep me");
 });
 
-test("Stats opened from the game plan is a push, and back returns to it", async ({ page }) => {
+test("Stats opened from the alley report is a push, and back returns to it", async ({ page }) => {
   // Driven by URL rather than by tapping a callout: a callout needs six games
   // at one alley behind it, and what is under test here is the shape of the
   // hand-off, not the thresholds that produce one.
@@ -166,7 +167,7 @@ test("Stats opened from the game plan is a push, and back returns to it", async 
   // entry, so back would leave the app with nothing to return to, which is the
   // right behaviour for a link and the wrong test for a push.
   await page.goto("/score/#/home/game-plan");
-  await expect(page.getByRole("dialog", { name: "Game plan" })).toBeVisible();
+  await expect(page.getByRole("dialog", { name: "Alley report" })).toBeVisible();
 
   await page.goto("/score/#/home/game-plan/stats-push");
 
@@ -180,7 +181,7 @@ test("Stats opened from the game plan is a push, and back returns to it", async 
 
   await page.goBack();
   await expect(page).toHaveURL(/#\/home\/game-plan$/);
-  await expect(page.getByRole("dialog", { name: "Game plan" })).toBeVisible();
+  await expect(page.getByRole("dialog", { name: "Alley report" })).toBeVisible();
 });
 
 /**

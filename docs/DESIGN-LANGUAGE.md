@@ -202,8 +202,9 @@ screen is where a user decides whether the feature is for them.
 
 A screen whose *whole* content is empty leads with the empty state rather than
 burying it under chrome. Home does this on a device with no sessions. What it
-does not do is remove the chrome: the shortcut grid moves below the empty state
-and stays reachable, because it is the only way to several screens (ADR-069).
+does not do is remove the chrome: the My bowling and Tools and reference lists
+stay below the empty state and stay reachable, because they are the only way to
+several screens (ADR-069, ADR-115).
 
 ## 6. Forms
 
@@ -277,8 +278,10 @@ first tap after closing a sheet did nothing at all.
 
 A **tab** with one dominant action puts it in `ui/Fab.tsx`: a floating round
 button in the bottom-trailing corner, above the tab bar, where the thumb already
-is. Anything else that floats (the resume-session pill) shares that row to its
-left rather than displacing it. Home and Spare lines both add through it.
+is. Anything else that floats shares that row to its left rather than
+displacing it. Home and Spare lines both add through it. Home's game in
+progress is not a floating pill any more: it is the top card, where the screen
+leads with what the app is opened to do (ADR-115).
 
 A **pushed screen** does not: it has a nav bar, and §1 already gives that at
 most one trailing action. The arsenal adds from there.

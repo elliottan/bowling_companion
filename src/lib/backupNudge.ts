@@ -103,3 +103,33 @@ export function describeAge(iso: string | null, now: Date): string {
   if (days < 60) return `${Math.round(days / 7)} weeks ago`;
   return `${Math.round(days / 30)} months ago`;
 }
+
+/**
+ * The one card on Home that protects the bowler's data (ADR-115). There used
+ * to be two, an install line and a backup banner, and on a new user's second
+ * visit both showed at once, the second in red with no way to put it away.
+ *
+ * Installing is what actually removes the browser's seven-day risk, so while
+ * the app is not installed and can be, the card leads with that, and mentions
+ * a copy as the second action when one is owed. Once installed (or when this
+ * browser cannot install), it is the backup card. Red, with no Later, is kept
+ * for an installed app that has genuinely fallen behind; in a browser tab the
+ * card stays amber and Later works, because the louder ask there is to install.
+ */
+export type ProtectionCard =
+  | { kind: "install"; backupOwed: boolean }
+  | { kind: "backup"; urgency: "due" | "overdue"; canLater: boolean }
+  | null;
+
+export function protectionCard(
+  state: BackupNudgeState,
+  installed: boolean,
+  installOffered: boolean
+): ProtectionCard {
+  const urgency = backupUrgency(state, installed);
+  if (!installed && installOffered) return { kind: "install", backupOwed: urgency !== "none" };
+  if (urgency === "none") return null;
+  if (installed) return { kind: "backup", urgency, canLater: urgency === "due" };
+  const snoozed = state.snoozedUntil !== null && state.now < new Date(state.snoozedUntil);
+  return snoozed ? null : { kind: "backup", urgency: "due", canLater: true };
+}

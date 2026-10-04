@@ -1,8 +1,7 @@
-import { BookOpen, ChevronRight, Compass, GraduationCap, PlayCircle, Plus, Smartphone, type LucideIcon } from "lucide-react";
+import { BookOpen, ChevronRight, Compass, GraduationCap, PlayCircle, Plus, ShieldCheck } from "lucide-react";
 import { PinIcon } from "../components/icons";
 import {
   BowlingBallIcon,
-  GamePlanIcon,
   LanePairIcon,
   LaneViewIcon,
   OilPatternIcon,
@@ -14,6 +13,8 @@ import { ErrorBanner } from "../components/ErrorBanner";
 import { SessionFormDialog } from "../components/SessionFormDialog";
 import { alleyLabel } from "../lib/sessionLabels";
 import { GROUP_HEADING } from "../components/ui/typography";
+import { ListGroup, ListRow } from "../components/ui/ListGroup";
+import { Chip } from "../components/ui/Chip";
 import { Fab, FabRow } from "../components/ui/Fab";
 import { SessionHistory } from "../components/SessionHistory";
 import { InstallPrompt } from "../components/InstallPrompt";
@@ -25,16 +26,18 @@ import { TAP_TARGET_44 } from "../components/ui/Chip";
 import type { NewSessionFormValues } from "../components/SessionForm";
 import {
   getBackupNudgeState,
-  getCompletedGameCount,
   getSessionList,
   getSetting,
   setBackupNudgeSnoozedUntil,
   setSetting,
   type ResumableGame
 } from "../services/bowlingRepository";
-import { backupUrgency as urgencyOf, describeAge, snoozeMs } from "../lib/backupNudge";
-import { MIN_BRIEFING_GAMES } from "../lib/briefing";
+import { describeAge, protectionCard, snoozeMs } from "../lib/backupNudge";
 import { canPromptInstall, isIOSSafari, isStandalone } from "../lib/installPrompt";
+import { recentAlleys, sessionSeries, type RecentAlley } from "../lib/homeSummary";
+import { formatSessionDate, localDateKey } from "../lib/dates";
+import { nextSteps } from "../lib/onboarding";
+import { getOnboardingFacts } from "../services/onboardingRepository";
 import type { SessionSummary } from "../types/bowling";
 
 interface DashboardViewProps {
@@ -54,7 +57,6 @@ interface DashboardViewProps {
   onOpenArsenal: () => void;
   onOpenLaneNotes: () => void;
   onOpenOilPatterns: () => void;
-  onOpenGamePlan: () => void;
   onOpenSpareLines: () => void;
   onOpenGuides: () => void;
   onSessionDeleted?: (sessionId: number) => void;
@@ -69,7 +71,9 @@ const INSTALL_NUDGE_DISMISSED_KEY = "install_nudge_dismissed_at";
  *  before then. */
 const INSTALL_SNOOZE_DAYS = 30;
 
-const RECENT_LIMIT = 10;
+/** Recent sessions on Home. History is one tap away and holds the rest; three
+ *  is enough to find last week's night without Home becoming a second History. */
+const RECENT_LIMIT = 3;
 
 // A stable empty list: `?? []` would be a new array on every render.
 const NO_SESSIONS: SessionSummary[] = [];
@@ -90,7 +94,6 @@ export function DashboardView({
   onOpenArsenal,
   onOpenLaneNotes,
   onOpenOilPatterns,
-  onOpenGamePlan,
   onOpenSpareLines,
   onOpenGuides,
   onSessionDeleted,
@@ -100,28 +103,24 @@ export function DashboardView({
   const [installPromptOpen, setInstallPromptOpen] = useState(false);
 
   // Live: finishing a game, deleting a session or importing a backup all show
-  // up here without the dashboard being told to reload.
-  // Ten rows, so it takes the loader that skips scored games' frames: the full
-  // one pulled every frame of every night ever bowled to render this (ADR-066).
-  const liveRecent = useLiveQuery(async () => (await getSessionList()).slice(0, RECENT_LIMIT));
-  const recent = liveRecent ?? NO_SESSIONS;
-  const loadingRecent = liveRecent === undefined;
-  // Nothing ever bowled on this device. The recent list is the whole history
-  // when it is under the limit, so no extra count is needed to know that.
-  const coldStart = !loadingRecent && recent.length === 0;
+  // up here without the dashboard being told to reload. The list loader skips
+  // scored games' frames (ADR-066), and the recent alleys need every session,
+  // so it is read whole and cut here.
+  const liveSessions = useLiveQuery(() => getSessionList());
+  const sessions = liveSessions ?? NO_SESSIONS;
+  const recent = sessions.slice(0, RECENT_LIMIT);
+  const loadingRecent = liveSessions === undefined;
+  const coldStart = !loadingRecent && sessions.length === 0;
+  const alleys = recentAlleys(sessions);
+  const last = sessions[0];
+  const lastSeries = last ? sessionSeries(last) : null;
 
-  // Games only, no frames: this is a volume question, not a shot count.
-  const completedGames = useLiveQuery(() => getCompletedGameCount()) ?? 0;
-  // Game plan is read in the car park, so it shows when you are between
-  // sessions and your history is deep enough for a briefing to clear its own
-  // gates. Under that the screen would only say what it is still gathering.
-  const showGamePlan = !activeSessionId && completedGames >= MIN_BRIEFING_GAMES;
+  const facts = useLiveQuery(() => getOnboardingFacts());
 
   const nudge = useLiveQuery(() => getBackupNudgeState());
   // Read once per render rather than stored: the display mode can change under
   // a live tab (the user installs mid-session) and this costs a matchMedia.
   const installed = isStandalone();
-  const backupUrgency = nudge ? urgencyOf(nudge, installed) : "none";
   const nudgeSessionsSince = nudge
     ? nudge.lastBackupAt === null
       ? nudge.totalSessions
@@ -131,7 +130,7 @@ export function DashboardView({
 
   // Wrapped in an object because the setting is itself undefined when unset,
   // which would otherwise be indistinguishable from "the query has not
-  // answered yet" and flash the banner on every load.
+  // answered yet" and flash the card on every load.
   // The clock is read inside the query, not in render: `Date.now()` in a
   // render body is a value that changes without a re-render to explain it.
   const installNudge = useLiveQuery(async () => {
@@ -142,15 +141,17 @@ export function DashboardView({
     return { snoozed: snoozedUntil > Date.now() };
   });
   const installEligible = (isIOSSafari() && !installed) || canPromptInstall();
-  const showInstallLine = installEligible && !!installNudge && !installNudge.snoozed;
+  const installOffered = installEligible && !!installNudge && !installNudge.snoozed;
+  // One card, never two (ADR-115).
+  const protection = nudge && installNudge ? protectionCard(nudge, installed, installOffered) : null;
 
   function handleBackupLater() {
     void setBackupNudgeSnoozedUntil(new Date(Date.now() + snoozeMs(installed)).toISOString());
   }
 
-  // Both nudges dismiss by writing the setting they read: the live queries
-  // above pick the write up, so there is no second copy of "is it showing".
-  function dismissInstallLine() {
+  // The card dismisses by writing the setting it reads: the live query above
+  // picks the write up, so there is no second copy of "is it showing".
+  function dismissInstall() {
     void setSetting(INSTALL_NUDGE_DISMISSED_KEY, new Date().toISOString());
   }
 
@@ -159,98 +160,38 @@ export function DashboardView({
     setShowForm(false);
   }
 
-  // Shortcuts. Icon and name only: these are places the user already knows, so
-  // a sentence of description each only cost vertical space.
-  // Six of them, which is two even rows of three. Game plan gave up its slot to
-  // Spare lines and took a card of its own above the grid (ADR-071): it is a
-  // thing you read, not a place you keep, and a tile made it look like the
-  // latter.
-  const shortcuts: Array<{ icon: LucideIcon; label: string; onClick: () => void }> = [
-    { icon: SpareLineIcon, label: "Spare lines", onClick: onOpenSpareLines },
-    { icon: BowlingBallIcon, label: "Arsenal", onClick: onOpenArsenal },
-    { icon: BookOpen, label: "Catalog", onClick: onOpenCatalog },
-    { icon: LaneViewIcon, label: "Line", onClick: onOpenLineVisualizer },
-    { icon: Compass, label: "Layout lab", onClick: onOpenLayoutLab },
-    { icon: LanePairIcon, label: "Lane notes", onClick: onOpenLaneNotes },
-    { icon: OilPatternIcon, label: "Oil patterns", onClick: onOpenOilPatterns }
-  ];
+  /** A recent alley is a whole start: tonight's date, that alley, what a
+   *  session there is called and the pattern it was on. */
+  function startAt(alley: RecentAlley) {
+    void onStartSession({
+      alley_name: alley.alley_name,
+      description: alley.description,
+      oil_pattern_id: alley.oil_pattern_id,
+      date: localDateKey(),
+      lanes: []
+    });
+  }
+
+  // At most one of the setup cards at a time: a step if there is one owed,
+  // else the one-time feedback ask.
+  const stepOwed = !!facts && nextSteps(facts).length > 0;
+
+  const count = (n: number | undefined, one: string, many: string, none: string) =>
+    n == null ? undefined : n === 0 ? none : `${n} ${n === 1 ? one : many}`;
 
   return (
-    <section className={`mx-auto w-full max-w-xl px-3 pt-3 sm:px-6 sm:pt-5 ${resumable ? "pb-44" : "pb-24"}`}>
+    <section className="mx-auto w-full max-w-xl px-3 pb-24 pt-3 sm:px-6 sm:pt-5">
       <h1 className="mb-3 text-xl font-bold text-ink">Home</h1>
 
       {error && (
         <ErrorBanner className="mb-4">{error}</ErrorBanner>
       )}
 
-      {/* Two separate warnings about two separate risks, and neither is
-          nested inside the other. The install line used to render inside the
-          backup nudge, so the one message that actually protects an iPhone
-          user's data was invisible to anyone who backed up regularly, and gone
-          for anyone who kept snoozing (ADR-067). */}
-      {showInstallLine && (
-        <div className="mb-3 flex items-center gap-3 rounded-lg border border-warning-200 bg-warning-50 p-3 text-sm text-warning-700">
-          <Smartphone size={18} aria-hidden="true" className="shrink-0" />
-          <button
-            type="button"
-            onClick={() => setInstallPromptOpen(true)}
-            className={`relative flex-1 text-left text-xs font-bold underline hover:no-underline ${TAP_TARGET_44}`}
-          >
-            Your local data might be cleared by your browser after a week. Add this to
-            your home screen.
-          </button>
-          <button
-            type="button"
-            onClick={dismissInstallLine}
-            aria-label="Dismiss install reminder"
-            className={`relative shrink-0 text-xs font-semibold text-warning-700/80 hover:underline ${TAP_TARGET_44}`}
-          >
-            Dismiss
-          </button>
-        </div>
-      )}
-
-      {backupUrgency !== "none" && (
-        <div
-          className={`mb-4 rounded-lg border p-3 text-sm ${
-            backupUrgency === "overdue"
-              ? "border-danger-200 bg-danger-50 text-danger-700"
-              : "border-warning-200 bg-warning-50 text-warning-700"
-          }`}
-        >
-          <p className="font-semibold">
-            {nudgeSessionsSince} {nudgeSessionsSince === 1 ? "session" : "sessions"} not backed
-            up. Last backup: {backupAge}.
-          </p>
-          <div className="mt-2 flex items-center gap-3">
-            <button
-              type="button"
-              onClick={onOpenBackup}
-              className={`relative text-xs font-bold underline hover:no-underline ${TAP_TARGET_44}`}
-            >
-              Back up now
-            </button>
-            {/* Overdue has no Later. A reminder that can be dismissed for ever
-                never reaches the person who most needs it. */}
-            {backupUrgency === "due" && (
-              <button
-                type="button"
-                onClick={handleBackupLater}
-                className={`relative inline-flex min-w-11 items-center justify-center text-xs font-semibold opacity-80 hover:underline ${TAP_TARGET_44}`}
-              >
-                Later
-              </button>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* A device that has never scored a game gets told what the app is
-          before it gets a grid of six places it has not been. The grid stays
-          below rather than waiting for the first session: it is the only route
-          to the catalog and the line visualiser, and a new bowler with no balls
-          is exactly who needs them (DESIGN-LANGUAGE §5). */}
-      {coldStart && (
+      {/* Tonight. The thing the app is opened to do leads the screen: carry
+          on with the game you are bowling, or start one, where a recent alley
+          is a single tap. A device that has never scored a game is told what
+          the app is (DESIGN-LANGUAGE §5). */}
+      {coldStart ? (
         <EmptyState
           icon={PinIcon}
           title="Score your first session"
@@ -265,81 +206,171 @@ export function DashboardView({
             Score now, add details later
           </Button>
         </EmptyState>
-      )}
-
-      {showGamePlan && (
+      ) : resumable ? (
         <button
           type="button"
-          onClick={onOpenGamePlan}
-          className="mb-2 flex w-full items-center gap-3 rounded-xl border border-edge bg-surface p-3 text-left shadow-sm hover:border-accent-fill"
+          onClick={onResume}
+          className="flex w-full items-center gap-3 rounded-xl border border-accent-fill bg-accent-fill p-4 text-left text-accent-on-fill shadow-sm active:bg-accent-fill-hover"
         >
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-accent-soft text-accent">
-            <GamePlanIcon size={18} aria-hidden="true" />
-          </span>
+          <PlayCircle size={28} aria-hidden="true" className="shrink-0" />
           <span className="min-w-0 flex-1">
-            <span className="block text-sm font-semibold text-ink">Game plan</span>
-            <span className="block text-xs text-ink-secondary">
-              What your own history says about the alley you are about to bowl at.
+            <span className="block text-base font-bold">Resume game</span>
+            <span className="block truncate text-sm">
+              {alleyLabel(resumable.alleyName)} · Game {resumable.gameNumber}
             </span>
           </span>
-          <ChevronRight size={18} aria-hidden="true" className="shrink-0 text-ink-secondary" />
+          <ChevronRight size={20} aria-hidden="true" className="shrink-0" />
         </button>
+      ) : (
+        !loadingRecent && (
+          <div className="rounded-xl border border-edge bg-surface p-3 shadow-sm">
+            <h2 className={GROUP_HEADING}>Tonight</h2>
+            {alleys.length > 0 && (
+              <div className="mt-2 flex flex-wrap gap-2">
+                {alleys.map((a) => (
+                  <Chip
+                    key={`${a.alley_name}|${a.description ?? ""}`}
+                    selected={false}
+                    disabled={isSubmitting}
+                    onClick={() => startAt(a)}
+                    aria-label={`Start a session at ${a.alley_name}${a.description ? `, ${a.description}` : ""}`}
+                    className="max-w-full"
+                  >
+                    <span className="truncate">
+                      {a.alley_name}
+                      {a.description && (
+                        <span className="font-normal text-ink-secondary"> · {a.description}</span>
+                      )}
+                    </span>
+                  </Chip>
+                ))}
+              </div>
+            )}
+            <div className="mt-3 flex items-center gap-3">
+              <Button variant="primary" onClick={() => setShowForm(true)}>
+                Start session
+              </Button>
+              <Button variant="ghost" disabled={isSubmitting} onClick={() => void onScoreNow()}>
+                Score now, add details later
+              </Button>
+            </div>
+            {last?.session.id != null && (
+              <button
+                type="button"
+                onClick={() => onOpenSession(last.session.id!)}
+                className="mt-2 block w-full truncate text-left text-xs text-ink-secondary active:text-accent"
+              >
+                Last time: {formatSessionDate(last.session.date)} · {alleyLabel(last.session.alley_name)}
+                {lastSeries && (
+                  <>
+                    {" · "}
+                    <span className="font-semibold text-ink">{lastSeries.series}</span> (
+                    {lastSeries.average} avg)
+                  </>
+                )}
+              </button>
+            )}
+          </div>
+        )
       )}
 
-      <div className={`grid grid-cols-3 gap-2 sm:grid-cols-6 ${coldStart ? "mt-6" : ""}`}>
-        {shortcuts.map((s) => (
-          <button
-            key={s.label}
-            type="button"
-            onClick={s.onClick}
-            aria-label={s.label}
-            className="flex flex-col items-center gap-1.5 rounded-xl border border-edge bg-surface px-2 py-3 shadow-sm hover:border-accent-fill"
-          >
-            <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent-soft text-accent">
-              <s.icon size={18} aria-hidden="true" />
-            </span>
-            <span className="text-center text-xs font-semibold leading-tight text-ink">{s.label}</span>
-          </button>
-        ))}
-      </div>
+      {protection?.kind === "install" && (
+        <div className="mt-3 flex gap-3 rounded-xl border border-warning-200 bg-warning-50 p-3 text-warning-700">
+          <ShieldCheck size={20} aria-hidden="true" className="mt-0.5 shrink-0" />
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-semibold">Keep your scores safe</p>
+            <p className="mt-0.5 text-xs">
+              A browser can clear what this site stores after a week away. On your home screen,
+              Headpin keeps it.
+            </p>
+            <div className="mt-2 flex flex-wrap items-center gap-x-4">
+              <button
+                type="button"
+                onClick={() => setInstallPromptOpen(true)}
+                className={`relative text-xs font-bold underline active:no-underline ${TAP_TARGET_44}`}
+              >
+                Add to Home Screen
+              </button>
+              {protection.backupOwed && (
+                <button
+                  type="button"
+                  onClick={onOpenBackup}
+                  className={`relative text-xs font-semibold underline active:no-underline ${TAP_TARGET_44}`}
+                >
+                  Save a copy
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={dismissInstall}
+                aria-label="Not now: add to Home Screen"
+                className={`relative inline-flex min-w-11 items-center justify-center text-xs font-semibold opacity-80 ${TAP_TARGET_44}`}
+              >
+                Not now
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
-      {/* Guides take a card rather than a seventh tile, on ADR-071's argument
-          for the game plan: the grid holds places you keep things, and reading
-          is not one of them. It sits under the grid because it is the one thing
-          on Home that is never about tonight. */}
-      <button
-        type="button"
-        onClick={onOpenGuides}
-        className="mt-2 flex w-full items-center gap-3 rounded-xl border border-edge bg-surface p-3 text-left shadow-sm hover:border-accent-fill"
-      >
-        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-accent-soft text-accent">
-          <GraduationCap size={18} aria-hidden="true" />
-        </span>
-        <span className="min-w-0 flex-1">
-          <span className="block text-sm font-semibold text-ink">Guides</span>
-          <span className="block text-xs text-ink-secondary">
-            Layouts, drilling and equipment, readable offline at the alley.
-          </span>
-        </span>
-        <ChevronRight size={18} aria-hidden="true" className="shrink-0 text-ink-secondary" />
-      </button>
+      {protection?.kind === "backup" && (
+        <div
+          className={`mt-3 flex gap-3 rounded-xl border p-3 ${
+            protection.urgency === "overdue"
+              ? "border-danger-200 bg-danger-50 text-danger-700"
+              : "border-warning-200 bg-warning-50 text-warning-700"
+          }`}
+        >
+          <ShieldCheck size={20} aria-hidden="true" className="mt-0.5 shrink-0" />
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-semibold">
+              {nudgeSessionsSince} {nudgeSessionsSince === 1 ? "session" : "sessions"} not backed
+              up. Last backup: {backupAge}.
+            </p>
+            <div className="mt-2 flex items-center gap-4">
+              <button
+                type="button"
+                onClick={onOpenBackup}
+                className={`relative text-xs font-bold underline active:no-underline ${TAP_TARGET_44}`}
+              >
+                Save a copy
+              </button>
+              {/* An installed app that is overdue has no Later. A reminder that
+                  can be put off for ever never reaches the person who most
+                  needs it (ADR-067). */}
+              {protection.canLater && (
+                <button
+                  type="button"
+                  onClick={handleBackupLater}
+                  className={`relative inline-flex min-w-11 items-center justify-center text-xs font-semibold opacity-80 ${TAP_TARGET_44}`}
+                >
+                  Later
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
-      <NextSteps
-        onOpenArsenal={onOpenArsenal}
-        onOpenSpareLines={onOpenSpareLines}
-        onOpenOilPatterns={onOpenOilPatterns}
-        onOpenLaneNotes={onOpenLaneNotes}
-      />
-
-      <FeedbackPrompt />
+      {stepOwed ? (
+        <NextSteps
+          max={1}
+          onOpenArsenal={onOpenArsenal}
+          onOpenSpareLines={onOpenSpareLines}
+          onOpenOilPatterns={onOpenOilPatterns}
+          onOpenLaneNotes={onOpenLaneNotes}
+        />
+      ) : (
+        <FeedbackPrompt />
+      )}
 
       {!coldStart && (
         <div className="mt-6">
           <div className="mb-2 flex items-center justify-between">
             <h2 className={GROUP_HEADING}>Recent sessions</h2>
-            {recent.length > 0 && (
+            {sessions.length > RECENT_LIMIT && (
               <Button variant="ghost" onClick={onViewAll}>
-                View all
+                All in History
               </Button>
             )}
           </div>
@@ -353,22 +384,74 @@ export function DashboardView({
         </div>
       )}
 
+      {/* Two lists, because there are two kinds of place here, and a grid of
+          equal tiles said they were one: the things you keep about your own
+          bowling, and the tools and reading that are the same for everyone. */}
+      <div className="mt-6 space-y-5">
+        <ListGroup heading="My bowling">
+          <ListRow
+            icon={BowlingBallIcon}
+            label="Arsenal"
+            ariaLabel="Arsenal"
+            description={count(facts?.ballCount, "ball", "balls", "Add the balls you throw")}
+            onClick={onOpenArsenal}
+          />
+          <ListRow
+            icon={SpareLineIcon}
+            label="Spare lines"
+            ariaLabel="Spare lines"
+            description={count(facts?.answeredSpareLines, "leave", "leaves", "How you shoot each leave")}
+            onClick={onOpenSpareLines}
+          />
+          <ListRow
+            icon={LanePairIcon}
+            label="Lane notes"
+            ariaLabel="Lane notes"
+            description={count(facts?.laneNoteCount, "note", "notes", "What each lane does")}
+            onClick={onOpenLaneNotes}
+          />
+          <ListRow
+            icon={OilPatternIcon}
+            label="Oil patterns"
+            ariaLabel="Oil patterns"
+            description={count(facts?.oilPatternCount, "pattern", "patterns", "The patterns you bowl on")}
+            onClick={onOpenOilPatterns}
+          />
+        </ListGroup>
+
+        <ListGroup heading="Tools and reference">
+          <ListRow
+            icon={Compass}
+            label="Layout lab"
+            ariaLabel="Layout lab"
+            description="Try a layout on your PAP"
+            onClick={onOpenLayoutLab}
+          />
+          <ListRow
+            icon={LaneViewIcon}
+            label="Line visualizer"
+            ariaLabel="Line visualizer"
+            description="Sketch a line on the lane"
+            onClick={onOpenLineVisualizer}
+          />
+          <ListRow
+            icon={BookOpen}
+            label="Ball catalog"
+            ariaLabel="Ball catalog"
+            description="Manufacturer specs"
+            onClick={onOpenCatalog}
+          />
+          <ListRow
+            icon={GraduationCap}
+            label="Guides"
+            ariaLabel="Guides"
+            description="Layouts, drilling and equipment"
+            onClick={onOpenGuides}
+          />
+        </ListGroup>
+      </div>
+
       <FabRow>
-        {resumable && (
-          <button
-            type="button"
-            onClick={onResume}
-            className="pointer-events-auto flex min-w-0 flex-1 items-center gap-3 rounded-xl border border-accent-fill bg-accent-fill p-3.5 text-left text-accent-on-fill shadow-2xl hover:bg-accent-fill-hover"
-          >
-            <PlayCircle size={22} aria-hidden="true" className="shrink-0" />
-            <span className="min-w-0 flex-1">
-              <span className="block text-sm font-bold">Resume game</span>
-              <span className="block truncate text-xs text-accent-on-fill">
-                {alleyLabel(resumable.alleyName)} · Game {resumable.gameNumber}
-              </span>
-            </span>
-          </button>
-        )}
         <Fab icon={Plus} label="Start session" onClick={() => setShowForm(true)} />
       </FabRow>
 

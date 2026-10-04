@@ -1,14 +1,14 @@
-import { Archive, ArrowUpRight, BookOpen, Coffee, Download, MessageSquare, Palette, ScrollText, SlidersHorizontal, type LucideIcon } from "lucide-react";
-import {
-  BowlingBallIcon,
-  LanePairIcon,
-  LaneViewIcon,
-  OilPatternIcon,
-  SpareLineIcon
-} from "../components/icons";
+import { Archive, ArrowUpRight, Coffee, Download, MessageSquare, Palette, ScrollText, SlidersHorizontal } from "lucide-react";
 import { AppearanceView } from "./AppearanceView";
 import { HandednessView } from "./HandednessView";
-import { getSetting } from "../services/bowlingRepository";
+import { getGripStyle, getPap, getSetting, setGripStyle } from "../services/bowlingRepository";
+import { DEFAULT_PAP, formatInches } from "../lib/ballLayout";
+import { HandednessPicker } from "../components/HandednessPicker";
+import { SegmentedControl } from "../components/ui/SegmentedControl";
+import { GROUP_HEADING } from "../components/ui/typography";
+import { LIST_DIVIDER } from "../components/ui/ListGroup";
+import { TAP_TARGET_44 } from "../components/ui/Chip";
+import type { GripStyle } from "../types/bowling";
 import type { Handedness } from "../types/bowling";
 import type { DriftModel } from "../lib/driftModel";
 import { DONATE_URL, LEGAL_URL } from "../lib/links";
@@ -32,19 +32,17 @@ interface SettingsViewProps {
   onHandednessChange: (value: Handedness) => void;
   driftModel: DriftModel;
   onDriftModelChange: (next: DriftModel) => void;
-  /** Arsenal opens as a modal overlay rather than an inline section. */
-  onOpenArsenal: () => void;
-  /** Spare lines does too. It is also in the Stats menu, where it is read next
-   *  to the leaves you keep missing; here it is one of the things you keep. */
-  onOpenSpareLines: () => void;
   /** Backup & restore pushes over the tab, like the arsenal and the catalog:
    *  it is also reachable from the dashboard, and both should land on the same
    *  screen. */
   onOpenBackup: () => void;
-  /** Navigate to the ball catalog view. */
-  onOpenCatalog: () => void;
   onOpenLineVisualizer: (patternId?: number) => void;
+  /** Open one guide article: the long form of a one-line caption here. */
+  onOpenGuide: (guideId: string) => void;
 }
+
+/** The guide behind the "Why it matters" links (`lib/guides`). */
+const SETTINGS_GUIDE = "your-settings";
 
 /**
  * Lazy for the same reason App.tsx makes them lazy: both are also pushed as
@@ -59,7 +57,7 @@ const OilPatternsView = lazy(() =>
   import("./OilPatternsView").then((m) => ({ default: m.OilPatternsView }))
 );
 
-export function SettingsView({ section, onSectionChange, handedness, onHandednessChange, driftModel, onDriftModelChange, onOpenArsenal, onOpenSpareLines, onOpenBackup, onOpenCatalog, onOpenLineVisualizer }: SettingsViewProps) {
+export function SettingsView({ section, onSectionChange, handedness, onHandednessChange, driftModel, onDriftModelChange, onOpenBackup, onOpenLineVisualizer, onOpenGuide }: SettingsViewProps) {
   const back = () => onSectionChange("menu");
 
   // The menu stays mounted underneath the pushed section, so popping back
@@ -68,11 +66,11 @@ export function SettingsView({ section, onSectionChange, handedness, onHandednes
     <div className="relative h-full">
       <div className="h-full overflow-y-auto">
         <SettingsMenu
-          onOpenArsenal={onOpenArsenal}
-          onOpenSpareLines={onOpenSpareLines}
+          handedness={handedness}
+          onHandednessChange={onHandednessChange}
+          driftModel={driftModel}
           onOpenBackup={onOpenBackup}
-          onOpenCatalog={onOpenCatalog}
-          onOpenLineVisualizer={onOpenLineVisualizer}
+          onOpenGuide={onOpenGuide}
           onSectionChange={onSectionChange}
         />
       </div>
@@ -87,7 +85,6 @@ export function SettingsView({ section, onSectionChange, handedness, onHandednes
         ) : section === "preferences" ? (
           <HandednessView
             value={handedness}
-            onChange={onHandednessChange}
             driftModel={driftModel}
             onDriftModelChange={onDriftModelChange}
             onBack={back}
@@ -99,16 +96,27 @@ export function SettingsView({ section, onSectionChange, handedness, onHandednes
   );
 }
 
+/**
+ * Only settings (ADR-115). The places a bowler keeps things (arsenal, spare
+ * lines, lane notes, patterns) and the tools (catalog, line visualizer) all
+ * live on Home; this list used to repeat six of them with Preferences hidden in
+ * the middle. The two answers every bowler gives are rows here, answered in
+ * place, and the numbers only the lane view and the layout lab read sit under
+ * Advanced.
+ */
 function SettingsMenu({
-  onOpenArsenal,
-  onOpenSpareLines,
+  handedness,
+  onHandednessChange,
+  driftModel,
   onOpenBackup,
-  onOpenCatalog,
-  onOpenLineVisualizer,
+  onOpenGuide,
   onSectionChange
-}: Pick<SettingsViewProps, "onOpenArsenal" | "onOpenSpareLines" | "onOpenBackup" | "onOpenCatalog" | "onOpenLineVisualizer" | "onSectionChange">) {
+}: Pick<
+  SettingsViewProps,
+  "handedness" | "onHandednessChange" | "driftModel" | "onOpenBackup" | "onOpenGuide" | "onSectionChange"
+>) {
   const [installOpen, setInstallOpen] = useState(false);
-  // The same test the Dashboard nudge uses: an installed app has nothing to
+  // The same test the Dashboard card uses: an installed app has nothing to
   // offer here, and a browser that cannot install would offer a dead end.
   const installable = (isIOSSafari() && !isStandalone()) || canPromptInstall();
 
@@ -122,16 +130,11 @@ function SettingsMenu({
       : lastBackupAt
         ? `Last backup ${describeAge(lastBackupAt, new Date())}`
         : "Never backed up";
-
-  const bowlingRows: Array<{ key: string; icon: LucideIcon; label: string; description: string; onClick: () => void }> = [
-    { key: "arsenal", icon: BowlingBallIcon, label: "Arsenal", description: "Manage your bowling balls", onClick: onOpenArsenal },
-    { key: "spares", icon: SpareLineIcon, label: "Spare lines", description: "How you shoot each leave", onClick: onOpenSpareLines },
-    { key: "lanes", icon: LanePairIcon, label: "Lane notes", description: "Notes per alley and lane", onClick: () => onSectionChange("lanes") },
-    { key: "oil-patterns", icon: OilPatternIcon, label: "Oil patterns", description: "Patterns and their sheet links", onClick: () => onSectionChange("oil-patterns") },
-    { key: "preferences", icon: SlidersHorizontal, label: "Preferences", description: "Handedness, PAP, release offset, drift", onClick: () => onSectionChange("preferences") },
-    { key: "catalog", icon: BookOpen, label: "Catalog", description: "Browse manufacturer ball specs", onClick: onOpenCatalog },
-    { key: "visualizer", icon: LaneViewIcon, label: "Line visualizer", description: "Sketch a line on the lane", onClick: onOpenLineVisualizer }
-  ];
+  const grip: GripStyle = useLiveQuery(getGripStyle, [], undefined) ?? "1h";
+  const pap = useLiveQuery(getPap, [], undefined) ?? DEFAULT_PAP;
+  const advancedDescription = `PAP ${formatInches(pap.over)} over, ${formatInches(Math.abs(pap.up))} ${
+    pap.up < 0 ? "down" : "up"
+  } · offset ${driftModel.release_offset}`;
 
   // A link that leaves the app says so with the outward arrow, rather than the
   // chevron that means "deeper into this app" on every other row.
@@ -139,23 +142,39 @@ function SettingsMenu({
     <ArrowUpRight size={16} aria-hidden="true" className="shrink-0 text-ink-tertiary" />
   );
 
+  const whyLink = (
+    <button
+      type="button"
+      onClick={() => onOpenGuide(SETTINGS_GUIDE)}
+      className={`relative text-xs font-semibold text-accent active:opacity-60 ${TAP_TARGET_44}`}
+    >
+      Why it matters
+    </button>
+  );
+
   return (
     <section className="mx-auto w-full max-w-3xl space-y-5 px-3 pb-5 pt-3 sm:px-6 sm:pt-5">
       <h1 className="text-xl font-bold text-ink">Settings</h1>
 
-      <ListGroup heading="Bowling">
-        {bowlingRows.map((row) => (
-          <ListRow
-            key={row.key}
-            icon={row.icon}
-            label={row.label}
-            description={row.description}
-            onClick={row.onClick}
+      <ListGroup heading="Bowler" headingTrailing={whyLink}>
+        <li className={`${LIST_DIVIDER} px-3 py-3`}>
+          <p className="mb-2 text-sm font-semibold text-ink">Handedness</p>
+          <HandednessPicker value={handedness} onSelect={onHandednessChange} />
+          <p className="mt-1.5 text-xs text-ink-secondary">Boards count in from your side of the lane.</p>
+        </li>
+        <li className={`${LIST_DIVIDER} px-3 py-3`}>
+          <p className="mb-2 text-sm font-semibold text-ink">Grip</p>
+          <SegmentedControl
+            label="Grip style"
+            value={grip}
+            onChange={(next) => void setGripStyle(next)}
+            options={[
+              { value: "1h", label: "One-handed" },
+              { value: "2h", label: "Two-handed" }
+            ]}
           />
-        ))}
-      </ListGroup>
-
-      <ListGroup heading="App">
+          <p className="mt-1.5 text-xs text-ink-secondary">How the layout lab draws your ball.</p>
+        </li>
         <ListRow
           icon={Palette}
           label="Appearance"
@@ -164,17 +183,31 @@ function SettingsMenu({
         />
       </ListGroup>
 
-      <ListGroup heading="Data & safety">
+      <section>
+        <div className="mb-1.5 px-1">
+          <h2 className={GROUP_HEADING}>Advanced</h2>
+          <p className="mt-0.5 text-xs text-ink-secondary">
+            Used by the lane view and the layout lab. Not needed to keep score.
+          </p>
+        </div>
+        <ul className="overflow-hidden rounded-xl border border-edge bg-surface shadow-sm">
+          <ListRow
+            icon={SlidersHorizontal}
+            label="PAP, release and drift"
+            description={advancedDescription}
+            onClick={() => onSectionChange("preferences")}
+          />
+        </ul>
+      </section>
+
+      <ListGroup heading="Your data">
         <ListRow
           icon={Archive}
           label="Backup & restore"
           description={backupDescription}
           onClick={onOpenBackup}
         />
-      </ListGroup>
-
-      <ListGroup heading="Support">
-        {/* The way back to an install the Dashboard nudge was waved away from.
+        {/* The way back to an install the Home card was waved away from.
             Hidden once the app is installed, when it would offer nothing. */}
         {installable && (
           <ListRow
@@ -184,6 +217,9 @@ function SettingsMenu({
             onClick={() => setInstallOpen(true)}
           />
         )}
+      </ListGroup>
+
+      <ListGroup heading="Support">
         <ListRow
           icon={MessageSquare}
           label="Send feedback"
@@ -198,11 +234,6 @@ function SettingsMenu({
           href={DONATE_URL}
           trailing={leavesTheApp}
         />
-      </ListGroup>
-
-      <InstallPrompt open={installOpen} onClose={() => setInstallOpen(false)} />
-
-      <ListGroup heading="About">
         <ListRow
           icon={ScrollText}
           label="Privacy and terms"
@@ -211,6 +242,10 @@ function SettingsMenu({
           trailing={leavesTheApp}
         />
       </ListGroup>
+
+      <p className="px-1 text-xs text-ink-tertiary">Headpin {__APP_VERSION__}</p>
+
+      <InstallPrompt open={installOpen} onClose={() => setInstallOpen(false)} />
     </section>
   );
 }
