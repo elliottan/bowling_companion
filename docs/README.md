@@ -10,7 +10,7 @@ reasoning and invariants the code cannot express.
 |---|---|
 | Change scoring or the frame state machine | [DECISIONS.md](./DECISIONS.md) ADR-001, ADR-005, ADR-017 |
 | Change the schema, types or migrations | [DATA_MODEL.md](./DATA_MODEL.md) |
-| Change what a shot opens with, or the line rules | [DECISIONS.md](./DECISIONS.md) ADR-052, ADR-053, ADR-054 |
+| Change what a shot opens with, or the line rules | [DECISIONS.md](./DECISIONS.md) ADR-052, ADR-053, ADR-054, ADR-113 |
 | Add or restructure a module | [ARCHITECTURE.md](./ARCHITECTURE.md) |
 | Build any UI | [DESIGN-LANGUAGE.md](./DESIGN-LANGUAGE.md) |
 | Touch ball layouts, the dual angle system or the VLS conversion | `src/lib/ballLayout.ts` for the geometry and the motion model, `src/lib/ballProjection.ts` for how it is drawn |

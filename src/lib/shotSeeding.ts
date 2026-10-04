@@ -1,4 +1,10 @@
-import { freshRackSeedShot, freshRackShotIndices, lineHasValue, sameBallSeedLine } from "./lanes";
+import {
+  freshRackSeedShot,
+  freshRackShotIndices,
+  lastFreshRackBallId,
+  lineHasValue,
+  sameBallSeedLine
+} from "./lanes";
 import type { Ball, Frame, Game, LineSpec, PinNumber, Shot, SpareLine } from "../types/bowling";
 
 /**
@@ -56,12 +62,13 @@ const pinsKey = (p: PinNumber[]) => [...p].sort((a, b) => a - b).join(",");
  * change at a leave asks for: a plastic spare ball and a hooking strike ball
  * want different boards at the same pin, and `spare_lines` cannot say so (its
  * rows are keyed by the leave alone). Session history can. Attempts that name
- * no ball match any of them.
+ * no ball match any of them, unless `strict`.
  */
 export function sessionSpareIntended(
   frames: Frame[],
   leave: PinNumber[],
-  ballId?: number
+  ballId?: number,
+  strict = false
 ): LineSpec | undefined {
   const key = pinsKey(leave);
   let found: LineSpec | undefined;
@@ -75,7 +82,10 @@ export function sessionSpareIntended(
       // untagged one still is: it is the only record of that leave there is, and
       // dropping it would silently stop seeding for anyone who does not pick a
       // ball per shot.
-      if (ballId != null && attempt.ball_id != null && attempt.ball_id !== ballId) continue;
+      // `strict` drops the untagged ones too, for a strike ball: an untagged
+      // attempt was most likely thrown with the spare ball, and its boards are
+      // the ones a strike ball must not inherit (ADR-113).
+      if (ballId != null && attempt.ball_id !== ballId && (strict || attempt.ball_id != null)) continue;
       if (lineHasValue(attempt.intended)) found = attempt.intended;
     }
   }
@@ -94,17 +104,20 @@ export function savedSpareLine(
 /**
  * The line to show for a ball, which is the whole of the ball-change rule: the
  * box shows the line for the ball that is selected, and `undefined` means this
- * ball has no line on record, so the caller keeps whatever is already there.
+ * ball has no line on record.
  *
  * On a full rack this is `sameBallSeedLine`: this frame, then this lane, then
  * the pair's other lane, newest first (ADR-035's precedence, unchanged).
  *
- * At a leave it is, in order (ADR-052, ADR-053):
- *   1. this ball's own attempt at this leave, this session;
- *   2. for a strike ball, that ball's own strike line moved by the leave's
- *      `strike_offset`, which is why the offset is stored as a move: it lands
- *      wherever you are playing today, with whichever strike ball is up;
- *   3. the leave's absolute line, which was recorded off a spare ball.
+ * At a leave it depends on the kind of ball (ADR-113, replacing ADR-053's
+ * steps 3 and 4 for a strike ball):
+ *
+ * - a spare ball, or no ball: this ball's own attempt at this leave this
+ *   session, then the leave's saved line, then the ball's own strike line;
+ * - a strike ball: this ball's own attempt at this leave this session, then its
+ *   strike line moved by the leave's `strike_offset`, then its strike line as
+ *   is. Never the leave's saved line: that was recorded off a spare ball thrown
+ *   straight, and a hooking ball on those boards misses the pin.
  */
 export function lineForBall(
   input: Pick<ShotSeedInput, "currentFrameNumber" | "frames" | "game" | "previousGames"> &
@@ -127,25 +140,35 @@ export function lineForBall(
 
   if (!leave || leave.length === 0 || leave.length >= 10) return ownStrikeLine();
 
+  const isStrikeBall = ballKind(input.balls ?? [], ballId) === "strike";
   const own = sessionSpareIntended(
     [...(input.sessionFrames ?? []), ...input.frames],
     leave,
-    ballId
+    ballId,
+    isStrikeBall
   );
   if (own) return { ...own };
 
   const saved = savedSpareLine(input.spareLines ?? [], leave);
-  const ball = input.balls?.find((b) => b.id === ballId);
-  const isStrikeBall = ballId != null && ball?.is_spare_ball !== true;
-  if (isStrikeBall && saved?.strike_offset) {
-    const moved = applyOffset(ownStrikeLine(), saved.strike_offset);
-    if (moved) return moved;
+  if (isStrikeBall) {
+    if (saved?.strike_offset) {
+      const moved = applyOffset(ownStrikeLine(), saved.strike_offset);
+      if (moved) return moved;
+    }
+    return ownStrikeLine();
   }
 
   // ADR-035's last resort, kept: with nothing recorded for this leave, a leave
   // shot inherits the ball's own strike line, which is the line you adjust off
   // rather than replace.
   return spareLineBoards(saved) ?? ownStrikeLine();
+}
+
+/** Which kind of ball an id names: a spare ball, a strike ball (any ball not
+ *  marked as a spare ball), or nothing known. */
+export function ballKind(balls: Ball[], ballId: number | undefined): "spare" | "strike" | undefined {
+  if (ballId == null) return undefined;
+  return balls.find((b) => b.id === ballId)?.is_spare_ball ? "spare" : "strike";
 }
 
 /** A leave's offset moved onto a real strike line. Null when there is no strike
@@ -181,7 +204,9 @@ function resolveIntended(
   ballId: number | undefined,
   currentFrameShots: Shot[]
 ): { intended?: LineSpec } {
-  if (lineHasValue(preset)) return { intended: preset };
+  // A copy, never the stored object: a seed that is the previous shot's own
+  // line is a value React cannot tell apart from "unchanged" (B1, ADR-113).
+  if (lineHasValue(preset)) return { intended: { ...preset! } };
   const found = sameBallSeedLine(
     ballId,
     input.game,
@@ -197,14 +222,18 @@ export function seedForShot(input: ShotSeedInput): ShotSeed {
   const { currentShot, currentFrameNumber, availablePins, frames, currentFrameShots } = input;
   const previousGames = input.previousGames ?? [];
 
-  // First ball: carry line, ball and notes from the previous same-lane frame in
-  // this game, else from the previous game on the same lane, else nothing.
+  // First ball (ADR-113): the ball is the last one thrown at a full rack this
+  // session, on any lane, and the line is that ball's own line, this lane
+  // first. Notes still come from the previous frame on this lane. With no ball
+  // on record, the same-lane frame's line carries as it always has, which is
+  // what keeps seeding alive for a bowler who never picks a ball.
   if (currentShot === 1) {
     const prev = freshRackSeedShot(input.game, currentFrameNumber, [], frames, previousGames);
+    const ballId = lastFreshRackBallId(currentFrameNumber, [], frames, previousGames);
     return {
-      ballId: prev?.ball_id,
+      ballId,
       notes: prev?.notes ?? "",
-      ...resolveIntended(input, prev?.intended, prev?.ball_id, [])
+      ...resolveIntended(input, ballId == null ? prev?.intended : undefined, ballId, [])
     };
   }
 
@@ -224,8 +253,8 @@ export function seedForShot(input: ShotSeedInput): ShotSeed {
     };
   }
 
-  // Fresh-rack bonus ball (the 10th after a strike or spare): carry from the
-  // most recent fresh-rack shot (ADR-029).
+  // Fresh-rack bonus ball (the 10th after a strike or spare): the same rule,
+  // and the ball thrown at the last full rack in this frame comes first.
   const prev = freshRackSeedShot(
     input.game,
     currentFrameNumber,
@@ -233,9 +262,15 @@ export function seedForShot(input: ShotSeedInput): ShotSeed {
     frames,
     previousGames
   );
+  const ballId = lastFreshRackBallId(currentFrameNumber, currentFrameShots, frames, previousGames);
   return {
-    ballId: prev?.ball_id,
+    ballId,
     notes: "",
-    ...resolveIntended(input, prev?.intended, prev?.ball_id, currentFrameShots)
+    ...resolveIntended(
+      input,
+      ballId == null ? prev?.intended : undefined,
+      ballId,
+      currentFrameShots
+    )
   };
 }

@@ -5367,3 +5367,104 @@ value rather than an assumption.
   already. The tests read that file, not a copy of it.
 - A file whose columns are arranged differently does not read partially. It
   throws, names the file, and stages nothing.
+
+---
+
+## ADR-113: The ball follows the last throw, the line follows the ball, and a strike ball keeps off the spare line
+
+**Status.** Accepted, 2026-10-04. Supersedes the ball half of ADR-017's and
+ADR-029's fresh-rack carry, and ADR-053's steps 3 and 4 for a strike ball.
+ADR-054's capture is narrowed to spare balls.
+
+**Context.** The 2026-10-03 quality pass replayed `seedForShot` over every shot
+in the owner's backup (27 sessions, 1538 shots) and measured three problems.
+
+1. **The ball came back after a change.** The fresh-rack carry took ball and
+   line as a matched pair from the previous frame *on the same lane*. On a pair
+   that frame is two frames back, so it predates any change made in the frame
+   between: the frame after a change opened with the old ball 70 times out of
+   85. In game 1, frames 1 and 2 have no same-lane predecessor at all, so frame
+   2 opened empty in 27 sessions of 27.
+2. **A strike ball at a leave was handed the spare ball's boards.** ADR-053's
+   step 3 falls back to the leave's absolute line, which was recorded off a
+   plastic ball thrown straight. With no `strike_offset` saved (the owner has
+   none), every strike ball got those boards, and a ball change that found
+   nothing kept them in the box.
+3. **The capture prompt saved a strike ball's line as the spare line.** Accepted
+   after a strike-ball attempt, that line became the leave's absolute line, and
+   every later spare-ball attempt at the leave was seeded from it.
+
+**Decision.**
+
+- **Ball:** a fresh-rack shot opens with the ball of the most recent fresh-rack
+  shot this session that names one, on any lane, in any game
+  (`lastFreshRackBallId`). Spare attempts never set it.
+- **Line:** that ball's own line, `sameBallSeedLine`, which already prefers this
+  lane and falls back to the pair's other lane (ADR-035). With no ball on record
+  the same-lane frame's line carries as before, so seeding stays alive for a
+  bowler who never picks one.
+- **Notes** still come from the same-lane frame: they are about the lane.
+- **At a leave, a strike ball** gets its own attempt at this leave this session
+  (untagged attempts no longer count for it, as they were most likely thrown
+  with the spare ball), then its strike line moved by the `strike_offset`, then
+  its strike line as is. Never the leave's saved line. A spare ball, or no ball,
+  is unchanged.
+- **A ball change that finds no line** keeps the box only between two balls of
+  the same kind. Spare to strike or back, it empties the box.
+- **The capture prompt** is offered after a spare-ball or untagged attempt only.
+- **A seed is a copy.** It used to be the very object stored on the previous
+  shot, which React cannot tell apart from "unchanged".
+
+**Measured on the same backup:** frames 1 and 2 of games 2+ go from 63% to 81%
+right on the ball, game 1 frame 2 is seeded from frame 1, the rest of the game is
+unchanged (88% to 89%), and line accuracy is flat (63% to 61%, within noise).
+
+**Consequences.**
+- Moving to a different pair carries the ball, and its line from the old pair
+  as a starting point. The old rule opened that frame empty.
+- Seeding game 1 frame 1 from the previous session was measured and rejected:
+  it matched 4 times in 18.
+- The same pass found the shot's metadata could be lost outright on record (the
+  draft was mirrored into the controller by an effect that did not re-run when
+  the seed matched). That is a bug, not a rule: the scorer now reads the draft at
+  the moment of recording. Shots already stored without their ball cannot be
+  recovered.
+
+## ADR-114: The board adjusters float above the fields, and a focus never writes data
+
+**Status.** Accepted, 2026-10-04. Replaces the half-tap buttons of ADR-091 and
+the Actual line's autofill on focus. ADR-091's rule that a press must not close
+the row it landed on stands.
+
+**Context.** The adjusters (a half-board nudge and the 1-1, 1.5-1, 2-1 moves)
+open while a board field is focused, and that is right: they are used in bursts
+while typing, and the owner wants them a tap away at that moment. Where they
+opened was wrong. They rendered *below* the field, so on a phone the 2-1 row sat
+against the keyboard's toolbar and its tick. Directly under it were the Actual
+boxes and the Actual eye, whose hit region grows upward (`IconButton compact`)
+into the right end of the 2-1 row, so a tap there opened the lane view. A near
+miss on an Actual box focused it, and focus copied the Intended line into Actual.
+Each row was one 32px button whose tapped half chose the direction, so the label
+in the middle, where people tap, was the ambiguous point. They fired on
+`pointerdown`, so a finger landing to scroll moved the line. And revealing them
+pushed everything below down by about 190px on every focus.
+
+**Decision.**
+
+- The adjusters float in a panel **above** the focused field, spanning both
+  scorer columns (`data-adjuster-bounds`) so they fit two to a row and stay
+  short. Nothing in the layout moves when they appear, and nothing sits between
+  them and the keyboard but the field itself.
+- Each row is the lane view's quick-move row (ADR-109): an In button and an Out
+  button, 44px tall, with the label between them and not a target.
+- They act on `click`. A press that becomes a scroll, or slides off, does
+  nothing. `mousedown` is still cancelled to keep the keyboard up, a press in
+  flight still holds the panel open through a blur, and the click hands focus
+  back (ADR-091).
+- Actual is filled from Intended only by **As intended** in the Actual heading
+  row. Focusing a field never writes anything.
+
+**Consequences.**
+- The panel covers the ball row and the bottom of the scorecard while a field is
+  focused. Neither is used while typing a board, and both come back on blur.
+- A half-tap no longer exists anywhere in the app.

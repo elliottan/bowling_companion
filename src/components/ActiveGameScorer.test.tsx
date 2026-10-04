@@ -808,78 +808,78 @@ describe("gutter and foul (ADR-089)", () => {
   });
 });
 
-describe("the board adjusters survive losing the keyboard (ADR-091)", () => {
-  /** Fire a press on the half of `button` the given fraction across it. */
-  function pressHalf(button: HTMLElement, fraction: number) {
-    // jsdom lays nothing out, so every rect is zero-sized: the half a press
-    // lands in is geometry, and the geometry has to be supplied.
-    vi.spyOn(button, "getBoundingClientRect").mockReturnValue({
-      left: 0,
-      width: 100,
-      top: 0,
-      height: 32,
-      right: 100,
-      bottom: 32,
-      x: 0,
-      y: 0,
-      toJSON: () => ({})
-    } as DOMRect);
-    // jsdom has no PointerEvent, and fireEvent.pointerDown drops clientX on the
-    // way through, so the press is built as a MouseEvent of that type: React
-    // listens by name, and this one carries the coordinate the half-tap reads.
-    fireEvent(
-      button,
-      new MouseEvent("pointerdown", { bubbles: true, cancelable: true, clientX: 100 * fraction })
-    );
-  }
-
-  it("moves both boards from either half of a preset", async () => {
+describe("the board adjusters (ADR-091, ADR-114)", () => {
+  async function setUp() {
     render(<ActiveGameScorer />);
     const stanceField = await screen.findByLabelText("Stance");
     fireEvent.change(stanceField, { target: { value: "20" } });
     // Two lines carry a Target; the Intended one is first.
-    const target = () => screen.getAllByLabelText("Target")[0] as HTMLInputElement;
     fireEvent.change(target(), { target: { value: "16" } });
     fireEvent.focus(stanceField);
+    return stanceField;
+  }
+  const target = () => screen.getAllByLabelText("Target")[0] as HTMLInputElement;
+  const stanceValue = () => (screen.getByLabelText("Stance") as HTMLInputElement).value;
 
-    const preset = () => screen.getByRole("button", { name: /^Move 2-1\./ });
-    pressHalf(preset(), 0.9); // right half: lower boards for a right-hander
-    await waitFor(() => {
-      expect((screen.getByLabelText("Stance") as HTMLInputElement).value).toBe("18");
-    });
+  it("moves both boards, each way from its own button", async () => {
+    await setUp();
+    fireEvent.click(screen.getByRole("button", { name: "Move 2-1 out" }));
+    await waitFor(() => expect(stanceValue()).toBe("18"));
     expect(target().value).toBe("15");
 
-    pressHalf(preset(), 0.1); // left half: back up again
+    fireEvent.click(screen.getByRole("button", { name: "Move 2-1 in" }));
+    await waitFor(() => expect(stanceValue()).toBe("20"));
+    expect(target().value).toBe("16");
+  });
+
+  it("nudges the focused field by half a board", async () => {
+    await setUp();
+    fireEvent.click(screen.getByRole("button", { name: "Stance 0.5 in" }));
+    await waitFor(() => expect(stanceValue()).toBe("20.5"));
+  });
+
+  it("does nothing on a press that never becomes a click", async () => {
+    // A finger that lands to scroll, or slides off to cancel, is not a move.
+    await setUp();
+    const out = screen.getByRole("button", { name: "Move 2-1 out" });
+    fireEvent.pointerDown(out);
+    fireEvent.pointerCancel(out);
+    expect(stanceValue()).toBe("20");
+  });
+
+  it("keeps the panel open when the press blurs the field", async () => {
+    const stanceField = await setUp();
+    const out = screen.getByRole("button", { name: "Move 2-1 out" });
+    fireEvent.pointerDown(out);
+    // WebKit can take focus off the field anyway.
+    fireEvent.blur(stanceField);
+    await new Promise((r) => setTimeout(r, 10));
+    expect(screen.getByRole("button", { name: "Move 2-1 out" })).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Move 2-1 out" }));
+    await waitFor(() => expect(stanceValue()).toBe("18"));
+  });
+
+  it("still closes the panel when the bowler leaves the field", async () => {
+    const stanceField = await setUp();
+    expect(screen.getByRole("button", { name: "Move 2-1 in" })).toBeTruthy();
+
+    fireEvent.blur(stanceField);
     await waitFor(() => {
-      expect((screen.getByLabelText("Stance") as HTMLInputElement).value).toBe("20");
+      expect(screen.queryByRole("button", { name: "Move 2-1 in" })).toBeNull();
     });
   });
 
-  it("keeps the row open when the press blurs the field", async () => {
-    render(<ActiveGameScorer />);
-    const stanceField = await screen.findByLabelText("Stance");
-    fireEvent.change(stanceField, { target: { value: "20" } });
-    fireEvent.focus(stanceField);
-
-    const preset = screen.getByRole("button", { name: /^Move 2-1\./ });
-    pressHalf(preset, 0.9);
-    // WebKit ignores the press's preventDefault and blurs the field anyway.
-    fireEvent.blur(stanceField);
-
-    await waitFor(() => {
-      expect(screen.getByRole("button", { name: /^Move 2-1\./ })).toBeTruthy();
-    });
+  it("does not write an Actual line when an Actual box is focused", async () => {
+    await setUp();
+    const slide = screen.getByLabelText("Slide") as HTMLInputElement;
+    fireEvent.focus(slide);
+    expect(slide.value).toBe("");
   });
 
-  it("still closes the row when the bowler leaves the field", async () => {
-    render(<ActiveGameScorer />);
-    const stanceField = await screen.findByLabelText("Stance");
-    fireEvent.focus(stanceField);
-    expect(screen.getByRole("button", { name: /^Move 2-1\./ })).toBeTruthy();
-
-    fireEvent.blur(stanceField);
-    await waitFor(() => {
-      expect(screen.queryByRole("button", { name: /^Move 2-1\./ })).toBeNull();
-    });
+  it("copies the Intended line into Actual from As intended", async () => {
+    await setUp();
+    fireEvent.click(screen.getByRole("button", { name: "As intended" }));
+    await waitFor(() => expect(screen.getAllByLabelText("Target")[1]).toHaveProperty("value", "16"));
+    expect((screen.getByLabelText("Slide") as HTMLInputElement).value).not.toBe("");
   });
 });

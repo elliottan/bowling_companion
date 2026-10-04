@@ -317,6 +317,13 @@ whatever the press asks for. Hand focus back, and never unmount the row on a
 blur the row itself caused, or the control reads as a button that only dismisses
 the keyboard (ADR-091).
 
+**A revealed control opens away from the keyboard and moves nothing.** The
+adjusters float above the field rather than below it, where they sat against
+the keyboard's toolbar and over the next section's controls (ADR-114). Each
+direction is its own button with a word on it, and acts on click, never on
+pointerdown. A focus never writes data: a value copied from elsewhere comes
+from a control that says so ("As intended").
+
 **Changing something already recorded asks first.** Editing a recorded shot or
 undoing the last ball raises a `ConfirmDialog` naming what changes. A recorded
 shot asks once per visit to it, not once per tap: the bowler correcting a pin

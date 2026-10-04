@@ -6,6 +6,7 @@ import { useLongPress } from "../lib/useLongPress";
 import { deleteSession, updateSession } from "../services/bowlingRepository";
 import { ConfirmDialog } from "./ConfirmDialog";
 import { SessionFormDialog } from "./SessionFormDialog";
+import { laneSummary } from "./SessionHeaderText";
 import { alleyLabel } from "../lib/sessionLabels";
 import type { NewSessionFormValues } from "./SessionForm";
 import type { SessionSummary } from "../types/bowling";
@@ -59,16 +60,6 @@ export function SessionHistory({
       ))}
     </ul>
   );
-}
-
-/** Distinct lanes across a session's games, e.g. "Lane 9 / 10". */
-function laneSummary(games: SessionSummary["games"]): string {
-  const lanes = new Set<string>();
-  for (const g of games) {
-    const list = g.lanes ?? (g.lane_number ? [g.lane_number] : []);
-    for (const l of list) if (l) lanes.add(l);
-  }
-  return lanes.size ? `Lane ${[...lanes].join(" / ")}` : "";
 }
 
 interface SessionRowProps {

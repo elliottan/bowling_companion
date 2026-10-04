@@ -21,7 +21,8 @@ const RECORD_SHOT = /^Next( \(|$)/;
 
 const BALLS: Ball[] = [
   { id: 1, name: "Hammer", is_spare_ball: false, sort_order: 0 },
-  { id: 2, name: "Plastic Spare", is_spare_ball: true, sort_order: 1 }
+  { id: 2, name: "Plastic Spare", is_spare_ball: true, sort_order: 1 },
+  { id: 3, name: "Gem", is_spare_ball: false, sort_order: 2 }
 ];
 
 let spareLines: SpareLine[] = [];
@@ -228,10 +229,15 @@ describe("what a new shot starts with", () => {
       );
       await waitFor(() => expect(stance()).toBe("20"));
 
-      // A ball with no history keeps what is on screen as a starting point.
-      await chooseBall("Plastic Spare");
-      await waitFor(() => expect(ballLabel()).toMatch(/Plastic Spare/));
+      // Another strike ball with no history keeps what is on screen as a
+      // starting point.
+      await chooseBall("Gem");
       expect(stance()).toBe("20");
+
+      // A spare ball with nothing on record does not: a strike ball's boards
+      // are the wrong place to start a spare ball from (ADR-113).
+      await chooseBall("Plastic Spare");
+      await waitFor(() => expect(stance()).toBe(""));
 
       // Typing a line for it, then coming back, restores the Hammer's own line.
       fireEvent.change(screen.getByLabelText("Stance"), { target: { value: "27" } });
@@ -241,5 +247,157 @@ describe("what a new shot starts with", () => {
       await waitFor(() => expect(stance()).toBe("20"));
       await waitFor(() => expect(target()).toBe("15"));
     });
+  });
+});
+
+describe("what a recorded shot stores (B1)", () => {
+  async function pickBall(name: string) {
+    await waitFor(() => expect(ballLabel()).toBeTruthy());
+    await waitFor(() =>
+      expect(screen.queryByRole("dialog", { name: "Choose ball" })).toBeNull()
+    );
+    fireEvent.click(screen.getByRole("button", { name: /^Ball: / }));
+    fireEvent.click(await screen.findByRole("button", { name: new RegExp(name) }));
+    await waitFor(() => expect(ballLabel()).toMatch(new RegExp(name)));
+  }
+
+  /** Strike, then wait until the scorer has seeded the next frame. */
+  async function strikeAndWait(nextFrame: number) {
+    fireEvent.click(screen.getByRole("button", { name: "Strike" }));
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: /^Ball: / }).getAttribute("aria-label")).toBeTruthy()
+    );
+    await waitFor(() => expect(saved.some((f) => f.frame_number === nextFrame - 1)).toBe(true));
+  }
+
+  let saved: Frame[] = [];
+  const onFrameComplete = (f: Frame) => {
+    saved = [...saved.filter((x) => x.frame_number !== f.frame_number), f];
+  };
+
+  const LANE_SETUPS: Array<[string, typeof ONE_LANE | undefined]> = [
+    ["no lanes", undefined],
+    ["one lane", ONE_LANE],
+    ["a lane pair", { lanes: ["9", "10"], start_lane: "9", lane_number: "9" }]
+  ];
+
+  for (const [label, game] of LANE_SETUPS) {
+    it(`keeps the ball on every frame the bowler does not touch, on ${label}`, async () => {
+      spareLines = [];
+      saved = [];
+      render(
+        <ActiveGameScorer
+          gameKey={1}
+          mode="session"
+          game={game}
+          initialFrames={[]}
+          onFrameComplete={onFrameComplete}
+        />
+      );
+      await pickBall("Gem");
+      for (let n = 1; n <= 4; n++) {
+        await strikeAndWait(n + 1);
+        await waitFor(() => expect(ballLabel()).toMatch(/Gem/));
+      }
+      for (let n = 1; n <= 4; n++) {
+        expect(saved.find((f) => f.frame_number === n)?.shots[0].ball_id).toBe(3);
+      }
+    });
+  }
+
+  it("keeps a typed line on the next frame on one lane", async () => {
+    spareLines = [];
+    saved = [];
+    render(
+      <ActiveGameScorer
+        gameKey={1}
+        mode="session"
+        game={ONE_LANE}
+        initialFrames={[]}
+        onFrameComplete={onFrameComplete}
+      />
+    );
+    await pickBall("Hammer");
+    fireEvent.change(screen.getByLabelText("Stance"), { target: { value: "24" } });
+    await waitFor(() => expect(stance()).toBe("24"));
+    await strikeAndWait(2);
+    await waitFor(() => expect(stance()).toBe("24"));
+    await strikeAndWait(3);
+
+    const second = saved.find((f) => f.frame_number === 2)?.shots[0];
+    expect(second?.ball_id).toBe(1);
+    expect(second?.intended?.stance).toBe(24);
+  });
+});
+
+describe("a strike ball at a leave (B2, B3)", () => {
+  async function leaveTheTenPin() {
+    await waitFor(() => expect(ballLabel()).toBeTruthy());
+    const pin = screen.getByRole("button", { name: /^Pin 10 / });
+    fireEvent.pointerDown(pin);
+    fireEvent.pointerUp(pin);
+    fireEvent.click(screen.getByRole("button", { name: RECORD_SHOT }));
+  }
+
+  async function chooseBall(name: string) {
+    await waitFor(() =>
+      expect(screen.queryByRole("dialog", { name: "Choose ball" })).toBeNull()
+    );
+    fireEvent.click(screen.getByRole("button", { name: /^Ball: / }));
+    fireEvent.click(await screen.findByRole("button", { name: new RegExp(name) }));
+    await waitFor(() => expect(ballLabel()).toMatch(new RegExp(name)));
+  }
+
+  it("shows the strike ball's own line, not the spare ball's saved one", async () => {
+    spareLines = [{ id: 1, pins: [10] as PinNumber[], line: { stance: 31, target: 22 }, sort_order: 0 }];
+    render(
+      <ActiveGameScorer
+        gameKey={1}
+        mode="session"
+        game={ONE_LANE}
+        initialFrames={frameOneStrike(1, { stance: 20, target: 15 })}
+      />
+    );
+    await leaveTheTenPin();
+    await waitFor(() => expect(ballLabel()).toContain("Plastic Spare"));
+    await waitFor(() => expect(stance()).toBe("31"));
+
+    await chooseBall("Hammer");
+    await waitFor(() => expect(stance()).toBe("20"));
+    await waitFor(() => expect(target()).toBe("15"));
+  });
+
+  it("empties the box for a strike ball with no line on record", async () => {
+    spareLines = [{ id: 1, pins: [10] as PinNumber[], line: { stance: 31, target: 22 }, sort_order: 0 }];
+    render(<ActiveGameScorer gameKey={1} mode="session" game={ONE_LANE} initialFrames={[]} />);
+    await leaveTheTenPin();
+    await waitFor(() => expect(stance()).toBe("31"));
+
+    await chooseBall("Gem");
+    await waitFor(() => expect(stance()).toBe(""));
+  });
+
+  it("does not offer to save a strike ball's attempt as the leave's spare line", async () => {
+    spareLines = [];
+    render(<ActiveGameScorer gameKey={1} mode="session" game={ONE_LANE} initialFrames={[]} />);
+    await leaveTheTenPin();
+    await waitFor(() => expect(ballLabel()).toContain("Plastic Spare"));
+    await chooseBall("Gem");
+    fireEvent.change(screen.getByLabelText("Stance"), { target: { value: "25" } });
+    fireEvent.click(screen.getByRole("button", { name: "Spare" }));
+
+    await waitFor(() => expect(screen.getByRole("button", { name: /^Ball: / })).toBeTruthy());
+    expect(screen.queryByText(/Save this as your line/)).toBeNull();
+  });
+
+  it("offers it after a spare ball attempt", async () => {
+    spareLines = [];
+    render(<ActiveGameScorer gameKey={1} mode="session" game={ONE_LANE} initialFrames={[]} />);
+    await leaveTheTenPin();
+    await waitFor(() => expect(ballLabel()).toContain("Plastic Spare"));
+    fireEvent.change(screen.getByLabelText("Stance"), { target: { value: "30" } });
+    fireEvent.click(screen.getByRole("button", { name: "Spare" }));
+
+    expect(await screen.findByText(/Save this as your line for 10-pin/)).toBeTruthy();
   });
 });

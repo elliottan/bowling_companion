@@ -1,15 +1,14 @@
 /**
  * The two-board line editor (foul-line board + target) with its focus-reveal
- * adjusters, move presets and derived readout chain. Split out of
+ * adjuster panel (nudge and move presets) and derived readout chain. Split out of
  * ActiveGameScorer, which hosts it twice through ShotDetailBar: once for the
  * Intended line, once for the Actual one.
  */
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { MouseEvent as ReactMouseEvent, PointerEvent as ReactPointerEvent } from "react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useHandedness } from "../lib/handednessContext";
 import type { LineSpec } from "../types/bowling";
-import { Button } from "./ui/Button";
 import { FIELD_MICRO_LABEL } from "./ui/field";
 
 interface LineInputProps {
@@ -21,8 +20,6 @@ interface LineInputProps {
   foulField?: FoulField;
   /** Show the line-move preset chips (used for the intended line). */
   showPresets?: boolean;
-  /** Fired when any field gains focus, used by the Actual line to autofill. */
-  onFieldFocus?: () => void;
   /** Derived slide board (stance − drift). Renders a read-only chip; Intended only. */
   derivedSlide?: number;
   /** Derived laydown board (slide − release offset, or the explicit override). Renders a read-only chip. */
@@ -99,7 +96,6 @@ export function LineInput({
   onChange,
   foulField = "stance",
   showPresets = false,
-  onFieldFocus,
   derivedSlide,
   derivedLaydown,
   derivedBreakpoint,
@@ -191,29 +187,105 @@ export function LineInput({
     });
   }
 
-  // Single full-width button per adjuster: label centered, arrows at the edges,
-  // and the tapped half (left vs right of centre) decides the direction. One
-  // border, no ugly split. preventDefault keeps the input focused (row open).
-  const adjBtn =
-    "relative flex h-8 w-full items-center justify-center rounded-lg border border-edge bg-surface-muted text-[11px] font-semibold uppercase tracking-[0.08em] text-ink-secondary hover:bg-surface-muted active:bg-edge";
-  const halfTap =
-    (onLeft: () => void, onRight: () => void) => (e: ReactPointerEvent<HTMLButtonElement>) => {
-      e.preventDefault();
-      const r = e.currentTarget.getBoundingClientRect();
-      (e.clientX - r.left < r.width / 2 ? onLeft : onRight)();
-      // WebKit does not honour preventDefault on a pointer event the way it
-      // honours it on a mouse event, so on iOS the press still moved focus out
-      // of the board field: the keyboard went down, `focused` went null, and the
-      // adjuster row it opened vanished mid-tap. Hand focus straight back, so
-      // the row the bowler is working in stays where they left it (ADR-091).
-      const field = focused;
-      const el = field ? inputs.current[field] : null;
-      if (el && document.activeElement !== el) el.focus();
-    };
+  // A press on the panel is in flight. On iOS the press can still take focus
+  // off the field (ADR-091), and the blur it raises must not close the panel
+  // under the finger: the click that follows hands focus back.
+  const pressing = useRef(false);
+  const rowRef = useRef<HTMLDivElement>(null);
+  // Where the panel sits, measured against the widest box it may use (the
+  // scorer marks it with `data-adjuster-bounds`): both columns, so the presets
+  // fit two to a row and the panel stays short enough to clear the top of the
+  // screen.
+  const [span, setSpan] = useState<{ left: number; width: number } | null>(null);
 
-  // Belt and braces for the same thing: a mousedown's default IS cancelable in
-  // every engine, and cancelling it is what keeps the focused field focused.
-  const keepFocus = (e: ReactMouseEvent<HTMLButtonElement>) => e.preventDefault();
+  useLayoutEffect(() => {
+    if (!focused) return;
+    const row = rowRef.current;
+    const bounds = row?.closest<HTMLElement>("[data-adjuster-bounds]");
+    if (!row || !bounds) {
+      setSpan(null);
+      return;
+    }
+    const r = row.getBoundingClientRect();
+    const b = bounds.getBoundingClientRect();
+    setSpan(b.width > 0 ? { left: b.left - r.left, width: b.width } : null);
+  }, [focused]);
+
+  function closeUnlessFieldFocused() {
+    const back = Object.values(inputs.current).some((el) => el && document.activeElement === el);
+    if (!back) setFocused(null);
+  }
+
+  /** Run an adjuster on click (never on pointerdown: a finger that lands to
+   *  scroll, or slides off to cancel, records nothing), then hand focus back to
+   *  the field the panel belongs to. */
+  const onAdjust = (run: () => void) => () => {
+    pressing.current = false;
+    run();
+    const field = focused;
+    const el = field ? inputs.current[field] : null;
+    if (el && document.activeElement !== el) el.focus();
+  };
+
+  // Cancelling mousedown's default is what keeps the field focused (and the
+  // keyboard up) in every engine that synthesises mouse events from a tap.
+  const keepFocus = (e: ReactMouseEvent<HTMLElement>) => e.preventDefault();
+  const pressStart = (_e: ReactPointerEvent<HTMLElement>) => {
+    pressing.current = true;
+  };
+  // A press that ends without a click (slid off, or turned into a scroll):
+  // nothing ran, so settle the focus question the blur deferred.
+  const pressEnd = () => {
+    window.setTimeout(() => {
+      if (!pressing.current) return;
+      pressing.current = false;
+      closeUnlessFieldFocused();
+    }, 50);
+  };
+
+  // Direction reads twice, as in the lane view's quick moves (ADR-109): the
+  // arrow is the way the line moves on screen, the word the way it moves on
+  // the lane. In is up-board, which is screen-left for a right-hander.
+  const leftIsIn = dir > 0;
+  const adjusterRow = (
+    key: string,
+    label: React.ReactNode,
+    name: string,
+    onIn: () => void,
+    onOut: () => void,
+    wide = false
+  ) => {
+    const side = (which: "in" | "out", arrow: "left" | "right") => (
+      <button
+        type="button"
+        aria-label={`${name} ${which}`}
+        onMouseDown={keepFocus}
+        onPointerDown={pressStart}
+        onPointerUp={pressEnd}
+        onPointerCancel={pressEnd}
+        onClick={onAdjust(which === "in" ? onIn : onOut)}
+        className="flex min-w-11 flex-1 items-center justify-center gap-0.5 text-[10px] font-bold uppercase text-ink-secondary active:bg-edge"
+      >
+        {arrow === "left" && <ChevronLeft size={14} strokeWidth={3} aria-hidden="true" className="text-ink-strong" />}
+        {which === "in" ? "In" : "Out"}
+        {arrow === "right" && <ChevronRight size={14} strokeWidth={3} aria-hidden="true" className="text-ink-strong" />}
+      </button>
+    );
+    return (
+      <div
+        key={key}
+        className={`flex h-11 items-stretch divide-x divide-edge overflow-hidden rounded-lg border border-edge-strong bg-surface-muted ${
+          wide ? "col-span-2" : ""
+        }`}
+      >
+        {side(leftIsIn ? "in" : "out", "left")}
+        <span className="flex shrink-0 flex-col items-center justify-center px-1.5 text-xs font-semibold leading-none tabular-nums text-ink">
+          {label}
+        </span>
+        {side(leftIsIn ? "out" : "in", "right")}
+      </div>
+    );
+  };
 
   useEffect(() => () => {
     if (closeTimer.current != null) clearTimeout(closeTimer.current);
@@ -237,7 +309,8 @@ export function LineInput({
         <span className={eyebrow}>{label}</span>
         {action}
       </div>
-      <div className="flex gap-1.5">
+      <div ref={rowRef} className="relative flex gap-1.5">
+        {focused && adjusterPanel()}
         {fields.map((field) => (
           <label key={field} className="min-w-0 flex-1">
             <span className={floatLabel}>{FIELD_LABEL[field]}</span>
@@ -256,25 +329,17 @@ export function LineInput({
               // restores focus on close and the field asked to edit again.
               onFocus={(e) => {
                 if (locked) { e.currentTarget.blur(); return; }
-                onFieldFocus?.();
                 setFocused(field);
               }}
               onBlur={() => {
-                // A blur raised by an adjuster press is the press, not the
-                // bowler leaving the field: `halfTap` hands focus straight back,
-                // so ask on the next tick where focus actually ended up rather
-                // than guessing from a flag. A flag set by the press and cleared
-                // only by a blur goes stale on any engine that honours the
-                // press's preventDefault, and then swallows the real blur, which
-                // is what left the adjusters and quick moves on screen with no
-                // field focused.
+                // Ask on the next tick where focus actually ended up: a press on
+                // the panel hands it straight back (ADR-091). A press still in
+                // flight is left to settle it, so the panel cannot unmount
+                // between the finger landing and the click.
                 if (closeTimer.current != null) clearTimeout(closeTimer.current);
                 closeTimer.current = window.setTimeout(() => {
                   closeTimer.current = null;
-                  const back = Object.values(inputs.current).some(
-                    (el) => el && document.activeElement === el
-                  );
-                  if (!back) setFocused(null);
+                  if (!pressing.current) closeUnlessFieldFocused();
                 }, 0);
               }}
               className="h-9 w-full min-w-0 rounded-lg border border-edge-strong bg-surface-muted text-center text-sm font-semibold tabular-nums text-ink focus:border-accent-fill focus:bg-surface focus:outline-none"
@@ -300,48 +365,55 @@ export function LineInput({
         </button>
       )}
 
-      {/* Focus-reveal board adjusters. Each arrow pair gets its own full-width
-          row with large tap targets. Actions run on pointerdown + preventDefault:
-          keeps the input focused (row stays open) and fires reliably on touch,
-          where a preventDefault pointerdown otherwise suppresses the click.
-          Direction respects handedness, for a right-hander the LEFT arrow
-          increases the board number. */}
-      {focused && (
-        <div className="mt-2">
-          <Button
-            variant="secondary"
-            className="relative w-full text-[11px] font-semibold uppercase tracking-[0.08em]"
-            aria-label={`${FIELD_LABEL[focused]} ±0.5. Tap left to ${dir > 0 ? "increase" : "decrease"}, right to ${dir > 0 ? "decrease" : "increase"}`}
-            onMouseDown={keepFocus}
-            onPointerDown={halfTap(() => nudge(focused, 0.5 * dir), () => nudge(focused, -0.5 * dir))}
-          >
-            <ChevronLeft aria-hidden="true" size={16} strokeWidth={3} className="absolute left-3 text-ink-strong" />
-            {FIELD_LABEL[focused]} ±0.5
-            <ChevronRight aria-hidden="true" size={16} strokeWidth={3} className="absolute right-3 text-ink-strong" />
-          </Button>
-        </div>
-      )}
-
-      {/* Move presets: one full-width button per preset; tapping its left/right
-          half moves toward higher/lower boards. Only while stance/target focused. */}
-      {showPresets && (focused === "stance" || focused === "target") && (
-        <div className="mt-2 space-y-2">
-          {MOVE_PRESETS.map((p) => (
-            <button
-              key={p.label}
-              type="button"
-              className={adjBtn}
-              aria-label={`Move ${p.label}. Tap left for ${dir > 0 ? "higher" : "lower"} boards, right for ${dir > 0 ? "lower" : "higher"}`}
-              onMouseDown={keepFocus}
-              onPointerDown={halfTap(() => move(p.stance * dir, p.target * dir), () => move(-p.stance * dir, -p.target * dir))}
-            >
-              <ChevronLeft aria-hidden="true" size={16} strokeWidth={3} className="absolute left-3 text-ink-strong" />
-              Move {p.label}
-              <ChevronRight aria-hidden="true" size={16} strokeWidth={3} className="absolute right-3 text-ink-strong" />
-            </button>
-          ))}
-        </div>
-      )}
     </div>
   );
+
+  /**
+   * The focus-reveal adjusters: a nudge for the focused field and, on the
+   * Intended line, the three move presets. They float ABOVE the fields rather
+   * than opening below them (ADR-114). Below, they landed on the keyboard and
+   * its toolbar, sat over the Actual boxes (whose eye button's hit region
+   * reaches up into the last row), and pushed everything under them down on
+   * every focus. Floating, they move nothing, and every one of them is still a
+   * single tap away while the bowler is typing.
+   */
+  function adjusterPanel() {
+    if (!focused) return null;
+    const presets = showPresets && (focused === "stance" || focused === "target");
+    const nudgeName = `${FIELD_LABEL[focused]} 0.5`;
+    return (
+      <div
+        role="group"
+        aria-label="Adjust line"
+        onMouseDown={keepFocus}
+        style={span ? { left: span.left, width: span.width } : undefined}
+        className={`absolute bottom-full z-30 mb-1.5 grid gap-1.5 rounded-xl border border-edge bg-surface p-1.5 shadow-sm ${
+          span ? "" : "inset-x-0"
+        } ${presets ? "grid-cols-2" : "grid-cols-1"}`}
+      >
+        {adjusterRow(
+          "nudge",
+          <>
+            <span className="mb-0.5 text-[9px] font-bold uppercase tracking-wide text-ink-secondary">
+              {FIELD_LABEL[focused]}
+            </span>
+            ±0.5
+          </>,
+          nudgeName,
+          () => nudge(focused, 0.5),
+          () => nudge(focused, -0.5)
+        )}
+        {presets &&
+          MOVE_PRESETS.map((p) =>
+            adjusterRow(
+              p.label,
+              p.label,
+              `Move ${p.label}`,
+              () => move(p.stance, p.target),
+              () => move(-p.stance, -p.target)
+            )
+          )}
+      </div>
+    );
+  }
 }

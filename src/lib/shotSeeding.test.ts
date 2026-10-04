@@ -235,7 +235,10 @@ describe("seedForShot", () => {
     });
   });
 
-  it("does not carry a line across a change of lane", () => {
+  it("carries the ball across a change of lane, with its line as a starting point", () => {
+    // ADR-113: the ball is the last one thrown, on any lane. Its line comes
+    // from the lane in play first, and from another lane only when this one
+    // has none, which is the same fallback ADR-035 gave an empty box.
     const seed = seedForShot({
       ...base,
       currentFrameNumber: 1,
@@ -245,6 +248,19 @@ describe("seedForShot", () => {
       ]
     });
 
+    expect(seed.ballId).toBe(1);
+    expect(seed.intended).toEqual({ stance: 22 });
+  });
+
+  it("does not carry an untagged line across a change of lane", () => {
+    const seed = seedForShot({
+      ...base,
+      currentFrameNumber: 1,
+      game: { lanes: ["9"], start_lane: "9", lane_number: "9" },
+      previousGames: [{ game: LANE_12, frames: [strike(9, { intended: { stance: 22 } })] }]
+    });
+
+    expect(seed.ballId).toBeUndefined();
     expect(seed.intended).toBeUndefined();
   });
 });
@@ -417,7 +433,7 @@ describe("a strike ball at a leave (ADR-053)", () => {
     expect(line).toEqual({ stance: 30, target: 8 });
   });
 
-  it("falls back to the absolute line when the strike ball has no strike line to move", () => {
+  it("never hands a strike ball the spare ball's absolute line (ADR-113)", () => {
     const line = lineForBall(
       {
         currentFrameNumber: 3,
@@ -430,7 +446,7 @@ describe("a strike ball at a leave (ADR-053)", () => {
       [],
       TEN_PIN
     );
-    expect(line).toEqual({ stance: 30, target: 8 });
+    expect(line).toBeUndefined();
   });
 
   it("prefers this ball's own attempt at the leave over the offset", () => {
@@ -475,5 +491,147 @@ describe("a strike ball at a leave (ADR-053)", () => {
       TEN_PIN
     );
     expect(line).toEqual({ stance: 24, target: 12 });
+  });
+});
+
+describe("ADR-113: the ball follows the last throw, the line follows the ball", () => {
+  const GEM: Ball = { id: 3, name: "Gem", is_spare_ball: false, sort_order: 2 };
+  const balls = [HAMMER, SPARE_BALL, GEM];
+
+  it("seeds the ball changed to in the frame between, not the same-lane frame's", () => {
+    // Lane pair: frame 3 is on 11 like frame 1, but the bowler changed to the
+    // Gem in frame 2 on lane 12. Frame 3 opens with the Gem, on the Gem's line.
+    const seed = seedForShot({
+      ...base,
+      balls,
+      currentFrameNumber: 3,
+      game: PAIR,
+      frames: [
+        strike(1, { ball_id: 1, intended: { stance: 20, target: 15 } }),
+        strike(2, { ball_id: 3, intended: { stance: 24, target: 17 } })
+      ]
+    });
+    expect(seed.ballId).toBe(3);
+    expect(seed.intended).toEqual({ stance: 24, target: 17 });
+  });
+
+  it("prefers the new ball's line on this lane once it has one", () => {
+    const seed = seedForShot({
+      ...base,
+      balls,
+      currentFrameNumber: 5,
+      game: PAIR,
+      frames: [
+        strike(1, { ball_id: 3, intended: { stance: 22, target: 16 } }),
+        strike(2, { ball_id: 1, intended: { stance: 20, target: 15 } }),
+        strike(3, { ball_id: 1, intended: { stance: 21, target: 15 } }),
+        strike(4, { ball_id: 3, intended: { stance: 24, target: 17 } })
+      ]
+    });
+    expect(seed.ballId).toBe(3);
+    expect(seed.intended).toEqual({ stance: 22, target: 16 });
+  });
+
+  it("seeds game 1 frame 2 on a pair from frame 1", () => {
+    const seed = seedForShot({
+      ...base,
+      balls,
+      currentFrameNumber: 2,
+      game: PAIR,
+      frames: [strike(1, { ball_id: 1, intended: { stance: 20, target: 15 } })]
+    });
+    expect(seed.ballId).toBe(1);
+    expect(seed.intended).toEqual({ stance: 20, target: 15 });
+  });
+
+  it("skips spare attempts when looking for the last ball", () => {
+    const seed = seedForShot({
+      ...base,
+      balls,
+      currentFrameNumber: 2,
+      game: LANE_12,
+      frames: [
+        frame(1, [
+          { pins_standing: [10] as PinNumber[], ball_id: 1 },
+          { pins_standing: [] as PinNumber[], ball_id: 2 }
+        ])
+      ]
+    });
+    expect(seed.ballId).toBe(1);
+  });
+
+  it("still takes notes from the same-lane frame", () => {
+    const seed = seedForShot({
+      ...base,
+      balls,
+      currentFrameNumber: 3,
+      game: PAIR,
+      frames: [strike(1, { ball_id: 1, notes: "left lane hooks" }), strike(2, { ball_id: 3 })]
+    });
+    expect(seed.notes).toBe("left lane hooks");
+  });
+
+  it("never hands back the stored object as the seed", () => {
+    const stored: LineSpec = { stance: 20, target: 15 };
+    const seed = seedForShot({
+      ...base,
+      currentFrameNumber: 2,
+      game: LANE_12,
+      frames: [strike(1, { intended: stored })]
+    });
+    expect(seed.intended).toEqual(stored);
+    expect(seed.intended).not.toBe(stored);
+  });
+
+  describe("at a leave", () => {
+    const TEN_PIN = [10] as PinNumber[];
+    const saved: SpareLine[] = [{ id: 1, pins: TEN_PIN, line: { stance: 31, target: 22 }, sort_order: 0 }];
+
+    it("gives a strike ball its own strike line, not the leave's saved line", () => {
+      const line = lineForBall(
+        {
+          currentFrameNumber: 3,
+          frames: [strike(1, { ball_id: 3, intended: { stance: 20, target: 15 } })],
+          game: LANE_12,
+          balls,
+          spareLines: saved
+        },
+        3,
+        [],
+        TEN_PIN
+      );
+      expect(line).toEqual({ stance: 20, target: 15 });
+    });
+
+    it("still gives the spare ball the saved line", () => {
+      const line = lineForBall(
+        { currentFrameNumber: 3, frames: [], game: LANE_12, balls, spareLines: saved },
+        2,
+        [],
+        TEN_PIN
+      );
+      expect(line).toEqual({ stance: 31, target: 22 });
+    });
+
+    it("does not give a strike ball an untagged attempt at the leave", () => {
+      const line = lineForBall(
+        {
+          currentFrameNumber: 3,
+          frames: [
+            frame(1, [
+              { pins_standing: TEN_PIN },
+              { pins_standing: [] as PinNumber[], intended: { stance: 33, target: 20 } }
+            ])
+          ],
+          game: LANE_12,
+          balls,
+          spareLines: []
+        },
+        3,
+        [],
+        TEN_PIN
+      );
+      expect(line).toBeUndefined();
+    });
   });
 });
