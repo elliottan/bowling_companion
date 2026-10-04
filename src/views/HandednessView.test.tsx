@@ -3,13 +3,12 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { HandednessView } from "./HandednessView";
 import { db } from "../db/bowlingDb";
 import { DEFAULT_DRIFT_MODEL } from "../lib/driftModel";
-import { getGripStyle, getPap, setGripStyle, setPap } from "../services/bowlingRepository";
+import { getPap, setPap } from "../services/bowlingRepository";
 
 const renderPrefs = () => {
   render(
     <HandednessView
       value="right"
-      onChange={vi.fn()}
       driftModel={DEFAULT_DRIFT_MODEL}
       onDriftModelChange={vi.fn()}
     />
@@ -22,38 +21,11 @@ describe("HandednessView", () => {
     await db.open();
   });
 
-  it("opens one-handed, which is the grip that needs no answering", () => {
+  it("holds the numbers only the lane view and the layout lab read", () => {
+    // Handedness and grip are answered on the Settings list itself (ADR-115).
     renderPrefs();
-    expect(screen.getByRole("button", { name: "One-handed" })).toHaveAttribute(
-      "aria-pressed",
-      "true"
-    );
-  });
-
-  it("saves the grip, so the layout lab opens on it", async () => {
-    renderPrefs();
-    fireEvent.click(screen.getByRole("button", { name: "Two-handed" }));
-    await waitFor(async () => expect(await getGripStyle()).toBe("2h"));
-  });
-
-  it("fills the grip from what was saved", async () => {
-    await setGripStyle("2h");
-    renderPrefs();
-    await waitFor(() =>
-      expect(screen.getByRole("button", { name: "Two-handed" })).toHaveAttribute(
-        "aria-pressed",
-        "true"
-      )
-    );
-  });
-
-  it("says what a two-handed grip does change, and what it leaves alone", () => {
-    // It draws the ball that is actually drilled and drops the thumb-hole band,
-    // and it says the motion reading is still the thumb-in chart's rather than
-    // quietly handing back a number computed for a release it was not fitted to.
-    renderPrefs();
-    expect(screen.getByText(/no thumb hole/i)).toBeInTheDocument();
-    expect(screen.getByText(/fitted to a thumb-in release/i)).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Two-handed" })).not.toBeInTheDocument();
+    expect(screen.getByText("Release offset")).toBeInTheDocument();
   });
 
   it("edits the same stored PAP the layout lab does", async () => {

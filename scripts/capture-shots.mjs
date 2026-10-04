@@ -26,10 +26,10 @@ const BASE = process.env.SHOTS_BASE ?? "http://localhost:5173";
  * Each entry is the pins left standing after that shot, matching the data model
  * and e2e/helpers.ts.
  */
-/** The scorer's commit button, which names the count it is about to record and
- *  says "Next" only where the deck is the strike or spare the button beside it
- *  already offers (DESIGN-LANGUAGE §8). */
-const RECORD_SHOT = /^(Next|Gutter|Count \d+)$/;
+/** The scorer's commit button. It reads "Next", with what it would record
+ *  named under it, so its accessible name is "Next (Strike)" or "Next (Hit 7)"
+ *  (DESIGN-LANGUAGE §8). */
+const RECORD_SHOT = /^Next( \(|$)/;
 
 const X = [[]]; // strike
 const SPARE = (leave) => [leave, []];
@@ -235,7 +235,7 @@ async function startSession(page, alley) {
   await startSheet.getByPlaceholder("Pinecrest Lanes").fill(alley);
   await startSheet.getByRole("button", { name: "Start session" }).click();
   await setLanes(page);
-  await page.getByRole("button", { name: "Next", exact: true }).waitFor();
+  await page.getByRole("button", { name: RECORD_SHOT }).waitFor();
 }
 
 /**
@@ -326,7 +326,7 @@ await page.getByRole("button", { name: "right-handed" }).click();
 
 // Real balls, so the arsenal is a screen with something on it and the shot
 // panel has a ball to name.
-await page.getByRole("button", { name: "Catalog", exact: true }).click();
+await page.getByRole("button", { name: "Ball catalog", exact: true }).click();
 // Only some of the catalog carries artwork, and a list of grey placeholders is
 // a worse advert than no list. These five all have a real image.
 for (const q of ["Phaze Crimson", "Gem", "Jackal Ghost", "Zen Master", "Code Green"]) {
@@ -338,7 +338,7 @@ await page.getByRole("button", { name: "Arsenal", exact: true }).click();
 await shootBothThemes(page, "arsenal");
 await page.getByRole("banner").getByRole("button", { name: "Back", exact: true }).first().click();
 
-await page.getByRole("button", { name: "Line", exact: true }).click();
+await page.getByRole("button", { name: "Line visualizer", exact: true }).click();
 // One theme only: the lane view paints its own wood and sky rather than the
 // app's colour tokens, so both themes render the identical picture.
 await shoot(page, "line");
@@ -368,7 +368,7 @@ for (let i = 0; i < GAMES.length; i++) {
         await page.getByRole("button", { name: "New game" }).click();
         // A new game asks for its lanes the same way a new session does.
         await setLanes(page);
-        await page.getByRole("button", { name: "Next", exact: true }).waitFor();
+        await page.getByRole("button", { name: RECORD_SHOT }).waitFor();
       }
       const upTo = g === 2 ? 9 : 10;
       for (const frame of game.slice(0, upTo)) {

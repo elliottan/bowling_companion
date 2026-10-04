@@ -8,6 +8,33 @@ merge to `main` (`docs/DEPLOYMENT.md`), so every section below is a dated batch
 of shipped work rather than a release. Thirty of them used to be headed
 `[Unreleased]`, which said nothing once they had all shipped.
 
+## Home leads with tonight, and Settings holds settings (2026-10-04)
+
+**Home opens on what you came to do.** A game in progress is a big Resume card
+at the top. Otherwise your recent alleys are one tap each, and that starts a
+session with the alley, its description and its pattern filled in. A line
+under them names your last session and its series. Below that are three recent
+sessions, then your things (arsenal, spare lines, lane notes, patterns, each
+with a count) and the tools and reading, as two lists instead of a grid.
+
+**One card about keeping your scores safe.** In a browser it asks you to add
+Headpin to your Home Screen, which is what actually keeps your data, and offers
+a copy as well when one is owed. It no longer shows a second banner on top.
+
+**The Active tab is now Score.**
+
+**Settings is only settings.** Handedness and grip are answered right on the
+list, with a guide behind "Why it matters". PAP, release offset and drift sit
+under Advanced, which you can leave alone to keep score.
+
+**The game plan comes to you.** Type an alley you have bowled at when starting a
+session and it shows what you did last time there. When game 2 or later opens,
+the score screen says the move you usually make into that game at this alley.
+The full read is under Stats, as Alley report, opening on the alley you bowled
+at last.
+
+**A past session opens on its scorecard**, with the stats one tab along.
+
 ## The ball you picked is the ball that is saved (2026-10-04)
 
 **Every shot now stores the ball and line on screen.** When the next shot

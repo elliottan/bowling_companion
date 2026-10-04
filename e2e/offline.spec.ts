@@ -55,13 +55,12 @@ test("the theme and the handedness stick across a reload", async ({ page }) => {
   // which is the whole point of that script.
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
 
+  // Handedness is answered on the Settings list itself (ADR-115).
   await page.getByRole("navigation").getByRole("button", { name: "Settings" }).click();
-  await page.getByRole("button", { name: /Preferences/ }).first().click();
   await page.getByRole("button", { name: "Left-handed" }).click();
 
   await page.reload();
   await page.getByRole("navigation").getByRole("button", { name: "Settings" }).click();
-  await page.getByRole("button", { name: /Preferences/ }).first().click();
   await expect(page.getByRole("button", { name: "Left-handed" })).toHaveAttribute(
     "aria-pressed",
     "true"

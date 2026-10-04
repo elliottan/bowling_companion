@@ -5468,3 +5468,64 @@ pushed everything below down by about 190px on every focus.
 - The panel covers the ball row and the bottom of the scorecard while a field is
   focused. Neither is used while typing a board, and both come back on blur.
 - A half-tap no longer exists anywhere in the app.
+
+## ADR-115: Home leads with tonight, Settings holds settings, and the game plan moves to where the decision is
+
+**Status.** Accepted, 2026-10-04. Supersedes ADR-071's Game plan card on Home and
+the shortcut grid, and the Home presentation of ADR-067 and ADR-068's nudges.
+ADR-064b's briefing rules are unchanged.
+
+**Context.** The 2026-10-03 quality pass, written ahead of paid traffic, read Home
+and Settings the way a new bowler would.
+
+- **Home** opened on up to two banners, a Game plan card and a grid of seven
+  equal tiles mixing three kinds of thing: your own things (arsenal, spare
+  lines, lane notes, patterns), reference (catalog, guides) and tools (line,
+  layout lab). Ten recent sessions repeated History. Starting or resuming, the
+  reason the app is opened, was a small button at the bottom.
+- **Settings** repeated six Home places with Preferences hidden among them, and
+  Preferences opened on ten lines of grip explanation above PAP and drift.
+- **The game plan** was a separate place to remember to open, defaulting to the
+  most-bowled alley rather than the one you were going to, and it reported
+  without helping with the next thing.
+- **Protection:** in a browser tab a new user's second visit showed an amber
+  install line and a red backup banner with no Later, together.
+
+**Decision.**
+
+- Home opens on **tonight**: a Resume card for a game in progress; otherwise a
+  card with the recent alleys as one-tap starts (alley, description and pattern
+  prefilled), Start session, and "Score now, add details later", with a line
+  naming the last session. The floating resume pill goes; the Fab stays.
+- **One protection card, never two** (`protectionCard`). While the app is not
+  installed and can be, it leads with Add to Home Screen, which is what removes
+  the browser's seven-day risk, and offers a copy as its second action. Once
+  installed, it is the backup card, and red with no Later is kept for an
+  installed app that has fallen behind. A tab that cannot install gets the
+  amber card, with Later.
+- One setup card at a time: a next step if one is owed, else the feedback ask.
+- Three recent sessions, then "All in History".
+- Two lists replace the grid: **My bowling** (Arsenal, Spare lines, Lane notes,
+  Oil patterns, each with its count) and **Tools and reference** (Layout lab,
+  Line visualizer, Ball catalog, Guides). "Line" is "Line visualizer".
+- The **Active** tab is **Score**: the name of what you do there.
+- **Settings** holds settings only: Bowler (handedness and grip answered in
+  place, one line each, with "Why it matters" opening a guide; Appearance),
+  Advanced (PAP, release and drift, captioned as not needed to keep score),
+  Your data, Support, and the version.
+- **The game plan** leaves Home. Its actionable parts go where the decision is
+  made: the Start session sheet shows "Last time here" once a known alley is
+  typed, and the scorer, as game 2 or later opens with no ball thrown, says the
+  move this bowler usually makes into that game here. The full read stays, as
+  **Alley report** under Stats, opening on the alley bowled last, with the
+  alley on a row of its own and the ball table's columns spelled out.
+- A finished session opened from a list lands on its scorecard tab.
+
+**Consequences.**
+- Every place Home showed is still one tap from Home. Settings' Lane notes and
+  Oil patterns sections stay routable for old links, with no row leading there.
+- The Layout lab's "where these are kept" goes to the Settings list, where hand
+  and grip now are.
+- The hint reads every frame at that alley, so it is only read while a game has
+  no ball in it.
+

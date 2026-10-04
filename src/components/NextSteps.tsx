@@ -11,6 +11,9 @@ interface NextStepsProps {
   onOpenSpareLines: () => void;
   onOpenOilPatterns: () => void;
   onOpenLaneNotes: () => void;
+  /** Steps shown at once. Home shows one, so it is one card rather than a
+   *  chore list (ADR-115). */
+  max?: number;
 }
 
 interface StepCopy {
@@ -63,12 +66,13 @@ export function NextSteps({
   onOpenArsenal,
   onOpenSpareLines,
   onOpenOilPatterns,
-  onOpenLaneNotes
+  onOpenLaneNotes,
+  max
 }: NextStepsProps) {
   const facts = useLiveQuery(() => getOnboardingFacts());
   // Nothing until the counts are in. A card that appears and then retracts as
   // the queries land is worse than one that arrives a frame late.
-  const steps = facts ? nextSteps(facts) : [];
+  const steps = facts ? nextSteps(facts).slice(0, max) : [];
   if (steps.length === 0) return null;
 
   const open: Record<NextStepKey, () => void> = {

@@ -827,6 +827,30 @@ function lastTimeHere(slice: SessionSummary[], balls: Ball[]): LastTimeHere | nu
   return { ...base, ...whole };
 }
 
+/**
+ * The last session at one alley, read on its own: what the Start session sheet
+ * shows once an alley is picked (ADR-115). Null with no session there.
+ */
+export function lastTimeAt(
+  sessions: SessionSummary[],
+  balls: Ball[],
+  alley: string
+): LastTimeHere | null {
+  if (!alley.trim()) return null;
+  return lastTimeHere(filterSessionsBy(sessions, { alleyName: alley }), balls);
+}
+
+/** How the line typically moves game by game at one alley, for the scorer's
+ *  hint as a new game starts (ADR-115). */
+export function movementAt(
+  sessions: SessionSummary[],
+  balls: Ball[],
+  alley: string
+): MovementSlot[] {
+  if (!alley.trim()) return [];
+  return movementSlots(filterSessionsBy(sessions, { alleyName: alley }), balls);
+}
+
 // ---------------------------------------------------------------------------
 // How the session moves here
 // ---------------------------------------------------------------------------

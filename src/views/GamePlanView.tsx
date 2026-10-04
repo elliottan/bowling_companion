@@ -1,7 +1,6 @@
 import { useMemo, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { ChevronRight, Compass } from "lucide-react";
-import { formatSessionDate } from "../lib/dates";
 import { PushScreen } from "../components/PushScreen";
 import { EmptyState } from "../components/ui/EmptyState";
 import { LoadingCard } from "../components/ui/LoadingCard";
@@ -17,7 +16,6 @@ import {
   type BriefingGap,
   type ScopeBall,
   type ScopeSpan,
-  type GameLine,
   type MovementSlot
 } from "../lib/briefing";
 import { useHandedness } from "../lib/handednessContext";
@@ -27,6 +25,8 @@ import { getSessionHistory } from "../services/bowlingRepository";
 import { getBalls } from "../services/ballRepository";
 import type { Ball, Handedness, SessionSummary } from "../types/bowling";
 import { ErrorBanner } from "../components/ErrorBanner";
+import { LastTimeCard } from "../components/AlleyHistory";
+import { boardsMoved, describeLine } from "../components/alleyHistoryCopy";
 
 /** The chart each callout is about, keyed the way the Stats tab remembers it.
  *  Tapping a callout lands on the number it was talking about, not on whatever
@@ -100,10 +100,14 @@ export function GamePlanView({ onBack, onOpenStats, onOpenSession }: GamePlanVie
   /**
    * This screen reads one place back to you, so "anywhere" is not an answer it
    * can give: an average across three houses is a number about none of them.
-   * With nothing chosen it opens on the house you bowl most, which is the one
-   * being asked about nearly every time.
+   * With nothing chosen it opens on the house you bowled at last, which is the
+   * one you are most likely asking about (ADR-115). It used to open on the
+   * house bowled most, which on a league night was usually somewhere else.
    */
-  const alley = allAlleys.includes(rememberedAlley) ? rememberedAlley : (allAlleys[0] ?? "");
+  const lastAlley = history.find((h) => allAlleys.includes(h.session.alley_name))?.session.alley_name;
+  const alley = allAlleys.includes(rememberedAlley)
+    ? rememberedAlley
+    : (lastAlley ?? allAlleys[0] ?? "");
 
   const allPatterns = useMemo(
     () => buildFilterOptions(history, { ...EMPTY_SELECTION, alley }).patterns,
@@ -153,7 +157,7 @@ export function GamePlanView({ onBack, onOpenStats, onOpenSession }: GamePlanVie
   }
 
   return (
-    <PushScreen title="Game plan" onBack={onBack}>
+    <PushScreen title="Alley report" onBack={onBack}>
       <div className="mx-auto w-full max-w-3xl px-3 pb-8 pt-3 sm:px-6">
         {error ? (
           <ErrorBanner>Your sessions could not be read. Reload the app, then try again.</ErrorBanner>
@@ -169,9 +173,10 @@ export function GamePlanView({ onBack, onOpenStats, onOpenSession }: GamePlanVie
           <>
             {/* Nothing to pick between when no session has ever named a house
                 (ADR-080), and a select with no options is furniture. */}
-            <div className="flex gap-2">
-              {allAlleys.length > 0 && (
-                <div className="min-w-0 flex-1">
+            {/* The alley gets a row of its own: three selects side by side cut
+                an alley name down to its first word. */}
+            {allAlleys.length > 0 && (
+              <div className="mb-2">
                   <label className={FIELD_LABEL} htmlFor="plan-alley">
                     Alley
                   </label>
@@ -186,9 +191,10 @@ export function GamePlanView({ onBack, onOpenStats, onOpenSession }: GamePlanVie
                         {a}
                       </option>
                     ))}
-                  </select>
-                </div>
-              )}
+                </select>
+              </div>
+            )}
+            <div className="flex gap-2">
               <div className="min-w-0 flex-1">
                 <label className={FIELD_LABEL} htmlFor="plan-pattern">
                   Pattern
@@ -241,7 +247,7 @@ export function GamePlanView({ onBack, onOpenStats, onOpenSession }: GamePlanVie
 
             {briefing.lastTime && (
               <>
-                <h2 className={`${GROUP_HEADING} mb-2 mt-4`}>Last time</h2>
+                <h2 className={`${GROUP_HEADING} mb-2 mt-4`}>Last time, one session</h2>
                 <LastTimeCard
                   last={briefing.lastTime}
                   onOpen={
@@ -255,7 +261,7 @@ export function GamePlanView({ onBack, onOpenStats, onOpenSession }: GamePlanVie
 
             {briefing.movement.length > 0 && (
               <div className="mt-4">
-                <ListGroup heading="How the session moves here">
+                <ListGroup heading="How the session moves here, typically">
                   {briefing.movement.map((slot) => (
                     <MovementRow key={slot.gameNumber} slot={slot} />
                   ))}
@@ -342,59 +348,6 @@ export function GamePlanView({ onBack, onOpenStats, onOpenSession }: GamePlanVie
       </div>
     </PushScreen>
   );
-}
-
-/** The night itself, and the way into it. */
-function LastTimeCard({
-  last,
-  onOpen
-}: {
-  last: NonNullable<ReturnType<typeof buildBriefing>["lastTime"]>;
-  onOpen?: () => void;
-}) {
-  const body = (
-    <>
-      <span className="flex items-baseline justify-between gap-2">
-        <span className="text-sm font-semibold text-ink">{last.alley}</span>
-        <span className="text-xs tabular-nums text-ink-tertiary">{formatSessionDate(last.date)}</span>
-      </span>
-      <span className="mt-1 block text-sm text-ink-strong">{describeLastTime(last)}</span>
-      {last.perGame.length > 0 && (
-        <span className="mt-2.5 block border-t border-edge pt-1">
-          {last.perGame.map((game) => (
-            <GameLineRow key={game.gameNumber} line={game} />
-          ))}
-        </span>
-      )}
-    </>
-  );
-
-  if (!onOpen) {
-    return <div className="rounded-xl border border-edge bg-surface p-3 shadow-sm">{body}</div>;
-  }
-  return (
-    <button
-      type="button"
-      onClick={onOpen}
-      aria-label={`Open ${last.alley}, ${formatSessionDate(last.date)}`}
-      className="block w-full rounded-xl border border-edge bg-surface p-3 text-left shadow-sm hover:border-accent-fill"
-    >
-      {body}
-    </button>
-  );
-}
-
-function describeLastTime(last: NonNullable<ReturnType<typeof buildBriefing>["lastTime"]>): string {
-  const scored =
-    last.average === null
-      ? `${last.games} ${last.games === 1 ? "game" : "games"}, nothing scored`
-      : `${last.games} ${last.games === 1 ? "game" : "games"} averaging ${last.average}`;
-
-  if (last.ballName && last.stance !== undefined && last.target !== undefined) {
-    return `${scored}. You played the ${last.ballName} from stance ${last.stance} to target ${last.target}.`;
-  }
-  if (last.ballName) return `${scored}, mostly on the ${last.ballName}.`;
-  return `${scored}.`;
 }
 
 function describe(c: BriefingFinding): string {
@@ -520,15 +473,9 @@ function ScopeTable({ scope, lane }: { scope: BallScope; lane: string }) {
         <thead>
           <tr className="text-ink-tertiary">
             <th className="text-left font-semibold">Ball</th>
-            <th className="w-10 text-right font-semibold" title="Pocket">
-              P
-            </th>
-            <th className="w-10 text-right font-semibold" title="Carry">
-              C
-            </th>
-            <th className="w-10 text-right font-semibold" title="Strike">
-              S
-            </th>
+            <th className="w-12 text-right font-semibold">Pocket</th>
+            <th className="w-12 text-right font-semibold">Carry</th>
+            <th className="w-12 text-right font-semibold">Strike</th>
             <th className="w-10 text-right font-semibold">Balls</th>
           </tr>
         </thead>
@@ -595,26 +542,6 @@ function scopePct(value: number | null): string {
   return value === null ? "-" : `${value}%`;
 }
 
-/**
- * One game of the session read back: what you threw and where from.
- *
- * A span rather than a list item, because these sit inside the button that
- * opens the session and a button may not contain a list.
- */
-function GameLineRow({ line }: { line: GameLine }) {
-  return (
-    <span className="flex items-baseline gap-3 py-1">
-      <span className="w-14 shrink-0 text-xs text-ink-tertiary">Game {line.gameNumber}</span>
-      <span className="min-w-0 flex-1 truncate text-xs text-ink-secondary">
-        {describeLine(line)}
-      </span>
-      {line.score !== null && (
-        <span className="shrink-0 text-xs tabular-nums text-ink-tertiary">{line.score}</span>
-      )}
-    </span>
-  );
-}
-
 /** One game slot across every session here. */
 function MovementRow({ slot }: { slot: MovementSlot }) {
   return (
@@ -628,20 +555,6 @@ function MovementRow({ slot }: { slot: MovementSlot }) {
       </span>
     </li>
   );
-}
-
-/** The ball and the boards, saying only what was recorded. */
-function describeLine(line: { ballName?: string; stance?: number; target?: number }): string {
-  const boards =
-    line.stance !== undefined && line.target !== undefined
-      ? `${line.stance} to ${line.target}`
-      : line.stance !== undefined
-        ? `stance ${line.stance}`
-        : line.target !== undefined
-          ? `target ${line.target}`
-          : "";
-  if (line.ballName && boards) return `${line.ballName}, ${boards}`;
-  return line.ballName ?? boards;
 }
 
 /**
@@ -674,19 +587,4 @@ export function describeDrift(slots: MovementSlot[], handedness: Handedness): st
   }
   const move = `${span} you have moved ${moves.join(" and ")}`;
   return ballChanged ? `${move}, and onto the ${last.ballName}.` : `${move}.`;
-}
-
-/**
- * Boards and which way, in the bowler's own terms.
- *
- * Board numbers rise to the left for a right-hander and to the right for a
- * left-hander, which is the same rule the line adjusters run on
- * (`LineInput`). A higher board is not a direction on its own.
- */
-function boardsMoved(from: number, to: number, handedness: Handedness): string {
-  const boards = Math.abs(to - from);
-  const unit = boards === 1 ? "board" : "boards";
-  const towardsHigher = handedness === "right" ? "left" : "right";
-  const towardsLower = handedness === "right" ? "right" : "left";
-  return `${boards} ${unit} ${to > from ? towardsHigher : towardsLower}`;
 }

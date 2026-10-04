@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { LayoutGrid } from "lucide-react";
 import { ShareIosIcon } from "../components/icons";
-import { RackIcon } from "../components/icons";
+import { GamePlanIcon, RackIcon } from "../components/icons";
 import { Stats } from "../components/Stats";
 import {
   SessionFilterButton,
@@ -37,6 +37,8 @@ interface StatsViewProps {
   onOpenSessionGame?: (sessionId: number, gameId: number, ballId?: number) => void;
   onOpenFrames: () => void;
   onOpenGameTrend: () => void;
+  /** The game plan, read as a report on one alley (ADR-115). */
+  onOpenAlleyReport?: () => void;
   /**
    * `tab` (default) is the Stats tab: its own screen, titled by its heading.
    * `push` is the same screen pushed over whatever opened it, which the game
@@ -70,6 +72,7 @@ export function StatsView({
   onOpenSessionGame,
   onOpenFrames,
   onOpenGameTrend,
+  onOpenAlleyReport,
   mode = "tab",
   onBack
 }: StatsViewProps) {
@@ -191,6 +194,14 @@ export function StatsView({
                   description="The leaves you keep missing, most often first"
                   onClick={onOpenFrames}
                 />
+                {onOpenAlleyReport && (
+                  <ListRow
+                    icon={GamePlanIcon}
+                    label="Alley report"
+                    description="What your history says about one alley"
+                    onClick={onOpenAlleyReport}
+                  />
+                )}
               </ListGroup>
             }
             onOpenSession={onOpenSession}
