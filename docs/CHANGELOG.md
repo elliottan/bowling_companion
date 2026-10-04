@@ -8,6 +8,44 @@ merge to `main` (`docs/DEPLOYMENT.md`), so every section below is a dated batch
 of shipped work rather than a release. Thirty of them used to be headed
 `[Unreleased]`, which said nothing once they had all shipped.
 
+## The ball you picked is the ball that is saved (2026-10-04)
+
+**Every shot now stores the ball and line on screen.** When the next shot
+opened with the same ball as the last one, and you did not touch anything, the
+shot could be recorded with no ball and no line while the panel showed both.
+It hit hardest when you pick a ball and do not type boards, or bowl on one lane
+or with no lanes set. Shots already saved that way cannot be recovered: their
+ball was never written.
+
+**The ball follows your last throw.** Change balls in frame 5 and frame 6 opens
+with the new one, on either lane, instead of bringing back the ball you just
+put down. Game 1 frame 2 now opens with frame 1's ball and line rather than
+nothing. Notes still carry from the frame on the same lane.
+
+**A strike ball at a leave gets its own line.** Switch from the spare ball to a
+strike ball at the 10 pin and the box shows that ball's line, moved by your
+strike-ball move for the leave if you have saved one, or clears, rather than
+keeping the spare ball's boards. "Save this as your line" is offered after a
+spare ball attempt only, so a hooking ball's boards no longer become the line
+your spare ball is aimed from.
+
+**Quick moves sit above the boards.** While a board is focused, the half-board
+nudge and the 1-1, 1.5-1 and 2-1 moves float above the fields, clear of the
+keyboard and of the Actual line. Each way is its own button, marked In or Out,
+and nothing moves until your finger lifts, so a scroll never moves your line.
+Focusing an Actual box no longer copies the Intended line in: tap **As
+intended** for that.
+
+**The share offer asks once.** It comes up when you finish a game on the score
+screen, at most once per session, and not on a game opened from History. Share
+or dismiss and it is gone for that session, across relaunches. Dismiss it three
+times running and it stops asking; the share icon in the header is always there.
+
+**Smaller fixes.** Typing both lanes quickly no longer loses the second one.
+History shows lane pairs as "Lanes 7/8, 1/2" instead of one long run of
+numbers. The average label on the trend charts no longer sits under the latest
+point.
+
 ## Striking Against Breast Cancer joins the pattern list (2026-09-22)
 
 **Kegel's 2025 Striking Against Breast Cancer Mixed Doubles pattern is in the

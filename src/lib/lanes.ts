@@ -136,6 +136,43 @@ export function freshRackSeedShot(
   return prevFresh.length > 0 ? prevShots[prevFresh[prevFresh.length - 1]] : undefined;
 }
 
+/**
+ * The ball of the most recent fresh-rack shot thrown this session that names
+ * one, on any lane and in any game: this frame, then earlier frames this game,
+ * then earlier games, newest first (ADR-113).
+ *
+ * Deliberately lane-blind. On a lane pair the same-lane frame is two frames
+ * back, so it predates a ball change in the frame between, and carrying the
+ * ball from there put back the ball the bowler had just changed away from.
+ */
+export function lastFreshRackBallId(
+  frameNumber: number,
+  currentFrameShots: Shot[],
+  frames: Frame[],
+  previousGames: Array<{ frames: Frame[] }>
+): number | undefined {
+  const latestIn = (shots: Shot[]) => {
+    const fresh = freshRackShotIndices(shots).reverse();
+    for (const i of fresh) if (shots[i].ball_id != null) return shots[i].ball_id;
+    return undefined;
+  };
+  const newestFirst = (fs: Frame[]) => [...fs].sort((a, b) => b.frame_number - a.frame_number);
+
+  const own = latestIn(currentFrameShots);
+  if (own != null) return own;
+  for (const f of newestFirst(frames.filter((f) => f.frame_number < frameNumber))) {
+    const id = latestIn(f.shots);
+    if (id != null) return id;
+  }
+  for (let gi = previousGames.length - 1; gi >= 0; gi--) {
+    for (const f of newestFirst(previousGames[gi].frames)) {
+      const id = latestIn(f.shots);
+      if (id != null) return id;
+    }
+  }
+  return undefined;
+}
+
 /** A line worth carrying: at least one aiming field is set. */
 export function lineHasValue(l: LineSpec | undefined): boolean {
   return !!l && (l.stance != null || l.target != null || l.breakpoint != null);

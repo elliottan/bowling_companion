@@ -9,14 +9,13 @@ import {
   hydrateFrameController,
   submitShot,
   undoLastShot,
-  type UndoResult,
-  updateShotMeta
+  type UndoResult
 } from "../lib/frameController";
 import { ALL_PINS, calculateGameScore } from "../lib/scoring";
 import { useHandedness } from "../lib/handednessContext";
 import { isPocketHit } from "../lib/pins";
 import { freshRackShotIndices, isFreshRackShot, laneForFrame } from "../lib/lanes";
-import { seedForShot, lineForBall } from "../lib/shotSeeding";
+import { ballKind, seedForShot, lineForBall } from "../lib/shotSeeding";
 import { findSpareLineByPins, getBalls, getSpareLinesAll } from "../services/ballRepository";
 import { getSetting, setSetting } from "../services/bowlingRepository";
 import type {
@@ -135,9 +134,6 @@ export function ActiveGameScorer({
   const [selectedShot, setSelectedShot] = useState<{ frameNumber: number; shotIndex: number } | null>(null);
   // Shot we last applied carry-forward defaults to (once per live shot).
   const lastDefaultedShot = useRef<string | null>(null);
-  // True while the intended line is one this ball's history filled in, rather
-  // than one the user typed or a carry-forward/spare line supplied. Only an
-  // auto-filled line is recomputed when the ball changes underneath it.
   // A just-converted spare whose leave has no saved Spare Line, offered as a
   // dismissible banner so the line can be captured in the moment.
   const [pendingSpareLeave, setPendingSpareLeave] = useState<{
@@ -314,17 +310,6 @@ export function ActiveGameScorer({
   }, [ballsReady, balls, selectedShot, selectedBallId]);
 
 
-  // Push the live draft into the controller's currentShotMeta.
-  useEffect(() => {
-    const meta: ShotMetadata = {
-      ball_id: selectedBallId,
-      intended: intendedLine,
-      actual: actualLine,
-      notes: shotNotes.trim() || undefined
-    };
-    setGameState((curr) => updateShotMeta(curr, meta));
-  }, [selectedBallId, intendedLine, actualLine, shotNotes]);
-
   // On completion, default to reviewing/editing the final frame's last shot.
   useEffect(() => {
     if (gameState.isComplete && selectedShot === null) {
@@ -353,8 +338,13 @@ export function ActiveGameScorer({
 
   /** Live-entry ball change. The box shows the line for the ball that is
    *  selected: this ball's line if we know one, otherwise whatever is already
-   *  there, so an unfamiliar ball inherits a starting point to adjust off. */
+   *  there, so an unfamiliar ball inherits a starting point to adjust off. That
+   *  starting point only holds between two balls of the same kind: a spare
+   *  ball's line is the wrong place to start a strike ball from, and the other
+   *  way round, so a change of kind with nothing on record empties the box
+   *  (ADR-113). */
   function handleLiveBallChange(ballId: number | undefined) {
+    const kindBefore = ballKind(balls, selectedBallId);
     setSelectedBallId(ballId);
     const currentFrame = gameState.frames.find(
       (f) => f.frame_number === gameState.currentFrameNumber
@@ -374,6 +364,10 @@ export function ActiveGameScorer({
       gameState.availablePins.length < 10 ? gameState.availablePins : undefined
     );
     if (found) setIntendedLine(found);
+    else {
+      const kindAfter = ballKind(balls, ballId);
+      if (kindBefore && kindAfter && kindBefore !== kindAfter) setIntendedLine(undefined);
+    }
   }
 
   // Per-shot defaults (live entry only): notes + actual always blank; intended and
@@ -483,11 +477,33 @@ export function ActiveGameScorer({
     if (!leave || leave.length === 0 || !attempt) return;
     const existing = findSpareLineByPins(spareLines, leave);
     if (existing?.line) return;
+    // The saved line is the spare ball's boards, and every spare ball attempt
+    // at this leave is seeded from it. A strike ball's line here would teach
+    // the spare ball to throw a hooking ball's boards (ADR-113).
+    if (ballKind(balls, attempt.ball_id) === "strike") return;
     setPendingSpareLeave({
       pins: [...leave].sort((a, b) => a - b) as PinNumber[],
       line: attempt.intended,
       notes: existing?.notes
     });
+  }
+
+  /**
+   * The live draft as the metadata of the shot about to be recorded, read from
+   * what the panel shows at the moment of recording. It used to be mirrored
+   * into the controller by an effect keyed on the draft changing, and
+   * `submitShot` clears that mirror: when the next shot's seed matched the last
+   * one (same ball id, or a same-lane line that is the very object stored on
+   * the previous shot), React saw no change, the effect never ran, and the shot
+   * was stored with no ball while the panel showed one.
+   */
+  function liveShotMeta(): ShotMetadata {
+    return {
+      ball_id: selectedBallId,
+      intended: intendedLine,
+      actual: actualLine,
+      notes: shotNotes.trim() || undefined
+    };
   }
 
   async function recordShot(standingOverride?: PinNumber[], extraMeta?: ShotMetadata) {
@@ -503,7 +519,7 @@ export function ActiveGameScorer({
     const submission = submitShot(
       {
         ...gameState,
-        currentShotMeta: { ...gameState.currentShotMeta, ...pocket, ...extraMeta }
+        currentShotMeta: { ...liveShotMeta(), ...pocket, ...extraMeta }
       },
       standing
     );
@@ -674,7 +690,7 @@ export function ActiveGameScorer({
         actualLine != null ||
         shotNotes.trim() !== "";
       if (!hasInput) return;
-      const frame = buildLiveFrame(gameState);
+      const frame = buildLiveFrame({ ...gameState, currentShotMeta: liveShotMeta() });
       if (frame) void onFrameComplete?.(frame);
     };
   });
@@ -774,7 +790,12 @@ export function ActiveGameScorer({
       )}
 
       {/* Pin deck (left) + shot details (right), side-by-side on every width. */}
-      <div className="mt-3 grid grid-cols-2 items-start gap-3 lg:grid-cols-[minmax(0,360px)_1fr]">
+      {/* `data-adjuster-bounds`: the board adjusters float across both columns
+          while a line field is focused (ADR-114), so they fit two to a row. */}
+      <div
+        data-adjuster-bounds
+        className="mt-3 grid grid-cols-2 items-start gap-3 lg:grid-cols-[minmax(0,360px)_1fr]"
+      >
         <div className="space-y-2">
           {(onEditLanes || lanesList.length > 0) && (
             <div className="flex items-center justify-between rounded-lg border border-edge bg-surface px-2.5 py-1.5">

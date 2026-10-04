@@ -1,3 +1,4 @@
+import { averageLabelY } from "../lib/chartLabels";
 import { useState, type ReactNode } from "react";
 import type { Game } from "../types/bowling";
 
@@ -99,7 +100,7 @@ export function ScoreTrendChart({ games, header, onOpenGame }: ScoreTrendChartPr
         />
         <text
           x={W}
-          y={y(avg) - 4}
+          y={averageLabelY(y(avg), y(scored[scored.length - 1].final_score))}
           textAnchor="end"
           className="fill-ink-tertiary text-[9px] tabular-nums"
         >

@@ -15,6 +15,7 @@ import {
   deriveStanceFromLaydown
 } from "../lib/driftModel";
 import { derivedApexForDisplay } from "../lib/laneGeometry";
+import { lineHasValue } from "../lib/lanes";
 import { savedSpareLine } from "../lib/shotSeeding";
 import { SpareLinePickerSheet } from "./SpareLinePickerSheet";
 import type { Ball, LineSpec, PinNumber, SpareLine } from "../types/bowling";
@@ -26,6 +27,11 @@ import { LineInput, floatLabel, lockedTapBlocker } from "./LineInput";
 import { Button } from "./ui/Button";
 import { IconButton } from "./ui/IconButton";
 import { FIELD_DENSE_TEXTAREA } from "./ui/field";
+
+/** A 44pt hit region that grows upward only, the way `IconButton compact`
+ *  does, for a text control in an eyebrow row with the fields right under it. */
+const UPWARD_TAP_TARGET =
+  'after:absolute after:-inset-x-1 after:bottom-0 after:h-11 after:content-[""]';
 
 interface ShotDetailBarProps {
   balls: Ball[];
@@ -188,6 +194,16 @@ export function ShotDetailBar({
       viewButton("intended")
     );
 
+  function copyIntended() {
+    if (!intended) return;
+    if (onEditAttempt && !onEditAttempt()) return;
+    const { stance, ...rest } = intended;
+    handleActualChange({
+      ...rest,
+      slide: stance != null ? deriveSlide(stance, driftModel) : undefined
+    });
+  }
+
   return (
     <div className="divide-y divide-edge rounded-xl border border-edge bg-surface px-2.5">
       {/* Ball: the chosen ball IS the control, its thumbnail and name, tapped to
@@ -262,10 +278,11 @@ export function ShotDetailBar({
         />
       </div>
 
-      {/* Actual may stay blank, but focusing any field while all three are blank
-          autofills from the current Intended line (a quick "shot it as planned").
-          The intended line is stance-based, so its foul-line board converts to a
-          slide on the way in. */}
+      {/* Actual may stay blank. "As intended" copies the Intended line in, for
+          a shot thrown as planned, and is the only thing that does: a focus
+          used to autofill it, so a near miss on a control above recorded an
+          Actual line the bowler never chose (ADR-114). The intended line is
+          stance-based, so its foul-line board converts to a slide on the way in. */}
       <div className="py-1">
         <LineInput
           label="Actual"
@@ -277,17 +294,22 @@ export function ShotDetailBar({
           derivedLaydown={actualLaydown}
           derivedBreakpoint={actualBreakpoint}
           onLaydownTap={() => setShowViz("actual")}
-          action={viewButton("actual")}
-          onFieldFocus={() => {
-            if (!actual && intended) {
-              if (onEditAttempt && !onEditAttempt()) return;
-              const { stance, ...rest } = intended;
-              handleActualChange({
-                ...rest,
-                slide: stance != null ? deriveSlide(stance, driftModel) : undefined
-              });
-            }
-          }}
+          action={
+            !actual && lineHasValue(intended) && !locked ? (
+              <div className="flex items-center gap-2.5">
+                <button
+                  type="button"
+                  onClick={copyIntended}
+                  className={`relative whitespace-nowrap text-[11px] font-bold text-accent active:opacity-60 ${UPWARD_TAP_TARGET}`}
+                >
+                  As intended
+                </button>
+                {viewButton("actual")}
+              </div>
+            ) : (
+              viewButton("actual")
+            )
+          }
         />
       </div>
 

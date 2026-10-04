@@ -1,3 +1,4 @@
+import { averageLabelY } from "../lib/chartLabels";
 import { useState, type ReactNode } from "react";
 import type { SessionTrendPoint } from "../lib/stats";
 
@@ -104,7 +105,7 @@ export function SessionTrendChart({ sessions, header, onOpenSession }: SessionTr
         />
         <text
           x={W}
-          y={y(avg) - 4}
+          y={averageLabelY(y(avg), y(points[points.length - 1].average))}
           textAnchor="end"
           className="fill-ink-tertiary text-[9px] tabular-nums"
         >

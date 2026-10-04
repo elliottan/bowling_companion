@@ -17,7 +17,7 @@ shape to drift, by design.
 |---|---|
 | Change schema or types | `src/types/bowling.ts` + `src/db/bowlingDb.ts` (canonical), then `docs/DATA_MODEL.md` for the invariants |
 | Touch scoring | `src/lib/scoring.ts`, `src/lib/frameController.ts` and their tests; ADR-001, ADR-005, ADR-017 |
-| What a shot opens with, lines, or spare lines | `src/lib/shotSeeding.ts` + its tests; ADR-052 (the line follows the ball), ADR-053 (strike-ball moves), ADR-054 (capturing a line) |
+| What a shot opens with, lines, or spare lines | `src/lib/shotSeeding.ts` + its tests; ADR-052 (the line follows the ball), ADR-053 (strike-ball moves), ADR-054 (capturing a line), ADR-113 (the ball follows the last throw) |
 | Any UI work: screens, nav, controls, motion, copy | `docs/DESIGN-LANGUAGE.md`. It is the whole rule set, and ADR-040 is the why |
 | Navigation, back, or routing | `src/lib/appNavigation.ts` + `appRoute.ts` + `useHistoryRoute.ts`; ADR-041 for why back goes through history |
 | Add or restructure a module | `docs/ARCHITECTURE.md` for the import layering |

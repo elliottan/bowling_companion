@@ -1,6 +1,6 @@
 import { ChevronLeft, Plus, Trash2, X } from "lucide-react";
 import { ShareIosIcon } from "../components/icons";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ActiveGameScorer } from "../components/ActiveGameScorer";
 import { SaveCopyPrompt } from "../components/SaveCopyPrompt";
 import { ShareCardDialog } from "../components/ShareCardDialog";
@@ -25,6 +25,12 @@ import { isStandalone } from "../lib/installPrompt";
 import { calculateGameScore } from "../lib/scoring";
 import { calculateStats } from "../lib/stats";
 import { buildSessionCard } from "../lib/shareCard";
+import {
+  SHARE_OFFER_KEY,
+  answerShareOffer,
+  parseShareOffer,
+  shouldOfferShare
+} from "../lib/shareOffer";
 import { useHandedness } from "../lib/handednessContext";
 import { useLongPress } from "../lib/useLongPress";
 import {
@@ -32,9 +38,11 @@ import {
   deleteGame,
   getBackupNudgeState,
   getSessionDetails,
+  getSetting,
   deleteFrame,
   saveFrame,
   setBackupNudgeSnoozedUntil,
+  setSetting,
   updateGameLanes,
   updateSession
 } from "../services/bowlingRepository";
@@ -76,9 +84,10 @@ const isPositiveInt = (s: string) => /^\d+$/.test(s.trim());
 // so the once-per-game rule survives tab switches (which remount this view).
 const lanePromptedGameIds = new Set<number>();
 
-// Games whose share offer has been dismissed. Module-level for the same reason
-// as the set above: a tab switch remounts this view and must not re-ask.
-const sharePromptDismissed = new Set<number>();
+// The game a ball recorded on this screen just finished, the only game the
+// share offer is ever made for. Module-level so a tab switch, which remounts
+// this view, does not lose a still-unanswered offer.
+let justFinishedGameId: number | null = null;
 
 export function ActiveSessionView({
   sessionId,
@@ -130,9 +139,11 @@ export function ActiveSessionView({
 
   const handedness = useHandedness();
   const [shareOpen, setShareOpen] = useState(false);
-  // Bumped on dismiss so the prompt below re-evaluates; the set itself is
-  // module-level and does not trigger a render on its own.
-  const [shareDismissTick, setShareDismissTick] = useState(0);
+  // Persisted, so a relaunch does not re-ask (lib/shareOffer.ts).
+  const shareOfferRaw = useLiveQuery(async () => ({ raw: await getSetting(SHARE_OFFER_KEY) }));
+  const shareOfferState = shareOfferRaw ? parseShareOffer(shareOfferRaw.raw) : null;
+  // Mirrors the module-level id so finishing a game re-renders.
+  const [finishedHere, setFinishedHere] = useState(justFinishedGameId);
 
   function handleSaveCopyLater() {
     void setBackupNudgeSnoozedUntil(new Date(Date.now() + snoozeMs(installed)).toISOString());
@@ -156,13 +167,21 @@ export function ActiveSessionView({
     [activeGameId, sessionDetails]
   );
 
+  // The lane fields follow the stored game, except while the bowler is typing
+  // in them. Each field saves on blur, and the refresh after that save hands
+  // back a new `lanes` array: re-syncing on it replaced whatever was already in
+  // the second box with the stored "" whenever the write was slower than the
+  // move to the next field. A different game always re-syncs.
+  const laneFieldsGameId = useRef<number | undefined>(undefined);
   useEffect(() => {
+    if (showLaneEditor && laneFieldsGameId.current === activeGame?.id) return;
+    laneFieldsGameId.current = activeGame?.id;
     const lanes = activeGame?.lanes ?? (activeGame?.lane_number ? [activeGame.lane_number] : []);
     setLaneA(lanes[0] ?? "");
     setLaneB(lanes[1] ?? "");
     setStartSide(activeGame?.start_lane && activeGame.start_lane === lanes[1] ? "B" : "A");
     setLaneError("");
-  }, [activeGame?.id, activeGame?.lanes, activeGame?.lane_number, activeGame?.start_lane]);
+  }, [activeGame?.id, activeGame?.lanes, activeGame?.lane_number, activeGame?.start_lane, showLaneEditor]);
 
   // Auto-open the lane editor at most once per game, and only while the game
   // has no recorded shots yet. Tab switches remount this view, without the
@@ -384,20 +403,30 @@ export function ActiveSessionView({
     sparePct: sessionStats.sparePct
   });
 
-  // The offer to share, once a game is finished, and never on top of the
-  // backup prompt: one asks for something the user needs and the other for
-  // something optional, so they must not compete for the same strip of screen.
-  const finishedGameId = activeGame.final_score !== undefined ? activeGame.id : null;
+  // The offer to share, made when a game is finished on this screen and
+  // nowhere else (lib/shareOffer.ts), and never on top of the backup prompt:
+  // one asks for something the user needs and the other for something
+  // optional, so they must not compete for the same strip of screen.
   const offerShare =
-    finishedGameId != null &&
+    mode === "tab" &&
+    shareOfferState != null &&
     saveCopyUrgency === "none" &&
-    !sharePromptDismissed.has(finishedGameId) &&
-    // Referenced so dismissing re-renders; the set itself is not reactive.
-    shareDismissTick >= 0;
+    shouldOfferShare(
+      shareOfferState,
+      sessionId,
+      finishedHere != null && finishedHere === activeGame.id && activeGame.final_score !== undefined
+    );
 
-  function dismissSharePrompt() {
-    if (finishedGameId != null) sharePromptDismissed.add(finishedGameId);
-    setShareDismissTick((t) => t + 1);
+  function answerShare(answer: "share" | "dismiss") {
+    justFinishedGameId = null;
+    setFinishedHere(null);
+    if (shareOfferState) {
+      void setSetting(
+        SHARE_OFFER_KEY,
+        JSON.stringify(answerShareOffer(shareOfferState, sessionId, answer))
+      );
+    }
+    if (answer === "share") setShareOpen(true);
   }
 
   // Confirm copy names the game being deleted (the pressed chip's game, which
@@ -554,7 +583,7 @@ export function ActiveSessionView({
             </p>
             <button
               type="button"
-              onClick={() => setShareOpen(true)}
+              onClick={() => answerShare("share")}
               className={`relative shrink-0 text-xs font-bold text-accent underline hover:no-underline ${TAP_TARGET_44}`}
             >
               Share
@@ -562,7 +591,7 @@ export function ActiveSessionView({
             {/* Named, not just "Dismiss": the line-capture prompt below it also has a
                 dismiss, and two identical labels on one screen leave a screen
                 reader user with no way to tell them apart. */}
-            <IconButton label="Dismiss share offer" onClick={dismissSharePrompt} className="shrink-0">
+            <IconButton label="Dismiss share offer" onClick={() => answerShare("dismiss")} className="shrink-0">
               <X size={16} aria-hidden="true" />
             </IconButton>
           </div>
@@ -585,6 +614,10 @@ export function ActiveSessionView({
         game={activeGame}
         focusFrame={focusFrame}
         onFrameComplete={handleFrameComplete}
+        onGameComplete={() => {
+          justFinishedGameId = activeGame.id ?? null;
+          setFinishedHere(justFinishedGameId);
+        }}
         onUndoShot={handleUndoShot}
         onEditLanes={() => setShowLaneEditor(true)}
         onOpenArsenal={onOpenArsenal}
