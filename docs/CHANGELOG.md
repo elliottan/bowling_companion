@@ -8,6 +8,20 @@ merge to `main` (`docs/DEPLOYMENT.md`), so every section below is a dated batch
 of shipped work rather than a release. Thirty of them used to be headed
 `[Unreleased]`, which said nothing once they had all shipped.
 
+## Hand and grip get their own page, and the spare lane view keeps your stance (2026-10-04)
+
+**Hand and grip moved one level down in Settings.** The Settings list shows a
+single Hand and grip row that says what is set ("Right-handed · One-handed")
+and opens a page with both choices. Switching hand mirrors every board in the
+app, so it no longer sits on the list where a stray tap can flip it.
+
+**Opening the lane view on a spare shot no longer moves your stance.** A saved
+spare line fills in stance and target. The lane view used to put the ball's
+laydown on the board it aims at (board 3 for the 10 pin) and the scorer then
+worked the stance back out from that, so opening and closing the lane view
+turned a 10-pin line standing on 31 into one standing on 1. The laydown now
+comes from your stance, the same way it does on a strike ball.
+
 ## Home leads with tonight, and Settings holds settings (2026-10-04)
 
 **Home opens on what you came to do.** A game in progress is a big Resume card

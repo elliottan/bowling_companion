@@ -55,13 +55,16 @@ test("the theme and the handedness stick across a reload", async ({ page }) => {
   // which is the whole point of that script.
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
 
-  // Handedness is answered on the Settings list itself (ADR-115).
+  // Handedness sits one push behind the Hand and grip row, where a stray tap
+  // on the Settings list cannot flip every board in the app.
   await page.getByRole("navigation").getByRole("button", { name: "Settings" }).click();
-  await page.getByRole("button", { name: "Left-handed" }).click();
+  await page.getByRole("button", { name: /Hand and grip/ }).click();
+  await page.getByRole("button", { name: "Left-handed", exact: true }).click();
 
   await page.reload();
-  await page.getByRole("navigation").getByRole("button", { name: "Settings" }).click();
-  await expect(page.getByRole("button", { name: "Left-handed" })).toHaveAttribute(
+  // The reload lands back on the Hand and grip page, and the row under it now
+  // says so too.
+  await expect(page.getByRole("button", { name: "Left-handed", exact: true })).toHaveAttribute(
     "aria-pressed",
     "true"
   );
