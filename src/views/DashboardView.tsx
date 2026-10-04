@@ -14,7 +14,6 @@ import { SessionFormDialog } from "../components/SessionFormDialog";
 import { alleyLabel } from "../lib/sessionLabels";
 import { GROUP_HEADING } from "../components/ui/typography";
 import { ListGroup, ListRow } from "../components/ui/ListGroup";
-import { Chip } from "../components/ui/Chip";
 import { Fab, FabRow } from "../components/ui/Fab";
 import { SessionHistory } from "../components/SessionHistory";
 import { InstallPrompt } from "../components/InstallPrompt";
@@ -34,8 +33,6 @@ import {
 } from "../services/bowlingRepository";
 import { describeAge, protectionCard, snoozeMs } from "../lib/backupNudge";
 import { canPromptInstall, isIOSSafari, isStandalone } from "../lib/installPrompt";
-import { recentAlleys, sessionSeries, type RecentAlley } from "../lib/homeSummary";
-import { formatSessionDate, localDateKey } from "../lib/dates";
 import { nextSteps } from "../lib/onboarding";
 import { getOnboardingFacts } from "../services/onboardingRepository";
 import type { SessionSummary } from "../types/bowling";
@@ -111,9 +108,6 @@ export function DashboardView({
   const recent = sessions.slice(0, RECENT_LIMIT);
   const loadingRecent = liveSessions === undefined;
   const coldStart = !loadingRecent && sessions.length === 0;
-  const alleys = recentAlleys(sessions);
-  const last = sessions[0];
-  const lastSeries = last ? sessionSeries(last) : null;
 
   const facts = useLiveQuery(() => getOnboardingFacts());
 
@@ -160,17 +154,6 @@ export function DashboardView({
     setShowForm(false);
   }
 
-  /** A recent alley is a whole start: tonight's date, that alley, what a
-   *  session there is called and the pattern it was on. */
-  function startAt(alley: RecentAlley) {
-    void onStartSession({
-      alley_name: alley.alley_name,
-      description: alley.description,
-      oil_pattern_id: alley.oil_pattern_id,
-      date: localDateKey(),
-      lanes: []
-    });
-  }
 
   // At most one of the setup cards at a time: a step if there is one owed,
   // else the one-time feedback ask.
@@ -187,10 +170,9 @@ export function DashboardView({
         <ErrorBanner className="mb-4">{error}</ErrorBanner>
       )}
 
-      {/* Tonight. The thing the app is opened to do leads the screen: carry
-          on with the game you are bowling, or start one, where a recent alley
-          is a single tap. A device that has never scored a game is told what
-          the app is (DESIGN-LANGUAGE §5). */}
+      {/* A game in progress leads the screen, so carrying on is one tap. A new
+          session starts from the floating button, and a device that has never
+          scored a game is told what the app is first (DESIGN-LANGUAGE §5). */}
       {coldStart ? (
         <EmptyState
           icon={PinIcon}
@@ -221,58 +203,7 @@ export function DashboardView({
           </span>
           <ChevronRight size={20} aria-hidden="true" className="shrink-0" />
         </button>
-      ) : (
-        !loadingRecent && (
-          <div className="rounded-xl border border-edge bg-surface p-3 shadow-sm">
-            <h2 className={GROUP_HEADING}>Tonight</h2>
-            {alleys.length > 0 && (
-              <div className="mt-2 flex flex-wrap gap-2">
-                {alleys.map((a) => (
-                  <Chip
-                    key={`${a.alley_name}|${a.description ?? ""}`}
-                    selected={false}
-                    disabled={isSubmitting}
-                    onClick={() => startAt(a)}
-                    aria-label={`Start a session at ${a.alley_name}${a.description ? `, ${a.description}` : ""}`}
-                    className="max-w-full"
-                  >
-                    <span className="truncate">
-                      {a.alley_name}
-                      {a.description && (
-                        <span className="font-normal text-ink-secondary"> · {a.description}</span>
-                      )}
-                    </span>
-                  </Chip>
-                ))}
-              </div>
-            )}
-            <div className="mt-3 flex items-center gap-3">
-              <Button variant="primary" onClick={() => setShowForm(true)}>
-                Start session
-              </Button>
-              <Button variant="ghost" disabled={isSubmitting} onClick={() => void onScoreNow()}>
-                Score now, add details later
-              </Button>
-            </div>
-            {last?.session.id != null && (
-              <button
-                type="button"
-                onClick={() => onOpenSession(last.session.id!)}
-                className="mt-2 block w-full truncate text-left text-xs text-ink-secondary active:text-accent"
-              >
-                Last time: {formatSessionDate(last.session.date)} · {alleyLabel(last.session.alley_name)}
-                {lastSeries && (
-                  <>
-                    {" · "}
-                    <span className="font-semibold text-ink">{lastSeries.series}</span> (
-                    {lastSeries.average} avg)
-                  </>
-                )}
-              </button>
-            )}
-          </div>
-        )
-      )}
+      ) : null}
 
       {protection?.kind === "install" && (
         <div className="mt-3 flex gap-3 rounded-xl border border-warning-200 bg-warning-50 p-3 text-warning-700">
@@ -364,26 +295,6 @@ export function DashboardView({
         <FeedbackPrompt />
       )}
 
-      {!coldStart && (
-        <div className="mt-6">
-          <div className="mb-2 flex items-center justify-between">
-            <h2 className={GROUP_HEADING}>Recent sessions</h2>
-            {sessions.length > RECENT_LIMIT && (
-              <Button variant="ghost" onClick={onViewAll}>
-                All in History
-              </Button>
-            )}
-          </div>
-          <SessionHistory
-            sessions={recent}
-            isLoading={loadingRecent}
-            onOpenSession={onOpenSession}
-            activeSessionId={activeSessionId}
-            onSessionDeleted={onSessionDeleted}
-          />
-        </div>
-      )}
-
       {/* Two lists, because there are two kinds of place here, and a grid of
           equal tiles said they were one: the things you keep about your own
           bowling, and the tools and reading that are the same for everyone. */}
@@ -450,6 +361,28 @@ export function DashboardView({
           />
         </ListGroup>
       </div>
+
+      {/* Last, under the menus: the lists are where Home sends you, and the
+          sessions are one tap away in History as well. */}
+      {!coldStart && (
+        <div className="mt-6">
+          <div className="mb-2 flex items-center justify-between">
+            <h2 className={GROUP_HEADING}>Recent sessions</h2>
+            {sessions.length > RECENT_LIMIT && (
+              <Button variant="ghost" onClick={onViewAll}>
+                All in History
+              </Button>
+            )}
+          </div>
+          <SessionHistory
+            sessions={recent}
+            isLoading={loadingRecent}
+            onOpenSession={onOpenSession}
+            activeSessionId={activeSessionId}
+            onSessionDeleted={onSessionDeleted}
+          />
+        </div>
+      )}
 
       <FabRow>
         <Fab icon={Plus} label="Start session" onClick={() => setShowForm(true)} />

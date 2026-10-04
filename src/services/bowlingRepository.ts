@@ -377,6 +377,47 @@ export async function deleteSession(sessionId: number): Promise<void> {
 }
 
 /**
+ * Whether a session holds nothing the bowler put there: no alley, description,
+ * pattern or notes, and no game with a lane, a note or a single shot. The date
+ * does not count, because the form fills it in. A session like that is one
+ * started and walked away from (ADR-116).
+ */
+async function isEmptySession(session: Session): Promise<boolean> {
+  if (session.alley_name?.trim()) return false;
+  if (session.description?.trim()) return false;
+  if (session.general_notes?.trim()) return false;
+  if (session.oil_pattern_id != null) return false;
+  const games = await db.games.where("session_id").equals(session.id!).toArray();
+  for (const game of games) {
+    if (game.notes?.trim()) return false;
+    if ((game.lanes ?? []).some((l) => l.trim()) || game.lane_number?.trim()) return false;
+    const frames = await db.frames.where("game_id").equals(game.id!).toArray();
+    if (frames.some((f) => f.shots.length > 0)) return false;
+  }
+  return true;
+}
+
+/** Delete a session that holds nothing the bowler put there (ADR-116).
+ *  Returns whether it was deleted. */
+export async function deleteSessionIfEmpty(sessionId: number): Promise<boolean> {
+  return db.transaction("rw", db.sessions, db.games, db.frames, async () => {
+    const session = await db.sessions.get(sessionId);
+    if (!session || !(await isEmptySession(session))) return false;
+    await deleteSession(sessionId);
+    return true;
+  });
+}
+
+/** Delete every empty session but `keep`, for launch: closing the app is the
+ *  other way to walk away from one (ADR-116). Returns how many went. */
+export async function pruneEmptySessions(keep: number | null = null): Promise<number> {
+  const ids = (await db.sessions.toCollection().primaryKeys()) as number[];
+  let pruned = 0;
+  for (const id of ids) if (id !== keep && (await deleteSessionIfEmpty(id))) pruned++;
+  return pruned;
+}
+
+/**
  * Delete a single game and its frames, then renumber the session's remaining
  * games to stay 1..N contiguous. If it was the only game, the session is
  * deleted too. Returns whether the parent session was removed.

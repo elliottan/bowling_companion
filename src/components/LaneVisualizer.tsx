@@ -238,11 +238,23 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
     const aim = spareAimPoint(leave, hand);
     if (!aim) return;
     const board = snapBoard(aim.board);
+    // A line that already says where the bowler stands keeps its laydown: the
+    // aim board is where the ball should finish, not where it lands. Seeding
+    // the laydown from it put a 10-pin line that stands on 31 down on board 3,
+    // and the scorer then derived the stance back from that laydown, so merely
+    // opening the lane view rewrote the stance to 1.
+    const ownLaydown =
+      line?.laydown ??
+      (line?.slide != null
+        ? deriveLaydownFromSlide(line.slide, driftModel)
+        : line?.stance != null
+          ? deriveLaydown(line.stance, driftModel)
+          : undefined);
     onChange(
       solveLine(
         {
           ...(line ?? {}),
-          laydown: line?.laydown ?? board,
+          laydown: ownLaydown ?? board,
           target: line?.target ?? board,
           final_board: board,
           final_distance: line?.final_distance ?? Math.round(aim.feet * 10) / 10,

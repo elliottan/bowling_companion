@@ -70,6 +70,38 @@ describe("LaneVisualizer editing", () => {
     expect(keys).toContain("breakpoint");
   });
 
+  /**
+   * A saved spare line hands the scorer stance and target only. The spare seed
+   * used to drop the laydown on the leave's aim board (3 for the 10), and the
+   * scorer derived the stance back from it, so opening the lane view turned a
+   * 10-pin line standing on 31 into one standing on 1.
+   */
+  it.each(["right", "left"] as const)(
+    "seeds a spare line's laydown from its stance, not from the aim board (%s)",
+    (hand) => {
+      const onChange = vi.fn();
+      render(
+        <HandednessContext.Provider value={hand}>
+          <DriftModelContext.Provider value={DEFAULT_DRIFT_MODEL}>
+            <LaneVisualizer
+              line={{ stance: 31, target: 22 }}
+              leave={[10]}
+              spare
+              onClose={() => {}}
+              onChange={onChange}
+            />
+          </DriftModelContext.Provider>
+        </HandednessContext.Provider>
+      );
+      expect(onChange).toHaveBeenCalled();
+      const seeded = onChange.mock.calls[0][0] as LineSpec;
+      expect(seeded.stance).toBe(31);
+      expect(seeded.target).toBe(22);
+      expect(seeded.laydown).toBeGreaterThan(20);
+      expect(seeded.final_board).toBeDefined();
+    }
+  );
+
   it("hook sliders are the same pair in strike and spare mode (ADR-026)", () => {
     const onChange = vi.fn();
     const { unmount } = render(

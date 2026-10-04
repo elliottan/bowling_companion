@@ -1,13 +1,10 @@
-import { Archive, ArrowUpRight, Coffee, Download, MessageSquare, Palette, ScrollText, SlidersHorizontal } from "lucide-react";
+import { Archive, ArrowUpRight, Coffee, Download, Hand, MessageSquare, Palette, ScrollText, SlidersHorizontal } from "lucide-react";
 import { AppearanceView } from "./AppearanceView";
 import { HandednessView } from "./HandednessView";
-import { getGripStyle, getPap, getSetting, setGripStyle } from "../services/bowlingRepository";
+import { BowlerView } from "./BowlerView";
+import { getGripStyle, getPap, getSetting } from "../services/bowlingRepository";
 import { DEFAULT_PAP, formatInches } from "../lib/ballLayout";
-import { HandednessPicker } from "../components/HandednessPicker";
-import { SegmentedControl } from "../components/ui/SegmentedControl";
 import { GROUP_HEADING } from "../components/ui/typography";
-import { LIST_DIVIDER } from "../components/ui/ListGroup";
-import { TAP_TARGET_44 } from "../components/ui/Chip";
 import type { GripStyle } from "../types/bowling";
 import type { Handedness } from "../types/bowling";
 import type { DriftModel } from "../lib/driftModel";
@@ -67,10 +64,8 @@ export function SettingsView({ section, onSectionChange, handedness, onHandednes
       <div className="h-full overflow-y-auto">
         <SettingsMenu
           handedness={handedness}
-          onHandednessChange={onHandednessChange}
           driftModel={driftModel}
           onOpenBackup={onOpenBackup}
-          onOpenGuide={onOpenGuide}
           onSectionChange={onSectionChange}
         />
       </div>
@@ -82,6 +77,13 @@ export function SettingsView({ section, onSectionChange, handedness, onHandednes
           <OilPatternsView onBack={back} onOpenLineVisualizer={onOpenLineVisualizer} />
         ) : section === "appearance" ? (
           <AppearanceView onBack={back} />
+        ) : section === "bowler" ? (
+          <BowlerView
+            handedness={handedness}
+            onHandednessChange={onHandednessChange}
+            onOpenGuide={() => onOpenGuide(SETTINGS_GUIDE)}
+            onBack={back}
+          />
         ) : section === "preferences" ? (
           <HandednessView
             value={handedness}
@@ -100,21 +102,17 @@ export function SettingsView({ section, onSectionChange, handedness, onHandednes
  * Only settings (ADR-115). The places a bowler keeps things (arsenal, spare
  * lines, lane notes, patterns) and the tools (catalog, line visualizer) all
  * live on Home; this list used to repeat six of them with Preferences hidden in
- * the middle. The two answers every bowler gives are rows here, answered in
- * place, and the numbers only the lane view and the layout lab read sit under
- * Advanced.
+ * the middle. Hand and grip sit one push behind their own row: they are answered
+ * at first run and almost never again, and flipping the hand mirrors every board
+ * in the app, which is too much to leave one stray tap away on the list. The
+ * numbers only the lane view and the layout lab read sit under Advanced.
  */
 function SettingsMenu({
   handedness,
-  onHandednessChange,
   driftModel,
   onOpenBackup,
-  onOpenGuide,
   onSectionChange
-}: Pick<
-  SettingsViewProps,
-  "handedness" | "onHandednessChange" | "driftModel" | "onOpenBackup" | "onOpenGuide" | "onSectionChange"
->) {
+}: Pick<SettingsViewProps, "handedness" | "driftModel" | "onOpenBackup" | "onSectionChange">) {
   const [installOpen, setInstallOpen] = useState(false);
   // The same test the Dashboard card uses: an installed app has nothing to
   // offer here, and a browser that cannot install would offer a dead end.
@@ -142,39 +140,20 @@ function SettingsMenu({
     <ArrowUpRight size={16} aria-hidden="true" className="shrink-0 text-ink-tertiary" />
   );
 
-  const whyLink = (
-    <button
-      type="button"
-      onClick={() => onOpenGuide(SETTINGS_GUIDE)}
-      className={`relative text-xs font-semibold text-accent active:opacity-60 ${TAP_TARGET_44}`}
-    >
-      Why it matters
-    </button>
-  );
 
   return (
     <section className="mx-auto w-full max-w-3xl space-y-5 px-3 pb-5 pt-3 sm:px-6 sm:pt-5">
       <h1 className="text-xl font-bold text-ink">Settings</h1>
 
-      <ListGroup heading="Bowler" headingTrailing={whyLink}>
-        <li className={`${LIST_DIVIDER} px-3 py-3`}>
-          <p className="mb-2 text-sm font-semibold text-ink">Handedness</p>
-          <HandednessPicker value={handedness} onSelect={onHandednessChange} />
-          <p className="mt-1.5 text-xs text-ink-secondary">Boards count in from your side of the lane.</p>
-        </li>
-        <li className={`${LIST_DIVIDER} px-3 py-3`}>
-          <p className="mb-2 text-sm font-semibold text-ink">Grip</p>
-          <SegmentedControl
-            label="Grip style"
-            value={grip}
-            onChange={(next) => void setGripStyle(next)}
-            options={[
-              { value: "1h", label: "One-handed" },
-              { value: "2h", label: "Two-handed" }
-            ]}
-          />
-          <p className="mt-1.5 text-xs text-ink-secondary">How the layout lab draws your ball.</p>
-        </li>
+      <ListGroup heading="Bowler">
+        <ListRow
+          icon={Hand}
+          label="Hand and grip"
+          description={`${handedness === "right" ? "Right-handed" : "Left-handed"} · ${
+            grip === "2h" ? "Two-handed" : "One-handed"
+          }`}
+          onClick={() => onSectionChange("bowler")}
+        />
         <ListRow
           icon={Palette}
           label="Appearance"
@@ -243,7 +222,7 @@ function SettingsMenu({
         />
       </ListGroup>
 
-      <p className="px-1 text-xs text-ink-tertiary">Headpin {__APP_VERSION__}</p>
+      <p className="px-1 text-xs text-ink-secondary">Headpin {__APP_VERSION__}</p>
 
       <InstallPrompt open={installOpen} onClose={() => setInstallOpen(false)} />
     </section>

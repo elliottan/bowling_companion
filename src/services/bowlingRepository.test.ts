@@ -6,6 +6,8 @@ import {
   createSession,
   deleteGame,
   deleteSession,
+  deleteSessionIfEmpty,
+  pruneEmptySessions,
   getBackupNudgeState,
   getDriftModel,
   getResumableForSession,
@@ -396,5 +398,71 @@ describe("bulk loading keeps the order it always had", () => {
 
     const [{ games }] = await getSessionHistory();
     expect(games[0].frames.map((f) => f.frame_number)).toEqual([1, 2, 3]);
+  });
+});
+
+/**
+ * A session started and walked away from with nothing in it is deleted
+ * (ADR-116). The date does not count: the form fills it in.
+ */
+describe("empty sessions", () => {
+  beforeEach(async () => {
+    await db.delete();
+    await db.open();
+  });
+
+  async function blank(fields: Partial<{ alley_name: string; description: string; general_notes: string; oil_pattern_id: number }> = {}) {
+    const id = Number(await createSession({ date: "2026-10-04", alley_name: "", ...fields }));
+    const gameId = Number(await addGameToSession(id, { game_number: 1 }));
+    return { id, gameId };
+  }
+
+  it("deletes a session with nothing in it, games and all", async () => {
+    const { id, gameId } = await blank();
+    expect(await deleteSessionIfEmpty(id)).toBe(true);
+    expect(await db.sessions.get(id)).toBeUndefined();
+    expect(await db.games.get(gameId)).toBeUndefined();
+  });
+
+  it.each([
+    ["an alley", { alley_name: "Orchid Bowl" }],
+    ["a description", { description: "League" }],
+    ["notes", { general_notes: "Fresh oil" }],
+    ["a pattern", { oil_pattern_id: 3 }]
+  ])("keeps a session with %s", async (_what, fields) => {
+    const { id } = await blank(fields);
+    expect(await deleteSessionIfEmpty(id)).toBe(false);
+    expect(await db.sessions.get(id)).toBeDefined();
+  });
+
+  it("keeps a session with a single shot in it", async () => {
+    const { id, gameId } = await blank();
+    await saveFrame(gameId, {
+      frame_number: 1,
+      shots: [{ pins_standing: [7] }],
+      is_strike: false,
+      is_spare: false
+    });
+    expect(await deleteSessionIfEmpty(id)).toBe(false);
+  });
+
+  it("keeps a session whose lanes or game notes were filled in", async () => {
+    const lanes = await blank();
+    await db.games.update(lanes.gameId, { lanes: ["9", "10"] });
+    expect(await deleteSessionIfEmpty(lanes.id)).toBe(false);
+
+    const noted = await blank();
+    await updateGameNotes(noted.gameId, "Hooked early");
+    expect(await deleteSessionIfEmpty(noted.id)).toBe(false);
+  });
+
+  it("prunes every empty session at launch but the one the URL reopens", async () => {
+    const a = await blank();
+    const b = await blank();
+    const kept = await blank({ alley_name: "Orchid Bowl" });
+    expect(await pruneEmptySessions(b.id)).toBe(1);
+    expect(await db.sessions.get(a.id)).toBeUndefined();
+    expect(await db.sessions.get(b.id)).toBeDefined();
+    expect(await db.sessions.get(kept.id)).toBeDefined();
   });
 });
