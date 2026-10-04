@@ -9,8 +9,11 @@ export const RECORD_SHOT = /^Next( \(|$)/;
  * any DB wipe it comes back. Walk it: start fresh, then right-handed.
  */
 export async function dismissHandednessModal(page: Page) {
-  await page.getByRole("button", { name: "Start fresh" }).click();
-  await page.getByRole("button", { name: "right-handed" }).click();
+  // Scoped to the first run: Settings answers the hand on its own list, so a
+  // reload while Settings is up has a second Right-handed button behind it.
+  const firstRun = page.getByRole("dialog", { name: "Set up Headpin" });
+  await firstRun.getByRole("button", { name: "Start fresh" }).click();
+  await firstRun.getByRole("button", { name: "right-handed" }).click();
 }
 
 /** Wipe IndexedDB so each test starts from an empty database. */
