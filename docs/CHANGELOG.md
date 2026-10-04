@@ -8,7 +8,19 @@ merge to `main` (`docs/DEPLOYMENT.md`), so every section below is a dated batch
 of shipped work rather than a release. Thirty of them used to be headed
 `[Unreleased]`, which said nothing once they had all shipped.
 
-## Hand and grip get their own page, and the spare lane view keeps your stance (2026-10-04)
+## Home opens on its menus, empty sessions clean themselves up, and hand and grip get their own page (2026-10-04)
+
+**A session you start and leave with nothing in it is deleted.** No alley, no
+description, no pattern, no notes, no lanes and not one shot: leave the Score
+tab, or close the app, and it no longer sits in History as an empty row.
+
+**Home is shorter.** The Tonight card (the recent alley buttons, Start session
+and the Last time line) is gone; the + button starts a session. Your things and
+the tools now come first, with the recent sessions under them. The Start
+session sheet no longer shows a Last time here card either.
+
+**The Score tab's empty screen is headed Score**, to match the tab.
+
 
 **Hand and grip moved one level down in Settings.** The Settings list shows a
 single Hand and grip row that says what is set ("Right-handed · One-handed")

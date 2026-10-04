@@ -3,7 +3,6 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { DashboardView } from "./DashboardView";
 import { db } from "../db/bowlingDb";
 import { addGameToSession, createSession } from "../services/bowlingRepository";
-import { localDateKey } from "../lib/dates";
 
 function renderHome(overrides: Partial<Parameters<typeof DashboardView>[0]> = {}) {
   const props = {
@@ -32,28 +31,29 @@ describe("Home (ADR-115)", () => {
     await db.open();
   });
 
-  it("starts a session at a recent alley in one tap, prefilled", async () => {
+  /**
+   * The Tonight card (recent alleys, Start session, Last time) is gone: the
+   * floating button starts a session, and the menus sit where it was.
+   */
+  it("has no Tonight card, and the menus come before the recent sessions", async () => {
     const id = Number(
-      await createSession({
-        date: "2026-09-30",
-        alley_name: "Chinese Swimming Club",
-        description: "League",
-        oil_pattern_id: 4
-      })
+      await createSession({ date: "2026-09-30", alley_name: "Chinese Swimming Club", description: "League" })
     );
     await addGameToSession(id, { game_number: 1 });
-    const props = renderHome();
+    renderHome();
 
-    fireEvent.click(
-      await screen.findByRole("button", { name: "Start a session at Chinese Swimming Club, League" })
-    );
-    expect(props.onStartSession).toHaveBeenCalledWith({
-      alley_name: "Chinese Swimming Club",
-      description: "League",
-      oil_pattern_id: 4,
-      date: localDateKey(),
-      lanes: []
-    });
+    const recent = await screen.findByText("Recent sessions");
+    expect(screen.queryByText("Tonight")).not.toBeInTheDocument();
+    expect(screen.queryByText(/^Last time/)).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Start a session at/ })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Start session" })).toBeInTheDocument();
+
+    const menu = screen.getByText("My bowling");
+    expect(menu.compareDocumentPosition(recent) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(
+      screen.getByText("Tools and reference").compareDocumentPosition(recent) &
+        Node.DOCUMENT_POSITION_FOLLOWING
+    ).toBeTruthy();
   });
 
   it("leads with the game in progress when there is one", async () => {

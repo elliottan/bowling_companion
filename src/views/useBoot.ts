@@ -4,6 +4,7 @@ import {
   getResumableToday,
   getHandedness,
   hasSavedData,
+  pruneEmptySessions,
   type ResumableGame
 } from "../services/bowlingRepository";
 import type { Handedness } from "../types/bowling";
@@ -52,8 +53,11 @@ const NOT_BOOTED: BootState = {
 /**
  * @param launchedWithRoute the URL already named a screen, so the resume jump
  *   is not wanted and its read is left out of the gate.
+ * @param keepSessionId the session the URL reopens, if any. Every other empty
+ *   session is pruned before the reads (ADR-116); that one is spared, because
+ *   a reload is not walking away from it.
  */
-export function useBoot(launchedWithRoute: boolean): BootState {
+export function useBoot(launchedWithRoute: boolean, keepSessionId: number | null = null): BootState {
   const [state, setState] = useState<BootState>(NOT_BOOTED);
 
   useEffect(() => {
@@ -65,11 +69,17 @@ export function useBoot(launchedWithRoute: boolean): BootState {
       setState({ ...NOT_BOOTED, booted: true });
     }, BOOT_TIMEOUT_MS);
 
-    void Promise.all([
-      getHandedness(),
-      hasSavedData(),
-      launchedWithRoute ? Promise.resolve(null) : getResumableToday()
-    ])
+    // A session started and left with nothing in it is gone before anything
+    // reads the list, so it never shows as a resumable game or a History row.
+    void pruneEmptySessions(keepSessionId)
+      .catch(() => 0)
+      .then(() =>
+        Promise.all([
+          getHandedness(),
+          hasSavedData(),
+          launchedWithRoute ? Promise.resolve(null) : getResumableToday()
+        ])
+      )
       .then(([handedness, saved, resumable]) => {
         if (done) return;
         done = true;
@@ -103,6 +113,9 @@ export function useBoot(launchedWithRoute: boolean): BootState {
       done = true;
       window.clearTimeout(timeout);
     };
+    // Read once: the boot gate runs at launch, and the session the URL named
+    // then is the one to spare, wherever navigation goes afterwards.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [launchedWithRoute]);
 
   return state;

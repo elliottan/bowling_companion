@@ -5529,3 +5529,39 @@ and Settings the way a new bowler would.
 - The hint reads every frame at that alley, so it is only read while a game has
   no ball in it.
 
+
+## ADR-116: A session started and left with nothing in it is deleted
+
+**Status.** Accepted, 2026-10-04. Amends ADR-080 ("Score now") and ADR-115's Home.
+
+**Context.** Starting a session writes it at once, so the pin deck is there to
+tap. A bowler who opens it by mistake, or starts one and changes their mind,
+left an empty row in History with no alley, no description and no score, and
+it stayed there, counted toward the backup nudge and offered as a game to
+resume.
+
+**Decision.** A session is empty when it has no alley, description, pattern or
+notes, and none of its games has lanes, a note or a single recorded shot. The
+date does not count, because the form fills it in. An empty session is deleted:
+
+- when the bowler leaves the Score tab with it open, after a short grace so the
+  scorer's unmount flush of a tapped-in but uncommitted shot lands first (that
+  shot is input, and keeps the session);
+- at launch, for every empty session except the one the URL reopens, because
+  closing the app is the other way to walk away from one, and a reload is not.
+
+Nothing is asked. There is nothing in the session to lose, and a confirm about
+nothing teaches people to tap through confirms.
+
+**Consequences.**
+- `deleteSessionIfEmpty` and `pruneEmptySessions` in `bowlingRepository`; the
+  boot gate prunes before it reads the resumable game and the saved-data flag.
+- Going to Home to check something before entering anything costs the empty
+  session. Starting again is one tap, and that is the trade this makes.
+
+Also in this change, ADR-115's Home is cut back: the "Tonight" card (recent
+alley chips, Start session, the "Last time" line) is gone, the floating button
+starts a session, and the recent sessions sit below the two menus so the menus
+are what Home opens on. The "Last time here" card in the Start session sheet is
+gone too. Hand and grip move off the Settings list onto their own page behind a
+"Hand and grip" row, because flipping the hand mirrors every board in the app.

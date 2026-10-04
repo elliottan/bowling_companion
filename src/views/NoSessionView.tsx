@@ -25,7 +25,7 @@ export function NoSessionView({ onStartSession, onScoreNow, isSubmitting, error 
 
   return (
     <section className="mx-auto w-full max-w-xl px-3 pb-5 pt-3 sm:px-6 sm:pt-5">
-      <h1 className="mb-3 text-xl font-bold text-ink">Active</h1>
+      <h1 className="mb-3 text-xl font-bold text-ink">Score</h1>
 
       {error && <ErrorBanner className="mb-4">{error}</ErrorBanner>}
 

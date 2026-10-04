@@ -30,6 +30,7 @@ import {
   createSession,
   getDriftModel,
   getResumableForSession,
+  deleteSessionIfEmpty,
   getResumableToday,
   setDriftModel as persistDriftModel,
   setHandedness as persistHandedness,
@@ -104,6 +105,10 @@ const NAV_ITEMS: ReadonlyArray<NavItem> = [
 ];
 
 const MOBILE_NAV_ITEMS = NAV_ITEMS;
+
+/** How long after leaving the Score tab an empty session is checked (ADR-116):
+ *  long enough for the scorer's unmount flush of a tapped-in shot to land. */
+const EMPTY_SESSION_GRACE_MS = 600;
 
 /** The page's query string, guarded for a render with no window behind it.
  *  Shared content rides there rather than in the hash (`lib/lineShare.ts`). */
@@ -256,7 +261,7 @@ function App() {
 
   // One gate rather than three mount effects, so the shell never paints an
   // empty Dashboard, then a welcome over it, then the real data (useBoot).
-  const boot = useBoot(launchedWithRoute);
+  const boot = useBoot(launchedWithRoute, activeSessionId);
 
   const handedness = chosenHandedness ?? boot.handedness;
   const hasSavedData = boot.hasSavedData;
@@ -288,6 +293,31 @@ function App() {
   useEffect(() => {
     refreshResumable();
   }, [refreshResumable, view]);
+
+  // Leaving the Score tab with nothing entered (no alley, description,
+  // pattern, notes, lanes or a single shot) means the session was not wanted,
+  // so it is deleted rather than left as an empty row in History (ADR-116).
+  // Late by a beat: leaving also flushes a live shot the bowler tapped in but
+  // did not commit, and that shot is input, so it gets to land first.
+  // Read when the timer fires rather than captured, so moving on to a third tab
+  // inside the grace still deletes, and coming straight back does not.
+  const currentView = useRef(view);
+  const previousView = useRef(view);
+  useEffect(() => {
+    currentView.current = view;
+    const left = previousView.current === "active" && view !== "active";
+    previousView.current = view;
+    if (!left || activeSessionId == null) return;
+    const sessionId = activeSessionId;
+    window.setTimeout(() => {
+      if (currentView.current === "active") return;
+      deleteSessionIfEmpty(sessionId)
+        .then((deleted) => {
+          if (deleted) dispatch({ type: "sessionDeleted", sessionId });
+        })
+        .catch(() => {});
+    }, EMPTY_SESSION_GRACE_MS);
+  }, [view, activeSessionId]);
 
   // A session deleted from a history row may be the active one, drop the
   // stale active state so the Active tab and resume pill don't point at it.
