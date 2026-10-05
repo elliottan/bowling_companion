@@ -525,7 +525,6 @@ function App() {
             onOpenSpareLines={() => pushOverlay("spares")}
             onOpenGuides={() => pushOverlay("guides")}
             onOpenLayoutLab={() => pushOverlay("layout-lab")}
-            onSessionDeleted={handleSessionDeleted}
             onOpenBackup={goToBackup}
           />
         )}

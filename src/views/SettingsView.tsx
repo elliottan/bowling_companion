@@ -1,8 +1,9 @@
-import { Archive, ArrowUpRight, Coffee, Download, Hand, MessageSquare, Palette, ScrollText, SlidersHorizontal } from "lucide-react";
+import { Archive, ArrowUpRight, Coffee, Download, Hand, MessageSquare, Palette, ScrollText, SlidersHorizontal, UserRound } from "lucide-react";
 import { AppearanceView } from "./AppearanceView";
 import { HandednessView } from "./HandednessView";
 import { BowlerView } from "./BowlerView";
-import { getGripStyle, getPap, getSetting } from "../services/bowlingRepository";
+import { getBowlerName, getGripStyle, getPap, getSetting } from "../services/bowlingRepository";
+import { BowlerNameSheet } from "../components/BowlerNameSheet";
 import { DEFAULT_PAP, formatInches } from "../lib/ballLayout";
 import { GROUP_HEADING } from "../components/ui/typography";
 import type { GripStyle } from "../types/bowling";
@@ -114,6 +115,8 @@ function SettingsMenu({
   onSectionChange
 }: Pick<SettingsViewProps, "handedness" | "driftModel" | "onOpenBackup" | "onSectionChange">) {
   const [installOpen, setInstallOpen] = useState(false);
+  const [editingName, setEditingName] = useState(false);
+  const name = useLiveQuery(getBowlerName, [], undefined);
   // The same test the Dashboard card uses: an installed app has nothing to
   // offer here, and a browser that cannot install would offer a dead end.
   const installable = (isIOSSafari() && !isStandalone()) || canPromptInstall();
@@ -146,6 +149,12 @@ function SettingsMenu({
       <h1 className="text-xl font-bold text-ink">Settings</h1>
 
       <ListGroup heading="Bowler">
+        <ListRow
+          icon={UserRound}
+          label="Name"
+          description={name ?? "What do you want to be called?"}
+          onClick={() => setEditingName(true)}
+        />
         <ListRow
           icon={Hand}
           label="Hand and grip"
@@ -225,6 +234,10 @@ function SettingsMenu({
       <p className="px-1 text-xs text-ink-secondary">Headpin {__APP_VERSION__}</p>
 
       <InstallPrompt open={installOpen} onClose={() => setInstallOpen(false)} />
+
+      {editingName && name !== undefined && (
+        <BowlerNameSheet name={name} onClose={() => setEditingName(false)} />
+      )}
     </section>
   );
 }

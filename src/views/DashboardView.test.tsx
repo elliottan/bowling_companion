@@ -2,7 +2,9 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { DashboardView } from "./DashboardView";
 import { db } from "../db/bowlingDb";
-import { addGameToSession, createSession } from "../services/bowlingRepository";
+import { addGameToSession, createSession, getBowlerName, setBowlerName } from "../services/bowlingRepository";
+import { addBall } from "../services/ballRepository";
+import { GREETINGS } from "../lib/greeting";
 
 function renderHome(overrides: Partial<Parameters<typeof DashboardView>[0]> = {}) {
   const props = {
@@ -33,9 +35,10 @@ describe("Home (ADR-115)", () => {
 
   /**
    * The Tonight card (recent alleys, Start session, Last time) is gone: the
-   * floating button starts a session, and the menus sit where it was.
+   * floating button starts a session. The bowler's own things come first, as
+   * one profile, and the tools and reference follow.
    */
-  it("has no Tonight card, and the menus come before the recent sessions", async () => {
+  it("has no Tonight card, and the profile comes before the tools", async () => {
     const id = Number(
       await createSession({ date: "2026-09-30", alley_name: "Chinese Swimming Club", description: "League" })
     );
@@ -47,13 +50,74 @@ describe("Home (ADR-115)", () => {
     expect(screen.queryByText(/^Last time/)).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /Start a session at/ })).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Start session" })).toBeInTheDocument();
+    expect(screen.queryByText("My bowling")).not.toBeInTheDocument();
 
-    const menu = screen.getByText("My bowling");
-    expect(menu.compareDocumentPosition(recent) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(
-      screen.getByText("Tools and reference").compareDocumentPosition(recent) &
+      recent.compareDocumentPosition(screen.getByText("Tools and reference")) &
         Node.DOCUMENT_POSITION_FOLLOWING
     ).toBeTruthy();
+  });
+
+  it("greets the bowler by name, and with the greeting alone without one", async () => {
+    vi.spyOn(Math, "random").mockReturnValue(0);
+    renderHome();
+    expect(await screen.findByRole("heading", { level: 1, name: GREETINGS[0] })).toBeInTheDocument();
+    expect(screen.getByText("Add your name")).toBeInTheDocument();
+
+    await setBowlerName("Sam");
+    expect(
+      await screen.findByRole("heading", { level: 1, name: `${GREETINGS[0]}, Sam` })
+    ).toBeInTheDocument();
+    vi.restoreAllMocks();
+  });
+
+  it("takes a name from the greeting", async () => {
+    renderHome();
+    fireEvent.click(await screen.findByRole("button", { name: "Add your name" }));
+    fireEvent.change(screen.getByLabelText(/What do you want to be called/), {
+      target: { value: "  Sam " }
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Save name" }));
+    await waitFor(async () => expect(await getBowlerName()).toBe("Sam"));
+    expect(await screen.findByRole("heading", { level: 1, name: /, Sam$/ })).toBeInTheDocument();
+  });
+
+  it("shows the arsenal as its balls, each opening the arsenal", async () => {
+    await addBall({ name: "Phaze II", is_spare_ball: false });
+    await addBall({ name: "Plastic", is_spare_ball: true });
+    const props = renderHome();
+    fireEvent.click(await screen.findByRole("button", { name: "Plastic" }));
+    expect(props.onOpenArsenal).toHaveBeenCalled();
+    expect(screen.getByRole("button", { name: "Phaze II" })).toBeInTheDocument();
+    expect(screen.getByText("· 2 balls")).toBeInTheDocument();
+  });
+
+  it("puts spare lines, lane notes and oil patterns side by side as tiles", async () => {
+    const props = renderHome();
+    fireEvent.click(await screen.findByRole("button", { name: "Spare lines" }));
+    fireEvent.click(screen.getByRole("button", { name: "Lane notes" }));
+    fireEvent.click(screen.getByRole("button", { name: "Oil patterns" }));
+    expect(props.onOpenSpareLines).toHaveBeenCalled();
+    expect(props.onOpenLaneNotes).toHaveBeenCalled();
+    expect(props.onOpenOilPatterns).toHaveBeenCalled();
+  });
+
+  it("shows a session tile as its event, alley, date, games and average", async () => {
+    const id = Number(
+      await createSession({ date: "2026-09-30", alley_name: "Orchid Bowl", description: "League" })
+    );
+    const g1 = Number(await addGameToSession(id, { game_number: 1 }));
+    const g2 = Number(await addGameToSession(id, { game_number: 2 }));
+    await db.games.update(g1, { final_score: 180 });
+    await db.games.update(g2, { final_score: 201 });
+    const props = renderHome();
+
+    const tile = await screen.findByRole("button", { name: /Open session: Orchid Bowl/ });
+    await waitFor(() => expect(tile).toHaveTextContent("2 games · 191 avg"));
+    expect(tile).toHaveTextContent("League");
+    expect(tile).not.toHaveTextContent(/Lane/);
+    fireEvent.click(tile);
+    expect(props.onOpenSession).toHaveBeenCalledWith(id, true);
   });
 
   it("leads with the game in progress when there is one", async () => {
@@ -66,17 +130,16 @@ describe("Home (ADR-115)", () => {
     expect(screen.queryByText("Tonight")).not.toBeInTheDocument();
   });
 
-  it("lists your own things apart from the tools, with no Game plan card", async () => {
+  it("keeps the tools apart from your own things, with no Game plan card", async () => {
     await createSession({ date: "2026-09-30", alley_name: "Orchid Bowl" });
     renderHome();
-    expect(await screen.findByText("My bowling")).toBeInTheDocument();
-    expect(screen.getByText("Tools and reference")).toBeInTheDocument();
+    expect(await screen.findByText("Tools and reference")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Line visualizer" })).toBeInTheDocument();
     expect(screen.queryByText("Game plan")).not.toBeInTheDocument();
   });
 
-  it("shows three recent sessions and sends the rest to History", async () => {
-    for (let d = 1; d <= 5; d++) {
+  it("shows the latest eight sessions and sends the rest to History", async () => {
+    for (let d = 1; d <= 9; d++) {
       await createSession({ date: `2026-09-0${d}`, alley_name: `Alley ${d}` });
     }
     const props = renderHome();

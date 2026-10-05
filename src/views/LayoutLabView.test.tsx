@@ -723,14 +723,28 @@ describe("LayoutLabView", () => {
           pap: { over: 4.75, up: -0.5 },
           hand: "left",
           grip: "2h",
-          ballName: "Phaze II"
+          ballName: "Phaze II",
+          ballWeight: 15,
+          ballSnapshot: {
+            brand: "Storm",
+            name: "Phaze II",
+            coverstockCategory: "Solid Reactive",
+            coreName: "Velocity Core",
+            rg: 2.48,
+            diff: 0.051,
+            mbDiff: null,
+            imageThumb: null
+          }
         }}
       />
     );
     expect(dualAngle()).toBe("60 x 5 x 30");
-    expect(screen.getByText(/Phaze II/)).toBeTruthy();
-    // The lab still holds nothing: the ball is not what is being edited.
-    expect(screen.getByText(/never changes the ball/)).toBeTruthy();
+    // The ball itself heads the screen: name, weight, core and numbers, in
+    // place of the sentence that used to stand there.
+    expect(screen.getByText("Phaze II · 15 lb")).toBeTruthy();
+    expect(screen.getByText("Velocity Core · Asymmetric")).toBeTruthy();
+    expect(screen.getByText("Solid Reactive · RG 2.48 · Diff 0.051")).toBeTruthy();
+    expect(screen.queryByText(/never changes the ball/)).toBeNull();
   });
 
   it("opens a seeded ball in the notation that ball is written in", async () => {

@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { SettingsView } from "./SettingsView";
 import { db } from "../db/bowlingDb";
 import { DEFAULT_DRIFT_MODEL } from "../lib/driftModel";
-import { getGripStyle, setGripStyle, setSetting } from "../services/bowlingRepository";
+import { getBowlerName, getGripStyle, setBowlerName, setGripStyle, setSetting } from "../services/bowlingRepository";
 import { findGuide } from "../lib/guides";
 
 function renderBowler(onOpenGuide = vi.fn()) {
@@ -62,6 +62,23 @@ describe("SettingsView", () => {
     // The two rows that leave the app are links, not buttons.
     expect(screen.getByRole("link", { name: /Privacy and terms/ })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Buy me a coffee/ })).toBeInTheDocument();
+  });
+
+  it("changes the name Home greets you by, and forgets it when cleared", async () => {
+    await setBowlerName("Sam");
+    renderMenu();
+    fireEvent.click(await screen.findByRole("button", { name: /Name.*Sam/ }));
+    const field = screen.getByLabelText(/What do you want to be called/);
+    expect(field).toHaveValue("Sam");
+    fireEvent.change(field, { target: { value: "Alex" } });
+    fireEvent.click(screen.getByRole("button", { name: "Save name" }));
+    await waitFor(async () => expect(await getBowlerName()).toBe("Alex"));
+    expect(await screen.findByRole("button", { name: /Name.*Alex/ })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: /Name.*Alex/ }));
+    fireEvent.change(screen.getByLabelText(/What do you want to be called/), { target: { value: "  " } });
+    fireEvent.click(screen.getByRole("button", { name: "Save name" }));
+    await waitFor(async () => expect(await getBowlerName()).toBeNull());
   });
 
   /**

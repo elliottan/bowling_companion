@@ -2,6 +2,8 @@ import { useCallback, useMemo, useRef, useState } from "react";
 import { Check, LayoutGrid, MoreHorizontal, RotateCcw, SlidersHorizontal } from "lucide-react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { BallLayoutDiagram } from "../components/BallLayoutDiagram";
+import { CatalogBallImage } from "../components/CatalogBallImage";
+import { BowlingBallIcon } from "../components/icons";
 import { LayoutEditor } from "../components/LayoutEditor";
 import { PapEditor } from "../components/PapEditor";
 import { ShareCardDialog } from "../components/ShareCardDialog";
@@ -42,6 +44,7 @@ import {
 } from "../services/bowlingRepository";
 import { useHandedness } from "../lib/handednessContext";
 import type { GripStyle, Handedness, LayoutSystem } from "../types/bowling";
+import type { Manufacturer } from "../types/catalog";
 
 interface LayoutLabViewProps {
   onBack: () => void;
@@ -73,6 +76,53 @@ function anchorUnder(el: Element, width: number): Anchor {
 function currentSearch(): string {
   if (typeof window === "undefined") return "";
   return window.location.search;
+}
+
+/** The ball a seeded lab is showing: its picture, name, weight, core and
+ *  numbers, as the arsenal holds them. */
+function SeededBallCard({ seed }: { seed: LayoutSeed }) {
+  const snap = seed.ballSnapshot;
+  const title = [seed.ballName, seed.ballWeight ? `${seed.ballWeight} lb` : null]
+    .filter(Boolean)
+    .join(" · ");
+  const core = snap
+    ? [snap.coreName, seed.ball.symmetric ? "Symmetric" : "Asymmetric"].filter(Boolean).join(" · ")
+    : seed.ball.symmetric
+      ? "Symmetric"
+      : "Asymmetric";
+  const specs = snap
+    ? [
+        snap.coverstockCategory,
+        snap.rg !== null ? `RG ${snap.rg.toFixed(2)}` : null,
+        snap.diff !== null ? `Diff ${snap.diff.toFixed(3)}` : null,
+        snap.mbDiff !== null ? `MB ${snap.mbDiff.toFixed(3)}` : null
+      ]
+        .filter(Boolean)
+        .join(" · ")
+    : "";
+  return (
+    <div className="flex items-center gap-3 rounded-xl border border-edge bg-surface p-2.5 shadow-sm">
+      <div className="h-14 w-14 shrink-0">
+        {snap ? (
+          <CatalogBallImage
+            src={snap.imageThumb}
+            alt={seed.ballName ?? ""}
+            brand={snap.brand as Manufacturer}
+            size="thumb"
+          />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center rounded-lg bg-surface-muted text-ink-tertiary">
+            <BowlingBallIcon size={24} aria-hidden="true" />
+          </div>
+        )}
+      </div>
+      <div className="min-w-0 flex-1">
+        <p className="truncate font-semibold text-ink">{title}</p>
+        <p className="truncate text-xs text-ink-secondary">{core}</p>
+        {specs && <p className="truncate text-xs tabular-nums text-ink-secondary">{specs}</p>}
+      </div>
+    </div>
+  );
 }
 
 const BENCHMARK: DualAngleLayout = { drillingAngle: 45, pinToPap: 4.5, valAngle: 45 };
@@ -320,15 +370,9 @@ export function LayoutLabView({ onBack, onOpenSettings, seed }: LayoutLabViewPro
     >
       <div className="mx-auto w-full max-w-xl space-y-3 px-3 py-3 sm:px-6">
         {/* Whose layout is on screen, when it arrived from a ball rather than
-            from the sliders. The lab still holds nothing and saves nothing, so
-            the line says that too: it is the answer to "am I editing my ball
-            right now", asked by everyone who taps through from the arsenal. */}
-        {seed?.ballName && (
-          <p className="rounded-xl border border-edge bg-surface-muted px-3 py-2 text-xs text-ink-secondary">
-            The layout on <span className="font-semibold text-ink">{seed.ballName}</span>. Moving
-            anything here is a what-if, and never changes the ball.
-          </p>
-        )}
+            from the sliders: the ball itself, with what the arsenal knows of
+            it, so the numbers below are read against the ball they belong to. */}
+        {seed?.ballName && <SeededBallCard seed={seed} />}
 
         {/* 1. Who is bowling. The PAP leads because it is the frame every other
             number is measured against: the VAL angle is measured at it and the

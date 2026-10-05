@@ -176,6 +176,17 @@ of the app, which is a different destination rather than an action on the row.
 Rows carry a 48px leading thumbnail where one exists, title, and one truncated
 line of secondary text.
 
+## 4a. Home's profile rows
+
+Home opens on the bowler, not on a menu: a greeting (with the name they gave,
+or the greeting alone), then the things they keep. Those are not one list of
+rows, because they are not the same shape. The arsenal is a row of its balls'
+pictures and the recent sessions a row of tiles, each scrolling sideways and
+bled to the screen edge so a tile cut off there says there is more. The spare
+lines, lane notes and oil patterns are three equal tiles in one row. A row's
+heading opens the screen it previews. Only the tools and reference stay a
+`ListGroup`, because they are the same for every bowler.
+
 ## 4b. Numbers on screen
 
 A number carries its own definition or it does not go on screen. The group
@@ -202,7 +213,8 @@ screen is where a user decides whether the feature is for them.
 
 A screen whose *whole* content is empty leads with the empty state rather than
 burying it under chrome. Home does this on a device with no sessions. What it
-does not do is remove the chrome: the My bowling and Tools and reference lists
+does not do is remove the chrome: the bowler profile (the arsenal row and the
+spare line, lane note and oil pattern tiles) and the Tools and reference list
 stay below the empty state and stay reachable, because they are the only way to
 several screens (ADR-069, ADR-115).
 
