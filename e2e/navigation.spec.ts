@@ -290,6 +290,36 @@ test("share opens over the session sheet, and back closes one layer at a time", 
   await expect(page).toHaveURL(/#\/history\/session\/\d+$/);
 });
 
+test("the session sheet rises without overshooting its resting place", async ({ page }) => {
+  await startSession(page, "Rise Lanes");
+  await recordShot(page, []);
+  await page.getByRole("button", { name: "Session sheet", exact: true }).first().click();
+
+  // Sample the panel's top edge every frame of the slide. Focus used to land on
+  // its first button while it was still below the screen, which scrolled the
+  // sheet's box to reveal it: the panel jumped past its resting place and
+  // settled back, the bounce seen on iPhone.
+  const samples = await page.evaluate(async () => {
+    const tops: Array<{ top: number; scroll: number }> = [];
+    const t0 = performance.now();
+    while (performance.now() - t0 < 450) {
+      const root = document.querySelector('[aria-label="Session sheet"]') as HTMLElement | null;
+      const panel = root?.firstElementChild as HTMLElement | null;
+      if (root && panel) {
+        tops.push({ top: panel.getBoundingClientRect().top, scroll: root.scrollTop });
+      }
+      await new Promise((r) => requestAnimationFrame(r));
+    }
+    return tops;
+  });
+  expect(samples.length).toBeGreaterThan(3);
+  const rest = samples[samples.length - 1].top;
+  for (const s of samples) {
+    expect(s.scroll).toBe(0);
+    expect(s.top).toBeGreaterThanOrEqual(rest - 1);
+  }
+});
+
 test("a session with a game still to finish opens in the Active tab", async ({ page }) => {
   await startSession(page, "Bowling Lanes");
   await recordShot(page, []); // one frame, ten still to go

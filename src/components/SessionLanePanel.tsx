@@ -155,7 +155,10 @@ export function SessionLanePanel({
     // above it stay live, so a tap on them reaches the screen rather than a
     // backdrop that would close the panel.
     <div
-      className="fixed inset-x-0 bottom-0 z-50 flex justify-center overflow-hidden"
+      // overflow-clip, not hidden: a hidden box is still a scroll container,
+      // and focus or scrollIntoView can scroll it, lifting the panel out of
+      // place. A clipping box cannot be scrolled at all.
+      className="fixed inset-x-0 bottom-0 z-50 flex justify-center overflow-clip"
       role="dialog"
       aria-label="Session sheet"
       style={{ ...rootStyle, top, ...(leaving && { pointerEvents: "none" as const }) }}

@@ -9,6 +9,12 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.2.2: The session sheet rises without a bounce (2026-10-05)
+
+**The session sheet no longer overshoots.** Opening it, the sheet shot up past
+where it rests and then slid back down. It now rises once and stops. Every
+other sheet and dialog also stops nudging the screen as it opens.
+
 ## 0.2.1: The session sheet slides up whole (2026-10-05)
 
 **The session sheet arrives in one piece.** On an iPhone, opening the sheet

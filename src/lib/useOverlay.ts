@@ -52,12 +52,18 @@ export function useOverlay<T extends HTMLElement = HTMLDivElement>(
     const previouslyFocused = document.activeElement as HTMLElement | null;
     const container = ref.current;
 
+    // preventScroll: an overlay mounts mid-animation, still translated off the
+    // bottom of the screen, and a plain focus() scrolls whatever it can to
+    // bring the focused control into view. The session sheet's clipping box
+    // took a 466px scrollTop that unwound over the slide, and on iOS the panel
+    // overshot its resting place and settled back (the "bounce"). A document
+    // scrolled the same way is what the clamp in viewportScroll undoes.
     if (container) {
       const focusable = getFocusable(container);
       if (focusable.length > 0) {
-        focusable[0].focus();
+        focusable[0].focus({ preventScroll: true });
       } else if (container.tabIndex === -1) {
-        container.focus();
+        container.focus({ preventScroll: true });
       }
     }
 
@@ -99,7 +105,7 @@ export function useOverlay<T extends HTMLElement = HTMLDivElement>(
       document.removeEventListener("keydown", onKeyDown);
       unregister?.();
       if (previouslyFocused && document.contains(previouslyFocused)) {
-        previouslyFocused.focus();
+        previouslyFocused.focus({ preventScroll: true });
       }
     };
   }, [active, backCloses]);
