@@ -1,6 +1,5 @@
 import { ChevronRight, Plus, type LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
-import { Button } from "./ui/Button";
 import { BowlingBallIcon, LanePairIcon, OilPatternIcon, SpareLineIcon } from "./icons";
 import { CatalogBallImage } from "./CatalogBallImage";
 import { GROUP_HEADING } from "./ui/typography";
@@ -34,7 +33,7 @@ function RowHeading({
   trailing?: ReactNode;
 }) {
   return (
-    <div className="mb-1 flex min-h-8 items-center justify-between gap-3 px-1">
+    <div className="mb-1 flex items-center justify-between gap-3 px-1">
       <h2 className={GROUP_HEADING}>
         {onClick ? (
           <button
@@ -96,7 +95,7 @@ export function ArsenalStrip({ balls, onOpenArsenal }: ArsenalStripProps) {
                 onClick={onOpenArsenal}
                 aria-label={ball.name}
                 title={ball.name}
-                className="block h-14 w-14 rounded-xl active:opacity-70"
+                className="block h-14 w-14 rounded-full active:opacity-70"
               >
                 {ball.catalog_snapshot ? (
                   <CatalogBallImage
@@ -104,9 +103,10 @@ export function ArsenalStrip({ balls, onOpenArsenal }: ArsenalStripProps) {
                     alt=""
                     brand={ball.catalog_snapshot.brand as Manufacturer}
                     size="thumb"
+                    bare
                   />
                 ) : (
-                  <span className="flex h-full w-full items-center justify-center rounded-lg bg-surface-muted text-ink-tertiary">
+                  <span className="flex h-full w-full items-center justify-center rounded-full bg-surface-muted text-ink-tertiary">
                     <BowlingBallIcon size={24} aria-hidden="true" />
                   </span>
                 )}
@@ -231,12 +231,6 @@ function SessionTile({
   const alley = alleyLabel(session.alley_name);
   const event = session.description?.trim();
   const date = formatSessionDate(session.date);
-  const tally = [
-    `${games} ${games === 1 ? "game" : "games"}`,
-    average !== null ? `${average} avg` : inProgress ? "In progress" : null
-  ]
-    .filter(Boolean)
-    .join(" · ");
 
   return (
     <button
@@ -250,8 +244,20 @@ function SessionTile({
       <span className="block w-full truncate text-sm font-semibold text-ink">{event || alley}</span>
       {event && <span className="block w-full truncate text-xs text-ink-secondary">{alley}</span>}
       <span className="block w-full truncate text-xs text-ink-secondary">{date}</span>
-      <span className="mt-auto block w-full truncate pt-2 text-xs font-semibold tabular-nums text-ink">
-        {tally}
+      {/* The average leads, in the accent: it is the number a bowler looks
+          for. The game count rides beside it, smaller, as its context. */}
+      <span className="mt-auto flex w-full items-baseline gap-1 pt-2 tabular-nums">
+        {average !== null ? (
+          <>
+            <span className="text-lg font-bold leading-none text-accent">{average}</span>
+            <span className="text-[10px] font-bold tracking-wide text-accent">AVG</span>
+          </>
+        ) : inProgress ? (
+          <span className="text-xs font-semibold text-accent">In progress</span>
+        ) : null}
+        <span className="truncate text-[10px] font-semibold tracking-wide text-ink-secondary">
+          ({games} {games === 1 ? "GAME" : "GAMES"})
+        </span>
       </span>
     </button>
   );
@@ -281,9 +287,13 @@ export function RecentSessionStrip({
         label="Recent sessions"
         trailing={
           hasMore && (
-            <Button variant="ghost" onClick={onViewAll}>
-              All in History
-            </Button>
+            <button
+              type="button"
+              onClick={onViewAll}
+              className={`relative text-xs font-semibold text-accent active:opacity-60 ${TAP_TARGET_44}`}
+            >
+              View all
+            </button>
           )
         }
       />

@@ -16,6 +16,9 @@ interface CatalogBallImageProps {
   alt: string;
   brand: Manufacturer;
   size: "thumb" | "full";
+  /** Drop the tile behind the ball, for a strip of balls on the page itself
+   *  where a square behind each round cut-out reads as a frame. */
+  bare?: boolean;
 }
 
 /** Ball silhouette SVG placeholder, brand-colored, no broken-image glyph. */
@@ -56,7 +59,7 @@ function BallPlaceholder({ brand, size }: { brand: Manufacturer; size: "thumb" |
 // covers a reload served from the HTTP cache.
 const decodedSrcs = new Set<string>();
 
-export function CatalogBallImage({ src, alt, brand, size }: CatalogBallImageProps) {
+export function CatalogBallImage({ src, alt, brand, size, bare = false }: CatalogBallImageProps) {
   // Cached on the first render, so a known source paints opaque immediately
   // rather than starting transparent and being faded in.
   const [wasDecoded] = useState(() => !!src && decodedSrcs.has(src));
@@ -74,7 +77,10 @@ export function CatalogBallImage({ src, alt, brand, size }: CatalogBallImageProp
     // The tile colour is a token, not slate-100: the product shots are cut-outs
     // with transparent surrounds, so a hardcoded light grey was a white card
     // glowing behind every ball in dark mode.
-    <div className="relative w-full overflow-hidden rounded-lg bg-surface-muted" style={{ aspectRatio: "1 / 1" }}>
+    <div
+      className={`relative w-full overflow-hidden ${bare ? "rounded-full" : "rounded-lg bg-surface-muted"}`}
+      style={{ aspectRatio: "1 / 1" }}
+    >
       {/* Cross-fades out as the photo fades in, it has to leave, or the brand
           silhouette shows through the cut-out's transparent surround as a
           second ball, but unmounting it outright left a blank tile for the

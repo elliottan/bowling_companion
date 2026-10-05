@@ -20,8 +20,10 @@ pictures of the balls you carry. Spare lines, lane notes and oil patterns sit
 beside each other as three tiles under it, and the My bowling heading is gone.
 
 **Recent sessions are one sideways row of tiles**, each with the event, the
-alley, the date, the number of games and the average. The games and the lanes
-are in History.
+alley and the date, and the average leading in the accent color beside the
+number of games ("213 AVG (4 GAMES)"). The games and the lanes are in History,
+one tap away under View all. The balls in the arsenal row sit straight on the
+page, with no square behind each one.
 
 **The arsenal's layout button uses the layout lab's icon**, and the layout lab
 opened from a ball shows that ball at the top: its picture, name, weight, core

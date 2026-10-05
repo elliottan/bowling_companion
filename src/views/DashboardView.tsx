@@ -238,7 +238,7 @@ export function DashboardView({
           tiles, and the latest sessions. The tools and reading that are the
           same for everyone follow as a list, because they are a different kind
           of place. */}
-      <div className="mt-5 space-y-4">
+      <div className="mt-5 space-y-3">
         <ArsenalStrip balls={balls} onOpenArsenal={onOpenArsenal} />
         <ProfileTiles
           spareLines={facts?.answeredSpareLines}

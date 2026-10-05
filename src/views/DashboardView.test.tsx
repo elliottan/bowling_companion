@@ -113,7 +113,7 @@ describe("Home (ADR-115)", () => {
     const props = renderHome();
 
     const tile = await screen.findByRole("button", { name: /Open session: Orchid Bowl/ });
-    await waitFor(() => expect(tile).toHaveTextContent("2 games · 191 avg"));
+    await waitFor(() => expect(tile).toHaveTextContent("191AVG(2 GAMES)"));
     expect(tile).toHaveTextContent("League");
     expect(tile).not.toHaveTextContent(/Lane/);
     fireEvent.click(tile);
@@ -143,7 +143,7 @@ describe("Home (ADR-115)", () => {
       await createSession({ date: `2026-09-0${d}`, alley_name: `Alley ${d}` });
     }
     const props = renderHome();
-    fireEvent.click(await screen.findByRole("button", { name: "All in History" }));
+    fireEvent.click(await screen.findByRole("button", { name: "View all" }));
     expect(props.onViewAll).toHaveBeenCalled();
     await waitFor(() => expect(screen.queryAllByRole("button", { name: /Alley 1\b/ })).toHaveLength(0));
   });
