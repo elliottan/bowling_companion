@@ -11,7 +11,7 @@ interface BowlerNameSheetProps {
 }
 
 /**
- * What the bowler wants to be called. Opened from the greeting on Home and from
+ * What the bowler wants to be called. Opened from Home's "Add your name" and from
  * Settings, so the two edit one setting through one sheet. Clearing the field
  * and saving forgets the name, and Home goes back to the greeting alone.
  */

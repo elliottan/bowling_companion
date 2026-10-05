@@ -1,14 +1,19 @@
-import { Eye, Minus, Plus, Trash2 } from "lucide-react";
+import { Check, ChevronLeft, ChevronRight, Crosshair, Eye, Pencil, Trash2 } from "lucide-react";
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import { ErrorBanner } from "./ErrorBanner";
 import { PinGrid } from "./PinGrid";
 import { LaneVisualizerLazy } from "./LaneVisualizerLazy";
+import { SpareLinePickerSheet } from "./SpareLinePickerSheet";
 import { useDriftModel } from "../lib/driftModelContext";
 import { deriveLaydown, deriveSlide, syncStanceLaydown } from "../lib/driftModel";
+import { useHandedness } from "../lib/handednessContext";
+import { formatLeave } from "../lib/pins";
+import type { LeaveStats } from "../lib/stats";
 import { upsertSpareLine } from "../services/ballRepository";
 import type { LineSpec, PinNumber, SpareLine } from "../types/bowling";
 import { Button } from "./ui/Button";
-import { FIELD_DENSE, FIELD_LABEL, FIELD_MICRO_LABEL as floatLabel, FIELD_TEXTAREA } from "./ui/field";
+import { FIELD_DENSE, FIELD_MICRO_LABEL as floatLabel } from "./ui/field";
 import { IconButton } from "./ui/IconButton";
 import { FormSheet } from "./ui/FormSheet";
 
@@ -28,17 +33,33 @@ interface SpareLineFormDialogProps {
   lockPins: boolean;
   initialLine?: LineSpec;
   initialStrikeOffset?: SpareLine["strike_offset"];
+  /** Carried through a save untouched. The field is off the sheet for now,
+   *  and a save must not wipe a note written before it was taken off. */
   initialNotes?: string;
+  /** Opens reading rather than editing, with a pencil to start editing. A save
+   *  from there goes back to reading instead of closing. */
+  startInView?: boolean;
+  /** How the leave has gone, so the sheet can show it beside the deck. Looked
+   *  up by the pins on the deck; omitted, the deck takes the whole row. */
+  leaves?: LeaveStats[];
+  /** Other leaves' saved lines, offered to borrow from while editing. */
+  spareLines?: SpareLine[];
   onSaved: () => void;
   onCancel: () => void;
-  /** When provided, shows a Delete button (edit context only). */
+  /** When provided, shows a Delete button (edit context only). The caller owns
+   *  the confirm, and says it is open through `covered`. */
   onDelete?: () => void;
+  /** A dialog the caller opened is on top of this sheet. */
+  covered?: boolean;
+  /** A failure from something the caller ran for this sheet (the delete). */
+  error?: string;
 }
 
 /**
- * Add/edit dialog for a Spare Line. Mounts fresh per open, callers give it a
- * `key` (e.g. the editing id or leave) so internal state resets. Used by the
- * Spares tab and by the live scorer when capturing a just-converted spare.
+ * A spare line: the leave, how it has gone, and the line for it. Mounts fresh
+ * per open, callers give it a `key` (e.g. the editing id or leave) so internal
+ * state resets. Used by the spare lines screen and Stats, which open it to read
+ * (`startInView`), and by the live scorer when capturing a just-converted spare.
  */
 export function SpareLineFormDialog({
   initialPins,
@@ -46,9 +67,14 @@ export function SpareLineFormDialog({
   initialLine,
   initialStrikeOffset,
   initialNotes,
+  startInView = false,
+  leaves,
+  spareLines,
   onSaved,
   onCancel,
-  onDelete
+  onDelete,
+  covered = false,
+  error: callerError
 }: SpareLineFormDialogProps) {
   const [pins, setPins] = useState<PinNumber[]>(initialPins);
   const [line, setLine] = useState<LineSpec>(initialLine ?? EMPTY_LINE);
@@ -57,23 +83,29 @@ export function SpareLineFormDialog({
     stance: initialStrikeOffset?.stance?.toString() ?? "",
     target: initialStrikeOffset?.target?.toString() ?? ""
   });
-  const [notes, setNotes] = useState(initialNotes ?? "");
+  const [editing, setEditing] = useState(!startInView);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
   const [showViz, setShowViz] = useState(false);
+  const [showPicker, setShowPicker] = useState(false);
   const driftModel = useDriftModel();
 
   const applyLine = (next: LineSpec) => setLine(syncStanceLaydown(line, next, driftModel));
-
-  // Disabled while the nested LaneVisualizer is open (showViz) so Escape and
-  // the focus trap apply only to that topmost overlay, not both at once.
 
   const derivedSlide = line.stance != null ? deriveSlide(line.stance, driftModel) : undefined;
   const derivedLaydown =
     line.laydown ?? (line.stance != null ? deriveLaydown(line.stance, driftModel) : undefined);
 
+  // Lines worth borrowing: another leave's, with a board on it.
+  const key = [...pins].sort((a, b) => a - b).join("-");
+  const borrowable = (spareLines ?? []).filter(
+    (sl) =>
+      sl.pins.join("-") !== key && (sl.line?.stance != null || sl.line?.target != null)
+  );
+
   async function handleSubmit(e?: React.FormEvent) {
     e?.preventDefault();
+    if (!editing) return;
     if (pins.length === 0) {
       setError("Select at least one pin for this leave.");
       return;
@@ -97,10 +129,11 @@ export function SpareLineFormDialog({
       await upsertSpareLine(
         pins,
         spec,
-        notes.trim() || undefined,
+        initialNotes,
         Object.keys(moved).length ? moved : undefined
       );
-      onSaved();
+      if (startInView) setEditing(false);
+      else onSaved();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to save spare line.");
     } finally {
@@ -108,125 +141,152 @@ export function SpareLineFormDialog({
     }
   }
 
+  // The bar's trailing control is the mode: a pencil while reading, which
+  // turns into the tick that saves while editing.
+  const trailing = editing ? (
+    <IconButton
+      variant="confirm"
+      onClick={() => void handleSubmit()}
+      disabled={isSaving}
+      label="Save spare line"
+    >
+      <Check size={20} aria-hidden="true" />
+    </IconButton>
+  ) : (
+    <IconButton variant="round" onClick={() => setEditing(true)} label="Edit spare line">
+      <Pencil size={18} aria-hidden="true" />
+    </IconButton>
+  );
+
+  const stats = leaves && pins.length > 0 ? leaves.find((l) => l.pins.join("-") === key) : undefined;
+
   return (
     <FormSheet
-      title={
-        pins.length === 0
-          ? "Add spare line"
-          : `${pins.length === 1 ? "Pin" : "Pins"} ${pins.join(", ")}`
-      }
+      title={pins.length === 0 ? "Add spare line" : formatLeave(pins)}
       onClose={onCancel}
-      onConfirm={() => void handleSubmit()}
-      confirmLabel="Save spare line"
-      confirmDisabled={isSaving}
-      banner={error ? <ErrorBanner>{error}</ErrorBanner> : undefined}
+      trailing={trailing}
+      active={!showViz && !showPicker && !covered}
+      banner={
+        error || callerError ? <ErrorBanner>{error || callerError}</ErrorBanner> : undefined
+      }
     >
       <form onSubmit={(e) => void handleSubmit(e)} className="space-y-4">
-          <div>
-            {!lockPins && (
-              <p className="mb-2 text-xs text-ink-secondary">
-                Tap the pins left standing.
-              </p>
-            )}
+        <div>
+          {editing && !lockPins && (
+            <p className="mb-2 text-xs text-ink-secondary">Tap the pins left standing.</p>
+          )}
+          {/* The deck does not need the whole width, so the record of the
+              leave sits beside it rather than under the fold. */}
+          {leaves ? (
+            <div className="flex items-center gap-3">
+              <div className="w-[11.5rem] shrink-0">
+                <PinGrid
+                  standingPins={pins}
+                  availablePins={ALL_PINS}
+                  onChange={setPins}
+                  readOnly={lockPins || !editing}
+                  size="sm"
+                />
+              </div>
+              <LeaveRecord stats={stats} empty={pins.length === 0} />
+            </div>
+          ) : (
             <PinGrid
               standingPins={pins}
               availablePins={ALL_PINS}
               onChange={setPins}
-              readOnly={lockPins}
+              readOnly={lockPins || !editing}
             />
-          </div>
+          )}
+        </div>
 
-          <div>
-            <p className={`mb-1 ${eyebrow}`}>Shooting line (boards)</p>
-            <div className="flex items-center gap-1.5">
-              {([["stance", "Stance"], ["target", "Target"]] as const).map(([field, label]) => (
-                <label key={field} className="min-w-0 flex-1">
-                  <span className={floatLabel}>{label}</span>
-                  <input
-                    type="number"
-                    inputMode="decimal"
-                    step="0.5"
-                    value={line[field] ?? ""}
-                    onChange={(e) =>
-                      applyLine({
-                        ...line,
-                        [field]: e.target.value === "" ? undefined : Number(e.target.value)
-                      })
-                    }
-                    className={boardInput}
-                  />
-                </label>
-              ))}
+        <div>
+          {/* The eye sits in the heading row, as on the scorer's line. */}
+          <div className="mb-0.5 flex items-center justify-between gap-2">
+            <span className={eyebrow}>Shooting line</span>
+            <div className="flex items-center gap-1">
+              {editing && borrowable.length > 0 && (
+                <IconButton
+                  compact
+                  label="Use another leave's line"
+                  title="Copy a saved spare line onto this leave"
+                  onClick={() => setShowPicker(true)}
+                >
+                  <Crosshair size={14} aria-hidden="true" />
+                </IconButton>
+              )}
               <IconButton
-                onClick={() => setShowViz(true)}
+                compact
                 label="View line on the lane"
-                className="h-9 w-9 shrink-0 border border-edge bg-surface-muted text-ink-secondary"
+                title="View the line on the lane"
+                onClick={() => setShowViz(true)}
               >
-                <Eye size={16} aria-hidden="true" />
+                <Eye size={14} aria-hidden="true" />
               </IconButton>
             </div>
-            {(derivedSlide != null || derivedLaydown != null) && (
-              <button
-                type="button"
-                onClick={() => setShowViz(true)}
-                title="Derived from your stance. Tap to see it on the lane."
-                className="mt-1 flex w-full flex-wrap items-center gap-x-1 text-left text-[11px] font-semibold uppercase tracking-[0.01em] text-ink-secondary tabular-nums hover:text-accent"
-              >
-                {derivedSlide != null && <span className="whitespace-nowrap">Slide {derivedSlide}</span>}
-                {derivedSlide != null && derivedLaydown != null && (
-                  <span aria-hidden="true" className="text-ink-tertiary">→</span>
-                )}
-                {derivedLaydown != null && (
-                  <span className="whitespace-nowrap">Laydown {derivedLaydown}</span>
-                )}
-              </button>
-            )}
-            <p className="mt-2 text-xs text-ink-secondary">
-              Tap the eye to open the lane and set the target, hook strength and depth.
-            </p>
           </div>
-
-          {/* The strike-ball answer to the same leave, stored as a move rather
-              than boards: "two right of wherever I am playing" survives the
-              lane changing under you, and follows you across strike balls.
-              ADR-053. */}
-          <div>
-            <p className={`mb-1 ${eyebrow}`}>Strike ball move (boards)</p>
-            <div className="flex items-center gap-1.5">
-              {(["stance", "target"] as const).map((field) => (
-                <MoveStepper
-                  key={field}
-                  label={field}
-                  value={move[field]}
-                  onChange={(next) => setMove((m) => ({ ...m, [field]: next }))}
+          <div className="flex items-center gap-1.5">
+            {([["stance", "Stance"], ["target", "Target"]] as const).map(([field, label]) => (
+              <label key={field} className="min-w-0 flex-1">
+                <span className={floatLabel}>{label}</span>
+                <input
+                  type="number"
+                  inputMode="decimal"
+                  step="0.5"
+                  readOnly={!editing}
+                  placeholder={editing ? undefined : "-"}
+                  value={line[field] ?? ""}
+                  onChange={(e) =>
+                    applyLine({
+                      ...line,
+                      [field]: e.target.value === "" ? undefined : Number(e.target.value)
+                    })
+                  }
+                  className={boardInput}
                 />
-              ))}
-            </div>
-            <p className="mt-2 text-xs text-ink-secondary">
-              Where to stand and aim relative to your strike line for this leave.
-              Positive moves up the boards; blank uses the line above.
-            </p>
+              </label>
+            ))}
           </div>
+          {(derivedSlide != null || derivedLaydown != null) && (
+            <button
+              type="button"
+              onClick={() => setShowViz(true)}
+              title="Derived from your stance. Tap to see it on the lane."
+              className="mt-1 flex w-full flex-wrap items-center gap-x-1 text-left text-[11px] font-semibold uppercase tracking-[0.01em] text-ink-secondary tabular-nums active:text-accent"
+            >
+              {derivedSlide != null && <span className="whitespace-nowrap">Slide {derivedSlide}</span>}
+              {derivedSlide != null && derivedLaydown != null && (
+                <span aria-hidden="true" className="text-ink-tertiary">→</span>
+              )}
+              {derivedLaydown != null && (
+                <span className="whitespace-nowrap">Laydown {derivedLaydown}</span>
+              )}
+            </button>
+          )}
+        </div>
 
-          {/* The note was stored and carried through every save, and never
-              shown, so a line saved with one looked like a line without. */}
-          <div>
-            <label htmlFor="spare-line-notes" className={FIELD_LABEL}>
-              Notes <span className="font-normal text-ink-secondary">(optional)</span>
-            </label>
-            <textarea
-              id="spare-line-notes"
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              rows={2}
-              placeholder="What this leave needs: speed, hand, which ball…"
-              className={FIELD_TEXTAREA}
-            />
+        {/* The strike-ball answer to the same leave, stored as a move rather
+            than boards: "two right of wherever I am playing" survives the
+            lane changing under you, and follows you across strike balls.
+            ADR-053. */}
+        <div>
+          <p className={`mb-0.5 ${eyebrow}`}>Strike ball move</p>
+          <div className="flex items-center gap-1.5">
+            {(["stance", "target"] as const).map((field) => (
+              <MoveStepper
+                key={field}
+                label={field}
+                value={move[field]}
+                readOnly={!editing}
+                onChange={(next) => setMove((m) => ({ ...m, [field]: next }))}
+              />
+            ))}
           </div>
+        </div>
 
-        {/* Delete lives in the body, above the fold, as a danger-ghost button:
-            the sheet's bar carries the commit, and a destructive action never
-            shares that slot (DESIGN-LANGUAGE §1). */}
+        {/* Delete lives at the foot of the body as a danger-ghost button: the
+            sheet's bar carries the commit, and a destructive action never
+            shares that slot (DESIGN-LANGUAGE §1). The caller confirms it. */}
         {onDelete && (
           <Button
             variant="danger-ghost"
@@ -250,11 +310,64 @@ export function SpareLineFormDialog({
           line={line}
           leave={pins}
           spare
-          onChange={(l) => applyLine(l ?? {})}
+          // Reading, the lane only shows the line: changes there are edits,
+          // and edits start at the pencil.
+          onChange={editing ? (l) => applyLine(l ?? {}) : undefined}
           onClose={() => setShowViz(false)}
         />
       )}
+
+      {/* A copy, not a link: the boards land in the fields, and from then on
+          this leave's line is its own to change. Portalled so the sheet's own
+          panel, which moves on a transform while dragged, is not its frame. */}
+      {showPicker &&
+        createPortal(
+          <SpareLinePickerSheet
+            spareLines={borrowable}
+            onPick={(picked) => {
+              applyLine({ ...line, ...picked });
+              setShowPicker(false);
+            }}
+            onClose={() => setShowPicker(false)}
+          />,
+          document.body
+        )}
     </FormSheet>
+  );
+}
+
+/** How the leave has gone: the rate, made over chances, and how often it was
+ *  left. The same numbers as its cell on Stats. */
+function LeaveRecord({ stats, empty }: { stats?: LeaveStats; empty: boolean }) {
+  if (empty) return null;
+  if (!stats) {
+    return <p className="min-w-0 flex-1 text-xs text-ink-secondary">Not left in a recorded game yet.</p>;
+  }
+  return (
+    <dl className="min-w-0 flex-1 space-y-2">
+      <div>
+        <dt className={eyebrow}>Converted</dt>
+        <dd
+          className={`text-2xl font-bold leading-tight tabular-nums ${
+            stats.conversionPct !== null && stats.conversionPct >= 70 ? "text-accent" : "text-ink"
+          }`}
+        >
+          {stats.conversionPct !== null ? `${stats.conversionPct}%` : "-"}
+        </dd>
+      </div>
+      <div>
+        <dt className={eyebrow}>Made</dt>
+        <dd className="text-sm font-semibold tabular-nums text-ink">
+          {stats.conversions}/{stats.chances}
+        </dd>
+      </div>
+      <div>
+        <dt className={eyebrow}>Left</dt>
+        <dd className="text-sm font-semibold tabular-nums text-ink">
+          {stats.attempts} {stats.attempts === 1 ? "time" : "times"}
+        </dd>
+      </div>
+    </dl>
   );
 }
 
@@ -274,16 +387,23 @@ const MOVE_LIMIT = 20;
  * a board each, through zero, in both directions. The box still takes typing
  * (kept as text, so a lone "-" survives while the digits after it are typed)
  * for anyone who has a minus key.
+ *
+ * The arrows point the way the move goes on screen, as the scorer's do: up the
+ * boards is screen-left for a right-hander and screen-right for a left-hander.
  */
 function MoveStepper({
   label,
   value,
+  readOnly,
   onChange
 }: {
   label: string;
   value: string;
+  readOnly: boolean;
   onChange: (next: string) => void;
 }) {
+  const handedness = useHandedness();
+  const leftIsUp = handedness === "right";
   const nudge = (delta: number) => {
     const current = value.trim() === "" || !Number.isFinite(Number(value)) ? 0 : Number(value);
     const next = Math.min(MOVE_LIMIT, Math.max(-MOVE_LIMIT, current + delta));
@@ -291,35 +411,37 @@ function MoveStepper({
     onChange(String(Math.round(next / MOVE_STEP) * MOVE_STEP));
   };
 
+  const arrow = (side: "left" | "right") => {
+    const up = (side === "left") === leftIsUp;
+    const Icon = side === "left" ? ChevronLeft : ChevronRight;
+    return (
+      <button
+        type="button"
+        aria-label={`${label} move ${up ? "up" : "down"} half a board`}
+        onClick={() => nudge(up ? MOVE_STEP : -MOVE_STEP)}
+        className="flex w-8 shrink-0 items-center justify-center text-ink-strong active:bg-edge"
+      >
+        <Icon size={14} strokeWidth={3} aria-hidden="true" />
+      </button>
+    );
+  };
+
   return (
     <label className="min-w-0 flex-1">
       <span className={floatLabel}>{label}</span>
       <div className="flex h-9 items-stretch overflow-hidden rounded-lg border border-edge-strong bg-surface-muted focus-within:border-accent-fill focus-within:bg-surface">
-        <button
-          type="button"
-          aria-label={`${label} move down half a board`}
-          onClick={() => nudge(-MOVE_STEP)}
-          className="flex w-8 shrink-0 items-center justify-center text-ink-secondary active:bg-edge"
-        >
-          <Minus size={14} aria-hidden="true" />
-        </button>
+        {!readOnly && arrow("left")}
         <input
           type="text"
           inputMode="decimal"
           aria-label={`${label} move`}
-          placeholder="0"
+          placeholder={readOnly ? "-" : "0"}
+          readOnly={readOnly}
           value={value}
           onChange={(e) => onChange(e.target.value)}
           className="min-w-0 flex-1 bg-transparent px-0.5 text-center text-sm font-semibold tabular-nums text-ink placeholder:text-ink-tertiary outline-none"
         />
-        <button
-          type="button"
-          aria-label={`${label} move up half a board`}
-          onClick={() => nudge(MOVE_STEP)}
-          className="flex w-8 shrink-0 items-center justify-center text-ink-secondary active:bg-edge"
-        >
-          <Plus size={14} aria-hidden="true" />
-        </button>
+        {!readOnly && arrow("right")}
       </div>
     </label>
   );

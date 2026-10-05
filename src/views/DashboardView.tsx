@@ -166,8 +166,8 @@ export function DashboardView({
 
   return (
     <section className="mx-auto w-full max-w-xl px-3 pb-24 pt-3 sm:px-6 sm:pt-5">
-      {/* The greeting is the screen's title, and the way to say what you want
-          to be called: Settings holds the same sheet. */}
+      {/* The greeting is the screen's title. It offers a name only while there
+          is none: a name is set once, and changing it lives in Settings. */}
       {/* The top band is the bowler: the app's mark and the greeting on the
           left, their arsenal on the right. The arsenal takes the wider share
           because it carries pictures; the left column has room to grow. */}
@@ -181,18 +181,7 @@ export function DashboardView({
             className="mb-2 h-11 w-11 rounded-xl shadow-sm"
           />
           <h1 className="text-xl font-bold leading-tight text-ink [overflow-wrap:anywhere]">
-            {named ? (
-              <button
-                type="button"
-                onClick={() => setEditingName(true)}
-                title={name ? "Change your name" : undefined}
-                className="text-left active:opacity-60"
-              >
-                {greeting(name, greetingIndex)}
-              </button>
-            ) : (
-              "\u00a0"
-            )}
+            {named ? greeting(name, greetingIndex) : "\u00a0"}
           </h1>
           {named && !name && (
             <button

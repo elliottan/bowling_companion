@@ -18,7 +18,7 @@ async function openSpareLines(page: import("@playwright/test").Page) {
  */
 test("adds a spare line for a leave, stores its boards, and deletes it", async ({ page }) => {
   await openSpareLines(page);
-  const seeded = page.getByRole("button", { name: /^Edit spare line for pins/ });
+  const seeded = page.getByRole("button", { name: /^Open spare line for pins/ });
   await expect(seeded).toHaveCount(9);
 
   await page.getByRole("button", { name: "Add spare" }).click();
@@ -27,7 +27,7 @@ test("adds a spare line for a leave, stores its boards, and deletes it", async (
   await page.getByRole("button", { name: /Pin 10 (down|standing)/ }).click();
   await page.getByRole("button", { name: "Save spare line" }).click();
 
-  const card = page.getByRole("button", { name: "Edit spare line for pins 3, 10" });
+  const card = page.getByRole("button", { name: "Open spare line for pins 3, 10" });
   await expect(card).toBeVisible();
 
   // Reopening reads back what was stored, rather than the form's own state.
@@ -35,9 +35,9 @@ test("adds a spare line for a leave, stores its boards, and deletes it", async (
   // a reload lands straight back on it.
   await page.reload();
   await expect(page).toHaveURL(/#\/home\/spares$/);
-  await expect(page.getByRole("button", { name: "Edit spare line for pins 3, 10" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Open spare line for pins 3, 10" })).toBeVisible();
 
-  await page.getByRole("button", { name: "Edit spare line for pins 3, 10" }).click();
+  await page.getByRole("button", { name: "Open spare line for pins 3, 10" }).click();
   await page.getByRole("button", { name: "Delete spare line for pins 3, 10" }).click();
 
   // A line is tuned over a season and there is no undo behind it, so the delete
@@ -48,6 +48,6 @@ test("adds a spare line for a leave, stores its boards, and deletes it", async (
   await expect(confirm).toBeVisible();
   await confirm.getByRole("button", { name: "Delete", exact: true }).click();
 
-  await expect(page.getByRole("button", { name: "Edit spare line for pins 3, 10" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Open spare line for pins 3, 10" })).toHaveCount(0);
   await expect(seeded).toHaveCount(9);
 });

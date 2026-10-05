@@ -77,6 +77,35 @@ export function isWashout(standing: PinNumber[]): boolean {
   return isSplit(standing.filter((p) => p !== 1));
 }
 
+/**
+ * The three groups a leave is read in, easiest first: makeables (ordinary
+ * leaves, baby splits included), washouts (head pin up with a gap behind it),
+ * and real splits. Head pin standing and head pin down are exclusive, so a
+ * leave lands in exactly one. Stats and the spare lines both group by this.
+ */
+export type SpareGroup = "makeable" | "washout" | "split";
+
+export const SPARE_GROUPS: readonly SpareGroup[] = ["makeable", "washout", "split"];
+
+export const SPARE_GROUP_LABEL: Record<SpareGroup, string> = {
+  makeable: "Makeables",
+  washout: "Washouts",
+  split: "Splits"
+};
+
+export function spareGroup(standing: PinNumber[]): SpareGroup {
+  if (isWashout(standing)) return "washout";
+  if (isSplit(standing) && !isBabySplit(standing)) return "split";
+  return "makeable";
+}
+
+/** A leave's name in a title: "Pin 7" for a single pin, "2-4-5-8" for a
+ *  combination, where the numbers alone already say it is pins. */
+export function formatLeave(standing: PinNumber[]): string {
+  const sorted = uniquePins(standing);
+  return sorted.length === 1 ? `Pin ${sorted[0]}` : sorted.join("-");
+}
+
 /** Screen-reader description of a pin diagram. The numerals rendered inside
  *  each pin are decorative, position and fill already carry the meaning, so
  *  the diagram is exposed as a single labeled image using this text. */

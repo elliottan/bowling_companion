@@ -68,6 +68,9 @@ describe("Home (ADR-115)", () => {
     expect(
       await screen.findByRole("heading", { level: 1, name: `${GREETINGS[0]}, Sam` })
     ).toBeInTheDocument();
+    // A name is set once: changing it lives in Settings, not on the greeting.
+    expect(screen.queryByText("Add your name")).toBeNull();
+    expect(screen.queryByRole("button", { name: /Sam/ })).toBeNull();
     vi.restoreAllMocks();
   });
 
