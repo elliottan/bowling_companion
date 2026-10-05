@@ -162,7 +162,9 @@ export function SessionLanePanel({
     >
       <div
         ref={overlayRef}
-        className={`flex h-full w-full max-w-lg flex-col rounded-t-2xl border-t border-edge bg-surface shadow-xl ${
+        // will-change: the panel is one composited layer for the whole slide,
+        // header included, rather than being repainted on every frame of it.
+        className={`flex h-full w-full max-w-lg flex-col rounded-t-2xl border-t border-edge bg-surface shadow-xl will-change-transform ${
           exiting ? "" : "animate-slide-up"
         }`}
         style={
@@ -198,7 +200,17 @@ export function SessionLanePanel({
             when it meant to scroll or tap. The panes sit on top of each other
             and the hidden ones keep their layout, so the sheet can scroll to
             a game while another tab is showing. */}
-        <div className="relative min-h-0 flex-1 overflow-hidden">
+        {/* translateZ(0) gives the panes a composited parent inside the panel.
+            Each pane scrolls, and iOS Safari moves a scrolling box on a layer
+            of its own: without a composited ancestor to hang from, those
+            layers were drawn at their resting place while the panel was still
+            sliding up, so the frames and charts showed over the scorer before
+            the drag handle and the Sheet/Stats/Lanes bar arrived. The swipe
+            track they used to sit in was that ancestor, by accident. */}
+        <div
+          className="relative min-h-0 flex-1 overflow-hidden"
+          style={{ transform: "translateZ(0)" }}
+        >
           {[
             <div key="sheet" className="px-4 py-3">
               <SessionSheetTab
