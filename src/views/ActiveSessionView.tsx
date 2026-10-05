@@ -3,6 +3,7 @@ import { ShareIosIcon } from "../components/icons";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { ActiveGameScorer } from "../components/ActiveGameScorer";
 import { SaveCopyPrompt } from "../components/SaveCopyPrompt";
+import { createPortal } from "react-dom";
 import { ShareCardDialog } from "../components/ShareCardDialog";
 import { ConfirmDialog } from "../components/ConfirmDialog";
 import { ErrorBanner } from "../components/ErrorBanner";
@@ -59,6 +60,10 @@ import type { Frame, Game, OilPattern, SessionSummary } from "../types/bowling";
 import { GROUP_HEADING } from "../components/ui/typography";
 import type { UndoResult } from "../lib/frameController";
 import { alleyLabel } from "../lib/sessionLabels";
+
+
+/** How long a pushed screen takes to slide in (`animate-push-in` in index.css). */
+const PUSH_IN_MS = 280;
 
 interface ActiveSessionViewProps {
   sessionId: number;
@@ -126,7 +131,13 @@ export function ActiveSessionView({
   // A game drill-down lands on the session sheet, scrolled to that game: the
   // question it was asked from ("what did this ball do in game 3") is answered
   // by the frames, not by the scorer parked on one of them.
-  const [showSheet, setShowSheet] = useState(openStatsOnMount || initialGameId != null);
+  const [landOnSheet] = useState(openStatsOnMount || initialGameId != null);
+  const [showSheet, setShowSheet] = useState(false);
+  // Landing on the sheet is staged: the screen arrives first, and the sheet
+  // rises once it has. Both at once (the push sliding in, the sheet sliding
+  // up, and the scorer and the stats charts mounting in the same commit) is
+  // what made opening a finished session stutter.
+  const [landed, setLanded] = useState(false);
   // Captured at mount: the drill-down flags are one-shot, and the reset lands
   // in the same commit as the loaded session, so reading the prop later would
   // find it already cleared and the sheet would open with nothing lit.
@@ -145,6 +156,8 @@ export function ActiveSessionView({
   const headerRef = useRef<HTMLElement>(null);
   const [sheetTop, setSheetTop] = useState(0);
   const [showEdit, setShowEdit] = useState(false);
+  // The screen is on its way out: the sheet slides down with it.
+  const [leaving, setLeaving] = useState(false);
   // Frame handed to the scorer when one is tapped in the session sheet.
   const [focusFrame, setFocusFrame] = useState<{ frameNumber: number; shotIndex: number; token: number } | undefined>();
 
@@ -210,6 +223,18 @@ export function ActiveSessionView({
     () => sessionDetails?.games.find((g) => g.id === activeGameId) ?? null,
     [activeGameId, sessionDetails]
   );
+
+  const loaded = sessionDetails != null;
+  useEffect(() => {
+    if (!landOnSheet || landed || !loaded) return;
+    // A push waits out its own slide-in; a tab has none, so one frame for the
+    // screen to paint is enough.
+    const t = window.setTimeout(() => {
+      setLanded(true);
+      setShowSheet(true);
+    }, mode === "push" ? PUSH_IN_MS : 16);
+    return () => window.clearTimeout(t);
+  }, [landOnSheet, landed, loaded, mode]);
 
   // The panel rises to just under the game chips, so it follows them: measured
   // when it opens, and again whenever anything could have moved them (a
@@ -548,14 +573,10 @@ export function ActiveSessionView({
             variant="round"
             className="shrink-0"
             onClick={() => {
-              if (showSheet) {
-                // Close the sheet first: it portals to body after the edit
-                // dialog, so it would otherwise paint on top of it.
-                setShowSheet(false);
-                setShowEdit(true);
-              } else {
-                openSheet("sheet");
-              }
+              // The editor opens over the sheet rather than closing it: both are
+              // portalled to the body, and the editor sits above.
+              if (showSheet) setShowEdit(true);
+              else openSheet("sheet");
             }}
           >
             <Pencil size={16} aria-hidden="true" />
@@ -753,11 +774,6 @@ export function ActiveSessionView({
         onCancel={() => setConfirmDeleteGame(null)}
       />
 
-      <ShareCardDialog
-        open={shareOpen}
-        card={shareCard}
-        onClose={() => setShareOpen(false)}
-      />
 
       {showSheet && (
         <SessionLanePanel
@@ -775,10 +791,25 @@ export function ActiveSessionView({
             setShowSheet(false);
           }}
           onClose={() => setShowSheet(false)}
+          active={!shareOpen && !showEdit}
+          leaving={leaving}
         />
       )}
 
-      <SessionFormDialog
+      {/* Portalled to the body, like the sheet, and above it: a dialog inside
+          the pushed screen shares that screen's stacking context, and painted
+          under the sheet whatever its z-index. Share and edit open over the
+          sheet and leave it where it was. */}
+      {createPortal(
+        <ShareCardDialog
+          open={shareOpen}
+          card={shareCard}
+          onClose={() => setShareOpen(false)}
+        />,
+        document.body
+      )}
+
+      {createPortal(<SessionFormDialog
         open={showEdit}
         title="Edit session"
         submitLabel="Save"
@@ -791,7 +822,7 @@ export function ActiveSessionView({
         }}
         onSubmit={handleSaveEdit}
         onCancel={() => setShowEdit(false)}
-      />
+      />, document.body)}
 
       {/* Lanes save as you type, so the sheet carries a close and no commit. */}
       {showLaneEditor && (
@@ -865,6 +896,8 @@ export function ActiveSessionView({
     <PushScreen
       title="Session"
       onBack={onBack}
+      // The sheet is portalled out of the screen, so it is told to go with it.
+      onLeave={() => setLeaving(true)}
       active={
         !showSheet && !shareOpen && !showEdit && !showLaneEditor && confirmDeleteGame === null
       }

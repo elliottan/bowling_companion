@@ -19,7 +19,6 @@ import { CatalogBallImage } from "./CatalogBallImage";
 import { LaneNotesTab } from "./LaneNotesTab";
 import { MiniPins } from "./MiniPins";
 import { Stats } from "./Stats";
-import { SwipePanes } from "./SwipePanes";
 import { SegmentedControl } from "./ui/SegmentedControl";
 
 import type { PanelSelection, SessionPanelTab } from "../lib/sessionPanel";
@@ -48,6 +47,13 @@ interface SessionLanePanelProps {
   /** Tap a frame in the sheet to jump to it in score entry. */
   onSelectFrame?: (gameId: number, frameNumber: number, shotIndex: number) => void;
   onClose: () => void;
+  /** False while a dialog the screen opened (the share, the session editor)
+   *  is up over the panel, so Escape and the focus trap are that dialog's. */
+  active?: boolean;
+  /** The screen under the panel is leaving: slide down with it, and take no
+   *  taps. The panel stays mounted until the screen unmounts it, so its back
+   *  entry goes with the screen's in one step (useHistoryRoute's goBack). */
+  leaving?: boolean;
 }
 
 function formatLine(line?: LineSpec): string | null {
@@ -57,7 +63,7 @@ function formatLine(line?: LineSpec): string | null {
 }
 
 /**
- * Bottom-sheet "cheat sheet" with three swipeable tabs: the session sheet
+ * Bottom-sheet "cheat sheet" with three tabs: the session sheet
  * (every first-ball shot, current game first), per-session stats, and lane
  * notes for this alley.
  *
@@ -79,7 +85,9 @@ export function SessionLanePanel({
   onSelectionChange,
   highlightBallId,
   onSelectFrame,
-  onClose
+  onClose,
+  active = true,
+  leaving = false
 }: SessionLanePanelProps) {
   const [ownTab, setOwnTab] = useState<SessionPanelTab>(defaultTab);
   const tab = tabProp ?? ownTab;
@@ -129,7 +137,7 @@ export function SessionLanePanel({
 
   // Escape + focus trap + focus restore, tied to the animated dismissal rather
   // than `onClose`, so Escape plays the same exit as the drag.
-  const overlayRef = useOverlay<HTMLDivElement>(requestClose);
+  const overlayRef = useOverlay<HTMLDivElement>(requestClose, active);
 
   const currentGame = summary.games.find((g) => g.id === currentGameId);
   const currentLanes = currentGame?.lanes ?? (currentGame?.lane_number ? [currentGame.lane_number] : []);
@@ -139,9 +147,9 @@ export function SessionLanePanel({
 
   const tabs: SessionPanelTab[] = ["sheet", "stats", "lanes"];
 
-  // Portal to body: callers can live inside SwipePanes, whose translateX
-  // transform would otherwise become the containing block for this fixed
-  // overlay and shove it off-screen.
+  // Portal to body: a transformed ancestor (a pushed screen sliding in) would
+  // otherwise become the containing block for this fixed overlay and shove it
+  // off-screen.
   return createPortal(
     // Starts at `top`, not at the top of the screen: the header and the chips
     // above it stay live, so a tap on them reaches the screen rather than a
@@ -150,14 +158,18 @@ export function SessionLanePanel({
       className="fixed inset-x-0 bottom-0 z-50 flex justify-center overflow-hidden"
       role="dialog"
       aria-label="Session sheet"
-      style={{ ...rootStyle, top }}
+      style={{ ...rootStyle, top, ...(leaving && { pointerEvents: "none" as const }) }}
     >
       <div
         ref={overlayRef}
         className={`flex h-full w-full max-w-lg flex-col rounded-t-2xl border-t border-edge bg-surface shadow-xl ${
           exiting ? "" : "animate-slide-up"
         }`}
-        style={panelStyle}
+        style={
+          leaving
+            ? { ...panelStyle, transform: "translateY(100%)", transition: "transform 220ms cubic-bezier(0.32, 0.72, 0, 1)" }
+            : panelStyle
+        }
       >
         <div
           className="flex touch-none cursor-grab justify-center pb-1 pt-2 active:cursor-grabbing"
@@ -181,39 +193,49 @@ export function SessionLanePanel({
           />
         </div>
 
-        <div className="min-h-0 flex-1 overflow-hidden">
-          <SwipePanes
-            className="h-full"
-            index={tabs.indexOf(tab)}
-            onIndexChange={(i) => setTab(tabs[i])}
-            panes={[
-              <div key="sheet" className="px-4 py-3">
-                <SessionSheetTab
-                  summary={summary}
-                  currentGameId={currentGameId}
-                  focusGameId={focusGameId}
-                  focusToken={selection.token}
-                  highlight={highlight}
-                  onSelectFrame={onSelectFrame}
-                />
-              </div>,
-              <div key="stats" className="px-4 py-3">
-                {/* Two different questions, two answers. A game chip above
-                    scopes these numbers to that game and stays put. A game
-                    picked out of a chart or a ball's column is a request to
-                    see it, so that one goes to the sheet. */}
-                <StatsTab
-                  summary={summary}
-                  gameId={selection.gameId}
-                  onGoToGame={goToGame}
-                  onClearGame={() => chooseGame(undefined)}
-                />
-              </div>,
-              <div key="lanes" className="px-4 py-3">
-                <LaneNotesTab alley={summary.session.alley_name} currentLanes={sortedLanes} />
-              </div>
-            ]}
-          />
+        {/* The tabs switch with the control above, not a sideways swipe: a
+            swipe across a sheet full of frames and charts kept changing tab
+            when it meant to scroll or tap. The panes sit on top of each other
+            and the hidden ones keep their layout, so the sheet can scroll to
+            a game while another tab is showing. */}
+        <div className="relative min-h-0 flex-1 overflow-hidden">
+          {[
+            <div key="sheet" className="px-4 py-3">
+              <SessionSheetTab
+                summary={summary}
+                currentGameId={currentGameId}
+                focusGameId={focusGameId}
+                focusToken={selection.token}
+                highlight={highlight}
+                onSelectFrame={onSelectFrame}
+              />
+            </div>,
+            <div key="stats" className="px-4 py-3">
+              {/* Two different questions, two answers. A game chip above
+                  scopes these numbers to that game and stays put. A game
+                  picked out of a chart or a ball's column is a request to
+                  see it, so that one goes to the sheet. */}
+              <StatsTab
+                summary={summary}
+                gameId={selection.gameId}
+                onGoToGame={goToGame}
+                onClearGame={() => chooseGame(undefined)}
+              />
+            </div>,
+            <div key="lanes" className="px-4 py-3">
+              <LaneNotesTab alley={summary.session.alley_name} currentLanes={sortedLanes} />
+            </div>
+          ].map((pane, i) => (
+            <div
+              key={tabs[i]}
+              aria-hidden={tabs[i] !== tab}
+              className={`absolute inset-0 overflow-y-auto overscroll-contain ${
+                tabs[i] === tab ? "" : "invisible"
+              }`}
+            >
+              {pane}
+            </div>
+          ))}
         </div>
       </div>
     </div>,

@@ -235,6 +235,61 @@ test("a finished session opened from History pushes, and back returns to History
   await expect(page.getByRole("dialog", { name: "Session", exact: true })).toHaveCount(0);
 });
 
+test("the screen's own back, with the session sheet up, leaves cleanly", async ({ page }) => {
+  await startSession(page, "Chevron Lanes");
+  for (let i = 0; i < 12; i++) await recordShot(page, []);
+  await expect(page.getByRole("button", { name: RECORD_SHOT })).toHaveCount(0);
+  await waitForScoresPersisted(page);
+
+  await page.goto("/score/#/history");
+  await page.getByRole("button", { name: /Chevron Lanes/ }).click();
+  const sheet = page.getByRole("dialog", { name: "Session sheet" });
+  await expect(sheet).toBeVisible();
+
+  // The sheet leaves the header above it live, back chevron included. That
+  // back used to pop only the sheet's history entry: the sheet closed, the
+  // screen played its exit and stayed mounted, invisible, over History, and
+  // nothing under it answered a tap again.
+  await page.getByRole("dialog", { name: "Session", exact: true })
+    .getByRole("button", { name: "Back", exact: true })
+    .click();
+  await expect(page).toHaveURL(/#\/history$/);
+  await expect(page.getByRole("dialog", { name: "Session", exact: true })).toHaveCount(0);
+  await expect(sheet).toHaveCount(0);
+
+  // And the screen underneath still works.
+  await page.getByRole("button", { name: /Chevron Lanes/ }).click();
+  await expect(page.getByRole("dialog", { name: "Session", exact: true })).toBeVisible();
+});
+
+test("share opens over the session sheet, and back closes one layer at a time", async ({ page }) => {
+  await startSession(page, "Layer Lanes");
+  for (let i = 0; i < 12; i++) await recordShot(page, []);
+  await expect(page.getByRole("button", { name: RECORD_SHOT })).toHaveCount(0);
+  await waitForScoresPersisted(page);
+
+  await page.goto("/score/#/history");
+  await page.getByRole("button", { name: /Layer Lanes/ }).click();
+  const sheet = page.getByRole("dialog", { name: "Session sheet" });
+  await expect(sheet).toBeVisible();
+
+  await page.getByRole("button", { name: "Share this session" }).click();
+  const share = page.getByRole("dialog", { name: "Share image" });
+  await expect(share).toBeVisible();
+  // On top: the share's own controls take the tap, not the sheet under it.
+  await expect(share.getByRole("button").first()).toBeEnabled();
+  await share.getByRole("button").first().click({ trial: true });
+  await expect(sheet).toBeVisible();
+
+  await page.goBack();
+  await expect(share).toHaveCount(0);
+  await expect(sheet).toBeVisible();
+
+  await page.goBack();
+  await expect(sheet).toHaveCount(0);
+  await expect(page).toHaveURL(/#\/history\/session\/\d+$/);
+});
+
 test("a session with a game still to finish opens in the Active tab", async ({ page }) => {
   await startSession(page, "Bowling Lanes");
   await recordShot(page, []); // one frame, ten still to go

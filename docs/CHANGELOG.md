@@ -3,12 +3,28 @@
 User-visible changes, newest first, in the spirit of
 [Keep a Changelog](https://keepachangelog.com).
 
-No version has been cut since `0.1.0`, and none is planned: the app deploys on
-merge to `main` (`docs/DEPLOYMENT.md`), so every section below is a dated batch
-of shipped work rather than a release. Thirty of them used to be headed
-`[Unreleased]`, which said nothing once they had all shipped.
+The app deploys on merge to `main` (`docs/DEPLOYMENT.md`), and from `0.2.0`
+every merge bumps the version, so a section is headed with the version it
+shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
+Thirty of them used to be headed `[Unreleased]`, which said nothing once they
+had all shipped.
 
-## Spare lines stack by line, suggest copies, and filter (2026-10-05)
+## 0.2.0: Spare lines stack by line, the session sheet stays put (2026-10-05)
+
+**Back from a session with its sheet up works.** The back arrow above the
+session sheet used to close the sheet and leave an invisible copy of the
+session over the screen underneath, so nothing answered a tap until the app
+was reopened. It now leaves the session, and the sheet slides away with it.
+
+**Share and Edit open over the session sheet.** They used to open behind it,
+or close it first. The sheet stays where it was, and back closes the dialog
+first, then the sheet.
+
+**The session sheet changes tab only with its Sheet, Stats and Lanes
+control.** A sideways swipe no longer switches tab.
+
+**Opening a finished session is smoother.** The session slides in first, and
+its sheet rises once it has, instead of both at once.
 
 **Leaves thrown with the same line share a tile.** When two leaves have the
 same stance and target, the spare lines screen shows them as one stacked tile

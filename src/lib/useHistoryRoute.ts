@@ -131,7 +131,9 @@ export function useHistoryRoute(state: NavState, dispatch: (action: NavAction) =
    * phantom `history.back()` that sank the first attempt cannot happen.
    *
    * Sheets are modal, so no route change can land on top of the sentinel while
-   * it is up; it is always the entry back reaches first.
+   * it is up; it is always the entry back reaches first. The one way past it
+   * is a screen's own back with a non-modal sheet up, which `goBack` steps
+   * over the sentinel for.
    */
   useEffect(() => {
     const anyOpen = openSheets.length > 0;
@@ -140,7 +142,7 @@ export function useHistoryRoute(state: NavState, dispatch: (action: NavAction) =
       depth.current += 1;
       // Same hash as the entry underneath: opening a sheet is not a place.
       window.history.pushState({ depth: depth.current, sheet: true }, "", window.location.hash);
-    } else if (!anyOpen && sentinel.current) {
+    } else if (!anyOpen && sentinel.current && !consumingSentinel.current) {
       // Closed from inside the app (a Cancel button, Escape, a drag): collect
       // the entry so it is not left for a later back to eat.
       consumingSentinel.current = true;
@@ -156,6 +158,26 @@ export function useHistoryRoute(state: NavState, dispatch: (action: NavAction) =
    */
   return useCallback(
     (fallback: NavAction) => {
+      if (sentinel.current) {
+        // A screen's own back pressed with a sheet still up. Most sheets are
+        // modal and cover that control, but the session sheet leaves its
+        // screen's header live. A plain back() here popped only the sentinel:
+        // the sheet closed, the route stayed, and the screen that had already
+        // played its exit was left invisible on top, taking every tap. Step
+        // over the sentinel to the screen's own entry instead; the sheet goes
+        // with the screen that owns it.
+        if (depth.current > 1) {
+          sentinel.current = false;
+          depth.current -= 1;
+          window.history.go(-2);
+        } else {
+          // Nothing of ours under the sentinel: collect it, and dispatch.
+          consumingSentinel.current = true;
+          window.history.back();
+          dispatch(fallback);
+        }
+        return;
+      }
       if (depth.current > 0) window.history.back();
       else dispatch(fallback);
     },

@@ -76,5 +76,11 @@ skips the commit whenever the grep exits non-zero, silently.
 - Changing **scoring**, the **data model**, or **import/merge** rules adds a new
   ADR to `docs/DECISIONS.md` (never edit an accepted one) and a `CHANGELOG.md`
   entry, in the same PR.
+- Every merge to `main` bumps the app version, in the same PR: `npm version
+  <x.y.z> --no-git-tag-version` (it keeps `package.json` and `package-lock.json`
+  in step), and the PR's `CHANGELOG.md` section is headed with that version.
+  Minor for anything a bowler can see or do that is new, patch for fixes only.
+  Settings shows the version (`__APP_VERSION__`), and it is how a bug report
+  says which build it came from, so two deploys never share one.
 - UI work follows `docs/DESIGN-LANGUAGE.md` rather than inventing chrome.
 - Never write an em dash, in code, comments, docs, copy or commits.
