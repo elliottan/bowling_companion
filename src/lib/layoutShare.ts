@@ -37,7 +37,7 @@ import {
   type DualAngleLayout,
   type PapMeasurement
 } from "./ballLayout";
-import type { Ball, GripStyle, Handedness, LayoutSystem } from "../types/bowling";
+import type { Ball, BallCatalogSnapshot, GripStyle, Handedness, LayoutSystem } from "../types/bowling";
 
 /** Everything a shared link carries: the layout, the ball, the bowler. */
 export interface SharedLayout {
@@ -150,6 +150,10 @@ export interface LayoutSeed extends SharedLayout {
   system?: LayoutSystem;
   /** The ball these numbers are drilled on, so the lab can say so. */
   ballName?: string;
+  /** Its weight in pounds, where the arsenal holds one. */
+  ballWeight?: number;
+  /** Its catalog card (core, cover, numbers, picture), where it is linked. */
+  ballSnapshot?: BallCatalogSnapshot;
 }
 
 /**
@@ -161,7 +165,7 @@ export interface LayoutSeed extends SharedLayout {
  * was drilled for, and that is as true of your own ball as of a link.
  */
 export function layoutSeedFromBall(
-  ball: Pick<Ball, "name" | "layout_spec">,
+  ball: Pick<Ball, "name" | "layout_spec" | "weight" | "catalog_snapshot">,
   bowler: { pap: PapMeasurement; hand: Handedness; grip: GripStyle },
   system: LayoutSystem
 ): LayoutSeed | null {
@@ -174,6 +178,8 @@ export function layoutSeedFromBall(
     hand: bowler.hand,
     grip: bowler.grip,
     system: layoutSystemFor(spec, system),
-    ballName: ball.name
+    ballName: ball.name,
+    ballWeight: ball.weight,
+    ballSnapshot: ball.catalog_snapshot
   };
 }

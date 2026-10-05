@@ -8,6 +8,25 @@ merge to `main` (`docs/DEPLOYMENT.md`), so every section below is a dated batch
 of shipped work rather than a release. Thirty of them used to be headed
 `[Unreleased]`, which said nothing once they had all shipped.
 
+## Home opens on your profile (2026-10-05)
+
+**Home greets you.** The top of Home is a short greeting that changes from
+visit to visit ("Ready to roll", "Find the pocket"), with your name on the end
+if you give one. Tap the greeting, or the Name row in Settings, to say what you
+want to be called.
+
+**Your arsenal shows its balls.** The Arsenal row is a sideways strip of the
+pictures of the balls you carry. Spare lines, lane notes and oil patterns sit
+beside each other as three tiles under it, and the My bowling heading is gone.
+
+**Recent sessions are one sideways row of tiles**, each with the event, the
+alley, the date, the number of games and the average. The games and the lanes
+are in History.
+
+**The arsenal's layout button uses the layout lab's icon**, and the layout lab
+opened from a ball shows that ball at the top: its picture, name, weight, core
+and numbers, in place of the sentence that stood there.
+
 ## Home opens on its menus, empty sessions clean themselves up, and hand and grip get their own page (2026-10-04)
 
 **A session you start and leave with nothing in it is deleted.** No alley, no

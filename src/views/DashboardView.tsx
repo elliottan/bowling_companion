@@ -1,21 +1,15 @@
 import { BookOpen, ChevronRight, Compass, GraduationCap, PlayCircle, Plus, ShieldCheck } from "lucide-react";
-import { PinIcon } from "../components/icons";
-import {
-  BowlingBallIcon,
-  LanePairIcon,
-  LaneViewIcon,
-  OilPatternIcon,
-  SpareLineIcon
-} from "../components/icons";
+import { LaneViewIcon, PinIcon } from "../components/icons";
 import { useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { ErrorBanner } from "../components/ErrorBanner";
 import { SessionFormDialog } from "../components/SessionFormDialog";
 import { alleyLabel } from "../lib/sessionLabels";
-import { GROUP_HEADING } from "../components/ui/typography";
 import { ListGroup, ListRow } from "../components/ui/ListGroup";
 import { Fab, FabRow } from "../components/ui/Fab";
-import { SessionHistory } from "../components/SessionHistory";
+import { ArsenalStrip, ProfileTiles, RecentSessionStrip } from "../components/HomeProfile";
+import { BowlerNameSheet } from "../components/BowlerNameSheet";
+import { GREETINGS, greeting } from "../lib/greeting";
 import { InstallPrompt } from "../components/InstallPrompt";
 import { NextSteps } from "../components/NextSteps";
 import { FeedbackPrompt } from "../components/FeedbackPrompt";
@@ -23,8 +17,10 @@ import { EmptyState } from "../components/ui/EmptyState";
 import { Button } from "../components/ui/Button";
 import { TAP_TARGET_44 } from "../components/ui/Chip";
 import type { NewSessionFormValues } from "../components/SessionForm";
+import { getBalls } from "../services/ballRepository";
 import {
   getBackupNudgeState,
+  getBowlerName,
   getSessionList,
   getSetting,
   setBackupNudgeSnoozedUntil,
@@ -45,7 +41,7 @@ interface DashboardViewProps {
   error?: string;
   resumable?: ResumableGame | null;
   onResume?: () => void;
-  onOpenSession: (sessionId: number) => void;
+  onOpenSession: (sessionId: number, openStats?: boolean) => void;
   onViewAll: () => void;
   activeSessionId?: number | null;
   onOpenCatalog: () => void;
@@ -56,7 +52,6 @@ interface DashboardViewProps {
   onOpenOilPatterns: () => void;
   onOpenSpareLines: () => void;
   onOpenGuides: () => void;
-  onSessionDeleted?: (sessionId: number) => void;
   onOpenBackup: () => void;
 }
 
@@ -68,9 +63,11 @@ const INSTALL_NUDGE_DISMISSED_KEY = "install_nudge_dismissed_at";
  *  before then. */
 const INSTALL_SNOOZE_DAYS = 30;
 
-/** Recent sessions on Home. History is one tap away and holds the rest; three
- *  is enough to find last week's night without Home becoming a second History. */
-const RECENT_LIMIT = 3;
+/** Recent sessions on Home, as one sideways row of tiles. History is one tap
+ *  away and holds the rest, with the games and the lanes; a few weeks of tiles
+ *  is enough to find last week's session without Home becoming a second
+ *  History. */
+const RECENT_LIMIT = 8;
 
 // A stable empty list: `?? []` would be a new array on every render.
 const NO_SESSIONS: SessionSummary[] = [];
@@ -93,10 +90,18 @@ export function DashboardView({
   onOpenOilPatterns,
   onOpenSpareLines,
   onOpenGuides,
-  onSessionDeleted,
   onOpenBackup
 }: DashboardViewProps) {
   const [showForm, setShowForm] = useState(false);
+  const [editingName, setEditingName] = useState(false);
+  // Picked once per visit to Home, so the greeting changes between visits but
+  // holds still while the screen is up.
+  const [greetingIndex] = useState(() => Math.floor(Math.random() * GREETINGS.length));
+  // Wrapped, because an unset name is null and the query not having answered
+  // yet is undefined, and the greeting should not flash between the two.
+  const named = useLiveQuery(async () => ({ name: await getBowlerName() }));
+  const name = named?.name ?? null;
+  const balls = useLiveQuery(() => getBalls());
   const [installPromptOpen, setInstallPromptOpen] = useState(false);
 
   // Live: finishing a game, deleting a session or importing a backup all show
@@ -159,12 +164,35 @@ export function DashboardView({
   // else the one-time feedback ask.
   const stepOwed = !!facts && nextSteps(facts).length > 0;
 
-  const count = (n: number | undefined, one: string, many: string, none: string) =>
-    n == null ? undefined : n === 0 ? none : `${n} ${n === 1 ? one : many}`;
-
   return (
     <section className="mx-auto w-full max-w-xl px-3 pb-24 pt-3 sm:px-6 sm:pt-5">
-      <h1 className="mb-3 text-xl font-bold text-ink">Home</h1>
+      {/* The greeting is the screen's title, and the way to say what you want
+          to be called: Settings holds the same sheet. */}
+      <div className="mb-3">
+        <h1 className="truncate text-xl font-bold text-ink">
+          {named ? (
+            <button
+              type="button"
+              onClick={() => setEditingName(true)}
+              title={name ? "Change your name" : undefined}
+              className="max-w-full truncate text-left active:opacity-60"
+            >
+              {greeting(name, greetingIndex)}
+            </button>
+          ) : (
+            "\u00a0"
+          )}
+        </h1>
+        {named && !name && (
+          <button
+            type="button"
+            onClick={() => setEditingName(true)}
+            className={`relative text-xs font-semibold text-accent active:opacity-60 ${TAP_TARGET_44}`}
+          >
+            Add your name
+          </button>
+        )}
+      </div>
 
       {error && (
         <ErrorBanner className="mb-4">{error}</ErrorBanner>
@@ -205,131 +233,127 @@ export function DashboardView({
         </button>
       ) : null}
 
-      {protection?.kind === "install" && (
-        <div className="mt-3 flex gap-3 rounded-xl border border-warning-200 bg-warning-50 p-3 text-warning-700">
-          <ShieldCheck size={20} aria-hidden="true" className="mt-0.5 shrink-0" />
-          <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold">Keep your scores safe</p>
-            <p className="mt-0.5 text-xs">
-              A browser can clear what this site stores after a week away. On your home screen,
-              Headpin keeps it.
-            </p>
-            <div className="mt-2 flex flex-wrap items-center gap-x-4">
-              <button
-                type="button"
-                onClick={() => setInstallPromptOpen(true)}
-                className={`relative text-xs font-bold underline active:no-underline ${TAP_TARGET_44}`}
-              >
-                Add to Home Screen
-              </button>
-              {protection.backupOwed && (
+      {/* The bowler's own things, as one profile under the greeting: the
+          arsenal as its balls, the three other things a bowler keeps as equal
+          tiles, and the latest sessions. The tools and reading that are the
+          same for everyone follow as a list, because they are a different kind
+          of place. */}
+      <div className="mt-5 space-y-4">
+        <ArsenalStrip balls={balls} onOpenArsenal={onOpenArsenal} />
+        <ProfileTiles
+          spareLines={facts?.answeredSpareLines}
+          laneNotes={facts?.laneNoteCount}
+          oilPatterns={facts?.oilPatternCount}
+          onOpenSpareLines={onOpenSpareLines}
+          onOpenLaneNotes={onOpenLaneNotes}
+          onOpenOilPatterns={onOpenOilPatterns}
+        />
+        {!coldStart && !loadingRecent && (
+          <RecentSessionStrip
+            sessions={recent}
+            activeSessionId={activeSessionId}
+            onOpenSession={onOpenSession}
+            hasMore={sessions.length > RECENT_LIMIT}
+            onViewAll={onViewAll}
+          />
+        )}
+      </div>
+
+      <div className="mt-2">
+        {protection?.kind === "install" && (
+          <div className="mt-3 flex gap-3 rounded-xl border border-warning-200 bg-warning-50 p-3 text-warning-700">
+            <ShieldCheck size={20} aria-hidden="true" className="mt-0.5 shrink-0" />
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-semibold">Keep your scores safe</p>
+              <p className="mt-0.5 text-xs">
+                A browser can clear what this site stores after a week away. On your home screen,
+                Headpin keeps it.
+              </p>
+              <div className="mt-2 flex flex-wrap items-center gap-x-4">
+                <button
+                  type="button"
+                  onClick={() => setInstallPromptOpen(true)}
+                  className={`relative text-xs font-bold underline active:no-underline ${TAP_TARGET_44}`}
+                >
+                  Add to Home Screen
+                </button>
+                {protection.backupOwed && (
+                  <button
+                    type="button"
+                    onClick={onOpenBackup}
+                    className={`relative text-xs font-semibold underline active:no-underline ${TAP_TARGET_44}`}
+                  >
+                    Save a copy
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={dismissInstall}
+                  aria-label="Not now: add to Home Screen"
+                  className={`relative inline-flex min-w-11 items-center justify-center text-xs font-semibold opacity-80 ${TAP_TARGET_44}`}
+                >
+                  Not now
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {protection?.kind === "backup" && (
+          <div
+            className={`mt-3 flex gap-3 rounded-xl border p-3 ${
+              protection.urgency === "overdue"
+                ? "border-danger-200 bg-danger-50 text-danger-700"
+                : "border-warning-200 bg-warning-50 text-warning-700"
+            }`}
+          >
+            <ShieldCheck size={20} aria-hidden="true" className="mt-0.5 shrink-0" />
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-semibold">
+                {nudgeSessionsSince} {nudgeSessionsSince === 1 ? "session" : "sessions"} not backed
+                up. Last backup: {backupAge}.
+              </p>
+              <div className="mt-2 flex items-center gap-4">
                 <button
                   type="button"
                   onClick={onOpenBackup}
-                  className={`relative text-xs font-semibold underline active:no-underline ${TAP_TARGET_44}`}
+                  className={`relative text-xs font-bold underline active:no-underline ${TAP_TARGET_44}`}
                 >
                   Save a copy
                 </button>
-              )}
-              <button
-                type="button"
-                onClick={dismissInstall}
-                aria-label="Not now: add to Home Screen"
-                className={`relative inline-flex min-w-11 items-center justify-center text-xs font-semibold opacity-80 ${TAP_TARGET_44}`}
-              >
-                Not now
-              </button>
+                {/* An installed app that is overdue has no Later. A reminder that
+                    can be put off for ever never reaches the person who most
+                    needs it (ADR-067). */}
+                {protection.canLater && (
+                  <button
+                    type="button"
+                    onClick={handleBackupLater}
+                    className={`relative inline-flex min-w-11 items-center justify-center text-xs font-semibold opacity-80 ${TAP_TARGET_44}`}
+                  >
+                    Later
+                  </button>
+                )}
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {protection?.kind === "backup" && (
-        <div
-          className={`mt-3 flex gap-3 rounded-xl border p-3 ${
-            protection.urgency === "overdue"
-              ? "border-danger-200 bg-danger-50 text-danger-700"
-              : "border-warning-200 bg-warning-50 text-warning-700"
-          }`}
-        >
-          <ShieldCheck size={20} aria-hidden="true" className="mt-0.5 shrink-0" />
-          <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold">
-              {nudgeSessionsSince} {nudgeSessionsSince === 1 ? "session" : "sessions"} not backed
-              up. Last backup: {backupAge}.
-            </p>
-            <div className="mt-2 flex items-center gap-4">
-              <button
-                type="button"
-                onClick={onOpenBackup}
-                className={`relative text-xs font-bold underline active:no-underline ${TAP_TARGET_44}`}
-              >
-                Save a copy
-              </button>
-              {/* An installed app that is overdue has no Later. A reminder that
-                  can be put off for ever never reaches the person who most
-                  needs it (ADR-067). */}
-              {protection.canLater && (
-                <button
-                  type="button"
-                  onClick={handleBackupLater}
-                  className={`relative inline-flex min-w-11 items-center justify-center text-xs font-semibold opacity-80 ${TAP_TARGET_44}`}
-                >
-                  Later
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
+        {/* The setup and safety cards sit under the profile, not between it
+            and the greeting: Home opens on the bowler. */}
+        {stepOwed ? (
+          <NextSteps
+            max={1}
+            onOpenArsenal={onOpenArsenal}
+            onOpenSpareLines={onOpenSpareLines}
+            onOpenOilPatterns={onOpenOilPatterns}
+            onOpenLaneNotes={onOpenLaneNotes}
+          />
+        ) : (
+          <FeedbackPrompt />
+        )}
+      </div>
 
-      {stepOwed ? (
-        <NextSteps
-          max={1}
-          onOpenArsenal={onOpenArsenal}
-          onOpenSpareLines={onOpenSpareLines}
-          onOpenOilPatterns={onOpenOilPatterns}
-          onOpenLaneNotes={onOpenLaneNotes}
-        />
-      ) : (
-        <FeedbackPrompt />
-      )}
-
-      {/* Two lists, because there are two kinds of place here, and a grid of
-          equal tiles said they were one: the things you keep about your own
-          bowling, and the tools and reading that are the same for everyone. */}
-      <div className="mt-6 space-y-5">
-        <ListGroup heading="My bowling">
-          <ListRow
-            icon={BowlingBallIcon}
-            label="Arsenal"
-            ariaLabel="Arsenal"
-            description={count(facts?.ballCount, "ball", "balls", "Add the balls you throw")}
-            onClick={onOpenArsenal}
-          />
-          <ListRow
-            icon={SpareLineIcon}
-            label="Spare lines"
-            ariaLabel="Spare lines"
-            description={count(facts?.answeredSpareLines, "leave", "leaves", "How you shoot each leave")}
-            onClick={onOpenSpareLines}
-          />
-          <ListRow
-            icon={LanePairIcon}
-            label="Lane notes"
-            ariaLabel="Lane notes"
-            description={count(facts?.laneNoteCount, "note", "notes", "What each lane does")}
-            onClick={onOpenLaneNotes}
-          />
-          <ListRow
-            icon={OilPatternIcon}
-            label="Oil patterns"
-            ariaLabel="Oil patterns"
-            description={count(facts?.oilPatternCount, "pattern", "patterns", "The patterns you bowl on")}
-            onClick={onOpenOilPatterns}
-          />
-        </ListGroup>
-
+      <div className="mt-6">
         <ListGroup heading="Tools and reference">
           <ListRow
             icon={Compass}
@@ -362,28 +386,6 @@ export function DashboardView({
         </ListGroup>
       </div>
 
-      {/* Last, under the menus: the lists are where Home sends you, and the
-          sessions are one tap away in History as well. */}
-      {!coldStart && (
-        <div className="mt-6">
-          <div className="mb-2 flex items-center justify-between">
-            <h2 className={GROUP_HEADING}>Recent sessions</h2>
-            {sessions.length > RECENT_LIMIT && (
-              <Button variant="ghost" onClick={onViewAll}>
-                All in History
-              </Button>
-            )}
-          </div>
-          <SessionHistory
-            sessions={recent}
-            isLoading={loadingRecent}
-            onOpenSession={onOpenSession}
-            activeSessionId={activeSessionId}
-            onSessionDeleted={onSessionDeleted}
-          />
-        </div>
-      )}
-
       <FabRow>
         <Fab icon={Plus} label="Start session" onClick={() => setShowForm(true)} />
       </FabRow>
@@ -396,6 +398,8 @@ export function DashboardView({
       />
 
       <InstallPrompt open={installPromptOpen} onClose={() => setInstallPromptOpen(false)} />
+
+      {editingName && <BowlerNameSheet name={name} onClose={() => setEditingName(false)} />}
     </section>
   );
 }

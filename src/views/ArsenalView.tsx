@@ -13,7 +13,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { Eye, GripVertical, Plus } from "lucide-react";
+import { Compass, GripVertical, Plus } from "lucide-react";
 import { BowlingBallIcon } from "../components/icons";
 import { useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
@@ -144,7 +144,8 @@ function SortableBallRow({ ball, onEdit, system, onViewLayout }: SortableBallRow
             title="View layout"
             onClick={() => onViewLayout(ball)}
           >
-            <Eye size={18} aria-hidden="true" />
+            {/* The layout lab's own glyph from Home, since that is where it goes. */}
+            <Compass size={18} aria-hidden="true" />
           </IconButton>
         )}
       </div>

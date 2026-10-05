@@ -30,6 +30,10 @@ const BACKUP_NUDGE_SNOOZED_UNTIL_KEY = "backup_nudge_snoozed_until";
 const PAP_KEY = "pap";
 const GRIP_STYLE_KEY = "grip_style";
 const LAYOUT_SYSTEM_KEY = "layout_system";
+const BOWLER_NAME_KEY = "bowler_name";
+
+/** Longest name Home will greet. A greeting is one line on a phone. */
+export const BOWLER_NAME_MAX = 24;
 
 /** Read a key-value app setting (undefined if unset). */
 export async function getSetting(key: string): Promise<string | undefined> {
@@ -97,6 +101,23 @@ export async function getGripStyle(): Promise<GripStyle | null> {
 
 export async function setGripStyle(value: GripStyle): Promise<void> {
   await setSetting(GRIP_STYLE_KEY, value);
+}
+
+/**
+ * What the bowler wants to be called, for the greeting on Home. Null when never
+ * given, which Home answers with the greeting alone: nobody has to have a name
+ * to keep score.
+ */
+export async function getBowlerName(): Promise<string | null> {
+  const v = (await getSetting(BOWLER_NAME_KEY))?.trim();
+  return v ? v : null;
+}
+
+/** Store the name, or forget it when the field is cleared. */
+export async function setBowlerName(value: string): Promise<void> {
+  const name = value.trim().slice(0, BOWLER_NAME_MAX);
+  if (name) await setSetting(BOWLER_NAME_KEY, name);
+  else await db.settings.delete(BOWLER_NAME_KEY);
 }
 
 /**
