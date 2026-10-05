@@ -15,6 +15,11 @@ had all shipped.
 where it rests and then slid back down. It now rises once and stops. Every
 other sheet and dialog also stops nudging the screen as it opens.
 
+**The session sheet arrives with its handle and tabs.** On an iPhone the
+frames and charts still rose on their own, over the scorer, and the handle and
+the Sheet, Stats and Lanes bar only appeared once the slide ended. The sheet
+now scrolls only once it has come to rest, so it slides up whole.
+
 ## 0.2.1: The session sheet slides up whole (2026-10-05)
 
 **The session sheet arrives in one piece.** On an iPhone, opening the sheet
