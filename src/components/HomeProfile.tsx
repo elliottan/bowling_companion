@@ -55,47 +55,53 @@ function RowHeading({
   );
 }
 
-interface ArsenalStripProps {
+interface ArsenalGridProps {
   balls: Ball[] | undefined;
   onOpenArsenal: () => void;
 }
 
+/** Two rows of four: as many balls as sit beside the greeting at full size. */
+const ARSENAL_SLOTS = 8;
+
 /**
- * The arsenal as a row of its balls. The pictures are the colour on Home: a
- * count of balls says how many, the balls themselves say which.
+ * The arsenal as its balls, beside the greeting. The pictures are the color on
+ * Home: a count of balls says how many, the balls themselves say which.
+ *
+ * It fills row by row and does not scroll. A scroller inside the top band of
+ * the screen would be a second scroll axis under the thumb for a preview whose
+ * job is only to say "these are yours"; the full list is one tap away. A bag
+ * that holds more than the grid shows its overflow as a count in the last slot.
  */
-export function ArsenalStrip({ balls, onOpenArsenal }: ArsenalStripProps) {
-  const count = balls?.length;
+export function ArsenalGrid({ balls, onOpenArsenal }: ArsenalGridProps) {
+  const count = balls?.length ?? 0;
+  const overflow = count > ARSENAL_SLOTS;
+  const shown = balls ? balls.slice(0, overflow ? ARSENAL_SLOTS - 1 : ARSENAL_SLOTS) : [];
   return (
     <section>
-      <RowHeading
-        label="Arsenal"
-        detail={count ? `${count} ${count === 1 ? "ball" : "balls"}` : undefined}
-        onClick={onOpenArsenal}
-      />
+      <RowHeading label="Arsenal" detail={count ? String(count) : undefined} onClick={onOpenArsenal} />
       {balls === undefined ? (
-        <div className="h-16" />
+        <div className="aspect-[2/1]" />
       ) : balls.length === 0 ? (
         <button
           type="button"
           onClick={onOpenArsenal}
-          className="flex h-16 w-full items-center gap-3 rounded-xl border border-dashed border-edge-strong bg-surface px-3 text-left active:bg-surface-muted"
+          className="flex aspect-[2/1] w-full flex-col items-center justify-center gap-1.5 rounded-xl border border-dashed border-edge-strong bg-surface px-3 text-center active:bg-surface-muted"
         >
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-accent-soft text-accent">
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent-soft text-accent">
             <Plus size={18} aria-hidden="true" />
           </span>
-          <span className="text-sm font-semibold text-ink">Add the balls you throw</span>
+          <span className="text-xs font-semibold text-ink">Add the balls you throw</span>
         </button>
       ) : (
-        <ul className={STRIP} aria-label="Balls in your arsenal">
-          {balls.map((ball) => (
-            <li key={ball.id} className="shrink-0">
+        <ul className="grid grid-cols-4 gap-1.5" aria-label="Balls in your arsenal">
+          {shown.map((ball) => (
+            <li key={ball.id}>
               <button
                 type="button"
                 onClick={onOpenArsenal}
                 aria-label={ball.name}
                 title={ball.name}
-                className="block h-14 w-14 rounded-full active:opacity-70"
+                className="block aspect-square w-full rounded-full active:opacity-70"
               >
                 {ball.catalog_snapshot ? (
                   <CatalogBallImage
@@ -107,12 +113,24 @@ export function ArsenalStrip({ balls, onOpenArsenal }: ArsenalStripProps) {
                   />
                 ) : (
                   <span className="flex h-full w-full items-center justify-center rounded-full bg-surface-muted text-ink-tertiary">
-                    <BowlingBallIcon size={24} aria-hidden="true" />
+                    <BowlingBallIcon size={20} aria-hidden="true" />
                   </span>
                 )}
               </button>
             </li>
           ))}
+          {overflow && (
+            <li>
+              <button
+                type="button"
+                onClick={onOpenArsenal}
+                aria-label={`${count - shown.length} more balls`}
+                className="flex aspect-square w-full items-center justify-center rounded-full bg-accent-soft text-sm font-bold tabular-nums text-accent active:opacity-70"
+              >
+                +{count - shown.length}
+              </button>
+            </li>
+          )}
         </ul>
       )}
     </section>

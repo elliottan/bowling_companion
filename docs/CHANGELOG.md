@@ -15,14 +15,16 @@ visit to visit ("Ready to roll", "Find the pocket"), with your name on the end
 if you give one. Tap the greeting, or the Name row in Settings, to say what you
 want to be called.
 
-**Your arsenal shows its balls.** The Arsenal row is a sideways strip of the
-pictures of the balls you carry. Spare lines, lane notes and oil patterns sit
-beside each other as three tiles under it, and the My bowling heading is gone.
+**Your arsenal shows its balls.** Beside the greeting and the app icon, the
+arsenal shows the pictures of the balls you carry, two rows of four; a bigger
+bag shows how many more in the last spot, and a tap opens the arsenal. Spare
+lines, lane notes and oil patterns sit beside each other as three tiles under
+it, and the My bowling heading is gone.
 
 **Recent sessions are one sideways row of tiles**, each with the event, the
 alley and the date, and the average leading in the accent color beside the
 number of games ("213 AVG (4 GAMES)"). The games and the lanes are in History,
-one tap away under View all. The balls in the arsenal row sit straight on the
+one tap away under View all. The balls in the arsenal sit straight on the
 page, with no square behind each one.
 
 **The arsenal's layout button uses the layout lab's icon**, and the layout lab
