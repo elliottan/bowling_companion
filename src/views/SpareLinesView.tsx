@@ -34,6 +34,7 @@ import { getSessionHistory, getSetting, setSetting } from "../services/bowlingRe
 import { calculateCommonLeaves, type LeaveStats } from "../lib/stats";
 import {
   describeMove,
+  hasMove,
   leaveKey,
   matchesFilters,
   mostLeftWithoutLine,
@@ -124,7 +125,9 @@ function SortableStackCard({ id, stack, onOpen }: SortableStackCardProps) {
           </div>
           <DerivedChain line={top.line} model={driftModel} />
         </div>
-      ) : (
+      ) : hasMove(top) ? null : (
+        // A leave answered by a strike-ball move alone has a line: the move
+        // under the deck is it.
         <span className="block text-xs text-ink-secondary">No line</span>
       )}
     </>
@@ -198,18 +201,23 @@ function SortableStackCard({ id, stack, onOpen }: SortableStackCardProps) {
 
 /** The strike-ball move, when one is set, in words: "2 left", not "-2". A
  *  signed number beside a card of absolute boards reads as a board, and the
- *  sign means a different side for each hand. */
+ *  sign means a different side for each hand. A row for each board it
+ *  moves, so a narrow tile never wraps a move in half. */
 function StrikeMove({ offset }: { offset?: SpareLine["strike_offset"] }) {
   const handedness = useHandedness();
   if (!offset || (!offset.stance && !offset.target)) return null;
-  const parts = [
-    offset.stance ? `stance ${describeMove(offset.stance, handedness)}` : null,
-    offset.target ? `target ${describeMove(offset.target, handedness)}` : null
-  ].filter(Boolean);
   return (
-    <span className="block w-full text-[11px] font-semibold tabular-nums text-accent">
-      Strike ball: {parts.join(", ")}
-    </span>
+    <div className="w-full text-accent">
+      <div className="text-[10px] font-semibold uppercase tracking-tight">Strike ball</div>
+      {([["Stance", offset.stance], ["Target", offset.target]] as const).map(([k, v]) =>
+        v ? (
+          <div key={k} className="flex items-baseline justify-center gap-1 whitespace-nowrap">
+            <span className="text-[10px] font-semibold uppercase tracking-tight text-ink-secondary">{k}</span>
+            <span className="text-xs font-bold tabular-nums">{describeMove(v, handedness)}</span>
+          </div>
+        ) : null
+      )}
+    </div>
   );
 }
 

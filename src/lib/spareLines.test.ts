@@ -134,3 +134,21 @@ describe("describeMove", () => {
     expect(describeMove(0, "right")).toBe("None");
   });
 });
+
+describe("a strike ball move is a line", () => {
+  const moveOnly: SpareLine = { id: 9, pins: [2, 8], strike_offset: { stance: -2, target: -1 } };
+
+  it("counts for Has a line, not No line yet", () => {
+    expect(matchesFilters(moveOnly, new Set<SpareFilter>(["withLine"]))).toBe(true);
+    expect(matchesFilters(moveOnly, new Set<SpareFilter>(["noLine"]))).toBe(false);
+  });
+
+  it("is not asked for as a leave with no line", () => {
+    expect(mostLeftWithoutLine([{ pins: [2, 8], attempts: 13, chances: 13 }], [moveOnly])).toBeUndefined();
+  });
+
+  it("stacks leaves with the same move and no boards", () => {
+    const other: SpareLine = { id: 10, pins: [2, 8, 10], strike_offset: { stance: -2, target: -1 } };
+    expect(stackByLine([moveOnly, other]).map((s) => s.map((sl) => sl.id))).toEqual([[9, 10]]);
+  });
+});

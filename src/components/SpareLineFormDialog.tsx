@@ -9,7 +9,7 @@ import { useDriftModel } from "../lib/driftModelContext";
 import { deriveLaydown, deriveSlide, syncStanceLaydown } from "../lib/driftModel";
 import { useHandedness } from "../lib/handednessContext";
 import { formatLeave } from "../lib/pins";
-import { describeMove } from "../lib/spareLines";
+import { describeMove, hasAnswer } from "../lib/spareLines";
 import type { LeaveStats } from "../lib/stats";
 import { upsertSpareLine } from "../services/ballRepository";
 import type { LineSpec, PinNumber, SpareLine } from "../types/bowling";
@@ -79,7 +79,7 @@ export function SpareLineFormDialog({
 }: SpareLineFormDialogProps) {
   const [pins, setPins] = useState<PinNumber[]>(initialPins);
   const [line, setLine] = useState<LineSpec>(initialLine ?? EMPTY_LINE);
-  // Held as text so a lone "-" survives while the number after it is typed.
+  // Held as text, empty for no move on that side.
   const [move, setMove] = useState({
     stance: initialStrikeOffset?.stance?.toString() ?? "",
     target: initialStrikeOffset?.target?.toString() ?? ""
@@ -97,11 +97,11 @@ export function SpareLineFormDialog({
   const derivedLaydown =
     line.laydown ?? (line.stance != null ? deriveLaydown(line.stance, driftModel) : undefined);
 
-  // Lines worth borrowing: another leave's, with a board on it.
+  // Lines worth borrowing: another leave's, with a board or a strike-ball move
+  // on it.
   const key = [...pins].sort((a, b) => a - b).join("-");
   const borrowable = (spareLines ?? []).filter(
-    (sl) =>
-      sl.pins.join("-") !== key && (sl.line?.stance != null || sl.line?.target != null)
+    (sl) => sl.pins.join("-") !== key && hasAnswer(sl)
   );
 
   async function handleSubmit(e?: React.FormEvent) {
@@ -325,8 +325,17 @@ export function SpareLineFormDialog({
         createPortal(
           <SpareLinePickerSheet
             spareLines={borrowable}
-            onPick={(picked) => {
-              applyLine({ ...line, ...picked });
+            withMoves
+            onPick={(picked, offset) => {
+              // What the other leave has comes across; what it lacks is left
+              // as it was here.
+              if (Object.keys(picked).length) applyLine({ ...line, ...picked });
+              if (offset) {
+                setMove({
+                  stance: offset.stance?.toString() ?? "",
+                  target: offset.target?.toString() ?? ""
+                });
+              }
               setShowPicker(false);
             }}
             onClose={() => setShowPicker(false)}

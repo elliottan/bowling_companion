@@ -12,6 +12,19 @@ export function hasLine(sl: Pick<SpareLine, "line"> | undefined): boolean {
   return sl?.line?.stance != null || sl?.line?.target != null;
 }
 
+/** A strike-ball move to make: a leave whose answer is "two right of wherever
+ *  you are playing" (ADR-053), with or without boards of its own. */
+export function hasMove(sl: Pick<SpareLine, "strike_offset"> | undefined): boolean {
+  return !!sl?.strike_offset?.stance || !!sl?.strike_offset?.target;
+}
+
+/** A leave the bowler has written an answer for: boards, a strike-ball move,
+ *  or both. This is what "has a line" means on the screen, so a leave shot only
+ *  with a strike ball is not asked for again. */
+export function hasAnswer(sl: Pick<SpareLine, "line" | "strike_offset"> | undefined): boolean {
+  return hasLine(sl) || hasMove(sl);
+}
+
 /**
  * A strike-ball move in words: "2 left", "1.5 right". The move is stored as
  * signed boards (ADR-053), and boards count from the bowler's own gutter, so
@@ -28,8 +41,10 @@ export function describeMove(boards: number, handedness: Handedness): string {
 /** What two lines are compared by: the two boards a bowler acts on. The rest
  *  of the spec (hook, depth) is how it was drawn, not where to stand and aim. */
 function boardsKey(sl: SpareLine): string | null {
-  if (!hasLine(sl)) return null;
-  return `${sl.line?.stance ?? "-"}|${sl.line?.target ?? "-"}`;
+  if (hasLine(sl)) return `${sl.line?.stance ?? "-"}|${sl.line?.target ?? "-"}`;
+  // No boards, only a move: leaves with the same move are the same answer.
+  if (hasMove(sl)) return `move:${sl.strike_offset?.stance ?? "-"}|${sl.strike_offset?.target ?? "-"}`;
+  return null;
 }
 
 /**
@@ -99,7 +114,7 @@ export function suggestLineCopies(
   lines: SpareLine[],
   dismissed: ReadonlySet<string> = new Set()
 ): LineSuggestion[] {
-  const withLine = lines.filter(hasLine);
+  const withLine = lines.filter(hasAnswer);
   const lined = new Set(withLine.map((sl) => leaveKey(sl.pins)));
   const attempts = new Map<string, { pins: PinNumber[]; attempts: number }>();
   for (const f of faced) attempts.set(leaveKey(f.pins), { pins: uniquePins(f.pins), attempts: f.attempts });
@@ -144,7 +159,7 @@ export function matchesFilters(sl: SpareLine, filters: ReadonlySet<SpareFilter>)
   const shapes = (["single", "sleeper", "baby"] as const).filter((f) => filters.has(f));
   if (shapes.length && !shapes.some((f) => SHAPE[f](sl.pins))) return false;
   const statuses = (["withLine", "noLine"] as const).filter((f) => filters.has(f));
-  if (statuses.length && !statuses.some((f) => (f === "withLine") === hasLine(sl))) return false;
+  if (statuses.length && !statuses.some((f) => (f === "withLine") === hasAnswer(sl))) return false;
   return true;
 }
 
@@ -156,7 +171,7 @@ export function mostLeftWithoutLine(
   leaves: Array<{ pins: PinNumber[]; attempts: number; chances: number }>,
   lines: SpareLine[]
 ): { pins: PinNumber[]; attempts: number } | undefined {
-  const withLine = new Set(lines.filter(hasLine).map((sl) => leaveKey(sl.pins)));
+  const withLine = new Set(lines.filter(hasAnswer).map((sl) => leaveKey(sl.pins)));
   return leaves
     .filter((l) => l.chances > 0 && !withLine.has(leaveKey(l.pins)))
     .sort((a, b) => b.attempts - a.attempts)[0];

@@ -134,4 +134,22 @@ describe("SpareLineFormDialog reading and editing", () => {
       expect((screen.getByLabelText("Target") as HTMLInputElement).value).toBe("12")
     );
   });
+
+  it("offers a leave answered by a strike ball move, and copies the move", async () => {
+    const onSaved = vi.fn();
+    renderDialog({
+      initialPins: [2, 8],
+      onSaved,
+      spareLines: [{ id: 1, pins: [2, 8, 10], strike_offset: { stance: -2, target: -1 } }]
+    });
+    fireEvent.click(screen.getByLabelText("Use another leave's line"));
+    fireEvent.click(await screen.findByLabelText("Use the line for pins 2, 8, 10"));
+    await waitFor(() => expect(screen.getByLabelText("stance move")).toHaveTextContent("2 right"));
+    expect(screen.getByLabelText("target move")).toHaveTextContent("1 right");
+
+    fireEvent.click(screen.getByLabelText("Save spare line"));
+    await waitFor(() => expect(onSaved).toHaveBeenCalled());
+    const saved = await db.spare_lines.toArray();
+    expect(saved[0]?.strike_offset).toEqual({ stance: -2, target: -1 });
+  });
 });
