@@ -25,7 +25,7 @@ describe("SpareLinesView", () => {
   /** Renders, waits for the seeded lines, and opens the first one's editor. */
   async function openTheFirstLine() {
     render(<SpareLinesView onBack={vi.fn()} />);
-    const cards = await screen.findAllByRole("button", { name: /Edit spare line for pins/ });
+    const cards = await screen.findAllByRole("button", { name: /Open spare line for pins/ });
     const card = cards[0];
     const before = (await getSpareLinesAll()).length;
     fireEvent.click(card);

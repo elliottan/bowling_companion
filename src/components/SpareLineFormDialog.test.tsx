@@ -67,3 +67,60 @@ describe("SpareLineFormDialog strike ball move", () => {
     expect(saved[0]?.strike_offset).toEqual({ target: -2.5 });
   });
 });
+
+describe("SpareLineFormDialog reading and editing", () => {
+  beforeEach(async () => {
+    await db.delete();
+    await db.open();
+  });
+
+  it("opens to read, and the pencil turns into the tick that saves", async () => {
+    const onSaved = vi.fn();
+    renderDialog({ startInView: true, initialLine: { stance: 30, target: 15 }, onSaved });
+
+    const stance = screen.getByLabelText("Stance") as HTMLInputElement;
+    expect(stance.readOnly).toBe(true);
+    expect(screen.queryByLabelText("Save spare line")).toBeNull();
+    expect(screen.queryByLabelText("stance move up half a board")).toBeNull();
+
+    fireEvent.click(screen.getByLabelText("Edit spare line"));
+    expect(stance.readOnly).toBe(false);
+    fireEvent.change(stance, { target: { value: "32" } });
+    fireEvent.click(screen.getByLabelText("Save spare line"));
+
+    // Back to reading, not closed: the sheet was opened to look at the leave.
+    expect(await screen.findByLabelText("Edit spare line")).toBeInTheDocument();
+    expect(onSaved).not.toHaveBeenCalled();
+    const saved = await db.spare_lines.toArray();
+    expect(saved[0]?.line?.stance).toBe(32);
+  });
+
+  it("titles a single pin with Pin and a combination with dashes", () => {
+    const { unmount } = renderDialog({ initialPins: [7] });
+    expect(screen.getByRole("dialog", { name: "Pin 7" })).toBeInTheDocument();
+    unmount();
+    renderDialog({ initialPins: [2, 4, 5, 8] });
+    expect(screen.getByRole("dialog", { name: "2-4-5-8" })).toBeInTheDocument();
+  });
+
+  it("keeps a note written before the field was taken off the sheet", async () => {
+    const onSaved = vi.fn();
+    renderDialog({ initialNotes: "Hold the hand", onSaved });
+    fireEvent.click(screen.getByLabelText("Save spare line"));
+    await waitFor(() => expect(onSaved).toHaveBeenCalled());
+    const saved = await db.spare_lines.toArray();
+    expect(saved[0]?.notes).toBe("Hold the hand");
+  });
+
+  it("copies another leave's boards onto this one", async () => {
+    renderDialog({
+      initialPins: [2, 4, 8],
+      spareLines: [{ id: 1, pins: [2, 4, 5, 8], line: { stance: 25, target: 12 } }]
+    });
+    fireEvent.click(screen.getByLabelText("Use another leave's line"));
+    fireEvent.click(await screen.findByLabelText("Use the line for pins 2, 4, 5, 8"));
+    await waitFor(() =>
+      expect((screen.getByLabelText("Target") as HTMLInputElement).value).toBe("12")
+    );
+  });
+});

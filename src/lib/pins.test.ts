@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { PinNumber } from "../types/bowling";
-import { ALL_PINS, isBabySplit, isPocketHit, isSplit, isWashout, resolvePocketHit } from "./pins";
+import { ALL_PINS, formatLeave, isBabySplit, isPocketHit, isSplit, isWashout, resolvePocketHit, spareGroup } from "./pins";
 
 describe("isSplit", () => {
   it("returns false for empty leave", () => {
@@ -193,5 +193,21 @@ describe("resolvePocketHit", () => {
   it("falls back to the inference when no verdict was recorded", () => {
     expect(resolvePocketHit({ pins_standing: [10] }, "right")).toBe(true);
     expect(resolvePocketHit({ pins_standing: [3] }, "right")).toBe(false);
+  });
+});
+
+describe("spareGroup", () => {
+  it("puts a leave in exactly one group, baby splits with the makeables", () => {
+    expect(spareGroup([10])).toBe("makeable");
+    expect(spareGroup([3, 10])).toBe("makeable");
+    expect(spareGroup([1, 2, 10])).toBe("washout");
+    expect(spareGroup([7, 10])).toBe("split");
+  });
+});
+
+describe("formatLeave", () => {
+  it("names a single pin and numbers a combination with dashes", () => {
+    expect(formatLeave([7])).toBe("Pin 7");
+    expect(formatLeave([8, 2, 5, 4])).toBe("2-4-5-8");
   });
 });

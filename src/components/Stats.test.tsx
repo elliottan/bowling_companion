@@ -253,6 +253,32 @@ describe("leave cells", () => {
     expect(screen.queryByText("Makeables")).toBeNull();
   });
 
+  it("shows twelve makeables, and the rest behind View all", async () => {
+    const singles: LeaveStats[] = [];
+    // Thirteen makeable leaves: every single pin, then three baby splits.
+    const pinsList = [[1], [2], [3], [4], [5], [6], [7], [8], [9], [10], [2, 7], [3, 10], [4, 5]];
+    pinsList.forEach((pins, i) =>
+      singles.push({ ...tenPin, pins: pins as LeaveStats["pins"], chances: 20 - i, attempts: 20 - i })
+    );
+    render(<Stats stats={STATS} leaves={singles} />);
+    expect(screen.getAllByRole("button", { name: /^Open / })).toHaveLength(12);
+    // Fewest chances, so the one past the cut.
+    expect(screen.queryByRole("button", { name: "Open 4-5" })).toBeNull();
+
+    fireEvent.click(screen.getByRole("button", { name: "View all makeables" }));
+    const sheet = await screen.findByRole("dialog", { name: "Makeables" });
+    expect(sheet.querySelectorAll("li")).toHaveLength(13);
+  });
+
+  it("opens a leave's details from its cell", async () => {
+    render(<Stats stats={STATS} leaves={[tenPin]} />);
+    fireEvent.click(screen.getByRole("button", { name: "Open Pin 10" }));
+    expect(await screen.findByRole("dialog", { name: "Pin 10" })).toBeInTheDocument();
+    // Read first: editing is behind the pencil.
+    expect(screen.getByRole("button", { name: "Edit spare line" })).toBeInTheDocument();
+    expect(screen.getByText("Converted")).toBeInTheDocument();
+  });
+
   it("marks nothing when every leave had a ball after it", () => {
     render(<Stats stats={STATS} leaves={[{ ...tenPin, attempts: 2 }]} />);
     expect(screen.queryByText(/^\+\d+$/)).toBeNull();

@@ -9,7 +9,8 @@ import {
   calculateSessionTrend,
   calculateStats,
   filterSessionsBy,
-  findRateLeaders
+  findRateLeaders,
+  mostLeftWithoutLine
 } from "./stats";
 import type { Ball, Frame, Game, PinNumber, SessionSummary, Shot } from "../types/bowling";
 
@@ -1260,5 +1261,33 @@ describe("spare rate across the 10th frame's bonus balls (ADR-092)", () => {
   it("still reads frames 1 to 9 off ball one", () => {
     const stats = only([frame(3, [10], NONE), frame(4, [7], [7])]);
     expect(stats.sparePct).toBe(50);
+  });
+});
+
+describe("mostLeftWithoutLine", () => {
+  const leave = (pins: PinNumber[], attempts: number, chances = attempts) => ({
+    pins,
+    attempts,
+    chances,
+    conversions: 0,
+    conversionPct: 0,
+    sharePct: null
+  });
+
+  it("asks for the leave left most that has no boards saved", () => {
+    const leaves = [leave([10], 9), leave([3, 6, 10], 5), leave([7], 2)];
+    const lines = [
+      { pins: [10] as PinNumber[], line: { stance: 15, target: 10 } },
+      // A seeded leave with nothing written down is still asked for.
+      { pins: [3, 6, 10] as PinNumber[] }
+    ];
+    expect(mostLeftWithoutLine(leaves, lines)?.pins).toEqual([3, 6, 10]);
+  });
+
+  it("asks for nothing when every leave has a line, or none had a ball after it", () => {
+    expect(mostLeftWithoutLine([leave([7], 3, 0)], [])).toBeUndefined();
+    expect(
+      mostLeftWithoutLine([leave([7], 3)], [{ pins: [7], line: { target: 20 } }])
+    ).toBeUndefined();
   });
 });

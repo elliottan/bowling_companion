@@ -94,7 +94,7 @@ test("the sheets you type into are accessible", async ({ page }) => {
   // chrome and labelling go wrong.
   await page.getByRole("navigation").getByRole("button", { name: "Home" }).click();
   await page.getByRole("button", { name: "Spare lines", exact: true }).click();
-  await page.getByRole("button", { name: /^Edit spare line for pins/ }).first().click();
+  await page.getByRole("button", { name: /^Open spare line for pins/ }).first().click();
   await expectNoViolations(page);
   await page
     .getByRole("dialog")

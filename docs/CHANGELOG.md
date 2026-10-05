@@ -8,6 +8,31 @@ merge to `main` (`docs/DEPLOYMENT.md`), so every section below is a dated batch
 of shipped work rather than a release. Thirty of them used to be headed
 `[Unreleased]`, which said nothing once they had all shipped.
 
+## A spare line opens to read, and Stats opens every leave (2026-10-05)
+
+**Your name is set once on Home.** The greeting offers "Add your name" until
+you give one, and is plain text after that. Change it in Settings.
+
+**Stats shows the leaves you face most, and the rest behind View all.** Twelve
+makeables, three washouts and nine splits, most-shot-at first. View all opens
+the whole group in a sheet. Tap any leave, on the card or in the sheet, to see
+its details and its saved line.
+
+**A spare line opens to read.** The pencil in the sheet's bar starts editing
+and turns into the tick that saves. The leave's record (converted, made over
+chances, times left) sits beside the pin deck. The eye moved up beside the
+Shooting line heading, as on the scorer, and the strike ball move steps with
+the scorer's arrows instead of plus and minus. The title reads "Pin 7" for a
+single pin and "2-4-5-8" for a combination. The notes field is off the sheet
+for now; a note you already wrote is kept.
+
+**Copy another leave's line.** While editing, the crosshair beside the eye
+copies a saved line's boards onto this leave. It is a copy: changing either
+line afterwards leaves the other alone.
+
+**Spare lines are grouped** into makeables, washouts and splits, as on Stats,
+and the screen asks for a line for the leave you face most that has none yet.
+
 ## The session sheet stops under the game chips (2026-10-05)
 
 **The session sheet rises only to just under the game scores.** The header

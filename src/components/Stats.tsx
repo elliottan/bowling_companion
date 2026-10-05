@@ -1,5 +1,6 @@
 import { BarChart3, ChevronDown } from "lucide-react";
 import { useState, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import { useRememberedState } from "../lib/viewMemory";
 import { CatalogBallImage } from "./CatalogBallImage";
 import { MiniPins } from "./MiniPins";
@@ -7,7 +8,10 @@ import { LoadingCard } from "./ui/LoadingCard";
 import { EmptyState } from "./ui/EmptyState";
 import { IconButton } from "./ui/IconButton";
 import type { Manufacturer } from "../types/catalog";
-import { isBabySplit, isSplit, isWashout } from "../lib/pins";
+import { formatLeave, SPARE_GROUP_LABEL, SPARE_GROUPS, spareGroup, type SpareGroup } from "../lib/pins";
+import { SpareDetailsSheet } from "./SpareDetailsSheet";
+import { FormSheet } from "./ui/FormSheet";
+import { TAP_TARGET_44 } from "./ui/Chip";
 import {
   findRateLeaders,
   RATE_LEADER_MIN_BALLS,
@@ -184,6 +188,10 @@ export function Stats({
   const [note, setNote] = useState<string | null>(null);
 
   const toggleNote = (text: string) => setNote((curr) => (curr === text ? null : text));
+
+  // A leave opened from its cell, and a group opened whole from View all.
+  const [openLeave, setOpenLeave] = useState<LeaveStats["pins"] | null>(null);
+  const [viewAll, setViewAll] = useState<SpareGroup | null>(null);
 
   // Once for the card, not once per row.
   const rateLeaders = findRateLeaders(ballPerformance?.balls ?? []);
@@ -421,28 +429,45 @@ export function Stats({
         if (all.length === 0) return null;
         // Three groups, easiest first: makeables (ordinary leaves), washouts
         // (head pin standing with a gap behind it), and real splits.
-        const splits = all.filter((l) => isSplit(l.pins) && !isBabySplit(l.pins));
-        const washouts = all.filter((l) => isWashout(l.pins));
-        const makeables = all.filter(
-          (l) => !isWashout(l.pins) && (!isSplit(l.pins) || isBabySplit(l.pins))
-        );
+        const byGroup = (group: SpareGroup) => all.filter((l) => spareGroup(l.pins) === group);
+        const viewing = viewAll ? sortByChances(byGroup(viewAll)) : [];
         return (
           <>
-            <LeaveSection
-              title="Makeables"
-              leaves={makeables}
-              onExplain={() => toggleNote(LEAVE_NOTE)}
-            />
-            <LeaveSection
-              title="Washouts"
-              leaves={washouts}
-              onExplain={() => toggleNote(LEAVE_NOTE)}
-            />
-            <LeaveSection
-              title="Splits"
-              leaves={splits}
-              onExplain={() => toggleNote(LEAVE_NOTE)}
-            />
+            {SPARE_GROUPS.map((group) => (
+              <LeaveSection
+                key={group}
+                title={SPARE_GROUP_LABEL[group]}
+                leaves={byGroup(group)}
+                limit={LEAVE_LIMIT[group]}
+                onExplain={() => toggleNote(LEAVE_NOTE)}
+                onViewAll={() => setViewAll(group)}
+                onOpen={setOpenLeave}
+              />
+            ))}
+            {/* Portalled to the body: on the session sheet the stats sit
+                inside a panel that slides on a transform, and a transformed
+                ancestor makes `fixed` resolve against it, not the viewport. */}
+            {viewAll &&
+              createPortal(
+                <FormSheet
+                  title={SPARE_GROUP_LABEL[viewAll]}
+                  onClose={() => setViewAll(null)}
+                  size="tall"
+                  active={openLeave === null}
+                >
+                  <LeaveGrid leaves={viewing} onOpen={setOpenLeave} />
+                </FormSheet>,
+                document.body
+              )}
+            {openLeave &&
+              createPortal(
+                <SpareDetailsSheet
+                  pins={openLeave}
+                  leaves={all}
+                  onClose={() => setOpenLeave(null)}
+                />,
+                document.body
+              )}
             {note === LEAVE_NOTE && (
               <StatNote text={LEAVE_NOTE} onDismiss={() => setNote(null)} />
             )}
@@ -605,7 +630,7 @@ function BallPerformanceRow({
             // part of the answer.
             <div className="grid auto-cols-[calc((100%-1.125rem)/4)] grid-flow-col gap-1.5 overflow-x-auto overscroll-x-contain">
               {[...ball.leaves]
-                .sort((a, b) => leaveGroup(a.pins) - leaveGroup(b.pins))
+                .sort((a, b) => SPARE_GROUPS.indexOf(spareGroup(a.pins)) - SPARE_GROUPS.indexOf(spareGroup(b.pins)))
                 .map((leave) => (
                   <LeaveCountCell key={leave.pins.join("-")} leave={leave} />
                 ))}
@@ -660,47 +685,79 @@ function rateOf(made: number, opportunities: number): number | null {
   return Math.round((made / opportunities) * 100);
 }
 
+/** How many leaves each card shows before View all: four rows of makeables,
+ *  one of washouts, three of splits. Most bowlers face a handful of washouts
+ *  and a long tail of makeables, and the cards are sized to that. */
+const LEAVE_LIMIT: Record<SpareGroup, number> = { makeable: 12, washout: 3, split: 9 };
+
+/** Most-shot-at first, so the leaves with meaningful sample sizes lead. By
+ *  chances rather than attempts, matching what the cells report. */
+function sortByChances(leaves: LeaveStats[]): LeaveStats[] {
+  return [...leaves].sort((a, b) => b.chances - a.chances);
+}
+
 function LeaveSection({
   title,
   leaves,
-  onExplain
+  limit,
+  onExplain,
+  onViewAll,
+  onOpen
 }: {
   title: string;
   leaves: LeaveStats[];
+  limit: number;
   onExplain: () => void;
+  onViewAll: () => void;
+  onOpen: (pins: LeaveStats["pins"]) => void;
 }) {
   if (leaves.length === 0) return null;
-  // Most-shot-at first, so the leaves with meaningful sample sizes lead. By
-  // chances rather than attempts, matching what the cells below report.
-  const sorted = [...leaves].sort((a, b) => b.chances - a.chances);
+  const sorted = sortByChances(leaves);
   return (
     <div className="rounded-xl border border-edge bg-surface p-3 shadow-sm">
-      <h2 className="mb-3">
-        <button type="button" onClick={onExplain} className={GROUP_HEADING}>
-          {title}
-        </button>
-      </h2>
-      {/* Three to a row, not four. A tabular "100%" is 37px and "10/10" is
-          29px, which will not both fit a quarter of 390px however the type is
-          sized: at four the count was silently clipping. Three leaves room for
-          the widest pairing at full size, with the count hard left and the rate
-          hard right in every cell. */}
-      <div className="grid grid-cols-3 gap-1.5">
-        {sorted.map((leave) => (
-          <LeaveCell key={leave.pins.join("-")} leave={leave} />
-        ))}
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <h2>
+          <button type="button" onClick={onExplain} className={GROUP_HEADING}>
+            {title}
+          </button>
+        </h2>
+        {sorted.length > limit && (
+          <button
+            type="button"
+            onClick={onViewAll}
+            aria-label={`View all ${title.toLowerCase()}`}
+            className={`relative text-xs font-semibold text-accent active:opacity-60 ${TAP_TARGET_44}`}
+          >
+            View all
+          </button>
+        )}
       </div>
+      <LeaveGrid leaves={sorted.slice(0, limit)} onOpen={onOpen} />
     </div>
   );
 }
 
-/** The three groups the leave cards are split into, easiest first: makeables,
- *  then washouts, then real splits. Head pin standing and head pin down are
- *  exclusive, so a leave lands in exactly one. */
-function leaveGroup(pins: LeaveStats["pins"]): number {
-  if (isWashout(pins)) return 1;
-  if (isSplit(pins) && !isBabySplit(pins)) return 2;
-  return 0;
+/** Three to a row, not four. A tabular "100%" is 37px and "10/10" is 29px,
+ *  which will not both fit a quarter of 390px however the type is sized: at
+ *  four the count was silently clipping. Three leaves room for the widest
+ *  pairing at full size, with the count hard left and the rate hard right in
+ *  every cell. */
+function LeaveGrid({
+  leaves,
+  onOpen
+}: {
+  leaves: LeaveStats[];
+  onOpen: (pins: LeaveStats["pins"]) => void;
+}) {
+  return (
+    <ul className="grid grid-cols-3 gap-1.5">
+      {leaves.map((leave) => (
+        <li key={leave.pins.join("-")}>
+          <LeaveCell leave={leave} onOpen={() => onOpen(leave.pins)} />
+        </li>
+      ))}
+    </ul>
+  );
 }
 
 /** Per-ball leaves answer "what does this ball leave", not "do I make it": the
@@ -724,12 +781,17 @@ function LeaveCountCell({ leave }: { leave: LeaveStats }) {
   );
 }
 
-function LeaveCell({ leave }: { leave: LeaveStats }) {
+function LeaveCell({ leave, onOpen }: { leave: LeaveStats; onOpen: () => void }) {
   return (
     // px-1.5 rather than a square p-2: four of these fit a 390px row, and the
     // widest pairing ("10/10" beside "100%") overflowed the padding and put
     // the percent sign on the border.
-    <div className="flex flex-col items-center gap-1 rounded-xl border border-edge bg-surface px-1.5 py-2 text-center shadow-sm">
+    <button
+      type="button"
+      onClick={onOpen}
+      aria-label={`Open ${formatLeave(leave.pins)}`}
+      className="flex w-full flex-col items-center gap-1 rounded-xl border border-edge bg-surface px-1.5 py-2 text-center shadow-sm active:bg-surface-muted"
+    >
       <MiniPins standing={leave.pins} size="sm" />
       {/* The pin diagram already names the leave: made over chances hard left,
           rate hard right. Both are tabular so the columns line up cell to cell
@@ -748,7 +810,7 @@ function LeaveCell({ leave }: { leave: LeaveStats }) {
           {leave.conversionPct !== null ? `${leave.conversionPct}%` : "-"}
         </span>
       </div>
-    </div>
+    </button>
   );
 }
 

@@ -40,6 +40,12 @@ interface FormSheetProps {
    * the thing you keep.
    */
   dismissAs?: "close" | "done";
+  /** Replaces the commit in the trailing slot, for a sheet whose trailing
+   *  control changes with its state (a pencil that turns into the tick). */
+  trailing?: ReactNode;
+  /** False while a sheet or dialog is open on top of this one, so Escape and
+   *  the focus trap belong to the topmost layer only. */
+  active?: boolean;
   children: ReactNode;
 }
 
@@ -63,10 +69,12 @@ export function FormSheet({
   banner,
   size = "content",
   dismissAs = "close",
+  trailing,
+  active = true,
   children
 }: FormSheetProps) {
   const { dismiss, backdropStyle, rootStyle, panelStyle, exiting, dragHandlers } = useSheetDismiss(onClose);
-  const overlayRef = useOverlay<HTMLDivElement>(dismiss);
+  const overlayRef = useOverlay<HTMLDivElement>(dismiss, active);
 
   return (
     <div
@@ -100,7 +108,9 @@ export function FormSheet({
             <span className="h-11 w-11 shrink-0" />
           )}
           <h2 className="flex-1 text-center text-[17px] font-semibold text-ink">{title}</h2>
-          {onConfirm ? (
+          {trailing ? (
+            trailing
+          ) : onConfirm ? (
             <IconButton
               variant="confirm"
               onClick={() => onConfirm()}
