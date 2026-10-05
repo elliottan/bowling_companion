@@ -1,6 +1,6 @@
-import { ChevronLeft, Plus, Trash2, X } from "lucide-react";
+import { ChevronLeft, Pencil, Plus, Trash2, X } from "lucide-react";
 import { ShareIosIcon } from "../components/icons";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { ActiveGameScorer } from "../components/ActiveGameScorer";
 import { SaveCopyPrompt } from "../components/SaveCopyPrompt";
 import { ShareCardDialog } from "../components/ShareCardDialog";
@@ -13,7 +13,13 @@ import { describeGameMove } from "../components/alleyHistoryCopy";
 import { SessionFormDialog } from "../components/SessionFormDialog";
 import { SessionHeaderText } from "../components/SessionHeaderText";
 import { PushScreen } from "../components/PushScreen";
-import { SessionLanePanel, type SessionPanelTab } from "../components/SessionLanePanel";
+import { SessionLanePanel } from "../components/SessionLanePanel";
+import {
+  gameChipOn,
+  tapGameChip,
+  type PanelSelection,
+  type SessionPanelTab
+} from "../lib/sessionPanel";
 import { Button } from "../components/ui/Button";
 import { Chip, TAP_TARGET_44 } from "../components/ui/Chip";
 import { IconButton } from "../components/ui/IconButton";
@@ -125,10 +131,19 @@ export function ActiveSessionView({
   // in the same commit as the loaded session, so reading the prop later would
   // find it already cleared and the sheet would open with nothing lit.
   const [landingBallId] = useState(initialBallId);
-  // A finished session opens on its scorecard, which is what "show me that
-  // night" means to most people; the stats are one tab along (ADR-115). The
-  // flag still opens the panel, it no longer picks the stats tab.
-  const [sheetTab, setSheetTab] = useState<SessionPanelTab>("sheet");
+  // A finished session opened from History lands on its stats: the scorecard
+  // of a night already bowled is one tab along, and the numbers are what a
+  // look back is for. A game drill-down still lands on the sheet, where the
+  // frames it asked about are.
+  const [sheetTab, setSheetTab] = useState<SessionPanelTab>(
+    openStatsOnMount && initialGameId == null ? "stats" : "sheet"
+  );
+  // The game chosen with the chips while the panel is up (`tapGameChip`).
+  const [panelSelection, setPanelSelection] = useState<PanelSelection>({ token: 0 });
+  // Where the panel's top edge sits: just under the game chips, measured.
+  const chipRowRef = useRef<HTMLDivElement>(null);
+  const headerRef = useRef<HTMLElement>(null);
+  const [sheetTop, setSheetTop] = useState(0);
   const [showEdit, setShowEdit] = useState(false);
   // Frame handed to the scorer when one is tapped in the session sheet.
   const [focusFrame, setFocusFrame] = useState<{ frameNumber: number; shotIndex: number; token: number } | undefined>();
@@ -195,6 +210,32 @@ export function ActiveSessionView({
     () => sessionDetails?.games.find((g) => g.id === activeGameId) ?? null,
     [activeGameId, sessionDetails]
   );
+
+  // The panel rises to just under the game chips, so it follows them: measured
+  // when it opens, and again whenever anything could have moved them (a
+  // rotation, the keyboard, a scroll of the page behind).
+  useLayoutEffect(() => {
+    if (!showSheet) return;
+    const measure = () => {
+      const row = chipRowRef.current;
+      if (row) setSheetTop(Math.max(0, Math.round(row.getBoundingClientRect().bottom)));
+    };
+    measure();
+    window.addEventListener("resize", measure);
+    window.addEventListener("scroll", measure, true);
+    return () => {
+      window.removeEventListener("resize", measure);
+      window.removeEventListener("scroll", measure, true);
+    };
+  }, [showSheet, sessionDetails]);
+
+  /** Open the panel on a tab, with the header scrolled back into view first:
+   *  the panel stops under the chips, so they have to be on screen. */
+  function openSheet(tab: SessionPanelTab) {
+    revealHeader(headerRef.current);
+    setSheetTab(tab);
+    setShowSheet(true);
+  }
 
   // The lane fields follow the stored game, except while the bowler is typing
   // in them. Each field saves on blur, and the refresh after that save hands
@@ -479,19 +520,18 @@ export function ActiveSessionView({
   const body = (
     <OilPatternContext.Provider value={oilPattern}>
     <div>
-      <section className="mx-auto w-full max-w-5xl px-3 pt-2 sm:px-6">
+      <section ref={headerRef} className="mx-auto w-full max-w-5xl px-3 pt-2 sm:px-6">
         <div className="flex items-start gap-2">
           {/* Tapping the identity block opens the sheet; the oil-pattern link
               inside it stops propagation so it still opens the pattern PDF. */}
           <div
             role="button"
             tabIndex={0}
-            onClick={() => { setSheetTab("sheet"); setShowSheet(true); }}
+            onClick={() => openSheet("sheet")}
             onKeyDown={(e) => {
               if (e.key === "Enter" || e.key === " ") {
                 e.preventDefault();
-                setSheetTab("sheet");
-                setShowSheet(true);
+                openSheet("sheet");
               }
             }}
             className="min-w-0 flex-1 rounded-md hover:bg-surface-muted active:bg-surface-muted"
@@ -499,6 +539,27 @@ export function ActiveSessionView({
           >
             <SessionHeaderText session={sessionDetails.session} games={games} />
           </div>
+          {/* Two taps to the edit: the first brings up the session sheet, which
+              is what the header is for, and the second, with the sheet up, opens
+              the session's details. One pencil, one place, either way. */}
+          <IconButton
+            label={showSheet ? "Edit session" : "Session sheet"}
+            title={showSheet ? "Edit session" : "Session sheet"}
+            variant="round"
+            className="shrink-0"
+            onClick={() => {
+              if (showSheet) {
+                // Close the sheet first: it portals to body after the edit
+                // dialog, so it would otherwise paint on top of it.
+                setShowSheet(false);
+                setShowEdit(true);
+              } else {
+                openSheet("sheet");
+              }
+            }}
+          >
+            <Pencil size={16} aria-hidden="true" />
+          </IconButton>
           <IconButton
             label="Share this session"
             variant="round"
@@ -509,7 +570,7 @@ export function ActiveSessionView({
           </IconButton>
           <button
             type="button"
-            onClick={() => { setSheetTab("stats"); setShowSheet(true); }}
+            onClick={() => openSheet("stats")}
             aria-label="Open session stats"
             className="shrink-0 rounded-md text-right hover:bg-surface-muted active:bg-surface-muted"
           >
@@ -525,13 +586,17 @@ export function ActiveSessionView({
         {/* py-1, not pb-1: overflow-x-auto forces overflow-y to auto, which
             clips at the padding box. The Chip tap region overhangs its box 4px
             top and bottom, so both sides need padding or the top 4px is dead. */}
-        <div className="mt-2 flex items-center gap-2 overflow-x-auto py-1">
+        <div ref={chipRowRef} className="mt-2 flex items-center gap-2 overflow-x-auto py-1">
           {games.map((g) => {
             const frames = (g as Game & { frames: Frame[] }).frames;
             return (
               <Chip
                 key={g.id}
-                selected={g.id === activeGameId}
+                // With the panel up the chips are its chips: on the stats tab
+                // the one scoping the numbers is on, elsewhere none are.
+                selected={
+                  showSheet ? gameChipOn(sheetTab, panelSelection, g.id) : g.id === activeGameId
+                }
                 {...longPress.bind((chip) => {
                   if (!g.id) return;
                   const rect = chip.getBoundingClientRect();
@@ -543,7 +608,14 @@ export function ActiveSessionView({
                 })}
                 onClick={() => {
                   if (longPress.didLongPress()) return;
-                  if (g.id) setActiveGameId(g.id);
+                  if (!g.id) return;
+                  if (showSheet) {
+                    const next = tapGameChip(sheetTab, panelSelection, g.id);
+                    setSheetTab(next.tab);
+                    setPanelSelection(next.selection);
+                    return;
+                  }
+                  setActiveGameId(g.id);
                 }}
                 className="shrink-0 gap-1.5"
               >
@@ -691,11 +763,12 @@ export function ActiveSessionView({
         <SessionLanePanel
           summary={sessionDetails}
           currentGameId={activeGame.id}
-          defaultTab={sheetTab}
+          top={sheetTop}
+          tab={sheetTab}
+          onTabChange={setSheetTab}
+          selection={panelSelection}
+          onSelectionChange={setPanelSelection}
           highlightBallId={landingBallId}
-          // Close the sheet first: it portals to body after the edit dialog,
-          // so it would otherwise paint on top of it.
-          onEdit={() => { setShowSheet(false); setShowEdit(true); }}
           onSelectFrame={(gameId, frameNumber, shotIndex) => {
             setActiveGameId(gameId);
             setFocusFrame((prev) => ({ frameNumber, shotIndex, token: (prev?.token ?? 0) + 1 }));
@@ -799,4 +872,21 @@ export function ActiveSessionView({
       {body}
     </PushScreen>
   );
+}
+
+/**
+ * Scroll the session header back into view inside whatever scrolls it, when it
+ * has gone up under the top. Its own container rather than `scrollIntoView`,
+ * which also scrolls the document and is how the viewport bug starts
+ * (docs/VIEWPORT-BUG.md).
+ */
+function revealHeader(header: HTMLElement | null) {
+  if (!header) return;
+  let scroller = header.parentElement;
+  while (scroller && !/(auto|scroll)/.test(getComputedStyle(scroller).overflowY)) {
+    scroller = scroller.parentElement;
+  }
+  if (!scroller) return;
+  const above = header.getBoundingClientRect().top - scroller.getBoundingClientRect().top;
+  if (above < 0) scroller.scrollTop += above;
 }

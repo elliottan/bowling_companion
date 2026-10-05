@@ -216,21 +216,23 @@ test("a finished session opened from History pushes, and back returns to History
 
   // Pushed over History, not loaded into the Active tab.
   await expect(page).toHaveURL(/#\/history\/session\/\d+$/);
-  await expect(page.getByRole("dialog", { name: "Session" })).toBeVisible();
+  await expect(page.getByRole("dialog", { name: "Session", exact: true })).toBeVisible();
 
-  // A finished session lands with its panel already up (SessionHistory opens
-  // one with openStats), and back closes the sheet in front before the screen
-  // behind it. So the first back is the panel's, not the push's.
-  // The panel carries the series total; the pushed screen behind it does not.
-  await expect(page.getByLabel("Series total")).toBeVisible();
+  // A finished session lands with its panel already up, on its stats
+  // (SessionHistory opens one with openStats), and back closes the sheet in
+  // front before the screen behind it. So the first back is the panel's, not
+  // the push's.
+  const sheet = page.getByRole("dialog", { name: "Session sheet" });
+  await expect(sheet).toBeVisible();
+  await expect(sheet.getByRole("button", { name: "Stats" })).toHaveAttribute("aria-pressed", "true");
   await page.goBack();
-  await expect(page.getByLabel("Series total")).toHaveCount(0);
+  await expect(sheet).toHaveCount(0);
   await expect(page).toHaveURL(/#\/history\/session\/\d+$/);
 
   // The push's own back, which is what this test is about.
   await page.goBack();
   await expect(page).toHaveURL(/#\/history$/);
-  await expect(page.getByRole("dialog", { name: "Session" })).toHaveCount(0);
+  await expect(page.getByRole("dialog", { name: "Session", exact: true })).toHaveCount(0);
 });
 
 test("a session with a game still to finish opens in the Active tab", async ({ page }) => {

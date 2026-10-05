@@ -1,4 +1,3 @@
-import { X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { freshRackShotIndices, laneForFrame } from "../lib/lanes";
@@ -18,25 +17,34 @@ import type { Ball, Frame, LineSpec, SessionSummary, Shot } from "../types/bowli
 import type { Manufacturer } from "../types/catalog";
 import { CatalogBallImage } from "./CatalogBallImage";
 import { LaneNotesTab } from "./LaneNotesTab";
-import { SessionHeaderText } from "./SessionHeaderText";
 import { MiniPins } from "./MiniPins";
 import { Stats } from "./Stats";
 import { SwipePanes } from "./SwipePanes";
-import { Chip } from "./ui/Chip";
-import { IconButton } from "./ui/IconButton";
 import { SegmentedControl } from "./ui/SegmentedControl";
 
-export type SessionPanelTab = "sheet" | "stats" | "lanes";
+import type { PanelSelection, SessionPanelTab } from "../lib/sessionPanel";
+
+export type { PanelSelection, SessionPanelTab };
 
 interface SessionLanePanelProps {
   summary: SessionSummary;
   currentGameId?: number;
+  /** Viewport px the panel's top edge sits at: just under the screen's game
+   *  chips, so the session header and the chips stay in view above it. */
+  top?: number;
+  /** The tab on screen. The screen owns it, because its header picks one: the
+   *  identity block the sheet, the series total the stats. Omitted, the panel
+   *  keeps its own, starting on `defaultTab`. */
+  tab?: SessionPanelTab;
+  onTabChange?: (tab: SessionPanelTab) => void;
   defaultTab?: SessionPanelTab;
+  /** The game chosen with the screen's chips (see `tapGameChip`). Omitted,
+   *  the panel keeps its own. */
+  selection?: PanelSelection;
+  onSelectionChange?: (selection: PanelSelection) => void;
   /** Land on the sheet with the shots thrown with this ball lit up, the way a
    *  ball-performance drill-down arrives. */
   highlightBallId?: number;
-  /** When set, a pencil button in the header opens the session edit flow. */
-  onEdit?: () => void;
   /** Tap a frame in the sheet to jump to it in score entry. */
   onSelectFrame?: (gameId: number, frameNumber: number, shotIndex: number) => void;
   onClose: () => void;
@@ -52,17 +60,33 @@ function formatLine(line?: LineSpec): string | null {
  * Bottom-sheet "cheat sheet" with three swipeable tabs: the session sheet
  * (every first-ball shot, current game first), per-session stats, and lane
  * notes for this alley.
+ *
+ * It rises only as far as the screen's game chips, not to the top. The header
+ * above them (the alley, the date, the series) is the same session the panel
+ * is about, so it stays on screen rather than being drawn a second time inside
+ * the panel, and the chips above are the panel's chips. That is also why it
+ * carries no close: the drag, Escape and the screen's own controls are the
+ * way out, and the panel no longer fills the screen.
  */
 export function SessionLanePanel({
   summary,
   currentGameId,
+  top = 0,
+  tab: tabProp,
+  onTabChange,
   defaultTab = "sheet",
+  selection: selectionProp,
+  onSelectionChange,
   highlightBallId,
-  onEdit,
   onSelectFrame,
   onClose
 }: SessionLanePanelProps) {
-  const [tab, setTab] = useState<SessionPanelTab>(defaultTab);
+  const [ownTab, setOwnTab] = useState<SessionPanelTab>(defaultTab);
+  const tab = tabProp ?? ownTab;
+  const setTab = (next: SessionPanelTab) => {
+    setOwnTab(next);
+    onTabChange?.(next);
+  };
   // One game, chosen once, read by both tabs: the stats scope to it and the
   // sheet scrolls to it, so a game picked on either tab is still the game when
   // the other one is reached. The token re-fires the scroll on a re-tap.
@@ -71,10 +95,8 @@ export function SessionLanePanel({
   // the chips look like on the sheet: only the stats mark a selection, because
   // only there does it change what is on screen. Scrolling is a place, not a
   // state, so the sheet leaves its chips plain.
-  const [selection, setSelection] = useState<{ gameId?: number; token: number }>({
-    gameId: undefined,
-    token: 0
-  });
+  const [ownSelection, setOwnSelection] = useState<PanelSelection>({ gameId: undefined, token: 0 });
+  const selection = selectionProp ?? ownSelection;
   // With nothing chosen the sheet still opens on the game being scored.
   const focusGameId = selection.gameId ?? currentGameId;
   // Which shots are lit on the sheet: a History drill-down names a game and a
@@ -86,8 +108,11 @@ export function SessionLanePanel({
     token: number;
   }>({ gameId: currentGameId, ballId: highlightBallId, token: 0 });
 
-  const chooseGame = (gameId: number | undefined) =>
-    setSelection((prev) => ({ gameId, token: prev.token + 1 }));
+  const chooseGame = (gameId: number | undefined) => {
+    const next = { gameId, token: selection.token + 1 };
+    setOwnSelection(next);
+    onSelectionChange?.(next);
+  };
 
   /** Show a game on the sheet: switch tab, scroll to it, light the ball's shots. */
   const goToGame = (gameId: number, ballId?: number) => {
@@ -97,14 +122,13 @@ export function SessionLanePanel({
   };
 
   // The app's one sheet motion: slide up on mount, drag down to dismiss, slide
-  // back down on close. `dragHandlers` go on the drag pill AND the header row,
-  // and the hook skips a press that landed on a button so the header's own
-  // controls still work.
-  const { dismiss, backdropStyle, rootStyle, panelStyle, exiting, dragHandlers } = useSheetDismiss(onClose);
+  // back down on close. `dragHandlers` go on the drag pill AND the tab row, and
+  // the hook skips a press that landed on a button so the tabs still work.
+  const { dismiss, rootStyle, panelStyle, exiting, dragHandlers } = useSheetDismiss(onClose);
   const requestClose = useCallback(() => dismiss(), [dismiss]);
 
   // Escape + focus trap + focus restore, tied to the animated dismissal rather
-  // than `onClose`, so Escape plays the same exit as the drag and backdrop.
+  // than `onClose`, so Escape plays the same exit as the drag.
   const overlayRef = useOverlay<HTMLDivElement>(requestClose);
 
   const currentGame = summary.games.find((g) => g.id === currentGameId);
@@ -115,113 +139,36 @@ export function SessionLanePanel({
 
   const tabs: SessionPanelTab[] = ["sheet", "stats", "lanes"];
 
-  // Series total counts every game (running total for one in progress); the
-  // average is over completed games only, same rule as the history rows.
-  const seriesTotal = summary.games.reduce(
-    (sum, g) => sum + (g.final_score ?? calculateGameScore(g.frames).total),
-    0
-  );
-  const finalScores = summary.games.flatMap((g) => (g.final_score !== undefined ? [g.final_score] : []));
-  const seriesAvg = finalScores.length
-    ? Math.round(finalScores.reduce((a, b) => a + b, 0) / finalScores.length)
-    : null;
-  const gameChips = [...summary.games]
-    .sort((a, b) => a.game_number - b.game_number)
-    .map((g) => {
-      const score = calculateGameScore(g.frames);
-      return {
-        id: g.id,
-        number: g.game_number,
-        label: g.final_score ?? (score.isComplete ? score.total : `${score.total}+`)
-      };
-    });
-
   // Portal to body: callers can live inside SwipePanes, whose translateX
   // transform would otherwise become the containing block for this fixed
   // overlay and shove it off-screen.
   return createPortal(
+    // Starts at `top`, not at the top of the screen: the header and the chips
+    // above it stay live, so a tap on them reaches the screen rather than a
+    // backdrop that would close the panel.
     <div
-      className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 sm:items-center"
+      className="fixed inset-x-0 bottom-0 z-50 flex justify-center overflow-hidden"
       role="dialog"
-      aria-modal="true"
-      style={{ ...backdropStyle, ...rootStyle }}
-      onClick={requestClose}
+      aria-label="Session sheet"
+      style={{ ...rootStyle, top }}
     >
       <div
         ref={overlayRef}
-        className={`flex h-[100dvh] w-full max-w-lg flex-col bg-surface shadow-xl sm:h-[95vh] sm:rounded-2xl ${
+        className={`flex h-full w-full max-w-lg flex-col rounded-t-2xl border-t border-edge bg-surface shadow-xl ${
           exiting ? "" : "animate-slide-up"
         }`}
-        onClick={(e) => e.stopPropagation()}
         style={panelStyle}
       >
-        {/* Drag pill */}
         <div
-          className="flex touch-none cursor-grab justify-center pb-1 pt-[calc(env(safe-area-inset-top)+0.75rem)] active:cursor-grabbing sm:pt-3"
+          className="flex touch-none cursor-grab justify-center pb-1 pt-2 active:cursor-grabbing"
           {...dragHandlers}
         >
           <div className="h-1.5 w-10 rounded-full bg-edge-strong" />
         </div>
-        <div
-          className="flex touch-none items-start justify-between gap-3 border-b border-edge px-4 py-3"
-          {...dragHandlers}
-        >
-          {/* The sheet is full height, so the screen behind it is not visible to
-              tap on and the drag was the only way out. Anything that fills the
-              screen carries a close (DESIGN-LANGUAGE §1b). */}
-          <IconButton onClick={requestClose} label="Close" variant="round" className="shrink-0">
-            <X size={20} aria-hidden="true" />
-          </IconButton>
-          <SessionHeaderText session={summary.session} games={summary.games} onEdit={onEdit} />
-          {/* Series total + average, matching the score-entry header. */}
-          <div className="shrink-0 text-right">
-            <p className="text-2xl font-extrabold leading-none text-accent" aria-label="Series total">
-              {seriesTotal}
-            </p>
-            {seriesAvg !== null && (
-              <p className="text-xs font-semibold text-ink-secondary">{seriesAvg} avg</p>
-            )}
-          </div>
-        </div>
-
-        {/* Read-only mirror of the score-entry game chips. */}
-        <div className="flex items-center gap-2 overflow-x-auto border-b border-edge px-4 py-2">
-          {gameChips.map((g) => {
-            // On the stats tab a chip is a filter that shows as one, and
-            // tapping the one already on clears it. Elsewhere it is a way to a
-            // place: it scrolls the sheet there and stays unmarked.
-            const onStats = tab === "stats";
-            const active = onStats && g.id === selection.gameId;
-            return (
-              <Chip
-                key={g.id}
-                selected={active}
-                onClick={() => {
-                  if (onStats) {
-                    chooseGame(g.id === selection.gameId ? undefined : g.id);
-                    return;
-                  }
-                  setTab("sheet");
-                  // The token is bumped either way, so the sheet re-scrolls
-                  // even when the same game chip is tapped twice.
-                  chooseGame(g.id);
-                }}
-                className="shrink-0 gap-1.5"
-              >
-                {/* The score is the point of the chip, so it carries the weight
-                    and the accent colour; the G-label recedes. */}
-                <span className={active ? "font-medium opacity-80" : "font-medium text-ink-secondary"}>
-                  G{g.number} ·
-                </span>
-                <span className={active ? "font-bold" : "font-bold text-accent"}>{g.label}</span>
-              </Chip>
-            );
-          })}
-        </div>
 
         {/* One of three, so a segmented control rather than three chips: chips
             read as filters that could all be on at once (DESIGN-LANGUAGE §4). */}
-        <div className="border-b border-edge px-4 py-2">
+        <div className="touch-none border-b border-edge px-4 pb-2" {...dragHandlers}>
           <SegmentedControl
             label="Session sheet section"
             value={tab}

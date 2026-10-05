@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ActiveSessionView } from "./ActiveSessionView";
 import { db } from "../db/bowlingDb";
@@ -11,13 +11,14 @@ vi.mock("../lib/installPrompt", async (importOriginal) => ({
   isStandalone: () => true
 }));
 
-function renderSession(sessionId: number) {
+function renderSession(sessionId: number, extra: Partial<Parameters<typeof ActiveSessionView>[0]> = {}) {
   render(
     <ActiveSessionView
       sessionId={sessionId}
       onBack={vi.fn()}
       onSessionDeleted={vi.fn()}
       onOpenArsenal={vi.fn()}
+      {...extra}
     />
   );
 }
@@ -44,6 +45,50 @@ describe("ActiveSessionView", () => {
     fireEvent.click(add);
 
     await waitFor(async () => expect(await db.games.count()).toBe(1));
+  });
+
+  it("opens a finished session from History on its stats", async () => {
+    const sessionId = Number(await createSession({ date: "2026-05-27", alley_name: "Axe Lanes" }));
+    const gameId = Number(await addGameToSession(sessionId, { game_number: 1 }));
+    await db.games.update(gameId, { final_score: 200 });
+
+    renderSession(sessionId, { openStatsOnMount: true });
+
+    const panel = await screen.findByRole("dialog", { name: "Session sheet" });
+    expect(within(panel).getByRole("button", { name: "Stats" })).toHaveAttribute("aria-pressed", "true");
+  });
+
+  /**
+   * The pencil in the header takes two taps to the edit: the first brings up
+   * the session sheet, the second, with it up, the session's details.
+   */
+  it("brings up the sheet with the pencil, then the session details", async () => {
+    const sessionId = Number(await createSession({ date: "2026-05-27", alley_name: "Axe Lanes" }));
+    await addGameToSession(sessionId, { game_number: 1 });
+    renderSession(sessionId);
+
+    fireEvent.click(await screen.findByRole("button", { name: "Session sheet" }));
+    const panel = await screen.findByRole("dialog", { name: "Session sheet" });
+    expect(within(panel).getByRole("button", { name: "Sheet" })).toHaveAttribute("aria-pressed", "true");
+
+    fireEvent.click(screen.getByRole("button", { name: "Edit session" }));
+    expect(await screen.findByRole("dialog", { name: "Edit session" })).toBeInTheDocument();
+  });
+
+  it("scopes the stats with the screen's own game chips while the sheet is up", async () => {
+    const sessionId = Number(await createSession({ date: "2026-05-27", alley_name: "Axe Lanes" }));
+    const g1 = Number(await addGameToSession(sessionId, { game_number: 1 }));
+    const g2 = Number(await addGameToSession(sessionId, { game_number: 2 }));
+    await db.games.update(g1, { final_score: 200 });
+    await db.games.update(g2, { final_score: 150 });
+    renderSession(sessionId, { openStatsOnMount: true });
+
+    await screen.findByRole("dialog", { name: "Session sheet" });
+    fireEvent.click(screen.getByRole("button", { name: /^G2/ }));
+    expect(await screen.findByText("Game 2 only")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /^G2/ })).toHaveAttribute("aria-pressed", "true");
+    fireEvent.click(screen.getByRole("button", { name: /^G2/ }));
+    expect(screen.queryByText("Game 2 only")).toBeNull();
   });
 
   it("opens on the session's game, with its alley and its scorer", async () => {

@@ -77,36 +77,48 @@ describe("the session sheet", () => {
     expect(screen.getAllByTitle(/Gem|Zen/)).toHaveLength(2);
   });
 
-  it("scopes the stats to a game chip rather than jumping to its frames", async () => {
-    render(<SessionLanePanel summary={TWO_GAMES} currentGameId={1} onClose={() => {}} />);
-    fireEvent.click(screen.getByRole("button", { name: "Stats" }));
-    await waitFor(() => expect(screen.getByText("Games")).toBeInTheDocument());
-    // The whole series to begin with: both games behind the Games tile.
-    const gamesTile = screen.getByText("Games").closest("div")!;
-    expect(gamesTile).toHaveTextContent("2");
-
-    fireEvent.click(screen.getByRole("button", { name: /G2/ }));
-    expect(screen.getByText("Game 2 only")).toBeInTheDocument();
-    // Still on the stats tab: the frames were not what was asked for.
-    expect(screen.getByRole("button", { name: "Stats" })).toHaveAttribute("aria-pressed", "true");
-    expect(screen.getByRole("button", { name: "Sheet" })).toHaveAttribute(
-      "aria-pressed",
-      "false"
+  it("scopes the stats to the game the screen's chips chose", async () => {
+    render(
+      <SessionLanePanel
+        summary={TWO_GAMES}
+        currentGameId={1}
+        tab="stats"
+        selection={{ gameId: 2, token: 1 }}
+        onClose={() => {}}
+      />
     );
-
-    // Tapping the same chip again gives the series back.
-    fireEvent.click(screen.getByRole("button", { name: /G2/ }));
-    expect(screen.queryByText("Game 2 only")).toBeNull();
+    await waitFor(() => expect(screen.getByText("Game 2 only")).toBeInTheDocument());
+    const gamesTile = screen.getByText("Games").closest("div")!;
+    expect(gamesTile).toHaveTextContent("1");
   });
 
   it("clears the scope from the banner", async () => {
-    render(<SessionLanePanel summary={TWO_GAMES} currentGameId={1} onClose={() => {}} />);
-    fireEvent.click(screen.getByRole("button", { name: "Stats" }));
-    await waitFor(() => expect(screen.getByText("Games")).toBeInTheDocument());
-    fireEvent.click(screen.getByRole("button", { name: /G1/ }));
+    const onSelectionChange = vi.fn();
+    render(
+      <SessionLanePanel
+        summary={TWO_GAMES}
+        currentGameId={1}
+        tab="stats"
+        selection={{ gameId: 1, token: 1 }}
+        onSelectionChange={onSelectionChange}
+        onClose={() => {}}
+      />
+    );
+    fireEvent.click(await screen.findByText("Game 1 only"));
+    expect(onSelectionChange).toHaveBeenCalledWith({ gameId: undefined, token: 2 });
+  });
 
-    fireEvent.click(screen.getByText("Game 1 only"));
-    expect(screen.queryByText("Game 1 only")).toBeNull();
+  /**
+   * The header and the chips above the panel are the screen's, and stay in
+   * view: the panel draws neither a second time, and carries no close.
+   */
+  it("draws no header, no chips and no close of its own", () => {
+    render(<SessionLanePanel summary={TWO_GAMES} currentGameId={1} top={120} onClose={() => {}} />);
+    const panel = screen.getByRole("dialog", { name: "Session sheet" });
+    expect(panel).toHaveStyle({ top: "120px" });
+    expect(screen.queryByRole("button", { name: "Close" })).toBeNull();
+    expect(screen.queryByRole("button", { name: /^G1/ })).toBeNull();
+    expect(screen.queryByLabelText("Series total")).toBeNull();
   });
 
   it("goes to the game on the sheet when one is picked off the score line", async () => {
@@ -126,18 +138,5 @@ describe("the session sheet", () => {
     // One game is chosen, not two: coming back to the stats finds the same one.
     fireEvent.click(screen.getByRole("button", { name: "Stats" }));
     expect(screen.getByText("Game 2 only")).toBeInTheDocument();
-  });
-
-  it("marks the chosen game on the stats chips only, never on the sheet's", async () => {
-    render(<SessionLanePanel summary={TWO_GAMES} currentGameId={1} onClose={() => {}} />);
-    fireEvent.click(screen.getByRole("button", { name: "Stats" }));
-    await waitFor(() => expect(screen.getByText("Games")).toBeInTheDocument());
-    fireEvent.click(screen.getByRole("button", { name: /G2/ }));
-    expect(screen.getByRole("button", { name: /G2/ })).toHaveAttribute("aria-pressed", "true");
-
-    // On the sheet a chip is a place to scroll to, so none of them read as on.
-    fireEvent.click(screen.getByRole("button", { name: "Sheet" }));
-    expect(screen.getByRole("button", { name: /G1/ })).toHaveAttribute("aria-pressed", "false");
-    expect(screen.getByRole("button", { name: /G2/ })).toHaveAttribute("aria-pressed", "false");
   });
 });
