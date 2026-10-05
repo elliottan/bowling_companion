@@ -35,6 +35,17 @@ function Page(props: { onClose: () => void; open?: boolean; active?: boolean }) 
 }
 
 describe("useOverlay", () => {
+  it("focuses without scrolling, so a sheet still sliding in is not lifted", () => {
+    const spy = vi.spyOn(HTMLElement.prototype, "focus");
+    const { unmount } = render(<Page onClose={vi.fn()} />);
+    expect(spy).toHaveBeenCalledWith({ preventScroll: true });
+    spy.mockClear();
+    unmount();
+    // Focus going back to the trigger on close does not scroll either.
+    for (const call of spy.mock.calls) expect(call[0]).toEqual({ preventScroll: true });
+    spy.mockRestore();
+  });
+
   it("focuses the first focusable element on open", () => {
     render(<Page onClose={vi.fn()} />);
     expect(document.activeElement).toBe(screen.getByText("first"));

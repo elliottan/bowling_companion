@@ -92,6 +92,22 @@ describe("ActiveSessionView", () => {
     expect(share.parentElement).toBe(document.body);
   });
 
+  it("lets the sheet's panes scroll only once the panel has stopped moving", async () => {
+    const sessionId = Number(await createSession({ date: "2026-05-27", alley_name: "Axe Lanes" }));
+    await addGameToSession(sessionId, { game_number: 1 });
+    renderSession(sessionId);
+    fireEvent.click(await screen.findByRole("button", { name: "Session sheet" }));
+    const panel = await screen.findByRole("dialog", { name: "Session sheet" });
+    const panes = panel.querySelectorAll<HTMLElement>("[data-sheet-pane]");
+    expect(panes).toHaveLength(3);
+
+    // A scrolling box on iOS does not follow its panel's slide, so the panes
+    // are plain boxes until the slide has ended.
+    for (const pane of panes) expect(pane.className).toContain("overflow-hidden");
+    fireEvent.animationEnd(panel.firstElementChild as HTMLElement);
+    for (const pane of panes) expect(pane.className).toContain("overflow-y-auto");
+  });
+
   it("switches the sheet's tabs with the control only", async () => {
     const sessionId = Number(await createSession({ date: "2026-05-27", alley_name: "Axe Lanes" }));
     await addGameToSession(sessionId, { game_number: 1 });
@@ -100,7 +116,7 @@ describe("ActiveSessionView", () => {
     const panel = await screen.findByRole("dialog", { name: "Session sheet" });
 
     // A sideways drag across the panes used to change tab.
-    const body = panel.querySelector(".overflow-y-auto") as HTMLElement;
+    const body = panel.querySelector("[data-sheet-pane]") as HTMLElement;
     fireEvent.touchStart(body, { touches: [{ clientX: 300, clientY: 300 }] });
     fireEvent.touchMove(body, { touches: [{ clientX: 50, clientY: 305 }] });
     fireEvent.touchEnd(body, { changedTouches: [{ clientX: 50, clientY: 305 }] });

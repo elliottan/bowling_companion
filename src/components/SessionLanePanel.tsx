@@ -133,6 +133,24 @@ export function SessionLanePanel({
   // back down on close. `dragHandlers` go on the drag pill AND the tab row, and
   // the hook skips a press that landed on a button so the tabs still work.
   const { dismiss, rootStyle, panelStyle, exiting, dragHandlers } = useSheetDismiss(onClose);
+
+  // The panes scroll only while the panel is at rest. iOS Safari hands every
+  // scrolling box to a native scroll view of its own, and those do not follow
+  // an animated transform on an ancestor: while the panel slid up, its frames
+  // and charts were drawn at their resting place over the scorer, with no
+  // panel behind them, no handle and no Sheet/Stats/Lanes bar, and the real
+  // panel appeared only when the slide ended. A box that cannot scroll is
+  // painted with its panel, so the panel moves as one piece.
+  const [settled, setSettled] = useState(
+    () => window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false
+  );
+  useEffect(() => {
+    // animationend is the signal; this is the net under it, should the event
+    // never come (an interrupted animation, a backgrounded tab).
+    const t = window.setTimeout(() => setSettled(true), 400);
+    return () => window.clearTimeout(t);
+  }, []);
+  const scrollable = settled && !exiting && !leaving;
   const requestClose = useCallback(() => dismiss(), [dismiss]);
 
   // Escape + focus trap + focus restore, tied to the animated dismissal rather
@@ -155,7 +173,10 @@ export function SessionLanePanel({
     // above it stay live, so a tap on them reaches the screen rather than a
     // backdrop that would close the panel.
     <div
-      className="fixed inset-x-0 bottom-0 z-50 flex justify-center overflow-hidden"
+      // overflow-clip, not hidden: a hidden box is still a scroll container,
+      // and focus or scrollIntoView can scroll it, lifting the panel out of
+      // place. A clipping box cannot be scrolled at all.
+      className="fixed inset-x-0 bottom-0 z-50 flex justify-center overflow-clip"
       role="dialog"
       aria-label="Session sheet"
       style={{ ...rootStyle, top, ...(leaving && { pointerEvents: "none" as const }) }}
@@ -172,6 +193,9 @@ export function SessionLanePanel({
             ? { ...panelStyle, transform: "translateY(100%)", transition: "transform 220ms cubic-bezier(0.32, 0.72, 0, 1)" }
             : panelStyle
         }
+        onAnimationEnd={(e) => {
+          if (e.target === e.currentTarget) setSettled(true);
+        }}
       >
         <div
           className="flex touch-none cursor-grab justify-center pb-1 pt-2 active:cursor-grabbing"
@@ -200,17 +224,7 @@ export function SessionLanePanel({
             when it meant to scroll or tap. The panes sit on top of each other
             and the hidden ones keep their layout, so the sheet can scroll to
             a game while another tab is showing. */}
-        {/* translateZ(0) gives the panes a composited parent inside the panel.
-            Each pane scrolls, and iOS Safari moves a scrolling box on a layer
-            of its own: without a composited ancestor to hang from, those
-            layers were drawn at their resting place while the panel was still
-            sliding up, so the frames and charts showed over the scorer before
-            the drag handle and the Sheet/Stats/Lanes bar arrived. The swipe
-            track they used to sit in was that ancestor, by accident. */}
-        <div
-          className="relative min-h-0 flex-1 overflow-hidden"
-          style={{ transform: "translateZ(0)" }}
-        >
+        <div className="relative min-h-0 flex-1 overflow-hidden">
           {[
             <div key="sheet" className="px-4 py-3">
               <SessionSheetTab
@@ -241,9 +255,10 @@ export function SessionLanePanel({
             <div
               key={tabs[i]}
               aria-hidden={tabs[i] !== tab}
-              className={`absolute inset-0 overflow-y-auto overscroll-contain ${
-                tabs[i] === tab ? "" : "invisible"
-              }`}
+              data-sheet-pane=""
+              className={`absolute inset-0 overscroll-contain ${
+                scrollable ? "overflow-y-auto" : "overflow-hidden"
+              } ${tabs[i] === tab ? "" : "invisible"}`}
             >
               {pane}
             </div>
@@ -429,15 +444,11 @@ function SessionSheetTab({
 /** A few pixels above the game heading, so it does not sit on the pane's edge. */
 const FOCUS_MARGIN = 8;
 
-/** The nearest ancestor that scrolls vertically: the sheet's own tab pane. */
+/** The sheet's own tab pane. Found by its marker rather than by its overflow:
+ *  the pane is not scrollable while the panel slides in, and the scroll to the
+ *  current game happens then. A box that clips can still be scrolled by code. */
 function scrollParent(el: HTMLElement): HTMLElement | null {
-  let node = el.parentElement;
-  while (node) {
-    const overflowY = getComputedStyle(node).overflowY;
-    if (overflowY === "auto" || overflowY === "scroll") return node;
-    node = node.parentElement;
-  }
-  return null;
+  return el.closest<HTMLElement>("[data-sheet-pane]");
 }
 
 const emptyCell = (n: number) => (
