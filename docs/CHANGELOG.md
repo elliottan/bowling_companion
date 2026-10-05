@@ -9,6 +9,13 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.2.1: The session sheet slides up whole (2026-10-05)
+
+**The session sheet arrives in one piece.** On an iPhone, opening the sheet
+showed its frames or charts over the scorer for a moment, with no handle and
+no Sheet, Stats and Lanes bar, and then the whole sheet appeared at once. It
+now slides up as one panel, header and all.
+
 ## 0.2.0: Spare lines stack by line, the session sheet stays put (2026-10-05)
 
 **Back from a session with its sheet up works.** The back arrow above the
