@@ -8,6 +8,25 @@ merge to `main` (`docs/DEPLOYMENT.md`), so every section below is a dated batch
 of shipped work rather than a release. Thirty of them used to be headed
 `[Unreleased]`, which said nothing once they had all shipped.
 
+## Spare lines stack by line, suggest copies, and filter (2026-10-05)
+
+**Leaves thrown with the same line share a tile.** When two leaves have the
+same stance and target, the spare lines screen shows them as one stacked tile
+with a count ("1 of 3"). Tap the count to flip through the pin decks. Nothing
+links them: change one leave's line and it leaves the stack by itself, copy a
+line into a leave and it joins.
+
+**The screen suggests a line to copy.** For a leave with no line that is
+likely the same shot as one you have written down (the same front pin, one
+pin apart, and a sleeper in both or neither, so 2-4-8 takes 2-4-5-8's line
+but 2-4-5 does not), it offers "Use line". The X turns that suggestion down
+for good.
+
+**Filter chips.** Single pins, Sleepers, Baby splits, Has a line and No line
+yet narrow the list. Chips of the same kind add together; the two kinds
+combine, so Sleepers with No line yet is the sleepers still to write. All
+clears them.
+
 ## A spare line opens to read, and Stats opens every leave (2026-10-05)
 
 **Your name is set once on Home.** The greeting offers "Add your name" until

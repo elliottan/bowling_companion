@@ -1,4 +1,4 @@
-import { Plus } from "lucide-react";
+import { ChevronRight, Plus, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import {
@@ -27,9 +27,22 @@ import {
   ensureDefaultSpareLines,
   getSpareLinesAll,
   reorderSpareLines,
+  upsertSpareLine,
 } from "../services/ballRepository";
-import { getSessionHistory } from "../services/bowlingRepository";
-import { calculateCommonLeaves, mostLeftWithoutLine, type LeaveStats } from "../lib/stats";
+import { getSessionHistory, getSetting, setSetting } from "../services/bowlingRepository";
+import { calculateCommonLeaves, type LeaveStats } from "../lib/stats";
+import {
+  leaveKey,
+  matchesFilters,
+  mostLeftWithoutLine,
+  SPARE_FILTERS,
+  stackByLine,
+  suggestLineCopies,
+  suggestionKey,
+  type LineSuggestion,
+  type SpareFilter,
+} from "../lib/spareLines";
+import { Chip, TAP_TARGET_44 } from "../components/ui/Chip";
 import {
   formatLeave,
   SPARE_GROUP_LABEL,
@@ -57,23 +70,43 @@ function DerivedChain({ line, model }: { line: LineSpec; model: DriftModel }) {
   );
 }
 
-interface SortableSpareCardProps {
-  sl: SpareLine;
-  /** Tap: straight to the lane visualizer, the card already shows the boards. */
+interface SortableStackCardProps {
+  /** The stack's id for dragging: its first leave's, filtered or not. */
+  id: number;
+  /** The leaves shown in this tile: one, or several sharing the same line. */
+  stack: SpareLine[];
   onOpen: (sl: SpareLine) => void;
 }
 
-function SortableSpareCard({ sl, onOpen }: SortableSpareCardProps) {
+/**
+ * A tile for one leave, or for a stack of leaves thrown with the same line.
+ * A stack shows one deck at a time and a count to flip through the rest: the
+ * boards are the same for every leave in it, so only the deck changes. A tap
+ * opens the leave on top, and the boards in there are that leave's own.
+ */
+function SortableStackCard({ id, stack, onOpen }: SortableStackCardProps) {
   const driftModel = useDriftModel();
+  const [shown, setShown] = useState(0);
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
-    useSortable({ id: sl.id! });
+    useSortable({ id });
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
     zIndex: isDragging ? 10 : undefined,
   };
+  // A filter can shrink the stack under the index.
+  const index = shown < stack.length ? shown : 0;
+  const sl = stack[index];
+  const stacked = stack.length > 1;
   return (
-    <li ref={setNodeRef} style={style}>
+    <li ref={setNodeRef} style={style} className="relative">
+      {/* The card edge peeking out underneath is what says "more than one". */}
+      {stacked && (
+        <div
+          aria-hidden="true"
+          className="absolute inset-x-2 -bottom-1.5 top-1 rounded-lg border border-edge-strong bg-surface-muted"
+        />
+      )}
       <div
         className={`relative flex w-full select-none flex-col items-center gap-1.5 rounded-lg border bg-surface p-3 text-center shadow-sm ${
           isDragging ? "border-accent-fill opacity-90 shadow-md" : "border-edge"
@@ -98,7 +131,7 @@ function SortableSpareCard({ sl, onOpen }: SortableSpareCardProps) {
               <div className="grid grid-cols-2">
                 {([["Stance", sl.line.stance], ["Target", sl.line.target]] as const).map(([k, v]) => (
                   <div key={k}>
-                    <div className="text-[11px] font-semibold uppercase tracking-wide text-ink-secondary">{k}</div>
+                    <div className="text-[10px] font-semibold uppercase tracking-tight text-ink-secondary">{k}</div>
                     <div className="text-xs font-bold tabular-nums text-ink-strong">{v ?? "-"}</div>
                   </div>
                 ))}
@@ -110,6 +143,17 @@ function SortableSpareCard({ sl, onOpen }: SortableSpareCardProps) {
           )}
           <StrikeMove offset={sl.strike_offset} />
         </button>
+        {stacked && (
+          <button
+            type="button"
+            onClick={() => setShown((index + 1) % stack.length)}
+            aria-label={`Next leave with this line, ${index + 1} of ${stack.length}`}
+            className={`relative -mb-1 flex items-center gap-0.5 rounded-full bg-accent-soft px-2 py-0.5 text-[11px] font-bold tabular-nums text-accent active:opacity-70 ${TAP_TARGET_44}`}
+          >
+            {index + 1} of {stack.length}
+            <ChevronRight size={12} strokeWidth={3} aria-hidden="true" />
+          </button>
+        )}
       </div>
     </li>
   );
@@ -140,6 +184,18 @@ type Opened = { pins: PinNumber[]; edit: boolean };
 
 const NO_LEAVES: LeaveStats[] = [];
 
+/** Suggestions the bowler turned down, so the same one is not asked again. */
+const DISMISSED_KEY = "spareLineSuggestionsDismissed";
+
+function parseDismissed(raw: string | undefined): Set<string> {
+  try {
+    const list: unknown = raw ? JSON.parse(raw) : [];
+    return new Set(Array.isArray(list) ? list.filter((k): k is string => typeof k === "string") : []);
+  } catch {
+    return new Set();
+  }
+}
+
 export function SpareLinesView({ onBack }: { onBack: () => void }) {
   // Seeding is a write, and a live query observes inside a readonly
   // transaction, so it cannot live in one. Fire it once; the query below picks
@@ -161,7 +217,56 @@ export function SpareLinesView({ onBack }: { onBack: () => void }) {
   const [error, setError] = useState("");
   const [opened, setOpened] = useState<Opened | null>(null);
 
-  const ask = isLoading ? undefined : mostLeftWithoutLine(leaves, spareLines);
+  const [filters, setFilters] = useState<ReadonlySet<SpareFilter>>(new Set());
+  const dismissedRaw = useLiveQuery(async () => ({ raw: await getSetting(DISMISSED_KEY) }));
+  const dismissed = parseDismissed(dismissedRaw?.raw);
+
+  // At most one of each ask on screen: a line to copy, then a leave to write.
+  const suggestion: LineSuggestion | undefined =
+    isLoading || !dismissedRaw ? undefined : suggestLineCopies(leaves, spareLines, dismissed)[0];
+  const mostLeft = isLoading ? undefined : mostLeftWithoutLine(leaves, spareLines);
+  const ask =
+    mostLeft && (!suggestion || leaveKey(mostLeft.pins) !== leaveKey(suggestion.pins))
+      ? mostLeft
+      : undefined;
+
+  // Stacked within each group, so a stack never spans two headings.
+  const stacks = SPARE_GROUPS.map((group) => ({
+    group,
+    stacks: stackByLine(spareLines.filter((sl) => spareGroup(sl.pins) === group)),
+  }));
+
+  function toggleFilter(f: SpareFilter) {
+    setFilters((curr) => {
+      const next = new Set(curr);
+      if (next.has(f)) next.delete(f);
+      else next.add(f);
+      return next;
+    });
+  }
+
+  async function acceptSuggestion(s: LineSuggestion) {
+    setError("");
+    // The boards and the strike-ball move travel; the leave keeps its own note.
+    const existing = spareLines.find((sl) => leaveKey(sl.pins) === leaveKey(s.pins));
+    try {
+      await upsertSpareLine(
+        s.pins,
+        { ...(s.from.line?.stance != null && { stance: s.from.line.stance }),
+          ...(s.from.line?.target != null && { target: s.from.line.target }) },
+        existing?.notes,
+        s.from.strike_offset
+      );
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to copy the line.");
+    }
+  }
+
+  async function dismissSuggestion(s: LineSuggestion) {
+    const next = new Set(dismissed);
+    next.add(suggestionKey(s));
+    await setSetting(DISMISSED_KEY, JSON.stringify([...next]));
+  }
 
   // Press-and-hold anywhere on a card to pick it up; a quick tap opens it.
   const sensors = useSensors(
@@ -177,14 +282,16 @@ export function SpareLinesView({ onBack }: { onBack: () => void }) {
 
     if (!over || active.id === over.id) return;
 
-    const oldIndex = spareLines.findIndex((s) => s.id === active.id);
-    const newIndex = spareLines.findIndex((s) => s.id === over.id);
+    // A stack moves whole: it is dragged by its first leave's id.
+    const tiles = stacks.flatMap((g) => g.stacks);
+    const oldIndex = tiles.findIndex((t) => t[0].id === active.id);
+    const newIndex = tiles.findIndex((t) => t[0].id === over.id);
     if (oldIndex < 0 || newIndex < 0) return;
     // Order is kept within a group: a leave dropped on another group's card
     // would move in the list and stay where it was on screen.
-    if (spareGroup(spareLines[oldIndex].pins) !== spareGroup(spareLines[newIndex].pins)) return;
+    if (spareGroup(tiles[oldIndex][0].pins) !== spareGroup(tiles[newIndex][0].pins)) return;
 
-    const next = arrayMove(spareLines, oldIndex, newIndex);
+    const next = arrayMove(tiles, oldIndex, newIndex).flat();
     setReordered(next);
     setError("");
     try {
@@ -228,6 +335,34 @@ export function SpareLinesView({ onBack }: { onBack: () => void }) {
         />
       )}
 
+      {/* A leave with no line that is the same shot as one with a line: one
+          tap copies it, and the two then stack on one tile. */}
+      {suggestion && (
+        <div className="flex items-center gap-3 rounded-xl border border-dashed border-edge-strong bg-surface p-3">
+          <MiniPins standing={suggestion.pins} size="sm" />
+          <p className="min-w-0 flex-1 text-xs text-ink-secondary">
+            <span className="font-semibold text-ink">{formatLeave(suggestion.pins)}</span> is
+            likely the same shot as{" "}
+            <span className="font-semibold text-ink">{formatLeave(suggestion.from.pins)}</span>.
+            Use its line?
+          </p>
+          <button
+            type="button"
+            onClick={() => void acceptSuggestion(suggestion)}
+            className={`relative shrink-0 text-xs font-semibold text-accent active:opacity-60 ${TAP_TARGET_44}`}
+          >
+            Use line
+          </button>
+          <IconButton
+            compact
+            label="Not the same shot"
+            onClick={() => void dismissSuggestion(suggestion)}
+          >
+            <X size={14} aria-hidden="true" />
+          </IconButton>
+        </div>
+      )}
+
       {/* The one leave worth writing down next: the one left most often that
           has no line. It moves on to the next as soon as this one has one. */}
       {ask && (
@@ -261,34 +396,70 @@ export function SpareLinesView({ onBack }: { onBack: () => void }) {
           </Button>
         </EmptyState>
       ) : (
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCenter}
-          onDragEnd={(e) => void handleDragEnd(e)}
-        >
-          {/* The same three groups as Stats, easiest first, so a leave sits
-              in the same place on both screens. */}
-          {SPARE_GROUPS.map((group) => {
-            const inGroup = spareLines.filter((sl) => spareGroup(sl.pins) === group);
-            if (inGroup.length === 0) return null;
+        <>
+        {/* Filters to cut a long list down. "All" is on while nothing else is,
+            and clears the rest. */}
+        <div className="flex flex-wrap gap-2" role="group" aria-label="Filter spare lines">
+          <Chip selected={filters.size === 0} onClick={() => setFilters(new Set())}>
+            All
+          </Chip>
+          {SPARE_FILTERS.map((f) => (
+            <Chip key={f.id} selected={filters.has(f.id)} onClick={() => toggleFilter(f.id)}>
+              {f.label}
+            </Chip>
+          ))}
+        </div>
+        {(() => {
+          const shown = stacks
+            .map((g) => ({
+              group: g.group,
+              tiles: g.stacks
+                .map((stack) => ({ id: stack[0].id!, members: stack.filter((sl) => matchesFilters(sl, filters)) }))
+                .filter((t) => t.members.length > 0),
+            }))
+            .filter((g) => g.tiles.length > 0);
+          if (shown.length === 0) {
             return (
-              <section key={group} aria-label={SPARE_GROUP_LABEL[group]}>
-                <h2 className={`mb-1 px-1 ${GROUP_HEADING}`}>{SPARE_GROUP_LABEL[group]}</h2>
-                <SortableContext items={inGroup.map((s) => s.id!)} strategy={rectSortingStrategy}>
-                  <ul className="grid grid-cols-3 gap-2">
-                    {inGroup.map((sl) => (
-                      <SortableSpareCard
-                        key={sl.id}
-                        sl={sl}
-                        onOpen={(line) => setOpened({ pins: line.pins, edit: false })}
-                      />
-                    ))}
-                  </ul>
-                </SortableContext>
-              </section>
+              <EmptyState
+                icon={SpareLineIcon}
+                title="Nothing matches"
+                description="None of your saved leaves fit these filters."
+              >
+                <Button variant="ghost" onClick={() => setFilters(new Set())}>
+                  Clear filters
+                </Button>
+              </EmptyState>
             );
-          })}
-        </DndContext>
+          }
+          return (
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={(e) => void handleDragEnd(e)}
+            >
+              {/* The same three groups as Stats, easiest first, so a leave sits
+                  in the same place on both screens. */}
+              {shown.map(({ group, tiles }) => (
+                <section key={group} aria-label={SPARE_GROUP_LABEL[group]}>
+                  <h2 className={`mb-1 px-1 ${GROUP_HEADING}`}>{SPARE_GROUP_LABEL[group]}</h2>
+                  <SortableContext items={tiles.map((t) => t.id)} strategy={rectSortingStrategy}>
+                    <ul className="grid grid-cols-3 gap-2">
+                      {tiles.map((t) => (
+                        <SortableStackCard
+                          key={t.id}
+                          id={t.id}
+                          stack={t.members}
+                          onOpen={(line) => setOpened({ pins: line.pins, edit: false })}
+                        />
+                      ))}
+                    </ul>
+                  </SortableContext>
+                </section>
+              ))}
+            </DndContext>
+          );
+        })()}
+        </>
       )}
     </section>
     </PushScreen>
