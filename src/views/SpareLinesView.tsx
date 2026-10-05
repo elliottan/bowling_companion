@@ -238,7 +238,7 @@ export function SpareLinesView({ onBack }: { onBack: () => void }) {
         >
           <MiniPins standing={ask.pins} size="sm" />
           <span className="min-w-0 flex-1 text-xs text-ink-secondary">
-            You leave the{" "}
+            You leave{" "}
             <span className="font-semibold text-ink">{formatLeave(ask.pins)}</span> most
             often ({ask.attempts} {ask.attempts === 1 ? "time" : "times"}) and have no line
             for it.
