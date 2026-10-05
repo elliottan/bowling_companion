@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { RECORD_SHOT, clearDatabase, recordShot, startSession, waitForScoresPersisted } from "./helpers";
+import { RECORD_SHOT, clearDatabase, recordShot, startSession, waitForScoresPersisted, openArsenalFromHome } from "./helpers";
 
 test.beforeEach(async ({ page }) => {
   await clearDatabase(page);
@@ -88,7 +88,7 @@ test("the same screen reached from Settings pushes inside the tab", async ({ pag
 });
 
 test("back closes the sheet in front before the screen behind it", async ({ page }) => {
-  await page.getByRole("button", { name: "Arsenal", exact: true }).click();
+  await openArsenalFromHome(page);
   await page.getByRole("button", { name: "Add ball" }).first().click();
   const editor = page.getByPlaceholder("e.g. Storm Phaze II");
   await expect(editor).toBeVisible();

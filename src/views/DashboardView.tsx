@@ -7,7 +7,7 @@ import { SessionFormDialog } from "../components/SessionFormDialog";
 import { alleyLabel } from "../lib/sessionLabels";
 import { ListGroup, ListRow } from "../components/ui/ListGroup";
 import { Fab, FabRow } from "../components/ui/Fab";
-import { ArsenalStrip, ProfileTiles, RecentSessionStrip } from "../components/HomeProfile";
+import { ArsenalGrid, ProfileTiles, RecentSessionStrip } from "../components/HomeProfile";
 import { BowlerNameSheet } from "../components/BowlerNameSheet";
 import { GREETINGS, greeting } from "../lib/greeting";
 import { InstallPrompt } from "../components/InstallPrompt";
@@ -168,30 +168,45 @@ export function DashboardView({
     <section className="mx-auto w-full max-w-xl px-3 pb-24 pt-3 sm:px-6 sm:pt-5">
       {/* The greeting is the screen's title, and the way to say what you want
           to be called: Settings holds the same sheet. */}
-      <div className="mb-3">
-        <h1 className="truncate text-xl font-bold text-ink">
-          {named ? (
+      {/* The top band is the bowler: the app's mark and the greeting on the
+          left, their arsenal on the right. The arsenal takes the wider share
+          because it carries pictures; the left column has room to grow. */}
+      <div className="mb-4 flex items-start gap-4">
+        <div className="flex w-[38%] min-w-0 shrink-0 flex-col items-start">
+          <img
+            src="/icons/icon-192.png"
+            alt=""
+            width={44}
+            height={44}
+            className="mb-2 h-11 w-11 rounded-xl shadow-sm"
+          />
+          <h1 className="text-xl font-bold leading-tight text-ink [overflow-wrap:anywhere]">
+            {named ? (
+              <button
+                type="button"
+                onClick={() => setEditingName(true)}
+                title={name ? "Change your name" : undefined}
+                className="text-left active:opacity-60"
+              >
+                {greeting(name, greetingIndex)}
+              </button>
+            ) : (
+              "\u00a0"
+            )}
+          </h1>
+          {named && !name && (
             <button
               type="button"
               onClick={() => setEditingName(true)}
-              title={name ? "Change your name" : undefined}
-              className="max-w-full truncate text-left active:opacity-60"
+              className={`relative mt-1 text-xs font-semibold text-accent active:opacity-60 ${TAP_TARGET_44}`}
             >
-              {greeting(name, greetingIndex)}
+              Add your name
             </button>
-          ) : (
-            "\u00a0"
           )}
-        </h1>
-        {named && !name && (
-          <button
-            type="button"
-            onClick={() => setEditingName(true)}
-            className={`relative text-xs font-semibold text-accent active:opacity-60 ${TAP_TARGET_44}`}
-          >
-            Add your name
-          </button>
-        )}
+        </div>
+        <div className="min-w-0 flex-1">
+          <ArsenalGrid balls={balls} onOpenArsenal={onOpenArsenal} />
+        </div>
       </div>
 
       {error && (
@@ -233,13 +248,12 @@ export function DashboardView({
         </button>
       ) : null}
 
-      {/* The bowler's own things, as one profile under the greeting: the
-          arsenal as its balls, the three other things a bowler keeps as equal
-          tiles, and the latest sessions. The tools and reading that are the
+      {/* The rest of the bowler's own things, under the greeting and the
+          arsenal: the three other things a bowler keeps as equal tiles, and
+          the latest sessions. The tools and reading that are the
           same for everyone follow as a list, because they are a different kind
           of place. */}
-      <div className="mt-5 space-y-4">
-        <ArsenalStrip balls={balls} onOpenArsenal={onOpenArsenal} />
+      <div className="mt-3 space-y-3">
         <ProfileTiles
           spareLines={facts?.answeredSpareLines}
           laneNotes={facts?.laneNoteCount}
