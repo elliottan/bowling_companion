@@ -99,6 +99,19 @@ export function spareGroup(standing: PinNumber[]): SpareGroup {
   return "makeable";
 }
 
+/** Pins stacked on one board, one hidden behind the other: the 1-5, 2-8 and
+ *  3-9. A ball that takes the front pin has to drive it into the one behind. */
+const SLEEPER_PAIRS: ReadonlyArray<[PinNumber, PinNumber]> = [
+  [1, 5],
+  [2, 8],
+  [3, 9]
+];
+
+/** A leave with a sleeper in it: both pins of a stacked pair standing. */
+export function isSleeper(standing: PinNumber[]): boolean {
+  return SLEEPER_PAIRS.some(([front, back]) => standing.includes(front) && standing.includes(back));
+}
+
 /** A leave's name in a title: "Pin 7" for a single pin, "2-4-5-8" for a
  *  combination, where the numbers alone already say it is pins. */
 export function formatLeave(standing: PinNumber[]): string {

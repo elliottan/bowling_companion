@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { PinNumber } from "../types/bowling";
-import { ALL_PINS, formatLeave, isBabySplit, isPocketHit, isSplit, isWashout, resolvePocketHit, spareGroup } from "./pins";
+import { ALL_PINS, formatLeave, isBabySplit, isSleeper, isPocketHit, isSplit, isWashout, resolvePocketHit, spareGroup } from "./pins";
 
 describe("isSplit", () => {
   it("returns false for empty leave", () => {
@@ -209,5 +209,14 @@ describe("formatLeave", () => {
   it("names a single pin and numbers a combination with dashes", () => {
     expect(formatLeave([7])).toBe("Pin 7");
     expect(formatLeave([8, 2, 5, 4])).toBe("2-4-5-8");
+  });
+});
+
+describe("isSleeper", () => {
+  it("finds a pin hidden behind another", () => {
+    expect(isSleeper([2, 8])).toBe(true);
+    expect(isSleeper([2, 4, 5, 8])).toBe(true);
+    expect(isSleeper([2, 4, 5])).toBe(false);
+    expect(isSleeper([8])).toBe(false);
   });
 });

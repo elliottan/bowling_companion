@@ -78,11 +78,13 @@ async function browserBack(toHash = window.location.hash) {
 
 let pushSpy: ReturnType<typeof vi.spyOn>;
 let backSpy: ReturnType<typeof vi.spyOn>;
+let goSpy: ReturnType<typeof vi.spyOn>;
 
 beforeEach(() => {
   window.history.replaceState(null, "", "/");
   pushSpy = vi.spyOn(window.history, "pushState");
   backSpy = vi.spyOn(window.history, "back").mockImplementation(() => {});
+  goSpy = vi.spyOn(window.history, "go").mockImplementation(() => {});
 });
 
 afterEach(() => {
@@ -102,6 +104,25 @@ describe("back closes an open sheet", () => {
     expect(isOpen("sheet")).toBe(false);
     expect(at("overlays")).toBe("arsenal");
     expect(window.location.hash).toBe("#/home/arsenal");
+  });
+
+  it("a screen's own back with a sheet up leaves the screen, not just the sheet", async () => {
+    // The session sheet leaves its screen's header live, back chevron and all.
+    render(<Harness />);
+    await click("arsenal");
+    await click("open sheet");
+    backSpy.mockClear();
+
+    await click("back");
+    // Over the sentinel to the screen's own entry, in one step.
+    expect(goSpy).toHaveBeenCalledWith(-2);
+    expect(backSpy).not.toHaveBeenCalled();
+    await browserBack("#/home");
+    expect(at("overlays")).toBe("");
+
+    // The sheet unmounting afterwards collects nothing: its entry is gone.
+    await click("close sheet");
+    expect(backSpy).not.toHaveBeenCalled();
   });
 
   it("the next back then leaves the screen underneath", async () => {

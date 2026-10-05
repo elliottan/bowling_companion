@@ -25,6 +25,10 @@ interface PushScreenProps {
    * pop the sheet's own history entry and close the sheet under it.
    */
   backCloses?: boolean;
+  /** Called as the screen starts its exit, before `onBack`. For a layer the
+   *  screen owns that lives outside it (a portalled sheet) to leave with it,
+   *  rather than sitting on until the route change unmounts it. */
+  onLeave?: () => void;
   children: ReactNode;
 }
 
@@ -53,6 +57,7 @@ export function PushScreen({
   active = true,
   mode = "overlay",
   backCloses = false,
+  onLeave,
   children,
 }: PushScreenProps) {
   const [exiting, setExiting] = useState(false);
@@ -63,13 +68,14 @@ export function PushScreen({
   // rather than a pop, the asymmetry was the whole complaint.
   const dismiss = useCallback(() => {
     if (exitTimer.current !== null) return;
+    onLeave?.();
     if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) {
       onBack();
       return;
     }
     setExiting(true);
     exitTimer.current = window.setTimeout(onBack, EXIT_MS);
-  }, [onBack]);
+  }, [onBack, onLeave]);
 
   useEffect(() => () => {
     if (exitTimer.current !== null) window.clearTimeout(exitTimer.current);

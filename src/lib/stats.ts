@@ -7,8 +7,7 @@ import type {
   Handedness,
   PinNumber,
   SessionSummary,
-  Shot,
-  SpareLine
+  Shot
 } from "../types/bowling";
 
 type GameWithFrames = Game & { frames: Frame[] };
@@ -1013,24 +1012,4 @@ export function calculateGameNumberMetrics(
     if (stats.totalGames === 0) return [];
     return [{ gameNumber, games: stats.completedGames, stats }];
   });
-}
-
-/** A line that has boards on it. A seeded leave with nothing written down is
- *  a row without an answer, and counts as no line. */
-function hasLine(sl: SpareLine | undefined): boolean {
-  return sl?.line?.stance != null || sl?.line?.target != null;
-}
-
-/**
- * The leave the bowler faces most that has no line yet, so the screen can ask
- * for that one first. Only leaves a ball could follow, as on Stats.
- */
-export function mostLeftWithoutLine(
-  leaves: LeaveStats[],
-  lines: SpareLine[]
-): LeaveStats | undefined {
-  const withLine = new Set(lines.filter(hasLine).map((sl) => sl.pins.join("-")));
-  return leaves
-    .filter((l) => l.chances > 0 && !withLine.has(l.pins.join("-")))
-    .sort((a, b) => b.attempts - a.attempts)[0];
 }

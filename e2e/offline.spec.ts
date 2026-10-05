@@ -61,6 +61,35 @@ test("the theme and the handedness stick across a reload", async ({ page }) => {
   await page.getByRole("button", { name: /Hand and grip/ }).click();
   await page.getByRole("button", { name: "Left-handed", exact: true }).click();
 
+  // Wait for the hand to be stored, not merely drawn: the button flips on the
+  // tap, a render ahead of the IndexedDB write, and a reload issued in between
+  // takes the write with it. That race failed this test on CI now and then.
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () =>
+          new Promise<string | undefined>((resolve) => {
+            const req = indexedDB.open("BowlingCompanionDB");
+            req.onerror = () => resolve(undefined);
+            req.onsuccess = () => {
+              const get = req.result
+                .transaction("settings", "readonly")
+                .objectStore("settings")
+                .get("handedness");
+              get.onsuccess = () => {
+                resolve((get.result as { value?: string } | undefined)?.value);
+                req.result.close();
+              };
+              get.onerror = () => {
+                resolve(undefined);
+                req.result.close();
+              };
+            };
+          })
+      )
+    )
+    .toBe("left");
+
   await page.reload();
   // The reload lands back on the Hand and grip page, and the row under it now
   // says so too.

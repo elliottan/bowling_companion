@@ -73,6 +73,41 @@ describe("ActiveSessionView", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Edit session" }));
     expect(await screen.findByRole("dialog", { name: "Edit session" })).toBeInTheDocument();
+    // Over the sheet, not instead of it.
+    expect(screen.getByRole("dialog", { name: "Session sheet" })).toBeInTheDocument();
+  });
+
+  it("opens the share over the sheet and leaves the sheet up", async () => {
+    const sessionId = Number(await createSession({ date: "2026-05-27", alley_name: "Axe Lanes" }));
+    const gameId = Number(await addGameToSession(sessionId, { game_number: 1 }));
+    await db.games.update(gameId, { final_score: 200 });
+    renderSession(sessionId, { openStatsOnMount: true });
+
+    const panel = await screen.findByRole("dialog", { name: "Session sheet" });
+    fireEvent.click(screen.getByRole("button", { name: "Share this session" }));
+    const share = await screen.findByRole("dialog", { name: /share/i });
+    expect(panel).toBeInTheDocument();
+    // Portalled to the body, beside the sheet: inside the screen it shared the
+    // screen's stacking context and painted under the sheet.
+    expect(share.parentElement).toBe(document.body);
+  });
+
+  it("switches the sheet's tabs with the control only", async () => {
+    const sessionId = Number(await createSession({ date: "2026-05-27", alley_name: "Axe Lanes" }));
+    await addGameToSession(sessionId, { game_number: 1 });
+    renderSession(sessionId);
+    fireEvent.click(await screen.findByRole("button", { name: "Session sheet" }));
+    const panel = await screen.findByRole("dialog", { name: "Session sheet" });
+
+    // A sideways drag across the panes used to change tab.
+    const body = panel.querySelector(".overflow-y-auto") as HTMLElement;
+    fireEvent.touchStart(body, { touches: [{ clientX: 300, clientY: 300 }] });
+    fireEvent.touchMove(body, { touches: [{ clientX: 50, clientY: 305 }] });
+    fireEvent.touchEnd(body, { changedTouches: [{ clientX: 50, clientY: 305 }] });
+    expect(within(panel).getByRole("button", { name: "Sheet" })).toHaveAttribute("aria-pressed", "true");
+
+    fireEvent.click(within(panel).getByRole("button", { name: "Lanes" }));
+    expect(within(panel).getByRole("button", { name: "Lanes" })).toHaveAttribute("aria-pressed", "true");
   });
 
   it("scopes the stats with the screen's own game chips while the sheet is up", async () => {
