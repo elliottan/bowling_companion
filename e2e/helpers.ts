@@ -136,3 +136,16 @@ export async function preferDownloadOverShare(page: Page) {
     Object.defineProperty(navigator, "canShare", { value: undefined, configurable: true });
   });
 }
+
+/**
+ * Open the arsenal from Home. The grid beside the greeting has no heading: an
+ * empty bag is one "Add the balls you throw" box, and a full one is its balls,
+ * each of which opens the arsenal.
+ */
+export async function openArsenalFromHome(page: Page) {
+  await page
+    .getByRole("button", { name: "Add the balls you throw" })
+    .or(page.getByRole("list", { name: "Your arsenal" }).getByRole("button"))
+    .first()
+    .click();
+}

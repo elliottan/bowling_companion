@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { clearDatabase } from "./helpers";
+import { clearDatabase, openArsenalFromHome } from "./helpers";
 
 test.beforeEach(async ({ page }) => {
   await clearDatabase(page);
@@ -8,7 +8,7 @@ test.beforeEach(async ({ page }) => {
 type Page = import("@playwright/test").Page;
 
 async function openArsenal(page: Page) {
-  await page.getByRole("button", { name: "Arsenal", exact: true }).click();
+  await openArsenalFromHome(page);
 }
 
 /** The row itself, not the drag handle that shares the ball's name. */

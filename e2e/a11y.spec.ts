@@ -1,6 +1,6 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
-import { clearDatabase, recordShot, startSession } from "./helpers";
+import { clearDatabase, recordShot, startSession, openArsenalFromHome } from "./helpers";
 
 test.beforeEach(async ({ page }) => {
   await clearDatabase(page);
@@ -70,7 +70,7 @@ test("the arsenal, spares and settings screens are accessible", async ({ page })
   await expectNoViolations(page);
 
   await page.getByRole("navigation").getByRole("button", { name: "Home" }).click();
-  await page.getByRole("button", { name: "Arsenal", exact: true }).click();
+  await openArsenalFromHome(page);
   await expectNoViolations(page);
 });
 

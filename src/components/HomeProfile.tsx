@@ -1,6 +1,5 @@
-import { ChevronRight, Plus, type LucideIcon } from "lucide-react";
+import { Plus, type LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
-import { Button } from "./ui/Button";
 import { BowlingBallIcon, LanePairIcon, OilPatternIcon, SpareLineIcon } from "./icons";
 import { CatalogBallImage } from "./CatalogBallImage";
 import { GROUP_HEADING } from "./ui/typography";
@@ -18,85 +17,64 @@ import type { Manufacturer } from "../types/catalog";
  */
 const STRIP = "-mx-3 flex gap-2 overflow-x-auto overscroll-x-contain px-3 py-1 sm:-mx-6 sm:px-6";
 
-/**
- * The heading over a row of the profile, which is itself the way into the
- * place the row previews (DESIGN-LANGUAGE §4b: a heading opens what it counts).
- */
-function RowHeading({
-  label,
-  detail,
-  onClick,
-  trailing
-}: {
-  label: string;
-  detail?: string;
-  onClick?: () => void;
-  trailing?: ReactNode;
-}) {
+/** The heading over a row of the profile, with room for one small action. */
+function RowHeading({ label, trailing }: { label: string; trailing?: ReactNode }) {
   return (
-    <div className="mb-1 flex min-h-8 items-center justify-between gap-3 px-1">
-      <h2 className={GROUP_HEADING}>
-        {onClick ? (
-          <button
-            type="button"
-            onClick={onClick}
-            aria-label={label}
-            className={`relative inline-flex items-center gap-1 uppercase active:opacity-60 ${TAP_TARGET_44}`}
-          >
-            {label}
-            {detail && <span className="font-normal normal-case text-ink-tertiary">· {detail}</span>}
-            <ChevronRight size={14} aria-hidden="true" className="text-ink-tertiary" />
-          </button>
-        ) : (
-          label
-        )}
-      </h2>
+    <div className="mb-1 flex items-center justify-between gap-3 px-1">
+      <h2 className={GROUP_HEADING}>{label}</h2>
       {trailing}
     </div>
   );
 }
 
-interface ArsenalStripProps {
+interface ArsenalGridProps {
   balls: Ball[] | undefined;
   onOpenArsenal: () => void;
 }
 
+/** Two rows of four: as many balls as sit beside the greeting at full size. */
+const ARSENAL_SLOTS = 8;
+
 /**
- * The arsenal as a row of its balls. The pictures are the colour on Home: a
- * count of balls says how many, the balls themselves say which.
+ * The arsenal as its balls, beside the greeting. The pictures are the color on
+ * Home: a count of balls says how many, the balls themselves say which.
+ *
+ * It fills row by row and does not scroll. A scroller inside the top band of
+ * the screen would be a second scroll axis under the thumb for a preview whose
+ * job is only to say "these are yours"; the full list is one tap away. A bag
+ * that holds more than the grid shows its overflow as a count in the last slot.
+ * No heading and no total: the balls say what the grid is, and the count in
+ * the last slot is the only number it needs.
  */
-export function ArsenalStrip({ balls, onOpenArsenal }: ArsenalStripProps) {
-  const count = balls?.length;
+export function ArsenalGrid({ balls, onOpenArsenal }: ArsenalGridProps) {
+  const count = balls?.length ?? 0;
+  const overflow = count > ARSENAL_SLOTS;
+  const shown = balls ? balls.slice(0, overflow ? ARSENAL_SLOTS - 1 : ARSENAL_SLOTS) : [];
   return (
-    <section>
-      <RowHeading
-        label="Arsenal"
-        detail={count ? `${count} ${count === 1 ? "ball" : "balls"}` : undefined}
-        onClick={onOpenArsenal}
-      />
+    <section aria-label="Arsenal">
       {balls === undefined ? (
-        <div className="h-16" />
+        <div className="aspect-[2/1]" />
       ) : balls.length === 0 ? (
         <button
           type="button"
           onClick={onOpenArsenal}
-          className="flex h-16 w-full items-center gap-3 rounded-xl border border-dashed border-edge-strong bg-surface px-3 text-left active:bg-surface-muted"
+          className="flex aspect-[2/1] w-full flex-col items-center justify-center gap-1.5 rounded-xl border border-dashed border-edge-strong bg-surface px-3 text-center active:bg-surface-muted"
         >
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-accent-soft text-accent">
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent-soft text-accent">
             <Plus size={18} aria-hidden="true" />
           </span>
-          <span className="text-sm font-semibold text-ink">Add the balls you throw</span>
+          <span className="text-xs font-semibold text-ink">Add the balls you throw</span>
         </button>
       ) : (
-        <ul className={STRIP} aria-label="Balls in your arsenal">
-          {balls.map((ball) => (
-            <li key={ball.id} className="shrink-0">
+        <ul className="grid grid-cols-4 gap-1.5" aria-label="Your arsenal">
+          {shown.map((ball) => (
+            <li key={ball.id}>
               <button
                 type="button"
                 onClick={onOpenArsenal}
                 aria-label={ball.name}
                 title={ball.name}
-                className="block h-14 w-14 rounded-xl active:opacity-70"
+                className="block aspect-square w-full rounded-full active:opacity-70"
               >
                 {ball.catalog_snapshot ? (
                   <CatalogBallImage
@@ -104,15 +82,28 @@ export function ArsenalStrip({ balls, onOpenArsenal }: ArsenalStripProps) {
                     alt=""
                     brand={ball.catalog_snapshot.brand as Manufacturer}
                     size="thumb"
+                    bare
                   />
                 ) : (
-                  <span className="flex h-full w-full items-center justify-center rounded-lg bg-surface-muted text-ink-tertiary">
-                    <BowlingBallIcon size={24} aria-hidden="true" />
+                  <span className="flex h-full w-full items-center justify-center rounded-full bg-surface-muted text-ink-tertiary">
+                    <BowlingBallIcon size={20} aria-hidden="true" />
                   </span>
                 )}
               </button>
             </li>
           ))}
+          {overflow && (
+            <li>
+              <button
+                type="button"
+                onClick={onOpenArsenal}
+                aria-label={`${count - shown.length} more balls`}
+                className="flex aspect-square w-full items-center justify-center rounded-full bg-accent-soft text-sm font-bold tabular-nums text-accent active:opacity-70"
+              >
+                +{count - shown.length}
+              </button>
+            </li>
+          )}
         </ul>
       )}
     </section>
@@ -231,12 +222,6 @@ function SessionTile({
   const alley = alleyLabel(session.alley_name);
   const event = session.description?.trim();
   const date = formatSessionDate(session.date);
-  const tally = [
-    `${games} ${games === 1 ? "game" : "games"}`,
-    average !== null ? `${average} avg` : inProgress ? "In progress" : null
-  ]
-    .filter(Boolean)
-    .join(" · ");
 
   return (
     <button
@@ -250,8 +235,20 @@ function SessionTile({
       <span className="block w-full truncate text-sm font-semibold text-ink">{event || alley}</span>
       {event && <span className="block w-full truncate text-xs text-ink-secondary">{alley}</span>}
       <span className="block w-full truncate text-xs text-ink-secondary">{date}</span>
-      <span className="mt-auto block w-full truncate pt-2 text-xs font-semibold tabular-nums text-ink">
-        {tally}
+      {/* The average leads, in the accent: it is the number a bowler looks
+          for. The game count rides beside it, smaller, as its context. */}
+      <span className="mt-auto flex w-full items-baseline gap-1 pt-2 tabular-nums">
+        {average !== null ? (
+          <>
+            <span className="text-lg font-bold leading-none text-accent">{average}</span>
+            <span className="text-[10px] font-bold tracking-wide text-accent">AVG</span>
+          </>
+        ) : inProgress ? (
+          <span className="text-xs font-semibold text-accent">In progress</span>
+        ) : null}
+        <span className="truncate text-[10px] font-semibold tracking-wide text-ink-secondary">
+          ({games} {games === 1 ? "GM" : "GMS"})
+        </span>
       </span>
     </button>
   );
@@ -281,9 +278,13 @@ export function RecentSessionStrip({
         label="Recent sessions"
         trailing={
           hasMore && (
-            <Button variant="ghost" onClick={onViewAll}>
-              All in History
-            </Button>
+            <button
+              type="button"
+              onClick={onViewAll}
+              className={`relative text-xs font-semibold text-accent active:opacity-60 ${TAP_TARGET_44}`}
+            >
+              View all
+            </button>
           )
         }
       />

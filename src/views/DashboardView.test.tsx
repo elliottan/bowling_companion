@@ -89,7 +89,17 @@ describe("Home (ADR-115)", () => {
     fireEvent.click(await screen.findByRole("button", { name: "Plastic" }));
     expect(props.onOpenArsenal).toHaveBeenCalled();
     expect(screen.getByRole("button", { name: "Phaze II" })).toBeInTheDocument();
-    expect(screen.getByText("· 2 balls")).toBeInTheDocument();
+    // No heading and no total: the balls are the grid.
+    expect(screen.queryByText("Arsenal")).not.toBeInTheDocument();
+  });
+
+  it("shows two rows of balls at most, and counts the rest", async () => {
+    for (let i = 1; i <= 11; i++) await addBall({ name: `Ball ${i}`, is_spare_ball: false });
+    const props = renderHome();
+    expect(await screen.findByRole("button", { name: "Ball 7" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Ball 8" })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "4 more balls" }));
+    expect(props.onOpenArsenal).toHaveBeenCalled();
   });
 
   it("puts spare lines, lane notes and oil patterns side by side as tiles", async () => {
@@ -113,7 +123,7 @@ describe("Home (ADR-115)", () => {
     const props = renderHome();
 
     const tile = await screen.findByRole("button", { name: /Open session: Orchid Bowl/ });
-    await waitFor(() => expect(tile).toHaveTextContent("2 games · 191 avg"));
+    await waitFor(() => expect(tile).toHaveTextContent("191AVG(2 GMS)"));
     expect(tile).toHaveTextContent("League");
     expect(tile).not.toHaveTextContent(/Lane/);
     fireEvent.click(tile);
@@ -143,7 +153,7 @@ describe("Home (ADR-115)", () => {
       await createSession({ date: `2026-09-0${d}`, alley_name: `Alley ${d}` });
     }
     const props = renderHome();
-    fireEvent.click(await screen.findByRole("button", { name: "All in History" }));
+    fireEvent.click(await screen.findByRole("button", { name: "View all" }));
     expect(props.onViewAll).toHaveBeenCalled();
     await waitFor(() => expect(screen.queryAllByRole("button", { name: /Alley 1\b/ })).toHaveLength(0));
   });

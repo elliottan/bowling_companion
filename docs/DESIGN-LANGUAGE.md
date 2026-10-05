@@ -178,12 +178,17 @@ line of secondary text.
 
 ## 4a. Home's profile rows
 
-Home opens on the bowler, not on a menu: a greeting (with the name they gave,
-or the greeting alone), then the things they keep. Those are not one list of
-rows, because they are not the same shape. The arsenal is a row of its balls'
-pictures and the recent sessions a row of tiles, each scrolling sideways and
-bled to the screen edge so a tile cut off there says there is more. The spare
-lines, lane notes and oil patterns are three equal tiles in one row. A row's
+Home opens on the bowler, not on a menu. The top band is two columns: the
+app's mark and a greeting (with the name they gave, or the greeting alone) on
+the left, and the arsenal on the right, a little wider because it carries
+pictures. The arsenal is a grid of its balls, two rows of four, filled row by
+row and never scrolled: a scroller in the top band would be a second scroll
+axis for a preview whose only job is "these are yours", so a bigger bag shows
+its overflow as a count in the last slot. It carries no heading and no total:
+the balls say what the grid is, and every ball opens the arsenal. Under
+the band, the spare lines, lane notes and oil patterns are three equal tiles in
+one row, and the recent sessions are one row of tiles that scrolls sideways,
+bled to the screen edge so a tile cut off there says there is more. A row's
 heading opens the screen it previews. Only the tools and reference stay a
 `ListGroup`, because they are the same for every bowler.
 
@@ -213,7 +218,7 @@ screen is where a user decides whether the feature is for them.
 
 A screen whose *whole* content is empty leads with the empty state rather than
 burying it under chrome. Home does this on a device with no sessions. What it
-does not do is remove the chrome: the bowler profile (the arsenal row and the
+does not do is remove the chrome: the bowler profile (the arsenal grid and the
 spare line, lane note and oil pattern tiles) and the Tools and reference list
 stay below the empty state and stay reachable, because they are the only way to
 several screens (ADR-069, ADR-115).
