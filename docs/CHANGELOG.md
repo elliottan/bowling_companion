@@ -23,7 +23,7 @@ it, and the My bowling heading is gone.
 
 **Recent sessions are one sideways row of tiles**, each with the event, the
 alley and the date, and the average leading in the accent color beside the
-number of games ("213 AVG (4 GAMES)"). The games and the lanes are in History,
+number of games ("213 AVG (4 GMS)"). The games and the lanes are in History,
 one tap away under View all. The balls in the arsenal sit straight on the
 page, with no square behind each one.
 

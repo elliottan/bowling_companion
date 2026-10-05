@@ -44,7 +44,7 @@ export function BowlerNameSheet({ name, onClose }: BowlerNameSheetProps) {
     >
       <form onSubmit={(e) => void save(e)}>
         <label htmlFor="bowler-name" className={FIELD_LABEL}>
-          What do you want to be called? (optional)
+          What do you want to be called?
         </label>
         <input
           id="bowler-name"
@@ -57,9 +57,6 @@ export function BowlerNameSheet({ name, onClose }: BowlerNameSheetProps) {
           enterKeyHint="done"
           autoFocus
         />
-        <p className="mt-2 text-xs text-ink-secondary">
-          Home greets you by it. It stays on this device.
-        </p>
       </form>
     </FormSheet>
   );

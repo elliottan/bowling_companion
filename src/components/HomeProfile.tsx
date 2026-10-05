@@ -247,7 +247,7 @@ function SessionTile({
           <span className="text-xs font-semibold text-accent">In progress</span>
         ) : null}
         <span className="truncate text-[10px] font-semibold tracking-wide text-ink-secondary">
-          ({games} {games === 1 ? "GAME" : "GAMES"})
+          ({games} {games === 1 ? "GM" : "GMS"})
         </span>
       </span>
     </button>

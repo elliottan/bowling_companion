@@ -123,7 +123,7 @@ describe("Home (ADR-115)", () => {
     const props = renderHome();
 
     const tile = await screen.findByRole("button", { name: /Open session: Orchid Bowl/ });
-    await waitFor(() => expect(tile).toHaveTextContent("191AVG(2 GAMES)"));
+    await waitFor(() => expect(tile).toHaveTextContent("191AVG(2 GMS)"));
     expect(tile).toHaveTextContent("League");
     expect(tile).not.toHaveTextContent(/Lane/);
     fireEvent.click(tile);
