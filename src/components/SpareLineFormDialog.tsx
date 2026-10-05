@@ -9,6 +9,7 @@ import { useDriftModel } from "../lib/driftModelContext";
 import { deriveLaydown, deriveSlide, syncStanceLaydown } from "../lib/driftModel";
 import { useHandedness } from "../lib/handednessContext";
 import { formatLeave } from "../lib/pins";
+import { describeMove } from "../lib/spareLines";
 import type { LeaveStats } from "../lib/stats";
 import { upsertSpareLine } from "../services/ballRepository";
 import type { LineSpec, PinNumber, SpareLine } from "../types/bowling";
@@ -381,12 +382,11 @@ const MOVE_LIMIT = 20;
 /**
  * A strike-ball move field with arrows either side of it.
  *
- * The move is signed, and a phone's numeric keyboard has no minus key, so the
- * field on its own could only ever be given a move to the right. The arrows are
- * the way in to the other half of the range, not a convenience: they step half
- * a board each, through zero, in both directions. The box still takes typing
- * (kept as text, so a lone "-" survives while the digits after it are typed)
- * for anyone who has a minus key.
+ * The move is stored signed (ADR-053), but a sign is not how a bowler says it:
+ * "two left" is, and which way "up the boards" goes depends on the hand. So the
+ * field reads the move back in words, and the arrows are the way in: half a
+ * board each, through zero, in both directions. No typing, because a phone's
+ * numeric keyboard has no minus key and a typed number would need a sign.
  *
  * The arrows point the way the move goes on screen, as the scorer's do: up the
  * boards is screen-left for a right-hander and screen-right for a left-hander.
@@ -404,10 +404,9 @@ function MoveStepper({
 }) {
   const handedness = useHandedness();
   const leftIsUp = handedness === "right";
+  const current = value.trim() === "" || !Number.isFinite(Number(value)) ? null : Number(value);
   const nudge = (delta: number) => {
-    const current = value.trim() === "" || !Number.isFinite(Number(value)) ? 0 : Number(value);
-    const next = Math.min(MOVE_LIMIT, Math.max(-MOVE_LIMIT, current + delta));
-    // Rounded to the step, so a typed 0.3 lands on the grid the arrows walk.
+    const next = Math.min(MOVE_LIMIT, Math.max(-MOVE_LIMIT, (current ?? 0) + delta));
     onChange(String(Math.round(next / MOVE_STEP) * MOVE_STEP));
   };
 
@@ -417,32 +416,32 @@ function MoveStepper({
     return (
       <button
         type="button"
-        aria-label={`${label} move ${up ? "up" : "down"} half a board`}
+        aria-label={`${label} move ${side} half a board`}
         onClick={() => nudge(up ? MOVE_STEP : -MOVE_STEP)}
-        className="flex w-8 shrink-0 items-center justify-center text-ink-strong active:bg-edge"
+        className="flex w-9 shrink-0 items-center justify-center text-ink-strong active:bg-edge"
       >
         <Icon size={14} strokeWidth={3} aria-hidden="true" />
       </button>
     );
   };
 
+  const words = current == null || current === 0 ? (readOnly ? "-" : "None") : describeMove(current, handedness);
   return (
-    <label className="min-w-0 flex-1">
+    <div className="min-w-0 flex-1">
       <span className={floatLabel}>{label}</span>
-      <div className="flex h-9 items-stretch overflow-hidden rounded-lg border border-edge-strong bg-surface-muted focus-within:border-accent-fill focus-within:bg-surface">
+      <div className="flex h-9 items-stretch overflow-hidden rounded-lg border border-edge-strong bg-surface-muted">
         {!readOnly && arrow("left")}
-        <input
-          type="text"
-          inputMode="decimal"
+        <output
           aria-label={`${label} move`}
-          placeholder={readOnly ? "-" : "0"}
-          readOnly={readOnly}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          className="min-w-0 flex-1 bg-transparent px-0.5 text-center text-sm font-semibold tabular-nums text-ink placeholder:text-ink-tertiary outline-none"
-        />
+          aria-live="polite"
+          className={`flex min-w-0 flex-1 items-center justify-center px-0.5 text-sm font-semibold tabular-nums ${
+            current == null || current === 0 ? "text-ink-tertiary" : "text-ink"
+          }`}
+        >
+          {words}
+        </output>
         {!readOnly && arrow("right")}
       </div>
-    </label>
+    </div>
   );
 }

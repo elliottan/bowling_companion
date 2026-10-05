@@ -9,6 +9,21 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.3.0: Same-line spares side by side, strike moves say left or right (2026-10-05)
+
+**Leaves that share a line show side by side.** A stack used to be one tile
+with a "1 of 2" count to flip through its pin decks, a card edge peeking out
+underneath, and a taller tile than its neighbours. It is now one wider tile
+with every leave's deck in a row, named underneath, over the one stance and
+target they share. Tap a deck to open that leave. Tiles in a row are all the
+same height.
+
+**A strike ball move says which way.** The move used to read as a signed
+number ("-2"), which meant a different side for each hand. It now reads "2
+left" or "1.5 right", on the leave and on its tile, and the arrows either side
+step it half a board that way. The move is no longer typed: the arrows were
+already the only way to a move the other way on a phone.
+
 ## 0.2.2: The session sheet rises without a bounce (2026-10-05)
 
 **The session sheet no longer overshoots.** Opening it, the sheet shot up past

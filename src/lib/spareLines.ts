@@ -1,4 +1,4 @@
-import type { PinNumber, SpareLine } from "../types/bowling";
+import type { Handedness, PinNumber, SpareLine } from "../types/bowling";
 import { isBabySplit, isSleeper, spareGroup, uniquePins } from "./pins";
 
 /** The pins as one string, the way spare lines and leaves are keyed. */
@@ -10,6 +10,19 @@ export function leaveKey(pins: PinNumber[]): string {
  *  row without an answer, and counts as no line. */
 export function hasLine(sl: Pick<SpareLine, "line"> | undefined): boolean {
   return sl?.line?.stance != null || sl?.line?.target != null;
+}
+
+/**
+ * A strike-ball move in words: "2 left", "1.5 right". The move is stored as
+ * signed boards (ADR-053), and boards count from the bowler's own gutter, so
+ * up the boards is left for a right-hander and right for a left-hander. A bare
+ * "-2" asks the bowler to do that sum at the lane; a direction does not.
+ */
+export function describeMove(boards: number, handedness: Handedness): string {
+  if (boards === 0) return "None";
+  const upIsLeft = handedness === "right";
+  const side = boards > 0 === upIsLeft ? "left" : "right";
+  return `${Math.abs(boards)} ${side}`;
 }
 
 /** What two lines are compared by: the two boards a bowler acts on. The rest

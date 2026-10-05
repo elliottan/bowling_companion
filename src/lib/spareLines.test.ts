@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { PinNumber, SpareLine } from "../types/bowling";
 import {
+  describeMove,
   matchesFilters,
   mostLeftWithoutLine,
   sameShot,
@@ -118,5 +119,18 @@ describe("mostLeftWithoutLine", () => {
     expect(
       mostLeftWithoutLine([leave([7], 3)], [{ pins: [7], line: { target: 20 } }])
     ).toBeUndefined();
+  });
+});
+
+describe("describeMove", () => {
+  it("says up the boards is left for a right-hander and right for a left-hander", () => {
+    expect(describeMove(2, "right")).toBe("2 left");
+    expect(describeMove(-1.5, "right")).toBe("1.5 right");
+    expect(describeMove(2, "left")).toBe("2 right");
+    expect(describeMove(-1, "left")).toBe("1 left");
+  });
+
+  it("calls no move none", () => {
+    expect(describeMove(0, "right")).toBe("None");
   });
 });
