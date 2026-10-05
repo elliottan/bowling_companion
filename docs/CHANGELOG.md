@@ -8,6 +8,21 @@ merge to `main` (`docs/DEPLOYMENT.md`), so every section below is a dated batch
 of shipped work rather than a release. Thirty of them used to be headed
 `[Unreleased]`, which said nothing once they had all shipped.
 
+## The session sheet stops under the game chips (2026-10-05)
+
+**The session sheet rises only to just under the game scores.** The header
+above it (the alley, the date, the series total) is the same session, so it
+stays on screen instead of being drawn again inside the sheet, and the sheet
+no longer has its own header, game chips or close button. Drag it down, or use
+the header, to put it away. While it is up, the game chips at the top are its
+chips: on Stats they narrow the numbers to one game, elsewhere they scroll the
+sheet to that game.
+
+**A pencil in the scorer's header.** The first tap brings up the session
+sheet; with the sheet up, the next tap opens the session's details to edit.
+
+**A finished session opened from History lands on its stats.**
+
 ## Home opens on your profile (2026-10-05)
 
 **Home greets you.** The top of Home is a short greeting that changes from

@@ -77,12 +77,14 @@ second built copy of the app served by `vite preview`, deployed mid-run, which
 the current single-`webServer` config cannot express. Until then it is the
 manual check in `docs/DEPLOYMENT.md`.
 
-### The session sheet is the last full-screen surface off `FormSheet`
+### The session sheet is the last sheet off `FormSheet`
 
-`SessionLanePanel` has its own shell: a full-height sheet with a tab track and
-swipeable panes inside it. It now carries the close control §1b asks for, but
-its body is a scroll container of its own, which `FormSheet` also wants to own,
-so porting it is a layout decision rather than a mechanical swap.
+`SessionLanePanel` has its own shell: a sheet with a tab track and swipeable
+panes inside it, which rises only as far as the scorer's game chips so the
+session header stays in view above it, and which therefore carries no close of
+its own. Its body is a scroll container of its own, which `FormSheet` also wants
+to own, and `FormSheet` always reaches the top, so porting it is a layout
+decision rather than a mechanical swap.
 
 ### The lane visualizer paints its own dark chrome
 
