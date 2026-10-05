@@ -1,4 +1,4 @@
-import { ChevronRight, Plus, type LucideIcon } from "lucide-react";
+import { Plus, type LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import { BowlingBallIcon, LanePairIcon, OilPatternIcon, SpareLineIcon } from "./icons";
 import { CatalogBallImage } from "./CatalogBallImage";
@@ -17,39 +17,11 @@ import type { Manufacturer } from "../types/catalog";
  */
 const STRIP = "-mx-3 flex gap-2 overflow-x-auto overscroll-x-contain px-3 py-1 sm:-mx-6 sm:px-6";
 
-/**
- * The heading over a row of the profile, which is itself the way into the
- * place the row previews (DESIGN-LANGUAGE §4b: a heading opens what it counts).
- */
-function RowHeading({
-  label,
-  detail,
-  onClick,
-  trailing
-}: {
-  label: string;
-  detail?: string;
-  onClick?: () => void;
-  trailing?: ReactNode;
-}) {
+/** The heading over a row of the profile, with room for one small action. */
+function RowHeading({ label, trailing }: { label: string; trailing?: ReactNode }) {
   return (
     <div className="mb-1 flex items-center justify-between gap-3 px-1">
-      <h2 className={GROUP_HEADING}>
-        {onClick ? (
-          <button
-            type="button"
-            onClick={onClick}
-            aria-label={label}
-            className={`relative inline-flex items-center gap-1 uppercase active:opacity-60 ${TAP_TARGET_44}`}
-          >
-            {label}
-            {detail && <span className="font-normal normal-case text-ink-tertiary">· {detail}</span>}
-            <ChevronRight size={14} aria-hidden="true" className="text-ink-tertiary" />
-          </button>
-        ) : (
-          label
-        )}
-      </h2>
+      <h2 className={GROUP_HEADING}>{label}</h2>
       {trailing}
     </div>
   );
@@ -71,14 +43,15 @@ const ARSENAL_SLOTS = 8;
  * the screen would be a second scroll axis under the thumb for a preview whose
  * job is only to say "these are yours"; the full list is one tap away. A bag
  * that holds more than the grid shows its overflow as a count in the last slot.
+ * No heading and no total: the balls say what the grid is, and the count in
+ * the last slot is the only number it needs.
  */
 export function ArsenalGrid({ balls, onOpenArsenal }: ArsenalGridProps) {
   const count = balls?.length ?? 0;
   const overflow = count > ARSENAL_SLOTS;
   const shown = balls ? balls.slice(0, overflow ? ARSENAL_SLOTS - 1 : ARSENAL_SLOTS) : [];
   return (
-    <section>
-      <RowHeading label="Arsenal" detail={count ? String(count) : undefined} onClick={onOpenArsenal} />
+    <section aria-label="Arsenal">
       {balls === undefined ? (
         <div className="aspect-[2/1]" />
       ) : balls.length === 0 ? (
@@ -93,7 +66,7 @@ export function ArsenalGrid({ balls, onOpenArsenal }: ArsenalGridProps) {
           <span className="text-xs font-semibold text-ink">Add the balls you throw</span>
         </button>
       ) : (
-        <ul className="grid grid-cols-4 gap-1.5" aria-label="Balls in your arsenal">
+        <ul className="grid grid-cols-4 gap-1.5" aria-label="Your arsenal">
           {shown.map((ball) => (
             <li key={ball.id}>
               <button

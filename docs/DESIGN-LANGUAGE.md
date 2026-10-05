@@ -184,7 +184,8 @@ the left, and the arsenal on the right, a little wider because it carries
 pictures. The arsenal is a grid of its balls, two rows of four, filled row by
 row and never scrolled: a scroller in the top band would be a second scroll
 axis for a preview whose only job is "these are yours", so a bigger bag shows
-its overflow as a count in the last slot and the heading opens the rest. Under
+its overflow as a count in the last slot. It carries no heading and no total:
+the balls say what the grid is, and every ball opens the arsenal. Under
 the band, the spare lines, lane notes and oil patterns are three equal tiles in
 one row, and the recent sessions are one row of tiles that scrolls sideways,
 bled to the screen edge so a tile cut off there says there is more. A row's

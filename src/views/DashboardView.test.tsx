@@ -89,7 +89,8 @@ describe("Home (ADR-115)", () => {
     fireEvent.click(await screen.findByRole("button", { name: "Plastic" }));
     expect(props.onOpenArsenal).toHaveBeenCalled();
     expect(screen.getByRole("button", { name: "Phaze II" })).toBeInTheDocument();
-    expect(screen.getByText("· 2")).toBeInTheDocument();
+    // No heading and no total: the balls are the grid.
+    expect(screen.queryByText("Arsenal")).not.toBeInTheDocument();
   });
 
   it("shows two rows of balls at most, and counts the rest", async () => {

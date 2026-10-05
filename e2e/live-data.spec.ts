@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { clearDatabase, recordShot, startSession } from "./helpers";
+import { clearDatabase, recordShot, startSession, openArsenalFromHome } from "./helpers";
 
 test.beforeEach(async ({ page }) => {
   await clearDatabase(page);
@@ -38,7 +38,7 @@ test("deleting a session updates the list it was deleted from", async ({ page })
 });
 
 test("a ball deleted in its editor leaves the arsenal list at once", async ({ page }) => {
-  await page.getByRole("button", { name: "Arsenal", exact: true }).click();
+  await openArsenalFromHome(page);
   await page.getByRole("button", { name: "Add ball" }).first().click();
   await page.getByPlaceholder("e.g. Storm Phaze II").fill("Live Ball");
   await page.getByRole("button", { name: "Add", exact: true }).click();
