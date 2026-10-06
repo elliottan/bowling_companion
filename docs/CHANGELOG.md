@@ -9,6 +9,14 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.5.1: Groundwork for retailer links on catalog balls (2026-10-06)
+
+**The privacy and terms page explains affiliate links.** A catalog ball can now
+carry a "Shop at Bowling.com" link with a line under it saying Headpin earns a
+small commission on a purchase. It stays hidden until the affiliate program
+accepts Headpin, so nothing changes in the app yet; the legal page already
+describes it, and its terms now say Headpin is free to use (ADR-119).
+
 ## 0.5.0: Settings regrouped, and drift zones set by dragging on the lane (2026-10-06)
 
 **PAP, release and drift moves under Bowler**, next to your name and your hand

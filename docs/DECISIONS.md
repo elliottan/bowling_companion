@@ -5632,3 +5632,57 @@ column: the four-row Intended panel covers part of the deck and can reach the
 Strike and Next row, and the Actual line's single row can cover the top of
 Strike and Next. Neither is used while a board is being typed, and both come
 back on blur.
+
+---
+
+## ADR-119: A catalog ball links to a retailer through an affiliate program, and the image position stops being non-commercial
+
+**Status.** Accepted, 2026-10-06. Supersedes the "non-commercial" contingency in
+ADR-039's image position; the rest of ADR-039 stands.
+
+**Context.** The app needs an income that does not put anything between a bowler
+and their scores. A ball's catalog page is the one screen where a bowler is
+already looking at a ball they might buy, and US bowling retailers run affiliate
+programs that pay a few percent of a sale (Bowling.com 4%, BowlersMart 2 to 5%,
+bowlingball.com 3%, as of October 2026).
+
+ADR-039 recorded that the photos of non-MOTIV balls are held unlicensed, and
+that the position rested on the app staying free and ad-free: "adding affiliate
+income would forfeit that". That was 30 balls when this was written (14 Storm, 8
+900 Global, 7 Roto Grip, 1 Pyramid). MOTIV's permission (ADR-061) is on the
+terms that the data is not resold and is kept accurate; a link to a retailer
+does neither.
+
+**Decision.**
+
+- **The owner accepts the image risk.** ADR-039's other half still holds: every
+  image is keyed to its ball id, so a takedown is a data edit, and the legal
+  page says any owner who asks will have an image changed or removed.
+- **One retailer, Bowling.com,** chosen as one of the largest US bowling
+  retailers, with the highest flat rate of the three, and international
+  shipping, so a click from outside the US can still convert.
+- **The link searches the retailer by brand and name** rather than pointing at a
+  product page. A search does not go stale when the retailer renames a page, and
+  it needs no table of product URLs kept in step with the catalog.
+- **The network's deep link is a template** (`AFFILIATE_DEEP_LINK` in
+  `src/lib/links.ts`, `{url}` where the retailer URL goes), pasted from the
+  network's link builder. It ships `null`, and null hides the link: an
+  uncredited link earns nothing, and a disclosure over it would not be true.
+- **The disclosure sits under the link,** in the app's own words, as well as on
+  the legal page. US advertising rules want it next to the link, not only in
+  the terms. The link carries `rel="sponsored"` for the same reason, for search
+  engines.
+- **It sits under Add to arsenal, outlined.** Buying never competes with the
+  screen's primary action, and it shows whether or not the ball is already in
+  the arsenal, since bowlers do buy a second of a ball they like.
+
+**Consequences.**
+- Turning it on is a one-line change to `AFFILIATE_DEEP_LINK`, plus a minor
+  version bump, since that is when a bowler first sees it.
+- Nothing about it leaves the device beyond the click itself: the URL carries
+  the brand and name, never anything the bowler has entered.
+- The search URL (`retailerSearchUrl`) could not be fetched from the build
+  environment, so it was written from the retailer's public URL shape and
+  should be checked by hand once before the link goes live.
+- A second retailer for another region is a second template and a choice of
+  which to show, and is not built until a region's clicks justify it.
