@@ -9,7 +9,19 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
-## 0.5.3: Groundwork for retailer links on catalog balls (2026-10-06)
+## 0.6.0: A new landing page, and groundwork for retailer links on catalog balls (2026-10-06)
+
+**headpin.app is rebuilt for a phone.** It opens on the lane at night, with the
+ball's path drawing itself down the lane beside the scorer, and one Open
+Headpin button. Below it, five steps walk through the app with new
+screenshots of the current screens (the scorer, the lane, stats, the arsenal
+and Home), then a grid of what else it keeps, then how to put it on your home
+screen on an iPhone and on Android. On a phone, an Open Headpin bar stays at
+the bottom once the first button has scrolled away.
+
+**Opened from Instagram, TikTok or Facebook?** The page says so, and says to
+open it in Safari or Chrome: their built-in browsers cannot add Headpin to the
+home screen, and scores kept there are not the ones Safari will open later.
 
 **The privacy and terms page explains affiliate links.** A catalog ball can now
 carry a "Shop at BowlersMart" link with a line under it saying Headpin earns a

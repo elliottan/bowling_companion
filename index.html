@@ -3,7 +3,9 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="theme-color" content="#fff8ed" />
+    <!-- The hero is the lane at night in both themes, so the browser's bar
+         matches it rather than the page's theme. -->
+    <meta name="theme-color" content="#0b1220" />
     <!--
       Google reads the favicon off this link, not off the manifest, and shows it
       beside the result. Both sides are a multiple of 48 because that is what it
@@ -115,8 +117,6 @@
         var root = document.documentElement;
         function apply(dark) {
           root.dataset.theme = dark ? "dark" : "light";
-          var meta = document.querySelector('meta[name="theme-color"]');
-          if (meta) meta.setAttribute("content", dark ? "#0f172a" : "#fff8ed");
         }
         function stored() {
           try {
@@ -136,6 +136,15 @@
     </script>
 
     <style>
+      /*
+       * Mobile first. Nearly every visit from an ad or a share lands on a
+       * phone, so the base rules are the phone layout and the media queries
+       * only ever add room.
+       *
+       * Two surfaces: the hero and the closing band are always the dark lane at
+       * night, whatever the theme, because the lane is the product's picture.
+       * Everything between them follows the reader's theme.
+       */
       :root {
         --bg: #fff8ed;
         --card: #ffffff;
@@ -145,6 +154,13 @@
         --edge: #e2e8f0;
         --felt: #1b5148;
         --on-felt: #ffffff;
+        --tint: #e7f3ef;
+        --night: #0b1220;
+        --night-2: #111a2e;
+        --night-ink: #f1f5f9;
+        --night-ink-2: #b6c2d4;
+        --mint: #5ed6c1;
+        --line: #f59e0b;
       }
       @media (prefers-color-scheme: light) {
         :root:not([data-theme="dark"]) .phone:not(.phone-dark) {
@@ -163,95 +179,211 @@
         --edge: #334155;
         --felt: #5ed6c1;
         --on-felt: #06231e;
+        --tint: #13302b;
       }
       * { box-sizing: border-box; }
+      html { scroll-behavior: smooth; }
+      @media (prefers-reduced-motion: reduce) {
+        html { scroll-behavior: auto; }
+      }
       body {
         margin: 0;
         background: var(--bg);
         color: var(--ink);
         font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
           "Segoe UI", sans-serif;
-        line-height: 1.6;
+        line-height: 1.55;
         -webkit-text-size-adjust: 100%;
+        /* Room for the sticky bar, so it never covers the footer's links. */
+        padding-bottom: calc(5rem + env(safe-area-inset-bottom));
       }
-      main {
-        max-width: 36rem;
+      img { max-width: 100%; }
+      a { color: inherit; }
+      .wrap {
+        max-width: 68rem;
         margin: 0 auto;
-        padding: 3.5rem 1.5rem 4rem;
+        padding: 0 1rem;
       }
-      .mark { width: 72px; height: 72px; border-radius: 1rem; display: block; }
-      h1 {
-        font-size: 2.5rem;
-        font-weight: 700;
-        letter-spacing: -0.03em;
-        margin: 1.25rem 0 0;
-      }
-      /* The value line under the wordmark. The section headings below share the
-         h2 tag and are small caps, so this one opts out of all of that. */
-      h2.value {
-        font-size: 1.35rem;
-        font-weight: 600;
-        letter-spacing: -0.01em;
-        text-transform: none;
-        color: var(--ink);
-        margin: 0.6rem 0 0;
-      }
-      .lede { font-size: 1.05rem; color: var(--ink-2); margin: 0.6rem 0 0; }
+
+      /* ---------- Buttons ---------- */
       .cta {
-        display: inline-block;
-        margin: 1.75rem 0 0;
-        padding: 0.85rem 1.6rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        min-height: 3.25rem;
+        padding: 0 1.6rem;
         border-radius: 999px;
-        background: var(--felt);
-        color: var(--on-felt);
-        font-weight: 600;
+        background: var(--mint);
+        color: #06231e;
+        font-weight: 700;
+        font-size: 1.05rem;
+        text-decoration: none;
+        box-shadow: 0 8px 24px rgb(94 214 193 / 0.28);
+        transition: transform 0.15s ease;
+      }
+      .cta:active { transform: scale(0.98); }
+      .cta:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
+      .cta svg { width: 1.1rem; height: 1.1rem; }
+      .cta-note {
+        margin: 0.75rem 0 0;
+        font-size: 0.9rem;
+        color: var(--night-ink-2);
+      }
+
+      /* ---------- Hero: the lane at night ---------- */
+      .hero {
+        position: relative;
+        overflow: hidden;
+        background:
+          radial-gradient(120% 70% at 70% 100%, rgb(245 158 11 / 0.16), transparent 60%),
+          radial-gradient(90% 60% at 10% 0%, rgb(94 214 193 / 0.14), transparent 60%),
+          var(--night);
+        color: var(--night-ink);
+        padding: calc(1rem + env(safe-area-inset-top)) 0 0;
+      }
+      .topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+      }
+      .brand {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.6rem;
+        font-weight: 700;
+        font-size: 1.1rem;
+        letter-spacing: -0.01em;
         text-decoration: none;
       }
-      .cta-note { font-size: 0.9rem; color: var(--ink-3); margin: 0.75rem 0 0; }
-      .shots {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 1.4rem 0.9rem;
-        margin: 2.75rem 0 0;
+      .brand img { width: 2.25rem; height: 2.25rem; border-radius: 0.6rem; }
+      .topbar .open {
+        min-height: 2.75rem;
+        display: inline-flex;
+        align-items: center;
+        padding: 0 1rem;
+        border-radius: 999px;
+        border: 1px solid rgb(255 255 255 / 0.22);
+        font-weight: 600;
+        font-size: 0.95rem;
+        text-decoration: none;
       }
-      @media (min-width: 34rem) {
-        .shots {
-          grid-template-columns: repeat(4, minmax(0, 1fr));
-        }
-      }
-      .shots figure {
+      .hero-grid { padding: 2.25rem 0 0; }
+      .eyebrow {
+        display: inline-block;
         margin: 0;
-        min-width: 0;
+        padding: 0.3rem 0.75rem;
+        border-radius: 999px;
+        background: rgb(94 214 193 / 0.14);
+        color: var(--mint);
+        font-size: 0.8rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
       }
+      .hero h1 {
+        margin: 1rem 0 0;
+        font-size: clamp(2.4rem, 11vw, 4.25rem);
+        line-height: 1.02;
+        letter-spacing: -0.035em;
+        font-weight: 800;
+      }
+      .hero h1 em {
+        font-style: normal;
+        color: var(--line);
+      }
+      .hero .lede {
+        margin: 1rem 0 1.5rem;
+        max-width: 34rem;
+        font-size: 1.1rem;
+        color: var(--night-ink-2);
+      }
+      .notice {
+        display: none;
+        margin: 0 0 1.25rem;
+        padding: 0.85rem 1rem;
+        border-radius: 0.9rem;
+        background: rgb(245 158 11 / 0.14);
+        border: 1px solid rgb(245 158 11 / 0.4);
+        color: var(--night-ink);
+        font-size: 0.95rem;
+      }
+      .notice.show { display: block; }
+
+      /*
+       * The stage: a drawn lane with the ball's path drawing itself, and the
+       * scorer beside it. The lane is SVG rather than a video so it costs a
+       * few kilobytes, scales to any width and stays sharp.
+       */
+      .stage {
+        position: relative;
+        height: 27rem;
+        margin: 2rem -1rem 0;
+      }
+      .stage .lane {
+        position: absolute;
+        left: 0;
+        bottom: 0;
+        width: 64%;
+        height: 100%;
+      }
+      .stage .phone {
+        position: absolute;
+        right: 4%;
+        bottom: -3rem;
+        width: 47%;
+        max-width: 16rem;
+        transform: rotate(4deg);
+      }
+      .lane .path {
+        fill: none;
+        stroke: var(--line);
+        stroke-width: 7;
+        stroke-linecap: round;
+        stroke-dasharray: 1;
+        stroke-dashoffset: 1;
+        filter: drop-shadow(0 0 8px rgb(245 158 11 / 0.7));
+        animation: draw 4.5s ease-in-out infinite;
+      }
+      .lane .ball { animation: fade 4.5s ease-in-out infinite; }
+      @keyframes draw {
+        0% { stroke-dashoffset: 1; opacity: 1; }
+        55% { stroke-dashoffset: 0; opacity: 1; }
+        88% { stroke-dashoffset: 0; opacity: 1; }
+        100% { stroke-dashoffset: 0; opacity: 0; }
+      }
+      @keyframes fade {
+        0%, 88% { opacity: 1; }
+        100% { opacity: 0; }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .lane .path { animation: none; stroke-dashoffset: 0; }
+        .lane .ball { display: none; }
+      }
+
+      /* ---------- Phones ---------- */
       /*
        * A phone drawn in CSS rather than shipped as a picture: it scales to any
-       * width, follows the theme, and costs nothing to download.
-       *
-       * The screen carries a strip of the app's own background above the
-       * screenshot. A captured screen has no status bar, so without it the
-       * camera cut-out would sit on top of the app's header instead of above
-       * it, and the frame would read as a sticker rather than as a device.
+       * width, follows the theme, and costs nothing to download. The screen
+       * carries a strip of the app's background above the screenshot, so the
+       * camera cut-out sits above the app's header rather than on it.
        */
       .phone {
         --shot-bg: #0f172a;
-        padding: 0.28rem;
-        border-radius: 1.5rem;
+        padding: 0.3rem;
+        border-radius: 1.7rem;
         background: linear-gradient(160deg, #52525b, #27272a 40%, #3f3f46);
-        box-shadow: 0 10px 26px rgb(0 0 0 / 0.28);
+        box-shadow: 0 24px 60px rgb(0 0 0 / 0.45), 0 0 0 1px rgb(255 255 255 / 0.06);
       }
-      /* The lane view paints its own dark sky in either theme, so its strip
-         cannot follow the page. */
-      .phone-dark {
-        --shot-bg: #0f172a;
-      }
+      .phone-dark { --shot-bg: #0f172a; }
       .screen {
         position: relative;
         overflow: hidden;
-        border-radius: 1.28rem;
+        border-radius: 1.42rem;
         background: var(--shot-bg);
         padding-top: 5.2%;
       }
-      /* The camera cut-out. */
       .screen::after {
         content: "";
         position: absolute;
@@ -263,24 +395,188 @@
         border-radius: 999px;
         background: #000;
       }
-      .shots picture {
-        display: block;
+      .screen img, .screen picture { display: block; width: 100%; height: auto; }
+
+      /* ---------- Fact strip ---------- */
+      .facts {
+        position: relative;
+        z-index: 1;
+        background: var(--night-2);
+        color: var(--night-ink);
+        border-top: 1px solid rgb(255 255 255 / 0.06);
       }
-      .shots img {
-        width: 100%;
-        height: auto;
-        display: block;
+      .facts ul {
+        list-style: none;
+        margin: 0;
+        padding: 1rem 0;
+        display: flex;
+        gap: 0.5rem;
+        overflow-x: auto;
+        scrollbar-width: none;
+      }
+      .facts ul::-webkit-scrollbar { display: none; }
+      .facts li {
+        flex: none;
+        padding: 0.45rem 0.85rem;
+        border-radius: 999px;
+        background: rgb(255 255 255 / 0.06);
+        font-size: 0.9rem;
+        font-weight: 600;
+        white-space: nowrap;
+      }
+      .facts li b { color: var(--mint); }
+
+      /* ---------- The walk through the app ---------- */
+      .story { padding-block: 3.5rem 1rem; }
+      .kicker {
+        margin: 0;
+        color: var(--felt);
+        font-size: 0.8rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+      .section-title {
+        margin: 0.5rem 0 0;
+        font-size: clamp(1.9rem, 7.5vw, 2.75rem);
+        line-height: 1.08;
+        letter-spacing: -0.03em;
+        font-weight: 800;
+      }
+      .step {
+        display: grid;
+        gap: 1.5rem;
+        align-items: center;
+        padding: 3rem 0;
+        border-bottom: 1px solid var(--edge);
+      }
+      .step:last-child { border-bottom: 0; }
+      .step .num {
+        display: inline-grid;
+        place-items: center;
+        width: 2.25rem;
+        height: 2.25rem;
+        border-radius: 999px;
+        background: var(--tint);
+        color: var(--felt);
+        font-weight: 800;
+      }
+      .step h3 {
+        margin: 0.85rem 0 0;
+        font-size: 1.6rem;
+        line-height: 1.15;
+        letter-spacing: -0.02em;
+      }
+      .step p {
+        margin: 0.6rem 0 0;
+        color: var(--ink-2);
+        font-size: 1.05rem;
+        max-width: 30rem;
+      }
+      .step figure {
+        margin: 0;
+        justify-self: center;
+        width: min(62%, 17rem);
       }
       .shot-link {
         display: block;
         cursor: zoom-in;
-        border-radius: 1.5rem;
+        border-radius: 1.7rem;
         text-decoration: none;
       }
-      .shot-link:focus-visible {
-        outline: 2px solid var(--felt);
-        outline-offset: 4px;
+      .shot-link:focus-visible { outline: 3px solid var(--felt); outline-offset: 4px; }
+
+      /* ---------- Feature grid ---------- */
+      .features { padding-block: 1rem 3.5rem; }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.75rem;
+        margin-top: 1.5rem;
       }
+      .card {
+        background: var(--card);
+        border: 1px solid var(--edge);
+        border-radius: 1.1rem;
+        padding: 1rem;
+      }
+      .card svg {
+        width: 1.6rem;
+        height: 1.6rem;
+        color: var(--felt);
+      }
+      .card h4 { margin: 0.6rem 0 0; font-size: 1rem; letter-spacing: -0.01em; }
+      .card p { margin: 0.3rem 0 0; color: var(--ink-2); font-size: 0.9rem; line-height: 1.45; }
+
+      /* ---------- Install ---------- */
+      .install { padding-block: 0 3.5rem; }
+      .install-grid {
+        display: grid;
+        gap: 0.75rem;
+        margin-top: 1.5rem;
+      }
+      .install .card h4 { margin: 0; font-size: 1.1rem; }
+      .install ol { margin: 0.6rem 0 0; padding-left: 1.2rem; color: var(--ink-2); }
+      .install li { margin: 0.25rem 0; }
+      .install li b { color: var(--ink); }
+
+      /* ---------- Closing band ---------- */
+      .closing {
+        background:
+          radial-gradient(80% 90% at 50% 120%, rgb(245 158 11 / 0.2), transparent 60%),
+          var(--night);
+        color: var(--night-ink);
+        text-align: center;
+        padding-block: 4rem;
+      }
+      .closing h2 {
+        margin: 0 auto;
+        max-width: 22ch;
+        font-size: clamp(2rem, 8vw, 3rem);
+        line-height: 1.08;
+        letter-spacing: -0.03em;
+        font-weight: 800;
+      }
+      .closing .cta { margin-top: 1.75rem; }
+
+      footer {
+        padding-block: 2rem;
+        color: var(--ink-3);
+        font-size: 0.9rem;
+      }
+      footer a { color: var(--felt); }
+
+      /*
+       * The sticky bar. It appears once the hero's own button has scrolled
+       * away, so a reader halfway down never has to scroll back up to start.
+       */
+      .sticky {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 10;
+        padding: 0.75rem 1rem calc(0.75rem + env(safe-area-inset-bottom));
+        background: rgb(11 18 32 / 0.92);
+        -webkit-backdrop-filter: blur(12px);
+        backdrop-filter: blur(12px);
+        border-top: 1px solid rgb(255 255 255 / 0.08);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+        transform: translateY(110%);
+        transition: transform 0.25s ease;
+      }
+      .sticky.show { transform: none; }
+      .sticky span { color: var(--night-ink); font-weight: 600; font-size: 0.95rem; }
+      .sticky span small { display: block; color: var(--night-ink-2); font-weight: 400; font-size: 0.8rem; }
+      .sticky .cta { min-height: 2.9rem; padding: 0 1.25rem; font-size: 1rem; box-shadow: none; }
+      @media (prefers-reduced-motion: reduce) {
+        .sticky { transition: none; }
+      }
+
+      /* ---------- Viewer ---------- */
       #viewer {
         border: 0;
         padding: 0;
@@ -291,9 +587,7 @@
         background: transparent;
         overflow: hidden;
       }
-      #viewer::backdrop {
-        background: rgb(0 0 0 / 0.88);
-      }
+      #viewer::backdrop { background: rgb(0 0 0 / 0.88); }
       #viewer img {
         display: block;
         margin: auto;
@@ -316,39 +610,34 @@
         line-height: 1;
         cursor: pointer;
       }
-      .shots figcaption {
-        margin-top: 0.6rem;
-        font-size: 0.8rem;
-        line-height: 1.4;
-        color: var(--ink-3);
-        text-align: center;
+
+      /* ---------- Room to spread out ---------- */
+      @media (min-width: 40rem) {
+        .wrap { padding: 0 2rem; }
+        .stage { margin: 2rem 0 0; }
+        .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        .install-grid { grid-template-columns: 1fr 1fr; }
       }
-      h2 {
-        font-size: 1.05rem;
-        font-weight: 600;
-        letter-spacing: 0.02em;
-        text-transform: uppercase;
-        color: var(--ink-3);
-        margin: 3rem 0 1rem;
-      }
-      ul { list-style: none; margin: 0; padding: 0; }
-      li {
-        background: var(--card);
-        border: 1px solid var(--edge);
-        border-radius: 0.85rem;
-        padding: 0.85rem 1rem;
-        margin: 0 0 0.6rem;
-        color: var(--ink-2);
-      }
-      li b { color: var(--ink); font-weight: 600; }
-      p { color: var(--ink-2); }
-      footer a { color: var(--felt); }
-      footer {
-        margin-top: 3.5rem;
-        padding-top: 1.5rem;
-        border-top: 1px solid var(--edge);
-        color: var(--ink-3);
-        font-size: 0.9rem;
+      @media (min-width: 60rem) {
+        .hero-grid {
+          display: grid;
+          grid-template-columns: 1.05fr 1fr;
+          gap: 2rem;
+          align-items: center;
+          padding: 3rem 0 0;
+        }
+        .stage { height: 36rem; }
+        .stage .lane { width: 58%; left: 4%; }
+        .stage .phone { width: 17rem; max-width: none; right: 2%; }
+        .step {
+          grid-template-columns: 1fr 1fr;
+          gap: 4rem;
+          padding: 4rem 0;
+        }
+        .step:nth-of-type(even) .copy { order: 2; }
+        .step figure { width: 19rem; }
+        .sticky { display: none; }
+        body { padding-bottom: 0; }
       }
     </style>
     <!--
@@ -360,110 +649,302 @@
     <script defer src="/_vercel/insights/script.js"></script>
   </head>
   <body>
-    <main>
-      <img class="mark" src="/icons/icon-192.png" width="72" height="72" alt="" />
-      <h1>Headpin</h1>
-      <h2 class="value">A bowling score keeper that remembers what you threw</h2>
-      <p class="lede">
-        Tap the pins you left. Headpin keeps score, records the ball and line
-        you used, and shows you what worked last time you bowled that alley.
-      </p>
-      <a class="cta" href="/score">Open Headpin</a>
-      <p class="cta-note">Free. No sign up.</p>
+    <header class="hero">
+      <div class="wrap">
+        <nav class="topbar" aria-label="Headpin">
+          <a class="brand" href="/">
+            <img src="/icons/icon-192.png" width="36" height="36" alt="" />
+            Headpin
+          </a>
+          <a class="open" href="/score">Open app</a>
+        </nav>
 
+        <div class="hero-grid">
+          <div>
+            <!--
+              Shown only inside Instagram's, TikTok's or Facebook's own browser.
+              Those cannot add a page to the home screen, and storage there is
+              not the storage Safari or Chrome will open later, so a bowler who
+              starts there would lose their scores on the way out.
+            -->
+            <p class="notice" id="inapp" role="note">
+              You are in <b id="inapp-name">this app</b>'s built-in browser. To
+              keep your scores and add Headpin to your home screen, open this
+              page in Safari or Chrome: tap the menu (<b>&middot;&middot;&middot;</b>) and choose
+              <b>Open in browser</b>.
+            </p>
+            <p class="eyebrow">Bowling score keeper</p>
+            <h1>Remember every <em>line</em> you threw.</h1>
+            <p class="lede">
+              Tap the pins you left. Headpin keeps the score, the ball and the
+              boards for every shot, so what worked last week at this alley is
+              still written down.
+            </p>
+            <a class="cta" id="hero-cta" href="/score">
+              Open Headpin
+              <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10h11M11 5l5 5-5 5"/></svg>
+            </a>
+            <p class="cta-note">Free. No sign up. Works with no signal.</p>
+          </div>
+
+          <div class="stage" aria-hidden="true">
+            <!--
+              A lane in perspective: wood, gutters, the target arrows and the
+              pin deck, with the ball's path from the laydown to the pocket
+              drawing itself on a loop. pathLength="1" lets the dash animation
+              run 0 to 1 whatever the curve's real length.
+            -->
+            <svg class="lane" viewBox="0 0 300 600" preserveAspectRatio="xMidYMax meet">
+              <defs>
+                <linearGradient id="wood" x1="0" y1="1" x2="0" y2="0">
+                  <stop offset="0" stop-color="#c98b4b" />
+                  <stop offset="0.6" stop-color="#b9783c" />
+                  <stop offset="1" stop-color="#6b4220" />
+                </linearGradient>
+                <linearGradient id="glow" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0" stop-color="#0b1220" stop-opacity="0.85" />
+                  <stop offset="0.35" stop-color="#0b1220" stop-opacity="0" />
+                </linearGradient>
+              </defs>
+              <path d="M8 600 L104 40 L196 40 L292 600 Z" fill="#05080f" />
+              <path d="M30 600 L112 40 L188 40 L270 600 Z" fill="url(#wood)" />
+              <g stroke="#5a3417" stroke-opacity="0.35" stroke-width="0.8">
+                <path d="M60 600 L117 40" /><path d="M90 600 L123 40" /><path d="M120 600 L135 40" />
+                <path d="M150 600 L150 40" /><path d="M180 600 L165 40" /><path d="M210 600 L177 40" />
+                <path d="M240 600 L183 40" />
+              </g>
+              <g fill="#3b1f0b" fill-opacity="0.85">
+                <path d="M74 420 l6 -16 l6 16 z" /><path d="M100 400 l5 -15 l5 15 z" /><path d="M125 380 l5 -14 l5 14 z" />
+                <path d="M145 362 l5 -14 l5 14 z" /><path d="M170 380 l5 -14 l5 14 z" /><path d="M195 400 l5 -15 l5 15 z" />
+                <path d="M219 420 l6 -16 l6 16 z" />
+              </g>
+              <g fill="#f8fafc">
+                <circle cx="150" cy="78" r="5" />
+                <circle cx="143" cy="70" r="4.6" /><circle cx="157" cy="70" r="4.6" />
+                <circle cx="136" cy="62" r="4.2" /><circle cx="150" cy="62" r="4.2" /><circle cx="164" cy="62" r="4.2" />
+                <circle cx="129" cy="54" r="3.8" /><circle cx="143" cy="54" r="3.8" /><circle cx="157" cy="54" r="3.8" /><circle cx="171" cy="54" r="3.8" />
+              </g>
+              <path class="path" pathLength="1" d="M196 590 C 206 470, 222 330, 200 220 S 158 108, 156 84" />
+              <circle class="ball" r="11" fill="#1e293b" stroke="#5ed6c1" stroke-width="2.5">
+                <animateMotion dur="4.5s" repeatCount="indefinite" keyPoints="0;1;1" keyTimes="0;0.55;1" calcMode="linear" path="M196 590 C 206 470, 222 330, 200 220 S 158 108, 156 84" />
+              </circle>
+              <rect x="0" y="0" width="300" height="600" fill="url(#glow)" />
+            </svg>
+            <div class="phone">
+              <div class="screen">
+                <img src="/shots/scorer.webp" width="780" height="1688" alt="" fetchpriority="high" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <section class="facts" aria-label="At a glance">
+      <div class="wrap">
+        <ul>
+          <li><b>250</b> balls in the catalog</li>
+          <li>Oil patterns</li>
+          <li>Spare lines</li>
+          <li>Ball layouts</li>
+          <li>Works offline</li>
+          <li>No account</li>
+        </ul>
+      </div>
+    </section>
+
+    <main>
       <!--
         Real screens, captured from the running app by scripts/capture-shots.mjs
-        rather than drawn. Sized in the markup so the page does not jump when
-        they land, and eager rather than lazy because they sit at the top of the
-        page on a phone, where a lazy image is a visible gap.
-
-        Each screen is shot in both themes and picked with prefers-color-scheme.
-        The page claims the app looks nice, and a dark screenshot on the cream
-        background argues the other way. The lane view is the exception: it
-        paints its own wood rather than the app's color tokens, so one file
-        serves both.
+        rather than drawn. Each is shot in both themes and picked with
+        prefers-color-scheme; the lane view paints its own wood, so one file
+        serves both. Sized in the markup so the page does not jump as they load.
       -->
-      <section class="shots">
-        <figure>
-          <a class="shot-link" href="/shots/scorer.webp" aria-label="View the scorecard larger"><div class="phone"><div class="screen">
-            <picture>
-            <source srcset="/shots/scorer-light.webp" media="(prefers-color-scheme: light)" />
-            <img
-              src="/shots/scorer.webp"
-              width="780"
-              height="1688"
-              alt="A Headpin scorecard on the tenth frame, nine frames scored, three pins left standing, with the ball and the line written down beside it."
-            />
-          </picture>
-          </div></div></a>
-          <figcaption>Tap the pins you left</figcaption>
-        </figure>
-        <figure>
-          <a class="shot-link" href="/shots/line.webp" aria-label="View the lane view larger"><div class="phone phone-dark"><div class="screen">
-            <img
-              src="/shots/line.webp"
-              width="780"
-              height="1688"
-              alt="The Headpin lane view, showing a ball path from laydown through the target arrows to the breakpoint and into the pocket."
-            />
-          </div></div></a>
-          <figcaption>See the line you threw</figcaption>
-        </figure>
-        <figure>
-          <a class="shot-link" href="/shots/stats.webp" aria-label="View the stats screen larger"><div class="phone"><div class="screen">
-            <picture>
-            <source srcset="/shots/stats-light.webp" media="(prefers-color-scheme: light)" />
-            <img
-              src="/shots/stats.webp"
-              width="780"
-              height="1688"
-              alt="The Headpin stats screen showing a 193 average across five games, strike and spare percentages, and a line chart of average by session."
-            />
-          </picture>
-          </div></div></a>
-          <figcaption>Watch the average move</figcaption>
-        </figure>
-        <figure>
-          <a class="shot-link" href="/shots/arsenal.webp" aria-label="View the arsenal larger"><div class="phone"><div class="screen">
-            <picture>
-            <source srcset="/shots/arsenal-light.webp" media="(prefers-color-scheme: light)" />
-            <img
-              src="/shots/arsenal.webp"
-              width="780"
-              height="1688"
-              alt="The Headpin arsenal screen listing five bowling balls with their coverstock, RG and differential."
-            />
-          </picture>
-          </div></div></a>
-          <figcaption>Keep your arsenal</figcaption>
-        </figure>
+      <section class="story wrap" aria-labelledby="how">
+        <p class="kicker">How it works</p>
+        <h2 class="section-title" id="how">Built for league night, not for a spreadsheet.</h2>
+
+        <article class="step">
+          <div class="copy">
+            <span class="num">1</span>
+            <h3>Tap the pins you left.</h3>
+            <p>
+              No keypad and no counting. Tap what is still standing and Headpin
+              keeps the score, frame by frame, with the ball and the boards
+              written down beside every shot.
+            </p>
+          </div>
+          <figure>
+            <a class="shot-link" href="/shots/scorer.webp" aria-label="View the scorecard larger"><div class="phone"><div class="screen">
+              <picture>
+                <source srcset="/shots/scorer-light.webp" media="(prefers-color-scheme: light)" />
+                <img src="/shots/scorer.webp" width="780" height="1688" loading="lazy"
+                  alt="A Headpin scorecard on the tenth frame, with the pins left standing and the stance and target boards written down beside it." />
+              </picture>
+            </div></div></a>
+          </figure>
+        </article>
+
+        <article class="step">
+          <div class="copy">
+            <span class="num">2</span>
+            <h3>See the line you threw.</h3>
+            <p>
+              Your shot drawn on the lane, from the laydown through the arrows
+              to the breakpoint and into the pocket. Drag it to try the next
+              move before you throw it.
+            </p>
+          </div>
+          <figure>
+            <a class="shot-link" href="/shots/line.webp" aria-label="View the lane view larger"><div class="phone phone-dark"><div class="screen">
+              <img src="/shots/line.webp" width="780" height="1688" loading="lazy"
+                alt="The Headpin lane view, with a ball path from the laydown through the target arrows to the breakpoint and into the pocket." />
+            </div></div></a>
+          </figure>
+        </article>
+
+        <article class="step">
+          <div class="copy">
+            <span class="num">3</span>
+            <h3>Know what worked.</h3>
+            <p>
+              Your average, strikes, spares and pocket rate, game by game. See
+              which ball carries best and which leaves you keep missing.
+            </p>
+          </div>
+          <figure>
+            <a class="shot-link" href="/shots/stats.webp" aria-label="View the stats screen larger"><div class="phone"><div class="screen">
+              <picture>
+                <source srcset="/shots/stats-light.webp" media="(prefers-color-scheme: light)" />
+                <img src="/shots/stats.webp" width="780" height="1688" loading="lazy"
+                  alt="The Headpin stats screen with average, strike and spare rates, a chart of average by session and each ball's pocket, carry and strike rates." />
+              </picture>
+            </div></div></a>
+          </figure>
+        </article>
+
+        <article class="step">
+          <div class="copy">
+            <span class="num">4</span>
+            <h3>Carry your whole bag.</h3>
+            <p>
+              Add your balls from a catalog of 250, with coverstock, core, RG
+              and differential already filled in.
+            </p>
+          </div>
+          <figure>
+            <a class="shot-link" href="/shots/arsenal.webp" aria-label="View the arsenal larger"><div class="phone"><div class="screen">
+              <picture>
+                <source srcset="/shots/arsenal-light.webp" media="(prefers-color-scheme: light)" />
+                <img src="/shots/arsenal.webp" width="780" height="1688" loading="lazy"
+                  alt="The Headpin arsenal listing five bowling balls with their coverstock, core, RG and differential." />
+              </picture>
+            </div></div></a>
+          </figure>
+        </article>
+
+        <article class="step">
+          <div class="copy">
+            <span class="num">5</span>
+            <h3>Ready when you walk in.</h3>
+            <p>
+              Your bag, your last sessions, spare lines, lane notes and oil
+              patterns, one tap from the first screen.
+            </p>
+          </div>
+          <figure>
+            <a class="shot-link" href="/shots/home.webp" aria-label="View the home screen larger"><div class="phone"><div class="screen">
+              <picture>
+                <source srcset="/shots/home-light.webp" media="(prefers-color-scheme: light)" />
+                <img src="/shots/home.webp" width="780" height="1688" loading="lazy"
+                  alt="The Headpin home screen with the bowler's arsenal, recent sessions and shortcuts to spare lines, lane notes and oil patterns." />
+              </picture>
+            </div></div></a>
+          </figure>
+        </article>
       </section>
 
-      <h2>What it does</h2>
-      <ul>
-        <li>
-          Score by tapping the pins that are still standing. There is no keypad,
-          because a deck of pins is what you are already looking at.
-        </li>
-        <li>
-          See your line drawn on the lane, from where the ball lands through the
-          arrows to the breakpoint and into the pocket.
-        </li>
-        <li>
-          Every shot keeps the ball and the boards that went with it, so the
-          answer you found last week is still written down.
-        </li>
-        <li>
-          It all stays on the phone. No account, nothing to sign up for, and it
-          works with no signal once it is on the home screen.
-        </li>
-      </ul>
+      <section class="features wrap" aria-labelledby="more">
+        <p class="kicker">And more</p>
+        <h2 class="section-title" id="more">Everything a serious bowler writes down.</h2>
+        <div class="grid">
+          <div class="card">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 20c2-6 6-12 14-16"/><circle cx="19" cy="4" r="1.5"/></svg>
+            <h4>Spare lines</h4>
+            <p>A stance and target for every leave, filled in when you leave it.</p>
+          </div>
+          <div class="card">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 20V8M9 20V4M14 20v-9M19 20v-6"/></svg>
+            <h4>Oil patterns</h4>
+            <p>See where the oil sits on the lane, from a catalog of patterns.</p>
+          </div>
+          <div class="card">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="8"/><circle cx="9" cy="10" r="1.2"/><circle cx="13" cy="9" r="1.2"/><circle cx="11" cy="13.5" r="1.4"/></svg>
+            <h4>Ball layouts</h4>
+            <p>Dual angle and Storm VLS layouts drawn on your PAP.</p>
+          </div>
+          <div class="card">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 3h9l3 3v15H6z"/><path d="M9 10h6M9 14h6M9 18h4"/></svg>
+            <h4>Lane notes</h4>
+            <p>What the pair did last time, kept with the alley.</p>
+          </div>
+          <div class="card">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 14v6h14v-6"/></svg>
+            <h4>Share a game</h4>
+            <p>Send your card as a picture to the group chat.</p>
+          </div>
+          <div class="card">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="7" y="2.5" width="10" height="19" rx="2.5"/><path d="M10.5 18.5h3"/></svg>
+            <h4>Yours, on your phone</h4>
+            <p>No account and no server. Back up to a file any time.</p>
+          </div>
+        </div>
+      </section>
 
-      <footer>
-        <a href="/legal">Privacy and terms</a> ·
-        <a href="mailto:hello@headpin.app">hello@headpin.app</a>
-      </footer>
+      <section class="install wrap" aria-labelledby="install">
+        <p class="kicker">Install</p>
+        <h2 class="section-title" id="install">Put it on your home screen.</h2>
+        <div class="install-grid">
+          <div class="card">
+            <h4>iPhone</h4>
+            <ol>
+              <li>Open <b>headpin.app</b> in <b>Safari</b>.</li>
+              <li>Tap <b>Share</b>, the square with the arrow.</li>
+              <li>Tap <b>Add to Home Screen</b>.</li>
+            </ol>
+          </div>
+          <div class="card">
+            <h4>Android</h4>
+            <ol>
+              <li>Open <b>headpin.app</b> in <b>Chrome</b>.</li>
+              <li>Tap <b>Install</b> when it asks, or the menu (<b>&#8942;</b>).</li>
+              <li>Tap <b>Add to Home screen</b>.</li>
+            </ol>
+          </div>
+        </div>
+      </section>
     </main>
+
+    <section class="closing" aria-labelledby="closing">
+      <div class="wrap">
+        <h2 id="closing">Your next league night, written down.</h2>
+        <a class="cta" href="/score">
+          Open Headpin
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10h11M11 5l5 5-5 5"/></svg>
+        </a>
+        <p class="cta-note">Free. No sign up.</p>
+      </div>
+    </section>
+
+    <footer class="wrap">
+      <a href="/legal">Privacy and terms</a> ·
+      <a href="mailto:hello@headpin.app">hello@headpin.app</a>
+    </footer>
+
+    <div class="sticky" id="sticky" aria-hidden="true">
+      <span>Headpin<small>Free. No sign up.</small></span>
+      <a class="cta" href="/score" tabindex="-1">Open Headpin</a>
+    </div>
 
     <!--
       Full-size viewer. A <dialog> rather than a hand-rolled overlay: Escape,
@@ -477,6 +958,36 @@
     </dialog>
     <script>
       (function () {
+        // The in-app browsers that cannot install a web app. Each names itself
+        // in the user agent; the name shown is the one the bowler knows.
+        var ua = navigator.userAgent || "";
+        var apps = [
+          [/Instagram/i, "Instagram"],
+          [/FBAN|FBAV|FB_IAB|FBIOS/i, "Facebook"],
+          [/musical_ly|TikTok|BytedanceWebview|trill/i, "TikTok"],
+          [/Snapchat/i, "Snapchat"],
+          [/LinkedInApp/i, "LinkedIn"]
+        ];
+        for (var i = 0; i < apps.length; i++) {
+          if (apps[i][0].test(ua)) {
+            document.getElementById("inapp-name").textContent = apps[i][1];
+            document.getElementById("inapp").classList.add("show");
+            break;
+          }
+        }
+
+        // The sticky bar shows once the hero's button has scrolled out of view.
+        var bar = document.getElementById("sticky");
+        var hero = document.getElementById("hero-cta");
+        if (bar && hero && "IntersectionObserver" in window) {
+          new IntersectionObserver(function (entries) {
+            var away = !entries[0].isIntersecting && entries[0].boundingClientRect.top < 0;
+            bar.classList.toggle("show", away);
+            bar.setAttribute("aria-hidden", away ? "false" : "true");
+            bar.querySelector("a").tabIndex = away ? 0 : -1;
+          }).observe(hero);
+        }
+
         var dlg = document.getElementById("viewer");
         if (!dlg || typeof dlg.showModal !== "function") return;
         var img = document.getElementById("viewer-img");
