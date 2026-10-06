@@ -77,10 +77,6 @@ export const GUIDES: readonly Guide[] = [
         kind: "text",
         text: "One-handed with a thumb, or two-handed with the thumb out. The Layouts page opens on this and carries it in a shared layout. Two-handed draws the ball with no thumb hole and the center of your grip between your fingers, and it drops the do-not-use band, which only exists to keep the track off a thumb hole."
       },
-      {
-        kind: "note",
-        text: "The motion reading itself is still the dual angle chart's, fitted to a thumb-in release. The app would rather say it has not adjusted that than guess at it."
-      },
       { kind: "heading", text: "PAP" },
       {
         kind: "text",
@@ -90,10 +86,6 @@ export const GUIDES: readonly Guide[] = [
       {
         kind: "text",
         text: "The release offset is how many boards from your slide foot the ball lays down, on the side you release on. Drift is how far you walk sideways on the approach, which often depends on where you start: outside, in the middle, or inside. Together they turn the stance you type into the slide and laydown the lane view draws."
-      },
-      {
-        kind: "note",
-        text: "None of this is needed to keep score. Leave the defaults until the lane view draws a line that does not match what you see."
       }
     ]
   },
