@@ -9,6 +9,11 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.5.2: Hand, grip and approach guide, a few more wording fixes (2026-10-06)
+
+The grip paragraph no longer mentions the do-not-use band, and the PAP paragraph
+now suggests asking your local pro shop to help measure it.
+
 ## 0.5.1: Two notes dropped from the hand, grip and approach guide (2026-10-06)
 
 The two green note boxes in "Your hand, grip and approach" are gone: the one on
