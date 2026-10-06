@@ -1,6 +1,6 @@
 import { ChevronDown } from "lucide-react";
 import type { ReactNode } from "react";
-import { FIELD_DENSE_SELECT, FIELD_DENSE_SELECT_NARROW } from "./ui/field";
+import { FIELD_DENSE_SELECT_NARROW } from "./ui/field";
 import {
   EIGHTHS,
   clamp,
@@ -19,7 +19,7 @@ import {
  * component means the two can never disagree about the bounds, the rounding or
  * which way "down" is.
  *
- * Each measurement is one line, and the line reads the way it is said out loud:
+ * Each measurement reads the way it is said out loud:
  * the number first, then what it is. "5 1/2 over", "1/2 down". The labels used
  * to sit in a band above each row, which cost two bands of a phone screen to
  * name two things a bowler can already read off the row itself, and pushed the
@@ -40,8 +40,11 @@ export function PapEditor({
 }) {
   const parts = splitInches(pap.up);
 
+  // One row where there is room for it, as in Settings: "6 1/8 over, 1 1/2
+  // up" is one measurement said in one breath. Where there is not, as in the
+  // Layouts page's half-width card, the second measurement wraps under the first.
   return (
-    <>
+    <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
       <InchField
         label="Over"
         id={`${idPrefix}-over`}
@@ -62,10 +65,10 @@ export function PapEditor({
           // sign for the whole measurement, not for its integer part: half an
           // inch below the midline is a real PAP and there is no way to write
           // it as a negative zero.
-          <Dropdown className="w-[5.25rem]">
+          <Dropdown className="w-[4.5rem]">
             <select
               aria-label="Up or down direction"
-              className={FIELD_DENSE_SELECT}
+              className={FIELD_DENSE_SELECT_NARROW}
               value={parts.negative ? "down" : "up"}
               onChange={(e) =>
                 onChange({
@@ -80,14 +83,14 @@ export function PapEditor({
           </Dropdown>
         }
       />
-    </>
+    </div>
   );
 }
 
 /**
  * A select and the chevron that says it is one.
  *
- * `FIELD_DENSE_SELECT` drops the browser's own arrow (`appearance-none`) and
+ * The dense select chrome drops the browser's own arrow (`appearance-none`) and
  * leaves room for a replacement it does not draw, which every other screen gets
  * away with because its selects hold a word. Here two of the three hold a
  * single digit, and a bare box with "5" in it reads as a text field: the
@@ -152,7 +155,7 @@ export function InchField({
     // `w-14` appended to it loses and the row overflows the card. Same trap as
     // the colour rule in docs/DESIGN-LANGUAGE.md §2.
     <div className="flex items-center gap-1.5">
-      <Dropdown className="w-[3.5rem]">
+      <Dropdown className="w-[2.5rem]">
         <select
           id={id}
           aria-label={label}
@@ -167,7 +170,7 @@ export function InchField({
           ))}
         </select>
       </Dropdown>
-      <Dropdown className="w-[4.5rem]">
+      <Dropdown className="w-[3.5rem]">
         <select
           aria-label={`${label} fraction`}
           className={`${FIELD_DENSE_SELECT_NARROW} tabular-nums`}

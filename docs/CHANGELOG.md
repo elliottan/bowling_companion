@@ -30,6 +30,10 @@ stance is on boards 1 to 14." The section is called Drift now.
 **Shorter prose.** The PAP, release offset and drift descriptions are each a
 line or two, and say what uses them.
 
+**Your PAP on one line.** Over and up or down sit side by side when the screen
+has room, and the second wraps underneath on a narrow phone or in the Layouts
+page's half-width card.
+
 **The layout lab is called Layouts**, on Home and in its title bar.
 
 **Layout numbers is gone from Appearance.** The Layouts page and each ball's
