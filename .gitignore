@@ -42,3 +42,6 @@ tmp/
 # Catalog pipeline local state (queue files and the image contact sheet)
 scripts/sync-catalog/data/queue/
 scripts/sync-catalog/contact-sheet.html
+
+# Ad renders (scripts/ad-content): regenerated, never committed.
+ads-out/

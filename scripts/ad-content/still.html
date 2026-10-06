@@ -1,0 +1,105 @@
+<!doctype html>
+<!--
+  One still ad: a headline, a real screenshot of the app in a phone, and the
+  address. stills.mjs opens it once per ad and size and saves the screenshot.
+
+  ?shot=line  ?h=<headline, may hold <em>>  ?sub=<line under it>  ?size=feed|story
+  Feed is 1080 x 1350 (4:5), story is 1080 x 1920 (9:16). On a story the text
+  sits inside the band Instagram and Facebook leave clear of their own buttons.
+-->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Headpin still</title>
+    <style>
+      * { box-sizing: border-box; }
+      html, body {
+        margin: 0;
+        width: 1080px;
+        overflow: hidden;
+        color: #f1f5f9;
+        font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+        background:
+          radial-gradient(90% 45% at 50% 100%, rgb(245 158 11 / 0.24), transparent 70%),
+          radial-gradient(80% 40% at 10% 0%, rgb(94 214 193 / 0.2), transparent 70%),
+          #0b1220;
+      }
+      body.feed { height: 1350px; }
+      body.story { height: 1920px; }
+      .top {
+        position: absolute;
+        left: 70px;
+        right: 70px;
+        text-align: center;
+      }
+      .feed .top { top: 70px; }
+      .story .top { top: 290px; }
+      .brand {
+        display: inline-flex;
+        align-items: center;
+        gap: 16px;
+        font-size: 38px;
+        font-weight: 700;
+        color: #b6c2d4;
+      }
+      .brand img { width: 52px; height: 52px; border-radius: 13px; }
+      h1 {
+        margin: 26px 0 0;
+        font-size: 82px;
+        line-height: 1.04;
+        letter-spacing: -0.03em;
+        font-weight: 800;
+      }
+      h1 em { font-style: normal; color: #f59e0b; }
+      .sub { margin: 20px 0 0; font-size: 40px; color: #b6c2d4; }
+      .phone {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        padding: 9px;
+        border-radius: 64px;
+        background: linear-gradient(160deg, #52525b, #27272a 40%, #3f3f46);
+        box-shadow: 0 40px 120px rgb(0 0 0 / 0.6);
+      }
+      .feed .phone { top: 470px; width: 470px; }
+      .story .phone { top: 800px; width: 560px; }
+      .phone .screen { border-radius: 56px; overflow: hidden; background: #0f172a; padding-top: 5%; }
+      .phone img { display: block; width: 100%; }
+      /* A feed still is cropped by the frame's foot: the phone runs off the
+         bottom, which keeps the screen large without shrinking the headline. */
+      .pill {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        padding: 24px 56px;
+        border-radius: 999px;
+        background: #5ed6c1;
+        color: #06231e;
+        font-size: 46px;
+        font-weight: 800;
+        white-space: nowrap;
+        box-shadow: 0 20px 60px rgb(0 0 0 / 0.45);
+      }
+      .feed .pill { bottom: 60px; }
+      /* Under the headline on a story: lower down, the platform's own buttons
+         and caption would sit over it, and it would cover the app. */
+      .story .pill { top: 640px; padding: 20px 48px; font-size: 42px; }
+    </style>
+  </head>
+  <body>
+    <div class="top">
+      <div class="brand"><img src="/icons/icon-192.png" alt="" />Headpin</div>
+      <h1 id="h"></h1>
+      <p class="sub" id="sub"></p>
+    </div>
+    <div class="phone"><div class="screen"><img id="shot" alt="" /></div></div>
+    <div class="pill">headpin.app · Free</div>
+    <script>
+      const q = new URLSearchParams(location.search);
+      document.body.className = q.get("size") || "feed";
+      document.getElementById("h").innerHTML = q.get("h") || "";
+      document.getElementById("sub").textContent = q.get("sub") || "";
+      document.getElementById("shot").src = `/shots/${q.get("shot") || "line"}.webp`;
+    </script>
+  </body>
+</html>

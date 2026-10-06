@@ -19,14 +19,14 @@ beforeEach(async () => {
   await Promise.all([db.sessions.clear(), db.settings.clear()]);
 });
 
-const ask = () => screen.findByText("How is Headpin treating you?");
+const ask = () => screen.findByText("How's Headpin working for you?");
 
 describe("FeedbackPrompt", () => {
   it("says nothing before three nights out", async () => {
     await bowl(2);
     render(<FeedbackPrompt />);
     await waitFor(() => expect(db.sessions.count()).resolves.toBe(2));
-    expect(screen.queryByText("How is Headpin treating you?")).not.toBeInTheDocument();
+    expect(screen.queryByText("How's Headpin working for you?")).not.toBeInTheDocument();
   });
 
   it("asks once the habit has stuck, and never again after No thanks", async () => {
@@ -40,7 +40,7 @@ describe("FeedbackPrompt", () => {
       expect(await db.settings.get(FEEDBACK_PROMPT_KEY)).toBeDefined()
     );
     await waitFor(() =>
-      expect(screen.queryByText("How is Headpin treating you?")).not.toBeInTheDocument()
+      expect(screen.queryByText("How's Headpin working for you?")).not.toBeInTheDocument()
     );
   });
 

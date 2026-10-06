@@ -9,6 +9,27 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.6.1: Plainer words across the app, the site and the ads (2026-10-06)
+
+**A copy pass for things that read as written by a machine.** Section labels
+like "How it works" and "And more" are gone from headpin.app, and so are the
+lines that sell by saying what Headpin is not ("Built for league night, not
+for a spreadsheet") or stack three fragments ("Free. No sign up. Works with no
+signal."). In the app, the install banner says plainly that a browser may
+delete your scores after a week away, the feedback prompt and the lane note
+prompts read like a person asking, and a few confirm dialogs say what will
+happen instead of ending on a flourish. The privacy page says "I" where it
+explains why the counts exist.
+
+**Contractions are allowed.** The house rule against "you're" and "it's" is
+lifted (`docs/DESIGN-LANGUAGE.md`, section 8), along with a short note on the
+patterns this pass removed.
+
+**The ads are built from the app.** `npm run ads:record` records the launch
+videos from the real app in a 1080 by 1920 frame with captions and an end
+card, and `npm run ads:stills` renders the still ads from the landing page
+screenshots. The first batch is kept in `marketing/ads/2026-10/`.
+
 ## 0.6.0: A new landing page, and groundwork for retailer links on catalog balls (2026-10-06)
 
 **headpin.app is rebuilt for a phone.** It opens on the lane at night, with the

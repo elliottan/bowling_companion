@@ -841,7 +841,7 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall }: CatalogVie
           <EmptyState
             icon={BookOpen}
             title={online ? "The catalog has not loaded" : "Connect once to load the catalog"}
-            description="It downloads once and then works offline. Every ball brings its core, coverstock, RG and diff."
+            description="It downloads once and then works offline. Each ball comes with its core, coverstock, RG and diff filled in."
           >
             <Button variant="primary" onClick={handleRefresh} disabled={!online}>
               {online ? "Load the catalog" : "Waiting for a connection"}

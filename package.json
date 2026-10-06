@@ -1,7 +1,7 @@
 {
   "name": "bowling-companion",
   "private": true,
-  "version": "0.6.0",
+  "version": "0.6.1",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -34,6 +34,8 @@
     "fold-colorways": "tsx scripts/sync-catalog/pipeline/fold-colorways.ts",
     "link-motiv-pages": "tsx scripts/sync-catalog/pipeline/link-motiv-pages.ts",
     "shots": "node scripts/capture-shots.mjs",
+    "ads:record": "node scripts/ad-content/record.mjs",
+    "ads:stills": "node scripts/ad-content/stills.mjs",
     "ingest-patterns": "tsx scripts/sync-patterns/ingest.ts",
     "promote-patterns": "tsx scripts/sync-patterns/promote.ts",
     "sync-patterns": "cp scripts/sync-patterns/data/patterns.json public/catalog/patterns.json"

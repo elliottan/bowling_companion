@@ -116,8 +116,7 @@ export function FirstRun({ onSelectHandedness, hasSavedData = false }: FirstRunP
             />
             <h1 className="text-2xl font-extrabold tracking-tight text-ink">Headpin</h1>
             <p className="mt-2 text-base text-ink-secondary">
-              Keep every game, ball and line from every session you bowl. Your scores stay on this
-              phone.
+              Keep score, plus the ball and line for every shot. It all stays on this phone.
             </p>
             <div className="mt-8 flex flex-col gap-2">
               <Button size="lg" variant="primary" onClick={() => setStep("handedness")}>

@@ -176,7 +176,7 @@ export function LaneNoteFormDialog({ note, alleys, onClose, onSaved }: LaneNoteF
       <ConfirmDialog
         open={confirmDelete}
         title={`Delete the note for lane ${note?.lane ?? ""}?`}
-        message="What you wrote about how this lane plays is gone. Nothing else changes."
+        message="This deletes your note on this lane. Your games aren't affected."
         onConfirm={() => void remove()}
         onCancel={() => setConfirmDelete(false)}
       />

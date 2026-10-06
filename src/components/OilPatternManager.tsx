@@ -351,9 +351,7 @@ export function OilPatternManager({ onBack, mode = "inline", onOpenLineVisualize
             ))}
           </ListGroup>
           <p className="mt-2 px-1 text-xs text-ink-tertiary">
-            Each one was checked against the totals printed on its own sheet before it
-            shipped. This pattern becomes that one, keeping the name you gave it and
-            every session already on it. It cannot be undone.
+            Catalog patterns match their official sheets. Linking replaces this pattern's details with the catalog's, but keeps your name for it and its sessions. You can't undo this.
           </p>
         </FormSheet>
       )}

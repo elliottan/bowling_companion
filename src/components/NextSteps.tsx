@@ -48,7 +48,7 @@ const COPY: Record<NextStepKey, StepCopy> = {
     icon: LanePairIcon,
     title: "Note what a lane does",
     description:
-      "You keep going back to the same alley. What its lanes do is worth writing down once.",
+      "You bowl at this alley a lot. Write down how its lanes play, and it'll be here next time.",
     action: "Add a lane note"
   }
 };

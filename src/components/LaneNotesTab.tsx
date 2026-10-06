@@ -150,7 +150,7 @@ export function LaneNotesTab({ alley, currentLanes }: LaneNotesTabProps) {
       <ConfirmDialog
         open={pendingDelete !== null}
         title={`Delete the note for lane ${pendingDelete?.lane ?? ""}?`}
-        message="What you wrote about how this lane plays is gone. Nothing else changes."
+        message="This deletes your note on this lane. Your games aren't affected."
         onConfirm={() => {
           const note = pendingDelete;
           setPendingDelete(null);

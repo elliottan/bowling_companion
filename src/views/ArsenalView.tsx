@@ -256,7 +256,7 @@ export function ArsenalView({ onBack, onViewLayout }: ArsenalViewProps) {
             <EmptyState
               icon={BowlingBallIcon}
               title="No balls yet"
-              description="Add the balls you carry. Link one to the catalog and it brings its core, coverstock and numbers with it."
+              description="Add the balls you carry. Link one to the catalog and its specs fill in."
             >
               <Button variant="primary" size="lg" onClick={() => setForm({ ball: null })}>
                 <Plus size={18} aria-hidden="true" />

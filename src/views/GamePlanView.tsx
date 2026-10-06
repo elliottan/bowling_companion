@@ -443,7 +443,7 @@ export function describeScope(span: ScopeSpan): string {
 export function scopeNote(scope: BallScope, lane: string): string {
   const windows =
     scope.span.kind === "phase"
-      ? "Windows overlap because a pattern breaks down by shots thrown on it, not by the clock: game 2 behind a squad of eight is nothing like game 2 bowling alone. "
+      ? "Windows overlap because oil breaks down with shots thrown, not time. Game 2 after a full squad plays very differently from game 2 on your own. "
       : "";
   const lanes = lane
     ? `Lane ${lane} beside every lane here, so a thin lane read can be weighed against the fuller one rather than replace it. A read marked thin is under ${MIN_LANE_BALLS_COPY} balls. `

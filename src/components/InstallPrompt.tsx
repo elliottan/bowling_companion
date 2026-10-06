@@ -46,7 +46,7 @@ export function InstallPrompt({ open, onClose }: InstallPromptProps) {
         {canInstall ? (
           <>
             <p className="mt-1.5 text-sm text-ink-secondary">
-              A browser tab left alone for a week can clear your scores. Installed, they stay, and the app opens full screen.
+              If you don't open it for a week, your browser may delete your scores. Add Headpin to your home screen and they're safe, and it opens full screen.
             </p>
             <div className="mt-5 flex justify-end gap-2">
               <Button variant="secondary" onClick={() => dismiss()}>

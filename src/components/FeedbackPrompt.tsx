@@ -29,9 +29,9 @@ export function FeedbackPrompt() {
         <MessageSquare size={18} aria-hidden="true" />
       </span>
       <div className="min-w-0 flex-1">
-        <p className="text-sm font-semibold text-ink">How is Headpin treating you?</p>
+        <p className="text-sm font-semibold text-ink">How's Headpin working for you?</p>
         <p className="mt-0.5 text-xs text-ink-secondary">
-          A few sessions in. What is missing, or what gets in your way?
+          You've bowled a few sessions now. What's missing, or what's getting in your way?
         </p>
         <div className="mt-2 flex items-center gap-3">
           <button

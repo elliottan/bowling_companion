@@ -314,7 +314,15 @@ section settles.
 place you bowl is an *alley*, never a location or a house ("house shot" and
 "house ball" are bowling phrases and stay). The two boards you set are *stance*
 and *target*, on a spare line as much as on a shot. Ellipses are the character
-`…`, not three dots. No contractions.
+`…`, not three dots. Contractions are welcome ("you're", "it's", "can't"):
+without them the copy reads like a form letter, and that stiffness was the
+first thing the October 2026 copy pass flagged.
+
+**Copy that reads as written by a person.** Say what something is rather than
+what it is not ("Built for X, not for Y" goes). Two items, or one sentence,
+rather than three clipped fragments ("Free. No sign up. Works offline."). No
+slogan kickers ("Done.", "It is the only way back."). Tell the bowler what to
+do; the reasons for the design live in the ADRs, not on the screen.
 
 **A button that commits says what it commits.** "Next" on the scorer stays the
 word "Next", and what it is about to record is named under it in subtext,

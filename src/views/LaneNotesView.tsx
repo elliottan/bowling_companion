@@ -80,7 +80,7 @@ export function LaneNotesView({ onBack, mode = "inline" }: LaneNotesViewProps = 
         <EmptyState
           icon={LanePairIcon}
           title="No lane notes yet"
-          description="What a lane does is worth writing down once. It is here the next time you draw it."
+          description="Write down how a lane plays, and it'll be here next time you're on it."
         >
           <Button variant="primary" size="lg" onClick={() => setForm({ note: null })}>
             <Plus size={18} aria-hidden="true" />
