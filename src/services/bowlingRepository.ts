@@ -2,6 +2,7 @@ import { db } from "../db/bowlingDb";
 import { calculateGameScore } from "../lib/scoring";
 import { localDateKey } from "../lib/dates";
 import { nextGameStartLane } from "../lib/lanes";
+import { reportGameFinished } from "./usageReporter";
 import {
   migrateLegacyLaydownOffset,
   parseDriftModel,
@@ -335,7 +336,9 @@ export async function saveFrame(gameId: number, frame: SaveFrameInput): Promise<
     throw new Error(`Cannot save frame. Game ${gameId} was not found.`);
   }
 
+  let finishedNow = false;
   const id = await db.transaction("rw", db.frames, db.games, async () => {
+    const wasFinished = (await db.games.get(gameId))?.final_score !== undefined;
     const existing = await db.frames
       .where("[game_id+frame_number]")
       .equals([gameId, frame.frame_number])
@@ -357,10 +360,14 @@ export async function saveFrame(gameId: number, frame: SaveFrameInput): Promise<
     await db.games.update(gameId, {
       final_score: score.isComplete ? score.total : undefined
     });
+    finishedNow = score.isComplete && !wasFinished;
 
     return savedId;
   });
 
+  // Only the ball that finishes a game counts, not an edit to one already
+  // finished, so a corrected tenth frame is not a second game (ADR-120).
+  if (finishedNow) void reportGameFinished();
   return Number(id);
 }
 

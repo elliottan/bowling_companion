@@ -5686,3 +5686,51 @@ does neither.
   should be checked by hand once before the link goes live.
 - A second retailer for another region is a second template and a choice of
   which to show, and is not built until a region's clicks justify it.
+
+---
+
+## ADR-120: Three anonymous usage counts, sent to Umami Cloud
+
+**Status.** Accepted, 2026-10-06.
+
+**Context.** Before any money goes on ads, the launch plan needs one number:
+of the bowlers who try Headpin, how many come back. Vercel's page counts see a
+visit to the landing page and a visit to `/score`, and nothing after that. The
+app has had no telemetry at all, and the privacy page said it collected nothing.
+
+Three tools were weighed. Vercel's custom events are on its paid plan only.
+Plausible's cheapest plan carries events but not the properties a count needs.
+Umami Cloud's free plan carries both, up to 100,000 events a month, sets no
+cookies and stores nothing on the device.
+
+**Decision.**
+
+- **Three events, nothing else.** `session-started` (which number, and the days
+  since the first session), `game-finished` (which number), `shop-link` (the
+  catalog ball's brand). Pure shapes in `src/lib/usage.ts`, the sender in
+  `src/services/usageReporter.ts`.
+- **Return is measured without an identifier.** The phone already knows how
+  many sessions it holds and when the first was, so a session-started event
+  says "the 2nd, 8 to 14 days after the 1st". The return rate is a ratio of
+  those counts, and no event needs to say whose it is.
+- **Buckets, not values.** Counts and days are reported in bands, and no event
+  carries a score, an alley, an owned ball, a note or any typed text. The URL
+  sent is always `/score`, since a real one carries a session id.
+- **Only the real site counts.** Nothing is sent from any host but
+  `headpin.app`, so development servers and preview deploys stay out.
+- **Offline is the normal case at an alley.** Events made with no signal wait
+  in localStorage, capped at 50, and go out with the next event sent online.
+  It is a per-device convenience: losing it loses a count, never data.
+- **A finished game is counted once,** on the ball that finishes it. Saving the
+  tenth frame of a game already finished, as an edit does, is not counted.
+- **It ships switched off.** `UMAMI_WEBSITE_ID` is null until the Umami account
+  exists, and null sends nothing.
+
+**Consequences.**
+- The privacy page names Umami, lists exactly what the three events carry, and
+  no longer says Headpin collects nothing; it says it collects nothing that
+  identifies anyone.
+- Umami still sees each request's IP address and browser, as any server does,
+  and uses them in its own rotating hash to tell visits apart. That is
+  disclosed rather than avoided.
+- A new event is a privacy change: it goes on the legal page in the same PR.

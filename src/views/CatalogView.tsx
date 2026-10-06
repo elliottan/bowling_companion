@@ -19,6 +19,7 @@ import { addBall, getBalls } from "../services/ballRepository";
 import { GROUP_HEADING } from "../components/ui/typography";
 import { FIELD, FIELD_DENSE_SELECT, FIELD_LABEL } from "../components/ui/field";
 import { RETAILER_NAME, shopBallUrl } from "../lib/links";
+import { reportShopLink } from "../services/usageReporter";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -234,6 +235,7 @@ function DetailPanel({ ball, owned, onBack, onAddToArsenal, addDialogOpen }: Det
                 href={shopUrl}
                 target="_blank"
                 rel="noopener noreferrer sponsored"
+                onClick={() => reportShopLink(ball.brand)}
                 className="mt-3 inline-flex h-12 w-full items-center justify-center gap-1.5 rounded-lg border border-edge-strong bg-surface px-5 text-sm font-semibold text-ink-strong hover:bg-surface-muted"
               >
                 <ExternalLink size={16} aria-hidden="true" />

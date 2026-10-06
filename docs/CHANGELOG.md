@@ -23,6 +23,14 @@ the bottom once the first button has scrolled away.
 open it in Safari or Chrome: their built-in browsers cannot add Headpin to the
 home screen, and scores kept there are not the ones Safari will open later.
 
+**Anonymous usage counts, ready to switch on.** Once the Umami account exists,
+the app counts three things: a session started (which number, and how many days
+after your first), a game finished, and a retailer link tapped. Each carries
+bands like "2" or "8 to 14 days", never a score, an alley or anything you typed,
+and nothing is sent from anywhere but headpin.app. Counts made with no signal
+wait on the phone until it reconnects. The privacy page lists exactly what goes
+(ADR-120).
+
 **The privacy and terms page explains affiliate links.** A catalog ball can now
 carry a "Shop at BowlersMart" link with a line under it saying Headpin earns a
 small commission on a purchase. It stays hidden until the affiliate program

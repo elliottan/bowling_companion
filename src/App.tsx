@@ -36,6 +36,7 @@ import {
   setHandedness as persistHandedness,
   type ResumableGame
 } from "./services/bowlingRepository";
+import { reportSessionStarted } from "./services/usageReporter";
 import type { NewSessionFormValues } from "./components/SessionForm";
 import { HandednessContext } from "./lib/handednessContext";
 import { DriftModelContext } from "./lib/driftModelContext";
@@ -394,6 +395,7 @@ function App() {
         start_lane: values.start_lane,
         lane_number: values.lanes[0]
       });
+      void reportSessionStarted();
 
       dispatch({ type: "openSession", sessionId });
     } catch (error) {
