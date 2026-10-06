@@ -78,6 +78,18 @@ export const RackIcon = createIcon(
   </>
 );
 
+/** The foul line, crossed: the line across the approach, and the slide that
+ *  went over it. A foul is about the line, not about anything being wrong, so
+ *  Lucide's Ban (a prohibition sign) says the wrong thing. */
+export const FoulLineIcon = createIcon(
+  "FoulLineIcon",
+  <>
+    <path d="M3 14h18" />
+    <path d="M12 21V5" />
+    <path d="m8 9 4-4 4 4" />
+  </>
+);
+
 /** The physical pair, which is how lane notes are kept. */
 export const LanePairIcon = createIcon(
   "LanePairIcon",

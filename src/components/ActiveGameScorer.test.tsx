@@ -546,12 +546,40 @@ describe("confirming a change to a recorded shot", () => {
   });
 });
 
-/** Undo is wired only where there is somewhere to write it (ADR-079). */
+/** Undo is wired only where there is somewhere to write it (ADR-079), and
+ *  sits in the More menu with Foul (ADR-117). */
 describe("undo", () => {
+  const openMore = () => fireEvent.click(screen.getByRole("button", { name: "More" }));
+  const undoItem = () => screen.queryByRole("button", { name: "Undo last shot" });
+
   it("offers nothing to undo on an untouched game", () => {
     render(<ActiveGameScorer gameKey="undo-empty" onUndoShot={vi.fn()} />);
 
-    expect(screen.queryByRole("button", { name: "Undo last shot" })).toBeNull();
+    openMore();
+    expect(undoItem()).toBeNull();
+    expect(screen.getByRole("button", { name: "Foul" })).toBeInTheDocument();
+  });
+
+  it("keeps undo in the More menu, not beside Strike and Next", () => {
+    render(
+      <ActiveGameScorer
+        gameKey="undo-menu"
+        initialFrames={[
+          {
+            game_id: 1,
+            frame_number: 1,
+            shots: [{ pins_standing: [10] }],
+            is_strike: false,
+            is_spare: false
+          }
+        ]}
+        onUndoShot={vi.fn()}
+      />
+    );
+
+    expect(undoItem()).toBeNull();
+    openMore();
+    expect(undoItem()).toBeInTheDocument();
   });
 
   it("takes the last shot back and hands the caller the frame to rewrite", async () => {
@@ -572,9 +600,13 @@ describe("undo", () => {
       />
     );
 
-    fireEvent.click(screen.getByRole("button", { name: "Undo last shot" }));
-    // Undo takes a recorded ball back, so it asks first.
-    expect(screen.getByText("Undo the last shot?")).toBeInTheDocument();
+    openMore();
+    fireEvent.click(undoItem()!);
+    // Undo takes a recorded ball back, so it asks first, and names the ball.
+    expect(screen.getByText("Undo your last ball?")).toBeInTheDocument();
+    expect(
+      screen.getByText(/This removes frame 1, ball 1 \(9 pins\) from the card/)
+    ).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Undo" }));
 
     await waitFor(() => expect(onUndoShot).toHaveBeenCalledTimes(1));
@@ -583,7 +615,8 @@ describe("undo", () => {
       changedFrame: null
     });
     // Back to the first ball of the first frame, with nothing left to undo.
-    expect(screen.queryByRole("button", { name: "Undo last shot" })).toBeNull();
+    openMore();
+    expect(undoItem()).toBeNull();
   });
 
   it("leaves the card alone when the undo question is cancelled", async () => {
@@ -604,12 +637,14 @@ describe("undo", () => {
       />
     );
 
-    fireEvent.click(screen.getByRole("button", { name: "Undo last shot" }));
+    openMore();
+    fireEvent.click(undoItem()!);
     cancelEdit();
 
-    await waitFor(() => expect(screen.queryByText("Undo the last shot?")).toBeNull());
+    await waitFor(() => expect(screen.queryByText("Undo your last ball?")).toBeNull());
     expect(onUndoShot).not.toHaveBeenCalled();
-    expect(screen.getByRole("button", { name: "Undo last shot" })).toBeInTheDocument();
+    openMore();
+    expect(undoItem()).toBeInTheDocument();
   });
 
   // Undo is for the ball you just threw. A finished game has none, and edit
@@ -619,7 +654,8 @@ describe("undo", () => {
       <ActiveGameScorer gameKey="undo-done" initialFrames={perfectGame()} onUndoShot={vi.fn()} />
     );
 
-    expect(screen.queryByRole("button", { name: "Undo last shot" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "More" })).toBeNull();
+    expect(undoItem()).toBeNull();
     expect(screen.getByRole("button", { name: /Edit shots/ })).toBeInTheDocument();
   });
 });
@@ -764,36 +800,23 @@ describe("the ball after a gutter (ADR-088)", () => {
   });
 });
 
-describe("gutter and foul (ADR-089)", () => {
+describe("foul (ADR-089, ADR-117)", () => {
   const openMore = async () => {
     fireEvent.click(await screen.findByRole("button", { name: "More" }));
   };
 
-  it("keeps both behind More until they are asked for", async () => {
+  it("keeps it in the More menu until it is asked for, with no gutter beside it", async () => {
     render(<ActiveGameScorer />);
     await screen.findByRole("button", { name: "Strike" });
 
     expect(screen.queryByRole("button", { name: "Foul" })).toBeNull();
     await openMore();
-    expect(screen.getByRole("button", { name: "Gutter" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Foul" })).toBeTruthy();
+    // A gutter is every pin left standing, entered on the deck.
+    expect(screen.queryByRole("button", { name: "Gutter" })).toBeNull();
   });
 
-  it("records a gutter as a dash and hands the frame its second ball", async () => {
-    const onFrameComplete = vi.fn();
-    render(<ActiveGameScorer onFrameComplete={onFrameComplete} />);
-    await openMore();
-    fireEvent.click(screen.getByRole("button", { name: "Gutter" }));
-
-    await waitFor(() => {
-      expect(screen.getByRole("button", { name: "Spare" })).toBeTruthy();
-    });
-    const frame = onFrameComplete.mock.calls[0][0] as Frame;
-    expect(frame.shots[0].pins_standing).toHaveLength(10);
-    expect(frame.shots[0].foul).toBeUndefined();
-  });
-
-  it("records a foul as F on the card", async () => {
+  it("records a foul as F on the card, and shuts the menu", async () => {
     const onFrameComplete = vi.fn();
     render(<ActiveGameScorer onFrameComplete={onFrameComplete} />);
     await openMore();
@@ -805,6 +828,7 @@ describe("gutter and foul (ADR-089)", () => {
     const frame = onFrameComplete.mock.calls[0][0] as Frame;
     expect(frame.shots[0].foul).toBe(true);
     expect(screen.getAllByRole("button", { name: /^Frame 1, shot 1: foul/ }).length).toBeGreaterThan(0);
+    expect(screen.queryByRole("button", { name: "Foul" })).toBeNull();
   });
 });
 

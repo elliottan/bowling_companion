@@ -13,6 +13,7 @@ describe("the custom icon set", () => {
   it("has one for each bowling idea the app names", () => {
     expect(GLYPHS.map(([name]) => name).sort()).toEqual([
       "BowlingBallIcon",
+      "FoulLineIcon",
       "GamePlanIcon",
       "LanePairIcon",
       "LaneViewIcon",

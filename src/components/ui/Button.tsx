@@ -1,6 +1,6 @@
 import type { ButtonHTMLAttributes, ReactNode } from "react";
 
-type Variant = "primary" | "secondary" | "danger" | "danger-ghost" | "ghost";
+type Variant = "primary" | "secondary" | "danger" | "danger-ghost" | "ghost" | "quiet";
 type Size = "md" | "lg";
 
 const VARIANT: Record<Variant, string> = {
@@ -10,7 +10,10 @@ const VARIANT: Record<Variant, string> = {
   // Destructive but unfilled, for a delete that sits inside an edit form,
   // where a solid red slab shouts louder than the save it sits beside.
   "danger-ghost": "border border-danger-200 bg-surface text-danger-600 hover:bg-danger-50",
-  ghost: "text-accent hover:bg-surface-muted"
+  ghost: "text-accent hover:bg-surface-muted",
+  // Outlined but recessive, for a control that has to line up with the
+  // buttons above it without competing with them: the scorer's More.
+  quiet: "border border-edge bg-transparent text-ink-secondary hover:bg-surface-muted active:bg-surface-muted"
 };
 
 const SIZE: Record<Size, string> = {

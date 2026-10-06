@@ -5565,3 +5565,51 @@ starts a session, and the recent sessions sit below the two menus so the menus
 are what Home opens on. The "Last time here" card in the Start session sheet is
 gone too. Hand and grip move off the Settings list onto their own page behind a
 "Hand and grip" row, because flipping the hand mirrors every board in the app.
+
+## ADR-117: Foul and Undo share a More menu, Gutter goes, and the board adjusters stack over the deck
+
+**Status.** Accepted, 2026-10-06. Supersedes ADR-089's Gutter button and its
+More row, and ADR-114's two-column panel. ADR-089's foul mark and ADR-114's
+rules (never below the fields, act on click, hand focus back) stand.
+
+**Context.** Three things on the scorer read badly on a phone. The More button
+was a centred word floating under Strike and Next, and opening it dropped two
+full-size buttons, as heavy as the two every ball uses, into the column for the
+two rarest marks in the game. Undo was a round button squeezed into the Strike
+and Next row, taking their width for something used a few times a night. And
+the board adjusters were four bordered tiles in a two-by-two grid spread across
+both columns, over the scorecard, with nothing to say a tap had landed: iOS
+barely paints `:active` on a quick tap, so a press on In read as nothing
+happening until the number in the field was checked.
+
+The Gutter button was also redundant. A gutter is every pin left standing, and
+the deck already enters that.
+
+**Decision.**
+
+- **Gutter has no button.** It is entered on the deck like any other count, and
+  the card draws it as the dash it always did. Nothing about the shot model
+  changes: a gutter was never flagged.
+- **Foul and Undo sit in one menu.** A quiet outlined More button, the width of
+  the column so it lines up with Strike and Next, opens an `AnchoredMenu`
+  upward over the deck (the tab bar is directly underneath). Both stay two
+  taps, on purpose: they are rare, and Undo asks again after that.
+- **The undo question names the ball.** "This removes frame 2, ball 1 (9 pins)
+  from the card. To get it back, you will have to enter it again." The old
+  wording said what the app does in the abstract and not which ball was going.
+- **The adjusters are one row each, over the pin deck.** The scorer marks its
+  two-column grid `data-adjuster-host` and the deck's column
+  `data-adjuster-bounds`; the panel spans that column with its foot level with
+  the focused fields. Nobody taps the deck while typing a board, and the
+  scorecard stays in view. The Actual line gets the same panel with its one
+  nudge row.
+- **A press answers.** The pressed side tints in the accent and fades, and its
+  chevron kicks the way the line moved. Reduced motion drops both and leaves
+  the changed number as the answer.
+
+**Consequences.**
+- Recording a gutter costs a tap on each pin left down on a fresh rack, where
+  it used to be two taps through More. Gutters are rare enough that this is the
+  trade.
+- The adjuster panel covers the top of the deck and, for the Actual line, the
+  Strike and Next row, while a field is focused. Both come back on blur.
