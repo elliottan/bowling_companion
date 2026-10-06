@@ -70,6 +70,11 @@ async function record(name, { setup, scene }) {
   }
   const caption = (html) => page.evaluate((h) => window.caption(h), html);
 
+  // The first tap can land before the app in the frame has finished
+  // starting, and a tap on a screen still mounting does nothing. Wait for
+  // the tab bar, then a beat for the first render to settle.
+  await app.getByRole("navigation").first().waitFor();
+  await wait(1200);
   await setup({ page, app, tap });
   await wait(600);
   const trimFrom = (Date.now() - started) / 1000;
@@ -100,7 +105,7 @@ await record("01-line", {
   async scene({ app, tap, caption, page, wait }) {
     await caption("Remember every <em>line</em> you threw.");
     await wait(2200);
-    await caption("Change a board. <em>Watch the line move.</em>");
+    await caption("Change a board and <em>watch the line move</em>.");
     for (let i = 0; i < 3; i++) await tap(app.getByRole("button", { name: "Target right" }), 650);
     await wait(500);
     await caption("Try a <em>2-1 move</em> before you throw it.");
@@ -135,7 +140,7 @@ await record("02-pins", {
     const pin = (n) => app.locator(`button[aria-label="Pin ${n} down"]:not([disabled])`);
     const knock = (n) => app.locator(`button[aria-label="Pin ${n} standing"]:not([disabled])`);
 
-    await caption("No keypad. <em>Tap the pins</em> you left.");
+    await caption("<em>Tap the pins</em> you left.");
     await wait(1200);
     await tap(pin(10), 900);
     await tap(next(), 900);
@@ -143,7 +148,7 @@ await record("02-pins", {
     await tap(knock(10), 700);
     await tap(next(), 1000);
     await tap(app.getByRole("button", { name: "Strike", exact: true }), 1100);
-    await caption("Every shot, <em>frame by frame</em>.");
+    await caption("It saves every shot, <em>frame by frame</em>.");
     await tap(pin(7), 800);
     await tap(next(), 900);
     await tap(knock(7), 700);

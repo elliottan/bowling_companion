@@ -11,10 +11,10 @@ const OUT = process.env.ADS_OUT ?? "ads-out";
 
 /** The stills, in the order of the ad plan's creative table. */
 const STILLS = [
-  { name: "line", shot: "line", h: "Remember every <em>line</em> you threw.", sub: "Your shot on the lane, every time." },
-  { name: "pins", shot: "scorer", h: "Tap the pins you left. <em>Done.</em>", sub: "Score, ball and boards for every shot." },
+  { name: "line", shot: "line", h: "Remember every <em>line</em> you threw.", sub: "See your shot drawn on the lane." },
+  { name: "pins", shot: "scorer", h: "Tap the pins you left. <em>Headpin does the math.</em>", sub: "Score, ball and boards for every shot." },
   { name: "stats", shot: "stats", h: "Know which ball <em>carries</em>.", sub: "Average, pocket and carry, ball by ball." },
-  { name: "retarget", shot: "line", h: "You looked. <em>Keep your lines.</em>", sub: "Free bowling score keeper. No sign up." }
+  { name: "retarget", shot: "line", h: "Back for another look? <em>It's free to try.</em>", sub: "A bowling score keeper with no account to make." }
 ];
 
 const browser = await chromium.launch(

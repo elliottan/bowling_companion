@@ -199,7 +199,7 @@ export const GUIDES: readonly Guide[] = [
       },
       {
         kind: "note",
-        text: "Ask your driller for the dual angle numbers even when the shop works in another system. They convert. Writing them down makes your next ball a decision instead of a fresh guess."
+        text: "Ask your driller for the dual angle numbers even when the shop works in another system. They convert. Write them down, so your next ball isn't a guess."
       }
     ],
     sources: [
@@ -261,7 +261,7 @@ export const GUIDES: readonly Guide[] = [
       },
       {
         kind: "note",
-        text: "Shops state the buffer's effect in both directions, so ask which one yours means before the drill. The measurement itself is clear. The shorthand for what it does is not."
+        text: "Shops state the buffer's effect in both directions, so ask which one yours means before the drill. The measurement is clear, but shops describe what it does in different ways."
       }
     ],
     sources: [

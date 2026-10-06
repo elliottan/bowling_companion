@@ -59,7 +59,7 @@ export function ReplaceConfirmDialog({
             {incoming.games} {incoming.games === 1 ? "game" : "games"} instead, saved {age}.
           </p>
           {safetyCopy && (
-            <p>A copy of your current data is downloaded first. It is the only way back.</p>
+            <p>Headpin downloads a copy of your current data first, so you can undo this.</p>
           )}
           <label className="block pt-1">
             <span className={FIELD_LABEL}>Type {REQUIRED_CONFIRMATION} to confirm</span>

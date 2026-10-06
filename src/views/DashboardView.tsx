@@ -269,8 +269,7 @@ export function DashboardView({
             <div className="min-w-0 flex-1">
               <p className="text-sm font-semibold">Keep your scores safe</p>
               <p className="mt-0.5 text-xs">
-                A browser can clear what this site stores after a week away. On your home screen,
-                Headpin keeps it.
+                Your browser may delete your scores if you don't open Headpin for a week. Add it to your home screen to keep them.
               </p>
               <div className="mt-2 flex flex-wrap items-center gap-x-4">
                 <button
