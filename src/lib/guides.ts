@@ -75,12 +75,12 @@ export const GUIDES: readonly Guide[] = [
       { kind: "heading", text: "Grip" },
       {
         kind: "text",
-        text: "Pick one-handed (with a thumb) or two-handed (no thumb). The Layouts page starts with your choice. For two-handed, the ball is drawn without a thumb hole, and the do-not-use band is hidden, since that band is only there to keep your track away from a thumb hole."
+        text: "Pick one-handed (with a thumb) or two-handed (no thumb). If you go two-handed, the ball is drawn without a thumb hole."
       },
       { kind: "heading", text: "PAP" },
       {
         kind: "text",
-        text: "Your positive axis point, measured from the center of your grip: how far over toward your thumb, then how far up or down. The Layouts page uses it for every number. Your pro shop can measure it from your track."
+        text: "Your positive axis point, measured from the center of your grip: how far over toward your thumb, then how far up or down. The Layouts page uses it for every number. Ask your local pro shop to help measure your PAP!"
       },
       { kind: "heading", text: "Release offset and drift" },
       {
