@@ -18,6 +18,8 @@ import type { Ball } from "../types/bowling";
 import { addBall, getBalls } from "../services/ballRepository";
 import { GROUP_HEADING } from "../components/ui/typography";
 import { FIELD, FIELD_DENSE_SELECT, FIELD_LABEL } from "../components/ui/field";
+import { RETAILER_NAME, shopBallUrl } from "../lib/links";
+import { reportShopLink } from "../services/usageReporter";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -173,6 +175,7 @@ function ColorwayCarousel({ ball }: { ball: CatalogBall }) {
 }
 
 function DetailPanel({ ball, owned, onBack, onAddToArsenal, addDialogOpen }: DetailPanelProps) {
+  const shopUrl = shopBallUrl(ball.brand, ball.name);
   return (
     // A ball detail is one level deeper than the list, so it pushes like one
     //, same nav bar, same back gesture, opened at the top regardless of where
@@ -221,6 +224,27 @@ function DetailPanel({ ball, owned, onBack, onAddToArsenal, addDialogOpen }: Det
             <Button variant="primary" size="lg" onClick={() => onAddToArsenal(ball)} className="mt-5 w-full">
               Add to arsenal
             </Button>
+          )}
+
+          {/* Below the primary action and outlined, so buying never competes
+              with adding. The disclosure sits under the link it is about,
+              not only in the terms (ADR-119). */}
+          {shopUrl && (
+            <>
+              <a
+                href={shopUrl}
+                target="_blank"
+                rel="noopener noreferrer sponsored"
+                onClick={() => reportShopLink(ball.brand)}
+                className="mt-3 inline-flex h-12 w-full items-center justify-center gap-1.5 rounded-lg border border-edge-strong bg-surface px-5 text-sm font-semibold text-ink-strong hover:bg-surface-muted"
+              >
+                <ExternalLink size={16} aria-hidden="true" />
+                Shop at {RETAILER_NAME}
+              </a>
+              <p className="mt-2 text-center text-xs text-ink-secondary">
+                Headpin earns a small commission if you buy through this link. It costs you nothing extra.
+              </p>
+            </>
           )}
         </div>
       </div>

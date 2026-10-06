@@ -4,8 +4,9 @@ import { feedbackMailto } from "./links";
 /**
  * The state a bug report needs and a screenshot never carries.
  *
- * Nothing here leaves the device on its own: the app has no backend and no
- * telemetry, so the only way this text reaches anyone is the user copying it
+ * Nothing here leaves the device on its own: the app has no backend, and its
+ * only telemetry is three anonymous counts that carry none of this (ADR-120),
+ * so the only way this text reaches anyone is the user copying it
  * and pasting it into the feedback form. That is the whole design. It keeps
  * the privacy promise literally true while still answering the two questions
  * every report raises, which build is this and how much data is in it.

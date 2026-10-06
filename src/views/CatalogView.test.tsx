@@ -35,6 +35,16 @@ async function seedCatalog(count: number) {
   await db.ball_catalog.bulkPut(balls);
 }
 
+/** Off unless a test turns it on, the same as the shipped default. */
+const shop = vi.hoisted(() => ({ deepLink: null as string | null }));
+vi.mock("../lib/links", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../lib/links")>();
+  return {
+    ...actual,
+    shopBallUrl: (brand: string, name: string) => actual.shopBallUrl(brand, name, shop.deepLink)
+  };
+});
+
 function renderCatalog() {
   render(<CatalogView onBack={vi.fn()} selectedBallId={null} onSelectBall={vi.fn()} />);
 }
@@ -83,5 +93,42 @@ describe("CatalogView", () => {
     const rows = screen.getAllByRole("listitem");
     expect(rows.length).toBeGreaterThan(0);
     expect(rows.length).toBeLessThanOrEqual(40);
+  });
+
+  describe("the shop link on a ball", () => {
+    afterEach(() => {
+      shop.deepLink = null;
+    });
+
+    function renderBall() {
+      render(<CatalogView onBack={vi.fn()} selectedBallId="ball-0" onSelectBall={vi.fn()} />);
+    }
+
+    it("is absent while there is no affiliate link to credit it", async () => {
+      await seedCatalog(1);
+
+      renderBall();
+
+      expect(await screen.findByRole("button", { name: "Add to arsenal" })).toBeInTheDocument();
+      expect(screen.queryByRole("link", { name: /Shop at/ })).not.toBeInTheDocument();
+      expect(screen.queryByText(/commission/)).not.toBeInTheDocument();
+    });
+
+    it("searches the retailer for the ball, and says it earns a commission", async () => {
+      shop.deepLink = "https://network.example/r?u={url}";
+      await seedCatalog(1);
+
+      renderBall();
+
+      const link = await screen.findByRole("link", { name: "Shop at BowlersMart" });
+      expect(new URL(link.getAttribute("href")!).searchParams.get("u")).toBe(
+        "https://www.bowlersmart.com/?s=Storm%20Ball%200&post_type=product"
+      );
+      expect(link).toHaveAttribute("target", "_blank");
+      // A paid link is marked as one for search engines, not only for people.
+      expect(link.getAttribute("rel")).toMatch(/\bsponsored\b/);
+      expect(link.getAttribute("rel")).toMatch(/\bnoopener\b/);
+      expect(screen.getByText(/Headpin earns a small commission/)).toBeInTheDocument();
+    });
   });
 });

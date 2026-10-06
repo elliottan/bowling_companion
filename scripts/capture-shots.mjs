@@ -297,7 +297,11 @@ async function shootBothThemes(page, name) {
   await setTheme(page, "dark");
 }
 
-const browser = await chromium.launch();
+// SHOTS_CHROMIUM points at a browser other than the one Playwright pins, for a
+// machine whose installed build does not match it.
+const browser = await chromium.launch(
+  process.env.SHOTS_CHROMIUM ? { executablePath: process.env.SHOTS_CHROMIUM } : {}
+);
 const page = await browser.newPage({
   viewport: { width: 390, height: 844 },
   deviceScaleFactor: 2,
@@ -334,7 +338,9 @@ for (const q of ["Phaze Crimson", "Gem", "Jackal Ghost", "Zen Master", "Code Gre
 }
 await page.getByRole("banner").getByRole("button", { name: "Back", exact: true }).first().click();
 
-await page.getByRole("button", { name: "Arsenal", exact: true }).click();
+// Home has no Arsenal button: the balls beside the greeting open it
+// (e2e/helpers.ts, openArsenalFromHome).
+await page.getByRole("list", { name: "Your arsenal" }).getByRole("button").first().click();
 await shootBothThemes(page, "arsenal");
 await page.getByRole("banner").getByRole("button", { name: "Back", exact: true }).first().click();
 
@@ -405,5 +411,10 @@ for (let i = 0; i < GAMES.length; i++) {
 
 await page.getByRole("button", { name: "Stats" }).last().click();
 await shootBothThemes(page, "stats");
+
+// Home last, once there are nights behind it: the greeting, the bag and the
+// sessions are what a returning bowler opens the app on.
+await page.getByRole("navigation").getByRole("button", { name: "Home" }).click();
+await shootBothThemes(page, "home");
 
 await browser.close();

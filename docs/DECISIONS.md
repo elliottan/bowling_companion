@@ -5632,3 +5632,105 @@ column: the four-row Intended panel covers part of the deck and can reach the
 Strike and Next row, and the Actual line's single row can cover the top of
 Strike and Next. Neither is used while a board is being typed, and both come
 back on blur.
+
+---
+
+## ADR-119: A catalog ball links to a retailer through an affiliate program, and the image position stops being non-commercial
+
+**Status.** Accepted, 2026-10-06. Supersedes the "non-commercial" contingency in
+ADR-039's image position; the rest of ADR-039 stands.
+
+**Context.** The app needs an income that does not put anything between a bowler
+and their scores. A ball's catalog page is the one screen where a bowler is
+already looking at a ball they might buy, and US bowling retailers run affiliate
+programs that pay a few percent of a sale (Bowling.com 4%, BowlersMart 2 to 5%,
+bowlingball.com 3%, as of October 2026).
+
+ADR-039 recorded that the photos of non-MOTIV balls are held unlicensed, and
+that the position rested on the app staying free and ad-free: "adding affiliate
+income would forfeit that". That was 30 balls when this was written (14 Storm, 8
+900 Global, 7 Roto Grip, 1 Pyramid). MOTIV's permission (ADR-061) is on the
+terms that the data is not resold and is kept accurate; a link to a retailer
+does neither.
+
+**Decision.**
+
+- **The owner accepts the image risk.** ADR-039's other half still holds: every
+  image is keyed to its ball id, so a takedown is a data edit, and the legal
+  page says any owner who asks will have an image changed or removed.
+- **One retailer, BowlersMart,** through Rakuten. The owner chose it over
+  Bowling.com's flat 4%: its rate starts at 2% and rises to 5% with volume, and
+  it ships internationally, so a click from outside the US can still convert.
+- **The link searches the retailer by brand and name** rather than pointing at a
+  product page. A search does not go stale when the retailer renames a page, and
+  it needs no table of product URLs kept in step with the catalog.
+- **The network's deep link is a template** (`AFFILIATE_DEEP_LINK` in
+  `src/lib/links.ts`, `{url}` where the retailer URL goes), pasted from the
+  network's link builder. It ships `null`, and null hides the link: an
+  uncredited link earns nothing, and a disclosure over it would not be true.
+- **The disclosure sits under the link,** in the app's own words, as well as on
+  the legal page. US advertising rules want it next to the link, not only in
+  the terms. The link carries `rel="sponsored"` for the same reason, for search
+  engines.
+- **It sits under Add to arsenal, outlined.** Buying never competes with the
+  screen's primary action, and it shows whether or not the ball is already in
+  the arsenal, since bowlers do buy a second of a ball they like.
+
+**Consequences.**
+- Turning it on is a one-line change to `AFFILIATE_DEEP_LINK`, plus a minor
+  version bump, since that is when a bowler first sees it.
+- Nothing about it leaves the device beyond the click itself: the URL carries
+  the brand and name, never anything the bowler has entered.
+- The search URL (`retailerSearchUrl`) could not be fetched from the build
+  environment, so it was written from the retailer's public URL shape and
+  should be checked by hand once before the link goes live.
+- A second retailer for another region is a second template and a choice of
+  which to show, and is not built until a region's clicks justify it.
+
+---
+
+## ADR-120: Three anonymous usage counts, sent to Umami Cloud
+
+**Status.** Accepted, 2026-10-06.
+
+**Context.** Before any money goes on ads, the launch plan needs one number:
+of the bowlers who try Headpin, how many come back. Vercel's page counts see a
+visit to the landing page and a visit to `/score`, and nothing after that. The
+app has had no telemetry at all, and the privacy page said it collected nothing.
+
+Three tools were weighed. Vercel's custom events are on its paid plan only.
+Plausible's cheapest plan carries events but not the properties a count needs.
+Umami Cloud's free plan carries both, up to 100,000 events a month, sets no
+cookies and stores nothing on the device.
+
+**Decision.**
+
+- **Three events, nothing else.** `session-started` (which number, and the days
+  since the first session), `game-finished` (which number), `shop-link` (the
+  catalog ball's brand). Pure shapes in `src/lib/usage.ts`, the sender in
+  `src/services/usageReporter.ts`.
+- **Return is measured without an identifier.** The phone already knows how
+  many sessions it holds and when the first was, so a session-started event
+  says "the 2nd, 8 to 14 days after the 1st". The return rate is a ratio of
+  those counts, and no event needs to say whose it is.
+- **Buckets, not values.** Counts and days are reported in bands, and no event
+  carries a score, an alley, an owned ball, a note or any typed text. The URL
+  sent is always `/score`, since a real one carries a session id.
+- **Only the real site counts.** Nothing is sent from any host but
+  `headpin.app`, so development servers and preview deploys stay out.
+- **Offline is the normal case at an alley.** Events made with no signal wait
+  in localStorage, capped at 50, and go out with the next event sent online.
+  It is a per-device convenience: losing it loses a count, never data.
+- **A finished game is counted once,** on the ball that finishes it. Saving the
+  tenth frame of a game already finished, as an edit does, is not counted.
+- **It ships switched off.** `UMAMI_WEBSITE_ID` is null until the Umami account
+  exists, and null sends nothing.
+
+**Consequences.**
+- The privacy page names Umami, lists exactly what the three events carry, and
+  no longer says Headpin collects nothing; it says it collects nothing that
+  identifies anyone.
+- Umami still sees each request's IP address and browser, as any server does,
+  and uses them in its own rotating hash to tell visits apart. That is
+  disclosed rather than avoided.
+- A new event is a privacy change: it goes on the legal page in the same PR.

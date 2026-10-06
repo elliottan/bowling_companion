@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { db, linkLegacySessionOilPatterns } from "../db/bowlingDb";
 import {
   addNextGameToSession,
@@ -25,6 +25,9 @@ import {
   updateGameNotes
 } from "./bowlingRepository";
 import { DEFAULT_DRIFT_MODEL } from "../lib/driftModel";
+import { reportGameFinished } from "./usageReporter";
+
+vi.mock("./usageReporter", () => ({ reportGameFinished: vi.fn(async () => {}) }));
 
 describe("bowlingRepository", () => {
   beforeEach(async () => {
@@ -464,5 +467,29 @@ describe("empty sessions", () => {
     expect(await db.sessions.get(a.id)).toBeUndefined();
     expect(await db.sessions.get(b.id)).toBeDefined();
     expect(await db.sessions.get(kept.id)).toBeDefined();
+  });
+
+  /** The usage count is of games finished, so only the ball that finishes a
+   *  game reports one, never a correction to a game already over (ADR-120). */
+  it("reports a finished game once, on the ball that finishes it", async () => {
+    vi.mocked(reportGameFinished).mockClear();
+    const sessionId = await createSession({ alley_name: "Sunset Lanes", date: "2026-10-06" });
+    const gameId = Number(await addGameToSession(sessionId, { game_number: 1 }));
+    const strike = { shots: [{ pins_standing: [] }], is_strike: true, is_spare: false };
+    for (let f = 1; f <= 9; f++) await saveFrame(gameId, { frame_number: f, ...strike });
+    expect(reportGameFinished).not.toHaveBeenCalled();
+
+    const tenth = {
+      frame_number: 10,
+      shots: [{ pins_standing: [] }, { pins_standing: [] }, { pins_standing: [] }],
+      is_strike: true,
+      is_spare: false
+    };
+    await saveFrame(gameId, tenth);
+    expect(reportGameFinished).toHaveBeenCalledTimes(1);
+
+    // Saving the tenth again, as an edit does, is not a second game.
+    await saveFrame(gameId, tenth);
+    expect(reportGameFinished).toHaveBeenCalledTimes(1);
   });
 });
