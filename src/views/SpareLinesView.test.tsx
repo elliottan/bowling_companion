@@ -66,17 +66,34 @@ describe("SpareLinesView", () => {
     expect(await getSpareLinesAll()).toHaveLength(before);
   });
 
-  it("stacks leaves that share a line on one tile, and flips through them", async () => {
+  it("stacks leaves that share a line on one tile, each deck opening its own leave", async () => {
     await upsertSpareLine([2, 4, 5, 8], { stance: 25, target: 12 });
     await upsertSpareLine([2, 4, 8], { stance: 25, target: 12 });
     render(<SpareLinesView onBack={vi.fn()} />);
 
-    const flip = await screen.findByRole("button", { name: /Next leave with this line, 1 of 2/ });
-    expect(screen.getByRole("button", { name: "Open spare line for pins 2, 4, 5, 8" })).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Open spare line for pins 2, 4, 8" })).toBeNull();
+    const tile = await screen.findByRole("group", { name: "2-4-5-8, 2-4-8: same line" });
+    expect(within(tile).getByRole("button", { name: "Open spare line for pins 2, 4, 5, 8" })).toBeInTheDocument();
+    expect(within(tile).getByRole("button", { name: "Open spare line for pins 2, 4, 8" })).toBeInTheDocument();
+    // One set of boards for the two of them.
+    expect(within(tile).getAllByText("25")).toHaveLength(1);
+  });
 
-    fireEvent.click(flip);
-    expect(screen.getByRole("button", { name: "Open spare line for pins 2, 4, 8" })).toBeInTheDocument();
+  it("does not call a leave with only a strike ball move lineless", async () => {
+    await upsertSpareLine([2, 8], undefined, undefined, { stance: -2, target: -1 });
+    render(<SpareLinesView onBack={vi.fn()} />);
+    const card = await screen.findByRole("button", { name: "Open spare line for pins 2, 8" });
+    expect(within(card).getByText("Strike ball")).toBeInTheDocument();
+    expect(within(card).getByText("2 right")).toBeInTheDocument();
+    expect(within(card).getByText("1 right")).toBeInTheDocument();
+    expect(within(card).queryByText("No line")).toBeNull();
+  });
+
+  it("says a strike ball move as a direction, not a sign", async () => {
+    await upsertSpareLine([7], { stance: 35, target: 20 }, undefined, { stance: 2, target: -1 });
+    render(<SpareLinesView onBack={vi.fn()} />);
+    const card = await screen.findByRole("button", { name: "Open spare line for pins 7" });
+    expect(within(card).getByText("2 left")).toBeInTheDocument();
+    expect(within(card).getByText("1 right")).toBeInTheDocument();
   });
 
   it("offers a line for the same shot, and copies it on one tap", async () => {

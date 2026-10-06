@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { db } from "../db/bowlingDb";
+import { HandednessContext } from "../lib/handednessContext";
 import { SpareLineFormDialog } from "./SpareLineFormDialog";
 
 const noop = () => {};
@@ -23,31 +24,31 @@ describe("SpareLineFormDialog strike ball move", () => {
     await db.open();
   });
 
-  it("steps half a board per tap, in both directions, through zero", () => {
+  it("steps half a board per tap, in both directions, through zero, and says which way", () => {
     renderDialog();
-    const box = screen.getByLabelText("target move") as HTMLInputElement;
+    const box = screen.getByLabelText("target move");
+    expect(box).toHaveTextContent("None");
 
-    fireEvent.click(screen.getByLabelText("target move up half a board"));
-    expect(box.value).toBe("0.5");
-    fireEvent.click(screen.getByLabelText("target move up half a board"));
-    expect(box.value).toBe("1");
+    fireEvent.click(screen.getByLabelText("target move left half a board"));
+    expect(box).toHaveTextContent("0.5 left");
+    fireEvent.click(screen.getByLabelText("target move left half a board"));
+    expect(box).toHaveTextContent("1 left");
 
-    const down = screen.getByLabelText("target move down half a board");
-    fireEvent.click(down);
-    fireEvent.click(down);
-    fireEvent.click(down);
-    // A phone's numeric keyboard has no minus key, so the arrows are the only
-    // way to the left half of the range. They have to cross zero to get there.
-    expect(box.value).toBe("-0.5");
+    const right = screen.getByLabelText("target move right half a board");
+    fireEvent.click(right);
+    fireEvent.click(right);
+    fireEvent.click(right);
+    // Through zero and out the other side, in words rather than a sign.
+    expect(box).toHaveTextContent("0.5 right");
   });
 
-  it("saves a negative move reached with the arrows", async () => {
+  it("saves a move right as down the boards for a right-hander", async () => {
     const onSaved = vi.fn();
     renderDialog({ onSaved });
 
-    const down = screen.getByLabelText("stance move down half a board");
-    fireEvent.click(down);
-    fireEvent.click(down);
+    const right = screen.getByLabelText("stance move right half a board");
+    fireEvent.click(right);
+    fireEvent.click(right);
     fireEvent.click(screen.getByLabelText("Save spare line"));
 
     await waitFor(() => expect(onSaved).toHaveBeenCalled());
@@ -55,11 +56,21 @@ describe("SpareLineFormDialog strike ball move", () => {
     expect(saved[0]?.strike_offset).toEqual({ stance: -1 });
   });
 
-  it("still takes a typed move, minus sign and all", async () => {
+  it("saves a move left as down the boards for a left-hander", async () => {
     const onSaved = vi.fn();
-    renderDialog({ onSaved });
+    render(
+      <HandednessContext.Provider value="left">
+        <SpareLineFormDialog initialPins={[10]} lockPins onSaved={onSaved} onCancel={noop} />
+      </HandednessContext.Provider>
+    );
 
-    fireEvent.change(screen.getByLabelText("target move"), { target: { value: "-2.5" } });
+    const left = screen.getByLabelText("target move left half a board");
+    fireEvent.click(left);
+    fireEvent.click(left);
+    fireEvent.click(left);
+    fireEvent.click(left);
+    fireEvent.click(left);
+    expect(screen.getByLabelText("target move")).toHaveTextContent("2.5 left");
     fireEvent.click(screen.getByLabelText("Save spare line"));
 
     await waitFor(() => expect(onSaved).toHaveBeenCalled());
@@ -81,7 +92,7 @@ describe("SpareLineFormDialog reading and editing", () => {
     const stance = screen.getByLabelText("Stance") as HTMLInputElement;
     expect(stance.readOnly).toBe(true);
     expect(screen.queryByLabelText("Save spare line")).toBeNull();
-    expect(screen.queryByLabelText("stance move up half a board")).toBeNull();
+    expect(screen.queryByLabelText("stance move left half a board")).toBeNull();
 
     fireEvent.click(screen.getByLabelText("Edit spare line"));
     expect(stance.readOnly).toBe(false);
@@ -122,5 +133,23 @@ describe("SpareLineFormDialog reading and editing", () => {
     await waitFor(() =>
       expect((screen.getByLabelText("Target") as HTMLInputElement).value).toBe("12")
     );
+  });
+
+  it("offers a leave answered by a strike ball move, and copies the move", async () => {
+    const onSaved = vi.fn();
+    renderDialog({
+      initialPins: [2, 8],
+      onSaved,
+      spareLines: [{ id: 1, pins: [2, 8, 10], strike_offset: { stance: -2, target: -1 } }]
+    });
+    fireEvent.click(screen.getByLabelText("Use another leave's line"));
+    fireEvent.click(await screen.findByLabelText("Use the line for pins 2, 8, 10"));
+    await waitFor(() => expect(screen.getByLabelText("stance move")).toHaveTextContent("2 right"));
+    expect(screen.getByLabelText("target move")).toHaveTextContent("1 right");
+
+    fireEvent.click(screen.getByLabelText("Save spare line"));
+    await waitFor(() => expect(onSaved).toHaveBeenCalled());
+    const saved = await db.spare_lines.toArray();
+    expect(saved[0]?.strike_offset).toEqual({ stance: -2, target: -1 });
   });
 });

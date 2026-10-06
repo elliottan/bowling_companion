@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { PinNumber, SpareLine } from "../types/bowling";
 import {
+  describeMove,
   matchesFilters,
   mostLeftWithoutLine,
   sameShot,
@@ -118,5 +119,36 @@ describe("mostLeftWithoutLine", () => {
     expect(
       mostLeftWithoutLine([leave([7], 3)], [{ pins: [7], line: { target: 20 } }])
     ).toBeUndefined();
+  });
+});
+
+describe("describeMove", () => {
+  it("says up the boards is left for a right-hander and right for a left-hander", () => {
+    expect(describeMove(2, "right")).toBe("2 left");
+    expect(describeMove(-1.5, "right")).toBe("1.5 right");
+    expect(describeMove(2, "left")).toBe("2 right");
+    expect(describeMove(-1, "left")).toBe("1 left");
+  });
+
+  it("calls no move none", () => {
+    expect(describeMove(0, "right")).toBe("None");
+  });
+});
+
+describe("a strike ball move is a line", () => {
+  const moveOnly: SpareLine = { id: 9, pins: [2, 8], strike_offset: { stance: -2, target: -1 } };
+
+  it("counts for Has a line, not No line yet", () => {
+    expect(matchesFilters(moveOnly, new Set<SpareFilter>(["withLine"]))).toBe(true);
+    expect(matchesFilters(moveOnly, new Set<SpareFilter>(["noLine"]))).toBe(false);
+  });
+
+  it("is not asked for as a leave with no line", () => {
+    expect(mostLeftWithoutLine([{ pins: [2, 8], attempts: 13, chances: 13 }], [moveOnly])).toBeUndefined();
+  });
+
+  it("stacks leaves with the same move and no boards", () => {
+    const other: SpareLine = { id: 10, pins: [2, 8, 10], strike_offset: { stance: -2, target: -1 } };
+    expect(stackByLine([moveOnly, other]).map((s) => s.map((sl) => sl.id))).toEqual([[9, 10]]);
   });
 });

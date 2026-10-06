@@ -1,4 +1,4 @@
-import { ChevronRight, Plus, X } from "lucide-react";
+import { Plus, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import {
@@ -22,6 +22,7 @@ import { SpareDetailsSheet } from "../components/SpareDetailsSheet";
 import { IconButton } from "../components/ui/IconButton";
 import { PushScreen } from "../components/PushScreen";
 import { useDriftModel } from "../lib/driftModelContext";
+import { useHandedness } from "../lib/handednessContext";
 import { deriveLaydown, deriveSlide, type DriftModel } from "../lib/driftModel";
 import {
   ensureDefaultSpareLines,
@@ -32,6 +33,8 @@ import {
 import { getSessionHistory, getSetting, setSetting } from "../services/bowlingRepository";
 import { calculateCommonLeaves, type LeaveStats } from "../lib/stats";
 import {
+  describeMove,
+  hasMove,
   leaveKey,
   matchesFilters,
   mostLeftWithoutLine,
@@ -78,15 +81,20 @@ interface SortableStackCardProps {
   onOpen: (sl: SpareLine) => void;
 }
 
+/** How many grid columns a stack spans: one per leave, up to the row. */
+const COLUMNS = 3;
+const SPAN = ["", "col-span-1", "col-span-2", "col-span-3"] as const;
+
 /**
  * A tile for one leave, or for a stack of leaves thrown with the same line.
- * A stack shows one deck at a time and a count to flip through the rest: the
- * boards are the same for every leave in it, so only the deck changes. A tap
- * opens the leave on top, and the boards in there are that leave's own.
+ * A stack is one wider tile: every leave's deck side by side over the one set
+ * of boards they share, so "these leaves, this line" is read at a glance with
+ * nothing to flip through. Each deck opens its own leave, and the boards in
+ * there are that leave's own. The whole tile is the drag handle: a hold picks
+ * it up, a tap opens.
  */
 function SortableStackCard({ id, stack, onOpen }: SortableStackCardProps) {
   const driftModel = useDriftModel();
-  const [shown, setShown] = useState(0);
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id });
   const style = {
@@ -94,84 +102,122 @@ function SortableStackCard({ id, stack, onOpen }: SortableStackCardProps) {
     transition,
     zIndex: isDragging ? 10 : undefined,
   };
-  // A filter can shrink the stack under the index.
-  const index = shown < stack.length ? shown : 0;
-  const sl = stack[index];
+  const top = stack[0];
   const stacked = stack.length > 1;
-  return (
-    <li ref={setNodeRef} style={style} className="relative">
-      {/* The card edge peeking out underneath is what says "more than one". */}
-      {stacked && (
-        <div
-          aria-hidden="true"
-          className="absolute inset-x-2 -bottom-1.5 top-1 rounded-lg border border-edge-strong bg-surface-muted"
-        />
+  const span = SPAN[Math.min(stack.length, COLUMNS)];
+  const card = `flex h-full w-full select-none flex-col items-center gap-1.5 rounded-lg border bg-surface p-3 text-center shadow-sm ${
+    isDragging ? "border-accent-fill opacity-90 shadow-md" : "border-edge"
+  }`;
+  const boards = (
+    <>
+      {top.line ? (
+        <div className="w-full">
+          {/* The two boards you act on. Laydown is derived from the stance,
+              so it reads underneath with the slide rather than as a third
+              column competing with them. */}
+          <div className="grid grid-cols-2">
+            {([["Stance", top.line.stance], ["Target", top.line.target]] as const).map(([k, v]) => (
+              <div key={k}>
+                <div className="text-[10px] font-semibold uppercase tracking-tight text-ink-secondary">{k}</div>
+                <div className="text-xs font-bold tabular-nums text-ink-strong">{v ?? "-"}</div>
+              </div>
+            ))}
+          </div>
+          <DerivedChain line={top.line} model={driftModel} />
+        </div>
+      ) : hasMove(top) ? null : (
+        // A leave answered by a strike-ball move alone has a line: the move
+        // under the deck is it.
+        <span className="block text-xs text-ink-secondary">No line</span>
       )}
-      <div
-        className={`relative flex w-full select-none flex-col items-center gap-1.5 rounded-lg border bg-surface p-3 text-center shadow-sm ${
-          isDragging ? "border-accent-fill opacity-90 shadow-md" : "border-edge"
-        }`}
-      >
-        {/* The whole card is the drag handle: a hold picks it up, a tap opens
-            the leave's details. The lane view is behind the eye in there. */}
+    </>
+  );
+
+  if (!stacked) {
+    return (
+      <li ref={setNodeRef} style={style} className="flex">
         <button
           type="button"
           {...attributes}
           {...listeners}
-          onClick={() => onOpen(sl)}
-          aria-label={`Open spare line for pins ${sl.pins.join(", ")}`}
-          className="flex w-full touch-none flex-col items-center gap-1.5 active:opacity-70"
+          onClick={() => onOpen(top)}
+          aria-label={`Open spare line for pins ${top.pins.join(", ")}`}
+          className={`${card} touch-none active:opacity-70`}
         >
-          <MiniPins standing={sl.pins} size="md" />
-          {sl.line ? (
-            <div className="w-full">
-              {/* The two boards you act on. Laydown is derived from the stance,
-                  so it reads underneath with the slide rather than as a third
-                  column competing with them. */}
-              <div className="grid grid-cols-2">
-                {([["Stance", sl.line.stance], ["Target", sl.line.target]] as const).map(([k, v]) => (
-                  <div key={k}>
-                    <div className="text-[10px] font-semibold uppercase tracking-tight text-ink-secondary">{k}</div>
-                    <div className="text-xs font-bold tabular-nums text-ink-strong">{v ?? "-"}</div>
-                  </div>
-                ))}
-              </div>
-              <DerivedChain line={sl.line} model={driftModel} />
-            </div>
-          ) : (
-            <span className="block text-xs text-ink-secondary">No line</span>
-          )}
-          <StrikeMove offset={sl.strike_offset} />
+          <MiniPins standing={top.pins} size="md" />
+          {boards}
+          <StrikeMove offset={top.strike_offset} />
         </button>
-        {stacked && (
-          <button
-            type="button"
-            onClick={() => setShown((index + 1) % stack.length)}
-            aria-label={`Next leave with this line, ${index + 1} of ${stack.length}`}
-            className={`relative -mb-1 flex items-center gap-0.5 rounded-full bg-accent-soft px-2 py-0.5 text-[11px] font-bold tabular-nums text-accent active:opacity-70 ${TAP_TARGET_44}`}
-          >
-            {index + 1} of {stack.length}
-            <ChevronRight size={12} strokeWidth={3} aria-hidden="true" />
-          </button>
-        )}
+      </li>
+    );
+  }
+
+  // The strike-ball move is per leave, so it shows only when they all agree.
+  const sameMove = stack.every(
+    (sl) =>
+      sl.strike_offset?.stance === top.strike_offset?.stance &&
+      sl.strike_offset?.target === top.strike_offset?.target
+  );
+  return (
+    <li
+      ref={setNodeRef}
+      style={style}
+      className={`flex ${span}`}
+    >
+      <div
+        {...attributes}
+        {...listeners}
+        role="group"
+        aria-label={`${stack.map((sl) => formatLeave(sl.pins)).join(", ")}: same line`}
+        className={`${card} touch-none`}
+      >
+        <div className="flex w-full flex-wrap items-start justify-around gap-y-2">
+          {stack.map((sl) => (
+            <button
+              key={sl.id}
+              type="button"
+              onClick={() => onOpen(sl)}
+              aria-label={`Open spare line for pins ${sl.pins.join(", ")}`}
+              className="flex flex-col items-center gap-1 rounded-md active:opacity-70"
+            >
+              <MiniPins standing={sl.pins} size="md" />
+              <span className="text-[11px] font-semibold tabular-nums text-ink-secondary">
+                {formatLeave(sl.pins)}
+              </span>
+            </button>
+          ))}
+        </div>
+        <div className="flex w-full items-center gap-2 text-[10px] font-semibold uppercase tracking-tight text-ink-tertiary">
+          <span className="h-px flex-1 bg-edge" aria-hidden="true" />
+          Same line
+          <span className="h-px flex-1 bg-edge" aria-hidden="true" />
+        </div>
+        {boards}
+        {sameMove && <StrikeMove offset={top.strike_offset} />}
       </div>
     </li>
   );
 }
 
-/** The strike-ball move, when one is set. Signed and prefixed, because a bare
- *  "2" beside a card of absolute boards reads as board 2. */
+/** The strike-ball move, when one is set, in words: "2 left", not "-2". A
+ *  signed number beside a card of absolute boards reads as a board, and the
+ *  sign means a different side for each hand. A row for each board it
+ *  moves, so a narrow tile never wraps a move in half. */
 function StrikeMove({ offset }: { offset?: SpareLine["strike_offset"] }) {
-  if (!offset || (offset.stance == null && offset.target == null)) return null;
-  const part = (n: number) => (n > 0 ? `+${n}` : `${n}`);
-  const parts = [
-    offset.stance != null ? `${part(offset.stance)} stance` : null,
-    offset.target != null ? `${part(offset.target)} target` : null
-  ].filter(Boolean);
+  const handedness = useHandedness();
+  if (!offset || (!offset.stance && !offset.target)) return null;
   return (
-    <span className="block w-full text-[11px] font-semibold tabular-nums text-accent">
-      Strike ball {parts.join(", ")}
-    </span>
+    <div className="w-full text-accent">
+      <div className="text-[10px] font-semibold uppercase tracking-tight">Strike ball</div>
+      {([["Stance", offset.stance], ["Target", offset.target]] as const).map(([k, v]) =>
+        v ? (
+          <div key={k} className="flex items-baseline justify-center gap-1 whitespace-nowrap">
+            <span className="text-[10px] font-semibold uppercase tracking-tight text-ink-secondary">{k}</span>
+            <span className="text-xs font-bold tabular-nums">{describeMove(v, handedness)}</span>
+          </div>
+        ) : null
+      )}
+    </div>
   );
 }
 
@@ -443,7 +489,7 @@ export function SpareLinesView({ onBack }: { onBack: () => void }) {
                 <section key={group} aria-label={SPARE_GROUP_LABEL[group]}>
                   <h2 className={`mb-1 px-1 ${GROUP_HEADING}`}>{SPARE_GROUP_LABEL[group]}</h2>
                   <SortableContext items={tiles.map((t) => t.id)} strategy={rectSortingStrategy}>
-                    <ul className="grid grid-cols-3 gap-2">
+                    <ul className="grid grid-flow-row-dense grid-cols-3 gap-2">
                       {tiles.map((t) => (
                         <SortableStackCard
                           key={t.id}
