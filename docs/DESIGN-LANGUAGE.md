@@ -340,9 +340,10 @@ blur the row itself caused, or the control reads as a button that only dismisses
 the keyboard (ADR-091).
 
 **A revealed control opens away from the keyboard and moves nothing.** The
-adjusters float over the pin deck, one to a row with their foot level with the
-field, never below it, where they sat against the keyboard's toolbar and over
-the next section's controls (ADR-114, ADR-117). Each direction is its own
+adjusters float over the pin deck, one to a row, centred on the fields they
+move. They never open under the fields in their own column, where they sat
+against the keyboard's toolbar and over the next section's controls (ADR-114,
+ADR-117, ADR-118). Each direction is its own
 button with a word on it, acts on click, never on pointerdown, and answers the
 press: the side tints and its chevron kicks the way the line moved, because iOS
 barely shows `:active` on a quick tap. A focus never writes data: a value copied from elsewhere comes

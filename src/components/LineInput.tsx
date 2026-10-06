@@ -194,10 +194,10 @@ export function LineInput({
   const rowRef = useRef<HTMLDivElement>(null);
   // Where the panel sits, measured against the box the host gives it (the
   // scorer marks its two-column grid `data-adjuster-host` and the pin deck's
-  // column `data-adjuster-bounds`): one row
-  // per adjuster over the deck, which nobody taps while typing a board, with
-  // its foot level with the fields (ADR-117). A host without one gets the
-  // panel straight above the fields.
+  // column `data-adjuster-bounds`): one row per adjuster over the deck, which
+  // nobody taps while typing a board, centred on the fields it moves so the
+  // eye goes sideways to it rather than up (ADR-118). A host without one gets
+  // the panel straight above the fields.
   const [span, setSpan] = useState<{ left: number; width: number } | null>(null);
   // The last adjuster pressed, and a count that remounts its flash so a second
   // tap on the same side plays it again.
@@ -419,7 +419,7 @@ export function LineInput({
         onMouseDown={keepFocus}
         style={span ? { left: span.left, width: span.width } : undefined}
         className={`absolute z-30 flex flex-col gap-1.5 rounded-xl border border-edge bg-surface p-1.5 shadow-lg ${
-          span ? "bottom-0" : "inset-x-0 bottom-full mb-1.5"
+          span ? "top-1/2 -translate-y-1/2" : "inset-x-0 bottom-full mb-1.5"
         }`}
       >
         {adjusterRow(

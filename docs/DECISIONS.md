@@ -5613,3 +5613,22 @@ the deck already enters that.
   trade.
 - The adjuster panel covers the top of the deck and, for the Actual line, the
   Strike and Next row, while a field is focused. Both come back on blur.
+
+## ADR-118: The board adjusters centre on the fields they move
+
+**Status.** Accepted, 2026-10-06. Amends ADR-117's placement only.
+
+**Context.** ADR-117 put the adjuster panel over the pin deck with its foot
+level with the focused fields. On the Intended line, four rows tall, that left
+the panel almost entirely above the fields, so the eye had to climb to find the
+move it wanted and the panel read as belonging to whatever sat above.
+
+**Decision.** The panel is centred vertically on the row of fields it adjusts.
+It still sits in the deck's column, never in the fields' own column, so nothing
+lands between the field and the keyboard, and nothing in the layout moves.
+
+**Consequences.** The panel now reaches below the fields' row in the deck
+column: the four-row Intended panel covers part of the deck and can reach the
+Strike and Next row, and the Actual line's single row can cover the top of
+Strike and Next. Neither is used while a board is being typed, and both come
+back on blur.

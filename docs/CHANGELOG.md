@@ -9,6 +9,12 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.4.1: The line adjusters centre on the fields they move (2026-10-06)
+
+The nudge and move rows now sit level with the Stance and Target (or Slide and
+Target) boxes you are typing in, centred on them, instead of stacking upward
+from their bottom edge.
+
 ## 0.4.0: Foul and Undo move into More, Gutter goes, and the line adjusters stack over the deck (2026-10-06)
 
 **More is a menu, with Foul and Undo in it.** The More button now lines up
