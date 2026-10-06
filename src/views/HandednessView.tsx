@@ -23,10 +23,10 @@ const BOARD_MAX = 39; // upper board bound (matches deriveLaydown's clamp range)
 const ZONES = ["outside", "middle", "inside"] as const;
 
 /**
- * The Advanced settings (ADR-115): the numbers only the lane view and the
- * layout lab read. Handedness and grip used to open this screen, above PAP and
- * drift, as if a new bowler had to understand all of it; they are answered on
- * the Settings list itself now, and the long explanations are a guide.
+ * PAP, release and drift (ADR-115): the numbers only the lane view and the
+ * layout lab read, a row under Bowler in Settings. Handedness and grip used to
+ * open this screen, above PAP and drift, as if a new bowler had to understand
+ * all of it; they have their own page now, and the long explanations are a guide.
  */
 export function HandednessView({ value, driftModel, onDriftModelChange, onBack }: HandednessViewProps) {
   const ballSide = value === "right" ? "right" : "left";

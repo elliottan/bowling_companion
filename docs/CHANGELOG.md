@@ -9,6 +9,17 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.4.2: Settings regrouped, and Hand and grip loses its prose (2026-10-06)
+
+**PAP, release and drift moves under Bowler**, next to your name and your hand
+and grip, and the separate Advanced group is gone.
+
+**Appearance joins Backup & restore** in a group now called App, the settings
+about the app rather than the bowler.
+
+**Hand and grip is just the two controls.** The paragraphs under Handedness and
+Grip are gone; "Why it matters" still opens the guide.
+
 ## 0.4.1: The line adjusters centre on the fields they move (2026-10-06)
 
 The nudge and move rows now sit level with the Stance and Target (or Slide and

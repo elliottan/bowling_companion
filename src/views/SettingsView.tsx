@@ -5,7 +5,6 @@ import { BowlerView } from "./BowlerView";
 import { getBowlerName, getGripStyle, getPap, getSetting } from "../services/bowlingRepository";
 import { BowlerNameSheet } from "../components/BowlerNameSheet";
 import { DEFAULT_PAP, formatInches } from "../lib/ballLayout";
-import { GROUP_HEADING } from "../components/ui/typography";
 import type { GripStyle } from "../types/bowling";
 import type { Handedness } from "../types/bowling";
 import type { DriftModel } from "../lib/driftModel";
@@ -133,7 +132,7 @@ function SettingsMenu({
         : "Never backed up";
   const grip: GripStyle = useLiveQuery(getGripStyle, [], undefined) ?? "1h";
   const pap = useLiveQuery(getPap, [], undefined) ?? DEFAULT_PAP;
-  const advancedDescription = `PAP ${formatInches(pap.over)} over, ${formatInches(Math.abs(pap.up))} ${
+  const papDescription = `PAP ${formatInches(pap.over)} over, ${formatInches(Math.abs(pap.up))} ${
     pap.up < 0 ? "down" : "up"
   } · offset ${driftModel.release_offset}`;
 
@@ -164,31 +163,20 @@ function SettingsMenu({
           onClick={() => onSectionChange("bowler")}
         />
         <ListRow
+          icon={SlidersHorizontal}
+          label="PAP, release and drift"
+          description={papDescription}
+          onClick={() => onSectionChange("preferences")}
+        />
+      </ListGroup>
+
+      <ListGroup heading="App">
+        <ListRow
           icon={Palette}
           label="Appearance"
           description="Light, dark, or follow your device"
           onClick={() => onSectionChange("appearance")}
         />
-      </ListGroup>
-
-      <section>
-        <div className="mb-1.5 px-1">
-          <h2 className={GROUP_HEADING}>Advanced</h2>
-          <p className="mt-0.5 text-xs text-ink-secondary">
-            Used by the lane view and the layout lab. Not needed to keep score.
-          </p>
-        </div>
-        <ul className="overflow-hidden rounded-xl border border-edge bg-surface shadow-sm">
-          <ListRow
-            icon={SlidersHorizontal}
-            label="PAP, release and drift"
-            description={advancedDescription}
-            onClick={() => onSectionChange("preferences")}
-          />
-        </ul>
-      </section>
-
-      <ListGroup heading="Your data">
         <ListRow
           icon={Archive}
           label="Backup & restore"

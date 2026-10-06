@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { SettingsView } from "./SettingsView";
 import { db } from "../db/bowlingDb";
@@ -62,6 +62,24 @@ describe("SettingsView", () => {
     // The two rows that leave the app are links, not buttons.
     expect(screen.getByRole("link", { name: /Privacy and terms/ })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Buy me a coffee/ })).toBeInTheDocument();
+  });
+
+  it("groups the bowler's own numbers under Bowler, and the app's under App", () => {
+    renderMenu();
+    const bowler = screen.getByRole("heading", { name: "Bowler" }).closest("section")!;
+    const app = screen.getByRole("heading", { name: "App" }).closest("section")!;
+    for (const label of ["Name", "Hand and grip", "PAP, release and drift"]) {
+      expect(within(bowler).getByRole("button", { name: new RegExp(label) })).toBeInTheDocument();
+    }
+    for (const label of ["Appearance", "Backup & restore"]) {
+      expect(within(app).getByRole("button", { name: new RegExp(label) })).toBeInTheDocument();
+    }
+  });
+
+  it("answers hand and grip with the controls alone, no prose", () => {
+    renderBowler();
+    expect(screen.queryByText(/Boards count in from your side/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/How the layout lab draws your ball/)).not.toBeInTheDocument();
   });
 
   it("changes the name Home greets you by, and forgets it when cleared", async () => {

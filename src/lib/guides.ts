@@ -81,12 +81,12 @@ export const GUIDES: readonly Guide[] = [
         kind: "note",
         text: "The motion reading itself is still the dual angle chart's, fitted to a thumb-in release. The app would rather say it has not adjusted that than guess at it."
       },
-      { kind: "heading", text: "Advanced: PAP" },
+      { kind: "heading", text: "PAP" },
       {
         kind: "text",
         text: "Your positive axis point, measured from the center of your grip: over toward your thumb side, then up or down. The layout lab reads every number against it, so a layout is only right when this is. A pro shop measures it once from your track."
       },
-      { kind: "heading", text: "Advanced: release offset and drift" },
+      { kind: "heading", text: "Release offset and drift" },
       {
         kind: "text",
         text: "The release offset is how many boards from your slide foot the ball lays down, on the side you release on. Drift is how far you walk sideways on the approach, which often depends on where you start: outside, in the middle, or inside. Together they turn the stance you type into the slide and laydown the lane view draws."
