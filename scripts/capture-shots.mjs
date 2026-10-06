@@ -14,7 +14,8 @@ import { chromium } from "@playwright/test";
 import sharp from "sharp";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
-const outDir = join(root, "public", "shots");
+// SHOTS_DIR sends the pictures elsewhere, for a run that only wants the state.
+const outDir = process.env.SHOTS_DIR ?? join(root, "public", "shots");
 const BASE = process.env.SHOTS_BASE ?? "http://localhost:5173";
 
 /**
@@ -416,5 +417,12 @@ await shootBothThemes(page, "stats");
 // sessions are what a returning bowler opens the app on.
 await page.getByRole("navigation").getByRole("button", { name: "Home" }).click();
 await shootBothThemes(page, "home");
+
+// SHOTS_STATE saves the bowler this run built, IndexedDB included, so the ad
+// recorder (scripts/ad-content) starts from the same nights rather than its own.
+if (process.env.SHOTS_STATE) {
+  await page.context().storageState({ path: process.env.SHOTS_STATE, indexedDB: true });
+  console.log("wrote", process.env.SHOTS_STATE);
+}
 
 await browser.close();

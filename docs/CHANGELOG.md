@@ -9,6 +9,14 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.6.1: Nothing changes in the app; the ads are built from it (2026-10-06)
+
+No change a bowler can see. `npm run ads:record` records the launch videos
+from the real app in a 1080 by 1920 frame with captions and an end card, and
+`npm run ads:stills` renders the still ads from the landing page screenshots.
+`npm run shots` can now write elsewhere and save the bowler it builds, which
+is what the recorder starts from.
+
 ## 0.6.0: A new landing page, and groundwork for retailer links on catalog balls (2026-10-06)
 
 **headpin.app is rebuilt for a phone.** It opens on the lane at night, with the

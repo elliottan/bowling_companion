@@ -1,0 +1,185 @@
+<!doctype html>
+<!--
+  The ad stage: a 1080 x 1920 vertical frame with the real app running in a
+  phone in the middle, a caption above it and an end card. record.mjs drives
+  the app inside the frame and records the whole page.
+
+  Served by the Vite dev server from the app's own origin, so the app in the
+  iframe is first-party and reads the bowler record.mjs restored into it.
+
+  Text sits inside the band Reels and TikTok leave clear: below the top 14% and
+  above the bottom third, where their own buttons and captions go.
+-->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Headpin ad stage</title>
+    <style>
+      * { box-sizing: border-box; }
+      html, body {
+        margin: 0;
+        width: 1080px;
+        height: 1920px;
+        overflow: hidden;
+        background:
+          radial-gradient(90% 45% at 50% 100%, rgb(245 158 11 / 0.22), transparent 70%),
+          radial-gradient(80% 40% at 15% 0%, rgb(94 214 193 / 0.18), transparent 70%),
+          #0b1220;
+        color: #f1f5f9;
+        font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+      }
+      .brand {
+        position: absolute;
+        top: 290px;
+        left: 0;
+        right: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 18px;
+        font-size: 40px;
+        font-weight: 700;
+        color: #b6c2d4;
+      }
+      .brand img { width: 56px; height: 56px; border-radius: 14px; }
+      #cap {
+        position: absolute;
+        top: 380px;
+        left: 70px;
+        right: 70px;
+        min-height: 200px;
+        text-align: center;
+        font-size: 84px;
+        line-height: 1.04;
+        font-weight: 800;
+        letter-spacing: -0.03em;
+        transition: opacity 0.35s ease, transform 0.35s ease;
+      }
+      #cap.out { opacity: 0; transform: translateY(16px); }
+      #cap em { font-style: normal; color: #f59e0b; }
+      .phone {
+        position: absolute;
+        left: 50%;
+        top: 640px;
+        width: calc(390px * var(--s) + 20px);
+        height: calc(844px * var(--s) + 20px);
+        transform: translateX(-50%);
+        --s: 1.45;
+        padding: 10px;
+        border-radius: 72px;
+        background: linear-gradient(160deg, #52525b, #27272a 40%, #3f3f46);
+        box-shadow: 0 40px 120px rgb(0 0 0 / 0.6), 0 0 0 2px rgb(255 255 255 / 0.06);
+      }
+      .screen {
+        width: calc(390px * var(--s));
+        height: calc(844px * var(--s));
+        overflow: hidden;
+        border-radius: 62px;
+        background: #0f172a;
+      }
+      iframe {
+        width: 390px;
+        height: 844px;
+        border: 0;
+        transform: scale(var(--s));
+        transform-origin: 0 0;
+      }
+      /* The tap marker: a ring where the next tap lands, so a viewer can see
+         what was pressed. record.mjs places it in stage pixels. */
+      #tap {
+        position: absolute;
+        width: 96px;
+        height: 96px;
+        margin: -48px 0 0 -48px;
+        border-radius: 999px;
+        border: 6px solid #5ed6c1;
+        background: rgb(94 214 193 / 0.22);
+        opacity: 0;
+        pointer-events: none;
+      }
+      #tap.on { animation: tap 0.5s ease-out; }
+      @keyframes tap {
+        0% { opacity: 1; transform: scale(0.6); }
+        100% { opacity: 0; transform: scale(1.3); }
+      }
+      #end {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 36px;
+        padding: 0 90px 280px;
+        text-align: center;
+        background:
+          radial-gradient(90% 50% at 50% 100%, rgb(245 158 11 / 0.28), transparent 70%),
+          #0b1220;
+        opacity: 0;
+        /* Invisible but over everything until it shows, so it must not take
+           the taps meant for the app underneath. */
+        pointer-events: none;
+        transition: opacity 0.5s ease;
+      }
+      #end.on { opacity: 1; }
+      #end img { width: 200px; height: 200px; border-radius: 48px; }
+      #end .name { font-size: 110px; font-weight: 800; letter-spacing: -0.03em; }
+      #end .line { font-size: 64px; font-weight: 700; line-height: 1.1; }
+      #end .line em { font-style: normal; color: #f59e0b; }
+      #end .cta {
+        margin-top: 24px;
+        padding: 30px 64px;
+        border-radius: 999px;
+        background: #5ed6c1;
+        color: #06231e;
+        font-size: 54px;
+        font-weight: 800;
+      }
+      #end .note { font-size: 40px; color: #b6c2d4; }
+    </style>
+  </head>
+  <body>
+    <div class="brand"><img src="/icons/icon-192.png" alt="" />Headpin</div>
+    <div id="cap"></div>
+    <div class="phone"><div class="screen"><iframe id="app" title="Headpin"></iframe></div></div>
+    <div id="tap"></div>
+    <div id="end">
+      <img src="/icons/icon-192.png" alt="" />
+      <div class="name">Headpin</div>
+      <div class="line" id="end-line">Remember every <em>line</em> you threw.</div>
+      <div class="cta">headpin.app</div>
+      <div class="note">Free. No sign up.</div>
+    </div>
+    <script>
+      const params = new URLSearchParams(location.search);
+      document.getElementById("app").src = params.get("src") || "/score";
+
+      const cap = document.getElementById("cap");
+      /** Swap the caption with a short fade. */
+      window.caption = (html) =>
+        new Promise((done) => {
+          cap.classList.add("out");
+          setTimeout(() => {
+            cap.innerHTML = html;
+            cap.classList.remove("out");
+            setTimeout(done, 350);
+          }, html && cap.innerHTML ? 350 : 0);
+        });
+
+      /** Show a tap ring at a point in stage pixels. */
+      window.tapAt = (x, y) => {
+        const t = document.getElementById("tap");
+        t.style.left = x + "px";
+        t.style.top = y + "px";
+        t.classList.remove("on");
+        void t.offsetWidth;
+        t.classList.add("on");
+      };
+
+      window.endCard = (html) => {
+        if (html) document.getElementById("end-line").innerHTML = html;
+        document.getElementById("end").classList.add("on");
+      };
+    </script>
+  </body>
+</html>
