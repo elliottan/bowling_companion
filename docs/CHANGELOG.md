@@ -13,6 +13,7 @@ had all shipped.
 
 The two green note boxes in "Your hand, grip and approach" are gone: the one on
 the motion reading and the one saying none of it is needed to keep score.
+The rest of the guide is reworded in plainer language.
 
 ## 0.5.0: Settings regrouped, and drift zones set by dragging on the lane (2026-10-06)
 

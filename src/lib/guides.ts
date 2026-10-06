@@ -70,22 +70,22 @@ export const GUIDES: readonly Guide[] = [
       { kind: "heading", text: "Handedness" },
       {
         kind: "text",
-        text: "Board numbers count in from your side of the lane, so everything the app draws and every number you type is relative to the hand you bowl with. Change it and everything mirrors: board 1, the arrows, spare targets, the release offset and drift. Saved sessions keep the numbers they were recorded with."
+        text: "Board 1 is the board on your side of the lane, so every number in the app depends on which hand you bowl with. If you change hands, everything flips to the other side. Sessions you already saved keep their old numbers."
       },
       { kind: "heading", text: "Grip" },
       {
         kind: "text",
-        text: "One-handed with a thumb, or two-handed with the thumb out. The Layouts page opens on this and carries it in a shared layout. Two-handed draws the ball with no thumb hole and the center of your grip between your fingers, and it drops the do-not-use band, which only exists to keep the track off a thumb hole."
+        text: "Pick one-handed (with a thumb) or two-handed (no thumb). The Layouts page starts with your choice. For two-handed, the ball is drawn without a thumb hole, and the do-not-use band is hidden, since that band is only there to keep your track away from a thumb hole."
       },
       { kind: "heading", text: "PAP" },
       {
         kind: "text",
-        text: "Your positive axis point, measured from the center of your grip: over toward your thumb side, then up or down. The Layouts page reads every number against it. A pro shop measures it once from your track."
+        text: "Your positive axis point, measured from the center of your grip: how far over toward your thumb, then how far up or down. The Layouts page uses it for every number. Your pro shop can measure it from your track."
       },
       { kind: "heading", text: "Release offset and drift" },
       {
         kind: "text",
-        text: "The release offset is how many boards from your slide foot the ball lays down, on the side you release on. Drift is how far you walk sideways on the approach, which often depends on where you start: outside, in the middle, or inside. Together they turn the stance you type into the slide and laydown the lane view draws."
+        text: "Release offset is how many boards from your slide foot the ball lands, on the side you release on. Drift is how far you move sideways while you walk up, and it often depends on where you start: outside, middle or inside. The lane view uses both to work out where your slide and laydown are from the stance you enter."
       }
     ]
   },
