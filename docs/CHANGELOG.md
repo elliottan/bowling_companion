@@ -9,7 +9,7 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
-## 0.4.2: Settings regrouped, and Hand and grip loses its prose (2026-10-06)
+## 0.5.0: Settings regrouped, and drift zones set by dragging on the lane (2026-10-06)
 
 **PAP, release and drift moves under Bowler**, next to your name and your hand
 and grip, and the separate Advanced group is gone.
@@ -19,6 +19,21 @@ about the app rather than the bowler.
 
 **Hand and grip is just the two controls.** The paragraphs under Handedness and
 Grip are gone; "Why it matters" still opens the guide.
+
+**Drift zones are dragged, not typed.** On PAP, release and drift, drag either
+edge on the approach picture to move where the outside and inside zones begin;
+the "Ends at board" and "Starts at board" fields are gone, and so are the left
+and right labels under the picture. Each zone's row now holds its name and its
+drift on one line, with a sentence under it: "You drift 2 boards left when your
+stance is on boards 1 to 14." The section is called Drift now.
+
+**Shorter prose.** The PAP, release offset and drift descriptions are each a
+line or two, and say what uses them.
+
+**The layout lab is called Layouts**, on Home and in its title bar.
+
+**Layout numbers is gone from Appearance.** The Layouts page and each ball's
+form still switch between dual angle and Storm VLS.
 
 ## 0.4.1: The line adjusters centre on the fields they move (2026-10-06)
 

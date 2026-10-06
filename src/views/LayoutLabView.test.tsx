@@ -321,7 +321,7 @@ describe("LayoutLabView", () => {
   it("leads with the bowler, whose axis every other number is measured against", () => {
     renderLab();
     const headings = screen.getAllByRole("heading").map((h) => h.textContent);
-    expect(headings[0]).toBe("Layout lab");
+    expect(headings[0]).toBe("Layouts");
     expect(headings[1]).toBe("You");
   });
 

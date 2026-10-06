@@ -75,7 +75,7 @@ export const GUIDES: readonly Guide[] = [
       { kind: "heading", text: "Grip" },
       {
         kind: "text",
-        text: "One-handed with a thumb, or two-handed with the thumb out. The layout lab opens on this and carries it in a shared layout. Two-handed draws the ball with no thumb hole and the center of your grip between your fingers, and it drops the do-not-use band, which only exists to keep the track off a thumb hole."
+        text: "One-handed with a thumb, or two-handed with the thumb out. The Layouts page opens on this and carries it in a shared layout. Two-handed draws the ball with no thumb hole and the center of your grip between your fingers, and it drops the do-not-use band, which only exists to keep the track off a thumb hole."
       },
       {
         kind: "note",
@@ -84,7 +84,7 @@ export const GUIDES: readonly Guide[] = [
       { kind: "heading", text: "PAP" },
       {
         kind: "text",
-        text: "Your positive axis point, measured from the center of your grip: over toward your thumb side, then up or down. The layout lab reads every number against it, so a layout is only right when this is. A pro shop measures it once from your track."
+        text: "Your positive axis point, measured from the center of your grip: over toward your thumb side, then up or down. The Layouts page reads every number against it. A pro shop measures it once from your track."
       },
       { kind: "heading", text: "Release offset and drift" },
       {
