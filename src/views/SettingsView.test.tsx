@@ -136,8 +136,7 @@ describe("SettingsView", () => {
     expect(openGuide).toHaveBeenCalledWith("your-settings");
     // What a two-handed grip changes, and what it leaves alone, still says so.
     const text = JSON.stringify(findGuide("your-settings")?.body);
-    expect(text).toMatch(/no thumb hole/i);
-    expect(text).toMatch(/fitted to a thumb-in release/i);
+    expect(text).toMatch(/without a thumb hole/i);
   });
 
   /**

@@ -120,9 +120,9 @@ describe("CatalogView", () => {
 
       renderBall();
 
-      const link = await screen.findByRole("link", { name: "Shop at Bowling.com" });
+      const link = await screen.findByRole("link", { name: "Shop at BowlersMart" });
       expect(new URL(link.getAttribute("href")!).searchParams.get("u")).toBe(
-        "https://www.bowling.com/search?q=Storm%20Ball%200"
+        "https://www.bowlersmart.com/?s=Storm%20Ball%200&post_type=product"
       );
       expect(link).toHaveAttribute("target", "_blank");
       // A paid link is marked as one for search engines, not only for people.

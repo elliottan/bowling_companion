@@ -5658,9 +5658,9 @@ does neither.
 - **The owner accepts the image risk.** ADR-039's other half still holds: every
   image is keyed to its ball id, so a takedown is a data edit, and the legal
   page says any owner who asks will have an image changed or removed.
-- **One retailer, Bowling.com,** chosen as one of the largest US bowling
-  retailers, with the highest flat rate of the three, and international
-  shipping, so a click from outside the US can still convert.
+- **One retailer, BowlersMart,** through Rakuten. The owner chose it over
+  Bowling.com's flat 4%: its rate starts at 2% and rises to 5% with volume, and
+  it ships internationally, so a click from outside the US can still convert.
 - **The link searches the retailer by brand and name** rather than pointing at a
   product page. A search does not go stale when the retailer renames a page, and
   it needs no table of product URLs kept in step with the catalog.

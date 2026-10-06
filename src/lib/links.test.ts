@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { AFFILIATE_DEEP_LINK, retailerSearchUrl, shopBallUrl } from "./links";
 
-const AWIN = "https://www.awin1.com/cread.php?awinmid=1&awinaffid=2&ued={url}";
+const RAKUTEN = "https://click.linksynergy.com/deeplink?id=abc&mid=123&murl={url}";
 
 describe("shopBallUrl", () => {
   it("is null until the affiliate program supplies a deep link", () => {
@@ -12,19 +12,22 @@ describe("shopBallUrl", () => {
 
   it("searches the retailer for the brand and the name", () => {
     expect(retailerSearchUrl("Roto Grip", "Attention Star S2")).toBe(
-      "https://www.bowling.com/search?q=Roto%20Grip%20Attention%20Star%20S2"
+      "https://www.bowlersmart.com/?s=Roto%20Grip%20Attention%20Star%20S2&post_type=product"
     );
   });
 
   /** The retailer URL is a parameter of the network's URL, so its own `?` and
    *  `&` have to be escaped or the network reads them as its own. */
   it("wraps the search in the deep link, escaped", () => {
-    const url = shopBallUrl("Storm", "Phaze II", AWIN);
+    const url = shopBallUrl("Storm", "Phaze II", RAKUTEN);
     expect(url).toBe(
-      `https://www.awin1.com/cread.php?awinmid=1&awinaffid=2&ued=${encodeURIComponent(
-        "https://www.bowling.com/search?q=Storm%20Phaze%20II"
+      `https://click.linksynergy.com/deeplink?id=abc&mid=123&murl=${encodeURIComponent(
+        "https://www.bowlersmart.com/?s=Storm%20Phaze%20II&post_type=product"
       )}`
     );
-    expect(new URL(url!).searchParams.get("ued")).toBe(retailerSearchUrl("Storm", "Phaze II"));
+    // The retailer's own `&post_type` stays inside murl, not beside it.
+    const params = new URL(url!).searchParams;
+    expect(params.get("murl")).toBe(retailerSearchUrl("Storm", "Phaze II"));
+    expect(params.get("post_type")).toBeNull();
   });
 });

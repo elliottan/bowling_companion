@@ -23,15 +23,19 @@ export function feedbackMailto(diagnostics: string): string {
 
 /**
  * Where a catalog ball's "Shop" link goes, and how it is credited to Headpin.
+ * BowlersMart's affiliate program runs on Rakuten, whose deep link takes the
+ * retailer page as its `murl` parameter.
  *
  * The retailer is searched by brand and name rather than linked to a product
  * page: a search cannot go stale when the retailer renames a page, and it needs
  * no table of 250 product URLs to keep in step with the catalog (ADR-119).
  */
-export const RETAILER_NAME = "Bowling.com";
+export const RETAILER_NAME = "BowlersMart";
 
 export function retailerSearchUrl(brand: string, name: string): string {
-  return `https://www.bowling.com/search?q=${encodeURIComponent(`${brand} ${name}`)}`;
+  // A WordPress store: `s` is the search, and `post_type` keeps it to products
+  // rather than the blog.
+  return `https://www.bowlersmart.com/?s=${encodeURIComponent(`${brand} ${name}`)}&post_type=product`;
 }
 
 /**
