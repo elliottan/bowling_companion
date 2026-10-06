@@ -280,3 +280,52 @@ input[type="date"]::-webkit-date-and-time-value {
     background-color: rgb(var(--color-accent-soft));
   }
 }
+
+/* A board adjuster answers the tap that moved the line: the pressed side
+   tints and fades, and its chevron kicks the way the line went. iOS barely
+   shows :active on a quick tap, so without this a press read as nothing
+   happening (ADR-117). Reduced motion keeps the value change as the answer. */
+@keyframes adjust-flash {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes adjust-kick-left {
+  40% {
+    transform: translateX(-4px);
+  }
+}
+
+@keyframes adjust-kick-right {
+  40% {
+    transform: translateX(4px);
+  }
+}
+
+.animate-adjust-flash {
+  animation: adjust-flash 0.45s ease-out forwards;
+}
+
+.animate-adjust-kick-left {
+  animation: adjust-kick-left 0.25s ease-out;
+}
+
+.animate-adjust-kick-right {
+  animation: adjust-kick-right 0.25s ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-adjust-flash {
+    animation: none;
+    opacity: 0;
+  }
+
+  .animate-adjust-kick-left,
+  .animate-adjust-kick-right {
+    animation: none;
+  }
+}

@@ -9,6 +9,24 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.4.0: Foul and Undo move into More, Gutter goes, and the line adjusters stack over the deck (2026-10-06)
+
+**More is a menu, with Foul and Undo in it.** The More button now lines up
+with Strike and Next and opens a small menu instead of dropping two big
+buttons into the column. Undo has left the Strike and Next row and lives in the
+same menu, so the two buttons every ball uses get their width back.
+
+**No more Gutter button.** Leave every pin standing on the deck and tap Next.
+It still reads as a dash on the card.
+
+**Undo says which ball it takes.** "This removes frame 2, ball 1 (9 pins) from
+the card. To get it back, you will have to enter it again."
+
+**The line adjusters stack over the pin deck.** The nudge and the 1-1, 1.5-1
+and 2-1 moves are one row each, over the deck, instead of a grid over the
+scorecard. Each In and Out flashes and its arrow kicks when tapped, so you can
+see the press land. The Actual line's nudge sits in the same place.
+
 ## 0.3.0: Same-line spares side by side, strike moves say left or right and count as a line (2026-10-05)
 
 **Leaves that share a line show side by side.** A stack used to be one tile

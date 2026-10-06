@@ -1,4 +1,4 @@
-import { Check, ChevronDown, ChevronUp, Hand, Pencil, Plus, Undo2, X } from "lucide-react";
+import { Check, Hand, MoreHorizontal, Pencil, Plus, Undo2, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import {
@@ -12,6 +12,7 @@ import {
   type UndoResult
 } from "../lib/frameController";
 import { ALL_PINS, calculateGameScore } from "../lib/scoring";
+import { getFrameShotCells } from "../lib/scoreDisplay";
 import { useHandedness } from "../lib/handednessContext";
 import { isPocketHit } from "../lib/pins";
 import { freshRackShotIndices, isFreshRackShot, laneForFrame } from "../lib/lanes";
@@ -28,6 +29,8 @@ import type {
   SpareLine
 } from "../types/bowling";
 import { ConfirmDialog } from "./ConfirmDialog";
+import { FoulLineIcon } from "./icons";
+import { AnchoredMenu, AnchoredMenuItem } from "./ui/AnchoredMenu";
 import { PinGrid, WOOD_PIN_DOWN } from "./PinGrid";
 
 const NO_BALLS: Ball[] = [];
@@ -85,6 +88,30 @@ interface ActiveGameScorerProps {
   /** Persist an undo: rewrite the frame it changed, or delete the one it
    *  emptied. Absent in the standalone scorer, which stores nothing. */
   onUndoShot?: (result: UndoResult) => Promise<void> | void;
+}
+
+// AnchoredMenu's width (`w-44`), to keep the More menu on screen.
+const MORE_MENU_WIDTH = 176;
+
+/** The last recorded ball, named the way the card draws it, for the undo
+ *  question: "frame 2, ball 1 (9 pins)". Null on an untouched game. */
+function describeLastBall(frames: Frame[]): string | null {
+  const last = [...frames]
+    .sort((a, b) => b.frame_number - a.frame_number)
+    .find((f) => f.shots.length > 0);
+  if (!last) return null;
+  const shotIndex = last.shots.length - 1;
+  const symbol = getFrameShotCells(last).find((c) => c.shotIndex === shotIndex)?.symbol;
+  const mark =
+    symbol === "X" ? "strike"
+    : symbol === "/" ? "spare"
+    : symbol === "F" ? "foul"
+    : symbol === "-" ? "no pins"
+    : symbol === "1" ? "1 pin"
+    : symbol ? `${symbol} pins`
+    : null;
+  const where = `frame ${last.frame_number}, ball ${shotIndex + 1}`;
+  return mark ? `${where} (${mark})` : where;
 }
 
 /** Pins available entering a given shot of a frame (for editing a past shot). */
@@ -150,10 +177,10 @@ export function ActiveGameScorer({
   // game and back does not close it.
   const [unlocked, setUnlocked] = useState(false);
   const [showEditPrompt, setShowEditPrompt] = useState(false);
-  // The gutter and foul marks, folded away behind More (ADR-089). Neither is
-  // thrown often enough to hold a permanent place beside Strike and Next, and
-  // both are one tap once the row is open.
-  const [showMore, setShowMore] = useState(false);
+  // Where the More menu sits, measured off the button that opened it, or null
+  // while it is shut. Foul and Undo live in it (ADR-117): neither is used
+  // often enough to hold a place beside Strike and Next.
+  const [moreAt, setMoreAt] = useState<{ left: number; bottom: number } | null>(null);
   // A change to an already recorded shot is confirmed once per visit to that
   // shot: the first change asks, the rest of the visit does not, and leaving
   // the shot and coming back asks again. Live entry never asks, because
@@ -221,6 +248,11 @@ export function ActiveGameScorer({
   const canUndo =
     !gameState.isComplete && gameState.frames.some((frame) => frame.shots.length > 0);
 
+  /** A foul is a ball to record, or a mark on the recorded shot in the cursor
+   *  of a finished game opened for editing. */
+  const canFoul = !gameState.isComplete || (editingComplete && isEditing);
+  const canUndoHere = Boolean(onUndoShot) && canUndo;
+
   // Wrapped, so "the query has not answered" is distinguishable from "the key
   // is unset" and the line does not flash onto every scorer that opens.
   const pinCoach = useLiveQuery(async () => ({ seenAt: await getSetting(PIN_COACH_SEEN_KEY) }));
@@ -253,11 +285,13 @@ export function ActiveGameScorer({
     });
   }
 
-  /** Undo takes a recorded ball back, so it always asks. */
+  /** Undo takes a recorded ball back, so it always asks, and names the ball. */
   function requestUndo() {
+    setMoreAt(null);
+    const ball = describeLastBall(gameState.frames) ?? "your last ball";
     setPendingChange({
-      title: "Undo the last shot?",
-      message: "The last recorded ball comes off the card, and the score follows it.",
+      title: "Undo your last ball?",
+      message: `This removes ${ball} from the card. To get it back, you will have to enter it again.`,
       confirmLabel: "Undo",
       run: () => void undoShot()
     });
@@ -567,29 +601,29 @@ export function ActiveGameScorer({
   }
 
   /**
-   * Record a ball worth nothing: a gutter, or a foul (ADR-089). Both leave the
-   * deck exactly as they found it, which is what makes them zero, and a foul
-   * additionally carries the mark that draws F on the card.
+   * Record a foul (ADR-089): the deck exactly as the ball found it, which is
+   * what makes it zero, plus the mark that draws F on the card. A gutter has
+   * no button of its own (ADR-117): it is every pin left standing.
    */
-  function recordNoPinfall(foul: boolean) {
+  function recordFoul() {
     if (!requestEdit()) return;
     // On a finished game the mark is always aimed at a recorded shot. With no
     // cursor there is nothing to aim it at, and recording a fresh ball onto a
     // game that has all ten frames is not what the button offered.
     if (gameState.isComplete && !isEditing) return;
-    setShowMore(false);
+    setMoreAt(null);
     const available =
       isEditing && recordedFrame && selectedShot
         ? availableEnteringShot(recordedFrame, selectedShot.shotIndex) ?? ALL_PINS
         : gameState.availablePins;
     if (isEditing) {
       withEditConfirm(() => {
-        handleEditPins(available, foul);
+        handleEditPins(available, true);
         afterRecordedEdit();
       });
       return;
     }
-    void recordShot(available, { foul: foul || undefined });
+    void recordShot(available, { foul: true });
   }
 
   function newGame() {
@@ -622,7 +656,7 @@ export function ActiveGameScorer({
     unlockedGames.delete(gameKey);
     setUnlocked(false);
     setEditConfirmed(false);
-    setShowMore(false);
+    setMoreAt(null);
   }
 
   // The pocket toggle belongs to fresh-rack balls only: a shot at a leave has
@@ -790,13 +824,13 @@ export function ActiveGameScorer({
       )}
 
       {/* Pin deck (left) + shot details (right), side-by-side on every width. */}
-      {/* `data-adjuster-bounds`: the board adjusters float across both columns
-          while a line field is focused (ADR-114), so they fit two to a row. */}
       <div
-        data-adjuster-bounds
+        data-adjuster-host
         className="mt-3 grid grid-cols-2 items-start gap-3 lg:grid-cols-[minmax(0,360px)_1fr]"
       >
-        <div className="space-y-2">
+        {/* `data-adjuster-bounds`: while a line field is focused, its board
+            adjusters float over this column, one to a row (ADR-117). */}
+        <div data-adjuster-bounds className="space-y-2">
           {(onEditLanes || lanesList.length > 0) && (
             <div className="flex items-center justify-between rounded-lg border border-edge bg-surface px-2.5 py-1.5">
               {/* The chips mark the lane of the frame in the cursor, not the
@@ -926,11 +960,6 @@ export function ActiveGameScorer({
                 Done
               </Button>
             )}
-            {onUndoShot && canUndo && (
-              <IconButton onClick={requestUndo} label="Undo last shot" variant="round">
-                <Undo2 size={20} aria-hidden="true" />
-              </IconButton>
-            )}
           </div>
 
           {/* The way into a finished game. Quiet, because the common reason to
@@ -947,43 +976,41 @@ export function ActiveGameScorer({
             </Button>
           )}
 
-          {/* A gutter and a foul are rare enough that a permanent place beside
-              Strike and Next would cost the two buttons every ball uses their
-              width. Folded away, they are one tap behind More (ADR-089). */}
-          {(!gameState.isComplete || (editingComplete && isEditing)) && (
-            <div className="space-y-2">
-              <Button
-                variant="ghost"
-                className="w-full text-xs"
-                aria-expanded={showMore}
-                onClick={() => setShowMore((open) => !open)}
-              >
-                {showMore ? (
-                  <ChevronUp size={14} aria-hidden="true" />
-                ) : (
-                  <ChevronDown size={14} aria-hidden="true" />
-                )}
-                More
-              </Button>
-              {showMore && (
-                <div className="flex gap-2">
-                  <Button
-                    variant="secondary"
-                    className="flex-1"
-                    onClick={() => recordNoPinfall(false)}
-                  >
-                    Gutter
-                  </Button>
-                  <Button
-                    variant="secondary"
-                    className="flex-1"
-                    onClick={() => recordNoPinfall(true)}
-                  >
-                    Foul
-                  </Button>
-                </div>
+          {/* Foul and Undo are rare enough that a place beside Strike and Next
+              would cost the two buttons every ball uses their width, so they
+              sit in one menu under the row (ADR-117). It opens upward, over
+              the deck, because the tab bar is directly underneath. */}
+          {(canFoul || canUndoHere) && (
+            <Button
+              variant="quiet"
+              className="w-full"
+              aria-haspopup="true"
+              aria-expanded={moreAt !== null}
+              onClick={(e) => {
+                const r = e.currentTarget.getBoundingClientRect();
+                setMoreAt({
+                  left: Math.max(8, Math.min(r.left, window.innerWidth - MORE_MENU_WIDTH - 8)),
+                  bottom: window.innerHeight - r.top + 6
+                });
+              }}
+            >
+              <MoreHorizontal size={16} aria-hidden="true" />
+              More
+            </Button>
+          )}
+          {moreAt && (
+            <AnchoredMenu left={moreAt.left} bottom={moreAt.bottom} onClose={() => setMoreAt(null)}>
+              {canFoul && (
+                <AnchoredMenuItem icon={FoulLineIcon} onClick={recordFoul}>
+                  Foul
+                </AnchoredMenuItem>
               )}
-            </div>
+              {canUndoHere && (
+                <AnchoredMenuItem icon={Undo2} onClick={requestUndo}>
+                  Undo last shot
+                </AnchoredMenuItem>
+              )}
+            </AnchoredMenu>
           )}
 
         </div>
@@ -1048,7 +1075,7 @@ export function ActiveGameScorer({
       <ConfirmDialog
         open={showEditPrompt}
         title="Edit this completed game?"
-        message="Strike, Spare, Gutter and Foul come back, and they change the shot you have picked on the card. Rescoring follows, and it cannot be undone."
+        message="Strike, Spare and Foul come back and change the shot you pick on the card. The game rescores from that frame on."
         confirmLabel="Edit"
         onConfirm={() => {
           unlockedGames.add(gameKey);

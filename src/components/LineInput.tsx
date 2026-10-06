@@ -192,16 +192,25 @@ export function LineInput({
   // under the finger: the click that follows hands focus back.
   const pressing = useRef(false);
   const rowRef = useRef<HTMLDivElement>(null);
-  // Where the panel sits, measured against the widest box it may use (the
-  // scorer marks it with `data-adjuster-bounds`): both columns, so the presets
-  // fit two to a row and the panel stays short enough to clear the top of the
-  // screen.
+  // Where the panel sits, measured against the box the host gives it (the
+  // scorer marks its two-column grid `data-adjuster-host` and the pin deck's
+  // column `data-adjuster-bounds`): one row
+  // per adjuster over the deck, which nobody taps while typing a board, with
+  // its foot level with the fields (ADR-117). A host without one gets the
+  // panel straight above the fields.
   const [span, setSpan] = useState<{ left: number; width: number } | null>(null);
+  // The last adjuster pressed, and a count that remounts its flash so a second
+  // tap on the same side plays it again.
+  const [flash, setFlash] = useState<{ name: string; n: number } | null>(null);
 
   useLayoutEffect(() => {
     if (!focused) return;
     const row = rowRef.current;
-    const bounds = row?.closest<HTMLElement>("[data-adjuster-bounds]");
+    // The deck's column is a sibling of the fields' column, not an ancestor,
+    // so it is found through the grid that holds both.
+    const bounds = row
+      ?.closest<HTMLElement>("[data-adjuster-host]")
+      ?.querySelector<HTMLElement>("[data-adjuster-bounds]");
     if (!row || !bounds) {
       setSpan(null);
       return;
@@ -213,14 +222,18 @@ export function LineInput({
 
   function closeUnlessFieldFocused() {
     const back = Object.values(inputs.current).some((el) => el && document.activeElement === el);
-    if (!back) setFocused(null);
+    if (back) return;
+    setFocused(null);
+    // A closed panel forgets its last press, or reopening it would replay one.
+    setFlash(null);
   }
 
   /** Run an adjuster on click (never on pointerdown: a finger that lands to
    *  scroll, or slides off to cancel, records nothing), then hand focus back to
    *  the field the panel belongs to. */
-  const onAdjust = (run: () => void) => () => {
+  const onAdjust = (name: string, run: () => void) => () => {
     pressing.current = false;
+    setFlash((f) => ({ name, n: (f?.n ?? 0) + 1 }));
     run();
     const field = focused;
     const el = field ? inputs.current[field] : null;
@@ -252,34 +265,52 @@ export function LineInput({
     label: React.ReactNode,
     name: string,
     onIn: () => void,
-    onOut: () => void,
-    wide = false
+    onOut: () => void
   ) => {
-    const side = (which: "in" | "out", arrow: "left" | "right") => (
-      <button
-        type="button"
-        aria-label={`${name} ${which}`}
-        onMouseDown={keepFocus}
-        onPointerDown={pressStart}
-        onPointerUp={pressEnd}
-        onPointerCancel={pressEnd}
-        onClick={onAdjust(which === "in" ? onIn : onOut)}
-        className="flex min-w-11 flex-1 items-center justify-center gap-0.5 text-[10px] font-bold uppercase text-ink-secondary active:bg-edge"
-      >
-        {arrow === "left" && <ChevronLeft size={14} strokeWidth={3} aria-hidden="true" className="text-ink-strong" />}
-        {which === "in" ? "In" : "Out"}
-        {arrow === "right" && <ChevronRight size={14} strokeWidth={3} aria-hidden="true" className="text-ink-strong" />}
-      </button>
-    );
+    const side = (which: "in" | "out", arrow: "left" | "right") => {
+      const sideName = `${name} ${which}`;
+      const pressed = flash?.name === sideName ? flash.n : null;
+      const Chevron = arrow === "left" ? ChevronLeft : ChevronRight;
+      return (
+        <button
+          type="button"
+          aria-label={sideName}
+          onMouseDown={keepFocus}
+          onPointerDown={pressStart}
+          onPointerUp={pressEnd}
+          onPointerCancel={pressEnd}
+          onClick={onAdjust(sideName, which === "in" ? onIn : onOut)}
+          className={`relative flex min-w-11 flex-1 items-center justify-center gap-0.5 text-[10px] font-bold uppercase text-ink-secondary active:bg-edge ${
+            arrow === "right" ? "flex-row-reverse" : ""
+          }`}
+        >
+          {pressed != null && (
+            <span
+              key={pressed}
+              aria-hidden="true"
+              className="animate-adjust-flash pointer-events-none absolute inset-0 bg-accent-fill/40"
+            />
+          )}
+          <Chevron
+            key={pressed ?? "rest"}
+            size={14}
+            strokeWidth={3}
+            aria-hidden="true"
+            className={`relative text-ink-strong ${
+              pressed != null ? `animate-adjust-kick-${arrow}` : ""
+            }`}
+          />
+          <span className="relative">{which === "in" ? "In" : "Out"}</span>
+        </button>
+      );
+    };
     return (
       <div
         key={key}
-        className={`flex h-11 items-stretch divide-x divide-edge overflow-hidden rounded-lg border border-edge-strong bg-surface-muted ${
-          wide ? "col-span-2" : ""
-        }`}
+        className="flex h-11 items-stretch divide-x divide-edge overflow-hidden rounded-lg border border-edge-strong bg-surface-muted"
       >
         {side(leftIsIn ? "in" : "out", "left")}
-        <span className="flex shrink-0 flex-col items-center justify-center px-1.5 text-xs font-semibold leading-none tabular-nums text-ink">
+        <span className="flex w-12 shrink-0 flex-col items-center justify-center text-xs font-semibold leading-none tabular-nums text-ink">
           {label}
         </span>
         {side(leftIsIn ? "out" : "in", "right")}
@@ -370,8 +401,8 @@ export function LineInput({
 
   /**
    * The focus-reveal adjusters: a nudge for the focused field and, on the
-   * Intended line, the three move presets. They float ABOVE the fields rather
-   * than opening below them (ADR-114). Below, they landed on the keyboard and
+   * Intended line, the three move presets, one to a row over the pin deck
+   * (ADR-117). They never open below the fields (ADR-114). Below, they landed on the keyboard and
    * its toolbar, sat over the Actual boxes (whose eye button's hit region
    * reaches up into the last row), and pushed everything under them down on
    * every focus. Floating, they move nothing, and every one of them is still a
@@ -387,9 +418,9 @@ export function LineInput({
         aria-label="Adjust line"
         onMouseDown={keepFocus}
         style={span ? { left: span.left, width: span.width } : undefined}
-        className={`absolute bottom-full z-30 mb-1.5 grid gap-1.5 rounded-xl border border-edge bg-surface p-1.5 shadow-sm ${
-          span ? "" : "inset-x-0"
-        } ${presets ? "grid-cols-2" : "grid-cols-1"}`}
+        className={`absolute z-30 flex flex-col gap-1.5 rounded-xl border border-edge bg-surface p-1.5 shadow-lg ${
+          span ? "bottom-0" : "inset-x-0 bottom-full mb-1.5"
+        }`}
       >
         {adjusterRow(
           "nudge",

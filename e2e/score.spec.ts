@@ -124,18 +124,24 @@ test("edit mode marks a shot in a finished game, and Done locks it again", async
   await expect(page.getByText("Edit this completed game?")).toBeVisible();
 });
 
-test("takes the last shot back, and the score follows it", async ({ page }) => {
+test("undoes the last ball from the More menu, and the score goes back with it", async ({ page }) => {
   await startSession(page, "Undo Lanes");
 
   // Frame 1: strike. Frame 2: nine, leaving the 10 pin.
   await recordShot(page, []);
   await recordShot(page, [10]);
 
+  // Undo sits in the More menu with Foul (ADR-117).
+  const more = page.getByRole("button", { name: "More" });
   const undo = page.getByRole("button", { name: "Undo last shot" });
+  await more.click();
   await expect(undo).toBeVisible();
+  await page.keyboard.press("Escape");
   // Undo takes a recorded ball back, so it asks first, every time.
   const confirmUndo = async () => {
+    await more.click();
     await undo.click();
+    await expect(page.getByText("This removes frame", { exact: false })).toBeVisible();
     await page.getByRole("button", { name: "Undo", exact: true }).click();
   };
 
@@ -146,10 +152,14 @@ test("takes the last shot back, and the score follows it", async ({ page }) => {
 
   // Again, and the strike in frame 1 is gone with it.
   await confirmUndo();
+  await more.click();
   await expect(undo).toHaveCount(0);
 
   // It survives a reload, so the undo was written and not only shown.
   await page.reload();
+  // A game with no shots and no lanes asks for lanes again on open.
+  await page.getByRole("dialog", { name: /lanes/i }).getByRole("button", { name: "Close" }).click();
+  await page.getByRole("button", { name: "More" }).click();
   await expect(page.getByRole("button", { name: "Undo last shot" })).toHaveCount(0);
 });
 
@@ -166,12 +176,15 @@ test("the commit button reads Next, over what it would record", async ({ page })
   await expect(commit).toContainText("(Hit 9)");
 });
 
-test("records a gutter and a foul from behind More", async ({ page }) => {
+test("records a foul from the More menu", async ({ page }) => {
   await startSession(page, "Foul Lanes");
 
-  // Frame 1: a gutter, then the spare it can still be turned into.
+  // Frame 1: a gutter, entered as every pin left standing, then the spare it
+  // can still be turned into. There is no Gutter button (ADR-117).
   await page.getByRole("button", { name: "More" }).click();
-  await page.getByRole("button", { name: "Gutter" }).click();
+  await expect(page.getByRole("button", { name: "Gutter" })).toHaveCount(0);
+  await page.keyboard.press("Escape");
+  await recordShot(page, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
   // Ten pins still standing is a spare attempt, not a first ball.
   await expect(page.getByRole("button", { name: "Spare", exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Spare", exact: true }).click();

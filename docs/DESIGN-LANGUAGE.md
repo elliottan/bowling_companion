@@ -325,11 +325,13 @@ on screen before the ball is committed. The brackets are what keep the two apart
 as a button and a note: unbracketed and in the accent colour, "Next Strike" read
 as one phrase naming a shot. Two adjacent buttons never carry the same word.
 
-**A control that is rarely reached goes behind More.** The gutter and the foul
-marks sit under the scorer's Strike and Next rather than beside them: two
-buttons every ball uses do not give up a third of their width each for two
-marks a bowler throws a handful of times a season. One tap opens the row, one
-tap records, and the row folds back.
+**A control that is rarely reached goes behind More.** Foul and Undo sit in
+one menu under the scorer's Strike and Next rather than beside them: two
+buttons every ball uses do not give up their width for things a bowler reaches
+for a handful of times a night. More is a quiet outlined button the width of the
+column, so it lines up with the row above it, and its menu opens upward over the
+deck. There is no Gutter button: a gutter is every pin left standing, and the
+deck already says that (ADR-117).
 
 **A revealed row does not depend on the keyboard staying up.** The board
 adjusters appear while a field is focused, and iOS will take that focus back
@@ -338,10 +340,12 @@ blur the row itself caused, or the control reads as a button that only dismisses
 the keyboard (ADR-091).
 
 **A revealed control opens away from the keyboard and moves nothing.** The
-adjusters float above the field rather than below it, where they sat against
-the keyboard's toolbar and over the next section's controls (ADR-114). Each
-direction is its own button with a word on it, and acts on click, never on
-pointerdown. A focus never writes data: a value copied from elsewhere comes
+adjusters float over the pin deck, one to a row with their foot level with the
+field, never below it, where they sat against the keyboard's toolbar and over
+the next section's controls (ADR-114, ADR-117). Each direction is its own
+button with a word on it, acts on click, never on pointerdown, and answers the
+press: the side tints and its chevron kicks the way the line moved, because iOS
+barely shows `:active` on a quick tap. A focus never writes data: a value copied from elsewhere comes
 from a control that says so ("As intended").
 
 **Changing something already recorded asks first.** Editing a recorded shot or

@@ -3,10 +3,13 @@ import { createPortal } from "react-dom";
 import { useOverlay } from "../../lib/useOverlay";
 
 interface AnchoredMenuProps {
-  /** Viewport coordinates of the menu's top-leading corner, from the control
-   *  that opened it (`getBoundingClientRect`). */
+  /** Viewport coordinates of the menu's leading edge and its top, from the
+   *  control that opened it (`getBoundingClientRect`). */
   left: number;
-  top: number;
+  top?: number;
+  /** Distance from the viewport's bottom edge to the menu's bottom, in place
+   *  of `top`, for a menu that opens upward off a control low on the screen. */
+  bottom?: number;
   onClose: () => void;
   children: React.ReactNode;
 }
@@ -19,7 +22,7 @@ interface AnchoredMenuProps {
  * Its scrim is transparent rather than dimmed. A menu is anchored to the thing
  * it acts on, so darkening the screen would hide the row you long-pressed.
  */
-export function AnchoredMenu({ left, top, onClose, children }: AnchoredMenuProps) {
+export function AnchoredMenu({ left, top, bottom, onClose, children }: AnchoredMenuProps) {
   const overlayRef = useOverlay<HTMLDivElement>(onClose);
 
   return createPortal(
@@ -27,8 +30,10 @@ export function AnchoredMenu({ left, top, onClose, children }: AnchoredMenuProps
       <div className="fixed inset-0 z-10" onClick={onClose} />
       <div
         ref={overlayRef}
-        className="fixed z-20 w-44 origin-top animate-pop-in overflow-hidden rounded-lg border border-edge bg-surface py-1 shadow-lg"
-        style={{ left, top }}
+        className={`fixed z-20 w-44 animate-pop-in overflow-hidden rounded-lg border border-edge bg-surface py-1 shadow-lg ${
+          bottom != null ? "origin-bottom" : "origin-top"
+        }`}
+        style={bottom != null ? { left, bottom } : { left, top }}
       >
         {children}
       </div>
