@@ -360,8 +360,8 @@ export function DashboardView({
         <ListGroup heading="Tools and reference">
           <ListRow
             icon={Compass}
-            label="Layout lab"
-            ariaLabel="Layout lab"
+            label="Layouts"
+            ariaLabel="Layouts"
             description="Try a layout on your PAP"
             onClick={onOpenLayoutLab}
           />

@@ -20,6 +20,8 @@ interface BowlerViewProps {
  * Hand and grip, a push behind one Settings row. They are answered once, at
  * first run, and almost never again, and flipping the hand mirrors every board
  * in the app, so neither should sit on the Settings list one stray tap away.
+ * No prose under the headings: the controls say what they are, and what each
+ * answer changes is the guide behind "Why it matters".
  */
 export function BowlerView({ handedness, onHandednessChange, onOpenGuide, onBack }: BowlerViewProps) {
   const grip: GripStyle = useLiveQuery(getGripStyle, [], undefined) ?? "1h";
@@ -27,19 +29,12 @@ export function BowlerView({ handedness, onHandednessChange, onOpenGuide, onBack
   const body = (
     <section className="mx-auto w-full max-w-3xl space-y-6 px-3 py-4 sm:px-6">
       <div>
-        <h2 className={GROUP_HEADING}>Handedness</h2>
-        <p className="mb-3 mt-1 text-sm leading-relaxed text-ink-secondary">
-          Boards count in from your side of the lane, so every line, spare target and drift
-          reads from the hand you bowl with. Sessions already recorded keep their numbers.
-        </p>
+        <h2 className={`mb-3 ${GROUP_HEADING}`}>Handedness</h2>
         <HandednessPicker value={handedness} onSelect={onHandednessChange} />
       </div>
 
       <div>
-        <h2 className={GROUP_HEADING}>Grip</h2>
-        <p className="mb-3 mt-1 text-sm leading-relaxed text-ink-secondary">
-          How the layout lab draws your ball. Scoring is the same either way.
-        </p>
+        <h2 className={`mb-3 ${GROUP_HEADING}`}>Grip</h2>
         <SegmentedControl
           label="Grip style"
           value={grip}

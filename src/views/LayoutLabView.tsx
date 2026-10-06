@@ -335,7 +335,7 @@ export function LayoutLabView({ onBack, onOpenSettings, seed }: LayoutLabViewPro
 
   return (
     <PushScreen
-      title="Layout lab"
+      title="Layouts"
       onBack={onBack}
       /* Escape belongs to whatever is layered on top. Without this the menu's
          own Escape and the screen's both fired, so dismissing the menu also

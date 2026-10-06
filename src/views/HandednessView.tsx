@@ -23,54 +23,46 @@ const BOARD_MAX = 39; // upper board bound (matches deriveLaydown's clamp range)
 const ZONES = ["outside", "middle", "inside"] as const;
 
 /**
- * The Advanced settings (ADR-115): the numbers only the lane view and the
- * layout lab read. Handedness and grip used to open this screen, above PAP and
- * drift, as if a new bowler had to understand all of it; they are answered on
- * the Settings list itself now, and the long explanations are a guide.
+ * PAP, release and drift (ADR-115): the numbers only the lane view and the
+ * Layouts page read, a row under Bowler in Settings. Handedness and grip used to
+ * open this screen, above PAP and drift, as if a new bowler had to understand
+ * all of it; they have their own page now, and the long explanations are a guide.
  */
 export function HandednessView({ value, driftModel, onDriftModelChange, onBack }: HandednessViewProps) {
-  const ballSide = value === "right" ? "right" : "left";
-
   function setReleaseOffset(v: number) {
     onDriftModelChange({ ...driftModel, release_offset: v });
   }
 
   function setOutsideMax(v: number) {
     // Guard invariant: keep the middle zone at least 1 board wide.
-    const clamped = Math.min(v, driftModel.inside_min - 2);
-    onDriftModelChange({ ...driftModel, outside_max: clamped });
+    const clamped = Math.max(1, Math.min(v, driftModel.inside_min - 2));
+    if (clamped !== driftModel.outside_max) onDriftModelChange({ ...driftModel, outside_max: clamped });
   }
 
   function setInsideMin(v: number) {
-    const clamped = Math.max(v, driftModel.outside_max + 2);
-    onDriftModelChange({ ...driftModel, inside_min: clamped });
+    const clamped = Math.min(BOARD_MAX, Math.max(v, driftModel.outside_max + 2));
+    if (clamped !== driftModel.inside_min) onDriftModelChange({ ...driftModel, inside_min: clamped });
   }
 
   function setDrift(zone: keyof DriftModel["drift"], v: number) {
     onDriftModelChange({ ...driftModel, drift: { ...driftModel.drift, [zone]: v } });
   }
 
-  // The bowler's axis, read live: the layout lab writes the same setting, and
-  // a read taken once at mount would sit here stale behind the lab that is
+  // The bowler's axis, read live: the Layouts page writes the same setting, and
+  // a read taken once at mount would sit here stale behind the page that is
   // pushed over this very screen.
   const pap = useLiveQuery(getPap, [], undefined) ?? DEFAULT_PAP;
   const zoneRange: Record<(typeof ZONES)[number], string> = {
-    outside: `Boards 1 to ${driftModel.outside_max}`,
-    middle: `Boards ${driftModel.outside_max + 0.5} to ${driftModel.inside_min - 0.5}`,
-    inside: `Boards ${driftModel.inside_min} to ${BOARD_MAX}`
+    outside: `1 to ${driftModel.outside_max}`,
+    middle: `${driftModel.outside_max + 0.5} to ${driftModel.inside_min - 0.5}`,
+    inside: `${driftModel.inside_min} to ${BOARD_MAX}`
   };
 
   const body = (
     <section className="mx-auto w-full max-w-3xl space-y-7 px-3 py-4 sm:px-6">
       <Group
         heading="Your PAP"
-        description={
-          <>
-            Your positive axis point, measured from the center of your grip: over toward
-            your thumb side, then up or down. The layout lab reads every number against
-            it, so a layout is only right when this is.
-          </>
-        }
+        description="Your positive axis point, measured from the center of your grip. The Layouts page uses it."
       >
         <div className="space-y-2 rounded-xl border border-edge bg-surface p-3">
           <PapEditor pap={pap} onChange={(next) => void setPap(next)} idPrefix="settings-pap" />
@@ -79,13 +71,7 @@ export function HandednessView({ value, driftModel, onDriftModelChange, onBack }
 
       <Group
         heading="Release offset"
-        description={
-          <>
-            Boards from your slide foot to the ball's laydown point. It counts to the{" "}
-            <span className="font-semibold text-ink-strong">{ballSide}</span> of your foot, the
-            side you release on.
-          </>
-        }
+        description="Boards from your slide foot to the ball's laydown point. Used to calculate and draw your lines."
       >
         <div className="rounded-xl border border-edge bg-surface px-3">
           <Row label="Offset" hint="boards">
@@ -102,58 +88,38 @@ export function HandednessView({ value, driftModel, onDriftModelChange, onBack }
       </Group>
 
       <Group
-        heading="Drift zones"
-        description="Set how much you drift, depending on where you start on the approach."
+        heading="Drift"
+        description="How far you drift on the approach, by where you start. Used to calculate and draw your lines. Drag the edges on the lane to move the zones."
       >
-        <DriftZoneLane model={driftModel} hand={value} />
+        <DriftZoneLane
+          model={driftModel}
+          hand={value}
+          onOutsideMaxChange={setOutsideMax}
+          onInsideMinChange={setInsideMin}
+        />
 
         <div className="mt-3 space-y-2">
           {ZONES.map((zone) => (
             <div key={zone} className="rounded-xl border border-edge bg-surface p-3">
-              <div className="mb-1 flex items-center gap-2">
+              <div className="flex items-center gap-2">
                 <span className={`h-2.5 w-2.5 rounded-full ${ZONE_ACCENT[zone].swatch}`} aria-hidden="true" />
                 <span className="text-sm font-semibold capitalize text-ink">{zone}</span>
-                <span className="ml-auto text-xs tabular-nums text-ink-secondary">{zoneRange[zone]}</span>
-              </div>
-              <div className="divide-y divide-edge">
-                {zone === "outside" && (
-                  <Row label="Ends at board">
-                    <Stepper
-                      ariaLabel="outside range end"
-                      value={driftModel.outside_max}
-                      step={0.5}
-                      min={1}
-                      max={driftModel.inside_min - 2}
-                      onChange={setOutsideMax}
-                    />
-                  </Row>
-                )}
-                {zone === "inside" && (
-                  <Row label="Starts at board">
-                    <Stepper
-                      ariaLabel="inside range start"
-                      value={driftModel.inside_min}
-                      step={0.5}
-                      min={driftModel.outside_max + 2}
-                      max={BOARD_MAX}
-                      onChange={setInsideMin}
-                    />
-                  </Row>
-                )}
-                <Row label="Drift">
+                <div className="ml-auto shrink-0">
                   <DriftStepper
                     ariaLabel={`${zone} drift`}
                     value={driftModel.drift[zone]}
                     hand={value}
                     onChange={(v) => setDrift(zone, v)}
                   />
-                </Row>
+                </div>
               </div>
+              <p className="mt-1.5 text-xs text-ink-secondary">
+                {describeDrift(driftModel.drift[zone], value, zoneRange[zone])}
+              </p>
             </div>
           ))}
         </div>
       </Group>
-
     </section>
   );
 
@@ -187,6 +153,15 @@ function Group({
       {children}
     </section>
   );
+}
+
+/** One zone's drift as a sentence, in the direction the foot actually moves. */
+function describeDrift(drift: number, hand: Handedness, range: string): string {
+  const dir = driftDirection(drift, hand);
+  const stance = `when your stance is on boards ${range}`;
+  if (dir === "none") return `You do not drift ${stance}.`;
+  const n = Math.abs(drift);
+  return `You drift ${n} ${n === 1 ? "board" : "boards"} ${dir} ${stance}.`;
 }
 
 /** Label on the left, control flush right: one grid for every input on the page. */

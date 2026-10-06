@@ -2,7 +2,7 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { HandednessView } from "./HandednessView";
 import { db } from "../db/bowlingDb";
-import { DEFAULT_DRIFT_MODEL } from "../lib/driftModel";
+import { DEFAULT_DRIFT_MODEL, type DriftModel } from "../lib/driftModel";
 import { getPap, setPap } from "../services/bowlingRepository";
 
 const renderPrefs = () => {
@@ -21,14 +21,14 @@ describe("HandednessView", () => {
     await db.open();
   });
 
-  it("holds the numbers only the lane view and the layout lab read", () => {
+  it("holds the numbers only the lane view and the Layouts page read", () => {
     // Handedness and grip are answered on the Settings list itself (ADR-115).
     renderPrefs();
     expect(screen.queryByRole("button", { name: "Two-handed" })).not.toBeInTheDocument();
     expect(screen.getByText("Release offset")).toBeInTheDocument();
   });
 
-  it("edits the same stored PAP the layout lab does", async () => {
+  it("edits the same stored PAP the Layouts page does", async () => {
     await setPap({ over: 4, up: 0.5 });
     renderPrefs();
     await waitFor(() =>
@@ -75,5 +75,61 @@ describe("HandednessView", () => {
     // Not a negative zero, which is the whole reason the direction is its own
     // control rather than a minus on the whole inches.
     await waitFor(async () => expect(await getPap()).toEqual({ over: 5, up: -0.5 }));
+  });
+
+  it("sets the zone edges on the lane, with no board fields beside it", () => {
+    const onChange = vi.fn();
+    render(<HandednessView value="right" driftModel={DEFAULT_DRIFT_MODEL} onDriftModelChange={onChange} />);
+    expect(screen.queryByText("Ends at board")).not.toBeInTheDocument();
+    expect(screen.queryByText("Starts at board")).not.toBeInTheDocument();
+    expect(screen.queryByText(/← left/)).not.toBeInTheDocument();
+
+    // Board 1 is on the right for a right-hander, so the right arrow walks the
+    // outside edge toward it.
+    const outside = screen.getByRole("slider", { name: "Outside zone ends at board" });
+    expect(outside).toHaveAttribute("aria-valuenow", "14");
+    fireEvent.keyDown(outside, { key: "ArrowRight" });
+    expect(onChange).toHaveBeenLastCalledWith({ ...DEFAULT_DRIFT_MODEL, outside_max: 13.5 });
+
+    const inside = screen.getByRole("slider", { name: "Inside zone starts at board" });
+    fireEvent.keyDown(inside, { key: "ArrowLeft" });
+    expect(onChange).toHaveBeenLastCalledWith({ ...DEFAULT_DRIFT_MODEL, inside_min: 25.5 });
+  });
+
+  it("drags the nearer edge to the board under the finger", () => {
+    const onChange = vi.fn();
+    render(<HandednessView value="left" driftModel={DEFAULT_DRIFT_MODEL} onDriftModelChange={onChange} />);
+    const lane = screen.getByRole("group", { name: /Approach board diagram/ });
+    // 390 wide on screen, 10 px a board. A left-hander's board 1 is on the left.
+    lane.getBoundingClientRect = () => ({ left: 0, width: 390, top: 0, height: 168, right: 390, bottom: 168, x: 0, y: 0, toJSON: () => ({}) });
+    // jsdom's PointerEvent drops clientX, so the pointer events go in as mouse
+    // events under the pointer type names, which is what React listens for.
+    fireEvent(lane, new MouseEvent("pointerdown", { bubbles: true, clientX: 100 }));
+    expect(onChange).toHaveBeenLastCalledWith({ ...DEFAULT_DRIFT_MODEL, outside_max: 10 });
+    // Nearer the inside edge (board 24 on the left-hander's side), it moves that one.
+    fireEvent(lane, new MouseEvent("pointerup", { bubbles: true }));
+    fireEvent(lane, new MouseEvent("pointerdown", { bubbles: true, clientX: 270 }));
+    expect(onChange).toHaveBeenLastCalledWith({ ...DEFAULT_DRIFT_MODEL, inside_min: 28 });
+  });
+
+  it("keeps the middle zone open however far an edge is pushed", () => {
+    const onChange = vi.fn();
+    const model: DriftModel = { ...DEFAULT_DRIFT_MODEL, outside_max: 23, inside_min: 25 };
+    render(<HandednessView value="right" driftModel={model} onDriftModelChange={onChange} />);
+    fireEvent.keyDown(screen.getByRole("slider", { name: "Outside zone ends at board" }), { key: "ArrowLeft" });
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it("says each zone's drift in a sentence under its row", () => {
+    render(
+      <HandednessView
+        value="right"
+        driftModel={{ ...DEFAULT_DRIFT_MODEL, drift: { outside: 2, middle: 0, inside: -1 } }}
+        onDriftModelChange={vi.fn()}
+      />
+    );
+    expect(screen.getByText(/You drift 2 boards \w+ when your stance is on boards 1 to 14\./)).toBeInTheDocument();
+    expect(screen.getByText("You do not drift when your stance is on boards 14.5 to 24.5.")).toBeInTheDocument();
+    expect(screen.getByText(/You drift 1 board \w+ when your stance is on boards 25 to 39\./)).toBeInTheDocument();
   });
 });
