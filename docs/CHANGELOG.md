@@ -9,6 +9,12 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.5.1: Two notes dropped from the hand, grip and approach guide (2026-10-06)
+
+The two green note boxes in "Your hand, grip and approach" are gone: the one on
+the motion reading and the one saying none of it is needed to keep score.
+The rest of the guide is reworded in plainer language.
+
 ## 0.5.0: Settings regrouped, and drift zones set by dragging on the lane (2026-10-06)
 
 **PAP, release and drift moves under Bowler**, next to your name and your hand
