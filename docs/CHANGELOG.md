@@ -9,6 +9,11 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.9.1: Long screen titles truncate (2026-10-07)
+
+**Long titles end in an ellipsis.** A long pattern name no longer runs under the
+back and trailing buttons in a screen's header.
+
 ## 0.9.0: Pattern filters in a sheet, and a length slider (2026-10-07)
 
 **Pattern filters moved into a sheet.** A filter button beside the search box
