@@ -586,6 +586,9 @@ function App() {
             onDriftModelChange={updateDriftModel}
             onOpenBackup={goToBackup}
             onOpenLineVisualizer={(patternId) => dispatch({ type: "openLineSandbox", patternId })}
+            onOpenArsenal={() => pushOverlay("arsenal")}
+            onOpenSpareLines={() => pushOverlay("spares")}
+            onOpenLaneNotes={() => pushOverlay("lanes")}
             onOpenGuide={(guideId) => {
               pushOverlay("guides");
               dispatch({ type: "openGuide", guideId });

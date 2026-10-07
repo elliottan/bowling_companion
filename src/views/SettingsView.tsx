@@ -11,6 +11,7 @@ import type { DriftModel } from "../lib/driftModel";
 import { DONATE_URL, LEGAL_URL } from "../lib/links";
 import { openFeedbackEmail } from "../lib/diagnostics";
 import { ListGroup, ListRow } from "../components/ui/ListGroup";
+import { BowlingBallIcon, LanePairIcon, SpareLineIcon } from "../components/icons";
 
 // Navigating to a section is a navigation action, so the union lives with the
 // rest of the navigation state.
@@ -36,6 +37,10 @@ interface SettingsViewProps {
   onOpenLineVisualizer: (patternId?: number) => void;
   /** Open one guide article: the long form of a one-line caption here. */
   onOpenGuide: (guideId: string) => void;
+  /** The same overlays Home opens, so both doors land on the same screen. */
+  onOpenArsenal: () => void;
+  onOpenSpareLines: () => void;
+  onOpenLaneNotes: () => void;
 }
 
 /** The guide behind the "Why it matters" links (`lib/guides`). */
@@ -54,7 +59,7 @@ const OilPatternsView = lazy(() =>
   import("./OilPatternsView").then((m) => ({ default: m.OilPatternsView }))
 );
 
-export function SettingsView({ section, onSectionChange, handedness, onHandednessChange, driftModel, onDriftModelChange, onOpenBackup, onOpenLineVisualizer, onOpenGuide }: SettingsViewProps) {
+export function SettingsView({ section, onSectionChange, handedness, onHandednessChange, driftModel, onDriftModelChange, onOpenBackup, onOpenLineVisualizer, onOpenGuide, onOpenArsenal, onOpenSpareLines, onOpenLaneNotes }: SettingsViewProps) {
   const back = () => onSectionChange("menu");
 
   // The menu stays mounted underneath the pushed section, so popping back
@@ -67,6 +72,9 @@ export function SettingsView({ section, onSectionChange, handedness, onHandednes
           driftModel={driftModel}
           onOpenBackup={onOpenBackup}
           onSectionChange={onSectionChange}
+          onOpenArsenal={onOpenArsenal}
+          onOpenSpareLines={onOpenSpareLines}
+          onOpenLaneNotes={onOpenLaneNotes}
         />
       </div>
       {section !== "menu" && (
@@ -111,8 +119,20 @@ function SettingsMenu({
   handedness,
   driftModel,
   onOpenBackup,
-  onSectionChange
-}: Pick<SettingsViewProps, "handedness" | "driftModel" | "onOpenBackup" | "onSectionChange">) {
+  onSectionChange,
+  onOpenArsenal,
+  onOpenSpareLines,
+  onOpenLaneNotes
+}: Pick<
+  SettingsViewProps,
+  | "handedness"
+  | "driftModel"
+  | "onOpenBackup"
+  | "onSectionChange"
+  | "onOpenArsenal"
+  | "onOpenSpareLines"
+  | "onOpenLaneNotes"
+>) {
   const [installOpen, setInstallOpen] = useState(false);
   const [editingName, setEditingName] = useState(false);
   const name = useLiveQuery(getBowlerName, [], undefined);
@@ -167,6 +187,24 @@ function SettingsMenu({
           label="PAP, release and drift"
           description={papDescription}
           onClick={() => onSectionChange("preferences")}
+        />
+        <ListRow
+          icon={BowlingBallIcon}
+          label="Arsenal"
+          description="Your balls and their layouts"
+          onClick={onOpenArsenal}
+        />
+        <ListRow
+          icon={SpareLineIcon}
+          label="Spare lines"
+          description="Your lines for each spare"
+          onClick={onOpenSpareLines}
+        />
+        <ListRow
+          icon={LanePairIcon}
+          label="Lane notes"
+          description="What each lane did"
+          onClick={onOpenLaneNotes}
         />
       </ListGroup>
 

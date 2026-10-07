@@ -17,6 +17,9 @@ function renderBowler(onOpenGuide = vi.fn()) {
       onDriftModelChange={vi.fn()}
       onOpenBackup={vi.fn()}
       onOpenLineVisualizer={vi.fn()}
+      onOpenArsenal={vi.fn()}
+      onOpenSpareLines={vi.fn()}
+      onOpenLaneNotes={vi.fn()}
       onOpenGuide={onOpenGuide}
     />
   );
@@ -33,6 +36,9 @@ function renderMenu(onOpenGuide = vi.fn(), onSectionChange = vi.fn()) {
       onDriftModelChange={vi.fn()}
       onOpenBackup={vi.fn()}
       onOpenLineVisualizer={vi.fn()}
+      onOpenArsenal={vi.fn()}
+      onOpenSpareLines={vi.fn()}
+      onOpenLaneNotes={vi.fn()}
       onOpenGuide={onOpenGuide}
     />
   );
@@ -44,7 +50,7 @@ describe("SettingsView", () => {
     await db.open();
   });
 
-  it("holds settings only, and leaves the places to keep things to Home", () => {
+  it("holds settings and the bowler's own places, but not the tools or patterns", () => {
     renderMenu();
 
     for (const label of [
@@ -55,7 +61,7 @@ describe("SettingsView", () => {
     ]) {
       expect(screen.getByRole("button", { name: new RegExp(label) })).toBeInTheDocument();
     }
-    for (const gone of ["Arsenal", "Spare lines", "Lane notes", "Oil patterns", "Catalog", "Line visualizer"]) {
+    for (const gone of ["Oil patterns", "Catalog", "Line visualizer"]) {
       expect(screen.queryByRole("button", { name: new RegExp(gone) })).not.toBeInTheDocument();
     }
 
@@ -68,7 +74,7 @@ describe("SettingsView", () => {
     renderMenu();
     const bowler = screen.getByRole("heading", { name: "Bowler" }).closest("section")!;
     const app = screen.getByRole("heading", { name: "App" }).closest("section")!;
-    for (const label of ["Name", "Hand and grip", "PAP, release and drift"]) {
+    for (const label of ["Name", "Hand and grip", "PAP, release and drift", "Arsenal", "Spare lines", "Lane notes"]) {
       expect(within(bowler).getByRole("button", { name: new RegExp(label) })).toBeInTheDocument();
     }
     for (const label of ["Appearance", "Backup & restore"]) {
