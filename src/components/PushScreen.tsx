@@ -140,7 +140,7 @@ export function PushScreen({
               {/* Optically centred: the chevron's mass sits right of its box. */}
               <ChevronLeft size={22} strokeWidth={2.5} aria-hidden="true" className="-ml-0.5" />
             </IconButton>
-            <h1 className="pointer-events-none absolute left-1/2 -translate-x-1/2 truncate text-[17px] font-semibold text-ink">
+            <h1 className="pointer-events-none absolute left-1/2 max-w-[calc(100%-6.5rem)] -translate-x-1/2 truncate text-[17px] font-semibold text-ink">
               {title}
             </h1>
             <div className="ml-auto flex shrink-0 items-center">{trailing}</div>
