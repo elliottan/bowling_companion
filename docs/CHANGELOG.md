@@ -9,6 +9,12 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.7.0: Arsenal, spare lines and lane notes in Settings (2026-10-07)
+
+**Settings has three new rows under Bowler.** Arsenal, Spare lines and Lane
+notes open the same screens as on Home, so you can reach them from either
+place.
+
 ## 0.6.3: Guides without the green boxes, and zooming a guide covers the screen (2026-10-07)
 
 **The shaded green notes are gone from the guides.** Each article ended on a
