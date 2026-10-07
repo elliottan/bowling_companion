@@ -647,6 +647,19 @@
       when offline, which is most of the time for an installed app.
     -->
     <script defer src="/_vercel/insights/script.js"></script>
+    <!--
+      Umami on the landing page only (ADR-121): page views and the utm_ tags on
+      ad links, so each ad's visits can be told apart. Cookieless, like the
+      Vercel counts. data-domains keeps dev servers and preview deploys out.
+      The app itself does not load this; it sends its own three counts
+      (src/services/usageReporter.ts) to the same site id.
+    -->
+    <script
+      defer
+      src="https://cloud.umami.is/script.js"
+      data-website-id="5beede37-b88c-4664-a67a-f6205b66b8b6"
+      data-domains="headpin.app"
+    ></script>
   </head>
   <body>
     <header class="hero">

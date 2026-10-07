@@ -15,11 +15,11 @@ import {
 /**
  * Sends the anonymous usage counts (ADR-120) to Umami Cloud.
  *
- * The website id comes from Umami's dashboard once the site is added there. It
- * is not a secret: it ships in every page that reports. Null sends nothing at
- * all, which is how the app ships until the account exists.
+ * The website id is from Umami's dashboard for headpin.app. It isn't a secret:
+ * it ships in every page that reports, the landing page's script tag included.
+ * Null would send nothing at all.
  */
-export const UMAMI_WEBSITE_ID: string | null = null;
+export const UMAMI_WEBSITE_ID: string | null = "5beede37-b88c-4664-a67a-f6205b66b8b6";
 
 /** Events held in localStorage while the phone is offline. A per-device
  *  convenience: losing it loses a few counts, never a bowler's data. */
