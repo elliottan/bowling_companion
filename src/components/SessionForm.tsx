@@ -11,6 +11,7 @@ import type { CreateSessionInput } from "../services/bowlingRepository";
 import type { OilPattern } from "../types/bowling";
 import { getOilPattern, getOilPatterns } from "../services/ballRepository";
 import { getDistinctAlleys, getDistinctDescriptions } from "../services/bowlingRepository";
+import { patternLabel } from "../lib/oilPattern";
 
 export interface NewSessionFormValues extends CreateSessionInput {
   lanes: string[];
@@ -235,7 +236,7 @@ export function SessionForm({
                 </option>
                 {oilPatterns.map((op) => (
                   <option key={op.id} value={op.id}>
-                    {op.archived ? `${op.name} (archived)` : op.name}
+                    {op.archived ? `${patternLabel(op)} (archived)` : patternLabel(op)}
                   </option>
                 ))}
               </select>

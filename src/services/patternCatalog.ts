@@ -162,6 +162,7 @@ export async function syncPatternCatalog(): Promise<void> {
       await db.oil_patterns.update(adoptable.id, {
         catalog_id: pattern.id,
         passes: pattern.passes,
+        url: adoptable.url ?? pattern.sourceUrl,
       });
       adoptable.catalog_id = pattern.id;
       continue;

@@ -9,6 +9,26 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.8.0: Oil patterns by length, and a pattern opens as its own screen (2026-10-07)
+
+**Patterns show their length first.** Every pattern reads "(42) Chromium 6742"
+in the list, the catalog and both pattern pickers (the session form and the
+line visualizer).
+
+**Filter patterns by length.** Short (37 ft and under), Medium and Long (43 ft
+and over) sit under the play style filters. The filters in the catalog picker
+now filter it too; before, they did nothing there.
+
+**A pattern's details slide in like any other screen,** with a back button.
+The line visualizer is the icon at the top right, in place of the X and the
+button in the body.
+
+**The original pattern sheet stays one tap away** after a pattern is linked to
+the catalog, on its details screen and in the editor.
+
+**The pattern editor is quieter.** The load table is labelled with the
+pattern's name, and the line about passes is gone.
+
 ## 0.7.0: Arsenal, spare lines and lane notes in Settings (2026-10-07)
 
 **Settings has three new rows under Bowler.** Arsenal, Spare lines and Lane
