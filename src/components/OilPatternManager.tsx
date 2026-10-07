@@ -11,6 +11,7 @@ import { FormSheet } from "./ui/FormSheet";
 import { Button } from "./ui/Button";
 import { EmptyState } from "./ui/EmptyState";
 import { IconButton } from "./ui/IconButton";
+import { Chip } from "./ui/Chip";
 import {
   addOilPattern,
   getAllOilPatterns,
@@ -20,7 +21,8 @@ import {
 } from "../services/ballRepository";
 import type { OilPass, OilPattern } from "../types/bowling";
 import {
-  headlineRatio, oilStats, patternClass, patternLength, PATTERN_CLASS_LABEL, type PatternClass,
+  headlineRatio, oilStats, patternClass, patternLabel, patternLength, patternLengthBand,
+  PATTERN_CLASS_LABEL, PATTERN_LENGTH_LABEL, type PatternClass, type PatternLengthBand,
 } from "../lib/oilPattern";
 import { FIELD } from "./ui/field";
 import { getCatalogPatterns, type CatalogPattern } from "../services/patternCatalog";
@@ -64,6 +66,7 @@ export function OilPatternManager({ onBack, mode = "inline", onOpenLineVisualize
   const [linkTo, setLinkTo] = useState<OilPattern | null>(null);
   const [sheetFor, setSheetFor] = useState<OilPattern | null>(null);
   const [shape, setShape] = useState<PatternClass | null>(null);
+  const [band, setBand] = useState<PatternLengthBand | null>(null);
 
   // The shipped catalog (ADR-104). Loaded once, and an empty one simply means
   // nothing to start from, never a broken screen.
@@ -75,8 +78,6 @@ export function OilPatternManager({ onBack, mode = "inline", onOpenLineVisualize
 
   /** Add a catalog pattern to your own list. It is copied, not referenced: a
    *  pattern in your list is yours, and editing it must never edit the catalog. */
-  // One box for both things worth searching by: a pattern's name, and how long
-  // it is. Typing 40 finds the forty footers, typing stone finds Stonehenge.
   async function addFromCatalog(pattern: CatalogPattern) {
     const target = linkTo;
     setShowCatalog(false);
@@ -109,19 +110,16 @@ export function OilPatternManager({ onBack, mode = "inline", onOpenLineVisualize
   const all = useMemo(() => patterns.filter((p) => !p.archived), [patterns]);
   // One list, searched one way. The catalog seeds itself into it (ADR-105), so
   // there is nothing here to tell apart from anything else.
-  const active = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    return all.filter((pattern) => {
-      const ratio = headlineRatio(pattern.passes);
-      if (shape && patternClass(ratio) !== shape) return false;
-      if (!q) return true;
-      const feet = patternLength(pattern);
-      return (
-        pattern.name.toLowerCase().includes(q) ||
-        (feet != null && String(Math.round(feet)).startsWith(q))
-      );
-    });
-  }, [all, query, shape]);
+  const active = useMemo(
+    () => all.filter((p) =>
+      matchesFilters(p.name, patternLength(p), patternClass(headlineRatio(p.passes)), { query, shape, band })),
+    [all, query, shape, band]
+  );
+  const catalogShown = useMemo(
+    () => catalog.filter((p) =>
+      matchesFilters(p.name, p.distance, p.shape ?? patternClass(p.ratio), { query, shape, band })),
+    [catalog, query, shape, band]
+  );
   const archived = useMemo(() => patterns.filter((p) => p.archived), [patterns]);
 
   async function handleSubmit(values: { name: string; url?: string; passes?: OilPass[]; distance?: number }) {
@@ -205,24 +203,7 @@ export function OilPatternManager({ onBack, mode = "inline", onOpenLineVisualize
             placeholder="Name or length, e.g. Stonehenge or 40"
             aria-label="Search patterns"
           />
-          {/* How a pattern plays, by its ratio, derived rather than claimed. */}
-          <div className="mb-3 flex gap-1.5">
-            {(["sport", "challenge", "recreation"] as const).map((option) => (
-              <button
-                key={option}
-                type="button"
-                onClick={() => setShape((current) => (current === option ? null : option))}
-                aria-pressed={shape === option}
-                className={`rounded-full border px-3 py-1 text-xs font-semibold ${
-                  shape === option
-                    ? "border-accent-fill bg-accent-soft text-accent-strong"
-                    : "border-edge-strong bg-surface text-ink-secondary"
-                }`}
-              >
-                {PATTERN_CLASS_LABEL[option]}
-              </button>
-            ))}
-          </div>
+          <PatternFilters shape={shape} onShape={setShape} band={band} onBand={setBand} />
         </>
       )}
 
@@ -307,28 +288,10 @@ export function OilPatternManager({ onBack, mode = "inline", onOpenLineVisualize
             aria-label="Search patterns"
           />
 
-          {/* How a pattern plays, by its ratio: the first thing a bowler wants
-              to filter on, and derived rather than claimed (ADR-101). */}
-          <div className="mb-3 flex gap-1.5">
-            {(["sport", "challenge", "recreation"] as const).map((option) => (
-              <button
-                key={option}
-                type="button"
-                onClick={() => setShape((current) => (current === option ? null : option))}
-                aria-pressed={shape === option}
-                className={`rounded-full border px-3 py-1 text-xs font-semibold ${
-                  shape === option
-                    ? "border-accent-fill bg-accent-soft text-accent-strong"
-                    : "border-edge-strong bg-surface text-ink-secondary"
-                }`}
-              >
-                {PATTERN_CLASS_LABEL[option]}
-              </button>
-            ))}
-          </div>
+          <PatternFilters shape={shape} onShape={setShape} band={band} onBand={setBand} />
 
           <ListGroup>
-            {catalog.map((pattern) => (
+            {catalogShown.map((pattern) => (
               <li key={pattern.id} className={`flex items-center ${LIST_DIVIDER}`}>
                 <button
                   type="button"
@@ -336,9 +299,9 @@ export function OilPatternManager({ onBack, mode = "inline", onOpenLineVisualize
                   className="flex min-w-0 flex-1 items-center gap-3 px-3 py-2.5 text-left active:bg-surface-muted"
                 >
                   <span className="min-w-0 flex-1">
-                    <span className="block truncate font-semibold text-ink">{pattern.name}</span>
+                    <span className="block truncate font-semibold text-ink">{patternLabel(pattern)}</span>
                     <span className="block truncate text-xs tabular-nums text-ink-secondary">
-                      {Math.round(pattern.distance)} ft · {pattern.volumeMl.toFixed(2)} mL
+                      {pattern.volumeMl.toFixed(2)} mL
                       {pattern.ratio != null ? ` · ${pattern.ratio.toFixed(1)}:1` : ""}
                       {(pattern.shape ?? patternClass(pattern.ratio))
                         ? ` · ${PATTERN_CLASS_LABEL[(pattern.shape ?? patternClass(pattern.ratio))!]}`
@@ -363,6 +326,7 @@ export function OilPatternManager({ onBack, mode = "inline", onOpenLineVisualize
         initial={editing}
         onSubmit={handleSubmit}
         onRemove={editing && !editing.catalog_id ? () => setPendingRemove(editing) : undefined}
+        catalogName={catalog.find((c) => c.id === editing?.catalog_id)?.name}
         onLinkCatalog={
           editing && !editing.catalog_id && catalog.length > 0
             ? () => {
@@ -398,7 +362,7 @@ export function OilPatternManager({ onBack, mode = "inline", onOpenLineVisualize
       mode={mode}
       title="Oil patterns"
       onBack={onBack}
-      active={!dialogOpen && pendingRemove === null}
+      active={!dialogOpen && pendingRemove === null && sheetFor === null && !showCatalog}
       trailing={
         <IconButton onClick={openAdd} label="Add oil pattern" variant="round">
           <Plus size={24} aria-hidden="true" />
@@ -418,8 +382,8 @@ function summarize(pattern: OilPattern): string {
   if (stats.length > 0) {
     const ratio = headlineRatio(pattern.passes);
     const shape = patternClass(ratio);
+    // The length leads the name (patternLabel), so it is not repeated here.
     return [
-      `${Math.round(stats.length)} ft`,
       `${stats.volumeMl.toFixed(2)} mL`,
       ratio != null ? `${ratio.toFixed(1)}:1` : null,
       shape ? PATTERN_CLASS_LABEL[shape] : null,
@@ -427,8 +391,6 @@ function summarize(pattern: OilPattern): string {
   }
   // No table, so the length is whatever was typed, and there is no ratio to
   // classify by: a pattern you added yourself is a label, not a drawing.
-  const feet = patternLength(pattern);
-  if (feet != null) return `${Math.round(feet)} ft`;
   return pattern.url ? "Pattern sheet saved" : "No link";
 }
 
@@ -456,7 +418,7 @@ function PatternRow({
         className="flex min-w-0 flex-1 items-center gap-3 px-3 py-2.5 text-left active:bg-surface-muted"
       >
         <span className="min-w-0 flex-1">
-          <span className="block truncate font-semibold text-ink">{pattern.name}</span>
+          <span className="block truncate font-semibold text-ink">{patternLabel(pattern)}</span>
           <span className="block truncate text-xs tabular-nums text-ink-secondary">
             {summarize(pattern)}
           </span>
@@ -479,5 +441,50 @@ function PatternRow({
         </IconButton>
       )}
     </li>
+  );
+}
+
+/** Search box text, a play style and a length band, all three optional. The
+ *  box takes a name or a length: typing 40 finds the forty footers. */
+function matchesFilters(
+  name: string,
+  feet: number | null,
+  plays: PatternClass | null,
+  filters: { query: string; shape: PatternClass | null; band: PatternLengthBand | null },
+): boolean {
+  if (filters.shape && plays !== filters.shape) return false;
+  if (filters.band && patternLengthBand(feet) !== filters.band) return false;
+  const q = filters.query.trim().toLowerCase();
+  if (!q) return true;
+  return name.toLowerCase().includes(q) || (feet != null && String(Math.round(feet)).startsWith(q));
+}
+
+/** How a pattern plays, by its ratio (derived rather than claimed, ADR-101),
+ *  and how long it runs. Each row picks one or none. */
+function PatternFilters({
+  shape, onShape, band, onBand,
+}: {
+  shape: PatternClass | null;
+  onShape: (next: PatternClass | null) => void;
+  band: PatternLengthBand | null;
+  onBand: (next: PatternLengthBand | null) => void;
+}) {
+  return (
+    <div className="mb-3 space-y-2">
+      <div className="flex flex-wrap gap-2" role="group" aria-label="Play style">
+        {(["sport", "challenge", "recreation"] as const).map((option) => (
+          <Chip key={option} selected={shape === option} onClick={() => onShape(shape === option ? null : option)}>
+            {PATTERN_CLASS_LABEL[option]}
+          </Chip>
+        ))}
+      </div>
+      <div className="flex flex-wrap gap-2" role="group" aria-label="Length">
+        {(["short", "medium", "long"] as const).map((option) => (
+          <Chip key={option} selected={band === option} onClick={() => onBand(band === option ? null : option)}>
+            {PATTERN_LENGTH_LABEL[option]}
+          </Chip>
+        ))}
+      </div>
+    </div>
   );
 }

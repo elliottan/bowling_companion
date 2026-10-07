@@ -59,7 +59,9 @@ describe("OilPatternFormDialog", () => {
       initial: { id: 1, name: "Chromium 6742", passes: CHROMIUM_6742 },
     });
 
-    expect(screen.getByText(/From the catalog/i)).toBeInTheDocument();
+    // Named for what it is, not for where it came from.
+    expect(screen.getAllByText("Chromium 6742").length).toBeGreaterThan(0);
+    expect(screen.queryByText(/passes/i)).toBeNull();
     expect(screen.getByText(/42 ft · 25\.56 mL · 6\.7:1 · Challenge/)).toBeInTheDocument();
     // And no length box, because the table already says how long it is.
     expect(screen.queryByLabelText(/length/i)).toBeNull();
@@ -84,10 +86,18 @@ describe("OilPatternFormDialog catalog link", () => {
   // the only thing left that is the bowler's is its name.
   it("says a linked pattern is the catalog's, and offers only its name", () => {
     renderForm({
-      initial: { id: 3, name: "Thursday shot", catalog_id: "stonehenge", passes: CHROMIUM_6742 },
+      initial: {
+        id: 3, name: "Thursday shot", catalog_id: "stonehenge", passes: CHROMIUM_6742,
+        url: "https://example.com/stonehenge.pdf",
+      },
+      catalogName: "Stonehenge",
       onLinkCatalog: vi.fn(),
     });
-    expect(screen.getByText(/This is a catalog pattern/i)).toBeInTheDocument();
+    // The table is labelled with the catalog's name, whatever the bowler calls it.
+    expect(screen.getByText("Stonehenge")).toBeInTheDocument();
+    // The sheet it was read from is still one tap away.
+    expect(screen.getByRole("link", { name: /original pattern sheet/i })).toHaveAttribute(
+      "href", "https://example.com/stonehenge.pdf");
     expect(screen.getByDisplayValue("Thursday shot")).toBeInTheDocument();
     // Its sheet link and its table belong to the catalog now.
     expect(screen.queryByPlaceholderText(/main-street\.pdf/i)).toBeNull();

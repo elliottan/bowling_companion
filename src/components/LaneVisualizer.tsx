@@ -11,7 +11,7 @@ import { lineShareUrl } from "../lib/lineShare";
 import { ShareCardDialog } from "./ShareCardDialog";
 import { ShareIosIcon } from "./icons";
 import type { OilPattern } from "../types/bowling";
-import { headlineRatio, oilBands, oilExitPoint, oilStats, oilZones, peakUnits, type OilStats } from "../lib/oilPattern";
+import { headlineRatio, oilBands, oilExitPoint, oilStats, oilZones, patternLabel, peakUnits, type OilStats } from "../lib/oilPattern";
 import { useOverlay } from "../lib/useOverlay";
 import { deriveLaydown, deriveLaydownFromSlide, deriveSlide } from "../lib/driftModel";
 import { spareAimPoint } from "../lib/spareAim";
@@ -920,7 +920,7 @@ function OptionsSheet({
               <option value="">No pattern</option>
               {pickable.map((pattern) => (
                 <option key={pattern.id} value={pattern.id}>
-                  {pattern.name}
+                  {patternLabel(pattern)}
                 </option>
               ))}
             </select>

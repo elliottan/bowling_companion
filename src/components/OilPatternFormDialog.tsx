@@ -1,4 +1,4 @@
-import { Library, Trash2 } from "lucide-react";
+import { ArrowUpRight, Library, Trash2 } from "lucide-react";
 import { useState, type FormEvent } from "react";
 import { Button } from "./ui/Button";
 import { FormSheet } from "./ui/FormSheet";
@@ -26,6 +26,9 @@ interface OilPatternFormDialogProps {
    *  lend. Enriches the pattern in place, keeping it and everything already
    *  pointing at it. */
   onLinkCatalog?: () => void;
+  /** The catalog's own name for a linked pattern, which the bowler may have
+   *  renamed away from. Shown on the load table so it says what it is. */
+  catalogName?: string;
 }
 
 /**
@@ -42,7 +45,7 @@ interface OilPatternFormDialogProps {
  * straight back out: dropping it silently would destroy the only thing that
  * makes the lane drawable.
  */
-export function OilPatternFormDialog({ open, initial, onSubmit, onCancel, onRemove, onLinkCatalog }: OilPatternFormDialogProps) {
+export function OilPatternFormDialog({ open, initial, onSubmit, onCancel, onRemove, onLinkCatalog, catalogName }: OilPatternFormDialogProps) {
   const [name, setName] = useState(initial?.name ?? "");
   const [url, setUrl] = useState(initial?.url ?? "");
   const [distance, setDistance] = useState(initial?.distance != null ? String(initial.distance) : "");
@@ -125,20 +128,29 @@ export function OilPatternFormDialog({ open, initial, onSubmit, onCancel, onRemo
 
           {table.length > 0 && (
             <div className="rounded-xl border border-edge bg-surface-sunken p-3">
-              <p className="text-sm font-semibold text-ink">
-                {linked ? "This is a catalog pattern" : "From the catalog"}
+              <p className="truncate text-sm font-semibold text-ink">
+                {catalogName ?? initial?.name}
               </p>
               <p className="mt-1 text-xs tabular-nums text-ink-secondary">
                 {Math.round(table.length)} ft · {table.volumeMl.toFixed(2)} mL
                 {ratio != null ? ` · ${ratio.toFixed(1)}:1` : ""}
                 {shape ? ` · ${PATTERN_CLASS_LABEL[shape]}` : ""}
               </p>
-              <p className="mt-1 text-xs text-ink-tertiary">
-                {linked
-                  ? `${passes?.length} passes, kept current by the catalog. The name is yours to change.`
-                  : `${passes?.length} passes, kept as they were read from the sheet.`}
-              </p>
             </div>
+          )}
+
+          {/* The sheet the table was read from stays reachable after the link,
+              so the bowler can still check it against the source. */}
+          {linked && initial?.url && (
+            <a
+              href={initial.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-between gap-2 rounded-xl border border-edge bg-surface px-3 py-2.5 text-sm font-semibold text-ink active:bg-surface-muted"
+            >
+              Original pattern sheet
+              <ArrowUpRight size={16} aria-hidden="true" className="shrink-0 text-ink-tertiary" />
+            </a>
           )}
 
           {!linked && (

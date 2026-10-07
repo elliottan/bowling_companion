@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { PatternSheet } from "./PatternSheet";
 import { CHROMIUM_6742 } from "../lib/oilPattern.fixture";
 
@@ -43,10 +43,24 @@ describe("PatternSheet", () => {
     expect(screen.queryByText(/Forward passes/i)).toBeNull();
   });
 
-  it("closes", () => {
+  it("goes back", async () => {
     const onClose = vi.fn();
     render(<PatternSheet pattern={chromium} onClose={onClose} />);
-    fireEvent.click(screen.getByLabelText(/close/i));
-    expect(onClose).toHaveBeenCalled();
+    fireEvent.click(screen.getByRole("button", { name: "Back" }));
+    await waitFor(() => expect(onClose).toHaveBeenCalled());
+  });
+
+  // The visualizer is the push's one trailing action, not a button in the body.
+  it("puts the line visualizer in the nav bar", () => {
+    const onOpen = vi.fn();
+    render(<PatternSheet pattern={chromium} onClose={() => {}} onOpenInLineVisualizer={onOpen} />);
+    fireEvent.click(screen.getByRole("button", { name: /line visualizer/i }));
+    expect(onOpen).toHaveBeenCalled();
+  });
+
+  it("keeps the original sheet reachable", () => {
+    render(<PatternSheet pattern={{ ...chromium, url: "https://example.com/c.pdf" }} onClose={() => {}} />);
+    expect(screen.getByRole("link", { name: /original pattern sheet/i })).toHaveAttribute(
+      "href", "https://example.com/c.pdf");
   });
 });

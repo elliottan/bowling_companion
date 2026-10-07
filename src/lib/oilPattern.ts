@@ -374,3 +374,29 @@ export function patternLength(pattern: {
   if (stats.length > 0) return stats.length;
   return pattern.distance != null && pattern.distance > 0 ? pattern.distance : null;
 }
+
+/** How long a pattern runs, in the bands bowlers sort sheets by. */
+export type PatternLengthBand = "short" | "medium" | "long";
+
+export const PATTERN_LENGTH_LABEL: Record<PatternLengthBand, string> = {
+  short: "Short",
+  medium: "Medium",
+  long: "Long",
+};
+
+/** Short is 37 ft and under, long is 43 ft and over, and medium is between.
+ *  The cut is on whole feet, the way a sheet prints its distance. */
+export function patternLengthBand(feet: number | null): PatternLengthBand | null {
+  if (feet == null) return null;
+  const whole = Math.round(feet);
+  if (whole <= 37) return "short";
+  if (whole >= 43) return "long";
+  return "medium";
+}
+
+/** A pattern's name with its length in front, "(42) Chromium 6742", which is
+ *  how a list of them reads at a glance. A pattern with no length is its name. */
+export function patternLabel(pattern: { name: string; passes?: OilPass[]; distance?: number }): string {
+  const feet = patternLength(pattern);
+  return feet != null ? `(${Math.round(feet)}) ${pattern.name}` : pattern.name;
+}

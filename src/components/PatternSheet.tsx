@@ -1,4 +1,4 @@
-import { X } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 import { useMemo } from "react";
 import type { OilPass, OilPattern } from "../types/bowling";
 import {
@@ -6,9 +6,9 @@ import {
   patternLength, PATTERN_CLASS_LABEL, trackZoneRatios,
 } from "../lib/oilPattern";
 import { LANE_BOARDS } from "../lib/laneGeometry";
-import { useOverlay } from "../lib/useOverlay";
 import { GROUP_HEADING } from "./ui/typography";
-import { Button } from "./ui/Button";
+import { IconButton } from "./ui/IconButton";
+import { PushScreen } from "./PushScreen";
 import { LaneViewIcon } from "./icons";
 
 /**
@@ -22,6 +22,10 @@ import { LaneViewIcon } from "./icons";
  *
  * Nothing here is stored. Every figure is derived from the passes, the same way
  * the lane draws them (ADR-101), so the sheet and the lane cannot disagree.
+ *
+ * A place you go into from the pattern list, so it is a push (DESIGN-LANGUAGE
+ * §1), with the visualizer as its one trailing action. It is not a route, so
+ * `backCloses` lets the platform's back pop it before the list underneath.
  */
 
 interface PatternSheetProps {
@@ -34,7 +38,6 @@ interface PatternSheetProps {
 }
 
 export function PatternSheet({ pattern, onClose, onOpenInLineVisualizer }: PatternSheetProps) {
-  const ref = useOverlay<HTMLDivElement>(onClose);
   const stats = useMemo(() => oilStats(pattern.passes), [pattern.passes]);
   const ratio = useMemo(() => headlineRatio(pattern.passes), [pattern.passes]);
   const zones = useMemo(() => trackZoneRatios(pattern.passes), [pattern.passes]);
@@ -46,17 +49,18 @@ export function PatternSheet({ pattern, onClose, onOpenInLineVisualizer }: Patte
   const reverse = (pattern.passes ?? []).filter((p) => p.direction === "reverse");
 
   return (
-    <div className="fixed inset-0 z-[70] flex flex-col bg-surface-sunken" role="dialog" aria-modal="true"
-      aria-label={`${pattern.name} pattern sheet`}>
-      <div ref={ref} className="flex h-full flex-col overflow-y-auto">
-        <div className="sticky top-0 z-10 flex items-center gap-2 border-b border-edge bg-surface px-3 py-2.5">
-          <h2 className="min-w-0 flex-1 truncate text-base font-bold text-ink">{pattern.name}</h2>
-          <button type="button" onClick={onClose} aria-label="Close"
-            className="inline-flex h-9 w-9 items-center justify-center rounded-full text-ink-secondary hover:bg-surface-muted">
-            <X size={18} aria-hidden="true" />
-          </button>
-        </div>
-
+    <PushScreen
+      title={pattern.name}
+      onBack={onClose}
+      backCloses
+      trailing={
+        onOpenInLineVisualizer && stats.length > 0 ? (
+          <IconButton label="Try in the line visualizer" onClick={onOpenInLineVisualizer} variant="round">
+            <LaneViewIcon size={22} aria-hidden="true" />
+          </IconButton>
+        ) : undefined
+      }
+    >
         <div className="mx-auto w-full max-w-3xl space-y-4 px-3 py-4 sm:px-6">
           {stats.length === 0 ? (
             <p className="text-sm text-ink-secondary">
@@ -66,13 +70,6 @@ export function PatternSheet({ pattern, onClose, onOpenInLineVisualizer }: Patte
             </p>
           ) : (
             <>
-              {onOpenInLineVisualizer && (
-                <Button variant="secondary" onClick={onOpenInLineVisualizer} className="w-full">
-                  <LaneViewIcon size={16} aria-hidden="true" />
-                  Try this pattern in the line visualizer
-                </Button>
-              )}
-
               {/* The four figures a sheet leads with. */}
               <dl className="grid grid-cols-2 gap-2">
                 <Figure label="Distance" value={`${Math.round(stats.length)} ft`} />
@@ -118,9 +115,20 @@ export function PatternSheet({ pattern, onClose, onOpenInLineVisualizer }: Patte
               {reverse.length > 0 && <PassTable title="Reverse" passes={reverse} />}
             </>
           )}
+
+          {pattern.url && (
+            <a
+              href={pattern.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-between gap-2 rounded-xl border border-edge bg-surface px-3 py-2.5 text-sm font-semibold text-ink active:bg-surface-muted"
+            >
+              Original pattern sheet
+              <ArrowUpRight size={16} aria-hidden="true" className="shrink-0 text-ink-tertiary" />
+            </a>
+          )}
         </div>
-      </div>
-    </div>
+    </PushScreen>
   );
 }
 
