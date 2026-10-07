@@ -9,6 +9,11 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.8.1: A quieter oil pattern form (2026-10-07)
+
+**Less prose in the oil pattern form.** The notes under the length and pattern
+sheet link fields are gone, and the length label now reads "Length (ft)".
+
 ## 0.8.0: Oil patterns by length, and a pattern opens as its own screen (2026-10-07)
 
 **Patterns show their length first.** Every pattern reads "(42) Chromium 6742"
