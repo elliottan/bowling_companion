@@ -133,12 +133,5 @@ function Block({ block }: { block: GuideBlock }) {
 
     case "figure":
       return <GuideFigure figure={block.figure} caption={block.caption} />;
-
-    case "note":
-      return (
-        <p className="rounded-xl border border-edge bg-accent-soft p-3 text-[15px] leading-relaxed text-ink">
-          {block.text}
-        </p>
-      );
   }
 }

@@ -9,6 +9,17 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.6.2: Guides without the green boxes, and zooming a guide covers the screen (2026-10-07)
+
+**The shaded green notes are gone from the guides.** Each article ended on a
+boxed "one line to remember", and they read as filler. The articles now end on
+their last section.
+
+**Pinch-zooming a pushed screen no longer shows the screen under it.** On an
+iPhone, zooming into a guide showed the screen it was opened from below the
+article. A screen pushed over the app now moves with the app when the page is
+zoomed.
+
 ## 0.6.1: Plainer words across the app, the site and the ads (2026-10-06)
 
 **A copy pass for things that read as written by a machine.** Section labels

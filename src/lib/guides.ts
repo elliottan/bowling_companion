@@ -21,8 +21,6 @@ export type GuideBlock =
   /** A term and what it means, for the words a layout conversation
    *  assumes you already have. */
   | { kind: "terms"; items: Array<{ term: string; text: string }> }
-  /** Set apart: a caveat, or the one line to remember off the screen. */
-  | { kind: "note"; text: string }
   /** A drawing. The id names one of the figures in `components/GuideFigure`,
    *  which owns the geometry: `lib` cannot import a component, and a figure is
    *  markup rather than content. The caption is also its spoken name. */
@@ -133,10 +131,6 @@ export const GUIDES: readonly Guide[] = [
             text: "Where the pin ends up, above or below the finger holes. Pin up delays the roll and keeps the shape sharper at the back. Pin down starts the roll earlier and smooths it out. The numbers below produce both. Neither is a system of its own."
           }
         ]
-      },
-      {
-        kind: "note",
-        text: "Layout numbers only mean something next to your PAP, your rev rate and your ball speed. A layout that is strong for one bowler is unusable for another, so copying a layout off a review is a guess."
       }
     ],
     sources: [
@@ -196,10 +190,6 @@ export const GUIDES: readonly Guide[] = [
       {
         kind: "text",
         text: "45 x 4 1/2 x 35 is a middle of the road benchmark. The core revs up at a moderate rate, the pin to PAP sits near peak flare, and the sum of 80 degrees puts the transition in the middle. Compare anything you are offered against it. A 30 x 5 x 30 is quicker and more angular. A 60 x 5 x 65 is much smoother and later."
-      },
-      {
-        kind: "note",
-        text: "Ask your driller for the dual angle numbers even when the shop works in another system. They convert. Write them down, so your next ball isn't a guess."
       }
     ],
     sources: [
@@ -258,10 +248,6 @@ export const GUIDES: readonly Guide[] = [
       {
         kind: "text",
         text: "So 6 x 4 x 4 is a long pin to PAP, well past peak flare, with a large buffer. That makes a low flare, smooth, controllable ball, for a dry or burnt lane, or for a bowler with plenty of revs who needs the ball to hold a line."
-      },
-      {
-        kind: "note",
-        text: "Shops state the buffer's effect in both directions, so ask which one yours means before the drill. The measurement is clear, but shops describe what it does in different ways."
       }
     ],
     sources: [
@@ -311,10 +297,6 @@ export const GUIDES: readonly Guide[] = [
           "How much surface is it going out of the shop with, and what do I do when it burns in?",
           "If it is too strong, what is the cheapest fix, surface or a plug and redrill?"
         ]
-      },
-      {
-        kind: "note",
-        text: "Write the layout and the surface down the day you get the ball, in the arsenal, beside what you paid. You make the next decision from the last three, and nobody remembers a drill sheet a year later."
       }
     ],
     sources: [

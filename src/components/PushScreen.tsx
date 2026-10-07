@@ -92,8 +92,19 @@ export function PushScreen({
       // Inline pushes position against the tab's own stage (a `relative` box
       // supplied by the caller), so whatever the tab renders underneath stays
       // visible while this screen slides out.
-      className="absolute inset-0 z-[5] pointer-events-auto"
-      style={overlay ? { position: "fixed", zIndex: 55 } : undefined}
+      //
+      // An overlay is `fixed`, except as a direct child of the shell, where it
+      // is `absolute` against the shell instead. The shell is itself `fixed
+      // inset-0`, so the box is the same, but a fixed layer nested in another
+      // drifts from it once iOS pinch-zooms the page: a zoomed guide showed
+      // the screen underneath below its last line. Positioned against the
+      // shell, it is painted as part of the shell and moves with it. A push
+      // opened inside a sheet stays `fixed`, to keep its place in that stack.
+      className={
+        overlay
+          ? "fixed inset-0 z-[55] pointer-events-auto [#app-shell>&]:absolute"
+          : "absolute inset-0 z-[5] pointer-events-auto"
+      }
       role={overlay ? "dialog" : "region"}
       aria-modal={overlay || undefined}
       aria-label={title}

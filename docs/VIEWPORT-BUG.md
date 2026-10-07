@@ -215,3 +215,22 @@ the *same* displaced coordinate space, so they agreed while both were wrong.
 What actually caught it was the offset rows sitting next to the verdict. Worth
 remembering: an instrument that can only compare two readings from the same
 subsystem cannot detect that subsystem being shifted as a whole.
+
+## Pinch zoom (2026-10-07)
+
+Pinch-zooming a guide on an iPhone showed the screen it was pushed from below
+the article's last line. A pushed screen was a `position: fixed` layer nested
+inside the shell, which is `position: fixed` too, and once the page is zoomed
+iOS moves the two layers apart. The shell still covers the screen, the layer
+inside it does not.
+
+Fix: a `PushScreen` overlay that is a direct child of `#app-shell` is
+`absolute` against the shell instead of `fixed`. The box is identical, because
+the shell is `fixed inset-0`, but now it is painted as part of the shell's
+layer, so whatever iOS does to the shell it does to the screen on top. A push
+opened inside a sheet keeps `fixed`, so its place in that sheet's stack is
+unchanged. Zoom itself stays on: blocking it (`user-scalable=no`) fails the axe
+check in `e2e/a11y.spec.ts`, and low-vision readers need it.
+
+Not confirmed on a device at the time of writing. Chromium's emulated pinch
+zoom does not show the drift, so as above, only an installed PWA can say.
