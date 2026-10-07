@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { OilPass } from "../types/bowling";
 import {
   formatSheetBoard, headlineRatio, oilBands, oilExitPoint, oilStats, oilZones,
-  oiledSpanAt, parseSheetBoard, patternClass, patternLabel, patternLength, patternLengthBand, peakUnits, toHandBoard,
+  oiledSpanAt, parseSheetBoard, patternClass, patternLabel, patternLength, peakUnits, toHandBoard,
   trackZoneRatios,
 } from "./oilPattern";
 import { CHROMIUM_6742 } from "./oilPattern.fixture";
@@ -298,18 +298,10 @@ describe("patternLength", () => {
   });
 });
 
-describe("patternLabel and patternLengthBand", () => {
+describe("patternLabel", () => {
   it("puts the length in front of the name", () => {
-    expect(patternLabel({ name: "Chromium 6742", passes: CHROMIUM_6742 })).toBe("(42) Chromium 6742");
-    expect(patternLabel({ name: "League", distance: 39.6 })).toBe("(40) League");
+    expect(patternLabel({ name: "Chromium 6742", passes: CHROMIUM_6742 })).toBe("(42 ft) Chromium 6742");
+    expect(patternLabel({ name: "League", distance: 39.6 })).toBe("(40 ft) League");
     expect(patternLabel({ name: "Nameless" })).toBe("Nameless");
-  });
-
-  it("bands short, medium and long on whole feet", () => {
-    expect(patternLengthBand(null)).toBeNull();
-    expect(patternLengthBand(37)).toBe("short");
-    expect(patternLengthBand(38)).toBe("medium");
-    expect(patternLengthBand(42.4)).toBe("medium");
-    expect(patternLengthBand(43)).toBe("long");
   });
 });

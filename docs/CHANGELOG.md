@@ -9,6 +9,23 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.9.0: Pattern filters in a sheet, and a length slider (2026-10-07)
+
+**Pattern filters moved into a sheet.** A filter button beside the search box
+opens it. The button lights up with a count while anything is applied.
+
+**Length is a range.** The Short, Medium and Long chips are gone. A two-handled
+slider sets the shortest and longest pattern to show, in feet.
+
+**Sport, Challenge and Recreation can be combined.** Pick any mix of them, and
+they moved into the filter sheet too.
+
+**Lengths read "(42 ft)".** The prefix in front of every pattern name now says
+feet.
+
+**A quieter oil pattern form.** The notes under the length and pattern sheet
+link fields are gone, and the length label reads "Length (ft)".
+
 ## 0.8.0: Oil patterns by length, and a pattern opens as its own screen (2026-10-07)
 
 **Patterns show their length first.** Every pattern reads "(42) Chromium 6742"

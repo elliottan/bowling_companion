@@ -108,7 +108,7 @@ export function OilPatternFormDialog({ open, initial, onSubmit, onCancel, onRemo
               table's and offering a box for it would invite a contradiction. */}
           {table.length === 0 && (
             <label className="block">
-              <span className={FIELD_LABEL}>Length (optional)</span>
+              <span className={FIELD_LABEL}>Length (ft)</span>
               <input
                 type="number"
                 inputMode="decimal"
@@ -119,10 +119,6 @@ export function OilPatternFormDialog({ open, initial, onSubmit, onCancel, onRemo
                 min={1}
                 max={70}
               />
-              <span className="mt-1 block text-xs text-ink-tertiary">
-                In feet. The lane draws oil only for a pattern from the catalog, which
-                comes with its load table.
-              </span>
             </label>
           )}
 
@@ -165,9 +161,6 @@ export function OilPatternFormDialog({ open, initial, onSubmit, onCancel, onRemo
               placeholder="https://…/main-street.pdf"
               autoComplete="off"
             />
-            <span className="mt-1 block text-xs text-ink-tertiary">
-              Usually a PDF, and it opens in a new tab.
-            </span>
           </label>
           )}
 
