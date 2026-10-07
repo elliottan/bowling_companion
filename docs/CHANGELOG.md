@@ -9,6 +9,15 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.6.2: Usage counts are on (2026-10-07)
+
+**The three anonymous counts now send** (a session started, a game finished, a
+retailer link tapped; ADR-120), to Umami from headpin.app only.
+
+**The landing page counts its visits with Umami too**, including which ad or
+link a visit came from, so each ad's traffic can be told apart. No cookies, and
+the privacy page says so (ADR-121).
+
 ## 0.6.1: Plainer words across the app, the site and the ads (2026-10-06)
 
 **A copy pass for things that read as written by a machine.** Section labels

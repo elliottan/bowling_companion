@@ -40,8 +40,9 @@ function sentNames(send: ReturnType<typeof vi.fn>) {
 }
 
 describe("report", () => {
-  it("ships switched off: no website id, nothing sent", async () => {
-    expect(UMAMI_WEBSITE_ID).toBeNull();
+  it("reports to headpin.app's Umami site, and sends nothing without an id", async () => {
+    // The landing page's script tag carries the same id (index.html).
+    expect(UMAMI_WEBSITE_ID).toBe("5beede37-b88c-4664-a67a-f6205b66b8b6");
     const { d, send } = deps({ websiteId: null });
     await report(gameFinished(1), d);
     expect(send).not.toHaveBeenCalled();

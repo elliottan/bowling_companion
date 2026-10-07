@@ -5734,3 +5734,32 @@ cookies and stores nothing on the device.
   and uses them in its own rotating hash to tell visits apart. That is
   disclosed rather than avoided.
 - A new event is a privacy change: it goes on the legal page in the same PR.
+
+---
+
+## ADR-121: The landing page loads Umami's script; the app does not
+
+**Status.** Accepted, 2026-10-07. Extends ADR-120.
+
+**Context.** The ad plan tags every ad link with `utm_` parameters so each ad's
+visits can be told apart. Vercel's page counts carry referrers but are not
+where the rest of the funnel lives, and ADR-120's three events start only once
+a bowler is in the app.
+
+**Decision.**
+
+- **headpin.app's landing page loads Umami's own script**, with the same
+  website id as the app's counts. It records page views, referrers and `utm_`
+  tags, sets no cookies, and stores nothing on the device.
+- **`data-domains="headpin.app"`** keeps dev servers and Vercel preview
+  deploys out, as ADR-120's host check does for the app's events.
+- **The app (`/score`) still loads no script.** It sends ADR-120's three events
+  itself: the script's automatic page views would add nothing the session
+  events do not, and the app's own URLs carry session ids.
+- **The website id is set** in `src/services/usageReporter.ts`, which turns
+  ADR-120's counts on.
+
+**Consequences.**
+- The privacy page names the landing page's Umami counts beside Vercel's.
+- One more request to a third party on the landing page, deferred so it never
+  holds up the first paint.
