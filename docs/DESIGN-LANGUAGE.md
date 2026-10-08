@@ -66,6 +66,10 @@ keyboard, not the size of the job:
 - **`ConfirmDialog`** settles in the middle and scales back out. Questions with
   buttons, including a confirm that has to be earned by typing a phrase, because
   typing `ERASE` is answering rather than entering.
+- **A filter panel is a popover, not a block.** The catalog's filters open as a
+  layer under the Filters button, over the list, and a tap anywhere else puts
+  them away. Opened inline they pushed every ball down the screen each time a
+  chip was chosen, and the list the filters were narrowing went out of sight.
 - **`AnchoredMenu`** (`src/components/ui/AnchoredMenu.tsx`) is the long-press
   menu on a row or a chip. Its scrim is transparent, not dimmed: a menu is
   anchored to the thing it acts on, and dimming would hide it.
@@ -221,6 +225,25 @@ where more profile features can grow. Rows that leave the app carry no
 sentence: a label that says "Privacy and terms" or "Send feedback" has nothing
 a second line could add.
 
+## 4d. Lists that grow, and pages that are read
+
+**A long list is rows of what you read first, not tiles of what it holds.** The
+spare lines screen is a row per line thrown, with the leaves answered by that
+line scrolling sideways along it, most-left first, and the rows ordered the same
+way. The line is the first-class thing, the leave the item in it. Where a list
+can be long, a filter that takes a deck of pins beats a scroll.
+
+**A page of settings that a thumb can wreck is read until the pencil.** The
+Bowling profile shows its values and lets scrolling pass over them; the pencil
+turns the controls on and swaps to a tick, which is the only place it saves. The
+changes are a draft until then, and leaving drops them.
+
+**A hint can be waved away, and comes back.** Every hint has an action and an X.
+The X is a snooze with an end, kept per thing it was about, not a permanent no.
+
+**A report leads with its answers.** The Alley report opens on the best lines and
+the last session, and keeps the detail one tap down.
+
 ## 5. Empty states
 
 Every list that can be empty renders `EmptyState`: circular accent icon, title,
@@ -302,6 +325,18 @@ An overlay's outermost element takes `rootStyle` from the hook, which stops it
 taking taps while it leaves. An overlay on its way out is a picture of itself:
 without this it went on swallowing every tap for the length of the exit, so the
 first tap after closing a sheet did nothing at all.
+
+## 7a. A screen that has to be fetched
+
+A pushed screen that has not been opened before fetches its code, and the first
+tap used to answer with nothing for as long as that took: long enough to tap
+again, and again. The screen comes first and the wait happens on it
+(`OverlayLoading`: the same push, a back control, a spinner), and the real
+screen takes its place without a second slide (`overlayHandoff`). The lane view
+does the same in its own dark frame, with a close control. The heaviest two
+(Layouts and the lane view) are also fetched once the app has settled, so by the
+time most bowlers tap them there is nothing to wait for. A spinner is for a wait
+the bowler would otherwise take for nothing happening, never for a frame.
 
 ## 7b. The primary action
 

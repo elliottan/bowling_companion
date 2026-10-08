@@ -1,12 +1,18 @@
 import { describe, expect, it } from "vitest";
 import type { PinNumber, SpareLine } from "../types/bowling";
 import {
+  askKey,
   describeMove,
+  HINT_SNOOZE_DAYS,
+  lineRows,
   matchesFilters,
+  matchesPins,
   mostLeftWithoutLine,
+  parseSnoozes,
   sameShot,
+  snooze,
+  snoozedKeys,
   spareLinesShown,
-  stackByLine,
   suggestLineCopies,
   suggestionKey,
   type SpareFilter
@@ -18,19 +24,85 @@ const line = (id: number, pins: PinNumber[], stance?: number, target?: number): 
   ...(stance != null || target != null ? { line: { stance, target } } : {})
 });
 
-describe("stackByLine", () => {
-  it("stacks leaves with the same boards where the first of them sits", () => {
+const seen = (pins: PinNumber[], attempts: number, chances = attempts, conversionPct: number | null = null) => ({
+  pins,
+  attempts,
+  chances,
+  conversionPct
+});
+
+describe("lineRows", () => {
+  it("puts the leaves answered with one line on one row, most left first", () => {
     const lines = [line(1, [10], 30, 15), line(2, [2, 4, 5, 8], 25, 12), line(3, [7]), line(4, [2, 4, 8], 25, 12)];
-    expect(stackByLine(lines).map((s) => s.map((sl) => sl.id))).toEqual([[1], [2, 4], [3]]);
+    const rows = lineRows(lines, [seen([10], 9), seen([2, 4, 5, 8], 2), seen([2, 4, 8], 6)]);
+    expect(rows.map((r) => r.tiles.map((t) => t.spareLine.id))).toEqual([[1], [4, 2], [3]]);
   });
 
-  it("never stacks leaves that have no line", () => {
-    expect(stackByLine([line(1, [7]), line(2, [10])])).toHaveLength(2);
+  it("orders the rows by their most-left leave, whichever the hand, and the unanswered row last", () => {
+    const lines = [line(1, [7], 10, 5), line(2, [10], 30, 15), line(3, [4])];
+    const rows = lineRows(lines, [seen([7], 3), seen([10], 8), seen([4], 50)]);
+    expect(rows.map((r) => r.key)).toEqual(["30|15", "10|5", "none"]);
   });
 
-  it("takes a leave out of its stack once its boards change", () => {
-    const lines = [line(1, [2, 4, 5, 8], 25, 12), line(2, [2, 4, 8], 26, 12)];
-    expect(stackByLine(lines)).toHaveLength(2);
+  it("breaks a tie by pin number, so the order never shuffles", () => {
+    const lines = [line(1, [10], 30, 15), line(2, [7], 30, 15)];
+    expect(lineRows(lines, []).map((r) => r.tiles.map((t) => t.spareLine.id))).toEqual([[2, 1]]);
+  });
+
+  it("carries the record onto the tile, and zero for a leave never faced", () => {
+    const [row] = lineRows([line(1, [10], 30, 15), line(2, [7], 30, 15)], [seen([10], 4, 3, 67)]);
+    expect(row.tiles.find((t) => t.spareLine.id === 1)).toMatchObject({ attempts: 4, chances: 3, conversionPct: 67 });
+    expect(row.tiles.find((t) => t.spareLine.id === 2)).toMatchObject({ attempts: 0, chances: 0, conversionPct: null });
+  });
+
+  it("never puts leaves with no line on a line's row", () => {
+    expect(lineRows([line(1, [7]), line(2, [10])], [])).toHaveLength(1);
+    expect(lineRows([line(1, [7]), line(2, [10])], [])[0].line).toBeNull();
+  });
+
+  it("takes a leave off a row once its boards change", () => {
+    const rows = lineRows([line(1, [2, 4, 5, 8], 25, 12), line(2, [2, 4, 8], 26, 12)], []);
+    expect(rows).toHaveLength(2);
+  });
+});
+
+describe("matchesPins", () => {
+  const picked = (...p: PinNumber[]) => new Set<PinNumber>(p);
+  it("matches everything when nothing is picked", () => {
+    expect(matchesPins([2, 8], picked(), false)).toBe(true);
+  });
+  it("matches a leave that has every picked pin, among others", () => {
+    expect(matchesPins([2, 4, 10], picked(10), false)).toBe(true);
+    expect(matchesPins([2, 4], picked(10), false)).toBe(false);
+    expect(matchesPins([4, 10], picked(4, 10), false)).toBe(true);
+  });
+  it("with exactly, matches only that leave, so a lone 10 is easy to reach", () => {
+    expect(matchesPins([10], picked(10), true)).toBe(true);
+    expect(matchesPins([4, 10], picked(10), true)).toBe(false);
+  });
+});
+
+describe("turned-down hints", () => {
+  const now = new Date("2026-10-08T12:00:00Z");
+  it("stay away for the snooze period and then come back", () => {
+    const kept = snooze({}, "ask:10", now);
+    expect(snoozedKeys(kept, now).has("ask:10")).toBe(true);
+    const later = new Date(now.getTime() + (HINT_SNOOZE_DAYS + 1) * 24 * 60 * 60 * 1000);
+    expect(snoozedKeys(kept, later).has("ask:10")).toBe(false);
+  });
+  it("drops lapsed ones when another is added", () => {
+    const old = snooze({}, "a", new Date("2026-01-01T00:00:00Z"));
+    expect(Object.keys(snooze(old, "b", now))).toEqual(["b"]);
+  });
+  it("reads nothing from a damaged setting", () => {
+    expect(parseSnoozes("not json")).toEqual({});
+    expect(parseSnoozes('["a"]')).toEqual({});
+    expect(parseSnoozes(undefined)).toEqual({});
+  });
+  it("lets the ask for the next leave through once one is snoozed", () => {
+    const faced = [seen([10], 9), seen([7], 5)];
+    expect(mostLeftWithoutLine(faced, [])?.pins).toEqual([10]);
+    expect(mostLeftWithoutLine(faced, [], new Set([askKey([10])]))?.pins).toEqual([7]);
   });
 });
 
@@ -146,11 +218,6 @@ describe("a strike ball move is a line", () => {
 
   it("is not asked for as a leave with no line", () => {
     expect(mostLeftWithoutLine([{ pins: [2, 8], attempts: 13, chances: 13 }], [moveOnly])).toBeUndefined();
-  });
-
-  it("stacks leaves with the same move and no boards", () => {
-    const other: SpareLine = { id: 10, pins: [2, 8, 10], strike_offset: { stance: -2, target: -1 } };
-    expect(stackByLine([moveOnly, other]).map((s) => s.map((sl) => sl.id))).toEqual([[9, 10]]);
   });
 });
 

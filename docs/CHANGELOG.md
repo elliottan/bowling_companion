@@ -9,6 +9,69 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.15.0: Spare lines by line, a quieter ball form, an Alley report that leads with answers (2026-10-08)
+
+**Spare lines are rows of lines.** Each row is one line you throw, and the
+leaves you answer with it sit beside it, scrolling sideways. Every leave shows
+how often you left it and how often you made it, and the leaves you leave most
+come first. The rows are ordered the same way, so what comes up most is on top
+for both hands. Leaves with no line yet are the last row. The tiles that stacked
+leaves sharing a line are gone.
+
+**Filter spare lines by pins.** Pins opens a deck: pick the pins you are looking
+for and see every leave that has them, or only that exact leave.
+
+**The spare ball is chosen on the spare lines screen.** A row at the top shows
+it and changes it. The Spare ball switch is gone from the ball form.
+
+**The two hints at the top can be waved away.** Both now say Add and have an X.
+Add opens that leave to change before saving, with the suggested line filled in.
+The X puts the hint away for two weeks, for that leave only.
+
+**The ball form is shorter.** Display name and Weight share a row, the weight
+list is just numbers in lb, Notes and "Read this ball in my default notation" are
+gone, and the layout button says Add layout. Catalog specs wrap instead of being
+cut off.
+
+**The Bowling profile is read until you tap the pencil.** Hand, grip, PAP,
+release offset and drift only change after the pencil, and are saved by the tick.
+Leaving without the tick drops the changes.
+
+**The Alley report leads with answers.** Best lines here and the last session
+come first, balls open to their lines, and line changes sit behind one row.
+
+**Appearance is just Appearance.**
+
+## 0.14.0: Letting go of a catalog link is done in the catalog (2026-10-08)
+
+**No Change or Unlink buttons on the ball form.** Tap the linked ball and the
+catalog opens with that ball first and ticked. Tap another ball to switch to it,
+or tap the ticked one again to let go. Nothing is lost by it: the form is a
+draft until you save, and the name, weight and layout stay as they were.
+
+**Letting go of a link now sticks.** Unlinking on an edited ball used to come
+back as soon as you saved, because the save kept the old link.
+
+## 0.13.0: Faster first opens, a popover for catalog filters, a simpler profile page (2026-10-08)
+
+**Layouts and the lane view open straight away.** The first tap on a screen not
+opened before used to do nothing for a moment. The screen now opens at once with
+a spinner, and Layouts and the lane view are fetched in the background so the
+tap usually opens straight onto them.
+
+**The catalog filters are a popover.** They open over the list, under the
+Filters button, instead of pushing every ball down, and a tap outside puts them
+away.
+
+**Tools and reference lose their sentences.** Layouts, Line visualizer, Ball
+catalog and Guides are labels alone.
+
+**The Bowling profile page says what matters under each heading, with a
+picture.** The "Your bowling profile" guide and its "Why it matters" link are
+gone. Hand says that switching flips every board and saved sessions keep theirs.
+Release offset and drift say what they count, and a picture of the scorer's
+stance, target, slide and laydown shows where they come from.
+
 ## 0.12.0: Settings and Stats tidy-up, shareable guides, a tidier landing page (2026-10-08)
 
 **Strike on strike, and your best streak.** Stats shows how often a strike was
@@ -47,9 +110,7 @@ no share sheet, the link is copied.
 
 **Guides read more like a person wrote them.** All five are rewritten with
 shorter paragraphs and plainer words, and "take it to the counter" is gone. The
-facts and sources are unchanged. "Your hand, grip and approach" is now "Your
-bowling profile", to match Settings, and drops the grip section, which only
-restated the toggle.
+facts and sources are unchanged.
 
 **The landing page shows the app.** It says "The best way to keep score." and
 "Free. Works offline.", then shows four screens: scoring, your line over an oil

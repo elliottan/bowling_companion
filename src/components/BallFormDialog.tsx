@@ -1,4 +1,4 @@
-import { BookOpen, ChevronRight, Plus, Search, Trash2 } from "lucide-react";
+import { BookOpen, Check, ChevronRight, Plus, Search, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { getAllCatalog, getCatalogBall, syncCatalog } from "../services/ballCatalogRepository";
@@ -20,7 +20,6 @@ import { LayoutEditor } from "./LayoutEditor";
 import { Measure } from "./ui/Measure";
 import { SegmentedControl } from "./ui/SegmentedControl";
 import { GROUP_HEADING } from "./ui/typography";
-import { ConfirmDialog } from "./ConfirmDialog";
 import { ErrorBanner } from "./ErrorBanner";
 import { Button } from "./ui/Button";
 import { FIELD } from "./ui/field";
@@ -52,15 +51,12 @@ export function BallFormDialog({ ball, onClose, onSaved, onDelete }: BallFormDia
   const editing = ball !== null;
   const [name, setName] = useState(ball?.name ?? "");
   const [weight, setWeight] = useState<number>(ball?.weight ?? DEFAULT_WEIGHT);
-  const [isSpare, setIsSpare] = useState(ball?.is_spare_ball ?? false);
-  const [confirmUnlink, setConfirmUnlink] = useState(false);
   // The drilling as numbers, and the free text the field used to take. The old
   // text is never written again and never thrown away: a ball entered before
   // this screen could hold numbers still has to show what was typed on it
   // (ADR-095). Entering a layout is what retires it.
   const [layoutSpec, setLayoutSpec] = useState<BallLayoutSpec | null>(ball?.layout_spec ?? null);
   const legacyLayout = ball?.layout_spec ? undefined : ball?.layout;
-  const [notes, setNotes] = useState(ball?.notes ?? "");
   const [catalogRef, setCatalogRef] = useState<CatalogBall | null>(null);
   const [weightSpecs, setWeightSpecs] = useState<WeightSpecs | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -94,9 +90,13 @@ export function BallFormDialog({ ball, onClose, onSaved, onDelete }: BallFormDia
     });
   }, [catalogRef, weight]);
 
-  function linkCatalog(picked: CatalogBall) {
+  function linkCatalog(picked: CatalogBall | null) {
     setCatalogRef(picked);
     setPickerOpen(false);
+    // Picking the ball that is already linked again takes the link off. Nothing
+    // is lost by it: the form is a draft until Save, and the name, weight and
+    // layout stay as they are.
+    if (!picked) return;
     // Adding: the catalog entry is the fastest way to name the ball. Editing:
     // never overwrite a name the user already chose.
     if (!editing && !name.trim()) setName(`${picked.brand} ${picked.name}`);
@@ -114,13 +114,13 @@ export function BallFormDialog({ ball, onClose, onSaved, onDelete }: BallFormDia
     try {
       const payload: Omit<Ball, "id"> = {
         name: trimmed,
-        is_spare_ball: isSpare,
+        // Set on the spare lines page, not here: the form carries it through.
+        is_spare_ball: ball?.is_spare_ball ?? false,
         layout_spec: layoutSpec ?? undefined,
         // Kept rather than migrated: parsing "45 x 4.5 x 35" out of free text
         // would be guessing at a core type and a pin-to-PSA distance nobody
         // wrote down, and a guessed layout is worse than a remembered string.
         layout: layoutSpec ? undefined : legacyLayout,
-        notes: notes.trim() || undefined,
         weight,
         ...(catalogRef
           ? {
@@ -136,7 +136,9 @@ export function BallFormDialog({ ball, onClose, onSaved, onDelete }: BallFormDia
                 imageThumb: catalogRef.imageThumb,
               },
             }
-          : {}),
+          : // Named, not left out: an update merges, so a ball that let go of its
+            // catalog link would otherwise keep the old one on disk.
+            { catalog_ref_id: undefined, catalog_snapshot: undefined }),
       };
       if (editing && ball.id != null) {
         await updateBall(ball.id, payload);
@@ -180,7 +182,7 @@ export function BallFormDialog({ ball, onClose, onSaved, onDelete }: BallFormDia
                     <p className="truncate text-sm font-semibold text-ink">
                       {catalogRef.brand} {catalogRef.name}
                     </p>
-                    <p className="truncate text-xs text-ink-secondary">
+                    <p className="text-xs text-ink-secondary">
                       {[
                         catalogRef.coverstockCategory,
                         catalogRef.coreName,
@@ -191,7 +193,7 @@ export function BallFormDialog({ ball, onClose, onSaved, onDelete }: BallFormDia
                         .join(" · ")}
                     </p>
                   </div>
-                  <span className="shrink-0 text-xs font-semibold text-accent">Change</span>
+                  <ChevronRight size={18} className="shrink-0 text-ink-tertiary" aria-hidden="true" />
                 </>
               ) : (
                 <>
@@ -206,57 +208,34 @@ export function BallFormDialog({ ball, onClose, onSaved, onDelete }: BallFormDia
                 </>
               )}
             </button>
-            {catalogRef && (
-              <button
-                type="button"
-                onClick={() => setConfirmUnlink(true)}
-                className="-mt-2 text-xs font-semibold text-ink-secondary underline"
-              >
-                Unlink from catalog
-              </button>
-            )}
 
-            <div>
-              <label htmlFor="ball-name" className="mb-1 block text-sm font-medium text-ink-strong">
-                Name <span className="text-danger-600">*</span>
-              </label>
-              <input
-                id="ball-name"
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="e.g. Storm Phaze II"
-                className={FIELD}
-              />
+            <div className="flex items-end gap-3">
+              <div className="min-w-0 flex-1">
+                <label htmlFor="ball-name" className="mb-1 block text-sm font-medium text-ink-strong">
+                  Display name <span className="text-danger-600">*</span>
+                </label>
+                <input
+                  id="ball-name"
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="e.g. Storm Phaze II"
+                  className={FIELD}
+                />
+              </div>
+              <div className="w-[5.5rem] shrink-0">
+                <label htmlFor="ball-weight" className="mb-1 block text-sm font-medium text-ink-strong">
+                  Weight <span className="font-normal text-ink-secondary">(lb)</span>
+                </label>
+                <select id="ball-weight" value={weight} onChange={(e) => setWeight(Number(e.target.value))} className={FIELD}>
+                  {WEIGHT_OPTIONS.map((w) => (
+                    <option key={w} value={w}>
+                      {w}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
-
-            <div>
-              <label htmlFor="ball-weight" className="mb-1 block text-sm font-medium text-ink-strong">
-                Weight <span className="font-normal text-ink-secondary">(lbs)</span>
-              </label>
-              <select id="ball-weight" value={weight} onChange={(e) => setWeight(Number(e.target.value))} className={FIELD}>
-                {WEIGHT_OPTIONS.map((w) => (
-                  <option key={w} value={w}>
-                    {w} lb
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <label className="flex items-start gap-3 rounded-xl border border-edge bg-surface p-3">
-              <input
-                type="checkbox"
-                checked={isSpare}
-                onChange={(e) => setIsSpare(e.target.checked)}
-                className="mt-0.5 h-5 w-5 rounded border-edge-strong accent-[rgb(var(--color-accent-fill))]"
-              />
-              <span>
-                <span className="block text-sm font-medium text-ink-strong">Spare ball</span>
-                <span className="block text-xs text-ink-secondary">
-                  Auto-selected for spare shots. Only one ball can be the spare ball.
-                </span>
-              </span>
-            </label>
 
             <LayoutField
               spec={layoutSpec}
@@ -276,20 +255,6 @@ export function BallFormDialog({ ball, onClose, onSaved, onDelete }: BallFormDia
               }
             />
 
-            <div>
-              <label htmlFor="ball-notes" className="mb-1 block text-sm font-medium text-ink-strong">
-                Notes <span className="font-normal text-ink-secondary">(optional)</span>
-              </label>
-              <textarea
-                id="ball-notes"
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                rows={3}
-                placeholder="Any notes about this ball…"
-                className="w-full rounded-lg border border-edge-strong bg-surface px-3 py-2 text-sm text-ink outline-none focus:border-accent-fill focus:ring-2 focus:ring-accent-fill/20"
-              />
-            </div>
-
             {onDelete && (
               <Button variant="danger-ghost" onClick={onDelete} className="w-full">
                 <Trash2 size={16} aria-hidden="true" />
@@ -301,25 +266,22 @@ export function BallFormDialog({ ball, onClose, onSaved, onDelete }: BallFormDia
         </form>
       </FormSheet>
 
-      {pickerOpen && <CatalogPickerSheet onPick={linkCatalog} onClose={() => setPickerOpen(false)} />}
-
-      <ConfirmDialog
-        open={confirmUnlink}
-        title="Unlink from the catalog?"
-        message="The photo and specs come off this ball. Shots keep their scores."
-        confirmLabel="Unlink"
-        onConfirm={() => {
-          setConfirmUnlink(false);
-          setCatalogRef(null);
-        }}
-        onCancel={() => setConfirmUnlink(false)}
-      />
+      {pickerOpen && (
+        <CatalogPickerSheet
+          linkedId={catalogRef?.id ?? null}
+          onPick={linkCatalog}
+          onClose={() => setPickerOpen(false)}
+        />
+      )}
     </>
   );
 }
 
 interface CatalogPickerSheetProps {
-  onPick: (ball: CatalogBall) => void;
+  /** The ball this one is linked to now, shown selected and first. */
+  linkedId: string | null;
+  /** The ball chosen, or null when the linked one was tapped again to let go. */
+  onPick: (ball: CatalogBall | null) => void;
   onClose: () => void;
 }
 
@@ -331,7 +293,7 @@ interface CatalogPickerSheetProps {
  * is a short scroll region nested inside the form, which is where it started
  * and where nobody found it.
  */
-function CatalogPickerSheet({ onPick, onClose }: CatalogPickerSheetProps) {
+function CatalogPickerSheet({ linkedId, onPick, onClose }: CatalogPickerSheetProps) {
   const [balls, setBalls] = useState<CatalogBall[]>([]);
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(true);
@@ -359,9 +321,14 @@ function CatalogPickerSheet({ onPick, onClose }: CatalogPickerSheetProps) {
   }, []);
 
   const q = query.toLowerCase().trim();
-  const shown = q
+  const matching = q
     ? balls.filter((b) => [b.name, b.brand, b.coverstockRaw].join(" ").toLowerCase().includes(q))
     : balls;
+  // The linked ball leads the list, so it is the first thing seen and the way to
+  // let go of it is where the way to choose another is.
+  const shown = linkedId
+    ? [...matching.filter((b) => b.id === linkedId), ...matching.filter((b) => b.id !== linkedId)]
+    : matching;
 
   return (
     <FormSheet
@@ -404,8 +371,13 @@ function CatalogPickerSheet({ onPick, onClose }: CatalogPickerSheetProps) {
             <li key={b.id}>
               <button
                 type="button"
-                onClick={() => onPick(b)}
-                className="flex w-full items-center gap-3 rounded-xl border border-edge bg-surface p-2.5 text-left hover:border-accent-fill"
+                aria-pressed={b.id === linkedId}
+                onClick={() => onPick(b.id === linkedId ? null : b)}
+                className={`flex w-full items-center gap-3 rounded-xl border p-2.5 text-left ${
+                  b.id === linkedId
+                    ? "border-accent-fill bg-accent-soft"
+                    : "border-edge bg-surface hover:border-accent-fill"
+                }`}
               >
                 <div className="h-12 w-12 shrink-0">
                   <CatalogBallImage src={b.imageThumb} alt={b.name} brand={b.brand as Manufacturer} size="thumb" />
@@ -413,13 +385,17 @@ function CatalogPickerSheet({ onPick, onClose }: CatalogPickerSheetProps) {
                 <div className="min-w-0 flex-1">
                   <p className="text-[11px] font-semibold uppercase tracking-wide text-ink-secondary">{b.brand}</p>
                   <p className="truncate text-sm font-semibold text-ink">{b.name}</p>
-                  <p className="truncate text-xs text-ink-secondary">
+                  <p className="text-xs text-ink-secondary">
                     {[b.coverstockCategory, b.coreType, b.rg !== null ? `RG ${b.rg.toFixed(2)}` : null]
                       .filter(Boolean)
                       .join(" · ")}
                   </p>
                 </div>
-                <ChevronRight size={18} className="shrink-0 text-ink-tertiary" aria-hidden="true" />
+                {b.id === linkedId ? (
+                  <Check size={18} className="shrink-0 text-accent" aria-hidden="true" />
+                ) : (
+                  <ChevronRight size={18} className="shrink-0 text-ink-tertiary" aria-hidden="true" />
+                )}
               </button>
             </li>
           ))}
@@ -520,13 +496,13 @@ function LayoutField({
               makeLayoutSpec(BENCHMARK_LAYOUT, defaultSymmetric ? DEFAULT_SYMMETRIC : DEFAULT_ASYMMETRIC)
             )
           }
-          className="flex w-full items-center gap-3 rounded-xl border border-dashed border-edge-strong bg-surface p-3 text-left hover:border-accent-fill"
+          className="flex w-full items-center gap-3 rounded-xl border border-edge bg-surface p-3 text-left hover:border-accent-fill"
         >
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-accent-soft text-accent">
             <Plus size={18} aria-hidden="true" />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold text-ink">Add a layout</p>
+            <p className="text-sm font-semibold text-ink">Add layout</p>
             <p className="text-xs text-ink-secondary">
               Dual angle or Storm VLS, on sliders. Opens on the benchmark.
             </p>
@@ -560,18 +536,6 @@ function LayoutField({
             idPrefix="ball"
           />
 
-          {spec.system && (
-            <button
-              type="button"
-              onClick={() => {
-                const { system: _dropped, ...rest } = spec;
-                onChange(rest);
-              }}
-              className="text-xs font-semibold text-ink-secondary underline"
-            >
-              Read this ball in my default notation
-            </button>
-          )}
         </>
       )}
     </section>

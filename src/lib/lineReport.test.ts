@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildLineReport, findLine, lineId, MAX_MOVES, NO_BALL } from "./lineReport";
+import { bestLines, buildLineReport, findLine, lastSession, lineId, MAX_MOVES, NO_BALL } from "./lineReport";
 import type { Ball, Frame, Game, PinNumber, SessionSummary, Shot } from "../types/bowling";
 
 const BALLS: Ball[] = [
@@ -152,5 +152,49 @@ describe("lines at an alley", () => {
     const report = buildLineReport([MOVED], BALLS, {});
     expect(findLine(report, null)).toBeNull();
     expect(findLine(report, "9_1_1")).toBeNull();
+  });
+});
+
+describe("the top of the report", () => {
+  it("names the lines that struck most per ball, and never a thin one", () => {
+    const report = buildLineReport([MOVED], BALLS, {});
+    // 4 to 7 struck 7 of 10 and 5 to 7 struck 3 of 6; 4 to 6.5 is one ball.
+    expect(bestLines(report).map((l) => [l.stance, l.target])).toEqual([
+      [4, 7],
+      [5, 7]
+    ]);
+  });
+
+  it("ranks by the rate, so ten balls and seven strikes beat six and three", () => {
+    const report = buildLineReport(
+      [session(1, "2026-10-01", [game(1, [...times(5, { stance: 1, target: 1 }), ...times(10, { stance: 2, target: 2, left: [10] })])])],
+      BALLS,
+      {}
+    );
+    expect(bestLines(report)[0]).toMatchObject({ stance: 1, target: 1 });
+  });
+
+  it("caps at three lines", () => {
+    const throws = [1, 2, 3, 4].flatMap((n) => times(5, { stance: n, target: n }));
+    const report = buildLineReport([session(1, "2026-10-01", [game(1, throws)])], BALLS, {});
+    expect(bestLines(report)).toHaveLength(3);
+  });
+});
+
+describe("the last session here", () => {
+  const OLDER = session(0, "2026-09-01", [game(1, times(5, { stance: 9, target: 9 }))]);
+
+  it("is the newest session's lines, counted inside that session only", () => {
+    const last = lastSession(buildLineReport([OLDER, MOVED], BALLS, {}))!;
+    expect(last.date).toBe("2026-10-07");
+    expect(last.lines.map((l) => [l.line.stance, l.line.target, l.thrown, l.strikes])).toEqual([
+      [4, 7, 10, 7],
+      [5, 7, 6, 3],
+      [4, 6.5, 1, 0]
+    ]);
+  });
+
+  it("is nothing when there is nothing recorded", () => {
+    expect(lastSession(buildLineReport([], BALLS, {}))).toBeNull();
   });
 });

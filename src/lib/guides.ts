@@ -53,41 +53,12 @@ export interface Guide {
   sources?: GuideSource[];
 }
 
-export type GuideTopic = "Setting up" | "Layouts" | "Equipment";
+export type GuideTopic = "Layouts" | "Equipment";
 
 /** Order the shelves appear in. */
-export const GUIDE_TOPICS: readonly GuideTopic[] = ["Setting up", "Layouts", "Equipment"];
+export const GUIDE_TOPICS: readonly GuideTopic[] = ["Layouts", "Equipment"];
 
 export const GUIDES: readonly Guide[] = [
-  {
-    // The long form of the Settings captions, which are one line each (ADR-115).
-    id: "your-settings",
-    title: "Your bowling profile",
-    summary: "Why the app asks for your hand, PAP and drift.",
-    topic: "Setting up",
-    minutes: 1,
-    body: [
-      { kind: "heading", text: "Hand" },
-      {
-        kind: "text",
-        text: "Board 1 is the one on your side of the lane, so which hand you bowl with decides what every board number means. Switch hands and the boards flip. Saved sessions keep the numbers they had."
-      },
-      { kind: "heading", text: "PAP" },
-      {
-        kind: "text",
-        text: "Your positive axis point is where the ball spins around. It's measured from the center of your grip: how far over, then how far up or down. Every number on the layouts screen starts from it, and your pro shop can measure it for you."
-      },
-      { kind: "heading", text: "Release offset and drift" },
-      {
-        kind: "text",
-        text: "Release offset is how many boards from your slide foot the ball lands. Drift is how far you move sideways on the approach, and it can change with where you start: outside, middle or inside."
-      },
-      {
-        kind: "text",
-        text: "The lane view uses both to turn the stance you enter into your slide and laydown."
-      }
-    ]
-  },
   {
     id: "layout-vocabulary",
     title: "Layout vocabulary",

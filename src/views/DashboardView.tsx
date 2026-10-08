@@ -360,29 +360,21 @@ export function DashboardView({
           <ListRow
             icon={Compass}
             label="Layouts"
-            ariaLabel="Layouts"
-            description="Try a layout on your PAP"
             onClick={onOpenLayoutLab}
           />
           <ListRow
             icon={LaneViewIcon}
             label="Line visualizer"
-            ariaLabel="Line visualizer"
-            description="Sketch a line on the lane"
             onClick={onOpenLineVisualizer}
           />
           <ListRow
             icon={BookOpen}
             label="Ball catalog"
-            ariaLabel="Ball catalog"
-            description="Manufacturer specs"
             onClick={onOpenCatalog}
           />
           <ListRow
             icon={GraduationCap}
             label="Guides"
-            ariaLabel="Guides"
-            description="Layouts, drilling and equipment"
             onClick={onOpenGuides}
           />
         </ListGroup>

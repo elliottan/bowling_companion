@@ -54,28 +54,119 @@ function boardsKey(sl: SpareLine): string | null {
   return null;
 }
 
+/** What the screen knows about one leave's record. */
+export interface LeaveRecord {
+  pins: PinNumber[];
+  attempts: number;
+  chances: number;
+  conversionPct: number | null;
+}
+
+export interface LineRowTile {
+  spareLine: SpareLine;
+  /** Times this leave was left. Zero for a leave listed but never faced. */
+  attempts: number;
+  chances: number;
+  conversionPct: number | null;
+}
+
+/** One line, and every leave the bowler answers with it. */
+export interface LineRow {
+  /** The boards (or move) that make it one line; "none" for leaves with no answer. */
+  key: string;
+  /** The line as it reads on the row. Null on the row of leaves with no line. */
+  line: SpareLine | null;
+  tiles: LineRowTile[];
+}
+
+const NO_LINE = "none";
+
 /**
- * Leaves that share a line, as one stack each, in list order: a stack sits
- * where its first leave sits. Nothing is stored about the grouping. Two
- * leaves are together because their boards are the same, so changing one
- * leave's line takes it out of its stack by itself, and copying a line into
- * one puts it in. A leave with no line stands alone.
+ * The spare lines as rows, one per line thrown (the screen's first-class thing
+ * is the line, not the leave), each holding the leaves answered with it.
+ *
+ * Nothing is stored about the grouping: two leaves share a row because their
+ * boards are the same, so changing one leave's line moves it to another row by
+ * itself. Leaves with no answer share one last row, which is not a line.
+ *
+ * Order is by how often the bowler leaves each: a row's tiles, most left first,
+ * and the rows by their most-left tile, so what comes up most is on top whatever
+ * the hand. A tie falls to the pin numbers, so the order never shuffles.
  */
-export function stackByLine(lines: SpareLine[]): SpareLine[][] {
-  const stacks: SpareLine[][] = [];
-  const byKey = new Map<string, SpareLine[]>();
+export function lineRows(lines: SpareLine[], leaves: LeaveRecord[]): LineRow[] {
+  const record = new Map(leaves.map((l) => [leaveKey(l.pins), l]));
+  const byKey = new Map<string, LineRow>();
   for (const sl of lines) {
-    const key = boardsKey(sl);
-    const stack = key ? byKey.get(key) : undefined;
-    if (stack) {
-      stack.push(sl);
-    } else {
-      const next = [sl];
-      stacks.push(next);
-      if (key) byKey.set(key, next);
+    const key = boardsKey(sl) ?? NO_LINE;
+    const seen = record.get(leaveKey(sl.pins));
+    let row = byKey.get(key);
+    if (!row) {
+      row = { key, line: key === NO_LINE ? null : sl, tiles: [] };
+      byKey.set(key, row);
     }
+    row.tiles.push({
+      spareLine: sl,
+      attempts: seen?.attempts ?? 0,
+      chances: seen?.chances ?? 0,
+      conversionPct: seen?.conversionPct ?? null
+    });
   }
-  return stacks;
+  const byLeave = (a: LineRowTile, b: LineRowTile) =>
+    b.attempts - a.attempts || leaveKey(a.spareLine.pins).localeCompare(leaveKey(b.spareLine.pins), undefined, { numeric: true });
+  const rows = [...byKey.values()];
+  for (const row of rows) {
+    row.tiles.sort(byLeave);
+    if (row.key !== NO_LINE) row.line = row.tiles[0].spareLine;
+  }
+  return rows.sort((a, b) => {
+    if (a.key === NO_LINE) return 1;
+    if (b.key === NO_LINE) return -1;
+    return byLeave(a.tiles[0], b.tiles[0]) || b.tiles.length - a.tiles.length;
+  });
+}
+
+/** Whether a leave has all the pins picked in the filter, or is exactly them. */
+export function matchesPins(pins: PinNumber[], picked: ReadonlySet<PinNumber>, exact: boolean): boolean {
+  if (picked.size === 0) return true;
+  const have = new Set(uniquePins(pins));
+  if (exact) return have.size === picked.size && [...picked].every((p) => have.has(p));
+  return [...picked].every((p) => have.has(p));
+}
+
+/** How long a turned-down hint stays away. */
+export const HINT_SNOOZE_DAYS = 14;
+
+/** Hints turned down, and until when: key to an ISO time. */
+export type HintSnoozes = Record<string, string>;
+
+export function parseSnoozes(raw: string | undefined): HintSnoozes {
+  try {
+    const value: unknown = raw ? JSON.parse(raw) : {};
+    if (!value || typeof value !== "object" || Array.isArray(value)) return {};
+    return Object.fromEntries(
+      Object.entries(value).filter((e): e is [string, string] => typeof e[1] === "string")
+    );
+  } catch {
+    return {};
+  }
+}
+
+/** The keys still being kept away at `now`. */
+export function snoozedKeys(snoozes: HintSnoozes, now: Date): Set<string> {
+  return new Set(Object.entries(snoozes).filter(([, until]) => new Date(until) > now).map(([k]) => k));
+}
+
+/** `snoozes` with `key` kept away for the snooze period, and the lapsed ones dropped. */
+export function snooze(snoozes: HintSnoozes, key: string, now: Date): HintSnoozes {
+  const next: HintSnoozes = {};
+  for (const k of snoozedKeys(snoozes, now)) next[k] = snoozes[k];
+  next[key] = new Date(now.getTime() + HINT_SNOOZE_DAYS * 24 * 60 * 60 * 1000).toISOString();
+  return next;
+}
+
+/** The key the "write a line for this leave" ask is snoozed by. */
+export function askKey(pins: PinNumber[]): string {
+  return `ask:${leaveKey(pins)}`;
 }
 
 /**
@@ -178,10 +269,12 @@ export function matchesFilters(sl: SpareLine, filters: ReadonlySet<SpareFilter>)
  */
 export function mostLeftWithoutLine(
   leaves: Array<{ pins: PinNumber[]; attempts: number; chances: number }>,
-  lines: SpareLine[]
+  lines: SpareLine[],
+  /** Keys of asks turned down for now (`askKey`). */
+  snoozed: ReadonlySet<string> = new Set()
 ): { pins: PinNumber[]; attempts: number } | undefined {
   const withLine = new Set(lines.filter(hasAnswer).map((sl) => leaveKey(sl.pins)));
   return spareLinesShown(leaves)
-    .filter((l) => l.chances > 0 && !withLine.has(leaveKey(l.pins)))
+    .filter((l) => l.chances > 0 && !withLine.has(leaveKey(l.pins)) && !snoozed.has(askKey(l.pins)))
     .sort((a, b) => b.attempts - a.attempts)[0];
 }

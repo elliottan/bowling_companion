@@ -1,5 +1,6 @@
 import { ChevronLeft } from "lucide-react";
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
+import { overlayHandoff } from "../lib/overlayHandoff";
 import { useOverlay } from "../lib/useOverlay";
 import { IconButton } from "./ui/IconButton";
 
@@ -62,6 +63,8 @@ export function PushScreen({
 }: PushScreenProps) {
   const [exiting, setExiting] = useState(false);
   const exitTimer = useRef<number | null>(null);
+  // Taking the place of a loading screen that already slid in: no second slide.
+  const [takesPlace] = useState(() => overlayHandoff.active);
 
   // Slide the screen back out before unmounting it. Without this the push
   // animated in and then vanished on a frame, which reads as a page swap
@@ -121,7 +124,7 @@ export function PushScreen({
       <div
         ref={overlayRef}
         className={`absolute inset-0 flex flex-col bg-surface-sunken ${
-          exiting ? "" : "animate-push-in"
+          exiting || takesPlace ? "" : "animate-push-in"
         }`}
         style={{
           transform: exiting ? "translateX(100%)" : undefined,

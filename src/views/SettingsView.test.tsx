@@ -5,7 +5,7 @@ import { db } from "../db/bowlingDb";
 import { DEFAULT_DRIFT_MODEL } from "../lib/driftModel";
 import { getBowlerName, setBowlerName, setSetting } from "../services/bowlingRepository";
 
-function renderMenu(onOpenGuide = vi.fn(), onSectionChange = vi.fn()) {
+function renderMenu(onSectionChange = vi.fn()) {
   render(
     <SettingsView
       section="menu"
@@ -19,7 +19,6 @@ function renderMenu(onOpenGuide = vi.fn(), onSectionChange = vi.fn()) {
       onOpenArsenal={vi.fn()}
       onOpenSpareLines={vi.fn()}
       onOpenLaneNotes={vi.fn()}
-      onOpenGuide={onOpenGuide}
     />
   );
 }
@@ -102,7 +101,7 @@ describe("SettingsView", () => {
    */
   it("keeps hand and grip behind the Bowling profile row", async () => {
     const onSectionChange = vi.fn();
-    renderMenu(vi.fn(), onSectionChange);
+    renderMenu(onSectionChange);
     expect(screen.queryByRole("group", { name: "Handedness" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Two-handed" })).not.toBeInTheDocument();
     const row = await screen.findByRole("button", { name: /Bowling profile.*Right-handed · One-handed/ });

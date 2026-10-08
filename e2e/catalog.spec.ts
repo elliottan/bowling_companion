@@ -28,8 +28,8 @@ test("searches the catalog and narrows it by brand", async ({ page }) => {
   await page.getByRole("button", { name: /^Filters/ }).click();
   // The brand chips live in the filters panel; the card headers say "STORM" too.
   await page.getByRole("button", { name: "Roto Grip", exact: true }).click();
-  // The active-filter chips show while the panel is closed, so the narrowing
-  // state stays legible without the panel covering the results.
+  // The panel is a popover over the list: the Filters button, which stays above
+  // it, puts it away, and the active-filter chips show the narrowing.
   await page.getByRole("button", { name: /^Filters/ }).click();
   await expect(page.getByRole("button", { name: "Remove filter: Roto Grip" })).toBeVisible();
 

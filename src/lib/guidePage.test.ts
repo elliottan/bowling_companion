@@ -51,4 +51,10 @@ describe("the committed guide pages", () => {
       expect(cards).toContain(`../../public/guides/${guide.id}/card.png`);
     }
   });
+
+  it("has no page for a guide that has been removed", () => {
+    expect(Object.keys(pages).sort()).toEqual(
+      GUIDES.map((g) => `../../public/guides/${g.id}/index.html`).sort()
+    );
+  });
 });

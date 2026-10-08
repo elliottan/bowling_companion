@@ -44,6 +44,7 @@ import { DEFAULT_DRIFT_MODEL, type DriftModel } from "./lib/driftModel";
 import type { Handedness, LineSpec } from "./types/bowling";
 import { decodeLineParams } from "./lib/lineShare";
 import { LaneVisualizerLazy } from "./components/LaneVisualizerLazy";
+import { OverlayLoading } from "./components/OverlayLoading";
 import { UpdateToast } from "./components/UpdateToast";
 import { shouldResetScroll } from "./lib/viewportScroll";
 import { navReducer, type AppView, type Overlay } from "./lib/appNavigation";
@@ -88,6 +89,20 @@ const LayoutLabView = lazy(() =>
 const GamePlanView = lazy(() =>
   import("./views/GamePlanView").then((m) => ({ default: m.GamePlanView }))
 );
+
+/**
+ * The two screens that are heaviest to open cold, fetched once the app has
+ * painted and settled. They are still not in the first-paint bundle, so a
+ * cold start costs nothing more, but by the time a bowler taps Layouts or the
+ * line visualizer the code is already here and the tap opens straight onto it.
+ */
+function prefetchHeavyScreens() {
+  const fetchThem = () => {
+    void import("./views/LayoutLabView");
+    void import("./components/LaneVisualizer");
+  };
+  window.setTimeout(fetchThem, 3000);
+}
 
 type NavItem = {
   view: AppView;
@@ -171,6 +186,11 @@ function App() {
   // these only maintain the stack.
   const pushOverlay = useCallback((overlay: Overlay) => dispatch({ type: "pushOverlay", overlay }), []);
   const popOverlay = useCallback(() => goBack({ type: "popOverlay" }), [goBack]);
+
+  // Once, after the first paint (see prefetchHeavyScreens).
+  useEffect(() => {
+    prefetchHeavyScreens();
+  }, []);
 
   // The on-screen keyboard resizes the (standalone) webview, which would shove
   // the bottom nav up to float above the keyboard. Instead we hide the nav
@@ -587,10 +607,6 @@ function App() {
             onOpenArsenal={() => pushOverlay("arsenal")}
             onOpenSpareLines={() => pushOverlay("spares")}
             onOpenLaneNotes={() => pushOverlay("lanes")}
-            onOpenGuide={(guideId) => {
-              pushOverlay("guides");
-              dispatch({ type: "openGuide", guideId });
-            }}
           />
         )}
         </Suspense>
@@ -618,8 +634,11 @@ function App() {
       {/* Overlay stack. Rendering in order is what layers them: equal z-index,
           so the later sibling paints on top, and popping reveals the one below
           rather than dropping back to the tab. */}
-      <Suspense fallback={null}>
-      {overlays.map((overlay, i) => {
+      {overlays.map((overlay, i) => (
+        // One boundary to a screen, so one that is still loading shows its own
+        // loading screen over the ones already open, instead of hiding them.
+        <Suspense key={`${overlay}-${i}`} fallback={<OverlayLoading onBack={popOverlay} />}>
+        {(() => {
         switch (overlay) {
           case "arsenal":
             return (
@@ -734,8 +753,9 @@ function App() {
               />
             );
         }
-      })}
-      </Suspense>
+        })()}
+        </Suspense>
+      ))}
 
       {nav.lineSandboxOpen && (
         <LaneVisualizerLazy

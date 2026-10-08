@@ -48,6 +48,22 @@ export async function updateBall(id: number, input: Omit<Ball, "id">): Promise<v
   });
 }
 
+/**
+ * The one spare ball, or none (null). Chosen on the spare lines screen rather
+ * than on each ball: the scorer picks it automatically for a spare shot, and
+ * only one ball can be it, so it is a single choice and not a flag on every row.
+ */
+export async function setSpareBall(id: number | null): Promise<void> {
+  await db.transaction("rw", db.balls, async () => {
+    const all = await db.balls.toArray();
+    await Promise.all(
+      all
+        .filter((b) => b.id !== undefined && b.is_spare_ball !== (b.id === id))
+        .map((b) => db.balls.update(b.id!, { is_spare_ball: b.id === id }))
+    );
+  });
+}
+
 export async function deleteBall(id: number): Promise<void> {
   await db.balls.delete(id);
 }

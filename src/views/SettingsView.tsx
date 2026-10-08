@@ -33,16 +33,11 @@ interface SettingsViewProps {
    *  screen. */
   onOpenBackup: () => void;
   onOpenLineVisualizer: (patternId?: number) => void;
-  /** Open one guide article: the long form of a one-line caption here. */
-  onOpenGuide: (guideId: string) => void;
   /** The same overlays Home opens, so both doors land on the same screen. */
   onOpenArsenal: () => void;
   onOpenSpareLines: () => void;
   onOpenLaneNotes: () => void;
 }
-
-/** The guide behind the "Why it matters" links (`lib/guides`). */
-const SETTINGS_GUIDE = "your-settings";
 
 /**
  * Lazy for the same reason App.tsx makes them lazy: both are also pushed as
@@ -57,7 +52,7 @@ const OilPatternsView = lazy(() =>
   import("./OilPatternsView").then((m) => ({ default: m.OilPatternsView }))
 );
 
-export function SettingsView({ section, onSectionChange, handedness, onHandednessChange, driftModel, onDriftModelChange, onOpenBackup, onOpenLineVisualizer, onOpenGuide, onOpenArsenal, onOpenSpareLines, onOpenLaneNotes }: SettingsViewProps) {
+export function SettingsView({ section, onSectionChange, handedness, onHandednessChange, driftModel, onDriftModelChange, onOpenBackup, onOpenLineVisualizer, onOpenArsenal, onOpenSpareLines, onOpenLaneNotes }: SettingsViewProps) {
   const back = () => onSectionChange("menu");
 
   // The menu stays mounted underneath the pushed section, so popping back
@@ -88,7 +83,6 @@ export function SettingsView({ section, onSectionChange, handedness, onHandednes
             onHandednessChange={onHandednessChange}
             driftModel={driftModel}
             onDriftModelChange={onDriftModelChange}
-            onOpenGuide={() => onOpenGuide(SETTINGS_GUIDE)}
             onBack={back}
           />
         ) : null}
@@ -258,7 +252,6 @@ function SettingsMenu({
         <ListRow
           icon={Palette}
           label="Appearance"
-          description="Light, dark, or follow your device"
           onClick={() => onSectionChange("appearance")}
         />
       </ListGroup>
