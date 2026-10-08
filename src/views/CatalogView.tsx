@@ -577,7 +577,7 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall }: CatalogVie
         </div>
 
         {/* Filter toggle + sort row */}
-        <div className="mb-3 flex items-center gap-2">
+        <div className="relative z-[2] mb-3 flex items-center gap-2">
           <Chip selected={showFilters} onClick={() => setShowFilters((v) => !v)}>
             Filters
             {activeFilterCount > 0 ? (

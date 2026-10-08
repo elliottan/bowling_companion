@@ -152,4 +152,18 @@ describe("CatalogView", () => {
     // What was chosen stays, as a chip that can be removed.
     expect(screen.getByRole("button", { name: "Remove filter: Storm" })).toBeInTheDocument();
   });
+
+  it("puts the filters away from the Filters button itself, which sits above the outside-tap layer", async () => {
+    await seedCatalog(3);
+    renderCatalog();
+    await screen.findByText("Ball 0");
+    const button = screen.getByRole("button", { name: /^Filters/ });
+    fireEvent.click(button);
+    expect(screen.getByRole("dialog", { name: "Filter the catalog" })).toBeInTheDocument();
+    // The row holding the button is positioned above the layer that catches
+    // taps elsewhere, so the button is not under it and toggles as it reads.
+    expect(button.closest(".z-\\[2\\]")).not.toBeNull();
+    fireEvent.click(button);
+    expect(screen.queryByRole("dialog", { name: "Filter the catalog" })).not.toBeInTheDocument();
+  });
 });
