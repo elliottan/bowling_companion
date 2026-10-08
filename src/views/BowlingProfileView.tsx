@@ -102,13 +102,19 @@ export function BowlingProfileView({
         </button>
       </div>
 
-      <Group heading="Your PAP">
+      <Group
+        heading="Your PAP"
+        description="Your positive axis point, measured from the center of your grip. The Layouts page uses it."
+      >
         <div className="space-y-2 rounded-xl border border-edge bg-surface p-3">
           <PapEditor pap={pap} onChange={(next) => void setPap(next)} idPrefix="settings-pap" />
         </div>
       </Group>
 
-      <Group heading="Release offset">
+      <Group
+        heading="Release offset"
+        description="Boards from your slide foot to the ball's laydown point. Used to calculate and draw your lines."
+      >
         <div className="rounded-xl border border-edge bg-surface px-3">
           <Row label="Offset" hint="boards">
             <Stepper
@@ -123,7 +129,10 @@ export function BowlingProfileView({
         </div>
       </Group>
 
-      <Group heading="Drift">
+      <Group
+        heading="Drift"
+        description="How far you drift on the approach, by where you start. Used to calculate and draw your lines. Drag the edges on the lane to move the zones."
+      >
         <DriftZoneLane
           model={driftModel}
           hand={value}
@@ -170,10 +179,19 @@ export function BowlingProfileView({
  * rather than a third heading size invented here: three sections each opening
  * with their own bold line read as three pages stacked, not as one screen.
  */
-function Group({ heading, children }: { heading: string; children: React.ReactNode }) {
+function Group({
+  heading,
+  description,
+  children
+}: {
+  heading: string;
+  description: React.ReactNode;
+  children: React.ReactNode;
+}) {
   return (
     <section>
-      <h2 className={`mb-3 ${GROUP_HEADING}`}>{heading}</h2>
+      <h2 className={GROUP_HEADING}>{heading}</h2>
+      <p className="mb-3 mt-1 text-sm leading-relaxed text-ink-secondary">{description}</p>
       {children}
     </section>
   );

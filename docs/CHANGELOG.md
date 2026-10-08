@@ -26,8 +26,8 @@ accent colour, because the games live on your phone and nowhere else.
 beside the Settings title. Tap it to change the name. The Name row is gone.
 
 **One Bowling profile page.** Hand and grip joined PAP, release offset and
-drift. The row under the group shows your hand and grip, and the sentences under
-those headings are gone. The group is called Your bowling.
+drift. The Settings row shows your hand and grip instead of the PAP. The group
+is called Your bowling.
 
 **Support is above Appearance, which is last.** Send feedback and Privacy and
 terms lose their sentences, and Buy me a coffee says "Thanks for your support!"
