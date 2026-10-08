@@ -7,7 +7,6 @@ import { PushScreen } from "../components/PushScreen";
 import { DriftZoneLane, ZONE_ACCENT } from "../components/DriftZoneLane";
 import { HandednessPicker } from "../components/HandednessPicker";
 import { SegmentedControl } from "../components/ui/SegmentedControl";
-import { TAP_TARGET_44 } from "../components/ui/Chip";
 import type { GripStyle, Handedness } from "../types/bowling";
 import { driftDirection, type DriftModel } from "../lib/driftModel";
 import { GROUP_HEADING } from "../components/ui/typography";
@@ -17,8 +16,6 @@ interface BowlingProfileViewProps {
   handedness: Handedness;
   onHandednessChange: (value: Handedness) => void;
   driftModel: DriftModel;
-  /** Open the guide that explains what hand and grip change. */
-  onOpenGuide: () => void;
   /** Present when pushed from Settings, draws the shared nav bar. */
   onBack?: () => void;
   onDriftModelChange: (next: DriftModel) => void;
@@ -40,7 +37,6 @@ export function BowlingProfileView({
   handedness: value,
   onHandednessChange,
   driftModel,
-  onOpenGuide,
   onDriftModelChange,
   onBack
 }: BowlingProfileViewProps) {
@@ -78,7 +74,10 @@ export function BowlingProfileView({
   const body = (
     <section className="mx-auto w-full max-w-3xl space-y-7 px-3 py-4 sm:px-6">
       <div>
-        <h2 className={`mb-3 ${GROUP_HEADING}`}>Handedness</h2>
+        <h2 className={GROUP_HEADING}>Handedness</h2>
+        <p className="mb-3 mt-1 text-sm leading-relaxed text-ink-secondary">
+          Switching flips every board number. Saved sessions keep theirs.
+        </p>
         <HandednessPicker value={value} onSelect={onHandednessChange} />
       </div>
 
@@ -93,18 +92,11 @@ export function BowlingProfileView({
             { value: "2h", label: "Two-handed" }
           ]}
         />
-        <button
-          type="button"
-          onClick={onOpenGuide}
-          className={`relative mt-1 text-sm font-semibold text-accent active:opacity-60 ${TAP_TARGET_44}`}
-        >
-          Why it matters
-        </button>
       </div>
 
       <Group
         heading="Your PAP"
-        description="Your positive axis point, measured from the center of your grip. The Layouts page uses it."
+        description="Measured from the center of your grip. Your pro shop can measure it for you."
       >
         <div className="space-y-2 rounded-xl border border-edge bg-surface p-3">
           <PapEditor pap={pap} onChange={(next) => void setPap(next)} idPrefix="settings-pap" />
@@ -113,7 +105,7 @@ export function BowlingProfileView({
 
       <Group
         heading="Release offset"
-        description="Boards from your slide foot to the ball's laydown point. Used to calculate and draw your lines."
+        description="How many boards from your slide foot the ball lands."
       >
         <div className="rounded-xl border border-edge bg-surface px-3">
           <Row label="Offset" hint="boards">
@@ -127,11 +119,12 @@ export function BowlingProfileView({
             />
           </Row>
         </div>
+        <LinePanelFigure />
       </Group>
 
       <Group
         heading="Drift"
-        description="How far you drift on the approach, by where you start. Used to calculate and draw your lines. Drag the edges on the lane to move the zones."
+        description="How many boards you drift, left or right, from your stance to your finishing slide position. With your release offset, the lane view uses it to work out your slide and laydown, based on the stance you enter."
       >
         <DriftZoneLane
           model={driftModel}
@@ -297,5 +290,35 @@ function Stepper({
         <ChevronRight size={16} aria-hidden="true" />
       </button>
     </div>
+  );
+}
+
+/**
+ * The scorer's line fields as they look when a shot is entered: the intended
+ * stance and target, with the slide and laydown worked out from them. It is a
+ * picture of the real panel (`npm run shots`), so the page can show what the
+ * offset and drift below it are for without a paragraph about it. One picture
+ * per theme, switched with the app's own theme attribute.
+ */
+function LinePanelFigure() {
+  const alt =
+    "The scorer's line fields: intended stance 24 and target 10, with slide 24 and laydown 18 worked out from them.";
+  return (
+    <figure className="mt-3">
+      <img
+        src="/help/line-panel-light.png"
+        width={352}
+        height={236}
+        alt={alt}
+        className="h-auto w-44 rounded-xl border border-edge dark:hidden"
+      />
+      <img
+        src="/help/line-panel-dark.png"
+        width={352}
+        height={236}
+        alt={alt}
+        className="hidden h-auto w-44 rounded-xl border border-edge dark:block"
+      />
+    </figure>
   );
 }

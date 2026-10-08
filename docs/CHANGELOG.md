@@ -37,6 +37,24 @@ entry" and Lane notes reads "How each lane plays at each alley".
 **Lane options lose two sentences.** The notes under Bowling hand and Oil
 pattern are gone; the controls say what they do.
 
+**Layouts and the lane view open straight away.** The first tap on a screen not
+opened before used to do nothing for a moment. The screen now opens at once with
+a spinner, and Layouts and the lane view are fetched in the background so the
+tap usually opens straight onto them.
+
+**The catalog filters are a popover.** They open over the list, under the
+Filters button, instead of pushing every ball down, and a tap outside puts them
+away.
+
+**Tools and reference lose their sentences.** Layouts, Line visualizer, Ball
+catalog and Guides are labels alone.
+
+**The Bowling profile page says what matters under each heading, with a
+picture.** The "Your bowling profile" guide and its "Why it matters" link are
+gone. Hand says that switching flips every board and saved sessions keep theirs.
+Release offset and drift say what they count, and a picture of the scorer's
+stance, target, slide and laydown shows where they come from.
+
 **A shared layout always faces forward.** The picture on the share card is the
 ball as it first opens, not wherever you had turned it to.
 
@@ -47,9 +65,8 @@ no share sheet, the link is copied.
 
 **Guides read more like a person wrote them.** All five are rewritten with
 shorter paragraphs and plainer words, and "take it to the counter" is gone. The
-facts and sources are unchanged. "Your hand, grip and approach" is now "Your
-bowling profile", to match Settings, and drops the grip section, which only
-restated the toggle.
+facts and sources are unchanged. The "Your hand, grip and approach" guide is
+removed: what matters now sits under each heading on the Bowling profile page.
 
 **The landing page shows the app.** It says "The best way to keep score." and
 "Free. Works offline.", then shows four screens: scoring, your line over an oil

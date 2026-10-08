@@ -7,7 +7,7 @@
 //
 // Output is committed, like the icons and the screenshots, and a test holds the
 // pages to the guides. Re-run when a guide's title or summary changes.
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, readdir, rm, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 import sharp from "sharp";
@@ -72,6 +72,16 @@ function cardSvg(guide) {
       <text x="${textX}" y="${blockTop + (lines.length - 1) * lineHeight + 70}" fill="${CREAM}" fill-opacity="0.7" font-family="${FONT}" font-size="30">${escapeXml(`${guide.topic} · ${guide.minutes} min read`)}</text>
     </svg>`
   );
+}
+
+// A guide that was removed must not keep answering its old link.
+const guidesDir = join(root, "public", "guides");
+const wanted = new Set(GUIDES.map((g) => g.id));
+for (const entry of await readdir(guidesDir, { withFileTypes: true }).catch(() => [])) {
+  if (entry.isDirectory() && !wanted.has(entry.name)) {
+    await rm(join(guidesDir, entry.name), { recursive: true });
+    console.log("removed", `guides/${entry.name}/`);
+  }
 }
 
 for (const guide of GUIDES) {

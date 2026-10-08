@@ -4,16 +4,14 @@ import { BowlingProfileView } from "./BowlingProfileView";
 import { db } from "../db/bowlingDb";
 import { DEFAULT_DRIFT_MODEL, type DriftModel } from "../lib/driftModel";
 import { getGripStyle, getPap, setGripStyle, setPap } from "../services/bowlingRepository";
-import { findGuide } from "../lib/guides";
 
-const renderPrefs = (onOpenGuide = vi.fn()) => {
+const renderPrefs = () => {
   render(
     <BowlingProfileView
       handedness="right"
       onHandednessChange={vi.fn()}
       driftModel={DEFAULT_DRIFT_MODEL}
       onDriftModelChange={vi.fn()}
-      onOpenGuide={onOpenGuide}
     />
   );
 };
@@ -47,15 +45,19 @@ describe("BowlingProfileView", () => {
     );
   });
 
-  it("keeps the long explanation in a guide, one tap away", () => {
-    const openGuide = vi.fn();
-    renderPrefs(openGuide);
-    fireEvent.click(screen.getByRole("button", { name: "Why it matters" }));
-    expect(openGuide).toHaveBeenCalled();
-    // The guide covers the numbers on this page that are not self-evident.
-    const text = JSON.stringify(findGuide("your-settings")?.body);
-    expect(text).toMatch(/slide foot/i);
-    expect(text).not.toMatch(/thumb hole/i);
+  it("has no guide behind it: what matters is said under the heading it belongs to", () => {
+    renderPrefs();
+    expect(screen.queryByRole("button", { name: "Why it matters" })).not.toBeInTheDocument();
+    expect(screen.getByText("Switching flips every board number. Saved sessions keep theirs.")).toBeInTheDocument();
+  });
+
+  it("shows the scorer's line fields beside the offset, in both themes", () => {
+    renderPrefs();
+    const figures = screen.getAllByRole("img", { name: /intended stance 24 and target 10/ });
+    expect(figures.map((f) => f.getAttribute("src"))).toEqual([
+      "/help/line-panel-light.png",
+      "/help/line-panel-dark.png"
+    ]);
   });
 
   it("edits the same stored PAP the Layouts page does", async () => {
@@ -109,7 +111,7 @@ describe("BowlingProfileView", () => {
 
   it("sets the zone edges on the lane, with no board fields beside it", () => {
     const onChange = vi.fn();
-    render(<BowlingProfileView handedness="right" onHandednessChange={vi.fn()} onOpenGuide={vi.fn()} driftModel={DEFAULT_DRIFT_MODEL} onDriftModelChange={onChange} />);
+    render(<BowlingProfileView handedness="right" onHandednessChange={vi.fn()} driftModel={DEFAULT_DRIFT_MODEL} onDriftModelChange={onChange} />);
     expect(screen.queryByText("Ends at board")).not.toBeInTheDocument();
     expect(screen.queryByText("Starts at board")).not.toBeInTheDocument();
     expect(screen.queryByText(/← left/)).not.toBeInTheDocument();
@@ -128,7 +130,7 @@ describe("BowlingProfileView", () => {
 
   it("drags the nearer edge to the board under the finger", () => {
     const onChange = vi.fn();
-    render(<BowlingProfileView handedness="left" onHandednessChange={vi.fn()} onOpenGuide={vi.fn()} driftModel={DEFAULT_DRIFT_MODEL} onDriftModelChange={onChange} />);
+    render(<BowlingProfileView handedness="left" onHandednessChange={vi.fn()} driftModel={DEFAULT_DRIFT_MODEL} onDriftModelChange={onChange} />);
     const lane = screen.getByRole("group", { name: /Approach board diagram/ });
     // 390 wide on screen, 10 px a board. A left-hander's board 1 is on the left.
     lane.getBoundingClientRect = () => ({ left: 0, width: 390, top: 0, height: 168, right: 390, bottom: 168, x: 0, y: 0, toJSON: () => ({}) });
@@ -145,7 +147,7 @@ describe("BowlingProfileView", () => {
   it("keeps the middle zone open however far an edge is pushed", () => {
     const onChange = vi.fn();
     const model: DriftModel = { ...DEFAULT_DRIFT_MODEL, outside_max: 23, inside_min: 25 };
-    render(<BowlingProfileView handedness="right" onHandednessChange={vi.fn()} onOpenGuide={vi.fn()} driftModel={model} onDriftModelChange={onChange} />);
+    render(<BowlingProfileView handedness="right" onHandednessChange={vi.fn()} driftModel={model} onDriftModelChange={onChange} />);
     fireEvent.keyDown(screen.getByRole("slider", { name: "Outside zone ends at board" }), { key: "ArrowLeft" });
     expect(onChange).not.toHaveBeenCalled();
   });
@@ -155,7 +157,7 @@ describe("BowlingProfileView", () => {
       <BowlingProfileView
         handedness="right"
         onHandednessChange={vi.fn()}
-        onOpenGuide={vi.fn()}
+       
         driftModel={{ ...DEFAULT_DRIFT_MODEL, drift: { outside: 2, middle: 0, inside: -1 } }}
         onDriftModelChange={vi.fn()}
       />

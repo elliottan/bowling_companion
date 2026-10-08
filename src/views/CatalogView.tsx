@@ -602,9 +602,108 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall }: CatalogVie
           </label>
         </div>
 
-        {/* Active-filter chips: visible while the panel is closed so the
-            narrowing state stays legible; tap a chip to remove that filter. */}
-        {!showFilters && activeFilterCount > 0 && (
+        {/* The filters open over the list, not into it: the panel is a layer
+            under the Filters button, so choosing a brand does not push every
+            ball down the screen. A tap anywhere else puts it away. */}
+        {showFilters && (
+          <div className="relative">
+            <div
+              className="fixed inset-0 z-[1]"
+              aria-hidden="true"
+              onPointerDown={() => setShowFilters(false)}
+            />
+            <div
+                role="dialog"
+                aria-label="Filter the catalog"
+                className="absolute inset-x-0 top-0 z-[2] max-h-[min(70vh,34rem)] space-y-4 overflow-y-auto overscroll-contain rounded-xl border border-edge bg-surface p-4 shadow-lg"
+              >
+              {/* Brand */}
+              <div>
+                <p className={`mb-2 ${GROUP_HEADING}`}>Brand</p>
+                <div className="flex flex-wrap gap-2">
+                  {ALL_BRANDS.map((brand) => (
+                    <Chip
+                      key={brand}
+                      selected={filters.brands.has(brand)}
+                      onClick={() => setFilters((f) => ({ ...f, brands: toggleSetValue(f.brands, brand) }))}
+                    >
+                      {brand}
+                    </Chip>
+                  ))}
+                </div>
+              </div>
+
+              {/* Coverstock */}
+              <div>
+                <p className={`mb-2 ${GROUP_HEADING}`}>Coverstock</p>
+                <div className="flex flex-wrap gap-2">
+                  {ALL_COVERSTOCK.map((cat) => (
+                    <Chip
+                      key={cat}
+                      selected={filters.coverstockCategories.has(cat)}
+                      onClick={() => setFilters((f) => ({ ...f, coverstockCategories: toggleSetValue(f.coverstockCategories, cat) }))}
+                    >
+                      {cat}
+                    </Chip>
+                  ))}
+                </div>
+              </div>
+
+              {/* Core type */}
+              <div>
+                <p className={`mb-2 ${GROUP_HEADING}`}>Core type</p>
+                <div className="flex gap-2">
+                  {(["Symmetric", "Asymmetric"] as const).map((ct) => (
+                    <Chip
+                      key={ct}
+                      selected={filters.coreType === ct}
+                      onClick={() => setFilters((f) => ({ ...f, coreType: f.coreType === ct ? null : ct }))}
+                    >
+                      {ct}
+                    </Chip>
+                  ))}
+                </div>
+              </div>
+
+              {/* RG range */}
+              <RangeSlider
+                label="RG"
+                min={RG_MIN}
+                max={RG_MAX}
+                step={0.01}
+                valueMin={filters.rgMin}
+                valueMax={filters.rgMax}
+                format={(v) => v.toFixed(2)}
+                onChange={(min, max) => setFilters((f) => ({ ...f, rgMin: min, rgMax: max }))}
+              />
+
+              {/* Diff range */}
+              <RangeSlider
+                label="Diff"
+                min={DIFF_MIN}
+                max={DIFF_MAX}
+                step={0.001}
+                valueMin={filters.diffMin}
+                valueMax={filters.diffMax}
+                format={(v) => v.toFixed(3)}
+                onChange={(min, max) => setFilters((f) => ({ ...f, diffMin: min, diffMax: max }))}
+              />
+
+              {/* Reset */}
+              <button
+                type="button"
+                onClick={() => setFilters(EMPTY_FILTERS)}
+                className={`relative text-xs font-semibold text-accent hover:underline ${TAP_TARGET_44}`}
+              >
+                Reset all filters
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Active-filter chips: the narrowing state stays legible under the
+            panel's origin; tap a chip to remove that filter. */}
+        {activeFilterCount > 0 && (
           <div className="mb-3 flex flex-wrap gap-2">
             {[...filters.brands].map((brand) => (
               <FilterChip
@@ -643,92 +742,6 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall }: CatalogVie
                 onRemove={() => setFilters((f) => ({ ...f, diffMin: DIFF_MIN, diffMax: DIFF_MAX }))}
               />
             )}
-          </div>
-        )}
-
-        {/* Filters panel */}
-        {showFilters && (
-          <div className="mb-4 rounded-lg border border-edge bg-surface p-4 space-y-4 shadow-sm">
-            {/* Brand */}
-            <div>
-              <p className={`mb-2 ${GROUP_HEADING}`}>Brand</p>
-              <div className="flex flex-wrap gap-2">
-                {ALL_BRANDS.map((brand) => (
-                  <Chip
-                    key={brand}
-                    selected={filters.brands.has(brand)}
-                    onClick={() => setFilters((f) => ({ ...f, brands: toggleSetValue(f.brands, brand) }))}
-                  >
-                    {brand}
-                  </Chip>
-                ))}
-              </div>
-            </div>
-
-            {/* Coverstock */}
-            <div>
-              <p className={`mb-2 ${GROUP_HEADING}`}>Coverstock</p>
-              <div className="flex flex-wrap gap-2">
-                {ALL_COVERSTOCK.map((cat) => (
-                  <Chip
-                    key={cat}
-                    selected={filters.coverstockCategories.has(cat)}
-                    onClick={() => setFilters((f) => ({ ...f, coverstockCategories: toggleSetValue(f.coverstockCategories, cat) }))}
-                  >
-                    {cat}
-                  </Chip>
-                ))}
-              </div>
-            </div>
-
-            {/* Core type */}
-            <div>
-              <p className={`mb-2 ${GROUP_HEADING}`}>Core type</p>
-              <div className="flex gap-2">
-                {(["Symmetric", "Asymmetric"] as const).map((ct) => (
-                  <Chip
-                    key={ct}
-                    selected={filters.coreType === ct}
-                    onClick={() => setFilters((f) => ({ ...f, coreType: f.coreType === ct ? null : ct }))}
-                  >
-                    {ct}
-                  </Chip>
-                ))}
-              </div>
-            </div>
-
-            {/* RG range */}
-            <RangeSlider
-              label="RG"
-              min={RG_MIN}
-              max={RG_MAX}
-              step={0.01}
-              valueMin={filters.rgMin}
-              valueMax={filters.rgMax}
-              format={(v) => v.toFixed(2)}
-              onChange={(min, max) => setFilters((f) => ({ ...f, rgMin: min, rgMax: max }))}
-            />
-
-            {/* Diff range */}
-            <RangeSlider
-              label="Diff"
-              min={DIFF_MIN}
-              max={DIFF_MAX}
-              step={0.001}
-              valueMin={filters.diffMin}
-              valueMax={filters.diffMax}
-              format={(v) => v.toFixed(3)}
-              onChange={(min, max) => setFilters((f) => ({ ...f, diffMin: min, diffMax: max }))}
-            />
-
-            {/* Reset */}
-            <button
-              type="button"
-              onClick={() => setFilters(EMPTY_FILTERS)}
-              className={`relative text-xs font-semibold text-accent hover:underline ${TAP_TARGET_44}`}
-            >
-              Reset all filters
-            </button>
           </div>
         )}
 

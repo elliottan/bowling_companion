@@ -16,6 +16,8 @@ import sharp from "sharp";
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 // SHOTS_DIR sends the pictures elsewhere, for a run that only wants the state.
 const outDir = process.env.SHOTS_DIR ?? join(root, "public", "shots");
+// Pictures of one part of a screen, shown inside the app itself.
+const helpDir = process.env.HELP_DIR ?? join(root, "public", "help");
 const BASE = process.env.SHOTS_BASE ?? "http://localhost:5173";
 
 /**
@@ -268,6 +270,25 @@ async function shoot(page, name, scrollTo = 0) {
 }
 
 /**
+ * One region of the screen, in both themes, for a picture the app itself shows
+ * (the Bowling profile page's release offset figure). A small palette PNG rather
+ * than a webp, because the service worker keeps png in its precache and leaves
+ * webp out: the figure has to be there the first time a bowler is offline.
+ */
+async function clipBothThemes(page, name, clip) {
+  const write = async (suffix) => {
+    await settle(page);
+    const png = await page.screenshot({ clip });
+    await writeFile(join(helpDir, `${name}-${suffix}.png`), await sharp(png).png({ palette: true }).toBuffer());
+    console.log("wrote", `help/${name}-${suffix}.png`);
+  };
+  await write("dark");
+  await setTheme(page, "light");
+  await write("light");
+  await setTheme(page, "dark");
+}
+
+/**
  * Flip the theme in place. It is the data-theme attribute that selects the
  * colour tokens, so setting it is enough, and reloading to let the pre-paint
  * script do it is not: a shot is not saved until Next, so a reload on the
@@ -319,6 +340,7 @@ await page.addStyleTag({
 }).catch(() => {});
 
 await mkdir(outDir, { recursive: true });
+await mkdir(helpDir, { recursive: true });
 
 await page.goto(`${BASE}/score`);
 await page.evaluate(
@@ -416,6 +438,9 @@ for (let i = 0; i < GAMES.length; i++) {
     await fillLine(page, { stance: 24, intendedTarget: 10, slide: 23.5, actualTarget: 11 });
     await dismissPrompts(page);
     await shootBothThemes(page, "scorer");
+    // The intended stance and target with the slide and laydown worked out from
+    // them: what the Bowling profile page's release offset and drift are for.
+    await clipBothThemes(page, "line-panel", { x: 205, y: 373, width: 172, height: 113 });
 
     // Finish the frame so the game counts: two shots, left open.
     await page.getByRole("button", { name: RECORD_SHOT }).click();

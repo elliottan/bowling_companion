@@ -67,6 +67,7 @@ export function RangeSlider({ label, min, max, step, valueMin, valueMax, format,
         {/* Min handle */}
         <input
           type="range"
+          aria-label={`${label} minimum`}
           min={min}
           max={max}
           step={step}
@@ -81,6 +82,7 @@ export function RangeSlider({ label, min, max, step, valueMin, valueMax, format,
         {/* Max handle */}
         <input
           type="range"
+          aria-label={`${label} maximum`}
           min={min}
           max={max}
           step={step}
