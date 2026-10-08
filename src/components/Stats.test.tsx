@@ -17,6 +17,8 @@ const STATS: BowlingStats = {
   pocketPct: 90,
   carryPct: 67,
   firstBallAverage: 8.4,
+  strikeOnStrikePct: 47,
+  bestStreak: 4,
   byAlley: []
 };
 
@@ -76,6 +78,18 @@ describe("the headline tiles", () => {
   });
 });
 
+describe("strike on strike and the best streak", () => {
+  it("sits with the strikes, and explains itself from the chart it plots", () => {
+    render(<Stats stats={STATS} sessionMetrics={TREND} sessionTrend={SESSION_TREND} />);
+    expect(screen.getByRole("button", { name: /47% Strike on strike/ })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /4 Best streak/ })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: /Strike on strike/ }));
+    fireEvent.click(screen.getByRole("button", { name: /What Strike on strike counts/ }));
+    expect(screen.getByText(/strikes that the next ball struck too/i)).toBeInTheDocument();
+  });
+});
+
 describe("picking what the chart plots", () => {
   it("starts on the average", () => {
     render(<Stats stats={STATS} sessionMetrics={TREND} sessionTrend={SESSION_TREND} />);
@@ -99,7 +113,7 @@ describe("picking what the chart plots", () => {
 
   it("plots the value each night actually had", () => {
     render(<Stats stats={STATS} sessionMetrics={TREND} sessionTrend={SESSION_TREND} />);
-    fireEvent.click(screen.getByRole("button", { name: /Strike/ }));
+    fireEvent.click(screen.getByRole("button", { name: /Strike$/ }));
     // 60 on the first night, 40 on the second, read off the same stats block
     // the tiles are read from.
     const plotted = screen
@@ -123,7 +137,7 @@ describe("picking what the chart plots", () => {
   it("offers no explanation for a stat whose label already says it", () => {
     render(<Stats stats={STATS} sessionMetrics={TREND} sessionTrend={SESSION_TREND} />);
     for (const named of ["Pocket", "Strike", "1st ball"]) {
-      fireEvent.click(screen.getByRole("button", { name: new RegExp(named) }));
+      fireEvent.click(screen.getByRole("button", { name: new RegExp(`${named}$`) }));
       // No dangling info control, because there is nothing behind it.
       expect(screen.queryByRole("button", { name: `What ${named} counts` })).toBeNull();
     }
@@ -446,7 +460,7 @@ describe("inside a session, the picker drives the per-game chart", () => {
 
   it("swaps to one point per game for any other stat", () => {
     render(<Stats stats={STATS} games={GAMES} gameMetrics={GAME_METRICS} />);
-    fireEvent.click(screen.getByRole("button", { name: /Strike/ }));
+    fireEvent.click(screen.getByRole("button", { name: /Strike$/ }));
 
     const plotted = screen
       .getAllByRole("button", { name: /^Game \d, \d+%$/ })

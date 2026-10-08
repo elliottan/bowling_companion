@@ -18,10 +18,13 @@ import { decodeLayoutParams } from "../lib/layoutShare";
  * here. They are stubbed at the seam rather than skipped, which leaves the
  * screen's own half, deciding what goes on the card and where it is sent,
  * testable. `lib/shareCard`'s own tests cover the builders underneath. */
-const raster = vi.hoisted(() => ({ downloads: [] as string[] }));
+const raster = vi.hoisted(() => ({ downloads: [] as string[], drawn: [] as string[] }));
 
 vi.mock("../lib/svgImage", () => ({
-  svgToImage: () => Promise.reject(new Error("no raster in jsdom"))
+  svgToImage: (svg: SVGSVGElement) => {
+    raster.drawn.push(svg.outerHTML);
+    return Promise.reject(new Error("no raster in jsdom"));
+  }
 }));
 
 vi.mock("../lib/shareCard", async (importOriginal) => {
@@ -468,6 +471,30 @@ describe("LayoutLabView", () => {
     // it down the screen.
     fireEvent.click(screen.getByRole("button", { name: "Close" }));
     expect(screen.queryByText(hint)).not.toBeInTheDocument();
+  });
+
+  it("draws the shared ball facing forward, however far the bowler turned it", async () => {
+    renderLab();
+    const ball = () => screen.getAllByRole("img").find((el) => el.tagName.toLowerCase() === "svg")!;
+    const facing = ball().outerHTML;
+
+    raster.drawn.length = 0;
+    fireEvent.click(screen.getByRole("button", { name: "Share layout" }));
+    await waitFor(() => expect(raster.drawn).toHaveLength(1));
+    expect(raster.drawn[0]).toBe(facing);
+
+    // Turned a quarter step to the side with the keyboard: the screen keeps the
+    // turn, and the card still gets the forward view.
+    fireEvent.click(await screen.findByRole("button", { name: "Close" }));
+    for (let i = 0; i < 4; i += 1) fireEvent.keyDown(ball(), { key: "ArrowLeft" });
+    const turned = ball().outerHTML;
+    expect(turned).not.toBe(facing);
+
+    raster.drawn.length = 0;
+    fireEvent.click(screen.getByRole("button", { name: "Share layout" }));
+    await waitFor(() => expect(raster.drawn).toHaveLength(1));
+    expect(raster.drawn[0]).toBe(facing);
+    expect(ball().outerHTML).toBe(turned);
   });
 
   it("shares a link that reopens the same layout", async () => {

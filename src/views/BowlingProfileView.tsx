@@ -2,17 +2,23 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { PapEditor } from "../components/PapEditor";
 import { DEFAULT_PAP } from "../lib/ballLayout";
-import { getPap, setPap } from "../services/bowlingRepository";
+import { getGripStyle, getPap, setGripStyle, setPap } from "../services/bowlingRepository";
 import { PushScreen } from "../components/PushScreen";
 import { DriftZoneLane, ZONE_ACCENT } from "../components/DriftZoneLane";
-import type { Handedness } from "../types/bowling";
+import { HandednessPicker } from "../components/HandednessPicker";
+import { SegmentedControl } from "../components/ui/SegmentedControl";
+import { TAP_TARGET_44 } from "../components/ui/Chip";
+import type { GripStyle, Handedness } from "../types/bowling";
 import { driftDirection, type DriftModel } from "../lib/driftModel";
 import { GROUP_HEADING } from "../components/ui/typography";
 
-interface HandednessViewProps {
+interface BowlingProfileViewProps {
   /** The bowler's hand, which the release offset and drift directions read. */
-  value: Handedness;
+  handedness: Handedness;
+  onHandednessChange: (value: Handedness) => void;
   driftModel: DriftModel;
+  /** Open the guide that explains what hand and grip change. */
+  onOpenGuide: () => void;
   /** Present when pushed from Settings, draws the shared nav bar. */
   onBack?: () => void;
   onDriftModelChange: (next: DriftModel) => void;
@@ -23,12 +29,23 @@ const BOARD_MAX = 39; // upper board bound (matches deriveLaydown's clamp range)
 const ZONES = ["outside", "middle", "inside"] as const;
 
 /**
- * PAP, release and drift (ADR-115): the numbers only the lane view and the
- * Layouts page read, a row under Bowler in Settings. Handedness and grip used to
- * open this screen, above PAP and drift, as if a new bowler had to understand
- * all of it; they have their own page now, and the long explanations are a guide.
+ * Everything personal to how this bowler throws, on one page behind one
+ * Settings row: hand and grip, then the numbers only the lane view and the
+ * Layouts page read (PAP, release offset, drift). They were two pages, "Hand and
+ * grip" and "PAP, release and drift", and a bowler looking for either had to
+ * guess which. Hand and grip stay on top because they are answered first, at
+ * setup, and flipping the hand mirrors every board in the app.
  */
-export function HandednessView({ value, driftModel, onDriftModelChange, onBack }: HandednessViewProps) {
+export function BowlingProfileView({
+  handedness: value,
+  onHandednessChange,
+  driftModel,
+  onOpenGuide,
+  onDriftModelChange,
+  onBack
+}: BowlingProfileViewProps) {
+  const grip: GripStyle = useLiveQuery(getGripStyle, [], undefined) ?? "1h";
+
   function setReleaseOffset(v: number) {
     onDriftModelChange({ ...driftModel, release_offset: v });
   }
@@ -60,19 +77,38 @@ export function HandednessView({ value, driftModel, onDriftModelChange, onBack }
 
   const body = (
     <section className="mx-auto w-full max-w-3xl space-y-7 px-3 py-4 sm:px-6">
-      <Group
-        heading="Your PAP"
-        description="Your positive axis point, measured from the center of your grip. The Layouts page uses it."
-      >
+      <div>
+        <h2 className={`mb-3 ${GROUP_HEADING}`}>Handedness</h2>
+        <HandednessPicker value={value} onSelect={onHandednessChange} />
+      </div>
+
+      <div>
+        <h2 className={`mb-3 ${GROUP_HEADING}`}>Grip</h2>
+        <SegmentedControl
+          label="Grip style"
+          value={grip}
+          onChange={(next) => void setGripStyle(next)}
+          options={[
+            { value: "1h", label: "One-handed" },
+            { value: "2h", label: "Two-handed" }
+          ]}
+        />
+        <button
+          type="button"
+          onClick={onOpenGuide}
+          className={`relative mt-1 text-sm font-semibold text-accent active:opacity-60 ${TAP_TARGET_44}`}
+        >
+          Why it matters
+        </button>
+      </div>
+
+      <Group heading="Your PAP">
         <div className="space-y-2 rounded-xl border border-edge bg-surface p-3">
           <PapEditor pap={pap} onChange={(next) => void setPap(next)} idPrefix="settings-pap" />
         </div>
       </Group>
 
-      <Group
-        heading="Release offset"
-        description="Boards from your slide foot to the ball's laydown point. Used to calculate and draw your lines."
-      >
+      <Group heading="Release offset">
         <div className="rounded-xl border border-edge bg-surface px-3">
           <Row label="Offset" hint="boards">
             <Stepper
@@ -87,10 +123,7 @@ export function HandednessView({ value, driftModel, onDriftModelChange, onBack }
         </div>
       </Group>
 
-      <Group
-        heading="Drift"
-        description="How far you drift on the approach, by where you start. Used to calculate and draw your lines. Drag the edges on the lane to move the zones."
-      >
+      <Group heading="Drift">
         <DriftZoneLane
           model={driftModel}
           hand={value}
@@ -126,7 +159,7 @@ export function HandednessView({ value, driftModel, onDriftModelChange, onBack }
   if (!onBack) return body;
 
   return (
-    <PushScreen mode="inline" title="PAP, release and drift" onBack={onBack}>
+    <PushScreen mode="inline" title="Bowling profile" onBack={onBack}>
       {body}
     </PushScreen>
   );
@@ -137,19 +170,10 @@ export function HandednessView({ value, driftModel, onDriftModelChange, onBack }
  * rather than a third heading size invented here: three sections each opening
  * with their own bold line read as three pages stacked, not as one screen.
  */
-function Group({
-  heading,
-  description,
-  children
-}: {
-  heading: string;
-  description: React.ReactNode;
-  children: React.ReactNode;
-}) {
+function Group({ heading, children }: { heading: string; children: React.ReactNode }) {
   return (
     <section>
-      <h2 className={GROUP_HEADING}>{heading}</h2>
-      <p className="mb-3 mt-1 text-sm leading-relaxed text-ink-secondary">{description}</p>
+      <h2 className={`mb-3 ${GROUP_HEADING}`}>{heading}</h2>
       {children}
     </section>
   );

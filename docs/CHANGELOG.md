@@ -9,14 +9,36 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
-## 0.11.1: A tidier landing page and Stats tiles (2026-10-08)
+## 0.12.0: Settings and Stats tidy-up, strike on strike, a tidier landing page (2026-10-08)
+
+**Strike on strike, and your best streak.** Stats shows how often a strike was
+followed by another, and the most strikes you have strung together in one game.
+Tap either to chart it by session. Stats is regrouped: scores, then strikes,
+then spares and the first ball.
 
 **High and low are two tiles.** They used to share one tile as two stacked
-scores with no name, and sat higher than every tile beside them. Stats now
-shows Games, High and Low in a row, then the rates, each a number over its name.
+scores with no name, and sat higher than every tile beside them.
 
-**Lane options lose two sentences.** The notes under Bowling hand and Oil pattern
-are gone; the controls say what they do.
+**Settings leads with Backup & restore.** It sits alone at the top, in the
+accent colour, because the games live on your phone and nowhere else.
+
+**Your name is a profile chip.** The first letter of your name and the name sit
+beside the Settings title. Tap it to change the name. The Name row is gone.
+
+**One Bowling profile page.** Hand and grip joined PAP, release offset and
+drift. The row under the group shows your hand and grip, and the sentences under
+those headings are gone. The group is called Your bowling.
+
+**Support is above Appearance, which is last.** Send feedback and Privacy and
+terms lose their sentences, and Buy me a coffee says "Thanks for your support!"
+and opens the new link. Spare lines reads "Pre-fill spare lines during score
+entry" and Lane notes reads "How each lane plays at each alley".
+
+**Lane options lose two sentences.** The notes under Bowling hand and Oil
+pattern are gone; the controls say what they do.
+
+**A shared layout always faces forward.** The picture on the share card is the
+ball as it first opens, not wherever you had turned it to.
 
 **The landing page shows the app.** It says "The best way to keep score." and
 "Free. Works offline.", then shows four screens: scoring, your line over an oil

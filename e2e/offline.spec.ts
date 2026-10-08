@@ -55,10 +55,10 @@ test("the theme and the handedness stick across a reload", async ({ page }) => {
   // which is the whole point of that script.
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
 
-  // Handedness sits one push behind the Hand and grip row, where a stray tap
+  // Handedness sits one push behind the Bowling profile row, where a stray tap
   // on the Settings list cannot flip every board in the app.
   await page.getByRole("navigation").getByRole("button", { name: "Settings" }).click();
-  await page.getByRole("button", { name: /Hand and grip/ }).click();
+  await page.getByRole("button", { name: /Bowling profile/ }).click();
   await page.getByRole("button", { name: "Left-handed", exact: true }).click();
 
   // Wait for the hand to be stored, not merely drawn: the button flips on the
@@ -91,7 +91,7 @@ test("the theme and the handedness stick across a reload", async ({ page }) => {
     .toBe("left");
 
   await page.reload();
-  // The reload lands back on the Hand and grip page, and the row under it now
+  // The reload lands back on the Bowling profile page, and the row under it now
   // says so too.
   await expect(page.getByRole("button", { name: "Left-handed", exact: true })).toHaveAttribute(
     "aria-pressed",

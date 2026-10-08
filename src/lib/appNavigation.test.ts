@@ -36,10 +36,10 @@ describe("navReducer", () => {
       // action for the whole move cannot race itself.
       const state = run([
         { type: "pushOverlay", overlay: "layout-lab" },
-        { type: "goToSettingsSection", section: "preferences" }
+        { type: "goToSettingsSection", section: "profile" }
       ]);
       expect(state.view).toBe("settings");
-      expect(state.settingsSection).toBe("preferences");
+      expect(state.settingsSection).toBe("profile");
       expect(state.overlays).toEqual([]);
     });
 
@@ -47,7 +47,7 @@ describe("navReducer", () => {
       const state = run([
         { type: "pushOverlay", overlay: "catalog" },
         { type: "openCatalogBall", ballId: "storm-physix" },
-        { type: "goToSettingsSection", section: "preferences" }
+        { type: "goToSettingsSection", section: "profile" }
       ]);
       // A ball detail with no catalog under it describes nothing, so it goes
       // with the screen that was showing it.

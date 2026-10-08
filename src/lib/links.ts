@@ -1,4 +1,4 @@
-export const DONATE_URL = "https://buymeacoffee.com/elliottan";
+export const DONATE_URL = "https://buymeacoffee.com/elliotbowls";
 
 /** Privacy, terms and the trademark notice. A page on the site rather than a
  *  screen in the app: a store reviewer and a crawler both need a public URL,

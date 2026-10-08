@@ -18,9 +18,8 @@ export type SettingsSection =
   | "menu"
   | "lanes"
   | "oil-patterns"
-  | "preferences"
   | "appearance"
-  | "bowler";
+  | "profile";
 
 import type { LayoutSeed } from "./layoutShare";
 

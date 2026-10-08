@@ -1,31 +1,60 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { HandednessView } from "./HandednessView";
+import { BowlingProfileView } from "./BowlingProfileView";
 import { db } from "../db/bowlingDb";
 import { DEFAULT_DRIFT_MODEL, type DriftModel } from "../lib/driftModel";
-import { getPap, setPap } from "../services/bowlingRepository";
+import { getGripStyle, getPap, setGripStyle, setPap } from "../services/bowlingRepository";
+import { findGuide } from "../lib/guides";
 
-const renderPrefs = () => {
+const renderPrefs = (onOpenGuide = vi.fn()) => {
   render(
-    <HandednessView
-      value="right"
+    <BowlingProfileView
+      handedness="right"
+      onHandednessChange={vi.fn()}
       driftModel={DEFAULT_DRIFT_MODEL}
       onDriftModelChange={vi.fn()}
+      onOpenGuide={onOpenGuide}
     />
   );
 };
 
-describe("HandednessView", () => {
+describe("BowlingProfileView", () => {
   beforeEach(async () => {
     await db.delete();
     await db.open();
   });
 
-  it("holds the numbers only the lane view and the Layouts page read", () => {
-    // Handedness and grip are answered on the Settings list itself (ADR-115).
+  it("holds hand and grip, and the numbers only the lane view and the Layouts page read", () => {
     renderPrefs();
-    expect(screen.queryByRole("button", { name: "Two-handed" })).not.toBeInTheDocument();
+    expect(screen.getAllByRole("group", { name: "Handedness" }).length).toBeGreaterThan(0);
+    expect(screen.getByRole("button", { name: "One-handed" })).toBeInTheDocument();
     expect(screen.getByText("Release offset")).toBeInTheDocument();
+    expect(screen.getByText("Drift")).toBeInTheDocument();
+  });
+
+  it("answers the grip, one-handed until told otherwise", async () => {
+    renderPrefs();
+    expect(screen.getByRole("button", { name: "One-handed" })).toHaveAttribute("aria-pressed", "true");
+    fireEvent.click(screen.getByRole("button", { name: "Two-handed" }));
+    await waitFor(async () => expect(await getGripStyle()).toBe("2h"));
+  });
+
+  it("fills the grip from what was saved", async () => {
+    await setGripStyle("2h");
+    renderPrefs();
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: "Two-handed" })).toHaveAttribute("aria-pressed", "true")
+    );
+  });
+
+  it("keeps the long explanation in a guide, one tap away", () => {
+    const openGuide = vi.fn();
+    renderPrefs(openGuide);
+    fireEvent.click(screen.getByRole("button", { name: "Why it matters" }));
+    expect(openGuide).toHaveBeenCalled();
+    // What a two-handed grip changes, and what it leaves alone, still says so.
+    const text = JSON.stringify(findGuide("your-settings")?.body);
+    expect(text).toMatch(/without a thumb hole/i);
   });
 
   it("edits the same stored PAP the Layouts page does", async () => {
@@ -79,7 +108,7 @@ describe("HandednessView", () => {
 
   it("sets the zone edges on the lane, with no board fields beside it", () => {
     const onChange = vi.fn();
-    render(<HandednessView value="right" driftModel={DEFAULT_DRIFT_MODEL} onDriftModelChange={onChange} />);
+    render(<BowlingProfileView handedness="right" onHandednessChange={vi.fn()} onOpenGuide={vi.fn()} driftModel={DEFAULT_DRIFT_MODEL} onDriftModelChange={onChange} />);
     expect(screen.queryByText("Ends at board")).not.toBeInTheDocument();
     expect(screen.queryByText("Starts at board")).not.toBeInTheDocument();
     expect(screen.queryByText(/← left/)).not.toBeInTheDocument();
@@ -98,7 +127,7 @@ describe("HandednessView", () => {
 
   it("drags the nearer edge to the board under the finger", () => {
     const onChange = vi.fn();
-    render(<HandednessView value="left" driftModel={DEFAULT_DRIFT_MODEL} onDriftModelChange={onChange} />);
+    render(<BowlingProfileView handedness="left" onHandednessChange={vi.fn()} onOpenGuide={vi.fn()} driftModel={DEFAULT_DRIFT_MODEL} onDriftModelChange={onChange} />);
     const lane = screen.getByRole("group", { name: /Approach board diagram/ });
     // 390 wide on screen, 10 px a board. A left-hander's board 1 is on the left.
     lane.getBoundingClientRect = () => ({ left: 0, width: 390, top: 0, height: 168, right: 390, bottom: 168, x: 0, y: 0, toJSON: () => ({}) });
@@ -115,15 +144,17 @@ describe("HandednessView", () => {
   it("keeps the middle zone open however far an edge is pushed", () => {
     const onChange = vi.fn();
     const model: DriftModel = { ...DEFAULT_DRIFT_MODEL, outside_max: 23, inside_min: 25 };
-    render(<HandednessView value="right" driftModel={model} onDriftModelChange={onChange} />);
+    render(<BowlingProfileView handedness="right" onHandednessChange={vi.fn()} onOpenGuide={vi.fn()} driftModel={model} onDriftModelChange={onChange} />);
     fireEvent.keyDown(screen.getByRole("slider", { name: "Outside zone ends at board" }), { key: "ArrowLeft" });
     expect(onChange).not.toHaveBeenCalled();
   });
 
   it("says each zone's drift in a sentence under its row", () => {
     render(
-      <HandednessView
-        value="right"
+      <BowlingProfileView
+        handedness="right"
+        onHandednessChange={vi.fn()}
+        onOpenGuide={vi.fn()}
         driftModel={{ ...DEFAULT_DRIFT_MODEL, drift: { outside: 2, middle: 0, inside: -1 } }}
         onDriftModelChange={vi.fn()}
       />

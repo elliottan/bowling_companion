@@ -66,6 +66,10 @@ export interface BowlingStats {
   /** Pins knocked down by the average fresh-rack ball, to one decimal. The
    *  same population as strike and pocket, so the three describe one ball. */
   firstBallAverage: number | null;
+  /** Share of strikes that the very next ball struck too (ADR-124). */
+  strikeOnStrikePct: number | null;
+  /** Most strikes in a row in one game (ADR-124); null with nothing thrown. */
+  bestStreak: number | null;
   byAlley: AlleyStats[];
 }
 
@@ -101,6 +105,9 @@ export function calculateStats(
   let pocketStrikes = 0;
   let firstBallPins = 0;
   let firstBalls = 0;
+  let followUpOpps = 0;
+  let followUps = 0;
+  let bestStreak = 0;
 
   for (const { alley, game } of allGames) {
     // Avg/High are whole-game scores: include a game if it touched a selected lane.
@@ -128,6 +135,13 @@ export function calculateStats(
     }
   }
 
+  for (const { game } of allGames) {
+    const run = strikeRuns(game, filter);
+    followUpOpps += run.followUpOpps;
+    followUps += run.followUps;
+    bestStreak = Math.max(bestStreak, run.bestStreak);
+  }
+
   const byAlley: AlleyStats[] = [...alleyMap.entries()]
     .map(([alley, scores]) => ({
       alley,
@@ -149,8 +163,54 @@ export function calculateStats(
     pocketPct: rate(pocketHits, strikeOpps),
     carryPct: rate(pocketStrikes, pocketHits),
     firstBallAverage: firstBalls === 0 ? null : Math.round((firstBallPins / firstBalls) * 10) / 10,
+    strikeOnStrikePct: rate(followUps, followUpOpps),
+    bestStreak: firstBalls === 0 ? null : bestStreak,
     byAlley
   };
+}
+
+/**
+ * What a game's strikes did next (ADR-124).
+ *
+ * The balls are read as one sequence of fresh-rack throws in the order they
+ * were bowled, so a strike in the 9th is followed by the 10th's first ball, and
+ * a 10th of strike, strike, strike runs three in a row. A strike followed by a
+ * ball that is not a fresh rack cannot happen (a strike clears the deck), so
+ * "the next fresh-rack ball" is always "the next ball". The last strike of a
+ * game, or of a game still being bowled, has no next ball and is not an
+ * opportunity, the same way a leave off the 10th's last ball is not a spare
+ * chance.
+ *
+ * A pair is attributed to the frame the first strike was thrown in, so a lane
+ * filter keeps the strikes thrown on the selected lanes whichever lane the
+ * follow-up landed on.
+ */
+function strikeRuns(
+  game: GameWithFrames,
+  filter?: Set<string>
+): { followUpOpps: number; followUps: number; bestStreak: number } {
+  const balls = [...game.frames]
+    .sort((a, b) => a.frame_number - b.frame_number)
+    .flatMap((frame) =>
+      freshRackShots(frame).map((shot) => ({
+        struck: clears(shot.pins_standing),
+        counted: frameOnSelectedLane(game, frame.frame_number, filter)
+      }))
+    );
+
+  let followUpOpps = 0;
+  let followUps = 0;
+  let bestStreak = 0;
+  let streak = 0;
+  balls.forEach((ball, i) => {
+    streak = ball.struck ? streak + 1 : 0;
+    if (ball.counted) bestStreak = Math.max(bestStreak, streak);
+    const next = balls[i + 1];
+    if (!ball.struck || !ball.counted || !next) return;
+    followUpOpps++;
+    if (next.struck) followUps++;
+  });
+  return { followUpOpps, followUps, bestStreak };
 }
 
 interface FrameTally {
