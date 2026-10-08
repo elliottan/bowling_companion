@@ -188,7 +188,7 @@ function SettingsMenu({
         </span>
         <span className="min-w-0 flex-1">
           <span className="block truncate font-bold text-ink">Backup & restore</span>
-          <span className="block truncate text-sm text-ink-secondary">{backupDescription}</span>
+          <span className="block truncate text-sm text-ink">{backupDescription}</span>
         </span>
         <ChevronRight size={16} aria-hidden="true" className="shrink-0 text-accent" />
       </button>
