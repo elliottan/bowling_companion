@@ -9,6 +9,16 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.14.0: Letting go of a catalog link is done in the catalog (2026-10-08)
+
+**No Change or Unlink buttons on the ball form.** Tap the linked ball and the
+catalog opens with that ball first and ticked. Tap another ball to switch to it,
+or tap the ticked one again to let go. Nothing is lost by it: the form is a
+draft until you save, and the name, weight and layout stay as they were.
+
+**Letting go of a link now sticks.** Unlinking on an edited ball used to come
+back as soon as you saved, because the save kept the old link.
+
 ## 0.13.0: Faster first opens, a popover for catalog filters, a simpler profile page (2026-10-08)
 
 **Layouts and the lane view open straight away.** The first tap on a screen not

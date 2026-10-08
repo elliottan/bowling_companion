@@ -1,4 +1,4 @@
-import { BookOpen, ChevronRight, Plus, Search, Trash2 } from "lucide-react";
+import { BookOpen, Check, ChevronRight, Plus, Search, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { getAllCatalog, getCatalogBall, syncCatalog } from "../services/ballCatalogRepository";
@@ -20,7 +20,6 @@ import { LayoutEditor } from "./LayoutEditor";
 import { Measure } from "./ui/Measure";
 import { SegmentedControl } from "./ui/SegmentedControl";
 import { GROUP_HEADING } from "./ui/typography";
-import { ConfirmDialog } from "./ConfirmDialog";
 import { ErrorBanner } from "./ErrorBanner";
 import { Button } from "./ui/Button";
 import { FIELD } from "./ui/field";
@@ -53,7 +52,6 @@ export function BallFormDialog({ ball, onClose, onSaved, onDelete }: BallFormDia
   const [name, setName] = useState(ball?.name ?? "");
   const [weight, setWeight] = useState<number>(ball?.weight ?? DEFAULT_WEIGHT);
   const [isSpare, setIsSpare] = useState(ball?.is_spare_ball ?? false);
-  const [confirmUnlink, setConfirmUnlink] = useState(false);
   // The drilling as numbers, and the free text the field used to take. The old
   // text is never written again and never thrown away: a ball entered before
   // this screen could hold numbers still has to show what was typed on it
@@ -94,9 +92,13 @@ export function BallFormDialog({ ball, onClose, onSaved, onDelete }: BallFormDia
     });
   }, [catalogRef, weight]);
 
-  function linkCatalog(picked: CatalogBall) {
+  function linkCatalog(picked: CatalogBall | null) {
     setCatalogRef(picked);
     setPickerOpen(false);
+    // Picking the ball that is already linked again takes the link off. Nothing
+    // is lost by it: the form is a draft until Save, and the name, weight and
+    // layout stay as they are.
+    if (!picked) return;
     // Adding: the catalog entry is the fastest way to name the ball. Editing:
     // never overwrite a name the user already chose.
     if (!editing && !name.trim()) setName(`${picked.brand} ${picked.name}`);
@@ -136,7 +138,9 @@ export function BallFormDialog({ ball, onClose, onSaved, onDelete }: BallFormDia
                 imageThumb: catalogRef.imageThumb,
               },
             }
-          : {}),
+          : // Named, not left out: an update merges, so a ball that let go of its
+            // catalog link would otherwise keep the old one on disk.
+            { catalog_ref_id: undefined, catalog_snapshot: undefined }),
       };
       if (editing && ball.id != null) {
         await updateBall(ball.id, payload);
@@ -191,7 +195,7 @@ export function BallFormDialog({ ball, onClose, onSaved, onDelete }: BallFormDia
                         .join(" · ")}
                     </p>
                   </div>
-                  <span className="shrink-0 text-xs font-semibold text-accent">Change</span>
+                  <ChevronRight size={18} className="shrink-0 text-ink-tertiary" aria-hidden="true" />
                 </>
               ) : (
                 <>
@@ -206,15 +210,6 @@ export function BallFormDialog({ ball, onClose, onSaved, onDelete }: BallFormDia
                 </>
               )}
             </button>
-            {catalogRef && (
-              <button
-                type="button"
-                onClick={() => setConfirmUnlink(true)}
-                className="-mt-2 text-xs font-semibold text-ink-secondary underline"
-              >
-                Unlink from catalog
-              </button>
-            )}
 
             <div>
               <label htmlFor="ball-name" className="mb-1 block text-sm font-medium text-ink-strong">
@@ -301,25 +296,22 @@ export function BallFormDialog({ ball, onClose, onSaved, onDelete }: BallFormDia
         </form>
       </FormSheet>
 
-      {pickerOpen && <CatalogPickerSheet onPick={linkCatalog} onClose={() => setPickerOpen(false)} />}
-
-      <ConfirmDialog
-        open={confirmUnlink}
-        title="Unlink from the catalog?"
-        message="The photo and specs come off this ball. Shots keep their scores."
-        confirmLabel="Unlink"
-        onConfirm={() => {
-          setConfirmUnlink(false);
-          setCatalogRef(null);
-        }}
-        onCancel={() => setConfirmUnlink(false)}
-      />
+      {pickerOpen && (
+        <CatalogPickerSheet
+          linkedId={catalogRef?.id ?? null}
+          onPick={linkCatalog}
+          onClose={() => setPickerOpen(false)}
+        />
+      )}
     </>
   );
 }
 
 interface CatalogPickerSheetProps {
-  onPick: (ball: CatalogBall) => void;
+  /** The ball this one is linked to now, shown selected and first. */
+  linkedId: string | null;
+  /** The ball chosen, or null when the linked one was tapped again to let go. */
+  onPick: (ball: CatalogBall | null) => void;
   onClose: () => void;
 }
 
@@ -331,7 +323,7 @@ interface CatalogPickerSheetProps {
  * is a short scroll region nested inside the form, which is where it started
  * and where nobody found it.
  */
-function CatalogPickerSheet({ onPick, onClose }: CatalogPickerSheetProps) {
+function CatalogPickerSheet({ linkedId, onPick, onClose }: CatalogPickerSheetProps) {
   const [balls, setBalls] = useState<CatalogBall[]>([]);
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(true);
@@ -359,9 +351,14 @@ function CatalogPickerSheet({ onPick, onClose }: CatalogPickerSheetProps) {
   }, []);
 
   const q = query.toLowerCase().trim();
-  const shown = q
+  const matching = q
     ? balls.filter((b) => [b.name, b.brand, b.coverstockRaw].join(" ").toLowerCase().includes(q))
     : balls;
+  // The linked ball leads the list, so it is the first thing seen and the way to
+  // let go of it is where the way to choose another is.
+  const shown = linkedId
+    ? [...matching.filter((b) => b.id === linkedId), ...matching.filter((b) => b.id !== linkedId)]
+    : matching;
 
   return (
     <FormSheet
@@ -404,8 +401,13 @@ function CatalogPickerSheet({ onPick, onClose }: CatalogPickerSheetProps) {
             <li key={b.id}>
               <button
                 type="button"
-                onClick={() => onPick(b)}
-                className="flex w-full items-center gap-3 rounded-xl border border-edge bg-surface p-2.5 text-left hover:border-accent-fill"
+                aria-pressed={b.id === linkedId}
+                onClick={() => onPick(b.id === linkedId ? null : b)}
+                className={`flex w-full items-center gap-3 rounded-xl border p-2.5 text-left ${
+                  b.id === linkedId
+                    ? "border-accent-fill bg-accent-soft"
+                    : "border-edge bg-surface hover:border-accent-fill"
+                }`}
               >
                 <div className="h-12 w-12 shrink-0">
                   <CatalogBallImage src={b.imageThumb} alt={b.name} brand={b.brand as Manufacturer} size="thumb" />
@@ -419,7 +421,11 @@ function CatalogPickerSheet({ onPick, onClose }: CatalogPickerSheetProps) {
                       .join(" · ")}
                   </p>
                 </div>
-                <ChevronRight size={18} className="shrink-0 text-ink-tertiary" aria-hidden="true" />
+                {b.id === linkedId ? (
+                  <Check size={18} className="shrink-0 text-accent" aria-hidden="true" />
+                ) : (
+                  <ChevronRight size={18} className="shrink-0 text-ink-tertiary" aria-hidden="true" />
+                )}
               </button>
             </li>
           ))}
