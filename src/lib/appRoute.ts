@@ -31,6 +31,8 @@ export interface AppRoute {
   catalogBallId?: string;
   /** The open guide, which rides behind the guides overlay segment. */
   guideId?: string;
+  /** The open line, which rides behind the game-plan overlay segment. */
+  reportLineId?: string;
   lineSandbox?: boolean;
 }
 
@@ -81,6 +83,7 @@ const SECTION_SEGMENT = "section";
 const LINE_SEGMENT = "line";
 const GUIDE_SEGMENT = "guide";
 const BALL_SEGMENT = "ball";
+const PLAYED_SEGMENT = "played";
 
 export const HOME_ROUTE: AppRoute = { view: "dashboard", overlays: [] };
 
@@ -107,6 +110,9 @@ export function toRoute(state: NavState): AppRoute {
   if (state.openGuideId && state.overlays[state.overlays.length - 1] === "guides") {
     route.guideId = state.openGuideId;
   }
+  if (state.reportLineId && state.overlays[state.overlays.length - 1] === "game-plan") {
+    route.reportLineId = state.reportLineId;
+  }
   if (state.lineSandboxOpen) route.lineSandbox = true;
   return route;
 }
@@ -128,6 +134,7 @@ export function formatRoute(route: AppRoute): string {
   if (route.viewedSessionId != null) parts.push(String(route.viewedSessionId));
   if (route.catalogBallId) parts.push(BALL_SEGMENT, encodeURIComponent(route.catalogBallId));
   if (route.guideId) parts.push(GUIDE_SEGMENT, encodeURIComponent(route.guideId));
+  if (route.reportLineId) parts.push(PLAYED_SEGMENT, encodeURIComponent(route.reportLineId));
   if (route.lineSandbox) parts.push(LINE_SEGMENT);
 
   return `#/${parts.join("/")}`;
@@ -165,6 +172,9 @@ export function parseRoute(hash: string): AppRoute {
       i += 1;
     } else if (segment === GUIDE_SEGMENT && segments[i + 1]) {
       route.guideId = decodeURIComponent(segments[i + 1]);
+      i += 1;
+    } else if (segment === PLAYED_SEGMENT && segments[i + 1]) {
+      route.reportLineId = decodeURIComponent(segments[i + 1]);
       i += 1;
     } else if (segment === LINE_SEGMENT) route.lineSandbox = true;
     else if (OVERLAYS.includes(segment)) {
@@ -205,6 +215,7 @@ export function shouldPushHistory(from: NavState, to: NavState): boolean {
   if (to.overlays.length > from.overlays.length) return true;
   if (to.catalogBallId && to.catalogBallId !== from.catalogBallId) return true;
   if (to.openGuideId && to.openGuideId !== from.openGuideId) return true;
+  if (to.reportLineId && to.reportLineId !== from.reportLineId) return true;
   // Landing on a different session in the pushed screen is a navigation of its
   // own, the way a different catalog ball is.
   if (to.viewedSessionId != null && to.viewedSessionId !== from.viewedSessionId) return true;

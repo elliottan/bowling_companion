@@ -566,8 +566,6 @@ function App() {
           <StatsView
             onOpenSession={openSession}
             onOpenSessionGame={openSessionGame}
-            onOpenFrames={() => pushOverlay("open-frames")}
-            onOpenGameTrend={() => pushOverlay("game-trend")}
             onOpenAlleyReport={() => pushOverlay("game-plan")}
           />
         )}
@@ -722,8 +720,6 @@ function App() {
                 onBack={popOverlay}
                 onOpenSession={openSession}
                 onOpenSessionGame={openSessionGame}
-                onOpenFrames={() => pushOverlay("open-frames")}
-                onOpenGameTrend={() => pushOverlay("game-trend")}
                 onOpenAlleyReport={() => pushOverlay("game-plan")}
               />
             );
@@ -732,12 +728,9 @@ function App() {
               <GamePlanView
                 key={`game-plan-${i}`}
                 onBack={popOverlay}
-                // Pushed over the game plan rather than a switch to the Stats
-                // tab. The callout made a point about a number, and back has to
-                // return to the point rather than strand you on a tab you never
-                // chose (ADR-083).
-                onOpenStats={() => pushOverlay("stats-push")}
-                onOpenSession={(sessionId) => openSession(sessionId)}
+                openLineId={nav.reportLineId}
+                onOpenLine={(lineId) => dispatch({ type: "openReportLine", lineId })}
+                onOpenSessionGame={openSessionGame}
               />
             );
         }

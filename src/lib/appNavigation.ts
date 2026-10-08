@@ -92,6 +92,10 @@ export interface NavState {
    *  guides list is the top overlay, and the Overlay union cannot carry an
    *  id. */
   openGuideId: string | null;
+  /** The line whose shots are open in the Alley report, by `lineReport` id. A
+   *  layer on top of the game-plan overlay for the same reason as
+   *  `catalogBallId`. */
+  reportLineId: string | null;
   /** The layout the pushed lab opens on, when it was sent there by a ball in
    *  the arsenal rather than reached on its own. A field beside the overlay for
    *  the same reason as `catalogBallId`: the Overlay union cannot carry one.
@@ -128,6 +132,7 @@ export type NavAction =
   | { type: "popOverlay" }
   | { type: "openCatalogBall"; ballId: string }
   | { type: "openGuide"; guideId: string }
+  | { type: "openReportLine"; lineId: string }
   /** Open the layout lab, optionally on a layout something else chose. */
   | { type: "openLayoutLab"; seed?: LayoutSeed }
   | { type: "openLineSandbox"; patternId?: number }
@@ -151,6 +156,7 @@ export interface RestorableRoute {
   overlays: Overlay[];
   catalogBallId?: string;
   guideId?: string;
+  reportLineId?: string;
   lineSandbox?: boolean;
 }
 
@@ -165,6 +171,7 @@ export const INITIAL_NAV: NavState = {
   overlays: [],
   catalogBallId: null,
   openGuideId: null,
+  reportLineId: null,
   layoutSeed: null,
   viewedSessionId: null,
   lineSandboxOpen: false,
@@ -249,6 +256,7 @@ export function navReducer(state: NavState, action: NavAction): NavState {
         viewedSessionId: null,
         catalogBallId: null,
         openGuideId: null,
+        reportLineId: null,
         layoutSeed: null
       };
 
@@ -271,6 +279,14 @@ export function navReducer(state: NavState, action: NavAction): NavState {
       // guides list.
       if (state.catalogBallId !== null) return { ...state, catalogBallId: null };
       if (state.openGuideId !== null) return { ...state, openGuideId: null };
+      // Only while the report is the screen on top: a game opened from a shot
+      // sits over the line, and back has to take the game off first.
+      if (
+        state.reportLineId !== null &&
+        state.overlays[state.overlays.length - 1] === "game-plan"
+      ) {
+        return { ...state, reportLineId: null };
+      }
       const overlays = state.overlays.slice(0, -1);
       // The id goes with the screen that was showing it, or a later push of
       // another session would flash the last one on its way in.
@@ -287,6 +303,9 @@ export function navReducer(state: NavState, action: NavAction): NavState {
 
     case "openGuide":
       return { ...state, openGuideId: action.guideId };
+
+    case "openReportLine":
+      return { ...state, reportLineId: action.lineId };
 
     /**
      * The lab, on the layout the caller has in mind.
@@ -354,6 +373,7 @@ export function navReducer(state: NavState, action: NavAction): NavState {
         overlays: route.overlays,
         catalogBallId: route.catalogBallId ?? null,
         openGuideId: route.guideId ?? null,
+        reportLineId: route.reportLineId ?? null,
         // A restored route is a URL, and a URL says which screen, never which
         // ball: a lab restored from history opens on its own defaults or on the
         // query string, exactly as a pasted link does.

@@ -5763,3 +5763,46 @@ a bowler is in the app.
 - The privacy page names the landing page's Umami counts beside Vercel's.
 - One more request to a third party on the landing page, deferred so it never
   holds up the first paint.
+
+## ADR-122: The Alley report reads lines, in counts, and two Stats rows are hidden
+
+**Status.** Accepted, 2026-10-08. Supersedes the Alley report screen of ADR-064b
+and ADR-082 (callouts, "Last time", "How the session moves", "Which ball,
+when"). `lib/briefing` is unchanged and still feeds the Start session sheet and
+the scorer's game hint (ADR-115).
+
+**Context.** The bowler who asked for the Alley report, Game by game and Open
+frames opened all three and could not say what any of them was for. The
+question they were answering by hand instead, frame by frame in old sessions,
+was: with this ball, at this alley, on this pattern, which line carried? The
+report read a ball as one rate per alley, which hides the thing a bowler
+changes most. In the session that prompted this, one ball went from 3 strikes
+in 9 on one line to 7 in 10 a board over at the target, and no screen said so.
+
+**Decision.**
+
+- **The report groups fresh-rack balls by ball and exact line** (stance and
+  target), within the alley, pattern and lane picked (`lib/lineReport`). Lines
+  are never merged or rounded: a half board is a line the bowler wrote down.
+- **Counts, never rates.** "7 of 10", because most lines are a handful of balls
+  and a percentage hides how few. A line under 5 balls is marked thin and still
+  shown.
+- **Line changes lead.** Two lines with one ball in one session, each with 4 or
+  more balls, in the order first thrown and counted inside that session only.
+- **A line opens as a push** to its counts, its leaves and every shot with its
+  note, and a shot opens its game. The open line is a layer on the `game-plan`
+  overlay (`reportLineId`), like a catalog ball on the catalog (ADR-041).
+- **It still describes and never recommends.** A line that struck more may have
+  been thrown later, on a lane that had moved, or after the ball was sanded.
+  The notes sit beside the shots so the bowler can see that.
+- **"Game by game" and "Open frames" lose their rows on Stats.** Their screens
+  and routes stay, so bringing one back is putting a row back.
+
+**Consequences.**
+- The old report's sections are gone from the screen. Their thresholds in
+  `lib/briefing` are still tested and still used elsewhere.
+- Surface changes are not a field. They stay in shot notes until there is a
+  case for more.
+- The report draws no lane. A line is two numbers here, and the visualizer is a
+  tap away from the game a shot opens.
+

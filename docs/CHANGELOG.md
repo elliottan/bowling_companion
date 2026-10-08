@@ -9,6 +9,23 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.10.0: The Alley report reads your lines (2026-10-08)
+
+**The Alley report shows what each line did.** Pick an alley, and a pattern or
+a lane if you want. Every ball lists the lines you threw it on, with the pocket
+hits and strikes on each as counts, like "7 of 10".
+
+**Line changes come first.** When you played two lines with one ball in a
+session, the report puts them side by side: "4 to 6, then 4 to 7", with the
+strikes and pocket hits on each.
+
+**Tap a line to see its shots.** A line opens to its strikes, pocket hits and
+carry, what it left, and every shot in order with your note. Tap a shot to open
+that game.
+
+**Stats is shorter.** The "Game by game" and "Open frames" rows are hidden for
+now, and the Alley report no longer shows the old callouts.
+
 ## 0.9.1: Long screen titles truncate (2026-10-07)
 
 **Long titles end in an ellipsis.** A long pattern name no longer runs under the
