@@ -4,7 +4,8 @@ import { ConfirmDialog } from "./ConfirmDialog";
 import { SpareLineFormDialog } from "./SpareLineFormDialog";
 import { deleteSpareLine, findSpareLineByPins, getSpareLinesAll } from "../services/ballRepository";
 import type { LeaveStats } from "../lib/stats";
-import type { PinNumber } from "../types/bowling";
+import { hasAnswer } from "../lib/spareLines";
+import type { PinNumber, SpareLine } from "../types/bowling";
 
 interface SpareDetailsSheetProps {
   /** The leave to show. Empty adds a new line, with the deck open to pick it. */
@@ -14,6 +15,9 @@ interface SpareDetailsSheetProps {
   leaves?: LeaveStats[];
   /** Open straight into editing, for a leave the bowler came here to fill in. */
   edit?: boolean;
+  /** A line to start from when the leave has none of its own, still editable:
+   *  the line a suggestion offered to copy. */
+  prefill?: Pick<SpareLine, "line" | "strike_offset">;
   onClose: () => void;
 }
 
@@ -23,7 +27,7 @@ interface SpareDetailsSheetProps {
  * from the spare lines screen's add. It finds the saved line itself, so a
  * caller only has to say which leave.
  */
-export function SpareDetailsSheet({ pins, leaves, edit = false, onClose }: SpareDetailsSheetProps) {
+export function SpareDetailsSheet({ pins, leaves, edit = false, prefill, onClose }: SpareDetailsSheetProps) {
   const spareLines = useLiveQuery(() => getSpareLinesAll());
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [error, setError] = useState("");
@@ -32,6 +36,8 @@ export function SpareDetailsSheet({ pins, leaves, edit = false, onClose }: Spare
   if (spareLines === undefined) return null;
   const saved = pins.length ? findSpareLineByPins(spareLines, pins) : undefined;
   const adding = pins.length === 0;
+  // What the form opens on: the saved answer, or the line it was offered.
+  const start = hasAnswer(saved) || !prefill ? saved : { ...saved, ...prefill };
 
   async function handleDelete() {
     const id = saved?.id;
@@ -51,8 +57,8 @@ export function SpareDetailsSheet({ pins, leaves, edit = false, onClose }: Spare
         key={pins.join("-") || "add"}
         initialPins={pins}
         lockPins={!adding}
-        initialLine={saved?.line}
-        initialStrikeOffset={saved?.strike_offset}
+        initialLine={start?.line}
+        initialStrikeOffset={start?.strike_offset}
         initialNotes={saved?.notes}
         startInView={!adding && !edit}
         leaves={leaves}

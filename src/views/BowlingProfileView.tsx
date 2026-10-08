@@ -1,7 +1,10 @@
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { Check, ChevronLeft, ChevronRight, Pencil } from "lucide-react";
+import { useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { PapEditor } from "../components/PapEditor";
+import { IconButton } from "../components/ui/IconButton";
 import { DEFAULT_PAP } from "../lib/ballLayout";
+import type { PapMeasurement } from "../lib/ballLayout";
 import { getGripStyle, getPap, setGripStyle, setPap } from "../services/bowlingRepository";
 import { PushScreen } from "../components/PushScreen";
 import { DriftZoneLane, ZONE_ACCENT } from "../components/DriftZoneLane";
@@ -33,38 +36,73 @@ const ZONES = ["outside", "middle", "inside"] as const;
  * guess which. Hand and grip stay on top because they are answered first, at
  * setup, and flipping the hand mirrors every board in the app.
  */
+/** Everything on the page that can be edited, held apart from what is saved
+ *  until the tick. */
+interface Draft {
+  hand: Handedness;
+  grip: GripStyle;
+  pap: PapMeasurement;
+  drift: DriftModel;
+}
+
 export function BowlingProfileView({
-  handedness: value,
+  handedness,
   onHandednessChange,
-  driftModel,
+  driftModel: savedDrift,
   onDriftModelChange,
   onBack
 }: BowlingProfileViewProps) {
-  const grip: GripStyle = useLiveQuery(getGripStyle, [], undefined) ?? "1h";
+  const savedGrip: GripStyle = useLiveQuery(getGripStyle, [], undefined) ?? "1h";
+  // The bowler's axis, read live: the Layouts page writes the same setting, and
+  // a read taken once at mount would sit here stale behind the page that is
+  // pushed over this very screen.
+  const savedPap = useLiveQuery(getPap, [], undefined) ?? DEFAULT_PAP;
+
+  // Read, not edited, until the pencil: the hand mirrors every board in the app,
+  // and the zones and the drop-downs sit under a thumb that is only scrolling.
+  // Edits are made to a draft and written when the tick is pressed. Leaving the
+  // page first drops the draft.
+  const [draft, setDraft] = useState<Draft | null>(null);
+  const editing = draft !== null;
+  const saved: Draft = { hand: handedness, grip: savedGrip, pap: savedPap, drift: savedDrift };
+  const shown = draft ?? saved;
+  const value = shown.hand;
+  const grip = shown.grip;
+  const pap = shown.pap;
+  const driftModel = shown.drift;
+
+  const change = (patch: Partial<Draft>) => setDraft((d) => ({ ...(d ?? saved), ...patch }));
+  const changeDrift = (next: DriftModel) => change({ drift: next });
+
+  async function commit() {
+    if (!draft) return;
+    const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
+    if (draft.hand !== saved.hand) onHandednessChange(draft.hand);
+    if (draft.grip !== saved.grip) await setGripStyle(draft.grip);
+    if (!same(draft.pap, saved.pap)) await setPap(draft.pap);
+    if (!same(draft.drift, saved.drift)) onDriftModelChange(draft.drift);
+    setDraft(null);
+  }
 
   function setReleaseOffset(v: number) {
-    onDriftModelChange({ ...driftModel, release_offset: v });
+    changeDrift({ ...driftModel, release_offset: v });
   }
 
   function setOutsideMax(v: number) {
     // Guard invariant: keep the middle zone at least 1 board wide.
     const clamped = Math.max(1, Math.min(v, driftModel.inside_min - 2));
-    if (clamped !== driftModel.outside_max) onDriftModelChange({ ...driftModel, outside_max: clamped });
+    if (clamped !== driftModel.outside_max) changeDrift({ ...driftModel, outside_max: clamped });
   }
 
   function setInsideMin(v: number) {
     const clamped = Math.min(BOARD_MAX, Math.max(v, driftModel.outside_max + 2));
-    if (clamped !== driftModel.inside_min) onDriftModelChange({ ...driftModel, inside_min: clamped });
+    if (clamped !== driftModel.inside_min) changeDrift({ ...driftModel, inside_min: clamped });
   }
 
   function setDrift(zone: keyof DriftModel["drift"], v: number) {
-    onDriftModelChange({ ...driftModel, drift: { ...driftModel.drift, [zone]: v } });
+    changeDrift({ ...driftModel, drift: { ...driftModel.drift, [zone]: v } });
   }
 
-  // The bowler's axis, read live: the Layouts page writes the same setting, and
-  // a read taken once at mount would sit here stale behind the page that is
-  // pushed over this very screen.
-  const pap = useLiveQuery(getPap, [], undefined) ?? DEFAULT_PAP;
   const zoneRange: Record<(typeof ZONES)[number], string> = {
     outside: `1 to ${driftModel.outside_max}`,
     middle: `${driftModel.outside_max + 0.5} to ${driftModel.inside_min - 0.5}`,
@@ -72,13 +110,21 @@ export function BowlingProfileView({
   };
 
   const body = (
-    <section className="mx-auto w-full max-w-3xl space-y-7 px-3 py-4 sm:px-6">
+    // Reading, every control is off, which would leave the scrolling page with
+    // nothing to focus by keyboard; the page itself takes the stop.
+    <div tabIndex={editing ? undefined : 0} className="outline-none focus-visible:ring-2 focus-visible:ring-accent-fill">
+    <fieldset
+      disabled={!editing}
+      aria-label="Bowling profile"
+      // A read page lets scrolling pass over every control without touching it.
+      className={`mx-auto w-full max-w-3xl min-w-0 space-y-7 border-0 px-3 py-4 sm:px-6 ${editing ? "" : "[&_*]:pointer-events-none"}`}
+    >
       <div>
         <h2 className={GROUP_HEADING}>Handedness</h2>
         <p className="mb-3 mt-1 text-sm leading-relaxed text-ink-secondary">
           Switching flips every board number. Saved sessions keep theirs.
         </p>
-        <HandednessPicker value={value} onSelect={onHandednessChange} />
+        <HandednessPicker value={value} onSelect={(next) => change({ hand: next })} />
       </div>
 
       <div>
@@ -86,7 +132,7 @@ export function BowlingProfileView({
         <SegmentedControl
           label="Grip style"
           value={grip}
-          onChange={(next) => void setGripStyle(next)}
+          onChange={(next) => change({ grip: next })}
           options={[
             { value: "1h", label: "One-handed" },
             { value: "2h", label: "Two-handed" }
@@ -99,7 +145,7 @@ export function BowlingProfileView({
         description="Measured from the center of your grip. Your pro shop can measure it for you."
       >
         <div className="space-y-2 rounded-xl border border-edge bg-surface p-3">
-          <PapEditor pap={pap} onChange={(next) => void setPap(next)} idPrefix="settings-pap" />
+          <PapEditor pap={pap} onChange={(next) => change({ pap: next })} idPrefix="settings-pap" />
         </div>
       </Group>
 
@@ -129,8 +175,8 @@ export function BowlingProfileView({
         <DriftZoneLane
           model={driftModel}
           hand={value}
-          onOutsideMaxChange={setOutsideMax}
-          onInsideMinChange={setInsideMin}
+          onOutsideMaxChange={editing ? setOutsideMax : undefined}
+          onInsideMinChange={editing ? setInsideMin : undefined}
         />
 
         <div className="mt-3 space-y-2">
@@ -155,13 +201,29 @@ export function BowlingProfileView({
           ))}
         </div>
       </Group>
-    </section>
+    </fieldset>
+    </div>
   );
 
   if (!onBack) return body;
 
   return (
-    <PushScreen mode="inline" title="Bowling profile" onBack={onBack}>
+    <PushScreen
+      mode="inline"
+      title="Bowling profile"
+      onBack={onBack}
+      trailing={
+        editing ? (
+          <IconButton variant="confirm" label="Save bowling profile" onClick={() => void commit()}>
+            <Check size={20} aria-hidden="true" />
+          </IconButton>
+        ) : (
+          <IconButton variant="round" label="Edit bowling profile" onClick={() => setDraft(saved)}>
+            <Pencil size={18} aria-hidden="true" />
+          </IconButton>
+        )
+      }
+    >
       {body}
     </PushScreen>
   );

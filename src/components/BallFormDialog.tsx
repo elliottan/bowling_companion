@@ -51,14 +51,12 @@ export function BallFormDialog({ ball, onClose, onSaved, onDelete }: BallFormDia
   const editing = ball !== null;
   const [name, setName] = useState(ball?.name ?? "");
   const [weight, setWeight] = useState<number>(ball?.weight ?? DEFAULT_WEIGHT);
-  const [isSpare, setIsSpare] = useState(ball?.is_spare_ball ?? false);
   // The drilling as numbers, and the free text the field used to take. The old
   // text is never written again and never thrown away: a ball entered before
   // this screen could hold numbers still has to show what was typed on it
   // (ADR-095). Entering a layout is what retires it.
   const [layoutSpec, setLayoutSpec] = useState<BallLayoutSpec | null>(ball?.layout_spec ?? null);
   const legacyLayout = ball?.layout_spec ? undefined : ball?.layout;
-  const [notes, setNotes] = useState(ball?.notes ?? "");
   const [catalogRef, setCatalogRef] = useState<CatalogBall | null>(null);
   const [weightSpecs, setWeightSpecs] = useState<WeightSpecs | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -116,13 +114,13 @@ export function BallFormDialog({ ball, onClose, onSaved, onDelete }: BallFormDia
     try {
       const payload: Omit<Ball, "id"> = {
         name: trimmed,
-        is_spare_ball: isSpare,
+        // Set on the spare lines page, not here: the form carries it through.
+        is_spare_ball: ball?.is_spare_ball ?? false,
         layout_spec: layoutSpec ?? undefined,
         // Kept rather than migrated: parsing "45 x 4.5 x 35" out of free text
         // would be guessing at a core type and a pin-to-PSA distance nobody
         // wrote down, and a guessed layout is worse than a remembered string.
         layout: layoutSpec ? undefined : legacyLayout,
-        notes: notes.trim() || undefined,
         weight,
         ...(catalogRef
           ? {
@@ -184,7 +182,7 @@ export function BallFormDialog({ ball, onClose, onSaved, onDelete }: BallFormDia
                     <p className="truncate text-sm font-semibold text-ink">
                       {catalogRef.brand} {catalogRef.name}
                     </p>
-                    <p className="truncate text-xs text-ink-secondary">
+                    <p className="text-xs text-ink-secondary">
                       {[
                         catalogRef.coverstockCategory,
                         catalogRef.coreName,
@@ -211,47 +209,33 @@ export function BallFormDialog({ ball, onClose, onSaved, onDelete }: BallFormDia
               )}
             </button>
 
-            <div>
-              <label htmlFor="ball-name" className="mb-1 block text-sm font-medium text-ink-strong">
-                Name <span className="text-danger-600">*</span>
-              </label>
-              <input
-                id="ball-name"
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="e.g. Storm Phaze II"
-                className={FIELD}
-              />
+            <div className="flex items-end gap-3">
+              <div className="min-w-0 flex-1">
+                <label htmlFor="ball-name" className="mb-1 block text-sm font-medium text-ink-strong">
+                  Display name <span className="text-danger-600">*</span>
+                </label>
+                <input
+                  id="ball-name"
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="e.g. Storm Phaze II"
+                  className={FIELD}
+                />
+              </div>
+              <div className="w-[5.5rem] shrink-0">
+                <label htmlFor="ball-weight" className="mb-1 block text-sm font-medium text-ink-strong">
+                  Weight <span className="font-normal text-ink-secondary">(lb)</span>
+                </label>
+                <select id="ball-weight" value={weight} onChange={(e) => setWeight(Number(e.target.value))} className={FIELD}>
+                  {WEIGHT_OPTIONS.map((w) => (
+                    <option key={w} value={w}>
+                      {w}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
-
-            <div>
-              <label htmlFor="ball-weight" className="mb-1 block text-sm font-medium text-ink-strong">
-                Weight <span className="font-normal text-ink-secondary">(lbs)</span>
-              </label>
-              <select id="ball-weight" value={weight} onChange={(e) => setWeight(Number(e.target.value))} className={FIELD}>
-                {WEIGHT_OPTIONS.map((w) => (
-                  <option key={w} value={w}>
-                    {w} lb
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <label className="flex items-start gap-3 rounded-xl border border-edge bg-surface p-3">
-              <input
-                type="checkbox"
-                checked={isSpare}
-                onChange={(e) => setIsSpare(e.target.checked)}
-                className="mt-0.5 h-5 w-5 rounded border-edge-strong accent-[rgb(var(--color-accent-fill))]"
-              />
-              <span>
-                <span className="block text-sm font-medium text-ink-strong">Spare ball</span>
-                <span className="block text-xs text-ink-secondary">
-                  Auto-selected for spare shots. Only one ball can be the spare ball.
-                </span>
-              </span>
-            </label>
 
             <LayoutField
               spec={layoutSpec}
@@ -270,20 +254,6 @@ export function BallFormDialog({ ball, onClose, onSaved, onDelete }: BallFormDia
                     : false
               }
             />
-
-            <div>
-              <label htmlFor="ball-notes" className="mb-1 block text-sm font-medium text-ink-strong">
-                Notes <span className="font-normal text-ink-secondary">(optional)</span>
-              </label>
-              <textarea
-                id="ball-notes"
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                rows={3}
-                placeholder="Any notes about this ball…"
-                className="w-full rounded-lg border border-edge-strong bg-surface px-3 py-2 text-sm text-ink outline-none focus:border-accent-fill focus:ring-2 focus:ring-accent-fill/20"
-              />
-            </div>
 
             {onDelete && (
               <Button variant="danger-ghost" onClick={onDelete} className="w-full">
@@ -415,7 +385,7 @@ function CatalogPickerSheet({ linkedId, onPick, onClose }: CatalogPickerSheetPro
                 <div className="min-w-0 flex-1">
                   <p className="text-[11px] font-semibold uppercase tracking-wide text-ink-secondary">{b.brand}</p>
                   <p className="truncate text-sm font-semibold text-ink">{b.name}</p>
-                  <p className="truncate text-xs text-ink-secondary">
+                  <p className="text-xs text-ink-secondary">
                     {[b.coverstockCategory, b.coreType, b.rg !== null ? `RG ${b.rg.toFixed(2)}` : null]
                       .filter(Boolean)
                       .join(" · ")}
@@ -526,13 +496,13 @@ function LayoutField({
               makeLayoutSpec(BENCHMARK_LAYOUT, defaultSymmetric ? DEFAULT_SYMMETRIC : DEFAULT_ASYMMETRIC)
             )
           }
-          className="flex w-full items-center gap-3 rounded-xl border border-dashed border-edge-strong bg-surface p-3 text-left hover:border-accent-fill"
+          className="flex w-full items-center gap-3 rounded-xl border border-edge bg-surface p-3 text-left hover:border-accent-fill"
         >
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-accent-soft text-accent">
             <Plus size={18} aria-hidden="true" />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold text-ink">Add a layout</p>
+            <p className="text-sm font-semibold text-ink">Add layout</p>
             <p className="text-xs text-ink-secondary">
               Dual angle or Storm VLS, on sliders. Opens on the benchmark.
             </p>
@@ -566,18 +536,6 @@ function LayoutField({
             idPrefix="ball"
           />
 
-          {spec.system && (
-            <button
-              type="button"
-              onClick={() => {
-                const { system: _dropped, ...rest } = spec;
-                onChange(rest);
-              }}
-              className="text-xs font-semibold text-ink-secondary underline"
-            >
-              Read this ball in my default notation
-            </button>
-          )}
         </>
       )}
     </section>

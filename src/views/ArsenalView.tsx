@@ -119,7 +119,7 @@ function SortableBallRow({ ball, onEdit, system, onViewLayout }: SortableBallRow
                 </span>
               )}
             </div>
-            {specs && <p className="truncate text-xs text-ink-secondary">{specs}</p>}
+            {specs && <p className="text-xs text-ink-secondary">{specs}</p>}
             {/* The drilling, written in the notation this ball is read in. A
                 ball entered before the arsenal could hold numbers still shows
                 the text that was typed on it. */}

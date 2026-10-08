@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
-import { ChevronRight, Compass } from "lucide-react";
+import { ChevronDown, ChevronRight, Compass } from "lucide-react";
 import { PushScreen } from "../components/PushScreen";
 import { EmptyState } from "../components/ui/EmptyState";
 import { LoadingCard } from "../components/ui/LoadingCard";
@@ -8,13 +8,16 @@ import { GROUP_HEADING } from "../components/ui/typography";
 import { FIELD_LABEL, FIELD_SELECT } from "../components/ui/field";
 import { LIST_DIVIDER, ListGroup } from "../components/ui/ListGroup";
 import {
+  bestLines,
   buildLineReport,
   findLine,
+  lastSession,
   MIN_LINE_SHOTS,
   type BallRead,
   type LineMove,
   type LineRead,
-  type LineShot
+  type LineShot,
+  type LineTally
 } from "../lib/lineReport";
 import { useHandedness } from "../lib/handednessContext";
 import { buildFilterOptions, EMPTY_SELECTION } from "../lib/filterFacets";
@@ -33,6 +36,9 @@ const NO_BALLS: Ball[] = [];
 /** Lines shown under a ball before the rest go behind "Show all". A session of
  *  small moves leaves a long tail of lines thrown once or twice. */
 const LINES_SHOWN = 5;
+
+/** Lines named under the last session before the rest are left to the balls. */
+const LAST_SESSION_LINES = 4;
 
 /**
  * What each line did at one alley: every ball, the lines it was thrown on, and
@@ -124,6 +130,8 @@ export function GamePlanView({
     [history, balls, alley, pattern, lane, handedness]
   );
   const open = findLine(report, openLineId);
+  const top = useMemo(() => bestLines(report), [report]);
+  const last = useMemo(() => lastSession(report), [report]);
 
   const where = [alley, pattern, lane && `lane ${lane}`].filter(Boolean).join(" \u00b7 ");
 
@@ -217,22 +225,63 @@ export function GamePlanView({
                     } ${report.sessions === 1 ? "session" : "sessions"}${where ? ` at ${where}` : ""}.`}
               </p>
 
-              {report.moves.length > 0 && (
+              {/* The answer first: the lines that struck most here, and what
+                  you did last time. The rest is behind a tap. */}
+              {top.length > 0 && (
                 <div className="mt-4">
-                  <ListGroup heading="Line changes">
-                    {report.moves.map((move) => (
-                      <MoveRow key={move.id} move={move} onOpen={() => onOpenLine(move.to.lineId)} />
+                  <ListGroup heading="Best lines here">
+                    {top.map((line) => (
+                      <LineSummaryRow
+                        key={line.id}
+                        ballName={line.ballName}
+                        line={line}
+                        tally={line}
+                        onOpen={() => onOpenLine(line.id)}
+                      />
                     ))}
                   </ListGroup>
                 </div>
               )}
 
-              {report.balls.map((ball) => (
-                <BallLines key={ball.ballId ?? "none"} ball={ball} onOpenLine={onOpenLine} />
-              ))}
+              {last && (
+                <div className="mt-4">
+                  <ListGroup heading={`Last session, ${formatSessionDate(last.date)}`}>
+                    {last.lines.slice(0, LAST_SESSION_LINES).map((row) => (
+                      <LineSummaryRow
+                        key={row.line.id}
+                        ballName={row.line.ballName}
+                        line={row.line}
+                        tally={row}
+                        onOpen={() => onOpenLine(row.line.id)}
+                      />
+                    ))}
+                  </ListGroup>
+                </div>
+              )}
+
+              {report.balls.length > 0 && (
+                <div className="mt-4">
+                  <ListGroup heading="By ball">
+                    {report.balls.map((ball, i) => (
+                      <BallLines
+                        key={ball.ballId ?? "none"}
+                        ball={ball}
+                        first={i === 0}
+                        onOpenLine={onOpenLine}
+                      />
+                    ))}
+                  </ListGroup>
+                </div>
+              )}
+
+              {report.moves.length > 0 && (
+                <div className="mt-4">
+                  <LineChanges moves={report.moves} onOpenLine={onOpenLine} />
+                </div>
+              )}
 
               {report.shots > 0 && (
-                <p className="mt-2 px-1 text-xs text-ink-tertiary">
+                <p className="mt-2 px-1 text-xs text-ink-secondary">
                   What each line did, not what to play. A line marked thin has under{" "}
                   {MIN_LINE_SHOTS} balls.
                 </p>
@@ -265,6 +314,43 @@ export function ofCount(made: number, total: number): string {
 /** The boards of a line, or what there is of them. */
 export function lineBoards(line: { stance?: number; target?: number }): string {
   return describeLine({ stance: line.stance, target: line.target });
+}
+
+/** One line and how it went, for the two lists at the top: the ball, the
+ *  boards, and the strikes as a count. */
+function LineSummaryRow({
+  ballName,
+  line,
+  tally,
+  onOpen
+}: {
+  ballName: string;
+  line: LineRead;
+  tally: LineTally;
+  onOpen: () => void;
+}) {
+  return (
+    <li className={LIST_DIVIDER}>
+      <button
+        type="button"
+        onClick={onOpen}
+        aria-label={`${ballName}, ${lineBoards(line)}: strikes ${ofCount(tally.strikes, tally.thrown)}, pocket ${ofCount(tally.pocket, tally.thrown)}`}
+        className="flex w-full items-center gap-3 px-3 py-2.5 text-left active:bg-surface-muted"
+      >
+        <span className="min-w-0 flex-1">
+          <span className="block truncate text-xs text-ink-secondary">{ballName}</span>
+          <span className="block truncate text-sm font-semibold text-ink">{lineBoards(line)}</span>
+        </span>
+        <span className="shrink-0 text-right tabular-nums">
+          <span className="block text-sm font-semibold text-ink">
+            {ofCount(tally.strikes, tally.thrown)}
+          </span>
+          <span className="block text-xs text-ink-secondary">strikes</span>
+        </span>
+        <ChevronRight size={16} aria-hidden="true" className="shrink-0 text-ink-tertiary" />
+      </button>
+    </li>
+  );
 }
 
 /** Two lines with one ball in one session, each side counted in that session. */
@@ -301,67 +387,135 @@ function MoveRow({ move, onOpen }: { move: LineMove; onOpen: () => void }) {
   );
 }
 
+/** The line changes, behind one row: the least needed of the three lists, and
+ *  the one that made the screen long. */
+function LineChanges({
+  moves,
+  onOpenLine
+}: {
+  moves: LineMove[];
+  onOpenLine: (id: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  return (
+    <ListGroup>
+      <li>
+        <button
+          type="button"
+          aria-expanded={open}
+          onClick={() => setOpen((v) => !v)}
+          className="flex w-full items-center gap-3 px-3 py-2.5 text-left active:bg-surface-muted"
+        >
+          <span className="min-w-0 flex-1 text-sm font-semibold text-ink">Line changes</span>
+          <span className="text-xs tabular-nums text-ink-tertiary">{moves.length}</span>
+          <ChevronDown
+            size={16}
+            aria-hidden="true"
+            className={`shrink-0 text-ink-tertiary transition-transform ${open ? "rotate-180" : ""}`}
+          />
+        </button>
+      </li>
+      {open &&
+        moves.map((move) => (
+          <MoveRow key={move.id} move={move} onOpen={() => onOpenLine(move.to.lineId)} />
+        ))}
+    </ListGroup>
+  );
+}
+
 const COUNT_COLUMN = "w-16 shrink-0 text-right tabular-nums";
 
-/** One ball: its lines, most thrown first, under the same two counts. */
-function BallLines({ ball, onOpenLine }: { ball: BallRead; onOpenLine: (id: string) => void }) {
+/** One ball, as a row that opens to its lines: most thrown first, under the same
+ *  two counts. Closed, a ball is one line of the screen. The first ball starts
+ *  open, so the screen is never only a list of closed doors. */
+function BallLines({
+  ball,
+  first,
+  onOpenLine
+}: {
+  ball: BallRead;
+  first: boolean;
+  onOpenLine: (id: string) => void;
+}) {
+  const [open, setOpen] = useState(first);
   const [showAll, setShowAll] = useState(false);
   const lines = showAll ? ball.lines : ball.lines.slice(0, LINES_SHOWN);
   return (
-    <div className="mt-4">
-      <ListGroup
-        heading={<h2 className="truncate text-sm font-semibold text-ink-strong">{ball.name}</h2>}
-        headingTrailing={
-          <span className="shrink-0 text-xs tabular-nums text-ink-tertiary">
-            {ofCount(ball.strikes, ball.thrown)} strikes
+    <>
+      <li className={LIST_DIVIDER}>
+        <button
+          type="button"
+          aria-expanded={open}
+          onClick={() => setOpen((v) => !v)}
+          className="flex w-full items-center gap-3 px-3 py-2.5 text-left active:bg-surface-muted"
+        >
+          <span className="min-w-0 flex-1">
+            <span className="block truncate text-sm font-semibold text-ink">{ball.name}</span>
+            <span className="block text-xs text-ink-secondary">
+              {ball.lines.length} {ball.lines.length === 1 ? "line" : "lines"}
+            </span>
           </span>
-        }
-      >
-        {ball.lines.length === 0 ? (
-          <li className="px-3 py-2.5 text-sm text-ink-secondary">No line recorded with this ball.</li>
-        ) : (
-          <li className={`flex items-center gap-3 px-3 pt-2 ${GROUP_HEADING}`} aria-hidden="true">
-            <span className="min-w-0 flex-1">Line</span>
-            <span className={COUNT_COLUMN}>Pocket</span>
-            <span className={COUNT_COLUMN}>Strikes</span>
-            <span className="w-4 shrink-0" />
-          </li>
-        )}
-        {lines.map((line, i) => (
-          <li key={line.id} className={i === 0 ? "" : LIST_DIVIDER}>
-            <button
-              type="button"
-              onClick={() => onOpenLine(line.id)}
-              aria-label={`${lineBoards(line)}: pocket ${ofCount(line.pocket, line.thrown)}, strikes ${ofCount(line.strikes, line.thrown)}`}
-              className="flex w-full items-center gap-3 px-3 py-2.5 text-left active:bg-surface-muted"
-            >
-              <span className="min-w-0 flex-1 truncate text-sm text-ink">
-                {lineBoards(line)}
-                {line.thin && <span className="text-xs text-ink-tertiary"> thin</span>}
-              </span>
-              <span className={`${COUNT_COLUMN} text-sm text-ink-secondary`}>
-                {ofCount(line.pocket, line.thrown)}
-              </span>
-              <span className={`${COUNT_COLUMN} text-sm font-semibold text-ink`}>
-                {ofCount(line.strikes, line.thrown)}
-              </span>
-              <ChevronRight size={16} aria-hidden="true" className="shrink-0 text-ink-tertiary" />
-            </button>
-          </li>
-        ))}
-        {!showAll && ball.lines.length > LINES_SHOWN && (
-          <li className={LIST_DIVIDER}>
-            <button
-              type="button"
-              onClick={() => setShowAll(true)}
-              className="w-full px-3 py-2.5 text-left text-sm font-semibold text-accent active:bg-surface-muted"
-            >
-              Show all {ball.lines.length} lines
-            </button>
-          </li>
-        )}
-      </ListGroup>
-    </div>
+          <span className="shrink-0 text-right tabular-nums">
+            <span className="block text-sm font-semibold text-ink">
+              {ofCount(ball.strikes, ball.thrown)}
+            </span>
+            <span className="block text-xs text-ink-secondary">strikes</span>
+          </span>
+          <ChevronDown
+            size={16}
+            aria-hidden="true"
+            className={`shrink-0 text-ink-tertiary transition-transform ${open ? "rotate-180" : ""}`}
+          />
+        </button>
+      </li>
+      {open && (
+        <>
+          {ball.lines.length === 0 ? (
+            <li className="px-3 py-2.5 text-sm text-ink-secondary">No line recorded with this ball.</li>
+          ) : (
+            <li className={`flex items-center gap-3 px-3 pt-2 ${GROUP_HEADING}`} aria-hidden="true">
+              <span className="min-w-0 flex-1">Line</span>
+              <span className={COUNT_COLUMN}>Pocket</span>
+              <span className={COUNT_COLUMN}>Strikes</span>
+              <span className="w-4 shrink-0" />
+            </li>
+          )}
+          {lines.map((line) => (
+            <li key={line.id} className={LIST_DIVIDER}>
+              <button
+                type="button"
+                onClick={() => onOpenLine(line.id)}
+                aria-label={`${lineBoards(line)}: pocket ${ofCount(line.pocket, line.thrown)}, strikes ${ofCount(line.strikes, line.thrown)}`}
+                className="flex w-full items-center gap-3 px-3 py-2.5 text-left active:bg-surface-muted"
+              >
+                <span className="min-w-0 flex-1 truncate text-sm text-ink">
+                  {lineBoards(line)}
+                  {line.thin && <span className="text-xs text-ink-tertiary"> thin</span>}
+                </span>
+                <span className={`${COUNT_COLUMN} text-sm text-ink-secondary`}>
+                  {ofCount(line.pocket, line.thrown)}
+                </span>
+                <span className={`${COUNT_COLUMN} text-sm font-semibold text-ink`}>
+                  {ofCount(line.strikes, line.thrown)}
+                </span>
+                <ChevronRight size={16} aria-hidden="true" className="shrink-0 text-ink-tertiary" />
+              </button>
+            </li>
+          ))}
+          {!showAll && ball.lines.length > LINES_SHOWN && (
+            <li className={LIST_DIVIDER}>
+              <button
+                type="button"
+                onClick={() => setShowAll(true)}
+                className="w-full px-3 py-2.5 text-left text-sm font-semibold text-accent active:bg-surface"
+              >
+                Show all {ball.lines.length} lines
+              </button>
+            </li>
+          )}
+        </>
+      )}
+    </>
   );
 }
 

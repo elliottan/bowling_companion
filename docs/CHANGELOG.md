@@ -9,6 +9,39 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.15.0: Spare lines by line, a quieter ball form, an Alley report that leads with answers (2026-10-08)
+
+**Spare lines are rows of lines.** Each row is one line you throw, and the
+leaves you answer with it sit beside it, scrolling sideways. Every leave shows
+how often you left it and how often you made it, and the leaves you leave most
+come first. The rows are ordered the same way, so what comes up most is on top
+for both hands. Leaves with no line yet are the last row. The tiles that stacked
+leaves sharing a line are gone.
+
+**Filter spare lines by pins.** Pins opens a deck: pick the pins you are looking
+for and see every leave that has them, or only that exact leave.
+
+**The spare ball is chosen on the spare lines screen.** A row at the top shows
+it and changes it. The Spare ball switch is gone from the ball form.
+
+**The two hints at the top can be waved away.** Both now say Add and have an X.
+Add opens that leave to change before saving, with the suggested line filled in.
+The X puts the hint away for two weeks, for that leave only.
+
+**The ball form is shorter.** Display name and Weight share a row, the weight
+list is just numbers in lb, Notes and "Read this ball in my default notation" are
+gone, and the layout button says Add layout. Catalog specs wrap instead of being
+cut off.
+
+**The Bowling profile is read until you tap the pencil.** Hand, grip, PAP,
+release offset and drift only change after the pencil, and are saved by the tick.
+Leaving without the tick drops the changes.
+
+**The Alley report leads with answers.** Best lines here and the last session
+come first, balls open to their lines, and line changes sit behind one row.
+
+**Appearance is just Appearance.**
+
 ## 0.14.0: Letting go of a catalog link is done in the catalog (2026-10-08)
 
 **No Change or Unlink buttons on the ball form.** Tap the linked ball and the

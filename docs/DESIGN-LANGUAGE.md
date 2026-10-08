@@ -225,6 +225,25 @@ where more profile features can grow. Rows that leave the app carry no
 sentence: a label that says "Privacy and terms" or "Send feedback" has nothing
 a second line could add.
 
+## 4d. Lists that grow, and pages that are read
+
+**A long list is rows of what you read first, not tiles of what it holds.** The
+spare lines screen is a row per line thrown, with the leaves answered by that
+line scrolling sideways along it, most-left first, and the rows ordered the same
+way. The line is the first-class thing, the leave the item in it. Where a list
+can be long, a filter that takes a deck of pins beats a scroll.
+
+**A page of settings that a thumb can wreck is read until the pencil.** The
+Bowling profile shows its values and lets scrolling pass over them; the pencil
+turns the controls on and swaps to a tick, which is the only place it saves. The
+changes are a draft until then, and leaving drops them.
+
+**A hint can be waved away, and comes back.** Every hint has an action and an X.
+The X is a snooze with an end, kept per thing it was about, not a permanent no.
+
+**A report leads with its answers.** The Alley report opens on the best lines and
+the last session, and keeps the detail one tap down.
+
 ## 5. Empty states
 
 Every list that can be empty renders `EmptyState`: circular accent icon, title,

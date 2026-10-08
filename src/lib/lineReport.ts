@@ -271,3 +271,73 @@ export function findLine(report: LineReport, id: string | null): LineRead | null
   }
   return null;
 }
+
+/** How many lines the top of the report names. */
+export const BEST_LINES = 3;
+
+/**
+ * The lines that struck most here, for the top of the report: every line with
+ * enough balls behind it to mean something (`MIN_LINE_SHOTS`), the most strikes
+ * per ball first, then the most pockets, then the most thrown.
+ *
+ * It ranks what happened and says nothing about what to play: a line that
+ * struck more may have been thrown later, on a lane that had changed. A thin
+ * line never leads, since two balls and two strikes would beat ten and nine.
+ */
+export function bestLines(report: LineReport, limit: number = BEST_LINES): LineRead[] {
+  return report.balls
+    .flatMap((ball) => ball.lines)
+    .filter((line) => !line.thin)
+    .sort(
+      (a, b) =>
+        b.strikes / b.thrown - a.strikes / a.thrown ||
+        b.pocket / b.thrown - a.pocket / a.thrown ||
+        b.thrown - a.thrown
+    )
+    .slice(0, limit);
+}
+
+/** One line as it went in a single session. */
+export interface SessionLine extends LineTally {
+  line: LineRead;
+}
+
+export interface LastSession {
+  date: string;
+  sessionId?: number;
+  /** Most thrown first, each counted inside that session only. */
+  lines: SessionLine[];
+}
+
+/**
+ * The most recent session in the slice and the lines it threw: what you did the
+ * last time you were here, which is the nearest thing there is to a starting
+ * point for the next one. Counted inside that session, not across the lot.
+ */
+export function lastSession(report: LineReport): LastSession | null {
+  const all = report.balls.flatMap((ball) => ball.lines);
+  let newest: LineShot | undefined;
+  for (const line of all) {
+    for (const shot of line.shots) {
+      if (
+        !newest ||
+        shot.date.localeCompare(newest.date) > 0 ||
+        (shot.date === newest.date && (shot.sessionId ?? 0) > (newest.sessionId ?? 0))
+      ) {
+        newest = shot;
+      }
+    }
+  }
+  if (!newest) return null;
+
+  const lines: SessionLine[] = [];
+  for (const line of all) {
+    const tally = emptyTally();
+    for (const shot of line.shots) {
+      if (shot.sessionId === newest.sessionId && shot.date === newest.date) count(tally, shot);
+    }
+    if (tally.thrown > 0) lines.push({ line, ...tally });
+  }
+  lines.sort((a, b) => b.thrown - a.thrown);
+  return { date: newest.date, sessionId: newest.sessionId, lines };
+}

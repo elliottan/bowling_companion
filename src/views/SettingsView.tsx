@@ -252,7 +252,6 @@ function SettingsMenu({
         <ListRow
           icon={Palette}
           label="Appearance"
-          description="Light, dark, or follow your device"
           onClick={() => onSectionChange("appearance")}
         />
       </ListGroup>

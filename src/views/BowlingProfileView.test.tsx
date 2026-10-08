@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { BowlingProfileView } from "./BowlingProfileView";
 import { db } from "../db/bowlingDb";
@@ -16,6 +16,24 @@ const renderPrefs = () => {
   );
 };
 
+/** The page as the bowler meets it: pushed from Settings, with its nav bar, and
+ *  read-only until the pencil. */
+function renderPage(props: Partial<React.ComponentProps<typeof BowlingProfileView>> = {}) {
+  const handlers = { onHandednessChange: vi.fn(), onDriftModelChange: vi.fn(), onBack: vi.fn() };
+  render(
+    <BowlingProfileView
+      handedness="right"
+      driftModel={DEFAULT_DRIFT_MODEL}
+      {...handlers}
+      {...props}
+    />
+  );
+  return handlers;
+}
+
+const edit = () => fireEvent.click(screen.getByRole("button", { name: "Edit bowling profile" }));
+const save = () => fireEvent.click(screen.getByRole("button", { name: "Save bowling profile" }));
+
 describe("BowlingProfileView", () => {
   beforeEach(async () => {
     await db.delete();
@@ -30,11 +48,59 @@ describe("BowlingProfileView", () => {
     expect(screen.getByText("Drift")).toBeInTheDocument();
   });
 
-  it("answers the grip, one-handed until told otherwise", async () => {
-    renderPrefs();
+  it("answers the grip, one-handed until told otherwise, once saved", async () => {
+    renderPage();
+    edit();
     expect(screen.getByRole("button", { name: "One-handed" })).toHaveAttribute("aria-pressed", "true");
     fireEvent.click(screen.getByRole("button", { name: "Two-handed" }));
+    // Not written until the tick.
+    expect(await getGripStyle()).not.toBe("2h");
+    save();
     await waitFor(async () => expect(await getGripStyle()).toBe("2h"));
+  });
+
+  it("is read-only until the pencil: nothing on it can be changed by a stray tap", () => {
+    renderPage();
+    expect(screen.getByRole("button", { name: "Two-handed" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Left-handed" })).toBeDisabled();
+    expect(screen.getByLabelText("Over")).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Increase release offset" })).toBeDisabled();
+    expect(screen.queryByRole("button", { name: "Save bowling profile" })).not.toBeInTheDocument();
+
+    edit();
+    expect(screen.getByRole("button", { name: "Two-handed" })).toBeEnabled();
+    expect(screen.getByLabelText("Over")).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Save bowling profile" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Edit bowling profile" })).not.toBeInTheDocument();
+  });
+
+  it("writes nothing until the tick, and the tick puts it back to reading", async () => {
+    const { onHandednessChange, onDriftModelChange } = renderPage();
+    edit();
+    fireEvent.click(screen.getByRole("button", { name: "Left-handed" }));
+    fireEvent.click(screen.getByRole("button", { name: "Increase release offset" }));
+    expect(onHandednessChange).not.toHaveBeenCalled();
+    expect(onDriftModelChange).not.toHaveBeenCalled();
+
+    save();
+    await waitFor(() => expect(onHandednessChange).toHaveBeenCalledWith("left"));
+    expect(onDriftModelChange).toHaveBeenCalledWith({
+      ...DEFAULT_DRIFT_MODEL,
+      release_offset: DEFAULT_DRIFT_MODEL.release_offset + 0.5
+    });
+    expect(await screen.findByRole("button", { name: "Edit bowling profile" })).toBeInTheDocument();
+  });
+
+  it("drops what was changed if the page is left without the tick", async () => {
+    const first = renderPage();
+    edit();
+    fireEvent.click(screen.getByRole("button", { name: "Two-handed" }));
+    first.onBack.mockClear();
+    cleanup();
+
+    renderPage();
+    expect(screen.getByRole("button", { name: "One-handed" })).toHaveAttribute("aria-pressed", "true");
+    expect(await getGripStyle()).not.toBe("2h");
   });
 
   it("fills the grip from what was saved", async () => {
@@ -62,11 +128,13 @@ describe("BowlingProfileView", () => {
 
   it("edits the same stored PAP the Layouts page does", async () => {
     await setPap({ over: 4, up: 0.5 });
-    renderPrefs();
+    renderPage();
     await waitFor(() =>
       expect((screen.getByLabelText("Over") as HTMLSelectElement).value).toBe("4")
     );
+    edit();
     fireEvent.change(screen.getByLabelText("Over"), { target: { value: "5" } });
+    save();
     await waitFor(async () => expect(await getPap()).toEqual({ over: 5, up: 0.5 }));
   });
 
@@ -99,56 +167,60 @@ describe("BowlingProfileView", () => {
 
   it("keeps the sign on the whole measurement, so half an inch down is reachable", async () => {
     await setPap({ over: 5, up: 0.5 });
-    renderPrefs();
+    renderPage();
     await waitFor(() =>
       expect((screen.getByLabelText("Up or down fraction") as HTMLSelectElement).value).toBe("4")
     );
+    edit();
     fireEvent.change(screen.getByLabelText("Up or down direction"), { target: { value: "down" } });
+    save();
     // Not a negative zero, which is the whole reason the direction is its own
     // control rather than a minus on the whole inches.
     await waitFor(async () => expect(await getPap()).toEqual({ over: 5, up: -0.5 }));
   });
 
-  it("sets the zone edges on the lane, with no board fields beside it", () => {
-    const onChange = vi.fn();
-    render(<BowlingProfileView handedness="right" onHandednessChange={vi.fn()} driftModel={DEFAULT_DRIFT_MODEL} onDriftModelChange={onChange} />);
+  it("sets the zone edges on the lane once editing, with no board fields beside it", () => {
+    const { onDriftModelChange: onChange } = renderPage();
     expect(screen.queryByText("Ends at board")).not.toBeInTheDocument();
     expect(screen.queryByText("Starts at board")).not.toBeInTheDocument();
     expect(screen.queryByText(/← left/)).not.toBeInTheDocument();
+    // Reading, the edges are not handles at all.
+    expect(screen.queryByRole("slider", { name: "Outside zone ends at board" })).not.toBeInTheDocument();
 
+    edit();
     // Board 1 is on the right for a right-hander, so the right arrow walks the
     // outside edge toward it.
     const outside = screen.getByRole("slider", { name: "Outside zone ends at board" });
     expect(outside).toHaveAttribute("aria-valuenow", "14");
     fireEvent.keyDown(outside, { key: "ArrowRight" });
-    expect(onChange).toHaveBeenLastCalledWith({ ...DEFAULT_DRIFT_MODEL, outside_max: 13.5 });
-
     const inside = screen.getByRole("slider", { name: "Inside zone starts at board" });
     fireEvent.keyDown(inside, { key: "ArrowLeft" });
-    expect(onChange).toHaveBeenLastCalledWith({ ...DEFAULT_DRIFT_MODEL, inside_min: 25.5 });
+    save();
+    expect(onChange).toHaveBeenLastCalledWith({ ...DEFAULT_DRIFT_MODEL, outside_max: 13.5, inside_min: 25.5 });
   });
 
   it("drags the nearer edge to the board under the finger", () => {
-    const onChange = vi.fn();
-    render(<BowlingProfileView handedness="left" onHandednessChange={vi.fn()} driftModel={DEFAULT_DRIFT_MODEL} onDriftModelChange={onChange} />);
+    const { onDriftModelChange: onChange } = renderPage({ handedness: "left" });
+    edit();
     const lane = screen.getByRole("group", { name: /Approach board diagram/ });
     // 390 wide on screen, 10 px a board. A left-hander's board 1 is on the left.
     lane.getBoundingClientRect = () => ({ left: 0, width: 390, top: 0, height: 168, right: 390, bottom: 168, x: 0, y: 0, toJSON: () => ({}) });
     // jsdom's PointerEvent drops clientX, so the pointer events go in as mouse
     // events under the pointer type names, which is what React listens for.
     fireEvent(lane, new MouseEvent("pointerdown", { bubbles: true, clientX: 100 }));
-    expect(onChange).toHaveBeenLastCalledWith({ ...DEFAULT_DRIFT_MODEL, outside_max: 10 });
     // Nearer the inside edge (board 24 on the left-hander's side), it moves that one.
     fireEvent(lane, new MouseEvent("pointerup", { bubbles: true }));
     fireEvent(lane, new MouseEvent("pointerdown", { bubbles: true, clientX: 270 }));
-    expect(onChange).toHaveBeenLastCalledWith({ ...DEFAULT_DRIFT_MODEL, inside_min: 28 });
+    save();
+    expect(onChange).toHaveBeenLastCalledWith({ ...DEFAULT_DRIFT_MODEL, outside_max: 10, inside_min: 28 });
   });
 
   it("keeps the middle zone open however far an edge is pushed", () => {
-    const onChange = vi.fn();
     const model: DriftModel = { ...DEFAULT_DRIFT_MODEL, outside_max: 23, inside_min: 25 };
-    render(<BowlingProfileView handedness="right" onHandednessChange={vi.fn()} driftModel={model} onDriftModelChange={onChange} />);
+    const { onDriftModelChange: onChange } = renderPage({ driftModel: model });
+    edit();
     fireEvent.keyDown(screen.getByRole("slider", { name: "Outside zone ends at board" }), { key: "ArrowLeft" });
+    save();
     expect(onChange).not.toHaveBeenCalled();
   });
 

@@ -34,7 +34,7 @@ describe("BallFormDialog layout", () => {
 
   it("saves a ball with no layout, because a layout is optional", async () => {
     render(<BallFormDialog ball={null} onClose={vi.fn()} onSaved={vi.fn()} />);
-    fireEvent.change(screen.getByLabelText(/Name/), { target: { value: "Plastic" } });
+    fireEvent.change(screen.getByLabelText(/Display name/), { target: { value: "Plastic" } });
     save();
 
     await waitFor(async () => expect(await saved("Plastic")).toBeTruthy());
@@ -43,8 +43,8 @@ describe("BallFormDialog layout", () => {
 
   it("stores the numbers a slider moved, not the text that was typed", async () => {
     render(<BallFormDialog ball={null} onClose={vi.fn()} onSaved={vi.fn()} />);
-    fireEvent.change(screen.getByLabelText(/Name/), { target: { value: "Phaze II" } });
-    fireEvent.click(screen.getByRole("button", { name: /Add a layout/ }));
+    fireEvent.change(screen.getByLabelText(/Display name/), { target: { value: "Phaze II" } });
+    fireEvent.click(screen.getByRole("button", { name: /Add layout/ }));
     fireEvent.change(screen.getByRole("slider", { name: "Drilling angle" }), {
       target: { value: "60" }
     });
@@ -136,7 +136,7 @@ describe("BallFormDialog layout", () => {
     first.unmount();
 
     render(<BallFormDialog ball={(await saved("Old ball"))!} onClose={vi.fn()} onSaved={vi.fn()} />);
-    fireEvent.click(screen.getByRole("button", { name: /Add a layout/ }));
+    fireEvent.click(screen.getByRole("button", { name: /Add layout/ }));
     save();
 
     await waitFor(async () => expect((await saved("Old ball"))?.layout_spec).toBeTruthy());
@@ -198,7 +198,7 @@ describe("BallFormDialog catalog link", () => {
     fireEvent.click(rows[0]);
     // Back on the form, no longer linked, and nothing else about the ball moved.
     expect(await screen.findByText("Link to catalog")).toBeInTheDocument();
-    expect(screen.getByLabelText(/Name/)).toHaveValue("My Gem");
+    expect(screen.getByLabelText(/Display name/)).toHaveValue("My Gem");
     save();
     await waitFor(async () => expect(await saved("My Gem")).toBeTruthy());
     expect((await saved("My Gem"))?.catalog_ref_id).toBeUndefined();
