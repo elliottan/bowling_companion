@@ -1,5 +1,5 @@
 import { Plus, X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import {
   DndContext,
@@ -39,6 +39,7 @@ import {
   matchesFilters,
   mostLeftWithoutLine,
   SPARE_FILTERS,
+  spareLinesShown,
   stackByLine,
   suggestLineCopies,
   suggestionKey,
@@ -258,7 +259,10 @@ export function SpareLinesView({ onBack }: { onBack: () => void }) {
   const leaves = useLiveQuery(async () => calculateCommonLeaves(await getSessionHistory())) ?? NO_LEAVES;
   // Reordering shows the new order while the write lands.
   const [reordered, setReordered] = useState<SpareLine[] | null>(null);
-  const spareLines = reordered ?? live ?? NO_LINES;
+  // Pocket leaves are shot on the strike line and are never listed (ADR-123).
+  // A row saved for one stays stored, out of sight, and out of the reorder.
+  const shown = useMemo(() => spareLinesShown(live ?? NO_LINES), [live]);
+  const spareLines = reordered ?? shown;
   const isLoading = live === undefined;
   const [error, setError] = useState("");
   const [opened, setOpened] = useState<Opened | null>(null);

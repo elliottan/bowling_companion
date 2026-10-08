@@ -16,7 +16,9 @@ import {
 } from "../lib/driftModel";
 import { derivedApexForDisplay } from "../lib/laneGeometry";
 import { lineHasValue } from "../lib/lanes";
+import { isPocketLeave } from "../lib/pins";
 import { savedSpareLine } from "../lib/shotSeeding";
+import { spareLinesShown } from "../lib/spareLines";
 import { SpareLinePickerSheet } from "./SpareLinePickerSheet";
 import type { Ball, LineSpec, PinNumber, SpareLine } from "../types/bowling";
 import type { Manufacturer } from "../types/catalog";
@@ -173,12 +175,13 @@ export function ShotDetailBar({
 
   // Borrowing another leave's line is offered only where it helps: at a leave
   // this bowler has never written down. With a line already saved for it, the
-  // box is already holding the right answer.
+  // box is already holding the right answer. A pocket leave is shot on the
+  // strike line, so it never offers one (ADR-123).
   const hasSavedLine = Boolean(
     spareLeave && savedSpareLine(spareLines, spareLeave)?.line
   );
   const intendedActions =
-    spareLeave && !hasSavedLine ? (
+    spareLeave && !hasSavedLine && !isPocketLeave(spareLeave) ? (
       <div className="flex items-center gap-1">
         <IconButton
           compact
@@ -315,7 +318,7 @@ export function ShotDetailBar({
 
       {showLinePicker && (
         <SpareLinePickerSheet
-          spareLines={spareLines}
+          spareLines={spareLinesShown(spareLines)}
           onPick={(line) => {
             if (onEditAttempt && !onEditAttempt()) return;
             handleIntendedChange({ ...intended, ...line });

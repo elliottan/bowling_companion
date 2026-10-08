@@ -14,7 +14,7 @@ import {
 import { ALL_PINS, calculateGameScore } from "../lib/scoring";
 import { getFrameShotCells } from "../lib/scoreDisplay";
 import { useHandedness } from "../lib/handednessContext";
-import { isPocketHit } from "../lib/pins";
+import { isPocketHit, isPocketLeave } from "../lib/pins";
 import { freshRackShotIndices, isFreshRackShot, laneForFrame } from "../lib/lanes";
 import { ballKind, seedForShot, lineForBall } from "../lib/shotSeeding";
 import { findSpareLineByPins, getBalls, getSpareLinesAll } from "../services/ballRepository";
@@ -509,6 +509,8 @@ export function ActiveGameScorer({
     const leave = frame.shots[index].pins_standing;
     const attempt = frame.shots[index + 1];
     if (!leave || leave.length === 0 || !attempt) return;
+    // A pocket leave is shot on the strike line and has no spare line (ADR-123).
+    if (isPocketLeave(leave)) return;
     const existing = findSpareLineByPins(spareLines, leave);
     if (existing?.line) return;
     // The saved line is the spare ball's boards, and every spare ball attempt

@@ -66,6 +66,19 @@ describe("SpareLinesView", () => {
     expect(await getSpareLinesAll()).toHaveLength(before);
   });
 
+  it("never lists a pocket leave, even one with a line saved for it (ADR-123)", async () => {
+    await upsertSpareLine([10], { stance: 35, target: 20 });
+    await upsertSpareLine([1, 2, 3, 5], { stance: 20, target: 12 });
+    render(<SpareLinesView onBack={vi.fn()} />);
+
+    await screen.findAllByRole("button", { name: /Open spare line for pins/ });
+    expect(
+      screen.queryByRole("button", { name: "Open spare line for pins 1, 2, 3, 5" })
+    ).not.toBeInTheDocument();
+    // Hidden, not deleted.
+    expect((await getSpareLinesAll()).some((sl) => sl.pins.join("-") === "1-2-3-5")).toBe(true);
+  });
+
   it("stacks leaves that share a line on one tile, each deck opening its own leave", async () => {
     await upsertSpareLine([2, 4, 5, 8], { stance: 25, target: 12 });
     await upsertSpareLine([2, 4, 8], { stance: 25, target: 12 });

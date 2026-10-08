@@ -5,6 +5,7 @@ import {
   lineHasValue,
   sameBallSeedLine
 } from "./lanes";
+import { isPocketLeave } from "./pins";
 import type { Ball, Frame, Game, LineSpec, PinNumber, Shot, SpareLine } from "../types/bowling";
 
 /**
@@ -138,7 +139,11 @@ export function lineForBall(
     return found ? { ...found } : undefined;
   };
 
-  if (!leave || leave.length === 0 || leave.length >= 10) return ownStrikeLine();
+  // A pocket leave (the 1 and 5 standing) is a strike-ball shot on the strike
+  // line, with any ball (ADR-123).
+  if (!leave || leave.length === 0 || leave.length >= 10 || isPocketLeave(leave)) {
+    return ownStrikeLine();
+  }
 
   const isStrikeBall = ballKind(input.balls ?? [], ballId) === "strike";
   const own = sessionSpareIntended(
@@ -240,7 +245,10 @@ export function seedForShot(input: ShotSeedInput): ShotSeed {
   // True second ball (a spare attempt): the spare ball if one is configured,
   // else shot one's ball. The line comes from this session's attempt at the
   // same leave, else the saved spare line for it.
-  if (availablePins.length < 10) {
+  // A pocket leave is not a spare attempt here: it falls through to the
+  // fresh-rack rule below, so it opens with the ball and line just thrown at the
+  // full rack (ADR-123).
+  if (availablePins.length < 10 && !isPocketLeave(availablePins)) {
     const spareBall = input.balls.find((b) => b.is_spare_ball);
     const ballId = spareBall?.id ?? currentFrameShots[0]?.ball_id;
 
@@ -253,8 +261,9 @@ export function seedForShot(input: ShotSeedInput): ShotSeed {
     };
   }
 
-  // Fresh-rack bonus ball (the 10th after a strike or spare): the same rule,
-  // and the ball thrown at the last full rack in this frame comes first.
+  // Fresh-rack bonus ball (the 10th after a strike or spare), or a pocket leave:
+  // the same rule, and the ball thrown at the last full rack in this frame comes
+  // first.
   const prev = freshRackSeedShot(
     input.game,
     currentFrameNumber,

@@ -9,6 +9,16 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.11.0: Pocket leaves need no spare line (2026-10-08)
+
+**A leave with the 1 and 5 standing is a pocket shot.** After a gutter, a
+whiffed 7 or 10, a 1-2-3-5 or a 1-3-5, the next ball opens with the strike ball
+you just threw and its line, not your spare ball.
+
+**The spare lines screen leaves them out.** These leaves are no longer listed,
+suggested or asked for, and you are not offered to save a line for one after
+you shoot it. A line you saved for one before is hidden, not deleted.
+
 ## 0.10.0: The Alley report reads your lines (2026-10-08)
 
 **The Alley report shows what each line did.** Pick an alley, and a pattern or
