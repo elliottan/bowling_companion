@@ -63,37 +63,28 @@ export const GUIDES: readonly Guide[] = [
     // The long form of the Settings captions, which are one line each (ADR-115).
     id: "your-settings",
     title: "Your bowling profile",
-    summary: "What your hand, grip, PAP and drift change in the app.",
+    summary: "Why the app asks for your hand, PAP and drift.",
     topic: "Setting up",
-    minutes: 2,
+    minutes: 1,
     body: [
       { kind: "heading", text: "Hand" },
       {
         kind: "text",
-        text: "Board 1 is the one on your side of the lane, so every board number in the app depends on which hand you bowl with. Switch hands and every board flips to the other side. Sessions you already saved keep the numbers they had."
-      },
-      { kind: "heading", text: "Grip" },
-      {
-        kind: "text",
-        text: "One-handed has a thumb, two-handed doesn't. Pick two-handed and the ball is drawn without a thumb hole."
+        text: "Board 1 is the one on your side of the lane, so which hand you bowl with decides what every board number means. Switch hands and the boards flip. Saved sessions keep the numbers they had."
       },
       { kind: "heading", text: "PAP" },
       {
         kind: "text",
-        text: "Your positive axis point: how far over from the center of your grip, then how far up or down. The layouts screen uses it for every number. Your pro shop can measure it for you."
+        text: "Your positive axis point is where the ball spins around. It's measured from the center of your grip: how far over, then how far up or down. Every number on the layouts screen starts from it, and your pro shop can measure it for you."
       },
       { kind: "heading", text: "Release offset and drift" },
       {
         kind: "text",
-        text: "Release offset is how many boards from your slide foot the ball lands."
+        text: "Release offset is how many boards from your slide foot the ball lands. Drift is how far you move sideways on the approach, and it can change with where you start: outside, middle or inside."
       },
       {
         kind: "text",
-        text: "Drift is how far you move sideways on the approach. It can depend on where you start: outside, middle or inside."
-      },
-      {
-        kind: "text",
-        text: "The lane view uses both to work out your slide and laydown from the stance you enter."
+        text: "The lane view uses both to turn the stance you enter into your slide and laydown."
       }
     ]
   },
@@ -104,10 +95,6 @@ export const GUIDES: readonly Guide[] = [
     topic: "Layouts",
     minutes: 3,
     body: [
-      {
-        kind: "text",
-        text: "Every layout system names the same few points on the ball."
-      },
       {
         kind: "figure",
         figure: "ball-points",

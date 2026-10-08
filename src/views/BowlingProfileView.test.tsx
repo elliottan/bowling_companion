@@ -52,9 +52,10 @@ describe("BowlingProfileView", () => {
     renderPrefs(openGuide);
     fireEvent.click(screen.getByRole("button", { name: "Why it matters" }));
     expect(openGuide).toHaveBeenCalled();
-    // What a two-handed grip changes, and what it leaves alone, still says so.
+    // The guide covers the numbers on this page that are not self-evident.
     const text = JSON.stringify(findGuide("your-settings")?.body);
-    expect(text).toMatch(/without a thumb hole/i);
+    expect(text).toMatch(/slide foot/i);
+    expect(text).not.toMatch(/thumb hole/i);
   });
 
   it("edits the same stored PAP the Layouts page does", async () => {

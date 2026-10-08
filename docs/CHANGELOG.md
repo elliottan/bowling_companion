@@ -48,7 +48,8 @@ no share sheet, the link is copied.
 **Guides read more like a person wrote them.** All five are rewritten with
 shorter paragraphs and plainer words, and "take it to the counter" is gone. The
 facts and sources are unchanged. "Your hand, grip and approach" is now "Your
-bowling profile", to match Settings.
+bowling profile", to match Settings, and drops the grip section, which only
+restated the toggle.
 
 **The landing page shows the app.** It says "The best way to keep score." and
 "Free. Works offline.", then shows four screens: scoring, your line over an oil
