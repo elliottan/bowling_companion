@@ -7,64 +7,58 @@ import { LoadingCard } from "../components/ui/LoadingCard";
 import { GROUP_HEADING } from "../components/ui/typography";
 import { FIELD_LABEL, FIELD_SELECT } from "../components/ui/field";
 import { LIST_DIVIDER, ListGroup } from "../components/ui/ListGroup";
-import { Chip } from "../components/ui/Chip";
 import {
-  buildBriefing,
-  type BriefingFinding,
-  type BallRates,
-  type BallScope,
-  type BriefingGap,
-  type ScopeBall,
-  type ScopeSpan,
-  type MovementSlot
-} from "../lib/briefing";
+  buildLineReport,
+  findLine,
+  MIN_LINE_SHOTS,
+  type BallRead,
+  type LineMove,
+  type LineRead,
+  type LineShot
+} from "../lib/lineReport";
 import { useHandedness } from "../lib/handednessContext";
 import { buildFilterOptions, EMPTY_SELECTION } from "../lib/filterFacets";
-import { setRemembered, useRememberedState } from "../lib/viewMemory";
+import { formatSessionDate } from "../lib/dates";
+import { formatLeave } from "../lib/pins";
+import { useRememberedState } from "../lib/viewMemory";
 import { getSessionHistory } from "../services/bowlingRepository";
 import { getBalls } from "../services/ballRepository";
-import type { Ball, Handedness, SessionSummary } from "../types/bowling";
+import type { Ball, SessionSummary } from "../types/bowling";
 import { ErrorBanner } from "../components/ErrorBanner";
-import { LastTimeCard } from "../components/AlleyHistory";
-import { boardsMoved, describeLine } from "../components/alleyHistoryCopy";
-
-/** The chart each callout is about, keyed the way the Stats tab remembers it.
- *  Tapping a callout lands on the number it was talking about, not on whatever
- *  chart happened to be up last time (ADR-065b). */
-const CHART_FOR: Record<BriefingFinding["kind"], string> = {
-  ball: "carryPct",
-  expectation: "average",
-  gameSlot: "average",
-  spares: "sparePct",
-  laneBias: "strikePct"
-};
+import { describeLine } from "../components/alleyHistoryCopy";
 
 const NO_SESSIONS: SessionSummary[] = [];
 const NO_BALLS: Ball[] = [];
 
+/** Lines shown under a ball before the rest go behind "Show all". A session of
+ *  small moves leaves a long tail of lines thrown once or twice. */
+const LINES_SHOWN = 5;
+
 /**
- * What your own history says about where you are about to bowl (ADR-064b).
+ * What each line did at one alley: every ball, the lines it was thrown on, and
+ * the shots behind each line one tap deeper.
  *
- * The copy lives here rather than in `lib/briefing`, which returns findings and
- * numbers. That split is what lets the thresholds be tested without asserting
- * on wording, and it keeps the sentences under the design language's rules
- * rather than a calculator's.
- *
- * Every line states what happened and stops. None of them says to bring a
- * particular ball: you do not pick a ball at random, so a ball that carries
- * well somewhere may be the ball you only reach for when the lanes are good.
+ * The copy lives here rather than in `lib/lineReport`, which returns counts.
+ * Every number is a count ("7 of 10"), never a percentage: most lines are a
+ * handful of balls, and a rate hides how few. Nothing says which line to play.
+ * A line that struck more may have been thrown later, on a lane that had
+ * changed.
  */
 interface GamePlanViewProps {
   onBack: () => void;
-  /** Push the Stats screen, having set the filters up for it. A push rather
-   *  than a tab switch, so back returns to the callout that made the point
-   *  (ADR-083). */
-  onOpenStats: () => void;
-  /** Open the night behind "Last time". */
-  onOpenSession: (sessionId: number) => void;
+  /** The line whose shots are open, by `lineReport` id (appNavigation). */
+  openLineId: string | null;
+  onOpenLine: (lineId: string) => void;
+  /** Open the game a shot was thrown in, with its ball lit up. */
+  onOpenSessionGame: (sessionId: number, gameId: number, ballId?: number) => void;
 }
 
-export function GamePlanView({ onBack, onOpenStats, onOpenSession }: GamePlanViewProps) {
+export function GamePlanView({
+  onBack,
+  openLineId,
+  onOpenLine,
+  onOpenSessionGame
+}: GamePlanViewProps) {
   // A failed read used to arrive as an empty list, which reads as "you have
   // never bowled" to someone who has.
   const [error, setError] = useState<Error | null>(null);
@@ -87,7 +81,6 @@ export function GamePlanView({ onBack, onOpenStats, onOpenSession }: GamePlanVie
   const [rememberedAlley, setAlley] = useRememberedState("plan:alley", "");
   const [rememberedPattern, setPattern] = useRememberedState("plan:pattern", "");
   const [rememberedLane, setLane] = useRememberedState("plan:lane", "");
-  const [rememberedScope, setScope] = useRememberedState("plan:scope", "all");
 
   // A session started without an alley (ADR-080) has no name to filter by, so
   // it is not offered as one. Most bowled first, and the pattern list is only
@@ -126,465 +119,362 @@ export function GamePlanView({ onBack, onOpenStats, onOpenSession }: GamePlanVie
   );
   const lane = allLanes.includes(rememberedLane) ? rememberedLane : "";
 
-  const briefing = useMemo(
-    () => buildBriefing(history, balls, { alley, pattern, lane }, handedness),
+  const report = useMemo(
+    () => buildLineReport(history, balls, { alley, pattern, lane }, handedness),
     [history, balls, alley, pattern, lane, handedness]
   );
+  const open = findLine(report, openLineId);
 
-  // A scope the current slice cannot offer (game 4 at a house you have only
-  // ever bowled three games at) falls back to everything, rather than leaving
-  // the table blank under a chip that is no longer there.
-  const scope =
-    briefing.scopes.find((sc) => sc.key === rememberedScope) ?? briefing.scopes[0] ?? null;
-
-  const where = [alley, pattern].filter(Boolean).join(" · ");
-
-  /**
-   * Hand the Stats screen this slice and the number the callout was about.
-   *
-   * Location and pattern only, plus the chart. A callout that names two things
-   * ("game 1 is your best here, game 3 your worst") cannot be turned into one
-   * filter without the tap silently picking a side, so it does not try: the
-   * game and lane chips are a tap away in the filter sheet.
-   */
-  function openInStats(kind: BriefingFinding["kind"]) {
-    setRemembered("history:alley", alley);
-    setRemembered("history:pattern", pattern);
-    setRemembered("history:game", null);
-    setRemembered("history:lanes", []);
-    setRemembered("history:metric", CHART_FOR[kind]);
-    onOpenStats();
-  }
+  const where = [alley, pattern, lane && `lane ${lane}`].filter(Boolean).join(" \u00b7 ");
 
   return (
-    <PushScreen title="Alley report" onBack={onBack}>
-      <div className="mx-auto w-full max-w-3xl px-3 pb-8 pt-3 sm:px-6">
-        {error ? (
-          <ErrorBanner>Your sessions could not be read. Reload the app, then try again.</ErrorBanner>
-        ) : isLoading ? (
-          <LoadingCard />
-        ) : history.length === 0 ? (
-          <EmptyState
-            icon={Compass}
-            title="Nothing to go on yet"
-            description="Bowl a few sessions and this reads them back to you before the next one."
-          />
-        ) : (
-          <>
-            {/* Nothing to pick between when no session has ever named a house
-                (ADR-080), and a select with no options is furniture. */}
-            {/* The alley gets a row of its own: three selects side by side cut
-                an alley name down to its first word. */}
-            {allAlleys.length > 0 && (
-              <div className="mb-2">
-                  <label className={FIELD_LABEL} htmlFor="plan-alley">
-                    Alley
+    <>
+      <PushScreen title="Alley report" onBack={onBack} active={!open}>
+        <div className="mx-auto w-full max-w-3xl px-3 pb-8 pt-3 sm:px-6">
+          {error ? (
+            <ErrorBanner>Your sessions could not be read. Reload the app, then try again.</ErrorBanner>
+          ) : isLoading ? (
+            <LoadingCard />
+          ) : history.length === 0 ? (
+            <EmptyState
+              icon={Compass}
+              title="Nothing to go on yet"
+              description="Bowl a few sessions and this reads back what each line did."
+            />
+          ) : (
+            <>
+              {/* Nothing to pick between when no session has ever named a house
+                  (ADR-080), and a select with no options is furniture. */}
+              {/* The alley gets a row of its own: three selects side by side cut
+                  an alley name down to its first word. */}
+              {allAlleys.length > 0 && (
+                <div className="mb-2">
+                    <label className={FIELD_LABEL} htmlFor="plan-alley">
+                      Alley
+                    </label>
+                    <select
+                      id="plan-alley"
+                      value={alley}
+                      onChange={(e) => setAlley(e.target.value)}
+                      className={FIELD_SELECT}
+                    >
+                      {allAlleys.map((a) => (
+                        <option key={a} value={a}>
+                          {a}
+                        </option>
+                      ))}
+                  </select>
+                </div>
+              )}
+              <div className="flex gap-2">
+                <div className="min-w-0 flex-1">
+                  <label className={FIELD_LABEL} htmlFor="plan-pattern">
+                    Pattern
                   </label>
                   <select
-                    id="plan-alley"
-                    value={alley}
-                    onChange={(e) => setAlley(e.target.value)}
-                    className={FIELD_SELECT}
-                  >
-                    {allAlleys.map((a) => (
-                      <option key={a} value={a}>
-                        {a}
-                      </option>
-                    ))}
-                </select>
-              </div>
-            )}
-            <div className="flex gap-2">
-              <div className="min-w-0 flex-1">
-                <label className={FIELD_LABEL} htmlFor="plan-pattern">
-                  Pattern
-                </label>
-                <select
-                  id="plan-pattern"
-                  value={pattern}
-                  onChange={(e) => setPattern(e.target.value)}
-                  className={FIELD_SELECT}
-                >
-                  <option value="">Any</option>
-                  {allPatterns.map((p) => (
-                    <option key={p} value={p}>
-                      {p}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              {/* Only inside a house that has lanes on record: a lane number
-                  means nothing across houses, and an empty picker is furniture. */}
-              {allLanes.length > 0 && (
-                <div className="w-24 shrink-0">
-                  <label className={FIELD_LABEL} htmlFor="plan-lane">
-                    Lane
-                  </label>
-                  <select
-                    id="plan-lane"
-                    value={lane}
-                    onChange={(e) => setLane(e.target.value)}
+                    id="plan-pattern"
+                    value={pattern}
+                    onChange={(e) => setPattern(e.target.value)}
                     className={FIELD_SELECT}
                   >
                     <option value="">Any</option>
-                    {allLanes.map((l) => (
-                      <option key={l} value={l}>
-                        {l}
+                    {allPatterns.map((p) => (
+                      <option key={p} value={p}>
+                        {p}
                       </option>
                     ))}
                   </select>
                 </div>
-              )}
-            </div>
-
-            <p className="mt-3 text-xs text-ink-secondary">
-              {briefing.games === 0
-                ? `Nothing recorded for ${where || "this"} yet.`
-                : `${briefing.games} ${briefing.games === 1 ? "game" : "games"} over ${
-                    briefing.sessions
-                  } ${briefing.sessions === 1 ? "session" : "sessions"}${where ? ` at ${where}` : ""}.`}
-            </p>
-
-            {briefing.lastTime && (
-              <>
-                <h2 className={`${GROUP_HEADING} mb-2 mt-4`}>Last time, one session</h2>
-                <LastTimeCard
-                  last={briefing.lastTime}
-                  onOpen={
-                    briefing.lastTime.sessionId != null
-                      ? () => onOpenSession(briefing.lastTime!.sessionId as number)
-                      : undefined
-                  }
-                />
-              </>
-            )}
-
-            {briefing.movement.length > 0 && (
-              <div className="mt-4">
-                <ListGroup heading="How the session moves here, typically">
-                  {briefing.movement.map((slot) => (
-                    <MovementRow key={slot.gameNumber} slot={slot} />
-                  ))}
-                </ListGroup>
-                <p className="mt-1.5 px-1 text-xs text-ink-tertiary">
-                  {describeDrift(briefing.movement, handedness)}
-                </p>
+                {/* Only inside a house that has lanes on record: a lane number
+                    means nothing across houses, and an empty picker is furniture. */}
+                {allLanes.length > 0 && (
+                  <div className="w-24 shrink-0">
+                    <label className={FIELD_LABEL} htmlFor="plan-lane">
+                      Lane
+                    </label>
+                    <select
+                      id="plan-lane"
+                      value={lane}
+                      onChange={(e) => setLane(e.target.value)}
+                      className={FIELD_SELECT}
+                    >
+                      <option value="">Any</option>
+                      {allLanes.map((l) => (
+                        <option key={l} value={l}>
+                          {l}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
               </div>
-            )}
 
-            {scope && (
-              <>
-                <h2 className={`${GROUP_HEADING} mb-2 mt-4`}>Which ball, when</h2>
-                {/* Widest first, then game by game, then the windows. Scrolled
-                    rather than wrapped: the order is a sequence through a
-                    night, and wrapping breaks it into rows that read as
-                    groups. */}
-                <div className="-mx-3 flex gap-2 overflow-x-auto overscroll-x-contain px-3 pb-1 sm:mx-0 sm:px-0">
-                  {briefing.scopes.map((sc) => (
-                    <Chip
-                      key={sc.key}
-                      selected={sc.key === scope.key}
-                      onClick={() => setScope(sc.key)}
-                      className="shrink-0"
-                    >
-                      {scopeChip(sc.span)}
-                    </Chip>
-                  ))}
-                </div>
-                <ScopeTable scope={scope} lane={lane} />
-                <p className="mt-1.5 px-1 text-xs text-ink-tertiary">{scopeNote(scope, lane)}</p>
-              </>
-            )}
-
-            {briefing.callouts.length > 0 && (
-              <>
-                <h2 className={`${GROUP_HEADING} mb-2 mt-4`}>What your history says</h2>
-                <div className="space-y-2">
-                  {briefing.callouts.map((c) => (
-                    <button
-                      key={c.kind}
-                      type="button"
-                      onClick={() => openInStats(c.kind)}
-                      className="flex w-full items-center gap-3 rounded-xl border border-edge bg-surface p-3 text-left shadow-sm hover:border-accent-fill"
-                    >
-                      <span className="min-w-0 flex-1">
-                        <span className="block text-sm leading-relaxed text-ink">{describe(c)}</span>
-                        <span className="mt-1 block text-xs text-ink-tertiary">{evidence(c)}</span>
-                      </span>
-                      <ChevronRight
-                        size={18}
-                        aria-hidden="true"
-                        className="shrink-0 text-ink-tertiary"
-                      />
-                    </button>
-                  ))}
-                </div>
-              </>
-            )}
-
-            {briefing.callouts.length === 0 && briefing.games > 0 && (
-              <p className="mt-4 rounded-xl border border-edge bg-surface-muted p-3 text-sm text-ink-secondary">
-                Nothing here stands out from the rest of your history yet.
+              <p className="mt-3 text-xs text-ink-secondary">
+                {report.shots === 0
+                  ? `Nothing recorded for ${where || "this"} yet.`
+                  : `${report.shots} first ${report.shots === 1 ? "ball" : "balls"} over ${
+                      report.sessions
+                    } ${report.sessions === 1 ? "session" : "sessions"}${where ? ` at ${where}` : ""}.`}
               </p>
-            )}
 
-            {briefing.gathering.length > 0 && (
-              <>
-                <h2 className={`${GROUP_HEADING} mb-2 mt-4`}>Still gathering</h2>
-                <ul className="space-y-1.5">
-                  {briefing.gathering.map((g) => (
-                    <li
-                      key={g.kind}
-                      className="rounded-lg border border-dashed border-edge-strong bg-surface-muted px-3 py-2 text-xs text-ink-secondary"
-                    >
-                      {describeGap(g)}
-                    </li>
-                  ))}
-                </ul>
-              </>
-            )}
-          </>
+              {report.moves.length > 0 && (
+                <div className="mt-4">
+                  <ListGroup heading="Line changes">
+                    {report.moves.map((move) => (
+                      <MoveRow key={move.id} move={move} onOpen={() => onOpenLine(move.to.lineId)} />
+                    ))}
+                  </ListGroup>
+                </div>
+              )}
+
+              {report.balls.map((ball) => (
+                <BallLines key={ball.ballId ?? "none"} ball={ball} onOpenLine={onOpenLine} />
+              ))}
+
+              {report.shots > 0 && (
+                <p className="mt-2 px-1 text-xs text-ink-tertiary">
+                  What each line did, not what to play. A line marked thin has under{" "}
+                  {MIN_LINE_SHOTS} balls.
+                </p>
+              )}
+            </>
+          )}
+        </div>
+      </PushScreen>
+
+      {open && (
+        <LineDetail
+          line={open}
+          onBack={onBack}
+          onOpenShot={(shot) =>
+            shot.sessionId != null &&
+            shot.gameId != null &&
+            onOpenSessionGame(shot.sessionId, shot.gameId, open.ballId)
+          }
+        />
+      )}
+    </>
+  );
+}
+
+/** A count as the screen says it: "7 of 10". */
+export function ofCount(made: number, total: number): string {
+  return `${made} of ${total}`;
+}
+
+/** The boards of a line, or what there is of them. */
+export function lineBoards(line: { stance?: number; target?: number }): string {
+  return describeLine({ stance: line.stance, target: line.target });
+}
+
+/** Two lines with one ball in one session, each side counted in that session. */
+function MoveRow({ move, onOpen }: { move: LineMove; onOpen: () => void }) {
+  return (
+    <li className={LIST_DIVIDER}>
+      <button
+        type="button"
+        onClick={onOpen}
+        className="flex w-full items-center gap-3 px-3 py-2.5 text-left active:bg-surface-muted"
+      >
+        <span className="min-w-0 flex-1">
+          <span className="flex items-baseline justify-between gap-2">
+            <span className="truncate font-semibold text-ink">{move.ballName}</span>
+            <span className="shrink-0 text-xs text-ink-tertiary">
+              {formatSessionDate(move.date)}
+            </span>
+          </span>
+          <span className="block text-sm text-ink">
+            {lineBoards(move.from)}, then {lineBoards(move.to)}
+          </span>
+          <span className="block text-xs tabular-nums text-ink-secondary">
+            Strikes {ofCount(move.from.strikes, move.from.thrown)}, then{" "}
+            {ofCount(move.to.strikes, move.to.thrown)}
+          </span>
+          <span className="block text-xs tabular-nums text-ink-secondary">
+            Pocket {ofCount(move.from.pocket, move.from.thrown)}, then{" "}
+            {ofCount(move.to.pocket, move.to.thrown)}
+          </span>
+        </span>
+        <ChevronRight size={16} aria-hidden="true" className="shrink-0 text-ink-tertiary" />
+      </button>
+    </li>
+  );
+}
+
+const COUNT_COLUMN = "w-16 shrink-0 text-right tabular-nums";
+
+/** One ball: its lines, most thrown first, under the same two counts. */
+function BallLines({ ball, onOpenLine }: { ball: BallRead; onOpenLine: (id: string) => void }) {
+  const [showAll, setShowAll] = useState(false);
+  const lines = showAll ? ball.lines : ball.lines.slice(0, LINES_SHOWN);
+  return (
+    <div className="mt-4">
+      <ListGroup
+        heading={<h2 className="truncate text-sm font-semibold text-ink-strong">{ball.name}</h2>}
+        headingTrailing={
+          <span className="shrink-0 text-xs tabular-nums text-ink-tertiary">
+            {ofCount(ball.strikes, ball.thrown)} strikes
+          </span>
+        }
+      >
+        {ball.lines.length === 0 ? (
+          <li className="px-3 py-2.5 text-sm text-ink-secondary">No line recorded with this ball.</li>
+        ) : (
+          <li className={`flex items-center gap-3 px-3 pt-2 ${GROUP_HEADING}`} aria-hidden="true">
+            <span className="min-w-0 flex-1">Line</span>
+            <span className={COUNT_COLUMN}>Pocket</span>
+            <span className={COUNT_COLUMN}>Strikes</span>
+            <span className="w-4 shrink-0" />
+          </li>
         )}
+        {lines.map((line, i) => (
+          <li key={line.id} className={i === 0 ? "" : LIST_DIVIDER}>
+            <button
+              type="button"
+              onClick={() => onOpenLine(line.id)}
+              aria-label={`${lineBoards(line)}: pocket ${ofCount(line.pocket, line.thrown)}, strikes ${ofCount(line.strikes, line.thrown)}`}
+              className="flex w-full items-center gap-3 px-3 py-2.5 text-left active:bg-surface-muted"
+            >
+              <span className="min-w-0 flex-1 truncate text-sm text-ink">
+                {lineBoards(line)}
+                {line.thin && <span className="text-xs text-ink-tertiary"> thin</span>}
+              </span>
+              <span className={`${COUNT_COLUMN} text-sm text-ink-secondary`}>
+                {ofCount(line.pocket, line.thrown)}
+              </span>
+              <span className={`${COUNT_COLUMN} text-sm font-semibold text-ink`}>
+                {ofCount(line.strikes, line.thrown)}
+              </span>
+              <ChevronRight size={16} aria-hidden="true" className="shrink-0 text-ink-tertiary" />
+            </button>
+          </li>
+        ))}
+        {!showAll && ball.lines.length > LINES_SHOWN && (
+          <li className={LIST_DIVIDER}>
+            <button
+              type="button"
+              onClick={() => setShowAll(true)}
+              className="w-full px-3 py-2.5 text-left text-sm font-semibold text-accent active:bg-surface-muted"
+            >
+              Show all {ball.lines.length} lines
+            </button>
+          </li>
+        )}
+      </ListGroup>
+    </div>
+  );
+}
+
+/** A shot's first ball in a word or two. */
+export function describeShot(shot: Pick<LineShot, "pinsStanding" | "pocket">): string {
+  if (shot.pinsStanding.length === 0) return "Strike";
+  const leave = formatLeave(shot.pinsStanding);
+  return shot.pocket ? `${leave}, pocket` : leave;
+}
+
+/** One line: its three counts, what it left, then every shot in the order
+ *  thrown. `onBack` is the same pop as the report's: the reducer takes the open
+ *  line off before it touches the overlay stack. */
+function LineDetail({
+  line,
+  onBack,
+  onOpenShot
+}: {
+  line: LineRead;
+  onBack: () => void;
+  onOpenShot: (shot: LineShot) => void;
+}) {
+  // One group per game, newest session first, which is the order the shots
+  // already arrive in.
+  const games: Array<{ key: string; heading: string; shots: LineShot[] }> = [];
+  for (const shot of line.shots) {
+    const key = `${shot.sessionId ?? shot.date}:${shot.gameNumber}`;
+    const last = games[games.length - 1];
+    if (last?.key === key) last.shots.push(shot);
+    else {
+      games.push({
+        key,
+        heading: `${formatSessionDate(shot.date)} \u00b7 game ${shot.gameNumber}`,
+        shots: [shot]
+      });
+    }
+  }
+
+  return (
+    <PushScreen title={describeLine(line)} onBack={onBack}>
+      <div className="mx-auto w-full max-w-3xl space-y-4 px-3 pb-8 pt-3 sm:px-6">
+        <div className="grid grid-cols-3 gap-2">
+          <CountTile label="Strikes" made={line.strikes} total={line.thrown} note="first balls" />
+          <CountTile label="Pocket" made={line.pocket} total={line.thrown} note="first balls" />
+          <CountTile label="Carry" made={line.pocketStrikes} total={line.pocket} note="pocket hits" />
+        </div>
+
+        {line.leaves.length > 0 && (
+          <ListGroup heading="What it left">
+            {line.leaves.map((leave) => (
+              <li
+                key={leave.pins.join("-")}
+                className={`${LIST_DIVIDER} flex items-baseline justify-between gap-3 px-3 py-2.5`}
+              >
+                <span className="text-sm text-ink">{formatLeave(leave.pins)}</span>
+                <span className="text-xs tabular-nums text-ink-tertiary">
+                  {leave.count === 1 ? "once" : `${leave.count} times`}
+                </span>
+              </li>
+            ))}
+          </ListGroup>
+        )}
+
+        {games.map((game) => (
+          <ListGroup key={game.key} heading={game.heading}>
+            {game.shots.map((shot, i) => (
+              <li key={`${shot.frameNumber}:${i}`} className={LIST_DIVIDER}>
+                <button
+                  type="button"
+                  onClick={() => onOpenShot(shot)}
+                  className="flex w-full items-center gap-3 px-3 py-2.5 text-left active:bg-surface-muted"
+                >
+                  <span className="min-w-0 flex-1">
+                    <span className="flex items-baseline justify-between gap-2">
+                      <span className="text-sm font-semibold text-ink">{describeShot(shot)}</span>
+                      <span className="shrink-0 text-xs tabular-nums text-ink-tertiary">
+                        Frame {shot.frameNumber}
+                        {shot.lane ? `, lane ${shot.lane}` : ""}
+                      </span>
+                    </span>
+                    {shot.notes && (
+                      <span className="block text-xs text-ink-secondary">{shot.notes}</span>
+                    )}
+                  </span>
+                  <ChevronRight size={16} aria-hidden="true" className="shrink-0 text-ink-tertiary" />
+                </button>
+              </li>
+            ))}
+          </ListGroup>
+        ))}
       </div>
     </PushScreen>
   );
 }
 
-function describe(c: BriefingFinding): string {
-  switch (c.kind) {
-    case "ball":
-      return `The ${c.name} carries ${c.carryPct}% here. The ${c.runnerUp} carries ${c.runnerUpCarryPct}%.`;
-    case "expectation":
-      return c.delta > 0
-        ? `You average ${c.average} here, ${c.delta} above the rest of your history.`
-        : `You average ${c.average} here, ${Math.abs(c.delta)} below the rest of your history.`;
-    case "gameSlot":
-      return `Game ${c.bestGame} is your best here at ${c.bestAverage}. Game ${c.worstGame} averages ${c.worstAverage}.`;
-    case "spares":
-      return c.delta > 0
-        ? `You make ${c.sparePct}% of your spares here, against ${c.baseline}% elsewhere.`
-        : `You make ${c.sparePct}% of your spares here. Elsewhere it is ${c.baseline}%.`;
-    case "laneBias":
-      return `Lane ${c.lane} strikes ${c.strikePct}% here. Lane ${c.otherLane} strikes ${c.otherStrikePct}%.`;
-  }
-}
-
-function evidence(c: BriefingFinding): string {
-  switch (c.kind) {
-    case "ball":
-      return `${c.firstBalls} first balls with the ${c.name}`;
-    case "expectation":
-    case "spares":
-      return `${c.games} ${c.games === 1 ? "game" : "games"} here`;
-    case "gameSlot":
-      return `${c.games} games across those slots`;
-    case "laneBias":
-      return `${c.games} games on the pair`;
-  }
-}
-
-function describeGap(g: BriefingGap): string {
-  switch (g.kind) {
-    case "slice":
-      return `${g.need} games here before any of this means anything. You have ${g.have}.`;
-    case "ball":
-      return `${g.have} of ${g.need} balls with ${g.each}+ first balls each.`;
-    case "expectation":
-      return `${g.have} of ${g.need} games logged elsewhere.`;
-    case "gameSlot":
-      return `${g.have} of ${g.need} slots with ${g.each}+ games each.`;
-    case "spares":
-      return `${g.have} of ${g.need} games logged elsewhere.`;
-    case "laneBias":
-      return `${g.have} of ${g.need} lanes with ${g.each}+ games each.`;
-    case "movement":
-      return `${g.have} of ${g.need} game slots with ${g.each}+ games each, before the line here can be read back.`;
-    case "phase":
-      return `No ball has ${g.need}+ first balls in any part of a session here yet. Best so far is ${g.have}.`;
-  }
-}
-
-/** The chip: short enough for a row of them on a 390px screen. */
-function scopeChip(span: ScopeSpan): string {
-  if (span.kind === "all") return "All games";
-  if (span.kind === "game") return `Game ${span.gameNumber}`;
-  switch (span.key) {
-    case "fresh":
-      return "Fresh";
-    case "mid":
-      return "Mid";
-    case "late":
-      return "Late";
-  }
-}
-
-/** The heading above the table, which has room to say what the chip cannot. */
-export function describeScope(span: ScopeSpan): string {
-  if (span.kind === "all") return "Every game";
-  if (span.kind === "game") return `Game ${span.gameNumber}`;
-  const range =
-    span.toGame === undefined
-      ? `game ${span.fromGame} on`
-      : `games ${span.fromGame} to ${span.toGame}`;
-  switch (span.key) {
-    case "fresh":
-      return `Fresh \u00b7 ${range}`;
-    case "mid":
-      return `Mid session \u00b7 ${range}`;
-    case "late":
-      return `Late \u00b7 ${range}`;
-  }
-}
-
-/**
- * The line under the table: what this scope is, and what the lane column is
- * doing, said once rather than repeated per row.
- */
-export function scopeNote(scope: BallScope, lane: string): string {
-  const windows =
-    scope.span.kind === "phase"
-      ? "Windows overlap because oil breaks down with shots thrown, not time. Game 2 after a full squad plays very differently from game 2 on your own. "
-      : "";
-  const lanes = lane
-    ? `Lane ${lane} beside every lane here, so a thin lane read can be weighed against the fuller one rather than replace it. A read marked thin is under ${MIN_LANE_BALLS_COPY} balls. `
-    : "";
-  return `${windows}${lanes}What each ball did, not what to bring.`;
-}
-
-/** Repeated in the note above, and the floor `lib/briefing` marks a lane read
- *  thin at. Kept as copy here rather than exported from the calculator, which
- *  returns numbers and findings rather than sentences. */
-const MIN_LANE_BALLS_COPY = 8;
-
-/** One scope: the balls, under the same P/C/S columns the Stats ball table
- *  uses, and with the lane read above the house read where a lane is chosen. */
-function ScopeTable({ scope, lane }: { scope: BallScope; lane: string }) {
-  return (
-    <div className="mt-2 rounded-xl border border-edge bg-surface p-3 shadow-sm">
-      <div className="flex items-baseline justify-between gap-2">
-        <h3 className="truncate text-sm font-semibold text-ink-strong">
-          {describeScope(scope.span)}
-        </h3>
-        <span className="shrink-0 text-xs tabular-nums text-ink-tertiary">
-          {scope.games} {scope.games === 1 ? "game" : "games"}
-        </span>
-      </div>
-      <table className="mt-2 w-full text-xs tabular-nums">
-        <thead>
-          <tr className="text-ink-tertiary">
-            <th className="text-left font-semibold">Ball</th>
-            <th className="w-12 text-right font-semibold">Pocket</th>
-            <th className="w-12 text-right font-semibold">Carry</th>
-            <th className="w-12 text-right font-semibold">Strike</th>
-            <th className="w-10 text-right font-semibold">Balls</th>
-          </tr>
-        </thead>
-        {scope.balls.map((ball) => (
-          <BallRows key={ball.ballId} ball={ball} lane={lane} />
-        ))}
-      </table>
-    </div>
-  );
-}
-
-/**
- * One ball: its name, then a row per read.
- *
- * A tbody per ball rather than one long list of rows, so the lane read and the
- * house read under a name are one group to a screen reader as well as to the
- * eye, and the border falls between balls rather than between a ball and its
- * own second line.
- */
-function BallRows({ ball, lane }: { ball: ScopeBall; lane: string }) {
-  return (
-    <tbody className="border-t border-edge">
-      <tr>
-        <td colSpan={5} className="truncate pt-1.5 text-left text-sm text-ink">
-          {ball.name}
-        </td>
-      </tr>
-      {ball.lane && <RateRow label={`Lane ${lane}`} rates={ball.lane} />}
-      {/* Named "All lanes" only when there is a lane read to tell it apart
-          from. On its own it is simply this ball here, and a qualifier with
-          nothing to qualify reads as a filter the reader did not set. */}
-      <RateRow label={ball.lane ? "All lanes" : "Here"} rates={ball.house} muted={!!ball.lane} />
-    </tbody>
-  );
-}
-
-function RateRow({
+function CountTile({
   label,
-  rates,
-  muted = false
+  made,
+  total,
+  note
 }: {
   label: string;
-  rates: BallRates;
-  muted?: boolean;
+  made: number;
+  total: number;
+  note: string;
 }) {
-  const tone = muted ? "text-ink-tertiary" : "text-ink-secondary";
   return (
-    <tr className={rates.thin ? "opacity-70" : ""}>
-      <td className={`max-w-0 truncate pr-2 text-left text-[11px] ${tone}`}>
-        {label}
-        {rates.thin && <span className="text-ink-tertiary"> thin</span>}
-      </td>
-      <td className={`text-right ${tone}`}>{scopePct(rates.pocketPct)}</td>
-      <td className={`text-right ${tone}`}>{scopePct(rates.carryPct)}</td>
-      <td className={`text-right font-semibold ${muted ? "text-ink-secondary" : "text-ink"}`}>
-        {scopePct(rates.strikePct)}
-      </td>
-      <td className="text-right text-ink-tertiary">{rates.firstBalls}</td>
-    </tr>
+    <div className="rounded-xl border border-edge bg-surface p-3 shadow-sm">
+      <div className={GROUP_HEADING}>{label}</div>
+      <div className="mt-1 text-lg font-semibold tabular-nums text-ink-strong">
+        {ofCount(made, total)}
+      </div>
+      <div className="text-xs text-ink-tertiary">{note}</div>
+    </div>
   );
-}
-
-function scopePct(value: number | null): string {
-  return value === null ? "-" : `${value}%`;
-}
-
-/** One game slot across every session here. */
-function MovementRow({ slot }: { slot: MovementSlot }) {
-  return (
-    <li className={`${LIST_DIVIDER} flex items-baseline gap-3 px-3 py-2.5`}>
-      <span className="w-14 shrink-0 text-sm text-ink">Game {slot.gameNumber}</span>
-      <span className="min-w-0 flex-1 truncate text-sm text-ink-secondary">
-        {describeLine(slot)}
-      </span>
-      <span className="shrink-0 text-xs tabular-nums text-ink-tertiary">
-        {slot.score !== null ? `${slot.score} avg` : `${slot.games} games`}
-      </span>
-    </li>
-  );
-}
-
-/**
- * The move itself, stated once under the rows.
- *
- * Rows give the reader three lines to subtract in their head, and the number
- * they would arrive at is the thing they came for. It describes the shift and
- * stops: whether to make that move on the night is the bowler's call, on lanes
- * this screen has never seen.
- */
-export function describeDrift(slots: MovementSlot[], handedness: Handedness): string {
-  const first = slots[0];
-  const last = slots[slots.length - 1];
-  const ballChanged = !!first.ballName && !!last.ballName && first.ballName !== last.ballName;
-
-  const moves: string[] = [];
-  if (first.stance !== undefined && last.stance !== undefined && first.stance !== last.stance) {
-    moves.push(`${boardsMoved(first.stance, last.stance, handedness)} at the stance`);
-  }
-  if (first.target !== undefined && last.target !== undefined && first.target !== last.target) {
-    moves.push(`${boardsMoved(first.target, last.target, handedness)} at the target`);
-  }
-
-  const span = `By game ${last.gameNumber}`;
-  if (moves.length === 0 && !ballChanged) {
-    return `${span} you are on the same ball and the same line as game ${first.gameNumber}.`;
-  }
-  if (moves.length === 0) {
-    return `${span} you are on the ${last.ballName}, from the same line as game ${first.gameNumber}.`;
-  }
-  const move = `${span} you have moved ${moves.join(" and ")}`;
-  return ballChanged ? `${move}, and onto the ${last.ballName}.` : `${move}.`;
 }

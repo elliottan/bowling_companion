@@ -253,6 +253,29 @@ describe("navReducer", () => {
       expect(navReducer(popped, { type: "popOverlay" }).overlays).toEqual([]);
     });
   });
+
+  describe("an open line in the alley report", () => {
+    it("comes off before the report underneath it", () => {
+      const reading = run([
+        { type: "pushOverlay", overlay: "game-plan" },
+        { type: "openReportLine", lineId: "9_4_7" }
+      ]);
+      const popped = navReducer(reading, { type: "popOverlay" });
+      expect(popped.reportLineId).toBeNull();
+      expect(popped.overlays).toEqual(["game-plan"]);
+    });
+
+    it("stays open under a game opened from one of its shots", () => {
+      const game = run([
+        { type: "pushOverlay", overlay: "game-plan" },
+        { type: "openReportLine", lineId: "9_4_7" },
+        { type: "viewSession", sessionId: 3, gameId: 8 }
+      ]);
+      const popped = navReducer(game, { type: "popOverlay" });
+      expect(popped.overlays).toEqual(["game-plan"]);
+      expect(popped.reportLineId).toBe("9_4_7");
+    });
+  });
 });
 
 const nav = (over: Partial<NavState> = {}): NavState => ({ ...INITIAL_NAV, ...over });

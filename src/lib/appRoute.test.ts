@@ -242,6 +242,19 @@ describe("appRoute", () => {
       expect(parseRoute("#/home/guides/guide").guideId).toBeUndefined();
     });
 
+    it("carries the open line behind the alley report, and only there", () => {
+      const report = nav({ overlays: ["game-plan"] });
+      const line = nav({ overlays: ["game-plan"], reportLineId: "9_4_6.5" });
+      expect(shouldPushHistory(report, line)).toBe(true);
+      expect(routeHash(line)).toBe("#/home/game-plan/played/9_4_6.5");
+      expect(routeHash(nav({ overlays: ["arsenal"], reportLineId: "9_4_6.5" }))).toBe(
+        "#/home/arsenal"
+      );
+      const restored = navReducer(INITIAL_NAV, { type: "restore", route: parseRoute(routeHash(line)) });
+      expect(restored.reportLineId).toBe("9_4_6.5");
+      expect(parseRoute("#/home/game-plan/played").reportLineId).toBeUndefined();
+    });
+
     it("drops a pushed session with no id rather than opening it empty", () => {
       const route = parseRoute("#/history/session");
       expect(route.overlays).toEqual([]);

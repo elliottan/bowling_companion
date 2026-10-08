@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { LayoutGrid } from "lucide-react";
 import { ShareIosIcon } from "../components/icons";
-import { GamePlanIcon, RackIcon } from "../components/icons";
+import { GamePlanIcon } from "../components/icons";
 import { Stats } from "../components/Stats";
 import {
   SessionFilterButton,
@@ -35,8 +34,6 @@ interface StatsViewProps {
   /** Open one game of a session directly, from a stats drill-down, carrying
    *  the ball it was about. */
   onOpenSessionGame?: (sessionId: number, gameId: number, ballId?: number) => void;
-  onOpenFrames: () => void;
-  onOpenGameTrend: () => void;
   /** The game plan, read as a report on one alley (ADR-115). */
   onOpenAlleyReport?: () => void;
   /**
@@ -70,8 +67,6 @@ const EMPTY: BowlingStats = {
 export function StatsView({
   onOpenSession,
   onOpenSessionGame,
-  onOpenFrames,
-  onOpenGameTrend,
   onOpenAlleyReport,
   mode = "tab",
   onBack
@@ -180,29 +175,20 @@ export function StatsView({
             sessionTrend={sessionTrend}
             sessionMetrics={sessionMetrics}
             memoryKey="history"
+            // "Game by game" and "Open frames" sat here too. Both are hidden
+            // until they are worth opening: their screens and routes still
+            // exist (`game-trend`, `open-frames`), only the rows are gone.
             underTiles={
-              <ListGroup>
-                <ListRow
-                  icon={LayoutGrid}
-                  label="Game by game"
-                  description="How your first game compares with your last"
-                  onClick={onOpenGameTrend}
-                />
-                <ListRow
-                  icon={RackIcon}
-                  label="Open frames"
-                  description="The leaves you keep missing, most often first"
-                  onClick={onOpenFrames}
-                />
-                {onOpenAlleyReport && (
+              onOpenAlleyReport && (
+                <ListGroup>
                   <ListRow
                     icon={GamePlanIcon}
                     label="Alley report"
-                    description="What your history says about one alley"
+                    description="What each line did at one alley"
                     onClick={onOpenAlleyReport}
                   />
-                )}
-              </ListGroup>
+                </ListGroup>
+              )
             }
             onOpenSession={onOpenSession}
             onOpenGame={onOpenSessionGame}
