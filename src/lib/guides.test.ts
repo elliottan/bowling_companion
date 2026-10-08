@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { GUIDES, GUIDE_TOPICS, findGuide, guidesByTopic } from "./guides";
+import { GUIDES, GUIDE_TOPICS, findGuide, guideShareUrl, guidesByTopic } from "./guides";
+import { parseRoute } from "./appRoute";
 
 describe("the guide list", () => {
   it("gives every guide a unique id, since the URL carries it", () => {
@@ -31,5 +32,24 @@ describe("the guide list", () => {
       expect(source.url).toMatch(/^https:\/\//);
       expect(source.label).not.toBe("");
     }
+  });
+});
+
+describe("guideShareUrl", () => {
+  it("opens the guides list with that article on top, for every guide", () => {
+    for (const guide of GUIDES) {
+      const url = new URL(guideShareUrl(guide.id, "https://headpin.app", "/score"));
+      expect(url.origin + url.pathname).toBe("https://headpin.app/score");
+      const route = parseRoute(url.hash);
+      expect(route.view).toBe("dashboard");
+      expect(route.overlays).toEqual(["guides"]);
+      expect(route.guideId).toBe(guide.id);
+    }
+  });
+
+  it("takes its host from the page, so a preview build shares itself", () => {
+    expect(guideShareUrl("picking-a-layout", "https://preview.vercel.app", "/score")).toBe(
+      "https://preview.vercel.app/score#/home/guides/guide/picking-a-layout"
+    );
   });
 });

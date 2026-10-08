@@ -9,6 +9,17 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.13.0: Guides you can share, and shorter (2026-10-08)
+
+**Share a guide.** Every guide has a share button. The link opens the app on
+that guide, and back goes to the list of guides. Where there is no share sheet,
+the link is copied.
+
+**Guides read more like a person wrote them.** All five are rewritten with
+shorter paragraphs and plainer words, and "take it to the counter" is gone. The
+facts and sources are unchanged. "Your hand, grip and approach" is now "Your
+bowling profile", to match Settings.
+
 ## 0.12.0: Settings and Stats tidy-up, strike on strike, a tidier landing page (2026-10-08)
 
 **Strike on strike, and your best streak.** Stats shows how often a strike was

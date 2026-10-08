@@ -390,6 +390,15 @@ and saves the ball and boards with every shot" is short and says nothing, and
 worse, claims the app picks the ball and boards, which the bowler does. Say the
 specific thing: what to tap, what to drag, what is drawn.
 
+**Guides read like a person at the pro shop.** Plain words, contractions, one
+idea to a paragraph, and no more than two or three sentences in a row without a
+heading, a list or a figure to break them. Nothing is said to the reader as an
+instruction to a clerk ("take it to the counter"): say what to know and what to
+ask. The facts stay as sourced, and the writing around them gets shorter, not
+looser. Every article carries a share control that sends a link which opens that
+article inside the app (`guideShareUrl`), so a guide is a way into the app and
+not only something read once inside it.
+
 Sentence case everywhere except the small uppercase group headings, which take
 their classes from `GROUP_HEADING` (`src/components/ui/typography.ts`). Second
 person, active voice, and say what happens rather than what the app does:
