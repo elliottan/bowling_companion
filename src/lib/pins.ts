@@ -112,6 +112,17 @@ export function isSleeper(standing: PinNumber[]): boolean {
   return SLEEPER_PAIRS.some(([front, back]) => standing.includes(front) && standing.includes(back));
 }
 
+/**
+ * A leave thrown like a strike: the 1 and the 5 both standing. The ball barely
+ * touched the rack (a gutter, a whiffed 7 or 10, a 1-2-3-5, a 1-3-5), and the
+ * answer is the strike ball on the strike line, not a spare line. Either hand,
+ * one rule (ADR-123). These leaves have no spare line: the scorer seeds them
+ * like a fresh rack and the spare lines screen never lists or asks for them.
+ */
+export function isPocketLeave(standing: PinNumber[]): boolean {
+  return standing.includes(1) && standing.includes(5);
+}
+
 /** A leave's name in a title: "Pin 7" for a single pin, "2-4-5-8" for a
  *  combination, where the numbers alone already say it is pins. */
 export function formatLeave(standing: PinNumber[]): string {

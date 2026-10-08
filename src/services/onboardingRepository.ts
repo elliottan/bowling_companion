@@ -5,6 +5,7 @@ import {
   type NextStepKey,
   type OnboardingFacts
 } from "../lib/onboarding";
+import { spareLinesShown } from "../lib/spareLines";
 
 const ALL_STEPS: NextStepKey[] = ["arsenal", "spare-lines", "oil-pattern", "lane-notes"];
 
@@ -38,7 +39,8 @@ export async function getOnboardingFacts(): Promise<OnboardingFacts> {
     ballCount,
     // A seeded row carries a pin set and nothing else. It counts once it holds
     // an answer: an absolute line, or a move off the strike ball's own line.
-    answeredSpareLines: spareLines.filter((l) => l.line || l.strike_offset).length,
+    // A pocket leave's row is hidden, so it does not count either (ADR-123).
+    answeredSpareLines: spareLinesShown(spareLines).filter((l) => l.line || l.strike_offset).length,
     oilPatternCount,
     laneNoteCount,
     repeatAlleyCount: [...visits.values()].filter((n) => n > 1).length,

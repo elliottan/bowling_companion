@@ -635,3 +635,60 @@ describe("ADR-113: the ball follows the last throw, the line follows the ball", 
     });
   });
 });
+
+describe("ADR-123: a pocket leave is shot like a strike", () => {
+  const POCKET: PinNumber[] = [1, 2, 3, 5];
+  const ballOne: Shot = { pins_standing: POCKET, ball_id: 1, intended: { stance: 20, target: 12 } };
+  const savedForPocket: SpareLine[] = [
+    { pins: POCKET, line: { stance: 30, target: 20 }, sort_order: 0 }
+  ];
+
+  it("opens with the strike ball and the line just thrown, not the spare ball", () => {
+    const seed = seedForShot({
+      ...base,
+      currentShot: 2,
+      game: LANE_12,
+      availablePins: POCKET,
+      currentFrameShots: [ballOne],
+      spareLines: savedForPocket
+    });
+
+    expect(seed).toEqual({ ballId: 1, intended: { stance: 20, target: 12 }, notes: "" });
+  });
+
+  it("counts any leave with the 1 and the 5 standing, for either hand", () => {
+    for (const leave of [[1, 5], [1, 3, 5], [1, 2, 5], [1, 2, 4, 5], [1, 2, 3, 4, 5, 6, 8, 9, 10]] as PinNumber[][]) {
+      const seed = seedForShot({
+        ...base,
+        currentShot: 2,
+        game: LANE_12,
+        availablePins: leave,
+        currentFrameShots: [{ ...ballOne, pins_standing: leave }]
+      });
+      expect(seed.ballId).toBe(1);
+      expect(seed.intended).toEqual({ stance: 20, target: 12 });
+    }
+  });
+
+  it("leaves a leave without the 5 a spare attempt", () => {
+    const leave: PinNumber[] = [1, 3, 6, 10];
+    const seed = seedForShot({
+      ...base,
+      currentShot: 2,
+      game: LANE_12,
+      availablePins: leave,
+      currentFrameShots: [{ ...ballOne, pins_standing: leave }]
+    });
+    expect(seed.ballId).toBe(SPARE_BALL.id);
+  });
+
+  it("ignores a spare line saved for the leave on a ball change", () => {
+    const line = lineForBall(
+      { currentFrameNumber: 2, frames: [], game: LANE_12, spareLines: savedForPocket, balls: base.balls },
+      SPARE_BALL.id,
+      [ballOne],
+      POCKET
+    );
+    expect(line).toBeUndefined();
+  });
+});

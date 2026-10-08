@@ -8,8 +8,8 @@ import { SpareLinePickerSheet } from "./SpareLinePickerSheet";
 import { useDriftModel } from "../lib/driftModelContext";
 import { deriveLaydown, deriveSlide, syncStanceLaydown } from "../lib/driftModel";
 import { useHandedness } from "../lib/handednessContext";
-import { formatLeave } from "../lib/pins";
-import { describeMove, hasAnswer } from "../lib/spareLines";
+import { formatLeave, isPocketLeave } from "../lib/pins";
+import { describeMove, hasAnswer, spareLinesShown } from "../lib/spareLines";
 import type { LeaveStats } from "../lib/stats";
 import { upsertSpareLine } from "../services/ballRepository";
 import type { LineSpec, PinNumber, SpareLine } from "../types/bowling";
@@ -100,9 +100,12 @@ export function SpareLineFormDialog({
   // Lines worth borrowing: another leave's, with a board or a strike-ball move
   // on it.
   const key = [...pins].sort((a, b) => a - b).join("-");
-  const borrowable = (spareLines ?? []).filter(
+  const borrowable = spareLinesShown(spareLines ?? []).filter(
     (sl) => sl.pins.join("-") !== key && hasAnswer(sl)
   );
+  // The 1 and 5 standing is a pocket shot, thrown on the strike line: there is
+  // no spare line to write, so the sheet says so instead of asking (ADR-123).
+  const pocket = isPocketLeave(pins);
 
   async function handleSubmit(e?: React.FormEvent) {
     e?.preventDefault();
@@ -111,6 +114,7 @@ export function SpareLineFormDialog({
       setError("Select at least one pin for this leave.");
       return;
     }
+    if (pocket) return;
 
     // Store the spec whole, the hook timing set in the visualizer lives on the
     // same object, and picking fields off it here would quietly drop it.
@@ -144,7 +148,7 @@ export function SpareLineFormDialog({
 
   // The bar's trailing control is the mode: a pencil while reading, which
   // turns into the tick that saves while editing.
-  const trailing = editing ? (
+  const trailing = pocket ? undefined : editing ? (
     <IconButton
       variant="confirm"
       onClick={() => void handleSubmit()}
@@ -201,6 +205,13 @@ export function SpareLineFormDialog({
           )}
         </div>
 
+        {pocket ? (
+          <p className="text-sm text-ink-secondary">
+            A pocket shot. With the 1 and 5 standing you throw your strike ball on
+            your strike line, so this leave needs no spare line.
+          </p>
+        ) : (
+        <>
         <div>
           {/* The eye sits in the heading row, as on the scorer's line. */}
           <div className="mb-0.5 flex items-center justify-between gap-2">
@@ -284,6 +295,8 @@ export function SpareLineFormDialog({
             ))}
           </div>
         </div>
+        </>
+        )}
 
         {/* Delete lives at the foot of the body as a danger-ghost button: the
             sheet's bar carries the commit, and a destructive action never

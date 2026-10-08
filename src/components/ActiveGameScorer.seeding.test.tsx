@@ -401,3 +401,41 @@ describe("a strike ball at a leave (B2, B3)", () => {
     expect(await screen.findByText(/Save this as your line for 10-pin/)).toBeTruthy();
   });
 });
+
+describe("a pocket leave (ADR-123)", () => {
+  /** Mid-frame: ball 1 left the 1, 3 and 5 standing. */
+  const pocketLeft: Frame[] = [
+    {
+      game_id: 1,
+      frame_number: 1,
+      shots: [{ pins_standing: [1, 3, 5] as PinNumber[], ball_id: 1, intended: { stance: 20, target: 15 } }],
+      is_strike: false,
+      is_spare: false
+    }
+  ];
+
+  it("opens with the strike ball on the line just thrown, and offers no spare line", async () => {
+    spareLines = [{ id: 1, pins: [1, 3, 5] as PinNumber[], line: { stance: 31, target: 22 }, sort_order: 0 }];
+    render(<ActiveGameScorer gameKey={1} mode="session" game={ONE_LANE} initialFrames={pocketLeft} />);
+
+    await waitFor(() => expect(ballLabel()).toContain("Hammer"), { timeout: 5000 });
+    await waitFor(() => expect(stance()).toBe("20"), { timeout: 5000 });
+    expect(target()).toBe("15");
+    expect(screen.queryByRole("button", { name: "Use another leave's line" })).toBeNull();
+  });
+
+  it("does not offer to save the attempt as a spare line, even off the spare ball", async () => {
+    spareLines = [];
+    render(<ActiveGameScorer gameKey={1} mode="session" game={ONE_LANE} initialFrames={pocketLeft} />);
+    await waitFor(() => expect(ballLabel()).toContain("Hammer"), { timeout: 5000 });
+    // A strike ball's attempt is never offered (ADR-113), so pick the spare ball.
+    fireEvent.click(screen.getByRole("button", { name: /^Ball: / }));
+    fireEvent.click(await screen.findByRole("button", { name: /Plastic Spare/ }));
+    await waitFor(() => expect(ballLabel()).toContain("Plastic Spare"));
+    fireEvent.change(screen.getByLabelText("Stance"), { target: { value: "30" } });
+    fireEvent.click(screen.getByRole("button", { name: "Spare" }));
+
+    await waitFor(() => expect(screen.getByRole("button", { name: /^Ball: / })).toBeTruthy());
+    expect(screen.queryByText(/Save this as your line/)).toBeNull();
+  });
+});

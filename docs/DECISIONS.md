@@ -5806,3 +5806,43 @@ in 9 on one line to 7 in 10 a board over at the target, and no screen said so.
 - The report draws no lane. A line is two numbers here, and the visualizer is a
   tap away from the game a shot opens.
 
+
+---
+
+## ADR-123: A leave with the 1 and 5 standing is a pocket shot, with no spare line
+
+**Status.** Accepted, 2026-10-08. Amends ADR-052, ADR-054 and ADR-113 for these
+leaves only.
+
+**Context.** A first ball that barely touched the rack (a gutter, a whiffed 7
+or 10, a 1-2-3-5, a 1-3-5) leaves a shot the bowler throws exactly like the one
+before: the strike ball, on the strike line, into the pocket. The app treated it
+as any other leave. The scorer picked the spare ball and the leave's saved line,
+offered to save the throw as a spare line, and the spare lines screen listed the
+leave and asked for a line for it whenever it was left often.
+
+**Decision.**
+
+- **A pocket leave is any leave with both the 1 and the 5 standing**
+  (`isPocketLeave` in `lib/pins`). One rule for both hands, chosen by the bowler
+  over a handed one (1-3-5 right, 1-2-5 left): with the head pin and the pin
+  behind it up, the shot is the strike shot. Leaves on the pocket side without
+  the 5 (1-3-6-10, 1-2-4-7) stay spare leaves.
+- **The scorer seeds it like a fresh rack.** The ball and line are the ones the
+  fresh-rack rule gives (ADR-113), which in practice is the ball just thrown and
+  its line. A ball change there shows that ball's strike line. A saved spare
+  line for the leave is never read.
+- **No spare line is asked for or offered.** No save prompt after the attempt
+  (ADR-054), no borrow control beside the Intended box, and the spare lines
+  screen neither lists the leave, suggests a copy for it or from it, nor asks
+  for it as the leave left most. The Home count of answered lines skips it.
+  The leave's details sheet, opened from Stats, says it is a pocket shot instead
+  of showing the line fields.
+- **Rows already saved are hidden, not deleted.** Changing the rule brings them
+  back with nothing lost.
+
+**Consequences.**
+- Stats are unchanged: a pocket leave is still a spare attempt, converted or
+  not, and still counts in the leave tables.
+- The pocket-hit verdict on a first ball (`isPocketHit`, ADR-046) is a different
+  question and is untouched.

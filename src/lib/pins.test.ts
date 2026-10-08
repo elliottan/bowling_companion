@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { PinNumber } from "../types/bowling";
-import { ALL_PINS, formatLeave, isBabySplit, isSleeper, isPocketHit, isSplit, isWashout, resolvePocketHit, spareGroup } from "./pins";
+import { ALL_PINS, formatLeave, isBabySplit, isSleeper, isPocketHit, isPocketLeave, isSplit, isWashout, resolvePocketHit, spareGroup } from "./pins";
 
 describe("isSplit", () => {
   it("returns false for empty leave", () => {
@@ -218,5 +218,22 @@ describe("isSleeper", () => {
     expect(isSleeper([2, 4, 5, 8])).toBe(true);
     expect(isSleeper([2, 4, 5])).toBe(false);
     expect(isSleeper([8])).toBe(false);
+  });
+});
+
+describe("isPocketLeave (ADR-123)", () => {
+  it("is any leave with the 1 and the 5 standing", () => {
+    expect(isPocketLeave([1, 5])).toBe(true);
+    expect(isPocketLeave([1, 3, 5])).toBe(true);
+    expect(isPocketLeave([1, 2, 5])).toBe(true);
+    expect(isPocketLeave([1, 2, 3, 5])).toBe(true);
+    expect(isPocketLeave([1, 2, 3, 4, 5, 6, 7, 8, 9])).toBe(true);
+  });
+
+  it("is not a leave missing either pin", () => {
+    expect(isPocketLeave([1, 3, 6, 10])).toBe(false);
+    expect(isPocketLeave([1, 2, 4, 7])).toBe(false);
+    expect(isPocketLeave([2, 4, 5, 8])).toBe(false);
+    expect(isPocketLeave([5])).toBe(false);
   });
 });

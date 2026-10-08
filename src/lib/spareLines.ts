@@ -1,9 +1,16 @@
 import type { Handedness, PinNumber, SpareLine } from "../types/bowling";
-import { isBabySplit, isSleeper, spareGroup, uniquePins } from "./pins";
+import { isBabySplit, isPocketLeave, isSleeper, spareGroup, uniquePins } from "./pins";
 
 /** The pins as one string, the way spare lines and leaves are keyed. */
 export function leaveKey(pins: PinNumber[]): string {
   return uniquePins(pins).join("-");
+}
+
+/** The spare lines a bowler sees and is asked about: every leave but a pocket
+ *  leave, which is shot on the strike line and has no spare line (ADR-123). A
+ *  row saved for one before stays stored, and is only left out. */
+export function spareLinesShown<T extends Pick<SpareLine, "pins">>(lines: T[]): T[] {
+  return lines.filter((sl) => !isPocketLeave(sl.pins));
 }
 
 /** A line with a board on it. A seeded leave with nothing written down is a
@@ -107,18 +114,19 @@ export function suggestionKey(s: LineSuggestion): string {
  * Lines worth copying: for each leave the bowler has faced or listed that has
  * no line, a saved line for the same shot (`sameShot`). Most-faced first, so
  * the one that saves the most typing leads. One suggestion per leave, from the
- * first matching line in list order.
+ * first matching line in list order. Pocket leaves take no part, on either side.
  */
 export function suggestLineCopies(
   faced: Array<{ pins: PinNumber[]; attempts: number }>,
   lines: SpareLine[],
   dismissed: ReadonlySet<string> = new Set()
 ): LineSuggestion[] {
-  const withLine = lines.filter(hasAnswer);
+  const shown = spareLinesShown(lines);
+  const withLine = shown.filter(hasAnswer);
   const lined = new Set(withLine.map((sl) => leaveKey(sl.pins)));
   const attempts = new Map<string, { pins: PinNumber[]; attempts: number }>();
-  for (const f of faced) attempts.set(leaveKey(f.pins), { pins: uniquePins(f.pins), attempts: f.attempts });
-  for (const sl of lines) {
+  for (const f of spareLinesShown(faced)) attempts.set(leaveKey(f.pins), { pins: uniquePins(f.pins), attempts: f.attempts });
+  for (const sl of shown) {
     const key = leaveKey(sl.pins);
     if (!attempts.has(key)) attempts.set(key, { pins: uniquePins(sl.pins), attempts: 0 });
   }
@@ -165,14 +173,15 @@ export function matchesFilters(sl: SpareLine, filters: ReadonlySet<SpareFilter>)
 
 /**
  * The leave the bowler faces most that has no line yet, so the screen can ask
- * for that one first. Only leaves a ball could follow, as on Stats.
+ * for that one first. Only leaves a ball could follow, as on Stats, and never a
+ * pocket leave, which needs no spare line.
  */
 export function mostLeftWithoutLine(
   leaves: Array<{ pins: PinNumber[]; attempts: number; chances: number }>,
   lines: SpareLine[]
 ): { pins: PinNumber[]; attempts: number } | undefined {
   const withLine = new Set(lines.filter(hasAnswer).map((sl) => leaveKey(sl.pins)));
-  return leaves
+  return spareLinesShown(leaves)
     .filter((l) => l.chances > 0 && !withLine.has(leaveKey(l.pins)))
     .sort((a, b) => b.attempts - a.attempts)[0];
 }

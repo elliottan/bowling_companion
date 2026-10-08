@@ -5,6 +5,7 @@ import {
   matchesFilters,
   mostLeftWithoutLine,
   sameShot,
+  spareLinesShown,
   stackByLine,
   suggestLineCopies,
   suggestionKey,
@@ -150,5 +151,30 @@ describe("a strike ball move is a line", () => {
   it("stacks leaves with the same move and no boards", () => {
     const other: SpareLine = { id: 10, pins: [2, 8, 10], strike_offset: { stance: -2, target: -1 } };
     expect(stackByLine([moveOnly, other]).map((s) => s.map((sl) => sl.id))).toEqual([[9, 10]]);
+  });
+});
+
+describe("pocket leaves have no spare line (ADR-123)", () => {
+  const faced = (pins: PinNumber[], attempts: number) => ({
+    pins,
+    attempts,
+    chances: attempts,
+    conversions: 0,
+    conversionPct: 0,
+    sharePct: null
+  });
+
+  it("are left out of the lines shown", () => {
+    const lines = [line(1, [10], 15, 10), line(2, [1, 2, 3, 5], 20, 12), line(3, [1, 3, 6, 10])];
+    expect(spareLinesShown(lines).map((sl) => sl.id)).toEqual([1, 3]);
+  });
+
+  it("are never asked for, however often they are left", () => {
+    expect(mostLeftWithoutLine([faced([1, 3, 5], 9), faced([7], 2)], [])?.pins).toEqual([7]);
+  });
+
+  it("are never offered a copied line, nor lend theirs", () => {
+    // 1-5 and 1-3-5 are the same shot by `sameShot`, but neither is a spare line.
+    expect(suggestLineCopies([faced([1, 3, 5], 4)], [line(1, [1, 5], 20, 12)])).toEqual([]);
   });
 });
