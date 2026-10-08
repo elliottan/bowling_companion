@@ -370,8 +370,46 @@ again (ADR-094). The guard is the absence of the buttons; the dialog is the
 door, not the wall. Prefer this to a screen full of live controls that each
 raise a warning.
 
+**Cut a line that says nothing.** Ask of every sentence what the reader loses
+if it goes. If the answer is nothing, it goes: a line that restates its own
+title, a reason for a design the bowler did not question, a tour of what the
+app "keeps track of". Short is not the test, since "Headpin does the scoring
+and saves the ball and boards with every shot" is short and says nothing, and
+worse, claims the app picks the ball and boards, which the bowler does. Say the
+specific thing: what to tap, what to drag, what is drawn.
+
 Sentence case everywhere except the small uppercase group headings, which take
 their classes from `GROUP_HEADING` (`src/components/ui/typography.ts`). Second
 person, active voice, and say what happens rather than what the app does:
 "Shots already recorded with this ball keep their scores" beats "Deletion is
 permanent". No exclamation marks.
+
+## 9. The landing page
+
+`index.html` is the one page a stranger opens, from an ad or a shared link. It
+follows §8, and the rules below, which exist because the first version broke
+all of them.
+
+- **Every element tells the visitor something they could not guess.** A chip
+  reading "Bowling score keeper" above the headline named the category for
+  someone who had just tapped a bowling ad. It is gone, and the same test
+  applies to anything that would take its place.
+- **The headline is the product in one line, and the button comes next.** No
+  eyebrow above it and no paragraph under it. Beneath the button sits the only
+  reassurance the page needs, in two short sentences: "Free. Works offline."
+- **No fact strips, chip rows or feature grids.** A row of nouns ("Oil
+  patterns, Spare lines, Ball layouts") names features without showing one. A
+  count of what the catalog holds goes stale on the day a ball is added, and
+  the catalog is meant to keep growing, so no number on the page describes it.
+- **One feature, one screen, one title, at most one sentence.** The title says
+  what the bowler does or gets. The sentence says what the picture cannot (what
+  to drag, which layouts) and is dropped when it only restates the title. The
+  features are not a sequence, so they are not numbered.
+- **Show the app's own pictures.** The lane over an oil pattern, a drilled ball
+  with its angles and the stats beat a list or a menu, which look like every
+  other app's. The screens are captured from the running app
+  (`npm run shots`), never drawn, and are recaptured when a screen changes: a
+  screenshot of a row that was removed is an advert for something the app no
+  longer does.
+- **Install steps are the only instructions on the page.** Everything else is
+  either the product or the way into it.

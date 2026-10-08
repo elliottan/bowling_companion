@@ -243,28 +243,16 @@ export function Stats({
 
   return (
     <div className="space-y-3">
-      <div className="grid grid-cols-5 gap-1.5">
+      {/* Three rows of three tiles, all the same shape: a number over its
+          name. High and low used to share one tile as two stacked scores with
+          no name under them, so they sat higher than every neighbour. */}
+      <div className="grid grid-cols-3 gap-1.5">
         <Tile label="Games" value={String(stats.completedGames)} />
-        {/* High over low, each on its own line, two 3-digit scores side by
-            side don't fit the tile width. */}
-        <Tile
-          label=""
-          valueClass="text-xs text-ink"
-          value={
-            // Score left, letter right, the pair centred as one block so the
-            // two rows line up whatever the digit count.
-            <span className="mx-auto flex w-fit flex-col leading-tight">
-              <span className="flex items-baseline gap-1 text-accent">
-                <span className="flex-1 text-left">{fmt(stats.highGame)}</span>
-                <span className="text-ink-tertiary">H</span>
-              </span>
-              <span className="flex items-baseline gap-1 text-danger-600">
-                <span className="flex-1 text-left">{fmt(stats.lowGame)}</span>
-                <span className="text-ink-tertiary">L</span>
-              </span>
-            </span>
-          }
-        />
+        <Tile label="High" value={fmt(stats.highGame)} />
+        <Tile label="Low" value={fmt(stats.lowGame)} />
+      </div>
+
+      <div className="grid grid-cols-3 gap-1.5">
         <MetricTile
           metric="average"
           value={fmt(stats.averageScore)}
@@ -850,31 +838,12 @@ function MetricTile({
   );
 }
 
-function Tile({
-  label,
-  value,
-  valueClass = "text-lg text-ink",
-  onClick
-}: {
-  label: string;
-  value: ReactNode;
-  valueClass?: string;
-  onClick?: () => void;
-}) {
-  const className = "rounded-xl border border-edge bg-surface px-1 py-2 text-center shadow-sm";
-  const body = (
-    <>
-      <p className={`font-bold tabular-nums ${valueClass}`}>{value}</p>
-      {label && (
-        <p className="text-[10px] font-semibold uppercase tracking-wide text-ink-secondary">{label}</p>
-      )}
-    </>
-  );
-  if (!onClick) return <div className={className}>{body}</div>;
+function Tile({ label, value }: { label: string; value: string }) {
   return (
-    <button type="button" onClick={onClick} className={`${className} w-full`}>
-      {body}
-    </button>
+    <div className="rounded-xl border border-edge bg-surface px-1 py-2 text-center shadow-sm">
+      <p className="text-lg font-bold tabular-nums text-ink">{value}</p>
+      <p className="text-[10px] font-semibold uppercase tracking-wide text-ink-secondary">{label}</p>
+    </div>
   );
 }
 

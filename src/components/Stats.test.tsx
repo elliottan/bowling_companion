@@ -68,6 +68,14 @@ const SESSION_TREND = [
   { sessionId: 2, date: "2026-06-14", alley: "Sea Bowl", average: 180, scores: [170, 180, 190] }
 ];
 
+describe("the headline tiles", () => {
+  it("names the high and low game, each as a number over its label", () => {
+    render(<Stats stats={{ ...STATS, highGame: 211, lowGame: 134 }} />);
+    expect(screen.getByText("211").nextElementSibling).toHaveTextContent("High");
+    expect(screen.getByText("134").nextElementSibling).toHaveTextContent("Low");
+  });
+});
+
 describe("picking what the chart plots", () => {
   it("starts on the average", () => {
     render(<Stats stats={STATS} sessionMetrics={TREND} sessionTrend={SESSION_TREND} />);

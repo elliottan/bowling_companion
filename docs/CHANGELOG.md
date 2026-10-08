@@ -9,6 +9,17 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.11.1: A tidier landing page and Stats tiles (2026-10-08)
+
+**High and low are two tiles.** They used to share one tile as two stacked
+scores with no name, and sat higher than every tile beside them. Stats now
+shows Games, High and Low in a row, then the rates, each a number over its name.
+
+**The landing page shows the app.** It says "The best way to keep score." and
+"Free. Works offline.", then shows four screens: scoring, your line over an oil
+pattern, a layout drawn on the ball, and Stats. The category chip, the row of
+feature chips, the six-card feature grid and the filler sentences are gone.
+
 ## 0.11.0: Pocket leaves need no spare line (2026-10-08)
 
 **A leave with the 1 and 5 standing is a pocket shot.** After a gutter, a
