@@ -901,9 +901,6 @@ function OptionsSheet({
                 </button>
               ))}
             </div>
-            <p className="mt-1 text-xs text-white/50">
-              Mirrors the lane. Your own hand is untouched.
-            </p>
           </div>
         )}
 
@@ -924,9 +921,6 @@ function OptionsSheet({
                 </option>
               ))}
             </select>
-            <p className="mt-1 text-xs text-white/50">
-              A session draws its own pattern. This is for trying a line against one.
-            </p>
           </label>
         )}
 

@@ -15,6 +15,9 @@ had all shipped.
 scores with no name, and sat higher than every tile beside them. Stats now
 shows Games, High and Low in a row, then the rates, each a number over its name.
 
+**Lane options lose two sentences.** The notes under Bowling hand and Oil pattern
+are gone; the controls say what they do.
+
 **The landing page shows the app.** It says "The best way to keep score." and
 "Free. Works offline.", then shows four screens: scoring, your line over an oil
 pattern, a layout drawn on the ball, and Stats. The category chip, the row of
