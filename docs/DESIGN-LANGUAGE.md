@@ -396,8 +396,11 @@ heading, a list or a figure to break them. Nothing is said to the reader as an
 instruction to a clerk ("take it to the counter"): say what to know and what to
 ask. The facts stay as sourced, and the writing around them gets shorter, not
 looser. Every article carries a share control that sends a link which opens that
-article inside the app (`guideShareUrl`), so a guide is a way into the app and
-not only something read once inside it.
+article inside the app, so a guide is a way into the app and not only something
+read once inside it. The link points at a small page of the guide's own
+(`public/guides/<id>`, from `npm run guide-pages`), because a chat app builds its
+preview from the page behind the link and ignores the `#`: that page carries the
+guide's title, summary and a card, then hands the visitor to the app.
 
 Sentence case everywhere except the small uppercase group headings, which take
 their classes from `GROUP_HEADING` (`src/components/ui/typography.ts`). Second

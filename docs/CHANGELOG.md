@@ -40,9 +40,10 @@ pattern are gone; the controls say what they do.
 **A shared layout always faces forward.** The picture on the share card is the
 ball as it first opens, not wherever you had turned it to.
 
-**Share a guide.** Every guide has a share button. The link opens the app on
-that guide, and back goes to the list of guides. Where there is no share sheet,
-the link is copied.
+**Share a guide.** Every guide has a share button. Pasted into a chat, the link
+shows the guide's title, its one-line summary and a card. Opening it takes you
+into the app on that guide, and back goes to the list of guides. Where there is
+no share sheet, the link is copied.
 
 **Guides read more like a person wrote them.** All five are rewritten with
 shorter paragraphs and plainer words, and "take it to the counter" is gone. The

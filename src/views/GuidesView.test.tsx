@@ -58,7 +58,7 @@ describe("GuidesView", () => {
       Reflect.deleteProperty(navigator, "clipboard");
     });
 
-    it("sends a link that opens that guide inside the app", async () => {
+    it("sends the guide's own link, which opens that guide inside the app", async () => {
       const share = vi.fn(() => Promise.resolve());
       Object.assign(navigator, { share });
       render(<GuidesView onBack={vi.fn()} openGuideId="picking-a-layout" onOpenGuide={vi.fn()} />);
@@ -66,7 +66,7 @@ describe("GuidesView", () => {
       await waitFor(() => expect(share).toHaveBeenCalledTimes(1));
       const [data] = share.mock.calls[0] as unknown as [{ title: string; url: string }];
       expect(data.title).toBe("Picking a layout for your game");
-      expect(data.url).toMatch(/#\/home\/guides\/guide\/picking-a-layout$/);
+      expect(data.url).toMatch(/\/guides\/picking-a-layout$/);
     });
 
     it("copies the link where there is no share sheet, and says it did", async () => {
@@ -77,7 +77,7 @@ describe("GuidesView", () => {
       render(<GuidesView onBack={vi.fn()} openGuideId="dual-angle-layouts" onOpenGuide={vi.fn()} />);
       fireEvent.click(screen.getByRole("button", { name: "Share guide" }));
       await waitFor(() => expect(written).toHaveLength(1));
-      expect(written[0]).toMatch(/#\/home\/guides\/guide\/dual-angle-layouts$/);
+      expect(written[0]).toMatch(/\/guides\/dual-angle-layouts$/);
       expect(await screen.findByText("Link copied")).toBeTruthy();
     });
 

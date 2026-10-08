@@ -340,15 +340,24 @@ export function guidesByTopic(): Array<{ topic: GuideTopic; guides: Guide[] }> {
   })).filter((group) => group.guides.length > 0);
 }
 
+/** Where a guide lives inside the app: the guides list with this article on
+ *  top, which is what back returns to. Built from the route formatter rather
+ *  than written out by hand, so it can only ever name a screen the app can
+ *  open. */
+export function guideAppPath(guideId: string): string {
+  return `/score${formatRoute({ view: "dashboard", overlays: ["guides"], guideId })}`;
+}
+
 /**
- * The link that opens one guide straight inside the app.
+ * The link a shared guide carries.
  *
- * Built from the route formatter rather than written out by hand, so it can
- * only ever name a screen the app can open: the guides list with this article
- * on top, which is what back returns to. `origin` and `path` come from the
- * running page, as in `layoutShareUrl`, so a link shared from a preview build
- * opens that preview. The hash is read on load, so the link needs no server.
+ * It points at a small page of the guide's own rather than at the app, because
+ * a chat app builds its preview from the page behind the link, ignores the
+ * `#`, and runs no script: the app's one URL could only ever preview as "the
+ * app". That page (`lib/guidePage`) carries the guide's title, summary and card,
+ * then sends the visitor to `guideAppPath`. `origin` comes from the running
+ * page, so a link shared from a preview build opens that preview.
  */
-export function guideShareUrl(guideId: string, origin: string, path: string): string {
-  return `${origin}${path}${formatRoute({ view: "dashboard", overlays: ["guides"], guideId })}`;
+export function guideShareUrl(guideId: string, origin: string): string {
+  return `${origin}/guides/${encodeURIComponent(guideId)}`;
 }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { GUIDES, GUIDE_TOPICS, findGuide, guideShareUrl, guidesByTopic } from "./guides";
+import { GUIDES, GUIDE_TOPICS, findGuide, guideAppPath, guideShareUrl, guidesByTopic } from "./guides";
 import { parseRoute } from "./appRoute";
 
 describe("the guide list", () => {
@@ -35,21 +35,25 @@ describe("the guide list", () => {
   });
 });
 
-describe("guideShareUrl", () => {
-  it("opens the guides list with that article on top, for every guide", () => {
+describe("the guide share link", () => {
+  it("points at the guide's own page, not at the app, so a chat app can preview it", () => {
+    expect(guideShareUrl("picking-a-layout", "https://headpin.app")).toBe(
+      "https://headpin.app/guides/picking-a-layout"
+    );
+    // The host comes from the page, so a preview build shares itself.
+    expect(guideShareUrl("picking-a-layout", "https://preview.vercel.app")).toBe(
+      "https://preview.vercel.app/guides/picking-a-layout"
+    );
+  });
+
+  it("sends that page on to the guides list with the article open, for every guide", () => {
     for (const guide of GUIDES) {
-      const url = new URL(guideShareUrl(guide.id, "https://headpin.app", "/score"));
-      expect(url.origin + url.pathname).toBe("https://headpin.app/score");
+      const url = new URL(guideAppPath(guide.id), "https://headpin.app");
+      expect(url.pathname).toBe("/score");
       const route = parseRoute(url.hash);
       expect(route.view).toBe("dashboard");
       expect(route.overlays).toEqual(["guides"]);
       expect(route.guideId).toBe(guide.id);
     }
-  });
-
-  it("takes its host from the page, so a preview build shares itself", () => {
-    expect(guideShareUrl("picking-a-layout", "https://preview.vercel.app", "/score")).toBe(
-      "https://preview.vercel.app/score#/home/guides/guide/picking-a-layout"
-    );
   });
 });

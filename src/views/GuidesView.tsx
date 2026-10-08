@@ -70,7 +70,7 @@ function GuideArticle({ guide, onBack }: { guide: Guide; onBack: () => void }) {
   }, [copied]);
 
   async function share() {
-    const url = guideShareUrl(guide.id, window.location.origin, window.location.pathname);
+    const url = guideShareUrl(guide.id, window.location.origin);
     try {
       if (typeof navigator.share === "function") {
         await navigator.share({ title: guide.title, url });
