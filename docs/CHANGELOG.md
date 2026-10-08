@@ -9,6 +9,53 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.12.0: Settings and Stats tidy-up, shareable guides, a tidier landing page (2026-10-08)
+
+**Strike on strike, and your best streak.** Stats shows how often a strike was
+followed by another, and the most strikes you have strung together in one game.
+Tap either to chart it by session. Stats is regrouped: scores, then strikes,
+then spares and the first ball.
+
+**High and low are two tiles.** They used to share one tile as two stacked
+scores with no name, and sat higher than every tile beside them.
+
+**Settings leads with Backup & restore.** It sits alone at the top, in the
+accent colour, because the games live on your phone and nowhere else.
+
+**Your name is a profile chip.** The first letter of your name and the name sit
+beside the Settings title. Tap it to change the name. The Name row is gone.
+
+**One Bowling profile page.** Hand and grip joined PAP, release offset and
+drift. The Settings row shows your hand and grip instead of the PAP. The group
+is called Your bowling.
+
+**Support is above Appearance, which is last.** Send feedback and Privacy and
+terms lose their sentences, and Buy me a coffee says "Thanks for your support!"
+and opens the new link. Spare lines reads "Pre-fill spare lines during score
+entry" and Lane notes reads "How each lane plays at each alley".
+
+**Lane options lose two sentences.** The notes under Bowling hand and Oil
+pattern are gone; the controls say what they do.
+
+**A shared layout always faces forward.** The picture on the share card is the
+ball as it first opens, not wherever you had turned it to.
+
+**Share a guide.** Every guide has a share button. Pasted into a chat, the link
+shows the guide's title, its one-line summary and a card. Opening it takes you
+into the app on that guide, and back goes to the list of guides. Where there is
+no share sheet, the link is copied.
+
+**Guides read more like a person wrote them.** All five are rewritten with
+shorter paragraphs and plainer words, and "take it to the counter" is gone. The
+facts and sources are unchanged. "Your hand, grip and approach" is now "Your
+bowling profile", to match Settings, and drops the grip section, which only
+restated the toggle.
+
+**The landing page shows the app.** It says "The best way to keep score." and
+"Free. Works offline.", then shows four screens: scoring, your line over an oil
+pattern, a layout drawn on the ball, and Stats. The category chip, the row of
+feature chips, the six-card feature grid and the filler sentences are gone.
+
 ## 0.11.0: Pocket leaves need no spare line (2026-10-08)
 
 **A leave with the 1 and 5 standing is a pocket shot.** After a gutter, a

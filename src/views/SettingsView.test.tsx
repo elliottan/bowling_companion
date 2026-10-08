@@ -3,27 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { SettingsView } from "./SettingsView";
 import { db } from "../db/bowlingDb";
 import { DEFAULT_DRIFT_MODEL } from "../lib/driftModel";
-import { getBowlerName, getGripStyle, setBowlerName, setGripStyle, setSetting } from "../services/bowlingRepository";
-import { findGuide } from "../lib/guides";
-
-function renderBowler(onOpenGuide = vi.fn()) {
-  render(
-    <SettingsView
-      section="bowler"
-      onSectionChange={vi.fn()}
-      handedness="right"
-      onHandednessChange={vi.fn()}
-      driftModel={DEFAULT_DRIFT_MODEL}
-      onDriftModelChange={vi.fn()}
-      onOpenBackup={vi.fn()}
-      onOpenLineVisualizer={vi.fn()}
-      onOpenArsenal={vi.fn()}
-      onOpenSpareLines={vi.fn()}
-      onOpenLaneNotes={vi.fn()}
-      onOpenGuide={onOpenGuide}
-    />
-  );
-}
+import { getBowlerName, setBowlerName, setSetting } from "../services/bowlingRepository";
 
 function renderMenu(onOpenGuide = vi.fn(), onSectionChange = vi.fn()) {
   render(
@@ -53,12 +33,7 @@ describe("SettingsView", () => {
   it("holds settings and the bowler's own places, but not the tools or patterns", () => {
     renderMenu();
 
-    for (const label of [
-      "Appearance",
-      "PAP, release and drift",
-      "Backup & restore",
-      "Send feedback"
-    ]) {
+    for (const label of ["Appearance", "Bowling profile", "Backup & restore", "Send feedback"]) {
       expect(screen.getByRole("button", { name: new RegExp(label) })).toBeInTheDocument();
     }
     for (const gone of ["Oil patterns", "Catalog", "Line visualizer"]) {
@@ -70,79 +45,69 @@ describe("SettingsView", () => {
     expect(screen.getByRole("link", { name: /Buy me a coffee/ })).toBeInTheDocument();
   });
 
-  it("groups the bowler's own numbers under Bowler, and the app's under App", () => {
+  it("groups the bowler's own places under Your bowling", () => {
     renderMenu();
-    const bowler = screen.getByRole("heading", { name: "Bowler" }).closest("section")!;
-    const app = screen.getByRole("heading", { name: "App" }).closest("section")!;
-    for (const label of ["Name", "Hand and grip", "PAP, release and drift", "Arsenal", "Spare lines", "Lane notes"]) {
-      expect(within(bowler).getByRole("button", { name: new RegExp(label) })).toBeInTheDocument();
+    const bowling = screen.getByRole("heading", { name: "Your bowling" }).closest("section")!;
+    for (const label of ["Bowling profile", "Arsenal", "Spare lines", "Lane notes"]) {
+      expect(within(bowling).getByRole("button", { name: new RegExp(label) })).toBeInTheDocument();
     }
-    for (const label of ["Appearance", "Backup & restore"]) {
-      expect(within(app).getByRole("button", { name: new RegExp(label) })).toBeInTheDocument();
-    }
+    expect(screen.queryByRole("button", { name: /^Name/ })).not.toBeInTheDocument();
   });
 
-  it("answers hand and grip with the controls alone, no prose", () => {
-    renderBowler();
-    expect(screen.queryByText(/Boards count in from your side/)).not.toBeInTheDocument();
-    expect(screen.queryByText(/How the layout lab draws your ball/)).not.toBeInTheDocument();
+  it("leads with the backup, alone, and ends on Appearance after Support", () => {
+    renderMenu();
+    const headings = screen.getAllByRole("heading").map((h) => h.textContent);
+    expect(headings).toEqual(["Settings", "Your bowling", "Support", "App"]);
+    const backup = screen.getByRole("button", { name: /Backup & restore/ });
+    const profile = screen.getByRole("button", { name: /Bowling profile/ });
+    expect(backup.compareDocumentPosition(profile) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    const rows = screen.getAllByRole("button").map((b) => b.textContent ?? "");
+    expect(rows[rows.length - 1]).toMatch(/Appearance/);
   });
 
-  it("changes the name Home greets you by, and forgets it when cleared", async () => {
-    await setBowlerName("Sam");
+  it("leaves the links to the outside with no sentence under them", () => {
     renderMenu();
-    fireEvent.click(await screen.findByRole("button", { name: /Name.*Sam/ }));
+    expect(screen.getByRole("link", { name: "Privacy and terms" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Send feedback" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Buy me a coffee.*Thanks for your support!/ })).toHaveAttribute(
+      "href",
+      "https://buymeacoffee.com/elliotbowls"
+    );
+  });
+
+  it("shows the name as a profile chip with the first letter, and changes it from there", async () => {
+    await setBowlerName("sam");
+    renderMenu();
+    const chip = await screen.findByRole("button", { name: "Your name, sam" });
+    expect(chip).toHaveTextContent("S");
+    expect(chip).toHaveTextContent("sam");
+    fireEvent.click(chip);
     const field = screen.getByLabelText(/What do you want to be called/);
-    expect(field).toHaveValue("Sam");
+    expect(field).toHaveValue("sam");
     fireEvent.change(field, { target: { value: "Alex" } });
     fireEvent.click(screen.getByRole("button", { name: "Save name" }));
     await waitFor(async () => expect(await getBowlerName()).toBe("Alex"));
-    expect(await screen.findByRole("button", { name: /Name.*Alex/ })).toBeInTheDocument();
+    expect(await screen.findByRole("button", { name: "Your name, Alex" })).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("button", { name: /Name.*Alex/ }));
+    fireEvent.click(screen.getByRole("button", { name: "Your name, Alex" }));
     fireEvent.change(screen.getByLabelText(/What do you want to be called/), { target: { value: "  " } });
     fireEvent.click(screen.getByRole("button", { name: "Save name" }));
     await waitFor(async () => expect(await getBowlerName()).toBeNull());
+    expect(await screen.findByRole("button", { name: "Add your name" })).toBeInTheDocument();
   });
 
   /**
    * Flipping the hand mirrors every board in the app, so it is not answered on
    * the list, one stray tap away. The row says what is set and opens the page.
    */
-  it("keeps hand and grip behind their own row", async () => {
+  it("keeps hand and grip behind the Bowling profile row", async () => {
     const onSectionChange = vi.fn();
     renderMenu(vi.fn(), onSectionChange);
     expect(screen.queryByRole("group", { name: "Handedness" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Two-handed" })).not.toBeInTheDocument();
-    const row = await screen.findByRole("button", { name: /Hand and grip.*Right-handed · One-handed/ });
+    const row = await screen.findByRole("button", { name: /Bowling profile.*Right-handed · One-handed/ });
     fireEvent.click(row);
-    expect(onSectionChange).toHaveBeenCalledWith("bowler");
-  });
-
-  it("answers the grip on its page, one-handed until told otherwise", async () => {
-    renderBowler();
-    expect(screen.getAllByRole("group", { name: "Handedness" }).length).toBeGreaterThan(0);
-    expect(screen.getByRole("button", { name: "One-handed" })).toHaveAttribute("aria-pressed", "true");
-    fireEvent.click(screen.getByRole("button", { name: "Two-handed" }));
-    await waitFor(async () => expect(await getGripStyle()).toBe("2h"));
-  });
-
-  it("fills the grip from what was saved", async () => {
-    await setGripStyle("2h");
-    renderBowler();
-    await waitFor(() =>
-      expect(screen.getByRole("button", { name: "Two-handed" })).toHaveAttribute("aria-pressed", "true")
-    );
-  });
-
-  it("keeps the long explanation in a guide, one tap away", () => {
-    const openGuide = vi.fn();
-    renderBowler(openGuide);
-    fireEvent.click(screen.getByRole("button", { name: "Why it matters" }));
-    expect(openGuide).toHaveBeenCalledWith("your-settings");
-    // What a two-handed grip changes, and what it leaves alone, still says so.
-    const text = JSON.stringify(findGuide("your-settings")?.body);
-    expect(text).toMatch(/without a thumb hole/i);
+    expect(onSectionChange).toHaveBeenCalledWith("profile");
   });
 
   /**

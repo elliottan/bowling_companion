@@ -95,8 +95,8 @@ describe("appRoute", () => {
     it("writes down where the user is", () => {
       expect(routeHash(nav({ view: "history" }))).toBe("#/history");
       expect(routeHash(nav({ view: "active", activeSessionId: 8 }))).toBe("#/session/8");
-      expect(routeHash(nav({ view: "settings", settingsSection: "preferences" }))).toBe(
-        "#/settings/section/preferences"
+      expect(routeHash(nav({ view: "settings", settingsSection: "profile" }))).toBe(
+        "#/settings/section/profile"
       );
       expect(routeHash(nav({ overlays: ["arsenal", "catalog"] }))).toBe("#/home/arsenal/catalog");
       expect(routeHash(nav({ lineSandboxOpen: true }))).toBe("#/home/line");

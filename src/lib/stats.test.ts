@@ -56,6 +56,8 @@ describe("calculateStats", () => {
       pocketPct: null,
       carryPct: null,
       firstBallAverage: null,
+      strikeOnStrikePct: null,
+      bestStreak: null,
       byAlley: []
     });
   });
@@ -72,6 +74,65 @@ describe("calculateStats", () => {
     expect(stats.highGame).toBe(300);
     expect(stats.strikePct).toBe(100);
     expect(stats.sparePct).toBeNull(); // no spare opportunities
+  });
+
+  it("reads a perfect game as every strike followed by a strike, and a streak of twelve", () => {
+    const frames = [
+      ...Array.from({ length: 9 }, (_, i) => frame(i + 1, NONE)),
+      frame(10, NONE, NONE, NONE)
+    ];
+    const stats = calculateStats([session("Perfect Lanes", [game(300, frames)])]);
+    // Twelve strikes, eleven of which had a ball after them.
+    expect(stats.strikeOnStrikePct).toBe(100);
+    expect(stats.bestStreak).toBe(12);
+  });
+
+  describe("strike on strike", () => {
+    /** X X 9/ X 7- ... : the frames after the 4th are open so only the opening
+     *  strikes matter. */
+    const open = (from: number, to: number) =>
+      Array.from({ length: to - from + 1 }, (_, i) => frame(from + i, [10], [10]));
+
+    it("counts the next ball after each strike, across frames", () => {
+      // Strikes in 1, 2 and 4. Frame 1 is followed by a strike, 2 by the 3rd
+      // frame's first ball (a leave), and 4 by an open frame's first ball.
+      const frames = [
+        frame(1, NONE),
+        frame(2, NONE),
+        frame(3, [9], NONE),
+        frame(4, NONE),
+        ...open(5, 10)
+      ];
+      const stats = calculateStats([session("A", [game(120, frames)])]);
+      expect(stats.strikeOnStrikePct).toBe(33); // 1 of 3
+      expect(stats.bestStreak).toBe(2);
+    });
+
+    it("follows a 10th frame strike into its bonus balls, and not past the last ball", () => {
+      // 10th: strike, strike, 9. Two strikes have a ball after them (one is
+      // followed by a strike, one by a 9) and the last ball has none.
+      const frames = [...open(1, 9), frame(10, NONE, NONE, [9])];
+      const stats = calculateStats([session("A", [game(100, frames)])]);
+      expect(stats.strikeOnStrikePct).toBe(50);
+      expect(stats.bestStreak).toBe(2);
+    });
+
+    it("does not carry a streak or a pair from one game into the next", () => {
+      const strikeGame = [...open(1, 8), frame(9, NONE), frame(10, NONE, [9], [10])];
+      const nextGame = [frame(1, NONE), ...open(2, 10)];
+      const stats = calculateStats([session("A", [game(100, strikeGame), game(100, nextGame)])]);
+      // Game one: strikes in 9 and 10. 9 is followed by a strike, the 10th's
+      // first ball is followed by a 9 (the next ball is a spare try, not a
+      // fresh rack). Game two opens with a strike followed by a leave.
+      expect(stats.bestStreak).toBe(2);
+      expect(stats.strikeOnStrikePct).toBe(33); // 1 of 3
+    });
+
+    it("is null until a strike has a ball after it", () => {
+      const frames = [...open(1, 9), frame(10, [10], [10])];
+      expect(calculateStats([session("A", [game(90, frames)])]).strikeOnStrikePct).toBeNull();
+      expect(calculateStats([session("A", [game(90, frames)])]).bestStreak).toBe(0);
+    });
   });
 
   it("counts spare opportunities and conversions", () => {

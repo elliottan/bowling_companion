@@ -6,7 +6,7 @@ import { expect, test } from "@playwright/test";
  */
 test("every Open Headpin button goes to the app", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { level: 1 })).toContainText("Remember every line you threw.");
+  await expect(page.getByRole("heading", { level: 1 })).toContainText("The best way to keep score.");
 
   const ctas = page.getByRole("link", { name: "Open Headpin" });
   expect(await ctas.count()).toBeGreaterThanOrEqual(2);

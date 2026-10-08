@@ -61,6 +61,22 @@ const METRICS = {
     max: 100,
     minSpan: 25
   },
+  strikeOnStrikePct: {
+    label: "Strike on strike",
+    value: (s: BowlingStats) => s.strikeOnStrikePct,
+    format: (v: number) => `${Math.round(v)}%`,
+    min: 0,
+    max: 100,
+    minSpan: 25
+  },
+  bestStreak: {
+    label: "Best streak",
+    value: (s: BowlingStats) => s.bestStreak,
+    format: (v: number) => String(Math.round(v)),
+    min: 0,
+    max: 12,
+    minSpan: 4
+  },
   sparePct: {
     label: "Spare",
     value: (s: BowlingStats) => s.sparePct,
@@ -118,6 +134,8 @@ export function metricNote(metric: MetricKey): string | undefined {
 // ball each explain themselves, and the notes they used to carry restated the
 // label and then padded. Not every number needs a sentence.
 const CARRY_NOTE = "Carry: pocket hits that struck.";
+const STRIKE_ON_STRIKE_NOTE = "Strike on strike: strikes that the next ball struck too.";
+const BEST_STREAK_NOTE = "Best streak: most strikes in a row in one game.";
 const SPARE_NOTE = "Spare: makeable leaves converted, excludes splits and washouts.";
 
 /** The note for a graphable stat, where there is one, shown from the chart it
@@ -127,6 +145,8 @@ const SPARE_NOTE = "Spare: makeable leaves converted, excludes splits and washou
  *  by their own labels, and the notes they carried restated the label and then
  *  padded. */
 const METRIC_NOTE: Partial<Record<MetricKey, string>> = {
+  strikeOnStrikePct: STRIKE_ON_STRIKE_NOTE,
+  bestStreak: BEST_STREAK_NOTE,
   sparePct: SPARE_NOTE,
   carryPct: CARRY_NOTE
 };
@@ -243,34 +263,24 @@ export function Stats({
 
   return (
     <div className="space-y-3">
-      <div className="grid grid-cols-5 gap-1.5">
+      {/* Three rows, grouped by what they say. Scores first (what happened:
+          games, the best and worst, the average), then the strikes (how often,
+          how often back to back, the longest run), then everything else about
+          the ball and the spares. The four-wide rows hold short labels, and the
+          three-wide one holds the long ones. */}
+      <div className="grid grid-cols-4 gap-1.5">
         <Tile label="Games" value={String(stats.completedGames)} />
-        {/* High over low, each on its own line, two 3-digit scores side by
-            side don't fit the tile width. */}
-        <Tile
-          label=""
-          valueClass="text-xs text-ink"
-          value={
-            // Score left, letter right, the pair centred as one block so the
-            // two rows line up whatever the digit count.
-            <span className="mx-auto flex w-fit flex-col leading-tight">
-              <span className="flex items-baseline gap-1 text-accent">
-                <span className="flex-1 text-left">{fmt(stats.highGame)}</span>
-                <span className="text-ink-tertiary">H</span>
-              </span>
-              <span className="flex items-baseline gap-1 text-danger-600">
-                <span className="flex-1 text-left">{fmt(stats.lowGame)}</span>
-                <span className="text-ink-tertiary">L</span>
-              </span>
-            </span>
-          }
-        />
+        <Tile label="High" value={fmt(stats.highGame)} />
+        <Tile label="Low" value={fmt(stats.lowGame)} />
         <MetricTile
           metric="average"
           value={fmt(stats.averageScore)}
           selected={metric === "average"}
           onSelect={setMetric}
         />
+      </div>
+
+      <div className="grid grid-cols-3 gap-1.5">
         <MetricTile
           metric="strikePct"
           value={pct(stats.strikePct)}
@@ -278,14 +288,26 @@ export function Stats({
           onSelect={setMetric}
         />
         <MetricTile
+          metric="strikeOnStrikePct"
+          value={pct(stats.strikeOnStrikePct)}
+          selected={metric === "strikeOnStrikePct"}
+          onSelect={setMetric}
+        />
+        <MetricTile
+          metric="bestStreak"
+          value={fmt(stats.bestStreak)}
+          selected={metric === "bestStreak"}
+          onSelect={setMetric}
+        />
+      </div>
+
+      <div className="grid grid-cols-4 gap-1.5">
+        <MetricTile
           metric="sparePct"
           value={pct(stats.sparePct)}
           selected={metric === "sparePct"}
           onSelect={setMetric}
         />
-      </div>
-
-      <div className="grid grid-cols-3 gap-1.5">
         <MetricTile
           metric="pocketPct"
           value={pct(stats.pocketPct)}
@@ -850,31 +872,12 @@ function MetricTile({
   );
 }
 
-function Tile({
-  label,
-  value,
-  valueClass = "text-lg text-ink",
-  onClick
-}: {
-  label: string;
-  value: ReactNode;
-  valueClass?: string;
-  onClick?: () => void;
-}) {
-  const className = "rounded-xl border border-edge bg-surface px-1 py-2 text-center shadow-sm";
-  const body = (
-    <>
-      <p className={`font-bold tabular-nums ${valueClass}`}>{value}</p>
-      {label && (
-        <p className="text-[10px] font-semibold uppercase tracking-wide text-ink-secondary">{label}</p>
-      )}
-    </>
-  );
-  if (!onClick) return <div className={className}>{body}</div>;
+function Tile({ label, value }: { label: string; value: string }) {
   return (
-    <button type="button" onClick={onClick} className={`${className} w-full`}>
-      {body}
-    </button>
+    <div className="rounded-xl border border-edge bg-surface px-1 py-2 text-center shadow-sm">
+      <p className="text-lg font-bold tabular-nums text-ink">{value}</p>
+      <p className="text-[10px] font-semibold uppercase tracking-wide text-ink-secondary">{label}</p>
+    </div>
   );
 }
 

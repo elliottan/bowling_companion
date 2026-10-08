@@ -1,10 +1,8 @@
-import { Archive, ArrowUpRight, Coffee, Download, Hand, MessageSquare, Palette, ScrollText, SlidersHorizontal, UserRound } from "lucide-react";
+import { Archive, ArrowUpRight, ChevronRight, Coffee, Download, MessageSquare, Palette, ScrollText, UserRound, UserRoundCog } from "lucide-react";
 import { AppearanceView } from "./AppearanceView";
-import { HandednessView } from "./HandednessView";
-import { BowlerView } from "./BowlerView";
-import { getBowlerName, getGripStyle, getPap, getSetting } from "../services/bowlingRepository";
+import { BowlingProfileView } from "./BowlingProfileView";
+import { getBowlerName, getGripStyle, getSetting } from "../services/bowlingRepository";
 import { BowlerNameSheet } from "../components/BowlerNameSheet";
-import { DEFAULT_PAP, formatInches } from "../lib/ballLayout";
 import type { GripStyle } from "../types/bowling";
 import type { Handedness } from "../types/bowling";
 import type { DriftModel } from "../lib/driftModel";
@@ -69,7 +67,6 @@ export function SettingsView({ section, onSectionChange, handedness, onHandednes
       <div className="h-full overflow-y-auto">
         <SettingsMenu
           handedness={handedness}
-          driftModel={driftModel}
           onOpenBackup={onOpenBackup}
           onSectionChange={onSectionChange}
           onOpenArsenal={onOpenArsenal}
@@ -85,18 +82,13 @@ export function SettingsView({ section, onSectionChange, handedness, onHandednes
           <OilPatternsView onBack={back} onOpenLineVisualizer={onOpenLineVisualizer} />
         ) : section === "appearance" ? (
           <AppearanceView onBack={back} />
-        ) : section === "bowler" ? (
-          <BowlerView
+        ) : section === "profile" ? (
+          <BowlingProfileView
             handedness={handedness}
             onHandednessChange={onHandednessChange}
-            onOpenGuide={() => onOpenGuide(SETTINGS_GUIDE)}
-            onBack={back}
-          />
-        ) : section === "preferences" ? (
-          <HandednessView
-            value={handedness}
             driftModel={driftModel}
             onDriftModelChange={onDriftModelChange}
+            onOpenGuide={() => onOpenGuide(SETTINGS_GUIDE)}
             onBack={back}
           />
         ) : null}
@@ -109,15 +101,16 @@ export function SettingsView({ section, onSectionChange, handedness, onHandednes
 /**
  * Only settings (ADR-115). The places a bowler keeps things (arsenal, spare
  * lines, lane notes, patterns) and the tools (catalog, line visualizer) all
- * live on Home; this list used to repeat six of them with Preferences hidden in
- * the middle. Hand and grip sit one push behind their own row: they are answered
- * at first run and almost never again, and flipping the hand mirrors every board
- * in the app, which is too much to leave one stray tap away on the list. The
- * numbers only the lane view and the layout lab read sit under Advanced.
+ * live on Home. Order is by what a bowler can lose or must not miss: the backup
+ * leads, on its own and louder than a row, because the games live on this phone
+ * and nowhere else; then the bowler's own things; support; and appearance last,
+ * the setting touched once. The bowler's name is the profile chip beside the
+ * title, not a row. Hand, grip, PAP and drift share one push behind the
+ * "Bowling profile" row, since flipping the hand mirrors every board in the
+ * app and is too much to leave one stray tap away on the list.
  */
 function SettingsMenu({
   handedness,
-  driftModel,
   onOpenBackup,
   onSectionChange,
   onOpenArsenal,
@@ -126,7 +119,6 @@ function SettingsMenu({
 }: Pick<
   SettingsViewProps,
   | "handedness"
-  | "driftModel"
   | "onOpenBackup"
   | "onSectionChange"
   | "onOpenArsenal"
@@ -151,10 +143,6 @@ function SettingsMenu({
         ? `Last backup ${describeAge(lastBackupAt, new Date())}`
         : "Never backed up";
   const grip: GripStyle = useLiveQuery(getGripStyle, [], undefined) ?? "1h";
-  const pap = useLiveQuery(getPap, [], undefined) ?? DEFAULT_PAP;
-  const papDescription = `PAP ${formatInches(pap.over)} over, ${formatInches(Math.abs(pap.up))} ${
-    pap.up < 0 ? "down" : "up"
-  } · offset ${driftModel.release_offset}`;
 
   // A link that leaves the app says so with the outward arrow, rather than the
   // chevron that means "deeper into this app" on every other row.
@@ -163,30 +151,56 @@ function SettingsMenu({
   );
 
 
+  const initial = name ? [...name][0]?.toUpperCase() : null;
+
   return (
     <section className="mx-auto w-full max-w-3xl space-y-5 px-3 pb-5 pt-3 sm:px-6 sm:pt-5">
-      <h1 className="text-xl font-bold text-ink">Settings</h1>
+      <div className="flex items-center justify-between gap-3">
+        <h1 className="text-xl font-bold text-ink">Settings</h1>
+        {/* The bowler, as a profile chip: tap it to change the name. Held back
+            until the name has loaded, so it never flashes "Add name". */}
+        {name !== undefined && (
+          <button
+            type="button"
+            onClick={() => setEditingName(true)}
+            aria-label={name ? `Your name, ${name}` : "Add your name"}
+            className="flex min-h-11 min-w-0 max-w-[60%] items-center gap-2 rounded-full py-1 pl-1 pr-3 active:bg-surface-muted"
+          >
+            <span
+              aria-hidden="true"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-accent-fill text-base font-bold text-accent-on-fill"
+            >
+              {initial ?? <UserRound size={18} />}
+            </span>
+            <span className="truncate text-sm font-semibold text-ink">{name ?? "Add name"}</span>
+          </button>
+        )}
+      </div>
 
-      <ListGroup heading="Bowler">
+      {/* Alone, and louder than a row: a lost phone takes every game with it. */}
+      <button
+        type="button"
+        onClick={onOpenBackup}
+        className="flex w-full items-center gap-3 rounded-xl border border-accent-fill bg-accent-soft px-3 py-3 text-left shadow-sm active:opacity-80"
+      >
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-accent-fill text-accent-on-fill">
+          <Archive size={20} aria-hidden="true" />
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block truncate font-bold text-ink">Backup & restore</span>
+          <span className="block truncate text-sm text-ink">{backupDescription}</span>
+        </span>
+        <ChevronRight size={16} aria-hidden="true" className="shrink-0 text-accent" />
+      </button>
+
+      <ListGroup heading="Your bowling">
         <ListRow
-          icon={UserRound}
-          label="Name"
-          description={name ?? "What do you want to be called?"}
-          onClick={() => setEditingName(true)}
-        />
-        <ListRow
-          icon={Hand}
-          label="Hand and grip"
+          icon={UserRoundCog}
+          label="Bowling profile"
           description={`${handedness === "right" ? "Right-handed" : "Left-handed"} · ${
             grip === "2h" ? "Two-handed" : "One-handed"
           }`}
-          onClick={() => onSectionChange("bowler")}
-        />
-        <ListRow
-          icon={SlidersHorizontal}
-          label="PAP, release and drift"
-          description={papDescription}
-          onClick={() => onSectionChange("preferences")}
+          onClick={() => onSectionChange("profile")}
         />
         <ListRow
           icon={BowlingBallIcon}
@@ -197,30 +211,40 @@ function SettingsMenu({
         <ListRow
           icon={SpareLineIcon}
           label="Spare lines"
-          description="Your lines for each spare"
+          description="Pre-fill spare lines during score entry"
           onClick={onOpenSpareLines}
         />
         <ListRow
           icon={LanePairIcon}
           label="Lane notes"
-          description="What each lane did"
+          description="How each lane plays at each alley"
           onClick={onOpenLaneNotes}
         />
       </ListGroup>
 
+      <ListGroup heading="Support">
+        <ListRow
+          icon={MessageSquare}
+          label="Send feedback"
+          onClick={() => void openFeedbackEmail()}
+          trailing={leavesTheApp}
+        />
+        <ListRow
+          icon={Coffee}
+          label="Buy me a coffee"
+          description="Thanks for your support!"
+          href={DONATE_URL}
+          trailing={leavesTheApp}
+        />
+        <ListRow
+          icon={ScrollText}
+          label="Privacy and terms"
+          href={LEGAL_URL}
+          trailing={leavesTheApp}
+        />
+      </ListGroup>
+
       <ListGroup heading="App">
-        <ListRow
-          icon={Palette}
-          label="Appearance"
-          description="Light, dark, or follow your device"
-          onClick={() => onSectionChange("appearance")}
-        />
-        <ListRow
-          icon={Archive}
-          label="Backup & restore"
-          description={backupDescription}
-          onClick={onOpenBackup}
-        />
         {/* The way back to an install the Home card was waved away from.
             Hidden once the app is installed, when it would offer nothing. */}
         {installable && (
@@ -231,29 +255,11 @@ function SettingsMenu({
             onClick={() => setInstallOpen(true)}
           />
         )}
-      </ListGroup>
-
-      <ListGroup heading="Support">
         <ListRow
-          icon={MessageSquare}
-          label="Send feedback"
-          description="Opens an email, with your app version filled in"
-          onClick={() => void openFeedbackEmail()}
-          trailing={leavesTheApp}
-        />
-        <ListRow
-          icon={Coffee}
-          label="Buy me a coffee"
-          description="A one-off tip. No subscription."
-          href={DONATE_URL}
-          trailing={leavesTheApp}
-        />
-        <ListRow
-          icon={ScrollText}
-          label="Privacy and terms"
-          description="What stays on your device, and what does not"
-          href={LEGAL_URL}
-          trailing={leavesTheApp}
+          icon={Palette}
+          label="Appearance"
+          description="Light, dark, or follow your device"
+          onClick={() => onSectionChange("appearance")}
         />
       </ListGroup>
 

@@ -7,6 +7,9 @@ import { defineConfig } from "vitest/config";
 /** The clean URLs that build to a directory, and so need resolving by hand. */
 const CLEAN_URLS = ["/score", "/legal"];
 
+/** A shared guide link, /guides/<id>, which builds to a directory too. */
+const GUIDE_LINK = /^\/guides\/[^/?#]+$/;
+
 /**
  * Serve /score and /legal in dev the way the host serves them in production.
  *
@@ -21,8 +24,10 @@ function serveCleanUrls(): Plugin {
     apply: "serve",
     configureServer(server) {
       server.middlewares.use((req, _res, next) => {
+        const url = req.url;
+        const bare = url?.split(/[?#]/)[0] ?? "";
+        if (GUIDE_LINK.test(bare)) req.url = `${bare}/index.html`;
         for (const path of CLEAN_URLS) {
-          const url = req.url;
           if (url === path || url?.startsWith(`${path}#`) || url?.startsWith(`${path}?`)) {
             req.url = `${path}/index.html` + url.slice(path.length);
             break;
@@ -188,10 +193,17 @@ export default defineConfig({
         // fallback answered it with the app shell. Anyone tapping "Privacy and
         // terms" landed on the dashboard with /legal still in the address bar.
         navigateFallback: "/score/index.html",
-        navigateFallbackDenylist: [/^\/$/, /^\/legal(\/|$)/],
+        //
+        // /guides is denied for the same reason as /legal. A shared guide link
+        // opens a page of its own that hands the visitor to the app, and the
+        // fallback would answer it with the app shell and no guide open.
+        navigateFallbackDenylist: [/^\/$/, /^\/legal(\/|$)/, /^\/guides(\/|$)/],
         // NOTE: webp and catalog JSON are intentionally excluded from precache
         // to keep boot light. They are runtime-cached on first use instead.
         globPatterns: ["**/*.{js,css,html,svg,png,ico,webmanifest}"],
+        // The guide link pages and their preview cards are for a chat app's
+        // scraper, not for the app, so they are not worth a download here.
+        globIgnores: ["guides/**"],
         runtimeCaching: [
           {
             // NetworkFirst (not SWR): online clients must read the *current*

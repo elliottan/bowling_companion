@@ -248,16 +248,20 @@ async function settle(page) {
   await page.waitForTimeout(500);
 }
 
-async function shoot(page, name) {
+async function shoot(page, name, scrollTo = 0) {
   await settle(page);
   // Recording a shot can leave the view scrolled down its own container, which
-  // crops the header out of the picture. Put every scroller back to the top.
-  await page.evaluate(() => {
+  // crops the header out of the picture. Put every scroller back to the top,
+  // or to `scrollTo` for a screen whose picture is below its first fold.
+  await page.evaluate((top) => {
     window.scrollTo(0, 0);
     document.querySelectorAll("*").forEach((el) => {
-      if (el.scrollTop) el.scrollTop = 0;
+      const scrolls = el.scrollHeight > el.clientHeight + 20 && getComputedStyle(el).overflowY !== "visible";
+      if (scrolls) el.scrollTop = top;
+      else if (el.scrollTop) el.scrollTop = 0;
     });
-  });
+  }, scrollTo);
+  await page.waitForTimeout(200);
   const png = await page.screenshot();
   await writeFile(join(outDir, `${name}.webp`), await sharp(png).webp({ quality: 82 }).toBuffer());
   console.log("wrote", `${name}.webp`);
@@ -291,10 +295,10 @@ async function setTheme(page, theme) {
  * A reload is safe here: the screen you are on is in the URL and the game is in
  * IndexedDB, so the app comes back exactly where it was.
  */
-async function shootBothThemes(page, name) {
-  await shoot(page, name);
+async function shootBothThemes(page, name, scrollTo = 0) {
+  await shoot(page, name, scrollTo);
   await setTheme(page, "light");
-  await shoot(page, `${name}-light`);
+  await shoot(page, `${name}-light`, scrollTo);
   await setTheme(page, "dark");
 }
 
@@ -346,10 +350,25 @@ await shootBothThemes(page, "arsenal");
 await page.getByRole("banner").getByRole("button", { name: "Back", exact: true }).first().click();
 
 await page.getByRole("button", { name: "Line visualizer", exact: true }).click();
+// The line over an oil pattern is the picture: where the oil ends is where the
+// ball is allowed to turn. The picker is behind Lane options.
+await page.getByRole("button", { name: "Lane options" }).click();
+const patterns = page.locator("select").first();
+const patternOptions = await patterns.locator("option").allTextContents();
+const pattern = patternOptions.find((o) => o.includes("Mercury 4940"));
+if (!pattern) throw new Error("the shipped pattern catalog no longer has Mercury 4940");
+await patterns.selectOption({ label: pattern });
+await page.getByRole("button", { name: "Done" }).click();
 // One theme only: the lane view paints its own wood and sky rather than the
 // app's colour tokens, so both themes render the identical picture.
 await shoot(page, "line");
 await page.getByRole("button", { name: "Close" }).first().click();
+
+// The layout on the ball, scrolled past the sliders: the drawing of the drilling
+// is what a bowler recognises, and the sliders that make it are not.
+await page.getByRole("button", { name: "Layouts", exact: true }).click();
+await shootBothThemes(page, "layout", 724);
+await page.getByRole("banner").getByRole("button", { name: "Back", exact: true }).first().click();
 
 // Five nights: the trend chart is a line with somewhere to go, not two dots.
 const alleys = ["Sunset Lanes", "Orchid Bowl", "Sunset Lanes", "Pin Deck", "Sunset Lanes"];

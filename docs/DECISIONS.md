@@ -5846,3 +5846,38 @@ leave and asked for a line for it whenever it was left often.
   not, and still counts in the leave tables.
 - The pocket-hit verdict on a first ball (`isPocketHit`, ADR-046) is a different
   question and is untouched.
+
+---
+
+## ADR-124: Strike on strike and the best streak
+
+**Status.** Accepted, 2026-10-08. Extends ADR-036 and ADR-048 (one calculator
+for every stat).
+
+**Context.** The Stats tiles said how often a bowler struck, not whether strikes
+came in runs, which is what separates a bowler who carries a good ball from one
+who is hot. Two numbers answer it and neither needs new data: how often a
+strike is followed by another, and the longest run.
+
+**Decision.**
+
+- **Strike on strike** is strikes that the next ball struck too, over strikes
+  that had a ball after them. The balls are read as one sequence of fresh-rack
+  throws per game, in frame order, so a 9th-frame strike is followed by the
+  10th's first ball, and the 10th's strike, strike, strike is two follow-ups.
+- **The last ball of a game is not an opportunity,** and neither is the last
+  recorded ball of a game still being bowled. Same shape as a leave off the
+  10th's last ball (ADR-092): it happened, and nothing could follow it.
+- **A pair belongs to the frame of its first strike.** A lane filter keeps the
+  strikes thrown on the selected lanes, whichever lane the next ball landed on.
+- **Best streak** is the most strikes in a row inside one game, never carried
+  from one game to the next, so twelve is the ceiling. On the session and game
+  charts it is that session's or game's best.
+- **Both come out of `calculateStats`,** so a tile and the point on its chart
+  are one call (ADR-061b), and both are tiles that plot like any other.
+
+**Consequences.**
+- Stats gains two tiles and the grid is regrouped: scores, then strikes, then
+  spares and the first ball.
+- A bowler with no strike followed by a ball sees "-" for the rate, not 0%.
+

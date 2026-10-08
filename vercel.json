@@ -35,6 +35,10 @@
     {
       "source": "/legal",
       "destination": "/legal/index.html"
+    },
+    {
+      "source": "/guides/:id",
+      "destination": "/guides/:id/index.html"
     }
   ]
 }

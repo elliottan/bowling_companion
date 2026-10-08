@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useRef, useState } from "react";
 import { Check, LayoutGrid, MoreHorizontal, RotateCcw, SlidersHorizontal } from "lucide-react";
 import { useLiveQuery } from "dexie-react-hooks";
+import { flushSync } from "react-dom";
 import { BallLayoutDiagram } from "../components/BallLayoutDiagram";
 import { CatalogBallImage } from "../components/CatalogBallImage";
 import { BowlingBallIcon } from "../components/icons";
@@ -252,15 +253,30 @@ export function LayoutLabView({ onBack, onOpenSettings, seed }: LayoutLabViewPro
   }, [layout, vls, ball, hand, grip, pap, motion]);
 
   /** The ball as it is drawn right now, rasterized for the card. */
+  /**
+   * The ball for the card, always as it first opens: facing forward, the grip
+   * and the PAP either side of centre. The card is a picture of the layout, not
+   * of wherever the bowler last dragged the ball to, and a ball spun round to
+   * the side or tipped over reads as a mistake on a card nobody can turn.
+   *
+   * So the camera goes home for the length of one synchronous read and comes
+   * back: `flushSync` draws the forward view, `svgToImage` serializes it before
+   * it returns, and the bowler's own angle is restored before the browser has
+   * painted either, so the screen behind the card never moves.
+   */
   const rasterizeBall = useCallback(async () => {
+    flushSync(() => setTurnedTo(null));
     const svg = ballRef.current?.querySelector("svg");
-    if (!svg) return undefined;
+    let picture: Promise<HTMLImageElement> | undefined;
+    if (svg) picture = svgToImage(svg as SVGSVGElement, 560);
+    flushSync(() => setTurnedTo(turnedTo));
+    if (!picture) return undefined;
     try {
-      return await svgToImage(svg as SVGSVGElement, 560);
+      return await picture;
     } catch {
       return undefined;
     }
-  }, []);
+  }, [turnedTo]);
 
   /**
    * Share the layout, as a link with the card as its preview.

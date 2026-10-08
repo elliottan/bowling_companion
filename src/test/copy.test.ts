@@ -40,7 +40,9 @@ function codeWithoutComments(source: string): string {
 
 /** The strings a bowler can read: quoted literals and JSX text. */
 function userFacingText(source: string): string {
-  const code = codeWithoutComments(source);
+  // A <script> inside a page template is code that runs, not words a bowler
+  // reads, and the redirect page needs the browser's own `location`.
+  const code = codeWithoutComments(source).replace(/<script>[\s\S]*?<\/script>/g, "");
   const quoted = code.match(/"[^"\n]*"|'[^'\n]*'|`[^`]*`/g) ?? [];
   const jsxText = code.match(/>[^<>{}]+</g) ?? [];
   return [...quoted, ...jsxText].join("\n");

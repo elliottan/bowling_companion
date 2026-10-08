@@ -71,7 +71,9 @@ npm run build
 
 Produces `dist/`:
 - `index.html` (the landing page), `score/index.html` (the app shell),
-  `legal/index.html`, `404.html`
+  `legal/index.html`, `404.html`, `guides/<id>/` (the page and preview card a
+  shared guide link opens, committed by `npm run guide-pages`, and held to the
+  guides by a test)
 - hashed JS/CSS in `assets/`, split into the app chunk, `react`, `dexie` and a
   lazy chunk per screen that is not part of the core loop
 - `sw.js` + `workbox-*.js` (service worker), `manifest.webmanifest`, `icons/`,

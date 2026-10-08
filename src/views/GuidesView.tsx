@@ -1,9 +1,12 @@
-import { ExternalLink, FileText } from "lucide-react";
+import { Check, ExternalLink, FileText } from "lucide-react";
+import { useEffect, useState } from "react";
 import { GuideFigure } from "../components/GuideFigure";
 import { PushScreen } from "../components/PushScreen";
+import { IconButton } from "../components/ui/IconButton";
+import { ShareIosIcon } from "../components/icons";
 import { ListGroup, ListRow } from "../components/ui/ListGroup";
 import { GROUP_HEADING } from "../components/ui/typography";
-import { findGuide, guidesByTopic, type Guide, type GuideBlock } from "../lib/guides";
+import { findGuide, guideShareUrl, guidesByTopic, type Guide, type GuideBlock } from "../lib/guides";
 
 interface GuidesViewProps {
   onBack: () => void;
@@ -56,8 +59,48 @@ export function GuidesView({ onBack, openGuideId, onOpenGuide }: GuidesViewProps
 /** One article. `onBack` is the same pop as the list's: the reducer takes the
  *  open guide off before it touches the overlay stack. */
 function GuideArticle({ guide, onBack }: { guide: Guide; onBack: () => void }) {
+  // Where there is no share sheet the link goes to the clipboard, and the
+  // button says so for a moment: a copy nobody is told about reads as a dead
+  // button.
+  const [copied, setCopied] = useState(false);
+  useEffect(() => {
+    if (!copied) return;
+    const timer = setTimeout(() => setCopied(false), 2000);
+    return () => clearTimeout(timer);
+  }, [copied]);
+
+  async function share() {
+    const url = guideShareUrl(guide.id, window.location.origin);
+    try {
+      if (typeof navigator.share === "function") {
+        await navigator.share({ title: guide.title, url });
+      } else {
+        await navigator.clipboard.writeText(url);
+        setCopied(true);
+      }
+    } catch {
+      // A dismissed share sheet rejects, and cancelling is not a failure. A
+      // clipboard that refuses has nothing further to fall back to.
+    }
+  }
+
   return (
-    <PushScreen title={guide.title} onBack={onBack}>
+    <PushScreen
+      title={guide.title}
+      onBack={onBack}
+      trailing={
+        <IconButton variant="round" label="Share guide" onClick={() => void share()}>
+          {copied ? (
+            <Check size={18} aria-hidden="true" />
+          ) : (
+            <ShareIosIcon size={18} aria-hidden="true" />
+          )}
+        </IconButton>
+      }
+    >
+      <span role="status" className="sr-only">
+        {copied ? "Link copied" : ""}
+      </span>
       <article className="mx-auto w-full max-w-xl px-4 py-5 sm:px-6">
         <h2 className="text-xl font-bold text-ink">{guide.title}</h2>
         <p className="mt-1 text-xs font-semibold uppercase tracking-wide text-ink-secondary">

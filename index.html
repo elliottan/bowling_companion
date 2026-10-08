@@ -21,7 +21,7 @@
     <title>Headpin, free offline bowling score keeper</title>
     <meta
       name="description"
-      content="Tap the pins you left. Headpin keeps score, records the ball and line you used, and shows you what worked last time you bowled that alley."
+      content="A free bowling score keeper that works offline. Tap the pins you left, log the ball and your line, and see what's working."
     />
     <link rel="canonical" href="https://headpin.app/" />
 
@@ -36,7 +36,7 @@
     <meta property="og:title" content="Headpin, free offline bowling score keeper" />
     <meta
       property="og:description"
-      content="Tap the pins you left. Headpin keeps score, records the ball and line you used, and shows you what worked last time you bowled that alley."
+      content="A free bowling score keeper that works offline. Tap the pins you left, log the ball and your line, and see what's working."
     />
     <meta property="og:image" content="https://headpin.app/og-image.png" />
     <meta property="og:image:width" content="1200" />
@@ -46,7 +46,7 @@
     <meta name="twitter:title" content="Headpin, free offline bowling score keeper" />
     <meta
       name="twitter:description"
-      content="Tap the pins you left. Headpin keeps score, records the ball and line you used, and shows you what worked last time you bowled that alley."
+      content="A free bowling score keeper that works offline. Tap the pins you left, log the ball and your line, and see what's working."
     />
     <meta name="twitter:image" content="https://headpin.app/og-image.png" />
 
@@ -67,7 +67,7 @@
             "@id": "https://headpin.app/#website",
             "url": "https://headpin.app/",
             "name": "Headpin",
-            "description": "Tap the pins you left. Headpin keeps score, records the ball and line you used, and shows you what worked last time you bowled that alley."
+            "description": "A free bowling score keeper that works offline. Tap the pins you left, log the ball and your line, and see what's working."
           },
           {
             "@type": "SoftwareApplication",
@@ -78,7 +78,7 @@
             "operatingSystem": "Web browser, iOS, Android",
             "browserRequirements": "Requires JavaScript. Works offline once installed.",
             "image": "https://headpin.app/og-image.png",
-            "description": "Bowling score and stats tracker. Keeps score frame by frame, records the ball and line for every shot, and tracks averages over time. Works offline, needs no account, and keeps every game on your own device.",
+            "description": "Bowling score and stats tracker. Scores every frame, logs the ball and line for each shot, draws your line over the oil pattern, and tracks your averages. Free, works offline, and needs no account.",
             "offers": {
               "@type": "Offer",
               "price": "0",
@@ -225,6 +225,7 @@
       .cta:active { transform: scale(0.98); }
       .cta:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
       .cta svg { width: 1.1rem; height: 1.1rem; }
+      .hero h1 + .cta { margin-top: 1.75rem; }
       .cta-note {
         margin: 0.75rem 0 0;
         font-size: 0.9rem;
@@ -270,20 +271,8 @@
         text-decoration: none;
       }
       .hero-grid { padding: 2.25rem 0 0; }
-      .eyebrow {
-        display: inline-block;
-        margin: 0;
-        padding: 0.3rem 0.75rem;
-        border-radius: 999px;
-        background: rgb(94 214 193 / 0.14);
-        color: var(--mint);
-        font-size: 0.8rem;
-        font-weight: 700;
-        letter-spacing: 0.04em;
-        text-transform: uppercase;
-      }
       .hero h1 {
-        margin: 1rem 0 0;
+        margin: 0;
         font-size: clamp(2.4rem, 11vw, 4.25rem);
         line-height: 1.02;
         letter-spacing: -0.035em;
@@ -292,12 +281,6 @@
       .hero h1 em {
         font-style: normal;
         color: var(--line);
-      }
-      .hero .lede {
-        margin: 1rem 0 1.5rem;
-        max-width: 34rem;
-        font-size: 1.1rem;
-        color: var(--night-ink-2);
       }
       .notice {
         display: none;
@@ -397,37 +380,8 @@
       }
       .screen img, .screen picture { display: block; width: 100%; height: auto; }
 
-      /* ---------- Fact strip ---------- */
-      .facts {
-        position: relative;
-        z-index: 1;
-        background: var(--night-2);
-        color: var(--night-ink);
-        border-top: 1px solid rgb(255 255 255 / 0.06);
-      }
-      .facts ul {
-        list-style: none;
-        margin: 0;
-        padding: 1rem 0;
-        display: flex;
-        gap: 0.5rem;
-        overflow-x: auto;
-        scrollbar-width: none;
-      }
-      .facts ul::-webkit-scrollbar { display: none; }
-      .facts li {
-        flex: none;
-        padding: 0.45rem 0.85rem;
-        border-radius: 999px;
-        background: rgb(255 255 255 / 0.06);
-        font-size: 0.9rem;
-        font-weight: 600;
-        white-space: nowrap;
-      }
-      .facts li b { color: var(--mint); }
-
-      /* ---------- The walk through the app ---------- */
-      .story { padding-block: 3.5rem 1rem; }
+      /* ---------- The screens ---------- */
+      .story { padding-block: 1.5rem 1rem; }
       .kicker {
         margin: 0;
         color: var(--felt);
@@ -451,19 +405,9 @@
         border-bottom: 1px solid var(--edge);
       }
       .step:last-child { border-bottom: 0; }
-      .step .num {
-        display: inline-grid;
-        place-items: center;
-        width: 2.25rem;
-        height: 2.25rem;
-        border-radius: 999px;
-        background: var(--tint);
-        color: var(--felt);
-        font-weight: 800;
-      }
-      .step h3 {
-        margin: 0.85rem 0 0;
-        font-size: 1.6rem;
+      .step h2 {
+        margin: 0;
+        font-size: 1.9rem;
         line-height: 1.15;
         letter-spacing: -0.02em;
       }
@@ -486,30 +430,15 @@
       }
       .shot-link:focus-visible { outline: 3px solid var(--felt); outline-offset: 4px; }
 
-      /* ---------- Feature grid ---------- */
-      .features { padding-block: 1rem 3.5rem; }
-      .grid {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 0.75rem;
-        margin-top: 1.5rem;
-      }
       .card {
         background: var(--card);
         border: 1px solid var(--edge);
         border-radius: 1.1rem;
         padding: 1rem;
       }
-      .card svg {
-        width: 1.6rem;
-        height: 1.6rem;
-        color: var(--felt);
-      }
-      .card h4 { margin: 0.6rem 0 0; font-size: 1rem; letter-spacing: -0.01em; }
-      .card p { margin: 0.3rem 0 0; color: var(--ink-2); font-size: 0.9rem; line-height: 1.45; }
 
       /* ---------- Install ---------- */
-      .install { padding-block: 0 3.5rem; }
+      .install { padding-block: 2rem 3.5rem; }
       .install-grid {
         display: grid;
         gap: 0.75rem;
@@ -615,7 +544,6 @@
       @media (min-width: 40rem) {
         .wrap { padding: 0 2rem; }
         .stage { margin: 2rem 0 0; }
-        .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
         .install-grid { grid-template-columns: 1fr 1fr; }
       }
       @media (min-width: 60rem) {
@@ -686,18 +614,12 @@
               (<b>&middot;&middot;&middot;</b>) and choose <b>Open in browser</b>, then add it
               from Safari or Chrome.
             </p>
-            <p class="eyebrow">Bowling score keeper</p>
-            <h1>Remember every <em>line</em> you threw.</h1>
-            <p class="lede">
-              Tap the pins you left and Headpin keeps score. It saves the ball
-              and boards for every shot too, so next week you can see what
-              worked at this alley.
-            </p>
+            <h1>The best way to keep <em>score</em>.</h1>
             <a class="cta" id="hero-cta" href="/score">
               Open Headpin
               <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10h11M11 5l5 5-5 5"/></svg>
             </a>
-            <p class="cta-note">Free, no sign-up, and it works without signal.</p>
+            <p class="cta-note">Free. Works offline.</p>
           </div>
 
           <div class="stage" aria-hidden="true">
@@ -753,19 +675,6 @@
       </div>
     </header>
 
-    <section class="facts" aria-label="At a glance">
-      <div class="wrap">
-        <ul>
-          <li><b>250</b> balls in the catalog</li>
-          <li>Oil patterns</li>
-          <li>Spare lines</li>
-          <li>Ball layouts</li>
-          <li>Works offline</li>
-          <li>No account</li>
-        </ul>
-      </div>
-    </section>
-
     <main>
       <!--
         Real screens, captured from the running app by scripts/capture-shots.mjs
@@ -773,17 +682,11 @@
         prefers-color-scheme; the lane view paints its own wood, so one file
         serves both. Sized in the markup so the page does not jump as they load.
       -->
-      <section class="story wrap" aria-labelledby="how">
-        <h2 class="section-title" id="how">Here's a league night in Headpin.</h2>
-
+      <section class="story wrap" aria-label="What Headpin does">
         <article class="step">
           <div class="copy">
-            <span class="num">1</span>
-            <h3>Tap the pins you left.</h3>
-            <p>
-              Tap the pins still standing after each ball. Headpin does the
-              scoring and saves the ball and boards with every shot.
-            </p>
+            <h2>Score every shot.</h2>
+            <p>Tap the pins left standing. Add the ball and your boards if you want to.</p>
           </div>
           <figure>
             <a class="shot-link" href="/shots/scorer.webp" aria-label="View the scorecard larger"><div class="phone"><div class="screen">
@@ -795,120 +698,48 @@
             </div></div></a>
           </figure>
         </article>
-
         <article class="step">
           <div class="copy">
-            <span class="num">2</span>
-            <h3>See the line you threw.</h3>
-            <p>
-              Your shot drawn on the lane, from the laydown through the arrows
-              to the breakpoint and into the pocket. Drag it to try a move
-              before you throw it.
-            </p>
+            <h2>Remember every line you threw.</h2>
+            <p>Your line over the oil pattern. Drag it to try a move.</p>
           </div>
           <figure>
             <a class="shot-link" href="/shots/line.webp" aria-label="View the lane view larger"><div class="phone phone-dark"><div class="screen">
               <img src="/shots/line.webp" width="780" height="1688" loading="lazy"
-                alt="The Headpin lane view, with a ball path from the laydown through the target arrows to the breakpoint and into the pocket." />
+                alt="The Headpin lane view, with a ball path from the laydown through the target arrows to the breakpoint and into the pocket, drawn over an oil pattern." />
             </div></div></a>
           </figure>
         </article>
-
         <article class="step">
           <div class="copy">
-            <span class="num">3</span>
-            <h3>Know what worked.</h3>
-            <p>
-              Your average, strikes, spares and pocket rate, game by game. See
-              which ball carries best and which leaves you keep missing.
-            </p>
+            <h2>See a layout before you drill it.</h2>
+            <p>Dual angle and Storm VLS, drawn on the ball from your PAP.</p>
+          </div>
+          <figure>
+            <a class="shot-link" href="/shots/layout.webp" aria-label="View the layouts screen larger"><div class="phone"><div class="screen">
+              <picture>
+                <source srcset="/shots/layout-light.webp" media="(prefers-color-scheme: light)" />
+                <img src="/shots/layout.webp" width="780" height="1688" loading="lazy"
+                  alt="The Headpin layouts screen with a drilled ball showing the pin, the PAP and the drilling and VAL angles." />
+              </picture>
+            </div></div></a>
+          </figure>
+        </article>
+        <article class="step">
+          <div class="copy">
+            <h2>Know what's working.</h2>
+            <p>Average, strike and spare rates, and how each ball carries.</p>
           </div>
           <figure>
             <a class="shot-link" href="/shots/stats.webp" aria-label="View the stats screen larger"><div class="phone"><div class="screen">
               <picture>
                 <source srcset="/shots/stats-light.webp" media="(prefers-color-scheme: light)" />
                 <img src="/shots/stats.webp" width="780" height="1688" loading="lazy"
-                  alt="The Headpin stats screen with average, strike and spare rates, a chart of average by session and each ball's pocket, carry and strike rates." />
+                  alt="The Headpin stats screen with games, high and low, average, strike and spare rates, a chart of average by session and each ball's pocket, carry and strike rates." />
               </picture>
             </div></div></a>
           </figure>
         </article>
-
-        <article class="step">
-          <div class="copy">
-            <span class="num">4</span>
-            <h3>Carry your whole bag.</h3>
-            <p>
-              Add your balls from a catalog of 250, with coverstock, core, RG
-              and differential already filled in.
-            </p>
-          </div>
-          <figure>
-            <a class="shot-link" href="/shots/arsenal.webp" aria-label="View the arsenal larger"><div class="phone"><div class="screen">
-              <picture>
-                <source srcset="/shots/arsenal-light.webp" media="(prefers-color-scheme: light)" />
-                <img src="/shots/arsenal.webp" width="780" height="1688" loading="lazy"
-                  alt="The Headpin arsenal listing five bowling balls with their coverstock, core, RG and differential." />
-              </picture>
-            </div></div></a>
-          </figure>
-        </article>
-
-        <article class="step">
-          <div class="copy">
-            <span class="num">5</span>
-            <h3>Ready when you walk in.</h3>
-            <p>
-              Your bag, your last sessions, spare lines, lane notes and oil
-              patterns, one tap from the first screen.
-            </p>
-          </div>
-          <figure>
-            <a class="shot-link" href="/shots/home.webp" aria-label="View the home screen larger"><div class="phone"><div class="screen">
-              <picture>
-                <source srcset="/shots/home-light.webp" media="(prefers-color-scheme: light)" />
-                <img src="/shots/home.webp" width="780" height="1688" loading="lazy"
-                  alt="The Headpin home screen with the bowler's arsenal, recent sessions and shortcuts to spare lines, lane notes and oil patterns." />
-              </picture>
-            </div></div></a>
-          </figure>
-        </article>
-      </section>
-
-      <section class="features wrap" aria-labelledby="more">
-        <h2 class="section-title" id="more">The rest of what it keeps track of.</h2>
-        <div class="grid">
-          <div class="card">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 20c2-6 6-12 14-16"/><circle cx="19" cy="4" r="1.5"/></svg>
-            <h4>Spare lines</h4>
-            <p>A stance and target for every leave, filled in when you leave it.</p>
-          </div>
-          <div class="card">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 20V8M9 20V4M14 20v-9M19 20v-6"/></svg>
-            <h4>Oil patterns</h4>
-            <p>See where the oil sits on the lane, from a catalog of patterns.</p>
-          </div>
-          <div class="card">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="8"/><circle cx="9" cy="10" r="1.2"/><circle cx="13" cy="9" r="1.2"/><circle cx="11" cy="13.5" r="1.4"/></svg>
-            <h4>Ball layouts</h4>
-            <p>Dual angle and Storm VLS layouts drawn on your PAP.</p>
-          </div>
-          <div class="card">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 3h9l3 3v15H6z"/><path d="M9 10h6M9 14h6M9 18h4"/></svg>
-            <h4>Lane notes</h4>
-            <p>What the pair did last time, kept with the alley.</p>
-          </div>
-          <div class="card">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 14v6h14v-6"/></svg>
-            <h4>Share a game</h4>
-            <p>Send your card as a picture to the group chat.</p>
-          </div>
-          <div class="card">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="7" y="2.5" width="10" height="19" rx="2.5"/><path d="M10.5 18.5h3"/></svg>
-            <h4>Stays on your phone</h4>
-            <p>There's no account. Your games live on your phone, and you can back them up to a file whenever you like.</p>
-          </div>
-        </div>
       </section>
 
       <section class="install wrap" aria-labelledby="install">
@@ -942,7 +773,6 @@
           Open Headpin
           <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10h11M11 5l5 5-5 5"/></svg>
         </a>
-        <p class="cta-note">It's free, and there's nothing to sign up for.</p>
       </div>
     </section>
 
@@ -952,7 +782,7 @@
     </footer>
 
     <div class="sticky" id="sticky" aria-hidden="true">
-      <span>Headpin<small>Free, no sign-up</small></span>
+      <span>Headpin<small>Free. Works offline.</small></span>
       <a class="cta" href="/score" tabindex="-1">Open Headpin</a>
     </div>
 
