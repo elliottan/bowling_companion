@@ -158,6 +158,8 @@ interface FilterParts {
   event: string;
   gameNumber: number | null;
   lanes: string[];
+  /** The Stats tab's window ("Last 10", "Season"), absent on All. */
+  range?: string;
 }
 
 /**
@@ -165,7 +167,7 @@ interface FilterParts {
  * unfiltered card says so rather than pretending to a scope it does not have.
  */
 export function describeFilter(parts: FilterParts): string {
-  const named = [parts.alley, parts.pattern, parts.event].filter((p) => p.trim() !== "");
+  const named = [parts.range ?? "", parts.alley, parts.pattern, parts.event].filter((p) => p.trim() !== "");
   if (parts.gameNumber !== null) named.push(`Game ${parts.gameNumber}`);
   if (parts.lanes.length > 0) {
     named.push(`${parts.lanes.length === 1 ? "Lane" : "Lanes"} ${parts.lanes.join(", ")}`);

@@ -5925,3 +5925,53 @@ the spare ball.
   ball move is a tile on a row of each (`lineRows`), since those are the two
   answers the scorer swaps between. Nothing is stored for it: the rows are read
   from the leave's one record.
+
+
+## ADR-126: Stats leads with the average, and chips pick the chart
+
+**Status.** Accepted, 2026-10-09. Amends ADR-061b (the tiles were the chart
+picker) and ADR-062b (the chart header named the axis). The metric definitions
+of ADR-005 and ADR-124 are unchanged.
+
+**Context.** The Stats tab opened on eleven tiles in rows of four, three and
+four, all the same weight, so nothing on it read as the headline. The tiles were
+also the chart picker, which nothing on screen said: the selected tile looked
+like a highlight. The tile read 195 while the chart's dashed line read 192,
+because the tile was the mean of the games and the line the mean of the
+nights. Every number was over the whole history, so none of them said whether
+the bowler was getting better. Pocket, carry and strike sat in three tiles
+though they are one chain, and the ball table needed its column letters decoded
+before it said which ball struck.
+
+**Decision.**
+
+- **The average leads**, large, with High, Low and Games under it.
+- **Recent form sits under it as a sentence**: the game average over the last
+  five scored sessions, and how far above or under the scope's average it is
+  (`calculateRecentForm`). Both sides come from `calculateStats`. It is shown
+  only with ten or more scored sessions in scope, and it is never red.
+- **The chart picker is a row of chips** in the chart card, one per metric,
+  exactly one pressed. Eight options do not fit a segmented track, so the row
+  scrolls. The info control for the picked metric stays at the row's end.
+- **The dashed line on the session chart is the game average**, the number in
+  the headline, not the mean of the nights drawn.
+- **A First ball card** reads pocket, carry and strike as a chain, with first
+  ball pins, strike on strike and best streak around it.
+- **A Spares card** gives spare % and the three makeable leaves missed most.
+  Every leave, in its three groups, is behind All leaves.
+- **Balls are ranked by strike %**, one number and a bar per ball. A ball under
+  `RATE_LEADER_MIN_BALLS` is greyed and listed after the rest. Pocket and carry
+  stay in the ball's own table, one tap down.
+- **A range control, Last 10 / Season / All**, sits at the top of the Stats tab.
+  Last 10 is the ten latest scored sessions; Season is everything since
+  1 August, when league seasons start, and before August it means last year's.
+  It is a window on top of the shared filters (ADR-057), read by Stats only:
+  History is already a list in date order. The share card names the window.
+
+**Consequences.**
+- Inside a session, Stats shows the same cards with no range and no recent form,
+  since there is nothing earlier to compare against.
+- `findRateLeaders` no longer drives anything on screen; it stays tested in
+  `lib/stats` for whoever needs a column leader next.
+- Season is a fixed date, not a setting. A bowler whose league starts in
+  January sees the wrong window until there is a case for making it one.

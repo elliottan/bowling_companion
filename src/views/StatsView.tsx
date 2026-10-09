@@ -21,11 +21,19 @@ import { buildStatsCard, describeFilter } from "../lib/shareCard";
 import { getBalls } from "../services/ballRepository";
 import { useLiveQuery } from "dexie-react-hooks";
 import { useHandedness } from "../lib/handednessContext";
-import { rememberScroll, restoreScroll } from "../lib/viewMemory";
 import { useSessionFilters } from "./useSessionFilters";
 import type { Ball } from "../types/bowling";
 import { ErrorBanner } from "../components/ErrorBanner";
 import { PushScreen } from "../components/PushScreen";
+import { SegmentedControl } from "../components/ui/SegmentedControl";
+import { rememberScroll, restoreScroll, useRememberedState } from "../lib/viewMemory";
+import { localDateKey } from "../lib/dates";
+import {
+  calculateRecentForm,
+  sessionsInRange,
+  STATS_RANGES,
+  type StatsRange
+} from "../lib/statsRange";
 
 interface StatsViewProps {
   onOpenSession: (sessionId: number) => void;
@@ -44,6 +52,14 @@ interface StatsViewProps {
 }
 
 const NO_BALLS: Ball[] = [];
+
+/** The window, as the share card names it. "Last 10" alone is a count of
+ *  nothing on a card seen out of context. */
+const RANGE_ON_CARD: Record<StatsRange, string | undefined> = {
+  last10: "Last 10 sessions",
+  season: "This season",
+  all: undefined
+};
 
 const EMPTY: BowlingStats = {
   totalSessions: 0,
@@ -69,7 +85,14 @@ export function StatsView({
   onBack
 }: StatsViewProps) {
   const filters = useSessionFilters();
-  const { filtered, activeLanes, isLoading } = filters;
+  const { activeLanes, isLoading } = filters;
+  // How far back to read, on top of the shared filters. Stats only: History
+  // is a list in date order and has no use for a window (ADR-126).
+  const [range, setRange] = useRememberedState<StatsRange>("stats:range", "all");
+  const filtered = useMemo(
+    () => sessionsInRange(filters.filtered, range, localDateKey(), activeLanes),
+    [filters.filtered, range, activeLanes]
+  );
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
   // Anchored to the control that opened it, so it needs that control's box.
@@ -94,6 +117,10 @@ export function StatsView({
     () => calculateSessionMetrics(filtered, activeLanes, handedness),
     [filtered, activeLanes, handedness]
   );
+  const form = useMemo(
+    () => calculateRecentForm(filtered, stats.averageScore, activeLanes, handedness),
+    [filtered, stats.averageScore, activeLanes, handedness]
+  );
   const ballPerformance = useMemo(
     () => calculateBallPerformance(filtered, balls, activeLanes, handedness),
     [filtered, balls, activeLanes, handedness]
@@ -111,10 +138,11 @@ export function StatsView({
           pattern: filters.pattern,
           event: filters.event,
           gameNumber: filters.gameNumber,
-          lanes: activeLanes
+          lanes: activeLanes,
+          range: RANGE_ON_CARD[range]
         })
       ),
-    [stats, filters.alley, filters.pattern, filters.event, filters.gameNumber, activeLanes]
+    [stats, filters.alley, filters.pattern, filters.event, filters.gameNumber, activeLanes, range]
   );
 
   const scrollerRef = useRef<HTMLDivElement | null>(null);
@@ -164,6 +192,19 @@ export function StatsView({
               Your sessions could not be read. Reload the app, then try again.
             </ErrorBanner>
           )}
+          {/* Hidden until there is something to narrow: on a device with no
+              games the empty state is the whole screen. */}
+          {filters.filtered.length > 0 && (
+            <div className="mb-3">
+              <SegmentedControl
+                label="Sessions counted"
+                options={STATS_RANGES}
+                value={range}
+                onChange={setRange}
+                dense
+              />
+            </div>
+          )}
           <Stats
             stats={isLoading ? EMPTY : stats}
             isLoading={isLoading}
@@ -172,6 +213,15 @@ export function StatsView({
             sessionTrend={sessionTrend}
             sessionMetrics={sessionMetrics}
             memoryKey="history"
+            form={form}
+            empty={
+              range === "season" && filters.filtered.length > 0
+                ? {
+                    title: "Nothing this season yet",
+                    description: "The season starts on 1 August. Your games from before then are under All."
+                  }
+                : undefined
+            }
             // "Game by game" and "Open frames" sat here too. Both are hidden
             // until they are worth opening: their screens and routes still
             // exist (`game-trend`, `open-frames`), only the rows are gone.

@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { Stats } from "./Stats";
 import { clearViewMemory } from "../lib/viewMemory";
 import type { BallPerformanceReport, BowlingStats, LeaveStats } from "../lib/stats";
@@ -70,21 +70,74 @@ const SESSION_TREND = [
   { sessionId: 2, date: "2026-06-14", alley: "Sea Bowl", average: 180, scores: [170, 180, 190] }
 ];
 
-describe("the headline tiles", () => {
-  it("names the high and low game, each as a number over its label", () => {
+describe("the headline", () => {
+  it("leads with the average, and names the high, low and games under it", () => {
     render(<Stats stats={{ ...STATS, highGame: 211, lowGame: 134 }} />);
-    expect(screen.getByText("211").nextElementSibling).toHaveTextContent("High");
-    expect(screen.getByText("134").nextElementSibling).toHaveTextContent("Low");
+    expect(screen.getByRole("heading", { name: "Average" }).nextElementSibling).toHaveTextContent("200");
+    expect(screen.getByText("211").previousElementSibling).toHaveTextContent("High");
+    expect(screen.getByText("134").previousElementSibling).toHaveTextContent("Low");
+    expect(screen.getByText("Games").nextElementSibling).toHaveTextContent("1");
+  });
+
+  it("says nothing about recent form when it is not given", () => {
+    render(<Stats stats={STATS} />);
+    expect(screen.queryByText(/over your last/)).toBeNull();
+  });
+
+  it("reads the last five sessions against the average", () => {
+    render(<Stats stats={STATS} form={{ average: 207, difference: 7 }} />);
+    expect(screen.getByText(/over your last 5 sessions, 7 above your average/)).toBeInTheDocument();
+  });
+
+  it("says when they are under it, without colouring it as a failure", () => {
+    render(<Stats stats={STATS} form={{ average: 188, difference: -12 }} />);
+    const line = screen.getByText(/over your last 5 sessions, 12 under your average/);
+    expect(line.closest("p")!.innerHTML).not.toMatch(/danger/);
+  });
+
+  it("says when they are level", () => {
+    render(<Stats stats={STATS} form={{ average: 200, difference: 0 }} />);
+    expect(screen.getByText(/level with your average/)).toBeInTheDocument();
+  });
+
+  it("says why it is empty when the caller knows", () => {
+    render(
+      <Stats
+        stats={{ ...STATS, totalGames: 0 }}
+        empty={{ title: "Nothing this season yet", description: "Before then is under All." }}
+      />
+    );
+    expect(screen.getByText("Nothing this season yet")).toBeInTheDocument();
+  });
+});
+
+describe("the first ball", () => {
+  it("reads pocket, carry and strike as one chain", () => {
+    render(<Stats stats={STATS} />);
+    const terms = screen
+      .getByRole("heading", { name: "First ball" })
+      .closest("section")!
+      .querySelectorAll("dt");
+    expect([...terms].map((t) => t.textContent)).toEqual([
+      "Pocket",
+      "Carry",
+      "Strike",
+      "Strike on strike",
+      "Best streak"
+    ]);
+    expect(screen.getByText("Pocket").nextElementSibling).toHaveTextContent("90%");
+    expect(screen.getByText("Carry").nextElementSibling).toHaveTextContent("67%");
   });
 });
 
 describe("strike on strike and the best streak", () => {
-  it("sits with the strikes, and explains itself from the chart it plots", () => {
+  it("sits with the first ball, and explains itself from the chart it plots", () => {
     render(<Stats stats={STATS} sessionMetrics={TREND} sessionTrend={SESSION_TREND} />);
-    expect(screen.getByRole("button", { name: /47% Strike on strike/ })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /4 Best streak/ })).toBeInTheDocument();
+    const card = screen.getByRole("heading", { name: "First ball" }).closest("section")!;
+    expect(within(card).getByText("Strike on strike").nextElementSibling).toHaveTextContent("47%");
+    expect(within(card).getByText("Best streak").nextElementSibling).toHaveTextContent("4");
 
-    fireEvent.click(screen.getByRole("button", { name: /Strike on strike/ }));
+    fireEvent.click(screen.getByRole("button", { name: "Strike on strike" }));
     fireEvent.click(screen.getByRole("button", { name: /What Strike on strike counts/ }));
     expect(screen.getByText(/strikes that the next ball struck too/i)).toBeInTheDocument();
   });
@@ -93,27 +146,34 @@ describe("strike on strike and the best streak", () => {
 describe("picking what the chart plots", () => {
   it("starts on the average", () => {
     render(<Stats stats={STATS} sessionMetrics={TREND} sessionTrend={SESSION_TREND} />);
-    expect(screen.getByRole("button", { name: /Avg/, pressed: true })).toBeInTheDocument();
-    expect(screen.getByText(/Avg by\s+session/)).toBeInTheDocument();
+    expect(screen.getByRole("group", { name: "Chart by session" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Average", pressed: true })).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: /^Average by session/ })).toBeInTheDocument();
   });
 
-  it("moves the chart to whichever tile is tapped", () => {
+  it("moves the chart to whichever chip is tapped, one at a time", () => {
     render(<Stats stats={STATS} sessionMetrics={TREND} sessionTrend={SESSION_TREND} />);
 
-    fireEvent.click(screen.getByRole("button", { name: /Carry/ }));
-    expect(screen.getByText(/Carry by\s+session/)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Carry/, pressed: true })).toBeInTheDocument();
-    // Only one at a time.
-    expect(screen.getByRole("button", { name: /Avg/, pressed: false })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Carry" }));
+    expect(screen.getByRole("button", { name: "Carry", pressed: true })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Average", pressed: false })).toBeInTheDocument();
+    expect(screen.getAllByRole("button", { pressed: true })).toHaveLength(1);
+    expect(screen.getByRole("button", { name: "Sea Bowl, 67%" })).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("button", { name: /Pocket/ }));
-    expect(screen.getByText(/Pocket by\s+session/)).toBeInTheDocument();
-    expect(screen.queryByText(/Carry by\s+session/)).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Pocket" }));
+    expect(screen.getByRole("button", { name: "Sea Bowl, 90%" })).toBeInTheDocument();
+  });
+
+  it("marks the game average with the dashed line, not the mean of the nights", () => {
+    // Nights of 200 and 180 average 190; the games behind the headline say 200.
+    render(<Stats stats={STATS} sessionMetrics={TREND} sessionTrend={SESSION_TREND} />);
+    expect(screen.getByText("avg 200")).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: /Overall average 200\./ })).toBeInTheDocument();
   });
 
   it("plots the value each night actually had", () => {
     render(<Stats stats={STATS} sessionMetrics={TREND} sessionTrend={SESSION_TREND} />);
-    fireEvent.click(screen.getByRole("button", { name: /Strike$/ }));
+    fireEvent.click(screen.getByRole("button", { name: "Strike" }));
     // 60 on the first night, 40 on the second, read off the same stats block
     // the tiles are read from.
     const plotted = screen
@@ -124,7 +184,7 @@ describe("picking what the chart plots", () => {
 
   it("explains the plotted stat from the chart, not the tile", () => {
     render(<Stats stats={STATS} sessionMetrics={TREND} sessionTrend={SESSION_TREND} />);
-    fireEvent.click(screen.getByRole("button", { name: /Carry/ }));
+    fireEvent.click(screen.getByRole("button", { name: "Carry" }));
     expect(screen.queryByText(/pocket hits that struck/i)).toBeNull();
 
     fireEvent.click(screen.getByRole("button", { name: /What Carry counts/ }));
@@ -137,7 +197,7 @@ describe("picking what the chart plots", () => {
   it("offers no explanation for a stat whose label already says it", () => {
     render(<Stats stats={STATS} sessionMetrics={TREND} sessionTrend={SESSION_TREND} />);
     for (const named of ["Pocket", "Strike", "1st ball"]) {
-      fireEvent.click(screen.getByRole("button", { name: new RegExp(`${named}$`) }));
+      fireEvent.click(screen.getByRole("button", { name: named }));
       // No dangling info control, because there is nothing behind it.
       expect(screen.queryByRole("button", { name: `What ${named} counts` })).toBeNull();
     }
@@ -145,16 +205,38 @@ describe("picking what the chart plots", () => {
 });
 
 describe("stat definitions", () => {
-  it("puts pocket, carry and strike on the ball's own row, with the ball count", () => {
+  it("gives a ball one number, its strike rate, with the balls behind it", () => {
     render(<Stats stats={STATS} ballPerformance={REPORT} />);
 
-    // Under the P / C / S / Balls headings, in that order.
     const row = screen.getByText("Wolverine").closest("button")!;
-    expect(row).toHaveTextContent(/100%\s*75%\s*75%\s*12/);
-    expect(screen.getByLabelText("pocket 100%")).toBeInTheDocument();
-    expect(screen.getByLabelText("carry 75%")).toBeInTheDocument();
+    expect(row).toHaveTextContent(/75%\s*12 balls/);
     expect(screen.getByLabelText("strike 75%")).toBeInTheDocument();
-    expect(screen.getByLabelText("12 balls")).toBeInTheDocument();
+    // Pocket and carry are one tap down.
+    expect(row).not.toHaveTextContent("100%");
+    fireEvent.click(row);
+    expect(screen.getByRole("row", { name: /Pocket/ })).toHaveTextContent("100%");
+  });
+
+  it("ranks the balls by strike rate, and puts a thin one last however it strikes", () => {
+    const ball = REPORT.balls[0];
+    render(
+      <Stats
+        stats={STATS}
+        ballPerformance={{
+          ...REPORT,
+          balls: [
+            { ...ball, ballId: 1, name: "Thin", firstBalls: 4, strikePct: 100 },
+            { ...ball, ballId: 2, name: "Steady", firstBalls: 40, strikePct: 45 },
+            { ...ball, ballId: 3, name: "Hot", firstBalls: 30, strikePct: 55 }
+          ]
+        }}
+      />
+    );
+    const names = screen
+      .getByRole("heading", { name: "Balls" })
+      .closest("section")!
+      .querySelectorAll("li .truncate");
+    expect([...names].map((n) => n.textContent)).toEqual(["Hot", "Steady", "Thin"]);
   });
 
   it("explains the rows of a ball's table", () => {
@@ -222,7 +304,7 @@ describe("the games behind a column", () => {
     expect(screen.getByLabelText("pocket 12 of 12, 100%")).toBeInTheDocument();
     expect(screen.getByLabelText("carry 7 of 12, 58%")).toBeInTheDocument();
     expect(screen.getByLabelText("strike 7 of 12, 58%")).toBeInTheDocument();
-    expect(screen.getByText("12 balls")).toBeInTheDocument();
+    expect(screen.getByRole("dialog")).toHaveTextContent("12 balls");
   });
 
   it("hands the ball to the caller, so the destination can light its shots up", async () => {
@@ -251,6 +333,36 @@ describe("leave cells", () => {
     sharePct: 6
   };
 
+  it("names the makeables missed most on the spares card, most misses first", () => {
+    const leave = (pins: number[], chances: number, conversions: number): LeaveStats => ({
+      pins: pins as LeaveStats["pins"],
+      attempts: chances,
+      chances,
+      conversions,
+      conversionPct: Math.round((conversions / chances) * 100),
+      sharePct: null
+    });
+    render(
+      <Stats
+        stats={STATS}
+        leaves={[
+          leave([10], 20, 18), // 2 missed
+          leave([7], 10, 4), // 6 missed
+          leave([3, 6, 10], 9, 5), // 4 missed
+          leave([2, 4, 5, 8], 3, 2), // 1 missed
+          leave([5], 5, 5), // never missed
+          leave([7, 10], 8, 0) // a split: not a spare you missed
+        ]}
+      />
+    );
+    const card = screen.getByRole("button", { name: "Spares" }).closest("section")!;
+    const shown = [...card.querySelectorAll("button[aria-label^='Open ']")].map((b) =>
+      b.getAttribute("aria-label")
+    );
+    expect(shown).toEqual(["Open Pin 7", "Open 3-6-10", "Open Pin 10"]);
+    expect(card).toHaveTextContent("80%");
+  });
+
   it("reads the rate off chances, and says nothing about the leaves that had none", () => {
     render(<Stats stats={STATS} leaves={[tenPin]} />);
     expect(screen.getByText("1/2")).toBeInTheDocument();
@@ -275,21 +387,22 @@ describe("leave cells", () => {
     expect(screen.queryByText("Makeables")).toBeNull();
   });
 
-  it("shows twelve makeables, and the rest behind View all", async () => {
+  it("lists every leave, grouped, behind All leaves", async () => {
     const singles: LeaveStats[] = [];
     // Thirteen makeable leaves: every single pin, then three baby splits.
     const pinsList = [[1], [2], [3], [4], [5], [6], [7], [8], [9], [10], [2, 7], [3, 10], [4, 5]];
     pinsList.forEach((pins, i) =>
       singles.push({ ...tenPin, pins: pins as LeaveStats["pins"], chances: 20 - i, attempts: 20 - i })
     );
-    render(<Stats stats={STATS} leaves={singles} />);
-    expect(screen.getAllByRole("button", { name: /^Open / })).toHaveLength(12);
-    // Fewest chances, so the one past the cut.
-    expect(screen.queryByRole("button", { name: "Open 4-5" })).toBeNull();
+    render(<Stats stats={STATS} leaves={[...singles, { ...tenPin, pins: [7, 10] }]} />);
+    // The card names three.
+    expect(screen.getAllByRole("button", { name: /^Open / })).toHaveLength(3);
 
-    fireEvent.click(screen.getByRole("button", { name: "View all makeables" }));
-    const sheet = await screen.findByRole("dialog", { name: "Makeables" });
-    expect(sheet.querySelectorAll("li")).toHaveLength(13);
+    fireEvent.click(screen.getByRole("button", { name: "All leaves" }));
+    const sheet = await screen.findByRole("dialog", { name: "Leaves" });
+    expect(sheet.querySelectorAll("li")).toHaveLength(14);
+    expect(sheet).toHaveTextContent("Makeables");
+    expect(sheet).toHaveTextContent("Splits");
   });
 
   it("opens a leave's details from its cell", async () => {
@@ -373,10 +486,17 @@ describe("leave cells", () => {
     expect(screen.getByText("12%")).toBeInTheDocument();
   });
 
-  it("explains the counts when the group heading is tapped", () => {
+  it("explains the counts when a group heading is tapped", async () => {
     render(<Stats stats={STATS} leaves={[tenPin]} />);
-    fireEvent.click(screen.getByText("Makeables"));
+    fireEvent.click(screen.getByRole("button", { name: "All leaves" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Makeables" }));
     expect(screen.getByText(/no spare to follow it/i)).toBeInTheDocument();
+  });
+
+  it("explains spare % from the card's heading", () => {
+    render(<Stats stats={STATS} leaves={[tenPin]} />);
+    fireEvent.click(screen.getByRole("button", { name: "Spares" }));
+    expect(screen.getByText(/excludes splits and washouts/i)).toBeInTheDocument();
   });
 });
 
@@ -410,11 +530,11 @@ describe("what stays open", () => {
 });
 
 describe("first ball average", () => {
-  it("sits with pocket and carry, and can be plotted like them", () => {
+  it("sits on the first ball card, and can be plotted like the rest", () => {
     render(<Stats stats={STATS} leaves={[]} sessionMetrics={TREND} sessionTrend={SESSION_TREND} />);
-    expect(screen.getByText("8.4")).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: /1st ball/ }));
-    expect(screen.getByText(/1st ball by\s+session/)).toBeInTheDocument();
+    expect(screen.getByText("8.4").parentElement).toHaveTextContent("8.4 pins a ball");
+    fireEvent.click(screen.getByRole("button", { name: "1st ball" }));
+    expect(screen.getByRole("button", { name: "Sea Bowl, 8.9" })).toBeInTheDocument();
   });
 
   it("keeps the decimal on a whole number", () => {
@@ -424,7 +544,7 @@ describe("first ball average", () => {
 
   it("shows a dash when nothing has been thrown", () => {
     render(<Stats stats={{ ...STATS, firstBallAverage: null }} leaves={[]} />);
-    expect(screen.getByText("1st ball").previousSibling).toHaveTextContent("-");
+    expect(screen.getByText(/pins a ball/).parentElement).toHaveTextContent("- pins a ball");
   });
 });
 
@@ -453,14 +573,14 @@ describe("inside a session, the picker drives the per-game chart", () => {
 
   it("keeps the score line for the average, and says these are games", () => {
     render(<Stats stats={STATS} games={GAMES} gameMetrics={GAME_METRICS} />);
-    expect(screen.getByText(/Avg by\s+game/)).toBeInTheDocument();
+    expect(screen.getByRole("group", { name: "Chart by game" })).toBeInTheDocument();
     // The score line names games, not nights.
     expect(screen.getByRole("button", { name: /Game 1/ })).toBeInTheDocument();
   });
 
   it("swaps to one point per game for any other stat", () => {
     render(<Stats stats={STATS} games={GAMES} gameMetrics={GAME_METRICS} />);
-    fireEvent.click(screen.getByRole("button", { name: /Strike$/ }));
+    fireEvent.click(screen.getByRole("button", { name: "Strike" }));
 
     const plotted = screen
       .getAllByRole("button", { name: /^Game \d, \d+%$/ })
@@ -470,7 +590,7 @@ describe("inside a session, the picker drives the per-game chart", () => {
 
   it("plots a game that has no score yet, and breaks the average line at it", () => {
     render(<Stats stats={STATS} games={GAMES} gameMetrics={GAME_METRICS} />);
-    fireEvent.click(screen.getByRole("button", { name: /Carry/ }));
+    fireEvent.click(screen.getByRole("button", { name: "Carry" }));
     // Carry exists for the unfinished game; the average would not.
     expect(screen.getByRole("button", { name: "Game 3, 80%" })).toBeInTheDocument();
   });
@@ -479,7 +599,7 @@ describe("inside a session, the picker drives the per-game chart", () => {
     render(
       <Stats stats={STATS} games={GAMES} gameMetrics={GAME_METRICS} sessionMetrics={TREND} />
     );
-    fireEvent.click(screen.getByRole("button", { name: /Pocket/ }));
+    fireEvent.click(screen.getByRole("button", { name: "Pocket" }));
     expect(screen.queryByRole("button", { name: /Sea Bowl, \d+%/ })).toBeNull();
   });
 });

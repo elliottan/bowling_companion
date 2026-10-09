@@ -10,6 +10,9 @@ interface SessionTrendChartProps {
   header?: ReactNode;
   /** Open the session a selected point belongs to. */
   onOpenSession?: (sessionId: number) => void;
+  /** The average the dashed line marks: the game average the headline shows
+   *  (ADR-126). Without it, the mean of the nights drawn. */
+  overall?: number | null;
 }
 
 /** Half a band of headroom around the scores, so a point never sits on the edge. */
@@ -38,7 +41,7 @@ const shortDate = (iso: string) => iso.slice(5).replace("-", "/");
  * the spread visible, which an average alone hides: a 170/240 night and two
  * 205s average the same.
  */
-export function SessionTrendChart({ sessions, header, onOpenSession }: SessionTrendChartProps) {
+export function SessionTrendChart({ sessions, header, onOpenSession, overall }: SessionTrendChartProps) {
   // Which point the reader is asking about. A chart of averages answers "how
   // am I going"; the follow-up is always "which night was that", so a tap
   // names it and a tap on the answer goes there.
@@ -54,7 +57,10 @@ export function SessionTrendChart({ sessions, header, onOpenSession }: SessionTr
   const everyScore = points.flatMap((p) => p.scores);
   const high = Math.max(...averages);
   const low = Math.min(...averages);
-  const avg = averages.reduce((a, b) => a + b, 0) / averages.length;
+  // The mean of the games, not of the nights: a three-game night and a
+  // six-game night are not worth the same, and the line once read 192 under a
+  // headline of 195 for exactly that reason.
+  const avg = overall ?? averages.reduce((a, b) => a + b, 0) / averages.length;
   const top = Math.max(Math.max(...everyScore) + PAD, avg + MIN_HALF_RANGE);
   const bottom = Math.min(Math.min(...everyScore) - PAD, avg - MIN_HALF_RANGE);
   const span = top - bottom;

@@ -1,5 +1,5 @@
-import { BarChart3, ChevronDown } from "lucide-react";
-import { useState, type ReactNode } from "react";
+import { ArrowRight, BarChart3, ChevronDown, TrendingDown, TrendingUp } from "lucide-react";
+import { Fragment, useState } from "react";
 import { createPortal } from "react-dom";
 import { useRememberedState } from "../lib/viewMemory";
 import { CatalogBallImage } from "./CatalogBallImage";
@@ -8,12 +8,11 @@ import { LoadingCard } from "./ui/LoadingCard";
 import { EmptyState } from "./ui/EmptyState";
 import { IconButton } from "./ui/IconButton";
 import type { Manufacturer } from "../types/catalog";
-import { formatLeave, SPARE_GROUP_LABEL, SPARE_GROUPS, spareGroup, type SpareGroup } from "../lib/pins";
+import { formatLeave, SPARE_GROUP_LABEL, SPARE_GROUPS, spareGroup } from "../lib/pins";
 import { SpareDetailsSheet } from "./SpareDetailsSheet";
 import { FormSheet } from "./ui/FormSheet";
-import { TAP_TARGET_44 } from "./ui/Chip";
+import { Chip, TAP_TARGET_44 } from "./ui/Chip";
 import {
-  findRateLeaders,
   RATE_LEADER_MIN_BALLS,
   type BallGameCell,
   type BallPerformance,
@@ -21,7 +20,6 @@ import {
   type BowlingStats,
   type GameMetricPoint,
   type LeaveStats,
-  type RateLeaders,
   type SessionMetricPoint,
   type SessionTrendPoint
 } from "../lib/stats";
@@ -31,22 +29,19 @@ import { SessionTrendChart } from "./SessionTrendChart";
 import { MetricTrendChart } from "./MetricTrendChart";
 import { Info } from "lucide-react";
 import type { Game } from "../types/bowling";
+import { RECENT_SESSIONS, type RecentForm } from "../lib/statsRange";
 import { GROUP_HEADING } from "./ui/typography";
 
-/** One numeric column: wide enough for "100%", right-aligned so the digits
- *  line up down the card. */
-const RATE_COLUMN = "w-9 shrink-0 text-right";
-
-/** The stats a tile can put on the chart, and how each one is drawn.
+/** The stats the chart can plot, and how each one is drawn.
  *
  *  Every value is read off a `BowlingStats` that `calculateStats` produced, so
- *  the point on the line and the number on the tile are the same call and
+ *  the point on the line and the number on the card are the same call and
  *  cannot drift (ADR-061b). `min`/`max` are the bounds the metric cannot leave;
  *  `minSpan` is the smallest range the chart will draw, so a tidy run does not
  *  get magnified into a cliff. */
 const METRICS = {
   average: {
-    label: "Avg",
+    label: "Average",
     value: (s: BowlingStats) => s.averageScore,
     format: (v: number) => String(Math.round(v)),
     min: 0,
@@ -113,7 +108,7 @@ const METRICS = {
 
 export type MetricKey = keyof typeof METRICS;
 
-/** The metrics a picker can offer, in tile order. Exported so the Game-by-game
+/** The metrics a picker can offer, in chip order. Exported so the Game-by-game
  *  screen can build the same picker over the same specs (ADR-063b). */
 export const METRIC_KEYS = Object.keys(METRICS) as MetricKey[];
 
@@ -182,10 +177,12 @@ interface StatsProps {
   /** Names this screen's copy of what is expanded, so History and a session
    *  sheet remember their own. See `lib/viewMemory`. */
   memoryKey?: string;
-  /** Rendered directly under the metric tiles. The Stats tab puts its
-   *  drill-downs here: they belong with the numbers they break down, and the
-   *  screen's one header action is the share (DESIGN-LANGUAGE §1). */
-  underTiles?: ReactNode;
+  /** The last five sessions against the average, for the headline. Omitted
+   *  inside a session, where there is nothing earlier to read them against. */
+  form?: RecentForm | null;
+  /** What an empty screen says, where the reason is not "you have never
+   *  bowled": the Stats tab narrowed to a season with nothing in it yet. */
+  empty?: { title: string; description: string };
 }
 
 export function Stats({
@@ -201,7 +198,8 @@ export function Stats({
   onOpenSession,
   onOpenGameId,
   memoryKey = "stats",
-  underTiles
+  form,
+  empty
 }: StatsProps) {
   // One note at a time, opened by tapping the stat it explains. A definition
   // read once is enough, so it stays a tap rather than permanent copy.
@@ -209,12 +207,9 @@ export function Stats({
 
   const toggleNote = (text: string) => setNote((curr) => (curr === text ? null : text));
 
-  // A leave opened from its cell, and a group opened whole from View all.
+  // A leave opened from its cell, and every leave opened from All leaves.
   const [openLeave, setOpenLeave] = useState<LeaveStats["pins"] | null>(null);
-  const [viewAll, setViewAll] = useState<SpareGroup | null>(null);
-
-  // Once for the card, not once per row.
-  const rateLeaders = findRateLeaders(ballPerformance?.balls ?? []);
+  const [allLeavesOpen, setAllLeavesOpen] = useState(false);
 
   // Which stat the chart is plotting. Remembered, so leaving the tab and
   // coming back does not silently drop you back on the average.
@@ -222,17 +217,30 @@ export function Stats({
   const [metricNoteOpen, setMetricNoteOpen] = useState(false);
   const spec = METRICS[metric];
 
-  // One header for either chart: what is plotted, and the definition behind an
-  // info control rather than printed under it.
+  // One header for either chart: the picker, then the definition of whatever
+  // it picked behind an info control rather than printed under it (ADR-126).
   const chartHeader = (
     <div className="mb-1">
-      <div className="flex items-center justify-between gap-2">
-        {/* The points are games inside a session sheet and nights or game slots
-            on the Stats tab, and the header has to say which. Where there is a
-            choice, the "by …" half of it is the control. */}
-        <h2 className={GROUP_HEADING}>
-          {spec.label} by {gameMetrics ? "game" : "session"}
-        </h2>
+      <div className="flex items-center gap-1">
+        <div
+          role="group"
+          aria-label={`Chart by ${gameMetrics ? "game" : "session"}`}
+          className="-mx-1 flex min-w-0 flex-1 gap-1.5 overflow-x-auto overscroll-x-contain px-1 py-1"
+        >
+          {METRIC_KEYS.map((key) => (
+            <Chip
+              key={key}
+              selected={key === metric}
+              onClick={() => {
+                setMetric(key);
+                setMetricNoteOpen(false);
+              }}
+              className="shrink-0"
+            >
+              {METRICS[key].label}
+            </Chip>
+          ))}
+        </div>
         {METRIC_NOTE[metric] && (
           <IconButton
             label={`What ${spec.label} counts`}
@@ -255,80 +263,25 @@ export function Stats({
     return (
       <EmptyState
         icon={BarChart3}
-        title="No stats yet"
-        description="One finished game is enough to start. Strike rate, spare conversions and average come from there."
+        title={empty?.title ?? "No stats yet"}
+        description={
+          empty?.description ??
+          "One finished game is enough to start. Strike rate, spare conversions and average come from there."
+        }
       />
     );
   }
 
+  // Only leaves a ball could follow. These are about converting, and a leave
+  // off the last ball of the 10th has no spare to convert: it used to sit here
+  // as a bare "0/0" with a "+1" beside it explaining why. The frequency it was
+  // reported for is on the ball's own leaves.
+  const convertible = (leaves ?? []).filter((l) => l.chances > 0);
+  const missedMost = mostMissed(convertible);
+
   return (
     <div className="space-y-3">
-      {/* Three rows, grouped by what they say. Scores first (what happened:
-          games, the best and worst, the average), then the strikes (how often,
-          how often back to back, the longest run), then everything else about
-          the ball and the spares. The four-wide rows hold short labels, and the
-          three-wide one holds the long ones. */}
-      <div className="grid grid-cols-4 gap-1.5">
-        <Tile label="Games" value={String(stats.completedGames)} />
-        <Tile label="High" value={fmt(stats.highGame)} />
-        <Tile label="Low" value={fmt(stats.lowGame)} />
-        <MetricTile
-          metric="average"
-          value={fmt(stats.averageScore)}
-          selected={metric === "average"}
-          onSelect={setMetric}
-        />
-      </div>
-
-      <div className="grid grid-cols-3 gap-1.5">
-        <MetricTile
-          metric="strikePct"
-          value={pct(stats.strikePct)}
-          selected={metric === "strikePct"}
-          onSelect={setMetric}
-        />
-        <MetricTile
-          metric="strikeOnStrikePct"
-          value={pct(stats.strikeOnStrikePct)}
-          selected={metric === "strikeOnStrikePct"}
-          onSelect={setMetric}
-        />
-        <MetricTile
-          metric="bestStreak"
-          value={fmt(stats.bestStreak)}
-          selected={metric === "bestStreak"}
-          onSelect={setMetric}
-        />
-      </div>
-
-      <div className="grid grid-cols-4 gap-1.5">
-        <MetricTile
-          metric="sparePct"
-          value={pct(stats.sparePct)}
-          selected={metric === "sparePct"}
-          onSelect={setMetric}
-        />
-        <MetricTile
-          metric="pocketPct"
-          value={pct(stats.pocketPct)}
-          selected={metric === "pocketPct"}
-          onSelect={setMetric}
-        />
-        <MetricTile
-          metric="carryPct"
-          value={pct(stats.carryPct)}
-          selected={metric === "carryPct"}
-          onSelect={setMetric}
-        />
-        <MetricTile
-          metric="firstBallAverage"
-          value={oneDp(stats.firstBallAverage)}
-          selected={metric === "firstBallAverage"}
-          onSelect={setMetric}
-        />
-      </div>
-
-      {underTiles}
+      <Headline stats={stats} form={form} />
 
       {/* Inside a session the score line IS the average, so it answers to the
           picker like everything else. On the Stats tab there are no games and
@@ -374,6 +327,7 @@ export function Stats({
             <SessionTrendChart
               sessions={sessionTrend}
               header={chartHeader}
+              overall={stats.averageScore}
               onOpenSession={onOpenSession}
             />
           )
@@ -405,99 +359,242 @@ export function Stats({
             />
           ))}
 
-      {/* The leave note is rendered down with the leave cards it explains, so
-          the answer lands where the tap was. */}
-      {note && note !== LEAVE_NOTE && <StatNote text={note} onDismiss={() => setNote(null)} />}
+      <FirstBallCard stats={stats} />
 
-      {ballPerformance && ballPerformance.balls.length > 0 && (
-        <div className="rounded-xl border border-edge bg-surface p-3 shadow-sm">
-          <h2 className={GROUP_HEADING}>Ball performance</h2>
-          {/* Column headings on their own line, at the widths every ball row
-              below uses, so each rate sits under the letter that names it.
-              The heading above them is too long to share the line. */}
-          <div className="flex items-center gap-2 pb-1 pt-1.5 text-[10px] font-bold uppercase tracking-wide text-ink-tertiary">
-            <span className="h-3 w-7 shrink-0" aria-hidden="true" />
-            <span className="min-w-0 flex-1" aria-hidden="true" />
-            {[["P", "Pocket"], ["C", "Carry"], ["S", "Strike"]].map(([label, full]) => (
-              <span key={label} className={RATE_COLUMN} title={full}>
-                <abbr title={full} className="no-underline">{label}</abbr>
-              </span>
-            ))}
-            <span className={RATE_COLUMN}>Balls</span>
-            <span className="w-3.5 shrink-0" aria-hidden="true" />
+      {(stats.sparePct !== null || convertible.length > 0) && (
+        <section className="rounded-xl border border-edge bg-surface p-3 shadow-sm">
+          <div className="flex items-center justify-between gap-3">
+            <h2>
+              <button type="button" onClick={() => toggleNote(SPARE_NOTE)} className={GROUP_HEADING}>
+                Spares
+              </button>
+            </h2>
+            {convertible.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setAllLeavesOpen(true)}
+                className={`relative text-xs font-semibold text-accent active:opacity-60 ${TAP_TARGET_44}`}
+              >
+                All leaves
+              </button>
+            )}
           </div>
-          <div>
-            <ul className="divide-y divide-edge">
-              {ballPerformance.balls.map((b) => (
-                <BallPerformanceRow
-                  key={b.ballId}
-                  ball={b}
-                  leaders={rateLeaders}
-                  memoryKey={memoryKey}
-                  onOpenGame={onOpenGame}
-                />
-              ))}
-            </ul>
-          </div>
-        </div>
+          <p className="mt-1 flex items-baseline gap-2">
+            <span className="text-3xl font-bold tabular-nums text-ink">{pct(stats.sparePct)}</span>
+            <span className="text-sm text-ink-secondary">
+              {missedMost.length > 0 ? "made. Missed most:" : "made"}
+            </span>
+          </p>
+          {note === SPARE_NOTE && (
+            <div className="mt-2">
+              <StatNote text={SPARE_NOTE} onDismiss={() => setNote(null)} />
+            </div>
+          )}
+          {missedMost.length > 0 && (
+            <div className="mt-3">
+              <LeaveGrid leaves={missedMost} onOpen={setOpenLeave} />
+            </div>
+          )}
+        </section>
       )}
 
-      {(() => {
-        // Only leaves a ball could follow. These cards are about converting,
-        // and a leave off the last ball of the 10th has no spare to convert:
-        // it used to sit here as a bare "0/0" with a "+1" beside it explaining
-        // why. The frequency it was reported for is on the ball's own leaves.
-        const all = (leaves ?? []).filter((l) => l.chances > 0);
-        if (all.length === 0) return null;
-        // Three groups, easiest first: makeables (ordinary leaves), washouts
-        // (head pin standing with a gap behind it), and real splits.
-        const byGroup = (group: SpareGroup) => all.filter((l) => spareGroup(l.pins) === group);
-        const viewing = viewAll ? sortByChances(byGroup(viewAll)) : [];
-        return (
-          <>
-            {SPARE_GROUPS.map((group) => (
-              <LeaveSection
-                key={group}
-                title={SPARE_GROUP_LABEL[group]}
-                leaves={byGroup(group)}
-                limit={LEAVE_LIMIT[group]}
-                onExplain={() => toggleNote(LEAVE_NOTE)}
-                onViewAll={() => setViewAll(group)}
-                onOpen={setOpenLeave}
+      {ballPerformance && ballPerformance.balls.length > 0 && (
+        <section className="rounded-xl border border-edge bg-surface p-3 shadow-sm">
+          <div className="flex items-baseline justify-between gap-3">
+            <h2 className={GROUP_HEADING}>Balls</h2>
+            <span className="text-xs text-ink-tertiary">by strike %</span>
+          </div>
+          <ul className="mt-1 divide-y divide-edge">
+            {byStrikeRate(ballPerformance.balls).map((b) => (
+              <BallPerformanceRow
+                key={b.ballId}
+                ball={b}
+                memoryKey={memoryKey}
+                onOpenGame={onOpenGame}
               />
             ))}
-            {/* Portalled to the body: on the session sheet the stats sit
-                inside a panel that slides on a transform, and a transformed
-                ancestor makes `fixed` resolve against it, not the viewport. */}
-            {viewAll &&
-              createPortal(
-                <FormSheet
-                  title={SPARE_GROUP_LABEL[viewAll]}
-                  onClose={() => setViewAll(null)}
-                  size="tall"
-                  active={openLeave === null}
-                >
-                  <LeaveGrid leaves={viewing} onOpen={setOpenLeave} />
-                </FormSheet>,
-                document.body
-              )}
-            {openLeave &&
-              createPortal(
-                <SpareDetailsSheet
-                  pins={openLeave}
-                  leaves={all}
-                  onClose={() => setOpenLeave(null)}
-                />,
-                document.body
-              )}
-            {note === LEAVE_NOTE && (
-              <StatNote text={LEAVE_NOTE} onDismiss={() => setNote(null)} />
-            )}
-          </>
-        );
-      })()}
+          </ul>
+        </section>
+      )}
+
+      {/* Portalled to the body: on the session sheet the stats sit inside a
+          panel that slides on a transform, and a transformed ancestor makes
+          `fixed` resolve against it, not the viewport. */}
+      {allLeavesOpen &&
+        createPortal(
+          <FormSheet
+            title="Leaves"
+            onClose={() => setAllLeavesOpen(false)}
+            size="tall"
+            active={openLeave === null}
+          >
+            <div className="space-y-4">
+              {note === LEAVE_NOTE && <StatNote text={LEAVE_NOTE} onDismiss={() => setNote(null)} />}
+              {/* Three groups, easiest first: makeables (ordinary leaves),
+                  washouts (head pin standing with a gap behind it), and real
+                  splits. */}
+              {SPARE_GROUPS.map((group) => {
+                const inGroup = sortByChances(convertible.filter((l) => spareGroup(l.pins) === group));
+                if (inGroup.length === 0) return null;
+                return (
+                  <section key={group}>
+                    <h3 className="mb-2">
+                      <button type="button" onClick={() => toggleNote(LEAVE_NOTE)} className={GROUP_HEADING}>
+                        {SPARE_GROUP_LABEL[group]}
+                      </button>
+                    </h3>
+                    <LeaveGrid leaves={inGroup} onOpen={setOpenLeave} />
+                  </section>
+                );
+              })}
+            </div>
+          </FormSheet>,
+          document.body
+        )}
+      {openLeave &&
+        createPortal(
+          <SpareDetailsSheet
+            pins={openLeave}
+            leaves={convertible}
+            onClose={() => setOpenLeave(null)}
+          />,
+          document.body
+        )}
     </div>
   );
+}
+
+/**
+ * The one number the screen leads with (ADR-126): the average, large, with the
+ * last five sessions against it, and the high, low and games under it. Eleven
+ * tiles of equal weight used to sit here, and none of them read as the answer.
+ */
+function Headline({ stats, form }: { stats: BowlingStats; form?: RecentForm | null }) {
+  return (
+    <section className="rounded-xl border border-edge bg-surface p-4 shadow-sm">
+      <h2 className={GROUP_HEADING}>Average</h2>
+      <p className="mt-1 text-5xl font-bold leading-none tabular-nums text-ink">
+        {fmt(stats.averageScore)}
+      </p>
+      {form && <FormLine form={form} />}
+      <dl className="mt-3 grid grid-cols-3 border-t border-edge pt-3">
+        {(
+          [
+            ["High", fmt(stats.highGame)],
+            ["Low", fmt(stats.lowGame)],
+            ["Games", String(stats.completedGames)]
+          ] as const
+        ).map(([label, value]) => (
+          <div key={label} className="flex flex-col-reverse">
+            <dt className="text-xs text-ink-secondary">{label}</dt>
+            <dd className="text-lg font-bold tabular-nums text-ink">{value}</dd>
+          </div>
+        ))}
+      </dl>
+    </section>
+  );
+}
+
+/** Recent form, said as a sentence. Never in red: a slower month is something
+ *  to know, not something to be told off for. */
+function FormLine({ form }: { form: RecentForm }) {
+  const { average, difference } = form;
+  const Icon = difference > 0 ? TrendingUp : difference < 0 ? TrendingDown : null;
+  const against =
+    difference === 0
+      ? "level with your average"
+      : `${Math.abs(difference)} ${difference > 0 ? "above" : "under"} your average`;
+  return (
+    <p className="mt-2 flex items-start gap-1.5 text-sm text-ink-secondary">
+      {Icon && (
+        <Icon
+          size={16}
+          aria-hidden="true"
+          className={`mt-0.5 shrink-0 ${difference > 0 ? "text-accent" : "text-ink-tertiary"}`}
+        />
+      )}
+      <span>
+        <span className={`font-semibold tabular-nums ${difference > 0 ? "text-accent" : "text-ink"}`}>
+          {average}
+        </span>{" "}
+        over your last {RECENT_SESSIONS} sessions, {against}
+      </span>
+    </p>
+  );
+}
+
+/**
+ * Pocket, carry and strike as the chain they are: of the first balls, these hit
+ * the pocket, of those this many carried, and that is most of the strikes. As
+ * three separate tiles the relationship between them was lost, and it is the
+ * thing a bowler most needs from them: whether a low strike rate is a getting-
+ * there problem or a carrying problem. The arrows say "leads to", not "equals":
+ * a Brooklyn strike is a strike and not a pocket hit.
+ */
+function FirstBallCard({ stats }: { stats: BowlingStats }) {
+  const links: Array<[string, string, boolean]> = [
+    ["Pocket", pct(stats.pocketPct), false],
+    ["Carry", pct(stats.carryPct), false],
+    ["Strike", pct(stats.strikePct), true]
+  ];
+  return (
+    <section className="rounded-xl border border-edge bg-surface p-3 shadow-sm">
+      <div className="flex items-baseline justify-between gap-3">
+        <h2 className={GROUP_HEADING}>First ball</h2>
+        <span className="text-xs text-ink-secondary">
+          <span className="font-semibold tabular-nums text-ink">{oneDp(stats.firstBallAverage)}</span>{" "}
+          pins a ball
+        </span>
+      </div>
+      <dl className="mt-2 grid grid-cols-[1fr_auto_1fr_auto_1fr] items-center text-center">
+        {links.map(([label, value, lead], i) => (
+          <Fragment key={label}>
+            {i > 0 && <ArrowRight size={14} aria-hidden="true" className="text-ink-tertiary" />}
+            <div className="flex flex-col-reverse">
+              <dt className="text-[11px] font-semibold uppercase tracking-wide text-ink-secondary">{label}</dt>
+              <dd className={`text-2xl font-bold tabular-nums ${lead ? "text-accent" : "text-ink"}`}>{value}</dd>
+            </div>
+          </Fragment>
+        ))}
+      </dl>
+      <dl className="mt-3 flex justify-between gap-3 border-t border-edge pt-2 text-xs text-ink-secondary">
+        <div className="flex gap-1">
+          <dt>Strike on strike</dt>
+          <dd className="font-semibold tabular-nums text-ink">{pct(stats.strikeOnStrikePct)}</dd>
+        </div>
+        <div className="flex gap-1">
+          <dt>Best streak</dt>
+          <dd className="font-semibold tabular-nums text-ink">{fmt(stats.bestStreak)}</dd>
+        </div>
+      </dl>
+    </section>
+  );
+}
+
+/** How many leaves the Spares card names: one row of the grid. */
+const MISSED_MOST = 3;
+
+/** The makeable leaves missed most, most misses first, then most chances. A
+ *  split or a washout is a first ball you did not get rather than a spare you
+ *  missed (ADR-058), so neither leads the card. */
+function mostMissed(leaves: LeaveStats[]): LeaveStats[] {
+  const misses = (l: LeaveStats) => l.chances - l.conversions;
+  return leaves
+    .filter((l) => spareGroup(l.pins) === "makeable" && misses(l) > 0)
+    .sort((a, b) => misses(b) - misses(a) || b.chances - a.chances)
+    .slice(0, MISSED_MOST);
+}
+
+/** Balls with enough throws behind them by strike rate, best first; the thin
+ *  ones after, most thrown first, since a rate over a handful of balls ranks
+ *  nothing. */
+function byStrikeRate(balls: BallPerformance[]): BallPerformance[] {
+  const thick = balls.filter((b) => b.firstBalls >= RATE_LEADER_MIN_BALLS);
+  const thin = balls.filter((b) => b.firstBalls < RATE_LEADER_MIN_BALLS);
+  return [
+    ...thick.sort((a, b) => (b.strikePct ?? -1) - (a.strikePct ?? -1)),
+    ...thin.sort((a, b) => b.firstBalls - a.firstBalls)
+  ];
 }
 
 /** Tapped definition of a stat, dismissed by tapping it. */
@@ -515,33 +612,33 @@ function StatNote({ text, onDismiss }: { text: string; onDismiss: () => void }) 
 
 function BallPerformanceRow({
   ball,
-  leaders,
   memoryKey,
   onOpenGame
 }: {
   ball: BallPerformance;
-  leaders: RateLeaders;
   memoryKey: string;
   onOpenGame?: (sessionId: number, gameId: number, ballId?: number) => void;
 }) {
-  // A rate leads only if the ball has enough balls behind it to be in the
-  // running at all, so a thin row can never light up.
-  const eligible = ball.firstBalls >= RATE_LEADER_MIN_BALLS;
-  const leads = (value: number | null, best: number | null) =>
-    eligible && value !== null && value === best;
+  // A rate over a handful of balls is shown, and greyed: it ranks nothing.
+  const thin = ball.firstBalls < RATE_LEADER_MIN_BALLS;
   // Remembered per ball: a drill-down goes to a session, and coming back to a
   // collapsed row would lose the reader's place.
   const [open, setOpen] = useRememberedState(`${memoryKey}:ball:${ball.ballId}`, false);
   const [drilldown, setDrilldown] = useState<BallGameCell | null>(null);
   const [note, setNote] = useState<string | null>(null);
   return (
-    <li className="py-1.5">
+    <li className="py-2">
+      {/* One number per ball, the strike rate, with a bar to compare down the
+          card. Pocket and carry are one tap down, in the ball's own table: as
+          three columns of letters they had to be decoded before they said
+          which ball strikes. */}
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="flex w-full items-center gap-2 text-left text-sm"
+        aria-expanded={open}
+        className="flex w-full items-center gap-3 text-left text-sm"
       >
-        <span className="h-7 w-7 shrink-0">
+        <span className="h-8 w-8 shrink-0">
           {ball.imageThumb || ball.brand ? (
             <CatalogBallImage
               src={ball.imageThumb}
@@ -553,28 +650,27 @@ function BallPerformanceRow({
             <span className="block h-full w-full rounded-full bg-edge" aria-hidden="true" />
           )}
         </span>
-        <span className="min-w-0 flex-1 truncate font-medium text-ink-strong">{ball.name}</span>
-        {/* Pocket, carry, strike, then the balls behind them, each under the
-            letter that names it in the card heading. */}
-        <RateCell
-          value={ball.pocketPct}
-          leads={leads(ball.pocketPct, leaders.pocketPct)}
-          label="pocket"
-        />
-        <RateCell
-          value={ball.carryPct}
-          leads={leads(ball.carryPct, leaders.carryPct)}
-          label="carry"
-        />
-        <RateCell
-          value={ball.strikePct}
-          leads={leads(ball.strikePct, leaders.strikePct)}
-          label="strike"
-        />
-        <span className={`${RATE_COLUMN} text-xs tabular-nums text-ink-secondary`} aria-label={`${ball.firstBalls} balls`}>
-          {ball.firstBalls}
+        <span className="min-w-0 flex-1">
+          <span className="block truncate font-medium text-ink-strong">{ball.name}</span>
+          <span className="mt-1 block h-1 overflow-hidden rounded-full bg-surface-muted" aria-hidden="true">
+            <span
+              className={`block h-full rounded-full ${thin ? "bg-edge-strong" : "bg-accent-fill"}`}
+              style={{ width: `${ball.strikePct ?? 0}%` }}
+            />
+          </span>
         </span>
-        <ChevronDown size={14} aria-hidden="true" className={open ? "rotate-180" : ""} />
+        <span className="shrink-0 text-right">
+          <span
+            className={`block font-semibold tabular-nums ${thin ? "text-ink-tertiary" : "text-ink"}`}
+            aria-label={`strike ${pct(ball.strikePct)}`}
+          >
+            {pct(ball.strikePct)}
+          </span>
+          <span className="block text-[11px] tabular-nums text-ink-tertiary">
+            {ball.firstBalls} {ball.firstBalls === 1 ? "ball" : "balls"}
+          </span>
+        </span>
+        <ChevronDown size={14} aria-hidden="true" className={`shrink-0 text-ink-tertiary ${open ? "rotate-180" : ""}`} />
       </button>
 
       {open && (
@@ -707,56 +803,10 @@ function rateOf(made: number, opportunities: number): number | null {
   return Math.round((made / opportunities) * 100);
 }
 
-/** How many leaves each card shows before View all: four rows of makeables,
- *  one of washouts, three of splits. Most bowlers face a handful of washouts
- *  and a long tail of makeables, and the cards are sized to that. */
-const LEAVE_LIMIT: Record<SpareGroup, number> = { makeable: 12, washout: 3, split: 9 };
-
 /** Most-shot-at first, so the leaves with meaningful sample sizes lead. By
  *  chances rather than attempts, matching what the cells report. */
 function sortByChances(leaves: LeaveStats[]): LeaveStats[] {
   return [...leaves].sort((a, b) => b.chances - a.chances);
-}
-
-function LeaveSection({
-  title,
-  leaves,
-  limit,
-  onExplain,
-  onViewAll,
-  onOpen
-}: {
-  title: string;
-  leaves: LeaveStats[];
-  limit: number;
-  onExplain: () => void;
-  onViewAll: () => void;
-  onOpen: (pins: LeaveStats["pins"]) => void;
-}) {
-  if (leaves.length === 0) return null;
-  const sorted = sortByChances(leaves);
-  return (
-    <div className="rounded-xl border border-edge bg-surface p-3 shadow-sm">
-      <div className="mb-3 flex items-center justify-between gap-3">
-        <h2>
-          <button type="button" onClick={onExplain} className={GROUP_HEADING}>
-            {title}
-          </button>
-        </h2>
-        {sorted.length > limit && (
-          <button
-            type="button"
-            onClick={onViewAll}
-            aria-label={`View all ${title.toLowerCase()}`}
-            className={`relative text-xs font-semibold text-accent active:opacity-60 ${TAP_TARGET_44}`}
-          >
-            View all
-          </button>
-        )}
-      </div>
-      <LeaveGrid leaves={sorted.slice(0, limit)} onOpen={onOpen} />
-    </div>
-  );
 }
 
 /** Three to a row, not four. A tabular "100%" is 37px and "10/10" is 29px,
@@ -833,72 +883,6 @@ function LeaveCell({ leave, onOpen }: { leave: LeaveStats; onOpen: () => void })
         </span>
       </div>
     </button>
-  );
-}
-
-/** A stat tile that also picks what the chart plots (ADR-061b). `aria-pressed`
- *  rather than a tab role, matching every other selectable control here. */
-function MetricTile({
-  metric,
-  value,
-  selected,
-  onSelect
-}: {
-  metric: MetricKey;
-  value: ReactNode;
-  selected: boolean;
-  onSelect: (metric: MetricKey) => void;
-}) {
-  return (
-    <button
-      type="button"
-      aria-pressed={selected}
-      onClick={() => onSelect(metric)}
-      className={`w-full rounded-lg border px-1 py-2 text-center shadow-sm ${
-        selected ? "border-accent-fill bg-accent-soft" : "border-edge bg-surface"
-      }`}
-    >
-      <p className={`text-lg font-bold tabular-nums ${selected ? "text-accent" : "text-ink"}`}>
-        {value}
-      </p>
-      <p
-        className={`text-[10px] font-semibold uppercase tracking-wide ${
-          selected ? "text-accent" : "text-ink-secondary"
-        }`}
-      >
-        {METRICS[metric].label}
-      </p>
-    </button>
-  );
-}
-
-function Tile({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-xl border border-edge bg-surface px-1 py-2 text-center shadow-sm">
-      <p className="text-lg font-bold tabular-nums text-ink">{value}</p>
-      <p className="text-[10px] font-semibold uppercase tracking-wide text-ink-secondary">{label}</p>
-    </div>
-  );
-}
-
-/** One rate in the ball table. The best in its column is called out in the
- *  accent, and said out loud for anyone not reading the colour. */
-function RateCell({
-  value,
-  leads,
-  label
-}: {
-  value: number | null;
-  leads: boolean;
-  label: string;
-}) {
-  return (
-    <span
-      className={`${RATE_COLUMN} text-xs font-semibold tabular-nums ${leads ? "text-accent" : "text-ink"}`}
-      aria-label={`${label} ${pct(value)}${leads ? ", best" : ""}`}
-    >
-      {pct(value)}
-    </span>
   );
 }
 
