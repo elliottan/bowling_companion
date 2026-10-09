@@ -131,9 +131,21 @@ describe("SpareLinesView", () => {
   it("says a strike ball move as a direction, not a sign", async () => {
     await upsertSpareLine([7], { stance: 35, target: 20 }, undefined, { stance: 2, target: -1 });
     render(<SpareLinesView onBack={vi.fn()} />);
-    const card = await screen.findByRole("button", { name: "Open spare line for pins 7" });
-    expect(within(card).getByText("2 left")).toBeInTheDocument();
-    expect(within(card).getByText("1 right")).toBeInTheDocument();
+    const row = await screen.findByRole("region", { name: "Strike ball move" });
+    expect(within(row).getByText("2 left")).toBeInTheDocument();
+    expect(within(row).getByText("1 right")).toBeInTheDocument();
+  });
+
+  it("shows a leave with both a spare ball line and a strike ball move on a row of each", async () => {
+    await upsertSpareLine([7], { stance: 35, target: 20 }, undefined, { stance: 2, target: -1 });
+    render(<SpareLinesView onBack={vi.fn()} />);
+
+    const spare = await screen.findByRole("region", { name: "Stance 35, target 20" });
+    const move = await screen.findByRole("region", { name: "Strike ball move" });
+    expect(within(spare).getByRole("button", { name: "Open spare line for pins 7" })).toBeInTheDocument();
+    expect(within(move).getByRole("button", { name: "Open spare line for pins 7" })).toBeInTheDocument();
+    // The move is said once, in its own row's heading, not again on the tile.
+    expect(within(spare).queryByText("2 left")).not.toBeInTheDocument();
   });
 
   it("offers a line for the same shot, and Add opens it filled in to change before saving", async () => {

@@ -5921,3 +5921,7 @@ the spare ball.
   per-shot memory of what was typed for each ball was not added.
 - Swapping between two strike balls at a full rack is unchanged: each ball
   shows its own last line (`sameBallSeedLine`, ADR-052).
+- On the Spare lines screen a leave with both a spare ball line and a strike
+  ball move is a tile on a row of each (`lineRows`), since those are the two
+  answers the scorer swaps between. Nothing is stored for it: the rows are read
+  from the leave's one record.

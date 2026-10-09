@@ -60,6 +60,24 @@ describe("lineRows", () => {
     expect(lineRows([line(1, [7]), line(2, [10])], [])[0].line).toBeNull();
   });
 
+  it("puts a leave with both a spare ball line and a strike ball move on a row of each", () => {
+    const both: SpareLine = { ...line(1, [7], 35, 20), strike_offset: { stance: 2, target: -1 } };
+    const moveOnly: SpareLine = { id: 2, pins: [10] as PinNumber[], strike_offset: { stance: 2, target: -1 } };
+    const rows = lineRows([both, moveOnly], [seen([7], 5), seen([10], 2)]);
+
+    expect(rows.map((r) => [r.kind, r.key, r.tiles.map((t) => t.spareLine.id)])).toEqual([
+      ["line", "35|20", [1]],
+      ["move", "move:2|-1", [1, 2]]
+    ]);
+  });
+
+  it("carries a leave's record onto both of its rows", () => {
+    const both: SpareLine = { ...line(1, [7], 35, 20), strike_offset: { stance: 2 } };
+    const rows = lineRows([both], [seen([7], 4, 3, 67)]);
+    expect(rows).toHaveLength(2);
+    for (const row of rows) expect(row.tiles[0]).toMatchObject({ attempts: 4, conversionPct: 67 });
+  });
+
   it("takes a leave off a row once its boards change", () => {
     const rows = lineRows([line(1, [2, 4, 5, 8], 25, 12), line(2, [2, 4, 8], 26, 12)], []);
     expect(rows).toHaveLength(2);
