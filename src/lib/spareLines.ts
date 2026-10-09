@@ -45,13 +45,17 @@ export function describeMove(boards: number, handedness: Handedness): string {
   return `${Math.abs(boards)} ${side}`;
 }
 
-/** What two lines are compared by: the two boards a bowler acts on. The rest
- *  of the spec (hook, depth) is how it was drawn, not where to stand and aim. */
+/** What two spare ball lines are compared by: the two boards a bowler acts on.
+ *  The rest of the spec (hook, depth) is how it was drawn, not where to stand
+ *  and aim. */
 function boardsKey(sl: SpareLine): string | null {
-  if (hasLine(sl)) return `${sl.line?.stance ?? "-"}|${sl.line?.target ?? "-"}`;
-  // No boards, only a move: leaves with the same move are the same answer.
-  if (hasMove(sl)) return `move:${sl.strike_offset?.stance ?? "-"}|${sl.strike_offset?.target ?? "-"}`;
-  return null;
+  return hasLine(sl) ? `${sl.line?.stance ?? "-"}|${sl.line?.target ?? "-"}` : null;
+}
+
+/** What two strike ball moves are compared by: leaves with the same move are
+ *  the same answer. */
+function moveKey(sl: SpareLine): string | null {
+  return hasMove(sl) ? `move:${sl.strike_offset?.stance ?? "-"}|${sl.strike_offset?.target ?? "-"}` : null;
 }
 
 /** What the screen knows about one leave's record. */
@@ -74,7 +78,11 @@ export interface LineRowTile {
 export interface LineRow {
   /** The boards (or move) that make it one line; "none" for leaves with no answer. */
   key: string;
-  /** The line as it reads on the row. Null on the row of leaves with no line. */
+  /** What the row is about: a spare ball line (boards), a strike ball move, or
+   *  the leaves with neither. */
+  kind: "line" | "move" | "none";
+  /** A leave on the row, which the row's heading reads its line or move from.
+   *  Null on the row of leaves with no line. */
   line: SpareLine | null;
   tiles: LineRowTile[];
 }
@@ -96,12 +104,11 @@ const NO_LINE = "none";
 export function lineRows(lines: SpareLine[], leaves: LeaveRecord[]): LineRow[] {
   const record = new Map(leaves.map((l) => [leaveKey(l.pins), l]));
   const byKey = new Map<string, LineRow>();
-  for (const sl of lines) {
-    const key = boardsKey(sl) ?? NO_LINE;
+  const put = (key: string, kind: LineRow["kind"], sl: SpareLine) => {
     const seen = record.get(leaveKey(sl.pins));
     let row = byKey.get(key);
     if (!row) {
-      row = { key, line: key === NO_LINE ? null : sl, tiles: [] };
+      row = { key, kind, line: kind === "none" ? null : sl, tiles: [] };
       byKey.set(key, row);
     }
     row.tiles.push({
@@ -110,18 +117,29 @@ export function lineRows(lines: SpareLine[], leaves: LeaveRecord[]): LineRow[] {
       chances: seen?.chances ?? 0,
       conversionPct: seen?.conversionPct ?? null
     });
+  };
+  for (const sl of lines) {
+    // A leave with both a spare ball line and a strike ball move is on both
+    // rows, so each answer is where you look for it.
+    const boards = boardsKey(sl);
+    const move = moveKey(sl);
+    if (boards) put(boards, "line", sl);
+    if (move) put(move, "move", sl);
+    if (!boards && !move) put(NO_LINE, "none", sl);
   }
   const byLeave = (a: LineRowTile, b: LineRowTile) =>
     b.attempts - a.attempts || leaveKey(a.spareLine.pins).localeCompare(leaveKey(b.spareLine.pins), undefined, { numeric: true });
   const rows = [...byKey.values()];
   for (const row of rows) {
     row.tiles.sort(byLeave);
-    if (row.key !== NO_LINE) row.line = row.tiles[0].spareLine;
+    if (row.kind !== "none") row.line = row.tiles[0].spareLine;
   }
   return rows.sort((a, b) => {
     if (a.key === NO_LINE) return 1;
     if (b.key === NO_LINE) return -1;
-    return byLeave(a.tiles[0], b.tiles[0]) || b.tiles.length - a.tiles.length;
+    // The same leave tops a leave's two rows: the spare ball line reads first.
+    const kindRank = (r: LineRow) => (r.kind === "line" ? 0 : 1);
+    return byLeave(a.tiles[0], b.tiles[0]) || kindRank(a) - kindRank(b) || b.tiles.length - a.tiles.length;
   });
 }
 

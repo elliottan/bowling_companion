@@ -15,6 +15,23 @@ had all shipped.
 release offset and drift show as plain values, the drift zones as sentences.
 The pencil turns them into controls and the tick saves them.
 
+## 0.17.0: A spare ball starts from your strike ball's move (2026-10-09)
+
+**Swapping between your spare ball and your strike ball swaps the line.** At a
+leave, the spare ball opens on that leave's spare line. If the leave has none, it
+opens on the strike ball you just threw, on the line you threw it, moved by the
+leave's strike ball move. Pick the strike ball and you get the strike ball move;
+pick the spare ball again and the spare line is back. Strike balls already
+remembered their own lines at a full rack, and still do.
+
+**The line on a leave is called Spare ball line.** It used to say Shooting line.
+
+**A leave with both answers is on both rows.** On Spare lines, a leave that has a
+spare ball line and a strike ball move shows up under the line and under the
+move, so you find each where you look for it. The move is no longer repeated on
+the tile. The move row is headed Strike ball and reads on one line, grey names
+and white values, like the spare ball line.
+
 ## 0.16.0: The Alley report moves to Home, and the line picture goes behind an info button (2026-10-09)
 
 **The Alley report is in Tools and reference on Home.** It no longer sits in the

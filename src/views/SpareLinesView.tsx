@@ -19,8 +19,6 @@ import { calculateCommonLeaves, type LeaveStats } from "../lib/stats";
 import {
   askKey,
   describeMove,
-  hasLine,
-  hasMove,
   leaveKey,
   lineRows,
   matchesFilters,
@@ -33,6 +31,7 @@ import {
   spareLinesShown,
   suggestLineCopies,
   suggestionKey,
+  type LineRow,
   type LineRowTile,
   type LineSuggestion,
   type SpareFilter,
@@ -57,28 +56,6 @@ function DerivedChain({ line, model, inline = false }: { line: LineSpec; model: 
       {slide != null && `Slide ${slide}`}
       {slide != null && laydown != null && <span aria-hidden="true" className="text-ink-tertiary"> → </span>}
       {laydown != null && `Laydown ${laydown}`}
-    </div>
-  );
-}
-
-/** The strike-ball move, when one is set, in words: "2 left", not "-2". A
- *  signed number beside a card of absolute boards reads as a board, and the
- *  sign means a different side for each hand. A row for each board it
- *  moves, so a narrow tile never wraps a move in half. */
-function StrikeMove({ offset }: { offset?: SpareLine["strike_offset"] }) {
-  const handedness = useHandedness();
-  if (!offset || (!offset.stance && !offset.target)) return null;
-  return (
-    <div className="w-full text-accent">
-      <div className="text-[10px] font-semibold uppercase tracking-tight">Strike ball</div>
-      {([["Stance", offset.stance], ["Target", offset.target]] as const).map(([k, v]) =>
-        v ? (
-          <div key={k} className="flex items-baseline justify-center gap-1 whitespace-nowrap">
-            <span className="text-[10px] font-semibold uppercase tracking-tight text-ink-secondary">{k}</span>
-            <span className="text-xs font-bold tabular-nums">{describeMove(v, handedness)}</span>
-          </div>
-        ) : null
-      )}
     </div>
   );
 }
@@ -145,7 +122,7 @@ function Hint({
 
 /** The tile for one leave on a line's row: its deck, its name, how often it was
  *  left, and how often it was made. */
-function LeaveTile({ tile, showMove, onOpen }: { tile: LineRowTile; showMove: boolean; onOpen: (sl: SpareLine) => void }) {
+function LeaveTile({ tile, onOpen }: { tile: LineRowTile; onOpen: (sl: SpareLine) => void }) {
   const { spareLine: sl } = tile;
   return (
     <li className="shrink-0 snap-start">
@@ -160,10 +137,6 @@ function LeaveTile({ tile, showMove, onOpen }: { tile: LineRowTile; showMove: bo
         <span className="text-[11px] tabular-nums text-ink-secondary">
           {tile.attempts}×{tile.conversionPct != null ? ` · ${tile.conversionPct}%` : ""}
         </span>
-        {/* The strike-ball move is per leave, so it rides on the leave's own
-            tile whenever the row is about boards. A row that is only a move
-            says it once, in its heading. */}
-        {showMove && <StrikeMove offset={sl.strike_offset} />}
       </button>
     </li>
   );
@@ -446,10 +419,10 @@ export function SpareLinesView({ onBack }: { onBack: () => void }) {
           // One row to a line, so the line is what you read first and every
           // leave you answer with it sits beside it. Most-left leaves lead.
           rows.map((row) => (
-            <section key={row.key} aria-label={rowLabel(row.line)}>
+            <section key={row.key} aria-label={rowLabel(row)}>
               <div className="mb-1 px-1">
                 {row.line ? (
-                  <RowHeading line={row.line} />
+                  <RowHeading line={row.line} kind={row.kind} />
                 ) : (
                   <h2 className={GROUP_HEADING}>No line yet</h2>
                 )}
@@ -459,7 +432,6 @@ export function SpareLinesView({ onBack }: { onBack: () => void }) {
                   <LeaveTile
                     key={tile.spareLine.id}
                     tile={tile}
-                    showMove={!!row.line && hasLine(row.line)}
                     onOpen={(line) => setOpened({ pins: line.pins, edit: false })}
                   />
                 ))}
@@ -474,38 +446,52 @@ export function SpareLinesView({ onBack }: { onBack: () => void }) {
   );
 }
 
-/** A row's spoken name: the boards it stands on and aims at. */
-function rowLabel(line: SpareLine | null): string {
-  if (!line) return "No line yet";
-  const boards = line.line;
-  if (boards && (boards.stance != null || boards.target != null)) {
+/** The grey names on a row's heading, under the white values. */
+const LABEL = "text-[10px] font-semibold uppercase tracking-tight text-ink-secondary";
+
+/** A row's spoken name: the boards it stands on and aims at, or its move. */
+function rowLabel(row: LineRow): string {
+  if (!row.line) return "No line yet";
+  const boards = row.line.line;
+  if (row.kind === "line" && boards) {
     return `Stance ${boards.stance ?? "none"}, target ${boards.target ?? "none"}`;
   }
-  return "Strike ball move";
+  return "Strike ball";
 }
 
-/** What a row is about: the boards to stand and aim on, with where the ball
- *  goes down worked out from them, and the strike-ball move when that is the
- *  answer. */
-function RowHeading({ line }: { line: SpareLine }) {
+/** What a row is about: the spare ball line, the boards to stand and aim on with
+ *  where the ball goes down worked out from them, or the strike ball move. A
+ *  leave that has both is on one row of each. */
+function RowHeading({ line, kind }: { line: SpareLine; kind: LineRow["kind"] }) {
   const driftModel = useDriftModel();
+  const handedness = useHandedness();
   const boards = line.line;
+  if (kind === "move") {
+    // One line, read like the spare ball line: grey names, white values.
+    const offset = line.strike_offset;
+    return (
+      <h2 className="text-sm font-bold tabular-nums text-ink">
+        <span className={LABEL}>Strike ball</span>
+        {([["Stance", offset?.stance], ["Target", offset?.target]] as const).map(([k, v]) =>
+          v ? (
+            <span key={k}>
+              <span className={`${LABEL} ml-2`}>{k} </span>
+              {describeMove(v, handedness)}
+            </span>
+          ) : null
+        )}
+      </h2>
+    );
+  }
   return (
     <div className="flex flex-wrap items-baseline gap-x-3 gap-y-0.5">
-      {boards && (boards.stance != null || boards.target != null) ? (
-        <h2 className="text-sm font-bold tabular-nums text-ink">
-          <span className="text-[10px] font-semibold uppercase tracking-tight text-ink-secondary">Stance </span>
-          {boards.stance ?? "-"}
-          <span className="text-[10px] font-semibold uppercase tracking-tight text-ink-secondary">{"  "}Target </span>
-          {boards.target ?? "-"}
-        </h2>
-      ) : (
-        <h2 className={GROUP_HEADING}>Strike ball move</h2>
-      )}
+      <h2 className="text-sm font-bold tabular-nums text-ink">
+        <span className={LABEL}>Stance </span>
+        {boards?.stance ?? "-"}
+        <span className={`${LABEL} ml-2`}>Target </span>
+        {boards?.target ?? "-"}
+      </h2>
       {boards && <DerivedChain line={boards} model={driftModel} inline />}
-      {hasMove(line) && boards?.stance == null && boards?.target == null ? (
-        <StrikeMove offset={line.strike_offset} />
-      ) : null}
     </div>
   );
 }

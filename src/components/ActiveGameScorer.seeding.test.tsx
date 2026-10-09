@@ -367,6 +367,56 @@ describe("a strike ball at a leave (B2, B3)", () => {
     await waitFor(() => expect(target()).toBe("15"));
   });
 
+  it("starts the spare ball from the strike ball's move when the leave has no spare line (ADR-125)", async () => {
+    spareLines = [
+      { id: 1, pins: [10] as PinNumber[], strike_offset: { stance: 4, target: -3 }, sort_order: 0 }
+    ];
+    render(
+      <ActiveGameScorer
+        gameKey={1}
+        mode="session"
+        game={ONE_LANE}
+        initialFrames={frameOneStrike(1, { stance: 20, target: 15 })}
+      />
+    );
+    await leaveTheTenPin();
+    await waitFor(() => expect(ballLabel()).toContain("Plastic Spare"));
+    await waitFor(() => expect(stance()).toBe("24"));
+    expect(target()).toBe("12");
+  });
+
+  it("swaps between the spare line and the strike move as the ball changes, both ways (ADR-125)", async () => {
+    spareLines = [
+      {
+        id: 1,
+        pins: [10] as PinNumber[],
+        line: { stance: 31, target: 22 },
+        strike_offset: { stance: 4, target: -3 },
+        sort_order: 0
+      }
+    ];
+    render(
+      <ActiveGameScorer
+        gameKey={1}
+        mode="session"
+        game={ONE_LANE}
+        initialFrames={frameOneStrike(1, { stance: 20, target: 15 })}
+      />
+    );
+    await leaveTheTenPin();
+    await waitFor(() => expect(ballLabel()).toContain("Plastic Spare"));
+    await waitFor(() => expect(stance()).toBe("31"));
+    await waitFor(() => expect(target()).toBe("22"));
+
+    await chooseBall("Hammer");
+    await waitFor(() => expect(stance()).toBe("24"));
+    await waitFor(() => expect(target()).toBe("12"));
+
+    await chooseBall("Plastic Spare");
+    await waitFor(() => expect(stance()).toBe("31"));
+    await waitFor(() => expect(target()).toBe("22"));
+  });
+
   it("empties the box for a strike ball with no line on record", async () => {
     spareLines = [{ id: 1, pins: [10] as PinNumber[], line: { stance: 31, target: 22 }, sort_order: 0 }];
     render(<ActiveGameScorer gameKey={1} mode="session" game={ONE_LANE} initialFrames={[]} />);

@@ -636,6 +636,147 @@ describe("ADR-113: the ball follows the last throw, the line follows the ball", 
   });
 });
 
+describe("ADR-125: a spare ball with no line starts from the strike ball's move", () => {
+  const TEN_PIN = [10] as PinNumber[];
+  const SECOND_STRIKE_BALL: Ball = { id: 3, name: "Phaze", is_spare_ball: false, sort_order: 2 };
+  const balls = [HAMMER, SPARE_BALL, SECOND_STRIKE_BALL];
+  /** Frame 3: the Hammer was thrown at the rack on 20 at the feet, 15 at the
+   *  arrows, and left the 10. */
+  const rackShot: Shot = { pins_standing: TEN_PIN, ball_id: 1, intended: { stance: 20, target: 15 } };
+  const spareLine = (extra: Partial<SpareLine>): SpareLine[] => [
+    { id: 1, pins: TEN_PIN, sort_order: 0, ...extra }
+  ];
+  const at = (spareLines: SpareLine[], extra: object = {}) => ({
+    currentFrameNumber: 3,
+    frames: [] as Frame[],
+    game: LANE_12,
+    balls,
+    spareLines,
+    ...extra
+  });
+
+  it("takes the strike ball's line moved by the leave's strike move", () => {
+    const line = lineForBall(
+      at(spareLine({ strike_offset: { stance: 4, target: -3 } })),
+      2,
+      [rackShot],
+      TEN_PIN
+    );
+    expect(line).toEqual({ stance: 24, target: 12 });
+  });
+
+  it("takes the strike ball's line as it is when the leave has no move", () => {
+    expect(lineForBall(at([]), 2, [rackShot], TEN_PIN)).toEqual({ stance: 20, target: 15 });
+  });
+
+  it("takes the strike ball thrown at this rack, not one thrown earlier", () => {
+    const earlier = [strike(1, { ball_id: 3, intended: { stance: 12, target: 9 } })];
+    const line = lineForBall(at([], { frames: earlier }), 2, [rackShot], TEN_PIN);
+    expect(line).toEqual({ stance: 20, target: 15 });
+  });
+
+  it("prefers the leave's saved spare line when there is one", () => {
+    const line = lineForBall(
+      at(spareLine({ line: { stance: 30, target: 8 }, strike_offset: { stance: 4 } })),
+      2,
+      [rackShot],
+      TEN_PIN
+    );
+    expect(line).toEqual({ stance: 30, target: 8 });
+  });
+
+  it("prefers the spare ball's own attempt at the leave this session", () => {
+    const earlier = [
+      frame(1, [
+        { pins_standing: TEN_PIN, ball_id: 1 },
+        { pins_standing: [] as PinNumber[], ball_id: 2, intended: { stance: 33, target: 7 } }
+      ])
+    ];
+    const line = lineForBall(at([], { frames: earlier }), 2, [rackShot], TEN_PIN);
+    expect(line).toEqual({ stance: 33, target: 7 });
+  });
+
+  it("does not move a rack ball that is itself a spare ball: its own line, as before", () => {
+    const sparedFirst: Shot = { pins_standing: TEN_PIN, ball_id: 2, intended: { stance: 18, target: 11 } };
+    const line = lineForBall(
+      at(spareLine({ strike_offset: { stance: 4 } })),
+      2,
+      [sparedFirst],
+      TEN_PIN
+    );
+    expect(line).toEqual({ stance: 18, target: 11 });
+  });
+
+  it("says nothing when no ball was thrown at the rack and nothing is saved", () => {
+    expect(lineForBall(at([]), 2, [{ pins_standing: TEN_PIN }], TEN_PIN)).toBeUndefined();
+  });
+
+  it("returns a copy, so editing the box cannot rewrite the rack shot", () => {
+    const line = lineForBall(at([]), 2, [rackShot], TEN_PIN);
+    expect(line).not.toBe(rackShot.intended);
+  });
+
+  it("opens the spare attempt on the spare ball with that line", () => {
+    const seed = seedForShot({
+      ...base,
+      currentShot: 2,
+      currentFrameNumber: 3,
+      availablePins: TEN_PIN,
+      currentFrameShots: [rackShot],
+      game: LANE_12,
+      balls,
+      spareLines: spareLine({ strike_offset: { stance: 4, target: -3 } })
+    });
+    expect(seed.ballId).toBe(2);
+    expect(seed.intended).toEqual({ stance: 24, target: 12 });
+  });
+
+  describe("swapping balls at the leave", () => {
+    const saved = spareLine({
+      line: { stance: 30, target: 8 },
+      strike_offset: { stance: 4, target: -3 }
+    });
+
+    it("shows the strike move for a strike ball and the spare line for the spare ball, both ways", () => {
+      const input = at(saved);
+      const spare = lineForBall(input, 2, [rackShot], TEN_PIN);
+      const strikeBall = lineForBall(input, 1, [rackShot], TEN_PIN);
+      expect(spare).toEqual({ stance: 30, target: 8 });
+      expect(strikeBall).toEqual({ stance: 24, target: 12 });
+      // And back again: the same answer, not a leftover of the other ball.
+      expect(lineForBall(input, 2, [rackShot], TEN_PIN)).toEqual(spare);
+    });
+
+    it("moves the line the rack ball threw for a different strike ball with no line of its own", () => {
+      // The Phaze has never been thrown at a rack, so it has nothing to move.
+      expect(lineForBall(at(saved), 3, [rackShot], TEN_PIN)).toBeUndefined();
+    });
+
+    it("shows the strike move for the spare ball too while the leave has no spare line", () => {
+      const moveOnly = spareLine({ strike_offset: { stance: 4, target: -3 } });
+      const input = at(moveOnly);
+      expect(lineForBall(input, 2, [rackShot], TEN_PIN)).toEqual({ stance: 24, target: 12 });
+      expect(lineForBall(input, 1, [rackShot], TEN_PIN)).toEqual({ stance: 24, target: 12 });
+    });
+  });
+});
+
+describe("a strike ball swapped at a full rack takes its own last line", () => {
+  const SECOND_STRIKE_BALL: Ball = { id: 3, name: "Phaze", is_spare_ball: false, sort_order: 2 };
+  const balls = [HAMMER, SPARE_BALL, SECOND_STRIKE_BALL];
+  const frames = [
+    strike(1, { ball_id: 1, intended: { stance: 20, target: 15 } }),
+    strike(2, { ball_id: 3, intended: { stance: 26, target: 11 } })
+  ];
+  const input = { currentFrameNumber: 3, frames, game: LANE_12, balls, spareLines: [] as SpareLine[] };
+
+  it("goes to each ball's own line as you swap", () => {
+    expect(lineForBall(input, 1, [])).toEqual({ stance: 20, target: 15 });
+    expect(lineForBall(input, 3, [])).toEqual({ stance: 26, target: 11 });
+    expect(lineForBall(input, 1, [])).toEqual({ stance: 20, target: 15 });
+  });
+});
+
 describe("ADR-123: a pocket leave is shot like a strike", () => {
   const POCKET: PinNumber[] = [1, 2, 3, 5];
   const ballOne: Shot = { pins_standing: POCKET, ball_id: 1, intended: { stance: 20, target: 12 } };
