@@ -15,6 +15,7 @@ function renderHome(overrides: Partial<Parameters<typeof DashboardView>[0]> = {}
     onOpenCatalog: vi.fn(),
     onOpenLineVisualizer: vi.fn(),
     onOpenLayoutLab: vi.fn(),
+    onOpenAlleyReport: vi.fn(),
     onOpenArsenal: vi.fn(),
     onOpenLaneNotes: vi.fn(),
     onOpenOilPatterns: vi.fn(),
@@ -149,6 +150,28 @@ describe("Home (ADR-115)", () => {
     expect(await screen.findByText("Tools and reference")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Line visualizer" })).toBeInTheDocument();
     expect(screen.queryByText("Game plan")).not.toBeInTheDocument();
+  });
+
+  it("opens the Alley report from the tools", async () => {
+    await createSession({ date: "2026-09-30", alley_name: "Orchid Bowl" });
+    const props = renderHome();
+    fireEvent.click(await screen.findByRole("button", { name: "Alley report" }));
+    expect(props.onOpenAlleyReport).toHaveBeenCalled();
+  });
+
+  it("offers the Alley report in the Start session sheet once the alley is one you have bowled at", async () => {
+    await createSession({ date: "2026-09-30", alley_name: "Orchid Bowl" });
+    const props = renderHome();
+    fireEvent.click(await screen.findByRole("button", { name: "Start session" }));
+
+    const alley = await screen.findByPlaceholderText("Pinecrest Lanes");
+    fireEvent.change(alley, { target: { value: "Somewhere New" } });
+    expect(screen.queryByRole("button", { name: "See your lines here" })).not.toBeInTheDocument();
+
+    fireEvent.change(alley, { target: { value: "orchid bowl" } });
+    fireEvent.click(await screen.findByRole("button", { name: "See your lines here" }));
+    expect(props.onOpenAlleyReport).toHaveBeenCalled();
+    expect(screen.queryByPlaceholderText("Pinecrest Lanes")).not.toBeInTheDocument();
   });
 
   it("shows the latest eight sessions and sends the rest to History", async () => {

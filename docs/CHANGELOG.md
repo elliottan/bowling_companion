@@ -15,6 +15,14 @@ had all shipped.
 release offset and drift show as plain values, the drift zones as sentences.
 The pencil turns them into controls and the tick saves them.
 
+## 0.16.0: The Alley report moves to Home (2026-10-09)
+
+**The Alley report is in Tools and reference on Home.** It no longer sits in the
+middle of Stats.
+
+**Starting a session at an alley you know offers it.** Once the alley you type
+is one you have bowled at, See your lines here opens the report on that alley.
+
 ## 0.15.0: Spare lines by line, a quieter ball form, an Alley report that leads with answers (2026-10-08)
 
 **Spare lines are rows of lines.** Each row is one line you throw, and the

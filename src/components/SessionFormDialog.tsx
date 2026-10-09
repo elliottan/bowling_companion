@@ -13,6 +13,8 @@ interface SessionFormDialogProps {
   initial?: SessionFormInitial;
   title?: string;
   submitLabel?: string;
+  /** Offered once the alley typed is one already bowled at. */
+  onOpenAlleyReport?: (alley: string) => void;
 }
 
 /**
@@ -26,7 +28,8 @@ export function SessionFormDialog({
   isSubmitting = false,
   initial,
   title = "Start session",
-  submitLabel = "Start session"
+  submitLabel = "Start session",
+  onOpenAlleyReport
 }: SessionFormDialogProps) {
   const [canSubmit, setCanSubmit] = useState(false);
   // Stable, so the form's report effect doesn't re-run every render.
@@ -54,6 +57,7 @@ export function SessionFormDialog({
         onCanSubmitChange={handleCanSubmitChange}
         isSubmitting={isSubmitting}
         initial={initial}
+        onOpenAlleyReport={onOpenAlleyReport}
       />
     </FormSheet>
   );

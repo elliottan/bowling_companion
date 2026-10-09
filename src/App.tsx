@@ -547,6 +547,7 @@ function App() {
             onOpenSpareLines={() => pushOverlay("spares")}
             onOpenGuides={() => pushOverlay("guides")}
             onOpenLayoutLab={() => pushOverlay("layout-lab")}
+            onOpenAlleyReport={() => pushOverlay("game-plan")}
             onOpenBackup={goToBackup}
           />
         )}
@@ -586,7 +587,6 @@ function App() {
           <StatsView
             onOpenSession={openSession}
             onOpenSessionGame={openSessionGame}
-            onOpenAlleyReport={() => pushOverlay("game-plan")}
           />
         )}
         {view === "settings" && (
@@ -739,7 +739,6 @@ function App() {
                 onBack={popOverlay}
                 onOpenSession={openSession}
                 onOpenSessionGame={openSessionGame}
-                onOpenAlleyReport={() => pushOverlay("game-plan")}
               />
             );
           case "game-plan":
