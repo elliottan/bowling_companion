@@ -283,9 +283,11 @@ export function BowlingProfileView({
 }
 
 /** A value on the page while it is only being read: plain text, with nothing
- *  around it that looks like a field. The controls come back with the pencil. */
+ *  around it that looks like a field. It takes the accent colour so it reads as
+ *  the answer under its heading, apart from the grey description above it. The
+ *  controls come back with the pencil. */
 function ReadValue({ children }: { children: React.ReactNode }) {
-  return <p className="text-base font-semibold text-ink">{children}</p>;
+  return <p className="text-base font-semibold text-accent">{children}</p>;
 }
 
 /**
@@ -466,7 +468,7 @@ function LinePanelInfoSheet({ onClose }: { onClose: () => void }) {
             draggable={false}
             className="mx-auto hidden h-auto w-44 rounded-xl dark:block"
           />
-          <figcaption className="mt-3 text-center text-xs text-ink-secondary">
+          <figcaption className="mt-3 text-center text-xs text-ink">
             Picture from score entry
           </figcaption>
         </figure>

@@ -28,6 +28,10 @@ profile it sat on the page and looked like fields you could type in. Release
 offset and Drift now have an info button that opens a short explanation with the
 picture set on a tinted mat, captioned as a picture.
 
+**Values on the Bowling profile are in the accent colour.** Hand, grip, PAP and
+release offset read as the answer under each heading rather than as more grey
+text.
+
 ## 0.15.0: Spare lines by line, a quieter ball form, an Alley report that leads with answers (2026-10-08)
 
 **Spare lines are rows of lines.** Each row is one line you throw, and the
