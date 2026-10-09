@@ -94,10 +94,7 @@ test("the theme and the handedness stick across a reload", async ({ page }) => {
     .toBe("left");
 
   await page.reload();
-  // The reload lands back on the Bowling profile page, and the row under it now
-  // says so too.
-  await expect(page.getByRole("button", { name: "Left-handed", exact: true })).toHaveAttribute(
-    "aria-pressed",
-    "true"
-  );
+  // The reload lands back on the Bowling profile page, which reads the hand as
+  // plain text until the pencil.
+  await expect(page.getByText("Left-handed", { exact: true })).toBeVisible();
 });

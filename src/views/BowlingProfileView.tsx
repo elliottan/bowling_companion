@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { PapEditor } from "../components/PapEditor";
 import { IconButton } from "../components/ui/IconButton";
-import { DEFAULT_PAP } from "../lib/ballLayout";
+import { DEFAULT_PAP, formatInches } from "../lib/ballLayout";
 import type { PapMeasurement } from "../lib/ballLayout";
 import { getGripStyle, getPap, setGripStyle, setPap } from "../services/bowlingRepository";
 import { PushScreen } from "../components/PushScreen";
@@ -62,25 +62,27 @@ export function BowlingProfileView({
   // and the zones and the drop-downs sit under a thumb that is only scrolling.
   // Edits are made to a draft and written when the tick is pressed. Leaving the
   // page first drops the draft.
-  const [draft, setDraft] = useState<Draft | null>(null);
+  const [draft, setDraft] = useState<Partial<Draft> | null>(null);
   const editing = draft !== null;
   const saved: Draft = { hand: handedness, grip: savedGrip, pap: savedPap, drift: savedDrift };
-  const shown = draft ?? saved;
+  // Only what was changed is held, so a value that finishes loading after the
+  // pencil is pressed still shows through.
+  const shown: Draft = { ...saved, ...draft };
   const value = shown.hand;
   const grip = shown.grip;
   const pap = shown.pap;
   const driftModel = shown.drift;
 
-  const change = (patch: Partial<Draft>) => setDraft((d) => ({ ...(d ?? saved), ...patch }));
+  const change = (patch: Partial<Draft>) => setDraft((d) => ({ ...(d ?? {}), ...patch }));
   const changeDrift = (next: DriftModel) => change({ drift: next });
 
   async function commit() {
     if (!draft) return;
     const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
-    if (draft.hand !== saved.hand) onHandednessChange(draft.hand);
-    if (draft.grip !== saved.grip) await setGripStyle(draft.grip);
-    if (!same(draft.pap, saved.pap)) await setPap(draft.pap);
-    if (!same(draft.drift, saved.drift)) onDriftModelChange(draft.drift);
+    if (draft.hand !== undefined && draft.hand !== saved.hand) onHandednessChange(draft.hand);
+    if (draft.grip !== undefined && draft.grip !== saved.grip) await setGripStyle(draft.grip);
+    if (draft.pap !== undefined && !same(draft.pap, saved.pap)) await setPap(draft.pap);
+    if (draft.drift !== undefined && !same(draft.drift, saved.drift)) onDriftModelChange(draft.drift);
     setDraft(null);
   }
 
@@ -124,47 +126,67 @@ export function BowlingProfileView({
         <p className="mb-3 mt-1 text-sm leading-relaxed text-ink-secondary">
           Switching flips every board number. Saved sessions keep theirs.
         </p>
-        <HandednessPicker value={value} onSelect={(next) => change({ hand: next })} />
+        {editing ? (
+          <HandednessPicker value={value} onSelect={(next) => change({ hand: next })} />
+        ) : (
+          <ReadValue>{value === "right" ? "Right-handed" : "Left-handed"}</ReadValue>
+        )}
       </div>
 
       <div>
         <h2 className={`mb-3 ${GROUP_HEADING}`}>Grip</h2>
-        <SegmentedControl
-          label="Grip style"
-          value={grip}
-          onChange={(next) => change({ grip: next })}
-          options={[
-            { value: "1h", label: "One-handed" },
-            { value: "2h", label: "Two-handed" }
-          ]}
-        />
+        {editing ? (
+          <SegmentedControl
+            label="Grip style"
+            value={grip}
+            onChange={(next) => change({ grip: next })}
+            options={[
+              { value: "1h", label: "One-handed" },
+              { value: "2h", label: "Two-handed" }
+            ]}
+          />
+        ) : (
+          <ReadValue>{grip === "2h" ? "Two-handed" : "One-handed"}</ReadValue>
+        )}
       </div>
 
       <Group
         heading="Your PAP"
         description="Measured from the center of your grip. Your pro shop can measure it for you."
       >
-        <div className="space-y-2 rounded-xl border border-edge bg-surface p-3">
-          <PapEditor pap={pap} onChange={(next) => change({ pap: next })} idPrefix="settings-pap" />
-        </div>
+        {editing ? (
+          <div className="space-y-2 rounded-xl border border-edge bg-surface p-3">
+            <PapEditor pap={pap} onChange={(next) => change({ pap: next })} idPrefix="settings-pap" />
+          </div>
+        ) : (
+          <ReadValue>
+            {formatInches(pap.over)} over, {formatInches(Math.abs(pap.up))} {pap.up < 0 ? "down" : "up"}
+          </ReadValue>
+        )}
       </Group>
 
       <Group
         heading="Release offset"
         description="How many boards from your slide foot the ball lands."
       >
-        <div className="rounded-xl border border-edge bg-surface px-3">
-          <Row label="Offset" hint="boards">
-            <Stepper
-              ariaLabel="release offset"
-              value={driftModel.release_offset}
-              step={0.5}
-              min={0}
-              max={15}
-              onChange={setReleaseOffset}
-            />
-          </Row>
-        </div>
+        {editing ? (
+          <div className="rounded-xl border border-edge bg-surface px-3">
+            <Row label="Offset" hint="boards">
+              <Stepper
+                ariaLabel="release offset"
+                value={driftModel.release_offset}
+                step={0.5}
+                min={0}
+                max={15}
+                onChange={setReleaseOffset}
+              />
+            </Row>
+          </div>
+        ) : (
+          <ReadValue>
+            {driftModel.release_offset} {driftModel.release_offset === 1 ? "board" : "boards"}
+          </ReadValue>
+        )}
         <LinePanelFigure />
       </Group>
 
@@ -179,27 +201,45 @@ export function BowlingProfileView({
           onInsideMinChange={editing ? setInsideMin : undefined}
         />
 
-        <div className="mt-3 space-y-2">
-          {ZONES.map((zone) => (
-            <div key={zone} className="rounded-xl border border-edge bg-surface p-3">
-              <div className="flex items-center gap-2">
-                <span className={`h-2.5 w-2.5 rounded-full ${ZONE_ACCENT[zone].swatch}`} aria-hidden="true" />
-                <span className="text-sm font-semibold capitalize text-ink">{zone}</span>
-                <div className="ml-auto shrink-0">
-                  <DriftStepper
-                    ariaLabel={`${zone} drift`}
-                    value={driftModel.drift[zone]}
-                    hand={value}
-                    onChange={(v) => setDrift(zone, v)}
-                  />
+        {editing ? (
+          <div className="mt-3 space-y-2">
+            {ZONES.map((zone) => (
+              <div key={zone} className="rounded-xl border border-edge bg-surface p-3">
+                <div className="flex items-center gap-2">
+                  <span className={`h-2.5 w-2.5 rounded-full ${ZONE_ACCENT[zone].swatch}`} aria-hidden="true" />
+                  <span className="text-sm font-semibold capitalize text-ink">{zone}</span>
+                  <div className="ml-auto shrink-0">
+                    <DriftStepper
+                      ariaLabel={`${zone} drift`}
+                      value={driftModel.drift[zone]}
+                      hand={value}
+                      onChange={(v) => setDrift(zone, v)}
+                    />
+                  </div>
                 </div>
+                <p className="mt-1.5 text-xs text-ink-secondary">
+                  {describeDrift(driftModel.drift[zone], value, zoneRange[zone])}
+                </p>
               </div>
-              <p className="mt-1.5 text-xs text-ink-secondary">
-                {describeDrift(driftModel.drift[zone], value, zoneRange[zone])}
-              </p>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        ) : (
+          // Read, a zone is its name and its sentence: no box, no stepper.
+          <ul className="mt-3 space-y-2">
+            {ZONES.map((zone) => (
+              <li key={zone} className="flex items-start gap-2">
+                <span
+                  className={`mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full ${ZONE_ACCENT[zone].swatch}`}
+                  aria-hidden="true"
+                />
+                <p className="text-sm text-ink">
+                  <span className="font-semibold capitalize">{zone}.</span>{" "}
+                  {describeDrift(driftModel.drift[zone], value, zoneRange[zone])}
+                </p>
+              </li>
+            ))}
+          </ul>
+        )}
       </Group>
     </fieldset>
     </div>
@@ -218,7 +258,7 @@ export function BowlingProfileView({
             <Check size={20} aria-hidden="true" />
           </IconButton>
         ) : (
-          <IconButton variant="round" label="Edit bowling profile" onClick={() => setDraft(saved)}>
+          <IconButton variant="round" label="Edit bowling profile" onClick={() => setDraft({})}>
             <Pencil size={18} aria-hidden="true" />
           </IconButton>
         )
@@ -227,6 +267,12 @@ export function BowlingProfileView({
       {body}
     </PushScreen>
   );
+}
+
+/** A value on the page while it is only being read: plain text, with nothing
+ *  around it that looks like a field. The controls come back with the pencil. */
+function ReadValue({ children }: { children: React.ReactNode }) {
+  return <p className="text-base font-semibold text-ink">{children}</p>;
 }
 
 /**
