@@ -9,6 +9,25 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.18.0: Stats leads with your average (2026-10-09)
+
+**Stats opens on one number.** Your average is large at the top, with High, Low
+and Games under it. Once you have ten sessions it also says how your last five
+went against it.
+
+**Choose how far back to read.** Last 10, Season or All, at the top of Stats.
+The season starts on 1 August. A shared stats card names the one you picked.
+
+**The chart picker is a row of chips** on the chart itself. Tapping a number
+no longer changes the chart. The dashed line is now the same average as the
+headline: it used to average the nights, so a three-game night counted as much
+as a six-game one.
+
+**First ball, spares and balls each have a card.** Pocket, carry and strike
+read as one chain. The spares card names the three makeable leaves you miss
+most, with every leave behind All leaves. Balls are ranked by strike rate, with
+pocket and carry a tap away.
+
 ## 0.15.1: The Bowling profile reads as plain values until you edit (2026-10-09)
 
 **The Bowling profile no longer looks editable all the time.** Hand, grip, PAP,

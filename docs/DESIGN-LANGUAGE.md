@@ -110,6 +110,11 @@ not that, and reads as one because chips sit apart with gaps between them and
 any number of them can be on. The theme picker was three chips before, and the
 shared track is what says "pick one" before a single label is read.
 
+The one exception is a pick-one with more options than a track can hold. The
+chart picker on Stats has eight, and eight segments in 390px are unreadable,
+so it is a row of `Chip`s that scrolls sideways, exactly one pressed, with the
+row cut off at the card's edge to say there is more (ADR-126).
+
 **Press feedback is `active:`, never `hover:` alone.** `hover:` is compiled
 behind `@media (hover: hover)` (`future.hoverOnlyWhenSupported` in
 `tailwind.config.js`), so it does nothing on a phone, which is the target
@@ -212,6 +217,13 @@ Two rules learned the hard way:
 - **Frequency and rate do not share a cell.** What a ball leaves is on the ball;
   whether you convert it is on the leaves card. Putting both in one number
   forces a denominator that is right for neither.
+
+**A stats screen leads with one number.** The Stats tab opened on eleven tiles
+of equal weight, and none of them read as the answer. It now leads with the
+average, large, with the last five sessions against it, then a card per part of
+the game: the first ball, spares, the balls. A number that only matters next to
+another sits with it (pocket, carry and strike as one chain) rather than in a
+tile of its own (ADR-126).
 
 ## 4c. Settings
 
