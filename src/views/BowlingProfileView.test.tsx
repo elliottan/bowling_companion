@@ -131,13 +131,29 @@ describe("BowlingProfileView", () => {
     expect(screen.getByText("Switching flips every board number. Saved sessions keep theirs.")).toBeInTheDocument();
   });
 
-  it("shows the scorer's line fields beside the offset, in both themes", () => {
+  it("keeps the picture of the line fields out of the page, behind an info button", async () => {
     renderPrefs();
+    expect(screen.queryByRole("img", { name: /intended stance 24/ })).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "About release offset" }));
+    expect(screen.getByRole("dialog", { name: "Your line" })).toBeInTheDocument();
     const figures = screen.getAllByRole("img", { name: /intended stance 24 and target 10/ });
     expect(figures.map((f) => f.getAttribute("src"))).toEqual([
       "/help/line-panel-light.png",
       "/help/line-panel-dark.png"
     ]);
+    expect(screen.getByText("Picture from score entry")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: /Done|Close/ }));
+    return waitFor(() =>
+      expect(screen.queryByRole("dialog", { name: "Your line" })).not.toBeInTheDocument()
+    );
+  });
+
+  it("opens the same explanation from the drift heading", () => {
+    renderPrefs();
+    fireEvent.click(screen.getByRole("button", { name: "About drift" }));
+    expect(screen.getByRole("dialog", { name: "Your line" })).toBeInTheDocument();
   });
 
   it("edits the same stored PAP the Layouts page does", async () => {

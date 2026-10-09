@@ -1,4 +1,4 @@
-import { Check, ChevronLeft, ChevronRight, Pencil } from "lucide-react";
+import { Check, ChevronLeft, ChevronRight, Info, Pencil } from "lucide-react";
 import { useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { PapEditor } from "../components/PapEditor";
@@ -13,6 +13,7 @@ import { SegmentedControl } from "../components/ui/SegmentedControl";
 import type { GripStyle, Handedness } from "../types/bowling";
 import { driftDirection, type DriftModel } from "../lib/driftModel";
 import { GROUP_HEADING } from "../components/ui/typography";
+import { FormSheet } from "../components/ui/FormSheet";
 
 interface BowlingProfileViewProps {
   /** The bowler's hand, which the release offset and drift directions read. */
@@ -63,6 +64,7 @@ export function BowlingProfileView({
   // Edits are made to a draft and written when the tick is pressed. Leaving the
   // page first drops the draft.
   const [draft, setDraft] = useState<Partial<Draft> | null>(null);
+  const [infoOpen, setInfoOpen] = useState(false);
   const editing = draft !== null;
   const saved: Draft = { hand: handedness, grip: savedGrip, pap: savedPap, drift: savedDrift };
   // Only what was changed is held, so a value that finishes loading after the
@@ -115,8 +117,8 @@ export function BowlingProfileView({
     // Reading, every control is off, which would leave the scrolling page with
     // nothing to focus by keyboard; the page itself takes the stop.
     <div tabIndex={editing ? undefined : 0} className="outline-none focus-visible:ring-2 focus-visible:ring-accent-fill">
-    <fieldset
-      disabled={!editing}
+    <div
+      role="group"
       aria-label="Bowling profile"
       // A read page lets scrolling pass over every control without touching it.
       className={`mx-auto w-full max-w-3xl min-w-0 space-y-7 border-0 px-3 py-4 sm:px-6 ${editing ? "" : "[&_*]:pointer-events-none"}`}
@@ -167,6 +169,7 @@ export function BowlingProfileView({
 
       <Group
         heading="Release offset"
+        onInfo={() => setInfoOpen(true)}
         description="How many boards from your slide foot the ball lands."
       >
         {editing ? (
@@ -187,11 +190,11 @@ export function BowlingProfileView({
             {driftModel.release_offset} {driftModel.release_offset === 1 ? "board" : "boards"}
           </ReadValue>
         )}
-        <LinePanelFigure />
       </Group>
 
       <Group
         heading="Drift"
+        onInfo={() => setInfoOpen(true)}
         description="How many boards you drift, left or right, from your stance to your finishing slide position. With your release offset, the lane view uses it to work out your slide and laydown, based on the stance you enter."
       >
         <DriftZoneLane
@@ -241,11 +244,20 @@ export function BowlingProfileView({
           </ul>
         )}
       </Group>
-    </fieldset>
+    </div>
     </div>
   );
 
-  if (!onBack) return body;
+  const info = infoOpen && <LinePanelInfoSheet onClose={() => setInfoOpen(false)} />;
+
+  if (!onBack) {
+    return (
+      <>
+        {body}
+        {info}
+      </>
+    );
+  }
 
   return (
     <PushScreen
@@ -265,6 +277,7 @@ export function BowlingProfileView({
       }
     >
       {body}
+      {info}
     </PushScreen>
   );
 }
@@ -283,15 +296,32 @@ function ReadValue({ children }: { children: React.ReactNode }) {
 function Group({
   heading,
   description,
+  onInfo,
   children
 }: {
   heading: string;
   description: React.ReactNode;
+  /** Opens the explanation for the block, from an info button on the heading. */
+  onInfo?: () => void;
   children: React.ReactNode;
 }) {
   return (
     <section>
-      <h2 className={GROUP_HEADING}>{heading}</h2>
+      <div className="flex items-center gap-1">
+        <h2 className={GROUP_HEADING}>{heading}</h2>
+        {onInfo && (
+          <IconButton
+            compact
+            label={`About ${heading.toLowerCase()}`}
+            onClick={onInfo}
+            // The read page lets scrolling pass over everything; this is the
+            // one thing on it that is meant to be tapped.
+            className="!pointer-events-auto"
+          >
+            <Info size={16} aria-hidden="true" />
+          </IconButton>
+        )}
+      </div>
       <p className="mb-3 mt-1 text-sm leading-relaxed text-ink-secondary">{description}</p>
       {children}
     </section>
@@ -402,31 +432,49 @@ function Stepper({
 }
 
 /**
- * The scorer's line fields as they look when a shot is entered: the intended
- * stance and target, with the slide and laydown worked out from them. It is a
- * picture of the real panel (`npm run shots`), so the page can show what the
- * offset and drift below it are for without a paragraph about it. One picture
- * per theme, switched with the app's own theme attribute.
+ * What the release offset and drift are for, with a picture of the scorer's
+ * line fields between the two halves of the explanation. The picture sits on a
+ * tinted mat with a caption: bare, a screenshot of fields looks like fields on
+ * this page, and the page is read-only until the pencil. It is a picture of the
+ * real panel (`npm run shots`), one per theme, switched with the app's own
+ * theme attribute.
  */
-function LinePanelFigure() {
+function LinePanelInfoSheet({ onClose }: { onClose: () => void }) {
   const alt =
     "The scorer's line fields: intended stance 24 and target 10, with slide 24 and laydown 18 worked out from them.";
   return (
-    <figure className="mt-3">
-      <img
-        src="/help/line-panel-light.png"
-        width={352}
-        height={236}
-        alt={alt}
-        className="h-auto w-44 rounded-xl border border-edge dark:hidden"
-      />
-      <img
-        src="/help/line-panel-dark.png"
-        width={352}
-        height={236}
-        alt={alt}
-        className="hidden h-auto w-44 rounded-xl border border-edge dark:block"
-      />
-    </figure>
+    <FormSheet title="Your line" onClose={onClose} dismissAs="done">
+      <div className="space-y-4">
+        <p className="text-sm leading-relaxed text-ink-secondary">
+          In score entry you say where you stand and where you aim. The app works out where
+          your foot finishes and where the ball lands.
+        </p>
+        <figure className="pointer-events-none select-none rounded-2xl bg-surface-muted p-4">
+          <img
+            src="/help/line-panel-light.png"
+            width={352}
+            height={236}
+            alt={alt}
+            draggable={false}
+            className="mx-auto h-auto w-44 rounded-xl dark:hidden"
+          />
+          <img
+            src="/help/line-panel-dark.png"
+            width={352}
+            height={236}
+            alt={alt}
+            draggable={false}
+            className="mx-auto hidden h-auto w-44 rounded-xl dark:block"
+          />
+          <figcaption className="mt-3 text-center text-xs text-ink-secondary">
+            Picture from score entry
+          </figcaption>
+        </figure>
+        <p className="text-sm leading-relaxed text-ink-secondary">
+          Slide comes from your stance and your drift. Laydown is your slide moved by your
+          release offset.
+        </p>
+      </div>
+    </FormSheet>
   );
 }
