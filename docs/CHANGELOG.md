@@ -9,6 +9,12 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.15.1: The Bowling profile reads as plain values until you edit (2026-10-09)
+
+**The Bowling profile no longer looks editable all the time.** Hand, grip, PAP,
+release offset and drift show as plain values, the drift zones as sentences.
+The pencil turns them into controls and the tick saves them.
+
 ## 0.15.0: Spare lines by line, a quieter ball form, an Alley report that leads with answers (2026-10-08)
 
 **Spare lines are rows of lines.** Each row is one line you throw, and the

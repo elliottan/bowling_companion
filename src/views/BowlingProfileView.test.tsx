@@ -41,11 +41,29 @@ describe("BowlingProfileView", () => {
   });
 
   it("holds hand and grip, and the numbers only the lane view and the Layouts page read", () => {
-    renderPrefs();
+    renderPage();
+    edit();
     expect(screen.getAllByRole("group", { name: "Handedness" }).length).toBeGreaterThan(0);
     expect(screen.getByRole("button", { name: "One-handed" })).toBeInTheDocument();
     expect(screen.getByText("Release offset")).toBeInTheDocument();
     expect(screen.getByText("Drift")).toBeInTheDocument();
+  });
+
+  it("reads as plain values, with nothing that looks like a field, until the pencil", async () => {
+    await setPap({ over: 5.5, up: -0.5 });
+    renderPage();
+    expect(screen.getByText("Right-handed")).toBeInTheDocument();
+    expect(screen.getByText("One-handed")).toBeInTheDocument();
+    await screen.findByText(/5 1\/2 over, 1\/2 down/);
+    expect(screen.getByText(/^6 boards$/)).toBeInTheDocument();
+    // No control of any kind to tap, scroll over or mistake for one.
+    expect(screen.queryByRole("button", { name: "Two-handed" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("group", { name: "Handedness" })).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("Over")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Increase release offset" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("slider")).not.toBeInTheDocument();
+    // The drift zones read as sentences.
+    expect(screen.getAllByText(/You (do not drift|drift)/).length).toBe(3);
   });
 
   it("answers the grip, one-handed until told otherwise, once saved", async () => {
@@ -59,12 +77,8 @@ describe("BowlingProfileView", () => {
     await waitFor(async () => expect(await getGripStyle()).toBe("2h"));
   });
 
-  it("is read-only until the pencil: nothing on it can be changed by a stray tap", () => {
+  it("turns the controls on with the pencil, and swaps it for the tick", () => {
     renderPage();
-    expect(screen.getByRole("button", { name: "Two-handed" })).toBeDisabled();
-    expect(screen.getByRole("button", { name: "Left-handed" })).toBeDisabled();
-    expect(screen.getByLabelText("Over")).toBeDisabled();
-    expect(screen.getByRole("button", { name: "Increase release offset" })).toBeDisabled();
     expect(screen.queryByRole("button", { name: "Save bowling profile" })).not.toBeInTheDocument();
 
     edit();
@@ -99,16 +113,16 @@ describe("BowlingProfileView", () => {
     cleanup();
 
     renderPage();
-    expect(screen.getByRole("button", { name: "One-handed" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByText("One-handed")).toBeInTheDocument();
     expect(await getGripStyle()).not.toBe("2h");
   });
 
   it("fills the grip from what was saved", async () => {
     await setGripStyle("2h");
-    renderPrefs();
-    await waitFor(() =>
-      expect(screen.getByRole("button", { name: "Two-handed" })).toHaveAttribute("aria-pressed", "true")
-    );
+    renderPage();
+    expect(await screen.findByText("Two-handed")).toBeInTheDocument();
+    edit();
+    expect(screen.getByRole("button", { name: "Two-handed" })).toHaveAttribute("aria-pressed", "true");
   });
 
   it("has no guide behind it: what matters is said under the heading it belongs to", () => {
@@ -129,10 +143,10 @@ describe("BowlingProfileView", () => {
   it("edits the same stored PAP the Layouts page does", async () => {
     await setPap({ over: 4, up: 0.5 });
     renderPage();
+    edit();
     await waitFor(() =>
       expect((screen.getByLabelText("Over") as HTMLSelectElement).value).toBe("4")
     );
-    edit();
     fireEvent.change(screen.getByLabelText("Over"), { target: { value: "5" } });
     save();
     await waitFor(async () => expect(await getPap()).toEqual({ over: 5, up: 0.5 }));
@@ -144,7 +158,8 @@ describe("BowlingProfileView", () => {
     // default is a plausible axis, not the bowler's, so restoring it is not
     // undoing anything. The fields themselves are the way to change it.
     await setPap({ over: 2, up: -1 });
-    renderPrefs();
+    renderPage();
+    edit();
     await waitFor(() =>
       expect((screen.getByLabelText("Over") as HTMLSelectElement).value).toBe("2")
     );
@@ -153,7 +168,8 @@ describe("BowlingProfileView", () => {
 
   it("reads each PAP measurement as one line, with no heading band above it", async () => {
     await setPap({ over: 5.5, up: -0.5 });
-    renderPrefs();
+    renderPage();
+    edit();
     await waitFor(() =>
       expect((screen.getByLabelText("Over") as HTMLSelectElement).value).toBe("5")
     );
@@ -168,10 +184,10 @@ describe("BowlingProfileView", () => {
   it("keeps the sign on the whole measurement, so half an inch down is reachable", async () => {
     await setPap({ over: 5, up: 0.5 });
     renderPage();
+    edit();
     await waitFor(() =>
       expect((screen.getByLabelText("Up or down fraction") as HTMLSelectElement).value).toBe("4")
     );
-    edit();
     fireEvent.change(screen.getByLabelText("Up or down direction"), { target: { value: "down" } });
     save();
     // Not a negative zero, which is the whole reason the direction is its own
