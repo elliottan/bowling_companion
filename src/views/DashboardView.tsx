@@ -1,10 +1,11 @@
 import { BookOpen, ChevronRight, Compass, GraduationCap, PlayCircle, Plus, ShieldCheck } from "lucide-react";
-import { LaneViewIcon, PinIcon } from "../components/icons";
+import { GamePlanIcon, LaneViewIcon, PinIcon } from "../components/icons";
 import { useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { ErrorBanner } from "../components/ErrorBanner";
 import { SessionFormDialog } from "../components/SessionFormDialog";
 import { alleyLabel } from "../lib/sessionLabels";
+import { setRemembered } from "../lib/viewMemory";
 import { ListGroup, ListRow } from "../components/ui/ListGroup";
 import { Fab, FabRow } from "../components/ui/Fab";
 import { ArsenalGrid, ProfileTiles, RecentSessionStrip } from "../components/HomeProfile";
@@ -47,6 +48,7 @@ interface DashboardViewProps {
   onOpenCatalog: () => void;
   onOpenLineVisualizer: () => void;
   onOpenLayoutLab: () => void;
+  onOpenAlleyReport: () => void;
   onOpenArsenal: () => void;
   onOpenLaneNotes: () => void;
   onOpenOilPatterns: () => void;
@@ -85,6 +87,7 @@ export function DashboardView({
   onOpenCatalog,
   onOpenLineVisualizer,
   onOpenLayoutLab,
+  onOpenAlleyReport,
   onOpenArsenal,
   onOpenLaneNotes,
   onOpenOilPatterns,
@@ -368,6 +371,11 @@ export function DashboardView({
             onClick={onOpenLineVisualizer}
           />
           <ListRow
+            icon={GamePlanIcon}
+            label="Alley report"
+            onClick={onOpenAlleyReport}
+          />
+          <ListRow
             icon={BookOpen}
             label="Ball catalog"
             onClick={onOpenCatalog}
@@ -389,6 +397,11 @@ export function DashboardView({
         onSubmit={handleSubmit}
         onCancel={() => setShowForm(false)}
         isSubmitting={isSubmitting}
+        onOpenAlleyReport={(alley) => {
+          setRemembered("plan:alley", alley);
+          setShowForm(false);
+          onOpenAlleyReport();
+        }}
       />
 
       <InstallPrompt open={installPromptOpen} onClose={() => setInstallPromptOpen(false)} />

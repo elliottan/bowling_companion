@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ShareIosIcon } from "../components/icons";
-import { GamePlanIcon } from "../components/icons";
 import { Stats } from "../components/Stats";
 import {
   SessionFilterButton,
@@ -25,7 +24,6 @@ import { useHandedness } from "../lib/handednessContext";
 import { rememberScroll, restoreScroll } from "../lib/viewMemory";
 import { useSessionFilters } from "./useSessionFilters";
 import type { Ball } from "../types/bowling";
-import { ListGroup, ListRow } from "../components/ui/ListGroup";
 import { ErrorBanner } from "../components/ErrorBanner";
 import { PushScreen } from "../components/PushScreen";
 
@@ -34,8 +32,6 @@ interface StatsViewProps {
   /** Open one game of a session directly, from a stats drill-down, carrying
    *  the ball it was about. */
   onOpenSessionGame?: (sessionId: number, gameId: number, ballId?: number) => void;
-  /** The game plan, read as a report on one alley (ADR-115). */
-  onOpenAlleyReport?: () => void;
   /**
    * `tab` (default) is the Stats tab: its own screen, titled by its heading.
    * `push` is the same screen pushed over whatever opened it, which the game
@@ -69,7 +65,6 @@ const EMPTY: BowlingStats = {
 export function StatsView({
   onOpenSession,
   onOpenSessionGame,
-  onOpenAlleyReport,
   mode = "tab",
   onBack
 }: StatsViewProps) {
@@ -180,18 +175,8 @@ export function StatsView({
             // "Game by game" and "Open frames" sat here too. Both are hidden
             // until they are worth opening: their screens and routes still
             // exist (`game-trend`, `open-frames`), only the rows are gone.
-            underTiles={
-              onOpenAlleyReport && (
-                <ListGroup>
-                  <ListRow
-                    icon={GamePlanIcon}
-                    label="Alley report"
-                    description="What each line did at one alley"
-                    onClick={onOpenAlleyReport}
-                  />
-                </ListGroup>
-              )
-            }
+            // The Alley report moved to Home's Tools, next to the other
+            // places you read, rather than sitting in the middle of Stats.
             onOpenSession={onOpenSession}
             onOpenGame={onOpenSessionGame}
           />

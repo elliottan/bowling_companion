@@ -37,6 +37,9 @@ interface SessionFormProps {
    *  disable itself. The bar lives outside this component (DESIGN-LANGUAGE §6)
    *  but the field it depends on lives inside. */
   onCanSubmitChange?: (canSubmit: boolean) => void;
+  /** Offered under the alley once it names one already bowled at. Omitted where
+   *  the sheet cannot hand the screen over (editing a session). */
+  onOpenAlleyReport?: (alley: string) => void;
 }
 
 // pr-16 rather than the shared pr-10: the clear button and the chevron share
@@ -50,7 +53,8 @@ export function SessionForm({
   isSubmitting = false,
   initial,
   formId,
-  onCanSubmitChange
+  onCanSubmitChange,
+  onOpenAlleyReport
 }: SessionFormProps) {
   const [alleyName, setAlleyName] = useState(initial?.alley_name ?? "");
   const [date, setDate] = useState(initial?.date ?? today());
@@ -91,6 +95,12 @@ export function SessionForm({
   useEffect(() => {
     onCanSubmitChange?.(canSubmit);
   }, [canSubmit, onCanSubmitChange]);
+
+  // The alley as it is stored, when what is typed names one bowled before.
+  const knownAlley = useMemo(() => {
+    const q = alleyName.trim().toLowerCase();
+    return q ? alleys.find((a) => a.toLowerCase() === q) : undefined;
+  }, [alleyName, alleys]);
 
   const alleyMatches = useMemo(() => {
     const q = alleyName.trim().toLowerCase();
@@ -163,6 +173,15 @@ export function SessionForm({
                 </ul>
               )}
             </div>
+            {knownAlley && onOpenAlleyReport && (
+              <button
+                type="button"
+                onClick={() => onOpenAlleyReport(knownAlley)}
+                className="mt-2 inline-flex min-h-11 items-center text-sm font-semibold text-accent"
+              >
+                See your lines here
+              </button>
+            )}
           </Field>
 
           <Field label="Date">
