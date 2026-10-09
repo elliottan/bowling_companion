@@ -114,7 +114,9 @@ export function savedSpareLine(
  * steps 3 and 4 for a strike ball):
  *
  * - a spare ball, or no ball: this ball's own attempt at this leave this
- *   session, then the leave's saved line, then the ball's own strike line;
+ *   session, then the leave's saved line, then the strike ball thrown at the
+ *   rack moved by the leave's strike move (ADR-125), then the ball's own
+ *   strike line;
  * - a strike ball: this ball's own attempt at this leave this session, then its
  *   strike line moved by the leave's `strike_offset`, then its strike line as
  *   is. Never the leave's saved line: that was recorded off a spare ball thrown
@@ -137,6 +139,29 @@ export function lineForBall(
       input.previousGames ?? []
     );
     return found ? { ...found } : undefined;
+  };
+
+  /** The strike ball that was thrown at the rack this leave came from, on the
+   *  line it threw, moved by `offset`. Nothing when that ball is not a strike
+   *  ball or has no line on record. */
+  const rackBallMove = (offset: { stance?: number; target?: number } | undefined) => {
+    const rackBallId = lastFreshRackBallId(
+      input.currentFrameNumber,
+      currentFrameShots,
+      input.frames,
+      input.previousGames ?? []
+    );
+    if (rackBallId == null || ballKind(input.balls ?? [], rackBallId) !== "strike") return undefined;
+    const line = sameBallSeedLine(
+      rackBallId,
+      input.game,
+      input.currentFrameNumber,
+      currentFrameShots,
+      input.frames,
+      input.previousGames ?? []
+    );
+    if (!line) return undefined;
+    return (offset && applyOffset(line, offset)) ?? { ...line };
   };
 
   // A pocket leave (the 1 and 5 standing) is a strike-ball shot on the strike
@@ -163,10 +188,12 @@ export function lineForBall(
     return ownStrikeLine();
   }
 
-  // ADR-035's last resort, kept: with nothing recorded for this leave, a leave
-  // shot inherits the ball's own strike line, which is the line you adjust off
-  // rather than replace.
-  return spareLineBoards(saved) ?? ownStrikeLine();
+  // A spare ball with no line saved for this leave starts from the strike ball
+  // that was thrown at the rack: its line, moved by the leave's strike move
+  // when there is one (ADR-125). Only then does it fall back to its own strike
+  // line, ADR-035's last resort, for a ball thrown at a full rack that no
+  // strike ball was.
+  return spareLineBoards(saved) ?? rackBallMove(saved?.strike_offset) ?? ownStrikeLine();
 }
 
 /** Which kind of ball an id names: a spare ball, a strike ball (any ball not

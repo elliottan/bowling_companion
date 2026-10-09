@@ -5881,3 +5881,43 @@ strike is followed by another, and the longest run.
   spares and the first ball.
 - A bowler with no strike followed by a ball sees "-" for the rate, not 0%.
 
+
+## ADR-125: A spare ball with no line starts from the strike ball's move
+
+**Status.** Accepted, 2026-10-09. Extends ADR-053 and ADR-113 at a leave, for a
+spare ball or no ball. A strike ball is unchanged.
+
+**Context.** At a leave a spare ball opened with, in order, its own attempt at
+the leave this session, the leave's saved spare line, and then its own strike
+line. A spare ball is almost never thrown at a full rack, so that last step was
+empty, and a leave with no spare line opened with a blank box. The leave's
+strike ball move (ADR-053) was only ever used when a strike ball was selected,
+so a bowler who had set the move and not the spare line still got nothing on
+the spare ball.
+
+**Decision.**
+
+- **At a leave, with a spare ball or no ball selected:** this ball's own attempt
+  at the leave this session, then the leave's saved spare line, then the
+  strike ball that was thrown at the rack, on the line it threw, moved by the
+  leave's strike move. With no move saved, that line as it is. Only then the
+  ball's own strike line.
+- **The rack ball** is the ball of the latest fresh-rack throw (`lastFreshRackBallId`:
+  this frame, then earlier frames and games). It is used only when it is a
+  strike ball with a line on record. A spare ball thrown at the rack is not
+  moved by a strike move, so that case falls through as it did before.
+- **A strike ball selected at a leave** is unchanged: its own attempt, then its
+  strike line moved by the strike move, then its strike line. Never the spare
+  line (ADR-113).
+- **Swapping between the two** therefore runs the same lookup both ways. Spare
+  to strike shows the strike move, strike to spare shows the spare line, and
+  back again shows the same line it showed before, because each answer is read
+  from the record and not from what was last in the box.
+
+**Consequences.**
+- A leave that has only a strike move saved opens on the spare ball with the
+  move applied, instead of blank.
+- A typed line is still replaced when the ball changes under it (ADR-052). A
+  per-shot memory of what was typed for each ball was not added.
+- Swapping between two strike balls at a full rack is unchanged: each ball
+  shows its own last line (`sameBallSeedLine`, ADR-052).

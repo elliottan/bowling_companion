@@ -158,7 +158,7 @@ describe("SpareLineFormDialog at a pocket leave (ADR-123)", () => {
   it("says it needs no spare line, and asks for no boards", () => {
     renderDialog({ initialPins: [1, 3, 5] });
     expect(screen.getByText(/A pocket shot/)).toBeInTheDocument();
-    expect(screen.queryByText("Shooting line")).not.toBeInTheDocument();
+    expect(screen.queryByText("Spare ball line")).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Edit spare line" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Save spare line" })).not.toBeInTheDocument();
   });

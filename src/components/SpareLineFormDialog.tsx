@@ -215,7 +215,7 @@ export function SpareLineFormDialog({
         <div>
           {/* The eye sits in the heading row, as on the scorer's line. */}
           <div className="mb-0.5 flex items-center justify-between gap-2">
-            <span className={eyebrow}>Shooting line</span>
+            <span className={eyebrow}>Spare ball line</span>
             <div className="flex items-center gap-1">
               {editing && borrowable.length > 0 && (
                 <IconButton
