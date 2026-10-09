@@ -60,25 +60,6 @@ function DerivedChain({ line, model, inline = false }: { line: LineSpec; model: 
   );
 }
 
-/** The strike ball move on a row's heading line, beside its name: "Stance 2 left
- *  Target 1 right". */
-function MoveInline({ offset }: { offset?: SpareLine["strike_offset"] }) {
-  const handedness = useHandedness();
-  if (!offset || (!offset.stance && !offset.target)) return null;
-  return (
-    <p className="text-sm font-bold tabular-nums text-accent">
-      {([["Stance", offset.stance], ["Target", offset.target]] as const).map(([k, v], i) =>
-        v ? (
-          <span key={k} className={i ? "ml-3" : ""}>
-            <span className="text-[10px] font-semibold uppercase tracking-tight text-ink-secondary">{k} </span>
-            {describeMove(v, handedness)}
-          </span>
-        ) : null
-      )}
-    </p>
-  );
-}
-
 // A stable empty list: `?? []` would be a new array on every render, which
 // invalidates every useMemo downstream of it.
 const NO_LINES: SpareLine[] = [];
@@ -465,6 +446,9 @@ export function SpareLinesView({ onBack }: { onBack: () => void }) {
   );
 }
 
+/** The grey names on a row's heading, under the white values. */
+const LABEL = "text-[10px] font-semibold uppercase tracking-tight text-ink-secondary";
+
 /** A row's spoken name: the boards it stands on and aims at, or its move. */
 function rowLabel(row: LineRow): string {
   if (!row.line) return "No line yet";
@@ -472,7 +456,7 @@ function rowLabel(row: LineRow): string {
   if (row.kind === "line" && boards) {
     return `Stance ${boards.stance ?? "none"}, target ${boards.target ?? "none"}`;
   }
-  return "Strike ball move";
+  return "Strike ball";
 }
 
 /** What a row is about: the spare ball line, the boards to stand and aim on with
@@ -480,21 +464,31 @@ function rowLabel(row: LineRow): string {
  *  leave that has both is on one row of each. */
 function RowHeading({ line, kind }: { line: SpareLine; kind: LineRow["kind"] }) {
   const driftModel = useDriftModel();
+  const handedness = useHandedness();
   const boards = line.line;
   if (kind === "move") {
+    // One line, read like the spare ball line: grey names, white values.
+    const offset = line.strike_offset;
     return (
-      <div className="flex flex-wrap items-baseline gap-x-3 gap-y-0.5">
-        <h2 className={GROUP_HEADING}>Strike ball move</h2>
-        <MoveInline offset={line.strike_offset} />
-      </div>
+      <h2 className="text-sm font-bold tabular-nums text-ink">
+        <span className={LABEL}>Strike ball</span>
+        {([["Stance", offset?.stance], ["Target", offset?.target]] as const).map(([k, v]) =>
+          v ? (
+            <span key={k}>
+              <span className={`${LABEL} ml-2`}>{k} </span>
+              {describeMove(v, handedness)}
+            </span>
+          ) : null
+        )}
+      </h2>
     );
   }
   return (
     <div className="flex flex-wrap items-baseline gap-x-3 gap-y-0.5">
       <h2 className="text-sm font-bold tabular-nums text-ink">
-        <span className="text-[10px] font-semibold uppercase tracking-tight text-ink-secondary">Stance </span>
+        <span className={LABEL}>Stance </span>
         {boards?.stance ?? "-"}
-        <span className="text-[10px] font-semibold uppercase tracking-tight text-ink-secondary">{"  "}Target </span>
+        <span className={`${LABEL} ml-2`}>Target </span>
         {boards?.target ?? "-"}
       </h2>
       {boards && <DerivedChain line={boards} model={driftModel} inline />}

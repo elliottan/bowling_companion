@@ -122,7 +122,7 @@ describe("SpareLinesView", () => {
   it("does not call a leave with only a strike ball move lineless", async () => {
     await upsertSpareLine([2, 8], undefined, undefined, { stance: -2, target: -1 });
     render(<SpareLinesView onBack={vi.fn()} />);
-    const row = await screen.findByRole("region", { name: "Strike ball move" });
+    const row = await screen.findByRole("region", { name: "Strike ball" });
     expect(within(row).getByText("2 right")).toBeInTheDocument();
     expect(within(row).getByText("1 right")).toBeInTheDocument();
     expect(screen.queryByRole("region", { name: "No line yet" })?.textContent ?? "").not.toContain("2, 8");
@@ -131,7 +131,7 @@ describe("SpareLinesView", () => {
   it("says a strike ball move as a direction, not a sign", async () => {
     await upsertSpareLine([7], { stance: 35, target: 20 }, undefined, { stance: 2, target: -1 });
     render(<SpareLinesView onBack={vi.fn()} />);
-    const row = await screen.findByRole("region", { name: "Strike ball move" });
+    const row = await screen.findByRole("region", { name: "Strike ball" });
     expect(within(row).getByText("2 left")).toBeInTheDocument();
     expect(within(row).getByText("1 right")).toBeInTheDocument();
   });
@@ -141,7 +141,7 @@ describe("SpareLinesView", () => {
     render(<SpareLinesView onBack={vi.fn()} />);
 
     const spare = await screen.findByRole("region", { name: "Stance 35, target 20" });
-    const move = await screen.findByRole("region", { name: "Strike ball move" });
+    const move = await screen.findByRole("region", { name: "Strike ball" });
     expect(within(spare).getByRole("button", { name: "Open spare line for pins 7" })).toBeInTheDocument();
     expect(within(move).getByRole("button", { name: "Open spare line for pins 7" })).toBeInTheDocument();
     // The move is said once, in its own row's heading, not again on the tile.

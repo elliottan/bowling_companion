@@ -29,7 +29,8 @@ remembered their own lines at a full rack, and still do.
 **A leave with both answers is on both rows.** On Spare lines, a leave that has a
 spare ball line and a strike ball move shows up under the line and under the
 move, so you find each where you look for it. The move is no longer repeated on
-the tile, and a move row now reads its move beside its name.
+the tile. The move row is headed Strike ball and reads on one line, grey names
+and white values, like the spare ball line.
 
 ## 0.16.0: The Alley report moves to Home, and the line picture goes behind an info button (2026-10-09)
 
