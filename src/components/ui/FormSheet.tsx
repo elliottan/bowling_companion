@@ -18,6 +18,13 @@ interface FormSheetProps {
   /** Rendered above the body, outside the scroll area (an error banner). */
   banner?: ReactNode;
   /**
+   * A line under the title saying what the sheet is about, such as the
+   * filters behind a list of numbers. With one, the title sits leading beside
+   * the close rather than centred, so the line has the bar's width to use,
+   * and it stays on screen however far the body scrolls.
+   */
+  subtitle?: string;
+  /**
    * `"content"` (default) lets the sheet hug what is in it: a form is as tall
    * as its fields. `"tall"` fixes it at the same height it would cap out at,
    * for a sheet whose body is a list that arrives, filters and scrolls.
@@ -67,6 +74,7 @@ export function FormSheet({
   confirmLabel = "Save",
   confirmDisabled = false,
   banner,
+  subtitle,
   size = "content",
   dismissAs = "close",
   trailing,
@@ -107,7 +115,14 @@ export function FormSheet({
           ) : (
             <span className="h-11 w-11 shrink-0" />
           )}
-          <h2 className="flex-1 text-center text-[17px] font-semibold text-ink">{title}</h2>
+          {subtitle ? (
+            <div className="min-w-0 flex-1 py-0.5 text-left">
+              <h2 className="text-[17px] font-semibold leading-tight text-ink">{title}</h2>
+              <p className="mt-0.5 line-clamp-2 text-xs text-ink-secondary">{subtitle}</p>
+            </div>
+          ) : (
+            <h2 className="flex-1 text-center text-[17px] font-semibold text-ink">{title}</h2>
+          )}
           {trailing ? (
             trailing
           ) : onConfirm ? (
@@ -125,7 +140,9 @@ export function FormSheet({
             <IconButton variant="confirm" onClick={() => dismiss()} label="Done">
               <Check size={20} aria-hidden="true" />
             </IconButton>
-          ) : (
+          ) : subtitle ? null : (
+            // Balances the close, so a centred title is centred. A leading
+            // title has nothing to balance and wants the width.
             <span className="h-11 w-11 shrink-0" />
           )}
         </div>

@@ -6067,3 +6067,32 @@ through the gap above them, cut off at the bar.
 **Consequences.**
 - A leave that is always made can lead the card. That is the point: it is the
   one faced most.
+
+
+## ADR-130: A sheet can carry a subtitle in its bar, and All balls labels each row
+
+**Status.** Accepted, 2026-10-10. Amends ADR-129 (the pinned sheet headers).
+
+**Context.** ADR-129 pinned a header inside the All balls and All leaves sheets:
+the scope line, then the column names or the filters. On a phone the scope
+line alone ran to two lines with a long event name, and on All balls the pinned
+column names read as a bar cutting the ball under it in half. The sheet's own
+bar, meanwhile, had a centred title with an empty slot balancing the close.
+
+**Decision.**
+
+- **`FormSheet` takes a `subtitle`.** With one, the title sits leading beside
+  the close, the subtitle under it in small secondary text (two lines at most),
+  and the empty trailing slot is dropped, so the line has the bar's width. The
+  bar never scrolls, so neither does the subtitle. Without one, the bar is
+  unchanged.
+- **All balls and All leaves put the Stats scope in that subtitle.**
+- **All balls pins nothing.** Each ball names its own rates, Pocket, Carry and
+  Strike in small capitals over each number. The Balls card on Stats keeps its
+  one heading row: five rows never scroll it away.
+- **All leaves still pins its filter chips**, now alone under the bar.
+
+**Consequences.**
+- A sheet with a subtitle has a leading title and a centred-title sheet does
+  not: the two read differently on purpose, since one is a list with a scope
+  and the other a task.

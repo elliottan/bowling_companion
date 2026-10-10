@@ -241,8 +241,13 @@ describe("stat definitions", () => {
     expect(within(sheet).getAllByText(/^Ball \d$/)).toHaveLength(7);
     // Every ball's table is open, no tap needed.
     expect(within(sheet).getAllByRole("table")).toHaveLength(7);
-    // The Stats tab's scope rides along.
-    expect(within(sheet).getByText("Last 10 sessions · Sea Bowl")).toBeInTheDocument();
+    // The Stats tab's scope rides along, in the bar under the title rather
+    // than in the list.
+    const scope = within(sheet).getByText("Last 10 sessions · Sea Bowl");
+    expect(scope.previousElementSibling).toHaveTextContent("Balls");
+    // Each ball names its own rates, so nothing has to be pinned over the list.
+    expect(within(sheet).getAllByText("pocket")).toHaveLength(7);
+    expect(within(sheet).getAllByText("strike")).toHaveLength(7);
   });
 
   it("ranks the balls by strike rate, and puts a thin one last however it strikes", () => {
