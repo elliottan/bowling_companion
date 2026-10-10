@@ -55,9 +55,14 @@ export function SessionFilterButton({
         <SlidersHorizontal size={20} aria-hidden="true" />
       </IconButton>
       {count > 0 && (
+        // Flush with the button's top, not above it: the Stats and History
+        // headers sit in a box that clips at its top edge (CollapsingHeader),
+        // and a badge poking 2px over that edge lost its top, number and all.
+        // The round button leaves its corner empty, so the badge still reads
+        // as sitting on the button's rim.
         <span
           aria-hidden="true"
-          className="pointer-events-none absolute -right-0.5 -top-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-accent-fill px-1 text-[11px] font-bold tabular-nums text-accent-on-fill"
+          className="pointer-events-none absolute -right-1 top-0 flex h-5 min-w-5 items-center justify-center rounded-full bg-accent-fill px-1 text-[11px] font-bold tabular-nums text-accent-on-fill"
         >
           {count}
         </span>

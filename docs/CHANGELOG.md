@@ -18,6 +18,9 @@ it. It stays put as you scroll.
 **Every ball on All balls names its own rates.** Pocket, Carry and Strike sit
 over each ball's numbers, so nothing is pinned over the list any more.
 
+**The filter count on History and Stats is whole again.** The badge on the
+filter button was cut off at the top, number and all.
+
 ## 0.19.1: The Spares card lists the leaves you leave most, and the sheets keep their header (2026-10-10)
 
 **The Spares card lists the leaves you leave most**, made or not, starting with
