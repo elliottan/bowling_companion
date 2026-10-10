@@ -3,8 +3,8 @@ import {
   calculateRecentForm,
   FORM_MIN_SESSIONS,
   LAST_SESSIONS,
-  seasonStart,
-  sessionsInRange
+  sessionsInRange,
+  windowStart
 } from "./statsRange";
 import type { Game, SessionSummary } from "../types/bowling";
 
@@ -24,15 +24,13 @@ function nights(n: number, scoreOf: (i: number) => number): SessionSummary[] {
   });
 }
 
-describe("seasonStart", () => {
-  it("starts on 1 August", () => {
-    expect(seasonStart("2026-10-09")).toBe("2026-08-01");
-    expect(seasonStart("2026-08-01")).toBe("2026-08-01");
+describe("windowStart", () => {
+  it("counts back the given number of days", () => {
+    expect(windowStart("2026-10-10", 90)).toBe("2026-07-12");
   });
 
-  it("belongs to last year's season before August", () => {
-    expect(seasonStart("2026-07-31")).toBe("2025-08-01");
-    expect(seasonStart("2027-02-14")).toBe("2026-08-01");
+  it("crosses a year end", () => {
+    expect(windowStart("2027-01-15", 90)).toBe("2026-10-17");
   });
 });
 
@@ -42,11 +40,11 @@ describe("sessionsInRange", () => {
     expect(sessionsInRange(all, "all", "2026-10-09")).toBe(all);
   });
 
-  it("keeps the season's sessions", () => {
-    const all = [night("2026-07-20", [180]), night("2026-08-01", [200]), night("2026-09-15", [210])];
-    expect(sessionsInRange(all, "season", "2026-10-09").map((s) => s.session.date)).toEqual([
-      "2026-08-01",
-      "2026-09-15"
+  it("keeps the last 90 days, the first of them included", () => {
+    const all = [night("2026-07-11", [180]), night("2026-07-12", [200]), night("2026-10-09", [210])];
+    expect(sessionsInRange(all, "months3", "2026-10-10").map((s) => s.session.date)).toEqual([
+      "2026-07-12",
+      "2026-10-09"
     ]);
   });
 

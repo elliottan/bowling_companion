@@ -9,11 +9,11 @@ import { calculateStats } from "./stats";
  * where and what. It sits on the Stats tab itself and History does not read
  * it, because a list of sessions is already in date order and needs no window.
  */
-export type StatsRange = "last10" | "season" | "all";
+export type StatsRange = "last10" | "months3" | "all";
 
 export const STATS_RANGES: ReadonlyArray<{ value: StatsRange; label: string }> = [
   { value: "last10", label: "Last 10" },
-  { value: "season", label: "Season" },
+  { value: "months3", label: "3 months" },
   { value: "all", label: "All" }
 ];
 
@@ -28,11 +28,21 @@ export const RECENT_SESSIONS = 5;
  *  difference says nothing. */
 export const FORM_MIN_SESSIONS = 10;
 
-/** League seasons run from late summer, so a season starts on 1 August. Before
- *  that date in a year, the season under way is the one that began last year. */
-export function seasonStart(today: string): string {
-  const year = Number(today.slice(0, 4));
-  return today.slice(5) >= "08-01" ? `${year}-08-01` : `${year - 1}-08-01`;
+/** Days in the "3 months" window. */
+export const RECENT_DAYS = 90;
+
+/**
+ * The first day a window of `days` ending today keeps, as a `YYYY-MM-DD` key.
+ *
+ * A rolling window rather than a season (ADR-127): a season start is a date the
+ * app cannot know, since leagues start when they start, and nothing on screen
+ * said which one it had guessed. Ninety days back from today needs no guessing
+ * and never empties on the first day of anything.
+ */
+export function windowStart(today: string, days: number): string {
+  const [y, m, d] = today.split("-").map(Number);
+  // UTC noon, so the arithmetic never crosses a daylight-saving boundary.
+  return new Date(Date.UTC(y, m - 1, d - days, 12)).toISOString().slice(0, 10);
 }
 
 /** A session with a finished game on the lanes being read: the same test the
@@ -62,8 +72,8 @@ export function sessionsInRange(
   lanes: string[] = []
 ): SessionSummary[] {
   if (range === "all") return sessions;
-  if (range === "season") {
-    const start = seasonStart(today);
+  if (range === "months3") {
+    const start = windowStart(today, RECENT_DAYS);
     return sessions.filter((s) => s.session.date >= start);
   }
   return byDate(sessions.filter((s) => isScored(s, lanes))).slice(-LAST_SESSIONS);

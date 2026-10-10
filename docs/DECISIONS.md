@@ -5975,3 +5975,68 @@ before it said which ball struck.
   `lib/stats` for whoever needs a column leader next.
 - Season is a fixed date, not a setting. A bowler whose league starts in
   January sees the wrong window until there is a case for making it one.
+
+
+## ADR-127: Three months, not a season, and the chart always says what it counts
+
+**Status.** Accepted, 2026-10-10. Supersedes the Season range and the chart's
+info control from ADR-126, and the info control of ADR-061b.
+
+**Context.** ADR-126 shipped a Season range that started on 1 August, the start
+of a US league season. Nothing on screen said so, the app cannot know when any
+given league starts, and the bowler who asked for the range bowls where that
+calendar does not apply. They read it as unintuitive, which it was. The chart's
+definition sat behind an info button, so the one line that says what "Carry" or
+"Streak" counts was a tap nobody made.
+
+**Decision.**
+
+- **The middle range is 3 months**: the last 90 days, counted back from today
+  and including the first of them (`windowStart`). The label says exactly what
+  it keeps, and a rolling window never empties on the first day of a year.
+- **The picked metric's definition is always on**, one line under the chips.
+  Every metric has one now, average included, each short enough to fit one row
+  on a 390px screen. The Game by game screen does the same.
+- **Best streak is called Max consecutive strikes**, on the chart and on the
+  First ball card, and is the last chip on the picker: it is the stat a bowler
+  reads least. The line under the chart says it is per game.
+
+**Consequences.**
+- The share card names the window as "Last 3 months".
+- The range is kept for the app run only (`viewMemory`), so no stored "season"
+  value needed migrating.
+
+
+## ADR-128: Stats sheets carry the scope, balls show three rates, and leaves share the Spare lines filters
+
+**Status.** Accepted, 2026-10-10. Amends ADR-126 (the Balls and Spares cards).
+
+**Context.** The Balls card of ADR-126 gave each ball one number, strike %, and
+a bar. The bowler wanted pocket and carry on the row too, without the bar, and
+the card had no limit on how many balls it listed. The Spares card named three
+leaves only. All leaves listed every leave with no way to narrow it, while the
+Spare lines screen, a tap away, had shape, status and pin filters. And a sheet
+opened from Stats did not say which sessions it counted, though the tab could be
+narrowed by alley, pattern, game, lanes and range.
+
+**Decision.**
+
+- **A ball's row shows pocket, carry and strike**, under spelled-out column
+  headings, with the ball count under the name. A ball under
+  `RATE_LEADER_MIN_BALLS` is greyed. The card lists the top five by strike %.
+- **All balls is a sheet with every ball open**: its row, its rates by game and
+  its leaves. Tapping a ball on the card opens the sheet scrolled to that ball.
+  Picking a game from it closes the sheet on the way.
+- **The Spares card lists every makeable leave missed at least once**, two rows
+  on show and the rest a scroll inside the card.
+- **All leaves takes the Spare lines filters**: All, Pins, the shapes and
+  whether a line is saved. One set, `useSpareFilters`, kept for the app run and
+  read by both screens, so a filter set on one is set on the other.
+  `matchesLeaveFilters` reads a leave with no saved line as "No line yet".
+- **Both sheets carry the Stats scope** in a line at the top: the same words the
+  share card uses (`describeFilter`), range included.
+
+**Consequences.**
+- A ball is no longer expanded in place on the card, so the per-ball expand
+  memory is gone.
+- `SpareFilterBar` is the one filter row, worn by Spare lines and All leaves.

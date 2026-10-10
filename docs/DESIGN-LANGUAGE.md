@@ -113,7 +113,9 @@ shared track is what says "pick one" before a single label is read.
 The one exception is a pick-one with more options than a track can hold. The
 chart picker on Stats has eight, and eight segments in 390px are unreadable,
 so it is a row of `Chip`s that scrolls sideways, exactly one pressed, with the
-row cut off at the card's edge to say there is more (ADR-126).
+row cut off at the card's edge to say there is more (ADR-126). One line under
+it always says what the picked metric counts: a definition behind an info
+button was a tap nobody made (ADR-127).
 
 **Press feedback is `active:`, never `hover:` alone.** `hover:` is compiled
 behind `@media (hover: hover)` (`future.hoverOnlyWhenSupported` in

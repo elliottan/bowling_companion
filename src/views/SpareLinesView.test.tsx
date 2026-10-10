@@ -1,5 +1,6 @@
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { clearViewMemory } from "../lib/viewMemory";
 import { SpareLinesView } from "./SpareLinesView";
 import { db } from "../db/bowlingDb";
 import { addBall, getBalls, getSpareLinesAll, upsertSpareLine } from "../services/ballRepository";
@@ -27,6 +28,9 @@ async function seedHistoryWithLeave(pins: PinNumber[], times: number) {
 
 describe("SpareLinesView", () => {
   beforeEach(async () => {
+    // The leave filters are kept for the app run and shared with Stats, so
+    // each test starts from a list nobody has narrowed.
+    clearViewMemory();
     await db.delete();
     await db.open();
   });

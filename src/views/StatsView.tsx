@@ -57,7 +57,7 @@ const NO_BALLS: Ball[] = [];
  *  nothing on a card seen out of context. */
 const RANGE_ON_CARD: Record<StatsRange, string | undefined> = {
   last10: "Last 10 sessions",
-  season: "This season",
+  months3: "Last 3 months",
   all: undefined
 };
 
@@ -129,21 +129,21 @@ export function StatsView({
   // The share card describes the filtered set, not the whole history: the
   // numbers on screen are the filtered ones, and a picture that silently
   // widened its scope would be a lie.
-  const shareCard = useMemo(
+  // The scope in words, for the share card and for the sheets the Stats cards
+  // open, so a list read on its own still says which sessions it counts.
+  const scopeLabel = useMemo(
     () =>
-      buildStatsCard(
-        stats,
-        describeFilter({
-          alley: filters.alley,
-          pattern: filters.pattern,
-          event: filters.event,
-          gameNumber: filters.gameNumber,
-          lanes: activeLanes,
-          range: RANGE_ON_CARD[range]
-        })
-      ),
-    [stats, filters.alley, filters.pattern, filters.event, filters.gameNumber, activeLanes, range]
+      describeFilter({
+        alley: filters.alley,
+        pattern: filters.pattern,
+        event: filters.event,
+        gameNumber: filters.gameNumber,
+        lanes: activeLanes,
+        range: RANGE_ON_CARD[range]
+      }),
+    [filters.alley, filters.pattern, filters.event, filters.gameNumber, activeLanes, range]
   );
+  const shareCard = useMemo(() => buildStatsCard(stats, scopeLabel), [stats, scopeLabel]);
 
   const scrollerRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
@@ -214,11 +214,12 @@ export function StatsView({
             sessionMetrics={sessionMetrics}
             memoryKey="history"
             form={form}
+            scopeLabel={scopeLabel}
             empty={
-              range === "season" && filters.filtered.length > 0
+              range === "months3" && filters.filtered.length > 0
                 ? {
-                    title: "Nothing this season yet",
-                    description: "The season starts on 1 August. Your games from before then are under All."
+                    title: "Nothing in the last 3 months",
+                    description: "Your earlier games are under All."
                   }
                 : undefined
             }
