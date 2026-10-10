@@ -1,5 +1,5 @@
 import { ArrowRight, BarChart3, ListFilter, TrendingDown, TrendingUp } from "lucide-react";
-import { Fragment, useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { getSpareLinesAll } from "../services/ballRepository";
 import { leaveKey, matchesLeaveFilters, matchesPins } from "../lib/spareLines";
@@ -268,7 +268,7 @@ export function Stats({
   // as a bare "0/0" with a "+1" beside it explaining why. The frequency it was
   // reported for is on the ball's own leaves.
   const convertible = (leaves ?? []).filter((l) => l.chances > 0);
-  const missed = mostMissed(convertible);
+  const leftMost = mostLeft(convertible);
   const ranked = byStrikeRate(ballPerformance?.balls ?? []);
 
   return (
@@ -374,7 +374,7 @@ export function Stats({
           <p className="mt-1 flex items-baseline gap-2">
             <span className="text-3xl font-bold tabular-nums text-ink">{pct(stats.sparePct)}</span>
             <span className="text-sm text-ink-secondary">
-              {missed.length > 0 ? "made. Missed most:" : "made"}
+              made
             </span>
           </p>
           {note === SPARE_NOTE && (
@@ -382,15 +382,15 @@ export function Stats({
               <StatNote text={SPARE_NOTE} onDismiss={() => setNote(null)} />
             </div>
           )}
-          {missed.length > 0 && (
+          {leftMost.length > 0 && (
             // Two rows on show, the rest a scroll away inside the card, with
             // the top of a third row peeking to say there is more.
             <div
               role="region"
-              aria-label="Leaves missed most"
+              aria-label="Leaves left most"
               className="-mx-1 mt-3 max-h-[15.25rem] overflow-y-auto overscroll-y-contain px-1"
             >
-              <LeaveGrid leaves={missed} onOpen={setOpenLeave} />
+              <LeaveGrid leaves={leftMost} onOpen={setOpenLeave} />
             </div>
           )}
         </section>
@@ -576,14 +576,16 @@ function FirstBallCard({ stats }: { stats: BowlingStats }) {
 /** Balls on the card; every one is on the All balls sheet. */
 const TOP_BALLS = 5;
 
-/** The makeable leaves missed at least once, most misses first, then most
- *  chances. A split or a washout is a first ball you did not get rather than a
- *  spare you missed (ADR-058), so neither is on the card. */
-function mostMissed(leaves: LeaveStats[]): LeaveStats[] {
-  const misses = (l: LeaveStats) => l.chances - l.conversions;
+/** Times a leave must have been left to be on the Spares card. Fewer is a
+ *  rate over a handful, and every leave is still under All leaves. */
+const CARD_MIN_LEFT = 3;
+
+/** The leaves left most, of every shape, most often first (ADR-129). What a
+ *  bowler faces most is what the card leads with, whether they make it or not. */
+function mostLeft(leaves: LeaveStats[]): LeaveStats[] {
   return leaves
-    .filter((l) => spareGroup(l.pins) === "makeable" && misses(l) > 0)
-    .sort((a, b) => misses(b) - misses(a) || b.chances - a.chances);
+    .filter((l) => l.attempts >= CARD_MIN_LEFT)
+    .sort((a, b) => b.attempts - a.attempts || b.chances - a.chances);
 }
 
 /** Balls with enough throws behind them by strike rate, best first; the thin
@@ -617,12 +619,10 @@ const RATE_COLUMN = "w-12 shrink-0 text-right";
 
 /** The headings over the three rates, spelled out: as single letters they had
  *  to be decoded before the row said anything. */
-function BallRateHeadings({ sticky = false }: { sticky?: boolean }) {
+function BallRateHeadings() {
   return (
     <div
-      className={`flex items-center gap-2 pb-1 text-[10px] font-semibold uppercase tracking-wide text-ink-tertiary ${
-        sticky ? "sticky top-0 z-10 bg-surface pt-1" : ""
-      }`}
+      className="flex items-center gap-2 pb-1 text-[10px] font-semibold uppercase tracking-wide text-ink-tertiary"
       aria-hidden="true"
     >
       <span className="min-w-0 flex-1" />
@@ -769,6 +769,22 @@ function ScopeLine({ label }: { label?: string }) {
 }
 
 /**
+ * The top of a Stats sheet's list, pinned while the list scrolls under it.
+ *
+ * `FormSheet` pads its scroll area by 1rem, and a header stuck at `top-0` sits
+ * below that padding: rows scrolling past showed through the gap above it, cut
+ * off at the bar. So it starts 1rem up (`-mt-4`), sticks 1rem up (`-top-4`)
+ * and fills that strip with its own background, edge to edge (`-mx-4`).
+ */
+function SheetHeader({ children }: { children: ReactNode }) {
+  return (
+    <div className="sticky -top-4 z-10 -mx-4 -mt-4 border-b border-edge bg-surface px-4 pb-2 pt-4">
+      {children}
+    </div>
+  );
+}
+
+/**
  * Every ball, each one open: its rates, its rates by game and its leaves.
  * Opened from the Balls card, scrolled to the ball that was tapped.
  */
@@ -794,15 +810,19 @@ function AllBallsSheet({
   }, [focusId]);
   return (
     <FormSheet title="Balls" onClose={onClose} size="tall" active={drill === null}>
-      <div className="space-y-3">
-        <ScopeLine label={scopeLabel} />
+      <div>
+        {/* The scope and the column names stay on screen, so a ball scrolled
+            to still says what its numbers count and which column is which. */}
+        <SheetHeader>
+          <ScopeLine label={scopeLabel} />
+          <div className="mt-3">
+            <BallRateHeadings />
+          </div>
+        </SheetHeader>
         <div>
-          {/* Stuck to the top, so a ball scrolled to still has its columns
-              named. */}
-          <BallRateHeadings sticky />
           <ul ref={listRef} className="divide-y divide-edge">
             {balls.map((b) => (
-              <li key={b.ballId} data-ball={b.ballId} className="scroll-mt-8 py-3">
+              <li key={b.ballId} data-ball={b.ballId} className="scroll-mt-24 py-3">
                 <BallSummary ball={b} />
                 <BallDetails ball={b} onDrill={onOpenGame && ((cell) => setDrill({ ball: b, cell }))} />
               </li>
@@ -864,13 +884,19 @@ function AllLeavesSheet({
   return (
     <FormSheet title="Leaves" onClose={onClose} size="tall" active={!covered && !pinsOpen}>
       <div className="space-y-4">
-        <ScopeLine label={scopeLabel} />
-        <SpareFilterBar
-          state={spareFilters}
-          label="Filter leaves"
-          pinsOpen={pinsOpen}
-          onPinsOpenChange={setPinsOpen}
-        />
+        {/* The scope and the filters stay on screen while the leaves scroll,
+            so the list never loses what it is narrowed to. */}
+        <SheetHeader>
+          <ScopeLine label={scopeLabel} />
+          <div className="mt-3">
+            <SpareFilterBar
+              state={spareFilters}
+              label="Filter leaves"
+              pinsOpen={pinsOpen}
+              onPinsOpenChange={setPinsOpen}
+            />
+          </div>
+        </SheetHeader>
         {note && <StatNote text={LEAVE_NOTE} onDismiss={() => setNote(false)} />}
         {kept.length === 0 ? (
           <div className="space-y-2 py-6 text-center">
