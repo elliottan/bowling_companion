@@ -104,10 +104,10 @@ describe("the headline", () => {
     render(
       <Stats
         stats={{ ...STATS, totalGames: 0 }}
-        empty={{ title: "Nothing this season yet", description: "Before then is under All." }}
+        empty={{ title: "Nothing in the last 3 months", description: "Your earlier games are under All." }}
       />
     );
-    expect(screen.getByText("Nothing this season yet")).toBeInTheDocument();
+    expect(screen.getByText("Nothing in the last 3 months")).toBeInTheDocument();
   });
 });
 
@@ -123,23 +123,25 @@ describe("the first ball", () => {
       "Carry",
       "Strike",
       "Strike on strike",
-      "Best streak"
+      "Streak"
     ]);
     expect(screen.getByText("Pocket").nextElementSibling).toHaveTextContent("90%");
     expect(screen.getByText("Carry").nextElementSibling).toHaveTextContent("67%");
   });
 });
 
-describe("strike on strike and the best streak", () => {
-  it("sits with the first ball, and explains itself from the chart it plots", () => {
+describe("strike on strike and the streak", () => {
+  it("sits with the first ball, and says what it counts on the chart", () => {
     render(<Stats stats={STATS} sessionMetrics={TREND} sessionTrend={SESSION_TREND} />);
     const card = screen.getByRole("heading", { name: "First ball" }).closest("section")!;
     expect(within(card).getByText("Strike on strike").nextElementSibling).toHaveTextContent("47%");
-    expect(within(card).getByText("Best streak").nextElementSibling).toHaveTextContent("4");
+    expect(within(card).getByText("Streak").nextElementSibling).toHaveTextContent("4");
 
     fireEvent.click(screen.getByRole("button", { name: "Strike on strike" }));
-    fireEvent.click(screen.getByRole("button", { name: /What Strike on strike counts/ }));
-    expect(screen.getByText(/strikes that the next ball struck too/i)).toBeInTheDocument();
+    expect(screen.getByText("Strikes the next ball struck too.")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Streak" }));
+    expect(screen.getByText("Most strikes in a row in one game.")).toBeInTheDocument();
   });
 });
 
@@ -182,24 +184,25 @@ describe("picking what the chart plots", () => {
     expect(plotted).toEqual(["Sea Bowl, 60%", "Sea Bowl, 40%"]);
   });
 
-  it("explains the plotted stat from the chart, not the tile", () => {
+  it("always says what the plotted stat counts, with no button to open it", () => {
     render(<Stats stats={STATS} sessionMetrics={TREND} sessionTrend={SESSION_TREND} />);
+    expect(screen.getByText("Your score per finished game.")).toBeInTheDocument();
+
     fireEvent.click(screen.getByRole("button", { name: "Carry" }));
-    expect(screen.queryByText(/pocket hits that struck/i)).toBeNull();
-
-    fireEvent.click(screen.getByRole("button", { name: /What Carry counts/ }));
-    expect(screen.getByText(/pocket hits that struck/i)).toBeInTheDocument();
-
-    fireEvent.click(screen.getByRole("button", { name: /What Carry counts/ }));
-    expect(screen.queryByText(/pocket hits that struck/i)).toBeNull();
+    expect(screen.getByText("Pocket hits that struck.")).toBeInTheDocument();
+    expect(screen.queryByText("Your score per finished game.")).toBeNull();
+    expect(screen.queryByRole("button", { name: /^What .* counts$/ })).toBeNull();
   });
 
-  it("offers no explanation for a stat whose label already says it", () => {
+  it("gives every stat on the picker a line short enough for one row on a phone", () => {
     render(<Stats stats={STATS} sessionMetrics={TREND} sessionTrend={SESSION_TREND} />);
-    for (const named of ["Pocket", "Strike", "1st ball"]) {
-      fireEvent.click(screen.getByRole("button", { name: named }));
-      // No dangling info control, because there is nothing behind it.
-      expect(screen.queryByRole("button", { name: `What ${named} counts` })).toBeNull();
+    const picker = screen.getByRole("group", { name: "Chart by session" });
+    for (const chip of within(picker).getAllByRole("button")) {
+      fireEvent.click(chip);
+      const line = picker.parentElement!.nextElementSibling!;
+      expect(line.textContent!.length).toBeGreaterThan(0);
+      // About what fits a 390px card at 12px.
+      expect(line.textContent!.length).toBeLessThanOrEqual(50);
     }
   });
 });

@@ -1,10 +1,9 @@
-import { useMemo, useState } from "react";
-import { Info, LayoutGrid } from "lucide-react";
+import { useMemo } from "react";
+import { LayoutGrid } from "lucide-react";
 import { PushScreen } from "../components/PushScreen";
 import { EmptyState } from "../components/ui/EmptyState";
 import { LoadingCard } from "../components/ui/LoadingCard";
 import { GROUP_HEADING } from "../components/ui/typography";
-import { IconButton } from "../components/ui/IconButton";
 import { MetricTrendChart } from "../components/MetricTrendChart";
 import { METRIC_KEYS, metricNote, metricSpec, type MetricKey } from "../components/Stats";
 import { calculateGameNumberMetrics, type GameNumberMetricPoint } from "../lib/stats";
@@ -45,7 +44,6 @@ export function GameTrendView({ onBack }: GameTrendViewProps) {
   const handedness = useHandedness();
   const [columns, setColumns] = useRememberedState<Columns>("game-trend:columns", "scoring");
   const [metric, setMetric] = useRememberedState<MetricKey>("game-trend:metric", "average");
-  const [noteOpen, setNoteOpen] = useState(false);
 
   const trend = useMemo(
     () => calculateGameNumberMetrics(filtered, activeLanes, handedness),
@@ -89,18 +87,9 @@ export function GameTrendView({ onBack }: GameTrendViewProps) {
                 value: spec.value(p.stats)
               }))}
               header={
-                <div className="mb-1 flex items-center justify-between gap-2">
+                <div className="mb-1">
                   <h2 className={GROUP_HEADING}>{spec.label} by game</h2>
-                  {/* Only where the stat has a definition worth reading. */}
-                  {metricNote(metric) && (
-                    <IconButton
-                      label={`What ${spec.label} counts`}
-                      compact
-                      onClick={() => setNoteOpen((v) => !v)}
-                    >
-                      <Info size={16} aria-hidden="true" />
-                    </IconButton>
-                  )}
+                  <p className="mt-1 text-xs text-ink-secondary">{metricNote(metric)}</p>
                 </div>
               }
               overall={null}
@@ -117,12 +106,6 @@ export function GameTrendView({ onBack }: GameTrendViewProps) {
                 }
               }}
             />
-
-            {noteOpen && metricNote(metric) && (
-              <p className="mt-2 px-0.5 text-xs leading-relaxed text-ink-secondary">
-                {metricNote(metric)}
-              </p>
-            )}
 
             <div className="mb-2 mt-4 flex items-center justify-between gap-3">
               <h2 className={GROUP_HEADING}>All of them</h2>

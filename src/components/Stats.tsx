@@ -6,7 +6,6 @@ import { CatalogBallImage } from "./CatalogBallImage";
 import { MiniPins } from "./MiniPins";
 import { LoadingCard } from "./ui/LoadingCard";
 import { EmptyState } from "./ui/EmptyState";
-import { IconButton } from "./ui/IconButton";
 import type { Manufacturer } from "../types/catalog";
 import { formatLeave, SPARE_GROUP_LABEL, SPARE_GROUPS, spareGroup } from "../lib/pins";
 import { SpareDetailsSheet } from "./SpareDetailsSheet";
@@ -27,7 +26,6 @@ import { BallGameSessionsDialog } from "./BallGameSessionsDialog";
 import { ScoreTrendChart } from "./ScoreTrendChart";
 import { SessionTrendChart } from "./SessionTrendChart";
 import { MetricTrendChart } from "./MetricTrendChart";
-import { Info } from "lucide-react";
 import type { Game } from "../types/bowling";
 import { RECENT_SESSIONS, type RecentForm } from "../lib/statsRange";
 import { GROUP_HEADING } from "./ui/typography";
@@ -65,7 +63,7 @@ const METRICS = {
     minSpan: 25
   },
   bestStreak: {
-    label: "Best streak",
+    label: "Streak",
     value: (s: BowlingStats) => s.bestStreak,
     format: (v: number) => String(Math.round(v)),
     min: 0,
@@ -118,32 +116,29 @@ export function metricSpec(metric: MetricKey) {
   return METRICS[metric];
 }
 
-/** The definition behind a metric, where it has one. */
-export function metricNote(metric: MetricKey): string | undefined {
+/** What a metric counts, in one line. */
+export function metricNote(metric: MetricKey): string {
   return METRIC_NOTE[metric];
 }
 
-// Definitions, tapped rather than printed: read once, then in the way.
-//
-// Only for a stat whose name does not already say it. Pocket, strike and first
-// ball each explain themselves, and the notes they used to carry restated the
-// label and then padded. Not every number needs a sentence.
+// Tapped definitions, for the numbers off the chart: the Spares heading and the
+// Carry row of a ball's table.
 const CARRY_NOTE = "Carry: pocket hits that struck.";
-const STRIKE_ON_STRIKE_NOTE = "Strike on strike: strikes that the next ball struck too.";
-const BEST_STREAK_NOTE = "Best streak: most strikes in a row in one game.";
 const SPARE_NOTE = "Spare: makeable leaves converted, excludes splits and washouts.";
 
-/** The note for a graphable stat, where there is one, shown from the chart it
- *  is plotted on rather than from the tile (ADR-061b).
- *
- *  Two of six. Average, pocket, strike and first ball are named plainly enough
- *  by their own labels, and the notes they carried restated the label and then
- *  padded. */
-const METRIC_NOTE: Partial<Record<MetricKey, string>> = {
-  strikeOnStrikePct: STRIKE_ON_STRIKE_NOTE,
-  bestStreak: BEST_STREAK_NOTE,
-  sparePct: SPARE_NOTE,
-  carryPct: CARRY_NOTE
+/** One line under the chart picker saying what the picked metric counts, always
+ *  on (ADR-127). Behind an info button the definition was a tap nobody made, and
+ *  a chip's one word ("Streak", "Carry") does not say it. Kept to one line on a
+ *  phone, so short enough to read in passing. */
+const METRIC_NOTE: Record<MetricKey, string> = {
+  average: "Your score per finished game.",
+  strikePct: "First balls at a full rack that struck.",
+  strikeOnStrikePct: "Strikes the next ball struck too.",
+  bestStreak: "Most strikes in a row in one game.",
+  sparePct: "Makeable leaves made. Not splits or washouts.",
+  pocketPct: "First balls that hit the pocket.",
+  carryPct: "Pocket hits that struck.",
+  firstBallAverage: "Pins the first ball knocks down, on average."
 };
 const LEAVE_NOTE =
   "Made over chances, then the rate. A leave off the last ball of the 10th has no spare to follow it, so it is not on this card.";
@@ -181,7 +176,7 @@ interface StatsProps {
    *  inside a session, where there is nothing earlier to read them against. */
   form?: RecentForm | null;
   /** What an empty screen says, where the reason is not "you have never
-   *  bowled": the Stats tab narrowed to a season with nothing in it yet. */
+   *  bowled": the Stats tab narrowed to three months with nothing in them. */
   empty?: { title: string; description: string };
 }
 
@@ -214,11 +209,10 @@ export function Stats({
   // Which stat the chart is plotting. Remembered, so leaving the tab and
   // coming back does not silently drop you back on the average.
   const [metric, setMetric] = useRememberedState<MetricKey>(`${memoryKey}:metric`, "average");
-  const [metricNoteOpen, setMetricNoteOpen] = useState(false);
   const spec = METRICS[metric];
 
-  // One header for either chart: the picker, then the definition of whatever
-  // it picked behind an info control rather than printed under it (ADR-126).
+  // One header for either chart: the picker, then one line saying what the
+  // picked metric counts (ADR-127).
   const chartHeader = (
     <div className="mb-1">
       <div className="flex items-center gap-1">
@@ -231,29 +225,15 @@ export function Stats({
             <Chip
               key={key}
               selected={key === metric}
-              onClick={() => {
-                setMetric(key);
-                setMetricNoteOpen(false);
-              }}
+              onClick={() => setMetric(key)}
               className="shrink-0"
             >
               {METRICS[key].label}
             </Chip>
           ))}
         </div>
-        {METRIC_NOTE[metric] && (
-          <IconButton
-            label={`What ${spec.label} counts`}
-            compact
-            onClick={() => setMetricNoteOpen((v) => !v)}
-          >
-            <Info size={16} aria-hidden="true" />
-          </IconButton>
-        )}
       </div>
-      {metricNoteOpen && METRIC_NOTE[metric] && (
-        <p className="mt-1 text-xs leading-relaxed text-ink-secondary">{METRIC_NOTE[metric]}</p>
-      )}
+      <p className="mt-1 text-xs text-ink-secondary">{METRIC_NOTE[metric]}</p>
     </div>
   );
 
@@ -563,7 +543,7 @@ function FirstBallCard({ stats }: { stats: BowlingStats }) {
           <dd className="font-semibold tabular-nums text-ink">{pct(stats.strikeOnStrikePct)}</dd>
         </div>
         <div className="flex gap-1">
-          <dt>Best streak</dt>
+          <dt>Streak</dt>
           <dd className="font-semibold tabular-nums text-ink">{fmt(stats.bestStreak)}</dd>
         </div>
       </dl>

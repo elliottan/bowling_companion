@@ -9,6 +9,16 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.19.0: 3 months instead of Season, and the chart says what it counts (2026-10-10)
+
+**Season is now 3 months.** The middle choice at the top of Stats keeps the
+last 90 days. Season started on 1 August, which nothing on screen said.
+
+**The chart always says what it's showing.** One short line under the chips
+says what the picked stat counts. The info button is gone.
+
+**Best streak is now Streak.**
+
 ## 0.18.0: Stats leads with your average (2026-10-09)
 
 **Stats opens on one number.** Your average is large at the top, with High, Low

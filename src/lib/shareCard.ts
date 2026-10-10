@@ -158,7 +158,7 @@ interface FilterParts {
   event: string;
   gameNumber: number | null;
   lanes: string[];
-  /** The Stats tab's window ("Last 10", "Season"), absent on All. */
+  /** The Stats tab's window ("Last 10 sessions", "Last 3 months"), absent on All. */
   range?: string;
 }
 

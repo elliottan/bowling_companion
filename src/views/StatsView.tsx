@@ -57,7 +57,7 @@ const NO_BALLS: Ball[] = [];
  *  nothing on a card seen out of context. */
 const RANGE_ON_CARD: Record<StatsRange, string | undefined> = {
   last10: "Last 10 sessions",
-  season: "This season",
+  months3: "Last 3 months",
   all: undefined
 };
 
@@ -215,10 +215,10 @@ export function StatsView({
             memoryKey="history"
             form={form}
             empty={
-              range === "season" && filters.filtered.length > 0
+              range === "months3" && filters.filtered.length > 0
                 ? {
-                    title: "Nothing this season yet",
-                    description: "The season starts on 1 August. Your games from before then are under All."
+                    title: "Nothing in the last 3 months",
+                    description: "Your earlier games are under All."
                   }
                 : undefined
             }
