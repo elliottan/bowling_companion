@@ -1,4 +1,4 @@
-import { ArrowRight, BarChart3, ListFilter, TrendingDown, TrendingUp } from "lucide-react";
+import { ArrowRight, BarChart3, TrendingDown, TrendingUp } from "lucide-react";
 import { Fragment, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { getSpareLinesAll } from "../services/ballRepository";
@@ -634,8 +634,13 @@ function BallRateHeadings() {
 }
 
 /** One ball's line: picture, name, how many balls are behind it, and its
- *  pocket, carry and strike. A thin sample is greyed, since it ranks nothing. */
-function BallSummary({ ball }: { ball: BallPerformance }) {
+ *  pocket, carry and strike. A thin sample is greyed, since it ranks nothing.
+ *
+ *  `labelled` names each rate over its own number, for a list long enough that
+ *  a heading row at the top has scrolled away: the All balls sheet. A heading
+ *  pinned over the list was tried there and read as a bar cutting the balls
+ *  in half (ADR-130). */
+function BallSummary({ ball, labelled = false }: { ball: BallPerformance; labelled?: boolean }) {
   const thin = ball.firstBalls < RATE_LEADER_MIN_BALLS;
   const tone = thin ? "text-ink-tertiary" : "text-ink";
   return (
@@ -665,6 +670,14 @@ function BallSummary({ ball }: { ball: BallPerformance }) {
           className={`${RATE_COLUMN} font-semibold tabular-nums ${tone}`}
           aria-label={`${label} ${pct(value)}`}
         >
+          {labelled && (
+            <span
+              className="block text-[10px] font-semibold uppercase tracking-wide text-ink-tertiary"
+              aria-hidden="true"
+            >
+              {label}
+            </span>
+          )}
           {pct(value)}
         </span>
       ))}
@@ -755,19 +768,6 @@ function BallDetails({
   );
 }
 
-/** What the numbers on a sheet are about: the Stats tab's filters and range,
- *  carried onto the sheet so a list read on its own still says which sessions
- *  it counts (ADR-128). */
-function ScopeLine({ label }: { label?: string }) {
-  if (!label) return null;
-  return (
-    <p className="flex items-center gap-1.5 text-xs text-ink-secondary">
-      <ListFilter size={12} aria-hidden="true" className="shrink-0" />
-      <span className="min-w-0">{label}</span>
-    </p>
-  );
-}
-
 /**
  * The top of a Stats sheet's list, pinned while the list scrolls under it.
  *
@@ -809,21 +809,15 @@ function AllBallsSheet({
     if (el && "scrollIntoView" in el) el.scrollIntoView({ block: "start" });
   }, [focusId]);
   return (
-    <FormSheet title="Balls" onClose={onClose} size="tall" active={drill === null}>
+    // The scope rides in the bar, under the title, so it never scrolls away
+    // and takes none of the list's room (ADR-130).
+    <FormSheet title="Balls" subtitle={scopeLabel} onClose={onClose} size="tall" active={drill === null}>
       <div>
-        {/* The scope and the column names stay on screen, so a ball scrolled
-            to still says what its numbers count and which column is which. */}
-        <SheetHeader>
-          <ScopeLine label={scopeLabel} />
-          <div className="mt-3">
-            <BallRateHeadings />
-          </div>
-        </SheetHeader>
         <div>
-          <ul ref={listRef} className="divide-y divide-edge">
+          <ul ref={listRef} className="-mt-3 divide-y divide-edge">
             {balls.map((b) => (
-              <li key={b.ballId} data-ball={b.ballId} className="scroll-mt-24 py-3">
-                <BallSummary ball={b} />
+              <li key={b.ballId} data-ball={b.ballId} className="py-3">
+                <BallSummary ball={b} labelled />
                 <BallDetails ball={b} onDrill={onOpenGame && ((cell) => setDrill({ ball: b, cell }))} />
               </li>
             ))}
@@ -882,20 +876,23 @@ function AllLeavesSheet({
       matchesPins(l.pins, spareFilters.pins, spareFilters.exact)
   );
   return (
-    <FormSheet title="Leaves" onClose={onClose} size="tall" active={!covered && !pinsOpen}>
+    <FormSheet
+      title="Leaves"
+      subtitle={scopeLabel}
+      onClose={onClose}
+      size="tall"
+      active={!covered && !pinsOpen}
+    >
       <div className="space-y-4">
-        {/* The scope and the filters stay on screen while the leaves scroll,
-            so the list never loses what it is narrowed to. */}
+        {/* The scope is in the bar; the filters stay pinned under it while the
+            leaves scroll, so the list never loses what it is narrowed to. */}
         <SheetHeader>
-          <ScopeLine label={scopeLabel} />
-          <div className="mt-3">
-            <SpareFilterBar
-              state={spareFilters}
-              label="Filter leaves"
-              pinsOpen={pinsOpen}
-              onPinsOpenChange={setPinsOpen}
-            />
-          </div>
+          <SpareFilterBar
+            state={spareFilters}
+            label="Filter leaves"
+            pinsOpen={pinsOpen}
+            onPinsOpenChange={setPinsOpen}
+          />
         </SheetHeader>
         {note && <StatNote text={LEAVE_NOTE} onDismiss={() => setNote(false)} />}
         {kept.length === 0 ? (

@@ -9,6 +9,15 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.19.2: All balls and All leaves say what they count in the title bar (2026-10-10)
+
+**What a sheet is counting is under its title.** On All balls and All leaves,
+the title sits beside the close button with your Stats filters and range under
+it. It stays put as you scroll.
+
+**Every ball on All balls names its own rates.** Pocket, Carry and Strike sit
+over each ball's numbers, so nothing is pinned over the list any more.
+
 ## 0.19.1: The Spares card lists the leaves you leave most, and the sheets keep their header (2026-10-10)
 
 **The Spares card lists the leaves you leave most**, made or not, starting with

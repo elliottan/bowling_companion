@@ -47,6 +47,10 @@ Back out of a push with the chevron or with the platform's own back gesture
 back-swipe of its own: competing with the platform's drew the screen underneath
 twice (ADR-065).
 
+A sheet that lists numbers read through filters says which, as a `subtitle`
+in its own bar: the title then sits leading beside the close with the scope
+under it, and the bar never scrolls, so neither does the scope (ADR-130).
+
 ## 1a. Sheet or dialog: you type in a sheet, you answer a dialog
 
 Both are tasks on top of the current screen, and the split between them is the
