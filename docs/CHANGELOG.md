@@ -9,6 +9,17 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.19.1: The Spares card lists the leaves you leave most, and the sheets keep their header (2026-10-10)
+
+**The Spares card lists the leaves you leave most**, made or not, starting with
+the most frequent. Only leaves you've left 3 or more times are on the card. The
+rest are under All leaves. It no longer says "Missed most".
+
+**All balls and All leaves keep their header on screen.** What the sheet is
+counting, the column names on All balls and the filters on All leaves stay at
+the top as you scroll. On All balls the column names no longer overlap the
+ball scrolling under them.
+
 ## 0.19.0: 3 months instead of Season, and the chart says what it counts (2026-10-10)
 
 **Season is now 3 months.** The middle choice at the top of Stats keeps the

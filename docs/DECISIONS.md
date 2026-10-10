@@ -6040,3 +6040,30 @@ narrowed by alley, pattern, game, lanes and range.
 - A ball is no longer expanded in place on the card, so the per-ball expand
   memory is gone.
 - `SpareFilterBar` is the one filter row, worn by Spare lines and All leaves.
+
+
+## ADR-129: The Spares card lists the leaves left most, and Stats sheets pin their header
+
+**Status.** Accepted, 2026-10-10. Amends ADR-128 (the Spares card and the All
+balls and All leaves sheets).
+
+**Context.** ADR-128 had the Spares card list the makeable leaves missed most,
+under "Missed most". The bowler wanted the leaves they face most, made or not,
+and without the label. On the All balls sheet the pinned column headings sat
+below the sheet's own 1rem of scroll padding, so rows scrolling past showed
+through the gap above them, cut off at the bar.
+
+**Decision.**
+
+- **The Spares card lists every leave left 3 times or more, most left first**,
+  of any shape, splits and washouts included. Ties fall to the one with more
+  chances. Fewer than 3 is a rate over a handful; every leave is still under
+  All leaves. The line reads "made" alone.
+- **Both sheets pin their header**: the scope line and the column names on All
+  balls, the scope line and the filters on All leaves. `SheetHeader` starts and
+  sticks 1rem up and fills that strip with its own background, so nothing shows
+  above it.
+
+**Consequences.**
+- A leave that is always made can lead the card. That is the point: it is the
+  one faced most.

@@ -362,34 +362,36 @@ describe("leave cells", () => {
     sharePct: 6
   };
 
-  it("names the makeables missed most on the spares card, most misses first", () => {
-    const leave = (pins: number[], chances: number, conversions: number): LeaveStats => ({
+  it("lists the leaves left three times or more on the spares card, most left first", () => {
+    const leave = (pins: number[], attempts: number, conversions: number): LeaveStats => ({
       pins: pins as LeaveStats["pins"],
-      attempts: chances,
-      chances,
+      attempts,
+      chances: attempts,
       conversions,
-      conversionPct: Math.round((conversions / chances) * 100),
+      conversionPct: Math.round((conversions / attempts) * 100),
       sharePct: null
     });
     render(
       <Stats
         stats={STATS}
         leaves={[
-          leave([10], 20, 18), // 2 missed
-          leave([7], 10, 4), // 6 missed
-          leave([3, 6, 10], 9, 5), // 4 missed
-          leave([2, 4, 5, 8], 3, 2), // 1 missed
-          leave([5], 5, 5), // never missed
-          leave([7, 10], 8, 0) // a split: not a spare you missed
+          leave([10], 20, 18), // left most, and nearly always made
+          leave([7], 10, 4),
+          leave([7, 10], 8, 0), // a split is a leave like any other here
+          leave([5], 5, 5), // never missed, still left
+          leave([3, 6, 10], 3, 1), // exactly three: in
+          leave([2, 4, 5, 8], 2, 1) // twice: only under All leaves
         ]}
       />
     );
-    const card = screen.getByRole("button", { name: "Spares" }).closest("section")!;
+    const card = screen.getByRole("region", { name: "Leaves left most" });
     const shown = [...card.querySelectorAll("button[aria-label^='Open ']")].map((b) =>
       b.getAttribute("aria-label")
     );
-    expect(shown).toEqual(["Open Pin 7", "Open 3-6-10", "Open Pin 10", "Open 2-4-5-8"]);
-    expect(card).toHaveTextContent("80%");
+    expect(shown).toEqual(["Open Pin 10", "Open Pin 7", "Open 7-10", "Open Pin 5", "Open 3-6-10"]);
+    const section = card.closest("section")!;
+    expect(section).toHaveTextContent(/80%\s*made/);
+    expect(section).not.toHaveTextContent(/missed/i);
   });
 
   it("reads the rate off chances, and says nothing about the leaves that had none", () => {
@@ -424,11 +426,11 @@ describe("leave cells", () => {
       singles.push({ ...tenPin, pins: pins as LeaveStats["pins"], chances: 20 - i, attempts: 20 - i })
     );
     render(<Stats stats={STATS} leaves={[...singles, { ...tenPin, pins: [7, 10] }]} />);
-    // The card lists every makeable missed, two rows on show and the rest a
-    // scroll away inside it.
-    const missed = screen.getByRole("region", { name: "Leaves missed most" });
-    expect(within(missed).getAllByRole("button", { name: /^Open / })).toHaveLength(13);
-    expect(missed.className).toMatch(/overflow-y-auto/);
+    // The card lists every leave left three times or more, two rows on show
+    // and the rest a scroll away inside it.
+    const card = screen.getByRole("region", { name: "Leaves left most" });
+    expect(within(card).getAllByRole("button", { name: /^Open / })).toHaveLength(14);
+    expect(card.className).toMatch(/overflow-y-auto/);
 
     fireEvent.click(screen.getByRole("button", { name: "All leaves" }));
     const sheet = await screen.findByRole("dialog", { name: "Leaves" });
