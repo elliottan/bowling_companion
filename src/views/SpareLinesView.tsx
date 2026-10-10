@@ -1,13 +1,11 @@
-import { ChevronRight, ListFilter, Plus, X } from "lucide-react";
+import { ChevronRight, Plus, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { CatalogBallImage } from "../components/CatalogBallImage";
 import { BallPickerSheet } from "../components/BallPickerSheet";
 import { ErrorBanner } from "../components/ErrorBanner";
 import { MiniPins } from "../components/MiniPins";
-import { PinGrid } from "../components/PinGrid";
 import { SpareDetailsSheet } from "../components/SpareDetailsSheet";
-import { FormSheet } from "../components/ui/FormSheet";
 import { IconButton } from "../components/ui/IconButton";
 import { PushScreen } from "../components/PushScreen";
 import { useDriftModel } from "../lib/driftModelContext";
@@ -25,7 +23,6 @@ import {
   matchesPins,
   mostLeftWithoutLine,
   parseSnoozes,
-  SPARE_FILTERS,
   snooze,
   snoozedKeys,
   spareLinesShown,
@@ -34,10 +31,11 @@ import {
   type LineRow,
   type LineRowTile,
   type LineSuggestion,
-  type SpareFilter,
 } from "../lib/spareLines";
-import { Chip, TAP_TARGET_44 } from "../components/ui/Chip";
-import { formatLeave, ALL_PINS } from "../lib/pins";
+import { TAP_TARGET_44 } from "../components/ui/Chip";
+import { SpareFilterBar } from "../components/SpareFilterBar";
+import { useSpareFilters } from "../lib/useSpareFilters";
+import { formatLeave } from "../lib/pins";
 import { GROUP_HEADING } from "../components/ui/typography";
 import type { LineSpec, PinNumber, SpareLine } from "../types/bowling";
 import type { Manufacturer } from "../types/catalog";
@@ -165,9 +163,10 @@ export function SpareLinesView({ onBack }: { onBack: () => void }) {
   const [opened, setOpened] = useState<Opened | null>(null);
   const [pickingBall, setPickingBall] = useState(false);
 
-  const [filters, setFilters] = useState<ReadonlySet<SpareFilter>>(new Set());
-  const [pinsPicked, setPinsPicked] = useState<ReadonlySet<PinNumber>>(new Set());
-  const [exactPins, setExactPins] = useState(false);
+  // Shared with the All leaves sheet on Stats, and kept for the app run
+  // (ADR-128).
+  const spareFilters = useSpareFilters();
+  const { filters, pins: pinsPicked, exact: exactPins } = spareFilters;
   const [pinFilterOpen, setPinFilterOpen] = useState(false);
 
   const hintState = useLiveQuery(async () => ({
@@ -190,15 +189,6 @@ export function SpareLinesView({ onBack }: { onBack: () => void }) {
 
   const spareBall = balls.find((b) => b.is_spare_ball);
 
-  function toggleFilter(f: SpareFilter) {
-    setFilters((curr) => {
-      const next = new Set(curr);
-      if (next.has(f)) next.delete(f);
-      else next.add(f);
-      return next;
-    });
-  }
-
   /** Turn a hint down for a while, so it is not asked again straight away. */
   async function snoozeHint(key: string) {
     await setSetting(SNOOZE_KEY, JSON.stringify(snooze(snoozes, key, new Date())));
@@ -213,14 +203,12 @@ export function SpareLinesView({ onBack }: { onBack: () => void }) {
     }
   }
 
-  const pinsActive = pinsPicked.size > 0;
   const rows = useMemo(() => {
     const kept = shown.filter(
       (sl) => matchesFilters(sl, filters) && matchesPins(sl.pins, pinsPicked, exactPins)
     );
     return lineRows(kept, leaves);
   }, [shown, filters, pinsPicked, exactPins, leaves]);
-  const filtering = filters.size > 0 || pinsActive;
 
   return (
     // A pushed screen, not a tab, since Stats took the tab slot (ADR-057). The
@@ -343,61 +331,12 @@ export function SpareLinesView({ onBack }: { onBack: () => void }) {
         </EmptyState>
       ) : (
         <>
-        {/* Filters to cut a long list down. "All" is on while nothing else is,
-            and clears the rest. Pins opens the deck. */}
-        <div className="flex flex-wrap gap-2" role="group" aria-label="Filter spare lines">
-          <Chip
-            selected={!filtering}
-            onClick={() => {
-              setFilters(new Set());
-              setPinsPicked(new Set());
-            }}
-          >
-            All
-          </Chip>
-          <Chip selected={pinsActive} onClick={() => setPinFilterOpen(true)}>
-            <ListFilter size={13} aria-hidden="true" className="mr-1" />
-            {pinsActive ? `Pins ${[...pinsPicked].sort((a, b) => a - b).join("-")}` : "Pins"}
-          </Chip>
-          {SPARE_FILTERS.map((f) => (
-            <Chip key={f.id} selected={filters.has(f.id)} onClick={() => toggleFilter(f.id)}>
-              {f.label}
-            </Chip>
-          ))}
-        </div>
-
-        {pinFilterOpen && (
-          <FormSheet title="Pins" onClose={() => setPinFilterOpen(false)} dismissAs="done">
-            <div className="space-y-4">
-              <div className="mx-auto w-[11.5rem]">
-                <PinGrid
-                  standingPins={[...pinsPicked]}
-                  availablePins={ALL_PINS}
-                  onChange={(pins) => setPinsPicked(new Set(pins))}
-                  size="sm"
-                />
-              </div>
-              <label className="flex items-center gap-3 rounded-xl border border-edge bg-surface p-3">
-                <input
-                  type="checkbox"
-                  checked={exactPins}
-                  onChange={(e) => setExactPins(e.target.checked)}
-                  className="h-5 w-5 rounded border-edge-strong accent-[rgb(var(--color-accent-fill))]"
-                />
-                <span className="text-sm font-medium text-ink-strong">Only these pins</span>
-              </label>
-              {pinsActive && (
-                <button
-                  type="button"
-                  onClick={() => setPinsPicked(new Set())}
-                  className={`relative text-sm font-semibold text-accent active:opacity-60 ${TAP_TARGET_44}`}
-                >
-                  Clear pins
-                </button>
-              )}
-            </div>
-          </FormSheet>
-        )}
+        <SpareFilterBar
+          state={spareFilters}
+          label="Filter spare lines"
+          pinsOpen={pinFilterOpen}
+          onPinsOpenChange={setPinFilterOpen}
+        />
 
         {rows.length === 0 ? (
           <EmptyState
@@ -407,10 +346,7 @@ export function SpareLinesView({ onBack }: { onBack: () => void }) {
           >
             <Button
               variant="ghost"
-              onClick={() => {
-                setFilters(new Set());
-                setPinsPicked(new Set());
-              }}
+              onClick={spareFilters.clear}
             >
               Clear filters
             </Button>

@@ -17,7 +17,21 @@ last 90 days. Season started on 1 August, which nothing on screen said.
 **The chart always says what it's showing.** One short line under the chips
 says what the picked stat counts. The info button is gone.
 
-**Best streak is now Streak.**
+**Best streak is now Max consecutive strikes**, and it's the last choice on the
+chart.
+
+**Balls show pocket, carry and strike on every row.** The card lists your top
+five by strike rate. All balls opens every ball with its full detail, starting
+at the one you tapped.
+
+**The Spares card lists every leave you've missed**, two rows at a time, with
+the rest a scroll away inside the card.
+
+**All leaves has the Spare lines filters**, and they're shared: a filter set on
+one is set on the other.
+
+**All balls and All leaves say what they're counting**: your Stats filters and
+range, at the top.
 
 ## 0.18.0: Stats leads with your average (2026-10-09)
 

@@ -129,21 +129,21 @@ export function StatsView({
   // The share card describes the filtered set, not the whole history: the
   // numbers on screen are the filtered ones, and a picture that silently
   // widened its scope would be a lie.
-  const shareCard = useMemo(
+  // The scope in words, for the share card and for the sheets the Stats cards
+  // open, so a list read on its own still says which sessions it counts.
+  const scopeLabel = useMemo(
     () =>
-      buildStatsCard(
-        stats,
-        describeFilter({
-          alley: filters.alley,
-          pattern: filters.pattern,
-          event: filters.event,
-          gameNumber: filters.gameNumber,
-          lanes: activeLanes,
-          range: RANGE_ON_CARD[range]
-        })
-      ),
-    [stats, filters.alley, filters.pattern, filters.event, filters.gameNumber, activeLanes, range]
+      describeFilter({
+        alley: filters.alley,
+        pattern: filters.pattern,
+        event: filters.event,
+        gameNumber: filters.gameNumber,
+        lanes: activeLanes,
+        range: RANGE_ON_CARD[range]
+      }),
+    [filters.alley, filters.pattern, filters.event, filters.gameNumber, activeLanes, range]
   );
+  const shareCard = useMemo(() => buildStatsCard(stats, scopeLabel), [stats, scopeLabel]);
 
   const scrollerRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
@@ -214,6 +214,7 @@ export function StatsView({
             sessionMetrics={sessionMetrics}
             memoryKey="history"
             form={form}
+            scopeLabel={scopeLabel}
             empty={
               range === "months3" && filters.filtered.length > 0
                 ? {

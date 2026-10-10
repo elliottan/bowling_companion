@@ -273,10 +273,20 @@ const SHAPE: Record<"single" | "sleeper" | "baby", (pins: PinNumber[]) => boolea
 };
 
 export function matchesFilters(sl: SpareLine, filters: ReadonlySet<SpareFilter>): boolean {
+  return matchesLeaveFilters(sl.pins, sl, filters);
+}
+
+/** The same test for a leave that may have no saved line at all, as on the
+ *  Stats tab's leaves: no line reads as "No line yet" (ADR-128). */
+export function matchesLeaveFilters(
+  pins: PinNumber[],
+  line: Pick<SpareLine, "line" | "strike_offset"> | undefined,
+  filters: ReadonlySet<SpareFilter>
+): boolean {
   const shapes = (["single", "sleeper", "baby"] as const).filter((f) => filters.has(f));
-  if (shapes.length && !shapes.some((f) => SHAPE[f](sl.pins))) return false;
+  if (shapes.length && !shapes.some((f) => SHAPE[f](pins))) return false;
   const statuses = (["withLine", "noLine"] as const).filter((f) => filters.has(f));
-  if (statuses.length && !statuses.some((f) => (f === "withLine") === hasAnswer(sl))) return false;
+  if (statuses.length && !statuses.some((f) => (f === "withLine") === hasAnswer(line))) return false;
   return true;
 }
 

@@ -1,5 +1,10 @@
-import { ArrowRight, BarChart3, ChevronDown, TrendingDown, TrendingUp } from "lucide-react";
-import { Fragment, useState } from "react";
+import { ArrowRight, BarChart3, ListFilter, TrendingDown, TrendingUp } from "lucide-react";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
+import { useLiveQuery } from "dexie-react-hooks";
+import { getSpareLinesAll } from "../services/ballRepository";
+import { leaveKey, matchesLeaveFilters, matchesPins } from "../lib/spareLines";
+import { useSpareFilters } from "../lib/useSpareFilters";
+import { SpareFilterBar } from "./SpareFilterBar";
 import { createPortal } from "react-dom";
 import { useRememberedState } from "../lib/viewMemory";
 import { CatalogBallImage } from "./CatalogBallImage";
@@ -62,14 +67,6 @@ const METRICS = {
     max: 100,
     minSpan: 25
   },
-  bestStreak: {
-    label: "Streak",
-    value: (s: BowlingStats) => s.bestStreak,
-    format: (v: number) => String(Math.round(v)),
-    min: 0,
-    max: 12,
-    minSpan: 4
-  },
   sparePct: {
     label: "Spare",
     value: (s: BowlingStats) => s.sparePct,
@@ -101,6 +98,14 @@ const METRICS = {
     min: 0,
     max: 10,
     minSpan: 2
+  },
+  bestStreak: {
+    label: "Max consecutive strikes",
+    value: (s: BowlingStats) => s.bestStreak,
+    format: (v: number) => String(Math.round(v)),
+    min: 0,
+    max: 12,
+    minSpan: 4
   }
 } as const;
 
@@ -178,6 +183,9 @@ interface StatsProps {
   /** What an empty screen says, where the reason is not "you have never
    *  bowled": the Stats tab narrowed to three months with nothing in them. */
   empty?: { title: string; description: string };
+  /** The filters and range behind these numbers, in words, for the All balls
+   *  and All leaves sheets to carry (ADR-128). Omitted inside a session. */
+  scopeLabel?: string;
 }
 
 export function Stats({
@@ -194,7 +202,8 @@ export function Stats({
   onOpenGameId,
   memoryKey = "stats",
   form,
-  empty
+  empty,
+  scopeLabel
 }: StatsProps) {
   // One note at a time, opened by tapping the stat it explains. A definition
   // read once is enough, so it stays a tap rather than permanent copy.
@@ -205,6 +214,8 @@ export function Stats({
   // A leave opened from its cell, and every leave opened from All leaves.
   const [openLeave, setOpenLeave] = useState<LeaveStats["pins"] | null>(null);
   const [allLeavesOpen, setAllLeavesOpen] = useState(false);
+  // The All balls sheet, and the ball it opened on.
+  const [ballsOpen, setBallsOpen] = useState<{ focus: number | null } | null>(null);
 
   // Which stat the chart is plotting. Remembered, so leaving the tab and
   // coming back does not silently drop you back on the average.
@@ -257,7 +268,8 @@ export function Stats({
   // as a bare "0/0" with a "+1" beside it explaining why. The frequency it was
   // reported for is on the ball's own leaves.
   const convertible = (leaves ?? []).filter((l) => l.chances > 0);
-  const missedMost = mostMissed(convertible);
+  const missed = mostMissed(convertible);
+  const ranked = byStrikeRate(ballPerformance?.balls ?? []);
 
   return (
     <div className="space-y-3">
@@ -362,7 +374,7 @@ export function Stats({
           <p className="mt-1 flex items-baseline gap-2">
             <span className="text-3xl font-bold tabular-nums text-ink">{pct(stats.sparePct)}</span>
             <span className="text-sm text-ink-secondary">
-              {missedMost.length > 0 ? "made. Missed most:" : "made"}
+              {missed.length > 0 ? "made. Missed most:" : "made"}
             </span>
           </p>
           {note === SPARE_NOTE && (
@@ -370,65 +382,75 @@ export function Stats({
               <StatNote text={SPARE_NOTE} onDismiss={() => setNote(null)} />
             </div>
           )}
-          {missedMost.length > 0 && (
-            <div className="mt-3">
-              <LeaveGrid leaves={missedMost} onOpen={setOpenLeave} />
+          {missed.length > 0 && (
+            // Two rows on show, the rest a scroll away inside the card, with
+            // the top of a third row peeking to say there is more.
+            <div
+              role="region"
+              aria-label="Leaves missed most"
+              className="-mx-1 mt-3 max-h-[15.25rem] overflow-y-auto overscroll-y-contain px-1"
+            >
+              <LeaveGrid leaves={missed} onOpen={setOpenLeave} />
             </div>
           )}
         </section>
       )}
 
-      {ballPerformance && ballPerformance.balls.length > 0 && (
+      {ranked.length > 0 && (
         <section className="rounded-xl border border-edge bg-surface p-3 shadow-sm">
-          <div className="flex items-baseline justify-between gap-3">
+          <div className="flex items-center justify-between gap-3">
             <h2 className={GROUP_HEADING}>Balls</h2>
-            <span className="text-xs text-ink-tertiary">by strike %</span>
+            <button
+              type="button"
+              onClick={() => setBallsOpen({ focus: null })}
+              className={`relative text-xs font-semibold text-accent active:opacity-60 ${TAP_TARGET_44}`}
+            >
+              All balls
+            </button>
           </div>
-          <ul className="mt-1 divide-y divide-edge">
-            {byStrikeRate(ballPerformance.balls).map((b) => (
-              <BallPerformanceRow
-                key={b.ballId}
-                ball={b}
-                memoryKey={memoryKey}
-                onOpenGame={onOpenGame}
-              />
-            ))}
-          </ul>
+          <div className="mt-1">
+            <BallRateHeadings />
+            <ul className="divide-y divide-edge">
+              {ranked.slice(0, TOP_BALLS).map((b) => (
+                <li key={b.ballId}>
+                  <button
+                    type="button"
+                    onClick={() => setBallsOpen({ focus: b.ballId })}
+                    aria-label={`Open ${b.name}`}
+                    className="flex w-full py-2 active:bg-surface-muted"
+                  >
+                    <BallSummary ball={b} />
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
         </section>
       )}
 
       {/* Portalled to the body: on the session sheet the stats sit inside a
           panel that slides on a transform, and a transformed ancestor makes
           `fixed` resolve against it, not the viewport. */}
+      {ballsOpen &&
+        createPortal(
+          <AllBallsSheet
+            balls={ranked}
+            focusId={ballsOpen.focus}
+            scopeLabel={scopeLabel}
+            onOpenGame={onOpenGame}
+            onClose={() => setBallsOpen(null)}
+          />,
+          document.body
+        )}
       {allLeavesOpen &&
         createPortal(
-          <FormSheet
-            title="Leaves"
+          <AllLeavesSheet
+            leaves={convertible}
+            scopeLabel={scopeLabel}
+            covered={openLeave !== null}
+            onOpen={setOpenLeave}
             onClose={() => setAllLeavesOpen(false)}
-            size="tall"
-            active={openLeave === null}
-          >
-            <div className="space-y-4">
-              {note === LEAVE_NOTE && <StatNote text={LEAVE_NOTE} onDismiss={() => setNote(null)} />}
-              {/* Three groups, easiest first: makeables (ordinary leaves),
-                  washouts (head pin standing with a gap behind it), and real
-                  splits. */}
-              {SPARE_GROUPS.map((group) => {
-                const inGroup = sortByChances(convertible.filter((l) => spareGroup(l.pins) === group));
-                if (inGroup.length === 0) return null;
-                return (
-                  <section key={group}>
-                    <h3 className="mb-2">
-                      <button type="button" onClick={() => toggleNote(LEAVE_NOTE)} className={GROUP_HEADING}>
-                        {SPARE_GROUP_LABEL[group]}
-                      </button>
-                    </h3>
-                    <LeaveGrid leaves={inGroup} onOpen={setOpenLeave} />
-                  </section>
-                );
-              })}
-            </div>
-          </FormSheet>,
+          />,
           document.body
         )}
       {openLeave &&
@@ -543,7 +565,7 @@ function FirstBallCard({ stats }: { stats: BowlingStats }) {
           <dd className="font-semibold tabular-nums text-ink">{pct(stats.strikeOnStrikePct)}</dd>
         </div>
         <div className="flex gap-1">
-          <dt>Streak</dt>
+          <dt>Max consecutive strikes</dt>
           <dd className="font-semibold tabular-nums text-ink">{fmt(stats.bestStreak)}</dd>
         </div>
       </dl>
@@ -551,18 +573,17 @@ function FirstBallCard({ stats }: { stats: BowlingStats }) {
   );
 }
 
-/** How many leaves the Spares card names: one row of the grid. */
-const MISSED_MOST = 3;
+/** Balls on the card; every one is on the All balls sheet. */
+const TOP_BALLS = 5;
 
-/** The makeable leaves missed most, most misses first, then most chances. A
- *  split or a washout is a first ball you did not get rather than a spare you
- *  missed (ADR-058), so neither leads the card. */
+/** The makeable leaves missed at least once, most misses first, then most
+ *  chances. A split or a washout is a first ball you did not get rather than a
+ *  spare you missed (ADR-058), so neither is on the card. */
 function mostMissed(leaves: LeaveStats[]): LeaveStats[] {
   const misses = (l: LeaveStats) => l.chances - l.conversions;
   return leaves
     .filter((l) => spareGroup(l.pins) === "makeable" && misses(l) > 0)
-    .sort((a, b) => misses(b) - misses(a) || b.chances - a.chances)
-    .slice(0, MISSED_MOST);
+    .sort((a, b) => misses(b) - misses(a) || b.chances - a.chances);
 }
 
 /** Balls with enough throws behind them by strike rate, best first; the thin
@@ -590,153 +611,298 @@ function StatNote({ text, onDismiss }: { text: string; onDismiss: () => void }) 
   );
 }
 
-function BallPerformanceRow({
+/** The Pocket / Carry / Strike column widths, shared by the heading row and
+ *  every ball, so each rate sits under the word that names it. */
+const RATE_COLUMN = "w-12 shrink-0 text-right";
+
+/** The headings over the three rates, spelled out: as single letters they had
+ *  to be decoded before the row said anything. */
+function BallRateHeadings({ sticky = false }: { sticky?: boolean }) {
+  return (
+    <div
+      className={`flex items-center gap-2 pb-1 text-[10px] font-semibold uppercase tracking-wide text-ink-tertiary ${
+        sticky ? "sticky top-0 z-10 bg-surface pt-1" : ""
+      }`}
+      aria-hidden="true"
+    >
+      <span className="min-w-0 flex-1" />
+      <span className={RATE_COLUMN}>Pocket</span>
+      <span className={RATE_COLUMN}>Carry</span>
+      <span className={RATE_COLUMN}>Strike</span>
+    </div>
+  );
+}
+
+/** One ball's line: picture, name, how many balls are behind it, and its
+ *  pocket, carry and strike. A thin sample is greyed, since it ranks nothing. */
+function BallSummary({ ball }: { ball: BallPerformance }) {
+  const thin = ball.firstBalls < RATE_LEADER_MIN_BALLS;
+  const tone = thin ? "text-ink-tertiary" : "text-ink";
+  return (
+    <span className="flex w-full items-center gap-2 text-left text-sm">
+      <span className="h-8 w-8 shrink-0">
+        {ball.imageThumb || ball.brand ? (
+          <CatalogBallImage src={ball.imageThumb} alt="" brand={ball.brand as Manufacturer} size="thumb" />
+        ) : (
+          <span className="block h-full w-full rounded-full bg-edge" aria-hidden="true" />
+        )}
+      </span>
+      <span className="ml-1 min-w-0 flex-1">
+        <span className="block truncate font-medium text-ink-strong">{ball.name}</span>
+        <span className="block text-[11px] tabular-nums text-ink-tertiary">
+          {ball.firstBalls} {ball.firstBalls === 1 ? "ball" : "balls"}
+        </span>
+      </span>
+      {(
+        [
+          ["pocket", ball.pocketPct],
+          ["carry", ball.carryPct],
+          ["strike", ball.strikePct]
+        ] as const
+      ).map(([label, value]) => (
+        <span
+          key={label}
+          className={`${RATE_COLUMN} font-semibold tabular-nums ${tone}`}
+          aria-label={`${label} ${pct(value)}`}
+        >
+          {pct(value)}
+        </span>
+      ))}
+    </span>
+  );
+}
+
+/** A ball's detail: its rates by position in the night, and every leave it
+ *  left. Shown open for every ball on the All balls sheet. */
+function BallDetails({
   ball,
-  memoryKey,
-  onOpenGame
+  onDrill
 }: {
   ball: BallPerformance;
-  memoryKey: string;
-  onOpenGame?: (sessionId: number, gameId: number, ballId?: number) => void;
+  /** Open the games behind one column, where there is somewhere to go. */
+  onDrill?: (cell: BallGameCell) => void;
 }) {
-  // A rate over a handful of balls is shown, and greyed: it ranks nothing.
-  const thin = ball.firstBalls < RATE_LEADER_MIN_BALLS;
-  // Remembered per ball: a drill-down goes to a session, and coming back to a
-  // collapsed row would lose the reader's place.
-  const [open, setOpen] = useRememberedState(`${memoryKey}:ball:${ball.ballId}`, false);
-  const [drilldown, setDrilldown] = useState<BallGameCell | null>(null);
   const [note, setNote] = useState<string | null>(null);
   return (
-    <li className="py-2">
-      {/* One number per ball, the strike rate, with a bar to compare down the
-          card. Pocket and carry are one tap down, in the ball's own table: as
-          three columns of letters they had to be decoded before they said
-          which ball strikes. */}
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        aria-expanded={open}
-        className="flex w-full items-center gap-3 text-left text-sm"
-      >
-        <span className="h-8 w-8 shrink-0">
-          {ball.imageThumb || ball.brand ? (
-            <CatalogBallImage
-              src={ball.imageThumb}
-              alt=""
-              brand={ball.brand as Manufacturer}
-              size="thumb"
-            />
-          ) : (
-            <span className="block h-full w-full rounded-full bg-edge" aria-hidden="true" />
-          )}
-        </span>
-        <span className="min-w-0 flex-1">
-          <span className="block truncate font-medium text-ink-strong">{ball.name}</span>
-          <span className="mt-1 block h-1 overflow-hidden rounded-full bg-surface-muted" aria-hidden="true">
-            <span
-              className={`block h-full rounded-full ${thin ? "bg-edge-strong" : "bg-accent-fill"}`}
-              style={{ width: `${ball.strikePct ?? 0}%` }}
-            />
-          </span>
-        </span>
-        <span className="shrink-0 text-right">
-          <span
-            className={`block font-semibold tabular-nums ${thin ? "text-ink-tertiary" : "text-ink"}`}
-            aria-label={`strike ${pct(ball.strikePct)}`}
-          >
-            {pct(ball.strikePct)}
-          </span>
-          <span className="block text-[11px] tabular-nums text-ink-tertiary">
-            {ball.firstBalls} {ball.firstBalls === 1 ? "ball" : "balls"}
-          </span>
-        </span>
-        <ChevronDown size={14} aria-hidden="true" className={`shrink-0 text-ink-tertiary ${open ? "rotate-180" : ""}`} />
-      </button>
+    <div className="mt-2 space-y-2 rounded-lg bg-surface-muted p-2">
+      <table className="w-full text-[11px] tabular-nums">
+        <thead>
+          <tr className="text-ink-tertiary">
+            <th className="text-left font-semibold">Game</th>
+            {ball.byGame.map((c) => (
+              <th key={c.gameNumber} className="text-right font-semibold">
+                {onDrill && c.sessions.length > 0 ? (
+                  <button
+                    type="button"
+                    onClick={() => onDrill(c)}
+                    aria-label={`Games behind ${ball.name}, game ${c.gameNumber}`}
+                    className="underline decoration-dotted underline-offset-2"
+                  >
+                    {c.gameNumber}
+                  </button>
+                ) : (
+                  c.gameNumber
+                )}
+              </th>
+            ))}
+            <th className="text-right font-semibold">All</th>
+          </tr>
+        </thead>
+        <tbody className="text-ink-secondary">
+          <MetricRow
+            label="Pocket"
+            cells={ball.byGame.map((c) => rateOf(c.pocket, c.firstBalls))}
+            total={ball.pocketPct}
+          />
+          <MetricRow
+            label="Carry"
+            cells={ball.byGame.map((c) => rateOf(c.pocketStrikes, c.pocket))}
+            total={ball.carryPct}
+            onExplain={() => setNote((curr) => (curr === CARRY_NOTE ? null : CARRY_NOTE))}
+          />
+          <MetricRow
+            label="Strike"
+            cells={ball.byGame.map((c) => rateOf(c.strikes, c.firstBalls))}
+            total={ball.strikePct}
+          />
+          <tr>
+            <td className="text-left text-ink-tertiary">Balls</td>
+            {ball.byGame.map((c) => (
+              <td key={c.gameNumber} className="text-right text-ink-tertiary">
+                {c.firstBalls}
+              </td>
+            ))}
+            <td className="text-right text-ink-tertiary">{ball.firstBalls}</td>
+          </tr>
+        </tbody>
+      </table>
 
-      {open && (
-        <div className="mt-2 space-y-2 rounded-lg bg-surface-muted p-2">
-          <table className="w-full text-[11px] tabular-nums">
-            <thead>
-              <tr className="text-ink-tertiary">
-                <th className="text-left font-semibold">Game</th>
-                {ball.byGame.map((c) => (
-                  <th key={c.gameNumber} className="text-right font-semibold">
-                    {onOpenGame && c.sessions.length > 0 ? (
-                      <button
-                        type="button"
-                        onClick={() => setDrilldown(c)}
-                        aria-label={`Games behind ${ball.name}, game ${c.gameNumber}`}
-                        className="underline decoration-dotted underline-offset-2"
-                      >
-                        {c.gameNumber}
-                      </button>
-                    ) : (
-                      c.gameNumber
-                    )}
-                  </th>
-                ))}
-                <th className="text-right font-semibold">All</th>
-              </tr>
-            </thead>
-            <tbody className="text-ink-secondary">
-              <MetricRow
-                label="Pocket"
-                cells={ball.byGame.map((c) => rateOf(c.pocket, c.firstBalls))}
-                total={ball.pocketPct}
-              />
-              <MetricRow
-                label="Carry"
-                cells={ball.byGame.map((c) => rateOf(c.pocketStrikes, c.pocket))}
-                total={ball.carryPct}
-                onExplain={() => setNote((curr) => (curr === CARRY_NOTE ? null : CARRY_NOTE))}
-              />
-              <MetricRow
-                label="Strike"
-                cells={ball.byGame.map((c) => rateOf(c.strikes, c.firstBalls))}
-                total={ball.strikePct}
-              />
-              <tr>
-                <td className="text-left text-ink-tertiary">Balls</td>
-                {ball.byGame.map((c) => (
-                  <td key={c.gameNumber} className="text-right text-ink-tertiary">
-                    {c.firstBalls}
-                  </td>
-                ))}
-                <td className="text-right text-ink-tertiary">{ball.firstBalls}</td>
-              </tr>
-            </tbody>
-          </table>
+      {note && <StatNote text={note} onDismiss={() => setNote(null)} />}
 
-          {/* The leave note is rendered down with the leave cards it explains, so
-          the answer lands where the tap was. */}
-      {note && note !== LEAVE_NOTE && <StatNote text={note} onDismiss={() => setNote(null)} />}
-
-          {drilldown && onOpenGame && (
-            <BallGameSessionsDialog
-              open
-              ballName={ball.name}
-              gameNumber={drilldown.gameNumber}
-              sessions={drilldown.sessions}
-              onSelect={(sessionId, gameId) => onOpenGame(sessionId, gameId, ball.ballId)}
-              onClose={() => setDrilldown(null)}
-            />
-          )}
-
-          {ball.leaves.length > 0 && (
-            // Grouped the way the leave cards below are, easiest first, and
-            // scrolled rather than cut at four: every leave the ball left is
-            // part of the answer.
-            <div className="grid auto-cols-[calc((100%-1.125rem)/4)] grid-flow-col gap-1.5 overflow-x-auto overscroll-x-contain">
-              {[...ball.leaves]
-                .sort((a, b) => SPARE_GROUPS.indexOf(spareGroup(a.pins)) - SPARE_GROUPS.indexOf(spareGroup(b.pins)))
-                .map((leave) => (
-                  <LeaveCountCell key={leave.pins.join("-")} leave={leave} />
-                ))}
-            </div>
-          )}
+      {ball.leaves.length > 0 && (
+        // Grouped the way the leave cards are, easiest first, and scrolled
+        // rather than cut at four: every leave the ball left is part of the
+        // answer.
+        <div className="grid auto-cols-[calc((100%-1.125rem)/4)] grid-flow-col gap-1.5 overflow-x-auto overscroll-x-contain">
+          {[...ball.leaves]
+            .sort((a, b) => SPARE_GROUPS.indexOf(spareGroup(a.pins)) - SPARE_GROUPS.indexOf(spareGroup(b.pins)))
+            .map((leave) => (
+              <LeaveCountCell key={leave.pins.join("-")} leave={leave} />
+            ))}
         </div>
       )}
-    </li>
+    </div>
+  );
+}
+
+/** What the numbers on a sheet are about: the Stats tab's filters and range,
+ *  carried onto the sheet so a list read on its own still says which sessions
+ *  it counts (ADR-128). */
+function ScopeLine({ label }: { label?: string }) {
+  if (!label) return null;
+  return (
+    <p className="flex items-center gap-1.5 text-xs text-ink-secondary">
+      <ListFilter size={12} aria-hidden="true" className="shrink-0" />
+      <span className="min-w-0">{label}</span>
+    </p>
+  );
+}
+
+/**
+ * Every ball, each one open: its rates, its rates by game and its leaves.
+ * Opened from the Balls card, scrolled to the ball that was tapped.
+ */
+function AllBallsSheet({
+  balls,
+  focusId,
+  scopeLabel,
+  onOpenGame,
+  onClose
+}: {
+  balls: BallPerformance[];
+  focusId: number | null;
+  scopeLabel?: string;
+  onOpenGame?: (sessionId: number, gameId: number, ballId?: number) => void;
+  onClose: () => void;
+}) {
+  const [drill, setDrill] = useState<{ ball: BallPerformance; cell: BallGameCell } | null>(null);
+  const listRef = useRef<HTMLUListElement | null>(null);
+  useEffect(() => {
+    if (focusId === null) return;
+    const el = listRef.current?.querySelector(`[data-ball="${focusId}"]`);
+    if (el && "scrollIntoView" in el) el.scrollIntoView({ block: "start" });
+  }, [focusId]);
+  return (
+    <FormSheet title="Balls" onClose={onClose} size="tall" active={drill === null}>
+      <div className="space-y-3">
+        <ScopeLine label={scopeLabel} />
+        <div>
+          {/* Stuck to the top, so a ball scrolled to still has its columns
+              named. */}
+          <BallRateHeadings sticky />
+          <ul ref={listRef} className="divide-y divide-edge">
+            {balls.map((b) => (
+              <li key={b.ballId} data-ball={b.ballId} className="scroll-mt-8 py-3">
+                <BallSummary ball={b} />
+                <BallDetails ball={b} onDrill={onOpenGame && ((cell) => setDrill({ ball: b, cell }))} />
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+      {drill && onOpenGame && (
+        <BallGameSessionsDialog
+          open
+          ballName={drill.ball.name}
+          gameNumber={drill.cell.gameNumber}
+          sessions={drill.cell.sessions}
+          onSelect={(sessionId, gameId) => {
+            // Leaving for a game: the sheet goes too, or it would still be
+            // sitting over Stats, and over the game, when the bowler came back.
+            onClose();
+            onOpenGame(sessionId, gameId, drill.ball.ballId);
+          }}
+          onClose={() => setDrill(null)}
+        />
+      )}
+    </FormSheet>
+  );
+}
+
+/**
+ * Every leave a ball followed, in its three groups, narrowed by the same
+ * filters as the Spare lines screen (ADR-128) and labelled with the Stats
+ * tab's own scope.
+ */
+function AllLeavesSheet({
+  leaves,
+  scopeLabel,
+  covered,
+  onOpen,
+  onClose
+}: {
+  leaves: LeaveStats[];
+  scopeLabel?: string;
+  /** False while a sheet is open over this one. */
+  covered: boolean;
+  onOpen: (pins: LeaveStats["pins"]) => void;
+  onClose: () => void;
+}) {
+  const spareFilters = useSpareFilters();
+  const [pinsOpen, setPinsOpen] = useState(false);
+  const [note, setNote] = useState(false);
+  const lines = useLiveQuery(() => getSpareLinesAll());
+  const lineFor = useMemo(() => {
+    const byKey = new Map((lines ?? []).map((sl) => [leaveKey(sl.pins), sl]));
+    return (pins: LeaveStats["pins"]) => byKey.get(leaveKey(pins));
+  }, [lines]);
+  const kept = leaves.filter(
+    (l) =>
+      matchesLeaveFilters(l.pins, lineFor(l.pins), spareFilters.filters) &&
+      matchesPins(l.pins, spareFilters.pins, spareFilters.exact)
+  );
+  return (
+    <FormSheet title="Leaves" onClose={onClose} size="tall" active={!covered && !pinsOpen}>
+      <div className="space-y-4">
+        <ScopeLine label={scopeLabel} />
+        <SpareFilterBar
+          state={spareFilters}
+          label="Filter leaves"
+          pinsOpen={pinsOpen}
+          onPinsOpenChange={setPinsOpen}
+        />
+        {note && <StatNote text={LEAVE_NOTE} onDismiss={() => setNote(false)} />}
+        {kept.length === 0 ? (
+          <div className="space-y-2 py-6 text-center">
+            <p className="text-sm text-ink-secondary">No leaves fit these filters.</p>
+            <button
+              type="button"
+              onClick={spareFilters.clear}
+              className={`relative text-sm font-semibold text-accent active:opacity-60 ${TAP_TARGET_44}`}
+            >
+              Clear filters
+            </button>
+          </div>
+        ) : (
+          // Three groups, easiest first: makeables (ordinary leaves), washouts
+          // (head pin standing with a gap behind it), and real splits.
+          SPARE_GROUPS.map((group) => {
+            const inGroup = sortByChances(kept.filter((l) => spareGroup(l.pins) === group));
+            if (inGroup.length === 0) return null;
+            return (
+              <section key={group}>
+                <h3 className="mb-2">
+                  <button type="button" onClick={() => setNote((v) => !v)} className={GROUP_HEADING}>
+                    {SPARE_GROUP_LABEL[group]}
+                  </button>
+                </h3>
+                <LeaveGrid leaves={inGroup} onOpen={onOpen} />
+              </section>
+            );
+          })
+        )}
+      </div>
+    </FormSheet>
   );
 }
 
