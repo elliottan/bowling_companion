@@ -1,0 +1,53 @@
+{
+ "brand": "Storm",
+ "name": "Gravity Evolve",
+ "official": false,
+ "releaseDate": [
+  {
+   "value": "2019-10",
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/storm/gravity-evolve",
+   "quote": "released in October 2019",
+   "via": "web-search"
+  },
+  {
+   "value": "2019-10",
+   "sourceUrl": "https://www.bowlingball.com/products/bowling-balls/storm/15557/gravity-evolve.html",
+   "quote": "a release date of 10/25/2019",
+   "via": "web-search"
+  }
+ ],
+ "coverstockRaw": [
+  {
+   "value": "SPEC Solid",
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/storm/gravity-evolve",
+   "quote": "It uses SPEC Solid, a solid reactive cover",
+   "via": "web-search"
+  },
+  {
+   "value": "SPEC Solid",
+   "sourceUrl": "https://www.bowling.com/products/storm-gravity-evolve.htm",
+   "quote": "a SPEC Solid Reactive cover",
+   "via": "web-search"
+  }
+ ],
+ "factoryFinish": [],
+ "coreName": [
+  {
+   "value": "Shape-Lock HD",
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/storm/gravity-evolve",
+   "quote": "paired with the Shape-Lock HD Asymmetric core",
+   "via": "web-search"
+  },
+  {
+   "value": "Shape-Lock HD",
+   "sourceUrl": "https://www.bowling.com/products/storm-gravity-evolve.htm",
+   "quote": "It uses the Shape-Lock HD core",
+   "via": "web-search"
+  }
+ ],
+ "rg": [],
+ "diff": [],
+ "mbDiff": [],
+ "productUrl": [],
+ "_notes": "Asymmetric Shape-Lock HD core. rg/diff/mbDiff left []: bowling.com states 2.48 / 0.052 for 15 lb, but bowwwl.com and bowlingball.com print 2.480/0.052/MB 0.020 without a weight (bowwwl calls them likely typical values). Release: bowwwl 'October 2019', bowlingball.com 10/25/2019."
+}

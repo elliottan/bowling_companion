@@ -6286,7 +6286,7 @@ matching pages rather than the pages.
   resolving it, so a manufacturer link could not reach `balls.json`.
 
 **Consequences.**
-- 54 balls were added this way. The 71 researched and held back are in
+- 62 balls were added this way. The 75 researched and held back are in
   `scripts/sync-catalog/data/backlog/`, one candidate file each, and
   `scripts/sync-catalog/data/HANDOUT.md` says why each waits, how the run was
   done, and what to read first once the sites are reachable.

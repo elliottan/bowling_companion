@@ -62,5 +62,5 @@
  ],
  "mbDiff": [],
  "productUrl": [],
- "_notes": "Asymmetric Launcher core; mbDiff 0.021 bowwwl only so []. Release Sep 2022 bowwwl only. bowwwl noted an inconsistent 2.537/0.053 snippet on the page; 2.505/0.055 from the core table matches bowling.com."
+ "_notes": "Asymmetric Launcher core; mbDiff 0.021 bowwwl only so []. Release Sep 2022 bowwwl only. bowwwl noted an inconsistent 2.537/0.053 snippet on the page; 2.505/0.055 from the core table matches bowling.com. MBDIFF: bowlersmart.com Envy listing 'Listed at 2.50 RG, .055 differential, and .021 mass bias strength ... 15 lbs'; bowwwl search quote 'Launcher Core, 15 pounds: RG 2.505, Diff 0.055, MB Diff 0.021' is core-table text and could not be tied to the Envy page itself, so not used."
 }

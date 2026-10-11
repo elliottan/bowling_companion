@@ -9,10 +9,10 @@ an agent, a session that can open the spec sites, or a person. Written
 - The catalog now has the seven Brunswick-family brands (Brunswick, Hammer,
   Ebonite, Track, Radical, DV8, Columbia 300) next to Storm, Roto Grip, 900
   Global, MOTIV and Pyramid.
-- This run added **54 balls**, all read from web search output because
+- This run added **62 balls**, all read from web search output because
   the session's network policy blocked every bowling site (see "How this run
   read the web"). Each one is marked `readVia: "web-search"` in `balls.json`.
-- **71 balls** were researched but not added. Their partial readings
+- **75 balls** were researched but not added. Their partial readings
   are in `scripts/sync-catalog/data/backlog/`, one candidate file per ball, and
   listed below with the reason.
 - **No images** for any of the new balls yet. They show the brand placeholder.
@@ -82,11 +82,13 @@ domains in the environment's network settings):
 
 The most-used balls this run did not reach (each generation is its own ball):
 
-- **Storm:** IQ Tour line (Nano, Emerald, Solid), Marvel Pearl, Code Black,
-  Spectre, Lock, Gravity Evolve, recent 2026 releases.
-- **Roto Grip:** Hustle line (Hustle Ink is in; Hustle M/B, Hustle PRB, Hustle
-  Hybrid), Idol line (Optimum Idol, Idol Synergy), Attention line, Gem line
-  (Gem is in), Rubicon UC3, Wonder.
+- **Storm:** the original IQ Tour (2012), Spectre Pearl, Marvel line beyond S
+  and Pearl, recent 2026 releases. (Nano, Code Black, Spectre and Gravity Evolve
+  are in the backlog.)
+- **Roto Grip:** more of the Hustle line (Hustle M+M Pearl, HYB, HSB; there is
+  no plain "Hustle Hybrid" or "Hustle M/B"), Optimum Idol Pearl, the Gem line,
+  Rubicon Solid. (Idol Synergy, Attention Star S2, Rubicon UC3 and Hustle PBR
+  are in the backlog.)
 - **900 Global:** Zen 25, Eternity Pi, Dream (thin files in the backlog),
   Honey Badger (original), Altered Reality variants, Origin EX, Sublime
   (backlog).
@@ -140,19 +142,21 @@ CDN host in `sources.ts`.
 
 ## The balls
 
-### Added to the catalog in this run (54)
+### Added to the catalog in this run (62)
 
 Every row carries `readVia: "web-search"` in `balls.json`.
 
 | Brand | Ball | Released | Coverstock | Core | RG | Diff | MB diff |
 |---|---|---|---|---|---|---|---|
 | 900 Global | Cove | **?** | RB 85 Hybrid | Magna A.I. | 2.49 | 0.044 | (sym) |
+| 900 Global | Dream On | **?** | 74 Response Hybrid | **?** | 2.48 | 0.054 | 0.024 |
 | 900 Global | Ember | **?** | Reserve Blend 82 Pearl | Magna A.I. | 2.49 | 0.044 | (sym) |
 | 900 Global | Portal | 2026-10-02 | RB 92 Solid | Conduit A.I. | 2.59 | 0.05 | 0.019 |
 | 900 Global | Vengeance | 2026-01 | RB91 | Blast A.I. | 2.47 | 0.055 | (sym) |
 | Brunswick | Combat | 2025-08 | Alpha Premier Pearl | Rampart | 2.502 | 0.051 | 0.019 |
 | Brunswick | Combat Hybrid | 2026-02 | Alpha Premier Hybrid | Rampart | 2.502 | 0.051 | 0.019 |
 | Brunswick | Combat Solid | 2026-08 | Alpha Premier Solid | Rampart | 2.502 | 0.051 | 0.019 |
+| Brunswick | Quantum Evo Hybrid | **?** | Evolution Hybrid | QCS-18 | 2.51 | 0.052 | 0.018 |
 | Columbia 300 | Pulse | 2025-08 | Hyperflex | Pulse PowerCOR | 2.468 | 0.045 | (sym) |
 | DV8 | Severe Collision | 2025-07 | HK22C Havoc Hybrid | Collision | 2.462 | 0.052 | 0.019 |
 | Ebonite | Entity | 2025-07-10 | HK22C Optimize Solid | Entity | 2.515 | 0.052 | 0.02 |
@@ -172,6 +176,7 @@ Every row carries `readVia: "web-search"` in `balls.json`.
 | Hammer | Scorpion Low Flare | 2024-01 | Semtex Hybrid | LED 3.0 | 2.474 | 0.031 | (sym) |
 | Hammer | Scorpion Sting | 2022-09 | Semtex Pearl | LED 3.0 | 2.485 | 0.045 | (sym) |
 | Hammer | Scorpion Strike | 2024-07 | Semtex Pearl | LED 3.0 | 2.485 | 0.045 | (sym) |
+| Hammer | Special Effect | 2025-03 | Cohesion Solid | Huntsman | 2.47 | 0.05 | 0.017 |
 | Radical | Bonus | **?** | Forged Solid | Bonus | 2.487 | 0.03 | (sym) |
 | Radical | Vexed | **?** | HK22C+ solid reactive | **?** | 2.498 | 0.036 | 0.012 |
 | Roto Grip | Attention Star | **?** | eTrax Plus Pearl | Momentous AV + A.I. | 2.48 | 0.049 | 0.017 |
@@ -179,36 +184,40 @@ Every row carries `readVia: "web-search"` in `balls.json`.
 | Roto Grip | Hustle Wine | **?** | VTC Pearl | **?** | 2.53 | 0.03 | (sym) |
 | Roto Grip | Idol Helios | **?** | XtremeTrax | **?** | 2.49 | 0.052 | (sym) |
 | Roto Grip | Idol Pearl | **?** | eTrax-P18 | **?** | 2.49 | 0.052 | (sym) |
+| Roto Grip | Optimum Idol | **?** | MicroTrax Solid | Ikon + A.I. | 2.47 | 0.056 | (sym) |
 | Roto Grip | Perfect Gem | **?** | E-R1 Solid | Gem + A.I. | 2.49 | 0.057 | 0.017 |
 | Roto Grip | Rockstar | 2025-02 | NanoStar Solid | Rocker + A.I. | 2.48 | 0.05 | (sym) |
 | Roto Grip | Rockstar Amped | 2025-10 | NanoStar Pearl | **?** | 2.48 | 0.05 | (sym) |
 | Roto Grip | RST Hyperdrive | **?** | MicroTrax | **?** | 2.52 | 0.055 | 0.017 |
 | Roto Grip | X-Cell | **?** | eTrax ULTRA | **?** | 2.5 | 0.056 | 0.019 |
+| Storm | !Q Tour Emerald | 2019-06 | R2S Pearl Reactive | Centripetal Control | 2.49 | 0.029 | (sym) |
 | Storm | !Q Tour Fusion | **?** | R2S Hybrid | Centripetal Control | 2.49 | 0.029 | (sym) |
 | Storm | Crux Prime | **?** | SPEC Solid | Catalyst | 2.5 | 0.052 | 0.017 |
 | Storm | Drive | 2018-02 | R2S Nano Hybrid | Dual-Drive | 2.57 | 0.05 | (sym) |
 | Storm | Hy-Road 40 | 2025-06 | A1S Pearl | **?** | 2.57 | 0.046 | (sym) |
 | Storm | Hy-Road Max | **?** | NeX Solid | Inverted Fe2 | 2.57 | 0.046 | (sym) |
 | Storm | Hy-Road X | **?** | R2X | **?** | 2.57 | 0.046 | (sym) |
+| Storm | Lock | 2015-10 | GI-15 Hybrid Reactive | RAD-X | 2.48 | 0.054 | 0.018 |
+| Storm | Marvel Pearl | **?** | R2X Pearl | Centripetal | 2.48 | 0.05 | (sym) |
 | Storm | Next Factor | 2025-12 | R3S Pearl Reactive | RAD-TQ | 2.56 | 0.051 | 0.017 |
 | Storm | Nova | **?** | R2X Hybrid | Ignition | 2.49 | 0.052 | 0.019 |
 | Storm | Phaze 4 | **?** | R2S Pearl Reactive | Velocity | 2.48 | 0.051 | (sym) |
 | Storm | Phaze A.I. | **?** | TX-16 Pearl Reactive | Velocity A.I. | 2.47 | 0.053 | (sym) |
 | Storm | Phaze III | **?** | R3S Hybrid | Velocity | 2.48 | 0.051 | (sym) |
+| Storm | PhysiX | **?** | NRG Hybrid Reactive | Atomic | 2.48 | 0.053 | 0.017 |
 | Storm | Super Nova | **?** | NeX Solid | Ignition | 2.49 | 0.052 | 0.019 |
 | Storm | Trend | **?** | R2S Pearl | Piston | 2.52 | 0.049 | (sym) |
 | Track | Theorem | 2023-12-07 | Prime Response Hybrid (HK22) | MC2 | 2.473 | 0.046 | 0.017 |
 | Track | Theorem Pearl | 2024-11 | Prime Response Pearl (HK22) | MC2 | 2.473 | 0.046 | 0.017 |
 | Track | Theorem Solid | 2025-08-14 | Super Response Solid (HK22C) | MC2 | 2.473 | 0.046 | 0.017 |
 
-### Researched but not added (71)
+### Researched but not added (75)
 
 Candidate files are in `scripts/sync-catalog/data/backlog/`, with every reading found so far and a `_notes` field. **Missing** names the fields with no two-site reading.
 
 | Brand | Ball | Why not added | Missing | Notes from the reader |
 |---|---|---|---|---|
 | 900 Global | Dream | missing coverstockRaw; sourceUrls must be non-empty | coverstockRaw, rg, diff, coreName, releaseDate, mbDiff, factoryFinish | bowwwl: original Dream released Aug 2014, S74 Response Pearl, Identity core, RG 2.480 diff 0.054 only from similar-balls table (no 15 lb). bowling.com has no Dream page. Thin. |
-| 900 Global | Dream On | ASYM_NO_MBDIFF: check says asymmetric; no two-site mbDiff | coreName, releaseDate, mbDiff, factoryFinish | Asymmetric Identity core. bowwwl release Feb 2018 only. mbDiff 0.024 from bowwwl only. MBDIFF: bowlersmart.com states 15 lb 'RG, .054 differential, and .024 intermediate differential' for Dream On. bowwwl.com shows 0.024 MB Diff in a Similar Balls row with no weight stated; bowling.com gives no mass |
 | 900 Global | Eternity Pi | missing rg, diff | rg, diff, releaseDate, mbDiff, factoryFinish | Asymmetric. bowwwl release Sep 2023 only. bowwwl RG 2.490/diff 0.050/mb 0.014 weight ambiguous; bowling.com states 15 lb 2.49/0.050/0.014, so numbers left []. |
 | 900 Global | Sublime | Held back by review: the blind check found the Sublime's own bowwwl page lists only 13 and 12 lb rows, and 2.470 / 0.056 are the Sublime Focus's numbers. The gathered readings are probably the wrong ball. | releaseDate, mbDiff | Symmetric Immersed A.I. core. bowwwl release Dec 2023 only. |
 | 900 Global | Zen 25 | missing coverstockRaw; sourceUrls must be non-empty | coverstockRaw, rg, diff, coreName, releaseDate, mbDiff, factoryFinish | bowwwl self-conflicts (S77 Response Pearl vs RB 83 Pearl; Melee Low RG vs Meditate A.I.), no 15 lb row. bowling.com 15 lb: RG 2.48, diff 0.053, Meditate Symmetric A.I., Reserve Blend 83 Pearl Reactive, Power Edge. bowwwl release Jan 2025 only. No two-site agreement on any field. |
@@ -227,7 +236,6 @@ Candidate files are in `scripts/sync-catalog/data/backlog/`, with every reading 
 | Brunswick | Melee Jab | missing rg | rg, releaseDate, mbDiff, factoryFinish | SYMMETRIC: bowwwl.com: 'The core is the Melee Low RG symmetric'. RG conflict: bowwwl 2.487 at 15 lb vs bowling.com 2.537 (bowling.com lists 2.487 for Blood Red/Midnight Blue/Carbon), so rg []. Release Dec 2014 (bowwwl 'released in December 2014'); bowling.com only says 'listed December 2014' so not  |
 | Brunswick | Mindset | missing rg, diff | rg, diff, releaseDate, mbDiff, factoryFinish | Asymmetric Mindset core. bowling.com 'Mindset Solid' page: RG 2.487 (15#), diff 0.050 (15#); bowlingthismonth: RG 2.487, diff 0.050, intermediate diff 0.021 (weight not stated); bowwwl gave 15 lb figures only for Perfect Mindset (sibling, not used). So rg/diff/mbDiff []. Release Mar 2023 bowwwl only |
 | Brunswick | Prism Solid | missing coverstockRaw | coverstockRaw, releaseDate, mbDiff, factoryFinish | Only the Solid was worked; Prism Hybrid, Prism Warp and Prism Warp Hybrid exist as separate balls (Portal core, 2.465/0.051). releaseDate Oct 2019 for Solid came from bowwwl only (bowling.com dated the Hybrid). bowling.com rg/diff quote is a shared-line statement covering the Prism models incl. Soli |
-| Brunswick | Quantum Evo Hybrid | ASYM_NO_MBDIFF: check says asymmetric; no two-site mbDiff | releaseDate, mbDiff, factoryFinish | Asymmetric QCS-18, no mbDiff found (so []). releaseDate: bowwwl says August 2022 but bowlingthismonth only gives a review date (August 2022), so []. factoryFinish wording differs (bowling.com '500 and 2000 Siaair Micro Pad' vs BTM '500 / 2000 SiaAir'), left []. diff: bowwwl 0.052 vs bowling.com 0.05 |
 | Brunswick | Quantum Evo Pearl | missing coverstockRaw | coverstockRaw, rg, diff, mbDiff | Cover wording differs between sites (Evolution Pearl Reactive vs Evolution Reactive pearl) so coverstockRaw []. 15 lb: bowwwl states RG 2.511, diff 0.053, mbDiff 0.024; bowlingball unlabeled agrees. Product page: https://www.bowlingball.com/products/bowling-balls/brunswick/16581/quantum-evo-pearl.ht |
 | Brunswick | Quantum Evo Solid | missing coverstockRaw | coverstockRaw, rg, diff, mbDiff, factoryFinish | Cover wording differs (Evolution Solid vs Evolution Reactive solid) so coverstockRaw []. Finish only bowlingball (500/1500 Siaair). 15 lb: bowwwl states RG 2.502, diff 0.048, mbDiff 0.012; bowlingball unlabeled agrees. Product page: https://www.bowlingball.com/products/bowling-balls/brunswick/16580/ |
 | Brunswick | Rhino | missing coverstockRaw | coverstockRaw, releaseDate, mbDiff, factoryFinish | 2016 Rhino (solid and pearl colorways are separate bowwwl pages; same core). SYMMETRIC: bowwwl.com: 'Brunswick Light Bulb symmetric core'. Release May 2016 bowwwl only. Coverstock R-16 solid / R-16 pearl differ by colorway so []. bowling.com reading is from the Blue/Cadet Grey/Silver Pearl colorway  |
@@ -250,31 +258,37 @@ Candidate files are in `scripts/sync-catalog/data/backlog/`, with every reading 
 | Ebonite | Turbo/R | missing coverstockRaw | coverstockRaw, rg, diff, coreName, mbDiff, factoryFinish | May 2017. rg/diff []: bowling.com states 15 lb (RG 2.59, diff 0.035) but bowwwl base entry (2.590/0.035) does not state weight. coverstock/core only on bowwwl (GB 10.7 Solid, Turbo/R symmetric core); budget ran out before a second source. |
 | Hammer | Black Widow Urethane | missing coverstockRaw | coverstockRaw, mbDiff | Dec 2017 original per bowwwl and bowling.com. hammerbowling.com lists a 'Black Widow Urethane' page with Feb 25, 2022 release (likely a re-release); date not used there. Cover wording differs (Urethane Solid vs Urethane) so omitted. |
 | Hammer | Effect | missing rg, diff | rg, diff, factoryFinish | RG/diff 2.470/0.050 (15 lb) only on hammerbowling.com; bowwwl's 2.483/0.043 is 16 lb. Productpage: https://hammerbowling.com/products/hammer-effect |
-| Hammer | Envy | ASYM_NO_MBDIFF: check says asymmetric; no two-site mbDiff | releaseDate, mbDiff, factoryFinish | Asymmetric Launcher core; mbDiff 0.021 bowwwl only so []. Release Sep 2022 bowwwl only. bowwwl noted an inconsistent 2.537/0.053 snippet on the page; 2.505/0.055 from the core table matches bowling.com. |
+| Hammer | Envy | ASYM_NO_MBDIFF: check says asymmetric; no two-site mbDiff | releaseDate, mbDiff, factoryFinish | Asymmetric Launcher core; mbDiff 0.021 bowwwl only so []. Release Sep 2022 bowwwl only. bowwwl noted an inconsistent 2.537/0.053 snippet on the page; 2.505/0.055 from the core table matches bowling.com. MBDIFF: bowlersmart.com Envy listing 'Listed at 2.50 RG, .055 differential, and .021 mass bias st |
 | Hammer | NU Blue Hammer | missing coverstockRaw | coverstockRaw, releaseDate, mbDiff, factoryFinish | SYMMETRIC: bowwwl.com: 'a symmetric LED core'. Release Nov 2023 bowwwl only. Cover is non-urethane (wording differs). Finish 500/1000 Siaair Micro Pad bowling.com only. |
-| Hammer | Obsession | ASYM_NO_MBDIFF: check says asymmetric; no two-site mbDiff | coreName, releaseDate, mbDiff, factoryFinish | Asymmetric. mbDiff: BTM 0.013 (weight not stated), bowwwl 0.011 at 16 lb, so []. Release Feb 2021 bowwwl only (BTM gives review month). bowling.com page is 'Obsession Solid'. Core name not in two quotes ('Obsession core' bowling.com only). |
+| Hammer | Obsession | ASYM_NO_MBDIFF: check says asymmetric; no two-site mbDiff | coreName, releaseDate, mbDiff, factoryFinish | Asymmetric. mbDiff: BTM 0.013 (weight not stated), bowwwl 0.011 at 16 lb, so []. Release Feb 2021 bowwwl only (BTM gives review month). bowling.com page is 'Obsession Solid'. Core name not in two quotes ('Obsession core' bowling.com only). MBDIFF: bowling.com Obsession Solid gives RG/diff at 15# but |
 | Hammer | Purple Pearl Urethane | missing coverstockRaw | coverstockRaw, mbDiff, factoryFinish | Productpage: https://hammerbowling.com/products/purple-pearl-urethane. Release is year-only on bowling.com. |
-| Hammer | Rip'D Solid | ASYM_NO_MBDIFF: check says asymmetric; no two-site mbDiff | mbDiff, factoryFinish | Asymmetric. mbDiff 0.014 only on bowwwl so []. Manufacturer spelling Rip'D. |
-| Hammer | Special Effect | ASYM_NO_MBDIFF: check says asymmetric (mbDiff 0.017); no two-site mbDiff | mbDiff, factoryFinish | Productpage: https://hammerbowling.com/products/hammer-special-effect. mbDiff 0.017 only on hammerbowling.com. MBDIFF: bowlersmart.com states 15 lb Special Effect 'an intermediate differential of .017' (RG 2.470, diff .050). bowling.com prints an unlabeled '0.017 (15#)' ('probably the mass bias diff |
+| Hammer | Rip'D Solid | ASYM_NO_MBDIFF: check says asymmetric; no two-site mbDiff | mbDiff, factoryFinish | Asymmetric. mbDiff 0.014 only on bowwwl so []. Manufacturer spelling Rip'D. MBDIFF: bowwwl Rip'D Solid page 15-lb MB diff 0.014 but same page header shows conflicting 0.020; bowlersmart mass bias strength 0.014 with 15 lb not stated in the same sentence. Not filled. |
 | Radical | Evil Eye | missing coverstockRaw | coverstockRaw, coreName, releaseDate, mbDiff, factoryFinish | Oct 2025 only bowwwl. Coverstock: bowwwl HK22C vs bowling.com 'HK22 solid reactive', not the same string, so []. mbDiff 0.009 to 0.023 range per drilling, not recorded. Core name not stated by two sites. |
 | Radical | Incognito | missing coverstockRaw | coverstockRaw, releaseDate, mbDiff, factoryFinish | Nov 2020 release only from bowwwl (bowlingthismonth gives review dates only), so []. Coverstock S.H.A.R.P. only bowwwl; finish only bowlingthismonth. mbDiff 0.017 at 15 lb only bowwwl. Core name from bowwwl core page title and bowling.com's The Spy sentence. |
 | Radical | Katana Dragon | Held back by review: one mbDiff reading is bowlersmart's "mass bias strength", which may not be the intermediate differential. | factoryFinish | June 2018. mbDiff 0.020 only from bowwwl; finish only bowling.com (500, 1000, and 2000 Siaair Micro Pad). |
 | Radical | Outer Limits Black Hole | missing coverstockRaw | coverstockRaw, releaseDate, factoryFinish | Jan 2026 only bowwwl; coverstock (HK-22C solid) and finish only bowling.com. |
+| Roto Grip | Attention Star S2 | missing rg, diff | rg, diff, mbDiff, factoryFinish | Asymmetric core. rg/diff/mbDiff left []: bowling.com states 2.48 / 0.049 / mass bias 0.017 for 15 lb; bowwwl.com page text returned only 12-14 lb rows; bowlingball.com prints 2.48/0.049/0.017 with no weight. Finish: 2000 Abralon is bowling.com-only. Different from existing Attention Star. |
 | Roto Grip | Exit | missing coverstockRaw; sourceUrls must be non-empty | coverstockRaw, rg, diff, coreName, releaseDate, mbDiff, factoryFinish | Only bowwwl found (Feb 2025, Hyper Response II pearl, Defense A.I. core, RG 2.490 diff 0.053, weight not stated). BTM and BowlerX returned nothing for Exit. |
+| Roto Grip | Hustle PBR | missing coverstockRaw | coverstockRaw, rg, diff, coreName, mbDiff, factoryFinish | Requested as 'Hustle PRB'; no such page found, the closest is Hustle PBR (Purple/Black/Red), so this file is for PBR; confirm identity. bowling.com PBR page: 15 lb RG 2.53, diff 0.030 (one source). bowwwl.com figures for PBR came from the Hustle core page, so not used. bowwwl: VTC-S20 Solid Reactive |
+| Roto Grip | Idol Synergy | missing rg, diff | rg, diff, mbDiff, factoryFinish | SYMMETRIC: bowwwl.com 'Ikon Symmetric core'; mbDiff []. rg/diff left []: bowling.com states 2.49/0.052 for a 15 lb ball, but bowwwl.com and bowlingball.com print 2.490/0.052 and 2.49/0.052 without a weight. Finish: bowwwl '1500 polished', bowling.com '1500-grit polished' (not recorded). |
+| Roto Grip | Rubicon UC3 | ASYM_NO_MBDIFF: check says asymmetric; no two-site mbDiff | releaseDate, mbDiff, factoryFinish | Mildly asymmetric Rondure core. mbDiff []: only bowlersmart.com gives 0.011 at 15 lb (conflicting 0.010 in a review table); bowwwl.com page text had no 15 lb row. Release Nov 2021 is bowwwl-only. Finish 1000 Abralon bowling.com-only. Sibling Rubicon UC3 Trax (solid urethane, Jun 2023) is separate. |
 | Roto Grip | Transformer | missing rg, diff | rg, diff, releaseDate, mbDiff, factoryFinish | bowwwl release Jan 2026 only. RG 2.51/diff 0.051/mb 0.015: bowling.com states 15 lb; bowwwl does not label the weight clearly (inferred), so left []. |
-| Roto Grip | UFO | ASYM_NO_MBDIFF: check says asymmetric; no two-site mbDiff | coreName, mbDiff, factoryFinish | Asymmetric. mbDiff 0.016 only from bowwwl. Core E.T. worded differently, left []. MBDIFF: bowlersmart.com: 'RG (15LB): 2.52, Differential (15LB): .054, Mass Bias Strength: .016'. bowling.com gives no mass bias; bowwwl.com UFO figures only appear indirectly in the Clone comparison table with no 15 lb |
+| Roto Grip | UFO | Held back by review: one of its two mbDiff readings is a ballreviews summary giving "about 0.016", an approximation. | coreName, factoryFinish | Asymmetric. mbDiff 0.016 only from bowwwl. Core E.T. worded differently, left []. MBDIFF: bowlersmart.com: 'RG (15LB): 2.52, Differential (15LB): .054, Mass Bias Strength: .016'. bowling.com gives no mass bias; bowwwl.com UFO figures only appear indirectly in the Clone comparison table with no 15 lb |
 | Roto Grip | Vintage Gem | missing coverstockRaw; sourceUrls must be non-empty | coverstockRaw, rg, diff, coreName, releaseDate, mbDiff, factoryFinish | bowwwl page exists (Oct 2025 overseas, eTrax Plus, Defiant LRG); BTM has no page. No second source. |
+| Storm | !Q Tour Nano | missing coverstockRaw; sourceUrls must be non-empty | coverstockRaw, rg, diff, coreName, releaseDate, mbDiff, factoryFinish | THIN. Only bowwwl.com (https://www.bowwwl.com/bowling-ball-database/storm/q-tour-nano) describes the 2014 ball: released December 2014, NRG Solid, 4000 Abralon, C3 Centripetal Control symmetric, RG 2.490 diff 0.029, but no 15 lb label. bowling.com's page 'storm--q-tour-nano' is the 2020 Nano Pearl c |
+| Storm | Code Black | ASYM_NO_MBDIFF: check says asymmetric; no two-site mbDiff | releaseDate, mbDiff, factoryFinish | Asymmetric RAD4 core. mbDiff left [] because: bowwwl.com states MB Diff 0.020 at 15 lb, but bowlingball.com prints 'Mass Bias Diff 0.020' with no weight stated (not a 15 lb reading). Release Nov 2016 is bowwwl-only. bowwwl's RAD4 core page lists NRG Solid for a Nov 2016 Code Black; ball page and bow |
+| Storm | Gravity Evolve | missing rg, diff | rg, diff, mbDiff, factoryFinish | Asymmetric Shape-Lock HD core. rg/diff/mbDiff left []: bowling.com states 2.48 / 0.052 for 15 lb, but bowwwl.com and bowlingball.com print 2.480/0.052/MB 0.020 without a weight (bowwwl calls them likely typical values). Release: bowwwl 'October 2019', bowlingball.com 10/25/2019. |
 | Storm | Incite | missing rg, diff | rg, diff, releaseDate, mbDiff | bowwwl RG 2.500/diff 0.053/int 0.013 weight unstated; bowling.com only has 'Incite Hybrid' page (15 lb RG 2.50, diff 0.053), not confirmed same ball; rg/diff/mbDiff []. Release Feb 2021 only bowwwl. |
 | Storm | Marvel Maxx | missing coverstockRaw; sourceUrls must be non-empty | coverstockRaw, rg, diff, coreName, releaseDate, mbDiff, factoryFinish | Only bowwwl (original 2014, NRG Smooth Solid, Centripetal, RG 2.480 diff 0.050, weight unstated); bowling.com search returned no Marvel Maxx. Nothing with two readings. |
 | Storm | Marvel S | missing rg, diff | rg, diff, mbDiff, factoryFinish | Manufacturer spelling Marvel-S. bowwwl release Jul 2013, bowlingball.com July 16, 2013. SYMMETRIC: bowwwl 'Centripetal symmetric' (bowwwl.com); bowlingball.com 'symmetric core'. bowlingball.com RG 2.48 / diff 0.050 has no weight stated, so rg/diff [] despite bowwwl 15 lb RG 2.480, diff 0.050. Finish |
 | Storm | Motor Rev | missing coverstockRaw; sourceUrls must be non-empty | coverstockRaw, rg, diff, coreName, releaseDate, mbDiff, factoryFinish | bowwwl only (Dec 2025, RX Pro Pearl, Torque A.I., overseas release). Search budget exhausted before bowling.com. |
-| Storm | Parallax | ASYM_NO_MBDIFF: check says asymmetric; no two-site mbDiff | releaseDate, mbDiff, factoryFinish | bowwwl: Aug 2020 (only source for date). 15 lb on bowwwl: RG 2.520, diff 0.054, MB Diff 0.019 (one source, mbDiff []). Asymmetric Aeroflo. Finish 1500-grit Polished only on bowling.com. Distinct from Parallax Effect (pearl). |
-| Storm | PhysiX | SYMMETRY_UNKNOWN: no mbDiff and no source says the core (atomic) is symmetric | releaseDate, mbDiff | bowling.com 15 lb: RG 2.48, diff 0.053; bowwwl states RG 2.480, diff 0.053, MB 0.017 but weight not tied to the numbers in the result, so rg/diff/mbDiff []. Release Oct 2018 only bowwwl. Update: 15 lb RG/diff from bowlersmart.com and bowling.com. mbDiff 0.017 (15 lb) only on bowlersmart.com (bowling |
+| Storm | Parallax | ASYM_NO_MBDIFF: check says asymmetric; no two-site mbDiff | releaseDate, mbDiff, factoryFinish | bowwwl: Aug 2020 (only source for date). 15 lb on bowwwl: RG 2.520, diff 0.054, MB Diff 0.019 (one source, mbDiff []). Asymmetric Aeroflo. Finish 1500-grit Polished only on bowling.com. Distinct from Parallax Effect (pearl). MBDIFF: bowwwl 15 lb Parallax MB diff 0.019; bowlersmart Parallax listing s |
+| Storm | Spectre | missing coverstockRaw; sourceUrls must be non-empty | coverstockRaw, rg, diff, coreName, releaseDate, mbDiff, factoryFinish | THIN. Ambiguous: bowwwl.com base Spectre page has conflicting core/cover data (Meanstreak High RG Symmetric / Implex II, 2.557/0.048 vs Vector, R3S Pearl, 2.540/0.050). bowling.com only has 'Spectre Pearl' (Vector, R3S Pearl Reactive, 15# 2.54/0.050, Jan 2022); name does not match exactly so nothing |
 | Storm | Star Road | missing coverstockRaw; sourceUrls must be non-empty | coverstockRaw, rg, diff, coreName, releaseDate, mbDiff, factoryFinish | bowwwl only (Oct 2025, NRG Solid, Inverted Fe2, RG 2.570 diff 0.046, weight unstated). Search budget exhausted before bowling.com. |
 | Storm | Sure Lock | Held back by review: bowwwl names two different cores for it (Nirvana Ultra Low RG Asymmetric, and RAD-X), so the core and its symmetry are unsettled. | diff, mbDiff, factoryFinish | bowwwl contradicts itself on core (Nirvana Ultra Low RG Asymmetric header vs RAD-X Core in spec section); RAD-X agrees with bowling.com, recorded from the bowwwl spec section sentence. bowwwl diff 0.054 has no weight stated, so diff [] (bowling.com 15 lb diff 0.054 only one). mbDiff not seen. Finish |
 | Storm | Torrent | missing rg, diff | rg, diff, releaseDate, mbDiff | bowwwl: release February 2017 (only source). bowwwl RG/diff given at 16 lb only; bowling.com 15 lb RG 2.56, diff 0.044, so rg/diff []. SYMMETRIC: bowwwl 'Booster HV symmetric' (bowwwl.com), mbDiff []. |
 | Storm | Trend 2 | missing rg | rg, releaseDate, mbDiff, factoryFinish | bowwwl RG 2.540 weight unstated so rg []. Symmetric. |
-| Track | Kinetic Ruby | ASYM_NO_MBDIFF: check says asymmetric; no two-site mbDiff | releaseDate, mbDiff, factoryFinish | bowwwl: release July 2017 (only source); bowling.com no date. bowwwl 15 lb mass bias diff 0.005 only one source so mbDiff []. Finish 500/2000 Abralon only on bowwwl. Asymmetric core (bowwwl). |
+| Track | Kinetic Ruby | ASYM_NO_MBDIFF: check says asymmetric; no two-site mbDiff | releaseDate, mbDiff, factoryFinish | bowwwl: release July 2017 (only source); bowling.com no date. bowwwl 15 lb mass bias diff 0.005 only one source so mbDiff []. Finish 500/2000 Abralon only on bowwwl. Asymmetric core (bowwwl). MBDIFF: trackbowling.com Kinetic Ruby page gives 15 lb RG 2.490 / diff 0.038 but no mass bias; 0.005 interme |
 | Track | Paradox Black | missing rg, diff | rg, diff, releaseDate, mbDiff | bowwwl: release November 2017, discontinued; bowling.com (X-OUT page) gave no release date so releaseDate []. bowwwl RG 2.480 / diff 0.057 / MB 0.015 is the 'general listing' with weight not stated (16 lb page is 2.490/0.049), so rg/diff/mbDiff [] even though bowling.com states 15 lb RG 2.48, diff 0 |
 | Track | Stealth Mode Hybrid | missing rg, diff | rg, diff, mbDiff, factoryFinish | Feb 2026. rg/diff []: only bowlersmart states 15 lb (RG 2.482, diff .056); bowwwl's 15 lb figures belong to the shared Stealth core page, not this ball; trackbowling.com page has no core table. bowwwl listing URL not confirmed for this ball (stealth-mode-hybrid equipment page only); sourceUrl for bo |
 | Track | Theorem Delta | missing rg, diff | rg, diff, mbDiff, factoryFinish | Aug 2026. rg/diff/mbDiff []: only bowlersmart states 15 lb (RG 2.473, diff .046, int diff .017); trackbowling.com page snippet had no core table; bowwwl has no Delta page. Candidates if a second 15 lb source confirms: 2.473/0.046/0.017. Manufacturer page https://trackbowling.com/products/theorem-del |

@@ -60,7 +60,20 @@
    "via": "web-search"
   }
  ],
- "mbDiff": [],
+ "mbDiff": [
+  {
+   "value": 0.016,
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/roto-grip/ufo",
+   "quote": "15 pounds RG 2.520 Diff 0.054 MB Diff 0.016",
+   "via": "web-search"
+  },
+  {
+   "value": 0.016,
+   "sourceUrl": "https://www.ballreviews.com/roto-grip-135/ufo/",
+   "quote": "The UFO's 15 lb numbers are consistent across the BallReviews threads: RG about 2.52, differential about 0.054, and mass bias or intermediate differential about 0.016.",
+   "via": "web-search"
+  }
+ ],
  "productUrl": [],
  "_notes": "Asymmetric. mbDiff 0.016 only from bowwwl. Core E.T. worded differently, left []. MBDIFF: bowlersmart.com: 'RG (15LB): 2.52, Differential (15LB): .054, Mass Bias Strength: .016'. bowling.com gives no mass bias; bowwwl.com UFO figures only appear indirectly in the Clone comparison table with no 15 lb row; bowlingball.com says 0.016 without a stated weight. One clean 15 lb reading, so []."
 }

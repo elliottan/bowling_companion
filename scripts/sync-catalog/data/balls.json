@@ -11704,5 +11704,142 @@
       "https://www.bowwwl.com/bowling-ball-database/track/theorem"
     ],
     "readVia": "web-search"
+  },
+  {
+    "brand": "900 Global",
+    "name": "Dream On",
+    "releaseDate": null,
+    "coverstockRaw": "74 Response Hybrid",
+    "factoryFinish": null,
+    "coreName": null,
+    "rg": 2.48,
+    "diff": 0.054,
+    "mbDiff": 0.024,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/900-global/dream-on",
+      "https://bowling.com/products/900global-dream-on.htm",
+      "https://www.bowlersmart.com/product/900-global-dream-on-bowling-ball/"
+    ],
+    "readVia": "web-search"
+  },
+  {
+    "brand": "Brunswick",
+    "name": "Quantum Evo Hybrid",
+    "releaseDate": null,
+    "coverstockRaw": "Evolution Hybrid",
+    "factoryFinish": null,
+    "coreName": "QCS-18",
+    "rg": 2.51,
+    "diff": 0.052,
+    "mbDiff": 0.018,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/brunswick/quantum-evo-hybrid",
+      "https://www.bowling.com/products/brunswick-quantum-evo-hybrid.htm",
+      "https://www.bowlingthismonth.com/bowling-ball-review/brunswick-quantum-evo-hybrid/",
+      "https://www.bowlersmart.com/product/brunswick-quantum-evo-hybrid-bowling-ball/"
+    ],
+    "readVia": "web-search"
+  },
+  {
+    "brand": "Hammer",
+    "name": "Special Effect",
+    "releaseDate": "2025-03",
+    "coverstockRaw": "Cohesion Solid",
+    "factoryFinish": null,
+    "coreName": "Huntsman",
+    "rg": 2.47,
+    "diff": 0.05,
+    "mbDiff": 0.017,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/hammer/special-effect",
+      "https://www.bowling.com/products/hammer-special-effect.htm",
+      "https://hammerbowling.com/products/hammer-special-effect",
+      "https://www.bowlersmart.com/product/hammer-special-effect-bowling-ball/"
+    ],
+    "readVia": "web-search"
+  },
+  {
+    "brand": "Roto Grip",
+    "name": "Optimum Idol",
+    "releaseDate": null,
+    "coverstockRaw": "MicroTrax Solid",
+    "factoryFinish": null,
+    "coreName": "Ikon + A.I.",
+    "rg": 2.47,
+    "diff": 0.056,
+    "mbDiff": null,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/roto-grip/optimum-idol",
+      "https://www.bowling.com/products/roto-grip-optimum-idol.htm"
+    ],
+    "readVia": "web-search"
+  },
+  {
+    "brand": "Storm",
+    "name": "Lock",
+    "releaseDate": "2015-10",
+    "coverstockRaw": "GI-15 Hybrid Reactive",
+    "factoryFinish": null,
+    "coreName": "RAD-X",
+    "rg": 2.48,
+    "diff": 0.054,
+    "mbDiff": 0.018,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/storm/lock",
+      "https://www.bowling.com/products/storm-lock.htm?a=218&v=1",
+      "https://www.bowlersmart.com/storm-lock-bowling-ball"
+    ],
+    "readVia": "web-search"
+  },
+  {
+    "brand": "Storm",
+    "name": "Marvel Pearl",
+    "releaseDate": null,
+    "coverstockRaw": "R2X Pearl",
+    "factoryFinish": null,
+    "coreName": "Centripetal",
+    "rg": 2.48,
+    "diff": 0.05,
+    "mbDiff": null,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/storm/marvel-pearl",
+      "https://www.bowling.com/products/storm-marvel-pearl.htm?a=5073&v=1",
+      "https://www.bowlersmart.com/product/storm-marvel-pearl-bowling-ball-rare/"
+    ],
+    "readVia": "web-search"
+  },
+  {
+    "brand": "Storm",
+    "name": "PhysiX",
+    "releaseDate": null,
+    "coverstockRaw": "NRG Hybrid Reactive",
+    "factoryFinish": "3000-grit Abralon",
+    "coreName": "Atomic",
+    "rg": 2.48,
+    "diff": 0.053,
+    "mbDiff": 0.017,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/storm/physix",
+      "https://www.bowling.com/products/storm-physix.htm",
+      "https://www.bowlersmart.com/product/storm-physix-bowling-ball/",
+      "https://www.stormbowling.com/products/featured/bowling-balls-archive/bbmtay-physix"
+    ],
+    "readVia": "web-search"
+  },
+  {
+    "brand": "Storm",
+    "name": "!Q Tour Emerald",
+    "releaseDate": "2019-06",
+    "coverstockRaw": "R2S Pearl Reactive",
+    "factoryFinish": null,
+    "coreName": "Centripetal Control",
+    "rg": 2.49,
+    "diff": 0.029,
+    "mbDiff": null,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/storm/iq-tour-emerald",
+      "https://www.bowling.com/products/storm--q-tour-emerald.htm"
+    ],
+    "readVia": "web-search"
   }
 ]
