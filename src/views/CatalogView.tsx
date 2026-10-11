@@ -774,7 +774,7 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall }: CatalogVie
                   className="flex w-full items-center gap-3 px-3 py-2.5 text-left hover:bg-surface-muted transition-colors"
                 >
                   <div className="h-10 w-10 shrink-0">
-                    <CatalogBallImage src={ball.imageThumb} alt={ball.name} brand={ball.brand} size="thumb" />
+                    <CatalogBallImage src={ball.imageThumb} alt={ball.name} brand={ball.brand} size="thumb" lazy />
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-1.5">

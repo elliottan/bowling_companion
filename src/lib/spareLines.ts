@@ -290,10 +290,16 @@ export function matchesLeaveFilters(
   return true;
 }
 
+/** How many times a leave has to come up before the screen asks for a line for
+ *  it. Once or twice is a stray leave, not a habit, and an ask about one reads
+ *  as noise ("most often (2 times)") the moment a bowler starts. */
+export const MIN_LEAVES_TO_ASK = 3;
+
 /**
  * The leave the bowler faces most that has no line yet, so the screen can ask
- * for that one first. Only leaves a ball could follow, as on Stats, and never a
- * pocket leave, which needs no spare line.
+ * for that one first. Only leaves a ball could follow, as on Stats, never a
+ * pocket leave, which needs no spare line, and only one left at least
+ * `MIN_LEAVES_TO_ASK` times.
  */
 export function mostLeftWithoutLine(
   leaves: Array<{ pins: PinNumber[]; attempts: number; chances: number }>,
@@ -303,6 +309,12 @@ export function mostLeftWithoutLine(
 ): { pins: PinNumber[]; attempts: number } | undefined {
   const withLine = new Set(lines.filter(hasAnswer).map((sl) => leaveKey(sl.pins)));
   return spareLinesShown(leaves)
-    .filter((l) => l.chances > 0 && !withLine.has(leaveKey(l.pins)) && !snoozed.has(askKey(l.pins)))
+    .filter(
+      (l) =>
+        l.attempts >= MIN_LEAVES_TO_ASK &&
+        l.chances > 0 &&
+        !withLine.has(leaveKey(l.pins)) &&
+        !snoozed.has(askKey(l.pins))
+    )
     .sort((a, b) => b.attempts - a.attempts)[0];
 }
