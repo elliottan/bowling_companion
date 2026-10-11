@@ -184,6 +184,20 @@ describe("validateBackup", () => {
     expect(result.errors[0]).toContain("oil_patterns");
   });
 
+  it("carries a retired ball, and rejects a retired flag that is not a yes or no (ADR-133)", () => {
+    const ok = validateBackup({
+      ...validBackup,
+      tables: { ...validBackup.tables, balls: [{ name: "Old Hammer", is_spare_ball: false, retired: true }] }
+    });
+    expect(ok.isValid).toBe(true);
+
+    const bad = validateBackup({
+      ...validBackup,
+      tables: { ...validBackup.tables, balls: [{ name: "Old Hammer", is_spare_ball: false, retired: "yes" }] }
+    });
+    expect(bad.isValid).toBe(false);
+  });
+
   it("rejects a ball with no name and a lane note with no lane", () => {
     const result = validateBackup({
       ...validBackup,

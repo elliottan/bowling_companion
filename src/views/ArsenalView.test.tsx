@@ -2,7 +2,7 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ArsenalView } from "./ArsenalView";
 import { db } from "../db/bowlingDb";
-import { addBall } from "../services/ballRepository";
+import { addBall, getBalls } from "../services/ballRepository";
 import { setLayoutSystem, setPap } from "../services/bowlingRepository";
 import type { BallLayoutSpec } from "../types/bowling";
 
@@ -86,5 +86,25 @@ describe("ArsenalView", () => {
     render(<ArsenalView onBack={vi.fn()} onViewLayout={vi.fn()} />);
     expect(await screen.findByText("Plastic")).toBeTruthy();
     expect(screen.queryByRole("button", { name: /View the layout/ })).toBeNull();
+  });
+
+  it("retires a ball from its editor, keeps it below the bag, and brings it back (ADR-133)", async () => {
+    await addBall({ name: "Phaze II", is_spare_ball: false });
+    await addBall({ name: "Old Hammer", is_spare_ball: false });
+    render(<ArsenalView onBack={vi.fn()} />);
+
+    fireEvent.click(await screen.findByText("Old Hammer"));
+    fireEvent.click(await screen.findByRole("button", { name: "Retire ball" }));
+
+    // Out of the bag, still in the database, and behind a toggle.
+    await waitFor(() => expect(screen.queryByText("Old Hammer")).toBeNull());
+    expect((await getBalls()).find((b) => b.name === "Old Hammer")?.retired).toBe(true);
+    fireEvent.click(screen.getByRole("button", { name: "Show retired (1)" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Bring back Old Hammer" }));
+
+    await waitFor(async () =>
+      expect((await getBalls()).find((b) => b.name === "Old Hammer")?.retired).toBe(false)
+    );
+    await waitFor(() => expect(screen.queryByRole("button", { name: /Show retired/ })).toBeNull());
   });
 });

@@ -6096,3 +6096,40 @@ bar, meanwhile, had a centred title with an empty slot balancing the close.
 - A sheet with a subtitle has a leading title and a centred-title sheet does
   not: the two read differently on purpose, since one is a list with a scope
   and the other a task.
+
+
+## ADR-133: A ball can be retired, and keeps its name in history
+
+**Status.** Accepted, 2026-10-11. Numbered after ADR-131 and ADR-132, which
+are in review alongside it.
+
+**Context.** The only way to take a ball out of the arsenal was Delete, which
+removes its row. Shots name their ball by id, so every shot ever thrown with it
+lost the name: History showed nothing and Stats listed it as "Ball #12" with no
+picture. A bowler who stops throwing a ball still wants its record, and the
+only way to keep that was to leave it in every ball picker. Oil patterns
+already solve the same problem by archiving (`archived`).
+
+**Decision.**
+
+- **`Ball.retired`**, an optional flag. Unset or false is in the bag.
+- **Retire and Bring back live in the ball's editor**, above Delete, and
+  retiring needs no confirmation because it is undone in one tap. The arsenal
+  lists retired balls under a "Show retired" toggle below the ordered list, each
+  with a Bring back button, as archived patterns are.
+- **Retired balls leave every list a ball is chosen from**: the ball picker, the
+  spare ball choice and the home strip. The picker still shows a retired ball
+  when it is the one already on the shot, so an old shot reads true.
+- **History, Stats and the game plan keep every ball**, retired or not.
+- **A retired ball is never the spare ball.** Retiring clears the flag, and
+  bringing it back does not set it again.
+- **Delete is unchanged** and its warning now points at Retire.
+- Backups carry the flag. A backup made before it reads every ball as in the
+  bag.
+
+**Consequences.**
+- No Dexie version bump: the field is not indexed (`docs/DATA_MODEL.md`).
+- A ball retired mid-session can still be the ball a fresh rack opens with in
+  that session (ADR-113 reads the last ball thrown). It was the ball in the
+  bowler's hand, and the next session starts clean.
+

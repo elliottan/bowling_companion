@@ -67,6 +67,17 @@ written. It is not parsed into numbers, because the text says nothing about the
 core type or the pin-to-PSA distance the conversion needs, and entering a real
 layout is what retires it.
 
+## A retired ball (ADR-133)
+
+`Ball.retired` marks a ball out of the bag. The row is never removed for it:
+shots name their ball by `ball_id`, so the row is what keeps a retired ball's
+name and picture on every shot, in History and in Stats. Read paths split by
+purpose. Anything that *chooses* a ball (the ball picker, the spare ball, the
+home strip, the arsenal's ordered list) reads `activeBalls` (`src/lib/arsenal.ts`), and anything that
+*names* a ball already thrown reads `getBalls` whole. A retired ball is never
+the spare ball: retiring clears `is_spare_ball`. Non-indexed, so no Dexie
+version bump.
+
 ## An oil pattern (ADR-101)
 
 `OilPattern.passes` is the pattern sheet's load table and the whole pattern. The

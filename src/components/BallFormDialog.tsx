@@ -1,4 +1,4 @@
-import { BookOpen, Check, ChevronRight, Plus, Search, Trash2 } from "lucide-react";
+import { Archive, BookOpen, Check, ChevronRight, Plus, RotateCcw, Search, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { getAllCatalog, getCatalogBall, syncCatalog } from "../services/ballCatalogRepository";
@@ -40,6 +40,9 @@ interface BallFormDialogProps {
   onSaved: () => void;
   /** Only supplied when editing, deletion lives with the ball it destroys. */
   onDelete?: () => void;
+  /** Retire the ball (true) or bring it back (false), ADR-133. Absent while
+   *  adding, when there is no ball yet. */
+  onRetire?: (retire: boolean) => void;
 }
 
 /**
@@ -47,7 +50,7 @@ interface BallFormDialogProps {
  * arsenal list: the inline version pushed the list down and left the catalog
  * link stranded below the fold, so nobody found it.
  */
-export function BallFormDialog({ ball, onClose, onSaved, onDelete }: BallFormDialogProps) {
+export function BallFormDialog({ ball, onClose, onSaved, onDelete, onRetire }: BallFormDialogProps) {
   const editing = ball !== null;
   const [name, setName] = useState(ball?.name ?? "");
   const [weight, setWeight] = useState<number>(ball?.weight ?? DEFAULT_WEIGHT);
@@ -255,6 +258,14 @@ export function BallFormDialog({ ball, onClose, onSaved, onDelete }: BallFormDia
               }
             />
 
+            {/* Retiring is the everyday way out of the bag, so it comes before
+                the delete that loses the ball's name from every shot. */}
+            {onRetire && (
+              <Button variant="secondary" onClick={() => onRetire(!ball?.retired)} className="w-full">
+                {ball?.retired ? <RotateCcw size={16} aria-hidden="true" /> : <Archive size={16} aria-hidden="true" />}
+                {ball?.retired ? "Bring back to arsenal" : "Retire ball"}
+              </Button>
+            )}
             {onDelete && (
               <Button variant="danger-ghost" onClick={onDelete} className="w-full">
                 <Trash2 size={16} aria-hidden="true" />

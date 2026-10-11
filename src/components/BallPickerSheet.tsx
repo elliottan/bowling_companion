@@ -3,6 +3,7 @@ import type { Ball } from "../types/bowling";
 import type { Manufacturer } from "../types/catalog";
 import { CatalogBallImage } from "./CatalogBallImage";
 import { FormSheet } from "./ui/FormSheet";
+import { activeBalls } from "../lib/arsenal";
 
 interface BallPickerSheetProps {
   balls: Ball[];
@@ -25,6 +26,9 @@ export function BallPickerSheet({
   onClose,
   onOpenArsenal
 }: BallPickerSheetProps) {
+  // Retired balls are out of the bag (ADR-133), except the one already on this
+  // shot: an old shot thrown with a ball since retired still shows its ball.
+  const offered = [...activeBalls(balls), ...balls.filter((b) => b.retired && b.id === ballId)];
   const pick = (id: number | undefined) => {
     onSelect(id);
     onClose();
@@ -35,7 +39,7 @@ export function BallPickerSheet({
     // there is no tick to put in the trailing slot (DESIGN-LANGUAGE §1).
     <FormSheet title="Ball" onClose={onClose} size="tall">
       <ul className="space-y-1.5">
-          {balls.map((b) => {
+          {offered.map((b) => {
             const snap = b.catalog_snapshot;
             const selected = b.id === ballId;
             return (

@@ -123,6 +123,10 @@ export interface Ball {
   catalog_snapshot?: BallCatalogSnapshot;
   weight?: number;
   colorway_sku?: string;   // chosen colorway from the catalog ball's colorways[]
+  /** Out of the bag but not forgotten (ADR-133): kept so the shots thrown with
+   *  it keep its name and picture, and left out of every list a ball is chosen
+   *  from. Unset means in use. */
+  retired?: boolean;
 }
 
 /**
