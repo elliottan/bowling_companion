@@ -64,6 +64,15 @@ export async function setSpareBall(id: number | null): Promise<void> {
   });
 }
 
+/**
+ * Take a ball out of the bag, or put it back (ADR-133). A retired ball cannot
+ * stay the spare ball: the scorer would keep opening every spare on a ball the
+ * bowler no longer carries.
+ */
+export async function setBallRetired(id: number, retired: boolean): Promise<void> {
+  await db.balls.update(id, retired ? { retired: true, is_spare_ball: false } : { retired: false });
+}
+
 export async function deleteBall(id: number): Promise<void> {
   await db.balls.delete(id);
 }

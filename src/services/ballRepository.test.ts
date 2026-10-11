@@ -1,9 +1,11 @@
 import { beforeEach, describe, expect, it } from "vitest";
+import { activeBalls } from "../lib/arsenal";
 import { db } from "../db/bowlingDb";
 import {
   addBall,
   addOilPattern,
   deleteBall,
+  setBallRetired,
   deleteSpareLine,
   ensureDefaultSpareLines,
   getAllOilPatterns,
@@ -94,6 +96,28 @@ describe("ballRepository", () => {
       const spare = balls.filter((b) => b.is_spare_ball);
       expect(spare).toHaveLength(1);
       expect(spare[0].name).toBe("Spare Updated");
+    });
+  });
+
+  describe("setBallRetired (ADR-133)", () => {
+    it("keeps the ball, takes it out of the bag, and brings it back", async () => {
+      const id = await addBall({ name: "Old Hammer", is_spare_ball: false });
+      await setBallRetired(id, true);
+      const retired = (await getBalls()).find((b) => b.id === id);
+      expect(retired?.retired).toBe(true);
+      expect(activeBalls(await getBalls()).find((b) => b.id === id)).toBeUndefined();
+
+      await setBallRetired(id, false);
+      expect(activeBalls(await getBalls()).find((b) => b.id === id)?.name).toBe("Old Hammer");
+    });
+
+    it("stops a retired ball being the spare ball", async () => {
+      const id = await addBall({ name: "Old Plastic", is_spare_ball: true });
+      await setBallRetired(id, true);
+      expect((await getBalls()).find((b) => b.id === id)?.is_spare_ball).toBe(false);
+      // Bringing it back does not make it the spare ball again on its own.
+      await setBallRetired(id, false);
+      expect((await getBalls()).find((b) => b.id === id)?.is_spare_ball).toBe(false);
     });
   });
 

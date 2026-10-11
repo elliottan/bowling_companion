@@ -9,6 +9,15 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.20.0: Retire a ball and keep its history (2026-10-11)
+
+**Retire a ball you no longer throw.** Open the ball in your arsenal and tap
+Retire ball. It leaves the ball picker, the spare ball choice and Home, and
+every shot you threw with it keeps its name and picture in History and Stats.
+Retired balls wait under Show retired at the bottom of the arsenal, and Bring
+back puts one in the bag again. Deleting a ball still removes its name from
+your shots, and now says so with a pointer to Retire.
+
 ## 0.19.3: Ball photos show up straight away, and a strike ball move picks the strike ball (2026-10-11)
 
 **Your arsenal's photos are kept on the phone.** The app now saves every ball

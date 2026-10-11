@@ -52,4 +52,17 @@ describe("BallPickerSheet", () => {
 
     expect(screen.queryByRole("button", { name: /Manage arsenal/ })).toBeNull();
   });
+
+  it("leaves retired balls out, except the one already on the shot (ADR-133)", () => {
+    const balls: Ball[] = [...BALLS, { id: 3, name: "Old Hammer", is_spare_ball: false, retired: true }];
+    setup({ balls });
+    expect(screen.queryByRole("button", { name: /Old Hammer/ })).toBeNull();
+    expect(screen.getByRole("button", { name: /Zen Master/ })).toBeTruthy();
+  });
+
+  it("still shows a retired ball that an old shot was thrown with", () => {
+    const balls: Ball[] = [...BALLS, { id: 3, name: "Old Hammer", is_spare_ball: false, retired: true }];
+    setup({ balls, ballId: 3 });
+    expect(screen.getByRole("button", { name: /Old Hammer/ })).toBeTruthy();
+  });
 });

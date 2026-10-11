@@ -180,7 +180,8 @@ function validateBall(value: unknown): value is Ball {
     typeof value.is_spare_ball === "boolean" &&
     isOptionalString(value.layout) &&
     isOptionalLayoutSpec(value.layout_spec) &&
-    isOptionalString(value.notes)
+    isOptionalString(value.notes) &&
+    (value.retired === undefined || typeof value.retired === "boolean")
   );
 }
 

@@ -13,9 +13,9 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { Compass, GripVertical, Plus } from "lucide-react";
+import { Compass, GripVertical, Plus, RotateCcw } from "lucide-react";
 import { BowlingBallIcon } from "../components/icons";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { BallFormDialog } from "../components/BallFormDialog";
 import { CatalogBallImage } from "../components/CatalogBallImage";
@@ -26,7 +26,10 @@ import { Button } from "../components/ui/Button";
 import { EmptyState } from "../components/ui/EmptyState";
 import { IconButton } from "../components/ui/IconButton";
 import { Measure } from "../components/ui/Measure";
-import { deleteBall, getBalls, reorderBalls } from "../services/ballRepository";
+import { LIST_DIVIDER_INSET, ListGroup } from "../components/ui/ListGroup";
+import { GROUP_HEADING } from "../components/ui/typography";
+import { activeBalls } from "../lib/arsenal";
+import { deleteBall, getBalls, reorderBalls, setBallRetired } from "../services/ballRepository";
 import {
   getGripStyle,
   getHandedness,
@@ -153,6 +156,44 @@ function SortableBallRow({ ball, onEdit, system, onViewLayout }: SortableBallRow
   );
 }
 
+/** A ball out of the bag (ADR-133). No drag handle, since it has no place in
+ *  the order, and a way back beside the row, as an archived pattern has. */
+function RetiredBallRow({
+  ball,
+  onEdit,
+  onRestore
+}: {
+  ball: Ball;
+  onEdit: () => void;
+  onRestore: () => void;
+}) {
+  const snap = ball.catalog_snapshot;
+  return (
+    <li className={`flex items-center pr-2 ${LIST_DIVIDER_INSET}`}>
+      <button
+        type="button"
+        onClick={onEdit}
+        aria-label={`Edit ${ball.name}`}
+        className="flex min-w-0 flex-1 items-center gap-3 px-3 py-2 text-left active:bg-surface-muted"
+      >
+        <div className="h-10 w-10 shrink-0">
+          {snap ? (
+            <CatalogBallImage src={snap.imageThumb} alt="" brand={snap.brand as Manufacturer} size="thumb" />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center rounded-lg bg-surface-muted text-ink-tertiary">
+              <BowlingBallIcon size={20} aria-hidden="true" />
+            </div>
+          )}
+        </div>
+        <span className="min-w-0 flex-1 truncate font-semibold text-ink">{ball.name}</span>
+      </button>
+      <IconButton label={`Bring back ${ball.name}`} onClick={onRestore}>
+        <RotateCcw size={16} aria-hidden="true" />
+      </IconButton>
+    </li>
+  );
+}
+
 // A stable empty list: `?? []` would be a new array on every render, which
 // invalidates every useMemo downstream of it.
 const NO_BALLS: Ball[] = [];
@@ -173,8 +214,13 @@ export function ArsenalView({ onBack, onViewLayout }: ArsenalViewProps) {
   // Reordering shows the new order while the write lands, or the row would
   // snap back for a frame before the live query caught up.
   const [reordered, setReordered] = useState<Ball[] | null>(null);
-  const balls = reordered ?? live ?? NO_BALLS;
+  const all = live ?? NO_BALLS;
+  // Only the bag is ordered and dragged; retired balls sit apart below it.
+  const inBag = useMemo(() => activeBalls(all), [all]);
+  const retired = useMemo(() => all.filter((b) => b.retired), [all]);
+  const balls = reordered ?? inBag;
   const isLoading = live === undefined;
+  const [showRetired, setShowRetired] = useState(false);
   const [error, setError] = useState("");
 
   // The bowler's own numbers, so a layout opened from here is read against the
@@ -224,6 +270,16 @@ export function ArsenalView({ onBack, onViewLayout }: ArsenalViewProps) {
     }
   }
 
+  async function handleRetire(ball: Ball, retire: boolean) {
+    setForm(null);
+    setError("");
+    try {
+      await setBallRetired(ball.id!, retire);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to update ball.");
+    }
+  }
+
   async function handleDelete(ball: Ball) {
     setPendingDelete(null);
     setForm(null);
@@ -252,7 +308,7 @@ export function ArsenalView({ onBack, onViewLayout }: ArsenalViewProps) {
 
           {isLoading ? (
             <p className="text-sm text-ink-secondary">Loading…</p>
-          ) : balls.length === 0 ? (
+          ) : balls.length === 0 && retired.length === 0 ? (
             <EmptyState
               icon={BowlingBallIcon}
               title="No balls yet"
@@ -284,6 +340,38 @@ export function ArsenalView({ onBack, onViewLayout }: ArsenalViewProps) {
                   </ul>
                 </SortableContext>
               </DndContext>
+              {balls.length === 0 && (
+                <p className="px-1 text-sm text-ink-secondary">
+                  Every ball you have is retired. Add one, or bring one back.
+                </p>
+              )}
+
+              {retired.length > 0 && (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => setShowRetired((v) => !v)}
+                    aria-expanded={showRetired}
+                    className={`mt-5 px-1 ${GROUP_HEADING}`}
+                  >
+                    {showRetired ? "Hide" : "Show"} retired ({retired.length})
+                  </button>
+                  {showRetired && (
+                    <div className="mt-1.5">
+                      <ListGroup>
+                        {retired.map((ball) => (
+                          <RetiredBallRow
+                            key={ball.id}
+                            ball={ball}
+                            onEdit={() => setForm({ ball })}
+                            onRestore={() => void handleRetire(ball, false)}
+                          />
+                        ))}
+                      </ListGroup>
+                    </div>
+                  )}
+                </>
+              )}
             </>
           )}
         </div>
@@ -296,13 +384,14 @@ export function ArsenalView({ onBack, onViewLayout }: ArsenalViewProps) {
           onClose={() => setForm(null)}
           onSaved={() => setForm(null)}
           onDelete={form.ball ? () => setPendingDelete(form.ball) : undefined}
+          onRetire={form.ball ? (retire) => void handleRetire(form.ball!, retire) : undefined}
         />
       )}
 
       <ConfirmDialog
         open={pendingDelete !== null}
         title={`Delete ${pendingDelete?.name ?? "ball"}?`}
-        message="Shots already recorded with this ball keep their scores, but lose the ball name."
+        message="Shots already recorded with this ball keep their scores, but lose the ball name. To keep it in your history, retire it instead."
         onConfirm={() => pendingDelete && void handleDelete(pendingDelete)}
         onCancel={() => setPendingDelete(null)}
       />

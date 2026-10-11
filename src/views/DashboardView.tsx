@@ -18,6 +18,7 @@ import { EmptyState } from "../components/ui/EmptyState";
 import { Button } from "../components/ui/Button";
 import { TAP_TARGET_44 } from "../components/ui/Chip";
 import type { NewSessionFormValues } from "../components/SessionForm";
+import { activeBalls } from "../lib/arsenal";
 import { getBalls } from "../services/ballRepository";
 import {
   getBackupNudgeState,
@@ -104,7 +105,8 @@ export function DashboardView({
   // yet is undefined, and the greeting should not flash between the two.
   const named = useLiveQuery(async () => ({ name: await getBowlerName() }));
   const name = named?.name ?? null;
-  const balls = useLiveQuery(() => getBalls());
+  // The bag, not the history: a retired ball is not one the bowler carries.
+  const balls = useLiveQuery(async () => activeBalls(await getBalls()));
   const [installPromptOpen, setInstallPromptOpen] = useState(false);
 
   // Live: finishing a game, deleting a session or importing a backup all show
