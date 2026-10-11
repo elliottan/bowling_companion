@@ -9,6 +9,13 @@ const BRAND_COLORS: Record<Manufacturer, { bg: string; accent: string }> = {
   "900 Global": { bg: "#4a1942", accent: "#c77dff" },   // 900G purple tones
   "Motiv":      { bg: "#7c2d12", accent: "#fb923c" },   // Motiv orange/burnt
   "Pyramid":    { bg: "#3f3f46", accent: "#facc15" },   // Pyramid slate + gold
+  "Brunswick":  { bg: "#0c2340", accent: "#4f9fd8" },   // Brunswick navy + blue
+  "Hammer":     { bg: "#1c1c1c", accent: "#d62828" },   // Hammer black + red
+  "Ebonite":    { bg: "#14213d", accent: "#fca311" },   // Ebonite navy + amber
+  "Track":      { bg: "#26323b", accent: "#9ad1d4" },   // Track steel + ice
+  "Radical":    { bg: "#2b2d42", accent: "#80ed99" },   // Radical slate + green
+  "DV8":        { bg: "#3a0ca3", accent: "#f72585" },   // DV8 violet + pink
+  "Columbia 300": { bg: "#5c0f14", accent: "#f4d35e" }, // Columbia maroon + gold
 };
 
 interface CatalogBallImageProps {
@@ -28,7 +35,8 @@ interface CatalogBallImageProps {
 
 /** Ball silhouette SVG placeholder, brand-colored, no broken-image glyph. */
 function BallPlaceholder({ brand, size }: { brand: Manufacturer; size: "thumb" | "full" }) {
-  const colors = BRAND_COLORS[brand];
+  // A snapshot can name a brand this build does not know yet.
+  const colors = BRAND_COLORS[brand] ?? BRAND_COLORS.Pyramid;
   const r = size === "full" ? 100 : 60;
   const viewSize = r * 2 + 8;
   return (

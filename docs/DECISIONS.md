@@ -6239,3 +6239,47 @@ hand entry) only gave the year, and the three year-catalog parsers padded it to
   characters, so no `catalog_ref_id` moves and no Dexie version bump is needed.
 - A client holding the old catalog shows January for those 29 until it syncs
   the new manifest version, which it does on the next open with a connection.
+
+## ADR-135: The Brunswick family joins the catalog, and a web search can be a reader
+
+**Status.** Accepted, 2026-10-11.
+
+**Context.** The catalog covered Storm, Roto Grip, 900 Global and MOTIV (with
+one Pyramid ball): roughly half of what a league bowler throws. Brunswick and
+the brands it owns (Hammer, Ebonite, Track, Radical, DV8, Columbia 300) were
+missing entirely. The session that set out to add them could not open any
+spec site: its network policy denied every bowling host, and page fetches
+failed too. Only a web search worked, which returns a search engine's excerpt
+of a page rather than the page.
+
+**Decision.**
+
+- **Seven brands join `Manufacturer`**: Brunswick, Hammer, Ebonite, Track,
+  Radical, DV8, Columbia 300. Each gets a placeholder colour. The catalog's
+  brand filter lists only brands the loaded catalog has a ball for, so twelve
+  brands do not mean twelve chips with nothing behind some of them.
+- **The USBC brand list carries them too**, with spellings unchecked against
+  the PDF, which could not be downloaded. The next index rebuild confirms them.
+- **A search excerpt is a reading, never an official one.** A search pinned to
+  one site (`allowed_domains`) attributes its text to that site, so its quote
+  can be a receipt. It is never `official`, whatever the site: an excerpt has
+  passed through a summariser, and two hosts agreeing is what catches one that
+  invented a number. ADR-043's rules are otherwise unchanged.
+- **Every ball read this way is checked blind.** A second agent, told only the
+  ball's name, finds RG, differential and mass bias differential on its own.
+  A ball whose numbers the check contradicts goes to the handout
+  (`scripts/sync-catalog/data/HANDOUT.md`), not the catalog. A ball the check
+  could not find is promoted on its two receipts, as ADR-043 allows.
+- **A release date's receipt is read as a date.** Promote matched a value only
+  as a substring of its quote, so `2023-10` could never be backed by "October
+  2023". `quoteContainsDate` accepts the ISO value, a month name or its
+  abbreviation, or US month-first numbers, to the value's own precision: a
+  month is backed by a quote of that month with or without a day, and a day
+  only by that day. Day-first numbers are not read, being ambiguous.
+
+**Consequences.**
+- Balls added from search excerpts carry their sites in `sourceUrls` like any
+  other row, and the handout lists them, so a session that can open the pages
+  can re-read them against the real documents.
+- Images for the new brands are not in this change. The handout says where
+  clean ones can come from; until then the brand placeholder shows.

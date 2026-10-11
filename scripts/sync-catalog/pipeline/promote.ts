@@ -63,6 +63,42 @@ function quoteContainsNumber(quote: string, value: number): boolean {
   return [...forms].some((f) => quote.includes(f));
 }
 
+const MONTHS = [
+  "january", "february", "march", "april", "may", "june",
+  "july", "august", "september", "october", "november", "december",
+];
+
+/**
+ * A release date is present in its quote if the quote states that date, to the
+ * value's own precision, in a form a spec page prints: the ISO value itself,
+ * "October 2023", "Oct 2023", "October 12, 2023", "12 October 2023", or US
+ * "10/12/2023" and "10/2023". A value more precise than its quote is refused:
+ * "October 2023" never backs "2023-10-12". Day-first numeric dates are not
+ * read, because "03/04/2023" is ambiguous and the US sites print month first.
+ */
+export function quoteContainsDate(quote: string, value: string): boolean {
+  const m = /^(\d{4})(?:-(\d{2}))?(?:-(\d{2}))?$/.exec(value);
+  if (!m) return quoteContains(quote, value);
+  const [, y, mm, dd] = m;
+  if (!mm) return new RegExp(`\\b${y}\\b`).test(quote);
+  if (quoteContains(quote, value)) return true;
+  const month = Number(mm);
+  const name = MONTHS[month - 1];
+  if (!name) return false;
+  const flat = quote.toLowerCase().replace(/\s+/g, " ");
+  const word = `(?:${name}|${name.slice(0, 3)}\\.?)`;
+  // A month value is backed by a quote of that month, with or without a day;
+  // a day value only by a quote of that exact day.
+  const d = dd ? `0?${Number(dd)}` : "\\d{1,2}";
+  const patterns = [
+    `\\b${word} ${d}(?:st|nd|rd|th)?,? ${y}\\b`,
+    `(?<!\\d)${d}(?:st|nd|rd|th)? ${word},? ${y}\\b`,
+    `(?<![\\d/])0?${month}/${d}/${y}\\b`,
+  ];
+  if (!dd) patterns.push(`\\b${word},? ${y}\\b`, `(?<![\\d/])0?${month}/${y}\\b`);
+  return patterns.some((p) => new RegExp(p).test(flat));
+}
+
 function receiptProblems<T>(field: string, r: Evidence<T>, isNumber: boolean): string[] {
   const problems: string[] = [];
   if (!r.sourceUrl || !r.sourceUrl.trim()) problems.push(`${field}: reading has no sourceUrl`);
@@ -72,7 +108,9 @@ function receiptProblems<T>(field: string, r: Evidence<T>, isNumber: boolean): s
   if (!r.quote) return problems;
   const present = isNumber
     ? quoteContainsNumber(r.quote, r.value as unknown as number)
-    : quoteContains(r.quote, String(r.value));
+    : field === "releaseDate"
+      ? quoteContainsDate(r.quote, String(r.value))
+      : quoteContains(r.quote, String(r.value));
   if (!present) {
     problems.push(`${field}: value ${JSON.stringify(r.value)} does not appear in its quote`);
   }
@@ -171,6 +209,7 @@ export function promoteCandidate(c: BallCandidate, existing: RawBall[]): Promote
     mbDiff: resolveField("mbDiff", c.mbDiff, c.official, TOLERANCE.mbDiff),
     weights: resolveField("weights", c.weights, c.official),
     colorways: resolveField("colorways", c.colorways, c.official),
+    productUrl: resolveField("productUrl", c.productUrl, c.official),
   };
   for (const f of Object.values(fields)) problems.push(...f.problems);
 
@@ -182,6 +221,11 @@ export function promoteCandidate(c: BallCandidate, existing: RawBall[]): Promote
   }
 
   const sourceUrls = [...new Set(Object.values(fields).flatMap((f) => f.sourceUrls))];
+  const allReadings = [
+    c.releaseDate, c.coverstockRaw, c.factoryFinish, c.coreName, c.rg, c.diff, c.mbDiff,
+    c.weights, c.colorways, c.productUrl,
+  ].flatMap((list) => (list ?? []) as Evidence<unknown>[]);
+  const viaSearch = allReadings.some((r) => r.via === "web-search");
   const ball: RawBall = {
     brand: c.brand,
     name: c.name,
@@ -196,6 +240,7 @@ export function promoteCandidate(c: BallCandidate, existing: RawBall[]): Promote
     ...(fields.productUrl?.value ? { productUrl: fields.productUrl.value } : {}),
     ...(fields.weights.value ? { weights: fields.weights.value } : {}),
     ...(fields.colorways.value ? { colorways: fields.colorways.value } : {}),
+    ...(viaSearch ? { readVia: "web-search" as const } : {}),
   };
 
   problems.push(...validateRaw(ball));

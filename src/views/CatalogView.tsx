@@ -14,7 +14,7 @@ import {
   syncCatalog,
   type SyncState,
 } from "../services/ballCatalogRepository";
-import type { CatalogBall, CoverstockCategory, Manufacturer } from "../types/catalog";
+import { MANUFACTURERS, type CatalogBall, type CoverstockCategory, type Manufacturer } from "../types/catalog";
 import type { Ball } from "../types/bowling";
 import { addBall, getBalls } from "../services/ballRepository";
 import { GROUP_HEADING } from "../components/ui/typography";
@@ -44,7 +44,6 @@ const RG_MIN = 2.40;
 const RG_MAX = 2.95;
 const DIFF_MIN = 0;
 const DIFF_MAX = 0.065;
-const ALL_BRANDS: Manufacturer[] = ["Storm", "Roto Grip", "900 Global", "Motiv", "Pyramid"];
 const ALL_COVERSTOCK: CoverstockCategory[] = ["Solid", "Pearl", "Hybrid", "Urethane", "Polyester"];
 
 const EMPTY_FILTERS: Filters = {
@@ -441,6 +440,12 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall }: CatalogVie
 
   // Memoized filtered + sorted list.
   const displayed = useMemo(() => applyFilters(allBalls, filters, sort), [allBalls, filters, sort]);
+  // Twelve brands is a lot of chips, and a brand the loaded catalog has no
+  // ball for would only filter the list down to nothing.
+  const brandsPresent = useMemo(() => {
+    const present = new Set(allBalls.map((b) => b.brand));
+    return MANUFACTURERS.filter((brand) => present.has(brand));
+  }, [allBalls]);
 
   // The catalog is 250 rows, each carrying a photo, and every one of them was
   // in the DOM whether or not it had been scrolled to. Windowed the way History
@@ -625,7 +630,7 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall }: CatalogVie
               <div>
                 <p className={`mb-2 ${GROUP_HEADING}`}>Brand</p>
                 <div className="flex flex-wrap gap-2">
-                  {ALL_BRANDS.map((brand) => (
+                  {brandsPresent.map((brand) => (
                     <Chip
                       key={brand}
                       selected={filters.brands.has(brand)}

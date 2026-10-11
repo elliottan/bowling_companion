@@ -25,8 +25,16 @@ export const USBC_PDF_URL =
   "https://bowl.com/getmedia/8b570e80-761c-4486-8628-9d50d718dd60/approved_balllist_CURRENT.pdf";
 export const PDF_CACHE = resolve(REPO_ROOT, "tmp/usbc-approved-balls.pdf");
 
-/** The 4 brands we curate. Must match PDF text exactly (including spacing). */
-export const WHITELISTED_BRANDS = ["Storm", "Roto Grip", "900 Global", "Motiv"] as const;
+/**
+ * The brands we curate. Must match PDF text exactly (including spacing). The
+ * Brunswick family was added (ADR-135) from a session with no access to the
+ * PDF, so its spellings are unchecked: confirm them against the next download
+ * before trusting a rebuilt index.
+ */
+export const WHITELISTED_BRANDS = [
+  "Storm", "Roto Grip", "900 Global", "Motiv",
+  "Brunswick", "Hammer", "Ebonite", "Track", "Radical", "DV8", "Columbia 300",
+] as const;
 export type WhitelistedBrand = (typeof WHITELISTED_BRANDS)[number];
 
 /** One approved-list row: ball name + raw approval-date string. */

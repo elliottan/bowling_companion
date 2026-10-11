@@ -40,4 +40,10 @@ export interface RawBall {
   weights?: WeightSpec[];
   /** Optional color variants. colorways[0] is the default shown in the catalog. */
   colorways?: Colorway[];
+  /**
+   * Set when any of the row's values was read from web search output rather
+   * than from the page itself (ADR-135). Build ignores it; it marks the rows a
+   * session with page access should re-read.
+   */
+  readVia?: "web-search";
 }
