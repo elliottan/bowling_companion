@@ -205,6 +205,11 @@ describe("mostLeftWithoutLine", () => {
     expect(mostLeftWithoutLine(leaves, lines)?.pins).toEqual([3, 6, 10]);
   });
 
+  it("waits until a leave has come up three times", () => {
+    expect(mostLeftWithoutLine([leave([8, 10], 2)], [])).toBeUndefined();
+    expect(mostLeftWithoutLine([leave([8, 10], 3)], [])?.pins).toEqual([8, 10]);
+  });
+
   it("asks for nothing when every leave has a line, or none had a ball after it", () => {
     expect(mostLeftWithoutLine([leave([7], 3, 0)], [])).toBeUndefined();
     expect(
@@ -255,7 +260,7 @@ describe("pocket leaves have no spare line (ADR-123)", () => {
   });
 
   it("are never asked for, however often they are left", () => {
-    expect(mostLeftWithoutLine([faced([1, 3, 5], 9), faced([7], 2)], [])?.pins).toEqual([7]);
+    expect(mostLeftWithoutLine([faced([1, 3, 5], 9), faced([7], 3)], [])?.pins).toEqual([7]);
   });
 
   it("are never offered a copied line, nor lend theirs", () => {

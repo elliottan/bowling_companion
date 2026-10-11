@@ -6,6 +6,7 @@ import {
   sameBallSeedLine
 } from "./lanes";
 import { isPocketLeave } from "./pins";
+import { hasLine, hasMove } from "./spareLines";
 import type { Ball, Frame, Game, LineSpec, PinNumber, Shot, SpareLine } from "../types/bowling";
 
 /**
@@ -114,9 +115,9 @@ export function savedSpareLine(
  * steps 3 and 4 for a strike ball):
  *
  * - a spare ball, or no ball: this ball's own attempt at this leave this
- *   session, then the leave's saved line, then the strike ball thrown at the
- *   rack moved by the leave's strike move (ADR-125), then the ball's own
- *   strike line;
+ *   session, then the leave's saved line, then the line the strike ball threw
+ *   at the rack (ADR-125), then the ball's own strike line. A leave saved with
+ *   only a strike move gives it nothing past its own attempt (ADR-132);
  * - a strike ball: this ball's own attempt at this leave this session, then its
  *   strike line moved by the leave's `strike_offset`, then its strike line as
  *   is. Never the leave's saved line: that was recorded off a spare ball thrown
@@ -142,9 +143,9 @@ export function lineForBall(
   };
 
   /** The strike ball that was thrown at the rack this leave came from, on the
-   *  line it threw, moved by `offset`. Nothing when that ball is not a strike
-   *  ball or has no line on record. */
-  const rackBallMove = (offset: { stance?: number; target?: number } | undefined) => {
+   *  line it threw. Nothing when that ball is not a strike ball or has no line
+   *  on record. */
+  const rackBallLine = () => {
     const rackBallId = lastFreshRackBallId(
       input.currentFrameNumber,
       currentFrameShots,
@@ -160,8 +161,7 @@ export function lineForBall(
       input.frames,
       input.previousGames ?? []
     );
-    if (!line) return undefined;
-    return (offset && applyOffset(line, offset)) ?? { ...line };
+    return line ? { ...line } : undefined;
   };
 
   // A pocket leave (the 1 and 5 standing) is a strike-ball shot on the strike
@@ -188,12 +188,16 @@ export function lineForBall(
     return ownStrikeLine();
   }
 
-  // A spare ball with no line saved for this leave starts from the strike ball
-  // that was thrown at the rack: its line, moved by the leave's strike move
-  // when there is one (ADR-125). Only then does it fall back to its own strike
-  // line, ADR-035's last resort, for a ball thrown at a full rack that no
-  // strike ball was.
-  return spareLineBoards(saved) ?? rackBallMove(saved?.strike_offset) ?? ownStrikeLine();
+  // A leave answered only by a strike ball move is shot with the strike ball
+  // (ADR-132). Its boards are a hooking ball's, so a spare ball picked there by
+  // hand gets nothing to aim at but its own attempt, above.
+  if (hasMove(saved) && !hasLine(saved)) return undefined;
+
+  // A spare ball with nothing saved for this leave starts from the strike ball
+  // that was thrown at the rack, on the line it threw (ADR-125). Only then does
+  // it fall back to its own strike line, ADR-035's last resort, for a ball
+  // thrown at a full rack that no strike ball was.
+  return spareLineBoards(saved) ?? rackBallLine() ?? ownStrikeLine();
 }
 
 /** Which kind of ball an id names: a spare ball, a strike ball (any ball not
@@ -272,12 +276,18 @@ export function seedForShot(input: ShotSeedInput): ShotSeed {
   // True second ball (a spare attempt): the spare ball if one is configured,
   // else shot one's ball. The line comes from this session's attempt at the
   // same leave, else the saved spare line for it.
+  // A leave whose only answer is a strike ball move is the exception (ADR-132):
+  // it is shot with the strike ball thrown at the rack, so that ball opens.
   // A pocket leave is not a spare attempt here: it falls through to the
   // fresh-rack rule below, so it opens with the ball and line just thrown at the
   // full rack (ADR-123).
   if (availablePins.length < 10 && !isPocketLeave(availablePins)) {
     const spareBall = input.balls.find((b) => b.is_spare_ball);
-    const ballId = spareBall?.id ?? currentFrameShots[0]?.ball_id;
+    const saved = savedSpareLine(input.spareLines ?? [], availablePins);
+    const rackBallId = lastFreshRackBallId(currentFrameNumber, currentFrameShots, frames, previousGames);
+    const strikeBallMove =
+      hasMove(saved) && !hasLine(saved) && ballKind(input.balls, rackBallId) === "strike";
+    const ballId = strikeBallMove ? rackBallId : (spareBall?.id ?? currentFrameShots[0]?.ball_id);
 
     // Same resolution a ball change runs, so the line a shot opens with and the
     // line a ball change produces can never disagree.

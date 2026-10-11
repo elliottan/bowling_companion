@@ -6098,10 +6098,85 @@ bar, meanwhile, had a centred title with an empty slot balancing the close.
   and the other a task.
 
 
+## ADR-131: Ball photos are cache-first, and the arsenal's are warmed at boot
+
+**Status.** Accepted, 2026-10-11. Supersedes the image line of ADR-010 ("Images
+stay StaleWhileRevalidate").
+
+**Context.** A bowler saw their own balls' photos arrive a second or two late,
+on every screen. The photos were runtime-cached only, so each one was stored
+the first time a screen showed it and not before: a fresh install, a ball not
+yet shown, or iOS clearing an idle web app's storage all sent the photo to the
+network. There Vercel's default `Cache-Control` for static files (`max-age=0,
+must-revalidate`) made even the HTTP cache ask the server first. On top of
+that, StaleWhileRevalidate went back to the network for every photo each time
+it was shown, and `loading="lazy"` on every tile held even a cached photo until
+layout (and, on iOS, until a sliding sheet settled).
+
+**Decision.**
+
+- **The arsenal's thumbnails are written into the image cache at boot**
+  (`warmArsenalImages`), a few seconds after first paint, only the ones it does
+  not hold. Straight into Cache Storage, so it works before the service worker
+  controls the page.
+- **Catalog photos are `CacheFirst`**, expiring after 30 days and 600 entries.
+  The files are named after the ball rather than their content, so expiry is
+  what lets a replaced photo through.
+- **`vercel.json` gives `/catalog/img/*` a 30 day `max-age`**, so a browser
+  without the worker keeps them too.
+- **Only the catalog lists load photos lazily**, the catalog screen and the
+  catalog search in the ball form. Everywhere else is a handful of small photos.
+
+**Consequences.**
+- A replaced photo under the same filename can take up to 30 days to reach a
+  device that already holds the old one. Giving the photo a new filename ships
+  it at once.
+- The cache name lives in `src/lib/ballImageCacheConfig.ts`, shared by the workbox config
+  and the warm-up, so the two cannot drift apart.
+
+
+## ADR-132: A leave answered only by a strike ball move opens on the strike ball
+
+**Status.** Accepted, 2026-10-11. Amends ADR-125 for the ball a spare attempt
+opens with. The line rules of ADR-113 and ADR-125 are unchanged.
+
+**Context.** A spare attempt always opened on the spare ball. ADR-125 made a
+leave with only a strike ball move saved open on the spare ball with the move
+applied, so the box was no longer blank. But a strike ball move is the answer
+"throw your strike ball, moved this far": the boards are a hooking ball's, and
+on the spare ball they miss. The bowler had to change the ball by hand on every
+such leave, and forgetting recorded the shot against the wrong ball.
+
+**Decision.**
+
+- **A spare attempt at a leave whose saved answer is a strike ball move and no
+  spare line opens on the strike ball thrown at the rack** (`lastFreshRackBallId`),
+  and so on that ball's line moved by the move (ADR-113's strike-ball lookup).
+- **Only when that rack ball is a strike ball.** With the rack thrown on the
+  spare ball, or no ball on record, the spare ball opens as before.
+- **A leave with a spare line keeps the spare ball**, move or not: the spare
+  line is the leave's first answer, and the move is what a swap to the strike
+  ball shows (ADR-125).
+- **A leave with nothing saved keeps the spare ball.**
+
+- **The spare ball picked by hand at such a leave gets only its own attempt**
+  at the leave this session, else an empty box. It no longer shows the strike
+  ball's line moved by the move (ADR-125): those boards are a hooking ball's,
+  and the spare ball has nothing saved for this leave.
+
+**Consequences.**
+- At a move-only leave, the strike ball shows the moved line and the spare ball
+  shows its own attempt or nothing, whichever way the swap goes.
+- A leave with nothing saved still starts the spare ball from the line the
+  strike ball threw at the rack (ADR-125, unchanged).
+- The capture prompt is offered after spare-ball attempts only (ADR-113), so
+  it is not offered after these shots, which is right: the leave already has
+  its answer.
+
+
 ## ADR-133: A ball can be retired, and keeps its name in history
 
-**Status.** Accepted, 2026-10-11. Numbered after ADR-131 and ADR-132, which
-are in review alongside it.
+**Status.** Accepted, 2026-10-11.
 
 **Context.** The only way to take a ball out of the arsenal was Delete, which
 removes its row. Shots name their ball by id, so every shot ever thrown with it
