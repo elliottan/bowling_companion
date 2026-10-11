@@ -1,0 +1,40 @@
+{
+ "brand": "DV8",
+ "name": "Thug",
+ "official": false,
+ "releaseDate": [
+  {
+   "value": "2014-10",
+   "sourceUrl": "https://www.bowlingball.com/products/bowling-balls/dv8/11772/thug.html",
+   "quote": "October 29, 2014",
+   "via": "web-search"
+  },
+  {
+   "value": "2014-10",
+   "sourceUrl": "https://www.bowlingthismonth.com/bowling-ball-review/dv8-thug/",
+   "quote": "DV8 Thug (October 2014)",
+   "via": "web-search"
+  }
+ ],
+ "coverstockRaw": [
+  {
+   "value": "Class 13F Hybrid",
+   "sourceUrl": "https://www.bowlingball.com/products/bowling-balls/dv8/11772/thug.html",
+   "quote": "Class 13F Hybrid Reactive",
+   "via": "web-search"
+  },
+  {
+   "value": "Class 13F Hybrid",
+   "sourceUrl": "https://www.bowlingthismonth.com/bowling-ball-review/dv8-thug/",
+   "quote": "Class 13F hybrid coverstock",
+   "via": "web-search"
+  }
+ ],
+ "factoryFinish": [],
+ "coreName": [],
+ "rg": [],
+ "diff": [],
+ "mbDiff": [],
+ "productUrl": [],
+ "_notes": "Original Thug (Oct 2014), outside 2024-26. Core ambiguous (Medium RG vs Low RG Thug), RG range only, so those []. bowlingball.com page: https://www.bowlingball.com/products/bowling-balls/dv8/11772/thug.html"
+}

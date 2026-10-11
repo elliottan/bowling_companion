@@ -6249,8 +6249,8 @@ one Pyramid ball): roughly half of what a league bowler throws. Brunswick and
 the brands it owns (Hammer, Ebonite, Track, Radical, DV8, Columbia 300) were
 missing entirely. The session that set out to add them could not open any
 spec site: its network policy denied every bowling host, and page fetches
-failed too. Only a web search worked, which returns a search engine's excerpt
-of a page rather than the page.
+failed too. Only a web search worked, and it returns a model's summary of the
+matching pages rather than the pages.
 
 **Decision.**
 
@@ -6260,26 +6260,35 @@ of a page rather than the page.
   brands do not mean twelve chips with nothing behind some of them.
 - **The USBC brand list carries them too**, with spellings unchecked against
   the PDF, which could not be downloaded. The next index rebuild confirms them.
-- **A search excerpt is a reading, never an official one.** A search pinned to
-  one site (`allowed_domains`) attributes its text to that site, so its quote
-  can be a receipt. It is never `official`, whatever the site: an excerpt has
-  passed through a summariser, and two hosts agreeing is what catches one that
-  invented a number. ADR-043's rules are otherwise unchanged.
-- **Every ball read this way is checked blind.** A second agent, told only the
-  ball's name, finds RG, differential and mass bias differential on its own.
-  A ball whose numbers the check contradicts goes to the handout
-  (`scripts/sync-catalog/data/HANDOUT.md`), not the catalog. A ball the check
-  could not find is promoted on its two receipts, as ADR-043 allows.
+- **A search summary can be a reading, never an official one.** A search pinned
+  to one site (`allowed_domains`) attributes its text to that site, so a
+  substring of the tool's output can stand as the quote. Such a reading carries
+  `via: "web-search"`, and a ball promoted from any such reading carries
+  `readVia: "web-search"` in `balls.json`, which build ignores and a later
+  session with page access uses to find the rows to re-read. ADR-043's rules
+  are otherwise unchanged: two different sites must agree, and the value must
+  be in its quote.
+- **Every ball read this way is checked blind.** A second agent, on a different
+  model and told only the ball's name, finds RG, differential, mass bias and
+  core symmetry on its own. A contradiction holds the ball back, and so does a
+  reviewer's doubt about which page a reading came from.
+- **An asymmetric ball waits for its mass bias.** `deriveCoreType` reads a
+  missing mass bias as a symmetric core, so a ball with no two-site mass bias
+  is promoted only when a source says its core is symmetric. A core name that
+  any other ball in the run shows as asymmetric counts as asymmetric.
 - **A release date's receipt is read as a date.** Promote matched a value only
   as a substring of its quote, so `2023-10` could never be backed by "October
   2023". `quoteContainsDate` accepts the ISO value, a month name or its
   abbreviation, or US month-first numbers, to the value's own precision: a
   month is backed by a quote of that month with or without a day, and a day
   only by that day. Day-first numbers are not read, being ambiguous.
+- **Promote resolves `productUrl`.** It read `fields.productUrl` without ever
+  resolving it, so a manufacturer link could not reach `balls.json`.
 
 **Consequences.**
-- Balls added from search excerpts carry their sites in `sourceUrls` like any
-  other row, and the handout lists them, so a session that can open the pages
-  can re-read them against the real documents.
-- Images for the new brands are not in this change. The handout says where
+- 54 balls were added this way. The 71 researched and held back are in
+  `scripts/sync-catalog/data/backlog/`, one candidate file each, and
+  `scripts/sync-catalog/data/HANDOUT.md` says why each waits, how the run was
+  done, and what to read first once the sites are reachable.
+- Images for the new balls are not in this change. The handout says where
   clean ones can come from; until then the brand placeholder shows.

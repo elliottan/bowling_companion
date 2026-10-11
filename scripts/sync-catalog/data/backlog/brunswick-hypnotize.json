@@ -1,0 +1,78 @@
+{
+ "brand": "Brunswick",
+ "name": "Hypnotize",
+ "official": false,
+ "releaseDate": [
+  {
+   "value": "2025-02",
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/brunswick/hypnotize",
+   "quote": "February 2025",
+   "via": "web-search"
+  },
+  {
+   "value": "2025-02",
+   "sourceUrl": "https://www.bowlingball.com/products/bowling-balls/brunswick/17786/hypnotize.html",
+   "quote": "The same sheet gives the release date as 2/20/2025.",
+   "via": "web-search"
+  }
+ ],
+ "coverstockRaw": [
+  {
+   "value": "HK22C EVO Hybrid",
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/brunswick/hypnotize",
+   "quote": "HK22C EVO Hybrid, a hybrid reactive cover",
+   "via": "web-search"
+  },
+  {
+   "value": "HK22C EVO Hybrid",
+   "sourceUrl": "https://www.bowlingthismonth.com/bowling-ball-review/brunswick-hypnotize/",
+   "quote": "Its HK22C EVO Hybrid cover",
+   "via": "web-search"
+  },
+  {
+   "value": "HK22C EVO Hybrid",
+   "sourceUrl": "https://www.bowlingball.com/products/bowling-balls/brunswick/17786/hypnotize.html",
+   "quote": "named HK22C EVO Hybrid",
+   "via": "web-search"
+  }
+ ],
+ "factoryFinish": [
+  {
+   "value": "500/2000 SiaAir",
+   "sourceUrl": "https://www.bowlingthismonth.com/bowling-ball-review/brunswick-hypnotize/",
+   "quote": "finished at 500/2000 SiaAir",
+   "via": "web-search"
+  },
+  {
+   "value": "500/2000 SiaAir",
+   "sourceUrl": "https://www.bowlingball.com/products/bowling-balls/brunswick/17786/hypnotize.html",
+   "quote": "500/2000 Siaair micro pad finish",
+   "via": "web-search"
+  }
+ ],
+ "coreName": [
+  {
+   "value": "Tri-Elliptic",
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/brunswick/hypnotize",
+   "quote": "Tri-Elliptic, an asymmetric core",
+   "via": "web-search"
+  },
+  {
+   "value": "Tri-Elliptic",
+   "sourceUrl": "https://www.bowlingthismonth.com/bowling-ball-review/brunswick-hypnotize/",
+   "quote": "Tri-Elliptic core",
+   "via": "web-search"
+  },
+  {
+   "value": "Tri-Elliptic",
+   "sourceUrl": "https://www.bowlingball.com/products/bowling-balls/brunswick/17786/hypnotize.html",
+   "quote": "Tri-Elliptic core design",
+   "via": "web-search"
+  }
+ ],
+ "rg": [],
+ "diff": [],
+ "mbDiff": [],
+ "productUrl": [],
+ "_notes": "15 lb: only bowwwl states 15 lb (RG 2.510, diff 0.056, mbDiff 0.017); others unlabeled and agree. Product page: https://www.bowlingball.com/products/bowling-balls/brunswick/17786/hypnotize.html"
+}

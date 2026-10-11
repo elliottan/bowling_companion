@@ -1,0 +1,40 @@
+{
+ "brand": "900 Global",
+ "name": "Eternity Pi",
+ "official": false,
+ "releaseDate": [],
+ "coverstockRaw": [
+  {
+   "value": "Reserve Blend 901",
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/900-global/eternity-pi",
+   "quote": "Reserve Blend 901, a solid reactive cover",
+   "via": "web-search"
+  },
+  {
+   "value": "Reserve Blend 901",
+   "sourceUrl": "https://www.bowling.com/products/900global-eternity-pi.htm",
+   "quote": "Reserve Blend 901 solid reactive coverstock",
+   "via": "web-search"
+  }
+ ],
+ "factoryFinish": [],
+ "coreName": [
+  {
+   "value": "Epoch Asymmetric",
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/900-global/eternity-pi",
+   "quote": "Core: Epoch Asymmetric",
+   "via": "web-search"
+  },
+  {
+   "value": "Epoch Asymmetric",
+   "sourceUrl": "https://www.bowling.com/products/900global-eternity-pi.htm",
+   "quote": "It uses an Epoch Asymmetric core",
+   "via": "web-search"
+  }
+ ],
+ "rg": [],
+ "diff": [],
+ "mbDiff": [],
+ "productUrl": [],
+ "_notes": "Asymmetric. bowwwl release Sep 2023 only. bowwwl RG 2.490/diff 0.050/mb 0.014 weight ambiguous; bowling.com states 15 lb 2.49/0.050/0.014, so numbers left []."
+}

@@ -1,0 +1,27 @@
+{
+ "brand": "Ebonite",
+ "name": "Turbo/R",
+ "official": false,
+ "releaseDate": [
+  {
+   "value": "2017-05",
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/ebonite/turbor-various-colors",
+   "quote": "released in May 2017",
+   "via": "web-search"
+  },
+  {
+   "value": "2017-05",
+   "sourceUrl": "https://www.bowling.com/products/ebonite-turbo-r-black-sparkle-aqua.htm",
+   "quote": "The release date is May 2017",
+   "via": "web-search"
+  }
+ ],
+ "coverstockRaw": [],
+ "factoryFinish": [],
+ "coreName": [],
+ "rg": [],
+ "diff": [],
+ "mbDiff": [],
+ "productUrl": [],
+ "_notes": "May 2017. rg/diff []: bowling.com states 15 lb (RG 2.59, diff 0.035) but bowwwl base entry (2.590/0.035) does not state weight. coverstock/core only on bowwwl (GB 10.7 Solid, Turbo/R symmetric core); budget ran out before a second source."
+}

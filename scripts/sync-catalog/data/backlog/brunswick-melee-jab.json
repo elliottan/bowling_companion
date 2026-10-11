@@ -1,0 +1,53 @@
+{
+ "brand": "Brunswick",
+ "name": "Melee Jab",
+ "official": false,
+ "releaseDate": [],
+ "coverstockRaw": [
+  {
+   "value": "Savvy Hook Pearl",
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/brunswick/melee-jab",
+   "quote": "Savvy Hook Pearl Pearl Reactive",
+   "via": "web-search"
+  },
+  {
+   "value": "Savvy Hook Pearl",
+   "sourceUrl": "https://www.bowling.com/products/brunswick-melee-jab.htm",
+   "quote": "Savvy Hook pearl reactive coverstock",
+   "via": "web-search"
+  }
+ ],
+ "factoryFinish": [],
+ "coreName": [
+  {
+   "value": "Melee Low RG",
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/brunswick/melee-jab",
+   "quote": "The core is the Melee Low RG symmetric",
+   "via": "web-search"
+  },
+  {
+   "value": "Melee Low RG",
+   "sourceUrl": "https://www.bowling.com/products/brunswick-melee-jab.htm",
+   "quote": "Melee Low RG symmetric core",
+   "via": "web-search"
+  }
+ ],
+ "rg": [],
+ "diff": [
+  {
+   "value": 0.05,
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/brunswick/melee-jab",
+   "quote": "at 15 lb RG 2.487 and diff 0.050",
+   "via": "web-search"
+  },
+  {
+   "value": 0.05,
+   "sourceUrl": "https://www.bowling.com/products/brunswick-melee-jab.htm",
+   "quote": "a differential of 0.050 for a 15 lb ball",
+   "via": "web-search"
+  }
+ ],
+ "mbDiff": [],
+ "productUrl": [],
+ "_notes": "SYMMETRIC: bowwwl.com: 'The core is the Melee Low RG symmetric'. RG conflict: bowwwl 2.487 at 15 lb vs bowling.com 2.537 (bowling.com lists 2.487 for Blood Red/Midnight Blue/Carbon), so rg []. Release Dec 2014 (bowwwl 'released in December 2014'); bowling.com only says 'listed December 2014' so not used."
+}

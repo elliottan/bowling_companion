@@ -1,0 +1,66 @@
+{
+ "brand": "Hammer",
+ "name": "Envy",
+ "official": false,
+ "releaseDate": [],
+ "coverstockRaw": [
+  {
+   "value": "Envy Solid",
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/hammer/envy",
+   "quote": "Envy Solid, a solid reactive cover",
+   "via": "web-search"
+  },
+  {
+   "value": "Envy Solid",
+   "sourceUrl": "https://www.bowling.com/products/hammer-envy.htm",
+   "quote": "Coverstock: Envy Solid",
+   "via": "web-search"
+  }
+ ],
+ "factoryFinish": [],
+ "coreName": [
+  {
+   "value": "Launcher",
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/hammer/envy",
+   "quote": "Launcher asymmetric core",
+   "via": "web-search"
+  },
+  {
+   "value": "Launcher",
+   "sourceUrl": "https://www.bowling.com/products/hammer-envy.htm",
+   "quote": "Core: Launcher",
+   "via": "web-search"
+  }
+ ],
+ "rg": [
+  {
+   "value": 2.505,
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/hammer/envy",
+   "quote": "15 lb listing shows RG 2.505",
+   "via": "web-search"
+  },
+  {
+   "value": 2.505,
+   "sourceUrl": "https://www.bowling.com/products/hammer-envy.htm",
+   "quote": "RG of about 2.505",
+   "via": "web-search"
+  }
+ ],
+ "diff": [
+  {
+   "value": 0.055,
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/hammer/envy",
+   "quote": "differential 0.055",
+   "via": "web-search"
+  },
+  {
+   "value": 0.055,
+   "sourceUrl": "https://www.bowling.com/products/hammer-envy.htm",
+   "quote": "a differential of 0.055",
+   "via": "web-search"
+  }
+ ],
+ "mbDiff": [],
+ "productUrl": [],
+ "_notes": "Asymmetric Launcher core; mbDiff 0.021 bowwwl only so []. Release Sep 2022 bowwwl only. bowwwl noted an inconsistent 2.537/0.053 snippet on the page; 2.505/0.055 from the core table matches bowling.com."
+}

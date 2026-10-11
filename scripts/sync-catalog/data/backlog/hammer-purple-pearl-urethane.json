@@ -1,0 +1,78 @@
+{
+ "brand": "Hammer",
+ "name": "Purple Pearl Urethane",
+ "official": false,
+ "releaseDate": [
+  {
+   "value": "2021",
+   "sourceUrl": "https://hammerbowling.com/products/purple-pearl-urethane",
+   "quote": "(released July 1, 2021)",
+   "via": "web-search"
+  },
+  {
+   "value": "2021",
+   "sourceUrl": "https://www.bowling.com/products/hammer-purple-pearl-urethane.htm",
+   "quote": "a 2021 release date",
+   "via": "web-search"
+  }
+ ],
+ "coverstockRaw": [],
+ "factoryFinish": [],
+ "coreName": [
+  {
+   "value": "LED",
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/hammer/purple-pearl-urethane",
+   "quote": "with the LED symmetric core",
+   "via": "web-search"
+  },
+  {
+   "value": "LED",
+   "sourceUrl": "https://www.bowling.com/products/hammer-purple-pearl-urethane.htm",
+   "quote": "It has an LED core",
+   "via": "web-search"
+  }
+ ],
+ "rg": [
+  {
+   "value": 2.65,
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/hammer/purple-pearl-urethane",
+   "quote": "At 15 lb the listed figures are RG 2.650 and differential 0.015",
+   "via": "web-search"
+  },
+  {
+   "value": 2.65,
+   "sourceUrl": "https://hammerbowling.com/products/purple-pearl-urethane",
+   "quote": "15 lb numbers: RG 2.650 and DIFF 0.015",
+   "via": "web-search"
+  },
+  {
+   "value": 2.65,
+   "sourceUrl": "https://www.bowling.com/products/hammer-purple-pearl-urethane.htm",
+   "quote": "at 15 lb with an RG of 2.65 and a differential of 0.015",
+   "via": "web-search"
+  }
+ ],
+ "diff": [
+  {
+   "value": 0.015,
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/hammer/purple-pearl-urethane",
+   "quote": "At 15 lb the listed figures are RG 2.650 and differential 0.015",
+   "via": "web-search"
+  },
+  {
+   "value": 0.015,
+   "sourceUrl": "https://hammerbowling.com/products/purple-pearl-urethane",
+   "quote": "15 lb numbers: RG 2.650 and DIFF 0.015",
+   "via": "web-search"
+  },
+  {
+   "value": 0.015,
+   "sourceUrl": "https://www.bowling.com/products/hammer-purple-pearl-urethane.htm",
+   "quote": "at 15 lb with an RG of 2.65 and a differential of 0.015",
+   "via": "web-search"
+  }
+ ],
+ "mbDiff": [],
+ "productUrl": [],
+ "_notes": "Productpage: https://hammerbowling.com/products/purple-pearl-urethane. Release is year-only on bowling.com."
+}

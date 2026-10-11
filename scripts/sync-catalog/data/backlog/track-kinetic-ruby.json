@@ -1,0 +1,66 @@
+{
+ "brand": "Track",
+ "name": "Kinetic Ruby",
+ "official": false,
+ "releaseDate": [],
+ "coverstockRaw": [
+  {
+   "value": "QR-6 Solid",
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/track/kinetic-ruby",
+   "quote": "QR-6 solid reactive",
+   "via": "web-search"
+  },
+  {
+   "value": "QR-6 Solid",
+   "sourceUrl": "https://www.bowling.com/products/track-kinetic-ruby.htm",
+   "quote": "QR-6 Solid coverstock",
+   "via": "web-search"
+  }
+ ],
+ "factoryFinish": [],
+ "coreName": [
+  {
+   "value": "Modified Kinetic",
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/track/kinetic-ruby",
+   "quote": "The Modified Kinetic asymmetric core",
+   "via": "web-search"
+  },
+  {
+   "value": "Modified Kinetic",
+   "sourceUrl": "https://www.bowling.com/products/track-kinetic-ruby.htm",
+   "quote": "modified Kinetic core",
+   "via": "web-search"
+  }
+ ],
+ "rg": [
+  {
+   "value": 2.49,
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/track/kinetic-ruby",
+   "quote": "RG 2.490 and differential 0.038, with a mass bias differential of 0.005",
+   "via": "web-search"
+  },
+  {
+   "value": 2.49,
+   "sourceUrl": "https://www.bowling.com/products/track-kinetic-ruby.htm",
+   "quote": "15 lb specs are an RG of 2.49 and a differential of .038",
+   "via": "web-search"
+  }
+ ],
+ "diff": [
+  {
+   "value": 0.038,
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/track/kinetic-ruby",
+   "quote": "RG 2.490 and differential 0.038, with a mass bias differential of 0.005",
+   "via": "web-search"
+  },
+  {
+   "value": 0.038,
+   "sourceUrl": "https://www.bowling.com/products/track-kinetic-ruby.htm",
+   "quote": "15 lb specs are an RG of 2.49 and a differential of .038",
+   "via": "web-search"
+  }
+ ],
+ "mbDiff": [],
+ "productUrl": [],
+ "_notes": "bowwwl: release July 2017 (only source); bowling.com no date. bowwwl 15 lb mass bias diff 0.005 only one source so mbDiff []. Finish 500/2000 Abralon only on bowwwl. Asymmetric core (bowwwl)."
+}

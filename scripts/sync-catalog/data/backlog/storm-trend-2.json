@@ -1,0 +1,53 @@
+{
+ "coverstockRaw": [
+  {
+   "value": "NRG Hybrid",
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/storm/trend-2",
+   "quote": "NRG Hybrid coverstock",
+   "via": "web-search"
+  },
+  {
+   "value": "NRG Hybrid",
+   "sourceUrl": "https://www.bowling.com/products/storm-trend-2.htm",
+   "quote": "NRG Hybrid Reactive coverstock",
+   "via": "web-search"
+  }
+ ],
+ "coreName": [
+  {
+   "value": "Piston LD",
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/storm/trend-2",
+   "quote": "Piston LD Symmetric",
+   "via": "web-search"
+  },
+  {
+   "value": "Piston LD",
+   "sourceUrl": "https://www.bowling.com/products/storm-trend-2.htm",
+   "quote": "Piston LD core",
+   "via": "web-search"
+  }
+ ],
+ "diff": [
+  {
+   "value": 0.041,
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/storm/trend-2",
+   "quote": "Its database entry lists a 0.041 differential at 15 lb",
+   "via": "web-search"
+  },
+  {
+   "value": 0.041,
+   "sourceUrl": "https://www.bowling.com/products/storm-trend-2.htm",
+   "quote": "Its listed 15 lb figures are an RG of 2.54 and a differential of 0.041",
+   "via": "web-search"
+  }
+ ],
+ "brand": "Storm",
+ "name": "Trend 2",
+ "official": false,
+ "_notes": "bowwwl RG 2.540 weight unstated so rg []. Symmetric.",
+ "releaseDate": [],
+ "factoryFinish": [],
+ "rg": [],
+ "mbDiff": [],
+ "productUrl": []
+}

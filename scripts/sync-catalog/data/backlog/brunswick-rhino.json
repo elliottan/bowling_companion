@@ -1,0 +1,53 @@
+{
+ "brand": "Brunswick",
+ "name": "Rhino",
+ "official": false,
+ "releaseDate": [],
+ "coverstockRaw": [],
+ "factoryFinish": [],
+ "coreName": [
+  {
+   "value": "Light Bulb",
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/brunswick/rhino-solid-various-colors",
+   "quote": "Brunswick Light Bulb symmetric core",
+   "via": "web-search"
+  },
+  {
+   "value": "Light Bulb",
+   "sourceUrl": "https://www.bowling.com/products/brunswick-rhino-blue-cadet-grey-silver-pearl.htm",
+   "quote": "light bulb core",
+   "via": "web-search"
+  }
+ ],
+ "rg": [
+  {
+   "value": 2.524,
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/brunswick/rhino-solid-various-colors",
+   "quote": "At 15 lb the RG is 2.524",
+   "via": "web-search"
+  },
+  {
+   "value": 2.524,
+   "sourceUrl": "https://www.bowling.com/products/brunswick-rhino-blue-cadet-grey-silver-pearl.htm",
+   "quote": "RG 2.524 (15 lb.)",
+   "via": "web-search"
+  }
+ ],
+ "diff": [
+  {
+   "value": 0.03,
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/brunswick/rhino-solid-various-colors",
+   "quote": "with a 0.030 differential",
+   "via": "web-search"
+  },
+  {
+   "value": 0.03,
+   "sourceUrl": "https://www.bowling.com/products/brunswick-rhino-blue-cadet-grey-silver-pearl.htm",
+   "quote": "differential 0.030 (15 lb.)",
+   "via": "web-search"
+  }
+ ],
+ "mbDiff": [],
+ "productUrl": [],
+ "_notes": "2016 Rhino (solid and pearl colorways are separate bowwwl pages; same core). SYMMETRIC: bowwwl.com: 'Brunswick Light Bulb symmetric core'. Release May 2016 bowwwl only. Coverstock R-16 solid / R-16 pearl differ by colorway so []. bowling.com reading is from the Blue/Cadet Grey/Silver Pearl colorway page; other colorways list RG range 2.524 to 2.554."
+}

@@ -11,6 +11,12 @@ trigger: >
 
 # Gather Ball Specs
 
+**Start with `scripts/sync-catalog/data/HANDOUT.md`.** It lists the balls
+already researched and held back (their partial readings are in
+`data/backlog/`), the rows read only from web search that a page should
+re-check, and how to run this with web search alone when the spec sites are
+blocked (ADR-135).
+
 Balls enter the catalog through `scripts/sync-catalog/pipeline/`, never by
 hand-editing `balls.json`. ADR-043 and ADR-044 carry the reasoning; this is the
 procedure.

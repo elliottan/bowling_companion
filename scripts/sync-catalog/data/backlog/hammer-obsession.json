@@ -1,0 +1,53 @@
+{
+ "brand": "Hammer",
+ "name": "Obsession",
+ "official": false,
+ "releaseDate": [],
+ "coverstockRaw": [
+  {
+   "value": "Envy Solid CFI",
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/hammer/obsession",
+   "quote": "Envy Solid CFI Coverstock",
+   "via": "web-search"
+  },
+  {
+   "value": "Envy Solid CFI",
+   "sourceUrl": "https://www.bowling.com/products/hammer-obsession-solid.htm",
+   "quote": "Envy Solid CFI coverstock",
+   "via": "web-search"
+  }
+ ],
+ "factoryFinish": [],
+ "coreName": [],
+ "rg": [
+  {
+   "value": 2.468,
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/hammer/obsession",
+   "quote": "RG 2.468 and Diff 0.050 at 15 pounds",
+   "via": "web-search"
+  },
+  {
+   "value": 2.468,
+   "sourceUrl": "https://www.bowling.com/products/hammer-obsession-solid.htm",
+   "quote": "RG: 2.468 (15# ball)",
+   "via": "web-search"
+  }
+ ],
+ "diff": [
+  {
+   "value": 0.05,
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/hammer/obsession",
+   "quote": "RG 2.468 and Diff 0.050 at 15 pounds",
+   "via": "web-search"
+  },
+  {
+   "value": 0.05,
+   "sourceUrl": "https://www.bowling.com/products/hammer-obsession-solid.htm",
+   "quote": "Differential: 0.050 (15# ball)",
+   "via": "web-search"
+  }
+ ],
+ "mbDiff": [],
+ "productUrl": [],
+ "_notes": "Asymmetric. mbDiff: BTM 0.013 (weight not stated), bowwwl 0.011 at 16 lb, so []. Release Feb 2021 bowwwl only (BTM gives review month). bowling.com page is 'Obsession Solid'. Core name not in two quotes ('Obsession core' bowling.com only)."
+}

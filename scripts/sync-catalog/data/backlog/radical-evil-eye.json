@@ -1,0 +1,40 @@
+{
+ "brand": "Radical",
+ "name": "Evil Eye",
+ "official": false,
+ "releaseDate": [],
+ "coverstockRaw": [],
+ "factoryFinish": [],
+ "coreName": [],
+ "rg": [
+  {
+   "value": 2.495,
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/radical/evil-eye",
+   "quote": "an RG of 2.495 and a differential of 0.046 at 15 pounds",
+   "via": "web-search"
+  },
+  {
+   "value": 2.495,
+   "sourceUrl": "https://www.bowling.com/products/radical-evil-eye.htm",
+   "quote": "lists an RG of 2.495 and a differential of 0.046 for a 15 lb ball",
+   "via": "web-search"
+  }
+ ],
+ "diff": [
+  {
+   "value": 0.046,
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/radical/evil-eye",
+   "quote": "an RG of 2.495 and a differential of 0.046 at 15 pounds",
+   "via": "web-search"
+  },
+  {
+   "value": 0.046,
+   "sourceUrl": "https://www.bowling.com/products/radical-evil-eye.htm",
+   "quote": "lists an RG of 2.495 and a differential of 0.046 for a 15 lb ball",
+   "via": "web-search"
+  }
+ ],
+ "mbDiff": [],
+ "productUrl": [],
+ "_notes": "Oct 2025 only bowwwl. Coverstock: bowwwl HK22C vs bowling.com 'HK22 solid reactive', not the same string, so []. mbDiff 0.009 to 0.023 range per drilling, not recorded. Core name not stated by two sites."
+}

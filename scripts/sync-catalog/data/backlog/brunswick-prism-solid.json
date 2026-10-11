@@ -1,0 +1,53 @@
+{
+ "brand": "Brunswick",
+ "name": "Prism Solid",
+ "official": false,
+ "releaseDate": [],
+ "coverstockRaw": [],
+ "factoryFinish": [],
+ "coreName": [
+  {
+   "value": "Portal",
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/brunswick/prism-solid",
+   "quote": "uses a Portal asymmetric core",
+   "via": "web-search"
+  },
+  {
+   "value": "Portal",
+   "sourceUrl": "https://www.bowling.com/products/discontinued/brunswick-prism-solid.htm",
+   "quote": "Same Portal core",
+   "via": "web-search"
+  }
+ ],
+ "rg": [
+  {
+   "value": 2.465,
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/brunswick/prism-solid",
+   "quote": "The 15 lb Brunswick Prism Solid is listed with an RG of 2.465",
+   "via": "web-search"
+  },
+  {
+   "value": 2.465,
+   "sourceUrl": "https://www.bowling.com/products/discontinued/brunswick-prism-solid.htm",
+   "quote": "they share the same 15 lb specs: RG 2.465",
+   "via": "web-search"
+  }
+ ],
+ "diff": [
+  {
+   "value": 0.051,
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/brunswick/prism-solid",
+   "quote": "and a differential of 0.051",
+   "via": "web-search"
+  },
+  {
+   "value": 0.051,
+   "sourceUrl": "https://www.bowling.com/products/discontinued/brunswick-prism-solid.htm",
+   "quote": "and differential 0.051",
+   "via": "web-search"
+  }
+ ],
+ "mbDiff": [],
+ "productUrl": [],
+ "_notes": "Only the Solid was worked; Prism Hybrid, Prism Warp and Prism Warp Hybrid exist as separate balls (Portal core, 2.465/0.051). releaseDate Oct 2019 for Solid came from bowwwl only (bowling.com dated the Hybrid). bowling.com rg/diff quote is a shared-line statement covering the Prism models incl. Solid. mbDiff 0.018 (bowwwl only, 15 lb) so []. coverstock ACT Solid from bowwwl only."
+}

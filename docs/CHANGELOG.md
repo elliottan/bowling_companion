@@ -9,6 +9,21 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.22.0: Brunswick, Hammer and the rest of the Brunswick family join the catalog, with 54 more balls (2026-10-11)
+
+**Seven new brands.** The catalog now has Brunswick, Hammer, Ebonite, Track,
+Radical, DV8 and Columbia 300 next to Storm, Roto Grip, 900 Global and MOTIV,
+and the brand filter lists every brand that has a ball in it.
+
+**54 more balls**, recent releases and long-running favourites first: the
+Black Widow 2.0 and 3.0 family, the Effect and Scorpion lines and the Purple
+Pearl Urethane 78D from Hammer; Brunswick's Combat line; Track's Theorem line;
+Storm's Phaze III, Phaze 4, Phaze A.I., Nova, Super Nova and Hy-Road
+generations; Roto Grip's Rockstar, Hustle, Idol and X-Cell; 900 Global's
+Portal, Cove, Ember and Vengeance; and more. Every one has RG and
+differential that two sites agree on and a second check confirmed. The new
+balls show the brand placeholder until their photos are added (ADR-135).
+
 ## 0.21.0: The catalog says the month a ball came out (2026-10-11)
 
 **Release month in the catalog.** A catalog ball now says when it came out to

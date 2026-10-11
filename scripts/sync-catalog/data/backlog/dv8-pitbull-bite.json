@@ -1,0 +1,92 @@
+{
+ "brand": "DV8",
+ "name": "Pitbull Bite",
+ "official": false,
+ "releaseDate": [
+  {
+   "value": "2018-02",
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/dv8/pitbull-bite",
+   "quote": "released in February 2018",
+   "via": "web-search"
+  },
+  {
+   "value": "2018-02",
+   "sourceUrl": "https://www.bowlingball.com/products/bowling-balls/dv8/13762/pitbull-bite.html",
+   "quote": "listed release date is February 6, 2018",
+   "via": "web-search"
+  }
+ ],
+ "coverstockRaw": [
+  {
+   "value": "Composite Fang Solid",
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/dv8/pitbull-bite",
+   "quote": "Composite Fang Solid coverstock",
+   "via": "web-search"
+  },
+  {
+   "value": "Composite Fang Solid",
+   "sourceUrl": "https://www.bowling.com/products/discontinued/dv8-pitbull-bite.htm",
+   "quote": "Composite Fang Solid coverstock",
+   "via": "web-search"
+  }
+ ],
+ "factoryFinish": [
+  {
+   "value": "500/1500 Siaair Micro Pad",
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/dv8/pitbull-bite",
+   "quote": "500/1500 Siaair Micro Pad",
+   "via": "web-search"
+  },
+  {
+   "value": "500/1500 Siaair Micro Pad",
+   "sourceUrl": "https://www.bowling.com/products/discontinued/dv8-pitbull-bite.htm",
+   "quote": "500/1500 Siaair micro pad",
+   "via": "web-search"
+  }
+ ],
+ "coreName": [
+  {
+   "value": "Pitbull",
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/dv8/pitbull-bite",
+   "quote": "asymmetric Pitbull core",
+   "via": "web-search"
+  },
+  {
+   "value": "Pitbull",
+   "sourceUrl": "https://www.bowling.com/products/discontinued/dv8-pitbull-bite.htm",
+   "quote": "asymmetric Pitbull core",
+   "via": "web-search"
+  }
+ ],
+ "rg": [
+  {
+   "value": 2.486,
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/dv8/pitbull-bite",
+   "quote": "an RG of 2.486 at 15 lb with the same 0.055 differential",
+   "via": "web-search"
+  },
+  {
+   "value": 2.486,
+   "sourceUrl": "https://www.bowling.com/products/discontinued/dv8-pitbull-bite.htm",
+   "quote": "an RG of 2.486 with a differential of 0.055 (both measured on a 15 lb ball)",
+   "via": "web-search"
+  }
+ ],
+ "diff": [
+  {
+   "value": 0.055,
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/dv8/pitbull-bite",
+   "quote": "an RG of 2.486 at 15 lb with the same 0.055 differential",
+   "via": "web-search"
+  },
+  {
+   "value": 0.055,
+   "sourceUrl": "https://www.bowling.com/products/discontinued/dv8-pitbull-bite.htm",
+   "quote": "an RG of 2.486 with a differential of 0.055 (both measured on a 15 lb ball)",
+   "via": "web-search"
+  }
+ ],
+ "mbDiff": [],
+ "productUrl": [],
+ "_notes": "bowwwl and bowling.com both state 15 lb RG/diff. mbDiff: only bowlingball.com states 0.020 without a weight, so []. Coverstock/core/finish agreed by bowwwl+bowling.com. bowling.com page: https://www.bowling.com/products/discontinued/dv8-pitbull-bite.htm MBDIFF: bowwwl.com states 15 lb Pitbull Bite MB differential 0.020. bowling.com gives no mass bias; bowlersmart.com search returned no Pitbull Bite specific listing (only Pitbull/Bark/Growl). One reading, so []."
+}

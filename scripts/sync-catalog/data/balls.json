@@ -10778,5 +10778,931 @@
       }
     ],
     "productUrl": "https://www.motivbowling.com/products/balls/retired-balls/villain-scorn.html"
+  },
+  {
+    "brand": "900 Global",
+    "name": "Cove",
+    "releaseDate": null,
+    "coverstockRaw": "RB 85 Hybrid",
+    "factoryFinish": null,
+    "coreName": "Magna A.I.",
+    "rg": 2.49,
+    "diff": 0.044,
+    "mbDiff": null,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/900-global/cove",
+      "https://www.bowlingthismonth.com/bowling-ball-review/900-global-cove/",
+      "https://www.bowling.com/products/900global-cove.htm"
+    ],
+    "readVia": "web-search"
+  },
+  {
+    "brand": "900 Global",
+    "name": "Ember",
+    "releaseDate": null,
+    "coverstockRaw": "Reserve Blend 82 Pearl",
+    "factoryFinish": null,
+    "coreName": "Magna A.I.",
+    "rg": 2.49,
+    "diff": 0.044,
+    "mbDiff": null,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/900-global/ember",
+      "https://www.bowling.com/products/900global-ember.htm"
+    ],
+    "readVia": "web-search"
+  },
+  {
+    "brand": "900 Global",
+    "name": "Portal",
+    "releaseDate": "2026-10-02",
+    "coverstockRaw": "RB 92 Solid",
+    "factoryFinish": "Power Edge",
+    "coreName": "Conduit A.I.",
+    "rg": 2.59,
+    "diff": 0.05,
+    "mbDiff": 0.019,
+    "sourceUrls": [
+      "https://www.bowlerx.com/900-global-portal-bowling-ball/",
+      "https://www.bowlersmart.com/product/900-global-portal-bowling-ball/",
+      "https://www.bowlingthismonth.com/bowling-ball-review/900-global-portal",
+      "https://www.bowling.com/products/900global-portal.htm"
+    ],
+    "readVia": "web-search"
+  },
+  {
+    "brand": "900 Global",
+    "name": "Vengeance",
+    "releaseDate": "2026-01",
+    "coverstockRaw": "RB91",
+    "factoryFinish": null,
+    "coreName": "Blast A.I.",
+    "rg": 2.47,
+    "diff": 0.055,
+    "mbDiff": null,
+    "sourceUrls": [
+      "https://www.bowling.com/products/900global-vengeance.htm",
+      "https://www.bowlersmart.com/product/900-global-vengeance-bowling-ball/",
+      "https://www.bowwwl.com/bowling-ball-database/900-global/vengeance"
+    ],
+    "readVia": "web-search"
+  },
+  {
+    "brand": "Brunswick",
+    "name": "Combat Hybrid",
+    "releaseDate": "2026-02",
+    "coverstockRaw": "Alpha Premier Hybrid",
+    "factoryFinish": "500/2000 SiaAir",
+    "coreName": "Rampart",
+    "rg": 2.502,
+    "diff": 0.051,
+    "mbDiff": 0.019,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/brunswick/combat-hybrid",
+      "https://www.bowlingball.com/products/bowling-balls/brunswick/18066/combat-hybrid.html",
+      "https://www.bowlingthismonth.com/bowling-ball-review/brunswick-combat-hybrid/",
+      "https://www.bowling.com/products/brunswick-combat-hybrid.htm"
+    ],
+    "readVia": "web-search"
+  },
+  {
+    "brand": "Brunswick",
+    "name": "Combat Solid",
+    "releaseDate": "2026-08",
+    "coverstockRaw": "Alpha Premier Solid",
+    "factoryFinish": "500/1500 SiaAir",
+    "coreName": "Rampart",
+    "rg": 2.502,
+    "diff": 0.051,
+    "mbDiff": 0.019,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/brunswick/combat-solid",
+      "https://www.bowlingball.com/products/bowling-balls/brunswick/18377/combat-solid.html",
+      "https://www.bowlingthismonth.com/bowling-ball-review/brunswick-combat-solid",
+      "https://www.bowling.com/products/brunswick-combat-solid.htm",
+      "https://www.bowlersmart.com/product/brunswick-combat-solid-bowling-ball/"
+    ],
+    "readVia": "web-search"
+  },
+  {
+    "brand": "Brunswick",
+    "name": "Combat",
+    "releaseDate": "2025-08",
+    "coverstockRaw": "Alpha Premier Pearl",
+    "factoryFinish": null,
+    "coreName": "Rampart",
+    "rg": 2.502,
+    "diff": 0.051,
+    "mbDiff": 0.019,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/brunswick/combat",
+      "https://www.bowlingball.com/products/bowling-balls/brunswick/17849/combat.html",
+      "https://www.bowlingthismonth.com/bowling-ball-review/brunswick-combat/",
+      "https://www.bowling.com/products/brunswick-combat.htm"
+    ],
+    "readVia": "web-search"
+  },
+  {
+    "brand": "Columbia 300",
+    "name": "Pulse",
+    "releaseDate": "2025-08",
+    "coverstockRaw": "Hyperflex",
+    "factoryFinish": null,
+    "coreName": "Pulse PowerCOR",
+    "rg": 2.468,
+    "diff": 0.045,
+    "mbDiff": null,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/columbia-300/pulse",
+      "https://www.bowling.com/products/columbia-300-pulse-solid.htm"
+    ],
+    "readVia": "web-search"
+  },
+  {
+    "brand": "DV8",
+    "name": "Severe Collision",
+    "releaseDate": "2025-07",
+    "coverstockRaw": "HK22C Havoc Hybrid",
+    "factoryFinish": null,
+    "coreName": "Collision",
+    "rg": 2.462,
+    "diff": 0.052,
+    "mbDiff": 0.019,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/dv8/severe-collision",
+      "https://www.bowlingball.com/products/bowling-balls/dv8/17845/severe-collision.html",
+      "https://www.bowling.com/products/dv8-severe-collision.htm"
+    ],
+    "readVia": "web-search"
+  },
+  {
+    "brand": "Ebonite",
+    "name": "Entity",
+    "releaseDate": "2025-07-10",
+    "coverstockRaw": "HK22C Optimize Solid",
+    "factoryFinish": "500/2000 Siaair",
+    "coreName": "Entity",
+    "rg": 2.515,
+    "diff": 0.052,
+    "mbDiff": 0.02,
+    "sourceUrls": [
+      "https://ebonite.com/products/entity",
+      "https://www.bowlingball.com/products/bowling-balls/ebonite/17846/entity.html",
+      "https://www.bowwwl.com/bowling-ball-database/ebonite/entity",
+      "https://www.bowlingthismonth.com/bowling-ball-review/ebonite-entity/",
+      "https://www.bowlersmart.com/product/ebonite-entity-bowling-ball/"
+    ],
+    "readVia": "web-search"
+  },
+  {
+    "brand": "Ebonite",
+    "name": "Game Breaker 4",
+    "releaseDate": null,
+    "coverstockRaw": "GB 12.0 Solid",
+    "factoryFinish": null,
+    "coreName": "Enhanced V2",
+    "rg": 2.48,
+    "diff": 0.048,
+    "mbDiff": null,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/ebonite/game-breaker-4",
+      "https://www.bowling.com/products/ebonite-game-breaker-4.htm"
+    ],
+    "readVia": "web-search"
+  },
+  {
+    "brand": "Ebonite",
+    "name": "Real Time",
+    "releaseDate": null,
+    "coverstockRaw": "HK22 with GB13.7 Solid",
+    "factoryFinish": null,
+    "coreName": "Big Time",
+    "rg": 2.508,
+    "diff": 0.054,
+    "mbDiff": null,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/ebonite/real-time",
+      "https://www.bowling.com/products/ebonite-real-time.htm"
+    ],
+    "readVia": "web-search"
+  },
+  {
+    "brand": "Hammer",
+    "name": "Black Pearl Urethane",
+    "releaseDate": "2024-03",
+    "coverstockRaw": "Urethane Pearl 78D",
+    "factoryFinish": null,
+    "coreName": "LED",
+    "rg": 2.65,
+    "diff": 0.015,
+    "mbDiff": null,
+    "sourceUrls": [
+      "https://hammerbowling.com/products/black-pearl-urethane",
+      "https://www.bowling.com/products/hammer-black-pearl-urethane.htm",
+      "https://www.bowwwl.com/bowling-ball-database/hammer/black-pearl-urethane"
+    ],
+    "readVia": "web-search"
+  },
+  {
+    "brand": "Hammer",
+    "name": "Black Widow 2.0 Hybrid",
+    "releaseDate": null,
+    "coverstockRaw": "Aggression Hybrid",
+    "factoryFinish": null,
+    "coreName": null,
+    "rg": 2.5,
+    "diff": 0.058,
+    "mbDiff": 0.016,
+    "sourceUrls": [
+      "https://www.bowlingthismonth.com/bowling-ball-review/hammer-black-widow-2-0-hybrid/",
+      "https://www.bowling.com/products/hammer-black-widow-2-0-hybrid.htm",
+      "https://hammerbowling.com/products/black-widow-2-0-hybrid",
+      "https://www.bowwwl.com/bowling-ball-database/hammer/black-widow-20-hybrid"
+    ],
+    "readVia": "web-search"
+  },
+  {
+    "brand": "Hammer",
+    "name": "Black Widow 2.0",
+    "releaseDate": "2020-11",
+    "coverstockRaw": "Aggression Solid",
+    "factoryFinish": null,
+    "coreName": "Gas Mask",
+    "rg": 2.5,
+    "diff": 0.058,
+    "mbDiff": 0.016,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/hammer/black-widow-20",
+      "https://hammerbowling.com/products/black-widow-2-0",
+      "https://www.bowlingthismonth.com/bowling-ball-review/hammer-black-widow-2-0/",
+      "https://www.bowling.com/products/hammer-black-widow-2-0.htm"
+    ],
+    "readVia": "web-search"
+  },
+  {
+    "brand": "Hammer",
+    "name": "Black Widow 3.0 Dynasty",
+    "releaseDate": "2026-01",
+    "coverstockRaw": "Cohesion Solid",
+    "factoryFinish": "500/1000/2000 SiaAir",
+    "coreName": "Gas Mask",
+    "rg": 2.5,
+    "diff": 0.058,
+    "mbDiff": 0.016,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/hammer/black-widow-30-dynasty",
+      "https://www.bowling.com/products/hammer-black-widow-3-0-dynasty.htm",
+      "https://hammerbowling.com/products/black-widow-3-0-dynasty",
+      "https://www.bowlingthismonth.com/bowling-ball-review/hammer-black-widow-3-0-dynasty/"
+    ],
+    "readVia": "web-search"
+  },
+  {
+    "brand": "Hammer",
+    "name": "Black Widow 3.0",
+    "releaseDate": "2024-01",
+    "coverstockRaw": "Aggression Solid",
+    "factoryFinish": null,
+    "coreName": "Gas Mask",
+    "rg": 2.5,
+    "diff": 0.058,
+    "mbDiff": 0.016,
+    "sourceUrls": [
+      "https://hammerbowling.com/products/black-widow-3-0",
+      "https://www.bowwwl.com/bowling-ball-database/hammer/black-widow-30",
+      "https://www.bowlingthismonth.com/bowling-ball-review/hammer-black-widow-3-0/",
+      "https://www.bowling.com/products/hammer-black-widow-3-0-solid.htm",
+      "https://www.bowlersmart.com/product/hammer-black-widow-3-0-bowling-ball/"
+    ],
+    "readVia": "web-search"
+  },
+  {
+    "brand": "Hammer",
+    "name": "Black Widow Mania",
+    "releaseDate": "2025-01",
+    "coverstockRaw": "Cohesion Pearl",
+    "factoryFinish": null,
+    "coreName": "Gas Mask",
+    "rg": 2.5,
+    "diff": 0.058,
+    "mbDiff": 0.016,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/hammer/black-widow-mania",
+      "https://www.bowling.com/products/hammer-black-widow-mania.htm",
+      "https://hammerbowling.com/products/black-widow-mania"
+    ],
+    "readVia": "web-search"
+  },
+  {
+    "brand": "Hammer",
+    "name": "Black Widow Tour V1",
+    "releaseDate": "2025-09",
+    "coverstockRaw": "Aggression Hybrid",
+    "factoryFinish": null,
+    "coreName": "Gas Mask Low Diff",
+    "rg": 2.5,
+    "diff": 0.034,
+    "mbDiff": 0.016,
+    "sourceUrls": [
+      "https://hammerbowling.com/products/black-widow-tour-v1",
+      "https://www.bowwwl.com/bowling-ball-database/hammer/black-widow-tour-v1",
+      "https://www.bowling.com/products/hammer-black-widow-tour-v1.htm"
+    ],
+    "readVia": "web-search"
+  },
+  {
+    "brand": "Hammer",
+    "name": "Effect Tour",
+    "releaseDate": "2024-11",
+    "coverstockRaw": "TourV3 Solid",
+    "factoryFinish": null,
+    "coreName": "Huntsman Tour",
+    "rg": 2.472,
+    "diff": 0.036,
+    "mbDiff": 0.012,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/hammer/effect-tour",
+      "https://www.bowling.com/products/hammer-effect-tour.htm",
+      "https://www.bowlingthismonth.com/bowling-ball-review/hammer-effect-tour/"
+    ],
+    "readVia": "web-search"
+  },
+  {
+    "brand": "Hammer",
+    "name": "Full Effect",
+    "releaseDate": "2026-03",
+    "coverstockRaw": "HK22C²",
+    "factoryFinish": null,
+    "coreName": "Huntsman",
+    "rg": 2.47,
+    "diff": 0.05,
+    "mbDiff": 0.017,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/hammer/full-effect",
+      "https://www.bowling.com/products/hammer-full-effect.htm",
+      "https://hammerbowling.com/products/full-effect",
+      "https://www.bowlingthismonth.com/bowling-ball-review/hammer-full-effect/"
+    ],
+    "readVia": "web-search"
+  },
+  {
+    "brand": "Hammer",
+    "name": "Maximum Effect",
+    "releaseDate": "2025-09",
+    "coverstockRaw": "Cohesion Hybrid",
+    "factoryFinish": null,
+    "coreName": "Huntsman",
+    "rg": 2.47,
+    "diff": 0.05,
+    "mbDiff": 0.017,
+    "sourceUrls": [
+      "https://hammerbowling.com/collections/high-performance/products/maximum-effect",
+      "https://www.bowling.com/products/hammer-maximum-effect.htm",
+      "https://www.bowwwl.com/bowling-ball-database/hammer/maximum-effect"
+    ],
+    "readVia": "web-search"
+  },
+  {
+    "brand": "Hammer",
+    "name": "Purple Pearl Urethane 78D",
+    "releaseDate": "2026-03",
+    "coverstockRaw": "Urethane Pearl 78D",
+    "factoryFinish": "500 SiaAir",
+    "coreName": "Super LED",
+    "rg": 2.632,
+    "diff": 0.034,
+    "mbDiff": null,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/hammer/purple-pearl-urethane-78d",
+      "https://hammerbowling.com/products/purple-pearl-urethane-78d",
+      "https://www.bowling.com/products/hammer-purple-pearl-urethane-78d.htm",
+      "https://www.bowlingthismonth.com/bowling-ball-review/hammer-purple-pearl-urethane-78d/"
+    ],
+    "readVia": "web-search"
+  },
+  {
+    "brand": "Hammer",
+    "name": "Scorpion Low Flare",
+    "releaseDate": "2024-01",
+    "coverstockRaw": "Semtex Hybrid",
+    "factoryFinish": null,
+    "coreName": "LED 3.0",
+    "rg": 2.474,
+    "diff": 0.031,
+    "mbDiff": null,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/hammer/scorpion-low-flare",
+      "https://hammerbowling.com/products/scorpion-low-flare",
+      "https://www.bowling.com/products/hammer-scorpion-low-flare.htm"
+    ],
+    "readVia": "web-search"
+  },
+  {
+    "brand": "Hammer",
+    "name": "Scorpion Sting",
+    "releaseDate": "2022-09",
+    "coverstockRaw": "Semtex Pearl",
+    "factoryFinish": null,
+    "coreName": "LED 3.0",
+    "rg": 2.485,
+    "diff": 0.045,
+    "mbDiff": null,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/hammer/scorpion-sting",
+      "https://hammerbowling.com/products/scorpion-sting",
+      "https://www.bowling.com/products/hammer-scorpion-sting.htm"
+    ],
+    "readVia": "web-search"
+  },
+  {
+    "brand": "Hammer",
+    "name": "Scorpion Strike",
+    "releaseDate": "2024-07",
+    "coverstockRaw": "Semtex Pearl",
+    "factoryFinish": null,
+    "coreName": "LED 3.0",
+    "rg": 2.485,
+    "diff": 0.045,
+    "mbDiff": null,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/hammer/scorpion-strike",
+      "https://hammerbowling.com/products/scorpion-strike",
+      "https://www.bowling.com/products/hammer-scorpion-strike.htm"
+    ],
+    "readVia": "web-search"
+  },
+  {
+    "brand": "Radical",
+    "name": "Bonus",
+    "releaseDate": null,
+    "coverstockRaw": "Forged Solid",
+    "factoryFinish": null,
+    "coreName": "Bonus",
+    "rg": 2.487,
+    "diff": 0.03,
+    "mbDiff": null,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/radical/bonus",
+      "https://www.bowling.com/products/radical-bonus-solid.htm"
+    ],
+    "readVia": "web-search"
+  },
+  {
+    "brand": "Radical",
+    "name": "Vexed",
+    "releaseDate": null,
+    "coverstockRaw": "HK22C+ solid reactive",
+    "factoryFinish": null,
+    "coreName": null,
+    "rg": 2.498,
+    "diff": 0.036,
+    "mbDiff": 0.012,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/radical/vexed",
+      "https://www.bowling.com/products/radical-vexed.htm"
+    ],
+    "readVia": "web-search"
+  },
+  {
+    "brand": "Roto Grip",
+    "name": "Attention Star",
+    "releaseDate": null,
+    "coverstockRaw": "eTrax Plus Pearl",
+    "factoryFinish": null,
+    "coreName": "Momentous AV + A.I.",
+    "rg": 2.48,
+    "diff": 0.049,
+    "mbDiff": 0.017,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/roto-grip/attention-star",
+      "https://www.bowling.com/products/roto-grip-attention-star.htm"
+    ],
+    "readVia": "web-search"
+  },
+  {
+    "brand": "Roto Grip",
+    "name": "Hustle Camo",
+    "releaseDate": null,
+    "coverstockRaw": "VTC Solid",
+    "factoryFinish": null,
+    "coreName": null,
+    "rg": 2.53,
+    "diff": 0.03,
+    "mbDiff": null,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/roto-grip/hustle-camo",
+      "https://www.bowling.com/products/roto-grip-hustle-camo.htm"
+    ],
+    "readVia": "web-search"
+  },
+  {
+    "brand": "Roto Grip",
+    "name": "Hustle Wine",
+    "releaseDate": null,
+    "coverstockRaw": "VTC Pearl",
+    "factoryFinish": null,
+    "coreName": null,
+    "rg": 2.53,
+    "diff": 0.03,
+    "mbDiff": null,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/roto-grip/hustle-wine",
+      "https://www.bowling.com/products/roto-grip-hustle-wine.htm"
+    ],
+    "readVia": "web-search"
+  },
+  {
+    "brand": "Roto Grip",
+    "name": "Idol Helios",
+    "releaseDate": null,
+    "coverstockRaw": "XtremeTrax",
+    "factoryFinish": null,
+    "coreName": null,
+    "rg": 2.49,
+    "diff": 0.052,
+    "mbDiff": null,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/roto-grip/idol-helios",
+      "https://www.bowling.com/products/roto-grip-idol-helios.htm"
+    ],
+    "readVia": "web-search"
+  },
+  {
+    "brand": "Roto Grip",
+    "name": "Idol Pearl",
+    "releaseDate": null,
+    "coverstockRaw": "eTrax-P18",
+    "factoryFinish": null,
+    "coreName": null,
+    "rg": 2.49,
+    "diff": 0.052,
+    "mbDiff": null,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/roto-grip/idol-pearl",
+      "https://www.bowling.com/products/roto-grip-idol-pearl.htm"
+    ],
+    "readVia": "web-search"
+  },
+  {
+    "brand": "Roto Grip",
+    "name": "Perfect Gem",
+    "releaseDate": null,
+    "coverstockRaw": "E-R1 Solid",
+    "factoryFinish": null,
+    "coreName": "Gem + A.I.",
+    "rg": 2.49,
+    "diff": 0.057,
+    "mbDiff": 0.017,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/roto-grip/perfect-gem",
+      "https://www.bowlingthismonth.com/bowling-ball-review/roto-grip-perfect-gem/",
+      "https://www.bowling.com/knowledge-hub/bowling-balls/ball-reviews/ball-review-roto-grip-perfect-gem"
+    ],
+    "readVia": "web-search"
+  },
+  {
+    "brand": "Roto Grip",
+    "name": "Rockstar Amped",
+    "releaseDate": "2025-10",
+    "coverstockRaw": "NanoStar Pearl",
+    "factoryFinish": null,
+    "coreName": null,
+    "rg": 2.48,
+    "diff": 0.05,
+    "mbDiff": null,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/roto-grip/rockstar-amped",
+      "https://www.bowling.com/products/roto-grip-rockstar-amped.htm",
+      "https://www.bowlingthismonth.com/bowling-ball-review/roto-grip-rockstar-amped/"
+    ],
+    "readVia": "web-search"
+  },
+  {
+    "brand": "Roto Grip",
+    "name": "Rockstar",
+    "releaseDate": "2025-02",
+    "coverstockRaw": "NanoStar Solid",
+    "factoryFinish": null,
+    "coreName": "Rocker + A.I.",
+    "rg": 2.48,
+    "diff": 0.05,
+    "mbDiff": null,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/roto-grip/rockstar",
+      "https://www.bowling.com/products/roto-grip-rockstar.htm",
+      "https://www.bowlingthismonth.com/bowling-ball-review/roto-grip-rockstar/",
+      "https://www.bowlerx.com/roto-grip-rockstar-bowling-ball/"
+    ],
+    "readVia": "web-search"
+  },
+  {
+    "brand": "Roto Grip",
+    "name": "RST Hyperdrive",
+    "releaseDate": null,
+    "coverstockRaw": "MicroTrax",
+    "factoryFinish": null,
+    "coreName": null,
+    "rg": 2.52,
+    "diff": 0.055,
+    "mbDiff": 0.017,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/roto-grip/rst-hyperdrive",
+      "https://www.bowlingthismonth.com/bowling-ball-review/roto-grip-rst-hyperdrive/",
+      "https://www.bowling.com/products/roto-grip-rst-hyperdrive.htm"
+    ],
+    "readVia": "web-search"
+  },
+  {
+    "brand": "Roto Grip",
+    "name": "X-Cell",
+    "releaseDate": null,
+    "coverstockRaw": "eTrax ULTRA",
+    "factoryFinish": "2000 Abralon",
+    "coreName": null,
+    "rg": 2.5,
+    "diff": 0.056,
+    "mbDiff": 0.019,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/roto-grip/x-cell",
+      "https://www.bowlingthismonth.com/bowling-ball-review/roto-grip-x-cell/",
+      "https://www.bowling.com/products/roto-grip-x-cell.htm"
+    ],
+    "readVia": "web-search"
+  },
+  {
+    "brand": "Storm",
+    "name": "Crux Prime",
+    "releaseDate": null,
+    "coverstockRaw": "SPEC Solid",
+    "factoryFinish": null,
+    "coreName": "Catalyst",
+    "rg": 2.5,
+    "diff": 0.052,
+    "mbDiff": 0.017,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/storm/crux-prime",
+      "https://www.bowling.com/products/storm-crux-prime.htm",
+      "https://www.bowlersmart.com/product/storm-crux-prime-bowling-ball/"
+    ],
+    "readVia": "web-search"
+  },
+  {
+    "brand": "Storm",
+    "name": "Drive",
+    "releaseDate": "2018-02",
+    "coverstockRaw": "R2S Nano Hybrid",
+    "factoryFinish": null,
+    "coreName": "Dual-Drive",
+    "rg": 2.57,
+    "diff": 0.05,
+    "mbDiff": null,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/storm/drive",
+      "https://www.bowling.com/products/storm-drive.htm?a=7497&v=1"
+    ],
+    "readVia": "web-search"
+  },
+  {
+    "brand": "Storm",
+    "name": "Hy-Road 40",
+    "releaseDate": "2025-06",
+    "coverstockRaw": "A1S Pearl",
+    "factoryFinish": null,
+    "coreName": null,
+    "rg": 2.57,
+    "diff": 0.046,
+    "mbDiff": null,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/storm/hy-road-40",
+      "https://www.bowling.com/products/storm-hy-road-40.htm"
+    ],
+    "readVia": "web-search"
+  },
+  {
+    "brand": "Storm",
+    "name": "Hy-Road Max",
+    "releaseDate": null,
+    "coverstockRaw": "NeX Solid",
+    "factoryFinish": null,
+    "coreName": "Inverted Fe2",
+    "rg": 2.57,
+    "diff": 0.046,
+    "mbDiff": null,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/storm/hy-road-max",
+      "https://www.bowling.com/products/storm-hy-road-max.htm"
+    ],
+    "readVia": "web-search"
+  },
+  {
+    "brand": "Storm",
+    "name": "Hy-Road X",
+    "releaseDate": null,
+    "coverstockRaw": "R2X",
+    "factoryFinish": null,
+    "coreName": null,
+    "rg": 2.57,
+    "diff": 0.046,
+    "mbDiff": null,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/storm/hy-road-x",
+      "https://www.bowling.com/products/storm-hy-road-x.htm",
+      "https://www.bowling.com/bowling-blog/bowling-balls/the-storm-hy-road-x/"
+    ],
+    "readVia": "web-search"
+  },
+  {
+    "brand": "Storm",
+    "name": "Next Factor",
+    "releaseDate": "2025-12",
+    "coverstockRaw": "R3S Pearl Reactive",
+    "factoryFinish": "Power Edge Polish",
+    "coreName": "RAD-TQ",
+    "rg": 2.56,
+    "diff": 0.051,
+    "mbDiff": 0.017,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/storm/next-factor",
+      "https://www.bowling.com/products/storm-next-factor.htm",
+      "https://www.bowlingthismonth.com/bowling-ball-review/storm-next-factor/",
+      "https://www.bowlersmart.com/product/storm-next-factor-bowling-ball/"
+    ],
+    "readVia": "web-search"
+  },
+  {
+    "brand": "Storm",
+    "name": "Nova",
+    "releaseDate": null,
+    "coverstockRaw": "R2X Hybrid",
+    "factoryFinish": "3000 Abralon",
+    "coreName": "Ignition",
+    "rg": 2.49,
+    "diff": 0.052,
+    "mbDiff": 0.019,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/storm/nova",
+      "https://www.bowling.com/products/storm-nova.htm",
+      "https://www.bowlingthismonth.com/bowling-ball-review/storm-nova/",
+      "https://www.bowlersmart.com/product/storm-nova-bowling-ball/"
+    ],
+    "readVia": "web-search"
+  },
+  {
+    "brand": "Storm",
+    "name": "Phaze 4",
+    "releaseDate": null,
+    "coverstockRaw": "R2S Pearl Reactive",
+    "factoryFinish": "1500-grit polished",
+    "coreName": "Velocity",
+    "rg": 2.48,
+    "diff": 0.051,
+    "mbDiff": null,
+    "sourceUrls": [
+      "https://www.stormbowling.com/products/featured/bowling-balls-archive/bbmviv-phaze-4",
+      "https://www.bowling.com/products/storm-phaze-4.htm",
+      "https://www.bowwwl.com/bowling-ball-database/storm/phaze-4"
+    ],
+    "readVia": "web-search"
+  },
+  {
+    "brand": "Storm",
+    "name": "Phaze A.I.",
+    "releaseDate": null,
+    "coverstockRaw": "TX-16 Pearl Reactive",
+    "factoryFinish": "Power Edge",
+    "coreName": "Velocity A.I.",
+    "rg": 2.47,
+    "diff": 0.053,
+    "mbDiff": null,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/storm/phaze-ai",
+      "https://www.stormbowling.com/storm-brand/storm-phaze-ai-bowling-ball",
+      "https://www.bowlingthismonth.com/bowling-ball-review/storm-phaze-ai/",
+      "https://www.bowling.com/products/storm-phaze-a-i-.htm"
+    ],
+    "readVia": "web-search"
+  },
+  {
+    "brand": "Storm",
+    "name": "Phaze III",
+    "releaseDate": null,
+    "coverstockRaw": "R3S Hybrid",
+    "factoryFinish": null,
+    "coreName": "Velocity",
+    "rg": 2.48,
+    "diff": 0.051,
+    "mbDiff": null,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/storm/phaze-iii",
+      "https://www.bowling.com/products/storm-phaze-iii.htm",
+      "https://www.bowlingthismonth.com/bowling-ball-review/storm-phaze-iii/"
+    ],
+    "readVia": "web-search"
+  },
+  {
+    "brand": "Storm",
+    "name": "!Q Tour Fusion",
+    "releaseDate": null,
+    "coverstockRaw": "R2S Hybrid",
+    "factoryFinish": null,
+    "coreName": "Centripetal Control",
+    "rg": 2.49,
+    "diff": 0.029,
+    "mbDiff": null,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/storm/q-tour-fusion",
+      "https://www.bowling.com/products/discontinued/storm-iq-tour-fusion.htm"
+    ],
+    "readVia": "web-search"
+  },
+  {
+    "brand": "Storm",
+    "name": "Super Nova",
+    "releaseDate": null,
+    "coverstockRaw": "NeX Solid",
+    "factoryFinish": "2000 Abralon",
+    "coreName": "Ignition",
+    "rg": 2.49,
+    "diff": 0.052,
+    "mbDiff": 0.019,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/storm/super-nova",
+      "https://www.bowling.com/products/discontinued/storm-super-nova.htm",
+      "https://www.bowlingthismonth.com/bowling-ball-review/storm-super-nova/",
+      "https://www.bowlersmart.com/product/storm-super-nova-bowling-ball/"
+    ],
+    "readVia": "web-search"
+  },
+  {
+    "brand": "Storm",
+    "name": "Trend",
+    "releaseDate": null,
+    "coverstockRaw": "R2S Pearl",
+    "factoryFinish": "1500 polished",
+    "coreName": "Piston",
+    "rg": 2.52,
+    "diff": 0.049,
+    "mbDiff": null,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/storm/trend",
+      "https://www.bowling.com/products/storm-trend.htm?a=17918&v=1",
+      "https://www.bowlingthismonth.com/bowling-ball-review/storm-trend/"
+    ],
+    "readVia": "web-search"
+  },
+  {
+    "brand": "Track",
+    "name": "Theorem Pearl",
+    "releaseDate": "2024-11",
+    "coverstockRaw": "Prime Response Pearl (HK22)",
+    "factoryFinish": null,
+    "coreName": "MC2",
+    "rg": 2.473,
+    "diff": 0.046,
+    "mbDiff": 0.017,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/track/theorem-pearl",
+      "https://www.bowlingball.com/products/bowling-balls/track/17748/theorem-pearl.html",
+      "https://trackbowling.com/products/theorem-pearl",
+      "https://www.bowlingthismonth.com/bowling-ball-review/track-theorem-pearl/"
+    ],
+    "readVia": "web-search"
+  },
+  {
+    "brand": "Track",
+    "name": "Theorem Solid",
+    "releaseDate": "2025-08-14",
+    "coverstockRaw": "Super Response Solid (HK22C)",
+    "factoryFinish": null,
+    "coreName": "MC2",
+    "rg": 2.473,
+    "diff": 0.046,
+    "mbDiff": 0.017,
+    "sourceUrls": [
+      "https://trackbowling.com/products/theorem-solid",
+      "https://www.bowlingball.com/products/bowling-balls/track/17852/theorem-solid.html",
+      "https://www.bowlersmart.com/product/track-theorem-solid-bowling-ball/",
+      "https://www.bowwwl.com/bowling-ball-database/track/theorem-solid"
+    ],
+    "readVia": "web-search"
+  },
+  {
+    "brand": "Track",
+    "name": "Theorem",
+    "releaseDate": "2023-12-07",
+    "coverstockRaw": "Prime Response Hybrid (HK22)",
+    "factoryFinish": null,
+    "coreName": "MC2",
+    "rg": 2.473,
+    "diff": 0.046,
+    "mbDiff": 0.017,
+    "sourceUrls": [
+      "https://trackbowling.com/products/theorem",
+      "https://www.bowlingball.com/products/bowling-balls/track/17416/theorem.html",
+      "https://www.bowlingthismonth.com/bowling-ball-review/track-theorem-pearl/",
+      "https://www.bowlingthismonth.com/bowling-ball-review/track-theorem/",
+      "https://www.bowwwl.com/bowling-ball-database/track/theorem"
+    ],
+    "readVia": "web-search"
   }
 ]

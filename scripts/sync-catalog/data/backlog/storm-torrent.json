@@ -1,0 +1,53 @@
+{
+ "brand": "Storm",
+ "name": "Torrent",
+ "official": false,
+ "releaseDate": [],
+ "coverstockRaw": [
+  {
+   "value": "R2S Solid",
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/storm/torrent",
+   "quote": "R2S solid reactive",
+   "via": "web-search"
+  },
+  {
+   "value": "R2S Solid",
+   "sourceUrl": "https://www.bowling.com/products/storm-torrent.htm",
+   "quote": "R2S Solid Reactive coverstock",
+   "via": "web-search"
+  }
+ ],
+ "factoryFinish": [
+  {
+   "value": "2000-grit Abralon",
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/storm/torrent",
+   "quote": "2000-grit abralon finish",
+   "via": "web-search"
+  },
+  {
+   "value": "2000-grit Abralon",
+   "sourceUrl": "https://www.bowling.com/products/storm-torrent.htm",
+   "quote": "2000-grit Abralon finish",
+   "via": "web-search"
+  }
+ ],
+ "coreName": [
+  {
+   "value": "Booster HV",
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/storm/torrent",
+   "quote": "Booster HV symmetric",
+   "via": "web-search"
+  },
+  {
+   "value": "Booster HV",
+   "sourceUrl": "https://www.bowling.com/products/storm-torrent.htm",
+   "quote": "Booster HV Core (14-16)",
+   "via": "web-search"
+  }
+ ],
+ "rg": [],
+ "diff": [],
+ "mbDiff": [],
+ "productUrl": [],
+ "_notes": "bowwwl: release February 2017 (only source). bowwwl RG/diff given at 16 lb only; bowling.com 15 lb RG 2.56, diff 0.044, so rg/diff []. SYMMETRIC: bowwwl 'Booster HV symmetric' (bowwwl.com), mbDiff []."
+}

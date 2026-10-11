@@ -1,0 +1,27 @@
+{
+ "brand": "Brunswick",
+ "name": "Ethos",
+ "official": false,
+ "releaseDate": [],
+ "coverstockRaw": [],
+ "factoryFinish": [],
+ "coreName": [
+  {
+   "value": "Ethos",
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/brunswick/ethos",
+   "quote": "the Ethos core has three releases",
+   "via": "web-search"
+  },
+  {
+   "value": "Ethos",
+   "sourceUrl": "https://www.bowling.com/products/brunswick-ethos.htm",
+   "quote": "the core as Ethos",
+   "via": "web-search"
+  }
+ ],
+ "rg": [],
+ "diff": [],
+ "mbDiff": [],
+ "productUrl": [],
+ "_notes": "Original Ethos (pearl; Ethos Hybrid Oct 2024 and Ethos Solid Jun 2025 are separate balls, not written). Ethos core is symmetric. rg/diff left [] because the bowwwl 15 lb figure (RG 2.481, diff 0.053: 'At 15 lb the RG is 2.481 with a differential of 0.053') came from the core's table, not the ball page; bowling.com says 2.481/0.053 for 15 lb. Release Oct 2023 bowwwl only. Cover wording differs (Savvy Hook 4.0 Pearl vs HK22 with SH 4.0 Pearl). Finish 500/1000/1500 Siaair bowling.com only. SYMMETRIC: bowwwl.com: 'The Brunswick Ethos is a symmetric-core ball'."
+}

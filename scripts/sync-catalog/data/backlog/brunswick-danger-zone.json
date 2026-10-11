@@ -1,0 +1,59 @@
+{
+ "brand": "Brunswick",
+ "name": "Danger Zone",
+ "official": false,
+ "releaseDate": [
+  {
+   "value": "2025-12",
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/brunswick/danger-zone",
+   "quote": "Dec 2025 release",
+   "via": "web-search"
+  },
+  {
+   "value": "2025-12",
+   "sourceUrl": "https://www.bowlingball.com/products/bowling-balls/brunswick/17986/danger-zone-2025.html",
+   "quote": "12/11/2025 release date",
+   "via": "web-search"
+  }
+ ],
+ "coverstockRaw": [
+  {
+   "value": "HK22 - PowerKoil 26",
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/brunswick/danger-zone",
+   "quote": "HK22 - PowerKoil 26 Solid Coverstock",
+   "via": "web-search"
+  },
+  {
+   "value": "HK22 - PowerKoil 26",
+   "sourceUrl": "https://www.bowlingball.com/products/bowling-balls/brunswick/17986/danger-zone-2025.html",
+   "quote": "HK22 - PowerKoil 26",
+   "via": "web-search"
+  },
+  {
+   "value": "HK22 - PowerKoil 26",
+   "sourceUrl": "https://www.bowlingthismonth.com/bowling-ball-review/brunswick-danger-zone/",
+   "quote": "HK22 - PowerKoil 26",
+   "via": "web-search"
+  }
+ ],
+ "factoryFinish": [],
+ "coreName": [
+  {
+   "value": "Danger Zone",
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/brunswick/danger-zone",
+   "quote": "The core is the Danger Zone Core",
+   "via": "web-search"
+  },
+  {
+   "value": "Danger Zone",
+   "sourceUrl": "https://www.bowlingball.com/products/bowling-balls/brunswick/17986/danger-zone-2025.html",
+   "quote": "a Danger Zone Symmetric core",
+   "via": "web-search"
+  }
+ ],
+ "rg": [],
+ "diff": [],
+ "mbDiff": [],
+ "productUrl": [],
+ "_notes": "2025 relaunch of the 1996 ball. bowwwl states 15 lb RG 2.501 / diff 0.048; bowlingball.com/btm unlabeled values agree, so rg/diff []. Factory finish only on btm (500/1000/2000 SiaAir with Crown Factory Compound). Product page: https://www.bowlingball.com/products/bowling-balls/brunswick/17986/danger-zone-2025.html . Companion pearl: Danger Zone Purple Ice (not researched)."
+}

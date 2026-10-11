@@ -1,0 +1,79 @@
+{
+ "brand": "Hammer",
+ "name": "Rip'D Solid",
+ "official": false,
+ "releaseDate": [
+  {
+   "value": "2018-02",
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/hammer/ripd-solid",
+   "quote": "released in February 2018",
+   "via": "web-search"
+  },
+  {
+   "value": "2018-02",
+   "sourceUrl": "https://www.bowling.com/products/hammer-rip-d-solid.htm",
+   "quote": "a February 2018 release date",
+   "via": "web-search"
+  }
+ ],
+ "coverstockRaw": [
+  {
+   "value": "Aggression Solid CFI",
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/hammer/ripd-solid",
+   "quote": "Aggression Solid CFI",
+   "via": "web-search"
+  },
+  {
+   "value": "Aggression Solid CFI",
+   "sourceUrl": "https://www.bowling.com/products/hammer-rip-d-solid.htm",
+   "quote": "Aggression Solid CFI coverstock",
+   "via": "web-search"
+  }
+ ],
+ "factoryFinish": [],
+ "coreName": [
+  {
+   "value": "Rip'D",
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/hammer/ripd-solid",
+   "quote": "asymmetric Rip'D core",
+   "via": "web-search"
+  },
+  {
+   "value": "Rip'D",
+   "sourceUrl": "https://www.bowling.com/products/hammer-rip-d-solid.htm",
+   "quote": "a Rip'D core",
+   "via": "web-search"
+  }
+ ],
+ "rg": [
+  {
+   "value": 2.48,
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/hammer/ripd-solid",
+   "quote": "At 15 lb, the listing shows an RG of 2.480",
+   "via": "web-search"
+  },
+  {
+   "value": 2.48,
+   "sourceUrl": "https://www.bowling.com/products/hammer-rip-d-solid.htm",
+   "quote": "an RG of 2.48",
+   "via": "web-search"
+  }
+ ],
+ "diff": [
+  {
+   "value": 0.054,
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/hammer/ripd-solid",
+   "quote": "a differential of 0.054",
+   "via": "web-search"
+  },
+  {
+   "value": 0.054,
+   "sourceUrl": "https://www.bowling.com/products/hammer-rip-d-solid.htm",
+   "quote": "a differential of 0.054 for a 15 lb ball",
+   "via": "web-search"
+  }
+ ],
+ "mbDiff": [],
+ "productUrl": [],
+ "_notes": "Asymmetric. mbDiff 0.014 only on bowwwl so []. Manufacturer spelling Rip'D."
+}
