@@ -19,8 +19,10 @@ fetched again each time.
 
 **A strike ball move picks the strike ball.** At a leave whose only saved
 answer is a strike ball move, the scorer now opens on the strike ball you just
-threw, with its line moved, instead of the spare ball. A leave with a spare
-ball line still opens on the spare ball.
+threw, with its line moved, instead of the spare ball. Switching to the
+spare ball there no longer fills in the strike ball's boards: it shows your
+last spare ball line at that leave this session, or an empty box. A leave with
+a spare ball line still opens on the spare ball.
 
 **Spare lines asks about a leave only once it is a habit.** The "You leave
 this most often" card waits until a leave has come up at least three times,

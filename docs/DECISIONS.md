@@ -6159,9 +6159,16 @@ such leave, and forgetting recorded the shot against the wrong ball.
   ball shows (ADR-125).
 - **A leave with nothing saved keeps the spare ball.**
 
+- **The spare ball picked by hand at such a leave gets only its own attempt**
+  at the leave this session, else an empty box. It no longer shows the strike
+  ball's line moved by the move (ADR-125): those boards are a hooking ball's,
+  and the spare ball has nothing saved for this leave.
+
 **Consequences.**
-- Choosing the spare ball by hand at a move-only leave still shows the moved
-  strike line (ADR-125), so a swap either way shows the same boards.
+- At a move-only leave, the strike ball shows the moved line and the spare ball
+  shows its own attempt or nothing, whichever way the swap goes.
+- A leave with nothing saved still starts the spare ball from the line the
+  strike ball threw at the rack (ADR-125, unchanged).
 - The capture prompt is offered after spare-ball attempts only (ADR-113), so
   it is not offered after these shots, which is right: the leave already has
   its answer.

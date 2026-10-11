@@ -385,6 +385,26 @@ describe("a strike ball at a leave (B2, B3)", () => {
     expect(target()).toBe("12");
   });
 
+  it("empties the box when the spare ball is picked by hand at a move-only leave (ADR-132)", async () => {
+    spareLines = [
+      { id: 1, pins: [10] as PinNumber[], strike_offset: { stance: 4, target: -3 }, sort_order: 0 }
+    ];
+    render(
+      <ActiveGameScorer
+        gameKey={1}
+        mode="session"
+        game={ONE_LANE}
+        initialFrames={frameOneStrike(1, { stance: 20, target: 15 })}
+      />
+    );
+    await leaveTheTenPin();
+    await waitFor(() => expect(stance()).toBe("24"));
+
+    await chooseBall("Plastic Spare");
+    await waitFor(() => expect(stance()).toBe(""));
+    expect(target()).toBe("");
+  });
+
   it("swaps between the spare line and the strike move as the ball changes, both ways (ADR-125)", async () => {
     spareLines = [
       {
