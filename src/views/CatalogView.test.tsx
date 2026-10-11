@@ -1,6 +1,7 @@
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { CatalogView } from "./CatalogView";
+import { formatReleaseDate } from "../lib/dates";
 import { db } from "../db/bowlingDb";
 import type { CatalogBall } from "../types/catalog";
 
@@ -15,7 +16,7 @@ vi.mock("../services/ballCatalogRepository", async (importOriginal) => {
 });
 
 /** A catalog of `count` balls, written straight to the table. */
-async function seedCatalog(count: number) {
+async function seedCatalog(count: number, releaseDates: (string | null)[] = []) {
   const balls: CatalogBall[] = Array.from({ length: count }, (_, i) => ({
     id: `ball-${i}`,
     brand: "Storm",
@@ -25,7 +26,8 @@ async function seedCatalog(count: number) {
     rg: 2.5,
     diff: 0.05,
     mbDiff: null,
-    releaseYear: 2026,
+    releaseDate: releaseDates[i] ?? null,
+    releaseYear: releaseDates[i] ? Number(releaseDates[i]!.slice(0, 4)) : 2026,
     imageThumb: null,
     imageFull: null,
     productUrl: null,
@@ -93,6 +95,22 @@ describe("CatalogView", () => {
     const rows = screen.getAllByRole("listitem");
     expect(rows.length).toBeGreaterThan(0);
     expect(rows.length).toBeLessThanOrEqual(40);
+  });
+
+  it("says a ball's release month, and sorts newest first by it", async () => {
+    // Seeded oldest first, so the order on screen is the sort's doing. A ball
+    // known only to its year sits after that year's dated ones.
+    await seedCatalog(4, ["2024", "2024-03-12", "2024-11-05", null]);
+
+    renderCatalog();
+
+    await waitFor(() => expect(screen.getAllByRole("listitem")).toHaveLength(4));
+    const names = screen.getAllByRole("listitem").map((row) => row.textContent ?? "");
+    expect(names.map((text) => text.match(/Ball \d/)?.[0])).toEqual(["Ball 2", "Ball 1", "Ball 0", "Ball 3"]);
+    expect(names[0]).toContain(formatReleaseDate("2024-11")!);
+    expect(names[1]).toContain(formatReleaseDate("2024-03")!);
+    // A year is a year: no month is made up for it.
+    expect(names[2]).toContain("2024 ·");
   });
 
   describe("the shop link on a ball", () => {

@@ -96,7 +96,7 @@ async function main(): Promise<void> {
   let needsReview = 0;
   for (const rec of records) {
     const ball = buildSeedBall(rec.body, rec.weights, {
-      releaseDate: yearArg ? `${yearArg}-01-01` : null,
+      releaseDate: yearArg ? String(yearArg) : null,
       sourceUrls: ["https://www.stormbowling.com", src],
       index,
       byNorm,

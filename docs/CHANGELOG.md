@@ -9,6 +9,15 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.21.0: The catalog says the month a ball came out (2026-10-11)
+
+**Release month in the catalog.** A catalog ball now says when it came out to
+the month, "Mar 2024" rather than "2024", in the list and on its page. Newest
+first sorts by that month, so this year's balls are in launch order. A ball
+whose maker only ever gave the year still shows the year alone: 29 of them
+had been stored as 1 January, which would have read as a January launch, and
+they now say just the year (ADR-134).
+
 ## 0.20.0: Retire a ball and keep its history (2026-10-11)
 
 **Retire a ball you no longer throw.** Open the ball in your arsenal and tap

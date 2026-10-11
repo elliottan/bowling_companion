@@ -20,6 +20,7 @@ import { addBall, getBalls } from "../services/ballRepository";
 import { GROUP_HEADING } from "../components/ui/typography";
 import { FIELD, FIELD_DENSE_SELECT, FIELD_LABEL } from "../components/ui/field";
 import { RETAILER_NAME, shopBallUrl } from "../lib/links";
+import { formatReleaseDate } from "../lib/dates";
 import { reportShopLink } from "../services/usageReporter";
 
 // ---------------------------------------------------------------------------
@@ -85,7 +86,10 @@ function applyFilters(balls: CatalogBall[], filters: Filters, sort: SortKey): Ca
   return filtered.slice().sort((a, b) => {
     switch (sort) {
       case "releaseDate":
-        return (b.releaseYear ?? 0) - (a.releaseYear ?? 0);
+        // Partial ISO dates sort as strings: "2024-05" before "2024-03" before
+        // "2024", so a ball known only to its year sits after that year's
+        // dated ones. Undated balls go last.
+        return (b.releaseDate ?? "").localeCompare(a.releaseDate ?? "");
       case "rg":
         return (a.rg ?? 99) - (b.rg ?? 99);
       case "diff":
@@ -188,8 +192,8 @@ function DetailPanel({ ball, owned, onBack, onAddToArsenal, addDialogOpen }: Det
           <div className="mt-2" />
           <ColorwayCarousel ball={ball} />
 
-          {ball.releaseYear && (
-            <p className="mt-3 text-sm text-ink-secondary">{ball.releaseYear}</p>
+          {formatReleaseDate(ball.releaseDate) && (
+            <p className="mt-3 text-sm text-ink-secondary">Released {formatReleaseDate(ball.releaseDate)}</p>
           )}
 
           <dl className="mt-4 space-y-2">
@@ -797,7 +801,7 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall }: CatalogVie
                     {/* Always-visible compact specs (mobile-first) */}
                     <p className="mt-0.5 text-xs text-ink-secondary">
                       {[
-                        ball.releaseYear ? String(ball.releaseYear) : null,
+                        formatReleaseDate(ball.releaseDate),
                         ball.coverstockCategory ?? null,
                         ball.coreType ?? null,
                         ball.rg !== null ? `RG ${ball.rg.toFixed(2)}` : null,

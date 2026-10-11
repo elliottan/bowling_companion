@@ -104,6 +104,9 @@ and write `data/candidates/<brand>-<name>-<year>.json`:
 - `official: false` for anything else. Then each field needs readings from **two
   different sites**, and they must agree.
 - An absent field is `[]`, not a guessed value.
+- `releaseDate` is as precise as its quote: "February 10, 2026" is
+  `2026-02-10`, "February 2026" is `2026-02`, "2026" is `2026`. Never pad it out
+  to the 1st; the catalog prints the month (ADR-134).
 - `quote` must be text that actually appears in the document and must contain the
   value. Promote checks this mechanically and refuses the ball otherwise.
 - 15 lb values go in the top-level `rg`/`diff`/`mbDiff`. `weights` is optional
