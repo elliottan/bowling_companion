@@ -9,13 +9,17 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
-## 0.19.3: Ball photos show up straight away (2026-10-11)
+## 0.19.3: Ball photos show up straight away, and Spare lines asks about habits (2026-10-11)
 
 **Your arsenal's photos are kept on the phone.** The app now saves every ball
 in your arsenal's photo when it opens, so the arsenal, the ball picker, the
 scorer and Stats show them at once instead of after a second or two on a slow
 connection. Catalog photos you have seen are kept for a month rather than
 fetched again each time.
+
+**Spare lines asks about a leave only once it is a habit.** The "You leave
+this most often" card waits until a leave has come up at least three times,
+so a leave you have seen once or twice no longer asks for a line.
 
 ## 0.19.2: All balls and All leaves say what they count in the title bar (2026-10-10)
 
