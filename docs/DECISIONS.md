@@ -6134,3 +6134,35 @@ layout (and, on iOS, until a sliding sheet settled).
 - The cache name lives in `src/lib/ballImageCacheConfig.ts`, shared by the workbox config
   and the warm-up, so the two cannot drift apart.
 
+
+## ADR-132: A leave answered only by a strike ball move opens on the strike ball
+
+**Status.** Accepted, 2026-10-11. Amends ADR-125 for the ball a spare attempt
+opens with. The line rules of ADR-113 and ADR-125 are unchanged.
+
+**Context.** A spare attempt always opened on the spare ball. ADR-125 made a
+leave with only a strike ball move saved open on the spare ball with the move
+applied, so the box was no longer blank. But a strike ball move is the answer
+"throw your strike ball, moved this far": the boards are a hooking ball's, and
+on the spare ball they miss. The bowler had to change the ball by hand on every
+such leave, and forgetting recorded the shot against the wrong ball.
+
+**Decision.**
+
+- **A spare attempt at a leave whose saved answer is a strike ball move and no
+  spare line opens on the strike ball thrown at the rack** (`lastFreshRackBallId`),
+  and so on that ball's line moved by the move (ADR-113's strike-ball lookup).
+- **Only when that rack ball is a strike ball.** With the rack thrown on the
+  spare ball, or no ball on record, the spare ball opens as before.
+- **A leave with a spare line keeps the spare ball**, move or not: the spare
+  line is the leave's first answer, and the move is what a swap to the strike
+  ball shows (ADR-125).
+- **A leave with nothing saved keeps the spare ball.**
+
+**Consequences.**
+- Choosing the spare ball by hand at a move-only leave still shows the moved
+  strike line (ADR-125), so a swap either way shows the same boards.
+- The capture prompt is offered after spare-ball attempts only (ADR-113), so
+  it is not offered after these shots, which is right: the leave already has
+  its answer.
+

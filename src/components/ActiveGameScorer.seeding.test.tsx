@@ -367,7 +367,7 @@ describe("a strike ball at a leave (B2, B3)", () => {
     await waitFor(() => expect(target()).toBe("15"));
   });
 
-  it("starts the spare ball from the strike ball's move when the leave has no spare line (ADR-125)", async () => {
+  it("opens on the strike ball, its line moved, when the leave's only answer is a strike move (ADR-132)", async () => {
     spareLines = [
       { id: 1, pins: [10] as PinNumber[], strike_offset: { stance: 4, target: -3 }, sort_order: 0 }
     ];
@@ -380,7 +380,7 @@ describe("a strike ball at a leave (B2, B3)", () => {
       />
     );
     await leaveTheTenPin();
-    await waitFor(() => expect(ballLabel()).toContain("Plastic Spare"));
+    await waitFor(() => expect(ballLabel()).toContain("Hammer"));
     await waitFor(() => expect(stance()).toBe("24"));
     expect(target()).toBe("12");
   });

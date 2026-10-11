@@ -716,19 +716,54 @@ describe("ADR-125: a spare ball with no line starts from the strike ball's move"
     expect(line).not.toBe(rackShot.intended);
   });
 
-  it("opens the spare attempt on the spare ball with that line", () => {
-    const seed = seedForShot({
+  const spareAttempt = (spareLines: SpareLine[], currentFrameShots: Shot[] = [rackShot]) =>
+    seedForShot({
       ...base,
       currentShot: 2,
       currentFrameNumber: 3,
       availablePins: TEN_PIN,
-      currentFrameShots: [rackShot],
+      currentFrameShots,
       game: LANE_12,
       balls,
-      spareLines: spareLine({ strike_offset: { stance: 4, target: -3 } })
+      spareLines
     });
+
+  it("opens the spare attempt on the spare ball when the leave has no answer saved", () => {
+    const seed = spareAttempt([]);
     expect(seed.ballId).toBe(2);
-    expect(seed.intended).toEqual({ stance: 24, target: 12 });
+    expect(seed.intended).toEqual({ stance: 20, target: 15 });
+  });
+
+  describe("ADR-132: a leave answered only by a strike ball move", () => {
+    it("opens on the strike ball thrown at the rack, on its line moved", () => {
+      const seed = spareAttempt(spareLine({ strike_offset: { stance: 4, target: -3 } }));
+      expect(seed.ballId).toBe(1);
+      expect(seed.intended).toEqual({ stance: 24, target: 12 });
+    });
+
+    it("keeps the spare ball when the leave has a spare line as well", () => {
+      const seed = spareAttempt(
+        spareLine({ line: { stance: 30, target: 8 }, strike_offset: { stance: 4, target: -3 } })
+      );
+      expect(seed.ballId).toBe(2);
+      expect(seed.intended).toEqual({ stance: 30, target: 8 });
+    });
+
+    it("keeps the spare ball when the rack was thrown with the spare ball", () => {
+      const sparedFirst: Shot = { pins_standing: TEN_PIN, ball_id: 2, intended: { stance: 18, target: 11 } };
+      const seed = spareAttempt(spareLine({ strike_offset: { stance: 4 } }), [sparedFirst]);
+      expect(seed.ballId).toBe(2);
+    });
+
+    it("keeps the spare ball when no ball is on record for the rack", () => {
+      const seed = spareAttempt(spareLine({ strike_offset: { stance: 4 } }), [{ pins_standing: TEN_PIN }]);
+      expect(seed.ballId).toBe(2);
+    });
+
+    it("ignores a move of zero boards, which is no move", () => {
+      const seed = spareAttempt(spareLine({ strike_offset: { stance: 0 } }));
+      expect(seed.ballId).toBe(2);
+    });
   });
 
   describe("swapping balls at the leave", () => {

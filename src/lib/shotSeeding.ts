@@ -6,6 +6,7 @@ import {
   sameBallSeedLine
 } from "./lanes";
 import { isPocketLeave } from "./pins";
+import { hasLine, hasMove } from "./spareLines";
 import type { Ball, Frame, Game, LineSpec, PinNumber, Shot, SpareLine } from "../types/bowling";
 
 /**
@@ -272,12 +273,18 @@ export function seedForShot(input: ShotSeedInput): ShotSeed {
   // True second ball (a spare attempt): the spare ball if one is configured,
   // else shot one's ball. The line comes from this session's attempt at the
   // same leave, else the saved spare line for it.
+  // A leave whose only answer is a strike ball move is the exception (ADR-132):
+  // it is shot with the strike ball thrown at the rack, so that ball opens.
   // A pocket leave is not a spare attempt here: it falls through to the
   // fresh-rack rule below, so it opens with the ball and line just thrown at the
   // full rack (ADR-123).
   if (availablePins.length < 10 && !isPocketLeave(availablePins)) {
     const spareBall = input.balls.find((b) => b.is_spare_ball);
-    const ballId = spareBall?.id ?? currentFrameShots[0]?.ball_id;
+    const saved = savedSpareLine(input.spareLines ?? [], availablePins);
+    const rackBallId = lastFreshRackBallId(currentFrameNumber, currentFrameShots, frames, previousGames);
+    const strikeBallMove =
+      hasMove(saved) && !hasLine(saved) && ballKind(input.balls, rackBallId) === "strike";
+    const ballId = strikeBallMove ? rackBallId : (spareBall?.id ?? currentFrameShots[0]?.ball_id);
 
     // Same resolution a ball change runs, so the line a shot opens with and the
     // line a ball change produces can never disagree.
