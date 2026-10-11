@@ -380,7 +380,7 @@ function CatalogPickerSheet({ linkedId, onPick, onClose }: CatalogPickerSheetPro
                 }`}
               >
                 <div className="h-12 w-12 shrink-0">
-                  <CatalogBallImage src={b.imageThumb} alt={b.name} brand={b.brand as Manufacturer} size="thumb" />
+                  <CatalogBallImage src={b.imageThumb} alt={b.name} brand={b.brand as Manufacturer} size="thumb" lazy />
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="text-[11px] font-semibold uppercase tracking-wide text-ink-secondary">{b.brand}</p>

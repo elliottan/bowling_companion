@@ -3,6 +3,7 @@ import react from "@vitejs/plugin-react";
 import { VitePWA } from "vite-plugin-pwa";
 import type { Plugin } from "vite";
 import { defineConfig } from "vitest/config";
+import { BALL_IMAGE_CACHE, BALL_IMAGE_MAX_AGE_SECONDS } from "./src/lib/ballImageCacheConfig";
 
 /** The clean URLs that build to a directory, and so need resolving by hand. */
 const CLEAN_URLS = ["/score", "/legal"];
@@ -227,9 +228,19 @@ export default defineConfig({
             options: { cacheName: "catalog-data", networkTimeoutSeconds: 5 }
           },
           {
+            // CacheFirst, not SWR: a ball's photo hardly ever changes, and SWR
+            // went back to the network for every photo on every screen it was
+            // shown on. Expiry is what lets a replaced photo through, since
+            // the files are named after the ball rather than their content.
+            // The arsenal's photos are warmed into this cache at boot
+            // (warmArsenalImages), so they are here before a screen asks.
             urlPattern: /\/catalog\/img\/.*\.webp$/,
-            handler: "StaleWhileRevalidate",
-            options: { cacheName: "catalog-images" }
+            handler: "CacheFirst",
+            options: {
+              cacheName: BALL_IMAGE_CACHE,
+              cacheableResponse: { statuses: [200] },
+              expiration: { maxEntries: 600, maxAgeSeconds: BALL_IMAGE_MAX_AGE_SECONDS }
+            }
           },
           {
             // The legal page, which the fallback denylist above hands to the

@@ -19,6 +19,11 @@ interface CatalogBallImageProps {
   /** Drop the tile behind the ball, for a strip of balls on the page itself
    *  where a square behind each round cut-out reads as a frame. */
   bare?: boolean;
+  /** Defer the download until the tile nears the screen. Only for the catalog
+   *  grid, a couple of hundred balls deep. Everywhere else it is a handful of
+   *  small, usually cached photos, and lazy loading only made them wait for
+   *  layout (and, on iOS, for a sliding sheet to settle) before appearing. */
+  lazy?: boolean;
 }
 
 /** Ball silhouette SVG placeholder, brand-colored, no broken-image glyph. */
@@ -59,7 +64,7 @@ function BallPlaceholder({ brand, size }: { brand: Manufacturer; size: "thumb" |
 // covers a reload served from the HTTP cache.
 const decodedSrcs = new Set<string>();
 
-export function CatalogBallImage({ src, alt, brand, size, bare = false }: CatalogBallImageProps) {
+export function CatalogBallImage({ src, alt, brand, size, bare = false, lazy = false }: CatalogBallImageProps) {
   // Cached on the first render, so a known source paints opaque immediately
   // rather than starting transparent and being faded in.
   const [wasDecoded] = useState(() => !!src && decodedSrcs.has(src));
@@ -99,7 +104,7 @@ export function CatalogBallImage({ src, alt, brand, size, bare = false }: Catalo
           key={src}
           src={src}
           alt={alt}
-          loading="lazy"
+          loading={lazy ? "lazy" : "eager"}
           // An image the browser already has decodes before this ref runs, so
           // `onLoad` never fires for it, check `complete` instead of waiting.
           ref={(el) => {

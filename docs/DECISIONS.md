@@ -6096,3 +6096,41 @@ bar, meanwhile, had a centred title with an empty slot balancing the close.
 - A sheet with a subtitle has a leading title and a centred-title sheet does
   not: the two read differently on purpose, since one is a list with a scope
   and the other a task.
+
+
+## ADR-131: Ball photos are cache-first, and the arsenal's are warmed at boot
+
+**Status.** Accepted, 2026-10-11. Supersedes the image line of ADR-010 ("Images
+stay StaleWhileRevalidate").
+
+**Context.** A bowler saw their own balls' photos arrive a second or two late,
+on every screen. The photos were runtime-cached only, so each one was stored
+the first time a screen showed it and not before: a fresh install, a ball not
+yet shown, or iOS clearing an idle web app's storage all sent the photo to the
+network. There Vercel's default `Cache-Control` for static files (`max-age=0,
+must-revalidate`) made even the HTTP cache ask the server first. On top of
+that, StaleWhileRevalidate went back to the network for every photo each time
+it was shown, and `loading="lazy"` on every tile held even a cached photo until
+layout (and, on iOS, until a sliding sheet settled).
+
+**Decision.**
+
+- **The arsenal's thumbnails are written into the image cache at boot**
+  (`warmArsenalImages`), a few seconds after first paint, only the ones it does
+  not hold. Straight into Cache Storage, so it works before the service worker
+  controls the page.
+- **Catalog photos are `CacheFirst`**, expiring after 30 days and 600 entries.
+  The files are named after the ball rather than their content, so expiry is
+  what lets a replaced photo through.
+- **`vercel.json` gives `/catalog/img/*` a 30 day `max-age`**, so a browser
+  without the worker keeps them too.
+- **Only the catalog lists load photos lazily**, the catalog screen and the
+  catalog search in the ball form. Everywhere else is a handful of small photos.
+
+**Consequences.**
+- A replaced photo under the same filename can take up to 30 days to reach a
+  device that already holds the old one. Giving the photo a new filename ships
+  it at once.
+- The cache name lives in `src/lib/ballImageCacheConfig.ts`, shared by the workbox config
+  and the warm-up, so the two cannot drift apart.
+

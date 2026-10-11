@@ -37,6 +37,7 @@ import {
   type ResumableGame
 } from "./services/bowlingRepository";
 import { reportSessionStarted } from "./services/usageReporter";
+import { warmArsenalImages } from "./services/ballImageCache";
 import type { NewSessionFormValues } from "./components/SessionForm";
 import { HandednessContext } from "./lib/handednessContext";
 import { DriftModelContext } from "./lib/driftModelContext";
@@ -100,6 +101,9 @@ function prefetchHeavyScreens() {
   const fetchThem = () => {
     void import("./views/LayoutLabView");
     void import("./components/LaneVisualizer");
+    // Not a screen, but the same bargain: the arsenal's photos, so no screen
+    // that pictures a ball has to wait on the network for one.
+    void warmArsenalImages();
   };
   window.setTimeout(fetchThem, 3000);
 }
