@@ -343,6 +343,28 @@ export async function upsertSpareLine(
   }
 }
 
+/**
+ * Write one answer onto several leaves at once: the row of leaves the Spare
+ * lines screen groups under one line or one move (ADR-140). Each leave's new
+ * value is worked out by `next` from its own row, so whatever else a leave
+ * carries (its notes, its other answer, a laydown or hook timing on the line)
+ * stays its own. One transaction, so a row never ends up half moved.
+ */
+export async function updateSpareLines(
+  ids: number[],
+  next: (sl: SpareLine) => Pick<SpareLine, "line" | "strike_offset">
+): Promise<void> {
+  await db.transaction("rw", db.spare_lines, async () => {
+    for (const id of ids) {
+      const sl = await db.spare_lines.get(id);
+      if (!sl) continue;
+      const { line, strike_offset } = next(sl);
+      // Both keys written, even undefined, so a cleared answer is cleared.
+      await db.spare_lines.update(id, { line, strike_offset });
+    }
+  });
+}
+
 export async function deleteSpareLine(id: number): Promise<void> {
   await db.spare_lines.delete(id);
 }

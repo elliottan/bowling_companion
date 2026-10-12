@@ -60,6 +60,9 @@ const PIN_COACH_SEEN_KEY = "pin_input_coached_at";
  *  is a new session and asks again. */
 const unlockedGames = new Set<string | number>();
 
+/** A stable empty list, so a default never re-runs the seeding effect. */
+const NO_FRAMES: Frame[] = [];
+
 export type ScorerMode = "standalone" | "session";
 
 interface ActiveGameScorerProps {
@@ -68,6 +71,9 @@ interface ActiveGameScorerProps {
   /** Recorded frames from OTHER games in the same session, oldest first. Used to
    *  reuse a per-session intended spare line for an identical leave. */
   sessionFrames?: Frame[];
+  /** Frames from earlier sessions at the same alley on the same oil pattern,
+   *  oldest first, for a leave this session has not faced yet (ADR-140). */
+  earlierSessionFrames?: Frame[];
   /** Earlier games in the session (oldest first), with lane config + frames.
    *  Used to carry line/ball/notes across games on the same physical lane. */
   previousGames?: Array<{
@@ -125,6 +131,7 @@ export function ActiveGameScorer({
   gameKey = "local",
   initialFrames = [],
   sessionFrames = [],
+  earlierSessionFrames = NO_FRAMES,
   previousGames = [],
   mode = "standalone",
   game,
@@ -390,6 +397,7 @@ export function ActiveGameScorer({
         game,
         previousGames,
         sessionFrames,
+        earlierSessionFrames,
         spareLines,
         balls
       },
@@ -431,6 +439,7 @@ export function ActiveGameScorer({
       game,
       previousGames,
       sessionFrames,
+      earlierSessionFrames,
       balls,
       spareLines
     });
@@ -447,6 +456,7 @@ export function ActiveGameScorer({
     gameState.frames,
     selectedShot,
     sessionFrames,
+    earlierSessionFrames,
     previousGames,
     balls,
     spareLines,

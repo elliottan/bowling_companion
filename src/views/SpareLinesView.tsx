@@ -6,6 +6,7 @@ import { BallPickerSheet } from "../components/BallPickerSheet";
 import { ErrorBanner } from "../components/ErrorBanner";
 import { MiniPins } from "../components/MiniPins";
 import { SpareDetailsSheet } from "../components/SpareDetailsSheet";
+import { SpareLineBulkSheet } from "../components/SpareLineBulkSheet";
 import { IconButton } from "../components/ui/IconButton";
 import { PushScreen } from "../components/PushScreen";
 import { useDriftModel } from "../lib/driftModelContext";
@@ -50,11 +51,11 @@ function DerivedChain({ line, model, inline = false }: { line: LineSpec; model: 
   const laydown = line.laydown ?? (line.stance != null ? deriveLaydown(line.stance, model) : undefined);
   if (slide == null && laydown == null) return null;
   return (
-    <div className={`${inline ? "" : "mt-0.5 "}text-[11px] font-semibold uppercase tracking-tight text-ink-secondary tabular-nums`}>
+    <span className={`${inline ? "" : "mt-0.5 "}block text-[11px] font-semibold uppercase tracking-tight text-ink-secondary tabular-nums`}>
       {slide != null && `Slide ${slide}`}
       {slide != null && laydown != null && <span aria-hidden="true" className="text-ink-tertiary"> → </span>}
       {laydown != null && `Laydown ${laydown}`}
-    </div>
+    </span>
   );
 }
 
@@ -162,6 +163,8 @@ export function SpareLinesView({ onBack }: { onBack: () => void }) {
   const [error, setError] = useState("");
   const [opened, setOpened] = useState<Opened | null>(null);
   const [pickingBall, setPickingBall] = useState(false);
+  // A row opened from its heading, to change its line for every leave on it.
+  const [bulk, setBulk] = useState<LineRow | null>(null);
 
   // Shared with the All leaves sheet on Stats, and kept for the app run
   // (ADR-128).
@@ -217,7 +220,7 @@ export function SpareLinesView({ onBack }: { onBack: () => void }) {
     <PushScreen
       title="Spare lines"
       onBack={onBack}
-      active={opened === null && !pickingBall && !pinFilterOpen}
+      active={opened === null && bulk === null && !pickingBall && !pinFilterOpen}
       trailing={
         <IconButton
           label="Add spare line"
@@ -232,6 +235,8 @@ export function SpareLinesView({ onBack }: { onBack: () => void }) {
       {error && (
         <ErrorBanner>{error}</ErrorBanner>
       )}
+
+      {bulk && <SpareLineBulkSheet key={bulk.key} row={bulk} onClose={() => setBulk(null)} />}
 
       {opened && (
         <SpareDetailsSheet
@@ -358,7 +363,20 @@ export function SpareLinesView({ onBack }: { onBack: () => void }) {
             <section key={row.key} aria-label={rowLabel(row)}>
               <div className="mb-1 px-1">
                 {row.line ? (
-                  <RowHeading line={row.line} kind={row.kind} />
+                  // The heading is the line every leave on the row shares, so
+                  // tapping it edits that line for all of them (ADR-140).
+                  <h2>
+                  <button
+                    type="button"
+                    onClick={() => setBulk(row)}
+                    aria-label={`Edit ${rowLabel(row)} for all ${row.tiles.length} ${
+                      row.tiles.length === 1 ? "leave" : "leaves"
+                    }`}
+                    className="relative -mx-1 block w-[calc(100%+0.5rem)] rounded-md px-1 py-1 text-left active:bg-surface-muted"
+                  >
+                    <RowHeading line={row.line} kind={row.kind} />
+                  </button>
+                  </h2>
                 ) : (
                   <h2 className={GROUP_HEADING}>No line yet</h2>
                 )}
@@ -406,7 +424,7 @@ function RowHeading({ line, kind }: { line: SpareLine; kind: LineRow["kind"] }) 
     // One line, read like the spare ball line: grey names, white values.
     const offset = line.strike_offset;
     return (
-      <h2 className="text-sm font-bold tabular-nums text-ink">
+      <span className="block text-sm font-bold tabular-nums text-ink">
         <span className={LABEL}>Strike ball</span>
         {([["Stance", offset?.stance], ["Target", offset?.target]] as const).map(([k, v]) =>
           v ? (
@@ -416,18 +434,18 @@ function RowHeading({ line, kind }: { line: SpareLine; kind: LineRow["kind"] }) 
             </span>
           ) : null
         )}
-      </h2>
+      </span>
     );
   }
   return (
-    <div className="flex flex-wrap items-baseline gap-x-3 gap-y-0.5">
-      <h2 className="text-sm font-bold tabular-nums text-ink">
+    <span className="flex flex-wrap items-baseline gap-x-3 gap-y-0.5">
+      <span className="text-sm font-bold tabular-nums text-ink">
         <span className={LABEL}>Stance </span>
         {boards?.stance ?? "-"}
         <span className={`${LABEL} ml-2`}>Target </span>
         {boards?.target ?? "-"}
-      </h2>
+      </span>
       {boards && <DerivedChain line={boards} model={driftModel} inline />}
-    </div>
+    </span>
   );
 }

@@ -57,6 +57,10 @@ import {
   updateSession
 } from "../services/bowlingRepository";
 import type { Frame, Game, OilPattern, SessionSummary } from "../types/bowling";
+import { earlierSessionFrames } from "../lib/shotSeeding";
+
+/** A stable empty list, so the scorer's seeding is not re-run for nothing. */
+const NO_FRAMES: Frame[] = [];
 import { GROUP_HEADING } from "../components/ui/typography";
 import type { UndoResult } from "../lib/frameController";
 import { alleyLabel } from "../lib/sessionLabels";
@@ -336,6 +340,15 @@ export function ActiveSessionView({
       null;
     setActiveGameId(selected?.id ?? null);
   }
+
+  // Earlier nights at this house on this pattern, for a leave this session has
+  // not faced yet: the line it was last made with there opens it (ADR-140).
+  const seedSession = sessionDetails?.session;
+  const earlierFrames = useLiveQuery(
+    async () =>
+      seedSession ? earlierSessionFrames(await getSessionHistory(), seedSession) : NO_FRAMES,
+    [seedSession?.id, seedSession?.date, seedSession?.alley_name, seedSession?.oil_pattern_id]
+  );
 
   // Follows the session's pattern id, so editing the session to a different
   // pattern re-draws the lane without a reload.
@@ -744,6 +757,7 @@ export function ActiveSessionView({
       <ActiveGameScorer
         gameKey={activeGame.id}
         initialFrames={(activeGame as Game & { frames: Frame[] }).frames}
+        earlierSessionFrames={earlierFrames ?? NO_FRAMES}
         sessionFrames={games
           .filter((g) => g.id !== activeGame.id)
           .flatMap((g) => (g as Game & { frames: Frame[] }).frames)}

@@ -6512,3 +6512,45 @@ ball, and the Balls card had no room for two more columns on a phone.
 - A follow-up thrown with no ball recorded counts in the overall strike on
   strike and in no ball's, the same way an unattributed fresh-rack ball does.
 
+
+## ADR-140: A spare line is shared by its row, carried across the house's sessions, and edited a row at a time
+
+**Status.** Accepted, 2026-10-12. Extends ADR-052 (the line follows the ball),
+ADR-054 (capturing a line) and ADR-113; the strike ball rules of ADR-053 and
+ADR-125 are unchanged.
+
+**Context.** The Spare lines screen groups leaves by the line they are shot
+with, and a bowler who moves for the lane moves for all of them. The scorer
+did not know that. A move made at the 6 opened the 6-10 on the old line, because
+a spare attempt was remembered by its exact leave only. A new session also
+opened every leave on the saved line, even at the house and on the pattern
+where the bowler had moved off it last time. Moving a whole row on the Spare
+lines screen meant opening and saving every leave in it.
+
+**Decision.**
+
+- **A leave's spare ball line is looked up across its row.** At a leave, a
+  spare ball (or no ball) opens on the newest attempt this session at this leave
+  or at any leave saved with the same stance and target (`sameLineLeaves`). Rows
+  are read from the saved lines as they are now, so nothing new is stored.
+- **Then the house's earlier sessions.** With no attempt on the row this session,
+  the newest one from an earlier session at the same alley (named the same,
+  ignoring case and spaces at the ends) on the same oil pattern opens it
+  (`earlierSessionFrames`). A session with no pattern matches only others with
+  none. Only after that does the saved line open it, then ADR-125's fallbacks.
+- **A strike ball reads only its own attempts at the exact leave,** this session
+  then the house's earlier ones. Rows are spare ball lines, and a hooking ball
+  has its own boards (ADR-113).
+- **Tapping a row's heading on Spare lines edits its line, or its strike ball
+  move, for every leave on it** (`SpareLineBulkSheet`, `updateSpareLines`). The
+  leaves are shown and not editable. Each leave keeps everything else it has:
+  notes, its other answer, and the laydown, which follows the stance as on a
+  single leave. The row of leaves with no line has no bulk edit.
+
+**Consequences.**
+- An attempt from an earlier session outranks the saved line at that house on
+  that pattern. A saved line still answers a new house, a new pattern, and a
+  leave never faced there.
+- Two leaves that only happen to share boards are treated as one shot. That is
+  what putting them on one row already says.
+
