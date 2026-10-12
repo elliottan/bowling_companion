@@ -1718,8 +1718,8 @@
     "rg": 2.68,
     "diff": 0.006,
     "mbDiff": null,
-    "imageThumb": "/catalog/img/pyramid-path-2011-thumb.webp",
-    "imageFull": "/catalog/img/pyramid-path-2011-full.webp",
+    "imageThumb": "/catalog/img/pyramid-path-2011-bg2-thumb.webp",
+    "imageFull": "/catalog/img/pyramid-path-2011-bg2-full.webp",
     "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/pyramid/path-various-colors",
     "weights": [
       {
@@ -1757,6 +1757,26 @@
       {
         "sku": "PATH-PK-BK",
         "color": "Pink/Black"
+      },
+      {
+        "sku": "PATH-HPK-LM",
+        "color": "Hot Pink/Lime"
+      },
+      {
+        "sku": "PATH-PK-TL-BL",
+        "color": "Pink/Teal/Blue"
+      },
+      {
+        "sku": "PATH-OR-BK",
+        "color": "Orange/Black"
+      },
+      {
+        "sku": "PATH-PK-YL-BK",
+        "color": "Pink/Yellow/Black"
+      },
+      {
+        "sku": "PATH-BK-SV",
+        "color": "Black/Silver"
       }
     ]
   },
@@ -7077,8 +7097,8 @@
     "rg": 2.47,
     "diff": 0.054,
     "mbDiff": 0.015,
-    "imageThumb": "/catalog/img/motiv-jackal-fury-thumb.webp",
-    "imageFull": "/catalog/img/motiv-jackal-fury-full.webp",
+    "imageThumb": "/catalog/img/motiv-jackal-fury-bg2-thumb.webp",
+    "imageFull": "/catalog/img/motiv-jackal-fury-bg2-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/exclusives/jackal-fury.html",
     "productUrl": "https://www.motivbowling.com/products/balls/exclusives/jackal-fury.html",
     "weights": [
@@ -9036,8 +9056,8 @@
     "rg": 2.47,
     "diff": 0.054,
     "mbDiff": 0.015,
-    "imageThumb": "/catalog/img/motiv-jackal-scar-thumb.webp",
-    "imageFull": "/catalog/img/motiv-jackal-scar-full.webp",
+    "imageThumb": "/catalog/img/motiv-jackal-scar-bg2-thumb.webp",
+    "imageFull": "/catalog/img/motiv-jackal-scar-bg2-full.webp",
     "sourceUrl": "https://www.motivbowling.com/products/balls/exclusives/jackal-scar.html",
     "productUrl": "https://www.motivbowling.com/products/balls/exclusives/jackal-scar.html",
     "weights": [

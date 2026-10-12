@@ -1575,7 +1575,9 @@
     "mbDiff": null,
     "sourceUrls": [
       "https://www.bowwwl.com/bowling-ball-database/pyramid/path-various-colors",
-      "https://www.pyramidbowling.com/bowling-balls/Path/path-pink-black.html"
+      "https://www.pyramidbowling.com/bowling-balls/Path/path-pink-black.html",
+      "https://www.pyramidbowling.com/bowling-balls/Path/path-orange-black.html",
+      "https://www.pyramidbowling.com/bowling-balls/Path/path-black-silver.html"
     ],
     "weights": [
       {
@@ -1613,6 +1615,26 @@
       {
         "sku": "PATH-PK-BK",
         "color": "Pink/Black"
+      },
+      {
+        "sku": "PATH-HPK-LM",
+        "color": "Hot Pink/Lime"
+      },
+      {
+        "sku": "PATH-PK-TL-BL",
+        "color": "Pink/Teal/Blue"
+      },
+      {
+        "sku": "PATH-OR-BK",
+        "color": "Orange/Black"
+      },
+      {
+        "sku": "PATH-PK-YL-BK",
+        "color": "Pink/Yellow/Black"
+      },
+      {
+        "sku": "PATH-BK-SV",
+        "color": "Black/Silver"
       }
     ]
   },

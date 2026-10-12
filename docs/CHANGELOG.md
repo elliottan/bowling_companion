@@ -25,6 +25,11 @@ Portal, Cove, Ember and Vengeance; and more. Every one has RG and
 differential that two sites agree on and a second check confirmed. The new
 balls show the brand placeholder until their photos are added (ADR-135).
 
+**Cleaner photos.** The Jackal Scar and Jackal Fury no longer sit on a white
+square, and the Pyramid Path loses the white edge and the shadow it showed on
+one side. The Path also comes in five more colours: Hot Pink/Lime,
+Pink/Teal/Blue, Orange/Black, Pink/Yellow/Black and Black/Silver.
+
 ## 0.21.0: The catalog says the month a ball came out (2026-10-11)
 
 **Release month in the catalog.** A catalog ball now says when it came out to

@@ -136,6 +136,18 @@ first:
    is obvious to an eye and invisible to a test.
 5. **Never a retailer's photo** (the `gather-ball-specs` rule). A ball with no
    manufacturer image keeps the placeholder.
+6. **A white background that got through** (a ball photographed on a white
+   square, or a white crescent from an off-centre cut): `npm run
+   clear-background -- <ball-id>` clears near-white connected to the edge, and
+   `--circle` also cuts to the ball's circle, which removes a drop shadow. It
+   works from the current image, so give the repaired files a new name (as the
+   Jackal Scar, Jackal Fury and Path got `-bg2-`): the app caches a photo by
+   its URL for 30 days. Keep the old file too, holding the repaired image,
+   because arsenal balls keep a snapshot of the old path.
+7. **MOTIV's media folder.** MOTIV shares a Dropbox folder of ball images
+   covered by their permission (ADR-061); the owner has the link. It needs
+   `www.dropbox.com` and `dl.dropboxusercontent.com` allowed, which the mobile
+   app could not set; use the desktop app.
 
 Hosts to allow for the image work: the manufacturer domains above, and the SPI
 CDN host in `sources.ts`.
@@ -307,6 +319,23 @@ them. The value is the text both sites shared; a fuller name from the page
 - Roto Grip RST Hyperdrive: "MicroTrax"
 - Roto Grip X-Cell: "eTrax ULTRA"
 - Storm Hy-Road X: "R2X"
+
+### Pyramid Path colourways
+
+Six colours are in the catalog: Pink/Black, plus Hot Pink/Lime, Pink/Teal/Blue,
+Orange/Black and Pink/Yellow/Black (listed on both pyramidbowling.com and
+bowwwl), and Black/Silver (its own product page on pyramidbowling.com). Their
+`sku` values (`PATH-OR-BK` and so on) are catalog keys in the existing
+`PATH-PK-BK` style, **not Pyramid SKUs**, which no search turned up. None of
+the five has its own photo, so the detail page shows the Pink/Black ball under
+their names until one is added (`add-ball-image` keys a colourway as
+`<id>--<sku>`).
+
+A search summary of pyramidbowling.com also named Cosmic Candy Swirl,
+Purple/Light Purple, Purple/Black/White, Blue/Light Blue/Lime Green,
+Emerald/Black/Silver, Navy/Lime Green/White, Aqua/Silver, Blue/Black/White and
+Pink/Purple/Silver for the original Path. No second site confirmed them, so
+they are not in; a read of Pyramid's Path pages would settle them.
 
 ### Readings a page should settle
 

@@ -162,7 +162,10 @@ npm run contact-sheet
 to `add-ball-image`. Open `scripts/sync-catalog/contact-sheet.html` and look at
 it, in both light and dark. A bad cut or an off-centre ball is only visible to an
 eye. A ball with no usable image keeps the placeholder; never substitute a photo
-from a retailer.
+from a retailer. A ball whose photo still shows a white background or a white
+edge: `npm run clear-background -- <ball-id>` (add `--circle` to also cut away
+a drop shadow), then rename the files so the app's 30-day photo cache lets the
+fix through (the handout says how).
 
 ## Finish
 
