@@ -105,6 +105,50 @@ describe("PatternSheet", () => {
       expect(open).toHaveBeenCalledWith("/catalog/sheets/chromium-6742.0123456789ab.pdf", "_blank", "noopener,noreferrer");
     });
 
+    // iOS pulls nested fixed layers apart when the PAGE is pinch-zoomed, which
+    // showed the pattern screen beside the sheet. So the viewer zooms itself,
+    // by tap or pinch, and the page's own zoom is cancelled inside it.
+    describe("zooming the sheet", () => {
+      async function openViewer() {
+        serveCatalog("sheets/c.0123456789ab.pdf", ["sheets/c.0123456789ab.p1.webp"]);
+        render(<PatternSheet pattern={{ ...chromium, catalog_id: "chromium-6742" }} onClose={() => {}} />);
+        fireEvent.click(await screen.findByRole("button", { name: /original pattern sheet/i }));
+        const viewer = await waitFor(() => {
+          const el = document.querySelector<HTMLElement>('[data-role="sheet-viewer"]');
+          expect(el).not.toBeNull();
+          return el!;
+        });
+        return { viewer, pages: viewer.firstElementChild as HTMLElement };
+      }
+      const touch = (x: number) => ({ clientX: x, clientY: 100 });
+
+      it("zooms in on a tap and back out on the next", async () => {
+        const { pages } = await openViewer();
+        fireEvent.click(screen.getByRole("button", { name: "Zoom in" }));
+        expect(pages.style.width).toBe("250%");
+        fireEvent.click(screen.getByRole("button", { name: "Zoom out" }));
+        expect(pages.style.width).toBe("");
+      });
+
+      it("follows a pinch, and keeps it from zooming the page", async () => {
+        const { viewer, pages } = await openViewer();
+        fireEvent.touchStart(viewer, { touches: [touch(100), touch(200)] });
+        const spread = fireEvent.touchMove(viewer, { touches: [touch(50), touch(350)] });
+        expect(spread).toBe(false); // default prevented: the page did not zoom
+        expect(pages.style.width).toBe("300%");
+        fireEvent.touchMove(viewer, { touches: [touch(0), touch(2000)] });
+        expect(pages.style.width).toBe("500%"); // capped
+        fireEvent.touchEnd(viewer, { touches: [] });
+      });
+
+      it("cancels Safari's own pinch gesture inside the viewer", async () => {
+        const { viewer } = await openViewer();
+        const gesture = new Event("gesturestart", { cancelable: true });
+        viewer.dispatchEvent(gesture);
+        expect(gesture.defaultPrevented).toBe(true);
+      });
+    });
+
     // A link the bowler typed themselves is theirs, and still opens.
     it("links the bowler's own sheet when the catalog kept no copy", async () => {
       serveCatalog(undefined);

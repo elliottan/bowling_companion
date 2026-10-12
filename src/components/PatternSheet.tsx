@@ -1,5 +1,5 @@
 import { ArrowUpRight, ChevronRight } from "lucide-react";
-import { useEffect, useLayoutEffect, useMemo, useRef, useState, type MouseEvent } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type MouseEvent } from "react";
 import type { OilPass, OilPattern } from "../types/bowling";
 import {
   boardTotals, formatSheetBoard, headlineRatio, oilStats, patternClass,
@@ -179,44 +179,106 @@ function TrackZoneRow({ zones }: { zones: { label: string; ratio: number }[] }) 
   );
 }
 
+/** How far the sheet zooms: a tap goes to TAP_ZOOM, a pinch anywhere up to MAX_ZOOM. */
+const TAP_ZOOM = 2.5;
+const MAX_ZOOM = 5;
+const clampZoom = (scale: number) => Math.min(MAX_ZOOM, Math.max(1, scale));
+
 /**
  * The original sheet, in the app (ADR-136). Its pages were drawn as images when
  * the sheet was kept, so this needs no PDF reader and works on a phone whose
- * browser will not show a PDF inline. A tap zooms in to read the load table and
- * back out; the PDF itself is the one trailing action, for printing or sharing.
+ * browser will not show a PDF inline. The PDF itself is the one trailing action,
+ * for printing or sharing.
+ *
+ * Zoom is the viewer's own, by a tap or a pinch, and never the page's. This
+ * screen is a `position: fixed` layer pushed from inside other fixed layers (the
+ * pattern list opens from the session sheet), and iOS moves nested fixed layers
+ * apart when the page is pinch-zoomed, which showed the pattern screen beside
+ * the sheet (docs/VIEWPORT-BUG.md, "Pinch zoom"). So a pinch here is taken by
+ * the viewer: `touch-action` leaves the browser panning only, and Safari's own
+ * gesture events, which it fires whatever `touch-action` says, are cancelled.
+ * Either way the spot under the fingers stays under them.
  */
 function SheetViewer({ title, sheet, onClose }: { title: string; sheet: KeptSheet; onClose: () => void }) {
-  const [zoomed, setZoomed] = useState(false);
+  const [scale, setScale] = useState(1);
+  // The pinch listeners outlive a render, so they read the scale from here.
+  const scaleRef = useRef(1);
   const across = useRef<HTMLDivElement>(null);
-  // Where the tap landed, as a fraction of the page, and where on the screen,
-  // so zooming in keeps that spot under the finger rather than jumping to the
-  // page's top left corner.
-  const focus = useRef<{ page: HTMLElement; fx: number; fy: number; x: number; y: number } | null>(null);
+  const pagesRef = useRef<HTMLDivElement>(null);
+  // Where the zoom is centred, as a fraction of the pages, and where that spot
+  // is on screen, so it stays put while everything around it grows.
+  const focus = useRef<{ fx: number; fy: number; x: number; y: number } | null>(null);
 
-  function toggle(event: MouseEvent<HTMLButtonElement>) {
-    const page = event.currentTarget;
-    const box = page.getBoundingClientRect();
-    focus.current = {
-      page,
-      fx: (event.clientX - box.left) / box.width,
-      fy: (event.clientY - box.top) / box.height,
-      x: event.clientX,
-      y: event.clientY,
-    };
-    setZoomed((z) => !z);
-  }
+  const zoomTo = useCallback((next: number, x: number, y: number) => {
+    const pages = pagesRef.current;
+    if (!pages) return;
+    const box = pages.getBoundingClientRect();
+    // A page not laid out yet has no spot to hold; it just zooms.
+    focus.current =
+      box.width > 0 && box.height > 0
+        ? { fx: (x - box.left) / box.width, fy: (y - box.top) / box.height, x, y }
+        : null;
+    setScale(clampZoom(next));
+  }, []);
 
   useLayoutEffect(() => {
+    scaleRef.current = scale;
     const spot = focus.current;
     const row = across.current;
-    if (!spot || !row) return;
-    const box = spot.page.getBoundingClientRect();
+    const pages = pagesRef.current;
+    if (!spot || !row || !pages) return;
+    const box = pages.getBoundingClientRect();
     row.scrollLeft += box.left + spot.fx * box.width - spot.x;
     const down = row.parentElement?.closest<HTMLElement>(".overflow-y-auto");
     if (down) down.scrollTop += box.top + spot.fy * box.height - spot.y;
     focus.current = null;
-  }, [zoomed]);
+  }, [scale]);
 
+  // Native listeners, because a pinch has to be able to cancel the page's own
+  // zoom, and React's touch handlers are passive.
+  useEffect(() => {
+    const row = across.current;
+    if (!row) return;
+    let pinch: { distance: number; scale: number } | null = null;
+    const span = (touches: TouchList) =>
+      Math.hypot(touches[0].clientX - touches[1].clientX, touches[0].clientY - touches[1].clientY);
+
+    const start = (event: TouchEvent) => {
+      if (event.touches.length === 2) pinch = { distance: span(event.touches), scale: scaleRef.current };
+    };
+    const move = (event: TouchEvent) => {
+      if (!pinch || event.touches.length !== 2) return;
+      event.preventDefault();
+      const [a, b] = [event.touches[0], event.touches[1]];
+      const distance = span(event.touches);
+      if (pinch.distance > 0) {
+        zoomTo((pinch.scale * distance) / pinch.distance, (a.clientX + b.clientX) / 2, (a.clientY + b.clientY) / 2);
+      }
+    };
+    const end = (event: TouchEvent) => {
+      if (event.touches.length < 2) pinch = null;
+    };
+    const cancelPageZoom = (event: Event) => event.preventDefault();
+
+    row.addEventListener("touchstart", start, { passive: true });
+    row.addEventListener("touchmove", move, { passive: false });
+    row.addEventListener("touchend", end);
+    row.addEventListener("touchcancel", end);
+    for (const type of ["gesturestart", "gesturechange", "gestureend"]) {
+      row.addEventListener(type, cancelPageZoom, { passive: false });
+    }
+    return () => {
+      row.removeEventListener("touchstart", start);
+      row.removeEventListener("touchmove", move);
+      row.removeEventListener("touchend", end);
+      row.removeEventListener("touchcancel", end);
+      for (const type of ["gesturestart", "gesturechange", "gestureend"]) {
+        row.removeEventListener(type, cancelPageZoom);
+      }
+    };
+  }, [zoomTo]);
+
+  const zoomed = scale > 1;
   return (
     <PushScreen
       title={title}
@@ -232,16 +294,27 @@ function SheetViewer({ title, sheet, onClose }: { title: string; sheet: KeptShee
         </IconButton>
       }
     >
-      {/* The screen scrolls down the page; this scrolls across it when zoomed. */}
-      <div ref={across} className="min-h-full overflow-x-auto bg-surface-muted">
-        <div className={`mx-auto space-y-2 p-2 ${zoomed ? "w-[250%] max-w-none" : "w-full max-w-3xl"}`}>
+      {/* The screen scrolls down the page; this scrolls across it when zoomed.
+          Panning only: a pinch is the viewer's, never the page's. */}
+      <div
+        ref={across}
+        data-role="sheet-viewer"
+        className="min-h-full overflow-x-auto bg-surface-muted [touch-action:pan-x_pan-y]"
+      >
+        <div
+          ref={pagesRef}
+          className={`mx-auto space-y-2 p-2 ${zoomed ? "max-w-none" : "w-full max-w-3xl"}`}
+          style={zoomed ? { width: `${scale * 100}%` } : undefined}
+        >
           {sheet.pages.map((page, i) => (
             <button
               key={page}
               type="button"
               aria-label={zoomed ? "Zoom out" : "Zoom in"}
-              onClick={toggle}
-              className={`block w-full ${zoomed ? "cursor-zoom-out" : "cursor-zoom-in"}`}
+              onClick={(event: MouseEvent<HTMLButtonElement>) =>
+                zoomTo(zoomed ? 1 : TAP_ZOOM, event.clientX, event.clientY)
+              }
+              className={`block w-full [touch-action:pan-x_pan-y] ${zoomed ? "cursor-zoom-out" : "cursor-zoom-in"}`}
             >
               <img
                 src={page}

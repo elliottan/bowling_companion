@@ -9,11 +9,16 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
-## 0.24.0: Chromium 6742's original sheet (2026-10-12)
+## 0.24.0: Chromium 6742's original sheet, and pinch to zoom a sheet (2026-10-12)
 
 **Chromium 6742's sheet, in the app.** Chromium 6742 now opens its original
 Kegel sheet from "Original pattern sheet", like the other catalog patterns
 (ADR-136).
+
+**Pinch to zoom a sheet.** Pinching a pattern sheet on an iPhone zoomed the
+whole app and slid the sheet aside, showing the pattern screen behind it. A
+pinch now zooms the sheet itself, up to five times, around your fingers. A tap
+still zooms in and back out.
 
 ## 0.23.0: A pattern's original sheet, in the app, with Tungsten and Pesta Sukan 2026 (2026-10-12)
 
