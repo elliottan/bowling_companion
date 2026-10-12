@@ -413,7 +413,7 @@ const MOVE_LIMIT = 20;
  * The arrows point the way the move goes on screen, as the scorer's do: up the
  * boards is screen-left for a right-hander and screen-right for a left-hander.
  */
-function MoveStepper({
+export function MoveStepper({
   label,
   value,
   readOnly,

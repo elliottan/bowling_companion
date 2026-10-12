@@ -254,4 +254,70 @@ describe("SpareLinesView", () => {
     fireEvent.click(screen.getByRole("button", { name: "All" }));
     expect(screen.getAllByRole("button", { name: /^Open spare line/ }).length).toBeGreaterThan(1);
   });
+
+  describe("bulk edit from a row's heading (ADR-140)", () => {
+    const byPins = async () =>
+      new Map((await getSpareLinesAll()).map((sl) => [sl.pins.join("-"), sl]));
+
+    it("changes the line for every leave on the row, and nothing else on them", async () => {
+      await upsertSpareLine([6], { stance: 34, target: 29 }, "keep me");
+      await upsertSpareLine([6, 10], { stance: 34, target: 29 }, undefined, { stance: 2 });
+      await upsertSpareLine([10], { stance: 30, target: 20 });
+      render(<SpareLinesView onBack={vi.fn()} />);
+
+      fireEvent.click(
+        await screen.findByRole("button", { name: "Edit Stance 34, target 29 for all 2 leaves" })
+      );
+      const sheet = await screen.findByRole("dialog", { name: "Bulk edit" });
+      // Every leave is shown, none of them editable.
+      const listed = within(sheet).getByRole("list", { name: "Leaves on this line" });
+      expect(within(listed).getAllByRole("listitem")).toHaveLength(2);
+      expect(within(listed).queryByRole("button")).toBeNull();
+
+      fireEvent.change(within(sheet).getByLabelText("Stance"), { target: { value: "36" } });
+      fireEvent.change(within(sheet).getByLabelText("Target"), { target: { value: "30" } });
+      fireEvent.click(within(sheet).getByRole("button", { name: "Save for all 2 leaves" }));
+
+      await waitFor(async () => {
+        const lines = await byPins();
+        expect(lines.get("6")?.line).toMatchObject({ stance: 36, target: 30 });
+        expect(lines.get("6-10")?.line).toMatchObject({ stance: 36, target: 30 });
+      });
+      const lines = await byPins();
+      expect(lines.get("6")?.notes).toBe("keep me");
+      expect(lines.get("6-10")?.strike_offset).toEqual({ stance: 2 });
+      // A leave on another row is not touched.
+      expect(lines.get("10")?.line).toMatchObject({ stance: 30, target: 20 });
+      await waitFor(() =>
+        expect(screen.getByRole("region", { name: "Stance 36, target 30" })).toBeInTheDocument()
+      );
+    });
+
+    it("changes a strike ball move for every leave on its row", async () => {
+      await upsertSpareLine([2, 8], { stance: 20, target: 10 }, undefined, { stance: -2 });
+      await upsertSpareLine([2, 4, 8], undefined, undefined, { stance: -2 });
+      render(<SpareLinesView onBack={vi.fn()} />);
+
+      fireEvent.click(await screen.findByRole("button", { name: "Edit Strike ball for all 2 leaves" }));
+      const sheet = await screen.findByRole("dialog", { name: "Bulk edit" });
+      // A right-hander's left arrow is up the boards: from 2 right to 1.5 right.
+      fireEvent.click(within(sheet).getByRole("button", { name: "stance move left half a board" }));
+      fireEvent.click(within(sheet).getByRole("button", { name: "Save for all 2 leaves" }));
+
+      await waitFor(async () => {
+        const lines = await byPins();
+        expect(lines.get("2-8")?.strike_offset).toEqual({ stance: -1.5 });
+        expect(lines.get("2-4-8")?.strike_offset).toEqual({ stance: -1.5 });
+      });
+      // The spare ball line on the leave that has one stays.
+      expect((await byPins()).get("2-8")?.line).toMatchObject({ stance: 20, target: 10 });
+    });
+
+    it("offers no bulk edit on the row of leaves with no line", async () => {
+      await upsertSpareLine([3, 10]);
+      render(<SpareLinesView onBack={vi.fn()} />);
+      await screen.findByRole("region", { name: "No line yet" });
+      expect(screen.queryByRole("button", { name: /^Edit No line yet/ })).toBeNull();
+    });
+  });
 });

@@ -7,7 +7,17 @@ import {
 } from "./lanes";
 import { isPocketLeave } from "./pins";
 import { hasLine, hasMove } from "./spareLines";
-import type { Ball, Frame, Game, LineSpec, PinNumber, Shot, SpareLine } from "../types/bowling";
+import type {
+  Ball,
+  Frame,
+  Game,
+  LineSpec,
+  PinNumber,
+  Session,
+  SessionSummary,
+  Shot,
+  SpareLine
+} from "../types/bowling";
 
 /**
  * What a new shot starts with: which ball is selected, what the Intended line
@@ -37,6 +47,10 @@ export interface ShotSeedInput {
   previousGames?: Array<{ game: GameLanes; frames: Frame[] }>;
   /** Frames from OTHER games this session, for the spare-line lookup. */
   sessionFrames?: Frame[];
+  /** Frames from earlier sessions at the same alley on the same oil pattern,
+   *  oldest first: where a leave this session has no attempt at looks next
+   *  (ADR-140). */
+  earlierSessionFrames?: Frame[];
   balls: Ball[];
   spareLines: SpareLine[];
 }
@@ -72,14 +86,27 @@ export function sessionSpareIntended(
   ballId?: number,
   strict = false
 ): LineSpec | undefined {
-  const key = pinsKey(leave);
+  return latestSpareIntended(frames, new Set([pinsKey(leave)]), ballId, strict);
+}
+
+/**
+ * `sessionSpareIntended` over a set of leaves: the newest attempt at any of
+ * them. The set is a leave and the leaves that share its saved spare line
+ * (`sameLineLeaves`), so a move made at the 6 is where the 6-10 starts too.
+ */
+function latestSpareIntended(
+  frames: Frame[],
+  keys: Set<string>,
+  ballId?: number,
+  strict = false
+): LineSpec | undefined {
   let found: LineSpec | undefined;
   for (const f of frames) {
     for (const i of freshRackShotIndices(f.shots)) {
       const rack = f.shots[i];
       const attempt = f.shots[i + 1];
       if (!attempt || rack.pins_standing.length === 0) continue;
-      if (pinsKey(rack.pins_standing) !== key) continue;
+      if (!keys.has(pinsKey(rack.pins_standing))) continue;
       // An attempt tagged with a DIFFERENT ball is not this ball's line. An
       // untagged one still is: it is the only record of that leave there is, and
       // dropping it would silently stop seeding for anyone who does not pick a
@@ -92,6 +119,55 @@ export function sessionSpareIntended(
     }
   }
   return found;
+}
+
+/**
+ * Every frame from the sessions before this one at the same alley on the same
+ * oil pattern, oldest session first, so the newest attempt is the one found
+ * (ADR-140). A spare line is a house and a pattern's answer, so a different
+ * pattern at the same house, or the same pattern somewhere else, is not one.
+ * A session with no pattern matches only others with none. With no alley named
+ * there is no house to match, and nothing comes back.
+ */
+export function earlierSessionFrames(
+  history: SessionSummary[],
+  current: Pick<Session, "id" | "date" | "alley_name" | "oil_pattern_id">
+): Frame[] {
+  const alley = current.alley_name.trim().toLowerCase();
+  if (!alley) return [];
+  return history
+    .filter(
+      ({ session: s }) =>
+        s.id !== current.id &&
+        s.date <= current.date &&
+        s.alley_name.trim().toLowerCase() === alley &&
+        s.oil_pattern_id === current.oil_pattern_id
+    )
+    .sort((a, b) => a.session.date.localeCompare(b.session.date) || (a.session.id ?? 0) - (b.session.id ?? 0))
+    .flatMap(({ games }) =>
+      [...games]
+        .sort((a, b) => a.game_number - b.game_number)
+        .flatMap((g) => (g as Game & { frames?: Frame[] }).frames ?? [])
+    );
+}
+
+/**
+ * A leave and every leave saved with the same spare ball line as it: the same
+ * stance and target, which is what puts them on one row of the Spare lines
+ * screen. These are one shot, so an adjustment made at any of them this session
+ * is the line for all of them (ADR-140). A leave with no saved boards is a set
+ * of one.
+ */
+export function sameLineLeaves(spareLines: SpareLine[], leave: PinNumber[]): Set<string> {
+  const keys = new Set([pinsKey(leave)]);
+  const saved = savedSpareLine(spareLines, leave);
+  if (!hasLine(saved)) return keys;
+  const boards = (sl: SpareLine) => `${sl.line?.stance ?? "-"}|${sl.line?.target ?? "-"}`;
+  const mine = boards(saved!);
+  for (const sl of spareLines) {
+    if (hasLine(sl) && boards(sl) === mine) keys.add(pinsKey(sl.pins));
+  }
+  return keys;
 }
 
 /** The saved spare line for a leave, if one exists. */
@@ -114,8 +190,9 @@ export function savedSpareLine(
  * At a leave it depends on the kind of ball (ADR-113, replacing ADR-053's
  * steps 3 and 4 for a strike ball):
  *
- * - a spare ball, or no ball: this ball's own attempt at this leave this
- *   session, then the leave's saved line, then the line the strike ball threw
+ * - a spare ball, or no ball: this ball's newest attempt this session at this
+ *   leave or one saved on the same line, then the same from earlier sessions
+ *   at this alley on this pattern (ADR-140), then the leave's saved line, then the line the strike ball threw
  *   at the rack (ADR-125), then the ball's own strike line. A leave saved with
  *   only a strike move gives it nothing past its own attempt (ADR-132);
  * - a strike ball: this ball's own attempt at this leave this session, then its
@@ -125,7 +202,7 @@ export function savedSpareLine(
  */
 export function lineForBall(
   input: Pick<ShotSeedInput, "currentFrameNumber" | "frames" | "game" | "previousGames"> &
-    Partial<Pick<ShotSeedInput, "sessionFrames" | "spareLines" | "balls">>,
+    Partial<Pick<ShotSeedInput, "sessionFrames" | "earlierSessionFrames" | "spareLines" | "balls">>,
   ballId: number | undefined,
   currentFrameShots: Shot[],
   leave?: PinNumber[]
@@ -171,12 +248,20 @@ export function lineForBall(
   }
 
   const isStrikeBall = ballKind(input.balls ?? [], ballId) === "strike";
-  const own = sessionSpareIntended(
-    [...(input.sessionFrames ?? []), ...input.frames],
-    leave,
-    ballId,
-    isStrikeBall
-  );
+  // The newest attempt this session, at this leave or, for a spare ball, at
+  // any leave saved on the same line (ADR-140). Then the newest one from an
+  // earlier session at this alley on this pattern. A strike ball reads its own
+  // attempts at this exact leave only: the rows are spare ball lines.
+  const leaves = isStrikeBall
+    ? new Set([pinsKey(leave)])
+    : sameLineLeaves(input.spareLines ?? [], leave);
+  const own =
+    latestSpareIntended(
+      [...(input.sessionFrames ?? []), ...input.frames],
+      leaves,
+      ballId,
+      isStrikeBall
+    ) ?? latestSpareIntended(input.earlierSessionFrames ?? [], leaves, ballId, isStrikeBall);
   if (own) return { ...own };
 
   const saved = savedSpareLine(input.spareLines ?? [], leave);

@@ -9,6 +9,20 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.28.0: Spare lines that follow your moves, and a whole row edited at once (2026-10-12)
+
+**Move once, and every leave on that line follows.** If you move for the 6 and
+later leave the 6-10, which is saved on the same line, the scorer opens the
+6-10 on where you just shot the 6. Leaves saved on a different line keep their
+own.
+
+**Your last session at the house comes back.** The first time you face a leave
+in a session, the scorer opens on the line you last shot it with at the same
+alley on the same oil pattern, before falling back to your saved line.
+
+**Edit a whole row on Spare lines.** Tap the line at the top of a row to change
+it, or the strike ball move, for every leave on that row in one go (ADR-140).
+
 ## 0.27.0: Stats by game, and more on each ball (2026-10-12)
 
 **See how your nights go, game by game.** The chart on the Stats tab has a By

@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { savedSpareLine, seedForShot, lineForBall, sessionSpareIntended } from "./shotSeeding";
-import type { Ball, Frame, LineSpec, PinNumber, Shot, SpareLine } from "../types/bowling";
+import {
+  earlierSessionFrames,
+  savedSpareLine,
+  seedForShot,
+  lineForBall,
+  sessionSpareIntended
+} from "./shotSeeding";
+import type { Ball, Frame, LineSpec, PinNumber, SessionSummary, Shot, SpareLine } from "../types/bowling";
 
 const LANE_12 = { lanes: ["12"], start_lane: "12", lane_number: "12" };
 const PAIR = { lanes: ["11", "12"], start_lane: "11", lane_number: "11" };
@@ -878,5 +884,142 @@ describe("ADR-123: a pocket leave is shot like a strike", () => {
       POCKET
     );
     expect(line).toBeUndefined();
+  });
+});
+
+describe("ADR-140: a spare line follows its row, and the house's last session", () => {
+  /** The 6 and the 6-10 saved on one line, the 10 on another. */
+  const SAVED: SpareLine[] = [
+    { id: 1, pins: [6] as PinNumber[], line: { stance: 34, target: 29 }, sort_order: 0 },
+    { id: 2, pins: [6, 10] as PinNumber[], line: { stance: 34, target: 29 }, sort_order: 1 },
+    { id: 3, pins: [10] as PinNumber[], line: { stance: 30, target: 20 }, sort_order: 2 }
+  ];
+
+  /** A spare attempt at `leave` with the spare ball, on `intended`. */
+  function attempt(n: number, leave: PinNumber[], intended: LineSpec): Frame {
+    return frame(
+      n,
+      [
+        { pins_standing: leave, ball_id: 1 },
+        { pins_standing: [] as PinNumber[], ball_id: 2, intended }
+      ],
+      { is_spare: true }
+    );
+  }
+
+  /** Shot two at `leave`, frame 5 of this game. */
+  const at = (leave: PinNumber[]) => ({
+    ...base,
+    spareLines: SAVED,
+    game: LANE_12,
+    currentShot: 2,
+    currentFrameNumber: 5,
+    availablePins: leave,
+    currentFrameShots: [{ pins_standing: leave, ball_id: 1 }]
+  });
+
+  it("opens the 6-10 on the move made at the 6 this session, the two being saved on one line", () => {
+    const seed = seedForShot({ ...at([6, 10]), frames: [attempt(2, [6], { stance: 36, target: 30 })] });
+    expect(seed.intended).toEqual({ stance: 36, target: 30 });
+  });
+
+  it("takes the newest attempt on the line, whichever leave it was at", () => {
+    const seed = seedForShot({
+      ...at([6]),
+      sessionFrames: [attempt(3, [6], { stance: 35, target: 29 })],
+      frames: [attempt(2, [6, 10], { stance: 37, target: 31 })]
+    });
+    expect(seed.intended).toEqual({ stance: 37, target: 31 });
+  });
+
+  it("does not carry a move to a leave saved on a different line", () => {
+    const seed = seedForShot({ ...at([10]), frames: [attempt(2, [6], { stance: 36, target: 30 })] });
+    expect(seed.intended).toEqual({ stance: 30, target: 20 });
+  });
+
+  it("keeps a leave with no saved line to its own attempts", () => {
+    const seed = seedForShot({
+      ...at([7]),
+      frames: [attempt(2, [6], { stance: 36, target: 30 })]
+    });
+    expect(seed.intended).toBeUndefined();
+  });
+
+  it("falls back to the last session at this house on this pattern before the saved line", () => {
+    const seed = seedForShot({
+      ...at([6, 10]),
+      earlierSessionFrames: [
+        attempt(4, [6, 10], { stance: 33, target: 28 }),
+        attempt(7, [6], { stance: 35, target: 30 })
+      ]
+    });
+    expect(seed.intended).toEqual({ stance: 35, target: 30 });
+  });
+
+  it("lets this session's attempt win over an earlier session's", () => {
+    const seed = seedForShot({
+      ...at([6]),
+      earlierSessionFrames: [attempt(4, [6], { stance: 33, target: 28 })],
+      sessionFrames: [attempt(1, [6, 10], { stance: 36, target: 29 })]
+    });
+    expect(seed.intended).toEqual({ stance: 36, target: 29 });
+  });
+
+  it("gives a strike ball only its own attempts at the exact leave, earlier sessions included", () => {
+    const strikeAttempt = (n: number, leave: PinNumber[], intended: LineSpec) =>
+      frame(n, [
+        { pins_standing: leave, ball_id: 1 },
+        { pins_standing: [] as PinNumber[], ball_id: 1, intended }
+      ]);
+    const input = {
+      ...at([6, 10]),
+      frames: [strikeAttempt(2, [6], { stance: 20, target: 12 })],
+      earlierSessionFrames: [strikeAttempt(6, [6, 10], { stance: 19, target: 11 })]
+    };
+    expect(lineForBall(input, 1, input.currentFrameShots, [6, 10])).toEqual({ stance: 19, target: 11 });
+  });
+});
+
+describe("earlierSessionFrames (ADR-140)", () => {
+  const night = (
+    id: number,
+    date: string,
+    alley: string,
+    pattern: number | undefined,
+    tag: number
+  ): SessionSummary => ({
+    session: { id, date, alley_name: alley, oil_pattern_id: pattern },
+    games: [
+      {
+        id: id * 10,
+        session_id: id,
+        game_number: 1,
+        frames: [frame(tag, [{ pins_standing: [] as PinNumber[] }])]
+      } as SessionSummary["games"][number]
+    ]
+  });
+  const tags = (frames: Frame[]) => frames.map((f) => f.frame_number);
+  const now = { id: 9, date: "2026-10-12", alley_name: "Sea Bowl", oil_pattern_id: 4 };
+
+  it("keeps earlier nights at this house on this pattern, oldest first", () => {
+    const history = [
+      night(3, "2026-09-20", "Sea Bowl", 4, 3),
+      night(1, "2026-08-01", "sea bowl ", 4, 1),
+      night(2, "2026-09-01", "Sea Bowl", 5, 2), // another pattern
+      night(4, "2026-09-25", "Jurong", 4, 4), // another house
+      night(9, "2026-10-12", "Sea Bowl", 4, 9), // this night
+      night(5, "2026-11-01", "Sea Bowl", 4, 5) // after it
+    ];
+    expect(tags(earlierSessionFrames(history, now))).toEqual([1, 3]);
+  });
+
+  it("matches a night with no pattern only to others with none", () => {
+    const history = [night(1, "2026-08-01", "Sea Bowl", undefined, 1), night(2, "2026-08-02", "Sea Bowl", 4, 2)];
+    expect(tags(earlierSessionFrames(history, { ...now, oil_pattern_id: undefined }))).toEqual([1]);
+  });
+
+  it("finds nothing without an alley to match", () => {
+    const history = [night(1, "2026-08-01", "", 4, 1)];
+    expect(earlierSessionFrames(history, { ...now, alley_name: " " })).toEqual([]);
   });
 });
