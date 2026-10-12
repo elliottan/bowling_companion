@@ -92,7 +92,7 @@ const ROW_ARROW = new RegExp(
     /(\d{1,3})\s+/,                      // LOADS
     /(\d{1,4})\s+/,                      // MICS
     /(\d{1,3})\s+/,                      // SPEED
-    /(\d{1,2})\s+/,                      // BUFF
+    /(\d{1,4})\s+/,                      // BUFF, a level (1 to 4) or an RPM (500)
     /(\S(?:.*?\S)?)\s+/,                 // TANK, a name such as "A - FIRE"
     /(\d{1,2}(?:\.\d+)?)\s*(?:→|->)\s*/, // START ft
     /(\d{1,2}(?:\.\d+)?)\s+/,            // END ft

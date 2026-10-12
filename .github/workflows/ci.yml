@@ -17,7 +17,9 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          # 22, not 20: pdfjs-dist 6 requires Node 22.13 or later, and the
+          # pattern pipeline's tests draw real sheet pages with it (ADR-136).
+          node-version: 22
           cache: npm
 
       - name: Install dependencies

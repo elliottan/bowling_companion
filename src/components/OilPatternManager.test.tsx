@@ -16,33 +16,37 @@ describe("OilPatternManager", () => {
     await addOilPattern("No length");
   });
 
-  it("puts each pattern's length in front of its name", async () => {
+  // The length leads the line under the name, coloured, rather than cluttering
+  // the name itself, so the names line up.
+  it("puts each pattern's length under its name, in the accent colour", async () => {
     render(<OilPatternManager />);
-    expect(await screen.findByText("(35 ft) Short one")).toBeInTheDocument();
+    expect(await screen.findByText("Short one")).toBeInTheDocument();
+    expect(screen.getByText("35 ft")).toHaveClass("text-accent");
+    expect(screen.queryByText(/\(35 ft\)/)).toBeNull();
     expect(screen.getByText("No length")).toBeInTheDocument();
   });
 
   it("filters by length range from the filter sheet", async () => {
     render(<OilPatternManager />);
-    await screen.findByText("(45 ft) Long one");
+    await screen.findByText("Long one");
     fireEvent.click(screen.getByRole("button", { name: "Filters" }));
     const [min] = screen.getAllByRole("slider");
     fireEvent.change(min, { target: { value: "42" } });
     fireEvent.pointerUp(window);
-    await waitFor(() => expect(screen.queryByText("(35 ft) Short one")).toBeNull());
-    expect(screen.getByText("(45 ft) Long one")).toBeInTheDocument();
+    await waitFor(() => expect(screen.queryByText("Short one")).toBeNull());
+    expect(screen.getByText("Long one")).toBeInTheDocument();
     expect(screen.queryByText("No length")).toBeNull();
     expect(screen.getByRole("button", { name: "Filters, 1 applied" })).toBeInTheDocument();
   });
 
   it("filters by several play styles at once", async () => {
     render(<OilPatternManager />);
-    await screen.findByText("(45 ft) Long one");
+    await screen.findByText("Long one");
     fireEvent.click(screen.getByRole("button", { name: "Filters" }));
     fireEvent.click(screen.getByRole("button", { name: "Sport" }));
     fireEvent.click(screen.getByRole("button", { name: "Challenge" }));
     // None of these has a load table, so no play style matches any of them.
-    await waitFor(() => expect(screen.queryByText("(35 ft) Short one")).toBeNull());
+    await waitFor(() => expect(screen.queryByText("Short one")).toBeNull());
     expect(screen.getByRole("button", { name: "Filters, 1 applied" })).toBeInTheDocument();
   });
 });

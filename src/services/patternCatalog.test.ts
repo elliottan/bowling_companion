@@ -86,6 +86,31 @@ describe("syncPatternCatalog", () => {
     expect(patterns[0].passes).toHaveLength(1);
   });
 
+  // ADR-136: the app shows its own copy of the sheet, so the publisher's link
+  // is never seeded onto a row, and a row seeded with it before loses it.
+  it("never puts the publisher's link on a row, and takes it off one seeded with it", async () => {
+    serveCatalog();
+    await syncPatternCatalog();
+    expect((await getAllOilPatterns())[0].url).toBeUndefined();
+
+    const [row] = await getAllOilPatterns();
+    await db.oil_patterns.update(row.id!, { url: "https://example.com/stonehenge.pdf" });
+    resetPatternCatalogCache();
+    serveCatalog();
+    await syncPatternCatalog();
+    expect((await getAllOilPatterns())[0].url).toBeUndefined();
+  });
+
+  it("keeps a link the bowler typed themselves", async () => {
+    await addOilPattern("Stonehenge", "https://my-league.example/sheet.pdf");
+    serveCatalog();
+    await syncPatternCatalog();
+    expect((await getAllOilPatterns())[0]).toMatchObject({
+      catalog_id: "stonehenge",
+      url: "https://my-league.example/sheet.pdf",
+    });
+  });
+
   it("leaves a pattern whose name is the bowler's own alone", async () => {
     await addOilPattern("Thursday league");
     serveCatalog();

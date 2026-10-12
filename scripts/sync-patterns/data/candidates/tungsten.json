@@ -1,0 +1,203 @@
+{
+  "id": "tungsten",
+  "name": "Tungsten",
+  "vendor": "kegel",
+  "reader": "text-layer",
+  "passes": [
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 2,
+      "microliters": 40,
+      "start_distance": 0,
+      "end_distance": 2,
+      "speed": 14,
+      "buffer": 3,
+      "tank": "A - TERRAIN"
+    },
+    {
+      "direction": "forward",
+      "left_board": 6,
+      "right_board": 34,
+      "loads": 2,
+      "microliters": 45,
+      "start_distance": 2,
+      "end_distance": 6,
+      "speed": 14,
+      "buffer": 3,
+      "tank": "B - TERRAIN"
+    },
+    {
+      "direction": "forward",
+      "left_board": 8,
+      "right_board": 32,
+      "loads": 3,
+      "microliters": 50,
+      "start_distance": 6,
+      "end_distance": 12,
+      "speed": 14,
+      "buffer": 3,
+      "tank": "A - TERRAIN"
+    },
+    {
+      "direction": "forward",
+      "left_board": 10,
+      "right_board": 30,
+      "loads": 3,
+      "microliters": 50,
+      "start_distance": 12,
+      "end_distance": 18,
+      "speed": 14,
+      "buffer": 3,
+      "tank": "B - TERRAIN"
+    },
+    {
+      "direction": "forward",
+      "left_board": 12,
+      "right_board": 28,
+      "loads": 2,
+      "microliters": 55,
+      "start_distance": 18,
+      "end_distance": 23,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "A - TERRAIN"
+    },
+    {
+      "direction": "forward",
+      "left_board": 13,
+      "right_board": 27,
+      "loads": 2,
+      "microliters": 55,
+      "start_distance": 23,
+      "end_distance": 28,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "B - TERRAIN"
+    },
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 55,
+      "start_distance": 28,
+      "end_distance": 32,
+      "speed": 22,
+      "buffer": 3,
+      "tank": "A - TERRAIN"
+    },
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 55,
+      "start_distance": 32,
+      "end_distance": 39,
+      "speed": 26,
+      "buffer": 3,
+      "tank": "B - TERRAIN"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 55,
+      "start_distance": 36,
+      "end_distance": 32,
+      "speed": 30,
+      "buffer": 3,
+      "tank": "A - TERRAIN"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 12,
+      "right_board": 28,
+      "loads": 2,
+      "microliters": 55,
+      "start_distance": 32,
+      "end_distance": 26,
+      "speed": 22,
+      "buffer": 3,
+      "tank": "B - TERRAIN"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 10,
+      "right_board": 30,
+      "loads": 2,
+      "microliters": 55,
+      "start_distance": 26,
+      "end_distance": 20,
+      "speed": 22,
+      "buffer": 3,
+      "tank": "A - TERRAIN"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 8,
+      "right_board": 32,
+      "loads": 2,
+      "microliters": 50,
+      "start_distance": 20,
+      "end_distance": 15,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "B - TERRAIN"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 6,
+      "right_board": 34,
+      "loads": 1,
+      "microliters": 50,
+      "start_distance": 15,
+      "end_distance": 12,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "A - TERRAIN"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 1,
+      "microliters": 40,
+      "start_distance": 12,
+      "end_distance": 10,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "B - TERRAIN"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 40,
+      "start_distance": 10,
+      "end_distance": 0,
+      "speed": 14,
+      "buffer": 3,
+      "tank": "A - TERRAIN"
+    }
+  ],
+  "stated": {
+    "distance": 39,
+    "forwardMl": 15.99,
+    "reverseMl": 9.61,
+    "volumeMl": 25.6
+  },
+  "note": "Tungsten.pdf · 39 ft · 6.25:1",
+  "sheet": {
+    "file": "tungsten.bc88bd25dee5.pdf",
+    "sha256": "bc88bd25dee50a457d875a1963a55a0c9f734cedc537af5357a1b6ad703d63e8",
+    "bytes": 943621,
+    "pages": [
+      "tungsten.bc88bd25dee5.p1.webp"
+    ]
+  }
+}

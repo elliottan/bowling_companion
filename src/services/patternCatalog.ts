@@ -17,7 +17,13 @@ export interface CatalogPattern {
   id: string;
   name: string;
   vendor: string;
+  /** Where the sheet was published. Provenance for the pipeline: the app shows
+   *  its own copy, `sheet`, and never links out to this (ADR-136). */
   sourceUrl?: string;
+  /** Our copy of the original sheet, relative to `catalog/` (ADR-136). */
+  sheet?: string;
+  /** That sheet's pages drawn as images, relative to `catalog/`, in order. */
+  sheetPages?: string[];
   distance: number;
   volumeMl: number;
   ratio: number | null;
@@ -43,6 +49,26 @@ export function getCatalogPatterns(): Promise<CatalogPattern[]> {
     .then((file) => file?.patterns ?? [])
     .catch(() => []);
   return cache;
+}
+
+/** A catalog pattern's original sheet, as the app serves it (ADR-136). */
+export interface KeptSheet {
+  /** The PDF itself. */
+  pdf: string;
+  /** Its pages as images, for showing it in-app. */
+  pages: string[];
+}
+
+/**
+ * Our copy of a catalog pattern's sheet, or undefined when it has none. Opened
+ * on demand, never fetched ahead: the service worker keeps what has been
+ * opened, so a sheet seen once is there offline after that.
+ */
+export async function catalogSheet(catalogId: string): Promise<KeptSheet | undefined> {
+  const pattern = (await getCatalogPatterns()).find((p) => p.id === catalogId);
+  if (!pattern?.sheet) return undefined;
+  const at = (path: string) => `${import.meta.env.BASE_URL}catalog/${path}`;
+  return { pdf: at(pattern.sheet), pages: (pattern.sheetPages ?? []).map(at) };
 }
 
 /** Test seam. */
@@ -123,6 +149,16 @@ async function healDuplicateLinks(): Promise<void> {
   }
 }
 
+/**
+ * The link a catalog row keeps: one the bowler typed, never the publisher's
+ * (ADR-136). Seeding used to copy `sourceUrl` onto every row, so a row still
+ * carrying exactly that link has it taken off, and the sheet the app keeps is
+ * what the pattern screen opens instead.
+ */
+function ownLink(url: string | undefined, pattern: CatalogPattern): string | undefined {
+  return url != null && url === pattern.sourceUrl ? undefined : url;
+}
+
 export async function syncPatternCatalog(): Promise<void> {
   await resetLinksOnce();
 
@@ -144,7 +180,7 @@ export async function syncPatternCatalog(): Promise<void> {
       // The catalog is the source of truth for everything except the name.
       await db.oil_patterns.update(existing.id, {
         passes: pattern.passes,
-        url: existing.url ?? pattern.sourceUrl,
+        url: ownLink(existing.url, pattern),
       });
       continue;
     }
@@ -162,7 +198,7 @@ export async function syncPatternCatalog(): Promise<void> {
       await db.oil_patterns.update(adoptable.id, {
         catalog_id: pattern.id,
         passes: pattern.passes,
-        url: adoptable.url ?? pattern.sourceUrl,
+        url: ownLink(adoptable.url, pattern),
       });
       adoptable.catalog_id = pattern.id;
       continue;
@@ -170,7 +206,6 @@ export async function syncPatternCatalog(): Promise<void> {
     if (usedNames.has(pattern.name.trim().toLowerCase())) continue;
     await db.oil_patterns.add({
       name: pattern.name,
-      url: pattern.sourceUrl,
       passes: pattern.passes,
       catalog_id: pattern.id,
     });

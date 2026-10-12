@@ -189,5 +189,13 @@
     "distance": 40,
     "volumeMl": 25.545
   },
-  "note": "c2d088c9-EP-CHALLENGE_MERCURY_4940.pdf · 40 ft · 4.91:1"
+  "note": "c2d088c9-EP-CHALLENGE_MERCURY_4940.pdf · 40 ft · 4.91:1",
+  "sheet": {
+    "file": "mercury-4940.1f3e4eacaeca.pdf",
+    "sha256": "1f3e4eacaecaafe40f7405062c7719f7c461f7cbd2a4d55d98e0833c359bdb0a",
+    "bytes": 244659,
+    "pages": [
+      "mercury-4940.1f3e4eacaeca.p1.webp"
+    ]
+  }
 }

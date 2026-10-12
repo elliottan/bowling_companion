@@ -179,7 +179,10 @@ export interface SheetReading {
 }
 
 /** Read one sheet, by whichever route it needs. */
-export async function readSheet(path: string, opts: { vendor?: string; sourceUrl?: string } = {}): Promise<SheetReading> {
+export async function readSheet(
+  path: string,
+  opts: { vendor?: string; sourceUrl?: string; name?: string } = {}
+): Promise<SheetReading> {
   const { items, images } = await openSheet(path);
   const textLines = sheetLines(items);
 
@@ -191,7 +194,9 @@ export async function readSheet(path: string, opts: { vendor?: string; sourceUrl
   }
 
   const stats = oilStats(parsed.passes);
-  const name = normalizePatternName(parsed.name ?? basename(path));
+  // `--name` wins: a title that opens or ends on a year ("PESTA SUKAN 2026")
+  // reads as a header figure, and the guess falls back to the file name.
+  const name = opts.name ?? normalizePatternName(parsed.name ?? basename(path));
   return {
     candidate: {
       id: slug(name),
