@@ -1,0 +1,66 @@
+{
+ "brand": "DV8",
+ "name": "Heckler",
+ "official": false,
+ "releaseDate": [
+  {
+   "value": "2024-11",
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/dv8/heckler",
+   "quote": "Release Date of Nov 2024",
+   "via": "web-search"
+  },
+  {
+   "value": "2024-11",
+   "sourceUrl": "https://www.bowling.com/products/dv8-heckler.htm",
+   "quote": "release date is listed as November 2024",
+   "via": "web-search"
+  }
+ ],
+ "coverstockRaw": [
+  {
+   "value": "HK22C Maximum Havoc Solid",
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/dv8/heckler",
+   "quote": "HK22C Maximum Havoc solid coverstock",
+   "via": "web-search"
+  },
+  {
+   "value": "HK22C Maximum Havoc Solid",
+   "sourceUrl": "https://www.bowling.com/products/dv8-heckler.htm",
+   "quote": "HK22C Maximum Havoc Solid coverstock",
+   "via": "web-search"
+  }
+ ],
+ "factoryFinish": [
+  {
+   "value": "500/2000 Siaair",
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/dv8/heckler-hybrid",
+   "quote": "500/2000 Siaair Micro Pad",
+   "via": "web-search"
+  },
+  {
+   "value": "500/2000 Siaair",
+   "sourceUrl": "https://www.bowlingthismonth.com/bowling-ball-review/dv8-heckler/",
+   "quote": "500/2000 SiaAir box finish",
+   "via": "web-search"
+  }
+ ],
+ "coreName": [
+  {
+   "value": "Unholy",
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/dv8/heckler",
+   "quote": "Unholy asymmetric core",
+   "via": "web-search"
+  },
+  {
+   "value": "Unholy",
+   "sourceUrl": "https://www.bowling.com/products/dv8-heckler.htm",
+   "quote": "Unholy core",
+   "via": "web-search"
+  }
+ ],
+ "rg": [],
+ "diff": [],
+ "mbDiff": [],
+ "productUrl": [],
+ "_notes": "Solid Heckler (Nov 2024). 15 lb RG/diff/mbDiff (2.504/0.051/0.010) stated only by bowling.com; bowwwl gives 16 lb, bowlingball.com and bowlingthismonth state no weight, so rg/diff/mbDiff []. Finish bowwwl+bowlingthismonth agree on 500/2000 Siaair."
+}

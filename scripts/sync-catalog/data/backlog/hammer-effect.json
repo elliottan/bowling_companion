@@ -1,0 +1,72 @@
+{
+ "brand": "Hammer",
+ "name": "Effect",
+ "official": false,
+ "releaseDate": [
+  {
+   "value": "2024-03",
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/hammer/effect",
+   "quote": "Released Mar 2024",
+   "via": "web-search"
+  },
+  {
+   "value": "2024-03",
+   "sourceUrl": "https://hammerbowling.com/products/hammer-effect",
+   "quote": "It was released March 21, 2024",
+   "via": "web-search"
+  },
+  {
+   "value": "2024-03",
+   "sourceUrl": "https://www.bowling.com/products/hammer-effect.htm",
+   "quote": "The base Hammer Effect was released in March 2024",
+   "via": "web-search"
+  }
+ ],
+ "coverstockRaw": [
+  {
+   "value": "Cohesion Pearl",
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/hammer/effect",
+   "quote": "an HK22C Cohesion Pearl coverstock",
+   "via": "web-search"
+  },
+  {
+   "value": "Cohesion Pearl",
+   "sourceUrl": "https://www.bowlingthismonth.com/bowling-ball-review/hammer-effect/",
+   "quote": "The cover is the HK22 Cohesion Pearl",
+   "via": "web-search"
+  }
+ ],
+ "factoryFinish": [],
+ "coreName": [
+  {
+   "value": "Huntsman",
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/hammer/effect",
+   "quote": "a Huntsman asymmetric core",
+   "via": "web-search"
+  },
+  {
+   "value": "Huntsman",
+   "sourceUrl": "https://www.bowlingthismonth.com/bowling-ball-review/hammer-effect/",
+   "quote": "with a Huntsman core",
+   "via": "web-search"
+  }
+ ],
+ "rg": [],
+ "diff": [],
+ "mbDiff": [
+  {
+   "value": 0.017,
+   "sourceUrl": "https://hammerbowling.com/products/hammer-effect",
+   "quote": "asymmetry 0.017",
+   "via": "web-search"
+  },
+  {
+   "value": 0.017,
+   "sourceUrl": "https://www.bowling.com/products/hammer-effect.htm",
+   "quote": "Its listing gives a mass bias differential of 0.017 for a 15 lb ball",
+   "via": "web-search"
+  }
+ ],
+ "productUrl": [],
+ "_notes": "RG/diff 2.470/0.050 (15 lb) only on hammerbowling.com; bowwwl's 2.483/0.043 is 16 lb. Productpage: https://hammerbowling.com/products/hammer-effect"
+}

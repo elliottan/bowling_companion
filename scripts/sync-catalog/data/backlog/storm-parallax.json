@@ -1,0 +1,66 @@
+{
+ "brand": "Storm",
+ "name": "Parallax",
+ "official": false,
+ "releaseDate": [],
+ "coverstockRaw": [
+  {
+   "value": "TractionX7 Hybrid Reactive",
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/storm/parallax",
+   "quote": "TractionX7 Hybrid Reactive",
+   "via": "web-search"
+  },
+  {
+   "value": "TractionX7 Hybrid Reactive",
+   "sourceUrl": "https://www.bowling.com/products/storm-parallax.htm",
+   "quote": "TractionX7 Hybrid Reactive",
+   "via": "web-search"
+  }
+ ],
+ "factoryFinish": [],
+ "coreName": [
+  {
+   "value": "Aeroflo",
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/storm/parallax",
+   "quote": "Aeroflo Asymmetric",
+   "via": "web-search"
+  },
+  {
+   "value": "Aeroflo",
+   "sourceUrl": "https://www.bowling.com/products/storm-parallax.htm",
+   "quote": "Aeroflo (Asymmetric)",
+   "via": "web-search"
+  }
+ ],
+ "rg": [
+  {
+   "value": 2.52,
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/storm/parallax",
+   "quote": "the 15 lb figures are RG 2.520 and differential 0.054",
+   "via": "web-search"
+  },
+  {
+   "value": 2.52,
+   "sourceUrl": "https://www.bowling.com/products/storm-parallax.htm",
+   "quote": "RG: 2.52 (15# ball)",
+   "via": "web-search"
+  }
+ ],
+ "diff": [
+  {
+   "value": 0.054,
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/storm/parallax",
+   "quote": "the 15 lb figures are RG 2.520 and differential 0.054",
+   "via": "web-search"
+  },
+  {
+   "value": 0.054,
+   "sourceUrl": "https://www.bowling.com/products/storm-parallax.htm",
+   "quote": "Differential: 0.054 (15# ball)",
+   "via": "web-search"
+  }
+ ],
+ "mbDiff": [],
+ "productUrl": [],
+ "_notes": "bowwwl: Aug 2020 (only source for date). 15 lb on bowwwl: RG 2.520, diff 0.054, MB Diff 0.019 (one source, mbDiff []). Asymmetric Aeroflo. Finish 1500-grit Polished only on bowling.com. Distinct from Parallax Effect (pearl). MBDIFF: bowwwl 15 lb Parallax MB diff 0.019; bowlersmart Parallax listing shows mass bias N/A (0.019 is on sibling Parallax Effect/Stellar/Zero Parallax); stormbowling.com search gave no Parallax spec. Not filled."
+}

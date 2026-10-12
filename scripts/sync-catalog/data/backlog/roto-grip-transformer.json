@@ -1,0 +1,40 @@
+{
+ "brand": "Roto Grip",
+ "name": "Transformer",
+ "official": false,
+ "releaseDate": [],
+ "coverstockRaw": [
+  {
+   "value": "V-R1 Solid",
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/roto-grip/transformer",
+   "quote": "It lists a V-R1 Solid coverstock",
+   "via": "web-search"
+  },
+  {
+   "value": "V-R1 Solid",
+   "sourceUrl": "https://www.bowling.com/products/roto-grip-transformer.htm",
+   "quote": "The coverstock is V-R1 Solid Reactive",
+   "via": "web-search"
+  }
+ ],
+ "factoryFinish": [],
+ "coreName": [
+  {
+   "value": "Morph-Wing",
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/roto-grip/transformer",
+   "quote": "the page lists a Morph-Wing Core with an RG of 2.510",
+   "via": "web-search"
+  },
+  {
+   "value": "Morph-Wing",
+   "sourceUrl": "https://www.bowling.com/products/roto-grip-transformer.htm",
+   "quote": "The core is the Morph-Wing Core",
+   "via": "web-search"
+  }
+ ],
+ "rg": [],
+ "diff": [],
+ "mbDiff": [],
+ "productUrl": [],
+ "_notes": "bowwwl release Jan 2026 only. RG 2.51/diff 0.051/mb 0.015: bowling.com states 15 lb; bowwwl does not label the weight clearly (inferred), so left []."
+}

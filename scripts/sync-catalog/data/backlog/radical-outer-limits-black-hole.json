@@ -1,0 +1,66 @@
+{
+ "brand": "Radical",
+ "name": "Outer Limits Black Hole",
+ "official": false,
+ "releaseDate": [],
+ "coverstockRaw": [],
+ "factoryFinish": [],
+ "coreName": [
+  {
+   "value": "Outer Limits",
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/radical/outer-limits-black-hole",
+   "quote": "Outer Limits Core",
+   "via": "web-search"
+  },
+  {
+   "value": "Outer Limits",
+   "sourceUrl": "https://www.bowling.com/products/radical-outer-limits-black-hole.htm",
+   "quote": "Outer Limits asymmetric core",
+   "via": "web-search"
+  }
+ ],
+ "rg": [
+  {
+   "value": 2.499,
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/radical/outer-limits-black-hole",
+   "quote": "At 15 lb, the RG is 2.499 with a differential of 0.051 and an MB differential of 0.014",
+   "via": "web-search"
+  },
+  {
+   "value": 2.499,
+   "sourceUrl": "https://www.bowling.com/products/radical-outer-limits-black-hole.htm",
+   "quote": "15 lb specs are an RG of 2.499 and a differential of 0.051, with a mass bias differential of 0.014",
+   "via": "web-search"
+  }
+ ],
+ "diff": [
+  {
+   "value": 0.051,
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/radical/outer-limits-black-hole",
+   "quote": "At 15 lb, the RG is 2.499 with a differential of 0.051 and an MB differential of 0.014",
+   "via": "web-search"
+  },
+  {
+   "value": 0.051,
+   "sourceUrl": "https://www.bowling.com/products/radical-outer-limits-black-hole.htm",
+   "quote": "15 lb specs are an RG of 2.499 and a differential of 0.051, with a mass bias differential of 0.014",
+   "via": "web-search"
+  }
+ ],
+ "mbDiff": [
+  {
+   "value": 0.014,
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/radical/outer-limits-black-hole",
+   "quote": "At 15 lb, the RG is 2.499 with a differential of 0.051 and an MB differential of 0.014",
+   "via": "web-search"
+  },
+  {
+   "value": 0.014,
+   "sourceUrl": "https://www.bowling.com/products/radical-outer-limits-black-hole.htm",
+   "quote": "15 lb specs are an RG of 2.499 and a differential of 0.051, with a mass bias differential of 0.014",
+   "via": "web-search"
+  }
+ ],
+ "productUrl": [],
+ "_notes": "Jan 2026 only bowwwl; coverstock (HK-22C solid) and finish only bowling.com."
+}

@@ -1,0 +1,53 @@
+{
+ "brand": "Brunswick",
+ "name": "Fanatic BTU",
+ "official": false,
+ "releaseDate": [
+  {
+   "value": "2016-08",
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/brunswick/fanatic-btu",
+   "quote": "Release Date Aug 2016",
+   "via": "web-search"
+  },
+  {
+   "value": "2016-08",
+   "sourceUrl": "https://www.bowling.com/products/discontinued/brunswick-fanatic-btu.htm",
+   "quote": "released in August 2016",
+   "via": "web-search"
+  }
+ ],
+ "coverstockRaw": [
+  {
+   "value": "BTU",
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/brunswick/fanatic-btu",
+   "quote": "BTU coverstock",
+   "via": "web-search"
+  },
+  {
+   "value": "BTU",
+   "sourceUrl": "https://www.bowling.com/products/discontinued/brunswick-fanatic-btu.htm",
+   "quote": "BTU (Better Than Urethane) coverstock",
+   "via": "web-search"
+  }
+ ],
+ "factoryFinish": [],
+ "coreName": [
+  {
+   "value": "I-Block",
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/brunswick/fanatic-btu",
+   "quote": "low-differential I-Block core",
+   "via": "web-search"
+  },
+  {
+   "value": "I-Block",
+   "sourceUrl": "https://www.bowling.com/products/discontinued/brunswick-fanatic-btu.htm",
+   "quote": "Low Differential I-Block Symmetric",
+   "via": "web-search"
+  }
+ ],
+ "rg": [],
+ "diff": [],
+ "mbDiff": [],
+ "productUrl": [],
+ "_notes": "BTU cover. SYMMETRIC: bowling.com: 'Low Differential I-Block Symmetric'. rg/diff only bowling.com (RG 2.601 diff 0.030, 15#), bowwwl gave none. productUrl https://www.bowling.com/products/discontinued/brunswick-fanatic-btu.htm is a retailer."
+}

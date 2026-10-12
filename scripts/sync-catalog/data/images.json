@@ -28,8 +28,8 @@
     "imageFull": "/catalog/img/roto-grip-halo-pearl-2019-full.webp"
   },
   "pyramid-path-2011": {
-    "imageThumb": "/catalog/img/pyramid-path-2011-thumb.webp",
-    "imageFull": "/catalog/img/pyramid-path-2011-full.webp"
+    "imageThumb": "/catalog/img/pyramid-path-2011-bg2-thumb.webp",
+    "imageFull": "/catalog/img/pyramid-path-2011-bg2-full.webp"
   },
   "storm-pitch-black-2014": {
     "imageThumb": "/catalog/img/storm-pitch-black-2014-thumb.webp",
@@ -508,8 +508,8 @@
     "imageFull": "/catalog/img/motiv-graffiti-tag-full.webp"
   },
   "motiv-jackal-fury": {
-    "imageThumb": "/catalog/img/motiv-jackal-fury-thumb.webp",
-    "imageFull": "/catalog/img/motiv-jackal-fury-full.webp"
+    "imageThumb": "/catalog/img/motiv-jackal-fury-bg2-thumb.webp",
+    "imageFull": "/catalog/img/motiv-jackal-fury-bg2-full.webp"
   },
   "motiv-jackal-shadow": {
     "imageThumb": "/catalog/img/motiv-jackal-shadow-thumb.webp",
@@ -672,8 +672,8 @@
     "imageFull": "/catalog/img/motiv-revolt-havoc-full.webp"
   },
   "motiv-jackal-scar": {
-    "imageThumb": "/catalog/img/motiv-jackal-scar-thumb.webp",
-    "imageFull": "/catalog/img/motiv-jackal-scar-full.webp"
+    "imageThumb": "/catalog/img/motiv-jackal-scar-bg2-thumb.webp",
+    "imageFull": "/catalog/img/motiv-jackal-scar-bg2-full.webp"
   },
   "motiv-jackal-howl": {
     "imageThumb": "/catalog/img/motiv-jackal-howl-thumb.webp",

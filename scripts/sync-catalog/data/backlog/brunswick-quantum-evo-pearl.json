@@ -1,0 +1,53 @@
+{
+ "brand": "Brunswick",
+ "name": "Quantum Evo Pearl",
+ "official": false,
+ "releaseDate": [
+  {
+   "value": "2021-10",
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/brunswick/quantum-evo-pearl",
+   "quote": "released in October 2021",
+   "via": "web-search"
+  },
+  {
+   "value": "2021-10",
+   "sourceUrl": "https://www.bowlingball.com/products/bowling-balls/brunswick/16581/quantum-evo-pearl.html",
+   "quote": "released October 22, 2021",
+   "via": "web-search"
+  }
+ ],
+ "coverstockRaw": [],
+ "factoryFinish": [
+  {
+   "value": "500/1000/1500 SiaAir",
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/brunswick/quantum-evo-pearl",
+   "quote": "500/1000/1500 Siaair, Crown Factory Compound",
+   "via": "web-search"
+  },
+  {
+   "value": "500/1000/1500 SiaAir",
+   "sourceUrl": "https://www.bowlingball.com/products/bowling-balls/brunswick/16581/quantum-evo-pearl.html",
+   "quote": "500/1000/1500 Siaair and polished with Crown Factory Compound",
+   "via": "web-search"
+  }
+ ],
+ "coreName": [
+  {
+   "value": "QCS-24",
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/brunswick/quantum-evo-pearl",
+   "quote": "The ball uses the QCS-24 core",
+   "via": "web-search"
+  },
+  {
+   "value": "QCS-24",
+   "sourceUrl": "https://www.bowlingball.com/products/bowling-balls/brunswick/16581/quantum-evo-pearl.html",
+   "quote": "QCS-24 asymmetric core",
+   "via": "web-search"
+  }
+ ],
+ "rg": [],
+ "diff": [],
+ "mbDiff": [],
+ "productUrl": [],
+ "_notes": "Cover wording differs between sites (Evolution Pearl Reactive vs Evolution Reactive pearl) so coverstockRaw []. 15 lb: bowwwl states RG 2.511, diff 0.053, mbDiff 0.024; bowlingball unlabeled agrees. Product page: https://www.bowlingball.com/products/bowling-balls/brunswick/16581/quantum-evo-pearl.html"
+}

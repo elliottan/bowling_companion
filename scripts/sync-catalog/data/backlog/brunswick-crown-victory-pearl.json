@@ -1,0 +1,66 @@
+{
+ "brand": "Brunswick",
+ "name": "Crown Victory Pearl",
+ "official": false,
+ "releaseDate": [
+  {
+   "value": "2026-02",
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/brunswick/crown-victory-pearl",
+   "quote": "The Crown Victory Pearl is listed as released in February 2026.",
+   "via": "web-search"
+  },
+  {
+   "value": "2026-02",
+   "sourceUrl": "https://www.bowlingball.com/products/bowling-balls/brunswick/18067/crown-victory-pearl.html",
+   "quote": "Release Date · 2/19/2026",
+   "via": "web-search"
+  }
+ ],
+ "coverstockRaw": [
+  {
+   "value": "HK22 Savvy Hook Pearl",
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/brunswick/crown-victory-pearl",
+   "quote": "the HK22 Savvy Hook Pearl",
+   "via": "web-search"
+  },
+  {
+   "value": "HK22 Savvy Hook Pearl",
+   "sourceUrl": "https://www.bowlingthismonth.com/bowling-ball-review/brunswick-crown-victory-pearl/",
+   "quote": "HK22 Savvy Hook Pearl",
+   "via": "web-search"
+  }
+ ],
+ "factoryFinish": [
+  {
+   "value": "500/1000/1500 SiaAir",
+   "sourceUrl": "https://www.bowlingthismonth.com/bowling-ball-review/brunswick-crown-victory-pearl/",
+   "quote": "500/1000/1500 SiaAir and Factory Compound",
+   "via": "web-search"
+  },
+  {
+   "value": "500/1000/1500 SiaAir",
+   "sourceUrl": "https://www.bowlingball.com/products/bowling-balls/brunswick/18067/crown-victory-pearl.html",
+   "quote": "500/1000/1500 Siaair/Factory Compound",
+   "via": "web-search"
+  }
+ ],
+ "coreName": [
+  {
+   "value": "Tiered Hexagon",
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/brunswick/crown-victory-pearl",
+   "quote": "It pairs the Tiered Hexagon core",
+   "via": "web-search"
+  },
+  {
+   "value": "Tiered Hexagon",
+   "sourceUrl": "https://www.bowlingball.com/products/bowling-balls/brunswick/18067/crown-victory-pearl.html",
+   "quote": "Core Name · Tiered Hexagon",
+   "via": "web-search"
+  }
+ ],
+ "rg": [],
+ "diff": [],
+ "mbDiff": [],
+ "productUrl": [],
+ "_notes": "Product page: https://www.bowlingball.com/products/bowling-balls/brunswick/18067/crown-victory-pearl.html . 15 lb: only bowwwl states 15 lb (RG 2.540, diff 0.045); other sites print unlabeled weight values that agree, so rg/diff left [] under the 15 lb-stated rule."
+}

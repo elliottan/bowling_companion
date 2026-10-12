@@ -6239,3 +6239,56 @@ hand entry) only gave the year, and the three year-catalog parsers padded it to
   characters, so no `catalog_ref_id` moves and no Dexie version bump is needed.
 - A client holding the old catalog shows January for those 29 until it syncs
   the new manifest version, which it does on the next open with a connection.
+
+## ADR-135: The Brunswick family joins the catalog, and a web search can be a reader
+
+**Status.** Accepted, 2026-10-11.
+
+**Context.** The catalog covered Storm, Roto Grip, 900 Global and MOTIV (with
+one Pyramid ball): roughly half of what a league bowler throws. Brunswick and
+the brands it owns (Hammer, Ebonite, Track, Radical, DV8, Columbia 300) were
+missing entirely. The session that set out to add them could not open any
+spec site: its network policy denied every bowling host, and page fetches
+failed too. Only a web search worked, and it returns a model's summary of the
+matching pages rather than the pages.
+
+**Decision.**
+
+- **Seven brands join `Manufacturer`**: Brunswick, Hammer, Ebonite, Track,
+  Radical, DV8, Columbia 300. Each gets a placeholder colour. The catalog's
+  brand filter lists only brands the loaded catalog has a ball for, so twelve
+  brands do not mean twelve chips with nothing behind some of them.
+- **The USBC brand list carries them too**, with spellings unchecked against
+  the PDF, which could not be downloaded. The next index rebuild confirms them.
+- **A search summary can be a reading, never an official one.** A search pinned
+  to one site (`allowed_domains`) attributes its text to that site, so a
+  substring of the tool's output can stand as the quote. Such a reading carries
+  `via: "web-search"`, and a ball promoted from any such reading carries
+  `readVia: "web-search"` in `balls.json`, which build ignores and a later
+  session with page access uses to find the rows to re-read. ADR-043's rules
+  are otherwise unchanged: two different sites must agree, and the value must
+  be in its quote.
+- **Every ball read this way is checked blind.** A second agent, on a different
+  model and told only the ball's name, finds RG, differential, mass bias and
+  core symmetry on its own. A contradiction holds the ball back, and so does a
+  reviewer's doubt about which page a reading came from.
+- **An asymmetric ball waits for its mass bias.** `deriveCoreType` reads a
+  missing mass bias as a symmetric core, so a ball with no two-site mass bias
+  is promoted only when a source says its core is symmetric. A core name that
+  any other ball in the run shows as asymmetric counts as asymmetric.
+- **A release date's receipt is read as a date.** Promote matched a value only
+  as a substring of its quote, so `2023-10` could never be backed by "October
+  2023". `quoteContainsDate` accepts the ISO value, a month name or its
+  abbreviation, or US month-first numbers, to the value's own precision: a
+  month is backed by a quote of that month with or without a day, and a day
+  only by that day. Day-first numbers are not read, being ambiguous.
+- **Promote resolves `productUrl`.** It read `fields.productUrl` without ever
+  resolving it, so a manufacturer link could not reach `balls.json`.
+
+**Consequences.**
+- 62 balls were added this way. The 75 researched and held back are in
+  `scripts/sync-catalog/data/backlog/`, one candidate file each, and
+  `scripts/sync-catalog/data/HANDOUT.md` says why each waits, how the run was
+  done, and what to read first once the sites are reachable.
+- Images for the new balls are not in this change. The handout says where
+  clean ones can come from; until then the brand placeholder shows.

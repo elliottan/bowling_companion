@@ -4,7 +4,7 @@
  */
 import { describe, it, expect } from "vitest";
 
-import { promoteCandidate, resolveField, identityKey } from "./promote.js";
+import { promoteCandidate, resolveField, identityKey, quoteContainsDate } from "./promote.js";
 import { toCandidate } from "./from-seed.js";
 import { baseName } from "./sources.js";
 import { isCatalogBall, queueName } from "./select.js";
@@ -288,5 +288,79 @@ describe("identityKey", () => {
   it("keeps different balls apart", () => {
     expect(identityKey("Storm", "Phaze V")).not.toBe(identityKey("Storm", "Phaze VI"));
     expect(identityKey("Storm", "Phaze V")).not.toBe(identityKey("Motiv", "Phaze V"));
+  });
+});
+
+describe("quoteContainsDate", () => {
+  it("finds a month written as a word, abbreviated, or as US numbers", () => {
+    for (const quote of ["Release Date: October 2023", "Released Oct. 2023", "10/2023", "October 12, 2023", "10/12/2023", "12 October 2023"]) {
+      expect(quoteContainsDate(quote, "2023-10"), quote).toBe(true);
+    }
+  });
+
+  it("finds a day only when the quote states that day", () => {
+    expect(quoteContainsDate("Release Date: October 12, 2023", "2023-10-12")).toBe(true);
+    expect(quoteContainsDate("10/12/2023", "2023-10-12")).toBe(true);
+    expect(quoteContainsDate("October 2023", "2023-10-12")).toBe(false);
+    expect(quoteContainsDate("October 13, 2023", "2023-10-12")).toBe(false);
+  });
+
+  it("never reads a different month or year", () => {
+    expect(quoteContainsDate("November 2023", "2023-10")).toBe(false);
+    expect(quoteContainsDate("October 2024", "2023-10")).toBe(false);
+    expect(quoteContainsDate("1/10/2023", "2023-10")).toBe(false);
+  });
+
+  it("takes a year from any quote that states it", () => {
+    expect(quoteContainsDate("New for 2025", "2025")).toBe(true);
+    expect(quoteContainsDate("12025 units", "2025")).toBe(false);
+  });
+
+  it("is what promote checks a release date reading against", () => {
+    const r = resolveField(
+      "releaseDate",
+      [
+        { value: "2023-10", sourceUrl: "https://a.example/x", quote: "Release Date: October 2023" },
+        { value: "2023-10", sourceUrl: "https://b.example/x", quote: "Released 10/12/2023" },
+      ],
+      false
+    );
+    expect(r).toEqual({ value: "2023-10", problems: [], sourceUrls: ["https://a.example/x", "https://b.example/x"] });
+  });
+});
+
+describe("promoting a ball read from web search (ADR-135)", () => {
+  const search = (value: string | number, host: string, quote: string) => ({
+    value, sourceUrl: `https://${host}/ball`, quote, via: "web-search" as const,
+  });
+  const candidate = {
+    brand: "Hammer" as const,
+    name: "Test Widow",
+    official: false,
+    releaseDate: [search("2024-10", "a.example", "Released October 2024"), search("2024-10", "b.example", "Release Date: 10/03/2024")],
+    coverstockRaw: [search("Aggression Solid Reactive", "a.example", "HK22 Aggression Solid Reactive"), search("Aggression Solid Reactive", "b.example", "Aggression Solid Reactive Coverstock")],
+    factoryFinish: [],
+    coreName: [],
+    rg: [search(2.5, "a.example", "RG: 2.50"), search(2.5, "b.example", "RG 2.50")],
+    diff: [search(0.058, "a.example", "Diff: .058"), search(0.058, "b.example", "Differential 0.058")],
+    mbDiff: [],
+    productUrl: [search("https://maker.example/widow", "a.example", "https://maker.example/widow"), search("https://maker.example/widow", "b.example", "see https://maker.example/widow")],
+  } as BallCandidate;
+
+  it("promotes it on two agreeing sites, marks it as read from search, and keeps its product page", () => {
+    const result = promoteCandidate(candidate, []);
+    expect(result.problems).toEqual([]);
+    expect(result.ball).toMatchObject({
+      releaseDate: "2024-10",
+      rg: 2.5,
+      readVia: "web-search",
+      productUrl: "https://maker.example/widow",
+    });
+  });
+
+  it("refuses it on one site, however clean the reading", () => {
+    const result = promoteCandidate({ ...candidate, rg: [candidate.rg[0]] }, []);
+    expect(result.ok).toBe(false);
+    expect(result.problems.some((p) => p.startsWith("rg: no official source"))).toBe(true);
   });
 });

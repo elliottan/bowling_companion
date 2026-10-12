@@ -1,0 +1,79 @@
+{
+ "brand": "DV8",
+ "name": "Hater Pearl",
+ "official": false,
+ "releaseDate": [
+  {
+   "value": "2025-05",
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/dv8/hater",
+   "quote": "Release date May 2025",
+   "via": "web-search"
+  },
+  {
+   "value": "2025-05",
+   "sourceUrl": "https://www.bowling.com/products/dv8-hater-pearl.htm",
+   "quote": "release date of May 2025",
+   "via": "web-search"
+  }
+ ],
+ "coverstockRaw": [
+  {
+   "value": "HK22C Havoc Pearl",
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/dv8/hater",
+   "quote": "HK22C Havoc Pearl, a pearl reactive cover",
+   "via": "web-search"
+  },
+  {
+   "value": "HK22C Havoc Pearl",
+   "sourceUrl": "https://www.bowling.com/products/dv8-hater-pearl.htm",
+   "quote": "HK22C Havoc Pearl coverstock",
+   "via": "web-search"
+  }
+ ],
+ "factoryFinish": [],
+ "coreName": [
+  {
+   "value": "Hater",
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/dv8/hater",
+   "quote": "same asymmetric Hater core",
+   "via": "web-search"
+  },
+  {
+   "value": "Hater",
+   "sourceUrl": "https://www.bowlingball.com/products/bowling-balls/dv8/17825/hater-pearl.html",
+   "quote": "Hater core, RG 2.539, differential 0.054",
+   "via": "web-search"
+  }
+ ],
+ "rg": [
+  {
+   "value": 2.539,
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/dv8/cores/hater",
+   "quote": "15 lb (RG 2.539, diff 0.054)",
+   "via": "web-search"
+  },
+  {
+   "value": 2.539,
+   "sourceUrl": "https://www.bowling.com/products/dv8-hater-pearl.htm",
+   "quote": "Hater Pearl (15 lb):** The same retailer lists the same RG (2.539)",
+   "via": "web-search"
+  }
+ ],
+ "diff": [
+  {
+   "value": 0.054,
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/dv8/cores/hater",
+   "quote": "15 lb (RG 2.539, diff 0.054)",
+   "via": "web-search"
+  },
+  {
+   "value": 0.054,
+   "sourceUrl": "https://www.bowling.com/products/dv8-hater-pearl.htm",
+   "quote": "and differential (0.054) figures",
+   "via": "web-search"
+  }
+ ],
+ "mbDiff": [],
+ "productUrl": [],
+ "_notes": "Finish: bowwwl 500/1000/1500 Siaair and Crown Factory Compound only one site, so []. 15 lb RG/diff: bowwwl value is from the shared Hater core page. mbDiff 0.024 only bowling.com."
+}

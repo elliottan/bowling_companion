@@ -1,0 +1,27 @@
+{
+ "brand": "Brunswick",
+ "name": "Alert",
+ "official": false,
+ "releaseDate": [],
+ "coverstockRaw": [
+  {
+   "value": "HK22 Savvy Hook Solid",
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/brunswick/alert",
+   "quote": "It's listed as the HK22 Savvy Hook solid coverstock",
+   "via": "web-search"
+  },
+  {
+   "value": "HK22 Savvy Hook Solid",
+   "sourceUrl": "https://www.bowlingthismonth.com/bowling-ball-review/brunswick-alert/",
+   "quote": "It uses HK22 Savvy Hook Solid, a reactive solid.",
+   "via": "web-search"
+  }
+ ],
+ "factoryFinish": [],
+ "coreName": [],
+ "rg": [],
+ "diff": [],
+ "mbDiff": [],
+ "productUrl": [],
+ "_notes": "Oct 2025 release only on bowwwl; factory finish only on bowlingthismonth (500/1000/2000 SiaAir); core name Alert only on bowlingball.com. 15 lb values: only bowwwl states 15 lb; bowlingthismonth/bowlingball.com print unlabeled weight values that agree, so rg/diff/mbDiff left [] under the 15 lb-stated rule. Unlabeled agreeing values: RG 2.478, diff 0.037."
+}

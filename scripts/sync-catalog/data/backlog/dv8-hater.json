@@ -1,0 +1,79 @@
+{
+ "brand": "DV8",
+ "name": "Hater",
+ "official": false,
+ "releaseDate": [
+  {
+   "value": "2024-03",
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/dv8/hater",
+   "quote": "The original DV8 Hater came out in March 2024",
+   "via": "web-search"
+  },
+  {
+   "value": "2024-03",
+   "sourceUrl": "https://www.bowlingball.com/products/bowling-balls/dv8/17463/hater.html",
+   "quote": "March 21, 2024",
+   "via": "web-search"
+  }
+ ],
+ "coverstockRaw": [
+  {
+   "value": "HK22 Havoc Hybrid",
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/dv8/hater",
+   "quote": "HK22 Havoc Hybrid hybrid reactive",
+   "via": "web-search"
+  },
+  {
+   "value": "HK22 Havoc Hybrid",
+   "sourceUrl": "https://www.bowling.com/products/dv8-hater-hybrid.htm",
+   "quote": "HK22 Havoc Hybrid Reactive coverstock",
+   "via": "web-search"
+  }
+ ],
+ "factoryFinish": [],
+ "coreName": [
+  {
+   "value": "Hater",
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/dv8/hater",
+   "quote": "an asymmetric Hater core",
+   "via": "web-search"
+  },
+  {
+   "value": "Hater",
+   "sourceUrl": "https://www.bowling.com/products/dv8-hater-hybrid.htm",
+   "quote": "The ball has a Hater core",
+   "via": "web-search"
+  }
+ ],
+ "rg": [
+  {
+   "value": 2.539,
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/dv8/cores/hater",
+   "quote": "15 lb (RG 2.539, diff 0.054)",
+   "via": "web-search"
+  },
+  {
+   "value": 2.539,
+   "sourceUrl": "https://www.bowling.com/products/dv8-hater-hybrid.htm",
+   "quote": "DV8 Hater Hybrid (15 lb):** Bowling.com lists an RG of 2.539, a differential of 0.054",
+   "via": "web-search"
+  }
+ ],
+ "diff": [
+  {
+   "value": 0.054,
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/dv8/cores/hater",
+   "quote": "15 lb (RG 2.539, diff 0.054)",
+   "via": "web-search"
+  },
+  {
+   "value": 0.054,
+   "sourceUrl": "https://www.bowling.com/products/dv8-hater-hybrid.htm",
+   "quote": "DV8 Hater Hybrid (15 lb):** Bowling.com lists an RG of 2.539, a differential of 0.054",
+   "via": "web-search"
+  }
+ ],
+ "mbDiff": [],
+ "productUrl": [],
+ "_notes": "Original Hater (bowling.com calls it Hater Hybrid, bowlingball.com 'Hater'). Finish: only bowlingball.com (500/1500 Siaair micro pad), so []. mbDiff 0.024 at 15 lb only from bowling.com, so []. bowwwl 15 lb values come from its Hater core page."
+}

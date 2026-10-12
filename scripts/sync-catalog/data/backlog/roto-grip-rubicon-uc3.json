@@ -1,0 +1,66 @@
+{
+ "brand": "Roto Grip",
+ "name": "Rubicon UC3",
+ "official": false,
+ "releaseDate": [],
+ "coverstockRaw": [
+  {
+   "value": "Tour-ethane Pearl",
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/roto-grip/rubicon-uc3",
+   "quote": "Its coverstock is Tour-ethane Pearl urethane",
+   "via": "web-search"
+  },
+  {
+   "value": "Tour-ethane Pearl",
+   "sourceUrl": "https://www.bowling.com/products/roto-grip-rubicon-uc3.htm",
+   "quote": "a Tour-ethane Pearl Reactive coverstock",
+   "via": "web-search"
+  }
+ ],
+ "factoryFinish": [],
+ "coreName": [
+  {
+   "value": "Rondure",
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/roto-grip/rubicon-uc3",
+   "quote": "its core is the asymmetric Rondure design",
+   "via": "web-search"
+  },
+  {
+   "value": "Rondure",
+   "sourceUrl": "https://www.bowling.com/products/roto-grip-rubicon-uc3.htm",
+   "quote": "a Rondure asymmetrical core",
+   "via": "web-search"
+  }
+ ],
+ "rg": [
+  {
+   "value": 2.49,
+   "sourceUrl": "https://www.bowling.com/products/roto-grip-rubicon-uc3.htm",
+   "quote": "RG of 2.49 and a differential of 0.052 for a 15 lb ball",
+   "via": "web-search"
+  },
+  {
+   "value": 2.49,
+   "sourceUrl": "https://www.bowlersmart.com/product/roto-grip-rubicon-uc3-bowling-ball/",
+   "quote": "The 15 lb Roto Grip Rubicon UC3 is listed at an RG of 2.49 and a differential of .052",
+   "via": "web-search"
+  }
+ ],
+ "diff": [
+  {
+   "value": 0.052,
+   "sourceUrl": "https://www.bowling.com/products/roto-grip-rubicon-uc3.htm",
+   "quote": "RG of 2.49 and a differential of 0.052 for a 15 lb ball",
+   "via": "web-search"
+  },
+  {
+   "value": 0.052,
+   "sourceUrl": "https://www.bowlersmart.com/product/roto-grip-rubicon-uc3-bowling-ball/",
+   "quote": "The 15 lb Roto Grip Rubicon UC3 is listed at an RG of 2.49 and a differential of .052",
+   "via": "web-search"
+  }
+ ],
+ "mbDiff": [],
+ "productUrl": [],
+ "_notes": "Mildly asymmetric Rondure core. mbDiff []: only bowlersmart.com gives 0.011 at 15 lb (conflicting 0.010 in a review table); bowwwl.com page text had no 15 lb row. Release Nov 2021 is bowwwl-only. Finish 1000 Abralon bowling.com-only. Sibling Rubicon UC3 Trax (solid urethane, Jun 2023) is separate."
+}

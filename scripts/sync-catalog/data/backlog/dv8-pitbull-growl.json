@@ -1,0 +1,92 @@
+{
+ "brand": "DV8",
+ "name": "Pitbull Growl",
+ "official": false,
+ "releaseDate": [
+  {
+   "value": "2017-08",
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/dv8/pitbull-growl",
+   "quote": "Release Date Aug 2017",
+   "via": "web-search"
+  },
+  {
+   "value": "2017-08",
+   "sourceUrl": "https://www.bowling.com/products/dv8-pitbull-growl.htm",
+   "quote": "release as August 2017",
+   "via": "web-search"
+  }
+ ],
+ "coverstockRaw": [
+  {
+   "value": "Composite Claw Solid",
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/dv8/pitbull-growl",
+   "quote": "Composite Claw Solid Coverstock",
+   "via": "web-search"
+  },
+  {
+   "value": "Composite Claw Solid",
+   "sourceUrl": "https://www.bowling.com/products/dv8-pitbull-growl.htm",
+   "quote": "Coverstock is Composite Claw Solid",
+   "via": "web-search"
+  }
+ ],
+ "factoryFinish": [],
+ "coreName": [
+  {
+   "value": "Pitbull",
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/dv8/pitbull-growl",
+   "quote": "Pitbull Core",
+   "via": "web-search"
+  },
+  {
+   "value": "Pitbull",
+   "sourceUrl": "https://www.bowling.com/products/dv8-pitbull-growl.htm",
+   "quote": "Pitbull Low RG Asymmetric",
+   "via": "web-search"
+  }
+ ],
+ "rg": [
+  {
+   "value": 2.486,
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/dv8/pitbull-growl",
+   "quote": "The 15 lb version lists RG 2.486, differential 0.055",
+   "via": "web-search"
+  },
+  {
+   "value": 2.486,
+   "sourceUrl": "https://www.bowling.com/products/dv8-pitbull-growl.htm",
+   "quote": "a 15 lb RG of 2.486 and a differential of 0.055",
+   "via": "web-search"
+  }
+ ],
+ "diff": [
+  {
+   "value": 0.055,
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/dv8/pitbull-growl",
+   "quote": "The 15 lb version lists RG 2.486, differential 0.055",
+   "via": "web-search"
+  },
+  {
+   "value": 0.055,
+   "sourceUrl": "https://www.bowling.com/products/dv8-pitbull-growl.htm",
+   "quote": "a 15 lb RG of 2.486 and a differential of 0.055",
+   "via": "web-search"
+  }
+ ],
+ "mbDiff": [
+  {
+   "value": 0.02,
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/dv8/pitbull-growl",
+   "quote": "The 15 lb Pitbull Growl's listed specs are an RG of 2.486, a differential of 0.055, and a mass bias differential of 0.020.",
+   "via": "web-search"
+  },
+  {
+   "value": 0.02,
+   "sourceUrl": "https://www.bowlersmart.com/product/dv8-pitbull-growl-bowling-ball/",
+   "quote": "The search turned up the same core specs for the 15 lb Pitbull across several BowlersMart listings, all in the same range. Each one shows an RG of 2.48, a differential of .055, and a mass bias of .020.",
+   "via": "web-search"
+  }
+ ],
+ "productUrl": [],
+ "_notes": "bowwwl+bowling.com agree on 15 lb RG/diff. Finish disagrees in format (bowling.com 500/2,000 Siaair Micro Pad; bowlingthismonth 500 / 2000 SiaAir), left []. mbDiff 0.020 at 15 lb only from bowwwl. bowling.com: https://www.bowling.com/products/dv8-pitbull-growl.htm"
+}

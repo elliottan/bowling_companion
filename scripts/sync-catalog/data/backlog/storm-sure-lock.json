@@ -1,0 +1,66 @@
+{
+ "brand": "Storm",
+ "name": "Sure Lock",
+ "official": false,
+ "releaseDate": [
+  {
+   "value": "2017-03",
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/storm/sure-lock",
+   "quote": "Release Date Mar 2017",
+   "via": "web-search"
+  },
+  {
+   "value": "2017-03",
+   "sourceUrl": "https://bowling.com/products/storm-sure-lock.htm",
+   "quote": "Release date: March 2017",
+   "via": "web-search"
+  }
+ ],
+ "coverstockRaw": [
+  {
+   "value": "GI-17 Solid",
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/storm/sure-lock",
+   "quote": "GI-17 Solid Solid Reactive",
+   "via": "web-search"
+  },
+  {
+   "value": "GI-17 Solid",
+   "sourceUrl": "https://bowling.com/products/storm-sure-lock.htm",
+   "quote": "GI-17 solid reactive",
+   "via": "web-search"
+  }
+ ],
+ "factoryFinish": [],
+ "coreName": [
+  {
+   "value": "RAD-X",
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/storm/sure-lock",
+   "quote": "describes a RAD-X Core",
+   "via": "web-search"
+  },
+  {
+   "value": "RAD-X",
+   "sourceUrl": "https://bowling.com/products/storm-sure-lock.htm",
+   "quote": "Core:** RAD-X",
+   "via": "web-search"
+  }
+ ],
+ "rg": [
+  {
+   "value": 2.48,
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/storm/sure-lock",
+   "quote": "such as 2.480 at 15 pounds",
+   "via": "web-search"
+  },
+  {
+   "value": 2.48,
+   "sourceUrl": "https://bowling.com/products/storm-sure-lock.htm",
+   "quote": "RG of 2.48 and a differential of 0.054",
+   "via": "web-search"
+  }
+ ],
+ "diff": [],
+ "mbDiff": [],
+ "productUrl": [],
+ "_notes": "bowwwl contradicts itself on core (Nirvana Ultra Low RG Asymmetric header vs RAD-X Core in spec section); RAD-X agrees with bowling.com, recorded from the bowwwl spec section sentence. bowwwl diff 0.054 has no weight stated, so diff [] (bowling.com 15 lb diff 0.054 only one). mbDiff not seen. Finish 2000-grit Abralon only on bowling.com. Sure Lock S is a separate ball (Apr 2018)."
+}

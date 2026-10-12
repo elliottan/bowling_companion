@@ -1,0 +1,66 @@
+{
+ "brand": "Storm",
+ "name": "Code Black",
+ "official": false,
+ "releaseDate": [],
+ "coverstockRaw": [
+  {
+   "value": "R2S Pearl",
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/storm/code-black",
+   "quote": "The database lists R2S Pearl Pearl Reactive",
+   "via": "web-search"
+  },
+  {
+   "value": "R2S Pearl",
+   "sourceUrl": "https://www.bowling.com/products/storm-code-black.htm",
+   "quote": "the coverstock is R2S Pearl Reactive",
+   "via": "web-search"
+  }
+ ],
+ "factoryFinish": [],
+ "coreName": [
+  {
+   "value": "RAD4",
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/storm/code-black",
+   "quote": "Core:** RAD4 Core",
+   "via": "web-search"
+  },
+  {
+   "value": "RAD4",
+   "sourceUrl": "https://www.bowling.com/products/storm-code-black.htm",
+   "quote": "The core is RAD4",
+   "via": "web-search"
+  }
+ ],
+ "rg": [
+  {
+   "value": 2.5,
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/storm/code-black",
+   "quote": "15 lb specs:** RG 2.500, Diff 0.058, MB Diff 0.020",
+   "via": "web-search"
+  },
+  {
+   "value": 2.5,
+   "sourceUrl": "https://www.bowling.com/products/storm-code-black.htm",
+   "quote": "RG of 2.50 and a differential of 0.058, both based on a 15 lb ball",
+   "via": "web-search"
+  }
+ ],
+ "diff": [
+  {
+   "value": 0.058,
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/storm/code-black",
+   "quote": "15 lb specs:** RG 2.500, Diff 0.058, MB Diff 0.020",
+   "via": "web-search"
+  },
+  {
+   "value": 0.058,
+   "sourceUrl": "https://www.bowling.com/products/storm-code-black.htm",
+   "quote": "RG of 2.50 and a differential of 0.058, both based on a 15 lb ball",
+   "via": "web-search"
+  }
+ ],
+ "mbDiff": [],
+ "productUrl": [],
+ "_notes": "Asymmetric RAD4 core. mbDiff left [] because: bowwwl.com states MB Diff 0.020 at 15 lb, but bowlingball.com prints 'Mass Bias Diff 0.020' with no weight stated (not a 15 lb reading). Release Nov 2016 is bowwwl-only. bowwwl's RAD4 core page lists NRG Solid for a Nov 2016 Code Black; ball page and bowling.com/bowlingball.com agree on R2S Pearl."
+}

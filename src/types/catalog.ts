@@ -1,6 +1,15 @@
 export type CoverstockCategory = "Solid" | "Pearl" | "Hybrid" | "Urethane" | "Polyester";
 export type CoreType = "Symmetric" | "Asymmetric";
-export type Manufacturer = "Storm" | "Roto Grip" | "900 Global" | "Motiv" | "Pyramid";
+export type Manufacturer =
+  | "Storm" | "Roto Grip" | "900 Global" | "Motiv" | "Pyramid"
+  // The Brunswick family (ADR-135)
+  | "Brunswick" | "Hammer" | "Ebonite" | "Track" | "Radical" | "DV8" | "Columbia 300";
+
+/** Every brand, in the order the catalog's brand filter lists them. */
+export const MANUFACTURERS: readonly Manufacturer[] = [
+  "Storm", "Roto Grip", "900 Global", "Motiv", "Brunswick", "Hammer", "Ebonite",
+  "Track", "Radical", "DV8", "Columbia 300", "Pyramid"
+];
 
 export interface WeightSpec {
   weight: number;       // pounds, e.g. 15

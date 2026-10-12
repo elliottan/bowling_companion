@@ -1,0 +1,79 @@
+{
+ "brand": "Hammer",
+ "name": "Black Widow Urethane",
+ "official": false,
+ "releaseDate": [
+  {
+   "value": "2017-12",
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/hammer/black-widow-urethane",
+   "quote": "Release Date Dec 2017",
+   "via": "web-search"
+  },
+  {
+   "value": "2017-12",
+   "sourceUrl": "https://bowling.com/products/hammer-black-widow-urethane.htm",
+   "quote": "Release Date: December 2017",
+   "via": "web-search"
+  }
+ ],
+ "coverstockRaw": [],
+ "factoryFinish": [
+  {
+   "value": "360/500/500 Abralon",
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/hammer/black-widow-urethane",
+   "quote": "360/500/500 Abralon",
+   "via": "web-search"
+  },
+  {
+   "value": "360/500/500 Abralon",
+   "sourceUrl": "https://bowling.com/products/hammer-black-widow-urethane.htm",
+   "quote": "Finish: 360/500/500 Abralon",
+   "via": "web-search"
+  }
+ ],
+ "coreName": [
+  {
+   "value": "Gas Mask",
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/hammer/black-widow-urethane",
+   "quote": "Core: Gas Mask",
+   "via": "web-search"
+  },
+  {
+   "value": "Gas Mask",
+   "sourceUrl": "https://bowling.com/products/hammer-black-widow-urethane.htm",
+   "quote": "Core: Gas Mask",
+   "via": "web-search"
+  }
+ ],
+ "rg": [
+  {
+   "value": 2.5,
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/hammer/black-widow-urethane",
+   "quote": "The 15 lb entry shows RG 2.500, Diff 0.058, MB Diff 0.016",
+   "via": "web-search"
+  },
+  {
+   "value": 2.5,
+   "sourceUrl": "https://bowling.com/products/hammer-black-widow-urethane.htm",
+   "quote": "RG 2.50 and Differential 0.058, based off of 15 lb balls",
+   "via": "web-search"
+  }
+ ],
+ "diff": [
+  {
+   "value": 0.058,
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/hammer/black-widow-urethane",
+   "quote": "The 15 lb entry shows RG 2.500, Diff 0.058, MB Diff 0.016",
+   "via": "web-search"
+  },
+  {
+   "value": 0.058,
+   "sourceUrl": "https://bowling.com/products/hammer-black-widow-urethane.htm",
+   "quote": "RG 2.50 and Differential 0.058, based off of 15 lb balls",
+   "via": "web-search"
+  }
+ ],
+ "mbDiff": [],
+ "productUrl": [],
+ "_notes": "Dec 2017 original per bowwwl and bowling.com. hammerbowling.com lists a 'Black Widow Urethane' page with Feb 25, 2022 release (likely a re-release); date not used there. Cover wording differs (Urethane Solid vs Urethane) so omitted."
+}

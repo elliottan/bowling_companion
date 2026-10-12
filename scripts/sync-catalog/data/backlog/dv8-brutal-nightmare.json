@@ -1,0 +1,53 @@
+{
+ "brand": "DV8",
+ "name": "Brutal Nightmare",
+ "official": false,
+ "releaseDate": [
+  {
+   "value": "2013-01",
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/dv8/brutal-nightmare",
+   "quote": "released in January 2013",
+   "via": "web-search"
+  },
+  {
+   "value": "2013-01",
+   "sourceUrl": "https://www.bowlingball.com/products/bowling-balls/dv8/10682/brutal-nightmare.html",
+   "quote": "January 23, 2013",
+   "via": "web-search"
+  }
+ ],
+ "coverstockRaw": [
+  {
+   "value": "Class 8 Hybrid Reactive",
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/dv8/brutal-nightmare",
+   "quote": "Class 8 Hybrid Reactive coverstock",
+   "via": "web-search"
+  },
+  {
+   "value": "Class 8 Hybrid Reactive",
+   "sourceUrl": "https://www.bowlingball.com/products/bowling-balls/dv8/10682/brutal-nightmare.html",
+   "quote": "Class 8 hybrid reactive coverstock",
+   "via": "web-search"
+  }
+ ],
+ "factoryFinish": [],
+ "coreName": [
+  {
+   "value": "Nightmare",
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/dv8/brutal-nightmare",
+   "quote": "asymmetric Nightmare core",
+   "via": "web-search"
+  },
+  {
+   "value": "Nightmare",
+   "sourceUrl": "https://www.bowlingball.com/products/bowling-balls/dv8/10682/brutal-nightmare.html",
+   "quote": "Nightmare Low RG",
+   "via": "web-search"
+  }
+ ],
+ "rg": [],
+ "diff": [],
+ "mbDiff": [],
+ "productUrl": [],
+ "_notes": "2013 ball (outside 2024-26). RG: bowwwl 15 lb 2.505 vs bowlingball.com 2.557 (weight unstated), conflict, so []. Finish only bowlingball.com."
+}

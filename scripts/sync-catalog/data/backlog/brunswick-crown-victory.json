@@ -1,0 +1,53 @@
+{
+ "brand": "Brunswick",
+ "name": "Crown Victory",
+ "official": false,
+ "releaseDate": [
+  {
+   "value": "2025-04",
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/brunswick/crown-victory",
+   "quote": "The listing gives Apr 2025 as the release date.",
+   "via": "web-search"
+  },
+  {
+   "value": "2025-04",
+   "sourceUrl": "https://www.bowlingball.com/products/bowling-balls/brunswick/17814/crown-victory.html",
+   "quote": "Release Date · 4/17/2025",
+   "via": "web-search"
+  }
+ ],
+ "coverstockRaw": [
+  {
+   "value": "Savvy Hook Hybrid",
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/brunswick/crown-victory",
+   "quote": "Savvy Hook Hybrid coverstock",
+   "via": "web-search"
+  },
+  {
+   "value": "Savvy Hook Hybrid",
+   "sourceUrl": "https://www.bowlingball.com/products/bowling-balls/brunswick/17814/crown-victory.html",
+   "quote": "Coverstock Name · HK22 - Savvy Hook Hybrid",
+   "via": "web-search"
+  }
+ ],
+ "factoryFinish": [],
+ "coreName": [
+  {
+   "value": "Tiered Hexagon",
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/brunswick/crown-victory",
+   "quote": "Symmetric Tiered Hexagon core",
+   "via": "web-search"
+  },
+  {
+   "value": "Tiered Hexagon",
+   "sourceUrl": "https://www.bowlingball.com/products/bowling-balls/brunswick/17814/crown-victory.html",
+   "quote": "Core Name · Tiered Hexagon",
+   "via": "web-search"
+  }
+ ],
+ "rg": [],
+ "diff": [],
+ "mbDiff": [],
+ "productUrl": [],
+ "_notes": "Hybrid cover. Finish conflict: bowwwl says 500/1000/1500 Siaair + Crown Factory Compound, bowlingthismonth says 1500 SiaAir + Crown Factory Compound, so factoryFinish []. Product page: https://www.bowlingball.com/products/bowling-balls/brunswick/17814/crown-victory.html . 15 lb: only bowwwl states 15 lb (RG 2.540, diff 0.045); other sites print unlabeled weight values that agree, so rg/diff left [] under the 15 lb-stated rule."
+}

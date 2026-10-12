@@ -1,0 +1,53 @@
+{
+ "brand": "Track",
+ "name": "Paradox Black",
+ "official": false,
+ "releaseDate": [],
+ "coverstockRaw": [
+  {
+   "value": "QR-9 Hybrid",
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/track/paradox-black",
+   "quote": "QR-9 Hybrid",
+   "via": "web-search"
+  },
+  {
+   "value": "QR-9 Hybrid",
+   "sourceUrl": "https://www.bowling.com/products/track-paradox-black-x-out.htm",
+   "quote": "QR-9 Hybrid",
+   "via": "web-search"
+  }
+ ],
+ "factoryFinish": [
+  {
+   "value": "500/2000 Abralon",
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/track/paradox-black",
+   "quote": "500/2000 Abralon",
+   "via": "web-search"
+  },
+  {
+   "value": "500/2000 Abralon",
+   "sourceUrl": "https://www.bowling.com/products/track-paradox-black-x-out.htm",
+   "quote": "500/2000 Abralon",
+   "via": "web-search"
+  }
+ ],
+ "coreName": [
+  {
+   "value": "I-Core 2.0",
+   "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/track/paradox-black",
+   "quote": "I-Core 2.0",
+   "via": "web-search"
+  },
+  {
+   "value": "I-Core 2.0",
+   "sourceUrl": "https://www.bowling.com/products/track-paradox-black-x-out.htm",
+   "quote": "i-Core 2.0",
+   "via": "web-search"
+  }
+ ],
+ "rg": [],
+ "diff": [],
+ "mbDiff": [],
+ "productUrl": [],
+ "_notes": "bowwwl: release November 2017, discontinued; bowling.com (X-OUT page) gave no release date so releaseDate []. bowwwl RG 2.480 / diff 0.057 / MB 0.015 is the 'general listing' with weight not stated (16 lb page is 2.490/0.049), so rg/diff/mbDiff [] even though bowling.com states 15 lb RG 2.48, diff 0.057. Asymmetric (bowwwl: I-Core 2.0 asymmetric). Finish: both state 500/2000 Abralon."
+}

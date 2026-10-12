@@ -11,6 +11,12 @@ trigger: >
 
 # Gather Ball Specs
 
+**Start with `scripts/sync-catalog/data/HANDOUT.md`.** It lists the balls
+already researched and held back (their partial readings are in
+`data/backlog/`), the rows read only from web search that a page should
+re-check, and how to run this with web search alone when the spec sites are
+blocked (ADR-135).
+
 Balls enter the catalog through `scripts/sync-catalog/pipeline/`, never by
 hand-editing `balls.json`. ADR-043 and ADR-044 carry the reasoning; this is the
 procedure.
@@ -156,7 +162,10 @@ npm run contact-sheet
 to `add-ball-image`. Open `scripts/sync-catalog/contact-sheet.html` and look at
 it, in both light and dark. A bad cut or an off-centre ball is only visible to an
 eye. A ball with no usable image keeps the placeholder; never substitute a photo
-from a retailer.
+from a retailer. A ball whose photo still shows a white background or a white
+edge: `npm run clear-background -- <ball-id>` (add `--circle` to also cut away
+a drop shadow), then rename the files so the app's 30-day photo cache lets the
+fix through (the handout says how).
 
 ## Finish
 

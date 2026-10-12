@@ -23,6 +23,14 @@ export interface Evidence<T> {
    * means a model read it, and then both are required.
    */
   parser?: string;
+  /**
+   * How the quote was obtained, when it was not read off the page itself.
+   * `"web-search"` means the quote is the search tool's own output for a search
+   * pinned to the source's site (ADR-135): text a summariser wrote about the
+   * page, not the page. It still needs a second site, and the promoted ball says
+   * so in `readVia`, so a session that can open the page re-reads it.
+   */
+  via?: "web-search";
 }
 
 /** Every field carries its readings as a list, one entry per source consulted. */
