@@ -9,6 +9,14 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.23.0: A pattern's original sheet, kept by Headpin (2026-10-12)
+
+**The original sheet, always there.** A catalog pattern's page now opens its
+original PDF sheet from Headpin itself, next to a link to where it was first
+published. Sheets on league and federation sites tend to vanish after a
+season, and this copy does not. A sheet downloads only when you open it, and
+once opened it also opens offline (ADR-136).
+
 ## 0.22.0: Brunswick, Hammer and the rest of the Brunswick family join the catalog, with 62 more balls (2026-10-11)
 
 **Seven new brands.** The catalog now has Brunswick, Hammer, Ebonite, Track,

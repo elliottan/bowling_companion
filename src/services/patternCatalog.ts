@@ -18,6 +18,8 @@ export interface CatalogPattern {
   name: string;
   vendor: string;
   sourceUrl?: string;
+  /** Our copy of the original sheet, relative to `catalog/` (ADR-136). */
+  sheet?: string;
   distance: number;
   volumeMl: number;
   ratio: number | null;
@@ -43,6 +45,16 @@ export function getCatalogPatterns(): Promise<CatalogPattern[]> {
     .then((file) => file?.patterns ?? [])
     .catch(() => []);
   return cache;
+}
+
+/**
+ * Where our copy of a catalog pattern's sheet is served (ADR-136), or undefined
+ * when it has none. Opened on demand, never fetched ahead: the service worker
+ * keeps a sheet once it has been opened, so it is there offline after that.
+ */
+export async function catalogSheetUrl(catalogId: string): Promise<string | undefined> {
+  const pattern = (await getCatalogPatterns()).find((p) => p.id === catalogId);
+  return pattern?.sheet ? `${import.meta.env.BASE_URL}catalog/${pattern.sheet}` : undefined;
 }
 
 /** Test seam. */

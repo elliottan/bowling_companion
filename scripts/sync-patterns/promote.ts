@@ -21,6 +21,7 @@ import { fileURLToPath } from "node:url";
 
 import { oilStats, headlineRatio, patternClass } from "../../src/lib/oilPattern.js";
 import type { CatalogPattern, PatternCandidate, PatternCatalog } from "./types.js";
+import { SHEETS_DIR, sheetProblem } from "./sheets.js";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const DATA = resolve(HERE, "data");
@@ -36,16 +37,22 @@ export interface Complaint {
   field: string;
   stated: number;
   derived: number;
+  /** Said in words, where a number would not say it. */
+  detail?: string;
 }
 
 /**
  * Every way a candidate fails to match the sheet it claims to come from.
  * Exported because this, not the reading, is the part worth testing hardest.
  */
-export function checkCandidate(candidate: PatternCandidate): Complaint[] {
+export function checkCandidate(candidate: PatternCandidate, sheetsDir = SHEETS_DIR): Complaint[] {
   const complaints: Complaint[] = [];
+  // A recorded copy of the sheet has to be the bytes it says it is, or the
+  // catalog would point bowlers at a file that is missing or not this sheet.
+  const problem = candidate.sheet ? sheetProblem(candidate.sheet, sheetsDir) : null;
+  if (problem) complaints.push({ field: "sheet", stated: 1, derived: 0, detail: problem });
   if (candidate.passes.length === 0) {
-    return [{ field: "passes", stated: 1, derived: 0 }];
+    return [...complaints, { field: "passes", stated: 1, derived: 0 }];
   }
 
   // Per row: a pass that cannot reproduce its own crossings was misread.
@@ -85,6 +92,7 @@ export function toCatalogPattern(candidate: PatternCandidate): CatalogPattern {
     name: candidate.name,
     vendor: candidate.vendor,
     sourceUrl: candidate.sourceUrl,
+    sheet: candidate.sheet ? `sheets/${candidate.sheet.file}` : undefined,
     distance: stats.length,
     volumeMl: Math.round(stats.volumeMl * 100) / 100,
     ratio: headlineRatio(candidate.passes),
@@ -118,7 +126,11 @@ function main(): void {
       rejected += 1;
       console.error(`REJECT ${candidate.id} (${candidate.reader})`);
       for (const c of complaints) {
-        console.error(`  ${c.field}: sheet says ${c.stated}, the rows come to ${c.derived}`);
+        console.error(
+          c.detail
+            ? `  ${c.field}: ${c.detail}`
+            : `  ${c.field}: sheet says ${c.stated}, the rows come to ${c.derived}`
+        );
       }
       if (!dryRun) {
         writeFileSync(

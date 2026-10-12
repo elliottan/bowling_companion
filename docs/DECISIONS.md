@@ -6292,3 +6292,52 @@ matching pages rather than the pages.
   done, and what to read first once the sites are reachable.
 - Images for the new balls are not in this change. The handout says where
   clean ones can come from; until then the brand placeholder shows.
+
+## ADR-136: We keep and serve each pattern's original sheet, on demand
+
+**Status.** Accepted, 2026-10-12. Extends ADR-104 and ADR-106.
+
+**Context.** A catalog pattern links to the sheet it was read from, and those
+links point at a regional federation's upload folder or a school league's
+season directory: `wp-content/uploads/2021/05/`, `sj_18_19/`. Such links die
+when a site is rebuilt or a season is archived. When one does, the bowler
+loses the original, and the pipeline loses the one document that can re-check
+a reading. ADR-106 put the numbers in the app, but a bowler still wants the
+sheet itself sometimes: to show a lane mechanic, or to trust what they read.
+
+ADR-104 took the risk of shipping competition patterns' numbers with the
+owner's agreement. Hosting the sheets themselves, the publisher's own document
+with its layout and branding, is a larger step than that. The owner asked for
+it, and it is taken deliberately here.
+
+**Decision.**
+
+- **Every sheet PDF is kept**, byte for byte, in `public/catalog/sheets/`. Ingest
+  keeps the PDF it reads; `npm run fetch-pattern-sheets` downloads one from a
+  candidate's `sourceUrl` for a candidate staged before this. A download that
+  does not start with `%PDF-` is refused, because an expired link often answers
+  200 with an HTML page.
+- **The file is named for its content**, `<id>.<12 hex of sha256>.pdf`, and the
+  candidate records the full hash. Promote holds back a pattern whose recorded
+  sheet is missing or hashes differently, and a test fails the build if the
+  shipped catalog names a sheet that is not there.
+- **The catalog carries both.** `sheet` is our copy and `sourceUrl` is the
+  original, and the pattern screen offers them in that order. Our copy is the
+  one that will still open next season, and the original is what it is a copy
+  of.
+- **On demand, never ahead.** Sheets are not precached and not warmed. The
+  first open downloads one, and the service worker keeps it (CacheFirst,
+  `pattern-sheets`), so a sheet a bowler has opened once also opens offline.
+  Because the name changes with the content, the host serves them as
+  `immutable` for a year, and the cache never has to revalidate.
+- **`/catalog/` is off the navigation fallback.** A PDF opened in its own tab
+  arrives as a navigation, and the fallback would have answered it with the app
+  shell.
+
+**Consequences.**
+- The repository grows by each sheet's size, typically 100 KB to 1 MB. The
+  app's boot does not, because nothing is fetched until it is opened.
+- Only the catalog is linked to its copy. A bowler's own pattern keeps its own
+  link, and a session's snapshot of a link is untouched.
+- A publisher who objects is answered by deleting one file and rerunning
+  promote. The pattern keeps its numbers and its original link.

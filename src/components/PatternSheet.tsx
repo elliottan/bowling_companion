@@ -1,5 +1,5 @@
 import { ArrowUpRight } from "lucide-react";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { OilPass, OilPattern } from "../types/bowling";
 import {
   boardTotals, formatSheetBoard, headlineRatio, oilStats, patternClass,
@@ -10,6 +10,7 @@ import { GROUP_HEADING } from "./ui/typography";
 import { IconButton } from "./ui/IconButton";
 import { PushScreen } from "./PushScreen";
 import { LaneViewIcon } from "./icons";
+import { catalogSheetUrl } from "../services/patternCatalog";
 
 /**
  * A pattern sheet, in the app (ADR-106).
@@ -44,6 +45,8 @@ export function PatternSheet({ pattern, onClose, onOpenInLineVisualizer }: Patte
   const totals = useMemo(() => boardTotals(pattern.passes ?? []), [pattern.passes]);
   const shape = patternClass(ratio);
   const feet = patternLength(pattern);
+
+  const hostedSheet = useHostedSheet(pattern.catalog_id);
 
   const forward = (pattern.passes ?? []).filter((p) => p.direction === "forward");
   const reverse = (pattern.passes ?? []).filter((p) => p.direction === "reverse");
@@ -116,19 +119,56 @@ export function PatternSheet({ pattern, onClose, onOpenInLineVisualizer }: Patte
             </>
           )}
 
+          {hostedSheet && <SheetLink href={hostedSheet} label="Pattern sheet" note="PDF" />}
           {pattern.url && (
-            <a
+            <SheetLink
               href={pattern.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center justify-between gap-2 rounded-xl border border-edge bg-surface px-3 py-2.5 text-sm font-semibold text-ink active:bg-surface-muted"
-            >
-              Original pattern sheet
-              <ArrowUpRight size={16} aria-hidden="true" className="shrink-0 text-ink-tertiary" />
-            </a>
+              label={hostedSheet ? "Original source" : "Original pattern sheet"}
+              note={hostedSheet ? hostName(pattern.url) : undefined}
+            />
           )}
         </div>
     </PushScreen>
+  );
+}
+
+/** Our copy of a catalog pattern's sheet, once the catalog has said where. */
+function useHostedSheet(catalogId: string | undefined): string | undefined {
+  const [url, setUrl] = useState<string>();
+  useEffect(() => {
+    if (!catalogId) return;
+    let live = true;
+    void catalogSheetUrl(catalogId).then((found) => live && setUrl(found));
+    return () => {
+      live = false;
+    };
+  }, [catalogId]);
+  return catalogId ? url : undefined;
+}
+
+function hostName(url: string): string | undefined {
+  try {
+    return new URL(url).hostname.replace(/^www\./, "");
+  } catch {
+    return undefined;
+  }
+}
+
+/** A row that leaves the app, so it carries the outward arrow (DESIGN-LANGUAGE §4). */
+function SheetLink({ href, label, note }: { href: string; label: string; note?: string }) {
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="flex items-center justify-between gap-2 rounded-xl border border-edge bg-surface px-3 py-2.5 text-sm font-semibold text-ink active:bg-surface-muted"
+    >
+      <span className="min-w-0 truncate">
+        {label}
+        {note && <span className="ml-1.5 text-xs font-normal text-ink-tertiary">{note}</span>}
+      </span>
+      <ArrowUpRight size={16} aria-hidden="true" className="shrink-0 text-ink-tertiary" />
+    </a>
   );
 }
 

@@ -1,7 +1,8 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { PatternSheet } from "./PatternSheet";
 import { CHROMIUM_6742 } from "../lib/oilPattern.fixture";
+import { resetPatternCatalogCache } from "../services/patternCatalog";
 
 const chromium = { id: 1, name: "Chromium 6742", passes: CHROMIUM_6742 };
 
@@ -62,5 +63,53 @@ describe("PatternSheet", () => {
     render(<PatternSheet pattern={{ ...chromium, url: "https://example.com/c.pdf" }} onClose={() => {}} />);
     expect(screen.getByRole("link", { name: /original pattern sheet/i })).toHaveAttribute(
       "href", "https://example.com/c.pdf");
+  });
+
+  describe("our copy of the sheet (ADR-136)", () => {
+    const serveCatalog = (sheet?: string) => {
+      resetPatternCatalogCache();
+      vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          version: 1,
+          generated_at: "",
+          patterns: [{ id: "chromium-6742", name: "Chromium 6742", sheet, passes: [] }],
+        }),
+      }));
+    };
+    afterEach(() => {
+      vi.unstubAllGlobals();
+      resetPatternCatalogCache();
+    });
+
+    it("offers the kept sheet first and the original beside it, named by its host", async () => {
+      serveCatalog("sheets/chromium-6742.0123456789ab.pdf");
+      render(
+        <PatternSheet
+          pattern={{ ...chromium, catalog_id: "chromium-6742", url: "https://www.lvsb.at/c.pdf" }}
+          onClose={() => {}}
+        />
+      );
+      await waitFor(() =>
+        expect(screen.getByRole("link", { name: /^pattern sheet/i })).toHaveAttribute(
+          "href", "/catalog/sheets/chromium-6742.0123456789ab.pdf")
+      );
+      expect(screen.getByRole("link", { name: /original source/i })).toHaveAttribute(
+        "href", "https://www.lvsb.at/c.pdf");
+      expect(screen.getByText("lvsb.at")).toBeInTheDocument();
+    });
+
+    it("links only the original when the catalog kept no copy", async () => {
+      serveCatalog(undefined);
+      render(
+        <PatternSheet
+          pattern={{ ...chromium, catalog_id: "chromium-6742", url: "https://example.com/c.pdf" }}
+          onClose={() => {}}
+        />
+      );
+      await waitFor(() => expect(fetch).toHaveBeenCalled());
+      expect(screen.getByRole("link", { name: /original pattern sheet/i })).toBeInTheDocument();
+      expect(screen.queryByRole("link", { name: /^pattern sheet/i })).toBeNull();
+    });
   });
 });

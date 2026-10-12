@@ -43,6 +43,16 @@ export interface PatternCandidate {
   stated: StatedTotals;
   /** The sheet's own file name or a note, for a human reading a conflict. */
   note?: string;
+  /** Our copy of the sheet, in `public/catalog/sheets/` (ADR-136). */
+  sheet?: SheetCopy;
+}
+
+/** A sheet PDF as we keep it: named for its content, so the name never lies. */
+export interface SheetCopy {
+  /** File name in `public/catalog/sheets/`, `<id>.<sha256 prefix>.pdf`. */
+  file: string;
+  sha256: string;
+  bytes: number;
 }
 
 /** A promoted pattern, as it ships. */
@@ -51,6 +61,8 @@ export interface CatalogPattern {
   name: string;
   vendor: string;
   sourceUrl?: string;
+  /** Our copy of the sheet, relative to `catalog/`: `sheets/<file>` (ADR-136). */
+  sheet?: string;
   /** Derived and stored, because the app should not have to compute a list. */
   distance: number;
   volumeMl: number;

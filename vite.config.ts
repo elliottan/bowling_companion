@@ -198,7 +198,11 @@ export default defineConfig({
         // /guides is denied for the same reason as /legal. A shared guide link
         // opens a page of its own that hands the visitor to the app, and the
         // fallback would answer it with the app shell and no guide open.
-        navigateFallbackDenylist: [/^\/$/, /^\/legal(\/|$)/, /^\/guides(\/|$)/],
+        //
+        // /catalog is denied because a pattern sheet PDF is opened as a page of
+        // its own, so it arrives as a navigation, and the fallback would answer
+        // it with the app shell instead of the PDF (ADR-136).
+        navigateFallbackDenylist: [/^\/$/, /^\/legal(\/|$)/, /^\/guides(\/|$)/, /^\/catalog\//],
         // NOTE: webp and catalog JSON are intentionally excluded from precache
         // to keep boot light. They are runtime-cached on first use instead.
         globPatterns: ["**/*.{js,css,html,svg,png,ico,webmanifest}"],
@@ -240,6 +244,20 @@ export default defineConfig({
               cacheName: BALL_IMAGE_CACHE,
               cacheableResponse: { statuses: [200] },
               expiration: { maxEntries: 600, maxAgeSeconds: BALL_IMAGE_MAX_AGE_SECONDS }
+            }
+          },
+          {
+            // The pattern sheet PDFs (ADR-136). Never precached and never
+            // fetched ahead: a sheet is downloaded the first time a bowler opens
+            // it, and kept from then on so it opens offline. CacheFirst with no
+            // revalidation is safe because each file is named for its hash, so
+            // a changed sheet is a new URL and an old one never changes.
+            urlPattern: /\/catalog\/sheets\/[^/]+\.pdf$/,
+            handler: "CacheFirst",
+            options: {
+              cacheName: "pattern-sheets",
+              cacheableResponse: { statuses: [200] },
+              expiration: { maxEntries: 60, purgeOnQuotaError: true }
             }
           },
           {
