@@ -538,27 +538,33 @@ export function Stats({
  * tiles of equal weight used to sit here, and none of them read as the answer.
  */
 function Headline({ stats, form }: { stats: BowlingStats; form?: RecentForm | null }) {
+  // The average and its three companions share one row, so the card that
+  // leads the screen does not take a third of it.
   return (
-    <section className="rounded-xl border border-edge bg-surface p-4 shadow-sm">
-      <h2 className={GROUP_HEADING}>Average</h2>
-      <p className="mt-1 text-5xl font-bold leading-none tabular-nums text-ink">
-        {fmt(stats.averageScore)}
-      </p>
+    <section className="rounded-xl border border-edge bg-surface px-3 py-2.5 shadow-sm">
+      <div className="flex items-end gap-3">
+        <div className="min-w-0 flex-1">
+          <h2 className={GROUP_HEADING}>Average</h2>
+          <p className="mt-0.5 text-4xl font-bold leading-none tabular-nums text-ink">
+            {fmt(stats.averageScore)}
+          </p>
+        </div>
+        <dl className="grid shrink-0 grid-cols-3 gap-4 text-right">
+          {(
+            [
+              ["High", fmt(stats.highGame)],
+              ["Low", fmt(stats.lowGame)],
+              ["Games", String(stats.completedGames)]
+            ] as const
+          ).map(([label, value]) => (
+            <div key={label} className="flex flex-col-reverse">
+              <dt className="text-xs text-ink-secondary">{label}</dt>
+              <dd className="text-base font-bold leading-tight tabular-nums text-ink">{value}</dd>
+            </div>
+          ))}
+        </dl>
+      </div>
       {form && <FormLine form={form} />}
-      <dl className="mt-3 grid grid-cols-3 border-t border-edge pt-3">
-        {(
-          [
-            ["High", fmt(stats.highGame)],
-            ["Low", fmt(stats.lowGame)],
-            ["Games", String(stats.completedGames)]
-          ] as const
-        ).map(([label, value]) => (
-          <div key={label} className="flex flex-col-reverse">
-            <dt className="text-xs text-ink-secondary">{label}</dt>
-            <dd className="text-lg font-bold tabular-nums text-ink">{value}</dd>
-          </div>
-        ))}
-      </dl>
     </section>
   );
 }
@@ -573,12 +579,12 @@ function FormLine({ form }: { form: RecentForm }) {
       ? "level with your average"
       : `${Math.abs(difference)} ${difference > 0 ? "above" : "under"} your average`;
   return (
-    <p className="mt-2 flex items-start gap-1.5 text-sm text-ink-secondary">
+    <p className="mt-2 flex items-start gap-1.5 text-xs text-ink-secondary">
       {Icon && (
         <Icon
-          size={16}
+          size={14}
           aria-hidden="true"
-          className={`mt-0.5 shrink-0 ${difference > 0 ? "text-accent" : "text-ink-tertiary"}`}
+          className={`mt-px shrink-0 ${difference > 0 ? "text-accent" : "text-ink-tertiary"}`}
         />
       )}
       <span>

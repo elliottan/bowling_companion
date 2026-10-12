@@ -62,6 +62,13 @@ const RANGE_ON_CARD: Record<StatsRange, string | undefined> = {
   all: undefined
 };
 
+/** The range control's segments, short enough to share the header row with the
+ *  title and both actions on a phone. The short label still says the whole
+ *  name to a screen reader. */
+const RANGE_OPTIONS = STATS_RANGES.map((r) =>
+  r.value === "months3" ? { ...r, label: "3 mo", srLabel: r.label } : r
+);
+
 const EMPTY: BowlingStats = {
   totalSessions: 0,
   totalGames: 0,
@@ -166,13 +173,11 @@ export function StatsView({
         scrollerRef={scrollerRef}
         header={
           <>
-            <div
-              className={`mb-3 flex items-center gap-3 ${
-                mode === "push" ? "justify-end" : "justify-between"
-              }`}
-            >
+            {/* One row: the title, the two actions, then the range at the far
+                right, where it used to take a row of its own under the header. */}
+            <div className="mb-3 flex items-center gap-2">
               {mode === "tab" && <h1 className="text-xl font-bold text-ink">Stats</h1>}
-              <div className="flex shrink-0 items-center gap-1">
+              <div className="ml-auto flex shrink-0 items-center gap-1">
                 <SessionFilterButton filters={filters} onOpen={() => setFiltersOpen(true)} />
                 {/* The two drill-downs used to live behind this control, which meant
                     a screen full of numbers hid the two screens that explain them
@@ -184,6 +189,19 @@ export function StatsView({
                   <ShareIosIcon size={20} aria-hidden="true" />
                 </IconButton>
               </div>
+              {/* Hidden until there is something to narrow: on a device with
+                  no games the empty state is the whole screen. */}
+              {filters.filtered.length > 0 && (
+                <div className="w-44 min-w-0 shrink">
+                  <SegmentedControl
+                    label="Sessions counted"
+                    options={RANGE_OPTIONS}
+                    value={range}
+                    onChange={setRange}
+                    dense
+                  />
+                </div>
+              )}
             </div>
 
             <SessionFilterChips filters={filters} />
@@ -196,19 +214,6 @@ export function StatsView({
             <ErrorBanner className="mb-3">
               Your sessions could not be read. Reload the app, then try again.
             </ErrorBanner>
-          )}
-          {/* Hidden until there is something to narrow: on a device with no
-              games the empty state is the whole screen. */}
-          {filters.filtered.length > 0 && (
-            <div className="mb-3">
-              <SegmentedControl
-                label="Sessions counted"
-                options={STATS_RANGES}
-                value={range}
-                onChange={setRange}
-                dense
-              />
-            </div>
           )}
           <Stats
             stats={isLoading ? EMPTY : stats}

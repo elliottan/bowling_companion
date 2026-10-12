@@ -6456,7 +6456,8 @@ It was put to the owner, who said yes to photos for the new balls.
 
 **Status.** Accepted, 2026-10-12. Extends ADR-056 (by position in the night),
 ADR-124 (strike on strike) and ADR-126 (the Stats tab's chart and Balls card).
-Amends ADR-129 (the Spares card's floor of three).
+Amends ADR-129 (the Spares card's floor of three) and ADR-126 (where the range
+control sits, and the headline's layout).
 
 **Context.** The Stats tab's chart plotted one point per session, so it said
 whether a bowler was improving over months, never what happens between the
@@ -6496,6 +6497,13 @@ ball, and the Balls card had no room for two more columns on a phone.
   almost no leave is left three times, so the card sat empty when it was most
   wanted, and sorting by times left already puts a leave left once at the
   bottom. Every leave is still under All leaves.
+- **The range control moves into the header row,** at the far right after the
+  filter and share buttons, instead of a row of its own under them. "3 months"
+  reads "3 mo" there so the row fits a 360px phone; a screen reader still
+  hears the whole name.
+- **The headline is one row:** the average at `text-4xl` with High, Low and
+  Games beside it rather than under it, and the recent-form line in small type
+  below. It still leads the screen (ADR-126), at about half the height.
 
 **Consequences.**
 - On a phone the last columns of the Balls card are a swipe away; the order

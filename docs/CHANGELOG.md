@@ -31,6 +31,11 @@ them all and scrolls inside the card, like the leaves do.
 needs to have been left three times to show up, so a single session's card
 fills in. They are still ordered by how often you left them.
 
+**More of your stats on the first screen.** The Last 10 / 3 months / All
+switch moved up into the header beside the filter and share buttons, and the
+average card is about half as tall, with High, Low and Games next to the
+average instead of under it.
+
 ## 0.26.0: Photos for 265 of the newest balls (2026-10-12)
 
 **Most of the balls added recently now have their picture.** 265 of the balls
