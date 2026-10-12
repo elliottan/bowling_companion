@@ -159,6 +159,48 @@ describe("sheetLines", () => {
 // Kegel prints more than one layout and all of them are real sheets. Each is
 // checked against the totals its own header prints, which is what lets a new
 // layout be a regex rather than a new reader (ADR-104).
+// The same layout from a newer Kegel export: the buffer printed as an RPM
+// rather than a level, and the arrow sometimes with no spaces around it.
+describe("Pesta Sukan 2026, the arrow layout with a buffer in RPM", () => {
+  const SHEET = [
+    "PESTA SUKAN 2026",
+    "DISTANCE: 46 FEET VOLUME: 29.05 mL",
+    "RATIO: 3.68:1 FORWARD: 11.5 mL",
+    "DROP BRUSH: 44 FEET REVERSE: 17.55 mL",
+    "FORWARD LOADS DATA",
+    "# START STOP LOADS MICS SPEED BUFF TANK DISTANCE T.OIL",
+    "1 2L 2R 2 50 14 500 A - ICE 0→2 3,700",
+    "2 7L 7R 2 50 14 500 A - ICE 2→6 2,700",
+    "3 9L 9R 1 50 14 500 A - ICE 6→8 1,150",
+    "4 11L 11R 2 50 18 500 A - ICE 8 → 13 1,900",
+    "5 13L 13R 2 50 18 500 A - ICE 13 → 18 1,500",
+    "6 15L 15R 1 50 22 500 A - ICE 18 → 21 550",
+    "7 2L 2R 0 50 22 500 A - ICE 21 → 36 0",
+    "8 2L 2R 0 50 26 500 A - ICE 36 → 46 0",
+    "REVERSE LOADS DATA",
+    "1 2L 2R 0 50 26 500 A - ICE 44 → 42 0",
+    "2 14L 14R 2 50 22 500 A - ICE 42 → 36 1,300",
+    "3 13L 13R 2 50 18 500 A - ICE 36 → 31 1,500",
+    "4 12L 12R 3 50 18 500 A - ICE 31 → 23 2,550",
+    "5 10L 10R 2 50 18 500 A - ICE 23 → 18 2,100",
+    "6 8L 8R 1 50 14 500 A - ICE 18 → 16 1,250",
+    "7 6L 6R 1 50 14 500 A - ICE 16 → 14 1,450",
+    "8 2L 2R 4 50 14 500 A - ICE 14 → 6 7,400",
+    "9 2L 2R 0 50 14 500 A - ICE 6→0 0",
+  ];
+
+  it("reads every row, buffer and all, and comes to the totals the sheet prints", () => {
+    const parsed = parseSheetLines(SHEET);
+    expect(parsed.passes).toHaveLength(17);
+    expect(parsed.passes[0]).toMatchObject({ buffer: 500, tank: "A - ICE" });
+    const stats = oilStats(parsed.passes);
+    expect(stats.forwardMl).toBeCloseTo(11.5, 2);
+    expect(stats.reverseMl).toBeCloseTo(17.55, 2);
+    expect(stats.volumeMl).toBeCloseTo(29.05, 2);
+    expect(stats.length).toBe(46);
+  });
+});
+
 describe("Big Ben, the arrow layout", () => {
   const SHEET = [
     "BIG BEN",

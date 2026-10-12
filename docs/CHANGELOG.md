@@ -9,17 +9,18 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
-## 0.23.0: A pattern's original sheet, in the app, and Tungsten (2026-10-12)
+## 0.23.0: A pattern's original sheet, in the app, with Tungsten and Pesta Sukan 2026 (2026-10-12)
 
-**The original sheet, in the app.** Big Ben, Mercury 4940, Stonehenge and
-Tungsten now open their original Kegel sheet right in the app from "Original
-pattern sheet". Tap the sheet to zoom in on the load table, and tap again to
+**The original sheet, in the app.** Big Ben, Mercury 4940, Stonehenge,
+Tungsten and Pesta Sukan 2026 now open their original Kegel sheet right in the
+app from "Original pattern sheet". Tap the sheet to zoom in on the load table, and tap again to
 zoom back out. The PDF itself is one tap away for printing or sharing. A sheet
 downloads only when you first open it, and opens offline after that. Catalog
 patterns no longer link out to the league or federation site they were
 published on, since those links tend to vanish after a season (ADR-136).
 
-**Tungsten joins the catalog.** 39 ft, 25.6 mL, 6.25:1.
+**Two more patterns.** Tungsten (39 ft, 25.6 mL, 6.25:1) and Pesta Sukan 2026
+(46 ft, 29.05 mL, 3.68:1) join the catalog.
 
 **Track zones as the sheet prints them.** The seven zone ratios sit in one row,
 left to right across the lane with the middle at 1.00, as plain numbers.

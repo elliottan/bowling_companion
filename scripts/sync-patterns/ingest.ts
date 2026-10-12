@@ -11,7 +11,8 @@
  * carries the one the printed sheet states: without it there is nothing to
  * check the loads against. A transcription's title line often starts with the
  * pattern's own numbers ("2025 Striking..."), which the title guess skips as a
- * header figure, so `--name` carries the name in that case.
+ * header figure, so `--name` carries the name in that case, and the same goes
+ * for a PDF whose title ends on a year ("PESTA SUKAN 2026").
  *
  * A PDF is also kept, byte for byte, in public/catalog/sheets/ and recorded on
  * the candidate, so the sheet that was read is the sheet bowlers can open
@@ -59,7 +60,7 @@ async function main(): Promise<void> {
   for (const sheet of sheets) {
     const lower = sheet.toLowerCase();
     const { candidate, checks, verified } = lower.endsWith(".pdf")
-      ? await readSheet(sheet, { sourceUrl, vendor })
+      ? await readSheet(sheet, { sourceUrl, vendor, name })
       : lower.endsWith(".kosi")
         ? readKosi(sheet, readFileSync(sheet, "utf8"), { sourceUrl, vendor, volumeMl })
         : readManual(sheet, readFileSync(sheet, "utf8"), { sourceUrl, vendor, name });
