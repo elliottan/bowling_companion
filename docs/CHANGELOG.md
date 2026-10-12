@@ -9,6 +9,16 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.26.0: Photos for 265 of the newest balls (2026-10-12)
+
+**Most of the balls added recently now have their picture.** 265 of the balls
+from the last two updates, the Brunswick family (Hammer, Brunswick, Ebonite,
+Radical, DV8, Columbia 300, Track) among them and the new Storm, Roto Grip,
+900 Global and MOTIV ones too, show their own photo in the catalog list, the
+ball's page, the ball picker and Stats instead of the brand placeholder. Every
+photo was checked by eye against a dark and a light background. 38 older balls
+still show the placeholder (ADR-138).
+
 ## 0.25.0: 206 more balls, and a release month on nearly every ball (2026-10-12)
 
 **The catalog is now 518 balls.** 206 new ones, read straight from the spec

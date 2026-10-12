@@ -16,7 +16,7 @@
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from "node:fs";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { slug } from "../normalize.js";
+import { ballId } from "../normalize.js";
 import { renderBallPair, type ImageEntry } from "../pipeline/render.js";
 import type { RawBall } from "../types.js";
 import type { Colorway } from "../../../src/types/catalog.js";
@@ -26,11 +26,6 @@ const REPO_ROOT = resolve(__dirname, "../../../");
 const BALLS_JSON = resolve(REPO_ROOT, "scripts/sync-catalog/data/balls.json");
 const IMAGES_JSON = resolve(REPO_ROOT, "scripts/sync-catalog/data/images.json");
 const IMG_DIR = resolve(REPO_ROOT, "public/catalog/img");
-
-function ballId(b: RawBall): string {
-  const year = b.releaseDate ? parseInt(b.releaseDate.slice(0, 4), 10) : null;
-  return slug(b.brand, b.name, year);
-}
 
 async function main(): Promise<void> {
   const [key, url] = process.argv.slice(2);

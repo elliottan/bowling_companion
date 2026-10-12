@@ -18,7 +18,7 @@ been re-read against the real pages.
   mass bias, and their `readVia` markers are gone.
 - **Release months:** 117 balls that had no date now have one. Seventeen still
   have none (list below).
-- **No photos** for the 206 balls added this session. See "Photos".
+- **Photos:** 480 of 518 balls have one. See "Photos".
 
 ## What was done, and with what
 
@@ -94,31 +94,35 @@ MOTIV or Storm balls whose pages state none.
 
 ## Photos
 
-The decision here is the owner's, so nothing was bulk-pulled.
-
-- **ADR-039** limits photo pulls from bowwwl to balls the owner needs, one at a
-  time ("deliberately not a bulk mirror"), and bowwwl's terms forbid
-  reproducing them. Pulling 206 would widen that unlicensed set considerably.
-  `parse-bowwwl` already records each page's image URL (`_imageUrl`), so the
-  mechanics are `npm run add-ball-image -- "<name>" "<url>"` per ball and
-  `npm run contact-sheet`, if the owner decides to.
-- **MOTIV's Dropbox media folder** is covered by their permission, and is the
-  best source for MOTIV's own balls. The link passed so far
-  (`.../scl/fo/dzi7og8yv1kzqihsxnr5r/h/Balls?dl=0`) opens Dropbox's login page,
-  because it has no `rlkey=` part. A shared link needs the full "Copy link"
-  form, or the folder downloaded and put in the repo.
+- **480 of 518 balls have a photo.** The owner said yes to photos for the new
+  balls (ADR-138), so 265 came from the source pages (`npm run
+  fetch-seed-images -- --skip-ids <ids-before-the-new-balls>`, one request a
+  second) and each was checked by eye on a mid-grey background. The shapes are
+  clean circles with no white corners; the bright rim on some Storm and Roto
+  Grip covers is the ball's own reflection, not a halo.
+- **38 balls have none:** Storm 31, Roto Grip 4, 900 Global 3. They are older
+  rows with no image URL on record, so there is nothing to fetch. They need a
+  bowwwl page parsed (`parse-bowwwl` records the image URL) or a manufacturer
+  image, and the owner's yes covered only the new balls.
+- **MOTIV's media kit** (a Dropbox folder, covered by MOTIV's permission) was
+  downloaded and compared with the current photos for the 86 balls it matches by
+  name. They are the same studio renders, so none was replaced. The kit has no
+  Jackal Scar or Jackal Fury. It is useful for a MOTIV ball whose own page has
+  no usable image.
+- **Replacing a photo:** `npm run set-ball-image -- <map.json>`
+  (`{"<ball-id>": "<file>"}`) renders it, names it `-p2`, `-p3` so the app's
+  30-day photo cache lets it through, and keeps the old file name holding the
+  new image because arsenal balls keep a snapshot of the path. A white
+  background that got through is `npm run clear-background` first.
+- **MOTIV's site refuses a plain user-agent.** Its images need the
+  `MOTIV_USER_AGENT` from `pipeline/sources.ts` (ADR-061), which is why the one
+  MOTIV photo in this batch was fetched separately.
 - **Ask the brands, as MOTIV was asked** (ADR-061). Brunswick (Hammer, Ebonite,
   Track, Radical, DV8, Columbia 300) and Storm (Roto Grip, 900 Global) each
-  publish dealer media. One permission email per group covers eleven of the
-  twelve brands and settles the rights question for good.
-- **The Brunswick-family sites run on Shopify**, so
-  `https://<host>/products/<handle>.json` returns a product's image URLs as
-  JSON, one request per ball.
-- **A white background that got through:** `npm run clear-background --
-  [--min=N] [--circle] <ball-id>`. Give repaired files a new name:
-  the app caches a photo by URL for 30 days.
-- Never a retailer's photo. A ball with no manufacturer image keeps the
-  placeholder.
+  publish dealer media. One permission email per group would cover eleven of
+  the twelve brands and settle the rights question that ADR-138 widened.
+- Never a retailer's photo. A ball with no manufacturer or database image keeps
+  the placeholder.
 
 ## Pyramid Path colourways
 

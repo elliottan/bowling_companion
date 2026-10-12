@@ -12,7 +12,7 @@ import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import type { CatalogBall, CatalogManifest } from "../../src/types/catalog.js";
-import { mapCoverstock, deriveCoreType, slug } from "./normalize.js";
+import { mapCoverstock, deriveCoreType, ballId } from "./normalize.js";
 import { validateRaw } from "./validate.js";
 import type { RawBall } from "./types.js";
 
@@ -108,7 +108,7 @@ function main(): void {
     // Derive fields
     const releaseYear =
       raw.releaseDate ? parseInt(raw.releaseDate.slice(0, 4), 10) : null;
-    const id = raw.id ?? slug(raw.brand, raw.name, releaseYear);
+    const id = ballId(raw);
     const coverstockCategory = mapCoverstock(raw.coverstockRaw ?? "");
     const coreType = deriveCoreType(raw.mbDiff);
 
