@@ -9,6 +9,12 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.24.1: One drawing of the oil (2026-10-12)
+
+**One drawing of the oil.** A pattern's page now shows the oil once, as the
+lane drawing. The bar graph of oil per board below it repeated the same
+picture and is gone.
+
 ## 0.24.0: Chromium 6742's original sheet, the lane on the pattern page, and pinch to zoom a sheet (2026-10-12)
 
 **Chromium 6742's sheet, in the app.** Chromium 6742 now opens its original

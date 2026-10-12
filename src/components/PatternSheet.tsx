@@ -2,7 +2,7 @@ import { ArrowUpRight, ChevronRight } from "lucide-react";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type MouseEvent } from "react";
 import type { OilPass, OilPattern } from "../types/bowling";
 import {
-  boardTotals, formatSheetBoard, headlineRatio, oilBands, oilStats, oilZones, patternClass, peakUnits,
+  formatSheetBoard, headlineRatio, oilBands, oilStats, oilZones, patternClass, peakUnits,
   patternLength, PATTERN_CLASS_LABEL, trackZoneRatios,
 } from "../lib/oilPattern";
 import { LANE_BOARDS } from "../lib/laneGeometry";
@@ -16,7 +16,7 @@ import { catalogSheet, type KeptSheet } from "../services/patternCatalog";
  * A pattern sheet, in the app (ADR-106).
  *
  * The same numbers a bowler would go to the PDF for, read off the load table
- * the app already has: the totals, the graph and every pass. It exists so a
+ * the app already has: the totals, the lane drawing and every pass. It exists so a
  * pattern from the catalog needs no link out at all. A link is a worse version
  * of this, one that needs signal, leaves the app, and lands on a document in
  * whichever of Kegel's three layouts that sheet happens to use.
@@ -42,7 +42,6 @@ export function PatternSheet({ pattern, onClose, onOpenInLineVisualizer }: Patte
   const stats = useMemo(() => oilStats(pattern.passes), [pattern.passes]);
   const ratio = useMemo(() => headlineRatio(pattern.passes), [pattern.passes]);
   const zones = useMemo(() => trackZoneRatios(pattern.passes), [pattern.passes]);
-  const totals = useMemo(() => boardTotals(pattern.passes ?? []), [pattern.passes]);
   const shape = patternClass(ratio);
   const feet = patternLength(pattern);
 
@@ -97,15 +96,6 @@ export function PatternSheet({ pattern, onClose, onOpenInLineVisualizer }: Patte
                   the machine only buffs, laying no oil of its own.
                 </p>
                 <LaneMap passes={pattern.passes ?? []} length={stats.length} />
-              </section>
-
-              <section>
-                <h3 className={GROUP_HEADING}>Oil across the lane</h3>
-                <p className="mt-0.5 text-xs text-ink-tertiary">
-                  Units of oil on each board, left gutter to right. The shape of this
-                  is the pattern.
-                </p>
-                <BoardGraph totals={totals} />
               </section>
 
               {zones.length > 0 && (
@@ -466,55 +456,6 @@ function LaneMap({ passes, length }: { passes: OilPass[]; length: number }) {
         <text key={b} x={x(b) + board / 2} y={BASE + 4.6} textAnchor="middle" fontSize="3.2"
           fontWeight={b === 20 ? 700 : 400} className="fill-ink-tertiary">
           {20 - Math.abs(b - 20)}
-        </text>
-      ))}
-    </svg>
-  );
-}
-
-/**
- * The graph a pattern sheet prints: one bar per board, tallest where the oil is
- * deepest. Drawn rather than plotted because there are exactly 39 bars and the
- * only axis that matters is the board number.
- */
-function BoardGraph({ totals }: { totals: number[] }) {
-  const peak = Math.max(...totals, 1);
-  const W = 100;
-  const H = 34;
-  const gap = 0.25;
-  const width = W / LANE_BOARDS;
-
-  return (
-    <svg viewBox={`0 0 ${W} ${H + 6}`} className="mt-1.5 h-28 w-full" role="img"
-      aria-label={`Oil across the lane, peaking at ${Math.round(peak)} units`}>
-      {totals.map((units, i) => {
-        const h = (units / peak) * H;
-        return (
-          <rect
-            key={i}
-            data-role="board-bar"
-            x={i * width + gap / 2}
-            y={H - h}
-            width={width - gap}
-            height={h}
-            rx={0.3}
-            className="fill-accent-fill"
-            opacity={units > 0 ? 0.35 + 0.65 * (units / peak) : 0.12}
-          />
-        );
-      })}
-      {/* Board 20 is the centre, and the one every bowler counts from. */}
-      {[5, 10, 15, 20, 25, 30, 35].map((board) => (
-        <text
-          key={board}
-          x={(board - 0.5) * width}
-          y={H + 5}
-          textAnchor="middle"
-          className="fill-ink-tertiary"
-          fontSize="3.4"
-          fontWeight={board === 20 ? 700 : 400}
-        >
-          {20 - Math.abs(board - 20)}
         </text>
       ))}
     </svg>
