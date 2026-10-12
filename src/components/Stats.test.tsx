@@ -236,7 +236,7 @@ describe("stat definitions", () => {
     expect(within(row).getByLabelText("strike 75%")).toBeInTheDocument();
   });
 
-  it("shows the top five balls, and every ball, each one open, behind All balls", async () => {
+  it("shows every ball on the card, and every ball, each one open, behind All balls", async () => {
     const ball = REPORT.balls[0];
     const balls = Array.from({ length: 7 }, (_, i) => ({
       ...ball,
@@ -246,7 +246,12 @@ describe("stat definitions", () => {
       strikePct: 70 - i
     }));
     render(<Stats stats={STATS} ballPerformance={{ ...REPORT, balls }} scopeLabel="Last 10 sessions  ·  Sea Bowl" />);
-    expect(screen.getAllByRole("button", { name: /^Open Ball / })).toHaveLength(5);
+    // Every ball is on the card, the list scrolling inside it.
+    expect(
+      within(screen.getByRole("region", { name: "Ball columns" })).getAllByRole("button", {
+        name: /^Open Ball /
+      })
+    ).toHaveLength(7);
 
     fireEvent.click(screen.getByRole("button", { name: "All balls" }));
     const sheet = await screen.findByRole("dialog", { name: "Balls" });
@@ -274,7 +279,8 @@ describe("stat definitions", () => {
   it("scrolls the ball columns sideways, all rows together, on the card", () => {
     render(<Stats stats={STATS} ballPerformance={REPORT} />);
     const scroller = screen.getByRole("region", { name: "Ball columns" });
-    expect(scroller).toHaveClass("overflow-x-auto");
+    // Both ways: sideways for the columns, down for the balls.
+    expect(scroller).toHaveClass("overflow-auto");
     expect(within(scroller).getByRole("button", { name: "Open Wolverine" })).toBeInTheDocument();
     expect(within(scroller).getByText("Strike on strike")).toBeInTheDocument();
   });
@@ -410,7 +416,7 @@ describe("leave cells", () => {
     sharePct: 6
   };
 
-  it("lists the leaves left three times or more on the spares card, most left first", () => {
+  it("lists the leaves left most on the spares card, however few times, most left first", () => {
     const leave = (pins: number[], attempts: number, conversions: number): LeaveStats => ({
       pins: pins as LeaveStats["pins"],
       attempts,
@@ -427,8 +433,8 @@ describe("leave cells", () => {
           leave([7], 10, 4),
           leave([7, 10], 8, 0), // a split is a leave like any other here
           leave([5], 5, 5), // never missed, still left
-          leave([3, 6, 10], 3, 1), // exactly three: in
-          leave([2, 4, 5, 8], 2, 1) // twice: only under All leaves
+          leave([3, 6, 10], 3, 1),
+          leave([2, 4, 5, 8], 1, 1) // once is enough to be on the card
         ]}
       />
     );
@@ -436,7 +442,14 @@ describe("leave cells", () => {
     const shown = [...card.querySelectorAll("button[aria-label^='Open ']")].map((b) =>
       b.getAttribute("aria-label")
     );
-    expect(shown).toEqual(["Open Pin 10", "Open Pin 7", "Open 7-10", "Open Pin 5", "Open 3-6-10"]);
+    expect(shown).toEqual([
+      "Open Pin 10",
+      "Open Pin 7",
+      "Open 7-10",
+      "Open Pin 5",
+      "Open 3-6-10",
+      "Open 2-4-5-8"
+    ]);
     const section = card.closest("section")!;
     expect(section).toHaveTextContent(/80%\s*made/);
     expect(section).not.toHaveTextContent(/missed/i);
@@ -775,3 +788,35 @@ describe("by session or by game, on the Stats tab", () => {
     expect(screen.queryByRole("group", { name: "Chart by" })).toBeNull();
   });
 });
+
+describe("the spares card's cap", () => {
+  it("shows the fifteen leaves left most, and keeps the rest for All leaves", () => {
+    const pins = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+    // Nine leaves left often, then eight left once: seventeen in all.
+    const leaves: LeaveStats[] = Array.from({ length: 17 }, (_, i) => ({
+      pins: [pins[i % 9], 10] as LeaveStats["pins"],
+      attempts: 30 - i,
+      chances: 30 - i,
+      conversions: 1,
+      conversionPct: 3,
+      sharePct: null
+    })).filter((l, i, all) => all.findIndex((m) => m.pins.join() === l.pins.join()) === i);
+    const many = [
+      ...leaves,
+      ...Array.from({ length: 8 }, (_, i) => ({
+        pins: [pins[i], 9] as LeaveStats["pins"],
+        attempts: 1,
+        chances: 1,
+        conversions: 0,
+        conversionPct: 0,
+        sharePct: null
+      }))
+    ];
+    render(<Stats stats={STATS} leaves={many} />);
+    const card = screen.getByRole("region", { name: "Leaves left most" });
+    const shown = card.querySelectorAll("button[aria-label^='Open ']");
+    expect(shown).toHaveLength(15);
+    expect(shown[0]).toHaveAccessibleName(/1-10/);
+  });
+});
+

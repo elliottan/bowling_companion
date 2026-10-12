@@ -24,6 +24,13 @@ balls (ADR-139).
 **The ball columns scroll sideways.** On the Balls card and under All balls,
 swipe the numbers left to see the rest; the ball's name stays put.
 
+**Every ball on the Balls card.** The card used to stop at five; now it lists
+them all and scrolls inside the card, like the leaves do.
+
+**Up to 15 leaves on the Spares card, even in one session.** A leave no longer
+needs to have been left three times to show up, so a single session's card
+fills in. They are still ordered by how often you left them.
+
 ## 0.26.0: Photos for 265 of the newest balls (2026-10-12)
 
 **Most of the balls added recently now have their picture.** 265 of the balls

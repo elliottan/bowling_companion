@@ -6456,6 +6456,7 @@ It was put to the owner, who said yes to photos for the new balls.
 
 **Status.** Accepted, 2026-10-12. Extends ADR-056 (by position in the night),
 ADR-124 (strike on strike) and ADR-126 (the Stats tab's chart and Balls card).
+Amends ADR-129 (the Spares card's floor of three).
 
 **Context.** The Stats tab's chart plotted one point per session, so it said
 whether a bowler was improving over months, never what happens between the
@@ -6486,6 +6487,15 @@ ball, and the Balls card had no room for two more columns on a phone.
   scroller, so the columns stay aligned, with the ball's picture and name
   pinned at the left. On the All balls sheet each ball's labelled line, and its
   by-game table, scroll the same way with the row names pinned.
+- **The Balls card lists every ball,** about five on show and the rest a
+  scroll down inside the card, the way the Spares card scrolls its leaves. The
+  headings stay pinned at the top of that scroll. A cap of five hid the rest
+  behind All balls for no reason a scroll could not answer.
+- **The Spares card lists the fifteen leaves left most, however few times
+  each was left.** This replaces ADR-129's floor of three: inside one session
+  almost no leave is left three times, so the card sat empty when it was most
+  wanted, and sorting by times left already puts a leave left once at the
+  bottom. Every leave is still under All leaves.
 
 **Consequences.**
 - On a phone the last columns of the Balls card are a swipe away; the order

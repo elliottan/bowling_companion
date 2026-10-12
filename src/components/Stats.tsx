@@ -464,17 +464,19 @@ export function Stats({
               All balls
             </button>
           </div>
-          {/* More columns than a phone is wide: the rows scroll sideways
-              together, the ball's name pinned at the left (ADR-139). */}
+          {/* Every ball, about five on show and the rest a scroll down, like
+              the leaves above. More columns than a phone is wide, so the rows
+              also scroll sideways together, the headings pinned at the top and
+              the ball's name at the left (ADR-139). */}
           <div
             role="region"
             aria-label="Ball columns"
-            className="mt-1 overflow-x-auto overscroll-x-contain"
+            className="mt-1 max-h-[21rem] overflow-auto overscroll-contain"
           >
             <div className="w-max min-w-full">
               <BallRateHeadings />
               <ul className="divide-y divide-edge">
-                {ranked.slice(0, TOP_BALLS).map((b) => (
+                {ranked.map((b) => (
                   <li key={b.ballId}>
                     <button
                       type="button"
@@ -637,9 +639,6 @@ function FirstBallCard({ stats }: { stats: BowlingStats }) {
   );
 }
 
-/** Balls on the card; every one is on the All balls sheet. */
-const TOP_BALLS = 5;
-
 type ChartBy = "session" | "game";
 
 const CHART_BY: ReadonlyArray<{ value: ChartBy; label: string }> = [
@@ -651,16 +650,16 @@ const CHART_BY: ReadonlyArray<{ value: ChartBy; label: string }> = [
  *  night, so the common case never scrolls. */
 const GAME_WINDOW = 4;
 
-/** Times a leave must have been left to be on the Spares card. Fewer is a
- *  rate over a handful, and every leave is still under All leaves. */
-const CARD_MIN_LEFT = 3;
+/** Leaves on the Spares card; every one is under All leaves. */
+const CARD_LEAVES = 15;
 
-/** The leaves left most, of every shape, most often first (ADR-129). What a
- *  bowler faces most is what the card leads with, whether they make it or not. */
+/** The leaves left most, of every shape, most often first (ADR-129), however
+ *  few times each was left (ADR-139): a single session's card is still worth
+ *  reading, and a leave left once sorts to the bottom on its own. */
 function mostLeft(leaves: LeaveStats[]): LeaveStats[] {
-  return leaves
-    .filter((l) => l.attempts >= CARD_MIN_LEFT)
-    .sort((a, b) => b.attempts - a.attempts || b.chances - a.chances);
+  return [...leaves]
+    .sort((a, b) => b.attempts - a.attempts || b.chances - a.chances)
+    .slice(0, CARD_LEAVES);
 }
 
 /** Balls with enough throws behind them by strike rate, best first; the thin
@@ -720,7 +719,7 @@ const BALL_NAME_CELL = "sticky left-0 z-[1] flex w-36 shrink-0 items-center gap-
 function BallRateHeadings() {
   return (
     <div
-      className="flex items-end gap-2 pb-1 text-[10px] font-semibold uppercase leading-tight tracking-wide text-ink-tertiary"
+      className="sticky top-0 z-[2] flex items-end gap-2 bg-surface pb-1 text-[10px] font-semibold uppercase leading-tight tracking-wide text-ink-tertiary"
       aria-hidden="true"
     >
       <span className={`${BALL_NAME_CELL} self-stretch`} />
