@@ -17,7 +17,7 @@ import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { slug } from "../normalize.js";
+import { ballId } from "../normalize.js";
 import type { RawBall } from "../types.js";
 import type { ImageEntry } from "./render.js";
 
@@ -27,11 +27,6 @@ const REPO_ROOT = resolve(SYNC_ROOT, "../../");
 const BALLS_JSON = resolve(SYNC_ROOT, "data/balls.json");
 const IMAGES_JSON = resolve(SYNC_ROOT, "data/images.json");
 const OUT = resolve(SYNC_ROOT, "contact-sheet.html");
-
-function ballId(b: RawBall): string {
-  const year = b.releaseDate ? parseInt(b.releaseDate.slice(0, 4), 10) : null;
-  return slug(b.brand, b.name, year);
-}
 
 function main(): void {
   const idsArg = process.argv.indexOf("--ids");

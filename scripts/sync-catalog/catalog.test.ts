@@ -12,6 +12,7 @@ import {
   mapCoverstock,
   deriveCoreType,
   normalizeName,
+  ballId,
   slug,
 } from "./normalize.js";
 import { validateRaw } from "./validate.js";
@@ -616,5 +617,21 @@ describe("MOTIV cover acronyms", () => {
       parseMotiv(page, "https://www.motivbowling.com/products/balls/exclusives/x.html")
         .coverstockRaw
     ).toBe("Coercion HVH Hybrid Reactive");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// normalize.ts ballId (ADR-137)
+// ---------------------------------------------------------------------------
+describe("ballId", () => {
+  const row = { brand: "Hammer", name: "Black Widow 3.0", releaseDate: "2024-01-18" as string | null };
+
+  it("derives brand-name-year when the row has no pinned id", () => {
+    expect(ballId(row)).toBe("hammer-black-widow-3-0-2024");
+    expect(ballId({ ...row, releaseDate: null })).toBe("hammer-black-widow-3-0");
+  });
+
+  it("uses the pinned id as written, whatever the date says", () => {
+    expect(ballId({ ...row, id: "hammer-black-widow-3-0" })).toBe("hammer-black-widow-3-0");
   });
 });

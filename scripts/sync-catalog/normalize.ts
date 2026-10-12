@@ -81,3 +81,20 @@ export function slug(
   const raw = `${brandSlug}-${nameSlug}-${yearPart}`;
   return raw.replace(/-+$/, "");
 }
+
+/**
+ * The catalog id of a row in balls.json: its pinned `id` if it has one
+ * (ADR-137), else the derived `brand-name-year`. Everything that keys a file or
+ * a record by ball id goes through here, since a script that derives its own
+ * would key a pinned row's photo to an id the build never looks up.
+ */
+export function ballId(b: {
+  id?: string;
+  brand: string;
+  name: string;
+  releaseDate: string | null;
+}): string {
+  if (b.id) return b.id;
+  const year = b.releaseDate ? parseInt(b.releaseDate.slice(0, 4), 10) : null;
+  return slug(b.brand, b.name, year);
+}

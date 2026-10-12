@@ -1,7 +1,7 @@
 {
   "name": "bowling-companion",
   "private": true,
-  "version": "0.25.0",
+  "version": "0.26.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -43,7 +43,9 @@
     "attach-pattern-sheet": "tsx scripts/sync-patterns/attach-sheet.ts",
     "sync-patterns": "cp scripts/sync-patterns/data/patterns.json public/catalog/patterns.json",
     "clear-background": "tsx scripts/sync-catalog/pipeline/clear-background.ts",
-    "fill-from-seed": "tsx scripts/sync-catalog/pipeline/fill-from-seed.ts"
+    "fill-from-seed": "tsx scripts/sync-catalog/pipeline/fill-from-seed.ts",
+    "fetch-seed-images": "tsx scripts/sync-catalog/pipeline/fetch-seed-images.ts",
+    "set-ball-image": "tsx scripts/sync-catalog/pipeline/set-ball-image.ts"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
