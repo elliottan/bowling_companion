@@ -6408,3 +6408,45 @@ collides with a row already there, so there was no way to fill a row at all.
 - Photos are a separate question and are not changed here. ADR-039 limits photo
   pulls from bowwwl to balls the owner needs, one at a time, and this session
   added 206 balls without adding a photo for any of them.
+
+## ADR-138: Photos for the balls added since ADR-137 come from the source database, by the owner's decision
+
+**Status.** Accepted, 2026-10-12.
+
+**Context.** ADR-039 took ball photos from bowwwl "per-ball and on demand, for
+balls the owner actually needs", and said deliberately not a bulk mirror, on the
+reasoning that a per-ball pull is a different act from republishing a catalog.
+ADR-119 then recorded that the owner accepts the image risk. Two sessions later
+the catalog went from 250 to 518 balls, and 265 of the new ones had a source
+page and no photo, so the question was whether the narrow reading still held.
+It was put to the owner, who said yes to photos for the new balls.
+
+**Decision.**
+
+- **The new balls take their photos from the source pages.** Every image is the
+  one `parse-bowwwl` recorded as the page's `_imageUrl`, rendered through the
+  same normaliser as every other photo (ADR-043), one request a second.
+  `npm run fetch-seed-images -- --skip-ids <file>` does it for the balls not in
+  a given list, and never touches a ball that already has a photo.
+- **It is the owner's decision, not the pipeline's default.** The command needs
+  `--brand`, `--all` or `--skip-ids`, so a run cannot fetch photos by accident.
+- **The rights position is unchanged, and wider.** The photographs belong to the
+  manufacturers; bowwwl self-hosts them under no stated licence and its terms
+  forbid copying them. Taking 265 more is a larger version of the same
+  unlicensed, reversible position, and the same remedy applies: every image is
+  keyed to its ball id in `data/images.json`, so a takedown is a data edit.
+- **MOTIV's balls are not part of this.** MOTIV's photos come from its own site
+  and its media kit, under its permission (ADR-061). The kit's Front renders
+  were compared with the current photos for all 86 balls they match, and they
+  are the same studio shots, so none was replaced.
+- **A replaced photo gets a new name and keeps the old one** (`npm run
+  set-ball-image`), because the app caches a photo by its URL for 30 days and an
+  arsenal ball keeps a snapshot of the path it was added with.
+
+**Consequences.**
+- Photos for balls the owner has not asked about are still not fetched: the
+  older rows with no photo and no recorded image URL stay on the placeholder.
+- The image position now covers about 300 non-MOTIV photos instead of 30
+  (ADR-119). If a manufacturer objects, or written permission is ever obtained
+  (the handout suggests asking Brunswick and Storm), nothing here needs undoing
+  beyond a data edit.

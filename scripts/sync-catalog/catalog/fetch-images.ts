@@ -24,7 +24,7 @@ import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import sharp from "sharp";
 
-import { slug } from "../normalize.js";
+import { ballId } from "../normalize.js";
 import { renderBallPair, type ImageEntry } from "../pipeline/render.js";
 import { candidateUrls, headOk } from "../pipeline/sources.js";
 import type { RawBall } from "../types.js";
@@ -94,8 +94,7 @@ async function main(): Promise<void> {
   const misses: string[] = [];
 
   for (const ball of balls) {
-    const releaseYear = ball.releaseDate ? parseInt(ball.releaseDate.slice(0, 4), 10) : null;
-    const id = slug(ball.brand, ball.name, releaseYear);
+    const id = ballId(ball);
     if (images[id] || denylist.includes(id)) continue; // already fetched or denied
 
     let pdfUrl: string | null = null;
