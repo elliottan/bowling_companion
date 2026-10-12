@@ -7,6 +7,9 @@ const DIFF_MAX = 0.065;
 const MB_MIN = 0;
 const MB_MAX = 0.055;
 
+/** `yyyy`, `yyyy-mm` or `yyyy-mm-dd`, with a real month and day. */
+const RELEASE_DATE = /^\d{4}(-(0[1-9]|1[0-2])(-(0[1-9]|[12]\d|3[01]))?)?$/;
+
 /**
  * Validate a RawBall entry.
  * Returns a list of problem strings (empty list = ok).
@@ -22,6 +25,16 @@ export function validateRaw(b: RawBall): string[] {
     problems.push("missing coverstockRaw");
   if (!b.sourceUrls || b.sourceUrls.length === 0)
     problems.push("sourceUrls must be non-empty");
+
+  if (b.releaseDate != null) {
+    if (!RELEASE_DATE.test(b.releaseDate)) {
+      problems.push(`releaseDate "${b.releaseDate}" is not yyyy, yyyy-mm or yyyy-mm-dd`);
+    } else if (b.releaseDate.endsWith("-01-01")) {
+      // Every one of these so far was a year written as a day (ADR-134). No
+      // ball is released on New Year's Day; a year-only source is "yyyy".
+      problems.push(`releaseDate "${b.releaseDate}" reads as a year padded to 1 January; write "${b.releaseDate.slice(0, 4)}"`);
+    }
+  }
 
   if (b.rg != null) {
     if (!Number.isFinite(b.rg)) {

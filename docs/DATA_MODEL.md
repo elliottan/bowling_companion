@@ -78,6 +78,15 @@ home strip, the arsenal's ordered list) reads `activeBalls` (`src/lib/arsenal.ts
 the spare ball: retiring clears `is_spare_ball`. Non-indexed, so no Dexie
 version bump.
 
+## A catalog ball's release date (ADR-134)
+
+`CatalogBall.releaseDate` is a partial ISO date, `yyyy`, `yyyy-mm` or
+`yyyy-mm-dd`, as precise as its source and never padded: a year-only source is
+`"2025"`, not `"2025-01-01"`, because the catalog prints the month and a padded
+year would read as January. `validateRaw` flags any other shape and any
+`yyyy-01-01`. `releaseYear` and the ball id read only the first four
+characters, so adding a month or a day to a row moves neither.
+
 ## An oil pattern (ADR-101)
 
 `OilPattern.passes` is the pattern sheet's load table and the whole pattern. The

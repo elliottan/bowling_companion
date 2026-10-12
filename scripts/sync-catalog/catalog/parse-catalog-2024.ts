@@ -64,7 +64,7 @@ async function main(): Promise<void> {
     tables++;
     // Fields live in the preceding chunk (Color/Coverstock/SKU/Name).
     const ball = buildSeedBall(chunks[i - 1], weights, {
-      releaseDate: yearArg ? `${yearArg}-01-01` : null,
+      releaseDate: yearArg ? String(yearArg) : null,
       sourceUrls: ["https://www.stormbowling.com", src],
       index,
       byNorm,

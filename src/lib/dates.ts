@@ -29,6 +29,22 @@ export function formatSessionDate(value: string): string {
     : value;
 }
 
+/**
+ * A catalog ball's release: "Mar 2024", or "2024" when the source only gave
+ * the year. A release date is stored to the precision it was read at, `yyyy`,
+ * `yyyy-mm` or `yyyy-mm-dd` (ADR-134), and the day is never shown: a launch
+ * month is what a bowler compares, and several sources pin a month to its 1st.
+ * Null when there is no date, or it does not parse.
+ */
+export function formatReleaseDate(value: string | null | undefined): string | null {
+  const m = value ? /^(\d{4})(?:-(\d{2}))?(?:-\d{2})?$/.exec(value.trim()) : null;
+  if (!m) return null;
+  if (!m[2]) return m[1];
+  const month = Number(m[2]);
+  if (month < 1 || month > 12) return m[1];
+  return new Date(Number(m[1]), month - 1, 1).toLocaleDateString(undefined, { month: "short", year: "numeric" });
+}
+
 /** An ISO timestamp, to the minute. For a backup, where the time of day is
  *  what tells two files of the same day apart. */
 export function formatTimestamp(iso: string): string {

@@ -27,7 +27,8 @@ no extra token cost). Use this for one-off manual additions; for bulk use
      blurb says "Solid"), use the explicit `Coverstock:` field and call out the
      conflict to the user.
    - `factoryFinish`, `coreName` (drop "Symmetric/Asymmetric Core" suffix),
-     `releaseDate` (ISO yyyy-mm-dd).
+     `releaseDate` to the precision the paste gives: `yyyy-mm-dd`, `yyyy-mm`, or
+     a bare `yyyy`. Never pad a month or a year out to the 1st (ADR-134).
    - `rg`/`diff`/`mbDiff` — the **15 lb** values. Symmetric core ⇒ `mbDiff: null`.
    - `weights[]` — every weight block listed (`{ weight, rg, diff, mbDiff }`).
    - `colorways: [{ sku, color }]` — the `SKU:` and `Color:` from the paste.

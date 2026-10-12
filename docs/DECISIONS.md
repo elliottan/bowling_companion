@@ -6208,3 +6208,34 @@ already solve the same problem by archiving (`archived`).
   that session (ADR-113 reads the last ball thrown). It was the ball in the
   bowler's hand, and the next session starts clean.
 
+
+## ADR-134: A catalog release date is as precise as its source, and the catalog shows the month
+
+**Status.** Accepted, 2026-10-11.
+
+**Context.** The catalog showed a ball's release year and nothing finer, though
+most dated rows knew the day. Showing the month needed one thing first: 29 rows
+read `yyyy-01-01` because their source (a Storm/SPI year catalog, or an early
+hand entry) only gave the year, and the three year-catalog parsers padded it to
+1 January. Printed as a month, every one of those would claim January.
+
+**Decision.**
+
+- **`releaseDate` is a partial ISO date**: `yyyy`, `yyyy-mm` or `yyyy-mm-dd`,
+  whichever the source states. A year-only source is `"2025"`. The 29 padded
+  rows are rewritten to their bare year, and the parsers emit the bare year.
+- **`validateRaw` flags any other shape, and flags `yyyy-01-01`** as a padded
+  year. No ball is released on New Year's Day, and every such row so far was
+  padding. A real one would be written to the month, `yyyy-01`.
+- **The catalog prints month and year** ("Mar 2024") when it has the month, and
+  the year alone when it does not. It never prints the day: the month is what a
+  bowler compares, and some sources pin a month to its 1st.
+- **Newest first sorts by the date string**, so balls within a year are in
+  month order, a year-only ball sits after its year's dated ones, and undated
+  balls go last.
+
+**Consequences.**
+- `releaseYear` and the ball id are unchanged: both read the first four
+  characters, so no `catalog_ref_id` moves and no Dexie version bump is needed.
+- A client holding the old catalog shows January for those 29 until it syncs
+  the new manifest version, which it does on the next open with a connection.

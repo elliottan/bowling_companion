@@ -193,6 +193,24 @@ describe("validateRaw", () => {
     const b = { ...valid, rg: null, diff: null, mbDiff: null };
     expect(validateRaw(b)).toEqual([]);
   });
+
+  it("takes a release date to the year, the month or the day", () => {
+    for (const releaseDate of ["2025", "2025-03", "2025-03-28", null]) {
+      expect(validateRaw({ ...valid, releaseDate })).toEqual([]);
+    }
+  });
+
+  it("flags a release date in any other shape", () => {
+    for (const releaseDate of ["3/28/2025", "2025-13", "2025-03-32", "25-03-28"]) {
+      expect(validateRaw({ ...valid, releaseDate }).some((p) => p.includes("releaseDate"))).toBe(true);
+    }
+  });
+
+  it("flags a year padded to 1 January", () => {
+    expect(validateRaw({ ...valid, releaseDate: "2025-01-01" })).toContain(
+      'releaseDate "2025-01-01" reads as a year padded to 1 January; write "2025"'
+    );
+  });
 });
 
 // ---------------------------------------------------------------------------

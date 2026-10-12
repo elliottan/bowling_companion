@@ -2,7 +2,7 @@
   {
     "brand": "Storm",
     "name": "Equinox",
-    "releaseDate": "2025-01-01",
+    "releaseDate": "2025",
     "coverstockRaw": "A1S Pearl Reactive",
     "factoryFinish": "Power Edge",
     "coreName": "Solarion A.I. Core",
@@ -55,7 +55,7 @@
   {
     "brand": "Storm",
     "name": "Ion Max",
-    "releaseDate": "2025-01-01",
+    "releaseDate": "2025",
     "coverstockRaw": "NRG Solid Reactive",
     "factoryFinish": "2000-grit Abralon",
     "coreName": "Element Max A.I. Core",
@@ -108,7 +108,7 @@
   {
     "brand": "Storm",
     "name": "Ion Pro",
-    "releaseDate": "2025-01-01",
+    "releaseDate": "2025",
     "coverstockRaw": "TX-16 Hybrid Reactive",
     "factoryFinish": "4000-grit Abralon",
     "coreName": "Element Tour A.I. Core",
@@ -165,7 +165,7 @@
   {
     "brand": "Storm",
     "name": "Level",
-    "releaseDate": "2025-01-01",
+    "releaseDate": "2025",
     "coverstockRaw": "RPM Solid",
     "factoryFinish": "1000-grit Abralon",
     "coreName": "Equalizer A.I. Core",
@@ -218,7 +218,7 @@
   {
     "brand": "Storm",
     "name": "UNKNOWN",
-    "releaseDate": "2025-01-01",
+    "releaseDate": "2025",
     "coverstockRaw": "",
     "factoryFinish": null,
     "coreName": null,
@@ -269,7 +269,7 @@
   {
     "brand": "Storm",
     "name": "PhysiX Blackout",
-    "releaseDate": "2025-01-01",
+    "releaseDate": "2025",
     "coverstockRaw": "NeX Pearl Reactive",
     "factoryFinish": "2000-grit Abralon",
     "coreName": "Atomic A.I. Core",
@@ -330,7 +330,7 @@
   {
     "brand": "Storm",
     "name": "!Q Tour",
-    "releaseDate": "2025-01-01",
+    "releaseDate": "2025",
     "coverstockRaw": "R2S Solid Reactive",
     "factoryFinish": "4000-grit Abralon",
     "coreName": "C 3 Centripetal Control Core",
@@ -383,7 +383,7 @@
   {
     "brand": "Storm",
     "name": "!Q Tour 78/U",
-    "releaseDate": "2025-01-01",
+    "releaseDate": "2025",
     "coverstockRaw": "Controll 78 Solid Urethane",
     "factoryFinish": "500-grit Abralon",
     "coreName": "C 3 Centripetal Control Core",
@@ -436,7 +436,7 @@
   {
     "brand": "Storm",
     "name": "UNKNOWN",
-    "releaseDate": "2025-01-01",
+    "releaseDate": "2025",
     "coverstockRaw": "",
     "factoryFinish": null,
     "coreName": null,
@@ -487,7 +487,7 @@
   {
     "brand": "Storm",
     "name": "Pitch Black",
-    "releaseDate": "2025-01-01",
+    "releaseDate": "2025",
     "coverstockRaw": "Controll Solid Urethane",
     "factoryFinish": "1000-grit Abralon",
     "coreName": "Capacitor Core",
@@ -540,7 +540,7 @@
   {
     "brand": "Storm",
     "name": "Hy-Road",
-    "releaseDate": "2025-01-01",
+    "releaseDate": "2025",
     "coverstockRaw": "R2S Hybrid Reactive",
     "factoryFinish": "Reacta Gloss",
     "coreName": "Inverted Fe 2 Technology",
@@ -593,7 +593,7 @@
   {
     "brand": "Storm",
     "name": "Road Warrior",
-    "releaseDate": "2025-01-01",
+    "releaseDate": "2025",
     "coverstockRaw": "R2S DEEP Pearl",
     "factoryFinish": "Power Edge",
     "coreName": "Inverted Fe 2 A.I. Core",
@@ -650,7 +650,7 @@
   {
     "brand": "Storm",
     "name": "Typhoon",
-    "releaseDate": "2025-01-01",
+    "releaseDate": "2025",
     "coverstockRaw": "Reactor Pearl Reactive",
     "factoryFinish": "Power Edge",
     "coreName": "Atmos A.I. Core",
@@ -703,7 +703,7 @@
   {
     "brand": "Storm",
     "name": "Tropical Surge Onyx/Mercury/Graphite",
-    "releaseDate": "2025-01-01",
+    "releaseDate": "2025",
     "coverstockRaw": "Reactor Pearl Reactive",
     "factoryFinish": "1500-grit Polished",
     "coreName": null,
@@ -783,7 +783,7 @@
   {
     "brand": "900 Global",
     "name": "White Hot Bager",
-    "releaseDate": "2025-01-01",
+    "releaseDate": "2025",
     "coverstockRaw": "Reactor Pearl Reactive",
     "factoryFinish": "1500-grit Polished",
     "coreName": "Surge Core",
@@ -883,7 +883,7 @@
   {
     "brand": "Storm",
     "name": "TEAL/SILVER/GRAPHITE",
-    "releaseDate": "2025-01-01",
+    "releaseDate": "2025",
     "coverstockRaw": "Hybrid Polyester",
     "factoryFinish": null,
     "coreName": null,
@@ -955,7 +955,7 @@
   {
     "brand": "Roto Grip",
     "name": "Attention Star S2",
-    "releaseDate": "2025-01-01",
+    "releaseDate": "2025",
     "coverstockRaw": "",
     "factoryFinish": "3500-grit Polished",
     "coreName": "Traditional 3-Piece Core",

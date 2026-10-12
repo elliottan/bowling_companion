@@ -10,7 +10,11 @@ export interface RawBall {
   brand: Manufacturer;
   /** Ball model name as printed on the ball */
   name: string;
-  /** ISO yyyy-mm-dd release date, or null if unknown */
+  /**
+   * Release date to the precision the source states it: `yyyy`, `yyyy-mm` or
+   * `yyyy-mm-dd` (ADR-134). A catalog that only says "2025" is `"2025"`, never
+   * `"2025-01-01"`, which the app would print as January. Null if unknown.
+   */
   releaseDate: string | null;
   /** Exact coverstock string from manufacturer spec sheet */
   coverstockRaw: string;

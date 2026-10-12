@@ -2,7 +2,7 @@
   {
     "brand": "Storm",
     "name": "Phaze II",
-    "releaseDate": "2019-01-01",
+    "releaseDate": "2019",
     "coverstockRaw": "TX-16 Solid Reactive",
     "factoryFinish": "3000-grit Abralon",
     "coreName": "Velocity",
@@ -17,7 +17,7 @@
   {
     "brand": "Storm",
     "name": "Proton PhysiX",
-    "releaseDate": "2021-01-01",
+    "releaseDate": "2021",
     "coverstockRaw": "NeX Solid Reactive",
     "factoryFinish": "2000-grit Abralon",
     "coreName": "Atomic",
@@ -32,7 +32,7 @@
   {
     "brand": "Storm",
     "name": "Hy-Road",
-    "releaseDate": "2009-01-01",
+    "releaseDate": "2009",
     "coverstockRaw": "R2S Hybrid Reactive",
     "factoryFinish": "1500-grit Polished",
     "coreName": "Inverted Fe2",
@@ -47,7 +47,7 @@
   {
     "brand": "Roto Grip",
     "name": "Idol",
-    "releaseDate": "2018-01-01",
+    "releaseDate": "2018",
     "coverstockRaw": "MicroTrax-S18 Solid Reactive",
     "factoryFinish": "2000-grit Sanded",
     "coreName": "Ikon",
@@ -62,7 +62,7 @@
   {
     "brand": "Roto Grip",
     "name": "Hustle Ink",
-    "releaseDate": "2020-01-01",
+    "releaseDate": "2020",
     "coverstockRaw": "Thrilled Solid Reactive",
     "factoryFinish": "1500-grit Polished",
     "coreName": "Hustle",
@@ -77,7 +77,7 @@
   {
     "brand": "Roto Grip",
     "name": "Halo",
-    "releaseDate": "2019-01-01",
+    "releaseDate": "2019",
     "coverstockRaw": "MicroTrax-S18 Solid Reactive",
     "factoryFinish": "2000-grit Pad",
     "coreName": "Centrum",
@@ -92,7 +92,7 @@
   {
     "brand": "900 Global",
     "name": "Zen",
-    "releaseDate": "2021-01-01",
+    "releaseDate": "2021",
     "coverstockRaw": "S77 Response Pearl Reactive",
     "factoryFinish": "1500-grit Polished",
     "coreName": "Meditate",
@@ -107,7 +107,7 @@
   {
     "brand": "900 Global",
     "name": "Reality",
-    "releaseDate": "2021-01-01",
+    "releaseDate": "2021",
     "coverstockRaw": "S84 Response Solid Reactive",
     "factoryFinish": "2000-grit Abralon",
     "coreName": "Disturbance",
@@ -122,7 +122,7 @@
   {
     "brand": "900 Global",
     "name": "Altered Reality",
-    "releaseDate": "2022-01-01",
+    "releaseDate": "2022",
     "coverstockRaw": "S84 Response Pearl Reactive",
     "factoryFinish": "1500-grit Polished",
     "coreName": "Disturbance",
@@ -153,7 +153,7 @@
   {
     "brand": "Motiv",
     "name": "Jackal Ghost",
-    "releaseDate": "2018-01-01",
+    "releaseDate": "2018",
     "coverstockRaw": "Coercion HFS Solid Reactive",
     "factoryFinish": "3000-grit LSS",
     "coreName": "Predator V2",
@@ -169,7 +169,7 @@
   {
     "brand": "Motiv",
     "name": "Forge",
-    "releaseDate": "2017-01-01",
+    "releaseDate": "2017",
     "coverstockRaw": "Coercion HFS Solid Reactive",
     "factoryFinish": "3000-grit Sanded",
     "coreName": "Detonator",
@@ -416,7 +416,7 @@
   {
     "brand": "Storm",
     "name": "Equinox",
-    "releaseDate": "2025-01-01",
+    "releaseDate": "2025",
     "coverstockRaw": "A1S Pearl Reactive",
     "factoryFinish": "Power Edge",
     "coreName": "Solarion A.I. Core",
@@ -469,7 +469,7 @@
   {
     "brand": "Storm",
     "name": "Ion Max",
-    "releaseDate": "2025-01-01",
+    "releaseDate": "2025",
     "coverstockRaw": "NRG Solid Reactive",
     "factoryFinish": "2000-grit Abralon",
     "coreName": "Element Max A.I. Core",
@@ -522,7 +522,7 @@
   {
     "brand": "Storm",
     "name": "Ion Pro",
-    "releaseDate": "2025-01-01",
+    "releaseDate": "2025",
     "coverstockRaw": "TX-16 Hybrid Reactive",
     "factoryFinish": "4000-grit Abralon",
     "coreName": "Element Tour A.I. Core",
@@ -579,7 +579,7 @@
   {
     "brand": "Storm",
     "name": "Level",
-    "releaseDate": "2025-01-01",
+    "releaseDate": "2025",
     "coverstockRaw": "RPM Solid",
     "factoryFinish": "1000-grit Abralon",
     "coreName": "Equalizer A.I. Core",
@@ -632,7 +632,7 @@
   {
     "brand": "Storm",
     "name": "PhysiX Blackout",
-    "releaseDate": "2025-01-01",
+    "releaseDate": "2025",
     "coverstockRaw": "NeX Pearl Reactive",
     "factoryFinish": "2000-grit Abralon",
     "coreName": "Atomic A.I. Core",
@@ -793,7 +793,7 @@
   {
     "brand": "Storm",
     "name": "Road Warrior",
-    "releaseDate": "2025-01-01",
+    "releaseDate": "2025",
     "coverstockRaw": "R2S DEEP Pearl",
     "factoryFinish": "Power Edge",
     "coreName": "Inverted Fe 2 A.I. Core",
@@ -850,7 +850,7 @@
   {
     "brand": "Storm",
     "name": "Typhoon",
-    "releaseDate": "2025-01-01",
+    "releaseDate": "2025",
     "coverstockRaw": "Reactor Pearl Reactive",
     "factoryFinish": "Power Edge",
     "coreName": "Atmos A.I. Core",
@@ -1011,7 +1011,7 @@
   {
     "brand": "Storm",
     "name": "Absolute Power",
-    "releaseDate": "2024-01-01",
+    "releaseDate": "2024",
     "coverstockRaw": "R2S DEEP Solid Reactive",
     "factoryFinish": "4000-grit Abralon",
     "coreName": "POWER SENTINEL",
@@ -1068,7 +1068,7 @@
   {
     "brand": "Storm",
     "name": "Summit Peak",
-    "releaseDate": "2024-01-01",
+    "releaseDate": "2024",
     "coverstockRaw": "TX-23 Pearl Reactive",
     "factoryFinish": "Reacta Gloss",
     "coreName": "HD-A.I.",
@@ -1097,7 +1097,7 @@
   {
     "brand": "Storm",
     "name": "Summit",
-    "releaseDate": "2024-01-01",
+    "releaseDate": "2024",
     "coverstockRaw": "TX-23 Hybrid Reactive",
     "factoryFinish": "3000-grit Abralon",
     "coreName": "HD-A.I.",
@@ -1126,7 +1126,7 @@
   {
     "brand": "Storm",
     "name": "The Road",
-    "releaseDate": "2024-01-01",
+    "releaseDate": "2024",
     "coverstockRaw": "ReX Hybrid Reactive",
     "factoryFinish": "Reacta Gloss",
     "coreName": "CENTRIPETAL CONTROL",
@@ -1155,7 +1155,7 @@
   {
     "brand": "Storm",
     "name": "Absolute",
-    "releaseDate": "2023-01-01",
+    "releaseDate": "2023",
     "coverstockRaw": "R2S DEEP Hybrid Reactive",
     "factoryFinish": "Reacta Gloss",
     "coreName": "SENTINEL",
@@ -1196,7 +1196,7 @@
   {
     "brand": "Storm",
     "name": "DNA",
-    "releaseDate": "2023-01-01",
+    "releaseDate": "2023",
     "coverstockRaw": "EXO Solid Reactive",
     "factoryFinish": "2000-grit Abralon",
     "coreName": "SUPERCOIL",
@@ -1237,7 +1237,7 @@
   {
     "brand": "Storm",
     "name": "Fate",
-    "releaseDate": "2023-01-01",
+    "releaseDate": "2023",
     "coverstockRaw": "ReX Pearl Reactive",
     "factoryFinish": "Reacta Gloss",
     "coreName": null,
@@ -1278,7 +1278,7 @@
   {
     "brand": "Storm",
     "name": "Phaze V",
-    "releaseDate": "2023-01-01",
+    "releaseDate": "2023",
     "coverstockRaw": "R2S Pearl Reactive",
     "factoryFinish": "Reacta Gloss",
     "coreName": "CENTRIPETAL CONTROL",
@@ -1319,7 +1319,7 @@
   {
     "brand": "Storm",
     "name": "Revenant",
-    "releaseDate": "2023-01-01",
+    "releaseDate": "2023",
     "coverstockRaw": "R3S Pearl Reactive",
     "factoryFinish": "Reacta Gloss",
     "coreName": "VECTOR",
@@ -1360,7 +1360,7 @@
   {
     "brand": "Storm",
     "name": "Hy-Road Pearl",
-    "releaseDate": "2023-01-01",
+    "releaseDate": "2023",
     "coverstockRaw": "R2S Pearl Reactive",
     "factoryFinish": "Reacta Gloss",
     "coreName": null,
@@ -1401,7 +1401,7 @@
   {
     "brand": "Storm",
     "name": "Electrify Pearl",
-    "releaseDate": "2022-01-01",
+    "releaseDate": "2022",
     "coverstockRaw": "Reactor Pearl Reactive",
     "factoryFinish": "4K-Fast",
     "coreName": "CHERRY SURGE",

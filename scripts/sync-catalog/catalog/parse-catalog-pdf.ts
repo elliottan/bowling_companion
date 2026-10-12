@@ -49,7 +49,7 @@ async function main(): Promise<void> {
 
   for (const seg of segs) {
     const ball = parseBall(seg, {
-      releaseDate: yearArg ? `${yearArg}-01-01` : null,
+      releaseDate: yearArg ? String(yearArg) : null,
       sourceUrls: ["https://www.stormbowling.com", src],
       index,
       byNorm,

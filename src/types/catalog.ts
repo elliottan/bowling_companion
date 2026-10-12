@@ -28,7 +28,7 @@ export interface CatalogBall {
   id: string;              // stable: slug(`${brand}-${name}-${releaseYear}`)
   brand: Manufacturer;
   name: string;
-  releaseDate: string | null;   // ISO yyyy-mm-dd if known, else null
+  releaseDate: string | null;   // yyyy, yyyy-mm or yyyy-mm-dd, as precise as the source (ADR-134); null if unknown
   releaseYear: number | null;
   coverstockRaw: string;        // exact source string, preserved
   coverstockCategory: CoverstockCategory | null; // null = unclassified (flag in PR)
