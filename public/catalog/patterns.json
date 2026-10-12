@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generated_at": "2026-09-22T03:00:42.252Z",
+  "generated_at": "2026-10-12T04:58:01.979Z",
   "patterns": [
     {
       "id": "2025-striking-against-breast-cancer-mixed-doubles",
@@ -185,6 +185,10 @@
       "id": "big-ben",
       "name": "Big Ben",
       "vendor": "kegel",
+      "sheet": "sheets/big-ben.66f0fa3ebdb9.pdf",
+      "sheetPages": [
+        "sheets/big-ben.66f0fa3ebdb9.p1.webp"
+      ],
       "distance": 44,
       "volumeMl": 24.7,
       "ratio": 7.333333333333333,
@@ -712,6 +716,10 @@
       "id": "mercury-4940",
       "name": "Mercury 4940",
       "vendor": "kegel",
+      "sheet": "sheets/mercury-4940.1f3e4eacaeca.pdf",
+      "sheetPages": [
+        "sheets/mercury-4940.1f3e4eacaeca.p1.webp"
+      ],
       "distance": 40,
       "volumeMl": 25.55,
       "ratio": 4.906976744186046,
@@ -904,6 +912,10 @@
       "name": "Stonehenge",
       "vendor": "kegel",
       "sourceUrl": "https://www.vsbv.at/daten/sj_18_19/oelungen/lv28_sj_18_19_oelung_bludenz.pdf",
+      "sheet": "sheets/stonehenge.b76b55eb0712.pdf",
+      "sheetPages": [
+        "sheets/stonehenge.b76b55eb0712.p1.webp"
+      ],
       "distance": 40,
       "volumeMl": 23.75,
       "ratio": 6.5625,
@@ -1038,6 +1050,201 @@
           "start_distance": 7.6,
           "end_distance": 0,
           "speed": 14
+        }
+      ]
+    },
+    {
+      "id": "tungsten",
+      "name": "Tungsten",
+      "vendor": "kegel",
+      "sheet": "sheets/tungsten.bc88bd25dee5.pdf",
+      "sheetPages": [
+        "sheets/tungsten.bc88bd25dee5.p1.webp"
+      ],
+      "distance": 39,
+      "volumeMl": 25.6,
+      "ratio": 6.25,
+      "shape": "challenge",
+      "passes": [
+        {
+          "direction": "forward",
+          "left_board": 2,
+          "right_board": 38,
+          "loads": 2,
+          "microliters": 40,
+          "start_distance": 0,
+          "end_distance": 2,
+          "speed": 14,
+          "buffer": 3,
+          "tank": "A - TERRAIN"
+        },
+        {
+          "direction": "forward",
+          "left_board": 6,
+          "right_board": 34,
+          "loads": 2,
+          "microliters": 45,
+          "start_distance": 2,
+          "end_distance": 6,
+          "speed": 14,
+          "buffer": 3,
+          "tank": "B - TERRAIN"
+        },
+        {
+          "direction": "forward",
+          "left_board": 8,
+          "right_board": 32,
+          "loads": 3,
+          "microliters": 50,
+          "start_distance": 6,
+          "end_distance": 12,
+          "speed": 14,
+          "buffer": 3,
+          "tank": "A - TERRAIN"
+        },
+        {
+          "direction": "forward",
+          "left_board": 10,
+          "right_board": 30,
+          "loads": 3,
+          "microliters": 50,
+          "start_distance": 12,
+          "end_distance": 18,
+          "speed": 14,
+          "buffer": 3,
+          "tank": "B - TERRAIN"
+        },
+        {
+          "direction": "forward",
+          "left_board": 12,
+          "right_board": 28,
+          "loads": 2,
+          "microliters": 55,
+          "start_distance": 18,
+          "end_distance": 23,
+          "speed": 18,
+          "buffer": 3,
+          "tank": "A - TERRAIN"
+        },
+        {
+          "direction": "forward",
+          "left_board": 13,
+          "right_board": 27,
+          "loads": 2,
+          "microliters": 55,
+          "start_distance": 23,
+          "end_distance": 28,
+          "speed": 18,
+          "buffer": 3,
+          "tank": "B - TERRAIN"
+        },
+        {
+          "direction": "forward",
+          "left_board": 2,
+          "right_board": 38,
+          "loads": 0,
+          "microliters": 55,
+          "start_distance": 28,
+          "end_distance": 32,
+          "speed": 22,
+          "buffer": 3,
+          "tank": "A - TERRAIN"
+        },
+        {
+          "direction": "forward",
+          "left_board": 2,
+          "right_board": 38,
+          "loads": 0,
+          "microliters": 55,
+          "start_distance": 32,
+          "end_distance": 39,
+          "speed": 26,
+          "buffer": 3,
+          "tank": "B - TERRAIN"
+        },
+        {
+          "direction": "reverse",
+          "left_board": 2,
+          "right_board": 38,
+          "loads": 0,
+          "microliters": 55,
+          "start_distance": 36,
+          "end_distance": 32,
+          "speed": 30,
+          "buffer": 3,
+          "tank": "A - TERRAIN"
+        },
+        {
+          "direction": "reverse",
+          "left_board": 12,
+          "right_board": 28,
+          "loads": 2,
+          "microliters": 55,
+          "start_distance": 32,
+          "end_distance": 26,
+          "speed": 22,
+          "buffer": 3,
+          "tank": "B - TERRAIN"
+        },
+        {
+          "direction": "reverse",
+          "left_board": 10,
+          "right_board": 30,
+          "loads": 2,
+          "microliters": 55,
+          "start_distance": 26,
+          "end_distance": 20,
+          "speed": 22,
+          "buffer": 3,
+          "tank": "A - TERRAIN"
+        },
+        {
+          "direction": "reverse",
+          "left_board": 8,
+          "right_board": 32,
+          "loads": 2,
+          "microliters": 50,
+          "start_distance": 20,
+          "end_distance": 15,
+          "speed": 18,
+          "buffer": 3,
+          "tank": "B - TERRAIN"
+        },
+        {
+          "direction": "reverse",
+          "left_board": 6,
+          "right_board": 34,
+          "loads": 1,
+          "microliters": 50,
+          "start_distance": 15,
+          "end_distance": 12,
+          "speed": 18,
+          "buffer": 3,
+          "tank": "A - TERRAIN"
+        },
+        {
+          "direction": "reverse",
+          "left_board": 2,
+          "right_board": 38,
+          "loads": 1,
+          "microliters": 40,
+          "start_distance": 12,
+          "end_distance": 10,
+          "speed": 18,
+          "buffer": 3,
+          "tank": "B - TERRAIN"
+        },
+        {
+          "direction": "reverse",
+          "left_board": 2,
+          "right_board": 38,
+          "loads": 0,
+          "microliters": 40,
+          "start_distance": 10,
+          "end_distance": 0,
+          "speed": 14,
+          "buffer": 3,
+          "tank": "A - TERRAIN"
         }
       ]
     }

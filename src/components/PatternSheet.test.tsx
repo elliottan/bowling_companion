@@ -23,10 +23,14 @@ describe("PatternSheet", () => {
     expect(container.querySelectorAll('[data-role="board-bar"]')).toHaveLength(39);
   });
 
-  it("prints the track zone ratios the sheet prints", () => {
-    render(<PatternSheet pattern={chromium} onClose={() => {}} />);
-    expect(screen.getByText("3L-7L")).toBeInTheDocument();
-    expect(screen.getAllByText("6.71:1").length).toBeGreaterThan(1);
+  // One row, as the sheet prints it: bare numbers, with the middle at 1.00.
+  it("prints the track zone ratios in one row, the middle in the middle", () => {
+    const { container } = render(<PatternSheet pattern={chromium} onClose={() => {}} />);
+    const cells = [...container.querySelectorAll("ul.grid-cols-7 > li")].map((li) => li.textContent);
+    expect(cells).toHaveLength(7);
+    expect(cells[0]).toBe("3L-7L6.71");
+    expect(cells[3]).toBe("18L-18R1.00");
+    expect(cells.every((cell) => !cell?.includes(":1"))).toBe(true);
   });
 
   it("lists every pass, in the sheet's own board notation", () => {
@@ -66,40 +70,43 @@ describe("PatternSheet", () => {
   });
 
   describe("our copy of the sheet (ADR-136)", () => {
-    const serveCatalog = (sheet?: string) => {
+    const serveCatalog = (sheet?: string, sheetPages?: string[]) => {
       resetPatternCatalogCache();
       vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
         ok: true,
         json: async () => ({
           version: 1,
           generated_at: "",
-          patterns: [{ id: "chromium-6742", name: "Chromium 6742", sheet, passes: [] }],
+          patterns: [{ id: "chromium-6742", name: "Chromium 6742", sheet, sheetPages, passes: [] }],
         }),
       }));
     };
     afterEach(() => {
+      vi.restoreAllMocks();
       vi.unstubAllGlobals();
       resetPatternCatalogCache();
     });
 
-    it("offers the kept sheet first and the original beside it, named by its host", async () => {
-      serveCatalog("sheets/chromium-6742.0123456789ab.pdf");
+    it("opens the kept sheet in the app, not the publisher's site", async () => {
+      serveCatalog("sheets/chromium-6742.0123456789ab.pdf", ["sheets/chromium-6742.0123456789ab.p1.webp"]);
       render(
         <PatternSheet
           pattern={{ ...chromium, catalog_id: "chromium-6742", url: "https://www.lvsb.at/c.pdf" }}
           onClose={() => {}}
         />
       );
-      await waitFor(() =>
-        expect(screen.getByRole("link", { name: /^pattern sheet/i })).toHaveAttribute(
-          "href", "/catalog/sheets/chromium-6742.0123456789ab.pdf")
-      );
-      expect(screen.getByRole("link", { name: /original source/i })).toHaveAttribute(
-        "href", "https://www.lvsb.at/c.pdf");
-      expect(screen.getByText("lvsb.at")).toBeInTheDocument();
+      fireEvent.click(await screen.findByRole("button", { name: /original pattern sheet/i }));
+      expect(await screen.findByAltText("Chromium 6742, page 1 of 1")).toHaveAttribute(
+        "src", "/catalog/sheets/chromium-6742.0123456789ab.p1.webp");
+      expect(screen.queryByRole("link", { name: /lvsb|original source/i })).toBeNull();
+
+      const open = vi.spyOn(window, "open").mockReturnValue(null);
+      fireEvent.click(screen.getByRole("button", { name: "Open the PDF" }));
+      expect(open).toHaveBeenCalledWith("/catalog/sheets/chromium-6742.0123456789ab.pdf", "_blank", "noopener,noreferrer");
     });
 
-    it("links only the original when the catalog kept no copy", async () => {
+    // A link the bowler typed themselves is theirs, and still opens.
+    it("links the bowler's own sheet when the catalog kept no copy", async () => {
       serveCatalog(undefined);
       render(
         <PatternSheet
@@ -109,7 +116,7 @@ describe("PatternSheet", () => {
       );
       await waitFor(() => expect(fetch).toHaveBeenCalled());
       expect(screen.getByRole("link", { name: /original pattern sheet/i })).toBeInTheDocument();
-      expect(screen.queryByRole("link", { name: /^pattern sheet/i })).toBeNull();
+      expect(screen.queryByRole("button", { name: /original pattern sheet/i })).toBeNull();
     });
   });
 });

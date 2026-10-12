@@ -3,6 +3,7 @@ import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { archiveSheet } from "./sheets.js";
+import { tinyPdf } from "./tiny-pdf.fixture.js";
 import { checkCandidate, toCatalogPattern } from "./promote.js";
 import type { PatternCandidate } from "./types.js";
 import { CHROMIUM_6742 } from "../../src/lib/oilPattern.fixture.js";
@@ -92,16 +93,18 @@ describe("toCatalogPattern", () => {
 
 describe("the kept sheet (ADR-136)", () => {
   const dir = mkdtempSync(join(tmpdir(), "sheets-"));
-  const pdf = new TextEncoder().encode("%PDF-1.4 chromium");
+  const pdf = tinyPdf("chromium");
 
-  it("is checked against the bytes on disk, and carried into the catalog", () => {
-    const sheet = archiveSheet("chromium-6742", pdf, dir);
+  it("is checked against the bytes on disk, and carried into the catalog with its pages", async () => {
+    const sheet = await archiveSheet("chromium-6742", pdf, dir);
     expect(checkCandidate(chromium({ sheet }), dir)).toEqual([]);
-    expect(toCatalogPattern(chromium({ sheet })).sheet).toBe(`sheets/${sheet.file}`);
+    const pattern = toCatalogPattern(chromium({ sheet }));
+    expect(pattern.sheet).toBe(`sheets/${sheet.file}`);
+    expect(pattern.sheetPages).toEqual(sheet.pages.map((page) => `sheets/${page}`));
   });
 
-  it("holds a pattern back when its sheet is missing or is not the recorded one", () => {
-    const sheet = archiveSheet("chromium-6742", pdf, dir);
+  it("holds a pattern back when its sheet is missing or is not the recorded one", async () => {
+    const sheet = await archiveSheet("chromium-6742", pdf, dir);
     const wrongHash = { ...sheet, sha256: "0".repeat(64) };
     expect(checkCandidate(chromium({ sheet: wrongHash }), dir).map((c) => c.field)).toEqual(["sheet"]);
     const missing = { ...sheet, file: "gone.000000000000.pdf" };

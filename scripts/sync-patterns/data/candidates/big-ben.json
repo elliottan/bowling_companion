@@ -191,5 +191,13 @@
     "reverseMl": 8.48,
     "volumeMl": 24.7
   },
-  "note": "52e0b12d-Big_Ben.pdf · 44 ft · 7.33:1"
+  "note": "52e0b12d-Big_Ben.pdf · 44 ft · 7.33:1",
+  "sheet": {
+    "file": "big-ben.66f0fa3ebdb9.pdf",
+    "sha256": "66f0fa3ebdb911e8d242830ba39dd0122c70528818c6fc606d25c819f23e52a9",
+    "bytes": 937843,
+    "pages": [
+      "big-ben.66f0fa3ebdb9.p1.webp"
+    ]
+  }
 }

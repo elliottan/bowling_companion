@@ -53,6 +53,8 @@ export interface SheetCopy {
   file: string;
   sha256: string;
   bytes: number;
+  /** Each page drawn as a webp beside it, `<file stem>.p<n>.webp`, in order. */
+  pages: string[];
 }
 
 /** A promoted pattern, as it ships. */
@@ -63,6 +65,8 @@ export interface CatalogPattern {
   sourceUrl?: string;
   /** Our copy of the sheet, relative to `catalog/`: `sheets/<file>` (ADR-136). */
   sheet?: string;
+  /** Its pages as images, relative to `catalog/`, for showing it in-app. */
+  sheetPages?: string[];
   /** Derived and stored, because the app should not have to compute a list. */
   distance: number;
   volumeMl: number;

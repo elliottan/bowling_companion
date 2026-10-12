@@ -93,6 +93,7 @@ export function toCatalogPattern(candidate: PatternCandidate): CatalogPattern {
     vendor: candidate.vendor,
     sourceUrl: candidate.sourceUrl,
     sheet: candidate.sheet ? `sheets/${candidate.sheet.file}` : undefined,
+    sheetPages: candidate.sheet?.pages.map((page) => `sheets/${page}`),
     distance: stats.length,
     volumeMl: Math.round(stats.volumeMl * 100) / 100,
     ratio: headlineRatio(candidate.passes),

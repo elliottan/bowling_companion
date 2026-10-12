@@ -20,7 +20,7 @@ import {
 } from "../services/ballRepository";
 import type { OilPass, OilPattern } from "../types/bowling";
 import {
-  headlineRatio, oilStats, patternClass, patternLabel, patternLength, PATTERN_CLASS_LABEL,
+  headlineRatio, oilStats, patternClass, patternLength, PATTERN_CLASS_LABEL,
   type PatternClass,
 } from "../lib/oilPattern";
 import {
@@ -93,7 +93,9 @@ export function OilPatternManager({ onBack, mode = "inline", onOpenLineVisualize
         // for it survives: that is the name their history is written in.
         await updateOilPattern(target.id, {
           name: target.name,
-          url: target.url ?? pattern.sourceUrl,
+          // The catalog's sheet is ours to show (ADR-136), so the publisher's
+          // link is not copied onto the row. A link the bowler typed stays.
+          url: target.url === pattern.sourceUrl ? undefined : target.url,
           passes: pattern.passes,
           // One way, and the point of it: this row IS that pattern now, so the
           // catalog keeps its load table current and only the name stays the
@@ -103,7 +105,7 @@ export function OilPatternManager({ onBack, mode = "inline", onOpenLineVisualize
         setNotice(`${target.name} now draws ${pattern.name}.`);
         return;
       }
-      await addOilPattern(pattern.name, pattern.sourceUrl, pattern.passes);
+      await addOilPattern(pattern.name, undefined, pattern.passes);
       setNotice(`Added ${pattern.name}.`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to add that pattern.");
@@ -316,8 +318,9 @@ export function OilPatternManager({ onBack, mode = "inline", onOpenLineVisualize
                   className="flex min-w-0 flex-1 items-center gap-3 px-3 py-2.5 text-left active:bg-surface-muted"
                 >
                   <span className="min-w-0 flex-1">
-                    <span className="block truncate font-semibold text-ink">{patternLabel(pattern)}</span>
+                    <span className="block truncate font-semibold text-ink">{pattern.name}</span>
                     <span className="block truncate text-xs tabular-nums text-ink-secondary">
+                      <PatternFeet pattern={pattern} />
                       {pattern.volumeMl.toFixed(2)} mL
                       {pattern.ratio != null ? ` · ${pattern.ratio.toFixed(1)}:1` : ""}
                       {(pattern.shape ?? patternClass(pattern.ratio))
@@ -408,7 +411,7 @@ function summarize(pattern: OilPattern): string {
   if (stats.length > 0) {
     const ratio = headlineRatio(pattern.passes);
     const shape = patternClass(ratio);
-    // The length leads the name (patternLabel), so it is not repeated here.
+    // The length leads this line (PatternFeet), so it is not repeated here.
     return [
       `${stats.volumeMl.toFixed(2)} mL`,
       ratio != null ? `${ratio.toFixed(1)}:1` : null,
@@ -418,6 +421,22 @@ function summarize(pattern: OilPattern): string {
   // No table, so the length is whatever was typed, and there is no ratio to
   // classify by: a pattern you added yourself is a label, not a drawing.
   return pattern.url ? "Pattern sheet saved" : "No link";
+}
+
+/**
+ * The length, leading the line under the name. It is the figure a bowler scans
+ * this list by, so it is the one coloured, and it sits under the name rather
+ * than in front of it, so the names line up and stay readable.
+ */
+function PatternFeet({ pattern }: { pattern: { name: string; passes?: OilPass[]; distance?: number } }) {
+  const feet = patternLength(pattern);
+  if (feet == null) return null;
+  return (
+    <>
+      <span className="font-semibold text-accent">{Math.round(feet)} ft</span>
+      {" · "}
+    </>
+  );
 }
 
 function PatternRow({
@@ -444,8 +463,9 @@ function PatternRow({
         className="flex min-w-0 flex-1 items-center gap-3 px-3 py-2.5 text-left active:bg-surface-muted"
       >
         <span className="min-w-0 flex-1">
-          <span className="block truncate font-semibold text-ink">{patternLabel(pattern)}</span>
+          <span className="block truncate font-semibold text-ink">{pattern.name}</span>
           <span className="block truncate text-xs tabular-nums text-ink-secondary">
+            <PatternFeet pattern={pattern} />
             {summarize(pattern)}
           </span>
         </span>

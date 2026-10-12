@@ -1,5 +1,5 @@
-import { ArrowUpRight } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { ArrowUpRight, ChevronRight } from "lucide-react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type MouseEvent } from "react";
 import type { OilPass, OilPattern } from "../types/bowling";
 import {
   boardTotals, formatSheetBoard, headlineRatio, oilStats, patternClass,
@@ -10,7 +10,7 @@ import { GROUP_HEADING } from "./ui/typography";
 import { IconButton } from "./ui/IconButton";
 import { PushScreen } from "./PushScreen";
 import { LaneViewIcon } from "./icons";
-import { catalogSheetUrl } from "../services/patternCatalog";
+import { catalogSheet, type KeptSheet } from "../services/patternCatalog";
 
 /**
  * A pattern sheet, in the app (ADR-106).
@@ -46,7 +46,8 @@ export function PatternSheet({ pattern, onClose, onOpenInLineVisualizer }: Patte
   const shape = patternClass(ratio);
   const feet = patternLength(pattern);
 
-  const hostedSheet = useHostedSheet(pattern.catalog_id);
+  const keptSheet = useKeptSheet(pattern.catalog_id);
+  const [viewing, setViewing] = useState(false);
 
   const forward = (pattern.passes ?? []).filter((p) => p.direction === "forward");
   const reverse = (pattern.passes ?? []).filter((p) => p.direction === "reverse");
@@ -101,16 +102,10 @@ export function PatternSheet({ pattern, onClose, onOpenInLineVisualizer }: Patte
                 <section>
                   <h3 className={GROUP_HEADING}>Track zones</h3>
                   <p className="mt-0.5 text-xs text-ink-tertiary">
-                    How much more oil the middle carries than each band of boards.
+                    How many times more oil the middle carries than each band of
+                    boards, read left to right across the lane as the sheet prints it.
                   </p>
-                  <ul className="mt-1.5 grid grid-cols-3 gap-1.5 text-xs tabular-nums">
-                    {zones.map((zone) => (
-                      <li key={zone.label} className="rounded-lg border border-edge bg-surface px-2 py-1.5">
-                        <span className="block text-ink-tertiary">{zone.label}</span>
-                        <span className="block font-semibold text-ink">{zone.ratio.toFixed(2)}:1</span>
-                      </li>
-                    ))}
-                  </ul>
+                  <TrackZoneRow zones={zones} />
                 </section>
               )}
 
@@ -119,57 +114,160 @@ export function PatternSheet({ pattern, onClose, onOpenInLineVisualizer }: Patte
             </>
           )}
 
-          {hostedSheet && <SheetLink href={hostedSheet} label="Pattern sheet" note="PDF" />}
-          {pattern.url && (
-            <SheetLink
-              href={pattern.url}
-              label={hostedSheet ? "Original source" : "Original pattern sheet"}
-              note={hostedSheet ? hostName(pattern.url) : undefined}
-            />
+          {keptSheet ? (
+            <button
+              type="button"
+              onClick={() => setViewing(true)}
+              className={SHEET_ROW}
+            >
+              Original pattern sheet
+              <ChevronRight size={16} aria-hidden="true" className="shrink-0 text-ink-tertiary" />
+            </button>
+          ) : (
+            pattern.url && (
+              // A link the bowler typed for a pattern of their own. It leaves
+              // the app, so it carries the outward arrow (DESIGN-LANGUAGE §4).
+              <a href={pattern.url} target="_blank" rel="noopener noreferrer" className={SHEET_ROW}>
+                Original pattern sheet
+                <ArrowUpRight size={16} aria-hidden="true" className="shrink-0 text-ink-tertiary" />
+              </a>
+            )
           )}
         </div>
+        {viewing && keptSheet && (
+          <SheetViewer title={pattern.name} sheet={keptSheet} onClose={() => setViewing(false)} />
+        )}
+    </PushScreen>
+  );
+}
+
+const SHEET_ROW =
+  "flex w-full items-center justify-between gap-2 rounded-xl border border-edge bg-surface px-3 py-2.5 text-left text-sm font-semibold text-ink active:bg-surface-muted";
+
+/**
+ * The track zone ratios in one row, the way the sheet prints them: left zones,
+ * the middle, right zones, each a bare number. A ratio is always "to 1", so the
+ * ":1" on every cell was noise, and the middle itself reads 1.00 because it is
+ * what every other cell is measured against. A dry zone has no ratio to give.
+ */
+const ZONE_ROW = ["3L-7L", "8L-12L", "13L-17L", "18L-18R", "17R-13R", "12R-8R", "7R-3R"] as const;
+
+function TrackZoneRow({ zones }: { zones: { label: string; ratio: number }[] }) {
+  const byLabel = new Map(zones.map((z) => [z.label, z.ratio]));
+  return (
+    <ul className="mt-1.5 grid grid-cols-7 gap-0.5 text-center tabular-nums">
+      {ZONE_ROW.map((label) => {
+        const middle = label === "18L-18R";
+        const ratio = middle ? 1 : byLabel.get(label);
+        return (
+          <li
+            key={label}
+            className={`min-w-0 rounded-lg border py-1.5 ${middle ? "border-accent bg-accent-soft" : "border-edge bg-surface"}`}
+          >
+            {/* 9px and tight: seven of these share a phone's width, and a
+                label is only worth printing whole. */}
+            <span className="block whitespace-nowrap text-[9px] leading-tight tracking-tighter text-ink-tertiary">
+              {label}
+            </span>
+            <span className="block text-sm font-semibold text-ink">
+              {ratio != null ? ratio.toFixed(2) : "-"}
+            </span>
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
+/**
+ * The original sheet, in the app (ADR-136). Its pages were drawn as images when
+ * the sheet was kept, so this needs no PDF reader and works on a phone whose
+ * browser will not show a PDF inline. A tap zooms in to read the load table and
+ * back out; the PDF itself is the one trailing action, for printing or sharing.
+ */
+function SheetViewer({ title, sheet, onClose }: { title: string; sheet: KeptSheet; onClose: () => void }) {
+  const [zoomed, setZoomed] = useState(false);
+  const across = useRef<HTMLDivElement>(null);
+  // Where the tap landed, as a fraction of the page, and where on the screen,
+  // so zooming in keeps that spot under the finger rather than jumping to the
+  // page's top left corner.
+  const focus = useRef<{ page: HTMLElement; fx: number; fy: number; x: number; y: number } | null>(null);
+
+  function toggle(event: MouseEvent<HTMLButtonElement>) {
+    const page = event.currentTarget;
+    const box = page.getBoundingClientRect();
+    focus.current = {
+      page,
+      fx: (event.clientX - box.left) / box.width,
+      fy: (event.clientY - box.top) / box.height,
+      x: event.clientX,
+      y: event.clientY,
+    };
+    setZoomed((z) => !z);
+  }
+
+  useLayoutEffect(() => {
+    const spot = focus.current;
+    const row = across.current;
+    if (!spot || !row) return;
+    const box = spot.page.getBoundingClientRect();
+    row.scrollLeft += box.left + spot.fx * box.width - spot.x;
+    const down = row.parentElement?.closest<HTMLElement>(".overflow-y-auto");
+    if (down) down.scrollTop += box.top + spot.fy * box.height - spot.y;
+    focus.current = null;
+  }, [zoomed]);
+
+  return (
+    <PushScreen
+      title={title}
+      onBack={onClose}
+      backCloses
+      trailing={
+        <IconButton
+          label="Open the PDF"
+          variant="round"
+          onClick={() => window.open(sheet.pdf, "_blank", "noopener,noreferrer")}
+        >
+          <ArrowUpRight size={20} aria-hidden="true" />
+        </IconButton>
+      }
+    >
+      {/* The screen scrolls down the page; this scrolls across it when zoomed. */}
+      <div ref={across} className="min-h-full overflow-x-auto bg-surface-muted">
+        <div className={`mx-auto space-y-2 p-2 ${zoomed ? "w-[250%] max-w-none" : "w-full max-w-3xl"}`}>
+          {sheet.pages.map((page, i) => (
+            <button
+              key={page}
+              type="button"
+              aria-label={zoomed ? "Zoom out" : "Zoom in"}
+              onClick={toggle}
+              className={`block w-full ${zoomed ? "cursor-zoom-out" : "cursor-zoom-in"}`}
+            >
+              <img
+                src={page}
+                alt={`${title}, page ${i + 1} of ${sheet.pages.length}`}
+                className="block w-full rounded bg-white shadow-sm"
+              />
+            </button>
+          ))}
+        </div>
+      </div>
     </PushScreen>
   );
 }
 
 /** Our copy of a catalog pattern's sheet, once the catalog has said where. */
-function useHostedSheet(catalogId: string | undefined): string | undefined {
-  const [url, setUrl] = useState<string>();
+function useKeptSheet(catalogId: string | undefined): KeptSheet | undefined {
+  const [sheet, setSheet] = useState<KeptSheet>();
   useEffect(() => {
     if (!catalogId) return;
     let live = true;
-    void catalogSheetUrl(catalogId).then((found) => live && setUrl(found));
+    void catalogSheet(catalogId).then((found) => live && setSheet(found));
     return () => {
       live = false;
     };
   }, [catalogId]);
-  return catalogId ? url : undefined;
-}
-
-function hostName(url: string): string | undefined {
-  try {
-    return new URL(url).hostname.replace(/^www\./, "");
-  } catch {
-    return undefined;
-  }
-}
-
-/** A row that leaves the app, so it carries the outward arrow (DESIGN-LANGUAGE §4). */
-function SheetLink({ href, label, note }: { href: string; label: string; note?: string }) {
-  return (
-    <a
-      href={href}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="flex items-center justify-between gap-2 rounded-xl border border-edge bg-surface px-3 py-2.5 text-sm font-semibold text-ink active:bg-surface-muted"
-    >
-      <span className="min-w-0 truncate">
-        {label}
-        {note && <span className="ml-1.5 text-xs font-normal text-ink-tertiary">{note}</span>}
-      </span>
-      <ArrowUpRight size={16} aria-hidden="true" className="shrink-0 text-ink-tertiary" />
-    </a>
-  );
+  return catalogId ? sheet : undefined;
 }
 
 function Figure({ label, value, note }: { label: string; value: string; note?: string }) {

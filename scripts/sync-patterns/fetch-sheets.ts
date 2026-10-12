@@ -46,7 +46,7 @@ async function main(): Promise<void> {
     try {
       const response = await fetch(candidate.sourceUrl, { redirect: "follow" });
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      const copy = archiveSheet(candidate.id, new Uint8Array(await response.arrayBuffer()));
+      const copy = await archiveSheet(candidate.id, new Uint8Array(await response.arrayBuffer()));
       writeFileSync(path, JSON.stringify({ ...candidate, sheet: copy }, null, 2) + "\n");
       console.log(`kept   ${candidate.id}: ${copy.file} (${Math.round(copy.bytes / 1024)} KB)`);
       kept += 1;

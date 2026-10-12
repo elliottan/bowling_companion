@@ -63,7 +63,7 @@ async function main(): Promise<void> {
       : lower.endsWith(".kosi")
         ? readKosi(sheet, readFileSync(sheet, "utf8"), { sourceUrl, vendor, volumeMl })
         : readManual(sheet, readFileSync(sheet, "utf8"), { sourceUrl, vendor, name });
-    if (lower.endsWith(".pdf")) candidate.sheet = archiveSheet(candidate.id, readFileSync(sheet));
+    if (lower.endsWith(".pdf")) candidate.sheet = await archiveSheet(candidate.id, readFileSync(sheet));
     const passed = checks.filter((c) => c.ok).length;
     writeFileSync(
       resolve(CANDIDATES, `${candidate.id}.json`),

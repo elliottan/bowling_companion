@@ -247,12 +247,13 @@ export default defineConfig({
             }
           },
           {
-            // The pattern sheet PDFs (ADR-136). Never precached and never
-            // fetched ahead: a sheet is downloaded the first time a bowler opens
-            // it, and kept from then on so it opens offline. CacheFirst with no
-            // revalidation is safe because each file is named for its hash, so
-            // a changed sheet is a new URL and an old one never changes.
-            urlPattern: /\/catalog\/sheets\/[^/]+\.pdf$/,
+            // The pattern sheets (ADR-136): each PDF and the page images drawn
+            // from it. Never precached and never fetched ahead: a sheet is
+            // downloaded the first time a bowler opens it, and kept from then on
+            // so it opens offline. CacheFirst with no revalidation is safe
+            // because each file is named for its hash, so a changed sheet is a
+            // new URL and an old one never changes.
+            urlPattern: /\/catalog\/sheets\/[^/]+\.(pdf|webp)$/,
             handler: "CacheFirst",
             options: {
               cacheName: "pattern-sheets",
