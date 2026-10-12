@@ -2,7 +2,7 @@ import { ArrowUpRight, ChevronRight } from "lucide-react";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type MouseEvent } from "react";
 import type { OilPass, OilPattern } from "../types/bowling";
 import {
-  boardTotals, formatSheetBoard, headlineRatio, oilStats, patternClass,
+  boardTotals, formatSheetBoard, headlineRatio, oilBands, oilStats, oilZones, patternClass, peakUnits,
   patternLength, PATTERN_CLASS_LABEL, trackZoneRatios,
 } from "../lib/oilPattern";
 import { LANE_BOARDS } from "../lib/laneGeometry";
@@ -88,6 +88,16 @@ export function PatternSheet({ pattern, onClose, onOpenInLineVisualizer }: Patte
                   value={`${stats.forwardMl.toFixed(2)} / ${stats.reverseMl.toFixed(2)} mL`}
                 />
               </dl>
+
+              <section>
+                <h3 className={GROUP_HEADING}>Oil on the lane</h3>
+                <p className="mt-0.5 text-xs text-ink-tertiary">
+                  The lane as the sheet draws it: boards across, feet up from the
+                  foul line, darker where there is more oil. The faint wash is where
+                  the machine only buffs, laying no oil of its own.
+                </p>
+                <LaneMap passes={pattern.passes ?? []} length={stats.length} />
+              </section>
 
               <section>
                 <h3 className={GROUP_HEADING}>Oil across the lane</h3>
@@ -352,6 +362,113 @@ function Figure({ label, value, note }: { label: string; value: string; note?: s
         {note && <span className="ml-1.5 text-xs font-semibold text-ink-secondary">{note}</span>}
       </dd>
     </div>
+  );
+}
+
+/**
+ * The lane drawing a pattern sheet prints beside its tables: boards across,
+ * feet up from the foul line, each spot shaded by the oil on it, and a line
+ * where the oil ends. Drawn to read, not to scale: a lane is 60 ft long and 39
+ * boards wide, so the feet are squeezed to keep the shape on one screen, and
+ * the drawing stops a little past the pattern rather than running to the pins.
+ */
+function LaneMap({ passes, length }: { passes: OilPass[]; length: number }) {
+  const zones = useMemo(() => oilZones(passes), [passes]);
+  const bands = useMemo(() => oilBands(zones), [zones]);
+  const peak = Math.max(peakUnits(zones), 1);
+  // A pass that travels but loads nothing still buffs the oil along the lane,
+  // which is how a sheet's drawing reaches the pattern distance past its last
+  // load. The sheet paints it in its own colour, and so does this.
+  const buffed = passes.filter(
+    (p) => (p.loads === 0 || p.microliters === 0) && p.start_distance !== p.end_distance && p.right_board >= p.left_board
+  );
+
+  // Up to the next 5 ft past the end of the oil, so the dry lane beyond it shows.
+  const top = Math.ceil((length + 2) / 5) * 5;
+  const LEFT = 9; // room for the feet scale
+  const W = 100;
+  const H = 96;
+  const BASE = H + 2;
+  const board = (W - LEFT) / LANE_BOARDS;
+  const x = (b: number) => LEFT + (b - 1) * board;
+  const y = (feet: number) => BASE - (feet / top) * H;
+  const ticks = Array.from({ length: Math.floor(top / 5) + 1 }, (_, i) => i * 5);
+
+  return (
+    <svg
+      viewBox={`0 0 ${W} ${BASE + 6}`}
+      className="mt-1.5 w-full"
+      role="img"
+      aria-label={`Oil on the lane, ending at ${Math.round(length)} ft`}
+    >
+      {/* The wood, with a rule every five boards like the arrows and dots. */}
+      <rect x={LEFT} y={BASE - H} width={W - LEFT} height={H} className="fill-surface-muted" />
+      {[5, 10, 15, 20, 25, 30, 35].map((b) => (
+        <line key={b} x1={x(b) + board} x2={x(b) + board} y1={BASE - H} y2={BASE}
+          className="stroke-edge" strokeWidth={0.15} />
+      ))}
+
+      {/* One layer at one opacity, so passes buffing the same stretch twice
+          do not stack up into something that reads as oil. */}
+      <g opacity={0.14}>
+        {buffed.map((pass, i) => {
+          const near = Math.min(pass.start_distance, pass.end_distance);
+          const far = Math.max(pass.start_distance, pass.end_distance);
+          return (
+            <rect
+              key={i}
+              data-role="buff-band"
+              x={x(pass.left_board)}
+              y={y(far)}
+              width={(pass.right_board - pass.left_board + 1) * board}
+              height={y(near) - y(far)}
+              className="fill-accent-fill"
+            />
+          );
+        })}
+      </g>
+
+      {bands.map((band, i) => (
+        <rect
+          key={i}
+          data-role="oil-band"
+          x={x(band.fromBoard)}
+          y={y(band.stop)}
+          width={(band.toBoard - band.fromBoard + 1) * board}
+          height={Math.max(y(band.start) - y(band.stop), 0.1)}
+          className="fill-accent-fill"
+          opacity={0.15 + 0.85 * (band.units / peak)}
+        />
+      ))}
+
+      {/* The feet, every five, with the foul line at the bottom. */}
+      {ticks.map((feet) => (
+        <g key={feet}>
+          <line x1={LEFT - 1} x2={LEFT} y1={y(feet)} y2={y(feet)} className="stroke-ink-tertiary" strokeWidth={0.2} />
+          <text x={LEFT - 1.6} y={y(feet) + 1.1} textAnchor="end" fontSize="3.2" className="fill-ink-tertiary">
+            {feet}
+          </text>
+        </g>
+      ))}
+
+      {/* Where the oil ends: the figure a bowler reads the sheet for. */}
+      <line
+        data-role="oil-end"
+        x1={LEFT} x2={W} y1={y(length)} y2={y(length)}
+        className="stroke-ink" strokeWidth={0.35} strokeDasharray="1.4 0.9"
+      />
+      <text x={W - 0.5} y={y(length) - 1.2} textAnchor="end" fontSize="3.6" fontWeight={700} className="fill-ink">
+        {Math.round(length)} ft
+      </text>
+
+      {/* Boards, counted in from each gutter, as on the graph below. */}
+      {[5, 10, 15, 20, 25, 30, 35].map((b) => (
+        <text key={b} x={x(b) + board / 2} y={BASE + 4.6} textAnchor="middle" fontSize="3.2"
+          fontWeight={b === 20 ? 700 : 400} className="fill-ink-tertiary">
+          {20 - Math.abs(b - 20)}
+        </text>
+      ))}
+    </svg>
   );
 }
 

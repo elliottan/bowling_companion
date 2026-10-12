@@ -9,13 +9,26 @@ const chromium = { id: 1, name: "Chromium 6742", passes: CHROMIUM_6742 };
 describe("PatternSheet", () => {
   it("leads with the numbers a sheet leads with", () => {
     render(<PatternSheet pattern={chromium} onClose={() => {}} />);
-    expect(screen.getByText("42 ft")).toBeInTheDocument();
+    // The Distance figure; the lane drawing labels its end line with it too.
+    expect(screen.getByText("Distance").nextElementSibling).toHaveTextContent("42 ft");
     expect(screen.getByText("25.56 mL")).toBeInTheDocument();
     // Twice on screen, and legitimately: the headline ratio, and the outside
     // track zone that happens to carry the same figure.
     expect(screen.getAllByText("6.71:1").length).toBeGreaterThan(0);
     expect(screen.getByText("Challenge")).toBeInTheDocument();
     expect(screen.getByText("15.41 / 10.15 mL")).toBeInTheDocument();
+  });
+
+  // The drawing a sheet prints beside its tables: boards across, feet up, and
+  // where the oil ends marked, so the distance reads off the picture.
+  it("draws the lane up to where the oil ends, buffed stretch included", () => {
+    const { container } = render(<PatternSheet pattern={chromium} onClose={() => {}} />);
+    const lane = screen.getByRole("img", { name: "Oil on the lane, ending at 42 ft" });
+    expect(lane.querySelectorAll('[data-role="oil-band"]').length).toBeGreaterThan(5);
+    // Chromium's last forward passes load nothing and only buff to 42 ft.
+    expect(lane.querySelectorAll('[data-role="buff-band"]').length).toBeGreaterThan(0);
+    expect(container.querySelector('[data-role="oil-end"]')).not.toBeNull();
+    expect(lane.textContent).toContain("42 ft");
   });
 
   it("draws a bar per board of the lane", () => {
