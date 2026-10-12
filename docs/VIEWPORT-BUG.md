@@ -234,3 +234,19 @@ check in `e2e/a11y.spec.ts`, and low-vision readers need it.
 
 Not confirmed on a device at the time of writing. Chromium's emulated pinch
 zoom does not show the drift, so as above, only an installed PWA can say.
+
+### The pattern sheet viewer (2026-10-12)
+
+Seen on a device: pinch-zooming the original sheet in the pattern sheet viewer
+moved it aside and showed the pattern screen it was pushed from. That push is
+the exception above: the pattern list opens from the session sheet, so the
+pattern screen and the viewer are `fixed` layers nested in that stack, and iOS
+pulls them apart when the page zooms.
+
+Fix: the viewer zooms itself and never lets the page zoom. Its scroller is
+`touch-action: pan-x pan-y`, a two-finger pinch on it scales the sheet around
+the fingers, and Safari's `gesturestart`/`gesturechange`/`gestureend` are
+cancelled there, because Safari fires them whatever `touch-action` says. A tap
+still zooms in and out. Zoom stays on everywhere else in the app.
+
+Like the fix above, not yet confirmed on a device at the time of writing.

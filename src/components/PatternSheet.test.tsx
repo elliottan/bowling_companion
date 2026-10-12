@@ -9,13 +9,26 @@ const chromium = { id: 1, name: "Chromium 6742", passes: CHROMIUM_6742 };
 describe("PatternSheet", () => {
   it("leads with the numbers a sheet leads with", () => {
     render(<PatternSheet pattern={chromium} onClose={() => {}} />);
-    expect(screen.getByText("42 ft")).toBeInTheDocument();
+    // The Distance figure; the lane drawing labels its end line with it too.
+    expect(screen.getByText("Distance").nextElementSibling).toHaveTextContent("42 ft");
     expect(screen.getByText("25.56 mL")).toBeInTheDocument();
     // Twice on screen, and legitimately: the headline ratio, and the outside
     // track zone that happens to carry the same figure.
     expect(screen.getAllByText("6.71:1").length).toBeGreaterThan(0);
     expect(screen.getByText("Challenge")).toBeInTheDocument();
     expect(screen.getByText("15.41 / 10.15 mL")).toBeInTheDocument();
+  });
+
+  // The drawing a sheet prints beside its tables: boards across, feet up, and
+  // where the oil ends marked, so the distance reads off the picture.
+  it("draws the lane up to where the oil ends, buffed stretch included", () => {
+    const { container } = render(<PatternSheet pattern={chromium} onClose={() => {}} />);
+    const lane = screen.getByRole("img", { name: "Oil on the lane, ending at 42 ft" });
+    expect(lane.querySelectorAll('[data-role="oil-band"]').length).toBeGreaterThan(5);
+    // Chromium's last forward passes load nothing and only buff to 42 ft.
+    expect(lane.querySelectorAll('[data-role="buff-band"]').length).toBeGreaterThan(0);
+    expect(container.querySelector('[data-role="oil-end"]')).not.toBeNull();
+    expect(lane.textContent).toContain("42 ft");
   });
 
   it("draws a bar per board of the lane", () => {
@@ -103,6 +116,50 @@ describe("PatternSheet", () => {
       const open = vi.spyOn(window, "open").mockReturnValue(null);
       fireEvent.click(screen.getByRole("button", { name: "Open the PDF" }));
       expect(open).toHaveBeenCalledWith("/catalog/sheets/chromium-6742.0123456789ab.pdf", "_blank", "noopener,noreferrer");
+    });
+
+    // iOS pulls nested fixed layers apart when the PAGE is pinch-zoomed, which
+    // showed the pattern screen beside the sheet. So the viewer zooms itself,
+    // by tap or pinch, and the page's own zoom is cancelled inside it.
+    describe("zooming the sheet", () => {
+      async function openViewer() {
+        serveCatalog("sheets/c.0123456789ab.pdf", ["sheets/c.0123456789ab.p1.webp"]);
+        render(<PatternSheet pattern={{ ...chromium, catalog_id: "chromium-6742" }} onClose={() => {}} />);
+        fireEvent.click(await screen.findByRole("button", { name: /original pattern sheet/i }));
+        const viewer = await waitFor(() => {
+          const el = document.querySelector<HTMLElement>('[data-role="sheet-viewer"]');
+          expect(el).not.toBeNull();
+          return el!;
+        });
+        return { viewer, pages: viewer.firstElementChild as HTMLElement };
+      }
+      const touch = (x: number) => ({ clientX: x, clientY: 100 });
+
+      it("zooms in on a tap and back out on the next", async () => {
+        const { pages } = await openViewer();
+        fireEvent.click(screen.getByRole("button", { name: "Zoom in" }));
+        expect(pages.style.width).toBe("250%");
+        fireEvent.click(screen.getByRole("button", { name: "Zoom out" }));
+        expect(pages.style.width).toBe("");
+      });
+
+      it("follows a pinch, and keeps it from zooming the page", async () => {
+        const { viewer, pages } = await openViewer();
+        fireEvent.touchStart(viewer, { touches: [touch(100), touch(200)] });
+        const spread = fireEvent.touchMove(viewer, { touches: [touch(50), touch(350)] });
+        expect(spread).toBe(false); // default prevented: the page did not zoom
+        expect(pages.style.width).toBe("300%");
+        fireEvent.touchMove(viewer, { touches: [touch(0), touch(2000)] });
+        expect(pages.style.width).toBe("500%"); // capped
+        fireEvent.touchEnd(viewer, { touches: [] });
+      });
+
+      it("cancels Safari's own pinch gesture inside the viewer", async () => {
+        const { viewer } = await openViewer();
+        const gesture = new Event("gesturestart", { cancelable: true });
+        viewer.dispatchEvent(gesture);
+        expect(gesture.defaultPrevented).toBe(true);
+      });
     });
 
     // A link the bowler typed themselves is theirs, and still opens.
