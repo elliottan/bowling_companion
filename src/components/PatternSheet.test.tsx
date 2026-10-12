@@ -31,9 +31,12 @@ describe("PatternSheet", () => {
     expect(lane.textContent).toContain("42 ft");
   });
 
-  it("draws a bar per board of the lane", () => {
+  // One drawing of the oil, not two: the per-board bar graph repeated what the
+  // lane drawing already shows.
+  it("draws the oil once, as the lane", () => {
     const { container } = render(<PatternSheet pattern={chromium} onClose={() => {}} />);
-    expect(container.querySelectorAll('[data-role="board-bar"]')).toHaveLength(39);
+    expect(container.querySelectorAll('[data-role="board-bar"]')).toHaveLength(0);
+    expect(screen.queryByText("Oil across the lane")).toBeNull();
   });
 
   // One row, as the sheet prints it: bare numbers, with the middle at 1.00.
