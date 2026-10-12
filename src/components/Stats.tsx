@@ -16,13 +16,16 @@ import { formatLeave, SPARE_GROUP_LABEL, SPARE_GROUPS, spareGroup } from "../lib
 import { SpareDetailsSheet } from "./SpareDetailsSheet";
 import { FormSheet } from "./ui/FormSheet";
 import { Chip, TAP_TARGET_44 } from "./ui/Chip";
+import { SegmentedControl } from "./ui/SegmentedControl";
 import {
+  pinsPerBall,
   RATE_LEADER_MIN_BALLS,
   type BallGameCell,
   type BallPerformance,
   type BallPerformanceReport,
   type BowlingStats,
   type GameMetricPoint,
+  type GameNumberMetricPoint,
   type LeaveStats,
   type SessionMetricPoint,
   type SessionTrendPoint
@@ -170,6 +173,12 @@ interface StatsProps {
   /** Every stat, per game, inside one session. The session sheet's answer to
    *  `sessionMetrics`: same tiles, one point per game rather than per night. */
   gameMetrics?: GameMetricPoint[];
+  /** Every stat by position in the night (game 1, game 2, ...), across the
+   *  sessions in view. Given on the Stats tab, where it puts a By session / By
+   *  game switch over the chart (ADR-139). */
+  gameNumberMetrics?: GameNumberMetricPoint[];
+  /** Narrow everything to one game number, picked off the by-game chart. */
+  onOpenGameNumber?: (gameNumber: number) => void;
   /** Open a session picked off the trend line. */
   onOpenSession?: (sessionId: number) => void;
   /** Open a game picked off the per-session score line. */
@@ -198,6 +207,8 @@ export function Stats({
   sessionTrend,
   sessionMetrics,
   gameMetrics,
+  gameNumberMetrics,
+  onOpenGameNumber,
   onOpenSession,
   onOpenGameId,
   memoryKey = "stats",
@@ -221,15 +232,31 @@ export function Stats({
   // coming back does not silently drop you back on the average.
   const [metric, setMetric] = useRememberedState<MetricKey>(`${memoryKey}:metric`, "average");
   const spec = METRICS[metric];
+  // Night by night, or game 1 against game 2 (ADR-139). Only where there are
+  // nights to slice both ways: a session sheet already plots its own games.
+  const [chartByPick, setChartBy] = useRememberedState<ChartBy>(`${memoryKey}:chartBy`, "session");
+  const canSlice = !gameMetrics && gameNumberMetrics !== undefined;
+  const chartBy: ChartBy = canSlice ? chartByPick : "session";
 
   // One header for either chart: the picker, then one line saying what the
   // picked metric counts (ADR-127).
   const chartHeader = (
     <div className="mb-1">
+      {canSlice && (
+        <div className="mb-2">
+          <SegmentedControl
+            label="Chart by"
+            options={CHART_BY}
+            value={chartBy}
+            onChange={setChartBy}
+            dense
+          />
+        </div>
+      )}
       <div className="flex items-center gap-1">
         <div
           role="group"
-          aria-label={`Chart by ${gameMetrics ? "game" : "session"}`}
+          aria-label={`Chart by ${gameMetrics || chartBy === "game" ? "game" : "session"}`}
           className="-mx-1 flex min-w-0 flex-1 gap-1.5 overflow-x-auto overscroll-x-contain px-1 py-1"
         >
           {METRIC_KEYS.map((key) => (
@@ -310,9 +337,38 @@ export function Stats({
         )
       )}
 
+      {/* By position in the night: every game 1 against every game 2. One
+          chart for every metric, the average included, since a dot per game
+          behind each slot would be hundreds of dots. */}
+      {chartBy === "game" && gameNumberMetrics && gameNumberMetrics.length > 0 && (
+        <MetricTrendChart
+          points={gameNumberMetrics.map((p) => ({
+            key: `n${p.gameNumber}`,
+            axis: `G${p.gameNumber}`,
+            title: `Game ${p.gameNumber}`,
+            detail: `${p.games} ${p.games === 1 ? "game" : "games"}`,
+            value: spec.value(p.stats)
+          }))}
+          header={chartHeader}
+          overall={spec.value(stats)}
+          format={spec.format}
+          min={spec.min}
+          max={spec.max}
+          minSpan={spec.minSpan}
+          windowSize={GAME_WINDOW}
+          onOpen={
+            onOpenGameNumber &&
+            ((key) => {
+              const n = Number(key.slice(1));
+              if (Number.isInteger(n) && n > 0) onOpenGameNumber(n);
+            })
+          }
+        />
+      )}
+
       {/* Per-game and per-session are alternatives, never both: a session
           sheet plots its games, the Stats tab plots its nights. */}
-      {!gameMetrics &&
+      {!gameMetrics && chartBy === "session" &&
         (metric === "average"
         ? sessionTrend &&
           sessionTrend.length > 0 && (
@@ -408,22 +464,32 @@ export function Stats({
               All balls
             </button>
           </div>
-          <div className="mt-1">
-            <BallRateHeadings />
-            <ul className="divide-y divide-edge">
-              {ranked.slice(0, TOP_BALLS).map((b) => (
-                <li key={b.ballId}>
-                  <button
-                    type="button"
-                    onClick={() => setBallsOpen({ focus: b.ballId })}
-                    aria-label={`Open ${b.name}`}
-                    className="flex w-full py-2 active:bg-surface-muted"
-                  >
-                    <BallSummary ball={b} />
-                  </button>
-                </li>
-              ))}
-            </ul>
+          {/* Every ball, about five on show and the rest a scroll down, like
+              the leaves above. More columns than a phone is wide, so the rows
+              also scroll sideways together, the headings pinned at the top and
+              the ball's name at the left (ADR-139). */}
+          <div
+            role="region"
+            aria-label="Ball columns"
+            className="mt-1 max-h-[21rem] overflow-auto overscroll-contain"
+          >
+            <div className="w-max min-w-full">
+              <BallRateHeadings />
+              <ul className="divide-y divide-edge">
+                {ranked.map((b) => (
+                  <li key={b.ballId}>
+                    <button
+                      type="button"
+                      onClick={() => setBallsOpen({ focus: b.ballId })}
+                      aria-label={`Open ${b.name}`}
+                      className="flex w-full py-2 active:bg-surface-muted"
+                    >
+                      <BallSummary ball={b} />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
         </section>
       )}
@@ -472,27 +538,33 @@ export function Stats({
  * tiles of equal weight used to sit here, and none of them read as the answer.
  */
 function Headline({ stats, form }: { stats: BowlingStats; form?: RecentForm | null }) {
+  // The average and its three companions share one row, so the card that
+  // leads the screen does not take a third of it.
   return (
-    <section className="rounded-xl border border-edge bg-surface p-4 shadow-sm">
-      <h2 className={GROUP_HEADING}>Average</h2>
-      <p className="mt-1 text-5xl font-bold leading-none tabular-nums text-ink">
-        {fmt(stats.averageScore)}
-      </p>
+    <section className="rounded-xl border border-edge bg-surface px-3 py-2.5 shadow-sm">
+      <div className="flex items-end gap-3">
+        <div className="min-w-0 flex-1">
+          <h2 className={GROUP_HEADING}>Average</h2>
+          <p className="mt-0.5 text-4xl font-bold leading-none tabular-nums text-ink">
+            {fmt(stats.averageScore)}
+          </p>
+        </div>
+        <dl className="grid shrink-0 grid-cols-3 gap-4 text-right">
+          {(
+            [
+              ["High", fmt(stats.highGame)],
+              ["Low", fmt(stats.lowGame)],
+              ["Games", String(stats.completedGames)]
+            ] as const
+          ).map(([label, value]) => (
+            <div key={label} className="flex flex-col-reverse">
+              <dt className="text-xs text-ink-secondary">{label}</dt>
+              <dd className="text-base font-bold leading-tight tabular-nums text-ink">{value}</dd>
+            </div>
+          ))}
+        </dl>
+      </div>
       {form && <FormLine form={form} />}
-      <dl className="mt-3 grid grid-cols-3 border-t border-edge pt-3">
-        {(
-          [
-            ["High", fmt(stats.highGame)],
-            ["Low", fmt(stats.lowGame)],
-            ["Games", String(stats.completedGames)]
-          ] as const
-        ).map(([label, value]) => (
-          <div key={label} className="flex flex-col-reverse">
-            <dt className="text-xs text-ink-secondary">{label}</dt>
-            <dd className="text-lg font-bold tabular-nums text-ink">{value}</dd>
-          </div>
-        ))}
-      </dl>
     </section>
   );
 }
@@ -507,12 +579,12 @@ function FormLine({ form }: { form: RecentForm }) {
       ? "level with your average"
       : `${Math.abs(difference)} ${difference > 0 ? "above" : "under"} your average`;
   return (
-    <p className="mt-2 flex items-start gap-1.5 text-sm text-ink-secondary">
+    <p className="mt-2 flex items-start gap-1.5 text-xs text-ink-secondary">
       {Icon && (
         <Icon
-          size={16}
+          size={14}
           aria-hidden="true"
-          className={`mt-0.5 shrink-0 ${difference > 0 ? "text-accent" : "text-ink-tertiary"}`}
+          className={`mt-px shrink-0 ${difference > 0 ? "text-accent" : "text-ink-tertiary"}`}
         />
       )}
       <span>
@@ -573,19 +645,27 @@ function FirstBallCard({ stats }: { stats: BowlingStats }) {
   );
 }
 
-/** Balls on the card; every one is on the All balls sheet. */
-const TOP_BALLS = 5;
+type ChartBy = "session" | "game";
 
-/** Times a leave must have been left to be on the Spares card. Fewer is a
- *  rate over a handful, and every leave is still under All leaves. */
-const CARD_MIN_LEFT = 3;
+const CHART_BY: ReadonlyArray<{ value: ChartBy; label: string }> = [
+  { value: "session", label: "By session" },
+  { value: "game", label: "By game" }
+];
 
-/** The leaves left most, of every shape, most often first (ADR-129). What a
- *  bowler faces most is what the card leads with, whether they make it or not. */
+/** Game slots on the by-game chart before it scrolls sideways. Four is a long
+ *  night, so the common case never scrolls. */
+const GAME_WINDOW = 4;
+
+/** Leaves on the Spares card; every one is under All leaves. */
+const CARD_LEAVES = 15;
+
+/** The leaves left most, of every shape, most often first (ADR-129), however
+ *  few times each was left (ADR-139): a single session's card is still worth
+ *  reading, and a leave left once sorts to the bottom on its own. */
 function mostLeft(leaves: LeaveStats[]): LeaveStats[] {
-  return leaves
-    .filter((l) => l.attempts >= CARD_MIN_LEFT)
-    .sort((a, b) => b.attempts - a.attempts || b.chances - a.chances);
+  return [...leaves]
+    .sort((a, b) => b.attempts - a.attempts || b.chances - a.chances)
+    .slice(0, CARD_LEAVES);
 }
 
 /** Balls with enough throws behind them by strike rate, best first; the thin
@@ -613,75 +693,111 @@ function StatNote({ text, onDismiss }: { text: string; onDismiss: () => void }) 
   );
 }
 
-/** The Pocket / Carry / Strike column widths, shared by the heading row and
- *  every ball, so each rate sits under the word that names it. */
-const RATE_COLUMN = "w-12 shrink-0 text-right";
+/** A ball's columns, in order, shared by the heading row and every ball so
+ *  each number sits under the word that names it. Strike leads the three
+ *  rates it ends; the first ball average and strike on strike follow, a
+ *  sideways scroll away on a phone (ADR-139). */
+const BALL_COLUMNS: ReadonlyArray<{
+  key: string;
+  label: string;
+  width: string;
+  value: (b: BallPerformance) => string;
+}> = [
+  { key: "pocket", label: "Pocket", width: "w-12", value: (b) => pct(b.pocketPct) },
+  { key: "carry", label: "Carry", width: "w-12", value: (b) => pct(b.carryPct) },
+  { key: "strike", label: "Strike", width: "w-12", value: (b) => pct(b.strikePct) },
+  { key: "first ball", label: "1st ball", width: "w-14", value: (b) => oneDp(b.firstBallAverage) },
+  {
+    key: "strike on strike",
+    label: "Strike on strike",
+    width: "w-16",
+    value: (b) => pct(b.strikeOnStrikePct)
+  }
+];
 
-/** The headings over the three rates, spelled out: as single letters they had
- *  to be decoded before the row said anything. */
+/** The ball's picture and name, pinned at the left while the columns scroll
+ *  under it, so a number never loses the ball it belongs to. Opaque for that
+ *  reason: the columns pass behind it. */
+const BALL_NAME_CELL = "sticky left-0 z-[1] flex w-36 shrink-0 items-center gap-2 bg-surface pr-2 sm:w-48";
+
+/** The headings over the columns, spelled out: as single letters they had to
+ *  be decoded before the row said anything. */
 function BallRateHeadings() {
   return (
     <div
-      className="flex items-center gap-2 pb-1 text-[10px] font-semibold uppercase tracking-wide text-ink-tertiary"
+      className="sticky top-0 z-[2] flex items-end gap-2 bg-surface pb-1 text-[10px] font-semibold uppercase leading-tight tracking-wide text-ink-tertiary"
       aria-hidden="true"
     >
-      <span className="min-w-0 flex-1" />
-      <span className={RATE_COLUMN}>Pocket</span>
-      <span className={RATE_COLUMN}>Carry</span>
-      <span className={RATE_COLUMN}>Strike</span>
+      <span className={`${BALL_NAME_CELL} self-stretch`} />
+      <span className="flex-1" />
+      {BALL_COLUMNS.map((c) => (
+        <span key={c.key} className={`${c.width} shrink-0 text-right`}>
+          {c.label}
+        </span>
+      ))}
     </div>
   );
 }
 
 /** One ball's line: picture, name, how many balls are behind it, and its
- *  pocket, carry and strike. A thin sample is greyed, since it ranks nothing.
+ *  columns. A thin sample is greyed, since it ranks nothing.
  *
- *  `labelled` names each rate over its own number, for a list long enough that
- *  a heading row at the top has scrolled away: the All balls sheet. A heading
- *  pinned over the list was tried there and read as a bar cutting the balls
- *  in half (ADR-130). */
+ *  `labelled` names each column over its own number, for a list long enough
+ *  that a heading row at the top has scrolled away: the All balls sheet. A
+ *  heading pinned over the list was tried there and read as a bar cutting the
+ *  balls in half (ADR-130). Labelled, the line scrolls sideways on its own;
+ *  on the card the rows share one scroller so the columns stay aligned. */
 function BallSummary({ ball, labelled = false }: { ball: BallPerformance; labelled?: boolean }) {
   const thin = ball.firstBalls < RATE_LEADER_MIN_BALLS;
   const tone = thin ? "text-ink-tertiary" : "text-ink";
-  return (
-    <span className="flex w-full items-center gap-2 text-left text-sm">
-      <span className="h-8 w-8 shrink-0">
-        {ball.imageThumb || ball.brand ? (
-          <CatalogBallImage src={ball.imageThumb} alt="" brand={ball.brand as Manufacturer} size="thumb" />
-        ) : (
-          <span className="block h-full w-full rounded-full bg-edge" aria-hidden="true" />
-        )}
-      </span>
-      <span className="ml-1 min-w-0 flex-1">
-        <span className="block truncate font-medium text-ink-strong">{ball.name}</span>
-        <span className="block text-[11px] tabular-nums text-ink-tertiary">
-          {ball.firstBalls} {ball.firstBalls === 1 ? "ball" : "balls"}
+  const line = (
+    <span className={`flex items-end gap-2 text-left text-sm ${labelled ? "w-max min-w-full" : "w-full"}`}>
+      <span className={`${BALL_NAME_CELL} self-center`}>
+        <span className="h-8 w-8 shrink-0">
+          {ball.imageThumb || ball.brand ? (
+            <CatalogBallImage src={ball.imageThumb} alt="" brand={ball.brand as Manufacturer} size="thumb" />
+          ) : (
+            <span className="block h-full w-full rounded-full bg-edge" aria-hidden="true" />
+          )}
+        </span>
+        <span className="ml-1 min-w-0 flex-1">
+          <span className="block truncate font-medium text-ink-strong">{ball.name}</span>
+          <span className="block text-[11px] tabular-nums text-ink-tertiary">
+            {ball.firstBalls} {ball.firstBalls === 1 ? "ball" : "balls"}
+          </span>
         </span>
       </span>
-      {(
-        [
-          ["pocket", ball.pocketPct],
-          ["carry", ball.carryPct],
-          ["strike", ball.strikePct]
-        ] as const
-      ).map(([label, value]) => (
+      <span className="flex-1" />
+      {BALL_COLUMNS.map((c) => (
         <span
-          key={label}
-          className={`${RATE_COLUMN} font-semibold tabular-nums ${tone}`}
-          aria-label={`${label} ${pct(value)}`}
+          key={c.key}
+          className={`${c.width} shrink-0 text-right font-semibold tabular-nums ${tone} ${
+            labelled ? "" : "self-center"
+          }`}
+          aria-label={`${c.key} ${c.value(ball)}`}
         >
           {labelled && (
             <span
-              className="block text-[10px] font-semibold uppercase tracking-wide text-ink-tertiary"
+              className="block text-[10px] font-semibold uppercase leading-tight tracking-wide text-ink-tertiary"
               aria-hidden="true"
             >
-              {label}
+              {c.label}
             </span>
           )}
-          {pct(value)}
+          {c.value(ball)}
         </span>
       ))}
     </span>
+  );
+  if (!labelled) return line;
+  return (
+    <div
+      role="region"
+      aria-label={`${ball.name} columns`}
+      className="overflow-x-auto overscroll-x-contain"
+    >
+      {line}
+    </div>
   );
 }
 
@@ -698,57 +814,76 @@ function BallDetails({
   const [note, setNote] = useState<string | null>(null);
   return (
     <div className="mt-2 space-y-2 rounded-lg bg-surface-muted p-2">
-      <table className="w-full text-[11px] tabular-nums">
-        <thead>
-          <tr className="text-ink-tertiary">
-            <th className="text-left font-semibold">Game</th>
-            {ball.byGame.map((c) => (
-              <th key={c.gameNumber} className="text-right font-semibold">
-                {onDrill && c.sessions.length > 0 ? (
-                  <button
-                    type="button"
-                    onClick={() => onDrill(c)}
-                    aria-label={`Games behind ${ball.name}, game ${c.gameNumber}`}
-                    className="underline decoration-dotted underline-offset-2"
-                  >
-                    {c.gameNumber}
-                  </button>
-                ) : (
-                  c.gameNumber
-                )}
-              </th>
-            ))}
-            <th className="text-right font-semibold">All</th>
-          </tr>
-        </thead>
-        <tbody className="text-ink-secondary">
-          <MetricRow
-            label="Pocket"
-            cells={ball.byGame.map((c) => rateOf(c.pocket, c.firstBalls))}
-            total={ball.pocketPct}
-          />
-          <MetricRow
-            label="Carry"
-            cells={ball.byGame.map((c) => rateOf(c.pocketStrikes, c.pocket))}
-            total={ball.carryPct}
-            onExplain={() => setNote((curr) => (curr === CARRY_NOTE ? null : CARRY_NOTE))}
-          />
-          <MetricRow
-            label="Strike"
-            cells={ball.byGame.map((c) => rateOf(c.strikes, c.firstBalls))}
-            total={ball.strikePct}
-          />
-          <tr>
-            <td className="text-left text-ink-tertiary">Balls</td>
-            {ball.byGame.map((c) => (
-              <td key={c.gameNumber} className="text-right text-ink-tertiary">
-                {c.firstBalls}
-              </td>
-            ))}
-            <td className="text-right text-ink-tertiary">{ball.firstBalls}</td>
-          </tr>
-        </tbody>
-      </table>
+      {/* Wider than the sheet once a ball has been thrown in many game slots:
+          it scrolls sideways with the row names pinned (ADR-139). */}
+      <div
+        role="region"
+        aria-label={`${ball.name} by game`}
+        className="overflow-x-auto overscroll-x-contain"
+      >
+        <table className="min-w-full whitespace-nowrap text-[11px] tabular-nums">
+          <thead>
+            <tr className="text-ink-tertiary">
+              <th className={`${ROW_NAME_CELL} text-left font-semibold`}>Game</th>
+              {ball.byGame.map((c) => (
+                <th key={c.gameNumber} className="pl-3 text-right font-semibold">
+                  {onDrill && c.sessions.length > 0 ? (
+                    <button
+                      type="button"
+                      onClick={() => onDrill(c)}
+                      aria-label={`Games behind ${ball.name}, game ${c.gameNumber}`}
+                      className="underline decoration-dotted underline-offset-2"
+                    >
+                      {c.gameNumber}
+                    </button>
+                  ) : (
+                    c.gameNumber
+                  )}
+                </th>
+              ))}
+              <th className="pl-3 text-right font-semibold">All</th>
+            </tr>
+          </thead>
+          <tbody className="text-ink-secondary">
+            <MetricRow
+              label="Pocket"
+              cells={ball.byGame.map((c) => rateOf(c.pocket, c.firstBalls))}
+              total={ball.pocketPct}
+            />
+            <MetricRow
+              label="Carry"
+              cells={ball.byGame.map((c) => rateOf(c.pocketStrikes, c.pocket))}
+              total={ball.carryPct}
+              onExplain={() => setNote((curr) => (curr === CARRY_NOTE ? null : CARRY_NOTE))}
+            />
+            <MetricRow
+              label="Strike"
+              cells={ball.byGame.map((c) => rateOf(c.strikes, c.firstBalls))}
+              total={ball.strikePct}
+            />
+            <MetricRow
+              label="1st ball"
+              cells={ball.byGame.map((c) => pinsPerBall(c.firstBallPins, c.firstBalls))}
+              total={ball.firstBallAverage}
+              format={oneDp}
+            />
+            <MetricRow
+              label="Strike on strike"
+              cells={ball.byGame.map((c) => rateOf(c.followUps, c.followUpOpps))}
+              total={ball.strikeOnStrikePct}
+            />
+            <tr>
+              <td className={`${ROW_NAME_CELL} text-left text-ink-tertiary`}>Balls</td>
+              {ball.byGame.map((c) => (
+                <td key={c.gameNumber} className="pl-3 text-right text-ink-tertiary">
+                  {c.firstBalls}
+                </td>
+              ))}
+              <td className="pl-3 text-right text-ink-tertiary">{ball.firstBalls}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
 
       {note && <StatNote text={note} onDismiss={() => setNote(null)} />}
 
@@ -929,22 +1064,29 @@ function AllLeavesSheet({
   );
 }
 
+/** A ball table's row names, pinned while the game columns scroll. Opaque in
+ *  the detail box's own colour, since the columns pass behind it. */
+const ROW_NAME_CELL = "sticky left-0 z-[1] bg-surface-muted pr-2";
+
 function MetricRow({
   label,
   cells,
   total,
+  format = pct,
   onExplain
 }: {
   label: string;
   cells: Array<number | null>;
   total: number | null;
+  /** How a cell reads; a rate unless said otherwise. */
+  format?: (value: number | null) => string;
   /** Omitted where the label needs no explaining, and then it is not a
    *  control: a dotted underline that opens nothing is a broken promise. */
   onExplain?: () => void;
 }) {
   return (
     <tr>
-      <td className="text-left font-semibold text-ink">
+      <td className={`${ROW_NAME_CELL} text-left font-semibold text-ink`}>
         {onExplain ? (
           <button
             type="button"
@@ -958,11 +1100,11 @@ function MetricRow({
         )}
       </td>
       {cells.map((value, i) => (
-        <td key={i} className="text-right">
-          {pct(value)}
+        <td key={i} className="pl-3 text-right">
+          {format(value)}
         </td>
       ))}
-      <td className="text-right font-semibold text-ink">{pct(total)}</td>
+      <td className="pl-3 text-right font-semibold text-ink">{format(total)}</td>
     </tr>
   );
 }

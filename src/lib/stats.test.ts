@@ -756,6 +756,58 @@ describe("calculateBallPerformance", () => {
     expect(report.balls[1].firstBalls).toBe(1);
   });
 
+  it("gives each ball its own first ball average, overall and by game", () => {
+    // Ball 1: a strike (10) and a 9 (one pin left) in game 1, a 7 in game 2.
+    const g1 = numberedGame(1, 150, [ballFrame(1, 1, NONE), ballFrame(2, 1, [10])]);
+    const g2 = numberedGame(2, 150, [ballFrame(1, 1, [3, 6, 10]), ballFrame(2, 2, NONE)]);
+    const phaze = calculateBallPerformance([session("Jurong", [g1, g2])], balls).balls.find(
+      (b) => b.ballId === 1
+    )!;
+    expect(phaze.firstBallAverage).toBe(8.7);
+    expect(phaze.byGame.map((c) => [c.gameNumber, c.firstBallPins, c.firstBalls])).toEqual([
+      [1, 19, 2],
+      [2, 7, 1]
+    ]);
+  });
+
+  it("credits strike on strike to the ball that threw the follow-up (ADR-139)", () => {
+    // Strike with 1, strike with 1, then 2 follows a strike and leaves the 10,
+    // then 1 strikes and the game ends with nothing after it.
+    const g = numberedGame(1, 200, [
+      ballFrame(1, 1, NONE),
+      ballFrame(2, 1, NONE),
+      ballFrame(3, 2, [10]),
+      ballFrame(4, 1, NONE)
+    ]);
+    const report = calculateBallPerformance([session("Jurong", [g])], balls);
+    const phaze = report.balls.find((b) => b.ballId === 1)!;
+    const hyRoad = report.balls.find((b) => b.ballId === 2)!;
+    expect(phaze.strikeOnStrikePct).toBe(100);
+    expect(phaze.byGame[0]).toMatchObject({ followUpOpps: 1, followUps: 1 });
+    expect(hyRoad.strikeOnStrikePct).toBe(0);
+    expect(hyRoad.byGame[0]).toMatchObject({ followUpOpps: 1, followUps: 0 });
+  });
+
+  it("has no strike on strike for a ball never thrown after a strike", () => {
+    const g = numberedGame(1, 150, [ballFrame(1, 1, [10]), ballFrame(2, 1, NONE)]);
+    const phaze = calculateBallPerformance([session("Jurong", [g])], balls).balls[0];
+    expect(phaze.strikeOnStrikePct).toBeNull();
+  });
+
+  it("keeps the overall strike on strike equal to the sum of the balls when every ball is tagged", () => {
+    const g = numberedGame(1, 200, [
+      ballFrame(1, 1, NONE),
+      ballFrame(2, 2, NONE),
+      ballFrame(3, 1, NONE),
+      ballFrame(4, 2, [10])
+    ]);
+    const report = calculateBallPerformance([session("Jurong", [g])], balls);
+    const opps = report.balls.reduce((n, b) => n + b.byGame[0].followUpOpps, 0);
+    const made = report.balls.reduce((n, b) => n + b.byGame[0].followUps, 0);
+    expect(Math.round((made / opps) * 100)).toBe(
+      calculateStats([session("Jurong", [g])]).strikeOnStrikePct
+    );
+  });
 });
 
 function numberedGame(
@@ -1070,6 +1122,8 @@ describe("findRateLeaders", () => {
       pocketPct,
       carryPct,
       strikePct,
+      firstBallAverage: null,
+      strikeOnStrikePct: null,
       byGame: [],
       leaves: []
     };

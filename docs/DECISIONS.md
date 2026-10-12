@@ -6450,3 +6450,65 @@ It was put to the owner, who said yes to photos for the new balls.
   (ADR-119). If a manufacturer objects, or written permission is ever obtained
   (the handout suggests asking Brunswick and Storm), nothing here needs undoing
   beyond a data edit.
+
+
+## ADR-139: Stats charts by game as well as by session, and each ball gets a first ball average and strike on strike
+
+**Status.** Accepted, 2026-10-12. Extends ADR-056 (by position in the night),
+ADR-124 (strike on strike) and ADR-126 (the Stats tab's chart and Balls card).
+Amends ADR-129 (the Spares card's floor of three) and ADR-126 (where the range
+control sits, and the headline's layout).
+
+**Context.** The Stats tab's chart plotted one point per session, so it said
+whether a bowler was improving over months, never what happens between the
+first game of a night and the last. That question already had an answer
+(`calculateGameNumberMetrics`, behind the hidden Game by game screen), but
+nothing on the tab reached it. The bowler also asked for a ball's first ball
+average and strike on strike, which existed only over everything, not per
+ball, and the Balls card had no room for two more columns on a phone.
+
+**Decision.**
+
+- **A By session / By game switch sits over the chart** on the Stats tab, a
+  `SegmentedControl` since it is one answer of two. By game plots one point per
+  game slot (every game 1 against every game 2), for every metric on the
+  picker, the average included, with the scope's own figure as the dashed line.
+  Tapping a slot narrows the whole tab to that game number, as the Game by game
+  screen does. A session sheet has no switch: it already plots its own games.
+- **Each ball gets a first ball average and strike on strike,** overall and per
+  game slot, both from `calculateBallPerformance`. The first ball average is
+  the pins its fresh-rack balls knocked down, over those balls.
+- **A ball's strike on strike is credited to the ball that threw the
+  follow-up.** The pairs are exactly ADR-124's (`strikeFollowUps`, which
+  `calculateStats` now reads too), and the lane filter still goes by the first
+  strike's frame. The result being read is the follow-up throw, so it belongs
+  to the ball that threw it, the way a strike belongs to the ball that struck.
+  When every ball is tagged, the balls' pairs add up to the overall rate.
+- **Ball columns scroll sideways.** The Balls card's rows share one horizontal
+  scroller, so the columns stay aligned, with the ball's picture and name
+  pinned at the left. On the All balls sheet each ball's labelled line, and its
+  by-game table, scroll the same way with the row names pinned.
+- **The Balls card lists every ball,** about five on show and the rest a
+  scroll down inside the card, the way the Spares card scrolls its leaves. The
+  headings stay pinned at the top of that scroll. A cap of five hid the rest
+  behind All balls for no reason a scroll could not answer.
+- **The Spares card lists the fifteen leaves left most, however few times
+  each was left.** This replaces ADR-129's floor of three: inside one session
+  almost no leave is left three times, so the card sat empty when it was most
+  wanted, and sorting by times left already puts a leave left once at the
+  bottom. Every leave is still under All leaves.
+- **The range control moves into the header row,** at the far right after the
+  filter and share buttons, instead of a row of its own under them. "3 months"
+  reads "3 mo" there so the row fits a 360px phone; a screen reader still
+  hears the whole name.
+- **The headline is one row:** the average at `text-4xl` with High, Low and
+  Games beside it rather than under it, and the recent-form line in small type
+  below. It still leads the screen (ADR-126), at about half the height.
+
+**Consequences.**
+- On a phone the last columns of the Balls card are a swipe away; the order
+  (pocket, carry, strike, first ball, strike on strike) keeps the chain of
+  ADR-126 on screen first.
+- A follow-up thrown with no ball recorded counts in the overall strike on
+  strike and in no ball's, the same way an unattributed fresh-rack ball does.
+
