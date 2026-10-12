@@ -129,6 +129,21 @@ to bypass or solve a challenge. Use the browser tools, and if a challenge
 appears, stop that ball, tell the user, and continue with the rest. The run is
 resumable; the queue file is still there.
 
+## Filling a row that is already in the catalog
+
+`promote` only adds. For a row with fields missing (a release date, a core name,
+a fuller coverstock name, per-weight specs), stage its page with `parse-bowwwl`
+or `parse-motiv`, then:
+
+```bash
+npm run fill-from-seed -- bowwwl-seed.json            # report only
+npm run fill-from-seed -- bowwwl-seed.json --write
+```
+
+It overwrites nothing, leaves a row alone when the page disagrees on a number,
+and pins the row's id when it adds a date so no arsenal ball loses its link
+(ADR-137). Compare the catalog's ids before and after the build.
+
 ## Stage 3: promote
 
 ```bash

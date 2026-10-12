@@ -6349,3 +6349,62 @@ it, and it is taken deliberately here.
   them once they can be.
 - A publisher who objects is answered by deleting the pattern's files and
   rerunning promote. The pattern keeps its numbers.
+
+
+## ADR-137: A row keeps its id when it gains a release date, and a page can fill a row's gaps
+
+**Status.** Accepted, 2026-10-12.
+
+**Context.** ADR-135 added 62 balls from web search summaries, each marked
+`readVia: "web-search"` until a page could be read. This session could open the
+spec sites, and a read of every one of those pages agreed with the rows on RG,
+differential and mass bias, so the marker came off all 62. The same read could
+also fill what a search summary had left empty (30 release dates, 17 core
+names, 48 finishes, per-weight tables), and the 100 MOTIV balls that had no
+release date could be dated from bowwwl, since MOTIV's own pages for its
+retired balls carry none.
+
+Both ran into the same wall. A ball's id is `brand-name-year`, so adding a
+release date to a row that had none changes its id, and ADR-062 records why ids
+do not move: an arsenal ball holds `catalog_ref_id`, and a moved id leaves it
+pointing at nothing (the Owned badge goes, and so does the link from the ball's
+editor to its catalog row). And `promote` only adds balls, refusing one that
+collides with a row already there, so there was no way to fill a row at all.
+
+**Decision.**
+
+- **`RawBall.id` is an optional pin.** Absent, the id is derived as before.
+  Present, the build uses it as written. It is set only to hold an id still
+  while another field changes.
+- **`npm run fill-from-seed -- <seed> [--write] [--confirms-search]`** fills the
+  gaps in rows already in `balls.json` from a deterministic parser's staged
+  output (ADR-044), and overwrites nothing:
+  - a number the row has and the page disagrees with is reported and the whole
+    row is left alone, since a page that disagrees may be another variant of the
+    ball (five MOTIV rows did);
+  - a text field is replaced only by a fuller form of itself, or by one the
+    build can classify where the row's could not;
+  - a release date filled into a row that had none pins the row's current id
+    first, and a page's `yyyy-01-01` is read as the year (ADR-134);
+  - `--confirms-search` removes `readVia` from a row whose RG, differential and
+    mass bias the page agreed with.
+- **USBC brands are confirmed against the PDF.** Every ADR-135 spelling matched
+  except Track: the list prints no "Track" brand, and a split on it only found
+  Roto Grip's "M-Track", so Track is left off and its balls come through
+  bowwwl.
+- **`parse-bowwwl` spells brands and names the catalog's way.** The brand came
+  from the URL slug, which made DV8 "Dv8", a brand the catalog does not have.
+  "(various colors)" is still dropped, "(pearl, various colors)" now puts the
+  cover in front ("Rhino Pearl"), and any other trailing bracket is a colour
+  note and is dropped.
+
+**Consequences.**
+- 117 rows now carry a pinned `id` in `balls.json`. A pinned id with a date in
+  the row looks odd on first reading; it is the point.
+- No id in the catalog moved: the build's ids before and after were compared and
+  none was lost.
+- A row whose page disagrees stays as it was, so a conflict is a to-do rather
+  than a silent change. The handout lists them.
+- Photos are a separate question and are not changed here. ADR-039 limits photo
+  pulls from bowwwl to balls the owner needs, one at a time, and this session
+  added 206 balls without adding a photo for any of them.

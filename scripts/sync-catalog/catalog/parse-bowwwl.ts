@@ -22,9 +22,15 @@ import { fileURLToPath } from "node:url";
 import type { RawBall } from "../types.js";
 import type { WeightSpec } from "../../../src/types/catalog.js";
 
-const __dirname = fileURLToPath(new URL(".", import.meta.url));
-const REPO_ROOT = resolve(__dirname, "../../../");
-const SEED = resolve(REPO_ROOT, "scripts/sync-catalog/data/seed/bowwwl-seed.json");
+/**
+ * Resolved when needed, not at import: under the test runner `import.meta.url`
+ * is not a file URL, and a module that only exports pure functions must still
+ * load there.
+ */
+function paths(): { repoRoot: string; seed: string } {
+  const repoRoot = resolve(fileURLToPath(new URL(".", import.meta.url)), "../../../");
+  return { repoRoot, seed: resolve(repoRoot, "scripts/sync-catalog/data/seed/bowwwl-seed.json") };
+}
 
 const ORIGIN = "https://www.bowwwl.com";
 
@@ -112,22 +118,48 @@ function parseWeights(html: string): WeightSpec[] {
   return weights.sort((a, b) => b.weight - a.weight);
 }
 
+/** Brands whose URL slug does not title-case to the name the catalog uses. */
+const BRAND_NAMES: Record<string, string> = { dv8: "DV8" };
+
+/** The catalog's brand name for a bowwwl URL slug ("roto-grip" is "Roto Grip", "dv8" is "DV8"). */
+export function brandFromSlug(slug: string): string {
+  return (
+    BRAND_NAMES[slug] ??
+    slug
+      .split("-")
+      .map((w) => (/^\d+$/.test(w) ? w : w[0].toUpperCase() + w.slice(1)))
+      .join(" ")
+  );
+}
+
+/**
+ * The ball's name without bowwwl's cataloguing notes. "(various colors)" says
+ * the ball is sold in many colourways and is dropped; "(pearl, various
+ * colors)" says which cover, and the cover is part of the ball's name, so it
+ * moves in front: "Rhino Pearl". Any other trailing bracket is a colour
+ * description of a single colourway and is dropped too.
+ */
+export function cleanName(raw: string): string {
+  const withQualifier = raw.match(/^(.*?)\s*\(([^),]+),\s*various colou?rs\)\s*$/i);
+  if (withQualifier) {
+    const q = withQualifier[2].trim();
+    return `${withQualifier[1].trim()} ${q[0].toUpperCase()}${q.slice(1).toLowerCase()}`;
+  }
+  return raw.replace(/\s*\([^)]*\)\s*$/, "").trim();
+}
+
 export function parsePage(html: string, url: string): StagedBall {
   const main = html.match(/<main[\s\S]*<\/main>/)?.[0] ?? html;
 
   // "(various colors)" is a cataloguing note for balls sold in many colourways,
   // not part of the name printed on the ball.
-  const name = stripTags(main.match(/field--name-title[^>]*>([\s\S]{0,300}?)<\/(?:h1|span|div)>/)?.[1] ?? "")
-    .replace(/\s*\(various colors\)\s*$/i, "");
+  const name = cleanName(stripTags(main.match(/field--name-title[^>]*>([\s\S]{0,300}?)<\/(?:h1|span|div)>/)?.[1] ?? ""));
   if (!name) throw new Error(`No ball name found at ${url}`);
 
   // Brand comes from the URL path, not the page: the brand field renders as a
   // logo image with no reliable text node.
   const brandSlug = url.match(/bowling-ball-database\/([^/]+)\//)?.[1] ?? "";
-  const brand = brandSlug
-    .split("-")
-    .map((w) => (/^\d+$/.test(w) ? w : w[0].toUpperCase() + w.slice(1)))
-    .join(" ");
+  const brand = brandFromSlug(brandSlug);
 
   const weights = parseWeights(main);
   const fifteen = weights.find((w) => w.weight === 15) ?? weights[0] ?? null;
@@ -172,7 +204,8 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
-  const staged: StagedBall[] = existsSync(SEED) ? JSON.parse(readFileSync(SEED, "utf-8")) : [];
+  const { repoRoot, seed } = paths();
+  const staged: StagedBall[] = existsSync(seed) ? JSON.parse(readFileSync(seed, "utf-8")) : [];
 
   for (const url of urls) {
     const res = await fetch(url, { headers: { "user-agent": "Mozilla/5.0" } });
@@ -195,8 +228,8 @@ async function main(): Promise<void> {
     await new Promise((r) => setTimeout(r, 1000));
   }
 
-  mkdirSync(resolve(REPO_ROOT, "scripts/sync-catalog/data/seed"), { recursive: true });
-  writeFileSync(SEED, JSON.stringify(staged, null, 2) + "\n");
+  mkdirSync(resolve(repoRoot, "scripts/sync-catalog/data/seed"), { recursive: true });
+  writeFileSync(seed, JSON.stringify(staged, null, 2) + "\n");
   console.log(`\n→ ${staged.length} staged in data/seed/bowwwl-seed.json`);
 }
 

@@ -6,6 +6,13 @@ import type { Colorway, Manufacturer, WeightSpec } from "../../src/types/catalog
  * The build script transforms these into CatalogBall[].
  */
 export interface RawBall {
+  /**
+   * The ball's permanent catalog id, set only when it must not follow the
+   * derived `brand-name-year` form (ADR-137). Adding a release date to a row
+   * that had none would otherwise change its id, and an arsenal ball holding
+   * the old one would lose its catalog link. Absent means "derive it".
+   */
+  id?: string;
   /** Manufacturer name — must be one of the supported values */
   brand: Manufacturer;
   /** Ball model name as printed on the ball */
