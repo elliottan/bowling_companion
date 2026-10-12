@@ -11,7 +11,7 @@
       "right_board": 38,
       "loads": 3,
       "microliters": 50,
-      "start_distance": 0.0,
+      "start_distance": 0,
       "end_distance": 5.1,
       "speed": 18,
       "buffer": 4,
@@ -84,7 +84,7 @@
       "loads": 0,
       "microliters": 40,
       "start_distance": 30.6,
-      "end_distance": 35.0,
+      "end_distance": 35,
       "speed": 22,
       "buffer": 3,
       "tank": "A"
@@ -95,8 +95,8 @@
       "right_board": 38,
       "loads": 0,
       "microliters": 40,
-      "start_distance": 35.0,
-      "end_distance": 42.0,
+      "start_distance": 35,
+      "end_distance": 42,
       "speed": 26,
       "buffer": 2,
       "tank": "A"
@@ -107,8 +107,8 @@
       "right_board": 38,
       "loads": 0,
       "microliters": 50,
-      "start_distance": 42.0,
-      "end_distance": 39.0,
+      "start_distance": 42,
+      "end_distance": 39,
       "speed": 30,
       "buffer": 3,
       "tank": "B"
@@ -119,8 +119,8 @@
       "right_board": 38,
       "loads": 0,
       "microliters": 50,
-      "start_distance": 39.0,
-      "end_distance": 28.0,
+      "start_distance": 39,
+      "end_distance": 28,
       "speed": 22,
       "buffer": 3,
       "tank": "B"
@@ -131,7 +131,7 @@
       "right_board": 27,
       "loads": 3,
       "microliters": 50,
-      "start_distance": 28.0,
+      "start_distance": 28,
       "end_distance": 20.4,
       "speed": 18,
       "buffer": 3,
@@ -168,7 +168,7 @@
       "loads": 2,
       "microliters": 50,
       "start_distance": 6.9,
-      "end_distance": 3.0,
+      "end_distance": 3,
       "speed": 14,
       "buffer": 4,
       "tank": "B"
@@ -179,8 +179,8 @@
       "right_board": 38,
       "loads": 0,
       "microliters": 50,
-      "start_distance": 3.0,
-      "end_distance": 0.0,
+      "start_distance": 3,
+      "end_distance": 0,
       "speed": 14,
       "buffer": 4,
       "tank": "B"
@@ -192,5 +192,13 @@
     "reverseMl": 10.15,
     "volumeMl": 25.56
   },
-  "note": "Read from the sheet's two table images; OCR lost forward rows 2 and 3."
+  "note": "Read from the sheet's two table images; OCR lost forward rows 2 and 3.",
+  "sheet": {
+    "file": "chromium-6742.dda2c33002d6.pdf",
+    "sha256": "dda2c33002d6062c6ace85d24de0824c067055287d3d90c02d54b8d8f05fefb6",
+    "bytes": 275158,
+    "pages": [
+      "chromium-6742.dda2c33002d6.p1.webp"
+    ]
+  }
 }
