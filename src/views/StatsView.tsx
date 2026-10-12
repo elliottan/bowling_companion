@@ -12,6 +12,7 @@ import { ShareCardDialog } from "../components/ShareCardDialog";
 import {
   calculateBallPerformance,
   calculateCommonLeaves,
+  calculateGameNumberMetrics,
   calculateSessionMetrics,
   calculateSessionTrend,
   calculateStats,
@@ -117,6 +118,10 @@ export function StatsView({
     () => calculateSessionMetrics(filtered, activeLanes, handedness),
     [filtered, activeLanes, handedness]
   );
+  const gameNumberMetrics = useMemo(
+    () => calculateGameNumberMetrics(filtered, activeLanes, handedness),
+    [filtered, activeLanes, handedness]
+  );
   const form = useMemo(
     () => calculateRecentForm(filtered, stats.averageScore, activeLanes, handedness),
     [filtered, stats.averageScore, activeLanes, handedness]
@@ -212,6 +217,8 @@ export function StatsView({
             ballPerformance={ballPerformance}
             sessionTrend={sessionTrend}
             sessionMetrics={sessionMetrics}
+            gameNumberMetrics={gameNumberMetrics}
+            onOpenGameNumber={filters.setGameNumber}
             memoryKey="history"
             form={form}
             scopeLabel={scopeLabel}

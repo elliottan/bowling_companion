@@ -251,6 +251,12 @@ line scrolling sideways along it, most-left first, and the rows ordered the same
 way. The line is the first-class thing, the leave the item in it. Where a list
 can be long, a filter that takes a deck of pins beats a scroll.
 
+**A table wider than the phone scrolls sideways, and its names do not.** The
+Balls card has more columns than 390px holds, so its rows share one horizontal
+scroller (the columns stay aligned) and the ball's picture and name are pinned
+at the left on an opaque cell, so a number never loses its ball. A ball's
+by-game table does the same with its row names (ADR-139).
+
 **A page of settings that a thumb can wreck is read until the pencil.** The
 Bowling profile shows its values and lets scrolling pass over them; the pencil
 turns the controls on and swaps to a tick, which is the only place it saves. The

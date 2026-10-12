@@ -34,8 +34,20 @@ const REPORT: BallPerformanceReport = {
       pocketPct: 100,
       carryPct: 75,
       strikePct: 75,
+      firstBallAverage: 9.3,
+      strikeOnStrikePct: 75,
       byGame: [
-        { gameNumber: 4, firstBalls: 12, pocket: 12, strikes: 9, pocketStrikes: 9, sessions: [] }
+        {
+          gameNumber: 4,
+          firstBalls: 12,
+          pocket: 12,
+          strikes: 9,
+          pocketStrikes: 9,
+          firstBallPins: 111,
+          followUpOpps: 8,
+          followUps: 6,
+          sessions: []
+        }
       ],
       leaves: []
     }
@@ -246,10 +258,38 @@ describe("stat definitions", () => {
     const scope = within(sheet).getByText("Last 10 sessions · Sea Bowl");
     expect(scope.previousElementSibling).toHaveTextContent("Balls");
     // Each ball names its own rates, so nothing has to be pinned over the list.
-    expect(within(sheet).getAllByText("pocket")).toHaveLength(7);
-    expect(within(sheet).getAllByText("strike")).toHaveLength(7);
+    for (let i = 1; i <= 7; i++) {
+      const line = within(sheet).getByRole("region", { name: `Ball ${i} columns` });
+      expect(line).toHaveTextContent(/Pocket.*Carry.*Strike.*1st ball.*Strike on strike/);
+    }
   });
 
+  it("adds the first ball average and strike on strike to each ball's row", () => {
+    render(<Stats stats={STATS} ballPerformance={REPORT} />);
+    const row = screen.getByRole("button", { name: "Open Wolverine" });
+    expect(within(row).getByLabelText("first ball 9.3")).toBeInTheDocument();
+    expect(within(row).getByLabelText("strike on strike 75%")).toBeInTheDocument();
+  });
+
+  it("scrolls the ball columns sideways, all rows together, on the card", () => {
+    render(<Stats stats={STATS} ballPerformance={REPORT} />);
+    const scroller = screen.getByRole("region", { name: "Ball columns" });
+    expect(scroller).toHaveClass("overflow-x-auto");
+    expect(within(scroller).getByRole("button", { name: "Open Wolverine" })).toBeInTheDocument();
+    expect(within(scroller).getByText("Strike on strike")).toBeInTheDocument();
+  });
+
+  it("gives each ball's table a first ball and strike on strike row, scrolled sideways", async () => {
+    render(<Stats stats={STATS} ballPerformance={REPORT} />);
+    fireEvent.click(screen.getByRole("button", { name: "All balls" }));
+    const sheet = await screen.findByRole("dialog", { name: "Balls" });
+    const table = within(sheet).getByRole("region", { name: "Wolverine by game" });
+    expect(table).toHaveClass("overflow-x-auto");
+    const rows = within(table).getAllByRole("row").map((r) => r.textContent);
+    // Game 4: 111 pins over 12 balls, and 6 of 8 strikes followed by a strike.
+    expect(rows).toContain("1st ball9.39.3");
+    expect(rows).toContain("Strike on strike75%75%");
+  });
   it("ranks the balls by strike rate, and puts a thin one last however it strikes", () => {
     const ball = REPORT.balls[0];
     render(
@@ -298,6 +338,9 @@ describe("the games behind a column", () => {
             pocket: 12,
             strikes: 9,
             pocketStrikes: 9,
+            firstBallPins: 111,
+            followUpOpps: 8,
+            followUps: 6,
             sessions: [
               {
                 sessionId: 3,
@@ -659,5 +702,76 @@ describe("inside a session, the picker drives the per-game chart", () => {
     );
     fireEvent.click(screen.getByRole("button", { name: "Pocket" }));
     expect(screen.queryByRole("button", { name: /Sea Bowl, \d+%/ })).toBeNull();
+  });
+});
+
+describe("by session or by game, on the Stats tab", () => {
+  const BY_GAME = [
+    { gameNumber: 1, games: 2, stats: { ...STATS, averageScore: 210, strikePct: 70 } },
+    { gameNumber: 2, games: 2, stats: { ...STATS, averageScore: 190, strikePct: 50 } }
+  ];
+
+  it("starts by session, and offers by game", () => {
+    render(
+      <Stats stats={STATS} sessionMetrics={TREND} sessionTrend={SESSION_TREND} gameNumberMetrics={BY_GAME} />
+    );
+    const toggle = screen.getByRole("group", { name: "Chart by" });
+    expect(within(toggle).getByRole("button", { name: "By session", pressed: true })).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: /^Average by session/ })).toBeInTheDocument();
+  });
+
+  it("plots every game 1 against every game 2, for any stat, the average included", () => {
+    render(
+      <Stats stats={STATS} sessionMetrics={TREND} sessionTrend={SESSION_TREND} gameNumberMetrics={BY_GAME} />
+    );
+    fireEvent.click(screen.getByRole("button", { name: "By game" }));
+    expect(screen.getByRole("group", { name: "Chart by game" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Game 1, 210" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Game 2, 190" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Sea Bowl/ })).toBeNull();
+
+    fireEvent.click(screen.getByRole("button", { name: "Strike" }));
+    expect(screen.getByRole("button", { name: "Game 1, 70%" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Game 2, 50%" })).toBeInTheDocument();
+  });
+
+  it("goes back to the nights", () => {
+    render(
+      <Stats stats={STATS} sessionMetrics={TREND} sessionTrend={SESSION_TREND} gameNumberMetrics={BY_GAME} />
+    );
+    fireEvent.click(screen.getByRole("button", { name: "By game" }));
+    fireEvent.click(screen.getByRole("button", { name: "By session" }));
+    expect(screen.getByRole("img", { name: /^Average by session/ })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /^Game \d/ })).toBeNull();
+  });
+
+  it("narrows everything to a game number picked off the chart", () => {
+    const picked: number[] = [];
+    render(
+      <Stats
+        stats={STATS}
+        sessionMetrics={TREND}
+        sessionTrend={SESSION_TREND}
+        gameNumberMetrics={BY_GAME}
+        onOpenGameNumber={(n) => picked.push(n)}
+      />
+    );
+    fireEvent.click(screen.getByRole("button", { name: "By game" }));
+    fireEvent.click(screen.getByRole("button", { name: "Game 2, 190" }));
+    // The point opens a footer naming the slot; tapping it is the way in.
+    fireEvent.click(screen.getByRole("button", { name: /^Game 2\s*2 games\s*190$/ }));
+    expect(picked).toEqual([2]);
+  });
+
+  it("is not offered inside a session, which already plots its games", () => {
+    render(
+      <Stats
+        stats={STATS}
+        games={[{ game_number: 1, final_score: 200 }]}
+        gameMetrics={[{ gameId: 1, gameNumber: 1, lanes: [], stats: STATS }]}
+        gameNumberMetrics={BY_GAME}
+      />
+    );
+    expect(screen.queryByRole("group", { name: "Chart by" })).toBeNull();
   });
 });

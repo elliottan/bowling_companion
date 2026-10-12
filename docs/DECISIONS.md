@@ -6450,3 +6450,47 @@ It was put to the owner, who said yes to photos for the new balls.
   (ADR-119). If a manufacturer objects, or written permission is ever obtained
   (the handout suggests asking Brunswick and Storm), nothing here needs undoing
   beyond a data edit.
+
+
+## ADR-139: Stats charts by game as well as by session, and each ball gets a first ball average and strike on strike
+
+**Status.** Accepted, 2026-10-12. Extends ADR-056 (by position in the night),
+ADR-124 (strike on strike) and ADR-126 (the Stats tab's chart and Balls card).
+
+**Context.** The Stats tab's chart plotted one point per session, so it said
+whether a bowler was improving over months, never what happens between the
+first game of a night and the last. That question already had an answer
+(`calculateGameNumberMetrics`, behind the hidden Game by game screen), but
+nothing on the tab reached it. The bowler also asked for a ball's first ball
+average and strike on strike, which existed only over everything, not per
+ball, and the Balls card had no room for two more columns on a phone.
+
+**Decision.**
+
+- **A By session / By game switch sits over the chart** on the Stats tab, a
+  `SegmentedControl` since it is one answer of two. By game plots one point per
+  game slot (every game 1 against every game 2), for every metric on the
+  picker, the average included, with the scope's own figure as the dashed line.
+  Tapping a slot narrows the whole tab to that game number, as the Game by game
+  screen does. A session sheet has no switch: it already plots its own games.
+- **Each ball gets a first ball average and strike on strike,** overall and per
+  game slot, both from `calculateBallPerformance`. The first ball average is
+  the pins its fresh-rack balls knocked down, over those balls.
+- **A ball's strike on strike is credited to the ball that threw the
+  follow-up.** The pairs are exactly ADR-124's (`strikeFollowUps`, which
+  `calculateStats` now reads too), and the lane filter still goes by the first
+  strike's frame. The result being read is the follow-up throw, so it belongs
+  to the ball that threw it, the way a strike belongs to the ball that struck.
+  When every ball is tagged, the balls' pairs add up to the overall rate.
+- **Ball columns scroll sideways.** The Balls card's rows share one horizontal
+  scroller, so the columns stay aligned, with the ball's picture and name
+  pinned at the left. On the All balls sheet each ball's labelled line, and its
+  by-game table, scroll the same way with the row names pinned.
+
+**Consequences.**
+- On a phone the last columns of the Balls card are a swipe away; the order
+  (pocket, carry, strike, first ball, strike on strike) keeps the chain of
+  ADR-126 on screen first.
+- A follow-up thrown with no ball recorded counts in the overall strike on
+  strike and in no ball's, the same way an unattributed fresh-rack ball does.
+

@@ -9,6 +9,21 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.27.0: Stats by game, and more on each ball (2026-10-12)
+
+**See how your nights go, game by game.** The chart on the Stats tab has a By
+session / By game switch. By game puts every first game against every second
+game and so on, for any stat on the picker (average, strike, spare, pocket,
+carry, first ball, strike on strike, max consecutive strikes), so you can see
+whether you start slow or fade late. Tap a game to narrow every stat to it.
+
+**Each ball shows its first ball average and strike on strike.** Both are new
+columns on the Balls card and on every ball's row and game table under All
+balls (ADR-139).
+
+**The ball columns scroll sideways.** On the Balls card and under All balls,
+swipe the numbers left to see the rest; the ball's name stays put.
+
 ## 0.26.0: Photos for 265 of the newest balls (2026-10-12)
 
 **Most of the balls added recently now have their picture.** 265 of the balls

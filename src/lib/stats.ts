@@ -162,7 +162,7 @@ export function calculateStats(
     sparePct: rate(spares, spareOpps),
     pocketPct: rate(pocketHits, strikeOpps),
     carryPct: rate(pocketStrikes, pocketHits),
-    firstBallAverage: firstBalls === 0 ? null : Math.round((firstBallPins / firstBalls) * 10) / 10,
+    firstBallAverage: pinsPerBall(firstBallPins, firstBalls),
     strikeOnStrikePct: rate(followUps, followUpOpps),
     bestStreak: firstBalls === 0 ? null : bestStreak,
     byAlley
@@ -189,28 +189,45 @@ function strikeRuns(
   game: GameWithFrames,
   filter?: Set<string>
 ): { followUpOpps: number; followUps: number; bestStreak: number } {
-  const balls = [...game.frames]
+  let bestStreak = 0;
+  let streak = 0;
+  for (const ball of freshRackSequence(game, filter)) {
+    streak = clears(ball.shot.pins_standing) ? streak + 1 : 0;
+    if (ball.counted) bestStreak = Math.max(bestStreak, streak);
+  }
+  const pairs = strikeFollowUps(game, filter);
+  return {
+    followUpOpps: pairs.length,
+    followUps: pairs.filter((next) => clears(next.pins_standing)).length,
+    bestStreak
+  };
+}
+
+/** A game's fresh-rack balls in the order they were thrown, each marked with
+ *  whether its frame is on a selected lane. */
+function freshRackSequence(
+  game: GameWithFrames,
+  filter?: Set<string>
+): Array<{ shot: Shot; counted: boolean }> {
+  return [...game.frames]
     .sort((a, b) => a.frame_number - b.frame_number)
     .flatMap((frame) =>
       freshRackShots(frame).map((shot) => ({
-        struck: clears(shot.pins_standing),
+        shot,
         counted: frameOnSelectedLane(game, frame.frame_number, filter)
       }))
     );
+}
 
-  let followUpOpps = 0;
-  let followUps = 0;
-  let bestStreak = 0;
-  let streak = 0;
-  balls.forEach((ball, i) => {
-    streak = ball.struck ? streak + 1 : 0;
-    if (ball.counted) bestStreak = Math.max(bestStreak, streak);
+/** The ball thrown straight after each counted strike (ADR-124): one entry per
+ *  strike-on-strike opportunity, the follow-up shot itself. */
+function strikeFollowUps(game: GameWithFrames, filter?: Set<string>): Shot[] {
+  const balls = freshRackSequence(game, filter);
+  return balls.flatMap((ball, i) => {
     const next = balls[i + 1];
-    if (!ball.struck || !ball.counted || !next) return;
-    followUpOpps++;
-    if (next.struck) followUps++;
+    if (!clears(ball.shot.pins_standing) || !ball.counted || !next) return [];
+    return [next.shot];
   });
-  return { followUpOpps, followUps, bestStreak };
 }
 
 interface FrameTally {
@@ -305,6 +322,12 @@ function average(values: number[]): number | null {
 function rate(made: number, opportunities: number): number | null {
   if (opportunities === 0) return null;
   return Math.round((made / opportunities) * 100);
+}
+
+/** Pins per fresh-rack ball, to one decimal: the first ball average. */
+export function pinsPerBall(pins: number, balls: number): number | null {
+  if (balls === 0) return null;
+  return Math.round((pins / balls) * 10) / 10;
 }
 
 // ---------------------------------------------------------------------------
@@ -411,6 +434,12 @@ export interface BallGameCell {
   strikes: number;
   /** Strikes thrown off a pocket hit, the numerator of carry. */
   pocketStrikes: number;
+  /** Pins the cell's fresh-rack balls knocked down, for its first ball average. */
+  firstBallPins: number;
+  /** Balls this ball threw straight after a strike, and how many struck
+   *  (ADR-139). */
+  followUpOpps: number;
+  followUps: number;
   /** The games behind this cell, newest session first. Games with no id are
    *  left out: there is nothing to navigate to. */
   sessions: BallGameSession[];
@@ -427,6 +456,11 @@ export interface BallPerformance {
   pocketPct: number | null;
   carryPct: number | null;
   strikePct: number | null;
+  /** Pins its average fresh-rack ball knocked down, to one decimal. */
+  firstBallAverage: number | null;
+  /** Of the balls it threw straight after a strike, the share that struck
+   *  (ADR-139). */
+  strikeOnStrikePct: number | null;
   byGame: BallGameCell[];
   leaves: LeaveStats[];
 }
@@ -488,6 +522,9 @@ interface BallAccumulator {
   pocket: number;
   pocketStrikes: number;
   strikes: number;
+  firstBallPins: number;
+  followUpOpps: number;
+  followUps: number;
   byGame: Map<number, CellAccumulator>;
   leaves: Map<string, LeaveStats>;
 }
@@ -498,6 +535,9 @@ function emptyAccumulator(): BallAccumulator {
     pocket: 0,
     pocketStrikes: 0,
     strikes: 0,
+    firstBallPins: 0,
+    followUpOpps: 0,
+    followUps: 0,
     byGame: new Map(),
     leaves: new Map()
   };
@@ -664,6 +704,25 @@ export function calculateBallPerformance(
   const acc = new Map<number, BallAccumulator>();
   let unattributed = 0;
 
+  // The cell a ball's throws in one game land in, made on first use.
+  const cellFor = (entry: BallAccumulator, gameNumber: number): CellAccumulator => {
+    const slot = entry.byGame.get(gameNumber) ?? {
+      cell: {
+        gameNumber,
+        firstBalls: 0,
+        pocket: 0,
+        strikes: 0,
+        pocketStrikes: 0,
+        firstBallPins: 0,
+        followUpOpps: 0,
+        followUps: 0
+      },
+      sessions: new Map<number, BallGameSession>()
+    };
+    entry.byGame.set(gameNumber, slot);
+    return slot;
+  };
+
   for (const s of sessions) {
     for (const game of s.games) {
       for (const frame of game.frames) {
@@ -678,22 +737,16 @@ export function calculateBallPerformance(
           if (!acc.has(shot.ball_id)) acc.set(shot.ball_id, emptyAccumulator());
           const entry = acc.get(shot.ball_id)!;
           const pocket = resolvePocketHit(shot, handedness);
+          const pins = PINS - shot.pins_standing.length;
           entry.firstBalls++;
+          entry.firstBallPins += pins;
           if (struck) entry.strikes++;
           if (pocket) entry.pocket++;
           if (pocket && struck) entry.pocketStrikes++;
 
-          const slot = entry.byGame.get(game.game_number) ?? {
-            cell: {
-              gameNumber: game.game_number,
-              firstBalls: 0,
-              pocket: 0,
-              strikes: 0,
-              pocketStrikes: 0
-            },
-            sessions: new Map<number, BallGameSession>()
-          };
+          const slot = cellFor(entry, game.game_number);
           slot.cell.firstBalls++;
+          slot.cell.firstBallPins += pins;
           if (struck) slot.cell.strikes++;
           if (pocket) slot.cell.pocket++;
           if (pocket && struck) slot.cell.pocketStrikes++;
@@ -718,7 +771,6 @@ export function calculateBallPerformance(
             if (pocket && struck) contribution.pocketStrikes++;
             slot.sessions.set(game.id, contribution);
           }
-          entry.byGame.set(game.game_number, slot);
         }
 
         // A leave belongs to the ball that made it, which in the 10th is not
@@ -742,6 +794,23 @@ export function calculateBallPerformance(
           entry.leaves.set(key, stat);
         }
       }
+
+      // Strike on strike, per ball (ADR-139): the same pairs as ADR-124,
+      // credited to the ball that threw the follow-up, since its result is the
+      // one being read. The lane filter still goes by the first strike's frame.
+      for (const next of strikeFollowUps(game as GameWithFrames, filter)) {
+        if (next.ball_id == null) continue;
+        const entry = acc.get(next.ball_id);
+        if (!entry) continue;
+        const struck = clears(next.pins_standing);
+        const cell = cellFor(entry, game.game_number).cell;
+        entry.followUpOpps++;
+        cell.followUpOpps++;
+        if (struck) {
+          entry.followUps++;
+          cell.followUps++;
+        }
+      }
     }
   }
 
@@ -754,6 +823,8 @@ export function calculateBallPerformance(
     pocketPct: rate(e.pocket, e.firstBalls),
     carryPct: rate(e.pocketStrikes, e.pocket),
     strikePct: rate(e.strikes, e.firstBalls),
+    firstBallAverage: pinsPerBall(e.firstBallPins, e.firstBalls),
+    strikeOnStrikePct: rate(e.followUps, e.followUpOpps),
     byGame: [...e.byGame.values()]
       .map((slot) => ({
         ...slot.cell,
