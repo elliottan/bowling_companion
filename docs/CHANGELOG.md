@@ -9,6 +9,26 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.25.0: 206 more balls, and a release month on nearly every ball (2026-10-12)
+
+**The catalog is now 518 balls.** 206 new ones, read straight from the spec
+pages this time, and mostly from 2025 and 2026: more Hammer (Black Widow Toxin,
+Zero Mercy, Gauntlet, Hammerhead), Brunswick (Alert, Crown Victory, Infinity
+Quest, Fury), Ebonite (The One and Pivot lines, Spartan, Wolf Blaze), Radical
+(Deep Impact, No Doubt, Intel, Guru Oracle), DV8 (Dark Side, Double Trouble,
+Heckler, Mantra), Columbia 300 and Roto Grip (Attention, Hustle, Gem), plus
+Storm, 900 Global and MOTIV. The new balls still show the brand placeholder
+until their photos are added.
+
+**Release month, filled in.** 117 balls that showed no date now show their
+release month, mostly MOTIV's retired balls, whose own pages never carried
+one. Seventeen still have none.
+
+**More detail on the balls added last time.** Their core names, finishes and
+weight-by-weight specs are filled in, and their coverstock names are the full
+ones, so more of them fall under the Solid, Pearl and Hybrid filter
+(ADR-137).
+
 ## 0.24.1: One drawing of the oil (2026-10-12)
 
 **One drawing of the oil.** A pattern's page now shows the oil once, as the

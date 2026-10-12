@@ -87,6 +87,15 @@ year would read as January. `validateRaw` flags any other shape and any
 `yyyy-01-01`. `releaseYear` and the ball id read only the first four
 characters, so adding a month or a day to a row moves neither.
 
+## A catalog ball's pinned id (ADR-137)
+
+A catalog id is `brand-name-year`, so a release date added to a row that had
+none would move it, stranding any arsenal ball holding the old one in
+`catalog_ref_id`. `RawBall.id` (in `scripts/sync-catalog/types.ts`) pins an id
+that must not follow the date. `fill-from-seed` sets it whenever it adds a date,
+and the build reads it before deriving one. It lives in `balls.json` only; the
+app sees the same `CatalogBall.id` it always did.
+
 ## An oil pattern (ADR-101)
 
 `OilPattern.passes` is the pattern sheet's load table and the whole pattern. The

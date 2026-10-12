@@ -33,7 +33,7 @@ export const PDF_CACHE = resolve(REPO_ROOT, "tmp/usbc-approved-balls.pdf");
  */
 export const WHITELISTED_BRANDS = [
   "Storm", "Roto Grip", "900 Global", "Motiv",
-  "Brunswick", "Hammer", "Ebonite", "Track", "Radical", "DV8", "Columbia 300",
+  "Brunswick", "Hammer", "Ebonite", "Radical", "DV8", "Columbia 300",
 ] as const;
 export type WhitelistedBrand = (typeof WHITELISTED_BRANDS)[number];
 

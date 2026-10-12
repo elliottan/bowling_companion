@@ -108,7 +108,7 @@ function main(): void {
     // Derive fields
     const releaseYear =
       raw.releaseDate ? parseInt(raw.releaseDate.slice(0, 4), 10) : null;
-    const id = slug(raw.brand, raw.name, releaseYear);
+    const id = raw.id ?? slug(raw.brand, raw.name, releaseYear);
     const coverstockCategory = mapCoverstock(raw.coverstockRaw ?? "");
     const coreType = deriveCoreType(raw.mbDiff);
 
