@@ -26,6 +26,7 @@ import { ErrorBanner } from "./ErrorBanner";
 import { Button } from "./ui/Button";
 import { FIELD } from "./ui/field";
 import { FormSheet } from "./ui/FormSheet";
+import { matchesCatalogSearch } from "../lib/catalogSearch";
 import { IconButton } from "./ui/IconButton";
 
 const WEIGHT_OPTIONS = [10, 11, 12, 13, 14, 15, 16];
@@ -423,7 +424,7 @@ function CatalogPickerSheet({ linkedId, onPick, onClose }: CatalogPickerSheetPro
 
   const q = query.toLowerCase().trim();
   const matching = q
-    ? balls.filter((b) => [b.name, b.brand, b.coverstockRaw].join(" ").toLowerCase().includes(q))
+    ? balls.filter((b) => matchesCatalogSearch([b.name, b.brand, b.coverstockRaw], q))
     : balls;
   // The linked ball leads the list, so it is the first thing seen and the way to
   // let go of it is where the way to choose another is.

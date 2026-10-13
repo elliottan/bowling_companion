@@ -6,7 +6,34 @@ access (ADR-137). It replaces the earlier handout, which described a run done
 from web search summaries alone (ADR-135); everything that run found has since
 been re-read against the real pages.
 
-## Where it stands
+## 2026-10-13: the 2022 to 2024 slice
+
+Done by the session that followed this handout, from the queue below.
+
+- `select-balls -- --since 2022-01-01 --until 2024-12-31` queued 468 rows;
+  `resolve-sources --try-base-names --concurrency 2` routed 284 bowwwl, 3 PDF,
+  3 MOTIV, 178 manual. The three Storm PDFs (DNA Coil, Lightning Storm Clear,
+  Summit Ascent) carry no spec table, so their bowwwl pages were parsed.
+- **278 promoted**, plus the AstroPhysiX, AstroPhysiX II and Hustle Glow by
+  hand from their bowwwl pages (Storm spells it as one word, `astrophysix`,
+  which is why routing missed it). Now **799 balls**: Motiv 187, Storm 184,
+  Roto Grip 98, Hammer 72, 900 Global 63, Brunswick 50, Ebonite 42, Radical 42,
+  DV8 28, Columbia 300 25, Track 7, Pyramid 1.
+- **Held back:** MOTIV's three Ascend colourways (Ascend is in already), and
+  Columbia 300 Momentum and Ebonite Pivot, whose 2022 to 2024 colourway rows
+  matched only the 2007 and 2013 balls of that name on bowwwl. A person should
+  check whether the new rows are those balls.
+- **Before promoting, filter the candidates to the run's own pages.**
+  `seed-to-candidates` converts the whole seed file, and earlier runs left
+  entries there that were held back on purpose (Hustle VP, Tropical Surge
+  "Pearl, Various Colors", Hustle ETF under a second spelling). Promote does
+  not know they were held back.
+- **The 178 manual rows are not read.** `data/queue/` is not committed, so
+  rerun the same `select-balls` and `resolve-sources` to list them again: what
+  was promoted drops out of the queue, and the rest route `manual`.
+- **Photos: 798 of 799** (ADR-142). PhysiX Burst has no bowwwl page.
+
+## Where it stood before that
 
 - **518 balls** across twelve brands: Storm 107, Roto Grip 45, 900 Global 27,
   MOTIV 186, Pyramid 1, and the Brunswick family: Brunswick 32, Hammer 46,
@@ -80,8 +107,8 @@ value, a blind check; ADR-135), or a manufacturer's own page.
 - Roto Grip (15): Idol Star, Hustle SNY Salmon/Navy/Yellow, RST Ex-Torque, Attention BP Black/Pink, Megastar, Hustle BP Black/Pink, Exit Rush, Hustle Black Sky, Rockstar Hero, Cosmos All Colors, RST Evolution, Hustle Teal-Black, RST Black, Hustle Earth Blue-Gold-Green, Hustle Glow Mint-Fuchsia-Lemon
 - Storm (28): PhysiX Ignition, Ion Max Veil, Ion Pro Pearl PTLP, !Q Focus, Max Orbit Under 13 Lbs., Hy-Road Hybrid, Lock Axis, Savage Lock, SPI Clear All Colors, Ultimate Motor, Pitch Black 78-U, SPI Cube All Colors, Alpha Crux 2025, Pitch Black Blue Pin, Lockout, Hy-Road Boost, Dark Knight, The Joker, Epic Summit, Hy-Road Black, The Road Hybrid, Ice 30 All Colors, Ion Pro Solid R-W-B, Tropical Surge Black-Blue-Pink, Tropical Surge Silver-Purple, Platinum Ford Blue Cube, 25th Strike Out Breast Cancer, Mt. Fuji Clear
 
-**Before 2025:** the USBC list has about 5,000 rows. `select-balls -- --since
-2022-01-01 --until 2024-12-31` is the next slice, a brand at a time.
+**Before 2025:** 2022 to 2024 is done (above). The next slice is
+`select-balls -- --since 2019-01-01 --until 2021-12-31`.
 
 **Track.** Its 7 balls came through bowwwl; the USBC list does not carry the
 brand, so there is no queue to work from. Track's own site lists the line.

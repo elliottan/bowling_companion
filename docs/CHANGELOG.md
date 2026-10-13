@@ -9,6 +9,24 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.32.0: 281 more balls, and a photo on almost every ball (2026-10-13)
+
+**The catalog goes from 518 balls to 799.** Every ball approved from 2022 to
+2024 that has a spec page is in, 278 of them, across all twelve brands: Storm's
+!Q Tour colours, Code, DNA, Ghost Lock and Marvel lines, Roto Grip's Hustle
+specials, Attention and RST, the 900 Global Zen and Reality families, Hammer's
+Black Widow and Envy lines, and more from Brunswick, Ebonite, Radical, DV8 and
+Columbia 300. The AstroPhysiX, the AstroPhysiX II and the Hustle Glow are in
+too.
+
+**Photos for the balls that had none.** Road Warrior, Equinox, Ion Pro,
+Typhoon, Phaze V and 33 more older balls now show their photo, as does every
+new ball. 798 of the 799 have one.
+
+**Search finds a ball however you space it.** "astro physix" finds the
+AstroPhysiX and "hyroad" finds the Hy-Road, in the catalog and when linking a
+ball in your arsenal.
+
 ## 0.31.0: A ball opens read until the pencil (2026-10-13)
 
 **Tapping a ball in your arsenal no longer puts its fields under your thumb.**

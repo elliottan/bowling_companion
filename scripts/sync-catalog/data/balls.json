@@ -36132,5 +36132,143 @@
         "mbDiff": 0.008
       }
     ]
+  },
+  {
+    "brand": "Roto Grip",
+    "name": "Hustle Glow",
+    "releaseDate": "2025-05-23",
+    "coverstockRaw": "VTC Hybrid Reactive",
+    "factoryFinish": "Reacta Gloss",
+    "coreName": "Hustle",
+    "rg": 2.53,
+    "diff": 0.03,
+    "mbDiff": null,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/roto-grip/hustle-glow"
+    ],
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.53,
+        "diff": 0.03,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.53,
+        "diff": 0.03,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.55,
+        "diff": 0.03,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.63,
+        "diff": 0.009,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.65,
+        "diff": 0.011,
+        "mbDiff": null
+      }
+    ]
+  },
+  {
+    "brand": "Storm",
+    "name": "AstroPhysiX II",
+    "releaseDate": "2024-03-15",
+    "coverstockRaw": "R2S Pearl Reactive",
+    "factoryFinish": "Reacta Gloss",
+    "coreName": "Atomic",
+    "rg": 2.48,
+    "diff": 0.053,
+    "mbDiff": 0.017,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/storm/astrophysix-ii"
+    ],
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.48,
+        "diff": 0.054,
+        "mbDiff": 0.017
+      },
+      {
+        "weight": 15,
+        "rg": 2.48,
+        "diff": 0.053,
+        "mbDiff": 0.017
+      },
+      {
+        "weight": 14,
+        "rg": 2.53,
+        "diff": 0.052,
+        "mbDiff": 0.015
+      },
+      {
+        "weight": 13,
+        "rg": 2.57,
+        "diff": 0.032,
+        "mbDiff": 0.01
+      },
+      {
+        "weight": 12,
+        "rg": 2.59,
+        "diff": 0.029,
+        "mbDiff": 0.008
+      }
+    ]
+  },
+  {
+    "brand": "Storm",
+    "name": "AstroPhysiX",
+    "releaseDate": "2019-06-21",
+    "coverstockRaw": "R2S Pearl Reactive",
+    "factoryFinish": "1500 Polished",
+    "coreName": "Atomic",
+    "rg": 2.48,
+    "diff": 0.053,
+    "mbDiff": 0.017,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/storm/astrophysix"
+    ],
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.48,
+        "diff": 0.054,
+        "mbDiff": 0.017
+      },
+      {
+        "weight": 15,
+        "rg": 2.48,
+        "diff": 0.053,
+        "mbDiff": 0.017
+      },
+      {
+        "weight": 14,
+        "rg": 2.53,
+        "diff": 0.052,
+        "mbDiff": 0.015
+      },
+      {
+        "weight": 13,
+        "rg": 2.57,
+        "diff": 0.032,
+        "mbDiff": 0.01
+      },
+      {
+        "weight": 12,
+        "rg": 2.59,
+        "diff": 0.029,
+        "mbDiff": 0.008
+      }
+    ]
   }
 ]

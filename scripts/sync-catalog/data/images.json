@@ -3186,5 +3186,41 @@
   "storm-wild-absolute-2024": {
     "imageThumb": "/catalog/img/storm-wild-absolute-2024-thumb.webp",
     "imageFull": "/catalog/img/storm-wild-absolute-2024-full.webp"
+  },
+  "storm-equinox-2025": {
+    "imageThumb": "/catalog/img/storm-equinox-2025-thumb.webp",
+    "imageFull": "/catalog/img/storm-equinox-2025-full.webp"
+  },
+  "storm-ion-pro-2025": {
+    "imageThumb": "/catalog/img/storm-ion-pro-2025-thumb.webp",
+    "imageFull": "/catalog/img/storm-ion-pro-2025-full.webp"
+  },
+  "storm-road-warrior-2025": {
+    "imageThumb": "/catalog/img/storm-road-warrior-2025-thumb.webp",
+    "imageFull": "/catalog/img/storm-road-warrior-2025-full.webp"
+  },
+  "storm-typhoon-2025": {
+    "imageThumb": "/catalog/img/storm-typhoon-2025-thumb.webp",
+    "imageFull": "/catalog/img/storm-typhoon-2025-full.webp"
+  },
+  "storm-absolute-power-2024": {
+    "imageThumb": "/catalog/img/storm-absolute-power-2024-thumb.webp",
+    "imageFull": "/catalog/img/storm-absolute-power-2024-full.webp"
+  },
+  "storm-summit-peak-2024": {
+    "imageThumb": "/catalog/img/storm-summit-peak-2024-thumb.webp",
+    "imageFull": "/catalog/img/storm-summit-peak-2024-full.webp"
+  },
+  "roto-grip-hustle-glow-2025": {
+    "imageThumb": "/catalog/img/roto-grip-hustle-glow-2025-thumb.webp",
+    "imageFull": "/catalog/img/roto-grip-hustle-glow-2025-full.webp"
+  },
+  "storm-astrophysix-2-2024": {
+    "imageThumb": "/catalog/img/storm-astrophysix-2-2024-thumb.webp",
+    "imageFull": "/catalog/img/storm-astrophysix-2-2024-full.webp"
+  },
+  "storm-astrophysix-2019": {
+    "imageThumb": "/catalog/img/storm-astrophysix-2019-thumb.webp",
+    "imageFull": "/catalog/img/storm-astrophysix-2019-full.webp"
   }
 }
