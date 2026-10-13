@@ -19,7 +19,10 @@ fields. Retire and Delete stay where they were.
 
 **A pattern's lane sits in the middle of the screen.** The drawing under Oil
 on the lane used to lean right, pushed over by the feet scale on its left. It
-now keeps a matching margin on the right, so the lane is centred.
+now keeps a matching margin on the right, so the lane is centred. It also
+carries the grid a printed sheet does, a line on every board (heavier every
+five) and one across every 5 feet, and shows the arrows where they sit on a
+real lane, from 12 ft at the outside to 16 ft in the middle.
 
 **Oil patterns are typed, with suggestions.** Every place you choose a pattern
 (starting or editing a session, the History filters, the Alley report and the

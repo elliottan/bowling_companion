@@ -186,13 +186,16 @@ describe("BowlingProfileView", () => {
     await setPap({ over: 5.5, up: -0.5 });
     renderPage();
     edit();
-    await waitFor(() =>
-      expect((screen.getByLabelText("Over") as HTMLSelectElement).value).toBe("5")
-    );
+    // The fraction too, inside the wait: the default PAP is also 5 over, so
+    // the whole number alone can match before the saved one has loaded, and
+    // under a full run's load the fraction was then read off the default.
+    await waitFor(() => {
+      expect((screen.getByLabelText("Over") as HTMLSelectElement).value).toBe("5");
+      expect((screen.getByLabelText("Over fraction") as HTMLSelectElement).value).toBe("4");
+    });
     // The number, its fraction, then what it is: "5 1/2 over", "1/2 down". The
     // labels used to sit in a band above each row, naming two things the row
     // already says, at the cost of two bands of a phone screen.
-    expect((screen.getByLabelText("Over fraction") as HTMLSelectElement).value).toBe("4");
     expect((screen.getByLabelText("Up or down direction") as HTMLSelectElement).value).toBe("down");
     expect(screen.queryByText("Up or down", { selector: "span" })).not.toBeInTheDocument();
   });

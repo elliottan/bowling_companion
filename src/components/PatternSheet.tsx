@@ -5,7 +5,7 @@ import {
   formatSheetBoard, headlineRatio, oilBands, oilStats, oilZones, patternClass, peakUnits,
   patternLength, PATTERN_CLASS_LABEL, trackZoneRatios,
 } from "../lib/oilPattern";
-import { LANE_BOARDS } from "../lib/laneGeometry";
+import { LANE_BOARDS, arrowFeet } from "../lib/laneGeometry";
 import { GROUP_HEADING } from "./ui/typography";
 import { IconButton } from "./ui/IconButton";
 import { PushScreen } from "./PushScreen";
@@ -400,12 +400,8 @@ function LaneMap({ passes, length }: { passes: OilPass[]; length: number }) {
       role="img"
       aria-label={`Oil on the lane, ending at ${Math.round(length)} ft`}
     >
-      {/* The wood, with a rule every five boards like the arrows and dots. */}
+      {/* The wood. */}
       <rect x={LEFT} y={BASE - H} width={LANE_RIGHT - LEFT} height={H} className="fill-surface-muted" />
-      {[5, 10, 15, 20, 25, 30, 35].map((b) => (
-        <line key={b} x1={x(b) + board} x2={x(b) + board} y1={BASE - H} y2={BASE}
-          className="stroke-edge" strokeWidth={0.15} />
-      ))}
 
       {/* One layer at one opacity, so passes buffing the same stretch twice
           do not stack up into something that reads as oil. */}
@@ -439,6 +435,44 @@ function LaneMap({ passes, length }: { passes: OilPass[]; length: number }) {
           opacity={0.15 + 0.85 * (band.units / peak)}
         />
       ))}
+
+      {/* The grid a printed sheet carries, laid over the oil so it reads
+          through it: a line between every two boards, heavier every five like
+          the arrows and dots, and one across every five feet. */}
+      <g data-role="lane-grid" className="stroke-ink" pointerEvents="none">
+        {Array.from({ length: LANE_BOARDS - 1 }, (_, i) => i + 1).map((b) => (
+          <line
+            key={`b${b}`}
+            x1={x(b) + board} x2={x(b) + board} y1={BASE - H} y2={BASE}
+            strokeWidth={b % 5 === 0 ? 0.18 : 0.08}
+            opacity={b % 5 === 0 ? 0.35 : 0.18}
+          />
+        ))}
+        {ticks.slice(1).map((feet) => (
+          <line
+            key={`f${feet}`}
+            x1={LEFT} x2={LANE_RIGHT} y1={y(feet)} y2={y(feet)}
+            strokeWidth={0.12} opacity={0.3}
+          />
+        ))}
+      </g>
+
+      {/* The arrows, on their chevron: the centre one furthest down-lane, the
+          outer ones stepping back toward the foul line, as the lane's own are
+          (laneGeometry.arrowFeet). Each points at the pins. */}
+      {[5, 10, 15, 20, 25, 30, 35].map((b) => {
+        const cx = x(b) + board / 2;
+        const tip = y(arrowFeet(b));
+        return (
+          <path
+            key={`a${b}`}
+            data-role="lane-arrow"
+            d={`M ${cx} ${tip} L ${cx + board * 0.45} ${tip + 3} L ${cx - board * 0.45} ${tip + 3} Z`}
+            className="fill-ink"
+            opacity={0.75}
+          />
+        );
+      })}
 
       {/* The feet, every five, with the foul line at the bottom. */}
       {ticks.map((feet) => (
