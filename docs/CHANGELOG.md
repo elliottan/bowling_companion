@@ -9,6 +9,14 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.30.0: A ball opens read until the pencil (2026-10-13)
+
+**Tapping a ball in your arsenal no longer puts its fields under your thumb.**
+The ball's sheet now opens showing its name, weight, layout and catalog link as
+text. Tap the pencil in the top right to edit, and the tick saves, the same as
+a spare line or your Bowling profile. Adding a ball still opens straight on the
+fields. Retire and Delete stay where they were.
+
 ## 0.29.0: Thirty-four more Kegel patterns (2026-10-13)
 
 **The patterns a house actually runs, plus the rest of Kegel's named series.**

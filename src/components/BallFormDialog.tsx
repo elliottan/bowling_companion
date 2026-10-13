@@ -1,4 +1,4 @@
-import { Archive, BookOpen, Check, ChevronRight, Plus, RotateCcw, Search, Trash2 } from "lucide-react";
+import { Archive, BookOpen, Check, ChevronRight, Pencil, Plus, RotateCcw, Search, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { getAllCatalog, getCatalogBall, syncCatalog } from "../services/ballCatalogRepository";
@@ -7,6 +7,8 @@ import { getGripStyle, getLayoutSystem } from "../services/bowlingRepository";
 import {
   DEFAULT_ASYMMETRIC,
   DEFAULT_SYMMETRIC,
+  formatLayoutSpec,
+  layoutSystemFor,
   makeLayoutSpec,
   specToBall,
   specToLayout,
@@ -24,6 +26,7 @@ import { ErrorBanner } from "./ErrorBanner";
 import { Button } from "./ui/Button";
 import { FIELD } from "./ui/field";
 import { FormSheet } from "./ui/FormSheet";
+import { IconButton } from "./ui/IconButton";
 
 const WEIGHT_OPTIONS = [10, 11, 12, 13, 14, 15, 16];
 
@@ -52,6 +55,11 @@ interface BallFormDialogProps {
  */
 export function BallFormDialog({ ball, onClose, onSaved, onDelete, onRetire }: BallFormDialogProps) {
   const editing = ball !== null;
+  // A ball already in the bag opens read, with a pencil, like a spare line: the
+  // sheet opens from a tap on the row, and a thumb that only meant to look was
+  // a slider or a drop-down away from changing a drilling. Adding opens on the
+  // fields, there is nothing to read yet.
+  const [unlocked, setUnlocked] = useState(!editing);
   const [name, setName] = useState(ball?.name ?? "");
   const [weight, setWeight] = useState<number>(ball?.weight ?? DEFAULT_WEIGHT);
   // The drilling as numbers, and the free text the field used to take. The old
@@ -107,6 +115,7 @@ export function BallFormDialog({ ball, onClose, onSaved, onDelete, onRetire }: B
 
   async function handleSubmit(e?: React.SyntheticEvent) {
     e?.preventDefault();
+    if (!unlocked) return;
     const trimmed = name.trim();
     if (!trimmed) {
       setError("Ball name is required.");
@@ -156,24 +165,45 @@ export function BallFormDialog({ ball, onClose, onSaved, onDelete, onRetire }: B
     }
   }
 
+  // The bar's trailing control is the mode: a pencil while reading, which turns
+  // into the tick that saves while editing.
+  const trailing = unlocked ? (
+    <IconButton
+      variant="confirm"
+      onClick={() => void handleSubmit()}
+      disabled={isSaving}
+      label={editing ? "Save" : "Add"}
+    >
+      <Check size={20} aria-hidden="true" />
+    </IconButton>
+  ) : (
+    <IconButton variant="round" onClick={() => setUnlocked(true)} label="Edit ball">
+      <Pencil size={18} aria-hidden="true" />
+    </IconButton>
+  );
+
+  // Read, the catalog card is the ball's specs and not yet the way into the
+  // catalog, so it is a plain card with no chevron.
+  const CatalogCard = unlocked ? "button" : "div";
+
   return (
     <>
       <FormSheet
-        title={editing ? "Edit ball" : "Add ball"}
+        // Reading, the sheet is about the ball, so it carries its name.
+        title={unlocked ? (editing ? "Edit ball" : "Add ball") : ball?.name ?? "Ball"}
         onClose={onClose}
-        onConfirm={() => void handleSubmit()}
-        confirmLabel={editing ? "Save" : "Add"}
-        confirmDisabled={isSaving}
+        trailing={trailing}
         banner={error ? <ErrorBanner>{error}</ErrorBanner> : undefined}
       >
         <form onSubmit={(e) => void handleSubmit(e)} className="space-y-4">
 
             {/* Catalog link, first thing in the form, and always visible, so
                 the fastest path to a fully specced ball is also the obvious one. */}
-            <button
-              type="button"
-              onClick={() => setPickerOpen(true)}
-              className="flex w-full items-center gap-3 rounded-xl border border-edge bg-surface p-3 text-left hover:border-accent-fill"
+            <CatalogCard
+              {...(unlocked ? { type: "button" as const, onClick: () => setPickerOpen(true) } : {})}
+              className={`flex w-full items-center gap-3 rounded-xl border border-edge bg-surface p-3 text-left ${
+                unlocked ? "hover:border-accent-fill" : ""
+              }`}
             >
               {catalogRef ? (
                 <>
@@ -196,7 +226,7 @@ export function BallFormDialog({ ball, onClose, onSaved, onDelete, onRetire }: B
                         .join(" · ")}
                     </p>
                   </div>
-                  <ChevronRight size={18} className="shrink-0 text-ink-tertiary" aria-hidden="true" />
+                  {unlocked && <ChevronRight size={18} className="shrink-0 text-ink-tertiary" aria-hidden="true" />}
                 </>
               ) : (
                 <>
@@ -204,14 +234,20 @@ export function BallFormDialog({ ball, onClose, onSaved, onDelete, onRetire }: B
                     <BookOpen size={20} aria-hidden="true" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm font-semibold text-ink">Link to catalog</p>
-                    <p className="text-xs text-ink-secondary">Fills in the core, coverstock, RG and diff.</p>
+                    <p className="text-sm font-semibold text-ink">{unlocked ? "Link to catalog" : "Not linked to the catalog"}</p>
+                    <p className="text-xs text-ink-secondary">
+                      {unlocked ? "Fills in the core, coverstock, RG and diff." : "The pencil links it, for its core, coverstock, RG and diff."}
+                    </p>
                   </div>
-                  <ChevronRight size={18} className="shrink-0 text-ink-tertiary" aria-hidden="true" />
+                  {unlocked && <ChevronRight size={18} className="shrink-0 text-ink-tertiary" aria-hidden="true" />}
                 </>
               )}
-            </button>
+            </CatalogCard>
 
+            {!unlocked ? (
+              <BallReadout name={name} weight={weight} spec={layoutSpec} preference={systemPreference} legacyText={legacyLayout} />
+            ) : (
+            <>
             <div className="flex items-end gap-3">
               <div className="min-w-0 flex-1">
                 <label htmlFor="ball-name" className="mb-1 block text-sm font-medium text-ink-strong">
@@ -257,6 +293,8 @@ export function BallFormDialog({ ball, onClose, onSaved, onDelete, onRetire }: B
                     : false
               }
             />
+            </>
+            )}
 
             {/* Retiring is the everyday way out of the bag, so it comes before
                 the delete that loses the ball's name from every shot. */}
@@ -285,6 +323,58 @@ export function BallFormDialog({ ball, onClose, onSaved, onDelete, onRetire }: B
         />
       )}
     </>
+  );
+}
+
+/**
+ * The ball as it is, while the sheet is only being read: its name, weight and
+ * drilling as text, nothing that looks like a field, the same way the Bowling
+ * profile reads before its pencil (DESIGN-LANGUAGE §4). The fields come back
+ * with the pencil.
+ */
+function BallReadout({
+  name,
+  weight,
+  spec,
+  preference,
+  legacyText
+}: {
+  name: string;
+  weight: number;
+  spec: BallLayoutSpec | null;
+  preference: LayoutSystem;
+  legacyText?: string;
+}) {
+  return (
+    <dl className="space-y-4">
+      <div className="flex items-start gap-3">
+        <div className="min-w-0 flex-1">
+          <dt className={GROUP_HEADING}>Display name</dt>
+          <dd className="mt-1 break-words text-base font-semibold text-accent">{name}</dd>
+        </div>
+        <div className="w-[5.5rem] shrink-0">
+          <dt className={GROUP_HEADING}>Weight</dt>
+          <dd className="mt-1 text-base font-semibold tabular-nums text-accent">{weight} lb</dd>
+        </div>
+      </div>
+      <div>
+        <dt className={GROUP_HEADING}>Layout</dt>
+        {spec ? (
+          <dd className="mt-1 text-base font-semibold tabular-nums text-accent">
+            <Measure>{formatLayoutSpec(spec, layoutSystemFor(spec, preference))}</Measure>
+            <span className="block text-xs font-normal text-ink-secondary">
+              {spec.symmetric ? "Symmetric" : "Asymmetric"} core
+            </span>
+          </dd>
+        ) : legacyText ? (
+          <dd className="mt-1 text-base font-semibold text-accent">
+            <Measure>{legacyText}</Measure>
+          </dd>
+        ) : (
+          <dd className="mt-1 text-sm text-ink-secondary">None yet</dd>
+        )}
+      </div>
+    </dl>
   );
 }
 

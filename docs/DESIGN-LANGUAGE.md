@@ -268,7 +268,12 @@ the spring there says the end of the list.
 **A page of settings that a thumb can wreck is read until the pencil.** The
 Bowling profile shows its values and lets scrolling pass over them; the pencil
 turns the controls on and swaps to a tick, which is the only place it saves. The
-changes are a draft until then, and leaving drops them.
+changes are a draft until then, and leaving drops them. A spare line and a ball in
+the arsenal open the same way: their sheet comes up from a tap on a row, so it
+reads the values as text, and the pencil in the bar turns the fields on. Adding
+a new one opens straight on the fields, since there is nothing to read yet.
+Retire and delete stay on the read sheet: they are actions, not edits, and
+delete asks first.
 
 **A hint can be waved away, and comes back.** Every hint has an action and an X.
 The X is a snooze with an end, kept per thing it was about, not a permanent no.
