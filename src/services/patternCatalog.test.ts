@@ -54,6 +54,15 @@ describe("syncPatternCatalog", () => {
     expect(await getAllOilPatterns()).toHaveLength(1);
   });
 
+  // Boot runs twice under StrictMode. Both runs read the table before either
+  // wrote, and each added the whole catalog.
+  it("seeds once when two runs overlap", async () => {
+    serveCatalog();
+    await Promise.all([syncPatternCatalog(), syncPatternCatalog()]);
+
+    expect(await getAllOilPatterns()).toHaveLength(1);
+  });
+
   // Matched by catalog id, never by name, so a rename survives and still gets
   // the load table kept current.
   it("keeps a renamed pattern's name and refreshes its table", async () => {

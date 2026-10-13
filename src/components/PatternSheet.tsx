@@ -36,9 +36,13 @@ interface PatternSheetProps {
    *  Omitted where the pattern has no load table to draw (nothing would show
    *  up) or the caller has no visualizer to send you to. */
   onOpenInLineVisualizer?: () => void;
+  /** False while the visualizer it opened is up on top. The sheet stays open
+   *  under it, so closing the visualizer comes back here and not to the list,
+   *  but it lets go of back and Escape, which belong to the visualizer. */
+  active?: boolean;
 }
 
-export function PatternSheet({ pattern, onClose, onOpenInLineVisualizer }: PatternSheetProps) {
+export function PatternSheet({ pattern, onClose, onOpenInLineVisualizer, active = true }: PatternSheetProps) {
   const stats = useMemo(() => oilStats(pattern.passes), [pattern.passes]);
   const ratio = useMemo(() => headlineRatio(pattern.passes), [pattern.passes]);
   const zones = useMemo(() => trackZoneRatios(pattern.passes), [pattern.passes]);
@@ -56,6 +60,7 @@ export function PatternSheet({ pattern, onClose, onOpenInLineVisualizer }: Patte
       title={pattern.name}
       onBack={onClose}
       backCloses
+      active={active}
       trailing={
         onOpenInLineVisualizer && stats.length > 0 ? (
           <IconButton label="Try in the line visualizer" onClick={onOpenInLineVisualizer} variant="round">

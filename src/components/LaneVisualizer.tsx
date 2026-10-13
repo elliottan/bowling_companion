@@ -16,6 +16,7 @@ import { useOverlay } from "../lib/useOverlay";
 import { deriveLaydown, deriveLaydownFromSlide, deriveSlide } from "../lib/driftModel";
 import { spareAimPoint } from "../lib/spareAim";
 import { LaneSurface, type OilOverlay } from "./LaneSurface";
+import { ChoiceInput } from "./ui/SuggestInput";
 import {
   buildLinePath, solveLine, projectBreakpoint, xToBoard, yToFeet, PLANE_W, PLANE_L,
   POCKET_BOARD, type Peg, arrowFeet, ARROWS_FEET, LANE_FEET, HOOK_START_FT, HOOK_LENGTH_FT,
@@ -905,23 +906,26 @@ function OptionsSheet({
         )}
 
         {pickable.length > 0 && (
-          <label className="mb-4 block border-b border-white/10 pb-3">
-            <span className="mb-1 block text-xs font-bold uppercase tracking-wide text-white/60">
-              Oil pattern
-            </span>
-            <select
-              value={pickedId ?? ""}
-              onChange={(e) => onPick(e.target.value === "" ? null : Number(e.target.value))}
-              className="h-11 w-full rounded-lg border border-white/20 bg-slate-900 px-3 text-sm text-white"
+          <div className="mb-4 border-b border-white/10 pb-3">
+            <label
+              htmlFor="visualizer-pattern"
+              className="mb-1 block text-xs font-bold uppercase tracking-wide text-white/60"
             >
-              <option value="">No pattern</option>
-              {pickable.map((pattern) => (
-                <option key={pattern.id} value={pattern.id}>
-                  {patternLabel(pattern)}
-                </option>
-              ))}
-            </select>
-          </label>
+              Oil pattern
+            </label>
+            {/* By name, which a pattern's own is unique to: the field types
+                names, and the id is looked up from the one chosen. */}
+            <ChoiceInput
+              id="visualizer-pattern"
+              value={pickable.find((p) => p.id === pickedId)?.name ?? ""}
+              onChange={(name) => onPick(pickable.find((p) => p.name === name)?.id ?? null)}
+              options={pickable.map((p) => ({ value: p.name, label: patternLabel(p) }))}
+              placeholder="No pattern"
+              clearLabel="Clear oil pattern"
+              tone="dark"
+              className="h-11 w-full rounded-lg border border-white/20 bg-slate-900 px-3 text-sm text-white placeholder:text-white/40"
+            />
+          </div>
         )}
 
         {oil && (

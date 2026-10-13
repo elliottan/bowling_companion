@@ -5,11 +5,16 @@ import { OilPatternManager } from "../components/OilPatternManager";
 export function OilPatternsView({
   onBack,
   mode,
-  onOpenLineVisualizer
+  onOpenLineVisualizer,
+  covered
 }: {
   onBack?: () => void;
   mode?: "inline" | "overlay";
   onOpenLineVisualizer?: (patternId: number) => void;
+  /** True while the line visualizer is up over it. */
+  covered?: boolean;
 }) {
-  return <OilPatternManager onBack={onBack} mode={mode} onOpenLineVisualizer={onOpenLineVisualizer} />;
+  return (
+    <OilPatternManager onBack={onBack} mode={mode} onOpenLineVisualizer={onOpenLineVisualizer} covered={covered} />
+  );
 }

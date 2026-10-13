@@ -159,7 +159,20 @@ function ownLink(url: string | undefined, pattern: CatalogPattern): string | und
   return url != null && url === pattern.sourceUrl ? undefined : url;
 }
 
-export async function syncPatternCatalog(): Promise<void> {
+// The run in flight, shared by any call that arrives while it is going. Two
+// runs at once each read the table before the other wrote to it, and each
+// added every pattern: boot runs twice under StrictMode, and the duplicates
+// waited a launch for healDuplicateLinks.
+let syncing: Promise<void> | null = null;
+
+export function syncPatternCatalog(): Promise<void> {
+  syncing ??= runPatternSync().finally(() => {
+    syncing = null;
+  });
+  return syncing;
+}
+
+async function runPatternSync(): Promise<void> {
   await resetLinksOnce();
 
   const [catalog, { db }] = await Promise.all([

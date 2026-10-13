@@ -45,12 +45,41 @@ test("adding a pattern from the session dialog does not submit the session form"
     .getByRole("button", { name: "Back", exact: true })
     .click();
   await expect(page.getByPlaceholder("Ball choice, surface, carry…")).toHaveValue("keep me");
-  await page.locator("#oil-pattern").selectOption({ label: "Kegel Navigation" });
+  // The pattern field suggests as you type, like the alley does.
+  await page.locator("#oil-pattern").fill("navig");
+  await page.getByRole("listbox").getByRole("button", { name: /Kegel Navigation/ }).click();
+  await expect(page.locator("#oil-pattern")).toHaveValue("Kegel Navigation");
 
-  // Clearing is the only way to unset a pattern now that the empty option is gone.
   await page.getByRole("button", { name: "Clear oil pattern" }).click();
   await expect(page.locator("#oil-pattern")).toHaveValue("");
   await expect(page.getByRole("button", { name: "Clear oil pattern" })).toHaveCount(0);
 
   expect(await countSessions(page)).toBe(0);
+});
+
+/**
+ * Regression: the visualizer opened from a pattern's page closed that page on
+ * the way in, so its X landed on the list, one screen further back than the
+ * bowler came from.
+ */
+test("closing the visualizer opened from a pattern comes back to that pattern", async ({ page }) => {
+  await page.getByRole("button", { name: /Oil patterns/ }).first().click();
+  await page.getByText("Chromium").first().click();
+  const pattern = page.getByRole("dialog", { name: /Chromium/ });
+  await expect(pattern).toBeVisible();
+
+  await page.getByRole("button", { name: "Try in the line visualizer" }).click();
+  await page.getByRole("button", { name: "Close", exact: true }).last().click();
+  await expect(pattern).toBeVisible();
+
+  // The platform's back too, from the visualizer: one layer at a time.
+  await page.getByRole("button", { name: "Try in the line visualizer" }).click();
+  await expect(page.getByRole("button", { name: "Close", exact: true }).last()).toBeVisible();
+  await page.goBack();
+  await expect(pattern).toBeVisible();
+
+  // And back from the pattern reaches the list, not past it.
+  await page.goBack();
+  await expect(pattern).toHaveCount(0);
+  await expect(page.getByRole("dialog", { name: "Oil patterns" })).toBeVisible();
 });

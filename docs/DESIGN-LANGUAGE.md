@@ -319,6 +319,13 @@ so the commit is always in the same place. The single most valuable field goes
 first. In the ball editor that is the catalog link, because linking fills in
 five other fields for free.
 
+**A name is typed, with suggestions, not picked from a drop-down.** Alley,
+description and oil pattern are each a `SuggestInput`: focus offers what is on
+record, typing narrows it anywhere in the words, a tap fills it in. Where only a
+known value means anything (a filter, the visualizer's pattern), `ChoiceInput`
+puts back text that names nothing when the field is left. A native select was
+a scroll through forty names to find one, and it could not be typed into.
+
 ## 7. Motion
 
 Motion is symmetric: anything that animates in animates out. Nothing may

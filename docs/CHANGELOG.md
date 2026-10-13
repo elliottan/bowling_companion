@@ -21,6 +21,20 @@ fields. Retire and Delete stay where they were.
 on the lane used to lean right, pushed over by the feet scale on its left. It
 now keeps a matching margin on the right, so the lane is centred.
 
+**Oil patterns are typed, with suggestions.** Every place you choose a pattern
+(starting or editing a session, the History filters, the Alley report and the
+line visualizer) is now a text field like Alley and Description. Tap it for the
+list, type a few letters of any part of the name to narrow it, and tap one. In
+a session, a name that is not one of your patterns yet is added as a new
+pattern when you save.
+
+**Closing the visualizer from a pattern comes back to that pattern.** Opening
+the line visualizer from a pattern's page and then tapping X used to land on
+the pattern list, one screen further back than you came from.
+
+**No doubled patterns on a first launch.** Starting the app for the first time
+could add every catalog pattern twice until the next launch tidied them up.
+
 ## 0.29.0: Thirty-four more Kegel patterns (2026-10-13)
 
 **The patterns a house actually runs, plus the rest of Kegel's named series.**
