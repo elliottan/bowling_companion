@@ -38,7 +38,7 @@ import {
 } from "./services/bowlingRepository";
 import { reportSessionStarted } from "./services/usageReporter";
 import { warmArsenalImages } from "./services/ballImageCache";
-import { syncCatalog } from "./services/ballCatalogRepository";
+import { syncCatalogForArsenal } from "./services/ballCatalogRepository";
 import type { NewSessionFormValues } from "./components/SessionForm";
 import { HandednessContext } from "./lib/handednessContext";
 import { DriftModelContext } from "./lib/driftModelContext";
@@ -104,10 +104,10 @@ function prefetchHeavyScreens() {
     void import("./components/LaneVisualizer");
     // Not a screen, but the same bargain: the arsenal's photos, so no screen
     // that pictures a ball has to wait on the network for one. The catalog
-    // syncs first, which also points each linked ball at its catalog photo
-    // today (ADR-143), so the warm-up fetches the current files.
-    void syncCatalog()
-      .catch(() => {})
+    // syncs first when the arsenal has a linked ball, which points each one at
+    // its catalog photo today (ADR-143), so the warm-up fetches current files.
+    void syncCatalogForArsenal()
+      .catch(() => false)
       .then(() => warmArsenalImages());
   };
   window.setTimeout(fetchThem, 3000);

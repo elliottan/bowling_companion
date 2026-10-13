@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { syncCatalog, getAllCatalog, getStoredCatalogVersion, refreshArsenalPhotos } from "./ballCatalogRepository";
+import { syncCatalog, getAllCatalog, getStoredCatalogVersion, refreshArsenalPhotos, syncCatalogForArsenal } from "./ballCatalogRepository";
 import { db } from "../db/bowlingDb";
 import type { CatalogBall, CatalogManifest } from "../types/catalog";
 
@@ -298,6 +298,38 @@ describe("refreshArsenalPhotos (ADR-143)", () => {
 
     await syncCatalog();
 
+    expect((await db.balls.get(id))?.catalog_snapshot?.imageThumb).toBe("/new.webp");
+    vi.unstubAllGlobals();
+  });
+});
+
+describe("syncCatalogForArsenal", () => {
+  beforeEach(async () => {
+    await db.balls.clear();
+  });
+
+  it("leaves the network alone when no arsenal ball is linked to the catalog", async () => {
+    const fetchSpy = vi.fn();
+    vi.stubGlobal("fetch", fetchSpy);
+    await db.balls.add({ name: "Plastic", is_spare_ball: false });
+    expect(await syncCatalogForArsenal()).toBe(false);
+    expect(fetchSpy).not.toHaveBeenCalled();
+    vi.unstubAllGlobals();
+  });
+
+  it("syncs, and refreshes the photos, once a ball is linked", async () => {
+    await db.ball_catalog.put({ ...makeBall("pyramid-path-2011"), imageThumb: "/new.webp" });
+    const id = await db.balls.add({
+      name: "Path",
+      is_spare_ball: false,
+      catalog_ref_id: "pyramid-path-2011",
+      catalog_snapshot: {
+        brand: "Pyramid", name: "Path", coverstockCategory: null, coreName: null,
+        rg: null, diff: null, mbDiff: null, imageThumb: "/old.webp"
+      }
+    });
+    vi.stubGlobal("fetch", vi.fn(() => Promise.reject(new Error("offline"))));
+    expect(await syncCatalogForArsenal()).toBe(true);
     expect((await db.balls.get(id))?.catalog_snapshot?.imageThumb).toBe("/new.webp");
     vi.unstubAllGlobals();
   });

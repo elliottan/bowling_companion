@@ -37,6 +37,24 @@ export async function syncCatalog(onState?: (state: SyncState) => void): Promise
 }
 
 /**
+ * The launch-time sync, for an arsenal that has something to gain from it.
+ *
+ * Launch syncs the catalog only to bring linked balls' photos up to date
+ * (ADR-143), so a device with no linked ball skips it. That is not only thrift:
+ * a first sync parses the whole catalog (about a megabyte) and writes every
+ * row, and run unasked a few seconds after launch it took enough frames from
+ * whatever the bowler was opening to stutter the session sheet's slide. A
+ * device with linked balls pays it once per catalog version, as the catalog
+ * screen always has.
+ */
+export async function syncCatalogForArsenal(): Promise<boolean> {
+  const linked = await db.balls.filter((b) => !!b.catalog_ref_id).count();
+  if (linked === 0) return false;
+  await syncCatalog();
+  return true;
+}
+
+/**
  * Points every linked arsenal ball at the photo its catalog entry has now.
  *
  * A ball keeps a snapshot of its catalog entry from the moment it was linked

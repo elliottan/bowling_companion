@@ -6663,9 +6663,12 @@ opened, so a device could go weeks on an old table.
 - **Nothing else in the snapshot moves.** The specs in it were read for the
   ball's own weight when it was linked, and the name, weight and layout are
   the bowler's. An entry that has left the catalog leaves the ball untouched.
-- **The catalog syncs a few seconds after launch**, before the arsenal photo
-  warm-up, and the photo step runs even when the fetch fails, against the
-  table already on the device.
+- **The catalog syncs a few seconds after launch when the arsenal has a linked
+  ball**, before the arsenal photo warm-up, and the photo step runs even when
+  the fetch fails, against the table already on the device. With no linked
+  ball there is nothing for it to do, and a first sync is heavy: it parses the
+  whole catalog and writes every row, which unasked at launch took enough
+  frames to stutter a sheet's slide on WebKit.
 
 **Consequences.**
 
