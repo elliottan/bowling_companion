@@ -620,7 +620,7 @@ export function ActiveSessionView({
         {/* py-1, not pb-1: overflow-x-auto forces overflow-y to auto, which
             clips at the padding box. The Chip tap region overhangs its box 4px
             top and bottom, so both sides need padding or the top 4px is dead. */}
-        <div ref={chipRowRef} className="mt-2 flex items-center gap-2 overflow-x-auto py-1">
+        <div ref={chipRowRef} className="mt-2 flex items-center gap-2 overflow-x-auto overscroll-x-none py-1">
           {games.map((g) => {
             const frames = (g as Game & { frames: Frame[] }).frames;
             return (

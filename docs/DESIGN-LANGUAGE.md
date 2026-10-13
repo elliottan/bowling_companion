@@ -257,6 +257,14 @@ scroller (the columns stay aligned) and the ball's picture and name are pinned
 at the left on an opaque cell, so a number never loses its ball. A ball's
 by-game table does the same with its row names (ADR-139).
 
+**A sideways scroller stops dead at its ends.** Every horizontal scroller
+carries `overscroll-x-none`, not `-contain`: contain keeps the swipe off the
+page but iOS still rubber-bands the scroller itself, and on the Balls card the
+bounce dragged the pinned names off the left edge with the columns, so the
+whole table looked like it scrolled. `src/test/scrollers.test.ts` holds the
+rule. Vertical scrollers keep their bounce: down is how the app scrolls, and
+the spring there says the end of the list.
+
 **A page of settings that a thumb can wreck is read until the pencil.** The
 Bowling profile shows its values and lets scrolling pass over them; the pencil
 turns the controls on and swaps to a tick, which is the only place it saves. The

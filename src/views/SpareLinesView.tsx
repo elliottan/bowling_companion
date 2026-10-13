@@ -381,7 +381,7 @@ export function SpareLinesView({ onBack }: { onBack: () => void }) {
                   <h2 className={GROUP_HEADING}>No line yet</h2>
                 )}
               </div>
-              <ul className="-mx-3 flex snap-x scroll-pl-3 gap-2 overflow-x-auto px-3 pb-1 sm:mx-0 sm:scroll-pl-0 sm:px-0">
+              <ul className="-mx-3 flex snap-x scroll-pl-3 gap-2 overflow-x-auto overscroll-x-none px-3 pb-1 sm:mx-0 sm:scroll-pl-0 sm:px-0">
                 {row.tiles.map((tile) => (
                   <LeaveTile
                     key={tile.spareLine.id}

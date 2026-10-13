@@ -299,7 +299,7 @@ function SheetViewer({ title, sheet, onClose }: { title: string; sheet: KeptShee
       <div
         ref={across}
         data-role="sheet-viewer"
-        className="min-h-full overflow-x-auto bg-surface-muted [touch-action:pan-x_pan-y]"
+        className="min-h-full overflow-x-auto overscroll-x-none bg-surface-muted [touch-action:pan-x_pan-y]"
       >
         <div
           ref={pagesRef}

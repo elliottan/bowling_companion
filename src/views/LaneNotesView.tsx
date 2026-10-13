@@ -90,7 +90,7 @@ export function LaneNotesView({ onBack, mode = "inline" }: LaneNotesViewProps = 
       ) : (
         <>
           {showFilter && (
-            <div className="-mx-3 mb-4 flex gap-2 overflow-x-auto px-3 pb-1 sm:mx-0 sm:px-0">
+            <div className="-mx-3 mb-4 flex gap-2 overflow-x-auto overscroll-x-none px-3 pb-1 sm:mx-0 sm:px-0">
               <Chip selected={filterAlley === ""} onClick={() => setFilterAlley("")}>
                 All
               </Chip>

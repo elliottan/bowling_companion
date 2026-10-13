@@ -257,7 +257,7 @@ export function Stats({
         <div
           role="group"
           aria-label={`Chart by ${gameMetrics || chartBy === "game" ? "game" : "session"}`}
-          className="-mx-1 flex min-w-0 flex-1 gap-1.5 overflow-x-auto overscroll-x-contain px-1 py-1"
+          className="-mx-1 flex min-w-0 flex-1 gap-1.5 overflow-x-auto overscroll-x-none px-1 py-1"
         >
           {METRIC_KEYS.map((key) => (
             <Chip
@@ -471,7 +471,7 @@ export function Stats({
           <div
             role="region"
             aria-label="Ball columns"
-            className="mt-1 max-h-[21rem] overflow-auto overscroll-contain"
+            className="mt-1 max-h-[21rem] overflow-auto overscroll-x-none overscroll-y-contain"
           >
             <div className="w-max min-w-full">
               <BallRateHeadings />
@@ -482,7 +482,7 @@ export function Stats({
                       type="button"
                       onClick={() => setBallsOpen({ focus: b.ballId })}
                       aria-label={`Open ${b.name}`}
-                      className="flex w-full py-2 active:bg-surface-muted"
+                      className="group flex w-full py-2 active:bg-surface-muted"
                     >
                       <BallSummary ball={b} />
                     </button>
@@ -717,8 +717,10 @@ const BALL_COLUMNS: ReadonlyArray<{
 
 /** The ball's picture and name, pinned at the left while the columns scroll
  *  under it, so a number never loses the ball it belongs to. Opaque for that
- *  reason: the columns pass behind it. */
-const BALL_NAME_CELL = "sticky left-0 z-[1] flex w-36 shrink-0 items-center gap-2 bg-surface pr-2 sm:w-48";
+ *  reason: the columns pass behind it, and it takes the row's pressed colour,
+ *  or a pressed row showed the cell as a dark block. */
+const BALL_NAME_CELL =
+  "sticky left-0 z-[1] flex w-36 shrink-0 items-center gap-2 bg-surface pr-2 group-active:bg-surface-muted sm:w-48";
 
 /** The headings over the columns, spelled out: as single letters they had to
  *  be decoded before the row said anything. */
@@ -794,7 +796,7 @@ function BallSummary({ ball, labelled = false }: { ball: BallPerformance; labell
     <div
       role="region"
       aria-label={`${ball.name} columns`}
-      className="overflow-x-auto overscroll-x-contain"
+      className="overflow-x-auto overscroll-x-none"
     >
       {line}
     </div>
@@ -819,7 +821,7 @@ function BallDetails({
       <div
         role="region"
         aria-label={`${ball.name} by game`}
-        className="overflow-x-auto overscroll-x-contain"
+        className="overflow-x-auto overscroll-x-none"
       >
         <table className="min-w-full whitespace-nowrap text-[11px] tabular-nums">
           <thead>
@@ -891,7 +893,7 @@ function BallDetails({
         // Grouped the way the leave cards are, easiest first, and scrolled
         // rather than cut at four: every leave the ball left is part of the
         // answer.
-        <div className="grid auto-cols-[calc((100%-1.125rem)/4)] grid-flow-col gap-1.5 overflow-x-auto overscroll-x-contain">
+        <div className="grid auto-cols-[calc((100%-1.125rem)/4)] grid-flow-col gap-1.5 overflow-x-auto overscroll-x-none">
           {[...ball.leaves]
             .sort((a, b) => SPARE_GROUPS.indexOf(spareGroup(a.pins)) - SPARE_GROUPS.indexOf(spareGroup(b.pins)))
             .map((leave) => (
