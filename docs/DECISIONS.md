@@ -6597,3 +6597,43 @@ it does not.
   because that build's backup validation rejects a pass that goes nowhere, and a
   file with one bad pass is rejected whole (ADR-101).
 - The tests hold Boardwalk V2 as a fixture with its printed totals and ratio.
+
+
+## ADR-142: The older rows take their photos from the source pages too, by the owner's decision
+
+**Status.** Accepted, 2026-10-13.
+
+**Context.** ADR-138 took photos from the source database for the balls added
+since ADR-137, and left the older rows with no recorded image URL on the
+placeholder, because the owner's yes covered only the new balls. That left 38
+balls with no photo, Road Warrior among them, and the owner asked for them.
+The same run added 278 balls approved from 2022 to 2024 and wanted theirs.
+Six of the 38 (Equinox, Ion Pro, Road Warrior, Typhoon, Absolute Power, Summit
+Peak) were on `image-denylist.json` with no reason recorded, most likely an
+automatic fetch that once matched the wrong photo.
+
+**Decision.**
+
+- **Every ball with a source page takes that page's photo.** Each is the
+  image `parse-bowwwl` records as `_imageUrl`, rendered through the normaliser
+  (ADR-043) at one request a second, by `fetch-seed-images -- --all`. The
+  owner said yes for the older rows as well as the new ones.
+- **Every photo is checked by eye before it ships**, on a labelled sheet over
+  mid-grey: the logo on the ball must name the ball. A photo whose square
+  survived the normaliser is cut to its circle with `clear-background --circle`.
+- **The six denied balls come off the denylist** once their own page's photo
+  is on the sheet and plainly theirs. The list only stops the fetchers, so an
+  entry for a ball that now has the right photo would only block a repair.
+- **The rights position is as ADR-138 left it, wider again.** The photographs
+  are the manufacturers'; the database self-hosts them under no stated licence.
+  Checked for this decision: the originals carry no visible watermark and no
+  rights metadata, and the rendered files carry no metadata at all, but the
+  pictures are the same renders and a reverse image search finds them. Every
+  photo stays keyed to its ball id in `data/images.json`, and its page stays
+  recorded in the seed, so a takedown remains a data edit.
+
+**Consequences.**
+
+- 798 of 799 balls have a photo. PhysiX Burst has no page to take one from.
+- Asking Storm and Brunswick for their dealer media, as MOTIV was asked
+  (ADR-061), is still the way to settle the rights question for good.

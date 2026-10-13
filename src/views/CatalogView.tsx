@@ -22,6 +22,7 @@ import { FIELD, FIELD_DENSE_SELECT, FIELD_LABEL } from "../components/ui/field";
 import { RETAILER_NAME, shopBallUrl } from "../lib/links";
 import { formatReleaseDate } from "../lib/dates";
 import { reportShopLink } from "../services/usageReporter";
+import { matchesCatalogSearch } from "../lib/catalogSearch";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -67,13 +68,8 @@ const EMPTY_FILTERS: Filters = {
 const CATALOG_PAGE = 40;
 
 function applyFilters(balls: CatalogBall[], filters: Filters, sort: SortKey): CatalogBall[] {
-  const q = filters.search.toLowerCase().trim();
-
   const filtered = balls.filter((b) => {
-    if (q) {
-      const haystack = [b.name, b.brand, b.coverstockRaw, b.coreName ?? ""].join(" ").toLowerCase();
-      if (!haystack.includes(q)) return false;
-    }
+    if (!matchesCatalogSearch([b.name, b.brand, b.coverstockRaw, b.coreName], filters.search)) return false;
     if (filters.brands.size > 0 && !filters.brands.has(b.brand)) return false;
     if (filters.coverstockCategories.size > 0 && (b.coverstockCategory === null || !filters.coverstockCategories.has(b.coverstockCategory))) return false;
     if (filters.coreType !== null && b.coreType !== filters.coreType) return false;
