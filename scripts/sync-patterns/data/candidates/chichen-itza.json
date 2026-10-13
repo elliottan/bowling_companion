@@ -1,0 +1,204 @@
+{
+  "id": "chichen-itza",
+  "name": "Chichen Itza",
+  "vendor": "kegel",
+  "sourceUrl": "https://patternlibrary.kegel.net/pattern/2f025c85-d052-ec11-8c62-000d3a5afff3",
+  "reader": "text-layer",
+  "passes": [
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 3,
+      "microliters": 50,
+      "start_distance": 0,
+      "end_distance": 4,
+      "speed": 14,
+      "buffer": 3,
+      "tank": "B - ICE"
+    },
+    {
+      "direction": "forward",
+      "left_board": 4,
+      "right_board": 36,
+      "loads": 1,
+      "microliters": 50,
+      "start_distance": 4,
+      "end_distance": 6,
+      "speed": 14,
+      "buffer": 3,
+      "tank": "B - ICE"
+    },
+    {
+      "direction": "forward",
+      "left_board": 6,
+      "right_board": 34,
+      "loads": 1,
+      "microliters": 50,
+      "start_distance": 6,
+      "end_distance": 8,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "B - ICE"
+    },
+    {
+      "direction": "forward",
+      "left_board": 8,
+      "right_board": 32,
+      "loads": 2,
+      "microliters": 50,
+      "start_distance": 8,
+      "end_distance": 13,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "B - ICE"
+    },
+    {
+      "direction": "forward",
+      "left_board": 10,
+      "right_board": 30,
+      "loads": 2,
+      "microliters": 50,
+      "start_distance": 13,
+      "end_distance": 18,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "B - ICE"
+    },
+    {
+      "direction": "forward",
+      "left_board": 12,
+      "right_board": 28,
+      "loads": 3,
+      "microliters": 50,
+      "start_distance": 18,
+      "end_distance": 26,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "B - ICE"
+    },
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 50,
+      "start_distance": 26,
+      "end_distance": 40,
+      "speed": 22,
+      "buffer": 3,
+      "tank": "B - ICE"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 40,
+      "start_distance": 32,
+      "end_distance": 28,
+      "speed": 30,
+      "buffer": 3,
+      "tank": "B - ICE"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 12,
+      "right_board": 28,
+      "loads": 2,
+      "microliters": 40,
+      "start_distance": 28,
+      "end_distance": 23,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "B - ICE"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 10,
+      "right_board": 30,
+      "loads": 2,
+      "microliters": 40,
+      "start_distance": 23,
+      "end_distance": 18,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "B - ICE"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 8,
+      "right_board": 32,
+      "loads": 1,
+      "microliters": 40,
+      "start_distance": 18,
+      "end_distance": 15,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "B - ICE"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 6,
+      "right_board": 34,
+      "loads": 1,
+      "microliters": 40,
+      "start_distance": 15,
+      "end_distance": 13,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "B - ICE"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 4,
+      "right_board": 36,
+      "loads": 1,
+      "microliters": 40,
+      "start_distance": 13,
+      "end_distance": 10,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "B - ICE"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 1,
+      "microliters": 40,
+      "start_distance": 10,
+      "end_distance": 8,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "B - ICE"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 40,
+      "start_distance": 8,
+      "end_distance": 0,
+      "speed": 14,
+      "buffer": 3,
+      "tank": "B - ICE"
+    }
+  ],
+  "stated": {
+    "distance": 40,
+    "forwardMl": 15.8,
+    "reverseMl": 8,
+    "volumeMl": 23.8
+  },
+  "note": "chichen-itza.pdf · 40 ft · 3.09:1",
+  "sheet": {
+    "file": "chichen-itza.c3910477db89.pdf",
+    "sha256": "c3910477db8984fee472fff95117c461ae006f2431f1d6e12be68df4c00340a5",
+    "bytes": 937411,
+    "pages": [
+      "chichen-itza.c3910477db89.p1.webp"
+    ]
+  }
+}

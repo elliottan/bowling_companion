@@ -1,0 +1,132 @@
+{
+  "id": "helium",
+  "name": "Helium",
+  "vendor": "kegel",
+  "sourceUrl": "https://patternlibrary.kegel.net/pattern/274520b9-d052-ec11-8c62-000d3a5afd36",
+  "reader": "text-layer",
+  "passes": [
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 2,
+      "microliters": 50,
+      "start_distance": 0,
+      "end_distance": 3,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "A - TERRAIN"
+    },
+    {
+      "direction": "forward",
+      "left_board": 10,
+      "right_board": 30,
+      "loads": 7,
+      "microliters": 55,
+      "start_distance": 3,
+      "end_distance": 20,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "B - TERRAIN"
+    },
+    {
+      "direction": "forward",
+      "left_board": 12,
+      "right_board": 28,
+      "loads": 3,
+      "microliters": 55,
+      "start_distance": 20,
+      "end_distance": 28,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "A - TERRAIN"
+    },
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 55,
+      "start_distance": 28,
+      "end_distance": 34,
+      "speed": 22,
+      "buffer": 3,
+      "tank": "B - TERRAIN"
+    },
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 55,
+      "start_distance": 34,
+      "end_distance": 41,
+      "speed": 26,
+      "buffer": 3,
+      "tank": "A - TERRAIN"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 55,
+      "start_distance": 36,
+      "end_distance": 34,
+      "speed": 30,
+      "buffer": 3,
+      "tank": "A - TERRAIN"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 11,
+      "right_board": 29,
+      "loads": 4,
+      "microliters": 55,
+      "start_distance": 34,
+      "end_distance": 22,
+      "speed": 22,
+      "buffer": 3,
+      "tank": "B - TERRAIN"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 9,
+      "right_board": 31,
+      "loads": 5,
+      "microliters": 55,
+      "start_distance": 22,
+      "end_distance": 9,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "A - TERRAIN"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 55,
+      "start_distance": 9,
+      "end_distance": 0,
+      "speed": 14,
+      "buffer": 3,
+      "tank": "B - TERRAIN"
+    }
+  ],
+  "stated": {
+    "distance": 41,
+    "forwardMl": 14.59,
+    "reverseMl": 10.505,
+    "volumeMl": 25.095
+  },
+  "note": "helium.pdf · 41 ft · 11.45:1",
+  "sheet": {
+    "file": "helium.7359f583213d.pdf",
+    "sha256": "7359f583213d455662f1d32ad231ef065c713657ad5e6cf9723b5fd5d1bab8bb",
+    "bytes": 939993,
+    "pages": [
+      "helium.7359f583213d.p1.webp"
+    ]
+  }
+}

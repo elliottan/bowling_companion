@@ -1,0 +1,228 @@
+{
+  "id": "tower-of-pisa",
+  "name": "Tower Of Pisa",
+  "vendor": "kegel",
+  "sourceUrl": "https://patternlibrary.kegel.net/pattern/3510feb0-d052-ec11-8c62-000d3a5afff3",
+  "reader": "text-layer",
+  "passes": [
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 5,
+      "microliters": 45,
+      "start_distance": 0,
+      "end_distance": 8,
+      "speed": 14,
+      "buffer": 3,
+      "tank": "A - FIRE"
+    },
+    {
+      "direction": "forward",
+      "left_board": 7,
+      "right_board": 33,
+      "loads": 1,
+      "microliters": 45,
+      "start_distance": 8,
+      "end_distance": 10,
+      "speed": 14,
+      "buffer": 3,
+      "tank": "A - FIRE"
+    },
+    {
+      "direction": "forward",
+      "left_board": 9,
+      "right_board": 32,
+      "loads": 2,
+      "microliters": 40,
+      "start_distance": 10,
+      "end_distance": 15,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "A - FIRE"
+    },
+    {
+      "direction": "forward",
+      "left_board": 11,
+      "right_board": 31,
+      "loads": 2,
+      "microliters": 40,
+      "start_distance": 15,
+      "end_distance": 20,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "A - FIRE"
+    },
+    {
+      "direction": "forward",
+      "left_board": 13,
+      "right_board": 29,
+      "loads": 1,
+      "microliters": 40,
+      "start_distance": 20,
+      "end_distance": 22,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "A - FIRE"
+    },
+    {
+      "direction": "forward",
+      "left_board": 15,
+      "right_board": 28,
+      "loads": 1,
+      "microliters": 40,
+      "start_distance": 22,
+      "end_distance": 25,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "A - FIRE"
+    },
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 40,
+      "start_distance": 25,
+      "end_distance": 34,
+      "speed": 22,
+      "buffer": 3,
+      "tank": "A - FIRE"
+    },
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 40,
+      "start_distance": 34,
+      "end_distance": 41,
+      "speed": 30,
+      "buffer": 2,
+      "tank": "A - FIRE"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 50,
+      "start_distance": 38,
+      "end_distance": 32,
+      "speed": 30,
+      "buffer": 1,
+      "tank": "B - ICE"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 14,
+      "right_board": 29,
+      "loads": 1,
+      "microliters": 50,
+      "start_distance": 32,
+      "end_distance": 29,
+      "speed": 22,
+      "buffer": 3,
+      "tank": "B - ICE"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 12,
+      "right_board": 30,
+      "loads": 2,
+      "microliters": 50,
+      "start_distance": 29,
+      "end_distance": 23,
+      "speed": 22,
+      "buffer": 3,
+      "tank": "B - ICE"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 10,
+      "right_board": 30,
+      "loads": 1,
+      "microliters": 50,
+      "start_distance": 23,
+      "end_distance": 20,
+      "speed": 22,
+      "buffer": 3,
+      "tank": "B - ICE"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 9,
+      "right_board": 31,
+      "loads": 1,
+      "microliters": 50,
+      "start_distance": 20,
+      "end_distance": 17,
+      "speed": 18,
+      "buffer": 4,
+      "tank": "B - ICE"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 8,
+      "right_board": 32,
+      "loads": 2,
+      "microliters": 50,
+      "start_distance": 17,
+      "end_distance": 12,
+      "speed": 18,
+      "buffer": 4,
+      "tank": "B - ICE"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 7,
+      "right_board": 33,
+      "loads": 1,
+      "microliters": 50,
+      "start_distance": 12,
+      "end_distance": 10,
+      "speed": 18,
+      "buffer": 4,
+      "tank": "B - ICE"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 1,
+      "microliters": 50,
+      "start_distance": 10,
+      "end_distance": 8,
+      "speed": 14,
+      "buffer": 4,
+      "tank": "B - ICE"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 50,
+      "start_distance": 8,
+      "end_distance": 0,
+      "speed": 14,
+      "buffer": 4,
+      "tank": "B - ICE"
+    }
+  ],
+  "stated": {
+    "distance": 41,
+    "forwardMl": 14.38,
+    "reverseMl": 10.6,
+    "volumeMl": 24.98
+  },
+  "note": "tower-of-pisa.pdf · 41 ft · 3.27:1",
+  "sheet": {
+    "file": "tower-of-pisa.988b362458f2.pdf",
+    "sha256": "988b362458f247ee50483f14f0f1b407b1cda896421dd0c175bfde6187e36007",
+    "bytes": 939806,
+    "pages": [
+      "tower-of-pisa.988b362458f2.p1.webp"
+    ]
+  }
+}

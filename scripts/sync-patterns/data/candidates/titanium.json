@@ -1,0 +1,228 @@
+{
+  "id": "titanium",
+  "name": "Titanium",
+  "vendor": "kegel",
+  "sourceUrl": "https://patternlibrary.kegel.net/pattern/a94d83c5-d052-ec11-8c62-000d3a5afd36",
+  "reader": "text-layer",
+  "passes": [
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 3,
+      "microliters": 40,
+      "start_distance": 0,
+      "end_distance": 5,
+      "speed": 18,
+      "buffer": 4,
+      "tank": "A - TERRAIN"
+    },
+    {
+      "direction": "forward",
+      "left_board": 8,
+      "right_board": 32,
+      "loads": 2,
+      "microliters": 40,
+      "start_distance": 5,
+      "end_distance": 10,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "A - TERRAIN"
+    },
+    {
+      "direction": "forward",
+      "left_board": 9,
+      "right_board": 31,
+      "loads": 1,
+      "microliters": 40,
+      "start_distance": 10,
+      "end_distance": 13,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "A - TERRAIN"
+    },
+    {
+      "direction": "forward",
+      "left_board": 10,
+      "right_board": 30,
+      "loads": 1,
+      "microliters": 45,
+      "start_distance": 13,
+      "end_distance": 15,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "A - TERRAIN"
+    },
+    {
+      "direction": "forward",
+      "left_board": 11,
+      "right_board": 29,
+      "loads": 2,
+      "microliters": 45,
+      "start_distance": 15,
+      "end_distance": 20,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "A - TERRAIN"
+    },
+    {
+      "direction": "forward",
+      "left_board": 12,
+      "right_board": 28,
+      "loads": 2,
+      "microliters": 45,
+      "start_distance": 20,
+      "end_distance": 25,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "A - TERRAIN"
+    },
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 45,
+      "start_distance": 25,
+      "end_distance": 38,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "A - TERRAIN"
+    },
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 45,
+      "start_distance": 38,
+      "end_distance": 44,
+      "speed": 22,
+      "buffer": 2,
+      "tank": "A - TERRAIN"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 45,
+      "start_distance": 40,
+      "end_distance": 39,
+      "speed": 26,
+      "buffer": 3,
+      "tank": "B - ICE"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 14,
+      "right_board": 26,
+      "loads": 2,
+      "microliters": 45,
+      "start_distance": 39,
+      "end_distance": 33,
+      "speed": 22,
+      "buffer": 3,
+      "tank": "B - ICE"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 13,
+      "right_board": 27,
+      "loads": 2,
+      "microliters": 45,
+      "start_distance": 33,
+      "end_distance": 28,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "B - ICE"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 12,
+      "right_board": 28,
+      "loads": 2,
+      "microliters": 45,
+      "start_distance": 28,
+      "end_distance": 23,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "B - ICE"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 11,
+      "right_board": 29,
+      "loads": 2,
+      "microliters": 45,
+      "start_distance": 23,
+      "end_distance": 19,
+      "speed": 14,
+      "buffer": 3,
+      "tank": "B - ICE"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 10,
+      "right_board": 30,
+      "loads": 2,
+      "microliters": 45,
+      "start_distance": 19,
+      "end_distance": 15,
+      "speed": 14,
+      "buffer": 3,
+      "tank": "B - ICE"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 9,
+      "right_board": 31,
+      "loads": 1,
+      "microliters": 40,
+      "start_distance": 15,
+      "end_distance": 13,
+      "speed": 14,
+      "buffer": 4,
+      "tank": "B - ICE"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 4,
+      "microliters": 35,
+      "start_distance": 13,
+      "end_distance": 5,
+      "speed": 14,
+      "buffer": 4,
+      "tank": "A - TERRAIN"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 35,
+      "start_distance": 5,
+      "end_distance": 0,
+      "speed": 14,
+      "buffer": 4,
+      "tank": "A - TERRAIN"
+    }
+  ],
+  "stated": {
+    "distance": 44,
+    "forwardMl": 11.545,
+    "reverseMl": 13.75,
+    "volumeMl": 25.295
+  },
+  "note": "titanium.pdf · 44 ft · 4.21:1",
+  "sheet": {
+    "file": "titanium.fd36dacadc8f.pdf",
+    "sha256": "fd36dacadc8f17464239cd5a80636a089a890240fd5640d4f6a78c8fe71993f7",
+    "bytes": 943034,
+    "pages": [
+      "titanium.fd36dacadc8f.p1.webp"
+    ]
+  }
+}

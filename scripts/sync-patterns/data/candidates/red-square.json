@@ -1,0 +1,144 @@
+{
+  "id": "red-square",
+  "name": "Red Square",
+  "vendor": "kegel",
+  "sourceUrl": "https://patternlibrary.kegel.net/pattern/32a9317f-d052-ec11-8c62-000d3a5afff3",
+  "reader": "text-layer",
+  "passes": [
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 3,
+      "microliters": 50,
+      "start_distance": 0,
+      "end_distance": 4,
+      "speed": 14,
+      "buffer": 3,
+      "tank": "B - ICE"
+    },
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 2,
+      "microliters": 45,
+      "start_distance": 4,
+      "end_distance": 9,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "B - ICE"
+    },
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 2,
+      "microliters": 40,
+      "start_distance": 9,
+      "end_distance": 14,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "B - ICE"
+    },
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 3,
+      "microliters": 35,
+      "start_distance": 14,
+      "end_distance": 23,
+      "speed": 22,
+      "buffer": 3,
+      "tank": "B - ICE"
+    },
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 35,
+      "start_distance": 23,
+      "end_distance": 32,
+      "speed": 22,
+      "buffer": 3,
+      "tank": "B - ICE"
+    },
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 35,
+      "start_distance": 32,
+      "end_distance": 40,
+      "speed": 30,
+      "buffer": 2,
+      "tank": "B - ICE"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 40,
+      "start_distance": 35,
+      "end_distance": 23,
+      "speed": 30,
+      "buffer": 1,
+      "tank": "B - ICE"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 3,
+      "microliters": 40,
+      "start_distance": 23,
+      "end_distance": 14,
+      "speed": 22,
+      "buffer": 3,
+      "tank": "B - ICE"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 3,
+      "microliters": 45,
+      "start_distance": 14,
+      "end_distance": 8,
+      "speed": 14,
+      "buffer": 4,
+      "tank": "B - ICE"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 45,
+      "start_distance": 8,
+      "end_distance": 0,
+      "speed": 14,
+      "buffer": 4,
+      "tank": "B - ICE"
+    }
+  ],
+  "stated": {
+    "distance": 40,
+    "forwardMl": 15.725,
+    "reverseMl": 9.435,
+    "volumeMl": 25.16
+  },
+  "note": "red-square.pdf · 40 ft · 1.00:1",
+  "sheet": {
+    "file": "red-square.63f91175f029.pdf",
+    "sha256": "63f91175f029adde2615020ab305b0f3da41f710c6c9a081632215da898a06cb",
+    "bytes": 933617,
+    "pages": [
+      "red-square.63f91175f029.p1.webp"
+    ]
+  }
+}

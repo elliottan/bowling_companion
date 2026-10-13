@@ -1,0 +1,168 @@
+{
+  "id": "neon",
+  "name": "Neon",
+  "vendor": "kegel",
+  "sourceUrl": "https://patternlibrary.kegel.net/pattern/5b4520b9-d052-ec11-8c62-000d3a5afd36",
+  "reader": "text-layer",
+  "passes": [
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 2,
+      "microliters": 50,
+      "start_distance": 0,
+      "end_distance": 3,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "A - TERRAIN"
+    },
+    {
+      "direction": "forward",
+      "left_board": 11,
+      "right_board": 29,
+      "loads": 6,
+      "microliters": 50,
+      "start_distance": 3,
+      "end_distance": 18,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "B - TERRAIN"
+    },
+    {
+      "direction": "forward",
+      "left_board": 12,
+      "right_board": 28,
+      "loads": 6,
+      "microliters": 50,
+      "start_distance": 18,
+      "end_distance": 33,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "A - TERRAIN"
+    },
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 50,
+      "start_distance": 33,
+      "end_distance": 38,
+      "speed": 22,
+      "buffer": 3,
+      "tank": "B - TERRAIN"
+    },
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 50,
+      "start_distance": 38,
+      "end_distance": 43,
+      "speed": 26,
+      "buffer": 3,
+      "tank": "A - TERRAIN"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 55,
+      "start_distance": 37,
+      "end_distance": 36,
+      "speed": 26,
+      "buffer": 3,
+      "tank": "A - TERRAIN"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 14,
+      "right_board": 26,
+      "loads": 3,
+      "microliters": 55,
+      "start_distance": 36,
+      "end_distance": 28,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "B - TERRAIN"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 13,
+      "right_board": 27,
+      "loads": 3,
+      "microliters": 55,
+      "start_distance": 28,
+      "end_distance": 21,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "A - TERRAIN"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 11,
+      "right_board": 29,
+      "loads": 2,
+      "microliters": 55,
+      "start_distance": 21,
+      "end_distance": 16,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "B - TERRAIN"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 9,
+      "right_board": 31,
+      "loads": 2,
+      "microliters": 50,
+      "start_distance": 16,
+      "end_distance": 11,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "A - TERRAIN"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 8,
+      "right_board": 32,
+      "loads": 1,
+      "microliters": 50,
+      "start_distance": 11,
+      "end_distance": 8,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "B - TERRAIN"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 45,
+      "start_distance": 8,
+      "end_distance": 0,
+      "speed": 14,
+      "buffer": 3,
+      "tank": "A - TERRAIN"
+    }
+  ],
+  "stated": {
+    "distance": 43,
+    "forwardMl": 14.5,
+    "reverseMl": 10.26,
+    "volumeMl": 24.76
+  },
+  "note": "neon.pdf · 43 ft · 12.90:1",
+  "sheet": {
+    "file": "neon.8dfce281064f.pdf",
+    "sha256": "8dfce281064f6040cd13957fcbd857ef18e3aed71985e45f42fee5933fa85163",
+    "bytes": 942943,
+    "pages": [
+      "neon.8dfce281064f.p1.webp"
+    ]
+  }
+}

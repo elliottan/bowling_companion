@@ -1,0 +1,168 @@
+{
+  "id": "sunset-strip",
+  "name": "Sunset Strip",
+  "vendor": "kegel",
+  "sourceUrl": "https://patternlibrary.kegel.net/pattern/4b3cceac-cf52-ec11-8c62-000d3a5afd36",
+  "reader": "text-layer",
+  "passes": [
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 2,
+      "microliters": 50,
+      "start_distance": 0,
+      "end_distance": 2,
+      "speed": 14,
+      "buffer": 3,
+      "tank": "A - KEGEL"
+    },
+    {
+      "direction": "forward",
+      "left_board": 5,
+      "right_board": 35,
+      "loads": 3,
+      "microliters": 50,
+      "start_distance": 2,
+      "end_distance": 10,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "A - KEGEL"
+    },
+    {
+      "direction": "forward",
+      "left_board": 9,
+      "right_board": 31,
+      "loads": 4,
+      "microliters": 50,
+      "start_distance": 10,
+      "end_distance": 20,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "A - KEGEL"
+    },
+    {
+      "direction": "forward",
+      "left_board": 13,
+      "right_board": 27,
+      "loads": 4,
+      "microliters": 50,
+      "start_distance": 20,
+      "end_distance": 30,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "A - KEGEL"
+    },
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 50,
+      "start_distance": 30,
+      "end_distance": 33,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "A - KEGEL"
+    },
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 50,
+      "start_distance": 33,
+      "end_distance": 40,
+      "speed": 22,
+      "buffer": 3,
+      "tank": "A - KEGEL"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 50,
+      "start_distance": 32,
+      "end_distance": 21,
+      "speed": 30,
+      "buffer": 3,
+      "tank": "A - KEGEL"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 13,
+      "right_board": 27,
+      "loads": 2,
+      "microliters": 50,
+      "start_distance": 21,
+      "end_distance": 17,
+      "speed": 14,
+      "buffer": 3,
+      "tank": "A - KEGEL"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 9,
+      "right_board": 31,
+      "loads": 2,
+      "microliters": 50,
+      "start_distance": 17,
+      "end_distance": 13,
+      "speed": 14,
+      "buffer": 3,
+      "tank": "A - KEGEL"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 5,
+      "right_board": 35,
+      "loads": 2,
+      "microliters": 50,
+      "start_distance": 13,
+      "end_distance": 9,
+      "speed": 14,
+      "buffer": 3,
+      "tank": "A - KEGEL"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 1,
+      "microliters": 50,
+      "start_distance": 9,
+      "end_distance": 8,
+      "speed": 10,
+      "buffer": 3,
+      "tank": "A - KEGEL"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 50,
+      "start_distance": 8,
+      "end_distance": 0,
+      "speed": 10,
+      "buffer": 3,
+      "tank": "A - KEGEL"
+    }
+  ],
+  "stated": {
+    "distance": 40,
+    "forwardMl": 15.95,
+    "reverseMl": 8.75,
+    "volumeMl": 24.7
+  },
+  "note": "sunset-strip.pdf · 40 ft · 3.33:1",
+  "sheet": {
+    "file": "sunset-strip.4a926a197953.pdf",
+    "sha256": "4a926a1979539221a96cf975e436cb9733cc83e41a327b7dc4545445829ed36d",
+    "bytes": 942453,
+    "pages": [
+      "sunset-strip.4a926a197953.p1.webp"
+    ]
+  }
+}

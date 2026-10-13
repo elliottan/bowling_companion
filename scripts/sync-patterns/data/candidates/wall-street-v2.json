@@ -1,0 +1,144 @@
+{
+  "id": "wall-street-v2",
+  "name": "Wall Street V2",
+  "vendor": "kegel",
+  "sourceUrl": "https://patternlibrary.kegel.net/pattern/7f8be7fb-d052-ec11-8c62-000d3a5afd36",
+  "reader": "text-layer",
+  "passes": [
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 2,
+      "microliters": 50,
+      "start_distance": 0,
+      "end_distance": 3,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "A - KEGEL"
+    },
+    {
+      "direction": "forward",
+      "left_board": 10,
+      "right_board": 30,
+      "loads": 3,
+      "microliters": 50,
+      "start_distance": 3,
+      "end_distance": 10,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "A - KEGEL"
+    },
+    {
+      "direction": "forward",
+      "left_board": 10,
+      "right_board": 30,
+      "loads": 4,
+      "microliters": 50,
+      "start_distance": 10,
+      "end_distance": 20,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "A - KEGEL"
+    },
+    {
+      "direction": "forward",
+      "left_board": 12,
+      "right_board": 28,
+      "loads": 3,
+      "microliters": 50,
+      "start_distance": 20,
+      "end_distance": 28,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "A - KEGEL"
+    },
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 50,
+      "start_distance": 28,
+      "end_distance": 33,
+      "speed": 22,
+      "buffer": 3,
+      "tank": "A - KEGEL"
+    },
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 50,
+      "start_distance": 33,
+      "end_distance": 40,
+      "speed": 30,
+      "buffer": 3,
+      "tank": "A - KEGEL"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 50,
+      "start_distance": 35,
+      "end_distance": 34,
+      "speed": 30,
+      "buffer": 3,
+      "tank": "A - KEGEL"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 11,
+      "right_board": 29,
+      "loads": 5,
+      "microliters": 50,
+      "start_distance": 34,
+      "end_distance": 19,
+      "speed": 22,
+      "buffer": 3,
+      "tank": "A - KEGEL"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 10,
+      "right_board": 30,
+      "loads": 5,
+      "microliters": 50,
+      "start_distance": 19,
+      "end_distance": 6,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "A - KEGEL"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 50,
+      "start_distance": 6,
+      "end_distance": 0,
+      "speed": 14,
+      "buffer": 3,
+      "tank": "A - KEGEL"
+    }
+  ],
+  "stated": {
+    "distance": 40,
+    "forwardMl": 13.6,
+    "reverseMl": 10,
+    "volumeMl": 23.6
+  },
+  "note": "wall-street-v2.pdf · 40 ft · 11.00:1",
+  "sheet": {
+    "file": "wall-street-v2.9316b30a3354.pdf",
+    "sha256": "9316b30a3354e9b985a58692f89fd8a0e403225863b54ed92f7473734f7fcfde",
+    "bytes": 938842,
+    "pages": [
+      "wall-street-v2.9316b30a3354.p1.webp"
+    ]
+  }
+}

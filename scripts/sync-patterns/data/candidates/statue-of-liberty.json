@@ -1,0 +1,192 @@
+{
+  "id": "statue-of-liberty",
+  "name": "Statue Of Liberty",
+  "vendor": "kegel",
+  "sourceUrl": "https://patternlibrary.kegel.net/pattern/f73bdb82-d052-ec11-8c62-000d3a5afd36",
+  "reader": "text-layer",
+  "passes": [
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 7,
+      "microliters": 40,
+      "start_distance": 0,
+      "end_distance": 12,
+      "speed": 14,
+      "buffer": 4,
+      "tank": "A - FIRE"
+    },
+    {
+      "direction": "forward",
+      "left_board": 13,
+      "right_board": 27,
+      "loads": 5,
+      "microliters": 40,
+      "start_distance": 12,
+      "end_distance": 22,
+      "speed": 14,
+      "buffer": 3,
+      "tank": "A - FIRE"
+    },
+    {
+      "direction": "forward",
+      "left_board": 14,
+      "right_board": 26,
+      "loads": 2,
+      "microliters": 40,
+      "start_distance": 22,
+      "end_distance": 27,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "A - FIRE"
+    },
+    {
+      "direction": "forward",
+      "left_board": 15,
+      "right_board": 25,
+      "loads": 2,
+      "microliters": 40,
+      "start_distance": 27,
+      "end_distance": 32,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "A - FIRE"
+    },
+    {
+      "direction": "forward",
+      "left_board": 16,
+      "right_board": 24,
+      "loads": 1,
+      "microliters": 40,
+      "start_distance": 32,
+      "end_distance": 34,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "A - FIRE"
+    },
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 40,
+      "start_distance": 34,
+      "end_distance": 40,
+      "speed": 22,
+      "buffer": 3,
+      "tank": "A - FIRE"
+    },
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 40,
+      "start_distance": 40,
+      "end_distance": 47,
+      "speed": 30,
+      "buffer": 1,
+      "tank": "A - FIRE"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 45,
+      "start_distance": 40,
+      "end_distance": 34,
+      "speed": 30,
+      "buffer": 2,
+      "tank": "B - ICE"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 14,
+      "right_board": 26,
+      "loads": 2,
+      "microliters": 45,
+      "start_distance": 34,
+      "end_distance": 28,
+      "speed": 22,
+      "buffer": 3,
+      "tank": "B - ICE"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 13,
+      "right_board": 27,
+      "loads": 2,
+      "microliters": 45,
+      "start_distance": 28,
+      "end_distance": 22,
+      "speed": 22,
+      "buffer": 3,
+      "tank": "B - ICE"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 12,
+      "right_board": 28,
+      "loads": 2,
+      "microliters": 45,
+      "start_distance": 22,
+      "end_distance": 17,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "B - ICE"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 11,
+      "right_board": 29,
+      "loads": 2,
+      "microliters": 45,
+      "start_distance": 17,
+      "end_distance": 12,
+      "speed": 18,
+      "buffer": 4,
+      "tank": "B - ICE"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 2,
+      "microliters": 45,
+      "start_distance": 12,
+      "end_distance": 8,
+      "speed": 14,
+      "buffer": 4,
+      "tank": "B - ICE"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 45,
+      "start_distance": 8,
+      "end_distance": 0,
+      "speed": 14,
+      "buffer": 4,
+      "tank": "B - ICE"
+    }
+  ],
+  "stated": {
+    "distance": 47,
+    "forwardMl": 15.64,
+    "reverseMl": 9.09,
+    "volumeMl": 24.73
+  },
+  "note": "statue-of-liberty.pdf · 47 ft · 3.05:1",
+  "sheet": {
+    "file": "statue-of-liberty.6a6e0d08eea0.pdf",
+    "sha256": "6a6e0d08eea0cd6ea0ac0ffe82644f04d8ae11f1ddf2375b0f58498c8f28f527",
+    "bytes": 941235,
+    "pages": [
+      "statue-of-liberty.6a6e0d08eea0.p1.webp"
+    ]
+  }
+}

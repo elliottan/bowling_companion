@@ -1,0 +1,192 @@
+{
+  "id": "bourbon-street",
+  "name": "Bourbon Street",
+  "vendor": "kegel",
+  "sourceUrl": "https://patternlibrary.kegel.net/pattern/ebcee9af-cf52-ec11-8c62-000d3a5afff3",
+  "reader": "text-layer",
+  "passes": [
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 3,
+      "microliters": 50,
+      "start_distance": 0,
+      "end_distance": 4,
+      "speed": 14,
+      "buffer": 3,
+      "tank": "A - KEGEL"
+    },
+    {
+      "direction": "forward",
+      "left_board": 9,
+      "right_board": 31,
+      "loads": 1,
+      "microliters": 50,
+      "start_distance": 4,
+      "end_distance": 6,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "A - KEGEL"
+    },
+    {
+      "direction": "forward",
+      "left_board": 10,
+      "right_board": 30,
+      "loads": 3,
+      "microliters": 50,
+      "start_distance": 6,
+      "end_distance": 14,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "A - KEGEL"
+    },
+    {
+      "direction": "forward",
+      "left_board": 11,
+      "right_board": 29,
+      "loads": 3,
+      "microliters": 50,
+      "start_distance": 14,
+      "end_distance": 22,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "A - KEGEL"
+    },
+    {
+      "direction": "forward",
+      "left_board": 13,
+      "right_board": 27,
+      "loads": 3,
+      "microliters": 50,
+      "start_distance": 22,
+      "end_distance": 29,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "A - KEGEL"
+    },
+    {
+      "direction": "forward",
+      "left_board": 14,
+      "right_board": 26,
+      "loads": 1,
+      "microliters": 50,
+      "start_distance": 29,
+      "end_distance": 32,
+      "speed": 22,
+      "buffer": 3,
+      "tank": "A - KEGEL"
+    },
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 50,
+      "start_distance": 32,
+      "end_distance": 34,
+      "speed": 22,
+      "buffer": 3,
+      "tank": "A - KEGEL"
+    },
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 50,
+      "start_distance": 34,
+      "end_distance": 40,
+      "speed": 26,
+      "buffer": 3,
+      "tank": "A - KEGEL"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 50,
+      "start_distance": 32,
+      "end_distance": 30,
+      "speed": 30,
+      "buffer": 3,
+      "tank": "A - KEGEL"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 14,
+      "right_board": 26,
+      "loads": 1,
+      "microliters": 50,
+      "start_distance": 30,
+      "end_distance": 27,
+      "speed": 22,
+      "buffer": 3,
+      "tank": "A - KEGEL"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 13,
+      "right_board": 27,
+      "loads": 3,
+      "microliters": 50,
+      "start_distance": 27,
+      "end_distance": 19,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "A - KEGEL"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 11,
+      "right_board": 29,
+      "loads": 3,
+      "microliters": 50,
+      "start_distance": 19,
+      "end_distance": 12,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "A - KEGEL"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 10,
+      "right_board": 30,
+      "loads": 2,
+      "microliters": 50,
+      "start_distance": 12,
+      "end_distance": 8,
+      "speed": 14,
+      "buffer": 3,
+      "tank": "A - KEGEL"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 50,
+      "start_distance": 8,
+      "end_distance": 0,
+      "speed": 10,
+      "buffer": 3,
+      "tank": "A - KEGEL"
+    }
+  ],
+  "stated": {
+    "distance": 40,
+    "forwardMl": 15.6,
+    "reverseMl": 7.85,
+    "volumeMl": 23.45
+  },
+  "note": "bourbon-street.pdf · 40 ft · 7.67:1",
+  "sheet": {
+    "file": "bourbon-street.7a9a6dab35b0.pdf",
+    "sha256": "7a9a6dab35b0147f6174ec80b9eff452e9d1f2b45d67c2c7a836a882a36545b9",
+    "bytes": 942000,
+    "pages": [
+      "bourbon-street.7a9a6dab35b0.p1.webp"
+    ]
+  }
+}
