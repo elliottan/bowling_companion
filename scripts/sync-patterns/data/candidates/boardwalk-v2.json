@@ -1,0 +1,192 @@
+{
+  "id": "boardwalk-v2",
+  "name": "Boardwalk V2",
+  "vendor": "kegel",
+  "sourceUrl": "https://patternlibrary.kegel.net/pattern/5b7d3ddd-d052-ec11-8c62-000d3a5afff3",
+  "reader": "text-layer",
+  "passes": [
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 1,
+      "microliters": 50,
+      "start_distance": 0,
+      "end_distance": 0,
+      "speed": 14,
+      "buffer": 3,
+      "tank": "A - KEGEL"
+    },
+    {
+      "direction": "forward",
+      "left_board": 5,
+      "right_board": 35,
+      "loads": 3,
+      "microliters": 50,
+      "start_distance": 0,
+      "end_distance": 8,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "A - KEGEL"
+    },
+    {
+      "direction": "forward",
+      "left_board": 6,
+      "right_board": 34,
+      "loads": 3,
+      "microliters": 50,
+      "start_distance": 8,
+      "end_distance": 15,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "A - KEGEL"
+    },
+    {
+      "direction": "forward",
+      "left_board": 7,
+      "right_board": 33,
+      "loads": 3,
+      "microliters": 50,
+      "start_distance": 15,
+      "end_distance": 23,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "A - KEGEL"
+    },
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 50,
+      "start_distance": 23,
+      "end_distance": 26,
+      "speed": 22,
+      "buffer": 3,
+      "tank": "A - KEGEL"
+    },
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 50,
+      "start_distance": 26,
+      "end_distance": 35,
+      "speed": 26,
+      "buffer": 3,
+      "tank": "A - KEGEL"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 50,
+      "start_distance": 33,
+      "end_distance": 28,
+      "speed": 30,
+      "buffer": 3,
+      "tank": "A - KEGEL"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 8,
+      "right_board": 32,
+      "loads": 1,
+      "microliters": 50,
+      "start_distance": 28,
+      "end_distance": 25,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "A - KEGEL"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 7,
+      "right_board": 33,
+      "loads": 2,
+      "microliters": 50,
+      "start_distance": 25,
+      "end_distance": 20,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "A - KEGEL"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 6,
+      "right_board": 34,
+      "loads": 2,
+      "microliters": 50,
+      "start_distance": 20,
+      "end_distance": 15,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "A - KEGEL"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 5,
+      "right_board": 35,
+      "loads": 2,
+      "microliters": 50,
+      "start_distance": 15,
+      "end_distance": 10,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "A - KEGEL"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 4,
+      "right_board": 36,
+      "loads": 1,
+      "microliters": 50,
+      "start_distance": 10,
+      "end_distance": 8,
+      "speed": 14,
+      "buffer": 3,
+      "tank": "A - KEGEL"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 3,
+      "right_board": 37,
+      "loads": 1,
+      "microliters": 50,
+      "start_distance": 8,
+      "end_distance": 6,
+      "speed": 14,
+      "buffer": 3,
+      "tank": "A - KEGEL"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 50,
+      "start_distance": 6,
+      "end_distance": 0,
+      "speed": 14,
+      "buffer": 3,
+      "tank": "A - KEGEL"
+    }
+  ],
+  "stated": {
+    "distance": 35,
+    "forwardMl": 14.9,
+    "reverseMl": 13.35,
+    "volumeMl": 28.25
+  },
+  "note": "boardwalk-v2.pdf · 35 ft · 2.16:1",
+  "sheet": {
+    "file": "boardwalk-v2.56da0303acb8.pdf",
+    "sha256": "56da0303acb8b301603e28675883d8e51e4a95347be3d7275f525631870a636f",
+    "bytes": 942255,
+    "pages": [
+      "boardwalk-v2.56da0303acb8.p1.webp"
+    ]
+  }
+}

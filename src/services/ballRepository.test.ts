@@ -220,10 +220,19 @@ describe("ballRepository", () => {
       });
     });
 
+    it("keeps a drop laid where the machine stands (ADR-141)", async () => {
+      const id = await addOilPattern("Boardwalk-like", undefined, [
+        { direction: "forward", start_distance: 0, end_distance: 0, left_board: 2, right_board: 38, loads: 1, microliters: 50 },
+      ]);
+      expect((await getOilPatterns()).find((p) => p.id === id)?.passes?.[0]).toMatchObject({
+        start_distance: 0, end_distance: 0, loads: 1, microliters: 50,
+      });
+    });
+
     it("rejects a pass it cannot draw, by name", async () => {
       await expect(
         addOilPattern("Standing still", undefined, [
-          { direction: "forward", start_distance: 30, end_distance: 30, left_board: 5, right_board: 35, loads: 1, microliters: 30 },
+          { direction: "forward", start_distance: 30, end_distance: 30, left_board: 5, right_board: 35, loads: 0, microliters: 30 },
         ])
       ).rejects.toThrow("Pass 1: the pass has to travel");
 

@@ -107,9 +107,13 @@ from each gutter, so "2L to 2R" is `left_board: 2, right_board: 38`. The app's
 own board space is handed, so the mirror belongs at the drawing edge and nowhere
 else.
 
-Two rows of a real sheet look broken and are not: a reverse pass ends before it
-starts, and a buffer pass carries zero loads. The second is why the pattern
-distance is the furthest a pass travels rather than the furthest it oils.
+Three rows of a real sheet look broken and are not: a reverse pass ends before
+it starts, a buffer pass carries zero loads, and a drop can start and end on the
+same foot. The second is why the pattern distance is the furthest a pass travels
+rather than the furthest it oils. The third is oil laid at the foul line before
+the machine moves (ADR-141): it counts in the volume and the ratio and is never
+drawn, and it needs loads and microlitres, because a pass that stays put and lays
+nothing is a typo.
 `lib/oilPattern.fixture.ts` holds Kegel's Chromium 6742 so the derivations stay
 checked against a sheet rather than against themselves.
 

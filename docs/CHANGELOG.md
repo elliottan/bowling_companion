@@ -9,7 +9,7 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
-## 0.30.0: A ball opens read until the pencil (2026-10-13)
+## 0.31.0: A ball opens read until the pencil (2026-10-13)
 
 **Tapping a ball in your arsenal no longer puts its fields under your thumb.**
 The ball's sheet now opens showing its name, weight, layout and catalog link as
@@ -37,6 +37,17 @@ the pattern list, one screen further back than you came from.
 
 **No doubled patterns on a first launch.** Starting the app for the first time
 could add every catalog pattern twice until the next launch tidied them up.
+
+## 0.30.0: Boardwalk V2 and Arsenic (2026-10-13)
+
+**Two more Kegel patterns, 44 in all.** Boardwalk V2 and Arsenic open with a
+drop of oil laid at the foul line before the machine starts down the lane. The
+catalog could not hold that, so they were left out of 0.29.0. They are in now,
+each with the volume and ratio its own sheet prints (Boardwalk V2 14.9 mL
+forward and 2.16:1, Arsenic 16.55 mL forward and 1.36:1).
+
+A pattern with a drop like that cannot be restored from a backup by an older
+build, so update before restoring a backup made on this one.
 
 ## 0.29.0: Thirty-four more Kegel patterns (2026-10-13)
 

@@ -6554,3 +6554,46 @@ lines screen meant opening and saving every leave in it.
 - Two leaves that only happen to share boards are treated as one shot. That is
   what putting them on one row already says.
 
+## ADR-141: A drop laid where the machine stands is a pass with no length
+
+**Status.** Accepted, 2026-10-13. Narrows ADR-101's rule that a pass must
+travel and ADR-102's rule that direction comes from the row. Both stand as
+written for every pass that travels.
+
+**Context.** Kegel's Boardwalk V2 and Arsenic open their forward table with a
+row whose distance is `0 to 0`: 2L to 2R, one load, 50 microlitres, T.OIL 1,850.
+It is oil laid at the foul line before the machine starts down the lane. Every
+rule in the load table said such a row was a typo: the reader skipped it, promote
+refused it and the app's editor, the backup validator and `isDrawable` all
+rejected a pass that goes nowhere. The rest of the sheet then came to 13.05 mL
+forward against a printed 14.9, and promote rejected both patterns on the
+arithmetic, which is the check working. Nothing was wrong with the reading. The
+model could not hold a row that exists.
+
+**Decision.** A pass whose start and end are the same foot is a **point drop**,
+valid when it lays oil (loads and microlitres both above zero), and a typo when
+it does not.
+
+- **It counts.** Its oil is boards times loads times microlitres like any other
+  pass, in the forward or reverse total by its direction, in the board totals,
+  and so in the track zone ratios and the headline ratio. The sheets prove it:
+  Boardwalk V2 prints a ratio of 2.16, which is reproduced with the drop and is
+  2.31 without it, and Arsenic prints 1.36 against 1.37 without.
+- **It is never drawn.** It covers no distance, so it makes no zone and no band,
+  and it cannot set the pattern's length.
+- **Its direction comes from the heading over its table.** A drop has no travel
+  to say which way it went, so the reader takes it from the `FORWARD LOADS DATA`
+  or `REVERSE LOADS DATA` line above it, and skips a drop it cannot place. Every
+  pass that travels still takes its direction from its travel, as ADR-102 says.
+- **Promote catches a wrong direction.** The forward and reverse totals are
+  checked against the sheet separately, so a drop filed under the wrong table
+  fails loudly rather than shipping.
+
+**Consequences.**
+- A heading seen in a sheet's text layer stays in force for rows read from a
+  picture of its tables after it. That can file a drop in the wrong table and
+  promote will reject it; no sheet in the catalog is read that way.
+- A pattern holding a drop cannot be restored by a build older than this one,
+  because that build's backup validation rejects a pass that goes nowhere, and a
+  file with one bad pass is rejected whole (ADR-101).
+- The tests hold Boardwalk V2 as a fixture with its printed totals and ratio.

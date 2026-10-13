@@ -170,7 +170,7 @@ describe("validateBackup", () => {
   // and the bowler would read an exit point off it anyway.
   it.each([
     { direction: "sideways", start_distance: 0, end_distance: 38, left_board: 5, right_board: 35, loads: 2, microliters: 30 },
-    { direction: "forward", start_distance: 38, end_distance: 38, left_board: 5, right_board: 35, loads: 2, microliters: 30 },
+    { direction: "forward", start_distance: 38, end_distance: 38, left_board: 5, right_board: 35, loads: 0, microliters: 30 },
     { direction: "forward", start_distance: 0, end_distance: 38, left_board: 5, right_board: 44, loads: 2, microliters: 30 },
     { direction: "forward", start_distance: 0, end_distance: 38, left_board: 5, right_board: 35, loads: -2, microliters: 30 },
     { direction: "forward", start_distance: 0, end_distance: 38, left_board: 5, right_board: 35, loads: 2, microliters: "lots" },
@@ -182,6 +182,23 @@ describe("validateBackup", () => {
 
     expect(result.isValid).toBe(false);
     expect(result.errors[0]).toContain("oil_patterns");
+  });
+
+  // Boardwalk V2 and Arsenic open with a drop at 0 to 0 ft (ADR-141). A catalog
+  // pattern is a row in the bowler's own list, so a backup of it has to restore.
+  it("restores a drop laid where the machine stands (ADR-141)", () => {
+    const result = validateBackup({
+      ...validBackup,
+      tables: {
+        ...validBackup.tables,
+        oil_patterns: [{
+          name: "Boardwalk V2",
+          passes: [{ direction: "forward", start_distance: 0, end_distance: 0, left_board: 2, right_board: 38, loads: 1, microliters: 50 }],
+        }],
+      },
+    });
+    expect(result.errors).toEqual([]);
+    expect(result.isValid).toBe(true);
   });
 
   it("carries a retired ball, and rejects a retired flag that is not a yes or no (ADR-133)", () => {
