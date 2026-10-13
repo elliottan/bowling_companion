@@ -7,6 +7,7 @@ import { tinyPdf } from "./tiny-pdf.fixture.js";
 import { checkCandidate, toCatalogPattern } from "./promote.js";
 import type { PatternCandidate } from "./types.js";
 import { CHROMIUM_6742 } from "../../src/lib/oilPattern.fixture.js";
+import { oilStats } from "../../src/lib/oilPattern.js";
 
 /**
  * The promote stage is the only thing standing between a fallible reader and a
@@ -66,10 +67,22 @@ describe("checkCandidate", () => {
     expect(complaints.map((c) => c.field)).toContain("stated totals");
   });
 
-  it("refuses a pass that goes nowhere or runs off the boards", () => {
-    const still = [{ ...CHROMIUM_6742[0], end_distance: CHROMIUM_6742[0].start_distance }];
+  it("refuses a pass that goes nowhere and lays nothing, or runs off the boards", () => {
+    const still = [{ ...CHROMIUM_6742[0], loads: 0, end_distance: CHROMIUM_6742[0].start_distance }];
     expect(checkCandidate(chromium({ passes: still, stated: { distance: 0, volumeMl: 0 } })).length)
       .toBeGreaterThan(0);
+  });
+
+  // The sheet's own totals count a drop laid at the foul line (ADR-141), so a
+  // reading that has it agrees with them and one that dropped it does not.
+  it("accepts a drop where the machine stands, because the sheet counts it", () => {
+    const drop = { ...CHROMIUM_6742[0], start_distance: 0, end_distance: 0, loads: 1, microliters: 50, left_board: 2, right_board: 38 };
+    const stats = oilStats([drop]);
+    expect(stats.forwardMl).toBeCloseTo(1.85);
+    expect(checkCandidate(chromium({
+      passes: [drop],
+      stated: { forwardMl: 1.85, reverseMl: 0, volumeMl: 1.85 },
+    }))).toEqual([]);
   });
 
   it("allows the rounding a sheet prints at, and nothing looser", () => {

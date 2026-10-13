@@ -154,6 +154,9 @@ export interface OilPass {
   /**
    * START and END feet. A reverse pass runs back toward the foul line, so its
    * end is BEFORE its start, exactly as the sheet prints it (42.0 to 39.0).
+   * Both may be the same foot when the pass lays oil where the machine stands,
+   * the `0 to 0` row some Kegel sheets open with (ADR-141): its oil counts, and
+   * it covers no distance, so it is never drawn.
    */
   start_distance: number;
   end_distance: number;

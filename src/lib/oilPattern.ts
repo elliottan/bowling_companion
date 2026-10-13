@@ -91,8 +91,27 @@ const isDrawable = (p: OilPass): boolean =>
   p.loads >= 0 &&
   p.microliters >= 0;
 
-/** A pass that actually puts oil on the boards. */
+/** A pass that actually puts oil on the boards, and covers some distance doing
+ *  it. These are the passes the lane is drawn from. */
 const laysOil = (p: OilPass): boolean => isDrawable(p) && p.loads > 0 && p.microliters > 0;
+
+/**
+ * A drop laid where the machine stands (ADR-141): START and END the same foot,
+ * the `0 to 0` row Kegel opens Boardwalk V2 and Arsenic with. It is real oil,
+ * boards times loads times microlitres like any other pass, and the sheet's own
+ * volume and ratio count it. But it covers no distance, so it has nothing to
+ * draw and cannot set the pattern's length.
+ */
+const isPointDrop = (p: OilPass): boolean =>
+  p.start_distance === p.end_distance &&
+  p.right_board >= p.left_board &&
+  p.loads > 0 &&
+  p.microliters > 0;
+
+/** Every pass whose oil is on the boards: those the lane draws, and the drops
+ *  that are counted but not drawn. Volume, the board totals and so the ratio
+ *  are taken from these. */
+const countsOil = (p: OilPass): boolean => laysOil(p) || isPointDrop(p);
 
 /** Units this pass leaves on each board it covers. */
 const passUnits = (p: OilPass): number => p.loads * p.microliters;
@@ -153,11 +172,11 @@ export function peakUnits(zones: readonly OilZone[]): number {
 
 export function oilStats(passes: readonly OilPass[] | undefined): OilStats {
   const all = (passes ?? []).filter(isDrawable);
-  const oiling = all.filter(laysOil);
+  const oiling = (passes ?? []).filter(countsOil);
   const empty: OilStats = {
     length: 0, volumeMl: 0, forwardMl: 0, reverseMl: 0, ratio: null, fromBoard: null, toBoard: null,
   };
-  if (all.length === 0) return empty;
+  if (all.length === 0 && oiling.length === 0) return empty;
 
   let forward = 0;
   let reverse = 0;
@@ -175,7 +194,7 @@ export function oilStats(passes: readonly OilPass[] | undefined): OilStats {
     // Chromium 6742 sheet the last oil goes down at 30.6 ft and the quoted
     // pattern distance is 42: the buffer carries it the rest of the way, and 42
     // is the number on the wall at the alley.
-    length: Math.max(...all.map((p) => passSpan(p).to)),
+    length: all.length ? Math.max(...all.map((p) => passSpan(p).to)) : 0,
     volumeMl: (forward + reverse) / 1000,
     forwardMl: forward / 1000,
     reverseMl: reverse / 1000,
@@ -227,7 +246,7 @@ const TRACK_ZONES: Array<{ label: string; from: number; to: number }> = [
 const MIDDLE_ZONE = { from: 18, to: 22 }; // 18L to 18R
 
 export function trackZoneRatios(passes: readonly OilPass[] | undefined): TrackZoneRatio[] {
-  const oiling = (passes ?? []).filter(laysOil);
+  const oiling = (passes ?? []).filter(countsOil);
   if (oiling.length === 0) return [];
   const totals = boardTotals(oiling);
   const mean = (from: number, to: number) => {

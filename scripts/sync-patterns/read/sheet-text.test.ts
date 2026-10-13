@@ -53,6 +53,36 @@ describe("parseSheetLines", () => {
     expect(back?.end_distance).toBe(39);
   });
 
+  // Boardwalk V2 and Arsenic open with a drop at 0 to 0 ft (ADR-141). It has no
+  // travel to give its direction, so the heading over its table does.
+  describe("a drop laid where the machine stands", () => {
+    const DROP = "1 2L 2R 1 50 14 3 A - KEGEL 0 → 0 1,850";
+    const RUN = "2 5L 5R 3 50 18 3 A - KEGEL 0 → 8 4,650";
+
+    it("is kept, in the direction of the table it sits under", () => {
+      const forward = parseSheetLines(["FORWARD LOADS DATA", DROP, RUN]).passes;
+      expect(forward).toHaveLength(2);
+      expect(forward[0]).toMatchObject({ direction: "forward", start_distance: 0, end_distance: 0, loads: 1, microliters: 50 });
+
+      const reverse = parseSheetLines(["REVERSE LOADS DATA", DROP]).passes;
+      expect(reverse[0].direction).toBe("reverse");
+    });
+
+    it("is skipped under no heading, where nothing says which way it went", () => {
+      expect(parseSheetLines([DROP, RUN]).passes).toHaveLength(1);
+    });
+
+    it("is skipped when it lays nothing", () => {
+      const nothing = "1 2L 2R 0 50 14 3 A - KEGEL 0 → 0 0";
+      expect(parseSheetLines(["FORWARD LOADS DATA", nothing, RUN]).passes).toHaveLength(1);
+    });
+
+    it("does not take a header total for a table heading", () => {
+      const lines = ["FORWARD: 14.9 mL", DROP];
+      expect(parseSheetLines(lines).passes).toHaveLength(0);
+    });
+  });
+
   it("converts the sheet's board notation", () => {
     const [first] = parseSheetLines(SHEET).passes;
     expect(first.left_board).toBe(2);   // 2L

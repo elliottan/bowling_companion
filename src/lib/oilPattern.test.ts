@@ -5,7 +5,7 @@ import {
   oiledSpanAt, parseSheetBoard, patternClass, patternLabel, patternLength, peakUnits, toHandBoard,
   trackZoneRatios,
 } from "./oilPattern";
-import { CHROMIUM_6742 } from "./oilPattern.fixture";
+import { BOARDWALK_V2, CHROMIUM_6742 } from "./oilPattern.fixture";
 
 const pass = (p: Partial<OilPass> = {}): OilPass => ({
   direction: "forward",
@@ -49,6 +49,47 @@ describe("oilZones", () => {
     expect(oilZones([pass({ end_distance: 0 })])).toEqual([]);
     expect(oilZones([pass({ loads: 0 })])).toEqual([]);
     expect(oilZones([pass({ left_board: 30, right_board: 10 })])).toEqual([]);
+  });
+});
+
+describe("a drop laid where the machine stands (ADR-141)", () => {
+  // Boardwalk V2's first forward row: 2L to 2R, 1 load, 50 uL, 0 to 0 ft.
+  const drop = pass({ start_distance: 0, end_distance: 0, left_board: 2, right_board: 38, loads: 1, microliters: 50 });
+  const run = pass({ end_distance: 8, left_board: 5, right_board: 35, loads: 3, microliters: 50 });
+
+  it("counts toward the oil laid, forward or reverse by its direction", () => {
+    expect(oilStats([drop]).forwardMl).toBeCloseTo(1.85); // 37 boards x 50 uL
+    expect(oilStats([{ ...drop, direction: "reverse" }]).reverseMl).toBeCloseTo(1.85);
+    expect(oilStats([drop, run]).volumeMl).toBeCloseTo(1.85 + (31 * 150) / 1000);
+  });
+
+  it("is on the boards, so it moves the ratio, but it is never drawn", () => {
+    expect(oilStats([drop, run]).ratio).not.toBe(oilStats([run]).ratio);
+    expect(oilZones([drop])).toEqual([]);
+    expect(oilZones([drop, run])).toEqual(oilZones([run]));
+  });
+
+  it("cannot set the pattern's length, and alone is no pattern to draw", () => {
+    expect(oilStats([drop, run]).length).toBe(8);
+    expect(oilStats([drop]).length).toBe(0);
+  });
+
+  it("reproduces Boardwalk V2's printed totals and ratio, which need it", () => {
+    const stats = oilStats(BOARDWALK_V2);
+    expect(stats.forwardMl).toBeCloseTo(14.9, 2);
+    expect(stats.reverseMl).toBeCloseTo(13.35, 2);
+    expect(stats.volumeMl).toBeCloseTo(28.25, 2);
+    expect(stats.length).toBe(35);
+    expect(headlineRatio(BOARDWALK_V2)).toBeCloseTo(2.16, 2);
+
+    const without = BOARDWALK_V2.filter((p) => p.start_distance !== p.end_distance);
+    expect(oilStats(without).forwardMl).toBeCloseTo(13.05, 2);
+    expect(headlineRatio(without)).toBeCloseTo(2.31, 2);
+  });
+
+  it("is still nothing when it lays no oil", () => {
+    expect(oilStats([{ ...drop, loads: 0 }])).toMatchObject({ volumeMl: 0, ratio: null });
+    expect(oilStats([{ ...drop, microliters: 0 }])).toMatchObject({ volumeMl: 0, ratio: null });
   });
 });
 
