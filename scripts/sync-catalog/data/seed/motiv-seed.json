@@ -5298,5 +5298,173 @@
     "_imageUrl": "https://www.motivbowling.com/userfiles/filemanager/7i6cqs7ir0gq50ytctov",
     "_sku": "MTVBRPRGL",
     "_discontinued": false
+  },
+  {
+    "brand": "Motiv",
+    "name": "Ascend - Dark Purple/Purple/Blue",
+    "releaseDate": "2025-07-23",
+    "coverstockRaw": "Vitality Pearl Reactive",
+    "factoryFinish": "5500 Grit LSP",
+    "coreName": "Flux V2",
+    "rg": 2.59,
+    "diff": 0.023,
+    "mbDiff": null,
+    "sourceUrls": [
+      "https://www.motivbowling.com/products/balls/entry-level/ascend-dark-purple-purple-blue.html"
+    ],
+    "productUrl": "https://www.motivbowling.com/products/balls/entry-level/ascend-dark-purple-purple-blue.html",
+    "weights": [
+      {
+        "weight": 15,
+        "rg": 2.59,
+        "diff": 0.023,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.6,
+        "diff": 0.024,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.65,
+        "diff": 0.017,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.72,
+        "diff": 0.015,
+        "mbDiff": null
+      },
+      {
+        "weight": 11,
+        "rg": 2.76,
+        "diff": 0.015,
+        "mbDiff": null
+      },
+      {
+        "weight": 10,
+        "rg": 2.83,
+        "diff": 0.015,
+        "mbDiff": null
+      }
+    ],
+    "_imageUrl": "https://www.motivbowling.com/userfiles/filemanager/arl239eneh3l96qavxz1",
+    "_sku": "MTVBASDPB",
+    "_discontinued": false
+  },
+  {
+    "brand": "Motiv",
+    "name": "Ascend - Navy/Teal/Yellow",
+    "releaseDate": "2025-07-23",
+    "coverstockRaw": "Vitality Pearl Reactive",
+    "factoryFinish": "5500 Grit LSP",
+    "coreName": "Flux V2",
+    "rg": 2.59,
+    "diff": 0.023,
+    "mbDiff": null,
+    "sourceUrls": [
+      "https://www.motivbowling.com/products/balls/entry-level/ascend-navy-teal-yellow.html"
+    ],
+    "productUrl": "https://www.motivbowling.com/products/balls/entry-level/ascend-navy-teal-yellow.html",
+    "weights": [
+      {
+        "weight": 15,
+        "rg": 2.59,
+        "diff": 0.023,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.6,
+        "diff": 0.024,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.65,
+        "diff": 0.017,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.72,
+        "diff": 0.015,
+        "mbDiff": null
+      },
+      {
+        "weight": 11,
+        "rg": 2.76,
+        "diff": 0.015,
+        "mbDiff": null
+      },
+      {
+        "weight": 10,
+        "rg": 2.83,
+        "diff": 0.015,
+        "mbDiff": null
+      }
+    ],
+    "_imageUrl": "https://www.motivbowling.com/userfiles/filemanager/zle89x2bp400f21vf7al",
+    "_sku": "MTVBASNTY",
+    "_discontinued": false
+  },
+  {
+    "brand": "Motiv",
+    "name": "Ascend - Red/Black/Tangerine",
+    "releaseDate": "2025-07-23",
+    "coverstockRaw": "Vitality Pearl Reactive",
+    "factoryFinish": "5500 Grit LSP",
+    "coreName": "Flux V2",
+    "rg": 2.59,
+    "diff": 0.023,
+    "mbDiff": null,
+    "sourceUrls": [
+      "https://www.motivbowling.com/products/balls/entry-level/ascend-red-black-tangerine.html"
+    ],
+    "productUrl": "https://www.motivbowling.com/products/balls/entry-level/ascend-red-black-tangerine.html",
+    "weights": [
+      {
+        "weight": 15,
+        "rg": 2.59,
+        "diff": 0.023,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.6,
+        "diff": 0.024,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.65,
+        "diff": 0.017,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.72,
+        "diff": 0.015,
+        "mbDiff": null
+      },
+      {
+        "weight": 11,
+        "rg": 2.76,
+        "diff": 0.015,
+        "mbDiff": null
+      },
+      {
+        "weight": 10,
+        "rg": 2.83,
+        "diff": 0.015,
+        "mbDiff": null
+      }
+    ],
+    "_imageUrl": "https://www.motivbowling.com/userfiles/filemanager/ej2uu7lf83vtfzplaw9j",
+    "_sku": "MTVBASRBT",
+    "_discontinued": false
   }
 ]
