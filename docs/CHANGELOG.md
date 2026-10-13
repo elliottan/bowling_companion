@@ -9,6 +9,14 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.32.1: Your arsenal shows the catalog's current photo (2026-10-13)
+
+**A ball in your arsenal no longer keeps an old photo after the catalog's is
+fixed.** Each ball kept the photo it had when you linked it, so Pyramid Path
+showed its old white-rimmed picture in the arsenal while the catalog showed the
+cleaned one. The app now brings every linked ball's photo up to date when it
+starts, with or without signal.
+
 ## 0.32.0: 281 more balls, and a photo on almost every ball (2026-10-13)
 
 **The catalog goes from 518 balls to 799.** Every ball approved from 2022 to

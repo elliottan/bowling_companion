@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { syncCatalog, getAllCatalog, getStoredCatalogVersion } from "./ballCatalogRepository";
+import { syncCatalog, getAllCatalog, getStoredCatalogVersion, refreshArsenalPhotos } from "./ballCatalogRepository";
 import { db } from "../db/bowlingDb";
 import type { CatalogBall, CatalogManifest } from "../types/catalog";
 
@@ -222,5 +222,83 @@ describe("syncCatalog", () => {
 
     const storedVersion = await getStoredCatalogVersion();
     expect(storedVersion).toBe(3);
+  });
+});
+
+describe("refreshArsenalPhotos (ADR-143)", () => {
+  const snap = (imageThumb: string | null) => ({
+    brand: "Pyramid",
+    name: "Path",
+    coverstockCategory: "Polyester",
+    coreName: "Pancake",
+    rg: 2.68,
+    diff: 0.006,
+    mbDiff: null,
+    imageThumb
+  });
+
+  beforeEach(async () => {
+    await db.balls.clear();
+  });
+
+  it("points a linked ball at the photo its catalog entry has now, and leaves the rest of the ball alone", async () => {
+    await db.ball_catalog.put({ ...makeBall("pyramid-path-2011"), imageThumb: "/catalog/img/path-bg2-thumb.webp" });
+    const id = await db.balls.add({
+      name: "Path",
+      is_spare_ball: true,
+      weight: 15,
+      catalog_ref_id: "pyramid-path-2011",
+      catalog_snapshot: snap("/catalog/img/path-thumb.webp")
+    });
+
+    expect(await refreshArsenalPhotos()).toBe(1);
+
+    const ball = await db.balls.get(id);
+    expect(ball?.catalog_snapshot?.imageThumb).toBe("/catalog/img/path-bg2-thumb.webp");
+    // The specs were read for this ball's weight; only the photo follows.
+    expect(ball?.catalog_snapshot?.rg).toBe(2.68);
+    expect(ball?.name).toBe("Path");
+    expect(ball?.weight).toBe(15);
+  });
+
+  it("leaves unlinked balls, current photos and balls whose entry has gone as they are", async () => {
+    await db.ball_catalog.put({ ...makeBall("storm-nova-2024"), imageThumb: "/a.webp" });
+    await db.balls.bulkAdd([
+      { name: "Plastic", is_spare_ball: false },
+      { name: "Nova", is_spare_ball: false, catalog_ref_id: "storm-nova-2024", catalog_snapshot: snap("/a.webp") },
+      { name: "Gone", is_spare_ball: false, catalog_ref_id: "storm-gone-2019", catalog_snapshot: snap("/old.webp") }
+    ]);
+
+    expect(await refreshArsenalPhotos()).toBe(0);
+    const gone = (await db.balls.toArray()).find((b) => b.name === "Gone");
+    expect(gone?.catalog_snapshot?.imageThumb).toBe("/old.webp");
+  });
+
+  it("takes a ball's photo down when its catalog entry's photo was taken down", async () => {
+    await db.ball_catalog.put({ ...makeBall("storm-nova-2024"), imageThumb: null });
+    const id = await db.balls.add({
+      name: "Nova",
+      is_spare_ball: false,
+      catalog_ref_id: "storm-nova-2024",
+      catalog_snapshot: snap("/a.webp")
+    });
+    await refreshArsenalPhotos();
+    expect((await db.balls.get(id))?.catalog_snapshot?.imageThumb).toBeNull();
+  });
+
+  it("runs after a sync even when the network is not there, against the catalog on the device", async () => {
+    await db.ball_catalog.put({ ...makeBall("pyramid-path-2011"), imageThumb: "/new.webp" });
+    const id = await db.balls.add({
+      name: "Path",
+      is_spare_ball: false,
+      catalog_ref_id: "pyramid-path-2011",
+      catalog_snapshot: snap("/old.webp")
+    });
+    vi.stubGlobal("fetch", vi.fn(() => Promise.reject(new Error("offline"))));
+
+    await syncCatalog();
+
+    expect((await db.balls.get(id))?.catalog_snapshot?.imageThumb).toBe("/new.webp");
+    vi.unstubAllGlobals();
   });
 });

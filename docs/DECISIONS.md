@@ -6637,3 +6637,38 @@ automatic fetch that once matched the wrong photo.
 - 798 of 799 balls have a photo. PhysiX Burst has no page to take one from.
 - Asking Storm and Brunswick for their dealer media, as MOTIV was asked
   (ADR-061), is still the way to settle the rights question for good.
+
+
+## ADR-143: An arsenal ball's photo follows its catalog entry
+
+**Status.** Accepted, 2026-10-13.
+
+**Context.** Linking a ball to the catalog copies a snapshot of the entry onto
+the ball (ADR-007), so the arsenal, the picker, the scorer and Stats draw it
+without the catalog loaded. Nothing ever wrote that snapshot again. When the
+catalog's photo of Pyramid Path was re-cut and given a new file name, so the
+30-day photo cache would let it through, the owner's own Path kept the old path
+and the old picture, white rim and all, while the catalog card beside it in the
+same sheet showed the new one. Re-saving the ball fixed it, which nobody would
+think to do. The catalog also synced only when its screen or the picker
+opened, so a device could go weeks on an old table.
+
+**Decision.**
+
+- **The photo in a linked ball's snapshot follows its catalog entry.** After
+  every catalog sync, `refreshArsenalPhotos` writes the entry's current
+  `imageThumb` into each linked ball's snapshot where it differs, including to
+  `null` when the photo was taken down (ADR-138, ADR-142: a takedown is a data
+  edit, and it has to reach the arsenal to mean anything).
+- **Nothing else in the snapshot moves.** The specs in it were read for the
+  ball's own weight when it was linked, and the name, weight and layout are
+  the bowler's. An entry that has left the catalog leaves the ball untouched.
+- **The catalog syncs a few seconds after launch**, before the arsenal photo
+  warm-up, and the photo step runs even when the fetch fails, against the
+  table already on the device.
+
+**Consequences.**
+
+- A photo fix in the catalog reaches every arsenal on its next launch.
+- A launch makes one small manifest request; the catalog itself is fetched
+  only when the manifest says it changed, as before.
