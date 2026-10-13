@@ -17,6 +17,10 @@ text. Tap the pencil in the top right to edit, and the tick saves, the same as
 a spare line or your Bowling profile. Adding a ball still opens straight on the
 fields. Retire and Delete stay where they were.
 
+**A pattern's lane sits in the middle of the screen.** The drawing under Oil
+on the lane used to lean right, pushed over by the feet scale on its left. It
+now keeps a matching margin on the right, so the lane is centred.
+
 ## 0.29.0: Thirty-four more Kegel patterns (2026-10-13)
 
 **The patterns a house actually runs, plus the rest of Kegel's named series.**

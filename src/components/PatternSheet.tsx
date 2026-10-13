@@ -376,10 +376,14 @@ function LaneMap({ passes, length }: { passes: OilPass[]; length: number }) {
   // Up to the next 5 ft past the end of the oil, so the dry lane beyond it shows.
   const top = Math.ceil((length + 2) / 5) * 5;
   const LEFT = 9; // room for the feet scale
+  // The same gutter on the right, empty, so the lane sits in the middle of the
+  // screen rather than pushed right by the scale.
+  const RIGHT = LEFT;
   const W = 100;
+  const LANE_RIGHT = W - RIGHT;
   const H = 96;
   const BASE = H + 2;
-  const board = (W - LEFT) / LANE_BOARDS;
+  const board = (LANE_RIGHT - LEFT) / LANE_BOARDS;
   const x = (b: number) => LEFT + (b - 1) * board;
   const y = (feet: number) => BASE - (feet / top) * H;
   const ticks = Array.from({ length: Math.floor(top / 5) + 1 }, (_, i) => i * 5);
@@ -392,7 +396,7 @@ function LaneMap({ passes, length }: { passes: OilPass[]; length: number }) {
       aria-label={`Oil on the lane, ending at ${Math.round(length)} ft`}
     >
       {/* The wood, with a rule every five boards like the arrows and dots. */}
-      <rect x={LEFT} y={BASE - H} width={W - LEFT} height={H} className="fill-surface-muted" />
+      <rect x={LEFT} y={BASE - H} width={LANE_RIGHT - LEFT} height={H} className="fill-surface-muted" />
       {[5, 10, 15, 20, 25, 30, 35].map((b) => (
         <line key={b} x1={x(b) + board} x2={x(b) + board} y1={BASE - H} y2={BASE}
           className="stroke-edge" strokeWidth={0.15} />
@@ -444,10 +448,10 @@ function LaneMap({ passes, length }: { passes: OilPass[]; length: number }) {
       {/* Where the oil ends: the figure a bowler reads the sheet for. */}
       <line
         data-role="oil-end"
-        x1={LEFT} x2={W} y1={y(length)} y2={y(length)}
+        x1={LEFT} x2={LANE_RIGHT} y1={y(length)} y2={y(length)}
         className="stroke-ink" strokeWidth={0.35} strokeDasharray="1.4 0.9"
       />
-      <text x={W - 0.5} y={y(length) - 1.2} textAnchor="end" fontSize="3.6" fontWeight={700} className="fill-ink">
+      <text x={LANE_RIGHT - 0.5} y={y(length) - 1.2} textAnchor="end" fontSize="3.6" fontWeight={700} className="fill-ink">
         {Math.round(length)} ft
       </text>
 
