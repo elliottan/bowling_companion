@@ -9,6 +9,17 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.28.1: Sideways lists stop at their ends (2026-10-13)
+
+**No more bounce when you scroll sideways.** The Balls card, every ball on the
+All balls sheet (its columns, its by-game table and its leaves), the leaves
+along each spare line, the chip rows and the zoomed pattern sheet now stop
+dead at their ends instead of springing past them. On the Balls card the ball
+names stay put while only the numbers move.
+
+**A pressed ball row lights up all the way across.** Tapping a ball on the
+Balls card no longer leaves a dark block behind its name.
+
 ## 0.28.0: Spare lines that follow your moves, and a whole row edited at once (2026-10-12)
 
 **Move once, and every leave on that line follows.** If you move for the 6 and

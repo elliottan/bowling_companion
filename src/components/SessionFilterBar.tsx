@@ -90,7 +90,7 @@ export function SessionFilterChips({ filters }: { filters: SessionFilters }) {
     // by 6px top and bottom to reach 44pt. Without it the top of every tap
     // region is dead (the same bug ActiveSessionView's game row carries a note
     // about).
-    <div className="-mx-3 mb-2 flex items-center gap-2 overflow-x-auto px-3 py-1.5 sm:-mx-6 sm:px-6">
+    <div className="-mx-3 mb-2 flex items-center gap-2 overflow-x-auto overscroll-x-none px-3 py-1.5 sm:-mx-6 sm:px-6">
       {alley && <AppliedChip label={alley} onRemove={() => setAlley("")} />}
       {pattern && <AppliedChip label={pattern} onRemove={() => setPattern("")} />}
       {event && <AppliedChip label={event} onRemove={() => setEvent("")} />}

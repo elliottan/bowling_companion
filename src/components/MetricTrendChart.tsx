@@ -147,7 +147,7 @@ export function MetricTrendChart({
   return (
     <div className="rounded-xl border border-edge bg-surface p-3 shadow-sm">
       {header}
-      <div className={overflows ? "-mx-1 overflow-x-auto overscroll-x-contain px-1" : ""}>
+      <div className={overflows ? "-mx-1 overflow-x-auto overscroll-x-none px-1" : ""}>
       <svg
         viewBox={`0 0 ${plotW} ${H}`}
         className="w-full"
