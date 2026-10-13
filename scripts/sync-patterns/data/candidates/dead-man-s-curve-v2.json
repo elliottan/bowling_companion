@@ -1,0 +1,180 @@
+{
+  "id": "dead-man-s-curve-v2",
+  "name": "Dead Man'S Curve V2",
+  "vendor": "kegel",
+  "sourceUrl": "https://patternlibrary.kegel.net/pattern/fec2cae3-d052-ec11-8c62-000d3a5afd36",
+  "reader": "text-layer",
+  "passes": [
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 6,
+      "microliters": 50,
+      "start_distance": 0,
+      "end_distance": 10,
+      "speed": 14,
+      "buffer": 3,
+      "tank": "A - KEGEL"
+    },
+    {
+      "direction": "forward",
+      "left_board": 11,
+      "right_board": 29,
+      "loads": 2,
+      "microliters": 50,
+      "start_distance": 10,
+      "end_distance": 14,
+      "speed": 14,
+      "buffer": 3,
+      "tank": "A - KEGEL"
+    },
+    {
+      "direction": "forward",
+      "left_board": 12,
+      "right_board": 28,
+      "loads": 3,
+      "microliters": 50,
+      "start_distance": 14,
+      "end_distance": 20,
+      "speed": 14,
+      "buffer": 3,
+      "tank": "A - KEGEL"
+    },
+    {
+      "direction": "forward",
+      "left_board": 14,
+      "right_board": 26,
+      "loads": 4,
+      "microliters": 50,
+      "start_distance": 20,
+      "end_distance": 30,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "A - KEGEL"
+    },
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 50,
+      "start_distance": 30,
+      "end_distance": 35,
+      "speed": 22,
+      "buffer": 3,
+      "tank": "A - KEGEL"
+    },
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 50,
+      "start_distance": 35,
+      "end_distance": 43,
+      "speed": 26,
+      "buffer": 3,
+      "tank": "A - KEGEL"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 50,
+      "start_distance": 40,
+      "end_distance": 30,
+      "speed": 30,
+      "buffer": 3,
+      "tank": "A - KEGEL"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 15,
+      "right_board": 25,
+      "loads": 1,
+      "microliters": 50,
+      "start_distance": 30,
+      "end_distance": 26,
+      "speed": 26,
+      "buffer": 3,
+      "tank": "A - KEGEL"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 13,
+      "right_board": 27,
+      "loads": 2,
+      "microliters": 50,
+      "start_distance": 26,
+      "end_distance": 20,
+      "speed": 22,
+      "buffer": 3,
+      "tank": "A - KEGEL"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 12,
+      "right_board": 28,
+      "loads": 2,
+      "microliters": 50,
+      "start_distance": 20,
+      "end_distance": 15,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "A - KEGEL"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 11,
+      "right_board": 29,
+      "loads": 2,
+      "microliters": 50,
+      "start_distance": 15,
+      "end_distance": 10,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "A - KEGEL"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 10,
+      "right_board": 30,
+      "loads": 1,
+      "microliters": 50,
+      "start_distance": 10,
+      "end_distance": 8,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "A - KEGEL"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 50,
+      "start_distance": 8,
+      "end_distance": 0,
+      "speed": 14,
+      "buffer": 3,
+      "tank": "A - KEGEL"
+    }
+  ],
+  "stated": {
+    "distance": 43,
+    "forwardMl": 18.15,
+    "reverseMl": 6.7,
+    "volumeMl": 24.85
+  },
+  "note": "dead-man-s-curve-v2.pdf · 43 ft · 3.83:1",
+  "sheet": {
+    "file": "dead-man-s-curve-v2.78d7d366deb6.pdf",
+    "sha256": "78d7d366deb69e49e75c848b55dbe0e88846b89768661a31829ada408309d8fa",
+    "bytes": 939738,
+    "pages": [
+      "dead-man-s-curve-v2.78d7d366deb6.p1.webp"
+    ]
+  }
+}

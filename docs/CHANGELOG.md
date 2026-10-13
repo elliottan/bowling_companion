@@ -9,6 +9,26 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.29.0: Thirty-four more Kegel patterns (2026-10-13)
+
+**The patterns a house actually runs, plus the rest of Kegel's named series.**
+The catalog goes from 8 patterns to 42, each opening on its lane picture with
+its load table and carrying Kegel's original sheet.
+
+- **House shots:** Easy Street V2, Main Street V2, Wall Street V2 and Stone
+  Street (ratios from 10 to 12.5).
+- **Sport and moderate:** Beaten Path V2, Broadway V2, Dead Man's Curve V2,
+  Highway To Hell V2, Middle Road V2, Route 66 V2, Winding Road V2, Abbey Road,
+  Autobahn, Bourbon Street, Sunset Strip and Turnpike.
+- **Element series:** Carbon, Helium, Krypton, Lithium, Neon, Plutonium,
+  Radium and Titanium, joining Chromium, Mercury and Tungsten.
+- **Landmark series:** Alcatraz, Chichen Itza, Eiffel Tower, Gateway Arch, Great
+  Wall of China, Red Square, Sphinx, Statue of Liberty, Taj Mahal and Tower of
+  Pisa, joining Big Ben and Stonehenge.
+
+Boardwalk V2 and Arsenic are not among them yet: each sheet opens with a drop
+laid at the foul line, a pass with no length, which the load table cannot hold.
+
 ## 0.28.1: Sideways lists stop at their ends (2026-10-13)
 
 **No more bounce when you scroll sideways.** The Balls card, every ball on the

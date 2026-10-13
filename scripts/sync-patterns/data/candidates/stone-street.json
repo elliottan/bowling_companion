@@ -1,0 +1,204 @@
+{
+  "id": "stone-street",
+  "name": "Stone Street",
+  "vendor": "kegel",
+  "sourceUrl": "https://patternlibrary.kegel.net/pattern/1acfe9af-cf52-ec11-8c62-000d3a5afff3",
+  "reader": "text-layer",
+  "passes": [
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 2,
+      "microliters": 50,
+      "start_distance": 0,
+      "end_distance": 2,
+      "speed": 14,
+      "buffer": 3,
+      "tank": "A - KEGEL"
+    },
+    {
+      "direction": "forward",
+      "left_board": 9,
+      "right_board": 31,
+      "loads": 1,
+      "microliters": 50,
+      "start_distance": 2,
+      "end_distance": 4,
+      "speed": 14,
+      "buffer": 3,
+      "tank": "A - KEGEL"
+    },
+    {
+      "direction": "forward",
+      "left_board": 10,
+      "right_board": 30,
+      "loads": 2,
+      "microliters": 50,
+      "start_distance": 4,
+      "end_distance": 9,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "A - KEGEL"
+    },
+    {
+      "direction": "forward",
+      "left_board": 11,
+      "right_board": 29,
+      "loads": 3,
+      "microliters": 50,
+      "start_distance": 9,
+      "end_distance": 17,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "A - KEGEL"
+    },
+    {
+      "direction": "forward",
+      "left_board": 12,
+      "right_board": 28,
+      "loads": 2,
+      "microliters": 50,
+      "start_distance": 17,
+      "end_distance": 22,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "A - KEGEL"
+    },
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 50,
+      "start_distance": 22,
+      "end_distance": 34,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "A - KEGEL"
+    },
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 50,
+      "start_distance": 34,
+      "end_distance": 38,
+      "speed": 26,
+      "buffer": 3,
+      "tank": "A - KEGEL"
+    },
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 50,
+      "start_distance": 38,
+      "end_distance": 42,
+      "speed": 30,
+      "buffer": 3,
+      "tank": "A - KEGEL"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 50,
+      "start_distance": 42,
+      "end_distance": 35,
+      "speed": 30,
+      "buffer": 3,
+      "tank": "A - KEGEL"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 12,
+      "right_board": 28,
+      "loads": 1,
+      "microliters": 50,
+      "start_distance": 35,
+      "end_distance": 32,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "A - KEGEL"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 11,
+      "right_board": 29,
+      "loads": 2,
+      "microliters": 50,
+      "start_distance": 32,
+      "end_distance": 27,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "A - KEGEL"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 10,
+      "right_board": 30,
+      "loads": 4,
+      "microliters": 50,
+      "start_distance": 27,
+      "end_distance": 17,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "A - KEGEL"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 9,
+      "right_board": 31,
+      "loads": 3,
+      "microliters": 50,
+      "start_distance": 17,
+      "end_distance": 10,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "A - KEGEL"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 8,
+      "right_board": 32,
+      "loads": 1,
+      "microliters": 50,
+      "start_distance": 10,
+      "end_distance": 8,
+      "speed": 14,
+      "buffer": 3,
+      "tank": "A - KEGEL"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 50,
+      "start_distance": 8,
+      "end_distance": 0,
+      "speed": 10,
+      "buffer": 3,
+      "tank": "A - KEGEL"
+    }
+  ],
+  "stated": {
+    "distance": 42,
+    "forwardMl": 11.5,
+    "reverseMl": 11.65,
+    "volumeMl": 23.15
+  },
+  "note": "stone-street.pdf · 42 ft · 10.50:1",
+  "sheet": {
+    "file": "stone-street.cb1cdc0d6d81.pdf",
+    "sha256": "cb1cdc0d6d8123112ad38c08f6590eb310a17d5d1bbcd240e7e41b57896f6bc6",
+    "bytes": 932819,
+    "pages": [
+      "stone-street.cb1cdc0d6d81.p1.webp"
+    ]
+  }
+}

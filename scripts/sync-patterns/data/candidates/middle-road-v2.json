@@ -1,0 +1,192 @@
+{
+  "id": "middle-road-v2",
+  "name": "Middle Road V2",
+  "vendor": "kegel",
+  "sourceUrl": "https://patternlibrary.kegel.net/pattern/fede4eef-d052-ec11-8c62-000d3a5afff3",
+  "reader": "text-layer",
+  "passes": [
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 3,
+      "microliters": 50,
+      "start_distance": 0,
+      "end_distance": 4,
+      "speed": 14,
+      "buffer": 3,
+      "tank": "A - KEGEL"
+    },
+    {
+      "direction": "forward",
+      "left_board": 6,
+      "right_board": 34,
+      "loads": 2,
+      "microliters": 50,
+      "start_distance": 4,
+      "end_distance": 9,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "A - KEGEL"
+    },
+    {
+      "direction": "forward",
+      "left_board": 8,
+      "right_board": 32,
+      "loads": 2,
+      "microliters": 50,
+      "start_distance": 9,
+      "end_distance": 14,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "A - KEGEL"
+    },
+    {
+      "direction": "forward",
+      "left_board": 10,
+      "right_board": 30,
+      "loads": 3,
+      "microliters": 50,
+      "start_distance": 14,
+      "end_distance": 20,
+      "speed": 14,
+      "buffer": 3,
+      "tank": "A - KEGEL"
+    },
+    {
+      "direction": "forward",
+      "left_board": 12,
+      "right_board": 28,
+      "loads": 2,
+      "microliters": 50,
+      "start_distance": 20,
+      "end_distance": 25,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "A - KEGEL"
+    },
+    {
+      "direction": "forward",
+      "left_board": 14,
+      "right_board": 26,
+      "loads": 1,
+      "microliters": 50,
+      "start_distance": 25,
+      "end_distance": 27,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "A - KEGEL"
+    },
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 50,
+      "start_distance": 27,
+      "end_distance": 32,
+      "speed": 22,
+      "buffer": 3,
+      "tank": "A - KEGEL"
+    },
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 50,
+      "start_distance": 32,
+      "end_distance": 39,
+      "speed": 30,
+      "buffer": 3,
+      "tank": "A - KEGEL"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 50,
+      "start_distance": 37,
+      "end_distance": 30,
+      "speed": 30,
+      "buffer": 3,
+      "tank": "A - KEGEL"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 13,
+      "right_board": 27,
+      "loads": 3,
+      "microliters": 50,
+      "start_distance": 30,
+      "end_distance": 21,
+      "speed": 22,
+      "buffer": 3,
+      "tank": "A - KEGEL"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 11,
+      "right_board": 29,
+      "loads": 3,
+      "microliters": 50,
+      "start_distance": 21,
+      "end_distance": 12,
+      "speed": 22,
+      "buffer": 3,
+      "tank": "A - KEGEL"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 9,
+      "right_board": 31,
+      "loads": 1,
+      "microliters": 50,
+      "start_distance": 12,
+      "end_distance": 9,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "A - KEGEL"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 7,
+      "right_board": 33,
+      "loads": 1,
+      "microliters": 50,
+      "start_distance": 9,
+      "end_distance": 6,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "A - KEGEL"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 50,
+      "start_distance": 6,
+      "end_distance": 0,
+      "speed": 14,
+      "buffer": 3,
+      "tank": "A - KEGEL"
+    }
+  ],
+  "stated": {
+    "distance": 39,
+    "forwardMl": 16.45,
+    "reverseMl": 7.6,
+    "volumeMl": 24.05
+  },
+  "note": "middle-road-v2.pdf · 39 ft · 5.25:1",
+  "sheet": {
+    "file": "middle-road-v2.7d97ab42e896.pdf",
+    "sha256": "7d97ab42e896a3a7c191985d84047ad0a4abca4caf9be04ff763857e85e3a38c",
+    "bytes": 941396,
+    "pages": [
+      "middle-road-v2.7d97ab42e896.p1.webp"
+    ]
+  }
+}

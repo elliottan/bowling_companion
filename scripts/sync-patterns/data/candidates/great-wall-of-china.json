@@ -1,0 +1,204 @@
+{
+  "id": "great-wall-of-china",
+  "name": "Great Wall Of China",
+  "vendor": "kegel",
+  "sourceUrl": "https://patternlibrary.kegel.net/pattern/6e29e68e-d052-ec11-8c62-000d3a5afd36",
+  "reader": "text-layer",
+  "passes": [
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 4,
+      "microliters": 50,
+      "start_distance": 0,
+      "end_distance": 8,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "A - FIRE"
+    },
+    {
+      "direction": "forward",
+      "left_board": 10,
+      "right_board": 30,
+      "loads": 1,
+      "microliters": 50,
+      "start_distance": 8,
+      "end_distance": 10,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "A - FIRE"
+    },
+    {
+      "direction": "forward",
+      "left_board": 11,
+      "right_board": 29,
+      "loads": 3,
+      "microliters": 50,
+      "start_distance": 10,
+      "end_distance": 18,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "A - FIRE"
+    },
+    {
+      "direction": "forward",
+      "left_board": 12,
+      "right_board": 28,
+      "loads": 3,
+      "microliters": 50,
+      "start_distance": 18,
+      "end_distance": 25,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "A - FIRE"
+    },
+    {
+      "direction": "forward",
+      "left_board": 13,
+      "right_board": 27,
+      "loads": 3,
+      "microliters": 50,
+      "start_distance": 25,
+      "end_distance": 34,
+      "speed": 22,
+      "buffer": 3,
+      "tank": "A - FIRE"
+    },
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 50,
+      "start_distance": 34,
+      "end_distance": 42,
+      "speed": 22,
+      "buffer": 3,
+      "tank": "A - FIRE"
+    },
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 50,
+      "start_distance": 42,
+      "end_distance": 48,
+      "speed": 26,
+      "buffer": 2,
+      "tank": "A - FIRE"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 40,
+      "start_distance": 43,
+      "end_distance": 39,
+      "speed": 30,
+      "buffer": 1,
+      "tank": "B - ICE"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 40,
+      "start_distance": 39,
+      "end_distance": 35,
+      "speed": 26,
+      "buffer": 2,
+      "tank": "B - ICE"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 13,
+      "right_board": 27,
+      "loads": 2,
+      "microliters": 40,
+      "start_distance": 35,
+      "end_distance": 29,
+      "speed": 22,
+      "buffer": 3,
+      "tank": "B - ICE"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 12,
+      "right_board": 28,
+      "loads": 2,
+      "microliters": 40,
+      "start_distance": 29,
+      "end_distance": 23,
+      "speed": 22,
+      "buffer": 3,
+      "tank": "B - ICE"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 11,
+      "right_board": 29,
+      "loads": 3,
+      "microliters": 40,
+      "start_distance": 23,
+      "end_distance": 13,
+      "speed": 22,
+      "buffer": 3,
+      "tank": "B - ICE"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 10,
+      "right_board": 30,
+      "loads": 2,
+      "microliters": 40,
+      "start_distance": 13,
+      "end_distance": 8,
+      "speed": 18,
+      "buffer": 4,
+      "tank": "B - ICE"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 10,
+      "right_board": 30,
+      "loads": 1,
+      "microliters": 40,
+      "start_distance": 8,
+      "end_distance": 6,
+      "speed": 14,
+      "buffer": 4,
+      "tank": "B - ICE"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 40,
+      "start_distance": 6,
+      "end_distance": 0,
+      "speed": 14,
+      "buffer": 4,
+      "tank": "B - ICE"
+    }
+  ],
+  "stated": {
+    "distance": 48,
+    "forwardMl": 16.1,
+    "reverseMl": 7.36,
+    "volumeMl": 23.46
+  },
+  "note": "great-wall-of-china.pdf · 48 ft · 5.50:1",
+  "sheet": {
+    "file": "great-wall-of-china.702543bc5cbc.pdf",
+    "sha256": "702543bc5cbc8f2634a61dbe5cc17c8aba687aea7bed5f117e2c9a0bb828f949",
+    "bytes": 942935,
+    "pages": [
+      "great-wall-of-china.702543bc5cbc.p1.webp"
+    ]
+  }
+}

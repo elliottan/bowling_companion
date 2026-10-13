@@ -1,0 +1,156 @@
+{
+  "id": "radium",
+  "name": "Radium",
+  "vendor": "kegel",
+  "sourceUrl": "https://patternlibrary.kegel.net/pattern/732cccd0-d052-ec11-8c62-000d3a5afff3",
+  "reader": "text-layer",
+  "passes": [
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 3,
+      "microliters": 45,
+      "start_distance": 0,
+      "end_distance": 5,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "A - TERRAIN"
+    },
+    {
+      "direction": "forward",
+      "left_board": 5,
+      "right_board": 35,
+      "loads": 1,
+      "microliters": 45,
+      "start_distance": 5,
+      "end_distance": 8,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "B - ICE"
+    },
+    {
+      "direction": "forward",
+      "left_board": 6,
+      "right_board": 34,
+      "loads": 2,
+      "microliters": 45,
+      "start_distance": 8,
+      "end_distance": 13,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "B - ICE"
+    },
+    {
+      "direction": "forward",
+      "left_board": 7,
+      "right_board": 33,
+      "loads": 1,
+      "microliters": 45,
+      "start_distance": 13,
+      "end_distance": 15,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "B - ICE"
+    },
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 55,
+      "start_distance": 15,
+      "end_distance": 37,
+      "speed": 22,
+      "buffer": 3,
+      "tank": "B - ICE"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 55,
+      "start_distance": 35,
+      "end_distance": 32,
+      "speed": 30,
+      "buffer": 3,
+      "tank": "A - TERRAIN"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 7,
+      "right_board": 33,
+      "loads": 2,
+      "microliters": 55,
+      "start_distance": 32,
+      "end_distance": 27,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "A - TERRAIN"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 6,
+      "right_board": 34,
+      "loads": 2,
+      "microliters": 55,
+      "start_distance": 27,
+      "end_distance": 22,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "A - TERRAIN"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 5,
+      "right_board": 35,
+      "loads": 4,
+      "microliters": 55,
+      "start_distance": 22,
+      "end_distance": 12,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "B - ICE"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 4,
+      "right_board": 36,
+      "loads": 1,
+      "microliters": 55,
+      "start_distance": 12,
+      "end_distance": 9,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "B - ICE"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 40,
+      "start_distance": 9,
+      "end_distance": 0,
+      "speed": 14,
+      "buffer": 3,
+      "tank": "B - ICE"
+    }
+  ],
+  "stated": {
+    "distance": 37,
+    "forwardMl": 10.215,
+    "reverseMl": 14.795,
+    "volumeMl": 25.01
+  },
+  "note": "radium.pdf · 37 ft · 1.80:1",
+  "sheet": {
+    "file": "radium.db2132c558cb.pdf",
+    "sha256": "db2132c558cb5f8b31dbdbf769ff337f28bcefeb252e8492fca381d1eba90e48",
+    "bytes": 938591,
+    "pages": [
+      "radium.db2132c558cb.p1.webp"
+    ]
+  }
+}

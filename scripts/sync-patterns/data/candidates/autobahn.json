@@ -1,0 +1,180 @@
+{
+  "id": "autobahn",
+  "name": "Autobahn",
+  "vendor": "kegel",
+  "sourceUrl": "https://patternlibrary.kegel.net/pattern/59aecdb2-cf52-ec11-8c62-000d3a5afd36",
+  "reader": "text-layer",
+  "passes": [
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 5,
+      "microliters": 50,
+      "start_distance": 0,
+      "end_distance": 8,
+      "speed": 14,
+      "buffer": 3,
+      "tank": "A - KEGEL"
+    },
+    {
+      "direction": "forward",
+      "left_board": 6,
+      "right_board": 34,
+      "loads": 1,
+      "microliters": 50,
+      "start_distance": 8,
+      "end_distance": 10,
+      "speed": 14,
+      "buffer": 3,
+      "tank": "A - KEGEL"
+    },
+    {
+      "direction": "forward",
+      "left_board": 9,
+      "right_board": 31,
+      "loads": 2,
+      "microliters": 50,
+      "start_distance": 10,
+      "end_distance": 14,
+      "speed": 14,
+      "buffer": 3,
+      "tank": "A - KEGEL"
+    },
+    {
+      "direction": "forward",
+      "left_board": 9,
+      "right_board": 31,
+      "loads": 2,
+      "microliters": 50,
+      "start_distance": 14,
+      "end_distance": 19,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "A - KEGEL"
+    },
+    {
+      "direction": "forward",
+      "left_board": 12,
+      "right_board": 28,
+      "loads": 4,
+      "microliters": 50,
+      "start_distance": 19,
+      "end_distance": 29,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "A - KEGEL"
+    },
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 50,
+      "start_distance": 29,
+      "end_distance": 34,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "A - KEGEL"
+    },
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 50,
+      "start_distance": 34,
+      "end_distance": 42,
+      "speed": 22,
+      "buffer": 3,
+      "tank": "A - KEGEL"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 50,
+      "start_distance": 33,
+      "end_distance": 21,
+      "speed": 30,
+      "buffer": 3,
+      "tank": "A - KEGEL"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 12,
+      "right_board": 28,
+      "loads": 1,
+      "microliters": 50,
+      "start_distance": 21,
+      "end_distance": 18,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "A - KEGEL"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 9,
+      "right_board": 31,
+      "loads": 1,
+      "microliters": 50,
+      "start_distance": 18,
+      "end_distance": 16,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "A - KEGEL"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 6,
+      "right_board": 34,
+      "loads": 1,
+      "microliters": 50,
+      "start_distance": 16,
+      "end_distance": 13,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "A - KEGEL"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 2,
+      "microliters": 50,
+      "start_distance": 13,
+      "end_distance": 8,
+      "speed": 18,
+      "buffer": 3,
+      "tank": "A - KEGEL"
+    },
+    {
+      "direction": "reverse",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 50,
+      "start_distance": 8,
+      "end_distance": 0,
+      "speed": 14,
+      "buffer": 3,
+      "tank": "A - KEGEL"
+    }
+  ],
+  "stated": {
+    "distance": 42,
+    "forwardMl": 18.7,
+    "reverseMl": 7.15,
+    "volumeMl": 25.85
+  },
+  "note": "autobahn.pdf · 42 ft · 2.44:1",
+  "sheet": {
+    "file": "autobahn.d3b4cd1a741a.pdf",
+    "sha256": "d3b4cd1a741a34f2e02aa6ed26ab43980d9917261a7ab47f8fa7ac03cff7ca43",
+    "bytes": 940016,
+    "pages": [
+      "autobahn.d3b4cd1a741a.p1.webp"
+    ]
+  }
+}
