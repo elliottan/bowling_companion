@@ -209,9 +209,11 @@ function isOptionalOilPasses(value: unknown): value is OilPass[] | undefined {
     if (!nums.every((n) => typeof n === "number" && Number.isFinite(n))) return false;
     return (
       (pass.direction === "forward" || pass.direction === "reverse") &&
-      // A reverse pass ends before it starts; only a pass that goes nowhere is
-      // broken. A buffer-only pass carries zero loads and still belongs.
-      (pass.end_distance as number) !== (pass.start_distance as number) &&
+      // A reverse pass ends before it starts; only a pass that goes nowhere and
+      // lays nothing is broken. A buffer-only pass carries zero loads and still
+      // belongs, and so does a drop laid where the machine stands (ADR-141).
+      ((pass.end_distance as number) !== (pass.start_distance as number) ||
+        ((pass.loads as number) > 0 && (pass.microliters as number) > 0)) &&
       (pass.left_board as number) >= 1 &&
       (pass.right_board as number) <= 39 &&
       (pass.right_board as number) >= (pass.left_board as number) &&

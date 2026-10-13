@@ -197,11 +197,21 @@ function statedNumber(lines: readonly string[], label: RegExp): number | undefin
   return undefined;
 }
 
+/** The heading over each table, "FORWARD LOADS DATA". A row that travels says
+ *  which way it went by itself; a row that does not has only this to say it. */
+const TABLE_HEADING = /^\W*(forward|reverse)\s+loads?(?:\s+data)?\W*$/i;
+
 export function parseSheetLines(lines: readonly string[]): ParsedSheet {
   const passes: OilPass[] = [];
   const rowChecks: SheetCheck[] = [];
+  let table: OilPass["direction"] | null = null;
 
   for (const line of lines) {
+    const heading = TABLE_HEADING.exec(line);
+    if (heading) {
+      table = heading[1].toLowerCase() === "reverse" ? "reverse" : "forward";
+      continue;
+    }
     const row = matchRow(line);
     if (!row) continue;
     const left = parseSheetBoard(row.startBoard);
@@ -210,13 +220,19 @@ export function parseSheetLines(lines: readonly string[]): ParsedSheet {
 
     const start = Number(row.startFt);
     const end = Number(row.endFt);
-    if (start === end) continue;
+    // A row that stays put is a drop laid where the machine stands, the 0 to 0
+    // row Boardwalk V2 and Arsenic open with (ADR-141). It is real oil, and the
+    // sheet's own totals count it, so it is kept; but it has no travel to give
+    // its direction, so it is kept only under a heading that does, and a row
+    // that lays nothing is still just a row that goes nowhere.
+    const pointDrop = start === end;
+    if (pointDrop && (table == null || !(Number(row.loads) > 0 && Number(row.mics) > 0))) continue;
 
     const pass: OilPass = {
       // The machine only ever runs away from the foul line on a forward pass and
-      // back toward it on a reverse one, so the row says which it is and the
-      // parser never has to guess which table it was reading.
-      direction: end > start ? "forward" : "reverse",
+      // back toward it on a reverse one, so a travelling row says which it is
+      // and the parser never has to guess which table it was reading.
+      direction: pointDrop ? (table as OilPass["direction"]) : end > start ? "forward" : "reverse",
       left_board: Math.min(left, right),
       right_board: Math.max(left, right),
       loads: Number(row.loads),

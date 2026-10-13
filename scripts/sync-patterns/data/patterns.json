@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generated_at": "2026-10-13T06:06:47.209Z",
+  "generated_at": "2026-10-13T10:54:56.851Z",
   "patterns": [
     {
       "id": "2025-striking-against-breast-cancer-mixed-doubles",
@@ -634,6 +634,178 @@
       ]
     },
     {
+      "id": "arsenic",
+      "name": "Arsenic",
+      "vendor": "kegel",
+      "sourceUrl": "https://patternlibrary.kegel.net/pattern/50fd4bca-d052-ec11-8c62-000d3a5afff3",
+      "sheet": "sheets/arsenic.2a99f25d2007.pdf",
+      "sheetPages": [
+        "sheets/arsenic.2a99f25d2007.p1.webp"
+      ],
+      "distance": 41,
+      "volumeMl": 25.79,
+      "ratio": 1.361256544502618,
+      "shape": "sport",
+      "passes": [
+        {
+          "direction": "forward",
+          "left_board": 4,
+          "right_board": 36,
+          "loads": 1,
+          "microliters": 45,
+          "start_distance": 0,
+          "end_distance": 0,
+          "speed": 14,
+          "buffer": 3,
+          "tank": "A - TERRAIN"
+        },
+        {
+          "direction": "forward",
+          "left_board": 5,
+          "right_board": 35,
+          "loads": 2,
+          "microliters": 45,
+          "start_distance": 0,
+          "end_distance": 4,
+          "speed": 14,
+          "buffer": 3,
+          "tank": "A - TERRAIN"
+        },
+        {
+          "direction": "forward",
+          "left_board": 5,
+          "right_board": 35,
+          "loads": 1,
+          "microliters": 45,
+          "start_distance": 4,
+          "end_distance": 6,
+          "speed": 18,
+          "buffer": 3,
+          "tank": "A - TERRAIN"
+        },
+        {
+          "direction": "forward",
+          "left_board": 6,
+          "right_board": 34,
+          "loads": 3,
+          "microliters": 40,
+          "start_distance": 6,
+          "end_distance": 14,
+          "speed": 18,
+          "buffer": 3,
+          "tank": "A - TERRAIN"
+        },
+        {
+          "direction": "forward",
+          "left_board": 2,
+          "right_board": 38,
+          "loads": 5,
+          "microliters": 40,
+          "start_distance": 14,
+          "end_distance": 21,
+          "speed": 10,
+          "buffer": 3,
+          "tank": "A - TERRAIN"
+        },
+        {
+          "direction": "forward",
+          "left_board": 2,
+          "right_board": 38,
+          "loads": 0,
+          "microliters": 40,
+          "start_distance": 21,
+          "end_distance": 41,
+          "speed": 18,
+          "buffer": 3,
+          "tank": "B - CURRENT"
+        },
+        {
+          "direction": "reverse",
+          "left_board": 2,
+          "right_board": 38,
+          "loads": 0,
+          "microliters": 40,
+          "start_distance": 41,
+          "end_distance": 37,
+          "speed": 30,
+          "buffer": 3,
+          "tank": "B - CURRENT"
+        },
+        {
+          "direction": "reverse",
+          "left_board": 2,
+          "right_board": 38,
+          "loads": 1,
+          "microliters": 40,
+          "start_distance": 37,
+          "end_distance": 33,
+          "speed": 26,
+          "buffer": 3,
+          "tank": "B - CURRENT"
+        },
+        {
+          "direction": "reverse",
+          "left_board": 2,
+          "right_board": 38,
+          "loads": 1,
+          "microliters": 40,
+          "start_distance": 33,
+          "end_distance": 30,
+          "speed": 26,
+          "buffer": 3,
+          "tank": "A - TERRAIN"
+        },
+        {
+          "direction": "reverse",
+          "left_board": 5,
+          "right_board": 35,
+          "loads": 4,
+          "microliters": 40,
+          "start_distance": 30,
+          "end_distance": 15,
+          "speed": 26,
+          "buffer": 3,
+          "tank": "A - TERRAIN"
+        },
+        {
+          "direction": "reverse",
+          "left_board": 4,
+          "right_board": 36,
+          "loads": 1,
+          "microliters": 40,
+          "start_distance": 15,
+          "end_distance": 12,
+          "speed": 26,
+          "buffer": 3,
+          "tank": "B - CURRENT"
+        },
+        {
+          "direction": "reverse",
+          "left_board": 2,
+          "right_board": 38,
+          "loads": 0,
+          "microliters": 40,
+          "start_distance": 12,
+          "end_distance": 4,
+          "speed": 22,
+          "buffer": 3,
+          "tank": "B - CURRENT"
+        },
+        {
+          "direction": "reverse",
+          "left_board": 2,
+          "right_board": 38,
+          "loads": 0,
+          "microliters": 40,
+          "start_distance": 4,
+          "end_distance": 0,
+          "speed": 14,
+          "buffer": 3,
+          "tank": "B - CURRENT"
+        }
+      ]
+    },
+    {
       "id": "autobahn",
       "name": "Autobahn",
       "vendor": "kegel",
@@ -1205,6 +1377,190 @@
           "speed": 14,
           "buffer": 4,
           "tank": "A - FIRE"
+        }
+      ]
+    },
+    {
+      "id": "boardwalk-v2",
+      "name": "Boardwalk V2",
+      "vendor": "kegel",
+      "sourceUrl": "https://patternlibrary.kegel.net/pattern/5b7d3ddd-d052-ec11-8c62-000d3a5afff3",
+      "sheet": "sheets/boardwalk-v2.56da0303acb8.pdf",
+      "sheetPages": [
+        "sheets/boardwalk-v2.56da0303acb8.p1.webp"
+      ],
+      "distance": 35,
+      "volumeMl": 28.25,
+      "ratio": 2.159090909090909,
+      "shape": "sport",
+      "passes": [
+        {
+          "direction": "forward",
+          "left_board": 2,
+          "right_board": 38,
+          "loads": 1,
+          "microliters": 50,
+          "start_distance": 0,
+          "end_distance": 0,
+          "speed": 14,
+          "buffer": 3,
+          "tank": "A - KEGEL"
+        },
+        {
+          "direction": "forward",
+          "left_board": 5,
+          "right_board": 35,
+          "loads": 3,
+          "microliters": 50,
+          "start_distance": 0,
+          "end_distance": 8,
+          "speed": 18,
+          "buffer": 3,
+          "tank": "A - KEGEL"
+        },
+        {
+          "direction": "forward",
+          "left_board": 6,
+          "right_board": 34,
+          "loads": 3,
+          "microliters": 50,
+          "start_distance": 8,
+          "end_distance": 15,
+          "speed": 18,
+          "buffer": 3,
+          "tank": "A - KEGEL"
+        },
+        {
+          "direction": "forward",
+          "left_board": 7,
+          "right_board": 33,
+          "loads": 3,
+          "microliters": 50,
+          "start_distance": 15,
+          "end_distance": 23,
+          "speed": 18,
+          "buffer": 3,
+          "tank": "A - KEGEL"
+        },
+        {
+          "direction": "forward",
+          "left_board": 2,
+          "right_board": 38,
+          "loads": 0,
+          "microliters": 50,
+          "start_distance": 23,
+          "end_distance": 26,
+          "speed": 22,
+          "buffer": 3,
+          "tank": "A - KEGEL"
+        },
+        {
+          "direction": "forward",
+          "left_board": 2,
+          "right_board": 38,
+          "loads": 0,
+          "microliters": 50,
+          "start_distance": 26,
+          "end_distance": 35,
+          "speed": 26,
+          "buffer": 3,
+          "tank": "A - KEGEL"
+        },
+        {
+          "direction": "reverse",
+          "left_board": 2,
+          "right_board": 38,
+          "loads": 0,
+          "microliters": 50,
+          "start_distance": 33,
+          "end_distance": 28,
+          "speed": 30,
+          "buffer": 3,
+          "tank": "A - KEGEL"
+        },
+        {
+          "direction": "reverse",
+          "left_board": 8,
+          "right_board": 32,
+          "loads": 1,
+          "microliters": 50,
+          "start_distance": 28,
+          "end_distance": 25,
+          "speed": 18,
+          "buffer": 3,
+          "tank": "A - KEGEL"
+        },
+        {
+          "direction": "reverse",
+          "left_board": 7,
+          "right_board": 33,
+          "loads": 2,
+          "microliters": 50,
+          "start_distance": 25,
+          "end_distance": 20,
+          "speed": 18,
+          "buffer": 3,
+          "tank": "A - KEGEL"
+        },
+        {
+          "direction": "reverse",
+          "left_board": 6,
+          "right_board": 34,
+          "loads": 2,
+          "microliters": 50,
+          "start_distance": 20,
+          "end_distance": 15,
+          "speed": 18,
+          "buffer": 3,
+          "tank": "A - KEGEL"
+        },
+        {
+          "direction": "reverse",
+          "left_board": 5,
+          "right_board": 35,
+          "loads": 2,
+          "microliters": 50,
+          "start_distance": 15,
+          "end_distance": 10,
+          "speed": 18,
+          "buffer": 3,
+          "tank": "A - KEGEL"
+        },
+        {
+          "direction": "reverse",
+          "left_board": 4,
+          "right_board": 36,
+          "loads": 1,
+          "microliters": 50,
+          "start_distance": 10,
+          "end_distance": 8,
+          "speed": 14,
+          "buffer": 3,
+          "tank": "A - KEGEL"
+        },
+        {
+          "direction": "reverse",
+          "left_board": 3,
+          "right_board": 37,
+          "loads": 1,
+          "microliters": 50,
+          "start_distance": 8,
+          "end_distance": 6,
+          "speed": 14,
+          "buffer": 3,
+          "tank": "A - KEGEL"
+        },
+        {
+          "direction": "reverse",
+          "left_board": 2,
+          "right_board": 38,
+          "loads": 0,
+          "microliters": 50,
+          "start_distance": 6,
+          "end_distance": 0,
+          "speed": 14,
+          "buffer": 3,
+          "tank": "A - KEGEL"
         }
       ]
     },

@@ -125,8 +125,9 @@ export function normalizeOilPasses(passes: OilPass[] | undefined): OilPass[] | u
       throw new Error(`${at}: distances must sit between 0 and 70 feet`);
     }
     // A reverse pass runs back toward the foul line, so its end is BEFORE its
-    // start. Only a pass that goes nowhere is a typo.
-    if (start === end) throw new Error(`${at}: the pass has to travel`);
+    // start. A pass that goes nowhere and lays nothing is a typo; one that lays
+    // oil where the machine stands is a drop at its start (ADR-141).
+    if (start === end && !(loads > 0 && microliters > 0)) throw new Error(`${at}: the pass has to travel`);
     if (left < 1 || right > LANE_BOARDS_MAX || right < left) {
       throw new Error(`${at}: boards must run left to right, between 1 and ${LANE_BOARDS_MAX}`);
     }

@@ -61,7 +61,9 @@ export function checkCandidate(candidate: PatternCandidate, sheetsDir = SHEETS_D
     if (boards < 1 || pass.left_board < 1 || pass.right_board > 39) {
       complaints.push({ field: `pass ${i + 1} boards`, stated: 39, derived: boards });
     }
-    if (pass.start_distance === pass.end_distance) {
+    // A pass that stays put is a drop at the machine's start (ADR-141) and is
+    // fine if it lays oil; one that stays put and lays none is a misread row.
+    if (pass.start_distance === pass.end_distance && !(pass.loads > 0 && pass.microliters > 0)) {
       complaints.push({ field: `pass ${i + 1} travel`, stated: 1, derived: 0 });
     }
   });
