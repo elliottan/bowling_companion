@@ -45,7 +45,11 @@ test("adding a pattern from the session dialog does not submit the session form"
     .getByRole("button", { name: "Back", exact: true })
     .click();
   await expect(page.getByPlaceholder("Ball choice, surface, carry…")).toHaveValue("keep me");
-  // The pattern field suggests as you type, like the alley does.
+  // The pattern field suggests as you type, like the alley does. Typed only
+  // once the manager has gone: as it leaves it hands focus back to the button
+  // that opened it, which on a slow WebKit run landed after the typing and
+  // closed the suggestions out from under the tap.
+  await expect(page.getByRole("dialog", { name: "Oil patterns" })).toHaveCount(0);
   await page.locator("#oil-pattern").fill("navig");
   await page.getByRole("listbox").getByRole("button", { name: /Kegel Navigation/ }).click();
   await expect(page.locator("#oil-pattern")).toHaveValue("Kegel Navigation");
