@@ -444,15 +444,15 @@ function LaneMap({ passes, length }: { passes: OilPass[]; length: number }) {
           <line
             key={`b${b}`}
             x1={x(b) + board} x2={x(b) + board} y1={BASE - H} y2={BASE}
-            strokeWidth={b % 5 === 0 ? 0.18 : 0.08}
-            opacity={b % 5 === 0 ? 0.35 : 0.18}
+            strokeWidth={b % 5 === 0 ? 0.2 : 0.1}
+            opacity={b % 5 === 0 ? 0.5 : 0.3}
           />
         ))}
         {ticks.slice(1).map((feet) => (
           <line
             key={`f${feet}`}
             x1={LEFT} x2={LANE_RIGHT} y1={y(feet)} y2={y(feet)}
-            strokeWidth={0.12} opacity={0.3}
+            strokeWidth={0.15} opacity={0.45}
           />
         ))}
       </g>
