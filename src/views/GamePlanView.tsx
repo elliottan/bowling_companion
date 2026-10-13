@@ -6,6 +6,7 @@ import { EmptyState } from "../components/ui/EmptyState";
 import { LoadingCard } from "../components/ui/LoadingCard";
 import { GROUP_HEADING } from "../components/ui/typography";
 import { FIELD_LABEL, FIELD_SELECT } from "../components/ui/field";
+import { ChoiceInput } from "../components/ui/SuggestInput";
 import { LIST_DIVIDER, ListGroup } from "../components/ui/ListGroup";
 import {
   bestLines,
@@ -179,19 +180,14 @@ export function GamePlanView({
                   <label className={FIELD_LABEL} htmlFor="plan-pattern">
                     Pattern
                   </label>
-                  <select
+                  <ChoiceInput
                     id="plan-pattern"
                     value={pattern}
-                    onChange={(e) => setPattern(e.target.value)}
-                    className={FIELD_SELECT}
-                  >
-                    <option value="">Any</option>
-                    {allPatterns.map((p) => (
-                      <option key={p} value={p}>
-                        {p}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={setPattern}
+                    options={allPatterns}
+                    placeholder="Any"
+                    clearLabel="Clear pattern"
+                  />
                 </div>
                 {/* Only inside a house that has lanes on record: a lane number
                     means nothing across houses, and an empty picker is furniture. */}

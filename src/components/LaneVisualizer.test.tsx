@@ -361,9 +361,10 @@ describe("LaneVisualizer pattern picker", () => {
     const { container } = renderSandbox();
     await waitFor(() => expect(listPatterns).toHaveBeenCalled());
     fireEvent.click(screen.getByLabelText(/lane options/i));
-    fireEvent.change(await screen.findByRole("combobox", { name: /oil pattern/i }), {
-      target: { value: "7" },
-    });
+    const field = await screen.findByRole("combobox", { name: /oil pattern/i });
+    fireEvent.focus(field);
+    fireEvent.change(field, { target: { value: "chrom" } });
+    fireEvent.click(await screen.findByRole("button", { name: /Chromium 6742/ }));
     await waitFor(() =>
       expect(container.querySelector('[data-role="oil-film"]')).not.toBeNull()
     );

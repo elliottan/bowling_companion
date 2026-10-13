@@ -42,13 +42,15 @@ interface OilPatternManagerProps {
    *  drawn. Omitted where the manager has no visualizer to send you to (the
    *  session form's inline copy). */
   onOpenLineVisualizer?: (patternId: number) => void;
+  /** True while the line visualizer is up over the manager. */
+  covered?: boolean;
 }
 
 // A stable empty list: `?? []` would be a new array on every render, which
 // invalidates every useMemo downstream of it.
 const NO_PATTERNS: OilPattern[] = [];
 
-export function OilPatternManager({ onBack, mode = "inline", onOpenLineVisualizer }: OilPatternManagerProps = {}) {
+export function OilPatternManager({ onBack, mode = "inline", onOpenLineVisualizer, covered = false }: OilPatternManagerProps = {}) {
   // Live: adding, renaming, archiving and deleting a pattern all update this
   // list, including when the session form has the manager open on top of it.
   const live = useLiveQuery(() => getAllOilPatterns());
@@ -280,14 +282,12 @@ export function OilPatternManager({ onBack, mode = "inline", onOpenLineVisualize
         <PatternSheet
           pattern={sheetFor}
           onClose={() => setSheetFor(null)}
+          // The sheet stays open under the visualizer, so its X comes back to
+          // the pattern it was opened from rather than to the list.
           onOpenInLineVisualizer={
-            onOpenLineVisualizer && sheetFor.id != null
-              ? () => {
-                  onOpenLineVisualizer(sheetFor.id!);
-                  setSheetFor(null);
-                }
-              : undefined
+            onOpenLineVisualizer && sheetFor.id != null ? () => onOpenLineVisualizer(sheetFor.id!) : undefined
           }
+          active={!covered}
         />
       )}
 

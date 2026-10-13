@@ -9,6 +9,35 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.31.0: A ball opens read until the pencil (2026-10-13)
+
+**Tapping a ball in your arsenal no longer puts its fields under your thumb.**
+The ball's sheet now opens showing its name, weight, layout and catalog link as
+text. Tap the pencil in the top right to edit, and the tick saves, the same as
+a spare line or your Bowling profile. Adding a ball still opens straight on the
+fields. Retire and Delete stay where they were.
+
+**A pattern's lane sits in the middle of the screen.** The drawing under Oil
+on the lane used to lean right, pushed over by the feet scale on its left. It
+now keeps a matching margin on the right, so the lane is centred. It also
+carries the grid a printed sheet does, a line on every board (heavier every
+five) and one across every 5 feet, and shows the arrows where they sit on a
+real lane, from 12 ft at the outside to 16 ft in the middle.
+
+**Oil patterns are typed, with suggestions.** Every place you choose a pattern
+(starting or editing a session, the History filters, the Alley report and the
+line visualizer) is now a text field like Alley and Description. Tap it for the
+list, type a few letters of any part of the name to narrow it, and tap one. In
+a session, a name that is not one of your patterns yet is added as a new
+pattern when you save.
+
+**Closing the visualizer from a pattern comes back to that pattern.** Opening
+the line visualizer from a pattern's page and then tapping X used to land on
+the pattern list, one screen further back than you came from.
+
+**No doubled patterns on a first launch.** Starting the app for the first time
+could add every catalog pattern twice until the next launch tidied them up.
+
 ## 0.30.0: Boardwalk V2 and Arsenic (2026-10-13)
 
 **Two more Kegel patterns, 44 in all.** Boardwalk V2 and Arsenic open with a

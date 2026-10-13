@@ -32,6 +32,8 @@ test("adds a ball, edits it, and deletes it", async ({ page }) => {
 
   // Tapping the row opens the editor: the row is the single tap target.
   await ballRow(page, "Phaze II").click();
+  // It opens read; the pencil turns the fields on.
+  await page.getByRole("button", { name: "Edit ball", exact: true }).click();
   const name = page.getByPlaceholder("e.g. Storm Phaze II");
   await expect(name).toHaveValue("Phaze II");
   await name.fill("Phaze II Pearl");
@@ -42,7 +44,7 @@ test("adds a ball, edits it, and deletes it", async ({ page }) => {
   // Let the editor finish leaving before reopening it. A closing sheet no
   // longer swallows taps, so a click sent mid-exit really does land, and the
   // editor would open on top of the copy still fading out.
-  await expect(page.getByRole("dialog", { name: "Edit ball" })).toHaveCount(0);
+  await expect(page.getByRole("dialog", { name: /Edit ball|Phaze II/ })).toHaveCount(0);
   await ballRow(page, "Phaze II Pearl").click();
   await page.getByRole("button", { name: /delete/i }).first().click();
   await expect(page.getByRole("heading", { name: /Delete Phaze II Pearl\?/ })).toBeVisible();

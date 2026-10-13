@@ -23,6 +23,9 @@ const SPEC: BallLayoutSpec = {
 
 const save = () => fireEvent.click(screen.getByRole("button", { name: /^(Add|Save)$/ }));
 
+/** A ball already in the bag opens read; the pencil turns the fields on. */
+const unlock = () => fireEvent.click(screen.getByRole("button", { name: "Edit ball" }));
+
 /** The ball this form just wrote. */
 const saved = async (name: string) => (await getBalls()).find((b) => b.name === name);
 
@@ -64,6 +67,7 @@ describe("BallFormDialog layout", () => {
     const ball = await saved("Phaze II");
 
     render(<BallFormDialog ball={ball!} onClose={vi.fn()} onSaved={vi.fn()} />);
+    unlock();
     fireEvent.click(screen.getByRole("button", { name: /^Storm VLS/ }));
     fireEvent.change(await screen.findByRole("slider", { name: "Pin buffer" }), {
       target: { value: "1" }
@@ -85,6 +89,7 @@ describe("BallFormDialog layout", () => {
     const ball = await saved("Phaze II");
 
     render(<BallFormDialog ball={ball!} onClose={vi.fn()} onSaved={vi.fn()} />);
+    unlock();
     expect(await screen.findByRole("slider", { name: "Pin buffer" })).toBeTruthy();
   });
 
@@ -93,6 +98,7 @@ describe("BallFormDialog layout", () => {
     const ball = await saved("Phaze II");
 
     render(<BallFormDialog ball={ball!} onClose={vi.fn()} onSaved={vi.fn()} />);
+    unlock();
     expect(await screen.findByRole("slider", { name: "Pin to PAP" })).toBeTruthy();
     expect(screen.queryByRole("slider", { name: "Pin to PSA" })).toBeNull();
   });
@@ -102,6 +108,7 @@ describe("BallFormDialog layout", () => {
     const ball = await saved("Phaze II");
 
     render(<BallFormDialog ball={ball!} onClose={vi.fn()} onSaved={vi.fn()} />);
+    unlock();
     fireEvent.click(screen.getByRole("button", { name: "Symmetric" }));
     save();
 
@@ -116,6 +123,7 @@ describe("BallFormDialog layout", () => {
     const ball = await saved("Phaze II");
 
     render(<BallFormDialog ball={ball!} onClose={vi.fn()} onSaved={vi.fn()} />);
+    unlock();
     fireEvent.click(screen.getByRole("button", { name: /Remove layout/ }));
     save();
 
@@ -130,12 +138,14 @@ describe("BallFormDialog layout", () => {
     const ball = await saved("Old ball");
 
     const first = render(<BallFormDialog ball={ball!} onClose={vi.fn()} onSaved={vi.fn()} />);
+    unlock();
     expect(screen.getByText(/carries the layout you typed before/)).toBeTruthy();
     save();
     await waitFor(async () => expect((await saved("Old ball"))?.layout).toBe("45 x 4-1/2 x 35"));
     first.unmount();
 
     render(<BallFormDialog ball={(await saved("Old ball"))!} onClose={vi.fn()} onSaved={vi.fn()} />);
+    unlock();
     fireEvent.click(screen.getByRole("button", { name: /Add layout/ }));
     save();
 
@@ -174,6 +184,7 @@ describe("BallFormDialog catalog link", () => {
     const ball = (await getBalls()).find((b) => b.id === id)!;
     render(<BallFormDialog ball={ball} onClose={vi.fn()} onSaved={vi.fn()} />);
     await screen.findByText("Linked to catalog");
+    unlock();
   }
 
   it("has no Change or Unlink buttons: the linked ball is the way into the catalog", async () => {
@@ -211,5 +222,49 @@ describe("BallFormDialog catalog link", () => {
     expect(await screen.findByText("Hustle", { exact: false })).toBeInTheDocument();
     save();
     await waitFor(async () => expect((await saved("My Gem"))?.catalog_ref_id).toBe("hustle"));
+  });
+});
+
+describe("BallFormDialog reading first", () => {
+  beforeEach(async () => {
+    await db.delete();
+    await db.open();
+  });
+
+  it("opens a ball in the bag read, with nothing a stray tap could change", async () => {
+    await addBall({ name: "Phaze II", is_spare_ball: false, weight: 15, layout_spec: SPEC });
+    const ball = await saved("Phaze II");
+    const onSaved = vi.fn();
+    render(<BallFormDialog ball={ball!} onClose={vi.fn()} onSaved={onSaved} />);
+
+    expect(screen.getByRole("dialog", { name: "Phaze II" })).toBeInTheDocument();
+    expect(screen.queryByLabelText(/Display name/)).toBeNull();
+    expect(screen.queryByRole("slider")).toBeNull();
+    expect(screen.queryByRole("button", { name: /Remove layout/ })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Save" })).toBeNull();
+    expect(screen.getByText("15 lb")).toBeInTheDocument();
+    expect(screen.getByText("Asymmetric core")).toBeInTheDocument();
+    expect(onSaved).not.toHaveBeenCalled();
+  });
+
+  it("turns the fields on at the pencil, and the tick saves", async () => {
+    await addBall({ name: "Phaze II", is_spare_ball: false, layout_spec: SPEC });
+    const ball = await saved("Phaze II");
+    const onSaved = vi.fn();
+    render(<BallFormDialog ball={ball!} onClose={vi.fn()} onSaved={onSaved} />);
+
+    unlock();
+    expect(screen.getByRole("dialog", { name: "Edit ball" })).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText(/Display name/), { target: { value: "Phaze II Pearl" } });
+    save();
+
+    await waitFor(() => expect(onSaved).toHaveBeenCalled());
+    expect(await saved("Phaze II Pearl")).toBeTruthy();
+  });
+
+  it("opens a new ball straight on its fields", () => {
+    render(<BallFormDialog ball={null} onClose={vi.fn()} onSaved={vi.fn()} />);
+    expect(screen.getByLabelText(/Display name/)).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Edit ball" })).toBeNull();
   });
 });

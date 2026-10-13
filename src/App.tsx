@@ -608,6 +608,7 @@ function App() {
             onDriftModelChange={updateDriftModel}
             onOpenBackup={goToBackup}
             onOpenLineVisualizer={(patternId) => dispatch({ type: "openLineSandbox", patternId })}
+            lineVisualizerOpen={nav.lineSandboxOpen}
             onOpenArsenal={() => pushOverlay("arsenal")}
             onOpenSpareLines={() => pushOverlay("spares")}
             onOpenLaneNotes={() => pushOverlay("lanes")}
@@ -673,6 +674,7 @@ function App() {
                 onBack={popOverlay}
                 mode="overlay"
                 onOpenLineVisualizer={(patternId) => dispatch({ type: "openLineSandbox", patternId })}
+                covered={nav.lineSandboxOpen}
               />
             );
           case "backup":

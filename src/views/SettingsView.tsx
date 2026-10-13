@@ -33,6 +33,8 @@ interface SettingsViewProps {
    *  screen. */
   onOpenBackup: () => void;
   onOpenLineVisualizer: (patternId?: number) => void;
+  /** True while the line visualizer is up over Settings. */
+  lineVisualizerOpen?: boolean;
   /** The same overlays Home opens, so both doors land on the same screen. */
   onOpenArsenal: () => void;
   onOpenSpareLines: () => void;
@@ -52,7 +54,7 @@ const OilPatternsView = lazy(() =>
   import("./OilPatternsView").then((m) => ({ default: m.OilPatternsView }))
 );
 
-export function SettingsView({ section, onSectionChange, handedness, onHandednessChange, driftModel, onDriftModelChange, onOpenBackup, onOpenLineVisualizer, onOpenArsenal, onOpenSpareLines, onOpenLaneNotes }: SettingsViewProps) {
+export function SettingsView({ section, onSectionChange, handedness, onHandednessChange, driftModel, onDriftModelChange, onOpenBackup, onOpenLineVisualizer, lineVisualizerOpen = false, onOpenArsenal, onOpenSpareLines, onOpenLaneNotes }: SettingsViewProps) {
   const back = () => onSectionChange("menu");
 
   // The menu stays mounted underneath the pushed section, so popping back
@@ -74,7 +76,7 @@ export function SettingsView({ section, onSectionChange, handedness, onHandednes
         {section === "lanes" ? (
           <LaneNotesView onBack={back} />
         ) : section === "oil-patterns" ? (
-          <OilPatternsView onBack={back} onOpenLineVisualizer={onOpenLineVisualizer} />
+          <OilPatternsView onBack={back} onOpenLineVisualizer={onOpenLineVisualizer} covered={lineVisualizerOpen} />
         ) : section === "appearance" ? (
           <AppearanceView onBack={back} />
         ) : section === "profile" ? (

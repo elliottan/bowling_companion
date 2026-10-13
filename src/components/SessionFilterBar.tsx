@@ -4,6 +4,7 @@ import { Chip, TAP_TARGET_44 } from "./ui/Chip";
 import { FormSheet } from "./ui/FormSheet";
 import { IconButton } from "./ui/IconButton";
 import { FIELD_SELECT, FIELD_LABEL } from "./ui/field";
+import { ChoiceInput } from "./ui/SuggestInput";
 import { GROUP_HEADING } from "./ui/typography";
 import type { SessionFilters } from "../views/useSessionFilters";
 
@@ -194,19 +195,14 @@ export function SessionFilterSheet({
           <label className={FIELD_LABEL} htmlFor="filter-pattern">
             Oil pattern
           </label>
-          <select
+          <ChoiceInput
             id="filter-pattern"
             value={pattern}
-            onChange={(e) => setPattern(e.target.value)}
-            className={FIELD_SELECT}
-          >
-            <option value="">All patterns</option>
-            {allPatterns.map((p) => (
-              <option key={p} value={p}>
-                {p}
-              </option>
-            ))}
-          </select>
+            onChange={setPattern}
+            options={allPatterns}
+            placeholder="All patterns"
+            clearLabel="Clear pattern filter"
+          />
         </div>
 
         {allEvents.length > 0 && (

@@ -268,7 +268,12 @@ the spring there says the end of the list.
 **A page of settings that a thumb can wreck is read until the pencil.** The
 Bowling profile shows its values and lets scrolling pass over them; the pencil
 turns the controls on and swaps to a tick, which is the only place it saves. The
-changes are a draft until then, and leaving drops them.
+changes are a draft until then, and leaving drops them. A spare line and a ball in
+the arsenal open the same way: their sheet comes up from a tap on a row, so it
+reads the values as text, and the pencil in the bar turns the fields on. Adding
+a new one opens straight on the fields, since there is nothing to read yet.
+Retire and delete stay on the read sheet: they are actions, not edits, and
+delete asks first.
 
 **A hint can be waved away, and comes back.** Every hint has an action and an X.
 The X is a snooze with an end, kept per thing it was about, not a permanent no.
@@ -313,6 +318,13 @@ Cancel (an X) leading and the primary action trailing in the dialog's own bar,
 so the commit is always in the same place. The single most valuable field goes
 first. In the ball editor that is the catalog link, because linking fills in
 five other fields for free.
+
+**A name is typed, with suggestions, not picked from a drop-down.** Alley,
+description and oil pattern are each a `SuggestInput`: focus offers what is on
+record, typing narrows it anywhere in the words, a tap fills it in. Where only a
+known value means anything (a filter, the visualizer's pattern), `ChoiceInput`
+puts back text that names nothing when the field is left. A native select was
+a scroll through forty names to find one, and it could not be typed into.
 
 ## 7. Motion
 

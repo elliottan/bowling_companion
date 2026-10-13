@@ -1,4 +1,4 @@
-import { ChevronDown, Settings2, X } from "lucide-react";
+import { Settings2, X } from "lucide-react";
 import type { FormEvent, ReactNode } from "react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { localDateKey } from "../lib/dates";
@@ -6,10 +6,11 @@ import { createPortal } from "react-dom";
 import { OilPatternManager } from "./OilPatternManager";
 import { PushScreen } from "./PushScreen";
 import { IconButton } from "./ui/IconButton";
-import { FIELD, FIELD_LABEL, FIELD_SELECT, FIELD_TEXTAREA } from "./ui/field";
+import { FIELD, FIELD_LABEL, FIELD_TEXTAREA } from "./ui/field";
+import { SuggestInput } from "./ui/SuggestInput";
 import type { CreateSessionInput } from "../services/bowlingRepository";
 import type { OilPattern } from "../types/bowling";
-import { getOilPattern, getOilPatterns } from "../services/ballRepository";
+import { addOilPattern, getAllOilPatterns, getOilPattern, getOilPatterns } from "../services/ballRepository";
 import { getDistinctAlleys, getDistinctDescriptions } from "../services/bowlingRepository";
 import { patternLabel } from "../lib/oilPattern";
 
@@ -42,9 +43,14 @@ interface SessionFormProps {
   onOpenAlleyReport?: (alley: string) => void;
 }
 
-// pr-16 rather than the shared pr-10: the clear button and the chevron share
-// the right edge here, and a long pattern name must not run under either.
-const selectClass = `${FIELD_SELECT} pr-16`;
+// Room on the right for the clear button, so a long pattern name does not run
+// under it.
+const patternClass = `${FIELD} pr-10`;
+
+function findPatternByName(patterns: readonly OilPattern[], text: string): OilPattern | undefined {
+  const q = text.trim().toLowerCase();
+  return q ? patterns.find((op) => op.name.toLowerCase() === q) : undefined;
+}
 
 const today = () => localDateKey();
 
@@ -62,12 +68,12 @@ export function SessionForm({
   const [notes, setNotes] = useState(initial?.general_notes ?? "");
 
   const [alleys, setAlleys] = useState<string[]>([]);
-  const [showAlleyList, setShowAlleyList] = useState(false);
   const [descriptions, setDescriptions] = useState<string[]>([]);
-  const [showDescList, setShowDescList] = useState(false);
 
   const [oilPatterns, setOilPatterns] = useState<OilPattern[]>([]);
-  const [selectedPatternId, setSelectedPatternId] = useState<number | undefined>(initial?.oil_pattern_id);
+  // Typed, like the alley: a name that matches a pattern is that pattern, and
+  // one that matches none becomes a new pattern when the session is saved.
+  const [patternText, setPatternText] = useState("");
   const [showPatternManager, setShowPatternManager] = useState(false);
 
   // The picker offers active patterns only, but a session being edited may
@@ -82,7 +88,13 @@ export function SessionForm({
   // Mount only: the form is remounted (via `key`) whenever the prefill changes,
   // so re-running on `initial` would refetch the same three lists for nothing.
   useEffect(() => {
-    loadPatterns(initial?.oil_pattern_id).then(setOilPatterns).catch(() => {});
+    loadPatterns(initial?.oil_pattern_id)
+      .then((list) => {
+        setOilPatterns(list);
+        const current = list.find((op) => op.id === initial?.oil_pattern_id);
+        if (current) setPatternText((t) => t || current.name);
+      })
+      .catch(() => {});
     getDistinctAlleys().then(setAlleys).catch(() => {});
     getDistinctDescriptions().then(setDescriptions).catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -102,41 +114,53 @@ export function SessionForm({
     return q ? alleys.find((a) => a.toLowerCase() === q) : undefined;
   }, [alleyName, alleys]);
 
-  const alleyMatches = useMemo(() => {
-    const q = alleyName.trim().toLowerCase();
-    const list = q ? alleys.filter((a) => a.toLowerCase().includes(q) && a.toLowerCase() !== q) : alleys;
-    return list.slice(0, 6);
-  }, [alleyName, alleys]);
+  const matchedPattern = useMemo(() => findPatternByName(oilPatterns, patternText), [oilPatterns, patternText]);
 
-  const descMatches = useMemo(() => {
-    const q = description.trim().toLowerCase();
-    const list = q
-      ? descriptions.filter((d) => d.toLowerCase().includes(q) && d.toLowerCase() !== q)
-      : descriptions;
-    return list.slice(0, 6);
-  }, [description, descriptions]);
+  const patternSuggestions = useMemo(
+    () =>
+      oilPatterns.map((op) => ({
+        value: op.name,
+        label: op.archived ? `${patternLabel(op)} (archived)` : patternLabel(op)
+      })),
+    [oilPatterns]
+  );
 
   // Patterns may have been renamed, added, archived or deleted while the
   // manager was open, and the current selection may no longer exist.
   async function closePatternManager() {
     setShowPatternManager(false);
-    const refreshed = await loadPatterns(selectedPatternId).catch(() => null);
+    const before = matchedPattern?.id;
+    const refreshed = await loadPatterns(before).catch(() => null);
     if (!refreshed) return;
     setOilPatterns(refreshed);
-    if (selectedPatternId != null && !refreshed.some((op) => op.id === selectedPatternId)) {
-      setSelectedPatternId(undefined);
-    }
+    if (before == null) return;
+    // Follow a rename, and let go of a pattern that was deleted, rather than
+    // saving its old name back as a new one.
+    const now = refreshed.find((op) => op.id === before);
+    setPatternText(now ? now.name : "");
+  }
+
+  /** The pattern the typed name means, adding it when it is a new one. */
+  async function resolvePattern(): Promise<number | undefined> {
+    const name = patternText.trim();
+    if (!name) return undefined;
+    if (matchedPattern?.id != null) return matchedPattern.id;
+    // Archived patterns are not offered, but typing one's name still means it.
+    const existing = findPatternByName(await getAllOilPatterns(), name);
+    if (existing?.id != null) return existing.id;
+    return addOilPattern(name);
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    const oilPatternId = await resolvePattern();
     await onSubmit({
       alley_name: alleyName.trim(),
       description: description.trim() || undefined,
       lanes: [],
       start_lane: undefined,
       date,
-      oil_pattern_id: selectedPatternId,
+      oil_pattern_id: oilPatternId,
       general_notes: notes.trim() || undefined
     });
   }
@@ -146,33 +170,12 @@ export function SessionForm({
       <form id={formId} onSubmit={handleSubmit}>
         <div className="space-y-3">
           <Field label="Alley (optional)">
-            <div className="relative">
-              <input
-                value={alleyName}
-                onChange={(e) => { setAlleyName(e.target.value); setShowAlleyList(true); }}
-                onFocus={() => setShowAlleyList(true)}
-                onBlur={() => setTimeout(() => setShowAlleyList(false), 120)}
-                className={FIELD}
-                placeholder="Pinecrest Lanes"
-                autoComplete="off"
-              />
-              {showAlleyList && alleyMatches.length > 0 && (
-                <ul className="absolute z-10 mt-1 max-h-48 w-full overflow-y-auto rounded-lg border border-edge bg-surface py-1 shadow-lg">
-                  {alleyMatches.map((a) => (
-                    <li key={a}>
-                      <button
-                        type="button"
-                        onMouseDown={(e) => e.preventDefault()}
-                        onClick={() => { setAlleyName(a); setShowAlleyList(false); }}
-                        className="block w-full px-3 py-2 text-left text-sm text-ink-strong hover:bg-surface-muted"
-                      >
-                        {a}
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
+            <SuggestInput
+              value={alleyName}
+              onChange={setAlleyName}
+              suggestions={alleys}
+              placeholder="Pinecrest Lanes"
+            />
             {knownAlley && onOpenAlleyReport && (
               <button
                 type="button"
@@ -195,37 +198,16 @@ export function SessionForm({
           </Field>
 
           <Field label="Description">
-            <div className="relative">
-              <input
-                value={description}
-                onChange={(e) => { setDescription(e.target.value); setShowDescList(true); }}
-                onFocus={() => setShowDescList(true)}
-                onBlur={() => setTimeout(() => setShowDescList(false), 120)}
-                className={FIELD}
-                placeholder="League, practice, tournament…"
-                autoComplete="off"
-              />
-              {showDescList && descMatches.length > 0 && (
-                <ul className="absolute z-10 mt-1 max-h-48 w-full overflow-y-auto rounded-lg border border-edge bg-surface py-1 shadow-lg">
-                  {descMatches.map((d) => (
-                    <li key={d}>
-                      <button
-                        type="button"
-                        onMouseDown={(e) => e.preventDefault()}
-                        onClick={() => { setDescription(d); setShowDescList(false); }}
-                        className="block w-full px-3 py-2 text-left text-sm text-ink-strong hover:bg-surface-muted"
-                      >
-                        {d}
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
+            <SuggestInput
+              value={description}
+              onChange={setDescription}
+              suggestions={descriptions}
+              placeholder="League, practice, tournament…"
+            />
           </Field>
 
           {/* Not a <Field>: the header carries its own action button, which a
-              wrapping <label> would turn into a second way to focus the select. */}
+              wrapping <label> would turn into a second way to focus the field. */}
           <div className="space-y-1.5">
             <div className="flex items-center justify-between gap-2">
               <label htmlFor="oil-pattern" className={`${FIELD_LABEL} mb-0`}>
@@ -241,39 +223,30 @@ export function SessionForm({
             </div>
 
             <div className="relative">
-              <select
+              <SuggestInput
                 id="oil-pattern"
-                value={selectedPatternId ?? ""}
-                onChange={(e) => setSelectedPatternId(e.target.value ? Number(e.target.value) : undefined)}
-                className={selectClass}
-              >
-                {/* A native select can only show placeholder text through an
-                    option, so this one is hidden from the list. Clearing a real
-                    choice is the ✕ button's job. */}
-                <option value="" disabled hidden>
-                  No pattern selected
-                </option>
-                {oilPatterns.map((op) => (
-                  <option key={op.id} value={op.id}>
-                    {op.archived ? `${patternLabel(op)} (archived)` : patternLabel(op)}
-                  </option>
-                ))}
-              </select>
-
-              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center gap-0.5 pr-2">
-                {selectedPatternId != null && (
-                  <button
-                    type="button"
-                    aria-label="Clear oil pattern"
-                    onClick={() => setSelectedPatternId(undefined)}
-                    className="pointer-events-auto flex h-8 w-8 items-center justify-center rounded-full text-ink-tertiary hover:bg-surface-muted hover:text-ink-secondary"
-                  >
-                    <X size={16} aria-hidden="true" />
-                  </button>
-                )}
-                <ChevronDown size={16} aria-hidden="true" className="text-ink-tertiary" />
-              </div>
+                value={patternText}
+                onChange={setPatternText}
+                suggestions={patternSuggestions}
+                placeholder="Kegel Chromium"
+                className={patternClass}
+              />
+              {patternText !== "" && (
+                <button
+                  type="button"
+                  aria-label="Clear oil pattern"
+                  onClick={() => setPatternText("")}
+                  className="absolute inset-y-0 right-1 my-auto flex h-8 w-8 items-center justify-center rounded-full text-ink-tertiary hover:bg-surface-muted hover:text-ink-secondary"
+                >
+                  <X size={16} aria-hidden="true" />
+                </button>
+              )}
             </div>
+            {patternText.trim() !== "" && !matchedPattern && (
+              <p className="text-xs text-ink-secondary">
+                A new pattern. Saving adds it to your oil patterns, where you can give it a load table.
+              </p>
+            )}
           </div>
 
           <Field label="Notes">
