@@ -42,9 +42,10 @@ function report() {
 }
 
 describe("BallEstimates", () => {
-  it("ranks the balls by what you'd average with them, against your average here", () => {
+  it("ranks the balls by what you'd average with them, beside your average here", () => {
     render(<BallEstimates report={report()} balls={BALLS} />);
-    expect(screen.getByText(/What you'd average with each ball, against your \d+ here\./)).toBeInTheDocument();
+    expect(screen.getByText("Estimated average")).toBeInTheDocument();
+    expect(screen.getByText(/^Yours here \d+$/)).toBeInTheDocument();
     const names = screen.getAllByRole("button").map((b) => b.textContent);
     expect(names[0]).toMatch(/^Tenpin/);
     expect(names[1]).toMatch(/^Splitter/);
@@ -53,7 +54,7 @@ describe("BallEstimates", () => {
   it("greys a ball with too few first balls and does not rank it", () => {
     render(<BallEstimates report={report()} balls={BALLS} />);
     const rows = screen.getAllByRole("button");
-    expect(rows[rows.length - 1]).toHaveTextContent(/Rarely.*first balls, too few to rank/);
+    expect(rows[rows.length - 1]).toHaveTextContent(/Rarely.*balls, too few/);
   });
 
   it("opens a ball on its strikes, its leaves and the leaves it costs most", () => {
@@ -63,13 +64,15 @@ describe("BallEstimates", () => {
     fireEvent.click(splitter);
     expect(splitter).toHaveAttribute("aria-expanded", "true");
     const row = splitter.closest("li") as HTMLElement;
-    expect(within(row).getByText("100% of its leaves are splits or washouts")).toBeInTheDocument();
-    expect(within(row).getByText(/^Leaving harder spares costs about \d+ pins a game\.$/)).toBeInTheDocument();
-    expect(splitter).toHaveTextContent(/\d+ under/);
-    expect(splitter).toHaveTextContent("of leaves split");
+    // This ball's rate beside every ball's.
+    const split = within(row).getByText("Leaves that split").closest("tr") as HTMLElement;
+    expect(split).toHaveTextContent(/Leaves that split100%\d+%/);
+    expect(within(row).getByText(/^Strikes (add|cost) \d+ pins? a game, leaves cost \d+\.$|^Leaves cost \d+ pins? a game\.$/)).toBeInTheDocument();
+    expect(splitter).toHaveTextContent(/\u2212\d+/);
+    expect(splitter).toHaveTextContent(/\d+% strikes \u00b7 100% splits/);
     const costly = within(row).getByRole("list", { name: "Costliest leaves" });
     expect(within(costly).getByText("7-10")).toBeInTheDocument();
-    expect(within(costly).getByText(/^0 of \d+ made$/)).toBeInTheDocument();
+    expect(within(costly).getByText(/^0\/\d+ made$/)).toBeInTheDocument();
   });
 
   it("draws nothing when no ball is on record", () => {

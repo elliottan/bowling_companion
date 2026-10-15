@@ -285,10 +285,11 @@ The X is a snooze with an end, kept per thing it was about, not a permanent no.
 
 **A report leads with its answers.** The Alley report opens on what you'd
 average with each ball there, then the best lines and the last session, and
-keeps the detail one tap down. A ball's row says its estimate, how far over or
-under your average that is, and its strike and split rates; opening it shows
-the numbers behind each beside every ball's, with one plain sentence of what
-each is worth in pins, never a sentence about what to throw (ADR-147).
+keeps the detail one tap down. A ball's row says its estimate, its difference
+from your average, and its strike and split rates; opening it shows a small
+table of this ball against all of them and one line of what that is worth in
+pins, never a sentence about what to throw (ADR-147). Numbers in a table beat
+the same numbers in sentences: the screen is read standing at the lanes.
 
 ## 5. Empty states
 

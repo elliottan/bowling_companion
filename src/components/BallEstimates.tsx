@@ -6,7 +6,7 @@ import { MiniPins } from "./MiniPins";
 import { LIST_DIVIDER_INSET, ListGroup } from "./ui/ListGroup";
 import { GROUP_HEADING } from "./ui/typography";
 import { formatLeave } from "../lib/pins";
-import { THIN_BALL_FIRST_BALLS, type BallEstimate, type BallEstimates as Estimates, type Counted } from "../lib/scoreModel";
+import { type BallEstimate, type BallEstimates as Estimates, type Counted } from "../lib/scoreModel";
 import type { Ball } from "../types/bowling";
 import type { Manufacturer } from "../types/catalog";
 
@@ -17,31 +17,17 @@ function signedPins(value: number): string {
   return n > 0 ? `+${n}` : `−${Math.abs(n)}`;
 }
 
-/** Against the average, the way the Stats headline says it: "8 over". */
-function overUnder(value: number): string {
-  const n = Math.round(value);
-  if (n === 0) return "Your average";
-  return n > 0 ? `${n} over` : `${Math.abs(n)} under`;
-}
-
-/** "about 9 pins", or "about 1 pin". */
-function aboutPins(value: number): string {
-  const n = Math.abs(Math.round(value));
-  return `about ${n} ${n === 1 ? "pin" : "pins"} a game`;
-}
-
-/** What the ball's strike rates are worth, said once, plainly. */
-function strikesEffect(pins: number): string {
-  if (Math.round(pins) === 0) return "It strikes about as often as your balls do.";
-  return pins > 0 ? `Striking more is worth ${aboutPins(pins)}.` : `Striking less costs ${aboutPins(pins)}.`;
-}
-
-/** What its leaves are worth: the spares it gives you, at your make rates. */
-function leavesEffect(pins: number): string {
-  if (Math.round(pins) === 0) return "Its spares are about as easy as your balls' are.";
-  return pins > 0
-    ? `Leaving easier spares is worth ${aboutPins(pins)}.`
-    : `Leaving harder spares costs ${aboutPins(pins)}.`;
+/** What the strikes and the leaves add up to, in one line: "Strikes add 9 pins
+ *  a game, leaves cost 1." A part that rounds to nothing is left out. */
+function effect(strikes: number, leaves: number): string {
+  const s = Math.round(strikes);
+  const l = Math.round(leaves);
+  const verb = (n: number) => (n > 0 ? "add" : "cost");
+  const pins = (n: number) => `${Math.abs(n)} ${Math.abs(n) === 1 ? "pin" : "pins"} a game`;
+  if (s === 0 && l === 0) return "About the same as your other balls.";
+  if (l === 0) return `Strikes ${verb(s)} ${pins(s)}.`;
+  if (s === 0) return `Leaves ${verb(l)} ${pins(l)}.`;
+  return `Strikes ${verb(s)} ${pins(s)}, leaves ${verb(l)} ${Math.abs(l)}.`;
 }
 
 function pct(made: number, of: number): string {
@@ -58,15 +44,13 @@ export function BallEstimates({ report, balls }: { report: Estimates; balls: Bal
   const byId = new Map(balls.map((b) => [b.id, b]));
   return (
     <ListGroup
-      heading={
-        <div>
-          <h2 className={GROUP_HEADING}>Balls</h2>
-          <p className="mt-0.5 text-xs text-ink-secondary">
-            {report.actual === null
-              ? "What you'd average with each ball here."
-              : `What you'd average with each ball, against your ${Math.round(report.actual)} here.`}
-          </p>
-        </div>
+      heading="Estimated average"
+      headingTrailing={
+        report.actual !== null && (
+          <span className="text-xs tabular-nums text-ink-secondary">
+            Yours here {Math.round(report.actual)}
+          </span>
+        )
       }
     >
       {report.balls.map((estimate) => (
@@ -131,11 +115,11 @@ function BallEstimateRow({
           </span>
           <span className="block truncate text-xs tabular-nums text-ink-secondary">
             {thin
-              ? `${estimate.firstBalls} first ${estimate.firstBalls === 1 ? "ball" : "balls"}, too few to rank`
-              : `${pct(estimate.counted.strikes, estimate.counted.firstBalls)} strikes, ${pct(
+              ? `${estimate.firstBalls} ${estimate.firstBalls === 1 ? "ball" : "balls"}, too few`
+              : `${pct(estimate.counted.strikes, estimate.counted.firstBalls)} strikes \u00b7 ${pct(
                   estimate.counted.splits,
                   estimate.counted.leaves
-                )} of leaves split`}
+                )} splits`}
           </span>
         </span>
         <span className="shrink-0 text-right tabular-nums">
@@ -143,7 +127,7 @@ function BallEstimateRow({
             {headline}
           </span>
           {estimate.estimate !== null && (
-            <span className={`block text-xs font-semibold ${diffTone}`}>{overUnder(estimate.difference)}</span>
+            <span className={`block text-xs font-semibold ${diffTone}`}>{signedPins(estimate.difference)}</span>
           )}
         </span>
         <ChevronDown
@@ -157,58 +141,54 @@ function BallEstimateRow({
   );
 }
 
-/** The two reasons, each with the ball's own numbers over every ball's. */
+/** The ball's numbers beside every ball's, what they add up to, and the
+ *  leaves it costs most. */
 function BallEstimateDetail({ estimate, everyBall }: { estimate: BallEstimate; everyBall: Counted }) {
   const c = estimate.counted;
+  const rows: Array<[string, string, string]> = [
+    ["Strike", pct(c.strikes, c.firstBalls), pct(everyBall.strikes, everyBall.firstBalls)],
+    ["After a strike", pct(c.strikesAfterStrike, c.afterStrike), pct(everyBall.strikesAfterStrike, everyBall.afterStrike)],
+    ["Leaves that split", pct(c.splits, c.leaves), pct(everyBall.splits, everyBall.leaves)]
+  ];
   return (
     <div className="mx-3 mb-3 space-y-3 rounded-lg bg-surface-muted p-3 text-sm">
-      <section>
-        <h3 className={GROUP_HEADING}>Strikes</h3>
-        <p className="tabular-nums text-ink">
-          {pct(c.strikes, c.firstBalls)} of {c.firstBalls} first balls, {pct(c.strikesAfterStrike, c.afterStrike)}{" "}
-          straight after a strike
-        </p>
-        <p className="text-xs tabular-nums text-ink-secondary">
-          All your balls: {pct(everyBall.strikes, everyBall.firstBalls)},{" "}
-          {pct(everyBall.strikesAfterStrike, everyBall.afterStrike)} after a strike
-        </p>
-        <p className="mt-1 text-ink">{strikesEffect(estimate.fromStrikes)}</p>
-      </section>
-      <section>
-        <h3 className={GROUP_HEADING}>Leaves</h3>
-        <p className="tabular-nums text-ink">
-          {pct(c.splits, c.leaves)} of its leaves are splits or washouts
-        </p>
-        <p className="text-xs tabular-nums text-ink-secondary">
-          All your balls: {pct(everyBall.splits, everyBall.leaves)}
-        </p>
-        <p className="mt-1 text-ink">{leavesEffect(estimate.fromLeaves)}</p>
-        {estimate.costliest.length > 0 && (
-          <ul className="mt-2 space-y-1.5" aria-label="Costliest leaves">
+      <table className="w-full tabular-nums">
+        <thead>
+          <tr className={GROUP_HEADING}>
+            <th className="text-left font-semibold">{c.firstBalls} balls</th>
+            <th className="w-16 text-right font-semibold">This</th>
+            <th className="w-16 text-right font-semibold">All</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map(([label, ball, all]) => (
+            <tr key={label}>
+              <td className="py-0.5 text-ink-secondary">{label}</td>
+              <td className="py-0.5 text-right font-semibold text-ink">{ball}</td>
+              <td className="py-0.5 text-right text-ink-secondary">{all}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <p className="text-ink">{effect(estimate.fromStrikes, estimate.fromLeaves)}</p>
+      {estimate.costliest.length > 0 && (
+        <section>
+          <h3 className={GROUP_HEADING}>Costliest leaves</h3>
+          <ul className="mt-1.5 space-y-1.5" aria-label="Costliest leaves">
             {estimate.costliest.map((leave) => (
               <li key={leave.pins.join("-")} className="flex items-center gap-3">
                 <MiniPins standing={leave.pins} />
-                <span className="min-w-0 flex-1">
-                  <span className="block font-semibold text-ink">{formatLeave(leave.pins)}</span>
-                  <span className="block text-xs tabular-nums text-ink-secondary">
-                    Left {leave.left === 1 ? "once" : `${leave.left} times`}
-                  </span>
-                </span>
+                <span className="min-w-0 flex-1 font-semibold text-ink">{formatLeave(leave.pins)}</span>
                 <span className="shrink-0 text-right text-xs tabular-nums text-ink-secondary">
+                  <span className="block">Left {leave.left}</span>
                   <span className="block font-semibold text-ink">
-                    {leave.made} of {leave.chances} made
+                    {leave.made}/{leave.chances} made{leave.thin ? ", few" : ""}
                   </span>
-                  {leave.thin && <span className="block">too few to rate</span>}
                 </span>
               </li>
             ))}
           </ul>
-        )}
-      </section>
-      {estimate.thin && (
-        <p className="text-xs text-ink-secondary">
-          Under {THIN_BALL_FIRST_BALLS} first balls here, so this leans on your other balls and isn't ranked.
-        </p>
+        </section>
       )}
     </div>
   );

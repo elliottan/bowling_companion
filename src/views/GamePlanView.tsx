@@ -264,9 +264,9 @@ export function GamePlanView({
               <p className="mt-3 text-xs text-ink-secondary">
                 {report.shots === 0
                   ? `Nothing recorded for ${where || "this"} yet.`
-                  : `${report.shots} first ${report.shots === 1 ? "ball" : "balls"} over ${
-                      report.sessions
-                    } ${report.sessions === 1 ? "session" : "sessions"}${where ? ` at ${where}` : ""}.`}
+                  : `${report.shots} ${report.shots === 1 ? "ball" : "balls"}, ${report.sessions} ${
+                      report.sessions === 1 ? "session" : "sessions"
+                    }`}
               </p>
 
               {/* The answer first: which ball to expect most from here, then
@@ -331,8 +331,7 @@ export function GamePlanView({
 
               {report.shots > 0 && (
                 <p className="mt-2 px-1 text-xs text-ink-secondary">
-                  What each line did, not what to play. A line marked thin has under{" "}
-                  {MIN_LINE_SHOTS} balls.
+                  Thin: under {MIN_LINE_SHOTS} balls.
                 </p>
               )}
             </>
