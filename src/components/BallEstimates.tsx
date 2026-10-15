@@ -17,19 +17,6 @@ function signedPins(value: number): string {
   return n > 0 ? `+${n}` : `−${Math.abs(n)}`;
 }
 
-/** What the strikes and the leaves add up to, in one line: "Strikes add 9 pins
- *  a game, leaves cost 1." A part that rounds to nothing is left out. */
-function effect(strikes: number, leaves: number): string {
-  const s = Math.round(strikes);
-  const l = Math.round(leaves);
-  const verb = (n: number) => (n > 0 ? "add" : "cost");
-  const pins = (n: number) => `${Math.abs(n)} ${Math.abs(n) === 1 ? "pin" : "pins"} a game`;
-  if (s === 0 && l === 0) return "About the same as your other balls.";
-  if (l === 0) return `Strikes ${verb(s)} ${pins(s)}.`;
-  if (s === 0) return `Leaves ${verb(l)} ${pins(l)}.`;
-  return `Strikes ${verb(s)} ${pins(s)}, leaves ${verb(l)} ${Math.abs(l)}.`;
-}
-
 function pct(made: number, of: number): string {
   return of === 0 ? "-" : `${Math.round((made / of) * 100)}%`;
 }
@@ -141,8 +128,7 @@ function BallEstimateRow({
   );
 }
 
-/** The ball's numbers beside every ball's, what they add up to, and the
- *  leaves it costs most. */
+/** The ball's numbers beside every ball's, and the leaves it costs most. */
 function BallEstimateDetail({ estimate, everyBall }: { estimate: BallEstimate; everyBall: Counted }) {
   const c = estimate.counted;
   const rows: Array<[string, string, string]> = [
@@ -170,7 +156,6 @@ function BallEstimateDetail({ estimate, everyBall }: { estimate: BallEstimate; e
           ))}
         </tbody>
       </table>
-      <p className="text-ink">{effect(estimate.fromStrikes, estimate.fromLeaves)}</p>
       {estimate.costliest.length > 0 && (
         <section>
           <h3 className={GROUP_HEADING}>Costliest leaves</h3>

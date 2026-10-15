@@ -67,7 +67,7 @@ describe("BallEstimates", () => {
     // This ball's rate beside every ball's.
     const split = within(row).getByText("Leaves that split").closest("tr") as HTMLElement;
     expect(split).toHaveTextContent(/Leaves that split100%\d+%/);
-    expect(within(row).getByText(/^Strikes (add|cost) \d+ pins? a game, leaves cost \d+\.$|^Leaves cost \d+ pins? a game\.$/)).toBeInTheDocument();
+    expect(within(row).queryByText(/pins? a game/)).toBeNull();
     expect(splitter).toHaveTextContent(/\u2212\d+/);
     expect(splitter).toHaveTextContent(/\d+% strikes \u00b7 100% splits/);
     const costly = within(row).getByRole("list", { name: "Costliest leaves" });

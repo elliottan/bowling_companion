@@ -6820,12 +6820,14 @@ more splits, which cost more than the pins say.
   tried on the row first and read as a code: the split of the difference is
   said in words, inside.
 - **A ball opens on a small table,** this ball against every ball: strike
-  rate, strike after a strike, and the share of its leaves that split. One
-  line says what they add up to ("Strikes add 9 pins a game, leaves cost 1"),
-  then the three leaves it is expected to miss most, each as how often this
+  rate, strike after a strike, and the share of its leaves that split, then
+  the three leaves it is expected to miss most, each as how often this
   ball left it and how often the bowler makes it. These are rates as counted;
   the leaned-on rates stay inside the model. A first version said each of
-  these as a sentence and was too many words to read at the lanes.
+  these as a sentence and was too many words to read at the lanes. A line
+  splitting the difference into pins from strikes and pins from leaves
+  ("Strikes add 9 pins a game, leaves cost 1") was cut too: it named no
+  baseline, so it read as a riddle. The split stays in `lib/scoreModel`.
 - **The report gains a Game picker,** beside Lane, which narrows the estimates
   and the lines alike. Game 1 on fresh oil and game 4 on a broken-down pair are
   different lanes to read.

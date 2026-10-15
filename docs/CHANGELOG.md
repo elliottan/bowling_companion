@@ -13,11 +13,10 @@ had all shipped.
 
 **The Alley report opens on your balls.** Each one shows what you'd average
 with it at the alley, pattern, lane and game you pick, against your real
-average there, and how much of the difference comes from its strikes and how
-much from what it leaves. Open a ball to see its strike rate and strike on
-strike, how many of its leaves are splits, and the leaves that cost it most,
-with how often you make each. A ball with fewer than 30 first balls there is
-shown but not ranked.
+average there. Open a ball to see its strike rate, strike after a strike and
+how many of its leaves are splits beside all your balls', and the leaves that
+cost it most, with how often you make each. A ball with fewer than 30 first
+balls there is shown but not ranked.
 
 **The Alley report has a Game picker,** so game 1 and game 3 can be read apart.
 

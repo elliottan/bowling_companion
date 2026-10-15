@@ -287,8 +287,8 @@ The X is a snooze with an end, kept per thing it was about, not a permanent no.
 average with each ball there, then the best lines and the last session, and
 keeps the detail one tap down. A ball's row says its estimate, its difference
 from your average, and its strike and split rates; opening it shows a small
-table of this ball against all of them and one line of what that is worth in
-pins, never a sentence about what to throw (ADR-147). Numbers in a table beat
+table of this ball against all of them and the leaves it costs most, never a
+sentence about what to throw (ADR-147). Numbers in a table beat
 the same numbers in sentences: the screen is read standing at the lanes.
 
 ## 5. Empty states
