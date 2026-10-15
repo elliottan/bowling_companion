@@ -17,6 +17,33 @@ function signedPins(value: number): string {
   return n > 0 ? `+${n}` : `−${Math.abs(n)}`;
 }
 
+/** Against the average, the way the Stats headline says it: "8 over". */
+function overUnder(value: number): string {
+  const n = Math.round(value);
+  if (n === 0) return "Your average";
+  return n > 0 ? `${n} over` : `${Math.abs(n)} under`;
+}
+
+/** "about 9 pins", or "about 1 pin". */
+function aboutPins(value: number): string {
+  const n = Math.abs(Math.round(value));
+  return `about ${n} ${n === 1 ? "pin" : "pins"} a game`;
+}
+
+/** What the ball's strike rates are worth, said once, plainly. */
+function strikesEffect(pins: number): string {
+  if (Math.round(pins) === 0) return "It strikes about as often as your balls do.";
+  return pins > 0 ? `Striking more is worth ${aboutPins(pins)}.` : `Striking less costs ${aboutPins(pins)}.`;
+}
+
+/** What its leaves are worth: the spares it gives you, at your make rates. */
+function leavesEffect(pins: number): string {
+  if (Math.round(pins) === 0) return "Its spares are about as easy as your balls' are.";
+  return pins > 0
+    ? `Leaving easier spares is worth ${aboutPins(pins)}.`
+    : `Leaving harder spares costs ${aboutPins(pins)}.`;
+}
+
 function pct(made: number, of: number): string {
   return of === 0 ? "-" : `${Math.round((made / of) * 100)}%`;
 }
@@ -105,7 +132,10 @@ function BallEstimateRow({
           <span className="block truncate text-xs tabular-nums text-ink-secondary">
             {thin
               ? `${estimate.firstBalls} first ${estimate.firstBalls === 1 ? "ball" : "balls"}, too few to rank`
-              : `Strikes ${signedPins(estimate.fromStrikes)}, leaves ${signedPins(estimate.fromLeaves)}`}
+              : `${pct(estimate.counted.strikes, estimate.counted.firstBalls)} strikes, ${pct(
+                  estimate.counted.splits,
+                  estimate.counted.leaves
+                )} of leaves split`}
           </span>
         </span>
         <span className="shrink-0 text-right tabular-nums">
@@ -113,7 +143,7 @@ function BallEstimateRow({
             {headline}
           </span>
           {estimate.estimate !== null && (
-            <span className={`block text-xs font-semibold ${diffTone}`}>{signedPins(estimate.difference)}</span>
+            <span className={`block text-xs font-semibold ${diffTone}`}>{overUnder(estimate.difference)}</span>
           )}
         </span>
         <ChevronDown
@@ -133,7 +163,7 @@ function BallEstimateDetail({ estimate, everyBall }: { estimate: BallEstimate; e
   return (
     <div className="mx-3 mb-3 space-y-3 rounded-lg bg-surface-muted p-3 text-sm">
       <section>
-        <Reason label="Strikes" pins={estimate.fromStrikes} />
+        <h3 className={GROUP_HEADING}>Strikes</h3>
         <p className="tabular-nums text-ink">
           {pct(c.strikes, c.firstBalls)} of {c.firstBalls} first balls, {pct(c.strikesAfterStrike, c.afterStrike)}{" "}
           straight after a strike
@@ -142,15 +172,17 @@ function BallEstimateDetail({ estimate, everyBall }: { estimate: BallEstimate; e
           All your balls: {pct(everyBall.strikes, everyBall.firstBalls)},{" "}
           {pct(everyBall.strikesAfterStrike, everyBall.afterStrike)} after a strike
         </p>
+        <p className="mt-1 text-ink">{strikesEffect(estimate.fromStrikes)}</p>
       </section>
       <section>
-        <Reason label="Leaves" pins={estimate.fromLeaves} />
+        <h3 className={GROUP_HEADING}>Leaves</h3>
         <p className="tabular-nums text-ink">
           {pct(c.splits, c.leaves)} of its leaves are splits or washouts
         </p>
         <p className="text-xs tabular-nums text-ink-secondary">
           All your balls: {pct(everyBall.splits, everyBall.leaves)}
         </p>
+        <p className="mt-1 text-ink">{leavesEffect(estimate.fromLeaves)}</p>
         {estimate.costliest.length > 0 && (
           <ul className="mt-2 space-y-1.5" aria-label="Costliest leaves">
             {estimate.costliest.map((leave) => (
@@ -178,17 +210,6 @@ function BallEstimateDetail({ estimate, everyBall }: { estimate: BallEstimate; e
           Under {THIN_BALL_FIRST_BALLS} first balls here, so this leans on your other balls and isn't ranked.
         </p>
       )}
-    </div>
-  );
-}
-
-function Reason({ label, pins }: { label: string; pins: number }) {
-  return (
-    <div className="mb-0.5 flex items-baseline justify-between gap-3">
-      <h3 className={GROUP_HEADING}>{label}</h3>
-      <span className="text-xs font-semibold tabular-nums text-ink-secondary">
-        {signedPins(pins)} {Math.abs(Math.round(pins)) === 1 ? "pin" : "pins"} a game
-      </span>
     </div>
   );
 }

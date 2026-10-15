@@ -240,7 +240,7 @@ export function GamePlanView({
                   </div>
                 )}
                 {allGames.length > 1 && (
-                  <div className="w-20 shrink-0">
+                  <div className="w-24 shrink-0">
                     <label className={FIELD_LABEL} htmlFor="plan-game">
                       Game
                     </label>

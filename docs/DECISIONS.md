@@ -6813,14 +6813,18 @@ more splits, which cost more than the pins say.
   the make rates. The gap is mostly the night's spare shooting against the
   bowler's usual.
 - **The Alley report leads with it.** A Balls section above the lines: one row
-  per ball, its estimate against the bowler's real average in the scope picked,
-  and the difference split into strikes and leaves in pins a game. A ball with
-  under 30 first balls in scope is greyed, listed last and not ranked.
-- **A ball opens on its reasons,** each with every ball's number beside it:
-  its strike rate and strike on strike, the share of its leaves that are
-  splits or washouts, and the three leaves it is expected to miss most, each as
-  how often this ball left it and how often the bowler makes it. These are
-  rates as counted; the leaned-on rates stay inside the model.
+  per ball, its estimate and how far over or under the bowler's real average
+  in the scope picked it is, with its strike rate and split share under the
+  name. A ball with under 30 first balls in scope is greyed, listed last and
+  not ranked. A signed "strikes +9, leaves -1" was tried on the row first and
+  read as a code: the split of the difference is said in words, inside.
+- **A ball opens on its reasons,** each with every ball's number beside it and
+  one sentence of what it is worth ("Striking more is worth about 9 pins a
+  game", "Leaving harder spares costs about 1 pin a game"): its strike rate and
+  strike on strike, the share of its leaves that are splits or washouts, and
+  the three leaves it is expected to miss most, each as how often this ball
+  left it and how often the bowler makes it. These are rates as counted; the
+  leaned-on rates stay inside the model.
 - **The report gains a Game picker,** beside Lane, which narrows the estimates
   and the lines alike. Game 1 on fresh oil and game 4 on a broken-down pair are
   different lanes to read.

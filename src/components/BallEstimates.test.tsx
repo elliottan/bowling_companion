@@ -64,6 +64,9 @@ describe("BallEstimates", () => {
     expect(splitter).toHaveAttribute("aria-expanded", "true");
     const row = splitter.closest("li") as HTMLElement;
     expect(within(row).getByText("100% of its leaves are splits or washouts")).toBeInTheDocument();
+    expect(within(row).getByText(/^Leaving harder spares costs about \d+ pins a game\.$/)).toBeInTheDocument();
+    expect(splitter).toHaveTextContent(/\d+ under/);
+    expect(splitter).toHaveTextContent("of leaves split");
     const costly = within(row).getByRole("list", { name: "Costliest leaves" });
     expect(within(costly).getByText("7-10")).toBeInTheDocument();
     expect(within(costly).getByText(/^0 of \d+ made$/)).toBeInTheDocument();
