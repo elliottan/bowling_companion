@@ -6675,3 +6675,35 @@ opened, so a device could go weeks on an old table.
 - A photo fix in the catalog reaches every arsenal on its next launch.
 - A launch makes one small manifest request; the catalog itself is fetched
   only when the manifest says it changed, as before.
+
+
+## ADR-144: The Balls card's five columns fit a phone
+
+**Status.** Accepted, 2026-10-15. Amends ADR-139 (ball columns scroll
+sideways).
+
+**Context.** ADR-139 added a first ball average and strike on strike to every
+ball and let the Balls card scroll sideways to hold them. On a phone only three
+of the five columns showed, the fourth heading sat cut at the edge, and the
+ball's name, on a fixed 144px cell, was cut off ("Transform ..."). The bowler
+found the swipe clunky and wanted every column, and the whole name, on screen.
+The row needed 456px; a 360px phone gives the card 310.
+
+**Decision.**
+
+- **The columns shrink to their numbers.** 13px figures in 36px columns (40px
+  for strike on strike), a 4px gap, and 9px headings without letter spacing that
+  wrap onto as many lines as they need. "Strike on strike" stays spelled out
+  (ADR-130's reason still holds), over three short lines.
+- **The name takes what the columns leave,** no longer a fixed width, and wraps
+  to two lines before it is cut. The picture is 28px, the ball count 10px.
+- **The scroller stays as a floor.** Below about 96px for the name, on a phone
+  narrower than any in use, the rows still scroll sideways together with the
+  name pinned, as ADR-139 had them.
+- **The All balls sheet's labelled lines** share the same sizes, so they fit
+  too.
+
+**Consequences.**
+- At 360px and wider, all five columns are on screen with no swipe.
+- A name longer than two lines at that width is still cut, at the end of the
+  second line.

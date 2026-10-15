@@ -251,11 +251,14 @@ line scrolling sideways along it, most-left first, and the rows ordered the same
 way. The line is the first-class thing, the leave the item in it. Where a list
 can be long, a filter that takes a deck of pins beats a scroll.
 
-**A table wider than the phone scrolls sideways, and its names do not.** The
-Balls card has more columns than 390px holds, so its rows share one horizontal
-scroller (the columns stay aligned) and the ball's picture and name are pinned
-at the left on an opaque cell, so a number never loses its ball. A ball's
-by-game table does the same with its row names (ADR-139).
+**A table fits the phone before it scrolls sideways, and its names never
+scroll.** The Balls card sizes its five columns to sit beside the ball's name
+on a 360px phone: 13px numbers, 9px headings that wrap, a 4px gap, and the name
+taking what is left over two lines rather than one cut short (ADR-144). Only
+narrower than that do its rows scroll sideways, together so the columns stay
+aligned, with the picture and name pinned at the left on an opaque cell, so a
+number never loses its ball. A ball's by-game table, which can be wider than
+any phone, scrolls the same way with its row names pinned (ADR-139).
 
 **A sideways scroller stops dead at its ends.** Every horizontal scroller
 carries `overscroll-x-none`, not `-contain`: contain keeps the swipe off the

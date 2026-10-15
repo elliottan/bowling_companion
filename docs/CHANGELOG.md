@@ -9,6 +9,13 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.37.0: Every ball column on screen (2026-10-15)
+
+**The Balls card on Stats shows all five columns on a phone,** pocket, carry,
+strike, first ball average and strike on strike, with no sideways swipe. The
+numbers and headings are a little smaller, and a long ball name wraps onto a
+second line instead of being cut off. The All balls sheet matches.
+
 ## 0.36.0: Eighteen more PBA patterns and eleven more balls (2026-10-15)
 
 **The oil pattern catalog goes from 46 to 64.** Every 2019 PBA animal and
