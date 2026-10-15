@@ -8,9 +8,6 @@ has. Use these instead.
 | File | What it is |
 | --- | --- |
 | `01-line.mp4` | 1080 x 1920, 14 s. The lane view: a board changed, a 2-1 move tried. |
-| `02-pins.mp4` | 1080 x 1920, 15 s. A fresh game: 9 spare, strike, 7 spare. |
-| `03-stats.mp4` | 1080 x 1920, 11 s. Stats, down to each ball's pocket, carry and strike. |
-| `04-patterns.mp4` | 1080 x 1920, 20 s. New. The PBA Shark 48 found by search, its oil graph, then a line drawn over that oil. For tournament and sport-pattern bowlers. |
 | `05-spares.mp4` | 1080 x 1920, 18 s. New. The 7 pin, the leave this bowler has most, with Brunswick's TZone as the spare ball and a stance and target that make the 7 (stance 14, target 15: laid down on 8, it reaches board 37 at the pin), drawn on the lane. |
 | `still-*-feed.png` | 1080 x 1350 (4:5) feed stills: line, pins, stats, retarget, patterns, spares. |
 | `still-*-story.png` | 1080 x 1920 (9:16) story stills, the same six. |

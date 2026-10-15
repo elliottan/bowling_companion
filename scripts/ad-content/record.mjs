@@ -26,7 +26,7 @@ import { chromium } from "@playwright/test";
 const BASE = process.env.ADS_BASE ?? "http://localhost:5173";
 const STATE = process.env.ADS_STATE;
 const OUT = process.env.ADS_OUT ?? "ads-out";
-// ADS_ONLY=04-patterns,05-spares records just those.
+// ADS_ONLY=05-spares records just that one.
 const ONLY = process.env.ADS_ONLY?.split(",");
 if (!STATE) throw new Error("ADS_STATE must name a saved bowler (see the header).");
 
@@ -45,23 +45,6 @@ const VOICE = {
     board: "Change a board, and watch the line move.",
     move: "Try a two and one move, before you throw it.",
     end: "Head pin. It's free, at head pin dot app."
-  },
-  "02-pins": {
-    tap: "Just tap the pins you left.",
-    score: "Head pin keeps the score.",
-    frames: "And it saves every shot, frame by frame.",
-    end: "Head pin. It's free, at head pin dot app."
-  },
-  "03-stats": {
-    carries: "Which ball carries best for you?",
-    count: "Head pin counts it, ball by ball.",
-    end: "Know what worked last time. Head pin, free at head pin dot app."
-  },
-  "04-patterns": {
-    shark: "Bowling the Shark this weekend?",
-    sheets: "Every P B A animal pattern is in Head pin, straight from the official sheets.",
-    oil: "Then see your line on that oil.",
-    end: "Know the pattern before you bowl it. Head pin, free at head pin dot app."
   },
   "05-spares": {
     most: "Which pin do you leave the most?",
@@ -241,93 +224,6 @@ await record("01-line", {
     await tap(app.getByRole("button", { name: /^Move 2-1 (in|out)$/ }).first(), 1300);
     await wait(900);
     await endCard("Remember every <em>line</em> you threw.", "end");
-    await wait(3200);
-  }
-});
-
-// 2. Tap the pins you left: a fresh game, two frames, the card filling in.
-await record("02-pins", {
-  async setup({ app, tap }) {
-    await tap(app.getByRole("button", { name: "Start session" }).first());
-    const sheet = app.getByRole("dialog", { name: "Start session" });
-    await sheet.getByPlaceholder("Pinecrest Lanes").fill("Sunset Lanes");
-    await tap(sheet.getByRole("button", { name: "Start session" }));
-    const lanes = app.getByRole("dialog", { name: /lanes/i });
-    await lanes.waitFor({ state: "visible", timeout: 3000 }).catch(() => {});
-    if (await lanes.count()) {
-      await lanes.getByRole("textbox", { name: "First lane" }).fill("11");
-      await lanes.getByRole("textbox", { name: "Second lane" }).fill("12");
-      await tap(lanes.getByRole("button", { name: "Close" }));
-    }
-    await app.getByRole("button", { name: /^Next( \(|$)/ }).waitFor();
-  },
-  async scene({ app, tap, caption, endCard, wait }) {
-    const next = () => app.getByRole("button", { name: /^Next( \(|$)/ });
-    // A fresh rack reads as all down: tap the pins left standing. On the next
-    // ball the leave reads as standing, and tapping it knocks it down.
-    const pin = (n) => app.locator(`button[aria-label="Pin ${n} down"]:not([disabled])`);
-    const knock = (n) => app.locator(`button[aria-label="Pin ${n} standing"]:not([disabled])`);
-
-    await caption("<em>Tap the pins</em> you left.", "tap");
-    await wait(1200);
-    await tap(pin(10), 900);
-    await tap(next(), 900);
-    await caption("Headpin keeps <em>the score</em>.", "score");
-    await tap(knock(10), 700);
-    await tap(next(), 1000);
-    await tap(app.getByRole("button", { name: "Strike", exact: true }), 1100);
-    await caption("It saves every shot, <em>frame by frame</em>.", "frames");
-    await tap(pin(7), 800);
-    await tap(next(), 900);
-    await tap(knock(7), 700);
-    await tap(next(), 1300);
-    await endCard("Tap the pins you left. <em>Headpin</em> keeps score.", "end");
-    await wait(3200);
-  }
-});
-
-// 3. Know what worked: the stats, down to which ball carries.
-await record("03-stats", {
-  async setup({ app, tap }) {
-    await tap(app.getByRole("navigation").getByRole("button", { name: "Stats" }));
-    await app.getByText("Balls", { exact: true }).first().waitFor();
-  },
-  async scene({ app, caption, endCard, wait }) {
-    await caption("Which ball <em>carries</em> best for you?", "carries");
-    await wait(2200);
-    await caption("Headpin counts it, <em>ball by ball</em>.", "count");
-    // The ball table is the last card on Stats. A smooth scroll inside the app
-    // rather than wheel steps on the stage, whose scale the wheel ignores.
-    await app
-      .getByText("Balls", { exact: true })
-      .first()
-      .evaluate((el) => el.scrollIntoView({ behavior: "smooth", block: "start" }));
-    await wait(3000);
-    await endCard("Know what <em>worked</em> last time.", "end");
-    await wait(3200);
-  }
-});
-
-// 4. Know the pattern: a PBA pattern's oil, then the line drawn over it.
-await record("04-patterns", {
-  async setup({ app, tap }) {
-    await tap(app.getByRole("button", { name: /Oil patterns/ }).first());
-    await app.getByRole("button", { name: "Request a pattern" }).waitFor();
-  },
-  async scene({ app, tap, caption, endCard, wait }) {
-    await caption("Bowling the <em>Shark</em> this weekend?", "shark");
-    const search = app.getByRole("searchbox").or(app.getByPlaceholder(/search/i)).first();
-    await tap(search, 300);
-    await search.pressSequentially("Shark", { delay: 140 });
-    await wait(500);
-    await tap(app.getByText("2019 PBA Shark 48").first(), 1200);
-    await caption("Every PBA animal pattern, <em>from Kegel's own sheets</em>.", "sheets");
-    await wait(2400);
-    await caption("Then see your line <em>on that oil</em>.", "oil");
-    await tap(app.getByRole("button", { name: "Try in the line visualizer" }), 2200);
-    for (let i = 0; i < 2; i++) await tap(app.getByRole("button", { name: "Target left" }), 650);
-    await wait(900);
-    await endCard("Know the pattern <em>before you bowl it</em>.", "end");
     await wait(3200);
   }
 });
