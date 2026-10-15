@@ -3222,5 +3222,13 @@
   "storm-astrophysix-2019": {
     "imageThumb": "/catalog/img/storm-astrophysix-2019-thumb.webp",
     "imageFull": "/catalog/img/storm-astrophysix-2019-full.webp"
+  },
+  "roto-grip-dare-devil-2016": {
+    "imageThumb": "/catalog/img/roto-grip-dare-devil-2016-thumb.webp",
+    "imageFull": "/catalog/img/roto-grip-dare-devil-2016-full.webp"
+  },
+  "900-global-badger-2018": {
+    "imageThumb": "/catalog/img/900-global-badger-2018-thumb.webp",
+    "imageFull": "/catalog/img/900-global-badger-2018-full.webp"
   }
 }

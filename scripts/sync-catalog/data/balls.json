@@ -36270,5 +36270,85 @@
         "mbDiff": 0.008
       }
     ]
+  },
+  {
+    "brand": "900 Global",
+    "name": "Badger",
+    "releaseDate": "2018-03-20",
+    "coverstockRaw": "S71 Hybrid Reactive",
+    "factoryFinish": "1500 Polished",
+    "coreName": "Lacerate",
+    "rg": 2.57,
+    "diff": 0.041,
+    "mbDiff": null,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/900-global/badger"
+    ],
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.52,
+        "diff": 0.054,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.57,
+        "diff": 0.041,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.64,
+        "diff": 0.023,
+        "mbDiff": null
+      }
+    ]
+  },
+  {
+    "brand": "Roto Grip",
+    "name": "Dare Devil",
+    "releaseDate": "2016-11-22",
+    "coverstockRaw": "Amped Pearl Reactive",
+    "factoryFinish": "1500 Polished",
+    "coreName": "Madcap",
+    "rg": 2.48,
+    "diff": 0.041,
+    "mbDiff": null,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/roto-grip/dare-devil"
+    ],
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.47,
+        "diff": 0.039,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.48,
+        "diff": 0.041,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.53,
+        "diff": 0.04,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.59,
+        "diff": 0.045,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.65,
+        "diff": 0.035,
+        "mbDiff": null
+      }
+    ]
   }
 ]

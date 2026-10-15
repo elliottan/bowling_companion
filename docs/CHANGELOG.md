@@ -9,6 +9,14 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.33.0: Dare Devil and Badger join the catalog (2026-10-15)
+
+**Two more balls, each with a photo.** Roto Grip's Dare Devil (2016, Madcap
+core, Amped pearl cover) and 900 Global's Badger (2018, Lacerate core, S71
+hybrid cover) are in, with their per-weight RG and differential. The catalog is
+now 801 balls, and 800 of them have a photo; only Storm's PhysiX Burst, which
+has no spec page, still shows the placeholder.
+
 ## 0.32.1: Your arsenal shows the catalog's current photo (2026-10-13)
 
 **A ball in your arsenal no longer keeps an old photo after the catalog's is
