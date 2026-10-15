@@ -52,11 +52,27 @@ if (STATE) {
   await app.waitForTimeout(800);
   taken.pattern = await app.screenshot({ type: "png" });
 
+  // A spare ball first, as the spares video does: TZone from the catalog,
+  // picked on Spare lines. Then the line that makes the 7 (see record.mjs).
   await home();
+  await app.getByRole("button", { name: "Ball catalog", exact: true }).click();
+  await app.getByPlaceholder("Search name, brand, coverstock…").fill("TZone");
+  await app.getByRole("button", { name: /TZone/i }).first().click();
+  await app.getByRole("button", { name: "Add to arsenal" }).first().click();
+  await app
+    .getByRole("dialog", { name: "Add to arsenal" })
+    .getByRole("button", { name: "Add to arsenal" })
+    .click();
+  // Back from the ball, then from the catalog. A fresh load would reopen the
+  // ball, since the route is kept.
+  await app.getByRole("banner").getByRole("button", { name: "Back", exact: true }).last().click();
+  await app.getByRole("banner").getByRole("button", { name: "Back", exact: true }).first().click();
   await app.getByRole("button", { name: "Spare lines", exact: true }).click();
+  await app.getByText("Choose one").click();
+  await app.getByRole("dialog").last().getByRole("button", { name: /TZone/ }).click();
   await app.getByRole("button", { name: "Add", exact: true }).first().click();
   const boards = app.getByRole("dialog").last().locator('input[type="number"]');
-  await boards.nth(0).fill("10");
+  await boards.nth(0).fill("14");
   await boards.nth(1).fill("15");
   await boards.nth(1).blur();
   await app.waitForTimeout(600);
