@@ -158,7 +158,7 @@ const BEATS = [
   { id: "stats", take: "game", from: "stats", to: "balls+0.5", caption: "Your average.|<em>Which ball carries.</em>", vo: "stats", trans: "whip",
     cam: [{ at: "stats", box: { x: 0, y: 40, w: 390, h: 340 }, z: 1.5, ease: 0 },
           { at: "balls-0.2", box: "balls", z: 1.45, ease: 0.45 }],
-    circles: [{ at: "balls+0.1", box: (() => { const b = box("game", "balls"); return { x: b.x + 4, y: b.y + 48, w: b.w - 8, h: 44 }; })(), dur: 0.5 }] },
+    circles: [{ at: "balls+0.1", box: (() => { const b = box("game", "balls"); return { x: b.x + 4, y: b.y + 66, w: b.w - 8, h: 62 }; })(), dur: 0.5 }] },
 
   // More of the app, flipped past.
   { id: "oil", take: "patterns", from: "graph-0.2", to: "graph+0.8", caption: "Every <em>PBA pattern</em>.", vo: "oil", trans: "flip",

@@ -1,6 +1,6 @@
 # Launch ads, refreshed October 15, 2026
 
-The second batch of ad creative, rendered from the real app at version 0.36.1.
+The second batch of ad creative, rendered from the real app at version 0.38.1.
 The first batch (`../2026-10/`) was recorded at 0.6.1, before the Stats tab
 was rebuilt, and its stats video and stills show screens the app no longer
 has. Use these instead.
