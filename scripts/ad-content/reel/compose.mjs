@@ -33,7 +33,8 @@ const APP_W = 390;
 const APP_H = 844;
 const S_FULL = 1.55; // phone scale when the whole screen is in view
 const FULL_TOP = 600;
-const FOCUS = { x: 540, y: 905 }; // where a zoomed subject sits: the middle of the safe area
+const FOCUS = { x: 540, y: 890 }; // where a zoomed subject sits: the middle of the safe area
+const WIN = { l: 28, r: 1052, t: 560, b: 1896 }; // the app's window under the caption (reel.html)
 
 const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
 const lerp = (a, b, k) => a + (b - a) * k;
@@ -110,79 +111,79 @@ const FULL = { x: 0, y: 0, w: APP_W, h: APP_H };
 // draw a ring round a box. Taps in the beat's range get the finger and a
 // ripple on their own. `trans` is how the beat comes in: cut, flip, whip, zoom.
 
+const box = (name, ref, i = 0) => markOf(name, ref).boxes[i];
+
 const BEATS = [
-  // Hook: four screens flipped past under one line.
-  { id: "hook-a", take: "game", from: "lane-held-0.4", to: "lane-held", dur: 0.6, kicker: "", caption: "One app for every <em>league night</em>.", captionKey: "hook", vo: "hook",
-    cam: [{ at: 0, box: FULL, z: 1.06 }] , trans: "cut" },
-  { id: "hook-b", take: "game", from: "balls-0.2", to: "balls", dur: 0.55, captionKey: "hook",
-    cam: [{ at: 0, box: FULL, z: 1.06 }], trans: "flip" },
-  { id: "hook-c", take: "patterns", from: "oil-lane", to: "oil-lane+0.3", dur: 0.55, captionKey: "hook",
-    cam: [{ at: 0, box: FULL, z: 1.06 }], trans: "flip" },
-  { id: "hook-d", take: "game", from: "frame10+0.2", to: "frame10+0.6", dur: 0.7, captionKey: "hook",
-    cam: [{ at: 0, box: { x: 0, y: 60, w: 390, h: 150 }, z: 1.75 }], trans: "flip" },
+  // Hook: the line drawn over a PBA pattern's oil, captioned from frame one,
+  // then three screens flipped past fast.
+  { id: "hook", take: "patterns", from: "tap-try+0.36", to: "tap-try+1.75", dur: 1.75, caption: "Still guessing <em>your line</em>?", vo: "hook", instant: true,
+    cam: [{ at: "tap-try+0.36", box: { x: 30, y: 60, w: 330, h: 640 }, z: 1.12, ease: 0 }, { at: "tap-try+0.4", box: { x: 30, y: 60, w: 330, h: 640 }, z: 1.3, ease: 1.4 }] },
+  { id: "flip-a", take: "game", from: "stats+0.5", to: "stats+0.7", dur: 0.3, caption: "Headpin <em>tracks it all</em>.", captionKey: "all", vo: "all", trans: "flip",
+    cam: [{ at: 0, box: { x: 0, y: 40, w: 390, h: 340 }, z: 1.35, ease: 0 }] },
+  { id: "flip-b", take: "catalog", from: "list+0.2", to: "list+0.4", dur: 0.3, captionKey: "all", trans: "flip",
+    cam: [{ at: 0, box: { x: 0, y: 60, w: 390, h: 420 }, z: 1.3, ease: 0 }] },
+  { id: "flip-c", take: "game", from: "frame10+0.4", to: "frame10+0.8", dur: 0.6, captionKey: "all", trans: "flip",
+    cam: [{ at: 0, box: "frame10", z: 2.5, ease: 0 }] },
 
   // The game, frames 8 to 10.
-  { id: "ball", take: "game", from: "ball-0.25", to: "tap-pick+0.45", kicker: "Your arsenal", caption: "Pick <em>your ball</em>.", vo: "ball", trans: "zoom",
-    cam: [{ at: "ball-0.25", box: "ball", z: 1.7, ease: 0 }, { at: "pick-0.1", box: "pick", z: 1.55, ease: 0.35 }],
-    spots: [{ from: "pick+0.05", to: "tap-pick+0.3", boxes: "pick" }] },
-  { id: "line", take: "game", from: "line-0.1", to: "line-set", kicker: "Your line", caption: "Set <em>your line</em>.", vo: "line", trans: "cut",
-    cam: [{ at: "line-0.1", box: "line", z: 2.25, ease: 0 }] },
-  { id: "lane", take: "game", from: "lane-open+0.35", to: "lane-held", kicker: "Lane view", caption: "See it <em>on the lane</em>.", vo: "lane", trans: "flip",
-    cam: [{ at: "lane-open+0.35", box: FULL, z: 1.0, ease: 0 }, { at: "lane-open+0.5", box: { x: 40, y: 120, w: 310, h: 520 }, z: 1.22, ease: 1.2 }] },
-  { id: "strike", take: "game", from: "strike-0.15", to: "frame8+0.35", kicker: "Scoring", caption: "Tap. <em>It's scored.</em>", vo: "strike", trans: "zoom",
-    cam: [{ at: "strike-0.15", box: "strike", z: 1.3, ease: 0 }],
-    spots: [{ from: "strike-0.1", to: "tap-strike+0.12", boxes: [markOf("game", "strike").boxes[0]] },
-            { from: "tap-strike+0.2", to: "frame8+0.35", boxes: "frame8" }] },
-  { id: "carry", take: "game", from: "carry", to: "tap-stance2-0.05", kicker: "Carry-over", caption: "Your line <em>carries over</em>.", vo: "carry", trans: "cut",
-    cam: [{ at: "carry", box: "carry", z: 1.85, ease: 0 }],
-    spots: [{ from: "carry+0.1", to: "tap-stance2-0.1", boxes: "carry" }] },
-  { id: "move", take: "game", from: "tap-stance2-0.05", to: "moved+0.5", kicker: "Quick moves", caption: "Went high? <em>2-1, one tap.</em>", vo: "move", trans: "cut",
-    cam: [{ at: "tap-stance2-0.05", box: "moves", z: 1.75, ease: 0.3 }],
-    circles: [{ at: "moves", box: [markOf("game", "moves").boxes[0]], dur: 0.6 }],
-    spots: [{ from: "moved", to: "moved+0.5", boxes: "moved" }] },
-  { id: "ten", take: "game", from: "ten-0.1", to: "tap-next+0.25", kicker: "Leaves", caption: "Left <em>the 10</em>?", vo: "ten", trans: "cut",
-    cam: [{ at: "ten-0.1", box: { x: 0, y: 360, w: 200, h: 270 }, z: 1.75, ease: 0 }],
-    circles: [{ at: "ten-0.05", box: "ten", dur: 0.45 }] },
-  { id: "spare", take: "game", from: "spare-set-0.15", to: "frame9+0.3", kicker: "Spare system", caption: "Spare ball and line, <em>already set</em>.", vo: "spare", trans: "cut",
-    cam: [{ at: "spare-set-0.15", box: "spare-set", z: 1.8, ease: 0 },
-          { at: "spare-0.25", box: [markOf("game", "spare").boxes[0], markOf("game", "spare-set").boxes[0]], z: 1.3, ease: 0.3 }],
-    spots: [{ from: "spare-set", to: "spare-0.3", boxes: "spare-set" },
-            { from: "tap-spare+0.2", to: "frame9+0.3", boxes: "frame9" }] },
-  { id: "tenth", take: "game", from: "tenth-0-0.1", to: "frame10+0.5", kicker: "Scoring", caption: "Strike out <em>the tenth</em>.", vo: "tenth", trans: "cut",
-    cam: [{ at: "tenth-0-0.1", box: [markOf("game", "frame10").boxes[0], markOf("game", "tenth-0").boxes[0]], z: 1.3, ease: 0 }],
+  { id: "ball", take: "game", from: "pick-0.15", to: "tap-pick+0.4", caption: "Pick <em>your ball</em>.", vo: "ball", trans: "zoom",
+    cam: [{ at: "pick-0.15", box: "pick", z: 1.4, ease: 0 }],
+    spots: [{ from: "pick", to: "tap-pick+0.3", boxes: "pick" }] },
+  { id: "line", take: "game", from: "line-0.05", to: "line-set", caption: "Set <em>your line</em>.", vo: "line", trans: "cut",
+    cam: [{ at: "line-0.05", box: "intended", z: 2.5, ease: 0 }] },
+  { id: "lane", take: "game", from: "lane-open+0.3", to: "lane-held", caption: "See it <em>on the lane</em>.", vo: "lane", trans: "flip",
+    cam: [{ at: "lane-open+0.3", box: { x: 20, y: 60, w: 350, h: 640 }, z: 1.12, ease: 0 }, { at: "lane-open+0.4", box: { x: 20, y: 60, w: 350, h: 640 }, z: 1.28, ease: 1.2 }] },
+  { id: "strike", take: "game", from: "strike-0.15", to: "frame8+0.45", caption: "Tap. <em>It's scored.</em>", vo: "strike", trans: "zoom",
+    cam: [{ at: "strike-0.15", box: box("game", "strike", 0), z: 2.2, ease: 0 },
+          { at: "tap-strike+0.12", box: box("game", "frame8"), z: 2.6, ease: 0.3 }],
+    spots: [{ from: "strike-0.1", to: "tap-strike+0.1", boxes: [box("game", "strike", 0)] },
+            { from: "tap-strike+0.35", to: "frame8+0.45", boxes: "frame8" }] },
+  { id: "carry", take: "game", from: "carry", to: "carry+0.85", caption: "Your line <em>carries over</em>.", vo: "carry", trans: "cut",
+    cam: [{ at: "carry", box: "carry", z: 2.15, ease: 0 }],
+    spots: [{ from: "carry+0.05", to: "carry+0.85", boxes: "carry" }] },
+  { id: "move", take: "game", from: "tap-stance2-0.05", to: "moved+0.35", caption: "Went high?|<em>2-1, one tap.</em>", vo: "move", trans: "cut",
+    cam: [{ at: "tap-stance2-0.05", box: "moves", z: 1.9, ease: 0 }],
+    circles: [{ at: "moves", box: [box("game", "moves", 0)], dur: 0.5 }],
+    spots: [{ from: "moved", to: "moved+0.35", boxes: "moved" }] },
+  { id: "spare", take: "game", from: "ten-0.1", to: "frame9+0.35", caption: "Left the 10?|<em>Spare line's set.</em>", vo: "spare", trans: "cut",
+    cam: [{ at: "ten-0.1", box: "deck", z: 1.85, ease: 0 },
+          { at: "tap-next+0.1", box: "spare-set", z: 2.0, ease: 0.3 },
+          { at: "tap-spare+0.05", box: "frame9", z: 2.6, ease: 0.3 }],
+    circles: [{ at: "ten-0.05", box: "ten", dur: 0.4 }],
+    spots: [{ from: "tap-next+0.4", to: "spare-0.15", boxes: "spare-set" },
+            { from: "tap-spare+0.35", to: "frame9+0.35", boxes: "frame9" }] },
+  { id: "tenth", take: "game", from: "tenth-0-0.05", to: "frame10+0.5", caption: "Strike out <em>the tenth</em>.", vo: "tenth", trans: "cut",
+    cam: [{ at: "tenth-0-0.05", box: box("game", "tenth-0", 1), z: 2.3, ease: 0 }, { at: "frame10", box: "frame10", z: 2.7, ease: 0.3 }],
     spots: [{ from: "frame10", to: "frame10+0.5", boxes: "frame10" }] },
-  { id: "stats", take: "game", from: "stats", to: "balls+0.5", kicker: "Stats", caption: "Your average. <em>Which ball carries.</em>", vo: "stats", trans: "whip",
-    cam: [{ at: "stats", box: { x: 0, y: 40, w: 390, h: 340 }, z: 1.45, ease: 0 },
-          { at: "balls-0.2", box: "balls", z: 1.4, ease: 0.45 }],
-    circles: [{ at: "balls+0.1", box: (() => { const b = markOf("game", "balls").boxes[0]; return { x: b.x + 4, y: b.y + 48, w: b.w - 8, h: 44 }; })(), dur: 0.5 }] },
+  { id: "stats", take: "game", from: "stats", to: "balls+0.5", caption: "Your average.|<em>Which ball carries.</em>", vo: "stats", trans: "whip",
+    cam: [{ at: "stats", box: { x: 0, y: 40, w: 390, h: 340 }, z: 1.5, ease: 0 },
+          { at: "balls-0.2", box: "balls", z: 1.45, ease: 0.45 }],
+    circles: [{ at: "balls+0.1", box: (() => { const b = box("game", "balls"); return { x: b.x + 4, y: b.y + 48, w: b.w - 8, h: 44 }; })(), dur: 0.5 }] },
 
-  // The rest of the app, flipped past.
-  { id: "oil", take: "patterns", from: "graph-0.2", to: "graph+0.9", kicker: "Oil patterns", caption: "Every <em>PBA pattern</em>.", vo: "oil", trans: "flip",
-    cam: [{ at: "graph-0.2", box: "graph", z: 1.45, ease: 0 }] },
-  { id: "spares", take: "spares", from: "ten-line", to: "ten-line+0.8", kicker: "Spare lines", caption: "Your <em>spare system</em>.", vo: "spares", trans: "flip",
-    cam: [{ at: "ten-line", box: { x: 0, y: 380, w: 390, h: 300 }, z: 1.4, ease: 0 }] },
-  { id: "history", take: "history", from: "list", to: "list+1.0", kicker: "History", caption: "Every night, <em>on your phone</em>.", vo: "history", trans: "flip",
-    cam: [{ at: "list", box: { x: 0, y: 40, w: 390, h: 460 }, z: 1.3, ease: 0 }] },
+  // More of the app, flipped past.
+  { id: "oil", take: "patterns", from: "graph-0.2", to: "graph+0.8", caption: "Every <em>PBA pattern</em>.", vo: "oil", trans: "flip",
+    cam: [{ at: "graph-0.2", box: "graph", z: 1.5, ease: 0 }] },
+  { id: "history", take: "history", from: "list", to: "list+1.0", caption: "Every night,|<em>on your phone</em>.", vo: "history", trans: "flip",
+    cam: [{ at: "list", box: { x: 0, y: 40, w: 390, h: 460 }, z: 1.35, ease: 0 }] },
 
-  { id: "end", end: true, vo: "end", trans: "zoom", min: 3.2 }
+  { id: "end", end: true, vo: "end", trans: "zoom", min: 3.0 }
 ];
 
 /** What the voice says, keyed by beat. Written to be heard: "P B A" is
  *  spelled out, and "Head pin" is two words so the p is not swallowed. */
 const VOICE = {
-  hook: "One app for every league night.",
+  hook: "Still guessing your line?",
+  all: "Head pin tracks it all.",
   ball: "Pick your ball.",
   line: "Set your line.",
   lane: "See it on the lane.",
   strike: "Tap. It's scored.",
-  carry: "Next frame, your line carries over.",
-  move: "Went high? Two and one, in one tap.",
-  ten: "Left the ten?",
-  spare: "Your spare ball and line are already set.",
+  carry: "Your line carries over.",
+  move: "Went high? Two and one, one tap.",
+  spare: "Left the ten? Your spare line's already set.",
   tenth: "Strike out the tenth.",
-  stats: "See your average, and which ball carries.",
+  stats: "Your average, and which ball carries.",
   oil: "Every P B A pattern.",
-  spares: "Your spare system.",
   history: "Every night, saved on your phone.",
   end: "Head pin. It's free, at head pin dot app."
 };
@@ -210,38 +211,42 @@ function speak() {
 
 // --- Timeline ------------------------------------------------------------------------
 
-/** Beat start times: each beat lasts at least its line, and starts on a 1/8 s step. */
+/** Beat lengths: at least the beat's line, and a whole number of eighth notes
+ *  of the 120 BPM bed (0.25 s), so every cut lands on the music. */
+const GRID = 0.25;
 function timeline(voice) {
-  let t = 0;
-  const out = [];
-  for (let i = 0; i < BEATS.length; i++) {
-    const b = { ...BEATS[i] };
-    // A line that spans beats (the hook) is timed across the run of them.
+  const out = BEATS.map((b0) => {
+    const b = { ...b0 };
+    const line = b.vo && !b.captionKey ? voice[b.vo].seconds + 0.15 : 0;
     let natural;
-    if (b.end) natural = Math.max(b.min ?? 3, voice[b.vo].seconds + 1.4);
-    else if (b.take) {
+    if (b.end) natural = Math.max(b.min ?? 3, voice[b.vo].seconds + 0.7);
+    else {
       const span = timeOf(b.take, b.to) - timeOf(b.take, b.from);
-      natural = b.dur ?? Math.max(span / 1.6, b.vo ? voice[b.vo].seconds + 0.18 : 0.5, 0.9);
+      natural = Math.max(b.dur ?? Math.max(span / 1.6, 0.9), line);
     }
+    b.dur = Math.ceil(natural / GRID - 1e-6) * GRID;
+    return b;
+  });
+  // A run of beats under one caption carries its line across all of them:
+  // the last one grows until the line fits.
+  for (let i = 0; i < out.length; i++) {
+    const key = out[i].captionKey;
+    if (!key || (i > 0 && out[i - 1].captionKey === key)) continue;
+    let j = i;
+    while (out[j + 1]?.captionKey === key) j++;
+    const run = out.slice(i, j + 1).reduce((a, b) => a + b.dur, 0);
+    const need = voice[out[i].vo].seconds + 0.15;
+    if (run < need) out[j].dur += Math.ceil((need - run) / GRID - 1e-6) * GRID;
+  }
+  let t = 0;
+  for (const b of out) {
     b.start = t;
-    b.dur = Math.ceil(natural * 8) / 8;
     if (b.take) {
       b.src0 = timeOf(b.take, b.from);
       b.src1 = timeOf(b.take, b.to);
       b.speed = clamp((b.src1 - b.src0) / b.dur, 0.25, 3);
     }
     t += b.dur;
-    out.push(b);
-  }
-  // The hook's line runs over its four flips: stretch the last flip to fit it.
-  const hook = out.filter((b) => b.captionKey === "hook");
-  const hookEnd = hook[0].start + voice.hook.seconds + 0.15;
-  const last = hook[hook.length - 1];
-  if (last.start + last.dur < hookEnd) {
-    const grow = Math.ceil((hookEnd - (last.start + last.dur)) * 8) / 8;
-    last.dur += grow;
-    last.speed = clamp((last.src1 - last.src0) / last.dur, 0.25, 3);
-    for (const b of out.slice(out.indexOf(last) + 1)) b.start += grow;
   }
   return out;
 }
@@ -270,8 +275,13 @@ function cameraAt(beat, u) {
   const k = smooth(clamp((z - 1.04) / 0.3));
   const fullX = 540 - (APP_W * s) / 2;
   const fullY = FULL_TOP - (z - 1) * 260;
-  const x = lerp(fullX, FOCUS.x - s * p.cx, k);
-  const y = lerp(fullY, FOCUS.y - s * p.cy, k);
+  let x = lerp(fullX, FOCUS.x - s * p.cx, k);
+  let y = lerp(fullY, FOCUS.y - s * p.cy, k);
+  // Zoomed in, the phone always fills the window: no edge of it drifts in.
+  const W = APP_W * s;
+  const H = APP_H * s;
+  if (W >= WIN.r - WIN.l) x = clamp(x, WIN.r - W, WIN.l);
+  if (H >= WIN.b - WIN.t && k > 0.5) y = clamp(y, WIN.b - H, WIN.t);
   return { s, x, y };
 }
 const toCanvas = (cam, b, pad = 0) => ({
@@ -297,13 +307,15 @@ function ringPath(b, seed) {
   return "M" + pts.map((p) => p.map((v) => v.toFixed(1)).join(" ")).join(" L");
 }
 
-/** Caption words: "Pick <em>your ball</em>." becomes words, some lit. */
+/** Caption words: "Pick <em>your ball</em>." becomes words, some lit; "|"
+ *  forces a line break, so no word is left alone on a line. */
 function words(html) {
   const out = [];
   let em = false;
-  for (const part of html.split(/(<\/?em>)/)) {
+  for (const part of html.split(/(<\/?em>|\|)/)) {
     if (part === "<em>") em = true;
     else if (part === "</em>") em = false;
+    else if (part === "|") out.push({ br: true });
     else for (const w of part.split(/(?<= )/)) if (w.trim()) out.push({ text: w.replace(/ $/, " "), em });
   }
   return out;
@@ -317,18 +329,22 @@ function captionAt(beats, i, u) {
   const html = beats[first].caption;
   let lastIdx = i;
   while (beats[lastIdx + 1] && (beats[lastIdx + 1].captionKey ?? beats[lastIdx + 1].id) === key) lastIdx++;
-  const since = b.start + u - beats[first].start; // time since this caption came up
+  const since = b.start + u - beats[first].start;
   const until = beats[lastIdx].start + beats[lastIdx].dur - (b.start + u);
-  const ws = words(html).map((w, j) => {
-    const k = clamp((since - 0.04 - j * 0.055) / 0.26);
-    const out = clamp((0.14 - until) / 0.14);
+  let j = 0;
+  const ws = words(html).map((w) => {
+    if (w.br) return w;
+    // Words pop in 50 ms apart and hold to the cut. The opening caption is
+    // there from the first frame.
+    const k = beats[first].instant ? 1 : clamp((since - j++ * 0.05) / 0.2);
+    const out = clamp((0.06 - until) / 0.06);
     return {
       text: w.text,
       em: w.em,
-      opacity: easeOut(k) * (1 - out),
-      dy: (1 - easeOutBack(k)) * 38 - out * 24,
-      scale: 0.9 + 0.1 * easeOut(k),
-      blur: (1 - k) * 10 + out * 6
+      opacity: Math.min(1, easeOut(k) * 1.4) * (1 - out),
+      dy: (1 - easeOutBack(k)) * 34,
+      scale: 0.88 + 0.12 * easeOutBack(k),
+      blur: (1 - k) * 4
     };
   });
   return { key, words: ws };
@@ -429,12 +445,13 @@ function frameAtTime(beats, t) {
 
   // End card.
   if (b.end) {
-    const items = [0, 1, 2, 3, 4].map((j) => {
-      const k = clamp((u - 0.12 - j * 0.11) / 0.42);
-      return { opacity: easeOut(k), dy: (1 - easeOutBack(k)) * 60, scale: j === 0 ? 0.6 + 0.4 * easeOutBack(k) : 1 };
+    const items = [0, 1, 2, 3, 4, 5].map((j) => {
+      const k = j === 0 ? clamp(u / 0.22) : clamp((u - 0.05 - j * 0.07) / 0.3);
+      return { opacity: j === 0 ? 1 : easeOut(k), dy: (1 - easeOutBack(k)) * 50, scale: j === 0 ? 0.75 + 0.25 * easeOutBack(k) : 1 };
     });
-    // The address breathes.
-    items[3].scale = 1 + 0.025 * Math.sin(Math.max(0, u - 0.8) * 4);
+    // The address kicks on every beat of the music.
+    const beat = (t % 0.5) / 0.5;
+    if (u > 0.5) items[3].scale = 1 + 0.06 * Math.exp(-beat * 6);
     f.end = { items };
     f.caption = null;
     f.kicker = null;
@@ -445,12 +462,12 @@ function frameAtTime(beats, t) {
 function applyOut(p, kind, k) {
   if (kind === "flip") { p.rotY = -90 * easeIn(k); p.scale = 1 - 0.06 * k; }
   else if (kind === "whip") { p.x -= 1300 * easeIn(k); p.blur = 18 * k; }
-  else if (kind === "zoom") { p.scale = 1 + 0.35 * easeIn(k); p.opacity = 1 - k; }
+  else if (kind === "zoom") { p.scale = 1 + 0.4 * easeIn(k); p.blur = 10 * k; }
 }
 function applyIn(p, kind, k) {
   if (kind === "flip") { p.rotY = 90 * (1 - easeOut(k)); p.scale = 0.94 + 0.06 * k; }
   else if (kind === "whip") { p.x += 1300 * (1 - easeOut(k)); p.blur = 18 * (1 - k); }
-  else if (kind === "zoom") { p.scale = 0.82 + 0.18 * easeOut(k); p.opacity = k; }
+  else if (kind === "zoom") { p.scale = 0.84 + 0.16 * easeOut(k); p.blur = 8 * (1 - k); }
 }
 
 // --- Sound cues ---------------------------------------------------------------------

@@ -32,7 +32,6 @@
 
       #fx { position: absolute; inset: 0; width: 1080px; height: 1920px; }
       /* Rims, rings and taps belong to the app, so they stay in its window. */
-      #rims, #circles { clip-path: inset(560px 28px 24px 28px round 60px); }
       #taps, #finger-clip { position: absolute; inset: 0; clip-path: inset(560px 28px 24px 28px round 60px); }
       #fx .rim { fill: none; stroke: #5ed6c1; stroke-width: 5; }
       #fx .circle { fill: none; stroke: #ffb020; stroke-width: 9; stroke-linecap: round; }
@@ -51,14 +50,15 @@
 
       #flash { position: absolute; inset: 0; background: #fff; pointer-events: none; }
 
-      #end { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 30px; padding-bottom: 300px; }
+      #end { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 28px; padding-bottom: 380px; }
       #end img { width: 230px; height: 230px; border-radius: 56px; box-shadow: 0 30px 90px rgb(94 214 193 / 0.35); }
       #end .name { font-size: 140px; font-weight: 900; letter-spacing: -0.045em; line-height: 1; }
       #end .tag { font-size: 58px; font-weight: 800; letter-spacing: -0.02em; color: #e7eef8; }
       #end .tag em { font-style: normal; color: #ffb020; }
       #end .cta { margin-top: 20px; padding: 26px 64px; border-radius: 999px; background: #5ed6c1; color: #052019;
         font: 900 64px "Inter Display", Inter, sans-serif; letter-spacing: -0.02em; box-shadow: 0 0 80px rgb(94 214 193 / 0.55); }
-      #end .note { font-size: 38px; font-weight: 600; color: #9fb0c6; }
+      #end .note { font-size: 50px; font-weight: 700; color: rgb(255 255 255 / 0.85); letter-spacing: -0.01em; }
+      #end .web { font: 600 38px Inter, sans-serif; color: #9fb0c6; }
       #end .chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 14px; max-width: 900px; margin-top: 10px; }
       #end .chip { font: 700 30px Inter, sans-serif; padding: 12px 24px; border-radius: 999px; background: rgb(255 255 255 / 0.07); color: #cfe0f2; border: 1px solid rgb(255 255 255 / 0.1); }
     </style>
@@ -68,12 +68,16 @@
     <div id="world"></div>
     <svg id="fx" viewBox="0 0 1080 1920">
       <defs>
+        <!-- The app's window (as #world's clip), in this SVG's own pixels. -->
+        <clipPath id="win"><rect x="28" y="560" width="1024" height="1336" rx="60" /></clipPath>
         <mask id="holes"><rect width="1080" height="1920" fill="white" /><g id="hole-g"></g></mask>
         <filter id="glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="9" result="b" /><feMerge><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge></filter>
       </defs>
-      <rect id="dim" width="1080" height="1920" fill="#03060c" mask="url(#holes)" />
-      <g id="rims" filter="url(#glow)"></g>
-      <g id="circles"></g>
+      <g clip-path="url(#win)">
+        <rect id="dim" width="1080" height="1920" fill="#03060c" mask="url(#holes)" />
+        <g id="rims" filter="url(#glow)"></g>
+        <g id="circles"></g>
+      </g>
     </svg>
     <div id="taps"></div>
     <div id="finger-clip"><div id="finger"></div></div>
@@ -85,6 +89,7 @@
       <div class="tag">Bowl smarter on <em>league night</em>.</div>
       <div class="cta">headpin.app</div>
       <div class="note">Free · No sign-up · Works offline</div>
+      <div class="web">Nothing to download. It opens in your browser.</div>
     </div>
     <div id="grain"></div>
     <div id="flash"></div>

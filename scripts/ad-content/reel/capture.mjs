@@ -275,13 +275,22 @@ await take("game", {
     const lineBox = () => [stance, target];
 
     await mark("scorer", { x: 0, y: 0, w: 390, h: 640 });
+    // The scorer's three cards, for framing a shot on a card's own edges.
+    await mark("card", app.locator('button[aria-label="Go to live entry frame 8"]').first().locator("xpath=ancestor::div[contains(@class,'overflow-hidden')][1]"));
+    await mark("deck", app.locator('button[aria-label="Pin 1 down"]').first().locator("xpath=ancestor::div[contains(@class,'space-y-2')][1]"));
+    await mark("panel", stance.locator("xpath=ancestor::div[contains(@class,'divide-y')][1]"));
+    await mark("intended", stance.locator("xpath=ancestor::div[contains(@class,'py-1')][1]"));
     await wait(500);
     // Frame 8.
     await mark("ball", ball);
-    await tap(ball, "tap-ball", 500);
-    const pick = app.getByRole("dialog", { name: "Ball" }).getByRole("button", { name: /Phaze Crimson/i }).first();
+    await tap(ball, "tap-ball", 200);
+    // The picker slides up: mark its rows once it has stopped.
+    const picker = app.getByRole("dialog", { name: "Ball" });
+    const pick = picker.getByRole("button", { name: /Phaze Crimson/i }).first();
+    await wait(650);
+    await mark("picker", picker);
     await mark("pick", pick);
-    await wait(250);
+    await wait(350);
     await tap(pick, "tap-pick", 600);
     await mark("line", lineBox());
     await tap(stance, "tap-stance", 150);
