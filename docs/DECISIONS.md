@@ -6736,3 +6736,31 @@ and the bowler wanted By game to read the same way.
 - Nine slots on a 360px phone are about 33px apart, still a comfortable tap
   each.
 - Past twelve slots only the ends are labelled, as with a long run of sessions.
+
+
+## ADR-146: The Alley report is a Home tile, and the oil patterns join the tools
+
+**Status.** Accepted, 2026-10-15. Amends ADR-115 (what Home's tiles hold).
+
+**Context.** Home splits the bowler's own things (the arsenal, three tiles, the
+recent sessions) from the tools and reference that are the same for everyone.
+The owner judged two of them to be on the wrong side. Oil patterns are looked
+up and added from a catalog shared by every bowler, a reference like the ball
+catalog, and are reached at least as often from the session form. The Alley
+report, listed with the tools, reads nothing but this bowler's games at their
+alleys, so it is the most personal screen on the list.
+
+**Decision.**
+
+- **The Alley report takes the third tile,** beside spare lines and lane notes,
+  its detail the number of alleys it can pick from: every named alley, as
+  typed, the same list its alley picker shows.
+- **Oil patterns becomes a row under Tools and reference,** after the line
+  visualizer it feeds.
+
+**Consequences.**
+- The tiles stay three equal ones in a row; nothing on Home grows.
+- The onboarding step that suggests adding an oil pattern is unchanged, and
+  still opens the same screen.
+- The Alley report screen itself is unchanged here. Its shape is to be
+  reworked separately.

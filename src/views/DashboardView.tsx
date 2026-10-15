@@ -1,5 +1,5 @@
 import { BookOpen, ChevronRight, Compass, GraduationCap, PlayCircle, Plus, ShieldCheck } from "lucide-react";
-import { GamePlanIcon, LaneViewIcon, PinIcon } from "../components/icons";
+import { LaneViewIcon, OilPatternIcon, PinIcon } from "../components/icons";
 import { useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { ErrorBanner } from "../components/ErrorBanner";
@@ -118,6 +118,10 @@ export function DashboardView({
   const recent = sessions.slice(0, RECENT_LIMIT);
   const loadingRecent = liveSessions === undefined;
   const coldStart = !loadingRecent && sessions.length === 0;
+  // The alleys the Alley report can pick from: every named one, as typed.
+  const alleyCount = liveSessions
+    ? new Set(sessions.map(({ session }) => session.alley_name).filter((a) => a.trim())).size
+    : undefined;
 
   const facts = useLiveQuery(() => getOnboardingFacts());
 
@@ -243,18 +247,18 @@ export function DashboardView({
       ) : null}
 
       {/* The rest of the bowler's own things, under the greeting and the
-          arsenal: the three other things a bowler keeps as equal tiles, and
-          the latest sessions. The tools and reading that are the
-          same for everyone follow as a list, because they are a different kind
-          of place. */}
+          arsenal: spare lines, lane notes and the Alley report as equal tiles,
+          and the latest sessions. The tools and reading that are the same for
+          everyone, the oil patterns among them, follow as a list, because they
+          are a different kind of place (ADR-146). */}
       <div className="mt-3 space-y-3">
         <ProfileTiles
           spareLines={facts?.answeredSpareLines}
           laneNotes={facts?.laneNoteCount}
-          oilPatterns={facts?.oilPatternCount}
+          alleys={alleyCount}
           onOpenSpareLines={onOpenSpareLines}
           onOpenLaneNotes={onOpenLaneNotes}
-          onOpenOilPatterns={onOpenOilPatterns}
+          onOpenAlleyReport={onOpenAlleyReport}
         />
         {!coldStart && !loadingRecent && (
           <RecentSessionStrip
@@ -373,9 +377,9 @@ export function DashboardView({
             onClick={onOpenLineVisualizer}
           />
           <ListRow
-            icon={GamePlanIcon}
-            label="Alley report"
-            onClick={onOpenAlleyReport}
+            icon={OilPatternIcon}
+            label="Oil patterns"
+            onClick={onOpenOilPatterns}
           />
           <ListRow
             icon={BookOpen}

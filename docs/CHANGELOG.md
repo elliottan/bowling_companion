@@ -20,6 +20,10 @@ second line instead of being cut off. The All balls sheet matches.
 screen and labelled (G1, G2 and on), along with the high, the low and the
 value of the dashed average line, all of which used to be a swipe away.
 
+**The Alley report is a tile on Home,** beside spare lines and lane notes,
+counting the alleys you have bowled at. Oil patterns moves down to Tools and
+reference, next to the line visualizer.
+
 ## 0.36.0: Eighteen more PBA patterns and eleven more balls (2026-10-15)
 
 **The oil pattern catalog goes from 46 to 64.** Every 2019 PBA animal and
