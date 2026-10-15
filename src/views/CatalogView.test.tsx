@@ -38,12 +38,16 @@ async function seedCatalog(count: number, releaseDates: (string | null)[] = []) 
 }
 
 /** Off unless a test turns it on, the same as the shipped default. */
-const shop = vi.hoisted(() => ({ deepLink: null as string | null }));
+const shop = vi.hoisted(() => ({ deepLink: null as string | null, opened: [] as string[] }));
 vi.mock("../lib/links", async (importOriginal) => {
   const actual = await importOriginal<typeof import("../lib/links")>();
   return {
     ...actual,
-    shopBallUrl: (brand: string, name: string) => actual.shopBallUrl(brand, name, shop.deepLink)
+    shopBallUrl: (brand: string, name: string) => actual.shopBallUrl(brand, name, shop.deepLink),
+    // The mail app is not something a unit test can open; what it was handed is.
+    openMail: (url: string) => {
+      shop.opened.push(url);
+    }
   };
 });
 
@@ -104,13 +108,62 @@ describe("CatalogView", () => {
 
     renderCatalog();
 
-    await waitFor(() => expect(screen.getAllByRole("listitem")).toHaveLength(4));
-    const names = screen.getAllByRole("listitem").map((row) => row.textContent ?? "");
+    // The request row closes the list, and is not one of its balls.
+    const ballRows = () => screen.getAllByRole("listitem").filter((row) => /Ball \d/.test(row.textContent ?? ""));
+    await waitFor(() => expect(ballRows()).toHaveLength(4));
+    const names = ballRows().map((row) => row.textContent ?? "");
     expect(names.map((text) => text.match(/Ball \d/)?.[0])).toEqual(["Ball 2", "Ball 1", "Ball 0", "Ball 3"]);
     expect(names[0]).toContain(formatReleaseDate("2024-11")!);
     expect(names[1]).toContain(formatReleaseDate("2024-03")!);
     // A year is a year: no month is made up for it.
     expect(names[2]).toContain("2024 ·");
+  });
+
+  describe("asking for a ball that is not there", () => {
+    beforeEach(() => {
+      shop.opened.length = 0;
+    });
+
+    function typeSearch(text: string) {
+      fireEvent.change(screen.getByRole("searchbox", { name: "Search the catalog" }), { target: { value: text } });
+    }
+
+    it("offers a request, carrying the search, when nothing matches it", async () => {
+      await seedCatalog(3);
+      renderCatalog();
+      await screen.findByText("Ball 0");
+
+      typeSearch("Zzyzx");
+
+      expect(await screen.findByText('Nothing matches "Zzyzx"')).toBeInTheDocument();
+      fireEvent.click(screen.getByRole("button", { name: /Request this ball/ }));
+      expect(shop.opened).toHaveLength(1);
+      expect(decodeURIComponent(shop.opened[0]!)).toContain("Ball request: Zzyzx");
+    });
+
+    it("clears the filters instead of asking, when only filters emptied the list", async () => {
+      await seedCatalog(3);
+      renderCatalog();
+      await screen.findByText("Ball 0");
+
+      fireEvent.click(screen.getByRole("button", { name: /Filters/ }));
+      fireEvent.click(screen.getByRole("button", { name: "Pearl" }));
+
+      expect(await screen.findByText("No balls match these filters")).toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: /Request this ball/ })).toBeNull();
+      fireEvent.click(screen.getByRole("button", { name: "Clear filters" }));
+      expect(await screen.findByText("Ball 0")).toBeInTheDocument();
+    });
+
+    it("keeps a quiet request row at the end of the list", async () => {
+      await seedCatalog(3);
+      renderCatalog();
+      await screen.findByText("Ball 0");
+
+      fireEvent.click(screen.getByRole("button", { name: "Request a ball" }));
+
+      expect(decodeURIComponent(shop.opened[0]!)).toContain("subject=Ball request");
+    });
   });
 
   describe("the shop link on a ball", () => {

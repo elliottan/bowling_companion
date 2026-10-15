@@ -5,6 +5,17 @@ import { addOilPattern } from "../services/ballRepository";
 import { resetPatternCatalogCache } from "../services/patternCatalog";
 import { OilPatternManager } from "./OilPatternManager";
 
+const mail = vi.hoisted(() => ({ opened: [] as string[] }));
+vi.mock("../lib/links", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../lib/links")>();
+  return {
+    ...actual,
+    openMail: (url: string) => {
+      mail.opened.push(url);
+    }
+  };
+});
+
 describe("OilPatternManager", () => {
   beforeEach(async () => {
     await db.oil_patterns.clear();
@@ -48,5 +59,49 @@ describe("OilPatternManager", () => {
     // None of these has a load table, so no play style matches any of them.
     await waitFor(() => expect(screen.queryByText("Short one")).toBeNull());
     expect(screen.getByRole("button", { name: "Filters, 1 applied" })).toBeInTheDocument();
+  });
+
+  describe("asking for a pattern that is not there", () => {
+    beforeEach(() => {
+      mail.opened.length = 0;
+    });
+
+    function typeSearch(text: string) {
+      fireEvent.change(screen.getByRole("searchbox", { name: "Search patterns" }), { target: { value: text } });
+    }
+
+    it("offers a request, carrying the search, and keeps adding by hand", async () => {
+      render(<OilPatternManager />);
+      await screen.findByText("Long one");
+
+      typeSearch("Cheetah");
+
+      expect(await screen.findByText('Nothing matches "Cheetah"')).toBeInTheDocument();
+      // It is not the "no patterns yet" state: there are patterns.
+      expect(screen.queryByText("No oil patterns yet")).toBeNull();
+      expect(screen.getByRole("button", { name: "Add it yourself" })).toBeInTheDocument();
+      fireEvent.click(screen.getByRole("button", { name: /Request this pattern/ }));
+      expect(decodeURIComponent(mail.opened[0]!)).toContain("Pattern request: Cheetah");
+    });
+
+    it("clears the filters instead of asking, when only filters emptied the list", async () => {
+      render(<OilPatternManager />);
+      await screen.findByText("Long one");
+      fireEvent.click(screen.getByRole("button", { name: "Filters" }));
+      fireEvent.click(screen.getByRole("button", { name: "Sport" }));
+      await waitFor(() => expect(screen.queryByText("Long one")).toBeNull());
+
+      expect(await screen.findByText("No patterns match these filters")).toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: /Request this pattern/ })).toBeNull();
+    });
+
+    it("keeps a quiet request row at the end of the list", async () => {
+      render(<OilPatternManager />);
+      await screen.findByText("Long one");
+
+      fireEvent.click(screen.getByRole("button", { name: "Request a pattern" }));
+
+      expect(decodeURIComponent(mail.opened[0]!)).toContain("subject=Pattern request");
+    });
   });
 });

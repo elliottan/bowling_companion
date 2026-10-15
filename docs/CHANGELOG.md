@@ -9,6 +9,20 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.34.0: Ask for a ball or an oil pattern we don't have (2026-10-15)
+
+**If a search finds nothing, you can ask for it.** Search the ball catalog, the
+catalog picker in the ball editor, or your oil patterns for something that isn't
+there, and the empty result now offers "Request this ball" or "Request this
+pattern". It opens an email to us with what you searched for already filled in,
+and a few lines to say which ball or where the pattern sheet is. There's also a
+quiet "Request a ball" or "Request a pattern" row at the end of each list.
+
+A search that finds nothing in your oil patterns used to say "No oil patterns
+yet", and one in the ball catalog showed an empty box. Both now say nothing
+matches, and when it's only the filters that hid everything, they offer to clear
+them instead of asking for a request.
+
 ## 0.33.0: Dare Devil and Badger join the catalog (2026-10-15)
 
 **Two more balls, each with a photo.** Roto Grip's Dare Devil (2016, Madcap

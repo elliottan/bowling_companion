@@ -10,6 +10,7 @@ import { PushScreen } from "./PushScreen";
 import { FormSheet } from "./ui/FormSheet";
 import { Button } from "./ui/Button";
 import { EmptyState } from "./ui/EmptyState";
+import { CatalogRequestEmpty, CatalogRequestRow } from "./CatalogRequest";
 import { IconButton } from "./ui/IconButton";
 import {
   addOilPattern,
@@ -228,6 +229,24 @@ export function OilPatternManager({ onBack, mode = "inline", onOpenLineVisualize
 
       {isLoading ? (
         <p className="text-sm text-ink-secondary">Loading…</p>
+      ) : active.length === 0 && all.length > 0 && query.trim() ? (
+        // A search that found nothing: the catalog may not have it yet. Adding
+        // it by hand stays one tap away.
+        <CatalogRequestEmpty kind="pattern" query={query}>
+          <Button variant="ghost" onClick={openAdd}>
+            Add it yourself
+          </Button>
+        </CatalogRequestEmpty>
+      ) : active.length === 0 && all.length > 0 ? (
+        <EmptyState
+          icon={OilPatternIcon}
+          title="No patterns match these filters"
+          description="Loosen a filter to see more patterns."
+        >
+          <Button variant="primary" onClick={() => setFilters(NO_PATTERN_FILTERS)}>
+            Clear filters
+          </Button>
+        </EmptyState>
       ) : active.length === 0 ? (
         <EmptyState
           icon={OilPatternIcon}
@@ -251,6 +270,8 @@ export function OilPatternManager({ onBack, mode = "inline", onOpenLineVisualize
           ))}
         </ListGroup>
       )}
+
+      {!isLoading && active.length > 0 && <CatalogRequestRow kind="pattern" query={query} />}
 
       {archived.length > 0 && (
         <>
@@ -309,30 +330,35 @@ export function OilPatternManager({ onBack, mode = "inline", onOpenLineVisualize
             <PatternFilterButton filters={filters} onOpen={() => setFiltersOpen(true)} />
           </div>
 
-          <ListGroup>
-            {catalogShown.map((pattern) => (
-              <li key={pattern.id} className={`flex items-center ${LIST_DIVIDER}`}>
-                <button
-                  type="button"
-                  onClick={() => void addFromCatalog(pattern)}
-                  className="flex min-w-0 flex-1 items-center gap-3 px-3 py-2.5 text-left active:bg-surface-muted"
-                >
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate font-semibold text-ink">{pattern.name}</span>
-                    <span className="block truncate text-xs tabular-nums text-ink-secondary">
-                      <PatternFeet pattern={pattern} />
-                      {pattern.volumeMl.toFixed(2)} mL
-                      {pattern.ratio != null ? ` · ${pattern.ratio.toFixed(1)}:1` : ""}
-                      {(pattern.shape ?? patternClass(pattern.ratio))
-                        ? ` · ${PATTERN_CLASS_LABEL[(pattern.shape ?? patternClass(pattern.ratio))!]}`
-                        : ""}
+          {catalogShown.length === 0 && query.trim() && (
+            <CatalogRequestEmpty kind="pattern" query={query} />
+          )}
+          {catalogShown.length > 0 && (
+            <ListGroup>
+              {catalogShown.map((pattern) => (
+                <li key={pattern.id} className={`flex items-center ${LIST_DIVIDER}`}>
+                  <button
+                    type="button"
+                    onClick={() => void addFromCatalog(pattern)}
+                    className="flex min-w-0 flex-1 items-center gap-3 px-3 py-2.5 text-left active:bg-surface-muted"
+                  >
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate font-semibold text-ink">{pattern.name}</span>
+                      <span className="block truncate text-xs tabular-nums text-ink-secondary">
+                        <PatternFeet pattern={pattern} />
+                        {pattern.volumeMl.toFixed(2)} mL
+                        {pattern.ratio != null ? ` · ${pattern.ratio.toFixed(1)}:1` : ""}
+                        {(pattern.shape ?? patternClass(pattern.ratio))
+                          ? ` · ${PATTERN_CLASS_LABEL[(pattern.shape ?? patternClass(pattern.ratio))!]}`
+                          : ""}
+                      </span>
                     </span>
-                  </span>
-                  <Plus size={16} aria-hidden="true" className="shrink-0 text-ink-tertiary" />
-                </button>
-              </li>
-            ))}
-          </ListGroup>
+                    <Plus size={16} aria-hidden="true" className="shrink-0 text-ink-tertiary" />
+                  </button>
+                </li>
+              ))}
+            </ListGroup>
+          )}
           <p className="mt-2 px-1 text-xs text-ink-tertiary">
             Catalog patterns match their official sheets. Linking replaces this pattern's details with the catalog's, but keeps your name for it and its sessions. You can't undo this.
           </p>

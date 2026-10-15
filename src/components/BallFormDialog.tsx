@@ -18,6 +18,7 @@ import type { Ball, BallLayoutSpec, LayoutSystem } from "../types/bowling";
 import type { CatalogBall, Manufacturer } from "../types/catalog";
 import { DEFAULT_WEIGHT } from "../types/catalog";
 import { CatalogBallImage } from "./CatalogBallImage";
+import { CatalogRequestEmpty } from "./CatalogRequest";
 import { LayoutEditor } from "./LayoutEditor";
 import { Measure } from "./ui/Measure";
 import { SegmentedControl } from "./ui/SegmentedControl";
@@ -461,12 +462,14 @@ function CatalogPickerSheet({ linkedId, onPick, onClose }: CatalogPickerSheetPro
     >
       {loading ? (
         <p className="text-sm text-ink-secondary">Loading catalog…</p>
-      ) : shown.length === 0 ? (
+      ) : balls.length === 0 ? (
         <p className="text-sm text-ink-secondary">
-          {balls.length === 0
-            ? "The catalog has not loaded yet. It needs one connection, then it works offline."
-            : `Nothing in the catalog matches "${query}".`}
+          The catalog has not loaded yet. It needs one connection, then it works offline.
         </p>
+      ) : shown.length === 0 ? (
+        query.trim() ? (
+          <CatalogRequestEmpty kind="ball" query={query} />
+        ) : null
       ) : (
         <ul className="space-y-1.5">
           {shown.map((b) => (

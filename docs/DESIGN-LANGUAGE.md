@@ -295,6 +295,16 @@ spare line, lane note and oil pattern tiles) and the Tools and reference list
 stay below the empty state and stay reachable, because they are the only way to
 several screens (ADR-069, ADR-115).
 
+**A search that finds nothing is a request.** In the ball and pattern
+catalogs a typed search with no match renders `CatalogRequestEmpty`, which opens
+an email to the feedback address with the search in the subject and the body
+(`catalogRequestMailto`). Filters alone emptying a list is not a missing ball,
+so that state offers clearing them and no request. Each list also ends in one
+quiet `CatalogRequestRow`, a row that leaves the app and wears the outward
+arrow. A request carries no diagnostics and writes nothing to the clipboard.
+The mail is opened with `openMail` (an assignment to `location`), never a row
+`href`, which opens a new tab and in an installed app a blank browser sheet.
+
 ## 6. Forms
 
 Field chrome comes from `src/components/ui/field.ts` (`FIELD`, `FIELD_SELECT`,
