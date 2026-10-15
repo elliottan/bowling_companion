@@ -9,6 +9,21 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.35.0: Twenty more balls and two PBA patterns (2026-10-15)
+
+**The ball catalog goes from 801 to 821, each with a photo.** Storm's Code X,
+Axiom and Axiom Pearl, Roto Grip's Hot Cell, Nuclear Cell, Hyped Hybrid and Hyped
+Pearl, 900 Global's Honey Badger Revival and Intensity and Burner Solid, Hammer's
+Anger and Black Widow Viz-A-Ball, Ebonite's Maxim and Game Breaker 3, Pyramid's
+Pathogen Plague and Pathogen Plague Pearl, DV8's Wicked Collision, Radical's
+ZigZag and ZigZag Solid, and Track's Kinetic Obsidian. These are balls bowlers
+still own, ask about and compare against.
+
+**Two Professional Bowlers Association (PBA) patterns.** The 2019 PBA Shark 48
+and Scorpion 42, both from Kegel's own sheets, which you can open from the
+pattern. They are two of the patterns most often seen on TV, and the catalog now
+has 46.
+
 ## 0.34.0: Ask for a ball or an oil pattern we don't have (2026-10-15)
 
 **If a search finds nothing, you can ask for it.** Search the ball catalog, the
