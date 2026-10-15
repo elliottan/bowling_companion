@@ -355,7 +355,7 @@ export function Stats({
           min={spec.min}
           max={spec.max}
           minSpan={spec.minSpan}
-          windowSize={GAME_WINDOW}
+          labelAllUpTo={GAME_LABELS_UP_TO}
           onOpen={
             onOpenGameNumber &&
             ((key) => {
@@ -652,9 +652,9 @@ const CHART_BY: ReadonlyArray<{ value: ChartBy; label: string }> = [
   { value: "game", label: "By game" }
 ];
 
-/** Game slots on the by-game chart before it scrolls sideways. Four is a long
- *  night, so the common case never scrolls. */
-const GAME_WINDOW = 4;
+/** Game slots on the by-game chart that each get a label. "G12" is short, so a
+ *  long day of league and practice still names every slot (ADR-145). */
+export const GAME_LABELS_UP_TO = 12;
 
 /** Leaves on the Spares card; every one is under All leaves. */
 const CARD_LEAVES = 15;

@@ -5,7 +5,7 @@ import { EmptyState } from "../components/ui/EmptyState";
 import { LoadingCard } from "../components/ui/LoadingCard";
 import { GROUP_HEADING } from "../components/ui/typography";
 import { MetricTrendChart } from "../components/MetricTrendChart";
-import { METRIC_KEYS, metricNote, metricSpec, type MetricKey } from "../components/Stats";
+import { GAME_LABELS_UP_TO, METRIC_KEYS, metricNote, metricSpec, type MetricKey } from "../components/Stats";
 import { calculateGameNumberMetrics, type GameNumberMetricPoint } from "../lib/stats";
 import { useHandedness } from "../lib/handednessContext";
 import { useRememberedState } from "../lib/viewMemory";
@@ -21,10 +21,6 @@ const COLUMN_SETS: Columns[] = ["scoring", "first ball"];
 /** Below this a game number is one or two sessions of luck, so it is drawn muted and
  *  its numbers are not what the headline is read off. */
 const THIN = 3;
-
-/** Slots visible at once before the plot scrolls sideways. Four is a normal
- *  night, so the common case never scrolls. */
-const GAME_WINDOW = 4;
 
 interface GameTrendViewProps {
   onBack: () => void;
@@ -97,7 +93,7 @@ export function GameTrendView({ onBack }: GameTrendViewProps) {
               min={spec.min}
               max={spec.max}
               minSpan={spec.minSpan}
-              windowSize={GAME_WINDOW}
+              labelAllUpTo={GAME_LABELS_UP_TO}
               onOpen={(key) => {
                 const n = Number(key.slice(1));
                 if (Number.isInteger(n) && n > 0) {

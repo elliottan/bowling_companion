@@ -6707,3 +6707,32 @@ The row needed 456px; a 360px phone gives the card 310.
 - At 360px and wider, all five columns are on screen with no swipe.
 - A name longer than two lines at that width is still cut, at the end of the
   second line.
+
+
+## ADR-145: The by-game chart fits the card instead of scrolling
+
+**Status.** Accepted, 2026-10-15. Amends ADR-062b (four slots visible, then it
+scrolls) and ADR-063b (`MetricTrendChart` keeps its `windowSize`).
+
+**Context.** The Stats tab's By game chart showed four game slots and scrolled
+sideways for the rest, a bowler with a long day of league and practice having
+nine or more. On a phone the scroll hid more than it showed: the later slots,
+the high or low printed over whichever slot held it, and the average's value
+at the right end of the dashed baseline. Only "G1" was labelled on screen, since
+past six points only the ends get a label and the last end was a swipe away.
+The By session chart, up to twenty points in the same width, never scrolled,
+and the bowler wanted By game to read the same way.
+
+**Decision.**
+
+- **The by-game chart draws every slot in the card's width,** like the session
+  chart. `MetricTrendChart` loses `windowSize`, and the Game by game screen
+  fits the same way.
+- **Every slot is labelled up to twelve.** "G12" is short enough to sit under
+  each point at that spacing, so the chart takes a `labelAllUpTo`; a dated
+  axis keeps the default of six, past which only the ends are named.
+
+**Consequences.**
+- Nine slots on a 360px phone are about 33px apart, still a comfortable tap
+  each.
+- Past twelve slots only the ends are labelled, as with a long run of sessions.

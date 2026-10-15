@@ -79,32 +79,19 @@ describe("MetricTrendChart", () => {
     expect(printed.filter((t) => t === "60%")).toEqual([]);
   });
 
-  describe("the scrolling window", () => {
-    it("keeps the plot at its natural width inside the window", () => {
-      plot(slots([70, 60, 45, 30]), { windowSize: 4 });
-      expect(chart().getAttribute("viewBox")).toBe("0 0 320 140");
-      expect(chart().style.width).toBe("");
-    });
+  it("can name every point of a short axis past the default", () => {
+    plot(slots(Array.from({ length: 12 }, (_, i) => 50 + i)), { labelAllUpTo: 12 });
+    const axisLabels = [...chart().querySelectorAll("text")]
+      .map((t) => t.textContent)
+      .filter((t) => t?.startsWith("G"));
+    expect(axisLabels).toHaveLength(12);
+  });
 
-    it("widens the plot past the window rather than bunching the points", () => {
-      plot(slots([70, 60, 45, 30, 25, 20]), { windowSize: 4 });
-      // Six points in a window of four: half as wide again.
-      expect(chart().getAttribute("viewBox")).toBe("0 0 480 140");
-      expect(chart().style.width).toBe("150%");
-    });
-
-    it("widens the viewBox in step, so the labels do not scale with it", () => {
-      plot(slots([70, 60, 45, 30, 25, 20, 15, 10]), { windowSize: 4 });
-      const [, , width] = (chart().getAttribute("viewBox") as string).split(" ").map(Number);
-      const rendered = Number(chart().style.width.replace("%", ""));
-      // One user unit stays one pixel: 2x the units at 2x the width.
-      expect(width / 320).toBeCloseTo(rendered / 100, 5);
-    });
-
-    it("does not scroll at all without a window", () => {
-      plot(slots([70, 60, 45, 30, 25, 20]));
-      expect(chart().getAttribute("viewBox")).toBe("0 0 320 140");
-    });
+  it("fits every point in the card's width rather than scrolling (ADR-145)", () => {
+    plot(slots([70, 60, 45, 30, 25, 20, 15, 10]));
+    expect(chart().getAttribute("viewBox")).toBe("0 0 320 140");
+    expect(chart().style.width).toBe("");
+    expect(chart().closest(".overflow-x-auto")).toBeNull();
   });
 
   it("opens the point behind the selection", () => {
