@@ -1,0 +1,212 @@
+<!doctype html>
+<!--
+  The feature reel's compositor: one 1080 x 1920 frame, drawn from a plain
+  description of where everything is at that instant. compose.mjs works out
+  the description for each frame (camera, spotlight, circle, finger, caption,
+  end card) and calls window.draw(frame), then takes the screenshot. Nothing
+  here animates on its own, so every frame is exact and the motion is smooth
+  however long a frame takes to draw.
+-->
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      * { box-sizing: border-box; }
+      html, body { margin: 0; width: 1080px; height: 1920px; overflow: hidden; background: #070b14; }
+      body { font-family: "Inter Display", Inter, system-ui, sans-serif; color: #fff; }
+      #bg { position: absolute; inset: 0; background: radial-gradient(120% 80% at 50% 0%, #13213a 0%, #0a1120 55%, #060910 100%); }
+      .glow { position: absolute; border-radius: 999px; filter: blur(120px); opacity: 0.55; }
+      #g1 { width: 900px; height: 900px; background: #1d6b60; }
+      #g2 { width: 700px; height: 700px; background: #7a4b0e; opacity: 0.35; }
+      #grain { position: absolute; inset: 0; opacity: 0.05; mix-blend-mode: overlay;
+        background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/></filter><rect width='160' height='160' filter='url(%23n)'/></svg>"); }
+
+      /* The app stays in a window under the caption, so a zoom never runs
+         under the words. The window is invisible when the whole phone fits. */
+      #world { position: absolute; inset: 0; perspective: 2400px; clip-path: inset(560px 28px 24px 28px round 60px); }
+      .phone { position: absolute; left: 0; top: 0; transform-origin: 0 0; will-change: transform;
+        background: #04070d; box-shadow: 0 60px 140px rgb(0 0 0 / 0.65), 0 0 0 2px rgb(255 255 255 / 0.07) inset; }
+      .phone img { position: absolute; display: block; }
+      .phone .sheen { position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+        background: linear-gradient(125deg, rgb(255 255 255 / 0.10) 0%, rgb(255 255 255 / 0) 35%); }
+
+      #fx { position: absolute; inset: 0; width: 1080px; height: 1920px; }
+      /* Rims, rings and taps belong to the app, so they stay in its window. */
+      #rims, #circles { clip-path: inset(560px 28px 24px 28px round 60px); }
+      #taps, #finger-clip { position: absolute; inset: 0; clip-path: inset(560px 28px 24px 28px round 60px); }
+      #fx .rim { fill: none; stroke: #5ed6c1; stroke-width: 5; }
+      #fx .circle { fill: none; stroke: #ffb020; stroke-width: 9; stroke-linecap: round; }
+
+      #finger { position: absolute; width: 64px; height: 64px; margin: -32px 0 0 -32px; border-radius: 999px;
+        background: rgb(255 255 255 / 0.92); box-shadow: 0 10px 30px rgb(0 0 0 / 0.55), 0 0 0 4px rgb(10 16 28 / 0.45); }
+      .ripple { position: absolute; border-radius: 999px; border: 7px solid #fff; box-shadow: 0 0 24px rgb(94 214 193 / 0.9); }
+
+      #cap { position: absolute; left: 110px; right: 110px; top: 300px; text-align: center;
+        font-weight: 900; font-size: 86px; line-height: 1.04; letter-spacing: -0.035em;
+        text-shadow: 0 6px 30px rgb(0 0 0 / 0.55); }
+      #cap .w { display: inline-block; white-space: pre; will-change: transform, opacity, filter; }
+      #cap .em { background: linear-gradient(180deg, #ffd166 0%, #ff9f1c 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+      #kicker { position: absolute; left: 0; right: 0; top: 232px; text-align: center; font: 800 30px Inter, sans-serif;
+        letter-spacing: 0.22em; text-transform: uppercase; color: #5ed6c1; }
+
+      #flash { position: absolute; inset: 0; background: #fff; pointer-events: none; }
+
+      #end { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 30px; padding-bottom: 300px; }
+      #end img { width: 230px; height: 230px; border-radius: 56px; box-shadow: 0 30px 90px rgb(94 214 193 / 0.35); }
+      #end .name { font-size: 140px; font-weight: 900; letter-spacing: -0.045em; line-height: 1; }
+      #end .tag { font-size: 58px; font-weight: 800; letter-spacing: -0.02em; color: #e7eef8; }
+      #end .tag em { font-style: normal; color: #ffb020; }
+      #end .cta { margin-top: 20px; padding: 26px 64px; border-radius: 999px; background: #5ed6c1; color: #052019;
+        font: 900 64px "Inter Display", Inter, sans-serif; letter-spacing: -0.02em; box-shadow: 0 0 80px rgb(94 214 193 / 0.55); }
+      #end .note { font-size: 38px; font-weight: 600; color: #9fb0c6; }
+      #end .chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 14px; max-width: 900px; margin-top: 10px; }
+      #end .chip { font: 700 30px Inter, sans-serif; padding: 12px 24px; border-radius: 999px; background: rgb(255 255 255 / 0.07); color: #cfe0f2; border: 1px solid rgb(255 255 255 / 0.1); }
+    </style>
+  </head>
+  <body>
+    <div id="bg"><div class="glow" id="g1"></div><div class="glow" id="g2"></div></div>
+    <div id="world"></div>
+    <svg id="fx" viewBox="0 0 1080 1920">
+      <defs>
+        <mask id="holes"><rect width="1080" height="1920" fill="white" /><g id="hole-g"></g></mask>
+        <filter id="glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="9" result="b" /><feMerge><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge></filter>
+      </defs>
+      <rect id="dim" width="1080" height="1920" fill="#03060c" mask="url(#holes)" />
+      <g id="rims" filter="url(#glow)"></g>
+      <g id="circles"></g>
+    </svg>
+    <div id="taps"></div>
+    <div id="finger-clip"><div id="finger"></div></div>
+    <div id="kicker"></div>
+    <div id="cap"></div>
+    <div id="end">
+      <img src="/icons/icon-512.png" alt="" />
+      <div class="name">Headpin</div>
+      <div class="tag">Bowl smarter on <em>league night</em>.</div>
+      <div class="cta">headpin.app</div>
+      <div class="note">Free · No sign-up · Works offline</div>
+    </div>
+    <div id="grain"></div>
+    <div id="flash"></div>
+    <script>
+      const $ = (id) => document.getElementById(id);
+      const world = $("world");
+      const phones = new Map();
+      const loaded = new Map();
+
+      function phoneEl(key) {
+        let p = phones.get(key);
+        if (!p) {
+          p = document.createElement("div");
+          p.className = "phone";
+          p.innerHTML = `<img /><div class="sheen"></div>`;
+          world.appendChild(p);
+          phones.set(key, p);
+        }
+        return p;
+      }
+
+      async function setSrc(img, src) {
+        if (img.dataset.src === src) return;
+        img.dataset.src = src;
+        img.src = src;
+        await img.decode().catch(() => {});
+      }
+
+      /** Draw one frame. Every field is optional; what is absent is hidden. */
+      window.draw = async (f) => {
+        const waits = [];
+        // Background drift.
+        $("g1").style.transform = `translate(${f.bg.g1[0]}px, ${f.bg.g1[1]}px)`;
+        $("g2").style.transform = `translate(${f.bg.g2[0]}px, ${f.bg.g2[1]}px)`;
+
+        // Phones.
+        const live = new Set();
+        for (const p of f.phones) {
+          live.add(p.key);
+          const el = phoneEl(p.key);
+          const bez = p.bezel;
+          el.style.display = "block";
+          el.style.width = `${p.w + bez * 2}px`;
+          el.style.height = `${p.h + bez * 2}px`;
+          el.style.borderRadius = `${p.radius + bez}px`;
+          el.style.opacity = p.opacity;
+          el.style.zIndex = p.z ?? 1;
+          el.style.filter = p.blur ? `blur(${p.blur}px)` : "none";
+          el.style.transform =
+            `translate(${p.x - bez}px, ${p.y - bez}px) translate(${p.w / 2 + bez}px, ${p.h / 2 + bez}px) ` +
+            `rotateY(${p.rotY ?? 0}deg) rotateZ(${p.rotZ ?? 0}deg) scale(${p.scale ?? 1}) translate(${-(p.w / 2 + bez)}px, ${-(p.h / 2 + bez)}px)`;
+          const img = el.querySelector("img");
+          img.style.left = `${bez}px`;
+          img.style.top = `${bez}px`;
+          img.style.width = `${p.w}px`;
+          img.style.height = `${p.h}px`;
+          img.style.borderRadius = `${p.radius}px`;
+          waits.push(setSrc(img, p.src));
+        }
+        for (const [key, el] of phones) if (!live.has(key)) el.style.display = "none";
+
+        // Spotlight: dim everything but the holes, with a lit rim on each.
+        const s = f.spot;
+        $("dim").setAttribute("opacity", s ? s.alpha : 0);
+        $("hole-g").innerHTML = s ? s.holes.map((h) => `<rect x="${h.x}" y="${h.y}" width="${h.w}" height="${h.h}" rx="${h.r}" fill="black"/>`).join("") : "";
+        $("rims").innerHTML = s ? s.holes.map((h) => `<rect class="rim" x="${h.x}" y="${h.y}" width="${h.w}" height="${h.h}" rx="${h.r}" opacity="${s.rim}"/>`).join("") : "";
+
+        // Hand-drawn circles, drawn on by their dash.
+        $("circles").innerHTML = (f.circles ?? [])
+          .map((c) => `<path class="circle" d="${c.d}" pathLength="1" stroke-dasharray="1" stroke-dashoffset="${1 - c.progress}" opacity="${c.opacity}"/>`)
+          .join("");
+
+        // Finger and tap ripples.
+        const fg = $("finger");
+        if (f.finger) {
+          fg.style.display = "block";
+          fg.style.left = `${f.finger.x}px`;
+          fg.style.top = `${f.finger.y}px`;
+          fg.style.opacity = f.finger.opacity;
+          fg.style.transform = `scale(${f.finger.scale})`;
+        } else fg.style.display = "none";
+        $("taps").innerHTML = (f.ripples ?? [])
+          .map((r) => `<div class="ripple" style="left:${r.x - r.size / 2}px;top:${r.y - r.size / 2}px;width:${r.size}px;height:${r.size}px;opacity:${r.opacity}"></div>`)
+          .join("");
+
+        // Caption, word by word.
+        const cap = $("cap");
+        const key = f.caption ? f.caption.key : "";
+        if (cap.dataset.key !== key) {
+          cap.dataset.key = key;
+          cap.innerHTML = f.caption
+            ? f.caption.words.map((w) => (w.br ? "<br>" : `<span class="w${w.em ? " em" : ""}">${w.text}</span>`)).join("")
+            : "";
+        }
+        if (f.caption) {
+          const spans = cap.querySelectorAll(".w");
+          f.caption.words.filter((w) => !w.br).forEach((w, i) => {
+            const el = spans[i];
+            el.style.opacity = w.opacity;
+            el.style.transform = `translateY(${w.dy}px) scale(${w.scale})`;
+            el.style.filter = w.blur > 0.2 ? `blur(${w.blur}px)` : "none";
+          });
+          cap.style.top = `${f.caption.top ?? 300}px`;
+        }
+        $("kicker").textContent = f.kicker ? f.kicker.text : "";
+        $("kicker").style.opacity = f.kicker ? f.kicker.opacity : 0;
+
+        // End card.
+        const end = $("end");
+        const e = f.end;
+        end.style.display = e ? "flex" : "none";
+        if (e) {
+          const kids = end.children;
+          e.items.forEach((it, i) => {
+            kids[i].style.opacity = it.opacity;
+            kids[i].style.transform = `translateY(${it.dy}px) scale(${it.scale})`;
+          });
+        }
+        $("flash").style.opacity = f.flash ?? 0;
+        await Promise.all(waits);
+      };
+      window.ready = document.fonts.ready.then(() => $("end").querySelector("img").decode().catch(() => {}));
+    </script>
+  </body>
+</html>
