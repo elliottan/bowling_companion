@@ -125,12 +125,13 @@ function count(tally: LineTally, shot: LineShot) {
 export function buildLineReport(
   sessions: SessionSummary[],
   balls: Ball[],
-  filter: BriefingFilter,
+  filter: BriefingFilter & { game?: number },
   handedness: Handedness = "right"
 ): LineReport {
   const slice = filterSessionsBy(sessions, {
     alleyName: filter.alley || undefined,
-    oilPattern: filter.pattern || undefined
+    oilPattern: filter.pattern || undefined,
+    gameNumber: filter.game
   });
   const newestFirst = [...slice].sort(
     (a, b) =>

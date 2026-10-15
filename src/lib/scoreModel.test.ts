@@ -201,6 +201,40 @@ describe("estimating each ball", () => {
     expect(tenPin.estimate! - sevenTen.estimate!).toBeGreaterThan(10);
   });
 
+  it("splits a ball's difference into its strikes and its leaves, exactly", () => {
+    const singles = Array.from({ length: 8 }, () => game(sameEveryFrame(1, NONE, NONE)));
+    const splits = Array.from({ length: 8 }, () => game(sameEveryFrame(2, SPLIT, [7])));
+    for (const b of estimateBalls(sessions(...singles, ...splits)).balls) {
+      expect(b.fromStrikes + b.fromLeaves).toBeCloseTo(b.difference, 6);
+    }
+  });
+
+  it("names the leaves a ball costs most, and leaves out the ones always made", () => {
+    const frames = (ball: number) =>
+      Array.from({ length: 10 }, (_, i) =>
+        i === 9
+          ? frame(10, ball, TEN, NONE, NONE)
+          : i % 3 === 0
+            ? frame(i + 1, ball, SPLIT, [7])
+            : frame(i + 1, ball, TEN, NONE)
+      );
+    const { balls } = estimateBalls(sessions(...Array.from({ length: 6 }, () => game(frames(1)))));
+    const [first, ...rest] = balls[0].costliest;
+    expect(first.pins).toEqual(SPLIT);
+    expect(first.made).toBe(0);
+    expect(first.left).toBe(18);
+    // Every 10 pin was made, so it costs nothing and is not named.
+    expect(rest.find((l) => l.pins.join() === "10")).toBeUndefined();
+  });
+
+  it("ranks the balls with enough behind them, and lists the thin ones after", () => {
+    const main = Array.from({ length: 10 }, () => game(sameEveryFrame(1, TEN, NONE)));
+    const lucky = game([frame(1, 2, NONE), ...sameEveryFrame(1, TEN, NONE).slice(1)]);
+    const { balls } = estimateBalls(sessions(...main, lucky));
+    expect(balls.map((b) => b.ballId)).toEqual([1, 2]);
+    expect(balls[1].thin).toBe(true);
+  });
+
   it("reads a ball with a handful of throws close to the bowler", () => {
     const main = Array.from({ length: 10 }, () => game(sameEveryFrame(1, TEN, NONE)));
     // Three perfect frames with another ball: not a 300 ball.

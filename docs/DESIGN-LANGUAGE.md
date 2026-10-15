@@ -283,8 +283,11 @@ delete asks first.
 **A hint can be waved away, and comes back.** Every hint has an action and an X.
 The X is a snooze with an end, kept per thing it was about, not a permanent no.
 
-**A report leads with its answers.** The Alley report opens on the best lines and
-the last session, and keeps the detail one tap down.
+**A report leads with its answers.** The Alley report opens on what you'd
+average with each ball there, then the best lines and the last session, and
+keeps the detail one tap down. A ball's row says its estimate and the two
+reasons in pins a game; opening it shows the numbers behind each reason beside
+every ball's, never a sentence about what to throw (ADR-147).
 
 ## 5. Empty states
 

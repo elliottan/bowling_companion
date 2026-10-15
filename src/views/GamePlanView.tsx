@@ -30,6 +30,9 @@ import { getBalls } from "../services/ballRepository";
 import type { Ball, SessionSummary } from "../types/bowling";
 import { ErrorBanner } from "../components/ErrorBanner";
 import { describeLine } from "../components/alleyHistoryCopy";
+import { BallEstimates } from "../components/BallEstimates";
+import { estimateBalls } from "../lib/scoreModel";
+import { filterSessionsBy } from "../lib/stats";
 
 const NO_SESSIONS: SessionSummary[] = [];
 const NO_BALLS: Ball[] = [];
@@ -126,15 +129,40 @@ export function GamePlanView({
   );
   const lane = allLanes.includes(rememberedLane) ? rememberedLane : "";
 
+  // Game 1 on fresh oil and game 4 on a broken-down pair are different lanes
+  // to read, so the game in the session narrows everything below too.
+  const [rememberedGame, setGame] = useRememberedState("plan:game", "");
+  const allGames = useMemo(
+    () => buildFilterOptions(history, { ...EMPTY_SELECTION, alley, pattern }).gameNumbers.map(String),
+    [history, alley, pattern]
+  );
+  const gameNumber = allGames.includes(rememberedGame) ? Number(rememberedGame) : undefined;
+
   const report = useMemo(
-    () => buildLineReport(history, balls, { alley, pattern, lane }, handedness),
-    [history, balls, alley, pattern, lane, handedness]
+    () => buildLineReport(history, balls, { alley, pattern, lane, game: gameNumber }, handedness),
+    [history, balls, alley, pattern, lane, gameNumber, handedness]
+  );
+  // The same games the lines are read from, with make rates from every game
+  // you have bowled: a leave is shot the same at every house (ADR-147).
+  const estimates = useMemo(
+    () =>
+      estimateBalls(
+        filterSessionsBy(history, {
+          alleyName: alley || undefined,
+          oilPattern: pattern || undefined,
+          gameNumber
+        }),
+        { lanes: lane ? [lane] : undefined, history }
+      ),
+    [history, alley, pattern, lane, gameNumber]
   );
   const open = findLine(report, openLineId);
   const top = useMemo(() => bestLines(report), [report]);
   const last = useMemo(() => lastSession(report), [report]);
 
-  const where = [alley, pattern, lane && `lane ${lane}`].filter(Boolean).join(" \u00b7 ");
+  const where = [alley, pattern, lane && `lane ${lane}`, gameNumber && `game ${gameNumber}`]
+    .filter(Boolean)
+    .join(" \u00b7 ");
 
   return (
     <>
@@ -211,6 +239,26 @@ export function GamePlanView({
                     </select>
                   </div>
                 )}
+                {allGames.length > 1 && (
+                  <div className="w-20 shrink-0">
+                    <label className={FIELD_LABEL} htmlFor="plan-game">
+                      Game
+                    </label>
+                    <select
+                      id="plan-game"
+                      value={gameNumber ? String(gameNumber) : ""}
+                      onChange={(e) => setGame(e.target.value)}
+                      className={FIELD_SELECT}
+                    >
+                      <option value="">Any</option>
+                      {allGames.map((g) => (
+                        <option key={g} value={g}>
+                          {g}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
               </div>
 
               <p className="mt-3 text-xs text-ink-secondary">
@@ -221,8 +269,13 @@ export function GamePlanView({
                     } ${report.sessions === 1 ? "session" : "sessions"}${where ? ` at ${where}` : ""}.`}
               </p>
 
-              {/* The answer first: the lines that struck most here, and what
-                  you did last time. The rest is behind a tap. */}
+              {/* The answer first: which ball to expect most from here, then
+                  the lines that struck most and what you did last time. The
+                  rest is behind a tap. */}
+              <div className="mt-4">
+                <BallEstimates report={estimates} balls={balls} />
+              </div>
+
               {top.length > 0 && (
                 <div className="mt-4">
                   <ListGroup heading="Best lines here">
@@ -257,7 +310,7 @@ export function GamePlanView({
 
               {report.balls.length > 0 && (
                 <div className="mt-4">
-                  <ListGroup heading="By ball">
+                  <ListGroup heading="Lines by ball">
                     {report.balls.map((ball, i) => (
                       <BallLines
                         key={ball.ballId ?? "none"}

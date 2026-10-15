@@ -6768,8 +6768,8 @@ alleys, so it is the most personal screen on the list.
 
 ## ADR-147: A ball's estimated average is modelled from its strikes, its strings and its leaves
 
-**Status.** Proposed, 2026-10-15. The model only (`lib/scoreModel`); no screen
-reads it yet.
+**Status.** Accepted, 2026-10-15. Amends ADR-122 (the Alley report reads
+counts, never rates) for the one section it adds.
 
 **Context.** A ball's average cannot be read off games: most games are thrown
 with more than one ball, and a ball with fifty balls behind it has no games of
@@ -6812,5 +6812,18 @@ more splits, which cost more than the pins say.
   of under 5 pins, and as well when that session's own spares are left out of
   the make rates. The gap is mostly the night's spare shooting against the
   bowler's usual.
-- How it is presented, and at which scopes (pattern, lane, line), is still to
-  be decided.
+- **The Alley report leads with it.** A Balls section above the lines: one row
+  per ball, its estimate against the bowler's real average in the scope picked,
+  and the difference split into strikes and leaves in pins a game. A ball with
+  under 30 first balls in scope is greyed, listed last and not ranked.
+- **A ball opens on its reasons,** each with every ball's number beside it:
+  its strike rate and strike on strike, the share of its leaves that are
+  splits or washouts, and the three leaves it is expected to miss most, each as
+  how often this ball left it and how often the bowler makes it. These are
+  rates as counted; the leaned-on rates stay inside the model.
+- **The report gains a Game picker,** beside Lane, which narrows the estimates
+  and the lines alike. Game 1 on fresh oil and game 4 on a broken-down pair are
+  different lanes to read.
+- Lines are not modelled yet. A line is read in counts below, as ADR-122 has
+  it, until there is a way to group neighbouring lines that does not merge a
+  move the bowler made on purpose.

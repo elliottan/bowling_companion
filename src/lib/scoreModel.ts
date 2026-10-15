@@ -406,6 +406,43 @@ export function buildModel(
   };
 }
 
+/** Under this many first balls in scope a ball's estimate is shown but not
+ *  ranked: a strike rate from thirty balls is still about nine points either
+ *  way. */
+export const THIN_BALL_FIRST_BALLS = 30;
+
+/** Leaves named under a ball as costing it the most. */
+export const COSTLIEST_LEAVES = 3;
+
+/** A leave a ball left, and what it costs: how often this ball left it, and
+ *  how often the bowler makes it with any ball. */
+export interface LeaveCost {
+  pins: PinNumber[];
+  /** Times this ball left it, in scope. */
+  left: number;
+  /** The bowler's chances at it, and makes, across the whole history. */
+  chances: number;
+  made: number;
+  /** Too few chances to rate on its own (ADR-147). */
+  thin: boolean;
+  /** Spares expected to be missed: `left` times the make rate the model uses. */
+  misses: number;
+}
+
+/** Rates as counted, for the screen. The model reads leaned-on rates; these
+ *  are what happened. */
+export interface Counted {
+  /** Fresh-rack balls and the strikes among them. */
+  firstBalls: number;
+  strikes: number;
+  /** Fresh-rack balls thrown straight after a strike, and their strikes. */
+  afterStrike: number;
+  strikesAfterStrike: number;
+  /** Leaves, and the splits and washouts among them. */
+  leaves: number;
+  splits: number;
+}
+
 export interface BallEstimate {
   ballId: number;
   /** The model's game for this ball, in pins. */
@@ -413,17 +450,69 @@ export interface BallEstimate {
   /** Pins a game this ball is worth against the bowler's own model, every
    *  ball together. The model's absolute number is never shown (ADR-147). */
   difference: number;
+  /** The share of `difference` its strikes account for: its strike rates on
+   *  the bowler's leaves. */
+  fromStrikes: number;
+  /** The rest: its leaves, on its own strike rates. The two add up to
+   *  `difference` exactly. */
+  fromLeaves: number;
   /** The bowler's real average in scope, moved by `difference`. */
   estimate: number | null;
   firstBalls: number;
+  /** Too few first balls in scope to rank. */
+  thin: boolean;
+  counted: Counted;
+  costliest: LeaveCost[];
   thinLeaveShare: number;
   leaveMakeRate: number;
   strikeAfterStrike: number;
   strikeOtherwise: number;
 }
 
+export interface BallEstimates {
+  baseline: number;
+  /** The bowler's real average in scope, over finished games. */
+  actual: number | null;
+  games: number;
+  /** Every ball together, counted. */
+  counted: Counted;
+  /** Ranked: the balls with enough behind them by estimate, then the thin ones. */
+  balls: BallEstimate[];
+  overall: ModelInputs;
+}
+
+function count(profile: StrikeProfile): Counted {
+  let leaves = 0;
+  let splits = 0;
+  for (const l of profile.leaves.values()) {
+    leaves += l.count;
+    if (leaveKind(l.pins) === "split") splits += l.count;
+  }
+  return {
+    firstBalls: profile.afterStrike.balls + profile.otherwise.balls,
+    strikes: profile.afterStrike.strikes + profile.otherwise.strikes,
+    afterStrike: profile.afterStrike.balls,
+    strikesAfterStrike: profile.afterStrike.strikes,
+    leaves,
+    splits
+  };
+}
+
+/** The leaves a ball is expected to miss most, worst first. A leave the bowler
+ *  always makes costs nothing however often it comes up. */
+function costliest(profile: StrikeProfile, spares: SpareBook): LeaveCost[] {
+  return [...profile.leaves.values()]
+    .map(({ pins, count: left }) => {
+      const r = spares.rate(pins);
+      return { pins, left, chances: r.chances, made: r.made, thin: r.thin, misses: left * (1 - r.makeRate) };
+    })
+    .filter((l) => l.misses >= 1)
+    .sort((a, b) => b.misses - a.misses || b.left - a.left)
+    .slice(0, COSTLIEST_LEAVES);
+}
+
 /** Every ball's estimated average in one scope, against the bowler's real one. */
-export function estimateBalls(sessions: SessionSummary[], options: EstimateOptions = {}) {
+export function estimateBalls(sessions: SessionSummary[], options: EstimateOptions = {}): BallEstimates {
   const scoped = readGames(sessions, options);
   const { all, byBall, games } = scoped;
   const spares = options.history ? readGames(options.history).spares : scoped.spares;
@@ -434,17 +523,30 @@ export function estimateBalls(sessions: SessionSummary[], options: EstimateOptio
     const inputs = buildModel(profile, spares, all);
     const modelled = expectedGameScore(inputs.model);
     const difference = modelled - baseline;
+    // Its strikes first, on the bowler's leaves; whatever is left is its leaves.
+    const strikesOnly = expectedGameScore({
+      ...overall.model,
+      strikeAfterStrike: inputs.model.strikeAfterStrike,
+      strikeOtherwise: inputs.model.strikeOtherwise
+    });
+    const counted = count(profile);
     return {
       ballId,
       modelled,
       difference,
+      fromStrikes: strikesOnly - baseline,
+      fromLeaves: modelled - strikesOnly,
       estimate: actual === null ? null : actual + difference,
-      firstBalls: profile.afterStrike.balls + profile.otherwise.balls,
+      firstBalls: counted.firstBalls,
+      thin: counted.firstBalls < THIN_BALL_FIRST_BALLS,
+      counted,
+      costliest: costliest(profile, spares),
       thinLeaveShare: inputs.thinLeaveShare,
       leaveMakeRate: inputs.leaveMakeRate,
       strikeAfterStrike: inputs.model.strikeAfterStrike,
       strikeOtherwise: inputs.model.strikeOtherwise
     };
   });
-  return { baseline, actual, games: games.length, balls, overall };
+  balls.sort((a, b) => Number(a.thin) - Number(b.thin) || b.difference - a.difference);
+  return { baseline, actual, games: games.length, counted: count(all), balls, overall };
 }
