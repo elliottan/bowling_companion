@@ -39175,5 +39175,981 @@
         "mbDiff": null
       }
     ]
+  },
+  {
+    "id": "900-global-burner-solid-2021",
+    "brand": "900 Global",
+    "name": "Burner Solid",
+    "releaseDate": "2021-07-02",
+    "releaseYear": 2021,
+    "coverstockRaw": "S62 Response Solid Reactive",
+    "coverstockCategory": "Solid",
+    "factoryFinish": "1500 Polished",
+    "coreName": "Centroid",
+    "coreType": "Symmetric",
+    "rg": 2.53,
+    "diff": 0.037,
+    "mbDiff": null,
+    "imageThumb": "/catalog/img/900-global-burner-solid-2021-thumb.webp",
+    "imageFull": "/catalog/img/900-global-burner-solid-2021-full.webp",
+    "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/900-global/burner-solid",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.53,
+        "diff": 0.038,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.53,
+        "diff": 0.037,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.54,
+        "diff": 0.038,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.59,
+        "diff": 0.045,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.65,
+        "diff": 0.035,
+        "mbDiff": null
+      }
+    ]
+  },
+  {
+    "id": "900-global-honey-badger-intensity-2021",
+    "brand": "900 Global",
+    "name": "Honey Badger Intensity",
+    "releaseDate": "2021-03-12",
+    "releaseYear": 2021,
+    "coverstockRaw": "S70 Solid Reactive",
+    "coverstockCategory": "Solid",
+    "factoryFinish": "4000 Abralon",
+    "coreName": "Grapnel 2.0",
+    "coreType": "Asymmetric",
+    "rg": 2.54,
+    "diff": 0.048,
+    "mbDiff": 0.012,
+    "imageThumb": "/catalog/img/900-global-honey-badger-intensity-2021-thumb.webp",
+    "imageFull": "/catalog/img/900-global-honey-badger-intensity-2021-full.webp",
+    "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/900-global/honey-badger-intensity",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.53,
+        "diff": 0.045,
+        "mbDiff": 0.013
+      },
+      {
+        "weight": 15,
+        "rg": 2.54,
+        "diff": 0.048,
+        "mbDiff": 0.012
+      },
+      {
+        "weight": 14,
+        "rg": 2.55,
+        "diff": 0.047,
+        "mbDiff": 0.012
+      },
+      {
+        "weight": 13,
+        "rg": 2.57,
+        "diff": 0.032,
+        "mbDiff": 0.01
+      },
+      {
+        "weight": 12,
+        "rg": 2.59,
+        "diff": 0.029,
+        "mbDiff": 0.008
+      }
+    ]
+  },
+  {
+    "id": "900-global-honey-badger-revival-2020",
+    "brand": "900 Global",
+    "name": "Honey Badger Revival",
+    "releaseDate": "2020-08-28",
+    "releaseYear": 2020,
+    "coverstockRaw": "S70 Hybrid Reactive",
+    "coverstockCategory": "Hybrid",
+    "factoryFinish": "1500 Polished",
+    "coreName": "Grapnel 2.0",
+    "coreType": "Asymmetric",
+    "rg": 2.54,
+    "diff": 0.048,
+    "mbDiff": 0.012,
+    "imageThumb": "/catalog/img/900-global-honey-badger-revival-2020-thumb.webp",
+    "imageFull": "/catalog/img/900-global-honey-badger-revival-2020-full.webp",
+    "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/900-global/honey-badger-revival",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.53,
+        "diff": 0.045,
+        "mbDiff": 0.013
+      },
+      {
+        "weight": 15,
+        "rg": 2.54,
+        "diff": 0.048,
+        "mbDiff": 0.012
+      },
+      {
+        "weight": 14,
+        "rg": 2.55,
+        "diff": 0.047,
+        "mbDiff": 0.012
+      },
+      {
+        "weight": 13,
+        "rg": 2.57,
+        "diff": 0.032,
+        "mbDiff": 0.01
+      },
+      {
+        "weight": 12,
+        "rg": 2.59,
+        "diff": 0.029,
+        "mbDiff": 0.008
+      }
+    ]
+  },
+  {
+    "id": "dv8-wicked-collision-2024",
+    "brand": "DV8",
+    "name": "Wicked Collision",
+    "releaseDate": "2024-07-11",
+    "releaseYear": 2024,
+    "coverstockRaw": "HK22C - Havoc Solid Reactive",
+    "coverstockCategory": "Solid",
+    "factoryFinish": "500/1000/1500 Siaair, Crown Factory Compound",
+    "coreName": "Collision",
+    "coreType": "Asymmetric",
+    "rg": 2.462,
+    "diff": 0.052,
+    "mbDiff": 0.019,
+    "imageThumb": "/catalog/img/dv8-wicked-collision-2024-thumb.webp",
+    "imageFull": "/catalog/img/dv8-wicked-collision-2024-full.webp",
+    "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/dv8/wicked-collision",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.477,
+        "diff": 0.05,
+        "mbDiff": 0.018
+      },
+      {
+        "weight": 15,
+        "rg": 2.462,
+        "diff": 0.052,
+        "mbDiff": 0.019
+      },
+      {
+        "weight": 14,
+        "rg": 2.479,
+        "diff": 0.052,
+        "mbDiff": 0.019
+      },
+      {
+        "weight": 13,
+        "rg": 2.597,
+        "diff": 0.041,
+        "mbDiff": 0.014
+      },
+      {
+        "weight": 12,
+        "rg": 2.593,
+        "diff": 0.041,
+        "mbDiff": 0.014
+      }
+    ]
+  },
+  {
+    "id": "ebonite-game-breaker-3-2018",
+    "brand": "Ebonite",
+    "name": "Game Breaker 3",
+    "releaseDate": "2018-01-30",
+    "releaseYear": 2018,
+    "coverstockRaw": "GB 12.7 Hybrid Reactive",
+    "coverstockCategory": "Hybrid",
+    "factoryFinish": "500/2000 Abralon",
+    "coreName": "Enhanced V2",
+    "coreType": "Symmetric",
+    "rg": 2.48,
+    "diff": 0.048,
+    "mbDiff": null,
+    "imageThumb": "/catalog/img/ebonite-game-breaker-3-2018-thumb.webp",
+    "imageFull": "/catalog/img/ebonite-game-breaker-3-2018-full.webp",
+    "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/ebonite/game-breaker-3",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.491,
+        "diff": 0.041,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.48,
+        "diff": 0.048,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.517,
+        "diff": 0.048,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.574,
+        "diff": 0.04,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.597,
+        "diff": 0.04,
+        "mbDiff": null
+      }
+    ]
+  },
+  {
+    "id": "ebonite-maxim-2020",
+    "brand": "Ebonite",
+    "name": "Maxim",
+    "releaseDate": "2020-09-03",
+    "releaseYear": 2020,
+    "coverstockRaw": "Polyester",
+    "coverstockCategory": "Polyester",
+    "factoryFinish": "Crown Factory Polish",
+    "coreName": "Bullet",
+    "coreType": "Symmetric",
+    "rg": 2.715,
+    "diff": 0.019,
+    "mbDiff": null,
+    "imageThumb": "/catalog/img/ebonite-maxim-2020-thumb.webp",
+    "imageFull": "/catalog/img/ebonite-maxim-2020-full.webp",
+    "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/ebonite/maxim",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": null,
+        "diff": null,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.715,
+        "diff": 0.019,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": null,
+        "diff": null,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": null,
+        "diff": null,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": null,
+        "diff": null,
+        "mbDiff": null
+      }
+    ]
+  },
+  {
+    "id": "hammer-anger-2024",
+    "brand": "Hammer",
+    "name": "Anger",
+    "releaseDate": "2024-11-21",
+    "releaseYear": 2024,
+    "coverstockRaw": "HK22 - CT Reactive Flip Pearl",
+    "coverstockCategory": "Pearl",
+    "factoryFinish": "500/1000/1500 Siaair, Crown Factory Compound",
+    "coreName": "Modified Infamous",
+    "coreType": "Symmetric",
+    "rg": 2.567,
+    "diff": 0.049,
+    "mbDiff": null,
+    "imageThumb": "/catalog/img/hammer-anger-2024-thumb.webp",
+    "imageFull": "/catalog/img/hammer-anger-2024-full.webp",
+    "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/hammer/anger",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.572,
+        "diff": 0.041,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.567,
+        "diff": 0.049,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.603,
+        "diff": 0.049,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.585,
+        "diff": 0.04,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.608,
+        "diff": 0.04,
+        "mbDiff": null
+      }
+    ]
+  },
+  {
+    "id": "hammer-black-widow-viz-a-ball-2021",
+    "brand": "Hammer",
+    "name": "Black Widow Viz-A-Ball",
+    "releaseDate": "2021-11-19",
+    "releaseYear": 2021,
+    "coverstockRaw": "Polyester",
+    "coverstockCategory": "Polyester",
+    "factoryFinish": "Crown Factory Polish",
+    "coreName": "Gas Mask",
+    "coreType": "Asymmetric",
+    "rg": 2.5,
+    "diff": 0.058,
+    "mbDiff": 0.016,
+    "imageThumb": "/catalog/img/hammer-black-widow-viz-a-ball-2021-thumb.webp",
+    "imageFull": "/catalog/img/hammer-black-widow-viz-a-ball-2021-full.webp",
+    "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/hammer/black-widow-viz-a-ball",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.51,
+        "diff": 0.048,
+        "mbDiff": 0.015
+      },
+      {
+        "weight": 15,
+        "rg": 2.5,
+        "diff": 0.058,
+        "mbDiff": 0.016
+      },
+      {
+        "weight": 14,
+        "rg": 2.5,
+        "diff": 0.056,
+        "mbDiff": 0.016
+      },
+      {
+        "weight": 13,
+        "rg": 2.589,
+        "diff": 0.043,
+        "mbDiff": 0.011
+      },
+      {
+        "weight": 12,
+        "rg": 2.612,
+        "diff": 0.043,
+        "mbDiff": 0.011
+      }
+    ]
+  },
+  {
+    "id": "pyramid-pathogen-plague-2018",
+    "brand": "Pyramid",
+    "name": "Pathogen Plague",
+    "releaseDate": "2018-02-28",
+    "releaseYear": 2018,
+    "coverstockRaw": "GPS Navigational Urethane Solid",
+    "coverstockCategory": "Urethane",
+    "factoryFinish": "1000 Abralon",
+    "coreName": "New Era 139 (2.54 RG)",
+    "coreType": "Symmetric",
+    "rg": 2.54,
+    "diff": 0.032,
+    "mbDiff": null,
+    "imageThumb": "/catalog/img/pyramid-pathogen-plague-2018-thumb.webp",
+    "imageFull": "/catalog/img/pyramid-pathogen-plague-2018-full.webp",
+    "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/pyramid/pathogen-plague",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": null,
+        "diff": null,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.54,
+        "diff": 0.032,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": null,
+        "diff": null,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": null,
+        "diff": null,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": null,
+        "diff": null,
+        "mbDiff": null
+      }
+    ]
+  },
+  {
+    "id": "pyramid-pathogen-plague-pearl-2019",
+    "brand": "Pyramid",
+    "name": "Pathogen Plague Pearl",
+    "releaseDate": "2019-10-17",
+    "releaseYear": 2019,
+    "coverstockRaw": "Urethane Pearl",
+    "coverstockCategory": "Urethane",
+    "factoryFinish": "1000 Abralon",
+    "coreName": "SG 19.5 Urethane",
+    "coreType": "Asymmetric",
+    "rg": 2.52,
+    "diff": 0.043,
+    "mbDiff": 0.015,
+    "imageThumb": "/catalog/img/pyramid-pathogen-plague-pearl-2019-thumb.webp",
+    "imageFull": "/catalog/img/pyramid-pathogen-plague-pearl-2019-full.webp",
+    "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/pyramid/pathogen-plague-pearl",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": null,
+        "diff": null,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.52,
+        "diff": 0.043,
+        "mbDiff": 0.015
+      },
+      {
+        "weight": 14,
+        "rg": null,
+        "diff": null,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": null,
+        "diff": null,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": null,
+        "diff": null,
+        "mbDiff": null
+      }
+    ]
+  },
+  {
+    "id": "radical-zigzag-2023",
+    "brand": "Radical",
+    "name": "ZigZag",
+    "releaseDate": "2023-12-07",
+    "releaseYear": 2023,
+    "coverstockRaw": "HK22 - HyperKinetic Hybrid Reactive",
+    "coverstockCategory": "Hybrid",
+    "factoryFinish": "500/1000/1500 Siaair, Crown Factory Compound",
+    "coreName": "ZigZag",
+    "coreType": "Asymmetric",
+    "rg": 2.501,
+    "diff": 0.045,
+    "mbDiff": 0.015,
+    "imageThumb": "/catalog/img/radical-zigzag-2023-thumb.webp",
+    "imageFull": "/catalog/img/radical-zigzag-2023-full.webp",
+    "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/radical/zigzag",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.51,
+        "diff": 0.04,
+        "mbDiff": 0.014
+      },
+      {
+        "weight": 15,
+        "rg": 2.501,
+        "diff": 0.045,
+        "mbDiff": 0.015
+      },
+      {
+        "weight": 14,
+        "rg": 2.517,
+        "diff": 0.045,
+        "mbDiff": 0.015
+      }
+    ]
+  },
+  {
+    "id": "radical-zigzag-solid-2024",
+    "brand": "Radical",
+    "name": "ZigZag Solid",
+    "releaseDate": "2024-10-24",
+    "releaseYear": 2024,
+    "coverstockRaw": "HK22 - HyperKinetic Solid Reactive",
+    "coverstockCategory": "Solid",
+    "factoryFinish": "500/1500 Siaair Micro Pad",
+    "coreName": "ZigZag",
+    "coreType": "Asymmetric",
+    "rg": 2.501,
+    "diff": 0.045,
+    "mbDiff": 0.015,
+    "imageThumb": "/catalog/img/radical-zigzag-solid-2024-thumb.webp",
+    "imageFull": "/catalog/img/radical-zigzag-solid-2024-full.webp",
+    "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/radical/zigzag-solid",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.51,
+        "diff": 0.04,
+        "mbDiff": 0.014
+      },
+      {
+        "weight": 15,
+        "rg": 2.501,
+        "diff": 0.045,
+        "mbDiff": 0.015
+      },
+      {
+        "weight": 14,
+        "rg": 2.517,
+        "diff": 0.045,
+        "mbDiff": 0.015
+      }
+    ]
+  },
+  {
+    "id": "roto-grip-hot-cell-2017",
+    "brand": "Roto Grip",
+    "name": "Hot Cell",
+    "releaseDate": "2017-09-15",
+    "releaseYear": 2017,
+    "coverstockRaw": "Radioactive Urethane Solid",
+    "coverstockCategory": "Urethane",
+    "factoryFinish": "1000 Abralon",
+    "coreName": "Nucleus",
+    "coreType": "Asymmetric",
+    "rg": 2.52,
+    "diff": 0.056,
+    "mbDiff": 0.018,
+    "imageThumb": "/catalog/img/roto-grip-hot-cell-2017-thumb.webp",
+    "imageFull": "/catalog/img/roto-grip-hot-cell-2017-full.webp",
+    "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/roto-grip/hot-cell",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.52,
+        "diff": 0.048,
+        "mbDiff": 0.017
+      },
+      {
+        "weight": 15,
+        "rg": 2.52,
+        "diff": 0.056,
+        "mbDiff": 0.018
+      },
+      {
+        "weight": 14,
+        "rg": 2.57,
+        "diff": 0.046,
+        "mbDiff": 0.015
+      },
+      {
+        "weight": 13,
+        "rg": 2.57,
+        "diff": 0.032,
+        "mbDiff": 0.01
+      },
+      {
+        "weight": 12,
+        "rg": 2.59,
+        "diff": 0.029,
+        "mbDiff": 0.008
+      }
+    ]
+  },
+  {
+    "id": "roto-grip-hyped-hybrid-2021",
+    "brand": "Roto Grip",
+    "name": "Hyped Hybrid",
+    "releaseDate": "2021-08-20",
+    "releaseYear": 2021,
+    "coverstockRaw": "VTC Hybrid Reactive",
+    "coverstockCategory": "Hybrid",
+    "factoryFinish": "1500 Polished",
+    "coreName": "Hyped",
+    "coreType": "Symmetric",
+    "rg": 2.52,
+    "diff": 0.036,
+    "mbDiff": null,
+    "imageThumb": "/catalog/img/roto-grip-hyped-hybrid-2021-thumb.webp",
+    "imageFull": "/catalog/img/roto-grip-hyped-hybrid-2021-full.webp",
+    "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/roto-grip/hyped-hybrid",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.51,
+        "diff": 0.037,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.52,
+        "diff": 0.036,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.52,
+        "diff": 0.036,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.63,
+        "diff": 0.009,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.65,
+        "diff": 0.011,
+        "mbDiff": null
+      }
+    ]
+  },
+  {
+    "id": "roto-grip-hyped-pearl-2021",
+    "brand": "Roto Grip",
+    "name": "Hyped Pearl",
+    "releaseDate": "2021-08-20",
+    "releaseYear": 2021,
+    "coverstockRaw": "VTC Pearl Reactive",
+    "coverstockCategory": "Pearl",
+    "factoryFinish": "1500 Polished",
+    "coreName": "Hyped",
+    "coreType": "Symmetric",
+    "rg": 2.52,
+    "diff": 0.036,
+    "mbDiff": null,
+    "imageThumb": "/catalog/img/roto-grip-hyped-pearl-2021-thumb.webp",
+    "imageFull": "/catalog/img/roto-grip-hyped-pearl-2021-full.webp",
+    "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/roto-grip/hyped-pearl",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.51,
+        "diff": 0.037,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.52,
+        "diff": 0.036,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.52,
+        "diff": 0.036,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.63,
+        "diff": 0.009,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.65,
+        "diff": 0.011,
+        "mbDiff": null
+      }
+    ]
+  },
+  {
+    "id": "roto-grip-nuclear-cell-2020",
+    "brand": "Roto Grip",
+    "name": "Nuclear Cell",
+    "releaseDate": "2020-03-06",
+    "releaseYear": 2020,
+    "coverstockRaw": "eTrax-P20 Pearl Reactive",
+    "coverstockCategory": "Pearl",
+    "factoryFinish": "1500 Polished",
+    "coreName": "Nucleus",
+    "coreType": "Asymmetric",
+    "rg": 2.52,
+    "diff": 0.056,
+    "mbDiff": 0.018,
+    "imageThumb": "/catalog/img/roto-grip-nuclear-cell-2020-thumb.webp",
+    "imageFull": "/catalog/img/roto-grip-nuclear-cell-2020-full.webp",
+    "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/roto-grip/nuclear-cell",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.52,
+        "diff": 0.048,
+        "mbDiff": 0.017
+      },
+      {
+        "weight": 15,
+        "rg": 2.52,
+        "diff": 0.056,
+        "mbDiff": 0.018
+      },
+      {
+        "weight": 14,
+        "rg": 2.57,
+        "diff": 0.046,
+        "mbDiff": 0.015
+      },
+      {
+        "weight": 13,
+        "rg": 2.57,
+        "diff": 0.032,
+        "mbDiff": 0.01
+      },
+      {
+        "weight": 12,
+        "rg": 2.59,
+        "diff": 0.029,
+        "mbDiff": 0.008
+      }
+    ]
+  },
+  {
+    "id": "storm-axiom-2020",
+    "brand": "Storm",
+    "name": "Axiom",
+    "releaseDate": "2020-03-20",
+    "releaseYear": 2020,
+    "coverstockRaw": "NeX Solid Reactive",
+    "coverstockCategory": "Solid",
+    "factoryFinish": "3000 Abralon",
+    "coreName": "Orbital",
+    "coreType": "Symmetric",
+    "rg": 2.48,
+    "diff": 0.05,
+    "mbDiff": null,
+    "imageThumb": "/catalog/img/storm-axiom-2020-thumb.webp",
+    "imageFull": "/catalog/img/storm-axiom-2020-full.webp",
+    "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/storm/axiom",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.47,
+        "diff": 0.048,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.48,
+        "diff": 0.05,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.55,
+        "diff": 0.049,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.59,
+        "diff": 0.045,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.65,
+        "diff": 0.035,
+        "mbDiff": null
+      }
+    ]
+  },
+  {
+    "id": "storm-axiom-pearl-2020",
+    "brand": "Storm",
+    "name": "Axiom Pearl",
+    "releaseDate": "2020-10-09",
+    "releaseYear": 2020,
+    "coverstockRaw": "NeX Pearl Reactive",
+    "coverstockCategory": "Pearl",
+    "factoryFinish": "1500 Polished",
+    "coreName": "Orbital",
+    "coreType": "Symmetric",
+    "rg": 2.48,
+    "diff": 0.05,
+    "mbDiff": null,
+    "imageThumb": "/catalog/img/storm-axiom-pearl-2020-thumb.webp",
+    "imageFull": "/catalog/img/storm-axiom-pearl-2020-full.webp",
+    "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/storm/axiom-pearl",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.47,
+        "diff": 0.048,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.48,
+        "diff": 0.05,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.55,
+        "diff": 0.049,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.59,
+        "diff": 0.045,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.65,
+        "diff": 0.035,
+        "mbDiff": null
+      }
+    ]
+  },
+  {
+    "id": "storm-code-x-2018",
+    "brand": "Storm",
+    "name": "Code X",
+    "releaseDate": "2018-03-09",
+    "releaseYear": 2018,
+    "coverstockRaw": "R2S Solid Reactive",
+    "coverstockCategory": "Solid",
+    "factoryFinish": "3000 Abralon",
+    "coreName": "RAD4",
+    "coreType": "Asymmetric",
+    "rg": 2.5,
+    "diff": 0.058,
+    "mbDiff": 0.02,
+    "imageThumb": "/catalog/img/storm-code-x-2018-thumb.webp",
+    "imageFull": "/catalog/img/storm-code-x-2018-full.webp",
+    "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/storm/code-x",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.49,
+        "diff": 0.056,
+        "mbDiff": 0.022
+      },
+      {
+        "weight": 15,
+        "rg": 2.5,
+        "diff": 0.058,
+        "mbDiff": 0.02
+      },
+      {
+        "weight": 14,
+        "rg": 2.55,
+        "diff": 0.056,
+        "mbDiff": 0.014
+      },
+      {
+        "weight": 13,
+        "rg": 2.63,
+        "diff": 0.039,
+        "mbDiff": 0.011
+      },
+      {
+        "weight": 12,
+        "rg": 2.72,
+        "diff": 0.022,
+        "mbDiff": 0.006
+      }
+    ]
+  },
+  {
+    "id": "track-kinetic-obsidian-2019",
+    "brand": "Track",
+    "name": "Kinetic Obsidian",
+    "releaseDate": "2019-11-12",
+    "releaseYear": 2019,
+    "coverstockRaw": "DR-7 Solid Reactive",
+    "coverstockCategory": "Solid",
+    "factoryFinish": "500/2000 Abralon",
+    "coreName": "Modified Kinetic",
+    "coreType": "Asymmetric",
+    "rg": 2.49,
+    "diff": 0.038,
+    "mbDiff": 0.005,
+    "imageThumb": "/catalog/img/track-kinetic-obsidian-2019-thumb.webp",
+    "imageFull": "/catalog/img/track-kinetic-obsidian-2019-full.webp",
+    "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/track/kinetic-obsidian",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.51,
+        "diff": 0.036,
+        "mbDiff": 0.004
+      },
+      {
+        "weight": 15,
+        "rg": 2.49,
+        "diff": 0.038,
+        "mbDiff": 0.005
+      },
+      {
+        "weight": 14,
+        "rg": 2.48,
+        "diff": 0.041,
+        "mbDiff": 0.004
+      },
+      {
+        "weight": 13,
+        "rg": 2.53,
+        "diff": 0.055,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.6,
+        "diff": 0.039,
+        "mbDiff": null
+      }
+    ]
   }
 ]

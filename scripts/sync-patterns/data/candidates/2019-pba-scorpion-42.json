@@ -1,0 +1,216 @@
+{
+  "id": "2019-pba-scorpion-42",
+  "name": "2019 PBA Scorpion 42",
+  "vendor": "kegel",
+  "sourceUrl": "https://images.bowl.com/bowl/media/legacy/internap/bowl/sportbowling/pdfs/Patterns18/KEGEL_Scorpion42.pdf",
+  "reader": "manual",
+  "passes": [
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 5,
+      "microliters": 50,
+      "start_distance": 0,
+      "end_distance": 10.2,
+      "speed": 18,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "forward",
+      "left_board": 7,
+      "right_board": 33,
+      "loads": 1,
+      "microliters": 50,
+      "start_distance": 10.2,
+      "end_distance": 12.7,
+      "speed": 18,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "forward",
+      "left_board": 8,
+      "right_board": 32,
+      "loads": 1,
+      "microliters": 50,
+      "start_distance": 12.7,
+      "end_distance": 15.2,
+      "speed": 18,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "forward",
+      "left_board": 9,
+      "right_board": 31,
+      "loads": 1,
+      "microliters": 50,
+      "start_distance": 15.2,
+      "end_distance": 17.7,
+      "speed": 18,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "forward",
+      "left_board": 11,
+      "right_board": 29,
+      "loads": 1,
+      "microliters": 50,
+      "start_distance": 17.7,
+      "end_distance": 20.2,
+      "speed": 18,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "forward",
+      "left_board": 13,
+      "right_board": 27,
+      "loads": 1,
+      "microliters": 50,
+      "start_distance": 20.2,
+      "end_distance": 23.3,
+      "speed": 22,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "forward",
+      "left_board": 15,
+      "right_board": 25,
+      "loads": 1,
+      "microliters": 50,
+      "start_distance": 23.3,
+      "end_distance": 26.4,
+      "speed": 22,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 0,
+      "start_distance": 26.4,
+      "end_distance": 35,
+      "speed": 22,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 0,
+      "start_distance": 35,
+      "end_distance": 42,
+      "speed": 30,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "reverse",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 0,
+      "start_distance": 42,
+      "end_distance": 31,
+      "speed": 22,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "reverse",
+      "left_board": 14,
+      "right_board": 27,
+      "loads": 1,
+      "microliters": 50,
+      "start_distance": 31,
+      "end_distance": 28.5,
+      "speed": 18,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "reverse",
+      "left_board": 12,
+      "right_board": 29,
+      "loads": 2,
+      "microliters": 50,
+      "start_distance": 28.5,
+      "end_distance": 24.6,
+      "speed": 14,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "reverse",
+      "left_board": 10,
+      "right_board": 31,
+      "loads": 2,
+      "microliters": 50,
+      "start_distance": 24.6,
+      "end_distance": 20.7,
+      "speed": 14,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "reverse",
+      "left_board": 7,
+      "right_board": 33,
+      "loads": 1,
+      "microliters": 50,
+      "start_distance": 20.7,
+      "end_distance": 18.8,
+      "speed": 14,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "reverse",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 5,
+      "microliters": 50,
+      "start_distance": 18.8,
+      "end_distance": 8.9,
+      "speed": 14,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "reverse",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 0,
+      "start_distance": 8.9,
+      "end_distance": 0,
+      "speed": 14,
+      "buffer": 0,
+      "tank": ""
+    }
+  ],
+  "stated": {
+    "distance": 42,
+    "forwardMl": 15.25,
+    "reverseMl": 15.3,
+    "volumeMl": 30.55
+  },
+  "note": "2019-pba-scorpion-42.txt · read by eye · 42 ft · 2.12:1",
+  "sheet": {
+    "file": "2019-pba-scorpion-42.afabe748f255.pdf",
+    "sha256": "afabe748f255a6f585d75de0d9ee73d7a0011abd1ad6d690630bfbd8107c072f",
+    "bytes": 441290,
+    "pages": [
+      "2019-pba-scorpion-42.afabe748f255.p1.webp"
+    ]
+  }
+}

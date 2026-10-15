@@ -33,6 +33,41 @@ Done by the session that followed this handout, from the queue below.
   was promoted drops out of the queue, and the rest route `manual`.
 - **Photos: 798 of 799** (ADR-142). PhysiX Burst has no bowwwl page.
 
+## 2026-10-15: a popularity-ranked batch, and the 2019 PBA pattern sheets
+
+Twenty balls, picked from three research reports (Storm family, the Brunswick
+family and MOTIV, oil patterns), each from its bowwwl page by the same route as
+below, each with its source-page photo checked by eye. Now **821 balls**.
+The reports were wrong twice: they listed Roto Grip Hyped Up and Hammer Anger
+Solid as missing, and promote refused both as collisions. Read a research list
+against `balls.json` before queueing it.
+
+- **Added:** Storm Code X, Axiom, Axiom Pearl; Roto Grip Hot Cell, Nuclear Cell,
+  Hyped Hybrid, Hyped Pearl; 900 Global Honey Badger Revival, Honey Badger
+  Intensity, Burner Solid; Hammer Anger, Black Widow Viz-A-Ball; Ebonite Maxim,
+  Game Breaker 3; Pyramid Pathogen Plague, Pathogen Plague Pearl; DV8 Wicked
+  Collision; Radical ZigZag, ZigZag Solid; Track Kinetic Obsidian.
+- **The Pathogen Plague's core is stored as bowwwl prints it**, `New Era 139 (2.54
+  RG)`, because the parser does not repair its source.
+- **Still on the shortlist:** Track Alias, Criterion Hybrid, Cypher Pearl,
+  Paragon Shadow and Kinetic Sapphire Ice; Storm IQ Tour Sapphire and Ruby; Hammer Zero Mercy
+  Tour and Radical Evil Eye Pearl (September 2026 releases). Brunswick TZone and
+  Columbia 300 White Dot have no bowwwl page, so they are manual reads from the
+  maker.
+- **The 2019 PBA sheets are the grid layout, drawn as pictures.** `ingest-patterns`
+  routes them to OCR, which dropped every row but one and was rejected on the
+  header totals, as designed. A transcription typed from the rendered page
+  (`data/transcripts/`) goes through the same grammar and passed all 34 and 36
+  checks. Shark 48 and Scorpion 42 are in; the other PBA animals and the Hall
+  of Fame sheets at
+  `images.bowl.com/bowl/media/legacy/internap/bowl/sportbowling/pdfs/Patterns18/KEGEL_<Name><Length>.pdf`
+  take the same route (Cheetah33, Chameleon39, Viper36, Bear41, Wolf32,
+  EarlAnthony43, DickWeber45 and the rest). Each header is a real text layer, so
+  the printed totals are copied, not read.
+- **Licence.** Every one of these sheets carries Kegel's copyright and no usage
+  text. ADR-104 accepted that risk for competition patterns with the owner's
+  agreement, and the sheet is kept as it was published (ADR-136).
+
 ## 2026-10-15: Dare Devil and Badger
 
 Two balls added on request, each from its bowwwl page (`parse-bowwwl`, then

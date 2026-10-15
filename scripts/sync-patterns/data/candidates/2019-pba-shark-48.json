@@ -1,0 +1,204 @@
+{
+  "id": "2019-pba-shark-48",
+  "name": "2019 PBA Shark 48",
+  "vendor": "kegel",
+  "sourceUrl": "https://images.bowl.com/bowl/media/legacy/internap/bowl/sportbowling/pdfs/Patterns18/KEGEL_Shark48.pdf",
+  "reader": "manual",
+  "passes": [
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 2,
+      "microliters": 50,
+      "start_distance": 0,
+      "end_distance": 1.4,
+      "speed": 10,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "forward",
+      "left_board": 13,
+      "right_board": 28,
+      "loads": 1,
+      "microliters": 50,
+      "start_distance": 1.4,
+      "end_distance": 2.8,
+      "speed": 10,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 2,
+      "microliters": 50,
+      "start_distance": 2.8,
+      "end_distance": 6.7,
+      "speed": 14,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "forward",
+      "left_board": 13,
+      "right_board": 28,
+      "loads": 1,
+      "microliters": 50,
+      "start_distance": 6.7,
+      "end_distance": 8.6,
+      "speed": 14,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 2,
+      "microliters": 50,
+      "start_distance": 8.6,
+      "end_distance": 13.7,
+      "speed": 18,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "forward",
+      "left_board": 13,
+      "right_board": 28,
+      "loads": 3,
+      "microliters": 50,
+      "start_distance": 13.7,
+      "end_distance": 21.3,
+      "speed": 18,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "forward",
+      "left_board": 15,
+      "right_board": 25,
+      "loads": 2,
+      "microliters": 50,
+      "start_distance": 21.3,
+      "end_distance": 27.5,
+      "speed": 22,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 0,
+      "start_distance": 27.5,
+      "end_distance": 44,
+      "speed": 22,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 0,
+      "start_distance": 44,
+      "end_distance": 48,
+      "speed": 30,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "reverse",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 0,
+      "start_distance": 48,
+      "end_distance": 27,
+      "speed": 30,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "reverse",
+      "left_board": 15,
+      "right_board": 25,
+      "loads": 2,
+      "microliters": 50,
+      "start_distance": 27,
+      "end_distance": 21.9,
+      "speed": 18,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "reverse",
+      "left_board": 13,
+      "right_board": 28,
+      "loads": 2,
+      "microliters": 50,
+      "start_distance": 21.9,
+      "end_distance": 18,
+      "speed": 14,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "reverse",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 3,
+      "microliters": 50,
+      "start_distance": 18,
+      "end_distance": 12.1,
+      "speed": 14,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "reverse",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 3,
+      "microliters": 50,
+      "start_distance": 12.1,
+      "end_distance": 7.9,
+      "speed": 10,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "reverse",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 0,
+      "start_distance": 7.9,
+      "end_distance": 0,
+      "speed": 10,
+      "buffer": 0,
+      "tank": ""
+    }
+  ],
+  "stated": {
+    "distance": 48,
+    "forwardMl": 16.2,
+    "reverseMl": 13.8,
+    "volumeMl": 30
+  },
+  "note": "2019-pba-shark-48.txt · read by eye · 48 ft · 1.92:1",
+  "sheet": {
+    "file": "2019-pba-shark-48.afc4db2e65ec.pdf",
+    "sha256": "afc4db2e65ecfe778a9198f9f7cf17b5997d1869eb01dbfcaff677ab65e27888",
+    "bytes": 431441,
+    "pages": [
+      "2019-pba-shark-48.afc4db2e65ec.p1.webp"
+    ]
+  }
+}
