@@ -1,0 +1,192 @@
+{
+  "id": "2019-pba-mark-roth-42",
+  "name": "2019 PBA Mark Roth 42",
+  "vendor": "kegel",
+  "sourceUrl": "https://images.bowl.com/bowl/media/legacy/internap/bowl/sportbowling/pdfs/Patterns18/KEGEL_MarkRoth42.pdf",
+  "reader": "manual",
+  "passes": [
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 2,
+      "microliters": 50,
+      "start_distance": 0,
+      "end_distance": 2.5,
+      "speed": 18,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "forward",
+      "left_board": 7,
+      "right_board": 33,
+      "loads": 1,
+      "microliters": 50,
+      "start_distance": 2.5,
+      "end_distance": 5,
+      "speed": 18,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "forward",
+      "left_board": 8,
+      "right_board": 32,
+      "loads": 4,
+      "microliters": 50,
+      "start_distance": 5,
+      "end_distance": 15.2,
+      "speed": 18,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "forward",
+      "left_board": 10,
+      "right_board": 31,
+      "loads": 1,
+      "microliters": 50,
+      "start_distance": 15.2,
+      "end_distance": 17.7,
+      "speed": 18,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "forward",
+      "left_board": 13,
+      "right_board": 29,
+      "loads": 3,
+      "microliters": 50,
+      "start_distance": 17.7,
+      "end_distance": 25.3,
+      "speed": 18,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "forward",
+      "left_board": 15,
+      "right_board": 25,
+      "loads": 3,
+      "microliters": 50,
+      "start_distance": 25.3,
+      "end_distance": 34.6,
+      "speed": 22,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 0,
+      "start_distance": 34.6,
+      "end_distance": 42,
+      "speed": 22,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "reverse",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 0,
+      "start_distance": 42,
+      "end_distance": 30,
+      "speed": 30,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "reverse",
+      "left_board": 13,
+      "right_board": 30,
+      "loads": 1,
+      "microliters": 50,
+      "start_distance": 30,
+      "end_distance": 26.9,
+      "speed": 22,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "reverse",
+      "left_board": 10,
+      "right_board": 30,
+      "loads": 3,
+      "microliters": 50,
+      "start_distance": 26.9,
+      "end_distance": 19.3,
+      "speed": 18,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "reverse",
+      "left_board": 9,
+      "right_board": 31,
+      "loads": 3,
+      "microliters": 50,
+      "start_distance": 19.3,
+      "end_distance": 13.4,
+      "speed": 14,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "reverse",
+      "left_board": 7,
+      "right_board": 33,
+      "loads": 1,
+      "microliters": 50,
+      "start_distance": 13.4,
+      "end_distance": 11.5,
+      "speed": 14,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "reverse",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 2,
+      "microliters": 50,
+      "start_distance": 11.5,
+      "end_distance": 7.6,
+      "speed": 14,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "reverse",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 0,
+      "start_distance": 7.6,
+      "end_distance": 0,
+      "speed": 14,
+      "buffer": 0,
+      "tank": ""
+    }
+  ],
+  "stated": {
+    "distance": 42,
+    "forwardMl": 15.35,
+    "reverseMl": 12.55,
+    "volumeMl": 27.9
+  },
+  "note": "2019-pba-mark-roth-42.txt · read by eye · 42 ft · 5.45:1",
+  "sheet": {
+    "file": "2019-pba-mark-roth-42.d2e066be8f52.pdf",
+    "sha256": "d2e066be8f5233ab90b258ef6625f01b97fa643b28c96802818081b6120da65b",
+    "bytes": 617637,
+    "pages": [
+      "2019-pba-mark-roth-42.d2e066be8f52.p1.webp"
+    ]
+  }
+}

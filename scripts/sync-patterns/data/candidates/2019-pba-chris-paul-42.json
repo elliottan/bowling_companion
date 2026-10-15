@@ -1,0 +1,240 @@
+{
+  "id": "2019-pba-chris-paul-42",
+  "name": "2019 PBA Chris Paul 42",
+  "vendor": "kegel",
+  "sourceUrl": "https://images.bowl.com/bowl/media/legacy/internap/bowl/sportbowling/pdfs/Patterns18/KEGEL_ChrisPaul42.pdf",
+  "reader": "manual",
+  "passes": [
+    {
+      "direction": "forward",
+      "left_board": 6,
+      "right_board": 34,
+      "loads": 1,
+      "microliters": 50,
+      "start_distance": 0,
+      "end_distance": 0,
+      "speed": 14,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 1,
+      "microliters": 50,
+      "start_distance": 0,
+      "end_distance": 1.9,
+      "speed": 14,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "forward",
+      "left_board": 8,
+      "right_board": 32,
+      "loads": 3,
+      "microliters": 50,
+      "start_distance": 1.9,
+      "end_distance": 9.5,
+      "speed": 18,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "forward",
+      "left_board": 9,
+      "right_board": 31,
+      "loads": 3,
+      "microliters": 50,
+      "start_distance": 9.5,
+      "end_distance": 17.1,
+      "speed": 18,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "forward",
+      "left_board": 10,
+      "right_board": 30,
+      "loads": 1,
+      "microliters": 50,
+      "start_distance": 17.1,
+      "end_distance": 19.6,
+      "speed": 18,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "forward",
+      "left_board": 12,
+      "right_board": 28,
+      "loads": 1,
+      "microliters": 50,
+      "start_distance": 19.6,
+      "end_distance": 22.1,
+      "speed": 18,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "forward",
+      "left_board": 18,
+      "right_board": 22,
+      "loads": 1,
+      "microliters": 50,
+      "start_distance": 22.1,
+      "end_distance": 25.2,
+      "speed": 22,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 0,
+      "start_distance": 25.2,
+      "end_distance": 39,
+      "speed": 22,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 0,
+      "start_distance": 39,
+      "end_distance": 42,
+      "speed": 26,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "reverse",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 0,
+      "start_distance": 42,
+      "end_distance": 35,
+      "speed": 30,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "reverse",
+      "left_board": 13,
+      "right_board": 27,
+      "loads": 1,
+      "microliters": 50,
+      "start_distance": 35,
+      "end_distance": 31.9,
+      "speed": 22,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "reverse",
+      "left_board": 11,
+      "right_board": 29,
+      "loads": 1,
+      "microliters": 50,
+      "start_distance": 31.9,
+      "end_distance": 29.4,
+      "speed": 18,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "reverse",
+      "left_board": 10,
+      "right_board": 30,
+      "loads": 1,
+      "microliters": 50,
+      "start_distance": 29.4,
+      "end_distance": 26.9,
+      "speed": 18,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "reverse",
+      "left_board": 9,
+      "right_board": 31,
+      "loads": 3,
+      "microliters": 50,
+      "start_distance": 26.9,
+      "end_distance": 19.3,
+      "speed": 18,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "reverse",
+      "left_board": 8,
+      "right_board": 32,
+      "loads": 3,
+      "microliters": 50,
+      "start_distance": 19.3,
+      "end_distance": 13.4,
+      "speed": 14,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "reverse",
+      "left_board": 7,
+      "right_board": 33,
+      "loads": 1,
+      "microliters": 50,
+      "start_distance": 13.4,
+      "end_distance": 11.5,
+      "speed": 14,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "reverse",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 1,
+      "microliters": 50,
+      "start_distance": 11.5,
+      "end_distance": 9.6,
+      "speed": 14,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "reverse",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 0,
+      "start_distance": 9.6,
+      "end_distance": 0,
+      "speed": 14,
+      "buffer": 0,
+      "tank": ""
+    }
+  ],
+  "stated": {
+    "distance": 42,
+    "forwardMl": 12.65,
+    "reverseMl": 13.15,
+    "volumeMl": 25.8
+  },
+  "note": "2019-pba-chris-paul-42.txt · read by eye · 42 ft · 8.46:1",
+  "sheet": {
+    "file": "2019-pba-chris-paul-42.bd6410eb6951.pdf",
+    "sha256": "bd6410eb69516c2df0ee1cd47028d0cfe5f73f1621c437e7b31b11cbd188a2b9",
+    "bytes": 664951,
+    "pages": [
+      "2019-pba-chris-paul-42.bd6410eb6951.p1.webp"
+    ]
+  }
+}

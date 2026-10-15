@@ -1,0 +1,216 @@
+{
+  "id": "2019-pba-don-johnson-40",
+  "name": "2019 PBA Don Johnson 40",
+  "vendor": "kegel",
+  "sourceUrl": "https://images.bowl.com/bowl/media/legacy/internap/bowl/sportbowling/pdfs/Patterns18/KEGEL_DonJohnson40.pdf",
+  "reader": "manual",
+  "passes": [
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 3,
+      "microliters": 50,
+      "start_distance": 0,
+      "end_distance": 3.9,
+      "speed": 14,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 3,
+      "microliters": 50,
+      "start_distance": 3.9,
+      "end_distance": 11.5,
+      "speed": 18,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "forward",
+      "left_board": 4,
+      "right_board": 36,
+      "loads": 1,
+      "microliters": 50,
+      "start_distance": 11.5,
+      "end_distance": 14,
+      "speed": 18,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "forward",
+      "left_board": 7,
+      "right_board": 33,
+      "loads": 1,
+      "microliters": 50,
+      "start_distance": 14,
+      "end_distance": 16.5,
+      "speed": 18,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "forward",
+      "left_board": 10,
+      "right_board": 30,
+      "loads": 2,
+      "microliters": 50,
+      "start_distance": 16.5,
+      "end_distance": 21.6,
+      "speed": 18,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "forward",
+      "left_board": 13,
+      "right_board": 27,
+      "loads": 2,
+      "microliters": 50,
+      "start_distance": 21.6,
+      "end_distance": 27.8,
+      "speed": 22,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "forward",
+      "left_board": 16,
+      "right_board": 24,
+      "loads": 1,
+      "microliters": 50,
+      "start_distance": 27.8,
+      "end_distance": 30.9,
+      "speed": 22,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 0,
+      "start_distance": 30.9,
+      "end_distance": 40,
+      "speed": 22,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "reverse",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 0,
+      "start_distance": 40,
+      "end_distance": 32,
+      "speed": 30,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "reverse",
+      "left_board": 16,
+      "right_board": 24,
+      "loads": 1,
+      "microliters": 50,
+      "start_distance": 32,
+      "end_distance": 28.9,
+      "speed": 22,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "reverse",
+      "left_board": 13,
+      "right_board": 27,
+      "loads": 3,
+      "microliters": 50,
+      "start_distance": 28.9,
+      "end_distance": 21.3,
+      "speed": 18,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "reverse",
+      "left_board": 10,
+      "right_board": 30,
+      "loads": 3,
+      "microliters": 50,
+      "start_distance": 21.3,
+      "end_distance": 15.4,
+      "speed": 14,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "reverse",
+      "left_board": 7,
+      "right_board": 33,
+      "loads": 1,
+      "microliters": 50,
+      "start_distance": 15.4,
+      "end_distance": 13.5,
+      "speed": 14,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "reverse",
+      "left_board": 4,
+      "right_board": 36,
+      "loads": 1,
+      "microliters": 50,
+      "start_distance": 13.5,
+      "end_distance": 11.6,
+      "speed": 14,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "reverse",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 2,
+      "microliters": 50,
+      "start_distance": 11.6,
+      "end_distance": 7.7,
+      "speed": 14,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "reverse",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 0,
+      "start_distance": 7.7,
+      "end_distance": 0,
+      "speed": 14,
+      "buffer": 0,
+      "tank": ""
+    }
+  ],
+  "stated": {
+    "distance": 40,
+    "forwardMl": 18.15,
+    "reverseMl": 12.55,
+    "volumeMl": 30.7
+  },
+  "note": "2019-pba-don-johnson-40.txt · read by eye · 40 ft · 2.40:1",
+  "sheet": {
+    "file": "2019-pba-don-johnson-40.938c9793155e.pdf",
+    "sha256": "938c9793155e39747c44f9fd027d1a8547fe30b8f8ffd228ba9ce34eaeb77d10",
+    "bytes": 641918,
+    "pages": [
+      "2019-pba-don-johnson-40.938c9793155e.p1.webp"
+    ]
+  }
+}

@@ -1,0 +1,180 @@
+{
+  "id": "2019-pba-johnny-petraglia-37",
+  "name": "2019 PBA Johnny Petraglia 37",
+  "vendor": "kegel",
+  "sourceUrl": "https://images.bowl.com/bowl/media/legacy/internap/bowl/sportbowling/pdfs/Patterns18/KEGEL_JohnnyPetraglia37.pdf",
+  "reader": "manual",
+  "passes": [
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 1,
+      "microliters": 50,
+      "start_distance": 0,
+      "end_distance": 0,
+      "speed": 14,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "forward",
+      "left_board": 4,
+      "right_board": 36,
+      "loads": 1,
+      "microliters": 50,
+      "start_distance": 0,
+      "end_distance": 2.5,
+      "speed": 18,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "forward",
+      "left_board": 5,
+      "right_board": 35,
+      "loads": 4,
+      "microliters": 50,
+      "start_distance": 2.5,
+      "end_distance": 12.7,
+      "speed": 18,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "forward",
+      "left_board": 8,
+      "right_board": 32,
+      "loads": 4,
+      "microliters": 50,
+      "start_distance": 12.7,
+      "end_distance": 22.9,
+      "speed": 18,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "forward",
+      "left_board": 15,
+      "right_board": 25,
+      "loads": 3,
+      "microliters": 50,
+      "start_distance": 22.9,
+      "end_distance": 32.2,
+      "speed": 22,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 0,
+      "start_distance": 32.2,
+      "end_distance": 37,
+      "speed": 22,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "reverse",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 0,
+      "start_distance": 37,
+      "end_distance": 32,
+      "speed": 22,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "reverse",
+      "left_board": 15,
+      "right_board": 25,
+      "loads": 2,
+      "microliters": 50,
+      "start_distance": 32,
+      "end_distance": 26.9,
+      "speed": 18,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "reverse",
+      "left_board": 8,
+      "right_board": 32,
+      "loads": 4,
+      "microliters": 50,
+      "start_distance": 26.9,
+      "end_distance": 16.7,
+      "speed": 18,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "reverse",
+      "left_board": 8,
+      "right_board": 33,
+      "loads": 2,
+      "microliters": 50,
+      "start_distance": 16.7,
+      "end_distance": 12.8,
+      "speed": 14,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "reverse",
+      "left_board": 5,
+      "right_board": 34,
+      "loads": 1,
+      "microliters": 50,
+      "start_distance": 12.8,
+      "end_distance": 10.9,
+      "speed": 14,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "reverse",
+      "left_board": 4,
+      "right_board": 36,
+      "loads": 2,
+      "microliters": 50,
+      "start_distance": 10.9,
+      "end_distance": 7,
+      "speed": 14,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "reverse",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 0,
+      "start_distance": 7,
+      "end_distance": 0,
+      "speed": 14,
+      "buffer": 0,
+      "tank": ""
+    }
+  ],
+  "stated": {
+    "distance": 37,
+    "forwardMl": 16.35,
+    "reverseMl": 13.5,
+    "volumeMl": 29.85
+  },
+  "note": "2019-pba-johnny-petraglia-37.txt · read by eye · 37 ft · 3.75:1",
+  "sheet": {
+    "file": "2019-pba-johnny-petraglia-37.d2be25cfa671.pdf",
+    "sha256": "d2be25cfa6715be3dbe045f3fbcc4626d4b3a037fea1e5b2e7f8b1fce87bb4e0",
+    "bytes": 606574,
+    "pages": [
+      "2019-pba-johnny-petraglia-37.d2be25cfa671.p1.webp"
+    ]
+  }
+}

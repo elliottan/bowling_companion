@@ -1,0 +1,204 @@
+{
+  "id": "2019-pba-carmen-salvino-44",
+  "name": "2019 PBA Carmen Salvino 44",
+  "vendor": "kegel",
+  "sourceUrl": "https://images.bowl.com/bowl/media/legacy/internap/bowl/sportbowling/pdfs/Patterns18/KEGEL_CarmenSalvino44.pdf",
+  "reader": "manual",
+  "passes": [
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 2,
+      "microliters": 50,
+      "start_distance": 0,
+      "end_distance": 1.4,
+      "speed": 10,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 2,
+      "microliters": 50,
+      "start_distance": 1.4,
+      "end_distance": 5.3,
+      "speed": 14,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 2,
+      "microliters": 50,
+      "start_distance": 5.3,
+      "end_distance": 10.4,
+      "speed": 18,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "forward",
+      "left_board": 9,
+      "right_board": 33,
+      "loads": 2,
+      "microliters": 50,
+      "start_distance": 10.4,
+      "end_distance": 15.5,
+      "speed": 18,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "forward",
+      "left_board": 11,
+      "right_board": 30,
+      "loads": 2,
+      "microliters": 50,
+      "start_distance": 15.5,
+      "end_distance": 20.6,
+      "speed": 18,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "forward",
+      "left_board": 13,
+      "right_board": 27,
+      "loads": 2,
+      "microliters": 50,
+      "start_distance": 20.6,
+      "end_distance": 26.8,
+      "speed": 22,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "forward",
+      "left_board": 15,
+      "right_board": 25,
+      "loads": 2,
+      "microliters": 50,
+      "start_distance": 26.8,
+      "end_distance": 33,
+      "speed": 22,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 0,
+      "start_distance": 33,
+      "end_distance": 40,
+      "speed": 22,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 0,
+      "start_distance": 40,
+      "end_distance": 44,
+      "speed": 26,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "reverse",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 0,
+      "start_distance": 44,
+      "end_distance": 30,
+      "speed": 30,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "reverse",
+      "left_board": 13,
+      "right_board": 30,
+      "loads": 2,
+      "microliters": 50,
+      "start_distance": 30,
+      "end_distance": 23.8,
+      "speed": 22,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "reverse",
+      "left_board": 11,
+      "right_board": 30,
+      "loads": 2,
+      "microliters": 50,
+      "start_distance": 23.8,
+      "end_distance": 18.7,
+      "speed": 18,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "reverse",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 2,
+      "microliters": 50,
+      "start_distance": 18.7,
+      "end_distance": 13.6,
+      "speed": 18,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "reverse",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 2,
+      "microliters": 50,
+      "start_distance": 13.6,
+      "end_distance": 9.7,
+      "speed": 14,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "reverse",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 0,
+      "start_distance": 9.7,
+      "end_distance": 0,
+      "speed": 14,
+      "buffer": 0,
+      "tank": ""
+    }
+  ],
+  "stated": {
+    "distance": 44,
+    "forwardMl": 18.2,
+    "reverseMl": 11.2,
+    "volumeMl": 29.4
+  },
+  "note": "2019-pba-carmen-salvino-44.txt · read by eye · 44 ft · 2.20:1",
+  "sheet": {
+    "file": "2019-pba-carmen-salvino-44.2d8dcc761004.pdf",
+    "sha256": "2d8dcc7610043d08251a0a23e67fe3599e2def5dd0da94c9506bccf3731aa004",
+    "bytes": 634146,
+    "pages": [
+      "2019-pba-carmen-salvino-44.2d8dcc761004.p1.webp"
+    ]
+  }
+}
