@@ -251,6 +251,14 @@ export interface ReadOptions {
   lanes?: string[];
 }
 
+export interface EstimateOptions extends ReadOptions {
+  /** Every game the bowler has, for the spare book. A pattern, an alley or a
+   *  lane narrows which strikes and leaves are read, never the make rates: a
+   *  3-6-10 is shot the same at every house, and one session has too few
+   *  chances at any leave to rate it (ADR-147). Defaults to the scope. */
+  history?: SessionSummary[];
+}
+
 type GameWithFrames = Game & { frames: Frame[] };
 
 /**
@@ -415,8 +423,10 @@ export interface BallEstimate {
 }
 
 /** Every ball's estimated average in one scope, against the bowler's real one. */
-export function estimateBalls(sessions: SessionSummary[], options: ReadOptions = {}) {
-  const { spares, all, byBall, games } = readGames(sessions, options);
+export function estimateBalls(sessions: SessionSummary[], options: EstimateOptions = {}) {
+  const scoped = readGames(sessions, options);
+  const { all, byBall, games } = scoped;
+  const spares = options.history ? readGames(options.history).spares : scoped.spares;
   const overall = buildModel(all, spares);
   const baseline = expectedGameScore(overall.model);
   const actual = games.length ? games.reduce((a, b) => a + b, 0) / games.length : null;

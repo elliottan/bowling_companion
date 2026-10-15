@@ -174,6 +174,15 @@ describe("reading games", () => {
 });
 
 describe("estimating each ball", () => {
+  it("rates leaves from the whole history, whatever the scope", () => {
+    // In scope the 10 pin was missed once; across the history it is made.
+    const missed = game(sameEveryFrame(1, TEN, TEN));
+    const made = Array.from({ length: 6 }, () => game(sameEveryFrame(1, TEN, NONE)));
+    const scopeOnly = estimateBalls(sessions(missed));
+    const withHistory = estimateBalls(sessions(missed), { history: sessions(missed, ...made) });
+    expect(withHistory.baseline).toBeGreaterThan(scopeOnly.baseline + 50);
+  });
+
   it("costs a ball the splits it leaves, at the bowler's own make rate", () => {
     // Two balls that strike equally often. One leaves the 10 pin, the other
     // the 7-10, and the bowler makes one and not the other.
