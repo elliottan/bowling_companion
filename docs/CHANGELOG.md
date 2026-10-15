@@ -9,6 +9,19 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.36.0: Eighteen more PBA patterns and eleven more balls (2026-10-15)
+
+**The oil pattern catalog goes from 46 to 64.** Every 2019 PBA animal and
+Hall of Fame pattern is in: Cheetah 33, Wolf 32, Viper 36, Chameleon 39, Bear 41
+and Dragon 45, plus the Earl Anthony, Dick Weber, Don Carter, Carmen Salvino,
+Mark Roth, Mike Aulby, Chris Paul, Don Johnson, Marshall Holman, Billy Hardwick,
+Johnny Petraglia and Del Ballard patterns. Each opens to Kegel's own sheet.
+
+**The ball catalog goes from 821 to 832.** Track's Alias, Criterion Hybrid, Cypher
+Pearl, Paragon Shadow and Kinetic Sapphire Ice, Storm's !Q Tour Sapphire and
+!Q Tour Ruby, Hammer's Zero Mercy Tour, Radical's Evil Eye Pearl, and two spare
+balls many bowlers own, Brunswick's TZone and Columbia 300's White Dot.
+
 ## 0.35.0: Twenty more balls and two PBA patterns (2026-10-15)
 
 **The ball catalog goes from 801 to 821, each with a photo.** Storm's Code X,

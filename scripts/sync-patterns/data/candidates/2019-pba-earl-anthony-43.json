@@ -1,0 +1,180 @@
+{
+  "id": "2019-pba-earl-anthony-43",
+  "name": "2019 PBA Earl Anthony 43",
+  "vendor": "kegel",
+  "sourceUrl": "https://images.bowl.com/bowl/media/legacy/internap/bowl/sportbowling/pdfs/Patterns18/KEGEL_EarlAnthony43.pdf",
+  "reader": "manual",
+  "passes": [
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 2,
+      "microliters": 50,
+      "start_distance": 0,
+      "end_distance": 1.9,
+      "speed": 14,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 3,
+      "microliters": 50,
+      "start_distance": 1.9,
+      "end_distance": 9.5,
+      "speed": 18,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "forward",
+      "left_board": 5,
+      "right_board": 35,
+      "loads": 1,
+      "microliters": 50,
+      "start_distance": 9.5,
+      "end_distance": 12,
+      "speed": 18,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "forward",
+      "left_board": 8,
+      "right_board": 32,
+      "loads": 2,
+      "microliters": 50,
+      "start_distance": 12,
+      "end_distance": 17.1,
+      "speed": 18,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "forward",
+      "left_board": 11,
+      "right_board": 31,
+      "loads": 3,
+      "microliters": 50,
+      "start_distance": 17.1,
+      "end_distance": 26.4,
+      "speed": 22,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 0,
+      "start_distance": 26.4,
+      "end_distance": 34,
+      "speed": 22,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 0,
+      "start_distance": 34,
+      "end_distance": 43,
+      "speed": 26,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "reverse",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 0,
+      "start_distance": 43,
+      "end_distance": 27,
+      "speed": 22,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "reverse",
+      "left_board": 11,
+      "right_board": 31,
+      "loads": 2,
+      "microliters": 50,
+      "start_distance": 27,
+      "end_distance": 21.9,
+      "speed": 18,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "reverse",
+      "left_board": 11,
+      "right_board": 32,
+      "loads": 3,
+      "microliters": 50,
+      "start_distance": 21.9,
+      "end_distance": 16,
+      "speed": 14,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "reverse",
+      "left_board": 5,
+      "right_board": 35,
+      "loads": 3,
+      "microliters": 50,
+      "start_distance": 16,
+      "end_distance": 10.1,
+      "speed": 14,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "reverse",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 2,
+      "microliters": 50,
+      "start_distance": 10.1,
+      "end_distance": 7.3,
+      "speed": 10,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "reverse",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 0,
+      "start_distance": 7.3,
+      "end_distance": 0,
+      "speed": 10,
+      "buffer": 0,
+      "tank": ""
+    }
+  ],
+  "stated": {
+    "distance": 43,
+    "forwardMl": 16.45,
+    "reverseMl": 13.75,
+    "volumeMl": 30.2
+  },
+  "note": "2019-pba-earl-anthony-43.txt · read by eye · 43 ft · 2.23:1",
+  "sheet": {
+    "file": "2019-pba-earl-anthony-43.8c4ec604d32b.pdf",
+    "sha256": "8c4ec604d32b5a01262453a588bcea861eb2eb92d0a2c0c64c966f6ec8961802",
+    "bytes": 595446,
+    "pages": [
+      "2019-pba-earl-anthony-43.8c4ec604d32b.p1.webp"
+    ]
+  }
+}

@@ -1,0 +1,204 @@
+{
+  "id": "2019-pba-mike-aulby-38",
+  "name": "2019 PBA Mike Aulby 38",
+  "vendor": "kegel",
+  "sourceUrl": "https://images.bowl.com/bowl/media/legacy/internap/bowl/sportbowling/pdfs/Patterns18/KEGEL_MikeAulby38.pdf",
+  "reader": "manual",
+  "passes": [
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 3,
+      "microliters": 50,
+      "start_distance": 0,
+      "end_distance": 3.9,
+      "speed": 14,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 3,
+      "microliters": 50,
+      "start_distance": 3.9,
+      "end_distance": 11.5,
+      "speed": 18,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "forward",
+      "left_board": 5,
+      "right_board": 35,
+      "loads": 1,
+      "microliters": 50,
+      "start_distance": 11.5,
+      "end_distance": 14,
+      "speed": 18,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "forward",
+      "left_board": 8,
+      "right_board": 32,
+      "loads": 2,
+      "microliters": 50,
+      "start_distance": 14,
+      "end_distance": 19.1,
+      "speed": 18,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "forward",
+      "left_board": 10,
+      "right_board": 30,
+      "loads": 2,
+      "microliters": 50,
+      "start_distance": 19.1,
+      "end_distance": 24.2,
+      "speed": 18,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "forward",
+      "left_board": 12,
+      "right_board": 30,
+      "loads": 1,
+      "microliters": 50,
+      "start_distance": 24.2,
+      "end_distance": 26.7,
+      "speed": 18,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "forward",
+      "left_board": 13,
+      "right_board": 27,
+      "loads": 1,
+      "microliters": 50,
+      "start_distance": 26.7,
+      "end_distance": 29.8,
+      "speed": 22,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 0,
+      "start_distance": 29.8,
+      "end_distance": 38,
+      "speed": 30,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "reverse",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 0,
+      "start_distance": 38,
+      "end_distance": 26,
+      "speed": 22,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "reverse",
+      "left_board": 13,
+      "right_board": 29,
+      "loads": 1,
+      "microliters": 50,
+      "start_distance": 26,
+      "end_distance": 22.9,
+      "speed": 22,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "reverse",
+      "left_board": 10,
+      "right_board": 32,
+      "loads": 1,
+      "microliters": 50,
+      "start_distance": 22.9,
+      "end_distance": 20.4,
+      "speed": 18,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "reverse",
+      "left_board": 8,
+      "right_board": 32,
+      "loads": 2,
+      "microliters": 50,
+      "start_distance": 20.4,
+      "end_distance": 16.5,
+      "speed": 14,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "reverse",
+      "left_board": 5,
+      "right_board": 35,
+      "loads": 1,
+      "microliters": 50,
+      "start_distance": 16.5,
+      "end_distance": 14.6,
+      "speed": 14,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "reverse",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 3,
+      "microliters": 50,
+      "start_distance": 14.6,
+      "end_distance": 8.7,
+      "speed": 14,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "reverse",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 0,
+      "start_distance": 8.7,
+      "end_distance": 0,
+      "speed": 10,
+      "buffer": 0,
+      "tank": ""
+    }
+  ],
+  "stated": {
+    "distance": 38,
+    "forwardMl": 18.95,
+    "reverseMl": 11.6,
+    "volumeMl": 30.55
+  },
+  "note": "2019-pba-mike-aulby-38.txt · read by eye · 38 ft · 2.06:1",
+  "sheet": {
+    "file": "2019-pba-mike-aulby-38.543d5847fc5c.pdf",
+    "sha256": "543d5847fc5c8a2bc23aaca38145b21ebdd39c9c7fa18ffa40c512a0e0cac2a6",
+    "bytes": 432951,
+    "pages": [
+      "2019-pba-mike-aulby-38.543d5847fc5c.p1.webp"
+    ]
+  }
+}

@@ -1,0 +1,204 @@
+{
+  "id": "2019-pba-del-ballard-34",
+  "name": "2019 PBA Del Ballard 34",
+  "vendor": "kegel",
+  "sourceUrl": "https://images.bowl.com/bowl/media/legacy/internap/bowl/sportbowling/pdfs/Patterns18/KEGEL_DelBallard34.pdf",
+  "reader": "manual",
+  "passes": [
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 1,
+      "microliters": 50,
+      "start_distance": 0,
+      "end_distance": 0,
+      "speed": 18,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "forward",
+      "left_board": 3,
+      "right_board": 37,
+      "loads": 1,
+      "microliters": 50,
+      "start_distance": 0,
+      "end_distance": 2.5,
+      "speed": 18,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "forward",
+      "left_board": 4,
+      "right_board": 36,
+      "loads": 1,
+      "microliters": 50,
+      "start_distance": 2.5,
+      "end_distance": 5,
+      "speed": 18,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "forward",
+      "left_board": 5,
+      "right_board": 35,
+      "loads": 3,
+      "microliters": 50,
+      "start_distance": 5,
+      "end_distance": 12.6,
+      "speed": 18,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "forward",
+      "left_board": 8,
+      "right_board": 35,
+      "loads": 2,
+      "microliters": 50,
+      "start_distance": 12.6,
+      "end_distance": 17.7,
+      "speed": 18,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "forward",
+      "left_board": 9,
+      "right_board": 31,
+      "loads": 2,
+      "microliters": 50,
+      "start_distance": 17.7,
+      "end_distance": 22.8,
+      "speed": 18,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 0,
+      "start_distance": 22.8,
+      "end_distance": 30,
+      "speed": 22,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 0,
+      "start_distance": 30,
+      "end_distance": 34,
+      "speed": 26,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "reverse",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 0,
+      "start_distance": 34,
+      "end_distance": 28,
+      "speed": 22,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "reverse",
+      "left_board": 9,
+      "right_board": 31,
+      "loads": 2,
+      "microliters": 50,
+      "start_distance": 28,
+      "end_distance": 22.9,
+      "speed": 18,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "reverse",
+      "left_board": 8,
+      "right_board": 32,
+      "loads": 2,
+      "microliters": 50,
+      "start_distance": 22.9,
+      "end_distance": 19,
+      "speed": 14,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "reverse",
+      "left_board": 4,
+      "right_board": 35,
+      "loads": 3,
+      "microliters": 50,
+      "start_distance": 19,
+      "end_distance": 13.1,
+      "speed": 14,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "reverse",
+      "left_board": 3,
+      "right_board": 36,
+      "loads": 2,
+      "microliters": 50,
+      "start_distance": 13.1,
+      "end_distance": 9.2,
+      "speed": 14,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "reverse",
+      "left_board": 3,
+      "right_board": 37,
+      "loads": 1,
+      "microliters": 50,
+      "start_distance": 9.2,
+      "end_distance": 7.3,
+      "speed": 14,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "reverse",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 0,
+      "start_distance": 7.3,
+      "end_distance": 0,
+      "speed": 14,
+      "buffer": 0,
+      "tank": ""
+    }
+  ],
+  "stated": {
+    "distance": 34,
+    "forwardMl": 15,
+    "reverseMl": 14.75,
+    "volumeMl": 29.75
+  },
+  "note": "2019-pba-del-ballard-34.txt · read by eye · 34 ft · 2.00:1",
+  "sheet": {
+    "file": "2019-pba-del-ballard-34.6b67b0dea302.pdf",
+    "sha256": "6b67b0dea302749c5dac4b3f33de5f0e9a93ba6515913f5866ca5ea7fb7c7cf4",
+    "bytes": 614386,
+    "pages": [
+      "2019-pba-del-ballard-34.6b67b0dea302.p1.webp"
+    ]
+  }
+}

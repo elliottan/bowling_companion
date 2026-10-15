@@ -1,0 +1,180 @@
+{
+  "id": "2019-pba-wolf-32",
+  "name": "2019 PBA Wolf 32",
+  "vendor": "kegel",
+  "sourceUrl": "https://images.bowl.com/bowl/media/legacy/internap/bowl/sportbowling/pdfs/Patterns18/KEGEL_Wolf32.pdf",
+  "reader": "manual",
+  "passes": [
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 1,
+      "microliters": 50,
+      "start_distance": 0,
+      "end_distance": 0,
+      "speed": 14,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "forward",
+      "left_board": 3,
+      "right_board": 37,
+      "loads": 1,
+      "microliters": 50,
+      "start_distance": 0,
+      "end_distance": 1.9,
+      "speed": 14,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "forward",
+      "left_board": 3,
+      "right_board": 36,
+      "loads": 4,
+      "microliters": 50,
+      "start_distance": 1.9,
+      "end_distance": 9.8,
+      "speed": 14,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "forward",
+      "left_board": 4,
+      "right_board": 36,
+      "loads": 2,
+      "microliters": 50,
+      "start_distance": 9.8,
+      "end_distance": 14.9,
+      "speed": 18,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "forward",
+      "left_board": 6,
+      "right_board": 34,
+      "loads": 1,
+      "microliters": 50,
+      "start_distance": 14.9,
+      "end_distance": 17.4,
+      "speed": 18,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "forward",
+      "left_board": 8,
+      "right_board": 34,
+      "loads": 1,
+      "microliters": 50,
+      "start_distance": 17.4,
+      "end_distance": 20.5,
+      "speed": 22,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 0,
+      "start_distance": 20.5,
+      "end_distance": 32,
+      "speed": 22,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "reverse",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 0,
+      "start_distance": 32,
+      "end_distance": 23,
+      "speed": 22,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "reverse",
+      "left_board": 8,
+      "right_board": 32,
+      "loads": 2,
+      "microliters": 50,
+      "start_distance": 23,
+      "end_distance": 19.1,
+      "speed": 14,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "reverse",
+      "left_board": 6,
+      "right_board": 34,
+      "loads": 1,
+      "microliters": 50,
+      "start_distance": 19.1,
+      "end_distance": 17.2,
+      "speed": 14,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "reverse",
+      "left_board": 3,
+      "right_board": 37,
+      "loads": 3,
+      "microliters": 50,
+      "start_distance": 17.2,
+      "end_distance": 11.3,
+      "speed": 14,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "reverse",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 1,
+      "microliters": 50,
+      "start_distance": 11.3,
+      "end_distance": 9.4,
+      "speed": 14,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "reverse",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 0,
+      "start_distance": 9.4,
+      "end_distance": 0,
+      "speed": 14,
+      "buffer": 0,
+      "tank": ""
+    }
+  ],
+  "stated": {
+    "distance": 32,
+    "forwardMl": 16.5,
+    "reverseMl": 11.05,
+    "volumeMl": 27.55
+  },
+  "note": "2019-pba-wolf-32.txt · read by eye · 32 ft · 1.42:1",
+  "sheet": {
+    "file": "2019-pba-wolf-32.bbc2cadb7fc4.pdf",
+    "sha256": "bbc2cadb7fc4338652018d49e0834f8eb3476e75e6c34f16fdcf99976bf21a7e",
+    "bytes": 405329,
+    "pages": [
+      "2019-pba-wolf-32.bbc2cadb7fc4.p1.webp"
+    ]
+  }
+}

@@ -37246,5 +37246,511 @@
         "mbDiff": null
       }
     ]
+  },
+  {
+    "brand": "Hammer",
+    "name": "Zero Mercy Tour",
+    "releaseDate": "2026-09-17",
+    "coverstockRaw": "C2 Tour Edition Solid Reactive",
+    "factoryFinish": "500/1000 Siaair Micro Pad",
+    "coreName": "Obsession Tour",
+    "rg": 2.469,
+    "diff": 0.034,
+    "mbDiff": 0.013,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/hammer/zero-mercy-tour"
+    ],
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.484,
+        "diff": 0.029,
+        "mbDiff": 0.011
+      },
+      {
+        "weight": 15,
+        "rg": 2.469,
+        "diff": 0.034,
+        "mbDiff": 0.013
+      },
+      {
+        "weight": 14,
+        "rg": 2.485,
+        "diff": 0.034,
+        "mbDiff": 0.013
+      },
+      {
+        "weight": 13,
+        "rg": 2.597,
+        "diff": 0.041,
+        "mbDiff": 0.014
+      },
+      {
+        "weight": 12,
+        "rg": 2.593,
+        "diff": 0.041,
+        "mbDiff": 0.014
+      }
+    ]
+  },
+  {
+    "brand": "Radical",
+    "name": "Evil Eye Pearl",
+    "releaseDate": "2026-08-13",
+    "coverstockRaw": "HK22C Pearl Reactive",
+    "factoryFinish": "500/1000/1500 Siaair, Crown Factory Compound",
+    "coreName": "Evil Eye",
+    "rg": 2.495,
+    "diff": 0.046,
+    "mbDiff": null,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/radical/evil-eye-pearl"
+    ],
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.505,
+        "diff": 0.041,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.495,
+        "diff": 0.046,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.512,
+        "diff": 0.046,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.574,
+        "diff": 0.04,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.597,
+        "diff": 0.04,
+        "mbDiff": null
+      }
+    ]
+  },
+  {
+    "brand": "Storm",
+    "name": "!Q Tour Ruby",
+    "releaseDate": "2023-03-17",
+    "coverstockRaw": "R2S Pearl Reactive",
+    "factoryFinish": "Reacta Gloss",
+    "coreName": "C3 Centripetal Control",
+    "rg": 2.49,
+    "diff": 0.029,
+    "mbDiff": null,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/storm/iq-tour-ruby"
+    ],
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.49,
+        "diff": 0.035,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.49,
+        "diff": 0.029,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.54,
+        "diff": 0.034,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.59,
+        "diff": 0.045,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.65,
+        "diff": 0.035,
+        "mbDiff": null
+      }
+    ]
+  },
+  {
+    "brand": "Storm",
+    "name": "!Q Tour Sapphire",
+    "releaseDate": "2026-08-07",
+    "coverstockRaw": "R2S Pearl Reactive",
+    "factoryFinish": "Power Edge",
+    "coreName": "C3 Centripetal Control",
+    "rg": 2.49,
+    "diff": 0.029,
+    "mbDiff": null,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/storm/iq-tour-sapphire"
+    ],
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.49,
+        "diff": 0.035,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.49,
+        "diff": 0.029,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.54,
+        "diff": 0.034,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.59,
+        "diff": 0.045,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.65,
+        "diff": 0.035,
+        "mbDiff": null
+      }
+    ]
+  },
+  {
+    "brand": "Track",
+    "name": "Alias",
+    "releaseDate": "2018-01-30",
+    "coverstockRaw": "Prime Hybrid Reactive",
+    "factoryFinish": "500/2000 Abralon",
+    "coreName": "Alias",
+    "rg": 2.49,
+    "diff": 0.054,
+    "mbDiff": 0.013,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/track/alias"
+    ],
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.5,
+        "diff": 0.047,
+        "mbDiff": 0.013
+      },
+      {
+        "weight": 15,
+        "rg": 2.49,
+        "diff": 0.054,
+        "mbDiff": 0.013
+      },
+      {
+        "weight": 14,
+        "rg": 2.51,
+        "diff": 0.054,
+        "mbDiff": 0.013
+      },
+      {
+        "weight": 13,
+        "rg": 2.58,
+        "diff": 0.049,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.61,
+        "diff": 0.046,
+        "mbDiff": null
+      }
+    ]
+  },
+  {
+    "brand": "Track",
+    "name": "Criterion Hybrid",
+    "releaseDate": "2025-02-20",
+    "coverstockRaw": "Hybrid Reactive",
+    "factoryFinish": "500/1000/1500 Siaair, Crown Factory Compound",
+    "coreName": "Criterion M.D.",
+    "rg": 2.5,
+    "diff": 0.052,
+    "mbDiff": 0.018,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/track/criterion-hybrid"
+    ],
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.509,
+        "diff": 0.046,
+        "mbDiff": 0.015
+      },
+      {
+        "weight": 15,
+        "rg": 2.5,
+        "diff": 0.052,
+        "mbDiff": 0.018
+      },
+      {
+        "weight": 14,
+        "rg": 2.504,
+        "diff": 0.052,
+        "mbDiff": 0.018
+      },
+      {
+        "weight": 13,
+        "rg": 2.597,
+        "diff": 0.041,
+        "mbDiff": 0.014
+      },
+      {
+        "weight": 12,
+        "rg": 2.593,
+        "diff": 0.041,
+        "mbDiff": 0.014
+      }
+    ]
+  },
+  {
+    "brand": "Track",
+    "name": "Cypher Pearl",
+    "releaseDate": "2025-04-17",
+    "coverstockRaw": "HK22 - Prime Response Pearl Reactive",
+    "factoryFinish": "500/1000/1500 Siaair, Crown Factory Compound",
+    "coreName": "Synergy",
+    "rg": 2.54,
+    "diff": 0.047,
+    "mbDiff": null,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/track/cypher-pearl"
+    ],
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.551,
+        "diff": 0.04,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.54,
+        "diff": 0.047,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.568,
+        "diff": 0.047,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.582,
+        "diff": 0.042,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.605,
+        "diff": 0.042,
+        "mbDiff": null
+      }
+    ]
+  },
+  {
+    "brand": "Track",
+    "name": "Kinetic Sapphire Ice",
+    "releaseDate": "2026-04-16",
+    "coverstockRaw": "HK22 - Prime Response Pearl Reactive",
+    "factoryFinish": "500/1000/1500 Siaair, Crown Factory Compound",
+    "coreName": "Shuttle",
+    "rg": 2.48,
+    "diff": 0.04,
+    "mbDiff": 0.005,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/track/kinetic-sapphire-ice"
+    ],
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.493,
+        "diff": 0.038,
+        "mbDiff": 0.005
+      },
+      {
+        "weight": 15,
+        "rg": 2.48,
+        "diff": 0.04,
+        "mbDiff": 0.005
+      },
+      {
+        "weight": 14,
+        "rg": 2.495,
+        "diff": 0.04,
+        "mbDiff": 0.005
+      },
+      {
+        "weight": 13,
+        "rg": 2.589,
+        "diff": 0.043,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.612,
+        "diff": 0.043,
+        "mbDiff": null
+      }
+    ]
+  },
+  {
+    "brand": "Track",
+    "name": "Paragon Shadow",
+    "releaseDate": "2025-06-12",
+    "coverstockRaw": "HK22C - QR-12 Hybrid Reactive",
+    "factoryFinish": "500/1500 Siaair Micro Pad",
+    "coreName": "I-Core 3.0",
+    "rg": 2.486,
+    "diff": 0.056,
+    "mbDiff": 0.015,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/track/paragon-shadow"
+    ],
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.501,
+        "diff": 0.047,
+        "mbDiff": 0.014
+      },
+      {
+        "weight": 15,
+        "rg": 2.486,
+        "diff": 0.056,
+        "mbDiff": 0.015
+      },
+      {
+        "weight": 14,
+        "rg": 2.49,
+        "diff": 0.056,
+        "mbDiff": 0.019
+      },
+      {
+        "weight": 13,
+        "rg": 2.597,
+        "diff": 0.041,
+        "mbDiff": 0.014
+      },
+      {
+        "weight": 12,
+        "rg": 2.593,
+        "diff": 0.041,
+        "mbDiff": 0.014
+      }
+    ]
+  },
+  {
+    "brand": "Brunswick",
+    "name": "TZone",
+    "releaseDate": "2015-07-01",
+    "coverstockRaw": "Polyester",
+    "factoryFinish": "Crown Factory Polish",
+    "coreName": "Bullet",
+    "rg": 2.715,
+    "diff": 0.019,
+    "mbDiff": null,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/brunswick/tzone-various-colors"
+    ],
+    "weights": [
+      {
+        "weight": 16,
+        "rg": null,
+        "diff": null,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.715,
+        "diff": 0.019,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": null,
+        "diff": null,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": null,
+        "diff": null,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": null,
+        "diff": null,
+        "mbDiff": null
+      }
+    ]
+  },
+  {
+    "brand": "Columbia 300",
+    "name": "White Dot",
+    "releaseDate": "2020-08-06",
+    "coverstockRaw": "Polyester",
+    "factoryFinish": "Crown Factory Polish",
+    "coreName": "Bullet",
+    "rg": 2.715,
+    "diff": 0.019,
+    "mbDiff": null,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/columbia-300/white-dot-various-colors"
+    ],
+    "weights": [
+      {
+        "weight": 16,
+        "rg": null,
+        "diff": null,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.715,
+        "diff": 0.019,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": null,
+        "diff": null,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": null,
+        "diff": null,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": null,
+        "diff": null,
+        "mbDiff": null
+      }
+    ]
   }
 ]

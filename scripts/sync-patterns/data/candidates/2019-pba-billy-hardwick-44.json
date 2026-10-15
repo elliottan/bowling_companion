@@ -1,0 +1,240 @@
+{
+  "id": "2019-pba-billy-hardwick-44",
+  "name": "2019 PBA Billy Hardwick 44",
+  "vendor": "kegel",
+  "sourceUrl": "https://images.bowl.com/bowl/media/legacy/internap/bowl/sportbowling/pdfs/Patterns18/KEGEL_BillyHardwick44.pdf",
+  "reader": "manual",
+  "passes": [
+    {
+      "direction": "forward",
+      "left_board": 3,
+      "right_board": 37,
+      "loads": 2,
+      "microliters": 50,
+      "start_distance": 0,
+      "end_distance": 1.9,
+      "speed": 14,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "forward",
+      "left_board": 4,
+      "right_board": 36,
+      "loads": 2,
+      "microliters": 50,
+      "start_distance": 1.9,
+      "end_distance": 7,
+      "speed": 18,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "forward",
+      "left_board": 6,
+      "right_board": 34,
+      "loads": 2,
+      "microliters": 50,
+      "start_distance": 7,
+      "end_distance": 12.1,
+      "speed": 18,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "forward",
+      "left_board": 8,
+      "right_board": 32,
+      "loads": 2,
+      "microliters": 50,
+      "start_distance": 12.1,
+      "end_distance": 17.2,
+      "speed": 18,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "forward",
+      "left_board": 10,
+      "right_board": 32,
+      "loads": 2,
+      "microliters": 50,
+      "start_distance": 17.2,
+      "end_distance": 22.3,
+      "speed": 18,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "forward",
+      "left_board": 14,
+      "right_board": 27,
+      "loads": 2,
+      "microliters": 50,
+      "start_distance": 22.3,
+      "end_distance": 27.4,
+      "speed": 18,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "forward",
+      "left_board": 16,
+      "right_board": 25,
+      "loads": 1,
+      "microliters": 50,
+      "start_distance": 27.4,
+      "end_distance": 30.5,
+      "speed": 22,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 0,
+      "start_distance": 30.5,
+      "end_distance": 38,
+      "speed": 22,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 0,
+      "start_distance": 38,
+      "end_distance": 44,
+      "speed": 30,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "reverse",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 0,
+      "start_distance": 44,
+      "end_distance": 30,
+      "speed": 22,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "reverse",
+      "left_board": 16,
+      "right_board": 27,
+      "loads": 1,
+      "microliters": 50,
+      "start_distance": 30,
+      "end_distance": 27.5,
+      "speed": 18,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "reverse",
+      "left_board": 14,
+      "right_board": 29,
+      "loads": 2,
+      "microliters": 50,
+      "start_distance": 27.5,
+      "end_distance": 22.4,
+      "speed": 18,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "reverse",
+      "left_board": 10,
+      "right_board": 32,
+      "loads": 3,
+      "microliters": 50,
+      "start_distance": 22.4,
+      "end_distance": 16.5,
+      "speed": 14,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "reverse",
+      "left_board": 5,
+      "right_board": 35,
+      "loads": 1,
+      "microliters": 50,
+      "start_distance": 16.5,
+      "end_distance": 14.6,
+      "speed": 14,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "reverse",
+      "left_board": 4,
+      "right_board": 36,
+      "loads": 1,
+      "microliters": 50,
+      "start_distance": 14.6,
+      "end_distance": 12.7,
+      "speed": 14,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "reverse",
+      "left_board": 3,
+      "right_board": 37,
+      "loads": 1,
+      "microliters": 50,
+      "start_distance": 12.7,
+      "end_distance": 10.8,
+      "speed": 14,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "reverse",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 1,
+      "microliters": 50,
+      "start_distance": 10.8,
+      "end_distance": 8.9,
+      "speed": 14,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "reverse",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 0,
+      "start_distance": 8.9,
+      "end_distance": 0,
+      "speed": 14,
+      "buffer": 0,
+      "tank": ""
+    }
+  ],
+  "stated": {
+    "distance": 44,
+    "forwardMl": 16.4,
+    "reverseMl": 12.45,
+    "volumeMl": 28.85
+  },
+  "note": "2019-pba-billy-hardwick-44.txt · read by eye · 44 ft · 2.95:1",
+  "sheet": {
+    "file": "2019-pba-billy-hardwick-44.0b550ce3dc72.pdf",
+    "sha256": "0b550ce3dc72abe1197c5ab63c2106d0b6df2c72f8d4c7eda2bf83b76d9007f1",
+    "bytes": 665929,
+    "pages": [
+      "2019-pba-billy-hardwick-44.0b550ce3dc72.p1.webp"
+    ]
+  }
+}

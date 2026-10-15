@@ -33,6 +33,28 @@ Done by the session that followed this handout, from the queue below.
   was promoted drops out of the queue, and the rest route `manual`.
 - **Photos: 798 of 799** (ADR-142). PhysiX Burst has no bowwwl page.
 
+## 2026-10-15, later: the rest of the 2019 PBA sheets, and the second ball batch
+
+- **Eighteen patterns, all of the 2019 PBA animal and Hall of Fame sheets**, are in
+  (now 64). Each was transcribed from the rendered table into
+  `scripts/sync-patterns/data/transcripts/` by a cheap model, and then only the
+  promote arithmetic decided: 13 passed first time and five were rejected on the
+  forward total, 1.45 to 1.85 mL light each. The cause was the transcripts, not
+  the readings: a row that starts and ends at 0.0 ft (a drop laid where the
+  machine stands) is kept only under a `FORWARD LOADS DATA` or `REVERSE LOADS DATA`
+  heading, as the 2025 Striking Against Breast Cancer transcript has. **Put both
+  headings in a transcript of this layout.** Cheetah 33, Chris Paul 42, Del Ballard
+  34, Johnny Petraglia 37 and Wolf 32 then passed.
+- **Eleven balls**: Track Alias, Criterion Hybrid, Cypher Pearl, Paragon Shadow,
+  Kinetic Sapphire Ice; Storm !Q Tour Sapphire, !Q Tour Ruby; Hammer Zero Mercy
+  Tour; Radical Evil Eye Pearl; Brunswick TZone; Columbia 300 White Dot.
+  TZone and White Dot are spare balls sold in many colours, so bowwwl has them
+  under `tzone-various-colors` and `white-dot-various-colors`, which a slug guess
+  of the plain name misses, and the research had said they had no page.
+  Their values (polyester, Bullet core, RG 2.715, differential 0.019) agree with
+  the manufacturers' own pages, which print no RG or differential.
+- Now **832 balls (831 with a photo)** and **64 patterns**.
+
 ## 2026-10-15: a popularity-ranked batch, and the 2019 PBA pattern sheets
 
 Twenty balls, picked from three research reports (Storm family, the Brunswick

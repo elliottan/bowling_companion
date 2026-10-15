@@ -1,0 +1,216 @@
+{
+  "id": "2019-pba-dick-weber-45",
+  "name": "2019 PBA Dick Weber 45",
+  "vendor": "kegel",
+  "sourceUrl": "https://images.bowl.com/bowl/media/legacy/internap/bowl/sportbowling/pdfs/Patterns18/KEGEL_DickWeber45.pdf",
+  "reader": "manual",
+  "passes": [
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 2,
+      "microliters": 50,
+      "start_distance": 0,
+      "end_distance": 1.9,
+      "speed": 14,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "forward",
+      "left_board": 7,
+      "right_board": 33,
+      "loads": 1,
+      "microliters": 50,
+      "start_distance": 1.9,
+      "end_distance": 4.4,
+      "speed": 18,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "forward",
+      "left_board": 8,
+      "right_board": 32,
+      "loads": 4,
+      "microliters": 50,
+      "start_distance": 4.4,
+      "end_distance": 14.6,
+      "speed": 18,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "forward",
+      "left_board": 11,
+      "right_board": 29,
+      "loads": 4,
+      "microliters": 50,
+      "start_distance": 14.6,
+      "end_distance": 24.8,
+      "speed": 18,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "forward",
+      "left_board": 15,
+      "right_board": 27,
+      "loads": 2,
+      "microliters": 50,
+      "start_distance": 24.8,
+      "end_distance": 29.9,
+      "speed": 18,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "forward",
+      "left_board": 15,
+      "right_board": 25,
+      "loads": 2,
+      "microliters": 50,
+      "start_distance": 29.9,
+      "end_distance": 36.1,
+      "speed": 22,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 0,
+      "start_distance": 36.1,
+      "end_distance": 40,
+      "speed": 22,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 0,
+      "start_distance": 40,
+      "end_distance": 45,
+      "speed": 30,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "reverse",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 0,
+      "start_distance": 45,
+      "end_distance": 32,
+      "speed": 30,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "reverse",
+      "left_board": 15,
+      "right_board": 25,
+      "loads": 2,
+      "microliters": 50,
+      "start_distance": 32,
+      "end_distance": 25.8,
+      "speed": 22,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "reverse",
+      "left_board": 15,
+      "right_board": 29,
+      "loads": 2,
+      "microliters": 50,
+      "start_distance": 25.8,
+      "end_distance": 20.7,
+      "speed": 18,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "reverse",
+      "left_board": 11,
+      "right_board": 30,
+      "loads": 2,
+      "microliters": 50,
+      "start_distance": 20.7,
+      "end_distance": 15.6,
+      "speed": 18,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "reverse",
+      "left_board": 9,
+      "right_board": 31,
+      "loads": 2,
+      "microliters": 50,
+      "start_distance": 15.6,
+      "end_distance": 11.7,
+      "speed": 14,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "reverse",
+      "left_board": 8,
+      "right_board": 32,
+      "loads": 1,
+      "microliters": 50,
+      "start_distance": 11.7,
+      "end_distance": 9.8,
+      "speed": 14,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "reverse",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 1,
+      "microliters": 50,
+      "start_distance": 9.8,
+      "end_distance": 7.9,
+      "speed": 14,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "reverse",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 0,
+      "start_distance": 7.9,
+      "end_distance": 0,
+      "speed": 14,
+      "buffer": 0,
+      "tank": ""
+    }
+  ],
+  "stated": {
+    "distance": 45,
+    "forwardMl": 16.25,
+    "reverseMl": 10,
+    "volumeMl": 26.25
+  },
+  "note": "2019-pba-dick-weber-45.txt · read by eye · 45 ft · 7.81:1",
+  "sheet": {
+    "file": "2019-pba-dick-weber-45.7fe6da495449.pdf",
+    "sha256": "7fe6da495449e504e990eadf76cdf078eb48517a5889f285a86e7f36bfa47567",
+    "bytes": 641490,
+    "pages": [
+      "2019-pba-dick-weber-45.7fe6da495449.p1.webp"
+    ]
+  }
+}

@@ -1,0 +1,216 @@
+{
+  "id": "2019-pba-marshall-holman-41",
+  "name": "2019 PBA Marshall Holman 41",
+  "vendor": "kegel",
+  "sourceUrl": "https://images.bowl.com/bowl/media/legacy/internap/bowl/sportbowling/pdfs/Patterns18/KEGEL_MarshallHolman41.pdf",
+  "reader": "manual",
+  "passes": [
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 4,
+      "microliters": 50,
+      "start_distance": 0,
+      "end_distance": 5.9,
+      "speed": 14,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "forward",
+      "left_board": 4,
+      "right_board": 36,
+      "loads": 1,
+      "microliters": 50,
+      "start_distance": 5.9,
+      "end_distance": 7.8,
+      "speed": 14,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "forward",
+      "left_board": 6,
+      "right_board": 34,
+      "loads": 1,
+      "microliters": 50,
+      "start_distance": 7.8,
+      "end_distance": 10.3,
+      "speed": 18,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "forward",
+      "left_board": 8,
+      "right_board": 32,
+      "loads": 1,
+      "microliters": 50,
+      "start_distance": 10.3,
+      "end_distance": 12.8,
+      "speed": 18,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "forward",
+      "left_board": 10,
+      "right_board": 31,
+      "loads": 2,
+      "microliters": 50,
+      "start_distance": 12.8,
+      "end_distance": 17.9,
+      "speed": 18,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "forward",
+      "left_board": 12,
+      "right_board": 29,
+      "loads": 2,
+      "microliters": 50,
+      "start_distance": 17.9,
+      "end_distance": 23,
+      "speed": 18,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "forward",
+      "left_board": 13,
+      "right_board": 27,
+      "loads": 2,
+      "microliters": 50,
+      "start_distance": 23,
+      "end_distance": 29.2,
+      "speed": 22,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 0,
+      "start_distance": 29.2,
+      "end_distance": 38,
+      "speed": 22,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 0,
+      "start_distance": 38,
+      "end_distance": 41,
+      "speed": 30,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "reverse",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 0,
+      "start_distance": 41,
+      "end_distance": 30,
+      "speed": 22,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "reverse",
+      "left_board": 12,
+      "right_board": 29,
+      "loads": 1,
+      "microliters": 50,
+      "start_distance": 30,
+      "end_distance": 26.9,
+      "speed": 22,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "reverse",
+      "left_board": 10,
+      "right_board": 30,
+      "loads": 2,
+      "microliters": 50,
+      "start_distance": 26.9,
+      "end_distance": 21.8,
+      "speed": 18,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "reverse",
+      "left_board": 9,
+      "right_board": 31,
+      "loads": 2,
+      "microliters": 50,
+      "start_distance": 21.8,
+      "end_distance": 17.9,
+      "speed": 14,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "reverse",
+      "left_board": 8,
+      "right_board": 32,
+      "loads": 2,
+      "microliters": 50,
+      "start_distance": 17.9,
+      "end_distance": 14,
+      "speed": 14,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "reverse",
+      "left_board": 3,
+      "right_board": 37,
+      "loads": 3,
+      "microliters": 50,
+      "start_distance": 14,
+      "end_distance": 8.1,
+      "speed": 14,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "reverse",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 0,
+      "start_distance": 8.1,
+      "end_distance": 0,
+      "speed": 14,
+      "buffer": 0,
+      "tank": ""
+    }
+  ],
+  "stated": {
+    "distance": 41,
+    "forwardMl": 17.25,
+    "reverseMl": 13.05,
+    "volumeMl": 30.3
+  },
+  "note": "2019-pba-marshall-holman-41.txt · read by eye · 41 ft · 2.80:1",
+  "sheet": {
+    "file": "2019-pba-marshall-holman-41.27a55d4aa7b8.pdf",
+    "sha256": "27a55d4aa7b80ac00adb57c7a70a80093f25ba72c5e1bd070f2ea14a2260c614",
+    "bytes": 720376,
+    "pages": [
+      "2019-pba-marshall-holman-41.27a55d4aa7b8.p1.webp"
+    ]
+  }
+}

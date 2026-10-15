@@ -1,0 +1,204 @@
+{
+  "id": "2019-pba-don-carter-39",
+  "name": "2019 PBA Don Carter 39",
+  "vendor": "kegel",
+  "sourceUrl": "https://images.bowl.com/bowl/media/legacy/internap/bowl/sportbowling/pdfs/Patterns18/KEGEL_DonCarter39.pdf",
+  "reader": "manual",
+  "passes": [
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 3,
+      "microliters": 50,
+      "start_distance": 0,
+      "end_distance": 3.9,
+      "speed": 14,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "forward",
+      "left_board": 6,
+      "right_board": 34,
+      "loads": 1,
+      "microliters": 50,
+      "start_distance": 3.9,
+      "end_distance": 6.4,
+      "speed": 18,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "forward",
+      "left_board": 7,
+      "right_board": 33,
+      "loads": 1,
+      "microliters": 50,
+      "start_distance": 6.4,
+      "end_distance": 8.9,
+      "speed": 18,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "forward",
+      "left_board": 8,
+      "right_board": 32,
+      "loads": 2,
+      "microliters": 50,
+      "start_distance": 8.9,
+      "end_distance": 14,
+      "speed": 18,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "forward",
+      "left_board": 11,
+      "right_board": 31,
+      "loads": 4,
+      "microliters": 50,
+      "start_distance": 14,
+      "end_distance": 24.2,
+      "speed": 18,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "forward",
+      "left_board": 13,
+      "right_board": 29,
+      "loads": 1,
+      "microliters": 50,
+      "start_distance": 24.2,
+      "end_distance": 27.3,
+      "speed": 22,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "forward",
+      "left_board": 15,
+      "right_board": 27,
+      "loads": 2,
+      "microliters": 50,
+      "start_distance": 27.3,
+      "end_distance": 33.5,
+      "speed": 22,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "forward",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 0,
+      "start_distance": 33.5,
+      "end_distance": 39,
+      "speed": 22,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "reverse",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 0,
+      "start_distance": 39,
+      "end_distance": 30,
+      "speed": 22,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "reverse",
+      "left_board": 13,
+      "right_board": 28,
+      "loads": 1,
+      "microliters": 50,
+      "start_distance": 30,
+      "end_distance": 26.9,
+      "speed": 22,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "reverse",
+      "left_board": 11,
+      "right_board": 30,
+      "loads": 2,
+      "microliters": 50,
+      "start_distance": 26.9,
+      "end_distance": 21.8,
+      "speed": 18,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "reverse",
+      "left_board": 9,
+      "right_board": 31,
+      "loads": 2,
+      "microliters": 50,
+      "start_distance": 21.8,
+      "end_distance": 17.9,
+      "speed": 14,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "reverse",
+      "left_board": 7,
+      "right_board": 33,
+      "loads": 2,
+      "microliters": 50,
+      "start_distance": 17.9,
+      "end_distance": 14,
+      "speed": 14,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "reverse",
+      "left_board": 6,
+      "right_board": 34,
+      "loads": 3,
+      "microliters": 50,
+      "start_distance": 14,
+      "end_distance": 8.1,
+      "speed": 14,
+      "buffer": 0,
+      "tank": ""
+    },
+    {
+      "direction": "reverse",
+      "left_board": 2,
+      "right_board": 38,
+      "loads": 0,
+      "microliters": 0,
+      "start_distance": 8.1,
+      "end_distance": 0,
+      "speed": 14,
+      "buffer": 0,
+      "tank": ""
+    }
+  ],
+  "stated": {
+    "distance": 39,
+    "forwardMl": 17.2,
+    "reverseMl": 12.15,
+    "volumeMl": 29.35
+  },
+  "note": "2019-pba-don-carter-39.txt · read by eye · 39 ft · 4.62:1",
+  "sheet": {
+    "file": "2019-pba-don-carter-39.73ac9b95f278.pdf",
+    "sha256": "73ac9b95f2784642942b6a022b1f11f9964790445ae8ad9398ee5280ba268303",
+    "bytes": 626071,
+    "pages": [
+      "2019-pba-don-carter-39.73ac9b95f278.p1.webp"
+    ]
+  }
+}
