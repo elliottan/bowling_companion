@@ -7,6 +7,7 @@ import { RangeSlider } from "../components/ui/RangeSlider";
 import { Chip, TAP_TARGET_44 } from "../components/ui/Chip";
 import { IconButton } from "../components/ui/IconButton";
 import { EmptyState } from "../components/ui/EmptyState";
+import { CatalogRequestEmpty, CatalogRequestRow } from "../components/CatalogRequest";
 import { FormSheet } from "../components/ui/FormSheet";
 import { PushScreen } from "../components/PushScreen";
 import {
@@ -769,6 +770,28 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall }: CatalogVie
               {online ? "Load the catalog" : "Waiting for a connection"}
             </Button>
           </EmptyState>
+        ) : displayed.length === 0 ? (
+          // A typed search that found nothing means the catalog may be missing
+          // the ball. Filters alone emptying the list mean it is only hidden.
+          filters.search.trim() ? (
+            <CatalogRequestEmpty kind="ball" query={filters.search}>
+              {activeFilterCount > 0 && (
+                <Button variant="ghost" onClick={() => setFilters({ ...EMPTY_FILTERS, search: filters.search })}>
+                  Clear filters
+                </Button>
+              )}
+            </CatalogRequestEmpty>
+          ) : (
+            <EmptyState
+              icon={BookOpen}
+              title="No balls match these filters"
+              description="Loosen a filter to see more of the catalog."
+            >
+              <Button variant="primary" onClick={() => setFilters(EMPTY_FILTERS)}>
+                Clear filters
+              </Button>
+            </EmptyState>
+          )
         ) : (
           <ul className="divide-y divide-edge rounded-xl border border-edge bg-surface shadow-sm">
             {shown.map((ball) => (
@@ -818,6 +841,8 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall }: CatalogVie
         {/* Grows the window when it scrolls into view. Rendered only while
             there is more, so it cannot fire against a finished list. */}
         {shown.length < displayed.length && <div ref={sentinelRef} className="h-8" />}
+
+        {displayed.length > 0 && shown.length >= displayed.length && <CatalogRequestRow kind="ball" query={filters.search} />}
 
         {/* Footer */}
         {doneState && (

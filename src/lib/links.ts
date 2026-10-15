@@ -21,6 +21,39 @@ export function feedbackMailto(diagnostics: string): string {
   return `mailto:${FEEDBACK_EMAIL}?subject=${encodeURIComponent("Headpin feedback")}&body=${encodeURIComponent(body)}`;
 }
 
+/** Hands a `mailto:` link to the platform's mail app. Assigned to `location`
+ *  rather than offered to a row as an `href`, which opens a new tab: in an
+ *  installed app that is a blank browser sheet instead of Mail. */
+export function openMail(url: string): void {
+  window.location.href = url;
+}
+
+export type CatalogRequestKind = "ball" | "pattern";
+
+/** Long enough for any ball or pattern name, short enough that a pasted
+ *  paragraph cannot become the subject line. */
+const REQUEST_QUERY_MAX = 60;
+
+/**
+ * An email asking for a ball or an oil pattern to be added to the catalog, with
+ * whatever the bowler searched for already in it.
+ *
+ * It goes to the feedback address, so there is one inbox to reply from, and the
+ * subject prefix is what lets it be filtered out of the rest. No diagnostics
+ * ride along: a request needs no build number, and the feedback flow's clipboard
+ * write would be a surprise here.
+ */
+export function catalogRequestMailto(kind: CatalogRequestKind, query: string): string {
+  const typed = query.trim().slice(0, REQUEST_QUERY_MAX);
+  const lead = kind === "ball" ? "Ball request" : "Pattern request";
+  const subject = typed ? `${lead}: ${typed}` : lead;
+  const body =
+    kind === "ball"
+      ? `Brand:\nBall: ${typed}\nLink to the spec sheet or product page (optional):\n`
+      : `Pattern: ${typed}\nWho publishes it (Kegel, a league, a tournament):\nLink to the pattern sheet:\nLength in feet (optional):\n`;
+  return `mailto:${FEEDBACK_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+}
+
 /**
  * Where a catalog ball's "Shop" link goes, and how it is credited to Headpin.
  * BowlersMart's affiliate program runs on Rakuten, whose deep link takes the

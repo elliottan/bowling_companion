@@ -225,6 +225,26 @@ describe("BallFormDialog catalog link", () => {
   });
 });
 
+describe("BallFormDialog, a ball the catalog lacks", () => {
+  it("offers to request it from the catalog picker, rather than a bare sentence", async () => {
+    await db.delete();
+    await db.open();
+    await db.ball_catalog.bulkPut([
+      { id: "gem", brand: "Roto Grip", name: "Gem", coverstockCategory: "Solid", coreType: "Asymmetric", rg: 2.47, diff: 0.05, mbDiff: 0.02, releaseYear: 2026, imageThumb: null, imageFull: null, productUrl: null, weights: [], colorways: [] } as unknown as CatalogBall
+    ]);
+    const id = await addBall({ name: "Mine", is_spare_ball: false, weight: 15, catalog_ref_id: "gem" });
+    const ball = (await getBalls()).find((b) => b.id === id)!;
+    render(<BallFormDialog ball={ball} onClose={vi.fn()} onSaved={vi.fn()} />);
+    unlock();
+    fireEvent.click(await screen.findByRole("button", { name: /Linked to catalog/ }));
+
+    fireEvent.change(await screen.findByPlaceholderText(/Search name, brand/), { target: { value: "Zzyzx" } });
+
+    expect(await screen.findByText('Nothing matches "Zzyzx"')).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Request this ball/ })).toBeInTheDocument();
+  });
+});
+
 describe("BallFormDialog reading first", () => {
   beforeEach(async () => {
     await db.delete();
