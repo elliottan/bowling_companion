@@ -4,6 +4,7 @@
   address. stills.mjs opens it once per ad and size and saves the screenshot.
 
   ?shot=line  ?h=<headline, may hold <em>>  ?sub=<line under it>  ?size=feed|story
+  ?img=<url> instead of ?shot, for a screen the landing page has no picture of
   Feed is 1080 x 1350 (4:5), story is 1080 x 1920 (9:16). On a story the text
   sits inside the band Instagram and Facebook leave clear of their own buttons.
 -->
@@ -99,7 +100,7 @@
       document.body.className = q.get("size") || "feed";
       document.getElementById("h").innerHTML = q.get("h") || "";
       document.getElementById("sub").textContent = q.get("sub") || "";
-      document.getElementById("shot").src = `/shots/${q.get("shot") || "line"}.webp`;
+      document.getElementById("shot").src = q.get("img") || `/shots/${q.get("shot") || "line"}.webp`;
     </script>
   </body>
 </html>

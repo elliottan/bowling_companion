@@ -9,6 +9,14 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.36.1: Landing page pictures match the app again (2026-10-15)
+
+**The screenshots on headpin.app show today's app.** The Stats picture still
+showed the old tile grid from before the Stats tab was rebuilt, and the scorer,
+Home and arsenal pictures were from an older bowler. All four are recaptured
+from the current app, and the Stats picture's description says what it now
+shows.
+
 ## 0.36.0: Eighteen more PBA patterns and eleven more balls (2026-10-15)
 
 **The oil pattern catalog goes from 46 to 64.** Every 2019 PBA animal and

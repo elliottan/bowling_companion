@@ -19,6 +19,8 @@ import { chromium } from "@playwright/test";
 const BASE = process.env.ADS_BASE ?? "http://localhost:5173";
 const STATE = process.env.ADS_STATE;
 const OUT = process.env.ADS_OUT ?? "ads-out";
+// ADS_ONLY=04-patterns,05-spares records just those.
+const ONLY = process.env.ADS_ONLY?.split(",");
 if (!STATE) throw new Error("ADS_STATE must name a saved bowler (see the header).");
 
 const browser = await chromium.launch(
@@ -32,6 +34,7 @@ const wait = (ms) => new Promise((r) => setTimeout(r, ms));
  * `scene` is what the viewer sees.
  */
 async function record(name, { setup, scene }) {
+  if (ONLY && !ONLY.includes(name)) return;
   const raw = join(OUT, "raw", name);
   await mkdir(raw, { recursive: true });
   const context = await browser.newContext({
@@ -162,19 +165,70 @@ await record("02-pins", {
 await record("03-stats", {
   async setup({ app, tap }) {
     await tap(app.getByRole("navigation").getByRole("button", { name: "Stats" }));
-    await app.getByText("Ball performance", { exact: false }).first().waitFor();
+    await app.getByText("Balls", { exact: true }).first().waitFor();
   },
-  async scene({ caption, page, wait }) {
+  async scene({ app, caption, page, wait }) {
     await caption("Which ball <em>carries</em> best for you?");
     await wait(2200);
     await caption("Headpin counts it, <em>ball by ball</em>.");
-    await page.mouse.move(540, 1300);
-    for (let i = 0; i < 12; i++) {
-      await page.mouse.wheel(0, 60);
-      await wait(70);
-    }
-    await wait(2400);
+    // The ball table is the last card on Stats. A smooth scroll inside the app
+    // rather than wheel steps on the stage, whose scale the wheel ignores.
+    await app
+      .getByText("Balls", { exact: true })
+      .first()
+      .evaluate((el) => el.scrollIntoView({ behavior: "smooth", block: "start" }));
+    await wait(3000);
     await page.evaluate(() => window.endCard("Know what <em>worked</em> last time."));
+    await wait(3200);
+  }
+});
+
+// 4. Know the pattern: a PBA pattern's oil, then the line drawn over it.
+await record("04-patterns", {
+  async setup({ app, tap }) {
+    await tap(app.getByRole("button", { name: /Oil patterns/ }).first());
+    await app.getByRole("button", { name: "Request a pattern" }).waitFor();
+  },
+  async scene({ app, tap, caption, page, wait }) {
+    await caption("Bowling the <em>Shark</em> this weekend?");
+    const search = app.getByRole("searchbox").or(app.getByPlaceholder(/search/i)).first();
+    await tap(search, 300);
+    await search.pressSequentially("Shark", { delay: 140 });
+    await wait(500);
+    await tap(app.getByText("2019 PBA Shark 48").first(), 1200);
+    await caption("Every PBA animal pattern, <em>from Kegel's own sheets</em>.");
+    await wait(2400);
+    await caption("Then see your line <em>on that oil</em>.");
+    await tap(app.getByRole("button", { name: "Try in the line visualizer" }), 2200);
+    for (let i = 0; i < 2; i++) await tap(app.getByRole("button", { name: "Target left" }), 650);
+    await wait(900);
+    await page.evaluate(() => window.endCard("Know the pattern <em>before you bowl it</em>."));
+    await wait(3200);
+  }
+});
+
+// 5. Your spare system: the leave you miss most, a line saved for it, drawn.
+await record("05-spares", {
+  async setup({ app, tap }) {
+    await tap(app.getByRole("button", { name: "Spare lines", exact: true }));
+    await app.getByText(/most often/).first().waitFor();
+  },
+  async scene({ app, tap, caption, page, wait }) {
+    await caption("Which pin do you <em>leave most</em>?");
+    await wait(2200);
+    await caption("Headpin counts it, <em>and asks for a line</em>.");
+    await tap(app.getByRole("button", { name: "Add", exact: true }).first(), 900);
+    const sheet = app.getByRole("dialog").last();
+    const boards = sheet.locator('input[type="number"]');
+    await caption("Where you stand. <em>Where you aim.</em>");
+    await tap(boards.nth(0), 200);
+    await boards.nth(0).pressSequentially("10", { delay: 160 });
+    await tap(boards.nth(1), 200);
+    await boards.nth(1).pressSequentially("15", { delay: 160 });
+    await wait(900);
+    await caption("And see it <em>on the lane</em>.");
+    await tap(sheet.getByRole("button", { name: "View line on the lane" }), 2600);
+    await page.evaluate(() => window.endCard("Your spare system, <em>written down</em>."));
     await wait(3200);
   }
 });
