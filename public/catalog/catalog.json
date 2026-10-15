@@ -39087,5 +39087,93 @@
         "mbDiff": 0.008
       }
     ]
+  },
+  {
+    "id": "900-global-badger-2018",
+    "brand": "900 Global",
+    "name": "Badger",
+    "releaseDate": "2018-03-20",
+    "releaseYear": 2018,
+    "coverstockRaw": "S71 Hybrid Reactive",
+    "coverstockCategory": "Hybrid",
+    "factoryFinish": "1500 Polished",
+    "coreName": "Lacerate",
+    "coreType": "Symmetric",
+    "rg": 2.57,
+    "diff": 0.041,
+    "mbDiff": null,
+    "imageThumb": "/catalog/img/900-global-badger-2018-thumb.webp",
+    "imageFull": "/catalog/img/900-global-badger-2018-full.webp",
+    "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/900-global/badger",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.52,
+        "diff": 0.054,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.57,
+        "diff": 0.041,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.64,
+        "diff": 0.023,
+        "mbDiff": null
+      }
+    ]
+  },
+  {
+    "id": "roto-grip-dare-devil-2016",
+    "brand": "Roto Grip",
+    "name": "Dare Devil",
+    "releaseDate": "2016-11-22",
+    "releaseYear": 2016,
+    "coverstockRaw": "Amped Pearl Reactive",
+    "coverstockCategory": "Pearl",
+    "factoryFinish": "1500 Polished",
+    "coreName": "Madcap",
+    "coreType": "Symmetric",
+    "rg": 2.48,
+    "diff": 0.041,
+    "mbDiff": null,
+    "imageThumb": "/catalog/img/roto-grip-dare-devil-2016-thumb.webp",
+    "imageFull": "/catalog/img/roto-grip-dare-devil-2016-full.webp",
+    "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/roto-grip/dare-devil",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.47,
+        "diff": 0.039,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.48,
+        "diff": 0.041,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.53,
+        "diff": 0.04,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.59,
+        "diff": 0.045,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.65,
+        "diff": 0.035,
+        "mbDiff": null
+      }
+    ]
   }
 ]

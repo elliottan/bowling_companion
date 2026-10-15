@@ -33,6 +33,13 @@ Done by the session that followed this handout, from the queue below.
   was promoted drops out of the queue, and the rest route `manual`.
 - **Photos: 798 of 799** (ADR-142). PhysiX Burst has no bowwwl page.
 
+## 2026-10-15: Dare Devil and Badger
+
+Two balls added on request, each from its bowwwl page (`parse-bowwwl`, then
+`seed-to-candidates`, `promote-candidates`, `add-ball-image`). Now **801 balls**
+(Roto Grip 99, 900 Global 64), **800 with a photo**; PhysiX Burst is still the
+only one without. Dare Devil Danger and Dare Devil Trick, which USBC approves separately, are not in.
+
 ## Where it stood before that
 
 - **518 balls** across twelve brands: Storm 107, Roto Grip 45, 900 Global 27,
