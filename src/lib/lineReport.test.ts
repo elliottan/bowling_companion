@@ -136,6 +136,13 @@ describe("lines at an alley", () => {
     expect(lane.balls[0].lines[0].shots.every((s) => s.lane === "8")).toBe(true);
   });
 
+  it("narrows to the game in the session picked", () => {
+    // MOVED threw 7 first balls in game 1 and 10 in game 2.
+    expect(buildLineReport([MOVED], BALLS, { game: 1 }).shots).toBe(7);
+    expect(buildLineReport([MOVED], BALLS, { game: 2 }).shots).toBe(10);
+    expect(buildLineReport([MOVED], BALLS, {}).shots).toBe(17);
+  });
+
   it("counts a ball with no board for the ball, under no line", () => {
     const bare = session(1, "2026-10-07", [
       game(1, [{}, { target: 7 }, { stance: 5, target: 7, ball: undefined }])

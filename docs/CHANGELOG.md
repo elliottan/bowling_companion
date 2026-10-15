@@ -9,13 +9,39 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
-## 0.36.1: Landing page pictures match the app again (2026-10-15)
+## 0.38.1: Landing page pictures match the app again (2026-10-15)
 
 **The screenshots on headpin.app show today's app.** The Stats picture still
 showed the old tile grid from before the Stats tab was rebuilt, and the scorer,
 Home and arsenal pictures were from an older bowler. All four are recaptured
 from the current app, and the Stats picture's description says what it now
 shows.
+
+## 0.38.0: What you'd average with each ball (2026-10-15)
+
+**The Alley report opens on your balls.** Each one shows what you'd average
+with it at the alley, pattern, lane and game you pick, against your real
+average there. Open a ball to see its strike rate, strike after a strike and
+how many of its leaves are splits beside all your balls', and the leaves that
+cost it most, with how often you make each. A ball with fewer than 30 first
+balls there is shown but not ranked.
+
+**The Alley report has a Game picker,** so game 1 and game 3 can be read apart.
+
+## 0.37.0: Stats fits the phone without sideways scrolling (2026-10-15)
+
+**The Balls card on Stats shows all five columns on a phone,** pocket, carry,
+strike, first ball average and strike on strike, with no sideways swipe. The
+numbers and headings are a little smaller, and a long ball name wraps onto a
+second line instead of being cut off. The All balls sheet matches.
+
+**The By game chart fits the card, like By session.** Every game slot is on
+screen and labelled (G1, G2 and on), along with the high, the low and the
+value of the dashed average line, all of which used to be a swipe away.
+
+**The Alley report is a tile on Home,** beside spare lines and lane notes,
+counting the alleys you have bowled at. Oil patterns moves down to Tools and
+reference, next to the line visualizer.
 
 ## 0.36.0: Eighteen more PBA patterns and eleven more balls (2026-10-15)
 

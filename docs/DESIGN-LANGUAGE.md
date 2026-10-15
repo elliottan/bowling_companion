@@ -201,11 +201,13 @@ row and never scrolled: a scroller in the top band would be a second scroll
 axis for a preview whose only job is "these are yours", so a bigger bag shows
 its overflow as a count in the last slot. It carries no heading and no total:
 the balls say what the grid is, and every ball opens the arsenal. Under
-the band, the spare lines, lane notes and oil patterns are three equal tiles in
+the band, the spare lines, lane notes and Alley report are three equal tiles in
 one row, and the recent sessions are one row of tiles that scrolls sideways,
 bled to the screen edge so a tile cut off there says there is more. A row's
 heading opens the screen it previews. Only the tools and reference stay a
-`ListGroup`, because they are the same for every bowler.
+`ListGroup`, because they are the same for every bowler: the oil patterns are
+there, a catalog like the balls, and the Alley report is a tile, since it reads
+nothing but the bowler's own games (ADR-146).
 
 ## 4b. Numbers on screen
 
@@ -251,11 +253,14 @@ line scrolling sideways along it, most-left first, and the rows ordered the same
 way. The line is the first-class thing, the leave the item in it. Where a list
 can be long, a filter that takes a deck of pins beats a scroll.
 
-**A table wider than the phone scrolls sideways, and its names do not.** The
-Balls card has more columns than 390px holds, so its rows share one horizontal
-scroller (the columns stay aligned) and the ball's picture and name are pinned
-at the left on an opaque cell, so a number never loses its ball. A ball's
-by-game table does the same with its row names (ADR-139).
+**A table fits the phone before it scrolls sideways, and its names never
+scroll.** The Balls card sizes its five columns to sit beside the ball's name
+on a 360px phone: 13px numbers, 9px headings that wrap, a 4px gap, and the name
+taking what is left over two lines rather than one cut short (ADR-144). Only
+narrower than that do its rows scroll sideways, together so the columns stay
+aligned, with the picture and name pinned at the left on an opaque cell, so a
+number never loses its ball. A ball's by-game table, which can be wider than
+any phone, scrolls the same way with its row names pinned (ADR-139).
 
 **A sideways scroller stops dead at its ends.** Every horizontal scroller
 carries `overscroll-x-none`, not `-contain`: contain keeps the swipe off the
@@ -278,8 +283,13 @@ delete asks first.
 **A hint can be waved away, and comes back.** Every hint has an action and an X.
 The X is a snooze with an end, kept per thing it was about, not a permanent no.
 
-**A report leads with its answers.** The Alley report opens on the best lines and
-the last session, and keeps the detail one tap down.
+**A report leads with its answers.** The Alley report opens on what you'd
+average with each ball there, then the best lines and the last session, and
+keeps the detail one tap down. A ball's row says its estimate, its difference
+from your average, and its strike and split rates; opening it shows a small
+table of this ball against all of them and the leaves it costs most, never a
+sentence about what to throw (ADR-147). Numbers in a table beat
+the same numbers in sentences: the screen is read standing at the lanes.
 
 ## 5. Empty states
 
@@ -291,7 +301,7 @@ screen is where a user decides whether the feature is for them.
 A screen whose *whole* content is empty leads with the empty state rather than
 burying it under chrome. Home does this on a device with no sessions. What it
 does not do is remove the chrome: the bowler profile (the arsenal grid and the
-spare line, lane note and oil pattern tiles) and the Tools and reference list
+spare line, lane note and Alley report tiles) and the Tools and reference list
 stay below the empty state and stay reachable, because they are the only way to
 several screens (ADR-069, ADR-115).
 

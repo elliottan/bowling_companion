@@ -106,14 +106,30 @@ describe("Home (ADR-115)", () => {
     expect(props.onOpenArsenal).toHaveBeenCalled();
   });
 
-  it("puts spare lines, lane notes and oil patterns side by side as tiles", async () => {
+  it("puts spare lines, lane notes and the Alley report side by side as tiles", async () => {
     const props = renderHome();
     fireEvent.click(await screen.findByRole("button", { name: "Spare lines" }));
     fireEvent.click(screen.getByRole("button", { name: "Lane notes" }));
-    fireEvent.click(screen.getByRole("button", { name: "Oil patterns" }));
+    fireEvent.click(screen.getByRole("button", { name: "Alley report" }));
     expect(props.onOpenSpareLines).toHaveBeenCalled();
     expect(props.onOpenLaneNotes).toHaveBeenCalled();
+    expect(props.onOpenAlleyReport).toHaveBeenCalled();
+  });
+
+  it("counts the alleys bowled at on the Alley report tile", async () => {
+    await createSession({ date: "2026-09-30", alley_name: "Orchid Bowl" });
+    await createSession({ date: "2026-10-07", alley_name: "Orchid Bowl" });
+    await createSession({ date: "2026-10-08", alley_name: "Sea Bowl" });
+    renderHome();
+    const tile = await screen.findByRole("button", { name: "Alley report" });
+    await waitFor(() => expect(tile).toHaveTextContent("2 alleys"));
+  });
+
+  it("lists the oil patterns with the tools, not the bowler's tiles", async () => {
+    const props = renderHome();
+    fireEvent.click(await screen.findByRole("button", { name: "Oil patterns" }));
     expect(props.onOpenOilPatterns).toHaveBeenCalled();
+    expect(screen.getByRole("button", { name: "Oil patterns" }).closest("ul, [role=list], section")?.textContent).toContain("Guides");
   });
 
   it("shows a session tile as its event, alley, date, games and average", async () => {
@@ -152,7 +168,7 @@ describe("Home (ADR-115)", () => {
     expect(screen.queryByText("Game plan")).not.toBeInTheDocument();
   });
 
-  it("opens the Alley report from the tools", async () => {
+  it("opens the Alley report from its tile", async () => {
     await createSession({ date: "2026-09-30", alley_name: "Orchid Bowl" });
     const props = renderHome();
     fireEvent.click(await screen.findByRole("button", { name: "Alley report" }));

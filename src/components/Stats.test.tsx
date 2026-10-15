@@ -276,11 +276,14 @@ describe("stat definitions", () => {
     expect(within(row).getByLabelText("strike on strike 75%")).toBeInTheDocument();
   });
 
-  it("scrolls the ball columns sideways, all rows together, on the card", () => {
+  it("keeps the ball columns in one scroller, all rows together, on the card", () => {
     render(<Stats stats={STATS} ballPerformance={REPORT} />);
     const scroller = screen.getByRole("region", { name: "Ball columns" });
-    // Both ways: sideways for the columns, down for the balls.
+    // Down for the balls, and sideways only on a phone too narrow for the
+    // columns (ADR-144).
     expect(scroller).toHaveClass("overflow-auto");
+    // A long name wraps to a second line rather than being cut at the first.
+    expect(within(scroller).getByText("Wolverine")).toHaveClass("line-clamp-2");
     expect(within(scroller).getByRole("button", { name: "Open Wolverine" })).toBeInTheDocument();
     expect(within(scroller).getByText("Strike on strike")).toBeInTheDocument();
   });
@@ -314,7 +317,7 @@ describe("stat definitions", () => {
     const names = screen
       .getByRole("heading", { name: "Balls" })
       .closest("section")!
-      .querySelectorAll("li .truncate");
+      .querySelectorAll("li .line-clamp-2");
     expect([...names].map((n) => n.textContent)).toEqual(["Hot", "Steady", "Thin"]);
   });
 
