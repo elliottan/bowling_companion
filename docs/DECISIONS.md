@@ -6764,3 +6764,43 @@ alleys, so it is the most personal screen on the list.
   still opens the same screen.
 - The Alley report screen itself is unchanged here. Its shape is to be
   reworked separately.
+
+
+## ADR-147: A ball's estimated average is modelled from its strikes, its strings and its leaves
+
+**Status.** Proposed, 2026-10-15. The model only (`lib/scoreModel`); no screen
+reads it yet.
+
+**Context.** A ball's average cannot be read off games: most games are thrown
+with more than one ball, and a ball with fifty balls behind it has no games of
+its own. The bowler asked for a per-ball estimate built from what a score is
+made of, and noted that a ball's first ball average can hide that it leaves
+more splits, which cost more than the pins say.
+
+**Decision.**
+
+- **The game is played out exactly,** frame by frame, carrying the chance of
+  each state (did the last fresh-rack ball strike, which bonus is still owed)
+  and the score expected so far. No simulation, so the same games always give
+  the same number.
+- **Strike on strike is an input.** A fresh-rack ball strikes at one rate
+  straight after a strike and at another after anything else. At the same
+  strike rate, 0% strike on strike and 70% are about 24 pins apart.
+- **Every leave is scored at the bowler's own make rate on that exact leave,**
+  across every ball, since the spare is mostly the spare ball's. Never the
+  overall spare %, which leaves splits out by definition (ADR-036) and so
+  overstates a game by several pins.
+- **A leave with fewer than five chances is thin.** It is flagged, and its
+  make rate leans on its kind's (single pin, other makeable, split or washout)
+  in proportion. A ball's estimate carries the share of its leaves that are
+  thin.
+- **A ball's rates and leave mix lean on the bowler's** in the same scope by
+  twenty imagined balls, so a ball with a handful of throws reads close to the
+  bowler rather than to its last few frames.
+- **What is shown is a difference.** A ball is its pins a game above or below
+  the bowler's own model, added to their real average. The model's absolute
+  number is never shown.
+
+**Consequences.**
+- How it is presented, and at which scopes (pattern, lane, line), is still to
+  be decided, once the model has been checked against real averages.
