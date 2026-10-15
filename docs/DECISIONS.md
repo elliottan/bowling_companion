@@ -6675,3 +6675,92 @@ opened, so a device could go weeks on an old table.
 - A photo fix in the catalog reaches every arsenal on its next launch.
 - A launch makes one small manifest request; the catalog itself is fetched
   only when the manifest says it changed, as before.
+
+
+## ADR-144: The Balls card's five columns fit a phone
+
+**Status.** Accepted, 2026-10-15. Amends ADR-139 (ball columns scroll
+sideways).
+
+**Context.** ADR-139 added a first ball average and strike on strike to every
+ball and let the Balls card scroll sideways to hold them. On a phone only three
+of the five columns showed, the fourth heading sat cut at the edge, and the
+ball's name, on a fixed 144px cell, was cut off ("Transform ..."). The bowler
+found the swipe clunky and wanted every column, and the whole name, on screen.
+The row needed 456px; a 360px phone gives the card 310.
+
+**Decision.**
+
+- **The columns shrink to their numbers.** 13px figures in 36px columns (40px
+  for strike on strike), a 4px gap, and 9px headings without letter spacing that
+  wrap onto as many lines as they need. "Strike on strike" stays spelled out
+  (ADR-130's reason still holds), over three short lines.
+- **The name takes what the columns leave,** no longer a fixed width, and wraps
+  to two lines before it is cut. The picture is 28px, the ball count 10px.
+- **The scroller stays as a floor.** Below about 96px for the name, on a phone
+  narrower than any in use, the rows still scroll sideways together with the
+  name pinned, as ADR-139 had them.
+- **The All balls sheet's labelled lines** share the same sizes, so they fit
+  too.
+
+**Consequences.**
+- At 360px and wider, all five columns are on screen with no swipe.
+- A name longer than two lines at that width is still cut, at the end of the
+  second line.
+
+
+## ADR-145: The by-game chart fits the card instead of scrolling
+
+**Status.** Accepted, 2026-10-15. Amends ADR-062b (four slots visible, then it
+scrolls) and ADR-063b (`MetricTrendChart` keeps its `windowSize`).
+
+**Context.** The Stats tab's By game chart showed four game slots and scrolled
+sideways for the rest, a bowler with a long day of league and practice having
+nine or more. On a phone the scroll hid more than it showed: the later slots,
+the high or low printed over whichever slot held it, and the average's value
+at the right end of the dashed baseline. Only "G1" was labelled on screen, since
+past six points only the ends get a label and the last end was a swipe away.
+The By session chart, up to twenty points in the same width, never scrolled,
+and the bowler wanted By game to read the same way.
+
+**Decision.**
+
+- **The by-game chart draws every slot in the card's width,** like the session
+  chart. `MetricTrendChart` loses `windowSize`, and the Game by game screen
+  fits the same way.
+- **Every slot is labelled up to twelve.** "G12" is short enough to sit under
+  each point at that spacing, so the chart takes a `labelAllUpTo`; a dated
+  axis keeps the default of six, past which only the ends are named.
+
+**Consequences.**
+- Nine slots on a 360px phone are about 33px apart, still a comfortable tap
+  each.
+- Past twelve slots only the ends are labelled, as with a long run of sessions.
+
+
+## ADR-146: The Alley report is a Home tile, and the oil patterns join the tools
+
+**Status.** Accepted, 2026-10-15. Amends ADR-115 (what Home's tiles hold).
+
+**Context.** Home splits the bowler's own things (the arsenal, three tiles, the
+recent sessions) from the tools and reference that are the same for everyone.
+The owner judged two of them to be on the wrong side. Oil patterns are looked
+up and added from a catalog shared by every bowler, a reference like the ball
+catalog, and are reached at least as often from the session form. The Alley
+report, listed with the tools, reads nothing but this bowler's games at their
+alleys, so it is the most personal screen on the list.
+
+**Decision.**
+
+- **The Alley report takes the third tile,** beside spare lines and lane notes,
+  its detail the number of alleys it can pick from: every named alley, as
+  typed, the same list its alley picker shows.
+- **Oil patterns becomes a row under Tools and reference,** after the line
+  visualizer it feeds.
+
+**Consequences.**
+- The tiles stay three equal ones in a row; nothing on Home grows.
+- The onboarding step that suggests adding an oil pattern is unchanged, and
+  still opens the same screen.
+- The Alley report screen itself is unchanged here. Its shape is to be
+  reworked separately.

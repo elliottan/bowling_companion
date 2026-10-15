@@ -36,9 +36,9 @@ interface MetricTrendChartProps {
   minSpan: number;
   /** Given for points that can be opened. Omitted, the footer only dismisses. */
   onOpen?: (key: string) => void;
-  /** Points visible at once. Beyond this the plot grows and the card scrolls
-   *  sideways, rather than squeezing more points into the same width. */
-  windowSize?: number;
+  /** Points that each get an axis label; past this only the ends are named.
+   *  A dated axis wants the default, a short "G3" axis can carry more. */
+  labelAllUpTo?: number;
 }
 
 const W = 320;
@@ -49,7 +49,7 @@ const INSET_BOTTOM = 16;
 /** Sessions shown, newest kept. Beyond this the dots merge into a smear. */
 const MAX_POINTS = 20;
 
-/** Above this, one label per point is a smear and only the ends are named. */
+/** Above this, one date per point is a smear and only the ends are named. */
 const LABEL_ALL_UP_TO = 6;
 
 /**
@@ -70,7 +70,7 @@ export function MetricTrendChart({
   max,
   minSpan,
   onOpen,
-  windowSize
+  labelAllUpTo = LABEL_ALL_UP_TO
 }: MetricTrendChartProps) {
   // Held as the night's own key rather than its position: the filters above
   // rewrite the list under this chart, and an index kept pointing at whatever
@@ -91,11 +91,10 @@ export function MetricTrendChart({
   const lo = Math.max(min, mid - half);
   const span = hi - lo || 1;
 
-  // The plot widens rather than the points bunching up. Widening the viewBox
-  // in step with the rendered width is what keeps the type the same size: a
-  // plain CSS stretch would scale the labels along with everything else.
-  const overflows = windowSize !== undefined && shown.length > windowSize;
-  const plotW = overflows ? Math.round((W * shown.length) / (windowSize as number)) : W;
+  // Every point in the card's width, never a sideways scroll: a scroll hid
+  // the later points, their printed high or low, and the baseline's value at
+  // the right edge (ADR-145).
+  const plotW = W;
 
   const lastIndex = Math.max(1, shown.length - 1);
   const x = (i: number) =>
@@ -131,7 +130,7 @@ export function MetricTrendChart({
   // date under every point is unreadable at twenty, and the shape is what this
   // chart is for.
   const labelled =
-    shown.length <= LABEL_ALL_UP_TO
+    shown.length <= labelAllUpTo
       ? new Set(shown.map((_, i) => i))
       : new Set([0, shown.length - 1]);
 
@@ -147,11 +146,9 @@ export function MetricTrendChart({
   return (
     <div className="rounded-xl border border-edge bg-surface p-3 shadow-sm">
       {header}
-      <div className={overflows ? "-mx-1 overflow-x-auto overscroll-x-none px-1" : ""}>
       <svg
         viewBox={`0 0 ${plotW} ${H}`}
         className="w-full"
-        style={overflows ? { width: `${(plotW / W) * 100}%` } : undefined}
         role="img"
         aria-label={`In order. ${shown
           .map((p) => `${p.title}: ${p.value === null ? "none" : format(p.value)}`)
@@ -273,7 +270,6 @@ export function MetricTrendChart({
           />
         ))}
       </svg>
-      </div>
 
       {selected !== null && (
         <SelectedPoint

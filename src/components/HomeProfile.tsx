@@ -1,6 +1,6 @@
 import { Plus, type LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
-import { BowlingBallIcon, LanePairIcon, OilPatternIcon, SpareLineIcon } from "./icons";
+import { BowlingBallIcon, GamePlanIcon, LanePairIcon, SpareLineIcon } from "./icons";
 import { CatalogBallImage } from "./CatalogBallImage";
 import { GROUP_HEADING } from "./ui/typography";
 import { TAP_TARGET_44 } from "./ui/Chip";
@@ -144,10 +144,11 @@ function Tile({
 interface ProfileTilesProps {
   spareLines?: number;
   laneNotes?: number;
-  oilPatterns?: number;
+  /** Alleys the bowler has bowled at, which is what the Alley report reads. */
+  alleys?: number;
   onOpenSpareLines: () => void;
   onOpenLaneNotes: () => void;
-  onOpenOilPatterns: () => void;
+  onOpenAlleyReport: () => void;
 }
 
 /** "3 leaves", or the word for none. Undefined while the count is loading. */
@@ -156,14 +157,16 @@ function counted(n: number | undefined, one: string, many: string): string | und
   return n === 0 ? "None yet" : `${n} ${n === 1 ? one : many}`;
 }
 
-/** The three other things a bowler keeps, side by side as equal tiles. */
+/** The three other things that are the bowler's own, side by side as equal
+ *  tiles. The Alley report sits here rather than with the tools: it reads
+ *  nothing but this bowler's games (ADR-146). */
 export function ProfileTiles({
   spareLines,
   laneNotes,
-  oilPatterns,
+  alleys,
   onOpenSpareLines,
   onOpenLaneNotes,
-  onOpenOilPatterns
+  onOpenAlleyReport
 }: ProfileTilesProps) {
   return (
     <div className="grid grid-cols-3 gap-2">
@@ -180,10 +183,10 @@ export function ProfileTiles({
         onClick={onOpenLaneNotes}
       />
       <Tile
-        icon={OilPatternIcon}
-        label="Oil patterns"
-        detail={counted(oilPatterns, "pattern", "patterns")}
-        onClick={onOpenOilPatterns}
+        icon={GamePlanIcon}
+        label="Alley report"
+        detail={counted(alleys, "alley", "alleys")}
+        onClick={onOpenAlleyReport}
       />
     </div>
   );

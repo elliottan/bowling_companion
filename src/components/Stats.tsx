@@ -355,7 +355,7 @@ export function Stats({
           min={spec.min}
           max={spec.max}
           minSpan={spec.minSpan}
-          windowSize={GAME_WINDOW}
+          labelAllUpTo={GAME_LABELS_UP_TO}
           onOpen={
             onOpenGameNumber &&
             ((key) => {
@@ -465,15 +465,15 @@ export function Stats({
             </button>
           </div>
           {/* Every ball, about five on show and the rest a scroll down, like
-              the leaves above. More columns than a phone is wide, so the rows
-              also scroll sideways together, the headings pinned at the top and
-              the ball's name at the left (ADR-139). */}
+              the leaves above, the headings pinned at the top. The columns fit
+              a phone (ADR-144); on one narrower still, the rows scroll sideways
+              together with the ball's name pinned at the left (ADR-139). */}
           <div
             role="region"
             aria-label="Ball columns"
             className="mt-1 max-h-[21rem] overflow-auto overscroll-x-none overscroll-y-contain"
           >
-            <div className="w-max min-w-full">
+            <div className="min-w-fit">
               <BallRateHeadings />
               <ul className="divide-y divide-edge">
                 {ranked.map((b) => (
@@ -652,9 +652,9 @@ const CHART_BY: ReadonlyArray<{ value: ChartBy; label: string }> = [
   { value: "game", label: "By game" }
 ];
 
-/** Game slots on the by-game chart before it scrolls sideways. Four is a long
- *  night, so the common case never scrolls. */
-const GAME_WINDOW = 4;
+/** Game slots on the by-game chart that each get a label. "G12" is short, so a
+ *  long day of league and practice still names every slot (ADR-145). */
+export const GAME_LABELS_UP_TO = 12;
 
 /** Leaves on the Spares card; every one is under All leaves. */
 const CARD_LEAVES = 15;
@@ -695,43 +695,46 @@ function StatNote({ text, onDismiss }: { text: string; onDismiss: () => void }) 
 
 /** A ball's columns, in order, shared by the heading row and every ball so
  *  each number sits under the word that names it. Strike leads the three
- *  rates it ends; the first ball average and strike on strike follow, a
- *  sideways scroll away on a phone (ADR-139). */
+ *  rates it ends; the first ball average and strike on strike follow. Sized so
+ *  all five fit beside the name on a 360px phone (ADR-144). */
 const BALL_COLUMNS: ReadonlyArray<{
   key: string;
   label: string;
   width: string;
   value: (b: BallPerformance) => string;
 }> = [
-  { key: "pocket", label: "Pocket", width: "w-12", value: (b) => pct(b.pocketPct) },
-  { key: "carry", label: "Carry", width: "w-12", value: (b) => pct(b.carryPct) },
-  { key: "strike", label: "Strike", width: "w-12", value: (b) => pct(b.strikePct) },
-  { key: "first ball", label: "1st ball", width: "w-14", value: (b) => oneDp(b.firstBallAverage) },
+  { key: "pocket", label: "Pocket", width: "w-9", value: (b) => pct(b.pocketPct) },
+  { key: "carry", label: "Carry", width: "w-9", value: (b) => pct(b.carryPct) },
+  { key: "strike", label: "Strike", width: "w-9", value: (b) => pct(b.strikePct) },
+  { key: "first ball", label: "1st ball", width: "w-9", value: (b) => oneDp(b.firstBallAverage) },
   {
     key: "strike on strike",
     label: "Strike on strike",
-    width: "w-16",
+    width: "w-10",
     value: (b) => pct(b.strikeOnStrikePct)
   }
 ];
 
-/** The ball's picture and name, pinned at the left while the columns scroll
- *  under it, so a number never loses the ball it belongs to. Opaque for that
- *  reason: the columns pass behind it, and it takes the row's pressed colour,
- *  or a pressed row showed the cell as a dark block. */
+/** The ball's picture and name, taking whatever the columns leave. Below about
+ *  six rem, on a phone narrower than any in use, the columns scroll under it
+ *  instead, so it is pinned at the left and opaque: a number never loses the
+ *  ball it belongs to, and it takes the row's pressed colour, or a pressed row
+ *  showed the cell as a dark block. */
 const BALL_NAME_CELL =
-  "sticky left-0 z-[1] flex w-36 shrink-0 items-center gap-2 bg-surface pr-2 group-active:bg-surface-muted sm:w-48";
+  "sticky left-0 z-[1] flex min-w-24 flex-1 items-center gap-1.5 bg-surface pr-1 group-active:bg-surface-muted";
+
+/** The gap between columns, the heading row's and every ball's alike. */
+const BALL_ROW = "flex gap-1";
 
 /** The headings over the columns, spelled out: as single letters they had to
  *  be decoded before the row said anything. */
 function BallRateHeadings() {
   return (
     <div
-      className="sticky top-0 z-[2] flex items-end gap-2 bg-surface pb-1 text-[10px] font-semibold uppercase leading-tight tracking-wide text-ink-tertiary"
+      className={`${BALL_ROW} sticky top-0 z-[2] items-end bg-surface pb-1 text-[9px] font-semibold uppercase leading-tight text-ink-tertiary`}
       aria-hidden="true"
     >
       <span className={`${BALL_NAME_CELL} self-stretch`} />
-      <span className="flex-1" />
       {BALL_COLUMNS.map((c) => (
         <span key={c.key} className={`${c.width} shrink-0 text-right`}>
           {c.label}
@@ -753,23 +756,25 @@ function BallSummary({ ball, labelled = false }: { ball: BallPerformance; labell
   const thin = ball.firstBalls < RATE_LEADER_MIN_BALLS;
   const tone = thin ? "text-ink-tertiary" : "text-ink";
   const line = (
-    <span className={`flex items-end gap-2 text-left text-sm ${labelled ? "w-max min-w-full" : "w-full"}`}>
+    <span className={`${BALL_ROW} w-full items-end text-left text-[13px]`}>
       <span className={`${BALL_NAME_CELL} self-center`}>
-        <span className="h-8 w-8 shrink-0">
+        <span className="h-7 w-7 shrink-0">
           {ball.imageThumb || ball.brand ? (
             <CatalogBallImage src={ball.imageThumb} alt="" brand={ball.brand as Manufacturer} size="thumb" />
           ) : (
             <span className="block h-full w-full rounded-full bg-edge" aria-hidden="true" />
           )}
         </span>
-        <span className="ml-1 min-w-0 flex-1">
-          <span className="block truncate font-medium text-ink-strong">{ball.name}</span>
-          <span className="block text-[11px] tabular-nums text-ink-tertiary">
+        <span className="min-w-0 flex-1">
+          {/* Two lines before it gives up, so a long name is read, not cut. */}
+          <span className="line-clamp-2 break-words font-medium leading-tight text-ink-strong">
+            {ball.name}
+          </span>
+          <span className="block text-[10px] tabular-nums text-ink-tertiary">
             {ball.firstBalls} {ball.firstBalls === 1 ? "ball" : "balls"}
           </span>
         </span>
       </span>
-      <span className="flex-1" />
       {BALL_COLUMNS.map((c) => (
         <span
           key={c.key}
@@ -780,7 +785,7 @@ function BallSummary({ ball, labelled = false }: { ball: BallPerformance; labell
         >
           {labelled && (
             <span
-              className="block text-[10px] font-semibold uppercase leading-tight tracking-wide text-ink-tertiary"
+              className="block text-[9px] font-semibold uppercase leading-tight text-ink-tertiary"
               aria-hidden="true"
             >
               {c.label}
