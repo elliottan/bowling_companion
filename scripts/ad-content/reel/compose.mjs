@@ -126,9 +126,10 @@ const BEATS = [
     cam: [{ at: 0, box: "frame10", z: 2.5, ease: 0 }] },
 
   // The game, frames 8 to 10.
-  { id: "ball", take: "game", from: "pick-0.15", to: "tap-pick+0.4", caption: "Pick <em>your ball</em>.", vo: "ball", trans: "zoom",
+  { id: "ball", take: "game", from: "pick-0.15", to: "tap-pick+0.12", caption: "Pick <em>your ball</em>.", vo: "ball", trans: "zoom",
     cam: [{ at: "pick-0.15", box: "pick", z: 1.4, ease: 0 }],
-    spots: [{ from: "pick", to: "tap-pick+0.3", boxes: "pick" }] },
+    // The picker closes on the tap, so the beat and its light end there too.
+    spots: [{ from: "pick", to: "tap-pick+0.08", boxes: "pick" }] },
   { id: "line", take: "game", from: "line-0.05", to: "line-set", caption: "Set <em>your line</em>.", vo: "line", trans: "cut",
     cam: [{ at: "line-0.05", box: "intended", z: 2.5, ease: 0 }] },
   { id: "lane", take: "game", from: "lane-open+0.3", to: "lane-held", caption: "See it <em>on the lane</em>.", vo: "lane", trans: "flip",

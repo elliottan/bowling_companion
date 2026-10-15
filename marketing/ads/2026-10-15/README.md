@@ -9,6 +9,7 @@ has. Use these instead.
 | --- | --- |
 | `01-line.mp4` | 1080 x 1920, 14 s. The lane view: a board changed, a 2-1 move tried. |
 | `05-spares.mp4` | 1080 x 1920, 18 s. New. The 7 pin, the leave this bowler has most, with Brunswick's TZone as the spare ball and a stance and target that make the 7 (stance 14, target 15: laid down on 8, it reaches board 37 at the pin), drawn on the lane. |
+| `headpin-reel.mp4` | 1080 x 1920, 26 s. The feature reel: one league night flipped through fast (line over a PBA pattern, ball, line, lane view, scoring, the line carrying over, a 2-1 move, the spare ball and line already set, the tenth, stats, oil patterns, history), with zooms, spotlights, rings and a finger on every tap. Made by `scripts/ad-content/reel/` (see its README). |
 | `still-*-feed.png` | 1080 x 1350 (4:5) feed stills: line, pins, stats, retarget, patterns, spares. |
 | `still-*-story.png` | 1080 x 1920 (9:16) story stills, the same six. |
 
