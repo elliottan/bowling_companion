@@ -9,6 +9,17 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.38.0: What you'd average with each ball (2026-10-15)
+
+**The Alley report opens on your balls.** Each one shows what you'd average
+with it at the alley, pattern, lane and game you pick, against your real
+average there. Open a ball to see its strike rate, strike after a strike and
+how many of its leaves are splits beside all your balls', and the leaves that
+cost it most, with how often you make each. A ball with fewer than 30 first
+balls there is shown but not ranked.
+
+**The Alley report has a Game picker,** so game 1 and game 3 can be read apart.
+
 ## 0.37.0: Stats fits the phone without sideways scrolling (2026-10-15)
 
 **The Balls card on Stats shows all five columns on a phone,** pocket, carry,

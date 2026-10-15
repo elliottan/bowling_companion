@@ -6764,3 +6764,73 @@ alleys, so it is the most personal screen on the list.
   still opens the same screen.
 - The Alley report screen itself is unchanged here. Its shape is to be
   reworked separately.
+
+
+## ADR-147: A ball's estimated average is modelled from its strikes, its strings and its leaves
+
+**Status.** Accepted, 2026-10-15. Amends ADR-122 (the Alley report reads
+counts, never rates) for the one section it adds.
+
+**Context.** A ball's average cannot be read off games: most games are thrown
+with more than one ball, and a ball with fifty balls behind it has no games of
+its own. The bowler asked for a per-ball estimate built from what a score is
+made of, and noted that a ball's first ball average can hide that it leaves
+more splits, which cost more than the pins say.
+
+**Decision.**
+
+- **The game is played out exactly,** frame by frame, carrying the chance of
+  each state (did the last fresh-rack ball strike, which bonus is still owed)
+  and the score expected so far. No simulation, so the same games always give
+  the same number.
+- **Strike on strike is an input.** A fresh-rack ball strikes at one rate
+  straight after a strike and at another after anything else. At the same
+  strike rate, 0% strike on strike and 70% are about 24 pins apart.
+- **Every leave is scored at the bowler's own make rate on that exact leave,**
+  across every ball, since the spare is mostly the spare ball's. Never the
+  overall spare %, which leaves splits out by definition (ADR-036) and so
+  overstates a game by several pins.
+- **Make rates come from the whole history, whatever the scope.** A pattern,
+  an alley or a lane narrows which strikes and leaves are read, never the
+  rates: a 3-6-10 is shot the same at every house, and one session has too few
+  chances at any leave to rate it.
+- **A leave with fewer than five chances is thin.** It is flagged, and its
+  make rate leans on its kind's (single pin, other makeable, split or washout)
+  in proportion. A ball's estimate carries the share of its leaves that are
+  thin.
+- **A ball's rates and leave mix lean on the bowler's** in the same scope by
+  twenty imagined balls, so a ball with a handful of throws reads close to the
+  bowler rather than to its last few frames.
+- **What is shown is a difference.** A ball is its pins a game above or below
+  the bowler's own model, added to their real average. The model's absolute
+  number is never shown.
+
+**Consequences.**
+- Checked against the owner's 113 games: the model gives 193.7 against a
+  real 194.2. Built from one session's strikes and leaves at a time, it tracks
+  each session's real average with a correlation of 0.94 and a typical miss
+  of under 5 pins, and as well when that session's own spares are left out of
+  the make rates. The gap is mostly the night's spare shooting against the
+  bowler's usual.
+- **The Alley report leads with it.** A Balls section above the lines: one row
+  per ball, its estimate and its difference from the bowler's real average in
+  the scope picked (shown once, beside the heading), with its strike rate and
+  split share under the name. A ball with under 30 first balls in scope is
+  greyed, listed last and not ranked. A signed "strikes +9, leaves -1" was
+  tried on the row first and read as a code: the split of the difference is
+  said in words, inside.
+- **A ball opens on a small table,** this ball against every ball: strike
+  rate, strike after a strike, and the share of its leaves that split, then
+  the three leaves it is expected to miss most, each as how often this
+  ball left it and how often the bowler makes it. These are rates as counted;
+  the leaned-on rates stay inside the model. A first version said each of
+  these as a sentence and was too many words to read at the lanes. A line
+  splitting the difference into pins from strikes and pins from leaves
+  ("Strikes add 9 pins a game, leaves cost 1") was cut too: it named no
+  baseline, so it read as a riddle. The split stays in `lib/scoreModel`.
+- **The report gains a Game picker,** beside Lane, which narrows the estimates
+  and the lines alike. Game 1 on fresh oil and game 4 on a broken-down pair are
+  different lanes to read.
+- Lines are not modelled yet. A line is read in counts below, as ADR-122 has
+  it, until there is a way to group neighbouring lines that does not merge a
+  move the bowler made on purpose.
