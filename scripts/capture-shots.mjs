@@ -383,11 +383,9 @@ await page.getByRole("button", { name: /^Line visualizer/ }).click();
 // The line over an oil pattern is the picture: where the oil ends is where the
 // ball is allowed to turn. The picker is behind Lane options.
 await page.getByRole("button", { name: "Lane options" }).click();
-const patterns = page.locator("select").first();
-const patternOptions = await patterns.locator("option").allTextContents();
-const pattern = patternOptions.find((o) => o.includes("Mercury 4940"));
-if (!pattern) throw new Error("the shipped pattern catalog no longer has Mercury 4940");
-await patterns.selectOption({ label: pattern });
+// The field types a name rather than offering a select, and an exact name picks
+// the pattern as it is typed (ChoiceInput), so no suggestion needs a tap.
+await page.locator("#visualizer-pattern").fill("Mercury 4940");
 await page.getByRole("button", { name: "Done" }).click();
 // One theme only: the lane view paints its own wood and sky rather than the
 // app's colour tokens, so both themes render the identical picture.
