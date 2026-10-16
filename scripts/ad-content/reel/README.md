@@ -25,8 +25,13 @@ passes, so the footage stays honest and the editing stays smooth.
    frame is to draw.
 3. **`music.py`** makes the sound from the same cues: a 120 BPM bed, whooshes,
    ticks, pops, a riser and a hit, all from sine waves and noise so there is
-   nothing to license. The voice is Kokoro (`../voice.py`). The music ducks
-   under the voice and the mix lands at -15 LUFS.
+   nothing to license. The voice is Kokoro (`../voice.py`), and
+   **`tone.py`** gives a line the tone Kokoro will not: it reads "Still
+   guessing your line?" flat, like a statement, so the last word is lifted
+   into a question, and "Pin ten... again?" is drawn out and swung up to
+   sound fed up. It reshapes the clip's pitch and timing with Praat and
+   leaves the voice itself alone. The music ducks under the voice and the
+   mix lands at -15 LUFS.
 
 ## Running it
 
@@ -38,8 +43,8 @@ REEL_OUT=/tmp/reel ADS_TTS_PYTHON=~/.headpin-tts/bin/python ADS_TTS_MODELS=~/kok
   node scripts/ad-content/reel/compose.mjs
 ```
 
-`voice.py` says how to set up the voice; `music.py` also needs `scipy` in that
-Python. `REEL_ONLY=game` captures one take, and `REEL_PREVIEW=2.5,9,20`
+`voice.py` says how to set up the voice; `music.py` also needs `scipy` and
+`tone.py` `praat-parselmouth` in that Python. `REEL_ONLY=game` captures one take, and `REEL_PREVIEW=2.5,9,20`
 renders stills at those times instead of the whole reel, which is the quick
 way to check a change to the edit.
 

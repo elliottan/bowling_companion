@@ -136,16 +136,20 @@ const BEATS = [
   { id: "ball", take: "game", from: "ball-1.05", to: "tap-pick+0.4", dur: 2.5, freeze: "tap-pick+0.03", caption: "Pick <em>your ball</em>.", vo: "ball", trans: "none",
     cam: [{ at: "ball-1.05", box: FULL, z: 1.025, ease: 0 },
           { at: "ball-0.35", box: "ball", z: 2.1, ease: 0.5 },
-          { at: "picker-0.35", box: "pick", z: 1.4, ease: 0.4 }],
+          { at: "tap-ball-0.12", box: "picker", z: 1.12, ease: 0.28 }],
     // The picker closes the instant it is tapped: hold its last frame while
     // the tap's ripple plays, so the row is what the eye ends on.
     spots: [{ from: "ball+0.1", to: "tap-ball+0.15", boxes: "ball" },
             { from: "pick", to: "tap-pick+0.4", boxes: "pick" }] },
-  { id: "line", take: "game", from: "tap-pick+0.45", to: "line-set+0.1", dur: 1.5, caption: "Set <em>your line</em>.", vo: "line", trans: "cut",
-    cam: [{ at: "tap-pick+0.45", box: FULL, z: 1, ease: 0 }, { at: "tap-stance", box: "intended", z: 2.3, ease: 0.45 }] },
-  { id: "lane", take: "game", from: "lane-open+0.3", to: "lane-held", caption: "See it <em>on the lane</em>.", vo: "lane", trans: "flip",
-    cam: [{ at: "lane-open+0.3", box: { x: 20, y: 60, w: 350, h: 640 }, z: 1.12, ease: 0 }, { at: "lane-open+0.4", box: { x: 20, y: 60, w: 350, h: 640 }, z: 1.28, ease: 1.2 }] },
-  { id: "strike", take: "game", from: "strike-wide", to: "frame8+0.45", dur: 2.0, caption: "Tap. <em>It's scored.</em>", vo: "strike", trans: "zoom",
+  // The line typed in, then the eye beside it lit and tapped.
+  { id: "line", take: "game", from: "tap-pick+0.45", to: "tap-eye+0.1", dur: 2.25, caption: "Set <em>your line</em>.", vo: "line", trans: "cut",
+    cam: [{ at: "tap-pick+0.45", box: FULL, z: 1, ease: 0 }, { at: "tap-stance", box: "intended", z: 2.3, ease: 0.45 }],
+    spots: [{ from: "eye", to: "tap-eye+0.1", boxes: "eye" }] },
+  // The visualizer opening from that tap, the camera pulling back to the lane.
+  { id: "lane", take: "game", from: "tap-eye+0.1", to: "lane-held", caption: "See it <em>on the lane</em>.", vo: "lane", trans: "none",
+    cam: [{ at: "tap-eye+0.1", box: "intended", z: 2.36, ease: 0 },
+          { at: "tap-eye+0.2", box: { x: 0, y: 95, w: 390, h: 605 }, z: 1.42, fy: 1210, ease: 0.6 }] },
+  { id: "strike", take: "game", from: "strike-wide", to: "frame8+0.45", dur: 2.0, caption: "<em>Strike!</em>", vo: "strike", trans: "zoom",
     cam: [{ at: "strike-wide", box: WIDE, z: 1.3, ease: 0 },
           { at: "strike-0.2", box: box("game", "strike", 0), z: 2.2, ease: 0.45 },
           { at: "tap-strike+0.12", box: box("game", "frame8"), z: 2.6, ease: 0.3 }],
@@ -154,11 +158,11 @@ const BEATS = [
   { id: "carry", take: "game", from: "carry", to: "carry+1.45", caption: "Your line carries over|<em>to the next shot</em>.", vo: "carry", trans: "cut",
     cam: [{ at: "carry", box: WIDE, z: 1.3, ease: 0 }, { at: "carry+0.3", box: "carry", z: 2.15, ease: 0.45 }],
     spots: [{ from: "carry+0.75", to: "carry+1.45", boxes: "carry" }] },
-  { id: "move", take: "game", from: "tap-stance2-0.3", to: "moved+0.35", caption: "Went high?|<em>2-1, one tap.</em>", vo: "move", trans: "cut",
+  { id: "move", take: "game", from: "tap-stance2-0.3", to: "moved+0.35", caption: "Went high? Move in|<em>2-1 with one tap.</em>", capSize: 76, vo: "move", trans: "cut",
     cam: [{ at: "tap-stance2-0.3", box: WIDE, z: 1.3, ease: 0 }, { at: "tap-stance2-0.1", box: "moves", z: 1.9, ease: 0.35 }],
     circles: [{ at: "moves", box: [box("game", "moves", 0)], dur: 0.5 }],
     spots: [{ from: "moved", to: "moved+0.35", boxes: "moved" }] },
-  { id: "spare", take: "game", from: "ten-0.55", to: "frame9+0.35", caption: "Left the 10?|<em>Spare line's set.</em>", vo: "spare", trans: "cut",
+  { id: "spare", take: "game", from: "ten-0.55", to: "frame9+0.35", caption: "Pin 10 <em>again??</em>|Spare line's set.", vo: "spare", trans: "cut",
     cam: [{ at: "ten-0.55", box: WIDE, z: 1.3, ease: 0 },
           { at: "ten-0.4", box: "deck", z: 1.85, ease: 0.35 },
           { at: "tap-next+0.1", box: "spare-set", z: 2.0, ease: 0.3 },
@@ -171,7 +175,7 @@ const BEATS = [
           { at: "tenth-0", box: box("game", "tenth-0", 1), z: 2.3, ease: 0.35 },
           { at: "frame10", box: "frame10", z: 2.7, ease: 0.3 }],
     spots: [{ from: "frame10", to: "frame10+0.5", boxes: "frame10" }] },
-  { id: "stats", take: "game", from: "stats", to: "balls+0.5", caption: "Your average.|<em>Which ball carries.</em>", vo: "stats", trans: "whip",
+  { id: "stats", take: "game", from: "stats", to: "balls+0.5", caption: "Your average.|<em>Which ball strikes more.</em>", capSize: 70, vo: "stats", trans: "whip",
     cam: [{ at: "stats", box: FULL, z: 1, ease: 0 },
           { at: "stats+0.3", box: { x: 0, y: 40, w: 390, h: 340 }, z: 1.5, ease: 0.4 },
           { at: "balls-0.2", box: "balls", z: 1.45, ease: 0.45 }],
@@ -184,7 +188,8 @@ const BEATS = [
   { id: "layouts", pad: 0.02, take: "layouts", from: "sliders", to: "dragged+0.2", dur: 2.0, caption: "Layout <em>visualizer</em>.", vo: "layouts", trans: "whip",
     cam: [{ at: "sliders", box: { x: 0, y: 40, w: 390, h: 470 }, z: 1.3, fy: 1020, ease: 0 }] },
   { id: "fan", caption: "All on <em>Headpin</em>.", vo: "fan", trans: "zoom", min: 1.25, pad: 0.05,
-    fan: [{ take: "history", at: "list+0.9" }, { take: "patterns", at: "graph+0.6" }, { take: "catalog", at: "scrolled" }, { take: "layouts", at: "dragged+0.3" }] },
+    fan: [{ take: "history", at: "list+0.9" }, { take: "patterns", at: "graph+0.6" }, { take: "game", at: "strike" },
+          { take: "game", at: "lane-held" }, { take: "catalog", at: "scrolled" }, { take: "layouts", at: "dragged+0.3" }] },
 
   { id: "end", end: true, vo: "end", trans: "zoom", min: 2.75 }
 ];
@@ -192,24 +197,26 @@ const BEATS = [
 /** What the voice says, keyed by beat. Written to be heard: "Head pin" is two
  *  words so the p is not swallowed. */
 const VOICE = {
-  hook: "Still guessing your line?",
+  // Kokoro says this flat, like a statement: tone.py lifts the last word.
+  hook: { parts: [{ text: "Still guessing your line?", tone: "question" }] },
   all: "Head pin tracks it all.",
   ball: "Pick your ball.",
   line: "Set your line.",
   lane: "See it on the lane.",
-  strike: "Tap. It's scored.",
+  strike: "Strike!",
   carry: "Your line carries over to the next shot.",
-  move: "Went high? Two and one, one tap.",
-  spare: "Left the ten? Your spare line's already set.",
+  move: "Went high? Move in two and one, with one tap.",
+  // Fed up, then helpful: the first half drawn out and swung by tone.py.
+  spare: { parts: [{ text: "Pin ten... again?", speed: 0.95, tone: "exasperated" }, { text: "Your spare line's already set." }], gap: 0.12 },
   tenth: "Strike out the tenth.",
-  stats: "Your average, and which ball carries.",
+  stats: "Your average, and which ball strikes more.",
   // The montage is read quicker, one word-pair to a flick.
   sessions: ["Unlimited sessions.", 1.25],
   oil: ["Oil patterns.", 1.25],
   balls: ["Bowling balls.", 1.25],
   layouts: ["Layout visualizer.", 1.25],
   fan: ["All on Head pin.", 1.2],
-  end: "It's free, at head pin dot app."
+  end: "It's free. Bowl smarter, at head pin dot app."
 };
 
 // --- Voice -----------------------------------------------------------------------
@@ -220,19 +227,27 @@ function speak() {
   const dir = join(OUT, "voice");
   execFileSync("mkdir", ["-p", dir]);
   const base = Number(process.env.ADS_TTS_SPEED ?? "1.08");
-  const jobs = Object.entries(VOICE).map(([key, line]) => {
-    const [text, speed = base] = [line].flat();
-    const style = `${process.env.ADS_TTS_VOICE ?? "af_heart"}@${speed}`;
-    const hash = createHash("sha1").update(`${style}\n${text}`).digest("hex").slice(0, 12);
-    return { key, text, speed, out: join(dir, `${key}-${hash}.wav`) };
+  const voiceName = process.env.ADS_TTS_VOICE ?? "af_heart";
+  const hash = (s) => createHash("sha1").update(s).digest("hex").slice(0, 12);
+  // A line is a string, [text, speed], or { parts: [{ text, speed, tone }], gap }.
+  const lines = Object.entries(VOICE).map(([key, line]) => {
+    const parts = (line.parts ?? [{ text: [line].flat()[0], speed: [line].flat()[1] }]).map((p) => {
+      const speed = p.speed ?? base;
+      return { ...p, speed, out: join(dir, `${key}-${hash(`${voiceName}@${speed}\n${p.text}`)}.wav`) };
+    });
+    const plain = parts.length === 1 && !parts[0].tone;
+    const out = plain ? parts[0].out : join(dir, `${key}-${hash(JSON.stringify([parts, line.gap ?? 0.15]))}-toned.wav`);
+    return { key, parts, plain, gap: line.gap ?? 0.15, out };
   });
-  const stdout = execFileSync(python, [join(HERE, "..", "voice.py")], {
-    input: JSON.stringify(jobs.map(({ text, speed, out }) => ({ text, speed, out }))),
-    encoding: "utf8",
-    env: { ...process.env, ADS_TTS_SPEED: process.env.ADS_TTS_SPEED ?? "1.08" }
-  });
-  const seconds = Object.fromEntries(stdout.trim().split("\n").map((l) => JSON.parse(l)).map((r) => [r.out, r.seconds]));
-  return Object.fromEntries(jobs.map((j) => [j.key, { file: j.out, seconds: seconds[j.out] }]));
+  const run = (script, jobs) =>
+    Object.fromEntries(
+      execFileSync(python, [script], { input: JSON.stringify(jobs), encoding: "utf8", env: process.env })
+        .trim().split("\n").map((l) => JSON.parse(l)).map((r) => [r.out, r.seconds])
+    );
+  const seconds = run(join(HERE, "..", "voice.py"), lines.flatMap((l) => l.parts.map(({ text, speed, out }) => ({ text, speed, out }))));
+  const toned = lines.filter((l) => !l.plain);
+  Object.assign(seconds, run(join(HERE, "tone.py"), toned.map((l) => ({ parts: l.parts.map((p) => ({ in: p.out, tone: p.tone ?? null })), gap: l.gap, out: l.out }))));
+  return Object.fromEntries(lines.map((l) => [l.key, { file: l.out, seconds: seconds[l.out] }]));
 }
 
 // --- Timeline ------------------------------------------------------------------------
@@ -381,7 +396,7 @@ function captionAt(beats, i, u) {
       blur: (1 - k) * 4
     };
   });
-  return { key, words: ws };
+  return { key, words: ws, size: beats[first].capSize };
 }
 
 const RIPPLE = 0.45;
@@ -392,18 +407,20 @@ function beatFrame(beats, i, u) {
   const f = { phones: [], ripples: [], circles: [] };
   if (b.end) return f;
   if (b.fan) {
-    // The four screens dealt out in a fan, one after another.
-    const s = 0.8;
+    // The screens dealt out in a fan, one after another, the middle on top.
+    const s = 0.66;
+    const n = b.fan.length;
     b.fan.forEach((it, j) => {
-      const k = clamp((u - j * 0.07) / 0.35);
-      const cx = 540 + [-292, -98, 98, 292][j];
-      const cy = 1080 + [26, 0, 0, 26][j] - 14 * (u / b.dur);
+      const k = clamp((u - j * 0.06) / 0.35);
+      const side = j - (n - 1) / 2; // -2.5 .. 2.5 for six
+      const cx = 540 + side * 156;
+      const cy = 1090 + Math.abs(side) * Math.abs(side) * 6 - 14 * (u / b.dur);
       // The device's centre at cx, cy; the app inside it.
       const x = cx - ((APP_W + 2 * BEZEL) * s) / 2 + BEZEL * s;
       const y = cy - ((APP_H + BAR + 2 * BEZEL) * s) / 2 + (BEZEL + BAR) * s;
       f.phones.push({ key: `fan${j}`, src: frameAt(it.take, timeOf(it.take, it.at)), x, y: y + (1 - easeOut(k)) * 120, s,
-        opacity: easeOut(k), z: [1, 2, 3, 2][j],
-        rotZ: [-9, -3, 3, 9][j] * easeOutBack(k), scale: 0.8 + 0.2 * easeOutBack(k) + 0.03 * (u / b.dur) });
+        opacity: easeOut(k), z: 10 - Math.round(Math.abs(side) * 2),
+        rotZ: side * 4.2 * easeOutBack(k), scale: 0.8 + 0.2 * easeOutBack(k) + 0.03 * (u / b.dur) });
     });
     return f;
   }

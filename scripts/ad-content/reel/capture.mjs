@@ -301,7 +301,11 @@ await take("game", {
     await type("10");
     await wait(300);
     await mark("line-set", lineBox());
+    // A beat on the eye before it is tapped, so it can be lit first.
     const eye = app.getByRole("button", { name: "View intended line" });
+    await wait(300);
+    await mark("eye", eye);
+    await wait(800);
     await tap(eye, "tap-eye", 300);
     await mark("lane-open", { x: 0, y: 0, w: 390, h: 844 });
     await wait(1600);

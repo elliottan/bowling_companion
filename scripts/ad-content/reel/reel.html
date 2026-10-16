@@ -93,7 +93,7 @@
     <div id="end">
       <img src="/icons/icon-512.png" alt="" />
       <div class="name">Headpin</div>
-      <div class="tag">Bowl smarter on <em>league night</em>.</div>
+      <div class="tag">Bowl <em>smarter</em>.</div>
       <div class="cta">headpin.app</div>
       <div class="note">Free · No sign-up · Works offline</div>
       <div class="web">Nothing to download. It opens in your browser.</div>
@@ -235,6 +235,7 @@
             el.style.filter = w.blur > 0.2 ? `blur(${w.blur}px)` : "none";
           });
           cap.style.top = `${f.caption.top ?? 300}px`;
+          cap.style.fontSize = `${f.caption.size ?? 86}px`;
         }
         $("kicker").textContent = f.kicker ? f.kicker.text : "";
         $("kicker").style.opacity = f.kicker ? f.kicker.opacity : 0;
