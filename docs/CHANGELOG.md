@@ -9,13 +9,22 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
-## 0.38.1: Landing page pictures match the app again (2026-10-15)
+## 0.39.1: Landing page pictures match the app again (2026-10-16)
 
 **The screenshots on headpin.app show today's app.** The Stats picture still
 showed the old tile grid from before the Stats tab was rebuilt, and the scorer,
 Home and arsenal pictures were from an older bowler. All four are recaptured
 from the current app, and the Stats picture's description says what it now
 shows.
+
+## 0.39.0: Where each line was thrown (2026-10-16)
+
+**The Alley report's best lines and last session name the alley and oil
+pattern** they were thrown on. The lines by ball list is gone.
+
+**Estimates read as estimates.** Each one has a tilde ("~204"), and the
+heading reads "Actual overall average". An opened ball also shows how many of
+its leaves you picked up, splits included, beside all your balls.
 
 ## 0.38.0: What you'd average with each ball (2026-10-15)
 

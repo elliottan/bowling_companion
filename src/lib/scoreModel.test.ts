@@ -209,6 +209,17 @@ describe("estimating each ball", () => {
     }
   });
 
+  it("counts the leaves a ball's spares picked up, splits included", () => {
+    const singles = Array.from({ length: 4 }, () => game(sameEveryFrame(1, TEN, NONE)));
+    const splits = Array.from({ length: 4 }, () => game(sameEveryFrame(2, SPLIT, [7])));
+    const { balls, counted } = estimateBalls(sessions(...singles, ...splits));
+    const tenPin = balls.find((b) => b.ballId === 1)!.counted;
+    const sevenTen = balls.find((b) => b.ballId === 2)!.counted;
+    expect(tenPin.pickups).toBe(tenPin.pickupChances);
+    expect(sevenTen.pickups).toBe(0);
+    expect(counted.pickupChances).toBe(tenPin.pickupChances + sevenTen.pickupChances);
+  });
+
   it("names the leaves a ball costs most, and leaves out the ones always made", () => {
     const frames = (ball: number) =>
       Array.from({ length: 10 }, (_, i) =>
