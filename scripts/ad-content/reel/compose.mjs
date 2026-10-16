@@ -160,9 +160,11 @@ const BEATS = [
   { id: "carry", take: "game", from: "carry", to: "carry+1.45", caption: "Your line carries over|<em>to the next shot</em>.", vo: "carry", trans: "none",
     cam: [{ at: "carry", box: box("game", "frame8"), z: 2.66, ease: 0 }, { at: "carry+0.08", box: "carry", z: 2.15, ease: 0.7 }],
     spots: [{ from: "carry+0.7", to: "carry+1.45", boxes: "carry" }] },
-  { id: "move", take: "game", from: "tap-stance2-0.3", to: "moved+0.35", caption: "Went high? Move in|<em>2-1 with one tap.</em>", capSize: 76, vo: "move", trans: "cut",
-    // Straight in on the moves, wide enough for the whole line beside them.
-    cam: [{ at: "tap-stance2-0.3", box: [box("game", "moves", 0), ...boxesOf("game", "moved")], z: 1.55, ease: 0 }],
+  // The same screen as the carry, so no cut: from where that shot ends, an
+  // ease back to the moves with the whole line beside them.
+  { id: "move", take: "game", from: "carry+1.45", to: "moved+0.35", caption: "Went high? Move in|<em>2-1 with one tap.</em>", capSize: 76, vo: "move", trans: "none",
+    cam: [{ at: "carry+1.45", box: "carry", z: 2.2, ease: 0 },
+          { at: "carry+1.5", box: [box("game", "moves", 0), ...boxesOf("game", "moved")], z: 1.55, ease: 0.55 }],
     circles: [{ at: "moves", box: [box("game", "moves", 0)], dur: 0.5 }],
     spots: [{ from: "moved", to: "moved+0.35", boxes: "moved" }] },
   { id: "spare", take: "game", from: "ten-0.55", to: "frame9+0.35", caption: "Pin 10 <em>again??</em>|Spare line's set.", vo: "spare", trans: "cut",
