@@ -418,10 +418,11 @@ export function buildModel(
   };
 }
 
-/** Under this many first balls in scope a ball's estimate is shown but not
- *  ranked: a strike rate from thirty balls is still about nine points either
- *  way. */
-export const THIN_BALL_FIRST_BALLS = 30;
+/** Under this many first balls in scope a ball's estimate is shown greyed and
+ *  not ranked. The bowler's call: ten is where a ball has been thrown enough
+ *  to say anything, and the leaning on every ball (`BALL_PRIOR_BALLS`) keeps
+ *  a ball just past it close to the bowler. */
+export const THIN_BALL_FIRST_BALLS = 10;
 
 /** Leaves named under a ball as costing it the most. */
 export const COSTLIEST_LEAVES = 3;

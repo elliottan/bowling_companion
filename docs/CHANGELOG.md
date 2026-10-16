@@ -9,6 +9,13 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.40.0: Every rate on the ball's row (2026-10-16)
+
+**The Alley report's balls show every rate at a glance:** strike, after a
+strike, splits and leaves made, in columns like the Stats Balls card, with how
+many balls each one has behind it. An All balls row at the top is what each
+ball is read against. A ball now counts as too few under 10 balls, not 30.
+
 ## 0.39.0: Where each line was thrown (2026-10-16)
 
 **The Alley report's best lines and last session name the alley and oil
