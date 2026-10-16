@@ -411,22 +411,20 @@ function beatFrame(beats, i, u) {
   const f = { phones: [], ripples: [], circles: [] };
   if (b.end) return f;
   if (b.fan) {
-    // The screens dealt out in a fan, one after another, the middle on top.
+    // The screens dealt out in a fan, one after another, each landing on top
+    // of the one before it.
     const s = 0.66;
     const n = b.fan.length;
     b.fan.forEach((it, j) => {
       const k = clamp((u - j * 0.06) / 0.35);
       const side = j - (n - 1) / 2; // -2.5 .. 2.5 for six
       const cx = 540 + side * 156;
-      // The right-hand pair sit lower to the eye (their screens are busy at
-      // the top), so they are lifted a little.
-      const lift = [0, 0, 0, 0, 34, 62][j] ?? 0;
-      const cy = 1090 + Math.abs(side) * Math.abs(side) * 6 - lift - 14 * (u / b.dur);
+      const cy = 1090 + Math.abs(side) * Math.abs(side) * 6 - 14 * (u / b.dur);
       // The device's centre at cx, cy; the app inside it.
       const x = cx - ((APP_W + 2 * BEZEL) * s) / 2 + BEZEL * s;
       const y = cy - ((APP_H + BAR + 2 * BEZEL) * s) / 2 + (BEZEL + BAR) * s;
       f.phones.push({ key: `fan${j}`, src: frameAt(it.take, timeOf(it.take, it.at)), x, y: y + (1 - easeOut(k)) * 120, s,
-        opacity: easeOut(k), z: 10 - Math.round(Math.abs(side) * 2),
+        opacity: easeOut(k), z: j + 1,
         rotZ: side * 4.2 * easeOutBack(k), scale: 0.8 + 0.2 * easeOutBack(k) + 0.03 * (u / b.dur) });
     });
     return f;
