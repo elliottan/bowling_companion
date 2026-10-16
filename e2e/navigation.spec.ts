@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { RECORD_SHOT, clearDatabase, recordShot, startSession, waitForScoresPersisted, openArsenalFromHome } from "./helpers";
+import { RECORD_SHOT, clearDatabase, openSessionForm, recordShot, startSession, waitForScoresPersisted, openArsenalFromHome } from "./helpers";
 
 test.beforeEach(async ({ page }) => {
   await clearDatabase(page);
@@ -74,7 +74,7 @@ test("a screen opened from the dashboard goes back to the dashboard", async ({ p
 
   await page.goBack();
   await expect(page).toHaveURL(/#\/home$/);
-  await expect(page.getByRole("button", { name: "Start session" }).first()).toBeVisible();
+  await expect(page.getByRole("button", { name: "Start scoring" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Lane notes" })).toHaveCount(0);
 });
 
@@ -142,7 +142,7 @@ test("an unreadable link opens the app rather than breaking it", async ({ page }
 });
 
 test("back closes the oil pattern manager, not the session form under it", async ({ page }) => {
-  await page.getByRole("button", { name: "Start session" }).first().click();
+  await openSessionForm(page);
   await page.getByPlaceholder("Ball choice, surface, carry…").fill("keep me");
 
   // The manager used to be a hand-rolled fixed overlay with no Escape and no
@@ -166,6 +166,9 @@ test("Stats opened from the alley report is a push, and back returns to it", asy
   // what the hand-off does. A deep link lands the whole stack in one history
   // entry, so back would leave the app with nothing to return to, which is the
   // right behaviour for a link and the wrong test for a push.
+  //
+  // One session first: with nothing to read, Stats hides its share (ADR-150).
+  await startSession(page, "Push Lanes");
   await page.goto("/score/#/home/game-plan");
   await expect(page.getByRole("dialog", { name: "Alley report" })).toBeVisible();
 

@@ -253,7 +253,7 @@ export function BallFormDialog({ ball, onClose, onSaved, onDelete, onRetire }: B
             <div className="flex items-end gap-3">
               <div className="min-w-0 flex-1">
                 <label htmlFor="ball-name" className="mb-1 block text-sm font-medium text-ink-strong">
-                  Display name <span className="text-danger-600">*</span>
+                  Display name
                 </label>
                 <input
                   id="ball-name"

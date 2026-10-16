@@ -346,6 +346,11 @@ describe("capturing a spare line (ADR-054)", () => {
     next();
   }
 
+  /** Put a board on the spare ball's intended line, so there is a line to save. */
+  function enterStance(board: string) {
+    fireEvent.change(screen.getByLabelText("Stance"), { target: { value: board } });
+  }
+
   it("offers to save the line after a spare is missed, not only after it is made", async () => {
     render(<ActiveGameScorer gameKey={1} initialFrames={[]} />);
     await waitFor(() => expect(screen.getByRole("button", { name: RECORD_SHOT })).toBeTruthy());
@@ -354,8 +359,22 @@ describe("capturing a spare line (ADR-054)", () => {
     expect(savePrompt()).toBeNull();
 
     // Second ball leaves the 6 standing again: the spare is missed.
+    enterStance("30");
     next();
     await waitFor(() => expect(savePrompt()).not.toBeNull());
+  });
+
+  it("offers nothing after a spare shot with no boards entered", async () => {
+    render(<ActiveGameScorer gameKey={1} initialFrames={[]} />);
+    await waitFor(() => expect(screen.getByRole("button", { name: RECORD_SHOT })).toBeTruthy());
+
+    leaveOnePin(6);
+    fireEvent.click(screen.getByRole("button", { name: "Spare" }));
+
+    // The next frame's deck is up, so the spare has been recorded and offered
+    // on, or not, by now.
+    await waitFor(() => expect(screen.getByRole("button", { name: "Strike" })).toBeTruthy());
+    expect(savePrompt()).toBeNull();
   });
 
   it("offers nothing on a strike, which leaves nothing to shoot at", async () => {
@@ -372,6 +391,7 @@ describe("capturing a spare line (ADR-054)", () => {
     await waitFor(() => expect(screen.getByRole("button", { name: RECORD_SHOT })).toBeTruthy());
 
     leaveOnePin(6);
+    enterStance("30");
     next();
     await waitFor(() => expect(savePrompt()).not.toBeNull());
 

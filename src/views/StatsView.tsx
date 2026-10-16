@@ -178,16 +178,23 @@ export function StatsView({
             <div className="mb-3 flex items-center gap-2">
               {mode === "tab" && <h1 className="text-xl font-bold text-ink">Stats</h1>}
               <div className="ml-auto flex shrink-0 items-center gap-1">
-                <SessionFilterButton filters={filters} onOpen={() => setFiltersOpen(true)} />
+                {/* Neither action has anything to act on before the first
+                    session: there is nothing to filter, and the share would be
+                    a card of zeros. */}
+                {filters.history.length > 0 && (
+                  <SessionFilterButton filters={filters} onOpen={() => setFiltersOpen(true)} />
+                )}
                 {/* The two drill-downs used to live behind this control, which meant
                     a screen full of numbers hid the two screens that explain them
                     behind a menu with no name on it. They are rows under the tiles
                     now (ADR-063b put them there to get them off the bottom of a long
                     scroll; under the tiles is neither the bottom nor a menu), and the
                     header keeps its one action, which is the share. */}
-                <IconButton label="Share these stats" variant="round" onClick={() => setShareOpen(true)}>
-                  <ShareIosIcon size={20} aria-hidden="true" />
-                </IconButton>
+                {filtered.length > 0 && (
+                  <IconButton label="Share these stats" variant="round" onClick={() => setShareOpen(true)}>
+                    <ShareIosIcon size={20} aria-hidden="true" />
+                  </IconButton>
+                )}
               </div>
               {/* Hidden until there is something to narrow: on a device with
                   no games the empty state is the whole screen. */}

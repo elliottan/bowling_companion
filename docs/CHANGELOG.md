@@ -9,6 +9,34 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.41.0: An easier first night (2026-10-16)
+
+**A new bowler gets one button: Start scoring.** It goes straight to the pin
+deck, with no form and no lanes sheet in the way, and the alley and lanes can
+be added any time from the session. Once you have a session, the floating
+button says "Start session" instead of showing a bare plus.
+
+**Home shows one reminder at a time,** and none before your first session. It
+no longer asks for your balls twice.
+
+**"Save this as your line" only appears when you entered a line.** Keeping
+score alone, it stays out of the way.
+
+**Home says what things are for.** An empty Spare lines, Lane notes or Alley
+report tile says what it holds, and each tool has a line saying what it does.
+
+**A Start here guide** explains scoring a shot, sessions and games, stance,
+target and slide boards, spare lines, and keeping your scores safe.
+
+**Smaller things:** Spare lines explains itself until you save one. The empty
+Alley report says what it needs and can start a session. History and Stats
+hide their filter and share until there is something to filter. An oil pattern
+row opens its sheet, and Edit pattern is at the foot of the sheet. The ball
+form no longer marks its name with an asterisk.
+
+**Fixed:** a session started from the Score tab's form is still open after a
+reload. The address lost the session, so a reload landed on an empty Score tab.
+
 ## 0.40.1: Landing page pictures match the app again (2026-10-16)
 
 **The screenshots on headpin.app show today's app.** The Stats picture still

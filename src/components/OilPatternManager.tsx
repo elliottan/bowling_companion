@@ -1,4 +1,4 @@
-import { ChevronRight, Pencil, Plus, RotateCcw } from "lucide-react";
+import { ChevronRight, Plus, RotateCcw } from "lucide-react";
 import { OilPatternIcon } from "./icons";
 import { useMemo, useState, useEffect } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
@@ -156,6 +156,9 @@ export function OilPatternManager({ onBack, mode = "inline", onOpenLineVisualize
     setPendingRemove(null);
     setDialogOpen(false);
     setEditing(undefined);
+    // Its sheet was what the editor was opened from, and it names a pattern
+    // that is about to be gone.
+    setSheetFor(null);
     setError("");
     try {
       const result = await removeOilPattern(pattern.id);
@@ -219,7 +222,7 @@ export function OilPatternManager({ onBack, mode = "inline", onOpenLineVisualize
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               className={`${FIELD} min-w-0 flex-1`}
-              placeholder="Name or length, e.g. Stonehenge or 40"
+              placeholder="Name or length, like 40"
               aria-label="Search patterns"
             />
             <PatternFilterButton filters={filters} onOpen={() => setFiltersOpen(true)} />
@@ -301,14 +304,16 @@ export function OilPatternManager({ onBack, mode = "inline", onOpenLineVisualize
 
       {sheetFor && (
         <PatternSheet
-          pattern={sheetFor}
+          // The live row, so an edit made from the sheet shows on it at once.
+          pattern={patterns.find((p) => p.id === sheetFor.id) ?? sheetFor}
           onClose={() => setSheetFor(null)}
+          onEdit={() => openEdit(patterns.find((p) => p.id === sheetFor.id) ?? sheetFor)}
           // The sheet stays open under the visualizer, so its X comes back to
           // the pattern it was opened from rather than to the list.
           onOpenInLineVisualizer={
             onOpenLineVisualizer && sheetFor.id != null ? () => onOpenLineVisualizer(sheetFor.id!) : undefined
           }
-          active={!covered}
+          active={!covered && !dialogOpen && pendingRemove === null}
         />
       )}
 
@@ -324,7 +329,7 @@ export function OilPatternManager({ onBack, mode = "inline", onOpenLineVisualize
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               className={`${FIELD} min-w-0 flex-1`}
-              placeholder="Name or length, e.g. Stonehenge or 40"
+              placeholder="Name or length, like 40"
               aria-label="Search patterns"
             />
             <PatternFilterButton filters={filters} onOpen={() => setFiltersOpen(true)} />
@@ -474,8 +479,8 @@ function PatternRow({
   pattern: OilPattern;
   onEdit: () => void;
   /** Given for the active list: the row opens the pattern's detail sheet, and
-   *  the pencil beside it opens the editor. Archived rows have no detail page
-   *  worth a special row, so they keep the row opening the editor directly. */
+   *  the editor opens from there. Archived rows have no detail page worth a
+   *  special row, so they keep the row opening the editor directly. */
   onOpenSheet?: () => void;
   onRestore?: () => void;
 }) {
@@ -495,18 +500,13 @@ function PatternRow({
             {summarize(pattern)}
           </span>
         </span>
-        {!onOpenSheet && !onRestore && (
+        {!onRestore && (
           <ChevronRight size={16} aria-hidden="true" className="shrink-0 text-ink-tertiary" />
         )}
       </button>
-      {/* A second target, deliberately: editing is a different destination
-          rather than an action folded into the row, the same exception the
-          drag handle takes. */}
-      {onOpenSheet && (
-        <IconButton label={`Edit ${pattern.name}`} onClick={onEdit}>
-          <Pencil size={16} aria-hidden="true" />
-        </IconButton>
-      )}
+      {/* The row is one target (DESIGN-LANGUAGE §4). Editing lives on the
+          pattern's sheet, which the row opens: a pencil on every row of a
+          catalog this long was a second target down the whole edge. */}
       {onRestore && (
         <IconButton label={`Restore ${pattern.name}`} onClick={onRestore}>
           <RotateCcw size={16} aria-hidden="true" />

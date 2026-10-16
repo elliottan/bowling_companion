@@ -202,12 +202,20 @@ axis for a preview whose only job is "these are yours", so a bigger bag shows
 its overflow as a count in the last slot. It carries no heading and no total:
 the balls say what the grid is, and every ball opens the arsenal. Under
 the band, the spare lines, lane notes and Alley report are three equal tiles in
-one row, and the recent sessions are one row of tiles that scrolls sideways,
+one row, each with its count under its name, or while it holds nothing, what it
+is for ("None yet" told a new bowler it was empty and nothing more), and the recent sessions are one row of tiles that scrolls sideways,
 bled to the screen edge so a tile cut off there says there is more. A row's
 heading opens the screen it previews. Only the tools and reference stay a
 `ListGroup`, because they are the same for every bowler: the oil patterns are
 there, a catalog like the balls, and the Alley report is a tile, since it reads
-nothing but the bowler's own games (ADR-146).
+nothing but the bowler's own games (ADR-146). Each tool row carries one line
+saying what it does: "Layouts" and "Line visualizer" are names a new bowler
+would otherwise have to tap to learn.
+
+Home holds **one prompt at a time**: the protection card, else one setup step,
+else the feedback ask, and none of them before the first session, where the
+empty state is the only ask. A step the screen already makes elsewhere, the
+arsenal's empty slot asking for the balls, is not made twice (ADR-150).
 
 ## 4b. Numbers on screen
 
@@ -302,7 +310,10 @@ action. A bare gray "No X yet." sentence is not acceptable, because the empty
 screen is where a user decides whether the feature is for them.
 
 A screen whose *whole* content is empty leads with the empty state rather than
-burying it under chrome. Home does this on a device with no sessions. What it
+burying it under chrome. Home does this on a device with no sessions, and
+its empty state has one action, "Start scoring", straight to the deck, with no
+floating button beside it: three controls that all started a session put a
+choice to someone with nothing to choose on (ADR-150). What it
 does not do is remove the chrome: the bowler profile (the arsenal grid and the
 spare line, lane note and Alley report tiles) and the Tools and reference list
 stay below the empty state and stay reachable, because they are the only way to
@@ -410,7 +421,10 @@ the bowler would otherwise take for nothing happening, never for a frame.
 A **tab** with one dominant action puts it in `ui/Fab.tsx`: a floating round
 button in the bottom-trailing corner, above the tab bar, where the thumb already
 is. Anything else that floats shares that row to its left rather than
-displacing it. Home and Spare lines both add through it. Home's game in
+displacing it. Home and Spare lines both add through it. Home's is `extended`,
+a pill that prints its label beside the plus: on a list of one kind of thing a
+plus says what it adds, and on Home it starts a session, which a plus does not
+say. Home's game in
 progress is not a floating pill any more: it is the top card, where the screen
 leads with what the app is opened to do (ADR-115).
 

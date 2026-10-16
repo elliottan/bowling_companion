@@ -55,7 +55,7 @@ if (STATE) {
   // A spare ball first, as the spares video does: TZone from the catalog,
   // picked on Spare lines. Then the line that makes the 7 (see record.mjs).
   await home();
-  await app.getByRole("button", { name: "Ball catalog", exact: true }).click();
+  await app.getByRole("button", { name: /^Ball catalog/ }).click();
   await app.getByPlaceholder("Search name, brand, coverstock…").fill("TZone");
   await app.getByRole("button", { name: /TZone/i }).first().click();
   await app.getByRole("button", { name: "Add to arsenal" }).first().click();

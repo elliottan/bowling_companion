@@ -21,24 +21,35 @@ export function FabRow({ children }: { children: ReactNode }) {
   );
 }
 
-/** The round primary action itself. `label` is required, like `IconButton`. */
+/**
+ * The primary action itself. `label` is required, like `IconButton`.
+ *
+ * `extended` prints the label beside the icon, as a pill. A plus alone says
+ * "add" and nothing about what, which is fine where the screen is a list of one
+ * kind of thing and not on Home, where it starts a session.
+ */
 export function Fab({
   icon: Icon,
   label,
-  onClick
+  onClick,
+  extended = false
 }: {
   icon: LucideIcon;
   label: string;
   onClick: () => void;
+  extended?: boolean;
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
-      aria-label={label}
-      className="pointer-events-auto ml-auto flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-accent-fill text-accent-on-fill shadow-2xl hover:bg-accent-fill-hover"
+      aria-label={extended ? undefined : label}
+      className={`pointer-events-auto ml-auto flex h-14 shrink-0 items-center justify-center rounded-full bg-accent-fill text-accent-on-fill shadow-2xl active:bg-accent-fill-hover ${
+        extended ? "gap-2 pl-5 pr-6 text-base font-semibold" : "w-14"
+      }`}
     >
-      <Icon size={26} aria-hidden="true" />
+      <Icon size={extended ? 22 : 26} aria-hidden="true" />
+      {extended && label}
     </button>
   );
 }

@@ -135,7 +135,9 @@ function Tile({
         <span className="block whitespace-nowrap text-sm font-semibold tracking-tight text-ink">
           {label}
         </span>
-        <span className="block truncate text-xs text-ink-secondary">{detail ?? " "}</span>
+        {/* Two lines, not one: an empty tile says what it is for, and that
+            is a short sentence rather than a count. */}
+        <span className="line-clamp-2 block text-xs text-ink-secondary">{detail ?? " "}</span>
       </span>
     </button>
   );
@@ -151,10 +153,19 @@ interface ProfileTilesProps {
   onOpenAlleyReport: () => void;
 }
 
-/** "3 leaves", or the word for none. Undefined while the count is loading. */
-function counted(n: number | undefined, one: string, many: string): string | undefined {
+/**
+ * "3 leaves", or what the tile is for while it holds nothing. "None yet" under
+ * "Alley report" told a new bowler it was empty and nothing about what would
+ * fill it. Undefined while the count is loading.
+ */
+function counted(
+  n: number | undefined,
+  one: string,
+  many: string,
+  empty: string
+): string | undefined {
   if (n == null) return undefined;
-  return n === 0 ? "None yet" : `${n} ${n === 1 ? one : many}`;
+  return n === 0 ? empty : `${n} ${n === 1 ? one : many}`;
 }
 
 /** The three other things that are the bowler's own, side by side as equal
@@ -173,19 +184,19 @@ export function ProfileTiles({
       <Tile
         icon={SpareLineIcon}
         label="Spare lines"
-        detail={counted(spareLines, "leave", "leaves")}
+        detail={counted(spareLines, "leave", "leaves", "Where you shoot each spare")}
         onClick={onOpenSpareLines}
       />
       <Tile
         icon={LanePairIcon}
         label="Lane notes"
-        detail={counted(laneNotes, "note", "notes")}
+        detail={counted(laneNotes, "note", "notes", "How each lane plays")}
         onClick={onOpenLaneNotes}
       />
       <Tile
         icon={GamePlanIcon}
         label="Alley report"
-        detail={counted(alleys, "alley", "alleys")}
+        detail={counted(alleys, "alley", "alleys", "Your numbers at each alley")}
         onClick={onOpenAlleyReport}
       />
     </div>

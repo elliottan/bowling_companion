@@ -50,6 +50,7 @@ import { OverlayLoading } from "./components/OverlayLoading";
 import { UpdateToast } from "./components/UpdateToast";
 import { shouldResetScroll } from "./lib/viewportScroll";
 import { navReducer, type AppView, type Overlay } from "./lib/appNavigation";
+import { markLanesPrompted } from "./lib/lanePrompt";
 import { initialNavFromHash } from "./lib/appRoute";
 import { useHistoryRoute } from "./lib/useHistoryRoute";
 
@@ -405,7 +406,7 @@ function App() {
     return () => document.removeEventListener("focusin", onFocusIn);
   }, []);
 
-  async function handleStartSession(values: NewSessionFormValues) {
+  async function handleStartSession(values: NewSessionFormValues, { askLanes = true } = {}) {
     setIsStartingSession(true);
     setStartError("");
 
@@ -418,12 +419,13 @@ function App() {
         general_notes: values.general_notes
       });
 
-      await addGameToSession(sessionId, {
+      const gameId = await addGameToSession(sessionId, {
         game_number: 1,
         lanes: values.lanes,
         start_lane: values.start_lane,
         lane_number: values.lanes[0]
       });
+      if (!askLanes) markLanesPrompted(gameId);
       void reportSessionStarted();
 
       dispatch({ type: "openSession", sessionId });
@@ -440,10 +442,14 @@ function App() {
    * Straight to the pin deck, with nothing filled in (ADR-080). The whole form
    * is a set of details about a session, and every one of them can be added
    * afterwards from the same form; making a first-time bowler name an alley to
-   * see the one screen worth seeing put a wall in front of the app.
+   * see the one screen worth seeing put a wall in front of the app. The lanes
+   * are a detail too, so their sheet does not open over the deck either.
    */
   function handleScoreNow() {
-    return handleStartSession({ alley_name: "", date: localDateKey(), lanes: [] });
+    return handleStartSession(
+      { alley_name: "", date: localDateKey(), lanes: [] },
+      { askLanes: false }
+    );
   }
 
   // `openStats` (a finished session) lands on the session page with the stats
@@ -760,6 +766,7 @@ function App() {
                 openLineId={nav.reportLineId}
                 onOpenLine={(lineId) => dispatch({ type: "openReportLine", lineId })}
                 onOpenSessionGame={openSessionGame}
+                onStartScoring={() => void handleScoreNow()}
               />
             );
         }

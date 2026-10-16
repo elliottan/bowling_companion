@@ -2,7 +2,13 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { DashboardView } from "./DashboardView";
 import { db } from "../db/bowlingDb";
-import { addGameToSession, createSession, getBowlerName, setBowlerName } from "../services/bowlingRepository";
+import {
+  addGameToSession,
+  createSession,
+  getBowlerName,
+  setBackupNudgeSnoozedUntil,
+  setBowlerName
+} from "../services/bowlingRepository";
 import { addBall } from "../services/ballRepository";
 import { GREETINGS } from "../lib/greeting";
 
@@ -57,6 +63,55 @@ describe("Home (ADR-115)", () => {
       recent.compareDocumentPosition(screen.getByText("Tools and reference")) &
         Node.DOCUMENT_POSITION_FOLLOWING
     ).toBeTruthy();
+  });
+
+  it("offers one way in on a device that has never scored, straight to the deck", async () => {
+    const props = renderHome();
+
+    fireEvent.click(await screen.findByRole("button", { name: "Start scoring" }));
+    expect(props.onScoreNow).toHaveBeenCalled();
+    // Not three buttons that all start a session: no form button, no second
+    // fast path, and no floating button over the empty state.
+    expect(screen.queryByRole("button", { name: "Start session" })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Score now, add details later" })
+    ).not.toBeInTheDocument();
+  });
+
+  it("names the floating button once there are sessions", async () => {
+    await createSession({ date: "2026-09-30", alley_name: "Orchid Bowl" });
+    renderHome();
+
+    const fab = await screen.findByRole("button", { name: "Start session" });
+    // Printed, not only spoken: a plus alone said nothing about what it adds.
+    expect(fab).toHaveTextContent("Start session");
+    expect(screen.queryByRole("button", { name: "Start scoring" })).not.toBeInTheDocument();
+  });
+
+  it("asks for the balls once, in the arsenal's own slot, not again as a step", async () => {
+    await createSession({ date: "2026-09-30", alley_name: "Orchid Bowl" });
+    await setBackupNudgeSnoozedUntil(new Date(Date.now() + 86_400_000).toISOString());
+    renderHome();
+
+    // The step owed next is the one shown instead.
+    expect(await screen.findByText("Write down your spare lines")).toBeInTheDocument();
+    expect(screen.getAllByText("Add the balls you throw")).toHaveLength(1);
+  });
+
+  it("shows one prompt at a time: the backup card holds the setup step back", async () => {
+    await createSession({ date: "2026-09-30", alley_name: "Orchid Bowl" });
+    renderHome();
+
+    expect(await screen.findByText(/not backed up/)).toBeInTheDocument();
+    expect(screen.queryByText("Next steps")).not.toBeInTheDocument();
+  });
+
+  it("says what an empty tile is for, rather than that it is empty", async () => {
+    renderHome();
+    expect(await screen.findByRole("button", { name: "Alley report" })).toHaveTextContent(
+      "Your numbers at each alley"
+    );
+    expect(screen.queryByText("None yet")).not.toBeInTheDocument();
   });
 
   it("greets the bowler by name, and with the greeting alone without one", async () => {
@@ -127,9 +182,9 @@ describe("Home (ADR-115)", () => {
 
   it("lists the oil patterns with the tools, not the bowler's tiles", async () => {
     const props = renderHome();
-    fireEvent.click(await screen.findByRole("button", { name: "Oil patterns" }));
+    fireEvent.click(await screen.findByRole("button", { name: /^Oil patterns/ }));
     expect(props.onOpenOilPatterns).toHaveBeenCalled();
-    expect(screen.getByRole("button", { name: "Oil patterns" }).closest("ul, [role=list], section")?.textContent).toContain("Guides");
+    expect(screen.getByRole("button", { name: /^Oil patterns/ }).closest("ul, [role=list], section")?.textContent).toContain("Guides");
   });
 
   it("shows a session tile as its event, alley, date, games and average", async () => {
@@ -164,7 +219,7 @@ describe("Home (ADR-115)", () => {
     await createSession({ date: "2026-09-30", alley_name: "Orchid Bowl" });
     renderHome();
     expect(await screen.findByText("Tools and reference")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Line visualizer" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /^Line visualizer/ })).toBeInTheDocument();
     expect(screen.queryByText("Game plan")).not.toBeInTheDocument();
   });
 

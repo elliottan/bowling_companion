@@ -231,8 +231,16 @@ async function setLanes(page) {
 }
 
 async function startSession(page, alley) {
-  // A finished game leaves you on the Active tab; the start control is on Home.
-  await page.getByRole("navigation").getByRole("button", { name: "Home" }).click();
+  // A finished game leaves you on the Score tab; the start control is on Home.
+  // Home's empty state skips the form (ADR-150), so the first session's form
+  // is opened from the Score tab, which has no game running yet.
+  const nav = page.getByRole("navigation");
+  await nav.getByRole("button", { name: "Home" }).click();
+  const start = page.getByRole("button", { name: /^(Start session|Start scoring)$/ }).first();
+  await start.waitFor();
+  if ((await start.textContent())?.includes("Start scoring")) {
+    await nav.getByRole("button", { name: "Score", exact: true }).click();
+  }
   await page.getByRole("button", { name: "Start session" }).first().click();
   const startSheet = page.getByRole("dialog", { name: "Start session" });
   await startSheet.getByPlaceholder("Pinecrest Lanes").fill(alley);
@@ -357,7 +365,7 @@ await page.getByRole("button", { name: "right-handed" }).click();
 
 // Real balls, so the arsenal is a screen with something on it and the shot
 // panel has a ball to name.
-await page.getByRole("button", { name: "Ball catalog", exact: true }).click();
+await page.getByRole("button", { name: /^Ball catalog/ }).click();
 // Only some of the catalog carries artwork, and a list of grey placeholders is
 // a worse advert than no list. These five all have a real image.
 for (const q of ["Phaze Crimson", "Gem", "Jackal Ghost", "Zen Master", "Code Green"]) {
@@ -371,7 +379,7 @@ await page.getByRole("list", { name: "Your arsenal" }).getByRole("button").first
 await shootBothThemes(page, "arsenal");
 await page.getByRole("banner").getByRole("button", { name: "Back", exact: true }).first().click();
 
-await page.getByRole("button", { name: "Line visualizer", exact: true }).click();
+await page.getByRole("button", { name: /^Line visualizer/ }).click();
 // The line over an oil pattern is the picture: where the oil ends is where the
 // ball is allowed to turn. The picker is behind Lane options.
 await page.getByRole("button", { name: "Lane options" }).click();
@@ -386,7 +394,7 @@ await page.getByRole("button", { name: "Close" }).first().click();
 
 // The layout on the ball, scrolled past the sliders: the drawing of the drilling
 // is what a bowler recognises, and the sliders that make it are not.
-await page.getByRole("button", { name: "Layouts", exact: true }).click();
+await page.getByRole("button", { name: /^Layouts/ }).click();
 await shootBothThemes(page, "layout", 724);
 await page.getByRole("banner").getByRole("button", { name: "Back", exact: true }).first().click();
 

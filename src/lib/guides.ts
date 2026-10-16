@@ -1,7 +1,7 @@
 /**
- * The guide list: layout and equipment articles that do not change between
- * sessions, kept in the app because the alley is where they get read and the
- * app is offline there.
+ * The guide list: how to use the app, then layout and equipment articles that
+ * do not change between sessions, kept in the app because the alley is where
+ * they get read and the app is offline there.
  *
  * Static data rather than a Dexie table. Nothing here is the bowler's, so
  * nothing here has to survive a restore, migrate across a schema version or
@@ -53,12 +53,81 @@ export interface Guide {
   sources?: GuideSource[];
 }
 
-export type GuideTopic = "Layouts" | "Equipment";
+export type GuideTopic = "Getting started" | "Layouts" | "Equipment";
 
 /** Order the shelves appear in. */
-export const GUIDE_TOPICS: readonly GuideTopic[] = ["Layouts", "Equipment"];
+export const GUIDE_TOPICS: readonly GuideTopic[] = ["Getting started", "Layouts", "Equipment"];
 
 export const GUIDES: readonly Guide[] = [
+  {
+    id: "start-here",
+    title: "Start here",
+    summary: "Scoring a game, the boards you can note, and keeping your scores safe.",
+    topic: "Getting started",
+    minutes: 3,
+    body: [
+      {
+        kind: "text",
+        text: "Headpin keeps your score, and if you want, the ball and line behind every shot. Only the score is needed. Everything else can be added later, or never."
+      },
+      { kind: "heading", text: "Scoring a shot" },
+      {
+        kind: "list",
+        items: [
+          "On the first ball every pin starts down. Tap the pins still standing after your shot, then tap Next. Strike records a strike in one tap.",
+          "On the second ball the pins you left are up. Tap the ones you knocked down, or tap Spare if you got them all.",
+          "Under Next, in brackets, is what it's about to record, so you can check before you tap.",
+          "Drag across several pins to set them all in one stroke.",
+          "Foul and Undo last shot are under More."
+        ]
+      },
+      { kind: "heading", text: "Games and sessions" },
+      {
+        kind: "text",
+        text: "A session is one trip to the alley, and it holds every game you bowl there. The + beside the game tabs starts the next game. The pencil at the top adds the alley, the oil pattern and notes, any time."
+      },
+      { kind: "heading", text: "Boards, if you track them" },
+      {
+        kind: "text",
+        text: "A lane is 39 boards wide, counted from the gutter on your throwing side. Board 1 is the right edge for a right-hander and the left edge for a left-hander. The arrows sit on every fifth board."
+      },
+      {
+        kind: "terms",
+        items: [
+          {
+            term: "Stance",
+            text: "The board you line up on before your approach, read from the dots on the approach."
+          },
+          {
+            term: "Target",
+            text: "The board you roll the ball over at the arrows."
+          },
+          {
+            term: "Slide",
+            text: "The board your slide foot finishes on at the foul line."
+          },
+          {
+            term: "Intended and actual",
+            text: "Intended is the shot you meant to throw, and actual is where it went. Noting both is how a miss shows up in your numbers."
+          }
+        ]
+      },
+      {
+        kind: "text",
+        text: "The ball you pick stays picked for the shots after it, so you only change it when you change balls."
+      },
+      { kind: "heading", text: "Spare lines and lane notes" },
+      {
+        kind: "text",
+        text: "Shoot a spare with a line entered, and Headpin offers to save it as your line for that leave. The next time you leave it, the line is filled in for you. Lane notes hold how a lane plays at an alley, for the next time you're on it."
+      },
+      { kind: "heading", text: "Keep your scores safe" },
+      {
+        kind: "text",
+        text: "Your games live on this phone and nowhere else. Add Headpin to your home screen so the browser doesn't clear it, and save a copy now and then from Settings, under Backup & restore."
+      }
+    ]
+  },
   {
     id: "layout-vocabulary",
     title: "Layout vocabulary",

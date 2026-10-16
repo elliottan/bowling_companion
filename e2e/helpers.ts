@@ -29,12 +29,27 @@ export async function clearDatabase(page: Page) {
   await dismissHandednessModal(page);
 }
 
+/**
+ * Open the start-session form from Home or the Score tab, whichever is up.
+ *
+ * Home opens it from its floating button once there are sessions. On a device
+ * that has never scored, Home's one way in is "Start scoring", which skips the
+ * form (ADR-150), so the form is opened from the Score tab instead.
+ */
+export async function openSessionForm(page: Page) {
+  const start = page.getByRole("button", { name: /^(Start session|Start scoring)$/ }).first();
+  await start.waitFor();
+  if ((await start.textContent())?.includes("Start scoring")) {
+    await page.getByRole("navigation").getByRole("button", { name: "Score", exact: true }).click();
+  }
+  await page.getByRole("button", { name: "Start session" }).first().click();
+}
+
 /** Fill the start-session form and submit. Lands on the active scorer. */
 export async function startSession(page: Page, alley: string) {
-  // "Start session" is the one label for this action, so Home offers it twice
-  // (the card and the Fab) and the sheet's commit carries it too. Open with
-  // either, then commit inside the sheet.
-  await page.getByRole("button", { name: "Start session" }).first().click();
+  // "Start session" opens the sheet, and the sheet's commit carries the same
+  // label, so the commit is clicked inside the sheet.
+  await openSessionForm(page);
   const sheet = page.getByRole("dialog", { name: "Start session" });
   await sheet.getByPlaceholder("Pinecrest Lanes").fill(alley);
   await sheet.getByRole("button", { name: "Start session" }).click();

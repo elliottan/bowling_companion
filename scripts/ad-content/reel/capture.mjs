@@ -179,7 +179,7 @@ async function back(app, n = 1) {
  * 36) over 23.5 at the arrows, a straight ball reaches about board 3.
  */
 async function spareSystem(app) {
-  await click(app.getByRole("button", { name: "Ball catalog", exact: true }));
+  await click(app.getByRole("button", { name: /^Ball catalog/ }));
   // The saved bowler's catalog can be older than the app's: let it sync first.
   await wait(500);
   await app.getByText(/Syncing catalog/).waitFor({ state: "hidden", timeout: 60000 }).catch(() => {});
@@ -217,7 +217,15 @@ const pinDown = (app, n) => app.locator(`button[aria-label="Pin ${n} down"]:not(
 
 /** A session at Sunset Lanes with frames 1 to 7 bowled: X X 9/ X 8/ X X. */
 async function sessionToFrame8(app) {
-  await click(app.getByRole("navigation").getByRole("button", { name: "Home" }));
+  const nav = app.getByRole("navigation");
+  await click(nav.getByRole("button", { name: "Home" }));
+  // Home's empty state skips the form (ADR-150): with no session yet, the
+  // form is opened from the Score tab instead.
+  const start = app.getByRole("button", { name: /^(Start session|Start scoring)$/ }).first();
+  await start.waitFor();
+  if ((await start.textContent())?.includes("Start scoring")) {
+    await click(nav.getByRole("button", { name: "Score", exact: true }));
+  }
   await click(app.getByRole("button", { name: "Start session" }).first());
   const sheet = app.getByRole("dialog", { name: "Start session" });
   await sheet.getByPlaceholder("Pinecrest Lanes").fill("Sunset Lanes");
@@ -402,7 +410,7 @@ await take("spares", {
 // The ball catalog: search, a ball's page.
 await take("catalog", {
   async run({ page, app, tap, type, mark, wait }) {
-    await tap(app.getByRole("button", { name: "Ball catalog", exact: true }), "tap-catalog", 900);
+    await tap(app.getByRole("button", { name: /^Ball catalog/ }), "tap-catalog", 900);
     await mark("list", { x: 0, y: 0, w: 390, h: 844 });
     await wait(300);
     // A thumb's flick down the list: the wheel in small steps, easing off.
@@ -432,7 +440,7 @@ const clampTo = (v, a, b) => Math.min(b, Math.max(a, v));
 // swung in turn, with the drawing moving under them.
 await take("layouts", {
   async run({ page, app, tap, mark, wait }) {
-    await tap(app.getByRole("button", { name: "Layouts", exact: true }), "tap-layouts", 900);
+    await tap(app.getByRole("button", { name: /^Layouts/ }), "tap-layouts", 900);
     await mark("top", { x: 0, y: 0, w: 390, h: 844 });
     // Scrolled so the first slider sits under the header, with the ball below.
     const first = app.getByRole("slider", { name: "Drilling angle" });

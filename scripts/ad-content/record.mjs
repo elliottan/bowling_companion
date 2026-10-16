@@ -210,7 +210,7 @@ await rm(join(OUT, "raw"), { recursive: true, force: true });
 // 1. The line draws itself: the lane view, a board changed, a move tried.
 await record("01-line", {
   async setup({ app, tap }) {
-    await tap(app.getByRole("button", { name: "Line visualizer", exact: true }));
+    await tap(app.getByRole("button", { name: /^Line visualizer/ }));
     await app.getByRole("button", { name: "Quick moves" }).waitFor();
   },
   async scene({ app, tap, caption, endCard, wait }) {
@@ -238,7 +238,7 @@ await record("01-line", {
 // there, a third of a board off the pin's centre.
 await record("05-spares", {
   async setup({ app, tap }) {
-    await tap(app.getByRole("button", { name: "Ball catalog", exact: true }));
+    await tap(app.getByRole("button", { name: /^Ball catalog/ }));
     await app.getByPlaceholder("Search name, brand, coverstock…").fill("TZone");
     await tap(app.getByRole("button", { name: /TZone/i }).first());
     await tap(app.getByRole("button", { name: "Add to arsenal" }).first());

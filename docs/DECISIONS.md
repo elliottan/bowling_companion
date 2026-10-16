@@ -6890,3 +6890,70 @@ as the Stats tab's Balls card has them, with the balls behind each row. The
 - **A ball is "too few" under 10 first balls in scope,** not 30. The leaning
   on every ball (twenty imagined balls) keeps one just past the line close to
   the bowler, so its estimate still says little until it has more behind it.
+
+## ADR-150: A first-time bowler gets one way in and one prompt at a time
+
+**Status.** Accepted, 2026-10-16. Amends ADR-080 (both empty states carry
+"Score now") and ADR-115 (Home's start controls and setup card).
+
+**Context.** A walk through the app as a new bowler, on a 390px phone, found
+the first minute cluttered with choices that were the same choice:
+
+- Empty Home offered three ways to start a session: Start session, "Score now,
+  add details later", and the floating plus. The first two differ only in
+  whether a form comes first, which is a question a new bowler cannot answer.
+- The balls were asked for twice, by the arsenal's empty slot and by a Next
+  step with the same title, one under the other.
+- "Score now, add details later" still opened the lanes sheet over the deck.
+  ADR-080 promised the deck, and the e2e test passed only because the deck is
+  visible under the sheet.
+- After the first game, a backup card and a setup step stood together on Home,
+  and the scorer offered "Save this as your line" after every spare whether or
+  not a line had been entered.
+- Once a session existed, the empty state went away and the only start control
+  left was a plus sign with nothing printed on it.
+- The tiles read "None yet" and the tools carried no second line, so Alley
+  report, Layouts and Line visualizer were names a new bowler had to tap to
+  understand.
+
+**Decision.**
+
+- **Empty Home has one action, "Start scoring",** and it goes straight to the
+  deck. The floating button is not shown until there is a session, and from
+  then on it prints its label, "Start session", and opens the form. The Score
+  tab keeps both of its actions: a bowler who goes there has chosen to score,
+  and the form is the only way to name the alley first.
+- **A Score-now game does not open the lanes sheet by itself.** Its one
+  automatic opening is waived when the game is made (`lib/lanePrompt`). Set
+  lanes stays one tap away on the deck, and later games in the session prompt
+  as before.
+- **One prompt on Home at a time:** the protection card (ADR-115), else one
+  setup step, else the feedback ask. None of them before the first session,
+  where the empty state is the only ask. Home skips the arsenal step, which the
+  arsenal's empty slot already makes.
+- **The spare line offer needs a line:** a stance or target on the attempt
+  (ADR-054). Keeping score alone never raises it.
+- **An empty tile says what it is for** ("Where you shoot each spare"), and each
+  tool row carries one line saying what it does. Counts replace the tile's line
+  once there is something to count.
+- **A "Start here" guide** leads the guides, under Getting started: scoring a
+  shot, games and sessions, the boards, spare lines, and keeping the scores
+  safe.
+
+**Consequences.**
+
+- A bowler who wants to name the alley before the first shot does it from the
+  pencil, or from the Score tab's form. Nothing about the session form changed.
+- The e2e helper that starts a session opens the form from the Score tab when
+  Home is empty, and the Score-now test asserts no lanes sheet is open.
+- Smaller fixes from the same pass, with no decision behind them: History and
+  Stats hide their filter and share until there is a session; Spare lines
+  explains itself until one leave has an answer; the Alley report's empty state
+  says what feeds it and starts a session; oil pattern rows lose their pencil
+  (the editor opens from the pattern's sheet); the ball form drops its
+  asterisk; the pattern search placeholder fits the field.
+- Routing the e2e helper through the Score tab's form found a bug there: the
+  form commits while its sheet is up, the new session's route was written onto
+  the sheet's history entry, and collecting that entry left "#/session" with no
+  id, so a reload lost the session. Collecting the sentinel now puts the
+  current route back (`useHistoryRoute`).

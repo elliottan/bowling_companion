@@ -23,10 +23,13 @@ test("scores without filling anything in", async ({ page }) => {
   await page.getByRole("button", { name: "Start fresh" }).click();
   await page.getByRole("button", { name: "right-handed" }).click();
 
-  await page.getByRole("button", { name: "Score now, add details later" }).first().click();
+  // Home's one way in on a device that has never scored (ADR-150).
+  await page.getByRole("button", { name: "Start scoring" }).click();
 
-  // Straight onto the pin deck, no form and no lane editor in the way.
+  // Straight onto the pin deck, no form and no lane editor in the way. The
+  // deck is visible under a sheet too, so the sheet's absence is what tells.
   await expect(page.getByRole("button", { name: RECORD_SHOT })).toBeVisible();
+  await expect(page.getByRole("dialog", { name: /lanes/i })).toHaveCount(0);
 
   // The session it made is real, and says so where it has no alley to print.
   await expect(page.getByText("Unnamed session").first()).toBeVisible();
@@ -64,7 +67,7 @@ test("the welcome screen is the first thing painted, never a Dashboard first", a
     new MutationObserver(() => {
       const buttons = document.querySelectorAll("button");
       for (const b of buttons) {
-        if (b.textContent?.includes("Start session")) {
+        if (b.textContent?.includes("Start scoring")) {
           (window as unknown as { __sawApp?: boolean }).__sawApp = true;
         }
       }
@@ -88,7 +91,7 @@ test("walks new bowlers through to the app", async ({ page }) => {
 
   // The first run is done and hands over to the app.
   await expect(page.getByRole("dialog", { name: "Set up Headpin" })).toHaveCount(0);
-  await expect(page.getByRole("button", { name: "Start session" }).first()).toBeVisible();
+  await expect(page.getByRole("button", { name: "Start scoring" })).toBeVisible();
 });
 
 test("restoring opens the file picker, and cancelling costs nothing", async ({ page }) => {

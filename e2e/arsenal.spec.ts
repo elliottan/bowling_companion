@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { clearDatabase, openArsenalFromHome } from "./helpers";
+import { clearDatabase, openArsenalFromHome, openSessionForm } from "./helpers";
 
 test.beforeEach(async ({ page }) => {
   await clearDatabase(page);
@@ -62,7 +62,7 @@ test("a ball added in the arsenal is selectable on a shot", async ({ page }) => 
 
   // The arsenal is a pushed screen: leave it by its back control.
   await page.getByRole("banner").getByRole("button", { name: "Back", exact: true }).click();
-  await page.getByRole("button", { name: "Start session" }).first().click();
+  await openSessionForm(page);
   await page.getByPlaceholder("Pinecrest Lanes").fill("Arsenal Lanes");
   await page
     .getByRole("dialog", { name: "Start session" })
