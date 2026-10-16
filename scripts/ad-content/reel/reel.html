@@ -21,18 +21,28 @@
       #grain { position: absolute; inset: 0; opacity: 0.05; mix-blend-mode: overlay;
         background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/></filter><rect width='160' height='160' filter='url(%23n)'/></svg>"); }
 
-      /* The app stays in a window under the caption, so a zoom never runs
-         under the words. The window is invisible when the whole phone fits. */
-      #world { position: absolute; inset: 0; perspective: 2400px; clip-path: inset(560px 28px 24px 28px round 60px); }
-      .phone { position: absolute; left: 0; top: 0; transform-origin: 0 0; will-change: transform;
-        background: #04070d; box-shadow: 0 60px 140px rgb(0 0 0 / 0.65), 0 0 0 2px rgb(255 255 255 / 0.07) inset; }
-      .phone img { position: absolute; display: block; }
+      /* The phone is a whole iPhone: a black bezel with a titanium edge, the
+         status bar and the Dynamic Island, then the app. A zoom moves the whole
+         device, so it runs off the edges of the frame rather than being cut by
+         a window; the captions sit on a fade at the top. */
+      #world { position: absolute; inset: 0; perspective: 2400px; }
+      .phone { position: absolute; left: 0; top: 0; transform-origin: 0 0; will-change: transform; background: #05070b;
+        box-shadow: 0 60px 140px rgb(0 0 0 / 0.65), 0 0 0 var(--edge) #4a4f58 inset, 0 0 0 calc(var(--edge) * 2) #23262c inset; }
+      .phone .screen { position: absolute; overflow: hidden; }
+      .phone img { position: absolute; display: block; left: 0; }
+      .phone .bar { position: absolute; left: 0; top: 0; width: 100%; display: flex; align-items: center; justify-content: space-between;
+        font: 600 var(--fs) Inter, system-ui, sans-serif; letter-spacing: -0.01em; color: #fff; }
+      .phone .bar svg { height: 100%; width: auto; display: block; }
+      .phone .island { position: absolute; left: 50%; background: #000; border-radius: 999px; transform: translateX(-50%); }
       .phone .sheen { position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
         background: linear-gradient(125deg, rgb(255 255 255 / 0.10) 0%, rgb(255 255 255 / 0) 35%); }
+      /* Solid behind the caption, then gone by the device's top edge's first
+         rows, so a zoomed app never shows through the words. */
+      #scrim { position: absolute; left: 0; right: 0; top: 0; height: 610px; pointer-events: none;
+        background: linear-gradient(180deg, rgb(8 13 24 / 0.98) 0%, rgb(8 13 24 / 0.95) 76%, rgb(8 13 24 / 0) 100%); }
 
       #fx { position: absolute; inset: 0; width: 1080px; height: 1920px; }
-      /* Rims, rings and taps belong to the app, so they stay in its window. */
-      #taps, #finger-clip { position: absolute; inset: 0; clip-path: inset(560px 28px 24px 28px round 60px); }
+      #taps, #finger-clip { position: absolute; inset: 0; }
       #fx .rim { fill: none; stroke: #5ed6c1; stroke-width: 5; }
       #fx .circle { fill: none; stroke: #ffb020; stroke-width: 9; stroke-linecap: round; }
 
@@ -66,18 +76,15 @@
   <body>
     <div id="bg"><div class="glow" id="g1"></div><div class="glow" id="g2"></div></div>
     <div id="world"></div>
+    <div id="scrim"></div>
     <svg id="fx" viewBox="0 0 1080 1920">
       <defs>
-        <!-- The app's window (as #world's clip), in this SVG's own pixels. -->
-        <clipPath id="win"><rect x="28" y="560" width="1024" height="1336" rx="60" /></clipPath>
         <mask id="holes"><rect width="1080" height="1920" fill="white" /><g id="hole-g"></g></mask>
         <filter id="glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="9" result="b" /><feMerge><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge></filter>
       </defs>
-      <g clip-path="url(#win)">
-        <rect id="dim" width="1080" height="1920" fill="#03060c" mask="url(#holes)" />
-        <g id="rims" filter="url(#glow)"></g>
-        <g id="circles"></g>
-      </g>
+      <rect id="dim" width="1080" height="1920" fill="#03060c" mask="url(#holes)" />
+      <g id="rims" filter="url(#glow)"></g>
+      <g id="circles"></g>
     </svg>
     <div id="taps"></div>
     <div id="finger-clip"><div id="finger"></div></div>
@@ -99,16 +106,35 @@
       const phones = new Map();
       const loaded = new Map();
 
+      // The status bar's right side: signal, Wi-Fi, battery, in a 78 x 13 box.
+      const ICONS = `<svg viewBox="0 0 78 13" fill="#fff"><rect x="0" y="8" width="3.2" height="4.5" rx="1"/><rect x="4.7" y="6" width="3.2" height="6.5" rx="1"/><rect x="9.4" y="3.5" width="3.2" height="9" rx="1"/><rect x="14.1" y="1" width="3.2" height="11.5" rx="1"/><path d="M31 2.6a10 10 0 0 1 7 2.9l1.3-1.3A11.9 11.9 0 0 0 31 .7a11.9 11.9 0 0 0-8.3 3.5L24 5.5a10 10 0 0 1 7-2.9Zm0 3.7a6.3 6.3 0 0 1 4.4 1.8l1.3-1.3A8.1 8.1 0 0 0 31 4.4a8.1 8.1 0 0 0-5.7 2.4l1.3 1.3A6.3 6.3 0 0 1 31 6.3Zm0 3.7c.7 0 1.3.3 1.8.7L31 12.5l-1.8-1.8c.5-.4 1.1-.7 1.8-.7Z"/><rect x="50.5" y="0.5" width="24" height="12" rx="3.6" fill="none" stroke="#fff" stroke-opacity="0.4"/><rect x="52.5" y="2.5" width="16" height="8" rx="2"/><path d="M76 4.2v4.6a2.5 2.5 0 0 0 0-4.6Z" fill-opacity="0.45"/></svg>`;
+
       function phoneEl(key) {
         let p = phones.get(key);
         if (!p) {
           p = document.createElement("div");
           p.className = "phone";
-          p.innerHTML = `<img /><div class="sheen"></div>`;
+          p.innerHTML = `<div class="screen"><div class="bar"><span>9:41</span>${ICONS}</div><img /><div class="island"></div></div><div class="sheen"></div>`;
           world.appendChild(p);
           phones.set(key, p);
         }
         return p;
+      }
+
+      // The status bar takes the colour of the app's top edge, read from the
+      // frame itself, so it runs on as the app's own header does.
+      const tops = new Map();
+      const probe = document.createElement("canvas").getContext("2d", { willReadFrequently: true });
+      function topColour(img) {
+        const src = img.dataset.src;
+        if (!tops.has(src)) {
+          probe.canvas.width = 1;
+          probe.canvas.height = 1;
+          probe.drawImage(img, 40, 1, 1, 1, 0, 0, 1, 1);
+          const [r, g, b] = probe.getImageData(0, 0, 1, 1).data;
+          tops.set(src, `rgb(${r} ${g} ${b})`);
+        }
+        return tops.get(src);
       }
 
       async function setSrc(img, src) {
@@ -127,27 +153,43 @@
 
         // Phones.
         const live = new Set();
+        // p.x, p.y is the top left of the app itself and p.s its scale; the
+        // status bar and the bezel are drawn around it.
+        const BAR = 50;
+        const BEZEL = 13;
+        const RADIUS = 54;
         for (const p of f.phones) {
           live.add(p.key);
           const el = phoneEl(p.key);
-          const bez = p.bezel;
+          const s = p.s;
+          const w = 390 * s;
+          const h = 844 * s;
+          const bar = BAR * s;
+          const bez = BEZEL * s;
+          const W = w + bez * 2;
+          const H = h + bar + bez * 2;
           el.style.display = "block";
-          el.style.width = `${p.w + bez * 2}px`;
-          el.style.height = `${p.h + bez * 2}px`;
-          el.style.borderRadius = `${p.radius + bez}px`;
+          el.style.width = `${W}px`;
+          el.style.height = `${H}px`;
+          el.style.borderRadius = `${(RADIUS + BEZEL) * s}px`;
+          el.style.setProperty("--edge", `${Math.max(1.5, 1.6 * s)}px`);
+          el.style.setProperty("--fs", `${17 * s}px`);
           el.style.opacity = p.opacity;
           el.style.zIndex = p.z ?? 1;
           el.style.filter = p.blur ? `blur(${p.blur}px)` : "none";
           el.style.transform =
-            `translate(${p.x - bez}px, ${p.y - bez}px) translate(${p.w / 2 + bez}px, ${p.h / 2 + bez}px) ` +
-            `rotateY(${p.rotY ?? 0}deg) rotateZ(${p.rotZ ?? 0}deg) scale(${p.scale ?? 1}) translate(${-(p.w / 2 + bez)}px, ${-(p.h / 2 + bez)}px)`;
+            `translate(${p.x - bez}px, ${p.y - bar - bez}px) translate(${W / 2}px, ${H / 2}px) ` +
+            `rotateY(${p.rotY ?? 0}deg) rotateZ(${p.rotZ ?? 0}deg) scale(${p.scale ?? 1}) translate(${-W / 2}px, ${-H / 2}px)`;
+          const screen = el.querySelector(".screen");
+          Object.assign(screen.style, { left: `${bez}px`, top: `${bez}px`, width: `${w}px`, height: `${h + bar}px`, borderRadius: `${RADIUS * s}px` });
+          const barEl = el.querySelector(".bar");
+          Object.assign(barEl.style, { height: `${bar}px`, padding: `${16 * s}px ${30 * s}px ${14 * s}px ${48 * s}px` });
+          Object.assign(el.querySelector(".island").style, { top: `${11 * s}px`, width: `${124 * s}px`, height: `${36 * s}px` });
           const img = el.querySelector("img");
-          img.style.left = `${bez}px`;
-          img.style.top = `${bez}px`;
-          img.style.width = `${p.w}px`;
-          img.style.height = `${p.h}px`;
-          img.style.borderRadius = `${p.radius}px`;
-          waits.push(setSrc(img, p.src));
+          img.style.top = `${bar}px`;
+          img.style.width = `${w}px`;
+          img.style.height = `${h}px`;
+          waits.push(setSrc(img, p.src).then(() => (screen.style.background = topColour(img))));
         }
         for (const [key, el] of phones) if (!live.has(key)) el.style.display = "none";
 
@@ -209,6 +251,7 @@
           });
         }
         $("flash").style.opacity = f.flash ?? 0;
+        $("scrim").style.opacity = f.end ? 0 : 1;
         await Promise.all(waits);
       };
       window.ready = document.fonts.ready.then(() => $("end").querySelector("img").decode().catch(() => {}));

@@ -4,8 +4,9 @@ A 9:16 reel that flips through what Headpin does on one league night: a ball,
 a line, the lane view, scoring, the line carrying over to the next shot, a 2-1
 move, a spare ball and line that are already set, the tenth and the stats.
 Then it flicks through the rest, one screen to a word (sessions, oil patterns,
-bowling balls, the layout visualizer), deals all four out in a fan for "All
-on Headpin", and ends on the card. It is built from the real app in two
+the ball catalog scrolling, the layout visualizer with its three sliders
+swung), deals all four out in a fan for "All on Headpin", and ends on the
+card. It is built from the real app in two
 passes, so the footage stays honest and the editing stays smooth.
 
 1. **`capture.mjs`** drives the app in Playwright and records takes: Chrome's
@@ -44,11 +45,17 @@ way to check a change to the edit.
 
 ## Layout rules
 
-- Captions sit at the top, below Meta's top safe margin (290 px), and the app
-  lives in a rounded window under them (from y 560), so a zoom never runs
-  under the words.
-- Whatever the camera is on is placed at y 905, the middle of the area that
-  Reels and TikTok leave clear (their buttons cover the bottom 680 px).
+- The app is shown in a whole iPhone (bezel, titanium edge, status bar and
+  Dynamic Island), as big as fits under a two-line caption: its top edge at
+  y 468, running to the bottom of the frame.
+- A zoom moves the whole device, which then runs off the sides of the frame
+  rather than being cut by a window, and it never rises off the bottom.
+- Captions sit at the top, below Meta's top safe margin (290 px), on a fade
+  that is solid behind the words, so a zoomed app never shows through them.
+- Whatever the camera is on is placed at y 960, the middle of the area that
+  Reels and TikTok leave clear (their buttons cover the bottom 680 px); a shot
+  can set its own height (`fy`), as the hook does to fill the frame with the
+  lane.
 - One effect at a time: a spotlight, a ring or a tap, not all three at once.
 - Pull back before going in. A beat on the scorer opens on the whole screen, or
   the whole card down to the notes, and only then zooms to the one control it

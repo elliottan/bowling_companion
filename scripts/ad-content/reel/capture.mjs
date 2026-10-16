@@ -397,15 +397,19 @@ await take("spares", {
 
 // The ball catalog: search, a ball's page.
 await take("catalog", {
-  async run({ app, tap, type, mark, wait }) {
+  async run({ page, app, tap, type, mark, wait }) {
     await tap(app.getByRole("button", { name: "Ball catalog", exact: true }), "tap-catalog", 900);
     await mark("list", { x: 0, y: 0, w: 390, h: 844 });
-    const list = app.locator("main, [role=dialog]").last();
-    await list.evaluate((el) => {
-      const s = [...el.querySelectorAll("*")].find((n) => n.scrollHeight > n.clientHeight + 200 && getComputedStyle(n).overflowY !== "visible");
-      (s ?? document.scrollingElement).scrollBy({ top: 1400, behavior: "smooth" });
-    }).catch(() => {});
-    await wait(1400);
+    await wait(300);
+    // A thumb's flick down the list: the wheel in small steps, easing off.
+    await mark("scroll", { x: 0, y: 0, w: 390, h: 844 });
+    await page.mouse.move(195 * SCALE, 560 * SCALE);
+    for (let k = 0; k < 40; k++) {
+      await page.mouse.wheel(0, 70 * (1 - k / 48));
+      await wait(30);
+    }
+    await mark("scrolled", { x: 0, y: 0, w: 390, h: 844 });
+    await wait(500);
     const search = app.getByPlaceholder("Search name, brand, coverstock…");
     await tap(search, "tap-search", 200);
     await type("Phaze", 90);
@@ -418,34 +422,49 @@ await take("catalog", {
   }
 });
 
-// The layout of a ball, drawn on the ball.
+const clampTo = (v, a, b) => Math.min(b, Math.max(a, v));
+
+// The layout of a ball, drawn on the ball: the three sliders that set it, each
+// swung in turn, with the drawing moving under them.
 await take("layouts", {
   async run({ page, app, tap, mark, wait }) {
     await tap(app.getByRole("button", { name: "Layouts", exact: true }), "tap-layouts", 900);
     await mark("top", { x: 0, y: 0, w: 390, h: 844 });
-    const drawing = app.getByText("On the ball", { exact: true }).first();
-    await drawing.evaluate((el) => el.scrollIntoView({ behavior: "smooth", block: "start" }));
-    await wait(1100);
-    await mark("drawing", drawing.locator("xpath=following-sibling::*[1]"));
-    // Swing the VAL angle, so the drilling moves on the ball.
-    const val = app.getByRole("slider", { name: "VAL angle" });
-    const r = await boxOf(val);
-    const thumb = (v) => r.x + 10 + ((v - Number(min)) / (Number(max) - Number(min))) * (r.w - 20);
-    const [min, max, now0] = await val.evaluate((el) => [el.min, el.max, el.value]);
-    const y = (r.y + r.h / 2) * 2;
-    await mark("drag", val);
-    await page.mouse.move(thumb(Number(now0)) * 2, y);
-    await page.mouse.down();
-    for (let k = 1; k <= 24; k++) {
-      await page.mouse.move(thumb(Number(now0) + (k / 24) * 25) * 2, y);
-      await wait(35);
-    }
-    await page.mouse.up();
-    await mark("dragged", drawing.locator("xpath=following-sibling::*[1]"));
-    await wait(900);
+    // Scrolled so the first slider sits under the header, with the ball below.
+    const first = app.getByRole("slider", { name: "Drilling angle" });
+    await first.evaluate((el) => {
+      const box = el.closest("div.rounded-xl, section") ?? el;
+      const y = box.getBoundingClientRect().top;
+      let s = el.parentElement;
+      while (s && !(s.scrollHeight > s.clientHeight + 20 && getComputedStyle(s).overflowY !== "visible")) s = s.parentElement;
+      (s ?? document.scrollingElement).scrollBy({ top: y - 120, behavior: "smooth" });
+    });
+    await wait(1000);
+    await mark("sliders", { x: 0, y: 0, w: 390, h: 844 });
+    const swing = async (name, by) => {
+      const el = app.getByRole("slider", { name });
+      const r = await boxOf(el);
+      const [min, max, v0] = (await el.evaluate((n) => [n.min, n.max, n.value])).map(Number);
+      const at = (v) => (r.x + 10 + ((v - min) / (max - min)) * (r.w - 20)) * SCALE;
+      const y = (r.y + r.h / 2) * SCALE;
+      const to = clampTo(v0 + by * (max - min), min, max);
+      await mark(`drag-${name}`, el);
+      await page.mouse.move(at(v0), y);
+      await page.mouse.down();
+      for (let k = 1; k <= 16; k++) {
+        await page.mouse.move(at(v0 + (to - v0) * (1 - Math.pow(1 - k / 16, 2))), y);
+        await wait(30);
+      }
+      await page.mouse.up();
+      await wait(150);
+    };
+    await swing("Drilling angle", 0.3);
+    await swing("Pin to PAP", -0.25);
+    await swing("VAL angle", 0.3);
+    await mark("dragged", { x: 0, y: 0, w: 390, h: 844 });
+    await wait(700);
   }
 });
-
 /**
  * History with some weeks behind it. The saved bowler bowled five nights in
  * one sitting, one game most nights; a league bowler's list reads as weeks

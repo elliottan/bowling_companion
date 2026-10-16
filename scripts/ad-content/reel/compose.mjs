@@ -31,10 +31,13 @@ const PREVIEW = process.env.REEL_PREVIEW; // "t1,t2,..." renders only those stil
 
 const APP_W = 390;
 const APP_H = 844;
-const S_FULL = 1.55; // phone scale when the whole screen is in view
-const FULL_TOP = 600;
-const FOCUS = { x: 540, y: 890 }; // where a zoomed subject sits: the middle of the safe area
-const WIN = { l: 28, r: 1052, t: 560, b: 1896 }; // the app's window under the caption (reel.html)
+const S_FULL = 1.58; // phone scale when the whole device is in view
+const FULL_TOP = 468; // the device's top edge then, just under a two-line caption
+const FOCUS = { x: 540, y: 960 }; // where a zoomed subject sits: the middle of the clear area
+// The device around the app, in app pixels (reel.html draws it): a bezel all
+// round and the status bar above the app.
+const BEZEL = 13;
+const BAR = 50;
 
 const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
 const lerp = (a, b, k) => a + (b - a) * k;
@@ -120,13 +123,13 @@ const WIDE = { x: 0, y: 56, w: 390, h: 340 };
 
 const BEATS = [
   // Hook: the line drawn over a PBA pattern's oil, captioned from frame one,
-  // then three screens flipped past fast, each one whole so the eye knows what
-  // it is looking at.
+  // the lane filling the frame from the caption down.
   { id: "hook", take: "patterns", from: "tap-try+0.36", to: "tap-try+1.75", dur: 1.75, caption: "Still guessing <em>your line</em>?", vo: "hook", instant: true,
-    cam: [{ at: "tap-try+0.36", box: { x: 30, y: 60, w: 330, h: 640 }, z: 1.12, ease: 0 }, { at: "tap-try+0.4", box: { x: 30, y: 60, w: 330, h: 640 }, z: 1.3, ease: 1.4 }] },
-  { id: "flip-a", take: "game", from: "stats+0.5", to: "stats+0.7", dur: 0.3, caption: "Headpin <em>tracks it all</em>.", captionKey: "all", vo: "all", trans: "flip" },
-  { id: "flip-b", take: "catalog", from: "list+0.2", to: "list+0.4", dur: 0.3, captionKey: "all", trans: "flip" },
-  { id: "flip-c", take: "game", from: 0.1, to: "ball-1.05", dur: 0.6, captionKey: "all", trans: "flip" },
+    cam: [{ at: "tap-try+0.36", box: { x: 0, y: 95, w: 390, h: 605 }, z: 1.42, fy: 1210, ease: 0 },
+          { at: "tap-try+0.4", box: { x: 0, y: 95, w: 390, h: 605 }, z: 1.55, fy: 1210, ease: 1.4 }] },
+  // Then the scorer, pulled back to the whole phone.
+  { id: "all", take: "game", from: 0.1, to: "ball-1.05", caption: "Headpin <em>tracks it all</em>.", vo: "all", trans: "flip",
+    cam: [{ at: 0.1, box: WIDE, z: 1.35, ease: 0 }, { at: 0.2, box: FULL, z: 1, ease: 0.9 }] },
 
   // The game, frames 8 to 10. Each beat opens wide enough to see where on the
   // scorer it is, then goes in on the one thing it is about.
@@ -177,10 +180,11 @@ const BEATS = [
   // The rest of the app, flicked past one screen to a word, then all of it.
   { id: "sessions", pad: 0.02, take: "history", from: "list", to: "list+0.9", caption: "Unlimited <em>sessions</em>.", vo: "sessions", trans: "flip" },
   { id: "oil", pad: 0.02, take: "patterns", from: "graph-0.2", to: "graph+0.6", caption: "Oil <em>patterns</em>.", vo: "oil", trans: "whip" },
-  { id: "balls", pad: 0.02, take: "catalog", from: "tap-ball+0.1", to: "ball-0.1", caption: "Bowling <em>balls</em>.", vo: "balls", trans: "flip" },
-  { id: "layouts", pad: 0.02, take: "layouts", from: "drag-0.15", to: "dragged+0.3", caption: "Layout <em>visualizer</em>.", vo: "layouts", trans: "whip" },
+  { id: "balls", pad: 0.02, take: "catalog", from: "scroll", to: "scrolled-0.2", dur: 1.25, caption: "Bowling <em>balls</em>.", vo: "balls", trans: "flip" },
+  { id: "layouts", pad: 0.02, take: "layouts", from: "sliders", to: "dragged+0.2", dur: 2.0, caption: "Layout <em>visualizer</em>.", vo: "layouts", trans: "whip",
+    cam: [{ at: "sliders", box: { x: 0, y: 40, w: 390, h: 470 }, z: 1.3, fy: 1020, ease: 0 }] },
   { id: "fan", caption: "All on <em>Headpin</em>.", vo: "fan", trans: "zoom", min: 1.25, pad: 0.05,
-    fan: [{ take: "history", at: "list+0.9" }, { take: "patterns", at: "graph+0.6" }, { take: "catalog", at: "ball+0.6" }, { take: "layouts", at: "dragged+0.3" }] },
+    fan: [{ take: "history", at: "list+0.9" }, { take: "patterns", at: "graph+0.6" }, { take: "catalog", at: "scrolled" }, { take: "layouts", at: "dragged+0.3" }] },
 
   { id: "end", end: true, vo: "end", trans: "zoom", min: 2.75 }
 ];
@@ -282,29 +286,36 @@ function cameraAt(beat, u) {
     t: (timeOf(beat.take, c.at) - beat.src0) / beat.speed,
     box: union(boxesOf(beat.take, c.box)),
     z: c.z,
+    fy: c.fy ?? FOCUS.y,
     ease: c.ease ?? 0.4
   }));
-  const pose = (st) => ({ cx: st.box.x + st.box.w / 2, cy: st.box.y + st.box.h / 2, z: st.z });
+  const pose = (st) => ({ cx: st.box.x + st.box.w / 2, cy: st.box.y + st.box.h / 2, z: st.z, fy: st.fy });
   let p = pose(stops[0]);
   for (const st of stops.slice(1)) {
     if (u <= st.t) break;
     const k = st.ease > 0 ? easeInOut(clamp((u - st.t) / st.ease)) : 1;
     const q = pose(st);
-    p = { cx: lerp(p.cx, q.cx, k), cy: lerp(p.cy, q.cy, k), z: lerp(p.z, q.z, k) };
+    p = { cx: lerp(p.cx, q.cx, k), cy: lerp(p.cy, q.cy, k), z: lerp(p.z, q.z, k), fy: lerp(p.fy, q.fy, k) };
   }
   // A slow push the whole beat long, so no shot is ever quite still.
   const z = p.z * (1 + 0.025 * (u / beat.dur));
   const s = S_FULL * z;
   const k = smooth(clamp((z - 1.04) / 0.3));
+  // x, y is the app's own top left; the device's edges are BEZEL (and BAR)
+  // further out.
   const fullX = 540 - (APP_W * s) / 2;
-  const fullY = FULL_TOP - (z - 1) * 260;
+  const fullY = FULL_TOP + (BEZEL + BAR) * s - (z - 1) * 260;
   let x = lerp(fullX, FOCUS.x - s * p.cx, k);
-  let y = lerp(fullY, FOCUS.y - s * p.cy, k);
-  // Zoomed in, the phone always fills the window: no edge of it drifts in.
-  const W = APP_W * s;
-  const H = APP_H * s;
-  if (W >= WIN.r - WIN.l) x = clamp(x, WIN.r - W, WIN.l);
-  if (H >= WIN.b - WIN.t && k > 0.5) y = clamp(y, WIN.b - H, WIN.t);
+  let y = lerp(fullY, p.fy - s * p.cy, k);
+  // Zoomed in, the device runs off both sides rather than one edge drifting
+  // into the frame, and never drops below where it stands when whole.
+  if ((APP_W + 2 * BEZEL) * s >= 1080) x = clamp(x, 1080 - (APP_W + BEZEL) * s, BEZEL * s);
+  if (k > 0.5) {
+    const top = y - (BEZEL + BAR) * s;
+    const bottom = y + (APP_H + BEZEL) * s;
+    if (top > FULL_TOP) y -= top - FULL_TOP;
+    else if (bottom < 1920) y += Math.min(1920 - bottom, FULL_TOP - top);
+  }
   return { s, x, y };
 }
 const toCanvas = (cam, b, pad = 0) => ({
@@ -385,12 +396,13 @@ function beatFrame(beats, i, u) {
     const s = 0.8;
     b.fan.forEach((it, j) => {
       const k = clamp((u - j * 0.07) / 0.35);
-      const w = APP_W * s;
-      const h = APP_H * s;
       const cx = 540 + [-292, -98, 98, 292][j];
-      const cy = 1070 + [26, 0, 0, 26][j] - 14 * (u / b.dur);
-      f.phones.push({ key: `fan${j}`, src: frameAt(it.take, timeOf(it.take, it.at)), x: cx - w / 2, y: cy - h / 2 + (1 - easeOut(k)) * 120, w, h,
-        radius: 40 * (s / S_FULL) * 1.6, bezel: 10, opacity: easeOut(k), z: [1, 2, 3, 2][j],
+      const cy = 1080 + [26, 0, 0, 26][j] - 14 * (u / b.dur);
+      // The device's centre at cx, cy; the app inside it.
+      const x = cx - ((APP_W + 2 * BEZEL) * s) / 2 + BEZEL * s;
+      const y = cy - ((APP_H + BAR + 2 * BEZEL) * s) / 2 + (BEZEL + BAR) * s;
+      f.phones.push({ key: `fan${j}`, src: frameAt(it.take, timeOf(it.take, it.at)), x, y: y + (1 - easeOut(k)) * 120, s,
+        opacity: easeOut(k), z: [1, 2, 3, 2][j],
         rotZ: [-9, -3, 3, 9][j] * easeOutBack(k), scale: 0.8 + 0.2 * easeOutBack(k) + 0.03 * (u / b.dur) });
     });
     return f;
@@ -398,8 +410,7 @@ function beatFrame(beats, i, u) {
   let src = Math.min(b.src0 + u * b.speed, b.src1);
   if (b.freeze) src = Math.min(src, timeOf(b.take, b.freeze));
   const cam = cameraAt(b, u);
-  const radius = 40 * (cam.s / S_FULL);
-  f.phones.push({ key: "a", src: frameAt(b.take, src), x: cam.x, y: cam.y, w: APP_W * cam.s, h: APP_H * cam.s, radius, bezel: 16 * (cam.s / S_FULL), opacity: 1 });
+  f.phones.push({ key: "a", src: frameAt(b.take, src), x: cam.x, y: cam.y, s: cam.s, opacity: 1 });
   const local = (ref) => (timeOf(b.take, ref) - b.src0) / b.speed;
 
   // Spotlight: the lit boxes of whichever spot is on, faded in and out.
