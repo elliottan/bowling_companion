@@ -155,9 +155,11 @@ const BEATS = [
           { at: "tap-strike+0.12", box: box("game", "frame8"), z: 2.6, ease: 0.3 }],
     spots: [{ from: "strike+0.1", to: "tap-strike+0.1", boxes: [box("game", "strike", 0)] },
             { from: "tap-strike+0.35", to: "frame8+0.45", boxes: "frame8" }] },
-  { id: "carry", take: "game", from: "carry", to: "carry+1.45", caption: "Your line carries over|<em>to the next shot</em>.", vo: "carry", trans: "cut",
-    cam: [{ at: "carry", box: WIDE, z: 1.3, ease: 0 }, { at: "carry+0.3", box: "carry", z: 2.15, ease: 0.45 }],
-    spots: [{ from: "carry+0.75", to: "carry+1.45", boxes: "carry" }] },
+  // From the strike's frame, a pan down and across to the ball and line
+  // already filled in for the next shot: no cut, no pulling back.
+  { id: "carry", take: "game", from: "carry", to: "carry+1.45", caption: "Your line carries over|<em>to the next shot</em>.", vo: "carry", trans: "none",
+    cam: [{ at: "carry", box: box("game", "frame8"), z: 2.66, ease: 0 }, { at: "carry+0.08", box: "carry", z: 2.15, ease: 0.7 }],
+    spots: [{ from: "carry+0.7", to: "carry+1.45", boxes: "carry" }] },
   { id: "move", take: "game", from: "tap-stance2-0.3", to: "moved+0.35", caption: "Went high? Move in|<em>2-1 with one tap.</em>", capSize: 76, vo: "move", trans: "cut",
     // Straight in on the moves, wide enough for the whole line beside them.
     cam: [{ at: "tap-stance2-0.3", box: [box("game", "moves", 0), ...boxesOf("game", "moved")], z: 1.55, ease: 0 }],
