@@ -9,6 +9,15 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.39.0: Where each line was thrown (2026-10-16)
+
+**The Alley report's best lines and last session name the alley and oil
+pattern** they were thrown on. The lines by ball list is gone.
+
+**Estimates read as estimates.** Each one has a tilde ("~204"), and the
+heading reads "Actual overall average". An opened ball also shows how many of
+its leaves you picked up, splits included, beside all your balls.
+
 ## 0.38.0: What you'd average with each ball (2026-10-15)
 
 **The Alley report opens on your balls.** Each one shows what you'd average

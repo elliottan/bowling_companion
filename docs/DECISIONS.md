@@ -6834,3 +6834,34 @@ more splits, which cost more than the pins say.
 - Lines are not modelled yet. A line is read in counts below, as ADR-122 has
   it, until there is a way to group neighbouring lines that does not merge a
   move the bowler made on purpose.
+
+
+## ADR-148: The Alley report names where each line was thrown, and drops the lines by ball
+
+**Status.** Accepted, 2026-10-16. Amends ADR-147 (the Estimated average
+section) and ADR-122 (the report's lists).
+
+**Context.** The best lines are read across every session in scope, so a line
+on the list could have been thrown on any pattern the alley ran, and nothing on
+the row said which. The last session had the same gap. The lines by ball list,
+every line of every ball behind a row each, was the one list the owner found
+unusable. Two labels on the estimates read badly: "Yours here" beside the
+heading, and a bare number that could be taken for a score.
+
+**Decision.**
+
+- **Each best line names its alley and pattern** under its boards, and the last
+  session names its own under its heading. A line thrown on two patterns names
+  both; on more, it says how many.
+- **Lines by ball is removed.** The lines that matter stay a tap away from the
+  best lines, the last session and the line changes.
+- **The heading reads "Actual overall average: 196",** and every estimate
+  carries a tilde ("~204"), so an estimate is never read as a score.
+- **An opened ball adds Leaves made:** of the leaves it left that a ball
+  followed, splits included, how many were picked up, beside every ball's. It
+  is not the Stats tab's spare %, which leaves splits out (ADR-036): here the
+  splits are the point.
+
+**Consequences.**
+- `LineShot` carries the session's alley and pattern, and `LastSession` both.
+- `StrikeProfile` counts the pickups behind its leaves.

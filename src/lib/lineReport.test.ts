@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { bestLines, buildLineReport, findLine, lastSession, lineId, MAX_MOVES, NO_BALL } from "./lineReport";
+import { bestLines, buildLineReport, findLine, lastSession, lineId, MAX_MOVES, NO_BALL, wherePlayed } from "./lineReport";
 import type { Ball, Frame, Game, PinNumber, SessionSummary, Shot } from "../types/bowling";
 
 const BALLS: Ball[] = [
@@ -194,6 +194,7 @@ describe("the last session here", () => {
   it("is the newest session's lines, counted inside that session only", () => {
     const last = lastSession(buildLineReport([OLDER, MOVED], BALLS, {}))!;
     expect(last.date).toBe("2026-10-07");
+    expect(last.alley).toBe("Club");
     expect(last.lines.map((l) => [l.line.stance, l.line.target, l.thrown, l.strikes])).toEqual([
       [4, 7, 10, 7],
       [5, 7, 6, 3],
@@ -203,5 +204,38 @@ describe("the last session here", () => {
 
   it("is nothing when there is nothing recorded", () => {
     expect(lastSession(buildLineReport([], BALLS, {}))).toBeNull();
+  });
+});
+
+describe("where a line was played", () => {
+  it("names the alley and the pattern", () => {
+    expect(wherePlayed([{ alley: "Club", pattern: "Chromium" }])).toBe("Club \u00b7 Chromium");
+  });
+
+  it("names both patterns of a line thrown on two, and counts past that", () => {
+    expect(
+      wherePlayed([
+        { alley: "Club", pattern: "Chromium" },
+        { alley: "Club", pattern: "Mercury" },
+        { alley: "Club", pattern: "Chromium" }
+      ])
+    ).toBe("Club \u00b7 Chromium, Mercury");
+    expect(
+      wherePlayed([
+        { alley: "Club", pattern: "A" },
+        { alley: "Club", pattern: "B" },
+        { alley: "Club", pattern: "C" }
+      ])
+    ).toBe("Club \u00b7 3 patterns");
+  });
+
+  it("says when no pattern was recorded", () => {
+    expect(wherePlayed([{ alley: "Club" }])).toBe("Club \u00b7 no pattern");
+  });
+
+  it("carries the session's alley and pattern on every shot", () => {
+    const tagged = { ...MOVED, session: { ...MOVED.session, oil_pattern: "Chromium" } };
+    const [line] = bestLines(buildLineReport([tagged], BALLS, {}));
+    expect(wherePlayed(line.shots)).toBe("Club \u00b7 Chromium");
   });
 });

@@ -240,10 +240,18 @@ export interface StrikeProfile {
   otherwise: { balls: number; strikes: number };
   /** Leaves off its fresh-rack balls, keyed "2-4-5". */
   leaves: Map<string, { pins: PinNumber[]; count: number }>;
+  /** Its leaves that a ball followed, and the ones picked up, splits and all:
+   *  how easy what it leaves turned out to be, whoever shot the spare. */
+  pickups: { chances: number; made: number };
 }
 
 export function emptyProfile(): StrikeProfile {
-  return { afterStrike: { balls: 0, strikes: 0 }, otherwise: { balls: 0, strikes: 0 }, leaves: new Map() };
+  return {
+    afterStrike: { balls: 0, strikes: 0 },
+    otherwise: { balls: 0, strikes: 0 },
+    leaves: new Map(),
+    pickups: { chances: 0, made: 0 }
+  };
 }
 
 export interface ReadOptions {
@@ -295,7 +303,7 @@ export function readGames(
           const shot = frame.shots[i];
           const next: Shot | undefined = frame.shots[i + 1];
           if (counted) {
-            for (const profile of profilesFor(shot, all, byBall)) tallyBall(profile, shot, lastStruck);
+            for (const profile of profilesFor(shot, all, byBall)) tallyBall(profile, shot, next, lastStruck);
             if (shot.pins_standing.length > 0 && next) {
               const made = next.pins_standing.length === 0;
               spares.record(shot.pins_standing, made, shot.pins_standing.length - next.pins_standing.length);
@@ -316,12 +324,16 @@ function profilesFor(shot: Shot, all: StrikeProfile, byBall: Map<number, StrikeP
   return [all, own];
 }
 
-function tallyBall(profile: StrikeProfile, shot: Shot, afterStrike: boolean): void {
+function tallyBall(profile: StrikeProfile, shot: Shot, next: Shot | undefined, afterStrike: boolean): void {
   const bucket = afterStrike ? profile.afterStrike : profile.otherwise;
   bucket.balls++;
   if (shot.pins_standing.length === 0) {
     bucket.strikes++;
     return;
+  }
+  if (next) {
+    profile.pickups.chances++;
+    if (next.pins_standing.length === 0) profile.pickups.made++;
   }
   const pins = [...shot.pins_standing].sort((a, b) => a - b) as PinNumber[];
   const k = pins.join("-");
@@ -441,6 +453,9 @@ export interface Counted {
   /** Leaves, and the splits and washouts among them. */
   leaves: number;
   splits: number;
+  /** Leaves a ball followed, and the ones made, splits included. */
+  pickupChances: number;
+  pickups: number;
 }
 
 export interface BallEstimate {
@@ -494,7 +509,9 @@ function count(profile: StrikeProfile): Counted {
     afterStrike: profile.afterStrike.balls,
     strikesAfterStrike: profile.afterStrike.strikes,
     leaves,
-    splits
+    splits,
+    pickupChances: profile.pickups.chances,
+    pickups: profile.pickups.made
   };
 }
 
