@@ -287,9 +287,9 @@ The X is a snooze with an end, kept per thing it was about, not a permanent no.
 average with each ball there, then the best lines and the last session, and
 keeps the detail one tap down. A ball's row says its estimate, marked with a
 tilde so it is never read as a score, its difference from your average, and
-its strike and split rates; opening it shows a small
-table of this ball against all of them and the leaves it costs most, never a
-sentence about what to throw (ADR-147). A line read across sessions names the
+every rate as a column, under an All balls row that every ball is read against;
+opening it shows the leaves it costs most, never a sentence about what to throw
+(ADR-147, ADR-149). A line read across sessions names the
 alley and pattern it was thrown on, since which pattern is half of what a line
 means (ADR-148). Numbers in a table beat
 the same numbers in sentences: the screen is read standing at the lanes.

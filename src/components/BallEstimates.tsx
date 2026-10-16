@@ -3,7 +3,7 @@ import { ChevronDown } from "lucide-react";
 import { CatalogBallImage } from "./CatalogBallImage";
 import { BowlingBallIcon } from "./icons";
 import { MiniPins } from "./MiniPins";
-import { LIST_DIVIDER_INSET, ListGroup } from "./ui/ListGroup";
+import { LIST_DIVIDER, ListGroup } from "./ui/ListGroup";
 import { GROUP_HEADING } from "./ui/typography";
 import { formatLeave } from "../lib/pins";
 import { type BallEstimate, type BallEstimates as Estimates, type Counted } from "../lib/scoreModel";
@@ -21,10 +21,24 @@ function pct(made: number, of: number): string {
   return of === 0 ? "-" : `${Math.round((made / of) * 100)}%`;
 }
 
+/** The rates on a ball's row, in the Stats Balls card's order and size, so
+ *  every number is on screen without opening the ball (ADR-149). */
+const COLUMNS: ReadonlyArray<{ key: string; label: string; value: (c: Counted) => string }> = [
+  { key: "strike", label: "Strike", value: (c) => pct(c.strikes, c.firstBalls) },
+  { key: "after a strike", label: "After strike", value: (c) => pct(c.strikesAfterStrike, c.afterStrike) },
+  { key: "leaves that split", label: "Splits", value: (c) => pct(c.splits, c.leaves) },
+  { key: "leaves made", label: "Made", value: (c) => pct(c.pickups, c.pickupChances) }
+];
+
+const COLUMN = "w-8 shrink-0 text-right";
+const ESTIMATE_COLUMN = "w-10 shrink-0 text-right";
+/** Leaves room for the chevron in the heading row, so the columns line up. */
+const CHEVRON_COLUMN = "w-3 shrink-0";
+
 /**
- * What you would average with each ball here, and why: its strikes and its
- * leaves, each in pins a game (ADR-147). Ranked, with a ball that has too few
- * first balls here listed last and greyed rather than ranked.
+ * What you would average with each ball here, with every rate behind it on the
+ * row (ADR-147, ADR-149). Ranked, with a ball that has too few first balls here
+ * listed last and greyed rather than ranked.
  */
 export function BallEstimates({ report, balls }: { report: Estimates; balls: Ball[] }) {
   if (report.balls.length === 0) return null;
@@ -40,27 +54,51 @@ export function BallEstimates({ report, balls }: { report: Estimates; balls: Bal
         )
       }
     >
+      <li
+        className="flex items-end gap-1 px-3 pb-1 pt-2 text-[9px] font-semibold uppercase leading-tight text-ink-tertiary"
+        aria-hidden="true"
+      >
+        <span className="min-w-0 flex-1" />
+        {COLUMNS.map((c) => (
+          <span key={c.key} className={COLUMN}>
+            {c.label}
+          </span>
+        ))}
+        <span className={ESTIMATE_COLUMN}>Est.</span>
+        <span className={CHEVRON_COLUMN} />
+      </li>
+      {/* Every ball together, as the row each ball is read against: its
+          average is the real one, not an estimate. */}
+      <li
+        className={`${LIST_DIVIDER} flex items-center gap-1 bg-surface-muted px-3 py-1.5 text-xs tabular-nums text-ink-secondary`}
+        aria-label="All balls"
+      >
+        <span className="min-w-0 flex-1">
+          <span className="block font-semibold">All balls</span>
+          <span className="block text-[10px] text-ink-tertiary">{report.counted.firstBalls} balls</span>
+        </span>
+        {COLUMNS.map((c) => (
+          <span key={c.key} className={COLUMN} aria-label={`${c.key} ${c.value(report.counted)}`}>
+            {c.value(report.counted)}
+          </span>
+        ))}
+        <span className={`${ESTIMATE_COLUMN} font-semibold`}>
+          {report.actual === null ? "-" : Math.round(report.actual)}
+        </span>
+        <span className={CHEVRON_COLUMN} />
+      </li>
       {report.balls.map((estimate) => (
         <BallEstimateRow
           key={estimate.ballId}
           estimate={estimate}
           ball={byId.get(estimate.ballId)}
-          everyBall={report.counted}
         />
       ))}
     </ListGroup>
   );
 }
 
-function BallEstimateRow({
-  estimate,
-  ball,
-  everyBall
-}: {
-  estimate: BallEstimate;
-  ball: Ball | undefined;
-  everyBall: Counted;
-}) {
+function BallEstimateRow({ estimate, ball }: { estimate: BallEstimate; ball: Ball | undefined }) {
   const [open, setOpen] = useState(false);
   const name = ball?.name ?? "Removed ball";
   const { thin } = estimate;
@@ -75,90 +113,73 @@ function BallEstimateRow({
   // The tilde says estimated before the number is read as a score.
   const headline =
     estimate.estimate === null ? signedPins(estimate.difference) : `~${Math.round(estimate.estimate)}`;
+  const tone = thin ? "text-ink-tertiary" : "text-ink";
 
   return (
-    <li className={LIST_DIVIDER_INSET}>
+    <li className={LIST_DIVIDER}>
       <button
         type="button"
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
-        className="flex w-full items-center gap-3 px-3 py-2.5 text-left active:bg-surface-muted"
+        className="flex w-full items-center gap-1 px-3 py-2 text-left text-xs tabular-nums active:bg-surface-muted"
       >
-        <span className="h-9 w-9 shrink-0">
-          {ball?.catalog_snapshot ? (
-            <CatalogBallImage
-              src={ball.catalog_snapshot.imageThumb}
-              alt=""
-              brand={ball.catalog_snapshot.brand as Manufacturer}
-              size="thumb"
-            />
-          ) : (
-            <span className="flex h-full w-full items-center justify-center rounded-full bg-surface-muted text-ink-tertiary">
-              <BowlingBallIcon size={18} aria-hidden="true" />
+        <span className="flex min-w-0 flex-1 items-center gap-1.5">
+          <span className="h-5 w-5 shrink-0">
+            {ball?.catalog_snapshot ? (
+              <CatalogBallImage
+                src={ball.catalog_snapshot.imageThumb}
+                alt=""
+                brand={ball.catalog_snapshot.brand as Manufacturer}
+                size="thumb"
+              />
+            ) : (
+              <span className="flex h-full w-full items-center justify-center rounded-full bg-surface-muted text-ink-tertiary">
+                <BowlingBallIcon size={12} aria-hidden="true" />
+              </span>
+            )}
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className={`line-clamp-2 text-[13px] font-semibold leading-tight ${thin ? "text-ink-secondary" : "text-ink"}`}>
+              {name}
             </span>
-          )}
-        </span>
-        <span className="min-w-0 flex-1">
-          <span className={`block truncate text-sm font-semibold ${thin ? "text-ink-secondary" : "text-ink"}`}>
-            {name}
-          </span>
-          <span className="block truncate text-xs tabular-nums text-ink-secondary">
-            {thin
-              ? `${estimate.firstBalls} ${estimate.firstBalls === 1 ? "ball" : "balls"}, too few`
-              : `${pct(estimate.counted.strikes, estimate.counted.firstBalls)} strikes \u00b7 ${pct(
-                  estimate.counted.splits,
-                  estimate.counted.leaves
-                )} splits`}
+            <span className="block text-[10px] text-ink-tertiary">
+              {estimate.firstBalls} {estimate.firstBalls === 1 ? "ball" : "balls"}
+              {thin ? ", too few" : ""}
+            </span>
           </span>
         </span>
-        <span className="shrink-0 text-right tabular-nums">
-          <span className={`block text-lg font-semibold leading-tight ${thin ? "text-ink-tertiary" : "text-ink-strong"}`}>
+        {COLUMNS.map((c) => (
+          <span key={c.key} className={`${COLUMN} ${tone}`} aria-label={`${c.key} ${c.value(estimate.counted)}`}>
+            {c.value(estimate.counted)}
+          </span>
+        ))}
+        <span className={ESTIMATE_COLUMN}>
+          <span className={`block text-[13px] font-semibold leading-tight ${thin ? "text-ink-tertiary" : "text-ink-strong"}`}>
             {headline}
           </span>
           {estimate.estimate !== null && (
-            <span className={`block text-xs font-semibold ${diffTone}`}>{signedPins(estimate.difference)}</span>
+            <span className={`block text-[10px] font-semibold ${diffTone}`}>{signedPins(estimate.difference)}</span>
           )}
         </span>
         <ChevronDown
-          size={16}
+          size={12}
           aria-hidden="true"
-          className={`shrink-0 text-ink-tertiary transition-transform ${open ? "rotate-180" : ""}`}
+          className={`${CHEVRON_COLUMN} text-ink-tertiary transition-transform ${open ? "rotate-180" : ""}`}
         />
       </button>
-      {open && <BallEstimateDetail estimate={estimate} everyBall={everyBall} />}
+      {open && <BallEstimateDetail estimate={estimate} />}
     </li>
   );
 }
 
-/** The ball's numbers beside every ball's, and the leaves it costs most. */
-function BallEstimateDetail({ estimate, everyBall }: { estimate: BallEstimate; everyBall: Counted }) {
-  const c = estimate.counted;
-  const rows: Array<[string, string, string]> = [
-    ["Strike", pct(c.strikes, c.firstBalls), pct(everyBall.strikes, everyBall.firstBalls)],
-    ["After a strike", pct(c.strikesAfterStrike, c.afterStrike), pct(everyBall.strikesAfterStrike, everyBall.afterStrike)],
-    ["Leaves that split", pct(c.splits, c.leaves), pct(everyBall.splits, everyBall.leaves)],
-    ["Leaves made", pct(c.pickups, c.pickupChances), pct(everyBall.pickups, everyBall.pickupChances)]
-  ];
+/** The leaves a ball costs most: its rates are already on its row, beside
+ *  every ball's above them. */
+function BallEstimateDetail({ estimate }: { estimate: BallEstimate }) {
   return (
-    <div className="mx-3 mb-3 space-y-3 rounded-lg bg-surface-muted p-3 text-sm">
-      <table className="w-full tabular-nums">
-        <thead>
-          <tr className={GROUP_HEADING}>
-            <th className="text-left font-semibold">{c.firstBalls} balls</th>
-            <th className="w-16 text-right font-semibold">This</th>
-            <th className="w-16 text-right font-semibold">All</th>
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map(([label, ball, all]) => (
-            <tr key={label}>
-              <td className="py-0.5 text-ink-secondary">{label}</td>
-              <td className="py-0.5 text-right font-semibold text-ink">{ball}</td>
-              <td className="py-0.5 text-right text-ink-secondary">{all}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+    <div className="mx-3 mb-3 rounded-lg bg-surface-muted p-3 text-sm">
+      {estimate.costliest.length === 0 && (
+        <p className="text-xs text-ink-secondary">No leave it gives you is one you often miss.</p>
+      )}
       {estimate.costliest.length > 0 && (
         <section>
           <h3 className={GROUP_HEADING}>Costliest leaves</h3>

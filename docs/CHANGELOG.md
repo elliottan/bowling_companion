@@ -9,13 +9,20 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
-## 0.39.1: Landing page pictures match the app again (2026-10-16)
+## 0.40.1: Landing page pictures match the app again (2026-10-16)
 
 **The screenshots on headpin.app show today's app.** The Stats picture still
 showed the old tile grid from before the Stats tab was rebuilt, and the scorer,
 Home and arsenal pictures were from an older bowler. All four are recaptured
 from the current app, and the Stats picture's description says what it now
 shows.
+
+## 0.40.0: Every rate on the ball's row (2026-10-16)
+
+**The Alley report's balls show every rate at a glance:** strike, after a
+strike, splits and leaves made, in columns like the Stats Balls card, with how
+many balls each one has behind it. An All balls row at the top is what each
+ball is read against. A ball now counts as too few under 10 balls, not 30.
 
 ## 0.39.0: Where each line was thrown (2026-10-16)
 
