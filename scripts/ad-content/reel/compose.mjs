@@ -159,23 +159,27 @@ const BEATS = [
     cam: [{ at: "carry", box: WIDE, z: 1.3, ease: 0 }, { at: "carry+0.3", box: "carry", z: 2.15, ease: 0.45 }],
     spots: [{ from: "carry+0.75", to: "carry+1.45", boxes: "carry" }] },
   { id: "move", take: "game", from: "tap-stance2-0.3", to: "moved+0.35", caption: "Went high? Move in|<em>2-1 with one tap.</em>", capSize: 76, vo: "move", trans: "cut",
-    cam: [{ at: "tap-stance2-0.3", box: WIDE, z: 1.3, ease: 0 }, { at: "tap-stance2-0.1", box: "moves", z: 1.9, ease: 0.35 }],
+    // Straight in on the moves, wide enough for the whole line beside them.
+    cam: [{ at: "tap-stance2-0.3", box: [box("game", "moves", 0), ...boxesOf("game", "moved")], z: 1.55, ease: 0 }],
     circles: [{ at: "moves", box: [box("game", "moves", 0)], dur: 0.5 }],
     spots: [{ from: "moved", to: "moved+0.35", boxes: "moved" }] },
   { id: "spare", take: "game", from: "ten-0.55", to: "frame9+0.35", caption: "Pin 10 <em>again??</em>|Spare line's set.", vo: "spare", trans: "cut",
     cam: [{ at: "ten-0.55", box: WIDE, z: 1.3, ease: 0 },
           { at: "ten-0.4", box: "deck", z: 1.85, ease: 0.35 },
           { at: "tap-next+0.1", box: "spare-set", z: 2.0, ease: 0.3 },
-          { at: "tap-spare+0.05", box: "frame9", z: 2.6, ease: 0.3 }],
+          // Then back out to the whole card: the tap and the score it makes, both lit.
+          { at: "spare-0.4", box: WIDE, z: 1.3, ease: 0.35 }],
     circles: [{ at: "ten-0.05", box: "ten", dur: 0.4 }],
-    spots: [{ from: "tap-next+0.4", to: "spare-0.15", boxes: "spare-set" },
-            { from: "tap-spare+0.35", to: "frame9+0.35", boxes: "frame9" }] },
+    spots: [{ from: "tap-next+0.4", to: "spare-0.45", boxes: "spare-set" },
+            { from: "spare-0.05", to: "frame9+0.35", boxes: "spare" }] },
   { id: "tenth", take: "game", from: "tenth-0-0.15", to: "frame10+0.5", caption: "Strike out <em>the tenth</em>.", vo: "tenth", trans: "cut",
-    cam: [{ at: "tenth-0-0.15", box: WIDE, z: 1.3, ease: 0 },
-          { at: "tenth-0", box: box("game", "tenth-0", 1), z: 2.3, ease: 0.35 },
-          { at: "frame10", box: "frame10", z: 2.7, ease: 0.3 }],
-    spots: [{ from: "frame10", to: "frame10+0.5", boxes: "frame10" }] },
-  { id: "stats", take: "game", from: "stats", to: "balls+0.5", caption: "Your average.|<em>Which ball strikes more.</em>", capSize: 70, vo: "stats", trans: "whip",
+    // The overview held: Strike and the tenth frame lit while it fills. The
+    // third strike ends the game, and the app's "Game 1 is in the books"
+    // pushes the card down, so the light follows the frame to where it went.
+    cam: [{ at: "tenth-0-0.15", box: WIDE, z: 1.3, ease: 0 }],
+    spots: [{ from: "tenth-0-0.05", to: "tap-tenth-2+0.04", boxes: "tenth-0" },
+            { from: "tap-tenth-2+0.06", to: "frame10+0.5", boxes: "frame10" }] },
+  { id: "stats", take: "game", from: "stats", to: "balls+0.5", caption: "All your stats.|<em>Which ball strikes more.</em>", capSize: 70, vo: "stats", trans: "whip",
     cam: [{ at: "stats", box: FULL, z: 1, ease: 0 },
           { at: "stats+0.3", box: { x: 0, y: 40, w: 390, h: 340 }, z: 1.5, ease: 0.4 },
           { at: "balls-0.2", box: "balls", z: 1.45, ease: 0.45 }],
@@ -209,7 +213,7 @@ const VOICE = {
   // Fed up, then helpful: the first half drawn out and swung by tone.py.
   spare: { parts: [{ text: "Pin ten... again?", speed: 0.95, tone: "exasperated" }, { text: "Your spare line's already set." }], gap: 0.12 },
   tenth: "Strike out the tenth.",
-  stats: "Your average, and which ball strikes more.",
+  stats: "All your stats, and which ball strikes more.",
   // The montage is read quicker, one word-pair to a flick.
   sessions: ["Unlimited sessions.", 1.25],
   oil: ["Oil patterns.", 1.25],
@@ -414,7 +418,10 @@ function beatFrame(beats, i, u) {
       const k = clamp((u - j * 0.06) / 0.35);
       const side = j - (n - 1) / 2; // -2.5 .. 2.5 for six
       const cx = 540 + side * 156;
-      const cy = 1090 + Math.abs(side) * Math.abs(side) * 6 - 14 * (u / b.dur);
+      // The right-hand pair sit lower to the eye (their screens are busy at
+      // the top), so they are lifted a little.
+      const lift = [0, 0, 0, 0, 34, 62][j] ?? 0;
+      const cy = 1090 + Math.abs(side) * Math.abs(side) * 6 - lift - 14 * (u / b.dur);
       // The device's centre at cx, cy; the app inside it.
       const x = cx - ((APP_W + 2 * BEZEL) * s) / 2 + BEZEL * s;
       const y = cy - ((APP_H + BAR + 2 * BEZEL) * s) / 2 + (BEZEL + BAR) * s;
