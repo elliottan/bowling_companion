@@ -35,7 +35,7 @@ export function BallEstimates({ report, balls }: { report: Estimates; balls: Bal
       headingTrailing={
         report.actual !== null && (
           <span className="text-xs tabular-nums text-ink-secondary">
-            Yours here {Math.round(report.actual)}
+            Actual overall average: {Math.round(report.actual)}
           </span>
         )
       }
@@ -72,7 +72,9 @@ function BallEstimateRow({
       : diff < 0
         ? "text-danger-700"
         : "text-ink-tertiary";
-  const headline = estimate.estimate === null ? signedPins(estimate.difference) : String(Math.round(estimate.estimate));
+  // The tilde says estimated before the number is read as a score.
+  const headline =
+    estimate.estimate === null ? signedPins(estimate.difference) : `~${Math.round(estimate.estimate)}`;
 
   return (
     <li className={LIST_DIVIDER_INSET}>
@@ -134,7 +136,8 @@ function BallEstimateDetail({ estimate, everyBall }: { estimate: BallEstimate; e
   const rows: Array<[string, string, string]> = [
     ["Strike", pct(c.strikes, c.firstBalls), pct(everyBall.strikes, everyBall.firstBalls)],
     ["After a strike", pct(c.strikesAfterStrike, c.afterStrike), pct(everyBall.strikesAfterStrike, everyBall.afterStrike)],
-    ["Leaves that split", pct(c.splits, c.leaves), pct(everyBall.splits, everyBall.leaves)]
+    ["Leaves that split", pct(c.splits, c.leaves), pct(everyBall.splits, everyBall.leaves)],
+    ["Leaves made", pct(c.pickups, c.pickupChances), pct(everyBall.pickups, everyBall.pickupChances)]
   ];
   return (
     <div className="mx-3 mb-3 space-y-3 rounded-lg bg-surface-muted p-3 text-sm">

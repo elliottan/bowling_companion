@@ -44,6 +44,9 @@ export interface LineTally {
 export interface LineShot {
   sessionId?: number;
   date: string;
+  /** Where and on what it was thrown, for a line read across sessions. */
+  alley: string;
+  pattern?: string;
   gameId?: number;
   gameNumber: number;
   frameNumber: number;
@@ -162,6 +165,8 @@ export function buildLineReport(
           const shot: LineShot = {
             sessionId: session.id,
             date: session.date,
+            alley: session.alley_name,
+            pattern: session.oil_pattern,
             gameId: game.id,
             gameNumber: game.game_number,
             frameNumber: frame.frame_number,
@@ -298,6 +303,20 @@ export function bestLines(report: LineReport, limit: number = BEST_LINES): LineR
     .slice(0, limit);
 }
 
+/**
+ * Where a line was thrown, as one short line: the alley, then the pattern, or
+ * the patterns when it was thrown on more than one. A line read across
+ * sessions can span patterns, and which one is half of what it means.
+ */
+export function wherePlayed(shots: Array<Pick<LineShot, "alley" | "pattern">>): string {
+  const alleys = [...new Set(shots.map((s) => s.alley.trim()).filter(Boolean))];
+  const patterns = [...new Set(shots.map((s) => s.pattern?.trim()).filter(Boolean))] as string[];
+  const alley = alleys.length > 1 ? `${alleys.length} alleys` : alleys[0];
+  const pattern =
+    patterns.length === 0 ? "no pattern" : patterns.length > 2 ? `${patterns.length} patterns` : patterns.join(", ");
+  return [alley, pattern].filter(Boolean).join(" \u00b7 ");
+}
+
 /** One line as it went in a single session. */
 export interface SessionLine extends LineTally {
   line: LineRead;
@@ -306,6 +325,8 @@ export interface SessionLine extends LineTally {
 export interface LastSession {
   date: string;
   sessionId?: number;
+  alley: string;
+  pattern?: string;
   /** Most thrown first, each counted inside that session only. */
   lines: SessionLine[];
 }
@@ -340,5 +361,11 @@ export function lastSession(report: LineReport): LastSession | null {
     if (tally.thrown > 0) lines.push({ line, ...tally });
   }
   lines.sort((a, b) => b.thrown - a.thrown);
-  return { date: newest.date, sessionId: newest.sessionId, lines };
+  return {
+    date: newest.date,
+    sessionId: newest.sessionId,
+    alley: newest.alley,
+    pattern: newest.pattern,
+    lines
+  };
 }

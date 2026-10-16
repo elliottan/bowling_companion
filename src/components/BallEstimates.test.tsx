@@ -45,8 +45,10 @@ describe("BallEstimates", () => {
   it("ranks the balls by what you'd average with them, beside your average here", () => {
     render(<BallEstimates report={report()} balls={BALLS} />);
     expect(screen.getByText("Estimated average")).toBeInTheDocument();
-    expect(screen.getByText(/^Yours here \d+$/)).toBeInTheDocument();
+    expect(screen.getByText(/^Actual overall average: \d+$/)).toBeInTheDocument();
     const names = screen.getAllByRole("button").map((b) => b.textContent);
+    // Every estimate is marked as one.
+    expect(names[0]).toMatch(/~\d+/);
     expect(names[0]).toMatch(/^Tenpin/);
     expect(names[1]).toMatch(/^Splitter/);
   });
@@ -67,6 +69,9 @@ describe("BallEstimates", () => {
     // This ball's rate beside every ball's.
     const split = within(row).getByText("Leaves that split").closest("tr") as HTMLElement;
     expect(split).toHaveTextContent(/Leaves that split100%\d+%/);
+    // Every 7-10 it left was missed: none of its leaves made.
+    const made = within(row).getByText("Leaves made").closest("tr") as HTMLElement;
+    expect(made).toHaveTextContent(/Leaves made0%\d+%/);
     expect(within(row).queryByText(/pins? a game/)).toBeNull();
     expect(splitter).toHaveTextContent(/\u2212\d+/);
     expect(splitter).toHaveTextContent(/\d+% strikes \u00b7 100% splits/);
