@@ -3,6 +3,7 @@ import { useLiveQuery } from "dexie-react-hooks";
 import { ChevronDown, ChevronRight, Compass } from "lucide-react";
 import { PushScreen } from "../components/PushScreen";
 import { EmptyState } from "../components/ui/EmptyState";
+import { Button } from "../components/ui/Button";
 import { LoadingCard } from "../components/ui/LoadingCard";
 import { GROUP_HEADING } from "../components/ui/typography";
 import { FIELD_LABEL, FIELD_SELECT } from "../components/ui/field";
@@ -57,13 +58,16 @@ interface GamePlanViewProps {
   onOpenLine: (lineId: string) => void;
   /** Open the game a shot was thrown in, with its ball lit up. */
   onOpenSessionGame: (sessionId: number, gameId: number, ballId?: number) => void;
+  /** Start a session with nothing filled in, from the empty report (ADR-080). */
+  onStartScoring?: () => void;
 }
 
 export function GamePlanView({
   onBack,
   openLineId,
   onOpenLine,
-  onOpenSessionGame
+  onOpenSessionGame,
+  onStartScoring
 }: GamePlanViewProps) {
   // A failed read used to arrive as an empty list, which reads as "you have
   // never bowled" to someone who has.
@@ -169,11 +173,19 @@ export function GamePlanView({
           ) : isLoading ? (
             <LoadingCard />
           ) : history.length === 0 ? (
+            // What it will show and what feeds it, since "bowl a few sessions"
+            // left a new bowler guessing what those sessions needed.
             <EmptyState
               icon={Compass}
-              title="Nothing to go on yet"
-              description="Bowl a few sessions and this reads back what each line did."
-            />
+              title="Bowl a session to see your report"
+              description="It shows what you'd average with each ball at an alley. Name the alley and note your boards, and it shows which lines worked there too."
+            >
+              {onStartScoring && (
+                <Button variant="primary" onClick={onStartScoring}>
+                  Start scoring
+                </Button>
+              )}
+            </EmptyState>
           ) : (
             <>
               {/* Nothing to pick between when no session has ever named a house

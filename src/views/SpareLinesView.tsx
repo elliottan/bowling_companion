@@ -18,6 +18,7 @@ import { calculateCommonLeaves, type LeaveStats } from "../lib/stats";
 import {
   askKey,
   describeMove,
+  hasAnswer,
   leaveKey,
   lineRows,
   matchesFilters,
@@ -246,6 +247,25 @@ export function SpareLinesView({ onBack }: { onBack: () => void }) {
           prefill={opened.prefill}
           onClose={() => setOpened(null)}
         />
+      )}
+
+      {/* Until one leave has an answer, the screen is a wall of leaves marked
+          0×, and nothing on it says what a spare line is or why a tile is
+          worth opening. It goes as soon as there is one. */}
+      {!isLoading && !shown.some(hasAnswer) && (
+        <div className="flex gap-3 rounded-xl border border-edge bg-surface p-3 shadow-sm">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-accent-soft text-accent">
+            <SpareLineIcon size={18} aria-hidden="true" />
+          </span>
+          <div className="min-w-0 flex-1">
+            <h2 className="text-sm font-semibold text-ink">Write down how you shoot each spare</h2>
+            <p className="mt-0.5 text-xs text-ink-secondary">
+              Tap a leave and enter the board you stand on and the board you aim at. The next time
+              you leave it in a game, that line is filled in for you, with the spare ball you pick
+              below.
+            </p>
+          </div>
+        </div>
       )}
 
       {/* The one ball the scorer picks for a spare shot. It lives here, with

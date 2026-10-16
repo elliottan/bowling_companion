@@ -14,6 +14,8 @@ interface NextStepsProps {
   /** Steps shown at once. Home shows one, so it is one card rather than a
    *  chore list (ADR-115). */
   max?: number;
+  /** Steps the screen already asks for in a place of its own. */
+  skip?: readonly NextStepKey[];
 }
 
 interface StepCopy {
@@ -67,12 +69,17 @@ export function NextSteps({
   onOpenSpareLines,
   onOpenOilPatterns,
   onOpenLaneNotes,
-  max
+  max,
+  skip = []
 }: NextStepsProps) {
   const facts = useLiveQuery(() => getOnboardingFacts());
   // Nothing until the counts are in. A card that appears and then retracts as
   // the queries land is worse than one that arrives a frame late.
-  const steps = facts ? nextSteps(facts).slice(0, max) : [];
+  const steps = facts
+    ? nextSteps(facts)
+        .filter((step) => !skip.includes(step))
+        .slice(0, max)
+    : [];
   if (steps.length === 0) return null;
 
   const open: Record<NextStepKey, () => void> = {

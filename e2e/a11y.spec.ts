@@ -77,7 +77,7 @@ test("the arsenal, spares and settings screens are accessible", async ({ page })
 test("the catalog and the backup screen are accessible", async ({ page }) => {
   await page.getByRole("navigation").getByRole("button", { name: "Home" }).click();
 
-  await page.getByRole("button", { name: "Ball catalog", exact: true }).click();
+  await page.getByRole("button", { name: /^Ball catalog/ }).click();
   await expectNoViolations(page);
   await page
     .getByRole("dialog", { name: "Catalog" })

@@ -18,6 +18,7 @@ import { isPocketHit, isPocketLeave } from "../lib/pins";
 import { freshRackShotIndices, isFreshRackShot, laneForFrame } from "../lib/lanes";
 import { ballKind, seedForShot, lineForBall } from "../lib/shotSeeding";
 import { findSpareLineByPins, getBalls, getSpareLinesAll } from "../services/ballRepository";
+import { hasLine } from "../lib/spareLines";
 import { getSetting, setSetting } from "../services/bowlingRepository";
 import type {
   Ball,
@@ -519,6 +520,10 @@ export function ActiveGameScorer({
     const leave = frame.shots[index].pins_standing;
     const attempt = frame.shots[index + 1];
     if (!leave || leave.length === 0 || !attempt) return;
+    // Nothing to save from a shot with no boards on it. A bowler keeping score
+    // alone was offered "your line" after every spare, for a line they never
+    // entered.
+    if (!hasLine({ line: attempt.intended })) return;
     // A pocket leave is shot on the strike line and has no spare line (ADR-123).
     if (isPocketLeave(leave)) return;
     const existing = findSpareLineByPins(spareLines, leave);

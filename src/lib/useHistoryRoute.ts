@@ -68,6 +68,16 @@ export function useHistoryRoute(state: NavState, dispatch: (action: NavAction) =
           } else {
             window.history.replaceState({ depth: depth.current }, "", pending.hash);
           }
+        } else {
+          // Popping the sentinel is not a move, so the address bar follows the
+          // state. A replace made while the sheet was up wrote onto the
+          // sentinel, and the entry under it still names where the app was:
+          // starting a session from the Score tab's form left "#/session" with
+          // no id, and a reload then lost the session.
+          const current = routeHash(previous.current);
+          if (current !== window.location.hash) {
+            window.history.replaceState({ depth: depth.current }, "", current);
+          }
         }
         return;
       }
@@ -130,8 +140,10 @@ export function useHistoryRoute(state: NavState, dispatch: (action: NavAction) =
    * StrictMode's second invoke finds the state it wants and does nothing: the
    * phantom `history.back()` that sank the first attempt cannot happen.
    *
-   * Sheets are modal, so no route change can land on top of the sentinel while
-   * it is up; it is always the entry back reaches first. The one way past it
+   * Sheets are modal, so no route change is pushed on top of the sentinel while
+   * it is up; it is always the entry back reaches first. A form can still
+   * replace the route as it commits, onto the sentinel itself, which is why
+   * collecting the sentinel puts the current route back. The one way past it
    * is a screen's own back with a non-modal sheet up, which `goBack` steps
    * over the sentinel for.
    */

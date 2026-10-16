@@ -7,6 +7,15 @@ import { resetPatternCatalogCache } from "../services/patternCatalog";
 const chromium = { id: 1, name: "Chromium 6742", passes: CHROMIUM_6742 };
 
 describe("PatternSheet", () => {
+  // The bar holds the visualizer, its one action, so the editor opens from the
+  // foot of the sheet. The list row it came from is a single target.
+  it("opens the editor from the sheet, not from a pencil on the list row", () => {
+    const onEdit = vi.fn();
+    render(<PatternSheet pattern={chromium} onClose={() => {}} onEdit={onEdit} />);
+    fireEvent.click(screen.getByRole("button", { name: "Edit pattern" }));
+    expect(onEdit).toHaveBeenCalled();
+  });
+
   it("leads with the numbers a sheet leads with", () => {
     render(<PatternSheet pattern={chromium} onClose={() => {}} />);
     // The Distance figure; the lane drawing labels its end line with it too.

@@ -27,6 +27,12 @@ describe("OilPatternManager", () => {
     await addOilPattern("No length");
   });
 
+  it("makes each row one target that opens the pattern, with no pencil beside it", async () => {
+    render(<OilPatternManager />);
+    expect(await screen.findByRole("button", { name: "Short one details" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /^Edit / })).not.toBeInTheDocument();
+  });
+
   // The length leads the line under the name, coloured, rather than cluttering
   // the name itself, so the names line up.
   it("puts each pattern's length under its name, in the accent colour", async () => {

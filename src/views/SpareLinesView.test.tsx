@@ -35,6 +35,17 @@ describe("SpareLinesView", () => {
     await db.open();
   });
 
+  it("says what a spare line is until the first one has an answer", async () => {
+    const { unmount } = render(<SpareLinesView onBack={() => {}} />);
+    expect(await screen.findByText("Write down how you shoot each spare")).toBeInTheDocument();
+    unmount();
+
+    await upsertSpareLine([10], { stance: 35, target: 20 });
+    render(<SpareLinesView onBack={() => {}} />);
+    expect(await screen.findByRole("region", { name: /35/ })).toBeInTheDocument();
+    expect(screen.queryByText("Write down how you shoot each spare")).not.toBeInTheDocument();
+  });
+
   /** The confirm sheet, which shares its Cancel wording with the form behind it. */
   async function confirm() {
     return (await screen.findByText("Delete this spare line?")).closest(

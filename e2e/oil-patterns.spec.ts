@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { clearDatabase } from "./helpers";
+import { clearDatabase, openSessionForm } from "./helpers";
 
 test.beforeEach(async ({ page }) => {
   await clearDatabase(page);
@@ -26,7 +26,7 @@ async function countSessions(page: import("@playwright/test").Page) {
  * session form's submit handler and silently created a session.
  */
 test("adding a pattern from the session dialog does not submit the session form", async ({ page }) => {
-  await page.getByRole("button", { name: "Start session" }).first().click();
+  await openSessionForm(page);
   await page.getByPlaceholder("Ball choice, surface, carry…").fill("keep me");
 
   await page.getByRole("button", { name: "Manage oil patterns" }).click();

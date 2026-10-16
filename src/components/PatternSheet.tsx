@@ -1,4 +1,4 @@
-import { ArrowUpRight, ChevronRight } from "lucide-react";
+import { ArrowUpRight, ChevronRight, Pencil } from "lucide-react";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type MouseEvent } from "react";
 import type { OilPass, OilPattern } from "../types/bowling";
 import {
@@ -40,9 +40,18 @@ interface PatternSheetProps {
    *  under it, so closing the visualizer comes back here and not to the list,
    *  but it lets go of back and Escape, which belong to the visualizer. */
   active?: boolean;
+  /** Open the pattern's editor. At the foot of the sheet rather than in its
+   *  bar, which already carries its one action (DESIGN-LANGUAGE §1). */
+  onEdit?: () => void;
 }
 
-export function PatternSheet({ pattern, onClose, onOpenInLineVisualizer, active = true }: PatternSheetProps) {
+export function PatternSheet({
+  pattern,
+  onClose,
+  onOpenInLineVisualizer,
+  active = true,
+  onEdit
+}: PatternSheetProps) {
   const stats = useMemo(() => oilStats(pattern.passes), [pattern.passes]);
   const ratio = useMemo(() => headlineRatio(pattern.passes), [pattern.passes]);
   const zones = useMemo(() => trackZoneRatios(pattern.passes), [pattern.passes]);
@@ -137,6 +146,13 @@ export function PatternSheet({ pattern, onClose, onOpenInLineVisualizer, active 
                 <ArrowUpRight size={16} aria-hidden="true" className="shrink-0 text-ink-tertiary" />
               </a>
             )
+          )}
+
+          {onEdit && (
+            <button type="button" onClick={onEdit} className={SHEET_ROW}>
+              Edit pattern
+              <Pencil size={16} aria-hidden="true" className="shrink-0 text-ink-tertiary" />
+            </button>
           )}
         </div>
         {viewing && keptSheet && (

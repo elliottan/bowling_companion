@@ -80,9 +80,14 @@ export function HistoryView({
           <>
             <div className="mb-3 flex items-center justify-between gap-3">
               <h1 className="text-xl font-bold text-ink">History</h1>
-              <div className="flex shrink-0 items-center gap-1">
-                <SessionFilterButton filters={filters} onOpen={() => setFiltersOpen(true)} />
-              </div>
+              {/* Nothing to narrow before the first session, and a control
+                  that can only ever filter an empty list is noise on the
+                  screen a new bowler is deciding about. */}
+              {filters.history.length > 0 && (
+                <div className="flex shrink-0 items-center gap-1">
+                  <SessionFilterButton filters={filters} onOpen={() => setFiltersOpen(true)} />
+                </div>
+              )}
             </div>
 
             {error && <ErrorBanner className="mb-3">Your sessions could not be read. Reload the app, then try again.</ErrorBanner>}

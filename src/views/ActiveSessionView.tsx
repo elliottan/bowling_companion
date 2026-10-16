@@ -64,6 +64,7 @@ const NO_FRAMES: Frame[] = [];
 import { GROUP_HEADING } from "../components/ui/typography";
 import type { UndoResult } from "../lib/frameController";
 import { alleyLabel } from "../lib/sessionLabels";
+import { markLanesPrompted, shouldPromptLanes } from "../lib/lanePrompt";
 
 
 /** How long a pushed screen takes to slide in (`animate-push-in` in index.css). */
@@ -97,10 +98,6 @@ interface ActiveSessionViewProps {
 }
 
 const isPositiveInt = (s: string) => /^\d+$/.test(s.trim());
-
-// Games whose lane prompt has already auto-opened this app run. Module-level
-// so the once-per-game rule survives tab switches (which remount this view).
-const lanePromptedGameIds = new Set<number>();
 
 // The game a ball recorded on this screen just finished, the only game the
 // share offer is ever made for. Module-level so a tab switch, which remounts
@@ -287,13 +284,13 @@ export function ActiveSessionView({
   // guards the dialog re-opened on every return while lanes stayed unset.
   // The inline "Set lanes" row remains the manual entry point after dismissal.
   useEffect(() => {
-    if (!activeGame?.id || lanePromptedGameIds.has(activeGame.id)) return;
+    if (!activeGame?.id || !shouldPromptLanes(activeGame.id)) return;
     const lanes = activeGame.lanes ?? (activeGame.lane_number ? [activeGame.lane_number] : []);
     const lanesUnset = lanes.filter((l) => l && l.trim()).length === 0;
     const frames = (activeGame as Game & { frames: Frame[] }).frames ?? [];
     const hasShots = frames.some((f) => f.shots.length > 0);
     if (lanesUnset && !hasShots) {
-      lanePromptedGameIds.add(activeGame.id);
+      markLanesPrompted(activeGame.id);
       setShowLaneEditor(true);
     }
     // Keyed on the game id alone: this fires once per game, and re-running it

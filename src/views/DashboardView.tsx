@@ -31,7 +31,7 @@ import {
 } from "../services/bowlingRepository";
 import { describeAge, protectionCard, snoozeMs } from "../lib/backupNudge";
 import { canPromptInstall, isIOSSafari, isStandalone } from "../lib/installPrompt";
-import { nextSteps } from "../lib/onboarding";
+import { nextSteps, type NextStepKey } from "../lib/onboarding";
 import { getOnboardingFacts } from "../services/onboardingRepository";
 import type { SessionSummary } from "../types/bowling";
 
@@ -71,6 +71,11 @@ const INSTALL_SNOOZE_DAYS = 30;
  *  is enough to find last week's session without Home becoming a second
  *  History. */
 const RECENT_LIMIT = 8;
+
+/** Next steps Home asks for elsewhere. The arsenal grid's empty slot, beside
+ *  the greeting, already asks for the balls, and a step asking again was the
+ *  same card twice. */
+const HOME_SKIPPED_STEPS: readonly NextStepKey[] = ["arsenal"];
 
 // A stable empty list: `?? []` would be a new array on every render.
 const NO_SESSIONS: SessionSummary[] = [];
@@ -169,9 +174,12 @@ export function DashboardView({
   }
 
 
-  // At most one of the setup cards at a time: a step if there is one owed,
-  // else the one-time feedback ask.
-  const stepOwed = !!facts && nextSteps(facts).length > 0;
+  // One prompt on Home at a time (ADR-150): the protection card if one is
+  // owed, else a setup step, else the one-time feedback ask. None of them on a
+  // device that has never scored, where the first session is the only ask.
+  const stepOwed =
+    !!facts && nextSteps(facts).some((step) => !HOME_SKIPPED_STEPS.includes(step));
+  const setupCard = coldStart || protection ? null : stepOwed ? "step" : "feedback";
 
   return (
     <section className="mx-auto w-full max-w-xl px-3 pb-24 pt-3 sm:px-6 sm:pt-5">
@@ -214,19 +222,19 @@ export function DashboardView({
       {/* A game in progress leads the screen, so carrying on is one tap. A new
           session starts from the floating button, and a device that has never
           scored a game is told what the app is first (DESIGN-LANGUAGE §5). */}
+      {/* One way in for a bowler who has never scored, and it goes straight to
+          the pin deck: every detail the form would ask for can be added from
+          the session afterwards (ADR-080). Three buttons that all started a
+          session, two of them only differing in whether a form came first,
+          was a choice put to somebody with nothing to choose on (ADR-150). */}
       {coldStart ? (
         <EmptyState
           icon={PinIcon}
           title="Score your first session"
-          description="Start a session and tap in each shot."
+          description="Tap in each shot as you bowl. Add the alley and lanes whenever you like."
         >
-          <Button variant="primary" onClick={() => setShowForm(true)}>
-            Start session
-          </Button>
-          {/* The fastest route to the pin deck, for a bowler seeing the app for
-              the first time. Details are added afterwards (ADR-080). */}
-          <Button variant="ghost" disabled={isSubmitting} onClick={() => void onScoreNow()}>
-            Score now, add details later
+          <Button variant="primary" disabled={isSubmitting} onClick={() => void onScoreNow()}>
+            Start scoring
           </Button>
         </EmptyState>
       ) : resumable ? (
@@ -351,17 +359,17 @@ export function DashboardView({
 
         {/* The setup and safety cards sit under the profile, not between it
             and the greeting: Home opens on the bowler. */}
-        {stepOwed ? (
+        {setupCard === "step" && (
           <NextSteps
             max={1}
+            skip={HOME_SKIPPED_STEPS}
             onOpenArsenal={onOpenArsenal}
             onOpenSpareLines={onOpenSpareLines}
             onOpenOilPatterns={onOpenOilPatterns}
             onOpenLaneNotes={onOpenLaneNotes}
           />
-        ) : (
-          <FeedbackPrompt />
         )}
+        {setupCard === "feedback" && <FeedbackPrompt />}
       </div>
 
       <div className="mt-6">
@@ -369,34 +377,43 @@ export function DashboardView({
           <ListRow
             icon={Compass}
             label="Layouts"
+            description="A drilling layout, drawn on the ball"
             onClick={onOpenLayoutLab}
           />
           <ListRow
             icon={LaneViewIcon}
             label="Line visualizer"
+            description="Draw a line on the lane, over the oil"
             onClick={onOpenLineVisualizer}
           />
           <ListRow
             icon={OilPatternIcon}
             label="Oil patterns"
+            description="Look up a pattern's length and oil"
             onClick={onOpenOilPatterns}
           />
           <ListRow
             icon={BookOpen}
             label="Ball catalog"
+            description="Specs and pictures of current balls"
             onClick={onOpenCatalog}
           />
           <ListRow
             icon={GraduationCap}
             label="Guides"
+            description="Using Headpin, layouts and equipment"
             onClick={onOpenGuides}
           />
         </ListGroup>
       </div>
 
-      <FabRow>
-        <Fab icon={Plus} label="Start session" onClick={() => setShowForm(true)} />
-      </FabRow>
+      {/* Not on a cold start, where the empty state's button is the way in,
+          and not before the sessions are read, or it would flash in first. */}
+      {!coldStart && !loadingRecent && (
+        <FabRow>
+          <Fab icon={Plus} label="Start session" extended onClick={() => setShowForm(true)} />
+        </FabRow>
+      )}
 
       <SessionFormDialog
         open={showForm}

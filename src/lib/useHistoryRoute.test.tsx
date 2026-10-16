@@ -4,6 +4,7 @@ import { useReducer } from "react";
 import { navReducer } from "./appNavigation";
 import { initialNavFromHash } from "./appRoute";
 import { useHistoryRoute } from "./useHistoryRoute";
+import { registerSheet } from "./sheetBackStack";
 
 /**
  * A stand-in for the shell: it can push overlays, switch tabs, and go back the
@@ -157,6 +158,34 @@ describe("useHistoryRoute", () => {
 
     expect(backSpy).not.toHaveBeenCalled();
     expect(at("overlays")).toBe("");
+  });
+
+  /**
+   * The start-session form on the Score tab commits while its sheet is still
+   * up, and opening a session on the tab you are on is a replace, not a push.
+   * The replace landed on the sheet's sentinel entry, and collecting the
+   * sentinel then dropped it: the URL fell back to "#/session" with no id, so a
+   * reload lost the session.
+   */
+  it("keeps a route written while a sheet was up once the sheet's entry is collected", async () => {
+    render(<Harness />);
+    let unregister = () => {};
+    await act(async () => {
+      unregister = registerSheet({ close: () => {} });
+    });
+
+    // A replace while the sheet is up, then the sheet closes and collects its
+    // entry: the browser lands on the entry under it, which still names home.
+    await click("history tab");
+    expect(window.location.hash).toBe("#/history");
+    await act(async () => {
+      unregister();
+    });
+    expect(backSpy).toHaveBeenCalled();
+    await browserBack("#/home");
+
+    expect(at("view")).toBe("history");
+    expect(window.location.hash).toBe("#/history");
   });
 
   it("restores the screen the URL names on load", async () => {
