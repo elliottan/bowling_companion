@@ -6865,3 +6865,28 @@ heading, and a bare number that could be taken for a score.
 **Consequences.**
 - `LineShot` carries the session's alley and pattern, and `LastSession` both.
 - `StrikeProfile` counts the pickups behind its leaves.
+
+
+## ADR-149: A ball's row carries every rate, against an All balls row
+
+**Status.** Accepted, 2026-10-16. Amends ADR-147 and ADR-148 (the Estimated
+average section).
+
+**Context.** A ball's row showed its strike rate and split share; the rest
+(strike after a strike, leaves made) and every ball's numbers were behind a tap,
+in a table that repeated the row. The owner wanted every rate visible at once,
+as the Stats tab's Balls card has them, with the balls behind each row. The
+"too few" line sat at 30 first balls, which hid most balls on a narrow scope.
+
+**Decision.**
+
+- **Every rate is a column on the row:** strike, after a strike, splits and
+  leaves made, then the estimate, sized like the Stats Balls card (ADR-144) so
+  all of it fits a 360px phone. Each row names its balls under the ball.
+- **An All balls row sits first,** every ball together with the real average
+  in the estimate's column, so each ball is read against the row above it. It
+  replaces the this-against-all table an opened ball showed; an opened ball
+  now shows its costliest leaves.
+- **A ball is "too few" under 10 first balls in scope,** not 30. The leaning
+  on every ball (twenty imagined balls) keeps one just past the line close to
+  the bowler, so its estimate still says little until it has more behind it.

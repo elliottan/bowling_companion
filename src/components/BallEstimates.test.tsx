@@ -35,7 +35,12 @@ function report() {
   const games = [
     ...Array.from({ length: 6 }, () => game(1, [10], NONE)),
     ...Array.from({ length: 6 }, () => game(2, [7, 10], [7])),
-    game(3, [10], NONE)
+    // Three first balls with another ball inside a Tenpin game: under ten.
+    (() => {
+      const g = game(1, [10], NONE);
+      g.frames = g.frames.map((f) => (f.frame_number <= 3 ? frame(f.frame_number, 3, NONE) : f));
+      return g;
+    })()
   ];
   const history: SessionSummary[] = [{ session: { date: "2026-06-07", alley_name: "Sea Bowl" }, games }];
   return estimateBalls(history);
@@ -56,7 +61,7 @@ describe("BallEstimates", () => {
   it("greys a ball with too few first balls and does not rank it", () => {
     render(<BallEstimates report={report()} balls={BALLS} />);
     const rows = screen.getAllByRole("button");
-    expect(rows[rows.length - 1]).toHaveTextContent(/Rarely.*balls, too few/);
+    expect(rows[rows.length - 1]).toHaveTextContent(/Rarely3 balls, too few/);
   });
 
   it("opens a ball on its strikes, its leaves and the leaves it costs most", () => {
@@ -66,15 +71,18 @@ describe("BallEstimates", () => {
     fireEvent.click(splitter);
     expect(splitter).toHaveAttribute("aria-expanded", "true");
     const row = splitter.closest("li") as HTMLElement;
-    // This ball's rate beside every ball's.
-    const split = within(row).getByText("Leaves that split").closest("tr") as HTMLElement;
-    expect(split).toHaveTextContent(/Leaves that split100%\d+%/);
-    // Every 7-10 it left was missed: none of its leaves made.
-    const made = within(row).getByText("Leaves made").closest("tr") as HTMLElement;
-    expect(made).toHaveTextContent(/Leaves made0%\d+%/);
+    // Every ball together sits above, as the row each ball is read against.
+    const all = screen.getByRole("listitem", { name: "All balls" });
+    expect(within(all).getByLabelText(/^leaves that split \d+%$/)).toBeInTheDocument();
+    expect(all).toHaveTextContent(/All balls\d+ balls/);
     expect(within(row).queryByText(/pins? a game/)).toBeNull();
     expect(splitter).toHaveTextContent(/\u2212\d+/);
-    expect(splitter).toHaveTextContent(/\d+% strikes \u00b7 100% splits/);
+    // Every rate on the row itself, with the balls behind it.
+    expect(splitter).toHaveTextContent(/Splitter\d+ balls/);
+    expect(within(splitter).getByLabelText("leaves that split 100%")).toBeInTheDocument();
+    expect(within(splitter).getByLabelText("leaves made 0%")).toBeInTheDocument();
+    expect(within(splitter).getByLabelText(/^strike \d+%$/)).toBeInTheDocument();
+    expect(within(splitter).getByLabelText(/^after a strike (\d+%|-)$/)).toBeInTheDocument();
     const costly = within(row).getByRole("list", { name: "Costliest leaves" });
     expect(within(costly).getByText("7-10")).toBeInTheDocument();
     expect(within(costly).getByText(/^0\/\d+ made$/)).toBeInTheDocument();
