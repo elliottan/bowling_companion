@@ -280,9 +280,11 @@ await take("game", {
     await mark("deck", app.locator('button[aria-label="Pin 1 down"]').first().locator("xpath=ancestor::div[contains(@class,'space-y-2')][1]"));
     await mark("panel", stance.locator("xpath=ancestor::div[contains(@class,'divide-y')][1]"));
     await mark("intended", stance.locator("xpath=ancestor::div[contains(@class,'py-1')][1]"));
-    await wait(500);
-    // Frame 8.
+    // Frame 8, half done, held long enough to be seen whole before the camera
+    // goes in on the Ball button.
+    await wait(1800);
     await mark("ball", ball);
+    await wait(900);
     await tap(ball, "tap-ball", 200);
     // The picker slides up: mark its rows once it has stopped.
     const picker = app.getByRole("dialog", { name: "Ball" });
@@ -294,7 +296,7 @@ await take("game", {
     await tap(pick, "tap-pick", 600);
     await mark("line", lineBox());
     await tap(stance, "tap-stance", 150);
-    await type("24");
+    await type("20");
     await tap(target, "tap-target", 150);
     await type("10");
     await wait(300);
@@ -305,14 +307,19 @@ await take("game", {
     await wait(1600);
     await mark("lane-held", { x: 0, y: 0, w: 390, h: 844 });
     await tap(app.getByRole("dialog", { name: /visualizer/i }).getByRole("button", { name: "Close" }), "tap-close", 500);
+    // A beat on the whole scorer before the tap, so the camera can pull back
+    // to show where Strike is and then go in on it.
+    await mark("strike-wide", [strike, frame(8), ...lineBox()]);
+    await wait(1200);
     await mark("strike", [strike, frame(8)]);
+    await wait(500);
     await tap(strike, "tap-strike", 700);
     await mark("frame8", frame(8));
     await wait(500);
 
     // Frame 9: the line carried over, a 2-1 move, then the 10.
     await mark("carry", [ball, ...lineBox()]);
-    await wait(900);
+    await wait(1500);
     await tap(stance, "tap-stance2", 450);
     const move = app.getByRole("button", { name: "Move 2-1 in" });
     await mark("moves", [move, stance]);
@@ -402,15 +409,132 @@ await take("catalog", {
     const search = app.getByPlaceholder("Search name, brand, coverstock…");
     await tap(search, "tap-search", 200);
     await type("Phaze", 90);
-    await wait(500);
-    await tap(app.getByRole("button", { name: /Phaze Crimson/i }).first(), "tap-ball", 1200);
+    // The list filters a moment after the last key: tap once it has settled.
+    await wait(1100);
+    // Scoped to the catalog: the bag under it has a Phaze Crimson button too.
+    await tap(app.getByRole("dialog", { name: "Catalog" }).getByRole("button", { name: /Phaze Crimson/i }).first(), "tap-ball", 1200);
     await mark("ball", { x: 0, y: 0, w: 390, h: 844 });
     await wait(800);
   }
 });
 
-// History: every session, kept on the phone.
+// The layout of a ball, drawn on the ball.
+await take("layouts", {
+  async run({ page, app, tap, mark, wait }) {
+    await tap(app.getByRole("button", { name: "Layouts", exact: true }), "tap-layouts", 900);
+    await mark("top", { x: 0, y: 0, w: 390, h: 844 });
+    const drawing = app.getByText("On the ball", { exact: true }).first();
+    await drawing.evaluate((el) => el.scrollIntoView({ behavior: "smooth", block: "start" }));
+    await wait(1100);
+    await mark("drawing", drawing.locator("xpath=following-sibling::*[1]"));
+    // Swing the VAL angle, so the drilling moves on the ball.
+    const val = app.getByRole("slider", { name: "VAL angle" });
+    const r = await boxOf(val);
+    const thumb = (v) => r.x + 10 + ((v - Number(min)) / (Number(max) - Number(min))) * (r.w - 20);
+    const [min, max, now0] = await val.evaluate((el) => [el.min, el.max, el.value]);
+    const y = (r.y + r.h / 2) * 2;
+    await mark("drag", val);
+    await page.mouse.move(thumb(Number(now0)) * 2, y);
+    await page.mouse.down();
+    for (let k = 1; k <= 24; k++) {
+      await page.mouse.move(thumb(Number(now0) + (k / 24) * 25) * 2, y);
+      await wait(35);
+    }
+    await page.mouse.up();
+    await mark("dragged", drawing.locator("xpath=following-sibling::*[1]"));
+    await wait(900);
+  }
+});
+
+/**
+ * History with some weeks behind it. The saved bowler bowled five nights in
+ * one sitting, one game most nights; a league bowler's list reads as weeks
+ * apart, three or four games a night, each on a pattern. Game 1 of each night
+ * stays as bowled; the games after it are written straight to the database
+ * from these cards.
+ */
+const MORE_GAMES = [
+  ["X 9/ X X 81 9/ X 7/ X X9/", "8/ X 9- X X 7/ 9/ X 81 X8/"],
+  ["X X 9/ 8/ X 9- X X 7/ 9/X", "9/ 81 X X X 9/ 7/ X 9- XXX", "X 7/ 9- X 8/ X X 9/ 81 X9/"],
+  ["9- X 8/ X 7/ X 9/ X X 9/8", "X X X 9/ X 81 X 9/ X XX8"],
+  ["7/ 9/ X 81 X X 9- 8/ X 9/X", "X 9/ 9/ X 8- X X 7/ X 81", "8/ X X 9/ 81 X 9/ X X X9/"],
+  ["X 9/ X 9- X 8/ X X 9/ X81", "9/ X X 8/ X 9- X 7/ X 9/9"]
+];
+const NIGHTS = [
+  { date: "2026-09-16", lanes: ["3", "4"], pattern: /PBA Bear/ },
+  { date: "2026-09-23", lanes: ["15", "16"], pattern: /PBA Chameleon/ },
+  { date: "2026-09-30", lanes: ["23", "24"], pattern: /Mercury/ },
+  { date: "2026-10-07", lanes: ["7", "8"], pattern: /PBA Cheetah/ },
+  { date: "2026-10-14", lanes: ["11", "12"], pattern: /PBA Shark/ }
+];
+
+async function seedHistory(page, app) {
+  const frame = page.frames().find((f) => f.url().includes("/score"));
+  await frame.evaluate(
+    async ({ more, nights }) => {
+      const { db } = await import("/src/db/bowlingDb.ts");
+      const { calculateGameScore, isStrike } = await import("/src/lib/scoring.ts");
+      const { syncPatternCatalog } = await import("/src/services/patternCatalog.ts");
+      await syncPatternCatalog().catch(() => {});
+      const patterns = await db.oil_patterns.toArray();
+      // Pins left by a count, in the order a right-hander's leaves fall.
+      const ORDER = [10, 7, 4, 6, 2, 8, 3, 9, 5, 1];
+      const ALL = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+      const shotsOf = (token, ballId) => {
+        const shots = [];
+        let standing = ALL;
+        for (const ch of token) {
+          if (ch === "X" || ch === "/") standing = [];
+          else if (ch !== "-") {
+            const n = Number(ch);
+            const from = standing.length === 10 ? ORDER.slice(0, 10).filter((p) => standing.includes(p)) : standing;
+            standing = from.slice(0, from.length - n).sort((a, b) => a - b);
+          }
+          shots.push({ pins_standing: standing, ball_id: ballId });
+          if (standing.length === 0) standing = ALL;
+        }
+        return shots;
+      };
+      const sessions = (await db.sessions.toArray()).sort((a, b) => a.id - b.id);
+      for (const [i, s] of sessions.entries()) {
+        const night = nights[i];
+        if (!night) break;
+        const games = (await db.games.where("session_id").equals(s.id).toArray()).sort((a, b) => a.game_number - b.game_number);
+        const firstFrames = await db.frames.where("game_id").equals(games[0].id).toArray();
+        const ballId = firstFrames[0]?.shots[0]?.ball_id;
+        for (const g of games.slice(1)) {
+          await db.frames.where("game_id").equals(g.id).delete();
+          await db.games.delete(g.id);
+        }
+        for (const [k, card] of more[i].entries()) {
+          const gameId = await db.games.add({ session_id: s.id, game_number: k + 2, lanes: night.lanes, start_lane: night.lanes[0] });
+          const frames = card.split(" ").map((token, f) => {
+            const shots = shotsOf(token, ballId);
+            const fr = { game_id: gameId, frame_number: f + 1, shots };
+            return { ...fr, is_strike: isStrike(fr), is_spare: !isStrike(fr) && shots.length > 1 && shots[1].pins_standing.length === 0 };
+          });
+          await db.frames.bulkAdd(frames);
+          await db.games.update(gameId, { final_score: calculateGameScore(frames).total });
+        }
+        await db.games.update(games[0].id, { lanes: night.lanes, start_lane: night.lanes[0] });
+        const pattern = patterns.find((p) => new RegExp(night.pattern).test(p.name));
+        const date = s.date.length > 10 ? night.date + s.date.slice(10) : night.date;
+        await db.sessions.update(s.id, { date, oil_pattern_id: pattern?.id });
+      }
+    },
+    { more: MORE_GAMES, nights: NIGHTS.map((n) => ({ ...n, pattern: n.pattern.source })) }
+  );
+  await frame.evaluate(() => location.reload());
+  await wait(1500);
+  await app.getByRole("navigation").first().waitFor();
+  await wait(800);
+}
+
+// History: every night, kept on the phone.
 await take("history", {
+  async setup({ page, app }) {
+    await seedHistory(page, app);
+  },
   async run({ app, tap, mark, wait }) {
     await tap(app.getByRole("navigation").getByRole("button", { name: "History" }), "tap-history", 900);
     await mark("list", { x: 0, y: 0, w: 390, h: 844 });

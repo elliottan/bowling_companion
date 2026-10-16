@@ -2,7 +2,7 @@
 
 record.mjs runs this once before recording, with a JSON list on stdin:
 [{"text": "...", "out": "/path/to/line.wav"}, ...]
-and reads back one JSON object per line on stdout: {"out": ..., "seconds": ...}.
+(a line may carry its own "speed"; ADS_TTS_SPEED is the rest's) and reads back one JSON object per line on stdout: {"out": ..., "seconds": ...}.
 A clip that already exists is measured, not spoken again.
 
 Setup, once (the model is Apache 2.0, so the voice can run in paid ads):
@@ -35,7 +35,7 @@ for line in lines:
                 os.path.join(models, "kokoro-v1.0.onnx"),
                 os.path.join(models, "voices-v1.0.bin"),
             )
-        samples, rate = kokoro.create(line["text"], voice=voice, speed=speed, lang="en-us")
+        samples, rate = kokoro.create(line["text"], voice=voice, speed=line.get("speed", speed), lang="en-us")
         sf.write(line["out"], samples, rate)
     info = sf.info(line["out"])
     print(json.dumps({"out": line["out"], "seconds": round(info.frames / info.samplerate, 3)}))

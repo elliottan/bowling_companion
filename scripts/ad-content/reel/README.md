@@ -1,17 +1,21 @@
 # The feature reel
 
 A 9:16 reel that flips through what Headpin does on one league night: a ball,
-a line, the lane view, scoring, the line carrying over, a 2-1 move, a spare
-ball and line that are already set, the tenth, the stats, oil patterns, spare
-lines and history. It is built from the real app in two passes, so the footage
-stays honest and the editing stays smooth.
+a line, the lane view, scoring, the line carrying over to the next shot, a 2-1
+move, a spare ball and line that are already set, the tenth and the stats.
+Then it flicks through the rest, one screen to a word (sessions, oil patterns,
+bowling balls, the layout visualizer), deals all four out in a fan for "All
+on Headpin", and ends on the card. It is built from the real app in two
+passes, so the footage stays honest and the editing stays smooth.
 
 1. **`capture.mjs`** drives the app in Playwright and records takes: Chrome's
    screencast of the app at twice its size (780 x 1688 JPEGs, about 25 a
    second while something moves), plus a `take.json` of marks. A mark is a
    time and the boxes, in the app's own pixels, of whatever is worth pointing
    at; every tap is a mark with its point. The setup (a TZone spare ball, a
-   line for the 10, seven frames bowled) runs before the screencast starts.
+   line for the 10, seven frames bowled; for history, the saved nights spread
+   a week apart with three or four games each and a pattern on every one)
+   runs before the screencast starts.
 2. **`compose.mjs`** is the edit. `BEATS` says, for each beat, which take and
    which part of it, the caption, the voice line, and where the camera,
    spotlights and rings go, named by the marks. Every frame is worked out as
@@ -46,3 +50,6 @@ way to check a change to the edit.
 - Whatever the camera is on is placed at y 905, the middle of the area that
   Reels and TikTok leave clear (their buttons cover the bottom 680 px).
 - One effect at a time: a spotlight, a ring or a tap, not all three at once.
+- Pull back before going in. A beat on the scorer opens on the whole screen, or
+  the whole card down to the notes, and only then zooms to the one control it
+  is about, so a viewer always knows where on the screen they are.
