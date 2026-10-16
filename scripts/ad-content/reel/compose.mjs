@@ -181,8 +181,8 @@ const BEATS = [
     // third strike ends the game, and the app's "Game 1 is in the books"
     // pushes the card down, so the light follows the frame to where it went.
     cam: [{ at: "tenth-0-0.15", box: WIDE, z: 1.3, ease: 0 }],
-    spots: [{ from: "tenth-0-0.05", to: "tap-tenth-2+0.04", boxes: "tenth-0" },
-            { from: "tap-tenth-2+0.06", to: "frame10+0.5", boxes: "frame10" }] },
+    spots: [{ from: "tenth-0-0.05", to: "tap-tenth-2+0.05", boxes: "tenth-0" },
+            { from: "tap-tenth-2+0.05", to: "frame10+0.5", boxes: "frame10" }] },
   { id: "stats", take: "game", from: "stats", to: "balls+0.5", caption: "All your stats.|<em>Which ball strikes more.</em>", capSize: 70, vo: "stats", trans: "whip",
     cam: [{ at: "stats", box: FULL, z: 1, ease: 0 },
           { at: "stats+0.3", box: { x: 0, y: 40, w: 390, h: 340 }, z: 1.5, ease: 0.4 },
@@ -439,19 +439,26 @@ function beatFrame(beats, i, u) {
   f.phones.push({ key: "a", src: frameAt(b.take, src), x: cam.x, y: cam.y, s: cam.s, opacity: 1 });
   const local = (ref) => (timeOf(b.take, ref) - b.src0) / b.speed;
 
-  // Spotlight: the lit boxes of whichever spot is on, faded in and out.
-  for (const sp of b.spots ?? []) {
+  // Spotlight: the lit boxes of whichever spot is on, faded in and out. A
+  // spot that starts as another ends takes over from it without the dimming
+  // lifting in between, so the screen does not flash.
+  const spots = b.spots ?? [];
+  spots.forEach((sp, j) => {
     const a = local(sp.from);
     const z = local(sp.to);
-    if (u < a || u > z) continue;
-    const k = Math.min(easeOut(clamp((u - a) / 0.18)), clamp((z - u) / 0.14));
-    const pad = 10 + (1 - easeOut(clamp((u - a) / 0.25))) * 26;
+    if (u < a || u > z) return;
+    const joinedIn = j > 0 && Math.abs(local(spots[j - 1].to) - a) < 0.12;
+    const joinedOut = j < spots.length - 1 && Math.abs(local(spots[j + 1].from) - z) < 0.12;
+    const fadeIn = joinedIn ? 1 : easeOut(clamp((u - a) / 0.18));
+    const fadeOut = joinedOut ? 1 : clamp((z - u) / 0.14);
+    const k = Math.min(fadeIn, fadeOut);
+    const pad = joinedIn ? 10 : 10 + (1 - easeOut(clamp((u - a) / 0.25))) * 26;
     f.spot = {
       alpha: 0.64 * k,
       rim: k,
       holes: boxesOf(b.take, sp.boxes).map((bx) => ({ ...toCanvas(cam, bx, pad), r: 22 }))
     };
-  }
+  });
   // Circles.
   b.circles?.forEach((c, j) => {
     const a = local(c.at);
@@ -556,7 +563,11 @@ function cues(beats, voice) {
     if (b.end) out.push({ t: b.start, kind: "impact" }, { t: b.start - 1.6, kind: "riser" });
     if (!b.take) continue;
     for (const m of take(b.take).marks.filter((m) => m.tap && m.t >= b.src0 && m.t <= b.src1)) out.push({ t: b.start + (m.t - b.src0) / b.speed, kind: "tick" });
-    for (const sp of b.spots ?? []) out.push({ t: b.start + (timeOf(b.take, sp.from) - b.src0) / b.speed, kind: "pop" });
+    // A pop when a spotlight comes on, not when one takes over from another.
+    (b.spots ?? []).forEach((sp, j, all) => {
+      if (j > 0 && Math.abs(timeOf(b.take, all[j - 1].to) - timeOf(b.take, sp.from)) < 0.12) return;
+      out.push({ t: b.start + (timeOf(b.take, sp.from) - b.src0) / b.speed, kind: "pop" });
+    });
     for (const c of b.circles ?? []) out.push({ t: b.start + (timeOf(b.take, c.at) - b.src0) / b.speed, kind: "scribble" });
   }
   return out.filter((c) => c.t >= 0);
