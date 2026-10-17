@@ -504,9 +504,23 @@ describe("ADR-113: the ball follows the last throw, the line follows the ball", 
   const GEM: Ball = { id: 3, name: "Gem", is_spare_ball: false, sort_order: 2 };
   const balls = [HAMMER, SPARE_BALL, GEM];
 
-  it("seeds the ball changed to in the frame between, not the same-lane frame's", () => {
-    // Lane pair: frame 3 is on 11 like frame 1, but the bowler changed to the
-    // Gem in frame 2 on lane 12. Frame 3 opens with the Gem, on the Gem's line.
+  it("keeps a different ball thrown on the other lane on that lane (ADR-151)", () => {
+    // Lane pair: frame 3 is on 11 like frame 1. The Gem thrown in frame 2 on
+    // lane 12 stays there: frame 3 opens with frame 1's ball and line.
+    const seed = seedForShot({
+      ...base,
+      balls,
+      currentFrameNumber: 3,
+      game: PAIR,
+      frames: [
+        strike(1, { ball_id: 1, intended: { stance: 20, target: 15 }, notes: "dry left" }),
+        strike(2, { ball_id: 3, intended: { stance: 24, target: 17 } })
+      ]
+    });
+    expect(seed).toEqual({ ballId: 1, intended: { stance: 20, target: 15 }, notes: "dry left" });
+  });
+
+  it("does not empty the box when the other lane's ball has no line (ADR-151)", () => {
     const seed = seedForShot({
       ...base,
       balls,
@@ -514,28 +528,47 @@ describe("ADR-113: the ball follows the last throw, the line follows the ball", 
       game: PAIR,
       frames: [
         strike(1, { ball_id: 1, intended: { stance: 20, target: 15 } }),
-        strike(2, { ball_id: 3, intended: { stance: 24, target: 17 } })
+        strike(2, { ball_id: 3 })
       ]
     });
-    expect(seed.ballId).toBe(3);
-    expect(seed.intended).toEqual({ stance: 24, target: 17 });
+    expect(seed.ballId).toBe(1);
+    expect(seed.intended).toEqual({ stance: 20, target: 15 });
   });
 
-  it("prefers the new ball's line on this lane once it has one", () => {
+  it("carries a ball change on this lane to this lane's next frame (ADR-151)", () => {
     const seed = seedForShot({
       ...base,
       balls,
       currentFrameNumber: 5,
       game: PAIR,
       frames: [
-        strike(1, { ball_id: 3, intended: { stance: 22, target: 16 } }),
-        strike(2, { ball_id: 1, intended: { stance: 20, target: 15 } }),
-        strike(3, { ball_id: 1, intended: { stance: 21, target: 15 } }),
-        strike(4, { ball_id: 3, intended: { stance: 24, target: 17 } })
+        strike(1, { ball_id: 1, intended: { stance: 20, target: 15 } }),
+        strike(2, { ball_id: 1, intended: { stance: 21, target: 15 } }),
+        strike(3, { ball_id: 3, intended: { stance: 24, target: 17 } }),
+        strike(4, { ball_id: 1, intended: { stance: 22, target: 16 } })
       ]
     });
     expect(seed.ballId).toBe(3);
-    expect(seed.intended).toEqual({ stance: 22, target: 16 });
+    expect(seed.intended).toEqual({ stance: 24, target: 17 });
+  });
+
+  it("fills an empty same-lane line from that ball's own history (ADR-151)", () => {
+    // Frame 3's ball 1 was thrown with no line; ball 1's line on lane 11 is
+    // older, and the Gem's line on lane 12 is never borrowed.
+    const seed = seedForShot({
+      ...base,
+      balls,
+      currentFrameNumber: 5,
+      game: PAIR,
+      frames: [
+        strike(1, { ball_id: 1, intended: { stance: 20, target: 15 } }),
+        strike(2, { ball_id: 3, intended: { stance: 24, target: 17 } }),
+        strike(3, { ball_id: 1 }),
+        strike(4, { ball_id: 3, intended: { stance: 25, target: 17 } })
+      ]
+    });
+    expect(seed.ballId).toBe(1);
+    expect(seed.intended).toEqual({ stance: 20, target: 15 });
   });
 
   it("seeds game 1 frame 2 on a pair from frame 1", () => {

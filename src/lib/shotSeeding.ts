@@ -343,18 +343,21 @@ export function seedForShot(input: ShotSeedInput): ShotSeed {
   const { currentShot, currentFrameNumber, availablePins, frames, currentFrameShots } = input;
   const previousGames = input.previousGames ?? [];
 
-  // First ball (ADR-113): the ball is the last one thrown at a full rack this
-  // session, on any lane, and the line is that ball's own line, this lane
-  // first. Notes still come from the previous frame on this lane. With no ball
-  // on record, the same-lane frame's line carries as it always has, which is
-  // what keeps seeding alive for a bowler who never picks a ball.
+  // First ball (ADR-151): ball, line and notes come from the previous frame on
+  // this lane. A different ball thrown on the other lane of a pair stays on
+  // that lane. When that frame's shot has no line, the ball's own line fills
+  // the box, this lane first. Only a frame with no same-lane predecessor (game
+  // 1 frame 2 on a pair, or a new lane) takes the last ball thrown anywhere,
+  // with its line (ADR-113).
   if (currentShot === 1) {
     const prev = freshRackSeedShot(input.game, currentFrameNumber, [], frames, previousGames);
-    const ballId = lastFreshRackBallId(currentFrameNumber, [], frames, previousGames);
+    const ballId = prev
+      ? prev.ball_id
+      : lastFreshRackBallId(currentFrameNumber, [], frames, previousGames);
     return {
       ballId,
       notes: prev?.notes ?? "",
-      ...resolveIntended(input, ballId == null ? prev?.intended : undefined, ballId, [])
+      ...resolveIntended(input, prev?.intended, ballId, [])
     };
   }
 
