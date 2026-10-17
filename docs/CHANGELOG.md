@@ -9,6 +9,13 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.43.1: A plan for Headpin Pro (2026-10-17)
+
+**Nothing in the app changes yet.** This release records how Headpin will earn:
+a free app with one Pro unlock, sold in the iOS app first, with no accounts, no
+ads and no affiliate links (ADR-154). The plan, including which features are
+free and which are Pro, is in `docs/PRO-LAUNCH.md`.
+
 ## 0.43.0: A shared line shows the lane (2026-10-17)
 
 **The line share card draws the lane.** The ball's path from laydown to the

@@ -7058,3 +7058,99 @@ when the line has one.
 - A chat app still previews the link as the app, not as this card: the app has
   no server to render one per line. Guides have their own pages for this
   (`lib/guidePage`); lines and layouts do not.
+
+---
+
+## ADR-154: Headpin earns from one Pro unlock, sold only in the store apps
+
+**Status.** Accepted, 2026-10-17, by the owner's decision. Supersedes ADR-119:
+the retailer link is never turned on, and its code goes. Retires the donation
+link (CHANGELOG, "Settings: feedback + donation links", 2026-07-19). ADR-039's
+image position, as ADR-119 left it, stands, with one consequence for the store
+apps below. The feature-by-feature split lives in `docs/PRO-LAUNCH.md` until it
+is built, and becomes code then.
+
+**Context.** The owner wants side income, a few hundred dollars a month as the
+first target, and never to lose money. Research in October 2026 found:
+
+- **Bowlers accept a one-time price and resent subscriptions.** PinPal sells a
+  one-time $8.99 unlock and holds about 4.9 stars from about 5,000 ratings, with
+  reviews that praise the single payment. Tenpin Toolkit's $9.99 unlock is the
+  most rated app after LaneTalk. LaneTalk's subscription draws "money grab"
+  reviews, and a $49.99 lifetime drew "If this app was a one-time 5-10 bucks, it
+  would be fine".
+- **The market is small.** The top app, LaneTalk, adds an estimated 3K to 5K
+  installs a month across both stores; most bowling apps likely add under 500. A
+  public tracker puts every bowling app it checked under $10K a month.
+- **Paid acquisition cannot pay back.** At $9.99 net of a 15% store fee and 2%
+  of free users buying (RevenueCat's freemium median), an install is worth about
+  $0.17. Apple's search ads cost a median $26.70 an install in Sports and $2.25
+  in Utilities (US, 2025).
+- **Ads earn little here.** A league bowler opens the app about once a week, an
+  alley often has no signal, and ads would need a tracking prompt on iOS and a
+  consent banner in the EU. Several hundred free users would earn tens of
+  dollars a month.
+- **Affiliate links do not fit either.** BowlersMart never answered. Amazon's
+  operating agreement bars its links in "any client-side software application"
+  unless Amazon approves the app, and bowling balls are thin on Amazon.
+- **Apple forbids a licence key that unlocks an iOS app** (guideline 3.1.1). A
+  web purchase can be honoured in the app only if the same unlock is also sold
+  in the app (3.1.3(b)). One purchase that works everywhere therefore needs
+  accounts and a server.
+
+**Decision.**
+
+- **The app is free to download, and one non-consumable purchase inside it,
+  Headpin Pro,** unlocks the rest, at a US$9.99 base price. Pro is the name of
+  that purchase, not an account, a tier or a second app. A paid download was
+  weighed and rejected: store search is the app's main way to be found, and a
+  price before install cuts installs and ratings the most (Bowling Roster, $9.99
+  to download, has 2 ratings; Tenpin Toolkit, free with a $9.99 unlock, has
+  860). Each store sets the other countries' prices from the base price, and
+  nobody hand-tunes them.
+  The iOS app ships first; Google Play follows once its closed test is done.
+- **No accounts, no server, no licence keys, no web checkout.** The store
+  remembers the purchase, and Restore purchases brings it back on a new device.
+- **The web app stays free and never sells Pro.** It shows Pro as quiet previews
+  that point at the App Store. Apple's rules do not govern the website; inside
+  the iOS app nothing mentions the web or another way to pay.
+- **Recording is free; reading deeper is Pro.** Everything a bowler enters (every
+  shot, line, ball, lane and pattern) can be entered without Pro. Pro unlocks
+  analysis of that data. A bowler's data is never hidden behind Pro, and backup
+  and export are always free.
+- **The ball catalog and the pattern library are free everywhere,** photos and
+  sheets included. Nobody pays for the data, which keeps MOTIV's terms (ADR-061:
+  not resold, kept accurate).
+- **No in-app ads and no paid acquisition.** Growth is organic: store search,
+  share cards, offer codes for creators, and bowling communities. ADR-121's `utm_`
+  tags stay, for those links.
+- **No affiliate links and no donation link.**
+- **The catalog and patterns never need a connection.** The store apps ship a
+  snapshot of `catalog.json` and `patterns.json` and refresh it from headpin.app
+  whenever they are online, the same version check the web app does today
+  (`ballCatalogRepository`, ADR-104). Downloading data rather than code is
+  allowed in the stores.
+- **The store apps do not bundle ball photos or pattern sheets.** They load them
+  from headpin.app and keep them on the device, as the web app's service worker
+  does. A takedown therefore stays a server-side data edit (ADR-039) and needs no
+  app release, and the app stays tens of megabytes instead of over a hundred.
+- **Games move from the web to the app by backup and import** (ADR-038). The
+  app's first run says how to do it.
+
+**Consequences.**
+
+- Android users have no way to buy Pro until the Play listing is live. A new
+  personal Play account needs at least 12 testers opted in for 14 days in a row
+  before it can publish.
+- Apple rejects a repackaged website (guideline 4.2), so the iOS app needs
+  native work: the share sheet, file import and export, haptics, and the
+  purchase itself.
+- The store apps carry the version they were built with and lag the web app.
+  How the "every merge bumps the version" rule maps onto store builds is settled
+  when the first one ships.
+- The income is set by downloads: at 2% buying, about 2,000 installs a month
+  earn about $340 a month. Fixed costs are Apple's $99 a year and Google's $25
+  once, which about 15 sales a year cover.
+- The owner keeps the unlicensed photos in the paid app and accepts the risk. A
+  complaint to Apple can pull the whole app, not one image. MOTIV is told the app
+  now sells Pro.

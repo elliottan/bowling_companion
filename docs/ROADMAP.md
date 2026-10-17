@@ -8,7 +8,11 @@ open.
 
 ## High impact
 
-Nothing open.
+### Headpin Pro and the iOS app
+
+A free app with one Pro unlock, sold only in the store apps, with no accounts and
+no server (ADR-154). The phases, the free and Pro split, and how the catalog
+refreshes offline are in [PRO-LAUNCH.md](./PRO-LAUNCH.md).
 
 ---
 
