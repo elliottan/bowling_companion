@@ -3,10 +3,12 @@ import {
   buildSessionCard,
   buildStatsCard,
   buildLayoutCard,
+  buildLineCard,
   describeFilter,
   formatCardDate,
   shareCardFilename
 } from "./shareCard";
+import type { OilPass } from "../types/bowling";
 
 /* The canvas itself is not asserted on: jsdom has no 2D context, so
  * `renderShareCard` cannot run here. These cover the pure builders that decide
@@ -246,5 +248,63 @@ describe("formatCardDate", () => {
 
   it("formats a real date", () => {
     expect(formatCardDate("2026-08-30")).toContain("2026");
+  });
+});
+
+describe("buildLineCard", () => {
+  const strikeLine = { laydown: 20, target: 15, final_board: 17.5 };
+
+  it("draws the lane, with the path the visualizer draws", () => {
+    const card = buildLineCard({ line: strikeLine, hand: "right", spare: false });
+    expect(card.lane?.path.length).toBeGreaterThan(2);
+    expect(card.lane?.laydown.board).toBeCloseTo(20);
+    expect(card.lane?.final.board).toBeCloseTo(17.5);
+    expect(card.lane?.standing).toHaveLength(10);
+  });
+
+  it("names each number, and the pocket as the pocket", () => {
+    const card = buildLineCard({ line: strikeLine, hand: "right", spare: false });
+    expect(card.stats.map((s) => s.label)).toEqual([
+      "Laydown board",
+      "Target at the arrows",
+      "Breakpoint",
+      "Into the pocket"
+    ]);
+    expect(card.stats[2].value).toMatch(/^\d+(\.5)? at \d+ ft$/);
+  });
+
+  it("titles a strike line by its pattern, and adds the oil", () => {
+    const passes = [
+      { start_distance: 0, end_distance: 40, left_board: 2, right_board: 38, loads: 2, microliters: 50, direction: "forward" }
+    ] as unknown as OilPass[];
+    const card = buildLineCard({
+      line: strikeLine,
+      hand: "right",
+      spare: false,
+      pattern: { name: "House shot", passes }
+    });
+    expect(card.title).toBe("House shot");
+    expect(card.eyebrow).toBe("Right hand  ·  Strike line");
+    expect(card.lane?.oil?.length).toBe(40);
+    expect(card.stats.find((s) => s.label === "Pattern length")?.value).toBe("40 ft");
+  });
+
+  it("titles a spare by its leave and stands only the leave", () => {
+    const card = buildLineCard({
+      line: { laydown: 30, target: 22, final_board: 30 },
+      hand: "left",
+      spare: true,
+      leave: [10]
+    });
+    expect(card.title).toBe("10 pin spare");
+    expect(card.eyebrow).toBe("Left hand");
+    expect(card.lane?.standing).toEqual([10]);
+    expect(card.stats.some((s) => s.label === "Into the pocket")).toBe(false);
+  });
+
+  it("still makes a card from a line with no target", () => {
+    const card = buildLineCard({ line: { laydown: 20 }, hand: "right", spare: false });
+    expect(card.lane).toBeUndefined();
+    expect(card.stats).toEqual([{ value: "20", label: "Laydown board" }]);
   });
 });

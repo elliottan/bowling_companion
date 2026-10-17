@@ -200,15 +200,11 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
   function shareLine() {
     setMovesOpen(false);
     setCard(buildLineCard({
-      laydown: line?.laydown ?? line?.stance,
-      target: line?.target,
-      finalBoard: line?.final_board ?? (spare ? undefined : POCKET_BOARD),
-      hookStart: line?.hook_start_distance,
-      hookLength: line?.hook_length,
+      line: line ?? {},
       hand,
       spare,
-      title,
-      patternName: oilPattern?.name,
+      leave,
+      pattern: oilPattern,
     }));
   }
 

@@ -7021,3 +7021,40 @@ drew at most six game boxes, so a seventh game was missing from the picture.
 
 - The session screen's own header still leads with the series. It was not
   part of this ask.
+
+## ADR-153: A line's share card draws the lane
+
+**Status.** Accepted, 2026-10-17, by the owner's decision. Supersedes ADR-110's
+"the card does not draw the lane". The rest of ADR-110 (a line is a link, the
+pattern travels by catalog id) stands.
+
+**Context.** The line card was three board numbers as a title, a sentence
+telling the reader to open the link, and a large empty panel where the other
+cards have their picture. The owner found it ugly and hard to read. ADR-110
+left the lane off for fear it would be read as data without its pattern and
+hand. But the card carries both: the hand is on it, and the pattern is drawn
+when the line has one.
+
+**Decision.**
+
+- **The lane is the card's picture,** top-down down the left side: the boards,
+  the arrows, the pins, the ball's path with its laydown, target, breakpoint
+  and finish, and the pattern's oil with its length and where the ball leaves
+  it. The path is `buildLinePath`, the visualizer's own, so the two never
+  disagree.
+- **The numbers stack beside it,** each named: laydown board, target at the
+  arrows, breakpoint (board and distance), the finish ("Into the pocket" on a
+  strike line that ends on 17.5), and, with a pattern, its length and where
+  the ball leaves the oil. A dot keys the two marks the labels name.
+- **The title is the pattern** when there is one, else the kind of line. A
+  spare names its leave ("10 pin spare") and stands only those pins.
+- A spare line that misses runs straight past the pins; the card clips it to
+  the lane.
+
+**Consequences.**
+
+- The card is still the link's preview in the share dialog, and the link still
+  opens the sandbox on the same line, hand, leave and pattern.
+- A chat app still previews the link as the app, not as this card: the app has
+  no server to render one per line. Guides have their own pages for this
+  (`lib/guidePage`); lines and layouts do not.
