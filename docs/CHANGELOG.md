@@ -19,6 +19,31 @@ and a list shows every session that game was bowled in, newest first, with the
 whole night's scores and that game picked out. Tap a session to open it on that
 game. The card used to narrow Stats to that game number; the filter still does.
 
+## 0.43.0: A shared line shows the lane (2026-10-17)
+
+**The line share card draws the lane.** The ball's path from laydown to the
+pins, the arrows, the breakpoint and the finish, and the pattern's oil with
+where the ball leaves it, with each number named beside it. A spare card names
+its leave and shows only those pins standing. It used to be three numbers over
+an empty panel.
+
+## 0.42.0: A night leads with its average (2026-10-17)
+
+**The average is the big number** on a session's share picture and on each
+History row. The series moves beside the game count: "7 game series" on the
+picture, "7 games · 1283 series" in History.
+
+**Fixed:** a share picture of a night with more than six games left the rest
+out. Every game now gets a box, on a second row when there are more than six.
+
+## 0.41.1: The strike ball carries from its own lane (2026-10-17)
+
+**Fixed:** on a pair, a frame's first ball opens with the ball, line and notes
+of the previous frame on the same lane. It used to take the ball just thrown on
+the other lane, with that lane's line, or with no line at all when that ball
+had none. A different ball on the other lane now stays on that lane. In game 1,
+frame 2 still opens with frame 1's ball and line.
+
 ## 0.41.0: An easier first night (2026-10-16)
 
 **A new bowler gets one button: Start scoring.** It goes straight to the pin

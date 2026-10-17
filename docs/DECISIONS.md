@@ -6957,3 +6957,104 @@ the first minute cluttered with choices that were the same choice:
   the sheet's history entry, and collecting that entry left "#/session" with no
   id, so a reload lost the session. Collecting the sentinel now puts the
   current route back (`useHistoryRoute`).
+
+## ADR-151: A strike ball carries from the previous frame on its own lane
+
+**Status.** Accepted, 2026-10-17, by the owner's decision. Supersedes the ball
+half of ADR-113 for the first ball of a frame. ADR-113's other rules (a strike
+ball at a leave, the box on a ball change, the capture prompt, a seed is a
+copy) stand.
+
+**Context.** ADR-113 made the first ball of a frame open with the last ball
+thrown at a full rack on either lane, and the line follow that ball. On a pair
+that is the ball just thrown on the other lane. The owner keeps a ball per lane
+of a pair, so frame 3 on lane 11 opened with lane 12's ball. When that ball had
+a line it was lane 12's; when it had none, the box was empty, and only the
+same-lane frame's notes came across. The line set on this lane was lost either
+way.
+
+**Decision.**
+
+- **Ball, line and notes** come from the previous frame on this lane, then the
+  last frame on this lane in an earlier game (`freshRackSeedShot`, as ADR-029
+  had it). A different ball thrown on the other lane stays on that lane.
+- **An empty line on that shot** is filled from that ball's own history,
+  `sameBallSeedLine`: this lane first, then the pair's other lane, but always
+  the same ball's line.
+- **With no same-lane frame at all** (game 1 frame 2 on a pair, or a lane not
+  bowled yet this session), ADR-113's rule still applies: the last ball thrown
+  anywhere, on its own line. So frame 2 is never empty.
+- Bonus balls in the 10th and pocket leaves are unchanged: they take the ball
+  just thrown in the same frame, which is on the same lane.
+
+**Consequences.**
+
+- A ball change on one lane reaches that lane's next frame, two frames later on
+  a pair. ADR-113 measured that this put back the old ball after a change for a
+  bowler who changes on both lanes at once; the owner's practice is a ball per
+  lane, and that is what this rule serves.
+- A ball change the bowler wants on both lanes is made once on each.
+
+## ADR-152: A session leads with its average, and the series sits with the game count
+
+**Status.** Accepted, 2026-10-17, by the owner's decision. Applies to the
+session share card and the History row.
+
+**Context.** Both led with the series total, with the average in small type.
+A series mostly says how many games were bowled: a seven game night of 183
+reads 1283 and a three game night of 210 reads 630, so the bigger number was
+the worse night. The average is what bowlers compare. The share card also
+drew at most six game boxes, so a seventh game was missing from the picture.
+
+**Decision.**
+
+- **The average is the headline** on the share card and the History row,
+  over finished games only, as before.
+- **The series moves beside the game count:** "7 game series" on the card,
+  "7 games · 1283 series" on the row.
+- **One game** leads with its score and shows no series. **No finished game
+  yet** leads with the running series, since there is no average to show.
+- **Every game gets a box on the card.** Up to six share one row; more wrap
+  onto a second, shorter row, and the stats below move down to make room.
+
+**Consequences.**
+
+- The session screen's own header still leads with the series. It was not
+  part of this ask.
+
+## ADR-153: A line's share card draws the lane
+
+**Status.** Accepted, 2026-10-17, by the owner's decision. Supersedes ADR-110's
+"the card does not draw the lane". The rest of ADR-110 (a line is a link, the
+pattern travels by catalog id) stands.
+
+**Context.** The line card was three board numbers as a title, a sentence
+telling the reader to open the link, and a large empty panel where the other
+cards have their picture. The owner found it ugly and hard to read. ADR-110
+left the lane off for fear it would be read as data without its pattern and
+hand. But the card carries both: the hand is on it, and the pattern is drawn
+when the line has one.
+
+**Decision.**
+
+- **The lane is the card's picture,** top-down down the left side: the boards,
+  the arrows, the pins, the ball's path with its laydown, target, breakpoint
+  and finish, and the pattern's oil with its length and where the ball leaves
+  it. The path is `buildLinePath`, the visualizer's own, so the two never
+  disagree.
+- **The numbers stack beside it,** each named: laydown board, target at the
+  arrows, breakpoint (board and distance), the finish ("Into the pocket" on a
+  strike line that ends on 17.5), and, with a pattern, its length and where
+  the ball leaves the oil. A dot keys the two marks the labels name.
+- **The title is the pattern** when there is one, else the kind of line. A
+  spare names its leave ("10 pin spare") and stands only those pins.
+- A spare line that misses runs straight past the pins; the card clips it to
+  the lane.
+
+**Consequences.**
+
+- The card is still the link's preview in the share dialog, and the link still
+  opens the sandbox on the same line, hand, leave and pattern.
+- A chat app still previews the link as the app, not as this card: the app has
+  no server to render one per line. Guides have their own pages for this
+  (`lib/guidePage`); lines and layouts do not.

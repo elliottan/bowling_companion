@@ -151,12 +151,17 @@ function SessionRow({ summary, isActive, onOpen, onSessionDeleted }: SessionRowP
               Active
             </span>
           )}
-          {seriesTotal > 0 && (
-            <p className="text-lg font-extrabold leading-none text-accent">{seriesTotal}</p>
+          {/* The average leads (ADR-152). Until a game is finished there is
+              none, and the running series stands in for it. */}
+          {(seriesAvg !== null || seriesTotal > 0) && (
+            <p className="text-lg font-extrabold leading-none text-accent">
+              {seriesAvg ?? seriesTotal}
+              {seriesAvg !== null && <span className="ml-1 text-xs font-semibold text-ink-secondary">avg</span>}
+            </p>
           )}
           <p className={GROUP_HEADING}>
             {games.length} {games.length === 1 ? "game" : "games"}
-            {seriesAvg !== null && ` · ${seriesAvg} avg`}
+            {seriesAvg !== null && games.length > 1 && ` · ${seriesTotal} series`}
           </p>
         </div>
       </div>

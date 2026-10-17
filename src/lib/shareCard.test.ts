@@ -3,10 +3,12 @@ import {
   buildSessionCard,
   buildStatsCard,
   buildLayoutCard,
+  buildLineCard,
   describeFilter,
   formatCardDate,
   shareCardFilename
 } from "./shareCard";
+import type { OilPass } from "../types/bowling";
 
 /* The canvas itself is not asserted on: jsdom has no 2D context, so
  * `renderShareCard` cannot run here. These cover the pure builders that decide
@@ -23,14 +25,16 @@ const session = {
 };
 
 describe("buildSessionCard", () => {
-  it("leads with the series total", () => {
+  it("leads with the average, and gives the series with its game count", () => {
     const card = buildSessionCard(session);
-    expect(card.hero).toEqual({ value: "630", label: "Series" });
+    expect(card.hero).toEqual({ value: "210", label: "Average" });
+    expect(card.stats[0]).toEqual({ value: "630", label: "3 game series" });
   });
 
-  it("says Game, not Series, for a single game", () => {
+  it("says Game, not Average, for a single game", () => {
     const card = buildSessionCard({ ...session, scores: [212], finalScores: [212] });
-    expect(card.hero?.label).toBe("Game");
+    expect(card.hero).toEqual({ value: "212", label: "Game" });
+    expect(card.stats.map((s) => s.label)).toEqual(["Strikes", "Spares"]);
   });
 
   it("averages finished games only, so a game in progress does not drag it down", () => {
@@ -40,8 +44,21 @@ describe("buildSessionCard", () => {
       scores: [212, 185, 40],
       finalScores: [212, 185]
     });
-    expect(card.hero?.value).toBe("437");
-    expect(card.stats.find((s) => s.label === "Average")?.value).toBe("199");
+    expect(card.hero?.value).toBe("199");
+    expect(card.stats[0]).toEqual({ value: "437", label: "3 game series" });
+  });
+
+  it("leads with the series while no game is finished", () => {
+    const card = buildSessionCard({ ...session, scores: [120, 40], finalScores: [] });
+    expect(card.hero).toEqual({ value: "160", label: "Series" });
+  });
+
+  it("carries every game of a seven game night", () => {
+    const seven = [194, 188, 160, 134, 198, 205, 204];
+    const card = buildSessionCard({ ...session, scores: seven, finalScores: seven });
+    expect(card.games).toHaveLength(7);
+    expect(card.hero?.value).toBe("183");
+    expect(card.stats[0]).toEqual({ value: "1283", label: "7 game series" });
   });
 
   it("carries every game score for the boxes", () => {
@@ -56,7 +73,7 @@ describe("buildSessionCard", () => {
 
   it("omits a stat it has no number for", () => {
     const card = buildSessionCard({ ...session, strikePct: null, sparePct: null });
-    expect(card.stats.map((s) => s.label)).toEqual(["Average", "High game"]);
+    expect(card.stats.map((s) => s.label)).toEqual(["3 game series", "High game"]);
   });
 
   it("survives a session with nothing bowled yet", () => {
@@ -231,5 +248,63 @@ describe("formatCardDate", () => {
 
   it("formats a real date", () => {
     expect(formatCardDate("2026-08-30")).toContain("2026");
+  });
+});
+
+describe("buildLineCard", () => {
+  const strikeLine = { laydown: 20, target: 15, final_board: 17.5 };
+
+  it("draws the lane, with the path the visualizer draws", () => {
+    const card = buildLineCard({ line: strikeLine, hand: "right", spare: false });
+    expect(card.lane?.path.length).toBeGreaterThan(2);
+    expect(card.lane?.laydown.board).toBeCloseTo(20);
+    expect(card.lane?.final.board).toBeCloseTo(17.5);
+    expect(card.lane?.standing).toHaveLength(10);
+  });
+
+  it("names each number, and the pocket as the pocket", () => {
+    const card = buildLineCard({ line: strikeLine, hand: "right", spare: false });
+    expect(card.stats.map((s) => s.label)).toEqual([
+      "Laydown board",
+      "Target at the arrows",
+      "Breakpoint",
+      "Into the pocket"
+    ]);
+    expect(card.stats[2].value).toMatch(/^\d+(\.5)? at \d+ ft$/);
+  });
+
+  it("titles a strike line by its pattern, and adds the oil", () => {
+    const passes = [
+      { start_distance: 0, end_distance: 40, left_board: 2, right_board: 38, loads: 2, microliters: 50, direction: "forward" }
+    ] as unknown as OilPass[];
+    const card = buildLineCard({
+      line: strikeLine,
+      hand: "right",
+      spare: false,
+      pattern: { name: "House shot", passes }
+    });
+    expect(card.title).toBe("House shot");
+    expect(card.eyebrow).toBe("Right hand  ·  Strike line");
+    expect(card.lane?.oil?.length).toBe(40);
+    expect(card.stats.find((s) => s.label === "Pattern length")?.value).toBe("40 ft");
+  });
+
+  it("titles a spare by its leave and stands only the leave", () => {
+    const card = buildLineCard({
+      line: { laydown: 30, target: 22, final_board: 30 },
+      hand: "left",
+      spare: true,
+      leave: [10]
+    });
+    expect(card.title).toBe("10 pin spare");
+    expect(card.eyebrow).toBe("Left hand");
+    expect(card.lane?.standing).toEqual([10]);
+    expect(card.stats.some((s) => s.label === "Into the pocket")).toBe(false);
+  });
+
+  it("still makes a card from a line with no target", () => {
+    const card = buildLineCard({ line: { laydown: 20 }, hand: "right", spare: false });
+    expect(card.lane).toBeUndefined();
+    expect(card.stats).toEqual([{ value: "20", label: "Laydown board" }]);
   });
 });
