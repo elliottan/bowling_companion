@@ -26,6 +26,14 @@ picture, "7 games · 1283 series" in History.
 **Fixed:** a share picture of a night with more than six games left the rest
 out. Every game now gets a box, on a second row when there are more than six.
 
+## 0.41.1: The strike ball carries from its own lane (2026-10-17)
+
+**Fixed:** on a pair, a frame's first ball opens with the ball, line and notes
+of the previous frame on the same lane. It used to take the ball just thrown on
+the other lane, with that lane's line, or with no line at all when that ball
+had none. A different ball on the other lane now stays on that lane. In game 1,
+frame 2 still opens with frame 1's ball and line.
+
 ## 0.41.0: An easier first night (2026-10-16)
 
 **A new bowler gets one button: Start scoring.** It goes straight to the pin
