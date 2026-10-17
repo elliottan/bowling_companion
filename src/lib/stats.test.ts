@@ -538,6 +538,13 @@ describe("calculateSessionTrend", () => {
     })) as SessionSummary["games"]
   });
 
+  it("names the oil pattern a night was bowled on", () => {
+    const bowled = night("2026-08-05", [{ score: 200 }]);
+    bowled.session.oil_pattern = " 2019 PBA Bear 41 ";
+    expect(calculateSessionTrend([bowled])[0].oilPattern).toBe("2019 PBA Bear 41");
+    expect(calculateSessionTrend([night("2026-08-05", [{ score: 200 }])])[0].oilPattern).toBeUndefined();
+  });
+
   it("averages a night's completed games, oldest night first", () => {
     const trend = calculateSessionTrend([
       night("2026-08-05", [{ score: 200 }, { score: 220 }]),
@@ -1023,6 +1030,39 @@ describe("first ball average", () => {
 describe("calculateGameNumberMetrics", () => {
   it("returns nothing for no data", () => {
     expect(calculateGameNumberMetrics([])).toEqual([]);
+  });
+
+  it("lists the nights behind each slot, newest first, with the whole night", () => {
+    const night = (id: number, date: string, scores: Array<number | undefined>, lanes?: string[]): SessionSummary => ({
+      session: { id, date, alley_name: "Sea Bowl", oil_pattern: "Bear" },
+      games: scores.map((score, i) => ({
+        id: id * 10 + i + 1,
+        session_id: id,
+        game_number: i + 1,
+        final_score: score,
+        lanes,
+        frames: []
+      })) as SessionSummary["games"]
+    });
+    const sessions = [
+      night(1, "2026-06-07", [200, 180, 150], ["3", "4"]),
+      night(2, "2026-06-14", [190, undefined]),
+      night(3, "2026-06-21", [210, 170], ["9", "10"])
+    ];
+
+    const slot2 = calculateGameNumberMetrics(sessions).find((p) => p.gameNumber === 2)!;
+    // Night 2's game 2 was never finished, so it is not one of the slot's games.
+    expect(slot2.sessions.map((s) => [s.sessionId, s.gameId])).toEqual([[3, 32], [1, 12]]);
+    expect(slot2.sessions[1]).toMatchObject({
+      date: "2026-06-07",
+      oilPattern: "Bear",
+      lanes: ["3", "4"],
+      scores: [200, 180, 150]
+    });
+
+    // The lane filter keeps the game that touched a selected lane.
+    const onPair = calculateGameNumberMetrics(sessions, ["9"]).find((p) => p.gameNumber === 2)!;
+    expect(onPair.sessions.map((s) => s.sessionId)).toEqual([3]);
   });
 
   it("groups by position in the night, oldest slot first", () => {

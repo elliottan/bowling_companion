@@ -108,9 +108,10 @@ describe("Home (ADR-115)", () => {
 
   it("says what an empty tile is for, rather than that it is empty", async () => {
     renderHome();
-    expect(await screen.findByRole("button", { name: "Alley report" })).toHaveTextContent(
-      "Your numbers at each alley"
-    );
+    // The tile is drawn before the counts behind its line are read, so the
+    // line is waited for, not checked the moment the tile appears.
+    const tile = await screen.findByRole("button", { name: "Alley report" });
+    await waitFor(() => expect(tile).toHaveTextContent("Your numbers at each alley"));
     expect(screen.queryByText("None yet")).not.toBeInTheDocument();
   });
 

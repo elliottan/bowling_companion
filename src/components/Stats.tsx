@@ -34,6 +34,7 @@ import { BallGameSessionsDialog } from "./BallGameSessionsDialog";
 import { ScoreTrendChart } from "./ScoreTrendChart";
 import { SessionTrendChart } from "./SessionTrendChart";
 import { MetricTrendChart } from "./MetricTrendChart";
+import { GameSlotSessionsDialog } from "./GameSlotSessionsDialog";
 import type { Game } from "../types/bowling";
 import { RECENT_SESSIONS, type RecentForm } from "../lib/statsRange";
 import { GROUP_HEADING } from "./ui/typography";
@@ -225,6 +226,8 @@ export function Stats({
   // A leave opened from its cell, and every leave opened from All leaves.
   const [openLeave, setOpenLeave] = useState<LeaveStats["pins"] | null>(null);
   const [allLeavesOpen, setAllLeavesOpen] = useState(false);
+  // The by-game point whose nights are listed, by game number.
+  const [slotOpen, setSlotOpen] = useState<number | null>(null);
   // The All balls sheet, and the ball it opened on.
   const [ballsOpen, setBallsOpen] = useState<{ focus: number | null } | null>(null);
 
@@ -356,13 +359,26 @@ export function Stats({
           max={spec.max}
           minSpan={spec.minSpan}
           labelAllUpTo={GAME_LABELS_UP_TO}
+          // A point opens the nights behind it, each one a way into its game.
+          // Without a way into a game, it narrows Stats to that game number.
           onOpen={
-            onOpenGameNumber &&
-            ((key) => {
-              const n = Number(key.slice(1));
-              if (Number.isInteger(n) && n > 0) onOpenGameNumber(n);
-            })
+            onOpenGame
+              ? (key) => setSlotOpen(Number(key.slice(1)))
+              : onOpenGameNumber &&
+                ((key) => {
+                  const n = Number(key.slice(1));
+                  if (Number.isInteger(n) && n > 0) onOpenGameNumber(n);
+                })
           }
+        />
+      )}
+
+      {slotOpen !== null && onOpenGame && (
+        <GameSlotSessionsDialog
+          gameNumber={slotOpen}
+          sessions={gameNumberMetrics?.find((p) => p.gameNumber === slotOpen)?.sessions ?? []}
+          onSelect={onOpenGame}
+          onClose={() => setSlotOpen(null)}
         />
       )}
 
@@ -386,7 +402,7 @@ export function Stats({
                 key: `s${p.sessionId ?? ""}:${p.date}`,
                 axis: p.date.slice(5).replace("-", "/"),
                 title: p.alley,
-                detail: [p.event, `${p.games} ${p.games === 1 ? "game" : "games"}`]
+                detail: [p.event, `${p.games} ${p.games === 1 ? "game" : "games"}`, p.oilPattern]
                   .filter(Boolean)
                   .join(" · "),
                 value: spec.value(p.stats)
