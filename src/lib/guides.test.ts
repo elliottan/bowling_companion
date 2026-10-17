@@ -49,7 +49,7 @@ describe("the guide share link", () => {
   it("sends that page on to the guides list with the article open, for every guide", () => {
     for (const guide of GUIDES) {
       const url = new URL(guideAppPath(guide.id), "https://headpin.app");
-      expect(url.pathname).toBe("/score");
+      expect(url.pathname).toBe("/app");
       const route = parseRoute(url.hash);
       expect(route.view).toBe("dashboard");
       expect(route.overlays).toEqual(["guides"]);

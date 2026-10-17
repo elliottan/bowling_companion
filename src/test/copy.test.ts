@@ -70,6 +70,7 @@ const MAINTAINED_DOCS = [
   "docs/DATA_MODEL.md",
   "docs/DEPLOYMENT.md",
   "docs/DESIGN-LANGUAGE.md",
+  "docs/PRO-LAUNCH.md",
   "docs/ROADMAP.md"
 ];
 

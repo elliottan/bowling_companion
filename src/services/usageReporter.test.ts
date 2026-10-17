@@ -5,7 +5,6 @@ import {
   report,
   reportGameFinished,
   reportSessionStarted,
-  reportShopLink,
   UMAMI_WEBSITE_ID,
   type ReporterDeps
 } from "./usageReporter";
@@ -32,11 +31,6 @@ function deps(over: Partial<ReporterDeps> = {}) {
     ...over
   };
   return { d, send: d.send as typeof send, storage };
-}
-
-/** The event names sent, in order. */
-function sentNames(send: ReturnType<typeof vi.fn>) {
-  return send.mock.calls.map((c) => (c[0] as { payload: { name: string } }).payload.name);
 }
 
 describe("report", () => {
@@ -114,11 +108,5 @@ describe("what is counted", () => {
     const { d, send } = deps();
     await reportGameFinished(d);
     expect((send.mock.calls[0][0] as { payload: { data: unknown } }).payload.data).toEqual({ n: "2" });
-  });
-
-  it("a shop tap reports the ball's brand", async () => {
-    const { d, send } = deps();
-    reportShopLink("Motiv", d);
-    await vi.waitFor(() => expect(sentNames(send)).toEqual(["shop-link"]));
   });
 });

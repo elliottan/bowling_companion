@@ -45,6 +45,10 @@
       "destination": "/score/index.html"
     },
     {
+      "source": "/app",
+      "destination": "/score/index.html"
+    },
+    {
       "source": "/legal",
       "destination": "/legal/index.html"
     },

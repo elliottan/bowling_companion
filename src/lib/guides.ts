@@ -15,6 +15,7 @@
  */
 
 import { formatRoute } from "./appRoute";
+import { FREE_APP_PATH } from "./pro";
 
 export type GuideBlock =
   | { kind: "heading"; text: string }
@@ -372,7 +373,7 @@ export function guidesByTopic(): Array<{ topic: GuideTopic; guides: Guide[] }> {
  *  than written out by hand, so it can only ever name a screen the app can
  *  open. */
 export function guideAppPath(guideId: string): string {
-  return `/score${formatRoute({ view: "dashboard", overlays: ["guides"], guideId })}`;
+  return `${FREE_APP_PATH}${formatRoute({ view: "dashboard", overlays: ["guides"], guideId })}`;
 }
 
 /**

@@ -6,7 +6,6 @@ import {
   parseQueue,
   REPORTING_HOST,
   sessionStarted,
-  shopLink,
   UMAMI_ENDPOINT,
   umamiBody,
   type UsageEvent
@@ -123,8 +122,4 @@ export async function reportGameFinished(deps?: ReporterDeps): Promise<void> {
   } catch {
     // Best effort.
   }
-}
-
-export function reportShopLink(brand: string, deps?: ReporterDeps): void {
-  void report(shopLink(brand), deps);
 }

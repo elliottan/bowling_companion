@@ -39,9 +39,10 @@ describe("SettingsView", () => {
       expect(screen.queryByRole("button", { name: new RegExp(gone) })).not.toBeInTheDocument();
     }
 
-    // The two rows that leave the app are links, not buttons.
+    // The row that leaves the app is a link, not a button.
     expect(screen.getByRole("link", { name: /Privacy and terms/ })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /Buy me a coffee/ })).toBeInTheDocument();
+    // Headpin earns from Pro now, not from a tip jar (ADR-154).
+    expect(screen.queryByRole("link", { name: /Buy me a coffee/ })).not.toBeInTheDocument();
   });
 
   it("groups the bowler's own places under Your bowling", () => {
@@ -68,10 +69,6 @@ describe("SettingsView", () => {
     renderMenu();
     expect(screen.getByRole("link", { name: "Privacy and terms" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Send feedback" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /Buy me a coffee.*Thanks for your support!/ })).toHaveAttribute(
-      "href",
-      "https://buymeacoffee.com/elliotbowls"
-    );
   });
 
   it("shows the name as a profile chip with the first letter, and changes it from there", async () => {

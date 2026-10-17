@@ -34,6 +34,7 @@ import {
   type PapMeasurement
 } from "../lib/ballLayout";
 import { defaultOrientationFor, type Orientation } from "../lib/ballProjection";
+import { FREE_APP_PATH } from "../lib/pro";
 import { decodeLayoutParams, layoutShareUrl, type LayoutSeed } from "../lib/layoutShare";
 import { buildLayoutCard, type ShareCardData } from "../lib/shareCard";
 import { svgToImage } from "../lib/svgImage";
@@ -305,7 +306,9 @@ export function LayoutLabView({ onBack, onOpenSettings, seed }: LayoutLabViewPro
         : layoutShareUrl(
             { layout, ball, pap, hand, grip },
             window.location.origin,
-            window.location.pathname
+            // Always the free app: a link from the owner's copy must not open
+            // it for whoever it is sent to (ADR-154).
+            FREE_APP_PATH
           ),
     [layout, ball, pap, hand, grip]
   );

@@ -7,6 +7,7 @@ import { useSessionOilPattern } from "../lib/oilPatternContext";
 import { getOilPatterns } from "../services/ballRepository";
 import { getCatalogPatterns } from "../services/patternCatalog";
 import { buildLineCard, type ShareCardData } from "../lib/shareCard";
+import { FREE_APP_PATH } from "../lib/pro";
 import { lineShareUrl } from "../lib/lineShare";
 import { ShareCardDialog } from "./ShareCardDialog";
 import { ShareIosIcon } from "./icons";
@@ -222,7 +223,9 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
             ...(oilPattern?.catalog_id ? { patternCatalogId: oilPattern.catalog_id } : {}),
           },
           window.location.origin,
-          window.location.pathname
+          // Always the free app: a link from the owner's copy must not open it
+          // for whoever it is sent to (ADR-154).
+          FREE_APP_PATH
         );
 
   // Spare mode: seed laydown = target = final = the leave's ideal aim board
