@@ -53,7 +53,9 @@ describe("archiveSheet", () => {
 
 describe("the shipped catalog", () => {
   // The catalog bowlers download must never name a sheet or a page that is not
-  // there.
+  // there. It hashes every kept sheet, about 57 MB, so it gets its own timeout:
+  // alone it takes a second or two, but a cold full coverage run on 4 cores
+  // pushed it past the 5 s default.
   it("serves every sheet and page it names, with the bytes the sheet's name promises", () => {
     const catalog = JSON.parse(readFileSync(resolve(SHEETS_DIR, "../patterns.json"), "utf8")) as {
       patterns: { id: string; sheet?: string; sheetPages?: string[] }[];
@@ -67,5 +69,5 @@ describe("the shipped catalog", () => {
       // Hashed here, so what is checked is that the name carries that hash.
       expect(sheetProblem({ file, sha256: sha256(bytes), bytes: bytes.length, pages })).toBeNull();
     }
-  });
+  }, 30_000);
 });
