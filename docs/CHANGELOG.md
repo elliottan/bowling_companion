@@ -9,6 +9,16 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.44.0: Every point on the Stats chart opens its games (2026-10-17)
+
+**A night on the Stats chart names its oil pattern.** Tap a point, by session,
+and the card under the chart reads "League · 4 games · 2019 PBA Bear 41".
+
+**By game, a point opens the nights behind it.** Tap a point, then its card,
+and a list shows every session that game was bowled in, newest first, with the
+whole night's scores and that game picked out. Tap a session to open it on that
+game. The card used to narrow Stats to that game number; the filter still does.
+
 ## 0.41.0: An easier first night (2026-10-16)
 
 **A new bowler gets one button: Start scoring.** It goes straight to the pin

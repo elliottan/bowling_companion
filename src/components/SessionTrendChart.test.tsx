@@ -60,6 +60,26 @@ describe("SessionTrendChart", () => {
     expect(opened).toEqual([7]);
   });
 
+  it("names the oil pattern of the night behind a tapped point", () => {
+    render(
+      <SessionTrendChart
+        sessions={[
+          {
+            sessionId: 7,
+            date: "2026-09-16",
+            alley: "Chinese Swimming Club",
+            event: "League",
+            oilPattern: "2019 PBA Bear 41",
+            average: 187,
+            scores: [195, 149, 237, 167]
+          }
+        ]}
+      />
+    );
+    fireEvent.click(screen.getByRole("button", { name: /Chinese Swimming Club, average 187/ }));
+    expect(screen.getByText("League · 4 games · 2019 PBA Bear 41")).toBeInTheDocument();
+  });
+
   it("drops the selection when the same point is tapped again", () => {
     render(
       <SessionTrendChart
