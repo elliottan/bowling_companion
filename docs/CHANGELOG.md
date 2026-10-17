@@ -9,6 +9,14 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.43.0: A shared line shows the lane (2026-10-17)
+
+**The line share card draws the lane.** The ball's path from laydown to the
+pins, the arrows, the breakpoint and the finish, and the pattern's oil with
+where the ball leaves it, with each number named beside it. A spare card names
+its leave and shows only those pins standing. It used to be three numbers over
+an empty panel.
+
 ## 0.42.0: A night leads with its average (2026-10-17)
 
 **The average is the big number** on a session's share picture and on each

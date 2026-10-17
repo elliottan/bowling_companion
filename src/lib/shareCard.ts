@@ -1,4 +1,9 @@
 import { formatSessionDate } from "./dates";
+import { POCKET_BOARD, buildLinePath, xToBoard, yToFeet } from "./laneGeometry";
+import { oilBands, oilExitPoint, oilStats, oilZones, peakUnits, toHandBoard, type OilBand } from "./oilPattern";
+import { formatLeave } from "./pins";
+import { PIN_POSITIONS } from "./pinGeometry";
+import type { Handedness, LineSpec, OilPass, PinNumber } from "../types/bowling";
 /**
  * The picture a bowler posts after a good night.
  *
@@ -18,6 +23,10 @@ import { formatSessionDate } from "./dates";
 const FELT = "#1b5148";
 const CREAM = "#fff8ed";
 const CREAM_DIM = "rgba(255, 248, 237, 0.62)";
+/** The ball's path on a line card, and the oil it travels through. */
+const PATH_INK = "#f5b041";
+const OIL_INK = "120, 190, 255";
+const OIL_DOT = `rgb(${OIL_INK})`;
 
 const W = 1080;
 const H = 1350;
@@ -29,6 +38,9 @@ const FONT_STACK =
 export interface ShareStat {
   value: string;
   label: string;
+  /** A dot drawn before the label, in the colour of the mark it names on the
+   *  card's picture. Only a line card has marks to name. */
+  swatch?: string;
 }
 
 export interface ShareCardData {
@@ -54,6 +66,9 @@ export interface ShareCardData {
    *  could not get one is still a card, so it is optional and the wordmark
    *  simply sits where it always did. */
   mark?: CanvasImageSource;
+  /** A lane drawn down the left of the card, with the stats stacked beside
+   *  it rather than under it. A line card's picture. */
+  lane?: ShareLane;
 }
 
 /* ------------------------------------------------------------------ *
@@ -232,46 +247,109 @@ export function buildLayoutCard(layout: LayoutLike): ShareCardData {
 }
 
 interface LineLike {
-  /** Foul-line board, arrows, and where the ball is meant to finish. */
-  laydown?: number;
-  target?: number;
-  finalBoard?: number;
-  hookStart?: number;
-  hookLength?: number;
-  hand: "left" | "right";
+  line: LineSpec;
+  hand: Handedness;
   spare: boolean;
-  /** What the sender was looking at: "Intended line", "Line sandbox". */
-  title: string;
-  patternName?: string;
+  /** The pins a spare line is aimed at, drawn standing on the deck. */
+  leave?: PinNumber[];
+  /** The pattern the line was drawn against, where it has a load table. */
+  pattern?: { name: string; passes?: OilPass[] } | null;
 }
 
+/** A point on the lane: a board in the app's handed space (board 1 on the
+ *  bowler's own side) and feet from the foul line. */
+interface LanePoint {
+  board: number;
+  feet: number;
+}
+
+/** The lane a line card draws: the ball's path, its four marks, the oil it
+ *  crosses and the pins it is thrown at. Built here so the card draws exactly
+ *  the curve the visualizer does (`buildLinePath`), never a second copy of it. */
+export interface ShareLane {
+  hand: Handedness;
+  path: LanePoint[];
+  laydown: LanePoint;
+  target: LanePoint;
+  breakpoint: LanePoint | null;
+  final: LanePoint;
+  /** Oil bands in the sheet's left-edge numbering, shaded against `peak`. */
+  oil: { bands: OilBand[]; peak: number; length: number; exit: LanePoint | null } | null;
+  /** Pins drawn standing. Every pin on a strike line, the leave on a spare. */
+  standing: PinNumber[];
+}
+
+const ALL_PINS: PinNumber[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+
+const boardText = (v: number) => String(Math.round(v * 2) / 2);
+const atFeet = (p: LanePoint) => `${boardText(p.board)} at ${Math.round(p.feet)} ft`;
+
 /**
- * A line, as the preview for its link.
+ * A line, as a picture of the lane it is thrown down.
  *
- * The boards are the title because they are how a line is said out loud: "20 to
- * 15, out to the pocket". The lane itself is not drawn on the card. It is the
- * one picture on any of these cards that would be read as data (where the oil
- * ends, where the ball leaves it), and a card is a picture in a chat, without
- * the pattern or the hand that make those numbers mean anything. The link is
- * one tap away and draws the real thing.
+ * The lane is the card. A line is a shape, and three board numbers only say
+ * it to someone who already pictures it: drawn, the laydown, the arrows, where
+ * the ball turns and where it finishes read at a glance, against the oil it
+ * was drawn on. The numbers sit beside it, each with what it is, so the card
+ * still answers "where do I stand and what do I look at" without the link.
  */
-export function buildLineCard(line: LineLike): ShareCardData {
-  const board = (v: number | undefined) => (v == null ? "?" : String(Math.round(v * 10) / 10));
+export function buildLineCard(input: LineLike): ShareCardData {
+  const { line, hand, spare } = input;
+  const plane = buildLinePath(line, hand, spare);
+  const mark = (p: { x: number; y: number }): LanePoint => ({
+    board: xToBoard(p.x, hand),
+    feet: yToFeet(p.y)
+  });
+
+  let lane: ShareLane | undefined;
+  if (plane) {
+    const zones = oilZones(input.pattern?.passes);
+    const length = oilStats(input.pattern?.passes).length;
+    const path = plane.samples.map((s) => ({ board: s.board, feet: s.feet }));
+    lane = {
+      hand,
+      path,
+      laydown: mark(plane.points.laydown),
+      target: mark(plane.points.target),
+      breakpoint: plane.points.breakpoint ? mark(plane.points.breakpoint) : null,
+      final: mark(plane.points.final),
+      oil: zones.length
+        ? { bands: oilBands(zones), peak: peakUnits(zones), length, exit: oilExitPoint(zones, path, hand) }
+        : null,
+      standing: spare && input.leave?.length ? input.leave : ALL_PINS
+    };
+  }
+
   const stats: ShareStat[] = [];
-  if (line.hookStart != null) stats.push({ value: `${Math.round(line.hookStart)} ft`, label: "Hook start" });
-  if (line.hookLength != null) stats.push({ value: `${Math.round(line.hookLength)} ft`, label: "Hook length" });
+  const laydown = line.laydown ?? line.stance;
+  if (laydown != null) stats.push({ value: boardText(laydown), label: "Laydown board" });
+  if (line.target != null) stats.push({ value: boardText(line.target), label: "Target at the arrows" });
+  if (lane?.breakpoint) stats.push({ value: atFeet(lane.breakpoint), label: "Breakpoint", swatch: PATH_INK });
+  if (lane) {
+    const pocket = !spare && Math.abs(lane.final.board - POCKET_BOARD) < 0.25;
+    stats.push({ value: boardText(lane.final.board), label: pocket ? "Into the pocket" : "Finishes on" });
+  }
+  if (lane?.oil) {
+    stats.push({ value: `${Math.round(lane.oil.length)} ft`, label: "Pattern length" });
+    if (lane.oil.exit) stats.push({ value: atFeet(lane.oil.exit), label: "Leaves the oil", swatch: OIL_DOT });
+  }
+
+  const kind = !spare
+    ? "Strike line"
+    : input.leave?.length === 1
+      ? `${input.leave[0]} pin spare`
+      : input.leave?.length
+        ? `${formatLeave(input.leave)} spare`
+        : "Spare line";
+  const patternName = input.pattern?.name?.trim();
 
   return {
-    eyebrow: [
-      `${line.hand === "left" ? "Left" : "Right"} hand`,
-      line.spare ? "Spare line" : "Strike line",
-      ...(line.patternName ? [line.patternName] : [])
-    ].join("  ·  "),
-    title: `${board(line.laydown)} · ${board(line.target)} → ${board(line.finalBoard)}`,
-    caption: "Foul line, arrows, and where it finishes. Open the link to move it.",
+    eyebrow: [`${hand === "left" ? "Left" : "Right"} hand`, ...(patternName ? [kind] : [])].join("  ·  "),
+    title: patternName || kind,
     hero: null,
     games: null,
-    stats
+    stats,
+    lane
   };
 }
 
@@ -382,6 +460,144 @@ function roundRect(
   ctx.rect(x, y, w, h);
 }
 
+const ARROW_BOARDS = [5, 10, 15, 20, 25, 30, 35];
+/** Pixels between pin rows. The real deck is under three feet deep and would
+ *  be a smear at this scale, so the rack is drawn to be read, as the
+ *  visualizer draws it, and only the lane in front of it is to scale. */
+const DECK_ROW = 34;
+
+/**
+ * The lane, top-down: foul line at the bottom, pins at the top, board 1 of the
+ * sheet on the left. Everything is placed in the sheet's left-edge numbering,
+ * so a line's handed boards go through `toHandBoard` once, here.
+ */
+function drawLane(
+  ctx: CanvasRenderingContext2D,
+  lane: ShareLane,
+  box: { x: number; y: number; w: number; h: number }
+): void {
+  const headY = box.y + 40 + 3 * DECK_ROW;
+  // The foul line sits a little above the box's foot, so the laydown mark
+  // has approach under it rather than hanging off the end of the lane.
+  const bottom = box.y + box.h - 30;
+  const toX = (sheetBoard: number) => box.x + ((sheetBoard - 0.5) / 39) * box.w;
+  const toY = (feet: number) =>
+    feet <= 60
+      ? bottom - (Math.max(feet, 0) / 60) * (bottom - headY)
+      : headY - ((feet - 60) / 0.866) * DECK_ROW;
+  const handX = (board: number) => toX(toHandBoard(board, lane.hand));
+
+  // The wood, and every fifth board, so the boards can be counted.
+  ctx.save();
+  roundRect(ctx, box.x, box.y, box.w, box.h, 18);
+  ctx.fillStyle = "rgba(255, 248, 237, 0.08)";
+  ctx.fill();
+  ctx.clip();
+  // The approach, darker, below the foul line.
+  ctx.fillStyle = "rgba(0, 0, 0, 0.18)";
+  ctx.fillRect(box.x, bottom, box.w, box.y + box.h - bottom);
+  ctx.strokeStyle = "rgba(255, 248, 237, 0.07)";
+  ctx.lineWidth = 2;
+  for (let b = 5; b < 39; b += 5) {
+    const x = toX(b + 0.5);
+    ctx.beginPath();
+    ctx.moveTo(x, box.y);
+    ctx.lineTo(x, bottom);
+    ctx.stroke();
+  }
+
+  // The oil, heavier where more of it went down.
+  if (lane.oil) {
+    const peak = lane.oil.peak > 0 ? lane.oil.peak : 1;
+    for (const band of lane.oil.bands) {
+      const left = toX(band.fromBoard) - box.w / 78;
+      const width = ((band.toBoard - band.fromBoard + 1) * box.w) / 39;
+      ctx.fillStyle = `rgba(${OIL_INK}, ${0.06 + 0.28 * (band.units / peak)})`;
+      ctx.fillRect(left, toY(band.stop), width, toY(band.start) - toY(band.stop));
+    }
+    // Where the pattern ends, dashed across the lane.
+    const endY = toY(lane.oil.length);
+    ctx.strokeStyle = `rgba(${OIL_INK}, 0.7)`;
+    ctx.setLineDash([10, 8]);
+    ctx.beginPath();
+    ctx.moveTo(box.x, endY);
+    ctx.lineTo(box.x + box.w, endY);
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  // The arrows, on their chevron.
+  ctx.fillStyle = "rgba(255, 248, 237, 0.45)";
+  for (const b of ARROW_BOARDS) {
+    const feet = 16 - (Math.abs(b - 20) / 15) * 4;
+    const x = toX(b);
+    const y = toY(feet);
+    ctx.beginPath();
+    ctx.moveTo(x, y - 14);
+    ctx.lineTo(x - 7, y + 6);
+    ctx.lineTo(x + 7, y + 6);
+    ctx.closePath();
+    ctx.fill();
+  }
+  ctx.restore();
+
+  // The pins. A spare card stands only the leave, the rest are ghosts.
+  const standing = new Set(lane.standing);
+  for (const pin of ALL_PINS) {
+    const pos = PIN_POSITIONS[pin];
+    const row = Math.round((pos.feet - 60) / 0.866);
+    const x = toX(pos.board);
+    const y = headY - row * DECK_ROW;
+    ctx.beginPath();
+    ctx.arc(x, y, 11, 0, Math.PI * 2);
+    if (standing.has(pin)) {
+      ctx.fillStyle = CREAM;
+      ctx.fill();
+    } else {
+      ctx.strokeStyle = "rgba(255, 248, 237, 0.3)";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    }
+  }
+
+  // The ball's path, kept on the lane: a spare line that misses rides its
+  // aim straight on past the pins, and the card is not the place to show it
+  // leaving the picture. Its marks go on top, unclipped.
+  ctx.save();
+  roundRect(ctx, box.x, box.y, box.w, box.h, 18);
+  ctx.clip();
+  ctx.strokeStyle = PATH_INK;
+  ctx.lineWidth = 9;
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+  ctx.beginPath();
+  lane.path.forEach((p, i) => {
+    const x = handX(p.board);
+    const y = toY(p.feet);
+    if (i === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  });
+  ctx.stroke();
+  ctx.restore();
+
+  const dot = (p: LanePoint, r: number, fill: string, ring?: string) => {
+    ctx.beginPath();
+    ctx.arc(handX(p.board), toY(p.feet), r, 0, Math.PI * 2);
+    ctx.fillStyle = fill;
+    ctx.fill();
+    if (ring) {
+      ctx.strokeStyle = ring;
+      ctx.lineWidth = 4;
+      ctx.stroke();
+    }
+  };
+  if (lane.oil?.exit) dot(lane.oil.exit, 11, OIL_DOT, FELT);
+  dot(lane.laydown, 14, CREAM, PATH_INK);
+  dot(lane.target, 14, CREAM, PATH_INK);
+  if (lane.breakpoint) dot(lane.breakpoint, 16, PATH_INK, CREAM);
+  dot(lane.final, 12, PATH_INK, CREAM);
+}
+
 /** Renders the card and hands back a PNG. Rejects when the browser gives us no
  *  2D context, which is the only failure this can have. */
 export async function renderShareCard(data: ShareCardData): Promise<Blob> {
@@ -397,7 +613,7 @@ export async function renderShareCard(data: ShareCardData): Promise<Blob> {
   // A lane-shaped band behind the hero, so the card has depth without needing
   // an image to load. A card carrying the ball has its own focal point and the
   // band only cuts across it.
-  if (!data.diagram) {
+  if (!data.diagram && !data.lane) {
     ctx.fillStyle = "rgba(255, 248, 237, 0.045)";
     ctx.fillRect(0, 296, W, 308);
   }
@@ -483,11 +699,34 @@ export async function renderShareCard(data: ShareCardData): Promise<Blob> {
     gamesBottom = boxY + rows * boxH + (rows - 1) * gap;
   }
 
+  // A line card: the lane down the left, its numbers stacked beside it.
+  if (data.lane) {
+    drawLane(ctx, data.lane, { x: PAD, y: 312, w: 330, h: 856 });
+    const colX = PAD + 330 + 64;
+    const colW = W - PAD - colX;
+    data.stats.slice(0, 6).forEach((stat, i) => {
+      const rowY = 330 + i * 140;
+      ctx.fillStyle = CREAM;
+      fitText(ctx, stat.value, colX, rowY + 60, colW, 700, 64);
+      let labelX = colX;
+      if (stat.swatch) {
+        ctx.beginPath();
+        ctx.arc(colX + 9, rowY + 89, 9, 0, Math.PI * 2);
+        ctx.fillStyle = stat.swatch;
+        ctx.fill();
+        labelX = colX + 30;
+      }
+      ctx.fillStyle = CREAM_DIM;
+      ctx.font = font(600, 26);
+      ctx.fillText(stat.label.toUpperCase(), labelX, rowY + 98);
+    });
+  }
+
   // Supporting stats, two per row. A session card has game boxes above it and
   // room for two rows; a stats card has neither and takes three, which is why
   // the start moves rather than the spacing. A second row of boxes pushes them
   // down, and two rows of stats still clear the footer rule at 1200.
-  const shown = data.stats.slice(0, hasGames ? 4 : 6);
+  const shown = data.lane ? [] : data.stats.slice(0, hasGames ? 4 : 6);
   // Under the ball, clear of the footer rule at 1200: one row of two, which is
   // what is left of the card once the picture has had its share of it.
   const statsY = data.diagram ? 1000 : hasGames ? Math.max(872, gamesBottom + 48) : 700;
