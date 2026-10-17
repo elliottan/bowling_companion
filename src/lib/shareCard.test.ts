@@ -23,14 +23,16 @@ const session = {
 };
 
 describe("buildSessionCard", () => {
-  it("leads with the series total", () => {
+  it("leads with the average, and gives the series with its game count", () => {
     const card = buildSessionCard(session);
-    expect(card.hero).toEqual({ value: "630", label: "Series" });
+    expect(card.hero).toEqual({ value: "210", label: "Average" });
+    expect(card.stats[0]).toEqual({ value: "630", label: "3 game series" });
   });
 
-  it("says Game, not Series, for a single game", () => {
+  it("says Game, not Average, for a single game", () => {
     const card = buildSessionCard({ ...session, scores: [212], finalScores: [212] });
-    expect(card.hero?.label).toBe("Game");
+    expect(card.hero).toEqual({ value: "212", label: "Game" });
+    expect(card.stats.map((s) => s.label)).toEqual(["Strikes", "Spares"]);
   });
 
   it("averages finished games only, so a game in progress does not drag it down", () => {
@@ -40,8 +42,21 @@ describe("buildSessionCard", () => {
       scores: [212, 185, 40],
       finalScores: [212, 185]
     });
-    expect(card.hero?.value).toBe("437");
-    expect(card.stats.find((s) => s.label === "Average")?.value).toBe("199");
+    expect(card.hero?.value).toBe("199");
+    expect(card.stats[0]).toEqual({ value: "437", label: "3 game series" });
+  });
+
+  it("leads with the series while no game is finished", () => {
+    const card = buildSessionCard({ ...session, scores: [120, 40], finalScores: [] });
+    expect(card.hero).toEqual({ value: "160", label: "Series" });
+  });
+
+  it("carries every game of a seven game night", () => {
+    const seven = [194, 188, 160, 134, 198, 205, 204];
+    const card = buildSessionCard({ ...session, scores: seven, finalScores: seven });
+    expect(card.games).toHaveLength(7);
+    expect(card.hero?.value).toBe("183");
+    expect(card.stats[0]).toEqual({ value: "1283", label: "7 game series" });
   });
 
   it("carries every game score for the boxes", () => {
@@ -56,7 +71,7 @@ describe("buildSessionCard", () => {
 
   it("omits a stat it has no number for", () => {
     const card = buildSessionCard({ ...session, strikePct: null, sparePct: null });
-    expect(card.stats.map((s) => s.label)).toEqual(["Average", "High game"]);
+    expect(card.stats.map((s) => s.label)).toEqual(["3 game series", "High game"]);
   });
 
   it("survives a session with nothing bowled yet", () => {

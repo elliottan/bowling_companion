@@ -6957,3 +6957,30 @@ the first minute cluttered with choices that were the same choice:
   the sheet's history entry, and collecting that entry left "#/session" with no
   id, so a reload lost the session. Collecting the sentinel now puts the
   current route back (`useHistoryRoute`).
+
+## ADR-152: A session leads with its average, and the series sits with the game count
+
+**Status.** Accepted, 2026-10-17, by the owner's decision. Applies to the
+session share card and the History row.
+
+**Context.** Both led with the series total, with the average in small type.
+A series mostly says how many games were bowled: a seven game night of 183
+reads 1283 and a three game night of 210 reads 630, so the bigger number was
+the worse night. The average is what bowlers compare. The share card also
+drew at most six game boxes, so a seventh game was missing from the picture.
+
+**Decision.**
+
+- **The average is the headline** on the share card and the History row,
+  over finished games only, as before.
+- **The series moves beside the game count:** "7 game series" on the card,
+  "7 games · 1283 series" on the row.
+- **One game** leads with its score and shows no series. **No finished game
+  yet** leads with the running series, since there is no average to show.
+- **Every game gets a box on the card.** Up to six share one row; more wrap
+  onto a second, shorter row, and the stats below move down to make room.
+
+**Consequences.**
+
+- The session screen's own header still leads with the series. It was not
+  part of this ask.

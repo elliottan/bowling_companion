@@ -9,6 +9,15 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.42.0: A night leads with its average (2026-10-17)
+
+**The average is the big number** on a session's share picture and on each
+History row. The series moves beside the game count: "7 game series" on the
+picture, "7 games · 1283 series" in History.
+
+**Fixed:** a share picture of a night with more than six games left the rest
+out. Every game now gets a box, on a second row when there are more than six.
+
 ## 0.41.0: An easier first night (2026-10-16)
 
 **A new bowler gets one button: Start scoring.** It goes straight to the pin
