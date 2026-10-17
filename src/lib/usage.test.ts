@@ -8,7 +8,6 @@ import {
   parseQueue,
   QUEUE_LIMIT,
   sessionStarted,
-  shopLink,
   umamiBody
 } from "./usage";
 
@@ -40,7 +39,6 @@ describe("events", () => {
   it("carry only buckets and catalog words, never a bowler's own data", () => {
     expect(sessionStarted(2, 9)).toEqual({ name: "session-started", data: { n: "2", days: "8-14" } });
     expect(gameFinished(1)).toEqual({ name: "game-finished", data: { n: "1" } });
-    expect(shopLink("Storm")).toEqual({ name: "shop-link", data: { brand: "Storm" } });
   });
 
   it("report the app's root, not the session the bowler is on", () => {

@@ -9,12 +9,21 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
-## 0.44.1: A plan for Headpin Pro (2026-10-17)
+## 0.45.0: The tip jar goes, and Headpin Pro is on its way (2026-10-17)
 
-**Nothing in the app changes yet.** This release records how Headpin will earn:
-a free app with one Pro unlock, sold in the iOS app first, with no accounts, no
-ads and no affiliate links (ADR-154). The plan, including which features are
-free and which are Pro, is in `docs/PRO-LAUNCH.md`.
+**Buy me a coffee is gone from Settings.** Headpin will earn from Headpin Pro,
+one purchase in the iOS app, rather than from tips or shop links (ADR-154). The
+privacy page loses its words about retailer links, and the app sends two usage
+counts instead of three.
+
+**The landing page opens the app at headpin.app/app.** Guides and shared lines
+and layouts open there too. headpin.app/score still works, with every feature,
+and a home screen app installed from it keeps opening it.
+
+**Nothing is locked yet.** The Pro parts of Stats and the Alley report know how
+to show themselves as a preview, but every one stays open until the app is in
+the App Store. The plan, with which features are free and which are Pro, is in
+`docs/PRO-LAUNCH.md`.
 
 ## 0.44.0: Every point on the Stats chart opens its games (2026-10-17)
 

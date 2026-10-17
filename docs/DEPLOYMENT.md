@@ -120,9 +120,15 @@ It could equally be a "Redirect to" setting on the domain in the Vercel
 dashboard. It lives here instead so it is version-controlled, reviewable, and
 survives the project being recreated.
 
-The two rewrites serve `/score` and `/legal` from their own `index.html`,
-because both are linked, shared and installed without a trailing slash and
-hosts disagree about resolving that themselves.
+The rewrites serve `/score` and `/legal` from their own `index.html`, because
+both are linked, shared and installed without a trailing slash and hosts
+disagree about resolving that themselves. `/app` is served the same
+`score/index.html` as `/score`: it is the free web app, which the landing page,
+guides and shared links open, and `/score` is the owner's copy with every
+feature. One shell, told apart by its path (ADR-154, `src/lib/pro.ts`). The
+build writes two install manifests, `manifest.webmanifest` opening `/app` and
+`manifest-owner.webmanifest` opening `/score`, and the shell links the second
+only at `/score`.
 
 The headers block is described under "Deploy to Vercel" above.
 
@@ -151,7 +157,7 @@ here.
 
 ### Web Analytics
 
-The site carries Vercel Web Analytics on `/` and `/score` (not `/legal`), as a
+The site carries Vercel Web Analytics on `/`, `/app` and `/score` (not `/legal`), as a
 `<script defer src="/_vercel/insights/script.js">`. It is cookieless, stores no
 identifier, and counts page views, referrers and rough country. It has to be
 switched on once in the Vercel dashboard, under the project's Analytics tab, or

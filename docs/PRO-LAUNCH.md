@@ -39,15 +39,14 @@ is built and free today, so with no bowlers yet nothing is taken from anyone.
 | History | Every session and game, filters, reopening a game | ✓ | | The bowler's own data |
 | History | Backup, export and import | ✓ | | Never gate the bowler's data |
 | Stats | Average, high game and series, game count, score trend chart | ✓ | | What every free app shows |
-| Stats | Strike % and spare % | ✓ | | Same |
-| Stats | Pocket, carry, strike on strike, first-ball average, most strikes in a row | | ✓ | What competitors charge for |
+| Stats | Strike % on the chart, spare % on its card | ✓ | | Same |
+| Stats | The First ball card: pocket, carry, strike on strike, first-ball pins, most strikes in a row, and the same on the chart | | ✓ | What competitors charge for |
 | Stats | Leaves you leave most, leave shares, spare conversion by leave | | ✓ | PinPal, LaneTalk Pro and StrikeStat Pro charge for it |
 | Stats | Ball performance rows against All balls | | ✓ | Equipment depth |
 | Stats | Charts by game slot, and trend charts for the deeper metrics | | ✓ | Analysis |
 | Home | Tonight, profile, first run, guides | ✓ | | Getting started |
-| Game plan | Last time: each game's ball, line and score at this alley | ✓ | | Recall of your own night, and the free taste of the game plan |
-| Game plan | How the session moves here, and Which ball, when | | ✓ | Reads across sessions |
-| Alley report | What you'd average with each ball, its lines with pocket and strike counts, line changes, a line's shots | | ✓ | The deepest read in the app |
+| Alley report | The last session there: each line thrown and how it went | ✓ | | Your own record of one session, and the free taste of the report |
+| Alley report | What you'd average with each ball, the best lines there, how your line moved between sessions | | ✓ | Reads across sessions, the deepest read in the app |
 | Lane | A shot's line drawn on the lane, behind its info button | ✓ | | Seeing what you entered |
 | Lane | The sandbox: try a line against a pattern, drift zones, the other hand | | ✓ | A tool for planning, not recording |
 | Lane | Lane notes | ✓ | | Recording |
@@ -61,6 +60,15 @@ is built and free today, so with no bowlers yet nothing is taken from anyone.
 | Sharing | Changing a shared line or layout (moving it, turning the ball) | | ✓ | That is the sandbox and the layout lab |
 
 The deeper reads come from the same records, so they need nothing new stored.
+
+## Two web addresses
+
+The free web app is `headpin.app/app`: the landing page, guides and shared
+links all open it, and a home screen install from it opens it. The original
+address, `headpin.app/score`, is the owner's copy and keeps every feature,
+whatever `APP_STORE_URL` says. Both are the same shell (`src/lib/pro.ts`), and
+the same browser keeps the same games at either address, since storage belongs
+to the site, not the path.
 
 ## How Pro shows where it is locked
 
@@ -144,20 +152,23 @@ switch.
 
 ### 2. Pro itself
 
-- [ ] One module that answers "is Pro unlocked": always no on the web, the store
-      receipt in the app. Place it by `docs/ARCHITECTURE.md`'s layering.
+- [x] One module that answers "is Pro open": `src/lib/pro.ts` and
+      `useProAccess`. The web half is built, and stays open until
+      `APP_STORE_URL` is set. The app half reads the store receipt.
 - [ ] A purchase plugin with Restore purchases. No third-party purchase service
       unless one earns its place (RevenueCat is free at this size but reports
       purchases to its servers).
-- [ ] The locked cards, per the table and the rules above.
+- [x] The locked card, `components/ui/ProLock`, on Stats and the Alley report.
+- [ ] The sandbox and the layout lab: read-only without Pro, shared links
+      included.
 
 ### 3. Native work and cleanup
 
 - [ ] Share sheet for cards and links, file export and import through Files,
       haptics on the pin deck. Apple rejects a repackaged website (4.2).
 - [ ] The first-run import steps.
-- [ ] Remove the donation link (`DONATE_URL`) and the retailer link
-      (`src/lib/links.ts`, ADR-119), and their words on the legal page.
+- [x] Remove the donation link and the retailer link (ADR-119), their usage
+      count, and their words on the legal page.
 - [ ] The legal page and privacy policy say what the app stores and what the
       store does.
 

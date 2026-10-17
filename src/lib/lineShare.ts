@@ -8,7 +8,7 @@
  * has a route (`#/home/line`), so a shared line opens the screen that was
  * already built to hold one.
  *
- *   https://headpin.app/score?ld=20&tg=15&fb=17.5&hand=right&pat=chromium-6742#/home/line
+ *   https://headpin.app/app?ld=20&tg=15&fb=17.5&hand=right&pat=chromium-6742#/home/line
  *
  * Every field is optional on the way in. A half-written or hand-edited link
  * opens the sandbox on whatever it could read rather than failing: a bad link
@@ -68,9 +68,10 @@ export function encodeLineParams(shared: SharedLine): string {
 /**
  * A full shareable URL.
  *
- * `origin` and `path` come from the running page rather than a constant, so a
+ * `origin` comes from the running page rather than a constant, so a
  * link shared from a preview deployment opens that preview and one shared from
  * production opens production.
+ * `path` is the free app's (`FREE_APP_PATH`), whichever copy shares it.
  */
 export function lineShareUrl(shared: SharedLine, origin: string, path: string): string {
   return `${origin}${path}?${encodeLineParams(shared)}${LINE_SANDBOX_HASH}`;

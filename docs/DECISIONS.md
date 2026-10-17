@@ -7112,7 +7112,11 @@ first target, and never to lose money. Research in October 2026 found:
 - **No accounts, no server, no licence keys, no web checkout.** The store
   remembers the purchase, and Restore purchases brings it back on a new device.
 - **The web app stays free and never sells Pro.** It shows Pro as quiet previews
-  that point at the App Store. Apple's rules do not govern the website; inside
+  that point at the App Store. It lives at `/app`, where the landing page,
+  guides and shared links send a bowler. The original address, `/score`, stays
+  the owner's copy with every feature open, by the owner's decision: they bowl
+  with it today and move to the iOS app later. It is the same shell, told apart
+  by its path, and it is not a secret: anyone who types it gets it. Apple's rules do not govern the website; inside
   the iOS app nothing mentions the web or another way to pay.
 - **Recording is free; reading deeper is Pro.** Everything a bowler enters (every
   shot, line, ball, lane and pattern) can be entered without Pro. Pro unlocks
@@ -7151,6 +7155,11 @@ first target, and never to lose money. Research in October 2026 found:
 - The income is set by downloads: at 2% buying, about 2,000 installs a month
   earn about $340 a month. Fixed costs are Apple's $99 a year and Google's $25
   once, which about 15 sales a year cover.
+- ADR-120's third count, a tap on the retailer link, goes with the link. Two
+  counts remain: a session started and a game finished.
+- Every Pro card stays open until `APP_STORE_URL` (`src/lib/pro.ts`) is set,
+  since locking what nobody can buy would only take it away. It is set in the
+  release the iOS app goes live in.
 - The owner keeps the unlicensed photos in the paid app and accepts the risk. A
   complaint to Apple can pull the whole app, not one image. MOTIV is told the app
   now sells Pro.

@@ -96,6 +96,9 @@
       icon opens a sales pitch for an app the user already installed. A launch
       in an app window is never a visit to the landing page, so bounce it, and
       `replace` so the back gesture does not land straight back here.
+      It bounces to /score, the owner's copy, not to /app: the only installs
+      old enough to open at `/` are the owner's own, and every newer one opens
+      at /app from its manifest (ADR-154).
     -->
     <script>
       (function () {
@@ -597,7 +600,7 @@
             <img src="/icons/icon-192.png" width="36" height="36" alt="" />
             Headpin
           </a>
-          <a class="open" href="/score">Open app</a>
+          <a class="open" href="/app">Open app</a>
         </nav>
 
         <div class="hero-grid">
@@ -615,7 +618,7 @@
               from Safari or Chrome.
             </p>
             <h1>The best way to keep <em>score</em>.</h1>
-            <a class="cta" id="hero-cta" href="/score">
+            <a class="cta" id="hero-cta" href="/app">
               Open Headpin
               <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10h11M11 5l5 5-5 5"/></svg>
             </a>
@@ -769,7 +772,7 @@
     <section class="closing" aria-labelledby="closing">
       <div class="wrap">
         <h2 id="closing">Try it at your next league night.</h2>
-        <a class="cta" href="/score">
+        <a class="cta" href="/app">
           Open Headpin
           <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10h11M11 5l5 5-5 5"/></svg>
         </a>
@@ -783,7 +786,7 @@
 
     <div class="sticky" id="sticky" aria-hidden="true">
       <span>Headpin<small>Free. Works offline.</small></span>
-      <a class="cta" href="/score" tabindex="-1">Open Headpin</a>
+      <a class="cta" href="/app" tabindex="-1">Open Headpin</a>
     </div>
 
     <!--

@@ -22,6 +22,23 @@
 
     <title>Headpin</title>
     <!--
+      This shell answers two addresses: /app, the free web app, and /score, the
+      owner's copy with every feature (ADR-154). The build links the free app's
+      manifest, so a visitor installs a home screen app that opens /app. The
+      owner's copy swaps in its own, which opens /score, so adding it to a home
+      screen keeps it the owner's. The link is injected after this script runs,
+      hence the wait for the document.
+    -->
+    <script>
+      (function () {
+        if (!/^\/score(\/|$)/.test(location.pathname)) return;
+        document.addEventListener("DOMContentLoaded", function () {
+          var link = document.querySelector('link[rel="manifest"]');
+          if (link) link.setAttribute("href", "/manifest-owner.webmanifest");
+        });
+      })();
+    </script>
+    <!--
       The app shell is deliberately not indexed. It serves an empty #root, so
       the only thing a crawler could rank it on is the boilerplate here, and it
       would compete with the landing page at / for the same query. One page

@@ -1,4 +1,4 @@
-import { Archive, ArrowUpRight, ChevronRight, Coffee, Download, MessageSquare, Palette, ScrollText, UserRound, UserRoundCog } from "lucide-react";
+import { Archive, ArrowUpRight, ChevronRight, Download, MessageSquare, Palette, ScrollText, UserRound, UserRoundCog } from "lucide-react";
 import { AppearanceView } from "./AppearanceView";
 import { BowlingProfileView } from "./BowlingProfileView";
 import { getBowlerName, getGripStyle, getSetting } from "../services/bowlingRepository";
@@ -6,7 +6,7 @@ import { BowlerNameSheet } from "../components/BowlerNameSheet";
 import type { GripStyle } from "../types/bowling";
 import type { Handedness } from "../types/bowling";
 import type { DriftModel } from "../lib/driftModel";
-import { DONATE_URL, LEGAL_URL } from "../lib/links";
+import { LEGAL_URL } from "../lib/links";
 import { openFeedbackEmail } from "../lib/diagnostics";
 import { ListGroup, ListRow } from "../components/ui/ListGroup";
 import { BowlingBallIcon, LanePairIcon, SpareLineIcon } from "../components/icons";
@@ -223,13 +223,6 @@ function SettingsMenu({
           icon={MessageSquare}
           label="Send feedback"
           onClick={() => void openFeedbackEmail()}
-          trailing={leavesTheApp}
-        />
-        <ListRow
-          icon={Coffee}
-          label="Buy me a coffee"
-          description="Thanks for your support!"
-          href={DONATE_URL}
           trailing={leavesTheApp}
         />
         <ListRow
