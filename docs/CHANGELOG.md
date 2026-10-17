@@ -9,12 +9,22 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
-## 0.43.1: A plan for Headpin Pro (2026-10-17)
+## 0.44.1: A plan for Headpin Pro (2026-10-17)
 
 **Nothing in the app changes yet.** This release records how Headpin will earn:
 a free app with one Pro unlock, sold in the iOS app first, with no accounts, no
 ads and no affiliate links (ADR-154). The plan, including which features are
 free and which are Pro, is in `docs/PRO-LAUNCH.md`.
+
+## 0.44.0: Every point on the Stats chart opens its games (2026-10-17)
+
+**A night on the Stats chart names its oil pattern.** Tap a point, by session,
+and the card under the chart reads "League · 4 games · 2019 PBA Bear 41".
+
+**By game, a point opens the nights behind it.** Tap a point, then its card,
+and a list shows every session that game was bowled in, newest first, with the
+whole night's scores and that game picked out. Tap a session to open it on that
+game. The card used to narrow Stats to that game number; the filter still does.
 
 ## 0.43.0: A shared line shows the lane (2026-10-17)
 

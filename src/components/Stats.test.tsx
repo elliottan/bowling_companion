@@ -722,9 +722,28 @@ describe("inside a session, the picker drives the per-game chart", () => {
 });
 
 describe("by session or by game, on the Stats tab", () => {
+  const NIGHT = {
+    sessionId: 7,
+    date: "2026-09-16",
+    alley: "Chinese Swimming Club",
+    event: "League",
+    oilPattern: "2019 PBA Bear 41",
+    lanes: ["7", "8"],
+    scores: [195, 149, 237]
+  };
   const BY_GAME = [
-    { gameNumber: 1, games: 2, stats: { ...STATS, averageScore: 210, strikePct: 70 } },
-    { gameNumber: 2, games: 2, stats: { ...STATS, averageScore: 190, strikePct: 50 } }
+    {
+      gameNumber: 1,
+      games: 2,
+      stats: { ...STATS, averageScore: 210, strikePct: 70 },
+      sessions: [{ ...NIGHT, gameId: 71 }]
+    },
+    {
+      gameNumber: 2,
+      games: 2,
+      stats: { ...STATS, averageScore: 190, strikePct: 50 },
+      sessions: [{ ...NIGHT, gameId: 72 }]
+    }
   ];
 
   it("starts by session, and offers by game", () => {
@@ -777,6 +796,32 @@ describe("by session or by game, on the Stats tab", () => {
     // The point opens a footer naming the slot; tapping it is the way in.
     fireEvent.click(screen.getByRole("button", { name: /^Game 2\s*2 games\s*190$/ }));
     expect(picked).toEqual([2]);
+  });
+
+  it("opens a point into its nights, and a night into that game", async () => {
+    const opened: Array<[number, number]> = [];
+    render(
+      <Stats
+        stats={STATS}
+        sessionMetrics={TREND}
+        sessionTrend={SESSION_TREND}
+        gameNumberMetrics={BY_GAME}
+        onOpenGameNumber={() => {}}
+        onOpenGame={(sessionId, gameId) => opened.push([sessionId, gameId])}
+      />
+    );
+    fireEvent.click(screen.getByRole("button", { name: "By game" }));
+    fireEvent.click(screen.getByRole("button", { name: "Game 2, 190" }));
+    fireEvent.click(screen.getByRole("button", { name: /^Game 2\s*2 games\s*190$/ }));
+
+    const dialog = screen.getByRole("dialog", { name: "Game 2, every session" });
+    const row = within(dialog).getByRole("button", { name: /Chinese Swimming Club/ });
+    expect(row).toHaveTextContent("League · Lanes 7/8 · 2019 PBA Bear 41");
+    // This night's game 2 is the one picked out.
+    expect(within(row).getByText("149").parentElement).toHaveAttribute("aria-current", "true");
+    fireEvent.click(row);
+    await waitFor(() => expect(opened).toEqual([[7, 72]]));
+    await waitFor(() => expect(screen.queryByRole("dialog", { name: "Game 2, every session" })).toBeNull());
   });
 
   it("is not offered inside a session, which already plots its games", () => {

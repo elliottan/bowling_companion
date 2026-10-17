@@ -236,7 +236,12 @@ function SelectedSession({
   onOpen?: (sessionId: number) => void;
   onDismiss: () => void;
 }) {
-  const detail = [point.event, `${point.scores.length} ${point.scores.length === 1 ? "game" : "games"}`]
+  // What the night was, how long it ran, and the oil it was bowled on.
+  const detail = [
+    point.event,
+    `${point.scores.length} ${point.scores.length === 1 ? "game" : "games"}`,
+    point.oilPattern
+  ]
     .filter(Boolean)
     .join(" · ");
   const canOpen = onOpen && point.sessionId != null;

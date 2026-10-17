@@ -297,9 +297,11 @@ function SelectedPoint({
 }) {
   const body = (
     <>
-      <span className="min-w-0 flex-1 truncate">
-        <span className="font-semibold text-ink">{point.title}</span>
-        {point.detail && <span className="ml-1.5 text-ink-secondary">{point.detail}</span>}
+      {/* The detail takes a line of its own: a night's event, game count and
+          oil pattern do not fit beside its alley on a phone. */}
+      <span className="flex min-w-0 flex-1 flex-col">
+        <span className="truncate font-semibold text-ink">{point.title}</span>
+        {point.detail && <span className="truncate text-ink-secondary">{point.detail}</span>}
       </span>
       <span className="shrink-0 font-bold tabular-nums text-ink">
         {point.value === null ? "-" : format(point.value)}

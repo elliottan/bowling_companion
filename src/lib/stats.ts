@@ -28,6 +28,11 @@ function gameLanes(game: Game): string[] {
   return game.lanes ?? (game.lane_number ? [game.lane_number] : []);
 }
 
+/** A session's oil pattern by name, or nothing when none was named. */
+function patternOf(session: { oil_pattern?: string }): string | undefined {
+  return session.oil_pattern?.trim() || undefined;
+}
+
 /** Empty/undefined filter = all lanes. Game counts if it touches a selected lane. */
 function gameTouchesLanes(game: Game, filter?: Set<string>): boolean {
   if (!filter || filter.size === 0) return true;
@@ -549,6 +554,8 @@ export interface SessionTrendPoint {
   date: string;
   alley: string;
   event?: string;
+  /** The oil pattern the night was bowled on, by name. */
+  oilPattern?: string;
   average: number;
   scores: number[];
 }
@@ -581,6 +588,7 @@ export function calculateSessionTrend(
           date: s.session.date,
           alley: s.session.alley_name,
           event: s.session.description,
+          oilPattern: patternOf(s.session),
           average: Math.round(scores.reduce((a, b) => a + b, 0) / scores.length),
           scores
         }
@@ -594,6 +602,7 @@ export interface SessionMetricPoint {
   date: string;
   alley: string;
   event?: string;
+  oilPattern?: string;
   /** Completed games behind this point, so a thin night can be drawn as one. */
   games: number;
   stats: BowlingStats;
@@ -632,6 +641,7 @@ export function calculateSessionMetrics(
           date: s.session.date,
           alley: s.session.alley_name,
           event: s.session.description,
+          oilPattern: patternOf(s.session),
           games: stats.completedGames,
           stats
         }
@@ -1109,6 +1119,22 @@ export interface GameNumberMetricPoint {
   /** Completed games in this slot. Thin slots are real and stay in the list. */
   games: number;
   stats: BowlingStats;
+  /** The nights behind the slot, newest first, so a point can name them. */
+  sessions: GameSlotSession[];
+}
+
+/** One night's game in a slot: where it was, and every score of that night,
+ *  so the slot's own game can be shown among the others. */
+export interface GameSlotSession {
+  sessionId: number;
+  gameId: number;
+  date: string;
+  alley: string;
+  event?: string;
+  oilPattern?: string;
+  lanes: string[];
+  /** Every game of the night in order, null for one never finished. */
+  scores: Array<number | null>;
 }
 
 /**
@@ -1136,11 +1162,42 @@ export function calculateGameNumberMetrics(
     ...new Set(sessions.flatMap((s) => s.games.map((g) => g.game_number)))
   ].sort((a, b) => a - b);
 
+  const filter = selectedLanes && selectedLanes.length ? new Set(selectedLanes) : undefined;
+
   return slots.flatMap((gameNumber) => {
     const inSlot = filterSessionsBy(sessions, { gameNumber });
     if (inSlot.length === 0) return [];
     const stats = calculateStats(inSlot, selectedLanes, handedness);
     if (stats.totalGames === 0) return [];
-    return [{ gameNumber, games: stats.completedGames, stats }];
+    return [{ gameNumber, games: stats.completedGames, stats, sessions: slotSessions(sessions, gameNumber, filter) }];
   });
+}
+
+/** The finished games in one slot that the lane filter keeps, newest night
+ *  first, each with the rest of its night. */
+function slotSessions(
+  sessions: SessionSummary[],
+  gameNumber: number,
+  filter: Set<string> | undefined
+): GameSlotSession[] {
+  return sessions
+    .flatMap((s) => {
+      const game = s.games.find((g) => g.game_number === gameNumber);
+      if (!game || game.id == null || s.session.id == null) return [];
+      if (game.final_score === undefined || !gameTouchesLanes(game, filter)) return [];
+      const night = [...s.games].sort((a, b) => a.game_number - b.game_number);
+      return [
+        {
+          sessionId: s.session.id,
+          gameId: game.id,
+          date: s.session.date,
+          alley: s.session.alley_name,
+          event: s.session.description,
+          oilPattern: patternOf(s.session),
+          lanes: gameLanes(game),
+          scores: night.map((g) => g.final_score ?? null)
+        }
+      ];
+    })
+    .sort((a, b) => b.date.localeCompare(a.date) || b.sessionId - a.sessionId);
 }
