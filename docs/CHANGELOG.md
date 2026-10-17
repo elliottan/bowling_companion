@@ -25,6 +25,14 @@ to show themselves as a preview, but every one stays open until the app is in
 the App Store. The plan, with which features are free and which are Pro, is in
 `docs/PRO-LAUNCH.md`.
 
+## 0.44.1: Two slow tests stop failing under load (2026-10-17)
+
+Nothing a bowler sees changes. The check that every kept oil sheet matches its
+name hashes about 57 MB, and a full coverage run on a cold checkout pushed it
+past the 5 s test timeout; it now has 30 s, and still checks every sheet. The
+Home test for the Alley report tile already waits for the tile's line (it read
+the text before it rendered, under load).
+
 ## 0.44.0: Every point on the Stats chart opens its games (2026-10-17)
 
 **A night on the Stats chart names its oil pattern.** Tap a point, by session,
