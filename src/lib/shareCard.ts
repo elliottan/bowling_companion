@@ -91,10 +91,20 @@ export function buildSessionCard(session: SessionLike): ShareCardData {
     ? Math.round(session.finalScores.reduce((a, b) => a + b, 0) / session.finalScores.length)
     : null;
   const high = session.finalScores.length ? Math.max(...session.finalScores) : null;
+  const count = session.scores.length;
+
+  // The average leads: it is the number a night is compared by, where a series
+  // mostly says how many games were bowled. One game is its own score, and a
+  // night with no finished game has no average yet, so both lead with the total.
+  const single = count === 1;
+  const hero: ShareStat =
+    !single && avg !== null
+      ? { value: String(avg), label: "Average" }
+      : { value: String(total), label: single ? "Game" : "Series" };
 
   const stats: ShareStat[] = [];
-  if (avg !== null) stats.push({ value: String(avg), label: "Average" });
-  if (high !== null) stats.push({ value: String(high), label: "High game" });
+  if (hero.label === "Average") stats.push({ value: String(total), label: `${count} game series` });
+  if (!single && high !== null) stats.push({ value: String(high), label: "High game" });
   const strikes = pct(session.strikePct);
   if (strikes) stats.push({ value: strikes, label: "Strikes" });
   const spares = pct(session.sparePct);
@@ -107,7 +117,7 @@ export function buildSessionCard(session: SessionLike): ShareCardData {
   return {
     eyebrow,
     title: session.alleyName || "Bowling",
-    hero: { value: String(total), label: session.scores.length === 1 ? "Game" : "Series" },
+    hero,
     games: session.scores.map(String),
     stats
   };
@@ -437,18 +447,24 @@ export async function renderShareCard(data: ShareCardData): Promise<Blob> {
     ctx.fillText(data.hero.label.toUpperCase(), PAD + heroWidth + 24, 552);
   }
 
-  // Game boxes, drawn like the app's own scorecard.
-  const hasGames = Boolean(data.games && data.games.length > 0);
-  if (data.games && hasGames) {
+  // Game boxes, drawn like the app's own scorecard. Up to six share one row;
+  // more wrap onto a second, shorter row rather than being dropped, so a seven
+  // game night shows all seven.
+  const games = data.games ?? [];
+  const hasGames = games.length > 0;
+  const boxY = 664;
+  let gamesBottom = boxY;
+  if (hasGames) {
     const gap = 16;
-    const count = Math.min(data.games.length, 6);
-    const boxW = (W - PAD * 2 - gap * (count - 1)) / count;
-    const boxH = 130;
-    const boxY = 664;
-    for (let i = 0; i < count; i++) {
-      const x = PAD + i * (boxW + gap);
+    const rows = games.length > 6 ? 2 : 1;
+    const perRow = Math.ceil(games.length / rows);
+    const boxW = (W - PAD * 2 - gap * (perRow - 1)) / perRow;
+    const boxH = rows === 1 ? 130 : 104;
+    games.forEach((score, i) => {
+      const x = PAD + (i % perRow) * (boxW + gap);
+      const y = boxY + Math.floor(i / perRow) * (boxH + gap);
       ctx.fillStyle = "rgba(255, 248, 237, 0.08)";
-      roundRect(ctx, x, boxY, boxW, boxH, 14);
+      roundRect(ctx, x, y, boxW, boxH, 14);
       ctx.fill();
       ctx.strokeStyle = "rgba(255, 248, 237, 0.16)";
       ctx.lineWidth = 2;
@@ -456,27 +472,29 @@ export async function renderShareCard(data: ShareCardData): Promise<Blob> {
 
       ctx.textAlign = "center";
       ctx.fillStyle = CREAM_DIM;
-      ctx.font = font(600, 24);
-      ctx.fillText(`G${i + 1}`, x + boxW / 2, boxY + 44);
+      ctx.font = font(600, rows === 1 ? 24 : 20);
+      ctx.fillText(`G${i + 1}`, x + boxW / 2, y + (rows === 1 ? 44 : 34));
       ctx.fillStyle = CREAM;
-      ctx.font = font(700, 54);
-      // Shrinks only if six four-digit scores ever share a row.
-      fitText(ctx, data.games[i], x + boxW / 2, boxY + 104, boxW - 16, 700, 54);
+      // Shrinks only when a narrow box cannot hold the score.
+      const size = rows === 1 ? 54 : 46;
+      fitText(ctx, score, x + boxW / 2, y + (rows === 1 ? 104 : 84), boxW - 16, 700, size);
       ctx.textAlign = "left";
-    }
+    });
+    gamesBottom = boxY + rows * boxH + (rows - 1) * gap;
   }
 
   // Supporting stats, two per row. A session card has game boxes above it and
   // room for two rows; a stats card has neither and takes three, which is why
-  // the start moves rather than the spacing.
+  // the start moves rather than the spacing. A second row of boxes pushes them
+  // down, and two rows of stats still clear the footer rule at 1200.
   const shown = data.stats.slice(0, hasGames ? 4 : 6);
   // Under the ball, clear of the footer rule at 1200: one row of two, which is
   // what is left of the card once the picture has had its share of it.
-  const statsY = data.diagram ? 1000 : hasGames ? 872 : 700;
+  const statsY = data.diagram ? 1000 : hasGames ? Math.max(872, gamesBottom + 48) : 700;
   const colW = (W - PAD * 2) / 2;
   shown.forEach((stat, i) => {
     const x = PAD + (i % 2) * colW;
-    const rowY = statsY + Math.floor(i / 2) * 126;
+    const rowY = statsY + Math.floor(i / 2) * (hasGames && statsY > 872 ? 112 : 126);
     ctx.fillStyle = CREAM;
     // Shrunk to fit its own column: a Storm VLS reading is three fractions
     // long and would otherwise run into the stat beside it.
