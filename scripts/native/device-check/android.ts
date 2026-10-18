@@ -5,21 +5,20 @@
  *   tsx scripts/native/device-check/android.ts [--slow 4] [--offline] [--out dir]
  *
  * Installs the debug APK on the device `adb` sees, launches it, and drives its
- * web view over Chrome's debugging protocol: a debug build of a Capacitor app
- * exposes it, and `adb forward` brings it to a local port. Taps go through
+ * web view through Playwright's Android support, which a debug build of a
+ * Capacitor app allows. Taps go through
  * `adb shell input`, so they are real touches through Android's input stack,
  * hit-tested by the web view the way a finger is.
  */
 import { execFileSync } from "node:child_process";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { chromium, type Browser, type Page } from "@playwright/test";
+import { _android, type AndroidDevice, type Page } from "@playwright/test";
 import type { Driver } from "./driver";
 import { runFlow } from "./flow";
 
 const PACKAGE = "app.headpin";
 const APK = "android/app/build/outputs/apk/debug/app-debug.apk";
-const PORT = 9333;
 
 const args = process.argv.slice(2);
 const flag = (name: string) => args.includes(`--${name}`);
@@ -34,32 +33,21 @@ function adb(...a: string[]): string {
 }
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-async function connect(): Promise<{ browser: Browser; page: Page }> {
-  for (let attempt = 0; attempt < 120; attempt++) {
-    let pid = "";
-    try {
-      // `pidof` fails until the app's process exists.
-      pid = adb("shell", "pidof", PACKAGE).trim().split(/\s+/)[0];
-    } catch {
-      await sleep(2000);
-      continue;
-    }
-    // A debug build's web view listens on this abstract socket, named for the
-    // process. Forwarded by name: newer Android does not let the shell list
-    // sockets in /proc/net/unix.
-    try {
-      adb("forward", "--remove-all");
-      adb("forward", `tcp:${PORT}`, `localabstract:webview_devtools_remote_${pid}`);
-      const browser = await chromium.connectOverCDP(`http://127.0.0.1:${PORT}`, { timeout: 10_000 });
-      const page = browser.contexts()[0]?.pages()[0];
-      if (page) return { browser, page };
-      await browser.close();
-    } catch {
-      // The web view is still coming up.
-    }
-    await sleep(2000);
+/**
+ * The app's web view as a Playwright page, through Playwright's own Android
+ * support: a general CDP connection to a web view's debug socket half works
+ * and then cannot list its pages. A debug build exposes the socket.
+ */
+async function connect(): Promise<{ device: AndroidDevice; page: Page }> {
+  const [device] = await _android.devices();
+  if (!device) throw new Error("adb sees no device");
+  try {
+    const webview = await device.webView({ pkg: PACKAGE }, { timeout: 240_000 });
+    return { device, page: await webview.page() };
+  } catch (err) {
+    await device.close().catch(() => {});
+    throw new Error(`The app's web view never offered a debugging socket (${(err as Error).message.split("\n")[0]})`);
   }
-  throw new Error("The app's web view never offered a debugging socket");
 }
 
 /** The page's CSS pixels to the screen's, for `input tap`. */
@@ -99,7 +87,7 @@ async function main() {
 
   const launch = () => adb("shell", "monkey", "-p", PACKAGE, "-c", "android.intent.category.LAUNCHER", "1");
   launch();
-  let { browser, page } = await connect().catch((err) => {
+  let { device, page } = await connect().catch((err) => {
     // Say what was on the screen instead.
     mkdirSync(out, { recursive: true });
     writeFileSync(join(out, "no-webview.png"), execFileSync(adbBin, ["exec-out", "screencap", "-p"], { maxBuffer: 64 * 1024 * 1024 }));
@@ -129,10 +117,10 @@ async function main() {
       return focus.includes(PACKAGE);
     },
     async relaunch() {
-      await browser.close().catch(() => {});
+      await device.close().catch(() => {});
       adb("shell", "am", "force-stop", PACKAGE);
       launch();
-      ({ browser, page } = await connect());
+      ({ device, page } = await connect());
     },
     async setOnline(online) {
       const state = online ? "enable" : "disable";
@@ -149,7 +137,7 @@ async function main() {
       writeFileSync(path, png);
     },
     async close() {
-      await browser.close().catch(() => {});
+      await device.close().catch(() => {});
     }
   };
 
