@@ -175,9 +175,30 @@ export class Flow {
     await this.d.systemBack();
   }
 
+  /** Types into the field with this placeholder, and checks the text landed:
+   *  a sheet still sliding up when the keys arrive can lose them (iOS 26), so
+   *  an empty field is cleared and typed into once more. */
   async fill(placeholder: string, text: string, dialog?: string) {
-    await this.tap(placeholder, dialog, "input, textarea");
-    await this.d.type(text);
+    const field = `[...document.querySelectorAll("input, textarea")].find((e) => new RegExp(${JSON.stringify(placeholder)}, "i").test(e.placeholder || ""))`;
+    for (let attempt = 0; attempt < 2; attempt++) {
+      await this.tap(placeholder, dialog, "input, textarea");
+      await this.d.type(text);
+      const landed = await this.until(`(${field})?.value === ${JSON.stringify(text)}`, `"${text}" in the field`, 3_000)
+        .then(() => true)
+        .catch(() => false);
+      if (landed) return;
+      // Clear whatever half arrived, the way React hears a person do it.
+      await this.js(`(() => {
+        const el = ${field};
+        if (!el) return false;
+        const proto = el instanceof HTMLTextAreaElement ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype;
+        Object.getOwnPropertyDescriptor(proto, "value").set.call(el, "");
+        el.dispatchEvent(new Event("input", { bubbles: true }));
+        return true;
+      })()`);
+      await new Promise((r) => setTimeout(r, 1000 * this.slow));
+    }
+    throw new Error(`"${text}" never reached the ${placeholder} field`);
   }
 
   async snap(name: string) {
