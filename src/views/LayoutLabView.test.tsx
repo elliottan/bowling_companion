@@ -12,6 +12,7 @@ import {
   setPap
 } from "../services/bowlingRepository";
 import { decodeLayoutParams } from "../lib/layoutShare";
+import { ProAccessContext } from "../lib/useProAccess";
 
 /* jsdom has no 2D canvas context and never resolves an `<img>` decode, so the
  * two steps between "the layout on screen" and "a PNG on the phone" cannot run
@@ -802,5 +803,37 @@ describe("LayoutLabView", () => {
     fireEvent.click(screen.getByRole("button", { name: /back/i }));
     // PushScreen defers the callback until its exit animation finishes.
     await waitFor(() => expect(onBack).toHaveBeenCalled());
+  });
+});
+
+describe("the layout lab while Pro is locked (ADR-154)", () => {
+  beforeEach(async () => {
+    await db.delete();
+    await db.open();
+  });
+
+  it("shows the layout and what it will do, but changes nothing", () => {
+    render(
+      <ProAccessContext.Provider value={{ locked: true, appStoreUrl: "https://apps.apple.com/app/id1" }}>
+        <LayoutLabView onBack={vi.fn()} />
+      </ProAccessContext.Provider>
+    );
+    expect(screen.getByText("Changing a layout is in the Headpin app")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Get the app" })).toBeInTheDocument();
+    // Every number is still on screen to read, with what the ball will do.
+    expect(dualAngle()).toBe("45 x 4 1/2 x 45");
+    expect(screen.getByRole("heading", { name: "What it will do" })).toBeInTheDocument();
+    // The fields that change it are off.
+    expect(slider(/VAL angle/i)).toBeDisabled();
+    expect(screen.getByRole("button", { name: /^Presets/ })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Reset to your saved settings" })).toBeDisabled();
+    // Sharing what is on screen stays free: it is how a bowler finds the app.
+    expect(screen.getByRole("button", { name: "Share layout" })).toBeEnabled();
+  });
+
+  it("is the whole lab while Pro is open", () => {
+    renderLab();
+    expect(screen.queryByText("Changing a layout is in the Headpin app")).not.toBeInTheDocument();
+    expect(slider(/VAL angle/i)).toBeEnabled();
   });
 });

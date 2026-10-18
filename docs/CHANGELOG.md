@@ -11,6 +11,10 @@ had all shipped.
 
 ## 0.45.0: The tip jar goes, and Headpin Pro is on its way (2026-10-17)
 
+**A lane view you can only look at says so.** A shot's line under the info
+button reads "Drag the lane to tilt", not "Drag a point to move it", since it
+has no points to drag.
+
 **Buy me a coffee is gone from Settings.** Headpin will earn from Headpin Pro,
 one purchase in the iOS app, rather than from tips or shop links (ADR-154). The
 privacy page loses its words about retailer links, and the app sends two usage
@@ -21,8 +25,9 @@ and layouts open there too. headpin.app/score still works, with every feature,
 and a home screen app installed from it keeps opening it.
 
 **Nothing is locked yet.** The Pro parts of Stats and the Alley report know how
-to show themselves as a preview, but every one stays open until the app is in
-the App Store. The plan, with which features are free and which are Pro, is in
+to show themselves as a preview, and the line sandbox and the layout lab know
+how to open read-only, but every one stays open until the app is in the App
+Store. The plan, with which features are free and which are Pro, is in
 `docs/PRO-LAUNCH.md`.
 
 ## 0.44.1: Two slow tests stop failing under load (2026-10-17)

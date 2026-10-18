@@ -20,10 +20,11 @@ everything" where "Pro" might sound like a subscription. This file is a plan, no
    (ADR-154, ADR-061).
 5. **Whatever travels is free to see.** Share cards and shared links are how new
    bowlers find the app, so making and sending one is never behind Pro, and a
-   link opens for anyone, on the web or in the app. Without Pro it opens to read:
-   the shared line or layout is drawn in full, and saving a copy is free, since
-   that is recording. Moving the line or turning the ball is the sandbox and the
-   layout lab, which are Pro.
+   link opens for anyone, on the web or in the app. Without Pro the sandbox and
+   the layout lab open to read: the line or layout, shared or not, is drawn in
+   full with its numbers, and it can be shared on. Moving the line or changing
+   the layout is Pro. Turning the drawn ball to look at it is reading, so it
+   stays free. Neither screen saves anything, so there is no copy to keep.
 
 ## Free and Pro, feature by feature
 
@@ -48,15 +49,17 @@ is built and free today, so with no bowlers yet nothing is taken from anyone.
 | Alley report | The last session there: each line thrown and how it went | ✓ | | Your own record of one session, and the free taste of the report |
 | Alley report | What you'd average with each ball, the best lines there, how your line moved between sessions | | ✓ | Reads across sessions, the deepest read in the app |
 | Lane | A shot's line drawn on the lane, behind its info button | ✓ | | Seeing what you entered |
-| Lane | The sandbox: try a line against a pattern, drift zones, the other hand | | ✓ | A tool for planning, not recording |
+| Lane | The sandbox, read-only: any line drawn on the lane, its pattern, the other hand | ✓ | | Seeing a line, the best preview of Pro |
+| Lane | The sandbox: moving the line, quick moves, its hook shape | | ✓ | A tool for planning, not recording |
 | Lane | Lane notes | ✓ | | Recording |
 | Arsenal | Your balls, unlimited, retiring a ball and keeping its history | ✓ | | Some apps cap the arsenal, but a cap gates the bowler's own data |
 | Arsenal | A ball's layout written on it: PAP and the layout values | ✓ | | Recording |
-| Layout lab | The drilling picture: dual angle, VAL, pin buffer, the VLS conversion, dragging the ball | | ✓ | Equipment depth (the Paddock and BowlSheet sell this alone) |
+| Layout lab | Reading a layout: the drilled ball, both notations, what it will do, turning the ball to look | ✓ | | Seeing a layout, the best preview of Pro |
+| Layout lab | Changing a layout: the angles, pin buffer, presets, the core, your PAP, hand and grip | | ✓ | Equipment depth (the Paddock and BowlSheet sell this alone) |
 | Catalog | Every ball, its specs and photo, search and filters, asking for a missing ball | ✓ | | ADR-154: nobody pays for the data |
 | Patterns | Every pattern, its load table, the oil on the lane, its original sheet, asking for one | ✓ | | Same |
 | Sharing | Night, line and layout share cards, and the links they carry | ✓ | | How new bowlers find the app |
-| Sharing | Opening a shared line or layout to read, and saving a copy of it | ✓ | | A link opens for anyone, and is the best preview of Pro |
+| Sharing | Opening a shared line or layout to read | ✓ | | A link opens for anyone, and is the best preview of Pro |
 | Sharing | Changing a shared line or layout (moving it, turning the ball) | | ✓ | That is the sandbox and the layout lab |
 
 The deeper reads come from the same records, so they need nothing new stored.
@@ -159,8 +162,8 @@ switch.
       unless one earns its place (RevenueCat is free at this size but reports
       purchases to its servers).
 - [x] The locked card, `components/ui/ProLock`, on Stats and the Alley report.
-- [ ] The sandbox and the layout lab: read-only without Pro, shared links
-      included.
+- [x] The sandbox and the layout lab: read-only without Pro, shared links
+      included, with `ProNote` saying what waits on Pro.
 
 ### 3. Native work and cleanup
 

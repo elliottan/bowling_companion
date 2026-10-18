@@ -41,6 +41,8 @@ import { warmArsenalImages } from "./services/ballImageCache";
 import { syncCatalogForArsenal } from "./services/ballCatalogRepository";
 import type { NewSessionFormValues } from "./components/SessionForm";
 import { HandednessContext } from "./lib/handednessContext";
+import { useProAccess } from "./lib/useProAccess";
+import { ProNote } from "./components/ui/ProLock";
 import { DriftModelContext } from "./lib/driftModelContext";
 import { DEFAULT_DRIFT_MODEL, type DriftModel } from "./lib/driftModel";
 import type { Handedness, LineSpec } from "./types/bowling";
@@ -177,6 +179,7 @@ function App() {
   // A line someone sent, read once at first render for the same reason the
   // layout lab reads its own link there: the sandbox should open on the line,
   // never on a flash of the default one before it arrives (ADR-110).
+  const pro = useProAccess();
   const [sharedLine] = useState(() => decodeLineParams(currentSearch()));
   // A realistic strike line; auto-hooks to the pocket (ADR-024), no seeded breakpoint.
   const [sandboxLine, setSandboxLine] = useState<LineSpec | undefined>(
@@ -778,7 +781,10 @@ function App() {
         <LaneVisualizerLazy
           title="Line sandbox"
           line={sandboxLine}
-          onChange={setSandboxLine}
+          // Read-only without Pro: the line, shared or not, is drawn in full
+          // and can be shared on, but not moved (ADR-154).
+          onChange={pro.locked ? undefined : setSandboxLine}
+          footer={pro.locked ? <ProNote lane what="Moving the line is in the Headpin app" /> : undefined}
           // No shot behind this lane, so the hand is a question rather than a
           // fact, the same reason the sandbox picks its own pattern (ADR-108).
           handSwitchable

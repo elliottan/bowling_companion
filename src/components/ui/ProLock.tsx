@@ -53,3 +53,32 @@ export function ProLock({
     </div>
   );
 }
+
+/**
+ * The line a read-only Pro screen carries in place of its controls: the screen
+ * itself stays fully drawn and readable, and only changing it waits on Pro
+ * (the sandbox, the layout lab). Nothing while Pro is open. `lane` is for the
+ * lane view's dark frame, which paints its own colors (DESIGN-LANGUAGE.md §3).
+ */
+export function ProNote({ what, lane = false }: { what: string; lane?: boolean }) {
+  const access = useProAccess();
+  if (!access.locked) return null;
+  const { appStoreUrl } = access;
+  return (
+    <div
+      className={
+        lane
+          ? "flex items-center justify-center gap-3 px-4 py-2"
+          : "flex items-center justify-between gap-3 rounded-xl border border-edge bg-surface p-3 shadow-sm"
+      }
+    >
+      <p className={`flex items-center gap-1.5 text-sm font-semibold ${lane ? "text-white/80" : "text-ink"}`}>
+        <Lock size={14} aria-hidden="true" />
+        {what}
+      </p>
+      <Button variant="primary" className="shrink-0" onClick={() => openAppStore(appStoreUrl)}>
+        Get the app
+      </Button>
+    </div>
+  );
+}

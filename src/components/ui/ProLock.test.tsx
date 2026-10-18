@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
-import { ProLock } from "./ProLock";
+import { ProLock, ProNote } from "./ProLock";
 import { ProAccessContext } from "../../lib/useProAccess";
 
 const store = vi.hoisted(() => ({ opened: [] as string[] }));
@@ -47,6 +47,29 @@ describe("ProLock", () => {
   it("sends the bowler to the App Store", () => {
     store.opened.length = 0;
     renderLock(LOCKED);
+    fireEvent.click(screen.getByRole("button", { name: "Get the app" }));
+    expect(store.opened).toEqual(["https://apps.apple.com/app/id1"]);
+  });
+});
+
+describe("ProNote", () => {
+  it("says nothing while Pro is open", () => {
+    const { container } = render(
+      <ProAccessContext.Provider value={{ locked: false }}>
+        <ProNote what="Moving the line is in the Headpin app" />
+      </ProAccessContext.Provider>
+    );
+    expect(container).toBeEmptyDOMElement();
+  });
+
+  it("says what waits on Pro, and sends the bowler to the App Store", () => {
+    store.opened.length = 0;
+    render(
+      <ProAccessContext.Provider value={LOCKED}>
+        <ProNote lane what="Moving the line is in the Headpin app" />
+      </ProAccessContext.Provider>
+    );
+    expect(screen.getByText("Moving the line is in the Headpin app")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Get the app" }));
     expect(store.opened).toEqual(["https://apps.apple.com/app/id1"]);
   });

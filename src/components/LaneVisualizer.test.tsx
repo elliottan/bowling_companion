@@ -486,3 +486,19 @@ describe("LaneVisualizer share (ADR-110)", () => {
     expect(await screen.findByRole("dialog", { name: /share image/i })).toBeInTheDocument();
   });
 });
+
+describe("the hint under the lane", () => {
+  it("offers the points to drag only when there are points to drag", () => {
+    const { unmount } = renderViz({ onChange: vi.fn() });
+    expect(screen.getByText(/Drag a point to move it/)).toBeInTheDocument();
+    unmount();
+    renderViz();
+    expect(screen.getByText("Drag the lane to tilt")).toBeInTheDocument();
+  });
+
+  it("gives way to a footer the caller sends, the sandbox's Pro note", () => {
+    renderViz({ footer: <p>Moving the line is in the Headpin app</p> });
+    expect(screen.getByText("Moving the line is in the Headpin app")).toBeInTheDocument();
+    expect(screen.queryByText(/Drag the lane to tilt/)).not.toBeInTheDocument();
+  });
+});

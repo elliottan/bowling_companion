@@ -35,6 +35,8 @@ import {
 } from "../lib/ballLayout";
 import { defaultOrientationFor, type Orientation } from "../lib/ballProjection";
 import { FREE_APP_PATH } from "../lib/pro";
+import { useProAccess } from "../lib/useProAccess";
+import { ProNote } from "../components/ui/ProLock";
 import { decodeLayoutParams, layoutShareUrl, type LayoutSeed } from "../lib/layoutShare";
 import { buildLayoutCard, type ShareCardData } from "../lib/shareCard";
 import { svgToImage } from "../lib/svgImage";
@@ -145,6 +147,10 @@ const BENCHMARK: DualAngleLayout = { drillingAngle: 45, pinToPap: 4.5, valAngle:
  * off screen.
  */
 export function LayoutLabView({ onBack, onOpenSettings, seed }: LayoutLabViewProps) {
+  // Read-only without Pro: the layout, shared or a ball's own, is drawn in full
+  // with its numbers and what it will do, and can be shared on and turned to
+  // look at, but not changed (ADR-154).
+  const { locked: proLocked } = useProAccess();
   // A link shared into the app wins over everything, and it is read once at
   // module level of this render rather than in an effect: it is available
   // synchronously, so seeding state from it needs no second render and no
@@ -393,131 +399,138 @@ export function LayoutLabView({ onBack, onOpenSettings, seed }: LayoutLabViewPro
             it, so the numbers below are read against the ball they belong to. */}
         {seed?.ballName && <SeededBallCard seed={seed} />}
 
-        {/* 1. Who is bowling. The PAP leads because it is the frame every other
-            number is measured against: the VAL angle is measured at it and the
-            pin-to-PAP distance is measured to it, so a layout read against the
-            wrong axis is the wrong layout. It used to sit last on the grounds
-            that it is set once and then left alone, which is true of how often
-            it is touched and wrong about what it means.
+        <ProNote what="Changing a layout is in the Headpin app" />
 
-            The hand and the grip ride beside it rather than under it. They are
-            two two-way answers, so they cost a quarter of the width and would
-            otherwise cost two full bands of a phone screen. */}
-        <section className="space-y-1.5">
-          <div className="flex items-center justify-between gap-2">
-            <h2 className={GROUP_HEADING}>You</h2>
-            {/* Back to the bowler's own saved numbers, in one tap. The PAP, the
-                hand and the grip are what a shared link overrides, so the way
-                out of somebody else's measurements sits with them. */}
-            <IconButton
-              compact
-              label="Reset to your saved settings"
-              title="Reset to your saved settings"
-              onClick={() => setResetting(true)}
-            >
-              <RotateCcw size={15} aria-hidden="true" />
-            </IconButton>
-          </div>
-          {/* Stretched rather than top-aligned, so the two cards end level
-              whichever is taller. The hand card is the taller of the two (two
-              toggles against two rows of fields), so the PAP card takes a few
-              px of extra padding at the bottom, which reads as padding. */}
-          <div className="flex items-stretch gap-2">
-            <div className="min-w-0 flex-1 space-y-1.5 rounded-xl border border-edge bg-surface p-2.5 shadow-sm">
-              <span className={FIELD_MICRO_LABEL}>Your PAP</span>
-              <PapEditor pap={pap} onChange={updatePap} idPrefix="lab-pap" />
+        {/* A disabled fieldset turns off every field and button inside it while
+            leaving their values on screen to read. */}
+        <fieldset disabled={proLocked} className="m-0 min-w-0 space-y-3 border-0 p-0">
+
+          {/* 1. Who is bowling. The PAP leads because it is the frame every other
+              number is measured against: the VAL angle is measured at it and the
+              pin-to-PAP distance is measured to it, so a layout read against the
+              wrong axis is the wrong layout. It used to sit last on the grounds
+              that it is set once and then left alone, which is true of how often
+              it is touched and wrong about what it means.
+
+              The hand and the grip ride beside it rather than under it. They are
+              two two-way answers, so they cost a quarter of the width and would
+              otherwise cost two full bands of a phone screen. */}
+          <section className="space-y-1.5">
+            <div className="flex items-center justify-between gap-2">
+              <h2 className={GROUP_HEADING}>You</h2>
+              {/* Back to the bowler's own saved numbers, in one tap. The PAP, the
+                  hand and the grip are what a shared link overrides, so the way
+                  out of somebody else's measurements sits with them. */}
+              <IconButton
+                compact
+                label="Reset to your saved settings"
+                title="Reset to your saved settings"
+                onClick={() => setResetting(true)}
+              >
+                <RotateCcw size={15} aria-hidden="true" />
+              </IconButton>
             </div>
-            <div className="w-[7.5rem] shrink-0 space-y-1.5 rounded-xl border border-edge bg-surface p-2.5 shadow-sm">
-              <span className={FIELD_MICRO_LABEL}>Hand</span>
-              {/* `space-y-2` is required, not chosen: a dense segmented control
-                  is 36px drawn and 44pt to the finger, so two stacked any
-                  closer than 8px would have overlapping hit regions and the
-                  grip row would start swallowing taps meant for the hand. */}
-              <div className="space-y-2">
-                {/* Left on the left, which is the one ordering that needs no
-                    reading: the letters sit where the hands do. */}
-                <SegmentedControl
-                  dense
-                  label="Bowling hand"
-                  value={hand}
-                  onChange={chooseHand}
-                  options={[
-                    { value: "left", label: "L", srLabel: "Left" },
-                    { value: "right", label: "R", srLabel: "Right" }
-                  ]}
-                />
-                {/* One-handed or two-handed. It draws the ball the bowler
-                    actually holds (no thumb hole, and the grip centred between
-                    the fingers) and it drops the do-not-use band, whose whole
-                    reason is a thumb hole to run the track over. It still moves
-                    none of the motion coefficients: those are fitted to a
-                    thumb-in chart, and guessing at a two-handed release would
-                    be worse than saying nothing. */}
-                <SegmentedControl
-                  dense
-                  label="Grip style"
-                  value={grip}
-                  onChange={chooseGrip}
-                  options={[
-                    { value: "1h", label: "1H", srLabel: "One handed" },
-                    { value: "2h", label: "2H", srLabel: "Two handed" }
-                  ]}
-                />
+            {/* Stretched rather than top-aligned, so the two cards end level
+                whichever is taller. The hand card is the taller of the two (two
+                toggles against two rows of fields), so the PAP card takes a few
+                px of extra padding at the bottom, which reads as padding. */}
+            <div className="flex items-stretch gap-2">
+              <div className="min-w-0 flex-1 space-y-1.5 rounded-xl border border-edge bg-surface p-2.5 shadow-sm">
+                <span className={FIELD_MICRO_LABEL}>Your PAP</span>
+                <PapEditor pap={pap} onChange={updatePap} idPrefix="lab-pap" />
+              </div>
+              <div className="w-[7.5rem] shrink-0 space-y-1.5 rounded-xl border border-edge bg-surface p-2.5 shadow-sm">
+                <span className={FIELD_MICRO_LABEL}>Hand</span>
+                {/* `space-y-2` is required, not chosen: a dense segmented control
+                    is 36px drawn and 44pt to the finger, so two stacked any
+                    closer than 8px would have overlapping hit regions and the
+                    grip row would start swallowing taps meant for the hand. */}
+                <div className="space-y-2">
+                  {/* Left on the left, which is the one ordering that needs no
+                      reading: the letters sit where the hands do. */}
+                  <SegmentedControl
+                    dense
+                    label="Bowling hand"
+                    value={hand}
+                    onChange={chooseHand}
+                    options={[
+                      { value: "left", label: "L", srLabel: "Left" },
+                      { value: "right", label: "R", srLabel: "Right" }
+                    ]}
+                  />
+                  {/* One-handed or two-handed. It draws the ball the bowler
+                      actually holds (no thumb hole, and the grip centred between
+                      the fingers) and it drops the do-not-use band, whose whole
+                      reason is a thumb hole to run the track over. It still moves
+                      none of the motion coefficients: those are fitted to a
+                      thumb-in chart, and guessing at a two-handed release would
+                      be worse than saying nothing. */}
+                  <SegmentedControl
+                    dense
+                    label="Grip style"
+                    value={grip}
+                    onChange={chooseGrip}
+                    options={[
+                      { value: "1h", label: "1H", srLabel: "One handed" },
+                      { value: "2h", label: "2H", srLabel: "Two handed" }
+                    ]}
+                  />
+                </div>
               </div>
             </div>
-          </div>
-        </section>
+          </section>
 
-        {/* 2. What ball. The core type comes before the numbers because it
-            changes what the drilling angle means, and therefore what every
-            number below does. */}
-        <section className="space-y-1.5">
-          <h2 className={GROUP_HEADING}>Core</h2>
-          <SegmentedControl
-            label="Core type"
-            value={symmetric ? "sym" : "asym"}
-            onChange={(v) => setSymmetric(v === "sym")}
-            options={[
-              { value: "asym", label: "Asym", srLabel: "Asymmetric" },
-              { value: "sym", label: "Sym", srLabel: "Symmetric" }
-            ]}
-          />
-        </section>
+          {/* 2. What ball. The core type comes before the numbers because it
+              changes what the drilling angle means, and therefore what every
+              number below does. */}
+          <section className="space-y-1.5">
+            <h2 className={GROUP_HEADING}>Core</h2>
+            <SegmentedControl
+              label="Core type"
+              value={symmetric ? "sym" : "asym"}
+              onChange={(v) => setSymmetric(v === "sym")}
+              options={[
+                { value: "asym", label: "Asym", srLabel: "Asymmetric" },
+                { value: "sym", label: "Sym", srLabel: "Symmetric" }
+              ]}
+            />
+          </section>
 
-        {/* 3. The numbers. */}
-        <section className="space-y-2">
-          <div className="flex items-center justify-between gap-3">
-            <h2 className={GROUP_HEADING}>Layout</h2>
-            {/* The presets, as a named menu on the heading row. This replaced a
-                Reset control and a separate labelled dropdown underneath it,
-                which between them spent two bands of a phone screen on one
-                idea: every reset this screen had was "go back to the
-                benchmark", and the benchmark is a preset. One control now, and
-                it says which preset is on screen in its own spoken name rather
-                than in a field that has to be looked at. */}
-            <button
-              type="button"
-              aria-haspopup="menu"
-              aria-expanded={presetAt != null}
-              aria-label={`Presets, ${activePreset?.name ?? "Custom"}`}
-              onClick={(e) => setPresetAt(anchorUnder(e.currentTarget, 176))}
-              className="inline-flex items-center gap-1 text-xs font-semibold text-accent active:opacity-80"
-            >
-              <LayoutGrid size={13} aria-hidden="true" />
-              Presets
-            </button>
-          </div>
+          {/* 3. The numbers. */}
+          <section className="space-y-2">
+            <div className="flex items-center justify-between gap-3">
+              <h2 className={GROUP_HEADING}>Layout</h2>
+              {/* The presets, as a named menu on the heading row. This replaced a
+                  Reset control and a separate labelled dropdown underneath it,
+                  which between them spent two bands of a phone screen on one
+                  idea: every reset this screen had was "go back to the
+                  benchmark", and the benchmark is a preset. One control now, and
+                  it says which preset is on screen in its own spoken name rather
+                  than in a field that has to be looked at. */}
+              <button
+                type="button"
+                aria-haspopup="menu"
+                aria-expanded={presetAt != null}
+                aria-label={`Presets, ${activePreset?.name ?? "Custom"}`}
+                onClick={(e) => setPresetAt(anchorUnder(e.currentTarget, 176))}
+                className="inline-flex items-center gap-1 text-xs font-semibold text-accent active:opacity-80"
+              >
+                <LayoutGrid size={13} aria-hidden="true" />
+                Presets
+              </button>
+            </div>
 
-          <LayoutEditor
-            layout={layout}
-            onChange={setLayout}
-            ball={ball}
-            system={system}
-            onSystemChange={setSystemOverride}
-            grip={grip}
-            idPrefix="lab"
-          />
-        </section>
+            <LayoutEditor
+              layout={layout}
+              onChange={setLayout}
+              ball={ball}
+              system={system}
+              onSystemChange={setSystemOverride}
+              grip={grip}
+              idPrefix="lab"
+            />
+          </section>
+        </fieldset>
 
         {/* 4. The ball. The row of chips that used to sit under it (jump to the
             grip, the pin, the PAP, the core, and a flare rings toggle) is gone:
