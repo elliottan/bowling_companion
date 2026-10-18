@@ -8,6 +8,7 @@ import { getOilPatterns } from "../services/ballRepository";
 import { getCatalogPatterns } from "../services/patternCatalog";
 import { buildLineCard, type ShareCardData } from "../lib/shareCard";
 import { FREE_APP_PATH } from "../lib/pro";
+import { shareOrigin } from "../lib/platform";
 import { lineShareUrl } from "../lib/lineShare";
 import { ShareCardDialog } from "./ShareCardDialog";
 import { ShareIosIcon } from "./icons";
@@ -225,7 +226,7 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
             // that exists on one device (ADR-110).
             ...(oilPattern?.catalog_id ? { patternCatalogId: oilPattern.catalog_id } : {}),
           },
-          window.location.origin,
+          shareOrigin(),
           // Always the free app: a link from the owner's copy must not open it
           // for whoever it is sent to (ADR-154).
           FREE_APP_PATH

@@ -1,5 +1,6 @@
 import { db } from "../db/bowlingDb";
 import { getSetting, setSetting } from "./bowlingRepository";
+import { catalogOrigins } from "../lib/platform";
 import type { CatalogBall, CatalogManifest } from "../types/catalog";
 
 const CATALOG_VERSION_KEY = "catalog_version";
@@ -11,8 +12,8 @@ export type SyncState =
   | { status: "done"; version: number; generatedAt: string }
   | { status: "error"; message: string };
 
-export async function getCatalogManifestRemote(): Promise<CatalogManifest> {
-  const res = await fetch("/catalog/catalog-manifest.json");
+export async function getCatalogManifestRemote(origin = ""): Promise<CatalogManifest> {
+  const res = await fetch(`${origin}/catalog/catalog-manifest.json`);
   if (!res.ok) throw new Error(`Failed to fetch catalog manifest: ${res.status}`);
   return res.json() as Promise<CatalogManifest>;
 }
@@ -82,33 +83,41 @@ export async function refreshArsenalPhotos(): Promise<number> {
   return changed;
 }
 
+/**
+ * Tries each place the catalog can come from (`catalogOrigins`) until one
+ * answers. On the web there is one, the site itself. The store app asks
+ * headpin.app first and its built-in snapshot second, so offline it still has a
+ * catalog, and the version check means an older snapshot never replaces a
+ * newer copy fetched before (ADR-155).
+ */
 async function syncCatalogTable(onState?: (state: SyncState) => void): Promise<void> {
   onState?.({ status: "syncing" });
 
-  let manifest: CatalogManifest;
-  try {
-    manifest = await getCatalogManifestRemote();
-  } catch (err) {
-    onState?.({ status: "error", message: err instanceof Error ? err.message : String(err) });
-    return;
+  let message = "No catalog to sync from";
+  for (const origin of catalogOrigins()) {
+    try {
+      const manifest = await syncCatalogFrom(origin);
+      onState?.({ status: "done", version: manifest.version, generatedAt: manifest.generatedAt });
+      return;
+    } catch (err) {
+      message = err instanceof Error ? err.message : String(err);
+    }
   }
+  onState?.({ status: "error", message });
+}
+
+async function syncCatalogFrom(origin: string): Promise<CatalogManifest> {
+  const manifest = await getCatalogManifestRemote(origin);
 
   const storedVersion = await getStoredCatalogVersion();
   const localCount = await db.ball_catalog.count();
   if (storedVersion !== null && storedVersion >= manifest.version && localCount > 0) {
-    onState?.({ status: "done", version: manifest.version, generatedAt: manifest.generatedAt });
-    return;
+    return manifest;
   }
 
-  let remoteBalls: CatalogBall[];
-  try {
-    const res = await fetch("/catalog/catalog.json");
-    if (!res.ok) throw new Error(`Failed to fetch catalog: ${res.status}`);
-    remoteBalls = await res.json() as CatalogBall[];
-  } catch (err) {
-    onState?.({ status: "error", message: err instanceof Error ? err.message : String(err) });
-    return;
-  }
+  const res = await fetch(`${origin}/catalog/catalog.json`);
+  if (!res.ok) throw new Error(`Failed to fetch catalog: ${res.status}`);
+  const remoteBalls = await res.json() as CatalogBall[];
 
   // Upsert all: the catalog is read-only, server-authoritative reference data
   // keyed by stable id, so re-putting every ball updates existing entries
@@ -128,8 +137,7 @@ async function syncCatalogTable(onState?: (state: SyncState) => void): Promise<v
 
   await setSetting(CATALOG_VERSION_KEY, String(manifest.version));
   await setSetting(CATALOG_GENERATED_AT_KEY, manifest.generatedAt);
-
-  onState?.({ status: "done", version: manifest.version, generatedAt: manifest.generatedAt });
+  return manifest;
 }
 
 export async function getAllCatalog(): Promise<CatalogBall[]> {

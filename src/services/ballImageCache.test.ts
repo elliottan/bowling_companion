@@ -53,4 +53,16 @@ describe("warmArsenalImages", () => {
     // jsdom has no Cache Storage, so the default path bows out cleanly.
     expect(await warmArsenalImages()).toBe(0);
   });
+
+  it("does nothing in the store app, which runs no worker to read the cache back (ADR-155)", async () => {
+    const { open } = fakeCache([]);
+    vi.stubGlobal("caches", { open });
+    vi.stubGlobal("Capacitor", { isNativePlatform: () => true });
+    try {
+      expect(await warmArsenalImages()).toBe(0);
+      expect(open).not.toHaveBeenCalled();
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
 });

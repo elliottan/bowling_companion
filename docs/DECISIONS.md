@@ -7163,3 +7163,99 @@ first target, and never to lose money. Research in October 2026 found:
 - The owner keeps the unlicensed photos in the paid app and accepts the risk. A
   complaint to Apple can pull the whole app, not one image. MOTIV is told the app
   now sells Pro.
+
+## ADR-155: The store apps are the web build inside Capacitor, told apart at runtime
+
+**Status.** Accepted, 2026-10-18, by the owner's decision: Capacitor now, and
+screens that feel like a web page rewritten natively one at a time later. Builds
+phase 1 of `docs/PRO-LAUNCH.md` for ADR-154, and the Android shell from phase 5
+with it. The web half is built and tested; the iOS project is generated but not
+yet built in Xcode, and the Android project builds a debug APK but has not yet
+run on an emulator or a phone.
+
+**Context.** ADR-154 sells Pro only in the store apps, and the iOS app ships
+first. The app is a static Vite build with no server, which is the shape
+Capacitor wraps: the same files, served from inside the app by the platform's
+web view, at `capacitor://localhost` on iOS and `https://localhost` on Android.
+A pure Swift app, React Native and Flutter were weighed and rejected: each
+rewrites the screens, and Swift rewrites the scoring engine too, which would
+then exist twice and have to score every game the same way in both. Three things differ from the web, and
+everything here follows from them. That origin has only what the app carries,
+so anything the build reaches by a root-relative path that the app leaves out
+is missing. The iOS web view runs no service worker for the app's own scheme,
+so nothing the web app keeps through Workbox is kept. And the page's own
+origin opens nothing on anyone else's phone, so a link built from it is dead.
+
+**Decision.**
+
+- **One build, told apart at runtime.** `src/lib/platform.ts` asks the global
+  that Capacitor's native side injects before the page loads
+  (`window.Capacitor.isNativePlatform()`), not `@capacitor/core` and not a
+  build flag. The web bundle carries nothing to answer "no", and the store app
+  runs exactly the code the unit and end-to-end suites ran.
+- **What the app carries is a list, not a second build.** `npm run build:ios`
+  runs the web build, then `scripts/native/assemble.ts` copies `dist/` to
+  `dist-native/` with the app shell as the root page, and leaves out the ball
+  photos and pattern sheets (ADR-154, about 110 MB), the service worker and
+  manifests, the guide link pages, the landing page and its screenshots, and the
+  crawler files. Vercel's page analytics tag is taken out of the shell. The app
+  carries about 2 MB, `catalog.json` and `patterns.json` included.
+- **The catalogs come from headpin.app first and the built-in snapshot second**
+  (`catalogOrigins`). The ball catalog's version check already means an older
+  snapshot never replaces a newer catalog fetched before. The pattern catalog had
+  no such check, and an offline launch would have put an older snapshot's load
+  table back over a corrected one, so the sync now records the `generated_at` of
+  the file it last applied (`pattern_catalog_generated_at` in `settings`) and
+  never applies an older one. On the web this changes nothing, since the site's
+  file is never older than the last one it served.
+- **Photos and sheets load from headpin.app.** `siteUrl` puts the site in front
+  of a root-relative path in the store app and leaves it alone on the web, so a
+  preview deploy still reads its own files. Every ball photo is drawn by
+  `CatalogBallImage` and every kept sheet is found by `catalogSheet`, so those
+  are the two places it is applied. `vercel.json` allows any origin to read
+  `/catalog/`, which the app's `fetch` of the catalogs needs; the files are
+  public already.
+- **A shared link carries headpin.app** (`shareOrigin`) from the store app, and
+  the page's own origin on the web, as before.
+- **No service worker, no install prompt.** `main.tsx` registers neither in the
+  store app, the arsenal's photos are not warmed into a cache nothing reads, and
+  `isStandalone` is true there, so nothing offers to add the app to a Home
+  Screen or links out to the landing page.
+- **iPhone is portrait only**, as the web manifest already is, and the left-edge
+  swipe is turned on in the web view (`HeadpinViewController`), so it steps back
+  through history like the system back does (ADR-041).
+- **Android is portrait only too, and its back button steps back through the
+  web view's history** (`MainActivity`), leaving the app only from the first
+  entry. Capacitor's core does not handle the button at all, and Android would
+  otherwise close the app from any screen. The app is drawn edge to edge, which
+  Android 15 requires, and the page pads itself from `env(safe-area-inset-*)`
+  as it does on iOS (`SystemBars.insetsHandling: "native"`).
+- **Native rewrites come screen by screen, later.** A screen that still feels
+  like a web page in the store app (scrolling, a sheet, the keyboard) can be
+  replaced by a native one, and the rest stays shared. The scoring engine and
+  the repositories are not rewritten: they are the part a second copy would
+  get wrong.
+
+**Consequences.**
+
+- Usage counts (ADR-120) are off in the app until its privacy label is written:
+  they only send from `headpin.app`, and the app's page is `localhost`.
+- Pro in the app still reads the web's answer (`webProAccess`), which is open
+  while `APP_STORE_URL` is null. The purchase plugin replaces it in the app
+  before that URL is set, or the app would point at its own App Store page.
+- **To check on a device**, since none of this is visible from Linux or
+  Chromium: that photos stay available offline from the web view's HTTP cache
+  (headpin.app sends 30 days of `Cache-Control`), and an on-device photo store if
+  they do not; safe areas, the keyboard and the scroll clamp
+  (`docs/VIEWPORT-BUG.md`); that the edge swipe and the page's back handling
+  agree; and that a sheet, a `mailto:` link and the App Store link open outside
+  the app.
+- Universal links (App Links on Android), the share sheet, Files import and
+  export, and haptics are still to do (PRO-LAUNCH phases 1 and 3). The iPad
+  target is left as Capacitor's template has it until the owner decides whether
+  the app ships for iPad. Both apps carry Capacitor's placeholder icon and
+  splash screen.
+- Android's own backup (`allowBackup`, the template's default) is left on, so a
+  bowler's games can come back with the rest of their phone. Whether the web
+  view's database is included is to be checked on a device; the JSON backup
+  (ADR-038) stays the way that is promised.

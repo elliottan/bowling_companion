@@ -385,6 +385,7 @@ export function guideAppPath(guideId: string): string {
  * app". That page (`lib/guidePage`) carries the guide's title, summary and card,
  * then sends the visitor to `guideAppPath`. `origin` comes from the running
  * page, so a link shared from a preview build opens that preview.
+ * The store app passes headpin.app instead (`shareOrigin`, ADR-155).
  */
 export function guideShareUrl(guideId: string, origin: string): string {
   return `${origin}/guides/${encodeURIComponent(guideId)}`;

@@ -1,5 +1,6 @@
 import type { OilPass } from "../types/bowling";
 import type { PatternClass } from "../lib/oilPattern";
+import { catalogOrigins, siteUrl } from "../lib/platform";
 
 /**
  * The shipped oil pattern catalog (ADR-104).
@@ -39,16 +40,36 @@ interface PatternCatalogFile {
   patterns: CatalogPattern[];
 }
 
-let cache: Promise<CatalogPattern[]> | null = null;
+interface LoadedCatalog {
+  /** When the pipeline wrote the file; empty when no catalog could be read. */
+  generatedAt: string;
+  patterns: CatalogPattern[];
+}
+
+let cache: Promise<LoadedCatalog> | null = null;
+
+/**
+ * The catalog file, read once per session from the first place that answers
+ * (`catalogOrigins`): the site on the web, and in the store app headpin.app
+ * before the snapshot built into the app (ADR-155).
+ */
+function loadCatalog(): Promise<LoadedCatalog> {
+  cache ??= (async () => {
+    for (const origin of catalogOrigins()) {
+      const file = await fetch(`${origin}${import.meta.env.BASE_URL}catalog/patterns.json`)
+        .then((r) => (r.ok ? (r.json() as Promise<PatternCatalogFile>) : null))
+        .catch(() => null);
+      if (file?.patterns) return { generatedAt: file.generated_at ?? "", patterns: file.patterns };
+    }
+    return { generatedAt: "", patterns: [] };
+  })();
+  return cache;
+}
 
 /** The catalog, read once per session. An unreachable catalog is an empty one:
  *  the pattern list still works, it just offers nothing to start from. */
-export function getCatalogPatterns(): Promise<CatalogPattern[]> {
-  cache ??= fetch(`${import.meta.env.BASE_URL}catalog/patterns.json`)
-    .then((r) => (r.ok ? (r.json() as Promise<PatternCatalogFile>) : null))
-    .then((file) => file?.patterns ?? [])
-    .catch(() => []);
-  return cache;
+export async function getCatalogPatterns(): Promise<CatalogPattern[]> {
+  return (await loadCatalog()).patterns;
 }
 
 /** A catalog pattern's original sheet, as the app serves it (ADR-136). */
@@ -67,7 +88,8 @@ export interface KeptSheet {
 export async function catalogSheet(catalogId: string): Promise<KeptSheet | undefined> {
   const pattern = (await getCatalogPatterns()).find((p) => p.id === catalogId);
   if (!pattern?.sheet) return undefined;
-  const at = (path: string) => `${import.meta.env.BASE_URL}catalog/${path}`;
+  // From headpin.app in the store app, which keeps no sheets of its own.
+  const at = (path: string) => siteUrl(`${import.meta.env.BASE_URL}catalog/${path}`);
   return { pdf: at(pattern.sheet), pages: (pattern.sheetPages ?? []).map(at) };
 }
 
@@ -172,14 +194,26 @@ export function syncPatternCatalog(): Promise<void> {
   return syncing;
 }
 
+/**
+ * The catalog file the bowler's rows were last brought up to. The store app
+ * falls back to the snapshot it was built with when it is offline, and that
+ * snapshot can be older than the file it read online last week, so an older
+ * file is never applied over a newer one: it would put back a load table the
+ * catalog has since corrected (ADR-155).
+ */
+const APPLIED_KEY = "pattern_catalog_generated_at";
+
 async function runPatternSync(): Promise<void> {
   await resetLinksOnce();
 
-  const [catalog, { db }] = await Promise.all([
-    getCatalogPatterns(),
+  const [{ generatedAt, patterns: catalog }, { db }, { getSetting, setSetting }] = await Promise.all([
+    loadCatalog(),
     import("../db/bowlingDb"),
+    import("./bowlingRepository"),
   ]);
   if (catalog.length === 0) return;
+  const applied = await getSetting(APPLIED_KEY);
+  if (applied && generatedAt && generatedAt < applied) return;
 
   await healDuplicateLinks();
 
@@ -224,4 +258,5 @@ async function runPatternSync(): Promise<void> {
     });
     usedNames.add(pattern.name.trim().toLowerCase());
   }
+  if (generatedAt) await setSetting(APPLIED_KEY, generatedAt);
 }

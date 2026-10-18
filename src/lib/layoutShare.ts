@@ -91,6 +91,7 @@ export function encodeLayoutParams(shared: SharedLayout): string {
  * link shared from a preview deployment opens that preview and a link shared
  * from production opens production. Hardcoding the production host would make
  * every link from a test build silently point somewhere else.
+ * The store app passes headpin.app instead (`shareOrigin`, ADR-155).
  * `path` is the free app's (`FREE_APP_PATH`), whichever copy shares it.
  */
 export function layoutShareUrl(shared: SharedLayout, origin: string, path: string): string {

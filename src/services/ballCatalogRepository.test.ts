@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { syncCatalog, getAllCatalog, getStoredCatalogVersion, refreshArsenalPhotos, syncCatalogForArsenal } from "./ballCatalogRepository";
 import { db } from "../db/bowlingDb";
 import type { CatalogBall, CatalogManifest } from "../types/catalog";
@@ -332,5 +332,85 @@ describe("syncCatalogForArsenal", () => {
     expect(await syncCatalogForArsenal()).toBe(true);
     expect((await db.balls.get(id))?.catalog_snapshot?.imageThumb).toBe("/new.webp");
     vi.unstubAllGlobals();
+  });
+});
+
+describe("syncCatalog in the store app (ADR-155)", () => {
+  const SITE = "https://headpin.app";
+
+  beforeEach(() => {
+    vi.stubGlobal("Capacitor", { isNativePlatform: () => true });
+  });
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("reads headpin.app first, since the app's own origin only has the snapshot it was built with", async () => {
+    const fetchMock = vi.fn((url: string) =>
+      Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve(url.includes("manifest") ? makeManifest(7) : [makeBall("storm-new-2026")])
+      })
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    const states: string[] = [];
+    await syncCatalog((s) => states.push(s.status));
+
+    expect(fetchMock.mock.calls.map(([url]) => url)).toEqual([
+      `${SITE}/catalog/catalog-manifest.json`,
+      `${SITE}/catalog/catalog.json`
+    ]);
+    expect(await getStoredCatalogVersion()).toBe(7);
+    expect(states).toEqual(["syncing", "done"]);
+  });
+
+  it("falls back to the built-in snapshot offline, so a fresh install has a catalog", async () => {
+    const fetchMock = vi.fn((url: string) => {
+      if (url.startsWith(SITE)) return Promise.reject(new TypeError("Load failed"));
+      return Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve(url.includes("manifest") ? makeManifest(3) : [makeBall("storm-snap-2026")])
+      });
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const states: string[] = [];
+    await syncCatalog((s) => states.push(s.status));
+
+    expect((await getAllCatalog()).map((b) => b.id)).toEqual(["storm-snap-2026"]);
+    expect(await getStoredCatalogVersion()).toBe(3);
+    expect(states).toEqual(["syncing", "done"]);
+  });
+
+  it("never lets an older snapshot replace a newer catalog fetched before", async () => {
+    await db.settings.put({ key: "catalog_version", value: "9" });
+    await db.ball_catalog.put(makeBall("storm-fetched-2026"));
+    const fetchMock = vi.fn((url: string) => {
+      if (url.startsWith(SITE)) return Promise.reject(new TypeError("Load failed"));
+      return Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve(url.includes("manifest") ? makeManifest(3) : [makeBall("storm-snap-2026")])
+      });
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    await syncCatalog();
+
+    expect((await getAllCatalog()).map((b) => b.id)).toEqual(["storm-fetched-2026"]);
+    expect(await getStoredCatalogVersion()).toBe(9);
+    expect(fetchMock.mock.calls.map(([url]) => url)).not.toContain("/catalog/catalog.json");
+  });
+
+  it("reports the last error when neither the site nor the snapshot answers", async () => {
+    vi.stubGlobal("fetch", vi.fn(() => Promise.resolve({ ok: false, status: 404 })));
+
+    const states: { status: string; message?: string }[] = [];
+    await syncCatalog((s) => states.push(s.status === "error" ? { status: s.status, message: s.message } : { status: s.status }));
+
+    expect(states).toEqual([
+      { status: "syncing" },
+      { status: "error", message: "Failed to fetch catalog manifest: 404" }
+    ]);
   });
 });

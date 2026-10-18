@@ -71,6 +71,7 @@ export function encodeLineParams(shared: SharedLine): string {
  * `origin` comes from the running page rather than a constant, so a
  * link shared from a preview deployment opens that preview and one shared from
  * production opens production.
+ * The store app passes headpin.app instead (`shareOrigin`, ADR-155).
  * `path` is the free app's (`FREE_APP_PATH`), whichever copy shares it.
  */
 export function lineShareUrl(shared: SharedLine, origin: string, path: string): string {

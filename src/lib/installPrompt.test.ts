@@ -61,6 +61,14 @@ describe("isStandalone", () => {
     expect(isStandalone(win, nav)).toBe(true);
   });
 
+  it("returns true in the store app, which reports neither signal (ADR-155)", () => {
+    const win = {
+      matchMedia: () => ({ matches: false }) as MediaQueryList,
+      Capacitor: { isNativePlatform: () => true }
+    };
+    expect(isStandalone(win, {})).toBe(true);
+  });
+
   it("returns false when neither signal is present", () => {
     const win = { matchMedia: () => ({ matches: false }) as MediaQueryList };
     const nav = { standalone: false };

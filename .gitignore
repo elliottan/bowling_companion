@@ -3,6 +3,9 @@ node_modules/
 
 # Build output
 dist/
+# The store app's copy of the build (scripts/native/assemble.ts), and
+# Capacitor's copy of that inside the iOS project, which ios/.gitignore keeps out.
+dist-native/
 coverage/
 
 # Local environment

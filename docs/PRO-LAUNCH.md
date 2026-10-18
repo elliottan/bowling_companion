@@ -109,9 +109,13 @@ patterns.
   as the web app does. The arsenal's photos are fetched ahead, as
   `warmArsenalImages` does on the web. A takedown is a server edit, with no app
   release.
-- **To check in the spike:** the iOS web view does not run the service worker
-  for the app's own scheme, so the app's copy of the photos and the catalog needs
-  its own store (IndexedDB or the Capacitor filesystem), not the Workbox caches.
+- **What the spike found:** the iOS web view runs no service worker for the
+  app's own scheme, so nothing Workbox keeps is kept. The catalogs need no store
+  of their own: the ball catalog already lives in IndexedDB, and every catalog
+  pattern is already a row of the bowler's own (ADR-105), so the snapshot only
+  has to answer when headpin.app does not (ADR-155). The photos are what is
+  left: the web view's HTTP cache, or a store of their own (IndexedDB or the
+  Capacitor filesystem) if a device shows that cache does not hold offline.
 
 ## Moving games from the web to the app
 
@@ -139,13 +143,19 @@ switch.
 
 ### 1. The iOS shell (a spike first)
 
-- [ ] Capacitor around the Vite build, with photos and sheets kept out of the
-      bundle.
+- [x] Capacitor around the Vite build, with photos and sheets kept out of the
+      bundle (ADR-155, `npm run build:ios`). Not yet built in Xcode.
 - [ ] Read `docs/VIEWPORT-BUG.md` in full before touching the shell: safe areas,
-      rotation and the keyboard behave differently in the iOS web view.
+      rotation and the keyboard behave differently in the iOS web view. iPhone
+      is portrait only; safe areas and the keyboard wait on a device.
 - [ ] Back and the edge swipe through history (ADR-041), checked in the web view.
-- [ ] Catalog, pattern and photo loading from `https://headpin.app`, with the
-      on-device copy described above.
+      The swipe is turned on (`HeadpinViewController`); the check waits on a
+      device.
+- [x] Catalog, pattern and photo loading from `https://headpin.app`, with the
+      built-in snapshot when offline (ADR-155).
+- [ ] Photos kept on the device. The app has only the web view's HTTP cache
+      today (30 days of `Cache-Control`); whether that holds offline is the
+      first thing to check on a device, and an on-device store follows if not.
 - [ ] Umami counts from the app (ADR-120), and the privacy label to match.
 - [ ] Universal links, so a shared headpin.app link opens in the app when it is
       installed and in the web app when it is not (an
@@ -185,6 +195,9 @@ switch.
 
 - [ ] Google Play account (US$25 once), and 12 or more testers opted in for 14
       days in a row.
+- [x] The Android shell, from the same build (ADR-155, `npm run build:android`):
+      portrait, edge to edge, and the back button through history. Builds a
+      debug APK; not yet run on an emulator.
 - [ ] Play Billing for the same product, and the web's "Get the app" gains
       Android.
 

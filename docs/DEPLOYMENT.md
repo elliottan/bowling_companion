@@ -150,6 +150,12 @@ microphone and geolocation, and HSTS. There is no CSP yet: the three HTML
 shells each run an inline theme script, which a CSP would need nonces for, and
 nonces need a server rendering step this site does not have (ROADMAP).
 
+`/catalog/` also answers `Access-Control-Allow-Origin: *`. The store apps are
+served from `capacitor://localhost` (iOS) and `https://localhost` (Android), and
+their `fetch` of the ball and pattern catalogs from headpin.app is cross-origin
+(ADR-155). The files are public
+already, so allowing any origin to read them gives nothing away.
+
 `public/404.html` is served from the output root for any unmatched path.
 
 Any further config goes in the same `vercel.json`, with the reason documented
@@ -184,6 +190,46 @@ wherever a reload costs the user nothing (`src/lib/swUpdate.ts`).
   SKIP_WAITING and rides workbox's `controlling` event.
 
 Hashed asset filenames mean stale assets never collide.
+
+## The iOS app
+
+The store app is the same build inside Capacitor (ADR-155). On a Mac with Xcode:
+
+```bash
+npm run build:ios   # web build, then dist-native/, then copied into ios/
+npx cap open ios    # opens the Xcode project; run it on a simulator or phone
+```
+
+`dist-native/` is the build as the app carries it: the app shell as the root
+page, the catalogs as an offline snapshot, and no photos, sheets or service
+worker (`scripts/native/assemble.ts` says what is left out and why). Capacitor
+copies it into `ios/App/App/public/`, which `ios/.gitignore` keeps out of git,
+so a fresh checkout needs `npm run build:ios` before Xcode has anything to run.
+The Xcode project itself, `ios/`, is committed: it carries the app's identity
+(`app.headpin`), its orientation and the edge swipe (`SceneDelegate.swift`).
+
+Neither store app deploys with a merge. Its code is what it was built with, and
+only its catalogs refresh from headpin.app (ADR-154).
+
+## The Android app
+
+The same build in the same way, for Android Studio and its emulator:
+
+```bash
+npm run build:android   # web build, then dist-native/, then copied into android/
+npx cap open android    # opens the project in Android Studio; run it on an emulator
+```
+
+Or, without Android Studio's editor, with an emulator already running:
+
+```bash
+npx cap run android     # builds a debug APK, installs it and launches it
+```
+
+`android/` is committed and `android/app/src/main/assets/public/` is not, so a
+fresh checkout needs `npm run build:android` first, as for iOS. The project
+targets SDK 36 and needs JDK 21. `MainActivity.java` carries the back button
+(ADR-155).
 
 ## Manual checks
 
