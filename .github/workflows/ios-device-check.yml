@@ -1,0 +1,83 @@
+name: iOS device check
+
+# The iOS app on a real simulator (ADR-155), which only exists on a Mac. Run by
+# hand or on a change to the native shell, not on every push: a macOS runner
+# costs ten times a Linux one against the Actions allowance.
+on:
+  workflow_dispatch:
+  push:
+    branches-ignore: [main]
+    paths:
+      - "ios/**"
+      - "capacitor.config.ts"
+      - "scripts/native/**"
+      - "src/lib/platform.ts"
+      - ".github/workflows/ios-device-check.yml"
+
+jobs:
+  ios:
+    runs-on: macos-15
+    timeout-minutes: 60
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build the web app and copy it into the iOS project
+        run: npm run build:ios
+
+      - name: Pick a simulator
+        id: sim
+        run: |
+          xcodebuild -version
+          udid=$(xcrun simctl list devices available -j | node -e '
+            const d = JSON.parse(require("fs").readFileSync(0, "utf8")).devices;
+            const ios = Object.keys(d).filter((k) => k.includes("iOS")).sort().reverse();
+            for (const k of ios) {
+              const phone = d[k].find((x) => /^iPhone 1[5-9]( Pro)?$/.test(x.name));
+              if (phone) { console.log(phone.udid); process.exit(0); }
+            }
+            process.exit(1);
+          ')
+          echo "udid=$udid" >> "$GITHUB_OUTPUT"
+          xcrun simctl boot "$udid"
+          xcrun simctl bootstatus "$udid" -b
+
+      - name: Build the app for the simulator
+        run: |
+          xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Debug \
+            -sdk iphonesimulator -destination "id=${{ steps.sim.outputs.udid }}" \
+            -derivedDataPath ios-build CODE_SIGNING_ALLOWED=NO build | tail -40
+          test -d ios-build/Build/Products/Debug-iphonesimulator/App.app
+
+      - name: Install Appium and its XCUITest driver
+        run: |
+          npm install -g appium@2
+          appium driver install xcuitest
+          npm install --no-save webdriverio@9
+
+      - name: Walk the app's features
+        run: |
+          appium --log-level warn --log appium.log &
+          until curl -s http://127.0.0.1:4723/status > /dev/null; do sleep 1; done
+          npx tsx scripts/native/device-check/ios.ts \
+            --app ios-build/Build/Products/Debug-iphonesimulator/App.app \
+            --udid "${{ steps.sim.outputs.udid }}" --out device-check-out/ios
+
+      - name: Upload screenshots and results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-device-check
+          path: |
+            device-check-out/
+            appium.log
+          retention-days: 14
