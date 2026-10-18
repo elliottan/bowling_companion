@@ -34,8 +34,16 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 async function connect(): Promise<{ browser: Browser; page: Page }> {
   for (let attempt = 0; attempt < 120; attempt++) {
-    const pid = adb("shell", "pidof", PACKAGE).trim();
-    const sockets = adb("shell", "cat", "/proc/net/unix");
+    let pid = "";
+    let sockets = "";
+    try {
+      // `pidof` fails until the app's process exists.
+      pid = adb("shell", "pidof", PACKAGE).trim();
+      sockets = adb("shell", "cat", "/proc/net/unix");
+    } catch {
+      await sleep(2000);
+      continue;
+    }
     const socket = sockets.match(new RegExp(`@(webview_devtools_remote_${pid})`))?.[1];
     if (pid && socket) {
       try {
