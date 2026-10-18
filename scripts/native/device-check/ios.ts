@@ -55,6 +55,10 @@ async function main() {
     }
   });
 
+  // Appium's async script timeout starts at 0 ms, so a check that awaits
+  // anything (a database count) would fail before its promise settles.
+  await browser.setTimeout({ script: 120_000 });
+
   let webview: string | null = null;
   async function toWebview() {
     const deadline = Date.now() + 180_000;
