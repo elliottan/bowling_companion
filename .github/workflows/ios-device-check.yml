@@ -60,7 +60,7 @@ jobs:
 
       - name: Install Appium and its XCUITest driver
         run: |
-          npm install -g appium@2
+          npm install -g appium@3
           appium driver install xcuitest
           npm install --no-save webdriverio@9
 
