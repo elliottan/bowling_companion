@@ -50,15 +50,28 @@ async function connect(): Promise<{ device: AndroidDevice; page: Page }> {
   }
 }
 
+/**
+ * Where the web view sits on the screen, in device pixels, read from Android's
+ * own layout. It is not always the whole screen: on a system web view older
+ * than Chromium 140, Capacitor pads it clear of the system bars instead of
+ * drawing edge to edge (SystemBars "native"), so a page's (0, 0) is below the
+ * status bar.
+ */
+let webViewOrigin: { left: number; top: number } | null = null;
+function webViewOnScreen(): { left: number; top: number } {
+  if (webViewOrigin) return webViewOrigin;
+  adb("shell", "uiautomator", "dump", "/sdcard/headpin-ui.xml");
+  const xml = adb("shell", "cat", "/sdcard/headpin-ui.xml");
+  const node = xml.match(/class="android\.webkit\.WebView"[^>]*bounds="\[(\d+),(\d+)\]/);
+  webViewOrigin = node ? { left: Number(node[1]), top: Number(node[2]) } : { left: 0, top: 0 };
+  return webViewOrigin;
+}
+
 /** The page's CSS pixels to the screen's, for `input tap`. */
 async function screenPoint(page: Page, x: number, y: number) {
-  const { dpr, top, left } = await page.evaluate(() => ({
-    dpr: window.devicePixelRatio,
-    // The web view's own offset on screen: zero when it is drawn edge to edge.
-    top: window.screenTop || 0,
-    left: window.screenLeft || 0
-  }));
-  return { x: Math.round((x + left) * dpr), y: Math.round((y + top) * dpr) };
+  const dpr = await page.evaluate(() => window.devicePixelRatio);
+  const { left, top } = webViewOnScreen();
+  return { x: Math.round(left + x * dpr), y: Math.round(top + y * dpr) };
 }
 
 async function main() {
@@ -121,6 +134,7 @@ async function main() {
       adb("shell", "am", "force-stop", PACKAGE);
       launch();
       ({ device, page } = await connect());
+      webViewOrigin = null;
     },
     async setOnline(online) {
       const state = online ? "enable" : "disable";
