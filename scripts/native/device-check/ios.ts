@@ -47,7 +47,11 @@ async function main() {
       "appium:wdaLaunchTimeout": 600_000,
       "appium:wdaConnectionTimeout": 600_000,
       "appium:simulatorStartupTimeout": 600_000,
-      "appium:webviewConnectTimeout": 120_000
+      "appium:webviewConnectTimeout": 120_000,
+      // The simulator's Web Inspector names the app by its process ("App")
+      // rather than its bundle id, and Appium hides a web view whose bundle
+      // it does not recognise.
+      "appium:additionalWebviewBundleIds": ["process-App"]
     }
   });
 
