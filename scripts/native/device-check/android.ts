@@ -87,6 +87,14 @@ async function main() {
     }
     await sleep(2000);
   }
+  // A slow CI emulator can leave a system app (the launcher, once) "not
+  // responding", and Android's dialog for it then covers the app and takes
+  // every tap. Those dialogs are about the emulator, never about Headpin.
+  try {
+    adb("shell", "settings", "put", "global", "hide_error_dialogs", "1");
+  } catch {
+    // An older Android without the setting shows them; the walk still runs.
+  }
   if (!flag("no-install")) {
     // A fresh install, so the first run is the first run. Uninstalling an app
     // that is not there fails, which is fine.
