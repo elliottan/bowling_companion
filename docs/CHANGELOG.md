@@ -9,6 +9,28 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.45.2: The phone apps, walked on a simulator and an emulator (2026-10-18)
+
+**The line visualizer's buttons clear the status bar.** On an iPhone with the
+app installed to the Home Screen, Close, Share and the view switch sat under the
+clock and battery, where a tap reaches the phone rather than the app.
+
+In the iOS and Android apps, which no bowler has yet:
+
+- **Save a backup opens the phone's share sheet** (ADR-156), to save the file
+  to Files, Drive or iCloud or send it on, where Android's web view would have
+  dropped the download. Share cards, and links to lines,
+  layouts and guides, leave the same way.
+- **Backup & restore no longer warns that "this browser" may clear your
+  scores**, or asks you to install the app you are in.
+- **The left-edge swipe on iPhone steps back one screen** (ADR-157). WebKit's
+  own swipe passed over every screen Headpin opens and moved nothing.
+
+Both apps now have a walk that taps through them on a real iOS simulator and
+Android emulator in CI: first run, the catalogs and their photos, adding a ball,
+scoring a 258, history, stats, patterns, the line and layout tools, a backup,
+back, and a relaunch that keeps everything.
+
 ## 0.45.1: The phone apps' first builds (2026-10-18)
 
 Nothing a bowler sees on the web changes. The repository now builds the iOS and

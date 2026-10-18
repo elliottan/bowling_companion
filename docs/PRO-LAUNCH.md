@@ -149,8 +149,8 @@ switch.
       rotation and the keyboard behave differently in the iOS web view. iPhone
       is portrait only; safe areas and the keyboard wait on a device.
 - [ ] Back and the edge swipe through history (ADR-041), checked in the web view.
-      The swipe is turned on (`HeadpinViewController`); the check waits on a
-      device.
+      WebKit's own swipe skipped Headpin's entries, so the app's own edge pan
+      calls `history.back()` (`HeadpinViewController`, ADR-157).
 - [x] Catalog, pattern and photo loading from `https://headpin.app`, with the
       built-in snapshot when offline (ADR-155).
 - [ ] Photos kept on the device. The app has only the web view's HTTP cache
@@ -177,8 +177,8 @@ switch.
 
 ### 3. Native work and cleanup
 
-- [ ] Share sheet for cards and links, file export and import through Files,
-      haptics on the pin deck. Apple rejects a repackaged website (4.2).
+- [x] Share sheet for cards, links and backups, which saves to Files (ADR-156).
+- [ ] Haptics on the pin deck. Apple rejects a repackaged website (4.2).
 - [ ] The first-run import steps.
 - [x] Remove the donation link and the retailer link (ADR-119), their usage
       count, and their words on the legal page.

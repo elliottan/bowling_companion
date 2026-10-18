@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
   buildSessionCard,
   buildStatsCard,
@@ -306,5 +306,26 @@ describe("buildLineCard", () => {
     const card = buildLineCard({ line: { laydown: 20 }, hand: "right", spare: false });
     expect(card.lane).toBeUndefined();
     expect(card.stats).toEqual([{ value: "20", label: "Laydown board" }]);
+  });
+});
+
+describe("share cards in the store apps (ADR-156)", () => {
+  it("hand the picture to the platform's sheet, for share and for save alike", async () => {
+    vi.resetModules();
+    const shareFileFromApp = vi.fn(async () => "shared" as const);
+    vi.doMock("./nativeShare", () => ({ shareFileFromApp }));
+    vi.stubGlobal("Capacitor", { isNativePlatform: () => true });
+    try {
+      const { shareCardImage, downloadCardImage } = await import("./shareCard");
+      const blob = new Blob(["png"], { type: "image/png" });
+      expect(await shareCardImage(blob, "night.png")).toBe("shared");
+      await downloadCardImage(blob, "night.png");
+      expect(shareFileFromApp).toHaveBeenCalledTimes(2);
+      expect(shareFileFromApp).toHaveBeenCalledWith("night.png", blob);
+    } finally {
+      vi.unstubAllGlobals();
+      vi.doUnmock("./nativeShare");
+      vi.resetModules();
+    }
   });
 });

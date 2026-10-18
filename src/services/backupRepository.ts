@@ -1,5 +1,7 @@
 import { db, linkLegacySessionOilPatterns } from "../db/bowlingDb";
 import { validateBackup } from "../lib/backupValidation";
+import { shareFileFromApp } from "../lib/nativeShare";
+import { isNativeApp } from "../lib/platform";
 import { isSpare, isStrike } from "../lib/scoring";
 import { setSetting } from "./bowlingRepository";
 import type { BowlingBackup, PinNumber, Shot } from "../types/bowling";
@@ -56,8 +58,18 @@ export function backupFilename(backup: BowlingBackup): string {
   return `headpin-${stamp}-${backup.tables.sessions.length}s.json`;
 }
 
-function downloadBackup(backup: BowlingBackup, filename: string): void {
-  const blob = new Blob([JSON.stringify(backup, null, 2)], {
+/**
+ * Save a backup file where the bowler can find it: the downloads folder on the
+ * web, and the share sheet in the store apps, whose web views do not download
+ * (ADR-156).
+ */
+async function downloadBackup(backup: BowlingBackup, filename: string): Promise<void> {
+  const json = JSON.stringify(backup, null, 2);
+  if (isNativeApp()) {
+    await shareFileFromApp(filename, json);
+    return;
+  }
+  const blob = new Blob([json], {
     type: "application/json"
   });
   const url = URL.createObjectURL(blob);
@@ -99,6 +111,15 @@ export type BackupDestination = "shared" | "downloaded" | "cancelled";
  */
 export async function shareBackup(): Promise<BackupDestination> {
   const backup = await createBackup();
+
+  // The store apps go straight to the platform's sheet (ADR-156).
+  if (isNativeApp()) {
+    const outcome = await shareFileFromApp(backupFilename(backup), JSON.stringify(backup, null, 2));
+    if (outcome === "cancelled") return "cancelled";
+    await recordBackup();
+    return "shared";
+  }
+
   const file = backupFile(backup);
 
   if (canShareBackupFile(file)) {
@@ -110,7 +131,7 @@ export async function shareBackup(): Promise<BackupDestination> {
       // AbortError is the user closing the sheet. Anything else falls back to
       // a download rather than leaving them with nothing.
       if (err instanceof Error && err.name === "AbortError") return "cancelled";
-      downloadBackup(backup, backupFilename(backup));
+      await downloadBackup(backup, backupFilename(backup));
       await recordBackup();
       return "downloaded";
     }
@@ -118,7 +139,7 @@ export async function shareBackup(): Promise<BackupDestination> {
     return "shared";
   }
 
-  downloadBackup(backup, backupFilename(backup));
+  await downloadBackup(backup, backupFilename(backup));
   await recordBackup();
   return "downloaded";
 }
@@ -137,7 +158,7 @@ async function recordBackup(): Promise<void> {
 
 export async function exportBackup() {
   const backup = await createBackup();
-  downloadBackup(backup, backupFilename(backup));
+  await downloadBackup(backup, backupFilename(backup));
   await recordBackup();
   return backup;
 }
@@ -199,7 +220,7 @@ export async function replaceAllData(
   // pre-import file of an empty database only confuses a first-time user.
   if (options.safetyCopy !== false) {
     const safetyCopy = await createBackup();
-    downloadBackup(safetyCopy, `pre-import-${backupFilename(safetyCopy)}`);
+    await downloadBackup(safetyCopy, `pre-import-${backupFilename(safetyCopy)}`);
   }
 
   await db.transaction(

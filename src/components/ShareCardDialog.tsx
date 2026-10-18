@@ -11,6 +11,8 @@ import {
   shareCardFilename,
   shareCardImage
 } from "../lib/shareCard";
+import { shareLinkFromApp } from "../lib/nativeShare";
+import { isNativeApp } from "../lib/platform";
 
 /**
  * The app icon, for the footer of the share card.
@@ -122,7 +124,10 @@ export function ShareCardDialog({ open, card, onClose, link = null }: ShareCardD
         // The share sheet where there is one, the clipboard where there is
         // not. A link nobody can paste is not a share, so the fallback says
         // out loud that it landed somewhere.
-        if (typeof navigator.share === "function") {
+        if (isNativeApp()) {
+          // The store apps' own sheet: Android's web view has no Web Share.
+          await shareLinkFromApp(link.title, link.url);
+        } else if (typeof navigator.share === "function") {
           await navigator.share({ title: link.title, url: link.url });
         } else {
           await navigator.clipboard.writeText(link.url);
@@ -141,11 +146,17 @@ export function ShareCardDialog({ open, card, onClose, link = null }: ShareCardD
     }
   }
 
-  function handleDownload() {
+  async function handleDownload() {
     if (!blob || !card) return;
     setError("");
-    downloadCardImage(blob, shareCardFilename(card.title));
-    setNote("Image saved");
+    try {
+      await downloadCardImage(blob, shareCardFilename(card.title));
+      // In the store apps the save goes through the share sheet, which says
+      // for itself where the picture went.
+      if (!isNativeApp()) setNote("Image saved");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Saving failed.");
+    }
   }
 
   return (

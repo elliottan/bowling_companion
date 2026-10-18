@@ -1,5 +1,5 @@
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { BackupRestoreView } from "./BackupRestoreView";
 import { db } from "../db/bowlingDb";
 import { createBackup } from "../services/backupRepository";
@@ -95,3 +95,31 @@ describe("BackupRestoreView", () => {
 
 // The view reads `navigator.storage`, which jsdom does not implement.
 vi.stubGlobal("navigator", navigator);
+
+describe("BackupRestoreView's storage warning", () => {
+  beforeEach(() => {
+    Object.defineProperty(navigator, "storage", {
+      configurable: true,
+      value: { persisted: () => Promise.resolve(false), persist: () => Promise.resolve(false) }
+    });
+  });
+  afterEach(() => {
+    Reflect.deleteProperty(navigator, "storage");
+    Reflect.deleteProperty(globalThis, "Capacitor");
+  });
+
+  it("warns a browser tab that its scores may be cleared", async () => {
+    render(<BackupRestoreView />);
+    expect(await screen.findByText(/This browser may clear your scores/)).toBeInTheDocument();
+  });
+
+  // The app's database is its own data, and "install the app" is advice to
+  // someone already in it (ADR-155).
+  it("says nothing about a browser in the store app", async () => {
+    Object.assign(globalThis, { Capacitor: { isNativePlatform: () => true } });
+    render(<BackupRestoreView />);
+    await screen.findByText(/A backup is one file/);
+    await new Promise((r) => setTimeout(r, 0));
+    expect(screen.queryByText(/This browser/)).toBeNull();
+  });
+});
