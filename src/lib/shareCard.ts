@@ -1,7 +1,9 @@
 import { formatSessionDate } from "./dates";
 import { POCKET_BOARD, buildLinePath, xToBoard, yToFeet } from "./laneGeometry";
 import { oilBands, oilExitPoint, oilStats, oilZones, peakUnits, toHandBoard, type OilBand } from "./oilPattern";
+import { shareFileFromApp } from "./nativeShare";
 import { formatLeave } from "./pins";
+import { isNativeApp } from "./platform";
 import { PIN_POSITIONS } from "./pinGeometry";
 import type { Handedness, LineSpec, OilPass, PinNumber } from "../types/bowling";
 /**
@@ -784,7 +786,13 @@ export function canShareImage(file: File, nav: Navigator = navigator): boolean {
  *  between. The lab's own download control wants exactly this: the sheet is
  *  what the share button is for, and a "save it" that opens a chooser is not
  *  the thing that was asked for. */
-export function downloadCardImage(blob: Blob, filename: string): void {
+export async function downloadCardImage(blob: Blob, filename: string): Promise<void> {
+  // The store apps have no downloads folder to put it in: "save" there is the
+  // platform's sheet, which carries Save Image and Save to Files (ADR-156).
+  if (isNativeApp()) {
+    await shareFileFromApp(filename, blob);
+    return;
+  }
   download(blob, filename);
 }
 
@@ -807,6 +815,10 @@ function download(blob: Blob, filename: string): void {
  * carries JSON. This one just moves a picture.
  */
 export async function shareCardImage(blob: Blob, filename: string): Promise<ShareDestination> {
+  // The store apps' web views have no Web Share on Android and drop a
+  // download, so the platform's own sheet takes the picture (ADR-156).
+  if (isNativeApp()) return shareFileFromApp(filename, blob);
+
   const file = new File([blob], filename, { type: "image/png" });
 
   if (canShareImage(file)) {

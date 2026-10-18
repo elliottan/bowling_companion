@@ -177,8 +177,8 @@ switch.
 
 ### 3. Native work and cleanup
 
-- [ ] Share sheet for cards and links, file export and import through Files,
-      haptics on the pin deck. Apple rejects a repackaged website (4.2).
+- [x] Share sheet for cards, links and backups, which saves to Files (ADR-156).
+- [ ] Haptics on the pin deck. Apple rejects a repackaged website (4.2).
 - [ ] The first-run import steps.
 - [x] Remove the donation link and the retailer link (ADR-119), their usage
       count, and their words on the legal page.

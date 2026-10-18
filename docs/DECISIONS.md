@@ -7259,3 +7259,38 @@ origin opens nothing on anyone else's phone, so a link built from it is dead.
   bowler's games can come back with the rest of their phone. Whether the web
   view's database is included is to be checked on a device; the JSON backup
   (ADR-038) stays the way that is promised.
+
+## ADR-156: The store apps hand files and links to the platform's share sheet
+
+**Status.** Accepted, 2026-10-18. Follows ADR-155.
+
+**Context.** The web app saves a file by clicking a download link, and shares
+a file or a link through `navigator.share`, falling back to a download or the
+clipboard. Inside the store apps those are not there to rely on: Android's web
+view has no Web Share at all, and a download from it goes nowhere unless the
+app catches it, so "Save a backup" in the Android app would have reported a
+backup that never left the phone. iOS's web view shares, but a download
+fallback there depends on the app too. A backup that silently does not exist
+is the worst failure this app can have (ADR-038, ADR-067).
+
+**Decision.** In the store apps every file and every link leaves through the
+platform's own share sheet, through Capacitor's Share and Filesystem plugins
+(`src/lib/nativeShare.ts`). A file is written to the app's cache and the sheet
+opened on it, which is where a bowler saves to Files, Drive or iCloud, sends it
+to themselves, or AirDrops it to a new phone. That covers Save a backup, the
+error screen's export, the safety copy before an import, a share card's share
+and save, and the line, layout and guide links. A closed sheet is a
+cancellation, not a failure, and a cancelled backup is not counted as one, so
+the reminder keeps asking. The web app is unchanged. The plugins are imported
+on first use, so the web bundle never loads them.
+
+**Consequences.**
+
+- The safety copy before an import opens the sheet in the apps, where the web
+  downloads it silently. It is one more tap, before the one step that cannot
+  be undone.
+- iOS needs `NSPhotoLibraryAddUsageDescription`, since the sheet offers Save
+  Image for a card, and an app that does not say why it adds to the photo
+  library is killed when it tries.
+- This is the share sheet and Files export PRO-LAUNCH lists against App Store
+  guideline 4.2.
