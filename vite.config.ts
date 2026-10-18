@@ -1,18 +1,24 @@
 import { version as pkgVersion } from "./package.json";
 import react from "@vitejs/plugin-react";
-import { VitePWA } from "vite-plugin-pwa";
+import { VitePWA, type ManifestOptions } from "vite-plugin-pwa";
 import type { Plugin } from "vite";
 import { defineConfig } from "vitest/config";
 import { BALL_IMAGE_CACHE, BALL_IMAGE_MAX_AGE_SECONDS } from "./src/lib/ballImageCacheConfig";
 
 /** The clean URLs that build to a directory, and so need resolving by hand. */
-const CLEAN_URLS = ["/score", "/legal"];
+/** Each clean URL and the page that answers it. `/app` is the free web app and
+ *  `/score` the owner's copy: one shell, told apart by its path (ADR-154). */
+const CLEAN_URLS: Record<string, string> = {
+  "/score": "/score/index.html",
+  "/app": "/score/index.html",
+  "/legal": "/legal/index.html"
+};
 
 /** A shared guide link, /guides/<id>, which builds to a directory too. */
 const GUIDE_LINK = /^\/guides\/[^/?#]+$/;
 
 /**
- * Serve /score and /legal in dev the way the host serves them in production.
+ * Serve /score, /app and /legal in dev the way the host serves them in production.
  *
  * Vercel resolves /score to score/index.html, but Vite's dev server only
  * resolves the directory form, /score/. Without this the app's real URL 404s
@@ -28,9 +34,9 @@ function serveCleanUrls(): Plugin {
         const url = req.url;
         const bare = url?.split(/[?#]/)[0] ?? "";
         if (GUIDE_LINK.test(bare)) req.url = `${bare}/index.html`;
-        for (const path of CLEAN_URLS) {
+        for (const [path, page] of Object.entries(CLEAN_URLS)) {
           if (url === path || url?.startsWith(`${path}#`) || url?.startsWith(`${path}?`)) {
-            req.url = `${path}/index.html` + url.slice(path.length);
+            req.url = page + url.slice(path.length);
             break;
           }
         }
@@ -39,6 +45,118 @@ function serveCleanUrls(): Plugin {
     }
   };
 }
+
+/**
+ * The install manifest for one copy of the app. The build links the free app's
+ * (`/app`), which is what a visitor installs from the landing page; the owner's
+ * copy at `/score` swaps in its own (`score/index.html`), so it installs as
+ * itself and keeps opening at `/score` (ADR-154). Same `id`: they are one app
+ * that opens at two addresses, not two apps.
+ */
+function appManifest(path: string): Partial<ManifestOptions> {
+  return {
+    // `id` pins the app's identity independently of `start_url`. Without
+    // it a browser derives identity from the start URL, so changing that
+    // path later would register as a *different* app: a second icon, and a
+    // second origin-scoped database the user cannot see their history in.
+    // It cannot be retrofitted safely once anyone has installed.
+    id: "/",
+    lang: "en",
+    name: "Headpin",
+    short_name: "Headpin",
+    description: "Offline bowling score keeper. Your scores stay on your phone.",
+    theme_color: "#1b5148",
+    background_color: "#fff8ed",
+    display: "standalone",
+    orientation: "portrait",
+    // Points at the app, not at the landing page: this is what opens when
+    // the home screen icon is tapped, and an installed user tapping their
+    // own icon must never land on a pitch for the app they installed.
+    start_url: path,
+    // Scope stays the whole origin even though the app lives under /app.
+    // A browser only offers to install from a page inside scope, and the
+    // landing page is where a first visitor decides to install, so scoping
+    // to /score would put the install prompt behind a click. The usual cost
+    // of the wide scope, the landing page opening inside the app window, is
+    // already handled: that page bounces a standalone launch to /score.
+    scope: "/",
+    categories: ["sports", "utilities"],
+    icons: [
+      // `purpose: "any"` is stated rather than left to the default, because
+      // a manifest that names a maskable icon and no explicit "any" lets a
+      // launcher use the maskable one everywhere, padding included.
+      { src: "icons/icon-192.png", sizes: "192x192", type: "image/png", purpose: "any" },
+      { src: "icons/icon-512.png", sizes: "512x512", type: "image/png", purpose: "any" },
+      {
+        src: "icons/icon-512-maskable.png",
+        sizes: "512x512",
+        type: "image/png",
+        purpose: "maskable"
+      },
+      // Android themed icons: recoloured to the wallpaper palette, so it
+      // must be one colour on transparency.
+      {
+        src: "icons/icon-512-monochrome.png",
+        sizes: "512x512",
+        type: "image/png",
+        purpose: "monochrome"
+      }
+    ],
+    // The richer install sheet on Android: without screenshots it shows a
+    // single line of text, with them it shows the app.
+    screenshots: [
+      {
+        src: "shots/scorer.webp",
+        sizes: "780x1688",
+        type: "image/webp",
+        form_factor: "narrow",
+        label: "Scoring a game frame by frame"
+      },
+      {
+        src: "shots/line.webp",
+        sizes: "780x1688",
+        type: "image/webp",
+        form_factor: "narrow",
+        label: "The line you threw, drawn on the lane"
+      },
+      {
+        src: "shots/stats.webp",
+        sizes: "780x1688",
+        type: "image/webp",
+        form_factor: "narrow",
+        label: "Averages, strike and spare rates over time"
+      },
+      {
+        src: "shots/arsenal.webp",
+        sizes: "780x1688",
+        type: "image/webp",
+        form_factor: "narrow",
+        label: "Your arsenal, with the specs of every ball"
+      }
+    ],
+    shortcuts: [
+      { name: "Start session", url: `${path}#/home`, icons: [{ src: "icons/icon-192.png", sizes: "192x192" }] },
+      { name: "Stats", url: `${path}#/stats`, icons: [{ src: "icons/icon-192.png", sizes: "192x192" }] }
+    ]
+  };
+}
+
+/** Emits the owner's manifest beside the one the PWA plugin writes. */
+function ownerManifest(): Plugin {
+  return {
+    name: "owner-manifest",
+    apply: "build",
+    generateBundle() {
+      this.emitFile({
+        type: "asset",
+        fileName: OWNER_MANIFEST,
+        source: JSON.stringify(appManifest("/score"))
+      });
+    }
+  };
+}
+
+const OWNER_MANIFEST = "manifest-owner.webmanifest";
 
 export default defineConfig({
   // Baked in so a pasted bug report says which build it came from. The app has
@@ -95,94 +213,12 @@ export default defineConfig({
   },
   plugins: [
     serveCleanUrls(),
+    ownerManifest(),
     react(),
     VitePWA({
       registerType: "prompt",
       includeAssets: ["icons/*.png"],
-      manifest: {
-        // `id` pins the app's identity independently of `start_url`. Without
-        // it a browser derives identity from the start URL, so changing that
-        // path later would register as a *different* app: a second icon, and a
-        // second origin-scoped database the user cannot see their history in.
-        // It cannot be retrofitted safely once anyone has installed.
-        id: "/",
-        name: "Headpin",
-        short_name: "Headpin",
-        description: "Offline bowling score keeper. Your scores stay on your phone.",
-        theme_color: "#1b5148",
-        background_color: "#fff8ed",
-        display: "standalone",
-        orientation: "portrait",
-        // Points at the app, not at the landing page: this is what opens when
-        // the home screen icon is tapped, and an installed user tapping their
-        // own icon must never land on a pitch for the app they installed.
-        start_url: "/score",
-        // Scope stays the whole origin even though the app lives under /score.
-        // A browser only offers to install from a page inside scope, and the
-        // landing page is where a first visitor decides to install, so scoping
-        // to /score would put the install prompt behind a click. The usual cost
-        // of the wide scope, the landing page opening inside the app window, is
-        // already handled: that page bounces a standalone launch to /score.
-        scope: "/",
-        categories: ["sports", "utilities"],
-        icons: [
-          // `purpose: "any"` is stated rather than left to the default, because
-          // a manifest that names a maskable icon and no explicit "any" lets a
-          // launcher use the maskable one everywhere, padding included.
-          { src: "icons/icon-192.png", sizes: "192x192", type: "image/png", purpose: "any" },
-          { src: "icons/icon-512.png", sizes: "512x512", type: "image/png", purpose: "any" },
-          {
-            src: "icons/icon-512-maskable.png",
-            sizes: "512x512",
-            type: "image/png",
-            purpose: "maskable"
-          },
-          // Android themed icons: recoloured to the wallpaper palette, so it
-          // must be one colour on transparency.
-          {
-            src: "icons/icon-512-monochrome.png",
-            sizes: "512x512",
-            type: "image/png",
-            purpose: "monochrome"
-          }
-        ],
-        // The richer install sheet on Android: without screenshots it shows a
-        // single line of text, with them it shows the app.
-        screenshots: [
-          {
-            src: "shots/scorer.webp",
-            sizes: "780x1688",
-            type: "image/webp",
-            form_factor: "narrow",
-            label: "Scoring a game frame by frame"
-          },
-          {
-            src: "shots/line.webp",
-            sizes: "780x1688",
-            type: "image/webp",
-            form_factor: "narrow",
-            label: "The line you threw, drawn on the lane"
-          },
-          {
-            src: "shots/stats.webp",
-            sizes: "780x1688",
-            type: "image/webp",
-            form_factor: "narrow",
-            label: "Averages, strike and spare rates over time"
-          },
-          {
-            src: "shots/arsenal.webp",
-            sizes: "780x1688",
-            type: "image/webp",
-            form_factor: "narrow",
-            label: "Your arsenal, with the specs of every ball"
-          }
-        ],
-        shortcuts: [
-          { name: "Start session", url: "/score#/home", icons: [{ src: "icons/icon-192.png", sizes: "192x192" }] },
-          { name: "Stats", url: "/score#/stats", icons: [{ src: "icons/icon-192.png", sizes: "192x192" }] }
-        ]
-      },
+      manifest: appManifest("/app"),
       workbox: {
         // Offline navigations to /score (no trailing slash) are not a precache
         // URL, so without this they would fall through to the root index.html

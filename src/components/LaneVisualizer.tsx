@@ -1,5 +1,5 @@
 import { ChevronLeft, ChevronRight, Lock, Minus, MoveHorizontal, Plus, SlidersHorizontal, X } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import type { Handedness, LineSpec, PinNumber } from "../types/bowling";
 import { HandednessContext, useHandedness } from "../lib/handednessContext";
 import { useDriftModel } from "../lib/driftModelContext";
@@ -7,6 +7,7 @@ import { useSessionOilPattern } from "../lib/oilPatternContext";
 import { getOilPatterns } from "../services/ballRepository";
 import { getCatalogPatterns } from "../services/patternCatalog";
 import { buildLineCard, type ShareCardData } from "../lib/shareCard";
+import { FREE_APP_PATH } from "../lib/pro";
 import { lineShareUrl } from "../lib/lineShare";
 import { ShareCardDialog } from "./ShareCardDialog";
 import { ShareIosIcon } from "./icons";
@@ -94,9 +95,12 @@ interface LaneVisualizerProps {
    *  link that may cross devices; this one names a row already on this
    *  device, so its own id is enough. */
   seedPatternId?: number;
+  /** Shown under the lane in place of the drag hint. The sandbox puts its Pro
+   *  note here while it is read-only (ADR-154). */
+  footer?: ReactNode;
 }
 
-export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, showStance = false, title = "Line", onEditAttempt, defaultLocks, suspended = false, handSwitchable = false, seedHand, seedPatternCatalogId, seedPatternId }: LaneVisualizerProps) {
+export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, showStance = false, title = "Line", onEditAttempt, defaultLocks, suspended = false, handSwitchable = false, seedHand, seedPatternCatalogId, seedPatternId, footer }: LaneVisualizerProps) {
   const appHand = useHandedness();
   // Nothing here is written back to settings: mirroring the lane to see how the
   // other hand plays it is a question being asked, not the bowler changing hands
@@ -222,7 +226,9 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
             ...(oilPattern?.catalog_id ? { patternCatalogId: oilPattern.catalog_id } : {}),
           },
           window.location.origin,
-          window.location.pathname
+          // Always the free app: a link from the owner's copy must not open it
+          // for whoever it is sent to (ADR-154).
+          FREE_APP_PATH
         );
 
   // Spare mode: seed laydown = target = final = the leave's ideal aim board
@@ -713,9 +719,11 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
         )}
       </div>
 
-      <p className="px-4 py-2 text-center text-xs text-white/60">
-        Drag a point to move it · drag the lane to tilt
-      </p>
+      {footer ?? (
+        <p className="px-4 py-2 text-center text-xs text-white/60">
+          {onChange ? "Drag a point to move it · drag the lane to tilt" : "Drag the lane to tilt"}
+        </p>
+      )}
 
       {optionsOpen && (
         <OptionsSheet

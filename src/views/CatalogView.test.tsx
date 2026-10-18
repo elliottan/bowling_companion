@@ -37,13 +37,11 @@ async function seedCatalog(count: number, releaseDates: (string | null)[] = []) 
   await db.ball_catalog.bulkPut(balls);
 }
 
-/** Off unless a test turns it on, the same as the shipped default. */
-const shop = vi.hoisted(() => ({ deepLink: null as string | null, opened: [] as string[] }));
+const shop = vi.hoisted(() => ({ opened: [] as string[] }));
 vi.mock("../lib/links", async (importOriginal) => {
   const actual = await importOriginal<typeof import("../lib/links")>();
   return {
     ...actual,
-    shopBallUrl: (brand: string, name: string) => actual.shopBallUrl(brand, name, shop.deepLink),
     // The mail app is not something a unit test can open; what it was handed is.
     openMail: (url: string) => {
       shop.opened.push(url);
@@ -163,43 +161,6 @@ describe("CatalogView", () => {
       fireEvent.click(screen.getByRole("button", { name: "Request a ball" }));
 
       expect(decodeURIComponent(shop.opened[0]!)).toContain("subject=Ball request");
-    });
-  });
-
-  describe("the shop link on a ball", () => {
-    afterEach(() => {
-      shop.deepLink = null;
-    });
-
-    function renderBall() {
-      render(<CatalogView onBack={vi.fn()} selectedBallId="ball-0" onSelectBall={vi.fn()} />);
-    }
-
-    it("is absent while there is no affiliate link to credit it", async () => {
-      await seedCatalog(1);
-
-      renderBall();
-
-      expect(await screen.findByRole("button", { name: "Add to arsenal" })).toBeInTheDocument();
-      expect(screen.queryByRole("link", { name: /Shop at/ })).not.toBeInTheDocument();
-      expect(screen.queryByText(/commission/)).not.toBeInTheDocument();
-    });
-
-    it("searches the retailer for the ball, and says it earns a commission", async () => {
-      shop.deepLink = "https://network.example/r?u={url}";
-      await seedCatalog(1);
-
-      renderBall();
-
-      const link = await screen.findByRole("link", { name: "Shop at BowlersMart" });
-      expect(new URL(link.getAttribute("href")!).searchParams.get("u")).toBe(
-        "https://www.bowlersmart.com/?s=Storm%20Ball%200&post_type=product"
-      );
-      expect(link).toHaveAttribute("target", "_blank");
-      // A paid link is marked as one for search engines, not only for people.
-      expect(link.getAttribute("rel")).toMatch(/\bsponsored\b/);
-      expect(link.getAttribute("rel")).toMatch(/\bnoopener\b/);
-      expect(screen.getByText(/Headpin earns a small commission/)).toBeInTheDocument();
     });
   });
 

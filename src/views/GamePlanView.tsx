@@ -6,6 +6,7 @@ import { EmptyState } from "../components/ui/EmptyState";
 import { Button } from "../components/ui/Button";
 import { LoadingCard } from "../components/ui/LoadingCard";
 import { GROUP_HEADING } from "../components/ui/typography";
+import { ProLock } from "../components/ui/ProLock";
 import { FIELD_LABEL, FIELD_SELECT } from "../components/ui/field";
 import { ChoiceInput } from "../components/ui/SuggestInput";
 import { LIST_DIVIDER, ListGroup } from "../components/ui/ListGroup";
@@ -280,26 +281,30 @@ export function GamePlanView({
               {/* The answer first: which ball to expect most from here, then
                   the lines that struck most and what you did last time. The
                   rest is behind a tap. */}
-              <div className="mt-4">
-                <BallEstimates report={estimates} balls={balls} />
-              </div>
-
-              {top.length > 0 && (
+              {/* Pro: the reads across sessions. The last session below is the
+                  bowler's own record of one session, and stays free (ADR-154). */}
+              <ProLock what="What you'd average with each ball here, and the lines that struck most">
                 <div className="mt-4">
-                  <ListGroup heading="Best lines here">
-                    {top.map((line) => (
-                      <LineSummaryRow
-                        key={line.id}
-                        ballName={line.ballName}
-                        line={line}
-                        tally={line}
-                        where={wherePlayed(line.shots)}
-                        onOpen={() => onOpenLine(line.id)}
-                      />
-                    ))}
-                  </ListGroup>
+                  <BallEstimates report={estimates} balls={balls} />
                 </div>
-              )}
+
+                {top.length > 0 && (
+                  <div className="mt-4">
+                    <ListGroup heading="Best lines here">
+                      {top.map((line) => (
+                        <LineSummaryRow
+                          key={line.id}
+                          ballName={line.ballName}
+                          line={line}
+                          tally={line}
+                          where={wherePlayed(line.shots)}
+                          onOpen={() => onOpenLine(line.id)}
+                        />
+                      ))}
+                    </ListGroup>
+                  </div>
+                )}
+              </ProLock>
 
               {last && (
                 <div className="mt-4">
@@ -326,7 +331,9 @@ export function GamePlanView({
 
               {report.moves.length > 0 && (
                 <div className="mt-4">
-                  <LineChanges moves={report.moves} onOpenLine={onOpenLine} />
+                  <ProLock what="How your line moved from session to session">
+                    <LineChanges moves={report.moves} onOpenLine={onOpenLine} />
+                  </ProLock>
                 </div>
               )}
 

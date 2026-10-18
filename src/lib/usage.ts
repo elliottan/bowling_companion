@@ -1,5 +1,5 @@
 /**
- * Anonymous usage counts (ADR-120): the shapes of the three events Headpin
+ * Anonymous usage counts (ADR-120): the shapes of the two events Headpin
  * reports, and nothing that sends them.
  *
  * They exist to answer one question the page counts cannot: does a bowler who
@@ -8,7 +8,7 @@
  * no score, no alley, no ball, no note.
  */
 
-export type UsageEventName = "session-started" | "game-finished" | "shop-link";
+export type UsageEventName = "session-started" | "game-finished";
 
 export interface UsageEvent {
   name: UsageEventName;
@@ -55,12 +55,6 @@ export function sessionStarted(sessionCount: number, daysSinceFirst: number): Us
 /** A game reached its last ball: the how-many-th finished game on this phone. */
 export function gameFinished(finishedCount: number): UsageEvent {
   return { name: "game-finished", data: { n: countBucket(finishedCount) } };
-}
-
-/** The retailer link on a catalog ball was tapped. The brand is the catalog's,
- *  never the bowler's own words. */
-export function shopLink(brand: string): UsageEvent {
-  return { name: "shop-link", data: { brand } };
 }
 
 /** Where the request is sent, and the one host whose visits count. Development

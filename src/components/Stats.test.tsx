@@ -4,6 +4,7 @@ import { Stats } from "./Stats";
 import { clearViewMemory } from "../lib/viewMemory";
 import type { BallPerformanceReport, BowlingStats, LeaveStats } from "../lib/stats";
 import { describePinsStanding } from "../lib/pins";
+import { ProAccessContext } from "../lib/useProAccess";
 
 const STATS: BowlingStats = {
   totalSessions: 1,
@@ -868,3 +869,51 @@ describe("the spares card's cap", () => {
   });
 });
 
+
+describe("while Pro is locked (ADR-154)", () => {
+  const LOCKED = { locked: true as const, appStoreUrl: "https://apps.apple.com/app/id1" };
+  const leaf: LeaveStats = { pins: [10], attempts: 3, chances: 2, conversions: 1, conversionPct: 50, sharePct: 6 };
+
+  function renderLocked() {
+    render(
+      <ProAccessContext.Provider value={LOCKED}>
+        <Stats
+          stats={STATS}
+          sessionMetrics={TREND}
+          sessionTrend={SESSION_TREND}
+          ballPerformance={REPORT}
+          leaves={[leaf]}
+        />
+      </ProAccessContext.Provider>
+    );
+  }
+
+  it("keeps the average, strike and spare open", () => {
+    renderLocked();
+    expect(screen.getByRole("img", { name: /^Average by session/ })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Strike" }));
+    expect(screen.getByRole("button", { name: "Sea Bowl, 60%" })).toBeInTheDocument();
+    expect(screen.getByText("80%")).toBeInTheDocument();
+  });
+
+  it("previews a Pro metric locked, with the picker still live to go back", () => {
+    renderLocked();
+    fireEvent.click(screen.getByRole("button", { name: "Carry" }));
+    expect(screen.getByText("Every stat, session by session and game by game")).toBeInTheDocument();
+    // The chart is behind the preview, out of reach.
+    expect(screen.queryByRole("button", { name: "Sea Bowl, 67%" })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Average" }));
+    expect(screen.queryByText("Every stat, session by session and game by game")).not.toBeInTheDocument();
+    expect(screen.getByRole("img", { name: /^Average by session/ })).toBeInTheDocument();
+  });
+
+  it("locks the first ball, the leaves and the balls, and offers the app on each", () => {
+    renderLocked();
+    expect(screen.getByText("Pocket, carry and the pins each first ball takes")).toBeInTheDocument();
+    expect(screen.getByText("The leaves you leave most, and how often you make each")).toBeInTheDocument();
+    expect(screen.getByText("How each of your balls strikes, carries and spares")).toBeInTheDocument();
+    expect(screen.getAllByRole("button", { name: "Get the app" })).toHaveLength(3);
+    expect(screen.queryByRole("button", { name: "All leaves" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Open Wolverine" })).not.toBeInTheDocument();
+  });
+});

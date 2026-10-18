@@ -38,6 +38,8 @@ import { GameSlotSessionsDialog } from "./GameSlotSessionsDialog";
 import type { Game } from "../types/bowling";
 import { RECENT_SESSIONS, type RecentForm } from "../lib/statsRange";
 import { GROUP_HEADING } from "./ui/typography";
+import { ProLock } from "./ui/ProLock";
+import { useProAccess } from "../lib/useProAccess";
 
 /** The stats the chart can plot, and how each one is drawn.
  *
@@ -114,6 +116,10 @@ const METRICS = {
 } as const;
 
 export type MetricKey = keyof typeof METRICS;
+
+/** The metrics every bowler gets: what a free scorer shows anywhere. The rest
+ *  are Pro (ADR-154). */
+const FREE_METRICS: ReadonlySet<MetricKey> = new Set<MetricKey>(["average", "strikePct", "sparePct"]);
 
 /** The metrics a picker can offer, in chip order. Exported so the Game-by-game
  *  screen can build the same picker over the same specs (ADR-063b). */
@@ -241,6 +247,12 @@ export function Stats({
   const canSlice = !gameMetrics && gameNumberMetrics !== undefined;
   const chartBy: ChartBy = canSlice ? chartByPick : "session";
 
+  // A Pro metric, or the by-game chart, previews locked while Pro is not open.
+  // The picker stays live on a card of its own, so a free metric is one tap
+  // back.
+  const { locked: proLocked } = useProAccess();
+  const chartLocked = proLocked && (chartBy === "game" || !FREE_METRICS.has(metric));
+
   // One header for either chart: the picker, then one line saying what the
   // picked metric counts (ADR-127).
   const chartHeader = (
@@ -300,130 +312,139 @@ export function Stats({
   const convertible = (leaves ?? []).filter((l) => l.chances > 0);
   const leftMost = mostLeft(convertible);
   const ranked = byStrikeRate(ballPerformance?.balls ?? []);
+  const header = chartLocked ? undefined : chartHeader;
 
   return (
     <div className="space-y-3">
       <Headline stats={stats} form={form} />
 
-      {/* Inside a session the score line IS the average, so it answers to the
-          picker like everything else. On the Stats tab there are no games and
-          this branch never runs. */}
-      {gameMetrics && gameMetrics.length > 0 && (
-        metric === "average" ? (
-          games &&
-          games.length > 0 && (
-            <ScoreTrendChart games={games} header={chartHeader} onOpenGame={onOpenGameId} />
-          )
-        ) : (
-          <MetricTrendChart
-            points={gameMetrics.map((p) => ({
-              key: `g${p.gameId ?? p.gameNumber}`,
-              axis: `G${p.gameNumber}`,
-              title: `Game ${p.gameNumber}`,
-              detail: p.lanes.length ? `Lane${p.lanes.length > 1 ? "s" : ""} ${p.lanes.join(", ")}` : undefined,
-              value: spec.value(p.stats)
-            }))}
-            header={chartHeader}
-            overall={spec.value(stats)}
-            format={spec.format}
-            min={spec.min}
-            max={spec.max}
-            minSpan={spec.minSpan}
-            onOpen={
-              onOpenGameId &&
-              ((key) => {
-                const id = Number(key.slice(1));
-                if (Number.isInteger(id) && id > 0) onOpenGameId(id);
-              })
-            }
-          />
-        )
+      {chartLocked && (
+        <section className="rounded-xl border border-edge bg-surface p-3 shadow-sm">{chartHeader}</section>
       )}
 
-      {/* By position in the night: every game 1 against every game 2. One
-          chart for every metric, the average included, since a dot per game
-          behind each slot would be hundreds of dots. */}
-      {chartBy === "game" && gameNumberMetrics && gameNumberMetrics.length > 0 && (
-        <MetricTrendChart
-          points={gameNumberMetrics.map((p) => ({
-            key: `n${p.gameNumber}`,
-            axis: `G${p.gameNumber}`,
-            title: `Game ${p.gameNumber}`,
-            detail: `${p.games} ${p.games === 1 ? "game" : "games"}`,
-            value: spec.value(p.stats)
-          }))}
-          header={chartHeader}
-          overall={spec.value(stats)}
-          format={spec.format}
-          min={spec.min}
-          max={spec.max}
-          minSpan={spec.minSpan}
-          labelAllUpTo={GAME_LABELS_UP_TO}
-          // A point opens the nights behind it, each one a way into its game.
-          // Without a way into a game, it narrows Stats to that game number.
-          onOpen={
-            onOpenGame
-              ? (key) => setSlotOpen(Number(key.slice(1)))
-              : onOpenGameNumber &&
-                ((key) => {
-                  const n = Number(key.slice(1));
-                  if (Number.isInteger(n) && n > 0) onOpenGameNumber(n);
-                })
-          }
-        />
-      )}
-
-      {slotOpen !== null && onOpenGame && (
-        <GameSlotSessionsDialog
-          gameNumber={slotOpen}
-          sessions={gameNumberMetrics?.find((p) => p.gameNumber === slotOpen)?.sessions ?? []}
-          onSelect={onOpenGame}
-          onClose={() => setSlotOpen(null)}
-        />
-      )}
-
-      {/* Per-game and per-session are alternatives, never both: a session
-          sheet plots its games, the Stats tab plots its nights. */}
-      {!gameMetrics && chartBy === "session" &&
-        (metric === "average"
-        ? sessionTrend &&
-          sessionTrend.length > 0 && (
-            <SessionTrendChart
-              sessions={sessionTrend}
-              header={chartHeader}
-              overall={stats.averageScore}
-              onOpenSession={onOpenSession}
-            />
-          )
-        : sessionMetrics &&
-          sessionMetrics.length > 0 && (
+      <ProLock pro={chartLocked} what="Every stat, session by session and game by game">
+        {/* Inside a session the score line IS the average, so it answers to the
+            picker like everything else. On the Stats tab there are no games and
+            this branch never runs. */}
+        {gameMetrics && gameMetrics.length > 0 && (
+          metric === "average" ? (
+            games &&
+            games.length > 0 && (
+              <ScoreTrendChart games={games} header={header} onOpenGame={onOpenGameId} />
+            )
+          ) : (
             <MetricTrendChart
-              points={sessionMetrics.map((p) => ({
-                key: `s${p.sessionId ?? ""}:${p.date}`,
-                axis: p.date.slice(5).replace("-", "/"),
-                title: p.alley,
-                detail: [p.event, `${p.games} ${p.games === 1 ? "game" : "games"}`, p.oilPattern]
-                  .filter(Boolean)
-                  .join(" · "),
+              points={gameMetrics.map((p) => ({
+                key: `g${p.gameId ?? p.gameNumber}`,
+                axis: `G${p.gameNumber}`,
+                title: `Game ${p.gameNumber}`,
+                detail: p.lanes.length ? `Lane${p.lanes.length > 1 ? "s" : ""} ${p.lanes.join(", ")}` : undefined,
                 value: spec.value(p.stats)
               }))}
-              header={chartHeader}
+              header={header}
               overall={spec.value(stats)}
               format={spec.format}
               min={spec.min}
               max={spec.max}
               minSpan={spec.minSpan}
               onOpen={
-                onOpenSession &&
+                onOpenGameId &&
                 ((key) => {
-                  const id = Number(key.slice(1).split(":")[0]);
-                  if (Number.isInteger(id) && id > 0) onOpenSession(id);
+                  const id = Number(key.slice(1));
+                  if (Number.isInteger(id) && id > 0) onOpenGameId(id);
                 })
               }
             />
-          ))}
+          )
+        )}
 
-      <FirstBallCard stats={stats} />
+        {/* By position in the night: every game 1 against every game 2. One
+            chart for every metric, the average included, since a dot per game
+            behind each slot would be hundreds of dots. */}
+        {chartBy === "game" && gameNumberMetrics && gameNumberMetrics.length > 0 && (
+          <MetricTrendChart
+            points={gameNumberMetrics.map((p) => ({
+              key: `n${p.gameNumber}`,
+              axis: `G${p.gameNumber}`,
+              title: `Game ${p.gameNumber}`,
+              detail: `${p.games} ${p.games === 1 ? "game" : "games"}`,
+              value: spec.value(p.stats)
+            }))}
+            header={header}
+            overall={spec.value(stats)}
+            format={spec.format}
+            min={spec.min}
+            max={spec.max}
+            minSpan={spec.minSpan}
+            labelAllUpTo={GAME_LABELS_UP_TO}
+            // A point opens the nights behind it, each one a way into its game.
+            // Without a way into a game, it narrows Stats to that game number.
+            onOpen={
+              onOpenGame
+                ? (key) => setSlotOpen(Number(key.slice(1)))
+                : onOpenGameNumber &&
+                  ((key) => {
+                    const n = Number(key.slice(1));
+                    if (Number.isInteger(n) && n > 0) onOpenGameNumber(n);
+                  })
+            }
+          />
+        )}
+
+        {slotOpen !== null && onOpenGame && !chartLocked && (
+          <GameSlotSessionsDialog
+            gameNumber={slotOpen}
+            sessions={gameNumberMetrics?.find((p) => p.gameNumber === slotOpen)?.sessions ?? []}
+            onSelect={onOpenGame}
+            onClose={() => setSlotOpen(null)}
+          />
+        )}
+
+        {/* Per-game and per-session are alternatives, never both: a session
+            sheet plots its games, the Stats tab plots its nights. */}
+        {!gameMetrics && chartBy === "session" &&
+          (metric === "average"
+          ? sessionTrend &&
+            sessionTrend.length > 0 && (
+              <SessionTrendChart
+                sessions={sessionTrend}
+                header={header}
+                overall={stats.averageScore}
+                onOpenSession={onOpenSession}
+              />
+            )
+          : sessionMetrics &&
+            sessionMetrics.length > 0 && (
+              <MetricTrendChart
+                points={sessionMetrics.map((p) => ({
+                  key: `s${p.sessionId ?? ""}:${p.date}`,
+                  axis: p.date.slice(5).replace("-", "/"),
+                  title: p.alley,
+                  detail: [p.event, `${p.games} ${p.games === 1 ? "game" : "games"}`, p.oilPattern]
+                    .filter(Boolean)
+                    .join(" · "),
+                  value: spec.value(p.stats)
+                }))}
+                header={header}
+                overall={spec.value(stats)}
+                format={spec.format}
+                min={spec.min}
+                max={spec.max}
+                minSpan={spec.minSpan}
+                onOpen={
+                  onOpenSession &&
+                  ((key) => {
+                    const id = Number(key.slice(1).split(":")[0]);
+                    if (Number.isInteger(id) && id > 0) onOpenSession(id);
+                  })
+                }
+              />
+            ))}
+      </ProLock>
+
+      <ProLock what="Pocket, carry and the pins each first ball takes">
+        <FirstBallCard stats={stats} />
+      </ProLock>
 
       {(stats.sparePct !== null || convertible.length > 0) && (
         <section className="rounded-xl border border-edge bg-surface p-3 shadow-sm">
@@ -433,7 +454,7 @@ export function Stats({
                 Spares
               </button>
             </h2>
-            {convertible.length > 0 && (
+            {convertible.length > 0 && !proLocked && (
               <button
                 type="button"
                 onClick={() => setAllLeavesOpen(true)}
@@ -457,57 +478,63 @@ export function Stats({
           {leftMost.length > 0 && (
             // Two rows on show, the rest a scroll away inside the card, with
             // the top of a third row peeking to say there is more.
-            <div
-              role="region"
-              aria-label="Leaves left most"
-              className="-mx-1 mt-3 max-h-[15.25rem] overflow-y-auto overscroll-y-contain px-1"
-            >
-              <LeaveGrid leaves={leftMost} onOpen={setOpenLeave} />
+            <div className="mt-3">
+              <ProLock what="The leaves you leave most, and how often you make each">
+                <div
+                  role="region"
+                  aria-label="Leaves left most"
+                  className="-mx-1 max-h-[15.25rem] overflow-y-auto overscroll-y-contain px-1"
+                >
+                  <LeaveGrid leaves={leftMost} onOpen={setOpenLeave} />
+                </div>
+              </ProLock>
             </div>
           )}
         </section>
       )}
 
       {ranked.length > 0 && (
-        <section className="rounded-xl border border-edge bg-surface p-3 shadow-sm">
-          <div className="flex items-center justify-between gap-3">
-            <h2 className={GROUP_HEADING}>Balls</h2>
-            <button
-              type="button"
-              onClick={() => setBallsOpen({ focus: null })}
-              className={`relative text-xs font-semibold text-accent active:opacity-60 ${TAP_TARGET_44}`}
-            >
-              All balls
-            </button>
-          </div>
-          {/* Every ball, about five on show and the rest a scroll down, like
-              the leaves above, the headings pinned at the top. The columns fit
-              a phone (ADR-144); on one narrower still, the rows scroll sideways
-              together with the ball's name pinned at the left (ADR-139). */}
-          <div
-            role="region"
-            aria-label="Ball columns"
-            className="mt-1 max-h-[21rem] overflow-auto overscroll-x-none overscroll-y-contain"
-          >
-            <div className="min-w-fit">
-              <BallRateHeadings />
-              <ul className="divide-y divide-edge">
-                {ranked.map((b) => (
-                  <li key={b.ballId}>
-                    <button
-                      type="button"
-                      onClick={() => setBallsOpen({ focus: b.ballId })}
-                      aria-label={`Open ${b.name}`}
-                      className="group flex w-full py-2 active:bg-surface-muted"
-                    >
-                      <BallSummary ball={b} />
-                    </button>
-                  </li>
-                ))}
-              </ul>
+        <ProLock what="How each of your balls strikes, carries and spares">
+          <section className="rounded-xl border border-edge bg-surface p-3 shadow-sm">
+            <div className="flex items-center justify-between gap-3">
+              <h2 className={GROUP_HEADING}>Balls</h2>
+              <button
+                type="button"
+                onClick={() => setBallsOpen({ focus: null })}
+                className={`relative text-xs font-semibold text-accent active:opacity-60 ${TAP_TARGET_44}`}
+              >
+                All balls
+              </button>
             </div>
-          </div>
-        </section>
+            {/* Every ball, about five on show and the rest a scroll down, like
+                the leaves above, the headings pinned at the top. The columns fit
+                a phone (ADR-144); on one narrower still, the rows scroll sideways
+                together with the ball's name pinned at the left (ADR-139). */}
+            <div
+              role="region"
+              aria-label="Ball columns"
+              className="mt-1 max-h-[21rem] overflow-auto overscroll-x-none overscroll-y-contain"
+            >
+              <div className="min-w-fit">
+                <BallRateHeadings />
+                <ul className="divide-y divide-edge">
+                  {ranked.map((b) => (
+                    <li key={b.ballId}>
+                      <button
+                        type="button"
+                        onClick={() => setBallsOpen({ focus: b.ballId })}
+                        aria-label={`Open ${b.name}`}
+                        className="group flex w-full py-2 active:bg-surface-muted"
+                      >
+                        <BallSummary ball={b} />
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </section>
+        </ProLock>
       )}
 
       {/* Portalled to the body: on the session sheet the stats sit inside a

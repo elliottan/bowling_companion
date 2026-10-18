@@ -12,7 +12,7 @@
  *
  * So a shared layout looks like:
  *
- *   https://headpin.app/score?da=45&ptp=4.5&val=45&hand=right&grip=1h&over=5&up=0.5#/home/layout-lab
+ *   https://headpin.app/app?da=45&ptp=4.5&val=45&hand=right&grip=1h&over=5&up=0.5#/home/layout-lab
  *
  * The hash still says where to go, exactly as it does for every other screen,
  * and the query says what to put on it.
@@ -87,10 +87,11 @@ export function encodeLayoutParams(shared: SharedLayout): string {
 /**
  * A full shareable URL.
  *
- * `origin` and `path` come from the running page rather than a constant, so a
+ * `origin` comes from the running page rather than a constant, so a
  * link shared from a preview deployment opens that preview and a link shared
  * from production opens production. Hardcoding the production host would make
  * every link from a test build silently point somewhere else.
+ * `path` is the free app's (`FREE_APP_PATH`), whichever copy shares it.
  */
 export function layoutShareUrl(shared: SharedLayout, origin: string, path: string): string {
   return `${origin}${path}?${encodeLayoutParams(shared)}${LAYOUT_LAB_HASH}`;

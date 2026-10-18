@@ -1,4 +1,3 @@
-export const DONATE_URL = "https://buymeacoffee.com/elliotbowls";
 
 /** Privacy, terms and the trademark notice. A page on the site rather than a
  *  screen in the app: a store reviewer and a crawler both need a public URL,
@@ -52,39 +51,4 @@ export function catalogRequestMailto(kind: CatalogRequestKind, query: string): s
       ? `Brand:\nBall: ${typed}\nLink to the spec sheet or product page (optional):\n`
       : `Pattern: ${typed}\nWho publishes it (Kegel, a league, a tournament):\nLink to the pattern sheet:\nLength in feet (optional):\n`;
   return `mailto:${FEEDBACK_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-}
-
-/**
- * Where a catalog ball's "Shop" link goes, and how it is credited to Headpin.
- * BowlersMart's affiliate program runs on Rakuten, whose deep link takes the
- * retailer page as its `murl` parameter.
- *
- * The retailer is searched by brand and name rather than linked to a product
- * page: a search cannot go stale when the retailer renames a page, and it needs
- * no table of 250 product URLs to keep in step with the catalog (ADR-119).
- */
-export const RETAILER_NAME = "BowlersMart";
-
-export function retailerSearchUrl(brand: string, name: string): string {
-  // A WordPress store: `s` is the search, and `post_type` keeps it to products
-  // rather than the blog.
-  return `https://www.bowlersmart.com/?s=${encodeURIComponent(`${brand} ${name}`)}&post_type=product`;
-}
-
-/**
- * The affiliate network's deep link, with `{url}` where the retailer page
- * goes. Paste it from the network's link builder once the program accepts
- * Headpin. Null hides the link: an uncredited link earns nothing, and a
- * disclosure over a link that pays nobody would not be true.
- */
-export const AFFILIATE_DEEP_LINK: string | null = null;
-
-/** The credited link to buy a catalog ball, or null while there is none. */
-export function shopBallUrl(
-  brand: string,
-  name: string,
-  deepLink: string | null = AFFILIATE_DEEP_LINK
-): string | null {
-  if (!deepLink) return null;
-  return deepLink.replace("{url}", encodeURIComponent(retailerSearchUrl(brand, name)));
 }

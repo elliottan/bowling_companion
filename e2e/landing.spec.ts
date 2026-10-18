@@ -11,7 +11,7 @@ test("every Open Headpin button goes to the app", async ({ page }) => {
   const ctas = page.getByRole("link", { name: "Open Headpin" });
   expect(await ctas.count()).toBeGreaterThanOrEqual(2);
   for (const href of await ctas.evaluateAll((els) => els.map((el) => el.getAttribute("href")))) {
-    expect(href).toBe("/score");
+    expect(href).toBe("/app");
   }
   // Not inside an in-app browser, so no notice about leaving one.
   await expect(page.locator("#inapp")).toBeHidden();
@@ -42,5 +42,13 @@ test("the sticky bar appears once the hero's button scrolls away", async ({ page
   await expect(bar).not.toHaveClass(/show/);
   await page.evaluate(() => window.scrollTo(0, 2000));
   await expect(bar).toHaveClass(/show/);
-  await expect(bar.getByRole("link", { name: "Open Headpin" })).toHaveAttribute("href", "/score");
+  await expect(bar.getByRole("link", { name: "Open Headpin" })).toHaveAttribute("href", "/app");
+});
+
+/** The landing page's buttons open the free app at /app, the same shell as the
+ *  owner's copy at /score, told apart only by its address (ADR-154). */
+test("the free app at /app is the app", async ({ page }) => {
+  await page.goto("/app");
+  await expect(page.getByText(/score your first session/i)).toBeVisible();
+  await expect(page).toHaveURL(/\/app#\/home$/);
 });
