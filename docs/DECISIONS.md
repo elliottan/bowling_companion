@@ -7164,16 +7164,22 @@ first target, and never to lose money. Research in October 2026 found:
   complaint to Apple can pull the whole app, not one image. MOTIV is told the app
   now sells Pro.
 
-## ADR-155: The store app is the web build inside Capacitor, told apart at runtime
+## ADR-155: The store apps are the web build inside Capacitor, told apart at runtime
 
-**Status.** Accepted, 2026-10-18. Builds phase 1 of `docs/PRO-LAUNCH.md` for
-ADR-154, as a spike: the web half is built and tested, and the iOS project is
-generated but has not yet been built in Xcode or run on a device.
+**Status.** Accepted, 2026-10-18, by the owner's decision: Capacitor now, and
+screens that feel like a web page rewritten natively one at a time later. Builds
+phase 1 of `docs/PRO-LAUNCH.md` for ADR-154, and the Android shell from phase 5
+with it. The web half is built and tested; the iOS project is generated but not
+yet built in Xcode, and the Android project builds a debug APK but has not yet
+run on an emulator or a phone.
 
 **Context.** ADR-154 sells Pro only in the store apps, and the iOS app ships
 first. The app is a static Vite build with no server, which is the shape
-Capacitor wraps: the same files, served from inside the app at
-`capacitor://localhost` by a WKWebView. Three things differ from the web, and
+Capacitor wraps: the same files, served from inside the app by the platform's
+web view, at `capacitor://localhost` on iOS and `https://localhost` on Android.
+A pure Swift app, React Native and Flutter were weighed and rejected: each
+rewrites the screens, and Swift rewrites the scoring engine too, which would
+then exist twice and have to score every game the same way in both. Three things differ from the web, and
 everything here follows from them. That origin has only what the app carries,
 so anything the build reaches by a root-relative path that the app leaves out
 is missing. The iOS web view runs no service worker for the app's own scheme,
@@ -7218,6 +7224,17 @@ origin opens nothing on anyone else's phone, so a link built from it is dead.
 - **iPhone is portrait only**, as the web manifest already is, and the left-edge
   swipe is turned on in the web view (`HeadpinViewController`), so it steps back
   through history like the system back does (ADR-041).
+- **Android is portrait only too, and its back button steps back through the
+  web view's history** (`MainActivity`), leaving the app only from the first
+  entry. Capacitor's core does not handle the button at all, and Android would
+  otherwise close the app from any screen. The app is drawn edge to edge, which
+  Android 15 requires, and the page pads itself from `env(safe-area-inset-*)`
+  as it does on iOS (`SystemBars.insetsHandling: "native"`).
+- **Native rewrites come screen by screen, later.** A screen that still feels
+  like a web page in the store app (scrolling, a sheet, the keyboard) can be
+  replaced by a native one, and the rest stays shared. The scoring engine and
+  the repositories are not rewritten: they are the part a second copy would
+  get wrong.
 
 **Consequences.**
 
@@ -7233,7 +7250,12 @@ origin opens nothing on anyone else's phone, so a link built from it is dead.
   (`docs/VIEWPORT-BUG.md`); that the edge swipe and the page's back handling
   agree; and that a sheet, a `mailto:` link and the App Store link open outside
   the app.
-- Universal links, the share sheet, Files import and export, and haptics are
-  still to do (PRO-LAUNCH phases 1 and 3). The iPad target is left as
-  Capacitor's template has it until the owner decides whether the app ships for
-  iPad.
+- Universal links (App Links on Android), the share sheet, Files import and
+  export, and haptics are still to do (PRO-LAUNCH phases 1 and 3). The iPad
+  target is left as Capacitor's template has it until the owner decides whether
+  the app ships for iPad. Both apps carry Capacitor's placeholder icon and
+  splash screen.
+- Android's own backup (`allowBackup`, the template's default) is left on, so a
+  bowler's games can come back with the rest of their phone. Whether the web
+  view's database is included is to be checked on a device; the JSON backup
+  (ADR-038) stays the way that is promised.

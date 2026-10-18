@@ -195,6 +195,9 @@ switch.
 
 - [ ] Google Play account (US$25 once), and 12 or more testers opted in for 14
       days in a row.
+- [x] The Android shell, from the same build (ADR-155, `npm run build:android`):
+      portrait, edge to edge, and the back button through history. Builds a
+      debug APK; not yet run on an emulator.
 - [ ] Play Billing for the same product, and the web's "Get the app" gains
       Android.
 
