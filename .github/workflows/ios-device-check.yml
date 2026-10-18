@@ -57,6 +57,9 @@ jobs:
             -sdk iphonesimulator -destination "id=${{ steps.sim.outputs.udid }}" \
             -derivedDataPath ios-build CODE_SIGNING_ALLOWED=NO build | tail -40
           test -d ios-build/Build/Products/Debug-iphonesimulator/App.app
+          # The web view is inspectable only when this reads true (Capacitor
+          # reads it from Info.plist; debug.xcconfig sets it).
+          plutil -p ios-build/Build/Products/Debug-iphonesimulator/App.app/Info.plist | grep -i capacitor
 
       - name: Install Appium and its XCUITest driver
         run: |
@@ -66,7 +69,7 @@ jobs:
 
       - name: Walk the app's features
         run: |
-          appium --log-level info --log appium.log &
+          appium --log-level debug --log appium.log &
           until curl -s http://127.0.0.1:4723/status > /dev/null; do sleep 1; done
           npx tsx scripts/native/device-check/ios.ts \
             --app "$PWD/ios-build/Build/Products/Debug-iphonesimulator/App.app" \
