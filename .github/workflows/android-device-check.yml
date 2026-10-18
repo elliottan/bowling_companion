@@ -1,0 +1,74 @@
+name: Android device check
+
+# The Android app on a real emulator (ADR-155). GitHub's Linux runners have
+# KVM, so the emulator runs at speed; a container without it cannot boot a
+# current Android at all before the system's own watchdog gives up on it.
+on:
+  workflow_dispatch:
+  push:
+    branches-ignore: [main]
+    paths:
+      - "android/**"
+      - "capacitor.config.ts"
+      - "scripts/native/**"
+      - "src/lib/platform.ts"
+      - "src/lib/nativeShare.ts"
+      - ".github/workflows/android-device-check.yml"
+
+concurrency:
+  group: android-device-check-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Let the emulator use KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build the web app and copy it into the Android project
+        run: npm run build:android
+
+      - name: Build the debug APK
+        working-directory: android
+        run: ./gradlew assembleDebug --no-daemon
+
+      - name: Walk the app's features
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          target: google_apis
+          arch: x86_64
+          profile: pixel_7
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -no-snapshot
+          script: npx tsx scripts/native/device-check/android.ts --slow 2 --out device-check-out/android
+
+      - name: Upload screenshots and results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-device-check
+          path: device-check-out/
+          retention-days: 14
