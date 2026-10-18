@@ -66,11 +66,19 @@ jobs:
 
       - name: Walk the app's features
         run: |
-          appium --log-level warn --log appium.log &
+          appium --log-level info --log appium.log &
           until curl -s http://127.0.0.1:4723/status > /dev/null; do sleep 1; done
           npx tsx scripts/native/device-check/ios.ts \
-            --app ios-build/Build/Products/Debug-iphonesimulator/App.app \
+            --app "$PWD/ios-build/Build/Products/Debug-iphonesimulator/App.app" \
             --udid "${{ steps.sim.outputs.udid }}" --out device-check-out/ios
+
+      - name: Collect the app's log from the simulator
+        if: always()
+        run: |
+          mkdir -p device-check-out
+          xcrun simctl spawn "${{ steps.sim.outputs.udid }}" log show --last 60m --style compact \
+            --predicate 'process == "App" OR subsystem == "com.apple.WebKit"' > device-check-out/app.log 2>&1 || true
+          tail -60 device-check-out/app.log
 
       - name: Upload screenshots and results
         if: always()

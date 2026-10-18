@@ -11,6 +11,8 @@
  * typing and the edge swipe are real touches sent by XCUITest, so they are
  * hit-tested by iOS the way a finger is.
  */
+import { mkdirSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
 import { remote } from "webdriverio";
 import type { Driver } from "./driver";
 import { runFlow } from "./flow";
@@ -44,23 +46,35 @@ async function main() {
       "appium:newCommandTimeout": 600,
       "appium:wdaLaunchTimeout": 600_000,
       "appium:wdaConnectionTimeout": 600_000,
+      "appium:simulatorStartupTimeout": 600_000,
       "appium:webviewConnectTimeout": 120_000
     }
   });
 
   let webview: string | null = null;
   async function toWebview() {
-    for (let i = 0; i < 120; i++) {
+    const deadline = Date.now() + 180_000;
+    let seen: unknown[] = [];
+    while (Date.now() < deadline) {
       const contexts = (await browser.getContexts()) as (string | { id: string })[];
+      seen = contexts;
       const id = contexts.map((c) => (typeof c === "string" ? c : c.id)).find((c) => c.startsWith("WEBVIEW"));
       if (id) {
         webview = id;
         await browser.switchContext(id);
         return;
       }
-      await sleep(1000);
+      await sleep(3000);
     }
-    throw new Error("The app's web view never became inspectable");
+    // Say what the screen shows instead, so a failed run can be read: an app
+    // that never launched, one that crashed, or one that is up but whose web
+    // view will not be inspected.
+    mkdirSync(out, { recursive: true });
+    await browser.switchContext("NATIVE_APP").catch(() => {});
+    await browser.saveScreenshot(join(out, "no-webview.png")).catch(() => {});
+    writeFileSync(join(out, "no-webview-source.xml"), await browser.getPageSource().catch((e) => String(e)));
+    const state = await browser.execute("mobile: queryAppState", { bundleId: BUNDLE }).catch((e) => String(e));
+    throw new Error(`The app's web view never became inspectable (app state ${String(state)}, contexts ${JSON.stringify(seen)})`);
   }
   async function native<T>(fn: () => Promise<T>): Promise<T> {
     await browser.switchContext("NATIVE_APP");
