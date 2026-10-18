@@ -69,13 +69,24 @@ async function main() {
   const out = value("out", "device-check-out/android");
   const slow = Number(value("slow", "1"));
   adb("wait-for-device");
-  if (!flag("no-install")) {
-    adb("uninstall", PACKAGE).toString();
+  // Booted is not ready: the package manager answers some while after.
+  for (let i = 0; ; i++) {
+    try {
+      if (adb("shell", "pm", "path", "android").includes("package:")) break;
+    } catch {
+      if (i > 300) throw new Error("The package manager never came up");
+    }
+    await sleep(2000);
   }
-  try {
-    if (!flag("no-install")) adb("install", "-r", APK);
-  } catch (err) {
-    throw new Error(`Installing ${APK} failed: ${(err as Error).message}`);
+  if (!flag("no-install")) {
+    // A fresh install, so the first run is the first run. Uninstalling an app
+    // that is not there fails, which is fine.
+    try {
+      adb("uninstall", PACKAGE);
+    } catch {
+      // Not installed.
+    }
+    adb("install", "-r", APK);
   }
 
   const launch = () => adb("shell", "monkey", "-p", PACKAGE, "-c", "android.intent.category.LAUNCHER", "1");
