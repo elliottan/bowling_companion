@@ -84,12 +84,22 @@ const PAGE_HELPERS = String.raw`
         req.onsuccess = () => resolve(req.result);
         req.onerror = () => reject(req.error);
       });
-      if (!db.objectStoreNames.contains(store)) return 0;
-      return new Promise((resolve) => {
-        const req = db.transaction(store).objectStore(store).count();
-        req.onsuccess = () => resolve(req.result);
-        req.onerror = () => resolve(-1);
-      });
+      try {
+        if (!db.objectStoreNames.contains(store)) return -2;
+        return await new Promise((resolve) => {
+          const req = db.transaction(store).objectStore(store).count();
+          req.onsuccess = () => resolve(req.result);
+          req.onerror = () => resolve(-1);
+        });
+      } finally {
+        // An open connection held by the walk would block the app's own
+        // upgrade of the database.
+        db.close();
+      }
+    },
+    blur() {
+      if (document.activeElement && document.activeElement !== document.body) document.activeElement.blur();
+      return true;
     }
   };
 })();
@@ -114,19 +124,24 @@ export class Flow {
   }
 
   /** Poll until `expression` is truthy, scaled for a slow emulator. */
-  async until(expression: string, what: string, timeoutMs = 20_000): Promise<unknown> {
+  async until(
+    expression: string,
+    what: string,
+    timeoutMs = 20_000,
+    accept: (value: unknown) => boolean = Boolean
+  ): Promise<unknown> {
     const deadline = Date.now() + timeoutMs * this.slow;
     let last: unknown;
     while (Date.now() < deadline) {
       try {
         last = await this.js(expression);
-        if (last) return last;
+        if (accept(last)) return last;
       } catch {
         // The page may be mid-reload.
       }
       await new Promise((r) => setTimeout(r, 500));
     }
-    throw new Error(`Timed out waiting for ${what}`);
+    throw new Error(`Timed out waiting for ${what}${last === undefined ? "" : ` (last read ${JSON.stringify(last).slice(0, 80)})`}`);
   }
 
   async hasText(text: string, timeoutMs?: number) {
@@ -150,6 +165,14 @@ export class Flow {
     await new Promise((r) => setTimeout(r, 300 * this.slow));
     await this.d.tapAt(target!.x, target!.y);
     await new Promise((r) => setTimeout(r, 400 * this.slow));
+  }
+
+  /** The platform's back, with the keyboard put away first, as a person would:
+   *  on iOS an open keyboard takes the edge swipe for itself. */
+  async back() {
+    await this.js("__dc.blur()").catch(() => {});
+    await new Promise((r) => setTimeout(r, 500 * this.slow));
+    await this.d.systemBack();
   }
 
   async fill(placeholder: string, text: string, dialog?: string) {
@@ -233,7 +256,7 @@ export async function runFlow(d: Driver, outDir: string, opts: { slow?: number; 
   });
 
   await f.check("pattern catalog seeds the bowler's patterns", async () => {
-    const n = (await f.until(`__dc.count("oil_patterns").then((n) => n > 10 && n)`, "pattern rows", 120_000)) as number;
+    const n = (await f.until(`__dc.count("oil_patterns")`, "pattern rows", 120_000, (n) => (n as number) > 10)) as number;
     return `${n} patterns`;
   });
 
@@ -243,7 +266,7 @@ export async function runFlow(d: Driver, outDir: string, opts: { slow?: number; 
     await f.toTabs();
     await f.tap("^Home$", undefined, "nav button, [role=navigation] button");
     await f.tap("^Ball catalog");
-    const n = (await f.until(`__dc.count("ball_catalog").then((n) => n > 100 && n)`, "catalog rows", 180_000)) as number;
+    const n = (await f.until(`__dc.count("ball_catalog")`, "catalog rows", 180_000, (n) => (n as number) > 100)) as number;
     return `${n} balls`;
   });
 
@@ -274,7 +297,7 @@ export async function runFlow(d: Driver, outDir: string, opts: { slow?: number; 
   });
 
   await f.check("system back closes the catalog", async () => {
-    await d.systemBack();
+    await f.back();
     await f.until(`!__dc.dialogs().some((n) => /Catalog/i.test(n))`, "the catalog to close");
   });
 
@@ -346,7 +369,7 @@ export async function runFlow(d: Driver, outDir: string, opts: { slow?: number; 
     await f.tap("^Oil patterns");
     await f.until(`__dc.dialogs().some((n) => /Oil patterns/i.test(n))`, "the pattern list");
     await f.snap("patterns");
-    await d.systemBack();
+    await f.back();
     await f.until(`!__dc.dialogs().some((n) => /Oil patterns/i.test(n))`, "back to Home");
   });
 
@@ -394,20 +417,20 @@ export async function runFlow(d: Driver, outDir: string, opts: { slow?: number; 
   });
 
   await f.check("system back steps out of Backup & restore", async () => {
-    await d.systemBack();
+    await f.back();
     await f.until(`!__dc.dialogs().some((n) => /Backup & restore/i.test(n))`, "Backup & restore to close");
   });
 
   if (d.platform === "ios") {
     await f.check("the edge swipe on a tab stays in the app", async () => {
       await f.toTabs();
-      await d.systemBack();
+      await f.back();
       if (!(await d.appInForeground())) throw new Error("the swipe left the app");
       await f.until(`__dc.find("^History$", null, "nav button, [role=navigation] button")`, "the tab bar");
     });
   } else await f.check("system back from the first screen leaves the app", async () => {
     for (let i = 0; i < 8 && (await d.appInForeground()); i++) {
-      await d.systemBack();
+      await f.back();
       await new Promise((r) => setTimeout(r, 800 * (opts.slow ?? 1)));
     }
     if (await d.appInForeground()) throw new Error("still in the app after eight backs");
@@ -416,7 +439,7 @@ export async function runFlow(d: Driver, outDir: string, opts: { slow?: number; 
   await f.check("relaunch offline: the session, the game and the catalog are all still there", async () => {
     const cut = await d.setOnline(false);
     await d.relaunch();
-    await f.until(`__dc.count("games").then((n) => n >= 1)`, "the game", 120_000);
+    await f.until(`__dc.count("games")`, "the game", 120_000, (n) => (n as number) >= 1);
     const balls = await f.js<number>(`__dc.count("ball_catalog")`);
     if (balls < 100) throw new Error(`catalog has ${balls} rows after relaunch`);
     await f.toTabs();

@@ -123,7 +123,14 @@ async function main() {
     // The web view fills the screen from its top-left corner (contentInset
     // "never"), so a CSS pixel is a point on the screen.
     tapAt: (x, y) => native(() => touch([{ x, y, ms: 0 }])),
-    type: (text) => native(() => browser.keys(text.split(""))),
+    // Typed into whatever holds the keyboard, as XCUITest types: a raw key
+    // sequence is refused by WebDriverAgent ("Key Down ... must have a
+    // closing Key Up").
+    type: (text) =>
+      native(async () => {
+        const field = await browser.$("-ios predicate string:hasKeyboardFocus == true");
+        await field.addValue(text);
+      }),
     async systemBack() {
       const { width, height } = await native(() => browser.getWindowSize());
       await native(() =>
