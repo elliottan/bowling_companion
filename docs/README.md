@@ -22,7 +22,7 @@ reasoning and invariants the code cannot express.
 | Write or run tests, or wonder what the gate checks | [ARCHITECTURE.md](./ARCHITECTURE.md), "Where the tests live" |
 | Ship a build | [DEPLOYMENT.md](./DEPLOYMENT.md) |
 | Pick up new work | [ROADMAP.md](./ROADMAP.md) |
-| Work on Pro, its gating, or the store apps | [PRO-LAUNCH.md](./PRO-LAUNCH.md) and [DECISIONS.md](./DECISIONS.md) ADR-154 |
+| Work on Pro, its gating, or the store apps | [PRO-LAUNCH.md](./PRO-LAUNCH.md) and [DECISIONS.md](./DECISIONS.md) ADR-154, ADR-155 for the iOS app |
 | Write a release note | [CHANGELOG.md](./CHANGELOG.md) |
 
 [archive/](./archive/) holds delivered plans and specs. They are history, not

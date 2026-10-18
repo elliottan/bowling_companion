@@ -4,6 +4,7 @@
  * main.tsx) and replay later via promptInstall(). iOS Safari has no such
  * event/API, isIOSSafari() lets the UI fall back to static instructions.
  */
+import { isNativeApp } from "./platform";
 
 interface BeforeInstallPromptEvent extends Event {
   prompt(): Promise<void>;
@@ -54,5 +55,7 @@ export function isStandalone(
   win: WinDisplayModeInfo = window,
   nav: NavigatorWithStandalone = navigator as Navigator & NavigatorWithStandalone
 ): boolean {
-  return win.matchMedia("(display-mode: standalone)").matches || nav.standalone === true;
+  // The store app is installed by definition, and it reports neither signal: a
+  // native web view has no display mode (ADR-155).
+  return isNativeApp(win) || win.matchMedia("(display-mode: standalone)").matches || nav.standalone === true;
 }

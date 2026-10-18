@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { Manufacturer } from "../types/catalog";
+import { siteUrl } from "../lib/platform";
 
 // Brand colors for the ball silhouette placeholder.
 // Chosen to be visually distinct and on-brand for each manufacturer.
@@ -72,7 +73,10 @@ function BallPlaceholder({ brand, size }: { brand: Manufacturer; size: "thumb" |
 // covers a reload served from the HTTP cache.
 const decodedSrcs = new Set<string>();
 
-export function CatalogBallImage({ src, alt, brand, size, bare = false, lazy = false }: CatalogBallImageProps) {
+export function CatalogBallImage({ src: path, alt, brand, size, bare = false, lazy = false }: CatalogBallImageProps) {
+  // Every ball photo on every screen comes through here, so this is the one
+  // place the store app is pointed at headpin.app for it (ADR-155).
+  const src = siteUrl(path) ?? null;
   // Cached on the first render, so a known source paints opaque immediately
   // rather than starting transparent and being faded in.
   const [wasDecoded] = useState(() => !!src && decodedSrcs.has(src));

@@ -9,6 +9,20 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.45.1: The iPhone app's first build (2026-10-18)
+
+Nothing a bowler sees on the web changes. The repository now builds the iOS app,
+the same app inside Capacitor (ADR-155): `npm run build:ios`, then Xcode. It
+carries about 2 MB rather than the site's 113 MB, since ball photos and pattern
+sheets load from headpin.app, and it works offline from the ball and pattern
+catalogs built into it, refreshing them from headpin.app whenever it has a
+connection. A line, layout or guide shared from it links to headpin.app.
+
+The pattern catalog no longer applies a file older than the one it last applied,
+which an offline launch of the app could otherwise do, putting back a load table
+the catalog has since corrected. headpin.app lets the app read the catalogs
+across origins.
+
 ## 0.45.0: The tip jar goes, and Headpin Pro is on its way (2026-10-17)
 
 **A lane view you can only look at says so.** A shot's line under the info

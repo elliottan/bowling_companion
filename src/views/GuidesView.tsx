@@ -7,6 +7,7 @@ import { ShareIosIcon } from "../components/icons";
 import { ListGroup, ListRow } from "../components/ui/ListGroup";
 import { GROUP_HEADING } from "../components/ui/typography";
 import { findGuide, guideShareUrl, guidesByTopic, type Guide, type GuideBlock } from "../lib/guides";
+import { shareOrigin } from "../lib/platform";
 
 interface GuidesViewProps {
   onBack: () => void;
@@ -70,7 +71,7 @@ function GuideArticle({ guide, onBack }: { guide: Guide; onBack: () => void }) {
   }, [copied]);
 
   async function share() {
-    const url = guideShareUrl(guide.id, window.location.origin);
+    const url = guideShareUrl(guide.id, shareOrigin());
     try {
       if (typeof navigator.share === "function") {
         await navigator.share({ title: guide.title, url });

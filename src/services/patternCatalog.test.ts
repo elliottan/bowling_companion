@@ -1,6 +1,6 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import { db } from "../db/bowlingDb";
-import { syncPatternCatalog, resetPatternCatalogCache } from "./patternCatalog";
+import { syncPatternCatalog, resetPatternCatalogCache, getCatalogPatterns, catalogSheet } from "./patternCatalog";
 import { getAllOilPatterns, addOilPattern } from "./ballRepository";
 
 const CATALOG = {
@@ -242,5 +242,69 @@ describe("collapsing a pattern that is in the list twice", () => {
     await syncPatternCatalog();
 
     expect(await getAllOilPatterns()).toEqual(before);
+  });
+});
+
+describe("the pattern catalog in the store app (ADR-155)", () => {
+  const SITE = "https://headpin.app";
+  const older = { ...CATALOG, generated_at: "2026-08-01T00:00:00.000Z" };
+  const corrected = {
+    ...CATALOG,
+    patterns: [{ ...CATALOG.patterns[0], passes: [{ ...CATALOG.patterns[0].passes[0], loads: 4 }] }],
+  };
+
+  beforeEach(async () => {
+    await db.oil_patterns.clear();
+    await db.settings.clear();
+    resetPatternCatalogCache();
+    vi.unstubAllGlobals();
+    vi.stubGlobal("Capacitor", { isNativePlatform: () => true });
+  });
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  /** headpin.app answers with `site`, or is unreachable when it is null; the
+   *  app's own snapshot always answers with `snapshot`. */
+  function serve(site: unknown, snapshot: unknown) {
+    const fetchMock = vi.fn((url: string) => {
+      if (url.startsWith(SITE)) {
+        return site ? Promise.resolve({ ok: true, json: async () => site }) : Promise.reject(new TypeError("Load failed"));
+      }
+      return Promise.resolve({ ok: true, json: async () => snapshot });
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    return fetchMock;
+  }
+
+  it("reads headpin.app before the snapshot built into the app", async () => {
+    const fetchMock = serve(CATALOG, older);
+    expect(await getCatalogPatterns()).toHaveLength(1);
+    expect(fetchMock.mock.calls.map(([url]) => url)).toEqual([`${SITE}/catalog/patterns.json`]);
+  });
+
+  it("seeds from the snapshot offline, so a fresh install has every pattern", async () => {
+    serve(null, CATALOG);
+    await syncPatternCatalog();
+    expect(await getAllOilPatterns()).toHaveLength(1);
+  });
+
+  it("never puts an older snapshot's load table back over a newer one", async () => {
+    serve(corrected, older);
+    await syncPatternCatalog();
+    resetPatternCatalogCache();
+    serve(null, { ...older, patterns: CATALOG.patterns });
+    await syncPatternCatalog();
+
+    const [pattern] = await getAllOilPatterns();
+    expect(pattern.passes?.[0].loads).toBe(4);
+  });
+
+  it("opens a kept sheet from headpin.app, since the app keeps no sheets", async () => {
+    serve({ ...CATALOG, patterns: [{ ...CATALOG.patterns[0], sheet: "sheets/a.pdf", sheetPages: ["sheets/a-1.webp"] }] }, older);
+    expect(await catalogSheet("stonehenge")).toEqual({
+      pdf: `${SITE}/catalog/sheets/a.pdf`,
+      pages: [`${SITE}/catalog/sheets/a-1.webp`],
+    });
   });
 });

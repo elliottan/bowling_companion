@@ -15,7 +15,7 @@ import tseslint from "typescript-eslint";
  * typecheck, and `npm run build` already runs `tsc -b` over the same files.
  */
 export default tseslint.config(
-  { ignores: ["dist", "dev-dist", "coverage", "playwright-report", "test-results", "tmp"] },
+  { ignores: ["dist", "dist-native", "ios", "dev-dist", "coverage", "playwright-report", "test-results", "tmp"] },
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
     files: ["**/*.{ts,tsx}"],

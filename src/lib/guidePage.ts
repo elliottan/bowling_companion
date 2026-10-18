@@ -1,4 +1,5 @@
 import { guideAppPath, type Guide } from "./guides";
+import { SITE_ORIGIN } from "./platform";
 
 /**
  * The page behind a shared guide link: `/guides/<id>`.
@@ -16,7 +17,7 @@ import { guideAppPath, type Guide } from "./guides";
  */
 
 /** The site, absolute, because scrapers do not resolve a relative image URL. */
-export const SITE = "https://headpin.app";
+export const SITE = SITE_ORIGIN;
 
 const escapeHtml = (text: string) =>
   text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");

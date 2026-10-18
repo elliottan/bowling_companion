@@ -1,5 +1,5 @@
 import { fireEvent, render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { CatalogBallImage } from "./CatalogBallImage";
 
 const props = {
@@ -36,5 +36,24 @@ describe("CatalogBallImage", () => {
   it("keeps a never-loaded source transparent", () => {
     render(<CatalogBallImage {...props} src="https://example.test/other.png" />);
     expect(screen.getByAltText(props.alt).className).toContain("opacity-0");
+  });
+
+  describe("in the store app (ADR-155)", () => {
+    afterEach(() => {
+      vi.unstubAllGlobals();
+    });
+
+    it("loads a catalog photo from headpin.app, since the app keeps none of its own", () => {
+      vi.stubGlobal("Capacitor", { isNativePlatform: () => true });
+      render(<CatalogBallImage {...props} src="/catalog/img/pitch-black-thumb.webp" />);
+      expect(screen.getByAltText(props.alt).getAttribute("src")).toBe(
+        "https://headpin.app/catalog/img/pitch-black-thumb.webp"
+      );
+    });
+  });
+
+  it("loads a catalog photo from the page's own site on the web", () => {
+    render(<CatalogBallImage {...props} src="/catalog/img/pitch-black-thumb.webp" />);
+    expect(screen.getByAltText(props.alt).getAttribute("src")).toBe("/catalog/img/pitch-black-thumb.webp");
   });
 });

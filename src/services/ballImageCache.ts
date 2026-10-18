@@ -1,5 +1,6 @@
 import { db } from "../db/bowlingDb";
 import { arsenalImageUrls, BALL_IMAGE_CACHE } from "../lib/ballImages";
+import { isNativeApp } from "../lib/platform";
 
 export interface WarmDeps {
   /** Cache Storage, or null where there is none (an old browser, a test). */
@@ -9,7 +10,9 @@ export interface WarmDeps {
 
 function defaultDeps(): WarmDeps {
   return {
-    caches: typeof caches === "undefined" ? null : caches,
+    // None in the store app either: the cache is the service worker's, and the
+    // app runs no worker to read it back (ADR-155).
+    caches: typeof caches === "undefined" || isNativeApp() ? null : caches,
     urls: async () => arsenalImageUrls(await db.balls.toArray())
   };
 }
