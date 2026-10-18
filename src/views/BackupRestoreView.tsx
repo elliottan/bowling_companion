@@ -1,6 +1,7 @@
 import { Download, ShieldAlert, Upload } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { ErrorBanner } from "../components/ErrorBanner";
+import { isNativeApp } from "../lib/platform";
 import { PushScreen } from "../components/PushScreen";
 import { ReplaceConfirmDialog } from "../components/ReplaceConfirmDialog";
 import {
@@ -24,6 +25,7 @@ export function BackupRestoreView({ onBack, mode = "inline" }: BackupRestoreView
   const [error, setError] = useState("");
   const [isBusy, setIsBusy] = useState(false);
   const [persisted, setPersisted] = useState<boolean | null>(null);
+  const native = isNativeApp();
   const [pending, setPending] = useState<PreparedImport | null>(null);
   const [confirmText, setConfirmText] = useState("");
 
@@ -99,8 +101,11 @@ export function BackupRestoreView({ onBack, mode = "inline" }: BackupRestoreView
       </p>
 
       {/* A browser that may bin the scores is a warning, and was set in the
-          same grey as everything else, which is where a warning goes to die. */}
-      {persisted === false && (
+          same grey as everything else, which is where a warning goes to die.
+          Neither line is said in the store apps: their database is the app's
+          own data, and "install the app" is advice to someone already in it
+          (ADR-155). */}
+      {!native && persisted === false && (
         <p className="mt-3 flex items-start gap-2 rounded-xl border border-warning-200 bg-warning-50 p-3 text-sm text-warning-700">
           <ShieldAlert size={16} aria-hidden="true" className="mt-0.5 shrink-0" />
           <span>
@@ -109,7 +114,7 @@ export function BackupRestoreView({ onBack, mode = "inline" }: BackupRestoreView
           </span>
         </p>
       )}
-      {persisted === true && (
+      {!native && persisted === true && (
         <p className="mt-2 text-xs text-ink-secondary">
           This browser has agreed not to clear your scores on its own.
         </p>

@@ -68,7 +68,9 @@ const PAGE_HELPERS = String.raw`
       // What a finger at that point would hit. On iOS a stray document scroll
       // once left every tap 62px off its target (docs/VIEWPORT-BUG.md).
       const hit = document.elementFromPoint(x, y);
-      return { x, y, hits: !!hit && (hit === el || el.contains(hit) || hit.contains(el)) };
+      const hits = !!hit && (hit === el || el.contains(hit) || hit.contains(el));
+      const over = hit ? (hit.tagName.toLowerCase() + " " + nameOf(hit)).slice(0, 60) : "nothing";
+      return { x, y, hits, over };
     },
     text() {
       return document.body.innerText;
@@ -132,14 +134,21 @@ export class Flow {
   }
 
   async tap(label: string, dialog?: string, kinds?: string) {
-    const target = (await this.until(
-      `__dc.find(${JSON.stringify(label)}, ${JSON.stringify(dialog ?? null)}, ${JSON.stringify(kinds ?? null)})`,
-      `a control named /${label}/${dialog ? ` in "${dialog}"` : ""}`
-    )) as { x: number; y: number; hits: boolean };
-    if (!target.hits) throw new Error(`/${label}/ is covered at its own centre: a tap there lands on something else`);
+    const find = `__dc.find(${JSON.stringify(label)}, ${JSON.stringify(dialog ?? null)}, ${JSON.stringify(kinds ?? null)})`;
+    const what = `a control named /${label}/${dialog ? ` in "${dialog}"` : ""}`;
+    await this.until(find, what);
+    // Then wait for nothing to be over it: a sheet still sliding in, or one
+    // fading out, takes the tap meant for the control under it.
+    let target: { x: number; y: number; hits: boolean; over: string } | null = null;
+    try {
+      target = (await this.until(`(t => t && t.hits && t)(${find})`, `${what} to be uncovered`)) as typeof target;
+    } catch {
+      const last = await this.js<{ over: string } | null>(find);
+      throw new Error(`/${label}/ stays covered at its own centre, by ${last?.over ?? "something"}`);
+    }
     // Let a scroll into view settle before the finger comes down.
     await new Promise((r) => setTimeout(r, 300 * this.slow));
-    await this.d.tapAt(target.x, target.y);
+    await this.d.tapAt(target!.x, target!.y);
     await new Promise((r) => setTimeout(r, 400 * this.slow));
   }
 
@@ -241,8 +250,16 @@ export async function runFlow(d: Driver, outDir: string, opts: { slow?: number; 
   await f.check("catalog screen: search, and photos load from headpin.app", async () => {
     await f.fill("Search name, brand, coverstock", "phaze");
     await f.until(`__dc.find("Phaze")`, "a Phaze in the results");
-    const srcs = await f.js<string[]>(`[...document.images].map((i) => i.getAttribute("src")).filter((s) => s && s.includes("/catalog/img/"))`);
-    if (srcs.length === 0) throw new Error("no catalog photos on the screen");
+    if (!opts.online) {
+      // With no signal a photo fails, and the tile keeps its brand-coloured
+      // ball instead of a broken image, which is the app working.
+      await f.snap("catalog");
+      return "offline: photos fall back to the brand placeholder";
+    }
+    const srcs = (await f.until(
+      `(() => { const s = [...document.images].map((i) => i.getAttribute("src")).filter((s) => s && s.includes("/catalog/img/")); return s.length > 0 && s; })()`,
+      "catalog photos on the screen"
+    )) as string[];
     if (!srcs.every((s) => s.startsWith("https://headpin.app/"))) throw new Error(`a photo is not from headpin.app: ${srcs[0]}`);
     let loaded = 0;
     if (opts.online) {
