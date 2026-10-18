@@ -9,6 +9,26 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.46.0: Headpin Pro in the iPhone app, and an app that feels like one (2026-10-18)
+
+Nothing changes on the web yet. In the iOS and Android apps, which are not in
+the stores yet:
+
+- **Headpin Pro can be bought in the iPhone app** (ADR-158): one purchase,
+  US$9.99, through the App Store, with nothing about it leaving the phone. A
+  deeper card offers it with the App Store's own price, and Settings shows it
+  bought and carries Restore purchase. The Android app keeps everything open
+  until it can sell Pro too.
+- **A headpin.app link opens in the app when it is installed** (ADR-159), on the
+  same line, layout or guide, once headpin.app vouches for the apps.
+- **The pin deck taps back** (ADR-160): a light tap for each pin, a firmer one
+  for a ball, and a cheer for a strike or a spare. The app no longer rubber-bands
+  or pinch-zooms like a page.
+- **The apps have Headpin's icon and launch screen**, the pin on felt, instead
+  of the placeholder they were built with.
+- **The iPhone app is iPhone only for now,** with the manifests the App Store
+  asks for.
+
 ## 0.45.2: The phone apps, walked on a simulator and an emulator (2026-10-18)
 
 **The line visualizer's buttons clear the status bar.** On an iPhone with the

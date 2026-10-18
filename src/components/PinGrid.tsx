@@ -4,6 +4,7 @@ import { useHandedness } from "../lib/handednessContext";
 import type { PinNumber } from "../types/bowling";
 import { ALL_PINS } from "../lib/pins";
 import { applyGesture, modeFor, type GestureMode } from "../lib/pinGesture";
+import { haptic } from "../lib/haptics";
 
 const PIN_ROWS: PinNumber[][] = [
   [7, 8, 9, 10],
@@ -65,6 +66,7 @@ export function PinGrid({
     const next = applyGesture(standingPins, mode, pin);
     dragStandingRef.current = next;
     onChange(next);
+    void haptic("pin");
     e.currentTarget.setPointerCapture(e.pointerId);
   }
 
@@ -76,6 +78,7 @@ export function PinGrid({
     if (next === dragStandingRef.current) return; // no-op, skip render
     dragStandingRef.current = next;
     onChange(next);
+    void haptic("pin");
   }
 
   function endGesture() {

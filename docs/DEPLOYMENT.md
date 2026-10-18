@@ -208,6 +208,20 @@ so a fresh checkout needs `npm run build:ios` before Xcode has anything to run.
 The Xcode project itself, `ios/`, is committed: it carries the app's identity
 (`app.headpin`), its orientation and the edge swipe (`SceneDelegate.swift`).
 
+**Trying Headpin Pro.** Run the app from Xcode with the shared `App` scheme: it
+selects `ios/App/App/Headpin.storekit`, so the purchase, Ask to Buy and
+refunds can be tried in the simulator against a local copy of the product,
+with no App Store Connect (Debug menu: StoreKit, Manage Transactions, to
+refund or start over). The real product must be named `app.headpin.pro`
+(ADR-158).
+
+**Icons.** `node scripts/native/icons.mjs` draws both apps' icons and launch
+screens from the same pin as the web app's (`scripts/pin-mark.mjs`).
+
+**Universal links** need the paid Developer Program: the Associated Domains
+entitlement is signed into Release builds only, and headpin.app must serve
+`/.well-known/apple-app-site-association` naming the Team ID (ADR-159).
+
 Neither store app deploys with a merge. Its code is what it was built with, and
 only its catalogs refresh from headpin.app (ADR-154).
 

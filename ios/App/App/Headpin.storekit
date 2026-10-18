@@ -1,0 +1,33 @@
+{
+  "identifier" : "6F0E7C2A",
+  "nonRenewingSubscriptions" : [
+
+  ],
+  "products" : [
+    {
+      "displayPrice" : "9.99",
+      "familyShareable" : false,
+      "internalID" : "6740000001",
+      "localizations" : [
+        {
+          "description" : "Every analysis in Headpin, once, for good.",
+          "displayName" : "Headpin Pro",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "app.headpin.pro",
+      "referenceName" : "Headpin Pro",
+      "type" : "NonConsumable"
+    }
+  ],
+  "settings" : {
+
+  },
+  "subscriptionGroups" : [
+
+  ],
+  "version" : {
+    "major" : 2,
+    "minor" : 0
+  }
+}

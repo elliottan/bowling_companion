@@ -4,6 +4,8 @@ import { registerSW } from "virtual:pwa-register";
 import App from "./App";
 import { AppErrorBoundary } from "./components/AppErrorBoundary";
 import { initInstallPrompt } from "./lib/installPrompt";
+import { applyNativeChrome } from "./lib/nativeChrome";
+import { listenForLinks } from "./lib/deepLink";
 import { isNativeApp } from "./lib/platform";
 import {
   initForegroundUpdateCheck,
@@ -33,6 +35,10 @@ if (!isNativeApp()) {
 
   initInstallPrompt();
 }
+
+applyNativeChrome();
+// A headpin.app link the phone opens in the store app (ADR-159).
+void listenForLinks();
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>

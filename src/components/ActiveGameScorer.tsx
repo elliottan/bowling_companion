@@ -44,6 +44,7 @@ import { TAP_TARGET_44 } from "./ui/Chip";
 import { IconButton } from "./ui/IconButton";
 import { GROUP_HEADING } from "./ui/typography";
 import { ErrorBanner } from "./ErrorBanner";
+import { haptic } from "../lib/haptics";
 
 /** "10-pin" for a single, "3-10" for multi. */
 function formatLeavePins(pins: PinNumber[]): string {
@@ -575,6 +576,8 @@ export function ActiveGameScorer({
       standing
     );
     setGameState(submission.state);
+    // A cleared deck is a strike or a spare, and feels like one (ADR-160).
+    void haptic(standing.length === 0 ? "mark" : "shot");
     const frameToPersist =
       submission.savedFrame ??
       submission.state.frames.find((f) => f.frame_number === submittedFrameNumber) ??

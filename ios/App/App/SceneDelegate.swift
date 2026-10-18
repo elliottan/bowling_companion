@@ -32,11 +32,19 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 /// every entry Headpin adds, since they are written from React effects. On a
 /// simulator it moved nothing at all. So the swipe here asks the page to go
 /// back, exactly as Android's back button does in MainActivity (ADR-157).
+///
+/// It also registers the app's own Pro purchase plugin, which lives in this
+/// target rather than in a package (ADR-158).
 class HeadpinViewController: CAPBridgeViewController, UIGestureRecognizerDelegate {
     override func capacitorDidLoad() {
         super.capacitorDidLoad()
+        bridge?.registerPluginInstance(HeadpinStorePlugin())
         guard let webView = webView else { return }
         webView.allowsBackForwardNavigationGestures = false
+        // The page never scrolls as a whole (its screens scroll inside it), so
+        // the rubber band at the top and bottom of the web view only showed
+        // the app as a page being dragged about (ADR-160).
+        webView.scrollView.bounces = false
         let edge = UIScreenEdgePanGestureRecognizer(target: self, action: #selector(edgeSwiped(_:)))
         edge.edges = .left
         edge.delegate = self

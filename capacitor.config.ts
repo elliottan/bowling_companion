@@ -25,6 +25,13 @@ const config: CapacitorConfig = {
     backgroundColor: "#fff8ed"
   },
   plugins: {
+    App: {
+      // MainActivity owns Android's back button: a step back through the
+      // page's history, and out of the app from its first screen (ADR-155).
+      // The App plugin, here for opening links (ADR-159), would otherwise
+      // take the button over and never leave the app.
+      disableBackButtonHandler: true
+    },
     SystemBars: {
       // Android draws the app edge to edge (it is required from Android 15).
       // "native" leaves the page to pad itself from env(safe-area-inset-*), as

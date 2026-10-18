@@ -158,8 +158,10 @@ switch.
       first thing to check on a device, and an on-device store follows if not.
 - [ ] Umami counts from the app (ADR-120), and the privacy label to match.
 - [ ] Universal links, so a shared headpin.app link opens in the app when it is
-      installed and in the web app when it is not (an
-      `apple-app-site-association` file served by headpin.app).
+      installed and in the web app when it is not (ADR-159). The apps claim the
+      links and open their screens; left: headpin.app serving
+      `/.well-known/apple-app-site-association` (needs the Apple Team ID) and
+      `/.well-known/assetlinks.json` (needs the Play signing key's SHA-256).
 - [ ] A shared line or layout opens read-only without Pro, with the locked
       controls locked as "How Pro shows where it is locked" describes.
 
@@ -167,10 +169,11 @@ switch.
 
 - [x] One module that answers "is Pro open": `src/lib/pro.ts` and
       `useProAccess`. The web half is built, and stays open until
-      `APP_STORE_URL` is set. The app half reads the store receipt.
-- [ ] A purchase plugin with Restore purchases. No third-party purchase service
-      unless one earns its place (RevenueCat is free at this size but reports
-      purchases to its servers).
+      `APP_STORE_URL` is set. The iOS half reads the receipt (`proStore.ts`).
+- [x] A purchase plugin with Restore purchases: the app's own, on StoreKit 2
+      (`HeadpinStorePlugin.swift`, ADR-158), product `app.headpin.pro`. Try it
+      in the simulator from Xcode, with `Headpin.storekit` (the `App` scheme
+      selects it).
 - [x] The locked card, `components/ui/ProLock`, on Stats and the Alley report.
 - [x] The sandbox and the layout lab: read-only without Pro, shared links
       included, with `ProNote` saying what waits on Pro.
@@ -178,7 +181,8 @@ switch.
 ### 3. Native work and cleanup
 
 - [x] Share sheet for cards, links and backups, which saves to Files (ADR-156).
-- [ ] Haptics on the pin deck. Apple rejects a repackaged website (4.2).
+- [x] Haptics on the pin deck, no rubber band, no pinch zoom (ADR-160). Apple
+      rejects a repackaged website (4.2).
 - [ ] The first-run import steps.
 - [x] Remove the donation link and the retailer link (ADR-119), their usage
       count, and their words on the legal page.
@@ -186,6 +190,10 @@ switch.
       store does.
 
 ### 4. App Store submission
+
+- [x] The app's icon and launch screen (`scripts/native/icons.mjs`), a privacy
+      manifest, arm64, iPhone only for 1.0 (ADR-160), and no export
+      compliance question (`ITSAppUsesNonExemptEncryption`).
 
 - [ ] Screenshots, keywords and a description written for store search.
 - [ ] Review notes that explain the app works offline and what Pro unlocks.
