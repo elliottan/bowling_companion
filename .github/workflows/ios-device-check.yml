@@ -24,7 +24,9 @@ concurrency:
 
 jobs:
   ios:
-    runs-on: macos-15
+    # The Xcode and iOS a developer runs today: the app once drew a black
+    # screen on iOS 26 that the older image could not show.
+    runs-on: macos-26
     timeout-minutes: 60
     permissions:
       contents: read
@@ -56,6 +58,7 @@ jobs:
             process.exit(1);
           ')
           echo "udid=$udid" >> "$GITHUB_OUTPUT"
+          xcrun simctl list runtimes | grep -i ios
           xcrun simctl boot "$udid"
           xcrun simctl bootstatus "$udid" -b
 
