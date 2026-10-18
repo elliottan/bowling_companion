@@ -14,6 +14,11 @@ on:
       - "src/lib/platform.ts"
       - ".github/workflows/ios-device-check.yml"
 
+# A newer push makes an older run's answer moot, and macOS minutes are dear.
+concurrency:
+  group: ios-device-check-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   ios:
     runs-on: macos-15
