@@ -417,6 +417,8 @@ export async function runFlow(d: Driver, outDir: string, opts: { slow?: number; 
   });
 
   await f.check("system back steps out of Backup & restore", async () => {
+    // Only a screen that is open can prove back closes it.
+    await f.until(`__dc.dialogs().some((n) => /Backup & restore/i.test(n))`, "Backup & restore to be open", 5_000);
     await f.back();
     await f.until(`!__dc.dialogs().some((n) => /Backup & restore/i.test(n))`, "Backup & restore to close");
   });

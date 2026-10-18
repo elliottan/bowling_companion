@@ -127,23 +127,71 @@ async function main() {
     // The web view fills the screen from its top-left corner (contentInset
     // "never"), so a CSS pixel is a point on the screen.
     tapAt: (x, y) => native(() => touch([{ x, y, ms: 0 }])),
-    // Typed into whatever holds the keyboard, as XCUITest types: a raw key
-    // sequence is refused by WebDriverAgent ("Key Down ... must have a
-    // closing Key Up").
-    type: (text) =>
-      native(async () => {
-        const field = await browser.$("-ios predicate string:hasKeyboardFocus == true");
-        await field.addValue(text);
-      }),
+    // Typed by XCUITest into the native field under the page's focused input,
+    // as the keyboard would: a raw key sequence is refused by WebDriverAgent
+    // ("Key Down ... must have a closing Key Up"), and a web view's fields do
+    // not answer the hasKeyboardFocus predicate.
+    async type(text) {
+      const r = await driver.evaluate<{ x: number; y: number } | null>(
+        `(() => { const el = document.activeElement; if (!el || el === document.body) return null; const b = el.getBoundingClientRect(); return { x: b.left + b.width / 2, y: b.top + b.height / 2 }; })()`
+      );
+      if (!r) throw new Error("nothing on the page has focus to type into");
+      await native(async () => {
+        const fields = await browser.$$(
+          "-ios predicate string:type IN {'XCUIElementTypeTextField','XCUIElementTypeSearchField','XCUIElementTypeTextView','XCUIElementTypeSecureTextField'}"
+        );
+        for (const field of fields) {
+          const b = await browser.getElementRect(field.elementId);
+          if (r.x >= b.x && r.x <= b.x + b.width && r.y >= b.y && r.y <= b.y + b.height) {
+            await field.addValue(text);
+            return;
+          }
+        }
+        throw new Error(`no native text field under the focused input at ${Math.round(r.x)},${Math.round(r.y)} (${fields.length} fields)`);
+      });
+    },
+    // The left-edge swipe, tried in the forms a finger makes until the page's
+    // history moves, and logged by which one did: a synthesized touch that
+    // starts too close to the edge, or moves at once, is not always taken for
+    // the edge gesture. Nothing moving at all is a finding in its own right.
     async systemBack() {
       const { width, height } = await native(() => browser.getWindowSize());
-      await native(() =>
-        touch([
-          { x: 1, y: height / 2, ms: 0 },
-          { x: width * 0.7, y: height / 2, ms: 350 }
-        ])
-      );
-      await sleep(800);
+      const where = () =>
+        driver.evaluate<string>(`JSON.stringify([location.hash, history.state, history.length])`).catch(() => "gone");
+      const before = await where();
+      const forms: [string, () => Promise<unknown>][] = [
+        [
+          "drag from the edge",
+          () => browser.execute("mobile: dragFromToForDuration", { duration: 0.1, fromX: 2, fromY: height / 2, toX: width * 0.8, toY: height / 2 })
+        ],
+        [
+          "touch, hold, then pull",
+          () =>
+            touch([
+              { x: 3, y: height / 2, ms: 0 },
+              { x: 4, y: height / 2, ms: 120 },
+              { x: width * 0.2, y: height / 2, ms: 120 },
+              { x: width * 0.8, y: height / 2, ms: 300 }
+            ])
+        ],
+        [
+          "quick flick",
+          () =>
+            touch([
+              { x: 1, y: height / 2, ms: 0 },
+              { x: width * 0.7, y: height / 2, ms: 350 }
+            ])
+        ]
+      ];
+      for (const [name, swipe] of forms) {
+        await native(swipe);
+        await sleep(1000);
+        if (!(await driver.appInForeground()) || (await where()) !== before) {
+          console.log(`  edge swipe: "${name}" moved back`);
+          return;
+        }
+      }
+      console.log(`  edge swipe: no form moved the page's history (${before})`);
     },
     // The share sheet closes on a tap on the dimmed app above it.
     async dismissSystemSheet() {
