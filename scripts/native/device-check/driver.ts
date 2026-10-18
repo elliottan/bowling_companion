@@ -15,6 +15,8 @@ export interface Driver {
   type(text: string): Promise<void>;
   /** The platform's own back: Android's back button, iOS's edge swipe. */
   systemBack(): Promise<void>;
+  /** Close a sheet the platform drew over the app, such as the share sheet. */
+  dismissSystemSheet(): Promise<void>;
   /** Whether the app is the one in front, after a back that may leave it. */
   appInForeground(): Promise<boolean>;
   /** Bring the app back to the front after it was left. */

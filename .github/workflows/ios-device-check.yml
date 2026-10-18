@@ -10,7 +10,10 @@ on:
     paths:
       - "ios/**"
       - "capacitor.config.ts"
-      - "scripts/native/**"
+      - "scripts/native/device-check/flow.ts"
+      - "scripts/native/device-check/driver.ts"
+      - "scripts/native/device-check/ios.ts"
+      - "scripts/native/assemble.ts"
       - "src/lib/platform.ts"
       - ".github/workflows/ios-device-check.yml"
 

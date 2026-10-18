@@ -10,7 +10,10 @@ on:
     paths:
       - "android/**"
       - "capacitor.config.ts"
-      - "scripts/native/**"
+      - "scripts/native/device-check/flow.ts"
+      - "scripts/native/device-check/driver.ts"
+      - "scripts/native/device-check/android.ts"
+      - "scripts/native/assemble.ts"
       - "src/lib/platform.ts"
       - "src/lib/nativeShare.ts"
       - ".github/workflows/android-device-check.yml"

@@ -52,7 +52,10 @@ const PAGE_HELPERS = String.raw`
       if (!scope) return null;
       const re = new RegExp(label, "i");
       const els = [...scope.querySelectorAll(kinds || CONTROLS)].filter(
-        (el) => visible(el) && !el.disabled && re.test(nameOf(el))
+        (el) =>
+          visible(el) &&
+          !el.disabled &&
+          (re.test(nameOf(el)) || re.test(el.getAttribute("placeholder") || ""))
       );
       // The topmost match: the last in document order is the one stacked
       // above the rest, the way a sheet sits over the screen it came from.
@@ -103,7 +106,9 @@ export class Flow {
   }
 
   async js<T>(expression: string): Promise<T> {
-    return this.d.evaluate<T>(`(${PAGE_HELPERS}, ${expression})`);
+    // The helpers are a statement; the comma joins them to the expression as
+    // one expression, which leaves no room for the statement's semicolon.
+    return this.d.evaluate<T>(`(${PAGE_HELPERS.trim().replace(/;$/, "")}, ${expression})`);
   }
 
   /** Poll until `expression` is truthy, scaled for a slow emulator. */
@@ -218,18 +223,22 @@ export async function runFlow(d: Driver, outDir: string, opts: { slow?: number; 
     await f.snap("home");
   });
 
-  await f.check(`ball catalog loads (${opts.online ? "online" : "offline, from the built-in snapshot"})`, async () => {
-    const n = (await f.until(`__dc.count("ball_catalog").then((n) => n > 100 && n)`, "catalog rows", 180_000)) as number;
-    return `${n} balls`;
-  });
-
   await f.check("pattern catalog seeds the bowler's patterns", async () => {
     const n = (await f.until(`__dc.count("oil_patterns").then((n) => n > 10 && n)`, "pattern rows", 120_000)) as number;
     return `${n} patterns`;
   });
 
+  await f.check(`ball catalog loads when the catalog opens (${opts.online ? "online" : "offline, from the built-in snapshot"})`, async () => {
+    // Launch only syncs it for an arsenal with catalog balls in it (ADR-143);
+    // the catalog screen always does.
+    await f.toTabs();
+    await f.tap("^Home$", undefined, "nav button, [role=navigation] button");
+    await f.tap("^Ball catalog");
+    const n = (await f.until(`__dc.count("ball_catalog").then((n) => n > 100 && n)`, "catalog rows", 180_000)) as number;
+    return `${n} balls`;
+  });
+
   await f.check("catalog screen: search, and photos load from headpin.app", async () => {
-    await f.tap("^Catalog$");
     await f.fill("Search name, brand, coverstock", "phaze");
     await f.until(`__dc.find("Phaze")`, "a Phaze in the results");
     const srcs = await f.js<string[]>(`[...document.images].map((i) => i.getAttribute("src")).filter((s) => s && s.includes("/catalog/img/"))`);
@@ -315,12 +324,13 @@ export async function runFlow(d: Driver, outDir: string, opts: { slow?: number; 
   });
 
   await f.check("oil patterns open, and a pattern draws on the lane", async () => {
-    await f.tap("^Settings$", undefined, "nav button, [role=navigation] button");
+    await f.toTabs();
+    await f.tap("^Home$", undefined, "nav button, [role=navigation] button");
     await f.tap("^Oil patterns");
     await f.until(`__dc.dialogs().some((n) => /Oil patterns/i.test(n))`, "the pattern list");
     await f.snap("patterns");
     await d.systemBack();
-    await f.until(`!__dc.dialogs().some((n) => /Oil patterns/i.test(n))`, "back to Settings");
+    await f.until(`!__dc.dialogs().some((n) => /Oil patterns/i.test(n))`, "back to Home");
   });
 
   await f.check("line sandbox and layout lab open", async () => {
@@ -335,25 +345,35 @@ export async function runFlow(d: Driver, outDir: string, opts: { slow?: number; 
     await f.toTabs();
   });
 
-  await f.check("backup: Save a backup reaches the platform", async () => {
+  await f.check("backup: Save a backup opens the platform's share sheet", async () => {
     await f.tap("^Settings$", undefined, "nav button, [role=navigation] button");
-    await f.tap("^Backup & restore$");
-    const share = await f.js<boolean>(`typeof navigator.share === "function" && typeof navigator.canShare === "function"`);
-    // Record what the page does with the file, since neither path shows up in
-    // the page if the platform drops it.
+    await f.tap("^Backup & restore");
+    // Record every call the page makes to a native plugin, and any download it
+    // tries: a file the platform drops leaves no trace in the page otherwise
+    // (ADR-156).
     await f.js(`(() => {
       window.__dcSaved = [];
+      const cap = window.Capacitor;
+      const call = cap.nativePromise;
+      cap.nativePromise = (plugin, method, options) => {
+        window.__dcSaved.push(plugin + "." + method + (options && options.path ? ":" + options.path : ""));
+        return call.call(cap, plugin, method, options);
+      };
       const click = HTMLAnchorElement.prototype.click;
       HTMLAnchorElement.prototype.click = function () { window.__dcSaved.push("download:" + this.download); return click.call(this); };
-      if (navigator.share) { const s = navigator.share.bind(navigator); navigator.share = (data) => { window.__dcSaved.push("share"); return s(data); }; }
       return true;
     })()`);
     await f.tap("^Save a backup$");
-    await new Promise((r) => setTimeout(r, 3000));
+    await f.until(`window.__dcSaved.some((c) => c.startsWith("Share.share"))`, "the share sheet to be asked for", 30_000);
+    await new Promise((r) => setTimeout(r, 2000 * (opts.slow ?? 1)));
+    await f.snap("backup-share-sheet");
     const saved = await f.js<string[]>("window.__dcSaved");
-    await f.snap("backup-saved");
-    if (saved.length === 0) throw new Error("the page offered the file to nothing");
-    return `${saved.join(", ")}; Web Share ${share ? "available" : "missing"}`;
+    if (saved.some((c) => c.startsWith("download:"))) throw new Error("the page tried a download, which the app's web view drops");
+    await d.dismissSystemSheet();
+    await new Promise((r) => setTimeout(r, 1500 * (opts.slow ?? 1)));
+    if (!(await d.appInForeground())) throw new Error("closing the sheet left the app");
+    await f.snap("backup-sheet-closed");
+    return saved.join(", ");
   });
 
   await f.check("system back steps out of Backup & restore", async () => {

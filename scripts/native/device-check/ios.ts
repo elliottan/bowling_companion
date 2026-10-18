@@ -134,6 +134,11 @@ async function main() {
       );
       await sleep(800);
     },
+    // The share sheet closes on a tap on the dimmed app above it.
+    async dismissSystemSheet() {
+      const { width } = await native(() => browser.getWindowSize());
+      await native(() => touch([{ x: width / 2, y: 80, ms: 0 }]));
+    },
     async appInForeground() {
       const state = await native(() => browser.execute("mobile: queryAppState", { bundleId: BUNDLE }));
       return state === 4;

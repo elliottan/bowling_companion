@@ -116,6 +116,9 @@ async function main() {
       adb("shell", "input", "keyevent", "KEYCODE_BACK");
       await sleep(500 * slow);
     },
+    async dismissSystemSheet() {
+      adb("shell", "input", "keyevent", "KEYCODE_BACK");
+    },
     async appInForeground() {
       const focus = adb("shell", "dumpsys", "window").match(/mCurrentFocus=.*/)?.[0] ?? "";
       return focus.includes(PACKAGE);
