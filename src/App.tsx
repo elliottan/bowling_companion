@@ -11,6 +11,7 @@ import {
   useCallback,
   useEffect,
   useLayoutEffect,
+  useMemo,
   useReducer,
   useRef,
   useState
@@ -41,7 +42,9 @@ import { warmArsenalImages } from "./services/ballImageCache";
 import { syncCatalogForArsenal } from "./services/ballCatalogRepository";
 import type { NewSessionFormValues } from "./components/SessionForm";
 import { HandednessContext } from "./lib/handednessContext";
-import { useProAccess } from "./lib/useProAccess";
+import { ProAccessContext, ProStoreContext } from "./lib/useProAccess";
+import { appProAccess } from "./lib/pro";
+import { useProStore } from "./lib/proStore";
 import { ProNote } from "./components/ui/ProLock";
 import { DriftModelContext } from "./lib/driftModelContext";
 import { DEFAULT_DRIFT_MODEL, type DriftModel } from "./lib/driftModel";
@@ -179,7 +182,10 @@ function App() {
   // A line someone sent, read once at first render for the same reason the
   // layout lab reads its own link there: the sandbox should open on the line,
   // never on a flash of the default one before it arrives (ADR-110).
-  const pro = useProAccess();
+  // Pro, as this copy offers it: the purchase in the iOS app, the web's answer
+  // anywhere else (ADR-154, ADR-158). Provided below to every locked card.
+  const proStore = useProStore();
+  const pro = useMemo(() => appProAccess(proStore), [proStore]);
   const [sharedLine] = useState(() => decodeLineParams(currentSearch()));
   // A realistic strike line; auto-hooks to the pocket (ADR-024), no seeded breakpoint.
   const [sandboxLine, setSandboxLine] = useState<LineSpec | undefined>(
@@ -502,6 +508,8 @@ function App() {
   }
 
   return (
+    <ProAccessContext.Provider value={pro}>
+    <ProStoreContext.Provider value={proStore}>
     <HandednessContext.Provider value={handedness ?? "right"}>
     <DriftModelContext.Provider value={driftModel}>
     {/* `fixed inset-0` is load-bearing, not cosmetic, see the note above. */}
@@ -810,6 +818,8 @@ function App() {
     </div>
     </DriftModelContext.Provider>
     </HandednessContext.Provider>
+    </ProStoreContext.Provider>
+    </ProAccessContext.Provider>
   );
 }
 

@@ -4,13 +4,9 @@
  * it, so on the web a Pro card points at the App Store instead.
  */
 
-/**
- * The app's App Store page. Null until the app is listed, and null keeps every
- * feature open: locking what nobody can buy yet would only take it away. Set it
- * in the same release the iOS app goes live, with a minor version bump, since
- * that is when a bowler first sees a locked card.
- */
-export const APP_STORE_URL: string | null = null;
+import { APP_STORE_URL } from "./appStore";
+
+export { APP_STORE_URL, appStoreId } from "./appStore";
 
 /**
  * The free web app, where the landing page, guides and shared links send a
@@ -25,7 +21,34 @@ export const FREE_APP_PATH = "/app";
  */
 export const OWNER_APP_PATH = "/score";
 
-export type ProAccess = { locked: false } | { locked: true; appStoreUrl: string };
+/** How a purchase the bowler started ended: bought, closed, or waiting on
+ *  someone else (Ask to Buy, a payment still clearing). A store failure throws. */
+export type PurchaseOutcome = "purchased" | "cancelled" | "pending";
+
+/**
+ * Pro as the iOS app sells it (ADR-158): whether this Apple ID owns it, what it
+ * costs in the bowler's own currency (null until the App Store answers), and
+ * the two things a bowler can do about it.
+ */
+export interface ProStore {
+  owned: boolean;
+  price: string | null;
+  buy(): Promise<PurchaseOutcome>;
+  /** Asks the App Store again; true when this Apple ID owns Pro. */
+  restore(): Promise<boolean>;
+}
+
+/**
+ * Whether Pro is open here, and when it is not, how to get it: the App Store
+ * page from the web, or the purchase itself in the iOS app.
+ */
+export type ProAccess =
+  | { locked: false }
+  | { locked: true; appStoreUrl: string }
+  | { locked: true; store: ProStore };
+
+/** A locked answer, whichever way it is unlocked. */
+export type LockedProAccess = Extract<ProAccess, { locked: true }>;
 
 export const PRO_OPEN: ProAccess = { locked: false };
 
@@ -43,6 +66,14 @@ export function webProAccess(
 ): ProAccess {
   if (isOwnerPath(pathname)) return PRO_OPEN;
   return appStoreUrl ? { locked: true, appStoreUrl } : PRO_OPEN;
+}
+
+/** What the app offers: the purchase where it sells Pro (the iOS app), and
+ *  the web's answer anywhere else, which keeps everything open until Pro can
+ *  be bought there (the Android app, until Play Billing). */
+export function appProAccess(store: ProStore | null): ProAccess {
+  if (!store) return webProAccess();
+  return store.owned ? PRO_OPEN : { locked: true, store };
 }
 
 /** Hands the App Store link to the platform, which opens the App Store app on

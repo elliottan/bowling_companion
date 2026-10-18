@@ -1,7 +1,7 @@
-import { useEffect, useRef, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Lock } from "lucide-react";
 import { Button } from "./Button";
-import { openAppStore } from "../../lib/pro";
+import { openAppStore, type LockedProAccess } from "../../lib/pro";
 import { useProAccess } from "../../lib/useProAccess";
 
 /**
@@ -34,7 +34,6 @@ export function ProLock({
   }, [locked]);
 
   if (!access.locked || !pro) return <>{children}</>;
-  const { appStoreUrl } = access;
 
   return (
     <div className="relative">
@@ -46,9 +45,7 @@ export function ProLock({
           <Lock size={14} aria-hidden="true" />
           {what}
         </p>
-        <Button variant="primary" onClick={() => openAppStore(appStoreUrl)}>
-          Get the app
-        </Button>
+        <ProAction access={access} />
       </div>
     </div>
   );
@@ -63,7 +60,6 @@ export function ProLock({
 export function ProNote({ what, lane = false }: { what: string; lane?: boolean }) {
   const access = useProAccess();
   if (!access.locked) return null;
-  const { appStoreUrl } = access;
   return (
     <div
       className={
@@ -76,9 +72,62 @@ export function ProNote({ what, lane = false }: { what: string; lane?: boolean }
         <Lock size={14} aria-hidden="true" />
         {what}
       </p>
-      <Button variant="primary" className="shrink-0" onClick={() => openAppStore(appStoreUrl)}>
+      <ProAction access={access} lane={lane} className="shrink-0" />
+    </div>
+  );
+}
+
+/**
+ * The one action a locked card offers. On the web, the App Store page. In the
+ * iOS app, the purchase itself (ADR-158): Apple's own sheet takes it from the
+ * tap, and the card opens by itself once it is bought, here and everywhere.
+ */
+export function ProAction({
+  access,
+  lane = false,
+  className = ""
+}: {
+  access: LockedProAccess;
+  lane?: boolean;
+  className?: string;
+}) {
+  const [state, setState] = useState<"idle" | "busy" | "pending" | "failed">("idle");
+
+  if ("appStoreUrl" in access) {
+    const { appStoreUrl } = access;
+    return (
+      <Button variant="primary" className={className} onClick={() => openAppStore(appStoreUrl)}>
         Get the app
       </Button>
-    </div>
+    );
+  }
+
+  const { store } = access;
+  async function buy() {
+    setState("busy");
+    try {
+      setState((await store.buy()) === "pending" ? "pending" : "idle");
+    } catch {
+      setState("failed");
+    }
+  }
+  const note =
+    state === "pending"
+      ? "Waiting for approval. Pro opens as soon as it comes through."
+      : state === "failed"
+        ? "The App Store did not answer. Try again in a moment."
+        : null;
+
+  return (
+    <span className={`flex flex-col items-center gap-1 ${className}`}>
+      <Button variant="primary" disabled={state === "busy"} onClick={() => void buy()}>
+        {store.price ? `Get Headpin Pro, ${store.price}` : "Get Headpin Pro"}
+      </Button>
+      {note && (
+        <span role="status" className={`max-w-56 text-center text-xs ${lane ? "text-white/80" : "text-ink-secondary"}`}>
+          {note}
+        </span>
+      )}
+    </span>
   );
 }

@@ -1,4 +1,4 @@
-import { Archive, ArrowUpRight, ChevronRight, Download, MessageSquare, Palette, ScrollText, UserRound, UserRoundCog } from "lucide-react";
+import { Archive, ArrowUpRight, Check, ChevronRight, Download, MessageSquare, Palette, RotateCcw, ScrollText, Sparkles, UserRound, UserRoundCog } from "lucide-react";
 import { AppearanceView } from "./AppearanceView";
 import { BowlingProfileView } from "./BowlingProfileView";
 import { getBowlerName, getGripStyle, getSetting } from "../services/bowlingRepository";
@@ -9,6 +9,8 @@ import type { DriftModel } from "../lib/driftModel";
 import { LEGAL_URL } from "../lib/links";
 import { openFeedbackEmail } from "../lib/diagnostics";
 import { ListGroup, ListRow } from "../components/ui/ListGroup";
+import { useProStoreContext } from "../lib/useProAccess";
+import type { ProStore } from "../lib/pro";
 import { BowlingBallIcon, LanePairIcon, SpareLineIcon } from "../components/icons";
 
 // Navigating to a section is a navigation action, so the union lives with the
@@ -218,6 +220,8 @@ function SettingsMenu({
         />
       </ListGroup>
 
+      <ProSection />
+
       <ListGroup heading="Support">
         <ListRow
           icon={MessageSquare}
@@ -259,5 +263,73 @@ function SettingsMenu({
         <BowlerNameSheet name={name} onClose={() => setEditingName(false)} />
       )}
     </section>
+  );
+}
+
+/**
+ * Headpin Pro, where the app sells it (the iOS app, ADR-158): bought or not,
+ * and Restore purchase, which App Review requires and a bowler on a new phone
+ * needs. Nothing on the web, where Pro is not sold.
+ */
+function ProSection() {
+  const store = useProStoreContext();
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
+  if (!store) return null;
+
+  async function run(action: (s: ProStore) => Promise<string | null>) {
+    if (busy || !store) return;
+    setBusy(true);
+    setMessage(null);
+    try {
+      setMessage(await action(store));
+    } catch {
+      setMessage("The App Store did not answer. Try again in a moment.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const buy = () =>
+    run(async (s) => {
+      const outcome = await s.buy();
+      return outcome === "pending" ? "Waiting for approval. Pro opens as soon as it comes through." : null;
+    });
+  const restore = () =>
+    run(async (s) =>
+      (await s.restore()) ? "Headpin Pro is restored." : "This Apple ID has not bought Headpin Pro."
+    );
+
+  return (
+    <div className="space-y-2">
+      <ListGroup heading="Headpin Pro">
+        {store.owned ? (
+          <ListRow
+            icon={Sparkles}
+            label="Headpin Pro"
+            description="Unlocked. Thank you for backing Headpin."
+            trailing={<Check size={16} aria-hidden="true" className="shrink-0 text-accent" />}
+          />
+        ) : (
+          <ListRow
+            icon={Sparkles}
+            label="Get Headpin Pro"
+            description={`${store.price ? `${store.price}, once` : "One purchase"}: every analysis, for good`}
+            onClick={() => void buy()}
+          />
+        )}
+        <ListRow
+          icon={RotateCcw}
+          label="Restore purchase"
+          description="Bought Pro before on this Apple ID"
+          onClick={() => void restore()}
+        />
+      </ListGroup>
+      {message && (
+        <p role="status" className="px-1 text-sm text-ink-secondary">
+          {message}
+        </p>
+      )}
+    </div>
   );
 }

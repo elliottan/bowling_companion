@@ -4,6 +4,8 @@ import { SettingsView } from "./SettingsView";
 import { db } from "../db/bowlingDb";
 import { DEFAULT_DRIFT_MODEL } from "../lib/driftModel";
 import { getBowlerName, setBowlerName, setSetting } from "../services/bowlingRepository";
+import { ProStoreContext } from "../lib/useProAccess";
+import type { ProStore } from "../lib/pro";
 
 function renderMenu(onSectionChange = vi.fn()) {
   render(
@@ -123,5 +125,74 @@ describe("SettingsView", () => {
     await waitFor(() =>
       expect(screen.getByRole("button", { name: /Last backup/ })).toBeInTheDocument()
     );
+  });
+});
+
+describe("SettingsView's Headpin Pro", () => {
+  beforeEach(async () => {
+    await db.delete();
+    await db.open();
+  });
+
+  function renderWithStore(store: ProStore | null) {
+    render(
+      <ProStoreContext.Provider value={store}>
+        <SettingsView
+          section="menu"
+          onSectionChange={vi.fn()}
+          handedness="right"
+          onHandednessChange={vi.fn()}
+          driftModel={DEFAULT_DRIFT_MODEL}
+          onDriftModelChange={vi.fn()}
+          onOpenBackup={vi.fn()}
+          onOpenLineVisualizer={vi.fn()}
+          onOpenArsenal={vi.fn()}
+          onOpenSpareLines={vi.fn()}
+          onOpenLaneNotes={vi.fn()}
+        />
+      </ProStoreContext.Provider>
+    );
+  }
+
+  const base: ProStore = { owned: false, price: "$9.99", buy: async () => "cancelled", restore: async () => false };
+
+  it("is not there on the web, where Pro is not sold", () => {
+    renderWithStore(null);
+    expect(screen.queryByText("Restore purchase")).not.toBeInTheDocument();
+  });
+
+  it("offers Pro at its price, and buys it", async () => {
+    const buy = vi.fn(async () => "purchased" as const);
+    renderWithStore({ ...base, buy });
+    expect(screen.getByText("$9.99, once: every analysis, for good")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: /Get Headpin Pro/ }));
+    await waitFor(() => expect(buy).toHaveBeenCalledTimes(1));
+  });
+
+  it("says when a purchase waits on approval", async () => {
+    renderWithStore({ ...base, buy: async () => "pending" });
+    fireEvent.click(screen.getByRole("button", { name: /Get Headpin Pro/ }));
+    expect(await screen.findByRole("status")).toHaveTextContent("Waiting for approval");
+  });
+
+  it("shows Pro as unlocked once it is owned", () => {
+    renderWithStore({ ...base, owned: true });
+    expect(screen.getByText("Unlocked. Thank you for backing Headpin.")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Get Headpin Pro/ })).not.toBeInTheDocument();
+  });
+
+  it("restores a purchase, and says when there is none", async () => {
+    const restore = vi.fn().mockResolvedValueOnce(true).mockResolvedValueOnce(false);
+    renderWithStore({ ...base, restore });
+    fireEvent.click(screen.getByRole("button", { name: /Restore purchase/ }));
+    expect(await screen.findByRole("status")).toHaveTextContent("Headpin Pro is restored.");
+    fireEvent.click(screen.getByRole("button", { name: /Restore purchase/ }));
+    await waitFor(() => expect(screen.getByRole("status")).toHaveTextContent("This Apple ID has not bought Headpin Pro."));
+  });
+
+  it("says when the App Store does not answer", async () => {
+    renderWithStore({ ...base, restore: () => Promise.reject(new Error("offline")) });
+    fireEvent.click(screen.getByRole("button", { name: /Restore purchase/ }));
+    expect(await screen.findByRole("status")).toHaveTextContent("did not answer");
   });
 });

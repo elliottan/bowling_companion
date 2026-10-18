@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from "vitest";
-import { APP_STORE_URL, FREE_APP_PATH, PRO_OPEN, isOwnerPath, openAppStore, webProAccess } from "./pro";
+import { APP_STORE_URL, FREE_APP_PATH, PRO_OPEN, appProAccess, appStoreId, isOwnerPath, openAppStore, webProAccess } from "./pro";
 
 describe("webProAccess", () => {
   it("keeps everything open until the app is listed", () => {
@@ -38,5 +38,32 @@ describe("openAppStore", () => {
     Object.defineProperty(window, "location", { value: location, configurable: true });
     openAppStore("https://apps.apple.com/app/id1");
     expect(location.href).toBe("https://apps.apple.com/app/id1");
+  });
+});
+
+describe("appStoreId", () => {
+  it("reads the numeric id from an App Store URL", () => {
+    expect(appStoreId("https://apps.apple.com/us/app/headpin/id6740000001")).toBe("6740000001");
+  });
+
+  it("has none until the app is listed", () => {
+    expect(appStoreId(null)).toBeNull();
+    expect(appStoreId("https://headpin.app")).toBeNull();
+  });
+});
+
+describe("appProAccess", () => {
+  const store = { owned: false, price: "$9.99", buy: async () => "purchased" as const, restore: async () => false };
+
+  it("locks with the purchase until this Apple ID owns Pro", () => {
+    expect(appProAccess(store)).toEqual({ locked: true, store });
+  });
+
+  it("opens everything once Pro is owned", () => {
+    expect(appProAccess({ ...store, owned: true })).toEqual(PRO_OPEN);
+  });
+
+  it("answers as the web does where nothing sells Pro", () => {
+    expect(appProAccess(null)).toEqual(webProAccess());
   });
 });

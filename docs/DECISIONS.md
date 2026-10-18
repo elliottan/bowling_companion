@@ -7322,3 +7322,120 @@ way, and the page decides what one step back closes.
   header's back control.
 - On the first screen a swipe does nothing, rather than leaving the app, which
   is what an iOS app's edge swipe does there anyway.
+
+## ADR-158: The iOS app sells Pro through its own StoreKit 2 plugin
+
+**Status.** Accepted, 2026-10-18. Follows ADR-154 and ADR-155. The split of
+free and Pro is the table in `docs/PRO-LAUNCH.md`, confirmed by the owner when
+asking for Pro to be built.
+
+**Context.** ADR-154 sells Pro as one non-consumable purchase inside the store
+apps, with no accounts and no server. The gating was already built and stayed
+open everywhere until something could sell Pro. The iOS app needs the purchase
+itself, a way to restore it on a new phone (App Review requires one), and an
+answer to "is Pro owned" that works at an alley with no signal. A purchase
+service such as RevenueCat would do the bookkeeping, but it reports every
+purchase to its servers, and the app keeps nothing about a bowler off the phone.
+
+**Decision.**
+
+- **The app carries a small Capacitor plugin of its own,
+  `ios/App/App/HeadpinStorePlugin.swift`, on StoreKit 2.** It answers four
+  things: the product's price in the bowler's currency, buy it, which products
+  this Apple ID owns, and restore. `Transaction.currentEntitlements` answers
+  ownership from the phone's own copy of the receipts, offline too, and
+  `Transaction.updates` reports a purchase that finishes away from the tap (Ask
+  to Buy, a refund). `HeadpinViewController` registers it.
+- **The receipt is the truth; the page keeps a copy of the last answer**
+  (`src/lib/proStore.ts`), so an owner never sees a locked card flash while
+  StoreKit is asked again, and asks again on every launch. A purchase or a
+  restore that lands first is never overwritten by the launch's older answer.
+- **The product is `app.headpin.pro`.** App Store Connect must name the same id.
+  `ios/App/App/Headpin.storekit`, selected in the shared `App` scheme, lets a
+  purchase be tried in the simulator from Xcode with no App Store Connect at all.
+- **A locked card in the iOS app offers the purchase itself** ("Get Headpin Pro"
+  with the App Store's own price), where the web offers "Get the app". Settings
+  carries the purchase, its state once bought, and Restore purchase.
+- **Only the iOS app sells Pro.** The Android app keeps everything open until
+  Play Billing is in (PRO-LAUNCH, phase 5), because locking what nobody can buy
+  would only take it away. The web is unchanged: open until `APP_STORE_URL` is
+  set.
+
+**Consequences.**
+
+- The device check (`scripts/native/device-check/flow.ts`) proves the iOS app
+  locks and offers the purchase and Restore purchase, and that Android does
+  not. The purchase itself needs Apple's sheet, so it is tried by hand.
+- Nothing about a purchase leaves the phone, so there is no purchase data to
+  declare in the App Store privacy label.
+- Moving Android onto Play Billing is a second implementation of the same four
+  calls, behind the same `ProStore`.
+
+## ADR-159: A headpin.app link opens in the app when the app is installed
+
+**Status.** Accepted, 2026-10-18. Follows ADR-155.
+
+**Context.** Shared lines, layouts and guides are how new bowlers find Headpin
+(ADR-154), and every one is a headpin.app link, so that it opens for anyone. A
+bowler with the app should land in the app, on the same screen, and one
+without it should land in the web app with a way to the store.
+
+**Decision.**
+
+- **The site vouches for the apps.** iOS universal links
+  (`ios/App/App/App.entitlements`, `applinks:headpin.app`) and Android App Links
+  (the `autoVerify` filter in `AndroidManifest.xml`) claim `/app`, `/app/...` and
+  `/guides/...`. Not `/score`, the owner's copy (ADR-154). headpin.app serves
+  `/.well-known/apple-app-site-association` and `/.well-known/assetlinks.json`
+  as JSON (`vercel.json`); those two files name the Apple Team ID and the
+  Android signing key, and are added once those exist (PRO-LAUNCH, phase 0).
+- **The app opens the link's own screen** (`src/lib/deepLink.ts`): the free
+  app's query and hash carry over as they are, since the app reads a shared
+  line or layout from its address on load, and a guide's page goes straight to
+  the guide. A link that cold-starts the app is opened once, so the reload it
+  causes cannot loop.
+- **The web offers the app.** Once `APP_STORE_URL` is set, every page the build
+  writes carries Safari's Smart App Banner (`vite.config.ts`), which offers to
+  open the app, or get it.
+- **The entitlement is signed into Release builds only.** A personal (free)
+  Apple team cannot sign Associated Domains, and a Debug build for the
+  simulator should keep building for anyone without the paid program.
+
+**Consequences.**
+
+- Until the two `.well-known` files are served, a link still opens the web app,
+  as it does today.
+- A link opened in the app reloads its page, which is how the app reads a
+  shared line, the same as the web app opening one.
+
+## ADR-160: The store apps drop what makes them feel like a web page
+
+**Status.** Accepted, 2026-10-18. Follows ADR-155.
+
+**Context.** App Review rejects "a repackaged website" (guideline 4.2), and the
+owner wants the parts that feel like a web page made native over time. Text
+selection, the long-press callout and the tap flash were already off
+everywhere (`index.css`). What was left: the web view's rubber band, pinch zoom,
+and no haptics.
+
+**Decision.**
+
+- **The iOS web view does not bounce** (`HeadpinViewController`): the page never
+  scrolls as a whole, its screens scroll inside it, so the rubber band only ever
+  dragged the whole app about.
+- **Pinch zoom is off in the apps only** (`src/lib/nativeChrome.ts`). The web
+  app keeps it for low-vision readers, as the axe check requires; the phones
+  offer their own system zoom to any app.
+- **Haptics** (`src/lib/haptics.ts`, `@capacitor/haptics`): a light tap for a
+  pin on the deck, a firmer one for a recorded ball, and a success for a ball
+  that clears the deck. Nothing on the web.
+- **iPhone only for 1.0.** The project shipped to iPad too, in every
+  orientation, which is where the rotation bug in `docs/VIEWPORT-BUG.md` lives.
+  iPad comes back as its own decision.
+
+**Consequences.**
+
+- The keyboard's accessory bar stays: its Done button is the only way to put
+  away a number pad. Hiding it is a choice for later, with the keyboard plugin.
+- Rewriting screens natively stays the owner's longer plan (ADR-155); none of
+  this needs it.

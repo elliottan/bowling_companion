@@ -2,6 +2,8 @@ import { describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { ProLock, ProNote } from "./ProLock";
 import { ProAccessContext } from "../../lib/useProAccess";
+import type { ProAccess, ProStore } from "../../lib/pro";
+import { waitFor } from "@testing-library/react";
 
 const store = vi.hoisted(() => ({ opened: [] as string[] }));
 vi.mock("../../lib/pro", async (importOriginal) => {
@@ -11,7 +13,7 @@ vi.mock("../../lib/pro", async (importOriginal) => {
 
 const LOCKED = { locked: true as const, appStoreUrl: "https://apps.apple.com/app/id1" };
 
-function renderLock(access: typeof LOCKED | { locked: false }, pro?: boolean) {
+function renderLock(access: ProAccess, pro?: boolean) {
   render(
     <ProAccessContext.Provider value={access}>
       <ProLock what="How each ball strikes" pro={pro}>
@@ -72,5 +74,50 @@ describe("ProNote", () => {
     expect(screen.getByText("Moving the line is in the Headpin app")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Get the app" }));
     expect(store.opened).toEqual(["https://apps.apple.com/app/id1"]);
+  });
+});
+
+describe("ProLock in the iOS app", () => {
+  function storeWith(buy: ProStore["buy"], price: string | null = "$9.99"): ProStore {
+    return { owned: false, price, buy, restore: async () => false };
+  }
+
+  it("offers the purchase at the App Store's own price", async () => {
+    const buy = vi.fn(async () => "purchased" as const);
+    renderLock({ locked: true, store: storeWith(buy) });
+    fireEvent.click(screen.getByRole("button", { name: "Get Headpin Pro, $9.99" }));
+    await waitFor(() => expect(buy).toHaveBeenCalledTimes(1));
+  });
+
+  it("names the purchase without a price until the store answers", () => {
+    renderLock({ locked: true, store: storeWith(async () => "cancelled", null) });
+    expect(screen.getByRole("button", { name: "Get Headpin Pro" })).toBeInTheDocument();
+  });
+
+  it("says when a purchase is waiting on approval", async () => {
+    renderLock({ locked: true, store: storeWith(async () => "pending") });
+    fireEvent.click(screen.getByRole("button", { name: /Get Headpin Pro/ }));
+    expect(await screen.findByRole("status")).toHaveTextContent("Waiting for approval");
+  });
+
+  it("says when the App Store did not answer, and lets the bowler try again", async () => {
+    renderLock({
+      locked: true,
+      store: storeWith(async () => {
+        throw new Error("offline");
+      })
+    });
+    fireEvent.click(screen.getByRole("button", { name: /Get Headpin Pro/ }));
+    expect(await screen.findByRole("status")).toHaveTextContent("did not answer");
+    expect(screen.getByRole("button", { name: /Get Headpin Pro/ })).toBeEnabled();
+  });
+
+  it("puts the purchase on a read-only screen's note too", () => {
+    render(
+      <ProAccessContext.Provider value={{ locked: true, store: storeWith(async () => "cancelled") }}>
+        <ProNote what="Moving the line is Pro" lane />
+      </ProAccessContext.Provider>
+    );
+    expect(screen.getByRole("button", { name: "Get Headpin Pro, $9.99" })).toBeInTheDocument();
   });
 });
