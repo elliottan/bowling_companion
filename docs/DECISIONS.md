@@ -7294,3 +7294,31 @@ on first use, so the web bundle never loads them.
   library is killed when it tries.
 - This is the share sheet and Files export PRO-LAUNCH lists against App Store
   guideline 4.2.
+
+## ADR-157: The iOS app's edge swipe asks the page to go back
+
+**Status.** Accepted, 2026-10-18. Follows ADR-041 and ADR-155.
+
+**Context.** Back in Headpin is the page's history (ADR-041): every screen and
+sheet is a history entry, and `popstate` is the one place a step back is
+applied. ADR-155 turned on WebKit's own swipe (`allowsBackForwardNavigationGestures`)
+for that. On the iOS simulator it closed nothing: with six entries on the
+stack, a swipe from the left edge left the page where it was, in every form of
+the gesture the device check tried. WebKit's swipe walks its own back-forward
+list, which passes over entries a page adds with `pushState` outside a tap's
+event, and Headpin adds every entry from a React effect, after the tap.
+Others report the same swipe jumping to the first page of a single-page app.
+
+**Decision.** WebKit's swipe is off, and `HeadpinViewController` carries a
+left-edge pan of its own that calls `history.back()` in the page once the
+pull is far or quick enough to mean it. That is the path Android's back button
+already takes (`MainActivity`), so both apps reach the page's back the same
+way, and the page decides what one step back closes.
+
+**Consequences.**
+
+- The swipe no longer slides a snapshot of the previous page in under the
+  finger; the screen's own exit plays when the step lands, as it does for the
+  header's back control.
+- On the first screen a swipe does nothing, rather than leaving the app, which
+  is what an iOS app's edge swipe does there anyway.

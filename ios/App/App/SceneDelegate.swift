@@ -23,13 +23,37 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     }
 }
 
-/// Capacitor's view controller, with the edge swipe turned on. Back in Headpin
-/// goes through the page's history (ADR-041): every screen and sheet is a
-/// history entry, so the swipe from the left edge steps back through them the
-/// way it does in Safari, and the page's own back handling sees each step.
-class HeadpinViewController: CAPBridgeViewController {
+/// Capacitor's view controller, with back on the left-edge swipe. Back in
+/// Headpin goes through the page's history (ADR-041): every screen and sheet is
+/// a history entry, and the page's own `popstate` handling closes one per step.
+///
+/// WebKit's own swipe (`allowsBackForwardNavigationGestures`) is off: it skips
+/// the entries a page adds with `pushState` outside a tap's own event, which is
+/// every entry Headpin adds, since they are written from React effects. On a
+/// simulator it moved nothing at all. So the swipe here asks the page to go
+/// back, exactly as Android's back button does in MainActivity (ADR-157).
+class HeadpinViewController: CAPBridgeViewController, UIGestureRecognizerDelegate {
     override func capacitorDidLoad() {
         super.capacitorDidLoad()
-        webView?.allowsBackForwardNavigationGestures = true
+        guard let webView = webView else { return }
+        webView.allowsBackForwardNavigationGestures = false
+        let edge = UIScreenEdgePanGestureRecognizer(target: self, action: #selector(edgeSwiped(_:)))
+        edge.edges = .left
+        edge.delegate = self
+        webView.addGestureRecognizer(edge)
+    }
+
+    @objc private func edgeSwiped(_ gesture: UIScreenEdgePanGestureRecognizer) {
+        guard gesture.state == .ended, let view = gesture.view else { return }
+        // A pull far enough, or quick enough, to mean it; a graze is not back.
+        let distance = gesture.translation(in: view).x
+        let speed = gesture.velocity(in: view).x
+        guard distance > 60 || speed > 500 else { return }
+        webView?.evaluateJavaScript("history.back()", completionHandler: nil)
+    }
+
+    // The page's own scrolling and taps keep working alongside the edge pan.
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith other: UIGestureRecognizer) -> Bool {
+        true
     }
 }

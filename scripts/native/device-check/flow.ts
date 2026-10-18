@@ -374,12 +374,15 @@ export async function runFlow(d: Driver, outDir: string, opts: { slow?: number; 
   });
 
   await f.check("line sandbox and layout lab open", async () => {
+    // Opened from their rows on Home, as a bowler opens them.
     await f.toTabs();
-    await f.js(`(location.hash = "#/home/line", true)`);
+    await f.tap("^Home$", undefined, "nav button, [role=navigation] button");
+    await f.tap("^Line visualizer");
     await f.until(`document.querySelector("svg") && __dc.dialogs().length > 0`, "the line sandbox");
     await f.snap("line-sandbox");
     await f.toTabs();
-    await f.js(`(location.hash = "#/home/layout-lab", true)`);
+    await f.until(`__dc.dialogs().length === 0`, "the line sandbox to close");
+    await f.tap("^Layouts");
     await f.until(`document.querySelectorAll("svg").length > 0 && __dc.dialogs().length > 0`, "the layout lab");
     await f.snap("layout-lab");
     await f.toTabs();
