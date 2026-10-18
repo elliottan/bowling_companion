@@ -486,9 +486,11 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
         onPointerUp={onPointerUp}
         onPointerCancel={onPointerUp}
       >
-        {/* Floating controls, the header is gone so the lane gets full height. */}
+        {/* Floating controls, the header is gone so the lane gets full height. They
+            sit below the status bar on a phone that draws under it (the store
+            apps, an installed PWA). */}
         <div
-          className="absolute right-3 top-3 z-20 flex items-center gap-2"
+          className="absolute right-3 top-[max(0.75rem,env(safe-area-inset-top))] z-20 flex items-center gap-2"
           onPointerDown={(e) => e.stopPropagation()}
         >
           <button
@@ -509,7 +511,7 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
           </button>
         </div>
         <div
-          className="absolute left-3 top-3 z-20 flex flex-col items-start gap-2"
+          className="absolute left-3 top-[max(0.75rem,env(safe-area-inset-top))] z-20 flex flex-col items-start gap-2"
           onPointerDown={(e) => e.stopPropagation()}
         >
           <button
