@@ -81,6 +81,10 @@ export function CatalogBallImage({ src: path, alt, brand, size, bare = false, la
   // rather than starting transparent and being faded in.
   const [wasDecoded] = useState(() => !!src && decodedSrcs.has(src));
   const [loaded, setLoaded] = useState(wasDecoded);
+  // The silhouette has faded out and can leave the page. The grid is a couple
+  // of hundred rows deep, and a hidden SVG and its fading layer on every one of
+  // them is what made scrolling it drag on a phone.
+  const [placeholderGone, setPlaceholderGone] = useState(wasDecoded);
   const [errored, setErrored] = useState(false);
 
   function markLoaded() {
@@ -102,14 +106,19 @@ export function CatalogBallImage({ src: path, alt, brand, size, bare = false, la
           silhouette shows through the cut-out's transparent surround as a
           second ball, but unmounting it outright left a blank tile for the
           length of the photo's fade. */}
-      <div
-        aria-hidden="true"
-        className={`absolute inset-0 transition-opacity ${wasDecoded ? "duration-0" : "duration-300"} ${
-          loaded ? "opacity-0" : "opacity-100"
-        }`}
-      >
-        <BallPlaceholder brand={brand} size={size} />
-      </div>
+      {!placeholderGone && (
+        <div
+          aria-hidden="true"
+          onTransitionEnd={() => {
+            if (loaded) setPlaceholderGone(true);
+          }}
+          className={`absolute inset-0 transition-opacity ${wasDecoded ? "duration-0" : "duration-300"} ${
+            loaded ? "opacity-0" : "opacity-100"
+          }`}
+        >
+          <BallPlaceholder brand={brand} size={size} />
+        </div>
+      )}
 
       {src && !errored && (
         <img
@@ -117,6 +126,9 @@ export function CatalogBallImage({ src: path, alt, brand, size, bare = false, la
           src={src}
           alt={alt}
           loading={lazy ? "lazy" : "eager"}
+          // Decode off the main thread, so a photo arriving mid-scroll does not
+          // stall the frame it lands in.
+          decoding="async"
           // An image the browser already has decodes before this ref runs, so
           // `onLoad` never fires for it, check `complete` instead of waiting.
           ref={(el) => {

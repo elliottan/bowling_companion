@@ -84,6 +84,12 @@ export function BackupRestoreView({ onBack, mode = "inline" }: BackupRestoreView
       // read once at boot (handedness, the drift model). Without this the
       // restored file's drift model is on disk but not on screen, and the
       // boards it derives are the old ones until the next cold start.
+      //
+      // The reload lands on Home with every menu closed: the route is read back
+      // from the address, so the address is cleared first. Reopening on this
+      // Settings page, over a restore that has just replaced everything on it,
+      // left the bowler in the middle of the thing they had finished.
+      window.history.replaceState(null, "", window.location.pathname + window.location.search);
       window.location.reload();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Import failed.");

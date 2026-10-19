@@ -9,6 +9,32 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.46.1: The iPhone app, first rounds on a real phone (2026-10-19)
+
+Found by running the iPhone app on a phone for the first time. In the iPhone app:
+
+- **No white band behind the keyboard.** With the keyboard up, the page shrinks
+  above it and the app's own view shows below, and that view was always the
+  light theme's cream, so a dark page had a white strip behind the keys. The app
+  now paints it the page's own background each time the keyboard opens.
+- **The ball catalog scrolls smoothly.** Rows off the screen are no longer laid
+  out or painted, a ball's silhouette leaves the page once its photo has faded
+  in, photos decode off the main thread, and the next forty balls load a screen
+  before the end of the list instead of when it is reached.
+- **The edge swipe slides the screen away.** Swiping back from the left edge
+  took the pushed screen off in one frame; it now leaves with the same slide as
+  the back chevron.
+- **Privacy and terms open over the app**, in the phone's in-app browser with its
+  own Done button, instead of sending the bowler to Safari.
+
+And in every copy of the app:
+
+- **The Bowling profile opens ready to fill in the first time**, in edit mode,
+  and reads from then on until the pencil.
+- **Restoring a backup lands on Home.** After a restore replaces everything, the
+  app reloads onto the Home screen with every menu closed, not back on the
+  Backup page it was restored from.
+
 ## 0.46.0: Headpin Pro in the iPhone app, and an app that feels like one (2026-10-18)
 
 Nothing changes on the web yet. In the iOS and Android apps, which are not in

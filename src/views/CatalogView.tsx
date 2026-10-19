@@ -66,6 +66,12 @@ const EMPTY_FILTERS: Filters = {
  *  fold when the list first paints. */
 const CATALOG_PAGE = 40;
 
+/** A row below or above the screen is neither laid out nor painted until it
+ *  nears it, so a list grown to hundreds of balls scrolls as cheaply as the
+ *  first forty. `auto` remembers each row's real height once it has been seen,
+ *  and the length stands in for it until then. */
+const ROW_PAINT = { contentVisibility: "auto", containIntrinsicSize: "auto 4.25rem" } as const;
+
 function applyFilters(balls: CatalogBall[], filters: Filters, sort: SortKey): CatalogBall[] {
   const filtered = balls.filter((b) => {
     if (!matchesCatalogSearch([b.name, b.brand, b.coverstockRaw, b.coreName], filters.search)) return false;
@@ -331,6 +337,15 @@ interface CatalogViewProps {
   onSelectBall: (ballId: string) => void;
 }
 
+/** The nearest ancestor that scrolls vertically, or null for the page. */
+function scrollParent(el: HTMLElement): HTMLElement | null {
+  for (let node = el.parentElement; node; node = node.parentElement) {
+    const { overflowY } = getComputedStyle(node);
+    if (overflowY === "auto" || overflowY === "scroll") return node;
+  }
+  return null;
+}
+
 export function CatalogView({ onBack, selectedBallId, onSelectBall }: CatalogViewProps) {
   const [syncState, setSyncState] = useState<SyncState>({ status: "idle" });
   // The catalog is the one thing in the app that needs the network once. An
@@ -438,11 +453,17 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall }: CatalogVie
   useEffect(() => {
     const el = sentinelRef.current;
     if (!el) return;
-    const obs = new IntersectionObserver((entries) => {
-      if (entries[0].isIntersecting) {
-        setVisibleCount((c) => (c < displayed.length ? c + CATALOG_PAGE : c));
-      }
-    });
+    // Watched from the scroller itself, a screenful early: against the page
+    // the sentinel only counted once it was on screen, so the list stalled at
+    // its end while the next forty rows rendered, and the scroll jumped.
+    const obs = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          setVisibleCount((c) => (c < displayed.length ? c + CATALOG_PAGE : c));
+        }
+      },
+      { root: scrollParent(el), rootMargin: "0px 0px 100% 0px" }
+    );
     obs.observe(el);
     return () => obs.disconnect();
   }, [displayed.length]);
@@ -772,7 +793,7 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall }: CatalogVie
         ) : (
           <ul className="divide-y divide-edge rounded-xl border border-edge bg-surface shadow-sm">
             {shown.map((ball) => (
-              <li key={ball.id}>
+              <li key={ball.id} style={ROW_PAINT}>
                 <button
                   type="button"
                   onClick={() => onSelectBall(ball.id)}

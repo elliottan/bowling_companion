@@ -58,6 +58,7 @@ import { navReducer, type AppView, type Overlay } from "./lib/appNavigation";
 import { markLanesPrompted } from "./lib/lanePrompt";
 import { initialNavFromHash } from "./lib/appRoute";
 import { useHistoryRoute } from "./lib/useHistoryRoute";
+import { useNativeBackSwipe } from "./lib/backGesture";
 
 // Pushed screens, loaded when pushed: the catalog carries the whole ball list
 // UI and the arsenal its editor, and neither is on the path to scoring a game.
@@ -172,6 +173,7 @@ function App() {
   // Back is the browser's: see the note in useHistoryRoute for why every path
   // routes through it rather than dispatching a pop directly.
   const goBack = useHistoryRoute(nav, dispatch);
+  useNativeBackSwipe();
   const [isStartingSession, setIsStartingSession] = useState(false);
   const [startError, setStartError] = useState("");
   // The stored answer comes from the boot gate; this only holds the one the

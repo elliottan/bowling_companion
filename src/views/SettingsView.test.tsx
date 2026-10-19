@@ -6,6 +6,9 @@ import { DEFAULT_DRIFT_MODEL } from "../lib/driftModel";
 import { getBowlerName, setBowlerName, setSetting } from "../services/bowlingRepository";
 import { ProStoreContext } from "../lib/useProAccess";
 import type { ProStore } from "../lib/pro";
+import { openInAppBrowser } from "../lib/inAppBrowser";
+
+vi.mock("../lib/inAppBrowser", () => ({ openInAppBrowser: vi.fn().mockResolvedValue(undefined) }));
 
 function renderMenu(onSectionChange = vi.fn()) {
   render(
@@ -71,6 +74,18 @@ describe("SettingsView", () => {
     renderMenu();
     expect(screen.getByRole("link", { name: "Privacy and terms" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Send feedback" })).toBeInTheDocument();
+  });
+
+  it("opens privacy and terms over the app, in the store app", () => {
+    vi.stubGlobal("Capacitor", { isNativePlatform: () => true });
+    try {
+      renderMenu();
+      expect(screen.queryByRole("link", { name: "Privacy and terms" })).toBeNull();
+      fireEvent.click(screen.getByRole("button", { name: "Privacy and terms" }));
+      expect(openInAppBrowser).toHaveBeenCalledWith("https://headpin.app/legal");
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
 
   it("shows the name as a profile chip with the first letter, and changes it from there", async () => {

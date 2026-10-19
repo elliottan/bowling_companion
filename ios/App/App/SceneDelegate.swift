@@ -45,10 +45,47 @@ class HeadpinViewController: CAPBridgeViewController, UIGestureRecognizerDelegat
         // the rubber band at the top and bottom of the web view only showed
         // the app as a page being dragged about (ADR-160).
         webView.scrollView.bounces = false
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(keyboardWillShow),
+            name: UIResponder.keyboardWillShowNotification,
+            object: nil
+        )
         let edge = UIScreenEdgePanGestureRecognizer(target: self, action: #selector(edgeSwiped(_:)))
         edge.edges = .left
         edge.delegate = self
         webView.addGestureRecognizer(edge)
+    }
+
+    /// With the keyboard up the page shrinks above it and the native view shows
+    /// below. That view is painted once, from `capacitor.config.ts`, in the
+    /// light theme's cream, so a dark page left a white band behind the keys.
+    /// The bowler's theme lives in the page (it can differ from the phone's), so
+    /// ask the page for its own background each time the keyboard opens and
+    /// paint the native view the same. The keyboard takes a quarter second to
+    /// rise, which is longer than the answer takes.
+    @objc private func keyboardWillShow() {
+        webView?.evaluateJavaScript("getComputedStyle(document.getElementById(\"app-shell\") || document.body).backgroundColor") { [weak self] result, _ in
+            guard let self = self,
+                  let css = result as? String,
+                  let color = HeadpinViewController.color(fromCSS: css) else { return }
+            self.view.backgroundColor = color
+            self.webView?.scrollView.backgroundColor = color
+            self.webView?.underPageBackgroundColor = color
+        }
+    }
+
+    /// `rgb(15, 23, 42)` or `rgba(15, 23, 42, 1)`, as `getComputedStyle` gives
+    /// it. A transparent colour answers nothing, so the last paint stays.
+    private static func color(fromCSS css: String) -> UIColor? {
+        let numbers = css
+            .components(separatedBy: CharacterSet(charactersIn: "0123456789.").inverted)
+            .filter { !$0.isEmpty }
+            .compactMap { Double($0) }
+        guard numbers.count >= 3 else { return nil }
+        let alpha = numbers.count >= 4 ? numbers[3] : 1
+        guard alpha > 0 else { return nil }
+        return UIColor(red: numbers[0] / 255, green: numbers[1] / 255, blue: numbers[2] / 255, alpha: 1)
     }
 
     @objc private func edgeSwiped(_ gesture: UIScreenEdgePanGestureRecognizer) {
@@ -57,7 +94,9 @@ class HeadpinViewController: CAPBridgeViewController, UIGestureRecognizerDelegat
         let distance = gesture.translation(in: view).x
         let speed = gesture.velocity(in: view).x
         guard distance > 60 || speed > 500 else { return }
-        webView?.evaluateJavaScript("history.back()", completionHandler: nil)
+        // The page slides its screen out and then steps history back, as its own
+        // chevron does; a bare `history.back()` unmounted the screen with no motion.
+        webView?.evaluateJavaScript("window.dispatchEvent(new Event('headpin:back'))", completionHandler: nil)
     }
 
     // The page's own scrolling and taps keep working alongside the edge pan.
