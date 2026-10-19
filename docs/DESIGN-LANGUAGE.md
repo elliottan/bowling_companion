@@ -94,6 +94,12 @@ removed: it approximated Apple's Liquid Glass without the refraction that makes
 that effect work, and read as haze over the content rather than as a surface.
 Chrome is opaque.
 
+**The tab bar is the one capsule.** It floats clear of the screen as a rounded
+bar with the active tab in a sliding pill, the way iOS draws its tab bar. It
+stays opaque-ish and unblurred for the same reason: nothing scrolls under it, so
+a blur would have nothing to bend, and the haze that sank the frosted bars would
+have nowhere to show. The pill and the capsule are the whole of the effect.
+
 ## 2. Controls
 
 `Button`, `IconButton`, `Chip`, `SegmentedControl` and `Fab` are the only

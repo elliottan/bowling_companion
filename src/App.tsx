@@ -641,23 +641,29 @@ function App() {
         </Suspense>
       </main>
 
-      <nav className={`relative grid shrink-0 grid-cols-5 border-t border-edge bg-surface pb-[env(safe-area-inset-bottom)] sm:hidden ${keyboardOpen ? "hidden" : ""}`}>
-        {/* Single highlight that slides to the active tab. */}
-        <span
-          aria-hidden="true"
-          className="pointer-events-none absolute top-0 left-0 h-[3px] w-1/5 transition-transform duration-200 ease-out"
-          style={{ transform: `translateX(${Math.max(0, MOBILE_NAV_ITEMS.findIndex((i) => i.view === view)) * 100}%)` }}
-        >
-          <span className="mx-3 block h-full rounded-b-full bg-accent-fill" />
-        </span>
-        {MOBILE_NAV_ITEMS.map((item) => (
-          <TabBarButton
-            key={item.view}
-            item={item}
-            active={view === item.view}
-            onClick={() => goTo(item.view)}
-          />
-        ))}
+      {/* A floating capsule with the active tab in a pill that slides between
+          them, as iOS draws its tab bar: rounded all the way, a lit top edge, a
+          soft lift off the page. No backdrop blur: nothing scrolls under this
+          bar, so there is nothing to blur, and the real Liquid Glass bends what
+          is behind it, which needs UIKit (DESIGN-LANGUAGE 1b). */}
+      <nav className={`shrink-0 px-3 pb-[max(env(safe-area-inset-bottom),0.5rem)] pt-1 sm:hidden ${keyboardOpen ? "hidden" : ""}`}>
+        <div className="relative grid grid-cols-5 rounded-full border border-edge/70 bg-surface/90 p-1 shadow-[inset_0_1px_0_rgb(255_255_255/0.35),0_6px_20px_rgb(0_0_0/0.14)]">
+          <span
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-y-1 left-1 w-[calc((100%-0.5rem)/5)] transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]"
+            style={{ transform: `translateX(${Math.max(0, MOBILE_NAV_ITEMS.findIndex((i) => i.view === view)) * 100}%)` }}
+          >
+            <span className="block h-full w-full rounded-full border border-edge/60 bg-ink/10 shadow-[inset_0_1px_0_rgb(255_255_255/0.3)]" />
+          </span>
+          {MOBILE_NAV_ITEMS.map((item) => (
+            <TabBarButton
+              key={item.view}
+              item={item}
+              active={view === item.view}
+              onClick={() => goTo(item.view)}
+            />
+          ))}
+        </div>
       </nav>
 
       {/* Overlay stack. Rendering in order is what layers them: equal z-index,
@@ -860,7 +866,7 @@ function TabBarButton({ item, active, disabled, onClick }: NavItemProps) {
       aria-current={active ? "page" : undefined}
       onClick={onClick}
       disabled={disabled}
-      className={`relative flex h-16 flex-col items-center justify-center gap-1 text-[11px] disabled:cursor-not-allowed disabled:opacity-40 ${
+      className={`relative flex h-14 flex-col items-center justify-center gap-0.5 rounded-full text-[11px] disabled:cursor-not-allowed disabled:opacity-40 ${
         active ? "font-bold text-accent" : "font-medium text-ink-secondary"
       }`}
     >

@@ -555,6 +555,10 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
           data-role="tilt-stage"
           className="absolute inset-0 mx-auto"
           style={{
+            // The lane starts below the status bar and the control row. It used
+            // to run up under the clock, where the label above the far peg was
+            // cut off by the status bar and the pegs sat behind the buttons.
+            top: "calc(env(safe-area-inset-top) + 2.75rem)",
             // Identity when flat; tilts + scales into a bowler's-eye view that
             // recedes to a vanishing point at the pins as the angle increases.
             transform: stageTransform(deg),

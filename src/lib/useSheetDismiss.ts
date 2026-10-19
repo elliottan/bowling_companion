@@ -111,7 +111,7 @@ export function useSheetDismiss(
       onPointerDown: (e) => {
         // A sheet whose whole header is a drag surface still has controls in
         // that header. Capturing the pointer here would swallow their press.
-        if ((e.target as HTMLElement).closest("button")) return;
+        if ((e.target as HTMLElement).closest("button, a, input, select, textarea, [role='button']")) return;
         dragStartY.current = e.clientY;
         (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
       },

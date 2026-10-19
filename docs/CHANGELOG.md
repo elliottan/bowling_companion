@@ -9,7 +9,7 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
-## 0.46.1: The iPhone app, first rounds on a real phone (2026-10-19)
+## 0.47.0: The iPhone app, first rounds on a real phone (2026-10-19)
 
 Found by running the iPhone app on a phone for the first time. In the iPhone app:
 
@@ -24,6 +24,13 @@ Found by running the iPhone app on a phone for the first time. In the iPhone app
 - **The edge swipe slides the screen away.** Swiping back from the left edge
   took the pushed screen off in one frame; it now leaves with the same slide as
   the back chevron.
+- **The line visualiser stays on screen.** The lane began under the clock, where
+  the label above the far peg was cut off and the pegs sat behind the buttons. It
+  now starts below the status bar and the control row.
+- **Sheets are easier to pull down.** The whole title bar, not just the small
+  pill above it, drags a sheet closed, and the pill's strip is taller.
+- **The tab bar is a floating capsule** with the active tab in a pill that slides
+  between them, in the shape of iOS's own tab bar.
 - **Privacy and terms open over the app**, in the phone's in-app browser with its
   own Done button, instead of sending the bowler to Safari.
 

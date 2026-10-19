@@ -198,7 +198,7 @@ export function SessionLanePanel({
         }}
       >
         <div
-          className="flex touch-none cursor-grab justify-center pb-1 pt-2 active:cursor-grabbing"
+          className="flex touch-none cursor-grab justify-center pb-2 pt-3 active:cursor-grabbing"
           {...dragHandlers}
         >
           <div className="h-1.5 w-10 rounded-full bg-edge-strong" />
