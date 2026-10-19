@@ -1,5 +1,6 @@
 import { ChevronLeft } from "lucide-react";
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
+import { registerPushExit } from "../lib/backGesture";
 import { overlayHandoff } from "../lib/overlayHandoff";
 import { useOverlay } from "../lib/useOverlay";
 import { IconButton } from "./ui/IconButton";
@@ -83,6 +84,11 @@ export function PushScreen({
   useEffect(() => () => {
     if (exitTimer.current !== null) window.clearTimeout(exitTimer.current);
   }, []);
+
+  // The iPhone app's edge swipe leaves through the same slide as the chevron.
+  const dismissRef = useRef(dismiss);
+  dismissRef.current = dismiss;
+  useEffect(() => registerPushExit(() => dismissRef.current()), []);
 
   // Inline pushes are not modal, the tab bar behind them stays live, so they
   // must not trap focus or swallow Escape.

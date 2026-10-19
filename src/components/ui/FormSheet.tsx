@@ -100,14 +100,20 @@ export function FormSheet({
           size === "tall" ? "h-[92%] sm:h-[85%]" : ""
         } ${exiting ? "" : "animate-slide-up"}`}
       >
+        {/* The pill and the title bar are one grab area: the pill alone was a
+            sixteen-pixel strip, easy to miss with a thumb. The controls in the
+            bar still take their own taps (useSheetDismiss). */}
         <div
-          className="flex touch-none cursor-grab justify-center pt-2 active:cursor-grabbing sm:hidden"
+          className="flex touch-none cursor-grab justify-center pb-1 pt-3 active:cursor-grabbing sm:hidden"
           {...dragHandlers}
         >
           <div className="h-1.5 w-10 rounded-full bg-edge-strong" />
         </div>
 
-        <div className="flex shrink-0 items-center gap-2 border-b border-edge px-2 py-2">
+        <div
+          className="flex shrink-0 touch-none items-center gap-2 border-b border-edge px-2 py-2 sm:touch-auto"
+          {...dragHandlers}
+        >
           {dismissAs === "close" ? (
             <IconButton onClick={() => dismiss()} label="Close" variant="round">
               <X size={20} aria-hidden="true" />

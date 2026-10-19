@@ -7,6 +7,8 @@ import type { GripStyle } from "../types/bowling";
 import type { Handedness } from "../types/bowling";
 import type { DriftModel } from "../lib/driftModel";
 import { LEGAL_URL } from "../lib/links";
+import { openInAppBrowser } from "../lib/inAppBrowser";
+import { isNativeApp } from "../lib/platform";
 import { openFeedbackEmail } from "../lib/diagnostics";
 import { ListGroup, ListRow } from "../components/ui/ListGroup";
 import { useProStoreContext } from "../lib/useProAccess";
@@ -232,7 +234,11 @@ function SettingsMenu({
         <ListRow
           icon={ScrollText}
           label="Privacy and terms"
-          href={LEGAL_URL}
+          // The store apps show it over the app, with a Done button back; the
+          // web app opens it in a tab. A failed open falls back to the tab.
+          {...(isNativeApp()
+            ? { onClick: () => void openInAppBrowser(LEGAL_URL).catch(() => window.open(LEGAL_URL, "_blank", "noopener")) }
+            : { href: LEGAL_URL })}
           trailing={leavesTheApp}
         />
       </ListGroup>

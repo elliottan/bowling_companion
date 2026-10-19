@@ -59,8 +59,7 @@ test("the theme and the handedness stick across a reload", async ({ page }) => {
   // on the Settings list cannot flip every board in the app.
   await page.getByRole("navigation").getByRole("button", { name: "Settings" }).click();
   await page.getByRole("button", { name: /Bowling profile/ }).click();
-  // The page is read-only until the pencil, and written on the tick.
-  await page.getByRole("button", { name: "Edit bowling profile" }).click();
+  // The first visit opens straight into editing, and is written on the tick.
   await page.getByRole("button", { name: "Left-handed", exact: true }).click();
   await page.getByRole("button", { name: "Save bowling profile" }).click();
 

@@ -36,8 +36,28 @@ const save = () => fireEvent.click(screen.getByRole("button", { name: "Save bowl
 
 describe("BowlingProfileView", () => {
   beforeEach(async () => {
+    // Past the first visit, which opens editing (see its own test below).
+    localStorage.setItem("profileOpened", "1");
     await db.delete();
     await db.open();
+  });
+
+  it("opens in edit mode the first time only", () => {
+    localStorage.removeItem("profileOpened");
+    const first = render(
+      <BowlingProfileView
+        handedness="right"
+        driftModel={DEFAULT_DRIFT_MODEL}
+        onHandednessChange={vi.fn()}
+        onDriftModelChange={vi.fn()}
+        onBack={vi.fn()}
+      />
+    );
+    expect(screen.getByRole("button", { name: "Save bowling profile" })).toBeTruthy();
+    first.unmount();
+
+    renderPage();
+    expect(screen.getByRole("button", { name: "Edit bowling profile" })).toBeTruthy();
   });
 
   it("holds hand and grip, and the numbers only the lane view and the Layouts page read", () => {

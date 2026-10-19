@@ -1,5 +1,5 @@
 import { Check, ChevronLeft, ChevronRight, Info, Pencil } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { PapEditor } from "../components/PapEditor";
 import { IconButton } from "../components/ui/IconButton";
@@ -23,6 +23,21 @@ interface BowlingProfileViewProps {
   /** Present when pushed from Settings, draws the shared nav bar. */
   onBack?: () => void;
   onDriftModelChange: (next: DriftModel) => void;
+}
+
+/** Set the first time the page opens. Kept on the device, like the theme: it is
+ *  a fact about this install's first look at the page, not part of the bowler's
+ *  data, so it stays out of the database and out of backups. */
+const OPENED_KEY = "profileOpened";
+
+/** Whether the page has been opened before. A device that cannot say counts as
+ *  having opened it, so the worst a failed read costs is the read-only view. */
+function hasOpenedProfile(): boolean {
+  try {
+    return localStorage.getItem(OPENED_KEY) === "1";
+  } catch {
+    return true;
+  }
 }
 
 const BOARD_MAX = 39; // upper board bound (matches deriveLaydown's clamp range)
@@ -62,8 +77,17 @@ export function BowlingProfileView({
   // Read, not edited, until the pencil: the hand mirrors every board in the app,
   // and the zones and the drop-downs sit under a thumb that is only scrolling.
   // Edits are made to a draft and written when the tick is pressed. Leaving the
-  // page first drops the draft.
-  const [draft, setDraft] = useState<Partial<Draft> | null>(null);
+  // page first drops the draft. The very first visit opens straight into
+  // editing, since an unset profile is the reason to be here; every one after
+  // that reads.
+  const [draft, setDraft] = useState<Partial<Draft> | null>(() => (hasOpenedProfile() ? null : {}));
+  useEffect(() => {
+    try {
+      localStorage.setItem(OPENED_KEY, "1");
+    } catch {
+      // Private mode: the next visit opens in edit mode again, which is harmless.
+    }
+  }, []);
   const [infoOpen, setInfoOpen] = useState(false);
   const editing = draft !== null;
   const saved: Draft = { hand: handedness, grip: savedGrip, pap: savedPap, drift: savedDrift };
