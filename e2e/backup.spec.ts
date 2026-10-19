@@ -66,8 +66,9 @@ test("exports a backup, clears the database, and restores it via import", async 
   await page.waitForLoadState("load");
   await expect(page.getByRole("heading", { name: "Replace all data?" })).toHaveCount(0);
 
-  // Backup & restore is pushed over the tab bar, so leave it before crossing.
-  await page.getByRole("dialog", { name: "Backup & restore" }).getByRole("button", { name: "Back", exact: true }).click();
+  // A restore lands on Home with every menu closed, not back on the Backup &
+  // restore page it was run from.
+  await expect(page.getByRole("dialog", { name: "Backup & restore" })).toHaveCount(0);
   await page.getByRole("button", { name: "History" }).click();
   // Target the session row button (a location-filter <option> shares the name).
   await expect(page.getByRole("button", { name: /Backup Lanes/ })).toBeVisible();
