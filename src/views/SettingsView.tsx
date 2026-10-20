@@ -279,30 +279,36 @@ function SettingsMenu({
  */
 function ProSection() {
   const store = useProStoreContext();
-  const [busy, setBusy] = useState(false);
+  // Which of the two is waiting on the App Store, so its row says so: a tap
+  // that shows nothing for the seconds the store takes reads as a dead button.
+  const [busy, setBusy] = useState<"buy" | "restore" | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   if (!store) return null;
 
-  async function run(action: (s: ProStore) => Promise<string | null>) {
+  async function run(which: "buy" | "restore", action: (s: ProStore) => Promise<string | null>) {
     if (busy || !store) return;
-    setBusy(true);
+    setBusy(which);
     setMessage(null);
     try {
       setMessage(await action(store));
-    } catch {
-      setMessage("The App Store did not answer. Try again in a moment.");
+    } catch (err) {
+      // Say why when the store did: "not available right now" and "offline" call
+      // for different things from a bowler, and one line hid both.
+      const why = err instanceof Error && err.message ? `: ${err.message}` : ". Try again in a moment.";
+      setMessage(`The App Store did not answer${why}`);
     } finally {
-      setBusy(false);
+      setBusy(null);
     }
   }
 
+  const waiting = "Asking the App Store…";
   const buy = () =>
-    run(async (s) => {
+    run("buy", async (s) => {
       const outcome = await s.buy();
       return outcome === "pending" ? "Waiting for approval. Pro opens as soon as it comes through." : null;
     });
   const restore = () =>
-    run(async (s) =>
+    run("restore", async (s) =>
       (await s.restore()) ? "Headpin Pro is restored." : "This Apple ID has not bought Headpin Pro."
     );
 
@@ -320,14 +326,18 @@ function ProSection() {
           <ListRow
             icon={Sparkles}
             label="Get Headpin Pro"
-            description={`${store.price ? `${store.price}, once` : "One purchase"}: every analysis, for good`}
+            description={
+              busy === "buy"
+                ? waiting
+                : `${store.price ? `${store.price}, once` : "One purchase"}: every analysis, for good`
+            }
             onClick={() => void buy()}
           />
         )}
         <ListRow
           icon={RotateCcw}
           label="Restore purchase"
-          description="Bought Pro before on this Apple ID"
+          description={busy === "restore" ? waiting : "Bought Pro before on this Apple ID"}
           onClick={() => void restore()}
         />
       </ListGroup>
