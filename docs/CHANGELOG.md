@@ -28,6 +28,10 @@ In the iPhone app:
   just above a bar floating in empty space. Each tab now runs the full height of
   the screen behind the bar, and the page's own capsule is frosted over a fade.
   The phone's own bar has the page behind it too.
+- **The Pro buttons say what they are doing.** Get Headpin Pro and Restore
+  purchase now read "Asking the App Store…" while they wait, and when the store
+  fails the line says why ("not available right now", "offline") instead of one
+  sentence for every cause.
 - **On/off settings are the system's switch** ("Show oil pattern" in the line
   visualizer, "Only these pins" in the spare filter), drawn by Safari as an iOS
   switch where it can.

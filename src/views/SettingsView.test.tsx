@@ -205,9 +205,18 @@ describe("SettingsView's Headpin Pro", () => {
     await waitFor(() => expect(screen.getByRole("status")).toHaveTextContent("This Apple ID has not bought Headpin Pro."));
   });
 
-  it("says when the App Store does not answer", async () => {
+  it("says when the App Store does not answer, and why when it said", async () => {
     renderWithStore({ ...base, restore: () => Promise.reject(new Error("offline")) });
     fireEvent.click(screen.getByRole("button", { name: /Restore purchase/ }));
-    expect(await screen.findByRole("status")).toHaveTextContent("did not answer");
+    expect(await screen.findByRole("status")).toHaveTextContent("The App Store did not answer: offline");
+  });
+
+  it("shows the tap was taken while the App Store thinks", async () => {
+    let finish: (v: "purchased") => void = () => {};
+    renderWithStore({ ...base, buy: () => new Promise((resolve) => (finish = resolve)) });
+    fireEvent.click(screen.getByRole("button", { name: /Get Headpin Pro/ }));
+    expect(await screen.findByText("Asking the App Store…")).toBeInTheDocument();
+    finish("purchased");
+    await waitFor(() => expect(screen.queryByText("Asking the App Store…")).not.toBeInTheDocument());
   });
 });
