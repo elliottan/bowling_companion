@@ -101,6 +101,37 @@ describe("useNativeTabBar", () => {
     await waitFor(() => expect(hook.result.current.status).toBe("failed"));
   });
 
+  it("is pending, not failed, when the app finishes booting after the first render", async () => {
+    const { hook, plugin } = setup({ enabled: false });
+    expect(hook.result.current.status).toBe("failed");
+    hook.rerender({ enabled: true, items: ITEMS, active: "dashboard", hidden: false, onSelect: vi.fn(), plugin });
+    expect(hook.result.current.status).toBe("pending");
+    await waitFor(() => expect(hook.result.current.status).toBe("ready"));
+  });
+
+  it("gives up and lets the page draw its own bar when the phone never answers", async () => {
+    vi.useFakeTimers();
+    try {
+      const hook = renderHook(() =>
+        useNativeTabBar({
+          enabled: true,
+          items: ITEMS,
+          active: "dashboard",
+          hidden: false,
+          onSelect: vi.fn(),
+          plugin: () => new Promise<TabBarPlugin>(() => {})
+        })
+      );
+      expect(hook.result.current.status).toBe("pending");
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(5000);
+      });
+      expect(hook.result.current.status).toBe("failed");
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it("does nothing outside the iPhone app", () => {
     const plugin = vi.fn();
     const { result } = renderHook(() =>

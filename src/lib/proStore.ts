@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { unthenable } from "./nativePlugin";
 import { isNativeApp } from "./platform";
 import type { ProStore, PurchaseOutcome } from "./pro";
 
@@ -42,7 +43,9 @@ let storePlugin: Promise<StorePlugin> | null = null;
 /** Registered once: Capacitor warns, and logs it, on every second registration
  *  of a name, which is every buy and every restore if this asks again. */
 export function loadStorePlugin(): Promise<StorePlugin> {
-  storePlugin ??= import("@capacitor/core").then(({ registerPlugin }) => registerPlugin<StorePlugin>("HeadpinStore"));
+  storePlugin ??= import("@capacitor/core").then(({ registerPlugin }) =>
+    unthenable(registerPlugin<StorePlugin>("HeadpinStore"))
+  );
   return storePlugin;
 }
 
