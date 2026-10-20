@@ -18,6 +18,12 @@ In the iPhone app:
   next one without an update here. It steps aside for sheets, full screens and
   the keyboard, and follows the app's own theme, not only the phone's. The web
   app and the Android app keep the floating capsule from 0.47.0.
+- **No gray haze behind the clock.** On a dark page the strip behind the status
+  bar faded from gray, and the area under the keyboard was cream, because the
+  view behind the page was painted once in the light theme's color and only
+  corrected when the keyboard opened. It now starts in the phone's own theme and
+  takes the page's background as soon as the page reports it, and again whenever
+  the app's theme changes.
 - **On/off settings are the system's switch** ("Show oil pattern" in the line
   visualizer, "Only these pins" in the spare filter), drawn by Safari as an iOS
   switch where it can.
