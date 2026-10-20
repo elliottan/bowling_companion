@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import { MoveGamesDialog } from "../MoveGamesDialog";
 import { Lock } from "lucide-react";
 import { Button } from "./Button";
 import { openAppStore, type LockedProAccess } from "../../lib/pro";
@@ -92,13 +93,27 @@ export function ProAction({
   className?: string;
 }) {
   const [state, setState] = useState<"idle" | "busy" | "pending" | "failed">("idle");
+  const [moveOpen, setMoveOpen] = useState(false);
 
   if ("appStoreUrl" in access) {
     const { appStoreUrl } = access;
+    // The steps come first: games bowled here stay in this browser, and the
+    // bowler should know how to carry them before they switch.
     return (
-      <Button variant="primary" className={className} onClick={() => openAppStore(appStoreUrl)}>
-        Get the app
-      </Button>
+      <>
+        <Button variant="primary" className={className} onClick={() => setMoveOpen(true)}>
+          Get the app
+        </Button>
+        {moveOpen && (
+          <MoveGamesDialog
+            onCancel={() => setMoveOpen(false)}
+            onContinue={() => {
+              setMoveOpen(false);
+              openAppStore(appStoreUrl);
+            }}
+          />
+        )}
+      </>
     );
   }
 

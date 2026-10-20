@@ -9,6 +9,9 @@ import { ReplaceConfirmDialog } from "./ReplaceConfirmDialog";
 import type { Handedness } from "../types/bowling";
 import { ErrorBanner } from "./ErrorBanner";
 import { useOverlay } from "../lib/useOverlay";
+import { isNativeApp } from "../lib/platform";
+import { MOVE_GAMES_TITLE } from "../lib/moveGames";
+import { MoveGamesSteps } from "./MoveGamesSteps";
 
 /** The stamp the file carries. It is the one fact that says which backup this
  *  is; frame counts never told anybody that. Falls back to the raw string, so
@@ -135,6 +138,16 @@ export function FirstRun({ onSelectHandedness, hasSavedData = false }: FirstRunP
                 screen of its own: there is nothing to do about it except pick a
                 different one, and the button for that is right above. */}
             {error && <ErrorBanner className="mt-4">{error}</ErrorBanner>}
+
+            {/* Only in the store app: games bowled on the web live in that
+                browser and arrive as a backup file, through the restore above
+                (docs/PRO-LAUNCH.md). */}
+            {isNativeApp() && (
+              <section className="mt-6 rounded-xl border border-edge bg-surface p-4">
+                <h2 className="text-sm font-bold text-ink">{MOVE_GAMES_TITLE}</h2>
+                <MoveGamesSteps className="mt-2" />
+              </section>
+            )}
 
             {/* The way back out to the pitch, for somebody who arrived here by
                 tapping through and still wants to read what this is. Hidden in

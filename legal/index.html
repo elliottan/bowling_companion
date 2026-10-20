@@ -135,7 +135,7 @@
     <main>
       <a class="back" href="/">&larr; Headpin</a>
       <h1>Privacy and terms</h1>
-      <p class="stamp">Last updated October 7, 2026</p>
+      <p class="stamp">Last updated October 20, 2026</p>
       <p class="lede">
         Headpin keeps your bowling scores on your own device. There's no
         account to make, no ads, and no server with your games on it.
@@ -145,8 +145,9 @@
         <h2>The short version</h2>
         <p>
           Your scores, balls, lines and notes are saved in your browser's own
-          storage on your device. Headpin has no backend, so they are never
-          uploaded and nobody can read them.
+          storage on your device, or, in the iPhone app, in the app's own
+          storage. Headpin has no backend, so they are never uploaded and nobody
+          can read them.
         </p>
         <p>
           The other side of that: nobody can recover them for you either. Export
@@ -166,12 +167,25 @@
 
       <h2 id="privacy">Privacy</h2>
 
+      <!-- DRAFT for the owner to review: the iPhone app paragraphs and list
+           items in this page were added in the launch-prep pull request, each
+           checked against the code. -->
       <h3>What stays on your device</h3>
       <p>
         Everything you enter. Sessions, games, frames, shots, your arsenal,
         spare lines, oil patterns, lane notes and your settings are written to
-        IndexedDB in your browser. They stay on that device until you delete
-        them or the browser clears its storage.
+        IndexedDB in your browser, or in the iPhone app, in the same kind of
+        storage inside the app. They stay on that device until you delete them,
+        the browser clears its storage, or you delete the app.
+      </p>
+      <p>
+        In the iPhone app, the ball photos you look at are also saved on your
+        device the first time they load, so they appear again without a
+        connection. The app keeps up to about 25 MB of them and removes the
+        oldest first when it needs room. They are the same public photos the
+        catalog shows, not anything of yours. The app also keeps a note on the
+        device of whether this Apple ID has bought Headpin Pro, so a locked
+        card doesn't flash while the App Store is asked again.
       </p>
       <p>
         Headpin does not ask for an account, an email address or a name. It
@@ -191,6 +205,27 @@
           host, its servers record ordinary request logs, which include IP
           addresses. Once the app is installed it runs from your device's cache,
           so it usually only contacts the host to check for an update.
+        </li>
+        <li>
+          <strong>The iPhone app and headpin.app.</strong> The app carries the
+          scorer and a snapshot of the catalogs, and fetches ball photos, oil
+          pattern sheets and catalog updates from headpin.app. Those requests
+          reach the same host as above and appear in its request logs, IP
+          address included. They carry no scores and nothing you entered. The
+          app does not include the Vercel page counts, and does not send the
+          usage counts below.
+        </li>
+        <li>
+          <strong>Headpin Pro.</strong> In the iPhone app, Pro is a one-time
+          purchase made through the App Store. Apple takes the payment and holds
+          the receipt. Headpin never sees your Apple ID, your name or your
+          payment details: it only asks the App Store, on your device, whether
+          this Apple ID owns Pro. The web app sells nothing.
+        </li>
+        <li>
+          <strong>Backups you share.</strong> Exporting a backup hands the file
+          to your phone's share sheet, and where it goes from there is your
+          choice. Headpin sends it nowhere itself.
         </li>
         <li>
           <strong>Feedback.</strong> "Send feedback" opens a draft email to
@@ -239,7 +274,8 @@
       <p>
         Browser storage is not permanent. A browser can clear it when the device
         runs low on space, and it is erased if you clear site data, uninstall
-        the app, or use private browsing. Headpin asks the browser to keep its
+        the app, or use private browsing. The iPhone app's storage goes when
+        the app does. Headpin asks the browser to keep its
         storage persistent, but browsers are free to say no.
       </p>
       <p>
@@ -249,6 +285,11 @@
         </strong>
         Export a backup regularly from Settings, and keep the file somewhere you
         would keep a photo you care about.
+      </p>
+      <p>
+        Games bowled on the web stay in that browser. To bring them into the
+        iPhone app, export a backup on headpin.app, then import it in the app
+        from Settings, Backup &amp; restore.
       </p>
 
       <h2 id="trademarks">Ball names, images and trademarks</h2>
@@ -272,8 +313,10 @@
 
       <h2 id="terms">Terms of use</h2>
       <p>
-        Headpin is free to use, and is provided as it is, with no warranty of any
-        kind. It is a score keeper, not a system of record. Scores, averages and
+        Headpin is free to use on the web. In the iPhone app, part of it is
+        unlocked by Headpin Pro, a one-time purchase handled by Apple under
+        Apple's terms, including payment and refunds. Headpin is provided as it
+        is, with no warranty of any kind. It is a score keeper, not a system of record. Scores, averages and
         statistics it shows are for your own use, and are not certified or
         sanctioned by any league or governing body.
       </p>

@@ -46,11 +46,27 @@ describe("ProLock", () => {
     expect(preview).toHaveAttribute("aria-hidden", "true");
   });
 
-  it("sends the bowler to the App Store", () => {
+  it("shows the steps for moving games over before it opens the App Store", async () => {
     store.opened.length = 0;
     renderLock(LOCKED);
     fireEvent.click(screen.getByRole("button", { name: "Get the app" }));
-    expect(store.opened).toEqual(["https://apps.apple.com/app/id1"]);
+
+    expect(screen.getByRole("dialog", { name: "Bowled with Headpin on the web?" })).toBeInTheDocument();
+    expect(screen.getByText(/open Settings, then Backup & restore, and export/)).toBeInTheDocument();
+    expect(store.opened).toEqual([]);
+
+    fireEvent.click(screen.getByRole("button", { name: "Open the App Store" }));
+    await waitFor(() => expect(store.opened).toEqual(["https://apps.apple.com/app/id1"]));
+  });
+
+  it("stays on the page when the bowler is not ready to switch", async () => {
+    store.opened.length = 0;
+    renderLock(LOCKED);
+    fireEvent.click(screen.getByRole("button", { name: "Get the app" }));
+    fireEvent.click(screen.getByRole("button", { name: "Not now" }));
+
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    expect(store.opened).toEqual([]);
   });
 });
 
@@ -64,7 +80,7 @@ describe("ProNote", () => {
     expect(container).toBeEmptyDOMElement();
   });
 
-  it("says what waits on Pro, and sends the bowler to the App Store", () => {
+  it("says what waits on Pro, and sends the bowler to the App Store", async () => {
     store.opened.length = 0;
     render(
       <ProAccessContext.Provider value={LOCKED}>
@@ -73,7 +89,8 @@ describe("ProNote", () => {
     );
     expect(screen.getByText("Moving the line is in the Headpin app")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Get the app" }));
-    expect(store.opened).toEqual(["https://apps.apple.com/app/id1"]);
+    fireEvent.click(screen.getByRole("button", { name: "Open the App Store" }));
+    await waitFor(() => expect(store.opened).toEqual(["https://apps.apple.com/app/id1"]));
   });
 });
 
