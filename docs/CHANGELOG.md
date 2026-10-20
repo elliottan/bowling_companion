@@ -32,6 +32,9 @@ In the iPhone app:
   purchase now read "Asking the App Store…" while they wait, and when the store
   fails the line says why ("not available right now", "offline") instead of one
   sentence for every cause.
+- **Settings says which build it is**: the version, whether this is the iPhone
+  app, the Android app or the web, and when its web build was made, so a copy of
+  the iPhone app carrying an older web build is easy to spot.
 - **On/off settings are the system's switch** ("Show oil pattern" in the line
   visualizer, "Only these pins" in the spare filter), drawn by Safari as an iOS
   switch where it can.
