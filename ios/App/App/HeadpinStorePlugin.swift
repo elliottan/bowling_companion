@@ -1,6 +1,7 @@
 import Foundation
 import Capacitor
 import StoreKit
+import UIKit
 
 /// Headpin Pro, bought and restored through StoreKit 2 (ADR-158).
 ///
@@ -69,11 +70,14 @@ public class HeadpinStorePlugin: CAPPlugin, CAPBridgedPlugin {
         }
         Task {
             do {
+                CAPLog.print("⚡️  HeadpinStore: looking up \(id)")
                 guard let product = try await Product.products(for: [id]).first else {
+                    CAPLog.print("⚡️  HeadpinStore: the store offers no product \(id)")
                     call.reject("Headpin Pro is not available from the App Store right now")
                     return
                 }
-                switch try await product.purchase() {
+                CAPLog.print("⚡️  HeadpinStore: buying \(product.id) at \(product.displayPrice)")
+                switch try await HeadpinStorePlugin.buy(product) {
                 case .success(let verification):
                     guard case .verified(let transaction) = verification else {
                         call.reject("The App Store could not verify the purchase")
@@ -92,6 +96,24 @@ public class HeadpinStorePlugin: CAPPlugin, CAPBridgedPlugin {
                 call.reject(error.localizedDescription)
             }
         }
+    }
+
+    /// Buys the product, asking the active scene to show the App Store's sheet.
+    /// From iOS 17 an app built on scenes is meant to name the scene that shows
+    /// it; a purchase started with no scene can wait on a sheet that never
+    /// comes, which reads as a button that does nothing.
+    private static func buy(_ product: Product) async throws -> Product.PurchaseResult {
+        if #available(iOS 17.0, *) {
+            let scene = await MainActor.run {
+                UIApplication.shared.connectedScenes.first { $0.activationState == .foregroundActive }
+            }
+            if let scene = scene {
+                CAPLog.print("⚡️  HeadpinStore: asking the active scene to show the purchase")
+                return try await product.purchase(confirmIn: scene)
+            }
+            CAPLog.print("⚡️  HeadpinStore: no active scene, buying without one")
+        }
+        return try await product.purchase()
     }
 
     /// The products this Apple ID owns, from the device's copy of its receipts.

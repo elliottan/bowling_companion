@@ -28,9 +28,12 @@ export interface TabBarPlugin {
   addListener(event: "layout", listener: (data: { height: number }) => void): Promise<{ remove: () => Promise<void> }>;
 }
 
-export async function loadTabBarPlugin(): Promise<TabBarPlugin> {
-  const { registerPlugin } = await import("@capacitor/core");
-  return registerPlugin<TabBarPlugin>("HeadpinTabBar");
+let tabBarPlugin: Promise<TabBarPlugin> | null = null;
+
+/** Registered once, for the same reason as the store's (`loadStorePlugin`). */
+export function loadTabBarPlugin(): Promise<TabBarPlugin> {
+  tabBarPlugin ??= import("@capacitor/core").then(({ registerPlugin }) => registerPlugin<TabBarPlugin>("HeadpinTabBar"));
+  return tabBarPlugin;
 }
 
 /** Room to leave for the bar before the phone has said how tall it is: a bar

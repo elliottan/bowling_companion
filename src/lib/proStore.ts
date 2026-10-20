@@ -37,9 +37,13 @@ export function sellsPro(scope: object = globalThis, native = isNativeApp(scope)
 
 /** The native plugin, loaded only where it exists, so the web bundle carries
  *  none of it. */
-export async function loadStorePlugin(): Promise<StorePlugin> {
-  const { registerPlugin } = await import("@capacitor/core");
-  return registerPlugin<StorePlugin>("HeadpinStore");
+let storePlugin: Promise<StorePlugin> | null = null;
+
+/** Registered once: Capacitor warns, and logs it, on every second registration
+ *  of a name, which is every buy and every restore if this asks again. */
+export function loadStorePlugin(): Promise<StorePlugin> {
+  storePlugin ??= import("@capacitor/core").then(({ registerPlugin }) => registerPlugin<StorePlugin>("HeadpinStore"));
+  return storePlugin;
 }
 
 function localStorageOrNull(): Storage | null {

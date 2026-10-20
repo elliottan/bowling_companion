@@ -32,6 +32,11 @@ In the iPhone app:
   purchase now read "Asking the App Store…" while they wait, and when the store
   fails the line says why ("not available right now", "offline") instead of one
   sentence for every cause.
+- **A purchase names the scene that shows the App Store's sheet** (iOS 17 and
+  later), and the Pro purchase writes what it is doing to the Xcode console. A
+  Get Headpin Pro tap that did nothing is the symptom of a sheet that never
+  comes, and the log says how far it got. The "plugin already registered"
+  warning is gone: each plugin is registered once.
 - **Settings says which build it is**: the version, whether this is the iPhone
   app, the Android app or the web, and when its web build was made, so a copy of
   the iPhone app carrying an older web build is easy to spot.
