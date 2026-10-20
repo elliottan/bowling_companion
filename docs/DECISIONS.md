@@ -7439,3 +7439,41 @@ and no haptics.
   away a number pad. Hiding it is a choice for later, with the keyboard plugin.
 - Rewriting screens natively stays the owner's longer plan (ADR-155); none of
   this needs it.
+
+## ADR-161: The iPhone app's tab bar is UIKit's
+
+**Status.** Accepted, 2026-10-20. Follows ADR-155, ADR-157 and ADR-160.
+
+**Context.** A tab bar drawn in CSS can only imitate the phone's. The 0.47.0
+capsule looked close and would have been out of date with the next iOS, which is
+where Liquid Glass came from: apps that rebuilt against the iOS 26 SDK got it
+from their system bars and nothing else. Bars the page draws never do.
+
+**Decision.**
+
+- In the iPhone app the tab bar is a `UITabBar` added over the web view by
+  `HeadpinTabBarPlugin` (`ios/App/App/HeadpinTabBarPlugin.swift`, registered in
+  `HeadpinViewController`). The system draws it, in whatever look that iOS has.
+- The page keeps what the tabs are, which one is chosen, and when the bar steps
+  aside (`src/lib/nativeTabBar.ts`). The bar goes while anything covers it: a
+  pushed screen, the line visualizer, a sheet or dialog, the keyboard.
+- The bar reports its own height (from its top to the bottom of the screen) and
+  the shell leaves that much room under the page. The web view runs edge to edge
+  beneath the bar, so a bar that bends what is behind it has the page behind it.
+- The app's theme is the page's, which can differ from the phone's, so the page
+  tells the bar dark or light and the accent colour (`configure`, again on each
+  theme change).
+- It is the iPhone app only (`isIOSApp`). The web app and the Android app keep
+  the page's own bar, and so does an iPhone app built without the plugin: if
+  `configure` fails the hook reports `failed` and the page draws its own.
+
+**Consequences.**
+
+- Content does not yet scroll *under* the bar: the page stops at its top edge.
+  That needs each screen's scroller to pad itself by the bar's height, and is a
+  step for later.
+- The bar is not unit-testable here. The hook is (`nativeTabBar.test.tsx`); the
+  Swift needs a build and a look on a phone.
+- The same trade will apply to other system controls: a native control updates
+  with iOS and costs a bridge, a page control costs nothing and stays as drawn.
+  On/off settings use HTML's own `switch` for the same reason, and cost nothing.

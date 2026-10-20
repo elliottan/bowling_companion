@@ -1,3 +1,4 @@
+import { Switch } from "./ui/Switch";
 import { ListFilter } from "lucide-react";
 import { createPortal } from "react-dom";
 import { PinGrid } from "./PinGrid";
@@ -61,13 +62,12 @@ export function SpareFilterBar({
                 />
               </div>
               <label className="flex items-center gap-3 rounded-xl border border-edge bg-surface p-3">
-                <input
-                  type="checkbox"
+                <span className="flex-1 text-sm font-medium text-ink-strong">Only these pins</span>
+                <Switch
                   checked={state.exact}
-                  onChange={(e) => state.setExact(e.target.checked)}
-                  className="h-5 w-5 rounded border-edge-strong accent-[rgb(var(--color-accent-fill))]"
+                  onChange={state.setExact}
+                  accent="rgb(var(--color-accent-fill))"
                 />
-                <span className="text-sm font-medium text-ink-strong">Only these pins</span>
               </label>
               {pinsActive && (
                 <button

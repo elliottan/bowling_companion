@@ -1,3 +1,4 @@
+import { Switch } from "./ui/Switch";
 import { ChevronLeft, ChevronRight, Lock, Minus, MoveHorizontal, Plus, SlidersHorizontal, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import type { Handedness, LineSpec, PinNumber } from "../types/bowling";
@@ -942,13 +943,8 @@ function OptionsSheet({
         {oil && (
           <div className="mb-4 border-b border-white/10 pb-3">
             <label className="flex items-center gap-3 py-1">
-              <input
-                type="checkbox"
-                checked={showOil}
-                onChange={(e) => onToggleOil(e.target.checked)}
-                className="h-5 w-5 accent-sky-400"
-              />
               <span className="flex-1 text-sm font-semibold">Show oil pattern</span>
+              <Switch checked={showOil} onChange={onToggleOil} accent="#38bdf8" />
             </label>
             <p className="mt-1 text-xs tabular-nums text-white/60">
               {oilName} · {Math.round(oil.length)} ft · {oil.volumeMl.toFixed(2)} mL

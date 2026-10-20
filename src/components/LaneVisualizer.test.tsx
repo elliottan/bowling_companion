@@ -312,7 +312,7 @@ describe("LaneVisualizer oil pattern", () => {
     // One readout line, so the name and the numbers it belongs to stay together.
     expect(screen.getByText(/Main Street/).textContent).toMatch(/39 ft · 1\.68 mL · 3\.3:1/);
 
-    fireEvent.click(screen.getByRole("checkbox", { name: /show oil pattern/i }));
+    fireEvent.click(screen.getByRole("switch", { name: /show oil pattern/i }));
     expect(container.querySelector('[data-role="oil-film"]')).toBeNull();
   });
 

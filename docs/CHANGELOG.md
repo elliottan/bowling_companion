@@ -9,6 +9,43 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.48.0: The iPhone app's tab bar is the phone's own (2026-10-20)
+
+In the iPhone app:
+
+- **The tab bar is the system's** (ADR-161). iOS draws it, so it takes the look
+  of the iOS it runs on, Liquid Glass included on iOS 26, and changes with the
+  next one without an update here. It steps aside for sheets, full screens and
+  the keyboard, and follows the app's own theme, not only the phone's. The web
+  app and the Android app keep the floating capsule from 0.47.0.
+- **No gray haze behind the clock.** On a dark page the strip behind the status
+  bar faded from gray, and the area under the keyboard was cream, because the
+  view behind the page was painted once in the light theme's color and only
+  corrected when the keyboard opened. It now starts in the phone's own theme and
+  takes the page's background as soon as the page reports it, and again whenever
+  the app's theme changes.
+- **Content scrolls under the tab bar.** The list used to stop in a hard edge
+  just above a bar floating in empty space. Each tab now runs the full height of
+  the screen behind the bar, and the page's own capsule is frosted over a fade.
+  The phone's own bar has the page behind it too.
+- **The Pro buttons say what they are doing.** Get Headpin Pro and Restore
+  purchase now read "Asking the App Store…" while they wait, and when the store
+  fails the line says why ("not available right now", "offline") instead of one
+  sentence for every cause.
+- **A purchase names the scene that shows the App Store's sheet** (iOS 17 and
+  later), and the Pro purchase writes what it is doing to the Xcode console. A
+  Get Headpin Pro tap that did nothing is the symptom of a sheet that never
+  comes, and the log says how far it got. The "plugin already registered"
+  warning is gone: each plugin is registered once.
+- **Settings says which build it is**: the version, whether this is the iPhone
+  app, the Android app or the web, and when its web build was made, so a copy of
+  the iPhone app carrying an older web build is easy to spot. In the iPhone app
+  it also says whether the page can see the app's own Pro and tab bar plugins,
+  and the Xcode console logs when they are registered.
+- **On/off settings are the system's switch** ("Show oil pattern" in the line
+  visualizer, "Only these pins" in the spare filter), drawn by Safari as an iOS
+  switch where it can.
+
 ## 0.47.0: The iPhone app, first rounds on a real phone (2026-10-19)
 
 Found by running the iPhone app on a phone for the first time. In the iPhone app:

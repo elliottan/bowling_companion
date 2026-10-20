@@ -8,7 +8,7 @@ import type { Handedness } from "../types/bowling";
 import type { DriftModel } from "../lib/driftModel";
 import { LEGAL_URL } from "../lib/links";
 import { openInAppBrowser } from "../lib/inAppBrowser";
-import { isNativeApp } from "../lib/platform";
+import { isIOSApp, isNativeApp, visibleNativePlugins } from "../lib/platform";
 import { openFeedbackEmail } from "../lib/diagnostics";
 import { ListGroup, ListRow } from "../components/ui/ListGroup";
 import { useProStoreContext } from "../lib/useProAccess";
@@ -261,7 +261,7 @@ function SettingsMenu({
         />
       </ListGroup>
 
-      <p className="px-1 text-xs text-ink-secondary">Headpin {__APP_VERSION__}</p>
+      <p className="px-1 text-xs text-ink-secondary">{buildLine()}</p>
 
       <InstallPrompt open={installOpen} onClose={() => setInstallOpen(false)} />
 
@@ -273,36 +273,59 @@ function SettingsMenu({
 }
 
 /**
+ * Which build this is, for a bug report and for the owner: the version says what
+ * was released, which copy says where it is running, and the time says how fresh
+ * the web build inside it is. The last matters in the store apps, where the web
+ * build is copied in by hand and several of them can carry one version number.
+ */
+function buildLine(): string {
+  const where = isIOSApp() ? "iPhone app" : isNativeApp() ? "Android app" : "web";
+  const line = `Headpin ${__APP_VERSION__} · ${where} · built ${__BUILD_TIME__.replace("T", " ")}`;
+  if (!isIOSApp()) return line;
+  // In the iPhone app, which native plugins the page can reach: when Pro or the
+  // tab bar does nothing, this says whether the page ever had them to call.
+  const seen = visibleNativePlugins();
+  const has = (name: string) => (seen.includes(name) ? "yes" : "no");
+  return `${line} · store plugin ${has("HeadpinStore")}, tab bar plugin ${has("HeadpinTabBar")}`;
+}
+
+/**
  * Headpin Pro, where the app sells it (the iOS app, ADR-158): bought or not,
  * and Restore purchase, which App Review requires and a bowler on a new phone
  * needs. Nothing on the web, where Pro is not sold.
  */
 function ProSection() {
   const store = useProStoreContext();
-  const [busy, setBusy] = useState(false);
+  // Which of the two is waiting on the App Store, so its row says so: a tap
+  // that shows nothing for the seconds the store takes reads as a dead button.
+  const [busy, setBusy] = useState<"buy" | "restore" | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   if (!store) return null;
 
-  async function run(action: (s: ProStore) => Promise<string | null>) {
+  async function run(which: "buy" | "restore", action: (s: ProStore) => Promise<string | null>) {
     if (busy || !store) return;
-    setBusy(true);
+    setBusy(which);
     setMessage(null);
     try {
       setMessage(await action(store));
-    } catch {
-      setMessage("The App Store did not answer. Try again in a moment.");
+    } catch (err) {
+      // Say why when the store did: "not available right now" and "offline" call
+      // for different things from a bowler, and one line hid both.
+      const why = err instanceof Error && err.message ? `: ${err.message}` : ". Try again in a moment.";
+      setMessage(`The App Store did not answer${why}`);
     } finally {
-      setBusy(false);
+      setBusy(null);
     }
   }
 
+  const waiting = "Asking the App Store…";
   const buy = () =>
-    run(async (s) => {
+    run("buy", async (s) => {
       const outcome = await s.buy();
       return outcome === "pending" ? "Waiting for approval. Pro opens as soon as it comes through." : null;
     });
   const restore = () =>
-    run(async (s) =>
+    run("restore", async (s) =>
       (await s.restore()) ? "Headpin Pro is restored." : "This Apple ID has not bought Headpin Pro."
     );
 
@@ -320,14 +343,18 @@ function ProSection() {
           <ListRow
             icon={Sparkles}
             label="Get Headpin Pro"
-            description={`${store.price ? `${store.price}, once` : "One purchase"}: every analysis, for good`}
+            description={
+              busy === "buy"
+                ? waiting
+                : `${store.price ? `${store.price}, once` : "One purchase"}: every analysis, for good`
+            }
             onClick={() => void buy()}
           />
         )}
         <ListRow
           icon={RotateCcw}
           label="Restore purchase"
-          description="Bought Pro before on this Apple ID"
+          description={busy === "restore" ? waiting : "Bought Pro before on this Apple ID"}
           onClick={() => void restore()}
         />
       </ListGroup>

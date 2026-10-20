@@ -1,5 +1,6 @@
 import UIKit
 import Capacitor
+import WebKit
 
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     var window: UIWindow?
@@ -39,44 +40,75 @@ class HeadpinViewController: CAPBridgeViewController, UIGestureRecognizerDelegat
     override func capacitorDidLoad() {
         super.capacitorDidLoad()
         bridge?.registerPluginInstance(HeadpinStorePlugin())
+        bridge?.registerPluginInstance(HeadpinTabBarPlugin())
+        // Seen in the Xcode console at launch: proof that this controller, and
+        // not the storyboard's plain one, is the one running.
+        CAPLog.print("⚡️  HeadpinViewController: registered HeadpinStore and HeadpinTabBar")
         guard let webView = webView else { return }
         webView.allowsBackForwardNavigationGestures = false
         // The page never scrolls as a whole (its screens scroll inside it), so
         // the rubber band at the top and bottom of the web view only showed
         // the app as a page being dragged about (ADR-160).
         webView.scrollView.bounces = false
-        NotificationCenter.default.addObserver(
-            self,
-            selector: #selector(keyboardWillShow),
-            name: UIResponder.keyboardWillShowNotification,
-            object: nil
-        )
+        paintBackground(HeadpinViewController.launchBackground)
+        // The page says what its background is, and again when its theme changes.
+        let content = webView.configuration.userContentController
+        content.add(BackgroundMessageHandler { [weak self] css in
+            if let color = HeadpinViewController.color(fromCSS: css) { self?.paintBackground(color) }
+        }, name: "headpinBackground")
+        content.addUserScript(WKUserScript(
+            source: HeadpinViewController.backgroundScript,
+            injectionTime: .atDocumentEnd,
+            forMainFrameOnly: true
+        ))
         let edge = UIScreenEdgePanGestureRecognizer(target: self, action: #selector(edgeSwiped(_:)))
         edge.edges = .left
         edge.delegate = self
         webView.addGestureRecognizer(edge)
     }
 
-    /// With the keyboard up the page shrinks above it and the native view shows
-    /// below. That view is painted once, from `capacitor.config.ts`, in the
-    /// light theme's cream, so a dark page left a white band behind the keys.
-    /// The bowler's theme lives in the page (it can differ from the phone's), so
-    /// ask the page for its own background each time the keyboard opens and
-    /// paint the native view the same. The keyboard takes a quarter second to
-    /// rise, which is longer than the answer takes.
-    @objc private func keyboardWillShow() {
-        webView?.evaluateJavaScript("getComputedStyle(document.getElementById(\"app-shell\") || document.body).backgroundColor") { [weak self] result, _ in
-            guard let self = self,
-                  let css = result as? String,
-                  let color = HeadpinViewController.color(fromCSS: css) else { return }
-            self.view.backgroundColor = color
-            self.webView?.scrollView.backgroundColor = color
-            self.webView?.underPageBackgroundColor = color
-        }
+    /// What the native view behind the web view is painted until the page says
+    /// otherwise: the dark or the light theme's background, by the phone's own
+    /// setting, which is what the page follows unless the bowler chose a theme.
+    private static let launchBackground = UIColor { traits in
+        traits.userInterfaceStyle == .dark
+            ? UIColor(red: 15 / 255, green: 23 / 255, blue: 42 / 255, alpha: 1)
+            : UIColor(red: 255 / 255, green: 248 / 255, blue: 237 / 255, alpha: 1)
+    }
+
+    /// Reports the page's background color, now and whenever its theme changes.
+    /// `--color-surface-sunken` is the app's background in both themes, and is
+    /// set before the first paint, so a poll for the first few seconds only
+    /// covers the stylesheet arriving late.
+    private static let backgroundScript = """
+    (function () {
+      var last = "";
+      function post() {
+        var v = getComputedStyle(document.documentElement).getPropertyValue("--color-surface-sunken").trim();
+        if (!v || v === last) return;
+        last = v;
+        window.webkit.messageHandlers.headpinBackground.postMessage("rgb(" + v.replace(/ +/g, ",") + ")");
+      }
+      post();
+      new MutationObserver(post).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+      var tries = 0;
+      var timer = setInterval(function () { post(); if (++tries > 20) clearInterval(timer); }, 250);
+    })();
+    """
+
+    /// The native view shows wherever the page does not reach: below a page the
+    /// keyboard has shrunk, and under the translucent status bar, where iOS blurs
+    /// it into a fade. Painted once from `capacitor.config.ts` in the light
+    /// theme's cream, it showed as a white band behind the keys and a gray
+    /// haze behind the clock on a dark page. So it takes the page's own color.
+    private func paintBackground(_ color: UIColor) {
+        view.backgroundColor = color
+        webView?.scrollView.backgroundColor = color
+        webView?.underPageBackgroundColor = color
     }
 
     /// `rgb(15, 23, 42)` or `rgba(15, 23, 42, 1)`, as `getComputedStyle` gives
-    /// it. A transparent colour answers nothing, so the last paint stays.
+    /// it. A transparent color answers nothing, so the last paint stays.
     private static func color(fromCSS css: String) -> UIColor? {
         let numbers = css
             .components(separatedBy: CharacterSet(charactersIn: "0123456789.").inverted)
@@ -102,5 +134,20 @@ class HeadpinViewController: CAPBridgeViewController, UIGestureRecognizerDelegat
     // The page's own scrolling and taps keep working alongside the edge pan.
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith other: UIGestureRecognizer) -> Bool {
         true
+    }
+}
+
+/// Hands a message from the page to a closure. The web view holds its message
+/// handlers, so a handler that held the view controller back would keep both
+/// alive; the closure holds it weakly instead.
+private final class BackgroundMessageHandler: NSObject, WKScriptMessageHandler {
+    private let onColor: (String) -> Void
+
+    init(_ onColor: @escaping (String) -> Void) {
+        self.onColor = onColor
+    }
+
+    func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
+        if let css = message.body as? String { onColor(css) }
     }
 }
