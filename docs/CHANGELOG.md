@@ -9,6 +9,19 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.48.0: The iPhone app's tab bar is the phone's own (2026-10-20)
+
+In the iPhone app:
+
+- **The tab bar is the system's** (ADR-161). iOS draws it, so it takes the look
+  of the iOS it runs on, Liquid Glass included on iOS 26, and changes with the
+  next one without an update here. It steps aside for sheets, full screens and
+  the keyboard, and follows the app's own theme, not only the phone's. The web
+  app and the Android app keep the floating capsule from 0.47.0.
+- **On/off settings are the system's switch** ("Show oil pattern" in the line
+  visualizer, "Only these pins" in the spare filter), drawn by Safari as an iOS
+  switch where it can.
+
 ## 0.47.0: The iPhone app, first rounds on a real phone (2026-10-19)
 
 Found by running the iPhone app on a phone for the first time. In the iPhone app:

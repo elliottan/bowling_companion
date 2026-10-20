@@ -14,7 +14,8 @@ import {
   useMemo,
   useReducer,
   useRef,
-  useState
+  useState,
+  useSyncExternalStore
 } from "react";
 import { DashboardView } from "./views/DashboardView";
 import { NoSessionView } from "./views/NoSessionView";
@@ -59,6 +60,9 @@ import { markLanesPrompted } from "./lib/lanePrompt";
 import { initialNavFromHash } from "./lib/appRoute";
 import { useHistoryRoute } from "./lib/useHistoryRoute";
 import { useNativeBackSwipe } from "./lib/backGesture";
+import { isIOSApp } from "./lib/platform";
+import { useNativeTabBar } from "./lib/nativeTabBar";
+import { getOpenSheets, subscribeSheets } from "./lib/sheetBackStack";
 
 // Pushed screens, loaded when pushed: the catalog carries the whole ball list
 // UI and the arsenal its editor, and neither is on the path to scoring a game.
@@ -137,6 +141,9 @@ const NAV_ITEMS: ReadonlyArray<NavItem> = [
 ];
 
 const MOBILE_NAV_ITEMS = NAV_ITEMS;
+
+/** The same tabs for the phone's own bar, which picks each one's symbol (ADR-161). */
+const NATIVE_TAB_ITEMS = NAV_ITEMS.map(({ view, label }) => ({ id: view, title: label }));
 
 /** How long after leaving the Score tab an empty session is checked (ADR-116):
  *  long enough for the scorer's unmount flush of a tapped-in shot to land. */
@@ -304,6 +311,20 @@ function App() {
   // One gate rather than three mount effects, so the shell never paints an
   // empty Dashboard, then a welcome over it, then the real data (useBoot).
   const boot = useBoot(launchedWithRoute, activeSessionId);
+
+  // In the iPhone app the tab bar is the phone's own (ADR-161). It steps aside
+  // while anything covers it: a pushed screen, the line visualizer, a sheet or
+  // dialog, or the keyboard. Elsewhere, or if the app has no such bar, the page
+  // draws its own below.
+  const openSheets = useSyncExternalStore(subscribeSheets, getOpenSheets, getOpenSheets);
+  const nativeTabs = useNativeTabBar({
+    enabled: boot.booted && isIOSApp(),
+    items: NATIVE_TAB_ITEMS,
+    active: view,
+    hidden: keyboardOpen || overlays.length > 0 || nav.lineSandboxOpen || openSheets.length > 0,
+    onSelect: (id) => dispatch({ type: "goTo", view: id as AppView })
+  });
+  const nativeTabBar = nativeTabs.status !== "failed";
 
   const handedness = chosenHandedness ?? boot.handedness;
   const hasSavedData = boot.hasSavedData;
@@ -518,6 +539,11 @@ function App() {
     <div
       id="app-shell"
       className="fixed inset-0 flex flex-col overflow-hidden bg-surface-sunken pt-[env(safe-area-inset-top)] pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)] text-ink"
+      // The phone's own tab bar sits over the bottom of the web view, so the
+      // page leaves its height clear, except while the keyboard is up and the
+      // bar has gone. Held through a sheet or a pushed screen, so nothing
+      // underneath moves while they cover it.
+      style={nativeTabBar ? { paddingBottom: keyboardOpen ? 0 : nativeTabs.height } : undefined}
     >
       <header className="hidden shrink-0 border-b border-edge bg-surface sm:block">
         <div className="mx-auto flex w-full max-w-5xl items-center justify-between px-3 py-3 sm:px-6">
@@ -646,6 +672,7 @@ function App() {
           soft lift off the page. No backdrop blur: nothing scrolls under this
           bar, so there is nothing to blur, and the real Liquid Glass bends what
           is behind it, which needs UIKit (DESIGN-LANGUAGE 1b). */}
+      {!nativeTabBar && (
       <nav className={`shrink-0 px-3 pb-[max(env(safe-area-inset-bottom),0.5rem)] pt-1 sm:hidden ${keyboardOpen ? "hidden" : ""}`}>
         <div className="relative grid grid-cols-5 rounded-full border border-edge/70 bg-surface/90 p-1 shadow-[inset_0_1px_0_rgb(255_255_255/0.35),0_6px_20px_rgb(0_0_0/0.14)]">
           <span
@@ -665,6 +692,7 @@ function App() {
           ))}
         </div>
       </nav>
+      )}
 
       {/* Overlay stack. Rendering in order is what layers them: equal z-index,
           so the later sibling paints on top, and popping reveals the one below

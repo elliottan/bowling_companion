@@ -39,6 +39,7 @@ class HeadpinViewController: CAPBridgeViewController, UIGestureRecognizerDelegat
     override func capacitorDidLoad() {
         super.capacitorDidLoad()
         bridge?.registerPluginInstance(HeadpinStorePlugin())
+        bridge?.registerPluginInstance(HeadpinTabBarPlugin())
         guard let webView = webView else { return }
         webView.allowsBackForwardNavigationGestures = false
         // The page never scrolls as a whole (its screens scroll inside it), so

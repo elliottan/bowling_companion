@@ -94,7 +94,8 @@ removed: it approximated Apple's Liquid Glass without the refraction that makes
 that effect work, and read as haze over the content rather than as a surface.
 Chrome is opaque.
 
-**The tab bar is the one capsule.** It floats clear of the screen as a rounded
+**The tab bar is the one capsule on the web and Android.** (The iPhone app
+draws the system's own, ADR-161; what follows is the page's bar.) It floats clear of the screen as a rounded
 bar with the active tab in a sliding pill, the way iOS draws its tab bar. It
 stays opaque-ish and unblurred for the same reason: nothing scrolls under it, so
 a blur would have nothing to bend, and the haze that sank the frosted bars would

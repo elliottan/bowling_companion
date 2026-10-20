@@ -16,6 +16,7 @@ export const SITE_ORIGIN = "https://headpin.app";
 
 interface CapacitorBridge {
   isNativePlatform?: () => boolean;
+  getPlatform?: () => string;
 }
 
 /**
@@ -26,6 +27,12 @@ interface CapacitorBridge {
 export function isNativeApp(scope: object = globalThis): boolean {
   const bridge = (scope as { Capacitor?: CapacitorBridge }).Capacitor;
   return bridge?.isNativePlatform?.() === true;
+}
+
+/** Whether this is the iPhone app, as against the Android app or the web. */
+export function isIOSApp(scope: object = globalThis): boolean {
+  const bridge = (scope as { Capacitor?: CapacitorBridge }).Capacitor;
+  return bridge?.isNativePlatform?.() === true && bridge.getPlatform?.() === "ios";
 }
 
 /**
