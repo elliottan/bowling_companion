@@ -539,11 +539,21 @@ function App() {
     <div
       id="app-shell"
       className="fixed inset-0 flex flex-col overflow-hidden bg-surface-sunken pt-[env(safe-area-inset-top)] pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)] text-ink"
-      // The phone's own tab bar sits over the bottom of the web view, so the
-      // page leaves its height clear, except while the keyboard is up and the
-      // bar has gone. Held through a sheet or a pushed screen, so nothing
-      // underneath moves while they cover it.
-      style={nativeTabBar ? { paddingBottom: keyboardOpen ? 0 : nativeTabs.height } : undefined}
+      // How tall the tab bar is, for what has to clear it: the end of each
+      // tab's scroll, and the floating action row. The bar floats over the
+      // page, which runs behind it. The phone's own bar reports its height;
+      // the page's is a 4.25rem capsule above the home indicator. Nothing
+      // while the keyboard is up and the bar has gone. Held through a sheet or
+      // a pushed screen, so nothing underneath moves while they cover it.
+      style={
+        {
+          "--tab-bar-h": keyboardOpen
+            ? "0px"
+            : nativeTabBar
+              ? `${nativeTabs.height}px`
+              : "calc(4.25rem + max(env(safe-area-inset-bottom), 0.5rem))"
+        } as React.CSSProperties
+      }
     >
       <header className="hidden shrink-0 border-b border-edge bg-surface sm:block">
         <div className="mx-auto flex w-full max-w-5xl items-center justify-between px-3 py-3 sm:px-6">
@@ -579,7 +589,7 @@ function App() {
         key={view}
         ref={mainRef}
         onScroll={(e) => rememberScroll(`view:${view}`, e.currentTarget.scrollTop)}
-        className="min-h-0 flex-1 overflow-y-auto overscroll-contain"
+        className="min-h-0 flex-1 overflow-y-auto overscroll-contain pb-[var(--tab-bar-h)] sm:pb-0"
       >
         <Suspense fallback={null}>
         {view === "dashboard" && (
@@ -668,28 +678,35 @@ function App() {
       </main>
 
       {/* A floating capsule with the active tab in a pill that slides between
-          them, as iOS draws its tab bar: rounded all the way, a lit top edge, a
-          soft lift off the page. No backdrop blur: nothing scrolls under this
-          bar, so there is nothing to blur, and the real Liquid Glass bends what
-          is behind it, which needs UIKit (DESIGN-LANGUAGE 1b). */}
+          them, as iOS draws its tab bar. It floats over the tab, which scrolls
+          behind it, so the page fades out under it and the capsule is frosted
+          over what is left. The real Liquid Glass bends what is behind it, which
+          needs UIKit, so the iPhone app draws the phone's own (ADR-161). The
+          strip beside the capsule passes taps through to the page. */}
       {!nativeTabBar && (
-      <nav className={`shrink-0 px-3 pb-[max(env(safe-area-inset-bottom),0.5rem)] pt-1 sm:hidden ${keyboardOpen ? "hidden" : ""}`}>
-        <div className="relative grid grid-cols-5 rounded-full border border-edge/70 bg-surface/90 p-1 shadow-[inset_0_1px_0_rgb(255_255_255/0.35),0_6px_20px_rgb(0_0_0/0.14)]">
-          <span
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-y-1 left-1 w-[calc((100%-0.5rem)/5)] transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]"
-            style={{ transform: `translateX(${Math.max(0, MOBILE_NAV_ITEMS.findIndex((i) => i.view === view)) * 100}%)` }}
-          >
-            <span className="block h-full w-full rounded-full border border-edge/60 bg-ink/10 shadow-[inset_0_1px_0_rgb(255_255_255/0.3)]" />
-          </span>
-          {MOBILE_NAV_ITEMS.map((item) => (
-            <TabBarButton
-              key={item.view}
-              item={item}
-              active={view === item.view}
-              onClick={() => goTo(item.view)}
-            />
-          ))}
+      <nav className={`pointer-events-none absolute inset-x-0 bottom-0 z-10 sm:hidden ${keyboardOpen ? "hidden" : ""}`}>
+        <div
+          aria-hidden="true"
+          className="absolute inset-x-0 bottom-0 h-[calc(var(--tab-bar-h)+1.25rem)] bg-gradient-to-t from-surface-sunken via-surface-sunken/80 to-transparent"
+        />
+        <div className="pointer-events-auto relative px-3 pb-[max(env(safe-area-inset-bottom),0.5rem)] pt-1">
+          <div className="relative grid grid-cols-5 rounded-full border border-edge/70 bg-surface/75 p-1 shadow-[inset_0_1px_0_rgb(255_255_255/0.35),0_6px_20px_rgb(0_0_0/0.14)] backdrop-blur-xl backdrop-saturate-150">
+            <span
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-y-1 left-1 w-[calc((100%-0.5rem)/5)] transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]"
+              style={{ transform: `translateX(${Math.max(0, MOBILE_NAV_ITEMS.findIndex((i) => i.view === view)) * 100}%)` }}
+            >
+              <span className="block h-full w-full rounded-full border border-edge/60 bg-ink/10 shadow-[inset_0_1px_0_rgb(255_255_255/0.3)]" />
+            </span>
+            {MOBILE_NAV_ITEMS.map((item) => (
+              <TabBarButton
+                key={item.view}
+                item={item}
+                active={view === item.view}
+                onClick={() => goTo(item.view)}
+              />
+            ))}
+          </div>
         </div>
       </nav>
       )}

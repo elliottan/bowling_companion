@@ -14,7 +14,7 @@ import { createPortal } from "react-dom";
  */
 export function FabRow({ children }: { children: ReactNode }) {
   return createPortal(
-    <div className="pointer-events-none fixed inset-x-3 bottom-[calc(4rem+env(safe-area-inset-bottom)+0.5rem)] z-40 mx-auto flex max-w-xl items-center gap-2 sm:bottom-6">
+    <div className="pointer-events-none fixed inset-x-3 bottom-[calc(var(--tab-bar-h,4rem)+0.5rem)] z-40 mx-auto flex max-w-xl items-center gap-2 sm:bottom-6">
       {children}
     </div>,
     document.getElementById("app-shell") ?? document.body

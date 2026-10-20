@@ -24,6 +24,10 @@ In the iPhone app:
   corrected when the keyboard opened. It now starts in the phone's own theme and
   takes the page's background as soon as the page reports it, and again whenever
   the app's theme changes.
+- **Content scrolls under the tab bar.** The list used to stop in a hard edge
+  just above a bar floating in empty space. Each tab now runs the full height of
+  the screen behind the bar, and the page's own capsule is frosted over a fade.
+  The phone's own bar has the page behind it too.
 - **On/off settings are the system's switch** ("Show oil pattern" in the line
   visualizer, "Only these pins" in the spare filter), drawn by Safari as an iOS
   switch where it can.
