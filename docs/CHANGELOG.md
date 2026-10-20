@@ -39,7 +39,9 @@ In the iPhone app:
   warning is gone: each plugin is registered once.
 - **Settings says which build it is**: the version, whether this is the iPhone
   app, the Android app or the web, and when its web build was made, so a copy of
-  the iPhone app carrying an older web build is easy to spot.
+  the iPhone app carrying an older web build is easy to spot. In the iPhone app
+  it also says whether the page can see the app's own Pro and tab bar plugins,
+  and the Xcode console logs when they are registered.
 - **On/off settings are the system's switch** ("Show oil pattern" in the line
   visualizer, "Only these pins" in the spare filter), drawn by Safari as an iOS
   switch where it can.

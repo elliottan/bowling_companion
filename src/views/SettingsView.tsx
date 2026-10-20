@@ -8,7 +8,7 @@ import type { Handedness } from "../types/bowling";
 import type { DriftModel } from "../lib/driftModel";
 import { LEGAL_URL } from "../lib/links";
 import { openInAppBrowser } from "../lib/inAppBrowser";
-import { isIOSApp, isNativeApp } from "../lib/platform";
+import { isIOSApp, isNativeApp, visibleNativePlugins } from "../lib/platform";
 import { openFeedbackEmail } from "../lib/diagnostics";
 import { ListGroup, ListRow } from "../components/ui/ListGroup";
 import { useProStoreContext } from "../lib/useProAccess";
@@ -280,7 +280,13 @@ function SettingsMenu({
  */
 function buildLine(): string {
   const where = isIOSApp() ? "iPhone app" : isNativeApp() ? "Android app" : "web";
-  return `Headpin ${__APP_VERSION__} · ${where} · built ${__BUILD_TIME__.replace("T", " ")}`;
+  const line = `Headpin ${__APP_VERSION__} · ${where} · built ${__BUILD_TIME__.replace("T", " ")}`;
+  if (!isIOSApp()) return line;
+  // In the iPhone app, which native plugins the page can reach: when Pro or the
+  // tab bar does nothing, this says whether the page ever had them to call.
+  const seen = visibleNativePlugins();
+  const has = (name: string) => (seen.includes(name) ? "yes" : "no");
+  return `${line} · store plugin ${has("HeadpinStore")}, tab bar plugin ${has("HeadpinTabBar")}`;
 }
 
 /**
