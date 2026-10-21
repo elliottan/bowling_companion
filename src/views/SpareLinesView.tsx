@@ -1,4 +1,4 @@
-import { ChevronRight, Plus, X } from "lucide-react";
+import { ChevronRight, Lock, Plus, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { CatalogBallImage } from "../components/CatalogBallImage";
@@ -44,6 +44,8 @@ import type { Manufacturer } from "../types/catalog";
 import { EmptyState } from "../components/ui/EmptyState";
 import { Button } from "../components/ui/Button";
 import { SpareLineIcon } from "../components/icons";
+import { useProAccess } from "../lib/useProAccess";
+import { openLeaveKeys } from "../lib/proPreview";
 
 /** Slide → laydown, derived from the stance (ADR-030). Read-only, so it sits
  *  under the entered boards in a lighter weight. */
@@ -121,8 +123,18 @@ function Hint({
 }
 
 /** The tile for one leave on a line's row: its deck, its name, how often it was
- *  left, and how often it was made. */
-function LeaveTile({ tile, onOpen }: { tile: LineRowTile; onOpen: (sl: SpareLine) => void }) {
+ *  left, and how often it was made. Without Pro the record is the leaves Stats
+ *  shows in full and no others (ADR-167): the rest carry a blurred stand-in, so
+ *  the tile keeps its shape and does not read as never left. */
+function LeaveTile({
+  tile,
+  recordLocked,
+  onOpen
+}: {
+  tile: LineRowTile;
+  recordLocked: boolean;
+  onOpen: (sl: SpareLine) => void;
+}) {
   const { spareLine: sl } = tile;
   return (
     <li className="shrink-0 snap-start">
@@ -134,9 +146,20 @@ function LeaveTile({ tile, onOpen }: { tile: LineRowTile; onOpen: (sl: SpareLine
       >
         <MiniPins standing={sl.pins} size="md" />
         <span className="text-[11px] font-semibold tabular-nums text-ink">{formatLeave(sl.pins)}</span>
-        <span className="text-[11px] tabular-nums text-ink-secondary">
-          {tile.attempts}×{tile.conversionPct != null ? ` · ${tile.conversionPct}%` : ""}
-        </span>
+        {recordLocked ? (
+          <span className="flex items-center gap-1 text-[11px] text-ink-tertiary">
+            <Lock size={10} aria-hidden="true" />
+            {/* A stand-in, not the record: blurred text is still in the page. */}
+            <span aria-hidden="true" className="select-none tabular-nums blur-[3px]">
+              8× · 60%
+            </span>
+            <span className="sr-only">Record in Headpin Pro</span>
+          </span>
+        ) : (
+          <span className="text-[11px] tabular-nums text-ink-secondary">
+            {tile.attempts}×{tile.conversionPct != null ? ` · ${tile.conversionPct}%` : ""}
+          </span>
+        )}
       </button>
     </li>
   );
@@ -157,6 +180,9 @@ export function SpareLinesView({ onBack }: { onBack: () => void }) {
   // hints rank by.
   const leaves = useLiveQuery(async () => calculateCommonLeaves(await getSessionHistory())) ?? NO_LEAVES;
   const balls = useLiveQuery(() => getBalls()) ?? [];
+  // Which leaves' records are open without Pro: the ones Stats shows in full.
+  const { locked: proLocked } = useProAccess();
+  const openRecords = useMemo(() => (proLocked ? openLeaveKeys(leaves) : null), [proLocked, leaves]);
   // Pocket leaves are shot on the strike line and are never listed (ADR-123).
   // A row saved for one stays stored, out of sight.
   const shown = useMemo(() => spareLinesShown(live ?? NO_LINES), [live]);
@@ -336,8 +362,11 @@ export function SpareLinesView({ onBack }: { onBack: () => void }) {
           onDismiss={() => void snoozeHint(askKey(ask.pins))}
           dismissLabel="Not now"
         >
-          You leave <span className="font-semibold text-ink">{formatLeave(ask.pins)}</span> most often (
-          {ask.attempts} {ask.attempts === 1 ? "time" : "times"}) and have no line for it.
+          You leave <span className="font-semibold text-ink">{formatLeave(ask.pins)}</span> most often
+          {openRecords && !openRecords.has(leaveKey(ask.pins))
+            ? " "
+            : ` (${ask.attempts} ${ask.attempts === 1 ? "time" : "times"}) `}
+          and have no line for it.
         </Hint>
       )}
 
@@ -406,6 +435,10 @@ export function SpareLinesView({ onBack }: { onBack: () => void }) {
                   <LeaveTile
                     key={tile.spareLine.id}
                     tile={tile}
+                    // A leave never left has no record to hold back.
+                    recordLocked={
+                      openRecords !== null && tile.attempts > 0 && !openRecords.has(leaveKey(tile.spareLine.pins))
+                    }
                     onOpen={(line) => setOpened({ pins: line.pins, edit: false })}
                   />
                 ))}

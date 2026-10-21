@@ -37,7 +37,7 @@ import { defaultOrientationFor, type Orientation } from "../lib/ballProjection";
 import { FREE_APP_PATH } from "../lib/pro";
 import { shareOrigin } from "../lib/platform";
 import { useProAccess } from "../lib/useProAccess";
-import { ProNote } from "../components/ui/ProLock";
+import { ProVeil } from "../components/ui/ProLock";
 import { decodeLayoutParams, layoutShareUrl, type LayoutSeed } from "../lib/layoutShare";
 import { buildLayoutCard, type ShareCardData } from "../lib/shareCard";
 import { svgToImage } from "../lib/svgImage";
@@ -246,6 +246,7 @@ export function LayoutLabView({ onBack, onOpenSettings, seed }: LayoutLabViewPro
 
   const motion = useMemo(() => readMotion(layout, ball, pap, grip), [layout, ball, pap, grip]);
   const vls = useMemo(() => toVls(layout, ball), [layout, ball]);
+  const papText = `${formatInches(pap.over)}" over, ${formatInches(Math.abs(pap.up))}" ${pap.up < 0 ? "down" : "up"}`;
 
   /** The card this layout makes, numbers first and the ball a frame later. */
   const buildCard = useCallback(() => {
@@ -255,10 +256,10 @@ export function LayoutLabView({ onBack, onOpenSettings, seed }: LayoutLabViewPro
       symmetric: ball.symmetric,
       hand,
       grip,
-      pap: `${formatInches(pap.over)}" over, ${formatInches(Math.abs(pap.up))}" ${pap.up < 0 ? "down" : "up"}`,
+      pap: papText,
       summary: motion.summary
     });
-  }, [layout, vls, ball, hand, grip, pap, motion]);
+  }, [layout, vls, ball, hand, grip, papText, motion]);
 
   /** The ball as it is drawn right now, rasterized for the card. */
   /**
@@ -448,8 +449,33 @@ export function LayoutLabView({ onBack, onOpenSettings, seed }: LayoutLabViewPro
           ))}
         </section>
 
-        <ProNote what="You can look but not change anything. Editing layouts is in Headpin Pro" />
+        {/* Without Pro the controls below are blurred, so the layout they hold
+            is read out here: the numbers are the bowler's to read, and only
+            changing them is Pro (ADR-167). */}
+        {proLocked && (
+          <section className="space-y-1.5">
+            <h2 className={GROUP_HEADING}>Layout</h2>
+            <dl aria-label="This layout" className="grid grid-cols-2 gap-2">
+              <div className="rounded-xl border border-edge bg-surface p-2.5 shadow-sm">
+                <dt className={FIELD_MICRO_LABEL}>Dual angle</dt>
+                <dd className="text-sm font-semibold tabular-nums text-ink">{formatDualAngle(layout)}</dd>
+              </div>
+              <div className="rounded-xl border border-edge bg-surface p-2.5 shadow-sm">
+                <dt className={FIELD_MICRO_LABEL}>Storm VLS</dt>
+                <dd className="text-sm font-semibold tabular-nums text-ink">{formatVls(vls)}</dd>
+              </div>
+              <div className="col-span-2 rounded-xl border border-edge bg-surface p-2.5 shadow-sm">
+                <dt className={FIELD_MICRO_LABEL}>PAP · hand</dt>
+                <dd className="text-sm font-semibold tabular-nums text-ink">
+                  {papText} · {hand === "left" ? "Left" : "Right"}, {grip === "2h" ? "two handed" : "one handed"} ·{" "}
+                  {symmetric ? "Symmetric" : "Asymmetric"}
+                </dd>
+              </div>
+            </dl>
+          </section>
+        )}
 
+        <ProVeil tall what="Changing the layout" label="Edit with Pro">
         {/* A disabled fieldset turns off every field and button inside it while
             leaving their values on screen to read. */}
         <fieldset disabled={proLocked} className="m-0 min-w-0 space-y-3 border-0 p-0">
@@ -580,6 +606,7 @@ export function LayoutLabView({ onBack, onOpenSettings, seed }: LayoutLabViewPro
             />
           </section>
         </fieldset>
+        </ProVeil>
 
       </div>
 

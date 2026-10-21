@@ -817,22 +817,27 @@ describe("the layout lab while Pro is locked (ADR-154, ADR-163)", () => {
         <LayoutLabView onBack={vi.fn()} />
       </ProAccessContext.Provider>
     );
-    expect(screen.getByText("You can look but not change anything. Editing layouts is in Headpin Pro")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Unlock/ })).toBeInTheDocument();
-    // Every number is still on screen to read, with what the ball will do.
-    expect(dualAngle()).toBe("45 x 4 1/2 x 45");
+    // Every number is still on screen to read, out of the blurred controls,
+    // with what the ball will do (ADR-167).
+    const layout = screen.getByLabelText("This layout");
+    expect(within(layout).getByText("Dual angle").nextElementSibling).toHaveTextContent("45 x 4 1/2 x 45");
+    expect(within(layout).getByText("Storm VLS").nextElementSibling?.textContent).toMatch(/\d/);
     expect(screen.getByRole("heading", { name: "What it will do" })).toBeInTheDocument();
-    // The fields that change it are off.
-    expect(slider(/VAL angle/i)).toBeDisabled();
-    expect(screen.getByRole("button", { name: /^Presets/ })).toBeDisabled();
-    expect(screen.getByRole("button", { name: "Reset to your saved settings" })).toBeDisabled();
+    // The fields that change it stay on screen, blurred and out of reach, under
+    // one tap to Pro.
+    expect(screen.queryByRole("slider", { name: /VAL angle/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /^Presets/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Reset to your saved settings" })).not.toBeInTheDocument();
+    expect(screen.getByText("Edit with Pro")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Changing the layout. Get the app" }));
+    expect(screen.getByRole("dialog", { name: "Bowled with Headpin on the web?" })).toBeInTheDocument();
     // Sharing what is on screen stays free: it is how a bowler finds the app.
     expect(screen.getByRole("button", { name: "Share layout" })).toBeEnabled();
   });
 
   it("is the whole lab while Pro is open", () => {
     renderLab();
-    expect(screen.queryByText("You can look but not change anything. Editing layouts is in Headpin Pro")).not.toBeInTheDocument();
+    expect(screen.queryByText("Edit with Pro")).not.toBeInTheDocument();
     expect(slider(/VAL angle/i)).toBeEnabled();
   });
 });

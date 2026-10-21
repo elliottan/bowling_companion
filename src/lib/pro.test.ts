@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from "vitest";
-import { APP_STORE_URL, FREE_APP_PATH, PRO_OPEN, appProAccess, appStoreId, isFreeAppPath, isOwnerPath, openAppStore, webProAccess } from "./pro";
+import { APP_STORE_URL, FREE_APP_PATH, PRO_OPEN, PRO_OWNED, appProAccess, appStoreId, isFreeAppPath, isOwnerPath, openAppStore, webProAccess } from "./pro";
 import { LOCK_FREE_WEB } from "./appStore";
 
 describe("webProAccess", () => {
@@ -24,8 +24,8 @@ describe("webProAccess", () => {
       expect(webProAccess(null, path)).toEqual({ locked: true, appStoreUrl: null });
     }
     expect(isFreeAppPath("/apple")).toBe(false);
-    // Nowhere else: the owner's copy, the Android app and a stray address stay open.
-    expect(webProAccess(null, "/score")).toEqual(PRO_OPEN);
+    // Nowhere else: the owner's copy is Pro, the Android app and a stray address stay open.
+    expect(webProAccess(null, "/score")).toEqual(PRO_OWNED);
     expect(webProAccess(null, "/")).toEqual(PRO_OPEN);
   });
 
@@ -33,9 +33,9 @@ describe("webProAccess", () => {
     expect(webProAccess(null, "/app", false)).toEqual(PRO_OPEN);
   });
 
-  it("keeps everything open at the owner's address, whatever is listed", () => {
+  it("is Pro as a buyer has it at the owner's address, whatever is listed (ADR-167)", () => {
     for (const path of ["/score", "/score/", "/score/index.html"]) {
-      expect(webProAccess("https://apps.apple.com/app/id1", path)).toEqual(PRO_OPEN);
+      expect(webProAccess("https://apps.apple.com/app/id1", path)).toEqual({ locked: false, owned: true });
     }
     // A path that only starts with the same letters is not the owner's.
     expect(isOwnerPath("/scores")).toBe(false);
