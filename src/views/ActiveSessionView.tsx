@@ -107,6 +107,9 @@ let justFinishedGameId: number | null = null;
 // Games whose "you usually move" hint has been put away, this app run.
 const gameHintDismissed = new Set<number>();
 
+/** Space between the game chips and the top of the session sheet, in px. */
+const SHEET_GAP = 10;
+
 export function ActiveSessionView({
   sessionId,
   openStatsOnMount = false,
@@ -239,12 +242,13 @@ export function ActiveSessionView({
 
   // The panel rises to just under the game chips, so it follows them: measured
   // when it opens, and again whenever anything could have moved them (a
-  // rotation, the keyboard, a scroll of the page behind).
+  // rotation, the keyboard, a scroll of the page behind). It stops a little
+  // short of them: flush, its rounded top touched the chips and read cramped.
   useLayoutEffect(() => {
     if (!showSheet) return;
     const measure = () => {
       const row = chipRowRef.current;
-      if (row) setSheetTop(Math.max(0, Math.round(row.getBoundingClientRect().bottom)));
+      if (row) setSheetTop(Math.max(0, Math.round(row.getBoundingClientRect().bottom) + SHEET_GAP));
     };
     measure();
     window.addEventListener("resize", measure);

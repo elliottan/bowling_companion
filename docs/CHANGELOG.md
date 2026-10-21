@@ -17,6 +17,8 @@ had all shipped.
 - **Home offers the iPhone app.** On the web, Home opens on a "Headpin for
   iPhone" row with Get, in place of the card that asked you to add Headpin to
   your home screen (ADR-170). Close it and it stays away for two weeks.
+- **The session sheet stops just short of the game chips** instead of
+  touching them.
 - **A session's alley and date are in the bar.** Opened from History, the
   bar reads the alley with the event, date and games under it, in place of the
   word "Session", and the page keeps the lanes, the buttons and the score. The
