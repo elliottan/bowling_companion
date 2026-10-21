@@ -16,6 +16,7 @@
 import { mkdir, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { chromium } from "@playwright/test";
+import { seedHistory as writeHistory } from "../history.mjs";
 
 const BASE = process.env.REEL_BASE ?? "http://localhost:5173";
 const STATE = process.env.REEL_STATE;
@@ -51,6 +52,9 @@ async function open() {
   );
   const app = page.frameLocator("#app");
   await app.getByRole("navigation").first().waitFor();
+  // The app reopens on the tab it was left on; every take starts from Home.
+  current = page;
+  await click(app.getByRole("navigation").getByRole("button", { name: "Home" }));
   await wait(1200);
   return { context, page, app };
 }
@@ -128,7 +132,7 @@ async function take(name, { setup, run }) {
     marks.push({ label, t: now() - t0, boxes, ...extra });
   }
   async function tap(locator, label = "tap", pause = 350) {
-    await locator.first().scrollIntoViewIfNeeded();
+    await reveal(locator);
     const b = await boxOf(locator);
     const x = b.x + b.w / 2;
     const y = b.y + b.h / 2;
@@ -154,11 +158,21 @@ async function take(name, { setup, run }) {
 
 // --- Shared setup -----------------------------------------------------------
 
+/** Scrolls a control to the middle of the screen, if it is not on it. Scrolled
+ *  only just into view, it would sit under the floating tab bar, and a tap there
+ *  lands on a tab. */
+async function reveal(locator) {
+  await locator.first().evaluate((el) => {
+    const r = el.getBoundingClientRect();
+    if (r.top < 60 || r.bottom > innerHeight - 110) el.scrollIntoView({ block: "center" });
+  });
+}
+
 // Playwright places a click in a scaled iframe as if it were not scaled, so
 // every click, setup included, goes to the element's centre by hand.
 let current = null;
 async function click(locator) {
-  await locator.first().scrollIntoViewIfNeeded();
+  await reveal(locator);
   const b = await boxOf(locator);
   await current.mouse.click((b.x + b.w / 2) * SCALE, (b.y + b.h / 2) * SCALE);
   await wait(250);
@@ -233,8 +247,9 @@ async function sessionToFrame8(app) {
   const lanes = app.getByRole("dialog", { name: /lanes/i });
   await lanes.waitFor({ state: "visible", timeout: 2500 }).catch(() => {});
   if (await lanes.count()) {
+    // One lane, not a pair: a strike ball carries from the last frame on its
+    // own lane (ADR-151), and the carry beat wants the frame just bowled.
     await lanes.getByRole("textbox", { name: "First lane" }).fill("11").catch(() => {});
-    await lanes.getByRole("textbox", { name: "Second lane" }).fill("12").catch(() => {});
     await click(lanes.getByRole("button", { name: "Close" }));
   }
   await app.getByRole("button", { name: RECORD }).waitFor();
@@ -434,127 +449,10 @@ await take("catalog", {
   }
 });
 
-const clampTo = (v, a, b) => Math.min(b, Math.max(a, v));
-
-// The layout of a ball, drawn on the ball: the three sliders that set it, each
-// swung in turn, with the drawing moving under them.
-await take("layouts", {
-  async run({ page, app, tap, mark, wait }) {
-    await tap(app.getByRole("button", { name: /^Layouts/ }), "tap-layouts", 900);
-    await mark("top", { x: 0, y: 0, w: 390, h: 844 });
-    // Scrolled so the first slider sits under the header, with the ball below.
-    const first = app.getByRole("slider", { name: "Drilling angle" });
-    await first.evaluate((el) => {
-      const box = el.closest("div.rounded-xl, section") ?? el;
-      const y = box.getBoundingClientRect().top;
-      let s = el.parentElement;
-      while (s && !(s.scrollHeight > s.clientHeight + 20 && getComputedStyle(s).overflowY !== "visible")) s = s.parentElement;
-      (s ?? document.scrollingElement).scrollBy({ top: y - 120, behavior: "smooth" });
-    });
-    await wait(1000);
-    await mark("sliders", { x: 0, y: 0, w: 390, h: 844 });
-    const swing = async (name, by) => {
-      const el = app.getByRole("slider", { name });
-      const r = await boxOf(el);
-      const [min, max, v0] = (await el.evaluate((n) => [n.min, n.max, n.value])).map(Number);
-      const at = (v) => (r.x + 10 + ((v - min) / (max - min)) * (r.w - 20)) * SCALE;
-      const y = (r.y + r.h / 2) * SCALE;
-      const to = clampTo(v0 + by * (max - min), min, max);
-      await mark(`drag-${name}`, el);
-      await page.mouse.move(at(v0), y);
-      await page.mouse.down();
-      for (let k = 1; k <= 16; k++) {
-        await page.mouse.move(at(v0 + (to - v0) * (1 - Math.pow(1 - k / 16, 2))), y);
-        await wait(30);
-      }
-      await page.mouse.up();
-      await wait(150);
-    };
-    await swing("Drilling angle", 0.3);
-    await swing("Pin to PAP", -0.25);
-    await swing("VAL angle", 0.3);
-    await mark("dragged", { x: 0, y: 0, w: 390, h: 844 });
-    await wait(700);
-  }
-});
-/**
- * History with some weeks behind it. The saved bowler bowled five nights in
- * one sitting, one game most nights; a league bowler's list reads as weeks
- * apart, three or four games a night, each on a pattern. Game 1 of each night
- * stays as bowled; the games after it are written straight to the database
- * from these cards.
- */
-const MORE_GAMES = [
-  ["X 9/ X X 81 9/ X 7/ X X9/", "8/ X 9- X X 7/ 9/ X 81 X8/"],
-  ["X X 9/ 8/ X 9- X X 7/ 9/X", "9/ 81 X X X 9/ 7/ X 9- XXX", "X 7/ 9- X 8/ X X 9/ 81 X9/"],
-  ["9- X 8/ X 7/ X 9/ X X 9/8", "X X X 9/ X 81 X 9/ X XX8"],
-  ["7/ 9/ X 81 X X 9- 8/ X 9/X", "X 9/ 9/ X 8- X X 7/ X 81", "8/ X X 9/ 81 X 9/ X X X9/"],
-  ["X 9/ X 9- X 8/ X X 9/ X81", "9/ X X 8/ X 9- X 7/ X 9/9"]
-];
-const NIGHTS = [
-  { date: "2026-09-16", lanes: ["3", "4"], pattern: /PBA Bear/ },
-  { date: "2026-09-23", lanes: ["15", "16"], pattern: /PBA Chameleon/ },
-  { date: "2026-09-30", lanes: ["23", "24"], pattern: /Mercury/ },
-  { date: "2026-10-07", lanes: ["7", "8"], pattern: /PBA Cheetah/ },
-  { date: "2026-10-14", lanes: ["11", "12"], pattern: /PBA Shark/ }
-];
-
+/** The weeks of history (../history.mjs), then the app reloaded onto them. */
 async function seedHistory(page, app) {
   const frame = page.frames().find((f) => f.url().includes("/score"));
-  await frame.evaluate(
-    async ({ more, nights }) => {
-      const { db } = await import("/src/db/bowlingDb.ts");
-      const { calculateGameScore, isStrike } = await import("/src/lib/scoring.ts");
-      const { syncPatternCatalog } = await import("/src/services/patternCatalog.ts");
-      await syncPatternCatalog().catch(() => {});
-      const patterns = await db.oil_patterns.toArray();
-      // Pins left by a count, in the order a right-hander's leaves fall.
-      const ORDER = [10, 7, 4, 6, 2, 8, 3, 9, 5, 1];
-      const ALL = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-      const shotsOf = (token, ballId) => {
-        const shots = [];
-        let standing = ALL;
-        for (const ch of token) {
-          if (ch === "X" || ch === "/") standing = [];
-          else if (ch !== "-") {
-            const n = Number(ch);
-            const from = standing.length === 10 ? ORDER.slice(0, 10).filter((p) => standing.includes(p)) : standing;
-            standing = from.slice(0, from.length - n).sort((a, b) => a - b);
-          }
-          shots.push({ pins_standing: standing, ball_id: ballId });
-          if (standing.length === 0) standing = ALL;
-        }
-        return shots;
-      };
-      const sessions = (await db.sessions.toArray()).sort((a, b) => a.id - b.id);
-      for (const [i, s] of sessions.entries()) {
-        const night = nights[i];
-        if (!night) break;
-        const games = (await db.games.where("session_id").equals(s.id).toArray()).sort((a, b) => a.game_number - b.game_number);
-        const firstFrames = await db.frames.where("game_id").equals(games[0].id).toArray();
-        const ballId = firstFrames[0]?.shots[0]?.ball_id;
-        for (const g of games.slice(1)) {
-          await db.frames.where("game_id").equals(g.id).delete();
-          await db.games.delete(g.id);
-        }
-        for (const [k, card] of more[i].entries()) {
-          const gameId = await db.games.add({ session_id: s.id, game_number: k + 2, lanes: night.lanes, start_lane: night.lanes[0] });
-          const frames = card.split(" ").map((token, f) => {
-            const shots = shotsOf(token, ballId);
-            const fr = { game_id: gameId, frame_number: f + 1, shots };
-            return { ...fr, is_strike: isStrike(fr), is_spare: !isStrike(fr) && shots.length > 1 && shots[1].pins_standing.length === 0 };
-          });
-          await db.frames.bulkAdd(frames);
-          await db.games.update(gameId, { final_score: calculateGameScore(frames).total });
-        }
-        await db.games.update(games[0].id, { lanes: night.lanes, start_lane: night.lanes[0] });
-        const pattern = patterns.find((p) => new RegExp(night.pattern).test(p.name));
-        const date = s.date.length > 10 ? night.date + s.date.slice(10) : night.date;
-        await db.sessions.update(s.id, { date, oil_pattern_id: pattern?.id });
-      }
-    },
-    { more: MORE_GAMES, nights: NIGHTS.map((n) => ({ ...n, pattern: n.pattern.source })) }
-  );
+  await writeHistory(frame);
   await frame.evaluate(() => location.reload());
   await wait(1500);
   await app.getByRole("navigation").first().waitFor();
@@ -570,6 +468,49 @@ await take("history", {
     await tap(app.getByRole("navigation").getByRole("button", { name: "History" }), "tap-history", 900);
     await mark("list", { x: 0, y: 0, w: 390, h: 844 });
     await wait(1200);
+  }
+});
+
+// The arsenal: every ball the bowler owns, from the balls beside the greeting
+// on Home (Home has no Arsenal button).
+await take("arsenal", {
+  async setup({ app }) {
+    // A league bowler's bag is bigger than the saved bowler's five.
+    for (const [query, name] of [["Dynasty", /Black Widow 3\.0 Dynasty/], ["Hy-Road Pearl", /Hy-Road Pearl/], ["Summit Peak", /Summit Peak/], ["Idol Helios", /Idol Helios/]]) {
+      await click(app.getByRole("button", { name: /^Ball catalog/ }));
+      await wait(500);
+      await app.getByText(/Syncing catalog/).waitFor({ state: "hidden", timeout: 60000 }).catch(() => {});
+      await app.getByPlaceholder("Search name, brand, coverstock…").fill(query);
+      await wait(700);
+      await click(app.getByRole("dialog", { name: "Catalog" }).getByRole("button", { name }).first());
+      await click(app.getByRole("button", { name: "Add to arsenal" }).first());
+      await click(app.getByRole("dialog", { name: "Add to arsenal" }).getByRole("button", { name: "Add to arsenal" }));
+      await wait(400);
+      await back(app, 2);
+    }
+    await wait(800);
+  },
+  async run({ app, tap, mark, wait }) {
+    await mark("home", { x: 0, y: 0, w: 390, h: 844 });
+    await wait(500);
+    await tap(app.getByRole("list", { name: "Your arsenal" }).getByRole("button").first(), "tap-arsenal", 900);
+    await mark("list", { x: 0, y: 0, w: 390, h: 844 });
+    await wait(1400);
+  }
+});
+
+// Stats across the weeks of history: the average and the trend at the top.
+await take("stats", {
+  async setup({ page, app }) {
+    await seedHistory(page, app);
+  },
+  async run({ app, tap, mark, wait }) {
+    await tap(app.getByRole("navigation").getByRole("button", { name: "Stats" }), "tap-stats", 1200);
+    await mark("top", { x: 0, y: 0, w: 390, h: 844 });
+    const average = app.getByText("Average", { exact: true }).first().locator("xpath=ancestor::section[1] | ancestor::div[contains(@class,'rounded')][1]").last();
+    await mark("average", average);
+    await mark("trend", app.getByText("Your score per finished game.").first().locator("xpath=ancestor::*[contains(@class,'rounded-xl')][1]"));
+    await wait(1600);
   }
 });
 

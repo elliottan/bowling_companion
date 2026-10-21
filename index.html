@@ -21,7 +21,7 @@
     <title>Headpin, free offline bowling score keeper</title>
     <meta
       name="description"
-      content="A free bowling score keeper that works offline. Tap the pins you left, log the ball and your line, and see what's working."
+      content="A free bowling score keeper that works offline. Unlimited games, your whole arsenal, and your line drawn on the lane, with no account to make."
     />
     <link rel="canonical" href="https://headpin.app/" />
 
@@ -36,7 +36,7 @@
     <meta property="og:title" content="Headpin, free offline bowling score keeper" />
     <meta
       property="og:description"
-      content="A free bowling score keeper that works offline. Tap the pins you left, log the ball and your line, and see what's working."
+      content="A free bowling score keeper that works offline. Unlimited games, your whole arsenal, and your line drawn on the lane, with no account to make."
     />
     <meta property="og:image" content="https://headpin.app/og-image.png" />
     <meta property="og:image:width" content="1200" />
@@ -46,7 +46,7 @@
     <meta name="twitter:title" content="Headpin, free offline bowling score keeper" />
     <meta
       name="twitter:description"
-      content="A free bowling score keeper that works offline. Tap the pins you left, log the ball and your line, and see what's working."
+      content="A free bowling score keeper that works offline. Unlimited games, your whole arsenal, and your line drawn on the lane, with no account to make."
     />
     <meta name="twitter:image" content="https://headpin.app/og-image.png" />
 
@@ -67,7 +67,7 @@
             "@id": "https://headpin.app/#website",
             "url": "https://headpin.app/",
             "name": "Headpin",
-            "description": "A free bowling score keeper that works offline. Tap the pins you left, log the ball and your line, and see what's working."
+            "description": "A free bowling score keeper that works offline. Unlimited games, your whole arsenal, and your line drawn on the lane, with no account to make."
           },
           {
             "@type": "SoftwareApplication",
@@ -78,7 +78,7 @@
             "operatingSystem": "Web browser, iOS, Android",
             "browserRequirements": "Requires JavaScript. Works offline once installed.",
             "image": "https://headpin.app/og-image.png",
-            "description": "Bowling score and stats tracker. Scores every frame, logs the ball and line for each shot, draws your line over the oil pattern, and tracks your averages. Free, works offline, and needs no account.",
+            "description": "Bowling score and stats tracker. Scores every frame, logs the ball and line for each shot, draws your line over the oil pattern, keeps your whole arsenal, and tracks your averages. Free, with unlimited games, works offline, and needs no account.",
             "offers": {
               "@type": "Offer",
               "price": "0",
@@ -600,7 +600,7 @@
             <img src="/icons/icon-192.png" width="36" height="36" alt="" />
             Headpin
           </a>
-          <a class="open" href="/app">Open app</a>
+          <a class="open" href="/app" data-store><span data-store-label="Get the app" data-web-label="Open app">Open app</span></a>
         </nav>
 
         <div class="hero-grid">
@@ -611,15 +611,17 @@
               not the storage Safari or Chrome will open later, so a bowler who
               starts there would lose their scores on the way out.
             -->
+            <!--store:web-->
             <p class="notice" id="inapp" role="note">
               You're in <b id="inapp-name">this app</b>'s browser, which can't
               save Headpin to your home screen. Tap the menu
               (<b>&middot;&middot;&middot;</b>) and choose <b>Open in browser</b>, then add it
               from Safari or Chrome.
             </p>
+            <!--/store:web-->
             <h1>The best way to keep <em>score</em>.</h1>
-            <a class="cta" id="hero-cta" href="/app">
-              Open Headpin
+            <a class="cta" id="hero-cta" href="/app" data-store>
+              <span data-store-label="Free on the App Store" data-web-label="Open Headpin">Open Headpin</span>
               <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10h11M11 5l5 5-5 5"/></svg>
             </a>
             <p class="cta-note">Free. Works offline.</p>
@@ -689,7 +691,7 @@
         <article class="step">
           <div class="copy">
             <h2>Score every shot.</h2>
-            <p>Tap the pins left standing. Add the ball and your boards if you want to.</p>
+            <p>Tap the pins left standing. As many games as you bowl, free.</p>
           </div>
           <figure>
             <a class="shot-link" href="/shots/scorer.webp" aria-label="View the scorecard larger"><div class="phone"><div class="screen">
@@ -704,7 +706,7 @@
         <article class="step">
           <div class="copy">
             <h2>Remember every line you threw.</h2>
-            <p>Your line over the oil pattern. Drag it to try a move.</p>
+            <p>Drawn over the oil, and ready for your next shot.</p>
           </div>
           <figure>
             <a class="shot-link" href="/shots/line.webp" aria-label="View the lane view larger"><div class="phone phone-dark"><div class="screen">
@@ -715,30 +717,45 @@
         </article>
         <article class="step">
           <div class="copy">
-            <h2>See a layout before you drill it.</h2>
-            <p>Dual angle and Storm VLS, drawn on the ball from your PAP.</p>
+            <h2>Know the pattern before you bowl it.</h2>
+            <p>The PBA patterns and more, with the oil drawn on the lane.</p>
           </div>
           <figure>
-            <a class="shot-link" href="/shots/layout.webp" aria-label="View the layouts screen larger"><div class="phone"><div class="screen">
+            <a class="shot-link" href="/shots/pattern.webp" aria-label="View the oil pattern larger"><div class="phone"><div class="screen">
               <picture>
-                <source srcset="/shots/layout-light.webp" media="(prefers-color-scheme: light)" />
-                <img src="/shots/layout.webp" width="780" height="1688" loading="lazy"
-                  alt="The Headpin layouts screen with a drilled ball showing the pin, the PAP and the drilling and VAL angles." />
+                <source srcset="/shots/pattern-light.webp" media="(prefers-color-scheme: light)" />
+                <img src="/shots/pattern.webp" width="780" height="1688" loading="lazy"
+                  alt="The 2019 PBA Shark 48 oil pattern in Headpin: its length and volume, and the oil drawn across the lane board by board." />
               </picture>
             </div></div></a>
           </figure>
         </article>
         <article class="step">
           <div class="copy">
-            <h2>Know what's working.</h2>
-            <p>Average, strike and spare rates, and how each ball carries.</p>
+            <h2>Your whole arsenal.</h2>
+            <p>Every ball you own, from the catalog, with no limit.</p>
           </div>
           <figure>
-            <a class="shot-link" href="/shots/stats.webp" aria-label="View the stats screen larger"><div class="phone"><div class="screen">
+            <a class="shot-link" href="/shots/arsenal.webp" aria-label="View the arsenal larger"><div class="phone"><div class="screen">
               <picture>
-                <source srcset="/shots/stats-light.webp" media="(prefers-color-scheme: light)" />
-                <img src="/shots/stats.webp" width="780" height="1688" loading="lazy"
-                  alt="The Headpin stats screen with the average, high and low, a chart of average by session, first-ball pocket, carry and strike rates, and spares made by leave." />
+                <source srcset="/shots/arsenal-light.webp" media="(prefers-color-scheme: light)" />
+                <img src="/shots/arsenal.webp" width="780" height="1688" loading="lazy"
+                  alt="The Headpin arsenal, a list of bowling balls with their photos, coverstocks, cores and specs." />
+              </picture>
+            </div></div></a>
+          </figure>
+        </article>
+        <article class="step">
+          <div class="copy">
+            <h2>Every night, on your phone.</h2>
+            <p>Unlimited sessions, kept on your phone with no account.</p>
+          </div>
+          <figure>
+            <a class="shot-link" href="/shots/history.webp" aria-label="View the history larger"><div class="phone"><div class="screen">
+              <picture>
+                <source srcset="/shots/history-light.webp" media="(prefers-color-scheme: light)" />
+                <img src="/shots/history.webp" width="780" height="1688" loading="lazy"
+                  alt="The Headpin history, a list of league nights, each with its alley, lanes, oil pattern, games and average." />
               </picture>
             </div></div></a>
           </figure>
@@ -747,8 +764,9 @@
 
       <section class="install wrap" aria-labelledby="install">
         <p class="kicker">Install</p>
-        <h2 class="section-title" id="install">Put it on your home screen.</h2>
+        <h2 class="section-title" id="install"><span data-store-label="Get it on your phone.">Put it on your home screen.</span></h2>
         <div class="install-grid">
+          <!--store:web-->
           <div class="card">
             <h4>iPhone</h4>
             <ol>
@@ -757,6 +775,16 @@
               <li>Tap <b>Add to Home Screen</b>.</li>
             </ol>
           </div>
+          <!--/store:web-->
+          <!--store:app
+          <div class="card">
+            <h4>iPhone</h4>
+            <ol>
+              <li>Get <b>Headpin</b> free from the <a href="{appStoreUrl}"><b>App Store</b></a>.</li>
+              <li>Open it and tap <b>Start fresh</b>.</li>
+            </ol>
+          </div>
+          -->
           <div class="card">
             <h4>Android</h4>
             <ol>
@@ -772,8 +800,8 @@
     <section class="closing" aria-labelledby="closing">
       <div class="wrap">
         <h2 id="closing">Try it at your next league night.</h2>
-        <a class="cta" href="/app">
-          Open Headpin
+        <a class="cta" href="/app" data-store>
+          <span data-store-label="Free on the App Store" data-web-label="Open Headpin">Open Headpin</span>
           <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10h11M11 5l5 5-5 5"/></svg>
         </a>
       </div>
@@ -786,7 +814,7 @@
 
     <div class="sticky" id="sticky" aria-hidden="true">
       <span>Headpin<small>Free. Works offline.</small></span>
-      <a class="cta" href="/app" tabindex="-1">Open Headpin</a>
+      <a class="cta" href="/app" data-store tabindex="-1"><span data-store-label="Get the app" data-web-label="Open Headpin">Open Headpin</span></a>
     </div>
 
     <!--
@@ -811,12 +839,23 @@
           [/Snapchat/i, "Snapchat"],
           [/LinkedInApp/i, "LinkedIn"]
         ];
-        for (var i = 0; i < apps.length; i++) {
+        // Gone once the app is in the App Store, which an in-app browser opens.
+        for (var i = 0; i < apps.length && document.getElementById("inapp"); i++) {
           if (apps[i][0].test(ua)) {
             document.getElementById("inapp-name").textContent = apps[i][1];
             document.getElementById("inapp").classList.add("show");
             break;
           }
+        }
+
+        // The App Store is the iPhone's. Until the app is on Google Play, an
+        // Android phone keeps the web app behind every button (PRO-LAUNCH.md).
+        if (/Android/i.test(ua)) {
+          document.querySelectorAll("a[data-store]").forEach(function (link) {
+            link.setAttribute("href", "/app");
+            var label = link.querySelector("[data-web-label]");
+            if (label) label.textContent = label.getAttribute("data-web-label");
+          });
         }
 
         // The sticky bar shows once the hero's button has scrolled out of view.
