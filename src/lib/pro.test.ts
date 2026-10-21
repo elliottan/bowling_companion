@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it } from "vitest";
-import { APP_STORE_URL, FREE_APP_PATH, PRO_OPEN, appProAccess, appStoreId, isOwnerPath, openAppStore, webProAccess } from "./pro";
+import { APP_STORE_URL, FREE_APP_PATH, PRO_OPEN, appProAccess, appStoreId, isFreeAppPath, isOwnerPath, openAppStore, webProAccess } from "./pro";
+import { LOCK_FREE_WEB } from "./appStore";
 
 describe("webProAccess", () => {
   it("keeps everything open until the app is listed", () => {
@@ -15,6 +16,21 @@ describe("webProAccess", () => {
       locked: true,
       appStoreUrl: "https://apps.apple.com/app/id1"
     });
+  });
+
+  it("locks /app before the app is listed, with nowhere to send a bowler yet (ADR-166)", () => {
+    expect(LOCK_FREE_WEB).toBe(true);
+    for (const path of ["/app", "/app/", "/app/index.html"]) {
+      expect(webProAccess(null, path)).toEqual({ locked: true, appStoreUrl: null });
+    }
+    expect(isFreeAppPath("/apple")).toBe(false);
+    // Nowhere else: the owner's copy, the Android app and a stray address stay open.
+    expect(webProAccess(null, "/score")).toEqual(PRO_OPEN);
+    expect(webProAccess(null, "/")).toEqual(PRO_OPEN);
+  });
+
+  it("leaves /app open when the lock is switched off", () => {
+    expect(webProAccess(null, "/app", false)).toEqual(PRO_OPEN);
   });
 
   it("keeps everything open at the owner's address, whatever is listed", () => {
@@ -60,7 +76,7 @@ describe("appProAccess", () => {
   });
 
   it("opens everything once Pro is owned", () => {
-    expect(appProAccess({ ...store, owned: true })).toEqual(PRO_OPEN);
+    expect(appProAccess({ ...store, owned: true })).toEqual({ locked: false, owned: true });
   });
 
   it("answers as the web does where nothing sells Pro", () => {

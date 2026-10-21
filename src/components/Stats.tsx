@@ -38,7 +38,7 @@ import { GameSlotSessionsDialog } from "./GameSlotSessionsDialog";
 import type { Game } from "../types/bowling";
 import { RECENT_SESSIONS, type RecentForm } from "../lib/statsRange";
 import { GROUP_HEADING } from "./ui/typography";
-import { ProLock } from "./ui/ProLock";
+import { ProBanner, ProLock } from "./ui/ProLock";
 import { useProAccess } from "../lib/useProAccess";
 
 /** The stats the chart can plot, and how each one is drawn.
@@ -318,11 +318,14 @@ export function Stats({
     <div className="space-y-3">
       <Headline stats={stats} form={form} />
 
+      {/* Said once for the screen; each card under it carries only a small mark. */}
+      <ProBanner what="Pro adds charts for every stat, the first ball breakdown, your leaves and rates for each ball." />
+
       {chartLocked && (
         <section className="rounded-xl border border-edge bg-surface p-3 shadow-sm">{chartHeader}</section>
       )}
 
-      <ProLock pro={chartLocked} what="Every stat, session by session and game by game">
+      <ProLock pro={chartLocked} peek={13} what="Every stat, session by session and game by game">
         {/* Inside a session the score line IS the average, so it answers to the
             picker like everything else. On the Stats tab there are no games and
             this branch never runs. */}
@@ -442,7 +445,7 @@ export function Stats({
             ))}
       </ProLock>
 
-      <ProLock what="Pocket, carry and the pins each first ball takes">
+      <ProLock peek={10} what="Pocket, carry and the pins each first ball takes">
         <FirstBallCard stats={stats} />
       </ProLock>
 
@@ -479,7 +482,7 @@ export function Stats({
             // Two rows on show, the rest a scroll away inside the card, with
             // the top of a third row peeking to say there is more.
             <div className="mt-3">
-              <ProLock what="The leaves you leave most, and how often you make each">
+              <ProLock peek={9} what="The leaves you leave most, and how often you make each">
                 <div
                   role="region"
                   aria-label="Leaves left most"
@@ -494,7 +497,7 @@ export function Stats({
       )}
 
       {ranked.length > 0 && (
-        <ProLock what="How each of your balls strikes, carries and spares">
+        <ProLock peek={12} what="How each of your balls strikes, carries and spares">
           <section className="rounded-xl border border-edge bg-surface p-3 shadow-sm">
             <div className="flex items-center justify-between gap-3">
               <h2 className={GROUP_HEADING}>Balls</h2>

@@ -11,6 +11,8 @@ import {
 } from "../services/bowlingRepository";
 import { addBall } from "../services/ballRepository";
 import { GREETINGS } from "../lib/greeting";
+import { ProAccessContext } from "../lib/useProAccess";
+import type { ProAccess } from "../lib/pro";
 
 function renderHome(overrides: Partial<Parameters<typeof DashboardView>[0]> = {}) {
   const props = {
@@ -254,5 +256,54 @@ describe("Home (ADR-115)", () => {
     fireEvent.click(await screen.findByRole("button", { name: "View all" }));
     expect(props.onViewAll).toHaveBeenCalled();
     await waitFor(() => expect(screen.queryAllByRole("button", { name: /Alley 1\b/ })).toHaveLength(0));
+  });
+});
+
+describe("Home and Pro (ADR-164)", () => {
+  beforeEach(async () => {
+    await db.delete();
+    await db.open();
+  });
+
+  function renderWithAccess(access: ProAccess) {
+    render(
+      <ProAccessContext.Provider value={access}>
+        <DashboardView
+          onStartSession={vi.fn()}
+          onScoreNow={vi.fn()}
+          onOpenSession={vi.fn()}
+          onViewAll={vi.fn()}
+          onOpenCatalog={vi.fn()}
+          onOpenLineVisualizer={vi.fn()}
+          onOpenLayoutLab={vi.fn()}
+          onOpenAlleyReport={vi.fn()}
+          onOpenArsenal={vi.fn()}
+          onOpenLaneNotes={vi.fn()}
+          onOpenOilPatterns={vi.fn()}
+          onOpenSpareLines={vi.fn()}
+          onOpenGuides={vi.fn()}
+          onOpenBackup={vi.fn()}
+        />
+      </ProAccessContext.Provider>
+    );
+  }
+
+  it("tags the app's mark Pro for a bowler who bought it, and no banner is shown", async () => {
+    renderWithAccess({ locked: false, owned: true });
+    expect(await screen.findByText("Pro")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /See what it adds/ })).not.toBeInTheDocument();
+  });
+
+  it("shows the banner, and no tag, to a bowler on the free tier", async () => {
+    renderWithAccess({ locked: true, appStoreUrl: "https://apps.apple.com/app/id1" });
+    expect(await screen.findByRole("button", { name: "Headpin Pro. See what it adds" })).toBeInTheDocument();
+    expect(screen.queryByText("Pro")).not.toBeInTheDocument();
+  });
+
+  it("shows neither where Pro is merely open", async () => {
+    renderWithAccess({ locked: false });
+    await screen.findByText("Tools and reference");
+    expect(screen.queryByText("Pro")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /See what it adds/ })).not.toBeInTheDocument();
   });
 });

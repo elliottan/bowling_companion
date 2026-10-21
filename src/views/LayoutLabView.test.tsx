@@ -322,11 +322,10 @@ describe("LayoutLabView", () => {
     expect(ball()).not.toBe(halfUp);
   });
 
-  it("leads with the bowler, whose axis every other number is measured against", () => {
+  it("leads with the ball and what it will do, then the bowler, whose axis every other number is measured against (ADR-163)", () => {
     renderLab();
     const headings = screen.getAllByRole("heading").map((h) => h.textContent);
-    expect(headings[0]).toBe("Layouts");
-    expect(headings[1]).toBe("You");
+    expect(headings.slice(0, 6)).toEqual(["Layouts", "On the ball", "What it will do", "You", "Core", "Layout"]);
   });
 
   it("puts each angle at its own vertex, not both in the middle of the ball", () => {
@@ -806,7 +805,7 @@ describe("LayoutLabView", () => {
   });
 });
 
-describe("the layout lab while Pro is locked (ADR-154)", () => {
+describe("the layout lab while Pro is locked (ADR-154, ADR-163)", () => {
   beforeEach(async () => {
     await db.delete();
     await db.open();
@@ -818,8 +817,8 @@ describe("the layout lab while Pro is locked (ADR-154)", () => {
         <LayoutLabView onBack={vi.fn()} />
       </ProAccessContext.Provider>
     );
-    expect(screen.getByText("Changing a layout is in the Headpin app")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Get the app" })).toBeInTheDocument();
+    expect(screen.getByText("You can look but not change anything. Editing layouts is in Headpin Pro")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Unlock/ })).toBeInTheDocument();
     // Every number is still on screen to read, with what the ball will do.
     expect(dualAngle()).toBe("45 x 4 1/2 x 45");
     expect(screen.getByRole("heading", { name: "What it will do" })).toBeInTheDocument();
@@ -833,7 +832,7 @@ describe("the layout lab while Pro is locked (ADR-154)", () => {
 
   it("is the whole lab while Pro is open", () => {
     renderLab();
-    expect(screen.queryByText("Changing a layout is in the Headpin app")).not.toBeInTheDocument();
+    expect(screen.queryByText("You can look but not change anything. Editing layouts is in Headpin Pro")).not.toBeInTheDocument();
     expect(slider(/VAL angle/i)).toBeEnabled();
   });
 });

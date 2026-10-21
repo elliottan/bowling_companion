@@ -496,9 +496,9 @@ describe("the hint under the lane", () => {
     expect(screen.getByText("Drag the lane to tilt")).toBeInTheDocument();
   });
 
-  it("gives way to a footer the caller sends, the sandbox's Pro note", () => {
-    renderViz({ footer: <p>Moving the line is in the Headpin app</p> });
-    expect(screen.getByText("Moving the line is in the Headpin app")).toBeInTheDocument();
-    expect(screen.queryByText(/Drag the lane to tilt/)).not.toBeInTheDocument();
+  it("keeps the hint when the caller sends a notice, the sandbox's Pro mark", () => {
+    renderViz({ notice: <p>Moving the line is in Headpin Pro</p> });
+    expect(screen.getByText("Moving the line is in Headpin Pro")).toBeInTheDocument();
+    expect(screen.getByText(/Drag the lane to tilt/)).toBeInTheDocument();
   });
 });

@@ -44,9 +44,11 @@ import { syncCatalogForArsenal } from "./services/ballCatalogRepository";
 import type { NewSessionFormValues } from "./components/SessionForm";
 import { HandednessContext } from "./lib/handednessContext";
 import { ProAccessContext, ProStoreContext } from "./lib/useProAccess";
+import { ProOfferContext } from "./lib/proOffer";
+import { useAppliedPalette } from "./lib/palette";
 import { appProAccess } from "./lib/pro";
 import { useProStore } from "./lib/proStore";
-import { ProNote } from "./components/ui/ProLock";
+import { ProChip } from "./components/ui/ProLock";
 import { DriftModelContext } from "./lib/driftModelContext";
 import { DEFAULT_DRIFT_MODEL, type DriftModel } from "./lib/driftModel";
 import type { Handedness, LineSpec } from "./types/bowling";
@@ -101,6 +103,9 @@ const LayoutLabView = lazy(() =>
 );
 const GamePlanView = lazy(() =>
   import("./views/GamePlanView").then((m) => ({ default: m.GamePlanView }))
+);
+const ProOfferView = lazy(() =>
+  import("./views/ProOfferView").then((m) => ({ default: m.ProOfferView }))
 );
 
 /**
@@ -195,6 +200,7 @@ function App() {
   // anywhere else (ADR-154, ADR-158). Provided below to every locked card.
   const proStore = useProStore();
   const pro = useMemo(() => appProAccess(proStore), [proStore]);
+  useAppliedPalette(!pro.locked);
   const [sharedLine] = useState(() => decodeLineParams(currentSearch()));
   // A realistic strike line; auto-hooks to the pocket (ADR-024), no seeded breakpoint.
   const [sandboxLine, setSandboxLine] = useState<LineSpec | undefined>(
@@ -214,6 +220,9 @@ function App() {
   // these only maintain the stack.
   const pushOverlay = useCallback((overlay: Overlay) => dispatch({ type: "pushOverlay", overlay }), []);
   const popOverlay = useCallback(() => goBack({ type: "popOverlay" }), [goBack]);
+  // The Pro page, which every locked card, the Home banner and Settings open
+  // before anything charges (ADR-164).
+  const openProOffer = useCallback(() => pushOverlay("pro"), [pushOverlay]);
 
   // Once, after the first paint (see prefetchHeavyScreens).
   useEffect(() => {
@@ -533,6 +542,7 @@ function App() {
   return (
     <ProAccessContext.Provider value={pro}>
     <ProStoreContext.Provider value={proStore}>
+    <ProOfferContext.Provider value={openProOffer}>
     <HandednessContext.Provider value={handedness ?? "right"}>
     <DriftModelContext.Provider value={driftModel}>
     {/* `fixed inset-0` is load-bearing, not cosmetic, see the note above. */}
@@ -822,14 +832,13 @@ function App() {
                 onOpenSessionGame={openSessionGame}
               />
             );
+          case "pro":
+            return <ProOfferView key={`pro-${i}`} onBack={popOverlay} />;
           case "game-plan":
             return (
               <GamePlanView
                 key={`game-plan-${i}`}
                 onBack={popOverlay}
-                openLineId={nav.reportLineId}
-                onOpenLine={(lineId) => dispatch({ type: "openReportLine", lineId })}
-                onOpenSessionGame={openSessionGame}
                 onStartScoring={() => void handleScoreNow()}
               />
             );
@@ -838,14 +847,17 @@ function App() {
         </Suspense>
       ))}
 
+      {/* Hidden, not unmounted, while the Pro page is up (the lane's own layer
+          would cover it), so its tilt, hand and pattern are there on back. */}
       {nav.lineSandboxOpen && (
+        <div hidden={nav.overlays[nav.overlays.length - 1] === "pro"}>
         <LaneVisualizerLazy
           title="Line sandbox"
           line={sandboxLine}
           // Read-only without Pro: the line, shared or not, is drawn in full
           // and can be shared on, but not moved (ADR-154).
           onChange={pro.locked ? undefined : setSandboxLine}
-          footer={pro.locked ? <ProNote lane what="Moving the line" /> : undefined}
+          notice={pro.locked ? <ProChip what="Moving the line is in Headpin Pro" /> : undefined}
           // No shot behind this lane, so the hand is a question rather than a
           // fact, the same reason the sandbox picks its own pattern (ADR-108).
           handSwitchable
@@ -858,6 +870,7 @@ function App() {
           leave={sharedLine?.leave}
           onClose={() => goBack({ type: "closeLineSandbox" })}
         />
+        </div>
       )}
 
       <UpdateToast />
@@ -871,6 +884,7 @@ function App() {
     </div>
     </DriftModelContext.Provider>
     </HandednessContext.Provider>
+    </ProOfferContext.Provider>
     </ProStoreContext.Provider>
     </ProAccessContext.Provider>
   );
