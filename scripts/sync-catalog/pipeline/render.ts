@@ -65,10 +65,11 @@ export interface Circle {
 }
 
 /**
- * Background pixels: transparent ones, and those within tolerance of the
- * border's colour and connected to the border or to transparency. The border
- * colour is the median of the border's opaque pixels, or white when the
- * border is mostly transparent (a cut-out on a white card).
+ * Background pixels: transparent ones and, when the photo has an opaque
+ * backdrop (most of its border is opaque), those within tolerance of the
+ * backdrop's colour (the border's median) and connected to the border. A
+ * cut-out's own transparency is trusted as it is: flooding a white ground
+ * there would eat into a white ball whose swirl reaches the rim.
  */
 export function backgroundMask(data: Buffer, width: number, height: number): Uint8Array {
   const n = width * height;
@@ -80,11 +81,12 @@ export function backgroundMask(data: Buffer, width: number, height: number): Uin
     const v = opaque.map((p) => data[p * 4 + c]).sort((a, b) => a - b);
     return v[v.length >> 1];
   };
-  const bg = opaque.length >= border.length / 4 ? [median(0), median(1), median(2)] : [255, 255, 255];
+  const bg = opaque.length >= border.length / 2 ? [median(0), median(1), median(2)] : null;
   const isBackground = (p: number) => {
     const i = p * 4;
     if (data[i + 3] < 128) return true;
     return (
+      bg !== null &&
       Math.abs(data[i] - bg[0]) <= BACKGROUND_TOLERANCE &&
       Math.abs(data[i + 1] - bg[1]) <= BACKGROUND_TOLERANCE &&
       Math.abs(data[i + 2] - bg[2]) <= BACKGROUND_TOLERANCE

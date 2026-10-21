@@ -66,11 +66,18 @@ describe("backgroundMask", () => {
     expect(mask[(CY - 15) * W + CX]).toBe(0);
   });
 
-  it("reaches a white band left inside an earlier transparent cut", () => {
-    const data = ballOnWhite((x, y) => (Math.hypot(x + 0.5 - CX, y + 0.5 - CY) > R + 4 ? [0, 0, 0, 0] : null));
+  it("trusts a cut-out's transparency, so white reaching the rim stays ball", () => {
+    // A cut-out whose white swirl runs out to the rim on the right.
+    const data = ballOnWhite((x, y) => {
+      const d = Math.hypot(x + 0.5 - CX, y + 0.5 - CY);
+      if (d > R) return [0, 0, 0, 0];
+      return x > CX + 20 ? [250, 250, 250, 255] : null;
+    });
     const mask = backgroundMask(data, W, H);
-    expect(mask[(CY - R - 2) * W + CX]).toBe(1);
-    expect(mask[CY * W + CX]).toBe(0);
+    expect(mask[0]).toBe(1);
+    expect(mask[CY * W + CX + R - 2]).toBe(0);
+    const c = fit(data);
+    expect(c.r).toBeCloseTo(R, 0);
   });
 });
 
