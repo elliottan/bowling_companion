@@ -17,6 +17,9 @@ had all shipped.
 - **Home offers the iPhone app.** On the web, Home opens on a "Headpin for
   iPhone" row with Get, in place of the card that asked you to add Headpin to
   your home screen (ADR-170). Close it and it stays away for two weeks.
+- **A screen's title steps aside as you scroll.** On every pushed screen the
+  title shows at the top and fades once the page passes under the bar, so it
+  never sits on top of other text; the round buttons stay (ADR-177).
 - **Layouts: the ball stays in view.** It is pinned under the bar in a
   shorter frame while the page scrolls, so a slider and what it does to the
   ball are on screen together. Your PAP, hand and grip, and the reset, are

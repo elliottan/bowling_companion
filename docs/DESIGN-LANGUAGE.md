@@ -34,7 +34,8 @@ Every push gets, without exception:
   "Back" for screen readers. It used to name the screen underneath ("‹ Settings"),
   which read as a lie once the same screen could be pushed from several places:
   opened from the dashboard it named a tab the user had never navigated from;
-- a centered title, one line, 17px semibold;
+- a centered title, one line, 17px semibold, shown while the screen is at its
+  top and faded out once anything scrolls under the bar (ADR-177);
 - at most **one** trailing action, an `IconButton`, or the word "Edit" in a
   `BarButton` where the action turns the screen into a form (§1b). The layout
   lab is the single exception: a share, which is what the screen is for once

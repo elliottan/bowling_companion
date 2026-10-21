@@ -72,6 +72,11 @@ export function PushScreen({
   children,
 }: PushScreenProps) {
   const [exiting, setExiting] = useState(false);
+  // Whether anything has scrolled up under the bar. The title shows only at
+  // the top: once the page passes beneath it, text over moving text reads as
+  // a mistake, where the round controls, raised glass, still read and are
+  // still the way out (ADR-177).
+  const [scrolled, setScrolled] = useState(false);
   const exitTimer = useRef<number | null>(null);
   // Taking the place of a loading screen that already slid in: no second slide.
   const [takesPlace] = useState(() => overlayHandoff.active);
@@ -166,7 +171,11 @@ export function PushScreen({
               {/* Optically centred: the chevron's mass sits right of its box. */}
               <ChevronLeft size={22} strokeWidth={2.5} aria-hidden="true" className="-ml-0.5" />
             </IconButton>
-            <h1 className="pointer-events-none absolute left-1/2 max-w-[calc(100%-7rem)] -translate-x-1/2 truncate text-[17px] font-semibold text-ink">
+            <h1
+              className={`pointer-events-none absolute left-1/2 max-w-[calc(100%-7rem)] -translate-x-1/2 truncate text-[17px] font-semibold text-ink transition-opacity duration-200 ${
+                scrolled ? "opacity-0" : ""
+              }`}
+            >
               {title}
             </h1>
             <div className="ml-auto flex shrink-0 items-center">{trailing}</div>
@@ -178,6 +187,10 @@ export function PushScreen({
             for a sticky row inside to stop beneath the bar rather than under
             it. */}
         <div
+          onScroll={(e) => {
+            const next = e.currentTarget.scrollTop > 4;
+            if (next !== scrolled) setScrolled(next);
+          }}
           className={`min-h-0 flex-1 overflow-y-auto overscroll-contain pt-[var(--push-bar-h)] ${
             // Inline, a Settings section, runs under the tab bar like its tab.
             overlay ? "pb-[env(safe-area-inset-bottom)]" : "pb-[var(--tab-clear,0px)]"

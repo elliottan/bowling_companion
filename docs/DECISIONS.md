@@ -8108,3 +8108,23 @@ one page whose job is to sell the rest.
 for each thing Pro adds, and the button. What is free is still settled in
 `docs/PRO-LAUNCH.md`, and the App Store listing can say it where a stranger
 reads it.
+
+---
+
+## ADR-177: A pushed screen's title shows only at the top
+
+**Status.** Accepted, 2026-10-21, by the owner from a phone in hand. Amends
+ADR-168 on what floats over a screen's scroll.
+
+**Context.** ADR-168 floats a pushed screen's bar over its scroll, with the
+scroll edge, a light wash and blur, as its only ground. The owner liked the
+floating round buttons, but the title read as floating oddly: once the page
+scrolled under it, its words sat on top of the page's own text, which the edge
+softens but cannot hide.
+
+**Decision.** The title shows while the screen is at its top and fades out once
+the scroll passes 4px; it comes back at the top. The round controls stay, since
+they are raised glass that reads over anything and are the way out. The title
+stays in the accessibility tree either way (only its opacity changes), so a
+screen is always named. Sheet bars are unchanged: a sheet is short, and its
+title is what it is about.
