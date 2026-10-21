@@ -203,8 +203,9 @@ MOTIV or Storm balls whose pages state none.
 - **Replacing a photo:** `npm run set-ball-image -- <map.json>`
   (`{"<ball-id>": "<file>"}`) renders it, names it `-p2`, `-p3` so the app's
   30-day photo cache lets it through, and keeps the old file name holding the
-  new image because arsenal balls keep a snapshot of the path. A white
-  background that got through is `npm run clear-background` first.
+  new image because arsenal balls keep a snapshot of the path. Every photo
+  is cut to its ball's circle on the way in (ADR-169), so there is no separate
+  background repair any more.
 - **MOTIV's site refuses a plain user-agent.** Its images need the
   `MOTIV_USER_AGENT` from `pipeline/sources.ts` (ADR-061), which is why the one
   MOTIV photo in this batch was fetched separately.
