@@ -69,7 +69,9 @@ export function CollapsingHeader({
       <div
         ref={scrollerRef}
         onScroll={onScroll}
-        className="h-full overflow-y-auto overscroll-contain"
+        // Ends clear of the tab bar on a tab, which `<main>` says through
+        // `--tab-clear`; nothing anywhere else (ADR-171).
+        className="h-full overflow-y-auto overscroll-contain pb-[var(--tab-clear,0px)]"
       >
         {/* The list starts below the header rather than under it, so nothing
             is hidden at the top of the list. */}

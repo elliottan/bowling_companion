@@ -167,6 +167,11 @@ const launchedWithRoute = (() => {
   return hash !== "" && hash !== "#" && hash !== "#/" && hash !== "#/home";
 })();
 
+
+/** Tabs whose screen is its own scroller rather than `<main>`: each pads that
+ *  scroller's end by `--tab-clear` (ADR-171). */
+const SELF_SCROLLING_VIEWS: readonly AppView[] = ["history", "stats", "settings"];
+
 function App() {
   // Every "where am I" question (tab, session, Settings section, overlay
   // stack) is answered by one reducer, so the rules between them are readable
@@ -601,7 +606,17 @@ function App() {
         // The safe-area top is padding inside the scroll rather than on the
         // shell, so a tab scrolls up under the status bar as an iOS screen
         // does, behind the scroll edge below (ADR-168).
-        className="min-h-0 flex-1 overflow-y-auto overscroll-contain pb-[var(--tab-bar-h)] pt-[env(safe-area-inset-top)] sm:pb-0"
+        //
+        // `--tab-clear` is how much of the screen's foot the tab bar covers:
+        // its height on a phone, nothing on a wide screen where the bar is not
+        // drawn. Whatever scrolls pads its end by it, so the last row can be
+        // scrolled clear of the bar while every other row passes under it. A
+        // tab that scrolls itself (History, Stats, Settings) pads its own
+        // scroller: padding here as well shortened that scroller by the bar's
+        // height, and the list stopped at a hard edge above it (ADR-171).
+        className={`min-h-0 flex-1 overflow-y-auto overscroll-contain pt-[env(safe-area-inset-top)] [--tab-clear:var(--tab-bar-h)] sm:[--tab-clear:0px] ${
+          SELF_SCROLLING_VIEWS.includes(view) ? "" : "pb-[var(--tab-clear)]"
+        }`}
       >
         <Suspense fallback={null}>
         {view === "dashboard" && (
@@ -697,18 +712,25 @@ function App() {
         className="scroll-edge pointer-events-none absolute inset-x-0 top-0 z-[5] h-[calc(env(safe-area-inset-top)*1.5)]"
       />
 
+      {/* The page scrolls under the tab bar, the phone's or the page's own, and
+          fades out a little as it passes beneath: the bars have no ground of
+          their own, so the list shows through them as it does under a system
+          bar (ADR-171). Not while the keyboard is up and the bar has gone. */}
+      {!keyboardOpen && (
+        <div
+          aria-hidden="true"
+          className="scroll-edge-bottom absolute inset-x-0 bottom-0 z-[5] h-[var(--tab-bar-h)] sm:hidden"
+        />
+      )}
+
       {/* A floating capsule with the active tab in a pill that slides between
           them, as iOS draws its tab bar. It floats over the tab, which scrolls
-          behind it, so the page fades out under it and the capsule is frosted
-          over what is left. The real Liquid Glass bends what is behind it, which
+          behind it, fading a little under it, and the capsule is frosted over
+          what passes beneath. The real Liquid Glass bends what is behind it, which
           needs UIKit, so the iPhone app draws the phone's own (ADR-161). The
           strip beside the capsule passes taps through to the page. */}
       {!nativeTabBar && (
       <nav className={`pointer-events-none absolute inset-x-0 bottom-0 z-10 sm:hidden ${keyboardOpen ? "hidden" : ""}`}>
-        <div
-          aria-hidden="true"
-          className="absolute inset-x-0 bottom-0 h-[calc(var(--tab-bar-h)+1.25rem)] bg-gradient-to-t from-surface-sunken via-surface-sunken/80 to-transparent"
-        />
         <div className="pointer-events-auto relative px-3 pb-[max(env(safe-area-inset-bottom),0.5rem)] pt-1">
           <div className="relative grid grid-cols-5 rounded-full border border-edge/70 bg-surface/75 p-1 shadow-[inset_0_1px_0_rgb(255_255_255/0.35),0_6px_20px_rgb(0_0_0/0.14)] backdrop-blur-xl backdrop-saturate-150">
             <span

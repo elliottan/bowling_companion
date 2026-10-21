@@ -24,6 +24,9 @@ had all shipped.
   accent color. The More button is gone; Share stays.
 - **Locked controls are easier to see through.** The blur over the layout
   sliders and the lane's line fields is lighter.
+- **Lists scroll under the tab bar.** In the iPhone app and on the web, the
+  page now passes beneath the floating tab bar instead of stopping at a solid
+  band above it (ADR-171).
 - **The Headpin Pro page shows the real screens**: the stat chart, the First
   ball card, your leaves, ball by ball with real ball photos, a line on the
   lane over the oil, and the drilled ball, with sample numbers.

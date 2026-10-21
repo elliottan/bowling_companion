@@ -120,6 +120,7 @@ public class HeadpinTabBarPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate 
     private func makeTabBar(on host: UIView) -> HeadpinTabBar {
         let bar = HeadpinTabBar()
         bar.delegate = self
+        HeadpinTabBarPlugin.letPageShowThrough(bar)
         bar.translatesAutoresizingMaskIntoConstraints = false
         bar.onLayout = { [weak self, weak bar] in
             guard let self = self, let bar = bar else { return }
@@ -137,6 +138,24 @@ public class HeadpinTabBarPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate 
         ])
         tabBar = bar
         return bar
+    }
+
+    /// The page scrolls under the bar, as a screen does under the system's own
+    /// tab bar. A bar outside a `UITabBarController` has no scroll view to
+    /// watch, so iOS 26 kept a solid ground behind its glass capsule and the
+    /// page stopped at a hard edge above it. On iOS 26 and later the ground
+    /// goes and the capsule floats over the page, which fades itself out
+    /// underneath (`.scroll-edge-bottom`). Before iOS 26 the bar keeps its
+    /// translucent blur, which is that iOS's own look over moving content.
+    private static func letPageShowThrough(_ bar: UITabBar) {
+        let appearance = UITabBarAppearance()
+        if #available(iOS 26.0, *) {
+            appearance.configureWithTransparentBackground()
+        } else {
+            appearance.configureWithDefaultBackground()
+        }
+        bar.standardAppearance = appearance
+        bar.scrollEdgeAppearance = appearance
     }
 
     /// From the top of the bar to the bottom of the screen, which is what the

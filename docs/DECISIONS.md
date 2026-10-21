@@ -7942,3 +7942,42 @@ were hand-drawn sketches that read as fake.
 `LayoutEditor` veils its own sliders when asked (`proNumbers`), so the ball
 form, where writing a ball's layout down is recording it, stays open.
 `FirstBallCard` takes only the fields it reads, so the Pro page can feed it.
+
+---
+
+## ADR-171: The page scrolls under the tab bar, the phone's and its own
+
+**Status.** Accepted, 2026-10-21, asked for by the owner from a phone in hand.
+Settles the consequence ADR-161 left for later, and amends ADR-168 on what sits
+under the page's own capsule. The Swift needs a build and a look on a phone.
+
+**Context.** In the iPhone app and on the web, History, Stats and Settings
+stopped at a hard edge above the tab bar, with a solid band of the page's color
+behind it. `<main>` runs the full height and pads its end by the bar's height,
+which is right for a tab that `<main>` scrolls (Home, Score). But those three
+scroll themselves, in a full-height box inside `<main>`, and that padding made
+the box a bar's height short: the list ended above the bar, and nothing was
+under it to show. On top of that, the page's own capsule sat on a gradient that
+went solid at the bottom, and a `UITabBar` outside a `UITabBarController` has
+no scroll view to watch, so iOS 26 may give it a solid ground of its own.
+
+**Decision.**
+
+- **Whatever scrolls pads its own end.** `<main>` publishes `--tab-clear`, the
+  bar's height on a phone and nothing on a wide screen, and pads by it only for
+  the tabs it scrolls. A tab that scrolls itself pads its scroller instead
+  (`CollapsingHeader`, the Settings menu, an inline `PushScreen`), so the box
+  runs to the foot of the screen and the list passes under the bar. A pushed
+  screen sits outside `<main>` and reads nothing.
+- **The system bar has no ground on iOS 26 and later**
+  (`configureWithTransparentBackground`, for both its standard and scroll-edge
+  appearance), so its capsule floats over the page. Before iOS 26 it keeps the
+  translucent blur that iOS drew then.
+- **The page draws the bottom edge itself**, for both bars: `.scroll-edge-bottom`,
+  the top scroll edge turned over and lighter, `--tab-bar-h` tall, so content
+  under the bar is softened a little and never covered. Gone while the keyboard
+  is up.
+
+**Consequences.** Every tab's last rows can now sit behind the bar until
+scrolled up, which is how a system screen behaves; `<main>` still pads its end
+by `--tab-bar-h`, so the last row can always be scrolled clear of it.

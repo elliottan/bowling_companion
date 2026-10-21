@@ -320,6 +320,23 @@ input[type="date"]::-webkit-date-and-time-value {
   mask-image: linear-gradient(to bottom, #000 60%, transparent);
 }
 
+/* The same edge, turned over, under the tab bar: the page scrolls behind the
+   bar and fades a little under it, as a screen does under the system's bar,
+   and never turns to a solid band (ADR-171). */
+.scroll-edge-bottom {
+  pointer-events: none;
+  background: linear-gradient(
+    to top,
+    rgb(var(--color-surface-sunken) / 0.85) 0%,
+    rgb(var(--color-surface-sunken) / 0.55) 50%,
+    rgb(var(--color-surface-sunken) / 0) 100%
+  );
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  -webkit-mask-image: linear-gradient(to top, #000 40%, transparent);
+  mask-image: linear-gradient(to top, #000 40%, transparent);
+}
+
 /* The tab header flips fully away and fully back (never half-there), so the
    travel has to be animated: the scroll only says when, not how. The header and
    the list under it are one block and only its transform moves, so the two

@@ -165,7 +165,8 @@ export function PushScreen({
             it. */}
         <div
           className={`min-h-0 flex-1 overflow-y-auto overscroll-contain pt-[var(--push-bar-h)] ${
-            overlay ? "pb-[env(safe-area-inset-bottom)]" : ""
+            // Inline, a Settings section, runs under the tab bar like its tab.
+            overlay ? "pb-[env(safe-area-inset-bottom)]" : "pb-[var(--tab-clear,0px)]"
           }`}
           style={{ "--push-bar-h": overlay ? "calc(env(safe-area-inset-top) + 3rem)" : "3rem" } as CSSProperties}
         >

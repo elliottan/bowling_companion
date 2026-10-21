@@ -112,11 +112,14 @@ draws the system's own, ADR-161; what follows is the page's bar.) It floats over
 the screen as a rounded bar with the active tab in a sliding pill, the way iOS
 draws its tab bar, and the tab scrolls behind it: `<main>` runs the full height
 and pads its end by `--tab-bar-h`, which the shell publishes and the floating
-action row reads too. Content fades into the page color under the bar, and the
-capsule is frosted over what is left. The first attempt left the list ending in
-a hard edge above a bar floating in empty page, which looked worse than either
-a bar that meets the content or one that floats over it. Frost belongs only
-here, where there is something to blur; headers and sheets stay opaque.
+action row reads too. The list shows through under the bar, faded only a
+little (`.scroll-edge-bottom`), and the capsule is frosted over it. The first
+attempt left the list ending in a hard edge above a bar floating in empty page,
+and a later gradient that went solid under the capsule read the same way: a
+band the page stopped at, not a bar over it (ADR-171). The iPhone app's system
+bar has no ground of its own either, so the page passes under it the same way.
+Frost belongs only here, where there is something to blur; headers and sheets
+stay opaque.
 
 ## 2. Controls
 
