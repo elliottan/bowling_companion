@@ -183,38 +183,24 @@ const BEATS = [
     cam: [{ at: "tenth-0-0.15", box: WIDE, z: 1.3, ease: 0 }],
     spots: [{ from: "tenth-0-0.05", to: "tap-tenth-2+0.05", boxes: "tenth-0" },
             { from: "tap-tenth-2+0.05", to: "frame10+0.5", boxes: "frame10" }] },
-  // What is free (ADR-154: recording is free, and nothing a bowler has is ever
-  // locked), flicked past one screen to a line under one kicker.
+  // Then the rest of what a bowler gets for free, flicked past one screen to a
+  // line under one pill. Only screens the free app has: a bowler who installs
+  // from this finds every one of them open (ADR-154).
   { id: "games", pad: 0.02, take: "history", from: "list", to: "list+0.9", caption: "Unlimited <em>games</em>.", vo: "games", trans: "whip", kicker: "free" },
-  { id: "average", pad: 0.02, take: "pro", from: "top", to: "to-firstball-0.1", caption: "Average <em>and trends</em>.", vo: "average", trans: "flip", kicker: "free",
-    cam: [{ at: "top", box: { x: 0, y: 56, w: 390, h: 340 }, z: 1.3, ease: 0 }],
-    // The first-ball card below is Pro: the light stays on the free numbers.
-    spots: [{ from: "top", to: "to-firstball-0.1", boxes: [union([box("pro", "average"), { x: 12, y: 150, w: 366, h: 196 }])] }] },
-  { id: "arsenal", pad: 0.02, take: "arsenal", from: "list", to: "list+1.2", caption: "Your whole <em>arsenal</em>.", vo: "arsenal", trans: "whip", kicker: "free" },
-  { id: "balls", pad: 0.02, take: "catalog", from: "scroll", to: "scrolled-0.2", dur: 1.25, caption: "Hundreds of <em>balls</em>.", vo: "balls", trans: "flip", kicker: "free" },
-  { id: "oil", pad: 0.02, take: "patterns", from: "graph-0.2", to: "graph+0.6", caption: "Oil <em>patterns</em>.", vo: "oil", trans: "whip", kicker: "free" },
-  { id: "free", caption: "All free.|<em>No limits. No account.</em>", capSize: 78, vo: "free", trans: "zoom", min: 1.5, pad: 0.1, kicker: "free",
-    fan: [{ take: "history", at: "list+0.9" }, { take: "arsenal", at: "list+1" }, { take: "game", at: "lane-held" },
+  // Cut in and out, with the light on from the first frame: a flip or a whip
+  // would show the card under it for a moment.
+  { id: "average", pad: 0.02, take: "stats", from: "top", to: "top+1.1", caption: "Average <em>and trends</em>.", vo: "average", trans: "cut", kicker: "free",
+    cam: [{ at: "top", box: [box("stats", "average"), box("stats", "trend")], z: 1.3, ease: 0 }],
+    // The light stays on the free numbers, and the card under them, which is
+    // Pro, goes dark: the reel shows only what the free app has.
+    spots: [{ from: "top", to: "top+1.1", dim: 1, instant: true, boxes: [box("stats", "average"), box("stats", "trend")] }] },
+  { id: "arsenal", pad: 0.02, take: "arsenal", from: "list", to: "list+1.2", caption: "Your whole <em>arsenal</em>.", vo: "arsenal", trans: "cut", kicker: "free" },
+  { id: "spares", pad: 0.02, take: "spares", from: "nudge-0.2", to: "tap-ten+0.9", dur: 1.5, caption: "A line for <em>every spare</em>.", vo: "spares", trans: "flip", kicker: "free" },
+  { id: "balls", pad: 0.02, take: "catalog", from: "scroll", to: "scrolled-0.2", dur: 1.25, caption: "Hundreds of <em>balls</em>.", vo: "balls", trans: "whip", kicker: "free" },
+  { id: "oil", pad: 0.02, take: "patterns", from: "graph-0.2", to: "graph+0.6", caption: "Oil <em>patterns</em>.", vo: "oil", trans: "flip", kicker: "free" },
+  { id: "free", caption: "All free.|<em>No limits. No account.</em>", capSize: 78, vo: "free", trans: "zoom", min: 1.75, pad: 0.15, kicker: "free",
+    fan: [{ take: "history", at: "list+0.9" }, { take: "arsenal", at: "list+1" }, { take: "spares", at: "nudge" }, { take: "game", at: "lane-held" },
           { take: "catalog", at: "scrolled" }, { take: "patterns", at: "graph+0.6" }] },
-
-  // Then Headpin Pro: the reads that turn those records into a decision, each
-  // on the real card it names.
-  { id: "deeper", take: "pro", from: "to-firstball-0.2", to: "firstball+0.1", caption: "Want to go <em>deeper</em>?", vo: "deeper", trans: "zoom", kicker: "pro",
-    cam: [{ at: "to-firstball-0.2", box: FULL, z: 1, ease: 0 }, { at: "to-firstball+0.5", box: "firstball", z: 1.9, ease: 0.6 }] },
-  { id: "pocket", take: "pro", from: "firstball+0.1", to: "to-leaves", caption: "Pocket, carry, <em>strike</em>.", vo: "pocket", trans: "none", kicker: "pro",
-    cam: [{ at: "firstball+0.1", box: "firstball", z: 1.9, ease: 0 }, { at: "firstball+0.2", box: "firstball", z: 2.15, ease: 0.6 }],
-    spots: [{ from: "firstball+0.3", to: "to-leaves-0.05", boxes: "firstball" }] },
-  { id: "leaves", take: "pro", from: "to-leaves", to: "to-balls", caption: "The leaves|that <em>cost you</em>.", vo: "leaves", trans: "none", kicker: "pro",
-    cam: [{ at: "to-leaves", box: "firstball", z: 2.15, ease: 0 }, { at: "to-leaves+0.15", box: "leaves", z: 1.6, ease: 0.7 }],
-    circles: [{ at: "leaves+0.1", box: (() => { const b = box("pro", "leaves"); return { x: b.x + 128, y: b.y + 74, w: 110, h: 104 }; })(), dur: 0.5 }] },
-  { id: "which", take: "pro", from: "to-balls", to: "balls+1.2", caption: "Which ball|<em>strikes more</em>.", vo: "which", trans: "none", kicker: "pro",
-    cam: [{ at: "to-balls", box: "leaves", z: 1.6, ease: 0 }, { at: "to-balls+0.1", box: "balls", z: 1.45, ease: 0.7 }],
-    spots: [{ from: "balls+0.1", to: "balls+1.2", boxes: [(() => { const b = box("pro", "balls"); return { x: b.x, y: b.y + 64, w: b.w, h: 44 }; })()] }] },
-  { id: "layout", pad: 0.05, take: "layouts", from: "sliders", to: "dragged+0.2", dur: 2.0, caption: "Try a layout|<em>before you drill</em>.", vo: "layout", trans: "whip", kicker: "pro",
-    cam: [{ at: "sliders", box: "lab", z: 1.12, ease: 0 }] },
-  { id: "once", caption: "One purchase.|<em>No subscription.</em>", vo: "once", trans: "zoom", min: 1.75, pad: 0.15, kicker: "pro",
-    fan: [{ take: "pro", at: "firstball+0.5" }, { take: "pro", at: "leaves+0.5" }, { take: "layouts", at: "dragged+0.3" },
-          { take: "pro", at: "balls+0.5" }, { take: "game", at: "lane-held" }] },
 
   { id: "end", end: true, vo: "end", trans: "zoom", min: 3.0 }
 ];
@@ -240,13 +226,8 @@ const VOICE = {
   arsenal: ["Your whole arsenal.", 1.25],
   balls: ["Hundreds of balls.", 1.25],
   oil: ["Oil patterns.", 1.25],
+  spares: ["A line for every spare.", 1.25],
   free: ["All of it free. No limits, no account.", 1.15],
-  deeper: "Want to go deeper? Head pin Pro.",
-  pocket: ["Pocket, carry, strike.", 1.15],
-  leaves: ["The leaves that cost you.", 1.15],
-  which: ["Which ball strikes more.", 1.15],
-  layout: ["Try a layout before you drill it.", 1.15],
-  once: "One purchase. No subscription.",
   end: "Head pin. Free on the App Store."
 };
 
@@ -472,12 +453,12 @@ function beatFrame(beats, i, u) {
     if (u < a || u > z) return;
     const joinedIn = j > 0 && Math.abs(local(spots[j - 1].to) - a) < 0.12;
     const joinedOut = j < spots.length - 1 && Math.abs(local(spots[j + 1].from) - z) < 0.12;
-    const fadeIn = joinedIn ? 1 : easeOut(clamp((u - a) / 0.18));
-    const fadeOut = joinedOut ? 1 : clamp((z - u) / 0.14);
+    const fadeIn = joinedIn || sp.instant ? 1 : easeOut(clamp((u - a) / 0.18));
+    const fadeOut = joinedOut || sp.instant ? 1 : clamp((z - u) / 0.14);
     const k = Math.min(fadeIn, fadeOut);
-    const pad = joinedIn ? 10 : 10 + (1 - easeOut(clamp((u - a) / 0.25))) * 26;
+    const pad = joinedIn || sp.instant ? 10 : 10 + (1 - easeOut(clamp((u - a) / 0.25))) * 26;
     f.spot = {
-      alpha: 0.64 * k,
+      alpha: (sp.dim ?? 0.64) * k,
       rim: k,
       holes: boxesOf(b.take, sp.boxes).map((bx) => ({ ...toCanvas(cam, bx, pad), r: 22 }))
     };
@@ -554,7 +535,7 @@ function frameAtTime(beats, t) {
 
   // End card.
   if (b.end) {
-    const items = [0, 1, 2, 3, 4, 5].map((j) => {
+    const items = [0, 1, 2, 3, 4].map((j) => {
       const k = j === 0 ? clamp(u / 0.22) : clamp((u - 0.05 - j * 0.07) / 0.3);
       return { opacity: j === 0 ? 1 : easeOut(k), dy: (1 - easeOutBack(k)) * 50, scale: j === 0 ? 0.75 + 0.25 * easeOutBack(k) : 1 };
     });
@@ -571,7 +552,7 @@ function frameAtTime(beats, t) {
 /** The pill over the caption, held across a run of beats with the same one:
  *  it comes in with the first, stays put through the cuts, and goes with the
  *  last, so the montage reads as one list. */
-const KICKERS = { free: "Free", pro: "Headpin Pro" };
+const KICKERS = { free: "Free" };
 function kickerAt(beats, i, u) {
   const kind = beats[i].kicker;
   if (!kind) return null;

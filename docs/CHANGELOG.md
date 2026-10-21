@@ -14,10 +14,11 @@ had all shipped.
 Nothing changes in the app. In the repo:
 
 - **A new feature reel** (`marketing/ads/2026-10-21/`) for the iPhone app's
-  launch. It keeps the league night from the last one, then says what is free
-  (unlimited games, the arsenal, the catalogs, average and trends) and what
-  Headpin Pro adds, one purchase with no subscription, and ends on the App
-  Store instead of "It's free". The stills point at the App Store too.
+  launch. It keeps the league night from the last one, then runs through what
+  the free app has (unlimited games, average and trends, the arsenal, spare
+  lines, the catalogs) and ends on "Free on the App Store" instead of "opens in
+  your browser". It shows only free screens. The stills point at the App Store
+  too.
 - **The App Store screenshots** (`marketing/app-store/2026-10-21/`): ten at the
   6.9 inch size, captioned and plain, taken from the app as the iPhone app
   renders it, with the one Pro screen badged as Pro.

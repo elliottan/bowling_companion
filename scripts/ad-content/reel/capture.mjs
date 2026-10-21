@@ -449,41 +449,6 @@ await take("catalog", {
   }
 });
 
-// The layout of a ball, drawn on the ball: the three sliders that set it, each
-// swung in turn, with the drawing and what it will do moving as they go. The
-// lab leads with the ball and keeps its sliders far below it, so the screen
-// stays on the ball and the sliders are moved the way a drag moves them: one
-// value at a time, through the input events React listens to.
-await take("layouts", {
-  async run({ app, tap, mark, wait }) {
-    await tap(app.getByRole("button", { name: /^Layouts/ }), "tap-layouts", 900);
-    await mark("top", { x: 0, y: 0, w: 390, h: 844 });
-    await mark("lab", [app.getByText("On the ball", { exact: true }).first(), app.getByText("What it will do", { exact: true }).first().locator("xpath=following-sibling::*[1]")]);
-    await wait(600);
-    await mark("sliders", { x: 0, y: 0, w: 390, h: 844 });
-    const swing = async (name, by) => {
-      await mark(`drag-${name}`, { x: 0, y: 0, w: 390, h: 844 });
-      await app.getByRole("slider", { name }).evaluate(async (el, by) => {
-        const [min, max, v0] = [el.min, el.max, el.value].map(Number);
-        const step = Number(el.step) || 1;
-        const to = Math.min(max, Math.max(min, v0 + by * (max - min)));
-        const set = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value").set;
-        for (let k = 1; k <= 16; k++) {
-          const v = v0 + (to - v0) * (1 - Math.pow(1 - k / 16, 2));
-          set.call(el, String(Math.round(v / step) * step));
-          el.dispatchEvent(new Event("input", { bubbles: true }));
-          await new Promise((r) => setTimeout(r, 30));
-        }
-      }, by);
-      await wait(150);
-    };
-    await swing("Drilling angle", 0.3);
-    await swing("Pin to PAP", 0.08);
-    await swing("VAL angle", 0.3);
-    await mark("dragged", { x: 0, y: 0, w: 390, h: 844 });
-    await wait(700);
-  }
-});
 /** The weeks of history (../history.mjs), then the app reloaded onto them. */
 async function seedHistory(page, app) {
   const frame = page.frames().find((f) => f.url().includes("/score"));
@@ -534,9 +499,8 @@ await take("arsenal", {
   }
 });
 
-// Stats across the weeks of history: the free numbers at the top, then the
-// Pro cards under them (ADR-154), each scrolled to in turn.
-await take("pro", {
+// Stats across the weeks of history: the average and the trend at the top.
+await take("stats", {
   async setup({ page, app }) {
     await seedHistory(page, app);
   },
@@ -545,22 +509,8 @@ await take("pro", {
     await mark("top", { x: 0, y: 0, w: 390, h: 844 });
     const average = app.getByText("Average", { exact: true }).first().locator("xpath=ancestor::section[1] | ancestor::div[contains(@class,'rounded')][1]").last();
     await mark("average", average);
-    await wait(1200);
-    // Each Pro card, scrolled to the middle of the screen and held, so a zoom
-    // onto it never shows the top of the phone.
-    const cards = [
-      ["firstball", "First ball"],
-      ["leaves", "Spares"],
-      ["balls", "Balls"]
-    ];
-    for (const [label, heading] of cards) {
-      const h = app.getByText(heading, { exact: true }).first();
-      await mark(`to-${label}`, { x: 0, y: 0, w: 390, h: 844 });
-      await h.evaluate((el) => (el.closest("section") ?? el).scrollIntoView({ behavior: "smooth", block: "center" }));
-      await wait(1100);
-      await mark(label, h.locator("xpath=ancestor::section[1]"));
-      await wait(1300);
-    }
+    await mark("trend", app.getByText("Your score per finished game.").first().locator("xpath=ancestor::*[contains(@class,'rounded-xl')][1]"));
+    await wait(1600);
   }
 });
 

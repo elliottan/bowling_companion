@@ -1,20 +1,19 @@
 # The feature reel
 
-A 9:16 reel in three acts, built from the real app. First, one league night: a
-line over a PBA pattern, a ball, a line, the lane view, scoring, the line
-carrying over to the next shot, a 2-1 move, a spare ball and line that are
-already set, and the tenth. Then what is free, one screen to a line under a teal
-"Free" pill (unlimited games, average and trends, the whole arsenal, hundreds
-of balls, oil patterns), dealt out in a fan for "All free. No limits. No
-account." Then Headpin Pro under a gold pill, each read on the real card it
-names (pocket and carry, the leaves that cost you, which ball strikes more, a
-layout changed before drilling), a fan for "One purchase. No subscription.",
-and the card: "Free on the App Store".
+A 9:16 reel built from the real app. First, one league night: a line over a
+PBA pattern, a ball, a line, the lane view, scoring, the line carrying over to
+the next shot, a 2-1 move, a spare ball and line that are already set, and the
+tenth. Then the rest of the app, one screen to a line under a teal "Free" pill
+(unlimited games, average and trends, the whole arsenal, a line for every
+spare, hundreds of balls, oil patterns), dealt out in a fan for "All free. No
+limits. No account.", and the card: "Free on the App Store".
 
-The split is ADR-154's: recording is free, reading deeper is Pro. A beat that
-shows a Pro card is under the Pro pill, and no free beat shows one unlit (the
-average beat keeps its light on the free numbers, with the first-ball card
-below it dimmed).
+The reel is about the features and that the app is free, by the owner's call:
+it does not mention Headpin Pro, a purchase or a subscription. So it shows only
+what the free app has (ADR-154), and a bowler who installs from it finds every
+screen in it open. Nothing Pro is on screen, even dimmed: the average beat cuts
+in and out with its light on the free numbers and everything else dark, since
+the first-ball card under them is Pro.
 
 It is built in two passes, so the footage stays honest and the editing stays
 smooth.
@@ -81,7 +80,7 @@ way to check a change to the edit.
   can set its own height (`fy`), as the hook does to fill the frame with the
   lane.
 - One effect at a time: a spotlight, a ring or a tap, not all three at once.
-- A run of beats under one pill (`kicker: "free"` or `"pro"`) keeps the pill
+- A run of beats under one pill (`kicker: "free"`) keeps the pill
   still across its cuts, so the run reads as one list; the caption sits under
   it, and a two-line caption there gets a taller solid band.
 - The app's floating tab bar covers the bottom of the screen, so a tap scrolls
