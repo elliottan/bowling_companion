@@ -9,6 +9,30 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.50.0: A quieter Pro, the ball first in the layout lab, and a leaner Alley report (2026-10-21)
+
+- **Locked cards show a teaser.** Stats used to carry four big "Get Headpin Pro"
+  buttons over blurred cards. Now the top of Stats says once what Pro adds, with
+  the one button, and each locked card shows its first lines for real, fading
+  out, with a small Pro mark; tapping the card does the same as the button. The
+  Alley report's balls do the same (ADR-163).
+- **The line sandbox gets its lane back.** Without Pro, the note that sat at the
+  foot of the lane view and crowded the board numbers is now a small
+  "Unlock editing" chip in the row of controls at the top. The lane keeps its
+  whole height, and its "Drag the lane to tilt" hint.
+- **The layout lab leads with the ball.** The ball, then what it will do, then
+  the controls: you, the core, the numbers. The read-only line is one quiet
+  row instead of a card.
+- **The Alley report shows the balls and nothing else for now.** The best
+  lines, the last session's lines and the line changes are off the screen, and
+  the open-line view with them. The code that builds them stays, so they can come
+  back once they read more clearly. With no balls named on your shots, it now
+  says so instead of showing nothing.
+
+In the repo: ADR-163. `ProAction` is no longer exported; `ProBanner` and
+`ProChip` are new, and `ProNote` is one line. The line visualizer's `footer`
+prop is `notice`.
+
 ## 0.49.0: Bring your games to the app, and keep the photos (2026-10-20)
 
 In the iPhone app:

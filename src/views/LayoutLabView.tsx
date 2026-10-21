@@ -141,11 +141,11 @@ const BENCHMARK: DualAngleLayout = { drillingAngle: 45, pinToPap: 4.5, valAngle:
  * is a field on the ball in the arsenal, and the bowler's own axis, hand and
  * grip are settings: this screen opens on them and never writes to them.
  *
- * The screen is arranged in the order the question gets asked: who is bowling,
- * what ball, what numbers, what does it look like, what will it do. The diagram
- * sits directly under the sliders rather than at the top, because the sliders
- * are what the thumb is on and a picture above them would be the thing scrolled
- * off screen.
+ * The ball leads, with what it will do right under it (ADR-163), and the
+ * controls follow in the order the question gets asked: who is bowling, what
+ * ball, what numbers. It used to put the diagram directly under the sliders so
+ * it would stay on screen while they moved; the ball is what the screen is for,
+ * so it is the first thing seen, and the sliders come after it.
  */
 export function LayoutLabView({ onBack, onOpenSettings, seed }: LayoutLabViewProps) {
   // Read-only without Pro: the layout, shared or a ball's own, is drawn in full
@@ -400,13 +400,61 @@ export function LayoutLabView({ onBack, onOpenSettings, seed }: LayoutLabViewPro
             it, so the numbers below are read against the ball they belong to. */}
         {seed?.ballName && <SeededBallCard seed={seed} />}
 
-        <ProNote what="Changing a layout is in the Headpin app" />
+        {/* 1. The ball, first. It is what the screen is about, so it leads, and
+            what it will do sits right under it. The row of chips that used to
+            sit under it (jump to the grip, the pin, the PAP, the core, and a
+            flare rings toggle) is gone: the ball is draggable, which is the
+            gesture everyone tries first, and the chips were a second way to do
+            the same thing taking a band of a screen whose whole complaint was
+            that too little fits on it. */}
+        <section className="space-y-1.5">
+          <h2 className={GROUP_HEADING}>On the ball</h2>
+          <div
+            ref={ballRef}
+            className="overflow-hidden rounded-xl border border-edge bg-surface-sunken shadow-sm"
+          >
+            {/* The drawing follows the notation being edited, so the picture is
+                always answering the question the sliders below it are asking. */}
+            <BallLayoutDiagram
+              layout={layout}
+              ball={ball}
+              pap={pap}
+              system={system}
+              orientation={orientation}
+              onOrientationChange={setOrientation}
+              hand={hand}
+              grip={grip}
+            />
+          </div>
+        </section>
+
+        <section className="space-y-1.5">
+          <h2 className={GROUP_HEADING}>What it will do</h2>
+          <div className="space-y-2 rounded-xl border border-edge bg-surface p-2.5 shadow-sm">
+            <p className="text-sm text-ink">{motion.summary}</p>
+            <Axis label="Flare" value={motion.flare} low="Low" high="High" note={`${motion.flareInches.toFixed(1)}"`} />
+            <Axis label="Reads the lane" value={motion.length} low="Early" high="Late" />
+            <Axis label="Off the friction" value={motion.angularity} low="Smooth" high="Sharp" />
+            <Axis label="Overall strength" value={motion.strength} low="Weak" high="Strong" />
+          </div>
+
+          {motion.warnings.map((warning) => (
+            <p
+              key={warning}
+              className="rounded-lg border border-warning-200 bg-warning-50 p-2.5 text-xs text-warning-700"
+            >
+              {warning}
+            </p>
+          ))}
+        </section>
+
+        <ProNote what="Read only. Editing a layout is in Headpin Pro" />
 
         {/* A disabled fieldset turns off every field and button inside it while
             leaving their values on screen to read. */}
         <fieldset disabled={proLocked} className="m-0 min-w-0 space-y-3 border-0 p-0">
 
-          {/* 1. Who is bowling. The PAP leads because it is the frame every other
+          {/* 2. Who is bowling. The PAP leads because it is the frame every other
               number is measured against: the VAL angle is measured at it and the
               pin-to-PAP distance is measured to it, so a layout read against the
               wrong axis is the wrong layout. It used to sit last on the grounds
@@ -481,7 +529,7 @@ export function LayoutLabView({ onBack, onOpenSettings, seed }: LayoutLabViewPro
             </div>
           </section>
 
-          {/* 2. What ball. The core type comes before the numbers because it
+          {/* 3. What ball. The core type comes before the numbers because it
               changes what the drilling angle means, and therefore what every
               number below does. */}
           <section className="space-y-1.5">
@@ -497,7 +545,7 @@ export function LayoutLabView({ onBack, onOpenSettings, seed }: LayoutLabViewPro
             />
           </section>
 
-          {/* 3. The numbers. */}
+          {/* 4. The numbers. */}
           <section className="space-y-2">
             <div className="flex items-center justify-between gap-3">
               <h2 className={GROUP_HEADING}>Layout</h2>
@@ -532,53 +580,6 @@ export function LayoutLabView({ onBack, onOpenSettings, seed }: LayoutLabViewPro
             />
           </section>
         </fieldset>
-
-        {/* 4. The ball. The row of chips that used to sit under it (jump to the
-            grip, the pin, the PAP, the core, and a flare rings toggle) is gone:
-            the ball is draggable, which is the gesture everyone tries first,
-            and the chips were a second way to do the same thing taking a band
-            of a screen whose whole complaint was that too little fits on it. */}
-        <section className="space-y-1.5">
-          <h2 className={GROUP_HEADING}>On the ball</h2>
-          <div
-            ref={ballRef}
-            className="overflow-hidden rounded-xl border border-edge bg-surface-sunken shadow-sm"
-          >
-            {/* The drawing follows the notation being edited, so the picture is
-                always answering the question the sliders above it are asking. */}
-            <BallLayoutDiagram
-              layout={layout}
-              ball={ball}
-              pap={pap}
-              system={system}
-              orientation={orientation}
-              onOrientationChange={setOrientation}
-              hand={hand}
-              grip={grip}
-            />
-          </div>
-        </section>
-
-        {/* 5. What it will do. */}
-        <section className="space-y-1.5">
-          <h2 className={GROUP_HEADING}>What it will do</h2>
-          <div className="space-y-2 rounded-xl border border-edge bg-surface p-2.5 shadow-sm">
-            <p className="text-sm text-ink">{motion.summary}</p>
-            <Axis label="Flare" value={motion.flare} low="Low" high="High" note={`${motion.flareInches.toFixed(1)}"`} />
-            <Axis label="Reads the lane" value={motion.length} low="Early" high="Late" />
-            <Axis label="Off the friction" value={motion.angularity} low="Smooth" high="Sharp" />
-            <Axis label="Overall strength" value={motion.strength} low="Weak" high="Strong" />
-          </div>
-
-          {motion.warnings.map((warning) => (
-            <p
-              key={warning}
-              className="rounded-lg border border-warning-200 bg-warning-50 p-2.5 text-xs text-warning-700"
-            >
-              {warning}
-            </p>
-          ))}
-        </section>
 
       </div>
 

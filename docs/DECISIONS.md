@@ -7534,3 +7534,57 @@ signal, which is where this app is meant to work.
   is when offline matters most.
 - Needs a look on a phone: that a photo seen online appears with Airplane Mode
   on after a relaunch, and that eviction holds the folder near the cap.
+
+## ADR-163: Pro previews are teasers under one banner, the layout lab leads with the ball, and the alley report drops its lines
+
+**Status.** Accepted, 2026-10-21. Amends ADR-154 and ADR-158 on how a locked card
+looks, and amends ADR-122, ADR-147 and ADR-148 on what the Alley report shows.
+Decided by the owner from a phone in hand.
+
+**Context.** A locked Stats screen carried four centered "Get Headpin Pro"
+buttons over blurred cards, which said the same thing four times and showed
+nothing worth wanting. The sandbox's Pro note was a bar at the foot of the lane
+view that crowded the lane's last board numbers, and the layout lab's was a
+full-width card above the controls. The layout lab put its sliders first and the
+ball, the thing it is for, near the foot. The Alley report's three line lists
+(best lines, the last session's lines, line changes) were not clear enough to
+keep on a screen the owner called ugly.
+
+**Decision.**
+
+- **A locked card is a teaser.** Its first lines show as they are, up to a
+  height the screen chooses, and fade out. A bowler sees a real number and the
+  start of a real chart rather than a gray block, and knows there is more. The
+  whole teaser is one tap, named for what the card shows and what the tap does,
+  with one small "Pro" mark at its foot. It is inert underneath, as before. This
+  replaces the blur of ADR-154, so its numbers can be read where they show; they
+  are the bowler's own, and a longer read is what Pro sells.
+- **A screen says what Pro adds once.** Stats opens with a banner naming the
+  reads below it and carrying the one button ("Get Headpin Pro, $x" in the iOS
+  app, "Get the app" on the web). The cards carry only their mark.
+- **A read-only screen has one quiet line, or a chip.** The layout lab has a
+  single row of small text with an Unlock action, no card. The line sandbox
+  has a chip in the row of floating controls at the top, so the lane keeps its
+  whole height and its own drag hint underneath.
+- **The layout lab leads with the ball**, then what it will do, then the
+  controls (who is bowling, the core, the numbers). It used to keep the diagram
+  under the sliders so it stayed on screen while they moved; the owner's call is
+  that the ball is the screen, so it is seen first.
+- **The Alley report shows the balls and nothing else for now.** The best lines
+  at an alley, the last session's lines and the line changes are off the screen,
+  and the open-line view with them. `lib/lineReport` and its tests stay, and so
+  does the navigation state that opened a line, so they can return. The free
+  taste of the report that the last session's lines were (PRO-LAUNCH) goes with
+  them: the whole report is now Pro.
+
+**Consequences.**
+
+- `ProAction` is gone from the module's exports; `ProLock`, `ProBanner`,
+  `ProNote` and `ProChip` each use one hook for the purchase, the steps to move
+  games, and the "waiting for approval" and "did not answer" notes.
+- The device check still finds a "Get Headpin Pro" button on Stats, now the
+  banner's.
+- A teaser shows real numbers, so a free copy of the app reads a few of the
+  paid reads. That is the point of a teaser; if it proves too generous, the
+  height is one number per card.
+

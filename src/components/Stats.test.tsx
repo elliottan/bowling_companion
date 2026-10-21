@@ -899,20 +899,31 @@ describe("while Pro is locked (ADR-154)", () => {
   it("previews a Pro metric locked, with the picker still live to go back", () => {
     renderLocked();
     fireEvent.click(screen.getByRole("button", { name: "Carry" }));
-    expect(screen.getByText("Every stat, session by session and game by game")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Every stat, session by session and game by game. Get the app" })
+    ).toBeInTheDocument();
     // The chart is behind the preview, out of reach.
     expect(screen.queryByRole("button", { name: "Sea Bowl, 67%" })).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Average" }));
-    expect(screen.queryByText("Every stat, session by session and game by game")).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /^Every stat, session by session and game by game/ })
+    ).not.toBeInTheDocument();
     expect(screen.getByRole("img", { name: /^Average by session/ })).toBeInTheDocument();
   });
 
-  it("locks the first ball, the leaves and the balls, and offers the app on each", () => {
+  it("locks the first ball, the leaves and the balls, with one banner and a small mark on each", () => {
     renderLocked();
-    expect(screen.getByText("Pocket, carry and the pins each first ball takes")).toBeInTheDocument();
-    expect(screen.getByText("The leaves you leave most, and how often you make each")).toBeInTheDocument();
-    expect(screen.getByText("How each of your balls strikes, carries and spares")).toBeInTheDocument();
-    expect(screen.getAllByRole("button", { name: "Get the app" })).toHaveLength(3);
+    // Said once for the screen, with the one button that says "Get the app".
+    expect(screen.getAllByRole("button", { name: "Get the app" })).toHaveLength(1);
+    expect(screen.getByText(/Charts for every stat/)).toBeInTheDocument();
+    // Each card is one tap, named for what it shows, with its first lines in view.
+    for (const what of [
+      "Pocket, carry and the pins each first ball takes",
+      "The leaves you leave most, and how often you make each",
+      "How each of your balls strikes, carries and spares"
+    ]) {
+      expect(screen.getByRole("button", { name: `${what}. Get the app` })).toBeInTheDocument();
+    }
     expect(screen.queryByRole("button", { name: "All leaves" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Open Wolverine" })).not.toBeInTheDocument();
   });

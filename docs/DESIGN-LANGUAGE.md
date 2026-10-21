@@ -299,12 +299,19 @@ a new one opens straight on the fields, since there is nothing to read yet.
 Retire and delete stay on the read sheet: they are actions, not edits, and
 delete asks first.
 
+**Pro shows as a teaser, never a wall (ADR-163).** A locked card shows its
+first lines as they are and fades out, with one small "Pro" mark and the whole
+card as the tap. A screen with several says what Pro adds once, in a banner
+with the one button at the top. A read-only screen has one quiet line of small
+text, or on the lane's dark frame a chip in the floating controls, and never a
+bar that takes height from what it sits over.
+
 **A hint can be waved away, and comes back.** Every hint has an action and an X.
 The X is a snooze with an end, kept per thing it was about, not a permanent no.
 
 **A report leads with its answers.** The Alley report opens on what you'd
-average with each ball there, then the best lines and the last session, and
-keeps the detail one tap down. A ball's row says its estimate, marked with a
+average with each ball there and keeps the detail one tap down (its lines are
+off the screen for now, ADR-163). A ball's row says its estimate, marked with a
 tilde so it is never read as a score, its difference from your average, and
 every rate as a column, under an All balls row that every ball is read against;
 opening it shows the leaves it costs most, never a sentence about what to throw

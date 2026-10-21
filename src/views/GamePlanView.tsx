@@ -1,37 +1,21 @@
 import { useMemo, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
-import { ChevronDown, ChevronRight, Compass } from "lucide-react";
+import { Compass } from "lucide-react";
 import { PushScreen } from "../components/PushScreen";
 import { EmptyState } from "../components/ui/EmptyState";
 import { Button } from "../components/ui/Button";
 import { LoadingCard } from "../components/ui/LoadingCard";
-import { GROUP_HEADING } from "../components/ui/typography";
 import { ProLock } from "../components/ui/ProLock";
 import { FIELD_LABEL, FIELD_SELECT } from "../components/ui/field";
 import { ChoiceInput } from "../components/ui/SuggestInput";
-import { LIST_DIVIDER, ListGroup } from "../components/ui/ListGroup";
-import {
-  bestLines,
-  buildLineReport,
-  findLine,
-  lastSession,
-  MIN_LINE_SHOTS,
-  wherePlayed,
-  type LineMove,
-  type LineRead,
-  type LineShot,
-  type LineTally
-} from "../lib/lineReport";
+import { buildLineReport } from "../lib/lineReport";
 import { useHandedness } from "../lib/handednessContext";
 import { buildFilterOptions, EMPTY_SELECTION } from "../lib/filterFacets";
-import { formatSessionDate } from "../lib/dates";
-import { formatLeave } from "../lib/pins";
 import { useRememberedState } from "../lib/viewMemory";
 import { getSessionHistory } from "../services/bowlingRepository";
 import { getBalls } from "../services/ballRepository";
 import type { Ball, SessionSummary } from "../types/bowling";
 import { ErrorBanner } from "../components/ErrorBanner";
-import { describeLine } from "../components/alleyHistoryCopy";
 import { BallEstimates } from "../components/BallEstimates";
 import { estimateBalls } from "../lib/scoreModel";
 import { filterSessionsBy } from "../lib/stats";
@@ -39,37 +23,26 @@ import { filterSessionsBy } from "../lib/stats";
 const NO_SESSIONS: SessionSummary[] = [];
 const NO_BALLS: Ball[] = [];
 
-/** Lines named under the last session before the rest are left to the balls. */
-const LAST_SESSION_LINES = 4;
-
 /**
- * What each line did at one alley: every ball, the lines it was thrown on, and
- * the shots behind each line one tap deeper.
+ * What you would average with each ball at one alley, read from the games
+ * bowled there.
  *
- * The copy lives here rather than in `lib/lineReport`, which returns counts.
- * Every number is a count ("7 of 10"), never a percentage: most lines are a
- * handful of balls, and a rate hides how few. Nothing says which line to play.
- * A line that struck more may have been thrown later, on a lane that had
- * changed.
+ * The lines (the best ones at an alley, the last session's, and how a line
+ * moved between sessions) were on this screen until ADR-163 took them off for
+ * now: they were not clear enough yet. `lib/lineReport` still builds them and
+ * keeps its tests, and the navigation state that opened one is still in
+ * `appNavigation`, so they can come back as they were.
+ *
+ * Every number is a count ("7 of 10"), never a percentage: most groups are a
+ * handful of balls, and a rate hides how few.
  */
 interface GamePlanViewProps {
   onBack: () => void;
-  /** The line whose shots are open, by `lineReport` id (appNavigation). */
-  openLineId: string | null;
-  onOpenLine: (lineId: string) => void;
-  /** Open the game a shot was thrown in, with its ball lit up. */
-  onOpenSessionGame: (sessionId: number, gameId: number, ballId?: number) => void;
   /** Start a session with nothing filled in, from the empty report (ADR-080). */
   onStartScoring?: () => void;
 }
 
-export function GamePlanView({
-  onBack,
-  openLineId,
-  onOpenLine,
-  onOpenSessionGame,
-  onStartScoring
-}: GamePlanViewProps) {
+export function GamePlanView({ onBack, onStartScoring }: GamePlanViewProps) {
   // A failed read used to arrive as an empty list, which reads as "you have
   // never bowled" to someone who has.
   const [error, setError] = useState<Error | null>(null);
@@ -157,17 +130,12 @@ export function GamePlanView({
       ),
     [history, alley, pattern, lane, gameNumber]
   );
-  const open = findLine(report, openLineId);
-  const top = useMemo(() => bestLines(report), [report]);
-  const last = useMemo(() => lastSession(report), [report]);
-
   const where = [alley, pattern, lane && `lane ${lane}`, gameNumber && `game ${gameNumber}`]
     .filter(Boolean)
     .join(" \u00b7 ");
 
   return (
-    <>
-      <PushScreen title="Alley report" onBack={onBack} active={!open}>
+    <PushScreen title="Alley report" onBack={onBack}>
         <div className="mx-auto w-full max-w-3xl px-3 pb-8 pt-3 sm:px-6">
           {error ? (
             <ErrorBanner>Your sessions could not be read. Reload the app, then try again.</ErrorBanner>
@@ -179,7 +147,7 @@ export function GamePlanView({
             <EmptyState
               icon={Compass}
               title="Bowl a session to see your report"
-              description="It shows what you'd average with each ball at an alley. Name the alley and note your boards, and it shows which lines worked there too."
+              description="It shows what you'd average with each ball at an alley, from the games you bowled there."
             >
               {onStartScoring && (
                 <Button variant="primary" onClick={onStartScoring}>
@@ -278,321 +246,26 @@ export function GamePlanView({
                     }`}
               </p>
 
-              {/* The answer first: which ball to expect most from here, then
-                  the lines that struck most and what you did last time. The
-                  rest is behind a tap. */}
-              {/* Pro: the reads across sessions. The last session below is the
-                  bowler's own record of one session, and stays free (ADR-154). */}
-              <ProLock what="What you'd average with each ball here, and the lines that struck most">
-                <div className="mt-4">
-                  <BallEstimates report={estimates} balls={balls} />
-                </div>
-
-                {top.length > 0 && (
+              {/* Pro: the reads across sessions (ADR-154). With no ball to read
+                  there is nothing to tease, and a lone lock over a blank would
+                  only be a puzzle. */}
+              {estimates.balls.length === 0 ? (
+                report.shots > 0 && (
+                  <p className="mt-4 rounded-xl border border-edge bg-surface p-3 text-sm text-ink-secondary shadow-sm">
+                    No balls to compare here yet. Pick a ball on your shots, and what you'd average with each one shows
+                    here.
+                  </p>
+                )
+              ) : (
+                <ProLock peek={12} what="What you'd average with each ball here">
                   <div className="mt-4">
-                    <ListGroup heading="Best lines here">
-                      {top.map((line) => (
-                        <LineSummaryRow
-                          key={line.id}
-                          ballName={line.ballName}
-                          line={line}
-                          tally={line}
-                          where={wherePlayed(line.shots)}
-                          onOpen={() => onOpenLine(line.id)}
-                        />
-                      ))}
-                    </ListGroup>
+                    <BallEstimates report={estimates} balls={balls} />
                   </div>
-                )}
-              </ProLock>
-
-              {last && (
-                <div className="mt-4">
-                  <ListGroup
-                    heading={
-                      <div className="min-w-0">
-                        <h2 className={GROUP_HEADING}>Last session, {formatSessionDate(last.date)}</h2>
-                        <p className="truncate text-xs text-ink-secondary">{wherePlayed([last])}</p>
-                      </div>
-                    }
-                  >
-                    {last.lines.slice(0, LAST_SESSION_LINES).map((row) => (
-                      <LineSummaryRow
-                        key={row.line.id}
-                        ballName={row.line.ballName}
-                        line={row.line}
-                        tally={row}
-                        onOpen={() => onOpenLine(row.line.id)}
-                      />
-                    ))}
-                  </ListGroup>
-                </div>
-              )}
-
-              {report.moves.length > 0 && (
-                <div className="mt-4">
-                  <ProLock what="How your line moved from session to session">
-                    <LineChanges moves={report.moves} onOpenLine={onOpenLine} />
-                  </ProLock>
-                </div>
-              )}
-
-              {report.shots > 0 && (
-                <p className="mt-2 px-1 text-xs text-ink-secondary">
-                  Thin: under {MIN_LINE_SHOTS} balls.
-                </p>
+                </ProLock>
               )}
             </>
           )}
         </div>
-      </PushScreen>
-
-      {open && (
-        <LineDetail
-          line={open}
-          onBack={onBack}
-          onOpenShot={(shot) =>
-            shot.sessionId != null &&
-            shot.gameId != null &&
-            onOpenSessionGame(shot.sessionId, shot.gameId, open.ballId)
-          }
-        />
-      )}
-    </>
-  );
-}
-
-/** A count as the screen says it: "7 of 10". */
-export function ofCount(made: number, total: number): string {
-  return `${made} of ${total}`;
-}
-
-/** The boards of a line, or what there is of them. */
-export function lineBoards(line: { stance?: number; target?: number }): string {
-  return describeLine({ stance: line.stance, target: line.target });
-}
-
-/** One line and how it went, for the two lists at the top: the ball, the
- *  boards, and the strikes as a count. */
-function LineSummaryRow({
-  ballName,
-  line,
-  tally,
-  where,
-  onOpen
-}: {
-  ballName: string;
-  line: LineRead;
-  tally: LineTally;
-  /** The alley and pattern it was thrown on, where the list spans sessions. */
-  where?: string;
-  onOpen: () => void;
-}) {
-  return (
-    <li className={LIST_DIVIDER}>
-      <button
-        type="button"
-        onClick={onOpen}
-        aria-label={`${ballName}, ${lineBoards(line)}: strikes ${ofCount(tally.strikes, tally.thrown)}, pocket ${ofCount(tally.pocket, tally.thrown)}`}
-        className="flex w-full items-center gap-3 px-3 py-2.5 text-left active:bg-surface-muted"
-      >
-        <span className="min-w-0 flex-1">
-          <span className="block truncate text-xs text-ink-secondary">{ballName}</span>
-          <span className="block truncate text-sm font-semibold text-ink">{lineBoards(line)}</span>
-          {where && <span className="block truncate text-xs text-ink-tertiary">{where}</span>}
-        </span>
-        <span className="shrink-0 text-right tabular-nums">
-          <span className="block text-sm font-semibold text-ink">
-            {ofCount(tally.strikes, tally.thrown)}
-          </span>
-          <span className="block text-xs text-ink-secondary">strikes</span>
-        </span>
-        <ChevronRight size={16} aria-hidden="true" className="shrink-0 text-ink-tertiary" />
-      </button>
-    </li>
-  );
-}
-
-/** Two lines with one ball in one session, each side counted in that session. */
-function MoveRow({ move, onOpen }: { move: LineMove; onOpen: () => void }) {
-  return (
-    <li className={LIST_DIVIDER}>
-      <button
-        type="button"
-        onClick={onOpen}
-        className="flex w-full items-center gap-3 px-3 py-2.5 text-left active:bg-surface-muted"
-      >
-        <span className="min-w-0 flex-1">
-          <span className="flex items-baseline justify-between gap-2">
-            <span className="truncate font-semibold text-ink">{move.ballName}</span>
-            <span className="shrink-0 text-xs text-ink-tertiary">
-              {formatSessionDate(move.date)}
-            </span>
-          </span>
-          <span className="block text-sm text-ink">
-            {lineBoards(move.from)}, then {lineBoards(move.to)}
-          </span>
-          <span className="block text-xs tabular-nums text-ink-secondary">
-            Strikes {ofCount(move.from.strikes, move.from.thrown)}, then{" "}
-            {ofCount(move.to.strikes, move.to.thrown)}
-          </span>
-          <span className="block text-xs tabular-nums text-ink-secondary">
-            Pocket {ofCount(move.from.pocket, move.from.thrown)}, then{" "}
-            {ofCount(move.to.pocket, move.to.thrown)}
-          </span>
-        </span>
-        <ChevronRight size={16} aria-hidden="true" className="shrink-0 text-ink-tertiary" />
-      </button>
-    </li>
-  );
-}
-
-/** The line changes, behind one row: the least needed of the three lists, and
- *  the one that made the screen long. */
-function LineChanges({
-  moves,
-  onOpenLine
-}: {
-  moves: LineMove[];
-  onOpenLine: (id: string) => void;
-}) {
-  const [open, setOpen] = useState(false);
-  return (
-    <ListGroup>
-      <li>
-        <button
-          type="button"
-          aria-expanded={open}
-          onClick={() => setOpen((v) => !v)}
-          className="flex w-full items-center gap-3 px-3 py-2.5 text-left active:bg-surface-muted"
-        >
-          <span className="min-w-0 flex-1 text-sm font-semibold text-ink">Line changes</span>
-          <span className="text-xs tabular-nums text-ink-tertiary">{moves.length}</span>
-          <ChevronDown
-            size={16}
-            aria-hidden="true"
-            className={`shrink-0 text-ink-tertiary transition-transform ${open ? "rotate-180" : ""}`}
-          />
-        </button>
-      </li>
-      {open &&
-        moves.map((move) => (
-          <MoveRow key={move.id} move={move} onOpen={() => onOpenLine(move.to.lineId)} />
-        ))}
-    </ListGroup>
-  );
-}
-
-/** A shot's first ball in a word or two. */
-export function describeShot(shot: Pick<LineShot, "pinsStanding" | "pocket">): string {
-  if (shot.pinsStanding.length === 0) return "Strike";
-  const leave = formatLeave(shot.pinsStanding);
-  return shot.pocket ? `${leave}, pocket` : leave;
-}
-
-/** One line: its three counts, what it left, then every shot in the order
- *  thrown. `onBack` is the same pop as the report's: the reducer takes the open
- *  line off before it touches the overlay stack. */
-function LineDetail({
-  line,
-  onBack,
-  onOpenShot
-}: {
-  line: LineRead;
-  onBack: () => void;
-  onOpenShot: (shot: LineShot) => void;
-}) {
-  // One group per game, newest session first, which is the order the shots
-  // already arrive in.
-  const games: Array<{ key: string; heading: string; shots: LineShot[] }> = [];
-  for (const shot of line.shots) {
-    const key = `${shot.sessionId ?? shot.date}:${shot.gameNumber}`;
-    const last = games[games.length - 1];
-    if (last?.key === key) last.shots.push(shot);
-    else {
-      games.push({
-        key,
-        heading: `${formatSessionDate(shot.date)} \u00b7 game ${shot.gameNumber}`,
-        shots: [shot]
-      });
-    }
-  }
-
-  return (
-    <PushScreen title={describeLine(line)} onBack={onBack}>
-      <div className="mx-auto w-full max-w-3xl space-y-4 px-3 pb-8 pt-3 sm:px-6">
-        <div className="grid grid-cols-3 gap-2">
-          <CountTile label="Strikes" made={line.strikes} total={line.thrown} note="first balls" />
-          <CountTile label="Pocket" made={line.pocket} total={line.thrown} note="first balls" />
-          <CountTile label="Carry" made={line.pocketStrikes} total={line.pocket} note="pocket hits" />
-        </div>
-
-        {line.leaves.length > 0 && (
-          <ListGroup heading="What it left">
-            {line.leaves.map((leave) => (
-              <li
-                key={leave.pins.join("-")}
-                className={`${LIST_DIVIDER} flex items-baseline justify-between gap-3 px-3 py-2.5`}
-              >
-                <span className="text-sm text-ink">{formatLeave(leave.pins)}</span>
-                <span className="text-xs tabular-nums text-ink-tertiary">
-                  {leave.count === 1 ? "once" : `${leave.count} times`}
-                </span>
-              </li>
-            ))}
-          </ListGroup>
-        )}
-
-        {games.map((game) => (
-          <ListGroup key={game.key} heading={game.heading}>
-            {game.shots.map((shot, i) => (
-              <li key={`${shot.frameNumber}:${i}`} className={LIST_DIVIDER}>
-                <button
-                  type="button"
-                  onClick={() => onOpenShot(shot)}
-                  className="flex w-full items-center gap-3 px-3 py-2.5 text-left active:bg-surface-muted"
-                >
-                  <span className="min-w-0 flex-1">
-                    <span className="flex items-baseline justify-between gap-2">
-                      <span className="text-sm font-semibold text-ink">{describeShot(shot)}</span>
-                      <span className="shrink-0 text-xs tabular-nums text-ink-tertiary">
-                        Frame {shot.frameNumber}
-                        {shot.lane ? `, lane ${shot.lane}` : ""}
-                      </span>
-                    </span>
-                    {shot.notes && (
-                      <span className="block text-xs text-ink-secondary">{shot.notes}</span>
-                    )}
-                  </span>
-                  <ChevronRight size={16} aria-hidden="true" className="shrink-0 text-ink-tertiary" />
-                </button>
-              </li>
-            ))}
-          </ListGroup>
-        ))}
-      </div>
     </PushScreen>
-  );
-}
-
-function CountTile({
-  label,
-  made,
-  total,
-  note
-}: {
-  label: string;
-  made: number;
-  total: number;
-  note: string;
-}) {
-  return (
-    <div className="rounded-xl border border-edge bg-surface p-3 shadow-sm">
-      <div className={GROUP_HEADING}>{label}</div>
-      <div className="mt-1 text-lg font-semibold tabular-nums text-ink-strong">
-        {ofCount(made, total)}
-      </div>
-      <div className="text-xs text-ink-tertiary">{note}</div>
-    </div>
   );
 }
