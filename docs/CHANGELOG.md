@@ -29,6 +29,12 @@ had all shipped.
   is not on the phone.
 - **Ball weights run 16 down to 8 lb**, heaviest first, and the arsenal shows
   each ball's weight beside its name.
+- **Every chart and the First ball card are free.** Any stat, by session or
+  by game, and pocket, carry and strike, with no lock (ADR-174).
+- **View all, with the count.** The Spares and Balls cards say "View all 12
+  leaves" and "View all 4 balls". Without Pro the sheet still opens: the two
+  leaves or the one ball the card shows, with their details, then the rest
+  locked.
 - **Locks are just the lock.** Every locked card and row carries a lock icon
   without the word "Pro", and a locked card such as First ball is softly
   blurred with the lock on it, so it is clear what is locked (ADR-173).

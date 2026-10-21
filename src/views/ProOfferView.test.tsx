@@ -26,8 +26,6 @@ describe("the Pro page (ADR-164)", () => {
   it("says what Pro adds and what stays free before any button that charges", () => {
     renderOffer({ locked: true, appStoreUrl: "https://apps.apple.com/app/id1" });
     for (const title of [
-      "Charts for every stat",
-      "First ball breakdown",
       "Your leaves",
       "Ball by ball",
       "Move your line",

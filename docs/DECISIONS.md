@@ -8036,3 +8036,32 @@ them said one word again and again.
   controls keeps its words where they say what Pro opens there ("Try your
   layouts with Pro", "Move it with Pro"); where there is no room for words it
   is the lock alone too.
+
+---
+
+## ADR-174: Every chart and the First ball card are free; View all opens without Pro
+
+**Status.** Accepted, 2026-10-21, by the owner's decision. Amends ADR-154's
+feature split, ADR-163 on the locked chart, and ADR-167 on the All leaves and
+All balls sheets.
+
+**Context.** Stats without Pro carried a lock on the chart (for most metrics and
+the by-game slice), a lock on the First ball card, and the two lists, and the
+links to the full lists were gone. The owner found the screen over-locked, the
+chart's lock ugly, and the overall first-ball read worth giving away.
+
+**Decision.**
+
+- **Every chart is free,** every metric, by session and by game slot, and so
+  is the First ball card. Neither carries a lock.
+- **The links say how many there are:** "View all 12 leaves", "View all 4
+  balls". A bowler learns the size of their own list either way.
+- **View all opens without Pro.** The sheet shows what the card does, the two
+  leaves left most or the best ball, open with their details, then the next one
+  blurred under the lock and nothing after it. The leaves sheet drops its
+  filters while locked, which would be a way to read every other leave one at a
+  time. The best ball's row on the card opens the sheet on it.
+- **A lock inside a sheet closes the sheet first,** as the ball form does
+  (ADR-172), since the Pro page opens under it.
+- The Pro page drops its chart and first-ball items and names both under what
+  stays free; the Stats banner says Pro adds every leave and every ball.

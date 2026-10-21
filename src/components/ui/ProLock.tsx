@@ -192,11 +192,22 @@ function Banner({ access, what }: { access: LockedProAccess; what: string }) {
  * The rows after it are not drawn at all; the caller leaves them out
  * (`previewSplit`). The row itself while Pro is open.
  */
-export function ProBlur({ what, className = "", children }: { what: string; className?: string; children: ReactNode }) {
+export function ProBlur({
+  what,
+  className = "",
+  before,
+  children
+}: {
+  what: string;
+  className?: string;
+  /** Runs first, for a sheet the row sits in: the Pro page opens under it. */
+  before?: () => void;
+  children: ReactNode;
+}) {
   const access = useProAccess();
   if (!access.locked) return <>{children}</>;
   return (
-    <Blurred access={access} what={what} className={className}>
+    <Blurred access={access} what={what} className={className} before={before}>
       {children}
     </Blurred>
   );
@@ -206,11 +217,13 @@ function Blurred({
   access,
   what,
   className,
+  before,
   children
 }: {
   access: LockedProAccess;
   what: string;
   className: string;
+  before?: () => void;
   children: ReactNode;
 }) {
   const action = useProEntry(access);
@@ -223,7 +236,10 @@ function Blurred({
       <button
         type="button"
         disabled={action.busy || action.unavailable}
-        onClick={action.start}
+        onClick={() => {
+          before?.();
+          action.start();
+        }}
         aria-label={`${what}. ${action.label}`}
         className="absolute inset-0 flex items-center justify-center rounded-xl active:opacity-70 disabled:opacity-60"
       >

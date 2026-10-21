@@ -42,12 +42,12 @@ is built and free today, so with no bowlers yet nothing is taken from anyone.
 | History | Backup, export and import | ✓ | | Never gate the bowler's data |
 | Stats | Average, high game and series, game count, score trend chart | ✓ | | What every free app shows |
 | Stats | Strike % on the chart, spare % on its card | ✓ | | Same |
-| Stats | The First ball card: pocket, carry, strike on strike, first-ball pins, most strikes in a row, and the same on the chart | | ✓ | What competitors charge for |
-| Stats | The two leaves you leave most, with their rates; the same two leaves' records on Spare lines | ✓ | | A taste of the read below (ADR-167) |
+| Stats | The First ball card: pocket, carry, strike on strike, first-ball pins, most strikes in a row (ADR-174) | ✓ | | The overall read; fewer locks on the screen |
+| Stats | The two leaves you leave most, with their rates, on the card and in View all; the same two leaves' records on Spare lines | ✓ | | A taste of the read below (ADR-167, ADR-174) |
 | Stats | Every other leave, leave shares, spare conversion by leave, on Stats, Spare lines and a leave's sheet | | ✓ | PinPal, LaneTalk Pro and StrikeStat Pro charge for it |
-| Stats | Your best ball's row | ✓ | | A taste (ADR-167) |
-| Stats | Every other ball's row against All balls | | ✓ | Equipment depth |
-| Stats | Charts by game slot, and trend charts for the deeper metrics | | ✓ | Analysis |
+| Stats | Your best ball's row, and its details in View all | ✓ | | A taste (ADR-167, ADR-174) |
+| Stats | Every other ball's row and details | | ✓ | Equipment depth |
+| Stats | Every chart: every metric, by session and by game slot (ADR-174) | ✓ | | A lock on the main chart was more lock than taste |
 | Home | Tonight, profile, first run, guides | ✓ | | Getting started |
 | Alley report | What you'd average with your best ball there | ✓ | | A taste (ADR-167) |
 | Alley report | What you'd average with each other ball there | | ✓ | Reads across sessions, the deepest read in the app. Its lines (best lines, the last session, line changes) are off the screen for now (ADR-163) |

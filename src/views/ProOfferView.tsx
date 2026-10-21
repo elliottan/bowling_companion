@@ -6,11 +6,9 @@ import { Button } from "../components/ui/Button";
 import { useProAction } from "../components/ui/useProAction";
 import {
   BallsSample,
-  FirstBallSample,
   LayoutSample,
   LeavesSample,
   LineSample,
-  StatsSample,
   ThemesSample
 } from "../components/ProOfferSamples";
 import { useProAccess, useProOwned, useProStoreContext } from "../lib/useProAccess";
@@ -30,16 +28,6 @@ interface ProOfferViewProps {
 }
 
 const FEATURES: Array<{ title: string; why: string; sample: ReactNode }> = [
-  {
-    title: "Charts for every stat",
-    why: "Plot any stat by session or by game, not only your average.",
-    sample: <StatsSample />
-  },
-  {
-    title: "First ball breakdown",
-    why: "How often you hit the pocket, how often the pocket carries, and how often you strike.",
-    sample: <FirstBallSample />
-  },
   {
     title: "Your leaves",
     why: "The leaves you keep ending up with, and how often you pick each one up.",
@@ -91,8 +79,8 @@ export function ProOfferView({ onBack }: ProOfferViewProps) {
         <section className="mt-3 rounded-xl border border-edge bg-surface-muted p-3">
           <h3 className="text-sm font-bold text-ink">What stays free</h3>
           <p className="mt-0.5 text-sm text-ink-secondary">
-            Scoring, history, your arsenal, the ball catalog, oil patterns, guides, backup and sharing. None of it is
-            behind Pro.
+            Scoring, history, every stat chart, the first ball breakdown, your arsenal, the ball catalog, oil
+            patterns, guides, backup and sharing. None of it is behind Pro.
           </p>
         </section>
       </div>

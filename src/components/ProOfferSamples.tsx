@@ -8,15 +8,12 @@ import type { Manufacturer } from "../types/catalog";
 import { BallLayoutDiagram } from "./BallLayoutDiagram";
 import { CatalogBallImage } from "./CatalogBallImage";
 import { LaneSurface, type OilOverlay } from "./LaneSurface";
-import { MetricTrendChart, type MetricPoint } from "./MetricTrendChart";
 import { MiniPins } from "./MiniPins";
-import { FirstBallCard } from "./Stats";
-import { GROUP_HEADING } from "./ui/typography";
 
 /**
  * What Pro opens, for the Pro page (ADR-164, ADR-170), drawn by the screens'
- * own components with sample numbers: the real chart, the real first-ball card,
- * the real lane and the real ball. A hand-drawn picture of each read as a
+ * own components with sample numbers: the real leave cells, the real lane and
+ * the real ball. A hand-drawn picture of each read as a
  * mock-up, and the page is the bowler's one look at what they would get. They
  * follow the theme like the screens do, and change when the screens change.
  *
@@ -37,58 +34,6 @@ function Sample({ className = "", children }: { className?: string; children: Re
     >
       {children}
     </div>
-  );
-}
-
-const STRIKES: Array<[string, number]> = [
-  ["9/2", 38],
-  ["9/9", 42],
-  ["9/16", 35],
-  ["9/23", 47],
-  ["9/30", 44],
-  ["10/7", 51],
-  ["10/14", 49],
-  ["10/21", 56]
-];
-
-/** Strikes by session, on the chart Stats draws for any stat. */
-export function StatsSample() {
-  const points: MetricPoint[] = STRIKES.map(([axis, value]) => ({ key: axis, axis, title: axis, value }));
-  return (
-    <Sample>
-      <MetricTrendChart
-        points={points}
-        overall={45}
-        format={(v) => `${Math.round(v)}%`}
-        min={0}
-        max={100}
-        minSpan={20}
-        header={
-          <div className="mb-1 flex items-baseline justify-between">
-            <span className={GROUP_HEADING}>Strike</span>
-            <span className="text-xs text-ink-secondary">Strikes per first ball</span>
-          </div>
-        }
-      />
-    </Sample>
-  );
-}
-
-/** The First ball card itself, with a league bowler's numbers. */
-export function FirstBallSample() {
-  return (
-    <Sample>
-      <FirstBallCard
-        stats={{
-          pocketPct: 71,
-          carryPct: 68,
-          strikePct: 48,
-          firstBallAverage: 8.9,
-          strikeOnStrikePct: 39,
-          bestStreak: 6
-        }}
-      />
-    </Sample>
   );
 }
 
