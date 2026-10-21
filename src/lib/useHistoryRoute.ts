@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useSyncExternalStore } from "react";
-import type { NavAction, NavState } from "./appNavigation";
+import { coversSheets, type NavAction, type NavState } from "./appNavigation";
 import { parseRoute, routeHash, shouldPushHistory } from "./appRoute";
 import { closeTopSheet, getOpenSheets, subscribeSheets } from "./sheetBackStack";
 
@@ -161,6 +161,25 @@ export function useHistoryRoute(state: NavState, dispatch: (action: NavAction) =
       window.history.back();
     }
   }, [openSheets]);
+
+  /**
+   * The Pro page opens above the sheets (ADR-175). Opened from a lock inside
+   * one, it takes over the sheet's sentinel like any screen opened from a sheet
+   * (the route effect above), but the sheet stays up under it. When the page
+   * closes onto that sheet, the sheet needs its entry back, or the next back
+   * would pop the screen under the sheet and leave the sheet behind.
+   */
+  const wasCovering = useRef(false);
+  useEffect(() => {
+    const covering = coversSheets(state);
+    const uncovered = wasCovering.current && !covering;
+    wasCovering.current = covering;
+    if (uncovered && getOpenSheets().length > 0 && !sentinel.current) {
+      sentinel.current = true;
+      depth.current += 1;
+      window.history.pushState({ depth: depth.current, sheet: true }, "", window.location.hash);
+    }
+  }, [state]);
 
   /**
    * Go back one step. Prefers the history stack so the platform's own back

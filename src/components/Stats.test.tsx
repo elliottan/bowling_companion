@@ -255,7 +255,7 @@ describe("stat definitions", () => {
       })
     ).toHaveLength(7);
 
-    fireEvent.click(screen.getByRole("button", { name: "All balls" }));
+    fireEvent.click(screen.getByRole("button", { name: /^View all \d+ balls?$/ }));
     const sheet = await screen.findByRole("dialog", { name: "Balls" });
     expect(within(sheet).getAllByText(/^Ball \d$/)).toHaveLength(7);
     // Every ball's table is open, no tap needed.
@@ -292,7 +292,7 @@ describe("stat definitions", () => {
 
   it("gives each ball's table a first ball and strike on strike row, scrolled sideways", async () => {
     render(<Stats stats={STATS} ballPerformance={REPORT} />);
-    fireEvent.click(screen.getByRole("button", { name: "All balls" }));
+    fireEvent.click(screen.getByRole("button", { name: /^View all \d+ balls?$/ }));
     const sheet = await screen.findByRole("dialog", { name: "Balls" });
     const table = within(sheet).getByRole("region", { name: "Wolverine by game" });
     expect(table).toHaveClass("overflow-x-auto");
@@ -498,7 +498,7 @@ describe("leave cells", () => {
     expect(within(card).getAllByRole("button", { name: /^Open / })).toHaveLength(14);
     expect(card.className).toMatch(/overflow-y-auto/);
 
-    fireEvent.click(screen.getByRole("button", { name: "All leaves" }));
+    fireEvent.click(screen.getByRole("button", { name: /^View all \d+ leaves?$/ }));
     const sheet = await screen.findByRole("dialog", { name: "Leaves" });
     expect(sheet.querySelectorAll("li")).toHaveLength(14);
     expect(sheet).toHaveTextContent("Makeables");
@@ -513,7 +513,7 @@ describe("leave cells", () => {
         leaves={[tenPin, { ...tenPin, pins: [3, 6, 10] }, { ...tenPin, pins: [2, 7] }]}
       />
     );
-    fireEvent.click(screen.getByRole("button", { name: "All leaves" }));
+    fireEvent.click(screen.getByRole("button", { name: /^View all \d+ leaves?$/ }));
     const sheet = await screen.findByRole("dialog", { name: "Leaves" });
     expect(within(sheet).getByText("Last 3 months")).toBeInTheDocument();
     expect(sheet.querySelectorAll("li")).toHaveLength(3);
@@ -611,7 +611,7 @@ describe("leave cells", () => {
 
   it("explains the counts when a group heading is tapped", async () => {
     render(<Stats stats={STATS} leaves={[tenPin]} />);
-    fireEvent.click(screen.getByRole("button", { name: "All leaves" }));
+    fireEvent.click(screen.getByRole("button", { name: /^View all \d+ leaves?$/ }));
     fireEvent.click(await screen.findByRole("button", { name: "Makeables" }));
     expect(screen.getByText(/no spare to follow it/i)).toBeInTheDocument();
   });
@@ -897,29 +897,20 @@ describe("while Pro is locked (ADR-154)", () => {
     expect(screen.getByText("80%")).toBeInTheDocument();
   });
 
-  it("previews a Pro metric locked, with the picker still live to go back", () => {
+  it("keeps every chart and the first ball open (ADR-174)", () => {
     renderLocked();
     fireEvent.click(screen.getByRole("button", { name: "Carry" }));
-    expect(
-      screen.getByRole("button", { name: "Every stat, session by session and game by game. Get the app" })
-    ).toBeInTheDocument();
-    // The chart is behind the preview, out of reach.
-    expect(screen.queryByRole("button", { name: "Sea Bowl, 67%" })).not.toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "Average" }));
-    expect(
-      screen.queryByRole("button", { name: /^Every stat, session by session and game by game/ })
-    ).not.toBeInTheDocument();
-    expect(screen.getByRole("img", { name: /^Average by session/ })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Sea Bowl, 67%" })).toBeInTheDocument();
+    expect(screen.getByText("First ball")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /^Every stat/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /^Pocket, carry/ })).not.toBeInTheDocument();
   });
 
-  it("says once what Pro adds, and keeps the first ball a teaser", () => {
+  it("says once what Pro adds", () => {
     renderLocked();
     // Said once for the screen, with the one button that says "Get the app".
     expect(screen.getAllByRole("button", { name: "Get the app" })).toHaveLength(1);
-    expect(screen.getByText(/Pro adds charts for every stat/)).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: "Pocket, carry and the pins each first ball takes. Get the app" })
-    ).toBeInTheDocument();
+    expect(screen.getByText(/Pro adds every leave and every ball/)).toBeInTheDocument();
   });
 
   it("shows the two leaves left most in full, the next one blurred, and no more (ADR-167)", () => {
@@ -950,7 +941,15 @@ describe("while Pro is locked (ADR-154)", () => {
     ).toBeInTheDocument();
     expect(screen.queryByText("2/2")).not.toBeInTheDocument();
     expect(within(grid).getAllByRole("listitem")).toHaveLength(3);
-    expect(screen.queryByRole("button", { name: "All leaves" })).not.toBeInTheDocument();
+    // The sheet opens without Pro, says how many there are, and shows the same
+    // two with the next one blurred (ADR-174).
+    fireEvent.click(screen.getByRole("button", { name: "View all 4 leaves" }));
+    const sheet = screen.getByRole("dialog", { name: /Leaves/ });
+    const locked = within(sheet).getByRole("list", { name: "Leaves left most" });
+    expect(within(locked).getByRole("button", { name: "Open Pin 10" })).toBeInTheDocument();
+    expect(within(locked).getByRole("button", { name: "Open Pin 4" })).toBeInTheDocument();
+    expect(within(locked).queryByRole("button", { name: "Open Pin 7" })).not.toBeInTheDocument();
+    expect(within(locked).getAllByRole("listitem")).toHaveLength(3);
   });
 
   it("shows the best ball in full, the next one blurred, and no more (ADR-167)", () => {
@@ -969,15 +968,24 @@ describe("while Pro is locked (ADR-154)", () => {
     const balls = screen.getByRole("list", { name: "Balls" });
     expect(within(balls).getByText("Wolverine")).toBeInTheDocument();
     expect(within(balls).getByLabelText("strike 75%")).toBeInTheDocument();
-    // Read where it stands: the All balls sheet is the whole list.
-    expect(screen.queryByRole("button", { name: "Open Wolverine" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "All balls" })).not.toBeInTheDocument();
+    // The best ball opens the sheet, which says how many balls there are.
+    expect(screen.getByRole("button", { name: "Open Wolverine" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "View all 3 balls" })).toBeInTheDocument();
     expect(
       within(balls).getByRole("button", { name: "How each of your balls strikes, carries and spares. Get the app" })
     ).toBeInTheDocument();
     // The next ball is drawn only blurred, out of the accessibility tree.
     expect(screen.getByText("Phaze").closest('[aria-hidden="true"]')).toHaveAttribute("inert");
     expect(screen.queryByText("Hyroad")).not.toBeInTheDocument();
+    // In the sheet: the best ball open with its details, the next blurred, and
+    // nothing after it (ADR-174).
+    fireEvent.click(screen.getByRole("button", { name: "View all 3 balls" }));
+    const sheet = screen.getByRole("dialog", { name: /Balls/ });
+    expect(within(sheet).getByRole("region", { name: "Wolverine columns" })).toBeInTheDocument();
+    expect(
+      within(sheet).getByRole("button", { name: "How each of your balls strikes, carries and spares. Get the app" })
+    ).toBeInTheDocument();
+    expect(within(sheet).queryByText("Hyroad")).not.toBeInTheDocument();
   });
 
   it("shows a lone ball blurred, so a locked list always has something locked", () => {

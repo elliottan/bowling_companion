@@ -1,3 +1,4 @@
+import { TAB_TITLE, TAB_TITLE_ROW } from "../components/ui/typography";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ShareIosIcon } from "../components/icons";
 import { Stats } from "../components/Stats";
@@ -175,8 +176,8 @@ export function StatsView({
           <>
             {/* One row: the title, the two actions, then the range at the far
                 right, where it used to take a row of its own under the header. */}
-            <div className="mb-3 flex items-center gap-2">
-              {mode === "tab" && <h1 className="text-xl font-bold text-ink">Stats</h1>}
+            <div className={`${TAB_TITLE_ROW} mb-3 gap-2`}>
+              {mode === "tab" && <h1 className={TAB_TITLE}>Stats</h1>}
               <div className="ml-auto flex shrink-0 items-center gap-1">
                 {/* Neither action has anything to act on before the first
                     session: there is nothing to filter, and the share would be

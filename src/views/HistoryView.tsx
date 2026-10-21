@@ -1,3 +1,4 @@
+import { TAB_TITLE, TAB_TITLE_ROW } from "../components/ui/typography";
 import { useEffect, useRef, useState } from "react";
 import { ErrorBanner } from "../components/ErrorBanner";
 import { SessionHistory } from "../components/SessionHistory";
@@ -78,8 +79,8 @@ export function HistoryView({
         scrollerRef={scrollerRef}
         header={
           <>
-            <div className="mb-3 flex items-center justify-between gap-3">
-              <h1 className="text-xl font-bold text-ink">History</h1>
+            <div className={`${TAB_TITLE_ROW} mb-3 justify-between gap-3`}>
+              <h1 className={TAB_TITLE}>History</h1>
               {/* Nothing to narrow before the first session, and a control
                   that can only ever filter an empty list is noise on the
                   screen a new bowler is deciding about. */}

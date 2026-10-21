@@ -1,17 +1,17 @@
-import { BookOpen, ChevronRight, Compass, GraduationCap, PlayCircle, Plus, ShieldCheck } from "lucide-react";
-import { LaneViewIcon, OilPatternIcon, PinIcon } from "../components/icons";
+import { ChevronRight, PlayCircle, Plus, ShieldCheck } from "lucide-react";
+import { PinIcon } from "../components/icons";
+import { ToolsList } from "../components/ToolsList";
 import { useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { ErrorBanner } from "../components/ErrorBanner";
 import { SessionFormDialog } from "../components/SessionFormDialog";
 import { alleyLabel } from "../lib/sessionLabels";
 import { setRemembered } from "../lib/viewMemory";
-import { ListGroup, ListRow } from "../components/ui/ListGroup";
 import { Fab, FabRow } from "../components/ui/Fab";
 import { ArsenalGrid, ProfileTiles, RecentSessionStrip } from "../components/HomeProfile";
 import { BowlerNameSheet } from "../components/BowlerNameSheet";
 import { GREETINGS, greeting } from "../lib/greeting";
-import { InstallPrompt } from "../components/InstallPrompt";
+import { GetTheAppBanner } from "../components/GetTheAppBanner";
 import { NextSteps } from "../components/NextSteps";
 import { FeedbackPrompt } from "../components/FeedbackPrompt";
 import { EmptyState } from "../components/ui/EmptyState";
@@ -24,13 +24,11 @@ import {
   getBackupNudgeState,
   getBowlerName,
   getSessionList,
-  getSetting,
   setBackupNudgeSnoozedUntil,
-  setSetting,
   type ResumableGame
 } from "../services/bowlingRepository";
 import { describeAge, protectionCard, snoozeMs } from "../lib/backupNudge";
-import { canPromptInstall, isIOSSafari, isStandalone } from "../lib/installPrompt";
+import { isStandalone } from "../lib/installPrompt";
 import { nextSteps, type NextStepKey } from "../lib/onboarding";
 import { useProOwned } from "../lib/useProAccess";
 import { ProMark } from "../components/ui/ProMark";
@@ -60,14 +58,6 @@ interface DashboardViewProps {
   onOpenGuides: () => void;
   onOpenBackup: () => void;
 }
-
-const INSTALL_NUDGE_DISMISSED_KEY = "install_nudge_dismissed_at";
-
-/** The install nudge snoozes rather than dismissing for ever. Someone who says
- *  not now on a borrowed phone still wants the offer on their own, and 30 days
- *  is long enough that it is never nagging. The Settings row is the way back
- *  before then. */
-const INSTALL_SNOOZE_DAYS = 30;
 
 /** Recent sessions on Home, as one sideways row of tiles. History is one tap
  *  away and holds the rest, with the games and the lanes; a few weeks of tiles
@@ -116,7 +106,6 @@ export function DashboardView({
   const name = named?.name ?? null;
   // The bag, not the history: a retired ball is not one the bowler carries.
   const balls = useLiveQuery(async () => activeBalls(await getBalls()));
-  const [installPromptOpen, setInstallPromptOpen] = useState(false);
 
   // Live: finishing a game, deleting a session or importing a backup all show
   // up here without the dashboard being told to reload. The list loader skips
@@ -145,31 +134,13 @@ export function DashboardView({
     : 0;
   const backupAge = nudge ? describeAge(nudge.lastBackupAt, nudge.now) : "never";
 
-  // Wrapped in an object because the setting is itself undefined when unset,
-  // which would otherwise be indistinguishable from "the query has not
-  // answered yet" and flash the card on every load.
-  // The clock is read inside the query, not in render: `Date.now()` in a
-  // render body is a value that changes without a re-render to explain it.
-  const installNudge = useLiveQuery(async () => {
-    const dismissedAt = await getSetting(INSTALL_NUDGE_DISMISSED_KEY);
-    const snoozedUntil = dismissedAt
-      ? new Date(dismissedAt).getTime() + INSTALL_SNOOZE_DAYS * 24 * 60 * 60 * 1000
-      : 0;
-    return { snoozed: snoozedUntil > Date.now() };
-  });
-  const installEligible = (isIOSSafari() && !installed) || canPromptInstall();
-  const installOffered = installEligible && !!installNudge && !installNudge.snoozed;
-  // One card, never two (ADR-115).
-  const protection = nudge && installNudge ? protectionCard(nudge, installed, installOffered) : null;
+  // One card, never two (ADR-115). Home no longer asks a web bowler to add the
+  // page to the home screen: the way to keep games is the app now, and the
+  // banner at the top of Home offers it (ADR-170). The backup card stays.
+  const protection = nudge ? protectionCard(nudge, installed, false) : null;
 
   function handleBackupLater() {
     void setBackupNudgeSnoozedUntil(new Date(Date.now() + snoozeMs(installed)).toISOString());
-  }
-
-  // The card dismisses by writing the setting it reads: the live query above
-  // picks the write up, so there is no second copy of "is it showing".
-  function dismissInstall() {
-    void setSetting(INSTALL_NUDGE_DISMISSED_KEY, new Date().toISOString());
   }
 
   async function handleSubmit(values: NewSessionFormValues) {
@@ -186,7 +157,11 @@ export function DashboardView({
   const setupCard = coldStart || protection ? null : stepOwed ? "step" : "feedback";
 
   return (
-    <section className="mx-auto w-full max-w-xl px-3 pb-24 pt-3 sm:px-6 sm:pt-5">
+    // The foot clears the floating Start session button (56px, 8px above the
+    // tab bar) and no more: `<main>` already pads by the tab bar, and the 96px
+    // this used to add let a Home that fits the screen scroll up a step.
+    <section className="mx-auto w-full max-w-xl px-3 pb-[4.25rem] pt-3 sm:px-6 sm:pt-5">
+      <GetTheAppBanner />
       {/* The greeting is the screen's title. It offers a name only while there
           is none: a name is set once, and changing it lives in Settings. */}
       {/* The top band is the bowler: the app's mark and the greeting on the
@@ -290,44 +265,6 @@ export function DashboardView({
       </div>
 
       <div className="mt-2">
-        {protection?.kind === "install" && (
-          <div className="mt-3 flex gap-3 rounded-xl border border-warning-200 bg-warning-50 p-3 text-warning-700">
-            <ShieldCheck size={20} aria-hidden="true" className="mt-0.5 shrink-0" />
-            <div className="min-w-0 flex-1">
-              <p className="text-sm font-semibold">Keep your scores safe</p>
-              <p className="mt-0.5 text-xs">
-                Your browser may delete your scores if you don't open Headpin for a week. Add it to your home screen to keep them.
-              </p>
-              <div className="mt-2 flex flex-wrap items-center gap-x-4">
-                <button
-                  type="button"
-                  onClick={() => setInstallPromptOpen(true)}
-                  className={`relative text-xs font-bold underline active:no-underline ${TAP_TARGET_44}`}
-                >
-                  Add to Home Screen
-                </button>
-                {protection.backupOwed && (
-                  <button
-                    type="button"
-                    onClick={onOpenBackup}
-                    className={`relative text-xs font-semibold underline active:no-underline ${TAP_TARGET_44}`}
-                  >
-                    Save a copy
-                  </button>
-                )}
-                <button
-                  type="button"
-                  onClick={dismissInstall}
-                  aria-label="Not now: add to Home Screen"
-                  className={`relative inline-flex min-w-11 items-center justify-center text-xs font-semibold opacity-80 ${TAP_TARGET_44}`}
-                >
-                  Not now
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
         {protection?.kind === "backup" && (
           <div
             className={`mt-3 flex gap-3 rounded-xl border p-3 ${
@@ -385,38 +322,14 @@ export function DashboardView({
       <ProHomeBanner />
 
       <div className="mt-6">
-        <ListGroup heading="Tools and reference">
-          <ListRow
-            icon={Compass}
-            label="Layouts"
-            description="A drilling layout, drawn on the ball"
-            onClick={onOpenLayoutLab}
-          />
-          <ListRow
-            icon={LaneViewIcon}
-            label="Line visualizer"
-            description="Draw a line on the lane, over the oil"
-            onClick={onOpenLineVisualizer}
-          />
-          <ListRow
-            icon={OilPatternIcon}
-            label="Oil patterns"
-            description="Look up a pattern's length and oil"
-            onClick={onOpenOilPatterns}
-          />
-          <ListRow
-            icon={BookOpen}
-            label="Ball catalog"
-            description="Specs and pictures of current balls"
-            onClick={onOpenCatalog}
-          />
-          <ListRow
-            icon={GraduationCap}
-            label="Guides"
-            description="Using Headpin, layouts and equipment"
-            onClick={onOpenGuides}
-          />
-        </ListGroup>
+        <ToolsList
+          heading="Tools and reference"
+          onOpenLayoutLab={onOpenLayoutLab}
+          onOpenLineVisualizer={onOpenLineVisualizer}
+          onOpenOilPatterns={onOpenOilPatterns}
+          onOpenCatalog={onOpenCatalog}
+          onOpenGuides={onOpenGuides}
+        />
       </div>
 
       {/* Not on a cold start, where the empty state's button is the way in,
@@ -438,8 +351,6 @@ export function DashboardView({
           onOpenAlleyReport();
         }}
       />
-
-      <InstallPrompt open={installPromptOpen} onClose={() => setInstallPromptOpen(false)} />
 
       {editingName && <BowlerNameSheet name={name} onClose={() => setEditingName(false)} />}
     </section>

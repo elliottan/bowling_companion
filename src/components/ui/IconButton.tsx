@@ -1,6 +1,6 @@
 import type { ButtonHTMLAttributes, ReactNode } from "react";
 
-type Variant = "default" | "danger" | "solid" | "inverse" | "round" | "confirm";
+type Variant = "default" | "danger" | "solid" | "inverse" | "round" | "confirm" | "lane";
 
 const VARIANT: Record<Variant, string> = {
   default: "text-ink-secondary hover:bg-surface-muted",
@@ -22,7 +22,9 @@ const VARIANT: Record<Variant, string> = {
   // The tinted twin of `round`: a header's confirm, as prominent as a primary
   // button. A variant rather than a className, because competing `bg-*`
   // utilities resolve by stylesheet order and the override loses.
-  confirm: "glass-tinted rounded-full text-accent-on-fill transition-transform active:scale-95 active:opacity-80"
+  confirm: "glass-tinted rounded-full text-accent-on-fill transition-transform active:scale-95 active:opacity-80",
+  // `round` over the lane view, whose frame is dark in every theme.
+  lane: "glass-lane rounded-full transition-transform active:scale-95 active:opacity-80"
 };
 
 // `compact` keeps the 44pt hit region while drawing a 20px box, the way `Chip`
@@ -59,7 +61,7 @@ export function IconButton({
     <button
       type="button"
       aria-label={label}
-      className={`inline-flex shrink-0 items-center justify-center disabled:cursor-not-allowed disabled:opacity-50 ${compact ? COMPACT : "h-11 w-11"} ${variant === "round" || variant === "confirm" ? "" : "rounded-md"} ${VARIANT[variant]} ${className}`.trim()}
+      className={`inline-flex shrink-0 items-center justify-center disabled:cursor-not-allowed disabled:opacity-50 ${compact ? COMPACT : "h-11 w-11"} ${variant === "round" || variant === "confirm" || variant === "lane" ? "" : "rounded-md"} ${VARIANT[variant]} ${className}`.trim()}
       {...rest}
     >
       {children}

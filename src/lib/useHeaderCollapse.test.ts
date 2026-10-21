@@ -7,6 +7,7 @@ import {
   scrollPosition,
   useHeaderCollapse
 } from "./useHeaderCollapse";
+import { rememberScroll, restoreScroll } from "./viewMemory";
 
 const MAX = 100;
 const T = COLLAPSE_THRESHOLD;
@@ -137,6 +138,23 @@ describe("useHeaderCollapse", () => {
     // Back the other way: all of it, at once.
     scrollTo(el, 900 - T);
     expect(result.current).toBe(0);
+  });
+
+  it("leaves the header showing when coming back to a tab puts the list back down", () => {
+    const el = scroller();
+    const { result } = renderHook(() => useHeaderCollapse({ current: el }, MAX));
+    rememberScroll("test:restore", 900);
+
+    // The app moves the list back to where it was: not a scroll of the bowler's.
+    act(() => {
+      restoreScroll(el, "test:restore");
+      el.dispatchEvent(new Event("scroll"));
+    });
+    expect(result.current).toBe(0);
+
+    // Their own scroll down from there takes it away as usual.
+    scrollTo(el, 900 + T);
+    expect(result.current).toBe(MAX);
   });
 
   it("does not flip when an overscroll bounce springs back to the top", () => {

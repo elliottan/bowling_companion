@@ -1,9 +1,4 @@
 
-/** Privacy, terms and the trademark notice. A page on the site rather than a
- *  screen in the app: a store reviewer and a crawler both need a public URL,
- *  and there is only room for one copy of it. */
-export const LEGAL_URL = "https://headpin.app/legal";
-
 /** Where feedback goes. An address, not a form: a form is a third party in the
  *  middle of the one conversation the app has, and it cannot be replied to. */
 export const FEEDBACK_EMAIL = "hello@headpin.app";

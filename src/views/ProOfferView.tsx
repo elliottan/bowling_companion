@@ -6,40 +6,28 @@ import { Button } from "../components/ui/Button";
 import { useProAction } from "../components/ui/useProAction";
 import {
   BallsSample,
-  FirstBallSample,
   LayoutSample,
   LeavesSample,
   LineSample,
-  StatsSample,
   ThemesSample
 } from "../components/ProOfferSamples";
 import { useProAccess, useProOwned, useProStoreContext } from "../lib/useProAccess";
 
 /**
  * What Headpin Pro is, before anything charges (ADR-164): a picture and a
- * sentence for each thing it adds, what stays free, and then the one button.
+ * sentence for each thing it adds, and then the one button (ADR-176).
  * The purchase, the steps to move games over from the web and Restore purchase
  * all live here and nowhere else a bowler is asked to pay.
  *
  * The copy is short on purpose and says why each thing is useful, not how it
- * works. The pictures are drawn from the app's own colors with made-up numbers
- * (`ProOfferSamples`), so they follow the theme and cannot go out of date.
+ * works. The pictures are the screens' own components with sample numbers
+ * (`ProOfferSamples`), so they look like what Pro opens and follow the theme.
  */
 interface ProOfferViewProps {
   onBack: () => void;
 }
 
 const FEATURES: Array<{ title: string; why: string; sample: ReactNode }> = [
-  {
-    title: "Charts for every stat",
-    why: "Plot any stat by session or by game, not only your average.",
-    sample: <StatsSample />
-  },
-  {
-    title: "First ball breakdown",
-    why: "How often you hit the pocket, how often the pocket carries, and how often you strike.",
-    sample: <FirstBallSample />
-  },
   {
     title: "Your leaves",
     why: "The leaves you keep ending up with, and how often you pick each one up.",
@@ -56,8 +44,8 @@ const FEATURES: Array<{ title: string; why: string; sample: ReactNode }> = [
     sample: <LineSample />
   },
   {
-    title: "Edit layouts",
-    why: "Change the angles, the pin buffer and your PAP, and see what the ball will do before you drill it.",
+    title: "Try your layouts",
+    why: "Change the angles and the pin buffer, see what the ball will do before you drill it, and set each ball's layout in your arsenal.",
     sample: <LayoutSample />
   },
   {
@@ -70,7 +58,9 @@ const FEATURES: Array<{ title: string; why: string; sample: ReactNode }> = [
 export function ProOfferView({ onBack }: ProOfferViewProps) {
   const access = useProAccess();
   return (
-    <PushScreen title="Headpin Pro" onBack={onBack}>
+    // Above every sheet: a lock inside one opens this page, and closing it goes
+    // back to that sheet as it was (ADR-175).
+    <PushScreen title="Headpin Pro" onBack={onBack} layer="top">
       <div className="mx-auto w-full max-w-xl px-3 pb-4 pt-4 sm:px-6">
         <header className="text-center">
           <ProMark size={72} className="mx-auto rounded-2xl shadow-md" />
@@ -87,14 +77,6 @@ export function ProOfferView({ onBack }: ProOfferViewProps) {
             </li>
           ))}
         </ul>
-
-        <section className="mt-3 rounded-xl border border-edge bg-surface-muted p-3">
-          <h3 className="text-sm font-bold text-ink">What stays free</h3>
-          <p className="mt-0.5 text-sm text-ink-secondary">
-            Scoring, history, your arsenal, the ball catalog, oil patterns, guides, backup and sharing. None of it is
-            behind Pro.
-          </p>
-        </section>
       </div>
 
       {/* The button stays in reach while the page scrolls under it. */}

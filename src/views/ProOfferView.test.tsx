@@ -23,21 +23,20 @@ function renderOffer(access: ProAccess, store: ProStore | null = null) {
 const base: ProStore = { owned: false, price: "$9.99", buy: async () => "cancelled", restore: async () => false };
 
 describe("the Pro page (ADR-164)", () => {
-  it("says what Pro adds and what stays free before any button that charges", () => {
+  it("says what Pro adds before any button that charges", () => {
     renderOffer({ locked: true, appStoreUrl: "https://apps.apple.com/app/id1" });
     for (const title of [
-      "Charts for every stat",
-      "First ball breakdown",
       "Your leaves",
       "Ball by ball",
       "Move your line",
-      "Edit layouts",
+      "Try your layouts",
       "More colors"
     ]) {
       expect(screen.getByRole("heading", { name: title })).toBeInTheDocument();
     }
     expect(screen.getByText(/You pay once and keep it/)).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "What stays free" })).toBeInTheDocument();
+    // Only what Pro adds: the free app is already in the bowler's hand.
+    expect(screen.queryByRole("heading", { name: "What stays free" })).not.toBeInTheDocument();
   });
 
   it("sends the web to the App Store after the steps for moving games", async () => {

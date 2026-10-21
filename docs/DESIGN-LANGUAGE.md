@@ -34,13 +34,13 @@ Every push gets, without exception:
   "Back" for screen readers. It used to name the screen underneath ("‹ Settings"),
   which read as a lie once the same screen could be pushed from several places:
   opened from the dashboard it named a tab the user had never navigated from;
-- a centered title, one line, 17px semibold;
-- at most **one** trailing action, an `IconButton`, or the word "Edit" in a
-  `BarButton` where the action turns the screen into a form (§1b). The layout lab is the
-  single exception and has to earn it each time it is copied: sharing a layout
-  is the thing that screen exists to do once the numbers are right, so it sits
-  beside More rather than inside it. Two is the ceiling, and the second one is
-  never a control the screen merely offers;
+- a centered title, one line, 17px semibold, shown while the screen is at its
+  top and faded out once anything scrolls under the bar (ADR-177);
+- at most **one** trailing action, an `IconButton` (§1b). The layout
+  lab is the single exception: a share, which is what the screen is for once
+  the numbers are right, beside a More that holds the bowler's PAP, hand and
+  grip, set once and then read against, so the page is the ball and the
+  numbers. Two is the ceiling;
 - in overlay mode, Escape + a focus trap (`useOverlay`).
 
 Back out of a push with the chevron or with the platform's own back gesture
@@ -51,6 +51,11 @@ twice (ADR-065).
 A sheet that lists numbers read through filters says which, as a `subtitle`
 in its own bar: the title then sits leading beside the close with the scope
 under it, and the bar never scrolls, so neither does the scope (ADR-130).
+
+A **tab** has no nav bar: its title leads the page, in `TAB_TITLE` inside a
+`TAB_TITLE_ROW` (`ui/typography`), a row as tall as the round controls that may
+sit beside it, so every tab's title lands on the same line whether it has any.
+Home is the exception, since it opens on the bowler (§4a).
 
 ## 1a. Sheet or dialog: you type in a sheet, you answer a dialog
 
@@ -92,11 +97,14 @@ circle. Both are glass (`.glass`): a translucent raised circle with a highlight
 on its top edge and the glyph in ink, as iOS 26 draws a bar button; the commit
 (`confirm`) is the accent under the same highlight (ADR-168).
 
-The one word kept on chrome is **Edit**, for the control that turns a read
-screen into a form: a glyph said it less clearly than the word iOS uses. It is a
-`BarButton`, a glass capsule as tall as the rounds. Inside content, an edit that
-belongs to one card is a `TintedButton`, a small accent-tinted capsule. Neither
-is a bare pencil.
+**Edit is a pencil**, on chrome and in content alike (ADR-179): the round glass
+pencil in a bar turns a read screen into a form and becomes the tick that
+saves, and an edit that belongs to one card (a lane's notes) is a compact
+pencil in the card's heading row. The word "Edit" was kept on bars for a while,
+and beside every other control on chrome being a glyph it read as the odd one
+out. Words stay where a glyph would be a guess: a dialog's answers ("Edit",
+"Replace", "Delete"), a toggle between two named views ("Top-down"), and a
+quiet action inside a screen ("Edit shots", "Re-aim", "Presets").
 
 **Bars float, and the page scrolls under them** (ADR-168). A push's nav bar, a
 sheet's bar and the status bar over a tab have no ground of their own: behind
@@ -114,11 +122,14 @@ draws the system's own, ADR-161; what follows is the page's bar.) It floats over
 the screen as a rounded bar with the active tab in a sliding pill, the way iOS
 draws its tab bar, and the tab scrolls behind it: `<main>` runs the full height
 and pads its end by `--tab-bar-h`, which the shell publishes and the floating
-action row reads too. Content fades into the page color under the bar, and the
-capsule is frosted over what is left. The first attempt left the list ending in
-a hard edge above a bar floating in empty page, which looked worse than either
-a bar that meets the content or one that floats over it. Frost belongs only
-here, where there is something to blur; headers and sheets stay opaque.
+action row reads too. The list shows through under the bar, faded only a
+little (`.scroll-edge-bottom`), and the capsule is frosted over it. The first
+attempt left the list ending in a hard edge above a bar floating in empty page,
+and a later gradient that went solid under the capsule read the same way: a
+band the page stopped at, not a bar over it (ADR-171). The iPhone app's system
+bar has no ground of its own either, so the page passes under it the same way.
+Frost belongs only here, where there is something to blur; headers and sheets
+stay opaque.
 
 ## 2. Controls
 
@@ -240,9 +251,12 @@ nothing but the bowler's own games (ADR-146). Each tool row carries one line
 saying what it does: "Layouts" and "Line visualizer" are names a new bowler
 would otherwise have to tap to learn.
 
-Home holds **one prompt at a time**: the protection card, else one setup step,
+Home holds **one prompt at a time**: the backup card, else one setup step,
 else the feedback ask, and none of them before the first session, where the
-empty state is the only ask. A step the screen already makes elsewhere, the
+empty state is the only ask. The free web app does not ask to be added to the
+home screen any more: the iPhone app is where games are kept now, and Home
+opens on a row offering it, drawn like a store's own banner (a close, the icon,
+Get), which stands apart from the prompts (`GetTheAppBanner`, ADR-170). A step the screen already makes elsewhere, the
 arsenal's empty slot asking for the balls, is not made twice (ADR-150).
 
 ## 4b. Numbers on screen
@@ -274,12 +288,14 @@ tile of its own (ADR-126).
 Ordered by what a bowler can lose or must not miss, not by how often it is
 opened. **Backup & restore leads, alone and louder than a row**, because the
 games live on the phone and nowhere else (ADR-067). Then **Your bowling** (the
-bowling profile, arsenal, spare lines, lane notes), then Support, with
-**Appearance last**: it is set once. The bowler's name is a profile chip beside
+bowling profile, arsenal, spare lines, lane notes), then one **Tools and
+reference** row that opens Home's list of tools (`ToolsList`), so a tool is
+found from either door, then Support, with **Appearance last**: it is set once. The bowler's name is a profile chip beside
 the title (the first letter in a circle, then the name), not a row, and it is
-where more profile features can grow. Rows that leave the app carry no
-sentence: a label that says "Privacy and terms" or "Send feedback" has nothing
-a second line could add.
+where more profile features can grow. "Privacy and terms" pushes a screen in
+Settings with the site page's own text (ADR-181), not a trip to the site. Rows
+that leave the app, and that one, carry no sentence: a label that says "Privacy
+and terms" or "Send feedback" has nothing a second line could add.
 
 ## 4d. Lists that grow, and pages that are read
 
@@ -297,6 +313,12 @@ narrower than that do its rows scroll sideways, together so the columns stay
 aligned, with the picture and name pinned at the left on an opaque cell, so a
 number never loses its ball. A ball's by-game table, which can be wider than
 any phone, scrolls the same way with its row names pinned (ADR-139).
+
+**A scroller inside a card shows no scroll bar when the card already says it
+scrolls** (`.scrollbar-none`): the chart's chips, cut off at the card's edge,
+and the Spares card's leaves, the next row peeking under the last. One that can
+go either way, the Balls card, keeps its bar and leaves its last column room
+for it.
 
 **A sideways scroller stops dead at its ends.** Every horizontal scroller
 carries `overscroll-x-none`, not `-contain`: contain keeps the swipe off the
@@ -316,15 +338,23 @@ a new one opens straight on the fields, since there is nothing to read yet.
 Retire and delete stay on the read sheet: they are actions, not edits, and
 delete asks first.
 
-**Pro shows as a taste, never a wall (ADR-163, ADR-167).** A locked chart or
-card shows its first lines as they are and fades out, with one small "Pro" mark
-and the whole card as the tap. A locked list shows its first rows in full, the
+**Pro shows as a taste, never a wall (ADR-163, ADR-167, ADR-173).** A locked
+chart or card shows its first lines lightly blurred and fading out, with the
+lock in the middle of them and the whole card as the tap: shown sharp, with the
+mark below it, the card read as open. The mark on a card or a row is the lock
+alone, never the word "Pro", which a screen of locks repeated over and over. A locked list shows its first rows in full, the
 bowler's own numbers, then one more row blurred under the mark, and nothing
 after it: two leaves on Stats, one ball on Stats and the Alley report
 (`lib/proPreview`, `ProBlur`). Locked controls stay where they are, blurred and
-out of reach, with one mark saying what Pro opens ("Edit with Pro", "Move it
-with Pro") and the whole block as the tap (`ProVeil`); the values they hold stay
-readable in plain text beside them, since reading is free. A screen with several
+out of reach, with one mark saying what Pro opens ("Try your layouts with Pro",
+"Move it with Pro") and the whole block as the tap (`ProVeil`). The blur is
+light, so what is under it can be seen, and the mark holds still: it does not
+ride along with the scroll. Only the controls Pro opens are veiled, never the
+ones around them: in the layout lab that is the three sliders, and the PAP,
+hand, grip, core and notation stay free (ADR-170). The values stay readable
+beside them, since reading is free. The Pro page shows each thing Pro adds with
+the screen's own component and sample numbers, never a drawing of it, since a
+drawing reads as a mock-up. A screen with several
 locked cards says what Pro adds once, in a banner at its foot, under the
 bowler's own numbers. Nothing is a bar that takes height from what it sits over.
 Every one of them opens the Pro page, which says what Pro is before anything
@@ -394,8 +424,10 @@ label on the field's own top border as an outline notch, which only reads while
 the label is short relative to the box: STANCE and TARGET are nearly as wide as
 the numeric fields they name, so the notch ate the whole top edge.
 
-Labels above fields, 44px field height, optional fields marked `(optional)`
-rather than required ones marked `*` where possible. A form in a dialog puts
+Labels above fields, 44px field height, and no field marked optional or
+required: a form that saves with its fields empty says so by saving, and
+"(optional)" on a label was one more word in front of the one that names the
+field. A form in a dialog puts
 Cancel (an X) leading and the primary action trailing in the dialog's own bar,
 so the commit is always in the same place. The single most valuable field goes
 first. In the ball editor that is the catalog link, because linking fills in
@@ -599,5 +631,6 @@ all of them.
   (`npm run shots`), never drawn, and are recaptured when a screen changes: a
   screenshot of a row that was removed is an advert for something the app no
   longer does.
-- **Install steps are the only instructions on the page.** Everything else is
-  either the product or the way into it.
+- **No instructions on the page.** Everything is either the product or the
+  way into it. The install steps went with the push to the iPhone app
+  (ADR-170), and the closing line is the button's: "Try it now."

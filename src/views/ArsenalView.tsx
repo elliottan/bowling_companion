@@ -116,6 +116,11 @@ function SortableBallRow({ ball, onEdit, system, onViewLayout }: SortableBallRow
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-1.5">
               <span className="font-semibold text-ink">{ball.name}</span>
+              {/* The weight beside the name: two copies of one ball in
+                  different weights are told apart here first. */}
+              {ball.weight != null && (
+                <span className="text-xs font-semibold tabular-nums text-ink-secondary">{ball.weight} lb</span>
+              )}
               {ball.is_spare_ball && (
                 <span className="rounded-full bg-success-50 px-2 py-0.5 text-[11px] font-semibold text-success-700">
                   Spare

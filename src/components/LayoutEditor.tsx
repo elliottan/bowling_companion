@@ -1,6 +1,7 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { Info, X } from "lucide-react";
 import { IconButton } from "./ui/IconButton";
+import { ProVeil } from "./ui/ProLock";
 import { Measure } from "./ui/Measure";
 import { FIELD_MICRO_LABEL } from "./ui/field";
 import {
@@ -37,7 +38,8 @@ export function LayoutEditor({
   system,
   onSystemChange,
   grip = "1h",
-  idPrefix = "layout"
+  idPrefix = "layout",
+  proNumbers = false
 }: {
   layout: DualAngleLayout;
   onChange: (layout: DualAngleLayout) => void;
@@ -50,6 +52,11 @@ export function LayoutEditor({
   /** Distinguishes two copies of the sliders when both are mounted, as they are
    *  when the lab is pushed over the ball form. */
   idPrefix?: string;
+  /** The sliders are Pro here (the layout lab, ADR-170): without Pro they stay
+   *  where they are, blurred under one tap, while the notation toggle above
+   *  them stays free. The ball form leaves this off, since writing down a
+   *  ball's own layout is recording it. */
+  proNumbers?: boolean;
 }) {
   const vls = toVls(layout, ball);
 
@@ -101,6 +108,7 @@ export function LayoutEditor({
         />
       </div>
 
+      <NumbersVeil on={proNumbers}>
       {system === "dual" ? (
         <div className="space-y-0.5 rounded-xl border border-edge bg-surface p-2.5 shadow-sm">
           <Slider
@@ -185,7 +193,18 @@ export function LayoutEditor({
           />
         </div>
       )}
+      </NumbersVeil>
     </>
+  );
+}
+
+/** The sliders under a Pro veil, or as they are. */
+function NumbersVeil({ on, children }: { on: boolean; children: ReactNode }) {
+  if (!on) return <>{children}</>;
+  return (
+    <ProVeil top what="Changing the layout" label="Try your layouts with Pro">
+      {children}
+    </ProVeil>
   );
 }
 
@@ -353,7 +372,7 @@ export function SystemCard({
     >
       <span className={FIELD_MICRO_LABEL}>{label}</span>
       <span
-        className={`block text-sm font-bold tabular-nums ${selected ? "text-accent" : "text-ink"}`}
+        className="block text-sm font-bold tabular-nums text-accent"
       >
         <LayoutNumbers value={value} />
       </span>

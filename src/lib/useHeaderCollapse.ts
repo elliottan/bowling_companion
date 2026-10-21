@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { takeRestoredScroll } from "./viewMemory";
 import type { RefObject } from "react";
 
 /**
@@ -99,6 +100,13 @@ export function useHeaderCollapse(
     lastTop.current = scrollPosition(el);
     const onScroll = () => {
       const top = scrollPosition(el);
+      // Coming back to a tab puts its list back where it was. That jump is not
+      // the bowler reading down, so it moves the baseline and leaves the
+      // header showing; their own next scroll decides from there.
+      if (takeRestoredScroll(el, el.scrollTop)) {
+        lastTop.current = top;
+        return;
+      }
       // Read into a local before the updater is handed over: React may run it
       // after this returns, and reading the ref inside would then measure the
       // new position against itself and never move anything.

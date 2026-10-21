@@ -49,6 +49,12 @@ describe("ArsenalView", () => {
     expect(await reading(/^4 1\/2 x /)).toBeTruthy();
   });
 
+  it("shows each ball's weight on its row", async () => {
+    await addBall({ name: "Phaze II", is_spare_ball: false, weight: 15 });
+    render(<ArsenalView onBack={vi.fn()} />);
+    expect(await screen.findByText("15 lb")).toBeInTheDocument();
+  });
+
   it("still shows what was typed on a ball entered before layouts were numbers", async () => {
     await addBall({ name: "Old ball", is_spare_ball: false, layout: "45 x 4-1/2 x 35" });
 

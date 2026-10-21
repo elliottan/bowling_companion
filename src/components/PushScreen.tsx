@@ -1,5 +1,6 @@
 import { ChevronLeft } from "lucide-react";
 import { useCallback, useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import { registerPushExit } from "../lib/backGesture";
 import { overlayHandoff } from "../lib/overlayHandoff";
 import { useOverlay } from "../lib/useOverlay";
@@ -8,6 +9,9 @@ import { IconButton } from "./ui/IconButton";
 interface PushScreenProps {
   title: string;
   onBack: () => void;
+  /** A second line under the title, smaller, for what the title alone does
+   *  not say: a session's date and games under its alley. */
+  subtitle?: string;
   /** Optional trailing nav-bar action (kept to one control, iOS style). */
   trailing?: ReactNode;
   /** Suppress Escape / focus trap while a dialog is layered on top. */
@@ -31,6 +35,13 @@ interface PushScreenProps {
    *  screen owns that lives outside it (a portalled sheet) to leave with it,
    *  rather than sitting on until the route change unmounts it. */
   onLeave?: () => void;
+  /**
+   * `top` opens the screen above every sheet and the lane view, portalled to
+   * the body, for a screen a sheet opens and closes back to: the Pro page,
+   * which a lock inside a sheet opens (ADR-175). Pushed in the shell, it slid
+   * in under the sheet that opened it.
+   */
+  layer?: "shell" | "top";
   children: ReactNode;
 }
 
@@ -54,15 +65,22 @@ const EXIT_MS = 280;
  */
 export function PushScreen({
   title,
+  subtitle,
   onBack,
   trailing,
   active = true,
   mode = "overlay",
   backCloses = false,
   onLeave,
+  layer = "shell",
   children,
 }: PushScreenProps) {
   const [exiting, setExiting] = useState(false);
+  // Whether anything has scrolled up under the bar. The title shows only at
+  // the top: once the page passes beneath it, text over moving text reads as
+  // a mistake, where the round controls, raised glass, still read and are
+  // still the way out (ADR-177).
+  const [scrolled, setScrolled] = useState(false);
   const exitTimer = useRef<number | null>(null);
   // Taking the place of a loading screen that already slid in: no second slide.
   const [takesPlace] = useState(() => overlayHandoff.active);
@@ -96,7 +114,7 @@ export function PushScreen({
 
   const overlay = mode === "overlay";
 
-  return (
+  const screen = (
     <div
       // Inline pushes position against the tab's own stage (a `relative` box
       // supplied by the caller), so whatever the tab renders underneath stays
@@ -109,10 +127,15 @@ export function PushScreen({
       // the screen underneath below its last line. Positioned against the
       // shell, it is painted as part of the shell and moves with it. A push
       // opened inside a sheet stays `fixed`, to keep its place in that stack.
+      //
+      // On the top layer it is a body-level layer of its own, above the sheets
+      // (z-60) and the lane view (z-70) and under the dialogs (z-80).
       className={
-        overlay
-          ? "fixed inset-0 z-[55] pointer-events-auto [#app-shell>&]:absolute"
-          : "absolute inset-0 z-[5] pointer-events-auto"
+        layer === "top"
+          ? "fixed inset-0 z-[75] pointer-events-auto"
+          : overlay
+            ? "fixed inset-0 z-[55] pointer-events-auto [#app-shell>&]:absolute"
+            : "absolute inset-0 z-[5] pointer-events-auto"
       }
       role={overlay ? "dialog" : "region"}
       aria-modal={overlay || undefined}
@@ -152,9 +175,14 @@ export function PushScreen({
               {/* Optically centred: the chevron's mass sits right of its box. */}
               <ChevronLeft size={22} strokeWidth={2.5} aria-hidden="true" className="-ml-0.5" />
             </IconButton>
-            <h1 className="pointer-events-none absolute left-1/2 max-w-[calc(100%-7rem)] -translate-x-1/2 truncate text-[17px] font-semibold text-ink">
-              {title}
-            </h1>
+            <div
+              className={`pointer-events-none absolute left-1/2 max-w-[calc(100%-7rem)] -translate-x-1/2 text-center transition-opacity duration-200 ${
+                scrolled ? "opacity-0" : ""
+              }`}
+            >
+              <h1 className="truncate text-[17px] font-semibold leading-tight text-ink">{title}</h1>
+              {subtitle && <p className="truncate text-xs leading-tight text-ink-secondary">{subtitle}</p>}
+            </div>
             <div className="ml-auto flex shrink-0 items-center">{trailing}</div>
           </div>
         </header>
@@ -164,8 +192,13 @@ export function PushScreen({
             for a sticky row inside to stop beneath the bar rather than under
             it. */}
         <div
+          onScroll={(e) => {
+            const next = e.currentTarget.scrollTop > 4;
+            if (next !== scrolled) setScrolled(next);
+          }}
           className={`min-h-0 flex-1 overflow-y-auto overscroll-contain pt-[var(--push-bar-h)] ${
-            overlay ? "pb-[env(safe-area-inset-bottom)]" : ""
+            // Inline, a Settings section, runs under the tab bar like its tab.
+            overlay ? "pb-[env(safe-area-inset-bottom)]" : "pb-[var(--tab-clear,0px)]"
           }`}
           style={{ "--push-bar-h": overlay ? "calc(env(safe-area-inset-top) + 3rem)" : "3rem" } as CSSProperties}
         >
@@ -174,4 +207,5 @@ export function PushScreen({
       </div>
     </div>
   );
+  return layer === "top" ? createPortal(screen, document.body) : screen;
 }

@@ -1,3 +1,4 @@
+import { TAB_TITLE, TAB_TITLE_ROW } from "../components/ui/typography";
 import { PlayCircle } from "lucide-react";
 import { useState } from "react";
 import { SessionFormDialog } from "../components/SessionFormDialog";
@@ -25,7 +26,9 @@ export function NoSessionView({ onStartSession, onScoreNow, isSubmitting, error 
 
   return (
     <section className="mx-auto w-full max-w-xl px-3 pb-5 pt-3 sm:px-6 sm:pt-5">
-      <h1 className="mb-3 text-xl font-bold text-ink">Score</h1>
+      <div className={`${TAB_TITLE_ROW} mb-3`}>
+        <h1 className={TAB_TITLE}>Score</h1>
+      </div>
 
       {error && <ErrorBanner className="mb-4">{error}</ErrorBanner>}
 

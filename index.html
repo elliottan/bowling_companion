@@ -385,21 +385,6 @@
 
       /* ---------- The screens ---------- */
       .story { padding-block: 1.5rem 1rem; }
-      .kicker {
-        margin: 0;
-        color: var(--felt);
-        font-size: 0.8rem;
-        font-weight: 700;
-        letter-spacing: 0.06em;
-        text-transform: uppercase;
-      }
-      .section-title {
-        margin: 0.5rem 0 0;
-        font-size: clamp(1.9rem, 7.5vw, 2.75rem);
-        line-height: 1.08;
-        letter-spacing: -0.03em;
-        font-weight: 800;
-      }
       .step {
         display: grid;
         gap: 1.5rem;
@@ -432,25 +417,6 @@
         text-decoration: none;
       }
       .shot-link:focus-visible { outline: 3px solid var(--felt); outline-offset: 4px; }
-
-      .card {
-        background: var(--card);
-        border: 1px solid var(--edge);
-        border-radius: 1.1rem;
-        padding: 1rem;
-      }
-
-      /* ---------- Install ---------- */
-      .install { padding-block: 2rem 3.5rem; }
-      .install-grid {
-        display: grid;
-        gap: 0.75rem;
-        margin-top: 1.5rem;
-      }
-      .install .card h4 { margin: 0; font-size: 1.1rem; }
-      .install ol { margin: 0.6rem 0 0; padding-left: 1.2rem; color: var(--ink-2); }
-      .install li { margin: 0.25rem 0; }
-      .install li b { color: var(--ink); }
 
       /* ---------- Closing band ---------- */
       .closing {
@@ -547,7 +513,6 @@
       @media (min-width: 40rem) {
         .wrap { padding: 0 2rem; }
         .stage { margin: 2rem 0 0; }
-        .install-grid { grid-template-columns: 1fr 1fr; }
       }
       @media (min-width: 60rem) {
         .hero-grid {
@@ -717,15 +682,15 @@
         </article>
         <article class="step">
           <div class="copy">
-            <h2>Know the pattern before you bowl it.</h2>
-            <p>The PBA patterns and more, with the oil drawn on the lane.</p>
+            <h2>All your stats, in one place.</h2>
+            <p>Your average, strikes and spares, and how they trend night to night.</p>
           </div>
           <figure>
-            <a class="shot-link" href="/shots/pattern.webp" aria-label="View the oil pattern larger"><div class="phone"><div class="screen">
+            <a class="shot-link" href="/shots/stats.webp" aria-label="View the stats larger"><div class="phone"><div class="screen">
               <picture>
-                <source srcset="/shots/pattern-light.webp" media="(prefers-color-scheme: light)" />
-                <img src="/shots/pattern.webp" width="780" height="1688" loading="lazy"
-                  alt="The 2019 PBA Shark 48 oil pattern in Headpin: its length and volume, and the oil drawn across the lane board by board." />
+                <source srcset="/shots/stats-light.webp" media="(prefers-color-scheme: light)" />
+                <img src="/shots/stats.webp" width="780" height="1688" loading="lazy"
+                  alt="The Headpin stats screen: an average of 180 with the high and low game, a chart of the score over each session, first-ball pocket, carry and strike rates, and the spares made." />
               </picture>
             </div></div></a>
           </figure>
@@ -762,44 +727,11 @@
         </article>
       </section>
 
-      <section class="install wrap" aria-labelledby="install">
-        <p class="kicker">Install</p>
-        <h2 class="section-title" id="install"><span data-store-label="Get it on your phone.">Put it on your home screen.</span></h2>
-        <div class="install-grid">
-          <!--store:web-->
-          <div class="card">
-            <h4>iPhone</h4>
-            <ol>
-              <li>Open <b>headpin.app</b> in <b>Safari</b>.</li>
-              <li>Tap <b>Share</b>, the square with the arrow.</li>
-              <li>Tap <b>Add to Home Screen</b>.</li>
-            </ol>
-          </div>
-          <!--/store:web-->
-          <!--store:app
-          <div class="card">
-            <h4>iPhone</h4>
-            <ol>
-              <li>Get <b>Headpin</b> free from the <a href="{appStoreUrl}"><b>App Store</b></a>.</li>
-              <li>Open it and tap <b>Start fresh</b>.</li>
-            </ol>
-          </div>
-          -->
-          <div class="card">
-            <h4>Android</h4>
-            <ol>
-              <li>Open <b>headpin.app</b> in <b>Chrome</b>.</li>
-              <li>Tap <b>Install</b> when it asks, or the menu (<b>&#8942;</b>).</li>
-              <li>Tap <b>Add to Home screen</b>.</li>
-            </ol>
-          </div>
-        </div>
-      </section>
     </main>
 
     <section class="closing" aria-labelledby="closing">
       <div class="wrap">
-        <h2 id="closing">Try it at your next league night.</h2>
+        <h2 id="closing">Try it now.</h2>
         <a class="cta" href="/app" data-store>
           <span data-store-label="Free on the App Store" data-web-label="Open Headpin">Open Headpin</span>
           <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10h11M11 5l5 5-5 5"/></svg>

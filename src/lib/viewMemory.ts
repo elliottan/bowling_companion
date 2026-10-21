@@ -140,12 +140,32 @@ export function rememberedScroll(key: string): number {
  *
  * Returns a cleanup, for the effect that owns it.
  */
+/** The offset `restoreScroll` last put a scroller at, until its scroll event
+ *  has been read. That event is the app moving the list back, not the bowler
+ *  scrolling, and what answers scrolls (the collapsing header) has to be able
+ *  to tell the two apart. */
+const restoredTo = new WeakMap<HTMLElement, number>();
+
+/**
+ * Whether this scroll is the one a restore caused, landing where it was put.
+ * Read once: it answers true for that event and forgets it.
+ */
+export function takeRestoredScroll(el: HTMLElement, top: number): boolean {
+  const target = restoredTo.get(el);
+  if (target === undefined) return false;
+  restoredTo.delete(el);
+  return Math.abs(top - target) < 1;
+}
+
 export function restoreScroll(el: HTMLElement, key: string): () => void {
   let tries = 0;
   let timer: number | undefined;
 
   const apply = () => {
     const target = rememberedScroll(key);
+    // Only a move counts: an assignment that leaves the offset where it was
+    // fires no scroll event to take.
+    if (Math.abs(el.scrollTop - target) >= 1) restoredTo.set(el, Math.min(target, el.scrollHeight - el.clientHeight));
     el.scrollTop = target;
     // Content is still short, so the assignment clamped. Try again shortly.
     if (Math.abs(el.scrollTop - target) >= 1 && ++tries < RESTORE_TRIES) {

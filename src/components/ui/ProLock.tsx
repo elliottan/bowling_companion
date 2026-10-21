@@ -9,29 +9,54 @@ import { useProEntry } from "./useProAction";
 /**
  * How Pro shows where it is locked (ADR-163, ADR-167, docs/PRO-LAUNCH.md).
  *
- * Four pieces, each quiet. A card that is Pro shows its first few lines as
- * they are, fading out, with one small "Pro" mark; the whole preview is the
- * tap. A list that is Pro shows its first rows in full and the next one
+ * Four pieces, each quiet. A card that is Pro shows its first few lines,
+ * lightly blurred and fading out, with the lock on it; the whole preview is
+ * the tap. A list that is Pro shows its first rows in full and the next one
  * blurred under the mark. Controls that are Pro stay where they are, blurred,
  * under one tap. A screen with several of them says what Pro adds once, in a
  * banner. Nothing pops up, counts down or covers anything but itself.
  */
 
-/** The card's opening lines stay sharp and the rest fades out, so the bowler
- *  sees there is real work behind it without being able to read all of it. */
+/** The card's opening lines show, softly, and the rest fades out, so the
+ *  bowler sees there is real work behind it without being able to read it. */
 const FADE: CSSProperties = {
   maskImage: "linear-gradient(to bottom, #000 45%, transparent)",
   WebkitMaskImage: "linear-gradient(to bottom, #000 45%, transparent)"
 };
 
-/** The small mark a locked thing carries: a lock and the word. `lane` is the
- *  lane view's dark frame, which paints its own colors (DESIGN-LANGUAGE §3). */
-export function ProPill({ children = "Pro", lane = false }: { children?: ReactNode; lane?: boolean }) {
+/** The mark a locked thing carries. On its own it is the lock and nothing
+ *  else: a screen of locks each saying "Pro" read as the same word over and
+ *  over (ADR-173). With words, it says what Pro opens there ("Move it with
+ *  Pro"). `srLabel` names a bare lock for a screen reader where nothing around
+ *  it does. `lane` is the lane view's dark frame, which paints its own colors
+ *  (DESIGN-LANGUAGE §3). */
+export function ProPill({
+  children,
+  srLabel,
+  lane = false
+}: {
+  children?: ReactNode;
+  srLabel?: string;
+  lane?: boolean;
+}) {
+  const tone = lane
+    ? "border border-white/25 bg-slate-900/80 text-white/90 backdrop-blur"
+    : "bg-accent-fill text-accent-on-fill";
+  if (children == null) {
+    return (
+      <span
+        data-pro-mark=""
+        className={`inline-flex h-8 w-8 items-center justify-center rounded-full shadow-sm ${tone}`}
+      >
+        <Lock size={14} aria-hidden="true" />
+        {srLabel && <span className="sr-only">{srLabel}</span>}
+      </span>
+    );
+  }
   return (
     <span
-      className={`inline-flex h-7 items-center gap-1 rounded-full px-3 text-xs font-semibold shadow-sm ${
-        lane ? "border border-white/25 bg-slate-900/80 text-white/90 backdrop-blur" : "bg-accent-fill text-accent-on-fill"
-      }`}
+      data-pro-mark=""
+      className={`inline-flex h-7 items-center gap-1 rounded-full px-3 text-xs font-semibold shadow-sm ${tone}`}
     >
       <Lock size={12} aria-hidden="true" />
       {children}
@@ -58,9 +83,13 @@ function ActionNote({ text, lane = false }: { text: string | null; lane?: boolea
 
 /**
  * A Pro card, shown as itself while Pro is open and as a teaser while it is
- * not: its first lines as they are, fading out, under one tap that is the
- * purchase (or, on the web, the way to the app). It never covers anything but
- * itself.
+ * not: its first lines, lightly blurred and fading out, with the lock in the
+ * middle of them, under one tap that is the purchase (or, on the web, the way
+ * to the app). It never covers anything but itself.
+ *
+ * The blur and the lock on the card are what say which card is locked. Sharp,
+ * with the mark in room of its own under the fade, the First ball card read as
+ * an open card with a stray lock beneath it (ADR-173).
  */
 export function ProLock({
   what,
@@ -101,13 +130,11 @@ function Teaser({
   const previewRef = useInert<HTMLDivElement>();
   return (
     <div>
-      {/* The mark sits in room of its own under the fade, not over the last of
-          the text. */}
-      <div className="relative pb-8">
+      <div className="relative">
         <div
           ref={previewRef}
           aria-hidden="true"
-          className="pointer-events-none select-none overflow-hidden"
+          className="pointer-events-none select-none overflow-hidden blur-[2px]"
           style={{ maxHeight: `${peek}rem`, ...FADE }}
         >
           {children}
@@ -117,7 +144,7 @@ function Teaser({
           disabled={action.busy || action.unavailable}
           onClick={action.start}
           aria-label={`${what}. ${action.label}`}
-          className="absolute inset-0 flex items-end justify-center rounded-xl pb-0.5 disabled:opacity-60"
+          className="absolute inset-0 flex items-center justify-center rounded-xl active:opacity-70 disabled:opacity-60"
         >
           <ProPill />
         </button>
@@ -214,25 +241,30 @@ function Blurred({
  * on them is the way to Pro. The controls themselves while Pro is open.
  *
  * `before` runs first, for a layer the caller has to close so the Pro page is
- * not hidden behind it (the lane). `lane` is the lane view's dark frame. `tall`
- * is a block taller than the screen (the layout lab's fields): its mark rides
- * along in view while the blurred fields scroll under it.
+ * not hidden behind it (the lane). `lane` is the lane view's dark frame. `top`
+ * pins the mark to the top centre of the block (the layout lab's sliders)
+ * rather than its middle. It never follows the scroll: a mark that rode along
+ * read as loose on the screen, sliding over the blurred fields.
+ *
+ * The blur is light on purpose. The point of the veil is that the bowler can
+ * see what is under it, so it only has to say "not yet", not hide anything.
  */
 export function ProVeil({
   what,
   label,
   lane = false,
-  tall = false,
+  top = false,
   before,
   className = "",
   children
 }: {
   /** What the controls do, for the tap's spoken name. */
   what: string;
-  /** The words on the mark, saying what Pro opens here. */
-  label: string;
+  /** The words on the mark, saying what Pro opens here. Left out where there
+   *  is no room for them, and the lock stands alone. */
+  label?: string;
   lane?: boolean;
-  tall?: boolean;
+  top?: boolean;
   before?: () => void;
   className?: string;
   children: ReactNode;
@@ -240,7 +272,7 @@ export function ProVeil({
   const access = useProAccess();
   if (!access.locked) return <>{children}</>;
   return (
-    <Veil access={access} what={what} label={label} lane={lane} tall={tall} before={before} className={className}>
+    <Veil access={access} what={what} label={label} lane={lane} top={top} before={before} className={className}>
       {children}
     </Veil>
   );
@@ -251,16 +283,16 @@ function Veil({
   what,
   label,
   lane,
-  tall,
+  top,
   before,
   className,
   children
 }: {
   access: LockedProAccess;
   what: string;
-  label: string;
+  label?: string;
   lane: boolean;
-  tall: boolean;
+  top: boolean;
   before?: () => void;
   className: string;
   children: ReactNode;
@@ -269,7 +301,7 @@ function Veil({
   const previewRef = useInert<HTMLDivElement>();
   return (
     <div className={`relative ${className}`.trim()}>
-      <div ref={previewRef} aria-hidden="true" className="pointer-events-none select-none opacity-60 blur-[2.5px]">
+      <div ref={previewRef} aria-hidden="true" className="pointer-events-none select-none opacity-80 blur-[1px]">
         {children}
       </div>
       <button
@@ -282,15 +314,9 @@ function Veil({
           action.start();
         }}
         aria-label={`${what}. ${action.label}`}
-        className={`absolute inset-0 flex justify-center rounded-xl disabled:opacity-60 ${tall ? "items-start" : "items-center"}`}
+        className={`absolute inset-0 flex justify-center rounded-xl disabled:opacity-60 ${top ? "items-start pt-3" : "items-center"}`}
       >
-        {tall ? (
-          <span className="sticky top-[40%] mt-16">
-            <ProPill>{label}</ProPill>
-          </span>
-        ) : (
-          <ProPill lane={lane}>{label}</ProPill>
-        )}
+        <ProPill lane={lane}>{label}</ProPill>
       </button>
       {action.dialog}
     </div>

@@ -1,4 +1,4 @@
-import { ChevronLeft, Pencil, Plus, Trash2, X } from "lucide-react";
+import { BarChart3, ChevronLeft, Pencil, Plus, Trash2, X } from "lucide-react";
 import { ShareIosIcon } from "../components/icons";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { ActiveGameScorer } from "../components/ActiveGameScorer";
@@ -12,7 +12,7 @@ import { getBalls, getOilPattern } from "../services/ballRepository";
 import { movementAt } from "../lib/briefing";
 import { describeGameMove } from "../components/alleyHistoryCopy";
 import { SessionFormDialog } from "../components/SessionFormDialog";
-import { SessionHeaderText } from "../components/SessionHeaderText";
+import { SessionHeaderText, sessionMetaLine } from "../components/SessionHeaderText";
 import { PushScreen } from "../components/PushScreen";
 import { SessionLanePanel } from "../components/SessionLanePanel";
 import {
@@ -106,6 +106,9 @@ let justFinishedGameId: number | null = null;
 
 // Games whose "you usually move" hint has been put away, this app run.
 const gameHintDismissed = new Set<number>();
+
+/** Space between the game chips and the top of the session sheet, in px. */
+const SHEET_GAP = 10;
 
 export function ActiveSessionView({
   sessionId,
@@ -239,12 +242,13 @@ export function ActiveSessionView({
 
   // The panel rises to just under the game chips, so it follows them: measured
   // when it opens, and again whenever anything could have moved them (a
-  // rotation, the keyboard, a scroll of the page behind).
+  // rotation, the keyboard, a scroll of the page behind). It stops a little
+  // short of them: flush, its rounded top touched the chips and read cramped.
   useLayoutEffect(() => {
     if (!showSheet) return;
     const measure = () => {
       const row = chipRowRef.current;
-      if (row) setSheetTop(Math.max(0, Math.round(row.getBoundingClientRect().bottom)));
+      if (row) setSheetTop(Math.max(0, Math.round(row.getBoundingClientRect().bottom) + SHEET_GAP));
     };
     measure();
     window.addEventListener("resize", measure);
@@ -572,24 +576,27 @@ export function ActiveSessionView({
             className="min-w-0 flex-1 rounded-md hover:bg-surface-muted active:bg-surface-muted"
             aria-label="Open session sheet and lane notes"
           >
-            <SessionHeaderText session={sessionDetails.session} games={games} />
+            {/* Pushed, the alley and the date are the nav bar's; on the Score
+                tab there is no bar, so the block carries them. */}
+            <SessionHeaderText session={sessionDetails.session} games={games} identityInBar={mode !== "tab"} />
           </div>
           {/* Two taps to the edit: the first brings up the session sheet, which
               is what the header is for, and the second, with the sheet up, opens
-              the session's details. One pencil, one place, either way. */}
+              the session's details. The glyph says which tap this is: the
+              sheet's stats while it is down, the pencil once it is up. */}
           <IconButton
-            label={showSheet ? "Edit session" : "Session sheet"}
-            title={showSheet ? "Edit session" : "Session sheet"}
+            label={showSheet ? "Edit session" : "Session stats"}
+            title={showSheet ? "Edit session" : "Session stats"}
             variant="round"
             className="shrink-0"
             onClick={() => {
               // The editor opens over the sheet rather than closing it: both are
               // portalled to the body, and the editor sits above.
               if (showSheet) setShowEdit(true);
-              else openSheet("sheet");
+              else openSheet("stats");
             }}
           >
-            <Pencil size={16} aria-hidden="true" />
+            {showSheet ? <Pencil size={16} aria-hidden="true" /> : <BarChart3 size={18} aria-hidden="true" />}
           </IconButton>
           <IconButton
             label="Share this session"
@@ -900,12 +907,13 @@ export function ActiveSessionView({
   );
 
   if (mode === "tab") return body;
-  // "Session" rather than the alley: the identity block right underneath
-  // already names the alley and the date, and a nav title that arrives a tick
-  // after the screen does reads as the screen changing under the thumb.
+  // The alley and the date line are the bar's, so the page below keeps only
+  // the lanes, the pattern and the score. "Session" until the session is read,
+  // which is a frame, rather than an empty bar.
   return (
     <PushScreen
-      title="Session"
+      title={sessionDetails ? alleyLabel(sessionDetails.session.alley_name) : "Session"}
+      subtitle={sessionDetails ? sessionMetaLine(sessionDetails.session, games) : undefined}
       onBack={onBack}
       // The sheet is portalled out of the screen, so it is told to go with it.
       onLeave={() => setLeaving(true)}

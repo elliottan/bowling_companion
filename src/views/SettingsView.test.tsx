@@ -25,11 +25,51 @@ function renderMenu(onSectionChange = vi.fn()) {
       onOpenArsenal={vi.fn()}
       onOpenSpareLines={vi.fn()}
       onOpenLaneNotes={vi.fn()}
+      onOpenLayoutLab={vi.fn()}
+      onOpenOilPatternsScreen={vi.fn()}
+      onOpenCatalog={vi.fn()}
+      onOpenGuides={vi.fn()}
     />
   );
 }
 
 describe("SettingsView", () => {
+  it("opens Tools and reference, the same list as Home's", () => {
+    const onSectionChange = vi.fn();
+    renderMenu(onSectionChange);
+    fireEvent.click(screen.getByRole("button", { name: /Tools and reference/ }));
+    expect(onSectionChange).toHaveBeenCalledWith("tools");
+  });
+
+  it("lists the tools in that section, each opening its screen", async () => {
+    const onOpenCatalog = vi.fn();
+    const onOpenLayoutLab = vi.fn();
+    render(
+      <SettingsView
+        section="tools"
+        onSectionChange={vi.fn()}
+        handedness="right"
+        onHandednessChange={vi.fn()}
+        driftModel={DEFAULT_DRIFT_MODEL}
+        onDriftModelChange={vi.fn()}
+        onOpenBackup={vi.fn()}
+        onOpenLineVisualizer={vi.fn()}
+        onOpenArsenal={vi.fn()}
+        onOpenSpareLines={vi.fn()}
+        onOpenLaneNotes={vi.fn()}
+        onOpenLayoutLab={onOpenLayoutLab}
+        onOpenOilPatternsScreen={vi.fn()}
+        onOpenCatalog={onOpenCatalog}
+        onOpenGuides={vi.fn()}
+      />
+    );
+    const tools = await screen.findByRole("region", { name: "Tools and reference" });
+    fireEvent.click(within(tools).getByRole("button", { name: /Ball catalog/ }));
+    fireEvent.click(within(tools).getByRole("button", { name: /Layouts/ }));
+    expect(onOpenCatalog).toHaveBeenCalled();
+    expect(onOpenLayoutLab).toHaveBeenCalled();
+  });
+
   beforeEach(async () => {
     await db.delete();
     await db.open();
@@ -45,8 +85,8 @@ describe("SettingsView", () => {
       expect(screen.queryByRole("button", { name: new RegExp(gone) })).not.toBeInTheDocument();
     }
 
-    // The row that leaves the app is a link, not a button.
-    expect(screen.getByRole("link", { name: /Privacy and terms/ })).toBeInTheDocument();
+    // Privacy and terms is a screen in the app now, not a link out.
+    expect(screen.getByRole("button", { name: /Privacy and terms/ })).toBeInTheDocument();
     // Headpin earns from Pro now, not from a tip jar (ADR-154).
     expect(screen.queryByRole("link", { name: /Buy me a coffee/ })).not.toBeInTheDocument();
   });
@@ -71,22 +111,64 @@ describe("SettingsView", () => {
     expect(rows[rows.length - 1]).toMatch(/Appearance/);
   });
 
-  it("leaves the links to the outside with no sentence under them", () => {
-    renderMenu();
-    expect(screen.getByRole("link", { name: "Privacy and terms" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Send feedback" })).toBeInTheDocument();
+  it("opens privacy and terms as a screen in Settings", () => {
+    const onSectionChange = vi.fn();
+    renderMenu(onSectionChange);
+    expect(screen.queryByRole("link", { name: "Privacy and terms" })).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Privacy and terms" }));
+    expect(onSectionChange).toHaveBeenCalledWith("legal");
   });
 
-  it("opens privacy and terms over the app, in the store app", () => {
+  it("shows the site's privacy and terms text in place, with its links kept in the app", async () => {
+    const onSectionChange = vi.fn();
+    const open = vi.spyOn(window, "open").mockReturnValue(null);
+    render(
+      <SettingsView
+        section="legal"
+        onSectionChange={onSectionChange}
+        handedness="right"
+        onHandednessChange={vi.fn()}
+        driftModel={DEFAULT_DRIFT_MODEL}
+        onDriftModelChange={vi.fn()}
+        onOpenBackup={vi.fn()}
+        onOpenLineVisualizer={vi.fn()}
+        onOpenArsenal={vi.fn()}
+        onOpenSpareLines={vi.fn()}
+        onOpenLaneNotes={vi.fn()}
+        onOpenLayoutLab={vi.fn()}
+        onOpenOilPatternsScreen={vi.fn()}
+        onOpenCatalog={vi.fn()}
+        onOpenGuides={vi.fn()}
+      />
+    );
+    expect(await screen.findByRole("heading", { name: "The short version" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Terms of use" })).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /← Headpin/ })).toBeNull();
+
+    // A contents link scrolls the screen and leaves the app's address alone.
+    const terms = screen.getByRole("heading", { name: "Terms of use" });
+    terms.scrollIntoView = vi.fn();
+    const before = window.location.hash;
+    fireEvent.click(screen.getByRole("link", { name: "Terms of use" }));
+    expect(terms.scrollIntoView).toHaveBeenCalled();
+    expect(window.location.hash).toBe(before);
+
+    // An outside link leaves, on the web, in a new tab.
+    fireEvent.click(screen.getByRole("link", { name: "Vercel's privacy policy" }));
+    expect(open).toHaveBeenCalledWith("https://vercel.com/legal/privacy-policy", "_blank", "noopener");
+
+    // In the store app, through the in-app browser.
     vi.stubGlobal("Capacitor", { isNativePlatform: () => true });
     try {
-      renderMenu();
-      expect(screen.queryByRole("link", { name: "Privacy and terms" })).toBeNull();
-      fireEvent.click(screen.getByRole("button", { name: "Privacy and terms" }));
-      expect(openInAppBrowser).toHaveBeenCalledWith("https://headpin.app/legal");
+      fireEvent.click(screen.getByRole("link", { name: "Umami's privacy policy" }));
+      expect(openInAppBrowser).toHaveBeenCalledWith("https://umami.is/privacy");
     } finally {
       vi.unstubAllGlobals();
+      open.mockRestore();
     }
+
+    fireEvent.click(screen.getByRole("button", { name: "Back" }));
+    await waitFor(() => expect(onSectionChange).toHaveBeenCalledWith("menu"));
   });
 
   it("shows the name as a profile chip with the first letter, and changes it from there", async () => {
@@ -165,6 +247,10 @@ describe("SettingsView's Headpin Pro", () => {
           onOpenArsenal={vi.fn()}
           onOpenSpareLines={vi.fn()}
           onOpenLaneNotes={vi.fn()}
+          onOpenLayoutLab={vi.fn()}
+          onOpenOilPatternsScreen={vi.fn()}
+          onOpenCatalog={vi.fn()}
+          onOpenGuides={vi.fn()}
         />
       </ProStoreContext.Provider>
     );
@@ -206,6 +292,12 @@ describe("SettingsView's Headpin Pro", () => {
     await waitFor(() => expect(screen.getByRole("status")).toHaveTextContent("This Apple ID has not bought Headpin Pro."));
   });
 
+  it("does not offer to restore Pro once it is here", () => {
+    renderWithStore({ ...base, owned: true });
+    expect(screen.getByText("Unlocked. Thank you for backing Headpin.")).toBeInTheDocument();
+    expect(screen.queryByText("Restore purchase")).not.toBeInTheDocument();
+  });
+
   it("says when the App Store does not answer, and why when it said", async () => {
     renderWithStore({ ...base, restore: () => Promise.reject(new Error("offline")) });
     fireEvent.click(screen.getByRole("button", { name: /Restore purchase/ }));
@@ -238,6 +330,10 @@ describe("SettingsView's Headpin Pro", () => {
             onOpenArsenal={vi.fn()}
             onOpenSpareLines={vi.fn()}
             onOpenLaneNotes={vi.fn()}
+            onOpenLayoutLab={vi.fn()}
+            onOpenOilPatternsScreen={vi.fn()}
+            onOpenCatalog={vi.fn()}
+            onOpenGuides={vi.fn()}
           />
         </ProAccessContext.Provider>
       );
@@ -271,6 +367,10 @@ describe("SettingsView's Headpin Pro", () => {
               onOpenArsenal={vi.fn()}
               onOpenSpareLines={vi.fn()}
               onOpenLaneNotes={vi.fn()}
+              onOpenLayoutLab={vi.fn()}
+              onOpenOilPatternsScreen={vi.fn()}
+              onOpenCatalog={vi.fn()}
+              onOpenGuides={vi.fn()}
             />
           </ProOfferContext.Provider>
         </ProAccessContext.Provider>
@@ -311,6 +411,10 @@ describe("SettingsView's Headpin Pro", () => {
               onOpenArsenal={vi.fn()}
               onOpenSpareLines={vi.fn()}
               onOpenLaneNotes={vi.fn()}
+              onOpenLayoutLab={vi.fn()}
+              onOpenOilPatternsScreen={vi.fn()}
+              onOpenCatalog={vi.fn()}
+              onOpenGuides={vi.fn()}
             />
           </ProOfferContext.Provider>
         </ProStoreContext.Provider>

@@ -31,19 +31,32 @@ export function laneSummary(games: SessionSummary["games"]): string {
  * The oil pattern is a link; callers that make the whole block tappable get a
  * `stopPropagation` on it so tapping the pattern opens the sheet, not the block.
  */
+/** The line under the alley: the event, the date and how many games. */
+export function sessionMetaLine(session: SessionSummary["session"], games: SessionSummary["games"]): string {
+  return [session.description, formatSessionDate(session.date), `${games.length} ${games.length === 1 ? "game" : "games"}`]
+    .filter(Boolean)
+    .join(" · ");
+}
+
 export function SessionHeaderText({
   session,
   games,
-  onEdit
+  onEdit,
+  identityInBar = false
 }: {
   session: SessionSummary["session"];
   games: SessionSummary["games"];
   /** Renders a pencil button beside the alley name. */
   onEdit?: () => void;
+  /** The alley and the date line are in the screen's nav bar already, so only
+   *  the lanes and the pattern are drawn here. */
+  identityInBar?: boolean;
 }) {
   const lanes = laneSummary(games);
   return (
     <div className="min-w-0">
+      {!identityInBar && (
+      <>
       <div className="flex min-w-0 items-center gap-1">
         <h2 className="truncate text-base font-bold text-ink">{alleyLabel(session.alley_name)}</h2>
         {onEdit && (
@@ -59,11 +72,9 @@ export function SessionHeaderText({
       </div>
       {/* Two rows: event/date/games, then lanes + pattern, the pattern name is
           long, so it gets a row where it won't be truncated. */}
-      <p className="truncate text-xs text-ink-secondary">
-        {[session.description, formatSessionDate(session.date), `${games.length} ${games.length === 1 ? "game" : "games"}`]
-          .filter(Boolean)
-          .join(" · ")}
-      </p>
+      <p className="truncate text-xs text-ink-secondary">{sessionMetaLine(session, games)}</p>
+      </>
+      )}
       {(lanes || session.oil_pattern) && (
         <p className="truncate text-xs text-ink-secondary">
           {lanes}

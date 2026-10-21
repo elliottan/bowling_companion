@@ -22,7 +22,7 @@ describe("NoSessionView", () => {
 
     expect(onScoreNow).toHaveBeenCalledTimes(1);
     // The sheet never opened: the point of the button is skipping it.
-    expect(screen.queryByLabelText("Alley (optional)")).toBeNull();
+    expect(screen.queryByLabelText("Alley")).toBeNull();
   });
 
   it("still offers the full form", () => {
@@ -32,7 +32,7 @@ describe("NoSessionView", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Start session" }));
 
-    expect(screen.getByLabelText("Alley (optional)")).toBeInTheDocument();
+    expect(screen.getByLabelText("Alley")).toBeInTheDocument();
   });
 
   it("commits the form with the alley left blank", async () => {

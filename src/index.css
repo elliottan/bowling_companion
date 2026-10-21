@@ -21,13 +21,43 @@ body {
  * App-native feel: nothing is text-selectable and iOS shows no long-press
  * callout/highlight. Form controls keep selection so users can still edit and
  * position the caret in inputs/textareas.
+ *
+ * On every element, not only on `html`: WebKit let the text inside an SVG (a
+ * chart's values and dates) be picked up by the double-tap-and-hold selection
+ * gesture, which brought up the iOS magnifier over the chart (ADR-180).
  */
 html {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-text-size-adjust: 100%;
+  /* No double-tap zoom anywhere, only on controls as before: a double tap on a
+     chart or a card zoomed the page as a website does. Pinch is untouched. */
+  touch-action: manipulation;
+}
+
+*,
+*::before,
+*::after {
   -webkit-user-select: none;
   user-select: none;
   -webkit-touch-callout: none;
-  -webkit-tap-highlight-color: transparent;
-  -webkit-text-size-adjust: 100%;
+}
+
+/* A scroller that says it scrolls some other way: the chart's chips, cut off
+   at the card's edge, and the Spares card's leaves, whose next row peeks out
+   under the last. Its indicator was one more line over a card that already
+   says so, and on the leaves iOS drew it short of the end (DESIGN-LANGUAGE
+   §4d). */
+.scrollbar-none {
+  scrollbar-width: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
+/* A picture held is not a file to drag out of the app. */
+img,
+svg {
+  -webkit-user-drag: none;
 }
 
 button,
@@ -41,6 +71,8 @@ textarea,
 [contenteditable="true"] {
   -webkit-user-select: text;
   user-select: text;
+  /* Paste, select and the caret's own menu. */
+  -webkit-touch-callout: default;
 }
 
 :root {
@@ -298,6 +330,21 @@ input[type="date"]::-webkit-date-and-time-value {
     0 2px 10px rgb(0 0 0 / 0.3);
 }
 
+/* The lane view's glass. The lane's frame is dark in every theme (DESIGN-
+   LANGUAGE §3), so its round controls are the dark glass whatever the app's
+   theme: the same raised circle with a highlight on its top edge, over the
+   lane rather than the page. */
+.glass-lane {
+  background-color: rgb(15 23 42 / 0.55);
+  color: #fff;
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  backdrop-filter: blur(16px) saturate(180%);
+  box-shadow:
+    inset 0 0.5px 0 rgb(255 255 255 / 0.3),
+    0 0 0 0.5px rgb(255 255 255 / 0.12),
+    0 2px 10px rgb(0 0 0 / 0.35);
+}
+
 /* The scroll edge: what sits behind a bar that content scrolls under
    (ADR-168). A blur that fades out downwards, over a wash of the page's own
    color that fades with it, as iOS 26 draws the edge under its bars. Over an
@@ -318,6 +365,24 @@ input[type="date"]::-webkit-date-and-time-value {
   backdrop-filter: blur(8px);
   -webkit-mask-image: linear-gradient(to bottom, #000 60%, transparent);
   mask-image: linear-gradient(to bottom, #000 60%, transparent);
+}
+
+/* The same edge, turned over, under the tab bar: the page scrolls behind the
+   bar and fades a little under it, as a screen does under the system's bar,
+   and never turns to a solid band (ADR-171).
+
+   A wash and nothing else. It sat over every animation on the screen with a
+   backdrop blur and a mask, and WebKit, drawing that each frame, ran short of
+   frames: the session sheet's rise and the History header's measured height
+   both missed theirs in CI. The capsule above it is frosted already. */
+.scroll-edge-bottom {
+  pointer-events: none;
+  background: linear-gradient(
+    to top,
+    rgb(var(--color-surface-sunken) / 0.8) 0%,
+    rgb(var(--color-surface-sunken) / 0.45) 45%,
+    rgb(var(--color-surface-sunken) / 0) 100%
+  );
 }
 
 /* The tab header flips fully away and fully back (never half-there), so the

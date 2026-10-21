@@ -7891,3 +7891,338 @@ photo to `rounded-full`, and the placeholder is drawn at the same size).
 - The one decision that would let the photos be both uniform and owned is
   still the one ADR-142 names: dealer media from Storm and Brunswick, under
   permission, as MOTIV's are.
+
+---
+
+## ADR-170: The web points at the iPhone app, the layout lab locks only its numbers, and the Pro page shows real screens
+
+**Status.** Accepted, 2026-10-21, by the owner's decision. Amends ADR-167 on
+what the layout lab locks and how a veil looks, ADR-164 on the Pro page's
+pictures, and ADR-115 and ADR-150 on Home's install card.
+
+**Context.** The owner wants the free web app to send bowlers to the iPhone
+app rather than to the home screen. The landing page still carried install
+steps, and Home a "Keep your scores safe" card asking to add the page to the
+home screen. On the layout lab the whole block of controls was veiled, so a
+bowler without Pro could not even set their own hand or PAP to read the drawn
+layout against, and its "Edit with Pro" mark was sticky, so it slid over the
+blurred fields as the page scrolled and read as loose. The veil's blur hid what
+was under it, which is what the veil exists to show. The Pro page's pictures
+were hand-drawn sketches that read as fake.
+
+**Decision.**
+
+- **The landing page has no install steps**, and its closing line is "Try it
+  now." The oil pattern step gave its place to Stats (0.54.1).
+- **Home offers the iPhone app, not the home screen.** The install card goes;
+  the backup card stays. On the free web app Home opens on a row drawn like a
+  store's own banner, a close, the app's icon and name, and Get, which runs the
+  same "Get the app" action as a locked card (the steps for moving games, then
+  the App Store). Before the app is listed it says it is coming, with no
+  button. It is not on the owner's copy, inside the app, on Android until the
+  app is on Google Play, or in iOS Safari once listed, where Safari draws its
+  own (ADR-159). Waved away, it comes back after 14 days.
+- **The layout lab locks only the three numbers**: the sliders, and the
+  presets that move them. The PAP, hand, grip, core and the notation toggle
+  are free, so a bowler can read any layout against their own hand. The mark
+  reads "Try your layouts with Pro" and sits still at the top centre of the
+  veiled sliders. The notation boxes print the numbers in the accent, so they
+  stand out from the x's between them, and they carry the reading that a
+  separate read-out used to.
+- **The layout lab has one trailing action**, the share. More held only a way
+  to Settings, which the tab bar already is.
+- **A veil is a light blur** (1px at 80%), on the lane and in the lab alike.
+- **The Pro page draws each thing Pro adds with the screen's own component**
+  and sample numbers: the stat chart, the First ball card, the leave cells,
+  ball rows with real catalog photos, the lane with a line over oil, and the
+  drilled ball. It follows the screens as they change, as the sketches never
+  did.
+
+**Consequences.** `ProVeil`'s sticky `tall` mode is gone for a `top` one.
+`LayoutEditor` veils its own sliders when asked (`proNumbers`), so the ball
+form, where writing a ball's layout down is recording it, stays open.
+`FirstBallCard` takes only the fields it reads, so the Pro page can feed it.
+
+---
+
+## ADR-171: The page scrolls under the tab bar, the phone's and its own
+
+**Status.** Accepted, 2026-10-21, asked for by the owner from a phone in hand.
+Settles the consequence ADR-161 left for later, and amends ADR-168 on what sits
+under the page's own capsule. The Swift needs a build and a look on a phone.
+
+**Context.** In the iPhone app and on the web, History, Stats and Settings
+stopped at a hard edge above the tab bar, with a solid band of the page's color
+behind it. `<main>` runs the full height and pads its end by the bar's height,
+which is right for a tab that `<main>` scrolls (Home, Score). But those three
+scroll themselves, in a full-height box inside `<main>`, and that padding made
+the box a bar's height short: the list ended above the bar, and nothing was
+under it to show. On top of that, the page's own capsule sat on a gradient that
+went solid at the bottom, and a `UITabBar` outside a `UITabBarController` has
+no scroll view to watch, so iOS 26 may give it a solid ground of its own.
+
+**Decision.**
+
+- **Whatever scrolls pads its own end.** `<main>` publishes `--tab-clear`, the
+  bar's height on a phone and nothing on a wide screen, and pads by it only for
+  the tabs it scrolls. A tab that scrolls itself pads its scroller instead
+  (`CollapsingHeader`, the Settings menu, an inline `PushScreen`), so the box
+  runs to the foot of the screen and the list passes under the bar. A pushed
+  screen sits outside `<main>` and reads nothing.
+- **The system bar has no ground on iOS 26 and later**
+  (`configureWithTransparentBackground`, for both its standard and scroll-edge
+  appearance), so its capsule floats over the page. Before iOS 26 it keeps the
+  translucent blur that iOS drew then.
+- **The page draws the bottom edge itself**, for both bars: `.scroll-edge-bottom`,
+  the top scroll edge turned over and lighter, `--tab-bar-h` tall, so content
+  under the bar is softened a little and never covered. Gone while the keyboard
+  is up.
+
+- **The status bar's edge is the status bar's height**, not half as tall again.
+  The extra half lay over the top of each tab's header and of a Settings
+  section's nav bar, and blurred their round buttons into a haze on a phone.
+
+**Consequences.** Every tab's last rows can now sit behind the bar until
+scrolled up, which is how a system screen behaves; `<main>` still pads its end
+by `--tab-bar-h`, so the last row can always be scrolled clear of it.
+
+---
+
+## ADR-172: Setting a ball's layout is Pro
+
+**Status.** Accepted, 2026-10-21, by the owner's decision. Amends the
+PRO-LAUNCH split, where writing a layout on a ball was free as recording, and
+follows ADR-170.
+
+**Context.** ADR-170 locked the layout lab's three numbers. But a layout set on
+a ball in the arsenal opens in the lab, drawn and read out, so a bowler without
+Pro could set any layout there and see it on the ball: the lab's sliders by
+another door.
+
+**Decision.**
+
+- **The ball form's layout is Pro.** Adding or changing it, and removing it,
+  sit under one "Set and visualize your ball layout with Pro" mark
+  (`ProVeil`). The ball's name, weight and catalog link stay free.
+- **A layout already on a ball still reads,** on the read sheet, the arsenal
+  row and in the lab, since reading is free; a bowler who drilled a ball under
+  Pro, or brought one in from a backup, keeps seeing it.
+- **The tap closes the sheet first.** The Pro page is a pushed screen, which
+  sits under a sheet, so the sheet goes before it opens (as the lane view does).
+  An unsaved new ball is lost with it; the layout is the last field, so the
+  rest is quick to enter again.
+
+---
+
+## ADR-173: A lock is the lock alone, on a card that looks locked
+
+**Status.** Accepted, 2026-10-21, by the owner from a phone in hand. Amends
+ADR-163 and ADR-167 on how a locked card and its mark look.
+
+**Context.** On Stats without Pro, the First ball card showed its numbers sharp
+and whole, with a "Pro" mark in room of its own beneath the fade: it read as
+an open card with a stray button under it, and the owner could not tell what it
+locked. Every locked card and row carried the same "Pro" pill, so a screen of
+them said one word again and again.
+
+**Decision.**
+
+- **A locked card is lightly blurred** (2px) as well as faded, with the lock
+  in the middle of it rather than below. Its numbers are still there to see as
+  shapes, which says there is real work behind it, and the blur says it is not
+  open.
+- **The mark on a card or a row is a round lock icon with no word.** The tap's
+  spoken name still says what the card shows and what it does. A veil over
+  controls keeps its words where they say what Pro opens there ("Try your
+  layouts with Pro", "Move it with Pro"); where there is no room for words it
+  is the lock alone too.
+
+---
+
+## ADR-174: Every chart and the First ball card are free; View all opens without Pro
+
+**Status.** Accepted, 2026-10-21, by the owner's decision. Amends ADR-154's
+feature split, ADR-163 on the locked chart, and ADR-167 on the All leaves and
+All balls sheets.
+
+**Context.** Stats without Pro carried a lock on the chart (for most metrics and
+the by-game slice), a lock on the First ball card, and the two lists, and the
+links to the full lists were gone. The owner found the screen over-locked, the
+chart's lock ugly, and the overall first-ball read worth giving away.
+
+**Decision.**
+
+- **Every chart is free,** every metric, by session and by game slot, and so
+  is the First ball card. Neither carries a lock.
+- **The links say how many there are:** "View all 12 leaves", "View all 4
+  balls". A bowler learns the size of their own list either way.
+- **View all opens without Pro.** The sheet shows what the card does, the two
+  leaves left most or the best ball, open with their details, then the next one
+  blurred under the lock and nothing after it. The leaves sheet drops its
+  filters while locked, which would be a way to read every other leave one at a
+  time. The best ball's row on the card opens the sheet on it.
+- **A lock inside a sheet closes the sheet first,** as the ball form does
+  (ADR-172), since the Pro page opens under it.
+- The Pro page drops its chart and first-ball items and names both under what
+  stays free; the Stats banner says Pro adds every leave and every ball.
+
+---
+
+## ADR-175: The Pro page opens above every sheet
+
+**Status.** Accepted, 2026-10-21, after the owner saw it on a phone. Amends
+ADR-172 and ADR-174 on what a lock inside a sheet does first.
+
+**Context.** A lock inside a sheet (the session sheet's stats, the View all
+sheets, the ball form) opened the Pro page under the sheet: pushed screens live
+in the app shell, sheets are portalled to the body above it, and no z-index in
+the shell can rise past them. ADR-172 and ADR-174 worked round it by closing the
+sheet first, which lost a ball being added and could not reach the session
+sheet's own stats.
+
+**Decision.**
+
+- **The Pro page is its own layer at the top** (`PushScreen layer="top"`),
+  portalled to the body above the sheets and the lane view and under the
+  dialogs. A lock opens it over whatever is up, and its back returns there. The
+  close-the-sheet-first workarounds are gone.
+- **The sheet keeps its back entry.** Opened from a sheet, the page takes over
+  the sheet's history sentinel like any screen opened from one; when it closes
+  onto the sheet, the sentinel is put back (`coversSheets`, `useHistoryRoute`),
+  so the next back closes the sheet and not the screen under it.
+- **Only the overlay in front answers Escape and traps Tab** (`useOverlay`).
+  With the sheet still active under the page, both used to close at once.
+
+---
+
+## ADR-176: The Pro page says only what Pro adds
+
+**Status.** Accepted, 2026-10-21, by the owner's decision. Amends ADR-164 on
+what the Pro page carries.
+
+**Context.** The Pro page closed on a "What stays free" card. A bowler reading
+it is already using the free app, so the card told them what they had, on the
+one page whose job is to sell the rest.
+
+**Decision.** The card goes. The page is the Pro mark, a picture and a sentence
+for each thing Pro adds, and the button. What is free is still settled in
+`docs/PRO-LAUNCH.md`, and the App Store listing can say it where a stranger
+reads it.
+
+---
+
+## ADR-177: A pushed screen's title shows only at the top
+
+**Status.** Accepted, 2026-10-21, by the owner from a phone in hand. Amends
+ADR-168 on what floats over a screen's scroll.
+
+**Context.** ADR-168 floats a pushed screen's bar over its scroll, with the
+scroll edge, a light wash and blur, as its only ground. The owner liked the
+floating round buttons, but the title read as floating oddly: once the page
+scrolled under it, its words sat on top of the page's own text, which the edge
+softens but cannot hide.
+
+**Decision.** The title shows while the screen is at its top and fades out once
+the scroll passes 4px; it comes back at the top. The round controls stay, since
+they are raised glass that reads over anything and are the way out. The title
+stays in the accessibility tree either way (only its opacity changes), so a
+screen is always named. Sheet bars are unchanged: a sheet is short, and its
+title is what it is about.
+
+---
+
+## ADR-178: The lane view's controls are the app's glass, and the quick moves sit with the fields
+
+**Status.** Accepted, 2026-10-21, by the owner from a phone in hand. Amends
+ADR-109 on where the quick moves open from.
+
+**Context.** The lane view drew its own controls: small outlined circles and a
+text "Done", where every other screen has round glass (ADR-168) and a tick on a
+sheet that applies as it goes (DESIGN-LANGUAGE §1a). The quick-move button sat
+under the view toggle in the top-left corner, away from the laydown, target and
+final fields it moves.
+
+**Decision.**
+
+- The lane's round controls are `IconButton variant="lane"`, the same 44pt
+  glass circle in a dark glass (`.glass-lane`), since the lane's frame is dark
+  in every theme. The view toggle is a glass capsule as tall. All four sit in
+  the top row.
+- Lane options closes with a tick (`confirm`), not the word.
+- The quick moves are a button at the end of the peg fields, and open away from
+  the edge they sit on: up from the row in bowler view, inward from the side
+  column top-down.
+- The sentence under the hook-shape sliders goes; the slider names say it.
+
+---
+
+## ADR-179: Edit is a pencil
+
+**Status.** Accepted, 2026-10-21, by the owner's decision. Amends ADR-168 and
+DESIGN-LANGUAGE §1b, which kept the word "Edit" on chrome as a glass capsule.
+
+**Context.** Every other control on a bar is a round glyph: back, close, share,
+add, the tick that saves. The word "Edit" beside them, on the ball, spare line
+and bowling profile sheets, read as the odd one out, and so did the tinted
+"Edit" on a lane's notes card.
+
+**Decision.** Edit is a pencil: `IconButton variant="round"` with the pencil on
+a bar, turning into the tick that saves, and a compact pencil in a card's
+heading row. `BarButton` and `TintedButton` are gone. The label still says what
+the pencil edits ("Edit ball", "Edit lane 3 notes"), so a screen reader hears
+the verb. A pass over every other control found the rest already right: glyphs
+on chrome, and words where a glyph would be a guess (a dialog's answers, a
+toggle between two named views, quiet in-screen actions such as "Edit shots").
+
+---
+
+## ADR-180: The app gives away no web-page gestures
+
+**Status.** Accepted, 2026-10-21, after the owner saw it on a phone. Follows
+ADR-160 (no rubber band, no pinch zoom, haptics), which took the first of
+these away.
+
+**Context.** A double tap and hold on the Stats chart brought up the iOS text
+magnifier: selection was off on `html`, and WebKit still let the text inside an
+SVG (a chart's values and dates) be picked up. The same pass found three more
+ways the app answered like a web page: a double tap on anything but a control
+could zoom, a held picture could be dragged out as a file, and a long press on a
+link opened WebKit's preview of the page behind it.
+
+**Decision.**
+
+- Selection and the long-press callout are off on every element, not only the
+  root; text fields keep both, with their own paste and caret menu.
+- `touch-action: manipulation` on the page, so no double tap zooms anywhere.
+  Pinch is left as ADR-160 and VIEWPORT-BUG settle it.
+- Pictures and drawings cannot be dragged (`-webkit-user-drag: none`).
+- The iPhone app's web view shows no link previews (`allowsLinkPreview`).
+- Kept on purpose: the keyboard's own toolbar above a text field. Hiding it
+  needs the Keyboard plugin and takes away the only way to put away the number
+  pad, which has no return key.
+
+## ADR-181: Privacy and terms is a screen in the app, read from the site's page
+
+**Status.** Accepted, 2026-10-21, at the owner's request.
+
+**Context.** Settings' "Privacy and terms" row opened `headpin.app/legal`: a
+new tab on the web, the in-app browser in the iPhone app. Either way the bowler
+left the app for a page with the site's own "Headpin" back link, which leads to
+the landing page, not back to Settings. The page still has to exist: App Store
+Connect and a crawler need a public URL.
+
+**Decision.**
+
+- The row pushes a Settings section, `legal` (`#/settings/section/legal`), a
+  PushScreen titled "Privacy and terms" with the app's back arrow.
+- Its text is `legal/index.html` itself, imported raw at build time and cut to
+  its `<main>` without the back link, the heading (the bar carries it), the
+  footer and comments (`src/lib/legalPage.ts`). One copy of the words, so the
+  store's URL and the screen never disagree. The screen styles the page's few
+  elements with the app's type and colours.
+- The screen is lazy, so the text is in its own chunk; the service worker and
+  the store apps carry it like every other chunk, so it opens offline.
+- Inside it, a contents link scrolls the screen and writes no hash into the
+  app's history (ADR-041), the email address opens Mail, and the two outside
+  policies leave as every outbound link does: a new tab on the web, the in-app
+  browser in the store apps.

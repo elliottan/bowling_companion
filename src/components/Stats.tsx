@@ -38,7 +38,7 @@ import { GameSlotSessionsDialog } from "./GameSlotSessionsDialog";
 import type { Game } from "../types/bowling";
 import { RECENT_SESSIONS, type RecentForm } from "../lib/statsRange";
 import { GROUP_HEADING } from "./ui/typography";
-import { ProBanner, ProBlur, ProLock } from "./ui/ProLock";
+import { ProBanner, ProBlur } from "./ui/ProLock";
 import { useProAccess } from "../lib/useProAccess";
 import { byMostLeft, FREE_BALLS, FREE_LEAVES, previewSplit } from "../lib/proPreview";
 
@@ -117,10 +117,6 @@ const METRICS = {
 } as const;
 
 export type MetricKey = keyof typeof METRICS;
-
-/** The metrics every bowler gets: what a free scorer shows anywhere. The rest
- *  are Pro (ADR-154). */
-const FREE_METRICS: ReadonlySet<MetricKey> = new Set<MetricKey>(["average", "strikePct", "sparePct"]);
 
 /** The metrics a picker can offer, in chip order. Exported so the Game-by-game
  *  screen can build the same picker over the same specs (ADR-063b). */
@@ -248,11 +244,10 @@ export function Stats({
   const canSlice = !gameMetrics && gameNumberMetrics !== undefined;
   const chartBy: ChartBy = canSlice ? chartByPick : "session";
 
-  // A Pro metric, or the by-game chart, previews locked while Pro is not open.
-  // The picker stays live on a card of its own, so a free metric is one tap
-  // back.
+  // The chart and the First ball card are free, every metric and both slices
+  // (ADR-174): a lock on the screen's main chart was more lock than taste.
+  // Pro is the long lists: every leave and every ball past the first few.
   const { locked: proLocked } = useProAccess();
-  const chartLocked = proLocked && (chartBy === "game" || !FREE_METRICS.has(metric));
 
   // One header for either chart: the picker, then one line saying what the
   // picked metric counts (ADR-127).
@@ -273,7 +268,7 @@ export function Stats({
         <div
           role="group"
           aria-label={`Chart by ${gameMetrics || chartBy === "game" ? "game" : "session"}`}
-          className="-mx-1 flex min-w-0 flex-1 gap-1.5 overflow-x-auto overscroll-x-none px-1 py-1"
+          className="scrollbar-none -mx-1 flex min-w-0 flex-1 gap-1.5 overflow-x-auto overscroll-x-none px-1 py-1"
         >
           {METRIC_KEYS.map((key) => (
             <Chip
@@ -313,7 +308,7 @@ export function Stats({
   const convertible = (leaves ?? []).filter((l) => l.chances > 0);
   const leftMost = mostLeft(convertible);
   const ranked = byStrikeRate(ballPerformance?.balls ?? []);
-  const header = chartLocked ? undefined : chartHeader;
+  const header = chartHeader;
   // Without Pro, a list shows its first rows as they are and the next one
   // blurred, and nothing after it (ADR-167).
   const leavePreview = proLocked ? previewSplit(leftMost, FREE_LEAVES) : null;
@@ -323,11 +318,7 @@ export function Stats({
     <div className="space-y-3">
       <Headline stats={stats} form={form} />
 
-      {chartLocked && (
-        <section className="rounded-xl border border-edge bg-surface p-3 shadow-sm">{chartHeader}</section>
-      )}
-
-      <ProLock pro={chartLocked} peek={13} what="Every stat, session by session and game by game">
+      <>
         {/* Inside a session the score line IS the average, so it answers to the
             picker like everything else. On the Stats tab there are no games and
             this branch never runs. */}
@@ -396,7 +387,7 @@ export function Stats({
           />
         )}
 
-        {slotOpen !== null && onOpenGame && !chartLocked && (
+        {slotOpen !== null && onOpenGame && (
           <GameSlotSessionsDialog
             gameNumber={slotOpen}
             sessions={gameNumberMetrics?.find((p) => p.gameNumber === slotOpen)?.sessions ?? []}
@@ -445,11 +436,9 @@ export function Stats({
                 }
               />
             ))}
-      </ProLock>
+      </>
 
-      <ProLock peek={10} what="Pocket, carry and the pins each first ball takes">
-        <FirstBallCard stats={stats} />
-      </ProLock>
+      <FirstBallCard stats={stats} />
 
       {(stats.sparePct !== null || convertible.length > 0) && (
         <section className="rounded-xl border border-edge bg-surface p-3 shadow-sm">
@@ -459,13 +448,16 @@ export function Stats({
                 Spares
               </button>
             </h2>
-            {convertible.length > 0 && !proLocked && (
+            {/* How many there are, so the bowler knows the size of what is
+                behind the tap. Open with or without Pro: without it, the sheet
+                shows what this card does and locks the rest (ADR-174). */}
+            {convertible.length > 0 && (
               <button
                 type="button"
                 onClick={() => setAllLeavesOpen(true)}
                 className={`relative text-xs font-semibold text-accent active:opacity-60 ${TAP_TARGET_44}`}
               >
-                All leaves
+                View all {countOf(convertible.length, "leave")}
               </button>
             )}
           </div>
@@ -505,7 +497,7 @@ export function Stats({
               <div
                 role="region"
                 aria-label="Leaves left most"
-                className="-mx-1 mt-3 max-h-[15.25rem] overflow-y-auto overscroll-y-contain px-1"
+                className="scrollbar-none -mx-1 mt-3 max-h-[15.25rem] overflow-y-auto overscroll-y-contain px-1"
               >
                 <LeaveGrid leaves={leftMost} onOpen={setOpenLeave} />
               </div>
@@ -518,27 +510,31 @@ export function Stats({
           <section className="rounded-xl border border-edge bg-surface p-3 shadow-sm">
             <div className="flex items-center justify-between gap-3">
               <h2 className={GROUP_HEADING}>Balls</h2>
-              {!ballPreview && (
-                <button
-                  type="button"
-                  onClick={() => setBallsOpen({ focus: null })}
-                  className={`relative text-xs font-semibold text-accent active:opacity-60 ${TAP_TARGET_44}`}
-                >
-                  All balls
-                </button>
-              )}
+              <button
+                type="button"
+                onClick={() => setBallsOpen({ focus: null })}
+                className={`relative text-xs font-semibold text-accent active:opacity-60 ${TAP_TARGET_44}`}
+              >
+                View all {countOf(ranked.length, "ball")}
+              </button>
             </div>
             {ballPreview ? (
-              // Without Pro: the best ball in full, read where it stands, and
-              // the next one blurred (ADR-167). The All balls sheet is the
-              // whole list, so nothing here opens it.
+              // Without Pro: the best ball in full, and the next one blurred
+              // (ADR-167). The best ball opens the sheet on itself (ADR-174).
               <div className="mt-1 overflow-x-auto overscroll-x-none">
                 <div className="min-w-fit">
                   <BallRateHeadings />
                   <ul aria-label="Balls" className="divide-y divide-edge">
                     {ballPreview.shown.map((b) => (
-                      <li key={b.ballId} className="flex py-2">
-                        <BallSummary ball={b} />
+                      <li key={b.ballId}>
+                        <button
+                          type="button"
+                          onClick={() => setBallsOpen({ focus: b.ballId })}
+                          aria-label={`Open ${b.name}`}
+                          className="group flex w-full py-2 active:bg-surface-muted"
+                        >
+                          <BallSummary ball={b} />
+                        </button>
                       </li>
                     ))}
                     {ballPreview.blurred && (
@@ -563,7 +559,11 @@ export function Stats({
               aria-label="Ball columns"
               className="mt-1 max-h-[21rem] overflow-auto overscroll-x-none overscroll-y-contain"
             >
-              <div className="min-w-fit">
+              {/* Room on the right for the scroll indicator, which iOS draws
+                  over the box's last pixels and so over the last column. Half
+                  as much on a 360px phone, where the columns fit with only
+                  4px to spare (ADR-144). */}
+              <div className="min-w-fit pr-1 min-[375px]:pr-2">
                 <BallRateHeadings />
                 <ul className="divide-y divide-edge">
                   {ranked.map((b) => (
@@ -587,7 +587,7 @@ export function Stats({
 
       {/* Said once for the screen, under the bowler's own numbers rather than
           over them; each card above carries only a small mark. */}
-      <ProBanner what="Pro adds charts for every stat, the first ball breakdown, every leave and every ball." />
+      <ProBanner what="Pro adds every leave and every ball, with each one's record." />
 
       {/* Portalled to the body: on the session sheet the stats sit inside a
           panel that slides on a transform, and a transformed ancestor makes
@@ -595,6 +595,7 @@ export function Stats({
       {ballsOpen &&
         createPortal(
           <AllBallsSheet
+            locked={proLocked}
             balls={ranked}
             focusId={ballsOpen.focus}
             scopeLabel={scopeLabel}
@@ -606,6 +607,7 @@ export function Stats({
       {allLeavesOpen &&
         createPortal(
           <AllLeavesSheet
+            locked={proLocked}
             leaves={convertible}
             scopeLabel={scopeLabel}
             covered={openLeave !== null}
@@ -700,7 +702,15 @@ function FormLine({ form }: { form: RecentForm }) {
  * there problem or a carrying problem. The arrows say "leads to", not "equals":
  * a Brooklyn strike is a strike and not a pocket hit.
  */
-function FirstBallCard({ stats }: { stats: BowlingStats }) {
+function FirstBallCard({
+  stats
+}: {
+  /** Only what the card reads. */
+  stats: Pick<
+    BowlingStats,
+    "pocketPct" | "carryPct" | "strikePct" | "firstBallAverage" | "strikeOnStrikePct" | "bestStreak"
+  >;
+}) {
   const links: Array<[string, string, boolean]> = [
     ["Pocket", pct(stats.pocketPct), false],
     ["Carry", pct(stats.carryPct), false],
@@ -1027,12 +1037,16 @@ function SheetHeader({ children }: { children: ReactNode }) {
  * Opened from the Balls card, scrolled to the ball that was tapped.
  */
 function AllBallsSheet({
+  locked,
   balls,
   focusId,
   scopeLabel,
   onOpenGame,
   onClose
 }: {
+  /** Without Pro: the ball the card shows, open, then the next one blurred
+   *  and nothing after it, as on the card (ADR-174). */
+  locked: boolean;
   balls: BallPerformance[];
   focusId: number | null;
   scopeLabel?: string;
@@ -1041,6 +1055,7 @@ function AllBallsSheet({
 }) {
   const [drill, setDrill] = useState<{ ball: BallPerformance; cell: BallGameCell } | null>(null);
   const listRef = useRef<HTMLUListElement | null>(null);
+  const { shown, blurred } = locked ? previewSplit(balls, FREE_BALLS) : { shown: balls, blurred: undefined };
   useEffect(() => {
     if (focusId === null) return;
     const el = listRef.current?.querySelector(`[data-ball="${focusId}"]`);
@@ -1053,12 +1068,19 @@ function AllBallsSheet({
       <div>
         <div>
           <ul ref={listRef} className="-mt-3 divide-y divide-edge">
-            {balls.map((b) => (
+            {shown.map((b) => (
               <li key={b.ballId} data-ball={b.ballId} className="py-3">
                 <BallSummary ball={b} labelled />
                 <BallDetails ball={b} onDrill={onOpenGame && ((cell) => setDrill({ ball: b, cell }))} />
               </li>
             ))}
+            {blurred && (
+              <li className="py-3">
+                <ProBlur what="How each of your balls strikes, carries and spares">
+                  <BallSummary ball={blurred} labelled />
+                </ProBlur>
+              </li>
+            )}
           </ul>
         </div>
       </div>
@@ -1087,12 +1109,17 @@ function AllBallsSheet({
  * tab's own scope.
  */
 function AllLeavesSheet({
+  locked,
   leaves,
   scopeLabel,
   covered,
   onOpen,
   onClose
 }: {
+  /** Without Pro: the leaves the card shows, open, then the next one blurred
+   *  and nothing after it (ADR-174). No filters, which would be a way to read
+   *  every other leave one at a time. */
+  locked: boolean;
   leaves: LeaveStats[];
   scopeLabel?: string;
   /** False while a sheet is open over this one. */
@@ -1121,6 +1148,9 @@ function AllLeavesSheet({
       size="tall"
       active={!covered && !pinsOpen}
     >
+      {locked ? (
+        <LockedLeaves leaves={leaves} onOpen={onOpen} />
+      ) : (
       <div className="space-y-4">
         {/* The scope is in the bar; the filters stay pinned under it while the
             leaves scroll, so the list never loses what it is narrowed to. */}
@@ -1163,7 +1193,36 @@ function AllLeavesSheet({
           })
         )}
       </div>
+      )}
     </FormSheet>
+  );
+}
+
+/** The All leaves sheet without Pro: the leaves left most that the Spares card
+ *  shows, each one opening its record, then the next one blurred (ADR-174). */
+function LockedLeaves({
+  leaves,
+  onOpen
+}: {
+  leaves: LeaveStats[];
+  onOpen: (pins: LeaveStats["pins"]) => void;
+}) {
+  const { shown, blurred } = previewSplit(mostLeft(leaves), FREE_LEAVES);
+  return (
+    <ul aria-label="Leaves left most" className="grid grid-cols-3 gap-1.5">
+      {shown.map((leave) => (
+        <li key={leave.pins.join("-")}>
+          <LeaveCell leave={leave} onOpen={() => onOpen(leave.pins)} />
+        </li>
+      ))}
+      {blurred && (
+        <li>
+          <ProBlur what="Every leave you leave, and how often you make each">
+            <LeaveCell leave={blurred} onOpen={() => {}} />
+          </ProBlur>
+        </li>
+      )}
+    </ul>
   );
 }
 
@@ -1298,6 +1357,11 @@ function LeaveCell({ leave, onOpen }: { leave: LeaveStats; onOpen: () => void })
       </div>
     </button>
   );
+}
+
+/** "1 ball", "6 balls". */
+function countOf(n: number, noun: string): string {
+  return `${n} ${noun}${n === 1 ? "" : "s"}`;
 }
 
 function fmt(value: number | null): string {

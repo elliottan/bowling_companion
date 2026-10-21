@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useRef, useState } from "react";
-import { Check, LayoutGrid, MoreHorizontal, RotateCcw, SlidersHorizontal } from "lucide-react";
+import { Check, LayoutGrid, MoreHorizontal, RotateCcw } from "lucide-react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { flushSync } from "react-dom";
 import { BallLayoutDiagram } from "../components/BallLayoutDiagram";
@@ -12,6 +12,8 @@ import { PushScreen } from "../components/PushScreen";
 import { AnchoredMenu, AnchoredMenuItem } from "../components/ui/AnchoredMenu";
 import { ConfirmDialog } from "../components/ConfirmDialog";
 import { IconButton } from "../components/ui/IconButton";
+import { Button } from "../components/ui/Button";
+import { FormSheet } from "../components/ui/FormSheet";
 import { ShareIosIcon } from "../components/icons";
 import { SegmentedControl } from "../components/ui/SegmentedControl";
 import { FIELD_MICRO_LABEL } from "../components/ui/field";
@@ -37,7 +39,6 @@ import { defaultOrientationFor, type Orientation } from "../lib/ballProjection";
 import { FREE_APP_PATH } from "../lib/pro";
 import { shareOrigin } from "../lib/platform";
 import { useProAccess } from "../lib/useProAccess";
-import { ProVeil } from "../components/ui/ProLock";
 import { decodeLayoutParams, layoutShareUrl, type LayoutSeed } from "../lib/layoutShare";
 import { buildLayoutCard, type ShareCardData } from "../lib/shareCard";
 import { svgToImage } from "../lib/svgImage";
@@ -53,10 +54,6 @@ import type { Manufacturer } from "../types/catalog";
 
 interface LayoutLabViewProps {
   onBack: () => void;
-  /** Open Settings at the preferences section, where the hand, the grip and
-   *  the PAP this screen opens with are kept. Optional, so the screen still
-   *  renders in a test that only cares about the layout. */
-  onOpenSettings?: () => void;
   /** A layout to open on, handed in by whatever sent us here: a ball in the
    *  arsenal whose drilling is being looked at. It outranks the query string
    *  the same way a shared link outranks the defaults, because it is the more
@@ -147,10 +144,11 @@ const BENCHMARK: DualAngleLayout = { drillingAngle: 45, pinToPap: 4.5, valAngle:
  * it would stay on screen while they moved; the ball is what the screen is for,
  * so it is the first thing seen, and the sliders come after it.
  */
-export function LayoutLabView({ onBack, onOpenSettings, seed }: LayoutLabViewProps) {
-  // Read-only without Pro: the layout, shared or a ball's own, is drawn in full
-  // with its numbers and what it will do, and can be shared on and turned to
-  // look at, but not changed (ADR-154).
+export function LayoutLabView({ onBack, seed }: LayoutLabViewProps) {
+  // Without Pro the three numbers are read-only (ADR-170): the layout, shared or
+  // a ball's own, is drawn in full with what it will do, and the bowler can
+  // turn it, set their own PAP, hand and grip, the core and the notation, and
+  // share it. Only the sliders and the presets that move them are Pro.
   const { locked: proLocked } = useProAccess();
   // A link shared into the app wins over everything, and it is read once at
   // module level of this render rather than in an effect: it is available
@@ -169,10 +167,11 @@ export function LayoutLabView({ onBack, onOpenSettings, seed }: LayoutLabViewPro
   // handedness that arrives asynchronously from settings without an effect
   // reaching back into state after the fact.
   const [turnedTo, setTurnedTo] = useState<Orientation | null>(null);
-  const [menuAt, setMenuAt] = useState<Anchor | null>(null);
   const [presetAt, setPresetAt] = useState<Anchor | null>(null);
   const [pendingPreset, setPendingPreset] = useState<LayoutPreset | null>(null);
   const [resetting, setResetting] = useState(false);
+  // The sheet behind More: the PAP, the hand and the grip.
+  const [youOpen, setYouOpen] = useState(false);
   const [card, setCard] = useState<ShareCardData | null>(null);
   // The diagram's own SVG, read off the DOM when a picture is asked for.
   // BallLayoutDiagram is a plain function component and forwards no ref, and
@@ -299,7 +298,6 @@ export function LayoutLabView({ onBack, onOpenSettings, seed }: LayoutLabViewPro
    * is a control on that preview, which is where the picture exists.
    */
   const shareLink = useCallback(async () => {
-    setMenuAt(null);
     // The dialog opens on the numbers straight away and the ball lands in it a
     // frame later, rather than the control sitting dead while an image decodes.
     setCard(buildCard());
@@ -368,28 +366,20 @@ export function LayoutLabView({ onBack, onOpenSettings, seed }: LayoutLabViewPro
          own Escape and the screen's both fired, so dismissing the menu also
          popped the screen out from under it. */
       active={
-        pendingPreset == null && !resetting && menuAt == null && presetAt == null && card == null
+        pendingPreset == null && !resetting && presetAt == null && card == null && !youOpen
       }
-      /* Two trailing actions, which is the one place the app departs from the
-         single trailing action in docs/DESIGN-LANGUAGE.md section 1. Sharing a
-         layout is the thing this screen is for once the numbers are right, and
-         a share buried one tap inside More reads as an afterthought. Saving the
-         picture used to be a third glyph here and is not: it is a thing to do
-         to the card, not to the screen, so it lives on the card. Everything
-         that is genuinely rare still lives behind the glyph. */
+      /* Two trailing actions, the one place the app has two (DESIGN-LANGUAGE
+         section 1). Sharing the layout is what this screen is for once the
+         numbers are right. More holds who is bowling, the PAP, the hand and
+         the grip: set once and then read against, so they do not take the
+         page from the ball and the sliders. Saving the picture is a thing to
+         do to the card, so it lives on the card. */
       trailing={
         <>
           <IconButton variant="round" label="Share layout" onClick={() => void shareLink()}>
             <ShareIosIcon size={18} aria-hidden="true" />
           </IconButton>
-          <IconButton
-            variant="round"
-            label="More"
-            className="ml-1"
-            // Anchored off the event's own target rather than a ref, because
-            // IconButton is a plain function component and does not forward one.
-            onClick={(e) => setMenuAt(anchorUnder(e.currentTarget, 176))}
-          >
+          <IconButton variant="round" label="More" className="ml-1" onClick={() => setYouOpen(true)}>
             <MoreHorizontal size={20} aria-hidden="true" />
           </IconButton>
         </>
@@ -408,11 +398,14 @@ export function LayoutLabView({ onBack, onOpenSettings, seed }: LayoutLabViewPro
             gesture everyone tries first, and the chips were a second way to do
             the same thing taking a band of a screen whose whole complaint was
             that too little fits on it. */}
-        <section className="space-y-1.5">
-          <h2 className={GROUP_HEADING}>On the ball</h2>
+        {/* Pinned under the bar while the page scrolls, so the ball answers in
+            view as the sliders below it move. Shorter than the screen is wide,
+            so the controls have room; tall enough that the ball and its labels
+            are whole. Opaque, so what scrolls passes under it. */}
+        <div className="sticky top-0 z-10 -mx-3 bg-surface-sunken px-3 pb-1 sm:-mx-6 sm:px-6">
           <div
             ref={ballRef}
-            className="overflow-hidden rounded-xl border border-edge bg-surface-sunken shadow-sm"
+            className="h-60 overflow-hidden rounded-xl border border-edge bg-surface-sunken shadow-sm"
           >
             {/* The drawing follows the notation being edited, so the picture is
                 always answering the question the sliders below it are asking. */}
@@ -425,9 +418,10 @@ export function LayoutLabView({ onBack, onOpenSettings, seed }: LayoutLabViewPro
               onOrientationChange={setOrientation}
               hand={hand}
               grip={grip}
+              className="h-full"
             />
           </div>
-        </section>
+        </div>
 
         <section className="space-y-1.5">
           <h2 className={GROUP_HEADING}>What it will do</h2>
@@ -449,37 +443,79 @@ export function LayoutLabView({ onBack, onOpenSettings, seed }: LayoutLabViewPro
           ))}
         </section>
 
-        {/* Without Pro the controls below are blurred, so the layout they hold
-            is read out here: the numbers are the bowler's to read, and only
-            changing them is Pro (ADR-167). */}
-        {proLocked && (
-          <section className="space-y-1.5">
+
+
+        {/* 3. What ball. The core type comes before the numbers because it
+            changes what the drilling angle means, and therefore what every
+            number below does. */}
+        <section className="space-y-1.5">
+          <h2 className={GROUP_HEADING}>Core</h2>
+          <SegmentedControl
+            label="Core type"
+            value={symmetric ? "sym" : "asym"}
+            onChange={(v) => setSymmetric(v === "sym")}
+            options={[
+              { value: "asym", label: "Asym", srLabel: "Asymmetric" },
+              { value: "sym", label: "Sym", srLabel: "Symmetric" }
+            ]}
+          />
+        </section>
+
+        {/* 4. The numbers. */}
+        <section className="space-y-2">
+          <div className="flex items-center justify-between gap-3">
             <h2 className={GROUP_HEADING}>Layout</h2>
-            <dl aria-label="This layout" className="grid grid-cols-2 gap-2">
-              <div className="rounded-xl border border-edge bg-surface p-2.5 shadow-sm">
-                <dt className={FIELD_MICRO_LABEL}>Dual angle</dt>
-                <dd className="text-sm font-semibold tabular-nums text-ink">{formatDualAngle(layout)}</dd>
-              </div>
-              <div className="rounded-xl border border-edge bg-surface p-2.5 shadow-sm">
-                <dt className={FIELD_MICRO_LABEL}>Storm VLS</dt>
-                <dd className="text-sm font-semibold tabular-nums text-ink">{formatVls(vls)}</dd>
-              </div>
-              <div className="col-span-2 rounded-xl border border-edge bg-surface p-2.5 shadow-sm">
-                <dt className={FIELD_MICRO_LABEL}>PAP · hand</dt>
-                <dd className="text-sm font-semibold tabular-nums text-ink">
-                  {papText} · {hand === "left" ? "Left" : "Right"}, {grip === "2h" ? "two handed" : "one handed"} ·{" "}
-                  {symmetric ? "Symmetric" : "Asymmetric"}
-                </dd>
-              </div>
-            </dl>
-          </section>
-        )}
+            {/* The presets, as a named menu on the heading row. This replaced a
+                Reset control and a separate labelled dropdown underneath it,
+                which between them spent two bands of a phone screen on one
+                idea: every reset this screen had was "go back to the
+                benchmark", and the benchmark is a preset. One control now, and
+                it says which preset is on screen in its own spoken name rather
+                than in a field that has to be looked at. */}
+            {!proLocked && (
+              <button
+                type="button"
+                aria-haspopup="menu"
+                aria-expanded={presetAt != null}
+                aria-label={`Presets, ${activePreset?.name ?? "Custom"}`}
+                onClick={(e) => setPresetAt(anchorUnder(e.currentTarget, 176))}
+                className="inline-flex items-center gap-1 text-xs font-semibold text-accent active:opacity-80"
+              >
+                <LayoutGrid size={13} aria-hidden="true" />
+                Presets
+              </button>
+            )}
+          </div>
 
-        <ProVeil tall what="Changing the layout" label="Edit with Pro">
-        {/* A disabled fieldset turns off every field and button inside it while
-            leaving their values on screen to read. */}
-        <fieldset disabled={proLocked} className="m-0 min-w-0 space-y-3 border-0 p-0">
+          <LayoutEditor
+            layout={layout}
+            onChange={setLayout}
+            ball={ball}
+            system={system}
+            onSystemChange={setSystemOverride}
+            grip={grip}
+            idPrefix="lab"
+            proNumbers
+          />
+        </section>
+      </div>
 
+      {presetAt && (
+        <AnchoredMenu left={presetAt.left} top={presetAt.top} onClose={() => setPresetAt(null)}>
+          {LAYOUT_PRESETS.map((preset) => (
+            <AnchoredMenuItem
+              key={preset.id}
+              icon={activePreset?.id === preset.id ? Check : LayoutGrid}
+              onClick={() => choosePreset(preset)}
+            >
+              {preset.name}
+            </AnchoredMenuItem>
+          ))}
+        </AnchoredMenu>
+      )}
+
+      {youOpen && (
+        <FormSheet title="Your PAP and hand" onClose={() => setYouOpen(false)} dismissAs="done" active={!resetting}>
           {/* 2. Who is bowling. The PAP leads because it is the frame every other
               number is measured against: the VAL angle is measured at it and the
               pin-to-PAP distance is measured to it, so a layout read against the
@@ -490,21 +526,7 @@ export function LayoutLabView({ onBack, onOpenSettings, seed }: LayoutLabViewPro
               The hand and the grip ride beside it rather than under it. They are
               two two-way answers, so they cost a quarter of the width and would
               otherwise cost two full bands of a phone screen. */}
-          <section className="space-y-1.5">
-            <div className="flex items-center justify-between gap-2">
-              <h2 className={GROUP_HEADING}>You</h2>
-              {/* Back to the bowler's own saved numbers, in one tap. The PAP, the
-                  hand and the grip are what a shared link overrides, so the way
-                  out of somebody else's measurements sits with them. */}
-              <IconButton
-                compact
-                label="Reset to your saved settings"
-                title="Reset to your saved settings"
-                onClick={() => setResetting(true)}
-              >
-                <RotateCcw size={15} aria-hidden="true" />
-              </IconButton>
-            </div>
+          <section className="space-y-3">
             {/* Stretched rather than top-aligned, so the two cards end level
                 whichever is taller. The hand card is the taller of the two (two
                 toggles against two rows of fields), so the PAP card takes a few
@@ -553,92 +575,15 @@ export function LayoutLabView({ onBack, onOpenSettings, seed }: LayoutLabViewPro
                 </div>
               </div>
             </div>
+            {/* Back to the bowler's own saved numbers. The PAP, the hand and the
+                grip are what a shared link overrides, so the way out of somebody
+                else's measurements sits with them. */}
+            <Button variant="secondary" className="w-full" onClick={() => setResetting(true)}>
+              <RotateCcw size={16} aria-hidden="true" />
+              Reset to your saved settings
+            </Button>
           </section>
-
-          {/* 3. What ball. The core type comes before the numbers because it
-              changes what the drilling angle means, and therefore what every
-              number below does. */}
-          <section className="space-y-1.5">
-            <h2 className={GROUP_HEADING}>Core</h2>
-            <SegmentedControl
-              label="Core type"
-              value={symmetric ? "sym" : "asym"}
-              onChange={(v) => setSymmetric(v === "sym")}
-              options={[
-                { value: "asym", label: "Asym", srLabel: "Asymmetric" },
-                { value: "sym", label: "Sym", srLabel: "Symmetric" }
-              ]}
-            />
-          </section>
-
-          {/* 4. The numbers. */}
-          <section className="space-y-2">
-            <div className="flex items-center justify-between gap-3">
-              <h2 className={GROUP_HEADING}>Layout</h2>
-              {/* The presets, as a named menu on the heading row. This replaced a
-                  Reset control and a separate labelled dropdown underneath it,
-                  which between them spent two bands of a phone screen on one
-                  idea: every reset this screen had was "go back to the
-                  benchmark", and the benchmark is a preset. One control now, and
-                  it says which preset is on screen in its own spoken name rather
-                  than in a field that has to be looked at. */}
-              <button
-                type="button"
-                aria-haspopup="menu"
-                aria-expanded={presetAt != null}
-                aria-label={`Presets, ${activePreset?.name ?? "Custom"}`}
-                onClick={(e) => setPresetAt(anchorUnder(e.currentTarget, 176))}
-                className="inline-flex items-center gap-1 text-xs font-semibold text-accent active:opacity-80"
-              >
-                <LayoutGrid size={13} aria-hidden="true" />
-                Presets
-              </button>
-            </div>
-
-            <LayoutEditor
-              layout={layout}
-              onChange={setLayout}
-              ball={ball}
-              system={system}
-              onSystemChange={setSystemOverride}
-              grip={grip}
-              idPrefix="lab"
-            />
-          </section>
-        </fieldset>
-        </ProVeil>
-
-      </div>
-
-      {menuAt && (
-        <AnchoredMenu left={menuAt.left} top={menuAt.top} onClose={() => setMenuAt(null)}>
-          {/* The hand, the grip and the PAP are settings, not this screen's
-              numbers, so the way to their permanent home is here rather than a
-              second control beside the fields that edit them. */}
-          <AnchoredMenuItem
-            icon={SlidersHorizontal}
-            onClick={() => {
-              setMenuAt(null);
-              onOpenSettings?.();
-            }}
-          >
-            Settings
-          </AnchoredMenuItem>
-        </AnchoredMenu>
-      )}
-
-      {presetAt && (
-        <AnchoredMenu left={presetAt.left} top={presetAt.top} onClose={() => setPresetAt(null)}>
-          {LAYOUT_PRESETS.map((preset) => (
-            <AnchoredMenuItem
-              key={preset.id}
-              icon={activePreset?.id === preset.id ? Check : LayoutGrid}
-              onClick={() => choosePreset(preset)}
-            >
-              {preset.name}
-            </AnchoredMenuItem>
-          ))}
-        </AnchoredMenu>
+        </FormSheet>
       )}
 
       <ConfirmDialog

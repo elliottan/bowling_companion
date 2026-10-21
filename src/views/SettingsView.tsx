@@ -1,4 +1,7 @@
-import { Archive, ArrowUpRight, Check, ChevronRight, Download, MessageSquare, Palette, RotateCcw, ScrollText, UserRound, UserRoundCog } from "lucide-react";
+import { TAB_TITLE, TAB_TITLE_ROW } from "../components/ui/typography";
+import { Archive, ArrowUpRight, Check, ChevronRight, Compass, Download, MessageSquare, Palette, RotateCcw, ScrollText, UserRound, UserRoundCog } from "lucide-react";
+import { ToolsList } from "../components/ToolsList";
+import { PushScreen } from "../components/PushScreen";
 import { AppearanceView } from "./AppearanceView";
 import { BowlingProfileView } from "./BowlingProfileView";
 import { getBowlerName, getGripStyle, getSetting } from "../services/bowlingRepository";
@@ -6,9 +9,6 @@ import { BowlerNameSheet } from "../components/BowlerNameSheet";
 import type { GripStyle } from "../types/bowling";
 import type { Handedness } from "../types/bowling";
 import type { DriftModel } from "../lib/driftModel";
-import { LEGAL_URL } from "../lib/links";
-import { openInAppBrowser } from "../lib/inAppBrowser";
-import { isIOSApp, isNativeApp, visibleNativePlugins } from "../lib/platform";
 import { openFeedbackEmail } from "../lib/diagnostics";
 import { ListGroup, ListRow } from "../components/ui/ListGroup";
 import { useProAccess, useProOwned, useProStoreContext } from "../lib/useProAccess";
@@ -46,6 +46,12 @@ interface SettingsViewProps {
   onOpenArsenal: () => void;
   onOpenSpareLines: () => void;
   onOpenLaneNotes: () => void;
+  /** The tools Home lists, opened the same way from the Tools and reference
+   *  section. The line visualizer is `onOpenLineVisualizer` above. */
+  onOpenLayoutLab: () => void;
+  onOpenOilPatternsScreen: () => void;
+  onOpenCatalog: () => void;
+  onOpenGuides: () => void;
 }
 
 /**
@@ -60,15 +66,19 @@ const LaneNotesView = lazy(() =>
 const OilPatternsView = lazy(() =>
   import("./OilPatternsView").then((m) => ({ default: m.OilPatternsView }))
 );
+// Lazy so the page's text is fetched only by a bowler who opens it.
+const LegalView = lazy(() =>
+  import("./LegalView").then((m) => ({ default: m.LegalView }))
+);
 
-export function SettingsView({ section, onSectionChange, handedness, onHandednessChange, driftModel, onDriftModelChange, onOpenBackup, onOpenLineVisualizer, lineVisualizerOpen = false, onOpenArsenal, onOpenSpareLines, onOpenLaneNotes }: SettingsViewProps) {
+export function SettingsView({ section, onSectionChange, handedness, onHandednessChange, driftModel, onDriftModelChange, onOpenBackup, onOpenLineVisualizer, lineVisualizerOpen = false, onOpenArsenal, onOpenSpareLines, onOpenLaneNotes, onOpenLayoutLab, onOpenOilPatternsScreen, onOpenCatalog, onOpenGuides }: SettingsViewProps) {
   const back = () => onSectionChange("menu");
 
   // The menu stays mounted underneath the pushed section, so popping back
   // reveals it mid-animation instead of sliding onto an empty page.
   return (
     <div className="relative h-full">
-      <div className="h-full overflow-y-auto">
+      <div className="h-full overflow-y-auto pb-[var(--tab-clear,0px)]">
         <SettingsMenu
           handedness={handedness}
           onOpenBackup={onOpenBackup}
@@ -86,6 +96,21 @@ export function SettingsView({ section, onSectionChange, handedness, onHandednes
           <OilPatternsView onBack={back} onOpenLineVisualizer={onOpenLineVisualizer} covered={lineVisualizerOpen} />
         ) : section === "appearance" ? (
           <AppearanceView onBack={back} />
+        ) : section === "tools" ? (
+          // The same list as Home's, so a tool is found from either door.
+          <PushScreen mode="inline" title="Tools and reference" onBack={back}>
+            <div className="mx-auto w-full max-w-3xl px-3 py-3 sm:px-6">
+              <ToolsList
+                onOpenLayoutLab={onOpenLayoutLab}
+                onOpenLineVisualizer={() => onOpenLineVisualizer()}
+                onOpenOilPatterns={onOpenOilPatternsScreen}
+                onOpenCatalog={onOpenCatalog}
+                onOpenGuides={onOpenGuides}
+              />
+            </div>
+          </PushScreen>
+        ) : section === "legal" ? (
+          <LegalView onBack={back} />
         ) : section === "profile" ? (
           <BowlingProfileView
             handedness={handedness}
@@ -102,9 +127,9 @@ export function SettingsView({ section, onSectionChange, handedness, onHandednes
 }
 
 /**
- * Only settings (ADR-115). The places a bowler keeps things (arsenal, spare
- * lines, lane notes, patterns) and the tools (catalog, line visualizer) all
- * live on Home. Order is by what a bowler can lose or must not miss: the backup
+ * Settings (ADR-115). The places a bowler keeps things (arsenal, spare lines,
+ * lane notes) and the tools live on Home; the tools also have one row here,
+ * opening the same list, for a bowler who looks for them in Settings. Order is by what a bowler can lose or must not miss: the backup
  * leads, on its own and louder than a row, because the games live on this phone
  * and nowhere else; then the bowler's own things; support; and appearance last,
  * the setting touched once. The bowler's name is the profile chip beside the
@@ -159,8 +184,8 @@ function SettingsMenu({
 
   return (
     <section className="mx-auto w-full max-w-3xl space-y-5 px-3 pb-5 pt-3 sm:px-6 sm:pt-5">
-      <div className="flex items-center justify-between gap-3">
-        <h1 className="text-xl font-bold text-ink">Settings</h1>
+      <div className={`${TAB_TITLE_ROW} justify-between gap-3`}>
+        <h1 className={TAB_TITLE}>Settings</h1>
         {/* The bowler, as a profile chip: tap it to change the name. Held back
             until the name has loaded, so it never flashes "Add name". */}
         {name !== undefined && (
@@ -227,6 +252,17 @@ function SettingsMenu({
         />
       </ListGroup>
 
+      {/* The tools are Home's; this is a second door to the same list, for a
+          bowler who looks for them here. */}
+      <ListGroup>
+        <ListRow
+          icon={Compass}
+          label="Tools and reference"
+          description="Layouts, patterns, the catalog and guides"
+          onClick={() => onSectionChange("tools")}
+        />
+      </ListGroup>
+
       <ProSection />
 
       <ListGroup heading="Support">
@@ -239,12 +275,7 @@ function SettingsMenu({
         <ListRow
           icon={ScrollText}
           label="Privacy and terms"
-          // The store apps show it over the app, with a Done button back; the
-          // web app opens it in a tab. A failed open falls back to the tab.
-          {...(isNativeApp()
-            ? { onClick: () => void openInAppBrowser(LEGAL_URL).catch(() => window.open(LEGAL_URL, "_blank", "noopener")) }
-            : { href: LEGAL_URL })}
-          trailing={leavesTheApp}
+          onClick={() => onSectionChange("legal")}
         />
       </ListGroup>
 
@@ -266,7 +297,7 @@ function SettingsMenu({
         />
       </ListGroup>
 
-      <p className="px-1 text-xs text-ink-secondary">{buildLine()}</p>
+      <p className="px-1 text-xs text-ink-secondary">Headpin {__APP_VERSION__}</p>
 
       <InstallPrompt open={installOpen} onClose={() => setInstallOpen(false)} />
 
@@ -278,26 +309,9 @@ function SettingsMenu({
 }
 
 /**
- * Which build this is, for a bug report and for the owner: the version says what
- * was released, which copy says where it is running, and the time says how fresh
- * the web build inside it is. The last matters in the store apps, where the web
- * build is copied in by hand and several of them can carry one version number.
- */
-function buildLine(): string {
-  const where = isIOSApp() ? "iPhone app" : isNativeApp() ? "Android app" : "web";
-  const line = `Headpin ${__APP_VERSION__} · ${where} · built ${__BUILD_TIME__.replace("T", " ")}`;
-  if (!isIOSApp()) return line;
-  // In the iPhone app, which native plugins the page can reach: when Pro or the
-  // tab bar does nothing, this says whether the page ever had them to call.
-  const seen = visibleNativePlugins();
-  const has = (name: string) => (seen.includes(name) ? "yes" : "no");
-  return `${line} · store plugin ${has("HeadpinStore")}, tab bar plugin ${has("HeadpinTabBar")}`;
-}
-
-/**
  * Headpin Pro, where the app sells it (the iOS app, ADR-158): bought or not,
- * and Restore purchase, which App Review requires and a bowler on a new phone
- * needs. On the web, where Pro is not sold, one row to the Pro page wherever
+ * and, until it is bought, Restore purchase, which App Review requires and a
+ * bowler on a new phone needs. On the web, where Pro is not sold, one row to the Pro page wherever
  * Pro is locked or owned (`/app`, `/score`), so either side of it can be read
  * there (ADR-167). Every row carries the Pro mark, which is what the page shows.
  */
@@ -377,12 +391,16 @@ function ProSection() {
             onClick={() => (openOffer ? openOffer() : void buy())}
           />
         )}
-        <ListRow
-          icon={RotateCcw}
-          label="Restore purchase"
-          description={busy === "restore" ? waiting : "Bought Pro before on this Apple ID"}
-          onClick={() => void restore()}
-        />
+        {/* Only while there is something to restore: once Pro is here, a row
+            offering to bring it back reads as if it were missing. */}
+        {!store.owned && (
+          <ListRow
+            icon={RotateCcw}
+            label="Restore purchase"
+            description={busy === "restore" ? waiting : "Bought Pro before on this Apple ID"}
+            onClick={() => void restore()}
+          />
+        )}
       </ListGroup>
       {message && (
         <p role="status" className="px-1 text-sm text-ink-secondary">

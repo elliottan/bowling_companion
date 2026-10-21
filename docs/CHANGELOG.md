@@ -9,6 +9,103 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.55.0: The web points at the iPhone app, and Pro shows what you'd get (2026-10-21)
+
+- **headpin.app shows your stats.** The "Know the pattern before you bowl it"
+  section is now the Stats screen, the install steps are gone, and the closing
+  line is "Try it now."
+- **Home offers the iPhone app.** On the web, Home opens on a "Headpin for
+  iPhone" row with Get, in place of the card that asked you to add Headpin to
+  your home screen (ADR-170). Close it and it stays away for two weeks.
+- **Privacy and terms opens in the app.** The Settings row pushes a screen with
+  the app's back arrow and the site page's own text, instead of a new tab or a
+  browser sheet. Its contents links scroll the screen (ADR-181).
+- **Settings shows only the version.** The line at the foot of Settings reads
+  "Headpin" and the version, without where it runs, when it was built, or
+  which native plugins it sees. Send diagnostics still carries the build time.
+- **No "(optional)" on field labels.** Starting a session asks for the Alley,
+  and a pattern for its sheet link, without the word.
+- **Stats scrollers.** The chart's chips scroll sideways without a scroll bar
+  under them, the Spares card's leaves without one beside them, and the Balls
+  card's numbers keep clear of its scroll bar.
+- **Fewer web-page tells in the iPhone app.** A double tap and hold no longer
+  brings up the text magnifier over a chart, a double tap never zooms the
+  page, a held picture cannot be dragged out, and a long press on a link
+  shows no browser preview (ADR-180).
+- **The average's label no longer sits on the last game.** With five points
+  or fewer, the charts draw the first and last a little in from the edges, so
+  the last dot and its score clear the "avg" label; with more, the label moves
+  to whichever side of its line is clear of the last dot and its score.
+- **History and Stats keep their header when you come back.** Returning to a
+  tab you had scrolled down no longer hides the header by itself a moment
+  after it shows; it hides and comes back only as you scroll.
+- **Edit is a pencil everywhere.** The ball, a spare line, the bowling profile
+  and a lane's notes open for editing from a pencil, like every other control
+  in a bar is a glyph (ADR-179).
+- **Tools and reference in Settings.** A row in Settings opens the same list
+  of tools as Home: layouts, the line visualizer, oil patterns, the ball
+  catalog and guides.
+- **Home doesn't scroll when it fits.** It kept a band of empty space at its
+  foot, so a Home that fit the screen still moved up a step.
+- **The session sheet stops just short of the game chips** instead of
+  touching them.
+- **A session's alley and date are in the bar.** Opened from History, the
+  bar reads the alley with the event, date and games under it, in place of the
+  word "Session", and the page keeps the lanes, the buttons and the score. The
+  header's button shows the stats glyph and opens the sheet on Stats, then a
+  pencil once the sheet is up, which edits the session's details.
+- **The line visualizer's controls match the rest of the app.** Its buttons
+  are the round glass ones, the view toggle is a glass capsule, and Lane
+  options closes with a tick. The quick moves sit at the end of the laydown,
+  target and final fields they move, and the line under the hook-shape sliders
+  is gone (ADR-178).
+- **A screen's title steps aside as you scroll.** On every pushed screen the
+  title shows at the top and fades once the page passes under the bar, so it
+  never sits on top of other text; the round buttons stay (ADR-177).
+- **Layouts: the ball stays in view.** It is pinned under the bar in a
+  shorter frame while the page scrolls, so a slider and what it does to the
+  ball are on screen together. Your PAP, hand and grip, and the reset, are
+  under More, and the "On the ball" heading is gone.
+- **Layouts: only the three numbers are Pro.** Without Pro you can still set
+  your PAP, hand and grip, the core, and switch between dual angle and Storm
+  VLS. The sliders sit under "Try your layouts with Pro", which stays put as
+  you scroll, and the numbers on the dual angle and VLS boxes are in your
+  accent color. The More button is gone; Share stays.
+- **A ball's layout is Pro.** Without Pro the ball form keeps its name, weight
+  and catalog link, and its layout sits under "Set and visualize your ball
+  layout with Pro". A layout already on a ball still reads (ADR-172).
+- **No Restore purchase once you have Pro.** Settings only offers it while Pro
+  is not on the phone.
+- **Ball weights run 16 down to 8 lb**, heaviest first, and the arsenal shows
+  each ball's weight beside its name.
+- **Headpin Pro opens on top.** A lock inside a sheet (a session's stats, View
+  all, the ball form) opens the Pro page over the sheet instead of under it,
+  and back returns to the sheet as you left it, a ball you were adding
+  included (ADR-175).
+- **The Pro page is only what Pro adds.** Its "What stays free" section is
+  gone (ADR-176).
+- **Every chart and the First ball card are free.** Any stat, by session or
+  by game, and pocket, carry and strike, with no lock (ADR-174).
+- **View all, with the count.** The Spares and Balls cards say "View all 12
+  leaves" and "View all 4 balls". Without Pro the sheet still opens: the two
+  leaves or the one ball the card shows, with their details, then the rest
+  locked.
+- **Locks are just the lock.** Every locked card and row carries a lock icon
+  without the word "Pro", and a locked card such as First ball is softly
+  blurred with the lock on it, so it is clear what is locked (ADR-173).
+- **Locked controls are easier to see through.** The blur over the layout
+  sliders and the lane's line fields is lighter.
+- **Lists scroll under the tab bar.** In the iPhone app and on the web, the
+  page now passes beneath the floating tab bar instead of stopping at a solid
+  band above it (ADR-171).
+- **Every tab's title sits on the same line.** Score, and History before its
+  first session, had theirs 8px higher than Stats and Settings.
+- **No haze at the top.** The fade behind the clock and battery no longer
+  reaches down over the buttons in a tab's header or a Settings page.
+- **The Headpin Pro page shows the real screens**: the stat chart, the First
+  ball card, your leaves, ball by ball with real ball photos, a line on the
+  lane over the oil, and the drilled ball, with sample numbers.
+
 ## 0.54.0: Every ball photo, cut the same way (2026-10-21)
 
 - **Ball photos look like one set.** Every photo in the catalog has been

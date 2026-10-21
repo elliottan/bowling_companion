@@ -219,7 +219,7 @@ test("a finished session opened from History pushes, and back returns to History
 
   // Pushed over History, not loaded into the Active tab.
   await expect(page).toHaveURL(/#\/history\/session\/\d+$/);
-  await expect(page.getByRole("dialog", { name: "Session", exact: true })).toBeVisible();
+  await expect(page.getByRole("dialog", { name: "Read Lanes", exact: true })).toBeVisible();
 
   // A finished session lands with its panel already up, on its stats
   // (SessionHistory opens one with openStats), and back closes the sheet in
@@ -235,7 +235,7 @@ test("a finished session opened from History pushes, and back returns to History
   // The push's own back, which is what this test is about.
   await page.goBack();
   await expect(page).toHaveURL(/#\/history$/);
-  await expect(page.getByRole("dialog", { name: "Session", exact: true })).toHaveCount(0);
+  await expect(page.getByRole("dialog", { name: "Read Lanes", exact: true })).toHaveCount(0);
 });
 
 test("the screen's own back, with the session sheet up, leaves cleanly", async ({ page }) => {
@@ -253,16 +253,16 @@ test("the screen's own back, with the session sheet up, leaves cleanly", async (
   // back used to pop only the sheet's history entry: the sheet closed, the
   // screen played its exit and stayed mounted, invisible, over History, and
   // nothing under it answered a tap again.
-  await page.getByRole("dialog", { name: "Session", exact: true })
+  await page.getByRole("dialog", { name: "Chevron Lanes", exact: true })
     .getByRole("button", { name: "Back", exact: true })
     .click();
   await expect(page).toHaveURL(/#\/history$/);
-  await expect(page.getByRole("dialog", { name: "Session", exact: true })).toHaveCount(0);
+  await expect(page.getByRole("dialog", { name: "Chevron Lanes", exact: true })).toHaveCount(0);
   await expect(sheet).toHaveCount(0);
 
   // And the screen underneath still works.
   await page.getByRole("button", { name: /Chevron Lanes/ }).click();
-  await expect(page.getByRole("dialog", { name: "Session", exact: true })).toBeVisible();
+  await expect(page.getByRole("dialog", { name: "Chevron Lanes", exact: true })).toBeVisible();
 });
 
 test("share opens over the session sheet, and back closes one layer at a time", async ({ page }) => {
@@ -296,20 +296,26 @@ test("share opens over the session sheet, and back closes one layer at a time", 
 test("the session sheet rises without overshooting its resting place", async ({ page }) => {
   await startSession(page, "Rise Lanes");
   await recordShot(page, []);
-  await page.getByRole("button", { name: "Session sheet", exact: true }).first().click();
+  await page.getByRole("button", { name: "Session stats", exact: true }).first().click();
 
   // Sample the panel's top edge every frame of the slide. Focus used to land on
   // its first button while it was still below the screen, which scrolled the
   // sheet's box to reveal it: the panel jumped past its resting place and
   // settled back, the bounce seen on iPhone.
+  // The clock starts when the sheet is first in the page, not at the click: on a
+  // loaded runner its chunk can take most of a fixed window to arrive, leaving
+  // too few frames of the slide to judge it by.
   const samples = await page.evaluate(async () => {
     const tops: Array<{ top: number; scroll: number }> = [];
-    const t0 = performance.now();
-    while (performance.now() - t0 < 450) {
+    const started = performance.now();
+    let t0: number | null = null;
+    while (performance.now() - started < 3000) {
       const root = document.querySelector('[aria-label="Session sheet"]') as HTMLElement | null;
       const panel = root?.firstElementChild as HTMLElement | null;
       if (root && panel) {
+        t0 ??= performance.now();
         tops.push({ top: panel.getBoundingClientRect().top, scroll: root.scrollTop });
+        if (performance.now() - t0 >= 450 && tops.length > 3) break;
       }
       await new Promise((r) => requestAnimationFrame(r));
     }
