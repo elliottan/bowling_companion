@@ -7,6 +7,9 @@ export interface ProAction {
   /** What the button says: the purchase with its price, or "Get the app". */
   label: string;
   busy: boolean;
+  /** Nowhere to send the bowler yet: the free web before the app is listed
+   *  (ADR-166). The button says so and does nothing. */
+  unavailable?: boolean;
   /** One line about how the last try went, or null. */
   note: string | null;
   start: () => void;
@@ -30,6 +33,9 @@ export function useProAction(access: LockedProAccess): ProAction {
 
   if ("appStoreUrl" in access) {
     const { appStoreUrl } = access;
+    if (!appStoreUrl) {
+      return { label: "Coming to the App Store", busy: false, unavailable: true, note: null, start: () => {}, dialog: null };
+    }
     return {
       label: "Get the app",
       busy: false,
@@ -84,5 +90,14 @@ export function useProEntry(access: LockedProAccess): ProAction {
   const direct = useProAction(access);
   const openOffer = useProOffer();
   if (!openOffer) return direct;
-  return { ...direct, busy: false, note: null, start: openOffer, dialog: null };
+  // The Pro page is always there to read, listed or not.
+  return {
+    ...direct,
+    label: direct.unavailable ? "See Headpin Pro" : direct.label,
+    busy: false,
+    unavailable: false,
+    note: null,
+    start: openOffer,
+    dialog: null
+  };
 }

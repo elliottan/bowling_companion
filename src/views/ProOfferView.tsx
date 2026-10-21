@@ -127,7 +127,13 @@ function Purchase({ access }: { access: Extract<ReturnType<typeof useProAccess>,
 
   return (
     <div className="flex flex-col items-center gap-1.5">
-      <Button variant="primary" size="lg" className="w-full" disabled={action.busy} onClick={action.start}>
+      <Button
+        variant="primary"
+        size="lg"
+        className="w-full"
+        disabled={action.busy || action.unavailable}
+        onClick={action.start}
+      >
         {action.busy ? "Asking the App Store…" : action.label}
       </Button>
       {action.note && (
@@ -153,7 +159,9 @@ function Purchase({ access }: { access: Extract<ReturnType<typeof useProAccess>,
         </>
       )}
       {"appStoreUrl" in access && (
-        <p className="text-center text-xs text-ink-secondary">Pro is bought in the iPhone app.</p>
+        <p className="text-center text-xs text-ink-secondary">
+          {access.appStoreUrl ? "Pro is bought in the iPhone app." : "Pro is bought in the iPhone app, which is not in the App Store yet."}
+        </p>
       )}
       {action.dialog}
     </div>

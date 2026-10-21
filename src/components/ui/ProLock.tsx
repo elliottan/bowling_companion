@@ -92,7 +92,7 @@ function Teaser({
         </div>
         <button
           type="button"
-          disabled={action.busy}
+          disabled={action.busy || action.unavailable}
           onClick={action.start}
           aria-label={`${what}. ${action.label}`}
           className="absolute inset-0 flex items-end justify-center rounded-xl pb-0.5 disabled:opacity-60"
@@ -134,7 +134,7 @@ function Banner({ access, what }: { access: LockedProAccess; what: string }) {
         <p className="text-xs text-ink-secondary">{what}</p>
         <ActionNote text={action.note} />
       </div>
-      <Button variant="primary" disabled={action.busy} onClick={action.start} className="shrink-0">
+      <Button variant="primary" disabled={action.busy || action.unavailable} onClick={action.start} className="shrink-0">
         {action.label}
       </Button>
       {action.dialog}
@@ -163,7 +163,7 @@ function Note({ access, what }: { access: LockedProAccess; what: string }) {
       </p>
       <button
         type="button"
-        disabled={action.busy}
+        disabled={action.busy || action.unavailable}
         onClick={action.start}
         aria-label={`${what}. ${action.label}`}
         className="shrink-0 rounded-full px-1 py-2 text-xs font-semibold text-accent active:opacity-60 disabled:opacity-50"
@@ -195,7 +195,7 @@ function Chip({ access, what, before }: { access: LockedProAccess; what: string;
     <div className="flex flex-col items-center gap-1">
       <button
         type="button"
-        disabled={action.busy}
+        disabled={action.busy || action.unavailable}
         onClick={() => {
           // The lane's own layer would cover the Pro page, so a caller that owns
           // it closes it first.

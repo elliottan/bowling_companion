@@ -4,7 +4,7 @@
  * it, so on the web a Pro card points at the App Store instead.
  */
 
-import { APP_STORE_URL } from "./appStore";
+import { APP_STORE_URL, LOCK_FREE_WEB } from "./appStore";
 
 export { APP_STORE_URL, appStoreId } from "./appStore";
 
@@ -47,7 +47,9 @@ export type ProAccess =
    *  open (the owner's copy, a web with nothing to sell), so a mark of
    *  ownership is never shown to a bowler who did not buy it (ADR-164). */
   | { locked: false; owned?: true }
-  | { locked: true; appStoreUrl: string }
+  /** `appStoreUrl` is null on the free web before the app is listed (ADR-166):
+   *  locked, with nowhere to send a bowler yet. */
+  | { locked: true; appStoreUrl: string | null }
   | { locked: true; store: ProStore };
 
 /** A locked answer, whichever way it is unlocked. */
@@ -60,15 +62,23 @@ export function isOwnerPath(pathname: string): boolean {
   return pathname === OWNER_APP_PATH || pathname.startsWith(`${OWNER_APP_PATH}/`);
 }
 
-/** What the web app offers: everything at the owner's address, and elsewhere
- *  everything until there is an app to send a bowler to, then the free
- *  features with the rest pointing at it. */
+/** Whether a page path is the free web app: `/app`, or its directory form. */
+export function isFreeAppPath(pathname: string): boolean {
+  return pathname === FREE_APP_PATH || pathname.startsWith(`${FREE_APP_PATH}/`);
+}
+
+/** What the web app offers: everything at the owner's address; at /app the free
+ *  features with the rest pointing at the App Store, or, before the app is
+ *  listed, locked with nowhere to go yet (`LOCK_FREE_WEB`, ADR-166); anywhere
+ *  else (the Android app, a stray address) everything stays open. */
 export function webProAccess(
   appStoreUrl: string | null = APP_STORE_URL,
-  pathname: string = typeof window === "undefined" ? FREE_APP_PATH : window.location.pathname
+  pathname: string = typeof window === "undefined" ? FREE_APP_PATH : window.location.pathname,
+  lockFreeWeb: boolean = LOCK_FREE_WEB
 ): ProAccess {
   if (isOwnerPath(pathname)) return PRO_OPEN;
-  return appStoreUrl ? { locked: true, appStoreUrl } : PRO_OPEN;
+  if (appStoreUrl) return { locked: true, appStoreUrl };
+  return lockFreeWeb && isFreeAppPath(pathname) ? { locked: true, appStoreUrl: null } : PRO_OPEN;
 }
 
 /** What the app offers: the purchase where it sells Pro (the iOS app), and

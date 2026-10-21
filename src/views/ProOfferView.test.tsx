@@ -49,6 +49,12 @@ describe("the Pro page (ADR-164)", () => {
     await waitFor(() => expect(opened.urls).toEqual(["https://apps.apple.com/app/id1"]));
   });
 
+  it("says the app is not in the store yet when there is no link to send anyone to", () => {
+    renderOffer({ locked: true, appStoreUrl: null });
+    expect(screen.getByRole("button", { name: "Coming to the App Store" })).toBeDisabled();
+    expect(screen.getByText(/not in the App Store yet/)).toBeInTheDocument();
+  });
+
   it("buys at the App Store's price from its own button, and only there", async () => {
     const buy = vi.fn(async () => "purchased" as const);
     const store = { ...base, buy };

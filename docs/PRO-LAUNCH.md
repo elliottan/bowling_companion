@@ -75,6 +75,11 @@ whatever `APP_STORE_URL` says. Both are the same shell (`src/lib/pro.ts`), and
 the same browser keeps the same games at either address, since storage belongs
 to the site, not the path.
 
+Until the app is listed, `/app` shows the locked app too, so the free tier can be
+checked on the web before an iPhone rebuild (`LOCK_FREE_WEB` in
+`src/lib/appStore.ts`, ADR-166). The Pro page's button then says the app is not in
+the App Store yet. `/score` and the Android app stay open.
+
 ## How Pro shows where it is locked
 
 On the web always, and in the app before purchase. It follows

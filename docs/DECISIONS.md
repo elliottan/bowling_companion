@@ -7656,3 +7656,30 @@ lane is its own layer and would cover the page.
   changed here; it is part of writing down a leave's line, which the table keeps
   free. Say so if it should be locked too.
 
+## ADR-166: The free web app at /app shows Pro locked before the app is listed
+
+**Status.** Accepted, 2026-10-21. Amends ADR-154, which kept the web open until
+the app was listed. Decided by the owner.
+
+**Context.** The web at `/app` is the free app, and `/score` is the owner's copy
+with everything on. Until the App Store link is set, `/app` was also fully open,
+so the locked experience (teasers, the Pro page, the Home banner, the lane chip,
+the colors) could only be seen by rebuilding the iPhone app.
+
+**Decision.** `webProAccess` locks `/app` (and `/app/...`) when `LOCK_FREE_WEB`
+(`lib/appStore.ts`) is on, which it is. With no App Store link the access is
+`{ locked: true, appStoreUrl: null }`: everything looks as it does in the app, and
+the Pro page's button reads "Coming to the App Store" and is disabled, with a line
+saying the app is not in the store yet. Cards, the banner and the chip still open
+the Pro page to read. `/score`, the Android app and any other address stay open,
+and a real `APP_STORE_URL` still locks as before.
+
+**Consequences.**
+
+- Until the app is listed, a bowler who reaches `/app` (the landing page's buttons
+  and shared links open it) has the free features and cannot buy the rest, which
+  ADR-154 chose to avoid. This is the owner's call, made to preview the free app on
+  the web. `LOCK_FREE_WEB = false` puts `/app` back to fully open in one edit, and
+  should be weighed again before the landing page is promoted.
+- Settings has no Pro row on the web, since it is for the app's purchase.
+

@@ -217,3 +217,31 @@ describe("with the Pro page available (ADR-164)", () => {
     expect(buy).not.toHaveBeenCalled();
   });
 });
+
+describe("where there is no app to send anyone to yet (ADR-166)", () => {
+  it("shows the teaser and its mark, and the tap does nothing on its own", () => {
+    render(
+      <ProAccessContext.Provider value={{ locked: true, appStoreUrl: null }}>
+        <ProLock what="How each ball strikes">
+          <p>Wolverine</p>
+        </ProLock>
+      </ProAccessContext.Provider>
+    );
+    expect(screen.getByRole("button", { name: "How each ball strikes. Coming to the App Store" })).toBeDisabled();
+  });
+
+  it("still opens the Pro page to read when the app has one", () => {
+    const openOffer = vi.fn();
+    render(
+      <ProAccessContext.Provider value={{ locked: true, appStoreUrl: null }}>
+        <ProOfferContext.Provider value={openOffer}>
+          <ProLock what="How each ball strikes">
+            <p>Wolverine</p>
+          </ProLock>
+        </ProOfferContext.Provider>
+      </ProAccessContext.Provider>
+    );
+    fireEvent.click(screen.getByRole("button", { name: "How each ball strikes. See Headpin Pro" }));
+    expect(openOffer).toHaveBeenCalledTimes(1);
+  });
+});

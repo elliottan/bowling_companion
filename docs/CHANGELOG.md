@@ -21,6 +21,10 @@ had all shipped.
   locked card shows its first lines, fading out, with a small Pro mark. Tapping
   the card does the same as the button. The Alley report's balls work the same way
   (ADR-163).
+- **headpin.app/app shows the locked app.** It now looks like the free iPhone
+  app: previews, the Pro page, the Home banner. The Pro page says the app is not
+  in the App Store yet. headpin.app/score is unchanged and keeps every feature
+  (ADR-166).
 - **Moving the line from score entry needs Pro.** Open a shot's line from the
   scorer and you can see it but not drag it, the same as in the line visualizer.
   Typing the boards into the fields is still free (ADR-165).
