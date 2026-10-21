@@ -9,11 +9,24 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
-## 0.54.1: The landing page shows your stats (2026-10-21)
+## 0.55.0: The web points at the iPhone app, and Pro shows what you'd get (2026-10-21)
 
-- **Stats take the oil pattern's place on headpin.app.** The landing page's
-  "Know the pattern before you bowl it" section is gone, and in its place is
-  the Stats screen: your average, strikes and spares, and how they trend.
+- **headpin.app shows your stats.** The "Know the pattern before you bowl it"
+  section is now the Stats screen, the install steps are gone, and the closing
+  line is "Try it now."
+- **Home offers the iPhone app.** On the web, Home opens on a "Headpin for
+  iPhone" row with Get, in place of the card that asked you to add Headpin to
+  your home screen (ADR-170). Close it and it stays away for two weeks.
+- **Layouts: only the three numbers are Pro.** Without Pro you can still set
+  your PAP, hand and grip, the core, and switch between dual angle and Storm
+  VLS. The sliders sit under "Try your layouts with Pro", which stays put as
+  you scroll, and the numbers on the dual angle and VLS boxes are in your
+  accent color. The More button is gone; Share stays.
+- **Locked controls are easier to see through.** The blur over the layout
+  sliders and the lane's line fields is lighter.
+- **The Headpin Pro page shows the real screens**: the stat chart, the First
+  ball card, your leaves, ball by ball with real ball photos, a line on the
+  lane over the oil, and the drilled ball, with sample numbers.
 
 ## 0.54.0: Every ball photo, cut the same way (2026-10-21)
 

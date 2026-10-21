@@ -36,11 +36,9 @@ Every push gets, without exception:
   opened from the dashboard it named a tab the user had never navigated from;
 - a centered title, one line, 17px semibold;
 - at most **one** trailing action, an `IconButton`, or the word "Edit" in a
-  `BarButton` where the action turns the screen into a form (§1b). The layout lab is the
-  single exception and has to earn it each time it is copied: sharing a layout
-  is the thing that screen exists to do once the numbers are right, so it sits
-  beside More rather than inside it. Two is the ceiling, and the second one is
-  never a control the screen merely offers;
+  `BarButton` where the action turns the screen into a form (§1b). The layout
+  lab was the one screen with two, a share beside a More, and the More went:
+  all it held was a way to Settings, which the tab bar already is (ADR-170);
 - in overlay mode, Escape + a focus trap (`useOverlay`).
 
 Back out of a push with the chevron or with the platform's own back gesture
@@ -240,9 +238,12 @@ nothing but the bowler's own games (ADR-146). Each tool row carries one line
 saying what it does: "Layouts" and "Line visualizer" are names a new bowler
 would otherwise have to tap to learn.
 
-Home holds **one prompt at a time**: the protection card, else one setup step,
+Home holds **one prompt at a time**: the backup card, else one setup step,
 else the feedback ask, and none of them before the first session, where the
-empty state is the only ask. A step the screen already makes elsewhere, the
+empty state is the only ask. The free web app does not ask to be added to the
+home screen any more: the iPhone app is where games are kept now, and Home
+opens on a row offering it, drawn like a store's own banner (a close, the icon,
+Get), which stands apart from the prompts (`GetTheAppBanner`, ADR-170). A step the screen already makes elsewhere, the
 arsenal's empty slot asking for the balls, is not made twice (ADR-150).
 
 ## 4b. Numbers on screen
@@ -322,9 +323,15 @@ and the whole card as the tap. A locked list shows its first rows in full, the
 bowler's own numbers, then one more row blurred under the mark, and nothing
 after it: two leaves on Stats, one ball on Stats and the Alley report
 (`lib/proPreview`, `ProBlur`). Locked controls stay where they are, blurred and
-out of reach, with one mark saying what Pro opens ("Edit with Pro", "Move it
-with Pro") and the whole block as the tap (`ProVeil`); the values they hold stay
-readable in plain text beside them, since reading is free. A screen with several
+out of reach, with one mark saying what Pro opens ("Try your layouts with Pro",
+"Move it with Pro") and the whole block as the tap (`ProVeil`). The blur is
+light, so what is under it can be seen, and the mark holds still: it does not
+ride along with the scroll. Only the controls Pro opens are veiled, never the
+ones around them: in the layout lab that is the three sliders, and the PAP,
+hand, grip, core and notation stay free (ADR-170). The values stay readable
+beside them, since reading is free. The Pro page shows each thing Pro adds with
+the screen's own component and sample numbers, never a drawing of it, since a
+drawing reads as a mock-up. A screen with several
 locked cards says what Pro adds once, in a banner at its foot, under the
 bowler's own numbers. Nothing is a bar that takes height from what it sits over.
 Every one of them opens the Pro page, which says what Pro is before anything
@@ -599,5 +606,6 @@ all of them.
   (`npm run shots`), never drawn, and are recaptured when a screen changes: a
   screenshot of a row that was removed is an advert for something the app no
   longer does.
-- **Install steps are the only instructions on the page.** Everything else is
-  either the product or the way into it.
+- **No instructions on the page.** Everything is either the product or the
+  way into it. The install steps went with the push to the iPhone app
+  (ADR-170), and the closing line is the button's: "Try it now."

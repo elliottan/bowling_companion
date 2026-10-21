@@ -31,7 +31,7 @@ describe("the Pro page (ADR-164)", () => {
       "Your leaves",
       "Ball by ball",
       "Move your line",
-      "Edit layouts",
+      "Try your layouts",
       "More colors"
     ]) {
       expect(screen.getByRole("heading", { name: title })).toBeInTheDocument();

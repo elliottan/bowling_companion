@@ -791,14 +791,6 @@ function App() {
                 key={`layout-lab-${i}`}
                 onBack={popOverlay}
                 seed={nav.layoutSeed ?? undefined}
-                // The lab opens with the bowler's hand, grip and PAP, so its
-                // More menu goes to where those are kept. One dispatch: the
-                // action takes the overlay off itself, because popping it
-                // separately went through history and landed after the tab
-                // switch, undoing it (see the note on the reducer case).
-                onOpenSettings={() =>
-                  dispatch({ type: "goToSettingsSection", section: "menu" })
-                }
               />
             );
           // Stats drill-downs. They read the shared session filter themselves,

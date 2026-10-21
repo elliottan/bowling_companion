@@ -214,15 +214,19 @@ function Blurred({
  * on them is the way to Pro. The controls themselves while Pro is open.
  *
  * `before` runs first, for a layer the caller has to close so the Pro page is
- * not hidden behind it (the lane). `lane` is the lane view's dark frame. `tall`
- * is a block taller than the screen (the layout lab's fields): its mark rides
- * along in view while the blurred fields scroll under it.
+ * not hidden behind it (the lane). `lane` is the lane view's dark frame. `top`
+ * pins the mark to the top centre of the block (the layout lab's sliders)
+ * rather than its middle. It never follows the scroll: a mark that rode along
+ * read as loose on the screen, sliding over the blurred fields.
+ *
+ * The blur is light on purpose. The point of the veil is that the bowler can
+ * see what is under it, so it only has to say "not yet", not hide anything.
  */
 export function ProVeil({
   what,
   label,
   lane = false,
-  tall = false,
+  top = false,
   before,
   className = "",
   children
@@ -232,7 +236,7 @@ export function ProVeil({
   /** The words on the mark, saying what Pro opens here. */
   label: string;
   lane?: boolean;
-  tall?: boolean;
+  top?: boolean;
   before?: () => void;
   className?: string;
   children: ReactNode;
@@ -240,7 +244,7 @@ export function ProVeil({
   const access = useProAccess();
   if (!access.locked) return <>{children}</>;
   return (
-    <Veil access={access} what={what} label={label} lane={lane} tall={tall} before={before} className={className}>
+    <Veil access={access} what={what} label={label} lane={lane} top={top} before={before} className={className}>
       {children}
     </Veil>
   );
@@ -251,7 +255,7 @@ function Veil({
   what,
   label,
   lane,
-  tall,
+  top,
   before,
   className,
   children
@@ -260,7 +264,7 @@ function Veil({
   what: string;
   label: string;
   lane: boolean;
-  tall: boolean;
+  top: boolean;
   before?: () => void;
   className: string;
   children: ReactNode;
@@ -269,7 +273,7 @@ function Veil({
   const previewRef = useInert<HTMLDivElement>();
   return (
     <div className={`relative ${className}`.trim()}>
-      <div ref={previewRef} aria-hidden="true" className="pointer-events-none select-none opacity-60 blur-[2.5px]">
+      <div ref={previewRef} aria-hidden="true" className="pointer-events-none select-none opacity-80 blur-[1px]">
         {children}
       </div>
       <button
@@ -282,15 +286,9 @@ function Veil({
           action.start();
         }}
         aria-label={`${what}. ${action.label}`}
-        className={`absolute inset-0 flex justify-center rounded-xl disabled:opacity-60 ${tall ? "items-start" : "items-center"}`}
+        className={`absolute inset-0 flex justify-center rounded-xl disabled:opacity-60 ${top ? "items-start pt-3" : "items-center"}`}
       >
-        {tall ? (
-          <span className="sticky top-[40%] mt-16">
-            <ProPill>{label}</ProPill>
-          </span>
-        ) : (
-          <ProPill lane={lane}>{label}</ProPill>
-        )}
+        <ProPill lane={lane}>{label}</ProPill>
       </button>
       {action.dialog}
     </div>

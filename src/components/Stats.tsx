@@ -700,7 +700,16 @@ function FormLine({ form }: { form: RecentForm }) {
  * there problem or a carrying problem. The arrows say "leads to", not "equals":
  * a Brooklyn strike is a strike and not a pocket hit.
  */
-function FirstBallCard({ stats }: { stats: BowlingStats }) {
+export function FirstBallCard({
+  stats
+}: {
+  /** Only what the card reads, so the Pro page can draw it from sample
+   *  numbers (ProOfferSamples). */
+  stats: Pick<
+    BowlingStats,
+    "pocketPct" | "carryPct" | "strikePct" | "firstBallAverage" | "strikeOnStrikePct" | "bestStreak"
+  >;
+}) {
   const links: Array<[string, string, boolean]> = [
     ["Pocket", pct(stats.pocketPct), false],
     ["Carry", pct(stats.carryPct), false],

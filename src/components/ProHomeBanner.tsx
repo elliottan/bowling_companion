@@ -29,7 +29,7 @@ function Banner({ access }: { access: Extract<ReturnType<typeof useProAccess>, {
         <span className="min-w-0 flex-1">
           <span className="block text-sm font-bold text-ink">Headpin Pro</span>
           <span className="block text-xs text-ink-secondary">
-            Charts, leave stats, layout editing and more colors. Pay once.
+            Charts, leave stats, layouts and more colors. Pay once.
           </span>
         </span>
         <ChevronRight size={16} aria-hidden="true" className="shrink-0 text-ink-tertiary" />

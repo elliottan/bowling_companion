@@ -22,8 +22,8 @@ import { useProAccess, useProOwned, useProStoreContext } from "../lib/useProAcce
  * all live here and nowhere else a bowler is asked to pay.
  *
  * The copy is short on purpose and says why each thing is useful, not how it
- * works. The pictures are drawn from the app's own colors with made-up numbers
- * (`ProOfferSamples`), so they follow the theme and cannot go out of date.
+ * works. The pictures are the screens' own components with sample numbers
+ * (`ProOfferSamples`), so they look like what Pro opens and follow the theme.
  */
 interface ProOfferViewProps {
   onBack: () => void;
@@ -56,8 +56,8 @@ const FEATURES: Array<{ title: string; why: string; sample: ReactNode }> = [
     sample: <LineSample />
   },
   {
-    title: "Edit layouts",
-    why: "Change the angles, the pin buffer and your PAP, and see what the ball will do before you drill it.",
+    title: "Try your layouts",
+    why: "Change the angles and the pin buffer, and see what the ball will do before you drill it.",
     sample: <LayoutSample />
   },
   {

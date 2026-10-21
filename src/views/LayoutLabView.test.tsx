@@ -574,14 +574,6 @@ describe("LayoutLabView", () => {
     expect(screen.getByRole("dialog", { name: "Share image" })).toBeInTheDocument();
   });
 
-  it("offers the settings that hold the hand and the PAP, behind More", () => {
-    const onOpenSettings = vi.fn();
-    render(<LayoutLabView onBack={vi.fn()} onOpenSettings={onOpenSettings} />);
-    fireEvent.click(screen.getByRole("button", { name: "More" }));
-    fireEvent.click(screen.getByRole("button", { name: "Settings" }));
-    expect(onOpenSettings).toHaveBeenCalled();
-  });
-
   it("asks before the reset, and names the settings it is resetting to", async () => {
     await setPap({ over: 3, up: 0 });
     window.history.replaceState({}, "", "/score?da=45&ptp=4.5&val=45&over=6&up=0&hand=left");
@@ -811,33 +803,39 @@ describe("the layout lab while Pro is locked (ADR-154, ADR-163)", () => {
     await db.open();
   });
 
-  it("shows the layout and what it will do, but changes nothing", () => {
+  it("locks only the three numbers, and leaves the rest of the lab free", () => {
     render(
       <ProAccessContext.Provider value={{ locked: true, appStoreUrl: "https://apps.apple.com/app/id1" }}>
         <LayoutLabView onBack={vi.fn()} />
       </ProAccessContext.Provider>
     );
-    // Every number is still on screen to read, out of the blurred controls,
-    // with what the ball will do (ADR-167).
-    const layout = screen.getByLabelText("This layout");
-    expect(within(layout).getByText("Dual angle").nextElementSibling).toHaveTextContent("45 x 4 1/2 x 45");
-    expect(within(layout).getByText("Storm VLS").nextElementSibling?.textContent).toMatch(/\d/);
+    // The layout reads in both notations on the toggle above the sliders, and
+    // the toggle itself is free (ADR-170).
+    const dual = screen.getByRole("button", { name: /Dual angle/ });
+    expect(dual).toHaveTextContent("45 x 4 1/2 x 45");
+    fireEvent.click(screen.getByRole("button", { name: /Storm VLS/ }));
+    expect(screen.getByRole("button", { name: /Storm VLS/ })).toHaveAttribute("aria-pressed", "true");
     expect(screen.getByRole("heading", { name: "What it will do" })).toBeInTheDocument();
-    // The fields that change it stay on screen, blurred and out of reach, under
-    // one tap to Pro.
-    expect(screen.queryByRole("slider", { name: /VAL angle/i })).not.toBeInTheDocument();
+    // Who is bowling and the core stay in reach.
+    expect(screen.getByRole("button", { name: "Left" })).toBeEnabled();
+    expect(screen.getByLabelText("Over")).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Reset to your saved settings" })).toBeInTheDocument();
+    // The sliders stay on screen, blurred and out of reach, under one tap to
+    // Pro, and the presets that would move them are gone.
+    expect(screen.queryByRole("slider", { name: /Pin buffer/i })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /^Presets/ })).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Reset to your saved settings" })).not.toBeInTheDocument();
-    expect(screen.getByText("Edit with Pro")).toBeInTheDocument();
+    expect(screen.getByText("Try your layouts with Pro")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Changing the layout. Get the app" }));
     expect(screen.getByRole("dialog", { name: "Bowled with Headpin on the web?" })).toBeInTheDocument();
     // Sharing what is on screen stays free: it is how a bowler finds the app.
     expect(screen.getByRole("button", { name: "Share layout" })).toBeEnabled();
+    // One trailing action.
+    expect(screen.queryByRole("button", { name: "More" })).not.toBeInTheDocument();
   });
 
   it("is the whole lab while Pro is open", () => {
     renderLab();
-    expect(screen.queryByText("Edit with Pro")).not.toBeInTheDocument();
+    expect(screen.queryByText("Try your layouts with Pro")).not.toBeInTheDocument();
     expect(slider(/VAL angle/i)).toBeEnabled();
   });
 });

@@ -23,7 +23,8 @@ everything" where "Pro" might sound like a subscription. This file is a plan, no
    link opens for anyone, on the web or in the app. Without Pro the sandbox and
    the layout lab open to read: the line or layout, shared or not, is drawn in
    full with its numbers, and it can be shared on. Moving the line or changing
-   the layout is Pro. Turning the drawn ball to look at it is reading, so it
+   the layout's three numbers is Pro; the lab's PAP, hand, grip, core and
+   notation stay free (ADR-170). Turning the drawn ball to look at it is reading, so it
    stays free. Neither screen saves anything, so there is no copy to keep.
 
 ## Free and Pro, feature by feature
@@ -58,7 +59,8 @@ is built and free today, so with no bowlers yet nothing is taken from anyone.
 | Arsenal | Your balls, unlimited, retiring a ball and keeping its history | ✓ | | Some apps cap the arsenal, but a cap gates the bowler's own data |
 | Arsenal | A ball's layout written on it: PAP and the layout values | ✓ | | Recording |
 | Layout lab | Reading a layout: the drilled ball, both notations, what it will do, turning the ball to look | ✓ | | Seeing a layout, the best preview of Pro |
-| Layout lab | Changing a layout: the angles, pin buffer, presets, the core, your PAP, hand and grip | | ✓ | Equipment depth (the Paddock and BowlSheet sell this alone) |
+| Layout lab | Your PAP, hand and grip, the core, and which notation to read (ADR-170) | ✓ | | Trying the drawn layout against your own hand is the taste |
+| Layout lab | Changing the three numbers: the sliders and the presets | | ✓ | Equipment depth (the Paddock and BowlSheet sell this alone) |
 | Catalog | Every ball, its specs and photo, search and filters, asking for a missing ball | ✓ | | ADR-154: nobody pays for the data |
 | Patterns | Every pattern, its load table, the oil on the lane, its original sheet, asking for one | ✓ | | Same |
 | Sharing | Night, line and layout share cards, and the links they carry | ✓ | | How new bowlers find the app |
@@ -98,10 +100,12 @@ On the web always, and in the app before purchase. It follows
   rates (and those two leaves' records on Spare lines and in their sheets); the
   best ball on Stats and on the Alley report. Every other leave's record on Spare
   lines is a blurred stand-in.
-- **Locked controls are blurred in place** (ADR-167): the layout lab's fields and
-  the lane's peg fields stay where they are, out of reach, under one "Edit with
-  Pro" or "Move it with Pro" mark. The values they hold stay readable in plain
-  text (above the lab's fields, on the lane's own labels), since reading is free.
+- **Locked controls are blurred in place** (ADR-167, ADR-170): the layout lab's
+  three sliders and the lane's peg fields stay where they are, out of reach,
+  under one "Try your layouts with Pro" or "Move it with Pro" mark, lightly
+  enough blurred to see what is under them. The values they hold stay readable
+  (on the notation boxes above the lab's sliders, on the lane's own labels),
+  since reading is free.
 - **Every one of those opens the Pro page first** (ADR-164): what Pro adds, in a
   picture and a sentence each, what stays free, and then the one button that
   charges, with Restore purchase. Nothing charges from a tap on a card.

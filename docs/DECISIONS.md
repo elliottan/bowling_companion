@@ -7891,3 +7891,54 @@ photo to `rounded-full`, and the placeholder is drawn at the same size).
 - The one decision that would let the photos be both uniform and owned is
   still the one ADR-142 names: dealer media from Storm and Brunswick, under
   permission, as MOTIV's are.
+
+---
+
+## ADR-170: The web points at the iPhone app, the layout lab locks only its numbers, and the Pro page shows real screens
+
+**Status.** Accepted, 2026-10-21, by the owner's decision. Amends ADR-167 on
+what the layout lab locks and how a veil looks, ADR-164 on the Pro page's
+pictures, and ADR-115 and ADR-150 on Home's install card.
+
+**Context.** The owner wants the free web app to send bowlers to the iPhone
+app rather than to the home screen. The landing page still carried install
+steps, and Home a "Keep your scores safe" card asking to add the page to the
+home screen. On the layout lab the whole block of controls was veiled, so a
+bowler without Pro could not even set their own hand or PAP to read the drawn
+layout against, and its "Edit with Pro" mark was sticky, so it slid over the
+blurred fields as the page scrolled and read as loose. The veil's blur hid what
+was under it, which is what the veil exists to show. The Pro page's pictures
+were hand-drawn sketches that read as fake.
+
+**Decision.**
+
+- **The landing page has no install steps**, and its closing line is "Try it
+  now." The oil pattern step gave its place to Stats (0.54.1).
+- **Home offers the iPhone app, not the home screen.** The install card goes;
+  the backup card stays. On the free web app Home opens on a row drawn like a
+  store's own banner, a close, the app's icon and name, and Get, which runs the
+  same "Get the app" action as a locked card (the steps for moving games, then
+  the App Store). Before the app is listed it says it is coming, with no
+  button. It is not on the owner's copy, inside the app, on Android until the
+  app is on Google Play, or in iOS Safari once listed, where Safari draws its
+  own (ADR-159). Waved away, it comes back after 14 days.
+- **The layout lab locks only the three numbers**: the sliders, and the
+  presets that move them. The PAP, hand, grip, core and the notation toggle
+  are free, so a bowler can read any layout against their own hand. The mark
+  reads "Try your layouts with Pro" and sits still at the top centre of the
+  veiled sliders. The notation boxes print the numbers in the accent, so they
+  stand out from the x's between them, and they carry the reading that a
+  separate read-out used to.
+- **The layout lab has one trailing action**, the share. More held only a way
+  to Settings, which the tab bar already is.
+- **A veil is a light blur** (1px at 80%), on the lane and in the lab alike.
+- **The Pro page draws each thing Pro adds with the screen's own component**
+  and sample numbers: the stat chart, the First ball card, the leave cells,
+  ball rows with real catalog photos, the lane with a line over oil, and the
+  drilled ball. It follows the screens as they change, as the sketches never
+  did.
+
+**Consequences.** `ProVeil`'s sticky `tall` mode is gone for a `top` one.
+`LayoutEditor` veils its own sliders when asked (`proNumbers`), so the ball
+form, where writing a ball's layout down is recording it, stays open.
+`FirstBallCard` takes only the fields it reads, so the Pro page can feed it.
