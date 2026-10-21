@@ -55,5 +55,5 @@ export function pointLandingAtStore(html: string, url: string | null = APP_STORE
     .replace(/href="\/app" data-store/g, `href="${url}" data-store`)
     .replace(/<span data-store-label="([^"]*)"([^>]*)>[^<]*<\/span>/g, '<span data-store-label="$1"$2>$1</span>')
     .replace(/<!--store:web-->[\s\S]*?<!--\/store:web-->/g, "")
-    .replace(/<!--store:app([\s\S]*?)-->/g, (_, inner: string) => inner.replaceAll("{appStoreUrl}", url));
+    .replace(/<!--store:app([\s\S]*?)-->/g, (_, inner: string) => inner.split("{appStoreUrl}").join(url));
 }
