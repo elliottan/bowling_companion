@@ -157,7 +157,10 @@ export function DashboardView({
   const setupCard = coldStart || protection ? null : stepOwed ? "step" : "feedback";
 
   return (
-    <section className="mx-auto w-full max-w-xl px-3 pb-24 pt-3 sm:px-6 sm:pt-5">
+    // The foot clears the floating Start session button (56px, 8px above the
+    // tab bar) and no more: `<main>` already pads by the tab bar, and the 96px
+    // this used to add let a Home that fits the screen scroll up a step.
+    <section className="mx-auto w-full max-w-xl px-3 pb-[4.25rem] pt-3 sm:px-6 sm:pt-5">
       <GetTheAppBanner />
       {/* The greeting is the screen's title. It offers a name only while there
           is none: a name is set once, and changing it lives in Settings. */}
