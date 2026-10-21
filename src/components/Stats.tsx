@@ -1072,9 +1072,7 @@ function AllBallsSheet({
             ))}
             {blurred && (
               <li className="py-3">
-                {/* The Pro page opens over the app, under this sheet, so the
-                    sheet goes first. */}
-                <ProBlur what="How each of your balls strikes, carries and spares" before={onClose}>
+                <ProBlur what="How each of your balls strikes, carries and spares">
                   <BallSummary ball={blurred} labelled />
                 </ProBlur>
               </li>
@@ -1147,7 +1145,7 @@ function AllLeavesSheet({
       active={!covered && !pinsOpen}
     >
       {locked ? (
-        <LockedLeaves leaves={leaves} onOpen={onOpen} onClose={onClose} />
+        <LockedLeaves leaves={leaves} onOpen={onOpen} />
       ) : (
       <div className="space-y-4">
         {/* The scope is in the bar; the filters stay pinned under it while the
@@ -1200,12 +1198,10 @@ function AllLeavesSheet({
  *  shows, each one opening its record, then the next one blurred (ADR-174). */
 function LockedLeaves({
   leaves,
-  onOpen,
-  onClose
+  onOpen
 }: {
   leaves: LeaveStats[];
   onOpen: (pins: LeaveStats["pins"]) => void;
-  onClose: () => void;
 }) {
   const { shown, blurred } = previewSplit(mostLeft(leaves), FREE_LEAVES);
   return (
@@ -1217,8 +1213,7 @@ function LockedLeaves({
       ))}
       {blurred && (
         <li>
-          {/* The Pro page opens under this sheet, so the sheet goes first. */}
-          <ProBlur what="Every leave you leave, and how often you make each" before={onClose}>
+          <ProBlur what="Every leave you leave, and how often you make each">
             <LeaveCell leave={blurred} onOpen={() => {}} />
           </ProBlur>
         </li>

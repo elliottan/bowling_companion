@@ -284,9 +284,6 @@ export function BallFormDialog({ ball, onClose, onSaved, onDelete, onRetire }: B
             </div>
 
             <LayoutField
-              // The Pro page opens over the app, under a sheet, so the sheet
-              // goes first (ADR-172).
-              onPro={onClose}
               spec={layoutSpec}
               onChange={setLayoutSpec}
               preference={systemPreference}
@@ -538,12 +535,8 @@ function LayoutField({
   onChange,
   preference,
   legacyText,
-  defaultSymmetric,
-  onPro
+  defaultSymmetric
 }: {
-  /** Closes what would cover the Pro page, before a tap on the locked layout
-   *  opens it. */
-  onPro?: () => void;
   spec: BallLayoutSpec | null;
   onChange: (spec: BallLayoutSpec | null) => void;
   preference: LayoutSystem;
@@ -609,7 +602,7 @@ function LayoutField({
         </p>
       )}
 
-      <ProVeil what="Setting this ball's layout" label="Set and visualize your ball layout with Pro" before={onPro}>
+      <ProVeil what="Setting this ball's layout" label="Set and visualize your ball layout with Pro">
       {spec == null || ball == null || layout == null ? (
         <button
           type="button"

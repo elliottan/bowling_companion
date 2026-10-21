@@ -58,7 +58,9 @@ const FEATURES: Array<{ title: string; why: string; sample: ReactNode }> = [
 export function ProOfferView({ onBack }: ProOfferViewProps) {
   const access = useProAccess();
   return (
-    <PushScreen title="Headpin Pro" onBack={onBack}>
+    // Above every sheet: a lock inside one opens this page, and closing it goes
+    // back to that sheet as it was (ADR-175).
+    <PushScreen title="Headpin Pro" onBack={onBack} layer="top">
       <div className="mx-auto w-full max-w-xl px-3 pb-4 pt-4 sm:px-6">
         <header className="text-center">
           <ProMark size={72} className="mx-auto rounded-2xl shadow-md" />

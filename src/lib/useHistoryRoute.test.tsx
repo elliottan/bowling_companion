@@ -25,6 +25,7 @@ function Harness() {
       <span data-testid="section">{nav.settingsSection}</span>
       <button onClick={() => dispatch({ type: "pushOverlay", overlay: "arsenal" })}>arsenal</button>
       <button onClick={() => dispatch({ type: "pushOverlay", overlay: "catalog" })}>catalog</button>
+      <button onClick={() => dispatch({ type: "pushOverlay", overlay: "pro" })}>pro</button>
       <button onClick={() => dispatch({ type: "goTo", view: "history" })}>history tab</button>
       <button onClick={() => goBack({ type: "popOverlay" })}>back</button>
     </div>
@@ -186,6 +187,31 @@ describe("useHistoryRoute", () => {
 
     expect(at("view")).toBe("history");
     expect(window.location.hash).toBe("#/history");
+  });
+
+  it("gives a sheet its entry back when the Pro page opened from it closes (ADR-175)", async () => {
+    render(<Harness />);
+    await click("arsenal");
+    let unregister = () => {};
+    await act(async () => {
+      unregister = registerSheet({ close: () => {} });
+    });
+    // The sheet's sentinel is up; the Pro page opened from a lock in it takes
+    // that entry over, and the sheet stays open under it.
+    pushSpy.mockClear();
+    await click("pro");
+    expect(at("overlays")).toBe("arsenal,pro");
+    expect(pushSpy).not.toHaveBeenCalled();
+
+    // Back closes the Pro page onto the sheet, which gets its sentinel again,
+    // so the next back closes the sheet rather than the screen under it.
+    await browserBack("#/home/arsenal");
+    expect(at("overlays")).toBe("arsenal");
+    expect(pushSpy).toHaveBeenCalledTimes(1);
+    expect(pushSpy.mock.calls[0][0]).toMatchObject({ sheet: true });
+    await act(async () => {
+      unregister();
+    });
   });
 
   it("restores the screen the URL names on load", async () => {

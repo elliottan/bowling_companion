@@ -96,4 +96,19 @@ describe("useOverlay", () => {
     fireEvent.keyDown(document, { key: "Escape" });
     expect(onClose).not.toHaveBeenCalled();
   });
+
+  it("answers Escape only in the overlay in front, with one still active under it (ADR-175)", () => {
+    const under = vi.fn();
+    const front = vi.fn();
+    const { unmount } = render(
+      <div>
+        <Overlay onClose={under} />
+        <Overlay onClose={front} />
+      </div>
+    );
+    fireEvent.keyDown(document, { key: "Escape" });
+    expect(front).toHaveBeenCalledTimes(1);
+    expect(under).not.toHaveBeenCalled();
+    unmount();
+  });
 });

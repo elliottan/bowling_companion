@@ -1,5 +1,6 @@
 import { ChevronLeft } from "lucide-react";
 import { useCallback, useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import { registerPushExit } from "../lib/backGesture";
 import { overlayHandoff } from "../lib/overlayHandoff";
 import { useOverlay } from "../lib/useOverlay";
@@ -31,6 +32,13 @@ interface PushScreenProps {
    *  screen owns that lives outside it (a portalled sheet) to leave with it,
    *  rather than sitting on until the route change unmounts it. */
   onLeave?: () => void;
+  /**
+   * `top` opens the screen above every sheet and the lane view, portalled to
+   * the body, for a screen a sheet opens and closes back to: the Pro page,
+   * which a lock inside a sheet opens (ADR-175). Pushed in the shell, it slid
+   * in under the sheet that opened it.
+   */
+  layer?: "shell" | "top";
   children: ReactNode;
 }
 
@@ -60,6 +68,7 @@ export function PushScreen({
   mode = "overlay",
   backCloses = false,
   onLeave,
+  layer = "shell",
   children,
 }: PushScreenProps) {
   const [exiting, setExiting] = useState(false);
@@ -96,7 +105,7 @@ export function PushScreen({
 
   const overlay = mode === "overlay";
 
-  return (
+  const screen = (
     <div
       // Inline pushes position against the tab's own stage (a `relative` box
       // supplied by the caller), so whatever the tab renders underneath stays
@@ -109,10 +118,15 @@ export function PushScreen({
       // the screen underneath below its last line. Positioned against the
       // shell, it is painted as part of the shell and moves with it. A push
       // opened inside a sheet stays `fixed`, to keep its place in that stack.
+      //
+      // On the top layer it is a body-level layer of its own, above the sheets
+      // (z-60) and the lane view (z-70) and under the dialogs (z-80).
       className={
-        overlay
-          ? "fixed inset-0 z-[55] pointer-events-auto [#app-shell>&]:absolute"
-          : "absolute inset-0 z-[5] pointer-events-auto"
+        layer === "top"
+          ? "fixed inset-0 z-[75] pointer-events-auto"
+          : overlay
+            ? "fixed inset-0 z-[55] pointer-events-auto [#app-shell>&]:absolute"
+            : "absolute inset-0 z-[5] pointer-events-auto"
       }
       role={overlay ? "dialog" : "region"}
       aria-modal={overlay || undefined}
@@ -175,4 +189,5 @@ export function PushScreen({
       </div>
     </div>
   );
+  return layer === "top" ? createPortal(screen, document.body) : screen;
 }

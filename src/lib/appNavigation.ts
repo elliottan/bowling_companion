@@ -162,6 +162,17 @@ export interface RestorableRoute {
   lineSandbox?: boolean;
 }
 
+/** Overlays that open above every sheet rather than under it: the Pro page,
+ *  which a lock inside a sheet opens, and which closes back to that sheet
+ *  (ADR-175). */
+export const ABOVE_SHEETS: readonly Overlay[] = ["pro"];
+
+/** Whether the screen in front sits above whatever sheets are open. */
+export function coversSheets(state: Pick<NavState, "overlays">): boolean {
+  const top = state.overlays[state.overlays.length - 1];
+  return top !== undefined && ABOVE_SHEETS.includes(top);
+}
+
 export const INITIAL_NAV: NavState = {
   view: "dashboard",
   previousView: "dashboard",

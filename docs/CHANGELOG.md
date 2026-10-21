@@ -29,6 +29,10 @@ had all shipped.
   is not on the phone.
 - **Ball weights run 16 down to 8 lb**, heaviest first, and the arsenal shows
   each ball's weight beside its name.
+- **Headpin Pro opens on top.** A lock inside a sheet (a session's stats, View
+  all, the ball form) opens the Pro page over the sheet instead of under it,
+  and back returns to the sheet as you left it, a ball you were adding
+  included (ADR-175).
 - **Every chart and the First ball card are free.** Any stat, by session or
   by game, and pocket, carry and strike, with no lock (ADR-174).
 - **View all, with the count.** The Spares and Balls cards say "View all 12

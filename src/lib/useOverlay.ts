@@ -9,6 +9,12 @@ function isVisible(el: HTMLElement): boolean {
   return el.offsetParent !== null || el.getClientRects().length > 0;
 }
 
+/** Every active overlay, in the order it became active, so only the one in
+ *  front answers Escape and traps Tab. A sheet under the Pro page (ADR-175)
+ *  is still active, and without this one Escape closed both and Tab was pulled
+ *  back into the sheet behind it. */
+const activeOverlays: object[] = [];
+
 function getFocusable(container: HTMLElement): HTMLElement[] {
   return Array.from(container.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR)).filter(isVisible);
 }
@@ -67,7 +73,11 @@ export function useOverlay<T extends HTMLElement = HTMLDivElement>(
       }
     }
 
+    const token = {};
+    activeOverlays.push(token);
+
     function onKeyDown(e: KeyboardEvent) {
+      if (activeOverlays[activeOverlays.length - 1] !== token) return;
       if (e.key === "Escape") {
         onCloseRef.current();
         return;
@@ -102,6 +112,8 @@ export function useOverlay<T extends HTMLElement = HTMLDivElement>(
       ? registerSheet({ close: () => onCloseRef.current() })
       : undefined;
     return () => {
+      const at = activeOverlays.indexOf(token);
+      if (at >= 0) activeOverlays.splice(at, 1);
       document.removeEventListener("keydown", onKeyDown);
       unregister?.();
       if (previouslyFocused && document.contains(previouslyFocused)) {

@@ -296,7 +296,7 @@ describe("BallFormDialog without Pro (ADR-172)", () => {
     await db.open();
   });
 
-  it("keeps the layout behind Pro, and closes the sheet before the Pro page opens", () => {
+  it("keeps the layout behind Pro, and keeps the sheet up under the Pro page (ADR-175)", () => {
     const onClose = vi.fn();
     render(
       <ProAccessContext.Provider value={{ locked: true, appStoreUrl: "https://apps.apple.com/app/id1" }}>
@@ -308,7 +308,8 @@ describe("BallFormDialog without Pro (ADR-172)", () => {
     expect(screen.getByText("Set and visualize your ball layout with Pro")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /Add layout/ })).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Setting this ball's layout. Get the app" }));
-    expect(onClose).toHaveBeenCalled();
+    // The draft stays: the Pro page opens above the sheet, not in place of it.
+    expect(onClose).not.toHaveBeenCalled();
   });
 
   it("still reads a layout already on the ball", async () => {

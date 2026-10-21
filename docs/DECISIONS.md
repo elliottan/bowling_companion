@@ -8065,3 +8065,30 @@ chart's lock ugly, and the overall first-ball read worth giving away.
   (ADR-172), since the Pro page opens under it.
 - The Pro page drops its chart and first-ball items and names both under what
   stays free; the Stats banner says Pro adds every leave and every ball.
+
+---
+
+## ADR-175: The Pro page opens above every sheet
+
+**Status.** Accepted, 2026-10-21, after the owner saw it on a phone. Amends
+ADR-172 and ADR-174 on what a lock inside a sheet does first.
+
+**Context.** A lock inside a sheet (the session sheet's stats, the View all
+sheets, the ball form) opened the Pro page under the sheet: pushed screens live
+in the app shell, sheets are portalled to the body above it, and no z-index in
+the shell can rise past them. ADR-172 and ADR-174 worked round it by closing the
+sheet first, which lost a ball being added and could not reach the session
+sheet's own stats.
+
+**Decision.**
+
+- **The Pro page is its own layer at the top** (`PushScreen layer="top"`),
+  portalled to the body above the sheets and the lane view and under the
+  dialogs. A lock opens it over whatever is up, and its back returns there. The
+  close-the-sheet-first workarounds are gone.
+- **The sheet keeps its back entry.** Opened from a sheet, the page takes over
+  the sheet's history sentinel like any screen opened from one; when it closes
+  onto the sheet, the sentinel is put back (`coversSheets`, `useHistoryRoute`),
+  so the next back closes the sheet and not the screen under it.
+- **Only the overlay in front answers Escape and traps Tab** (`useOverlay`).
+  With the sheet still active under the page, both used to close at once.
