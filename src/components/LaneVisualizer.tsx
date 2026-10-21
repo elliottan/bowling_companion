@@ -733,7 +733,7 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
               <ProVeil
                 lane
                 what="Moving the line"
-                label={isTopDown ? "Pro" : "Move it with Pro"}
+                label={isTopDown ? undefined : "Move it with Pro"}
                 before={editLocked?.before}
               >
                 <div className={pegRow}>{pegFields}</div>

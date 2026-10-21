@@ -92,8 +92,8 @@ Android app stays open.
 On the web always, and in the app before purchase. It follows
 `docs/DESIGN-LANGUAGE.md` and invents no new chrome.
 
-- **A locked card is a teaser** (ADR-163): its first lines as they are, fading
-  out, with one small "Pro" mark, and the whole teaser is the tap. A screen
+- **A locked card is a teaser** (ADR-163, ADR-173): its first lines, lightly
+  blurred and fading out, with a lock on them, and the whole teaser is the tap. A screen
   with several says what Pro adds once, in a banner at its foot with the one
   button: "Get Headpin Pro" in the app, "Get the app" on the web.
 - **A locked list is a taste** (ADR-167): its first rows in full, then one row

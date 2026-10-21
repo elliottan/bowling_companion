@@ -159,7 +159,7 @@ describe("SpareLinesView", () => {
 
     // And the same in its sheet.
     fireEvent.click(third);
-    expect(await screen.findByText("This leave's record is in Headpin")).toBeInTheDocument();
+    expect(await screen.findByText("This leave's record is in Headpin Pro")).toBeInTheDocument();
     expect(screen.queryByText("2 times")).not.toBeInTheDocument();
   });
 

@@ -28,13 +28,13 @@ describe("ProLock", () => {
   it("is the card itself while Pro is open", () => {
     renderLock({ locked: false });
     expect(screen.getByRole("button", { name: "Open Wolverine" })).toBeInTheDocument();
-    expect(screen.queryByText("Pro")).not.toBeInTheDocument();
+    expect(document.querySelector("[data-pro-mark]")).toBeNull();
   });
 
   it("is the card itself when the content is free right now", () => {
     renderLock(LOCKED, false);
     expect(screen.getByRole("button", { name: "Open Wolverine" })).toBeInTheDocument();
-    expect(screen.queryByText("Pro")).not.toBeInTheDocument();
+    expect(document.querySelector("[data-pro-mark]")).toBeNull();
   });
 
   it("keeps the card's first lines in view under one tap nobody can reach into", () => {
@@ -43,14 +43,18 @@ describe("ProLock", () => {
     const preview = screen.getByText("Open Wolverine").parentElement!;
     expect(preview).toHaveAttribute("inert");
     expect(preview).toHaveAttribute("aria-hidden", "true");
-    // It fades out rather than being blurred, and shows only a few lines.
+    // It fades out, lightly blurred so it reads as locked, and shows only a
+    // few lines (ADR-173).
+    expect(preview.className).toContain("blur-");
     expect(preview.style.maxHeight).toBe("9rem");
     expect(preview.style.maskImage || preview.style.webkitMaskImage).toContain("linear-gradient");
     // Out of the accessibility tree and the tab order.
     expect(screen.queryByRole("button", { name: "Open Wolverine" })).not.toBeInTheDocument();
     // The one tap is named for what the card shows and what it does.
     expect(screen.getByRole("button", { name: "How each ball strikes. Get the app" })).toBeInTheDocument();
-    expect(screen.getByText("Pro")).toBeInTheDocument();
+    // The lock alone, without the word (ADR-173).
+    expect(document.querySelector("[data-pro-mark]")).not.toBeNull();
+    expect(screen.queryByText("Pro")).not.toBeInTheDocument();
   });
 
   it("shows the steps for moving games over before it opens the App Store", async () => {
@@ -111,7 +115,7 @@ describe("ProBlur", () => {
       </ProAccessContext.Provider>
     );
     expect(screen.getByRole("button", { name: "Open Wolverine" })).toBeInTheDocument();
-    expect(screen.queryByText("Pro")).not.toBeInTheDocument();
+    expect(document.querySelector("[data-pro-mark]")).toBeNull();
   });
 
   it("blurs the row out of reach under the mark, and the row is the way to Pro", () => {
@@ -127,7 +131,9 @@ describe("ProBlur", () => {
     expect(preview).toHaveAttribute("aria-hidden", "true");
     expect(preview.className).toContain("blur-");
     expect(screen.queryByRole("button", { name: "Open Wolverine" })).not.toBeInTheDocument();
-    expect(screen.getByText("Pro")).toBeInTheDocument();
+    // The lock alone, without the word (ADR-173).
+    expect(document.querySelector("[data-pro-mark]")).not.toBeNull();
+    expect(screen.queryByText("Pro")).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Every ball. Get the app" }));
     expect(screen.getByRole("dialog", { name: "Bowled with Headpin on the web?" })).toBeInTheDocument();
   });

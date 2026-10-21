@@ -8011,3 +8011,28 @@ another door.
   sits under a sheet, so the sheet goes before it opens (as the lane view does).
   An unsaved new ball is lost with it; the layout is the last field, so the
   rest is quick to enter again.
+
+---
+
+## ADR-173: A lock is the lock alone, on a card that looks locked
+
+**Status.** Accepted, 2026-10-21, by the owner from a phone in hand. Amends
+ADR-163 and ADR-167 on how a locked card and its mark look.
+
+**Context.** On Stats without Pro, the First ball card showed its numbers sharp
+and whole, with a "Pro" mark in room of its own beneath the fade: it read as
+an open card with a stray button under it, and the owner could not tell what it
+locked. Every locked card and row carried the same "Pro" pill, so a screen of
+them said one word again and again.
+
+**Decision.**
+
+- **A locked card is lightly blurred** (2px) as well as faded, with the lock
+  in the middle of it rather than below. Its numbers are still there to see as
+  shapes, which says there is real work behind it, and the blur says it is not
+  open.
+- **The mark on a card or a row is a round lock icon with no word.** The tap's
+  spoken name still says what the card shows and what it does. A veil over
+  controls keeps its words where they say what Pro opens there ("Try your
+  layouts with Pro", "Move it with Pro"); where there is no room for words it
+  is the lock alone too.

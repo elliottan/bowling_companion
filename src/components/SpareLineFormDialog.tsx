@@ -393,9 +393,7 @@ function LeaveRecord({ stats, empty, locked }: { stats?: LeaveStats; empty: bool
           </div>
         </dl>
         <p className="absolute inset-0 flex items-center justify-center">
-          <ProPill>
-            <span className="sr-only">This leave's record is in Headpin </span>Pro
-          </ProPill>
+          <ProPill srLabel="This leave's record is in Headpin Pro" />
         </p>
       </div>
     );

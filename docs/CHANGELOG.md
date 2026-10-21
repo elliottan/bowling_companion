@@ -29,6 +29,9 @@ had all shipped.
   is not on the phone.
 - **Ball weights run 16 down to 8 lb**, heaviest first, and the arsenal shows
   each ball's weight beside its name.
+- **Locks are just the lock.** Every locked card and row carries a lock icon
+  without the word "Pro", and a locked card such as First ball is softly
+  blurred with the lock on it, so it is clear what is locked (ADR-173).
 - **Locked controls are easier to see through.** The blur over the layout
   sliders and the lane's line fields is lighter.
 - **Lists scroll under the tab bar.** In the iPhone app and on the web, the

@@ -320,9 +320,11 @@ a new one opens straight on the fields, since there is nothing to read yet.
 Retire and delete stay on the read sheet: they are actions, not edits, and
 delete asks first.
 
-**Pro shows as a taste, never a wall (ADR-163, ADR-167).** A locked chart or
-card shows its first lines as they are and fades out, with one small "Pro" mark
-and the whole card as the tap. A locked list shows its first rows in full, the
+**Pro shows as a taste, never a wall (ADR-163, ADR-167, ADR-173).** A locked
+chart or card shows its first lines lightly blurred and fading out, with the
+lock in the middle of them and the whole card as the tap: shown sharp, with the
+mark below it, the card read as open. The mark on a card or a row is the lock
+alone, never the word "Pro", which a screen of locks repeated over and over. A locked list shows its first rows in full, the
 bowler's own numbers, then one more row blurred under the mark, and nothing
 after it: two leaves on Stats, one ball on Stats and the Alley report
 (`lib/proPreview`, `ProBlur`). Locked controls stay where they are, blurred and
