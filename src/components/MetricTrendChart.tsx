@@ -1,4 +1,5 @@
 import { useState, type ReactNode } from "react";
+import { averageLabelY, trendInset } from "../lib/chartLabels";
 
 /**
  * One point's value of whichever metric is selected.
@@ -43,7 +44,6 @@ interface MetricTrendChartProps {
 
 const W = 320;
 const H = 140;
-const INSET_X = 14;
 const INSET_TOP = 18;
 const INSET_BOTTOM = 16;
 /** Sessions shown, newest kept. Beyond this the dots merge into a smear. */
@@ -97,8 +97,10 @@ export function MetricTrendChart({
   const plotW = W;
 
   const lastIndex = Math.max(1, shown.length - 1);
+  // A few points sit in from the edges, clear of the overall's label.
+  const inset = trendInset(shown.length);
   const x = (i: number) =>
-    shown.length === 1 ? plotW / 2 : INSET_X + (i / lastIndex) * (plotW - INSET_X * 2);
+    shown.length === 1 ? plotW / 2 : inset + (i / lastIndex) * (plotW - inset * 2);
   const y = (value: number) =>
     INSET_TOP + ((hi - value) / span) * (H - INSET_TOP - INSET_BOTTOM);
 
@@ -106,7 +108,7 @@ export function MetricTrendChart({
   const columnWidth =
     shown.length === 1
       ? plotW
-      : Math.max(18, (plotW - INSET_X * 2) / Math.max(1, shown.length - 1));
+      : Math.max(18, (plotW - inset * 2) / Math.max(1, shown.length - 1));
 
   const selectedIndex = shown.findIndex((p) => p.key === selectedKey);
   const selected = selectedIndex === -1 ? null : selectedIndex;
@@ -143,6 +145,22 @@ export function MetricTrendChart({
   const lowIndex = shown.findIndex((p) => p.value === lowValue);
   const showExtremes = highValue !== lowValue;
 
+  // The overall's label takes the side of its line clear of the latest point
+  // and of the value printed over it when that point is the best or worst.
+  const lastShown = shown[shown.length - 1];
+  const lastIndexShown = shown.length - 1;
+  const overallLabelY =
+    overall === null
+      ? 0
+      : lastShown?.value == null
+        ? y(overall) - 4
+        : averageLabelY(
+            y(overall),
+            y(lastShown.value),
+            9,
+            showExtremes && (lastIndexShown === highIndex || lastIndexShown === lowIndex)
+          );
+
   return (
     <div className="rounded-xl border border-edge bg-surface p-3 shadow-sm">
       {header}
@@ -167,7 +185,7 @@ export function MetricTrendChart({
             />
             <text
               x={plotW}
-              y={y(overall) - 4}
+              y={overallLabelY}
               textAnchor="end"
               className="fill-ink-tertiary text-[9px] tabular-nums"
             >

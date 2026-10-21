@@ -1,4 +1,4 @@
-import { averageLabelY } from "../lib/chartLabels";
+import { averageLabelY, trendInset } from "../lib/chartLabels";
 import { useState, type ReactNode } from "react";
 import type { SessionTrendPoint } from "../lib/stats";
 
@@ -25,7 +25,6 @@ const MAX_POINTS = 20;
 
 const W = 320;
 const H = 140;
-const INSET_X = 14;
 const INSET_TOP = 18;
 const INSET_BOTTOM = 16;
 
@@ -66,14 +65,16 @@ export function SessionTrendChart({ sessions, header, onOpenSession, overall }: 
   const span = top - bottom;
 
   const lastIndex = Math.max(1, points.length - 1);
+  // A few sessions sit in from the edges, clear of the average's label.
+  const inset = trendInset(points.length);
   const x = (i: number) =>
-    points.length === 1 ? W / 2 : INSET_X + (i / lastIndex) * (W - INSET_X * 2);
+    points.length === 1 ? W / 2 : inset + (i / lastIndex) * (W - inset * 2);
   const y = (score: number) =>
     INSET_TOP + ((top - score) / span) * (H - INSET_TOP - INSET_BOTTOM);
 
   // Wide enough to hit, never wider than the gap to the next point.
   const columnWidth =
-    points.length === 1 ? W : Math.max(18, (W - INSET_X * 2) / Math.max(1, points.length - 1));
+    points.length === 1 ? W : Math.max(18, (W - inset * 2) / Math.max(1, points.length - 1));
 
   const keyOf = (p: SessionTrendPoint) => `${p.sessionId ?? ""}:${p.date}`;
   const selectedIndex = points.findIndex((p) => keyOf(p) === selectedKey);
@@ -111,7 +112,13 @@ export function SessionTrendChart({ sessions, header, onOpenSession, overall }: 
         />
         <text
           x={W}
-          y={averageLabelY(y(avg), y(points[points.length - 1].average))}
+          // The latest point prints its value when it is the high or the low.
+          y={averageLabelY(
+            y(avg),
+            y(points[points.length - 1].average),
+            9,
+            high !== low && (points[points.length - 1].average === high || points[points.length - 1].average === low)
+          )}
           textAnchor="end"
           className="fill-ink-tertiary text-[9px] tabular-nums"
         >

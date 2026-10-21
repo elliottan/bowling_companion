@@ -1,4 +1,4 @@
-import { averageLabelY } from "../lib/chartLabels";
+import { averageLabelY, trendInset } from "../lib/chartLabels";
 import { useState, type ReactNode } from "react";
 import type { Game } from "../types/bowling";
 
@@ -20,7 +20,6 @@ const MIN_HALF_RANGE = 40;
 
 const W = 320;
 const H = 120;
-const INSET_X = 14;
 const INSET_TOP = 18;
 const INSET_BOTTOM = 16;
 
@@ -56,8 +55,10 @@ export function ScoreTrendChart({ games, header, onOpenGame }: ScoreTrendChartPr
   const firstGame = scored[0].game_number;
   const gameSpan = Math.max(1, lastGame - firstGame);
 
+  // A few games sit in from the edges, clear of the average's label.
+  const inset = trendInset(gameSpan + 1);
   const x = (gameNumber: number) =>
-    INSET_X + ((gameNumber - firstGame) / gameSpan) * (W - INSET_X * 2);
+    inset + ((gameNumber - firstGame) / gameSpan) * (W - inset * 2);
   const y = (score: number) =>
     INSET_TOP + ((top - score) / span) * (H - INSET_TOP - INSET_BOTTOM);
 
@@ -75,7 +76,7 @@ export function ScoreTrendChart({ games, header, onOpenGame }: ScoreTrendChartPr
 
   // Wide enough to hit, never wider than the gap to the next game.
   const columnWidth =
-    scored.length === 1 ? W : Math.max(18, (W - INSET_X * 2) / Math.max(1, gameSpan));
+    scored.length === 1 ? W : Math.max(18, (W - inset * 2) / Math.max(1, gameSpan));
   const chosen = selected === null ? null : scored.find((g) => g.game_number === selected) ?? null;
 
   return (
@@ -100,7 +101,8 @@ export function ScoreTrendChart({ games, header, onOpenGame }: ScoreTrendChartPr
         />
         <text
           x={W}
-          y={averageLabelY(y(avg), y(scored[scored.length - 1].final_score))}
+          // Every game prints its score over its dot.
+          y={averageLabelY(y(avg), y(scored[scored.length - 1].final_score), 9, true)}
           textAnchor="end"
           className="fill-ink-tertiary text-[9px] tabular-nums"
         >

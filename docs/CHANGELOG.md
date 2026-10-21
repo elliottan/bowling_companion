@@ -17,6 +17,10 @@ had all shipped.
 - **Home offers the iPhone app.** On the web, Home opens on a "Headpin for
   iPhone" row with Get, in place of the card that asked you to add Headpin to
   your home screen (ADR-170). Close it and it stays away for two weeks.
+- **The average's label no longer sits on the last game.** With five points
+  or fewer, the charts draw the first and last a little in from the edges, so
+  the last dot and its score clear the "avg" label; with more, the label moves
+  to whichever side of its line is clear of the last dot and its score.
 - **History and Stats keep their header when you come back.** Returning to a
   tab you had scrolled down no longer hides the header by itself a moment
   after it shows; it hides and comes back only as you scroll.
