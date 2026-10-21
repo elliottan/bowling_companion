@@ -117,6 +117,61 @@ textarea,
   --color-warning-700: 252 211 77; /* amber-300 text on dark */
 }
 
+/*
+ * Pro palettes (ADR-164). Each changes only the accent group, in both themes,
+ * and sets the same five roles Felt does. Every fill clears 3:1 against its
+ * surfaces and carries 4.5:1 text; the dark accents are lightened to read on
+ * the dark background. `data-palette` is absent for Felt.
+ */
+:root[data-theme="light"][data-palette="ocean"] {
+  --color-accent: 29 78 216;
+  --color-accent-soft: 239 246 255;
+  --color-accent-fill: 29 78 216;
+  --color-accent-fill-hover: 30 64 175;
+}
+:root[data-theme="dark"][data-palette="ocean"] {
+  --color-accent: 147 197 253;
+  --color-accent-soft: 22 36 70;
+  --color-accent-fill: 59 130 246;
+  --color-accent-fill-hover: 96 165 250;
+}
+:root[data-theme="light"][data-palette="sunset"] {
+  --color-accent: 194 65 12;
+  --color-accent-soft: 255 247 237;
+  --color-accent-fill: 194 65 12;
+  --color-accent-fill-hover: 154 52 18;
+}
+:root[data-theme="dark"][data-palette="sunset"] {
+  --color-accent: 253 186 116;
+  --color-accent-soft: 54 30 14;
+  --color-accent-fill: 249 115 22;
+  --color-accent-fill-hover: 251 146 60;
+}
+:root[data-theme="light"][data-palette="grape"] {
+  --color-accent: 109 40 217;
+  --color-accent-soft: 245 243 255;
+  --color-accent-fill: 109 40 217;
+  --color-accent-fill-hover: 91 33 182;
+}
+:root[data-theme="dark"][data-palette="grape"] {
+  --color-accent: 196 181 253;
+  --color-accent-soft: 36 26 66;
+  --color-accent-fill: 139 92 246;
+  --color-accent-fill-hover: 167 139 250;
+}
+:root[data-theme="light"][data-palette="rose"] {
+  --color-accent: 190 18 60;
+  --color-accent-soft: 255 241 242;
+  --color-accent-fill: 190 18 60;
+  --color-accent-fill-hover: 159 18 57;
+}
+:root[data-theme="dark"][data-palette="rose"] {
+  --color-accent: 253 164 175;
+  --color-accent-soft: 58 20 30;
+  --color-accent-fill: 244 63 94;
+  --color-accent-fill-hover: 251 113 133;
+}
+
 button,
 input,
 textarea,

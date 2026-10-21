@@ -46,9 +46,9 @@ is built and free today, so with no bowlers yet nothing is taken from anyone.
 | Stats | Ball performance rows against All balls | | ✓ | Equipment depth |
 | Stats | Charts by game slot, and trend charts for the deeper metrics | | ✓ | Analysis |
 | Home | Tonight, profile, first run, guides | ✓ | | Getting started |
-| Alley report | The last session there: each line thrown and how it went | ✓ | | Your own record of one session, and the free taste of the report |
-| Alley report | What you'd average with each ball, the best lines there, how your line moved between sessions | | ✓ | Reads across sessions, the deepest read in the app |
+| Alley report | What you'd average with each ball there | | ✓ | Reads across sessions, the deepest read in the app. Its lines (best lines, the last session, line changes) are off the screen for now (ADR-163) |
 | Lane | A shot's line drawn on the lane, behind its info button | ✓ | | Seeing what you entered |
+| Lane | Dragging a shot's line on that lane, from score entry | | ✓ | Same as the sandbox (ADR-165). Typing the boards stays free |
 | Lane | The sandbox, read-only: any line drawn on the lane, its pattern, the other hand | ✓ | | Seeing a line, the best preview of Pro |
 | Lane | The sandbox: moving the line, quick moves, its hook shape | | ✓ | A tool for planning, not recording |
 | Lane | Lane notes | ✓ | | Recording |
@@ -61,6 +61,8 @@ is built and free today, so with no bowlers yet nothing is taken from anyone.
 | Sharing | Night, line and layout share cards, and the links they carry | ✓ | | How new bowlers find the app |
 | Sharing | Opening a shared line or layout to read | ✓ | | A link opens for anyone, and is the best preview of Pro |
 | Sharing | Changing a shared line or layout (moving it, turning the ball) | | ✓ | That is the sandbox and the layout lab |
+| Appearance | Light, dark and the Felt accent | ✓ | | Everyone |
+| Appearance | Four more accent colors (Ocean, Sunset, Grape, Rose) | | ✓ | Looks only, so it takes nothing away (ADR-164) |
 
 The deeper reads come from the same records, so they need nothing new stored.
 
@@ -73,14 +75,29 @@ whatever `APP_STORE_URL` says. Both are the same shell (`src/lib/pro.ts`), and
 the same browser keeps the same games at either address, since storage belongs
 to the site, not the path.
 
+Until the app is listed, `/app` shows the locked app too, so the free tier can be
+checked on the web before an iPhone rebuild (`LOCK_FREE_WEB` in
+`src/lib/appStore.ts`, ADR-166). The Pro page's button then says the app is not in
+the App Store yet. `/score` and the Android app stay open.
+
 ## How Pro shows where it is locked
 
 On the web always, and in the app before purchase. It follows
 `docs/DESIGN-LANGUAGE.md` and invents no new chrome.
 
-- **A locked card keeps its place on the screen, grayed out, with one line**
-  saying what it would show, and a single action: "Get Headpin Pro" in the app,
-  "Get the app" on the web, which opens the App Store.
+- **A locked card is a teaser** (ADR-163): its first lines as they are, fading
+  out, with one small "Pro" mark, and the whole teaser is the tap. A screen
+  with several says what Pro adds once, in a banner with the one button: "Get
+  Headpin Pro" in the app, "Get the app" on the web, which opens the App Store.
+- **Every one of those opens the Pro page first** (ADR-164): what Pro adds, in a
+  picture and a sentence each, what stays free, and then the one button that
+  charges, with Restore purchase. Nothing charges from a tap on a card.
+- **A standing banner on Home** for a bowler without Pro, which locks nothing and
+  opens that page. It is the free app's one visible ad for Pro.
+- **A bowler who bought Pro gets a small "Pro" mark** on the app's mark on Home
+  and beside their name in Settings, and the extra accent colors in Appearance.
+  The app's home screen icon is not changed yet: an alternate icon needs a
+  drawn asset and a native call.
 - **No popups, no counters, no nags.** Nothing appears during scoring, nothing
   repeats on a timer, and a card the bowler has seen stays quiet.
 - **The card may show the bowler's own count** ("Your 214 leaves, by pin") but
@@ -176,7 +193,8 @@ switch.
       selects it).
 - [x] The locked card, `components/ui/ProLock`, on Stats and the Alley report.
 - [x] The sandbox and the layout lab: read-only without Pro, shared links
-      included, with `ProNote` saying what waits on Pro.
+      included, with a quiet `ProNote` line in the layout lab and a `ProChip` on the lane
+      (ADR-163).
 
 ### 3. Native work and cleanup
 

@@ -21,3 +21,10 @@ export const ProStoreContext = createContext<ProStore | null>(null);
 export function useProStoreContext(): ProStore | null {
   return useContext(ProStoreContext);
 }
+
+/** Whether this copy has Headpin Pro because it was bought, as opposed to Pro
+ *  being open for some other reason (ADR-164). */
+export function useProOwned(): boolean {
+  const access = useProAccess();
+  return !access.locked && access.owned === true;
+}

@@ -60,6 +60,7 @@ const OVERLAYS: readonly string[] = [
   "open-frames",
   "game-trend",
   "game-plan",
+  "pro",
   "stats-push",
   "session"
 ];

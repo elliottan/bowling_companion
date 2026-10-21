@@ -97,12 +97,13 @@ interface LaneVisualizerProps {
    *  link that may cross devices; this one names a row already on this
    *  device, so its own id is enough. */
   seedPatternId?: number;
-  /** Shown under the lane in place of the drag hint. The sandbox puts its Pro
-   *  note here while it is read-only (ADR-154). */
-  footer?: ReactNode;
+  /** Shown in the row of floating controls, at the top and in the middle. The
+   *  sandbox puts its Pro mark here while it is read-only (ADR-163), which
+   *  leaves the lane the whole height under it. */
+  notice?: ReactNode;
 }
 
-export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, showStance = false, title = "Line", onEditAttempt, defaultLocks, suspended = false, handSwitchable = false, seedHand, seedPatternCatalogId, seedPatternId, footer }: LaneVisualizerProps) {
+export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, showStance = false, title = "Line", onEditAttempt, defaultLocks, suspended = false, handSwitchable = false, seedHand, seedPatternCatalogId, seedPatternId, notice }: LaneVisualizerProps) {
   const appHand = useHandedness();
   // Nothing here is written back to settings: mirroring the lane to see how the
   // other hand plays it is a question being asked, not the bowler changing hands
@@ -511,6 +512,14 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
             <X size={18} aria-hidden="true" />
           </button>
         </div>
+        {notice && (
+          <div
+            className="absolute left-1/2 top-[max(0.75rem,env(safe-area-inset-top))] z-20 -translate-x-1/2"
+            onPointerDown={(e) => e.stopPropagation()}
+          >
+            {notice}
+          </div>
+        )}
         <div
           className="absolute left-3 top-[max(0.75rem,env(safe-area-inset-top))] z-20 flex flex-col items-start gap-2"
           onPointerDown={(e) => e.stopPropagation()}
@@ -727,11 +736,9 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
         )}
       </div>
 
-      {footer ?? (
-        <p className="px-4 py-2 text-center text-xs text-white/60">
-          {onChange ? "Drag a point to move it · drag the lane to tilt" : "Drag the lane to tilt"}
-        </p>
-      )}
+      <p className="px-4 py-2 text-center text-xs text-white/60">
+        {onChange ? "Drag a point to move it · drag the lane to tilt" : "Drag the lane to tilt"}
+      </p>
 
       {optionsOpen && (
         <OptionsSheet

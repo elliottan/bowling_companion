@@ -55,6 +55,9 @@ export type Overlay =
   | "open-frames"
   | "game-trend"
   | "game-plan"
+  /** What Headpin Pro is, with samples, before anything charges (ADR-164).
+   *  Every locked card, the Home banner and Settings open it. */
+  | "pro"
   /** A session you are looking at rather than bowling. Pushed over whatever
    *  list you opened it from, so back returns to the list and the Active tab
    *  keeps the session you are actually bowling (ADR-084). */
@@ -372,7 +375,10 @@ export function navReducer(state: NavState, action: NavAction): NavState {
         overlays: route.overlays,
         catalogBallId: route.catalogBallId ?? null,
         openGuideId: route.guideId ?? null,
-        reportLineId: route.reportLineId ?? null,
+        // The line view is off the screen for now (ADR-163), so an old link to
+        // one opens the report and leaves no id behind: a back press that
+        // closes nothing would be the only thing it did.
+        reportLineId: null,
         // A restored route is a URL, and a URL says which screen, never which
         // ball: a lab restored from history opens on its own defaults or on the
         // query string, exactly as a pasted link does.

@@ -9,10 +9,10 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
-## 0.50.0: Every ball photo, cut the same way (2026-10-21)
+## 0.51.0: Every ball photo, cut the same way (2026-10-21)
 
 - **Ball photos look like one set.** Every photo in the catalog has been
-  re-cut to its ball's exact circle with the same clean edge (ADR-163). Gone
+  re-cut to its ball's exact circle with the same clean edge (ADR-167). Gone
   are the light fringes and dark rings around some balls, the shadows under
   others, the white rim on glossy ones and the nicks in a few bright rims, so
   a ball looks right on a light or a dark screen. The balls themselves, their
@@ -26,6 +26,41 @@ In the repo:
 - **`npm run rerender-images`** re-renders photos made before the current
   treatment, and `clear-background` is retired: every new photo, from any
   ingest route, is cut to its ball on the way in.
+## 0.50.0: A Pro page, accent colors, and a quieter lock (2026-10-21)
+
+- **Get Headpin Pro opens a page first** (ADR-164). It shows what Pro adds, with a
+  small drawing for each, says what stays free, and says it is a single payment,
+  not a subscription. Only the button at the bottom charges, and Restore purchase
+  is there too. Locked cards, the banner, the lane chip, the Settings row and the
+  locked colors all open it.
+- **Locked cards show a preview.** Stats had four big "Get Headpin Pro" buttons on
+  top of blurred cards. Now the top of Stats says once what Pro adds, and each
+  locked card shows its first lines, fading out, with a small Pro mark. Tapping
+  the card does the same as the button. The Alley report's balls work the same way
+  (ADR-163).
+- **headpin.app/app shows the locked app.** It now looks like the free iPhone
+  app: previews, the Pro page, the Home banner. The Pro page says the app is not
+  in the App Store yet. headpin.app/score is unchanged and keeps every feature
+  (ADR-166).
+- **Moving the line from score entry needs Pro.** Open a shot's line from the
+  scorer and you can see it but not drag it, the same as in the line visualizer.
+  Typing the boards into the fields is still free (ADR-165).
+- **The line visualizer gets its lane back.** The Pro note at the bottom crowded
+  the board numbers. It is now a small "Unlock editing" chip at the top.
+- **Four more accent colors with Pro:** Ocean, Sunset, Grape and Rose, in
+  Settings under Appearance, in light and dark.
+- **A "Pro" label for people who bought it,** on the app icon on Home and next to
+  your name in Settings.
+- **A small Pro banner on Home** for people without it. It locks nothing.
+- **Layouts leads with the ball,** then what it will do, then the controls. The
+  read-only note is one line instead of a card.
+- **The Alley report shows balls only, for now.** Best lines, last session and
+  line changes are off the screen. The code for them is still there. With no balls
+  named on your shots, the report says so instead of showing nothing.
+
+In the repo: ADR-163 to ADR-165. `ProAction` is no longer exported; `ProBanner`
+and `ProChip` are new, and `ProNote` is one line. The line visualizer's `footer`
+prop is `notice`.
 
 ## 0.49.0: Bring your games to the app, and keep the photos (2026-10-20)
 

@@ -6,6 +6,8 @@
  */
 import { Crosshair, Eye, Plus } from "lucide-react";
 import { useState } from "react";
+import { ProChip } from "./ui/ProLock";
+import { useProAccess } from "../lib/useProAccess";
 import { useDriftModel } from "../lib/driftModelContext";
 import {
   deriveLaydown,
@@ -80,6 +82,7 @@ export function ShotDetailBar({
   locked = false,
   editPromptOpen
 }: ShotDetailBarProps) {
+  const { locked: proLocked } = useProAccess();
   const [showViz, setShowViz] = useState<"intended" | "actual" | null>(null);
   const [showLinePicker, setShowLinePicker] = useState(false);
   const [showBallPicker, setShowBallPicker] = useState(false);
@@ -332,7 +335,17 @@ export function ShotDetailBar({
         <LaneVisualizerLazy
           title={showViz === "actual" ? "Actual line" : "Intended line"}
           line={showViz === "actual" ? actualView : intended}
-          onChange={showViz === "actual" ? handleActualChange : handleIntendedChange}
+          // Drawn in full and not movable without Pro, here as in the sandbox:
+          // the boards are still typed into the fields above, which is
+          // recording and stays free (ADR-165).
+          onChange={
+            proLocked ? undefined : showViz === "actual" ? handleActualChange : handleIntendedChange
+          }
+          notice={
+            proLocked ? (
+              <ProChip what="Moving the line is in Headpin Pro" before={() => setShowViz(null)} />
+            ) : undefined
+          }
           onEditAttempt={onEditAttempt}
           // The actual line records where the ball finished, so it opens with the
           // foul line and arrows pinned: the first thing you can drag is the
