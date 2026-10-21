@@ -22,6 +22,11 @@ had all shipped.
   VLS. The sliders sit under "Try your layouts with Pro", which stays put as
   you scroll, and the numbers on the dual angle and VLS boxes are in your
   accent color. The More button is gone; Share stays.
+- **A ball's layout is Pro.** Without Pro the ball form keeps its name, weight
+  and catalog link, and its layout sits under "Set and visualize your ball
+  layout with Pro". A layout already on a ball still reads (ADR-172).
+- **Ball weights run 16 down to 8 lb**, heaviest first, and the arsenal shows
+  each ball's weight beside its name.
 - **Locked controls are easier to see through.** The blur over the layout
   sliders and the lane's line fields is lighter.
 - **Lists scroll under the tab bar.** In the iPhone app and on the web, the

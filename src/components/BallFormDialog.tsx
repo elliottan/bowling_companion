@@ -30,8 +30,12 @@ import { FormSheet } from "./ui/FormSheet";
 import { matchesCatalogSearch } from "../lib/catalogSearch";
 import { IconButton } from "./ui/IconButton";
 import { BarButton } from "./ui/BarButton";
+import { ProVeil } from "./ui/ProLock";
+import { useProAccess } from "../lib/useProAccess";
 
-const WEIGHT_OPTIONS = [10, 11, 12, 13, 14, 15, 16];
+/** Heaviest first: most bowlers throw 14 to 16, so the list opens near the
+ *  answer, and it runs down to the 8 lb balls juniors and seniors throw. */
+const WEIGHT_OPTIONS = [16, 15, 14, 13, 12, 11, 10, 9, 8];
 
 /** What a fresh layout opens on: the benchmark every chart is read against,
  *  and the same one the layout lab starts from. */
@@ -280,6 +284,9 @@ export function BallFormDialog({ ball, onClose, onSaved, onDelete, onRetire }: B
             </div>
 
             <LayoutField
+              // The Pro page opens over the app, under a sheet, so the sheet
+              // goes first (ADR-172).
+              onPro={onClose}
               spec={layoutSpec}
               onChange={setLayoutSpec}
               preference={systemPreference}
@@ -531,8 +538,12 @@ function LayoutField({
   onChange,
   preference,
   legacyText,
-  defaultSymmetric
+  defaultSymmetric,
+  onPro
 }: {
+  /** Closes what would cover the Pro page, before a tap on the locked layout
+   *  opens it. */
+  onPro?: () => void;
   spec: BallLayoutSpec | null;
   onChange: (spec: BallLayoutSpec | null) => void;
   preference: LayoutSystem;
@@ -553,6 +564,10 @@ function LayoutField({
   // notation of its own follows the preference, and keeps following it: that is
   // what makes the preference worth having.
   const system = spec?.system ?? preference;
+  // Setting a ball's layout is Pro (ADR-172): a layout on a ball is drawn by the
+  // layout lab, so a free one was the lab's sliders by another door. A layout
+  // already on a ball still reads, on the read sheet and in the lab.
+  const { locked } = useProAccess();
 
   const setLayout = (next: DualAngleLayout) => {
     if (!spec) return;
@@ -573,7 +588,7 @@ function LayoutField({
     <section className="space-y-2">
       <div className="flex items-center justify-between gap-3">
         <h2 className={GROUP_HEADING}>Layout</h2>
-        {spec && (
+        {spec && !locked && (
           <button
             type="button"
             onClick={() => onChange(null)}
@@ -594,6 +609,7 @@ function LayoutField({
         </p>
       )}
 
+      <ProVeil what="Setting this ball's layout" label="Set and visualize your ball layout with Pro" before={onPro}>
       {spec == null || ball == null || layout == null ? (
         <button
           type="button"
@@ -644,6 +660,7 @@ function LayoutField({
 
         </>
       )}
+      </ProVeil>
     </section>
   );
 }

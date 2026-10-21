@@ -57,7 +57,8 @@ is built and free today, so with no bowlers yet nothing is taken from anyone.
 | Lane | The sandbox: moving the line, quick moves, its hook shape | | ✓ | A tool for planning, not recording |
 | Lane | Lane notes | ✓ | | Recording |
 | Arsenal | Your balls, unlimited, retiring a ball and keeping its history | ✓ | | Some apps cap the arsenal, but a cap gates the bowler's own data |
-| Arsenal | A ball's layout written on it: PAP and the layout values | ✓ | | Recording |
+| Arsenal | A ball's name, weight, catalog link, and reading a layout already on it | ✓ | | Recording |
+| Arsenal | Setting a ball's layout (ADR-172) | | ✓ | The lab draws a ball's layout, so a free one was the lab's sliders by another door |
 | Layout lab | Reading a layout: the drilled ball, both notations, what it will do, turning the ball to look | ✓ | | Seeing a layout, the best preview of Pro |
 | Layout lab | Your PAP, hand and grip, the core, and which notation to read (ADR-170) | ✓ | | Trying the drawn layout against your own hand is the taste |
 | Layout lab | Changing the three numbers: the sliders and the presets | | ✓ | Equipment depth (the Paddock and BowlSheet sell this alone) |

@@ -7985,3 +7985,29 @@ no scroll view to watch, so iOS 26 may give it a solid ground of its own.
 **Consequences.** Every tab's last rows can now sit behind the bar until
 scrolled up, which is how a system screen behaves; `<main>` still pads its end
 by `--tab-bar-h`, so the last row can always be scrolled clear of it.
+
+---
+
+## ADR-172: Setting a ball's layout is Pro
+
+**Status.** Accepted, 2026-10-21, by the owner's decision. Amends the
+PRO-LAUNCH split, where writing a layout on a ball was free as recording, and
+follows ADR-170.
+
+**Context.** ADR-170 locked the layout lab's three numbers. But a layout set on
+a ball in the arsenal opens in the lab, drawn and read out, so a bowler without
+Pro could set any layout there and see it on the ball: the lab's sliders by
+another door.
+
+**Decision.**
+
+- **The ball form's layout is Pro.** Adding or changing it, and removing it,
+  sit under one "Set and visualize your ball layout with Pro" mark
+  (`ProVeil`). The ball's name, weight and catalog link stay free.
+- **A layout already on a ball still reads,** on the read sheet, the arsenal
+  row and in the lab, since reading is free; a bowler who drilled a ball under
+  Pro, or brought one in from a backup, keeps seeing it.
+- **The tap closes the sheet first.** The Pro page is a pushed screen, which
+  sits under a sheet, so the sheet goes before it opens (as the lane view does).
+  An unsaved new ball is lost with it; the layout is the last field, so the
+  rest is quick to enter again.

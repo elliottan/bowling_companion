@@ -6,6 +6,7 @@ import { addBall, getBalls } from "../services/ballRepository";
 import { setLayoutSystem } from "../services/bowlingRepository";
 import type { BallLayoutSpec } from "../types/bowling";
 import type { CatalogBall } from "../types/catalog";
+import { ProAccessContext } from "../lib/useProAccess";
 
 vi.mock("../services/ballCatalogRepository", async (importOriginal) => {
   const actual = await importOriginal<typeof import("../services/ballCatalogRepository")>();
@@ -286,5 +287,48 @@ describe("BallFormDialog reading first", () => {
     render(<BallFormDialog ball={null} onClose={vi.fn()} onSaved={vi.fn()} />);
     expect(screen.getByLabelText(/Display name/)).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Edit ball" })).toBeNull();
+  });
+});
+
+describe("BallFormDialog without Pro (ADR-172)", () => {
+  beforeEach(async () => {
+    await db.delete();
+    await db.open();
+  });
+
+  it("keeps the layout behind Pro, and closes the sheet before the Pro page opens", () => {
+    const onClose = vi.fn();
+    render(
+      <ProAccessContext.Provider value={{ locked: true, appStoreUrl: "https://apps.apple.com/app/id1" }}>
+        <BallFormDialog ball={null} onClose={onClose} onSaved={vi.fn()} />
+      </ProAccessContext.Provider>
+    );
+    // The name and weight stay free; the layout is out of reach under one mark.
+    expect(screen.getByLabelText(/Display name/)).toBeEnabled();
+    expect(screen.getByText("Set and visualize your ball layout with Pro")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Add layout/ })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Setting this ball's layout. Get the app" }));
+    expect(onClose).toHaveBeenCalled();
+  });
+
+  it("still reads a layout already on the ball", async () => {
+    const id = await addBall({ name: "Phaze II", is_spare_ball: false, layout_spec: SPEC });
+    const ball = (await getBalls()).find((b) => b.id === id)!;
+    render(
+      <ProAccessContext.Provider value={{ locked: true, appStoreUrl: "https://apps.apple.com/app/id1" }}>
+        <BallFormDialog ball={ball} onClose={vi.fn()} onSaved={vi.fn()} />
+      </ProAccessContext.Provider>
+    );
+    // The read sheet is free: the layout shows as it is.
+    expect(await screen.findByText("Asymmetric core")).toBeInTheDocument();
+    expect(screen.queryByText("Set and visualize your ball layout with Pro")).toBeNull();
+  });
+});
+
+describe("BallFormDialog weight", () => {
+  it("lists the weights heaviest first, down to 8 lb", () => {
+    render(<BallFormDialog ball={null} onClose={vi.fn()} onSaved={vi.fn()} />);
+    const options = Array.from((screen.getByLabelText(/Weight/) as HTMLSelectElement).options).map((o) => o.value);
+    expect(options).toEqual(["16", "15", "14", "13", "12", "11", "10", "9", "8"]);
   });
 });
