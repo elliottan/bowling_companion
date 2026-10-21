@@ -25,11 +25,51 @@ function renderMenu(onSectionChange = vi.fn()) {
       onOpenArsenal={vi.fn()}
       onOpenSpareLines={vi.fn()}
       onOpenLaneNotes={vi.fn()}
+      onOpenLayoutLab={vi.fn()}
+      onOpenOilPatternsScreen={vi.fn()}
+      onOpenCatalog={vi.fn()}
+      onOpenGuides={vi.fn()}
     />
   );
 }
 
 describe("SettingsView", () => {
+  it("opens Tools and reference, the same list as Home's", () => {
+    const onSectionChange = vi.fn();
+    renderMenu(onSectionChange);
+    fireEvent.click(screen.getByRole("button", { name: /Tools and reference/ }));
+    expect(onSectionChange).toHaveBeenCalledWith("tools");
+  });
+
+  it("lists the tools in that section, each opening its screen", async () => {
+    const onOpenCatalog = vi.fn();
+    const onOpenLayoutLab = vi.fn();
+    render(
+      <SettingsView
+        section="tools"
+        onSectionChange={vi.fn()}
+        handedness="right"
+        onHandednessChange={vi.fn()}
+        driftModel={DEFAULT_DRIFT_MODEL}
+        onDriftModelChange={vi.fn()}
+        onOpenBackup={vi.fn()}
+        onOpenLineVisualizer={vi.fn()}
+        onOpenArsenal={vi.fn()}
+        onOpenSpareLines={vi.fn()}
+        onOpenLaneNotes={vi.fn()}
+        onOpenLayoutLab={onOpenLayoutLab}
+        onOpenOilPatternsScreen={vi.fn()}
+        onOpenCatalog={onOpenCatalog}
+        onOpenGuides={vi.fn()}
+      />
+    );
+    const tools = await screen.findByRole("region", { name: "Tools and reference" });
+    fireEvent.click(within(tools).getByRole("button", { name: /Ball catalog/ }));
+    fireEvent.click(within(tools).getByRole("button", { name: /Layouts/ }));
+    expect(onOpenCatalog).toHaveBeenCalled();
+    expect(onOpenLayoutLab).toHaveBeenCalled();
+  });
+
   beforeEach(async () => {
     await db.delete();
     await db.open();
@@ -165,6 +205,10 @@ describe("SettingsView's Headpin Pro", () => {
           onOpenArsenal={vi.fn()}
           onOpenSpareLines={vi.fn()}
           onOpenLaneNotes={vi.fn()}
+          onOpenLayoutLab={vi.fn()}
+          onOpenOilPatternsScreen={vi.fn()}
+          onOpenCatalog={vi.fn()}
+          onOpenGuides={vi.fn()}
         />
       </ProStoreContext.Provider>
     );
@@ -244,6 +288,10 @@ describe("SettingsView's Headpin Pro", () => {
             onOpenArsenal={vi.fn()}
             onOpenSpareLines={vi.fn()}
             onOpenLaneNotes={vi.fn()}
+            onOpenLayoutLab={vi.fn()}
+            onOpenOilPatternsScreen={vi.fn()}
+            onOpenCatalog={vi.fn()}
+            onOpenGuides={vi.fn()}
           />
         </ProAccessContext.Provider>
       );
@@ -277,6 +325,10 @@ describe("SettingsView's Headpin Pro", () => {
               onOpenArsenal={vi.fn()}
               onOpenSpareLines={vi.fn()}
               onOpenLaneNotes={vi.fn()}
+              onOpenLayoutLab={vi.fn()}
+              onOpenOilPatternsScreen={vi.fn()}
+              onOpenCatalog={vi.fn()}
+              onOpenGuides={vi.fn()}
             />
           </ProOfferContext.Provider>
         </ProAccessContext.Provider>
@@ -317,6 +369,10 @@ describe("SettingsView's Headpin Pro", () => {
               onOpenArsenal={vi.fn()}
               onOpenSpareLines={vi.fn()}
               onOpenLaneNotes={vi.fn()}
+              onOpenLayoutLab={vi.fn()}
+              onOpenOilPatternsScreen={vi.fn()}
+              onOpenCatalog={vi.fn()}
+              onOpenGuides={vi.fn()}
             />
           </ProOfferContext.Provider>
         </ProStoreContext.Provider>

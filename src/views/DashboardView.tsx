@@ -1,12 +1,12 @@
-import { BookOpen, ChevronRight, Compass, GraduationCap, PlayCircle, Plus, ShieldCheck } from "lucide-react";
-import { LaneViewIcon, OilPatternIcon, PinIcon } from "../components/icons";
+import { ChevronRight, PlayCircle, Plus, ShieldCheck } from "lucide-react";
+import { PinIcon } from "../components/icons";
+import { ToolsList } from "../components/ToolsList";
 import { useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { ErrorBanner } from "../components/ErrorBanner";
 import { SessionFormDialog } from "../components/SessionFormDialog";
 import { alleyLabel } from "../lib/sessionLabels";
 import { setRemembered } from "../lib/viewMemory";
-import { ListGroup, ListRow } from "../components/ui/ListGroup";
 import { Fab, FabRow } from "../components/ui/Fab";
 import { ArsenalGrid, ProfileTiles, RecentSessionStrip } from "../components/HomeProfile";
 import { BowlerNameSheet } from "../components/BowlerNameSheet";
@@ -322,38 +322,14 @@ export function DashboardView({
       <ProHomeBanner />
 
       <div className="mt-6">
-        <ListGroup heading="Tools and reference">
-          <ListRow
-            icon={Compass}
-            label="Layouts"
-            description="A drilling layout, drawn on the ball"
-            onClick={onOpenLayoutLab}
-          />
-          <ListRow
-            icon={LaneViewIcon}
-            label="Line visualizer"
-            description="Draw a line on the lane, over the oil"
-            onClick={onOpenLineVisualizer}
-          />
-          <ListRow
-            icon={OilPatternIcon}
-            label="Oil patterns"
-            description="Look up a pattern's length and oil"
-            onClick={onOpenOilPatterns}
-          />
-          <ListRow
-            icon={BookOpen}
-            label="Ball catalog"
-            description="Specs and pictures of current balls"
-            onClick={onOpenCatalog}
-          />
-          <ListRow
-            icon={GraduationCap}
-            label="Guides"
-            description="Using Headpin, layouts and equipment"
-            onClick={onOpenGuides}
-          />
-        </ListGroup>
+        <ToolsList
+          heading="Tools and reference"
+          onOpenLayoutLab={onOpenLayoutLab}
+          onOpenLineVisualizer={onOpenLineVisualizer}
+          onOpenOilPatterns={onOpenOilPatterns}
+          onOpenCatalog={onOpenCatalog}
+          onOpenGuides={onOpenGuides}
+        />
       </div>
 
       {/* Not on a cold start, where the empty state's button is the way in,

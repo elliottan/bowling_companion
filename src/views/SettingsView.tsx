@@ -1,5 +1,7 @@
 import { TAB_TITLE, TAB_TITLE_ROW } from "../components/ui/typography";
-import { Archive, ArrowUpRight, Check, ChevronRight, Download, MessageSquare, Palette, RotateCcw, ScrollText, UserRound, UserRoundCog } from "lucide-react";
+import { Archive, ArrowUpRight, Check, ChevronRight, Compass, Download, MessageSquare, Palette, RotateCcw, ScrollText, UserRound, UserRoundCog } from "lucide-react";
+import { ToolsList } from "../components/ToolsList";
+import { PushScreen } from "../components/PushScreen";
 import { AppearanceView } from "./AppearanceView";
 import { BowlingProfileView } from "./BowlingProfileView";
 import { getBowlerName, getGripStyle, getSetting } from "../services/bowlingRepository";
@@ -47,6 +49,12 @@ interface SettingsViewProps {
   onOpenArsenal: () => void;
   onOpenSpareLines: () => void;
   onOpenLaneNotes: () => void;
+  /** The tools Home lists, opened the same way from the Tools and reference
+   *  section. The line visualizer is `onOpenLineVisualizer` above. */
+  onOpenLayoutLab: () => void;
+  onOpenOilPatternsScreen: () => void;
+  onOpenCatalog: () => void;
+  onOpenGuides: () => void;
 }
 
 /**
@@ -62,7 +70,7 @@ const OilPatternsView = lazy(() =>
   import("./OilPatternsView").then((m) => ({ default: m.OilPatternsView }))
 );
 
-export function SettingsView({ section, onSectionChange, handedness, onHandednessChange, driftModel, onDriftModelChange, onOpenBackup, onOpenLineVisualizer, lineVisualizerOpen = false, onOpenArsenal, onOpenSpareLines, onOpenLaneNotes }: SettingsViewProps) {
+export function SettingsView({ section, onSectionChange, handedness, onHandednessChange, driftModel, onDriftModelChange, onOpenBackup, onOpenLineVisualizer, lineVisualizerOpen = false, onOpenArsenal, onOpenSpareLines, onOpenLaneNotes, onOpenLayoutLab, onOpenOilPatternsScreen, onOpenCatalog, onOpenGuides }: SettingsViewProps) {
   const back = () => onSectionChange("menu");
 
   // The menu stays mounted underneath the pushed section, so popping back
@@ -87,6 +95,19 @@ export function SettingsView({ section, onSectionChange, handedness, onHandednes
           <OilPatternsView onBack={back} onOpenLineVisualizer={onOpenLineVisualizer} covered={lineVisualizerOpen} />
         ) : section === "appearance" ? (
           <AppearanceView onBack={back} />
+        ) : section === "tools" ? (
+          // The same list as Home's, so a tool is found from either door.
+          <PushScreen mode="inline" title="Tools and reference" onBack={back}>
+            <div className="mx-auto w-full max-w-3xl px-3 py-3 sm:px-6">
+              <ToolsList
+                onOpenLayoutLab={onOpenLayoutLab}
+                onOpenLineVisualizer={() => onOpenLineVisualizer()}
+                onOpenOilPatterns={onOpenOilPatternsScreen}
+                onOpenCatalog={onOpenCatalog}
+                onOpenGuides={onOpenGuides}
+              />
+            </div>
+          </PushScreen>
         ) : section === "profile" ? (
           <BowlingProfileView
             handedness={handedness}
@@ -103,9 +124,9 @@ export function SettingsView({ section, onSectionChange, handedness, onHandednes
 }
 
 /**
- * Only settings (ADR-115). The places a bowler keeps things (arsenal, spare
- * lines, lane notes, patterns) and the tools (catalog, line visualizer) all
- * live on Home. Order is by what a bowler can lose or must not miss: the backup
+ * Settings (ADR-115). The places a bowler keeps things (arsenal, spare lines,
+ * lane notes) and the tools live on Home; the tools also have one row here,
+ * opening the same list, for a bowler who looks for them in Settings. Order is by what a bowler can lose or must not miss: the backup
  * leads, on its own and louder than a row, because the games live on this phone
  * and nowhere else; then the bowler's own things; support; and appearance last,
  * the setting touched once. The bowler's name is the profile chip beside the
@@ -225,6 +246,17 @@ function SettingsMenu({
           label="Lane notes"
           description="How each lane plays at each alley"
           onClick={onOpenLaneNotes}
+        />
+      </ListGroup>
+
+      {/* The tools are Home's; this is a second door to the same list, for a
+          bowler who looks for them here. */}
+      <ListGroup>
+        <ListRow
+          icon={Compass}
+          label="Tools and reference"
+          description="Layouts, patterns, the catalog and guides"
+          onClick={() => onSectionChange("tools")}
         />
       </ListGroup>
 

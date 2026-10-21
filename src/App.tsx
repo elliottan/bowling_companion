@@ -698,6 +698,10 @@ function App() {
             lineVisualizerOpen={nav.lineSandboxOpen}
             onOpenArsenal={() => pushOverlay("arsenal")}
             onOpenSpareLines={() => pushOverlay("spares")}
+            onOpenLayoutLab={() => pushOverlay("layout-lab")}
+            onOpenOilPatternsScreen={() => pushOverlay("oil-patterns")}
+            onOpenCatalog={() => pushOverlay("catalog")}
+            onOpenGuides={() => pushOverlay("guides")}
             onOpenLaneNotes={() => pushOverlay("lanes")}
           />
         )}

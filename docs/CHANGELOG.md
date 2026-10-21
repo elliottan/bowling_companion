@@ -17,6 +17,9 @@ had all shipped.
 - **Home offers the iPhone app.** On the web, Home opens on a "Headpin for
   iPhone" row with Get, in place of the card that asked you to add Headpin to
   your home screen (ADR-170). Close it and it stays away for two weeks.
+- **Tools and reference in Settings.** A row in Settings opens the same list
+  of tools as Home: layouts, the line visualizer, oil patterns, the ball
+  catalog and guides.
 - **Home doesn't scroll when it fits.** It kept a band of empty space at its
   foot, so a Home that fit the screen still moved up a step.
 - **The session sheet stops just short of the game chips** instead of

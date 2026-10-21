@@ -286,8 +286,9 @@ tile of its own (ADR-126).
 Ordered by what a bowler can lose or must not miss, not by how often it is
 opened. **Backup & restore leads, alone and louder than a row**, because the
 games live on the phone and nowhere else (ADR-067). Then **Your bowling** (the
-bowling profile, arsenal, spare lines, lane notes), then Support, with
-**Appearance last**: it is set once. The bowler's name is a profile chip beside
+bowling profile, arsenal, spare lines, lane notes), then one **Tools and
+reference** row that opens Home's list of tools (`ToolsList`), so a tool is
+found from either door, then Support, with **Appearance last**: it is set once. The bowler's name is a profile chip beside
 the title (the first letter in a circle, then the name), not a row, and it is
 where more profile features can grow. Rows that leave the app carry no
 sentence: a label that says "Privacy and terms" or "Send feedback" has nothing

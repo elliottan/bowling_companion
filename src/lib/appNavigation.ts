@@ -19,7 +19,8 @@ export type SettingsSection =
   | "lanes"
   | "oil-patterns"
   | "appearance"
-  | "profile";
+  | "profile"
+  | "tools";
 
 import type { LayoutSeed } from "./layoutShare";
 
