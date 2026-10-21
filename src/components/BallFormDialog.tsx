@@ -1,4 +1,4 @@
-import { Archive, BookOpen, Check, ChevronRight, Pencil, Plus, RotateCcw, Search, Trash2 } from "lucide-react";
+import { Archive, BookOpen, Check, ChevronRight, Plus, RotateCcw, Search, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { getAllCatalog, getCatalogBall, syncCatalog } from "../services/ballCatalogRepository";
@@ -29,6 +29,7 @@ import { FIELD } from "./ui/field";
 import { FormSheet } from "./ui/FormSheet";
 import { matchesCatalogSearch } from "../lib/catalogSearch";
 import { IconButton } from "./ui/IconButton";
+import { BarButton } from "./ui/BarButton";
 
 const WEIGHT_OPTIONS = [10, 11, 12, 13, 14, 15, 16];
 
@@ -179,9 +180,9 @@ export function BallFormDialog({ ball, onClose, onSaved, onDelete, onRetire }: B
       <Check size={20} aria-hidden="true" />
     </IconButton>
   ) : (
-    <IconButton variant="round" onClick={() => setUnlocked(true)} label="Edit ball">
-      <Pencil size={18} aria-hidden="true" />
-    </IconButton>
+    <BarButton onClick={() => setUnlocked(true)} label="Edit ball">
+      Edit
+    </BarButton>
   );
 
   // Read, the catalog card is the ball's specs and not yet the way into the
@@ -238,7 +239,7 @@ export function BallFormDialog({ ball, onClose, onSaved, onDelete, onRetire }: B
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-semibold text-ink">{unlocked ? "Link to catalog" : "Not linked to the catalog"}</p>
                     <p className="text-xs text-ink-secondary">
-                      {unlocked ? "Fills in the core, coverstock, RG and diff." : "The pencil links it, for its core, coverstock, RG and diff."}
+                      {unlocked ? "Fills in the core, coverstock, RG and diff." : "Edit links it, for its core, coverstock, RG and diff."}
                     </p>
                   </div>
                   {unlocked && <ChevronRight size={18} className="shrink-0 text-ink-tertiary" aria-hidden="true" />}

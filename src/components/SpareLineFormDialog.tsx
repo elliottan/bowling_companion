@@ -1,4 +1,4 @@
-import { Check, ChevronLeft, ChevronRight, Crosshair, Eye, Pencil, Trash2 } from "lucide-react";
+import { Check, ChevronLeft, ChevronRight, Crosshair, Eye, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { createPortal } from "react-dom";
 import { ErrorBanner } from "./ErrorBanner";
@@ -16,6 +16,7 @@ import type { LineSpec, PinNumber, SpareLine } from "../types/bowling";
 import { Button } from "./ui/Button";
 import { FIELD_DENSE, FIELD_MICRO_LABEL as floatLabel } from "./ui/field";
 import { IconButton } from "./ui/IconButton";
+import { BarButton } from "./ui/BarButton";
 import { FormSheet } from "./ui/FormSheet";
 import { ProPill } from "./ui/ProLock";
 import { useProAccess } from "../lib/useProAccess";
@@ -162,9 +163,9 @@ export function SpareLineFormDialog({
       <Check size={20} aria-hidden="true" />
     </IconButton>
   ) : (
-    <IconButton variant="round" onClick={() => setEditing(true)} label="Edit spare line">
-      <Pencil size={18} aria-hidden="true" />
-    </IconButton>
+    <BarButton onClick={() => setEditing(true)} label="Edit spare line">
+      Edit
+    </BarButton>
   );
 
   const stats = leaves && pins.length > 0 ? leaves.find((l) => l.pins.join("-") === key) : undefined;

@@ -1006,14 +1006,17 @@ function BallDetails({
 /**
  * The top of a Stats sheet's list, pinned while the list scrolls under it.
  *
- * `FormSheet` pads its scroll area by 1rem, and a header stuck at `top-0` sits
- * below that padding: rows scrolling past showed through the gap above it, cut
- * off at the bar. So it starts 1rem up (`-mt-4`), sticks 1rem up (`-top-4`)
- * and fills that strip with its own background, edge to edge (`-mx-4`).
+ * `FormSheet` floats its bar over the scroll area and pads the area by the
+ * bar's height and 1rem (`--sheet-bar-h`, ADR-168), and a sticky row stops at
+ * the edge of that padding, not at the top of the area. A header stuck there
+ * would let rows show through the bar above it, so it starts that far up
+ * (`-mt-`), sticks that far up (`-top-`), and fills the strip with its own
+ * background, edge to edge (`-mx-4`): the list passes under the bar and this
+ * header as one opaque band.
  */
 function SheetHeader({ children }: { children: ReactNode }) {
   return (
-    <div className="sticky -top-4 z-10 -mx-4 -mt-4 border-b border-edge bg-surface px-4 pb-2 pt-4">
+    <div className="sticky -top-[calc(var(--sheet-bar-h,0px)+1rem)] z-10 -mx-4 -mt-[calc(var(--sheet-bar-h,0px)+1rem)] border-b border-edge bg-surface px-4 pb-2 pt-[calc(var(--sheet-bar-h,0px)+1rem)]">
       {children}
     </div>
   );

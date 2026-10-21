@@ -547,7 +547,7 @@ function App() {
     {/* `fixed inset-0` is load-bearing, not cosmetic, see the note above. */}
     <div
       id="app-shell"
-      className="fixed inset-0 flex flex-col overflow-hidden bg-surface-sunken pt-[env(safe-area-inset-top)] pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)] text-ink"
+      className="fixed inset-0 flex flex-col overflow-hidden bg-surface-sunken pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)] text-ink"
       // How tall the tab bar is, for what has to clear it: the end of each
       // tab's scroll, and the floating action row. The bar floats over the
       // page, which runs behind it. The phone's own bar reports its height;
@@ -598,7 +598,10 @@ function App() {
         key={view}
         ref={mainRef}
         onScroll={(e) => rememberScroll(`view:${view}`, e.currentTarget.scrollTop)}
-        className="min-h-0 flex-1 overflow-y-auto overscroll-contain pb-[var(--tab-bar-h)] sm:pb-0"
+        // The safe-area top is padding inside the scroll rather than on the
+        // shell, so a tab scrolls up under the status bar as an iOS screen
+        // does, behind the scroll edge below (ADR-168).
+        className="min-h-0 flex-1 overflow-y-auto overscroll-contain pb-[var(--tab-bar-h)] pt-[env(safe-area-inset-top)] sm:pb-0"
       >
         <Suspense fallback={null}>
         {view === "dashboard" && (
@@ -685,6 +688,14 @@ function App() {
         )}
         </Suspense>
       </main>
+
+      {/* The status bar's scroll edge: the clock and battery stay readable
+          over a tab scrolled under them, and over an empty top it is the
+          page's own color, so it shows nothing. */}
+      <div
+        aria-hidden="true"
+        className="scroll-edge pointer-events-none absolute inset-x-0 top-0 z-[5] h-[calc(env(safe-area-inset-top)*1.5)]"
+      />
 
       {/* A floating capsule with the active tab in a pill that slides between
           them, as iOS draws its tab bar. It floats over the tab, which scrolls

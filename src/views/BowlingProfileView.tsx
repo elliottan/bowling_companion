@@ -1,8 +1,9 @@
-import { Check, ChevronLeft, ChevronRight, Info, Pencil } from "lucide-react";
+import { Check, ChevronLeft, ChevronRight, Info } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { PapEditor } from "../components/PapEditor";
 import { IconButton } from "../components/ui/IconButton";
+import { BarButton } from "../components/ui/BarButton";
 import { DEFAULT_PAP, formatInches } from "../lib/ballLayout";
 import type { PapMeasurement } from "../lib/ballLayout";
 import { getGripStyle, getPap, setGripStyle, setPap } from "../services/bowlingRepository";
@@ -294,9 +295,9 @@ export function BowlingProfileView({
             <Check size={20} aria-hidden="true" />
           </IconButton>
         ) : (
-          <IconButton variant="round" label="Edit bowling profile" onClick={() => setDraft({})}>
-            <Pencil size={18} aria-hidden="true" />
-          </IconButton>
+          <BarButton label="Edit bowling profile" onClick={() => setDraft({})}>
+            Edit
+          </BarButton>
         )
       }
     >
