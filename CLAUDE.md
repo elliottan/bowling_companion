@@ -30,6 +30,7 @@ shape to drift, by design.
 | The iOS or Android app (Capacitor), or code that behaves differently inside it | ADR-155, `src/lib/platform.ts`, `scripts/native/assemble.ts`, `capacitor.config.ts`; `docs/PRO-LAUNCH.md` for what is left; ADR-161 and `ios/App/App/HeadpinTabBarPlugin.swift` for the iPhone tab bar |
 | Viewport, rotation or scroll handling | `docs/VIEWPORT-BUG.md`, in full, before writing a line |
 | Add or edit a guide article | `src/lib/guides.ts` (static content, block union, sources) |
+| Ads or App Store screenshots | `scripts/ad-content/reel/README.md` (the reel), `scripts/app-store/screenshots.mjs` (the store set), `docs/APP-STORE-LISTING.md` (captions, listing text); ADR-154 for what is free and what is Pro |
 | Anything else | `docs/README.md` routes everything |
 
 ## Load-bearing files

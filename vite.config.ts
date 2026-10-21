@@ -4,7 +4,7 @@ import { VitePWA, type ManifestOptions } from "vite-plugin-pwa";
 import type { Plugin } from "vite";
 import { defineConfig } from "vitest/config";
 import { BALL_IMAGE_CACHE, BALL_IMAGE_MAX_AGE_SECONDS } from "./src/lib/ballImageCacheConfig";
-import { appStoreId } from "./src/lib/appStore";
+import { appStoreId, pointLandingAtStore } from "./src/lib/appStore";
 
 /** The clean URLs that build to a directory, and so need resolving by hand. */
 /** Each clean URL and the page that answers it. `/app` is the free web app and
@@ -50,14 +50,16 @@ function serveCleanUrls(): Plugin {
 /**
  * Safari's Smart App Banner, on every page the build writes, once the app has
  * an App Store page (ADR-159): a visitor with the app installed is offered to
- * open it, and one without it to get it. Nothing until then.
+ * open it, and one without it to get it. Nothing until then. The landing
+ * page's buttons turn to the App Store at the same moment (`pointLandingAtStore`;
+ * only the landing page carries its marks).
  */
 function appStoreBanner(id: string | null = appStoreId()): Plugin {
   return {
     name: "headpin-app-store-banner",
     transformIndexHtml(html) {
       if (!id) return html;
-      return html.replace("</head>", `  <meta name="apple-itunes-app" content="app-id=${id}" />\n  </head>`);
+      return pointLandingAtStore(html).replace("</head>", `  <meta name="apple-itunes-app" content="app-id=${id}" />\n  </head>`);
     }
   };
 }

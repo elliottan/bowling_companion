@@ -3,8 +3,8 @@
 //
 //   npm run dev, then: ADS_OUT=/tmp/ads npm run ads:stills
 //
-// The oil pattern and spare line stills show screens the landing page has no
-// picture of. With ADS_STATE (the saved bowler, see record.mjs) they are taken
+// The oil pattern, spare line and arsenal stills show screens the landing page
+// has no picture of (its arsenal is five balls). With ADS_STATE (the saved bowler, see record.mjs) they are taken
 // from the app first and handed to the still as ?img=; without it they are
 // skipped.
 import { mkdir } from "node:fs/promises";
@@ -18,9 +18,11 @@ const STATE = process.env.ADS_STATE;
 /** The stills, in the order of the ad plan's creative table. */
 const STILLS = [
   { name: "line", shot: "line", h: "Remember every <em>line</em> you threw.", sub: "See your shot drawn on the lane." },
-  { name: "pins", shot: "scorer", h: "Tap the pins you left. <em>Headpin does the math.</em>", sub: "Score, ball and boards for every shot." },
-  { name: "stats", shot: "stats", h: "Watch your average <em>move</em>.", sub: "Pocket, carry and strike, session by session." },
-  { name: "retarget", shot: "line", h: "Back for another look? <em>It's free to try.</em>", sub: "A bowling score keeper with no account to make." },
+  { name: "pins", shot: "scorer", h: "Tap the pins you left. <em>Headpin does the math.</em>", sub: "Unlimited games, every ball and board." },
+  // The ads show only what the free app has (ADR-154), so the bag stands in
+  // for the stats screen, whose picture carries a Pro card.
+  { name: "arsenal", img: "arsenal", h: "Your whole bag, <em>free</em>.", sub: "Every ball you own, with no limit." },
+  { name: "retarget", shot: "line", h: "Back for another look? <em>It's free to download.</em>", sub: "Unlimited games. No account." },
   { name: "patterns", img: "pattern", h: "Know the pattern <em>before you bowl it</em>.", sub: "Every PBA animal pattern, on your phone." },
   { name: "spares", img: "spare", h: "Your spare system, <em>written down</em>.", sub: "Stance and target for every leave." }
 ];
@@ -77,6 +79,24 @@ if (STATE) {
   await boards.nth(1).blur();
   await app.waitForTimeout(600);
   taken.spare = await app.screenshot({ type: "png" });
+
+  // The bag, filled out to a league bowler's: four more balls from the
+  // catalog, then the arsenal from the balls beside Home's greeting.
+  for (const [query, name] of [["Dynasty", /Black Widow 3\.0 Dynasty/], ["Hy-Road Pearl", /Hy-Road Pearl/], ["Summit Peak", /Summit Peak/], ["Idol Helios", /Idol Helios/]]) {
+    await home();
+    await app.getByRole("button", { name: /^Ball catalog/ }).click();
+    await app.getByPlaceholder("Search name, brand, coverstock…").fill(query);
+    await app.waitForTimeout(700);
+    await app.getByRole("dialog", { name: "Catalog" }).getByRole("button", { name }).first().click();
+    await app.getByRole("button", { name: "Add to arsenal" }).first().click();
+    await app.getByRole("dialog", { name: "Add to arsenal" }).getByRole("button", { name: "Add to arsenal" }).click();
+    await app.waitForTimeout(300);
+  }
+  await home();
+  await app.getByRole("navigation").getByRole("button", { name: "Home" }).click();
+  await app.getByRole("list", { name: "Your arsenal" }).getByRole("button").first().click();
+  await app.waitForTimeout(800);
+  taken.arsenal = await app.screenshot({ type: "png" });
   await context.close();
 }
 

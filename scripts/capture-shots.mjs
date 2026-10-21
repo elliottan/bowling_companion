@@ -12,6 +12,7 @@ import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 import { chromium } from "@playwright/test";
 import sharp from "sharp";
+import { seedHistory } from "./ad-content/history.mjs";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 // SHOTS_DIR sends the pictures elsewhere, for a run that only wants the state.
@@ -392,10 +393,20 @@ await page.getByRole("button", { name: "Done" }).click();
 await shoot(page, "line");
 await page.getByRole("button", { name: "Close" }).first().click();
 
-// The layout on the ball, scrolled past the sliders: the drawing of the drilling
-// is what a bowler recognises, and the sliders that make it are not.
+// An oil pattern: its numbers, and the oil drawn on the lane.
+await page.getByRole("button", { name: /Oil patterns/ }).first().click();
+await page.getByRole("searchbox").or(page.getByPlaceholder(/search/i)).first().fill("Shark");
+await page.getByText("2019 PBA Shark 48").first().click();
+await shootBothThemes(page, "pattern");
+// Back out of the pattern and the list the way the phone's back does (ADR-041).
+await page.goBack();
+await page.goBack();
+await page.getByRole("button", { name: /^Layouts/ }).waitFor();
+
+// The layout on the ball, as the screen opens on it: the drawing of the
+// drilling is what a bowler recognises, and the sliders that make it are not.
 await page.getByRole("button", { name: /^Layouts/ }).click();
-await shootBothThemes(page, "layout", 724);
+await shootBothThemes(page, "layout");
 await page.getByRole("banner").getByRole("button", { name: "Back", exact: true }).first().click();
 
 // Five nights: the trend chart is a line with somewhere to go, not two dots.
@@ -474,5 +485,13 @@ if (process.env.SHOTS_STATE) {
   await page.context().storageState({ path: process.env.SHOTS_STATE, indexedDB: true });
   console.log("wrote", process.env.SHOTS_STATE);
 }
+
+// History last, over weeks of league nights rather than five in one sitting
+// (ad-content/history.mjs, which the ads use too). It is written after the
+// state is saved, so the ads start from the nights as bowled.
+await seedHistory(page);
+await page.reload();
+await page.getByRole("navigation").getByRole("button", { name: "History" }).click();
+await shootBothThemes(page, "history");
 
 await browser.close();

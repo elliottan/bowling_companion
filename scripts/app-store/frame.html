@@ -1,0 +1,112 @@
+<!doctype html>
+<!--
+  One captioned App Store screenshot, 1320 x 2868 (the 6.9 inch iPhone): the
+  caption, then the app's own screenshot in a phone. screenshots.mjs opens it
+  once per screen and saves what it draws.
+
+  ?img=<url of the plain screenshot>  ?h=<headline, may hold <em>>  ?sub=<line under it>
+  ?pro=1 for a screen that shows Headpin Pro: the gold badge over the caption,
+  since Apple asks that a screenshot say when what it shows needs a purchase.
+  ?n=<its place in the set>, which moves the light a little from one to the
+  next, so the set reads as one strip when the store lays it out side by side.
+
+  The phone is whole, and the same size and in the same place on every one, so
+  the set reads as one row in the store; the caption is centred in the band
+  above it. The app is the point of the picture, and nothing covers any of it.
+  A "|" in the headline is a line break, so no word is left alone on a line.
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Headpin store screenshot</title>
+    <style>
+      * { box-sizing: border-box; }
+      html, body { margin: 0; width: 1320px; height: 2868px; overflow: hidden; background: #070b14; }
+      body { font-family: "Inter Display", Inter, system-ui, sans-serif; color: #fff; position: relative; }
+      #bg { position: absolute; inset: 0; background: radial-gradient(120% 70% at 50% 0%, #14233d 0%, #0a1120 55%, #060910 100%); }
+      .glow { position: absolute; border-radius: 999px; filter: blur(160px); }
+      #g1 { width: 1100px; height: 1100px; background: #1d6b60; opacity: 0.55; }
+      #g2 { width: 900px; height: 900px; background: #7a4b0e; opacity: 0.42; }
+      #g3 { width: 760px; height: 760px; background: #5ed6c1; opacity: 0.14; }
+      body.pro #g1 { background: #6b4a12; opacity: 0.5; }
+      body.pro #g3 { background: #ffb020; opacity: 0.16; }
+      /* The boards of a lane, faint, running up behind the phone. */
+      #boards { position: absolute; left: 0; right: 0; bottom: 0; height: 1500px; opacity: 0.07;
+        background: repeating-linear-gradient(90deg, #ffd9a0 0 2px, transparent 2px 44px);
+        -webkit-mask-image: linear-gradient(180deg, transparent, #000 60%); mask-image: linear-gradient(180deg, transparent, #000 60%); }
+      #grain { position: absolute; inset: 0; opacity: 0.05; mix-blend-mode: overlay;
+        background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/></filter><rect width='200' height='200' filter='url(%23n)'/></svg>"); }
+
+      #top { position: absolute; left: 80px; right: 80px; top: 150px; text-align: center; }
+      #badge { display: none; margin: 0 auto 34px; width: max-content; padding: 16px 38px 15px; border-radius: 999px;
+        font: 900 38px Inter, sans-serif; letter-spacing: 0.2em; text-transform: uppercase;
+        color: #1d1203; background: linear-gradient(180deg, #ffd166 0%, #ff9f1c 100%); border: 2px solid #ffe3a3;
+        box-shadow: 0 0 70px rgb(255 176 32 / 0.45); }
+      body.pro #badge { display: block; }
+      h1 { margin: 0; font-weight: 900; font-size: 118px; line-height: 1.02; letter-spacing: -0.04em;
+        text-shadow: 0 8px 40px rgb(0 0 0 / 0.5); text-wrap: balance; }
+      h1 em { font-style: normal; background: linear-gradient(180deg, #ffd166 0%, #ff9f1c 100%);
+        -webkit-background-clip: text; background-clip: text; color: transparent; }
+      #sub { margin: 34px auto 0; max-width: 1040px; font: 600 48px/1.25 Inter, sans-serif; letter-spacing: -0.01em; color: #b9c6d8; text-wrap: balance; }
+
+      /* The phone: a black bezel, a titanium edge, the Dynamic Island over the
+         screen as the hardware has it. Sizes are set from the space left. */
+      #phone { position: absolute; left: 50%; transform: translateX(-50%); background: #05070b;
+        box-shadow: 0 90px 200px rgb(0 0 0 / 0.7), 0 0 0 4px #4a4f58 inset, 0 0 0 8px #23262c inset, 0 0 140px rgb(94 214 193 / 0.12); }
+      body.pro #phone { box-shadow: 0 90px 200px rgb(0 0 0 / 0.7), 0 0 0 4px #4a4f58 inset, 0 0 0 8px #23262c inset, 0 0 160px rgb(255 176 32 / 0.16); }
+      #screen { position: absolute; overflow: hidden; background: #0f172a; }
+      #screen img { display: block; width: 100%; height: 100%; }
+      #island { position: absolute; left: 50%; transform: translateX(-50%); background: #000; border-radius: 999px; }
+      #sheen { position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+        background: linear-gradient(125deg, rgb(255 255 255 / 0.10) 0%, rgb(255 255 255 / 0) 32%); }
+    </style>
+  </head>
+  <body>
+    <div id="bg"><div class="glow" id="g1"></div><div class="glow" id="g2"></div><div class="glow" id="g3"></div></div>
+    <div id="boards"></div>
+    <div id="top">
+      <div id="badge">Headpin Pro</div>
+      <h1 id="h"></h1>
+      <p id="sub"></p>
+    </div>
+    <div id="phone"><div id="screen"><img id="shot" alt="" /><div id="island"></div></div><div id="sheen"></div></div>
+    <div id="grain"></div>
+    <script>
+      const q = new URLSearchParams(location.search);
+      const $ = (id) => document.getElementById(id);
+      if (q.get("pro")) document.body.classList.add("pro");
+      $("h").innerHTML = (q.get("h") || "").replaceAll("|", "<br>");
+      $("sub").textContent = q.get("sub") || "";
+
+      // The light drifts across the set: each screenshot's glows sit a step on
+      // from the last one's, so neighbours meet at their edges.
+      const n = Number(q.get("n") || 0);
+      const at = (el, x, y) => Object.assign(el.style, { left: `${x}px`, top: `${y}px` });
+      at($("g1"), -420 + ((n * 380) % 1320) * 0.6, -380);
+      at($("g2"), 760 - ((n * 260) % 900), 2150);
+      at($("g3"), 280, 1280 + (n % 3) * 120);
+
+      // The caption is centred in its band; the phone sits under it, whole.
+      const RATIO = 2868 / 1320;
+      const BAND = [130, 650];
+      function layout() {
+        const h = $("top").offsetHeight;
+        $("top").style.top = `${BAND[0] + (BAND[1] - BAND[0] - h) / 2}px`;
+        const top = BAND[1] + 60;
+        const foot = 92;
+        const bezelK = 0.026; // of the screen's width, each side
+        const sh = 2868 - foot - top; // the phone's height
+        const sw = sh / (RATIO + 2 * bezelK * 1.0); // screen width: phone height = screen height + 2 bezels
+        const bez = sw * bezelK;
+        const w = sw + 2 * bez;
+        const scale = sw / 440;
+        Object.assign($("phone").style, { top: `${top}px`, width: `${w}px`, height: `${sh}px`, borderRadius: `${(55 + 12) * scale}px` });
+        Object.assign($("screen").style, { left: `${bez}px`, top: `${bez}px`, width: `${sw}px`, height: `${sw * RATIO}px`, borderRadius: `${55 * scale}px` });
+        Object.assign($("island").style, { top: `${11 * scale}px`, width: `${125 * scale}px`, height: `${37 * scale}px` });
+      }
+      const img = $("shot");
+      img.src = q.get("img") || "";
+      window.ready = Promise.all([document.fonts.ready, img.decode().catch(() => {})]).then(layout);
+    </script>
+  </body>
+</html>
