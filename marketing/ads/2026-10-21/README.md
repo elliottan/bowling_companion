@@ -1,6 +1,6 @@
 # Launch ads for the iPhone app, October 21, 2026
 
-The third batch of ad creative, rendered from the real app at 0.49: one video,
+The third batch of ad creative, rendered from the real app at 0.50: one video,
 the feature reel, and the stills. It replaces `../2026-10-15/`, which said
 everything was free ("It's free", "Nothing to download. It opens in your
 browser."). Since ADR-154 Headpin is free to download with one Pro unlock in the

@@ -449,44 +449,36 @@ await take("catalog", {
   }
 });
 
-const clampTo = (v, a, b) => Math.min(b, Math.max(a, v));
-
 // The layout of a ball, drawn on the ball: the three sliders that set it, each
-// swung in turn, with the drawing moving under them.
+// swung in turn, with the drawing and what it will do moving as they go. The
+// lab leads with the ball and keeps its sliders far below it, so the screen
+// stays on the ball and the sliders are moved the way a drag moves them: one
+// value at a time, through the input events React listens to.
 await take("layouts", {
-  async run({ page, app, tap, mark, wait }) {
+  async run({ app, tap, mark, wait }) {
     await tap(app.getByRole("button", { name: /^Layouts/ }), "tap-layouts", 900);
     await mark("top", { x: 0, y: 0, w: 390, h: 844 });
-    // Scrolled so the first slider sits under the header, with the ball below.
-    const first = app.getByRole("slider", { name: "Drilling angle" });
-    await first.evaluate((el) => {
-      const box = el.closest("div.rounded-xl, section") ?? el;
-      const y = box.getBoundingClientRect().top;
-      let s = el.parentElement;
-      while (s && !(s.scrollHeight > s.clientHeight + 20 && getComputedStyle(s).overflowY !== "visible")) s = s.parentElement;
-      (s ?? document.scrollingElement).scrollBy({ top: y - 120, behavior: "smooth" });
-    });
-    await wait(1000);
+    await mark("lab", [app.getByText("On the ball", { exact: true }).first(), app.getByText("What it will do", { exact: true }).first().locator("xpath=following-sibling::*[1]")]);
+    await wait(600);
     await mark("sliders", { x: 0, y: 0, w: 390, h: 844 });
     const swing = async (name, by) => {
-      const el = app.getByRole("slider", { name });
-      const r = await boxOf(el);
-      const [min, max, v0] = (await el.evaluate((n) => [n.min, n.max, n.value])).map(Number);
-      const at = (v) => (r.x + 10 + ((v - min) / (max - min)) * (r.w - 20)) * SCALE;
-      const y = (r.y + r.h / 2) * SCALE;
-      const to = clampTo(v0 + by * (max - min), min, max);
-      await mark(`drag-${name}`, el);
-      await page.mouse.move(at(v0), y);
-      await page.mouse.down();
-      for (let k = 1; k <= 16; k++) {
-        await page.mouse.move(at(v0 + (to - v0) * (1 - Math.pow(1 - k / 16, 2))), y);
-        await wait(30);
-      }
-      await page.mouse.up();
+      await mark(`drag-${name}`, { x: 0, y: 0, w: 390, h: 844 });
+      await app.getByRole("slider", { name }).evaluate(async (el, by) => {
+        const [min, max, v0] = [el.min, el.max, el.value].map(Number);
+        const step = Number(el.step) || 1;
+        const to = Math.min(max, Math.max(min, v0 + by * (max - min)));
+        const set = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value").set;
+        for (let k = 1; k <= 16; k++) {
+          const v = v0 + (to - v0) * (1 - Math.pow(1 - k / 16, 2));
+          set.call(el, String(Math.round(v / step) * step));
+          el.dispatchEvent(new Event("input", { bubbles: true }));
+          await new Promise((r) => setTimeout(r, 30));
+        }
+      }, by);
       await wait(150);
     };
     await swing("Drilling angle", 0.3);
-    await swing("Pin to PAP", -0.25);
+    await swing("Pin to PAP", 0.08);
     await swing("VAL angle", 0.3);
     await mark("dragged", { x: 0, y: 0, w: 390, h: 844 });
     await wait(700);

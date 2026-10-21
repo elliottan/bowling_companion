@@ -211,7 +211,7 @@ const BEATS = [
     cam: [{ at: "to-balls", box: "leaves", z: 1.6, ease: 0 }, { at: "to-balls+0.1", box: "balls", z: 1.45, ease: 0.7 }],
     spots: [{ from: "balls+0.1", to: "balls+1.2", boxes: [(() => { const b = box("pro", "balls"); return { x: b.x, y: b.y + 64, w: b.w, h: 44 }; })()] }] },
   { id: "layout", pad: 0.05, take: "layouts", from: "sliders", to: "dragged+0.2", dur: 2.0, caption: "Try a layout|<em>before you drill</em>.", vo: "layout", trans: "whip", kicker: "pro",
-    cam: [{ at: "sliders", box: { x: 0, y: 40, w: 390, h: 470 }, z: 1.3, fy: 1020, ease: 0 }] },
+    cam: [{ at: "sliders", box: "lab", z: 1.12, ease: 0 }] },
   { id: "once", caption: "One purchase.|<em>No subscription.</em>", vo: "once", trans: "zoom", min: 1.75, pad: 0.15, kicker: "pro",
     fan: [{ take: "pro", at: "firstball+0.5" }, { take: "pro", at: "leaves+0.5" }, { take: "layouts", at: "dragged+0.3" },
           { take: "pro", at: "balls+0.5" }, { take: "game", at: "lane-held" }] },

@@ -309,19 +309,11 @@ if (wanted("catalog")) {
   await home();
 }
 
-// The layout lab, scrolled so the drilled ball sits under its numbers.
+// The layout lab as it opens: the drilled ball first, then what it will do.
 if (wanted("layout")) {
   await setTheme("light");
   await page.getByRole("button", { name: /^Layouts/ }).click();
-  await wait(800);
-  await page.getByText("On the ball", { exact: true }).first().evaluate((el) => el.scrollIntoView({ block: "center" }));
-  // Then back a little, so the top edge is a whole card, not half a heading.
-  await page.getByText("Layout", { exact: true }).first().evaluate((el) => {
-    let s = el.parentElement;
-    while (s && !(s.scrollHeight > s.clientHeight + 20 && getComputedStyle(s).overflowY !== "visible")) s = s.parentElement;
-    if (s) s.scrollTop += el.getBoundingClientRect().top - s.getBoundingClientRect().top - 14;
-  });
-  await wait(500);
+  await wait(900);
   await shoot(shot("layout"));
   await home();
 }

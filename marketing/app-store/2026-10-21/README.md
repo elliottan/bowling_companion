@@ -1,7 +1,7 @@
 # App Store screenshots, October 21, 2026
 
 The iPhone app's screenshots for App Store Connect, taken from the real app at
-0.49 by `scripts/app-store/screenshots.mjs`. The captions, the order and the
+0.50 by `scripts/app-store/screenshots.mjs`. The captions, the order and the
 rules behind them are in `docs/APP-STORE-LISTING.md` ("Screenshots").
 
 | Folder | What it is |
@@ -14,7 +14,7 @@ iPhones. iPad is not offered for 1.0 (ADR-160).
 
 Shot 8 is the one Pro screen and carries the Headpin Pro badge (App Review
 Guideline 2.3.2). The rest are taken without Pro, so where a Pro card shows it
-is locked, with "Get Headpin Pro, $9.99", as a free download sees it.
+shows its locked preview marked Pro, as a free download sees it.
 
 The screens are rendered by Chromium as the iPhone app (the page is told it is
 inside the app, and the store answers as StoreKit would). Two differences from a

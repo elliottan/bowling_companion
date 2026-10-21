@@ -127,8 +127,8 @@ to upload; `plain/` is the same ten screens with no caption, for a listing or a
 press kit that wants the bare app. The script drives the app at the 6.9 inch
 size with the phone's safe areas, and tells the page it is inside the iPhone
 app, so every screen carries the app's copy, not the web's. The store answers
-at the US price, so a locked card reads "Get Headpin Pro, $9.99" as a free
-download sees it.
+at the US price, so a locked card shows its preview marked Pro, and the Get
+Headpin Pro button reads "$9.99", as a free download sees them.
 
 One idea per screenshot, a headline and one line under it, in the app's voice.
 The app's theme is light for the scorer, stats, layout and Home, and dark for
@@ -137,14 +137,14 @@ the rest, so the set shows both.
 | # | Screen | Headline | Under it |
 |---|---|---|---|
 | 1 | The scorer in the tenth, the 10 left standing, ball and line beside it | Score every shot. | Tap the pins you left. Unlimited games, free. |
-| 2 | The lane view, the line over 2019 PBA Shark 48 | Remember every line you threw. | Your line drawn over the oil, shot by shot. |
+| 2 | The lane view, the line over 2019 PBA Shark 48, with the "Unlock editing" chip | Remember every line you threw. | Your line drawn over the oil, shot by shot. |
 | 3 | The arsenal, nine balls | Your whole arsenal, free. | Every ball you own, with no cap on the bag. |
-| 4 | Stats: average, the trend chart, the first-ball card locked | Know what's working. | Average, high game, strike and spare rates. |
+| 4 | Stats: average, the Pro banner, the trend chart, the first-ball card's locked preview | Know what's working. | Average, high game, strike and spare rates. |
 | 5 | A catalog ball's page, photo and specs | Hundreds of balls, one tap. | Specs and photos. Build your bag from them. |
 | 6 | 2019 PBA Shark 48: its numbers and the oil on the lane | See the oil before you throw. | Load tables and the oil drawn on the lane. |
-| 7 | The layout lab with a drilled ball | See a layout before you drill it. | Dual angle and Storm VLS, drawn from your PAP. |
+| 7 | The layout lab as it opens: the drilled ball, what it will do, the read-only note | See a layout before you drill it. | Dual angle and Storm VLS, drawn from your PAP. |
 | 8 | Stats with Pro bought: first ball, leaves, balls, under the Headpin Pro badge | Go deeper with Pro. | Pocket, carry, leaves, ball by ball. One purchase, no subscription. |
-| 9 | Home, tonight's game in progress | Works without a signal. | No account to make. Built for the alley. |
+| 9 | Home, tonight's game in progress, with the Pro banner | Works without a signal. | No account to make. Built for the alley. |
 | 10 | History: five weeks of league nights | Every night, on your phone. | Unlimited sessions. Back up any time, free. |
 
 Shots 1 to 3 carry the pitch, since they are what a browser sees before it
