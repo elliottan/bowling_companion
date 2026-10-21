@@ -9,6 +9,24 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.50.0: Every ball photo, cut the same way (2026-10-21)
+
+- **Ball photos look like one set.** Every photo in the catalog has been
+  re-cut to its ball's exact circle with the same clean edge (ADR-163). Gone
+  are the light fringes and dark rings around some balls, the shadows under
+  others, the white rim on glossy ones and the nicks in a few bright rims, so
+  a ball looks right on a light or a dark screen. The balls themselves, their
+  logos and colours, are untouched.
+- **They reach you straight away.** Each photo has a new address, so the copy
+  your phone kept is replaced on its next catalog update rather than in 30
+  days, and your arsenal's balls follow.
+
+In the repo:
+
+- **`npm run rerender-images`** re-renders photos made before the current
+  treatment, and `clear-background` is retired: every new photo, from any
+  ingest route, is cut to its ball on the way in.
+
 ## 0.49.0: Bring your games to the app, and keep the photos (2026-10-20)
 
 In the iPhone app:

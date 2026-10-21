@@ -7534,3 +7534,70 @@ signal, which is where this app is meant to work.
   is when offline matters most.
 - Needs a look on a phone: that a photo seen online appears with Airplane Mode
   on after a relaunch, and that eviction holds the folder near the cap.
+
+
+## ADR-163: Every ball photo gets one house treatment
+
+**Status.** Accepted, 2026-10-21. Amends ADR-138 on what a replaced photo keeps
+under its old name. ADR-142's rights position stands as written.
+
+**Context.** The owner asked for every ball photo to look uniform and clean.
+Measured over all 839 photos, the balls were the same size and centred, but
+their edges were not alike: a light fringe or a dark ring left by the cut,
+a soft floor shadow under most Brunswick-family renders (their silhouettes
+were about 1% taller than wide), a white outer ring on glossy renders, and
+bites taken out of bright rims by the flood-fill repairs of ADR-142. Each is
+small, and together they made the grid read as photos gathered one by one.
+The normaliser also did not do what it said: `BALL_FILL` was meant to leave an
+even 6% margin, and the second resize scaled the ball back up to fill the
+canvas. The app had come to rely on that (`CatalogBallImage` crops a `bare`
+photo to `rounded-full`, and the placeholder is drawn at the same size).
+
+**Decision.**
+
+- **One treatment in `render.ts` for every source**, so a new photo from any
+  ingest route gets it: find the ball against a transparent or border-coloured
+  ground; fit its circle to the sides and top of its outline, never the bottom
+  where a shadow hangs, and refit without the points that miss, so a bite or a
+  speck cannot pull it; cut 1.5% inside that circle, which takes a fringe, a
+  ring or a shadow with it; fill any pixel past the cut, or a hole inside it,
+  from the ball just inside the rim; and draw the edge at each output size as
+  an exact anti-aliased circle touching the canvas, with the same gentle edge
+  shade (up to 18% darker over the outer 7% of the radius) on every ball.
+- **The ball fills its canvas.** That is the contract the screens were built
+  on, so `BALL_FILL` is gone rather than fixed.
+- **Nothing inside the ball changes.** No recolouring, mirroring or
+  retouching: the logo and the colourway are how a bowler recognises their
+  ball, and a ball that looks altered looks fake. This is a presentation
+  standard, not a disguise. The photos are still the manufacturers' renders,
+  a reverse image search still finds them, and the rights position is exactly
+  ADR-142's.
+- **The full pass re-renders the photos in the repo**, not fresh downloads:
+  `npm run rerender-images -- --all`. The originals are not kept, and fetching
+  ~800 photos again to get them would be a second bulk pull for a small gain
+  in sharpness. Each entry in `data/images.json` records the `normaliser` it
+  was rendered with, and the command takes only entries below the current
+  one, because a second pass over its own output would cut the rim again and
+  shade it twice.
+- **Each re-rendered photo gets a new file name** (`nextStem`), since the
+  service worker keeps a photo by its URL for 30 days (ADR-131) and the iPhone
+  app until it evicts it (ADR-162). The old thumb name is overwritten with the
+  new thumb, because an arsenal ball's snapshot holds that path until its next
+  catalog sync (ADR-143). **The old full is removed** rather than kept, which
+  amends ADR-138: no snapshot or saved record names a full, only the catalog
+  does, and it names the new one. Keeping them would have doubled the 52 MB of
+  photos for nothing.
+- **`clear-background` is retired.** Its two repairs, clearing a white ground
+  and cutting to the circle, are now steps every photo goes through.
+
+**Consequences.**
+
+- Every catalog ball and every arsenal ball shows the new photo on its next
+  catalog sync, with no 30-day wait.
+- A photo the fit gets wrong is still only visible to an eye, so the contact
+  sheet stays the last step of any photo change.
+- A future change to the treatment must allow for the current one already
+  being in the full photo, or fetch the originals again.
+- The one decision that would let the photos be both uniform and owned is
+  still the one ADR-142 names: dealer media from Storm and Brunswick, under
+  permission, as MOTIV's are.
