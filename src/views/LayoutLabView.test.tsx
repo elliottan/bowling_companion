@@ -39,11 +39,16 @@ vi.mock("../lib/shareCard", async (importOriginal) => {
   };
 });
 
-const renderLab = () => {
+/** `you` opens the sheet behind More, where the PAP, the hand, the grip and
+ *  the reset live. */
+const renderLab = ({ you = false }: { you?: boolean } = {}) => {
   const onBack = vi.fn();
   render(<LayoutLabView onBack={onBack} />);
+  if (you) openYou();
   return { onBack };
 };
+
+const openYou = () => fireEvent.click(screen.getByRole("button", { name: "More" }));
 
 /** The range input behind a slider's visible label. Found by role, because
  *  "Pin buffer" also names a readout further down the screen. */
@@ -259,7 +264,7 @@ describe("LayoutLabView", () => {
   });
 
   it("moves the grip under the layout when the PAP measurement changes", () => {
-    renderLab();
+    renderLab({ you: true });
     const ball = screen.getByRole("img", { name: /bowling ball/i });
     const before = ball.innerHTML;
     fireEvent.change(screen.getByLabelText("Over"), { target: { value: "3" } });
@@ -269,7 +274,7 @@ describe("LayoutLabView", () => {
   });
 
   it("takes a PAP as whole inches and a fraction, never as a decimal", () => {
-    renderLab();
+    renderLab({ you: true });
     const whole = screen.getByLabelText("Over") as HTMLSelectElement;
     // The default PAP is 5" over, which is 5 and no fraction.
     expect(whole.value).toBe("5");
@@ -289,7 +294,7 @@ describe("LayoutLabView", () => {
   });
 
   it("offers only the eighths as fractions, with zero for a whole inch", () => {
-    renderLab();
+    renderLab({ you: true });
     const options = Array.from(
       (screen.getByLabelText("Over fraction") as HTMLSelectElement).options
     ).map((o) => o.text);
@@ -299,7 +304,7 @@ describe("LayoutLabView", () => {
   });
 
   it("combines the whole and the fraction into one measurement", () => {
-    renderLab();
+    renderLab({ you: true });
     const ball = () => screen.getByRole("img", { name: /bowling ball/i }).innerHTML;
     fireEvent.change(screen.getByLabelText("Over"), { target: { value: "4" } });
     const atFourInches = ball();
@@ -309,7 +314,7 @@ describe("LayoutLabView", () => {
   });
 
   it("puts the sign on the whole measurement, so a PAP below the midline is reachable", () => {
-    renderLab();
+    renderLab({ you: true });
     const ball = () => screen.getByRole("img", { name: /bowling ball/i }).innerHTML;
     fireEvent.change(screen.getByLabelText("Up or down"), { target: { value: "0" } });
     fireEvent.change(screen.getByLabelText("Up or down fraction"), { target: { value: "4" } });
@@ -322,10 +327,12 @@ describe("LayoutLabView", () => {
     expect(ball()).not.toBe(halfUp);
   });
 
-  it("leads with the ball and what it will do, then the bowler, whose axis every other number is measured against (ADR-163)", () => {
+  it("leads with the ball and what it will do, then the numbers (ADR-163)", () => {
     renderLab();
     const headings = screen.getAllByRole("heading").map((h) => h.textContent);
-    expect(headings.slice(0, 6)).toEqual(["Layouts", "On the ball", "What it will do", "You", "Core", "Layout"]);
+    // The bowler's PAP, hand and grip are behind More, so the page is the ball,
+    // what it will do, and the numbers.
+    expect(headings.slice(0, 4)).toEqual(["Layouts", "What it will do", "Core", "Layout"]);
   });
 
   it("puts each angle at its own vertex, not both in the middle of the ball", () => {
@@ -371,7 +378,7 @@ describe("LayoutLabView", () => {
   it("fills the PAP and the hand from the bowler's own settings", async () => {
     await setPap({ over: 4.25, up: -0.25 });
     await setHandedness("left");
-    renderLab();
+    renderLab({ you: true });
 
     await waitFor(() =>
       expect((screen.getByRole("combobox", { name: "Over" }) as HTMLSelectElement).value).toBe("4")
@@ -384,7 +391,7 @@ describe("LayoutLabView", () => {
 
   it("never writes the PAP back, because this screen is a question and not a measurement", async () => {
     await setPap({ over: 5, up: 0.5 });
-    renderLab();
+    renderLab({ you: true });
     await waitFor(() =>
       expect((screen.getByLabelText("Over") as HTMLSelectElement).value).toBe("5")
     );
@@ -403,7 +410,7 @@ describe("LayoutLabView", () => {
   it("never writes the grip or the hand back either", async () => {
     await setGripStyle("1h");
     await setHandedness("right");
-    renderLab();
+    renderLab({ you: true });
     await waitFor(() =>
       expect(screen.getByRole("button", { name: "One handed" })).toHaveAttribute(
         "aria-pressed",
@@ -425,7 +432,7 @@ describe("LayoutLabView", () => {
   });
 
   it("mirrors the whole layout for a left-hander", () => {
-    renderLab();
+    renderLab({ you: true });
     const ball = () => screen.getByRole("img", { name: /bowling ball/i }).innerHTML;
     const right = ball();
     fireEvent.click(screen.getByRole("button", { name: "Left" }));
@@ -521,7 +528,7 @@ describe("LayoutLabView", () => {
     await setPap({ over: 5, up: 0.5 });
     await setHandedness("right");
     window.history.replaceState({}, "", "/score?da=70&ptp=5&val=30&hand=left&over=4&up=0&core=asym");
-    renderLab();
+    renderLab({ you: true });
 
     expect(dualAngle()).toBe("70 x 5 x 30");
     expect(screen.getByRole("button", { name: "Left" })).toHaveAttribute("aria-pressed", "true");
@@ -531,7 +538,7 @@ describe("LayoutLabView", () => {
   it("leaves the reader's own axis alone when it opens on somebody else's", async () => {
     await setPap({ over: 5, up: 0.5 });
     window.history.replaceState({}, "", "/score?da=45&ptp=4.5&val=45&over=3&up=0");
-    renderLab();
+    renderLab({ you: true });
     // The link's axis is what the layout is read against, so it is what shows.
     expect((screen.getByLabelText("Over") as HTMLSelectElement).value).toBe("3");
     fireEvent.change(screen.getByRole("combobox", { name: "Over" }), { target: { value: "2" } });
@@ -577,7 +584,7 @@ describe("LayoutLabView", () => {
   it("asks before the reset, and names the settings it is resetting to", async () => {
     await setPap({ over: 3, up: 0 });
     window.history.replaceState({}, "", "/score?da=45&ptp=4.5&val=45&over=6&up=0&hand=left");
-    renderLab();
+    renderLab({ you: true });
     // Somebody else's axis, from their link.
     expect((screen.getByLabelText("Over") as HTMLSelectElement).value).toBe("6");
 
@@ -599,7 +606,7 @@ describe("LayoutLabView", () => {
 
   it("leaves everything alone when the reset is cancelled", async () => {
     await setPap({ over: 3, up: 0 });
-    renderLab();
+    renderLab({ you: true });
     await waitFor(() =>
       expect((screen.getByLabelText("Over") as HTMLSelectElement).value).toBe("3")
     );
@@ -611,7 +618,7 @@ describe("LayoutLabView", () => {
   });
 
   it("opens one-handed when nothing has been chosen", () => {
-    renderLab();
+    renderLab({ you: true });
     expect(screen.getByRole("button", { name: "One handed" })).toHaveAttribute(
       "aria-pressed",
       "true"
@@ -624,7 +631,7 @@ describe("LayoutLabView", () => {
       clipboard: { writeText: (t: string) => (written.push(t), Promise.resolve()) }
     });
     await setGripStyle("2h");
-    renderLab();
+    renderLab({ you: true });
     await waitFor(() =>
       expect(screen.getByRole("button", { name: "Two handed" })).toHaveAttribute(
         "aria-pressed",
@@ -640,7 +647,7 @@ describe("LayoutLabView", () => {
   });
 
   it("drills the drawn ball for the grip on screen, and drops the thumb-hole band", async () => {
-    renderLab();
+    renderLab({ you: true });
     // The band's reason is a thumb hole, so both the warning and the drawn
     // thumb hole come and go together with the grip.
     fireEvent.change(slider(/Pin to PAP/), { target: { value: "3" } });
@@ -658,7 +665,7 @@ describe("LayoutLabView", () => {
 
   it("leaves the reader's own grip alone when it opens on somebody else's", async () => {
     window.history.replaceState({}, "", "/score?da=45&ptp=4.5&val=45&grip=2h");
-    renderLab();
+    renderLab({ you: true });
     expect(screen.getByRole("button", { name: "Two handed" })).toHaveAttribute(
       "aria-pressed",
       "true"
@@ -816,7 +823,8 @@ describe("the layout lab while Pro is locked (ADR-154, ADR-163)", () => {
     fireEvent.click(screen.getByRole("button", { name: /Storm VLS/ }));
     expect(screen.getByRole("button", { name: /Storm VLS/ })).toHaveAttribute("aria-pressed", "true");
     expect(screen.getByRole("heading", { name: "What it will do" })).toBeInTheDocument();
-    // Who is bowling and the core stay in reach.
+    // Who is bowling and the core stay in reach, behind More.
+    openYou();
     expect(screen.getByRole("button", { name: "Left" })).toBeEnabled();
     expect(screen.getByLabelText("Over")).toBeEnabled();
     expect(screen.getByRole("button", { name: "Reset to your saved settings" })).toBeInTheDocument();
@@ -829,8 +837,7 @@ describe("the layout lab while Pro is locked (ADR-154, ADR-163)", () => {
     expect(screen.getByRole("dialog", { name: "Bowled with Headpin on the web?" })).toBeInTheDocument();
     // Sharing what is on screen stays free: it is how a bowler finds the app.
     expect(screen.getByRole("button", { name: "Share layout" })).toBeEnabled();
-    // One trailing action.
-    expect(screen.queryByRole("button", { name: "More" })).not.toBeInTheDocument();
+
   });
 
   it("is the whole lab while Pro is open", () => {

@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useRef, useState } from "react";
-import { Check, LayoutGrid, RotateCcw } from "lucide-react";
+import { Check, LayoutGrid, MoreHorizontal, RotateCcw } from "lucide-react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { flushSync } from "react-dom";
 import { BallLayoutDiagram } from "../components/BallLayoutDiagram";
@@ -12,6 +12,8 @@ import { PushScreen } from "../components/PushScreen";
 import { AnchoredMenu, AnchoredMenuItem } from "../components/ui/AnchoredMenu";
 import { ConfirmDialog } from "../components/ConfirmDialog";
 import { IconButton } from "../components/ui/IconButton";
+import { Button } from "../components/ui/Button";
+import { FormSheet } from "../components/ui/FormSheet";
 import { ShareIosIcon } from "../components/icons";
 import { SegmentedControl } from "../components/ui/SegmentedControl";
 import { FIELD_MICRO_LABEL } from "../components/ui/field";
@@ -168,6 +170,8 @@ export function LayoutLabView({ onBack, seed }: LayoutLabViewProps) {
   const [presetAt, setPresetAt] = useState<Anchor | null>(null);
   const [pendingPreset, setPendingPreset] = useState<LayoutPreset | null>(null);
   const [resetting, setResetting] = useState(false);
+  // The sheet behind More: the PAP, the hand and the grip.
+  const [youOpen, setYouOpen] = useState(false);
   const [card, setCard] = useState<ShareCardData | null>(null);
   // The diagram's own SVG, read off the DOM when a picture is asked for.
   // BallLayoutDiagram is a plain function component and forwards no ref, and
@@ -362,16 +366,23 @@ export function LayoutLabView({ onBack, seed }: LayoutLabViewProps) {
          own Escape and the screen's both fired, so dismissing the menu also
          popped the screen out from under it. */
       active={
-        pendingPreset == null && !resetting && presetAt == null && card == null
+        pendingPreset == null && !resetting && presetAt == null && card == null && !youOpen
       }
-      /* One trailing action: sharing the layout is the thing this screen is
-         for once the numbers are right. A More beside it held only a way to
-         Settings, which the tab bar already is, so it went. Saving the picture
-         is a thing to do to the card, so it lives on the card. */
+      /* Two trailing actions, the one place the app has two (DESIGN-LANGUAGE
+         section 1). Sharing the layout is what this screen is for once the
+         numbers are right. More holds who is bowling, the PAP, the hand and
+         the grip: set once and then read against, so they do not take the
+         page from the ball and the sliders. Saving the picture is a thing to
+         do to the card, so it lives on the card. */
       trailing={
-        <IconButton variant="round" label="Share layout" onClick={() => void shareLink()}>
-          <ShareIosIcon size={18} aria-hidden="true" />
-        </IconButton>
+        <>
+          <IconButton variant="round" label="Share layout" onClick={() => void shareLink()}>
+            <ShareIosIcon size={18} aria-hidden="true" />
+          </IconButton>
+          <IconButton variant="round" label="More" className="ml-1" onClick={() => setYouOpen(true)}>
+            <MoreHorizontal size={20} aria-hidden="true" />
+          </IconButton>
+        </>
       }
     >
       <div className="mx-auto w-full max-w-xl space-y-3 px-3 py-3 sm:px-6">
@@ -387,11 +398,14 @@ export function LayoutLabView({ onBack, seed }: LayoutLabViewProps) {
             gesture everyone tries first, and the chips were a second way to do
             the same thing taking a band of a screen whose whole complaint was
             that too little fits on it. */}
-        <section className="space-y-1.5">
-          <h2 className={GROUP_HEADING}>On the ball</h2>
+        {/* Pinned under the bar while the page scrolls, so the ball answers in
+            view as the sliders below it move. Shorter than the screen is wide,
+            so the controls have room; tall enough that the ball and its labels
+            are whole. Opaque, so what scrolls passes under it. */}
+        <div className="sticky top-0 z-10 -mx-3 bg-surface-sunken px-3 pb-1 sm:-mx-6 sm:px-6">
           <div
             ref={ballRef}
-            className="overflow-hidden rounded-xl border border-edge bg-surface-sunken shadow-sm"
+            className="h-60 overflow-hidden rounded-xl border border-edge bg-surface-sunken shadow-sm"
           >
             {/* The drawing follows the notation being edited, so the picture is
                 always answering the question the sliders below it are asking. */}
@@ -404,9 +418,10 @@ export function LayoutLabView({ onBack, seed }: LayoutLabViewProps) {
               onOrientationChange={setOrientation}
               hand={hand}
               grip={grip}
+              className="h-full"
             />
           </div>
-        </section>
+        </div>
 
         <section className="space-y-1.5">
           <h2 className={GROUP_HEADING}>What it will do</h2>
@@ -429,80 +444,6 @@ export function LayoutLabView({ onBack, seed }: LayoutLabViewProps) {
         </section>
 
 
-        {/* 2. Who is bowling. The PAP leads because it is the frame every other
-            number is measured against: the VAL angle is measured at it and the
-            pin-to-PAP distance is measured to it, so a layout read against the
-            wrong axis is the wrong layout. It used to sit last on the grounds
-            that it is set once and then left alone, which is true of how often
-            it is touched and wrong about what it means.
-
-            The hand and the grip ride beside it rather than under it. They are
-            two two-way answers, so they cost a quarter of the width and would
-            otherwise cost two full bands of a phone screen. */}
-        <section className="space-y-1.5">
-          <div className="flex items-center justify-between gap-2">
-            <h2 className={GROUP_HEADING}>You</h2>
-            {/* Back to the bowler's own saved numbers, in one tap. The PAP, the
-                hand and the grip are what a shared link overrides, so the way
-                out of somebody else's measurements sits with them. */}
-            <IconButton
-              compact
-              label="Reset to your saved settings"
-              title="Reset to your saved settings"
-              onClick={() => setResetting(true)}
-            >
-              <RotateCcw size={15} aria-hidden="true" />
-            </IconButton>
-          </div>
-          {/* Stretched rather than top-aligned, so the two cards end level
-              whichever is taller. The hand card is the taller of the two (two
-              toggles against two rows of fields), so the PAP card takes a few
-              px of extra padding at the bottom, which reads as padding. */}
-          <div className="flex items-stretch gap-2">
-            <div className="min-w-0 flex-1 space-y-1.5 rounded-xl border border-edge bg-surface p-2.5 shadow-sm">
-              <span className={FIELD_MICRO_LABEL}>Your PAP</span>
-              <PapEditor pap={pap} onChange={updatePap} idPrefix="lab-pap" />
-            </div>
-            <div className="w-[7.5rem] shrink-0 space-y-1.5 rounded-xl border border-edge bg-surface p-2.5 shadow-sm">
-              <span className={FIELD_MICRO_LABEL}>Hand</span>
-              {/* `space-y-2` is required, not chosen: a dense segmented control
-                  is 36px drawn and 44pt to the finger, so two stacked any
-                  closer than 8px would have overlapping hit regions and the
-                  grip row would start swallowing taps meant for the hand. */}
-              <div className="space-y-2">
-                {/* Left on the left, which is the one ordering that needs no
-                    reading: the letters sit where the hands do. */}
-                <SegmentedControl
-                  dense
-                  label="Bowling hand"
-                  value={hand}
-                  onChange={chooseHand}
-                  options={[
-                    { value: "left", label: "L", srLabel: "Left" },
-                    { value: "right", label: "R", srLabel: "Right" }
-                  ]}
-                />
-                {/* One-handed or two-handed. It draws the ball the bowler
-                    actually holds (no thumb hole, and the grip centred between
-                    the fingers) and it drops the do-not-use band, whose whole
-                    reason is a thumb hole to run the track over. It still moves
-                    none of the motion coefficients: those are fitted to a
-                    thumb-in chart, and guessing at a two-handed release would
-                    be worse than saying nothing. */}
-                <SegmentedControl
-                  dense
-                  label="Grip style"
-                  value={grip}
-                  onChange={chooseGrip}
-                  options={[
-                    { value: "1h", label: "1H", srLabel: "One handed" },
-                    { value: "2h", label: "2H", srLabel: "Two handed" }
-                  ]}
-                />
-              </div>
-            </div>
-          </div>
-        </section>
 
         {/* 3. What ball. The core type comes before the numbers because it
             changes what the drilling angle means, and therefore what every
@@ -571,6 +512,78 @@ export function LayoutLabView({ onBack, seed }: LayoutLabViewProps) {
             </AnchoredMenuItem>
           ))}
         </AnchoredMenu>
+      )}
+
+      {youOpen && (
+        <FormSheet title="Your PAP and hand" onClose={() => setYouOpen(false)} dismissAs="done" active={!resetting}>
+          {/* 2. Who is bowling. The PAP leads because it is the frame every other
+              number is measured against: the VAL angle is measured at it and the
+              pin-to-PAP distance is measured to it, so a layout read against the
+              wrong axis is the wrong layout. It used to sit last on the grounds
+              that it is set once and then left alone, which is true of how often
+              it is touched and wrong about what it means.
+
+              The hand and the grip ride beside it rather than under it. They are
+              two two-way answers, so they cost a quarter of the width and would
+              otherwise cost two full bands of a phone screen. */}
+          <section className="space-y-3">
+            {/* Stretched rather than top-aligned, so the two cards end level
+                whichever is taller. The hand card is the taller of the two (two
+                toggles against two rows of fields), so the PAP card takes a few
+                px of extra padding at the bottom, which reads as padding. */}
+            <div className="flex items-stretch gap-2">
+              <div className="min-w-0 flex-1 space-y-1.5 rounded-xl border border-edge bg-surface p-2.5 shadow-sm">
+                <span className={FIELD_MICRO_LABEL}>Your PAP</span>
+                <PapEditor pap={pap} onChange={updatePap} idPrefix="lab-pap" />
+              </div>
+              <div className="w-[7.5rem] shrink-0 space-y-1.5 rounded-xl border border-edge bg-surface p-2.5 shadow-sm">
+                <span className={FIELD_MICRO_LABEL}>Hand</span>
+                {/* `space-y-2` is required, not chosen: a dense segmented control
+                    is 36px drawn and 44pt to the finger, so two stacked any
+                    closer than 8px would have overlapping hit regions and the
+                    grip row would start swallowing taps meant for the hand. */}
+                <div className="space-y-2">
+                  {/* Left on the left, which is the one ordering that needs no
+                      reading: the letters sit where the hands do. */}
+                  <SegmentedControl
+                    dense
+                    label="Bowling hand"
+                    value={hand}
+                    onChange={chooseHand}
+                    options={[
+                      { value: "left", label: "L", srLabel: "Left" },
+                      { value: "right", label: "R", srLabel: "Right" }
+                    ]}
+                  />
+                  {/* One-handed or two-handed. It draws the ball the bowler
+                      actually holds (no thumb hole, and the grip centred between
+                      the fingers) and it drops the do-not-use band, whose whole
+                      reason is a thumb hole to run the track over. It still moves
+                      none of the motion coefficients: those are fitted to a
+                      thumb-in chart, and guessing at a two-handed release would
+                      be worse than saying nothing. */}
+                  <SegmentedControl
+                    dense
+                    label="Grip style"
+                    value={grip}
+                    onChange={chooseGrip}
+                    options={[
+                      { value: "1h", label: "1H", srLabel: "One handed" },
+                      { value: "2h", label: "2H", srLabel: "Two handed" }
+                    ]}
+                  />
+                </div>
+              </div>
+            </div>
+            {/* Back to the bowler's own saved numbers. The PAP, the hand and the
+                grip are what a shared link overrides, so the way out of somebody
+                else's measurements sits with them. */}
+            <Button variant="secondary" className="w-full" onClick={() => setResetting(true)}>
+              <RotateCcw size={16} aria-hidden="true" />
+              Reset to your saved settings
+            </Button>
+          </section>
+        </FormSheet>
       )}
 
       <ConfirmDialog

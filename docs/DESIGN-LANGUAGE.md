@@ -37,8 +37,10 @@ Every push gets, without exception:
 - a centered title, one line, 17px semibold;
 - at most **one** trailing action, an `IconButton`, or the word "Edit" in a
   `BarButton` where the action turns the screen into a form (§1b). The layout
-  lab was the one screen with two, a share beside a More, and the More went:
-  all it held was a way to Settings, which the tab bar already is (ADR-170);
+  lab is the single exception: a share, which is what the screen is for once
+  the numbers are right, beside a More that holds the bowler's PAP, hand and
+  grip, set once and then read against, so the page is the ball and the
+  numbers. Two is the ceiling;
 - in overlay mode, Escape + a focus trap (`useOverlay`).
 
 Back out of a push with the chevron or with the platform's own back gesture

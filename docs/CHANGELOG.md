@@ -17,6 +17,10 @@ had all shipped.
 - **Home offers the iPhone app.** On the web, Home opens on a "Headpin for
   iPhone" row with Get, in place of the card that asked you to add Headpin to
   your home screen (ADR-170). Close it and it stays away for two weeks.
+- **Layouts: the ball stays in view.** It is pinned under the bar in a
+  shorter frame while the page scrolls, so a slider and what it does to the
+  ball are on screen together. Your PAP, hand and grip, and the reset, are
+  under More, and the "On the ball" heading is gone.
 - **Layouts: only the three numbers are Pro.** Without Pro you can still set
   your PAP, hand and grip, the core, and switch between dual angle and Storm
   VLS. The sliders sit under "Try your layouts with Pro", which stays put as
