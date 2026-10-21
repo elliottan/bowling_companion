@@ -9,6 +9,26 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.49.1: Read-only screens name Pro inside the app, and launch creative (2026-10-21)
+
+In the iPhone app:
+
+- **The lane view and the layout lab say "is in Headpin Pro"** where they are
+  read-only. They said "Moving the line is in the Headpin app", which on a
+  phone already running the Headpin app named the wrong thing. The web app
+  keeps "in the Headpin app", since there it is the app that has it.
+
+In the repo:
+
+- **A new feature reel** (`marketing/ads/2026-10-21/`) for the iPhone app's
+  launch. It keeps the league night from the last one, then says what is free
+  (unlimited games, the arsenal, the catalogs, average and trends) and what
+  Headpin Pro adds, one purchase with no subscription, and ends on the App
+  Store instead of "It's free". The stills point at the App Store too.
+- **The App Store screenshots** (`marketing/app-store/2026-10-21/`): ten at the
+  6.9 inch size, captioned and plain, taken from the app as the iPhone app
+  renders it, with the one Pro screen badged as Pro.
+
 ## 0.49.0: Bring your games to the app, and keep the photos (2026-10-20)
 
 In the iPhone app:

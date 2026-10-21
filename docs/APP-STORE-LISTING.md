@@ -115,37 +115,59 @@ Bringing games from the web: on first launch the app explains how to import a ba
 Contact: hello@headpin.app
 ```
 
-## Screenshots: the plan
+## Screenshots
 
 Apple takes up to 10 per size. The required size is the 6.9 inch iPhone (1320
 by 2868); the others scale from it. Headpin is portrait only, so every shot is
-portrait. The web landing page already has four shots in `public/shots/`
-(`scorer`, `line`, `layout`, `stats`, each in a light and a dark file), but they
-are web captures at 780 by 1688, so retake all of them from the app on a
-simulator or a phone at store size.
+portrait.
 
-One idea per screenshot, one short line over each, in the app's voice. Light
-theme for the first and last, dark for the lane, so the set shows both.
+The set is built: `marketing/app-store/2026-10-21/`, made by
+`scripts/app-store/screenshots.mjs` from the real app. `captioned/` is the set
+to upload; `plain/` is the same ten screens with no caption, for a listing or a
+press kit that wants the bare app. The script drives the app at the 6.9 inch
+size with the phone's safe areas, and tells the page it is inside the iPhone
+app, so every screen carries the app's copy, not the web's. The store answers
+at the US price, so a locked card reads "Get Headpin Pro, $9.99" as a free
+download sees it.
 
-| # | Screen | Line over it |
-|---|---|---|
-| 1 | The scorer on the tenth frame, pins left standing, stance and target written beside it | Score every shot. |
-| 2 | The lane view, a ball path over an oil pattern | Remember every line you threw. |
-| 3 | The ball catalog, a ball's page with its specs and photo | Hundreds of balls, one tap. |
-| 4 | An oil pattern's load table and the oil on the lane | See the oil before you throw. |
-| 5 | The layout lab with a drilled ball | See a layout before you drill it. |
-| 6 | Stats: average, trend chart, first-ball cards | Know what's working. |
-| 7 | Home with a session in progress | Works without a signal. |
-| 8 | Settings, Backup & restore | Your games stay on your phone. |
+One idea per screenshot, a headline and one line under it, in the app's voice.
+The app's theme is light for the scorer, stats, layout and Home, and dark for
+the rest, so the set shows both.
 
-Shots 1 to 3 carry the pitch, since they are what a browser sees
-before it scrolls. Shot 6 should show Pro cards unlocked, with a sandbox
-account, so the listing shows what the purchase opens.
+| # | Screen | Headline | Under it |
+|---|---|---|---|
+| 1 | The scorer in the tenth, the 10 left standing, ball and line beside it | Score every shot. | Tap the pins you left. Unlimited games, free. |
+| 2 | The lane view, the line over 2019 PBA Shark 48 | Remember every line you threw. | Your line drawn over the oil, shot by shot. |
+| 3 | The arsenal, nine balls | Your whole arsenal, free. | Every ball you own, with no cap on the bag. |
+| 4 | Stats: average, the trend chart, the first-ball card locked | Know what's working. | Average, high game, strike and spare rates. |
+| 5 | A catalog ball's page, photo and specs | Hundreds of balls, one tap. | Specs and photos. Build your bag from them. |
+| 6 | 2019 PBA Shark 48: its numbers and the oil on the lane | See the oil before you throw. | Load tables and the oil drawn on the lane. |
+| 7 | The layout lab with a drilled ball | See a layout before you drill it. | Dual angle and Storm VLS, drawn from your PAP. |
+| 8 | Stats with Pro bought: first ball, leaves, balls, under the Headpin Pro badge | Go deeper with Pro. | Pocket, carry, leaves, ball by ball. One purchase, no subscription. |
+| 9 | Home, tonight's game in progress | Works without a signal. | No account to make. Built for the alley. |
+| 10 | History: five weeks of league nights | Every night, on your phone. | Unlimited sessions. Back up any time, free. |
 
-Rules for the set: real data from a believable session, not placeholder
-numbers; no device frames with a marketing background that hides the app; no
-ball brand's logo outside the catalog photos the app itself shows; no claim in a
-caption that the description does not make.
+Shots 1 to 3 carry the pitch, since they are what a browser sees before it
+scrolls, and they say what is free. Shot 8 is the one Pro screen.
+
+Rules for the set:
+
+- **A screen that shows Pro says so** (App Review Guideline 2.3.2: screenshots
+  must make clear when a featured item needs a purchase). Shot 8 carries the
+  Headpin Pro badge and the price model in its line; every other shot is taken
+  without Pro, so a Pro card or control on it is shown locked, as a free
+  download has it (shots 2, 4 and 7).
+- Real data from a believable bowler, not placeholder numbers: five weeks of
+  league nights (`scripts/ad-content/history.mjs`) and tonight's game.
+- The phone is whole, and the same size in the same place on every shot; the
+  caption never covers the app.
+- No ball brand's logo outside the catalog photos the app itself shows, and no
+  claim in a caption that the description does not make.
+- The pages are rendered by Chromium with Inter, which is close to the iPhone's
+  own San Francisco but not it, and the tab bar is the page's own floating
+  capsule, where the iPhone app draws the system's (ADR-161). Retake the plain
+  set on a simulator before submission if either difference matters; the
+  captioned pass (`frame.html`) takes any 1320 by 2868 screenshot.
 
 ## Before submission
 

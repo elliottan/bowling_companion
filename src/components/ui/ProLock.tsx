@@ -57,10 +57,15 @@ export function ProLock({
  * itself stays fully drawn and readable, and only changing it waits on Pro
  * (the sandbox, the layout lab). Nothing while Pro is open. `lane` is for the
  * lane view's dark frame, which paints its own colors (DESIGN-LANGUAGE.md §3).
+ *
+ * `what` is the change that waits ("Moving the line"), and the note says where
+ * it is: in the app, on the web, which sells nothing; in Headpin Pro, inside
+ * the app, where "in the Headpin app" would name the app the bowler is in.
  */
 export function ProNote({ what, lane = false }: { what: string; lane?: boolean }) {
   const access = useProAccess();
   if (!access.locked) return null;
+  const where = "appStoreUrl" in access ? "the Headpin app" : "Headpin Pro";
   return (
     <div
       className={
@@ -71,7 +76,7 @@ export function ProNote({ what, lane = false }: { what: string; lane?: boolean }
     >
       <p className={`flex items-center gap-1.5 text-sm font-semibold ${lane ? "text-white/80" : "text-ink"}`}>
         <Lock size={14} aria-hidden="true" />
-        {what}
+        {what} is in {where}
       </p>
       <ProAction access={access} lane={lane} className="shrink-0" />
     </div>

@@ -74,7 +74,7 @@ describe("ProNote", () => {
   it("says nothing while Pro is open", () => {
     const { container } = render(
       <ProAccessContext.Provider value={{ locked: false }}>
-        <ProNote what="Moving the line is in the Headpin app" />
+        <ProNote what="Moving the line" />
       </ProAccessContext.Provider>
     );
     expect(container).toBeEmptyDOMElement();
@@ -84,7 +84,7 @@ describe("ProNote", () => {
     store.opened.length = 0;
     render(
       <ProAccessContext.Provider value={LOCKED}>
-        <ProNote lane what="Moving the line is in the Headpin app" />
+        <ProNote lane what="Moving the line" />
       </ProAccessContext.Provider>
     );
     expect(screen.getByText("Moving the line is in the Headpin app")).toBeInTheDocument();
@@ -129,12 +129,14 @@ describe("ProLock in the iOS app", () => {
     expect(screen.getByRole("button", { name: /Get Headpin Pro/ })).toBeEnabled();
   });
 
-  it("puts the purchase on a read-only screen's note too", () => {
+  it("puts the purchase on a read-only screen's note too, and names Pro, not the app", () => {
     render(
       <ProAccessContext.Provider value={{ locked: true, store: storeWith(async () => "cancelled") }}>
-        <ProNote what="Moving the line is Pro" lane />
+        <ProNote what="Moving the line" lane />
       </ProAccessContext.Provider>
     );
+    expect(screen.getByText("Moving the line is in Headpin Pro")).toBeInTheDocument();
+    expect(screen.queryByText(/in the Headpin app/)).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Get Headpin Pro, $9.99" })).toBeInTheDocument();
   });
 });

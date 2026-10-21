@@ -55,8 +55,12 @@
         text-shadow: 0 6px 30px rgb(0 0 0 / 0.55); }
       #cap .w { display: inline-block; white-space: pre; will-change: transform, opacity, filter; }
       #cap .em { background: linear-gradient(180deg, #ffd166 0%, #ff9f1c 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
-      #kicker { position: absolute; left: 0; right: 0; top: 232px; text-align: center; font: 800 30px Inter, sans-serif;
-        letter-spacing: 0.22em; text-transform: uppercase; color: #5ed6c1; }
+      /* The pill over a run of captions: "Free" in the app's teal, "Headpin
+         Pro" in the gold the captions light their words with. */
+      #kicker { position: absolute; left: 50%; top: 290px; transform-origin: 50% 50%; padding: 12px 30px 11px; border-radius: 999px;
+        font: 900 30px Inter, sans-serif; letter-spacing: 0.2em; text-transform: uppercase; white-space: nowrap; }
+      #kicker.free { color: #5ed6c1; background: rgb(94 214 193 / 0.12); border: 2px solid rgb(94 214 193 / 0.55); box-shadow: 0 0 40px rgb(94 214 193 / 0.25); }
+      #kicker.pro { color: #1d1203; background: linear-gradient(180deg, #ffd166 0%, #ff9f1c 100%); border: 2px solid #ffe3a3; box-shadow: 0 0 50px rgb(255 176 32 / 0.45); }
 
       #flash { position: absolute; inset: 0; background: #fff; pointer-events: none; }
 
@@ -67,8 +71,10 @@
       #end .tag em { font-style: normal; color: #ffb020; }
       #end .cta { margin-top: 20px; padding: 26px 64px; border-radius: 999px; background: #5ed6c1; color: #052019;
         font: 900 64px "Inter Display", Inter, sans-serif; letter-spacing: -0.02em; box-shadow: 0 0 80px rgb(94 214 193 / 0.55); }
-      #end .note { font-size: 50px; font-weight: 700; color: rgb(255 255 255 / 0.85); letter-spacing: -0.01em; }
-      #end .web { font: 600 38px Inter, sans-serif; color: #9fb0c6; }
+      #end .note { font-size: 44px; font-weight: 700; color: rgb(255 255 255 / 0.85); letter-spacing: -0.01em; }
+      #end .pro { margin-top: 6px; display: flex; align-items: center; gap: 18px; font: 700 36px Inter, sans-serif; color: #e7eef8; }
+      #end .pro b { font: 900 26px Inter, sans-serif; letter-spacing: 0.18em; text-transform: uppercase; padding: 10px 20px 9px; border-radius: 999px;
+        color: #1d1203; background: linear-gradient(180deg, #ffd166 0%, #ff9f1c 100%); }
       #end .chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 14px; max-width: 900px; margin-top: 10px; }
       #end .chip { font: 700 30px Inter, sans-serif; padding: 12px 24px; border-radius: 999px; background: rgb(255 255 255 / 0.07); color: #cfe0f2; border: 1px solid rgb(255 255 255 / 0.1); }
     </style>
@@ -94,9 +100,9 @@
       <img src="/icons/icon-512.png" alt="" />
       <div class="name">Headpin</div>
       <div class="tag">Bowl <em>smarter</em>.</div>
-      <div class="cta">headpin.app</div>
-      <div class="note">Free · No sign-up · Works offline</div>
-      <div class="web">Nothing to download. It opens in your browser.</div>
+      <div class="cta">Free on the App Store</div>
+      <div class="note">Unlimited games · No account · Works offline</div>
+      <div class="pro"><b>Pro</b>One purchase. No subscription.</div>
     </div>
     <div id="grain"></div>
     <div id="flash"></div>
@@ -237,8 +243,11 @@
           cap.style.top = `${f.caption.top ?? 300}px`;
           cap.style.fontSize = `${f.caption.size ?? 86}px`;
         }
-        $("kicker").textContent = f.kicker ? f.kicker.text : "";
-        $("kicker").style.opacity = f.kicker ? f.kicker.opacity : 0;
+        const kick = $("kicker");
+        kick.textContent = f.kicker ? f.kicker.text : "";
+        kick.className = f.kicker ? f.kicker.kind : "";
+        kick.style.opacity = f.kicker ? f.kicker.opacity : 0;
+        kick.style.transform = `translateX(-50%) scale(${f.kicker ? f.kicker.scale : 1})`;
 
         // End card.
         const end = $("end");
@@ -253,6 +262,7 @@
         }
         $("flash").style.opacity = f.flash ?? 0;
         $("scrim").style.opacity = f.end ? 0 : 1;
+        $("scrim").style.height = `${f.scrim ?? 610}px`;
         await Promise.all(waits);
       };
       window.ready = document.fonts.ready.then(() => $("end").querySelector("img").decode().catch(() => {}));

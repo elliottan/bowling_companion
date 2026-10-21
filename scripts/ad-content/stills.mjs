@@ -18,9 +18,10 @@ const STATE = process.env.ADS_STATE;
 /** The stills, in the order of the ad plan's creative table. */
 const STILLS = [
   { name: "line", shot: "line", h: "Remember every <em>line</em> you threw.", sub: "See your shot drawn on the lane." },
-  { name: "pins", shot: "scorer", h: "Tap the pins you left. <em>Headpin does the math.</em>", sub: "Score, ball and boards for every shot." },
-  { name: "stats", shot: "stats", h: "Watch your average <em>move</em>.", sub: "Pocket, carry and strike, session by session." },
-  { name: "retarget", shot: "line", h: "Back for another look? <em>It's free to try.</em>", sub: "A bowling score keeper with no account to make." },
+  { name: "pins", shot: "scorer", h: "Tap the pins you left. <em>Headpin does the math.</em>", sub: "Unlimited games, every ball and board." },
+  // The deeper reads are Headpin Pro (ADR-154), so a still that names them says so.
+  { name: "stats", shot: "stats", h: "Watch your average <em>move</em>.", sub: "Average free. Pocket and carry with Pro." },
+  { name: "retarget", shot: "line", h: "Back for another look? <em>It's free to download.</em>", sub: "No account. Pro is one purchase." },
   { name: "patterns", img: "pattern", h: "Know the pattern <em>before you bowl it</em>.", sub: "Every PBA animal pattern, on your phone." },
   { name: "spares", img: "spare", h: "Your spare system, <em>written down</em>.", sub: "Stance and target for every leave." }
 ];

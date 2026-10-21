@@ -400,7 +400,7 @@ export function LayoutLabView({ onBack, onOpenSettings, seed }: LayoutLabViewPro
             it, so the numbers below are read against the ball they belong to. */}
         {seed?.ballName && <SeededBallCard seed={seed} />}
 
-        <ProNote what="Changing a layout is in the Headpin app" />
+        <ProNote what="Changing a layout" />
 
         {/* A disabled fieldset turns off every field and button inside it while
             leaving their values on screen to read. */}

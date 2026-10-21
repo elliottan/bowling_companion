@@ -845,7 +845,7 @@ function App() {
           // Read-only without Pro: the line, shared or not, is drawn in full
           // and can be shared on, but not moved (ADR-154).
           onChange={pro.locked ? undefined : setSandboxLine}
-          footer={pro.locked ? <ProNote lane what="Moving the line is in the Headpin app" /> : undefined}
+          footer={pro.locked ? <ProNote lane what="Moving the line" /> : undefined}
           // No shot behind this lane, so the hand is a question rather than a
           // fact, the same reason the sandbox picks its own pattern (ADR-108).
           handSwitchable
