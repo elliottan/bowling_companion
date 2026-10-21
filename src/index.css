@@ -21,13 +21,31 @@ body {
  * App-native feel: nothing is text-selectable and iOS shows no long-press
  * callout/highlight. Form controls keep selection so users can still edit and
  * position the caret in inputs/textareas.
+ *
+ * On every element, not only on `html`: WebKit let the text inside an SVG (a
+ * chart's values and dates) be picked up by the double-tap-and-hold selection
+ * gesture, which brought up the iOS magnifier over the chart (ADR-180).
  */
 html {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-text-size-adjust: 100%;
+  /* No double-tap zoom anywhere, only on controls as before: a double tap on a
+     chart or a card zoomed the page as a website does. Pinch is untouched. */
+  touch-action: manipulation;
+}
+
+*,
+*::before,
+*::after {
   -webkit-user-select: none;
   user-select: none;
   -webkit-touch-callout: none;
-  -webkit-tap-highlight-color: transparent;
-  -webkit-text-size-adjust: 100%;
+}
+
+/* A picture held is not a file to drag out of the app. */
+img,
+svg {
+  -webkit-user-drag: none;
 }
 
 button,
@@ -41,6 +59,8 @@ textarea,
 [contenteditable="true"] {
   -webkit-user-select: text;
   user-select: text;
+  /* Paste, select and the caret's own menu. */
+  -webkit-touch-callout: default;
 }
 
 :root {

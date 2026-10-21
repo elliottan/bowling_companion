@@ -72,6 +72,9 @@ class HeadpinViewController: CAPBridgeViewController, UIGestureRecognizerDelegat
         // the rubber band at the top and bottom of the web view only showed
         // the app as a page being dragged about (ADR-160).
         webView.scrollView.bounces = false
+        // A long press on a link shows nothing: WebKit's preview of the page
+        // behind a link is a browser's, and an app's links are its own (ADR-180).
+        webView.allowsLinkPreview = false
         paintBackground(HeadpinViewController.launchBackground)
         // The page says what its background is, and again when its theme changes.
         let content = webView.configuration.userContentController

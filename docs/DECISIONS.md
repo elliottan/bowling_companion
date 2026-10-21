@@ -8173,3 +8173,30 @@ the pencil edits ("Edit ball", "Edit lane 3 notes"), so a screen reader hears
 the verb. A pass over every other control found the rest already right: glyphs
 on chrome, and words where a glyph would be a guess (a dialog's answers, a
 toggle between two named views, quiet in-screen actions such as "Edit shots").
+
+---
+
+## ADR-180: The app gives away no web-page gestures
+
+**Status.** Accepted, 2026-10-21, after the owner saw it on a phone. Follows
+ADR-160 (no rubber band, no pinch zoom, haptics), which took the first of
+these away.
+
+**Context.** A double tap and hold on the Stats chart brought up the iOS text
+magnifier: selection was off on `html`, and WebKit still let the text inside an
+SVG (a chart's values and dates) be picked up. The same pass found three more
+ways the app answered like a web page: a double tap on anything but a control
+could zoom, a held picture could be dragged out as a file, and a long press on a
+link opened WebKit's preview of the page behind it.
+
+**Decision.**
+
+- Selection and the long-press callout are off on every element, not only the
+  root; text fields keep both, with their own paste and caret menu.
+- `touch-action: manipulation` on the page, so no double tap zooms anywhere.
+  Pinch is left as ADR-160 and VIEWPORT-BUG settle it.
+- Pictures and drawings cannot be dragged (`-webkit-user-drag: none`).
+- The iPhone app's web view shows no link previews (`allowsLinkPreview`).
+- Kept on purpose: the keyboard's own toolbar above a text field. Hiding it
+  needs the Keyboard plugin and takes away the only way to put away the number
+  pad, which has no return key.
