@@ -119,7 +119,7 @@ describe("ProNote", () => {
       </ProAccessContext.Provider>
     );
     expect(screen.getByText("Read only. Editing is in Headpin Pro")).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "Read only. Editing is in Headpin Pro. Get the app" }));
+    fireEvent.click(screen.getByRole("button", { name: "Read only. Editing is in Headpin Pro. Unlock" }));
     fireEvent.click(screen.getByRole("button", { name: "Open the App Store" }));
     await waitFor(() => expect(store.opened).toEqual(["https://apps.apple.com/app/id1"]));
   });
@@ -142,7 +142,7 @@ describe("ProChip", () => {
       </ProAccessContext.Provider>
     );
     expect(screen.getByText("Unlock editing")).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "Moving the line is in Headpin Pro. Get the app" }));
+    fireEvent.click(screen.getByRole("button", { name: "Moving the line is in Headpin Pro. Unlock editing" }));
     expect(screen.getByRole("dialog", { name: "Bowled with Headpin on the web?" })).toBeInTheDocument();
   });
 });
@@ -211,8 +211,8 @@ describe("with the Pro page available (ADR-164)", () => {
     );
     fireEvent.click(screen.getByRole("button", { name: "How each ball strikes. Get Headpin Pro, $9.99" }));
     fireEvent.click(screen.getByRole("button", { name: "Get Headpin Pro, $9.99" }));
-    fireEvent.click(screen.getByRole("button", { name: "Read only. Get Headpin Pro, $9.99" }));
-    fireEvent.click(screen.getByRole("button", { name: "Moving the line is in Headpin Pro. Get Headpin Pro, $9.99" }));
+    fireEvent.click(screen.getByRole("button", { name: "Read only. Unlock" }));
+    fireEvent.click(screen.getByRole("button", { name: "Moving the line is in Headpin Pro. Unlock editing" }));
     expect(openOffer).toHaveBeenCalledTimes(4);
     expect(buy).not.toHaveBeenCalled();
   });

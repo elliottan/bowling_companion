@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useLayoutEffect, useState } from "react";
 
 /**
  * The app's accent color, separate from light and dark (ADR-164). Felt is the
@@ -75,7 +75,8 @@ export function usePalette(): [PaletteId, (next: PaletteId) => void] {
  * color they cannot change; the choice is kept and comes back with Pro.
  */
 export function useAppliedPalette(proOpen: boolean) {
-  useEffect(() => {
+  // Before paint, so a held-back color is never seen for a frame.
+  useLayoutEffect(() => {
     const chosen = readPalette();
     const pro = PALETTES.find((p) => p.id === chosen)?.pro ?? false;
     applyPalette(pro && !proOpen ? DEFAULT_PALETTE : chosen);

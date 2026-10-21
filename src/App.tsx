@@ -847,8 +847,10 @@ function App() {
         </Suspense>
       ))}
 
-      {/* Under the Pro page while it is up: the lane's own layer would cover it. */}
-      {nav.lineSandboxOpen && nav.overlays[nav.overlays.length - 1] !== "pro" && (
+      {/* Hidden, not unmounted, while the Pro page is up (the lane's own layer
+          would cover it), so its tilt, hand and pattern are there on back. */}
+      {nav.lineSandboxOpen && (
+        <div hidden={nav.overlays[nav.overlays.length - 1] === "pro"}>
         <LaneVisualizerLazy
           title="Line sandbox"
           line={sandboxLine}
@@ -868,6 +870,7 @@ function App() {
           leave={sharedLine?.leave}
           onClose={() => goBack({ type: "closeLineSandbox" })}
         />
+        </div>
       )}
 
       <UpdateToast />

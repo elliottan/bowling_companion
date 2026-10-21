@@ -12,7 +12,7 @@ import {
   StatsSample,
   ThemesSample
 } from "../components/ProOfferSamples";
-import { useProAccess, useProStoreContext } from "../lib/useProAccess";
+import { useProAccess, useProOwned, useProStoreContext } from "../lib/useProAccess";
 
 /**
  * What Headpin Pro is, before anything charges (ADR-164): a picture and a
@@ -99,7 +99,7 @@ export function ProOfferView({ onBack }: ProOfferViewProps) {
       </div>
 
       {/* The button stays in reach while the page scrolls under it. */}
-      <div className="sticky bottom-0 border-t border-edge bg-surface-sunken/95 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 backdrop-blur">
+      <div className="sticky bottom-0 border-t border-edge bg-surface-sunken px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3">
         <div className="mx-auto w-full max-w-xl">{access.locked ? <Purchase access={access} /> : <Owned />}</div>
       </div>
     </PushScreen>
@@ -169,10 +169,13 @@ function Purchase({ access }: { access: Extract<ReturnType<typeof useProAccess>,
 }
 
 function Owned() {
+  // Thanks only to somebody who bought it: Pro is also open on the owner's copy
+  // and on Android, where nobody has paid (ADR-164).
+  const bought = useProOwned();
   return (
     <p className="flex items-center justify-center gap-2 py-2 text-sm font-semibold text-ink">
       <Check size={18} aria-hidden="true" className="text-accent" />
-      You have Headpin Pro. Thanks for the support.
+      {bought ? "You have Headpin Pro. Thanks for the support." : "Everything in Pro is open here."}
     </p>
   );
 }

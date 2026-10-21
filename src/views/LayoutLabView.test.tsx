@@ -818,7 +818,7 @@ describe("the layout lab while Pro is locked (ADR-154, ADR-163)", () => {
       </ProAccessContext.Provider>
     );
     expect(screen.getByText("You can look but not change anything. Editing layouts is in Headpin Pro")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Get the app/ })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Unlock/ })).toBeInTheDocument();
     // Every number is still on screen to read, with what the ball will do.
     expect(dualAngle()).toBe("45 x 4 1/2 x 45");
     expect(screen.getByRole("heading", { name: "What it will do" })).toBeInTheDocument();

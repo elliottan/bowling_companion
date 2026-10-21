@@ -375,7 +375,10 @@ export function navReducer(state: NavState, action: NavAction): NavState {
         overlays: route.overlays,
         catalogBallId: route.catalogBallId ?? null,
         openGuideId: route.guideId ?? null,
-        reportLineId: route.reportLineId ?? null,
+        // The line view is off the screen for now (ADR-163), so an old link to
+        // one opens the report and leaves no id behind: a back press that
+        // closes nothing would be the only thing it did.
+        reportLineId: null,
         // A restored route is a URL, and a URL says which screen, never which
         // ball: a lab restored from history opens on its own defaults or on the
         // query string, exactly as a pasted link does.

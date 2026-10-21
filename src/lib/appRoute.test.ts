@@ -253,7 +253,9 @@ describe("appRoute", () => {
         "#/home/arsenal"
       );
       const restored = navReducer(INITIAL_NAV, { type: "restore", route: parseRoute(routeHash(line)) });
-      expect(restored.reportLineId).toBe("9_4_6.5");
+      // Parked with the line view (ADR-163): an old link opens the report only.
+      expect(restored.reportLineId).toBeNull();
+      expect(restored.overlays).toEqual(["game-plan"]);
       expect(parseRoute("#/home/game-plan/played").reportLineId).toBeUndefined();
     });
 

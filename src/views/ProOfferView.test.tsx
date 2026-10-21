@@ -86,6 +86,12 @@ describe("the Pro page (ADR-164)", () => {
     expect(await screen.findByText(/did not answer: offline/)).toBeInTheDocument();
   });
 
+  it("does not thank somebody for a purchase they did not make", () => {
+    renderOffer({ locked: false });
+    expect(screen.getByText("Everything in Pro is open here.")).toBeInTheDocument();
+    expect(screen.queryByText(/Thanks for the support/)).not.toBeInTheDocument();
+  });
+
   it("thanks an owner instead of offering the purchase", () => {
     renderOffer({ locked: false, owned: true });
     expect(screen.getByText(/You have Headpin Pro/)).toBeInTheDocument();

@@ -165,7 +165,7 @@ function Note({ access, what }: { access: LockedProAccess; what: string }) {
         type="button"
         disabled={action.busy || action.unavailable}
         onClick={action.start}
-        aria-label={`${what}. ${action.label}`}
+        aria-label={`${what}. Unlock`}
         className="shrink-0 rounded-full px-1 py-2 text-xs font-semibold text-accent active:opacity-60 disabled:opacity-50"
       >
         Unlock
@@ -202,8 +202,8 @@ function Chip({ access, what, before }: { access: LockedProAccess; what: string;
           before?.();
           action.start();
         }}
-        aria-label={`${what}. ${action.label}`}
-        className="inline-flex h-9 items-center gap-1.5 rounded-full border border-white/25 bg-slate-900/70 px-3 text-xs font-semibold text-white/90 backdrop-blur hover:bg-white/10 disabled:opacity-60"
+        aria-label={`${what}. Unlock editing`}
+        className="inline-flex h-9 items-center gap-1 rounded-full border border-white/25 bg-slate-900/70 px-2.5 text-xs font-semibold text-white/90 backdrop-blur hover:bg-white/10 disabled:opacity-60"
       >
         <Lock size={13} aria-hidden="true" />
         Unlock editing

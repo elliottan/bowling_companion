@@ -7652,6 +7652,11 @@ lane is its own layer and would cover the page.
 
 **Consequences.**
 
+- The actual line records where the ball finished, and its breakpoint and final
+  board have no field to type into: they could only be set by dragging. Without
+  Pro they cannot be set from score entry at all. That is the owner's call as
+  asked; if it proves too harsh, leave the actual line's drag free and lock only the
+  intended line's.
 - The spare line form (`SpareLineFormDialog`) has its own lane editor and is not
   changed here; it is part of writing down a leave's line, which the table keeps
   free. Say so if it should be locked too.
