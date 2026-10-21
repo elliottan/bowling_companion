@@ -1,4 +1,4 @@
-import { Archive, BookOpen, Check, ChevronRight, Plus, RotateCcw, Search, Trash2 } from "lucide-react";
+import { Archive, BookOpen, Check, ChevronRight, Pencil, Plus, RotateCcw, Search, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { getAllCatalog, getCatalogBall, syncCatalog } from "../services/ballCatalogRepository";
@@ -29,7 +29,6 @@ import { FIELD } from "./ui/field";
 import { FormSheet } from "./ui/FormSheet";
 import { matchesCatalogSearch } from "../lib/catalogSearch";
 import { IconButton } from "./ui/IconButton";
-import { BarButton } from "./ui/BarButton";
 import { ProVeil } from "./ui/ProLock";
 import { useProAccess } from "../lib/useProAccess";
 
@@ -184,9 +183,9 @@ export function BallFormDialog({ ball, onClose, onSaved, onDelete, onRetire }: B
       <Check size={20} aria-hidden="true" />
     </IconButton>
   ) : (
-    <BarButton onClick={() => setUnlocked(true)} label="Edit ball">
-      Edit
-    </BarButton>
+    <IconButton variant="round" onClick={() => setUnlocked(true)} label="Edit ball">
+      <Pencil size={18} aria-hidden="true" />
+    </IconButton>
   );
 
   // Read, the catalog card is the ball's specs and not yet the way into the

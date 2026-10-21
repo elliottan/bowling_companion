@@ -8153,3 +8153,23 @@ final fields it moves.
   the edge they sit on: up from the row in bowler view, inward from the side
   column top-down.
 - The sentence under the hook-shape sliders goes; the slider names say it.
+
+---
+
+## ADR-179: Edit is a pencil
+
+**Status.** Accepted, 2026-10-21, by the owner's decision. Amends ADR-168 and
+DESIGN-LANGUAGE §1b, which kept the word "Edit" on chrome as a glass capsule.
+
+**Context.** Every other control on a bar is a round glyph: back, close, share,
+add, the tick that saves. The word "Edit" beside them, on the ball, spare line
+and bowling profile sheets, read as the odd one out, and so did the tinted
+"Edit" on a lane's notes card.
+
+**Decision.** Edit is a pencil: `IconButton variant="round"` with the pencil on
+a bar, turning into the tick that saves, and a compact pencil in a card's
+heading row. `BarButton` and `TintedButton` are gone. The label still says what
+the pencil edits ("Edit ball", "Edit lane 3 notes"), so a screen reader hears
+the verb. A pass over every other control found the rest already right: glyphs
+on chrome, and words where a glyph would be a guess (a dialog's answers, a
+toggle between two named views, quiet in-screen actions such as "Edit shots").

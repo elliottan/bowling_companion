@@ -36,8 +36,7 @@ Every push gets, without exception:
   opened from the dashboard it named a tab the user had never navigated from;
 - a centered title, one line, 17px semibold, shown while the screen is at its
   top and faded out once anything scrolls under the bar (ADR-177);
-- at most **one** trailing action, an `IconButton`, or the word "Edit" in a
-  `BarButton` where the action turns the screen into a form (§1b). The layout
+- at most **one** trailing action, an `IconButton` (§1b). The layout
   lab is the single exception: a share, which is what the screen is for once
   the numbers are right, beside a More that holds the bowler's PAP, hand and
   grip, set once and then read against, so the page is the ball and the
@@ -98,11 +97,14 @@ circle. Both are glass (`.glass`): a translucent raised circle with a highlight
 on its top edge and the glyph in ink, as iOS 26 draws a bar button; the commit
 (`confirm`) is the accent under the same highlight (ADR-168).
 
-The one word kept on chrome is **Edit**, for the control that turns a read
-screen into a form: a glyph said it less clearly than the word iOS uses. It is a
-`BarButton`, a glass capsule as tall as the rounds. Inside content, an edit that
-belongs to one card is a `TintedButton`, a small accent-tinted capsule. Neither
-is a bare pencil.
+**Edit is a pencil**, on chrome and in content alike (ADR-179): the round glass
+pencil in a bar turns a read screen into a form and becomes the tick that
+saves, and an edit that belongs to one card (a lane's notes) is a compact
+pencil in the card's heading row. The word "Edit" was kept on bars for a while,
+and beside every other control on chrome being a glyph it read as the odd one
+out. Words stay where a glyph would be a guess: a dialog's answers ("Edit",
+"Replace", "Delete"), a toggle between two named views ("Top-down"), and a
+quiet action inside a screen ("Edit shots", "Re-aim", "Presets").
 
 **Bars float, and the page scrolls under them** (ADR-168). A push's nav bar, a
 sheet's bar and the status bar over a tab have no ground of their own: behind
