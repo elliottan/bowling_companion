@@ -206,6 +206,12 @@ describe("SettingsView's Headpin Pro", () => {
     await waitFor(() => expect(screen.getByRole("status")).toHaveTextContent("This Apple ID has not bought Headpin Pro."));
   });
 
+  it("does not offer to restore Pro once it is here", () => {
+    renderWithStore({ ...base, owned: true });
+    expect(screen.getByText("Unlocked. Thank you for backing Headpin.")).toBeInTheDocument();
+    expect(screen.queryByText("Restore purchase")).not.toBeInTheDocument();
+  });
+
   it("says when the App Store does not answer, and why when it said", async () => {
     renderWithStore({ ...base, restore: () => Promise.reject(new Error("offline")) });
     fireEvent.click(screen.getByRole("button", { name: /Restore purchase/ }));

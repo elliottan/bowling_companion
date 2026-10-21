@@ -296,8 +296,8 @@ function buildLine(): string {
 
 /**
  * Headpin Pro, where the app sells it (the iOS app, ADR-158): bought or not,
- * and Restore purchase, which App Review requires and a bowler on a new phone
- * needs. On the web, where Pro is not sold, one row to the Pro page wherever
+ * and, until it is bought, Restore purchase, which App Review requires and a
+ * bowler on a new phone needs. On the web, where Pro is not sold, one row to the Pro page wherever
  * Pro is locked or owned (`/app`, `/score`), so either side of it can be read
  * there (ADR-167). Every row carries the Pro mark, which is what the page shows.
  */
@@ -377,12 +377,16 @@ function ProSection() {
             onClick={() => (openOffer ? openOffer() : void buy())}
           />
         )}
-        <ListRow
-          icon={RotateCcw}
-          label="Restore purchase"
-          description={busy === "restore" ? waiting : "Bought Pro before on this Apple ID"}
-          onClick={() => void restore()}
-        />
+        {/* Only while there is something to restore: once Pro is here, a row
+            offering to bring it back reads as if it were missing. */}
+        {!store.owned && (
+          <ListRow
+            icon={RotateCcw}
+            label="Restore purchase"
+            description={busy === "restore" ? waiting : "Bought Pro before on this Apple ID"}
+            onClick={() => void restore()}
+          />
+        )}
       </ListGroup>
       {message && (
         <p role="status" className="px-1 text-sm text-ink-secondary">

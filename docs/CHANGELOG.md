@@ -25,6 +25,8 @@ had all shipped.
 - **A ball's layout is Pro.** Without Pro the ball form keeps its name, weight
   and catalog link, and its layout sits under "Set and visualize your ball
   layout with Pro". A layout already on a ball still reads (ADR-172).
+- **No Restore purchase once you have Pro.** Settings only offers it while Pro
+  is not on the phone.
 - **Ball weights run 16 down to 8 lb**, heaviest first, and the arsenal shows
   each ball's weight beside its name.
 - **Locked controls are easier to see through.** The blur over the layout
