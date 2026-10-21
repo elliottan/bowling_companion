@@ -92,6 +92,7 @@ export function ProAction({
   className?: string;
 }) {
   const [state, setState] = useState<"idle" | "busy" | "pending" | "failed">("idle");
+  const [why, setWhy] = useState("");
 
   if ("appStoreUrl" in access) {
     const { appStoreUrl } = access;
@@ -107,7 +108,10 @@ export function ProAction({
     setState("busy");
     try {
       setState((await store.buy()) === "pending" ? "pending" : "idle");
-    } catch {
+    } catch (err) {
+      // Say why when the store did: "not available right now" and "offline" are
+      // different problems, and one line hid both (as Settings no longer does).
+      setWhy(err instanceof Error ? err.message : "");
       setState("failed");
     }
   }
@@ -115,7 +119,7 @@ export function ProAction({
     state === "pending"
       ? "Waiting for approval. Pro opens as soon as it comes through."
       : state === "failed"
-        ? "The App Store did not answer. Try again in a moment."
+        ? `The App Store did not answer${why ? `: ${why}` : ". Try again in a moment."}`
         : null;
 
   return (
