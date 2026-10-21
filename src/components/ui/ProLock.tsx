@@ -1,18 +1,20 @@
 import { useEffect, useRef, type CSSProperties, type ReactNode } from "react";
 import { Lock } from "lucide-react";
 import { Button } from "./Button";
+import { ProMark } from "./ProMark";
 import type { LockedProAccess } from "../../lib/pro";
 import { useProAccess } from "../../lib/useProAccess";
 import { useProEntry } from "./useProAction";
 
 /**
- * How Pro shows where it is locked (ADR-163, docs/PRO-LAUNCH.md).
+ * How Pro shows where it is locked (ADR-163, ADR-167, docs/PRO-LAUNCH.md).
  *
- * Three pieces, each quiet. A card that is Pro shows its first few lines as
+ * Four pieces, each quiet. A card that is Pro shows its first few lines as
  * they are, fading out, with one small "Pro" mark; the whole preview is the
- * tap. A screen with several of them says what Pro adds once, in a banner. A
- * screen that is readable but not editable says so in one line. Nothing pops
- * up, counts down or covers anything but itself.
+ * tap. A list that is Pro shows its first rows in full and the next one
+ * blurred under the mark. Controls that are Pro stay where they are, blurred,
+ * under one tap. A screen with several of them says what Pro adds once, in a
+ * banner. Nothing pops up, counts down or covers anything but itself.
  */
 
 /** The card's opening lines stay sharp and the rest fades out, so the bowler
@@ -21,6 +23,29 @@ const FADE: CSSProperties = {
   maskImage: "linear-gradient(to bottom, #000 45%, transparent)",
   WebkitMaskImage: "linear-gradient(to bottom, #000 45%, transparent)"
 };
+
+/** The small mark a locked thing carries: a lock and the word. `lane` is the
+ *  lane view's dark frame, which paints its own colors (DESIGN-LANGUAGE §3). */
+export function ProPill({ children = "Pro", lane = false }: { children?: ReactNode; lane?: boolean }) {
+  return (
+    <span
+      className={`inline-flex h-7 items-center gap-1 rounded-full px-3 text-xs font-semibold shadow-sm ${
+        lane ? "border border-white/25 bg-slate-900/80 text-white/90 backdrop-blur" : "bg-accent-fill text-accent-on-fill"
+      }`}
+    >
+      <Lock size={12} aria-hidden="true" />
+      {children}
+    </span>
+  );
+}
+
+/** Takes a preview out of the tab order and the accessibility tree, so no tap
+ *  or focus reaches what it covers. React 18 has no `inert` prop. */
+function useInert<T extends HTMLElement>() {
+  const ref = useRef<T>(null);
+  useEffect(() => ref.current?.setAttribute("inert", ""), []);
+  return ref;
+}
 
 function ActionNote({ text, lane = false }: { text: string | null; lane?: boolean }) {
   if (!text) return null;
@@ -73,10 +98,7 @@ function Teaser({
   children: ReactNode;
 }) {
   const action = useProEntry(access);
-  const previewRef = useRef<HTMLDivElement>(null);
-  // React 18 has no `inert` prop. Inert takes the preview out of the tab order
-  // and the accessibility tree, and no tap reaches what it covers.
-  useEffect(() => previewRef.current?.setAttribute("inert", ""), []);
+  const previewRef = useInert<HTMLDivElement>();
   return (
     <div>
       {/* The mark sits in room of its own under the fade, not over the last of
@@ -97,10 +119,7 @@ function Teaser({
           aria-label={`${what}. ${action.label}`}
           className="absolute inset-0 flex items-end justify-center rounded-xl pb-0.5 disabled:opacity-60"
         >
-          <span className="inline-flex h-7 items-center gap-1 rounded-full bg-accent-fill px-3 text-xs font-semibold text-accent-on-fill shadow-sm">
-            <Lock size={12} aria-hidden="true" />
-            Pro
-          </span>
+          <ProPill />
         </button>
       </div>
       <div className="mt-1 flex justify-center">
@@ -126,9 +145,7 @@ function Banner({ access, what }: { access: LockedProAccess; what: string }) {
   const action = useProEntry(access);
   return (
     <section className="flex items-center gap-3 rounded-xl border border-edge bg-surface p-3 shadow-sm">
-      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-accent-fill/15 text-accent">
-        <Lock size={16} aria-hidden="true" />
-      </span>
+      <ProMark size={36} word={false} />
       <div className="min-w-0 flex-1">
         <p className="text-sm font-semibold text-ink">Headpin Pro</p>
         <p className="text-xs text-ink-secondary">{what}</p>
@@ -143,56 +160,118 @@ function Banner({ access, what }: { access: LockedProAccess; what: string }) {
 }
 
 /**
- * The line a read-only Pro screen carries in place of its controls: the screen
- * itself stays fully drawn and readable, and only changing it waits on Pro
- * (the layout lab). One quiet row, no card. Nothing while Pro is open.
+ * One row of a Pro list past the ones a bowler without Pro reads (ADR-167): the
+ * row as it is, blurred, with the small mark on it, and the whole row the tap.
+ * The rows after it are not drawn at all; the caller leaves them out
+ * (`previewSplit`). The row itself while Pro is open.
  */
-export function ProNote({ what }: { what: string }) {
+export function ProBlur({ what, className = "", children }: { what: string; className?: string; children: ReactNode }) {
   const access = useProAccess();
-  if (!access.locked) return null;
-  return <Note access={access} what={what} />;
+  if (!access.locked) return <>{children}</>;
+  return (
+    <Blurred access={access} what={what} className={className}>
+      {children}
+    </Blurred>
+  );
 }
 
-function Note({ access, what }: { access: LockedProAccess; what: string }) {
+function Blurred({
+  access,
+  what,
+  className,
+  children
+}: {
+  access: LockedProAccess;
+  what: string;
+  className: string;
+  children: ReactNode;
+}) {
   const action = useProEntry(access);
+  const previewRef = useInert<HTMLDivElement>();
   return (
-    <div className="flex items-center justify-between gap-3 rounded-lg bg-surface-muted px-3 py-2">
-      <p className="flex min-w-0 items-center gap-1.5 text-xs font-semibold text-ink-secondary">
-        <Lock size={13} aria-hidden="true" className="shrink-0" />
-        <span>{what}</span>
-      </p>
+    <div className={`relative ${className}`.trim()}>
+      <div ref={previewRef} aria-hidden="true" className="pointer-events-none select-none opacity-70 blur-[3px]">
+        {children}
+      </div>
       <button
         type="button"
         disabled={action.busy || action.unavailable}
         onClick={action.start}
-        aria-label={`${what}. Unlock`}
-        className="shrink-0 rounded-full px-1 py-2 text-xs font-semibold text-accent active:opacity-60 disabled:opacity-50"
+        aria-label={`${what}. ${action.label}`}
+        className="absolute inset-0 flex items-center justify-center rounded-xl active:opacity-70 disabled:opacity-60"
       >
-        Unlock
+        <ProPill />
       </button>
-      <ActionNote text={action.note} />
       {action.dialog}
     </div>
   );
 }
 
 /**
- * A small mark for the lane view's dark frame, which paints its own colors
- * (DESIGN-LANGUAGE.md section 3): a pill in the row of floating controls that
- * says the lane can be read and not moved, and is the way to Pro. Nothing while
- * Pro is open. `before` runs first, for a lane the caller has to close so the
- * Pro page is not hidden behind it.
+ * Controls that are Pro on a screen that is free to read (ADR-167): the layout
+ * lab's fields, the lane's pegs. They stay where they are, blurred and out of
+ * reach, so a bowler sees what Pro would let them change, and one tap anywhere
+ * on them is the way to Pro. The controls themselves while Pro is open.
+ *
+ * `before` runs first, for a layer the caller has to close so the Pro page is
+ * not hidden behind it (the lane). `lane` is the lane view's dark frame. `tall`
+ * is a block taller than the screen (the layout lab's fields): its mark rides
+ * along in view while the blurred fields scroll under it.
  */
-export function ProChip({ what, before }: { what: string; before?: () => void }) {
+export function ProVeil({
+  what,
+  label,
+  lane = false,
+  tall = false,
+  before,
+  className = "",
+  children
+}: {
+  /** What the controls do, for the tap's spoken name. */
+  what: string;
+  /** The words on the mark, saying what Pro opens here. */
+  label: string;
+  lane?: boolean;
+  tall?: boolean;
+  before?: () => void;
+  className?: string;
+  children: ReactNode;
+}) {
   const access = useProAccess();
-  if (!access.locked) return null;
-  return <Chip access={access} what={what} before={before} />;
+  if (!access.locked) return <>{children}</>;
+  return (
+    <Veil access={access} what={what} label={label} lane={lane} tall={tall} before={before} className={className}>
+      {children}
+    </Veil>
+  );
 }
 
-function Chip({ access, what, before }: { access: LockedProAccess; what: string; before?: () => void }) {
+function Veil({
+  access,
+  what,
+  label,
+  lane,
+  tall,
+  before,
+  className,
+  children
+}: {
+  access: LockedProAccess;
+  what: string;
+  label: string;
+  lane: boolean;
+  tall: boolean;
+  before?: () => void;
+  className: string;
+  children: ReactNode;
+}) {
   const action = useProEntry(access);
+  const previewRef = useInert<HTMLDivElement>();
   return (
-    <div className="flex flex-col items-center gap-1">
+    <div className={`relative ${className}`.trim()}>
+      <div ref={previewRef} aria-hidden="true" className="pointer-events-none select-none opacity-60 blur-[2.5px]">
+        {children}
+      </div>
       <button
         type="button"
         disabled={action.busy || action.unavailable}
@@ -202,13 +281,17 @@ function Chip({ access, what, before }: { access: LockedProAccess; what: string;
           before?.();
           action.start();
         }}
-        aria-label={`${what}. Unlock editing`}
-        className="inline-flex h-9 items-center gap-1 rounded-full border border-white/25 bg-slate-900/70 px-2.5 text-xs font-semibold text-white/90 backdrop-blur hover:bg-white/10 disabled:opacity-60"
+        aria-label={`${what}. ${action.label}`}
+        className={`absolute inset-0 flex justify-center rounded-xl disabled:opacity-60 ${tall ? "items-start" : "items-center"}`}
       >
-        <Lock size={13} aria-hidden="true" />
-        Unlock editing
+        {tall ? (
+          <span className="sticky top-[40%] mt-16">
+            <ProPill>{label}</ProPill>
+          </span>
+        ) : (
+          <ProPill lane={lane}>{label}</ProPill>
+        )}
       </button>
-      <ActionNote text={action.note} lane />
       {action.dialog}
     </div>
   );

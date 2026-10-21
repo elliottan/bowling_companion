@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
-import { ProBanner, ProChip, ProLock, ProNote } from "./ProLock";
+import { ProBanner, ProBlur, ProLock, ProVeil } from "./ProLock";
 import { ProAccessContext } from "../../lib/useProAccess";
 import { ProOfferContext } from "../../lib/proOffer";
 import type { ProAccess, ProStore } from "../../lib/pro";
@@ -101,48 +101,64 @@ describe("ProBanner", () => {
   });
 });
 
-describe("ProNote", () => {
-  it("says nothing while Pro is open", () => {
-    const { container } = render(
+describe("ProBlur", () => {
+  it("is the row itself while Pro is open", () => {
+    render(
       <ProAccessContext.Provider value={{ locked: false }}>
-        <ProNote what="Read only" />
+        <ProBlur what="Every ball">
+          <button type="button">Open Wolverine</button>
+        </ProBlur>
       </ProAccessContext.Provider>
     );
-    expect(container).toBeEmptyDOMElement();
+    expect(screen.getByRole("button", { name: "Open Wolverine" })).toBeInTheDocument();
+    expect(screen.queryByText("Pro")).not.toBeInTheDocument();
   });
 
-  it("is one quiet line that says what waits on Pro and unlocks it", async () => {
-    store.opened.length = 0;
+  it("blurs the row out of reach under the mark, and the row is the way to Pro", () => {
     render(
       <ProAccessContext.Provider value={LOCKED}>
-        <ProNote what="Read only. Editing is in Headpin Pro" />
+        <ProBlur what="Every ball">
+          <button type="button">Open Wolverine</button>
+        </ProBlur>
       </ProAccessContext.Provider>
     );
-    expect(screen.getByText("Read only. Editing is in Headpin Pro")).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "Read only. Editing is in Headpin Pro. Unlock" }));
-    fireEvent.click(screen.getByRole("button", { name: "Open the App Store" }));
-    await waitFor(() => expect(store.opened).toEqual(["https://apps.apple.com/app/id1"]));
+    const preview = screen.getByText("Open Wolverine").parentElement!;
+    expect(preview).toHaveAttribute("inert");
+    expect(preview).toHaveAttribute("aria-hidden", "true");
+    expect(preview.className).toContain("blur-");
+    expect(screen.queryByRole("button", { name: "Open Wolverine" })).not.toBeInTheDocument();
+    expect(screen.getByText("Pro")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Every ball. Get the app" }));
+    expect(screen.getByRole("dialog", { name: "Bowled with Headpin on the web?" })).toBeInTheDocument();
   });
 });
 
-describe("ProChip", () => {
-  it("says nothing while Pro is open", () => {
-    const { container } = render(
+describe("ProVeil", () => {
+  it("is the controls themselves while Pro is open", () => {
+    render(
       <ProAccessContext.Provider value={{ locked: false }}>
-        <ProChip what="Moving the line is in Headpin Pro" />
+        <ProVeil what="Changing the layout" label="Edit with Pro">
+          <input aria-label="Drilling angle" />
+        </ProVeil>
       </ProAccessContext.Provider>
     );
-    expect(container).toBeEmptyDOMElement();
+    expect(screen.getByRole("textbox", { name: "Drilling angle" })).toBeInTheDocument();
+    expect(screen.queryByText("Edit with Pro")).not.toBeInTheDocument();
   });
 
-  it("is a small mark that opens the way to Pro", () => {
+  it("keeps the controls in place, blurred and out of reach, under one tap", () => {
+    const before = vi.fn();
     render(
       <ProAccessContext.Provider value={LOCKED}>
-        <ProChip what="Moving the line is in Headpin Pro" />
+        <ProVeil what="Changing the layout" label="Edit with Pro" before={before}>
+          <input aria-label="Drilling angle" />
+        </ProVeil>
       </ProAccessContext.Provider>
     );
-    expect(screen.getByText("Unlock editing")).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "Moving the line is in Headpin Pro. Unlock editing" }));
+    expect(screen.queryByRole("textbox", { name: "Drilling angle" })).not.toBeInTheDocument();
+    expect(screen.getByText("Edit with Pro")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Changing the layout. Get the app" }));
+    expect(before).toHaveBeenCalledTimes(1);
     expect(screen.getByRole("dialog", { name: "Bowled with Headpin on the web?" })).toBeInTheDocument();
   });
 });
@@ -193,7 +209,7 @@ describe("Pro in the iOS app", () => {
 });
 
 describe("with the Pro page available (ADR-164)", () => {
-  it("opens the page from a teaser, a banner, a note and a chip, and charges nothing there", () => {
+  it("opens the page from a teaser, a banner, a blurred row and blurred controls, and charges nothing there", () => {
     const openOffer = vi.fn();
     const buy = vi.fn(async () => "purchased" as const);
     const access = { locked: true as const, store: { owned: false, price: "$9.99", buy, restore: async () => false } };
@@ -204,15 +220,19 @@ describe("with the Pro page available (ADR-164)", () => {
             <p>Wolverine</p>
           </ProLock>
           <ProBanner what="Charts for every stat" />
-          <ProNote what="Read only" />
-          <ProChip what="Moving the line is in Headpin Pro" />
+          <ProBlur what="Every ball">
+            <p>Phaze</p>
+          </ProBlur>
+          <ProVeil what="Moving the line" label="Move it with Pro">
+            <p>Laydown</p>
+          </ProVeil>
         </ProOfferContext.Provider>
       </ProAccessContext.Provider>
     );
     fireEvent.click(screen.getByRole("button", { name: "How each ball strikes. Get Headpin Pro, $9.99" }));
     fireEvent.click(screen.getByRole("button", { name: "Get Headpin Pro, $9.99" }));
-    fireEvent.click(screen.getByRole("button", { name: "Read only. Unlock" }));
-    fireEvent.click(screen.getByRole("button", { name: "Moving the line is in Headpin Pro. Unlock editing" }));
+    fireEvent.click(screen.getByRole("button", { name: "Every ball. Get Headpin Pro, $9.99" }));
+    fireEvent.click(screen.getByRole("button", { name: "Moving the line. Get Headpin Pro, $9.99" }));
     expect(openOffer).toHaveBeenCalledTimes(4);
     expect(buy).not.toHaveBeenCalled();
   });

@@ -1,4 +1,4 @@
-import { Archive, ArrowUpRight, Check, ChevronRight, Download, MessageSquare, Palette, RotateCcw, ScrollText, Sparkles, UserRound, UserRoundCog } from "lucide-react";
+import { Archive, ArrowUpRight, Check, ChevronRight, Download, MessageSquare, Palette, RotateCcw, ScrollText, UserRound, UserRoundCog } from "lucide-react";
 import { AppearanceView } from "./AppearanceView";
 import { BowlingProfileView } from "./BowlingProfileView";
 import { getBowlerName, getGripStyle, getSetting } from "../services/bowlingRepository";
@@ -11,8 +11,9 @@ import { openInAppBrowser } from "../lib/inAppBrowser";
 import { isIOSApp, isNativeApp, visibleNativePlugins } from "../lib/platform";
 import { openFeedbackEmail } from "../lib/diagnostics";
 import { ListGroup, ListRow } from "../components/ui/ListGroup";
-import { useProOwned, useProStoreContext } from "../lib/useProAccess";
+import { useProAccess, useProOwned, useProStoreContext } from "../lib/useProAccess";
 import { ProBadge } from "../components/ui/ProBadge";
+import { ProMark } from "../components/ui/ProMark";
 import { useProOffer } from "../lib/proOffer";
 import type { ProStore } from "../lib/pro";
 import { BowlingBallIcon, LanePairIcon, SpareLineIcon } from "../components/icons";
@@ -296,17 +297,35 @@ function buildLine(): string {
 /**
  * Headpin Pro, where the app sells it (the iOS app, ADR-158): bought or not,
  * and Restore purchase, which App Review requires and a bowler on a new phone
- * needs. Nothing on the web, where Pro is not sold.
+ * needs. On the web, where Pro is not sold, one row to the Pro page wherever
+ * Pro is locked or owned (`/app`, `/score`), so either side of it can be read
+ * there (ADR-167). Every row carries the Pro mark, which is what the page shows.
  */
 function ProSection() {
   const store = useProStoreContext();
+  const access = useProAccess();
+  const owned = useProOwned();
   // The Pro page says what Pro is before the purchase is offered (ADR-164).
   const openOffer = useProOffer();
   // Which of the two is waiting on the App Store, so its row says so: a tap
   // that shows nothing for the seconds the store takes reads as a dead button.
   const [busy, setBusy] = useState<"buy" | "restore" | null>(null);
   const [message, setMessage] = useState<string | null>(null);
-  if (!store) return null;
+  const mark = <ProMark size={36} word={false} className="rounded-lg" />;
+  if (!store) {
+    // Pro merely open (the Android app, a stray address) has nothing to show.
+    if (!openOffer || (!access.locked && !owned)) return null;
+    return (
+      <ListGroup heading="Headpin Pro">
+        <ListRow
+          leading={mark}
+          label="Headpin Pro"
+          description={owned ? "Unlocked on this copy" : "See what Pro adds"}
+          onClick={openOffer}
+        />
+      </ListGroup>
+    );
+  }
 
   async function run(which: "buy" | "restore", action: (s: ProStore) => Promise<string | null>) {
     if (busy || !store) return;
@@ -340,14 +359,15 @@ function ProSection() {
       <ListGroup heading="Headpin Pro">
         {store.owned ? (
           <ListRow
-            icon={Sparkles}
+            leading={mark}
             label="Headpin Pro"
             description="Unlocked. Thank you for backing Headpin."
             trailing={<Check size={16} aria-hidden="true" className="shrink-0 text-accent" />}
+            onClick={openOffer ?? undefined}
           />
         ) : (
           <ListRow
-            icon={Sparkles}
+            leading={mark}
             label="Get Headpin Pro"
             description={
               busy === "buy"

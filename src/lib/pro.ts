@@ -16,8 +16,10 @@ export const FREE_APP_PATH = "/app";
 
 /**
  * The owner's copy, at the app's original address: every feature, always, by
- * the owner's decision (ADR-154). It is not a secret, since anyone who types it
- * gets it, and it is linked from nowhere.
+ * the owner's decision (ADR-154). It is Pro as a buyer has it, mark and colors
+ * included (ADR-167), so the web shows both sides: the locked app at /app and
+ * the unlocked one here. It is not a secret, since anyone who types it gets it,
+ * and it is linked from nowhere.
  */
 export const OWNER_APP_PATH = "/score";
 
@@ -43,9 +45,10 @@ export interface ProStore {
  * page from the web, or the purchase itself in the iOS app.
  */
 export type ProAccess =
-  /** `owned` is set when this Apple ID bought Pro, and not when Pro is merely
-   *  open (the owner's copy, a web with nothing to sell), so a mark of
-   *  ownership is never shown to a bowler who did not buy it (ADR-164). */
+  /** `owned` is set where this copy is Pro as a buyer has it: an Apple ID that
+   *  bought it, or the owner's copy (ADR-167). Not where Pro is merely open (a
+   *  web with nothing to sell, the Android app), so a mark of ownership is never
+   *  shown to a bowler who did not buy it (ADR-164). */
   | { locked: false; owned?: true }
   /** `appStoreUrl` is null on the free web before the app is listed (ADR-166):
    *  locked, with nowhere to send a bowler yet. */
@@ -57,6 +60,9 @@ export type LockedProAccess = Extract<ProAccess, { locked: true }>;
 
 export const PRO_OPEN: ProAccess = { locked: false };
 
+/** Pro as a buyer has it: the owner's copy answers this (ADR-167). */
+export const PRO_OWNED: ProAccess = { locked: false, owned: true };
+
 /** Whether a page path is the owner's copy: `/score`, or its directory form. */
 export function isOwnerPath(pathname: string): boolean {
   return pathname === OWNER_APP_PATH || pathname.startsWith(`${OWNER_APP_PATH}/`);
@@ -67,7 +73,7 @@ export function isFreeAppPath(pathname: string): boolean {
   return pathname === FREE_APP_PATH || pathname.startsWith(`${FREE_APP_PATH}/`);
 }
 
-/** What the web app offers: everything at the owner's address; at /app the free
+/** What the web app offers: Pro as bought at the owner's address; at /app the free
  *  features with the rest pointing at the App Store, or, before the app is
  *  listed, locked with nowhere to go yet (`LOCK_FREE_WEB`, ADR-166); anywhere
  *  else (the Android app, a stray address) everything stays open. */
@@ -76,7 +82,7 @@ export function webProAccess(
   pathname: string = typeof window === "undefined" ? FREE_APP_PATH : window.location.pathname,
   lockFreeWeb: boolean = LOCK_FREE_WEB
 ): ProAccess {
-  if (isOwnerPath(pathname)) return PRO_OPEN;
+  if (isOwnerPath(pathname)) return PRO_OWNED;
   if (appStoreUrl) return { locked: true, appStoreUrl };
   return lockFreeWeb && isFreeAppPath(pathname) ? { locked: true, appStoreUrl: null } : PRO_OPEN;
 }
@@ -86,7 +92,7 @@ export function webProAccess(
  *  be bought there (the Android app, until Play Billing). */
 export function appProAccess(store: ProStore | null): ProAccess {
   if (!store) return webProAccess();
-  return store.owned ? { locked: false, owned: true } : { locked: true, store };
+  return store.owned ? PRO_OWNED : { locked: true, store };
 }
 
 /** Hands the App Store link to the platform, which opens the App Store app on

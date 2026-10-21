@@ -5,6 +5,7 @@ import { clearViewMemory } from "../lib/viewMemory";
 import type { BallPerformanceReport, BowlingStats, LeaveStats } from "../lib/stats";
 import { describePinsStanding } from "../lib/pins";
 import { ProAccessContext } from "../lib/useProAccess";
+import type { PinNumber } from "../types/bowling";
 
 const STATS: BowlingStats = {
   totalSessions: 1,
@@ -911,20 +912,79 @@ describe("while Pro is locked (ADR-154)", () => {
     expect(screen.getByRole("img", { name: /^Average by session/ })).toBeInTheDocument();
   });
 
-  it("locks the first ball, the leaves and the balls, with one banner and a small mark on each", () => {
+  it("says once what Pro adds, and keeps the first ball a teaser", () => {
     renderLocked();
     // Said once for the screen, with the one button that says "Get the app".
     expect(screen.getAllByRole("button", { name: "Get the app" })).toHaveLength(1);
     expect(screen.getByText(/Pro adds charts for every stat/)).toBeInTheDocument();
-    // Each card is one tap, named for what it shows, with its first lines in view.
-    for (const what of [
-      "Pocket, carry and the pins each first ball takes",
-      "The leaves you leave most, and how often you make each",
-      "How each of your balls strikes, carries and spares"
-    ]) {
-      expect(screen.getByRole("button", { name: `${what}. Get the app` })).toBeInTheDocument();
-    }
+    expect(
+      screen.getByRole("button", { name: "Pocket, carry and the pins each first ball takes. Get the app" })
+    ).toBeInTheDocument();
+  });
+
+  it("shows the two leaves left most in full, the next one blurred, and no more (ADR-167)", () => {
+    const leave = (pin: PinNumber, attempts: number, conversions: number): LeaveStats => ({
+      pins: [pin],
+      attempts,
+      chances: attempts,
+      conversions,
+      conversionPct: Math.round((conversions / attempts) * 100),
+      sharePct: 5
+    });
+    render(
+      <ProAccessContext.Provider value={LOCKED}>
+        <Stats
+          stats={STATS}
+          leaves={[leave(7, 4, 1), leave(10, 9, 6), leave(4, 6, 3), leave(6, 2, 2)]}
+        />
+      </ProAccessContext.Provider>
+    );
+    const grid = screen.getByRole("list", { name: "Leaves left most" });
+    // Left most first: the 10 pin (9), then the 4 pin (6), with their rates.
+    expect(within(grid).getByRole("button", { name: "Open Pin 10" })).toHaveTextContent("6/967%");
+    expect(within(grid).getByRole("button", { name: "Open Pin 4" })).toHaveTextContent("3/650%");
+    // The third is blurred under one tap to Pro, and the fourth is not drawn.
+    expect(within(grid).queryByRole("button", { name: "Open Pin 7" })).not.toBeInTheDocument();
+    expect(
+      within(grid).getByRole("button", { name: "Every leave you leave, and how often you make each. Get the app" })
+    ).toBeInTheDocument();
+    expect(screen.queryByText("2/2")).not.toBeInTheDocument();
+    expect(within(grid).getAllByRole("listitem")).toHaveLength(3);
     expect(screen.queryByRole("button", { name: "All leaves" })).not.toBeInTheDocument();
+  });
+
+  it("shows the best ball in full, the next one blurred, and no more (ADR-167)", () => {
+    const ball = (ballId: number, name: string, strikePct: number) => ({ ...REPORT.balls[0], ballId, name, strikePct });
+    render(
+      <ProAccessContext.Provider value={LOCKED}>
+        <Stats
+          stats={STATS}
+          ballPerformance={{
+            unattributed: 0,
+            balls: [ball(1, "Wolverine", 75), ball(2, "Phaze", 50), ball(3, "Hyroad", 40)]
+          }}
+        />
+      </ProAccessContext.Provider>
+    );
+    const balls = screen.getByRole("list", { name: "Balls" });
+    expect(within(balls).getByText("Wolverine")).toBeInTheDocument();
+    expect(within(balls).getByLabelText("strike 75%")).toBeInTheDocument();
+    // Read where it stands: the All balls sheet is the whole list.
     expect(screen.queryByRole("button", { name: "Open Wolverine" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "All balls" })).not.toBeInTheDocument();
+    expect(
+      within(balls).getByRole("button", { name: "How each of your balls strikes, carries and spares. Get the app" })
+    ).toBeInTheDocument();
+    // The next ball is drawn only blurred, out of the accessibility tree.
+    expect(screen.getByText("Phaze").closest('[aria-hidden="true"]')).toHaveAttribute("inert");
+    expect(screen.queryByText("Hyroad")).not.toBeInTheDocument();
+  });
+
+  it("shows a lone ball blurred, so a locked list always has something locked", () => {
+    renderLocked();
+    expect(
+      screen.getByRole("button", { name: "How each of your balls strikes, carries and spares. Get the app" })
+    ).toBeInTheDocument();
+    expect(screen.getByText("Wolverine").closest('[aria-hidden="true"]')).toHaveAttribute("inert");
   });
 });

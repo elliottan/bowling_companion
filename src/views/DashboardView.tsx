@@ -33,7 +33,7 @@ import { describeAge, protectionCard, snoozeMs } from "../lib/backupNudge";
 import { canPromptInstall, isIOSSafari, isStandalone } from "../lib/installPrompt";
 import { nextSteps, type NextStepKey } from "../lib/onboarding";
 import { useProOwned } from "../lib/useProAccess";
-import { ProBadge } from "../components/ui/ProBadge";
+import { ProMark } from "../components/ui/ProMark";
 import { ProHomeBanner } from "../components/ProHomeBanner";
 import { getOnboardingFacts } from "../services/onboardingRepository";
 import type { SessionSummary } from "../types/bowling";
@@ -194,16 +194,19 @@ export function DashboardView({
           because it carries pictures; the left column has room to grow. */}
       <div className="mb-4 flex items-start gap-4">
         <div className="flex w-[38%] min-w-0 shrink-0 flex-col items-start">
-          <div className="relative mb-2">
+          {/* The app's mark, and once this copy has Pro, the Pro mark in its
+              place (ADR-167). */}
+          {owned ? (
+            <ProMark size={44} title="Headpin Pro" className="mb-2 rounded-xl shadow-sm" />
+          ) : (
             <img
               src="/icons/icon-192.png"
               alt=""
               width={44}
               height={44}
-              className="h-11 w-11 rounded-xl shadow-sm"
+              className="mb-2 h-11 w-11 rounded-xl shadow-sm"
             />
-            {owned && <ProBadge className="absolute -bottom-1 -right-3 shadow-sm ring-2 ring-surface-sunken" />}
-          </div>
+          )}
           <h1 className="text-xl font-bold leading-tight text-ink [overflow-wrap:anywhere]">
             {named ? greeting(name, greetingIndex) : "\u00a0"}
           </h1>

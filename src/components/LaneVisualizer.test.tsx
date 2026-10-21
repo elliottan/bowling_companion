@@ -1,6 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { HandednessContext } from "../lib/handednessContext";
+import { ProAccessContext } from "../lib/useProAccess";
+import { ProOfferContext } from "../lib/proOffer";
 import { DriftModelContext } from "../lib/driftModelContext";
 import { DEFAULT_DRIFT_MODEL } from "../lib/driftModel";
 import { OilPatternContext } from "../lib/oilPatternContext";
@@ -496,9 +498,28 @@ describe("the hint under the lane", () => {
     expect(screen.getByText("Drag the lane to tilt")).toBeInTheDocument();
   });
 
-  it("keeps the hint when the caller sends a notice, the sandbox's Pro mark", () => {
-    renderViz({ notice: <p>Moving the line is in Headpin Pro</p> });
-    expect(screen.getByText("Moving the line is in Headpin Pro")).toBeInTheDocument();
-    expect(screen.getByText(/Drag the lane to tilt/)).toBeInTheDocument();
+  it("keeps the fields in place, blurred, as the way to Pro when moving the line is Pro", () => {
+    const openOffer = vi.fn();
+    const before = vi.fn();
+    render(
+      <ProAccessContext.Provider value={{ locked: true, appStoreUrl: null }}>
+        <ProOfferContext.Provider value={openOffer}>
+          <HandednessContext.Provider value="right">
+            <LaneVisualizer line={{ laydown: 20, target: 15 }} onClose={() => {}} editLocked={{ before }} />
+          </HandednessContext.Provider>
+        </ProOfferContext.Provider>
+      </ProAccessContext.Provider>
+    );
+    // The fields are drawn but out of reach: no field answers to its name.
+    expect(screen.queryByRole("textbox", { name: /Laydown/i })).toBeNull();
+    expect(screen.getByText("Move it with Pro")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Moving the line. See Headpin Pro" }));
+    expect(before).toHaveBeenCalledTimes(1);
+    expect(openOffer).toHaveBeenCalledTimes(1);
+  });
+
+  it("keeps the hint when moving the line is Pro", () => {
+    renderViz({ line: { laydown: 20, target: 15, final_board: 17.5 }, editLocked: {} });
+    expect(screen.getByText("Drag the lane to tilt")).toBeInTheDocument();
   });
 });
