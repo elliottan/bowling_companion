@@ -71,7 +71,8 @@ const SETTINGS_SECTIONS: readonly string[] = [
   "oil-patterns",
   "appearance",
   "profile",
-  "tools"
+  "tools",
+  "legal"
 ];
 
 /** Settings sections are written behind their own segment because their names

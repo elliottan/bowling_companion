@@ -9,9 +9,6 @@ import { BowlerNameSheet } from "../components/BowlerNameSheet";
 import type { GripStyle } from "../types/bowling";
 import type { Handedness } from "../types/bowling";
 import type { DriftModel } from "../lib/driftModel";
-import { LEGAL_URL } from "../lib/links";
-import { openInAppBrowser } from "../lib/inAppBrowser";
-import { isNativeApp } from "../lib/platform";
 import { openFeedbackEmail } from "../lib/diagnostics";
 import { ListGroup, ListRow } from "../components/ui/ListGroup";
 import { useProAccess, useProOwned, useProStoreContext } from "../lib/useProAccess";
@@ -69,6 +66,10 @@ const LaneNotesView = lazy(() =>
 const OilPatternsView = lazy(() =>
   import("./OilPatternsView").then((m) => ({ default: m.OilPatternsView }))
 );
+// Lazy so the page's text is fetched only by a bowler who opens it.
+const LegalView = lazy(() =>
+  import("./LegalView").then((m) => ({ default: m.LegalView }))
+);
 
 export function SettingsView({ section, onSectionChange, handedness, onHandednessChange, driftModel, onDriftModelChange, onOpenBackup, onOpenLineVisualizer, lineVisualizerOpen = false, onOpenArsenal, onOpenSpareLines, onOpenLaneNotes, onOpenLayoutLab, onOpenOilPatternsScreen, onOpenCatalog, onOpenGuides }: SettingsViewProps) {
   const back = () => onSectionChange("menu");
@@ -108,6 +109,8 @@ export function SettingsView({ section, onSectionChange, handedness, onHandednes
               />
             </div>
           </PushScreen>
+        ) : section === "legal" ? (
+          <LegalView onBack={back} />
         ) : section === "profile" ? (
           <BowlingProfileView
             handedness={handedness}
@@ -272,12 +275,7 @@ function SettingsMenu({
         <ListRow
           icon={ScrollText}
           label="Privacy and terms"
-          // The store apps show it over the app, with a Done button back; the
-          // web app opens it in a tab. A failed open falls back to the tab.
-          {...(isNativeApp()
-            ? { onClick: () => void openInAppBrowser(LEGAL_URL).catch(() => window.open(LEGAL_URL, "_blank", "noopener")) }
-            : { href: LEGAL_URL })}
-          trailing={leavesTheApp}
+          onClick={() => onSectionChange("legal")}
         />
       </ListGroup>
 

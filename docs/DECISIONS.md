@@ -8200,3 +8200,29 @@ link opened WebKit's preview of the page behind it.
 - Kept on purpose: the keyboard's own toolbar above a text field. Hiding it
   needs the Keyboard plugin and takes away the only way to put away the number
   pad, which has no return key.
+
+## ADR-181: Privacy and terms is a screen in the app, read from the site's page
+
+**Status.** Accepted, 2026-10-21, at the owner's request.
+
+**Context.** Settings' "Privacy and terms" row opened `headpin.app/legal`: a
+new tab on the web, the in-app browser in the iPhone app. Either way the bowler
+left the app for a page with the site's own "Headpin" back link, which leads to
+the landing page, not back to Settings. The page still has to exist: App Store
+Connect and a crawler need a public URL.
+
+**Decision.**
+
+- The row pushes a Settings section, `legal` (`#/settings/section/legal`), a
+  PushScreen titled "Privacy and terms" with the app's back arrow.
+- Its text is `legal/index.html` itself, imported raw at build time and cut to
+  its `<main>` without the back link, the heading (the bar carries it), the
+  footer and comments (`src/lib/legalPage.ts`). One copy of the words, so the
+  store's URL and the screen never disagree. The screen styles the page's few
+  elements with the app's type and colours.
+- The screen is lazy, so the text is in its own chunk; the service worker and
+  the store apps carry it like every other chunk, so it opens offline.
+- Inside it, a contents link scrolls the screen and writes no hash into the
+  app's history (ADR-041), the email address opens Mail, and the two outside
+  policies leave as every outbound link does: a new tab on the web, the in-app
+  browser in the store apps.

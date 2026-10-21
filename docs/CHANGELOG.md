@@ -17,6 +17,9 @@ had all shipped.
 - **Home offers the iPhone app.** On the web, Home opens on a "Headpin for
   iPhone" row with Get, in place of the card that asked you to add Headpin to
   your home screen (ADR-170). Close it and it stays away for two weeks.
+- **Privacy and terms opens in the app.** The Settings row pushes a screen with
+  the app's back arrow and the site page's own text, instead of a new tab or a
+  browser sheet. Its contents links scroll the screen (ADR-181).
 - **Settings shows only the version.** The line at the foot of Settings reads
   "Headpin" and the version, without where it runs, when it was built, or
   which native plugins it sees. Send diagnostics still carries the build time.

@@ -91,7 +91,8 @@ If you've bowled with Headpin on the web, export a backup there and import it he
 - Support: `mailto:hello@headpin.app` is the contact the app uses
   (`FEEDBACK_EMAIL`). App Store Connect wants a URL, so use
   `https://headpin.app`.
-- Privacy policy: `https://headpin.app/legal` (`LEGAL_URL`). The page carries
+- Privacy policy: `https://headpin.app/legal`. The app shows the same page's
+  text in Settings (ADR-181), so the two cannot differ. The page carries
   the iPhone app's storage and purchase wording, drafted in the same pull
   request, and has to be reviewed before submission.
 

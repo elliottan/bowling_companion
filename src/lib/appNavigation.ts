@@ -20,7 +20,8 @@ export type SettingsSection =
   | "oil-patterns"
   | "appearance"
   | "profile"
-  | "tools";
+  | "tools"
+  | "legal";
 
 import type { LayoutSeed } from "./layoutShare";
 
