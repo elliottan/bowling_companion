@@ -7477,3 +7477,60 @@ from their system bars and nothing else. Bars the page draws never do.
 - The same trade will apply to other system controls: a native control updates
   with iOS and costs a bridge, a page control costs nothing and stays as drawn.
   On/off settings use HTML's own `switch` for the same reason, and cost nothing.
+
+## ADR-162: The iPhone app keeps the ball photos it has shown
+
+**Status.** Accepted, 2026-10-20. Follows ADR-154 and ADR-155. Written and unit
+tested against a fake disk; the real disk and the offline behaviour have not
+been seen on a phone.
+
+**Context.** The store app leaves the ball photos out of the bundle (about
+53 MB, ADR-154) and fetches each from headpin.app through `siteUrl`. The only
+thing behind that was the web view's HTTP cache, which the OS can drop at any
+time and which a first-ever offline launch has never filled. A bowler who looked
+at a ball at home could find a grey silhouette in its place at an alley with no
+signal, which is where this app is meant to work.
+
+**Decision.**
+
+- **A copy is saved the first time a photo loads, and served from disk after
+  that.** `src/lib/photoStore.ts` holds the rules against an injected
+  `PhotoFiles`; `src/lib/nativePhotoStore.ts` is the Capacitor
+  Filesystem implementation, in the app's `Data` directory under `photos/`,
+  with `Capacitor.convertFileSrc` for the address the web view shows.
+- **`CatalogBallImage` is the only caller**, as it is the one place every ball
+  photo is drawn. It always starts from the network address, so the first paint
+  is exactly what it was, and looks for a kept copy after mount. If the copy is
+  found before the network photo has loaded, it is swapped in; if the network
+  fails, the copy is the fallback; if a kept file will not load (the OS removed
+  it), the network is the fallback. Nothing waits on the disk.
+- **The directory is listed once and kept in memory**, so a lookup behind each
+  tile of a grid hundreds deep costs no disk read. Writes go one at a time, so a
+  screen of tiles filling at once does not compete with the scroll.
+- **The store is capped at 25 MB**, about 800 photos, against 53 MB for all of
+  them. Over the cap, the oldest written files are evicted first. That is
+  first in, first out, not least recently used: the filesystem has no access
+  time. An evicted photo is saved again the next time it loads. A photo over
+  1 MB, an empty one or one that is not an image is not kept.
+- **It is a convenience, never a dependency.** Every failure (no disk, a failed
+  fetch, a full disk) reads as "not stored" and the screen behaves as it did
+  before this.
+- **Native only.** `nativePhotoStore()` answers null on the web, which never
+  loads `@capacitor/filesystem` for it; the web's service worker already keeps
+  its photos (ADR-155).
+- **Pattern sheets are not in this.** They do not go through `CatalogBallImage`
+  (`catalogSheet` and `PatternSheet` fetch them), and a sheet is a PDF opened on
+  demand rather than a tile on every screen, so they stay on the network and
+  the web view's cache.
+
+**Consequences.**
+
+- A photo whose file at the same address changes on the server stays as it was
+  saved until it is evicted. Photo files carry their ball's name, and a corrected
+  image would need a new name or a version in the address to reach the app.
+- `Data` is the app's Documents directory on iOS, which the phone's own backup
+  includes: up to 25 MB of public photos a restore could fetch again. `Cache`
+  would not be backed up but the OS clears it first when space runs short, which
+  is when offline matters most.
+- Needs a look on a phone: that a photo seen online appears with Airplane Mode
+  on after a relaunch, and that eviction holds the folder near the cap.

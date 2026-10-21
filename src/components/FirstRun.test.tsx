@@ -1,5 +1,5 @@
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { FirstRun } from "./FirstRun";
 import { db } from "../db/bowlingDb";
 import { createBackup } from "../services/backupRepository";
@@ -31,6 +31,29 @@ describe("FirstRun", () => {
     expect(screen.getByRole("button", { name: "Start fresh" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Restore from a backup" })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /handed/ })).toBeNull();
+  });
+
+  describe("moving games from the web", () => {
+    afterEach(() => {
+      delete (globalThis as { Capacitor?: unknown }).Capacitor;
+    });
+
+    it("is not shown on the web", () => {
+      render(<FirstRun onSelectHandedness={vi.fn()} />);
+      expect(screen.queryByText("Bowled with Headpin on the web?")).toBeNull();
+    });
+
+    it("gives the app's first run the three steps", () => {
+      (globalThis as { Capacitor?: unknown }).Capacitor = { isNativePlatform: () => true, getPlatform: () => "ios" };
+      render(<FirstRun onSelectHandedness={vi.fn()} />);
+
+      expect(screen.getByText("Bowled with Headpin on the web?")).toBeInTheDocument();
+      const steps = screen.getAllByRole("listitem");
+      expect(steps).toHaveLength(3);
+      expect(steps[0]).toHaveTextContent("On headpin.app, open Settings, then Backup & restore, and export");
+      expect(steps[1]).toHaveTextContent("In the app, open Settings, then Backup & restore, and import");
+      expect(steps[2]).toHaveTextContent("Pick the file from Files");
+    });
   });
 
   it("walks a new bowler through to the handedness question and back", () => {

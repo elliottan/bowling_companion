@@ -9,6 +9,31 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.49.0: Bring your games to the app, and keep the photos (2026-10-20)
+
+In the iPhone app:
+
+- **Bowled with Headpin on the web?** The first screen now says how to bring
+  those games over: export from Settings, Backup & restore on headpin.app,
+  import in the app from the same place, and pick the file from Files. The
+  import is the existing merge (ADR-038).
+- **Ball photos stay on the phone** (ADR-162). A photo is saved the first time
+  it loads and shown from the phone afterwards, so balls you have looked at still
+  have their pictures with no signal. The app keeps up to 25 MB and removes the
+  oldest first.
+
+On the web:
+
+- **"Get the app" shows the same steps** before it opens the App Store, so a
+  bowler knows how to carry their games across.
+
+In the repo:
+
+- **Privacy page** draft for the app: what it stores, what it fetches, what the
+  store does. For the owner to review before it goes live.
+- **`docs/APP-STORE-LISTING.md`**: the store listing drafts, with the limits
+  counted.
+
 ## 0.48.1: Get Headpin Pro and the phone's tab bar start working (2026-10-20)
 
 In the iPhone app, found on the first run on a phone:

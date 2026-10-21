@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Manufacturer } from "../types/catalog";
 import { siteUrl } from "../lib/platform";
+import { nativePhotoStore } from "../lib/nativePhotoStore";
 
 // Brand colors for the ball silhouette placeholder.
 // Chosen to be visually distinct and on-brand for each manufacturer.
@@ -86,10 +87,49 @@ export function CatalogBallImage({ src: path, alt, brand, size, bare = false, la
   // them is what made scrolling it drag on a phone.
   const [placeholderGone, setPlaceholderGone] = useState(wasDecoded);
   const [errored, setErrored] = useState(false);
+  // The copy kept on the phone (ADR-162), in the store app only. It is looked
+  // for after the first paint, so the photo always starts from the network
+  // address and swaps to the disk copy only if that is found before it loads.
+  const [local, setLocal] = useState<string | null>(null);
+  const [localFailed, setLocalFailed] = useState(false);
+  const loadedRef = useRef(wasDecoded);
+  const shown = local ?? src;
+
+  useEffect(() => {
+    const store = src ? nativePhotoStore() : null;
+    if (!src || !store) return;
+    let live = true;
+    void store.lookup(src).then((uri) => {
+      if (live && uri && !loadedRef.current) setLocal(uri);
+    });
+    return () => {
+      live = false;
+    };
+  }, [src]);
 
   function markLoaded() {
+    loadedRef.current = true;
     if (src) decodedSrcs.add(src);
     setLoaded(true);
+    // The network copy has arrived: keep it for next time. Not when the disk
+    // copy is what loaded, which is already kept.
+    if (src && !local) void nativePhotoStore()?.save(src);
+  }
+
+  function handleError() {
+    if (local) {
+      // The kept file is gone, which the OS can do. Go back to the network.
+      setLocal(null);
+      setLocalFailed(true);
+      return;
+    }
+    const store = src && !localFailed ? nativePhotoStore() : null;
+    if (!src || !store) {
+      setErrored(true);
+      return;
+    }
+    // The network failed, offline most likely: the kept copy is the last hope.
+    void store.lookup(src).then((uri) => (uri ? setLocal(uri) : setErrored(true)));
   }
 
   return (
@@ -120,10 +160,10 @@ export function CatalogBallImage({ src: path, alt, brand, size, bare = false, la
         </div>
       )}
 
-      {src && !errored && (
+      {shown && !errored && (
         <img
-          key={src}
-          src={src}
+          key={shown}
+          src={shown}
           alt={alt}
           loading={lazy ? "lazy" : "eager"}
           // Decode off the main thread, so a photo arriving mid-scroll does not
@@ -135,7 +175,7 @@ export function CatalogBallImage({ src: path, alt, brand, size, bare = false, la
             if (!loaded && el?.complete && el.naturalWidth > 0) markLoaded();
           }}
           onLoad={markLoaded}
-          onError={() => setErrored(true)}
+          onError={handleError}
           className={`absolute inset-0 h-full w-full object-cover transition-opacity ${
             wasDecoded ? "duration-0" : "duration-300"
           } ${loaded ? "opacity-100" : "opacity-0"}`}
