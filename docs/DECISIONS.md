@@ -7534,3 +7534,157 @@ signal, which is where this app is meant to work.
   is when offline matters most.
 - Needs a look on a phone: that a photo seen online appears with Airplane Mode
   on after a relaunch, and that eviction holds the folder near the cap.
+
+## ADR-163: Pro previews are teasers under one banner, the layout lab leads with the ball, and the alley report drops its lines
+
+**Status.** Accepted, 2026-10-21. Amends ADR-154 and ADR-158 on how a locked card
+looks, and amends ADR-122, ADR-147 and ADR-148 on what the Alley report shows.
+Decided by the owner from a phone in hand.
+
+**Context.** A locked Stats screen carried four centered "Get Headpin Pro"
+buttons over blurred cards, which said the same thing four times and showed
+nothing worth wanting. The sandbox's Pro note was a bar at the foot of the lane
+view that crowded the lane's last board numbers, and the layout lab's was a
+full-width card above the controls. The layout lab put its sliders first and the
+ball, the thing it is for, near the foot. The Alley report's three line lists
+(best lines, the last session's lines, line changes) were not clear enough to
+keep on a screen the owner called ugly.
+
+**Decision.**
+
+- **A locked card is a teaser.** Its first lines show as they are, up to a
+  height the screen chooses, and fade out. A bowler sees a real number and the
+  start of a real chart rather than a gray block, and knows there is more. The
+  whole teaser is one tap, named for what the card shows and what the tap does,
+  with one small "Pro" mark at its foot. It is inert underneath, as before. This
+  replaces the blur of ADR-154, so its numbers can be read where they show; they
+  are the bowler's own, and a longer read is what Pro sells.
+- **A screen says what Pro adds once.** Stats opens with a banner naming the
+  reads below it and carrying the one button ("Get Headpin Pro, $x" in the iOS
+  app, "Get the app" on the web). The cards carry only their mark.
+- **A read-only screen has one quiet line, or a chip.** The layout lab has a
+  single row of small text with an Unlock action, no card. The line sandbox
+  has a chip in the row of floating controls at the top, so the lane keeps its
+  whole height and its own drag hint underneath.
+- **The layout lab leads with the ball**, then what it will do, then the
+  controls (who is bowling, the core, the numbers). It used to keep the diagram
+  under the sliders so it stayed on screen while they moved; the owner's call is
+  that the ball is the screen, so it is seen first.
+- **The Alley report shows the balls and nothing else for now.** The best lines
+  at an alley, the last session's lines and the line changes are off the screen,
+  and the open-line view with them. `lib/lineReport` and its tests stay, and so
+  does the navigation state that opened a line, so they can return. The free
+  taste of the report that the last session's lines were (PRO-LAUNCH) goes with
+  them: the whole report is now Pro.
+
+**Consequences.**
+
+- `ProAction` is gone from the module's exports; `ProLock`, `ProBanner`,
+  `ProNote` and `ProChip` each use one hook for the purchase, the steps to move
+  games, and the "waiting for approval" and "did not answer" notes.
+- The device check still finds a "Get Headpin Pro" button on Stats, now the
+  banner's.
+- A teaser shows real numbers, so a free copy of the app reads a few of the
+  paid reads. That is the point of a teaser; if it proves too generous, the
+  height is one number per card.
+
+## ADR-164: A Pro page before the purchase, a Pro mark, accent colors, and a Home banner
+
+**Status.** Accepted, 2026-10-21. Amends ADR-158 (a tap on a locked card no longer
+starts the purchase) and ADR-163. Decided by the owner.
+
+**Context.** A locked card in the iOS app went straight to Apple's purchase
+sheet, so a bowler was asked to pay before being shown what for. Nothing marked
+a bowler who had paid, and Pro added no appearance choice.
+
+**Decision.**
+
+- **A Pro page, `pro`, is an overlay** (`views/ProOfferView`). A locked card, the
+  Stats banner, the line sandbox's chip, the Settings row and a locked color all
+  open it through `ProOfferContext`; none of them charges. It has a picture and a
+  sentence for each thing Pro adds, what stays free, and a button pinned at the
+  foot: the purchase at the App Store's price in the iOS app, with Restore
+  purchase, and "Get the app" (with the steps for moving games) on the web. The
+  pictures (`ProOfferSamples`) are drawn from the app's colors with made-up
+  numbers, not screenshots, so they follow the theme and cannot go stale. Where
+  nothing provides the context (a unit test), the caller offers the purchase
+  directly as before.
+- **Pro is one payment, not a subscription** (ADR-154), and the page says so.
+- **`ProAccess` says whether Pro is owned.** `{ locked: false, owned: true }` is
+  a purchase; plain `{ locked: false }` is Pro merely open (the owner's copy, a
+  web with nothing to sell). A "Pro" mark (`ProBadge`) is shown on the app's mark
+  on Home and beside the bowler in Settings only when owned.
+- **Accent colors** (`lib/palette.ts`, `data-palette` on `<html>`): Felt for
+  everyone, Ocean, Sunset, Grape and Rose with Pro. A palette changes only the
+  five accent tokens, separately for light and dark, so nothing else knows which
+  is on. It is stored beside the theme and applied by the shell's pre-paint
+  script. While Pro is not open a stored Pro color is held back and Felt shows,
+  and the choice is kept for when Pro returns. The native tab bar is restyled when
+  the palette changes.
+- **A banner on Home** for a bowler without Pro opens the Pro page. It locks
+  nothing, shows only while Pro is locked, and is the free app's one standing
+  mention of Pro, which the owner asked for.
+
+**Consequences.**
+
+- The device check's "Get Headpin Pro" is the Stats banner's button as before. It
+  opens the Pro page instead of buying, so the purchase sheet is only reached from
+  that page.
+- A different home screen icon for owners is not built: it needs an alternate
+  icon drawn and a native call, and is left for when the asset exists.
+- The line sandbox is taken off screen while the Pro page is on top of it, since
+  the lane's own layer would cover the page. It returns on back.
+
+## ADR-165: Moving a shot's line from score entry is Pro, like the sandbox
+
+**Status.** Accepted, 2026-10-21. Amends the free and Pro table in
+`docs/PRO-LAUNCH.md`, which had left this open. Decided by the owner.
+
+**Context.** The line visualizer was read-only without Pro (ADR-154), but the
+same lane opened from a shot in the scorer (`ShotDetailBar`) could still be
+dragged, so the lock was one tap from being bypassed.
+
+**Decision.** From the scorer, without Pro, the intended and actual lines are
+drawn and cannot be moved. The lane carries the same "Unlock editing" chip as the
+sandbox. Typing stance, target and the rest into the shot's fields is recording
+and stays free. The chip closes the lane before it opens the Pro page, because the
+lane is its own layer and would cover the page.
+
+**Consequences.**
+
+- The actual line records where the ball finished, and its breakpoint and final
+  board have no field to type into: they could only be set by dragging. Without
+  Pro they cannot be set from score entry at all. That is the owner's call as
+  asked; if it proves too harsh, leave the actual line's drag free and lock only the
+  intended line's.
+- The spare line form (`SpareLineFormDialog`) has its own lane editor and is not
+  changed here; it is part of writing down a leave's line, which the table keeps
+  free. Say so if it should be locked too.
+
+## ADR-166: The free web app at /app shows Pro locked before the app is listed
+
+**Status.** Accepted, 2026-10-21. Amends ADR-154, which kept the web open until
+the app was listed. Decided by the owner.
+
+**Context.** The web at `/app` is the free app, and `/score` is the owner's copy
+with everything on. Until the App Store link is set, `/app` was also fully open,
+so the locked experience (teasers, the Pro page, the Home banner, the lane chip,
+the colors) could only be seen by rebuilding the iPhone app.
+
+**Decision.** `webProAccess` locks `/app` (and `/app/...`) when `LOCK_FREE_WEB`
+(`lib/appStore.ts`) is on, which it is. With no App Store link the access is
+`{ locked: true, appStoreUrl: null }`: everything looks as it does in the app, and
+the Pro page's button reads "Coming to the App Store" and is disabled, with a line
+saying the app is not in the store yet. Cards, the banner and the chip still open
+the Pro page to read. `/score`, the Android app and any other address stay open,
+and a real `APP_STORE_URL` still locks as before.
+
+**Consequences.**
+
+- Until the app is listed, a bowler who reaches `/app` (the landing page's buttons
+  and shared links open it) has the free features and cannot buy the rest, which
+  ADR-154 chose to avoid. This is the owner's call, made to preview the free app on
+  the web. `LOCK_FREE_WEB = false` puts `/app` back to fully open in one edit, and
+  should be weighed again before the landing page is promoted.
+- Settings has no Pro row on the web, since it is for the app's purchase.
+

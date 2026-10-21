@@ -32,6 +32,9 @@ import {
 import { describeAge, protectionCard, snoozeMs } from "../lib/backupNudge";
 import { canPromptInstall, isIOSSafari, isStandalone } from "../lib/installPrompt";
 import { nextSteps, type NextStepKey } from "../lib/onboarding";
+import { useProOwned } from "../lib/useProAccess";
+import { ProBadge } from "../components/ui/ProBadge";
+import { ProHomeBanner } from "../components/ProHomeBanner";
 import { getOnboardingFacts } from "../services/onboardingRepository";
 import type { SessionSummary } from "../types/bowling";
 
@@ -102,6 +105,7 @@ export function DashboardView({
   onOpenBackup
 }: DashboardViewProps) {
   const [showForm, setShowForm] = useState(false);
+  const owned = useProOwned();
   const [editingName, setEditingName] = useState(false);
   // Picked once per visit to Home, so the greeting changes between visits but
   // holds still while the screen is up.
@@ -190,13 +194,16 @@ export function DashboardView({
           because it carries pictures; the left column has room to grow. */}
       <div className="mb-4 flex items-start gap-4">
         <div className="flex w-[38%] min-w-0 shrink-0 flex-col items-start">
-          <img
-            src="/icons/icon-192.png"
-            alt=""
-            width={44}
-            height={44}
-            className="mb-2 h-11 w-11 rounded-xl shadow-sm"
-          />
+          <div className="relative mb-2">
+            <img
+              src="/icons/icon-192.png"
+              alt=""
+              width={44}
+              height={44}
+              className="h-11 w-11 rounded-xl shadow-sm"
+            />
+            {owned && <ProBadge className="absolute -bottom-1 -right-3 shadow-sm ring-2 ring-surface-sunken" />}
+          </div>
           <h1 className="text-xl font-bold leading-tight text-ink [overflow-wrap:anywhere]">
             {named ? greeting(name, greetingIndex) : "\u00a0"}
           </h1>
@@ -371,6 +378,8 @@ export function DashboardView({
         )}
         {setupCard === "feedback" && <FeedbackPrompt />}
       </div>
+
+      <ProHomeBanner />
 
       <div className="mt-6">
         <ListGroup heading="Tools and reference">
