@@ -1,3 +1,4 @@
+import { haptic } from "../../lib/haptics";
 import { TAP_TARGET_44 } from "./Chip";
 
 interface SegmentedControlProps<T extends string> {
@@ -32,6 +33,11 @@ interface SegmentedControlProps<T extends string> {
  * of them can be on, and they read as separate objects with gaps between them.
  * A segmented control is exactly one answer, and the shared track is what says
  * so before you read a single label.
+ *
+ * Drawn as UIKit draws its own (ADR-168): a grey track with the chosen segment
+ * raised on it in the surface color, the label in ink. An accent-filled
+ * segment read as a pressed button, which is a different thing. In the store
+ * apps a change gives the selection tick UIKit's control gives.
  */
 export function SegmentedControl<T extends string>({
   label,
@@ -44,7 +50,7 @@ export function SegmentedControl<T extends string>({
     <div
       role="group"
       aria-label={label}
-      className={`flex rounded-xl border border-edge bg-surface-muted ${
+      className={`flex rounded-[10px] bg-ink/[0.07] ${
         dense ? "gap-0.5 p-0.5" : "gap-1 p-1"
       }`}
     >
@@ -56,13 +62,18 @@ export function SegmentedControl<T extends string>({
             type="button"
             aria-label={opt.srLabel}
             aria-pressed={selected}
-            onClick={() => onChange(opt.value)}
-            className={`relative flex-1 rounded-lg text-sm font-semibold ${
+            onClick={() => {
+              if (!selected) void haptic("select");
+              onChange(opt.value);
+            }}
+            className={`relative flex-1 rounded-[8px] text-sm transition-colors ${
               dense ? "h-9" : "h-10"
             } ${TAP_TARGET_44} ${
               selected
-                ? "bg-accent-fill text-accent-on-fill shadow-sm"
-                : "text-ink-secondary active:bg-surface"
+                ? "bg-surface font-semibold text-ink shadow-[0_1px_3px_rgb(0_0_0/0.12),0_0_0_0.5px_rgb(0_0_0/0.04)] dark:bg-surface-muted"
+                : // Ink, as UIKit's are: the secondary grey on the grey track
+                  // fell short of the contrast floor.
+                  "font-medium text-ink active:opacity-60"
             }`}
           >
             {opt.label}

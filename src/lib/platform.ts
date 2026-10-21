@@ -46,6 +46,12 @@ export function isIOSApp(scope: object = globalThis): boolean {
   return bridge?.isNativePlatform?.() === true && bridge.getPlatform?.() === "ios";
 }
 
+/** Whether this is the Android app. */
+export function isAndroidApp(scope: object = globalThis): boolean {
+  const bridge = (scope as { Capacitor?: CapacitorBridge }).Capacitor;
+  return bridge?.isNativePlatform?.() === true && bridge.getPlatform?.() === "android";
+}
+
 /**
  * A path on the site, as this copy should ask for it. The web app asks its own
  * origin, so a preview deploy reads its own files; the store app asks

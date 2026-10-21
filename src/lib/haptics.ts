@@ -7,8 +7,10 @@ import { isNativeApp } from "./platform";
  * - `pin`: a pin knocked down or stood back up on the deck.
  * - `shot`: a ball recorded.
  * - `mark`: a ball that cleared the deck, a strike or a spare.
+ * - `select`: the tick a picker gives as its choice moves, a segmented
+ *   control's segment (ADR-168), as UIKit's own segmented control does.
  */
-export type HapticKind = "pin" | "shot" | "mark";
+export type HapticKind = "pin" | "shot" | "mark" | "select";
 
 let plugin: Promise<typeof import("@capacitor/haptics")> | null = null;
 
@@ -17,7 +19,12 @@ export function haptic(kind: HapticKind, native = isNativeApp()): Promise<void> 
   plugin ??= import("@capacitor/haptics");
   return plugin
     .then(({ Haptics, ImpactStyle, NotificationType }) =>
-      kind === "pin"
+      kind === "select"
+        ? // iOS keeps a selection generator only between start and end.
+          Haptics.selectionStart()
+            .then(() => Haptics.selectionChanged())
+            .then(() => Haptics.selectionEnd())
+        : kind === "pin"
         ? Haptics.impact({ style: ImpactStyle.Light })
         : kind === "shot"
           ? Haptics.impact({ style: ImpactStyle.Medium })

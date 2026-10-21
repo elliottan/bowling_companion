@@ -1,4 +1,4 @@
-import { Pencil, Trash2 } from "lucide-react";
+import { Trash2 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { ConfirmDialog } from "./ConfirmDialog";
@@ -6,6 +6,7 @@ import { deleteLaneNote, getLaneNotes, upsertLaneNote } from "../services/ballRe
 import type { LaneNote } from "../types/bowling";
 import { Button } from "./ui/Button";
 import { IconButton } from "./ui/IconButton";
+import { TintedButton } from "./ui/BarButton";
 import { EmptyState } from "./ui/EmptyState";
 import { LanePairIcon } from "./icons";
 import { FIELD_DENSE_TEXTAREA } from "./ui/field";
@@ -198,9 +199,9 @@ function LaneCell({
           Lane {lane}
         </span>
         {!editing && (
-          <IconButton onClick={onEdit} label={`Edit lane ${lane} notes`}>
-            <Pencil size={12} aria-hidden="true" />
-          </IconButton>
+          <TintedButton onClick={onEdit} label={`Edit lane ${lane} notes`}>
+            Edit
+          </TintedButton>
         )}
       </div>
       {editing ? (
