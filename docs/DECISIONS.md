@@ -8128,3 +8128,28 @@ they are raised glass that reads over anything and are the way out. The title
 stays in the accessibility tree either way (only its opacity changes), so a
 screen is always named. Sheet bars are unchanged: a sheet is short, and its
 title is what it is about.
+
+---
+
+## ADR-178: The lane view's controls are the app's glass, and the quick moves sit with the fields
+
+**Status.** Accepted, 2026-10-21, by the owner from a phone in hand. Amends
+ADR-109 on where the quick moves open from.
+
+**Context.** The lane view drew its own controls: small outlined circles and a
+text "Done", where every other screen has round glass (ADR-168) and a tick on a
+sheet that applies as it goes (DESIGN-LANGUAGE §1a). The quick-move button sat
+under the view toggle in the top-left corner, away from the laydown, target and
+final fields it moves.
+
+**Decision.**
+
+- The lane's round controls are `IconButton variant="lane"`, the same 44pt
+  glass circle in a dark glass (`.glass-lane`), since the lane's frame is dark
+  in every theme. The view toggle is a glass capsule as tall. All four sit in
+  the top row.
+- Lane options closes with a tick (`confirm`), not the word.
+- The quick moves are a button at the end of the peg fields, and open away from
+  the edge they sit on: up from the row in bowler view, inward from the side
+  column top-down.
+- The sentence under the hook-shape sliders goes; the slider names say it.

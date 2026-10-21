@@ -1,5 +1,6 @@
 import { Switch } from "./ui/Switch";
-import { ChevronLeft, ChevronRight, Lock, Minus, MoveHorizontal, Plus, SlidersHorizontal, X } from "lucide-react";
+import { IconButton } from "./ui/IconButton";
+import { Check, ChevronLeft, ChevronRight, Lock, Minus, MoveHorizontal, Plus, SlidersHorizontal, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { Handedness, LineSpec, PinNumber } from "../types/bowling";
 import { HandednessContext, useHandedness } from "../lib/handednessContext";
@@ -566,61 +567,34 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
           className="absolute right-3 top-[max(0.75rem,env(safe-area-inset-top))] z-20 flex items-center gap-2"
           onPointerDown={(e) => e.stopPropagation()}
         >
-          <button
-            type="button"
-            onClick={shareLine}
-            aria-label="Share line"
-            className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/25 bg-slate-900/70 text-white/80 backdrop-blur hover:bg-white/10"
-          >
+          {/* Round glass, as every screen's bar controls are (DESIGN-LANGUAGE
+              §1b), in the lane's own dark glass. */}
+          <IconButton variant="lane" label="Share line" onClick={shareLine}>
             <ShareIosIcon size={18} aria-hidden="true" />
-          </button>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Close"
-            className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/25 bg-slate-900/70 text-white/80 backdrop-blur hover:bg-white/10"
-          >
-            <X size={18} aria-hidden="true" />
-          </button>
+          </IconButton>
+          <IconButton variant="lane" label="Close" onClick={onClose}>
+            <X size={20} aria-hidden="true" />
+          </IconButton>
         </div>
         <div
-          className="absolute left-3 top-[max(0.75rem,env(safe-area-inset-top))] z-20 flex flex-col items-start gap-2"
+          // One row, like the pair on the right: stacked, the second sat over
+          // the pins in top-down.
+          className="absolute left-3 top-[max(0.75rem,env(safe-area-inset-top))] z-20 flex items-center gap-2"
           onPointerDown={(e) => e.stopPropagation()}
         >
+          {/* A word on a glass capsule as tall as the rounds, as the app's
+              Edit is (DESIGN-LANGUAGE §1b). */}
           <button
             type="button"
             onClick={() => setDeg((d) => (d <= 2 ? BOWLER_DEG : TOPDOWN_DEG))}
-            className="inline-flex h-9 items-center rounded-full border border-white/25 bg-slate-900/70 px-3 text-xs font-semibold text-white/90 backdrop-blur hover:bg-white/10"
+            className="glass-lane inline-flex h-11 items-center rounded-full px-4 text-sm font-semibold transition-transform active:scale-95 active:opacity-80"
           >
             {isTopDown ? "Bowler view" : "Top-down"}
           </button>
           {(onChange || hasOil || pickable.length > 0 || handSwitchable) && (
-            <button
-              type="button"
-              onClick={() => setOptionsOpen(true)}
-              aria-label="Lane options"
-              className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/25 bg-slate-900/70 text-white/80 backdrop-blur hover:bg-white/10"
-            >
-              <SlidersHorizontal size={16} aria-hidden="true" />
-            </button>
-          )}
-          {onChange && (
-            <button
-              type="button"
-              onClick={() => setMovesOpen((open) => !open)}
-              aria-label="Quick moves"
-              aria-expanded={movesOpen}
-              className={`inline-flex h-9 w-9 items-center justify-center rounded-full border backdrop-blur ${
-                movesOpen
-                  ? "border-amber-300/60 bg-amber-400/20 text-amber-200"
-                  : "border-white/25 bg-slate-900/70 text-white/80 hover:bg-white/10"
-              }`}
-            >
-              <MoveHorizontal size={16} aria-hidden="true" />
-            </button>
-          )}
-          {movesOpen && onChange && (
-            <QuickMoves hand={hand} onMove={quickMove} onClose={() => setMovesOpen(false)} />
+            <IconButton variant="lane" label="Lane options" onClick={() => setOptionsOpen(true)}>
+              <SlidersHorizontal size={18} aria-hidden="true" />
+            </IconButton>
           )}
         </div>
 
@@ -631,7 +605,8 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
             // The lane starts below the status bar and the control row. It used
             // to run up under the clock, where the label above the far peg was
             // cut off by the status bar and the pegs sat behind the buttons.
-            top: "calc(env(safe-area-inset-top) + 2.75rem)",
+            // Under the 44pt rounds and their 0.75rem inset.
+            top: "calc(env(safe-area-inset-top) + 3.5rem)",
             // Identity when flat; tilts + scales into a bowler's-eye view that
             // recedes to a vanishing point at the pins as the angle increases.
             transform: stageTransform(deg),
@@ -726,7 +701,41 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
             onPointerDown={(e) => e.stopPropagation()}
           >
             {onChange ? (
-              <div className={pegRow}>{pegFields}</div>
+              <div className={pegRow}>
+                {pegFields}
+                {/* The quick moves sit at the end of the fields they move, so
+                    the control that shifts the line is where its numbers are,
+                    not in a corner away from them (ADR-109). */}
+                <div className="relative self-end">
+                  <button
+                    type="button"
+                    onClick={() => setMovesOpen((open) => !open)}
+                    aria-label="Quick moves"
+                    aria-expanded={movesOpen}
+                    className={`inline-flex h-9 w-9 items-center justify-center rounded-full transition-transform active:scale-95 ${
+                      movesOpen ? "bg-amber-400 text-slate-900" : "glass-lane"
+                    }`}
+                  >
+                    <MoveHorizontal size={16} aria-hidden="true" />
+                  </button>
+                  {movesOpen && (
+                    <QuickMoves
+                      hand={hand}
+                      onMove={quickMove}
+                      onClose={() => setMovesOpen(false)}
+                      // Opens away from the edge it sits on: up from the row
+                      // in bowler view, inward from the side column top-down.
+                      placement={
+                        !isTopDown
+                          ? "absolute bottom-full right-0 mb-2"
+                          : hand === "left"
+                            ? "absolute bottom-0 left-full ml-2"
+                            : "absolute bottom-0 right-full mr-2"
+                      }
+                    />
+                  )}
+                </div>
+              </div>
             ) : (
               // The side column is narrower than the words, so it carries the
               // mark alone.
@@ -802,11 +811,13 @@ const MOVE_PRESETS = [
  * those are opposite sides.
  */
 function QuickMoves({
-  hand, onMove, onClose,
+  hand, onMove, onClose, placement,
 }: {
   hand: Handedness;
   onMove: (laydownBy: number, targetBy: number, toward: 1 | -1) => void;
   onClose: () => void;
+  /** Where the panel opens from the button that opened it. */
+  placement: string;
 }) {
   const panelRef = useOverlay<HTMLDivElement>(onClose);
   // Board numbers rise toward the middle of the lane from the bowler's own
@@ -822,7 +833,7 @@ function QuickMoves({
         ref={panelRef}
         role="group"
         aria-label="Move presets"
-        className="relative w-44 rounded-xl border border-white/20 bg-slate-900/90 p-2 text-white shadow-lg backdrop-blur"
+        className={`${placement} z-10 w-44 rounded-xl border border-white/20 bg-slate-900/90 p-2 text-white shadow-lg backdrop-blur`}
       >
         <p className="mb-1.5 px-1 text-[11px] font-bold uppercase tracking-wide text-white/50">
           Move feet · eyes
@@ -902,9 +913,12 @@ function OptionsSheet({
         <div className="mx-auto mb-3 h-1.5 w-10 rounded-full bg-white/25" />
         <div className="mb-3 flex items-center">
           <h3 className="flex-1 text-sm font-bold">Lane options</h3>
-          <button type="button" onClick={onClose} aria-label="Done" className="rounded-md px-3 py-1 text-xs font-semibold hover:bg-white/10">
-            Done
-          </button>
+          {/* Everything here applies as it moves, so leaving is a tick, as on
+              every other sheet that keeps what is on screen (DESIGN-LANGUAGE
+              §1a). */}
+          <IconButton variant="confirm" label="Done" onClick={onClose}>
+            <Check size={20} aria-hidden="true" />
+          </IconButton>
         </div>
         {hand && (
           <div className="mb-4 border-b border-white/10 pb-3">
@@ -972,14 +986,11 @@ function OptionsSheet({
           value={clamp(dS, startMin, startMax)}
           onChange={(v) => onChange({ hook_start_distance: v })}
         />}
-        {editable && <><Slider
+        {editable && <Slider
           label="Hook length" suffix="ft" min={4} max={lenMax} step={1}
           value={clamp(line?.hook_length ?? HOOK_LENGTH_FT, 4, lenMax)}
           onChange={(v) => onChange({ hook_length: v })}
-        />
-        <p className="mt-1 text-xs text-white/50">
-          Where it leaves the skid, and how long it takes to recover into the pins.
-        </p></>}
+        />}
       </div>
     </div>
   );
