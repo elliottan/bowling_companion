@@ -4,8 +4,8 @@ A 9:16 reel built from the real app. First, one league night: a line over a
 PBA pattern, a ball, a line, the lane view, scoring, the line carrying over to
 the next shot, a 2-1 move, a spare ball and line that are already set, and the
 tenth. Then the rest of the app, one screen to a line under a teal "Free" pill
-(unlimited games, average and trends, the whole arsenal, a line for every
-spare, hundreds of balls, oil patterns), dealt out in a fan for "All free. No
+(unlimited games, average and trends, the whole arsenal, hundreds of balls,
+oil patterns), dealt out in a fan for "All free. No
 limits. No account.", and the card: "Free on the App Store".
 
 The reel is about the features and that the app is free, by the owner's call:

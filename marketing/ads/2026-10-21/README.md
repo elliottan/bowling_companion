@@ -1,6 +1,6 @@
 # Launch ads for the iPhone app, October 21, 2026
 
-The third batch of ad creative, rendered from the real app at 0.50: one video,
+The third batch of ad creative, rendered from the real app at 0.51: one video,
 the feature reel, and the stills. It replaces `../2026-10-15/`, which sent a
 bowler to the web app ("Nothing to download. It opens in your browser.").
 Headpin is now an iPhone app (ADR-154), so these send a bowler to the App
@@ -11,7 +11,7 @@ launch: run them once the listing is live.
 
 | File | What it is |
 | --- | --- |
-| `headpin-reel.mp4` | 1080 x 1920, 34 s. The feature reel. One league night in a full iPhone frame (the line over a PBA pattern, ball, line, lane view, scoring, the line carrying over, a 2-1 move, the spare ball and line already set, the tenth). Then the rest of the app under a teal "Free" pill: unlimited games, average and trends, the whole arsenal, a line for every spare, hundreds of balls, oil patterns, and "All free. No limits. No account." It ends on "Free on the App Store". Made by `scripts/ad-content/reel/` (see its README). |
+| `headpin-reel.mp4` | 1080 x 1920, 33 s. The feature reel. One league night in a full iPhone frame (the line over a PBA pattern, ball, line, lane view, scoring, the line carrying over, a 2-1 move, the spare ball and line already set, the tenth). Then the rest of the app under a teal "Free" pill: unlimited games, average and trends, the whole arsenal, hundreds of balls, oil patterns, and "All free. No limits. No account." It ends on "Free on the App Store". Made by `scripts/ad-content/reel/` (see its README). |
 | `still-*-feed.png` | 1080 x 1350 (4:5) feed stills: line, pins, arsenal, retarget, patterns, spares. |
 | `still-*-story.png` | 1080 x 1920 (9:16) story stills, the same six. |
 

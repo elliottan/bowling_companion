@@ -33,3 +33,27 @@ export const LOCK_FREE_WEB = true;
 export function appStoreId(url: string | null = APP_STORE_URL): string | null {
   return url?.match(/\/id(\d+)/)?.[1] ?? null;
 }
+
+/**
+ * The landing page as it reads once the app is in the App Store: every button
+ * that opens the web app opens the App Store page instead, and what only makes
+ * sense for the web app (adding it to the home screen) gives way to the App
+ * Store's. The page carries both, marked, and the build picks; with no App
+ * Store page yet it is left as it is, pointing at the web app.
+ *
+ * - `href="/app" data-store` is a link to the app, pointed at the App Store.
+ * - `<span data-store-label="X">...</span>` is a button's words, X once listed;
+ *   a `data-web-label` beside it keeps the web words for the page to put back
+ *   where the App Store is not the way in (Android).
+ * - `<!--store:web-->...<!--/store:web-->` is dropped once listed.
+ * - `<!--store:app ...-->` is a comment until listed, then its content, with
+ *   `{appStoreUrl}` filled in.
+ */
+export function pointLandingAtStore(html: string, url: string | null = APP_STORE_URL): string {
+  if (!url) return html;
+  return html
+    .replace(/href="\/app" data-store/g, `href="${url}" data-store`)
+    .replace(/<span data-store-label="([^"]*)"([^>]*)>[^<]*<\/span>/g, '<span data-store-label="$1"$2>$1</span>')
+    .replace(/<!--store:web-->[\s\S]*?<!--\/store:web-->/g, "")
+    .replace(/<!--store:app([\s\S]*?)-->/g, (_, inner: string) => inner.replaceAll("{appStoreUrl}", url));
+}

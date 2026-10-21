@@ -195,11 +195,10 @@ const BEATS = [
     // Pro, goes dark: the reel shows only what the free app has.
     spots: [{ from: "top", to: "top+1.1", dim: 1, instant: true, boxes: [box("stats", "average"), box("stats", "trend")] }] },
   { id: "arsenal", pad: 0.02, take: "arsenal", from: "list", to: "list+1.2", caption: "Your whole <em>arsenal</em>.", vo: "arsenal", trans: "cut", kicker: "free" },
-  { id: "spares", pad: 0.02, take: "spares", from: "nudge-0.2", to: "tap-ten+0.9", dur: 1.5, caption: "A line for <em>every spare</em>.", vo: "spares", trans: "flip", kicker: "free" },
-  { id: "balls", pad: 0.02, take: "catalog", from: "scroll", to: "scrolled-0.2", dur: 1.25, caption: "Hundreds of <em>balls</em>.", vo: "balls", trans: "whip", kicker: "free" },
-  { id: "oil", pad: 0.02, take: "patterns", from: "graph-0.2", to: "graph+0.6", caption: "Oil <em>patterns</em>.", vo: "oil", trans: "flip", kicker: "free" },
+  { id: "balls", pad: 0.02, take: "catalog", from: "scroll", to: "scrolled-0.2", dur: 1.25, caption: "Hundreds of <em>balls</em>.", vo: "balls", trans: "flip", kicker: "free" },
+  { id: "oil", pad: 0.02, take: "patterns", from: "graph-0.2", to: "graph+0.6", caption: "Oil <em>patterns</em>.", vo: "oil", trans: "whip", kicker: "free" },
   { id: "free", caption: "All free.|<em>No limits. No account.</em>", capSize: 78, vo: "free", trans: "zoom", min: 1.75, pad: 0.15, kicker: "free",
-    fan: [{ take: "history", at: "list+0.9" }, { take: "arsenal", at: "list+1" }, { take: "spares", at: "nudge" }, { take: "game", at: "lane-held" },
+    fan: [{ take: "history", at: "list+0.9" }, { take: "arsenal", at: "list+1" }, { take: "game", at: "lane-held" },
           { take: "catalog", at: "scrolled" }, { take: "patterns", at: "graph+0.6" }] },
 
   { id: "end", end: true, vo: "end", trans: "zoom", min: 3.0 }
@@ -226,7 +225,6 @@ const VOICE = {
   arsenal: ["Your whole arsenal.", 1.25],
   balls: ["Hundreds of balls.", 1.25],
   oil: ["Oil patterns.", 1.25],
-  spares: ["A line for every spare.", 1.25],
   free: ["All of it free. No limits, no account.", 1.15],
   end: "Head pin. Free on the App Store."
 };

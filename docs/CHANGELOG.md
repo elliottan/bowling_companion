@@ -9,9 +9,22 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
-## 0.51.1: Launch creative for the iPhone app (2026-10-21)
+## 0.52.0: The landing page leads with what is free, and launch creative (2026-10-21)
 
-Nothing changes in the app. In the repo:
+On headpin.app:
+
+- **The landing page shows what you get, free.** The scorer ("As many games as
+  you bowl, free"), your line on the lane, an oil pattern, your whole arsenal
+  and your history ("Unlimited sessions, kept on your phone with no account").
+  The layouts and stats sections are gone: changing a layout and the deeper
+  stats are Pro, and the page shows only what the free app has. Its screenshots
+  are retaken on the current app, with new ones of the oil pattern and History.
+- **Its buttons turn to the App Store once the app is listed.** "Open Headpin"
+  becomes "Free on the App Store" and the iPhone install steps become "Get it
+  from the App Store", the moment `APP_STORE_URL` is set, with no other change.
+  An Android phone keeps the web app until the app is on Google Play.
+
+In the repo:
 
 - **A new feature reel** (`marketing/ads/2026-10-21/`) for the iPhone app's
   launch. It keeps the league night from the last one, then runs through what
