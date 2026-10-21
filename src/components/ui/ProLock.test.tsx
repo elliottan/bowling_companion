@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { ProBanner, ProChip, ProLock, ProNote } from "./ProLock";
 import { ProAccessContext } from "../../lib/useProAccess";
+import { ProOfferContext } from "../../lib/proOffer";
 import type { ProAccess, ProStore } from "../../lib/pro";
 import { waitFor } from "@testing-library/react";
 
@@ -188,5 +189,31 @@ describe("Pro in the iOS app", () => {
       </ProAccessContext.Provider>
     );
     expect(screen.getByRole("button", { name: "Get Headpin Pro, $9.99" })).toBeInTheDocument();
+  });
+});
+
+describe("with the Pro page available (ADR-164)", () => {
+  it("opens the page from a teaser, a banner, a note and a chip, and charges nothing there", () => {
+    const openOffer = vi.fn();
+    const buy = vi.fn(async () => "purchased" as const);
+    const access = { locked: true as const, store: { owned: false, price: "$9.99", buy, restore: async () => false } };
+    render(
+      <ProAccessContext.Provider value={access}>
+        <ProOfferContext.Provider value={openOffer}>
+          <ProLock what="How each ball strikes">
+            <p>Wolverine</p>
+          </ProLock>
+          <ProBanner what="Charts for every stat" />
+          <ProNote what="Read only" />
+          <ProChip what="Moving the line is in Headpin Pro" />
+        </ProOfferContext.Provider>
+      </ProAccessContext.Provider>
+    );
+    fireEvent.click(screen.getByRole("button", { name: "How each ball strikes. Get Headpin Pro, $9.99" }));
+    fireEvent.click(screen.getByRole("button", { name: "Get Headpin Pro, $9.99" }));
+    fireEvent.click(screen.getByRole("button", { name: "Read only. Get Headpin Pro, $9.99" }));
+    fireEvent.click(screen.getByRole("button", { name: "Moving the line is in Headpin Pro. Get Headpin Pro, $9.99" }));
+    expect(openOffer).toHaveBeenCalledTimes(4);
+    expect(buy).not.toHaveBeenCalled();
   });
 });

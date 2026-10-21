@@ -51,6 +51,8 @@ describe("appRoute", () => {
       "#/home/game-plan/stats-push",
       { view: "dashboard", overlays: ["game-plan", "stats-push"] }
     ],
+    // The Pro page, over wherever it was opened from, survives a reload.
+    ["#/stats/pro", { view: "stats", overlays: ["pro"] }],
     ["#/home/line", { view: "dashboard", overlays: [], lineSandbox: true }],
     ["#/session/3/catalog/line", { view: "active", sessionId: 3, overlays: ["catalog"], lineSandbox: true }]
   ];

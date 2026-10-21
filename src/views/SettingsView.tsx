@@ -11,7 +11,9 @@ import { openInAppBrowser } from "../lib/inAppBrowser";
 import { isIOSApp, isNativeApp, visibleNativePlugins } from "../lib/platform";
 import { openFeedbackEmail } from "../lib/diagnostics";
 import { ListGroup, ListRow } from "../components/ui/ListGroup";
-import { useProStoreContext } from "../lib/useProAccess";
+import { useProOwned, useProStoreContext } from "../lib/useProAccess";
+import { ProBadge } from "../components/ui/ProBadge";
+import { useProOffer } from "../lib/proOffer";
 import type { ProStore } from "../lib/pro";
 import { BowlingBallIcon, LanePairIcon, SpareLineIcon } from "../components/icons";
 
@@ -127,6 +129,7 @@ function SettingsMenu({
 >) {
   const [installOpen, setInstallOpen] = useState(false);
   const [editingName, setEditingName] = useState(false);
+  const owned = useProOwned();
   const name = useLiveQuery(getBowlerName, [], undefined);
   // The same test the Dashboard card uses: an installed app has nothing to
   // offer here, and a browser that cannot install would offer a dead end.
@@ -166,6 +169,7 @@ function SettingsMenu({
             aria-label={name ? `Your name, ${name}` : "Add your name"}
             className="flex min-h-11 min-w-0 max-w-[60%] items-center gap-2 rounded-full py-1 pl-1 pr-3 active:bg-surface-muted"
           >
+            {owned && <ProBadge className="shrink-0" />}
             <span
               aria-hidden="true"
               className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-accent-fill text-base font-bold text-accent-on-fill"
@@ -296,6 +300,8 @@ function buildLine(): string {
  */
 function ProSection() {
   const store = useProStoreContext();
+  // The Pro page says what Pro is before the purchase is offered (ADR-164).
+  const openOffer = useProOffer();
   // Which of the two is waiting on the App Store, so its row says so: a tap
   // that shows nothing for the seconds the store takes reads as a dead button.
   const [busy, setBusy] = useState<"buy" | "restore" | null>(null);
@@ -348,7 +354,7 @@ function ProSection() {
                 ? waiting
                 : `${store.price ? `${store.price}, once` : "One purchase"}: every analysis, for good`
             }
-            onClick={() => void buy()}
+            onClick={() => (openOffer ? openOffer() : void buy())}
           />
         )}
         <ListRow

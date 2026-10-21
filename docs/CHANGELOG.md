@@ -9,13 +9,23 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
-## 0.50.0: A quieter Pro, the ball first in the layout lab, and a leaner Alley report (2026-10-21)
+## 0.50.0: A quieter Pro, a Pro page, accent colors, the ball first in the layout lab, and a leaner Alley report (2026-10-21)
 
 - **Locked cards show a teaser.** Stats used to carry four big "Get Headpin Pro"
   buttons over blurred cards. Now the top of Stats says once what Pro adds, with
   the one button, and each locked card shows its first lines for real, fading
   out, with a small Pro mark; tapping the card does the same as the button. The
   Alley report's balls do the same (ADR-163).
+- **Get Headpin Pro opens a page first** (ADR-164). It says what Pro adds, in a
+  picture and a sentence each, what stays free, and that it is one payment and
+  not a subscription. Only the button at its foot charges, and Restore purchase
+  is there too. Every locked card, the banner, the lane chip, the Settings row and
+  the locked colors open it.
+- **A small Pro banner on Home** for a bowler without Pro. It locks nothing.
+- **Bowlers who bought Pro get a small "Pro" mark** on the app's mark on Home and
+  beside their name in Settings.
+- **Four more accent colors with Pro:** Ocean, Sunset, Grape and Rose, in
+  Settings, Appearance, working in light and dark.
 - **The line sandbox gets its lane back.** Without Pro, the note that sat at the
   foot of the lane view and crowded the board numbers is now a small
   "Unlock editing" chip in the row of controls at the top. The lane keeps its

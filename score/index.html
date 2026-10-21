@@ -71,6 +71,12 @@
           var pinned = stored();
           apply(pinned ? pinned === "dark" : osDark);
         }
+        // The accent palette (Pro), set before first paint like the theme. The
+        // app takes it back off if Pro is not open once it has started.
+        try {
+          var palette = localStorage.getItem("palette");
+          if (palette && /^[a-z]+$/.test(palette)) root.dataset.palette = palette;
+        } catch (e) {}
         var mq = window.matchMedia("(prefers-color-scheme: dark)");
         resolve(mq.matches);
         // Re-reads storage on every fire rather than being attached

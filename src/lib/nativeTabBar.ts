@@ -144,7 +144,7 @@ export function useNativeTabBar({
         })
         .catch(() => {});
     const observer = new MutationObserver(restyle);
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme", "data-palette"] });
     return () => observer.disconnect();
   }, [status]);
 

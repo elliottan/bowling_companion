@@ -55,6 +55,9 @@ export type Overlay =
   | "open-frames"
   | "game-trend"
   | "game-plan"
+  /** What Headpin Pro is, with samples, before anything charges (ADR-164).
+   *  Every locked card, the Home banner and Settings open it. */
+  | "pro"
   /** A session you are looking at rather than bowling. Pushed over whatever
    *  list you opened it from, so back returns to the list and the Active tab
    *  keeps the session you are actually bowling (ADR-084). */

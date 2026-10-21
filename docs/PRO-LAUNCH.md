@@ -60,6 +60,8 @@ is built and free today, so with no bowlers yet nothing is taken from anyone.
 | Sharing | Night, line and layout share cards, and the links they carry | ✓ | | How new bowlers find the app |
 | Sharing | Opening a shared line or layout to read | ✓ | | A link opens for anyone, and is the best preview of Pro |
 | Sharing | Changing a shared line or layout (moving it, turning the ball) | | ✓ | That is the sandbox and the layout lab |
+| Appearance | Light, dark and the Felt accent | ✓ | | Everyone |
+| Appearance | Four more accent colors (Ocean, Sunset, Grape, Rose) | | ✓ | Looks only, so it takes nothing away (ADR-164) |
 
 The deeper reads come from the same records, so they need nothing new stored.
 
@@ -81,6 +83,15 @@ On the web always, and in the app before purchase. It follows
   out, with one small "Pro" mark, and the whole teaser is the tap. A screen
   with several says what Pro adds once, in a banner with the one button: "Get
   Headpin Pro" in the app, "Get the app" on the web, which opens the App Store.
+- **Every one of those opens the Pro page first** (ADR-164): what Pro adds, in a
+  picture and a sentence each, what stays free, and then the one button that
+  charges, with Restore purchase. Nothing charges from a tap on a card.
+- **A standing banner on Home** for a bowler without Pro, which locks nothing and
+  opens that page. It is the free app's one visible ad for Pro.
+- **A bowler who bought Pro gets a small "Pro" mark** on the app's mark on Home
+  and beside their name in Settings, and the extra accent colors in Appearance.
+  The app's home screen icon is not changed yet: an alternate icon needs a
+  drawn asset and a native call.
 - **No popups, no counters, no nags.** Nothing appears during scoring, nothing
   repeats on a timer, and a card the bowler has seen stays quiet.
 - **The card may show the bowler's own count** ("Your 214 leaves, by pin") but

@@ -60,7 +60,7 @@ describe("appProAccess", () => {
   });
 
   it("opens everything once Pro is owned", () => {
-    expect(appProAccess({ ...store, owned: true })).toEqual(PRO_OPEN);
+    expect(appProAccess({ ...store, owned: true })).toEqual({ locked: false, owned: true });
   });
 
   it("answers as the web does where nothing sells Pro", () => {

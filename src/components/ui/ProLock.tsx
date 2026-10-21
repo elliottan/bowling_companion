@@ -1,9 +1,9 @@
-import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
-import { MoveGamesDialog } from "../MoveGamesDialog";
+import { useEffect, useRef, type CSSProperties, type ReactNode } from "react";
 import { Lock } from "lucide-react";
 import { Button } from "./Button";
-import { openAppStore, type LockedProAccess } from "../../lib/pro";
+import type { LockedProAccess } from "../../lib/pro";
 import { useProAccess } from "../../lib/useProAccess";
+import { useProEntry } from "./useProAction";
 
 /**
  * How Pro shows where it is locked (ADR-163, docs/PRO-LAUNCH.md).
@@ -21,64 +21,6 @@ const FADE: CSSProperties = {
   maskImage: "linear-gradient(to bottom, #000 45%, transparent)",
   WebkitMaskImage: "linear-gradient(to bottom, #000 45%, transparent)"
 };
-
-/**
- * The one action a locked thing offers. On the web, the steps for moving games
- * and then the App Store page. In the iOS app, the purchase itself (ADR-158):
- * Apple's own sheet takes it from the tap, and everything opens by itself once
- * it is bought, here and everywhere.
- */
-function useProAction(access: LockedProAccess) {
-  const [state, setState] = useState<"idle" | "busy" | "pending" | "failed">("idle");
-  const [moveOpen, setMoveOpen] = useState(false);
-  const [why, setWhy] = useState("");
-
-  if ("appStoreUrl" in access) {
-    const { appStoreUrl } = access;
-    return {
-      label: "Get the app",
-      busy: false,
-      note: null,
-      // The steps come first: games bowled here stay in this browser, and the
-      // bowler should know how to carry them before they switch.
-      start: () => setMoveOpen(true),
-      dialog: moveOpen ? (
-        <MoveGamesDialog
-          onCancel={() => setMoveOpen(false)}
-          onContinue={() => {
-            setMoveOpen(false);
-            openAppStore(appStoreUrl);
-          }}
-        />
-      ) : null
-    };
-  }
-
-  const { store } = access;
-  async function buy() {
-    setState("busy");
-    try {
-      setState((await store.buy()) === "pending" ? "pending" : "idle");
-    } catch (err) {
-      // Say why when the store did: "not available right now" and "offline" are
-      // different problems, and one line hid both (as Settings no longer does).
-      setWhy(err instanceof Error ? err.message : "");
-      setState("failed");
-    }
-  }
-  return {
-    label: store.price ? `Get Headpin Pro, ${store.price}` : "Get Headpin Pro",
-    busy: state === "busy",
-    note:
-      state === "pending"
-        ? "Waiting for approval. Pro opens as soon as it comes through."
-        : state === "failed"
-          ? `The App Store did not answer${why ? `: ${why}` : ". Try again in a moment."}`
-          : null,
-    start: () => void buy(),
-    dialog: null
-  };
-}
 
 function ActionNote({ text, lane = false }: { text: string | null; lane?: boolean }) {
   if (!text) return null;
@@ -130,7 +72,7 @@ function Teaser({
   peek: number;
   children: ReactNode;
 }) {
-  const action = useProAction(access);
+  const action = useProEntry(access);
   const previewRef = useRef<HTMLDivElement>(null);
   // React 18 has no `inert` prop. Inert takes the preview out of the tab order
   // and the accessibility tree, and no tap reaches what it covers.
@@ -181,7 +123,7 @@ export function ProBanner({ what }: { what: string }) {
 }
 
 function Banner({ access, what }: { access: LockedProAccess; what: string }) {
-  const action = useProAction(access);
+  const action = useProEntry(access);
   return (
     <section className="flex items-center gap-3 rounded-xl border border-edge bg-surface p-3 shadow-sm">
       <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-accent-fill/15 text-accent">
@@ -212,7 +154,7 @@ export function ProNote({ what }: { what: string }) {
 }
 
 function Note({ access, what }: { access: LockedProAccess; what: string }) {
-  const action = useProAction(access);
+  const action = useProEntry(access);
   return (
     <div className="flex items-center justify-between gap-3 rounded-lg bg-surface-muted px-3 py-2">
       <p className="flex min-w-0 items-center gap-1.5 text-xs font-semibold text-ink-secondary">
@@ -247,7 +189,7 @@ export function ProChip({ what }: { what: string }) {
 }
 
 function Chip({ access, what }: { access: LockedProAccess; what: string }) {
-  const action = useProAction(access);
+  const action = useProEntry(access);
   return (
     <div className="flex flex-col items-center gap-1">
       <button

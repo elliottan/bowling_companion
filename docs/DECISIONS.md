@@ -7588,3 +7588,50 @@ keep on a screen the owner called ugly.
   paid reads. That is the point of a teaser; if it proves too generous, the
   height is one number per card.
 
+## ADR-164: A Pro page before the purchase, a Pro mark, accent colors, and a Home banner
+
+**Status.** Accepted, 2026-10-21. Amends ADR-158 (a tap on a locked card no longer
+starts the purchase) and ADR-163. Decided by the owner.
+
+**Context.** A locked card in the iOS app went straight to Apple's purchase
+sheet, so a bowler was asked to pay before being shown what for. Nothing marked
+a bowler who had paid, and Pro added no appearance choice.
+
+**Decision.**
+
+- **A Pro page, `pro`, is an overlay** (`views/ProOfferView`). A locked card, the
+  Stats banner, the line sandbox's chip, the Settings row and a locked color all
+  open it through `ProOfferContext`; none of them charges. It has a picture and a
+  sentence for each thing Pro adds, what stays free, and a button pinned at the
+  foot: the purchase at the App Store's price in the iOS app, with Restore
+  purchase, and "Get the app" (with the steps for moving games) on the web. The
+  pictures (`ProOfferSamples`) are drawn from the app's colors with made-up
+  numbers, not screenshots, so they follow the theme and cannot go stale. Where
+  nothing provides the context (a unit test), the caller offers the purchase
+  directly as before.
+- **Pro is one payment, not a subscription** (ADR-154), and the page says so.
+- **`ProAccess` says whether Pro is owned.** `{ locked: false, owned: true }` is
+  a purchase; plain `{ locked: false }` is Pro merely open (the owner's copy, a
+  web with nothing to sell). A "Pro" mark (`ProBadge`) is shown on the app's mark
+  on Home and beside the bowler in Settings only when owned.
+- **Accent colors** (`lib/palette.ts`, `data-palette` on `<html>`): Felt for
+  everyone, Ocean, Sunset, Grape and Rose with Pro. A palette changes only the
+  five accent tokens, separately for light and dark, so nothing else knows which
+  is on. It is stored beside the theme and applied by the shell's pre-paint
+  script. While Pro is not open a stored Pro color is held back and Felt shows,
+  and the choice is kept for when Pro returns. The native tab bar is restyled when
+  the palette changes.
+- **A banner on Home** for a bowler without Pro opens the Pro page. It locks
+  nothing, shows only while Pro is locked, and is the free app's one standing
+  mention of Pro, which the owner asked for.
+
+**Consequences.**
+
+- The device check's "Get Headpin Pro" is the Stats banner's button as before. It
+  opens the Pro page instead of buying, so the purchase sheet is only reached from
+  that page.
+- A different home screen icon for owners is not built: it needs an alternate
+  icon drawn and a native call, and is left for when the asset exists.
+- The line sandbox is taken off screen while the Pro page is on top of it, since
+  the lane's own layer would cover the page. It returns on back.
+

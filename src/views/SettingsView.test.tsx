@@ -4,7 +4,8 @@ import { SettingsView } from "./SettingsView";
 import { db } from "../db/bowlingDb";
 import { DEFAULT_DRIFT_MODEL } from "../lib/driftModel";
 import { getBowlerName, setBowlerName, setSetting } from "../services/bowlingRepository";
-import { ProStoreContext } from "../lib/useProAccess";
+import { ProAccessContext, ProStoreContext } from "../lib/useProAccess";
+import { ProOfferContext } from "../lib/proOffer";
 import type { ProStore } from "../lib/pro";
 import { openInAppBrowser } from "../lib/inAppBrowser";
 
@@ -218,5 +219,67 @@ describe("SettingsView's Headpin Pro", () => {
     expect(await screen.findByText("Asking the App Store…")).toBeInTheDocument();
     finish("purchased");
     await waitFor(() => expect(screen.queryByText("Asking the App Store…")).not.toBeInTheDocument());
+  });
+
+  describe("the Pro mark and the Pro page (ADR-164)", () => {
+    function renderWith(access: { locked: false; owned?: true }) {
+      setBowlerName("Sam");
+      render(
+        <ProAccessContext.Provider value={access}>
+          <SettingsView
+            section="menu"
+            onSectionChange={vi.fn()}
+            handedness="right"
+            onHandednessChange={vi.fn()}
+            driftModel={DEFAULT_DRIFT_MODEL}
+            onDriftModelChange={vi.fn()}
+            onOpenBackup={vi.fn()}
+            onOpenLineVisualizer={vi.fn()}
+            onOpenArsenal={vi.fn()}
+            onOpenSpareLines={vi.fn()}
+            onOpenLaneNotes={vi.fn()}
+          />
+        </ProAccessContext.Provider>
+      );
+    }
+
+    it("labels the bowler Pro when Pro was bought, and only then", async () => {
+      renderWith({ locked: false, owned: true });
+      const chip = await screen.findByRole("button", { name: "Your name, Sam" });
+      expect(within(chip).getByText("Pro")).toBeInTheDocument();
+    });
+
+    it("does not label a bowler Pro where Pro is merely open", async () => {
+      renderWith({ locked: false });
+      const chip = await screen.findByRole("button", { name: "Your name, Sam" });
+      expect(within(chip).queryByText("Pro")).not.toBeInTheDocument();
+    });
+
+    it("opens the Pro page from Get Headpin Pro instead of buying", () => {
+      const openOffer = vi.fn();
+      const buy = vi.fn(async () => "purchased" as const);
+      render(
+        <ProStoreContext.Provider value={{ owned: false, price: "$9.99", buy, restore: async () => false }}>
+          <ProOfferContext.Provider value={openOffer}>
+            <SettingsView
+              section="menu"
+              onSectionChange={vi.fn()}
+              handedness="right"
+              onHandednessChange={vi.fn()}
+              driftModel={DEFAULT_DRIFT_MODEL}
+              onDriftModelChange={vi.fn()}
+              onOpenBackup={vi.fn()}
+              onOpenLineVisualizer={vi.fn()}
+              onOpenArsenal={vi.fn()}
+              onOpenSpareLines={vi.fn()}
+              onOpenLaneNotes={vi.fn()}
+            />
+          </ProOfferContext.Provider>
+        </ProStoreContext.Provider>
+      );
+      fireEvent.click(screen.getByRole("button", { name: /Get Headpin Pro/ }));
+      expect(openOffer).toHaveBeenCalledTimes(1);
+      expect(buy).not.toHaveBeenCalled();
+    });
   });
 });

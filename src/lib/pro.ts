@@ -43,7 +43,10 @@ export interface ProStore {
  * page from the web, or the purchase itself in the iOS app.
  */
 export type ProAccess =
-  | { locked: false }
+  /** `owned` is set when this Apple ID bought Pro, and not when Pro is merely
+   *  open (the owner's copy, a web with nothing to sell), so a mark of
+   *  ownership is never shown to a bowler who did not buy it (ADR-164). */
+  | { locked: false; owned?: true }
   | { locked: true; appStoreUrl: string }
   | { locked: true; store: ProStore };
 
@@ -73,7 +76,7 @@ export function webProAccess(
  *  be bought there (the Android app, until Play Billing). */
 export function appProAccess(store: ProStore | null): ProAccess {
   if (!store) return webProAccess();
-  return store.owned ? PRO_OPEN : { locked: true, store };
+  return store.owned ? { locked: false, owned: true } : { locked: true, store };
 }
 
 /** Hands the App Store link to the platform, which opens the App Store app on

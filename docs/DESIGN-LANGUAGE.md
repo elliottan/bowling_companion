@@ -304,7 +304,9 @@ first lines as they are and fades out, with one small "Pro" mark and the whole
 card as the tap. A screen with several says what Pro adds once, in a banner
 with the one button at the top. A read-only screen has one quiet line of small
 text, or on the lane's dark frame a chip in the floating controls, and never a
-bar that takes height from what it sits over.
+bar that takes height from what it sits over. Every one of them opens the Pro
+page, which says what Pro is before anything charges (ADR-164). A bowler who
+has it gets a small "Pro" label beside their mark and name, and nothing louder.
 
 **A hint can be waved away, and comes back.** Every hint has an action and an X.
 The X is a snooze with an end, kept per thing it was about, not a permanent no.
