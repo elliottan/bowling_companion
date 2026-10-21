@@ -151,7 +151,7 @@ export function OilPatternFormDialog({ open, initial, onSubmit, onCancel, onRemo
 
           {!linked && (
           <label className="block">
-            <span className={FIELD_LABEL}>Pattern sheet link (optional)</span>
+            <span className={FIELD_LABEL}>Pattern sheet link</span>
             <input
               type="url"
               inputMode="url"

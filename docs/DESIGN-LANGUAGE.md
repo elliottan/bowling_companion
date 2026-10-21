@@ -423,8 +423,10 @@ label on the field's own top border as an outline notch, which only reads while
 the label is short relative to the box: STANCE and TARGET are nearly as wide as
 the numeric fields they name, so the notch ate the whole top edge.
 
-Labels above fields, 44px field height, optional fields marked `(optional)`
-rather than required ones marked `*` where possible. A form in a dialog puts
+Labels above fields, 44px field height, and no field marked optional or
+required: a form that saves with its fields empty says so by saving, and
+"(optional)" on a label was one more word in front of the one that names the
+field. A form in a dialog puts
 Cancel (an X) leading and the primary action trailing in the dialog's own bar,
 so the commit is always in the same place. The single most valuable field goes
 first. In the ball editor that is the catalog link, because linking fills in

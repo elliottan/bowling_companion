@@ -169,7 +169,7 @@ export function SessionForm({
     <>
       <form id={formId} onSubmit={handleSubmit}>
         <div className="space-y-3">
-          <Field label="Alley (optional)">
+          <Field label="Alley">
             <SuggestInput
               value={alleyName}
               onChange={setAlleyName}

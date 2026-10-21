@@ -17,6 +17,8 @@ had all shipped.
 - **Home offers the iPhone app.** On the web, Home opens on a "Headpin for
   iPhone" row with Get, in place of the card that asked you to add Headpin to
   your home screen (ADR-170). Close it and it stays away for two weeks.
+- **No "(optional)" on field labels.** Starting a session asks for the Alley,
+  and a pattern for its sheet link, without the word.
 - **Stats scrollers.** The chart's chips scroll sideways without a scroll bar
   under them, the Spares card's leaves without one beside them, and the Balls
   card's numbers keep clear of its scroll bar.
