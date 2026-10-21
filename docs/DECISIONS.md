@@ -7978,6 +7978,10 @@ no scroll view to watch, so iOS 26 may give it a solid ground of its own.
   under the bar is softened a little and never covered. Gone while the keyboard
   is up.
 
+- **The status bar's edge is the status bar's height**, not half as tall again.
+  The extra half lay over the top of each tab's header and of a Settings
+  section's nav bar, and blurred their round buttons into a haze on a phone.
+
 **Consequences.** Every tab's last rows can now sit behind the bar until
 scrolled up, which is how a system screen behaves; `<main>` still pads its end
 by `--tab-bar-h`, so the last row can always be scrolled clear of it.

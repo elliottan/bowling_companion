@@ -706,10 +706,13 @@ function App() {
 
       {/* The status bar's scroll edge: the clock and battery stay readable
           over a tab scrolled under them, and over an empty top it is the
-          page's own color, so it shows nothing. */}
+          page's own color, so it shows nothing. Exactly the status bar's
+          height: drawn half as tall again, it lay over the top of a tab's
+          header and a Settings section's nav bar, and blurred their buttons
+          into a haze (ADR-171). */}
       <div
         aria-hidden="true"
-        className="scroll-edge pointer-events-none absolute inset-x-0 top-0 z-[5] h-[calc(env(safe-area-inset-top)*1.5)]"
+        className="scroll-edge pointer-events-none absolute inset-x-0 top-0 z-[5] h-[env(safe-area-inset-top)]"
       />
 
       {/* The page scrolls under the tab bar, the phone's or the page's own, and
