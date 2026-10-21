@@ -26,6 +26,61 @@
 	<false/>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>UIApplicationShortcutItems</key>
+	<array>
+		<dict>
+			<key>UIApplicationShortcutItemType</key>
+			<string>app.headpin.stats</string>
+			<key>UIApplicationShortcutItemTitle</key>
+			<string>Stats</string>
+			<key>UIApplicationShortcutItemIconSymbolName</key>
+			<string>chart.bar</string>
+			<key>UIApplicationShortcutItemUserInfo</key>
+			<dict>
+				<key>url</key>
+				<string>https://headpin.app/app#/stats</string>
+			</dict>
+		</dict>
+		<dict>
+			<key>UIApplicationShortcutItemType</key>
+			<string>app.headpin.history</string>
+			<key>UIApplicationShortcutItemTitle</key>
+			<string>History</string>
+			<key>UIApplicationShortcutItemIconSymbolName</key>
+			<string>clock.arrow.circlepath</string>
+			<key>UIApplicationShortcutItemUserInfo</key>
+			<dict>
+				<key>url</key>
+				<string>https://headpin.app/app#/history</string>
+			</dict>
+		</dict>
+		<dict>
+			<key>UIApplicationShortcutItemType</key>
+			<string>app.headpin.arsenal</string>
+			<key>UIApplicationShortcutItemTitle</key>
+			<string>Arsenal</string>
+			<key>UIApplicationShortcutItemIconSymbolName</key>
+			<string>bag</string>
+			<key>UIApplicationShortcutItemUserInfo</key>
+			<dict>
+				<key>url</key>
+				<string>https://headpin.app/app#/home/arsenal</string>
+			</dict>
+		</dict>
+		<dict>
+			<key>UIApplicationShortcutItemType</key>
+			<string>app.headpin.catalog</string>
+			<key>UIApplicationShortcutItemTitle</key>
+			<string>Ball catalog</string>
+			<key>UIApplicationShortcutItemIconSymbolName</key>
+			<string>magnifyingglass</string>
+			<key>UIApplicationShortcutItemUserInfo</key>
+			<dict>
+				<key>url</key>
+				<string>https://headpin.app/app#/home/catalog</string>
+			</dict>
+		</dict>
+	</array>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

@@ -15,13 +15,14 @@ const VARIANT: Record<Variant, string> = {
   // inverts together between themes, so this variant tracks both light and
   // dark automatically instead of hardcoding one direction.
   inverse: "text-surface/70 hover:bg-surface/10 hover:text-surface",
-  // Nav-bar and sheet-header chrome: a circular control that reads as a
-  // control without carrying a word.
-  round: "rounded-full bg-surface-muted text-accent hover:bg-edge active:opacity-80",
-  // The filled twin of `round`: a header's confirm, as prominent as a primary
+  // Nav-bar and sheet-header chrome: a circular glass control that reads as a
+  // control without carrying a word. The glyph is the ink, not the accent, as
+  // an iOS 26 bar button's is: on glass the color belongs to the commit.
+  round: "glass rounded-full text-ink transition-transform active:scale-95 active:opacity-80",
+  // The tinted twin of `round`: a header's confirm, as prominent as a primary
   // button. A variant rather than a className, because competing `bg-*`
   // utilities resolve by stylesheet order and the override loses.
-  confirm: "rounded-full bg-accent-fill text-accent-on-fill hover:bg-accent-fill-hover active:opacity-80"
+  confirm: "glass-tinted rounded-full text-accent-on-fill transition-transform active:scale-95 active:opacity-80"
 };
 
 // `compact` keeps the 44pt hit region while drawing a 20px box, the way `Chip`

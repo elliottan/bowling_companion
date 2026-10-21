@@ -13,6 +13,28 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         window?.makeKeyAndVisible()
 
         SceneDelegateProxy.shared.scene(scene, willConnectTo: session, options: connectionOptions)
+
+        // Launched from a Home Screen quick action. The bridge is not up yet,
+        // so the address waits as the launch URL, which the page asks for as
+        // it starts (`listenForLinks`).
+        if let item = connectionOptions.shortcutItem {
+            _ = open(item)
+        }
+    }
+
+    /// A quick action chosen while the app was already running.
+    func windowScene(_ windowScene: UIWindowScene, performActionFor shortcutItem: UIApplicationShortcutItem, completionHandler: @escaping (Bool) -> Void) {
+        completionHandler(open(shortcutItem))
+    }
+
+    /// The Home Screen's quick actions (ADR-168) are listed in Info.plist, each
+    /// with the headpin.app address of the screen it opens. They take the same
+    /// way in as a shared link (ADR-159): Capacitor hands the address to the
+    /// page as an opened URL, and the page turns it into its own route. So the
+    /// screens a quick action can reach are the page's to say, as a link's are.
+    private func open(_ item: UIApplicationShortcutItem) -> Bool {
+        guard let address = item.userInfo?["url"] as? String, let url = URL(string: address) else { return false }
+        return ApplicationDelegateProxy.shared.application(UIApplication.shared, open: url, options: [:])
     }
 
     func scene(_ scene: UIScene, openURLContexts URLContexts: Set<UIOpenURLContext>) {
@@ -54,7 +76,9 @@ class HeadpinViewController: CAPBridgeViewController, UIGestureRecognizerDelegat
         // The page says what its background is, and again when its theme changes.
         let content = webView.configuration.userContentController
         content.add(BackgroundMessageHandler { [weak self] css in
-            if let color = HeadpinViewController.color(fromCSS: css) { self?.paintBackground(color) }
+            guard let color = HeadpinViewController.color(fromCSS: css) else { return }
+            self?.paintBackground(color)
+            self?.followTheme(of: color)
         }, name: "headpinBackground")
         content.addUserScript(WKUserScript(
             source: HeadpinViewController.backgroundScript,
@@ -105,6 +129,22 @@ class HeadpinViewController: CAPBridgeViewController, UIGestureRecognizerDelegat
         view.backgroundColor = color
         webView?.scrollView.backgroundColor = color
         webView?.underPageBackgroundColor = color
+    }
+
+    /// The app's theme is the page's, which a bowler can set apart from the
+    /// phone's (ADR-168). The window takes it, so everything the system draws
+    /// for the app matches the page rather than the phone: the status bar's
+    /// clock, the keyboard, the share sheet, the App Store's purchase sheet and
+    /// any alert. Read from the page's own background, which the page already
+    /// reports, so there is no second message to keep in step.
+    private func followTheme(of background: UIColor) {
+        var red: CGFloat = 0, green: CGFloat = 0, blue: CGFloat = 0, alpha: CGFloat = 0
+        guard background.getRed(&red, green: &green, blue: &blue, alpha: &alpha) else { return }
+        let luminance = 0.2126 * red + 0.7152 * green + 0.0722 * blue
+        let style: UIUserInterfaceStyle = luminance < 0.5 ? .dark : .light
+        guard let window = view.window, window.overrideUserInterfaceStyle != style else { return }
+        window.overrideUserInterfaceStyle = style
+        setNeedsStatusBarAppearanceUpdate()
     }
 
     /// `rgb(15, 23, 42)` or `rgba(15, 23, 42, 1)`, as `getComputedStyle` gives

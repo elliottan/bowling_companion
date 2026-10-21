@@ -16,7 +16,7 @@
  * Whose photos these are is a decision, not a default: ADR-039 limits third
  * party photos to balls the owner needs, and ADR-138 records the owner's call
  * to take them for the Brunswick family. Pass `--brand` or `--all` on purpose.
- * The normaliser cuts each photo to its ball (ADR-168), so a white card or a
+ * The normaliser cuts each photo to its ball (ADR-169), so a white card or a
  * drop shadow goes on the way in.
  */
 import { existsSync, readFileSync, readdirSync, writeFileSync } from "node:fs";

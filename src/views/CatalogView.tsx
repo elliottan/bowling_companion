@@ -544,8 +544,10 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall }: CatalogVie
         </IconButton>
       }
     >
-      {/* Search + filters stay pinned above the list they narrow. */}
-      <div className="sticky top-0 z-10 border-b border-edge bg-surface-sunken mx-auto w-full max-w-3xl px-3 pt-3 sm:px-6">
+      {/* Search + filters stay pinned above the list they narrow. The block
+          reaches up behind the nav bar, so the list passes under the two as
+          one opaque band rather than showing between them (ADR-168). */}
+      <div className="sticky -top-[var(--push-bar-h)] z-10 -mt-[var(--push-bar-h)] border-b border-edge bg-surface-sunken mx-auto w-full max-w-3xl px-3 pt-[calc(var(--push-bar-h)+0.75rem)] sm:px-6">
         {/* Sync state banner */}
         {syncState.status === "syncing" && (
           <div className="mb-3 flex items-center gap-2 rounded-lg border border-edge bg-surface-muted px-3 py-2 text-sm text-ink-secondary">

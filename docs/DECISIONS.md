@@ -7757,7 +7757,76 @@ and `/score`, the owner's copy, showed Pro open but not owned, so the owned side
   the Pro mark drawn at the store's sizes (`scripts/native/icons.mjs` can take it)
   and a native call, which shows the system's own alert; it is left for a build
   that can be tried on a device.
-## ADR-168: Every ball photo gets one house treatment
+
+## ADR-168: Bars float over what scrolls under them, chrome controls are glass, and the iPhone app takes the page's theme
+
+**Status.** Accepted, 2026-10-21. Amends DESIGN-LANGUAGE §1b ("Chrome is
+opaque") and follows ADR-160 and ADR-161. Asked for by the owner: the app's
+bars stopped content at their edge, the round controls read as grey dots, and an
+edit was a pencil glyph rather than a button. Built and seen in Chromium; the
+iPhone parts (the window's theme, the quick actions, the status bar's edge)
+need a look on a phone.
+
+**Context.** On iOS 26 a navigation bar has no ground of its own. The screen
+runs under it, and where content passes beneath, a soft blur fades it out (the
+scroll edge effect); the bar's buttons are glass capsules over that, the glyph
+in the label color and a commit tinted. Headpin's bars were opaque slabs with a
+hairline, which is what iOS drew before iOS 7, and the frosted bar tried before
+(§1b) was a flat haze across the whole bar rather than an edge. The page cannot
+draw Liquid Glass, but it can draw the shape of it: content under the bar, an
+edge that only shows when something is under it, and raised buttons.
+
+**Decision.**
+
+- **Bars float.** `PushScreen`'s nav bar and `FormSheet`'s bar sit over their
+  scroll area, which starts a bar's height down and scrolls up under it. The
+  tabs scroll up under the status bar the same way: the safe-area top is
+  padding inside `<main>` rather than on the shell.
+- **The scroll edge** (`.scroll-edge`, `index.css`) is the only ground behind a
+  bar: a wash of the page's color with a blur, both fading out downward and a
+  little past the bar. Over the empty top of a page it is the page's color on
+  the page's color, so it shows nothing until something scrolls beneath, and
+  needs no scroll position.
+- **A sticky row inside stops beneath the bar,** and where the row is opaque
+  (the catalog's search, a Stats sheet's header) it reaches up behind the bar,
+  so the list passes under the two as one band. A sticky row stops at the
+  scroll area's padding edge, so the bar's height is published for it
+  (`--push-bar-h`, `--sheet-bar-h`) and it starts and sticks that far up.
+- **Chrome controls are glass.** `IconButton`'s `round` is a translucent raised
+  circle with a top highlight (`.glass`), its glyph in ink; `confirm` is the
+  accent under the same highlight (`.glass-tinted`).
+- **Edit is a word.** The control that turns a read screen into a form (a ball,
+  a spare line, the bowling profile) is "Edit" in a glass capsule
+  (`BarButton`), as iOS writes it, and inside content a small tinted capsule
+  (`TintedButton`, a lane's notes). Glyphs stay for what a glyph says at once:
+  back, close, the tick, share.
+- **The segmented control is UIKit's shape:** a grey track with the chosen
+  segment raised in the surface color, and in the store apps the selection tick
+  as the choice moves (`haptic("select")`).
+- **The iPhone app's window takes the page's theme** (`HeadpinViewController`,
+  from the background color the page already reports), so the status bar, the
+  keyboard, the share sheet, the purchase sheet and any alert match the app
+  rather than the phone. **The Android app's system bar icons do the same**
+  (`followThemeInSystemBars`, Capacitor's `SystemBars`).
+- **The iPhone app has Home Screen quick actions**: Stats, History, Arsenal and
+  Ball catalog. Each is a headpin.app address in `Info.plist`, handed to the
+  page as an opened link (ADR-159), so the page decides what it opens and a
+  test holds each one to its screen.
+
+**Consequences.**
+
+- Everything here but the window, the quick actions and the Android bars is the
+  page's, so the web app and the Android app get the same bars and controls.
+  That is the owner's ask for the web, and on Android the glass reads as a
+  raised button, which suits Material too.
+- Text faintly shows through the edge right under a bar's title, as it does on
+  iOS. If it reads as haze on a phone, the wash's two stops are the knobs.
+- A screen whose body is its own scroller (rather than the push's) starts below
+  the bar and never passes under it. Nothing breaks; it simply has no edge.
+- A quick action opens its screen by reloading the page, as a shared link does.
+  One that resumes a game in progress is not offered, since a route that names
+  a screen skips the jump into today's game.
+## ADR-169: Every ball photo gets one house treatment
 
 **Status.** Accepted, 2026-10-21. Amends ADR-138 on what a replaced photo keeps
 under its old name. ADR-142's rights position stands as written.

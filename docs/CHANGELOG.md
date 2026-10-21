@@ -9,10 +9,10 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
-## 0.53.0: Every ball photo, cut the same way (2026-10-21)
+## 0.54.0: Every ball photo, cut the same way (2026-10-21)
 
 - **Ball photos look like one set.** Every photo in the catalog has been
-  re-cut to its ball's exact circle with the same clean edge (ADR-168). Gone
+  re-cut to its ball's exact circle with the same clean edge (ADR-169). Gone
   are the light fringes and dark rings around some balls, the shadows under
   others, the white rim on glossy ones and the nicks in a few bright rims, so
   a ball looks right on a light or a dark screen. The balls themselves, their
@@ -26,6 +26,30 @@ In the repo:
 - **`npm run rerender-images`** re-renders photos made before the current
   treatment, and `clear-background` is retired: every new photo, from any
   ingest route, is cut to its ball on the way in.
+## 0.53.0: Bars you scroll under, glass buttons, and the iPhone app in your theme (2026-10-21)
+
+- **Screens scroll under their bars.** On a pushed screen, a sheet and every
+  tab, the content runs up under the bar (or the status bar) and fades into a
+  soft blur there, as iOS draws it. At the top of a page there is no bar
+  background at all.
+- **The buttons on the bars are glass**: raised round buttons for back, close
+  and share, and the tick that saves is filled in your accent color.
+- **Edit is a button that says Edit.** A ball, a spare line and your bowling
+  profile open to read with an Edit button where the pencil was, and a lane's
+  notes have a small Edit button.
+- **Segmented controls look like the iPhone's**, with the chosen side raised
+  on a grey track, and the store apps tick as you change it.
+- **In the iPhone app, the status bar, keyboard and system sheets follow the
+  app's theme**, so a dark Headpin on a light phone no longer shows a light
+  keyboard or a black clock on a dark screen.
+- **Press and hold the Headpin icon** on the iPhone Home Screen for Stats,
+  History, Arsenal and Ball catalog.
+- **In the Android app, the status bar icons follow the app's theme.**
+
+In the repo: ADR-168. `BarButton` and `TintedButton` (`ui/BarButton.tsx`),
+`.glass`, `.glass-tinted` and `.scroll-edge` in `index.css`, `--push-bar-h` and
+`--sheet-bar-h` for sticky rows, `haptic("select")`, `followThemeInSystemBars`.
+
 ## 0.52.0: The landing page leads with what is free, and launch creative (2026-10-21)
 
 On headpin.app:

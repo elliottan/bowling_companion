@@ -418,7 +418,14 @@ export async function runFlow(d: Driver, outDir: string, opts: { slow?: number; 
     await f.check("the app's own plugins answer: the tab bar is the phone's, and the store reports ownership", async () => {
       // The phone's bar replaces the page's own, so no tab bar in the page means
       // the native one is up; the page's own comes back if the phone never answers.
-      await f.until(`!document.querySelector("nav button, [role=navigation] button")`, "the page to hand its tab bar to the phone", 30_000);
+      // Only a drawn button counts: the wide screen's header keeps its own nav in
+      // the page at every width, hidden on a phone, and a bare querySelector
+      // found it there whichever bar was up, so this never once passed.
+      await f.until(
+        `![...document.querySelectorAll("nav button, [role=navigation] button")].some((b) => b.getClientRects().length > 0)`,
+        "the page to hand its tab bar to the phone",
+        30_000
+      );
       // StoreKit answers `entitlements` from the phone, and the page writes its
       // answer down, so a stored answer proves a call reached native and came back.
       await f.until(`localStorage.getItem("headpin.proOwned") !== null`, "the store plugin to answer", 30_000);

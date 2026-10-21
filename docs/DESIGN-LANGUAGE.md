@@ -35,7 +35,8 @@ Every push gets, without exception:
   which read as a lie once the same screen could be pushed from several places:
   opened from the dashboard it named a tab the user had never navigated from;
 - a centered title, one line, 17px semibold;
-- at most **one** trailing action, always an `IconButton`. The layout lab is the
+- at most **one** trailing action, an `IconButton`, or the word "Edit" in a
+  `BarButton` where the action turns the screen into a form (§1b). The layout lab is the
   single exception and has to earn it each time it is copied: sharing a layout
   is the thing that screen exists to do once the numbers are right, so it sits
   beside More rather than inside it. Two is the ceiling, and the second one is
@@ -87,12 +88,26 @@ A control that sits on a nav bar or a sheet header is round and icon-only:
 the back chevron, the trailing action, a sheet's close and its confirm. The
 word is dropped, not the meaning, so `IconButton`'s required `label` carries it
 ("Back", "Save", "Add"). Use `IconButton variant="round"`, never a hand-rolled
-circle.
+circle. Both are glass (`.glass`): a translucent raised circle with a highlight
+on its top edge and the glyph in ink, as iOS 26 draws a bar button; the commit
+(`confirm`) is the accent under the same highlight (ADR-168).
 
-Frosted glass chrome (a translucent backdrop-filter bar) was tried on these and
-removed: it approximated Apple's Liquid Glass without the refraction that makes
-that effect work, and read as haze over the content rather than as a surface.
-Chrome is opaque.
+The one word kept on chrome is **Edit**, for the control that turns a read
+screen into a form: a glyph said it less clearly than the word iOS uses. It is a
+`BarButton`, a glass capsule as tall as the rounds. Inside content, an edit that
+belongs to one card is a `TintedButton`, a small accent-tinted capsule. Neither
+is a bare pencil.
+
+**Bars float, and the page scrolls under them** (ADR-168). A push's nav bar, a
+sheet's bar and the status bar over a tab have no ground of their own: behind
+them is the scroll edge (`.scroll-edge`), a wash of the page's color and a blur
+that both fade out downward, so over an empty page it shows nothing and over
+content it lifts the bar's title and buttons off what passes under. A frosted
+bar was tried before and removed, because a flat haze across the whole bar read
+as a dirty surface; the edge is not a surface, it is where the content fades. A
+sticky row inside a push or a sheet stops beneath the bar by the bar's
+published height (`--push-bar-h`, `--sheet-bar-h`), and an opaque one reaches up
+behind the bar so the list passes under both as one band.
 
 **The tab bar is the one capsule on the web and Android.** (The iPhone app
 draws the system's own, ADR-161; what follows is the page's bar.) It floats over
@@ -120,7 +135,9 @@ vertically only, and `compact` grows upward only, because it sits in a heading
 row with content directly beneath it.
 
 `SegmentedControl` (`src/components/ui/SegmentedControl.tsx`) is one track with
-N segments and exactly one selected: a theme, a handedness. A row of `Chip`s is
+N segments and exactly one selected: a theme, a handedness. It is drawn as
+UIKit draws its own, a grey track with the chosen segment raised on it in the
+surface color, and ticks in the store apps as the choice moves (ADR-168). A row of `Chip`s is
 not that, and reads as one because chips sit apart with gaps between them and
 any number of them can be on. The theme picker was three chips before, and the
 shared track is what says "pick one" before a single label is read.

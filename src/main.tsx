@@ -4,7 +4,7 @@ import { registerSW } from "virtual:pwa-register";
 import App from "./App";
 import { AppErrorBoundary } from "./components/AppErrorBoundary";
 import { initInstallPrompt } from "./lib/installPrompt";
-import { applyNativeChrome } from "./lib/nativeChrome";
+import { applyNativeChrome, followThemeInSystemBars } from "./lib/nativeChrome";
 import { listenForLinks } from "./lib/deepLink";
 import { isNativeApp } from "./lib/platform";
 import {
@@ -37,6 +37,7 @@ if (!isNativeApp()) {
 }
 
 applyNativeChrome();
+followThemeInSystemBars();
 // A headpin.app link the phone opens in the store app (ADR-159).
 void listenForLinks();
 
