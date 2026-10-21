@@ -48,6 +48,7 @@ is built and free today, so with no bowlers yet nothing is taken from anyone.
 | Home | Tonight, profile, first run, guides | ✓ | | Getting started |
 | Alley report | What you'd average with each ball there | | ✓ | Reads across sessions, the deepest read in the app. Its lines (best lines, the last session, line changes) are off the screen for now (ADR-163) |
 | Lane | A shot's line drawn on the lane, behind its info button | ✓ | | Seeing what you entered |
+| Lane | Dragging a shot's line on that lane, from score entry | | ✓ | Same as the sandbox (ADR-165). Typing the boards stays free |
 | Lane | The sandbox, read-only: any line drawn on the lane, its pattern, the other hand | ✓ | | Seeing a line, the best preview of Pro |
 | Lane | The sandbox: moving the line, quick moves, its hook shape | | ✓ | A tool for planning, not recording |
 | Lane | Lane notes | ✓ | | Recording |

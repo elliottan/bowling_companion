@@ -448,7 +448,7 @@ export function LayoutLabView({ onBack, onOpenSettings, seed }: LayoutLabViewPro
           ))}
         </section>
 
-        <ProNote what="Read only. Editing a layout is in Headpin Pro" />
+        <ProNote what="You can look but not change anything. Editing layouts is in Headpin Pro" />
 
         {/* A disabled fieldset turns off every field and button inside it while
             leaving their values on screen to read. */}

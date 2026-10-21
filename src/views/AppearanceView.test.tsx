@@ -36,7 +36,7 @@ describe("the color picker (ADR-164)", () => {
 
   it("sends a locked color to the Pro page and changes nothing", () => {
     const openOffer = renderView({ locked: true, appStoreUrl: "https://apps.apple.com/app/id1" });
-    expect(screen.getByText(/Headpin Pro adds four more/)).toBeInTheDocument();
+    expect(screen.getByText(/Pro adds four more/)).toBeInTheDocument();
     // Felt is everybody's and is the one on.
     expect(screen.getByRole("button", { name: "Felt" })).toHaveAttribute("aria-pressed", "true");
 

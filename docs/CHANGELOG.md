@@ -9,38 +9,36 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
-## 0.50.0: A quieter Pro, a Pro page, accent colors, the ball first in the layout lab, and a leaner Alley report (2026-10-21)
+## 0.50.0: A Pro page, accent colors, and a quieter lock (2026-10-21)
 
-- **Locked cards show a teaser.** Stats used to carry four big "Get Headpin Pro"
-  buttons over blurred cards. Now the top of Stats says once what Pro adds, with
-  the one button, and each locked card shows its first lines for real, fading
-  out, with a small Pro mark; tapping the card does the same as the button. The
-  Alley report's balls do the same (ADR-163).
-- **Get Headpin Pro opens a page first** (ADR-164). It says what Pro adds, in a
-  picture and a sentence each, what stays free, and that it is one payment and
-  not a subscription. Only the button at its foot charges, and Restore purchase
-  is there too. Every locked card, the banner, the lane chip, the Settings row and
-  the locked colors open it.
-- **A small Pro banner on Home** for a bowler without Pro. It locks nothing.
-- **Bowlers who bought Pro get a small "Pro" mark** on the app's mark on Home and
-  beside their name in Settings.
+- **Get Headpin Pro opens a page first** (ADR-164). It shows what Pro adds, with a
+  small drawing for each, says what stays free, and says it is a single payment,
+  not a subscription. Only the button at the bottom charges, and Restore purchase
+  is there too. Locked cards, the banner, the lane chip, the Settings row and the
+  locked colors all open it.
+- **Locked cards show a preview.** Stats had four big "Get Headpin Pro" buttons on
+  top of blurred cards. Now the top of Stats says once what Pro adds, and each
+  locked card shows its first lines, fading out, with a small Pro mark. Tapping
+  the card does the same as the button. The Alley report's balls work the same way
+  (ADR-163).
+- **Moving the line from score entry needs Pro.** Open a shot's line from the
+  scorer and you can see it but not drag it, the same as in the line visualizer.
+  Typing the boards into the fields is still free (ADR-165).
+- **The line visualizer gets its lane back.** The Pro note at the bottom crowded
+  the board numbers. It is now a small "Unlock editing" chip at the top.
 - **Four more accent colors with Pro:** Ocean, Sunset, Grape and Rose, in
-  Settings, Appearance, working in light and dark.
-- **The line sandbox gets its lane back.** Without Pro, the note that sat at the
-  foot of the lane view and crowded the board numbers is now a small
-  "Unlock editing" chip in the row of controls at the top. The lane keeps its
-  whole height, and its "Drag the lane to tilt" hint.
-- **The layout lab leads with the ball.** The ball, then what it will do, then
-  the controls: you, the core, the numbers. The read-only line is one quiet
-  row instead of a card.
-- **The Alley report shows the balls and nothing else for now.** The best
-  lines, the last session's lines and the line changes are off the screen, and
-  the open-line view with them. The code that builds them stays, so they can come
-  back once they read more clearly. With no balls named on your shots, it now
-  says so instead of showing nothing.
+  Settings under Appearance, in light and dark.
+- **A "Pro" label for people who bought it,** on the app icon on Home and next to
+  your name in Settings.
+- **A small Pro banner on Home** for people without it. It locks nothing.
+- **Layouts leads with the ball,** then what it will do, then the controls. The
+  read-only note is one line instead of a card.
+- **The Alley report shows balls only, for now.** Best lines, last session and
+  line changes are off the screen. The code for them is still there. With no balls
+  named on your shots, the report says so instead of showing nothing.
 
-In the repo: ADR-163. `ProAction` is no longer exported; `ProBanner` and
-`ProChip` are new, and `ProNote` is one line. The line visualizer's `footer`
+In the repo: ADR-163 to ADR-165. `ProAction` is no longer exported; `ProBanner`
+and `ProChip` are new, and `ProNote` is one line. The line visualizer's `footer`
 prop is `notice`.
 
 ## 0.49.0: Bring your games to the app, and keep the photos (2026-10-20)

@@ -49,8 +49,8 @@ export function AppearanceView({ onBack }: AppearanceViewProps = {}) {
       <div>
         <h2 className={GROUP_HEADING}>Color</h2>
         <p className="mb-3 mt-1 text-sm leading-relaxed text-ink-secondary">
-          The accent color of buttons, charts and the chosen tab. It works in light and dark.
-          {access.locked && " Headpin Pro adds four more."}
+          Sets the color of buttons, charts and the selected tab, in light and dark.
+          {access.locked && " Pro adds four more."}
         </p>
         <div role="group" aria-label="Color" className="grid grid-cols-5 gap-2">
           {PALETTES.map((p) => {

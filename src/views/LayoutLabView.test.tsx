@@ -817,7 +817,7 @@ describe("the layout lab while Pro is locked (ADR-154, ADR-163)", () => {
         <LayoutLabView onBack={vi.fn()} />
       </ProAccessContext.Provider>
     );
-    expect(screen.getByText("Read only. Editing a layout is in Headpin Pro")).toBeInTheDocument();
+    expect(screen.getByText("You can look but not change anything. Editing layouts is in Headpin Pro")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Get the app/ })).toBeInTheDocument();
     // Every number is still on screen to read, with what the ball will do.
     expect(dualAngle()).toBe("45 x 4 1/2 x 45");
@@ -832,7 +832,7 @@ describe("the layout lab while Pro is locked (ADR-154, ADR-163)", () => {
 
   it("is the whole lab while Pro is open", () => {
     renderLab();
-    expect(screen.queryByText("Read only. Editing a layout is in Headpin Pro")).not.toBeInTheDocument();
+    expect(screen.queryByText("You can look but not change anything. Editing layouts is in Headpin Pro")).not.toBeInTheDocument();
     expect(slider(/VAL angle/i)).toBeEnabled();
   });
 });

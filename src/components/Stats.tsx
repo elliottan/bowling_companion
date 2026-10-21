@@ -319,7 +319,7 @@ export function Stats({
       <Headline stats={stats} form={form} />
 
       {/* Said once for the screen; each card under it carries only a small mark. */}
-      <ProBanner what="Charts for every stat, how each first ball lands, the leaves you leave most, and a read on every ball." />
+      <ProBanner what="Pro adds charts for every stat, the first ball breakdown, your leaves and rates for each ball." />
 
       {chartLocked && (
         <section className="rounded-xl border border-edge bg-surface p-3 shadow-sm">{chartHeader}</section>

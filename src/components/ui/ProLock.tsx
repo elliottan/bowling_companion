@@ -180,22 +180,28 @@ function Note({ access, what }: { access: LockedProAccess; what: string }) {
  * A small mark for the lane view's dark frame, which paints its own colors
  * (DESIGN-LANGUAGE.md section 3): a pill in the row of floating controls that
  * says the lane can be read and not moved, and is the way to Pro. Nothing while
- * Pro is open.
+ * Pro is open. `before` runs first, for a lane the caller has to close so the
+ * Pro page is not hidden behind it.
  */
-export function ProChip({ what }: { what: string }) {
+export function ProChip({ what, before }: { what: string; before?: () => void }) {
   const access = useProAccess();
   if (!access.locked) return null;
-  return <Chip access={access} what={what} />;
+  return <Chip access={access} what={what} before={before} />;
 }
 
-function Chip({ access, what }: { access: LockedProAccess; what: string }) {
+function Chip({ access, what, before }: { access: LockedProAccess; what: string; before?: () => void }) {
   const action = useProEntry(access);
   return (
     <div className="flex flex-col items-center gap-1">
       <button
         type="button"
         disabled={action.busy}
-        onClick={action.start}
+        onClick={() => {
+          // The lane's own layer would cover the Pro page, so a caller that owns
+          // it closes it first.
+          before?.();
+          action.start();
+        }}
         aria-label={`${what}. ${action.label}`}
         className="inline-flex h-9 items-center gap-1.5 rounded-full border border-white/25 bg-slate-900/70 px-3 text-xs font-semibold text-white/90 backdrop-blur hover:bg-white/10 disabled:opacity-60"
       >

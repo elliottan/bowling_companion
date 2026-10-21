@@ -7635,3 +7635,24 @@ a bowler who had paid, and Pro added no appearance choice.
 - The line sandbox is taken off screen while the Pro page is on top of it, since
   the lane's own layer would cover the page. It returns on back.
 
+## ADR-165: Moving a shot's line from score entry is Pro, like the sandbox
+
+**Status.** Accepted, 2026-10-21. Amends the free and Pro table in
+`docs/PRO-LAUNCH.md`, which had left this open. Decided by the owner.
+
+**Context.** The line visualizer was read-only without Pro (ADR-154), but the
+same lane opened from a shot in the scorer (`ShotDetailBar`) could still be
+dragged, so the lock was one tap from being bypassed.
+
+**Decision.** From the scorer, without Pro, the intended and actual lines are
+drawn and cannot be moved. The lane carries the same "Unlock editing" chip as the
+sandbox. Typing stance, target and the rest into the shot's fields is recording
+and stays free. The chip closes the lane before it opens the Pro page, because the
+lane is its own layer and would cover the page.
+
+**Consequences.**
+
+- The spare line form (`SpareLineFormDialog`) has its own lane editor and is not
+  changed here; it is part of writing down a leave's line, which the table keeps
+  free. Say so if it should be locked too.
+

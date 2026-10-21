@@ -26,24 +26,24 @@ describe("the Pro page (ADR-164)", () => {
   it("says what Pro adds and what stays free before any button that charges", () => {
     renderOffer({ locked: true, appStoreUrl: "https://apps.apple.com/app/id1" });
     for (const title of [
-      "Every stat, over time",
-      "Your first ball, read",
+      "Charts for every stat",
+      "First ball breakdown",
       "Your leaves",
-      "Every ball, compared",
-      "Your line, moved",
-      "Your layouts, built",
+      "Ball by ball",
+      "Move your line",
+      "Edit layouts",
       "More colors"
     ]) {
       expect(screen.getByRole("heading", { name: title })).toBeInTheDocument();
     }
-    expect(screen.getByText(/One payment, yours for good/)).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Always free" })).toBeInTheDocument();
+    expect(screen.getByText(/You pay once and keep it/)).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "What stays free" })).toBeInTheDocument();
   });
 
   it("sends the web to the App Store after the steps for moving games", async () => {
     opened.urls.length = 0;
     renderOffer({ locked: true, appStoreUrl: "https://apps.apple.com/app/id1" });
-    expect(screen.getByText("Headpin Pro is in the iPhone app.")).toBeInTheDocument();
+    expect(screen.getByText("Pro is bought in the iPhone app.")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Get the app" }));
     fireEvent.click(screen.getByRole("button", { name: "Open the App Store" }));
     await waitFor(() => expect(opened.urls).toEqual(["https://apps.apple.com/app/id1"]));

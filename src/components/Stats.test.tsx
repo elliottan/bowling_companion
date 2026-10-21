@@ -915,7 +915,7 @@ describe("while Pro is locked (ADR-154)", () => {
     renderLocked();
     // Said once for the screen, with the one button that says "Get the app".
     expect(screen.getAllByRole("button", { name: "Get the app" })).toHaveLength(1);
-    expect(screen.getByText(/Charts for every stat/)).toBeInTheDocument();
+    expect(screen.getByText(/Pro adds charts for every stat/)).toBeInTheDocument();
     // Each card is one tap, named for what it shows, with its first lines in view.
     for (const what of [
       "Pocket, carry and the pins each first ball takes",

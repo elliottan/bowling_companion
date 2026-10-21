@@ -252,8 +252,7 @@ export function GamePlanView({ onBack, onStartScoring }: GamePlanViewProps) {
               {estimates.balls.length === 0 ? (
                 report.shots > 0 && (
                   <p className="mt-4 rounded-xl border border-edge bg-surface p-3 text-sm text-ink-secondary shadow-sm">
-                    No balls to compare here yet. Pick a ball on your shots, and what you'd average with each one shows
-                    here.
+                    No balls to compare yet. Name the ball on your shots and each one's average shows up here.
                   </p>
                 )
               ) : (
