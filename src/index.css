@@ -322,19 +322,20 @@ input[type="date"]::-webkit-date-and-time-value {
 
 /* The same edge, turned over, under the tab bar: the page scrolls behind the
    bar and fades a little under it, as a screen does under the system's bar,
-   and never turns to a solid band (ADR-171). */
+   and never turns to a solid band (ADR-171).
+
+   A wash and nothing else. It sat over every animation on the screen with a
+   backdrop blur and a mask, and WebKit, drawing that each frame, ran short of
+   frames: the session sheet's rise and the History header's measured height
+   both missed theirs in CI. The capsule above it is frosted already. */
 .scroll-edge-bottom {
   pointer-events: none;
   background: linear-gradient(
     to top,
-    rgb(var(--color-surface-sunken) / 0.85) 0%,
-    rgb(var(--color-surface-sunken) / 0.55) 50%,
+    rgb(var(--color-surface-sunken) / 0.8) 0%,
+    rgb(var(--color-surface-sunken) / 0.45) 45%,
     rgb(var(--color-surface-sunken) / 0) 100%
   );
-  -webkit-backdrop-filter: blur(6px);
-  backdrop-filter: blur(6px);
-  -webkit-mask-image: linear-gradient(to top, #000 40%, transparent);
-  mask-image: linear-gradient(to top, #000 40%, transparent);
 }
 
 /* The tab header flips fully away and fully back (never half-there), so the
