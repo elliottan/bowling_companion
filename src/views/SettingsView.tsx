@@ -1,3 +1,4 @@
+import { TAB_TITLE, TAB_TITLE_ROW } from "../components/ui/typography";
 import { Archive, ArrowUpRight, Check, ChevronRight, Download, MessageSquare, Palette, RotateCcw, ScrollText, UserRound, UserRoundCog } from "lucide-react";
 import { AppearanceView } from "./AppearanceView";
 import { BowlingProfileView } from "./BowlingProfileView";
@@ -159,8 +160,8 @@ function SettingsMenu({
 
   return (
     <section className="mx-auto w-full max-w-3xl space-y-5 px-3 pb-5 pt-3 sm:px-6 sm:pt-5">
-      <div className="flex items-center justify-between gap-3">
-        <h1 className="text-xl font-bold text-ink">Settings</h1>
+      <div className={`${TAB_TITLE_ROW} justify-between gap-3`}>
+        <h1 className={TAB_TITLE}>Settings</h1>
         {/* The bowler, as a profile chip: tap it to change the name. Held back
             until the name has loaded, so it never flashes "Add name". */}
         {name !== undefined && (

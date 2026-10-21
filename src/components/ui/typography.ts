@@ -4,3 +4,13 @@
  * how a set of nearly-identical headings drifts apart.
  */
 export const GROUP_HEADING = "text-xs font-semibold uppercase tracking-wide text-ink-secondary";
+
+/**
+ * A tab's title, and the row it sits in. The row is as tall as the round
+ * controls beside the title (44pt), whether a tab has any or not, so every
+ * tab's title lands on the same line: Score, which has none, sat 8px higher
+ * than History, Stats and Settings, and so did History before its first
+ * session gave it a filter button.
+ */
+export const TAB_TITLE = "text-xl font-bold text-ink";
+export const TAB_TITLE_ROW = "flex min-h-11 items-center";

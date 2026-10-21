@@ -50,6 +50,11 @@ A sheet that lists numbers read through filters says which, as a `subtitle`
 in its own bar: the title then sits leading beside the close with the scope
 under it, and the bar never scrolls, so neither does the scope (ADR-130).
 
+A **tab** has no nav bar: its title leads the page, in `TAB_TITLE` inside a
+`TAB_TITLE_ROW` (`ui/typography`), a row as tall as the round controls that may
+sit beside it, so every tab's title lands on the same line whether it has any.
+Home is the exception, since it opens on the bowler (§4a).
+
 ## 1a. Sheet or dialog: you type in a sheet, you answer a dialog
 
 Both are tasks on top of the current screen, and the split between them is the

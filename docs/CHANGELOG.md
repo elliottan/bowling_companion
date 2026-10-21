@@ -49,6 +49,8 @@ had all shipped.
 - **Lists scroll under the tab bar.** In the iPhone app and on the web, the
   page now passes beneath the floating tab bar instead of stopping at a solid
   band above it (ADR-171).
+- **Every tab's title sits on the same line.** Score, and History before its
+  first session, had theirs 8px higher than Stats and Settings.
 - **No haze at the top.** The fade behind the clock and battery no longer
   reaches down over the buttons in a tab's header or a Settings page.
 - **The Headpin Pro page shows the real screens**: the stat chart, the First
