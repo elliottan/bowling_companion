@@ -108,7 +108,7 @@ What is free: scoring, every ball, line, lane, pattern and note, history, backup
 
 What Pro unlocks: the deeper analysis of those same records. The first-ball card (pocket, carry, strike on strike), the leaves you leave most and spare conversion by leave, how each ball strikes and carries, charts by game slot, the alley report's per-ball averages and line movement, moving a line in the line sandbox, and changing a layout in the layout lab. Without Pro those screens are drawn but locked, and reading a line or layout stays free. Nothing the bowler recorded is ever hidden.
 
-To see a Pro screen: open Stats and scroll to a grayed card, then tap "Get Headpin Pro". The App Store's purchase sheet opens. Settings also has Restore purchase. Use a sandbox tester account to buy.
+To see a Pro screen: open Stats, where the deeper cards show a few rows and blur the rest, and tap "Get Headpin Pro" at the foot of the screen, or the Headpin Pro row in Settings. The Headpin Pro page opens and says what Pro adds; its button opens the App Store's purchase sheet. The same page has Restore purchase, and so does Settings. Use a sandbox tester account to buy.
 
 Bringing games from the web: on first launch the app explains how to import a backup file exported from headpin.app (Settings, Backup & restore). Exporting uses the system share sheet.
 

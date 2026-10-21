@@ -5,6 +5,7 @@ import { SpareLinesView } from "./SpareLinesView";
 import { db } from "../db/bowlingDb";
 import { addBall, getBalls, getSpareLinesAll, upsertSpareLine } from "../services/ballRepository";
 import type { PinNumber } from "../types/bowling";
+import { ProAccessContext } from "../lib/useProAccess";
 
 /**
  * Deleting a spare line used to fire straight off the form's Delete button.
@@ -132,6 +133,34 @@ describe("SpareLinesView", () => {
     await waitFor(() => expect(within(row).getByText(/^3×/)).toBeInTheDocument());
     const tiles = within(row).getAllByRole("button", { name: /^Open spare line/ });
     expect(tiles[0]).toHaveAccessibleName("Open spare line for pins 7");
+  });
+
+  it("shows a leave's record without Pro only where Stats shows it, and blurs the rest (ADR-167)", async () => {
+    await upsertSpareLine([10], { stance: 15, target: 10 });
+    await upsertSpareLine([7], { stance: 15, target: 10 });
+    await upsertSpareLine([4], { stance: 15, target: 10 });
+    await seedHistoryWithLeave([10], 5);
+    await seedHistoryWithLeave([7], 3);
+    await seedHistoryWithLeave([4], 2);
+    render(
+      <ProAccessContext.Provider value={{ locked: true, appStoreUrl: null }}>
+        <SpareLinesView onBack={vi.fn()} />
+      </ProAccessContext.Provider>
+    );
+
+    const row = await screen.findByRole("region", { name: "Stance 15, target 10" });
+    // The two left most read as they do with Pro.
+    await waitFor(() => expect(within(row).getByText("5× · 100%")).toBeInTheDocument());
+    expect(within(row).getByText("3× · 100%")).toBeInTheDocument();
+    // The third carries a blurred stand-in, never its own numbers.
+    expect(within(row).queryByText("2× · 100%")).not.toBeInTheDocument();
+    const third = within(row).getByRole("button", { name: "Open spare line for pins 4" });
+    expect(within(third).getByText("Record in Headpin Pro")).toBeInTheDocument();
+
+    // And the same in its sheet.
+    fireEvent.click(third);
+    expect(await screen.findByText("This leave's record is in Headpin")).toBeInTheDocument();
+    expect(screen.queryByText("2 times")).not.toBeInTheDocument();
   });
 
   it("does not call a leave with only a strike ball move lineless", async () => {

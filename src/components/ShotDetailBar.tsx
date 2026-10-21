@@ -6,7 +6,6 @@
  */
 import { Crosshair, Eye, Plus } from "lucide-react";
 import { useState } from "react";
-import { ProChip } from "./ui/ProLock";
 import { useProAccess } from "../lib/useProAccess";
 import { useDriftModel } from "../lib/driftModelContext";
 import {
@@ -341,11 +340,9 @@ export function ShotDetailBar({
           onChange={
             proLocked ? undefined : showViz === "actual" ? handleActualChange : handleIntendedChange
           }
-          notice={
-            proLocked ? (
-              <ProChip what="Moving the line is in Headpin Pro" before={() => setShowViz(null)} />
-            ) : undefined
-          }
+          // The lane is its own layer and would cover the Pro page, so the way
+          // to Pro closes it first.
+          editLocked={proLocked ? { before: () => setShowViz(null) } : undefined}
           onEditAttempt={onEditAttempt}
           // The actual line records where the ball finished, so it opens with the
           // foul line and arrows pinned: the first thing you can drag is the

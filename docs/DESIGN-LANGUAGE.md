@@ -299,14 +299,25 @@ a new one opens straight on the fields, since there is nothing to read yet.
 Retire and delete stay on the read sheet: they are actions, not edits, and
 delete asks first.
 
-**Pro shows as a teaser, never a wall (ADR-163).** A locked card shows its
-first lines as they are and fades out, with one small "Pro" mark and the whole
-card as the tap. A screen with several says what Pro adds once, in a banner
-with the one button at the top. A read-only screen has one quiet line of small
-text, or on the lane's dark frame a chip in the floating controls, and never a
-bar that takes height from what it sits over. Every one of them opens the Pro
-page, which says what Pro is before anything charges (ADR-164). A bowler who
-has it gets a small "Pro" label beside their mark and name, and nothing louder.
+**Pro shows as a taste, never a wall (ADR-163, ADR-167).** A locked chart or
+card shows its first lines as they are and fades out, with one small "Pro" mark
+and the whole card as the tap. A locked list shows its first rows in full, the
+bowler's own numbers, then one more row blurred under the mark, and nothing
+after it: two leaves on Stats, one ball on Stats and the Alley report
+(`lib/proPreview`, `ProBlur`). Locked controls stay where they are, blurred and
+out of reach, with one mark saying what Pro opens ("Edit with Pro", "Move it
+with Pro") and the whole block as the tap (`ProVeil`); the values they hold stay
+readable in plain text beside them, since reading is free. A screen with several
+locked cards says what Pro adds once, in a banner at its foot, under the
+bowler's own numbers. Nothing is a bar that takes height from what it sits over.
+Every one of them opens the Pro page, which says what Pro is before anything
+charges (ADR-164).
+
+**Pro has its own mark (ADR-167).** The pin on graphite with gold bands and
+"PRO" under it (`ProMark`). It is the Pro page's mark, the mark on every row or
+banner that opens that page, and the app's mark on Home once the copy has Pro.
+It keeps its own colors in every palette and both themes, as a logo does. The
+small "Pro" label beside the bowler's name is the same graphite and gold.
 
 **A hint can be waved away, and comes back.** Every hint has an action and an X.
 The X is a snooze with an end, kept per thing it was about, not a permanent no.

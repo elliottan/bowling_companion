@@ -9,6 +9,38 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.51.0: A taste of Pro, a Pro mark, and /score unlocked (2026-10-21)
+
+- **Stats shows a taste of each Pro list** (ADR-167). Your two most-left leaves
+  show in full with their rates, the third is blurred with a small Pro mark,
+  and the rest are not shown. The Balls card shows your best ball and blurs the
+  next one. The Alley report does the same with its balls. Tap a blurred row to
+  see what Pro adds.
+- **Spare lines no longer shows every leave's record without Pro.** The two
+  leaves Stats shows keep their count and rate, on the page and in their sheet.
+  The others show a blurred stand-in.
+- **Locked controls are blurred where they sit.** In Layouts, the PAP, hand,
+  core and layout fields are blurred under one "Edit with Pro" mark, and the
+  layout's numbers are written out above them. On the lane, the Laydown, Target
+  and Final fields are blurred under "Move it with Pro", and the boards stay
+  labeled on the lane. This replaces the "Unlock editing" chip and the one-line
+  note.
+- **Headpin Pro has its own mark:** the pin on dark graphite with gold bands and
+  "PRO" under it. It heads the Pro page, and it is on the Home banner, the Stats
+  banner and the Settings row that open the page. Once you have Pro, it replaces
+  the app's mark on Home. The "Pro" label by your name in Settings uses the same
+  colors.
+- **The Pro banner on Stats moved to the bottom**, under your own numbers.
+- **headpin.app/score is fully unlocked**, like a copy where Pro was bought: the
+  Pro mark, the extra colors, and the Pro page's thank-you. headpin.app/app stays
+  the locked free app, so both can be tried on the web.
+- **Settings has a Headpin Pro row on the web**, at /app and /score, that opens
+  the Pro page.
+
+In the repo: ADR-167. `ProNote` and `ProChip` are gone. `ProBlur`, `ProVeil`,
+`ProPill`, `ProMark` and `lib/proPreview` are new. The line visualizer's `notice`
+prop is now `editLocked`, and `ListRow` has a `leading` slot.
+
 ## 0.50.0: A Pro page, accent colors, and a quieter lock (2026-10-21)
 
 - **Get Headpin Pro opens a page first** (ADR-164). It shows what Pro adds, with a

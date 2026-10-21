@@ -5,7 +5,8 @@ import { PushScreen } from "../components/PushScreen";
 import { EmptyState } from "../components/ui/EmptyState";
 import { Button } from "../components/ui/Button";
 import { LoadingCard } from "../components/ui/LoadingCard";
-import { ProLock } from "../components/ui/ProLock";
+import { useProAccess } from "../lib/useProAccess";
+import { FREE_BALLS } from "../lib/proPreview";
 import { FIELD_LABEL, FIELD_SELECT } from "../components/ui/field";
 import { ChoiceInput } from "../components/ui/SuggestInput";
 import { buildLineReport } from "../lib/lineReport";
@@ -43,6 +44,8 @@ interface GamePlanViewProps {
 }
 
 export function GamePlanView({ onBack, onStartScoring }: GamePlanViewProps) {
+  // Without Pro, the best ball in full and the next one blurred (ADR-167).
+  const { locked: proLocked } = useProAccess();
   // A failed read used to arrive as an empty list, which reads as "you have
   // never bowled" to someone who has.
   const [error, setError] = useState<Error | null>(null);
@@ -247,7 +250,7 @@ export function GamePlanView({ onBack, onStartScoring }: GamePlanViewProps) {
               </p>
 
               {/* Pro: the reads across sessions (ADR-154). With no ball to read
-                  there is nothing to tease, and a lone lock over a blank would
+                  there is nothing to preview, and a lone lock over a blank would
                   only be a puzzle. */}
               {estimates.balls.length === 0 ? (
                 report.shots > 0 && (
@@ -256,11 +259,9 @@ export function GamePlanView({ onBack, onStartScoring }: GamePlanViewProps) {
                   </p>
                 )
               ) : (
-                <ProLock peek={12} what="What you'd average with each ball here">
-                  <div className="mt-4">
-                    <BallEstimates report={estimates} balls={balls} />
-                  </div>
-                </ProLock>
+                <div className="mt-4">
+                  <BallEstimates report={estimates} balls={balls} free={proLocked ? FREE_BALLS : undefined} />
+                </div>
               )}
             </>
           )}

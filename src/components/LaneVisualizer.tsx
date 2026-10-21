@@ -1,6 +1,6 @@
 import { Switch } from "./ui/Switch";
 import { ChevronLeft, ChevronRight, Lock, Minus, MoveHorizontal, Plus, SlidersHorizontal, X } from "lucide-react";
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { Handedness, LineSpec, PinNumber } from "../types/bowling";
 import { HandednessContext, useHandedness } from "../lib/handednessContext";
 import { useDriftModel } from "../lib/driftModelContext";
@@ -13,6 +13,7 @@ import { shareOrigin } from "../lib/platform";
 import { lineShareUrl } from "../lib/lineShare";
 import { ShareCardDialog } from "./ShareCardDialog";
 import { ShareIosIcon } from "./icons";
+import { ProVeil } from "./ui/ProLock";
 import type { OilPattern } from "../types/bowling";
 import { headlineRatio, oilBands, oilExitPoint, oilStats, oilZones, patternLabel, peakUnits, type OilStats } from "../lib/oilPattern";
 import { useOverlay } from "../lib/useOverlay";
@@ -97,13 +98,14 @@ interface LaneVisualizerProps {
    *  link that may cross devices; this one names a row already on this
    *  device, so its own id is enough. */
   seedPatternId?: number;
-  /** Shown in the row of floating controls, at the top and in the middle. The
-   *  sandbox puts its Pro mark here while it is read-only (ADR-163), which
-   *  leaves the lane the whole height under it. */
-  notice?: ReactNode;
+  /** Read-only because moving the line is Pro, not because there is nothing
+   *  to move (ADR-167). The peg fields stay in their place, blurred, under one
+   *  tap to the Pro page. `before` runs first, for a caller whose lane would
+   *  cover that page. Ignored while `onChange` is set. */
+  editLocked?: { before?: () => void };
 }
 
-export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, showStance = false, title = "Line", onEditAttempt, defaultLocks, suspended = false, handSwitchable = false, seedHand, seedPatternCatalogId, seedPatternId, notice }: LaneVisualizerProps) {
+export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, showStance = false, title = "Line", onEditAttempt, defaultLocks, suspended = false, handSwitchable = false, seedHand, seedPatternCatalogId, seedPatternId, editLocked }: LaneVisualizerProps) {
   const appHand = useHandedness();
   // Nothing here is written back to settings: mirroring the lane to see how the
   // other hand plays it is a question being asked, not the bowler changing hands
@@ -468,6 +470,75 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
     (line?.final_board !== snapBoard(spareAim.board) ||
       (line?.final_distance ?? LANE_FEET) !== Math.round(spareAim.feet * 10) / 10);
 
+  // The peg fields show to move the line, and, blurred, where moving it is Pro.
+  const showPegs = onChange != null || editLocked != null;
+  const pegRow = isTopDown ? "flex flex-col gap-2" : `flex justify-center gap-1.5 ${spare ? "flex-wrap" : ""}`;
+  const laydownField = (
+    <StepperField label="Laydown" value={line?.laydown ?? line?.stance} min={1} max={59} lateral
+      locked={locked.has("laydown")}
+      onUnlock={() => toggleLock("laydown")}
+      onCommit={(v) => { lastAimEdit.current = "laydown"; applyEdit({ laydown: v }); }} />
+  );
+  const targetField = (
+    <StepperField label="Target" value={line?.target} min={1} max={39} lateral
+      locked={locked.has("target")}
+      onUnlock={() => toggleLock("target")}
+      onCommit={(v) => { lastAimEdit.current = "target"; applyEdit({ target: v }); }} />
+  );
+  const finalField = (
+    <StepperField label="Final" value={line?.final_board ?? POCKET_BOARD} min={1} max={39} lateral
+      locked={locked.has("final")}
+      onUnlock={() => toggleLock("final")}
+      onCommit={(v) => applyEdit({ final_board: v })} />
+  );
+  const pegFields = spare ? (
+    <>
+      {/* Stance has no peg on the lane, it sits behind the foul line. It only
+          appears where stance is the field of record (ADR-032), and the caller
+          re-derives laydown from it through the drift model. */}
+      {showStance && (
+        <StepperField label="Stance" value={line?.stance} min={1} max={59} lateral
+          onCommit={(v) => applyEdit({ stance: v })} />
+      )}
+      {laydownField}
+      {targetField}
+      {finalField}
+      <StepperField label="Final ft" value={line?.final_distance ?? 60} min={55} max={63} step={0.5}
+        locked={locked.has("final")}
+        onUnlock={() => toggleLock("final")}
+        onCommit={(v) => applyEdit({ final_distance: v })} />
+      {onChange && finalOffAim && spareAim && !locked.has("final") && (
+        <button
+          type="button"
+          onClick={() =>
+            applyEdit({
+              final_board: snapBoard(spareAim.board),
+              final_distance: Math.round(spareAim.feet * 10) / 10,
+            })
+          }
+          className="self-end rounded-full border border-emerald-300/40 bg-emerald-400/15 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-emerald-300 hover:bg-emerald-400/25"
+        >
+          Re-aim
+        </button>
+      )}
+    </>
+  ) : (
+    <>
+      {laydownField}
+      {targetField}
+      {finalField}
+      {onChange && finalOffPocket && !locked.has("final") && (
+        <button
+          type="button"
+          onClick={() => applyEdit({ final_board: POCKET_BOARD })}
+          className="self-end rounded-full border border-emerald-300/40 bg-emerald-400/15 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-emerald-300 hover:bg-emerald-400/25"
+        >
+          Pocket
+        </button>
+      )}
+    </>
+  );
+
   return (
     // Everything below reads the hand from context (the steppers' arrow
     // direction, the pin grid), so the switch has to reach them rather than only
@@ -512,14 +583,6 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
             <X size={18} aria-hidden="true" />
           </button>
         </div>
-        {notice && (
-          <div
-            className="absolute left-1/2 top-[max(0.75rem,env(safe-area-inset-top))] z-20 -translate-x-1/2"
-            onPointerDown={(e) => e.stopPropagation()}
-          >
-            {notice}
-          </div>
-        )}
         <div
           className="absolute left-3 top-[max(0.75rem,env(safe-area-inset-top))] z-20 flex flex-col items-start gap-2"
           onPointerDown={(e) => e.stopPropagation()}
@@ -579,7 +642,7 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
           <div
             ref={surfaceRef}
             className={`relative mx-auto h-full w-full max-w-[360px] transition-transform ${
-              isTopDown && onChange ? (hand === "left" ? "translate-x-8" : "-translate-x-8") : ""
+              isTopDown && showPegs ? (hand === "left" ? "translate-x-8" : "-translate-x-8") : ""
             }`}
           >
             <LaneSurface
@@ -649,88 +712,32 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
           </div>
         </div>
 
-        {/* Strike line: editable pegs + a derived-breakpoint readout, side column in
-            top-down, bottom bar in bowler view (so the lane stays centred). */}
-        {onChange && !spare && (
+        {/* The peg fields: a side column in top-down, a bottom bar in bowler
+            view (so the lane stays centred). The strike line's three, or the
+            spare line's with its final depth (no breakpoint). Without Pro they
+            stay where they are, blurred, and are the way to it (ADR-167). */}
+        {showPegs && (
           <div
             className={
               isTopDown
-                ? `absolute top-1/2 z-10 flex -translate-y-1/2 flex-col gap-2 ${hand === "left" ? "left-2" : "right-2"}`
-                : "absolute inset-x-0 bottom-0 z-10 flex justify-center gap-1.5 px-2 pb-1"
+                ? `absolute top-1/2 z-10 -translate-y-1/2 ${hand === "left" ? "left-2" : "right-2"}`
+                : "absolute inset-x-0 bottom-0 z-10 px-2 pb-1"
             }
             onPointerDown={(e) => e.stopPropagation()}
           >
-            <StepperField label="Laydown" value={line?.laydown ?? line?.stance} min={1} max={59} lateral
-              locked={locked.has("laydown")}
-              onUnlock={() => toggleLock("laydown")}
-              onCommit={(v) => { lastAimEdit.current = "laydown"; applyEdit({ laydown: v }); }} />
-            <StepperField label="Target" value={line?.target} min={1} max={39} lateral
-              locked={locked.has("target")}
-              onUnlock={() => toggleLock("target")}
-              onCommit={(v) => { lastAimEdit.current = "target"; applyEdit({ target: v }); }} />
-            <StepperField label="Final" value={line?.final_board ?? POCKET_BOARD} min={1} max={39} lateral
-              locked={locked.has("final")}
-              onUnlock={() => toggleLock("final")}
-              onCommit={(v) => applyEdit({ final_board: v })} />
-            {finalOffPocket && !locked.has("final") && (
-              <button
-                type="button"
-                onClick={() => applyEdit({ final_board: POCKET_BOARD })}
-                className="self-end rounded-full border border-emerald-300/40 bg-emerald-400/15 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-emerald-300 hover:bg-emerald-400/25"
+            {onChange ? (
+              <div className={pegRow}>{pegFields}</div>
+            ) : (
+              // The side column is narrower than the words, so it carries the
+              // mark alone.
+              <ProVeil
+                lane
+                what="Moving the line"
+                label={isTopDown ? "Pro" : "Move it with Pro"}
+                before={editLocked?.before}
               >
-                Pocket
-              </button>
-            )}
-          </div>
-        )}
-
-        {/* Spare line: editable pegs + final depth (no breakpoint). Same
-            side-column / bottom-bar split as the strike line above. */}
-        {onChange && spare && (
-          <div
-            className={
-              isTopDown
-                ? `absolute top-1/2 z-10 flex -translate-y-1/2 flex-col gap-2 ${hand === "left" ? "left-2" : "right-2"}`
-                : "absolute inset-x-0 bottom-0 z-10 flex flex-wrap justify-center gap-1.5 px-2 pb-1"
-            }
-            onPointerDown={(e) => e.stopPropagation()}
-          >
-            {/* Stance has no peg on the lane, it sits behind the foul line. It
-                only appears where stance is the field of record (ADR-032), and
-                the caller re-derives laydown from it through the drift model. */}
-            {showStance && (
-              <StepperField label="Stance" value={line?.stance} min={1} max={59} lateral
-                onCommit={(v) => applyEdit({ stance: v })} />
-            )}
-            <StepperField label="Laydown" value={line?.laydown ?? line?.stance} min={1} max={59} lateral
-              locked={locked.has("laydown")}
-              onUnlock={() => toggleLock("laydown")}
-              onCommit={(v) => { lastAimEdit.current = "laydown"; applyEdit({ laydown: v }); }} />
-            <StepperField label="Target" value={line?.target} min={1} max={39} lateral
-              locked={locked.has("target")}
-              onUnlock={() => toggleLock("target")}
-              onCommit={(v) => { lastAimEdit.current = "target"; applyEdit({ target: v }); }} />
-            <StepperField label="Final" value={line?.final_board ?? POCKET_BOARD} min={1} max={39} lateral
-              locked={locked.has("final")}
-              onUnlock={() => toggleLock("final")}
-              onCommit={(v) => applyEdit({ final_board: v })} />
-            <StepperField label="Final ft" value={line?.final_distance ?? 60} min={55} max={63} step={0.5}
-              locked={locked.has("final")}
-              onUnlock={() => toggleLock("final")}
-              onCommit={(v) => applyEdit({ final_distance: v })} />
-            {finalOffAim && spareAim && !locked.has("final") && (
-              <button
-                type="button"
-                onClick={() =>
-                  applyEdit({
-                    final_board: snapBoard(spareAim.board),
-                    final_distance: Math.round(spareAim.feet * 10) / 10,
-                  })
-                }
-                className="self-end rounded-full border border-emerald-300/40 bg-emerald-400/15 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-emerald-300 hover:bg-emerald-400/25"
-              >
-                Re-aim
-              </button>
+                <div className={pegRow}>{pegFields}</div>
+              </ProVeil>
             )}
           </div>
         )}

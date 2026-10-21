@@ -4,8 +4,10 @@ import { CatalogBallImage } from "./CatalogBallImage";
 import { BowlingBallIcon } from "./icons";
 import { MiniPins } from "./MiniPins";
 import { LIST_DIVIDER, ListGroup } from "./ui/ListGroup";
+import { ProBlur } from "./ui/ProLock";
 import { GROUP_HEADING } from "./ui/typography";
 import { formatLeave } from "../lib/pins";
+import { previewSplit } from "../lib/proPreview";
 import { type BallEstimate, type BallEstimates as Estimates, type Counted } from "../lib/scoreModel";
 import type { Ball } from "../types/bowling";
 import type { Manufacturer } from "../types/catalog";
@@ -39,10 +41,15 @@ const CHEVRON_COLUMN = "w-3 shrink-0";
  * What you would average with each ball here, with every rate behind it on the
  * row (ADR-147, ADR-149). Ranked, with a ball that has too few first balls here
  * listed last and greyed rather than ranked.
+ *
+ * `free`, without Pro: that many balls in full, the next one blurred, and the
+ * rest left out (ADR-167). The All balls row is every ball together, so it
+ * stays.
  */
-export function BallEstimates({ report, balls }: { report: Estimates; balls: Ball[] }) {
+export function BallEstimates({ report, balls, free }: { report: Estimates; balls: Ball[]; free?: number }) {
   if (report.balls.length === 0) return null;
   const byId = new Map(balls.map((b) => [b.id, b]));
+  const preview = free === undefined ? null : previewSplit(report.balls, free);
   return (
     <ListGroup
       heading="Estimated average"
@@ -87,13 +94,22 @@ export function BallEstimates({ report, balls }: { report: Estimates; balls: Bal
         </span>
         <span className={CHEVRON_COLUMN} />
       </li>
-      {report.balls.map((estimate) => (
+      {(preview ? preview.shown : report.balls).map((estimate) => (
         <BallEstimateRow
           key={estimate.ballId}
           estimate={estimate}
           ball={byId.get(estimate.ballId)}
         />
       ))}
+      {preview?.blurred && (
+        <li className={LIST_DIVIDER}>
+          <ProBlur what="What you'd average with each ball here">
+            <ul>
+              <BallEstimateRow estimate={preview.blurred} ball={byId.get(preview.blurred.ballId)} />
+            </ul>
+          </ProBlur>
+        </li>
+      )}
     </ListGroup>
   );
 }

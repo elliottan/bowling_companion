@@ -14,14 +14,22 @@ vi.mock("../services/ballRepository", () => ({
   getSpareLineByPins: () => Promise.resolve(undefined)
 }));
 
-// The lane itself is tested on its own; here only what the scorer hands it.
-vi.mock("./LaneVisualizerLazy", () => ({
-  LaneVisualizerLazy: (props: ComponentProps<typeof LaneVisualizerLazy>) => (
-    <div role="dialog" aria-label={`${props.title} visualizer`} data-editable={String(props.onChange != null)}>
-      {props.notice}
-    </div>
-  )
-}));
+// The lane itself is tested on its own; here only what the scorer hands it,
+// with its blurred fields standing in for the lane's own.
+vi.mock("./LaneVisualizerLazy", async () => {
+  const { ProVeil } = await import("./ui/ProLock");
+  return {
+    LaneVisualizerLazy: (props: ComponentProps<typeof LaneVisualizerLazy>) => (
+      <div role="dialog" aria-label={`${props.title} visualizer`} data-editable={String(props.onChange != null)}>
+        {props.editLocked && (
+          <ProVeil lane what="Moving the line" label="Move it with Pro" before={props.editLocked.before}>
+            <span>Laydown</span>
+          </ProVeil>
+        )}
+      </div>
+    )
+  };
+});
 
 if (!Element.prototype.setPointerCapture) {
   Element.prototype.setPointerCapture = () => {};
@@ -46,7 +54,7 @@ describe("the lane view from score entry and Pro (ADR-165)", () => {
     const lane = screen.getByRole("dialog", { name: "Intended line visualizer" });
     expect(lane).toHaveAttribute("data-editable", "false");
 
-    fireEvent.click(screen.getByRole("button", { name: /Moving the line is in Headpin Pro/ }));
+    fireEvent.click(screen.getByRole("button", { name: /Moving the line/ }));
     // The lane is closed so the Pro page is not hidden behind it.
     expect(screen.queryByRole("dialog", { name: "Intended line visualizer" })).not.toBeInTheDocument();
     expect(openOffer).toHaveBeenCalledTimes(1);
@@ -62,7 +70,7 @@ describe("the lane view from score entry and Pro (ADR-165)", () => {
     renderScorer({ locked: false });
     fireEvent.click(await screen.findByRole("button", { name: "View intended line" }));
     expect(screen.getByRole("dialog", { name: "Intended line visualizer" })).toHaveAttribute("data-editable", "true");
-    expect(screen.queryByRole("button", { name: /Moving the line is in Headpin Pro/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Moving the line/ })).not.toBeInTheDocument();
   });
 
   it("keeps typing the boards free", async () => {
