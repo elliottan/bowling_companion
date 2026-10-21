@@ -302,14 +302,20 @@ test("the session sheet rises without overshooting its resting place", async ({ 
   // its first button while it was still below the screen, which scrolled the
   // sheet's box to reveal it: the panel jumped past its resting place and
   // settled back, the bounce seen on iPhone.
+  // The clock starts when the sheet is first in the page, not at the click: on a
+  // loaded runner its chunk can take most of a fixed window to arrive, leaving
+  // too few frames of the slide to judge it by.
   const samples = await page.evaluate(async () => {
     const tops: Array<{ top: number; scroll: number }> = [];
-    const t0 = performance.now();
-    while (performance.now() - t0 < 450) {
+    const started = performance.now();
+    let t0: number | null = null;
+    while (performance.now() - started < 3000) {
       const root = document.querySelector('[aria-label="Session sheet"]') as HTMLElement | null;
       const panel = root?.firstElementChild as HTMLElement | null;
       if (root && panel) {
+        t0 ??= performance.now();
         tops.push({ top: panel.getBoundingClientRect().top, scroll: root.scrollTop });
+        if (performance.now() - t0 >= 450 && tops.length > 3) break;
       }
       await new Promise((r) => requestAnimationFrame(r));
     }
