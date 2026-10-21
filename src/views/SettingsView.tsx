@@ -11,7 +11,7 @@ import type { Handedness } from "../types/bowling";
 import type { DriftModel } from "../lib/driftModel";
 import { LEGAL_URL } from "../lib/links";
 import { openInAppBrowser } from "../lib/inAppBrowser";
-import { isIOSApp, isNativeApp, visibleNativePlugins } from "../lib/platform";
+import { isNativeApp } from "../lib/platform";
 import { openFeedbackEmail } from "../lib/diagnostics";
 import { ListGroup, ListRow } from "../components/ui/ListGroup";
 import { useProAccess, useProOwned, useProStoreContext } from "../lib/useProAccess";
@@ -299,7 +299,7 @@ function SettingsMenu({
         />
       </ListGroup>
 
-      <p className="px-1 text-xs text-ink-secondary">{buildLine()}</p>
+      <p className="px-1 text-xs text-ink-secondary">Headpin {__APP_VERSION__}</p>
 
       <InstallPrompt open={installOpen} onClose={() => setInstallOpen(false)} />
 
@@ -308,23 +308,6 @@ function SettingsMenu({
       )}
     </section>
   );
-}
-
-/**
- * Which build this is, for a bug report and for the owner: the version says what
- * was released, which copy says where it is running, and the time says how fresh
- * the web build inside it is. The last matters in the store apps, where the web
- * build is copied in by hand and several of them can carry one version number.
- */
-function buildLine(): string {
-  const where = isIOSApp() ? "iPhone app" : isNativeApp() ? "Android app" : "web";
-  const line = `Headpin ${__APP_VERSION__} · ${where} · built ${__BUILD_TIME__.replace("T", " ")}`;
-  if (!isIOSApp()) return line;
-  // In the iPhone app, which native plugins the page can reach: when Pro or the
-  // tab bar does nothing, this says whether the page ever had them to call.
-  const seen = visibleNativePlugins();
-  const has = (name: string) => (seen.includes(name) ? "yes" : "no");
-  return `${line} · store plugin ${has("HeadpinStore")}, tab bar plugin ${has("HeadpinTabBar")}`;
 }
 
 /**

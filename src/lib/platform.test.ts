@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { SITE_ORIGIN, catalogOrigins, isNativeApp, shareOrigin, siteUrl, visibleNativePlugins } from "./platform";
+import { SITE_ORIGIN, catalogOrigins, isNativeApp, shareOrigin, siteUrl } from "./platform";
 
 const nativeScope = { Capacitor: { isNativePlatform: () => true } };
 
@@ -48,13 +48,5 @@ describe("catalogOrigins", () => {
   it("reads the web app's own site, and the store app's site before its snapshot", () => {
     expect(catalogOrigins(false)).toEqual([""]);
     expect(catalogOrigins(true)).toEqual([SITE_ORIGIN, ""]);
-  });
-});
-
-describe("visibleNativePlugins", () => {
-  it("names the app's own plugins that the native side announced", () => {
-    const scope = { Capacitor: { PluginHeaders: [{ name: "App" }, { name: "HeadpinStore" }] } };
-    expect(visibleNativePlugins(scope)).toEqual(["HeadpinStore"]);
-    expect(visibleNativePlugins({})).toEqual([]);
   });
 });

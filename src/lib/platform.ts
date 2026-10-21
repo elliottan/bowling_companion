@@ -29,17 +29,6 @@ export function isNativeApp(scope: object = globalThis): boolean {
   return bridge?.isNativePlatform?.() === true;
 }
 
-/**
- * Which of the app's own native plugins the page can see, by the names the
- * native side announced before the page loaded. A plugin missing here is one
- * the page can never call, whatever the native code does.
- */
-export function visibleNativePlugins(scope: object = globalThis): string[] {
-  const headers = (scope as { Capacitor?: { PluginHeaders?: Array<{ name?: string }> } }).Capacitor?.PluginHeaders;
-  const own = ["HeadpinStore", "HeadpinTabBar"];
-  return own.filter((name) => headers?.some((h) => h.name === name));
-}
-
 /** Whether this is the iPhone app, as against the Android app or the web. */
 export function isIOSApp(scope: object = globalThis): boolean {
   const bridge = (scope as { Capacitor?: CapacitorBridge }).Capacitor;

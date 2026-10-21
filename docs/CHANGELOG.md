@@ -17,6 +17,9 @@ had all shipped.
 - **Home offers the iPhone app.** On the web, Home opens on a "Headpin for
   iPhone" row with Get, in place of the card that asked you to add Headpin to
   your home screen (ADR-170). Close it and it stays away for two weeks.
+- **Settings shows only the version.** The line at the foot of Settings reads
+  "Headpin" and the version, without where it runs, when it was built, or
+  which native plugins it sees. Send diagnostics still carries the build time.
 - **No "(optional)" on field labels.** Starting a session asks for the Alley,
   and a pattern for its sheet link, without the word.
 - **Stats scrollers.** The chart's chips scroll sideways without a scroll bar
