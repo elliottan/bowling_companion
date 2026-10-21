@@ -9,6 +9,12 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.54.1: The landing page shows your stats (2026-10-21)
+
+- **Stats take the oil pattern's place on headpin.app.** The landing page's
+  "Know the pattern before you bowl it" section is gone, and in its place is
+  the Stats screen: your average, strikes and spares, and how they trend.
+
 ## 0.54.0: Every ball photo, cut the same way (2026-10-21)
 
 - **Ball photos look like one set.** Every photo in the catalog has been
