@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { SettingsView } from "./SettingsView";
 import { db } from "../db/bowlingDb";
@@ -6,7 +6,7 @@ import { DEFAULT_DRIFT_MODEL } from "../lib/driftModel";
 import { getBowlerName, setBowlerName, setSetting } from "../services/bowlingRepository";
 import { ProAccessContext, ProStoreContext } from "../lib/useProAccess";
 import { ProOfferContext } from "../lib/proOffer";
-import type { ProStore } from "../lib/pro";
+import type { ProAccess, ProStore } from "../lib/pro";
 import { openInAppBrowser } from "../lib/inAppBrowser";
 
 vi.mock("../lib/inAppBrowser", () => ({ openInAppBrowser: vi.fn().mockResolvedValue(undefined) }));
@@ -253,6 +253,44 @@ describe("SettingsView's Headpin Pro", () => {
       renderWith({ locked: false });
       const chip = await screen.findByRole("button", { name: "Your name, Sam" });
       expect(within(chip).queryByText("Pro")).not.toBeInTheDocument();
+    });
+
+    function renderOnWeb(access: ProAccess, openOffer = vi.fn()) {
+      render(
+        <ProAccessContext.Provider value={access}>
+          <ProOfferContext.Provider value={openOffer}>
+            <SettingsView
+              section="menu"
+              onSectionChange={vi.fn()}
+              handedness="right"
+              onHandednessChange={vi.fn()}
+              driftModel={DEFAULT_DRIFT_MODEL}
+              onDriftModelChange={vi.fn()}
+              onOpenBackup={vi.fn()}
+              onOpenLineVisualizer={vi.fn()}
+              onOpenArsenal={vi.fn()}
+              onOpenSpareLines={vi.fn()}
+              onOpenLaneNotes={vi.fn()}
+            />
+          </ProOfferContext.Provider>
+        </ProAccessContext.Provider>
+      );
+      return openOffer;
+    }
+
+    it("has one row to the Pro page on the web, locked or owned, and none where Pro is merely open (ADR-167)", () => {
+      const openOffer = renderOnWeb({ locked: true, appStoreUrl: null });
+      fireEvent.click(screen.getByRole("button", { name: /Headpin Pro\s*See what Pro adds/ }));
+      expect(openOffer).toHaveBeenCalledTimes(1);
+      expect(screen.queryByText("Restore purchase")).not.toBeInTheDocument();
+      cleanup();
+
+      renderOnWeb({ locked: false, owned: true });
+      expect(screen.getByRole("button", { name: /Headpin Pro\s*Unlocked on this copy/ })).toBeInTheDocument();
+      cleanup();
+
+      renderOnWeb({ locked: false });
+      expect(screen.queryByRole("button", { name: /^Headpin Pro/ })).not.toBeInTheDocument();
     });
 
     it("opens the Pro page from Get Headpin Pro instead of buying", () => {

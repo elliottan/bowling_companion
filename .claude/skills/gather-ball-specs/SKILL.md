@@ -178,7 +178,7 @@ to `add-ball-image`. Open `scripts/sync-catalog/contact-sheet.html` and look at
 it, in both light and dark. A bad cut or an off-centre ball is only visible to an
 eye. A ball with no usable image keeps the placeholder; never substitute a photo
 from a retailer. Every photo is cut to its ball's circle on the way in
-(ADR-167), so a white ground, a fringe or a drop shadow does not need a repair
+(ADR-168), so a white ground, a fringe or a drop shadow does not need a repair
 step; a ball the cut got wrong (look for a clipped rim or an off-centre logo)
 needs a better source photo, given with `npm run set-ball-image`.
 

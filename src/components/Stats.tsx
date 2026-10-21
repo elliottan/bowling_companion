@@ -38,8 +38,9 @@ import { GameSlotSessionsDialog } from "./GameSlotSessionsDialog";
 import type { Game } from "../types/bowling";
 import { RECENT_SESSIONS, type RecentForm } from "../lib/statsRange";
 import { GROUP_HEADING } from "./ui/typography";
-import { ProBanner, ProLock } from "./ui/ProLock";
+import { ProBanner, ProBlur, ProLock } from "./ui/ProLock";
 import { useProAccess } from "../lib/useProAccess";
+import { byMostLeft, FREE_BALLS, FREE_LEAVES, previewSplit } from "../lib/proPreview";
 
 /** The stats the chart can plot, and how each one is drawn.
  *
@@ -313,13 +314,14 @@ export function Stats({
   const leftMost = mostLeft(convertible);
   const ranked = byStrikeRate(ballPerformance?.balls ?? []);
   const header = chartLocked ? undefined : chartHeader;
+  // Without Pro, a list shows its first rows as they are and the next one
+  // blurred, and nothing after it (ADR-167).
+  const leavePreview = proLocked ? previewSplit(leftMost, FREE_LEAVES) : null;
+  const ballPreview = proLocked ? previewSplit(ranked, FREE_BALLS) : null;
 
   return (
     <div className="space-y-3">
       <Headline stats={stats} form={form} />
-
-      {/* Said once for the screen; each card under it carries only a small mark. */}
-      <ProBanner what="Pro adds charts for every stat, the first ball breakdown, your leaves and rates for each ball." />
 
       {chartLocked && (
         <section className="rounded-xl border border-edge bg-surface p-3 shadow-sm">{chartHeader}</section>
@@ -478,41 +480,84 @@ export function Stats({
               <StatNote text={SPARE_NOTE} onDismiss={() => setNote(null)} />
             </div>
           )}
-          {leftMost.length > 0 && (
-            // Two rows on show, the rest a scroll away inside the card, with
-            // the top of a third row peeking to say there is more.
-            <div className="mt-3">
-              <ProLock peek={9} what="The leaves you leave most, and how often you make each">
-                <div
-                  role="region"
-                  aria-label="Leaves left most"
-                  className="-mx-1 max-h-[15.25rem] overflow-y-auto overscroll-y-contain px-1"
-                >
-                  <LeaveGrid leaves={leftMost} onOpen={setOpenLeave} />
-                </div>
-              </ProLock>
-            </div>
+          {leavePreview ? (
+            // Without Pro: the leaves left most, in full, and the next one
+            // blurred in the same row. No scroller, since there is nothing to
+            // scroll to.
+            <ul aria-label="Leaves left most" className="mt-3 grid grid-cols-3 gap-1.5">
+              {leavePreview.shown.map((leave) => (
+                <li key={leave.pins.join("-")}>
+                  <LeaveCell leave={leave} onOpen={() => setOpenLeave(leave.pins)} />
+                </li>
+              ))}
+              {leavePreview.blurred && (
+                <li>
+                  <ProBlur what="Every leave you leave, and how often you make each">
+                    <LeaveCell leave={leavePreview.blurred} onOpen={() => {}} />
+                  </ProBlur>
+                </li>
+              )}
+            </ul>
+          ) : (
+            leftMost.length > 0 && (
+              // Two rows on show, the rest a scroll away inside the card, with
+              // the top of a third row peeking to say there is more.
+              <div
+                role="region"
+                aria-label="Leaves left most"
+                className="-mx-1 mt-3 max-h-[15.25rem] overflow-y-auto overscroll-y-contain px-1"
+              >
+                <LeaveGrid leaves={leftMost} onOpen={setOpenLeave} />
+              </div>
+            )
           )}
         </section>
       )}
 
       {ranked.length > 0 && (
-        <ProLock peek={12} what="How each of your balls strikes, carries and spares">
           <section className="rounded-xl border border-edge bg-surface p-3 shadow-sm">
             <div className="flex items-center justify-between gap-3">
               <h2 className={GROUP_HEADING}>Balls</h2>
-              <button
-                type="button"
-                onClick={() => setBallsOpen({ focus: null })}
-                className={`relative text-xs font-semibold text-accent active:opacity-60 ${TAP_TARGET_44}`}
-              >
-                All balls
-              </button>
+              {!ballPreview && (
+                <button
+                  type="button"
+                  onClick={() => setBallsOpen({ focus: null })}
+                  className={`relative text-xs font-semibold text-accent active:opacity-60 ${TAP_TARGET_44}`}
+                >
+                  All balls
+                </button>
+              )}
             </div>
-            {/* Every ball, about five on show and the rest a scroll down, like
-                the leaves above, the headings pinned at the top. The columns fit
-                a phone (ADR-144); on one narrower still, the rows scroll sideways
-                together with the ball's name pinned at the left (ADR-139). */}
+            {ballPreview ? (
+              // Without Pro: the best ball in full, read where it stands, and
+              // the next one blurred (ADR-167). The All balls sheet is the
+              // whole list, so nothing here opens it.
+              <div className="mt-1 overflow-x-auto overscroll-x-none">
+                <div className="min-w-fit">
+                  <BallRateHeadings />
+                  <ul aria-label="Balls" className="divide-y divide-edge">
+                    {ballPreview.shown.map((b) => (
+                      <li key={b.ballId} className="flex py-2">
+                        <BallSummary ball={b} />
+                      </li>
+                    ))}
+                    {ballPreview.blurred && (
+                      <li>
+                        <ProBlur what="How each of your balls strikes, carries and spares">
+                          <div className="flex py-2">
+                            <BallSummary ball={ballPreview.blurred} />
+                          </div>
+                        </ProBlur>
+                      </li>
+                    )}
+                  </ul>
+                </div>
+              </div>
+            ) : (
+            // Every ball, about five on show and the rest a scroll down, like
+            // the leaves above, the headings pinned at the top. The columns fit
+            // a phone (ADR-144); on one narrower still, the rows scroll sideways
+            // together with the ball's name pinned at the left (ADR-139).
             <div
               role="region"
               aria-label="Ball columns"
@@ -536,9 +581,13 @@ export function Stats({
                 </ul>
               </div>
             </div>
+            )}
           </section>
-        </ProLock>
       )}
+
+      {/* Said once for the screen, under the bowler's own numbers rather than
+          over them; each card above carries only a small mark. */}
+      <ProBanner what="Pro adds charts for every stat, the first ball breakdown, every leave and every ball." />
 
       {/* Portalled to the body: on the session sheet the stats sit inside a
           panel that slides on a transform, and a transformed ancestor makes
@@ -709,9 +758,7 @@ const CARD_LEAVES = 15;
  *  few times each was left (ADR-139): a single session's card is still worth
  *  reading, and a leave left once sorts to the bottom on its own. */
 function mostLeft(leaves: LeaveStats[]): LeaveStats[] {
-  return [...leaves]
-    .sort((a, b) => b.attempts - a.attempts || b.chances - a.chances)
-    .slice(0, CARD_LEAVES);
+  return [...leaves].sort(byMostLeft).slice(0, CARD_LEAVES);
 }
 
 /** Balls with enough throws behind them by strike rate, best first; the thin

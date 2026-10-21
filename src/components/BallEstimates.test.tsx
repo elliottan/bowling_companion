@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { BallEstimates } from "./BallEstimates";
+import { ProAccessContext } from "../lib/useProAccess";
 import { estimateBalls } from "../lib/scoreModel";
 import { calculateGameScore } from "../lib/scoring";
 import type { Ball, Frame, Game, PinNumber, SessionSummary } from "../types/bowling";
@@ -92,5 +93,22 @@ describe("BallEstimates", () => {
     const empty = estimateBalls([]);
     const { container } = render(<BallEstimates report={empty} balls={BALLS} />);
     expect(container).toBeEmptyDOMElement();
+  });
+});
+
+describe("BallEstimates without Pro (ADR-167)", () => {
+  it("shows the best ball in full, the next one blurred, and no more", () => {
+    render(
+      <ProAccessContext.Provider value={{ locked: true, appStoreUrl: "https://apps.apple.com/app/id1" }}>
+        <BallEstimates report={report()} balls={BALLS} free={1} />
+      </ProAccessContext.Provider>
+    );
+    // Every ball together stays: it is the row each ball is read against.
+    expect(screen.getByLabelText("All balls")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /^Tenpin/ })).toHaveTextContent(/~\d+/);
+    // The next is blurred under one tap, and the last is not drawn.
+    expect(screen.queryByRole("button", { name: /^Splitter/ })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "What you'd average with each ball here. Get the app" })).toBeInTheDocument();
+    expect(screen.queryByText(/Rarely/)).not.toBeInTheDocument();
   });
 });

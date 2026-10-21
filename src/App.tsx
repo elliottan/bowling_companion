@@ -48,7 +48,6 @@ import { ProOfferContext } from "./lib/proOffer";
 import { useAppliedPalette } from "./lib/palette";
 import { appProAccess } from "./lib/pro";
 import { useProStore } from "./lib/proStore";
-import { ProChip } from "./components/ui/ProLock";
 import { DriftModelContext } from "./lib/driftModelContext";
 import { DEFAULT_DRIFT_MODEL, type DriftModel } from "./lib/driftModel";
 import type { Handedness, LineSpec } from "./types/bowling";
@@ -857,7 +856,7 @@ function App() {
           // Read-only without Pro: the line, shared or not, is drawn in full
           // and can be shared on, but not moved (ADR-154).
           onChange={pro.locked ? undefined : setSandboxLine}
-          notice={pro.locked ? <ProChip what="Moving the line is in Headpin Pro" /> : undefined}
+          editLocked={pro.locked ? {} : undefined}
           // No shot behind this lane, so the hand is a question rather than a
           // fact, the same reason the sandbox picks its own pattern (ADR-108).
           handSwitchable

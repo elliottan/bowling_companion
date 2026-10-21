@@ -1,5 +1,6 @@
 import { useState, type ReactNode } from "react";
-import { Check, Sparkles } from "lucide-react";
+import { Check } from "lucide-react";
+import { ProMark } from "../components/ui/ProMark";
 import { PushScreen } from "../components/PushScreen";
 import { Button } from "../components/ui/Button";
 import { useProAction } from "../components/ui/useProAction";
@@ -72,9 +73,7 @@ export function ProOfferView({ onBack }: ProOfferViewProps) {
     <PushScreen title="Headpin Pro" onBack={onBack}>
       <div className="mx-auto w-full max-w-xl px-3 pb-4 pt-4 sm:px-6">
         <header className="text-center">
-          <span className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-accent-fill/15 text-accent">
-            <Sparkles size={24} aria-hidden="true" />
-          </span>
+          <ProMark size={72} className="mx-auto rounded-2xl shadow-md" />
           <h2 className="mt-3 text-2xl font-bold text-ink">Headpin Pro</h2>
           <p className="mt-1 text-sm text-ink-secondary">You pay once and keep it. No subscription, no account.</p>
         </header>
@@ -169,8 +168,8 @@ function Purchase({ access }: { access: Extract<ReturnType<typeof useProAccess>,
 }
 
 function Owned() {
-  // Thanks only to somebody who bought it: Pro is also open on the owner's copy
-  // and on Android, where nobody has paid (ADR-164).
+  // Thanks only where Pro is owned (a purchase, or the owner's copy): Pro is
+  // also open on Android, where nobody has paid (ADR-164, ADR-167).
   const bought = useProOwned();
   return (
     <p className="flex items-center justify-center gap-2 py-2 text-sm font-semibold text-ink">

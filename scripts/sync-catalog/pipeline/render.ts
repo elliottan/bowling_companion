@@ -6,7 +6,7 @@
  * with a floor shadow under the ball, some with a bite taken out of a glossy
  * rim by an earlier background repair. Side by side in the grid that reads as
  * photos gathered from different places, so every photo is given the same
- * house treatment whatever it came from (ADR-167):
+ * house treatment whatever it came from (ADR-168):
  *
  *  1. Find the ball. Background is whatever is transparent, or close to the
  *     border's own colour and connected to the border.
@@ -54,7 +54,7 @@ const OPAQUE = 200;
 export interface ImageEntry {
   imageThumb: string;
   imageFull: string;
-  /** The `NORMALISER` it was rendered with; absent means before ADR-167. */
+  /** The `NORMALISER` it was rendered with; absent means before ADR-168. */
   normaliser?: number;
 }
 

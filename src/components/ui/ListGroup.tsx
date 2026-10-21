@@ -45,6 +45,8 @@ export function ListGroup({ heading, headingTrailing, children }: ListGroupProps
 interface ListRowProps {
   /** A lucide icon, or the app's own ball icon, which matches that shape. */
   icon?: LucideIcon;
+  /** A 36px tile of its own in place of the icon's (the Pro mark). */
+  leading?: ReactNode;
   label: string;
   /** One line under the label. Truncated, never wrapped to a third line (§4). */
   description?: string;
@@ -78,6 +80,7 @@ export const LIST_DIVIDER_INSET = `${LIST_DIVIDER_BASE} before:left-[3.75rem]`;
  */
 export function ListRow({
   icon: Icon,
+  leading,
   label,
   description,
   trailing,
@@ -87,7 +90,8 @@ export function ListRow({
 }: ListRowProps) {
   const inner = (
     <>
-      {Icon && (
+      {leading}
+      {Icon && !leading && (
         <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-accent-soft text-accent">
           <Icon size={18} aria-hidden="true" />
         </span>
@@ -107,7 +111,7 @@ export function ListRow({
   const className = "flex w-full items-center gap-3 px-3 py-2.5 text-left active:bg-surface-muted";
 
   return (
-    <li className={Icon ? LIST_DIVIDER_INSET : LIST_DIVIDER}>
+    <li className={Icon || leading ? LIST_DIVIDER_INSET : LIST_DIVIDER}>
       {href ? (
         <a
           href={href}

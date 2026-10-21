@@ -42,11 +42,14 @@ is built and free today, so with no bowlers yet nothing is taken from anyone.
 | Stats | Average, high game and series, game count, score trend chart | ✓ | | What every free app shows |
 | Stats | Strike % on the chart, spare % on its card | ✓ | | Same |
 | Stats | The First ball card: pocket, carry, strike on strike, first-ball pins, most strikes in a row, and the same on the chart | | ✓ | What competitors charge for |
-| Stats | Leaves you leave most, leave shares, spare conversion by leave | | ✓ | PinPal, LaneTalk Pro and StrikeStat Pro charge for it |
-| Stats | Ball performance rows against All balls | | ✓ | Equipment depth |
+| Stats | The two leaves you leave most, with their rates; the same two leaves' records on Spare lines | ✓ | | A taste of the read below (ADR-167) |
+| Stats | Every other leave, leave shares, spare conversion by leave, on Stats, Spare lines and a leave's sheet | | ✓ | PinPal, LaneTalk Pro and StrikeStat Pro charge for it |
+| Stats | Your best ball's row | ✓ | | A taste (ADR-167) |
+| Stats | Every other ball's row against All balls | | ✓ | Equipment depth |
 | Stats | Charts by game slot, and trend charts for the deeper metrics | | ✓ | Analysis |
 | Home | Tonight, profile, first run, guides | ✓ | | Getting started |
-| Alley report | What you'd average with each ball there | | ✓ | Reads across sessions, the deepest read in the app. Its lines (best lines, the last session, line changes) are off the screen for now (ADR-163) |
+| Alley report | What you'd average with your best ball there | ✓ | | A taste (ADR-167) |
+| Alley report | What you'd average with each other ball there | | ✓ | Reads across sessions, the deepest read in the app. Its lines (best lines, the last session, line changes) are off the screen for now (ADR-163) |
 | Lane | A shot's line drawn on the lane, behind its info button | ✓ | | Seeing what you entered |
 | Lane | Dragging a shot's line on that lane, from score entry | | ✓ | Same as the sandbox (ADR-165). Typing the boards stays free |
 | Lane | The sandbox, read-only: any line drawn on the lane, its pattern, the other hand | ✓ | | Seeing a line, the best preview of Pro |
@@ -70,15 +73,16 @@ The deeper reads come from the same records, so they need nothing new stored.
 
 The free web app is `headpin.app/app`: the landing page, guides and shared
 links all open it, and a home screen install from it opens it. The original
-address, `headpin.app/score`, is the owner's copy and keeps every feature,
-whatever `APP_STORE_URL` says. Both are the same shell (`src/lib/pro.ts`), and
+address, `headpin.app/score`, is the owner's copy and is Pro as a buyer has it,
+the Pro mark and colors included, whatever `APP_STORE_URL` says (ADR-167). Both are the same shell (`src/lib/pro.ts`), and
 the same browser keeps the same games at either address, since storage belongs
 to the site, not the path.
 
 Until the app is listed, `/app` shows the locked app too, so the free tier can be
 checked on the web before an iPhone rebuild (`LOCK_FREE_WEB` in
 `src/lib/appStore.ts`, ADR-166). The Pro page's button then says the app is not in
-the App Store yet. `/score` and the Android app stay open.
+the App Store yet. `/score` is the unlocked side, so the web shows both. The
+Android app stays open.
 
 ## How Pro shows where it is locked
 
@@ -87,17 +91,29 @@ On the web always, and in the app before purchase. It follows
 
 - **A locked card is a teaser** (ADR-163): its first lines as they are, fading
   out, with one small "Pro" mark, and the whole teaser is the tap. A screen
-  with several says what Pro adds once, in a banner with the one button: "Get
-  Headpin Pro" in the app, "Get the app" on the web, which opens the App Store.
+  with several says what Pro adds once, in a banner at its foot with the one
+  button: "Get Headpin Pro" in the app, "Get the app" on the web.
+- **A locked list is a taste** (ADR-167): its first rows in full, then one row
+  blurred under the mark, and nothing after. The two leaves left most, with their
+  rates (and those two leaves' records on Spare lines and in their sheets); the
+  best ball on Stats and on the Alley report. Every other leave's record on Spare
+  lines is a blurred stand-in.
+- **Locked controls are blurred in place** (ADR-167): the layout lab's fields and
+  the lane's peg fields stay where they are, out of reach, under one "Edit with
+  Pro" or "Move it with Pro" mark. The values they hold stay readable in plain
+  text (above the lab's fields, on the lane's own labels), since reading is free.
 - **Every one of those opens the Pro page first** (ADR-164): what Pro adds, in a
   picture and a sentence each, what stays free, and then the one button that
   charges, with Restore purchase. Nothing charges from a tap on a card.
 - **A standing banner on Home** for a bowler without Pro, which locks nothing and
   opens that page. It is the free app's one visible ad for Pro.
-- **A bowler who bought Pro gets a small "Pro" mark** on the app's mark on Home
-  and beside their name in Settings, and the extra accent colors in Appearance.
-  The app's home screen icon is not changed yet: an alternate icon needs a
-  drawn asset and a native call.
+- **Pro has its own mark** (ADR-167): the pin on graphite, gold bands, "PRO"
+  under it. It heads the Pro page, sits on the Home banner, the Stats banner and
+  the Settings row that open it, and replaces the app's mark on Home once Pro is
+  owned. A bowler who bought it also gets a small "Pro" label beside their name
+  in Settings and the extra accent colors in Appearance. The app's home screen
+  icon is not changed yet: an alternate icon needs the mark drawn at the store's
+  sizes and a native call.
 - **No popups, no counters, no nags.** Nothing appears during scoring, nothing
   repeats on a timer, and a card the bowler has seen stays quiet.
 - **The card may show the bowler's own count** ("Your 214 leaves, by pin") but
@@ -193,8 +209,7 @@ switch.
       selects it).
 - [x] The locked card, `components/ui/ProLock`, on Stats and the Alley report.
 - [x] The sandbox and the layout lab: read-only without Pro, shared links
-      included, with a quiet `ProNote` line in the layout lab and a `ProChip` on the lane
-      (ADR-163).
+      included, with their controls blurred in place under `ProVeil` (ADR-167).
 
 ### 3. Native work and cleanup
 

@@ -1,4 +1,5 @@
-import { ChevronRight, Sparkles } from "lucide-react";
+import { ChevronRight } from "lucide-react";
+import { ProMark } from "./ui/ProMark";
 import { useProAccess } from "../lib/useProAccess";
 import { useProEntry } from "./ui/useProAction";
 
@@ -24,9 +25,7 @@ function Banner({ access }: { access: Extract<ReturnType<typeof useProAccess>, {
         aria-label="Headpin Pro. See what it adds"
         className="mt-4 flex w-full items-center gap-3 rounded-xl border border-edge bg-surface p-3 text-left shadow-sm active:bg-surface-muted"
       >
-        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-accent-fill/15 text-accent">
-          <Sparkles size={18} aria-hidden="true" />
-        </span>
+        <ProMark size={40} />
         <span className="min-w-0 flex-1">
           <span className="block text-sm font-bold text-ink">Headpin Pro</span>
           <span className="block text-xs text-ink-secondary">

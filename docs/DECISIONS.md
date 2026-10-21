@@ -7689,7 +7689,75 @@ and a real `APP_STORE_URL` still locks as before.
 - Settings has no Pro row on the web, since it is for the app's purchase.
 
 
-## ADR-167: Every ball photo gets one house treatment
+## ADR-167: Pro shows a taste and blurs the rest, has its own mark, and /score is Pro
+
+**Status.** Accepted, 2026-10-21. Amends ADR-163 (how a locked list and locked
+controls look), ADR-164 (what marks a copy with Pro, and the Settings row on
+the web), ADR-165 (the lane's chip) and ADR-166 (what `/score` is). Decided by
+the owner.
+
+**Context.** After 0.50.0 the locked app still read as a set of locks rather
+than a taste. Every leave and every ball sat behind a fade, so a free bowler saw
+none of their own leave rates and none of their balls in full. The Spare lines
+page and a leave's sheet still showed every leave's count and conversion, which
+Stats locked, so the lock was one screen from being read anyway. The layout lab
+kept every control drawn and disabled under a line of text, and the lane had a
+chip at the top: both said "locked" without showing what Pro would let a bowler
+do. A copy with Pro looked the same as one without, apart from a small label,
+and `/score`, the owner's copy, showed Pro open but not owned, so the owned side
+(the mark, the colors, the thanks) could only be seen on a phone that bought it.
+
+**Decision.**
+
+- **A locked list shows a taste** (`lib/proPreview`, `ProBlur`). Its first rows
+  are drawn in full with the bowler's own numbers; the next row is drawn blurred,
+  out of reach, under one small Pro mark that is the tap; nothing after it is
+  drawn. Stats shows the two leaves left most with their rates and blurs the
+  third, and shows the best ball and blurs the second. The Alley report shows the
+  best ball's estimate. A list is always split one short of its whole, so a list
+  of one is the blurred row and there is never a locked list with nothing locked.
+  The All leaves and All balls links are not offered: they are the whole list.
+- **A leave's record follows Stats.** On the Spare lines page and in a leave's
+  sheet, the record (count, made over chances, rate) of a leave Stats shows in
+  full is shown; every other leave's is a blurred stand-in with the Pro mark, so
+  no tile reads as never left and no real number sits in the page under a blur.
+  The hint that names the leave left most without a line drops its count for a
+  leave whose record is locked.
+- **Locked controls are blurred in place** (`ProVeil`). The layout lab's fields
+  and the lane's peg fields are drawn where they would be, blurred and out of
+  reach, under one mark that says what Pro opens ("Edit with Pro", "Move it with
+  Pro"); the whole block is the tap. Reading stays free (ADR-154), so the values
+  those fields hold are read out beside them: the layout's dual angle, its VLS,
+  the PAP and hand above the lab's fields. The lane needs nothing added, since
+  its pegs are labeled with their boards on the lane itself. `ProNote` and `ProChip` are gone, and the lane's `notice` prop is
+  `editLocked`.
+- **The Stats banner sits at the foot.** It said what Pro adds above the
+  bowler's own numbers; it now says it under them.
+- **Pro has its own mark** (`ProMark`): the app's pin on graphite with gold bands
+  and "PRO" under it, the same drawing as the felt icon in two other colors. It
+  heads the Pro page, sits on the Home banner, the Stats banner and the Settings
+  row that open it, and replaces the app's mark on Home once Pro is owned. It
+  keeps its colors in every palette and theme. The "Pro" label beside the bowler
+  in Settings takes the same graphite and gold.
+- **Settings has a Headpin Pro row on the web** wherever Pro is locked or owned,
+  opening the Pro page. Where Pro is merely open (the Android app) it has none.
+- **`/score` is Pro as a buyer has it** (`PRO_OWNED`): `{ locked: false, owned:
+  true }`. The owner's copy shows the Pro mark on Home, the extra colors and the
+  owned Pro page, so the web shows both sides: the locked app at `/app` and the
+  unlocked one at `/score`.
+
+**Consequences.**
+
+- A free copy reads two leave rates and one ball's row of its own data. That is
+  the taste, chosen over showing nothing; the counts are one number each in
+  `lib/proPreview`.
+- `owned` no longer means only "an Apple ID bought it": it also marks the owner's
+  copy. Nothing reads it to decide what is open, only what is shown.
+- The home screen icon on a phone is still the felt one. An alternate icon needs
+  the Pro mark drawn at the store's sizes (`scripts/native/icons.mjs` can take it)
+  and a native call, which shows the system's own alert; it is left for a build
+  that can be tried on a device.
+## ADR-168: Every ball photo gets one house treatment
 
 **Status.** Accepted, 2026-10-21. Amends ADR-138 on what a replaced photo keeps
 under its old name. ADR-142's rights position stands as written.

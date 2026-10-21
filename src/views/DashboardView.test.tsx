@@ -288,22 +288,22 @@ describe("Home and Pro (ADR-164)", () => {
     );
   }
 
-  it("tags the app's mark Pro for a bowler who bought it, and no banner is shown", async () => {
+  it("shows the Pro mark in place of the app's for a bowler who bought it, and no banner (ADR-167)", async () => {
     renderWithAccess({ locked: false, owned: true });
-    expect(await screen.findByText("Pro")).toBeInTheDocument();
+    expect(await screen.findByRole("img", { name: "Headpin Pro" })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /See what it adds/ })).not.toBeInTheDocument();
   });
 
   it("shows the banner, and no tag, to a bowler on the free tier", async () => {
     renderWithAccess({ locked: true, appStoreUrl: "https://apps.apple.com/app/id1" });
     expect(await screen.findByRole("button", { name: "Headpin Pro. See what it adds" })).toBeInTheDocument();
-    expect(screen.queryByText("Pro")).not.toBeInTheDocument();
+    expect(screen.queryByRole("img", { name: "Headpin Pro" })).not.toBeInTheDocument();
   });
 
   it("shows neither where Pro is merely open", async () => {
     renderWithAccess({ locked: false });
     await screen.findByText("Tools and reference");
-    expect(screen.queryByText("Pro")).not.toBeInTheDocument();
+    expect(screen.queryByRole("img", { name: "Headpin Pro" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /See what it adds/ })).not.toBeInTheDocument();
   });
 });
