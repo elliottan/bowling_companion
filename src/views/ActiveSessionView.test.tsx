@@ -59,17 +59,18 @@ describe("ActiveSessionView", () => {
   });
 
   /**
-   * The pencil in the header takes two taps to the edit: the first brings up
-   * the session sheet, the second, with it up, the session's details.
+   * The header's button takes two taps to the edit: the first, the stats glyph,
+   * brings up the sheet on its stats; the second, a pencil once the sheet is
+   * up, the session's details.
    */
-  it("brings up the sheet with the pencil, then the session details", async () => {
+  it("brings up the stats, then the pencil opens the session details", async () => {
     const sessionId = Number(await createSession({ date: "2026-05-27", alley_name: "Axe Lanes" }));
     await addGameToSession(sessionId, { game_number: 1 });
     renderSession(sessionId);
 
-    fireEvent.click(await screen.findByRole("button", { name: "Session sheet" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Session stats" }));
     const panel = await screen.findByRole("dialog", { name: "Session sheet" });
-    expect(within(panel).getByRole("button", { name: "Sheet" })).toHaveAttribute("aria-pressed", "true");
+    expect(within(panel).getByRole("button", { name: "Stats" })).toHaveAttribute("aria-pressed", "true");
 
     fireEvent.click(screen.getByRole("button", { name: "Edit session" }));
     expect(await screen.findByRole("dialog", { name: "Edit session" })).toBeInTheDocument();
@@ -96,7 +97,7 @@ describe("ActiveSessionView", () => {
     const sessionId = Number(await createSession({ date: "2026-05-27", alley_name: "Axe Lanes" }));
     await addGameToSession(sessionId, { game_number: 1 });
     renderSession(sessionId);
-    fireEvent.click(await screen.findByRole("button", { name: "Session sheet" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Session stats" }));
     const panel = await screen.findByRole("dialog", { name: "Session sheet" });
     const panes = panel.querySelectorAll<HTMLElement>("[data-sheet-pane]");
     expect(panes).toHaveLength(3);
@@ -112,7 +113,7 @@ describe("ActiveSessionView", () => {
     const sessionId = Number(await createSession({ date: "2026-05-27", alley_name: "Axe Lanes" }));
     await addGameToSession(sessionId, { game_number: 1 });
     renderSession(sessionId);
-    fireEvent.click(await screen.findByRole("button", { name: "Session sheet" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Session stats" }));
     const panel = await screen.findByRole("dialog", { name: "Session sheet" });
 
     // A sideways drag across the panes used to change tab.
@@ -120,7 +121,7 @@ describe("ActiveSessionView", () => {
     fireEvent.touchStart(body, { touches: [{ clientX: 300, clientY: 300 }] });
     fireEvent.touchMove(body, { touches: [{ clientX: 50, clientY: 305 }] });
     fireEvent.touchEnd(body, { changedTouches: [{ clientX: 50, clientY: 305 }] });
-    expect(within(panel).getByRole("button", { name: "Sheet" })).toHaveAttribute("aria-pressed", "true");
+    expect(within(panel).getByRole("button", { name: "Stats" })).toHaveAttribute("aria-pressed", "true");
 
     fireEvent.click(within(panel).getByRole("button", { name: "Lanes" }));
     expect(within(panel).getByRole("button", { name: "Lanes" })).toHaveAttribute("aria-pressed", "true");

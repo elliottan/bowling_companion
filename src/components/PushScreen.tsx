@@ -9,6 +9,9 @@ import { IconButton } from "./ui/IconButton";
 interface PushScreenProps {
   title: string;
   onBack: () => void;
+  /** A second line under the title, smaller, for what the title alone does
+   *  not say: a session's date and games under its alley. */
+  subtitle?: string;
   /** Optional trailing nav-bar action (kept to one control, iOS style). */
   trailing?: ReactNode;
   /** Suppress Escape / focus trap while a dialog is layered on top. */
@@ -62,6 +65,7 @@ const EXIT_MS = 280;
  */
 export function PushScreen({
   title,
+  subtitle,
   onBack,
   trailing,
   active = true,
@@ -171,13 +175,14 @@ export function PushScreen({
               {/* Optically centred: the chevron's mass sits right of its box. */}
               <ChevronLeft size={22} strokeWidth={2.5} aria-hidden="true" className="-ml-0.5" />
             </IconButton>
-            <h1
-              className={`pointer-events-none absolute left-1/2 max-w-[calc(100%-7rem)] -translate-x-1/2 truncate text-[17px] font-semibold text-ink transition-opacity duration-200 ${
+            <div
+              className={`pointer-events-none absolute left-1/2 max-w-[calc(100%-7rem)] -translate-x-1/2 text-center transition-opacity duration-200 ${
                 scrolled ? "opacity-0" : ""
               }`}
             >
-              {title}
-            </h1>
+              <h1 className="truncate text-[17px] font-semibold leading-tight text-ink">{title}</h1>
+              {subtitle && <p className="truncate text-xs leading-tight text-ink-secondary">{subtitle}</p>}
+            </div>
             <div className="ml-auto flex shrink-0 items-center">{trailing}</div>
           </div>
         </header>

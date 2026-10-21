@@ -17,6 +17,11 @@ had all shipped.
 - **Home offers the iPhone app.** On the web, Home opens on a "Headpin for
   iPhone" row with Get, in place of the card that asked you to add Headpin to
   your home screen (ADR-170). Close it and it stays away for two weeks.
+- **A session's alley and date are in the bar.** Opened from History, the
+  bar reads the alley with the event, date and games under it, in place of the
+  word "Session", and the page keeps the lanes, the buttons and the score. The
+  header's button shows the stats glyph and opens the sheet on Stats, then a
+  pencil once the sheet is up, which edits the session's details.
 - **The line visualizer's controls match the rest of the app.** Its buttons
   are the round glass ones, the view toggle is a glass capsule, and Lane
   options closes with a tick. The quick moves sit at the end of the laydown,
