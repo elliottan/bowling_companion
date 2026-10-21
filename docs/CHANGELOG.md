@@ -17,6 +17,9 @@ had all shipped.
 - **Home offers the iPhone app.** On the web, Home opens on a "Headpin for
   iPhone" row with Get, in place of the card that asked you to add Headpin to
   your home screen (ADR-170). Close it and it stays away for two weeks.
+- **History and Stats keep their header when you come back.** Returning to a
+  tab you had scrolled down no longer hides the header by itself a moment
+  after it shows; it hides and comes back only as you scroll.
 - **Edit is a pencil everywhere.** The ball, a spare line, the bowling profile
   and a lane's notes open for editing from a pencil, like every other control
   in a bar is a glyph (ADR-179).
