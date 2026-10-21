@@ -15,7 +15,7 @@ import { useProAccess, useProOwned, useProStoreContext } from "../lib/useProAcce
 
 /**
  * What Headpin Pro is, before anything charges (ADR-164): a picture and a
- * sentence for each thing it adds, what stays free, and then the one button.
+ * sentence for each thing it adds, and then the one button (ADR-176).
  * The purchase, the steps to move games over from the web and Restore purchase
  * all live here and nowhere else a bowler is asked to pay.
  *
@@ -77,14 +77,6 @@ export function ProOfferView({ onBack }: ProOfferViewProps) {
             </li>
           ))}
         </ul>
-
-        <section className="mt-3 rounded-xl border border-edge bg-surface-muted p-3">
-          <h3 className="text-sm font-bold text-ink">What stays free</h3>
-          <p className="mt-0.5 text-sm text-ink-secondary">
-            Scoring, history, every stat chart, the first ball breakdown, your arsenal, the ball catalog, oil
-            patterns, guides, backup and sharing. None of it is behind Pro.
-          </p>
-        </section>
       </div>
 
       {/* The button stays in reach while the page scrolls under it. */}

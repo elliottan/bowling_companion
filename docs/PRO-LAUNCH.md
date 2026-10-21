@@ -108,7 +108,7 @@ On the web always, and in the app before purchase. It follows
   (on the notation boxes above the lab's sliders, on the lane's own labels),
   since reading is free.
 - **Every one of those opens the Pro page first** (ADR-164): what Pro adds, in a
-  picture and a sentence each, what stays free, and then the one button that
+  picture and a sentence each (ADR-176), and then the one button that
   charges, with Restore purchase. Nothing charges from a tap on a card.
 - **A standing banner on Home** for a bowler without Pro, which locks nothing and
   opens that page. It is the free app's one visible ad for Pro.

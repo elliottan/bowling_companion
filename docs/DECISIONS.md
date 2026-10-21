@@ -8092,3 +8092,19 @@ sheet's own stats.
   so the next back closes the sheet and not the screen under it.
 - **Only the overlay in front answers Escape and traps Tab** (`useOverlay`).
   With the sheet still active under the page, both used to close at once.
+
+---
+
+## ADR-176: The Pro page says only what Pro adds
+
+**Status.** Accepted, 2026-10-21, by the owner's decision. Amends ADR-164 on
+what the Pro page carries.
+
+**Context.** The Pro page closed on a "What stays free" card. A bowler reading
+it is already using the free app, so the card told them what they had, on the
+one page whose job is to sell the rest.
+
+**Decision.** The card goes. The page is the Pro mark, a picture and a sentence
+for each thing Pro adds, and the button. What is free is still settled in
+`docs/PRO-LAUNCH.md`, and the App Store listing can say it where a stranger
+reads it.
