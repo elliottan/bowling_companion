@@ -313,6 +313,12 @@ aligned, with the picture and name pinned at the left on an opaque cell, so a
 number never loses its ball. A ball's by-game table, which can be wider than
 any phone, scrolls the same way with its row names pinned (ADR-139).
 
+**A scroller inside a card shows no scroll bar when the card already says it
+scrolls** (`.scrollbar-none`): the chart's chips, cut off at the card's edge,
+and the Spares card's leaves, the next row peeking under the last. One that can
+go either way, the Balls card, keeps its bar and leaves its last column room
+for it.
+
 **A sideways scroller stops dead at its ends.** Every horizontal scroller
 carries `overscroll-x-none`, not `-contain`: contain keeps the swipe off the
 page but iOS still rubber-bands the scroller itself, and on the Balls card the

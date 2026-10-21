@@ -42,6 +42,18 @@ html {
   -webkit-touch-callout: none;
 }
 
+/* A scroller that says it scrolls some other way: the chart's chips, cut off
+   at the card's edge, and the Spares card's leaves, whose next row peeks out
+   under the last. Its indicator was one more line over a card that already
+   says so, and on the leaves iOS drew it short of the end (DESIGN-LANGUAGE
+   §4d). */
+.scrollbar-none {
+  scrollbar-width: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
 /* A picture held is not a file to drag out of the app. */
 img,
 svg {

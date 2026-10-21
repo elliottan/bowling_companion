@@ -268,7 +268,7 @@ export function Stats({
         <div
           role="group"
           aria-label={`Chart by ${gameMetrics || chartBy === "game" ? "game" : "session"}`}
-          className="-mx-1 flex min-w-0 flex-1 gap-1.5 overflow-x-auto overscroll-x-none px-1 py-1"
+          className="scrollbar-none -mx-1 flex min-w-0 flex-1 gap-1.5 overflow-x-auto overscroll-x-none px-1 py-1"
         >
           {METRIC_KEYS.map((key) => (
             <Chip
@@ -497,7 +497,7 @@ export function Stats({
               <div
                 role="region"
                 aria-label="Leaves left most"
-                className="-mx-1 mt-3 max-h-[15.25rem] overflow-y-auto overscroll-y-contain px-1"
+                className="scrollbar-none -mx-1 mt-3 max-h-[15.25rem] overflow-y-auto overscroll-y-contain px-1"
               >
                 <LeaveGrid leaves={leftMost} onOpen={setOpenLeave} />
               </div>
@@ -559,7 +559,11 @@ export function Stats({
               aria-label="Ball columns"
               className="mt-1 max-h-[21rem] overflow-auto overscroll-x-none overscroll-y-contain"
             >
-              <div className="min-w-fit">
+              {/* Room on the right for the scroll indicator, which iOS draws
+                  over the box's last pixels and so over the last column. Half
+                  as much on a 360px phone, where the columns fit with only
+                  4px to spare (ADR-144). */}
+              <div className="min-w-fit pr-1 min-[375px]:pr-2">
                 <BallRateHeadings />
                 <ul className="divide-y divide-edge">
                   {ranked.map((b) => (
