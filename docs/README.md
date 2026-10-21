@@ -24,6 +24,7 @@ reasoning and invariants the code cannot express.
 | Pick up new work | [ROADMAP.md](./ROADMAP.md) |
 | Work on Pro, its gating, or the store apps | [PRO-LAUNCH.md](./PRO-LAUNCH.md) and [DECISIONS.md](./DECISIONS.md) ADR-154, ADR-155 for the iOS app |
 | Write a release note | [CHANGELOG.md](./CHANGELOG.md) |
+| Remake the ads or the App Store screenshots | `scripts/ad-content/reel/README.md` for the reel, `scripts/app-store/screenshots.mjs` for the store set, [APP-STORE-LISTING.md](./APP-STORE-LISTING.md) for the captions and the listing |
 
 [archive/](./archive/) holds delivered plans and specs. They are history, not
 documentation, and are not a source of truth for anything.

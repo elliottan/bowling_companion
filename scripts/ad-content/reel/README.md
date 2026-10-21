@@ -1,22 +1,35 @@
 # The feature reel
 
-A 9:16 reel that flips through what Headpin does on one league night: a ball,
-a line, the lane view, scoring, the line carrying over to the next shot, a 2-1
-move, a spare ball and line that are already set, the tenth and the stats.
-Then it flicks through the rest, one screen to a word (sessions, oil patterns,
-the ball catalog scrolling, the layout visualizer with its three sliders
-swung), deals all four out in a fan for "All on Headpin", and ends on the
-card. It is built from the real app in two
-passes, so the footage stays honest and the editing stays smooth.
+A 9:16 reel built from the real app. First, one league night: a line over a
+PBA pattern, a ball, a line, the lane view, scoring, the line carrying over to
+the next shot, a 2-1 move, a spare ball and line that are already set, and the
+tenth. Then the rest of the app, one screen to a line under a teal "Free" pill
+(unlimited games, average and trends, the whole arsenal, hundreds of balls,
+oil patterns), dealt out in a fan for "All free. No
+limits. No account.", and the card: "Free on the App Store".
+
+The reel is about the features and that the app is free, by the owner's call:
+it does not mention Headpin Pro, a purchase or a subscription. So it shows only
+what the free app has (ADR-154), and a bowler who installs from it finds every
+screen in it open. Nothing Pro is on screen, even dimmed: the average beat cuts
+in and out with its light on the free numbers and everything else dark, since
+the first-ball card under them is Pro.
+
+It is built in two passes, so the footage stays honest and the editing stays
+smooth.
 
 1. **`capture.mjs`** drives the app in Playwright and records takes: Chrome's
    screencast of the app at twice its size (780 x 1688 JPEGs, about 25 a
    second while something moves), plus a `take.json` of marks. A mark is a
    time and the boxes, in the app's own pixels, of whatever is worth pointing
    at; every tap is a mark with its point. The setup (a TZone spare ball, a
-   line for the 10, seven frames bowled; for history, the saved nights spread
+   line for the 10, seven frames bowled; for the arsenal, four more balls
+   from the catalog, so the bag reads as a league bowler's; for history, the saved nights spread
    a week apart with three or four games each and a pattern on every one)
-   runs before the screencast starts.
+   runs before the screencast starts. The weeks of history come from
+   `../history.mjs`, which the App Store screenshots use too. Tonight's session
+   is on one lane, not a pair, since a strike ball carries from the last frame
+   on its own lane (ADR-151) and the carry beat wants the frame just bowled.
 2. **`compose.mjs`** is the edit. `BEATS` says, for each beat, which take and
    which part of it, the caption, the voice line, and where the camera,
    spotlights and rings go, named by the marks. Every frame is worked out as
@@ -43,6 +56,11 @@ REEL_OUT=/tmp/reel ADS_TTS_PYTHON=~/.headpin-tts/bin/python ADS_TTS_MODELS=~/kok
   node scripts/ad-content/reel/compose.mjs
 ```
 
+Where the installed Chromium is not the build Playwright pins, point
+`SHOTS_CHROMIUM` at it (on the cloud containers,
+`/opt/pw-browsers/chromium-1194/chrome-linux/chrome`). A full render is about
+1,300 frames and takes most of half an hour.
+
 `voice.py` says how to set up the voice; `music.py` also needs `scipy` and
 `tone.py` `praat-parselmouth` in that Python. `REEL_ONLY=game` captures one take, and `REEL_PREVIEW=2.5,9,20`
 renders stills at those times instead of the whole reel, which is the quick
@@ -62,6 +80,11 @@ way to check a change to the edit.
   can set its own height (`fy`), as the hook does to fill the frame with the
   lane.
 - One effect at a time: a spotlight, a ring or a tap, not all three at once.
+- A run of beats under one pill (`kicker: "free"`) keeps the pill
+  still across its cuts, so the run reads as one list; the caption sits under
+  it, and a two-line caption there gets a taller solid band.
+- The app's floating tab bar covers the bottom of the screen, so a tap scrolls
+  its target to the middle first (`reveal`), or it lands on a tab.
 - Pull back before going in. A beat on the scorer opens on the whole screen, or
   the whole card down to the notes, and only then zooms to the one control it
   is about, so a viewer always knows where on the screen they are.
