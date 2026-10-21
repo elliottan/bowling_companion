@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { unthenable } from "./nativePlugin";
 
 /**
  * The iPhone app's tab bar, drawn by UIKit (ADR-161,
@@ -32,7 +33,9 @@ let tabBarPlugin: Promise<TabBarPlugin> | null = null;
 
 /** Registered once, for the same reason as the store's (`loadStorePlugin`). */
 export function loadTabBarPlugin(): Promise<TabBarPlugin> {
-  tabBarPlugin ??= import("@capacitor/core").then(({ registerPlugin }) => registerPlugin<TabBarPlugin>("HeadpinTabBar"));
+  tabBarPlugin ??= import("@capacitor/core").then(({ registerPlugin }) =>
+    unthenable(registerPlugin<TabBarPlugin>("HeadpinTabBar"))
+  );
   return tabBarPlugin;
 }
 
@@ -40,6 +43,9 @@ export function loadTabBarPlugin(): Promise<TabBarPlugin> {
  *  and the home indicator on a current iPhone. A reservation, replaced by the
  *  measured height, so the page does not jump when it arrives. */
 export const DEFAULT_TAB_BAR_HEIGHT = 83;
+
+/** How long the phone has to answer before the page draws its own bar. */
+const SETUP_TIMEOUT_MS = 4000;
 
 /** `rgb(var(--color-accent))` as `#rrggbb`, for the chosen tab. */
 function accentHex(): string {
@@ -78,7 +84,11 @@ export function useNativeTabBar({
   onSelect,
   plugin = loadTabBarPlugin
 }: UseNativeTabBarOptions): { status: TabBarStatus; height: number } {
-  const [status, setStatus] = useState<TabBarStatus>(enabled ? "pending" : "failed");
+  // `enabled` turns true once the app has booted, after this first renders, so
+  // the status is read through it rather than fixed at mount: a bar that is not
+  // wanted is "failed" (the page draws its own), one being set up is "pending".
+  const [setup, setStatus] = useState<TabBarStatus>("pending");
+  const status: TabBarStatus = enabled ? setup : "failed";
   const [height, setHeight] = useState(DEFAULT_TAB_BAR_HEIGHT);
   const handle = useRef<TabBarPlugin | null>(null);
   // Read through refs so the setup below runs once, not on every tap.
@@ -91,6 +101,10 @@ export function useNativeTabBar({
     if (!enabled) return;
     let alive = true;
     const removers: Array<() => Promise<void>> = [];
+    // A bar that never answers must not leave the page with no tab bar at all.
+    const giveUp = window.setTimeout(() => {
+      if (alive && !handle.current) setStatus("failed");
+    }, SETUP_TIMEOUT_MS);
     void plugin()
       .then(async (bar) => {
         removers.push((await bar.addListener("select", ({ id }) => latest.current.onSelect(id))).remove);
@@ -111,6 +125,7 @@ export function useNativeTabBar({
       });
     return () => {
       alive = false;
+      window.clearTimeout(giveUp);
       handle.current = null;
       for (const remove of removers) void remove().catch(() => {});
     };

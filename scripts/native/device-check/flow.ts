@@ -167,6 +167,27 @@ export class Flow {
     await new Promise((r) => setTimeout(r, 400 * this.slow));
   }
 
+  /**
+   * Tap a tab. The web app and the Android app draw the tab bar in the page,
+   * where it is found like any control. The iPhone app's is the phone's own
+   * (ADR-161), which the page cannot see, so it is tapped where it is: the
+   * shell publishes the bar's height as `--tab-bar-h`, and the five tabs share
+   * the width equally.
+   */
+  async tab(label: "Home" | "Score" | "History" | "Stats" | "Settings") {
+    const kinds = "nav button, [role=navigation] button";
+    if (await this.js(`__dc.find("^${label}$", null, ${JSON.stringify(kinds)})`)) {
+      await this.tap(`^${label}$`, undefined, kinds);
+      return;
+    }
+    const index = ["Home", "Score", "History", "Stats", "Settings"].indexOf(label);
+    const point = await this.js<{ x: number; y: number }>(
+      `(() => { const h = parseFloat(getComputedStyle(document.getElementById("app-shell")).getPropertyValue("--tab-bar-h")) || 83; return { x: innerWidth * (${index} + 0.5) / 5, y: innerHeight - h + 25 }; })()`
+    );
+    await this.d.tapAt(point.x, point.y);
+    await new Promise((r) => setTimeout(r, 600 * this.slow));
+  }
+
   /** The platform's back, with the keyboard put away first, as a person would:
    *  on iOS an open keyboard takes the edge swipe for itself. */
   async back() {
@@ -248,6 +269,10 @@ export class Flow {
   }
 }
 
+/** True once a tab bar is there to tap: the page's own, or the room the shell
+ *  leaves for the phone's. */
+const TAB_BAR_PRESENT = `!!document.querySelector("nav button, [role=navigation] button") || parseFloat(getComputedStyle(document.getElementById("app-shell") || document.body).getPropertyValue("--tab-bar-h")) > 0`;
+
 /** The walk itself. */
 export async function runFlow(d: Driver, outDir: string, opts: { slow?: number; online: boolean }) {
   const f = new Flow(d, outDir, opts.slow ?? 1);
@@ -285,7 +310,7 @@ export async function runFlow(d: Driver, outDir: string, opts: { slow?: number; 
     // Launch only syncs it for an arsenal with catalog balls in it (ADR-143);
     // the catalog screen always does.
     await f.toTabs();
-    await f.tap("^Home$", undefined, "nav button, [role=navigation] button");
+    await f.tab("Home");
     await f.tap("^Ball catalog");
     const n = (await f.until(`__dc.count("ball_catalog")`, "catalog rows", 180_000, (n) => (n as number) > 100)) as number;
     return `${n} balls`;
@@ -335,7 +360,7 @@ export async function runFlow(d: Driver, outDir: string, opts: { slow?: number; 
   await f.check("start a session", async () => {
     await f.toTabs();
     const start = await f.js<{ x: number } | null>(`__dc.find("^Start scoring$")`);
-    if (start) await f.tap("^Score$", undefined, "nav button, [role=navigation] button");
+    if (start) await f.tab("Score");
     await f.tap("^Start session$");
     await f.fill("Pinecrest Lanes", ALLEY, "Start session");
     await f.snap("keyboard-up");
@@ -373,13 +398,13 @@ export async function runFlow(d: Driver, outDir: string, opts: { slow?: number; 
 
   await f.check("history lists the session", async () => {
     await f.toTabs();
-    await f.tap("^History$", undefined, "nav button, [role=navigation] button");
+    await f.tab("History");
     await f.until(`__dc.find(${JSON.stringify(ALLEY)})`, "the session row");
     await f.snap("history");
   });
 
   await f.check("stats show the game", async () => {
-    await f.tap("^Stats$", undefined, "nav button, [role=navigation] button");
+    await f.tab("Stats");
     await f.hasText("258");
     await f.snap("stats");
   });
@@ -389,12 +414,23 @@ export async function runFlow(d: Driver, outDir: string, opts: { slow?: number; 
   // nothing yet and keeps every card open. The purchase itself needs Apple's
   // sheet and a sandbox account, so it is tried by hand, in Xcode, against
   // ios/App/App/Headpin.storekit.
+  if (d.platform === "ios") {
+    await f.check("the app's own plugins answer: the tab bar is the phone's, and the store reports ownership", async () => {
+      // The phone's bar replaces the page's own, so no tab bar in the page means
+      // the native one is up; the page's own comes back if the phone never answers.
+      await f.until(`!document.querySelector("nav button, [role=navigation] button")`, "the page to hand its tab bar to the phone", 30_000);
+      // StoreKit answers `entitlements` from the phone, and the page writes its
+      // answer down, so a stored answer proves a call reached native and came back.
+      await f.until(`localStorage.getItem("headpin.proOwned") !== null`, "the store plugin to answer", 30_000);
+    });
+  }
+
   await f.check("Pro: what the app offers, and Restore purchase", async () => {
     const offer = `__dc.find("^Get Headpin Pro")`;
     if (d.platform === "ios") {
       await f.until(offer, "a locked card offering Headpin Pro");
       await f.snap("pro-locked");
-      await f.tap("^Settings$", undefined, "nav button, [role=navigation] button");
+      await f.tab("Settings");
       await f.until(`__dc.find("^Restore purchase")`, "Restore purchase in Settings");
       await f.snap("pro-settings");
       return "locked, with the purchase and Restore purchase";
@@ -405,7 +441,7 @@ export async function runFlow(d: Driver, outDir: string, opts: { slow?: number; 
 
   await f.check("oil patterns open, and a pattern draws on the lane", async () => {
     await f.toTabs();
-    await f.tap("^Home$", undefined, "nav button, [role=navigation] button");
+    await f.tab("Home");
     await f.tap("^Oil patterns");
     await f.until(`__dc.dialogs().some((n) => /Oil patterns/i.test(n))`, "the pattern list");
     await f.snap("patterns");
@@ -416,7 +452,7 @@ export async function runFlow(d: Driver, outDir: string, opts: { slow?: number; 
   await f.check("line sandbox and layout lab open", async () => {
     // Opened from their rows on Home, as a bowler opens them.
     await f.toTabs();
-    await f.tap("^Home$", undefined, "nav button, [role=navigation] button");
+    await f.tab("Home");
     await f.tap("^Line visualizer");
     await f.until(`document.querySelector("svg") && __dc.dialogs().length > 0`, "the line sandbox");
     await f.snap("line-sandbox");
@@ -429,7 +465,7 @@ export async function runFlow(d: Driver, outDir: string, opts: { slow?: number; 
   });
 
   await f.check("backup: Save a backup opens the platform's share sheet", async () => {
-    await f.tap("^Settings$", undefined, "nav button, [role=navigation] button");
+    await f.tab("Settings");
     await f.tap("^Backup & restore");
     // Record every call the page makes to a native plugin, and any download it
     // tries: a file the platform drops leaves no trace in the page otherwise
@@ -471,7 +507,7 @@ export async function runFlow(d: Driver, outDir: string, opts: { slow?: number; 
       await f.toTabs();
       await f.back();
       if (!(await d.appInForeground())) throw new Error("the swipe left the app");
-      await f.until(`__dc.find("^History$", null, "nav button, [role=navigation] button")`, "the tab bar");
+      await f.until(TAB_BAR_PRESENT, "the tab bar");
     });
   } else await f.check("system back from the first screen leaves the app", async () => {
     for (let i = 0; i < 8 && (await d.appInForeground()); i++) {
@@ -488,7 +524,7 @@ export async function runFlow(d: Driver, outDir: string, opts: { slow?: number; 
     const balls = await f.js<number>(`__dc.count("ball_catalog")`);
     if (balls < 100) throw new Error(`catalog has ${balls} rows after relaunch`);
     await f.toTabs();
-    await f.tap("^History$", undefined, "nav button, [role=navigation] button");
+    await f.tab("History");
     await f.until(`__dc.find(${JSON.stringify(ALLEY)})`, "the session row");
     await f.snap("relaunched-offline");
     await d.setOnline(true);

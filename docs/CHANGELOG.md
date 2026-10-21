@@ -34,6 +34,21 @@ In the repo:
 - **`docs/APP-STORE-LISTING.md`**: the store listing drafts, with the limits
   counted.
 
+## 0.48.1: Get Headpin Pro and the phone's tab bar start working (2026-10-20)
+
+In the iPhone app, found on the first run on a phone:
+
+- **Get Headpin Pro and the phone's own tab bar work.** Both hung for good
+  without an error. Capacitor's plugin object answers to every property name,
+  including `then`, so returning it from an async function made the page wait on
+  a "promise" that never settled: the purchase button sat disabled, and the tab
+  bar never came up, so the page's own capsule stayed. Each plugin is now handed
+  back through `unthenable`. The tab bar also reads its state through whether
+  the app has booted, where it used to be fixed at the first render, and gives
+  up after four seconds if the phone never answers, so a bar that fails leaves
+  the page's own, never none. The device check now taps the phone's bar, checks
+  that it is up, and checks that the store plugin answers.
+
 ## 0.48.0: The iPhone app's tab bar is the phone's own (2026-10-20)
 
 In the iPhone app:
