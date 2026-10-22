@@ -8433,3 +8433,29 @@ pixel. Sheets are left out, since a pull down on a sheet is its dismiss.
 reads a scroll position acts on less than four (the pushed title's fade, the
 floating header). The web view keeps `bounces = false`, so the tab bar and the
 status bar never move with a pull.
+
+## ADR-189: A segmented control is the tab bar's capsule
+
+**Status.** Accepted, 2026-10-22, at the owner's request, against Telegram's
+chat filters on iOS 26 as the reference. Supersedes ADR-182 on how the answer
+is drawn.
+
+**Context.** ADR-182 filled the chosen segment with the accent, after the
+UIKit-style raised segment proved unreadable in dark mode. That read clearly,
+but no system control is filled that way, and beside the floating tab bar the
+pickers at the top of Stats read as a different family of control. iOS 26 apps
+draw a filter bar in the tab bar's materials: a frosted capsule, the choice a
+lighter pill within it.
+
+**Decision.** `SegmentedControl` is the page tab bar's capsule and pill
+(`.segmented-track`, `.segmented-pill`, kept in step with App.tsx): the track
+frosted with a hairline edge and a top highlight, the answer an ink-tinted pill
+that slides between segments on the tab bar's curve, every label in ink and the
+chosen one heavier. Segments are equal widths so the pill's slide is one
+segment exactly. The lane view's hand toggle, which is not the primitive
+because the lane is dark in every theme, draws the same capsule and pill in
+white glass.
+
+**Consequence.** The answer is shown by a lighter pill and a heavier label
+rather than by colour. In dark mode the pill is the tab bar's, which the owner
+already reads at a glance at the foot of every screen.

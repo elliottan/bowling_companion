@@ -166,14 +166,14 @@ vertically only, and `compact` grows upward only, because it sits in a heading
 row with content directly beneath it.
 
 `SegmentedControl` (`src/components/ui/SegmentedControl.tsx`) is one track with
-N segments and exactly one selected: a theme, a handedness. It is a grey track
-with the chosen segment filled in the accent, as a primary button is, and ticks
-in the store apps as the choice moves (ADR-168). It was drawn as UIKit draws
-its own, the chosen segment raised in the surface color, and in dark mode that
-was grey on grey: which hand was set could not be told at a glance (ADR-182). A row of `Chip`s is
-not that, and reads as one because chips sit apart with gaps between them and
-any number of them can be on. The theme picker was three chips before, and the
-shared track is what says "pick one" before a single label is read.
+N segments and exactly one selected: a theme, a handedness, a range. It is
+drawn in the tab bar's own materials (ADR-189), as iOS 26 apps draw their
+filter bars: a frosted capsule with a hairline edge, and the answer a lighter
+pill that slides to the segment picked, its label in the same ink, only
+heavier. It ticks in the store apps as the choice moves (ADR-168). An
+accent-filled segment (ADR-182) read clearly but as a button held down, and the
+old raised surface-coloured segment (UIKit's look before iOS 26) was grey on
+grey in dark mode.
 
 The one exception is a pick-one with more options than a track can hold. The
 chart picker on Stats has eight, and eight segments in 390px are unreadable,

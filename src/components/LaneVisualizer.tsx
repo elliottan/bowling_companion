@@ -927,7 +927,8 @@ function OptionsSheet({
               Bowling hand
             </span>
             {/* Left on the left, so the letters sit where the hands do. */}
-            <div role="group" aria-label="Bowling hand" className="flex gap-1 rounded-xl border border-white/20 bg-slate-900 p-1">
+            {/* The tab bar's capsule and pill in the lane's dark glass (ADR-189). */}
+            <div role="group" aria-label="Bowling hand" className="flex gap-1 rounded-full border border-white/15 bg-white/[0.06] p-1">
               {(["left", "right"] as const).map((h) => (
                 <button
                   key={h}
@@ -935,8 +936,10 @@ function OptionsSheet({
                   aria-label={h === "left" ? "Left" : "Right"}
                   aria-pressed={hand === h}
                   onClick={() => onPickHand(h)}
-                  className={`h-9 flex-1 rounded-lg text-sm font-semibold ${
-                    hand === h ? "bg-accent-fill text-accent-on-fill" : "text-white/70 hover:bg-white/10"
+                  className={`h-9 flex-1 rounded-full text-sm text-white ${
+                    hand === h
+                      ? "bg-white/[0.16] font-semibold shadow-[inset_0_1px_0_rgb(255_255_255/0.25),0_0_0_1px_rgb(255_255_255/0.12)]"
+                      : "font-medium active:opacity-60"
                   }`}
                 >
                   {h === "left" ? "L" : "R"}

@@ -422,6 +422,21 @@ input[type="date"]::-webkit-date-and-time-value {
   );
 }
 
+/* A segmented control in the tab bar's materials (ADR-189): the capsule frosted
+   over what is behind it, a hairline edge and a top highlight, and the answer a
+   lighter pill. Kept in step with the page's tab bar in App.tsx. */
+.segmented-track {
+  background: rgb(var(--color-surface) / 0.75);
+  box-shadow: 0 0 0 1px rgb(var(--color-edge) / 0.7), inset 0 1px 0 rgb(255 255 255 / 0.35),
+    0 4px 14px rgb(0 0 0 / 0.08);
+  -webkit-backdrop-filter: blur(24px) saturate(1.5);
+  backdrop-filter: blur(24px) saturate(1.5);
+}
+.segmented-pill {
+  background: rgb(var(--color-ink) / 0.1);
+  box-shadow: 0 0 0 1px rgb(var(--color-edge) / 0.6), inset 0 1px 0 rgb(255 255 255 / 0.3);
+}
+
 /* Every screen rubber-bands, as an iOS screen does whether or not its content
    fills it (ADR-188). WebKit bounces a scroller only once its content is
    taller than it, so a screen that fits, Home on a big phone, sat dead under
