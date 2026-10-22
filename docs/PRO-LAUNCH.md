@@ -197,9 +197,12 @@ switch.
 - [ ] Umami counts from the app (ADR-120), and the privacy label to match.
 - [ ] Universal links, so a shared headpin.app link opens in the app when it is
       installed and in the web app when it is not (ADR-159). The apps claim the
-      links and open their screens; left: headpin.app serving
-      `/.well-known/apple-app-site-association` (needs the Apple Team ID) and
-      `/.well-known/assetlinks.json` (needs the Play signing key's SHA-256).
+      links and open their screens, and headpin.app serves
+      `/.well-known/apple-app-site-association` for team `CQ6FS6P6H2`
+      (`src/test/universalLinks.test.ts` holds it to the Xcode project). Left:
+      tapping a shared `/app` link in Messages or Notes on a phone with a
+      Release build, and `/.well-known/assetlinks.json` for Android (needs the
+      Play signing key's SHA-256).
 - [ ] A shared line or layout opens read-only without Pro, with the locked
       controls locked as "How Pro shows where it is locked" describes.
 
