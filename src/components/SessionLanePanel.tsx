@@ -550,7 +550,7 @@ function GameGrid({
 }
 
 /**
- * The ball a frame opened with, in the corner of its box. The catalog picture
+ * The ball a shot was thrown with, in the corner of its line. The catalog picture
  * when there is one, and the ball's initial when there is not: an uncatalogued
  * ball still needs to be told apart from the one beside it.
  */
@@ -636,16 +636,16 @@ function FrameCell({
   onSelect?: (shotIndex: number) => void;
 }) {
   const shots = freshRackShots(frame);
-  // The ball that started the frame, shown in the corner: reading down a game
-  // then says which ball was up without reading a word of it.
-  const opener = ballOf(shots[0]?.shot.ball_id);
   return (
-    <div className="relative flex flex-col gap-1.5">
-      {opener && <BallCorner ball={opener} />}
+    <div className="flex flex-col gap-1.5">
       {shots.map(({ shot, index }, i) => {
         const intended = formatLine(shot.intended);
         const actual = formatLine(shot.actual);
-        const name = ballOf(shot.ball_id)?.name;
+        // Each shot's ball in the corner of its own line: reading down a game
+        // then says which ball was up without reading a word of it, the 10th's
+        // second and third fresh racks included, which had the name alone.
+        const ball = ballOf(shot.ball_id);
+        const name = ball?.name;
         const symbol = shotSymbol(shot);
         return (
           // Pin deck left, ball + lines + notes right, reads across in one
@@ -673,10 +673,10 @@ function FrameCell({
                 {symbol}
               </span>
             </div>
-            <div className="min-w-0 flex-1 text-[11px] leading-tight">
-              {/* Room for the corner icon on the first line only, which is the
-                  line it sits beside. */}
-              {name && <p className={`truncate font-medium text-ink ${i === 0 ? "pr-5" : ""}`}>{name}</p>}
+            <div className="relative min-w-0 flex-1 text-[11px] leading-tight">
+              {ball && <BallCorner ball={ball} />}
+              {/* Room for the corner icon beside the name. */}
+              {name && <p className="truncate pr-5 font-medium text-ink">{name}</p>}
               {intended && <p className="text-ink-secondary">{intended}</p>}
               {actual && <p className="text-ink-secondary">{actual}</p>}
               {shot.notes && <p className="break-words text-ink-secondary">{shot.notes}</p>}
