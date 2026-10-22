@@ -175,7 +175,7 @@ describe("LaneVisualizer editing", () => {
     fireEvent.pointerDown(handle, { clientX: 0, clientY: 0 });
     fireEvent.pointerUp(handle);
     const stage = document.querySelector('[data-role="tilt-stage"]') as HTMLElement;
-    expect(stage.style.transform).toContain("rotateX(50deg)");
+    expect(stage.style.transform).toContain("rotateX(45deg)");
     expect(handle.getAttribute("data-locked")).toBe("true");
   });
 

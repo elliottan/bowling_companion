@@ -26,16 +26,19 @@ import {
   POCKET_BOARD, type Peg, arrowFeet, ARROWS_FEET, LANE_FEET, HOOK_START_FT, HOOK_LENGTH_FT,
 } from "../lib/laneGeometry";
 
-const BOWLER_DEG = 50;     // bowler's-eye tilt (looking down the lane)
+const BOWLER_DEG = 45;     // bowler's-eye tilt (looking down the lane)
 const TOPDOWN_DEG = 0;     // flat / top-down
 
 /** Stage transform for a tilt angle. At 0° it is the identity (the centered
  *  top-down view, inputs on the side); as it tilts toward the bowler view it
- *  scales up and lifts so the whole lane stays centred and visible above the
- *  bottom input bar. */
+ *  scales up and lifts so the whole lane stays visible above the bottom input
+ *  bar. Set so the pins land just under the floating controls and the foul
+ *  line on the board numbers, on a phone: at 50° and less lift the far end
+ *  stopped a good way short of the controls and left the top of the screen
+ *  empty. */
 function stageTransform(deg: number): string {
   const t = deg / BOWLER_DEG;
-  return `translate(0%, ${(-9 * t).toFixed(2)}%) scale(${(1 + 0.24 * t).toFixed(3)}) rotateX(${deg}deg)`;
+  return `translate(0%, ${(-14 * t).toFixed(2)}%) scale(${(1 + 0.28 * t).toFixed(3)}) rotateX(${deg}deg)`;
 }
 
 const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));

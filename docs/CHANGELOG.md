@@ -31,6 +31,8 @@ had all shipped.
 - **The lane's options:** the oil is drawn whenever a pattern is chosen, with
   no switch to hide it; without Pro the hook sliders show under a lock; and
   Quick moves close on a second tap or a tap anywhere else (ADR-199).
+- **The bowler's view of the lane fills the screen.** The pins now sit just
+  under the buttons at the top, rather than leaving an empty band above them.
 - **A spare line's lane is read-only without Pro.** Moving the line on the lane
   is Pro, as everywhere else; its boards are still typed in the fields.
 
