@@ -876,17 +876,18 @@ function App() {
         </Suspense>
       ))}
 
-      {/* Hidden, not unmounted, while the Pro page is up (the lane's own layer
-          would cover it), so its tilt, hand and pattern are there on back. */}
+      {/* Left on screen while the Pro page is up: that page opens on the layer
+          above the lane (ADR-175), so back slides it away to the lane as it
+          was. It used to be hidden meanwhile, and the Pro page slid out over
+          Home before the lane came back. */}
       {nav.lineSandboxOpen && (
-        <div hidden={nav.overlays[nav.overlays.length - 1] === "pro"}>
         <LaneVisualizerLazy
           title="Line sandbox"
           line={sandboxLine}
           // Read-only without Pro: the line, shared or not, is drawn in full
           // and can be shared on, but not moved (ADR-154).
           onChange={pro.locked ? undefined : setSandboxLine}
-          editLocked={pro.locked ? {} : undefined}
+          editLocked={pro.locked}
           // No shot behind this lane, so the hand is a question rather than a
           // fact, the same reason the sandbox picks its own pattern (ADR-108).
           handSwitchable
@@ -899,7 +900,6 @@ function App() {
           leave={sharedLine?.leave}
           onClose={() => goBack({ type: "closeLineSandbox" })}
         />
-        </div>
       )}
 
       <UpdateToast />

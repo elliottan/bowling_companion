@@ -22,7 +22,7 @@ vi.mock("./LaneVisualizerLazy", async () => {
     LaneVisualizerLazy: (props: ComponentProps<typeof LaneVisualizerLazy>) => (
       <div role="dialog" aria-label={`${props.title} visualizer`} data-editable={String(props.onChange != null)}>
         {props.editLocked && (
-          <ProVeil lane what="Moving the line" label="Move it with Pro" before={props.editLocked.before}>
+          <ProVeil lane what="Moving the line">
             <span>Laydown</span>
           </ProVeil>
         )}
@@ -55,8 +55,9 @@ describe("the lane view from score entry and Pro (ADR-165)", () => {
     expect(lane).toHaveAttribute("data-editable", "false");
 
     fireEvent.click(screen.getByRole("button", { name: /Moving the line/ }));
-    // The lane is closed so the Pro page is not hidden behind it.
-    expect(screen.queryByRole("dialog", { name: "Intended line visualizer" })).not.toBeInTheDocument();
+    // The lane stays: the Pro page opens above it, and back returns to it
+    // rather than to the screen under it (ADR-175, ADR-202).
+    expect(screen.getByRole("dialog", { name: "Intended line visualizer" })).toBeInTheDocument();
     expect(openOffer).toHaveBeenCalledTimes(1);
   });
 

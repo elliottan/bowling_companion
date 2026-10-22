@@ -8834,3 +8834,54 @@ should carry.
 
 **Consequences.** The best ball's row still shows that ball's carry and strike
 without Pro, as the taste of the Balls card.
+
+---
+
+## ADR-202: The lane's fields stay at its side, and back from Pro returns to the lane
+
+**Status.** Accepted, 2026-10-22, by the owner from a phone in hand. Amends
+ADR-167 and ADR-199 on how the lane says what is Pro.
+
+**Context.** In bowler view the lane's peg fields were a bar along the foot of
+the screen, and the keyboard that opens to type in them covered them. Without
+Pro the fields' veil carried "Move it with Pro", and the points on the lane
+said nothing. And a lock's tap to the Pro page closed the lane first, or, for
+the line sandbox, hid it while the Pro page was up, so back from the Pro page
+showed the screen under the lane (Home, a sheet) for a moment, or stayed there.
+
+**Decision.**
+
+- **The fields are a side column in both views,** on the side away from the
+  line (left for a right-hander), on the lane's dark glass, with the drag hints
+  under them. Top-down, the lane steps aside from them as before.
+- **Without Pro each point of the line carries a lock** where it sits, and
+  none of them drags; the fields' veil is the lock alone, as is the hook
+  sliders'.
+- **The lane stays as it is under the Pro page.** That page opens on the layer
+  above the lane (ADR-175), so nothing closes or hides first, and back slides
+  it away to the lane. `editLocked` is a plain flag now, and `ProVeil` has no
+  `before`.
+
+---
+
+## ADR-203: The layout lab is the ball and its bars side by side, and its sliders lock as they are
+
+**Status.** Accepted, 2026-10-22, by the owner from a phone in hand. Amends
+ADR-163 on the lab's order and ADR-170 on how its sliders lock.
+
+**Context.** The lab pinned a full-width ball under its bar, with "What it will
+do" in a section of its own below: the pinned ball took a third of the screen
+from everything that scrolled. Without Pro the sliders were faded and blurred
+under "Try your layouts with Pro".
+
+**Decision.**
+
+- **The ball and what it will do share the top row,** the ball on the left and
+  the four bars on the right with the sentence they add up to under them, no
+  heading. Nothing is pinned; the page is one scroll, and on a phone it is
+  most of one screen.
+- **Without Pro the sliders are drawn as they are** (`ProVeil clear`), out of
+  reach, with the lock alone at the top of their card and the card as the tap.
+
+**Consequences.** The drawing has half the width it had, which still reads the
+pin, PAP, PSA and their angles at phone size.

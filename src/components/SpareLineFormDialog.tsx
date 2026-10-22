@@ -332,7 +332,7 @@ export function SpareLineFormDialog({
           // under the lock, and the boards are still typed in the fields, as
           // they are in score entry.
           onChange={editing && !proLocked ? (l) => applyLine(l ?? {}) : undefined}
-          editLocked={editing && proLocked ? { before: () => setShowViz(false) } : undefined}
+          editLocked={editing && proLocked}
           onClose={() => setShowViz(false)}
         />
       )}

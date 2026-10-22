@@ -340,9 +340,8 @@ export function ShotDetailBar({
           onChange={
             proLocked ? undefined : showViz === "actual" ? handleActualChange : handleIntendedChange
           }
-          // The lane is its own layer and would cover the Pro page, so the way
-          // to Pro closes it first.
-          editLocked={proLocked ? { before: () => setShowViz(null) } : undefined}
+          // The Pro page opens above the lane, so back returns to it (ADR-175).
+          editLocked={proLocked}
           onEditAttempt={onEditAttempt}
           // The actual line records where the ball finished, so it opens with the
           // foul line and arrows pinned: the first thing you can drag is the

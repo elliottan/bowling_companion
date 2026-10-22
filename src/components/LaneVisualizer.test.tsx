@@ -325,7 +325,7 @@ describe("LaneVisualizer oil pattern", () => {
         <HandednessContext.Provider value="right">
           <LaneVisualizer
             line={{ laydown: 18, target: 10, breakpoint: 6 }}
-            editLocked={{}}
+            editLocked
             onClose={() => {}}
           />
         </HandednessContext.Provider>
@@ -538,26 +538,28 @@ describe("the hint under the lane", () => {
 
   it("keeps the fields in place, blurred, as the way to Pro when moving the line is Pro", () => {
     const openOffer = vi.fn();
-    const before = vi.fn();
-    render(
+    const { container } = render(
       <ProAccessContext.Provider value={{ locked: true, appStoreUrl: null }}>
         <ProOfferContext.Provider value={openOffer}>
           <HandednessContext.Provider value="right">
-            <LaneVisualizer line={{ laydown: 20, target: 15 }} onClose={() => {}} editLocked={{ before }} />
+            <LaneVisualizer line={{ laydown: 20, target: 15 }} onClose={() => {}} editLocked />
           </HandednessContext.Provider>
         </ProOfferContext.Provider>
       </ProAccessContext.Provider>
     );
-    // The fields are drawn but out of reach: no field answers to its name.
+    // The fields are drawn but out of reach: no field answers to its name, and
+    // the veil is the lock alone (ADR-202).
     expect(screen.queryByRole("textbox", { name: /Laydown/i })).toBeNull();
-    expect(screen.getByText("Move it with Pro")).toBeInTheDocument();
+    expect(screen.queryByText("Move it with Pro")).toBeNull();
+    // Each point on the lane carries a lock, and none of them drags.
+    expect(container.querySelectorAll('[data-role="point-lock"]').length).toBeGreaterThan(0);
+    expect(container.querySelector('[data-role="handle"]')).toBeNull();
     fireEvent.click(screen.getByRole("button", { name: "Moving the line. See Headpin Pro" }));
-    expect(before).toHaveBeenCalledTimes(1);
     expect(openOffer).toHaveBeenCalledTimes(1);
   });
 
   it("keeps the hint when moving the line is Pro", () => {
-    renderViz({ line: { laydown: 20, target: 15, final_board: 17.5 }, editLocked: {} });
+    renderViz({ line: { laydown: 20, target: 15, final_board: 17.5 }, editLocked: true });
     expect(screen.getByText("Drag the lane to tilt")).toBeInTheDocument();
   });
 });

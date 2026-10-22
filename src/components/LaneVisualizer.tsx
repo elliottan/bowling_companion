@@ -103,9 +103,10 @@ interface LaneVisualizerProps {
   seedPatternId?: number;
   /** Read-only because moving the line is Pro, not because there is nothing
    *  to move (ADR-167). The peg fields stay in their place, blurred, under one
-   *  tap to the Pro page. `before` runs first, for a caller whose lane would
-   *  cover that page. Ignored while `onChange` is set. */
-  editLocked?: { before?: () => void };
+   *  tap to the Pro page, and each point on the lane carries a lock. The Pro
+   *  page opens above the lane (ADR-175), so the lane stays as it is under it.
+   *  Ignored while `onChange` is set. */
+  editLocked?: boolean;
 }
 
 export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, showStance = false, title = "Line", onEditAttempt, defaultLocks, suspended = false, handSwitchable = false, seedHand, seedPatternCatalogId, seedPatternId, editLocked }: LaneVisualizerProps) {
@@ -457,7 +458,10 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
   }
 
   const handles: Array<{ key: string; p: { x: number; y: number } }> = [];
-  if (path && onChange) {
+  // The points are drawn for a line that can move, and, with a lock on each,
+  // for one that could with Pro (ADR-202).
+  const proLockedPoints = !onChange && editLocked === true;
+  if (path && (onChange || proLockedPoints)) {
     handles.push({ key: "laydown", p: path.points.laydown });
     handles.push({ key: "target", p: path.points.target });
     // Both modes: the derived breakpoint is draggable (ADR-026).
@@ -474,8 +478,11 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
       (line?.final_distance ?? LANE_FEET) !== Math.round(spareAim.feet * 10) / 10);
 
   // The peg fields show to move the line, and, blurred, where moving it is Pro.
-  const showPegs = onChange != null || editLocked != null;
-  const pegRow = isTopDown ? "flex flex-col gap-2" : `flex justify-center gap-1.5 ${spare ? "flex-wrap" : ""}`;
+  const showPegs = onChange != null || editLocked === true;
+  const pegRow = "flex flex-col gap-2";
+  // The fields' column sits away from the line: a right-hander's runs down the
+  // right of the lane, so theirs is on the left, and the other way round.
+  const pegSide: "left" | "right" = hand === "left" ? "right" : "left";
   const laydownField = (
     <StepperField label="Laydown" value={line?.laydown ?? line?.stance} min={1} max={59} lateral
       locked={locked.has("laydown")}
@@ -593,7 +600,7 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
           >
             {isTopDown ? "Bowler view" : "Top-down"}
           </button>
-          {(onChange || editLocked || hasOil || pickable.length > 0 || handSwitchable) && (
+          {(onChange || editLocked === true || hasOil || pickable.length > 0 || handSwitchable) && (
             <IconButton variant="lane" label="Lane options" onClick={() => setOptionsOpen(true)}>
               <SlidersHorizontal size={18} aria-hidden="true" />
             </IconButton>
@@ -619,7 +626,8 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
           <div
             ref={surfaceRef}
             className={`relative mx-auto h-full w-full max-w-[360px] transition-transform ${
-              isTopDown && showPegs ? (hand === "left" ? "translate-x-8" : "-translate-x-8") : ""
+              // Top-down, the lane steps aside from the fields' column.
+              isTopDown && showPegs ? (pegSide === "left" ? "translate-x-8" : "-translate-x-8") : ""
             }`}
           >
             <LaneSurface
@@ -666,7 +674,9 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
                       {isLocked && (
                         <text x={h.p.x + 7} y={h.p.y - 6} fontSize="6" aria-hidden="true">🔒</text>
                       )}
+                      {proLockedPoints && <PointLock x={h.p.x} y={h.p.y} />}
                       {/* large invisible hit target (covers dot + nearby label) */}
+                      {!proLockedPoints && (
                       <circle
                         data-role="handle"
                         data-key={h.key}
@@ -681,6 +691,7 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
                         onPointerUp={() => releaseHandle(h.key)}
                         onPointerCancel={() => releaseHandle(h.key)}
                       />
+                      )}
                     </g>
                   );
                 })}
@@ -689,17 +700,20 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
           </div>
         </div>
 
-        {/* The peg fields: a side column in top-down, a bottom bar in bowler
-            view (so the lane stays centred). The strike line's three, or the
-            spare line's with its final depth (no breakpoint). Without Pro they
-            stay where they are, blurred, and are the way to it (ADR-167). */}
+        {/* The peg fields: a side column in both views, on the side away
+            from the line (a right-hander's line runs down the right of the
+            lane), on the lane's dark glass so they read over the wood. In
+            bowler view they used to be a bar along the foot of the screen,
+            where the keyboard that opens to type in them covered them
+            (ADR-202). The strike line's three, or the spare line's with its
+            final depth (no breakpoint), and how to move the line under them.
+            Without Pro they stay where they are, blurred, and are the way to it
+            (ADR-167). */}
         {showPegs && (
           <div
-            className={
-              isTopDown
-                ? `absolute top-1/2 z-10 -translate-y-1/2 ${hand === "left" ? "left-2" : "right-2"}`
-                : "absolute inset-x-0 bottom-0 z-10 px-2 pb-1"
-            }
+            className={`glass-lane absolute top-1/2 z-10 flex -translate-y-1/2 flex-col items-center gap-2 rounded-2xl p-2 ${
+              pegSide === "left" ? "left-2" : "right-2"
+            }`}
             onPointerDown={(e) => e.stopPropagation()}
           >
             {onChange ? (
@@ -708,7 +722,7 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
                 {/* The quick moves sit at the end of the fields they move, so
                     the control that shifts the line is where its numbers are,
                     not in a corner away from them (ADR-109). */}
-                <div className="relative self-end">
+                <div className="relative self-center">
                   <button
                     ref={movesButtonRef}
                     type="button"
@@ -727,38 +741,31 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
                       onMove={quickMove}
                       anchorRef={movesButtonRef}
                       onClose={() => setMovesOpen(false)}
-                      // Opens away from the edge it sits on: up from the row
-                      // in bowler view, inward from the side column top-down.
+                      // Opens inward from the side column it sits in.
                       placement={
-                        !isTopDown
-                          ? "absolute bottom-full right-0 mb-2"
-                          : hand === "left"
-                            ? "absolute bottom-0 left-full ml-2"
-                            : "absolute bottom-0 right-full mr-2"
+                        pegSide === "left" ? "absolute bottom-0 left-full ml-2" : "absolute bottom-0 right-full mr-2"
                       }
                     />
                   )}
                 </div>
               </div>
             ) : (
-              // The side column is narrower than the words, so it carries the
-              // mark alone.
-              <ProVeil
-                lane
-                what="Moving the line"
-                label={isTopDown ? undefined : "Move it with Pro"}
-                before={editLocked?.before}
-              >
+              // The lock alone, which says enough on a column of fields.
+              <ProVeil lane what="Moving the line">
                 <div className={pegRow}>{pegFields}</div>
               </ProVeil>
             )}
+            {/* One instruction to a line, in a column this narrow. */}
+            <p className="max-w-[8.5rem] text-center text-[11px] leading-snug text-white/70">
+              {onChange && <span className="block">Drag a point to move it</span>}
+              <span className="block">Drag the lane to tilt</span>
+            </p>
           </div>
         )}
       </div>
 
-      <p className="px-4 py-2 text-center text-xs text-white/60">
-        {onChange ? "Drag a point to move it · drag the lane to tilt" : "Drag the lane to tilt"}
-      </p>
+      {/* With no fields to sit under, the hint keeps its own line. */}
+      {!showPegs && <p className="px-4 py-2 text-center text-xs text-white/60">Drag the lane to tilt</p>}
 
       {optionsOpen && (
         <OptionsSheet
@@ -766,8 +773,7 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
           editable={onChange != null}
           // Without Pro the hook sliders show where they sit, under a lock,
           // rather than being left out (ADR-199).
-          proLocked={editLocked != null}
-          before={editLocked?.before}
+          proLocked={editLocked === true}
           onChange={applyEdit}
           oilName={hasOil ? oilPattern?.name : undefined}
           oilStats={hasOil ? stats : undefined}
@@ -892,20 +898,32 @@ function QuickMoves({
   );
 }
 
+/** A lock on a point of the line without Pro (ADR-202): the line's points
+ *  would drag with Pro, so each says so where it sits. Drawn in the lane's own
+ *  units over the point itself, a dark disc with a padlock, so it reads on the
+ *  wood and on the oil alike and stays clear of the point's label above it. */
+function PointLock({ x, y }: { x: number; y: number }) {
+  return (
+    <g data-role="point-lock" transform={`translate(${x} ${y})`} aria-hidden="true">
+      <circle r="4.2" fill="#0f172a" fillOpacity="0.85" stroke="#fff" strokeOpacity="0.35" strokeWidth="0.4" />
+      <path d="M-1.3 -0.4 V-1.3 a1.3 1.3 0 0 1 2.6 0 V-0.4" fill="none" stroke="#fff" strokeWidth="0.55" />
+      <rect x="-1.9" y="-0.5" width="3.8" height="2.7" rx="0.5" fill="#fff" />
+    </g>
+  );
+}
+
 /** Bottom sheet with the hook-shape sliders (shared by strike + spare, ADR-026)
  *  and the oil pattern (ADR-101). The oil is drawn whenever a pattern is
  *  chosen: it had its own switch, a second way to say what clearing the
  *  pattern already says (ADR-199). */
 function OptionsSheet({
-  line, editable, proLocked, before, onChange, oilName, oilStats: oil, oilRatio,
+  line, editable, proLocked, onChange, oilName, oilStats: oil, oilRatio,
   pickable, pickedId, onPick, hand, onPickHand, onClose,
 }: {
   line: LineSpec | undefined;
   editable: boolean;
   /** Pro would open the sliders: they show, under a lock, and move nothing. */
   proLocked: boolean;
-  /** Run before the lock's tap opens the Pro page (`ProVeil`). */
-  before?: () => void;
   onChange: (patch: Partial<LineSpec>) => void;
   oilName: string | undefined;
   oilStats: OilStats | undefined;
@@ -1009,7 +1027,7 @@ function OptionsSheet({
         {(editable || proLocked) && (
           <>
             <h4 className="mb-2 text-xs font-bold uppercase tracking-wide text-white/60">Hook shape</h4>
-            <ProVeil lane what="Changing the hook shape" label="Shape it with Pro" before={before}>
+            <ProVeil lane what="Changing the hook shape">
               <Slider
                 label="Hook start" suffix="ft" min={startMin} max={startMax} step={1}
                 value={clamp(dS, startMin, startMax)}

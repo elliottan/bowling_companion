@@ -391,21 +391,18 @@ export function LayoutLabView({ onBack, seed }: LayoutLabViewProps) {
             it, so the numbers below are read against the ball they belong to. */}
         {seed?.ballName && <SeededBallCard seed={seed} />}
 
-        {/* 1. The ball, first. It is what the screen is about, so it leads, and
-            what it will do sits right under it. The row of chips that used to
-            sit under it (jump to the grip, the pin, the PAP, the core, and a
-            flare rings toggle) is gone: the ball is draggable, which is the
-            gesture everyone tries first, and the chips were a second way to do
-            the same thing taking a band of a screen whose whole complaint was
-            that too little fits on it. */}
-        {/* Pinned under the bar while the page scrolls, so the ball answers in
-            view as the sliders below it move. Shorter than the screen is wide,
-            so the controls have room; tall enough that the ball and its labels
-            are whole. Opaque, so what scrolls passes under it. */}
-        <div className="sticky top-0 z-10 -mx-3 bg-surface-sunken px-3 pb-1 sm:-mx-6 sm:px-6">
+        {/* 1. The ball, and what it will do, side by side (ADR-203). The ball
+            needs no more than half the width to read, and the bars beside it
+            answer every change to the numbers below without a scroll back up.
+            It was the full width, pinned under the bar, with "What it will do"
+            in its own section under it: the pinned ball took a third of the
+            screen from everything that scrolled. Now the page is one scroll,
+            short enough to need little of it. The ball is draggable, which is
+            the gesture everyone tries first. */}
+        <div className="grid grid-cols-2 items-stretch gap-2.5">
           <div
             ref={ballRef}
-            className="h-60 overflow-hidden rounded-xl border border-edge bg-surface-sunken shadow-sm"
+            className="min-h-[13.5rem] overflow-hidden rounded-xl border border-edge bg-surface-sunken shadow-sm"
           >
             {/* The drawing follows the notation being edited, so the picture is
                 always answering the question the sliders below it are asking. */}
@@ -421,29 +418,25 @@ export function LayoutLabView({ onBack, seed }: LayoutLabViewProps) {
               className="h-full"
             />
           </div>
-        </div>
-
-        <section className="space-y-1.5">
-          <h2 className={GROUP_HEADING}>What it will do</h2>
-          <div className="space-y-2 rounded-xl border border-edge bg-surface p-2.5 shadow-sm">
-            <p className="text-sm text-ink">{motion.summary}</p>
+          {/* The bars, then the sentence they add up to. No heading: the bars
+              name themselves, and the ball beside them says whose they are. */}
+          <section aria-label="What it will do" className="space-y-2 rounded-xl border border-edge bg-surface p-2.5 shadow-sm">
             <Axis label="Flare" value={motion.flare} low="Low" high="High" note={`${motion.flareInches.toFixed(1)}"`} />
             <Axis label="Reads the lane" value={motion.length} low="Early" high="Late" />
             <Axis label="Off the friction" value={motion.angularity} low="Smooth" high="Sharp" />
             <Axis label="Overall strength" value={motion.strength} low="Weak" high="Strong" />
-          </div>
+            <p className="text-xs leading-snug text-ink-secondary">{motion.summary}</p>
+          </section>
+        </div>
 
-          {motion.warnings.map((warning) => (
-            <p
-              key={warning}
-              className="rounded-lg border border-warning-200 bg-warning-50 p-2.5 text-xs text-warning-700"
-            >
-              {warning}
-            </p>
-          ))}
-        </section>
-
-
+        {motion.warnings.map((warning) => (
+          <p
+            key={warning}
+            className="rounded-lg border border-warning-200 bg-warning-50 p-2.5 text-xs text-warning-700"
+          >
+            {warning}
+          </p>
+        ))}
 
         {/* 3. What ball. The core type comes before the numbers because it
             changes what the drilling angle means, and therefore what every

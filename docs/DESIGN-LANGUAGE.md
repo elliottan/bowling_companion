@@ -393,12 +393,12 @@ lock in the middle of them and the whole card as the tap: shown sharp, with the
 mark below it, the card read as open. The mark on a card or a row is the lock
 alone, never the word "Pro", which a screen of locks repeated over and over. A locked list shows its first rows in full, the
 bowler's own numbers, then one more row blurred under the mark, and nothing
-after it: two leaves on Stats, one ball on Stats and the Alley report
-(`lib/proPreview`, `ProBlur`). Locked controls stay where they are, blurred and
-out of reach, with one mark saying what Pro opens ("Try your layouts with Pro",
-"Move it with Pro") and the whole block as the tap (`ProVeil`). The blur is
-light, so what is under it can be seen, and the mark holds still: it does not
-ride along with the scroll. Only the controls Pro opens are veiled, never the
+after it: one ball on Stats and the Alley report (`lib/proPreview`,
+`ProBlur`). Locked controls stay where they are, out of reach, under the lock
+alone and the whole block as the tap (`ProVeil`, ADR-202, ADR-203): the lane's
+fields lightly blurred, the layout lab's sliders drawn as they are (`clear`),
+and each point of a line on the lane carrying a lock of its own. The mark holds
+still: it does not ride along with the scroll. Only the controls Pro opens are veiled, never the
 ones around them: in the layout lab that is the three sliders, and the PAP,
 hand, grip, core and notation stay free (ADR-170). The values stay readable
 beside them, since reading is free. The Pro page shows each thing Pro adds with

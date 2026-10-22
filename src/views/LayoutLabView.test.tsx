@@ -328,12 +328,16 @@ describe("LayoutLabView", () => {
     expect(ball()).not.toBe(halfUp);
   });
 
-  it("leads with the ball and what it will do, then the numbers (ADR-163)", () => {
+  it("leads with the ball and what it will do side by side, then the numbers (ADR-163, ADR-203)", () => {
     renderLab();
     const headings = screen.getAllByRole("heading").map((h) => h.textContent);
-    // The bowler's PAP, hand and grip are behind More, so the page is the ball,
-    // what it will do, and the numbers.
-    expect(headings.slice(0, 4)).toEqual(["Layouts", "What it will do", "Core", "Layout"]);
+    // The bowler's PAP, hand and grip are behind More, so the page is the ball
+    // with its bars beside it, untitled, then the core and the numbers.
+    expect(headings.slice(0, 3)).toEqual(["Layouts", "Core", "Layout"]);
+    const bars = screen.getByRole("region", { name: "What it will do" });
+    expect(bars).toHaveTextContent(/Flare.*Reads the lane.*Off the friction.*Overall strength/);
+    // Nothing pins the ball: the page is one scroll.
+    expect(screen.getByRole("img", { name: /bowling ball/i }).closest(".sticky")).toBeNull();
   });
 
   it("puts each angle at its own vertex, not both in the middle of the ball", () => {
@@ -823,17 +827,17 @@ describe("the layout lab while Pro is locked (ADR-154, ADR-163)", () => {
     expect(dual).toHaveTextContent("45° x 4 1/2 x 45°");
     fireEvent.click(screen.getByRole("button", { name: /Storm VLS/ }));
     expect(screen.getByRole("button", { name: /Storm VLS/ })).toHaveAttribute("aria-pressed", "true");
-    expect(screen.getByRole("heading", { name: "What it will do" })).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "What it will do" })).toBeInTheDocument();
     // Who is bowling and the core stay in reach, behind More.
     openYou();
     expect(screen.getByRole("button", { name: "Left" })).toBeEnabled();
     expect(screen.getByLabelText("Over")).toBeEnabled();
     expect(screen.getByRole("button", { name: "Reset to your saved settings" })).toBeInTheDocument();
-    // The sliders stay on screen, blurred and out of reach, under one tap to
-    // Pro, and the presets that would move them are gone.
+    // The sliders stay on screen as they are, out of reach, under the lock
+    // alone, and the presets that would move them are gone (ADR-203).
     expect(screen.queryByRole("slider", { name: /Pin buffer/i })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /^Presets/ })).not.toBeInTheDocument();
-    expect(screen.getByText("Try your layouts with Pro")).toBeInTheDocument();
+    expect(screen.queryByText("Try your layouts with Pro")).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Changing the layout. Get the app" }));
     expect(screen.getByRole("dialog", { name: "Bowled with Headpin on the web?" })).toBeInTheDocument();
     // Sharing what is on screen stays free: it is how a bowler finds the app.
@@ -843,7 +847,7 @@ describe("the layout lab while Pro is locked (ADR-154, ADR-163)", () => {
 
   it("is the whole lab while Pro is open", () => {
     renderLab();
-    expect(screen.queryByText("Try your layouts with Pro")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Changing the layout/ })).not.toBeInTheDocument();
     expect(slider(/VAL angle/i)).toBeEnabled();
   });
 });

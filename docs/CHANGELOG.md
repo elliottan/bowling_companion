@@ -33,6 +33,14 @@ had all shipped.
   Quick moves close on a second tap or a tap anywhere else (ADR-199).
 - **The bowler's view of the lane fills the screen.** The pins now sit just
   under the buttons at the top, rather than leaving an empty band above them.
+- **The lane's fields stay at its side** in both views, away from the line and
+  out of the keyboard's way, with how to move the line under them. Without Pro
+  each point on the line carries a lock (ADR-202).
+- **Back from the Pro page returns to the lane you were on,** rather than
+  showing Home, or the screen under it, first.
+- **The layout lab is shorter.** The ball and what it will do sit side by side
+  at the top, and without Pro the sliders show as they are under a lock
+  (ADR-203).
 - **A spare line's lane is read-only without Pro.** Moving the line on the lane
   is Pro, as everywhere else; its boards are still typed in the fields.
 

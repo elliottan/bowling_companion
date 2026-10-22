@@ -214,7 +214,8 @@ export function LayoutEditor({
 function NumbersVeil({ on, children }: { on: boolean; children: ReactNode }) {
   if (!on) return <>{children}</>;
   return (
-    <ProVeil top what="Changing the layout" label="Try your layouts with Pro">
+    // As they are, unfaded, and still: the lock alone says why (ADR-203).
+    <ProVeil clear top what="Changing the layout">
       {children}
     </ProVeil>
   );

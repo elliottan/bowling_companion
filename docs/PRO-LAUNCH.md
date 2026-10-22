@@ -100,10 +100,10 @@ On the web always, and in the app before purchase. It follows
 - **A locked chart metric keeps its chip** (ADR-201), with a lock beside its
   name, and a tap goes to Pro rather than plotting. The First ball card shows
   the pocket in full and blurs the rest under one lock.
-- **Locked controls are blurred in place** (ADR-167, ADR-170): the layout lab's
-  three sliders and the lane's peg fields stay where they are, out of reach,
-  under one "Try your layouts with Pro" or "Move it with Pro" mark, lightly
-  enough blurred to see what is under them. The values they hold stay readable
+- **Locked controls stay in place** (ADR-167, ADR-170, ADR-202, ADR-203): the
+  layout lab's three sliders, drawn as they are, and the lane's peg fields,
+  lightly blurred, stay where they are, out of reach, under the lock alone;
+  each point of the line on the lane carries a lock too. The values they hold stay readable
   (on the notation boxes above the lab's sliders, on the lane's own labels),
   since reading is free.
 - **Every one of those opens the Pro page first** (ADR-164): what Pro adds, in a
