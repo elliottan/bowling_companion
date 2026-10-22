@@ -1117,6 +1117,17 @@ function SheetHeader({ children }: { children: ReactNode }) {
   );
 }
 
+/** Scroll the nearest scroller holding `el` so `el` sits where the list
+ *  starts, clear of the bar floating over the scroller's top padding. */
+function scrollUnderBar(el: HTMLElement) {
+  // The sheet's body, found by its class as the pattern sheet finds its own.
+  const scroller = el.parentElement?.closest<HTMLElement>(".overflow-y-auto");
+  if (!scroller) return;
+  const clear = parseFloat(getComputedStyle(scroller).paddingTop) || 0;
+  const below = el.getBoundingClientRect().top - scroller.getBoundingClientRect().top;
+  scroller.scrollTop += below - clear;
+}
+
 /**
  * Every ball, each one open: its rates, its rates by game and its leaves.
  * Opened from the Balls card, scrolled to the ball that was tapped.
@@ -1141,10 +1152,16 @@ function AllBallsSheet({
   const [drill, setDrill] = useState<{ ball: BallPerformance; cell: BallGameCell } | null>(null);
   const listRef = useRef<HTMLUListElement | null>(null);
   const { shown, blurred } = locked ? previewSplit(balls, FREE_BALLS) : { shown: balls, blurred: undefined };
+  // Open on the ball that was tapped, its name just under the sheet's bar.
+  // `scrollIntoView` put it at the very top of the scroll area, where the bar
+  // floats over it (ADR-168), and it can scroll the document as well, which is
+  // how the viewport bug starts (docs/VIEWPORT-BUG.md). So the sheet's own list
+  // is scrolled, by the ball's distance from where the list starts: the
+  // scroller's top padding is the bar's height and a little more.
   useEffect(() => {
     if (focusId === null) return;
-    const el = listRef.current?.querySelector(`[data-ball="${focusId}"]`);
-    if (el && "scrollIntoView" in el) el.scrollIntoView({ block: "start" });
+    const el = listRef.current?.querySelector<HTMLElement>(`[data-ball="${focusId}"]`);
+    if (el) scrollUnderBar(el);
   }, [focusId]);
   return (
     // The scope rides in the bar, under the title, so it never scrolls away

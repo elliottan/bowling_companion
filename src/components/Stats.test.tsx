@@ -629,10 +629,13 @@ describe("leave cells", () => {
 });
 
 describe("the All balls sheet", () => {
-  it("opens on the ball that was tapped", async () => {
-    const scrolled: string[] = [];
-    Element.prototype.scrollIntoView = function (this: Element) {
-      scrolled.push(this.getAttribute("data-ball") ?? "");
+  it("opens on the ball that was tapped, just under the sheet's bar", async () => {
+    // Laid out by hand, since jsdom has no layout: the second ball 500px down
+    // the sheet's list, which starts 90px down under the bar.
+    const rect = (top: number) => ({ top, left: 0, right: 0, bottom: top, width: 0, height: 0, x: 0, y: top, toJSON: () => ({}) });
+    const original = Element.prototype.getBoundingClientRect;
+    Element.prototype.getBoundingClientRect = function (this: Element) {
+      return rect(this.getAttribute("data-ball") === "2" ? 500 : 0);
     };
     const ball = REPORT.balls[0];
     render(
@@ -648,8 +651,12 @@ describe("the All balls sheet", () => {
       />
     );
     fireEvent.click(screen.getByRole("button", { name: "Open Second" }));
-    await screen.findByRole("dialog", { name: "Balls" });
-    expect(scrolled).toEqual(["2"]);
+    const sheet = await screen.findByRole("dialog", { name: "Balls" });
+    const scroller = sheet.querySelector<HTMLElement>(".overflow-y-auto")!;
+    // The sheet's own list scrolls, by the ball's distance less the room the
+    // bar takes, rather than the document scrolling it to the very top.
+    await waitFor(() => expect(scroller.scrollTop).toBe(500 - (parseFloat(getComputedStyle(scroller).paddingTop) || 0)));
+    Element.prototype.getBoundingClientRect = original;
   });
 });
 
