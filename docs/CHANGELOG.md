@@ -9,6 +9,14 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.56.1: Strike on strike is back (2026-10-22)
+
+- **"Double" is "Strike on strike" again.** A double is two strikes in a row;
+  this number is how often a strike was followed by another, which is not the
+  same thing. Where the columns are tight (the Balls card's headings, a ball's
+  table by game) it reads "X-on-X", X being a strike's mark on the scoresheet,
+  and a screen reader still hears the words.
+
 ## 0.56.0: A session's header carries it, and you can see which option is picked (2026-10-22)
 
 - **Tap a session's name to edit it.** The pencil is gone. Tapping the alley
