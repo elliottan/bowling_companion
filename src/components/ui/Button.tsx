@@ -35,7 +35,7 @@ export function Button({
   return (
     <button
       type="button"
-      className={`inline-flex items-center justify-center gap-1.5 rounded-lg text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-50 ${VARIANT[variant]} ${SIZE[size]} ${className}`.trim()}
+      className={`inline-flex items-center justify-center gap-1.5 rounded-full text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-50 ${VARIANT[variant]} ${SIZE[size]} ${className}`.trim()}
       {...rest}
     >
       {children}

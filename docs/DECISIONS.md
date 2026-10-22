@@ -8389,3 +8389,20 @@ at a glance.
 **Consequence.** A sheet is 16px narrower on a phone. Every form in the app
 picks up the filled fields through `field.ts`, including the few outside a
 sheet, which read as the same control on the page.
+
+## ADR-187: Controls are capsules
+
+**Status.** Accepted, 2026-10-22, at the owner's request.
+
+**Context.** iOS 26 draws its controls as capsules: buttons, the segmented
+control's track and thumb, a menu's pressed row. Headpin's were rounded
+rectangles of 6 to 10px, which read as a web form beside the floating sheets
+and glass buttons around them (ADR-168, ADR-186).
+
+**Decision.** `Button`, `Chip`, `SegmentedControl` and the session's new-game
+button are `rounded-full`; a menu row lights as an inset capsule. Cards,
+fields, menus and sheets keep their corner radii: they are containers, and a
+capsule is the shape of a thing that is pressed.
+
+**Consequence.** A wide button (a full-width Delete session) is a long pill,
+as iOS draws one.

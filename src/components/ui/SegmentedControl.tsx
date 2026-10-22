@@ -51,7 +51,7 @@ export function SegmentedControl<T extends string>({
     <div
       role="group"
       aria-label={label}
-      className={`flex rounded-[10px] bg-ink/[0.07] ${
+      className={`flex rounded-full bg-ink/[0.07] ${
         dense ? "gap-0.5 p-0.5" : "gap-1 p-1"
       }`}
     >
@@ -67,7 +67,7 @@ export function SegmentedControl<T extends string>({
               if (!selected) void haptic("select");
               onChange(opt.value);
             }}
-            className={`relative flex-1 rounded-[8px] text-sm transition-colors ${
+            className={`relative flex-1 rounded-full text-sm transition-colors ${
               dense ? "h-9" : "h-10"
             } ${TAP_TARGET_44} ${
               selected

@@ -221,6 +221,12 @@ Depth: `surface-sunken` is the page, `surface` is a card on it, `edge` draws the
 boundary. Cards are `rounded-xl` (`rounded-2xl` for a full-width empty state),
 one `shadow-sm`, no stacked shadows.
 
+**Controls are capsules; containers have corners** (ADR-187). A `Button`, a
+`Chip`, a `SegmentedControl` (track and segment), the new-game button and a
+pressed menu row are fully round at the ends, as iOS 26 draws every control.
+Cards, fields, menus and sheets keep a corner radius, since they hold things
+rather than being pressed.
+
 **The one exception is the lane.** A pin deck is maple and a knocked-down pin is
 tan, in a dark room as much as a light one, and a deck that went slate at night
 would stop being a deck. `PinGrid` paints those colours literally and exports

@@ -77,7 +77,9 @@ export function AnchoredMenuItem({
     <button
       type="button"
       onClick={onClick}
-      className={`flex h-11 w-full items-center gap-3 px-4 text-left text-[16px] active:bg-ink/10 ${
+      // The pressed row is an inset capsule, as iOS 26 lights a menu row,
+      // rather than a band edge to edge.
+      className={`mx-1.5 flex h-11 w-[calc(100%-0.75rem)] items-center gap-3 rounded-full px-3.5 text-left text-[16px] active:bg-ink/10 ${
         danger ? "text-danger-600" : "text-ink"
       }`}
     >

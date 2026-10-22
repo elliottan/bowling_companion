@@ -46,7 +46,12 @@ export function FloatingHeader({ scrollerRef, header, onScroll, children }: Floa
   }, []);
 
   return (
-    <div className="relative -mx-3 -mt-[env(safe-area-inset-top)] min-h-0 flex-1 overflow-hidden sm:-mx-6">
+    <div
+      className="relative -mx-3 min-h-0 flex-1 overflow-hidden sm:-mx-6"
+      // Up under the status bar. Inline, because Tailwind cannot negate an
+      // env() value: `-mt-[env(...)]` builds no rule at all, silently.
+      style={{ marginTop: "calc(-1 * env(safe-area-inset-top))" }}
+    >
       <div
         ref={scrollerRef}
         onScroll={onScroll}

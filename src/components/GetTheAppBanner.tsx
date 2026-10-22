@@ -66,7 +66,7 @@ function Banner({ access }: { access: LockedProAccess }) {
         </p>
       </div>
       {!action.unavailable && (
-        <Button variant="primary" onClick={action.start} className="shrink-0 rounded-full px-5">
+        <Button variant="primary" onClick={action.start} className="shrink-0 px-5">
           Get
         </Button>
       )}

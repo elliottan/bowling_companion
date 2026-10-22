@@ -699,7 +699,7 @@ export function ActiveSessionView({
             disabled={!canAddGame}
             aria-label="New game"
             title="New game"
-            className={`relative inline-flex h-9 w-11 shrink-0 items-center justify-center rounded-md border border-edge-strong bg-surface text-accent hover:bg-surface-muted disabled:cursor-not-allowed disabled:opacity-50 ${TAP_TARGET_44}`}
+            className={`relative inline-flex h-9 w-11 shrink-0 items-center justify-center rounded-full border border-edge-strong bg-surface text-accent hover:bg-surface-muted disabled:cursor-not-allowed disabled:opacity-50 ${TAP_TARGET_44}`}
           >
             <Plus size={16} aria-hidden="true" />
           </button>

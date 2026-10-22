@@ -18,6 +18,8 @@ had all shipped.
   and the series score sit in the session's header, so the scorecard starts
   higher. The date is short ("Oct 19") and the game count is gone; the game
   chips already say it.
+- **Buttons, chips and toggles are fully rounded**, as iOS 26 draws its
+  controls (ADR-187).
 - **Sheets float like the iPhone's.** Every panel that rises from the bottom
   now stands a little off the screen's edges with deep rounded corners, as iOS
   26 draws its sheets, and its fields are soft filled boxes under small grey
