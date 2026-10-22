@@ -326,6 +326,33 @@ describe("BallFormDialog without Pro (ADR-172)", () => {
   });
 });
 
+describe("BallFormDialog without Pro, past the veil (ADR-190)", () => {
+  beforeEach(async () => {
+    await db.delete();
+    await db.open();
+  });
+
+  it("moves nothing and saves no new layout, even with the veil taken off", async () => {
+    const id = await addBall({ name: "Phaze II", is_spare_ball: false, layout_spec: SPEC });
+    const ball = (await getBalls()).find((b) => b.id === id)!;
+    const onSaved = vi.fn();
+    render(
+      <ProAccessContext.Provider value={{ locked: true, appStoreUrl: "https://apps.apple.com/app/id1" }}>
+        <BallFormDialog ball={ball} onClose={vi.fn()} onSaved={onSaved} />
+      </ProAccessContext.Provider>
+    );
+    unlock();
+    // The slider is inert under the veil, but in the page: a change event
+    // reaches it as a browser's tools would let it.
+    const slider = (await screen.findAllByRole("slider", { hidden: true }))[0] as HTMLInputElement;
+    fireEvent.change(slider, { target: { value: "80" } });
+    save();
+    await waitFor(() => expect(onSaved).toHaveBeenCalled());
+    const saved = (await getBalls()).find((b) => b.id === id)!;
+    expect(saved.layout_spec).toEqual(SPEC);
+  });
+});
+
 describe("BallFormDialog weight", () => {
   it("lists the weights heaviest first, down to 8 lb", () => {
     render(<BallFormDialog ball={null} onClose={vi.fn()} onSaved={vi.fn()} />);

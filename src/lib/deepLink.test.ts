@@ -29,7 +29,7 @@ describe("inAppLocation", () => {
     expect(inAppLocation("https://headpin.app/guides/layouts-101")).toBe("/#/home/guides/guide/layouts-101");
   });
 
-  it("leaves the owner's copy, other pages and other sites alone", () => {
+  it("leaves the old /score address, other pages and other sites alone", () => {
     expect(inAppLocation("https://headpin.app/score#/home")).toBeNull();
     expect(inAppLocation("https://headpin.app/legal")).toBeNull();
     expect(inAppLocation("https://example.com/app")).toBeNull();

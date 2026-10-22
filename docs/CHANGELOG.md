@@ -9,6 +9,17 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.59.0: One web app, and locked means locked (2026-10-22)
+
+- **headpin.app/score is gone.** It was the owner's copy with every feature,
+  and anyone who typed it had Pro. It now redirects to `/app`, and the "Open
+  Headpin" button on the not-found page goes there too. Your games are kept.
+- **Locked controls stay locked.** The layout sliders under a Pro veil, and
+  setting a ball's layout, do nothing without Pro even if the veil is removed
+  in a browser's tools.
+- **The blurred row hides nothing real.** The leave and ball rows blurred under
+  the Pro mark show sample numbers, not yours (ADR-190).
+
 ## 0.58.0: Pro includes what comes later, and links open the app (2026-10-22)
 
 - **Pro says it includes future Pro features.** The Pro page, the Home banner

@@ -8459,3 +8459,49 @@ white glass.
 **Consequence.** The answer is shown by a lighter pill and a heavier label
 rather than by colour. In dark mode the pill is the tab bar's, which the owner
 already reads at a glance at the foot of every screen.
+
+---
+
+## ADR-190: No owner's copy, and a locked screen carries nothing to unlock
+
+**Status.** Accepted, 2026-10-22. Supersedes the owner's copy of ADR-154 and
+ADR-167 (`/score`, Pro whatever is listed); the rest of both stands.
+
+**Context.** Ahead of the App Store, the owner asked how a bowler without Pro
+could see Pro anyway. An audit found the web open at its front door: typing
+`headpin.app/score` gave every feature, the 404 page's button linked there, and
+an installed web app opening at `/` was bounced there. Behind that were smaller
+leaks a browser's tools reach: the controls under a Pro veil were inert but
+still wired, so taking the veil off moved the layout lab's sliders and let a
+ball's layout be set and saved, and the blurred row on Stats and the Alley
+report was the bowler's real next leave or ball under a 3px blur, readable in
+the page. The iPhone app held: Pro is StoreKit's answer, asked on every launch,
+and a release build cannot be inspected.
+
+**Decision.**
+
+- **`/score` is gone.** The shell builds to `app/index.html` and answers `/app`
+  only. `vercel.json` redirects `/score` and anything under it to `/app`, so an
+  old bookmark or home screen install opens the app, locked like anyone's; the
+  games stay, since storage is the site's. The 404 page and the landing page's
+  bounce for an installed app go to `/app`. The owner tests Pro in the iPhone
+  app, with a purchase.
+- **Pro opens on the dev server for the tests.** `/app?pro` is Pro only where
+  `import.meta.env.DEV` is true (`devProUnlock`, `src/lib/pro.ts`), which a
+  build compiles to false and drops. The e2e suite and the screenshot scripts
+  use it; no address opens Pro on headpin.app.
+- **A veiled control does nothing without Pro.** `LayoutEditor` ignores a change
+  to its Pro numbers while Pro is locked, and the ball form ignores a layout
+  change and, on save, keeps the layout the ball already had. The veil stays
+  the way a bowler is told; the guard is what holds when it is removed.
+- **A blurred row is a stand-in.** The leave cell and the ball rows under a
+  blur keep their look (pins, name, photo) and carry fixed numbers instead of
+  the bowler's (`standInLeave`, `standInBall`, `standInEstimate`), as the Spare
+  lines tiles already did.
+
+**Consequences.** On the web, Pro is a lock and not a vault: the code runs in
+the visitor's browser, and someone who edits it can open anything. What this
+removes is every way in that needs no more than an address or a deleted
+attribute. A shared line or layout link still sets the numbers it carries, by
+design, and an edited backup can still carry a ball's layout; both are left
+as they are.

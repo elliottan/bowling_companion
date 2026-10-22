@@ -23,7 +23,7 @@ import { dirname, join, relative, sep } from "node:path";
 /** Paths under `dist/`, with `/` separators, that the app does not carry. */
 const LEFT_OUT: readonly RegExp[] = [
   /^index\.html$/, // the landing page; the shell takes its place
-  /^score\//, // the shell, moved to the root
+  /^app\//, // the shell, moved to the root
   /^404\.html$/,
   /^catalog\/img\//,
   /^catalog\/sheets\//,
@@ -73,7 +73,7 @@ export function assemble(from: string, to: string): { files: number; bytes: numb
     files++;
     bytes += statSync(file).size;
   }
-  const shell = appShellHtml(readFileSync(join(from, "score", "index.html"), "utf8"));
+  const shell = appShellHtml(readFileSync(join(from, "app", "index.html"), "utf8"));
   writeFileSync(join(to, "index.html"), shell);
   return { files: files + 1, bytes: bytes + Buffer.byteLength(shell) };
 }

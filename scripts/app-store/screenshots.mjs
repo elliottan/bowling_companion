@@ -96,7 +96,7 @@ async function quiet() {
 /** The app, launched afresh: with Pro bought or not, from the Home tab. */
 async function home(pro = false) {
   await page.evaluate((p) => localStorage.setItem("store-shots.pro", p ? "1" : "0"), pro).catch(() => {});
-  await page.goto(`${BASE}/score`);
+  await page.goto(`${BASE}/app`);
   await page.getByRole("navigation").first().waitFor();
   await quiet();
   await page.getByRole("navigation").getByRole("button", { name: "Home" }).click();

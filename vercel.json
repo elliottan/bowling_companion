@@ -11,6 +11,16 @@
       ],
       "destination": "https://headpin.app/$1",
       "permanent": false
+    },
+    {
+      "source": "/score",
+      "destination": "/app",
+      "permanent": true
+    },
+    {
+      "source": "/score/:path*",
+      "destination": "/app",
+      "permanent": true
     }
   ],
   "headers": [
@@ -53,12 +63,8 @@
   ],
   "rewrites": [
     {
-      "source": "/score",
-      "destination": "/score/index.html"
-    },
-    {
       "source": "/app",
-      "destination": "/score/index.html"
+      "destination": "/app/index.html"
     },
     {
       "source": "/legal",

@@ -43,7 +43,7 @@ if (STATE) {
   });
   const app = await context.newPage();
   const home = async () => {
-    await app.goto(`${BASE}/score`);
+    await app.goto(`${BASE}/app?pro`);
     await app.getByRole("navigation").first().waitFor();
     await app.waitForTimeout(1000);
   };

@@ -18,8 +18,8 @@ export const APP_STORE_URL: string | null = null;
  * Whether the free web app at /app shows Pro locked before the app is listed.
  * With it on, /app is a working preview of the free tier (cards locked, the Pro
  * page, the Home banner), so changes to it can be seen on the web before an iOS
- * rebuild, and the Pro page says the app is not in the store yet. The owner's
- * copy at /score is never locked, and neither is the Android app. Turn it off to
+ * rebuild, and the Pro page says the app is not in the store yet. The Android
+ * app is never locked. Turn it off to
  * leave /app fully open until the app is listed (ADR-166).
  */
 export const LOCK_FREE_WEB = true;

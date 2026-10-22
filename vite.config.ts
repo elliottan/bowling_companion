@@ -8,12 +8,9 @@ import { defineConfig } from "vitest/config";
 import { BALL_IMAGE_CACHE, BALL_IMAGE_MAX_AGE_SECONDS } from "./src/lib/ballImageCacheConfig";
 import { appStoreId, pointLandingAtStore } from "./src/lib/appStore";
 
-/** The clean URLs that build to a directory, and so need resolving by hand. */
-/** Each clean URL and the page that answers it. `/app` is the free web app and
- *  `/score` the owner's copy: one shell, told apart by its path (ADR-154). */
+/** Each clean URL that builds to a directory, and the page that answers it. */
 const CLEAN_URLS: Record<string, string> = {
-  "/score": "/score/index.html",
-  "/app": "/score/index.html",
+  "/app": "/app/index.html",
   "/legal": "/legal/index.html"
 };
 
@@ -21,10 +18,10 @@ const CLEAN_URLS: Record<string, string> = {
 const GUIDE_LINK = /^\/guides\/[^/?#]+$/;
 
 /**
- * Serve /score, /app and /legal in dev the way the host serves them in production.
+ * Serve /app and /legal in dev the way the host serves them in production.
  *
- * Vercel resolves /score to score/index.html, but Vite's dev server only
- * resolves the directory form, /score/. Without this the app's real URL 404s
+ * Vercel resolves /app to app/index.html, but Vite's dev server only
+ * resolves the directory form, /app/. Without this the app's real URL 404s
  * locally, the e2e suite has to ask for a URL no user will ever type, and dev
  * and prod disagree about the one path the whole app hangs off.
  */
@@ -67,11 +64,8 @@ function appStoreBanner(id: string | null = appStoreId()): Plugin {
 }
 
 /**
- * The install manifest for one copy of the app. The build links the free app's
- * (`/app`), which is what a visitor installs from the landing page; the owner's
- * copy at `/score` swaps in its own (`score/index.html`), so it installs as
- * itself and keeps opening at `/score` (ADR-154). Same `id`: they are one app
- * that opens at two addresses, not two apps.
+ * The install manifest. It opens the app at `path`, so a home screen app opens
+ * the app rather than the landing page.
  */
 function appManifest(path: string): Partial<ManifestOptions> {
   return {
@@ -96,9 +90,9 @@ function appManifest(path: string): Partial<ManifestOptions> {
     // Scope stays the whole origin even though the app lives under /app.
     // A browser only offers to install from a page inside scope, and the
     // landing page is where a first visitor decides to install, so scoping
-    // to /score would put the install prompt behind a click. The usual cost
+    // to /app would put the install prompt behind a click. The usual cost
     // of the wide scope, the landing page opening inside the app window, is
-    // already handled: that page bounces a standalone launch to /score.
+    // already handled: that page bounces a standalone launch to /app.
     scope: "/",
     categories: ["sports", "utilities"],
     icons: [
@@ -161,23 +155,6 @@ function appManifest(path: string): Partial<ManifestOptions> {
   };
 }
 
-/** Emits the owner's manifest beside the one the PWA plugin writes. */
-function ownerManifest(): Plugin {
-  return {
-    name: "owner-manifest",
-    apply: "build",
-    generateBundle() {
-      this.emitFile({
-        type: "asset",
-        fileName: OWNER_MANIFEST,
-        source: JSON.stringify(appManifest("/score"))
-      });
-    }
-  };
-}
-
-const OWNER_MANIFEST = "manifest-owner.webmanifest";
-
 /**
  * Fingerprints the landing page's screenshots: `/shots/scorer.webp` becomes
  * `/shots/scorer.webp?v=<the file's hash>`. The service worker answers
@@ -203,7 +180,7 @@ function fingerprintLandingShots(): Plugin {
       order: "pre",
       handler(html, ctx) {
         // The landing page only: the app shell names no shots.
-        if (!/(^|\/)index\.html$/.test(ctx.filename) || /(score|legal)\/index\.html$/.test(ctx.filename)) {
+        if (!/(^|\/)index\.html$/.test(ctx.filename) || /(app|legal)\/index\.html$/.test(ctx.filename)) {
           return html;
         }
         return html.replace(/\/shots\/([\w-]+\.webp)(?!\?)/g, (_, file: string) => `/shots/${file}?v=${hashOf(file)}`);
@@ -220,7 +197,7 @@ export default defineConfig({
     __BUILD_TIME__: JSON.stringify(new Date().toISOString().slice(0, 16) + "Z")
   },
   // MPA, not SPA: the default SPA fallback answers *every* HTML request with
-  // the root index.html, which would serve the landing page at /score and hide
+  // the root index.html, which would serve the landing page at /app and hide
   // the app entirely. There are two real HTML entries and no server routing to
   // fake, so the fallback is not wanted.
   appType: "mpa",
@@ -230,16 +207,16 @@ export default defineConfig({
         // The landing page a search engine and a link scraper read.
         landing: "index.html",
         // The app shell. Routing inside it is hash-based (see appRoute.ts), so
-        // every screen is /score#/..., and this is the only app URL a server
+        // every screen is /app#/..., and this is the only app URL a server
         // ever sees.
         //
-        // It builds to score/index.html but is linked, shared and installed as
-        // /score. Hosts disagree about whether they resolve that themselves
+        // It builds to app/index.html but is linked, shared and installed as
+        // /app. Hosts disagree about whether they resolve that themselves
         // (`vite preview` does not), so neither end is left to chance: the dev
         // server gets the middleware above, and production gets an explicit
         // rewrite in vercel.json. Both are inert where the host is already
         // right, and this is the one URL the whole app hangs off.
-        app: "score/index.html",
+        app: "app/index.html",
         // Privacy, terms and trademark notices. Static like the landing page,
         // and deliberately not part of the app bundle: it is a page a store
         // reviewer, a crawler and a manufacturer's lawyer must be able to read
@@ -267,7 +244,6 @@ export default defineConfig({
   },
   plugins: [
     serveCleanUrls(),
-    ownerManifest(),
     fingerprintLandingShots(),
     appStoreBanner(),
     react(),
@@ -276,7 +252,7 @@ export default defineConfig({
       includeAssets: ["icons/*.png"],
       manifest: appManifest("/app"),
       workbox: {
-        // Offline navigations to /score (no trailing slash) are not a precache
+        // Offline navigations to /app (no trailing slash) are not a precache
         // URL, so without this they would fall through to the root index.html
         // and the app would look like it had been replaced by its own advert.
         // "/" is denied because it *is* precached, via workbox's directoryIndex.
@@ -285,7 +261,7 @@ export default defineConfig({
         // the app, but as a clean URL it is not a precache entry either, so the
         // fallback answered it with the app shell. Anyone tapping "Privacy and
         // terms" landed on the dashboard with /legal still in the address bar.
-        navigateFallback: "/score/index.html",
+        navigateFallback: "/app/index.html",
         //
         // /guides is denied for the same reason as /legal. A shared guide link
         // opens a page of its own that hands the visitor to the app, and the

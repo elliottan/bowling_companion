@@ -150,7 +150,7 @@ function Purchase({ access }: { access: Extract<ReturnType<typeof useProAccess>,
 }
 
 function Owned() {
-  // Thanks only where Pro is owned (a purchase, or the owner's copy): Pro is
+  // Thanks only where Pro is owned (a purchase): Pro is
   // also open on Android, where nobody has paid (ADR-164, ADR-167).
   const bought = useProOwned();
   return (

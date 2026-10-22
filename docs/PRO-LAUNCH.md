@@ -72,20 +72,19 @@ is built and free today, so with no bowlers yet nothing is taken from anyone.
 
 The deeper reads come from the same records, so they need nothing new stored.
 
-## Two web addresses
+## One web address
 
-The free web app is `headpin.app/app`: the landing page, guides and shared
-links all open it, and a home screen install from it opens it. The original
-address, `headpin.app/score`, is the owner's copy and is Pro as a buyer has it,
-the Pro mark and colors included, whatever `APP_STORE_URL` says (ADR-167). Both are the same shell (`src/lib/pro.ts`), and
-the same browser keeps the same games at either address, since storage belongs
-to the site, not the path.
+The web app is `headpin.app/app`: the landing page, guides and shared links all
+open it, and a home screen install from it opens it. The owner's copy at
+`headpin.app/score`, which opened with Pro, is gone, and the address redirects
+to `/app` (ADR-190). Pro is tested in the iPhone app, with a purchase. On the
+dev server only, `/app?pro` opens Pro, for the e2e suite and the screenshot
+scripts; a build drops it (`devProUnlock` in `src/lib/pro.ts`).
 
 Until the app is listed, `/app` shows the locked app too, so the free tier can be
 checked on the web before an iPhone rebuild (`LOCK_FREE_WEB` in
 `src/lib/appStore.ts`, ADR-166). The Pro page's button then says the app is not in
-the App Store yet. `/score` is the unlocked side, so the web shows both. The
-Android app stays open.
+the App Store yet. The Android app stays open.
 
 ## How Pro shows where it is locked
 

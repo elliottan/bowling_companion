@@ -73,6 +73,7 @@ export function BallFormDialog({ ball, onClose, onSaved, onDelete, onRetire }: B
   // this screen could hold numbers still has to show what was typed on it
   // (ADR-095). Entering a layout is what retires it.
   const [layoutSpec, setLayoutSpec] = useState<BallLayoutSpec | null>(ball?.layout_spec ?? null);
+  const { locked: proLocked } = useProAccess();
   const legacyLayout = ball?.layout_spec ? undefined : ball?.layout;
   const [catalogRef, setCatalogRef] = useState<CatalogBall | null>(null);
   const [weightSpecs, setWeightSpecs] = useState<WeightSpecs | null>(null);
@@ -130,15 +131,18 @@ export function BallFormDialog({ ball, onClose, onSaved, onDelete, onRetire }: B
     setIsSaving(true);
     setError("");
     try {
+      // Without Pro the ball keeps the layout it had: setting one is Pro
+      // (ADR-172), and the form is not the place that decides it (ADR-190).
+      const savedSpec = proLocked ? ball?.layout_spec : layoutSpec ?? undefined;
       const payload: Omit<Ball, "id"> = {
         name: trimmed,
         // Set on the spare lines page, not here: the form carries it through.
         is_spare_ball: ball?.is_spare_ball ?? false,
-        layout_spec: layoutSpec ?? undefined,
+        layout_spec: savedSpec,
         // Kept rather than migrated: parsing "45 x 4.5 x 35" out of free text
         // would be guessing at a core type and a pin-to-PSA distance nobody
         // wrote down, and a guessed layout is worse than a remembered string.
-        layout: layoutSpec ? undefined : legacyLayout,
+        layout: savedSpec ? undefined : legacyLayout,
         weight,
         ...(catalogRef
           ? {
@@ -531,7 +535,7 @@ function CatalogPickerSheet({ linkedId, onPick, onClose }: CatalogPickerSheetPro
  */
 function LayoutField({
   spec,
-  onChange,
+  onChange: change,
   preference,
   legacyText,
   defaultSymmetric
@@ -560,6 +564,12 @@ function LayoutField({
   // layout lab, so a free one was the lab's sliders by another door. A layout
   // already on a ball still reads, on the read sheet and in the lab.
   const { locked } = useProAccess();
+  // The controls under the veil are inert, but they are still there: with the
+  // veil taken off in a browser's tools they would move, so a change without
+  // Pro goes nowhere (ADR-190).
+  const onChange = (next: BallLayoutSpec | null) => {
+    if (!locked) change(next);
+  };
 
   const setLayout = (next: DualAngleLayout) => {
     if (!spec) return;

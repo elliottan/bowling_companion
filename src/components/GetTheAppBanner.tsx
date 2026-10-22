@@ -20,8 +20,8 @@ export const GET_APP_SNOOZE_DAYS = 14;
  * name, and Get. It replaced the card asking a web bowler to add the page to
  * the home screen: the app is where games are kept safe now.
  *
- * It is only where there is an app to get: the free web app (not the owner's
- * copy at /score, and not inside the app), not on Android until the app is on
+ * It is only where there is an app to get: the free web app (not inside the
+ * app), not on Android until the app is on
  * Google Play, and not in iOS Safari once the app is listed, where Safari draws
  * its own banner for it (ADR-159). Before the app is listed it says it is
  * coming, with no button to press.

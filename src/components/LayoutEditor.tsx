@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState, type ReactNode } from "react"
 import { Info, X } from "lucide-react";
 import { IconButton } from "./ui/IconButton";
 import { ProVeil } from "./ui/ProLock";
+import { useProAccess } from "../lib/useProAccess";
 import { Measure } from "./ui/Measure";
 import { FIELD_MICRO_LABEL } from "./ui/field";
 import {
@@ -59,10 +60,21 @@ export function LayoutEditor({
   proNumbers?: boolean;
 }) {
   const vls = toVls(layout, ball);
+  // The sliders under the veil are inert, but still there: with the veil taken
+  // off in a browser's tools they would move, so without Pro they move nothing
+  // (ADR-190).
+  const { locked } = useProAccess();
+  const frozen = proNumbers && locked;
+  const change = useCallback(
+    (next: DualAngleLayout) => {
+      if (!frozen) onChange(next);
+    },
+    [frozen, onChange]
+  );
 
   const set = useCallback(
-    (patch: Partial<DualAngleLayout>) => onChange({ ...layout, ...patch }),
-    [layout, onChange]
+    (patch: Partial<DualAngleLayout>) => change({ ...layout, ...patch }),
+    [layout, change]
   );
 
   const setVls = useCallback(
@@ -76,13 +88,13 @@ export function LayoutEditor({
         },
         ball
       );
-      onChange({
+      change({
         drillingAngle: next.drillingAngle,
         pinToPap: next.pinToPap,
         valAngle: next.valAngle
       });
     },
-    [layout, ball, onChange]
+    [layout, ball, change]
   );
 
   return (

@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from "vitest";
-import { APP_STORE_URL, FREE_APP_PATH, PRO_OPEN, PRO_OWNED, appProAccess, appStoreId, isFreeAppPath, isOwnerPath, openAppStore, webProAccess } from "./pro";
+import { APP_STORE_URL, FREE_APP_PATH, PRO_OPEN, PRO_OWNED, appProAccess, appStoreId, devProUnlock, isFreeAppPath, openAppStore, webProAccess } from "./pro";
 import { LOCK_FREE_WEB } from "./appStore";
 
 describe("webProAccess", () => {
@@ -24,8 +24,7 @@ describe("webProAccess", () => {
       expect(webProAccess(null, path)).toEqual({ locked: true, appStoreUrl: null });
     }
     expect(isFreeAppPath("/apple")).toBe(false);
-    // Nowhere else: the owner's copy is Pro, the Android app and a stray address stay open.
-    expect(webProAccess(null, "/score")).toEqual(PRO_OWNED);
+    // Nowhere else: the Android app opens at `/` and stays open.
     expect(webProAccess(null, "/")).toEqual(PRO_OPEN);
   });
 
@@ -33,13 +32,22 @@ describe("webProAccess", () => {
     expect(webProAccess(null, "/app", false)).toEqual(PRO_OPEN);
   });
 
-  it("is Pro as a buyer has it at the owner's address, whatever is listed (ADR-167)", () => {
+  it("has no owner's address any more: /score is locked like any other (ADR-190)", () => {
     for (const path of ["/score", "/score/", "/score/index.html"]) {
-      expect(webProAccess("https://apps.apple.com/app/id1", path)).toEqual({ locked: false, owned: true });
+      expect(webProAccess("https://apps.apple.com/app/id1", path)).toEqual({
+        locked: true,
+        appStoreUrl: "https://apps.apple.com/app/id1"
+      });
     }
-    // A path that only starts with the same letters is not the owner's.
-    expect(isOwnerPath("/scores")).toBe(false);
-    expect(isOwnerPath(FREE_APP_PATH)).toBe(false);
+  });
+
+  it("opens Pro for the e2e suite only on the dev server, and only when asked", () => {
+    expect(devProUnlock(true, "?pro")).toBe(true);
+    expect(devProUnlock(true, "?ld=20&pro")).toBe(true);
+    expect(devProUnlock(true, "")).toBe(false);
+    // A build: no address opens it.
+    expect(devProUnlock(false, "?pro")).toBe(false);
+    expect(webProAccess("https://apps.apple.com/app/id1", FREE_APP_PATH, true, true)).toEqual(PRO_OWNED);
   });
 });
 

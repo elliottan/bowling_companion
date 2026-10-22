@@ -89,8 +89,8 @@ describe("decoding a link somebody else made", () => {
 
 describe("the shareable URL", () => {
   it("carries the layout in the search and the screen in the hash", () => {
-    const url = layoutShareUrl(DEFAULT_SHARED, "https://headpin.app", "/score");
-    expect(url.startsWith("https://headpin.app/score?")).toBe(true);
+    const url = layoutShareUrl(DEFAULT_SHARED, "https://headpin.app", "/app");
+    expect(url.startsWith("https://headpin.app/app?")).toBe(true);
     expect(url.endsWith(LAYOUT_LAB_HASH)).toBe(true);
     // The hash stays a pure navigation route: appRoute is a projection of
     // navigation state, and a drilling angle is not navigation.
@@ -99,13 +99,13 @@ describe("the shareable URL", () => {
 
   it("opens wherever it was shared from, not a hardcoded host", () => {
     // A link shared out of a preview build must open that preview.
-    expect(layoutShareUrl(DEFAULT_SHARED, "https://preview.example", "/score")).toContain(
-      "https://preview.example/score?"
+    expect(layoutShareUrl(DEFAULT_SHARED, "https://preview.example", "/app")).toContain(
+      "https://preview.example/app?"
     );
   });
 
   it("round-trips through its own search string", () => {
-    const url = layoutShareUrl(A_LAYOUT, "https://headpin.app", "/score");
+    const url = layoutShareUrl(A_LAYOUT, "https://headpin.app", "/app");
     const search = url.slice(url.indexOf("?"), url.indexOf("#"));
     expect(decodeLayoutParams(search)?.layout).toEqual(A_LAYOUT.layout);
   });

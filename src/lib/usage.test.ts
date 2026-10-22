@@ -54,7 +54,7 @@ describe("events", () => {
         hostname: "headpin.app",
         language: "en-US",
         screen: "390x844",
-        url: "/score",
+        url: "/app",
         title: "Headpin",
         name: "game-finished",
         data: { n: "3" }

@@ -151,7 +151,7 @@ export function FirstRun({ onSelectHandedness, hasSavedData = false }: FirstRunP
 
             {/* The way back out to the pitch, for somebody who arrived here by
                 tapping through and still wants to read what this is. Hidden in
-                an installed app, where `/` bounces straight back to `/score`
+                an installed app, where `/` bounces straight back to `/app`
                 (see index.html) and the link would be a loop. */}
             {!isStandalone() && (
               <a

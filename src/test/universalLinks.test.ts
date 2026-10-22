@@ -34,7 +34,7 @@ describe("apple-app-site-association", () => {
     expect(entitlements).toContain("applinks:headpin.app");
   });
 
-  it("claims the free app and the guides, and leaves the owner's copy on the web", () => {
+  it("claims the web app and the guides, and nothing else", () => {
     for (const path of ["/app", "/app/", "/guides/spare-shooting"]) expect(claimed(path)).toBe(true);
     for (const path of ["/score", "/score/", "/", "/legal"]) expect(claimed(path)).toBe(false);
   });

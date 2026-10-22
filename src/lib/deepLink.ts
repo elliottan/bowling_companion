@@ -9,8 +9,7 @@ import { isNativeApp, SITE_ORIGIN } from "./platform";
  * `assetlinks.json`), so a shared line, layout or guide link opens straight in
  * the app when it is installed, and in the web app when it is not. The phone
  * hands the app the link as it was written; this turns it into the app's own
- * address for the same screen. The owner's copy, `/score`, is not claimed and
- * keeps opening on the web.
+ * address for the same screen.
  */
 export function inAppLocation(url: string): string | null {
   let link: URL;

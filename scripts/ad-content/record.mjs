@@ -110,7 +110,7 @@ async function record(name, { setup, scene }) {
   });
   const page = await context.newPage();
   const started = Date.now();
-  await page.goto(`${BASE}/scripts/ad-content/stage.html?src=/score`);
+  await page.goto(`${BASE}/scripts/ad-content/stage.html?src=/app%3Fpro`);
   const app = page.frameLocator("#app");
 
   /**

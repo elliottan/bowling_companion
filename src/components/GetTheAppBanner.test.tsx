@@ -41,7 +41,7 @@ describe("the get-the-app banner on Home (ADR-170)", () => {
     await waitFor(() => expect(screen.queryByText("Headpin for iPhone")).not.toBeInTheDocument());
   });
 
-  it("is not on Android, the owner's copy or inside the app", () => {
+  it("is not on Android, where Pro is owned, or inside the app", () => {
     expect(renderBanner(LISTED, "Mozilla/5.0 (Linux; Android 14)").container).toBeEmptyDOMElement();
     expect(renderBanner({ locked: false, owned: true }).container).toBeEmptyDOMElement();
     expect(renderBanner({ locked: false }).container).toBeEmptyDOMElement();

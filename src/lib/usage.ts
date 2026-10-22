@@ -81,7 +81,7 @@ export function umamiBody(event: UsageEvent, websiteId: string, ctx: UmamiContex
       hostname: ctx.hostname,
       language: ctx.language,
       screen: ctx.screen,
-      url: "/score",
+      url: "/app",
       title: "Headpin",
       name: event.name,
       data: event.data

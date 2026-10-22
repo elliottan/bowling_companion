@@ -25,7 +25,7 @@ test("an overlay named like a Settings section is still the overlay", async ({ p
   // so backing out of the catalog landed on Backup & restore. Settings no
   // longer lists the arsenal (ADR-115), so the link is followed directly.
   await page.getByRole("navigation").getByRole("button", { name: "Settings" }).click();
-  await page.goto("/score/#/settings/arsenal");
+  await page.goto("/app/?pro#/settings/arsenal");
   await page.getByRole("dialog", { name: "Arsenal" }).getByRole("button", { name: "Back", exact: true }).click();
 
   await expect(page).toHaveURL(/#\/settings$/);
@@ -136,7 +136,7 @@ test("a session survives a reload, and the URL names it", async ({ page }) => {
 });
 
 test("an unreadable link opens the app rather than breaking it", async ({ page }) => {
-  await page.goto("/score#/not-a-screen/nonsense");
+  await page.goto("/app?pro#/not-a-screen/nonsense");
   await expect(page.getByText(/score your first session/i)).toBeVisible();
   await expect(page).toHaveURL(/#\/home$/);
 });
@@ -169,10 +169,10 @@ test("Stats opened from the alley report is a push, and back returns to it", asy
   //
   // One session first: with nothing to read, Stats hides its share (ADR-150).
   await startSession(page, "Push Lanes");
-  await page.goto("/score/#/home/game-plan");
+  await page.goto("/app/?pro#/home/game-plan");
   await expect(page.getByRole("dialog", { name: "Alley report" })).toBeVisible();
 
-  await page.goto("/score/#/home/game-plan/stats-push");
+  await page.goto("/app/?pro#/home/game-plan/stats-push");
 
   const stats = page.getByRole("dialog", { name: "Stats" });
   await expect(stats).toBeVisible();
@@ -213,7 +213,7 @@ test("a finished session opened from History pushes, and back returns to History
   // Straight to History by URL, which starts the back stack fresh: bowling the
   // game walked through the scorer and raised the backup and share prompts,
   // and each of those leaves entries of its own behind.
-  await page.goto("/score/#/history");
+  await page.goto("/app/?pro#/history");
   await expect(page).toHaveURL(/#\/history$/);
   await page.getByRole("button", { name: /Read Lanes/ }).click();
 
@@ -244,7 +244,7 @@ test("the screen's own back, with the session sheet up, leaves cleanly", async (
   await expect(page.getByRole("button", { name: RECORD_SHOT })).toHaveCount(0);
   await waitForScoresPersisted(page);
 
-  await page.goto("/score/#/history");
+  await page.goto("/app/?pro#/history");
   await page.getByRole("button", { name: /Chevron Lanes/ }).click();
   const sheet = page.getByRole("dialog", { name: "Session sheet" });
   await expect(sheet).toBeVisible();
@@ -271,7 +271,7 @@ test("share opens over the session sheet, and back closes one layer at a time", 
   await expect(page.getByRole("button", { name: RECORD_SHOT })).toHaveCount(0);
   await waitForScoresPersisted(page);
 
-  await page.goto("/score/#/history");
+  await page.goto("/app/?pro#/history");
   await page.getByRole("button", { name: /Layer Lanes/ }).click();
   const sheet = page.getByRole("dialog", { name: "Session sheet" });
   await expect(sheet).toBeVisible();
