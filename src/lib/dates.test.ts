@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatReleaseDate, formatSessionDate, localDateKey } from "./dates";
+import { formatReleaseDate, formatSessionDate, formatShortDate, localDateKey } from "./dates";
 
 describe("localDateKey", () => {
   it("files the day the device is on, not the UTC day", () => {
@@ -41,5 +41,24 @@ describe("formatReleaseDate", () => {
 
   it("falls back to the year for a month that is not one", () => {
     expect(formatReleaseDate("2024-13")).toBe("2024");
+  });
+});
+
+describe("formatShortDate", () => {
+  const now = new Date(2026, 9, 22);
+
+  it("leaves the year out for a date this year", () => {
+    expect(formatShortDate("2026-10-19", now)).toBe(
+      new Date(2026, 9, 19).toLocaleDateString(undefined, { day: "numeric", month: "short" })
+    );
+    expect(formatShortDate("2026-10-19", now)).not.toContain("2026");
+  });
+
+  it("keeps the year for a date in another one", () => {
+    expect(formatShortDate("2025-10-19", now)).toContain("2025");
+  });
+
+  it("hands back what it cannot read", () => {
+    expect(formatShortDate("someday", now)).toBe("someday");
   });
 });

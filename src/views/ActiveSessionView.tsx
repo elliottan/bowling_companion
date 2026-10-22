@@ -1,4 +1,4 @@
-import { BarChart3, ChevronLeft, Pencil, Plus, Trash2, X } from "lucide-react";
+import { BarChart3, ChevronLeft, Plus, Trash2, X } from "lucide-react";
 import { ShareIosIcon } from "../components/icons";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { ActiveGameScorer } from "../components/ActiveGameScorer";
@@ -12,7 +12,7 @@ import { getBalls, getOilPattern } from "../services/ballRepository";
 import { movementAt } from "../lib/briefing";
 import { describeGameMove } from "../components/alleyHistoryCopy";
 import { SessionFormDialog } from "../components/SessionFormDialog";
-import { SessionHeaderText, sessionMetaLine } from "../components/SessionHeaderText";
+import { SessionHeaderText, laneSummary } from "../components/SessionHeaderText";
 import { PushScreen } from "../components/PushScreen";
 import { SessionLanePanel } from "../components/SessionLanePanel";
 import {
@@ -556,70 +556,91 @@ export function ActiveSessionView({
     ? `Game ${gameToDelete.game_number}${deleteGameScore ? ` (score ${deleteGameScore})` : ""} and its frames will be permanently deleted.`
     : "";
 
+  const lanes = laneSummary(games);
+
+  // The session's bar: what it is, then its stats, its share and its score.
+  // Tapping what it is edits it, with no glyph to say so, as a contact's name
+  // does; with the sheet up the same tap puts the sheet away instead, since the
+  // sheet is what the bowler is looking at and the bar is the way back out.
+  const sessionBar = (scrolled = false) => (
+    <>
+      {/* The oil-pattern link inside stops propagation so it still opens the
+          pattern's sheet. */}
+      <div
+        role="button"
+        tabIndex={0}
+        onClick={tapIdentity}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            tapIdentity();
+          }
+        }}
+        // Its words fade once the page passes under the bar, as a pushed
+        // title's do (ADR-177), and a tap on what cannot be seen does nothing.
+        className={`min-w-0 flex-1 rounded-md px-1 transition-opacity duration-200 active:bg-surface-muted ${
+          scrolled ? "pointer-events-none opacity-0" : ""
+        }`}
+        aria-label={showSheet ? "Close session sheet" : "Edit session"}
+      >
+        <SessionHeaderText session={sessionDetails.session} heading={mode === "tab" ? "h2" : "h1"} />
+      </div>
+      <IconButton
+        label="Session stats"
+        title="Session stats"
+        variant="round"
+        className="shrink-0"
+        onClick={() => openSheet("stats")}
+      >
+        <BarChart3 size={18} aria-hidden="true" />
+      </IconButton>
+      <IconButton
+        label="Share this session"
+        variant="round"
+        className="shrink-0"
+        onClick={() => setShareOpen(true)}
+      >
+        <ShareIosIcon size={18} aria-hidden="true" />
+      </IconButton>
+      <button
+        type="button"
+        onClick={() => openSheet("stats")}
+        aria-label="Open session stats"
+        className="ml-1 shrink-0 rounded-md text-right active:bg-surface-muted"
+      >
+        <span className="block text-2xl font-extrabold leading-none text-accent">
+          {seriesTotal}
+        </span>
+        {seriesAvg !== null && (
+          <span className="block text-xs font-semibold text-ink-secondary">{seriesAvg} avg</span>
+        )}
+      </button>
+    </>
+  );
+
+  function tapIdentity() {
+    // The editor opens over nothing: with the sheet up the tap only closes it.
+    if (showSheet) setShowSheet(false);
+    else setShowEdit(true);
+  }
+
   const body = (
     <OilPatternContext.Provider value={oilPattern}>
     <div>
       <section ref={headerRef} className="mx-auto w-full max-w-5xl px-3 pt-2 sm:px-6">
-        <div className="flex items-start gap-2">
-          {/* Tapping the identity block opens the sheet; the oil-pattern link
-              inside it stops propagation so it still opens the pattern PDF. */}
-          <div
-            role="button"
-            tabIndex={0}
-            onClick={() => openSheet("sheet")}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault();
-                openSheet("sheet");
-              }
-            }}
-            className="min-w-0 flex-1 rounded-md hover:bg-surface-muted active:bg-surface-muted"
-            aria-label="Open session sheet and lane notes"
-          >
-            {/* Pushed, the alley and the date are the nav bar's; on the Score
-                tab there is no bar, so the block carries them. */}
-            <SessionHeaderText session={sessionDetails.session} games={games} identityInBar={mode !== "tab"} />
-          </div>
-          {/* Two taps to the edit: the first brings up the session sheet, which
-              is what the header is for, and the second, with the sheet up, opens
-              the session's details. The glyph says which tap this is: the
-              sheet's stats while it is down, the pencil once it is up. */}
-          <IconButton
-            label={showSheet ? "Edit session" : "Session stats"}
-            title={showSheet ? "Edit session" : "Session stats"}
-            variant="round"
-            className="shrink-0"
-            onClick={() => {
-              // The editor opens over the sheet rather than closing it: both are
-              // portalled to the body, and the editor sits above.
-              if (showSheet) setShowEdit(true);
-              else openSheet("stats");
-            }}
-          >
-            {showSheet ? <Pencil size={16} aria-hidden="true" /> : <BarChart3 size={18} aria-hidden="true" />}
-          </IconButton>
-          <IconButton
-            label="Share this session"
-            variant="round"
-            className="shrink-0"
-            onClick={() => setShareOpen(true)}
-          >
-            <ShareIosIcon size={18} aria-hidden="true" />
-          </IconButton>
+        {/* Pushed, the bar is the nav bar's; on the Score tab there is no bar,
+            so it heads the page. */}
+        {mode === "tab" && <div className="flex items-center gap-1">{sessionBar()}</div>}
+        {lanes && (
           <button
             type="button"
-            onClick={() => openSheet("stats")}
-            aria-label="Open session stats"
-            className="shrink-0 rounded-md text-right hover:bg-surface-muted active:bg-surface-muted"
+            onClick={() => openSheet("sheet")}
+            aria-label="Open session sheet and lane notes"
+            className="block max-w-full truncate rounded-md text-left text-xs text-ink-secondary active:bg-surface-muted"
           >
-            <span className="block text-2xl font-extrabold leading-none text-accent">
-              {seriesTotal}
-            </span>
-            {seriesAvg !== null && (
-              <span className="block text-xs font-semibold text-ink-secondary">{seriesAvg} avg</span>
-            )}
+            {lanes}
           </button>
-        </div>
+        )}
 
         {/* py-1, not pb-1: overflow-x-auto forces overflow-y to auto, which
             clips at the padding box. The Chip tap region overhangs its box 4px
@@ -907,13 +928,12 @@ export function ActiveSessionView({
   );
 
   if (mode === "tab") return body;
-  // The alley and the date line are the bar's, so the page below keeps only
-  // the lanes, the pattern and the score. "Session" until the session is read,
-  // which is a frame, rather than an empty bar.
+  // "Session" until the session is read, which is a frame, rather than an
+  // empty bar.
   return (
     <PushScreen
       title={sessionDetails ? alleyLabel(sessionDetails.session.alley_name) : "Session"}
-      subtitle={sessionDetails ? sessionMetaLine(sessionDetails.session, games) : undefined}
+      bar={sessionBar}
       onBack={onBack}
       // The sheet is portalled out of the screen, so it is told to go with it.
       onLeave={() => setLeaving(true)}

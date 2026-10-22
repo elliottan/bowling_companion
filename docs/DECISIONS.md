@@ -8253,3 +8253,37 @@ read.
 **Consequence.** A track now carries the accent where it used to be neutral,
 so a screen with several stacked tracks shows more of it. That is the point:
 each one is an answer the bowler set.
+
+## ADR-183: A session's bar carries it, and a tap on what it is edits it
+
+**Status.** Accepted, 2026-10-22, by the owner from a phone in hand. Amends
+ADR-177 on a pushed screen's bar, and replaces the two-tap stats-then-pencil
+edit on a session.
+
+**Context.** A session opened from History drew its alley and a meta line in
+the nav bar, then a row under it with the lanes, the oil pattern, the stats and
+share buttons and the series score. To edit the session took two taps on one
+button: the stats glyph brought the sheet up, and the same button, now a
+pencil, opened the details. The row cost a band of the screen, the pencil was
+a glyph for something the bowler already expected the header to do, and the
+meta line spent its room on a long date and a game count the chips already
+say.
+
+**Decision.**
+
+- **The bar carries the session.** Back, then the alley over the event, a short
+  date and the oil pattern, then the stats button, share and the series score
+  with its average. `PushScreen` takes a `bar` in place of its centred title
+  for this; its words fade under a scroll as a title does (ADR-177), and its
+  controls stay. The Score tab has no nav bar, so the same bar heads its page.
+- **The identity is the edit.** A tap on the alley and its line opens the
+  session's details, with no pencil. While the session sheet is up, the same
+  tap closes the sheet and opens nothing: the sheet is what the bowler is
+  looking at, and the bar is the way out of it.
+- **The meta line is short.** "Oct 19", with the year only when it is not this
+  one, and no game count.
+- **The lanes stay under the bar,** on their own line, and a tap there still
+  opens the session sheet on its scorecard.
+
+**Consequence.** A long alley name truncates sooner in a pushed bar, beside
+two round buttons and the score. The full name is in the edit sheet a tap away.

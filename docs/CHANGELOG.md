@@ -9,8 +9,15 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
-## 0.55.1: You can see which option is picked (2026-10-22)
+## 0.56.0: A session's header carries it, and you can see which option is picked (2026-10-22)
 
+- **Tap a session's name to edit it.** The pencil is gone. Tapping the alley
+  at the top of a session opens its details; with the session's stats pulled
+  up, the same tap puts them away (ADR-183).
+- **One header, not two rows.** The oil pattern, the stats and share buttons
+  and the series score sit in the session's header, so the scorecard starts
+  higher. The date is short ("Oct 19") and the game count is gone; the game
+  chips already say it.
 - **A picked option is filled in the accent.** In every pick-one track (left
   or right hand, one or two hands, Asym or Sym, the theme) the chosen option
   is now filled in the app's accent color, as a main button is, instead of a
