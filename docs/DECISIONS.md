@@ -8614,3 +8614,27 @@ veil on the thing itself (ADR-163): there is no drawing on the arsenal row to
 blur, only a button that goes somewhere. A bowler without Pro can still type a
 ball's numbers into the lab's link by hand, but a link needs its check code
 (ADR-192), so that is no easier than before.
+
+---
+
+## ADR-194: The session screen holds still under its sheet
+
+**Status.** Accepted, 2026-10-22, by the owner from a phone in hand. Amends
+ADR-188.
+
+**Context.** ADR-188 made every screen rubber-band. With the session sheet up,
+a pull on the strip above it (the bar's foot, the lanes, the game chips)
+bounced the session screen down, and the sheet, which hangs from the chips and
+follows them, came down with it: the whole screen slid away from its bar. iOS
+never moves the screen behind a presented sheet.
+
+**Decision.** While the session sheet is up, the box that scrolls the session
+(the pushed screen's scroller, or `<main>` on the Score tab) is
+`overflow-y: hidden`, set and restored by `ActiveSessionView`, which finds it
+from the session header rather than having it handed down. It scrolls and
+bounces again as soon as the sheet goes. Where the reader had scrolled to is
+kept, since a box that cannot scroll still holds its offset.
+
+**Consequences.** Nothing behind the sheet scrolls while it is up. Opening the
+sheet already scrolls the header back into view first, so the chips the sheet
+hangs from are always on screen when it holds.

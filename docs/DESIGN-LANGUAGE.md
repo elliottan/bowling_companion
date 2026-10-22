@@ -506,7 +506,9 @@ as the thing leaving.
   the Settings menu and History's and Stats' lists rubber-band under a pull
   whether or not their content fills them, as an iOS screen does: a strut one
   pixel taller than the scroller keeps it scrollable. The web view itself
-  never bounces (ADR-160), so it is the screen that moves, not the app.
+  never bounces (ADR-160), so it is the screen that moves, not the app. A
+  screen with the session sheet up holds still (ADR-194): iOS never moves the
+  screen behind a presented sheet.
 - **Tab headers stay put** (`FloatingHeader`, ADR-185). History's and Stats'
   title, actions and filter chips float over their list and never move; the
   list scrolls under them, and under the status bar, behind a frosted wash

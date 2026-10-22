@@ -256,6 +256,23 @@ export function ActiveSessionView({
     };
   }, [showSheet, sessionDetails]);
 
+  // The screen holds still under the sheet, as iOS holds the screen behind a
+  // presented sheet. A pull on the strip above the sheet bounced the screen's
+  // scroller (ADR-188), and the sheet, which hangs from the chips, came down
+  // with it. The scroller is the push's or, on the Score tab, `<main>`, so it
+  // is found from the header rather than handed down. Where the reader had
+  // scrolled to is kept: a scroller that cannot scroll still holds its offset.
+  useEffect(() => {
+    if (!showSheet) return;
+    const scroller = scrollerOf(headerRef.current);
+    if (!scroller) return;
+    const before = scroller.style.overflowY;
+    scroller.style.overflowY = "hidden";
+    return () => {
+      scroller.style.overflowY = before;
+    };
+  }, [showSheet]);
+
   /** Open the panel on a tab, with the header scrolled back into view first:
    *  the panel stops under the chips, so they have to be on screen. */
   function openSheet(tab: SessionPanelTab) {
@@ -984,12 +1001,18 @@ export function ActiveSessionView({
  * (docs/VIEWPORT-BUG.md).
  */
 function revealHeader(header: HTMLElement | null) {
-  if (!header) return;
-  let scroller = header.parentElement;
+  const scroller = scrollerOf(header);
+  if (!header || !scroller) return;
+  const above = header.getBoundingClientRect().top - scroller.getBoundingClientRect().top;
+  if (above < 0) scroller.scrollTop += above;
+}
+
+/** The nearest box that scrolls the session header: the push's scroller, or
+ *  `<main>` on the Score tab. */
+function scrollerOf(header: HTMLElement | null): HTMLElement | null {
+  let scroller = header?.parentElement ?? null;
   while (scroller && !/(auto|scroll)/.test(getComputedStyle(scroller).overflowY)) {
     scroller = scroller.parentElement;
   }
-  if (!scroller) return;
-  const above = header.getBoundingClientRect().top - scroller.getBoundingClientRect().top;
-  if (above < 0) scroller.scrollTop += above;
+  return scroller;
 }
