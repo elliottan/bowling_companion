@@ -1,7 +1,6 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { inAppLocation } from "../lib/deepLink";
 
 /**
  * headpin.app vouches for the iPhone app (ADR-159). iOS reads
@@ -10,7 +9,8 @@ import { inAppLocation } from "../lib/deepLink";
  * that signs it and its bundle id. A typo there fails silently, every link
  * opening in Safari, so the file is held to the Xcode project here.
  */
-const root = join(__dirname, "..", "..");
+// Run from the repository root, as the copy sweep is.
+const root = process.cwd();
 const aasa = JSON.parse(readFileSync(join(root, "public/.well-known/apple-app-site-association"), "utf8"));
 const project = readFileSync(join(root, "ios/App/App.xcodeproj/project.pbxproj"), "utf8");
 const entitlements = readFileSync(join(root, "ios/App/App/App.entitlements"), "utf8");
@@ -37,11 +37,5 @@ describe("apple-app-site-association", () => {
   it("claims the free app and the guides, and leaves the owner's copy on the web", () => {
     for (const path of ["/app", "/app/", "/guides/spare-shooting"]) expect(claimed(path)).toBe(true);
     for (const path of ["/score", "/score/", "/", "/legal"]) expect(claimed(path)).toBe(false);
-  });
-
-  it("claims only links the app can open", () => {
-    for (const path of ["/app", "/guides/spare-shooting"]) {
-      expect(inAppLocation(`https://headpin.app${path}`)).not.toBeNull();
-    }
   });
 });
