@@ -57,7 +57,7 @@ export function SessionFilterButton({
       </IconButton>
       {count > 0 && (
         // Flush with the button's top, not above it: the Stats and History
-        // headers sit in a box that clips at its top edge (CollapsingHeader),
+        // headers sit in a box that clips at its top edge (FloatingHeader),
         // and a badge poking 2px over that edge lost its top, number and all.
         // The round button leaves its corner empty, so the badge still reads
         // as sitting on the button's rim.

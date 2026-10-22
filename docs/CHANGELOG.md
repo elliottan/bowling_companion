@@ -18,6 +18,12 @@ had all shipped.
   and the series score sit in the session's header, so the scorecard starts
   higher. The date is short ("Oct 19") and the game count is gone; the game
   chips already say it.
+- **Buttons and menus behave like the iPhone's.** Press a button, slide your
+  finger off it and let go, and nothing happens, as on any iPhone button.
+  Menus (More, layout Presets) are frosted with rounded corners and full-size
+  rows, and grow out of the button you tapped (ADR-185).
+- **History's and Stats' headers stay put.** The title, filters and actions no
+  longer slide away as you scroll; the list scrolls under them, softly blurred.
 - **No more long press.** Holding a History row or a game chip no longer opens
   a menu; a tap just opens it. Edit session is a tap on the session's header,
   and its sheet now ends with the session's games, each with a red delete,

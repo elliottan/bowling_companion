@@ -88,6 +88,11 @@ keyboard, not the size of the job:
   a hold cannot be the iPhone's own context menu, with its lift and preview
   and haptic, so it was a gesture with no sign it existed, found mostly by a
   thumb resting mid-scroll. A row's tap opens it, and only that.
+- **A press dragged off a control presses nothing**, as a UIKit button's does
+  (`src/lib/pressCancel.ts`, ADR-185). It is one listener for the whole
+  document, so every button, link and role=button keeps to it without being
+  told. A touch may wander a little past the edge and still count, and one
+  that comes back before lifting counts again.
 
 Before this rule the app had it both ways: the ball editor was a sheet and the
 session editor a centered dialog, though they are the same object.
@@ -138,8 +143,9 @@ attempt left the list ending in a hard edge above a bar floating in empty page,
 and a later gradient that went solid under the capsule read the same way: a
 band the page stopped at, not a bar over it (ADR-171). The iPhone app's system
 bar has no ground of its own either, so the page passes under it the same way.
-Frost belongs only here, where there is something to blur; headers and sheets
-stay opaque.
+Frost belongs where something passes beneath it: here, under History's and
+Stats' floating headers, and in a menu over the page (ADR-185). Sheets and a
+pushed screen's bar stay as they are.
 
 ## 2. Controls
 
@@ -470,13 +476,11 @@ as the thing leaving.
   between the tap and the screen (ADR-085). This is the one exception to the
   symmetry rule above, and it is not really an exception: nothing animates in,
   so nothing has to animate out.
-- **Collapsing tab headers** flip fully away and fully back, never parking half
-  way (`useHeaderCollapse`, `CollapsingHeader`). The scroll says when, the
-  header says how: it earns the flip over a threshold of committed travel, then
-  slides over the list on a transform of its own. The list is full height
-  whether the header is there or not, so the flip changes only how much of the
-  list the header covers: the scroll is never moved by the header. ADR-077,
-  ADR-093.
+- **Tab headers stay put** (`FloatingHeader`, ADR-185). History's and Stats'
+  title, actions and filter chips float over their list and never move; the
+  list scrolls under them, and under the status bar, behind a frosted wash
+  that fades out at the header's foot. They used to slide away on a scroll
+  down (ADR-077, ADR-093), which hid the filters when a long list needed them.
 
 Keyframes live in `src/index.css`; interactive drags own their own transform
 and never animate against a keyframe. Everything is off under

@@ -10,19 +10,34 @@ interface AnchoredMenuProps {
   /** Distance from the viewport's bottom edge to the menu's bottom, in place
    *  of `top`, for a menu that opens upward off a control low on the screen. */
   bottom?: number;
+  /** Which side of the menu lines up with the button, so it grows out of the
+   *  button's corner: `end` for a menu hung off a button's right edge. */
+  align?: "start" | "end";
   onClose: () => void;
   children: React.ReactNode;
 }
 
+// Spelled out whole, so Tailwind sees every class it has to build.
+const ORIGIN = {
+  top: { start: "origin-top-left", end: "origin-top-right" },
+  bottom: { start: "origin-bottom-left", end: "origin-bottom-right" }
+} as const;
+
+/** The menu's width, for a caller placing it so it stays on screen. */
+export const ANCHORED_MENU_WIDTH = 240;
+
 /**
- * The long-press menu on a list row or a game chip. Portalled to the body: the
- * tab content sits inside `SwipePanes`, whose translateX would otherwise become
- * the containing block for a fixed overlay and drag the menu off-screen with it.
+ * The menu a tapped button opens beside itself: the scorer's More, the layout
+ * presets. Drawn as an iOS menu is (ADR-185): a frosted panel with deep
+ * corners, a row a finger tall, the label leading and its glyph trailing, and
+ * it grows out of the button that opened it rather than fading in in place.
  *
- * Its scrim is transparent rather than dimmed. A menu is anchored to the thing
- * it acts on, so darkening the screen would hide the row you long-pressed.
+ * Portalled to the body: the tab content sits inside `SwipePanes`, whose
+ * translateX would otherwise become the containing block for a fixed overlay
+ * and drag the menu off-screen with it. Its scrim is transparent rather than
+ * dimmed: a menu is anchored to the thing it acts on, and dimming would hide it.
  */
-export function AnchoredMenu({ left, top, bottom, onClose, children }: AnchoredMenuProps) {
+export function AnchoredMenu({ left, top, bottom, align = "start", onClose, children }: AnchoredMenuProps) {
   const overlayRef = useOverlay<HTMLDivElement>(onClose);
 
   return createPortal(
@@ -30,10 +45,10 @@ export function AnchoredMenu({ left, top, bottom, onClose, children }: AnchoredM
       <div className="fixed inset-0 z-10" onClick={onClose} />
       <div
         ref={overlayRef}
-        className={`fixed z-20 w-44 animate-pop-in overflow-hidden rounded-lg border border-edge bg-surface py-1 shadow-lg ${
-          bottom != null ? "origin-bottom" : "origin-top"
+        className={`anchored-menu fixed z-20 animate-menu-in overflow-hidden rounded-[22px] py-1.5 ${
+          ORIGIN[bottom != null ? "bottom" : "top"][align]
         }`}
-        style={bottom != null ? { left, bottom } : { left, top }}
+        style={{ width: ANCHORED_MENU_WIDTH, ...(bottom != null ? { left, bottom } : { left, top }) }}
       >
         {children}
       </div>
@@ -62,12 +77,12 @@ export function AnchoredMenuItem({
     <button
       type="button"
       onClick={onClick}
-      className={`flex w-full items-center gap-2 px-3 py-2 text-left text-sm font-medium ${
-        danger ? "text-danger-700 hover:bg-danger-50" : "text-ink hover:bg-surface-muted"
+      className={`flex h-11 w-full items-center gap-3 px-4 text-left text-[16px] active:bg-ink/10 ${
+        danger ? "text-danger-600" : "text-ink"
       }`}
     >
-      <Icon size={16} aria-hidden="true" />
-      {children}
+      <span className="min-w-0 flex-1 truncate">{children}</span>
+      <Icon size={18} aria-hidden="true" className="shrink-0" />
     </button>
   );
 }

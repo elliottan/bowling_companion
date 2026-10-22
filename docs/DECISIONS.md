@@ -8320,3 +8320,41 @@ that finds it is mostly one resting on a row mid-scroll.
 **Consequence.** Deleting a session from History is now three taps (open it,
 its header, Delete session) rather than a hold and a tap. That is the point: a
 delete should be found by looking for it, not by resting a thumb.
+
+## ADR-185: Native presses and menus, and tab headers that stay put
+
+**Status.** Accepted, 2026-10-22, at the owner's request. Supersedes ADR-077 and
+ADR-093 on the tab header, and amends DESIGN-LANGUAGE §1 on where frost goes.
+
+**Context.** Three things read as a web page rather than an iPhone app. A finger
+pressed on More, slid off it to change its mind and lifted, and the menu opened
+anyway: a browser fires `click` for any touch that did not scroll, wherever it
+lifted. The menu itself was a small flat card with an icon before each label
+that faded in where it stood. And History's and Stats' headers slid away on a
+scroll down and back on a scroll up, where the owner wanted them to stay, with
+the list passing under them as it does under an iOS bar.
+
+**Decision.**
+
+- **A press dragged off a control is cancelled.** `installPressCancel`
+  (`src/lib/pressCancel.ts`), installed once at start, watches a touch from
+  the control it landed on; if it ends more than 32px past that control's
+  edge, the click that follows is swallowed. Coming back inside first counts
+  as a press, as UIKit's does. A mouse is left alone, since a desktop browser
+  already drops a click released elsewhere. Pins and the lane act on pointer
+  events, not clicks, and are untouched.
+- **The menu is drawn as an iOS menu.** `AnchoredMenu` is 240px wide, frosted
+  (`.anchored-menu`), with 22px corners, 44px rows, the label leading and its
+  glyph trailing, and it grows out of the corner of the button that opened it
+  with a little overshoot (`.animate-menu-in`).
+- **Tab headers stay put.** `FloatingHeader` replaces `CollapsingHeader`, and
+  `useHeaderCollapse` is gone. The title, actions and filter chips float over
+  the list, which scrolls under them and under the status bar, behind a
+  frosted wash that fades out just past the header's foot
+  (`.floating-header-ground`).
+
+**Consequence.** The headers cover the top of the list for good rather than
+handing their room back on a scroll down; on a phone that is the title row and,
+with filters on, a row of chips. The frost costs a backdrop blur where the list
+moves, which ADR-171 avoided under the tab bar for WebKit's frame budget; the
+headers' is one layer, not stacked over an animation.

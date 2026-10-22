@@ -7,6 +7,7 @@ import { initInstallPrompt } from "./lib/installPrompt";
 import { applyNativeChrome, followThemeInSystemBars } from "./lib/nativeChrome";
 import { listenForLinks } from "./lib/deepLink";
 import { isNativeApp } from "./lib/platform";
+import { installPressCancel } from "./lib/pressCancel";
 import {
   initForegroundUpdateCheck,
   setNeedsRefresh,
@@ -38,6 +39,8 @@ if (!isNativeApp()) {
 
 applyNativeChrome();
 followThemeInSystemBars();
+// A touch dragged off a control before it lifts presses nothing (ADR-185).
+installPressCancel();
 // A headpin.app link the phone opens in the store app (ADR-159).
 void listenForLinks();
 

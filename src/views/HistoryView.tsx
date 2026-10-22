@@ -7,7 +7,7 @@ import {
   SessionFilterChips,
   SessionFilterSheet
 } from "../components/SessionFilterBar";
-import { CollapsingHeader } from "../components/CollapsingHeader";
+import { FloatingHeader } from "../components/FloatingHeader";
 import { rememberScroll, restoreScroll, useRememberedState } from "../lib/viewMemory";
 import { useSessionFilters } from "./useSessionFilters";
 import type { SessionSummary } from "../types/bowling";
@@ -73,7 +73,7 @@ export function HistoryView({
 
   return (
     <section className="mx-auto flex h-full w-full max-w-3xl flex-col px-3 pt-3 sm:px-6 sm:pt-5">
-      <CollapsingHeader
+      <FloatingHeader
         scrollerRef={scrollerRef}
         header={
           <>
@@ -105,7 +105,7 @@ export function HistoryView({
           />
           <div ref={sentinelRef} className="h-6" aria-hidden="true" />
         </div>
-      </CollapsingHeader>
+      </FloatingHeader>
       {filtersOpen && (
         <SessionFilterSheet filters={filters} onClose={() => setFiltersOpen(false)} />
       )}
