@@ -1,4 +1,5 @@
-import { TAB_TITLE, TAB_TITLE_ROW } from "../components/ui/typography";
+import { LARGE_TITLE, TAB_TITLE_ROW } from "../components/ui/typography";
+import { CompactTitleBar, LARGE_TITLE_SCROLL_PX } from "../components/CompactTitleBar";
 import { Archive, ArrowUpRight, Check, ChevronRight, Compass, Download, MessageSquare, Palette, RotateCcw, ScrollText, UserRound, UserRoundCog } from "lucide-react";
 import { ToolsList } from "../components/ToolsList";
 import { PushScreen } from "../components/PushScreen";
@@ -73,12 +74,21 @@ const LegalView = lazy(() =>
 
 export function SettingsView({ section, onSectionChange, handedness, onHandednessChange, driftModel, onDriftModelChange, onOpenBackup, onOpenLineVisualizer, lineVisualizerOpen = false, onOpenArsenal, onOpenSpareLines, onOpenLaneNotes, onOpenLayoutLab, onOpenOilPatternsScreen, onOpenCatalog, onOpenGuides }: SettingsViewProps) {
   const back = () => onSectionChange("menu");
+  // Past the large title, its name moves into the bar (ADR-191).
+  const [compact, setCompact] = useState(false);
 
   // The menu stays mounted underneath the pushed section, so popping back
   // reveals it mid-animation instead of sliding onto an empty page.
   return (
     <div className="relative h-full">
-      <div className="ios-bounce h-full overflow-y-auto overscroll-contain pb-[var(--tab-clear,0px)]">
+      <CompactTitleBar title="Settings" shown={compact} />
+      <div
+        onScroll={(e) => {
+          const next = e.currentTarget.scrollTop > LARGE_TITLE_SCROLL_PX;
+          if (next !== compact) setCompact(next);
+        }}
+        className="ios-bounce h-full overflow-y-auto overscroll-contain pb-[var(--tab-clear,0px)]"
+      >
         <SettingsMenu
           handedness={handedness}
           onOpenBackup={onOpenBackup}
@@ -183,9 +193,9 @@ function SettingsMenu({
   const initial = name ? [...name][0]?.toUpperCase() : null;
 
   return (
-    <section className="mx-auto w-full max-w-3xl space-y-5 px-3 pb-5 pt-3 sm:px-6 sm:pt-5">
+    <section className="mx-auto w-full max-w-3xl space-y-7 px-3 pb-5 pt-3 sm:px-6 sm:pt-5">
       <div className={`${TAB_TITLE_ROW} justify-between gap-3`}>
-        <h1 className={TAB_TITLE}>Settings</h1>
+        <h1 className={LARGE_TITLE}>Settings</h1>
         {/* The bowler, as a profile chip: tap it to change the name. Held back
             until the name has loaded, so it never flashes "Add name". */}
         {name !== undefined && (
@@ -211,9 +221,9 @@ function SettingsMenu({
       <button
         type="button"
         onClick={onOpenBackup}
-        className="flex w-full items-center gap-3 rounded-xl border border-accent-fill bg-accent-soft px-3 py-3 text-left shadow-sm active:opacity-80"
+        className="flex w-full items-center gap-3.5 rounded-[26px] border border-accent-fill bg-accent-soft px-4 py-3.5 text-left active:opacity-80"
       >
-        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-accent-fill text-accent-on-fill">
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[10px] bg-accent-fill text-accent-on-fill">
           <Archive size={20} aria-hidden="true" />
         </span>
         <span className="min-w-0 flex-1">
@@ -297,7 +307,7 @@ function SettingsMenu({
         />
       </ListGroup>
 
-      <p className="px-1 text-xs text-ink-secondary">Headpin {__APP_VERSION__}</p>
+      <p className="px-4 text-xs text-ink-secondary">Headpin {__APP_VERSION__}</p>
 
       <InstallPrompt open={installOpen} onClose={() => setInstallOpen(false)} />
 
@@ -325,7 +335,7 @@ function ProSection() {
   // that shows nothing for the seconds the store takes reads as a dead button.
   const [busy, setBusy] = useState<"buy" | "restore" | null>(null);
   const [message, setMessage] = useState<string | null>(null);
-  const mark = <ProMark size={36} word={false} className="rounded-lg" />;
+  const mark = <ProMark size={30} word={false} className="rounded-[8px]" />;
   if (!store) {
     // Pro merely open (the Android app, a stray address) has nothing to show.
     if (!openOffer || (!access.locked && !owned)) return null;

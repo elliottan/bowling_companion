@@ -226,7 +226,7 @@ export function DashboardView({
         <button
           type="button"
           onClick={onResume}
-          className="flex w-full items-center gap-3 rounded-xl border border-accent-fill bg-accent-fill p-4 text-left text-accent-on-fill shadow-sm active:bg-accent-fill-hover"
+          className="flex w-full items-center gap-3 rounded-[22px] bg-accent-fill p-4 text-left text-accent-on-fill active:bg-accent-fill-hover"
         >
           <PlayCircle size={28} aria-hidden="true" className="shrink-0" />
           <span className="min-w-0 flex-1">
@@ -267,7 +267,7 @@ export function DashboardView({
       <div className="mt-2">
         {protection?.kind === "backup" && (
           <div
-            className={`mt-3 flex gap-3 rounded-xl border p-3 ${
+            className={`mt-3 flex gap-3 rounded-[22px] border px-4 py-3 ${
               protection.urgency === "overdue"
                 ? "border-danger-200 bg-danger-50 text-danger-700"
                 : "border-warning-200 bg-warning-50 text-warning-700"

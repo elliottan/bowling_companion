@@ -20,7 +20,7 @@ const STRIP = "-mx-3 flex gap-2 overflow-x-auto overscroll-x-none px-3 py-1 sm:-
 /** The heading over a row of the profile, with room for one small action. */
 function RowHeading({ label, trailing }: { label: string; trailing?: ReactNode }) {
   return (
-    <div className="mb-1 flex items-center justify-between gap-3 px-1">
+    <div className="mb-1 flex items-center justify-between gap-3 px-4">
       <h2 className={GROUP_HEADING}>{label}</h2>
       {trailing}
     </div>
@@ -126,13 +126,13 @@ function Tile({
       type="button"
       onClick={onClick}
       aria-label={label}
-      className="flex min-w-0 flex-col items-start gap-2 rounded-xl border border-edge bg-surface p-2.5 text-left shadow-sm active:bg-surface-muted"
+      // A square button, drawn as iOS draws one (ADR-191): everything on one
+      // centre line, the icon bare above the name, deep corners, no outline.
+      className="flex min-w-0 flex-col items-center gap-1.5 rounded-[22px] bg-surface px-2 pb-3 pt-4 text-center active:bg-surface-muted"
     >
-      <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent-soft text-accent">
-        <Icon size={18} aria-hidden="true" />
-      </span>
+      <Icon size={24} aria-hidden="true" className="text-accent" />
       <span className="block w-full min-w-0">
-        <span className="block whitespace-nowrap text-sm font-semibold tracking-tight text-ink">
+        <span className="block whitespace-nowrap text-[15px] font-semibold tracking-tight text-ink">
           {label}
         </span>
         {/* Two lines, not one: an empty tile says what it is for, and that
@@ -242,8 +242,8 @@ function SessionTile({
       type="button"
       aria-label={`Open session: ${alley}, ${date}`}
       onClick={() => session.id && onOpen(session.id, !inProgress)}
-      className={`flex h-full w-40 flex-col rounded-xl border bg-surface p-3 text-left shadow-sm active:bg-surface-muted ${
-        isActive ? "border-accent-fill ring-1 ring-accent-fill" : "border-edge"
+      className={`flex h-full w-40 flex-col rounded-[22px] bg-surface px-3.5 py-3 text-left active:bg-surface-muted ${
+        isActive ? "ring-2 ring-inset ring-accent-fill" : ""
       }`}
     >
       <span className="block w-full truncate text-sm font-semibold text-ink">{event || alley}</span>

@@ -118,14 +118,14 @@ export function LaneNotesView({ onBack, mode = "inline" }: LaneNotesViewProps = 
                   </span>
                 }
               >
-                {/* The divider clears the 44px lane plate: 12px padding + 44 + 12 gap. */}
+                {/* The divider clears the 44px lane plate: 16px padding + 44 + 12 gap. */}
                 {group.notes.map((n) => (
-                  <li key={n.id} className={`${LIST_DIVIDER_BASE} before:left-[4.25rem]`}>
+                  <li key={n.id} className={`${LIST_DIVIDER_BASE} before:left-[4.5rem]`}>
                     <button
                       type="button"
                       onClick={() => setForm({ note: n })}
                       aria-label={`Edit note for ${group.alley} lane ${n.lane}`}
-                      className="flex w-full items-center gap-3 p-3 text-left active:bg-surface-muted"
+                      className="flex w-full items-center gap-3 px-4 py-3 text-left active:bg-surface-muted"
                     >
                       <LaneBadge lane={n.lane} />
                       {n.notes ? (

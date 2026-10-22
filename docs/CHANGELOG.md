@@ -9,6 +9,17 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.60.0: Lists and tiles look like iOS (2026-10-22)
+
+- **Lists look like iOS Settings.** Rounder cards without outlines, taller rows
+  with the label in normal weight, smaller icon tiles, and dividers that start
+  at the label and stop short of the edge. The arsenal is one list now, and
+  still reorders by dragging.
+- **Home's tiles are centred.** Spare lines, lane notes and the Alley report
+  put the icon, name and count down the middle, like a square button.
+- **Settings has a large title** that moves into a small bar at the top as you
+  scroll (ADR-191).
+
 ## 0.59.0: One web app, and locked means locked (2026-10-22)
 
 - **headpin.app/score is gone.** It was the owner's copy with every feature,

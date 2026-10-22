@@ -8505,3 +8505,44 @@ removes is every way in that needs no more than an address or a deleted
 attribute. A shared line or layout link still sets the numbers it carries, by
 design, and an edited backup can still carry a ball's layout; both are left
 as they are.
+
+---
+
+## ADR-191: Lists, tiles and the Settings title are drawn as iOS draws them
+
+**Status.** Accepted, 2026-10-22, at the owner's request. Amends
+DESIGN-LANGUAGE §4 on how a grouped list looks; what goes in one stands.
+
+**Context.** The owner set the app beside iOS Settings and the Claude app and
+found the menus still read as a web page: grouped lists in 12px cards with an
+outline and a shadow, bold row labels, 36px icon tiles, dividers running to the
+card's edge and headings flush with it; Home's three tiles left-aligned like
+small cards rather than square buttons; and Settings' title a small heading
+that scrolled away with nothing taking its place.
+
+**Decision.**
+
+- **A grouped list is an iOS inset grouped list** (`ListGroup`, `ListRow`):
+  26px corners, no outline or shadow (the fill alone sets it off the page), rows
+  at least 52pt tall and 16pt in from the edge, the label in the body size
+  (17px) and weight, a 30px icon tile with 8px corners, and the divider from
+  the label's start to 16pt short of the trailing edge. The heading above a
+  group lines up with the rows' text. The lists that draw their own rows
+  (arsenal, lane notes, oil patterns, ball estimates) follow the same insets,
+  and the arsenal is one grouped list rather than a stack of cards; the row
+  being dragged lifts off it as a card of its own.
+- **A square button centres its content**: Home's spare lines, lane notes and
+  Alley report tiles put the bare icon, the name and the count on one centre
+  line, with 22px corners and no outline, and the other cards on Home share
+  the corners.
+- **Settings has iOS's large title.** It is 34px, scrolls away with the page,
+  and as it goes the name comes in small and centred in a frosted bar
+  (`CompactTitleBar`), so the screen is named at every scroll position and
+  never twice. History and Stats keep their small title, since it shares a
+  pinned row with their controls and is never scrolled away (ADR-185). A pushed
+  screen keeps ADR-177: its title shows only at the top.
+- **A menu's items are in the body size** (17px), as iOS's are.
+
+**Consequences.** Cards that are not lists or tiles (the stats cards, sheets'
+fields) keep their own corners for now; they are the next pass if the two
+looks sit badly together on a phone.
