@@ -6,6 +6,11 @@
 // moment either one changes, and it is the one thing on that page a visitor is
 // asked to take on trust.
 //
+// They are taken on the App Store set's phone (app-store/iphone.mjs): the same
+// screen, safe areas, status bar and iPhone-app copy, and the same weeks of
+// nights behind Stats, History and Home, so the landing page and the store
+// show one app. Its SHOTS_STATE is what the store set starts from.
+//
 // Output is committed to public/shots/. Re-run when the UI changes.
 import { mkdir, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
@@ -13,6 +18,7 @@ import { dirname, join } from "node:path";
 import { chromium } from "@playwright/test";
 import sharp from "sharp";
 import { seedHistory } from "./ad-content/history.mjs";
+import { SCREEN, actAsIphoneApp, drawStatusBar, emulateSafeAreas, removeStatusBar } from "./app-store/iphone.mjs";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 // SHOTS_DIR sends the pictures elsewhere, for a run that only wants the state.
@@ -259,7 +265,7 @@ async function settle(page) {
   await page.waitForTimeout(500);
 }
 
-async function shoot(page, name, scrollTo = 0) {
+async function shoot(page, name, scrollTo = 0, { bar } = {}) {
   await settle(page);
   // Recording a shot can leave the view scrolled down its own container, which
   // crops the header out of the picture. Put every scroller back to the top,
@@ -273,7 +279,12 @@ async function shoot(page, name, scrollTo = 0) {
     });
   }, scrollTo);
   await page.waitForTimeout(200);
+  // The phone's status bar in the top inset, in the theme's ink, as the App
+  // Store set draws it (iphone.mjs).
+  const dark = await page.evaluate(() => document.documentElement.dataset.theme === "dark");
+  await drawStatusBar(page, bar ?? (dark ? "#fff" : "#0b1220"));
   const png = await page.screenshot();
+  await removeStatusBar(page);
   await writeFile(join(outDir, `${name}.webp`), await sharp(png).webp({ quality: 82 }).toBuffer());
   console.log("wrote", `${name}.webp`);
 }
@@ -337,12 +348,24 @@ async function shootBothThemes(page, name, scrollTo = 0) {
 const browser = await chromium.launch(
   process.env.SHOTS_CHROMIUM ? { executablePath: process.env.SHOTS_CHROMIUM } : {}
 );
-const page = await browser.newPage({
-  viewport: { width: 390, height: 844 },
+// The App Store set's phone (app-store/iphone.mjs): the 6.9 inch iPhone's
+// screen, its safe areas, and the page told it is inside the iPhone app, so the
+// landing page and the store show the same app on the same phone. At 2x rather
+// than the store's 3x, which is sharp at the size the page draws it.
+const context = await browser.newContext({
+  viewport: SCREEN,
   deviceScaleFactor: 2,
   colorScheme: "dark",
   reducedMotion: "reduce"
 });
+await actAsIphoneApp(context);
+// Catalogs and photos come from headpin.app inside the app; answer from here.
+await context.route("https://headpin.app/**", async (route) => {
+  const url = new URL(route.request().url());
+  route.fulfill({ response: await route.fetch({ url: `${BASE}${url.pathname}${url.search}` }) });
+});
+const page = await context.newPage();
+await emulateSafeAreas(page);
 // reducedMotion covers what the app honours; this covers the rest.
 await page.addStyleTag({
   content: "*,*::before,*::after{transition:none!important;animation:none!important}"
@@ -390,7 +413,7 @@ await page.locator("#visualizer-pattern").fill("Mercury 4940");
 await page.getByRole("button", { name: "Done" }).click();
 // One theme only: the lane view paints its own wood and sky rather than the
 // app's colour tokens, so both themes render the identical picture.
-await shoot(page, "line");
+await shoot(page, "line", 0, { bar: "#fff" });
 await page.getByRole("button", { name: "Close" }).first().click();
 
 // An oil pattern: its numbers, and the oil drawn on the lane.
@@ -457,7 +480,18 @@ for (let i = 0; i < GAMES.length; i++) {
     await shootBothThemes(page, "scorer");
     // The intended stance and target with the slide and laydown worked out from
     // them: what the Bowling profile page's release offset and drift are for.
-    await clipBothThemes(page, "line-panel", { x: 205, y: 373, width: 172, height: 113 });
+    // Measured, not fixed: the box moves whenever the screen above it does.
+    const intended = await page
+      .locator('input[title="Stance board"]')
+      .locator('xpath=ancestor::div[contains(concat(" ", @class, " "), " py-1 ")][1]')
+      .boundingBox();
+    if (!intended) throw new Error("no Intended line on screen to clip");
+    await clipBothThemes(page, "line-panel", {
+      x: Math.round(intended.x),
+      y: Math.round(intended.y),
+      width: Math.round(intended.width),
+      height: Math.round(intended.height)
+    });
 
     // Finish the frame so the game counts: two shots, left open.
     await page.getByRole("button", { name: RECORD_SHOT }).click();
@@ -471,27 +505,40 @@ for (let i = 0; i < GAMES.length; i++) {
   await dismissPrompts(page);
 }
 
-await page.getByRole("button", { name: "Stats" }).last().click();
-await shootBothThemes(page, "stats");
-
-// Home last, once there are nights behind it: the greeting, the bag and the
-// sessions are what a returning bowler opens the app on.
-await page.getByRole("navigation").getByRole("button", { name: "Home" }).click();
-await shootBothThemes(page, "home");
-
 // SHOTS_STATE saves the bowler this run built, IndexedDB included, so the ad
-// recorder (scripts/ad-content) starts from the same nights rather than its own.
+// recorder (scripts/ad-content) and the App Store set start from the same
+// nights rather than their own.
 if (process.env.SHOTS_STATE) {
   await page.context().storageState({ path: process.env.SHOTS_STATE, indexedDB: true });
   console.log("wrote", process.env.SHOTS_STATE);
 }
 
-// History last, over weeks of league nights rather than five in one sitting
-// (ad-content/history.mjs, which the ads use too). It is written after the
-// state is saved, so the ads start from the nights as bowled.
+// Then weeks of league nights rather than five in one sitting
+// (ad-content/history.mjs), and a name, as the App Store set adds them: the
+// stats, Home and History here are the store's screens, numbers and all. They
+// are written after the state is saved, so the ads start from the nights as
+// bowled.
 await seedHistory(page);
 await page.reload();
+await page.getByRole("navigation").getByRole("button", { name: "Home" }).click();
+await page.getByRole("button", { name: "Add your name" }).click();
+await page.locator("#bowler-name").fill("Sam");
+await page.getByRole("button", { name: "Save name" }).click();
+await settle(page);
+
+await page.getByRole("navigation").getByRole("button", { name: "Stats" }).click();
+await shootBothThemes(page, "stats");
+
 await page.getByRole("navigation").getByRole("button", { name: "History" }).click();
 await shootBothThemes(page, "history");
+
+// Home last, once there are nights behind it: the greeting, the bag and the
+// sessions are what a returning bowler opens the app on.
+await page.getByRole("navigation").getByRole("button", { name: "Home" }).click();
+// The backup reminder is the app asking, not the app: put it off, as a bowler
+// would, rather than show it on the page that sells the app.
+const later = page.getByRole("button", { name: "Later", exact: true });
+if (await later.count()) await later.first().click();
+await shootBothThemes(page, "home");
 
 await browser.close();

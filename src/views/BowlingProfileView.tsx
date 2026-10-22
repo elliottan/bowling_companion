@@ -478,16 +478,16 @@ function LinePanelInfoSheet({ onClose }: { onClose: () => void }) {
         <figure className="pointer-events-none select-none rounded-2xl bg-surface-muted p-4">
           <img
             src="/help/line-panel-light.png"
-            width={352}
-            height={236}
+            width={360}
+            height={232}
             alt={alt}
             draggable={false}
             className="mx-auto h-auto w-44 rounded-xl dark:hidden"
           />
           <img
             src="/help/line-panel-dark.png"
-            width={352}
-            height={236}
+            width={360}
+            height={232}
             alt={alt}
             draggable={false}
             className="mx-auto hidden h-auto w-44 rounded-xl dark:block"

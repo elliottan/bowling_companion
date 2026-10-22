@@ -18,6 +18,12 @@ had all shipped.
   and the series score sit in the session's header, so the scorecard starts
   higher. The date is short ("Oct 19") and the game count is gone; the game
   chips already say it.
+- **The pictures of the app are a real iPhone.** On headpin.app and in the App
+  Store screenshots, the phone has the iPhone 16 Pro Max's deep corners and its
+  Dynamic Island, sitting in the status bar where the phone has it rather than
+  over the app. The stats picture on headpin.app is today's Stats screen, and
+  the site and the store now show the same screens, the same phone and the same
+  bowler's nights.
 - **A picked option is filled in the accent.** In every pick-one track (left
   or right hand, one or two hands, Asym or Sym, the theme) the chosen option
   is now filled in the app's accent color, as a main button is, instead of a
