@@ -8949,3 +8949,19 @@ away took the drag, Escape or the session's name.
 **Decision.** The new game button is not drawn while the sheet is up, and comes
 back when it goes. The bar's stats button and its score open the sheet and,
 with it up, close it, as the session's name already did.
+
+---
+
+## ADR-208: Last 10 is offered once there are ten sessions
+
+**Status.** Accepted, 2026-10-22, by the owner from a phone in hand. Amends
+ADR-126 on the Stats range.
+
+**Context.** With fewer than ten sessions in scope, "Last 10" read exactly what
+"All" did, and a share card made under it said "Last 10 sessions" over a
+handful of nights.
+
+**Decision.** The range control leaves "Last 10" off until the sessions in
+scope, filters included, number ten. A "Last 10" remembered from a time with
+more, or under a broader filter, reads as All until there are ten again, so
+nothing is ever labelled with a window it does not have.

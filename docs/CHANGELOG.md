@@ -55,6 +55,10 @@ had all shipped.
   form is open without Pro: add, change or remove the numbers, and they save.
   Seeing the layout drawn is the Pro part: View layout stays on the arsenal
   row, and without Pro it says Pro draws it (ADR-193).
+- **Stats offers Last 10 only once you have ten sessions.** With fewer it
+  read the same as All, and a share card called a handful of nights "Last 10
+  sessions" (ADR-208).
+- **The landing page's pictures are retaken** from the app as it is now.
 - **All balls opens on the ball you tapped, clear of its title bar,** rather
   than with the ball's name under the bar.
 - **With the session sheet up, the new game button steps aside,** and the

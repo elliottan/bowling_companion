@@ -32,6 +32,7 @@ import { rememberScroll, restoreScroll, useRememberedState } from "../lib/viewMe
 import { localDateKey } from "../lib/dates";
 import {
   calculateRecentForm,
+  LAST_SESSIONS,
   sessionsInRange,
   STATS_RANGES,
   type StatsRange
@@ -97,7 +98,14 @@ export function StatsView({
   const { activeLanes, isLoading } = filters;
   // How far back to read, on top of the shared filters. Stats only: History
   // is a list in date order and has no use for a window (ADR-126).
-  const [range, setRange] = useRememberedState<StatsRange>("stats:range", "all");
+  const [rangePick, setRange] = useRememberedState<StatsRange>("stats:range", "all");
+  // "Last 10" is offered only once there are ten sessions to read (ADR-208):
+  // with fewer it reads exactly what All does, and a share card would call a
+  // handful of nights "Last 10 sessions". A choice remembered from a time with
+  // more, or under a broader filter, reads as All until there are ten again.
+  const lastTenOpen = filters.filtered.length >= LAST_SESSIONS;
+  const range: StatsRange = rangePick === "last10" && !lastTenOpen ? "all" : rangePick;
+  const rangeOptions = lastTenOpen ? RANGE_OPTIONS : RANGE_OPTIONS.filter((o) => o.value !== "last10");
   const filtered = useMemo(
     () => sessionsInRange(filters.filtered, range, localDateKey(), activeLanes),
     [filters.filtered, range, activeLanes]
@@ -203,7 +211,7 @@ export function StatsView({
                 <div className="w-44 min-w-0 shrink">
                   <SegmentedControl
                     label="Sessions counted"
-                    options={RANGE_OPTIONS}
+                    options={rangeOptions}
                     value={range}
                     onChange={setRange}
                     dense
