@@ -67,9 +67,11 @@ const METRICS = {
     minSpan: 25
   },
   strikeOnStrikePct: {
-    // A double, as bowlers say it: a strike that follows a strike. "Strike on
-    // strike" said the same in three words, and a heading three lines tall.
-    label: "Double",
+    // Spelled out where there is room. Where there is not, it is "X-on-X", the
+    // scoresheet's own mark for a strike (STRIKE_ON_STRIKE_SHORT). "Double"
+    // was tried and is not the same thing: a double is two strikes in a row,
+    // where this is how often a strike was followed by another.
+    label: "Strike on strike",
     value: (s: BowlingStats) => s.strikeOnStrikePct,
     format: (v: number) => `${Math.round(v)}%`,
     min: 0,
@@ -738,7 +740,7 @@ function FirstBallCard({
       </dl>
       <dl className="mt-3 flex justify-between gap-3 border-t border-edge pt-2 text-xs text-ink-secondary">
         <div className="flex gap-1">
-          <dt>Double</dt>
+          <dt>Strike on strike</dt>
           <dd className="font-semibold tabular-nums text-ink">{pct(stats.strikeOnStrikePct)}</dd>
         </div>
         <div className="flex gap-1">
@@ -796,9 +798,13 @@ function StatNote({ text, onDismiss }: { text: string; onDismiss: () => void }) 
   );
 }
 
+/** Strike on strike where there is no room for the words: X is the strike's
+ *  mark on a scoresheet, so a bowler reads it at a glance. */
+const STRIKE_ON_STRIKE_SHORT = "X-on-X";
+
 /** A ball's columns, in order, shared by the heading row and every ball so
  *  each number sits under the word that names it. Strike leads the three
- *  rates it ends; the first ball average and the double rate follow. Sized so
+ *  rates it ends; the first ball average and strike on strike follow. Sized so
  *  all five fit beside the name on a 360px phone (ADR-144). */
 const BALL_COLUMNS: ReadonlyArray<{
   key: string;
@@ -810,7 +816,14 @@ const BALL_COLUMNS: ReadonlyArray<{
   { key: "carry", label: "Carry", width: "w-9", value: (b) => pct(b.carryPct) },
   { key: "strike", label: "Strike", width: "w-9", value: (b) => pct(b.strikePct) },
   { key: "first ball", label: "1st ball", width: "w-9", value: (b) => oneDp(b.firstBallAverage) },
-  { key: "double", label: "Double", width: "w-9", value: (b) => pct(b.strikeOnStrikePct) }
+  // The key is what a screen reader hears with each number; the heading is
+  // the short form, which fits one line where the words took three.
+  {
+    key: "strike on strike",
+    label: STRIKE_ON_STRIKE_SHORT,
+    width: "w-9",
+    value: (b) => pct(b.strikeOnStrikePct)
+  }
 ];
 
 /** The ball's picture and name, taking whatever the columns leave. Below about
@@ -956,7 +969,11 @@ function BallDetails({
               cells={ball.byGame.map((c) => pinsPerBall(c.firstBallPins, c.firstBalls))}
               format={oneDp}
             />
-            <MetricRow label="Double" cells={ball.byGame.map((c) => rateOf(c.followUps, c.followUpOpps))} />
+            <MetricRow
+              label={STRIKE_ON_STRIKE_SHORT}
+              spoken="Strike on strike"
+              cells={ball.byGame.map((c) => rateOf(c.followUps, c.followUpOpps))}
+            />
             <tr>
               <td className={`${ROW_NAME_CELL} text-left text-ink-tertiary`}>Balls</td>
               {ball.byGame.map((c) => (
@@ -1204,10 +1221,13 @@ const ROW_NAME_CELL = "sticky left-0 z-[1] bg-surface-muted pr-2";
 
 function MetricRow({
   label,
+  spoken,
   cells,
   format = pct
 }: {
   label: string;
+  /** What a screen reader hears where `label` is a short form ("X-on-X"). */
+  spoken?: string;
   cells: Array<number | null>;
   /** How a cell reads; a rate unless said otherwise. */
   format?: (value: number | null) => string;
@@ -1216,7 +1236,16 @@ function MetricRow({
   // a second copy cost the table its last column on a phone.
   return (
     <tr>
-      <td className={`${ROW_NAME_CELL} text-left font-semibold text-ink`}>{label}</td>
+      <td className={`${ROW_NAME_CELL} text-left font-semibold text-ink`}>
+        {spoken ? (
+          <>
+            <span aria-hidden="true">{label}</span>
+            <span className="sr-only">{spoken}</span>
+          </>
+        ) : (
+          label
+        )}
+      </td>
       {cells.map((value, i) => (
         <td key={i} className="pl-3 text-right">
           {format(value)}
