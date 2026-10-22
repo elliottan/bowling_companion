@@ -9,7 +9,7 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
-## 0.62.0: Set any ball's layout, and bars that stay solid (2026-10-22)
+## 0.62.0: Set any ball's layout, and a calmer Stats screen (2026-10-22)
 
 - **Every bowler can set a ball's layout.** The Layout section of a ball's
   form is open without Pro: add, change or remove the numbers, and they save.
@@ -22,6 +22,16 @@ had all shipped.
   above it no longer drags the whole screen, sheet and all, down from its bar.
 - **Stats leads with the average in the accent color,** and the high, low and
   games each sit centred over their label.
+- **The First ball card is laid out as one piece.** Pocket, carry and strike
+  lead, and pins a ball, strike on strike and strikes in a row sit under them
+  in one even row, the same way the average's companions do.
+- **The Spares and Balls cards no longer scroll inside the screen.** Spares
+  shows six leaves, Balls six balls, and a full-width View all button at the
+  foot of each opens the rest. The spare rate reads "of makeables made".
+- **Without Pro, the free leaves are your two left most again,** rather than
+  always the 7 and the 10 (ADR-195).
+- **Fewer scroll bars.** Sideways strips and small lists inside a screen no
+  longer draw one; screens and sheets keep the one iOS shows while you scroll.
 - **The bar at the bottom of the Headpin Pro page sits on the bottom edge.** On
   the iPhone it stopped a little above it, and the page scrolled through the
   gap underneath.

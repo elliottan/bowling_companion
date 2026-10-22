@@ -42,11 +42,12 @@ html {
   -webkit-touch-callout: none;
 }
 
-/* A scroller that says it scrolls some other way: the chart's chips, cut off
-   at the card's edge, and the Spares card's leaves, whose next row peeks out
-   under the last. Its indicator was one more line over a card that already
-   says so, and on the leaves iOS drew it short of the end (DESIGN-LANGUAGE
-   §4d). */
+/* A scroller that says it scrolls some other way (ADR-196): every strip
+   that runs sideways, cut off at the edge (chips, cards, the ball tables),
+   and every small box inside a screen (a suggestion list, a menu). Its
+   indicator was one more line over something that already says so. A screen,
+   a sheet and a list that fills one keep theirs: iOS draws it only while the
+   list moves and fades it out, and on a long list it is where you are. */
 .scrollbar-none {
   scrollbar-width: none;
 }

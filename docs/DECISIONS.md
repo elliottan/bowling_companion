@@ -8638,3 +8638,66 @@ kept, since a box that cannot scroll still holds its offset.
 **Consequences.** Nothing behind the sheet scrolls while it is up. Opening the
 sheet already scrolls the header back into view first, so the chips the sheet
 hangs from are always on screen when it holds.
+
+---
+
+## ADR-195: The free leaves are the two left most again
+
+**Status.** Accepted, 2026-10-22, by the owner's decision. Supersedes ADR-192
+on which leaves are free; ADR-192's check code on shared links stands.
+
+**Context.** ADR-192 fixed the free leaves at the 7 and the 10, because
+ranking within the screen's filters let a bowler cycle the filters and read
+more leaves' records. On reflection that guarded little: under any one filter
+the bowler still sees only that filter's top two, never the whole list, never
+the shares and never the rest of the conversions. And the corner pins at 0/0
+on a card read as the app not knowing the bowler.
+
+**Decision.** Without Pro the Spares card, the All leaves sheet, Spare lines and
+a leave's sheet open the two leaves left most within what the screen shows,
+ranked as the card ranks them (`freeLeavePreview`, `isOpenLeave`), and blur the
+next one. This is the ADR-167 rule as it stood before ADR-192.
+
+**Consequences.** A bowler who cycles filters can read more than two leaves'
+records, one filter's top two at a time. That is accepted: it is still never
+the whole picture, which is what Pro sells.
+
+---
+
+## ADR-196: Stats cards hold what they show, and only screens draw scroll bars
+
+**Status.** Accepted, 2026-10-22, by the owner from a phone in hand.
+
+**Context.** The First ball card read as thrown together: pins a ball in the
+heading's corner, strike on strike and the longest run pushed to the two ends
+of a footer line, three sizes and three alignments for numbers of the same
+weight. The Spares and Balls cards each scrolled inside the scrolling screen,
+a second scroll to find and to fight, and their way to the whole list was a
+line of accent text in the corner ("View all 78 leaves") that read as a link
+in a heading and made a small target.
+
+**Decision.**
+
+- **One shape for every card:** a heading, the card's one large answer, and its
+  smaller numbers in one even row, each centred over its label
+  (`Companions`). The headline's high, low and games use it, and so does the
+  First ball card under its pocket, carry and strike chain: pins a ball, strike
+  on strike, strikes in a row. The headline stays about scores; the first
+  ball's numbers stay with the first ball.
+- **The Spares card says what its rate counts:** "of makeables made", since
+  splits and washouts are left out of it.
+- **Cards hold what they show.** The Spares card shows two rows of three
+  leaves, the Balls card six balls, and neither scrolls. Everything else is
+  under View all.
+- **View all is a glass pill the card's width at its foot** (`Button`'s
+  `glass` variant, the bar buttons' material): "View all 78", the count kept so
+  the bowler knows the size of what is behind it, the noun left to a screen
+  reader because the heading already says what is counted.
+- **Only a screen draws a scroll bar.** A screen, a sheet and a list that
+  fills one keep the indicator iOS draws while the list moves. Every sideways
+  strip and every small box inside a screen hides it (`.scrollbar-none`), and
+  `src/test/scrollers.test.ts` holds that for the sideways ones.
+
+**Consequences.** A bowler with more than six leaves or balls taps once more to
+see the seventh. The Balls card still scrolls sideways on a phone too narrow
+for its columns (ADR-144), without a bar.

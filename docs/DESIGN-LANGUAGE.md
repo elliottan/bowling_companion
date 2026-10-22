@@ -353,11 +353,17 @@ aligned, with the picture and name pinned at the left on an opaque cell, so a
 number never loses its ball. A ball's by-game table, which can be wider than
 any phone, scrolls the same way with its row names pinned (ADR-139).
 
-**A scroller inside a card shows no scroll bar when the card already says it
-scrolls** (`.scrollbar-none`): the chart's chips, cut off at the card's edge,
-and the Spares card's leaves, the next row peeking under the last. One that can
-go either way, the Balls card, keeps its bar and leaves its last column room
-for it.
+**A card never scrolls inside the screen** (ADR-196). It holds what it shows
+in full, at most two rows of leaves or six balls, and the rest is one tap away
+under a glass "View all" pill the card's width at its foot. A scroller in a
+scroller was a second thing to find and to fight.
+
+**Only a screen draws a scroll bar** (`.scrollbar-none`, ADR-196). A screen, a
+sheet and a list that fills one keep the indicator iOS draws while the list
+moves, which is where you are on a long one. Everything else hides it: every
+sideways strip, cut off at its edge, which already says it scrolls, and every
+small box inside a screen, a suggestion list or a menu.
+`src/test/scrollers.test.ts` holds the rule for the sideways ones.
 
 **A sideways scroller stops dead at its ends.** Every horizontal scroller
 carries `overscroll-x-none`, not `-contain`: contain keeps the swipe off the

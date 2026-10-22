@@ -168,8 +168,9 @@ export function SpareLineFormDialog({
   );
 
   const stats = leaves && pins.length > 0 ? leaves.find((l) => l.pins.join("-") === key) : undefined;
-  // Without Pro, the record of the 7 and the 10 and no others (ADR-192).
-  const recordLocked = proLocked && stats !== undefined && !isOpenLeave(pins);
+  // Without Pro, the record of the leaves Stats shows in full and no others
+  // (ADR-195).
+  const recordLocked = proLocked && stats !== undefined && !isOpenLeave(leaves ?? [], pins);
 
   return (
     <FormSheet

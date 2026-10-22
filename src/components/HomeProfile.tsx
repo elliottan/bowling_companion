@@ -15,7 +15,7 @@ import type { Manufacturer } from "../types/catalog";
  * the edge says there is more. `py-1`, not `pb-1`: overflow-x-auto forces
  * overflow-y to auto, which would clip a tile's shadow at the top.
  */
-const STRIP = "-mx-3 flex gap-2 overflow-x-auto overscroll-x-none px-3 py-1 sm:-mx-6 sm:px-6";
+const STRIP = "scrollbar-none -mx-3 flex gap-2 overflow-x-auto overscroll-x-none px-3 py-1 sm:-mx-6 sm:px-6";
 
 /** The heading over a row of the profile, with room for one small action. */
 function RowHeading({ label, trailing }: { label: string; trailing?: ReactNode }) {

@@ -621,7 +621,7 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall }: CatalogVie
             <div
                 role="dialog"
                 aria-label="Filter the catalog"
-                className="absolute inset-x-0 top-0 z-[2] max-h-[min(70vh,34rem)] space-y-4 overflow-y-auto overscroll-contain rounded-xl border border-edge bg-surface p-4 shadow-lg"
+                className="scrollbar-none absolute inset-x-0 top-0 z-[2] max-h-[min(70vh,34rem)] space-y-4 overflow-y-auto overscroll-contain rounded-xl border border-edge bg-surface p-4 shadow-lg"
               >
               {/* Brand */}
               <div>

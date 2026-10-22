@@ -27,30 +27,20 @@ describe("previewSplit", () => {
   });
 });
 
-describe("the free leaves (ADR-192)", () => {
-  it("are the 7 and the 10, whatever was left most, with the next most left blurred", () => {
+describe("the free leaves (ADR-195)", () => {
+  it("are the two left most, with the next blurred", () => {
     const leaves = [leave([7], 4), leave([10], 9), leave([4], 6), leave([2, 4, 5, 8], 12, 0)];
     const { shown, blurred } = freeLeavePreview(leaves);
-    expect(shown.map((l) => l.pins)).toEqual([[7], [10]]);
-    expect(shown[1].attempts).toBe(9);
-    // The washout off the 10th's last ball had no chance, so the 4 is next.
-    expect(blurred?.pins).toEqual([4]);
+    // The washout off the 10th's last ball had no chance, so it is not ranked.
+    expect(shown.map((l) => l.pins)).toEqual([[10], [4]]);
+    expect(blurred?.pins).toEqual([7]);
   });
 
-  it("shows a corner pin never left, at nothing", () => {
-    const { shown, blurred } = freeLeavePreview([leave([4], 6)]);
-    expect(shown).toEqual([
-      { pins: [7], attempts: 0, chances: 0, conversions: 0, conversionPct: null, sharePct: null },
-      { pins: [10], attempts: 0, chances: 0, conversions: 0, conversionPct: null, sharePct: null }
-    ]);
-    expect(blurred?.pins).toEqual([4]);
-  });
-
-  it("opens the same two records under every filter", () => {
-    expect(isOpenLeave([7])).toBe(true);
-    expect(isOpenLeave([10])).toBe(true);
-    expect(isOpenLeave([4])).toBe(false);
-    expect(isOpenLeave([7, 10])).toBe(false);
+  it("opens the records of the leaves shown, and no others", () => {
+    const leaves = [leave([7], 4), leave([10], 9), leave([4], 6)];
+    expect(isOpenLeave(leaves, [10])).toBe(true);
+    expect(isOpenLeave(leaves, [4])).toBe(true);
+    expect(isOpenLeave(leaves, [7])).toBe(false);
   });
 });
 

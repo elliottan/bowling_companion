@@ -136,8 +136,9 @@ describe("the first ball", () => {
       "Pocket",
       "Carry",
       "Strike",
+      "Pins a ball",
       "Strike on strike",
-      "Max consecutive strikes"
+      "Strikes in a row"
     ]);
     expect(screen.getByText("Pocket").nextElementSibling).toHaveTextContent("90%");
     expect(screen.getByText("Carry").nextElementSibling).toHaveTextContent("67%");
@@ -149,7 +150,7 @@ describe("strike on strike and max consecutive strikes", () => {
     render(<Stats stats={STATS} sessionMetrics={TREND} sessionTrend={SESSION_TREND} />);
     const card = screen.getByRole("heading", { name: "First ball" }).closest("section")!;
     expect(within(card).getByText("Strike on strike").nextElementSibling).toHaveTextContent("47%");
-    expect(within(card).getByText("Max consecutive strikes").nextElementSibling).toHaveTextContent("4");
+    expect(within(card).getByText("Strikes in a row").nextElementSibling).toHaveTextContent("4");
 
     fireEvent.click(screen.getByRole("button", { name: "Strike on strike" }));
     expect(screen.getByText("Strikes the next ball struck too.")).toBeInTheDocument();
@@ -248,12 +249,13 @@ describe("stat definitions", () => {
       strikePct: 70 - i
     }));
     render(<Stats stats={STATS} ballPerformance={{ ...REPORT, balls }} scopeLabel="Last 10 sessions  ·  Sea Bowl" />);
-    // Every ball is on the card, the list scrolling inside it.
+    // The best six on the card, with no scroller inside it, and the seventh
+    // under View all (ADR-196).
     expect(
       within(screen.getByRole("region", { name: "Ball columns" })).getAllByRole("button", {
         name: /^Open Ball /
       })
-    ).toHaveLength(7);
+    ).toHaveLength(6);
 
     fireEvent.click(screen.getByRole("button", { name: /^View all \d+ balls?$/ }));
     const sheet = await screen.findByRole("dialog", { name: "Balls" });
@@ -281,9 +283,10 @@ describe("stat definitions", () => {
   it("keeps the ball columns in one scroller, all rows together, on the card", () => {
     render(<Stats stats={STATS} ballPerformance={REPORT} />);
     const scroller = screen.getByRole("region", { name: "Ball columns" });
-    // Down for the balls, and sideways only on a phone too narrow for the
-    // columns (ADR-144).
-    expect(scroller).toHaveClass("overflow-auto");
+    // Sideways only, on a phone too narrow for the columns (ADR-144); never
+    // down, since the card holds its six in full (ADR-196).
+    expect(scroller).toHaveClass("overflow-x-auto");
+    expect(scroller.className).not.toMatch(/overflow-auto|overflow-y-auto|max-h-/);
     // A long name wraps to a second line rather than being cut at the first.
     expect(within(scroller).getByText("Wolverine")).toHaveClass("line-clamp-2");
     expect(within(scroller).getByRole("button", { name: "Open Wolverine" })).toBeInTheDocument();
@@ -445,7 +448,7 @@ describe("leave cells", () => {
         ]}
       />
     );
-    const card = screen.getByRole("region", { name: "Leaves left most" });
+    const card = screen.getByRole("list", { name: "Leaves left most" });
     const shown = [...card.querySelectorAll("button[aria-label^='Open ']")].map((b) =>
       b.getAttribute("aria-label")
     );
@@ -458,7 +461,7 @@ describe("leave cells", () => {
       "Open 2-4-5-8"
     ]);
     const section = card.closest("section")!;
-    expect(section).toHaveTextContent(/80%\s*made/);
+    expect(section).toHaveTextContent(/80%\s*of makeables made/);
     expect(section).not.toHaveTextContent(/missed/i);
   });
 
@@ -494,11 +497,11 @@ describe("leave cells", () => {
       singles.push({ ...tenPin, pins: pins as LeaveStats["pins"], chances: 20 - i, attempts: 20 - i })
     );
     render(<Stats stats={STATS} leaves={[...singles, { ...tenPin, pins: [7, 10] }]} />);
-    // The card lists every leave left three times or more, two rows on show
-    // and the rest a scroll away inside it.
-    const card = screen.getByRole("region", { name: "Leaves left most" });
-    expect(within(card).getAllByRole("button", { name: /^Open / })).toHaveLength(14);
-    expect(card.className).toMatch(/overflow-y-auto/);
+    // The card holds two rows of three, with nothing to scroll inside it, and
+    // the rest are under View all (ADR-196).
+    const card = screen.getByRole("list", { name: "Leaves left most" });
+    expect(within(card).getAllByRole("button", { name: /^Open / })).toHaveLength(6);
+    expect(card.closest("section")!.querySelector("[class*='overflow-y']")).toBeNull();
 
     fireEvent.click(screen.getByRole("button", { name: /^View all \d+ leaves?$/ }));
     const sheet = await screen.findByRole("dialog", { name: "Leaves" });
@@ -653,7 +656,7 @@ describe("the All balls sheet", () => {
 describe("first ball average", () => {
   it("sits on the first ball card, and can be plotted like the rest", () => {
     render(<Stats stats={STATS} leaves={[]} sessionMetrics={TREND} sessionTrend={SESSION_TREND} />);
-    expect(screen.getByText("8.4").parentElement).toHaveTextContent("8.4 pins a ball");
+    expect(screen.getByText("Pins a ball").nextElementSibling).toHaveTextContent("8.4");
     fireEvent.click(screen.getByRole("button", { name: "1st ball" }));
     expect(screen.getByRole("button", { name: "Sea Bowl, 8.9" })).toBeInTheDocument();
   });
@@ -665,7 +668,7 @@ describe("first ball average", () => {
 
   it("shows a dash when nothing has been thrown", () => {
     render(<Stats stats={{ ...STATS, firstBallAverage: null }} leaves={[]} />);
-    expect(screen.getByText(/pins a ball/).parentElement).toHaveTextContent("- pins a ball");
+    expect(screen.getByText("Pins a ball").nextElementSibling).toHaveTextContent("-");
   });
 });
 
@@ -842,7 +845,7 @@ describe("by session or by game, on the Stats tab", () => {
 });
 
 describe("the spares card's cap", () => {
-  it("shows the fifteen leaves left most, and keeps the rest for All leaves", () => {
+  it("shows the six leaves left most, and keeps the rest for All leaves", () => {
     const pins = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
     // Nine leaves left often, then eight left once: seventeen in all.
     const leaves: LeaveStats[] = Array.from({ length: 17 }, (_, i) => ({
@@ -865,9 +868,9 @@ describe("the spares card's cap", () => {
       }))
     ];
     render(<Stats stats={STATS} leaves={many} />);
-    const card = screen.getByRole("region", { name: "Leaves left most" });
+    const card = screen.getByRole("list", { name: "Leaves left most" });
     const shown = card.querySelectorAll("button[aria-label^='Open ']");
-    expect(shown).toHaveLength(15);
+    expect(shown).toHaveLength(6);
     expect(shown[0]).toHaveAccessibleName(/1-10/);
   });
 });
@@ -915,7 +918,7 @@ describe("while Pro is locked (ADR-154)", () => {
     expect(screen.getByText(/Pro adds every leave and every ball/)).toBeInTheDocument();
   });
 
-  it("shows the 7 and the 10 in full, the leave left most of the rest blurred, and no more (ADR-192)", () => {
+  it("shows the two leaves left most in full, the next one blurred, and no more (ADR-195)", () => {
     const leave = (pin: PinNumber, attempts: number, conversions: number): LeaveStats => ({
       pins: [pin],
       attempts,
@@ -933,41 +936,27 @@ describe("while Pro is locked (ADR-154)", () => {
       </ProAccessContext.Provider>
     );
     const grid = screen.getByRole("list", { name: "Leaves" });
-    // The corner pins, whichever leaves were left most.
-    expect(within(grid).getByRole("button", { name: "Open Pin 7" })).toHaveTextContent("1/425%");
+    // The two left most, in that order.
+    expect(within(grid).getByRole("button", { name: "Open Pin 4" })).toHaveTextContent("3/1225%");
     expect(within(grid).getByRole("button", { name: "Open Pin 10" })).toHaveTextContent("6/967%");
-    // The 4, left most of the rest, is blurred under one tap to Pro; the 6 is
-    // not drawn, and neither one's own numbers are in the page.
-    expect(within(grid).queryByRole("button", { name: "Open Pin 4" })).not.toBeInTheDocument();
+    // The 6, next, is blurred under one tap to Pro; the 7 is not drawn, and
+    // neither one's own numbers are in the page.
+    expect(within(grid).queryByRole("button", { name: "Open Pin 6" })).not.toBeInTheDocument();
     expect(
       within(grid).getByRole("button", { name: "Every leave you leave, and how often you make each. Get the app" })
     ).toBeInTheDocument();
-    expect(screen.queryByText("3/12")).not.toBeInTheDocument();
     expect(screen.queryByText("2/7")).not.toBeInTheDocument();
+    expect(screen.queryByText("1/4")).not.toBeInTheDocument();
     expect(within(grid).getAllByRole("listitem")).toHaveLength(3);
     // The sheet opens without Pro, says how many there are, and shows the same
     // two with the next one blurred (ADR-174).
     fireEvent.click(screen.getByRole("button", { name: "View all 4 leaves" }));
     const sheet = screen.getByRole("dialog", { name: /Leaves/ });
     const locked = within(sheet).getByRole("list", { name: "Leaves" });
-    expect(within(locked).getByRole("button", { name: "Open Pin 7" })).toBeInTheDocument();
+    expect(within(locked).getByRole("button", { name: "Open Pin 4" })).toBeInTheDocument();
     expect(within(locked).getByRole("button", { name: "Open Pin 10" })).toBeInTheDocument();
-    expect(within(locked).queryByRole("button", { name: "Open Pin 4" })).not.toBeInTheDocument();
+    expect(within(locked).queryByRole("button", { name: "Open Pin 6" })).not.toBeInTheDocument();
     expect(within(locked).getAllByRole("listitem")).toHaveLength(3);
-  });
-
-  it("shows a corner pin never left at nothing, rather than leaving it out (ADR-192)", () => {
-    render(
-      <ProAccessContext.Provider value={LOCKED}>
-        <Stats
-          stats={STATS}
-          leaves={[{ pins: [10], attempts: 3, chances: 3, conversions: 2, conversionPct: 67, sharePct: 5 }]}
-        />
-      </ProAccessContext.Provider>
-    );
-    const grid = screen.getByRole("list", { name: "Leaves" });
-    expect(within(grid).getByRole("button", { name: "Open Pin 7" })).toHaveTextContent("0/0-");
-    expect(within(grid).getByRole("button", { name: "Open Pin 10" })).toHaveTextContent("2/367%");
   });
 
   it("shows the best ball in full, the next one blurred, and no more (ADR-167)", () => {

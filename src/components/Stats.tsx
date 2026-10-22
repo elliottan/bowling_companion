@@ -1,4 +1,4 @@
-import { ArrowRight, BarChart3, TrendingDown, TrendingUp } from "lucide-react";
+import { ArrowRight, BarChart3, ChevronRight, TrendingDown, TrendingUp } from "lucide-react";
 import { Fragment, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { getSpareLinesAll } from "../services/ballRepository";
@@ -16,6 +16,7 @@ import { formatLeave, SPARE_GROUP_LABEL, SPARE_GROUPS, spareGroup } from "../lib
 import { SpareDetailsSheet } from "./SpareDetailsSheet";
 import { FormSheet } from "./ui/FormSheet";
 import { Chip, TAP_TARGET_44 } from "./ui/Chip";
+import { Button } from "./ui/Button";
 import { SegmentedControl } from "./ui/SegmentedControl";
 import {
   pinsPerBall,
@@ -313,7 +314,7 @@ export function Stats({
   const header = chartHeader;
   // Without Pro, a list shows its first rows as they are and the next one
   // blurred, and nothing after it (ADR-167); the leaves' first rows are always
-  // the 7 and the 10 (ADR-192).
+  // the two left most (ADR-195).
   const leavePreview = proLocked ? freeLeavePreview(convertible) : null;
   const ballPreview = proLocked ? previewSplit(ranked, FREE_BALLS) : null;
 
@@ -451,24 +452,12 @@ export function Stats({
                 Spares
               </button>
             </h2>
-            {/* How many there are, so the bowler knows the size of what is
-                behind the tap. Open with or without Pro: without it, the sheet
-                shows what this card does and locks the rest (ADR-174). */}
-            {convertible.length > 0 && (
-              <button
-                type="button"
-                onClick={() => setAllLeavesOpen(true)}
-                className={`relative text-xs font-semibold text-accent active:opacity-60 ${TAP_TARGET_44}`}
-              >
-                View all {countOf(convertible.length, "leave")}
-              </button>
-            )}
           </div>
+          {/* Of the makeables, since that is what the rate counts: splits and
+              washouts are left out of it (SPARE_NOTE). */}
           <p className="mt-1 flex items-baseline gap-2">
             <span className="text-3xl font-bold tabular-nums text-ink">{pct(stats.sparePct)}</span>
-            <span className="text-sm text-ink-secondary">
-              made
-            </span>
+            <span className="text-sm text-ink-secondary">of makeables made</span>
           </p>
           {note === SPARE_NOTE && (
             <div className="mt-2">
@@ -476,9 +465,8 @@ export function Stats({
             </div>
           )}
           {leavePreview ? (
-            // Without Pro: the 7 and the 10, in full, and the leave left most
-            // of the rest blurred in the same row. No scroller, since there is nothing to
-            // scroll to.
+            // Without Pro: the two left most, in full, and the next one blurred
+            // in the same row (ADR-195).
             <ul aria-label="Leaves" className="mt-3 grid grid-cols-3 gap-1.5">
               {leavePreview.shown.map((leave) => (
                 <li key={leave.pins.join("-")}>
@@ -495,16 +483,19 @@ export function Stats({
             </ul>
           ) : (
             leftMost.length > 0 && (
-              // Two rows on show, the rest a scroll away inside the card, with
-              // the top of a third row peeking to say there is more.
-              <div
-                role="region"
-                aria-label="Leaves left most"
-                className="scrollbar-none -mx-1 mt-3 max-h-[15.25rem] overflow-y-auto overscroll-y-contain px-1"
-              >
-                <LeaveGrid leaves={leftMost} onOpen={setOpenLeave} />
+              // Two rows of three, and every other leave under View all: a
+              // scroller inside the scrolling screen was a second scroll to
+              // find and to fight (ADR-196).
+              <div className="mt-3">
+                <LeaveGrid leaves={leftMost} onOpen={setOpenLeave} label="Leaves left most" />
               </div>
             )
+          )}
+          {/* How many there are, so the bowler knows the size of what is
+              behind the tap. Open with or without Pro: without it, the sheet
+              shows what this card does and locks the rest (ADR-174). */}
+          {convertible.length > 0 && (
+            <ViewAll count={convertible.length} noun="leaves" onClick={() => setAllLeavesOpen(true)} />
           )}
         </section>
       )}
@@ -513,18 +504,11 @@ export function Stats({
           <section className="rounded-xl border border-edge bg-surface p-3 shadow-sm">
             <div className="flex items-center justify-between gap-3">
               <h2 className={GROUP_HEADING}>Balls</h2>
-              <button
-                type="button"
-                onClick={() => setBallsOpen({ focus: null })}
-                className={`relative text-xs font-semibold text-accent active:opacity-60 ${TAP_TARGET_44}`}
-              >
-                View all {countOf(ranked.length, "ball")}
-              </button>
             </div>
             {ballPreview ? (
               // Without Pro: the best ball in full, and the next one blurred
               // (ADR-167). The best ball opens the sheet on itself (ADR-174).
-              <div className="mt-1 overflow-x-auto overscroll-x-none">
+              <div className="scrollbar-none mt-1 overflow-x-auto overscroll-x-none">
                 <div className="min-w-fit">
                   <BallRateHeadings />
                   <ul aria-label="Balls" className="divide-y divide-edge">
@@ -553,23 +537,19 @@ export function Stats({
                 </div>
               </div>
             ) : (
-            // Every ball, about five on show and the rest a scroll down, like
-            // the leaves above, the headings pinned at the top. The columns fit
-            // a phone (ADR-144); on one narrower still, the rows scroll sideways
-            // together with the ball's name pinned at the left (ADR-139).
+            // The best six, and every ball under View all, like the leaves
+            // above (ADR-196). The columns fit a phone (ADR-144); on one
+            // narrower still, the rows scroll sideways together with the
+            // ball's name pinned at the left (ADR-139).
             <div
               role="region"
               aria-label="Ball columns"
-              className="mt-1 max-h-[21rem] overflow-auto overscroll-x-none overscroll-y-contain"
+              className="scrollbar-none mt-1 overflow-x-auto overscroll-x-none"
             >
-              {/* Room on the right for the scroll indicator, which iOS draws
-                  over the box's last pixels and so over the last column. Half
-                  as much on a 360px phone, where the columns fit with only
-                  4px to spare (ADR-144). */}
-              <div className="min-w-fit pr-1 min-[375px]:pr-2">
+              <div className="min-w-fit">
                 <BallRateHeadings />
                 <ul className="divide-y divide-edge">
-                  {ranked.map((b) => (
+                  {ranked.slice(0, CARD_BALLS).map((b) => (
                     <li key={b.ballId}>
                       <button
                         type="button"
@@ -585,6 +565,7 @@ export function Stats({
               </div>
             </div>
             )}
+            <ViewAll count={ranked.length} noun="balls" onClick={() => setBallsOpen({ focus: null })} />
           </section>
       )}
 
@@ -650,22 +631,14 @@ function Headline({ stats, form }: { stats: BowlingStats; form?: RecentForm | nu
             {fmt(stats.averageScore)}
           </p>
         </div>
-        {/* Each number centred over its label: right-aligned, a short label
-            ("Low") sat off under the end of a wider number. */}
-        <dl className="grid shrink-0 grid-cols-3 gap-4 text-center">
-          {(
-            [
-              ["High", fmt(stats.highGame)],
-              ["Low", fmt(stats.lowGame)],
-              ["Games", String(stats.completedGames)]
-            ] as const
-          ).map(([label, value]) => (
-            <div key={label} className="flex flex-col-reverse">
-              <dt className="text-xs text-ink-secondary">{label}</dt>
-              <dd className="text-base font-bold leading-tight tabular-nums text-ink">{value}</dd>
-            </div>
-          ))}
-        </dl>
+        <Companions
+          className="shrink-0 gap-4"
+          items={[
+            ["High", fmt(stats.highGame)],
+            ["Low", fmt(stats.lowGame)],
+            ["Games", String(stats.completedGames)]
+          ]}
+        />
       </div>
       {form && <FormLine form={form} />}
     </section>
@@ -701,12 +674,43 @@ function FormLine({ form }: { form: RecentForm }) {
 }
 
 /**
+ * A card's smaller numbers: each one centred over its label, in a row. The
+ * headline's high, low and games and the First ball card's three use the same
+ * one, so every card on the screen reads the same way, a heading, its one
+ * large answer, and these under or beside it (ADR-196). Right-aligned, a short
+ * label ("Low") sat off under the end of a wider number.
+ */
+function Companions({
+  items,
+  className = ""
+}: {
+  items: ReadonlyArray<readonly [label: string, value: string]>;
+  className?: string;
+}) {
+  return (
+    <dl className={`grid grid-cols-3 text-center ${className}`}>
+      {items.map(([label, value]) => (
+        <div key={label} className="flex flex-col-reverse">
+          <dt className="text-xs text-ink-secondary">{label}</dt>
+          <dd className="text-base font-bold leading-tight tabular-nums text-ink">{value}</dd>
+        </div>
+      ))}
+    </dl>
+  );
+}
+
+/**
  * Pocket, carry and strike as the chain they are: of the first balls, these hit
  * the pocket, of those this many carried, and that is most of the strikes. As
  * three separate tiles the relationship between them was lost, and it is the
  * thing a bowler most needs from them: whether a low strike rate is a getting-
  * there problem or a carrying problem. The arrows say "leads to", not "equals":
  * a Brooklyn strike is a strike and not a pocket hit.
+ *
+ * Under the chain, the card's other three in one even row (ADR-196): pins a
+ * ball, strike after a strike, and the longest run. They used to be scattered,
+ * one in the heading's corner and two pushed to either end of a footer line,
+ * three sizes and three alignments for numbers of the same weight.
  */
 function FirstBallCard({
   stats
@@ -724,13 +728,7 @@ function FirstBallCard({
   ];
   return (
     <section className="rounded-xl border border-edge bg-surface p-3 shadow-sm">
-      <div className="flex items-baseline justify-between gap-3">
-        <h2 className={GROUP_HEADING}>First ball</h2>
-        <span className="text-xs text-ink-secondary">
-          <span className="font-semibold tabular-nums text-ink">{oneDp(stats.firstBallAverage)}</span>{" "}
-          pins a ball
-        </span>
-      </div>
+      <h2 className={GROUP_HEADING}>First ball</h2>
       <dl className="mt-2 grid grid-cols-[1fr_auto_1fr_auto_1fr] items-center text-center">
         {links.map(([label, value, lead], i) => (
           <Fragment key={label}>
@@ -742,16 +740,14 @@ function FirstBallCard({
           </Fragment>
         ))}
       </dl>
-      <dl className="mt-3 flex justify-between gap-3 border-t border-edge pt-2 text-xs text-ink-secondary">
-        <div className="flex gap-1">
-          <dt>Strike on strike</dt>
-          <dd className="font-semibold tabular-nums text-ink">{pct(stats.strikeOnStrikePct)}</dd>
-        </div>
-        <div className="flex gap-1">
-          <dt>Max consecutive strikes</dt>
-          <dd className="font-semibold tabular-nums text-ink">{fmt(stats.bestStreak)}</dd>
-        </div>
-      </dl>
+      <Companions
+        className="mt-3 border-t border-edge pt-2.5"
+        items={[
+          ["Pins a ball", oneDp(stats.firstBallAverage)],
+          ["Strike on strike", pct(stats.strikeOnStrikePct)],
+          ["Strikes in a row", fmt(stats.bestStreak)]
+        ]}
+      />
     </section>
   );
 }
@@ -767,8 +763,28 @@ const CHART_BY: ReadonlyArray<{ value: ChartBy; label: string }> = [
  *  long day of league and practice still names every slot (ADR-145). */
 export const GAME_LABELS_UP_TO = 12;
 
-/** Leaves on the Spares card; every one is under All leaves. */
-const CARD_LEAVES = 15;
+/** Leaves on the Spares card, two rows of three; every one is under All leaves. */
+const CARD_LEAVES = 6;
+
+/** Balls on the Balls card; every one is under All balls. */
+const CARD_BALLS = 6;
+
+/**
+ * The way from a card to its whole list: a glass pill the card's width, at its
+ * foot, where the thumb is once the card has been read (ADR-196). It used to
+ * be a line of accent text in the card's top corner, "View all 78 leaves",
+ * which read as a link in a heading and was a small target. The count stays,
+ * so the bowler knows the size of what is behind it; the noun is for a screen
+ * reader, since the card's heading already says what is counted.
+ */
+function ViewAll({ count, noun, onClick }: { count: number; noun: string; onClick: () => void }) {
+  return (
+    <Button variant="glass" onClick={onClick} className="mt-3 w-full" aria-label={`View all ${count} ${noun}`}>
+      View all {count}
+      <ChevronRight size={16} aria-hidden="true" className="-mr-1" />
+    </Button>
+  )
+}
 
 /** The leaves left most, of every shape, most often first (ADR-129), however
  *  few times each was left (ADR-139): a single session's card is still worth
@@ -916,7 +932,7 @@ function BallSummary({ ball, labelled = false }: { ball: BallPerformance; labell
     <div
       role="region"
       aria-label={`${ball.name} columns`}
-      className="overflow-x-auto overscroll-x-none"
+      className="scrollbar-none overflow-x-auto overscroll-x-none"
     >
       {line}
     </div>
@@ -940,7 +956,7 @@ function BallDetails({
       <div
         role="region"
         aria-label={`${ball.name} by game`}
-        className="overflow-x-auto overscroll-x-none"
+        className="scrollbar-none overflow-x-auto overscroll-x-none"
       >
         <table className="min-w-full whitespace-nowrap text-[11px] tabular-nums">
           <thead>
@@ -994,7 +1010,7 @@ function BallDetails({
         // Grouped the way the leave cards are, easiest first, and scrolled
         // rather than cut at four: every leave the ball left is part of the
         // answer.
-        <div className="grid auto-cols-[calc((100%-1.125rem)/4)] grid-flow-col gap-1.5 overflow-x-auto overscroll-x-none">
+        <div className="scrollbar-none grid auto-cols-[calc((100%-1.125rem)/4)] grid-flow-col gap-1.5 overflow-x-auto overscroll-x-none">
           {[...ball.leaves]
             .sort((a, b) => SPARE_GROUPS.indexOf(spareGroup(a.pins)) - SPARE_GROUPS.indexOf(spareGroup(b.pins)))
             .map((leave) => (
@@ -1191,8 +1207,8 @@ function AllLeavesSheet({
   );
 }
 
-/** The All leaves sheet without Pro: the 7 and the 10 the Spares card shows,
- *  each one opening its record, then the next one blurred (ADR-174, ADR-192). */
+/** The All leaves sheet without Pro: the two the Spares card shows, each one
+ *  opening its record, then the next one blurred (ADR-174, ADR-195). */
 function LockedLeaves({
   leaves,
   onOpen
@@ -1277,13 +1293,15 @@ function sortByChances(leaves: LeaveStats[]): LeaveStats[] {
  *  every cell. */
 function LeaveGrid({
   leaves,
-  onOpen
+  onOpen,
+  label
 }: {
   leaves: LeaveStats[];
   onOpen: (pins: LeaveStats["pins"]) => void;
+  label?: string;
 }) {
   return (
-    <ul className="grid grid-cols-3 gap-1.5">
+    <ul aria-label={label} className="grid grid-cols-3 gap-1.5">
       {leaves.map((leave) => (
         <li key={leave.pins.join("-")}>
           <LeaveCell leave={leave} onOpen={() => onOpen(leave.pins)} />
@@ -1348,10 +1366,6 @@ function LeaveCell({ leave, onOpen }: { leave: LeaveStats; onOpen: () => void })
 }
 
 /** "1 ball", "6 balls". */
-function countOf(n: number, noun: string): string {
-  return `${n} ${noun}${n === 1 ? "" : "s"}`;
-}
-
 function fmt(value: number | null): string {
   return value === null ? "-" : String(value);
 }

@@ -180,7 +180,7 @@ export function SpareLinesView({ onBack }: { onBack: () => void }) {
   // hints rank by.
   const leaves = useLiveQuery(async () => calculateCommonLeaves(await getSessionHistory())) ?? NO_LEAVES;
   const balls = useLiveQuery(() => getBalls()) ?? [];
-  // Without Pro, only the 7's and the 10's records are open (ADR-192).
+  // Without Pro, the records of the leaves Stats shows in full (ADR-195).
   const { locked: proLocked } = useProAccess();
   // Pocket leaves are shot on the strike line and are never listed (ADR-123).
   // A row saved for one stays stored, out of sight.
@@ -362,7 +362,7 @@ export function SpareLinesView({ onBack }: { onBack: () => void }) {
           dismissLabel="Not now"
         >
           You leave <span className="font-semibold text-ink">{formatLeave(ask.pins)}</span> most often
-          {proLocked && !isOpenLeave(ask.pins)
+          {proLocked && !isOpenLeave(leaves, ask.pins)
             ? " "
             : ` (${ask.attempts} ${ask.attempts === 1 ? "time" : "times"}) `}
           and have no line for it.
@@ -429,14 +429,14 @@ export function SpareLinesView({ onBack }: { onBack: () => void }) {
                   <h2 className={GROUP_HEADING}>No line yet</h2>
                 )}
               </div>
-              <ul className="-mx-3 flex snap-x scroll-pl-3 gap-2 overflow-x-auto overscroll-x-none px-3 pb-1 sm:mx-0 sm:scroll-pl-0 sm:px-0">
+              <ul className="scrollbar-none -mx-3 flex snap-x scroll-pl-3 gap-2 overflow-x-auto overscroll-x-none px-3 pb-1 sm:mx-0 sm:scroll-pl-0 sm:px-0">
                 {row.tiles.map((tile) => (
                   <LeaveTile
                     key={tile.spareLine.id}
                     tile={tile}
                     // A leave never left has no record to hold back.
                     recordLocked={
-                      proLocked && tile.attempts > 0 && !isOpenLeave(tile.spareLine.pins)
+                      proLocked && tile.attempts > 0 && !isOpenLeave(leaves, tile.spareLine.pins)
                     }
                     onOpen={(line) => setOpened({ pins: line.pins, edit: false })}
                   />
