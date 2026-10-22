@@ -384,10 +384,10 @@ describe("the games behind a column", () => {
     fireEvent.click(screen.getByRole("button", { name: /Games behind Wolverine, game 4/ }));
   }
 
-  it("names the ball, and says which game the usages are in", () => {
+  it("names the ball, and says which game the sessions are in", () => {
     openDrilldown();
     expect(screen.getByRole("heading", { name: "Wolverine" })).toBeInTheDocument();
-    expect(screen.getByText("Usages in game 4")).toBeInTheDocument();
+    expect(screen.getByText("Game 4, 1 session")).toBeInTheDocument();
   });
 
   it("shows the event and the rates behind the counts", () => {
@@ -412,7 +412,7 @@ describe("the games behind a column", () => {
   it("closes itself on the way out, so it does not come back over the game it opened", async () => {
     openDrilldown();
     fireEvent.click(screen.getByText("Chinese Swimming Club"));
-    await waitFor(() => expect(screen.queryByText("Usages in game 4")).toBeNull());
+    await waitFor(() => expect(screen.queryByText("Game 4, 1 session")).toBeNull());
   });
 });
 
@@ -821,14 +821,14 @@ describe("by session or by game, on the Stats tab", () => {
     fireEvent.click(screen.getByRole("button", { name: "Game 2, 190" }));
     fireEvent.click(screen.getByRole("button", { name: /^Game 2\s*2 games\s*190$/ }));
 
-    const dialog = screen.getByRole("dialog", { name: "Game 2, every session" });
+    const dialog = screen.getByRole("dialog", { name: "Game 2" });
     const row = within(dialog).getByRole("button", { name: /Chinese Swimming Club/ });
     expect(row).toHaveTextContent("League · Lanes 7/8 · 2019 PBA Bear 41");
     // This night's game 2 is the one picked out.
     expect(within(row).getByText("149").parentElement).toHaveAttribute("aria-current", "true");
     fireEvent.click(row);
     await waitFor(() => expect(opened).toEqual([[7, 72]]));
-    await waitFor(() => expect(screen.queryByRole("dialog", { name: "Game 2, every session" })).toBeNull());
+    await waitFor(() => expect(screen.queryByRole("dialog", { name: "Game 2" })).toBeNull());
   });
 
   it("is not offered inside a session, which already plots its games", () => {

@@ -33,6 +33,9 @@ had all shipped.
 - **Ball columns sit at an even step.** On the Balls card and in each ball's
   by-game table, every column is one fixed width with its figures centred, so
   the gaps no longer change with the width of the numbers.
+- **The sessions behind a ball's game, or a point on the by-game chart, open
+  in a sheet** like the rest of the app, with a close button, short dates and the
+  rates written out, rather than a card floating over the screen (ADR-197).
 - **Fewer scroll bars.** Sideways strips and small lists inside a screen no
   longer draw one; screens and sheets keep the one iOS shows while you scroll.
 - **The bar at the bottom of the Headpin Pro page sits on the bottom edge.** On

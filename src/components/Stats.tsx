@@ -1109,7 +1109,6 @@ function AllBallsSheet({
       </div>
       {drill && onOpenGame && (
         <BallGameSessionsDialog
-          open
           ballName={drill.ball.name}
           gameNumber={drill.cell.gameNumber}
           sessions={drill.cell.sessions}

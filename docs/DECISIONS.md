@@ -8701,3 +8701,26 @@ in a heading and made a small target.
 **Consequences.** A bowler with more than six leaves or balls taps once more to
 see the seventh. The Balls card still scrolls sideways on a phone too narrow
 for its columns (ADR-144), without a bar.
+
+---
+
+## ADR-197: The games behind a Stats figure open in a sheet
+
+**Status.** Accepted, 2026-10-22, by the owner from a phone in hand.
+
+**Context.** A ball's game column on the All balls sheet and a point on the
+by-game chart each open the sessions behind them. Both opened as a card centred
+over the screen, with no bar and no close, its title loose at the top, raw ISO
+dates, and its rates in tinted pills that nothing else in the app draws. Over
+the All balls sheet it read as a stray panel rather than a step further in.
+
+**Decision.** Both open as a `FormSheet` (`GameRowsSheet`): the title is the
+ball, or "Game 2", the subtitle says how many sessions, and the close is in the
+bar. The sessions are an inset grouped list (ADR-191) on the sheet's muted fill,
+each row the venue and a short date, the event and lanes, then its figures as
+words ("Pocket 92% 11/12"), with a good rate in the accent, and a chevron,
+since a row opens its game. Tapping a row closes the sheet and opens the game,
+as before.
+
+**Consequences.** Every list the app opens over a screen is now a sheet; the
+centred dialog is left for a question with an answer (`ConfirmDialog`).
