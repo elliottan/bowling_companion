@@ -9,6 +9,16 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.61.0: The 7 and the 10 are free, and shared links can't be edited (2026-10-22)
+
+- **Without Pro, the 7 and the 10 are always open.** The leaves card shows the
+  two corner pins in full, even before you have left them, with the next leave
+  blurred. It used to show the two you left most, which changed with every
+  filter (ADR-192).
+- **A shared line or layout link carries a short check code.** Change a number
+  in the link by hand and it opens on the defaults instead. Links shared before
+  this version open on the defaults too.
+
 ## 0.60.0: Lists and tiles look like iOS (2026-10-22)
 
 - **Lists look like iOS Settings.** Rounder cards without outlines, taller rows

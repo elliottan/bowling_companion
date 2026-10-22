@@ -8,7 +8,7 @@
  * has a route (`#/home/line`), so a shared line opens the screen that was
  * already built to hold one.
  *
- *   https://headpin.app/app?ld=20&tg=15&fb=17.5&hand=right&pat=chromium-6742#/home/line
+ *   https://headpin.app/app?ld=20&tg=15&fb=17.5&hand=right&pat=chromium-6742&c=1x2y3z#/home/line
  *
  * Every field is optional on the way in. A half-written or hand-edited link
  * opens the sandbox on whatever it could read rather than failing: a bad link
@@ -24,6 +24,7 @@
  */
 
 import type { Handedness, LineSpec, PinNumber } from "../types/bowling";
+import { hasValidCheck, withCheck } from "./shareCheck";
 
 /** Everything a shared link carries: the line, the bowler, the lane. */
 export interface SharedLine {
@@ -62,7 +63,7 @@ export function encodeLineParams(shared: SharedLine): string {
   if (shared.spare) params.set("sp", "1");
   if (shared.leave?.length) params.set("lv", [...shared.leave].sort((a, b) => a - b).join("."));
   if (shared.patternCatalogId) params.set("pat", shared.patternCatalogId);
-  return params.toString();
+  return withCheck(params.toString());
 }
 
 /**
@@ -103,10 +104,13 @@ const KNOWN = ["ld", "tg", "fb", "fd", "hs", "hl", "hand", "sp", "lv", "pat"];
  * Returns `null` when the query says nothing about a line at all, which is how
  * the caller tells "opened from a shared link" from "opened normally", and so
  * knows whether to override the bowler's own hand and the sandbox's own line.
+ * A link whose check code does not match its numbers is read the same way: a
+ * number edited by hand opens nothing (`shareCheck.ts`, ADR-192).
  */
 export function decodeLineParams(search: string): SharedLine | null {
   const params = new URLSearchParams(search.startsWith("?") ? search.slice(1) : search);
   if (!KNOWN.some((key) => params.has(key))) return null;
+  if (!hasValidCheck(params)) return null;
 
   const line: LineSpec = {};
   const ld = readNumber(params.get("ld"), 1, 59);

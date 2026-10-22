@@ -1,6 +1,10 @@
+import { withCheck } from "./shareCheck";
 import { describe, it, expect } from "vitest";
 import { decodeLineParams, encodeLineParams, lineShareUrl, LINE_SANDBOX_HASH } from "./lineShare";
 import type { SharedLine } from "./lineShare";
+
+/** A hand-made link with the check code a shared one carries (ADR-192). */
+const signed = (query: string) => withCheck(query.replace(/^\?/, ""));
 
 const A_LINE: SharedLine = {
   line: {
@@ -40,23 +44,23 @@ describe("encode and decode", () => {
   });
 
   it("opens on what it can read rather than failing on what it cannot", () => {
-    const back = decodeLineParams("?ld=oops&tg=15");
+    const back = decodeLineParams(signed("?ld=oops&tg=15"));
     expect(back?.line).toEqual({ target: 15 });
     expect(back?.hand).toBe("right");
   });
 
   it("clamps a hand-edited board back onto the lane", () => {
-    expect(decodeLineParams("?tg=900")?.line.target).toBe(39);
-    expect(decodeLineParams("?tg=-4")?.line.target).toBe(1);
+    expect(decodeLineParams(signed("?tg=900"))?.line.target).toBe(39);
+    expect(decodeLineParams(signed("?tg=-4"))?.line.target).toBe(1);
   });
 
   it("drops pins that are not pins, and a leave of nothing", () => {
-    expect(decodeLineParams("?lv=6.10.99")?.leave).toEqual([6, 10]);
-    expect(decodeLineParams("?lv=xx")?.leave).toBeUndefined();
+    expect(decodeLineParams(signed("?lv=6.10.99"))?.leave).toEqual([6, 10]);
+    expect(decodeLineParams(signed("?lv=xx"))?.leave).toBeUndefined();
   });
 
   it("reads a leave as a spare line even with the flag gone", () => {
-    expect(decodeLineParams("?lv=7")?.spare).toBe(true);
+    expect(decodeLineParams(signed("?lv=7"))?.spare).toBe(true);
   });
 
   it("carries the pattern as a catalog id, never a name", () => {

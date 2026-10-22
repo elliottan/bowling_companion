@@ -1,4 +1,5 @@
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import { withCheck } from "../lib/shareCheck";
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { LayoutLabView } from "./LayoutLabView";
 import { db } from "../db/bowlingDb";
@@ -527,7 +528,7 @@ describe("LayoutLabView", () => {
   it("opens on a shared layout, overriding the bowler's own PAP and hand", async () => {
     await setPap({ over: 5, up: 0.5 });
     await setHandedness("right");
-    window.history.replaceState({}, "", "/?da=70&ptp=5&val=30&hand=left&over=4&up=0&core=asym");
+    window.history.replaceState({}, "", `/?${withCheck("da=70&ptp=5&val=30&hand=left&over=4&up=0&core=asym")}`);
     renderLab({ you: true });
 
     expect(dualAngle()).toBe("70 x 5 x 30");
@@ -537,7 +538,7 @@ describe("LayoutLabView", () => {
 
   it("leaves the reader's own axis alone when it opens on somebody else's", async () => {
     await setPap({ over: 5, up: 0.5 });
-    window.history.replaceState({}, "", "/?da=45&ptp=4.5&val=45&over=3&up=0");
+    window.history.replaceState({}, "", `/?${withCheck("da=45&ptp=4.5&val=45&over=3&up=0")}`);
     renderLab({ you: true });
     // The link's axis is what the layout is read against, so it is what shows.
     expect((screen.getByLabelText("Over") as HTMLSelectElement).value).toBe("3");
@@ -583,7 +584,7 @@ describe("LayoutLabView", () => {
 
   it("asks before the reset, and names the settings it is resetting to", async () => {
     await setPap({ over: 3, up: 0 });
-    window.history.replaceState({}, "", "/?da=45&ptp=4.5&val=45&over=6&up=0&hand=left");
+    window.history.replaceState({}, "", `/?${withCheck("da=45&ptp=4.5&val=45&over=6&up=0&hand=left")}`);
     renderLab({ you: true });
     // Somebody else's axis, from their link.
     expect((screen.getByLabelText("Over") as HTMLSelectElement).value).toBe("6");
@@ -664,7 +665,7 @@ describe("LayoutLabView", () => {
   });
 
   it("leaves the reader's own grip alone when it opens on somebody else's", async () => {
-    window.history.replaceState({}, "", "/?da=45&ptp=4.5&val=45&grip=2h");
+    window.history.replaceState({}, "", `/?${withCheck("da=45&ptp=4.5&val=45&grip=2h")}`);
     renderLab({ you: true });
     expect(screen.getByRole("button", { name: "Two handed" })).toHaveAttribute(
       "aria-pressed",
